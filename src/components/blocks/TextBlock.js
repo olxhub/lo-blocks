@@ -1,10 +1,10 @@
 import React from 'react';
 
 import * as parsers from '@/lib/olx/parsers';
-
 import { Trace } from '@/lib/debug';
+import { test } from '../blocks.js';
 
-export default function TextBlock({ kids, url_name }) {
+function _TextBlock({ kids, url_name }) {
   const content = Array.isArray(kids)
     ? kids.map((child, i) => {
         if (typeof child === 'string') return child;
@@ -28,4 +28,10 @@ export default function TextBlock({ kids, url_name }) {
   );
 }
 
-TextBlock.childParser = parsers.text;
+const TextBlock = test({
+  name: "TextBlock",
+  component: _TextBlock,
+  parser: parsers.text
+});
+
+export default TextBlock;
