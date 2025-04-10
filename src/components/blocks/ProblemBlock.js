@@ -2,8 +2,9 @@ import React from 'react';
 
 import * as parsers from '@/lib/olx/parsers';
 import { renderCompiledChildren } from '@/lib/render';
+import { test } from '../blocks.js';
 
-export default function ProblemBlock({ kids, idMap }) {
+function _ProblemBlock({ kids, idMap }) {
   return (
     <div className="border p-4 space-y-2">
       {renderCompiledChildren({ children: kids, idMap })}
@@ -11,4 +12,10 @@ export default function ProblemBlock({ kids, idMap }) {
   );
 }
 
-ProblemBlock.childParser = parsers.xblocks;
+const ProblemBlock = test({
+  name: 'ProblemBlock',
+  component: _ProblemBlock,
+  parser: parsers.xblocks,
+});
+
+export default ProblemBlock;
