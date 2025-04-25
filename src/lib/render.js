@@ -32,9 +32,8 @@ export function render({ node, idMap, key }) {
 
   // Handle structured OLX-style node
   const { tag, attributes = {}, children = [] } = node;
-  const Component = COMPONENT_MAP[tag].component;
 
-  if (!Component) {
+  if (!COMPONENT_MAP[tag] || ! COMPONENT_MAP[tag].component) {
     return (
       <DisplayError
         id={`unknown-tag-${tag}`}
@@ -44,6 +43,8 @@ export function render({ node, idMap, key }) {
       />
     );
   }
+
+  const Component = COMPONENT_MAP[tag].component;
 
   return (
     <Component {...attributes} kids={children} idMap={idMap} />

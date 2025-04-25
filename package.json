@@ -12,6 +12,7 @@
     "clean": "rm -rf .next node_modules .turbo out"
   },
   "dependencies": {
+    "@xyflow/react": "^12.6.0",
     "fast-xml-parser": "^5.0.9",
     "lo_event": "file:lo_event-0.0.3.tgz",
     "next": "15.2.4",
