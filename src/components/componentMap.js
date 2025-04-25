@@ -76,10 +76,28 @@ export const COMPONENT_MAP = {
   ProblemBlock,
   TextInput,
   LLMButton: createStubBlock('LLMButton', 'org.mitros.dev'),
-  LLMFeedback: LLMFeedback,
+  LLMFeedback,
   LLMPrompt: createStubBlock('LLMPrompt', 'org.mitros.dev'),
   Element: createStubBlock('Element', 'org.mitros.dev'),
   SideBarPanel, //: createStubBlock('SideBarPanel', 'org.mitros.dev'),
   Sidebar: createStubBlock('Sidebar', 'org.mitros.dev'),
   MainPane: createStubBlock('MainPane', 'org.mitros.dev'),
 };
+
+// We will validate it here, looking for common error(s).
+function assertValidComponent(component, name) {
+  if (
+    typeof component !== "object"
+  ) {
+    console.log("Failed to validate", name, component, typeof component, component.name);
+    throw new Error(
+      `Component "${name}" is invalid. This may be due to importing a "use client" component in a server context. ` +
+      `Make sure all client components are only used in client files.`
+    );
+  }
+}
+
+// Usage:
+Object.entries(COMPONENT_MAP).forEach(([name, entry]) => {
+  assertValidComponent(entry, name);
+});
