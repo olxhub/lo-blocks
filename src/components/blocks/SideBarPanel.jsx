@@ -28,10 +28,20 @@ const sbParser = childParser(function sideBlockParser({ rawChildren, parse }) {
     const block = child[tag];
 
     if (tag === 'MainPane') {
-      main = parse(block);
+      // MainPane -> unwrap children and parse
+      const mainPaneChildren = Array.isArray(block) ? block : [block];
+      main = mainPaneChildren
+        .map(c => parse(c))
+        .filter(Boolean); // parse each kid
     } else if (tag === 'Sidebar') {
-      const items = Array.isArray(block) ? block : [block];
-      items.forEach(n => sidebar.push(parse(n)));
+      const sidebarChildren = Array.isArray(block) ? block : [block];
+      sidebarChildren.forEach(n => {
+        const inner = Array.isArray(n) ? n : [n];
+        inner.forEach(c => {
+          const parsed = parse(c);
+          if (parsed) sidebar.push(parsed);
+        });
+      });
     } else {
       console.warn(`[SideBarPanel] Unknown tag: <${tag}>`);
     }
@@ -39,6 +49,7 @@ const sbParser = childParser(function sideBlockParser({ rawChildren, parse }) {
 
   return { main, sidebar };
 });
+
 
 const SideBarPanel = dev({
   name: 'SideBarPanel',

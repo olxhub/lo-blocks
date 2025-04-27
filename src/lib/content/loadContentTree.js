@@ -3,6 +3,8 @@ import path from 'path';
 import crypto from 'crypto';
 import { XMLParser } from 'fast-xml-parser';
 import { COMPONENT_MAP } from '@/components/componentMap';
+import { transformTagName } from '@/lib/content/xmlTransforms';
+
 import * as parsers from '@/lib/olx/parsers';
 
 const defaultParser = parsers.xblocks;
@@ -18,15 +20,13 @@ const xmlParser = new XMLParser({
   preserveOrder: true,
   commentPropName: '#comment',
   preserveTextNodeWhiteSpaces: true,
-  trimValues: false
+  trimValues: false,
+  transformTagName
 });
 
 export async function loadContentTree(contentDir = './content') {
   const xmlFiles = await getXmlFilesRecursively(contentDir);
   const seenFiles = new Set();
-  console.log("Component map >>>> ", COMPONENT_MAP);
-  console.log("SideBar >>>>", COMPONENT_MAP.SideBar);
-  console.log("SideBarPanel >>>>", COMPONENT_MAP.SideBarPanel);
 
   for (const fullPath of xmlFiles) {
     const relativePath = path.relative(contentDir, fullPath);

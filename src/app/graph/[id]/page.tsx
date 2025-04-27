@@ -10,8 +10,12 @@ import {
   Background,
   useNodesState,
   useEdgesState,
+  Handle,
+  Position
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+
+import dagre from 'dagre';
 
 /**
  * Parses the idMap structure into React Flow compatible nodes and edges.
@@ -75,10 +79,72 @@ function parseIdMap(idMap) {
         tag: node.tag,
       },
       position: { x: Math.random() * 400, y: Math.random() * 400 },
+      type: 'custom'
     });
   }
 
   return { nodes, edges, issues };
+}
+
+const dagreGraph = new dagre.graphlib.Graph();
+dagreGraph.setDefaultEdgeLabel(() => ({}));
+
+const nodeWidth = 180;
+const nodeHeight = 80;
+
+function layoutElements(nodes, edges, direction = 'TB') {
+  dagreGraph.setGraph({ rankdir: direction });
+
+  nodes.forEach((node) => {
+    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+  });
+
+  edges.forEach((edge) => {
+    dagreGraph.setEdge(edge.source, edge.target);
+  });
+
+  dagre.layout(dagreGraph);
+
+  return nodes.map((node) => {
+    const nodeWithPosition = dagreGraph.node(node.id);
+    node.position = { x: nodeWithPosition.x - nodeWidth / 2, y: nodeWithPosition.y - nodeHeight / 2 };
+    return node;
+  });
+}
+
+function CustomNode({ data, id }) {
+  const MAX_ID_LENGTH = 20;
+
+  const shortId = id.length > MAX_ID_LENGTH
+    ? id.slice(0, MAX_ID_LENGTH) + '…'
+    : id;
+
+  return (
+    <div style={{
+      padding: 10,
+      border: '1px solid #ddd',
+      borderRadius: 8,
+      background: 'white',
+      fontSize: '0.7rem',
+      width: 180
+    }}>
+      <div style={{ fontWeight: 'bold', fontSize: '0.75rem', wordBreak: 'break-word' }}>
+        {shortId}
+      </div>
+      <div style={{ color: '#666', fontSize: '0.7rem', marginBottom: 4 }}>
+        {data.tag || '(no tag)'}
+      </div>
+      <div style={{ fontSize: '0.65rem', color: '#333' }}>
+        {Object.entries(data.attributes || {}).map(([key, value]) => (
+          <div key={key}>
+            <strong>{key}</strong>: {value}
+          </div>
+        ))}
+      </div>
+      <Handle type="target" position={Position.Top} />
+      <Handle type="source" position={Position.Bottom} />
+    </div>
+  );
 }
 
 function GraphPage() {
@@ -96,8 +162,9 @@ function GraphPage() {
       const res = await fetch(`/api/content/${id}`);
       const json = await res.json();
       const { nodes, edges, issues } = parseIdMap(json.idMap);
-      setIssues(issues);;
-      setNodes(nodes);
+      const laidOutNodes = layoutElements(nodes, edges, 'TB');
+      setIssues(issues);
+      setNodes(laidOutNodes);
       setEdges(edges);
     } catch (err) {
       setGraphData({ nodes: [], edges: [], issues: [`Failed to fetch data: ${err.message}`] });
@@ -116,6 +183,7 @@ function GraphPage() {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          nodeTypes={{ custom: CustomNode }}
           onNodeClick={(_, node) => setSelectedNode(node)}
           fitView
         >

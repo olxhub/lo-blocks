@@ -1,4 +1,5 @@
 <Lesson id="rewrite_lesson" launchable="true" title="Rewriting Lesson">
+  <DigitSpanTask/>
   <TextBlock>Welcome to the Rewriting Station!</TextBlock>
   <TextInput id="student_essay"/>
   <LLMFeedback id="essay_rewrite"/>
@@ -14,6 +15,7 @@
         </LLMPrompt>
         First person
       </LLMButton>
+      <$$>\frac{1}{p}</$$>
     </Sidebar>
   </SideBarPanel>
 </Lesson>
