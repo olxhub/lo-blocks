@@ -18,6 +18,7 @@
     "katex": "^0.16.22",
     "lo_event": "file:lo_event-0.0.3.tgz",
     "next": "15.2.4",
+    "peggy": "^5.0.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-redux": "^9.2.0",
