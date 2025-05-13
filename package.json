@@ -8,9 +8,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+
     "xml2json": "node src/scripts/xml2json.js",
-    "clean": "rm -rf .next node_modules .turbo out",
-    "build:grammars": "node scripts/compile-grammars.js"
+    "build:grammars": "node src/scripts/compile-grammars.js",
+    "build:gen-block-registry": "node src/scripts/generateBlockRegistry.js",
+    "build": "npm run build:grammars && npm run build:gen-block-registry",
+
+    "clean": "rm -rf .next node_modules .turbo out"
   },
   "dependencies": {
     "@xyflow/react": "^12.6.0",
