@@ -17,7 +17,7 @@ import { childParser } from '@/lib/olx/parsers';
 import _SideBarPanel from './SideBarPanelClient';
 
 // === Custom parser to build named slots ===
-const sbParser = childParser(function sideBlockParser({ rawChildren, parse }) {
+const sbParser = childParser(function sideBlockParser({ rawChildren, parseNode }) {
   let main = null;
   const sidebar = [];
 
@@ -31,14 +31,14 @@ const sbParser = childParser(function sideBlockParser({ rawChildren, parse }) {
       // MainPane -> unwrap children and parse
       const mainPaneChildren = Array.isArray(block) ? block : [block];
       main = mainPaneChildren
-        .map(c => parse(c))
+        .map(c => parseNode(c))
         .filter(Boolean); // parse each kid
     } else if (tag === 'Sidebar') {
       const sidebarChildren = Array.isArray(block) ? block : [block];
       sidebarChildren.forEach(n => {
         const inner = Array.isArray(n) ? n : [n];
         inner.forEach(c => {
-          const parsed = parse(c);
+          const parsed = parseNode(c);
           if (parsed) sidebar.push(parsed);
         });
       });

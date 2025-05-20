@@ -9,7 +9,7 @@ import * as parsers from '@/lib/olx/parsers';
 
 const defaultParser = parsers.xblocks;
 
-const contentCache = {
+const contentStore = {
   byFile: {},
   byId: {}
 };
@@ -33,7 +33,7 @@ export async function loadContentTree(contentDir = './content') {
     seenFiles.add(relativePath);
 
     const stat = await fs.stat(fullPath);
-    const prev = contentCache.byFile[relativePath];
+    const prev = contentStore.byFile[relativePath];
 
     if (!prev || stat.mtimeMs > prev.mtimeMs) {
       const xml = await fs.readFile(fullPath, 'utf-8');
@@ -41,13 +41,13 @@ export async function loadContentTree(contentDir = './content') {
 
       if (prev?.nodes) {
         for (const id of prev.nodes) {
-          delete contentCache.byId[id];
+          delete contentStore.byId[id];
         }
       }
 
       const indexedIds = indexParsed(parsed, relativePath);
 
-      contentCache.byFile[relativePath] = {
+      contentStore.byFile[relativePath] = {
         mtimeMs: stat.mtimeMs,
         parsed,
         nodes: indexedIds
@@ -56,18 +56,18 @@ export async function loadContentTree(contentDir = './content') {
   }
 
   // Remove deleted files
-  for (const oldFile of Object.keys(contentCache.byFile)) {
+  for (const oldFile of Object.keys(contentStore.byFile)) {
     if (!seenFiles.has(oldFile)) {
-      for (const id of contentCache.byFile[oldFile].nodes) {
-        delete contentCache.byId[id];
+      for (const id of contentStore.byFile[oldFile].nodes) {
+        delete contentStore.byId[id];
       }
-      delete contentCache.byFile[oldFile];
+      delete contentStore.byFile[oldFile];
     }
   }
 
   return {
-    parsed: contentCache.byFile,
-    idMap: contentCache.byId
+    parsed: contentStore.byFile,
+    idMap: contentStore.byId
   };
 }
 
@@ -89,13 +89,17 @@ function indexParsed(parsedTree, sourceFile) {
     const parser = Component?.parser || defaultParser;
     //console.log(`[OLX] Using parser: ${parser} / ${parser.name} for tag: <${tag}>`);
 
-    const children = parser({
+    const { children } = parser({
+      // Node data
+      id,
       rawParsed: element,
       tag,
       attributes,
-      parse: parseNode,
-      sourceFile
-    }) || [];
+      sourceFile,
+      // Actions
+      parseNode,
+      storeEntry: (id) => index.push(id)
+    }) || {};
 
     const entry = {
       id,
@@ -106,8 +110,8 @@ function indexParsed(parsedTree, sourceFile) {
       sourceFile
     };
 
-    if (shouldUpdateExistingEntry(contentCache.byId[id], entry)) {
-      contentCache.byId[id] = entry;
+    if (shouldUpdateExistingEntry(contentStore.byId[id], entry)) {
+      contentStore.byId[id] = entry;
     }
 
     indexed.push(id);

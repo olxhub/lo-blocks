@@ -1,13 +1,14 @@
 // This component renders output from an LLM call (typically triggered by a <LLMButton>).
 // It displays a 🤖 icon, shows a spinner while waiting, and then renders the feedback.
 
+import * as parsers from '@/lib/olx/parsers';
 import { dev } from '../blocks.js';
 import _LLMFeedback from './LLMFeedbackClient';
 
 const LLMFeedback = dev({
   name: 'LLMFeedback',
   component: _LLMFeedback,
-  parser: () => null // No parsing yet
+  parser: parsers.ignore // no kids expected yet... later
 });
 
 export default LLMFeedback;

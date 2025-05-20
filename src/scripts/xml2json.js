@@ -30,6 +30,7 @@ async function main() {
     }
   } catch (err) {
     console.error('❌ Error compiling XML:', err.message);
+    console.error("Full error: ", err);
     process.exit(1);
   }
 }

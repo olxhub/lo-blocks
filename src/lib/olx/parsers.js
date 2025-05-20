@@ -96,9 +96,12 @@ export function childParser(fn, nameOverride) {
   fn._isChildParser = true;
 
   const wrapped = function wrappedParser(ctx) {
-    const raw = ctx.rawParsed;
-    const children = Array.isArray(raw) ? raw : [raw];
-    return fn({ ...ctx, rawChildren: children });
+    const { id, tag, attributes, sourceFile, rawParsed } = ctx;
+    const children = Array.isArray(rawParsed) ? rawParsed : [rawParsed];
+    return {
+      id, tag, attributes, sourceFile, rawParsed,
+      children: fn({ ...ctx, rawChildren: children })
+    };
   };
 
   Object.defineProperty(wrapped, 'name', {
@@ -125,13 +128,13 @@ export const xml = function xmlParser({ rawParsed }) { return [
 ];};
 
 // Assumes we have a list of OLX-style XBlocks. E.g. for a learning sequence.
-export const xblocks = childParser(function xblocksParser({ rawChildren, parse }) {
+export const xblocks = childParser(function xblocksParser({ rawChildren, parseNode }) {
   return rawChildren
     .filter(child => {
       const tag = Object.keys(child).find(k => !['#text', '#comment', ':@'].includes(k));
       return !!tag;
     })
-    .map(child => ({ type: 'xblock', id: parse(child) }))
+    .map(child => ({ type: 'xblock', id: parseNode(child) }))
     .filter(entry => entry.id);
 });
 
