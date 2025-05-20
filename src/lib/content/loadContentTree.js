@@ -118,7 +118,7 @@ function indexParsed(parsedTree, sourceFile) {
     }
     const parser = Component?.parser || defaultParser;
 
-    const entry = parser({
+    parser({
       // Node data
       id,
       rawParsed: node,
@@ -127,12 +127,15 @@ function indexParsed(parsedTree, sourceFile) {
       sourceFile,
       // Actions
       parseNode,
-      storeEntry: (id) => index.push(id)
-    }) || {};
-
-    if (shouldUpdateExistingEntry(contentStore.byId[id], entry)) {
-      contentStore.byId[id] = entry;
-    }
+      storeEntry: (id, entry) => {
+        if (contentStore.byId[id]) {
+          throw new Error(
+            `Duplicate ID "${id}" found in ${sourceFile}. Each element must have a unique id.`
+          );
+        }
+        contentStore.byId[id] = entry;
+      },
+    });
 
     indexed.push(id);
     return {type: 'xblock', id};
@@ -154,29 +157,6 @@ function createId(node) {
 
   const canonical = JSON.stringify(node);
   return crypto.createHash('sha1').update(canonical).digest('hex');
-}
-
-function shouldUpdateExistingEntry(existing, incoming) {
-  if (!existing) return true;
-
-  const hasContent = (entry) => {
-    const attrs = entry.attributes || {};
-    const meaningful = Object.keys(attrs).filter(k => k !== 'id' && k !== 'url_name');
-    return meaningful.length > 0 || (entry.children || []).length > 0;
-  };
-
-  const incomingHas = hasContent(incoming);
-  const existingHas = hasContent(existing);
-
-  if (incomingHas && !existingHas) return true;
-
-  if (existingHas && incomingHas) {
-    console.warn(`[OLX Parse Error] Duplicate content for id="${incoming.id}"`);
-    console.warn(`First seen in ${existing.sourceFile}, then in ${incoming.sourceFile}`);
-    throw new Error(`Duplicate definition for id="${incoming.id}" with conflicting content.`);
-  }
-
-  return false;
 }
 
 async function getXmlFilesRecursively(dir) {
