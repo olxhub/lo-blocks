@@ -79,7 +79,37 @@ function indexParsed(parsedTree, sourceFile) {
     if (!tag) return null;
 
     const attributes = node[':@'] || {};
-    const element = node[tag];
+
+    if(attributes.ref) {
+      if (tag !== 'Use') {
+        throw new Error(
+          `Invalid 'ref' attribute on <${tag}> in ${sourceFile}. Only <use> elements may have 'ref'.`
+        );
+      }
+
+      // 2. Ensure no additional children
+      // Children are present if there are any keys other than 'Use', ':@', '#text', '#comment'
+      const childKeys = Object.keys(node).filter(
+        k => !['Use', ':@', '#text', '#comment'].includes(k)
+      );
+      if (childKeys.length > 0) {
+        throw new Error(
+          `<Use ref="..."> in ${sourceFile} must not have child elements. Found children: ${childKeys.join(', ')}`
+        );
+      }
+
+      // 3. Ensure no additional attributes
+      const allowedAttrs = ['ref'];
+      const extraAttrs = Object.keys(attributes).filter(attr => !allowedAttrs.includes(attr));
+      if (extraAttrs.length > 0) {
+        throw new Error(
+          `<Use ref="..."> in ${sourceFile} must not have additional attributes (${extraAttrs.join(', ')}). ` +
+            `In the future, these will go into an 'overrides' dictionary.`
+        );
+      }
+      return {type: 'xblock', id: attributes.ref};
+    }
+
     const id = attributes.id || attributes.url_name || createId(node);
 
     const Component = COMPONENT_MAP[tag] || COMPONENT_MAP[tag.charAt(0).toUpperCase() + tag.slice(1)];
@@ -87,7 +117,6 @@ function indexParsed(parsedTree, sourceFile) {
       console.warn(`[OLX] No component found for tag: <${tag}> — using defaultParser`);
     }
     const parser = Component?.parser || defaultParser;
-    //console.log(`[OLX] Using parser: ${parser} / ${parser.name} for tag: <${tag}>`);
 
     const entry = parser({
       // Node data
@@ -106,7 +135,7 @@ function indexParsed(parsedTree, sourceFile) {
     }
 
     indexed.push(id);
-    return id;
+    return {type: 'xblock', id};
   }
 
   if (Array.isArray(parsedTree)) {

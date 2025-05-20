@@ -135,7 +135,7 @@ export const xblocks = childParser(function xblocksParser({ rawChildren, parseNo
       const tag = Object.keys(child).find(k => !['#text', '#comment', ':@'].includes(k));
       return !!tag;
     })
-    .map(child => ({ type: 'xblock', id: parseNode(child) }))
+    .map(parseNode)
     .filter(entry => entry.id);
 });
 
