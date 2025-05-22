@@ -1,3 +1,5 @@
+import * as parsers from '@/lib/olx/parsers';
+
 import { dev } from '../blocks';
 const warnedBlocks = new Set();
 
@@ -48,6 +50,6 @@ export default function createStubBlock(name) {
         </div>
       );
     },
-    parser: () => null,
+    parser: parsers.ignore // no kids expected,
   });
 }

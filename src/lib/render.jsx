@@ -14,7 +14,10 @@ export function render({ node, idMap, key }) {
     return renderCompiledChildren({ children: node, idMap });
   }
 
-  // Handle string ID
+  // Handle string ID,
+  //
+  // This path may be deprecated, as we're moving towards always
+  // having { type: 'xblock', id: [id] } for where we once used this.
   if (typeof node === 'string') {
     const entry = idMap?.[node];
     if (!entry) {
@@ -23,6 +26,28 @@ export function render({ node, idMap, key }) {
           id={`missing-id-${node}`}
           name="render"
           message={`Could not resolve node ID "${node}" in idMap`}
+          data={{ node, idMap }}
+        />
+      );
+    }
+    return render({ node: entry, idMap, key });
+  }
+
+  // Handle { type: 'xblock', id }
+  // We should also support overrides in the near future.
+  if (
+    typeof node === 'object' &&
+    node !== null &&
+    node.type === 'xblock' &&
+    typeof node.id === 'string'
+  ) {
+    const entry = idMap?.[node.id];
+    if (!entry) {
+      return (
+        <DisplayError
+          id={`missing-id-${node.id}`}
+          name="render"
+          message={`Could not resolve xblock ID "${node.id}" in idMap`}
           data={{ node, idMap }}
         />
       );

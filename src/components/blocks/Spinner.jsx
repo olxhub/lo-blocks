@@ -12,8 +12,11 @@
  *
  * Do NOT treat this as canonical component structure.
  */
- 
+
 import React from 'react';
+
+import * as parsers from '@/lib/olx/parsers';
+
 if (typeof window !== 'undefined') {
   import('./Spinner.css');
 }
@@ -33,7 +36,7 @@ function _Spinner() {
 const Spinner = dev({
   name: 'Spinner',
   component: _Spinner,
-  parser: () => null // No children / OLX parsing
+  parser: parsers.ignore
 });
 
 export default Spinner;
