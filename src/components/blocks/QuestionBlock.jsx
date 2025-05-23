@@ -2,7 +2,7 @@ import React from 'react';
 
 import * as parsers from '@/lib/olx/parsers';
 import { Trace } from '@/lib/debug';
-import { test } from '../blocks.js';
+import { test } from '@/lib/blocks';
 
 function _QuestionBlock({ prompt, url_name, id, options = [] }) {
   const optionList = typeof options === 'string' ? options.split(',') : options;

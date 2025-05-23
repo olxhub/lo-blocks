@@ -2,7 +2,7 @@ import React from 'react';
 
 import * as parsers from '@/lib/olx/parsers';
 import { renderCompiledChildren } from '@/lib/render';
-import { test } from '../blocks.js';
+import { test } from '@/lib/blocks';
 
 function _ProblemBlock({ kids, idMap }) {
   return (

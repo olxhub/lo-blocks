@@ -3,7 +3,7 @@ import React from 'react';
 import { Trace } from '@/lib/debug';
 import { renderCompiledChildren } from '@/lib/render';
 import * as parsers from '@/lib/olx/parsers';
-import { test } from '../blocks.js';
+import { test } from '@/lib/blocks';
 
 function _Lesson({ kids, idMap }) {
   return (

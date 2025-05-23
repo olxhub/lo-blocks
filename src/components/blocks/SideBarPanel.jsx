@@ -12,7 +12,7 @@
   to call `render({ node, idMap })` on each slot.
 */
 
-import { dev } from '../blocks.js';
+import { dev } from '@/lib/blocks';
 import { childParser } from '@/lib/olx/parsers';
 import _SideBarPanel from './_SideBarPanel';
 

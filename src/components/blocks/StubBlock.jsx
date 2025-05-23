@@ -1,6 +1,6 @@
 import * as parsers from '@/lib/olx/parsers';
 
-import { dev } from '../blocks';
+import { dev } from '@/lib/blocks';
 const warnedBlocks = new Set();
 
 export default function createStubBlock(name) {

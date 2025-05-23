@@ -1,5 +1,5 @@
 import * as parsers from '@/lib/olx/parsers';
-import { dev } from '../blocks';
+import { dev } from '@/lib/blocks';
 
 import { _DigitSpanTask } from './_DigitSpanTask';
 

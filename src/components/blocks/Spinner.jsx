@@ -21,7 +21,7 @@ if (typeof window !== 'undefined') {
   import('./Spinner.css');
 }
 
-import { dev } from '../blocks.js'; // adjust import path as needed
+import { dev } from '@/lib/blocks'; // adjust import path as needed
 
 function _Spinner() {
   return (

@@ -4,7 +4,7 @@ if (typeof window !== 'undefined') {
   import('katex/dist/katex.min.css');
 }
 import * as parsers from '@/lib/olx/parsers';
-import { dev } from '../blocks';
+import { dev } from '@/lib/blocks';
 import { DisplayError, Trace } from '@/lib/debug';
 
 function _InlineMath({ kids, url_name }) {

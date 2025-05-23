@@ -1,4 +1,4 @@
-import { core } from '../blocks.js';
+import { core } from '@/lib/blocks';
 import { text as textParser } from '@/lib/olx/parsers';
 import _TextInput from './_TextInput';
 

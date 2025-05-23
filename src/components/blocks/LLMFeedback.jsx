@@ -2,7 +2,7 @@
 // It displays a 🤖 icon, shows a spinner while waiting, and then renders the feedback.
 
 import * as parsers from '@/lib/olx/parsers';
-import { dev } from '../blocks.js';
+import { dev } from '@/lib/blocks';
 import _LLMFeedback from './_LLMFeedback';
 
 const LLMFeedback = dev({
