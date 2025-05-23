@@ -11,12 +11,15 @@
     "xml2json": "npx tsx src/scripts/xml2json.js",
     "build:grammars": "node src/scripts/compile-grammars.js",
     "build:gen-block-registry": "node src/scripts/generateBlockRegistry.js",
-    "clean": "rm -rf .next node_modules .turbo out"
+    "clean": "rm -rf .next node_modules .turbo out",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@xyflow/react": "^12.6.0",
     "dagre": "^0.8.5",
     "fast-xml-parser": "^5.0.9",
+    "get-port": "^7.1.0",
     "json-stable-stringify": "^1.3.0",
     "katex": "^0.16.22",
     "lo_event": "file:lo_event-0.0.3.tgz",
@@ -26,6 +29,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-redux": "^9.2.0",
+    "vitest": "^3.1.4",
     "zod": "^3.24.2"
   },
   "devDependencies": {
@@ -36,6 +40,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
     "glob": "^11.0.2",
+    "jsdom": "^26.1.0",
     "tailwindcss": "^4",
     "tsx": "^4.19.4",
     "typescript": "^5.8.2"
