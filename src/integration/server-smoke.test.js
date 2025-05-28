@@ -2,32 +2,48 @@
  * Basic smoke test: Does the server start and serve pages without 500
  * errors.
  */
-
 import { test, expect } from 'vitest';
 import { spawn } from 'child_process';
 import getPort from 'get-port';
 
-test('Next.js server root does not 500', async () => {
+// Combined test: server startup, page serving, and graceful shutdown
+test('Next.js server starts, serves pages, and shuts down cleanly', async () => {
   const port = await getPort();
-  const proc = spawn('npx', ['next', 'dev', '-p', port, '--turbo'], {
-    cwd: process.cwd(),
-    env: { ...process.env, NODE_ENV: 'development' },
-    stdio: 'inherit', // see output in case of error
-  });
+  let proc, res, shutdownRes;
 
-  let res;
   try {
-    // Wait for the server to be ready and respond
+    proc = spawn('npx', ['next', 'dev', '-p', port, '--turbo'], {
+      cwd: process.cwd(),
+      env: { ...process.env, NODE_ENV: 'development' },
+      stdio: 'inherit',
+    });
+
+    // Test that server starts and serves pages
     res = await waitForServer(`http://localhost:${port}/`);
+    expect(res).toBeDefined();
+    expect(res.status).toBeLessThan(500);
+
+    // Test graceful shutdown via API
+    shutdownRes = await fetch(`http://localhost:${port}/api/admin/shutdown`, {
+      signal: AbortSignal.timeout(3000)
+    });
+    expect(shutdownRes.status).toBe(200);
+
+    const shutdownData = await shutdownRes.json();
+    expect(shutdownData.message).toBe('Shutting down server...');
+
   } finally {
-    proc.kill();
+    // Fallback: force kill if graceful shutdown failed
+    if (proc && proc.pid && !proc.killed) {
+      try {
+        process.kill(-proc.pid, 'SIGTERM');
+      } catch (e) {
+        // Process already dead, ignore
+      }
+    }
   }
+}, 30000);
 
-  expect(res).toBeDefined();
-  expect(res.status).toBeLessThan(500);
-}, 30000); // generous timeout
-
-// --- helper goes here:
 async function waitForServer(url, { timeout = 20000, interval = 200 } = {}) {
   const start = Date.now();
   while (Date.now() - start < timeout) {

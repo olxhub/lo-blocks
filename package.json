@@ -12,6 +12,8 @@
     "build:grammars": "node src/scripts/compile-grammars.js",
     "build:gen-block-registry": "node src/scripts/generateBlockRegistry.js",
     "clean": "rm -rf .next node_modules .turbo out",
+    "clean-zombies": "pkill -f next-server; pkill -f transform.js; pkill -f 'node dev'",
+
     "test": "vitest",
     "test:ui": "vitest --ui"
   },
