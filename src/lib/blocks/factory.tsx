@@ -14,7 +14,7 @@ export const BlockConfigSchema = z.object({
   parser: z.function().optional(),
   reducers: z.array(z.function()).optional(),
   fieldToEventMap: z.union([
-    ReduxFieldDict,
+    ReduxFieldDict, // TODO: We should obsolete passing this in directly, since we need the other pieces, like fields
     z.object({ fieldToEventMap: ReduxFieldDict }).catchall(z.any())
   ]).optional(),
   getValue: z.function().optional(),
@@ -66,7 +66,9 @@ function createBlock(config: BlockConfig): React.ComponentType<any> {
     description: parsed.description,
     namespace: parsed.namespace,
 
-    isAction: parsed.action === 'function'
+    isAction: parsed.action === 'function',
+
+    spec: config
   }
 
 

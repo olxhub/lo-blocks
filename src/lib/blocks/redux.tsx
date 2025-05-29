@@ -1,6 +1,6 @@
 import * as lo_event from 'lo_event';
 
-import { useComponentSelector } from 'lo_event/lo_event/lo_assess/selectors.js';
+import { useComponentSelector } from './selectors.ts';
 
 const _fieldToEventMap = {};
 const _eventToFieldMap = {};

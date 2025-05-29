@@ -72,7 +72,13 @@ export function render({ node, idMap, key }) {
   const Component = COMPONENT_MAP[tag].component;
 
   return (
-    <Component {...attributes} kids={children} idMap={idMap} />
+    <Component
+      {...attributes}
+      kids={children}
+      idMap={idMap}
+      spec={COMPONENT_MAP[tag].spec}
+      fields={COMPONENT_MAP[tag].spec?.fieldToEventMap?.fields}
+    />
   );
 }
 

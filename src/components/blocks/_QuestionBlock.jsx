@@ -5,13 +5,15 @@ import { Trace } from '@/lib/debug';
 
 import { useReduxState } from '@/lib/blocks';
 
-import { fields } from './QuestionBlock';
-
-export function _QuestionBlock({ prompt, url_name, id, options = [] }) {
+export function _QuestionBlock({ prompt, url_name, id, options = [], fields }) {
   const optionList = typeof options === 'string' ? options.split(',') : options;
   const [activeIndex, setActiveIndex] = useReduxState(
     id,
-    fields.fields.activeIndex
+    // spec.fieldToEventMap.fields.activeIndex also works
+    //
+    // We might want a more concise version of this, e.g. pass in fields
+    // directly, but perhaps once this matures a bit more.
+    fields.activeIndex
   );
 
   return (
