@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { debug } from '@/lib/debug';
-import { render } from '@/lib/render';
+import { render, makeRootNode } from '@/lib/render';
 
 export default function PreviewPage() {
   const params = useParams();
@@ -39,7 +39,7 @@ export default function PreviewPage() {
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">Preview: {id}</h1>
       <div className="space-y-4">
-        {render({ node: id, idMap, parents: [] })}
+        {render({ node: id, idMap, nodeInfo: makeRootNode() })}
       </div>
 
       {debug() && (

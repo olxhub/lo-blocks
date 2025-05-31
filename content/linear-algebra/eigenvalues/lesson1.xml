@@ -4,5 +4,5 @@
     <QuestionBlock id="WI" prompt="What is an eigenvector?" options="A vector,An eigenvalue,A matrix" />
   </ProblemBlock>
   <Use ref="eigen_q1"/>
-  <UseDynamic target="eigen_q1"/>
+  <UseDynamic id="repointable_demo" target="eigen_q1"/>
 </Lesson>

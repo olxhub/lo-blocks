@@ -4,10 +4,10 @@ import * as parsers from '@/lib/olx/parsers';
 import { renderCompiledChildren } from '@/lib/render';
 import { test } from '@/lib/blocks';
 
-function _ProblemBlock({ kids, idMap, parents }) {
+function _ProblemBlock( params ) {
   return (
     <div className="border p-4 space-y-2">
-      {renderCompiledChildren({ children: kids, idMap, parents })}
+      {renderCompiledChildren({ ...params, kids: params.kids })}
     </div>
   );
 }

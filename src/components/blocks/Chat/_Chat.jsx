@@ -5,62 +5,6 @@ import React from 'react';
 import { useState, useRef, useEffect } from 'react';
 import { User, ChevronRight } from 'lucide-react';
 
-// Mock data for testing
-const sampleConversation = [
-  {
-    type: "Line",
-    speaker: "JJ",
-    text: "What's going on? Is it something you can tell us?",
-    metadata: {}
-  },
-  {
-    type: "Line",
-    speaker: "Annie",
-    text: "Oh, yeah, it's not a secret. She's got a babysitting gig for some extra cash, but the kid is giving her all kinds of trouble, just like his parents warned her. He's six, and he doesn't want to go to bed. He just runs around when it's his bedtime.",
-    metadata: {}
-  },
-  {
-    type: "Line",
-    speaker: "Lin",
-    text: "What do the parents say?",
-    metadata: {}
-  },
-  {
-    type: "SystemMessage",
-    text: "Annie is typing...",
-    metadata: {}
-  },
-  {
-    type: "Line",
-    speaker: "JJ",
-    text: "I had a similar experience when I was babysitting my nephew. Kids can be challenging at bedtime.",
-    metadata: {}
-  },
-  {
-    type: "Line",
-    speaker: "Annie",
-    text: "They told her to be firm but gentle. They said he responds well to stories, so she's been trying that approach.",
-    metadata: {}
-  },
-  {
-    type: "DateSeparator",
-    date: "Today",
-    metadata: {}
-  },
-  {
-    type: "Line",
-    speaker: "Lin",
-    text: "Has she tried playing soft music? That usually works with my little brother.",
-    metadata: {}
-  },
-  {
-    type: "Line",
-    speaker: "JJ",
-    text: "That's a good idea. Maybe a nightlight would help too if he's afraid of the dark.",
-    metadata: {}
-  }
-];
-
 // Generate random colors based on name (consistent for same name)
 const getAvatarColor = (name) => {
   const colors = [
@@ -219,7 +163,9 @@ const AdvanceFooter = ({ onAdvance, currentMessageIndex, totalMessages }) => {
 };
 
 // Main Chat Component
-export function _Chat({
+//
+// This will be pure React, with no state management, and reusable in other contexts.
+function ChatComponent({
   kids,
   id,
   initialScrollPosition = 'bottom',
@@ -306,19 +252,29 @@ export function _Chat({
       {/* FooterInput area (for visual completeness) */}
             {/* Customizable Footer */}
       {footer === 'input' ? (
-        <InputFooter onSendMessage={onSendMessage} />
+        <InputFooter
+          id={`${id}Input`}
+          onSendMessage={onSendMessage} />
       ) : footer === 'advance' ? (
-        <AdvanceFooter 
+        <AdvanceFooter
+          id={`${id}Advance`}
           onAdvance={onAdvance} 
           currentMessageIndex={currentMessageIndex} 
           totalMessages={totalMessages} 
         />
       ) : footer === 'disabled' ? (
-        <InputFooter disabled />
+        <InputFooter
+          id={`${id}_Footer`}
+          disabled />
       ) : (
         // Custom footer component
         footer
       )}
     </div>
   );
+}
+
+// This will be the redux state wrapper for ChatComponet
+export function _Chat({ id, fields, ...props }) {
+  return <ChatComponent id={ `${id}_component` } {...props} />;
 }

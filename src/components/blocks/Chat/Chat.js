@@ -1,10 +1,19 @@
 import React from 'react';
-import { dev } from '@/lib/blocks';
+import * as blocks from '@/lib/blocks';
 import { peggyParser } from '@/lib/olx/parsers';
 import * as cp  from './_chatParser.js';
 import { _Chat } from './_Chat';
 
-const Chat = dev({
+export const fields = blocks.fields([
+  'start',
+  'end',
+  'index',
+
+  'footerMode',
+  'scrollPosition'
+]);
+
+const Chat = blocks.dev({
   name: 'Chat',
   component: _Chat,
   parser: peggyParser(cp),

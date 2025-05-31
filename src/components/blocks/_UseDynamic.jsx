@@ -1,10 +1,13 @@
 import React from 'react';
 import { render } from '@/lib/render';
+import { useReduxInput } from '@/lib/blocks';
 
-export function _UseDynamic({ target, idMap, parents }) {
-  if (!target) {
+export function _UseDynamic( params ) {
+  const [value, inputProps] = useReduxInput(params.id, params.fields.value, params.target);
+
+  if (!params.target) {
     return <pre className="text-red-500">[Missing &lt;Use&gt; resolution]</pre>;
   }
 
-  return render({ node: target, idMap, parents });
+  return render({ ...params, node: params.target });
 }

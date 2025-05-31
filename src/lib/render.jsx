@@ -2,8 +2,10 @@ import React from 'react';
 import { debugLog, DisplayError } from '@/lib/debug';
 import { COMPONENT_MAP } from '@/components/componentMap';
 
+export const makeRootNode = () => ({ sentinel: 'root', renderedChildren: {} });
+
 // Main render function: handles single nodes, strings, JSX, and blocks
-export function render({ node, idMap, key, parents=[] }) {
+export function render({ node, idMap, key, nodeInfo }) {
   if (!node) return null;
 
   // JSX passthrough
@@ -11,7 +13,7 @@ export function render({ node, idMap, key, parents=[] }) {
 
   // Handle list of children
   if (Array.isArray(node)) {
-    return renderCompiledChildren({ children: node, idMap, parents });
+    return renderCompiledChildren({ kids: node, idMap, nodeInfo });
   }
 
   // Handle string ID,
@@ -30,7 +32,7 @@ export function render({ node, idMap, key, parents=[] }) {
         />
       );
     }
-    return render({ node: entry, idMap, key, parents });
+    return render({ node: entry, idMap, key, nodeInfo });
   }
 
   // Handle { type: 'xblock', id }
@@ -52,7 +54,7 @@ export function render({ node, idMap, key, parents=[] }) {
         />
       );
     }
-    return render({ node: entry, idMap, key, parents });
+    return render({ node: entry, idMap, key, nodeInfo });
   }
 
   // Handle structured OLX-style node
@@ -71,33 +73,53 @@ export function render({ node, idMap, key, parents=[] }) {
 
   const Component = COMPONENT_MAP[tag].component;
 
-  console.log(parents);
+  // Create a dynamic shadow hierarchy
+  //
+  // Note if the same component appears multiple times, we only include it once.
+  //
+  // I'm not sure if that's a bug or a feature. For <Use> we will only have one element.
+  //
+  // This is because render() can be called multiple times (e.g. in Strict mode)
+  let childNodeInfo = nodeInfo.renderedChildren[node.id];
+  if (!childNodeInfo) {
+    childNodeInfo = { node, renderedChildren: {}, parent: nodeInfo };
+    nodeInfo.renderedChildren[node.id] = childNodeInfo;
+  }
+
   return (
     <Component
-      {...attributes}
-      kids={children}
-      idMap={idMap}
-      spec={COMPONENT_MAP[tag].spec}
-      fields={COMPONENT_MAP[tag].spec?.fieldToEventMap?.fields}
-      parents={ [ ...parents, node ] }
+      { ...attributes }
+      kids={ children }
+      idMap={ idMap }
+      spec={ COMPONENT_MAP[tag].spec }
+      fields={ COMPONENT_MAP[tag].spec?.fieldToEventMap?.fields }
+      nodeInfo={ childNodeInfo }
     />
   );
 }
 
 
 // Render children array that may include: text, JSX, OLX, etc.
-export function renderCompiledChildren({ children, idMap, parents=[] }) {
-  if (!Array.isArray(children)) {
+export function renderCompiledChildren( params ) {
+  let { kids, children, idMap, nodeInfo } = params;
+  if (kids === undefined && children !== undefined) {
+    console.log(
+      "[renderCompiledChildren] WARNING: 'children' prop used instead of 'kids'. Please migrate to 'kids'."
+    );
+    kids = children;
+  }
+
+  if (!Array.isArray(kids)) {
     return [
       <DisplayError
         name="renderCompiledChildren"
-        message={`Expected children to be an array, got ${typeof children}`}
-        data={children}
+        message={`Expected kids to be an array, got ${typeof kids}`}
+        data={kids}
       />
     ];
   }
 
-  const keyedChildren = assignReactKeys(children);
+  const keyedChildren = assignReactKeys(kids);
 
 
   return keyedChildren.map((child, i) => {
@@ -113,7 +135,7 @@ export function renderCompiledChildren({ children, idMap, parents=[] }) {
       case 'xblock':
         return (
           <React.Fragment key={child.key}>
-            {render({ node: child.id, idMap, key: `${child.key}`, parents })}
+            {render({ node: child.id, idMap, key: `${child.key}`, nodeInfo })}
           </React.Fragment>
         );
 
