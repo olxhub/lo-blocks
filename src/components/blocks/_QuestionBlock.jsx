@@ -5,10 +5,11 @@ import { Trace } from '@/lib/debug';
 
 import { useReduxState } from '@/lib/blocks';
 
-export function _QuestionBlock({ prompt, url_name, id, options = [], fields }) {
+export function _QuestionBlock( props ) {
+  const { prompt, options = [], fields } = props;
   const optionList = typeof options === 'string' ? options.split(',') : options;
   const [activeIndex, setActiveIndex] = useReduxState(
-    id,
+    props,
     // spec.fieldToEventMap.fields.activeIndex also works
     //
     // We might want a more concise version of this, e.g. pass in fields
@@ -18,9 +19,7 @@ export function _QuestionBlock({ prompt, url_name, id, options = [], fields }) {
 
   return (
     <div className="p-4 border rounded">
-      <Trace>
-        [QuestionBlock / (url_name: {url_name || 'n/a'}) / (id: {id || 'n/a'})]
-      </Trace>
+      <Trace props={ props }/>
       <p className="mb-2">Prompt: {prompt}</p>
       <ul>
         {optionList.map((opt, i) => {

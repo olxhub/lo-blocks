@@ -1,4 +1,5 @@
 import * as lo_event from 'lo_event';
+import * as idResolver from './idResolver';
 
 import { useComponentSelector } from './selectors.ts';
 
@@ -93,6 +94,7 @@ export function assertValidField(field) {
 }
 
 export function useReduxState(id, field, fallback) {
+  id = idResolver.reduxId(id)
   assertValidField(field);
   const value = useComponentSelector(id, state => {
     if (!state) return fallback;

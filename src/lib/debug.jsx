@@ -2,11 +2,29 @@ import React from 'react';
 
 export const debug = ()=> true;
 
-export const Trace = ({ children, override = debug() }) => {
-  if (override) {
-    return <pre>{children}</pre>;
+export const Trace = ({
+  children,
+  props = {},
+  header,
+  override = debug(),
+}) => {
+  if (!override) return null;
+
+  let headerContent = header;
+  // If a header isn't provided, try to build one from props
+  if (!headerContent && props) {
+    // Try to get a displayName or fallback to props.url_name/id
+    const name = props?.nodeInfo?.node?.tag || 'N/A';
+    const id = props?.id || 'n/a';
+    headerContent = `[${name} / (id: ${id})]`;
   }
-  return null;
+
+  return (
+    <pre style={{ marginBottom: 8 }}>
+      [{headerContent}]
+      {children ? <div>{children}</div> : null}
+    </pre>
+  );
 };
 
 export const debugLog = (...args) => {

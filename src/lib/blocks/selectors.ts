@@ -43,7 +43,7 @@ export function useApplicationSelector<T = any>(
 }
 
 export function useComponentSelector<T = any>(
-  id: string,
+  id: string | Record<string, any>,
   selector: (state: any) => T = s => s,
   options?: SelectorExtraParam<T>
 ): T {
