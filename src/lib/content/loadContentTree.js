@@ -7,7 +7,7 @@ import { transformTagName } from '@/lib/olx/xmlTransforms';
 
 import * as parsers from '@/lib/olx/parsers';
 
-const defaultParser = parsers.xblocks;
+const defaultParser = parsers.xblocks.parser;
 
 const contentStore = {
   byFile: {},

@@ -15,9 +15,9 @@ function _TextBlock( props ) {
 }
 
 const TextBlock = test({
+  ...parsers.text,
   name: "TextBlock",
-  component: _TextBlock,
-  parser: parsers.text
+  component: _TextBlock
 });
 
 export default TextBlock;

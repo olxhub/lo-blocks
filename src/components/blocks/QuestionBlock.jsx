@@ -7,9 +7,9 @@ export const fields = blocks.fields(
 );
 
 const QuestionBlock = blocks.test({
+  ...parsers.ignore,
   name: 'QuestionBlock',
   component: _QuestionBlock,
-  parser: parsers.ignore,
   fieldToEventMap: fields
 });
 

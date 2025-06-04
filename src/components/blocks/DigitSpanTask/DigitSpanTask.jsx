@@ -24,9 +24,9 @@ Example:
 `;
 
 const DigitSpanTask = dev({
+  ...parsers.ignore,
   name: 'DigitSpanTask',
   component: _DigitSpanTask,
-  parser: parsers.ignore, // no kids expected
   description
 });
 

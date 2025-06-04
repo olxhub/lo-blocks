@@ -49,9 +49,9 @@ const sbParser = childParser(function sideBlockParser({ rawChildren, parseNode }
 
 
 const SideBarPanel = dev({
+  ...sbParser,
   name: 'SideBarPanel',
-  component: _SideBarPanel,
-  parser: sbParser
+  component: _SideBarPanel
 });
 
 export default SideBarPanel;

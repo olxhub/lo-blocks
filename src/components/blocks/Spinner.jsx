@@ -34,9 +34,9 @@ function _Spinner() {
 }
 
 const Spinner = dev({
+  ...parsers.ignore,
   name: 'Spinner',
-  component: _Spinner,
-  parser: parsers.ignore
+  component: _Spinner
 });
 
 export default Spinner;

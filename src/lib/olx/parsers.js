@@ -111,7 +111,7 @@ export function childParser(fn, nameOverride) {
     value: `childParser(${nameOverride || fn.name || 'anonymous_child_parser'})`
   });
 
-  return wrapped;
+  return { parser: wrapped };
 }
 
 // === Parsers ===
@@ -126,9 +126,13 @@ export const ignore = childParser(() => null);
 //
 // This is also pretty untested. If it ends up more used, we'll make a
 // more robust version.
-export const xml = function xmlParser({ rawParsed }) { return [
-  { type: 'xml', xml: builder.build(rawParsed) }
-];};
+export const xml = {
+  parser: function xmlParser({ rawParsed }) {
+    return [
+      { type: 'xml', xml: builder.build(rawParsed) }
+    ];
+  }
+};
 
 // Assumes we have a list of OLX-style XBlocks. E.g. for a learning sequence.
 export const xblocks = childParser(function xblocksParser({ rawChildren, parseNode }) {
@@ -166,7 +170,7 @@ export const text = childParser(function textParser({ rawParsed }) {
  * @param {Function} postprocess - fn(parsed) => any
  */
 export function peggyParser(peggyParser, preprocess = (x) => ({ text: x.text }), postprocess = (x) => x) {
-  return childParser(function peggyChildParser({ rawParsed }) {
+  const { parser } = childParser(function peggyChildParser({ rawParsed }) {
     const extracted = extractInnerTextFromXmlNodes(rawParsed);
     const { text, ...rest } = preprocess(extracted);
 
@@ -180,4 +184,6 @@ export function peggyParser(peggyParser, preprocess = (x) => ({ text: x.text }),
 
     return postprocess({ type: 'parsed', parsed, ...rest });
   });
+
+  return { parser };
 }

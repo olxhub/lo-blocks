@@ -13,9 +13,9 @@ function _ProblemBlock( params ) {
 }
 
 const ProblemBlock = test({
+  ...parsers.xblocks,
   name: 'ProblemBlock',
   component: _ProblemBlock,
-  parser: parsers.xblocks,
 });
 
 export default ProblemBlock;

@@ -6,9 +6,9 @@ import { dev } from '@/lib/blocks';
 import _LLMFeedback from './_LLMFeedback';
 
 const LLMFeedback = dev({
+  ...parsers.ignore, // no kids expected yet... later
   name: 'LLMFeedback',
-  component: _LLMFeedback,
-  parser: parsers.ignore // no kids expected yet... later
+  component: _LLMFeedback
 });
 
 export default LLMFeedback;

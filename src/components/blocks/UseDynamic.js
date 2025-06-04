@@ -10,9 +10,9 @@ export const fields = blocks.fields(
 );
 
 const UseDynamic = blocks.dev({
+  ...ignore,
   name: 'UseDynamic',
   component: _UseDynamic,
-  parser: ignore,
   namespace: 'org.mitros.dev',
   description: 'Include a component block.',
   fieldToEventMap: fields

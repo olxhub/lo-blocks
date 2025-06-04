@@ -8,9 +8,9 @@ export const fields = blocks.fields(
 
 
 const TextInput = blocks.core({
+  ...textParser,
   name: 'TextInput',
   component: _TextInput,
-  parser: textParser,
   fieldToEventMap: fields,
   getValue: (state, id) => state?.[id]?.value ?? '',
 });

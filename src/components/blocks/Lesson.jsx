@@ -15,9 +15,9 @@ function _Lesson( props ) {
 }
 
 const Lesson = test({
+  ...parsers.xblocks,
   name: 'Lesson',
   component: _Lesson,
-  parser: parsers.xblocks,
 });
 
 export default Lesson;

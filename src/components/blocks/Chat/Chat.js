@@ -14,9 +14,9 @@ export const fields = blocks.fields([
 ]);
 
 const Chat = blocks.dev({
+  ...peggyParser(cp),
   name: 'Chat',
   component: _Chat,
-  parser: peggyParser(cp),
   namespace: 'org.mitros.dev',
   description: 'Example block that parses an SBA dialogue format using PEG.'
 });

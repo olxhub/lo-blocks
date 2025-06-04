@@ -4,9 +4,9 @@ import * as parsers from '@/lib/olx/parsers';
 import { dev } from '@/lib/blocks';
 
 const InlineMath = dev({
+  ...parsers.text,
   name: 'InlineMath',
   component: _InlineMath,
-  parser: parsers.text,
   description: 'Renders a short LaTeX math expression inline within text.'
 });
 
