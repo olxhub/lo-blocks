@@ -18,6 +18,7 @@ export const BlockConfigSchema = z.object({
     z.object({ fieldToEventMap: ReduxFieldDict }).catchall(z.any())
   ]).optional(),
   getValue: z.function().optional(),
+  extraDebug: z.function().optional(),
   description: z.string().optional(),
 }).strict();
 

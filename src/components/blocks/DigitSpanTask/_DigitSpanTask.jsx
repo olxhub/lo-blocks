@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Trace, DisplayError } from '@/lib/debug';
+import { DisplayError } from '@/lib/debug';
 
 
 export function _DigitSpanTask( props ) {
@@ -90,7 +90,6 @@ export function _DigitSpanTask( props ) {
 
   return (
     <div className="p-6 max-w-md mx-auto space-y-4">
-      <Trace props={ props }>[DigitSpanTask / mode={mode} / θ={theta.toFixed(2)} / diff={difficulty}]</Trace>
 
       {step === 'waiting' && (
         <button onClick={startNewRound} className="p-2 bg-blue-600 text-white rounded">Start</button>

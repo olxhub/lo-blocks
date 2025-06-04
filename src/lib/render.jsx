@@ -1,5 +1,5 @@
 import React from 'react';
-import { DisplayError } from '@/lib/debug';
+import { DisplayError, DebugWrapper } from '@/lib/debug';
 import { COMPONENT_MAP } from '@/components/componentMap';
 
 export const makeRootNode = () => ({ sentinel: 'root', renderedChildren: {} });
@@ -88,16 +88,25 @@ export function render({ node, idMap, key, nodeInfo, debug }) {
     nodeInfo.renderedChildren[node.id] = childNodeInfo;
   }
 
+  const wrapperProps = {
+    ...attributes,
+    id: node.id,
+    nodeInfo: childNodeInfo,
+    debug,
+  };
+
   return (
-    <Component
-      { ...attributes }
-      kids={ children }
-      idMap={ idMap }
-      spec={ COMPONENT_MAP[tag].spec }
-      fields={ COMPONENT_MAP[tag].spec?.fieldToEventMap?.fields }
-      nodeInfo={ childNodeInfo }
-      debug={ debug }
-    />
+    <DebugWrapper props={wrapperProps} spec={COMPONENT_MAP[tag].spec}>
+      <Component
+        { ...attributes }
+        kids={ children }
+        idMap={ idMap }
+        spec={ COMPONENT_MAP[tag].spec }
+        fields={ COMPONENT_MAP[tag].spec?.fieldToEventMap?.fields }
+        nodeInfo={ childNodeInfo }
+        debug={ debug }
+      />
+    </DebugWrapper>
   );
 }
 

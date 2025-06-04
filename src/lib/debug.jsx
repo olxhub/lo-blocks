@@ -24,6 +24,33 @@ export const Trace = ({
   );
 };
 
+export const DebugWrapper = ({ props = {}, spec, children }) => {
+  if (!props?.debug) return <>{children}</>;
+
+  const tag = props?.nodeInfo?.node?.tag || 'N/A';
+  const id = props?.nodeInfo?.node?.id || props.id || 'n/a';
+  const src = props?.nodeInfo?.node?.sourceFile;
+  const prefix = process.env.NEXT_PUBLIC_DEBUG_LINK_PREFIX || '';
+  const link = src ? `${prefix}${src}` : null;
+
+  const handleLog = () => console.log('[props]', props);
+
+  const extra = typeof spec?.extraDebug === 'function'
+    ? spec.extraDebug(props)
+    : null;
+
+  return (
+    <div style={{ border: '1px dashed #999', padding: 4, margin: 2 }}>
+      <div style={{ fontSize: '0.75rem', marginBottom: 4 }}>
+        [{tag} / {id}] {link && <a href={link}>src</a>}
+        <button onClick={handleLog} style={{ marginLeft: 4 }}>log</button>
+      </div>
+      {extra}
+      {children}
+    </div>
+  );
+};
+
 export const debugLog = (...args) => {
   console.log(...args);
 };

@@ -3,7 +3,7 @@ import katex from 'katex';
 if (typeof window !== 'undefined') {
   import('katex/dist/katex.min.css');
 }
-import { DisplayError, Trace } from '@/lib/debug';
+import { DisplayError } from '@/lib/debug';
 
 export function _InlineMath( props ) {
   const { kids, url_name } = props;
@@ -30,7 +30,6 @@ export function _InlineMath( props ) {
 
   return (
     <>
-      <Trace props={props}>LaTeX: {latex}</Trace>
       <span className="inline" dangerouslySetInnerHTML={{ __html: html }} />
     </>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Trace } from '@/lib/debug';
+// DebugWrapper will handle debug info universally
 import { renderCompiledChildren } from '@/lib/render';
 import * as parsers from '@/lib/olx/parsers';
 import { test } from '@/lib/blocks';
@@ -8,7 +8,6 @@ import { test } from '@/lib/blocks';
 function _Lesson( props ) {
   return (
     <div className="p-4 space-y-4 border-l-4 border-blue-300 bg-blue-50">
-      <Trace props={props}/>
       {renderCompiledChildren({ ...props, kids: props.kids })}
     </div>
   );

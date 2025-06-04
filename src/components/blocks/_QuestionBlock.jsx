@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Trace } from '@/lib/debug';
+// DebugWrapper handles debug output
 
 import { useReduxState } from '@/lib/blocks';
 
@@ -19,7 +19,6 @@ export function _QuestionBlock( props ) {
 
   return (
     <div className="p-4 border rounded">
-      <Trace props={ props }/>
       <p className="mb-2">Prompt: {prompt}</p>
       <ul>
         {optionList.map((opt, i) => {
