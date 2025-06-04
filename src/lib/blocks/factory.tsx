@@ -1,4 +1,4 @@
-// blocks.tsx
+// lib/blocks/factory.tsx
 import React from 'react';
 import { z } from 'zod';
 
@@ -66,7 +66,7 @@ function createBlock(config: BlockConfig): React.ComponentType<any> {
     description: parsed.description,
     namespace: parsed.namespace,
 
-    isAction: parsed.action === 'function',
+    isAction: typeof parsed.action === 'function',
 
     spec: config
   }

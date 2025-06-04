@@ -171,7 +171,7 @@ export function renderCompiledChildren( params ) {
           <DisplayError
             key={child.key}
             name="renderCompiledChildren"
-            message={`Unknown child type: "${type}"`}
+            message={`Unknown child type: "${child.type}"`}
             data={child}
           />
         );
