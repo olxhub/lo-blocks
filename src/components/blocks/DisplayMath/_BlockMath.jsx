@@ -5,7 +5,8 @@ if (typeof window !== 'undefined') {
 }
 import { Trace } from '@/lib/debug';
 
-export function _BlockMath({ kids, url_name }) {
+export function _BlockMath( props ) {
+  const { kids, url_name } = props;
   let html = '';
   try {
     html = katex.renderToString(kids, {
@@ -17,7 +18,7 @@ export function _BlockMath({ kids, url_name }) {
 
   return (
     <>
-      <Trace>[BlockMath / (url_name: {url_name || 'n/a'})]</Trace>
+      <Trace props = { props }/>
       <div className="p-4 rounded bg-green-50 text-green-900 text-center" dangerouslySetInnerHTML={{ __html: html }} />
     </>
   );

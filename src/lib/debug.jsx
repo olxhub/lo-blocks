@@ -1,14 +1,11 @@
 import React from 'react';
 
-export const debug = ()=> true;
-
 export const Trace = ({
   children,
   props = {},
-  header,
-  override = debug(),
+  header
 }) => {
-  if (!override) return null;
+  if (!props?.debug) return null;
 
   let headerContent = header;
   // If a header isn't provided, try to build one from props
@@ -28,42 +25,11 @@ export const Trace = ({
 };
 
 export const debugLog = (...args) => {
-  if (debug()) {
-    console.log(...args);
-  }
+  console.log(...args);
 };
 
-/*
 // 🔥 Safe, debuggable error wrapper
-//
-// We might want to expand this for more human-friendly debugging and specific contexts (e.g. BrokenBlock when developing blocks)
-export function DisplayError({ name = 'Error', message, data, id = 'error' }) {
-  // Log raw data for dev console inspection
-  debugLog(`[${name}] ${message}`, data);
-
-  // In dev/test, crash hard
-  if (process.env.NODE_ENV !== 'production') {
-    throw new Error(`[${name}] ${message}`);
-  }
-
-  // Helper: stringify safely
-  const safe = (value) => {
-    if (typeof value === 'string' || typeof value === 'number') return value;
-    try {
-      return JSON.stringify(value);
-    } catch {
-      return '[Unserializable]';
-    }
-  };
-
-  return (
-    <pre key={id} className="text-red-500 text-xs bg-red-50 p-2 rounded whitespace-pre-wrap overflow-auto">
-      [{safe(name)}]: {safe(message)}
-    </pre>
-  );
-}*/
-// 🔥 Safe, debuggable error wrapper
-export function DisplayError({ name = 'Error', message, technical = null, data, id = 'error' }) {
+export function DisplayError({ props={}, name = 'Error', message, technical = null, data, id = 'error' }) {
   // Log raw data for dev console inspection
   debugLog(`[${name}] ${message}`, { technical, data });
 
@@ -78,7 +44,7 @@ export function DisplayError({ name = 'Error', message, technical = null, data, 
   };
 
   // In debug mode, crash hard
-  if (debug()) {
+  if (props?.debug) {
     const techMsg = technical ? ` [Technical: ${technical}]` : '';
     throw new Error(`[${name}] ${message}${techMsg}`);
   }

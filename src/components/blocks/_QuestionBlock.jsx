@@ -6,7 +6,7 @@ import { Trace } from '@/lib/debug';
 import { useReduxState } from '@/lib/blocks';
 
 export function _QuestionBlock( props ) {
-  const { prompt, options = [], fields } = props;
+  const { debug, prompt, options = [], fields } = props;
   const optionList = typeof options === 'string' ? options.split(',') : options;
   const [activeIndex, setActiveIndex] = useReduxState(
     props,

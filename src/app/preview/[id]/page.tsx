@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { debug } from '@/lib/debug';
+import { useParams, useSearchParams } from 'next/navigation';
 import { render, makeRootNode } from '@/lib/render';
 
 export default function PreviewPage() {
   const params = useParams();
   const id = params?.id as string;
+  const searchParams = useSearchParams()
+  const debug = searchParams.get('debug') === 'true';
 
   const [idMap, setIdMap] = useState(null);
   const [parsed, setParsed] = useState(null);
@@ -39,10 +40,10 @@ export default function PreviewPage() {
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">Preview: {id}</h1>
       <div className="space-y-4">
-        {render({ node: id, idMap, nodeInfo: makeRootNode() })}
+        {render({ node: id, idMap, nodeInfo: makeRootNode(), debug })}
       </div>
 
-      {debug() && (
+      {debug && (
         <pre className="mt-4 bg-gray-100 p-4 text-xs rounded overflow-auto">
           {JSON.stringify({ idMap, parsed }, null, 2)}
         </pre>

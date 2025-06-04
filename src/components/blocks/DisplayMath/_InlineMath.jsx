@@ -5,7 +5,8 @@ if (typeof window !== 'undefined') {
 }
 import { DisplayError, Trace } from '@/lib/debug';
 
-export function _InlineMath({ kids, url_name }) {
+export function _InlineMath( props ) {
+  const { kids, url_name } = props;
   const latex = kids
     ?.filter(k => k && k.type === 'text')
     .map(k => k.text)
@@ -18,6 +19,7 @@ export function _InlineMath({ kids, url_name }) {
   } catch (err) {
     return (
       <DisplayError
+        props = { props }
         name="InlineMath"
         message="Could not render LaTeX math."
         technical={err.message}
@@ -28,8 +30,7 @@ export function _InlineMath({ kids, url_name }) {
 
   return (
     <>
-      <Trace>[InlineMath / (url_name: {url_name || 'n/a'})]</Trace>
-      <Trace>LaTeX: {latex}</Trace>
+      <Trace props={props}>LaTeX: {latex}</Trace>
       <span className="inline" dangerouslySetInnerHTML={{ __html: html }} />
     </>
   );

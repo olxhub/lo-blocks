@@ -1,11 +1,11 @@
 import React from 'react';
-import { debugLog, DisplayError } from '@/lib/debug';
+import { DisplayError } from '@/lib/debug';
 import { COMPONENT_MAP } from '@/components/componentMap';
 
 export const makeRootNode = () => ({ sentinel: 'root', renderedChildren: {} });
 
 // Main render function: handles single nodes, strings, JSX, and blocks
-export function render({ node, idMap, key, nodeInfo }) {
+export function render({ node, idMap, key, nodeInfo, debug }) {
   if (!node) return null;
 
   // JSX passthrough
@@ -13,7 +13,7 @@ export function render({ node, idMap, key, nodeInfo }) {
 
   // Handle list of children
   if (Array.isArray(node)) {
-    return renderCompiledChildren({ kids: node, idMap, nodeInfo });
+    return renderCompiledChildren({ kids: node, idMap, nodeInfo, debug });
   }
 
   // Handle string ID,
@@ -32,7 +32,7 @@ export function render({ node, idMap, key, nodeInfo }) {
         />
       );
     }
-    return render({ node: entry, idMap, key, nodeInfo });
+    return render({ node: entry, idMap, key, nodeInfo, debug });
   }
 
   // Handle { type: 'xblock', id }
@@ -54,7 +54,7 @@ export function render({ node, idMap, key, nodeInfo }) {
         />
       );
     }
-    return render({ node: entry, idMap, key, nodeInfo });
+    return render({ node: entry, idMap, key, nodeInfo, debug });
   }
 
   // Handle structured OLX-style node
@@ -80,6 +80,8 @@ export function render({ node, idMap, key, nodeInfo }) {
   // I'm not sure if that's a bug or a feature. For <Use> we will only have one element.
   //
   // This is because render() can be called multiple times (e.g. in Strict mode)
+  //
+  // TODO: Check if this causes extra renders, and if we need to memoize anything
   let childNodeInfo = nodeInfo.renderedChildren[node.id];
   if (!childNodeInfo) {
     childNodeInfo = { node, renderedChildren: {}, parent: nodeInfo };
@@ -94,6 +96,7 @@ export function render({ node, idMap, key, nodeInfo }) {
       spec={ COMPONENT_MAP[tag].spec }
       fields={ COMPONENT_MAP[tag].spec?.fieldToEventMap?.fields }
       nodeInfo={ childNodeInfo }
+      debug={ debug }
     />
   );
 }
@@ -101,7 +104,7 @@ export function render({ node, idMap, key, nodeInfo }) {
 
 // Render children array that may include: text, JSX, OLX, etc.
 export function renderCompiledChildren( params ) {
-  let { kids, children, idMap, nodeInfo } = params;
+  let { kids, children, idMap, nodeInfo, debug } = params;
   if (kids === undefined && children !== undefined) {
     console.log(
       "[renderCompiledChildren] WARNING: 'children' prop used instead of 'kids'. Please migrate to 'kids'."
@@ -135,7 +138,7 @@ export function renderCompiledChildren( params ) {
       case 'xblock':
         return (
           <React.Fragment key={child.key}>
-            {render({ node: child.id, idMap, key: `${child.key}`, nodeInfo })}
+            {render({ node: child.id, idMap, key: `${child.key}`, nodeInfo, debug })}
           </React.Fragment>
         );
 

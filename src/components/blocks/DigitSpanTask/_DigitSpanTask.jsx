@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Trace, DisplayError } from '@/lib/debug';
 
 
-export function _DigitSpanTask({ kids = [], attributes = {} }) {
+export function _DigitSpanTask( props ) {
+  const { id, kids = [], attributes = {} } = props;
   const mode = attributes.mode || 'forward'; // 'forward' | 'backward' | 'ascending'
 
   const [sequence, setSequence] = useState([]);
@@ -89,7 +90,7 @@ export function _DigitSpanTask({ kids = [], attributes = {} }) {
 
   return (
     <div className="p-6 max-w-md mx-auto space-y-4">
-      <Trace>[DigitSpanTask / mode={mode} / θ={theta.toFixed(2)} / diff={difficulty}]</Trace>
+      <Trace props={ props }>[DigitSpanTask / mode={mode} / θ={theta.toFixed(2)} / diff={difficulty}]</Trace>
 
       {step === 'waiting' && (
         <button onClick={startNewRound} className="p-2 bg-blue-600 text-white rounded">Start</button>
