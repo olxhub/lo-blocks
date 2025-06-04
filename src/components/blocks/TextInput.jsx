@@ -11,7 +11,7 @@ const TextInput = blocks.core({
   ...textParser,
   name: 'TextInput',
   component: _TextInput,
-  fieldToEventMap: fields,
+  fields: fields,
   getValue: (state, id) => state?.[id]?.value ?? '',
 });
 

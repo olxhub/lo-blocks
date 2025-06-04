@@ -15,7 +15,7 @@ const UseDynamic = blocks.dev({
   component: _UseDynamic,
   namespace: 'org.mitros.dev',
   description: 'Include a component block.',
-  fieldToEventMap: fields
+  fields: fields
 });
 
 export default UseDynamic;

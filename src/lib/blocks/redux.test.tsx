@@ -1,4 +1,7 @@
-import { fields, __testables } from './redux';
+import * as redux from './redux';
+
+const { fields } = redux;
+const { __testables } = redux;
 
 const { fieldNameToDefaultEventName } = __testables;
 

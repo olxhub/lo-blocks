@@ -38,7 +38,7 @@ export const updateResponseReducer = (state = initialState, action) => {
 };
 
 const componentEventTypes = Object.values(COMPONENT_MAP)
-  .flatMap(entry => entry.fieldToEventMap ? Object.values(entry.fieldToEventMap) : []);
+  .flatMap(entry => entry.fields ? Object.values(entry.fields.fieldToEventMap) : []);
 
 // Most of thie is temporary scaffolding -- most of these should move
 // into componentEventTypes.

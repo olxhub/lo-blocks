@@ -10,7 +10,7 @@ const QuestionBlock = blocks.test({
   ...parsers.ignore,
   name: 'QuestionBlock',
   component: _QuestionBlock,
-  fieldToEventMap: fields
+  fields: fields
 });
 
 export default QuestionBlock;

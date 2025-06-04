@@ -3,6 +3,12 @@ import React from 'react';
 import { z } from 'zod';
 
 const ReduxFieldDict = z.record(z.string(), z.string());
+const ReduxFieldsReturn = z.object({
+  fields: ReduxFieldDict,
+  events: ReduxFieldDict,
+  fieldToEventMap: ReduxFieldDict,
+  eventToFieldMap: ReduxFieldDict,
+}).strict();
 
 // === Schema ===
 export const BlockConfigSchema = z.object({
@@ -12,10 +18,7 @@ export const BlockConfigSchema = z.object({
   action: z.function().optional(),
   parser: z.function().optional(),
   reducers: z.array(z.function()).optional(),
-  fieldToEventMap: z.union([
-    ReduxFieldDict, // TODO: We should obsolete passing this in directly, since we need the other pieces, like fields
-    z.object({ fieldToEventMap: ReduxFieldDict }).catchall(z.any())
-  ]).optional(),
+  fields: ReduxFieldsReturn.optional(),
   getValue: z.function().optional(),
   extraDebug: z.custom<React.ComponentType<any>>().optional(),
   description: z.string().optional(),
@@ -60,7 +63,7 @@ function createBlock(config: BlockConfig): React.ComponentType<any> {
     parser: config.parser,
     reducers: config.reducers ?? [],
     getValue: config.getValue,
-    fieldToEventMap: parsed.fieldToEventMap?.fieldToEventMap || parsed.fieldToEventMap || {},
+    fields: parsed.fields || {},
 
     OLXName: olxName,
     description: parsed.description,

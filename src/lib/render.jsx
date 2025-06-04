@@ -102,7 +102,7 @@ export function render({ node, idMap, key, nodeInfo, debug }) {
         kids={ children }
         idMap={ idMap }
         spec={ COMPONENT_MAP[tag].spec }
-        fields={ COMPONENT_MAP[tag].spec?.fieldToEventMap?.fields }
+        fields={ COMPONENT_MAP[tag].spec?.fields?.fields }
         nodeInfo={ childNodeInfo }
         debug={ debug }
       />
