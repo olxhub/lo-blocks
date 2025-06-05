@@ -14,6 +14,24 @@ Learning Observer blocks are similar to Open edX XBlocks and React
 components: each block will typically define an XML tag, which can
 then be used in courseware.
 
+### Inputs and responses
+
+Blocks can advertise themselves as **inputs** by supplying a `getValue`
+function. Other blocks can then query their values directly from the
+Redux store. A **response** is an action block that collects values
+from related inputs (via `targets` or inference) and passes them to a
+grader function.
+
+```javascript
+const SimpleCheck = blocks.test({
+  ...blocks.response({
+    grader: (props, input) => input === props.answer ? 'correct' : 'incorrect'
+  }),
+  name: 'SimpleCheck',
+  component: blocks.NoopBlock
+});
+```
+
 Validation, TypeScript, and zod
 -------------------------------
 
