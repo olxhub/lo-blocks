@@ -1,5 +1,5 @@
 import path from 'path';
-import { __testables } from './loadContentTree';
+import { __testables, loadContentTree } from './loadContentTree';
 
 const { loadXmlFilesWithStats } = __testables;
 
@@ -35,4 +35,11 @@ it('handles added, unchanged, changed, and deleted files via in-memory mutation'
   expect(Object.keys(second.added).some(id => id.endsWith('lesson1.xml'))).toBe(true);
   expect(Object.keys(second.deleted).some(id => id.endsWith('lesson1.xml'))).toBe(false);
   expect(Object.keys(second.deleted)).toContain('file:///dummy/path/deleted.xml');
+});
+
+it('indexes nodes with provenance metadata', async () => {
+  const { idMap } = await loadContentTree('./content');
+  const someEntry = Object.values(idMap).find(e => Array.isArray(e?.provenance));
+  expect(someEntry).toBeDefined();
+  expect(someEntry.provenance[0]).toMatchObject({ type: 'file' });
 });

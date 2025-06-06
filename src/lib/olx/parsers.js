@@ -96,11 +96,15 @@ export function childParser(fn, nameOverride) {
   fn._isChildParser = true;
 
   const wrapped = function wrappedParser(ctx) {
-    const { id, tag, attributes, sourceFile, rawParsed, storeEntry } = ctx;
+    const { id, tag, attributes, provenance, rawParsed, storeEntry } = ctx;
     const tagParsed=rawParsed[tag];
     const children = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
     const entry = {
-      id, tag, attributes, sourceFile, rawParsed,
+      id,
+      tag,
+      attributes,
+      provenance,
+      rawParsed,
       children: fn({ ...ctx, rawChildren: children, rawParsed: tagParsed })
     };
     storeEntry(id, entry);

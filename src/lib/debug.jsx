@@ -29,9 +29,12 @@ export const DebugWrapper = ({ props = {}, spec, children }) => {
 
   const tag = props?.nodeInfo?.node?.tag || 'N/A';
   const id = props?.nodeInfo?.node?.id || props.id || 'n/a';
-  const src = props?.nodeInfo?.node?.sourceFile;
+  const provenance = props?.nodeInfo?.node?.provenance;
+  const fileSrc = Array.isArray(provenance)
+    ? provenance.find(p => p.type === 'file')?.uri
+    : null;
   const prefix = process.env.NEXT_PUBLIC_DEBUG_LINK_PREFIX || '';
-  const link = src ? `${prefix}${src}` : null;
+  const link = fileSrc ? `${prefix}${fileSrc}` : null;
 
   const handleLog = () => console.log('[props]', props);
 

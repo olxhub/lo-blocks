@@ -6,6 +6,7 @@ import { COMPONENT_MAP } from '@/components/componentMap';
 import { transformTagName } from '@/lib/olx/xmlTransforms';
 
 import * as parsers from '@/lib/olx/parsers';
+import { fileSource } from '@/lib/provenance';
 
 const defaultParser = parsers.xblocks.parser;
 
@@ -111,7 +112,7 @@ function indexXml(xml, sourceId) {
       rawParsed: node,
       tag,
       attributes,
-      sourceFile: sourceId, // TODO
+      provenance: [ fileSource(sourceId) ],
       // Actions
       parseNode,
       storeEntry: (id, entry) => {
