@@ -13,5 +13,5 @@ import React from 'react';
 import { renderCompiledChildren } from '@/lib/render';
 
 export const NoopBlock = (props) => (
-  <>{renderCompiledChildren(props)}</>
+  <>{ props.kids && renderCompiledChildren(props)}</>
 );

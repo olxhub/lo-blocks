@@ -1,4 +1,4 @@
-import { getChildrenBFS, getChildrenDFS, getParents, inferRelatedNodes, __testables } from './olxdom';
+import { getChildrenBFS, getChildrenDFS, getParents, inferRelatedNodes, getAllNodes, __testables } from './olxdom';
 
 const { normalizeTargetIds, normalizeInfer} = __testables;
 
@@ -161,5 +161,18 @@ describe('inferRelatedNodes', () => {
   it("throws if no node or selector", () => {
     expect(() => inferRelatedNodes({}, { selector: n => true })).toThrow();
     expect(() => inferRelatedNodes({ nodeInfo: tree }, {})).toThrow();
+  });
+});
+
+describe('getAllNodes', () => {
+  it('returns all nodes from anywhere in the tree', () => {
+    // Start from 'D', should still get ['A', 'B', 'D', 'C']
+    expect(getAllNodes(tree.renderedChildren.B.renderedChildren.D).map(ni => ni.node.id))
+      .toEqual(['A', 'B', 'D', 'C']);
+  });
+
+  it('can filter nodes', () => {
+    expect(getAllNodes(tree, { selector: ni => ni.node.id === 'D' }).map(ni => ni.node.id))
+      .toEqual(['D']);
   });
 });

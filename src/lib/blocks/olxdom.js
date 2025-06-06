@@ -123,6 +123,16 @@ function normalizeInfer(
   return items;
 }
 
+
+function root(nodeInfo) {
+  while (nodeInfo.parent) nodeInfo = nodeInfo.parent;
+  return nodeInfo;
+}
+
+export function getAllNodes(nodeInfo, { selector = () => true } = {}) {
+  return getChildrenDFS(root(nodeInfo), { selector, includeRoot: true });
+}
+
 /**
  * Generic inference utility for finding related nodes by selector.
  *
@@ -142,7 +152,7 @@ export function inferRelatedNodes(props, {
   targets,
 } = {}) {
   const { nodeInfo } = props;
-  if (!nodeInfo) throw new Error("inferRelatedNodes: props.nodeInfo is required");
+  if (!nodeInfo) { console.log(props); throw new Error("inferRelatedNodes: props.nodeInfo is required"); };
   if (!selector) throw new Error("inferRelatedNodes: selector is required");
 
   // See above for logic and docstring

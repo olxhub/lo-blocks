@@ -122,6 +122,7 @@ export function renderCompiledChildren( props ) {
   }
 
   if (!Array.isArray(kids)) {
+    console.log(kids);
     return [
       <DisplayError
         name="renderCompiledChildren"
