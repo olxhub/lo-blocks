@@ -13,8 +13,9 @@
     "build:gen-block-registry": "firejail --whitelist=$(pwd) node src/scripts/generateBlockRegistry.js",
     "clean": "firejail --whitelist=$(pwd) rm -rf .next node_modules .turbo out",
     "clean-zombies": "pkill -f next-server; pkill -f transform.js; pkill -f 'node dev'",
-    "_comment_test_automation": "test-automation is for automated build environments (e.g. ChatGPT sandbox, GitHub Actions, etc.), which are already sandboxed and might not have firejail",
-    "test-automation": "node src/scripts/compile-grammars.js; node src/scripts/generateBlockRegistry.js; vitest",
+    "_comment_test_automation": "build-automation and test-automation are for automated build environments (e.g. ChatGPT sandbox, GitHub Actions, etc.), which are already sandboxed and might not have firejail",
+    "build-automation": "node src/scripts/compile-grammars.js; node src/scripts/generateBlockRegistry.js",
+    "test-automation": " vitest run",
     "test": "firejail --noprofile --whitelist=$(pwd) vitest",
     "test:ui": "firejail --noprofile --whitelist=$(pwd) vitest --ui"
   },

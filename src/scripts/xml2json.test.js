@@ -12,7 +12,7 @@ afterEach(async () => {
 
 test('xml2json script outputs valid JSON', async () => {
   // Run the script with --out flag
-  const proc = spawn('npm', ['run', 'xml2json', '--', '--out', OUTPUT_FILE], {
+  const proc = spawn('npx', ['tsx', 'src/scripts/xml2json.js', '--out', OUTPUT_FILE], {
     stdio: 'ignore', // or 'inherit' to see output
   });
 

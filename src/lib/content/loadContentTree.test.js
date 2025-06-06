@@ -30,7 +30,7 @@ it('handles added, unchanged, changed, and deleted files via in-memory mutation'
   // Second scan with mutated previous
   const second = await loadXmlFilesWithStats(testDir, prev);
 
-  expect(Object.keys(second.unchanged).some(id => id.endsWith('sba.xml'))).toBe(true);
+  expect(Object.keys(second.unchanged).some(id => id.endsWith('simplecheck.xml'))).toBe(true);
   expect(Object.keys(second.changed).some(id => id.endsWith('changer.xml'))).toBe(true);
   expect(Object.keys(second.added).some(id => id.endsWith('lesson1.xml'))).toBe(true);
   expect(Object.keys(second.deleted).some(id => id.endsWith('lesson1.xml'))).toBe(false);

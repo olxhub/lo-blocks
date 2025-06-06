@@ -16,6 +16,7 @@ test('Next.js server starts, serves pages, and shuts down cleanly', async () => 
       cwd: process.cwd(),
       env: { ...process.env, NODE_ENV: 'development' },
       stdio: 'inherit',
+      detached: true,
     });
 
     // Test that server starts and serves pages

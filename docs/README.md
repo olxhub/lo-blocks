@@ -100,13 +100,6 @@ testability of modules. We rely on things like modular reducers,
 well-defined data formats, and a declarative, functional programming
 style.
 
-If you're an agent reading this, tests probably won't work in your
-sandbox right now. That's a rabbit hole you don't want to go down
-(unless explicitly asked to). In particular, lo_event needs to be
-updated and uploaded to `npm` before you have a working system for
-testing, and `vitest` is less than supported in many of your
-sandboxes. That's worth fixing, but not in an unrelated task.
-
 Tools
 -----
 
