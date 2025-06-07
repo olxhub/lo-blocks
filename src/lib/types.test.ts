@@ -25,4 +25,9 @@ describe('provenance helpers', () => {
   it('throws on unknown types', () => {
     expect(() => parseProvenance('bogus://foo')).toThrow(/Unknown provenance type/);
   });
+
+  it('rejects malformed file URIs with path in query', () => {
+    const uri = 'file:///foo/bar?path=abc';
+    expect(() => parseProvenance(uri)).toThrow(/Malformed file provenance/);
+  });
 });

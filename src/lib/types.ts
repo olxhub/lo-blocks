@@ -27,9 +27,14 @@ export function parseProvenance(uri: string): ProvenanceStruct {
   const converters: Record<string, (suf: string) => Record<string, any>> = {
     file: suf => {
       const [pathPart, queryPart] = suf.split('?');
-      const result: Record<string, any> = { path: pathPart.startsWith('/') ? pathPart : `/${pathPart}` };
+      const result: Record<string, any> = {
+        path: pathPart.startsWith('/') ? pathPart : `/${pathPart}`
+      };
       if (queryPart) {
         const params = new URLSearchParams(queryPart);
+        if (params.has('path')) {
+          throw new Error(`Malformed file provenance: path duplicated in query`);
+        }
         params.forEach((v, k) => {
           result[k] = v;
         });
