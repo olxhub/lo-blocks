@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import stringify from 'json-stable-stringify';
 
-import { loadContentTree } from '../lib/content/loadContentTree.js';
+import { loadContentTree } from '../lib/content/loadContentTree';
 import fs from 'fs';
 import path from 'path';
 
