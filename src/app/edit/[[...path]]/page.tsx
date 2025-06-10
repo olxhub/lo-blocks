@@ -5,6 +5,8 @@ import dynamic from 'next/dynamic';
 import { xml } from '@codemirror/lang-xml';
 import { useParams } from 'next/navigation';
 
+import Split from "react-split";
+
 // This causes CoadMirror not to load on all pages (it gets its own
 // chunk for pages that need it).
 //
@@ -13,7 +15,9 @@ import { useParams } from 'next/navigation';
 // import CodeMirror from '@uiw/react-codemirror';
 const CodeMirror = dynamic(() => import('@uiw/react-codemirror').then(mod => mod.default), { ssr: false });
 
-export default function EditPage() {
+
+// We should probably pull this out into its own component file
+function EditControl() {
   const path = (useParams().path || []).join('/');
 
   // These should move to redux
@@ -72,4 +76,59 @@ export default function EditPage() {
       {status && <div className="text-sm">{status}</div>}
     </div>
   );
+}
+
+// We should probably pull this out into its own component file
+function FourPaneLayout({
+  Navigation,
+  Chat,
+  Editor,
+  Preview,
+}) {
+  // You can replace the placeholders with your actual controls/components
+  return (
+    <div className="h-screen w-screen">
+      {/* Vertical split: Left and Right */}
+      <Split
+        className="flex h-full"
+        sizes={[25, 75]}
+        minSize={200}
+        gutterSize={6}
+        direction="horizontal"
+        style={{ display: "flex", height: "100vh" }}
+      >
+        {/* LEFT: Navigation (top), Chat (bottom) */}
+        <Split
+          className="flex flex-col h-full"
+          sizes={[60, 40]}
+          minSize={100}
+          gutterSize={6}
+          direction="vertical"
+        >
+          <div className="p-2 overflow-auto border-b border-gray-200">
+            {Navigation || <div>Navigation</div>}
+          </div>
+          <div className="p-2 overflow-auto">{Chat || <div>Chat</div>}</div>
+        </Split>
+        {/* RIGHT: Editor (top), Preview (bottom) */}
+        <Split
+          className="flex flex-col h-full"
+          sizes={[70, 30]}
+          minSize={100}
+          gutterSize={6}
+          direction="vertical"
+        >
+          <div className="p-2 overflow-auto border-b border-gray-200">
+            {Editor || <div>Editor</div>}
+          </div>
+          <div className="p-2 overflow-auto">{Preview || <div>Preview</div>}</div>
+        </Split>
+      </Split>
+    </div>
+  );
+}
+
+
+export default function EditPage() {
+  return (<FourPaneLayout Editor={<EditControl />} />)
 }
