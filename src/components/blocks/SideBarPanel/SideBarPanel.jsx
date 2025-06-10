@@ -14,11 +14,11 @@ import { childParser } from '@/lib/olx/parsers';
 import _SideBarPanel from './_SideBarPanel';
 
 // === Custom parser to build named slots ===
-const sbParser = childParser(function sideBlockParser({ rawChildren, parseNode }) {
+const sbParser = childParser(function sideBlockParser({ rawKids, parseNode }) {
   let main = null;
   const sidebar = [];
 
-  rawChildren.forEach(child => {
+  rawKids.forEach(child => {
     const tag = Object.keys(child).find(k => ![':@', '#text', '#comment'].includes(k));
     if (!tag) return;
 
