@@ -188,6 +188,30 @@ handled during parsing and creates a DAG (it does not take its own ID,
 since it is not itself added to the DAG). The <UseDynamic target="id">
 is its own block, and renders a subnode.
 
+`kids`, `children`, and Shadows.
+-----------------
+
+We have a pipeline from JSX to OLX. Both of these have a hidden
+DOM. Note that while these often map to each other, this is not
+universal. The React shadow DOM and the OLX shadow DOM are *not* the
+same:
+
+* The OLX DOM has blocks which may be composed of many React nodes for
+  complex graphical components.
+* The OLX DOM can have elements -- like `action`s -- which have no
+  react nodes.
+* The OLX DOM is a DAG. The React one is a tree.
+
+Don't confuse the two.
+
+React has `children`. In React, `children` are required to be React
+components. That doesn't always work for us, since child nodes often
+have semantic meaning. We might want to demark them in some way other
+than order. Passing that via `children` raises exceptions. Ergo, in
+OLX, we use the `kids` property to refer to child nodes.
+
+Be very mindful if you mean `children` or `kids`.
+
 Redux
 -----
 
@@ -199,3 +223,32 @@ components interact with each other.
 Eventually, we'd also like to allow reducers to live serverside, in
 _Learning Observer_, for social features like chat.
 
+Code philosophy
+---------------
+
+We have four rings:
+
+1. Core code (core developers)
+2. Blocks (broader community)
+3. OLX / content (authors)
+4. Students
+
+These form a hierarchy:
+
+1. First and foremost is the student learning experience (even if that
+   makes life complex for course authors)
+2. Second is the course author experience, even if that makes life
+   hard for developers. Formats and tools should be human-friendly
+   (even if doing so makes them less machine-friendly)
+3. Third is the block development experience. We're happy to add a lot
+   of magic and complexity to the core code to keep block code simple,
+   readable, and friendly. The audience might be an undergrad developer
+   or a simpler LLM.
+
+Conversely, operating in each of these rings requires a different
+level of expertise:
+
+1. Students: No background assumed
+2. Content authors: A few hours training, and some pedagogical expertise
+3. Block developers: Clever highschool student or an undergrad researcher
+4. Core developers: Professional computer scientists / software engineers
