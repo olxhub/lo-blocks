@@ -40,8 +40,10 @@ export const DebugWrapper = ({ props = {}, spec, children }) => {
 
   const linkRenderers = {
     file: (prov, label, key) => {
+      // TODO: Move away from absolute file:/// URIs
+      // HACK: Extracts relative from absolute URI
       const rel = prov.path.split('/content/')[1] || prov.path;
-      const href = `/edit?path=${encodeURIComponent(rel)}`;
+      const href = `/edit/${encodeURI(rel)}`;
       return <Link key={key} href={href}>{label}</Link>;
     }
   };
