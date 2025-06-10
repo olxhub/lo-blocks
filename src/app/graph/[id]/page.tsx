@@ -34,31 +34,21 @@ export function parseIdMap(idMap) {
       issues.push(`Node ${id} missing tag`);
     }
 
-    // Handle kids using parser-provided staticKids if available
     let childIds = [];
+    const comp = COMPONENT_MAP[node.tag];
     try {
-      const comp = COMPONENT_MAP[node.tag];
       if (comp && typeof comp.staticKids === 'function') {
         childIds = comp.staticKids(node) || [];
-      } else {
-        if (Array.isArray(node.kids)) {
-          for (const child of node.kids) {
-            if (typeof child === 'string') childIds.push(child);
-            else if (child?.id) childIds.push(child.id);
-            else if (child?.type === 'xblock' && child.id) childIds.push(child.id);
-          }
-        } else if (typeof node.kids === 'object' && node.kids != null) {
-          for (const val of Object.values(node.kids)) {
-            if (Array.isArray(val)) {
-              for (const v of val) {
-                if (typeof v === 'string') childIds.push(v);
-                else if (v?.id) childIds.push(v.id);
-              }
-            } else if (typeof val === 'string') {
-              childIds.push(val);
-            } else if (val?.id) {
-              childIds.push(val.id);
-            }
+      } else if (Array.isArray(node.kids)) {
+        childIds = node.kids
+          .map(k => (typeof k === 'string' ? k : k?.id))
+          .filter(Boolean);
+      } else if (node.kids && typeof node.kids === 'object') {
+        for (const val of Object.values(node.kids)) {
+          const arr = Array.isArray(val) ? val : [val];
+          for (const v of arr) {
+            const ref = typeof v === 'string' ? v : v?.id;
+            if (ref) childIds.push(ref);
           }
         }
       }
