@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import Link from 'next/link';
 import { parseProvenance, formatProvenance } from '@/lib/types';
 
 export const Trace = ({
@@ -36,9 +39,11 @@ export const DebugWrapper = ({ props = {}, spec, children }) => {
   const parsed = provenance.map(p => parseProvenance(p));
 
   const linkRenderers = {
-    file: (prov, label, key) => (
-      <a key={key} href={`${prefix}${prov.path}`}>{label}</a>
-    )
+    file: (prov, label, key) => {
+      const rel = prov.path.split('/content/')[1] || prov.path;
+      const href = `/edit?path=${encodeURIComponent(rel)}`;
+      return <Link key={key} href={href}>{label}</Link>;
+    }
   };
 
   const links = parsed.map((prov, idx) => {
