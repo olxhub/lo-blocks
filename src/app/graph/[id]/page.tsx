@@ -33,11 +33,11 @@ function parseIdMap(idMap) {
       issues.push(`Node ${id} missing tag`);
     }
 
-    // Handle children flexibly
+    // Handle kids flexibly
     let childIds = [];
     try {
-      if (Array.isArray(node.children)) {
-        for (const child of node.children) {
+      if (Array.isArray(node.kids)) {
+        for (const child of node.kids) {
           if (child?.id) childIds.push(child.id);
           else if (child?.type === 'xblock' && child.id) childIds.push(child.id);
           else if (child?.type === 'xml' || child?.type === 'text') {
@@ -46,8 +46,8 @@ function parseIdMap(idMap) {
             issues.push(`Unknown child type/structure in node ${id}: ${JSON.stringify(child)}`);
           }
         }
-      } else if (typeof node.children === 'object') {
-        for (const val of Object.values(node.children)) {
+      } else if (typeof node.kids === 'object') {
+        for (const val of Object.values(node.kids)) {
           if (Array.isArray(val)) {
             for (const v of val) {
               if (typeof v === 'string') childIds.push(v);
@@ -59,10 +59,10 @@ function parseIdMap(idMap) {
           }
         }
       } else {
-        issues.push(`Unknown children format in node ${id}: ${JSON.stringify(node.children)}`);
+        issues.push(`Unknown kids format in node ${id}: ${JSON.stringify(node.kids)}`);
       }
     } catch (err) {
-      issues.push(`Error processing children for node ${id}: ${err.message}`);
+      issues.push(`Error processing kids for node ${id}: ${err.message}`);
     }
 
     // Track incoming refs

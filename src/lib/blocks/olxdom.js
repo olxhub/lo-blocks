@@ -29,18 +29,18 @@ export function getParents(nodeInfo, { selector = () => true, includeRoot = fals
  * Returns all descendant nodeInfos of the given nodeInfo,
  * matching the selector, in BFS order (optionally including root).
  */
-export function getChildrenBFS(nodeInfo, { selector = () => true, includeRoot = false } = {}) {
+export function getKidsBFS(nodeInfo, { selector = () => true, includeRoot = false } = {}) {
   const results = [];
   const queue = includeRoot
     ? [nodeInfo]
-    : Object.values(nodeInfo.renderedChildren || {});
+    : Object.values(nodeInfo.renderedKids || {});
 
   while (queue.length) {
     const current = queue.shift();
     if (selector(current)) {
       results.push(current);
     }
-    queue.push(...Object.values(current.renderedChildren || {}));
+    queue.push(...Object.values(current.renderedKids || {}));
   }
 
   return results;
@@ -50,13 +50,13 @@ export function getChildrenBFS(nodeInfo, { selector = () => true, includeRoot = 
  * Returns all descendant nodeInfos of the given nodeInfo,
  * matching the selector, in DFS preorder (optionally including root).
  */
-export function getChildrenDFS(nodeInfo, { selector = () => true, includeRoot = false } = {}) {
+export function getKidsDFS(nodeInfo, { selector = () => true, includeRoot = false } = {}) {
   const results = [];
   function visit(ni, isRoot) {
     if ((includeRoot || !isRoot) && selector(ni)) {
       results.push(ni);
     }
-    Object.values(ni.renderedChildren || {}).forEach(child =>
+    Object.values(ni.renderedKids || {}).forEach(child =>
       visit(child, false)
     );
   }
@@ -85,13 +85,13 @@ function normalizeTargetIds(targets) {
 }
 
 /**
- * Normalize infer to an array of modes: ['parents','children']
+ * Normalize infer to an array of modes: ['parents','kids']
  * Accepts: true/false (bool or string, case-insensitive), string (comma or single), array, null/undefined.
  *   - null/undefined => nullDefaults
  *   - false/"false" => []
  *   - true/"true" => allDefaults
  *   - "parents" => ['parents']
- *   - ["parents","children"] => ['parents','children']
+ *   - ["parents","kids"] => ['parents','kids']
  * Validates against allowedItems.
  * @param {any} infer
  * @param {string[]} nullDefaults
@@ -102,8 +102,8 @@ function normalizeTargetIds(targets) {
 function normalizeInfer(
   infer,
   nullDefaults,
-  allDefaults = ['parents', 'children'],
-  allowedItems = ['parents', 'children']
+  allDefaults = ['parents', 'kids'],
+  allowedItems = ['parents', 'kids']
 ) {
   if (infer == null) return nullDefaults;
   let items;
@@ -130,7 +130,7 @@ function root(nodeInfo) {
 }
 
 export function getAllNodes(nodeInfo, { selector = () => true } = {}) {
-  return getChildrenDFS(root(nodeInfo), { selector, includeRoot: true });
+  return getKidsDFS(root(nodeInfo), { selector, includeRoot: true });
 }
 
 /**
@@ -139,7 +139,7 @@ export function getAllNodes(nodeInfo, { selector = () => true } = {}) {
  * @param {Object} props - Props object (must include 'node' and maybe 'idMap')
  * @param {Object} options
  *   - selector: (nodeInfo) => boolean  (required)
- *   - infer:    true | false | 'parents' | 'children' | ['parents',...] | undefined
+ *   - infer:    true | false | 'parents' | 'kids' | ['parents',...] | undefined
  *       - true: both directions; false: none; string/array: directions
  *   - targets:  string | string[] | comma string | undefined
  *       - Accepts array, comma-separated string, or single string.
@@ -159,7 +159,7 @@ export function inferRelatedNodes(props, {
   const targetIds = normalizeTargetIds(targets);
   const inferModes = normalizeInfer(
     infer,
-    (targets ? [] : ['parents', 'children']) // default: infer if no targets, else don't
+    (targets ? [] : ['parents', 'kids']) // default: infer if no targets, else don't
   );
 
   // Extract each group separately
@@ -169,12 +169,12 @@ export function inferRelatedNodes(props, {
         ? getParents(nodeInfo, { selector, includeRoot: false }).map(n => n.node.id)
         : [];
 
-  const children = inferModes.includes('children')
-        ? getChildrenBFS(nodeInfo, { selector, includeRoot: false }).map(n => n.node.id)
+  const kids = inferModes.includes('kids')
+        ? getKidsBFS(nodeInfo, { selector, includeRoot: false }).map(n => n.node.id)
         : [];
 
   // Combine all IDs and deduplicate using Set
-  return [...new Set([...explicitTargets, ...parents, ...children])];
+  return [...new Set([...explicitTargets, ...parents, ...kids])];
 
   // Use an object for de-duplication by id
   return [... new Set([
@@ -182,8 +182,8 @@ export function inferRelatedNodes(props, {
       ? targetIds : [],
     ...inferModes.includes('parents')
       ? getParents(nodeInfo, { selector, includeRoot: false }).map(n=>n.node.id) : [],
-    ...inferModes.includes('children')
-      ? getChildrenBFS(nodeInfo, { selector, includeRoot: false }).map(n=>n.node.id) : []
+    ...inferModes.includes('kids')
+      ? getKidsBFS(nodeInfo, { selector, includeRoot: false }).map(n=>n.node.id) : []
   ])];
 }
 

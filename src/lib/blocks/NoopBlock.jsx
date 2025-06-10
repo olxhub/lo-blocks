@@ -10,8 +10,8 @@
  */
 
 import React from 'react';
-import { renderCompiledChildren } from '@/lib/render';
+import { renderCompiledKids } from '@/lib/render';
 
 export const NoopBlock = (props) => (
-  <>{ props.kids && renderCompiledChildren(props)}</>
+  <>{ props.kids && renderCompiledKids(props)}</>
 );

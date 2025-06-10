@@ -76,14 +76,14 @@ function indexXml(xml: string, provenance: Provenance) {
         );
       }
 
-      // 2. Ensure no additional children
-      // Children are present if there are any keys other than 'Use', ':@', '#text', '#comment'
+      // 2. Ensure no additional kids
+      // Kids are present if there are any keys other than 'Use', ':@', '#text', '#comment'
       const childKeys = Object.keys(node).filter(
         k => !['Use', ':@', '#text', '#comment'].includes(k)
       );
       if (childKeys.length > 0) {
         throw new Error(
-          `<Use ref="..."> in ${formatProvenance(provenance)} must not have child elements. Found children: ${childKeys.join(', ')}`
+          `<Use ref="..."> in ${formatProvenance(provenance)} must not have kid elements. Found kids: ${childKeys.join(', ')}`
         );
       }
 
