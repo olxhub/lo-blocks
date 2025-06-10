@@ -1,31 +1,36 @@
+import fs from 'fs/promises';
+import path from 'path';
 import { FileStorageProvider } from '../storage';
 
-it('handles added, unchanged, changed, and deleted files via in-memory mutation', async () => {
-  const provider = new FileStorageProvider('./content');
+it('handles added, unchanged, changed, and deleted files via filesystem mutation', async () => {
+  const tmpDir = await fs.mkdtemp('content-test-');
 
+  // Seed with three XML files
+  const seedFiles = ['changer.xml', 'helloaction.xml', 'simplecheck.xml'];
+  for (const file of seedFiles) {
+    await fs.copyFile(path.join('content/demos', file), path.join(tmpDir, file));
+  }
+
+  const provider = new FileStorageProvider(tmpDir);
   const first = await provider.loadXmlFilesWithStats();
   const prev = { ...first.added };
 
-  const changerKey = Object.keys(prev).find(id => id.endsWith('changer.xml'));
-  prev[changerKey] = {
-    ...prev[changerKey],
-    version: { ...prev[changerKey].version, mtimeMs: prev[changerKey].version.mtimeMs + 1000 }
-  };
-
-  const lessonKey = Object.keys(prev).find(id => id.endsWith('lesson1.xml'));
-  delete prev[lessonKey];
-
-  prev['file:///dummy/path/deleted.xml'] = {
-    id: 'file:///dummy/path/deleted.xml',
-    version: { mtimeMs: 1, size: 10 },
-    content: 'dummy'
-  };
+  // Mutate: modify changer.xml
+  await fs.appendFile(path.join(tmpDir, 'changer.xml'), ' ');
+  // Add lesson1.xml
+  await fs.copyFile(
+    path.join('content/linear-algebra/eigenvalues/lesson1.xml'),
+    path.join(tmpDir, 'lesson1.xml')
+  );
+  // Delete helloaction.xml
+  await fs.rm(path.join(tmpDir, 'helloaction.xml'));
 
   const second = await provider.loadXmlFilesWithStats(prev);
 
   expect(Object.keys(second.unchanged).some(id => id.endsWith('simplecheck.xml'))).toBe(true);
   expect(Object.keys(second.changed).some(id => id.endsWith('changer.xml'))).toBe(true);
   expect(Object.keys(second.added).some(id => id.endsWith('lesson1.xml'))).toBe(true);
-  expect(Object.keys(second.deleted).some(id => id.endsWith('lesson1.xml'))).toBe(false);
-  expect(Object.keys(second.deleted)).toContain('file:///dummy/path/deleted.xml');
+  expect(Object.keys(second.deleted).some(id => id.endsWith('helloaction.xml'))).toBe(true);
+
+  await fs.rm(tmpDir, { recursive: true, force: true });
 });

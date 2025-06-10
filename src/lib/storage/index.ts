@@ -1,7 +1,7 @@
 import path from 'path';
 export interface XmlFileInfo {
   id: string;
-  version: any;
+  _metadata: any;
   content: string;
 }
 
@@ -15,7 +15,7 @@ export interface XmlScanResult {
 export interface StorageProvider {
   /**
    * Scan for XML/OLX files returning added/changed/unchanged/deleted
-   * relative to a previous scan. The structure of `version` is
+   * relative to a previous scan. The `_metadata` structure is
    * provider specific (mtime+size, git hash, DB id, etc.).
    */
   loadXmlFilesWithStats(previous?: Record<string, XmlFileInfo>): Promise<XmlScanResult>;
@@ -72,15 +72,15 @@ export class FileStorageProvider implements StorageProvider {
           found[id] = true;
           const prev = previous[id];
           if (prev) {
-            if (fileChanged(prev.version, stat)) {
+            if (fileChanged(prev._metadata.stat, stat)) {
               const content = await fs.readFile(fullPath, 'utf-8');
-              changed[id] = { id, version: stat, content };
+              changed[id] = { id, _metadata: { stat }, content };
             } else {
               unchanged[id] = prev;
             }
           } else {
             const content = await fs.readFile(fullPath, 'utf-8');
-            added[id] = { id, version: stat, content };
+            added[id] = { id, _metadata: { stat }, content };
           }
         }
       }
