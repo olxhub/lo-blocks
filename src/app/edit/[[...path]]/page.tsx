@@ -4,12 +4,14 @@ import { useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { xml } from '@codemirror/lang-xml';
+import { useParams } from 'next/navigation';
 
 const CodeMirror = dynamic(() => import('@uiw/react-codemirror').then(mod => mod.default), { ssr: false });
 
 export default function EditPage() {
-  const searchParams = useSearchParams();
-  const path = searchParams.get('path') || '';
+  const path = (useParams().path || []).join('/');
+
+
   const [content, setContent] = useState('');
   const [status, setStatus] = useState('');
 
