@@ -213,7 +213,7 @@ export function ChatComponent({
   };
 
   return (
-    <div className="flex flex-col border border-gray-200 rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full border border-gray-200 rounded-lg overflow-hidden">
       <div className="bg-white p-3 border-b border-gray-200">
         <div className="flex items-center">
           <span className="font-semibold">Chat</span>
@@ -222,7 +222,7 @@ export function ChatComponent({
       </div>
       <div
         ref={chatContainerRef}
-        className={`${height} overflow-y-auto p-4 bg-white`}
+        className={`${height} overflow-y-auto p-4 bg-white flex-1`}
       >
         {messages.map(renderMessage)}
       </div>

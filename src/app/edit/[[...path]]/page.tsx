@@ -65,16 +65,18 @@ function EditControl() {
   if (!path) return <div className="p-4">No path provided</div>;
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 flex flex-col h-full space-y-4">
       <div className="font-mono text-sm">Editing: {path}</div>
-      <div>
-        <CodeMirror value={content} height="400px" extensions={[xml()]} onChange={onChange} />
+      <div className="flex-1">
+        <CodeMirror value={content} height="100%" extensions={[xml()]} onChange={onChange} />
       </div>
-      <button
-        onClick={handleSave} className="px-4 py-2 bg-blue-600 text-white rounded"
-        disabled={status === 'Saving...'}
-      >Save</button>
-      {status && <div className="text-sm">{status}</div>}
+      <div>
+        <button
+          onClick={handleSave} className="px-4 py-2 bg-blue-600 text-white rounded"
+          disabled={status === 'Saving...'}
+        >Save</button>
+        {status && <div className="text-sm">{status}</div>}
+      </div>
     </div>
   );
 }
@@ -109,7 +111,9 @@ function FourPaneLayout({
           <div className="p-2 overflow-auto border-b border-gray-200">
             {Navigation || <div>Navigation</div>}
           </div>
-          <div className="p-2 overflow-auto">{Chat || <div>Chat</div>}</div>
+          <div className="p-2 overflow-auto h-full flex flex-col">
+            {Chat || <div>Chat</div>}
+          </div>
         </Split>
         {/* RIGHT: Editor (top), Preview (bottom) */}
         <Split
@@ -119,7 +123,7 @@ function FourPaneLayout({
           gutterSize={6}
           direction="vertical"
         >
-          <div className="p-2 overflow-auto border-b border-gray-200">
+          <div className="p-2 overflow-auto border-b border-gray-200 h-full flex flex-col">
             {Editor || <div>Editor</div>}
           </div>
           <div className="p-2 overflow-auto">{Preview || <div>Preview</div>}</div>
@@ -142,7 +146,7 @@ export default function EditPage() {
   return (
     <FourPaneLayout
       Editor={<EditControl />}
-      Chat={<ChatComponent id="dummy_chat" messages={dummyMessages} footer={chatFooter} />}
+      Chat={<ChatComponent id="dummy_chat" messages={dummyMessages} footer={chatFooter} height="flex-1" />}
     />
   );
 }
