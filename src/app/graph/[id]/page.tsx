@@ -16,11 +16,12 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import dagre from 'dagre';
+import { COMPONENT_MAP } from '@/components/componentMap';
 
 /**
  * Parses the idMap structure into React Flow compatible nodes and edges.
  */
-function parseIdMap(idMap) {
+export function parseIdMap(idMap) {
   const nodes = [];
   const edges = [];
   const issues = [];
@@ -33,33 +34,33 @@ function parseIdMap(idMap) {
       issues.push(`Node ${id} missing tag`);
     }
 
-    // Handle kids flexibly
+    // Handle kids using parser-provided staticKids if available
     let childIds = [];
     try {
-      if (Array.isArray(node.kids)) {
-        for (const child of node.kids) {
-          if (child?.id) childIds.push(child.id);
-          else if (child?.type === 'xblock' && child.id) childIds.push(child.id);
-          else if (child?.type === 'xml' || child?.type === 'text') {
-            // not a reference, ignore
-          } else {
-            issues.push(`Unknown child type/structure in node ${id}: ${JSON.stringify(child)}`);
-          }
-        }
-      } else if (typeof node.kids === 'object') {
-        for (const val of Object.values(node.kids)) {
-          if (Array.isArray(val)) {
-            for (const v of val) {
-              if (typeof v === 'string') childIds.push(v);
-            }
-          } else if (typeof val === 'string') {
-            childIds.push(val);
-          } else {
-            issues.push(`Unrecognized child structure in node ${id}: ${JSON.stringify(val)}`);
-          }
-        }
+      const comp = COMPONENT_MAP[node.tag];
+      if (comp && typeof comp.staticKids === 'function') {
+        childIds = comp.staticKids(node) || [];
       } else {
-        issues.push(`Unknown kids format in node ${id}: ${JSON.stringify(node.kids)}`);
+        if (Array.isArray(node.kids)) {
+          for (const child of node.kids) {
+            if (typeof child === 'string') childIds.push(child);
+            else if (child?.id) childIds.push(child.id);
+            else if (child?.type === 'xblock' && child.id) childIds.push(child.id);
+          }
+        } else if (typeof node.kids === 'object' && node.kids != null) {
+          for (const val of Object.values(node.kids)) {
+            if (Array.isArray(val)) {
+              for (const v of val) {
+                if (typeof v === 'string') childIds.push(v);
+                else if (v?.id) childIds.push(v.id);
+              }
+            } else if (typeof val === 'string') {
+              childIds.push(val);
+            } else if (val?.id) {
+              childIds.push(val.id);
+            }
+          }
+        }
       }
     } catch (err) {
       issues.push(`Error processing kids for node ${id}: ${err.message}`);

@@ -111,13 +111,19 @@ export function childParser(fn, nameOverride) {
     value: `childParser(${nameOverride || fn.name || 'anonymous_child_parser'})`
   });
 
-  return { parser: wrapped };
+  const mixin = { parser: wrapped };
+  if (typeof fn.staticKids === 'function') {
+    mixin.staticKids = fn.staticKids;
+  }
+
+  return mixin;
 }
 
 // === Parsers ===
 
 // No internal information.
 export const ignore = childParser(() => null);
+ignore.staticKids = () => [];
 
 // Ad-hoc reconstruction of the source XML.
 //
@@ -133,6 +139,7 @@ export const xml = {
     ];
   }
 };
+xml.staticKids = () => [];
 
 // Assumes we have a list of OLX-style XBlocks. E.g. for a learning sequence.
 export const xblocks = childParser(function xblocksParser({ rawKids, parseNode }) {
@@ -144,11 +151,14 @@ export const xblocks = childParser(function xblocksParser({ rawKids, parseNode }
     .map(parseNode)
     .filter(entry => entry.id);
 });
+xblocks.staticKids = (entry) =>
+  (Array.isArray(entry.kids) ? entry.kids : []).filter(k => k && k.id).map(k => k.id);
 
 // Pass through the parsed XML, in the fast-xml-parser format
 export const xmljson = childParser(({ rawParsed }) => [
   { type: 'node', rawParsed }
 ]);
+xmljson.staticKids = () => [];
 
 // Feed through the text / CDATA content between the opening and closing tag.
 //
@@ -156,6 +166,7 @@ export const xmljson = childParser(({ rawParsed }) => [
 export const text = childParser(function textParser({ rawParsed }) {
   return extractInnerTextFromXmlNodes(rawParsed).text;
 });
+text.staticKids = () => [];
 
 // === PEG Support ===
 //
@@ -185,5 +196,5 @@ export function peggyParser(peggyParser, preprocess = (x) => ({ text: x.text }),
     return postprocess({ type: 'parsed', parsed, ...rest });
   });
 
-  return { parser };
+  return { parser, staticKids: () => [] };
 }
