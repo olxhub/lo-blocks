@@ -1,17 +1,17 @@
-import { getChildrenBFS, getChildrenDFS, getParents, inferRelatedNodes, getAllNodes, __testables } from './olxdom';
+import { getKidsBFS, getKidsDFS, getParents, inferRelatedNodes, getAllNodes, __testables } from './olxdom';
 
 const { normalizeTargetIds, normalizeInfer} = __testables;
 
 // Minimal mock node tree
 const tree = {
   node: { id: 'A', spec: {isAction: true} },
-  renderedChildren: {
+  renderedKids: {
     B: {
       node: { id: 'B' },
-      renderedChildren: {
+      renderedKids: {
         D: {
           node: { id: 'D', spec: {isAction: true} },
-          renderedChildren: {},
+          renderedKids: {},
           // parent assigned below
         },
       },
@@ -19,58 +19,58 @@ const tree = {
     },
     C: {
       node: { id: 'C', spec: {isAction: true} },
-      renderedChildren: {},
+      renderedKids: {},
       // parent assigned below
     },
   },
   // no parent on root
 };
 // Patch up parents for test (only needed for getParents)
-tree.renderedChildren.B.parent = tree;
-tree.renderedChildren.C.parent = tree;
-tree.renderedChildren.B.renderedChildren.D.parent = tree.renderedChildren.B;
+tree.renderedKids.B.parent = tree;
+tree.renderedKids.C.parent = tree;
+tree.renderedKids.B.renderedKids.D.parent = tree.renderedKids.B;
 
-describe('getChildrenBFS', () => {
+describe('getKidsBFS', () => {
   it('returns all descendants in BFS order, omitting root by default', () => {
-    expect(getChildrenBFS(tree).map(ni => ni.node.id)).toEqual(['B', 'C', 'D']);
+    expect(getKidsBFS(tree).map(ni => ni.node.id)).toEqual(['B', 'C', 'D']);
   });
 
   it('returns all nodes in BFS order, including root when requested', () => {
-    expect(getChildrenBFS(tree, { includeRoot: true }).map(ni => ni.node.id)).toEqual(['A', 'B', 'C', 'D']);
+    expect(getKidsBFS(tree, { includeRoot: true }).map(ni => ni.node.id)).toEqual(['A', 'B', 'C', 'D']);
   });
 
   it('can filter nodes', () => {
-    expect(getChildrenBFS(tree, { selector: ni => ni.node.id === 'C' }).map(ni => ni.node.id)).toEqual(['C']);
+    expect(getKidsBFS(tree, { selector: ni => ni.node.id === 'C' }).map(ni => ni.node.id)).toEqual(['C']);
   });
 });
 
-describe('getChildrenDFS', () => {
+describe('getKidsDFS', () => {
   it('returns all descendants in DFS order, omitting root by default', () => {
-    expect(getChildrenDFS(tree).map(ni => ni.node.id)).toEqual(['B', 'D', 'C']);
+    expect(getKidsDFS(tree).map(ni => ni.node.id)).toEqual(['B', 'D', 'C']);
   });
 
   it('returns all nodes in DFS order, including root when requested', () => {
-    expect(getChildrenDFS(tree, { includeRoot: true }).map(ni => ni.node.id)).toEqual(['A', 'B', 'D', 'C']);
+    expect(getKidsDFS(tree, { includeRoot: true }).map(ni => ni.node.id)).toEqual(['A', 'B', 'D', 'C']);
   });
 
   it('can filter nodes', () => {
-    expect(getChildrenDFS(tree, { selector: ni => ni.node.id === 'D' }).map(ni => ni.node.id)).toEqual(['D']);
+    expect(getKidsDFS(tree, { selector: ni => ni.node.id === 'D' }).map(ni => ni.node.id)).toEqual(['D']);
   });
 });
 
 describe('getParents', () => {
   it('returns all parents, omitting self by default', () => {  
-    expect(getParents(tree.renderedChildren.B.renderedChildren.D).map(ni => ni.node.id)).toEqual(['B', 'A']);
+    expect(getParents(tree.renderedKids.B.renderedKids.D).map(ni => ni.node.id)).toEqual(['B', 'A']);
   });
 
   it('returns all parents, including self when requested', () => {
-    expect(getParents(tree.renderedChildren.B.renderedChildren.D, { includeRoot: true }).map(ni => ni.node.id))
+    expect(getParents(tree.renderedKids.B.renderedKids.D, { includeRoot: true }).map(ni => ni.node.id))
       .toEqual(['D', 'B', 'A']);
   });
 
   it('can filter parents', () => {
     expect(getParents(
-      tree.renderedChildren.B.renderedChildren.D,
+      tree.renderedKids.B.renderedKids.D,
       { selector: ni => ni.node.id === 'A' }).map(ni => ni.node.id))
       .toEqual(['A']);
   });
@@ -97,35 +97,35 @@ describe('inferRelatedNodes', () => {
     expect(normalizeInfer(undefined, ['parents'])).toEqual(['parents']);
     expect(normalizeInfer(false, ['parents'])).toEqual([]);
     expect(normalizeInfer("false", ['parents'])).toEqual([]);
-    expect(normalizeInfer(true, ['parents'])).toEqual(['parents', 'children']);
-    expect(normalizeInfer(" TrUe", ['parents'])).toEqual(['parents', 'children']);
+    expect(normalizeInfer(true, ['parents'])).toEqual(['parents', 'kids']);
+    expect(normalizeInfer(" TrUe", ['parents'])).toEqual(['parents', 'kids']);
     expect(normalizeInfer("parents", ['parents'])).toEqual(['parents']);
-    expect(normalizeInfer("parents ,  children", ['parents'])).toEqual(['parents', 'children']);
-    expect(normalizeInfer(["PARENTS", "  children"], ['parents'])).toEqual(['parents', 'children']);
+    expect(normalizeInfer("parents ,  kids", ['parents'])).toEqual(['parents', 'kids']);
+    expect(normalizeInfer(["PARENTS", "  kids"], ['parents'])).toEqual(['parents', 'kids']);
     expect(() => normalizeInfer("foo", ['parents'])).toThrow();
     expect(() => normalizeInfer(["parents", "foo"], ['parents'])).toThrow();
   });
 
-  it("returns all parents and children (default infer=true)", () => {
+  it("returns all parents and kids (default infer=true)", () => {
     const result = inferRelatedNodes(
       { nodeInfo: tree },
       { selector: n => true, infer: true }
     );
-    // Expect parents: none (root), children: B, C, D (all descendants)
+    // Expect parents: none (root), kids: B, C, D (all descendants)
     expect(result.sort()).toEqual(['B', 'C', 'D']);
   });
 
-  it("returns only children when infer='children'", () => {
+  it("returns only kids when infer='kids'", () => {
     const result = inferRelatedNodes(
       { nodeInfo: tree },
-      { selector: n => true, infer: 'children' }
+      { selector: n => true, infer: 'kids' }
     );
     expect(result.sort()).toEqual(['B', 'C', 'D']);
   });
 
   it("returns only parents when infer='parents'", () => {
     const result = inferRelatedNodes(
-      { nodeInfo: tree.renderedChildren.B.renderedChildren.D },
+      { nodeInfo: tree.renderedKids.B.renderedKids.D },
       { selector: n => true, infer: 'parents' }
     );
     // D's parents: B, A
@@ -167,7 +167,7 @@ describe('inferRelatedNodes', () => {
 describe('getAllNodes', () => {
   it('returns all nodes from anywhere in the tree', () => {
     // Start from 'D', should still get ['A', 'B', 'D', 'C']
-    expect(getAllNodes(tree.renderedChildren.B.renderedChildren.D).map(ni => ni.node.id))
+    expect(getAllNodes(tree.renderedKids.B.renderedKids.D).map(ni => ni.node.id))
       .toEqual(['A', 'B', 'D', 'C']);
   });
 

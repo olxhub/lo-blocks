@@ -2,7 +2,7 @@ import React from 'react';
 import { DisplayError, DebugWrapper } from '@/lib/debug';
 import { COMPONENT_MAP } from '@/components/componentMap';
 
-export const makeRootNode = () => ({ sentinel: 'root', renderedChildren: {} });
+export const makeRootNode = () => ({ sentinel: 'root', renderedKids: {} });
 
 // Main render function: handles single nodes, strings, JSX, and blocks
 export function render({ node, idMap, key, nodeInfo, debug }) {
@@ -11,9 +11,9 @@ export function render({ node, idMap, key, nodeInfo, debug }) {
   // JSX passthrough
   if (React.isValidElement(node)) return node;
 
-  // Handle list of children
+  // Handle list of kids
   if (Array.isArray(node)) {
-    return renderCompiledChildren({ kids: node, idMap, nodeInfo, debug });
+    return renderCompiledKids({ kids: node, idMap, nodeInfo, debug });
   }
 
   // Handle string ID,
@@ -58,7 +58,7 @@ export function render({ node, idMap, key, nodeInfo, debug }) {
   }
 
   // Handle structured OLX-style node
-  const { tag, attributes = {}, children = [] } = node;
+  const { tag, attributes = {}, kids = [] } = node;
 
   if (!COMPONENT_MAP[tag] || ! COMPONENT_MAP[tag].component) {
     return (
@@ -82,10 +82,10 @@ export function render({ node, idMap, key, nodeInfo, debug }) {
   // This is because render() can be called multiple times (e.g. in Strict mode)
   //
   // TODO: Check if this causes extra renders, and if we need to memoize anything
-  let childNodeInfo = nodeInfo.renderedChildren[node.id];
+  let childNodeInfo = nodeInfo.renderedKids[node.id];
   if (!childNodeInfo) {
-    childNodeInfo = { node, renderedChildren: {}, parent: nodeInfo, spec: COMPONENT_MAP[tag].spec };
-    nodeInfo.renderedChildren[node.id] = childNodeInfo;
+    childNodeInfo = { node, renderedKids: {}, parent: nodeInfo, spec: COMPONENT_MAP[tag].spec };
+    nodeInfo.renderedKids[node.id] = childNodeInfo;
   }
 
   const wrapperProps = {
@@ -99,7 +99,7 @@ export function render({ node, idMap, key, nodeInfo, debug }) {
     <DebugWrapper props={wrapperProps} spec={COMPONENT_MAP[tag].spec}>
       <Component
         { ...attributes }
-        kids={ children }
+        kids={ kids }
         idMap={ idMap }
         spec={ COMPONENT_MAP[tag].spec }
         fields={ COMPONENT_MAP[tag].spec?.fields?.fields }
@@ -111,12 +111,12 @@ export function render({ node, idMap, key, nodeInfo, debug }) {
 }
 
 
-// Render children array that may include: text, JSX, OLX, etc.
-export function renderCompiledChildren( props ) {
+// Render kids array that may include: text, JSX, OLX, etc.
+export function renderCompiledKids( props ) {
   let { kids, children, idMap, nodeInfo, debug } = props;
   if (kids === undefined && children !== undefined) {
     console.log(
-      "[renderCompiledChildren] WARNING: 'children' prop used instead of 'kids'. Please migrate to 'kids'."
+      "[renderCompiledKids] WARNING: 'children' prop used instead of 'kids'. Please migrate to 'kids'."
     );
     kids = children;
   }
@@ -125,17 +125,17 @@ export function renderCompiledChildren( props ) {
     console.log(kids);
     return [
       <DisplayError
-        name="renderCompiledChildren"
+        name="renderCompiledKids"
         message={`Expected kids to be an array, got ${typeof kids}`}
         data={kids}
       />
     ];
   }
 
-  const keyedChildren = assignReactKeys(kids);
+  const keyedKids = assignReactKeys(kids);
 
 
-  return keyedChildren.map((child, i) => {
+  return keyedKids.map((child, i) => {
     if (typeof child === 'string') {
       return <React.Fragment key={child.key}>{child}</React.Fragment>;
     }
@@ -180,7 +180,7 @@ export function renderCompiledChildren( props ) {
         return (
           <DisplayError
             key={child.key}
-            name="renderCompiledChildren"
+            name="renderCompiledKids"
             message={`Unknown child type: "${child.type}"`}
             data={child}
           />

@@ -86,7 +86,7 @@ function extractInnerTextFromXmlNodes(rawParsed) {
 }
 
 // Simple decorator which assumes the parser just wants to look at the
-// parsed XML children, and not all the other context.
+// parsed XML kids, and not all the other context.
 //
 // All the other context (e.g. attributes, tag, etc.) are just passed
 // through transparently.
@@ -98,10 +98,10 @@ export function childParser(fn, nameOverride) {
   const wrapped = function wrappedParser(ctx) {
     const { id, tag, attributes, provenance, rawParsed, storeEntry } = ctx;
     const tagParsed=rawParsed[tag];
-    const children = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
+    const kids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
     const entry = {
       id, tag, attributes, provenance, rawParsed,
-      children: fn({ ...ctx, rawChildren: children, rawParsed: tagParsed })
+      kids: fn({ ...ctx, rawKids: kids, rawParsed: tagParsed })
     };
     storeEntry(id, entry);
     return id;
@@ -135,8 +135,8 @@ export const xml = {
 };
 
 // Assumes we have a list of OLX-style XBlocks. E.g. for a learning sequence.
-export const xblocks = childParser(function xblocksParser({ rawChildren, parseNode }) {
-  return rawChildren
+export const xblocks = childParser(function xblocksParser({ rawKids, parseNode }) {
+  return rawKids
     .filter(child => {
       const tag = Object.keys(child).find(k => !['#text', '#comment', ':@'].includes(k));
       return !!tag;
