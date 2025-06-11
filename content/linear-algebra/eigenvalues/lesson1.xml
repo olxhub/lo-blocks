@@ -1,8 +1,8 @@
 <Lesson id="eigen_lesson" launchable="true">
   <TextBlock>Welcome to the Eigenvalues lesson!</TextBlock>
-  <ProblemBlock id="eigen_q1">
-    <QuestionBlock id="WI" prompt="What is an eigenvector?" options="A vector,An eigenvalue,A matrix" />
-  </ProblemBlock>
+  <DevProblem id="eigen_q1">
+    <DevQuestion id="WI" prompt="What is an eigenvector?" options="A vector,An eigenvalue,A matrix" />
+  </DevProblem>
   <Use ref="eigen_q1"/>
   <UseDynamic id="repointable_demo" target="eigen_q1"/>
 </Lesson>

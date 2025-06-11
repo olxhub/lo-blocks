@@ -1,16 +1,16 @@
 import * as parsers from '@/lib/olx/parsers';
 import * as blocks from '@/lib/blocks';
-import { _QuestionBlock } from './_QuestionBlock';
+import { _DevQuestion } from './_DevQuestion';
 
 export const fields = blocks.fields(
   ['activeIndex']
 );
 
-const QuestionBlock = blocks.test({
+const DevQuestion = blocks.test({
   ...parsers.ignore,
-  name: 'QuestionBlock',
-  component: _QuestionBlock,
+  name: 'DevQuestion',
+  component: _DevQuestion,
   fields: fields
 });
 
-export default QuestionBlock;
+export default DevQuestion;
