@@ -148,7 +148,7 @@ function NavigationPane() {
     const params = new URLSearchParams(searchParams.toString());
     if (m === 'files') params.delete('nav');
     else params.set('nav', m);
-    router.push('?' + params.toString());
+    router.push('?' + params.toString(), { shallow: true } as any);
     setMode(m);
   };
 

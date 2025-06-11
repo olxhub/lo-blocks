@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface Entry {
   id: string;
@@ -19,6 +18,7 @@ function relPath(prov?: string[]): string | null {
 export default function ComponentNav() {
   const [entries, setEntries] = useState<Entry[] | null>(null);
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
     fetch('/api/content/root')
@@ -39,11 +39,16 @@ export default function ComponentNav() {
         const nav = searchParams.get('nav');
         const query = nav ? `?nav=${encodeURIComponent(nav)}` : '';
         const href = rp ? '/edit/' + rp.split('/').map(encodeURIComponent).join('/') + query : '#';
+        const handleClick = (ev: React.MouseEvent) => {
+          if (!rp) return;
+          ev.preventDefault();
+          router.push(href, { shallow: true } as any);
+        };
         return (
           <li key={e.id}>
-            <Link href={href} className="text-blue-600 hover:underline">
+            <a href={href} onClick={handleClick} className="text-blue-600 hover:underline">
               {e.attributes?.title || e.id}
-            </Link>
+            </a>
             <span className="ml-1 text-gray-500 text-xs">({e.tag})</span>
           </li>
         );
