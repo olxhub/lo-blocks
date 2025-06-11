@@ -16,6 +16,7 @@ export const BlockConfigSchema = z.object({
   namespace: z.string().nonempty(),
   component: z.custom<React.ComponentType<any>>().optional(),
   action: z.function().optional(),
+  isGrader: z.boolean().optional(),
   parser: z.function().optional(),
   staticKids: z.function().optional(),
   reducers: z.array(z.function()).optional(),

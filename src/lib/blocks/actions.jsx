@@ -92,7 +92,7 @@ export function response({ grader, infer = true } = {}) {
     // TODO: Add number of attempts
     // TODO Should we copy:
     // https://edx.readthedocs.io/projects/devdata/en/stable/internal_data_formats/tracking_logs/student_event_types.html#problem-check
-    lo_event.logEvent('UPDATE_CORRECTNESS', {
+    lo_event.logEvent('UPDATE_CORRECT', {
       id: targetId,
       correct: result,
       answers: values  // Key-value pair?
@@ -100,7 +100,10 @@ export function response({ grader, infer = true } = {}) {
     return result;
   };
 
-  return { action };
+  return {
+    action,
+    isGrader: true
+  };
 }
 
 export function executeNodeActions(props) {

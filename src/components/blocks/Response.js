@@ -2,7 +2,8 @@ import * as parsers from '@/lib/olx/parsers';
 import * as blocks from '@/lib/blocks';
 import { CORRECTNESS } from '@/lib/blocks';
 
-export const fields = blocks.fields(['correctness']);
+// TODO: Why is this correctness and not correct?
+export const fields = blocks.fields(['correct']);
 
 // TODO: Rename. Probably SampleNumericalResponse or something.
 const Response = blocks.test({

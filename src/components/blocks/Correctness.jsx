@@ -7,14 +7,14 @@ import { ignore } from '@/lib/olx/parsers';
 function _Correctness(props) {
   const { targets, infer } = props;
   const ids = inferRelatedNodes(props, {
-    selector: n => n.node.spec?.fields && (n.node.spec.fields.correctness || n.node.spec.fields.correct),
+    selector: n => n.node.spec?.isGrader,
     infer,
     targets
   });
   const targetId = ids[0];
   const correctness = useComponentSelector(
     targetId,
-    s => s?.correctness ?? s?.correct ?? CORRECTNESS.UNSUBMITTED
+    s => s?.correct ?? CORRECTNESS.UNSUBMITTED
   );
 
   const icons = {
