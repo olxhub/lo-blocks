@@ -188,8 +188,26 @@ handled during parsing and creates a DAG (it does not take its own ID,
 since it is not itself added to the DAG). The <UseDynamic target="id">
 is its own block, and renders a subnode.
 
+We can the DAG in two ways:
+
+* The graph API generates a static OLX DAG, based on the kid nodes
+  in the system.
+* The render function generates a dynamic DAG (renderedKids), as the
+  system renders them. For reasons, it collapses multiple kids into
+  one node if identical.
+
+The distinction comes in for two reasons:
+
+* Not all child nodes are necessarily rendered. For example, a
+  learning sequences might have 10 elements, but only one shown at a
+  type. The static DAG will have all 10, and the rendered one will
+  have the active child.
+* Not all rendered nodes will be in the static bank. For example, a
+  block is welcome to pull nodes out of a problem bank. The UseDynamic
+  block can render literally any node in the system.
+
 `kids`, `children`, and Shadows.
------------------
+--------------------------------
 
 We have a pipeline from JSX to OLX. Both of these have a hidden
 DOM. Note that while these often map to each other, this is not
