@@ -17,6 +17,7 @@ export const BlockConfigSchema = z.object({
   component: z.custom<React.ComponentType<any>>().optional(),
   action: z.function().optional(),
   parser: z.function().optional(),
+  staticKids: z.function().optional(),
   reducers: z.array(z.function()).optional(),
   fields: ReduxFieldsReturn.optional(),
   getValue: z.function().optional(),
@@ -61,6 +62,7 @@ function createBlock(config: BlockConfig): React.ComponentType<any> {
 
     action: config.action,
     parser: config.parser,
+    staticKids: config.staticKids,
     reducers: config.reducers ?? [],
     getValue: config.getValue,
     fields: parsed?.fields?.fieldToEventMap || {},

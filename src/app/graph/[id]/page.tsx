@@ -16,75 +16,8 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import dagre from 'dagre';
-
-/**
- * Parses the idMap structure into React Flow compatible nodes and edges.
- */
-function parseIdMap(idMap) {
-  const nodes = [];
-  const edges = [];
-  const issues = [];
-  const incomingCount = new Map();
-
-  for (const [id, node] of Object.entries(idMap)) {
-    let label = node.tag;
-    if (!label) {
-      label = '(no tag)';
-      issues.push(`Node ${id} missing tag`);
-    }
-
-    // Handle kids flexibly
-    let childIds = [];
-    try {
-      if (Array.isArray(node.kids)) {
-        for (const child of node.kids) {
-          if (child?.id) childIds.push(child.id);
-          else if (child?.type === 'xblock' && child.id) childIds.push(child.id);
-          else if (child?.type === 'xml' || child?.type === 'text') {
-            // not a reference, ignore
-          } else {
-            issues.push(`Unknown child type/structure in node ${id}: ${JSON.stringify(child)}`);
-          }
-        }
-      } else if (typeof node.kids === 'object') {
-        for (const val of Object.values(node.kids)) {
-          if (Array.isArray(val)) {
-            for (const v of val) {
-              if (typeof v === 'string') childIds.push(v);
-            }
-          } else if (typeof val === 'string') {
-            childIds.push(val);
-          } else {
-            issues.push(`Unrecognized child structure in node ${id}: ${JSON.stringify(val)}`);
-          }
-        }
-      } else {
-        issues.push(`Unknown kids format in node ${id}: ${JSON.stringify(node.kids)}`);
-      }
-    } catch (err) {
-      issues.push(`Error processing kids for node ${id}: ${err.message}`);
-    }
-
-    // Track incoming refs
-    for (const childId of childIds) {
-      incomingCount.set(childId, (incomingCount.get(childId) || 0) + 1);
-      edges.push({ id: `${id}->${childId}`, source: id, target: childId });
-    }
-
-    nodes.push({
-      id,
-      data: {
-        label: `${label}\n(${id})`,
-        attributes: node.attributes || {},
-        tag: node.tag,
-      },
-      position: { x: Math.random() * 400, y: Math.random() * 400 },
-      type: 'custom'
-    });
-  }
-
-  return { nodes, edges, issues };
-}
+import { COMPONENT_MAP } from '@/components/componentMap';
+import { parseIdMap } from '@/lib/graph/parseIdMap';
 
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));

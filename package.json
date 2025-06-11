@@ -9,6 +9,7 @@
     "start": "firejail --noprofile --whitelist=$(pwd) next start",
     "lint": "firejail --whitelist=$(pwd) next lint",
     "xml2json": "firejail --whitelist=$(pwd) npx tsx src/scripts/xml2json.js",
+    "xml2graph": "firejail --whitelist=$(pwd) npx tsx src/scripts/xml2graph.js",
     "build:grammars": "firejail --whitelist=$(pwd) node src/scripts/compile-grammars.js",
     "build:gen-block-registry": "firejail --whitelist=$(pwd) node src/scripts/generateBlockRegistry.js",
     "clean": "firejail --whitelist=$(pwd) rm -rf .next node_modules .turbo out",

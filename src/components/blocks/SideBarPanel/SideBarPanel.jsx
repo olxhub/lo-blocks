@@ -46,6 +46,10 @@ const sbParser = childParser(function sideBlockParser({ rawKids, parseNode }) {
 
   return { main, sidebar };
 });
+sbParser.staticKids = entry => [
+  ...(Array.isArray(entry.kids.main) ? entry.kids.main : []),
+  ...(Array.isArray(entry.kids.sidebar) ? entry.kids.sidebar : [])
+].filter(k => k && k.id).map(k => k.id);
 
 
 const SideBarPanel = dev({
