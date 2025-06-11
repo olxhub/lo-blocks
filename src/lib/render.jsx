@@ -169,6 +169,13 @@ export function renderCompiledKids( props ) {
           </pre>
         );
 
+      case 'html':
+        return React.createElement(
+          child.tag,
+          { key: child.key, ...child.attributes },
+          renderCompiledKids({ kids: child.kids || [], idMap, nodeInfo, debug })
+        );
+
       case 'node':
         return (
           <pre key={child.key} className="bg-blue-50 p-2 rounded text-xs text-gray-700 overflow-auto">
