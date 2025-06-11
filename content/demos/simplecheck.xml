@@ -1,6 +1,7 @@
 <Lesson id="simplecheck_lesson" launchable="true">
   <NumberInput id="num"/>
   <ActionButton label="Check">
-    <Response answer="10" targets="num"/>
+    <Response id="ten" answer="10" targets="num"/>
   </ActionButton>
+  <Correctness targets="ten"/>
 </Lesson>
