@@ -1,4 +1,4 @@
-import { parseIdMap } from '@/app/graph/[id]/page';
+import { parseIdMap } from '@/lib/graph/parseIdMap';
 import { loadContentTree } from '@/lib/content/loadContentTree';
 import { FileStorageProvider } from '@/lib/storage';
 
