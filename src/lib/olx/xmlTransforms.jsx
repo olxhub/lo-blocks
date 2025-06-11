@@ -34,19 +34,20 @@ const capa_inputtypes = [
   'fileupload'       // file upload input
 ];
 
-const capa_responsetypes = [
-  'stringresponse',         // expects text matching
-  'numericalresponse',       // expects a number or number range
-  'formularesponse',         // math formula checking
-  'symbolicresponse',        // symbolic math (exact form)
-  'multiplechoiceresponse',  // old-school multiple choice
-  'choiceresponse',          // choice group (select one)
-  'customresponse',          // custom python-coded checking
-  'optionresponse',          // old version of multiple options
-  'chemicalequationresponse',// chemistry equations
-  'draggableresponse',       // graded drag-and-drop
-  'tabularresponse',         // table/grid-based response
-];
+// Mapping of legacy response tags to OLX2 grader names
+const capaGraderMap = {
+  'stringresponse': 'StringGrader',         // expects text matching
+  'numericalresponse': 'NumericalGrader',   // expects a number or number range
+  'formularesponse': 'FormulaGrader',       // math formula checking
+  'symbolicresponse': 'SymbolicGrader',     // symbolic math (exact form)
+  'multiplechoiceresponse': 'MultipleChoiceGrader', // old-school multiple choice
+  'choiceresponse': 'ChoiceGrader',         // choice group (select one)
+  'customresponse': 'CustomGrader',         // custom python-coded checking
+  'optionresponse': 'OptionGrader',         // old version of multiple options
+  'chemicalequationresponse': 'ChemicalEquationGrader', // chemistry equations
+  'draggableresponse': 'DraggableGrader',   // graded drag-and-drop
+  'tabularresponse': 'TabularGrader',       // table/grid-based response
+};
 
 export function composeTagNameTransforms(...transforms) {
   return function(tagName) {
