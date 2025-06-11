@@ -7,6 +7,10 @@ import { useParams } from 'next/navigation';
 
 import Split from "react-split";
 import { ChatComponent, InputFooter } from '@/components/common/ChatComponent';
+import FileNav from '@/components/navigation/FileNav';
+import ComponentNav from '@/components/navigation/ComponentNav';
+import SearchNav from '@/components/navigation/SearchNav';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 // This causes CoadMirror not to load on all pages (it gets its own
 // chunk for pages that need it).
@@ -133,6 +137,44 @@ function FourPaneLayout({
   );
 }
 
+function NavigationPane() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [mode, setMode] = useState<'files' | 'components' | 'search'>(
+    (searchParams.get('nav') as 'files' | 'components' | 'search') || 'files'
+  );
+
+  const updateMode = (m: 'files' | 'components' | 'search') => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (m === 'files') params.delete('nav');
+    else params.set('nav', m);
+    router.push('?' + params.toString());
+    setMode(m);
+  };
+
+  return (
+    <div className="text-sm space-y-2">
+      <div className="flex space-x-2 mb-2">
+        <button
+          onClick={() => updateMode('files')}
+          className={mode === 'files' ? 'font-bold underline' : ''}
+        >Files</button>
+        <button
+          onClick={() => updateMode('components')}
+          className={mode === 'components' ? 'font-bold underline' : ''}
+        >Components</button>
+        <button
+          onClick={() => updateMode('search')}
+          className={mode === 'search' ? 'font-bold underline' : ''}
+        >Search</button>
+      </div>
+      {mode === 'files' && <FileNav />}
+      {mode === 'components' && <ComponentNav />}
+      {mode === 'search' && <SearchNav />}
+    </div>
+  );
+}
+
 
 export default function EditPage() {
   const dummyMessages = [
@@ -145,6 +187,7 @@ export default function EditPage() {
 
   return (
     <FourPaneLayout
+      Navigation={<NavigationPane />}
       Editor={<EditControl />}
       Chat={<ChatComponent id="dummy_chat" messages={dummyMessages} footer={chatFooter} height="flex-1" />}
     />

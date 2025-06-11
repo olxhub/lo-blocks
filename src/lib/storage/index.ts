@@ -25,6 +25,59 @@ export interface StorageProvider {
   update(path: string, content: string): Promise<void>;
 }
 
+export interface FileSelection {
+  contains?: string;
+  glob?: string;
+  [key: string]: any;
+}
+
+export interface FileNode {
+  name: string;
+  path: string;
+  type: 'file' | 'directory';
+  children?: FileNode[];
+}
+
+/**
+ * Build a tree of XML/OLX files from the local content directory.
+ * The {@link selection} parameter is reserved for future filtering
+ * options but is currently ignored.
+ */
+export async function listFileTree(
+  selection: FileSelection = {},
+  baseDir = './content'
+): Promise<FileNode> {
+  const fs = await import('fs/promises');
+
+  const walk = async (rel = ''): Promise<FileNode> => {
+    const dirPath = path.join(baseDir, rel);
+    const entries = await fs.readdir(dirPath, { withFileTypes: true });
+    const children: FileNode[] = [];
+    for (const entry of entries) {
+      if (entry.name.startsWith('.')) continue;
+      const relPath = path.join(rel, entry.name);
+      if (entry.isDirectory()) {
+        children.push(await walk(relPath));
+      } else if (
+        entry.isFile() &&
+        (entry.name.endsWith('.xml') || entry.name.endsWith('.olx'))
+      ) {
+        children.push({ name: entry.name, path: relPath, type: 'file' });
+      }
+    }
+    return {
+      name: rel.split('/').pop() || path.basename(baseDir),
+      path: rel,
+      type: 'directory',
+      children,
+    };
+  };
+
+  // currently selection is unused but reserved for future features
+  void selection;
+  return walk('');
+}
+
 export class FileStorageProvider implements StorageProvider {
   baseDir: string;
 
