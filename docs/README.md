@@ -14,17 +14,17 @@ Learning Observer blocks are similar to Open edX XBlocks and React
 components: each block will typically define an XML tag, which can
 then be used in courseware.
 
-### Inputs and responses
+### Inputs and graders
 
 Blocks can advertise themselves as **inputs** by supplying a `getValue`
 function. Other blocks can then query their values directly from the
-Redux store. A **response** is an action block that collects values
+Redux store. A **grader** is an action block that collects values
 from related inputs (via `targets` or inference) and passes them to a
 grader function.
 
 ```javascript
 const SimpleCheck = blocks.test({
-  ...blocks.response({
+  ...blocks.grader({
     grader: (props, input) =>
       input === props.answer ? CORRECTNESS.CORRECT : CORRECTNESS.INCORRECT
   }),
@@ -33,9 +33,16 @@ const SimpleCheck = blocks.test({
 });
 ```
 
-The result of a response is logged via the `UPDATE_CORRECTNESS` event and stored
-in Redux under the `correctness` field. Possible values are defined in
+The result of a grader is logged via the `UPDATE_CORRECT` event and stored
+in Redux under the `correct` field. Possible values are defined in
 `blocks.CORRECTNESS`.
+
+This terminology may change slightly by the time you read this for
+better alignment with existing systems, as well as for being more
+human-friendly.
+
+We did this slightly already; graders, in LON-CAPA and then edX, were
+called response types.
 
 Block Registry
 --------------

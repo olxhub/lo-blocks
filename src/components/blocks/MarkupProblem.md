@@ -15,7 +15,7 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
 - Blank lines separate paragraphs.
 - Each problem component is separated by a line containing `---` (three dashes).
 - All XML output is ultimately wrapped in a single `<problem>...</problem>` block.
-- Each problem block becomes a major "response type" (e.g., multiple choice, option response, string response, etc).
+- Each problem block becomes a major "grader type" (e.g., multiple choice, option grader, string grader, etc). In Open edX and LON-CAPA, this was called a "response type."
 
 ---
 
@@ -86,7 +86,7 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
 
 ---
 
-## 5. Option Response
+## 5. Option Grader
 
 - **Old style, single-line**:  
   List options separated by commas; enclose the correct answer in parentheses:
@@ -98,9 +98,9 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
   Converts to:
 
   ```xml
-  <optionresponse>
+  <OptionGrader>
     <optioninput options="('red','blue','green')" correct="blue"></optioninput>
-  </optionresponse>
+  </OptionGrader>
   ```
 
 - **New style, multi-line**:  
@@ -118,13 +118,13 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
   Converts to:
 
   ```xml
-  <optionresponse>
+  <OptionGrader>
     <optioninput>
       <option correct="False">red</option>
       <option correct="True">blue</option>
       <option correct="False">green</option>
     </optioninput>
-  </optionresponse>
+  </OptionGrader>
   ```
 
 - Hints for options:  
@@ -154,7 +154,7 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
   Converts to:
 
   ```xml
-  <multiplechoiceresponse>
+  <MultipleChoiceGrader>
     <choicegroup type="MultipleChoice">
       <choice correct="true">Apple
         <choicehint selected="true">Good!</choicehint>
@@ -162,7 +162,7 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
       </choice>
       ...etc
     </choicegroup>
-  </multiplechoiceresponse>
+  </MultipleChoiceGrader>
   ```
 
 ---
@@ -180,13 +180,13 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
   Converts to:
 
   ```xml
-  <choiceresponse>
+  <ChoiceGrader>
     <checkboxgroup>
       <choice correct="true">Apple</choice>
       <choice correct="false">Carrot</choice>
       <choice correct="true">Banana</choice>
     </checkboxgroup>
-  </choiceresponse>
+  </ChoiceGrader>
   ```
 
 - **Hints for choices**:  
@@ -210,9 +210,9 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
 
 ---
 
-## 9. String and Numerical Response
+## 9. String and Numerical Graders
 
-**String Response:**
+**String Grader:**
 
 - Start lines with `s=` or `=`.
 - The first answer is the correct one.  
@@ -228,14 +228,14 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
   Converts to:
 
   ```xml
-  <stringresponse answer="cat" type="ci">
+  <StringGrader answer="cat" type="ci">
     <correcthint>Correct!</correcthint>
     <additional_answer answer="feline">
       <correcthint>Good synonym!</correcthint>
     </additional_answer>
     <stringequalhint answer="dog">Not quite.</stringequalhint>
     <textline size="20"/>
-  </stringresponse>
+  </StringGrader>
   ```
 
 - To treat the answer as a regular expression, start with `|`:
@@ -244,7 +244,7 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
   s= |cat[s]? {{ Accepts cat or cats }}
   ```
 
-**Numerical Response:**
+**Numerical Grader:**
 
 - Start lines with `=`, optionally with tolerance: `= 5 +- 0.1`
 - Ranges: `= [5,7)` or `= (5, 7]`
@@ -259,13 +259,13 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
   Converts to:
 
   ```xml
-  <numericalresponse answer="8">
+  <NumericalGrader answer="8">
     <formulaequationinput />
-  </numericalresponse>
+  </NumericalGrader>
   ...
-  <numericalresponse answer="[5,7)">
+  <NumericalGrader answer="[5,7)">
     <formulaequationinput />
-  </numericalresponse>
+  </NumericalGrader>
   ```
 
 ---
@@ -345,11 +345,11 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
 | `>>question<<`                       | `<label>`             |                                |
 | `>>q||desc<<`                        | `<label>`, `<description>`|                            |
 | `|| hint ||`                         | `<demandhint><hint>`  | At end of problem              |
-| `[[ ... ]]`                          | `<optionresponse>`    | Inline/multiline options       |
-| `(x)`/`( )` lines                    | `<multiplechoiceresponse>`| Single/multi select        |
-| `[x]`/`[ ]` lines                    | `<choiceresponse>`    | Checkbox group                 |
+| `[[ ... ]]`                          | `<OptionGrader>`    | Inline/multiline options       |
+| `(x)`/`( )` lines                    | `<MultipleChoiceGrader>`| Single/multi select        |
+| `[x]`/`[ ]` lines                    | `<ChoiceGrader>`    | Checkbox group                 |
 | `{{ ... }}`                          | `<choicehint>` etc    | Inline hints                   |
-| `=`, `s=`, `or=`, `not=` lines       | `<stringresponse>`, `<numericalresponse>`| |
+| `=`, `s=`, `or=`, `not=` lines       | `<StringGrader>`, `<NumericalGrader>`| |
 | `[code] ... [/code]`                 | `<pre><code>`         |                                |
 | `[explanation] ... [/explanation]`   | `<solution>`          |                                |
 | blank line                           | `<p>`                 | If not inside another tag      |
@@ -360,7 +360,7 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
 ## Additional Notes
 
 - **Whitespace**: Extra blank lines are collapsed.
-- **Order**: If a block contains both a question and a response type, the question and description are inserted before the input type.
+- **Order**: If a block contains both a question and a grader type, the question and description are inserted before the input type.
 - **Labels in hints**: Use `label::` before the hint text to label a hint for a particular choice.
 
 ---
@@ -381,9 +381,9 @@ Result:
 ```xml
 <problem>
   <label>What is 2+2?</label>
-  <optionresponse>
+  <OptionGrader>
     <optioninput options="('3','4','5')" correct="4"></optioninput>
-  </optionresponse>
+  </OptionGrader>
   <solution>
     <div class="detailed-solution">
     Explanation

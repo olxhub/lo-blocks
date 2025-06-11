@@ -33,9 +33,9 @@ function getNodeById(props, id) {
   return nodes[0]; // TODO: Error handling?
 }
 
-// TODO: Should we name this grader, and then have an Open edX /
-// LON-CAPA tranlation layer? Response makes little sense.
-export function response({ grader, infer = true } = {}) {
+// Helper to define a grading action. This used to be called a
+// "response" in OLX 1.0 terminology.
+export function grader({ grader, infer = true } = {}) {
   // TODO: Throughout here, we mix up props in ways which should be cleaner.
   //
   // We only have the props for the action source. For the rest, we

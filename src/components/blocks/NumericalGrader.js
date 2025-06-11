@@ -5,17 +5,17 @@ import { CORRECTNESS } from '@/lib/blocks';
 // TODO: Why is this correctness and not correct?
 export const fields = blocks.fields(['correct']);
 
-// TODO: Rename. Probably SampleNumericalResponse or something.
-const Response = blocks.test({
+// Block implementing a very simple numerical grader used for testing.
+const NumericalGrader = blocks.test({
   ...parsers.xblocks,
-  ...blocks.response({
+  ...blocks.grader({
     grader: (props, input) => input === parseFloat(props.answer)
       ? CORRECTNESS.CORRECT
       : CORRECTNESS.INCORRECT
   }),
-  name: 'Response',
+  name: 'NumericalGrader',
   component: blocks.NoopBlock,
   fields,
 });
 
-export default Response;
+export default NumericalGrader;
