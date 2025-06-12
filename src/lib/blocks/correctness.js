@@ -4,6 +4,7 @@ export const CORRECTNESS = {
   CORRECT: 'correct',
   PARTIALLY_CORRECT: 'partially-correct',
   INCORRECT: 'incorrect',
-  INCOMPLETE: 'incomplete'
+  INCOMPLETE: 'incomplete',
+  INVALID: 'invalid'
 };
 

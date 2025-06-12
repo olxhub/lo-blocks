@@ -20,7 +20,7 @@ const ID_RESOLUTION_MATRIX = {
  * Internal generic resolver: returns string ID or throws.
  */
 function resolveIdForContext(context, matrix = ID_RESOLUTION_MATRIX) {
-  return (input) => {
+  return (input, defaultValue) => {
     if (typeof input === "string") return input;
     const priorityList = matrix[context];
     if (!priorityList) throw new Error(`Unknown ID context: ${context}`);
@@ -29,6 +29,7 @@ function resolveIdForContext(context, matrix = ID_RESOLUTION_MATRIX) {
         return input[key];
       }
     }
+    if (defaultValue !== undefined) return defaultValue;
     throw new Error(`Could not resolve ID for context '${context}' from input: ${JSON.stringify(input)}`);
   };
 }

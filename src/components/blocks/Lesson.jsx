@@ -14,7 +14,7 @@ function _Lesson( props ) {
 }
 
 const Lesson = test({
-  ...parsers.xblocks,
+  ...parsers.blocks,
   name: 'Lesson',
   component: _Lesson,
 });

@@ -143,8 +143,8 @@ export const xml = {
 };
 xml.staticKids = () => [];
 
-// Assumes we have a list of OLX-style XBlocks. E.g. for a learning sequence.
-export const xblocks = childParser(function xblocksParser({ rawKids, parseNode }) {
+// Assumes we have a list of OLX-style Blocks. E.g. for a learning sequence.
+export const blocks = childParser(function blocksParser({ rawKids, parseNode }) {
   return rawKids
     .filter(child => {
       const tag = Object.keys(child).find(k => !['#text', '#comment', ':@'].includes(k));
@@ -153,7 +153,7 @@ export const xblocks = childParser(function xblocksParser({ rawKids, parseNode }
     .map(parseNode)
     .filter(entry => entry.id);
 });
-xblocks.staticKids = (entry) =>
+blocks.staticKids = (entry) =>
   (Array.isArray(entry.kids) ? entry.kids : []).filter(k => k && k.id).map(k => k.id);
 
 // Pass through the parsed XML, in the fast-xml-parser format

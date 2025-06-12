@@ -12,6 +12,9 @@ describe("ID helpers", () => {
 
     // Throws if no id found
     expect(() => idResolver.reduxId({})).toThrow(/Could not resolve ID/);
+
+    // Default value if missing
+    expect(idResolver.reduxId({}, 'fallback')).toBe('fallback');
   });
   it("exports a named function for each ID_RESOLUTION_MATRIX key", () => {
     const expectedKeys = Object.keys(idResolver.__testables.ID_RESOLUTION_MATRIX);

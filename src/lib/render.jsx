@@ -19,7 +19,7 @@ export function render({ node, idMap, key, nodeInfo, debug }) {
   // Handle string ID,
   //
   // This path may be deprecated, as we're moving towards always
-  // having { type: 'xblock', id: [id] } for where we once used this.
+  // having { type: 'block', id: [id] } for where we once used this.
   if (typeof node === 'string') {
     const entry = idMap?.[node];
     if (!entry) {
@@ -35,12 +35,12 @@ export function render({ node, idMap, key, nodeInfo, debug }) {
     return render({ node: entry, idMap, key, nodeInfo, debug });
   }
 
-  // Handle { type: 'xblock', id }
+  // Handle { type: 'block', id }
   // We should also support overrides in the near future.
   if (
     typeof node === 'object' &&
     node !== null &&
-    node.type === 'xblock' &&
+    node.type === 'block' &&
     typeof node.id === 'string'
   ) {
     const entry = idMap?.[node.id];
@@ -49,7 +49,7 @@ export function render({ node, idMap, key, nodeInfo, debug }) {
         <DisplayError
           id={`missing-id-${node.id}`}
           name="render"
-          message={`Could not resolve xblock ID "${node.id}" in idMap`}
+          message={`Could not resolve block ID "${node.id}" in idMap`}
           data={{ node, idMap }}
         />
       );
@@ -145,7 +145,7 @@ export function renderCompiledKids( props ) {
     }
 
     switch (child.type) {
-      case 'xblock':
+      case 'block':
         return (
           <React.Fragment key={child.key}>
             {render({ node: child.id, idMap, key: `${child.key}`, nodeInfo, debug })}
@@ -167,6 +167,13 @@ export function renderCompiledKids( props ) {
           <pre key={child.key} className="bg-yellow-50 p-2 rounded text-sm overflow-auto">
             {child.value}
           </pre>
+        );
+
+      case 'html':
+        return React.createElement(
+          child.tag,
+          { key: child.key, ...child.attributes },
+          renderCompiledKids({ kids: child.kids || [], idMap, nodeInfo, debug })
         );
 
       case 'node':
