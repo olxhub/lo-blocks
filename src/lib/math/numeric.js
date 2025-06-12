@@ -1,6 +1,12 @@
 import Complex from 'complex.js';
 import { CORRECTNESS } from '../blocks/correctness.js';
 
+// TODO: We probably want to treat int as int, float as float,
+// etc. instead of making everything complex
+
+// TODO: Probably, we'd rather raise an exception on NaN, and handle
+// that as an invalid input
+
 export function parseComplex(value) {
   if (value instanceof Complex) return value;
   if (typeof value === 'number') return new Complex(value, 0);
