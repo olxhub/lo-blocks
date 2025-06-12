@@ -8,7 +8,7 @@ import { StorageProvider, FileStorageProvider } from '@/lib/storage';
 import * as parsers from '@/lib/olx/parsers';
 import { Provenance, formatProvenance } from '@/lib/types';
 
-const defaultParser = parsers.xblocks.parser;
+const defaultParser = parsers.blocks.parser;
 
 const contentStore = {
   byProvenance: {},
@@ -96,7 +96,7 @@ function indexXml(xml: string, provenance: Provenance) {
           `In the future, these will go into an 'overrides' dictionary.`
         );
       }
-      return { type: 'xblock', id: attributes.ref };
+      return { type: 'block', id: attributes.ref };
     }
 
     const id = attributes.id || attributes.url_name || createId(node);
@@ -127,7 +127,7 @@ function indexXml(xml: string, provenance: Provenance) {
     });
 
     indexed.push(id);
-    return { type: 'xblock', id };
+    return { type: 'block', id };
   }
 
   if (Array.isArray(parsedTree)) {

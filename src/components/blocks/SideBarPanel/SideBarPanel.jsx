@@ -6,7 +6,7 @@
   - <Sidebar>    → kids.sidebar (array)
 
   This version uses a structured parser to map <MainPane> and <Sidebar>
-  into an object like: { main: xblock, sidebar: [xblock, ...] }
+  into an object like: { main: block, sidebar: [block, ...] }
 */
 
 import { dev } from '@/lib/blocks';

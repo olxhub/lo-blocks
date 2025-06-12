@@ -9,7 +9,7 @@ export const fields = blocks.fields(['correct', 'status']);
 
 // Block implementing a very simple numerical grader used for testing.
 const NumericalGrader = blocks.test({
-  ...parsers.xblocks,
+  ...parsers.blocks,
   ...blocks.grader({
     grader: (props, input) => {
       const { status, message } = gradeNumerical(props, input);

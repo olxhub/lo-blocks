@@ -7,3 +7,4 @@ export * from './olxdom';
 export * from './idResolver';
 export * from './actions';
 export * from './correctness';
+export * from './utils';
