@@ -1,6 +1,7 @@
 import * as parsers from '@/lib/olx/parsers';
 import * as blocks from '@/lib/blocks';
 import { CORRECTNESS } from '@/lib/blocks';
+import { gradeNumerical } from '@/lib/math/numeric.js';
 
 // TODO: Why is this correctness and not correct?
 export const fields = blocks.fields(['correct']);
@@ -9,9 +10,10 @@ export const fields = blocks.fields(['correct']);
 const NumericalGrader = blocks.test({
   ...parsers.xblocks,
   ...blocks.grader({
-    grader: (props, input) => input === parseFloat(props.answer)
-      ? CORRECTNESS.CORRECT
-      : CORRECTNESS.INCORRECT
+    grader: (props, input) =>
+      gradeNumerical(props, input)
+        ? CORRECTNESS.CORRECT
+        : CORRECTNESS.INCORRECT
   }),
   name: 'NumericalGrader',
   component: blocks.NoopBlock,
