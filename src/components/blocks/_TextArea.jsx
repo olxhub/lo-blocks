@@ -6,7 +6,10 @@ import { useReduxInput } from '@/lib/blocks';
 function _TextArea( props ) {
   // Note: updateValidator is a function, and so can't come from OLX or JSON.
   const { id, className, children, fields, updateValidator } = props;
-  const [value, inputProps] = useReduxInput(id, fields.value, '', { updateValidator } );
+  const [value, inputProps] = useReduxInput(
+    id, fields.value, '',
+    { updateValidator }
+  );
 
   return (
     <>
@@ -14,7 +17,6 @@ function _TextArea( props ) {
       <textarea
         {...inputProps}
         className={className || 'large-input'}
-        required
       />
     </>
   );
