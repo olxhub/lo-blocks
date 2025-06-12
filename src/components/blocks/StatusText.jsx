@@ -13,7 +13,11 @@ function _StatusText(props) {
     targets
   });
   const targetId = ids[0];
-  const text = useComponentSelector(targetId, s => s?.status ?? '');
+  // TODO: We shold be able to select the target field with props
+  //
+  // If not provided, we default to message, but we should be able
+  // to override the field.
+  const text = useComponentSelector(targetId, s => s?.message ?? '');
   return <span>{text}</span>;
 }
 
