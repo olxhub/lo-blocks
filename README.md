@@ -33,7 +33,7 @@ Learning Blocks allows you to:
 
 - **Functional-first** — blocks are stateless where possible, driven by Redux and `lo_event`
 - **Declarative layout** — layouts like `<SideBarPanel>` or `<Lesson>` drive visual structure
-- **Composable interactions** — `<LLMButton>` + `<LLMPrompt>` + `<TextInput>` → full loop
+- **Composable interactions** — `<LLMButton>` + `<LLMPrompt>` + `<TextArea>` → full loop
 - **Minimal magic** — XML → JSX transforms are explicit; no hidden loaders or runtime hacks
 - **Batteries included** — reusable reducers, event dispatchers, component selectors
 
@@ -52,8 +52,8 @@ Each top-level file is compiled into a normalized ID-based map. All references a
 Blocks are declared using a structured metadata API:
 
 ```
-export const TextInput = createBlock({
-  component: TextInputComponent,
+export const TextArea = createBlock({
+  component: TextAreaComponent,
   parser: text,
   namespace: 'core',
   description: 'Multiline student input field'

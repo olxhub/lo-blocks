@@ -9,6 +9,7 @@ import { useRef, useEffect, useCallback } from 'react';
 import * as lo_event from 'lo_event';
 
 const UPDATE_INPUT = 'UPDATE_INPUT'; // TODO: Import
+const INVALIDATED_INPUT = 'INVALIDATED_INPUT'; // informational
 
 // Unified options type
 export interface SelectorOptions<T = any> {
@@ -86,7 +87,7 @@ export function useFieldSelector<T = any>(
 //
 // This should use redux.assertValidField, but we want to be mindful
 // of circular imports, etc.
-export function useReduxInput(id, field, fallback = '') {
+export function useReduxInput(id, field, fallback = '', { updateValidator }) {
   const value = useComponentSelector(id, state =>
     state && state[field] !== undefined ? state[field] : fallback
   );
@@ -104,6 +105,14 @@ export function useReduxInput(id, field, fallback = '') {
     const val = event.target.value;
     const selStart = event.target.selectionStart;
     const selEnd = event.target.selectionEnd;
+    if (updateValidator && !updateValidator(val)) {
+      lo_event.logEvent(INVALIDATED_INPUT, {
+        id,
+        [field]: val,
+        [`${field}.selectionStart`]: selStart,
+        [`${field}.selectionEnd`]: selEnd
+      });
+    }
 
     lo_event.logEvent(UPDATE_INPUT, {
       id,
@@ -111,7 +120,7 @@ export function useReduxInput(id, field, fallback = '') {
       [`${field}.selectionStart`]: selStart,
       [`${field}.selectionEnd`]: selEnd
     });
-  }, [id, field]);
+  }, [id, field, updateValidator]);
 
   const ref = useRef();
 
