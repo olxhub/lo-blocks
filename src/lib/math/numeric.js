@@ -1,4 +1,5 @@
 import Complex from 'complex.js';
+import { CORRECTNESS } from '../blocks/correctness.js';
 
 export function parseComplex(value) {
   if (value instanceof Complex) return value;
@@ -21,6 +22,7 @@ export function parseTolerance(tol, base=0) {
   if (s.endsWith('%')) {
     const p = parseFloat(s.slice(0, -1));
     if (isNaN(p)) return NaN;
+    if (isNaN(base)) base = 0;
     return Math.abs(p/100 * base);
   }
   const n = parseFloat(s);
@@ -61,14 +63,29 @@ export function compareWithTolerance(student, instructor, tol=0) {
 
 export function gradeNumerical(props, input) {
   const answer = props.answer;
-  const base = parseComplex(answer).abs();
-  const tolerance = parseTolerance(props.tolerance, base);
+
+  if (input === undefined || input === null || String(input).trim() === '') {
+    return { status: CORRECTNESS.INVALID, message: 'No answer provided' };
+  }
+
+  const student = parseComplex(input);
+  if (isNaN(student.re) || isNaN(student.im)) {
+    return { status: CORRECTNESS.INVALID, message: 'Invalid number' };
+  }
 
   if (typeof answer === 'string' && /^\s*[\[(].*[\])]\s*$/.test(answer)) {
     const range = parseRange(answer);
-    if (!range) return false;
-    return inRange(input, range, tolerance);
+    if (!range) {
+      return { status: CORRECTNESS.INVALID, message: 'Invalid range specification' };
+    }
+    const base = Math.abs(range.upper.re - range.lower.re);
+    const tolerance = parseTolerance(props.tolerance, base);
+    const ok = inRange(student, range, tolerance);
+    return { status: ok ? CORRECTNESS.CORRECT : CORRECTNESS.INCORRECT, message: '' };
   }
 
-  return compareWithTolerance(input, answer, tolerance);
+  const base = parseComplex(answer).abs();
+  const tolerance = parseTolerance(props.tolerance, base);
+  const ok = compareWithTolerance(student, answer, tolerance);
+  return { status: ok ? CORRECTNESS.CORRECT : CORRECTNESS.INCORRECT, message: '' };
 }

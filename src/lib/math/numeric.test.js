@@ -1,4 +1,5 @@
 import { parseComplex, parseTolerance, parseRange, inRange, compareWithTolerance, gradeNumerical } from './numeric.js';
+import { CORRECTNESS } from '../blocks/correctness.js';
 
 it('parses complex numbers and compares', () => {
   expect(parseComplex('3+4i').toString()).toBe('3 + 4i');
@@ -16,8 +17,9 @@ it('handles ranges', () => {
 });
 
 it('grades numerical answers with tolerance', () => {
-  expect(gradeNumerical({answer:'5'}, '5')).toBe(true);
-  expect(gradeNumerical({answer:'5', tolerance:'1'}, '5.5')).toBe(true);
-  expect(gradeNumerical({answer:'[5,7)'} , '6')).toBe(true);
-  expect(gradeNumerical({answer:'[5,7)'}, '7')).toBe(false);
+  expect(gradeNumerical({answer:'5'}, '5').status).toBe(CORRECTNESS.CORRECT);
+  expect(gradeNumerical({answer:'5', tolerance:'1'}, '5.5').status).toBe(CORRECTNESS.CORRECT);
+  expect(gradeNumerical({answer:'[5,7)'} , '6').status).toBe(CORRECTNESS.CORRECT);
+  expect(gradeNumerical({answer:'[5,7)'}, '7').status).toBe(CORRECTNESS.INCORRECT);
+  expect(gradeNumerical({answer:'5'}, 'Hello').status).toBe(CORRECTNESS.INVALID);
 });

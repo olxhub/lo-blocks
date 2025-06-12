@@ -22,7 +22,9 @@ function _Correctness(props) {
     [CORRECTNESS.PARTIALLY_CORRECT]: '🟡',
     [CORRECTNESS.INCORRECT]: '❌',
     [CORRECTNESS.INCOMPLETE]: '⚠️',
+    [CORRECTNESS.INVALID]: '⚠️',
     [CORRECTNESS.SUBMITTED]: '⏳',
+    [CORRECTNESS.UNGRADED]: '⏳',
     [CORRECTNESS.UNSUBMITTED]: '❔'
   };
 
