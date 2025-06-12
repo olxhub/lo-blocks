@@ -3,6 +3,9 @@ import { childParser } from '@/lib/olx/parsers';
 import { COMPONENT_MAP } from '@/components/componentMap';
 import _CapaProblem from './_CapaProblem';
 
+// TODO: Make this parser generic to CapaProblem, HTML, and others
+//
+// This is a minimal working version. This code should not be treated as clean or canonical.
 const capaParser = childParser(function capaProblemParser({ rawKids, storeEntry, provenance, id }) {
   let inputIndex = 0;
   let graderIndex = 0;
@@ -20,27 +23,31 @@ const capaParser = childParser(function capaProblemParser({ rawKids, storeEntry,
     const attributes = node[':@'] || {};
     const kids = node[tag];
 
-    if (tag === 'Label') {
-      const childKids = Array.isArray(kids) ? kids.map(n => parseChild(n, currentGrader)).filter(Boolean) : [];
-      return { type: 'html', tag: 'h1', attributes, kids: childKids };
-    }
-    if (tag === 'Description') {
-      const childKids = Array.isArray(kids) ? kids.map(n => parseChild(n, currentGrader)).filter(Boolean) : [];
-      return { type: 'html', tag: 'h3', attributes, kids: childKids };
-    }
+    /* TODO: from Open edX OLX, we need to handle cases like:
+      if (tag === 'Label')
+      if (tag === 'Description')
+      if (tag === 'ResponseParam')
+    */
 
     if (isBlockTag(tag)) {
       const spec = COMPONENT_MAP[tag]?.spec;
       let defaultId;
+      // TODO: These should not be special cases, but data
+      // As is, we can't reuse this for an HTML component
       if (spec?.isGrader) {
         defaultId = `${id}_grader_${graderIndex++}`;
       } else if (spec?.getValue) {
+        // TODO: Probably we should map input IDs to grader IDs. e.g.:
+        // [problem_id]_input_[grader_idx]_[input_idx]
         defaultId = `${id}_input_${inputIndex++}`;
       } else {
         defaultId = `${id}_${tag.toLowerCase()}_${nodeIndex++}`;
       }
       const blockId = reduxId(attributes, defaultId);
 
+      // TODO: DRY. I'm not sure if we want to replicate how we find related graders, etc.
+      //
+      // We should probably be using inferRelatedNodes
       const entry = { id: blockId, tag, attributes: { ...attributes, id: blockId }, provenance, rawParsed: node };
       // Parse children with new grader context if needed
       let mapping = currentGrader;

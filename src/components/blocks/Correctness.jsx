@@ -24,7 +24,6 @@ function _Correctness(props) {
     [CORRECTNESS.INCOMPLETE]: '⚠️',
     [CORRECTNESS.INVALID]: '⚠️',
     [CORRECTNESS.SUBMITTED]: '⏳',
-    [CORRECTNESS.UNGRADED]: '⏳',
     [CORRECTNESS.UNSUBMITTED]: '❔'
   };
 

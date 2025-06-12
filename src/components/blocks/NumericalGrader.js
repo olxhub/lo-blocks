@@ -11,11 +11,7 @@ export const fields = blocks.fields(['correct', 'status']);
 const NumericalGrader = blocks.test({
   ...parsers.blocks,
   ...blocks.grader({
-    grader: (props, input) => {
-      const { status, message } = gradeNumerical(props, input);
-      lo_event.logEvent('UPDATE_STATUS', { id: props.id, status: message });
-      return status;
-    }
+    grader: gradeNumerical,
   }),
   name: 'NumericalGrader',
   component: blocks.NoopBlock,

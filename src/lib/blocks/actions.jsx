@@ -85,19 +85,24 @@ export function grader({ grader, infer = true } = {}) {
       But if the grader expects a list, a list of length 1 should be okay.
     */
 
-    const result = grader(
+    const { correct, message } = grader(
       {...props, ...targetAttributes },
       values.length === 1 ? values[0] : values
     );
+    console.log(grader(
+      {...props, ...targetAttributes },
+      values.length === 1 ? values[0] : values
+    ));
     // TODO: Add number of attempts
     // TODO Should we copy:
     // https://edx.readthedocs.io/projects/devdata/en/stable/internal_data_formats/tracking_logs/student_event_types.html#problem-check
     lo_event.logEvent('UPDATE_CORRECT', {
       id: targetId,
-      correct: result,
+      correct,
+      message,
       answers: values  // Key-value pair?
     });
-    return result;
+    return correct;
   };
 
   return {

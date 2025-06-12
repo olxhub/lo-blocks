@@ -65,27 +65,27 @@ export function gradeNumerical(props, input) {
   const answer = props.answer;
 
   if (input === undefined || input === null || String(input).trim() === '') {
-    return { status: CORRECTNESS.INVALID, message: 'No answer provided' };
+    return { correct: CORRECTNESS.INVALID, message: 'No answer provided' };
   }
 
   const student = parseComplex(input);
   if (isNaN(student.re) || isNaN(student.im)) {
-    return { status: CORRECTNESS.INVALID, message: 'Invalid number' };
+    return { correct: CORRECTNESS.INVALID, message: 'Invalid number' };
   }
 
   if (typeof answer === 'string' && /^\s*[\[(].*[\])]\s*$/.test(answer)) {
     const range = parseRange(answer);
     if (!range) {
-      return { status: CORRECTNESS.INVALID, message: 'Invalid range specification' };
+      return { correct: CORRECTNESS.INVALID, message: 'Invalid range specification' };
     }
     const base = Math.abs(range.upper.re - range.lower.re);
     const tolerance = parseTolerance(props.tolerance, base);
     const ok = inRange(student, range, tolerance);
-    return { status: ok ? CORRECTNESS.CORRECT : CORRECTNESS.INCORRECT, message: '' };
+    return { correct: ok ? CORRECTNESS.CORRECT : CORRECTNESS.INCORRECT, message: '' };
   }
 
   const base = parseComplex(answer).abs();
   const tolerance = parseTolerance(props.tolerance, base);
   const ok = compareWithTolerance(student, answer, tolerance);
-  return { status: ok ? CORRECTNESS.CORRECT : CORRECTNESS.INCORRECT, message: '' };
+  return { correct: ok ? CORRECTNESS.CORRECT : CORRECTNESS.INCORRECT, message: '' };
 }
