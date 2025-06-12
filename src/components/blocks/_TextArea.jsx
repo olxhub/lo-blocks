@@ -2,10 +2,11 @@
 
 import React from 'react';
 import { useReduxInput } from '@/lib/blocks';
+import { renderCompiledKids } from '@/lib/render';
 
 function _TextArea( props ) {
   // Note: updateValidator is a function, and so can't come from OLX or JSON.
-  const { id, className, children, fields, updateValidator } = props;
+  const { id, className, fields, updateValidator } = props;
   const [value, inputProps] = useReduxInput(
     id, fields.value, '',
     { updateValidator }
@@ -13,7 +14,7 @@ function _TextArea( props ) {
 
   return (
     <>
-      {children}
+      {renderCompiledKids( props )}
       <textarea
         {...inputProps}
         className={className || 'large-input'}

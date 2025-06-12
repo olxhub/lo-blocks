@@ -1,6 +1,6 @@
 <CapaProblem id="CapaDemo" launchable="true">
   <NumericalGrader answer="100" tolerance="5">
     <p>This is a simple problem. The answer is 100, with a tolerance of 5.</p>
-    <LineInput/>
+    <ComplexInput/>
   </NumericalGrader>
 </CapaProblem>

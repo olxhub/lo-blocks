@@ -112,6 +112,7 @@ export function useReduxInput(id, field, fallback = '', { updateValidator }) {
         [`${field}.selectionStart`]: selStart,
         [`${field}.selectionEnd`]: selEnd
       });
+      return;
     }
 
     lo_event.logEvent(UPDATE_INPUT, {
