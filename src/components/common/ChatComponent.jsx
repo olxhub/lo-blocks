@@ -1,3 +1,4 @@
+// src/components/common/ChatComponent.jsx
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';

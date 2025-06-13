@@ -1,3 +1,4 @@
+// src/lib/render.jsx
 import React from 'react';
 import { DisplayError, DebugWrapper } from '@/lib/debug';
 import { COMPONENT_MAP } from '@/components/componentMap';

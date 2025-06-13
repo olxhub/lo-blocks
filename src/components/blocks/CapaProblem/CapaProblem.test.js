@@ -1,3 +1,4 @@
+// src/components/blocks/CapaProblem/CapaProblem.test.js
 import { loadContentTree } from '@/lib/content/loadContentTree';
 import { FileStorageProvider } from '@/lib/storage';
 

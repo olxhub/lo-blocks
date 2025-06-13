@@ -1,3 +1,4 @@
+// src/app/edit/[[...path]]/page.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';

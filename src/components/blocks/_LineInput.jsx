@@ -1,3 +1,4 @@
+// src/components/blocks/_LineInput.jsx
 'use client';
 
 import React from 'react';

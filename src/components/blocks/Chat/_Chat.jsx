@@ -1,3 +1,4 @@
+// src/components/blocks/Chat/_Chat.jsx
 'use client';
 
 import React from 'react';

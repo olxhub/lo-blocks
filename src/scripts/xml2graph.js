@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// src/scripts/xml2graph.js
 import stringify from 'json-stable-stringify';
 import { loadContentTree } from '../lib/content/loadContentTree';
 import { FileStorageProvider } from '../lib/storage';

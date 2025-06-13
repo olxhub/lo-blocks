@@ -1,4 +1,4 @@
-// lib/blocks/factory.tsx
+// src/lib/blocks/factory.tsx
 import React from 'react';
 import { z } from 'zod';
 

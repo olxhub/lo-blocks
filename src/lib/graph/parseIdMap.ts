@@ -1,3 +1,4 @@
+// src/lib/graph/parseIdMap.ts
 import { COMPONENT_MAP } from '@/components/componentMap';
 
 /**

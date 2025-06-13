@@ -1,3 +1,4 @@
+<!-- content/demos/simplecheck.xml -->
 <Lesson id="simplecheck_lesson" launchable="true">
   <NumberInput id="num"/>
   <ActionButton label="Check">

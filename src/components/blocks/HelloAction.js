@@ -1,3 +1,4 @@
+// src/components/blocks/HelloAction.js
 import * as parsers from '@/lib/olx/parsers';
 import * as blocks from '@/lib/blocks';
 

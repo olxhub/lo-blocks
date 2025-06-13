@@ -1,3 +1,4 @@
+// src/components/blocks/DisplayMath/InlineMath.js
 import { _InlineMath } from './_InlineMath';
 
 import * as parsers from '@/lib/olx/parsers';

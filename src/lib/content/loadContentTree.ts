@@ -1,3 +1,4 @@
+// src/lib/content/loadContentTree.ts
 import crypto from 'crypto';
 import { XMLParser } from 'fast-xml-parser';
 import { COMPONENT_MAP } from '@/components/componentMap';

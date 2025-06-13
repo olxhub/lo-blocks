@@ -1,3 +1,4 @@
+// src/components/navigation/SearchNav.tsx
 'use client';
 
 export default function SearchNav() {

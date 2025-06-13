@@ -1,4 +1,4 @@
-// src/lib/llm/openaiInterface.js
+// src/lib/llm/azureInterface.js
 import OpenAI from "openai";
 
 const client = new OpenAI({

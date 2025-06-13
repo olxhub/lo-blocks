@@ -1,4 +1,4 @@
-// src/lib/llm/client.js
+// src/lib/llm/client.jsx
 import * as lo_event from 'lo_event';
 import * as reducers from 'lo_event/lo_event/lo_assess/reducers';
 

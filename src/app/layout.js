@@ -1,3 +1,4 @@
+// src/app/layout.js
 import StoreWrapper from './storeWrapper';
 import { geistSans, geistMono } from './fonts';
 

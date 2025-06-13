@@ -1,3 +1,4 @@
+// src/components/blocks/Chat/Chat.js
 import React from 'react';
 import * as blocks from '@/lib/blocks';
 import { peggyParser } from '@/lib/olx/parsers';

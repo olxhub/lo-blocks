@@ -1,3 +1,4 @@
+// src/components/blocks/PEGDevBlock/demo.pegjs
 {
   // Helper to build nodes
   function makeBinary(op, left, right) {

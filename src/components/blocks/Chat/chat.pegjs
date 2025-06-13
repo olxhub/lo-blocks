@@ -1,3 +1,4 @@
+// src/components/blocks/Chat/chat.pegjs
 /*
  * Conversation Format Grammar
  * ---------------------------

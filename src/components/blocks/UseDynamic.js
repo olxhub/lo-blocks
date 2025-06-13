@@ -1,3 +1,4 @@
+// src/components/blocks/UseDynamic.js
 import React from 'react';
 import * as blocks from '@/lib/blocks';
 

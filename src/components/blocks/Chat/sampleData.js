@@ -1,3 +1,4 @@
+// src/components/blocks/Chat/sampleData.js
 // Mock data for testing
 const sampleConversation = [
   {

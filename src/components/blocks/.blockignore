@@ -1,3 +1,4 @@
+# src/components/blocks/.blockignore
 # This is a list of glob expressions to ignore in the
 # generateBlockRegistry script / npm build:gen-block-registry
 

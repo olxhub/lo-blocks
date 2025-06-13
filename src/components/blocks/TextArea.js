@@ -1,3 +1,4 @@
+// src/components/blocks/TextArea.js
 import * as blocks from '@/lib/blocks';
 import * as parsers from '@/lib/olx/parsers';
 import _TextArea from './_TextArea';

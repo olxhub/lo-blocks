@@ -1,3 +1,4 @@
+// src/app/api/files/route.js
 import { listFileTree } from '@/lib/storage';
 
 export async function GET() {

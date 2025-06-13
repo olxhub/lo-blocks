@@ -1,3 +1,4 @@
+// src/components/blocks/_UseDynamic.jsx
 import React from 'react';
 import { render } from '@/lib/render';
 import { useReduxInput } from '@/lib/blocks';

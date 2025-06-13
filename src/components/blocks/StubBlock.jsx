@@ -1,3 +1,4 @@
+// src/components/blocks/StubBlock.jsx
 import * as parsers from '@/lib/olx/parsers';
 
 import { dev } from '@/lib/blocks';

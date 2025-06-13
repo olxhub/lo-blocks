@@ -1,3 +1,4 @@
+// src/components/componentMap.js
 import React from 'react';
 
 import * as BlockRegistry from './blockRegistry.js';

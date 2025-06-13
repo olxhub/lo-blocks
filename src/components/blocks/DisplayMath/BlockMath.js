@@ -1,3 +1,4 @@
+// src/components/blocks/DisplayMath/BlockMath.js
 import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/olx/parsers';
 

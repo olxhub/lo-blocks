@@ -1,3 +1,4 @@
+// src/components/blocks/TextBlock.jsx
 import React from 'react';
 
 import * as parsers from '@/lib/olx/parsers';

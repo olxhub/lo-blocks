@@ -1,3 +1,4 @@
+<!-- content/linear-algebra/eigenvalues/lesson1.xml -->
 <Lesson id="eigen_lesson" launchable="true">
   <TextBlock>Welcome to the Eigenvalues lesson!</TextBlock>
   <DevProblem id="eigen_q1">

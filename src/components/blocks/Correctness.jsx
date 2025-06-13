@@ -1,3 +1,4 @@
+// src/components/blocks/Correctness.jsx
 import React from 'react';
 import { dev, CORRECTNESS } from '@/lib/blocks';
 import { useComponentSelector } from '@/lib/blocks/selectors.ts';

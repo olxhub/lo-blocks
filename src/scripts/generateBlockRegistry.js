@@ -1,3 +1,4 @@
+// src/scripts/generateBlockRegistry.js
 // generateBlockRegistry.js
 import fs from 'fs';
 import path from 'path';

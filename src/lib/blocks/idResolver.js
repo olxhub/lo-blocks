@@ -1,3 +1,4 @@
+// src/lib/blocks/idResolver.js
 /*
  * IDs are complex (see /docs/). We would like explicit logic for
  * managing IDs. This is a first stab at it.

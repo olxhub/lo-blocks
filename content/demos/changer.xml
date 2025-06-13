@@ -1,3 +1,4 @@
+<!-- content/demos/changer.xml -->
 <Lesson id="rewrite_lesson" launchable="true" title="Rewriting Lesson">
   <DigitSpanTask/>
   <TextBlock>Welcome to the Rewriting Station!</TextBlock>

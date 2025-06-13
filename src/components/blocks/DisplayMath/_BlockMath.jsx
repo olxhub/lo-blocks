@@ -1,3 +1,4 @@
+// src/components/blocks/DisplayMath/_BlockMath.jsx
 import React from 'react';
 import katex from 'katex';
 if (typeof window !== 'undefined') {

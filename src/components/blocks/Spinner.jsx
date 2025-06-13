@@ -1,3 +1,4 @@
+// src/components/blocks/Spinner.jsx
 
 /* ⚠️ TEMPORARY SHIM COMPONENT ⚠️
  *

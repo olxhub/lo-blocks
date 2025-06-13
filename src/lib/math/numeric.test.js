@@ -1,3 +1,4 @@
+// src/lib/math/numeric.test.js
 import { parseComplex, parseTolerance, parseRange, inRange, compareWithTolerance, gradeNumerical } from './numeric.js';
 import { CORRECTNESS } from '../blocks/correctness.js';
 

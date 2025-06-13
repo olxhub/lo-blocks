@@ -1,3 +1,4 @@
+// src/components/blocks/PEGDevBlock/_PEGDevBlock.jsx
 import React from 'react';
 
 export function _PEGDevBlock({ kids }) {

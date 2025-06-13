@@ -1,3 +1,4 @@
+// src/components/blocks/CapaProblem/_CapaProblem.jsx
 'use client';
 import React from 'react';
 import { renderCompiledKids } from '@/lib/render';

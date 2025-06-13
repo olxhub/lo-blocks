@@ -1,3 +1,4 @@
+// src/components/blocks/SideBarPanel/_SideBarPanel.jsx
 'use client';
 
 import { render } from '@/lib/render';

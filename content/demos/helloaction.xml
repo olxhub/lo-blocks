@@ -1,3 +1,4 @@
+<!-- content/demos/helloaction.xml -->
 <Lesson id="hello_action_lesson" launchable="true">
   <ActionButton label="Click me!">
     <HelloAction/>

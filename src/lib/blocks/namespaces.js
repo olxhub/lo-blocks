@@ -1,3 +1,4 @@
+// src/lib/blocks/namespaces.js
 // src/components/blocks/namespaces.ts
 import { blocks } from './factory';
 

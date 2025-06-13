@@ -1,3 +1,4 @@
+// src/app/api/content/[id]/route.js
 import { loadContentTree } from '@/lib/content/loadContentTree';
 
 export async function GET(request, { params }) {

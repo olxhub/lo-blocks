@@ -1,3 +1,4 @@
+// src/app/api/admin/shutdown/route.js
 function checkAccess(request) {
   if (process.env.NODE_ENV === 'production') {
     return Response.json({ error: 'Shutdown not allowed in production' }, { status: 403 });

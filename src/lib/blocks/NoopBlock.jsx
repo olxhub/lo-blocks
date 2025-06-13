@@ -1,3 +1,4 @@
+// src/lib/blocks/NoopBlock.jsx
 /*
  * This is a block which renders nothing, and is useful for things
  * like pure actions where we need a node in the OLX tree, but for

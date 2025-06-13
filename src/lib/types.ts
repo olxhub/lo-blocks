@@ -1,3 +1,4 @@
+// src/lib/types.ts
 export interface FileProvenance {
   type: 'file';
   path: string;

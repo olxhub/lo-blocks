@@ -1,3 +1,4 @@
+// src/lib/blocks/index.tsx
 export * from './factory';
 export * from './namespaces';
 export * from './redux';

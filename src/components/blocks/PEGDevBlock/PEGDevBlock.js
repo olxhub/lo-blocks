@@ -1,3 +1,4 @@
+// src/components/blocks/PEGDevBlock/PEGDevBlock.js
 import React from 'react';
 import { dev } from '@/lib/blocks';
 import { peggyParser } from '@/lib/olx/parsers';

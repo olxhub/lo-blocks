@@ -1,3 +1,4 @@
+// src/lib/blocks/redux.tsx
 import * as lo_event from 'lo_event';
 import * as idResolver from './idResolver';
 

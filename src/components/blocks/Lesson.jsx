@@ -1,3 +1,4 @@
+// src/components/blocks/Lesson.jsx
 import React from 'react';
 
 // DebugWrapper will handle debug info universally
