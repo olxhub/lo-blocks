@@ -6,7 +6,7 @@ import { xml } from '@codemirror/lang-xml';
 import { useParams } from 'next/navigation';
 
 import Split from "react-split";
-import { ChatComponent, InputFooter } from '@/components/common/ChatComponent';
+import EditorLLMChat from '@/components/chat/EditorLLMChat';
 import FileNav from '@/components/navigation/FileNav';
 import ComponentNav from '@/components/navigation/ComponentNav';
 import SearchNav from '@/components/navigation/SearchNav';
@@ -178,14 +178,6 @@ function NavigationPane() {
 
 
 export default function EditPage() {
-  const dummyMessages = [
-    { type: 'Line', speaker: 'Alice', text: 'Hello there!' },
-    { type: 'Line', speaker: 'Bob', text: 'Hi Alice!' },
-    { type: 'SystemMessage', text: 'End of chat.' },
-  ];
-
-  const chatFooter = <InputFooter id="dummy_footer" disabled />;
-
   return (
     <div className="flex flex-col h-screen">
       <AppHeader />
@@ -193,7 +185,7 @@ export default function EditPage() {
         <FourPaneLayout
           Navigation={<NavigationPane />}
           Editor={<EditControl />}
-          Chat={<ChatComponent id="dummy_chat" messages={dummyMessages} footer={chatFooter} height="flex-1" />}
+          Chat={<EditorLLMChat />}
         />
       </div>
     </div>
