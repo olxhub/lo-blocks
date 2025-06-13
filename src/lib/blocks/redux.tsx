@@ -3,9 +3,13 @@ import * as lo_event from 'lo_event';
 import * as idResolver from './idResolver';
 
 import { useComponentSelector } from './selectors.ts';
+import { Scope, scopes } from '../state/scopes';
+import { enumdict } from '../util';
 
-const _fieldToEventMap = {};
-const _eventToFieldMap = {};
+interface FieldInfo { name: string; event: string; scope: Scope; }
+
+const _fieldInfoByField: Record<string, FieldInfo> = {};
+const _fieldInfoByEvent: Record<string, FieldInfo> = {};
 
 /**
  * Converts a camelCase or PascalCase field name into a default event name string.
@@ -35,60 +39,61 @@ function fieldNameToDefaultEventName(name) {
  * @param {Object} newMap - The new mapping to check.
  * @param {string} type - A string label for error clarity ("field" or "event").
  */
-function checkConflicts(globalMap, newMap, type = "field") {
+function checkConflicts(globalMap: Record<string, FieldInfo>, newMap: Record<string, FieldInfo>, type = "field") {
   for (const [key, value] of Object.entries(newMap)) {
-    if (
-      globalMap.hasOwnProperty(key) &&
-      globalMap[key] !== value
-    ) {
-      throw new Error(
-        `[fields] Conflicting ${type} registration: "${key}" was previously mapped to "${globalMap[key]}", but attempted to map to "${value}".`
-      );
+    if (globalMap.hasOwnProperty(key)) {
+      const existing = globalMap[key];
+      if (
+        existing.name !== value.name ||
+        existing.event !== value.event ||
+        existing.scope !== value.scope
+      ) {
+        throw new Error(
+          `[fields] Conflicting ${type} registration: "${key}" was previously mapped to "${JSON.stringify(existing)}", but attempted to map to "${JSON.stringify(value)}".`
+        );
+      }
     }
   }
 }
 
-export function fields(fieldnames) {
-  // Handle the array case: {field: null}
-  let initialMapping = Array.isArray(fieldnames)
-    ? Object.fromEntries(fieldnames.map(f => [f, null]))
-    : { ...fieldnames };
+export function fields(fieldList: (string | { name: string; event?: string; scope?: Scope })[]) {
+  const infos: FieldInfo[] = fieldList.map(item => {
+    if (typeof item === 'string') {
+      return { name: item, event: fieldNameToDefaultEventName(item), scope: scopes.component };
+    }
+    const name = item.name;
+    const event = item.event ?? fieldNameToDefaultEventName(name);
+    const scope = item.scope ?? scopes.component;
+    return { name, event, scope };
+  });
 
-  // Convert nulls to default event names
-  let fieldToEventMap = {};
-  for (const [field, event] of Object.entries(initialMapping)) {
-    fieldToEventMap[field] = event ?? fieldNameToDefaultEventName(field);
+  const fieldInfoByField: Record<string, FieldInfo> = {};
+  const fieldInfoByEvent: Record<string, FieldInfo> = {};
+
+  for (const info of infos) {
+    fieldInfoByField[info.name] = info;
+    fieldInfoByEvent[info.event] = info;
   }
 
-  // Reverse mapping: eventToFieldMap
-  const eventToFieldMap = Object.fromEntries(
-    Object.entries(fieldToEventMap).map(([k, v]) => [v, k])
-  );
+  const fieldsEnum = enumdict(infos.map(i => i.name));
+  const eventsEnum = enumdict(infos.map(i => i.event));
 
-  // fields and events enums
-  const fieldsEnum = Object.fromEntries(
-    Object.keys(fieldToEventMap).map(f => [f, f])
-  );
-  const eventsEnum = Object.fromEntries(
-    Object.values(fieldToEventMap).map(e => [e, e])
-  );
+  checkConflicts(_fieldInfoByField, fieldInfoByField, "field");
+  checkConflicts(_fieldInfoByEvent, fieldInfoByEvent, "event");
 
-  checkConflicts(_fieldToEventMap, fieldToEventMap, "field");
-  checkConflicts(_eventToFieldMap, eventToFieldMap, "event");
-
-  Object.assign(_fieldToEventMap, fieldToEventMap);
-  Object.assign(_eventToFieldMap, eventToFieldMap);
+  Object.assign(_fieldInfoByField, fieldInfoByField);
+  Object.assign(_fieldInfoByEvent, fieldInfoByEvent);
 
   return {
     fields: fieldsEnum,
     events: eventsEnum,
-    fieldToEventMap,
-    eventToFieldMap,
+    fieldInfoByField,
+    fieldInfoByEvent,
   };
 }
 
 export function assertValidField(field) {
-  if (!_fieldToEventMap.hasOwnProperty(field)) {
+  if (!_fieldInfoByField.hasOwnProperty(field)) {
     throw new Error(`Invalid field: ${field}`);
   }
   return field; // optionally return the field for chaining
@@ -103,7 +108,8 @@ export function useReduxState(id, field, fallback) {
   });
 
   const setValue = (newValue) => {
-    const eventType = _fieldToEventMap[field]; // map field to event
+    const info = _fieldInfoByField[field];
+    const eventType = info?.event; // map field to event
 
     if (!eventType) {
       console.warn(`[useReduxState] No event mapping found for field "${field}"`);
@@ -123,7 +129,7 @@ export function useReduxState(id, field, fallback) {
 export const __testables = {
   fieldNameToDefaultEventName,
   reset: () => {
-    Object.keys(_fieldToEventMap).forEach(k => delete _fieldToEventMap[k]);
-    Object.keys(_eventToFieldMap).forEach(k => delete _eventToFieldMap[k]);
+    Object.keys(_fieldInfoByField).forEach(k => delete _fieldInfoByField[k]);
+    Object.keys(_fieldInfoByEvent).forEach(k => delete _fieldInfoByEvent[k]);
   }
 };

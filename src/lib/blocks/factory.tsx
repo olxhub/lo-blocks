@@ -3,11 +3,17 @@ import React from 'react';
 import { z } from 'zod';
 
 const ReduxFieldDict = z.record(z.string(), z.string());
+const ReduxFieldInfo = z.object({
+  name: z.string(),
+  event: z.string(),
+  scope: z.string(),
+}).strict();
+const ReduxFieldInfoMap = z.record(ReduxFieldInfo);
 const ReduxFieldsReturn = z.object({
   fields: ReduxFieldDict,
   events: ReduxFieldDict,
-  fieldToEventMap: ReduxFieldDict,
-  eventToFieldMap: ReduxFieldDict,
+  fieldInfoByField: ReduxFieldInfoMap,
+  fieldInfoByEvent: ReduxFieldInfoMap,
 }).strict();
 
 // === Schema ===
@@ -66,7 +72,7 @@ function createBlock(config: BlockConfig): React.ComponentType<any> {
     staticKids: config.staticKids,
     reducers: config.reducers ?? [],
     getValue: config.getValue,
-    fields: parsed?.fields?.fieldToEventMap || {},
+    fields: parsed?.fields?.fieldInfoByField || {},
 
     OLXName: olxName,
     description: parsed.description,
