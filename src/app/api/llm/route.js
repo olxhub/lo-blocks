@@ -3,8 +3,8 @@
 */
 
 import { NextResponse, NextRequest } from 'next/server';
-import * as openai from '../../lib/llm/azureInterface';
-import * as stub from '../../lib/llm/stubInterface';
+import * as openai from '@/lib/llm/azureInterface';
+import * as stub from '@/lib/llm/stubInterface';
 
 const listChatCompletions = openai.listChatCompletions;
 
