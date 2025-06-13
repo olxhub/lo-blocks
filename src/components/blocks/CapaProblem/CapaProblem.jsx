@@ -1,12 +1,13 @@
 import { dev, reduxId, isBlockTag } from '@/lib/blocks';
-import { childParser } from '@/lib/olx/parsers';
 import { COMPONENT_MAP } from '@/components/componentMap';
 import _CapaProblem from './_CapaProblem';
 
 // TODO: Make this parser generic to CapaProblem, HTML, and others
 //
 // This is a minimal working version. This code should not be treated as clean or canonical.
-const capaParser = childParser(function capaProblemParser({ rawKids, storeEntry, provenance, id }) {
+function capaParser({ id, tag, attributes, provenance, rawParsed, storeEntry }) {
+  const tagParsed = rawParsed[tag];
+  const rawKids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
   let inputIndex = 0;
   let graderIndex = 0;
   let nodeIndex = 0;
@@ -105,8 +106,10 @@ const capaParser = childParser(function capaProblemParser({ rawKids, storeEntry,
     kidsParsed.push({ type: 'block', id: correctnessId });
   }
 
-  return kidsParsed;
-});
+  const entry = { id, tag, attributes, provenance, rawParsed, kids: kidsParsed };
+  storeEntry(id, entry);
+  return id;
+}
 
 function collectIds(nodes) {
   let ids = [];
@@ -121,7 +124,8 @@ function collectIds(nodes) {
 capaParser.staticKids = entry => collectIds(entry.kids);
 
 const CapaProblem = dev({
-  ...capaParser,
+  parser: capaParser,
+  staticKids: capaParser.staticKids,
   name: 'CapaProblem',
   component: _CapaProblem
 });
