@@ -1,3 +1,5 @@
+// src/lib/state/scopes.ts
+
 function enumdict<T extends string>(keys: readonly T[]): { readonly [K in T]: K } {
   const result = {} as { readonly [K in T]: K };
   for (const key of keys) {
@@ -13,7 +15,7 @@ const _scopes = [
 ];
 
 export const scopes = enumdict(_scopes) as const;
-export type Scope = typeof scopes[number];
+export type Scope = typeof _scopes[number];
 
 // Thin helper so legacy code can keep string literals a bit longer if needed.
 export function asScope(value: string): Scope {
