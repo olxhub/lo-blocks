@@ -10,6 +10,7 @@ import EditorLLMChat from '@/components/chat/EditorLLMChat';
 import FileNav from '@/components/navigation/FileNav';
 import ComponentNav from '@/components/navigation/ComponentNav';
 import SearchNav from '@/components/navigation/SearchNav';
+import AppHeader from '@/components/common/AppHeader';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 // This causes CoadMirror not to load on all pages (it gets its own
@@ -94,7 +95,7 @@ function FourPaneLayout({
 }) {
   // You can replace the placeholders with your actual controls/components
   return (
-    <div className="h-screen w-screen">
+    <div className="h-full w-full">
       {/* Vertical split: Left and Right */}
       <Split
         className="flex h-full"
@@ -102,7 +103,7 @@ function FourPaneLayout({
         minSize={200}
         gutterSize={6}
         direction="horizontal"
-        style={{ display: "flex", height: "100vh" }}
+        style={{ display: "flex" }}
       >
         {/* LEFT: Navigation (top), Chat (bottom) */}
         <Split
@@ -178,10 +179,15 @@ function NavigationPane() {
 
 export default function EditPage() {
   return (
-    <FourPaneLayout
-      Navigation={<NavigationPane />}
-      Editor={<EditControl />}
-      Chat={<EditorLLMChat />}
-    />
+    <div className="flex flex-col h-screen">
+      <AppHeader />
+      <div className="flex-1 overflow-hidden">
+        <FourPaneLayout
+          Navigation={<NavigationPane />}
+          Editor={<EditControl />}
+          Chat={<EditorLLMChat />}
+        />
+      </div>
+    </div>
   );
 }

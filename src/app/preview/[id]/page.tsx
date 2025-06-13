@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { render, makeRootNode } from '@/lib/render';
+import AppHeader from '@/components/common/AppHeader';
 
 export default function PreviewPage() {
   const params = useParams();
@@ -37,17 +38,20 @@ export default function PreviewPage() {
   if (!idMap) return <div>Loading...</div>;
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-bold mb-4">Preview: {id}</h1>
-      <div className="space-y-4">
-        {render({ node: id, idMap, nodeInfo: makeRootNode(), debug })}
-      </div>
+    <div className="flex flex-col h-screen">
+      <AppHeader />
+      <div className="p-6 flex-1 overflow-auto">
+        <h1 className="text-xl font-bold mb-4">Preview: {id}</h1>
+        <div className="space-y-4">
+          {render({ node: id, idMap, nodeInfo: makeRootNode(), debug })}
+        </div>
 
-      {debug && (
-        <pre className="mt-4 bg-gray-100 p-4 text-xs rounded overflow-auto">
-          {JSON.stringify({ idMap, parsed }, null, 2)}
-        </pre>
-      )}
+        {debug && (
+          <pre className="mt-4 bg-gray-100 p-4 text-xs rounded overflow-auto">
+            {JSON.stringify({ idMap, parsed }, null, 2)}
+          </pre>
+        )}
+      </div>
     </div>
   );
 }
