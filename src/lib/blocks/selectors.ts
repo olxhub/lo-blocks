@@ -88,7 +88,7 @@ export function useFieldSelector<T = any>(
 //
 // This should use redux.assertValidField, but we want to be mindful
 // of circular imports, etc.
-export function useReduxInput(id, field, fallback = '', { updateValidator }) {
+export function useReduxInput(id, field, fallback = '', { updateValidator } = {}) {
   const value = useComponentSelector(id, state =>
     state && state[field] !== undefined ? state[field] : fallback
   );
