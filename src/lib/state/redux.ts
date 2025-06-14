@@ -4,12 +4,10 @@ import * as idResolver from '../blocks/idResolver';
 
 import { useComponentSelector } from './selectors.ts';
 import { Scope, scopes } from '../state/scopes';
-import { enumdict } from '../util';
+import { FieldSpec } from './fields';
 
-interface FieldInfo { name: string; event: string; scope: Scope; }
-
-const _fieldInfoByField: Record<string, FieldInfo> = {};
-const _fieldInfoByEvent: Record<string, FieldInfo> = {};
+const _fieldInfoByField: Record<string, FieldSpec> = {};
+const _fieldInfoByEvent: Record<string, FieldSpec> = {};
 
 /**
  * Converts a camelCase or PascalCase field name into a default event name string.
@@ -39,7 +37,7 @@ function fieldNameToDefaultEventName(name) {
  * @param {Object} newMap - The new mapping to check.
  * @param {string} type - A string label for error clarity ("field" or "event").
  */
-function checkConflicts(globalMap: Record<string, FieldInfo>, newMap: Record<string, FieldInfo>, type = "field") {
+function checkConflicts(globalMap: Record<string, FieldSpec>, newMap: Record<string, FieldSpec>, type = "field") {
   for (const [key, value] of Object.entries(newMap)) {
     if (globalMap.hasOwnProperty(key)) {
       const existing = globalMap[key];
@@ -57,26 +55,23 @@ function checkConflicts(globalMap: Record<string, FieldInfo>, newMap: Record<str
 }
 
 export function fields(fieldList: (string | { name: string; event?: string; scope?: Scope })[]) {
-  const infos: FieldInfo[] = fieldList.map(item => {
+  const infos: FieldSpec[] = fieldList.map(item => {
     if (typeof item === 'string') {
-      return { name: item, event: fieldNameToDefaultEventName(item), scope: scopes.component };
+      return { type: 'field', name: item, event: fieldNameToDefaultEventName(item), scope: scopes.component };
     }
     const name = item.name;
     const event = item.event ?? fieldNameToDefaultEventName(name);
     const scope = item.scope ?? scopes.component;
-    return { name, event, scope };
+    return { type: 'field', name, event, scope };
   });
 
-  const fieldInfoByField: Record<string, FieldInfo> = {};
-  const fieldInfoByEvent: Record<string, FieldInfo> = {};
+  const fieldInfoByField: Record<string, FieldSpec> = {};
+  const fieldInfoByEvent: Record<string, FieldSpec> = {};
 
   for (const info of infos) {
     fieldInfoByField[info.name] = info;
     fieldInfoByEvent[info.event] = info;
   }
-
-  const fieldsEnum = enumdict(infos.map(i => i.name));
-  const eventsEnum = enumdict(infos.map(i => i.event));
 
   checkConflicts(_fieldInfoByField, fieldInfoByField, "field");
   checkConflicts(_fieldInfoByEvent, fieldInfoByEvent, "event");
@@ -85,8 +80,6 @@ export function fields(fieldList: (string | { name: string; event?: string; scop
   Object.assign(_fieldInfoByEvent, fieldInfoByEvent);
 
   return {
-    fields: fieldsEnum,
-    events: eventsEnum,
     fieldInfoByField,
     fieldInfoByEvent,
   };
@@ -101,7 +94,7 @@ export function assertValidField(field) {
 
 export function useReduxState(
   props,
-  field: { name: string; event?: string },
+  field: FieldSpec,
   fallback
 ) {
   const id = idResolver.reduxId(props?.id);
@@ -113,12 +106,7 @@ export function useReduxState(
   });
 
   const setValue = (newValue) => {
-    const eventType = field.event; // map field to event
-
-    if (!eventType) {
-      console.warn(`[useReduxState] No event mapping found for field "${fieldName}"`);
-      return;
-    }
+    const eventType = field.event;
 
     lo_event.logEvent(eventType, {
       id,

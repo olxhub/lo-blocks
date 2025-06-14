@@ -2,16 +2,14 @@
 import React from 'react';
 import { z } from 'zod';
 
-const ReduxFieldDict = z.record(z.string(), z.string());
 const ReduxFieldInfo = z.object({
+  type: z.literal('field'),
   name: z.string(),
   event: z.string(),
   scope: z.string(),
 }).strict();
 const ReduxFieldInfoMap = z.record(ReduxFieldInfo);
 const ReduxFieldsReturn = z.object({
-  fields: ReduxFieldDict,
-  events: ReduxFieldDict,
   fieldInfoByField: ReduxFieldInfoMap,
   fieldInfoByEvent: ReduxFieldInfoMap,
 }).strict();

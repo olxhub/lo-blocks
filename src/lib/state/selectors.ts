@@ -7,6 +7,7 @@ import { useSelector, shallowEqual } from 'react-redux';
 import { useRef, useEffect, useCallback } from 'react';
 
 import * as lo_event from 'lo_event';
+import { FieldSpec } from './fields';
 
 const UPDATE_INPUT = 'UPDATE_INPUT'; // TODO: Import
 const INVALIDATED_INPUT = 'INVALIDATED_INPUT'; // informational
@@ -58,9 +59,10 @@ export function useComponentSelector<T = any>(
 //
 // This should use redux.assertValidField, but we want to be mindful
 // of circular imports, etc.
+
 export function useReduxInput(
   props,
-  field: { name: string },
+  field: FieldSpec,
   fallback = '',
   { updateValidator } = {}
 ) {

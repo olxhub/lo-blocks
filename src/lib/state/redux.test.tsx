@@ -30,18 +30,13 @@ describe('fields mapping and conflict detection', () => {
 
   it('allows explicit event mapping for some fields and defaults for others', () => {
     const result = fields(['user', { name: 'input', event: 'SET_MY_INPUT' }]);
-    expect(result.fields).toEqual({ user: 'user', input: 'input' });
-    expect(result.events).toEqual({
-      UPDATE_USER: 'UPDATE_USER',
-      SET_MY_INPUT: 'SET_MY_INPUT',
-    });
     expect(result.fieldInfoByField).toEqual({
-      user: { name: 'user', event: 'UPDATE_USER', scope: 'component' },
-      input: { name: 'input', event: 'SET_MY_INPUT', scope: 'component' },
+      user: { type: 'field', name: 'user', event: 'UPDATE_USER', scope: 'component' },
+      input: { type: 'field', name: 'input', event: 'SET_MY_INPUT', scope: 'component' },
     });
     expect(result.fieldInfoByEvent).toEqual({
-      UPDATE_USER: { name: 'user', event: 'UPDATE_USER', scope: 'component' },
-      SET_MY_INPUT: { name: 'input', event: 'SET_MY_INPUT', scope: 'component' },
+      UPDATE_USER: { type: 'field', name: 'user', event: 'UPDATE_USER', scope: 'component' },
+      SET_MY_INPUT: { type: 'field', name: 'input', event: 'SET_MY_INPUT', scope: 'component' },
     });
   });
 
