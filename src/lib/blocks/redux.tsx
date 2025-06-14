@@ -99,26 +99,34 @@ export function assertValidField(field) {
   return field; // optionally return the field for chaining
 }
 
-export function useReduxState(id, field, fallback) {
-  id = idResolver.reduxId(id)
-  assertValidField(field);
+export function useReduxState(
+  id,
+  field: string | { name: string; event?: string },
+  fallback
+) {
+  id = idResolver.reduxId(id);
+  const fieldName = typeof field === 'string' ? field : field?.name;
+  if (typeof field === 'string') {
+    assertValidField(fieldName);
+  }
+
   const value = useComponentSelector(id, state => {
     if (!state) return fallback;
-    return state[field] !== undefined ? state[field] : fallback;
+    return state[fieldName] !== undefined ? state[fieldName] : fallback;
   });
 
   const setValue = (newValue) => {
-    const info = _fieldInfoByField[field];
+    const info = typeof field === 'string' ? _fieldInfoByField[fieldName] : field;
     const eventType = info?.event; // map field to event
 
     if (!eventType) {
-      console.warn(`[useReduxState] No event mapping found for field "${field}"`);
+      console.warn(`[useReduxState] No event mapping found for field "${fieldName}"`);
       return;
     }
 
     lo_event.logEvent(eventType, {
       id,
-      [field]: newValue
+      [fieldName]: newValue
     });
   };
 
