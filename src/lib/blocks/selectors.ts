@@ -73,13 +73,14 @@ export function useSettingSelector<T = any>(
 // of circular imports, etc.
 export function useFieldSelector<T = any>(
   id: string,
-  field: string,
+  field: string | { name: string },
   options?: SelectorExtraParam<T>
 ): T {
   const { fallback, ...rest } = normalizeOptions(options);
+  const fieldName = typeof field === 'string' ? field : field?.name;
   return useComponentSelector(
     id,
-    s => s?.[field] !== undefined ? s[field] : fallback,
+    s => s?.[fieldName] !== undefined ? s[fieldName] : fallback,
     rest
   );
 }
@@ -88,16 +89,22 @@ export function useFieldSelector<T = any>(
 //
 // This should use redux.assertValidField, but we want to be mindful
 // of circular imports, etc.
-export function useReduxInput(id, field, fallback = '', { updateValidator } = {}) {
+export function useReduxInput(
+  id,
+  field: string | { name: string },
+  fallback = '',
+  { updateValidator } = {}
+) {
+  const fieldName = typeof field === 'string' ? field : field?.name;
   const value = useComponentSelector(id, state =>
-    state && state[field] !== undefined ? state[field] : fallback
+    state && state[fieldName] !== undefined ? state[fieldName] : fallback
   );
 
   const selection = useComponentSelector(
     id,
     state => ({
-      selectionStart: state?.[`${field}.selectionStart`] ?? 0,
-      selectionEnd: state?.[`${field}.selectionEnd`] ?? 0
+      selectionStart: state?.[`${fieldName}.selectionStart`] ?? 0,
+      selectionEnd: state?.[`${fieldName}.selectionEnd`] ?? 0
     }),
     shallowEqual
   );
@@ -109,20 +116,20 @@ export function useReduxInput(id, field, fallback = '', { updateValidator } = {}
     if (updateValidator && !updateValidator(val)) {
       lo_event.logEvent(INVALIDATED_INPUT, {
         id,
-        [field]: val,
-        [`${field}.selectionStart`]: selStart,
-        [`${field}.selectionEnd`]: selEnd
+        [fieldName]: val,
+        [`${fieldName}.selectionStart`]: selStart,
+        [`${fieldName}.selectionEnd`]: selEnd
       });
       return;
     }
 
     lo_event.logEvent(UPDATE_INPUT, {
       id,
-      [field]: val,
-      [`${field}.selectionStart`]: selStart,
-      [`${field}.selectionEnd`]: selEnd
+      [fieldName]: val,
+      [`${fieldName}.selectionStart`]: selStart,
+      [`${fieldName}.selectionEnd`]: selEnd
     });
-  }, [id, field, updateValidator]);
+  }, [id, fieldName, updateValidator]);
 
   const ref = useRef();
 
@@ -144,7 +151,7 @@ export function useReduxInput(id, field, fallback = '', { updateValidator } = {}
   return [
     value,
     {
-      name: field,
+      name: fieldName,
       value,
       onChange,
       ref
