@@ -9,6 +9,8 @@ import * as lo_event from 'lo_event';
 import * as debug from 'lo_event/lo_event/debugLog.js';
 import { consoleLogger } from 'lo_event/lo_event/consoleLogger.js';
 
+import { COMPONENT_MAP } from '@/components/componentMap';
+
 const initialState = {
   component_state: {}
 };
@@ -60,13 +62,6 @@ reduxLogger.registerReducer(
   allEventTypes,
   updateResponseReducer
 );
-
-
-import { COMPONENT_MAP } from '@/components/componentMap';
-
-Object.entries(COMPONENT_MAP).forEach(([name, entry])=> {
-  console.log(reduxLogger.registerReducer);
-});
 
 lo_event.init(
   "org.ets.sba",
