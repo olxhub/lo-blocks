@@ -1,6 +1,6 @@
-// src/lib/blocks/redux.tsx
+// src/lib/storage/redux.ts
 import * as lo_event from 'lo_event';
-import * as idResolver from './idResolver';
+import * as idResolver from '../blocks/idResolver';
 
 import { useComponentSelector } from './selectors.ts';
 import { Scope, scopes } from '../state/scopes';

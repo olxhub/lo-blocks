@@ -1,8 +1,8 @@
 // src/lib/blocks/index.tsx
 export * from './factory';
 export * from './namespaces';
-export * from './redux';
-export * from './selectors';
+export * from '../storage/redux';
+export * from '../storage/selectors';
 export * from './NoopBlock';
 export * from './olxdom';
 export * from './idResolver';

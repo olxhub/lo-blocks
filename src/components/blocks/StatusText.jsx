@@ -1,7 +1,7 @@
 // src/components/blocks/StatusText.jsx
 import React from 'react';
 import { dev } from '@/lib/blocks';
-import { useComponentSelector } from '@/lib/blocks/selectors.ts';
+import { useComponentSelector } from '@/lib/storage/selectors.ts';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import { ignore } from '@/lib/olx/parsers';
 
