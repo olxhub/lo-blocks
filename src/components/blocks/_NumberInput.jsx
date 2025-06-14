@@ -3,8 +3,9 @@
 import React from 'react';
 import { useReduxInput } from '@/lib/blocks';
 
-function _NumberInput({ id, className, fields, children }) {
-  const [value, inputProps] = useReduxInput(id, fields.value, '');
+function _NumberInput(props) {
+  const { className, fields, children } = props;
+  const [value, inputProps] = useReduxInput(props, fields.value, '');
   return (
     <>
       {children}

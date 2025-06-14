@@ -7,9 +7,9 @@ import { renderCompiledKids } from '@/lib/render';
 
 function _TextArea( props ) {
   // Note: updateValidator is a function, and so can't come from OLX or JSON.
-  const { id, className, fields, updateValidator } = props;
+  const { className, fields, updateValidator } = props;
   const [value, inputProps] = useReduxInput(
-    id, fields.value, '',
+    props, fields.value, '',
     { updateValidator }
   );
 
