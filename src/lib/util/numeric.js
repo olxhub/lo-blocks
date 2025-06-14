@@ -1,4 +1,4 @@
-// src/lib/math/numeric.js
+// src/lib/util/numeric.js
 import Complex from 'complex.js';
 import { CORRECTNESS } from '../blocks/correctness.js';
 

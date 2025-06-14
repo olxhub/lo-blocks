@@ -1,4 +1,4 @@
-// src/lib/storage/store.ts
+// src/lib/state/store.ts
 'use client';
 import { COMPONENT_MAP } from '@/components/componentMap';
 import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';

@@ -2,11 +2,11 @@
 import crypto from 'crypto';
 import { XMLParser } from 'fast-xml-parser';
 import { COMPONENT_MAP } from '@/components/componentMap';
-import { transformTagName } from '@/lib/olx/xmlTransforms';
+import { transformTagName } from '@/lib/content/xmlTransforms';
 
 import { StorageProvider, FileStorageProvider } from '@/lib/storage';
 
-import * as parsers from '@/lib/olx/parsers';
+import * as parsers from '@/lib/content/parsers';
 import { Provenance, formatProvenance } from '@/lib/types';
 
 const defaultParser = parsers.blocks.parser;

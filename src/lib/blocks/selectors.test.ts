@@ -1,5 +1,5 @@
 // src/lib/blocks/selectors.test.ts
-import { __testables } from '../storage/selectors';
+import { __testables } from '../state/selectors';
 
 const { normalizeOptions } = __testables;
 

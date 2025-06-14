@@ -1,4 +1,4 @@
-// src/lib/storage/redux.ts
+// src/lib/state/redux.ts
 import * as lo_event from 'lo_event';
 import * as idResolver from '../blocks/idResolver';
 

@@ -3,7 +3,7 @@ import React from 'react';
 
 // DebugWrapper will handle debug info universally
 import { renderCompiledKids } from '@/lib/render';
-import * as parsers from '@/lib/olx/parsers';
+import * as parsers from '@/lib/content/parsers';
 import { test } from '@/lib/blocks';
 
 function _Lesson( props ) {

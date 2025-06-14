@@ -1,5 +1,5 @@
 // src/components/blocks/HelloAction.js
-import * as parsers from '@/lib/olx/parsers';
+import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 
 const HelloAction = blocks.test({

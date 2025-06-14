@@ -4,7 +4,7 @@ import katex from 'katex';
 if (typeof window !== 'undefined') {
   import('katex/dist/katex.min.css');
 }
-import { DisplayError } from '@/lib/debug';
+import { DisplayError } from '@/lib/util/debug';
 
 export function _InlineMath( props ) {
   const { kids, url_name } = props;

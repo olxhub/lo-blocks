@@ -16,7 +16,7 @@
 
 import React from 'react';
 
-import * as parsers from '@/lib/olx/parsers';
+import * as parsers from '@/lib/content/parsers';
 
 if (typeof window !== 'undefined') {
   import('./Spinner.css');

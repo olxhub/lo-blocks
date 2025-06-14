@@ -1,7 +1,7 @@
 // src/components/blocks/DisplayMath/InlineMath.js
 import { _InlineMath } from './_InlineMath';
 
-import * as parsers from '@/lib/olx/parsers';
+import * as parsers from '@/lib/content/parsers';
 import { dev } from '@/lib/blocks';
 
 const InlineMath = dev({

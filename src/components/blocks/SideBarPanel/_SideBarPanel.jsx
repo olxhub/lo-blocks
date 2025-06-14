@@ -2,7 +2,7 @@
 'use client';
 
 import { render } from '@/lib/render';
-import { DisplayError } from '@/lib/debug';
+import { DisplayError } from '@/lib/util/debug';
 
 function _SideBarPanel( props ) {
   const { kids = {}, idMap, parents } = props;

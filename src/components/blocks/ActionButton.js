@@ -1,6 +1,6 @@
 // src/components/blocks/ActionButton.js
 import * as blocks from '@/lib/blocks';
-import * as parsers from '@/lib/olx/parsers';
+import * as parsers from '@/lib/content/parsers';
 import _ActionButton from './_ActionButton';
 
 const ActionButton = blocks.dev({

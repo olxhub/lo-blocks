@@ -1,6 +1,6 @@
 // src/components/blocks/DisplayMath/BlockMath.js
 import { dev } from '@/lib/blocks';
-import * as parsers from '@/lib/olx/parsers';
+import * as parsers from '@/lib/content/parsers';
 
 import { _BlockMath } from './_BlockMath.jsx';
 

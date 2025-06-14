@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DisplayError } from '@/lib/debug';
+import { DisplayError } from '@/lib/util/debug';
 
 
 export function _DigitSpanTask( props ) {

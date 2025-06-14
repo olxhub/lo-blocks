@@ -11,7 +11,7 @@
 */
 
 import { dev } from '@/lib/blocks';
-import { childParser } from '@/lib/olx/parsers';
+import { childParser } from '@/lib/content/parsers';
 import _SideBarPanel from './_SideBarPanel';
 
 // === Custom parser to build named slots ===

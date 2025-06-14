@@ -4,7 +4,7 @@ import React from 'react';
 
 import { Provider } from 'react-redux';
 
-import { store } from '@/lib/storage/store';
+import { store } from '@/lib/state/store';
 
 const reduxStore = store.init();
 

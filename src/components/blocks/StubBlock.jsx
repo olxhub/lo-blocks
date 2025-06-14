@@ -1,5 +1,5 @@
 // src/components/blocks/StubBlock.jsx
-import * as parsers from '@/lib/olx/parsers';
+import * as parsers from '@/lib/content/parsers';
 
 import { dev } from '@/lib/blocks';
 const warnedBlocks = new Set();

@@ -1,5 +1,5 @@
 // src/components/blocks/test/DevProblem.jsx
-import * as parsers from '@/lib/olx/parsers';
+import * as parsers from '@/lib/content/parsers';
 import { test } from '@/lib/blocks';
 import { _DevProblem } from './_DevProblem';
 

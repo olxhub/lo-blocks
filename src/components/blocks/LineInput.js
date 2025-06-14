@@ -1,6 +1,6 @@
 // src/components/blocks/LineInput.js
 import * as blocks from '@/lib/blocks';
-import * as parsers from '@/lib/olx/parsers';
+import * as parsers from '@/lib/content/parsers';
 import _LineInput from './_LineInput';
 
 export const fields = blocks.fields(['value']);

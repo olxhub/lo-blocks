@@ -4,7 +4,7 @@ import * as blocks from '@/lib/blocks';
 
 import { _UseDynamic } from './_UseDynamic';
 
-import { ignore } from '@/lib/olx/parsers';
+import { ignore } from '@/lib/content/parsers';
 
 export const fields = blocks.fields(
   ['value']

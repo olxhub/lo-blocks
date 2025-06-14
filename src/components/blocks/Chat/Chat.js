@@ -1,7 +1,7 @@
 // src/components/blocks/Chat/Chat.js
 import React from 'react';
 import * as blocks from '@/lib/blocks';
-import { peggyParser } from '@/lib/olx/parsers';
+import { peggyParser } from '@/lib/content/parsers';
 import * as cp  from './_chatParser.js';
 import { _Chat } from './_Chat';
 

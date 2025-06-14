@@ -1,6 +1,6 @@
 // src/lib/render.jsx
 import React from 'react';
-import { DisplayError, DebugWrapper } from '@/lib/debug';
+import { DisplayError, DebugWrapper } from '@/lib/util/debug';
 import { COMPONENT_MAP } from '@/components/componentMap';
 
 export const makeRootNode = () => ({ sentinel: 'root', renderedKids: {} });

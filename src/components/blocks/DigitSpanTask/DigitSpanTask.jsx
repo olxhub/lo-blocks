@@ -1,5 +1,5 @@
 // src/components/blocks/DigitSpanTask/DigitSpanTask.jsx
-import * as parsers from '@/lib/olx/parsers';
+import * as parsers from '@/lib/content/parsers';
 import { dev } from '@/lib/blocks';
 
 import { _DigitSpanTask } from './_DigitSpanTask';
