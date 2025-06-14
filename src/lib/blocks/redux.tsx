@@ -100,15 +100,12 @@ export function assertValidField(field) {
 }
 
 export function useReduxState(
-  id,
-  field: string | { name: string; event?: string },
+  props,
+  field: { name: string; event?: string },
   fallback
 ) {
-  id = idResolver.reduxId(id);
-  const fieldName = typeof field === 'string' ? field : field?.name;
-  if (typeof field === 'string') {
-    assertValidField(fieldName);
-  }
+  const id = idResolver.reduxId(props?.id);
+  const fieldName = field.name;
 
   const value = useComponentSelector(id, state => {
     if (!state) return fallback;
@@ -116,8 +113,7 @@ export function useReduxState(
   });
 
   const setValue = (newValue) => {
-    const info = typeof field === 'string' ? _fieldInfoByField[fieldName] : field;
-    const eventType = info?.event; // map field to event
+    const eventType = field.event; // map field to event
 
     if (!eventType) {
       console.warn(`[useReduxState] No event mapping found for field "${fieldName}"`);

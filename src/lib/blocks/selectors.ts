@@ -55,47 +55,18 @@ export function useComponentSelector<T = any>(
   );
 }
 
-export function useSettingSelector<T = any>(
-  setting: string,
-  options?: SelectorExtraParam<T>
-): T {
-  const { fallback, ...rest } = normalizeOptions(options);
-  return useSelector(
-    state => {
-      const val = state?.settings?.[setting];
-      return val !== undefined ? val : fallback;
-    },
-    rest.equalityFn
-  );
-}
-
-// This should use redux.assertValidField, but we want to be mindful
-// of circular imports, etc.
-export function useFieldSelector<T = any>(
-  id: string,
-  field: string | { name: string },
-  options?: SelectorExtraParam<T>
-): T {
-  const { fallback, ...rest } = normalizeOptions(options);
-  const fieldName = typeof field === 'string' ? field : field?.name;
-  return useComponentSelector(
-    id,
-    s => s?.[fieldName] !== undefined ? s[fieldName] : fallback,
-    rest
-  );
-}
-
 // TODO: We should figure out where this goes.
 //
 // This should use redux.assertValidField, but we want to be mindful
 // of circular imports, etc.
 export function useReduxInput(
-  id,
-  field: string | { name: string },
+  props,
+  field: { name: string },
   fallback = '',
   { updateValidator } = {}
 ) {
-  const fieldName = typeof field === 'string' ? field : field?.name;
+  const id = props?.id;
+  const fieldName = field.name;
   const value = useComponentSelector(id, state =>
     state && state[fieldName] !== undefined ? state[fieldName] : fallback
   );

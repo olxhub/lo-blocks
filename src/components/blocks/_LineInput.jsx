@@ -8,10 +8,10 @@ import { renderCompiledKids } from '@/lib/render';
 const allowedAttrs = ['min', 'max', 'placeholder', 'type', 'step'];
 
 export default function _LineInput( props ) {
-  const { id, fields, updateValidator, ...rest } = props;
+  const { fields, updateValidator, ...rest } = props;
 
   const [value, inputProps] = useReduxInput(
-    id, fields.value, '',
+    props, fields.value, '',
     { updateValidator }
   );
 
