@@ -5,6 +5,7 @@
 
 import { useSelector, shallowEqual } from 'react-redux';
 import { useRef, useEffect, useCallback } from 'react';
+import * as idResolver from '../blocks/idResolver';
 
 import * as lo_event from 'lo_event';
 import { FieldSpec } from './fields';
@@ -20,6 +21,11 @@ export interface SelectorOptions<T = any> {
   // Consider adding: [key: string]: any; // For future Redux or custom extensions
 }
 export type SelectorExtraParam<T = any> = SelectorOptions<T> | ((a: T, b: T) => boolean);
+
+export interface FieldSelectorOptions<T = any> extends SelectorOptions<T> {
+  id?: string;
+  tag?: string;
+}
 
 // --- Normalize options
 function normalizeOptions<T = any>(arg?: SelectorExtraParam<T>): SelectorOptions<T> {
@@ -45,6 +51,7 @@ export function useApplicationSelector<T = any>(
   );
 }
 
+/** @deprecated use `useFieldSelector` instead */
 export function useComponentSelector<T = any>(
   id: string | Record<string, any>,
   selector: (state: any) => T = s => s,
@@ -56,25 +63,35 @@ export function useComponentSelector<T = any>(
   );
 }
 
-export function useComponentSettingSelector<T = any>(
-  tag: string,
+export function useFieldSelector<T = any>(
+  props: any,
+  field: FieldSpec,
   selector: (state: any) => T = s => s,
-  options?: SelectorExtraParam<T>
+  options?: FieldSelectorOptions<T>
 ): T {
-  return useApplicationSelector(
-    s => selector(s?.componentSetting_state?.[tag]),
-    options
-  );
-}
+  const { id: optId, tag: optTag, ...rest } = normalizeOptions(options);
+  const scope = field.scope ?? scopes.component;
+  const id = optId ?? props?.id;
+  const tag = optTag ?? props?.spec?.OLXName;
 
-export function useSettingsSelector<T = any>(
-  selector: (state: any) => T = s => s,
-  options?: SelectorExtraParam<T>
-): T {
-  return useApplicationSelector(
-    s => selector(s?.settings_state),
-    options
-  );
+  switch (scope) {
+    case scopes.componentSetting:
+      return useApplicationSelector(
+        s => selector(s?.componentSetting_state?.[tag]),
+        rest
+      );
+    case scopes.system:
+      return useApplicationSelector(
+        s => selector(s?.settings_state),
+        rest
+      );
+    case scopes.component:
+    default:
+      return useApplicationSelector(
+        s => selector(s?.component_state?.[idResolver.reduxId(id)]),
+        rest
+      );
+  }
 }
 
 // TODO: We should figure out where this goes.
@@ -91,50 +108,23 @@ export function useReduxInput(
   const scope = field.scope ?? scopes.component;
   const fieldName = field.name;
 
-  let id: string | undefined;
-  if (scope === scopes.component) id = props?.id;
-  const tag = props?.spec?.OLXName;
-
   const selectorFn = (state: any) =>
     state && state[fieldName] !== undefined ? state[fieldName] : fallback;
 
-  let value: any;
-  let selection: any;
+  const value = useFieldSelector(props, field, selectorFn, { fallback });
 
-  switch (scope) {
-    case scopes.componentSetting:
-      value = useComponentSettingSelector(tag, selectorFn);
-      selection = useComponentSettingSelector(
-        tag,
-        s => ({
-          selectionStart: s?.[`${fieldName}.selectionStart`] ?? 0,
-          selectionEnd: s?.[`${fieldName}.selectionEnd`] ?? 0
-        }),
-        shallowEqual
-      );
-      break;
-    case scopes.system:
-      value = useSettingsSelector(selectorFn);
-      selection = useSettingsSelector(
-        s => ({
-          selectionStart: s?.[`${fieldName}.selectionStart`] ?? 0,
-          selectionEnd: s?.[`${fieldName}.selectionEnd`] ?? 0
-        }),
-        shallowEqual
-      );
-      break;
-    case scopes.component:
-    default:
-      value = useComponentSelector(id, selectorFn);
-      selection = useComponentSelector(
-        id,
-        s => ({
-          selectionStart: s?.[`${fieldName}.selectionStart`] ?? 0,
-          selectionEnd: s?.[`${fieldName}.selectionEnd`] ?? 0
-        }),
-        shallowEqual
-      );
-  }
+  const selection = useFieldSelector(
+    props,
+    field,
+    s => ({
+      selectionStart: s?.[`${fieldName}.selectionStart`] ?? 0,
+      selectionEnd: s?.[`${fieldName}.selectionEnd`] ?? 0
+    }),
+    { equalityFn: shallowEqual }
+  );
+
+  const id = props?.id;
+  const tag = props?.spec?.OLXName;
 
   const onChange = useCallback((event) => {
     const val = event.target.value;

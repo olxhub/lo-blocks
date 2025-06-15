@@ -2,7 +2,7 @@
 import * as lo_event from 'lo_event';
 import * as idResolver from '../blocks/idResolver';
 
-import { useComponentSelector, useComponentSettingSelector, useSettingsSelector } from './selectors.ts';
+import { useComponentSelector, useFieldSelector } from './selectors.ts';
 import { Scope, scopes } from '../state/scopes';
 import { FieldSpec } from './fields';
 
@@ -100,31 +100,15 @@ export function useReduxState(
   const scope = field.scope ?? scopes.component;
   const fieldName = field.name;
 
-  let id: string | undefined;
-  if (scope === scopes.component) {
-    id = idResolver.reduxId(props?.id);
-  }
-
-  const tag = props?.spec?.OLXName;
-
   const selectorFn = (state) => {
     if (!state) return fallback;
     return state[fieldName] !== undefined ? state[fieldName] : fallback;
   };
 
-  let value;
-  switch (scope) {
-    case scopes.componentSetting:
-      value = useComponentSettingSelector(tag, selectorFn);
-      break;
-    case scopes.system:
-      value = useSettingsSelector(selectorFn);
-      break;
-    case scopes.component:
-    default:
-      value = useComponentSelector(id, selectorFn);
-      break;
-  }
+  const value = useFieldSelector(props, field, selectorFn, { fallback });
+
+  const id = scope === scopes.component ? idResolver.reduxId(props?.id) : undefined;
+  const tag = props?.spec?.OLXName;
 
   const setValue = (newValue) => {
     const eventType = field.event;
