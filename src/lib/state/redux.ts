@@ -2,7 +2,7 @@
 import * as lo_event from 'lo_event';
 import * as idResolver from '../blocks/idResolver';
 
-import { useComponentSelector } from './selectors.ts';
+import { useComponentSelector, useFieldSelector } from './selectors.ts';
 import { Scope, scopes } from '../state/scopes';
 import { FieldSpec } from './fields';
 
@@ -97,20 +97,26 @@ export function useReduxState(
   field: FieldSpec,
   fallback
 ) {
-  const id = idResolver.reduxId(props?.id);
+  const scope = field.scope ?? scopes.component;
   const fieldName = field.name;
 
-  const value = useComponentSelector(id, state => {
+  const selectorFn = (state) => {
     if (!state) return fallback;
     return state[fieldName] !== undefined ? state[fieldName] : fallback;
-  });
+  };
+
+  const value = useFieldSelector(props, field, selectorFn, { fallback });
+
+  const id = scope === scopes.component ? idResolver.reduxId(props?.id) : undefined;
+  const tag = props?.spec?.OLXName;
 
   const setValue = (newValue) => {
     const eventType = field.event;
-
     lo_event.logEvent(eventType, {
-      id,
-      [fieldName]: newValue
+      scope,
+      [fieldName]: newValue,
+      ...(scope === scopes.component ? { id } : {}),
+      ...(scope === scopes.componentSetting ? { tag } : {})
     });
   };
 

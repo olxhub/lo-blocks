@@ -5,23 +5,47 @@ import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 import * as lo_event from 'lo_event';
 import * as debug from 'lo_event/lo_event/debugLog.js';
 import { consoleLogger } from 'lo_event/lo_event/consoleLogger.js';
+import { scopes, Scope } from './scopes';
+import type { FieldSpec } from './fields';
 
 const initialState = {
-  component_state: {}
+  component_state: {},
+  componentSetting_state: {},
+  settings_state: {}
 };
 
 export const updateResponseReducer = (state = initialState, action) => {
-  const { id, ...rest } = action;
-  return {
-    ...state,
-    component_state: {
-      ...state.component_state,
-      [id]: { ...(state.component_state?.[id]), ...rest }
-    }
-  };
+  const { scope = scopes.component, id, tag, ...rest } = action;
+
+  switch (scope) {
+    case scopes.componentSetting:
+      return {
+        ...state,
+        componentSetting_state: {
+          ...state.componentSetting_state,
+          [tag]: { ...(state.componentSetting_state?.[tag]), ...rest }
+        }
+      };
+
+    case scopes.system:
+      return {
+        ...state,
+        settings_state: { ...state.settings_state, ...rest }
+      };
+
+    case scopes.component:
+    default:
+      return {
+        ...state,
+        component_state: {
+          ...state.component_state,
+          [id]: { ...(state.component_state?.[id]), ...rest }
+        }
+      };
+  }
 };
 
-function collectEventTypes() {
+function collectEventTypes(extraFields: (FieldSpec | string)[] = []) {
   const componentEventTypes = Object.values(COMPONENT_MAP)
     .flatMap(entry =>
       entry.fields ? Object.values(entry.fields).map(info => info.event) : []
@@ -31,14 +55,18 @@ function collectEventTypes() {
     'STEPTHROUGH_NEXT', 'STEPTHROUGH_PREV', 'STORE_SETTING',
     'STORE_VARIABLE', 'UPDATE_INPUT', 'UPDATE_LLM_RESPONSE', 'VIDEO_TIME_EVENT'
   ];
+  const extraEventTypes = extraFields.map(f =>
+    typeof f === 'string' ? f : f.event
+  );
   return Array.from(new Set([
     ...commonEventTypes,
-    ...componentEventTypes
+    ...componentEventTypes,
+    ...extraEventTypes
   ]));
 }
 
-function configureStore() {
-  const allEventTypes = collectEventTypes();
+function configureStore({ extraFields = [] }: { extraFields?: (FieldSpec | string)[] } = {}) {
+  const allEventTypes = collectEventTypes(extraFields);
   reduxLogger.registerReducer(
     allEventTypes,
     updateResponseReducer

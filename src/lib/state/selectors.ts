@@ -5,9 +5,11 @@
 
 import { useSelector, shallowEqual } from 'react-redux';
 import { useRef, useEffect, useCallback } from 'react';
+import * as idResolver from '../blocks/idResolver';
 
 import * as lo_event from 'lo_event';
 import { FieldSpec } from './fields';
+import { scopes } from './scopes';
 
 const UPDATE_INPUT = 'UPDATE_INPUT'; // TODO: Import
 const INVALIDATED_INPUT = 'INVALIDATED_INPUT'; // informational
@@ -19,6 +21,11 @@ export interface SelectorOptions<T = any> {
   // Consider adding: [key: string]: any; // For future Redux or custom extensions
 }
 export type SelectorExtraParam<T = any> = SelectorOptions<T> | ((a: T, b: T) => boolean);
+
+export interface FieldSelectorOptions<T = any> extends SelectorOptions<T> {
+  id?: string;
+  tag?: string;
+}
 
 // --- Normalize options
 function normalizeOptions<T = any>(arg?: SelectorExtraParam<T>): SelectorOptions<T> {
@@ -44,6 +51,7 @@ export function useApplicationSelector<T = any>(
   );
 }
 
+/** @deprecated use `useFieldSelector` instead */
 export function useComponentSelector<T = any>(
   id: string | Record<string, any>,
   selector: (state: any) => T = s => s,
@@ -53,6 +61,37 @@ export function useComponentSelector<T = any>(
     s => selector(s?.component_state?.[id]),
     options
   );
+}
+
+export function useFieldSelector<T = any>(
+  props: any,  // TODO: Change to props type
+  field: FieldSpec,
+  selector: (state: any) => T = s => s,
+  options?: FieldSelectorOptions<T>
+): T {
+  const { id: optId, tag: optTag, ...rest } = normalizeOptions(options);
+  const scope = field.scope; // Default of scopes.component is handled in field creation
+  const id = optId ?? idResolver.reduxId(props);
+  const tag = optTag ?? props.spec.OLXName;
+
+  switch (scope) {
+    case scopes.componentSetting:
+      return useApplicationSelector(
+        s => selector(s?.componentSetting_state?.[tag]),
+        rest
+      );
+    case scopes.system:
+      return useApplicationSelector(
+        s => selector(s?.settings_state),
+        rest
+      );
+    case scopes.component:
+    default:
+      return useApplicationSelector(
+        s => selector(s?.component_state?.[id]),
+        rest
+      );
+  }
 }
 
 // TODO: We should figure out where this goes.
@@ -66,42 +105,47 @@ export function useReduxInput(
   fallback = '',
   { updateValidator } = {}
 ) {
-  const id = props?.id;
+  const scope = field.scope ?? scopes.component;
   const fieldName = field.name;
-  const value = useComponentSelector(id, state =>
-    state && state[fieldName] !== undefined ? state[fieldName] : fallback
+
+  const selectorFn = (state: any) =>
+    state && state[fieldName] !== undefined ? state[fieldName] : fallback;
+
+  const value = useFieldSelector(props, field, selectorFn, { fallback });
+
+  const selection = useFieldSelector(
+    props,
+    field,
+    s => ({
+      selectionStart: s?.[`${fieldName}.selectionStart`] ?? 0,
+      selectionEnd: s?.[`${fieldName}.selectionEnd`] ?? 0
+    }),
+    { equalityFn: shallowEqual }
   );
 
-  const selection = useComponentSelector(
-    id,
-    state => ({
-      selectionStart: state?.[`${fieldName}.selectionStart`] ?? 0,
-      selectionEnd: state?.[`${fieldName}.selectionEnd`] ?? 0
-    }),
-    shallowEqual
-  );
+  const id = idResolver.reduxId(props);
+  const tag = props?.spec.OLXName;
 
   const onChange = useCallback((event) => {
     const val = event.target.value;
     const selStart = event.target.selectionStart;
     const selEnd = event.target.selectionEnd;
-    if (updateValidator && !updateValidator(val)) {
-      lo_event.logEvent(INVALIDATED_INPUT, {
-        id,
-        [fieldName]: val,
-        [`${fieldName}.selectionStart`]: selStart,
-        [`${fieldName}.selectionEnd`]: selEnd
-      });
-      return;
-    }
-
-    lo_event.logEvent(UPDATE_INPUT, {
-      id,
+    const payload: any = {
+      scope,
       [fieldName]: val,
       [`${fieldName}.selectionStart`]: selStart,
       [`${fieldName}.selectionEnd`]: selEnd
-    });
-  }, [id, fieldName, updateValidator]);
+    };
+    if (scope === scopes.component) payload.id = id;
+    if (scope === scopes.componentSetting) payload.tag = tag;
+
+    if (updateValidator && !updateValidator(val)) {
+      lo_event.logEvent(INVALIDATED_INPUT, payload);
+      return;
+    }
+
+    lo_event.logEvent(UPDATE_INPUT, payload);
+  }, [id, tag, fieldName, updateValidator, scope]);
 
   const ref = useRef();
 
