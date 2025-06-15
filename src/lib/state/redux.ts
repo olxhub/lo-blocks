@@ -54,6 +54,16 @@ function checkConflicts(globalMap: FieldInfoByField | FieldInfoByEvent, newMap: 
   }
 }
 
+export function concatFields(...lists) {
+  const fieldInfoByField = {};
+  const fieldInfoByEvent = {};
+  for (const list of lists) {
+    Object.assign(fieldInfoByField, list.fieldInfoByField);
+    Object.assign(fieldInfoByEvent, list.fieldInfoByEvent);
+  }
+  return { fieldInfoByField, fieldInfoByEvent };
+}
+
 export function fields(fieldList: (string | { name: string; event?: string; scope?: Scope })[]) {
   const infos: FieldInfo[] = fieldList.map(item => {
     if (typeof item === 'string') {
@@ -79,10 +89,17 @@ export function fields(fieldList: (string | { name: string; event?: string; scop
   Object.assign(_fieldInfoByField, fieldInfoByField);
   Object.assign(_fieldInfoByEvent, fieldInfoByEvent);
 
-  return {
+  const result = {
     fieldInfoByField,
     fieldInfoByEvent,
   };
+
+  Object.defineProperty(result, 'extend', {
+    value: (...rest: ReduxFieldsReturn[]) => concatFields(result, ...rest),
+    enumerable: false,
+  });
+
+  return result;
 }
 
 export function assertValidField(field) {
