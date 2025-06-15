@@ -7,7 +7,8 @@ import { useReduxCheckbox } from '@/lib/blocks';
 import { settingsFields } from '@/lib/state/settings';
 
 export default function AppHeader() {
-  const [, debugProps] = useReduxCheckbox({}, settingsFields.fieldInfoByField.debug, false);
+  const [, debugProps] = useReduxCheckbox({}, settingsFields.fieldInfoByField.debug, false,
+    { id: true, tag: true }); // HACK.
   return (
     <header className="flex items-center justify-between px-4 py-2 border-b bg-white sticky top-0 z-10">
       <Link href="/" className="flex items-center space-x-1 text-lg font-bold">

@@ -12,7 +12,9 @@ export const Trace = ({
   props = {},
   header
 }) => {
-  const [debug] = useReduxState(props, settingsFields.fieldInfoByField.debug, false);
+  const [debug] = useReduxState(props, settingsFields.fieldInfoByField.debug, false,
+    { tag: true, id: true} // HACK
+  );
   if (!debug) return null;
 
   let headerContent = header;
@@ -33,7 +35,9 @@ export const Trace = ({
 };
 
 export const DebugWrapper = ({ props = {}, blueprint, children }) => {
-  const [debug] = useReduxState(props, settingsFields.fieldInfoByField.debug, false);
+  const [debug] = useReduxState(props, settingsFields.fieldInfoByField.debug, false,
+    { tag: true, id: true} // HACK
+  );
   if (!debug) return <>{children}</>;
 
   const tag = props?.nodeInfo?.node?.tag || 'N/A';

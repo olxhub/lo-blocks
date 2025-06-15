@@ -12,7 +12,12 @@ import { settingsFields } from '@/lib/state/settings';
 export default function PreviewPage() {
   const params = useParams();
   const id = params?.id as string;
-  const [debug] = useReduxState({}, settingsFields.fieldInfoByField.debug, false);
+  const [debug] = useReduxState(
+    {},
+    settingsFields.fieldInfoByField.debug,
+    false,
+    { id: true, tag: true } // HACK: This works around not having proper props. Should be fixed. See below
+  );
 
   const [idMap, setIdMap] = useState(null);
   const [parsed, setParsed] = useState(null);
@@ -58,3 +63,12 @@ export default function PreviewPage() {
     </div>
   );
 }
+
+// TODO for hack above
+// We have a hack where useReduxState requires props. We should do several things:
+// * Make a 'global' or 'common' props object to use outside of render. Use a sentinel tag and ID
+//   - Consider a shared props constructor or factory, so things don't go out of sync?
+//   - 2 might places might not be enough to merit that.
+// * Remove need for tag and ID in contexts we don't need it (e.g. system-wide state)
+//
+// This hack is present in debug.js (twice), AppHeader, and here

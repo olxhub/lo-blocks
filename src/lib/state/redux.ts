@@ -124,7 +124,7 @@ export function useReduxState(
     return state[fieldName] !== undefined ? state[fieldName] : fallback;
   };
 
-  const value = useFieldSelector(props, field, selectorFn, { fallback });
+  const value = useFieldSelector(props, field, selectorFn, { fallback, id, tag });
 
   const resolvedId = id ?? (scope === scopes.component ? idResolver.reduxId(props) : undefined);
   const resolvedTag = tag ?? props?.blueprint?.OLXName;
