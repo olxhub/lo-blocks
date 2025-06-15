@@ -2,15 +2,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { render, makeRootNode } from '@/lib/render';
 import AppHeader from '@/components/common/AppHeader';
+import { useReduxState } from '@/lib/blocks';
+import { settingsFields } from '@/lib/state/settings';
 
 export default function PreviewPage() {
   const params = useParams();
   const id = params?.id as string;
-  const searchParams = useSearchParams()
-  const debug = searchParams.get('debug') === 'true';
+  const [debug] = useReduxState({ id: 'settings' }, settingsFields.fieldInfoByField.debug, false);
 
   const [idMap, setIdMap] = useState(null);
   const [parsed, setParsed] = useState(null);
@@ -44,7 +45,7 @@ export default function PreviewPage() {
       <div className="p-6 flex-1 overflow-auto">
         <h1 className="text-xl font-bold mb-4">Preview: {id}</h1>
         <div className="space-y-4">
-          {render({ node: id, idMap, nodeInfo: makeRootNode(), debug })}
+          {render({ node: id, idMap, nodeInfo: makeRootNode() })}
         </div>
 
         {debug && (

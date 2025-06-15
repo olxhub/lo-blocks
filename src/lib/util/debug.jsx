@@ -4,13 +4,16 @@
 import React from 'react';
 import Link from 'next/link';
 import { parseProvenance, formatProvenance } from '@/lib/storage/provenance';
+import { useReduxState } from '@/lib/blocks';
+import { settingsFields } from '@/lib/state/settings';
 
 export const Trace = ({
   children,
   props = {},
   header
 }) => {
-  if (!props?.debug) return null;
+  const [debug] = useReduxState({ id: 'settings' }, settingsFields.fieldInfoByField.debug, false);
+  if (!debug) return null;
 
   let headerContent = header;
   // If a header isn't provided, try to build one from props
@@ -30,7 +33,8 @@ export const Trace = ({
 };
 
 export const DebugWrapper = ({ props = {}, blueprint, children }) => {
-  if (!props?.debug) return <>{children}</>;
+  const [debug] = useReduxState({ id: 'settings' }, settingsFields.fieldInfoByField.debug, false);
+  if (!debug) return <>{children}</>;
 
   const tag = props?.nodeInfo?.node?.tag || 'N/A';
   const id = props?.nodeInfo?.node?.id || props.id || 'n/a';
@@ -91,8 +95,10 @@ export function DisplayError({ props={}, name = 'Error', message, technical = nu
     }
   };
 
+  const [debug] = useReduxState({ id: 'settings' }, settingsFields.fieldInfoByField.debug, false);
+
   // In debug mode, crash hard
-  if (props?.debug) {
+  if (debug) {
     const techMsg = technical ? ` [Technical: ${technical}]` : '';
     throw new Error(`[${name}] ${message}${techMsg}`);
   }

@@ -10,6 +10,7 @@ import * as idResolver from '../blocks/idResolver';
 import * as lo_event from 'lo_event';
 import { FieldInfo } from '../types';
 import { scopes } from './scopes';
+import { useReduxState } from './redux';
 
 const UPDATE_INPUT = 'UPDATE_INPUT'; // TODO: Import
 const INVALIDATED_INPUT = 'INVALIDATED_INPUT'; // informational
@@ -173,6 +174,16 @@ export function useReduxInput(
       ref
     }
   ];
+}
+
+export function useReduxCheckbox(
+  props,
+  field: FieldInfo,
+  fallback = false
+) {
+  const [checked, setChecked] = useReduxState(props, field, fallback);
+  const onChange = useCallback((event) => setChecked(event.target.checked), [setChecked]);
+  return [checked, { name: field.name, checked, onChange }];
 }
 
 

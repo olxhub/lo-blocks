@@ -3,8 +3,11 @@
 
 import Link from 'next/link';
 import { Home, UserCircle } from 'lucide-react';
+import { useReduxCheckbox } from '@/lib/blocks';
+import { settingsFields } from '@/lib/state/settings';
 
 export default function AppHeader() {
+  const [, debugProps] = useReduxCheckbox({ id: 'settings' }, settingsFields.fieldInfoByField.debug, false);
   return (
     <header className="flex items-center justify-between px-4 py-2 border-b bg-white sticky top-0 z-10">
       <Link href="/" className="flex items-center space-x-1 text-lg font-bold">
@@ -13,7 +16,7 @@ export default function AppHeader() {
       </Link>
       <div className="flex items-center space-x-4">
         <label className="flex items-center space-x-1 text-sm cursor-pointer">
-          <input type="checkbox" disabled className="h-4 w-4" />
+          <input type="checkbox" className="h-4 w-4" {...debugProps} />
           <span>Debug</span>
         </label>
         <UserCircle className="w-6 h-6" />

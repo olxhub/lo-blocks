@@ -6,7 +6,7 @@ import { COMPONENT_MAP } from '@/components/componentMap';
 export const makeRootNode = () => ({ sentinel: 'root', renderedKids: {} });
 
 // Main render function: handles single nodes, strings, JSX, and blocks
-export function render({ node, idMap, key, nodeInfo, debug }) {
+export function render({ node, idMap, key, nodeInfo }) {
   if (!node) return null;
 
   // JSX passthrough
@@ -14,7 +14,7 @@ export function render({ node, idMap, key, nodeInfo, debug }) {
 
   // Handle list of kids
   if (Array.isArray(node)) {
-    return renderCompiledKids({ kids: node, idMap, nodeInfo, debug });
+    return renderCompiledKids({ kids: node, idMap, nodeInfo });
   }
 
   // Handle string ID,
@@ -33,7 +33,7 @@ export function render({ node, idMap, key, nodeInfo, debug }) {
         />
       );
     }
-    return render({ node: entry, idMap, key, nodeInfo, debug });
+    return render({ node: entry, idMap, key, nodeInfo });
   }
 
   // Handle { type: 'block', id }
@@ -55,7 +55,7 @@ export function render({ node, idMap, key, nodeInfo, debug }) {
         />
       );
     }
-    return render({ node: entry, idMap, key, nodeInfo, debug });
+    return render({ node: entry, idMap, key, nodeInfo });
   }
 
   // Handle structured OLX-style node
@@ -93,7 +93,6 @@ export function render({ node, idMap, key, nodeInfo, debug }) {
     ...attributes,
     id: node.id,
     nodeInfo: childNodeInfo,
-    debug,
   };
 
   return (
@@ -105,7 +104,6 @@ export function render({ node, idMap, key, nodeInfo, debug }) {
         blueprint={ COMPONENT_MAP[tag].blueprint }
         fields={ COMPONENT_MAP[tag].blueprint?.fields?.fieldInfoByField }
         nodeInfo={ childNodeInfo }
-        debug={ debug }
       />
     </DebugWrapper>
   );
@@ -114,7 +112,7 @@ export function render({ node, idMap, key, nodeInfo, debug }) {
 
 // Render kids array that may include: text, JSX, OLX, etc.
 export function renderCompiledKids( props ) {
-  let { kids, children, idMap, nodeInfo, debug } = props;
+  let { kids, children, idMap, nodeInfo } = props;
   if (kids === undefined && children !== undefined) {
     console.log(
       "[renderCompiledKids] WARNING: 'children' prop used instead of 'kids'. Please migrate to 'kids'."
@@ -149,7 +147,7 @@ export function renderCompiledKids( props ) {
       case 'block':
         return (
           <React.Fragment key={child.key}>
-            {render({ node: child.id, idMap, key: `${child.key}`, nodeInfo, debug })}
+            {render({ node: child.id, idMap, key: `${child.key}`, nodeInfo })}
           </React.Fragment>
         );
 
@@ -174,7 +172,7 @@ export function renderCompiledKids( props ) {
         return React.createElement(
           child.tag,
           { key: child.key, ...child.attributes },
-          renderCompiledKids({ kids: child.kids || [], idMap, nodeInfo, debug })
+          renderCompiledKids({ kids: child.kids || [], idMap, nodeInfo })
         );
 
       case 'node':
