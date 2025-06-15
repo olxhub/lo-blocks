@@ -2,6 +2,7 @@
 import * as redux from './redux';
 
 const { fields } = redux;
+const { concatFields } = redux;
 const { __testables } = redux;
 
 const { fieldNameToDefaultEventName } = __testables;
@@ -52,5 +53,33 @@ describe('fields mapping and conflict detection', () => {
     // This check is not worth the complexity of implementation right
     // now, but if we run into a bug, we could add it!
     // expect(() => fields({ a: 'FOO', b: 'FOO' })).toThrow();
+  });
+});
+
+describe('concatFields and extend', () => {
+  beforeEach(() => __testables.reset());
+
+  it('merges multiple field objects', () => {
+    const a = fields(['foo']);
+    const b = fields([{ name: 'bar', event: 'SET_BAR' }]);
+    const combined = concatFields(a, b);
+    expect(combined.fieldInfoByField).toEqual({
+      ...a.fieldInfoByField,
+      ...b.fieldInfoByField,
+    });
+    expect(combined.fieldInfoByEvent).toEqual({
+      ...a.fieldInfoByEvent,
+      ...b.fieldInfoByEvent,
+    });
+  });
+
+  it('supports extend method', () => {
+    const a = fields(['x']);
+    const b = fields(['y']);
+    const combined = a.extend(b);
+    expect(combined.fieldInfoByField).toEqual({
+      ...a.fieldInfoByField,
+      ...b.fieldInfoByField,
+    });
   });
 });

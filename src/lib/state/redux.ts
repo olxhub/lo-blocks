@@ -6,6 +6,11 @@ import { useComponentSelector, useFieldSelector } from './selectors.ts';
 import { Scope, scopes } from '../state/scopes';
 import { FieldSpec } from './fields';
 
+export interface ReduxFieldsReturn {
+  fieldInfoByField: Record<string, FieldSpec>;
+  fieldInfoByEvent: Record<string, FieldSpec>;
+}
+
 const _fieldInfoByField: Record<string, FieldSpec> = {};
 const _fieldInfoByEvent: Record<string, FieldSpec> = {};
 
@@ -54,6 +59,16 @@ function checkConflicts(globalMap: Record<string, FieldSpec>, newMap: Record<str
   }
 }
 
+export function concatFields(...lists: ReduxFieldsReturn[]): ReduxFieldsReturn {
+  const fieldInfoByField: Record<string, FieldSpec> = {};
+  const fieldInfoByEvent: Record<string, FieldSpec> = {};
+  for (const list of lists) {
+    Object.assign(fieldInfoByField, list.fieldInfoByField);
+    Object.assign(fieldInfoByEvent, list.fieldInfoByEvent);
+  }
+  return { fieldInfoByField, fieldInfoByEvent };
+}
+
 export function fields(fieldList: (string | { name: string; event?: string; scope?: Scope })[]) {
   const infos: FieldSpec[] = fieldList.map(item => {
     if (typeof item === 'string') {
@@ -79,10 +94,17 @@ export function fields(fieldList: (string | { name: string; event?: string; scop
   Object.assign(_fieldInfoByField, fieldInfoByField);
   Object.assign(_fieldInfoByEvent, fieldInfoByEvent);
 
-  return {
+  const result = {
     fieldInfoByField,
     fieldInfoByEvent,
-  };
+  } as ReduxFieldsReturn & { extend: (...r: ReduxFieldsReturn[]) => ReduxFieldsReturn };
+
+  Object.defineProperty(result, 'extend', {
+    value: (...rest: ReduxFieldsReturn[]) => concatFields(result, ...rest),
+    enumerable: false,
+  });
+
+  return result;
 }
 
 export function assertValidField(field) {
