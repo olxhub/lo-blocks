@@ -4,10 +4,10 @@ import * as idResolver from '../blocks/idResolver';
 
 import { useComponentSelector, useFieldSelector } from './selectors.ts';
 import { Scope, scopes } from '../state/scopes';
-import { FieldInfo } from '../types';
+import { FieldInfo, FieldInfoByEvent, FieldInfoByField } from '../types';
 
-const _fieldInfoByField: Record<string, FieldInfo> = {};
-const _fieldInfoByEvent: Record<string, FieldInfo> = {};
+const _fieldInfoByField: FieldInfoByField = {};
+const _fieldInfoByEvent: FieldInfoByEvent = {};
 
 /**
  * Converts a camelCase or PascalCase field name into a default event name string.
@@ -37,7 +37,7 @@ function fieldNameToDefaultEventName(name) {
  * @param {Object} newMap - The new mapping to check.
  * @param {string} type - A string label for error clarity ("field" or "event").
  */
-function checkConflicts(globalMap: Record<string, FieldInfo>, newMap: Record<string, FieldInfo>, type = "field") {
+function checkConflicts(globalMap: FieldInfoByField | FieldInfoByEvent, newMap: FieldInfoByField | FieldInfoByEvent, type = "field") {
   for (const [key, value] of Object.entries(newMap)) {
     if (globalMap.hasOwnProperty(key)) {
       const existing = globalMap[key];
@@ -65,8 +65,8 @@ export function fields(fieldList: (string | { name: string; event?: string; scop
     return { type: 'field', name, event, scope };
   });
 
-  const fieldInfoByField: Record<string, FieldInfo> = {};
-  const fieldInfoByEvent: Record<string, FieldInfo> = {};
+  const fieldInfoByField: FieldInfoByField = {};
+  const fieldInfoByEvent: FieldInfoByEvent = {};
 
   for (const info of infos) {
     fieldInfoByField[info.name] = info;

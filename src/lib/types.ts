@@ -11,13 +11,16 @@ export interface GenericProvenance {
   [key: string]: any;
 }
 
+/** A URI referencing the origin of a block */
+export type ProvenanceURI = string;
+
 /** Primary representation for provenance references */
-export type Provenance = string[];
+export type Provenance = ProvenanceURI[];
 
 /** Structured representation used in debug output */
 export type ProvenanceStruct = FileProvenance | GenericProvenance;
 
-export type ProvenanceItem = string | ProvenanceStruct;
+export type ProvenanceEntry = ProvenanceURI | ProvenanceStruct;
 
 export interface FieldInfo {
   type: 'field';

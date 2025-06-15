@@ -1,7 +1,7 @@
 // src/lib/storage/provenance.ts
-import { FileProvenance, GenericProvenance, ProvenanceStruct } from '../types';
+import { FileProvenance, GenericProvenance, ProvenanceStruct, ProvenanceURI, ProvenanceEntry } from '../types';
 
-export function parseProvenance(uri: string): ProvenanceStruct {
+export function parseProvenance(uri: ProvenanceURI): ProvenanceStruct {
   const [type, suffix] = uri.split('://');
   if (!type || suffix === undefined) {
     throw new Error(`Invalid provenance URI: ${uri}`);
@@ -33,11 +33,11 @@ export function parseProvenance(uri: string): ProvenanceStruct {
   return { type, ...converters[type](suffix) } as ProvenanceStruct;
 }
 
-export function parseProvenanceList(list: string[]): ProvenanceStruct[] {
+export function parseProvenanceList(list: ProvenanceURI[]): ProvenanceStruct[] {
   return list.map(parseProvenance);
 }
 
-export function formatProvenance(item: ProvenanceStruct | string): string {
+export function formatProvenance(item: ProvenanceEntry): ProvenanceURI {
   if (typeof item === 'string') return item;
   const converters: Record<string, (obj: any) => string> = {
     file: (obj: FileProvenance) => {
@@ -52,6 +52,6 @@ export function formatProvenance(item: ProvenanceStruct | string): string {
   return conv(item);
 }
 
-export function formatProvenanceList(list: (ProvenanceStruct | string)[]): string[] {
+export function formatProvenanceList(list: ProvenanceEntry[]): ProvenanceURI[] {
   return list.map(formatProvenance);
 }
