@@ -10,6 +10,13 @@ const testFields = fields(['input']);
 const settingFields = fields([{ name: 'speed', event: 'SET_SPEED', scope: scopes.componentSetting }]);
 const systemFields = fields([{ name: 'lang', event: 'SET_LANG', scope: scopes.system }]);
 
+// Baseline props with enough context for tests not to fail
+const props = {
+  id: 'sentinelId', spec: { OLXName: 'sentinelTag' }
+};
+
+// TODO: These should probably be streamlined into one `it` statement which
+// tests all three end-to-end. This is a little bit verbose and hard-to-read.
 describe('useReduxState integration', () => {
   it('reads, writes, and re-reads the same Redux slice', async () => {
     const reduxStore = store.init();
@@ -18,7 +25,7 @@ describe('useReduxState integration', () => {
     );
 
     const { result } = renderHook(
-      () => useReduxState({ id: 'test' }, testFields.fieldInfoByField.input, 'bob'),
+      () => useReduxState({ ...props, id: 'test' }, testFields.fieldInfoByField.input, 'bob'),
       { wrapper }
     );
 
@@ -66,7 +73,7 @@ describe('useReduxState integration', () => {
     );
 
     const { result } = renderHook(
-      () => useReduxState({}, systemFields.fieldInfoByField.lang, 'en'),
+      () => useReduxState(props, systemFields.fieldInfoByField.lang, 'en'),
       { wrapper }
     );
 

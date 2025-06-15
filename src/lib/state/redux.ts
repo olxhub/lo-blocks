@@ -112,11 +112,12 @@ export function useReduxState(
 
   const setValue = (newValue) => {
     const eventType = field.event;
-    const payload: any = { scope, [fieldName]: newValue };
-    if (scope === scopes.component) payload.id = id;
-    if (scope === scopes.componentSetting) payload.tag = tag;
-
-    lo_event.logEvent(eventType, payload);
+    lo_event.logEvent(eventType, {
+      scope,
+      [fieldName]: newValue,
+      ...(scope === scopes.component ? { id } : {}),
+      ...(scope === scopes.componentSetting ? { tag } : {})
+    });
   };
 
   return [value, setValue];

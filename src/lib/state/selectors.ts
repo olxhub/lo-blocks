@@ -64,15 +64,15 @@ export function useComponentSelector<T = any>(
 }
 
 export function useFieldSelector<T = any>(
-  props: any,
+  props: any,  // TODO: Change to props type
   field: FieldSpec,
   selector: (state: any) => T = s => s,
   options?: FieldSelectorOptions<T>
 ): T {
   const { id: optId, tag: optTag, ...rest } = normalizeOptions(options);
-  const scope = field.scope ?? scopes.component;
-  const id = optId ?? props?.id;
-  const tag = optTag ?? props?.spec?.OLXName;
+  const scope = field.scope; // Default of scopes.component is handled in field creation
+  const id = optId ?? idResolver.reduxId(props);
+  const tag = optTag ?? props.spec.OLXName;
 
   switch (scope) {
     case scopes.componentSetting:
@@ -88,7 +88,7 @@ export function useFieldSelector<T = any>(
     case scopes.component:
     default:
       return useApplicationSelector(
-        s => selector(s?.component_state?.[idResolver.reduxId(id)]),
+        s => selector(s?.component_state?.[id]),
         rest
       );
   }
@@ -123,8 +123,8 @@ export function useReduxInput(
     { equalityFn: shallowEqual }
   );
 
-  const id = props?.id;
-  const tag = props?.spec?.OLXName;
+  const id = idResolver.reduxId(props);
+  const tag = props?.spec.OLXName;
 
   const onChange = useCallback((event) => {
     const val = event.target.value;
