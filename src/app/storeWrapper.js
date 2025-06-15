@@ -5,8 +5,11 @@ import React from 'react';
 import { Provider } from 'react-redux';
 
 import { store } from '@/lib/state/store';
+import { settingsFields } from '@/lib/state/settings';
 
-const reduxStore = store.init();
+const reduxStore = store.init({
+  extraFields: settingsFields
+});
 
 const StoreWrapper = ({ children }) => (
   <Provider store={reduxStore}>

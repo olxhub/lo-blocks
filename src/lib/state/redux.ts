@@ -3,6 +3,7 @@ import * as lo_event from 'lo_event';
 import * as idResolver from '../blocks/idResolver';
 
 import { useComponentSelector, useFieldSelector } from './selectors.ts';
+import { useCallback } from 'react';
 import { Scope, scopes } from '../state/scopes';
 import { FieldInfo, FieldInfoByEvent, FieldInfoByField } from '../types';
 
@@ -112,7 +113,8 @@ export function assertValidField(field) {
 export function useReduxState(
   props,
   field: FieldInfo,
-  fallback
+  fallback,
+  { id, tag }: { id?: string; tag?: string } = {}
 ) {
   const scope = field.scope ?? scopes.component;
   const fieldName = field.name;
@@ -122,22 +124,33 @@ export function useReduxState(
     return state[fieldName] !== undefined ? state[fieldName] : fallback;
   };
 
-  const value = useFieldSelector(props, field, selectorFn, { fallback });
+  const value = useFieldSelector(props, field, selectorFn, { fallback, id, tag });
 
-  const id = scope === scopes.component ? idResolver.reduxId(props?.id) : undefined;
-  const tag = props?.blueprint?.OLXName;
+  const resolvedId = id ?? (scope === scopes.component ? idResolver.reduxId(props) : undefined);
+  const resolvedTag = tag ?? props?.blueprint?.OLXName;
 
   const setValue = (newValue) => {
     const eventType = field.event;
     lo_event.logEvent(eventType, {
       scope,
       [fieldName]: newValue,
-      ...(scope === scopes.component ? { id } : {}),
-      ...(scope === scopes.componentSetting ? { tag } : {})
+      ...(scope === scopes.component ? { id: resolvedId } : {}),
+      ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {})
     });
   };
 
   return [value, setValue];
+}
+
+export function useReduxCheckbox(
+  props,
+  field: FieldInfo,
+  fallback = false,
+  opts: { id?: string; tag?: string } = {}
+) {
+  const [checked, setChecked] = useReduxState(props, field, fallback, opts);
+  const onChange = useCallback((event) => setChecked(event.target.checked), [setChecked]);
+  return [checked, { name: field.name, checked, onChange }];
 }
 
 /** @internal Used only for testing */

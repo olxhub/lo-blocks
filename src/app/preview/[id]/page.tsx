@@ -2,15 +2,22 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { render, makeRootNode } from '@/lib/render';
+import { COMPONENT_MAP } from '@/components/componentMap';
 import AppHeader from '@/components/common/AppHeader';
+import { useReduxState } from '@/lib/blocks';
+import { settingsFields } from '@/lib/state/settings';
 
 export default function PreviewPage() {
   const params = useParams();
   const id = params?.id as string;
-  const searchParams = useSearchParams()
-  const debug = searchParams.get('debug') === 'true';
+  const [debug] = useReduxState(
+    {},
+    settingsFields.fieldInfoByField.debug,
+    false,
+    { id: true, tag: true } // HACK: This works around not having proper props. Should be fixed. See below
+  );
 
   const [idMap, setIdMap] = useState(null);
   const [parsed, setParsed] = useState(null);
@@ -44,7 +51,7 @@ export default function PreviewPage() {
       <div className="p-6 flex-1 overflow-auto">
         <h1 className="text-xl font-bold mb-4">Preview: {id}</h1>
         <div className="space-y-4">
-          {render({ node: id, idMap, nodeInfo: makeRootNode(), debug })}
+          {render({ node: id, idMap, nodeInfo: makeRootNode(), componentMap: COMPONENT_MAP })}
         </div>
 
         {debug && (
@@ -56,3 +63,12 @@ export default function PreviewPage() {
     </div>
   );
 }
+
+// TODO for hack above
+// We have a hack where useReduxState requires props. We should do several things:
+// * Make a 'global' or 'common' props object to use outside of render. Use a sentinel tag and ID
+//   - Consider a shared props constructor or factory, so things don't go out of sync?
+//   - 2 might places might not be enough to merit that.
+// * Remove need for tag and ID in contexts we don't need it (e.g. system-wide state)
+//
+// This hack is present in debug.js (twice), AppHeader, and here

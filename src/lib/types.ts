@@ -83,6 +83,10 @@ export interface Block {
   blueprint: BlockBlueprint;
 }
 
+export interface ComponentMap {
+  [tag: string]: Block;
+}
+
 // A list of kids can have any of these; renderedCompiledChildren should handle all of these.
 // TODO: These should probably all be of type kidEntry, and the current type should move under a different key.
 export type BlueprintKidEntry =
@@ -108,5 +112,6 @@ export interface PropType {
   blueprint: BlockBlueprint;
   fields: FieldInfoByField;
   nodeInfo: NodeInfo;
+  componentMap: ComponentMap;
   [key: string]: any;
 }

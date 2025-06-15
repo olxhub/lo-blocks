@@ -1,6 +1,5 @@
 // src/lib/blocks/actions.jsx
 import { inferRelatedNodes, getAllNodes } from './olxdom';
-import { COMPONENT_MAP } from '@/components/componentMap';
 import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 import * as lo_event from 'lo_event';
 
@@ -59,9 +58,10 @@ export function grader({ grader, infer = true } = {}) {
     );
 
     const state = reduxLogger.store.getState().application_state.component_state;
+    const map = props.componentMap;
     const values = inputIds.map(id => {
       const inst = props.idMap[id];
-      const blueprint = COMPONENT_MAP[inst.tag];
+      const blueprint = map[inst.tag];
       return blueprint.getValue(state, id);
     });
 
@@ -118,9 +118,10 @@ export function executeNodeActions(props) {
     infer: props.infer,
     targets: props.targets
   });
+  const map = props.componentMap;
   ids.forEach(targetId => {
     const targetInstance = props.idMap[targetId];
-    const targetBlueprint = COMPONENT_MAP[targetInstance.tag];
+    const targetBlueprint = map[targetInstance.tag];
     targetBlueprint.action({
       targetId,
       targetInstance,

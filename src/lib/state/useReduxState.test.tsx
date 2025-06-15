@@ -43,7 +43,7 @@ describe('useReduxState integration', () => {
   });
 
   it('handles componentSetting scoped fields', async () => {
-    const reduxStore = store.init({ extraFields: Object.values(settingFields.fieldInfoByField) });
+    const reduxStore = store.init({ extraFields: settingFields });
     const wrapper = ({ children }: any) => (
       <Provider store={reduxStore}>{children}</Provider>
     );
@@ -67,7 +67,7 @@ describe('useReduxState integration', () => {
   });
 
   it('handles system scoped fields', async () => {
-    const reduxStore = store.init({ extraFields: Object.values(systemFields.fieldInfoByField) });
+    const reduxStore = store.init({ extraFields: systemFields });
     const wrapper = ({ children }: any) => (
       <Provider store={reduxStore}>{children}</Provider>
     );

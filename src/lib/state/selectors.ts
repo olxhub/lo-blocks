@@ -175,7 +175,6 @@ export function useReduxInput(
   ];
 }
 
-
 // Export internals for test
 export const __testables = {
   normalizeOptions

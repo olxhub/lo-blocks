@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { useReduxState } from '@/lib/blocks';
 
 export function _DevQuestion( props ) {
-  const { debug, prompt, options = [], fields } = props;
+  const { prompt, options = [], fields } = props;
   const optionList = typeof options === 'string' ? options.split(',') : options;
   const [activeIndex, setActiveIndex] = useReduxState(
     props,
