@@ -35,7 +35,9 @@ describe('useReduxState integration', () => {
       result.current[1]('bar');  // current[1] is setInput
     });
 
-    await new Promise(r => setTimeout(r, 0));
+    await act(async () => {
+      await new Promise(r => setTimeout(r, 0));
+    });
 
     expect(result.current[0]).toBe('bar');
     const state = reduxStore.getState();
@@ -60,7 +62,9 @@ describe('useReduxState integration', () => {
 
     expect(result.current[0]).toBe(1);
     act(() => result.current[1](2));
-    await new Promise(r => setTimeout(r, 0));
+    await act(async () => {
+      await new Promise(r => setTimeout(r, 0));
+    });
     expect(result.current[0]).toBe(2);
     const state = reduxStore.getState();
     expect(state.application_state.componentSetting_state.video.speed).toBe(2);
@@ -79,7 +83,9 @@ describe('useReduxState integration', () => {
 
     expect(result.current[0]).toBe('en');
     act(() => result.current[1]('fr'));
-    await new Promise(r => setTimeout(r, 0));
+    await act(async () => {
+      await new Promise(r => setTimeout(r, 0));
+    });
     expect(result.current[0]).toBe('fr');
     const state = reduxStore.getState();
     expect(state.application_state.settings_state.lang).toBe('fr');
