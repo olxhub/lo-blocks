@@ -114,6 +114,26 @@ export function assertValidField(field) {
   return field; // optionally return the field for chaining
 }
 
+export function updateReduxField(
+  props,
+  field: FieldInfo,
+  newValue,
+  { id, tag }: { id?: string; tag?: string } = {}
+) {
+  assertValidField(field);
+  const scope = field.scope ?? scopes.component;
+  const fieldName = field.name;
+  const resolvedId = id ?? (scope === scopes.component ? idResolver.reduxId(props) : undefined);
+  const resolvedTag = tag ?? props?.blueprint?.OLXName;
+
+  lo_event.logEvent(field.event, {
+    scope,
+    [fieldName]: newValue,
+    ...(scope === scopes.component ? { id: resolvedId } : {}),
+    ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {})
+  });
+}
+
 export function useReduxState(
   props,
   field: FieldInfo,
@@ -121,28 +141,10 @@ export function useReduxState(
   { id, tag }: { id?: string; tag?: string } = {}
 ) {
   assertValidField(field);
-  const scope = field.scope ?? scopes.component;
-  const fieldName = field.name;
 
-  const selectorFn = (state) => {
-    if (!state) return fallback;
-    return state[fieldName] !== undefined ? state[fieldName] : fallback;
-  };
+  const value = useFieldSelector(props, field, s => s?.[field.name], { fallback, id, tag });
 
-  const value = useFieldSelector(props, field, selectorFn, { fallback, id, tag });
-
-  const resolvedId = id ?? (scope === scopes.component ? idResolver.reduxId(props) : undefined);
-  const resolvedTag = tag ?? props?.blueprint?.OLXName;
-
-  const setValue = (newValue) => {
-    const eventType = field.event;
-    lo_event.logEvent(eventType, {
-      scope,
-      [fieldName]: newValue,
-      ...(scope === scopes.component ? { id: resolvedId } : {}),
-      ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {})
-    });
-  };
+  const setValue = (newValue) => updateReduxField(props, field, newValue, { id, tag });
 
   return [value, setValue];
 }
