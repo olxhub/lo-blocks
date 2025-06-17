@@ -10,12 +10,12 @@ import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/C
 export function _Chat(props) {
   const { id, fields, kids } = props;
 
-  /*  Full parsed body (dialogue lines + command blocks).  */
-  const allBlocks = kids.parsed.body;
+  /*  Full parsed body (dialogue lines + command entries).  */
+  const allEntries = kids.parsed.body;
 
   /**
-   * `index` counts **how many raw blocks** we’ve consumed
-   * (including command blocks that never appear in the UI).
+   * `index` counts **how many raw entries** we’ve consumed
+   * (including command entries that never appear in the UI).
    */
   const [index, setIndex] = useReduxState(
     props,
@@ -27,17 +27,17 @@ export function _Chat(props) {
    * Derived collections
    * -------------------------------------------------------------- */
 
-  /** Dialogue-only blocks shown in the transcript so far */
+  /** Dialogue-only entries shown in the transcript so far */
   const visibleMessages = useMemo(() => {
-    return allBlocks
+    return allEntries
       .slice(0, index)
-      .filter((b) => b.type !== 'CommandBlock');
-  }, [allBlocks, index]);
+      .filter((b) => b.type === 'Line');
+  }, [allEntries, index]);
 
   /** Total number of dialogue lines (commands excluded) */
   const totalDialogueLines = useMemo(() => {
-    return allBlocks.filter((b) => b.type === 'Line').length;
-  }, [allBlocks]);
+    return allEntries.filter((b) => b.type === 'Line').length;
+  }, [allEntries]);
 
   const conversationFinished = visibleMessages.length >= totalDialogueLines;
 
@@ -49,33 +49,38 @@ export function _Chat(props) {
     let nextIndex = index;
 
     /* Walk forward until we hit the next dialogue line,
-     * executing (and skipping) any intervening command blocks.
+     * executing (and skipping) any intervening command entries.
      */
-    while (nextIndex < allBlocks.length) {
-      const block = allBlocks[nextIndex];
+    while (nextIndex < allEntries.length) {
+      const block = allEntries[nextIndex];
       console.log(block);
 
       if (block.type === 'ArrowCommand') {
         alert(
           `${block.target} to ${block.source}`
         );
-        nextIndex += 1; // Skip command blocks entirely
+        nextIndex += 1; // Skip command entries entirely
         continue;
       }
 
       if (block.type === 'ArrowCommand') {
         console.log("Unhandled block type");
-        nextIndex += 1; // Skip command blocks entirely
+        nextIndex += 1; // Skip command entries entirely
         continue;
       }
 
-      /* We’ve found a dialogue line – stop here so it becomes visible. */
       nextIndex += 1;
-      break;
+
+      if (block.type === "Line" || block.type === "PauseCommand") {
+        break;
+      }
+      console.log("[Chat] WARNING: Unhandled block type");
+      console.log(block);
+      console.log(block.type);
     }
 
-    setIndex(Math.min(nextIndex, allBlocks.length));
-  }, [index, allBlocks, setIndex]);
+    setIndex(Math.min(nextIndex, allEntries.length));
+  }, [index, allEntries, setIndex]);
 
   /* ----------------------------------------------------------------
    * Footers

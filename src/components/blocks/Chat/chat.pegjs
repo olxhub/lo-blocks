@@ -86,7 +86,7 @@ HeaderLine
 
 // Body of the document: could contain dialogues, commands, etc.
 ConversationBody
-  = lines:(CommentLine / BlankLine / CommandBlock / ArrowCommand / DialogueGroup)* {
+  = lines:(CommentLine / BlankLine / PauseCommand / CommandBlock / ArrowCommand / DialogueGroup)* {
       return lines.filter(Boolean);
     }
 
@@ -119,6 +119,20 @@ ArrowCommand
 ArrowCommandStart
   = _ Identifier _ "->"
 
+/* Pause command
+ * Matches any line of the form
+ *   --- pause ---
+ *   -pause-
+ *   --   pause   ----
+ */
+PauseCommandStart
+  = _ "-"+ _ "pause"
+
+PauseCommand
+  = PauseCommandStart _ "-"* _ NewLine {
+      return { type: "PauseCommand" };
+    }
+
 DialogueGroup
   = metaAbove:MetadataLine? line:DialogueLine continuation:ContinuationLine* {
       const textLines = [line.text].concat(continuation.map(c => c.text));
@@ -134,7 +148,7 @@ DialogueGroup
   }
 
 ContinuationLine
-  = !DialogueLineStart !MetadataLineStart !StartCommandBlock !ArrowCommand content:LineContent NewLine {
+  = !DialogueLineStart !MetadataLineStart !StartCommandBlock !ArrowCommand !PauseCommandStart content:LineContent NewLine {
       return { text: content };
   }
 
