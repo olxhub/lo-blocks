@@ -20,7 +20,7 @@ const builder = new XMLBuilder({
 //
 // We would want to test both pathways before we do that, so for now,
 // we flip manually here.
-const prod=false;
+const prod = false;
 
 // === Utilities ===
 
@@ -42,9 +42,9 @@ function extractInnerTextFromXmlNodes(rawParsed) {
     console.warn('⚠️', err);
     if (typeof prod !== 'undefined' && prod) {
       const poorlyReconstructedText = builder.build({ fakeRoot: rawParsed })
-            .split('<fakeRoot>').join('')
-            .split('</fakeRoot>').join('')
-            .trim()+'\n';
+        .split('<fakeRoot>').join('')
+        .split('</fakeRoot>').join('')
+        .trim() + '\n';
       return {
         warning: err,
         type: 'text',
@@ -79,7 +79,7 @@ function extractInnerTextFromXmlNodes(rawParsed) {
       }
     }
 
-    return {type: 'text', text: result.trim() + '\n'};
+    return { type: 'text', text: result.trim() + '\n' };
   } catch (error) {
     return fail(error.message || error.toString());
   }
@@ -97,7 +97,7 @@ export function childParser(fn, nameOverride) {
 
   const wrapped = function wrappedParser(ctx) {
     const { id, tag, attributes, provenance, rawParsed, storeEntry } = ctx;
-    const tagParsed=rawParsed[tag];
+    const tagParsed = rawParsed[tag];
     const kids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
     const entry = {
       id, tag, attributes, provenance, rawParsed,
@@ -135,9 +135,13 @@ ignore.staticKids = () => [];
 // This is also pretty untested. If it ends up more used, we'll make a
 // more robust version.
 export const xml = {
-  parser: function xmlParser({ rawParsed }) {
+  parser: function xmlParser(ctx) {
+    const { id, tag, attributes, provenance, rawParsed, storeEntry } = ctx;
     return [
-      { type: 'xml', xml: builder.build(rawParsed) }
+      {
+        type: 'xml', xml: builder.build(rawParsed),
+        id, tag, attributes, provenance, rawParsed
+      }
     ];
   }
 };
