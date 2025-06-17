@@ -57,7 +57,7 @@ export function _Chat(props) {
 
       if (block.type === 'ArrowCommand') {
         // TODO: We'd like:
-        // updateReduxField(props, fields.target, block.target, {id: block.source});
+        // updateReduxField(props, fields.value, block.target, {id: block.source});
         alert(
           `${block.target} to ${block.source}`
         );

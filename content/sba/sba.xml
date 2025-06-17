@@ -8,7 +8,7 @@ Annie: Hey, sorry I'm late to the lab.
 
 JJ: No problem. What are we doing today?
 
-peg_sga_sidebar -> CapaDemo
+peg_sba_sidebar -> CapaDemo
 -- pause --
 peg_sba_sidebar -> eigen_q1
 -- pause --

@@ -5,7 +5,7 @@
       <Use ref="peg_sba" />
     </MainPane>
     <Sidebar>
-      <UseDynamic id="peg_sga_sidebar" target="eigen_q1"/>
+      <UseDynamic id="peg_sba_sidebar" target="eigen_q1"/>
     </Sidebar>
   </SideBarPanel>
 </Lesson>
