@@ -86,7 +86,7 @@ HeaderLine
 
 // Body of the document: could contain dialogues, commands, etc.
 ConversationBody
-  = lines:(CommentLine / BlankLine / CommandBlock / DialogueGroup)* {
+  = lines:(CommentLine / BlankLine / CommandBlock / ArrowCommand / DialogueGroup)* {
       return lines.filter(Boolean);
     }
 
@@ -109,6 +109,16 @@ CommandBlock
       };
   }
 
+/* Matches:   ElfForest -> sidebar            */
+ArrowCommand
+  = _ source:Identifier _ "->" _ target:Identifier _ NewLine {
+      return { type: "ArrowCommand", source, target };
+    }
+
+/* helper so continuation lines don’t swallow arrow commands */
+ArrowCommandStart
+  = _ Identifier _ "->"
+
 DialogueGroup
   = metaAbove:MetadataLine? line:DialogueLine continuation:ContinuationLine* {
       const textLines = [line.text].concat(continuation.map(c => c.text));
@@ -124,7 +134,7 @@ DialogueGroup
   }
 
 ContinuationLine
-  = !DialogueLineStart !MetadataLineStart !StartCommandBlock content:LineContent NewLine {
+  = !DialogueLineStart !MetadataLineStart !StartCommandBlock !ArrowCommand content:LineContent NewLine {
       return { text: content };
   }
 
@@ -227,3 +237,6 @@ BlankLine
   = _ NewLine {
       return null;
   }
+
+Identifier
+  = $[a-zA-Z0-9_.-]+    // token characters. Note we include ._-

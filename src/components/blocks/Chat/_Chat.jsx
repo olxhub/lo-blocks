@@ -1,47 +1,107 @@
 // src/components/blocks/Chat/_Chat.jsx
 'use client';
 
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 
 import { useReduxState } from '@/lib/blocks';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
 
-// Display components moved to ChatComponent.jsx
 
-// This will be the redux state wrapper for ChatComponet
-export function _Chat( props ) {
+export function _Chat(props) {
   const { id, fields, kids } = props;
-  const allMessages = kids.parsed.body;
-  const [visibleCount, setVisibleCount] = useReduxState(props, fields.index, 1);
-  const messages = allMessages.slice(0, visibleCount);
-  const handleAdvance = () => setVisibleCount(Math.min(visibleCount + 1, allMessages.length));
 
-  let footer;
+  /*  Full parsed body (dialogue lines + command blocks).  */
+  const allBlocks = kids.parsed.body;
 
-  if(visibleCount === allMessages.length) {
-    footer = (<InputFooter id={`${id}_footer`} disabled />);
-  } else {
-    footer = (
-      <AdvanceFooter
-        id={`${id}_footer`}
-        onAdvance={handleAdvance}
-        currentMessageIndex={ visibleCount }
-        totalMessages={ allMessages.length }
-      />
-    );
-  }
-  /* Or:
-    <InputFooter
-    id={`${id}Input`}
-    onSendMessage={onSendMessage} />
-  */
+  /**
+   * `index` counts **how many raw blocks** we’ve consumed
+   * (including command blocks that never appear in the UI).
+   */
+  const [index, setIndex] = useReduxState(
+    props,
+    fields.index,
+    1 // start by showing the first block
+  );
+
+  /* ----------------------------------------------------------------
+   * Derived collections
+   * -------------------------------------------------------------- */
+
+  /** Dialogue-only blocks shown in the transcript so far */
+  const visibleMessages = useMemo(() => {
+    return allBlocks
+      .slice(0, index)
+      .filter((b) => b.type !== 'CommandBlock');
+  }, [allBlocks, index]);
+
+  /** Total number of dialogue lines (commands excluded) */
+  const totalDialogueLines = useMemo(() => {
+    return allBlocks.filter((b) => b.type === 'Line').length;
+  }, [allBlocks]);
+
+  const conversationFinished = visibleMessages.length >= totalDialogueLines;
+
+  /* ----------------------------------------------------------------
+   * Advance handler
+   * -------------------------------------------------------------- */
+
+  const handleAdvance = useCallback(() => {
+    let nextIndex = index;
+
+    /* Walk forward until we hit the next dialogue line,
+     * executing (and skipping) any intervening command blocks.
+     */
+    while (nextIndex < allBlocks.length) {
+      const block = allBlocks[nextIndex];
+      console.log(block);
+
+      if (block.type === 'ArrowCommand') {
+        alert(
+          `${block.target} to ${block.source}`
+        );
+        nextIndex += 1; // Skip command blocks entirely
+        continue;
+      }
+
+      if (block.type === 'ArrowCommand') {
+        console.log("Unhandled block type");
+        nextIndex += 1; // Skip command blocks entirely
+        continue;
+      }
+
+      /* We’ve found a dialogue line – stop here so it becomes visible. */
+      nextIndex += 1;
+      break;
+    }
+
+    setIndex(Math.min(nextIndex, allBlocks.length));
+  }, [index, allBlocks, setIndex]);
+
+  /* ----------------------------------------------------------------
+   * Footers
+   * -------------------------------------------------------------- */
+
+  const footer = conversationFinished ? (
+    <InputFooter id={`${id}_footer`} disabled />
+  ) : (
+    <AdvanceFooter
+      id={`${id}_footer`}
+      onAdvance={handleAdvance}
+      currentMessageIndex={visibleMessages.length}
+      totalMessages={totalDialogueLines}
+    />
+  );
+
+  /* ----------------------------------------------------------------
+   * Render
+   * -------------------------------------------------------------- */
 
   return (
     <ChatComponent
-      id={ `${id}_component` }
-      messages={ messages }
-      footer={ footer }
-      onAdvance = { handleAdvance }
+      id={`${id}_component`}
+      messages={visibleMessages}
+      footer={footer}
+      onAdvance={handleAdvance}
     />
   );
 }

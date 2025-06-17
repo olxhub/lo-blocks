@@ -6,12 +6,12 @@ import * as cp  from './_chatParser.js';
 import { _Chat } from './_Chat';
 
 export const fields = blocks.fields([
-  'start',
-  'end',
-  'index',
+  'index',           // pointer into the full body array
+  'start',           // (future) id of first block to show
+  'end',             // (future) id of last block to show
 
   'footerMode',
-  'scrollPosition'
+  'scrollPosition',
 ]);
 
 const Chat = blocks.dev({
