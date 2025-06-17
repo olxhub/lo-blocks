@@ -104,8 +104,12 @@ export function fields(fieldList: (string | { name: string; event?: string; scop
 }
 
 export function assertValidField(field) {
-  if (!_fieldInfoByField.hasOwnProperty(field)) {
-    throw new Error(`Invalid field: ${field}`);
+  if (!field || field.type !== 'field') {
+    throw new Error(`[fields] Invalid field: ${field}`);
+  };
+
+  if (!_fieldInfoByField.hasOwnProperty(field.name)) {
+    throw new Error(`[fields] Invalid field name: ${field.name}`);
   }
   return field; // optionally return the field for chaining
 }
@@ -116,6 +120,7 @@ export function useReduxState(
   fallback,
   { id, tag }: { id?: string; tag?: string } = {}
 ) {
+  assertValidField(field);
   const scope = field.scope ?? scopes.component;
   const fieldName = field.name;
 
@@ -148,6 +153,7 @@ export function useReduxCheckbox(
   fallback = false,
   opts: { id?: string; tag?: string } = {}
 ) {
+  assertValidField(field);
   const [checked, setChecked] = useReduxState(props, field, fallback, opts);
   const onChange = useCallback((event) => setChecked(event.target.checked), [setChecked]);
   return [checked, { name: field.name, checked, onChange }];
