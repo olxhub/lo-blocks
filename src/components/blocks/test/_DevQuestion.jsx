@@ -1,7 +1,7 @@
 // src/components/blocks/test/_DevQuestion.jsx
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 // DebugWrapper handles debug output
 
 import { useReduxState } from '@/lib/blocks';

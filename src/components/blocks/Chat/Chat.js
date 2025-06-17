@@ -19,7 +19,8 @@ const Chat = blocks.dev({
   name: 'Chat',
   component: _Chat,
   namespace: 'org.mitros.dev',
-  description: 'Example block that parses an SBA dialogue format using PEG.'
+  description: 'Example block that parses an SBA dialogue format using PEG.',
+  fields
 });
 
 export default Chat;
