@@ -8,9 +8,10 @@ Annie: Hey, sorry I'm late to the lab.
 
 JJ: No problem. What are we doing today?
 
-CapaDemo -> peg_sga_sidebar
+peg_sga_sidebar -> CapaDemo
 -- pause --
-eigen_q1 -> peg_sba_sidebar
+peg_sba_sidebar -> eigen_q1
+-- pause --
 
 Annie: Same thing we do every day pinky, try to synthesize some proteins!
 

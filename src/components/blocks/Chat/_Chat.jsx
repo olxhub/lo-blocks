@@ -3,7 +3,7 @@
 
 import React, { useCallback, useMemo } from 'react';
 
-import { useReduxState } from '@/lib/blocks';
+import { useReduxState, updateReduxField } from '@/lib/blocks';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
 
 
@@ -56,6 +56,8 @@ export function _Chat(props) {
       console.log(block);
 
       if (block.type === 'ArrowCommand') {
+        // TODO: We'd like:
+        // updateReduxField(props, fields.target, block.target, {id: block.source});
         alert(
           `${block.target} to ${block.source}`
         );

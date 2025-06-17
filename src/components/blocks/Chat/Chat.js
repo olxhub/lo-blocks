@@ -12,6 +12,8 @@ export const fields = blocks.fields([
 
   'footerMode',
   'scrollPosition',
+
+  'target'           // External. TODO: How should we handle these?
 ]);
 
 const Chat = blocks.dev({
