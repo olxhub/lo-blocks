@@ -86,7 +86,7 @@ HeaderLine
 
 // Body of the document: could contain dialogues, commands, etc.
 ConversationBody
-  = lines:(CommentLine / BlankLine / PauseCommand / CommandBlock / ArrowCommand / DialogueGroup)* {
+  = lines:(CommentLine / BlankLine / WaitCommand / PauseCommand / CommandBlock / ArrowCommand / DialogueGroup)* {
       return lines.filter(Boolean);
     }
 
@@ -109,6 +109,7 @@ CommandBlock
       };
   }
 
+
 /* Matches:   ElfForest -> sidebar            */
 ArrowCommand
   = _ source:Identifier _ "->" _ target:Identifier _ NewLine {
@@ -118,6 +119,7 @@ ArrowCommand
 /* helper so continuation lines don’t swallow arrow commands */
 ArrowCommandStart
   = _ Identifier _ "->"
+
 
 /* Pause command
  * Matches any line of the form
@@ -129,9 +131,52 @@ PauseCommandStart
   = _ "-"+ _ "pause"
 
 PauseCommand
-  = PauseCommandStart _ "-"* _ NewLine {
+  = PauseCommandStart _ "-"+ _ NewLine {
       return { type: "PauseCommand" };
     }
+
+/* ─────────────────────────────  Wait command  ────────────────────────── */
+/*
+ * Supported today in the parser (not necessarily in the code)
+ *   --- wait lab1 ---
+ *   --- wait lab1 submitted ---
+ *   --- wait lab1 correct, quiz2 attempted ---
+ *   --- wait quiz1 score>=8, quiz2 attempted ---
+ *
+ * Possible future plans (not yet enforced/evaluated)
+ *   - dotted sub-IDs:    problemA.score
+ *   - boolean operators: (lab1 correct OR quiz2 correct) AND hw1 submitted
+ */
+
+WaitCommandStart
+  = _ "-"+ _ "wait"
+
+WaitCommand
+  = WaitCommandStart _ reqs:WaitRequirementList _ "-"+ _ NewLine {
+      return { type: "WaitCommand", requirements: reqs };
+    }
+
+WaitRequirementList
+  = first:WaitRequirement rest:(_ "," _ WaitRequirement)* {
+      return [first].concat(rest.map(r => r[3]));
+    }
+
+WaitRequirement
+  = _ id:Identifier cond:RequirementCondition? {
+      return cond ? { id, ...cond } : { id };
+    }
+
+/* status words such as submitted / correct / attempted */
+RequirementCondition
+  = _ status:StatusWord                   { return { status }; }
+  / _ field:Identifier _ op:CompOp _ n:Num {
+      return { field, op, value: parseFloat(n) };
+    }
+
+StatusWord       = $[a-zA-Z0-9_][a-zA-Z0-9_-]+
+CompOp           = ">=" / "<=" / ">" / "<" / "="
+Num              = $[0-9]+ ("." [0-9]+)?
+
 
 DialogueGroup
   = metaAbove:MetadataLine? line:DialogueLine continuation:ContinuationLine* {
@@ -148,7 +193,7 @@ DialogueGroup
   }
 
 ContinuationLine
-  = !DialogueLineStart !MetadataLineStart !StartCommandBlock !ArrowCommand !PauseCommandStart content:LineContent NewLine {
+  = !DialogueLineStart !MetadataLineStart !StartCommandBlock !ArrowCommand !PauseCommandStart !WaitCommandStart content:LineContent NewLine {
       return { text: content };
   }
 
