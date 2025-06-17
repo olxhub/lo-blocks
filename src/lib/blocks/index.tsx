@@ -1,7 +1,6 @@
 // src/lib/blocks/index.tsx
 export * from './factory';
 export * from './namespaces';
-export * from './NoopBlock';
 export * from './olxdom';
 export * from './idResolver';
 export * from './actions';

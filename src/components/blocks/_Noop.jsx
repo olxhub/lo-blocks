@@ -1,4 +1,4 @@
-// src/lib/blocks/NoopBlock.jsx
+// src/components/blocks/_Noop.jsx
 /*
  * This is a block which renders nothing, and is useful for things
  * like pure actions where we need a node in the OLX tree, but for
@@ -13,6 +13,6 @@
 import React from 'react';
 import { renderCompiledKids } from '@/lib/render';
 
-export const NoopBlock = (props) => (
-  <>{ props.kids && renderCompiledKids(props)}</>
-);
+export default function _Noop(props) {
+  return <>{props.kids && renderCompiledKids(props)}</>;
+}

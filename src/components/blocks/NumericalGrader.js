@@ -1,6 +1,7 @@
 // src/components/blocks/NumericalGrader.js
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
+import _Noop from './_Noop';
 import * as state from '@/lib/state';
 import { CORRECTNESS } from '@/lib/blocks';
 import * as lo_event from 'lo_event';
@@ -16,7 +17,7 @@ const NumericalGrader = blocks.test({
     grader: gradeNumerical,
   }),
   name: 'NumericalGrader',
-  component: blocks.NoopBlock,
+  component: _Noop,
   fields,
 });
 

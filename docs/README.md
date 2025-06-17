@@ -29,7 +29,7 @@ const SimpleCheck = blocks.test({
       input === props.answer ? CORRECTNESS.CORRECT : CORRECTNESS.INCORRECT
   }),
   name: 'SimpleCheck',
-  component: blocks.NoopBlock
+  component: _Noop
 });
 ```
 
