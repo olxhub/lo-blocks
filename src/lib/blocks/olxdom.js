@@ -176,16 +176,6 @@ export function inferRelatedNodes(props, {
 
   // Combine all IDs and deduplicate using Set
   return [...new Set([...explicitTargets, ...parents, ...kids])];
-
-  // Use an object for de-duplication by id
-  return [... new Set([
-    ...targetIds
-      ? targetIds : [],
-    ...inferModes.includes('parents')
-      ? getParents(nodeInfo, { selector, includeRoot: false }).map(n=>n.node.id) : [],
-    ...inferModes.includes('kids')
-      ? getKidsBFS(nodeInfo, { selector, includeRoot: false }).map(n=>n.node.id) : []
-  ])];
 }
 
 export const __testables = {
