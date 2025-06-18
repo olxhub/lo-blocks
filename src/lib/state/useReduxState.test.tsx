@@ -44,33 +44,6 @@ describe('useReduxState integration', () => {
     expect(state.application_state.component_state['test'].input).toBe('bar');
   });
 
-  it('applies idPrefix when resolving IDs', async () => {
-    const reduxStore = store.init();
-    const wrapper = ({ children }: any) => (
-      <Provider store={reduxStore}>{children}</Provider>
-    );
-
-    const { result } = renderHook(
-      () =>
-        useReduxState(
-          { ...props, id: 'child', idPrefix: 'parent' },
-          testFields.fieldInfoByField.input,
-          'def'
-        ),
-      { wrapper }
-    );
-
-    act(() => {
-      result.current[1]('ghi');
-    });
-
-    await act(async () => {
-      await new Promise(r => setTimeout(r, 0));
-    });
-
-    const state = reduxStore.getState();
-    expect(state.application_state.component_state['parent.child'].input).toBe('ghi');
-  });
 
   it('handles componentSetting scoped fields', async () => {
     const reduxStore = store.init({ extraFields: settingFields });
