@@ -135,4 +135,6 @@ export interface OlxJson {
   [key: string]: JSONValue | undefined;
 }
 
-export interface IdMap Record<OLXId, OlxJson>
+export interface IdMap {
+  [id: OLXId]: OlxJson;
+}
