@@ -2,7 +2,6 @@
 'use client';
 
 import React from 'react';
-import { useDispatch } from 'react-redux';
 
 import { useComponentSelector } from 'lo_event/lo_event/lo_assess/selectors.js';
 import { LLM_RUNNING, LLM_INIT } from '@/lib/llm/client.jsx';
@@ -10,7 +9,6 @@ import { LLM_RUNNING, LLM_INIT } from '@/lib/llm/client.jsx';
 import Spinner from './Spinner';
 
 function _LLMFeedback({ children, id }) {
-  const dispatch = useDispatch();
 
   const feedback = useComponentSelector(id, s => s?.value ?? '');
   const state = useComponentSelector(id, s => s?.state ?? LLM_INIT);
