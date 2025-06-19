@@ -4,7 +4,8 @@ import { enumdict } from '../util';
 const _scopes = [
   'component',         // Per OLX ID
   'componentSetting',  // Per XML tag (e.g. video)
-  'system'             // Global
+  'system',            // Global
+  'storage'            // File storage (e.g. editor)
 ];
 
 export const scopes = enumdict(_scopes) as const;

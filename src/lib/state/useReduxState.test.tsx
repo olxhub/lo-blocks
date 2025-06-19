@@ -9,6 +9,7 @@ import { store } from './store';
 const testFields = fields(['input']);
 const settingFields = fields([{ name: 'speed', event: 'SET_SPEED', scope: scopes.componentSetting }]);
 const systemFields = fields([{ name: 'lang', event: 'SET_LANG', scope: scopes.system }]);
+const storageFields = fields([{ name: 'content', event: 'SET_CONTENT', scope: scopes.storage }]);
 
 // Baseline props with enough context for tests not to fail
 const props = {
@@ -90,5 +91,26 @@ describe('useReduxState integration', () => {
     expect(result.current[0]).toBe('fr');
     const state = reduxStore.getState();
     expect(state.application_state.settings_state.lang).toBe('fr');
+  });
+
+  it('handles storage scoped fields', async () => {
+    const reduxStore = store.init({ extraFields: storageFields });
+    const wrapper = ({ children }: any) => (
+      <Provider store={reduxStore}>{children}</Provider>
+    );
+
+    const { result } = renderHook(
+      () => useReduxState({}, storageFields.fieldInfoByField.content, '', { id: 'file1' }),
+      { wrapper }
+    );
+
+    expect(result.current[0]).toBe('');
+    act(() => result.current[1]('abc'));
+    await act(async () => {
+      await new Promise(r => setTimeout(r, 0));
+    });
+    expect(result.current[0]).toBe('abc');
+    const state = reduxStore.getState();
+    expect(state.application_state.storage_state.file1.content).toBe('abc');
   });
 });

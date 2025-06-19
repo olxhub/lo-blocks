@@ -5,9 +5,10 @@ import React from 'react';
 import { Provider } from 'react-redux';
 
 import { store, settingsFields } from '@/lib/state';
+import { editorFields } from './edit/editorFields';
 
 const reduxStore = store.init({
-  extraFields: settingsFields
+  extraFields: settingsFields.extend(editorFields)
 });
 
 const StoreWrapper = ({ children }) => (

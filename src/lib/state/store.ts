@@ -11,7 +11,8 @@ import type { FieldInfo, Fields } from '../types';
 const initialState = {
   component_state: {},
   componentSetting_state: {},
-  settings_state: {}
+  settings_state: {},
+  storage_state: {}
 };
 
 export const updateResponseReducer = (state = initialState, action) => {
@@ -31,6 +32,15 @@ export const updateResponseReducer = (state = initialState, action) => {
       return {
         ...state,
         settings_state: { ...state.settings_state, ...rest }
+      };
+
+    case scopes.storage:
+      return {
+        ...state,
+        storage_state: {
+          ...state.storage_state,
+          [id]: { ...(state.storage_state?.[id]), ...rest }
+        }
       };
 
     case scopes.component:

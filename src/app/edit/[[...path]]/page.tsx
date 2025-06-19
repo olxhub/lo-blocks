@@ -13,6 +13,8 @@ import ComponentNav from '@/components/navigation/ComponentNav';
 import SearchNav from '@/components/navigation/SearchNav';
 import AppHeader from '@/components/common/AppHeader';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useReduxState } from '@/lib/state';
+import { editorFields } from '../editorFields';
 
 // This causes CoadMirror not to load on all pages (it gets its own
 // chunk for pages that need it).
@@ -25,13 +27,17 @@ const CodeMirror = dynamic(() => import('@uiw/react-codemirror').then(mod => mod
 
 // We should probably pull this out into its own component file
 function EditControl({ path }) {
-  // These should move to redux
-  const [content, setContent] = useState('');
+  const [content, setContent] = useReduxState(
+    {},
+    editorFields.fieldInfoByField.content,
+    '',
+    { id: path }
+  );
   const [status, setStatus] = useState('');
 
-  const onChange = useCallback((val, viewUpdate) => {
+  const onChange = useCallback((val) => {
     setContent(val);
-  }, []);
+  }, [setContent]);
 
   useEffect(() => {
     if (!path) return;
@@ -137,6 +143,18 @@ function FourPaneLayout({
   );
 }
 
+function PreviewPane({ path }) {
+  const [content] = useReduxState(
+    {},
+    editorFields.fieldInfoByField.content,
+    '',
+    { id: path }
+  );
+  return (
+    <div className="font-mono whitespace-pre-wrap text-sm">{content}</div>
+  );
+}
+
 function NavigationPane() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -187,6 +205,7 @@ export default function EditPage() {
           Navigation={<NavigationPane />}
           Editor={<EditControl path={path} />}
           Chat={<EditorLLMChat />}
+          Preview={<PreviewPane path={path} />}
         />
       </div>
     </div>

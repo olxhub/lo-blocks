@@ -72,7 +72,7 @@ export function useFieldSelector<T = any>(
   const { id: optId, tag: optTag, ...rest } = normalizeOptions(options);
   const scope = field.scope; // Default of scopes.component is handled in field creation
   const id = optId ?? idResolver.reduxId(props);
-  const tag = optTag ?? props.blueprint.OLXName;
+  const tag = optTag ?? props?.blueprint?.OLXName;
 
   switch (scope) {
     case scopes.componentSetting:
@@ -83,6 +83,11 @@ export function useFieldSelector<T = any>(
     case scopes.system:
       return useApplicationSelector(
         s => selector(s?.settings_state),
+        rest
+      );
+    case scopes.storage:
+      return useApplicationSelector(
+        s => selector(s?.storage_state?.[id]),
         rest
       );
     case scopes.component:
