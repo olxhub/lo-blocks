@@ -176,11 +176,27 @@ function PreviewPane({ path }) {
   // Parse content when it changes
   useEffect(() => {
     if (!idMap) return;
+    let candidate;
     try {
-      const result = parseOLX(content, [path]);
-      setParsed(result);
+      candidate = parseOLX(content, [path]);
     } catch (err) {
       console.error('Preview parse error:', err);
+      setError('Parse error: ' + (err.message || String(err)));
+      return;
+    }
+    try {
+      const merged = { ...idMap, ...candidate.idMap };
+      render({
+        node: candidate.root,
+        idMap: merged,
+        nodeInfo: makeRootNode(),
+        componentMap: COMPONENT_MAP,
+      });
+      setParsed(candidate);
+      setError(null);
+    } catch (err) {
+      console.error('Preview render error:', err);
+      setError('Render error: ' + (err.message || String(err)));
     }
   }, [content, idMap]);
 
@@ -192,21 +208,20 @@ function PreviewPane({ path }) {
         node: parsed.root,
         idMap: merged,
         nodeInfo: makeRootNode(),
-        componentMap: COMPONENT_MAP
+        componentMap: COMPONENT_MAP,
       });
     } catch (err) {
       console.error('Preview render error:', err);
-      return <pre className="text-red-600">{String(err.message)}</pre>;
+      return null;
     }
   }, [parsed, idMap]);
 
-  if (error) {
-    return <pre className="text-red-600">Error: {error}</pre>;
-  }
-
   return (
     <div>
-      {rendered || 'Loading...'}
+      {error && (
+        <pre className="text-red-600 mb-2">Error: {error}</pre>
+      )}
+      {rendered || (!idMap ? 'Loading...' : 'No valid preview')}
     </div>
   );
 }
