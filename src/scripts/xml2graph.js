@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // src/scripts/xml2graph.js
 import stringify from 'json-stable-stringify';
-import { loadContentTree } from '../lib/content/loadContentTree';
+import { syncContentFromStorage } from '../lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '../lib/storage';
 import { parseIdMap } from '../lib/graph/parseIdMap';
 import fs from 'fs';
@@ -13,7 +13,7 @@ const contentDir = path.resolve('./content');
 async function main() {
   try {
     const provider = new FileStorageProvider(contentDir);
-    const { idMap } = await loadContentTree(provider);
+    const { idMap } = await syncContentFromStorage(provider);
     const { edges, issues } = parseIdMap(idMap);
 
     const output = { edges, issues };

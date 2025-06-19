@@ -2,7 +2,7 @@
 // src/scripts/xml2json.js
 import stringify from 'json-stable-stringify';
 
-import { loadContentTree } from '../lib/content/loadContentTree';
+import { syncContentFromStorage } from '../lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '../lib/storage';
 import fs from 'fs';
 import path from 'path';
@@ -13,7 +13,7 @@ const contentDir = path.resolve('./content');
 async function main() {
   try {
     const provider = new FileStorageProvider(contentDir);
-    const { idMap } = await loadContentTree(provider);
+    const { idMap } = await syncContentFromStorage(provider);
 
     const output = {
       idMap

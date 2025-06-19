@@ -1,11 +1,11 @@
 // src/app/api/content/[id]/route.js
-import { loadContentTree } from '@/lib/content/loadContentTree';
+import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 
 export async function GET(request, { params }) {
   const { id } = await params;
 
   try {
-    const { idMap } = await loadContentTree();
+    const { idMap } = await syncContentFromStorage();
 
     // TODO: Break out into /api/content/root
     if (id === 'root') {

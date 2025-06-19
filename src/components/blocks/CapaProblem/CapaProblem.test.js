@@ -1,9 +1,9 @@
 // src/components/blocks/CapaProblem/CapaProblem.test.js
-import { loadContentTree } from '@/lib/content/loadContentTree';
+import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '@/lib/storage';
 
 it('wires inputs and graders with default IDs', async () => {
-  const { idMap } = await loadContentTree(new FileStorageProvider('content/demos'));
+  const { idMap } = await syncContentFromStorage(new FileStorageProvider('content/demos'));
   const root = idMap['CapaDemo'];
   expect(root).toBeDefined();
 

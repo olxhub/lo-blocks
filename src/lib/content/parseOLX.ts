@@ -1,21 +1,14 @@
-// src/lib/content/loadContentTree.ts
+// src/lib/content/parseOLX.ts
 import crypto from 'crypto';
 import { XMLParser } from 'fast-xml-parser';
 import { COMPONENT_MAP } from '@/components/componentMap';
 import { transformTagName } from '@/lib/content/xmlTransforms';
 
-import { StorageProvider, FileStorageProvider } from '@/lib/storage';
-
 import * as parsers from '@/lib/content/parsers';
-import { Provenance } from '@/lib/types';
+import { Provenance, IdMap } from '@/lib/types';
 import { formatProvenance } from '@/lib/storage/provenance';
 
 const defaultParser = parsers.blocks.parser;
-
-const contentStore = {
-  byProvenance: {},
-  byId: {}
-};
 
 const xmlParser = new XMLParser({
   ignoreAttributes: false,
@@ -27,41 +20,8 @@ const xmlParser = new XMLParser({
   transformTagName
 });
 
-
-export async function loadContentTree(provider: StorageProvider = new FileStorageProvider('./content')) {
-  const { added, changed, unchanged, deleted } = await provider.loadXmlFilesWithStats(contentStore.byProvenance);
-
-  deleteNodesByProvenance([...Object.keys(deleted), ...Object.keys(changed)]);
-
-  for (const [srcId, fileInfo] of Object.entries({ ...added, ...changed })) {
-    const indexedIds = indexXml(fileInfo.content, [srcId]);
-    contentStore.byProvenance[srcId] = {
-      nodes: indexedIds,
-      ...fileInfo
-    };
-  }
-
-  return {
-    parsed: contentStore.byProvenance,
-    idMap: contentStore.byId
-  };
-}
-
-// Helper: remove all nodes for deleted/changed files
-function deleteNodesByProvenance(relativePaths) {
-  for (const relPath of relativePaths) {
-    const prev = contentStore.byProvenance[relPath];
-    if (prev?.nodes) {
-      for (const id of prev.nodes) {
-        delete contentStore.byId[id];
-      }
-    }
-    delete contentStore.byProvenance[relPath];
-  }
-}
-
-
-function indexXml(xml: string, provenance: Provenance) {
+export function parseOLX(xml, provenance: Provenance) {
+  const idMap: IdMap = {};
   const parsedTree = xmlParser.parse(xml);
   const indexed = [];
 
@@ -78,8 +38,6 @@ function indexXml(xml: string, provenance: Provenance) {
         );
       }
 
-      // 2. Ensure no additional kids
-      // Kids are present if there are any keys other than 'Use', ':@', '#text', '#comment'
       const childKeys = Object.keys(node).filter(
         k => !['Use', ':@', '#text', '#comment'].includes(k)
       );
@@ -89,7 +47,6 @@ function indexXml(xml: string, provenance: Provenance) {
         );
       }
 
-      // 3. Ensure no additional attributes
       const allowedAttrs = ['ref'];
       const extraAttrs = Object.keys(attributes).filter(attr => !allowedAttrs.includes(attr));
       if (extraAttrs.length > 0) {
@@ -110,21 +67,19 @@ function indexXml(xml: string, provenance: Provenance) {
     const parser = Component?.parser || defaultParser;
 
     parser({
-      // Node data
       id,
       rawParsed: node,
       tag,
       attributes,
       provenance,
-      // Actions
       parseNode,
-      storeEntry: (id, entry) => {
-        if (contentStore.byId[id]) {
+      storeEntry: (storeId, entry) => {
+        if (idMap[storeId]) {
           throw new Error(
-            `Duplicate ID "${id}" found in ${formatProvenance(provenance)}. Each element must have a unique id.`
+            `Duplicate ID "${storeId}" found in ${formatProvenance(provenance)}. Each element must have a unique id.`
           );
         }
-        contentStore.byId[id] = entry;
+        idMap[storeId] = entry;
       },
     });
 
@@ -138,14 +93,9 @@ function indexXml(xml: string, provenance: Provenance) {
     parseNode(parsedTree);
   }
 
-  return indexed;
+  return { ids: indexed, idMap };
 }
 
-
-// Every node needs an ID.
-//
-// Helper to make the ID for a node. Check if it has a url_name or an
-// id, and if not, make a sha hash.
 function createId(node) {
   const attributes = node[':@'] || {};
   const id = attributes.url_name || attributes.id;
@@ -154,5 +104,3 @@ function createId(node) {
   const canonical = JSON.stringify(node);
   return crypto.createHash('sha1').update(canonical).digest('hex');
 }
-
-// Helper: walk directory, collect .xml/.olx files with stat info and detect changes
