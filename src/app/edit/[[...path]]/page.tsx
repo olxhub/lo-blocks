@@ -24,9 +24,7 @@ const CodeMirror = dynamic(() => import('@uiw/react-codemirror').then(mod => mod
 
 
 // We should probably pull this out into its own component file
-function EditControl() {
-  const path = (useParams().path || []).join('/');
-
+function EditControl({ path }) {
   // These should move to redux
   const [content, setContent] = useState('');
   const [status, setStatus] = useState('');
@@ -179,13 +177,15 @@ function NavigationPane() {
 
 
 export default function EditPage() {
+  const path = (useParams().path || []).join('/');
+
   return (
     <div className="flex flex-col h-screen">
       <AppHeader />
       <div className="flex-1 overflow-hidden">
         <FourPaneLayout
           Navigation={<NavigationPane />}
-          Editor={<EditControl />}
+          Editor={<EditControl path={path} />}
           Chat={<EditorLLMChat />}
         />
       </div>
