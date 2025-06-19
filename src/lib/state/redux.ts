@@ -129,7 +129,7 @@ export function updateReduxField(
   lo_event.logEvent(field.event, {
     scope,
     [fieldName]: newValue,
-    ...(scope === scopes.component ? { id: resolvedId } : {}),
+    ...(scope === scopes.component || scope === scopes.storage ? { id: resolvedId } : {}),
     ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {})
   });
 }
