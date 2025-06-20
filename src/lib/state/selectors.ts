@@ -71,8 +71,28 @@ export function useFieldSelector<T = any>(
 ): T {
   const { id: optId, tag: optTag, ...rest } = normalizeOptions(options);
   const scope = field.scope; // Default of scopes.component is handled in field creation
-  const id = optId ?? idResolver.reduxId(props);
-  const tag = optTag ?? props?.blueprint?.OLXName;
+
+  // HACK: Clean up the lines below. This code works, but is slightly wrong.
+  //
+  // This was added since blueprint was sometimes missing (perhaps due to server-side
+  // rendering? But if so, why did it work otherwise? The bug manifested only in the
+  // componentSetting scope). reduxId was also sometimes failing. Perhaps these belong
+  // inside the switch statement?
+  //
+  // But it's worth figuring out what's going on, if it doesn't get fixed via refactors.
+  //
+  // We should figure out:
+  // - Are we losing anything nonserializable in AJAX calls?
+  // - Is blueprint coming from the right canonical source in render() (probably
+  //   componentMap[tag])
+  const id =
+    scope === scopes.component
+      ? optId ?? idResolver.reduxId(props)
+      : optId;
+  const tag =
+    optTag ??
+    props?.blueprint?.OLXName ??
+    props.nodeInfo?.node?.tag;
 
   switch (scope) {
     case scopes.componentSetting:
