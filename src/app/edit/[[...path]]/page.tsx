@@ -203,7 +203,8 @@ function PreviewPane({ path }) {
     if (!idMap) return;
     let candidate;
     try {
-      candidate = parseOLX(content, [path]);
+      const prov = path ? [`file://${path}`] : [];
+      candidate = parseOLX(content, prov);
     } catch (err) {
       console.error('Preview parse error:', err);
       setError('Parse error: ' + (err.message || String(err)));
