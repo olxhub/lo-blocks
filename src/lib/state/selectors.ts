@@ -75,7 +75,10 @@ export function useFieldSelector<T = any>(
     scope === scopes.component
       ? optId ?? idResolver.reduxId(props)
       : optId;
-  const tag = optTag ?? props.? blueprint.? OLXName;
+  const tag =
+    optTag ??
+    props?.blueprint?.OLXName ??
+    props.nodeInfo?.node?.tag;
 
   switch (scope) {
     case scopes.componentSetting:
