@@ -12,7 +12,7 @@ describe("ID helpers", () => {
     expect(idResolver.urlName({ url_name: "baz" })).toBe("baz");
 
     // Throws if no id found
-    expect(() => idResolver.reduxId({})).toThrow(/Could not resolve ID/);
+    expect(() => idResolver.reduxId({})).toThrow(/requires a well-formed ID/);
 
     // Default value if missing
     expect(idResolver.reduxId({}, 'fallback')).toBe('fallback');

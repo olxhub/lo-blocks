@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { render, makeRootNode } from '@/lib/render';
 import { COMPONENT_MAP } from '@/components/componentMap';
 import AppHeader from '@/components/common/AppHeader';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { useReduxState, settingsFields } from '@/lib/state';
 
 export default function PreviewPage() {
@@ -47,9 +48,11 @@ export default function PreviewPage() {
       <AppHeader />
       <div className="p-6 flex-1 overflow-auto">
         <h1 className="text-xl font-bold mb-4">Preview: {id}</h1>
-        <div className="space-y-4">
-          {render({ node: id, idMap, nodeInfo: makeRootNode(), componentMap: COMPONENT_MAP })}
-        </div>
+        <ErrorBoundary resetKey={idMap}>
+          <div className="space-y-4">
+            {render({ node: id, idMap, nodeInfo: makeRootNode(), componentMap: COMPONENT_MAP })}
+          </div>
+        </ErrorBoundary>
 
         {debug && (
           <pre className="mt-4 bg-gray-100 p-4 text-xs rounded overflow-auto">
