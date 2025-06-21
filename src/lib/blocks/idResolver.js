@@ -31,7 +31,17 @@ function resolveIdForContext(context, matrix = ID_RESOLUTION_MATRIX) {
       }
     }
     if (defaultValue !== undefined) return defaultValue;
-    throw new Error(`Could not resolve ID for context '${context}' from input: ${JSON.stringify(input)}`);
+    // Provide a friendly error message when an ID is missing
+    if (context === 'reduxId') {
+      const name =
+        input?.blueprint?.OLXName ||
+        input?.nodeInfo?.node?.tag ||
+        input?.displayName ||
+        input?.name ||
+        'Component';
+      throw new Error(`${name} requires a well-formed ID`);
+    }
+    throw new Error(`Could not resolve ID. [Context: '${context}' / Input: ${input}]`);
   };
 }
 
