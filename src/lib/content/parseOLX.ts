@@ -21,13 +21,17 @@ const xmlParser = new XMLParser({
   transformTagName
 });
 
-export function parseOLX(xml, provenance: Provenance) {
+export async function parseOLX(
+  xml,
+  provenance: Provenance,
+  provider?: import('../storage').StorageProvider
+) {
   const idMap: IdMap = {};
   const parsedTree = xmlParser.parse(xml);
   const indexed = [];
   let rootId = null;
 
-  function parseNode(node) {
+  async function parseNode(node) {
     const tag = Object.keys(node).find(k => ![':@', '#text', '#comment'].includes(k));
     if (!tag) return null;
 
@@ -73,12 +77,13 @@ export function parseOLX(xml, provenance: Provenance) {
     // in the ID map. A single node may generate multiple entries this way.
     // The return value of `parseNode` simply exposes the block's primary id
     // and is only used when determining the document's root.
-    parser({
+    await parser({
       id,
       rawParsed: node,
       tag,
       attributes,
       provenance,
+      provider,
       parseNode,
       storeEntry: (storeId, entry) => {
         if (idMap[storeId]) {
@@ -108,7 +113,7 @@ export function parseOLX(xml, provenance: Provenance) {
     // `rootNode`. The parser can rewrite the ID (for example when handling
     // `<Use ref="...">`), so the value returned here reflects the final ID
     // stored in the ID map.
-    const parsedRoot = parseNode(rootNode);
+    const parsedRoot = await parseNode(rootNode);
     if (parsedRoot?.id) rootId = parsedRoot.id;
   }
 
@@ -116,9 +121,11 @@ export function parseOLX(xml, provenance: Provenance) {
     // The remaining nodes are parsed only for their side effects. Each call to
     // `parseNode` populates `idMap` via `storeEntry`; the return values are not
     // used here.
-    parsedTree
-      .filter(n => n !== rootNode)
-      .forEach(parseNode);
+    for (const n of parsedTree) {
+      if (n !== rootNode) {
+        await parseNode(n);
+      }
+    }
   }
 
   if (!rootId && indexed.length) rootId = indexed[0];

@@ -186,9 +186,46 @@ text.staticKids = () => [];
  * @param {Function} preprocess - fn({ type: 'text', text }) => { content }
  * @param {Function} postprocess - fn(parsed) => any
  */
-export function peggyParser(peggyParser, preprocess = (x) => ({ text: x.text }), postprocess = (x) => x) {
-  const { parser } = childParser(function peggyChildParser({ rawParsed }) {
-    const extracted = extractInnerTextFromXmlNodes(rawParsed);
+export function peggyParser(
+  peggyParser,
+  preprocess = (x) => ({ text: x.text }),
+  postprocess = (x) => x
+) {
+  async function parser({
+    id,
+    rawParsed,
+    tag,
+    attributes,
+    provenance,
+    provider,
+    storeEntry,
+  }) {
+    const tagParsed = rawParsed[tag];
+    const kids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
+
+    let extracted;
+    let prov = provenance;
+    if (attributes?.src) {
+      if (!provider) {
+        throw new Error('peggyParser: no storage provider supplied for src');
+      }
+      const lastProv = provenance[provenance.length - 1];
+      let resolved = attributes.src;
+      if (lastProv && lastProv.startsWith('file://')) {
+        // HACK: Only handles file:// provenances. Non-file providers may break.
+        // TODO: Resolve src correctly for other storage providers.
+        const baseDir = path.dirname(lastProv.slice('file://'.length));
+        resolved = path.join(baseDir, attributes.src);
+        prov = [...provenance, `file://${resolved}`];
+      } else {
+        prov = [...provenance, resolved];
+      }
+      const content = await provider.read(resolved);
+      extracted = { type: 'text', text: content };
+    } else {
+      extracted = extractInnerTextFromXmlNodes(kids);
+    }
+
     const { text, ...rest } = preprocess(extracted);
 
     let parsed;
@@ -199,8 +236,17 @@ export function peggyParser(peggyParser, preprocess = (x) => ({ text: x.text }),
       throw err;
     }
 
-    return postprocess({ type: 'parsed', parsed, ...rest });
-  });
+    const entry = {
+      id,
+      tag,
+      attributes,
+      provenance: prov,
+      rawParsed,
+      kids: postprocess({ type: 'parsed', parsed, ...rest }),
+    };
+    storeEntry(id, entry);
+    return id;
+  }
 
   return { parser, staticKids: () => [] };
 }

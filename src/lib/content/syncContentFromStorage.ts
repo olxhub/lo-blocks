@@ -17,7 +17,7 @@ export async function syncContentFromStorage(
   deleteNodesByProvenance([...Object.keys(deleted), ...Object.keys(changed)]);
 
   for (const [srcId, fileInfo] of Object.entries({ ...added, ...changed })) {
-    const { ids, idMap } = parseOLX(fileInfo.content, [srcId]);
+    const { ids, idMap } = await parseOLX(fileInfo.content, [srcId], provider);
 
     for (const [storeId, entry] of Object.entries(idMap)) {
       if (contentStore.byId[storeId]) {

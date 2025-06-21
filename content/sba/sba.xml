@@ -1,23 +1,2 @@
 <!-- content/sba/sba.xml -->
-<Chat id="peg_sba" title="Debug SBA" launchable="true">
-Title: Microbiology SBA
-Author: Adapted Conversation
-----
-[id=intro_start]
-Annie: Hey, sorry I'm late to the lab.
-
-JJ: No problem. What are we doing today?
-
-peg_sba_sidebar -> CapaDemo
-
-Annie: Same thing we do every day pinky, try to synthesize some proteins!
-
-peg_sba_sidebar -> eigen_q1
--- pause --
-
-JJ: Awwww... I prefer lipids
-
---- wait eigen_q1 ---
-
-Annie: Compromise? Carbs?
-</Chat>
+<Chat id="peg_sba" title="Debug SBA" launchable="true" src="sba.chatpeg"/>

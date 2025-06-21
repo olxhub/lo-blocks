@@ -202,29 +202,38 @@ function PreviewPane({ path }) {
   // Parse content when it changes
   useEffect(() => {
     if (!idMap) return;
-    let candidate;
-    try {
-      const prov = path ? [`file://${path}`] : [];
-      candidate = parseOLX(content, prov);
-    } catch (err) {
-      console.log('Preview parse error:', err);
-      setError('Parse error: ' + (err.message || String(err)));
-      return;
+    let cancelled = false;
+    async function doParse() {
+      let candidate;
+      try {
+        const prov = path ? [`file://${path}`] : [];
+        candidate = await parseOLX(content, prov);
+      } catch (err) {
+        console.log('Preview parse error:', err);
+        if (!cancelled) setError('Parse error: ' + (err.message || String(err)));
+        return;
+      }
+      try {
+        const merged = { ...idMap, ...candidate.idMap };
+        render({
+          node: candidate.root,
+          idMap: merged,
+          nodeInfo: makeRootNode(),
+          componentMap: COMPONENT_MAP,
+        });
+        if (!cancelled) {
+          setParsed(candidate);
+          setError(null);
+        }
+      } catch (err) {
+        console.log('Preview render error:', err);
+        if (!cancelled) setError('Render error: ' + (err.message || String(err)));
+      }
     }
-    try {
-      const merged = { ...idMap, ...candidate.idMap };
-      render({
-        node: candidate.root,
-        idMap: merged,
-        nodeInfo: makeRootNode(),
-        componentMap: COMPONENT_MAP,
-      });
-      setParsed(candidate);
-      setError(null);
-    } catch (err) {
-      console.log('Preview render error:', err);
-      setError('Render error: ' + (err.message || String(err)));
-    }
+    doParse();
+    return () => {
+      cancelled = true;
+    };
   }, [content, idMap]);
 
   const rendered = useMemo(() => {
