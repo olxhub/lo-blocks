@@ -68,6 +68,11 @@ export function parseOLX(xml, provenance: Provenance) {
     }
     const parser = Component?.parser || defaultParser;
 
+    // Parse the node using the component's parser. The parser is responsible
+    // for calling `storeEntry` for every piece of data that should be tracked
+    // in the ID map. A single node may generate multiple entries this way.
+    // The return value of `parseNode` simply exposes the block's primary id
+    // and is only used when determining the document's root.
     parser({
       id,
       rawParsed: node,
@@ -89,6 +94,9 @@ export function parseOLX(xml, provenance: Provenance) {
     return { type: 'block', id };
   }
 
+  // Parsed OLX can include comment nodes or whitespace before the actual
+  // root block. Find the first element node so we don't accidentally treat a
+  // comment as the root of the document.
   const rootNode = Array.isArray(parsedTree)
     ? parsedTree.find(n =>
         !!Object.keys(n).find(k => ![':@', '#text', '#comment'].includes(k))
@@ -96,11 +104,18 @@ export function parseOLX(xml, provenance: Provenance) {
     : parsedTree;
 
   if (rootNode) {
+    // We take the ID from the result of `parseNode` rather than directly from
+    // `rootNode`. The parser can rewrite the ID (for example when handling
+    // `<Use ref="...">`), so the value returned here reflects the final ID
+    // stored in the ID map.
     const parsedRoot = parseNode(rootNode);
     if (parsedRoot?.id) rootId = parsedRoot.id;
   }
 
   if (Array.isArray(parsedTree)) {
+    // The remaining nodes are parsed only for their side effects. Each call to
+    // `parseNode` populates `idMap` via `storeEntry`; the return values are not
+    // used here.
     parsedTree
       .filter(n => n !== rootNode)
       .forEach(parseNode);
