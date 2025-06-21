@@ -1,19 +1,20 @@
 // src/components/blocks/DigitSpanTask/_DigitSpanTask.jsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { useReduxState } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
 
 
 export function _DigitSpanTask( props ) {
-  const { id, kids = [], attributes = {} } = props;
+  const { id, kids = [], attributes = {}, fields } = props;
   const mode = attributes.mode || 'forward'; // 'forward' | 'backward' | 'ascending'
 
-  const [sequence, setSequence] = useState([]);
-  const [userInput, setUserInput] = useState('');
-  const [step, setStep] = useState('waiting'); // 'waiting' | 'playing' | 'answering' | 'feedback'
-  const [theta, setTheta] = useState(0); // Ability estimate
-  const [difficulty, setDifficulty] = useState(3); // Starting sequence length (proxy for difficulty)
+  const [sequence, setSequence] = useReduxState(props, fields.sequence, []);
+  const [userInput, setUserInput] = useReduxState(props, fields.userInput, '');
+  const [step, setStep] = useReduxState(props, fields.step, 'waiting'); // 'waiting' | 'playing' | 'answering' | 'feedback'
+  const [theta, setTheta] = useReduxState(props, fields.theta, 0); // Ability estimate
+  const [difficulty, setDifficulty] = useReduxState(props, fields.difficulty, 3); // Starting sequence length (proxy for difficulty)
 
   useEffect(() => {
     if (step === 'playing') {
