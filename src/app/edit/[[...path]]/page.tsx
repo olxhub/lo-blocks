@@ -32,6 +32,7 @@ import { parseOLX } from '@/lib/content/parseOLX';
 import { render, makeRootNode } from '@/lib/render';
 import { COMPONENT_MAP } from '@/components/componentMap';
 import { NetworkStorageProvider } from '@/lib/storage/network';
+import { fileTypes } from '@/lib/storage/fileTypes';
 
 // This causes CoadMirror not to load on all pages (it gets its own
 // chunk for pages that need it).
@@ -83,8 +84,9 @@ function EditControl({ path }) {
 
   const cmExt = useMemo(() => {
     if (!path) return xml();
-    if (path.endsWith('.xml') || path.endsWith('.olx')) return xml();
-    if (path.endsWith('.md')) return markdown();
+    const ext = path.split('.').pop() ?? '';
+    if (ext === fileTypes.xml || ext === fileTypes.olx) return xml();
+    if (ext === fileTypes.md) return markdown();
     return undefined;
   }, [path]);
 
