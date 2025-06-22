@@ -1,6 +1,8 @@
 // src/lib/storage/index.ts
 import path from 'path';
 import pegExts from '../../generated/pegExtensions.json' assert { type: 'json' };
+import { ProvenanceURI } from '../types';
+import { fileTypes, FileType } from './fileTypes';
 
 async function resolveSafePath(baseDir: string, relPath: string) {
   if (typeof relPath !== 'string' || relPath.includes('\0')) {
@@ -19,16 +21,17 @@ async function resolveSafePath(baseDir: string, relPath: string) {
   return full;
 }
 export interface XmlFileInfo {
-  id: string;
+  id: ProvenanceURI;
+  type: FileType;
   _metadata: any;
   content: string;
 }
 
 export interface XmlScanResult {
-  added: Record<string, XmlFileInfo>;
-  changed: Record<string, XmlFileInfo>;
-  unchanged: Record<string, XmlFileInfo>;
-  deleted: Record<string, XmlFileInfo>;
+  added: Record<ProvenanceURI, XmlFileInfo>;
+  changed: Record<ProvenanceURI, XmlFileInfo>;
+  unchanged: Record<ProvenanceURI, XmlFileInfo>;
+  deleted: Record<ProvenanceURI, XmlFileInfo>;
 }
 
 export interface StorageProvider {
@@ -37,7 +40,7 @@ export interface StorageProvider {
    * relative to a previous scan. The `_metadata` structure is
    * provider specific (mtime+size, git hash, DB id, etc.).
    */
-  loadXmlFilesWithStats(previous?: Record<string, XmlFileInfo>): Promise<XmlScanResult>;
+  loadXmlFilesWithStats(previous?: Record<ProvenanceURI, XmlFileInfo>): Promise<XmlScanResult>;
 
   read(path: string): Promise<string>;
   write(path: string, content: string): Promise<void>;
@@ -100,7 +103,7 @@ export class FileStorageProvider implements StorageProvider {
     this.baseDir = path.resolve(baseDir);
   }
 
-  async loadXmlFilesWithStats(previous: Record<string, XmlFileInfo> = {}): Promise<XmlScanResult> {
+  async loadXmlFilesWithStats(previous: Record<ProvenanceURI, XmlFileInfo> = {}): Promise<XmlScanResult> {
     const fs = await import('fs/promises');
 
     function isContentFile(entry: any, fullPath: string) {
@@ -124,10 +127,10 @@ export class FileStorageProvider implements StorageProvider {
       );
     }
 
-    const found: Record<string, boolean> = {};
-    const added: Record<string, XmlFileInfo> = {};
-    const changed: Record<string, XmlFileInfo> = {};
-    const unchanged: Record<string, XmlFileInfo> = {};
+    const found: Record<ProvenanceURI, boolean> = {};
+    const added: Record<ProvenanceURI, XmlFileInfo> = {};
+    const changed: Record<ProvenanceURI, XmlFileInfo> = {};
+    const unchanged: Record<ProvenanceURI, XmlFileInfo> = {};
 
     const walk = async (currentDir: string) => {
       const entries = await fs.readdir(currentDir, { withFileTypes: true });
@@ -136,20 +139,22 @@ export class FileStorageProvider implements StorageProvider {
         if (entry.isDirectory()) {
           await walk(fullPath);
         } else if (isContentFile(entry, fullPath)) {
-          const id = `file://${fullPath}`;
+          const id = `file://${fullPath}` as ProvenanceURI;
           const stat = await fs.stat(fullPath);
+          const ext = path.extname(fullPath).slice(1);
+          const type = (fileTypes as any)[ext] ?? ext;
           found[id] = true;
           const prev = previous[id];
           if (prev) {
             if (fileChanged(prev._metadata.stat, stat)) {
               const content = await fs.readFile(fullPath, 'utf-8');
-              changed[id] = { id, _metadata: { stat }, content };
+              changed[id] = { id, type, _metadata: { stat }, content };
             } else {
               unchanged[id] = prev;
             }
           } else {
             const content = await fs.readFile(fullPath, 'utf-8');
-            added[id] = { id, _metadata: { stat }, content };
+            added[id] = { id, type, _metadata: { stat }, content };
           }
         }
       }
@@ -157,9 +162,9 @@ export class FileStorageProvider implements StorageProvider {
 
     await walk(this.baseDir);
 
-    const deleted: Record<string, XmlFileInfo> = Object.keys(previous)
+    const deleted: Record<ProvenanceURI, XmlFileInfo> = Object.keys(previous)
       .filter(id => !(id in found))
-      .reduce((out: Record<string, XmlFileInfo>, id: string) => {
+      .reduce((out: Record<ProvenanceURI, XmlFileInfo>, id: ProvenanceURI) => {
         out[id] = previous[id];
         return out;
       }, {});
@@ -191,7 +196,7 @@ export class FileStorageProvider implements StorageProvider {
 export class GitStorageProvider implements StorageProvider {
   constructor(public repoPath: string) {}
 
-  async loadXmlFilesWithStats(_prev: Record<string, XmlFileInfo> = {}): Promise<XmlScanResult> {
+  async loadXmlFilesWithStats(_prev: Record<ProvenanceURI, XmlFileInfo> = {}): Promise<XmlScanResult> {
     throw new Error('git storage not implemented');
   }
 
@@ -215,7 +220,7 @@ export class GitStorageProvider implements StorageProvider {
 export class PostgresStorageProvider implements StorageProvider {
   constructor(public options: Record<string, any>) {}
 
-  async loadXmlFilesWithStats(_prev: Record<string, XmlFileInfo> = {}): Promise<XmlScanResult> {
+  async loadXmlFilesWithStats(_prev: Record<ProvenanceURI, XmlFileInfo> = {}): Promise<XmlScanResult> {
     throw new Error('postgres storage not implemented');
   }
 
@@ -238,4 +243,5 @@ export class PostgresStorageProvider implements StorageProvider {
 
 export * from './network';
 
+export * from './fileTypes';
 export * from './provenance';

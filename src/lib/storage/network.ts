@@ -7,6 +7,7 @@ import type {
   FileSelection,
   UriNode,
 } from './index';
+import type { ProvenanceURI } from '../types';
 
 export interface NetworkProviderOptions {
   readEndpoint?: string;
@@ -23,7 +24,7 @@ export class NetworkStorageProvider implements StorageProvider {
   }
 
   async loadXmlFilesWithStats(
-    _prev: Record<string, XmlFileInfo> = {}
+    _prev: Record<ProvenanceURI, XmlFileInfo> = {}
   ): Promise<XmlScanResult> {
     throw new Error('network storage scan not implemented');
   }

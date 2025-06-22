@@ -1,7 +1,7 @@
 // src/lib/content/loadContentTree.test.js
 import fs from 'fs/promises';
 import path from 'path';
-import { FileStorageProvider } from '../storage';
+import { FileStorageProvider, fileTypes } from '../storage';
 
 it('handles added, unchanged, changed, and deleted files via filesystem mutation', async () => {
   const tmpDir = await fs.mkdtemp('content-test-');
@@ -14,6 +14,9 @@ it('handles added, unchanged, changed, and deleted files via filesystem mutation
 
   const provider = new FileStorageProvider(tmpDir);
   const first = await provider.loadXmlFilesWithStats();
+  for (const info of Object.values(first.added)) {
+    expect(info.type).toBe(fileTypes.xml);
+  }
   const prev = { ...first.added };
 
   // Mutate: modify changer.xml
@@ -27,6 +30,10 @@ it('handles added, unchanged, changed, and deleted files via filesystem mutation
   await fs.rm(path.join(tmpDir, 'helloaction.xml'));
 
   const second = await provider.loadXmlFilesWithStats(prev);
+
+  for (const info of Object.values(second.added)) {
+    expect(info.type).toBe(fileTypes.xml);
+  }
 
   expect(Object.keys(second.unchanged).some(id => id.endsWith('simplecheck.xml'))).toBe(true);
   expect(Object.keys(second.changed).some(id => id.endsWith('changer.xml'))).toBe(true);
