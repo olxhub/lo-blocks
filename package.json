@@ -21,6 +21,7 @@
     "test:ui": "firejail --noprofile --whitelist=$(pwd) vitest --ui"
   },
   "dependencies": {
+    "@codemirror/lang-markdown": "^6.3.3",
     "@codemirror/lang-xml": "^6.1.0",
     "@fontsource/geist-mono": "^5.2.6",
     "@fontsource/geist-sans": "^5.2.5",

@@ -1,6 +1,23 @@
 // src/lib/storage/index.ts
 import path from 'path';
 import pegExts from '../../generated/pegExtensions.json' assert { type: 'json' };
+
+async function resolveSafePath(baseDir: string, relPath: string) {
+  if (typeof relPath !== 'string' || relPath.includes('\0')) {
+    throw new Error('Invalid path');
+  }
+  const full = path.resolve(baseDir, relPath);
+  const relative = path.relative(baseDir, full);
+  if (relative.startsWith('..') || path.isAbsolute(relative)) {
+    throw new Error('Invalid path');
+  }
+  const fs = await import('fs/promises');
+  const stats = await fs.lstat(full).catch(() => null);
+  if (stats && stats.isSymbolicLink()) {
+    throw new Error('Symlinks not allowed');
+  }
+  return full;
+}
 export interface XmlFileInfo {
   id: string;
   _metadata: any;
@@ -86,7 +103,7 @@ export class FileStorageProvider implements StorageProvider {
   async loadXmlFilesWithStats(previous: Record<string, XmlFileInfo> = {}): Promise<XmlScanResult> {
     const fs = await import('fs/promises');
 
-    function olxFile(entry: any, fullPath: string) {
+    function isContentFile(entry: any, fullPath: string) {
       const fileName = entry.name || fullPath.split('/').pop();
       const allowed = ['.xml', '.olx', '.md', ...pegExts.map(e => `.${e}`)];
       return (
@@ -118,7 +135,7 @@ export class FileStorageProvider implements StorageProvider {
         const fullPath = path.join(currentDir, entry.name);
         if (entry.isDirectory()) {
           await walk(fullPath);
-        } else if (olxFile(entry, fullPath)) {
+        } else if (isContentFile(entry, fullPath)) {
           const id = `file://${fullPath}`;
           const stat = await fs.stat(fullPath);
           found[id] = true;
@@ -152,17 +169,13 @@ export class FileStorageProvider implements StorageProvider {
 
   async read(filePath: string): Promise<string> {
     const fs = await import('fs/promises');
-    const full = path.isAbsolute(filePath)
-      ? filePath
-      : path.join(this.baseDir, filePath);
+    const full = await resolveSafePath(this.baseDir, filePath);
     return fs.readFile(full, 'utf-8');
   }
 
   async write(filePath: string, content: string): Promise<void> {
     const fs = await import('fs/promises');
-    const full = path.isAbsolute(filePath)
-      ? filePath
-      : path.join(this.baseDir, filePath);
+    const full = await resolveSafePath(this.baseDir, filePath);
     await fs.writeFile(full, content, 'utf-8');
   }
 
