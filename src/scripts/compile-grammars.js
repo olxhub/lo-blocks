@@ -10,6 +10,8 @@ const blocksDir = 'src/components/blocks';
 async function compileAllPEG() {
   const files = await glob(`${blocksDir}/**/*.pegjs`);
 
+  const extensions = [];
+
   for (const file of files) {
     const grammar = await fs.readFile(file, 'utf-8');
     const parser = peggy.generate(grammar, { output: 'source', format: 'es' });
@@ -19,7 +21,14 @@ async function compileAllPEG() {
 
     await fs.writeFile(outFile, parser);
     console.log(`✅ Compiled ${file} → ${outFile}`);
+
+    extensions.push(`${parsedName}peg`);
   }
+
+  const extFile = path.resolve('src/generated/pegExtensions.json');
+  await fs.mkdir(path.dirname(extFile), { recursive: true });
+  await fs.writeFile(extFile, JSON.stringify(extensions, null, 2));
+  console.log(`✅ Wrote ${extFile}`);
 }
 
 compileAllPEG().catch(err => {

@@ -8,7 +8,7 @@ import { spawn } from 'child_process';
 import getPort from 'get-port';
 
 // Combined test: server startup, page serving, and graceful shutdown
-test('Next.js server starts, serves pages, and shuts down cleanly', async () => {
+test('Next.js server basic endpoints work', async () => {
   const port = await getPort();
   let proc, res, shutdownRes;
 
@@ -24,6 +24,21 @@ test('Next.js server starts, serves pages, and shuts down cleanly', async () => 
     res = await waitForServer(`http://localhost:${port}/`);
     expect(res).toBeDefined();
     expect(res.status).toBeLessThan(500);
+
+    // Fetch file tree
+    const treeRes = await fetch(`http://localhost:${port}/api/files`);
+    expect(treeRes.status).toBe(200);
+
+    const tree = await treeRes.json();
+    expect(tree.ok).toBe(true);
+
+    // Fetch single file
+    const fileRes = await fetch(
+      `http://localhost:${port}/api/file?path=${encodeURIComponent('demos/changer.xml')}`
+    );
+    expect(fileRes.status).toBe(200);
+    const fileJson = await fileRes.json();
+    expect(fileJson.ok).toBe(true);
 
     // Test graceful shutdown via API
     shutdownRes = await fetch(`http://localhost:${port}/api/admin/shutdown`, {

@@ -15,6 +15,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { xml } from '@codemirror/lang-xml';
+import { markdown } from '@codemirror/lang-markdown';
 import { useParams } from 'next/navigation';
 
 import Split from "react-split";
@@ -80,13 +81,20 @@ function EditControl({ path }) {
     }
   };
 
+  const cmExt = useMemo(() => {
+    if (!path) return xml();
+    if (path.endsWith('.xml') || path.endsWith('.olx')) return xml();
+    if (path.endsWith('.md')) return markdown();
+    return undefined;
+  }, [path]);
+
   if (!path) return <div className="p-4">No path provided</div>;
 
   return (
     <div className="p-4 flex flex-col h-full space-y-4">
       <div className="font-mono text-sm">Editing: {path}</div>
       <div className="flex-1">
-        <CodeMirror value={content} height="100%" extensions={[xml()]} onChange={onChange} />
+        <CodeMirror value={content} height="100%" extensions={cmExt ? [cmExt] : []} onChange={onChange} />
       </div>
       <div>
         <button
