@@ -210,7 +210,8 @@ function PreviewPane({ path }) {
       let candidate;
       try {
         const prov = path ? [`file://${path}`] : [];
-        candidate = await parseOLX(content, prov);
+        const provider = new NetworkStorageProvider();
+        candidate = await parseOLX(content, prov, provider);
       } catch (err) {
         console.log('Preview parse error:', err);
         if (!cancelled) setError('Parse error: ' + (err.message || String(err)));
