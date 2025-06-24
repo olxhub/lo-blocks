@@ -60,7 +60,9 @@ function EditControl({ path }) {
   useEffect(() => {
     if (!path) return;
     setStatus('Loading...');
-
+    // TODO: DRY. We'd like to make the provider once.
+    // HACK: This should overlay a redux provider, so we
+    // can change multiple files in the editor.
     const provider = new NetworkStorageProvider();
     provider
       .read(path)
