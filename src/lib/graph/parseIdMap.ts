@@ -3,59 +3,55 @@ import { COMPONENT_MAP } from '@/components/componentMap';
 
 /**
  * Parses the idMap structure into React Flow compatible nodes and edges.
+ *
+ * TODO: Remove duplicate IDs
  */
 export function parseIdMap(idMap) {
   const nodes = [];
   const edges = [];
+  const launchable = [];
+
+  // IF something goes wrong, we add it here
+  // At present, unused, as nothing is going wrong.
+  // We might remove it someday
   const issues = [];
-  const incomingCount = new Map();
 
   for (const [id, node] of Object.entries(idMap)) {
-    let label = node.tag;
-    if (!label) {
-      label = '(no tag)';
-      issues.push(`Node ${id} missing tag`);
-    }
-
     let childIds = [];
     const comp = COMPONENT_MAP[node.tag];
-    try {
-      if (comp && typeof comp.staticKids === 'function') {
-        childIds = comp.staticKids(node) || [];
-      } else if (Array.isArray(node.kids)) {
-        childIds = node.kids
-          .map(k => (typeof k === 'string' ? k : k?.id))
-          .filter(Boolean);
-      } else if (node.kids && typeof node.kids === 'object') {
-        for (const val of Object.values(node.kids)) {
-          const arr = Array.isArray(val) ? val : [val];
-          for (const v of arr) {
-            const ref = typeof v === 'string' ? v : v?.id;
-            if (ref) childIds.push(ref);
-          }
-        }
-      }
-    } catch (err) {
-      issues.push(`Error processing kids for node ${id}: ${err.message}`);
+    childIds = comp.staticKids(node);
+
+    // Avoid duplicates
+    if(nodes.find(n => n.id === id)) {
+      continue;
     }
 
-    // Track incoming refs
+    // Add edges
     for (const childId of childIds) {
-      incomingCount.set(childId, (incomingCount.get(childId) || 0) + 1);
-      edges.push({ id: `${id}->${childId}`, source: id, target: childId });
+      const edgeId = `${id}->${childId}`;
+      if(!edges.find(e => e.id === edgeId)) {
+	edges.push({ id: edgeId, source: id, target: childId });
+      }
     }
 
+    // Add nodes
     nodes.push({
       id,
       data: {
-        label: `${label}\n(${id})`,
+        label: `${node.tag}\n(${id})`,
         attributes: node.attributes || {},
         tag: node.tag,
+	provenance: node.provenance
       },
       position: { x: Math.random() * 400, y: Math.random() * 400 },
       type: 'custom'
     });
+
+    // Include root nodes
+    if(node?.attributes?.launchable) {
+      launchable.push(id);
+    }
   }
 
-  return { nodes, edges, issues };
+  return { nodes, edges, issues, launchable };
 }

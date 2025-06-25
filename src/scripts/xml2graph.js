@@ -10,14 +10,21 @@ import path from 'path';
 const args = process.argv.slice(2);
 const contentDir = path.resolve('./content');
 
+// TODO: profile / understand speed.
+//
+// real	0m4.349s
+// user	0m5.535s
+// sys	0m0.984s
+//
+// This should be pretty instant!
+
 async function main() {
   try {
     const provider = new FileStorageProvider(contentDir);
     const { idMap } = await syncContentFromStorage(provider);
-    const { edges, issues } = parseIdMap(idMap);
 
-    const output = { edges, issues };
-    const pretty = stringify(output, { space: 2 });
+    const rawOutput = parseIdMap(idMap);
+    const pretty = stringify(rawOutput, { space: 2 });
 
     if (args.includes('--out')) {
       const outIndex = args.indexOf('--out');
