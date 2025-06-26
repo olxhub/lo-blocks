@@ -193,7 +193,7 @@ DialogueGroup
   }
 
 ContinuationLine
-  = !DialogueLineStart !MetadataLineStart !StartCommandBlock !ArrowCommand !PauseCommandStart !WaitCommandStart content:LineContent NewLine {
+  = !DialogueLineStart !MetadataLineStart !StartCommandBlock !ArrowCommand !PauseCommandStart !WaitCommandStart !CommentLineStart content:LineContent NewLine {
       return { text: content };
   }
 
@@ -238,8 +238,11 @@ MetadataPair
   }
 
 // Comments: lines starting with '#' or '//' and ignored
+CommentLineStart
+  = _ ("#" / "//")
+
 CommentLine
-  = (_ ("#" / "//") [^\r\n]*) NewLine {
+  = CommentLineStart [^\r\n]* NewLine {
       return null;
     }
 
