@@ -1,4 +1,4 @@
-import * as tp from './templateParser.js'; // Your generated parser
+import * as tp from './_templateParser.js'; // Your generated parser
 
 export const compile = tp.parse;
 
