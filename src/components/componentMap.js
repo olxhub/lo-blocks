@@ -6,11 +6,8 @@ import createStubBlock from '@/components/blocks/StubBlock';
 
 export const COMPONENT_MAP = { ...BlockRegistry };
 
-// We add dummy development components here.
+// Stub components for missing blocks during development
 [
-  'LLMButton',
-  'LLMPrompt',
-  'Element',
   'Sidebar',
   'MainPane',
 ].forEach(name => {

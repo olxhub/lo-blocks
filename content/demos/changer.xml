@@ -1,6 +1,5 @@
 <!-- content/demos/changer.xml -->
 <Lesson id="rewrite_lesson" launchable="true" title="Rewriting Lesson">
-  <DigitSpanTask id="dst"/>
   <TextBlock>Welcome to the Rewriting Station!</TextBlock>
   <TextArea id="student_essay"/>
   <LLMFeedback id="essay_rewrite"/>
@@ -9,14 +8,54 @@
       <TextBlock>Choose a rewrite style:</TextBlock>
     </MainPane>
     <Sidebar>
-      <LLMButton>
+      <LLMButton label="First Grader Text">
+        <LLMPrompt target="essay_rewrite">
+          Please rewrite this in simple English for a first grader:
+          <Element>student_essay</Element>
+        </LLMPrompt>
+      </LLMButton>
+      <LLMButton label="SSR">
+        <LLMPrompt target="essay_rewrite">
+          Please rewrite this in contorted social sciences academic English:
+          <Element>student_essay</Element>
+        </LLMPrompt>
+      </LLMButton>
+      <LLMButton label="Business">
+        <LLMPrompt target="essay_rewrite">
+          Please rewrite this in business English, with a marketing focus:
+          <Element>student_essay</Element>
+        </LLMPrompt>
+      </LLMButton>
+      <LLMButton label="First person">
         <LLMPrompt target="essay_rewrite">
           Please rewrite this in first person:
           <Element>student_essay</Element>
         </LLMPrompt>
-        First person
       </LLMButton>
-      <$$>\frac{1}{p}</$$>
+      <LLMButton label="Comedian">
+        <LLMPrompt target="essay_rewrite">
+          You're a world-class comedian. Please rewrite this to be hilarious, and with an edge. You can make stuff up (hey, it's comedy), but there should be real jokes (not just flippancy):
+          <Element>student_essay</Element>
+        </LLMPrompt>
+      </LLMButton>
+      <LLMButton label="Chinese American">
+        <LLMPrompt target="essay_rewrite">
+          You're a Chinese American. Please rewrite this. Use English, but with Chinese communication style:
+          <Element>student_essay</Element>
+        </LLMPrompt>
+      </LLMButton>
+      <LLMButton label="Lawyer">
+        <LLMPrompt target="essay_rewrite">
+          Please rewrite this text in legal English for a legal filing
+          <Element>student_essay</Element>
+        </LLMPrompt>
+      </LLMButton>
+      <LLMButton label="Middle Schooler">
+        <LLMPrompt target="essay_rewrite">
+          Please rewrite this text as a lower-to-mid-level middle schooler. Please include middle-school level spelling errors, grammar errors, and style issues; we'll want middle-school students to find and correct issues:
+          <Element>student_essay</Element>
+        </LLMPrompt>
+      </LLMButton>
     </Sidebar>
   </SideBarPanel>
 </Lesson>
