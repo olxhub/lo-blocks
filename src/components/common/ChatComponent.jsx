@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { ChevronRight } from 'lucide-react';
 
 // Generate random colors based on name (consistent for same name)
@@ -56,7 +57,7 @@ const ChatMessage = ({ message, isSequential }) => {
           <span className="text-sm font-semibold mb-1">{message.speaker}</span>
         )}
         <div className="bg-gray-100 p-2 px-3 rounded-lg max-w-md">
-          {message.text}
+          <ReactMarkdown>{message.text}</ReactMarkdown>
         </div>
       </div>
     </div>
@@ -67,9 +68,9 @@ const ChatMessage = ({ message, isSequential }) => {
 const SystemMessage = ({ message }) => {
   return (
     <div className="flex justify-center my-2">
-      <span className="text-xs text-gray-500 bg-gray-100 py-1 px-3 rounded-full">
-        {message.text}
-      </span>
+      <div className="text-xs text-gray-500 bg-gray-100 py-1 px-3 rounded-full">
+        <ReactMarkdown>{message.text}</ReactMarkdown>
+      </div>
     </div>
   );
 };
