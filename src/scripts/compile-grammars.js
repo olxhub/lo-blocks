@@ -21,10 +21,9 @@ async function compileAllPEG() {
     const parser = peggy.generate(grammar, { output: 'source', format: 'es' });
 
     const parsedName = path.basename(file).replace('.pegjs', '');
-    const isTemplate = file.startsWith(`${templateDir}${path.sep}`);
     const outFile = path.join(
       path.dirname(file),
-      isTemplate ? `${parsedName}Parser.js` : `_${parsedName}Parser.js`
+      `_${parsedName}Parser.js`
     );
 
     await fs.writeFile(outFile, parser);
