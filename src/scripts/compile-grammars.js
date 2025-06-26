@@ -6,9 +6,13 @@ import { glob } from 'glob';
 import peggy from 'peggy';
 
 const blocksDir = 'src/components/blocks';
+const templateDir = 'src/lib/template';
 
 async function compileAllPEG() {
-  const files = await glob(`${blocksDir}/**/*.pegjs`);
+  const files = [
+    ...(await glob(`${blocksDir}/**/*.pegjs`)),
+    ...(await glob(`${templateDir}/**/*.pegjs`))
+  ];
 
   const extensions = [];
 
@@ -17,7 +21,11 @@ async function compileAllPEG() {
     const parser = peggy.generate(grammar, { output: 'source', format: 'es' });
 
     const parsedName = path.basename(file).replace('.pegjs', '');
-    const outFile = path.join(path.dirname(file), `_${parsedName}Parser.js`);
+    const isTemplate = file.startsWith(`${templateDir}${path.sep}`);
+    const outFile = path.join(
+      path.dirname(file),
+      isTemplate ? `${parsedName}Parser.js` : `_${parsedName}Parser.js`
+    );
 
     await fs.writeFile(outFile, parser);
     console.log(`✅ Compiled ${file} → ${outFile}`);
