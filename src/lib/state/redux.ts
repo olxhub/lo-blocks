@@ -2,7 +2,7 @@
 import * as lo_event from 'lo_event';
 import * as idResolver from '../blocks/idResolver';
 
-import { useComponentSelector, useFieldSelector } from './selectors.ts';
+import { useFieldSelector } from './selectors.ts';
 import { useCallback } from 'react';
 import { Scope, scopes } from '../state/scopes';
 import { FieldInfo, FieldInfoByEvent, FieldInfoByField } from '../types';
@@ -28,6 +28,16 @@ function fieldNameToDefaultEventName(name) {
 
       .toUpperCase()
   );
+}
+
+/*
+ * This should be rarely used, but in some cases, we might see
+ * something like:
+ *    target="id.field"
+ * And we would like to look up that field.
+ */
+export function fieldByName(fieldname) {
+  return _fieldInfoByField[fieldname];
 }
 
 /**

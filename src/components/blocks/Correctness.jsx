@@ -4,6 +4,7 @@ import { dev, CORRECTNESS } from '@/lib/blocks';
 import { useComponentSelector } from '@/lib/state/selectors.ts';
 import { inferRelatedNodes } from "@/lib/blocks/olxdom";
 import { ignore } from "@/lib/content/parsers";
+
 function _Correctness(props) {
   const { targets, infer } = props;
   const ids = inferRelatedNodes(props, {
