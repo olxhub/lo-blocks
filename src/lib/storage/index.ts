@@ -139,6 +139,7 @@ export class FileStorageProvider implements StorageProvider {
       for (const entry of entries) {
         const fullPath = path.join(currentDir, entry.name);
         if (entry.isDirectory()) {
+          if (['unused', 'linear-algebra', 'sba'].includes(entry.name)) continue; // skip unused or experimental content
           await walk(fullPath);
         } else if (isContentFile(entry, fullPath)) {
           const id = `file://${fullPath}` as ProvenanceURI;
