@@ -1,12 +1,15 @@
 // src/components/blocks/StatusText.jsx
 import React from 'react';
 import { dev } from '@/lib/blocks';
-import { useComponentSelector } from '@/lib/state/selectors.ts';
+import * as state from '@/lib/state';
+import { useFieldSelector } from '@/lib/state';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import { ignore } from '@/lib/content/parsers';
 
+const fields = state.fields(['message']);
+
 function _StatusText(props) {
-  const { targets, infer } = props;
+  const { targets, infer, fields } = props;
   const ids = inferRelatedNodes(props, {
     selector: n => n.node.blueprint?.isGrader,
     infer,
@@ -17,14 +20,20 @@ function _StatusText(props) {
   //
   // If not provided, we default to message, but we should be able
   // to override the field.
-  const text = useComponentSelector(targetId, s => s?.message ?? '');
+  const text = useFieldSelector(
+    props,
+    fields.message,
+    s => s?.message ?? '',
+    { fallback: '', id: targetId }
+  );
   return <span>{text}</span>;
 }
 
 const StatusText = dev({
   ...ignore,
   name: 'StatusText',
-  component: _StatusText
+  component: _StatusText,
+  fields
 });
 
 export default StatusText;

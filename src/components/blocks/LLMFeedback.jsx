@@ -4,12 +4,16 @@
 
 import * as parsers from '@/lib/content/parsers';
 import { dev } from '@/lib/blocks';
+import * as state from '@/lib/state';
 import _LLMFeedback from './_LLMFeedback';
+
+export const fields = state.fields(['value', 'state']);
 
 const LLMFeedback = dev({
   ...parsers.ignore, // no kids expected yet... later
   name: 'LLMFeedback',
-  component: _LLMFeedback
+  component: _LLMFeedback,
+  fields
 });
 
 export default LLMFeedback;
