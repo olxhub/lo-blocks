@@ -57,7 +57,7 @@ export function useFieldSelector<T>(
   field: FieldInfo,
   options?: FieldSelectorOptions<T>
 ): T {
-  const { id: optId, tag: optTag, selector = (s: any) => s?.[field.name], ...rest } = normalizeOptions(options);
+  const { id: optId, tag: optTag, selector = (s: any) => s?.[field.name], ...rest } = normalizeOptions(options); // HACK. Selector should run over s.?[field], but it's part of our code migration.
   const scope = field.scope; // Default of scopes.component is handled in field creation
 
   // HACK: Clean up the lines below. This code works, but is slightly wrong.
