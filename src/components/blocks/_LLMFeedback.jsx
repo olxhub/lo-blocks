@@ -14,14 +14,12 @@ function _LLMFeedback(props) {
   const feedback = useFieldSelector(
     props,
     fields.value,
-    s => s?.value ?? '',
-    { fallback: '', id }
+    { selector: s => s?.value ?? '', fallback: '', id }
   );
   const llmState = useFieldSelector(
     props,
     fields.state,
-    s => s?.state ?? LLM_INIT,
-    { fallback: LLM_INIT, id }
+    { selector: s => s?.state ?? LLM_INIT, fallback: LLM_INIT, id }
   );
 
   return (

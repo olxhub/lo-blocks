@@ -25,6 +25,7 @@ export type SelectorExtraParam<T> = SelectorOptions<T> | ((a: T, b: T) => boolea
 export interface FieldSelectorOptions<T> extends SelectorOptions<T> {
   id?: string;
   tag?: string;
+  selector?: (state: any) => T;
 }
 
 // --- Normalize options
@@ -54,10 +55,9 @@ function useApplicationSelector<T>(
 export function useFieldSelector<T>(
   props: any,  // TODO: Change to props type
   field: FieldInfo,
-  selector: (state: any) => T = s => s,
   options?: FieldSelectorOptions<T>
 ): T {
-  const { id: optId, tag: optTag, ...rest } = normalizeOptions(options);
+  const { id: optId, tag: optTag, selector = (s: any) => s?.[field.name], ...rest } = normalizeOptions(options);
   const scope = field.scope; // Default of scopes.component is handled in field creation
 
   // HACK: Clean up the lines below. This code works, but is slightly wrong.
@@ -125,16 +125,18 @@ export function useReduxInput(
   const selectorFn = (state: any) =>
     state && state[fieldName] !== undefined ? state[fieldName] : fallback;
 
-  const value = useFieldSelector(props, field, selectorFn, { fallback });
+  const value = useFieldSelector(props, field, { selector: selectorFn, fallback });
 
   const selection = useFieldSelector(
     props,
     field,
-    s => ({
-      selectionStart: s?.[`${fieldName}.selectionStart`] ?? 0,
-      selectionEnd: s?.[`${fieldName}.selectionEnd`] ?? 0
-    }),
-    { equalityFn: shallowEqual }
+    {
+      selector: s => ({
+        selectionStart: s?.[`${fieldName}.selectionStart`] ?? 0,
+        selectionEnd: s?.[`${fieldName}.selectionEnd`] ?? 0
+      }),
+      equalityFn: shallowEqual
+    }
   );
 
   const id = idResolver.reduxId(props);

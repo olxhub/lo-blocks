@@ -152,7 +152,7 @@ export function useReduxState(
 ) {
   assertValidField(field);
 
-  const value = useFieldSelector(props, field, s => s?.[field.name], { fallback, id, tag });
+  const value = useFieldSelector(props, field, { fallback, id, tag });
 
   const setValue = (newValue) => updateReduxField(props, field, newValue, { id, tag });
 

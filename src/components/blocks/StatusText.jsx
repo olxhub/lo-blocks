@@ -23,8 +23,7 @@ function _StatusText(props) {
   const text = useFieldSelector(
     props,
     fields.message,
-    s => s?.message ?? '',
-    { fallback: '', id: targetId }
+    { selector: s => s?.message ?? '', fallback: '', id: targetId }
   );
   return <span>{text}</span>;
 }

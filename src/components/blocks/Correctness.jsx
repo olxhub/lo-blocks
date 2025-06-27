@@ -19,8 +19,8 @@ function _Correctness(props) {
   let correctness = useFieldSelector(
     props,
     fields.correct,
-    s => s?.correct ?? CORRECTNESS.UNSUBMITTED,
     {
+      selector: s => s?.correct ?? CORRECTNESS.UNSUBMITTED,
       fallback: CORRECTNESS.UNSUBMITTED,
       id: targetId
     }
