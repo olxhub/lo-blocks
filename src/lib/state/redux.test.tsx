@@ -1,8 +1,8 @@
 // src/lib/blocks/redux.test.tsx
-import * as redux from './fields';
+import * as fields from './fields';
 
-const { fields } = redux;
-const { __testables } = redux;
+const { fields } = fields;
+const { __testables } = fields;
 
 const { fieldNameToDefaultEventName } = __testables;
 
