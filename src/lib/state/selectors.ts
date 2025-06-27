@@ -57,7 +57,8 @@ export function useFieldSelector<T>(
   field: FieldInfo,
   options?: FieldSelectorOptions<T>
 ): T {
-  const { id: optId, tag: optTag, selector = (s: any) => s?.[field.name], ...rest } = normalizeOptions(options); // HACK. Selector should run over s.?[field], but it's part of our code migration.
+  // HACK. Selector should run over s.?[field], but it's part of our code migration.
+  const { id: optId, tag: optTag, selector = (s: any) => s?.[field.name], ...rest } = normalizeOptions(options);
   const scope = field.scope; // Default of scopes.component is handled in field creation
 
   // HACK: Clean up the lines below. This code works, but is slightly wrong.
@@ -81,31 +82,23 @@ export function useFieldSelector<T>(
     optTag ??
     props?.blueprint?.OLXName ??
     props.nodeInfo?.node?.tag;
-
-  switch (scope) {
-    case scopes.componentSetting:
-      return useApplicationSelector(
-        s => selector(s?.componentSetting_state?.[tag]),
-        rest
-      );
-    case scopes.system:
-      return useApplicationSelector(
-        s => selector(s?.settings_state),
-        rest
-      );
-    case scopes.storage:
-      return useApplicationSelector(
-        s => selector(s?.storage_state?.[id]),
-        rest
-      );
-    case scopes.component:
-      return useApplicationSelector(
-        s => selector(s?.component_state?.[id]),
-        rest
-      );
-    default:
-      throw Error("Unrecognized scope");
-  }
+  return useApplicationSelector(
+    s => {
+      switch (scope) {
+        case scopes.componentSetting:
+          return selector(s?.componentSetting_state?.[tag]);
+        case scopes.system:
+          return selector(s?.settings_state);
+        case scopes.storage:
+          return selector(s?.storage_state?.[id]);
+        case scopes.component:
+          return selector(s?.component_state?.[id]);
+        default:
+          throw Error("Unrecognized scope");
+      }
+    },
+    rest
+  );
 }
 
 // TODO: We should figure out where this goes.
