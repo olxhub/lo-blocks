@@ -14,51 +14,23 @@ import { scopes } from './scopes';
 const UPDATE_INPUT = 'UPDATE_INPUT'; // TODO: Import
 const INVALIDATED_INPUT = 'INVALIDATED_INPUT'; // informational
 
-// Unified options type
-export interface SelectorOptions<T> {
-  fallback?: T;
-  equalityFn?: (a: T, b: T) => boolean;
-  // Consider adding: [key: string]: any; // For future Redux or custom extensions
-}
-export type SelectorExtraParam<T> = SelectorOptions<T> | ((a: T, b: T) => boolean);
 
-export interface FieldSelectorOptions<T> extends SelectorOptions<T> {
+export interface SelectorOptions<T> {
   id?: string;
   tag?: string;
-  selector?: (state: any) => T;
-}
-
-// --- Normalize options
-function normalizeOptions<T>(arg?: SelectorExtraParam<T>): SelectorOptions<T> {
-  if (arg === undefined) return {};
-  if (typeof arg === 'function') return { equalityFn: arg };
-  if (typeof arg === 'object') return arg;
-  throw new Error(`[selectors] Invalid selector options: ${arg}`);
+  selector?: (state) => T;
+  fallback?: T;
+  equalityFn?: (a: T, b: T) => boolean;
 }
 
 // --- Selectors ---
-
-function useApplicationSelector<T>(
-  selector: (state: any) => T = s => s,
-  options?: SelectorExtraParam<T>
-): T {
-  const { fallback, ...rest } = normalizeOptions(options);
-  return useSelector(
-    state => {
-      const val = selector(state?.application_state);
-      return val !== undefined ? val : fallback;
-    },
-    rest.equalityFn,
-  );
-}
-
 export function useFieldSelector<T>(
-  props: any,  // TODO: Change to props type
+  props,  // TODO: Change to props type
   field: FieldInfo,
-  options?: FieldSelectorOptions<T>
+  options: SelectorOptions<T> = {}
 ): T {
   // HACK. Selector should run over s.?[field], but it's part of our code migration.
-  const { id: optId, tag: optTag, fallback, selector = (s: any) => s?.[field.name], ...rest } = normalizeOptions(options);
+  const { id: optId, tag: optTag, fallback, selector = (s: any) => s?.[field.name], ...rest } = options;
   const scope = field.scope; // Default of scopes.component is handled in field creation
 
   // HACK: Clean up the lines below. This code works, but is slightly wrong.
@@ -122,7 +94,7 @@ export function useReduxInput(
   const scope = field.scope ?? scopes.component;
   const fieldName = field.name;
 
-  const selectorFn = (state: any) =>
+  const selectorFn = (state) =>
     state && state[fieldName] !== undefined ? state[fieldName] : fallback;
 
   const value = useFieldSelector(props, field, { selector: selectorFn, fallback });
@@ -146,7 +118,7 @@ export function useReduxInput(
     const val = event.target.value;
     const selStart = event.target.selectionStart;
     const selEnd = event.target.selectionEnd;
-    const payload: any = {
+    const payload = {
       scope,
       [fieldName]: val,
       [`${fieldName}.selectionStart`]: selStart,
@@ -193,5 +165,4 @@ export function useReduxInput(
 
 // Export internals for test
 export const __testables = {
-  normalizeOptions
 };
