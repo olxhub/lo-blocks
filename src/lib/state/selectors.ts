@@ -15,20 +15,20 @@ const UPDATE_INPUT = 'UPDATE_INPUT'; // TODO: Import
 const INVALIDATED_INPUT = 'INVALIDATED_INPUT'; // informational
 
 // Unified options type
-export interface SelectorOptions<T = any> {
+export interface SelectorOptions<T> {
   fallback?: T;
   equalityFn?: (a: T, b: T) => boolean;
   // Consider adding: [key: string]: any; // For future Redux or custom extensions
 }
-export type SelectorExtraParam<T = any> = SelectorOptions<T> | ((a: T, b: T) => boolean);
+export type SelectorExtraParam<T> = SelectorOptions<T> | ((a: T, b: T) => boolean);
 
-export interface FieldSelectorOptions<T = any> extends SelectorOptions<T> {
+export interface FieldSelectorOptions<T> extends SelectorOptions<T> {
   id?: string;
   tag?: string;
 }
 
 // --- Normalize options
-function normalizeOptions<T = any>(arg?: SelectorExtraParam<T>): SelectorOptions<T> {
+function normalizeOptions<T>(arg?: SelectorExtraParam<T>): SelectorOptions<T> {
   if (arg === undefined) return {};
   if (typeof arg === 'function') return { equalityFn: arg };
   if (typeof arg === 'object') return arg;
@@ -37,7 +37,7 @@ function normalizeOptions<T = any>(arg?: SelectorExtraParam<T>): SelectorOptions
 
 // --- Selectors ---
 
-export function useApplicationSelector<T = any>(
+export function useApplicationSelector<T>(
   selector: (state: any) => T = s => s,
   options?: SelectorExtraParam<T>
 ): T {
@@ -52,7 +52,7 @@ export function useApplicationSelector<T = any>(
 }
 
 /** @deprecated use `useFieldSelector` instead */
-export function useComponentSelector<T = any>(
+export function useComponentSelector<T>(
   id: string | Record<string, any>,
   selector: (state: any) => T = s => s,
   options?: SelectorExtraParam<T>
@@ -63,7 +63,7 @@ export function useComponentSelector<T = any>(
   );
 }
 
-export function useFieldSelector<T = any>(
+export function useFieldSelector<T>(
   props: any,  // TODO: Change to props type
   field: FieldInfo,
   selector: (state: any) => T = s => s,
