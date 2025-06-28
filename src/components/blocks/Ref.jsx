@@ -9,7 +9,7 @@ const Ref = core({
   name: 'Ref',
   component: _Ref,
   description: 'Render the value of another block\'s field.',
-  getValue: (_state, _id, { target = '' } = {}) => {
+  getValue: (_state, _id, { target = '' } = {}) => { // TODO: Untested
     const [sourceId, fieldName = 'value'] = target.split('.');
     const info = fieldByName(fieldName);
     if (!info) return undefined;
