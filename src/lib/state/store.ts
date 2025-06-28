@@ -18,6 +18,8 @@ const initialState = {
 export const updateResponseReducer = (state = initialState, action) => {
   const { scope = scopes.component, id, tag, ...rest } = action;
 
+  // TODO: This should be simplified now that we can use [scope] instead of
+  // componentSetting, etc.
   switch (scope) {
     case scopes.componentSetting:
       return {
@@ -44,7 +46,6 @@ export const updateResponseReducer = (state = initialState, action) => {
       };
 
     case scopes.component:
-    default:
       return {
         ...state,
         component: {
@@ -52,6 +53,8 @@ export const updateResponseReducer = (state = initialState, action) => {
           [id]: { ...(state.component?.[id]), ...rest }
         }
       };
+    default:
+      throw Error(`Unrecognized scope ${scope}`);
   }
 };
 
