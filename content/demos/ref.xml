@@ -1,5 +1,5 @@
 <!-- content/demos/ref.xml -->
 <Lesson id="ref_demo" launchable="true">
   <LineInput id="source"/>
-  <Ref target="source"/>
+  <Ref target="source" fallback="Type something in the line"/>
 </Lesson>
