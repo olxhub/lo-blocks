@@ -1,6 +1,5 @@
 // src/app/edit/editorFields.ts
-import { fields } from '@/lib/state/redux';
-import { scopes } from '@/lib/state/scopes';
+import { fields, scopes } from '@/lib/state';
 
 export const editorFields = fields([
   { name: 'content', scope: scopes.storage },

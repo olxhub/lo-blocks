@@ -59,7 +59,7 @@ export function grader({ grader, infer = true } = {}) {
 
     // TODO: We shouldn't be mucking about inside reduxLogger manually.
     // selectors do a lot of this.
-    const state = reduxLogger.store.getState()?.application_state?.component_state || {};
+    const state = reduxLogger.store.getState()?.application_state?.component || {};
     const map = props.componentMap;
     const values = inputIds.map(id => {
       const inst = props.idMap[id];

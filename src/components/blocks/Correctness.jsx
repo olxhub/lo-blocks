@@ -1,20 +1,29 @@
 // src/components/blocks/Correctness.jsx
 import React from 'react';
 import { dev, CORRECTNESS } from '@/lib/blocks';
-import { useComponentSelector } from '@/lib/state/selectors.ts';
+import * as state from '@/lib/state';
+import { useFieldSelector } from '@/lib/state';
 import { inferRelatedNodes } from "@/lib/blocks/olxdom";
 import { ignore } from "@/lib/content/parsers";
+
+const fields = state.fields(["correct"]);
+
 function _Correctness(props) {
-  const { targets, infer } = props;
+  const { targets, infer, fields } = props;
   const ids = inferRelatedNodes(props, {
     selector: n => n.node.blueprint?.isGrader,
     infer,
     targets
   });
   const targetId = ids[0];
-  const correctness = useComponentSelector(
-    targetId,
-    s => s?.correct ?? CORRECTNESS.UNSUBMITTED
+  let correctness = useFieldSelector(
+    props,
+    fields.correct,
+    {
+      selector: s => s?.correct ?? CORRECTNESS.UNSUBMITTED,
+      fallback: CORRECTNESS.UNSUBMITTED,
+      id: targetId
+    }
   );
 
   const icons = {
@@ -33,7 +42,8 @@ function _Correctness(props) {
 const Correctness = dev({
   ...ignore,
   name: 'Correctness',
-  component: _Correctness
+  component: _Correctness,
+  fields
 });
 
 export default Correctness;

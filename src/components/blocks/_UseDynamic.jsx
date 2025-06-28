@@ -1,14 +1,15 @@
 // src/components/blocks/_UseDynamic.jsx
 import React from 'react';
 import { render } from '@/lib/render';
-import { useReduxInput } from '@/lib/state';
+import { useReduxState } from '@/lib/state';
 
-export function _UseDynamic( params ) {
-  const [value, inputProps] = useReduxInput(params, params.fields.value, params.target);
+export function _UseDynamic( props ) {
+  const { fields, target } = props;
+  const [value, inputProps] = useReduxState(props, fields.value, target);
 
   if (!value) {
     return <pre className="text-red-500">[Missing &lt;Use&gt; resolution]</pre>;
   }
 
-  return render({ ...params, node: value });
+  return render({ ...props, node: value });
 }

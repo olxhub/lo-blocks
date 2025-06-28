@@ -1,8 +1,7 @@
 // src/lib/blocks/redux.test.tsx
-import * as redux from './redux';
+import * as fields from './fields';
 
-const { fields } = redux;
-const { __testables } = redux;
+const { __testables } = fields;
 
 const { fieldNameToDefaultEventName } = __testables;
 
@@ -29,7 +28,7 @@ describe('fields mapping and conflict detection', () => {
   beforeEach(() => __testables.reset());
 
   it('allows explicit event mapping for some fields and defaults for others', () => {
-    const result = fields(['user', { name: 'input', event: 'SET_MY_INPUT' }]);
+    const result = fields.fields(['user', { name: 'input', event: 'SET_MY_INPUT' }]);
     expect(result.fieldInfoByField).toEqual({
       user: { type: 'field', name: 'user', event: 'UPDATE_USER', scope: 'component' },
       input: { type: 'field', name: 'input', event: 'SET_MY_INPUT', scope: 'component' },
@@ -41,16 +40,16 @@ describe('fields mapping and conflict detection', () => {
   });
 
   it('throws on conflicting field or event registration (all in one test)', () => {
-    fields(['user', { name: 'input', event: 'SET_MY_INPUT' }]);
+    fields.fields(['user', { name: 'input', event: 'SET_MY_INPUT' }]);
 
     // field re-registered with a different event
-    expect(() => fields([{ name: 'user', event: 'SOMETHING_ELSE' }])).toThrow();
+    expect(() => fields.fields([{ name: 'user', event: 'SOMETHING_ELSE' }])).toThrow();
 
     // new field tries to map to already-used event
-    expect(() => fields([{ name: 'another', event: 'UPDATE_USER' }])).toThrow();
+    expect(() => fields.fields([{ name: 'another', event: 'UPDATE_USER' }])).toThrow();
 
     // This check is not worth the complexity of implementation right
     // now, but if we run into a bug, we could add it!
-    // expect(() => fields({ a: 'FOO', b: 'FOO' })).toThrow();
+    // expect(() => fields.fields({ a: 'FOO', b: 'FOO' })).toThrow();
   });
 });

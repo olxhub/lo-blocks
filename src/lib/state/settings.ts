@@ -1,4 +1,4 @@
-import { fields } from './redux';
+import { fields } from './fields';
 import { scopes } from './scopes';
 
 export const settingsFields = fields([

@@ -9,49 +9,52 @@ import { scopes, Scope } from './scopes';
 import type { FieldInfo, Fields } from '../types';
 
 const initialState = {
-  component_state: {},
-  componentSetting_state: {},
-  settings_state: {},
-  storage_state: {}
+  component: {},
+  componentSetting: {},
+  system: {},
+  storage: {}
 };
 
 export const updateResponseReducer = (state = initialState, action) => {
   const { scope = scopes.component, id, tag, ...rest } = action;
 
+  // TODO: This should be simplified now that we can use [scope] instead of
+  // componentSetting, etc.
   switch (scope) {
     case scopes.componentSetting:
       return {
         ...state,
-        componentSetting_state: {
-          ...state.componentSetting_state,
-          [tag]: { ...(state.componentSetting_state?.[tag]), ...rest }
+        componentSetting: {
+          ...state.componentSetting,
+          [tag]: { ...(state.componentSetting?.[tag]), ...rest }
         }
       };
 
     case scopes.system:
       return {
         ...state,
-        settings_state: { ...state.settings_state, ...rest }
+        system: { ...state.system, ...rest }
       };
 
     case scopes.storage:
       return {
         ...state,
-        storage_state: {
-          ...state.storage_state,
-          [id]: { ...(state.storage_state?.[id]), ...rest }
+        storage: {
+          ...state.storage,
+          [id]: { ...(state.storage?.[id]), ...rest }
         }
       };
 
     case scopes.component:
-    default:
       return {
         ...state,
-        component_state: {
-          ...state.component_state,
-          [id]: { ...(state.component_state?.[id]), ...rest }
+        component: {
+          ...state.component,
+          [id]: { ...(state.component?.[id]), ...rest }
         }
       };
+    default:
+      throw Error(`Unrecognized scope ${scope}`);
   }
 };
 

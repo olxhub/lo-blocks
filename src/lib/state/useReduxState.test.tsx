@@ -2,7 +2,8 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { renderHook, act } from '@testing-library/react';
 
-import { fields, useReduxState } from './redux';
+import { fields } from './fields';
+import { useReduxState } from './redux';
 import { scopes } from './scopes';
 import { store } from './store';
 
@@ -42,7 +43,7 @@ describe('useReduxState integration', () => {
 
     expect(result.current[0]).toBe('bar');
     const state = reduxStore.getState();
-    expect(state.application_state.component_state['test'].input).toBe('bar');
+    expect(state.application_state.component['test'].input).toBe('bar');
   });
 
 
@@ -69,7 +70,7 @@ describe('useReduxState integration', () => {
     });
     expect(result.current[0]).toBe(2);
     const state = reduxStore.getState();
-    expect(state.application_state.componentSetting_state.video.speed).toBe(2);
+    expect(state.application_state.componentSetting.video.speed).toBe(2);
   });
 
   it('handles system scoped fields', async () => {
@@ -90,7 +91,7 @@ describe('useReduxState integration', () => {
     });
     expect(result.current[0]).toBe('fr');
     const state = reduxStore.getState();
-    expect(state.application_state.settings_state.lang).toBe('fr');
+    expect(state.application_state.system.lang).toBe('fr');
   });
 
   it('handles storage scoped fields', async () => {
@@ -111,6 +112,6 @@ describe('useReduxState integration', () => {
     });
     expect(result.current[0]).toBe('abc');
     const state = reduxStore.getState();
-    expect(state.application_state.storage_state.file1.content).toBe('abc');
+    expect(state.application_state.storage.file1.content).toBe('abc');
   });
 });
