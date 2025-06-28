@@ -1,0 +1,6 @@
+<!-- content/demos/dynamiclist.xml -->
+<Lesson id="dynamic_list_demo" launchable="true">
+  <DynamicList id="Hello">
+    <LineInput id="World"/>
+  </DynamicList>
+</Lesson>
