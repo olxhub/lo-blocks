@@ -118,6 +118,7 @@ export function _Chat(props) {
       messages={visibleMessages}
       footer={footer}
       onAdvance={handleAdvance}
+      height={props.height || 'flex-1'}
     />
   );
 }
