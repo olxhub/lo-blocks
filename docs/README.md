@@ -203,7 +203,9 @@ reasons, but it's very common that we have something like:
 
 There are many ways to have this work. The <Use ref="id"> tag is
 handled during parsing and creates a DAG (it does not take its own ID,
-since it is not itself added to the DAG). The <UseDynamic target="id">
+since it is not itself added to the DAG). Attributes on <Use> override
+those on the referenced block, so `<Use ref="foo" clip="[8,12]"/>` will
+render the block "foo" with a different clip. The <UseDynamic target="id">
 is its own block, and renders a subnode.
 
 We can the DAG in two ways:

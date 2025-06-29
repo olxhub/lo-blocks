@@ -15,3 +15,11 @@ test('returns first element id when multiple roots', async () => {
   const { root } = await parseOLX(xml, PROV);
   expect(root).toBe('one');
 });
+
+test('parses <Use> with attribute overrides', async () => {
+  const xml = '<Lesson id="L"><Chat id="C" clip="[1,2]"/><Use ref="C" clip="[3,4]"/></Lesson>';
+  const { idMap, root } = await parseOLX(xml, PROV);
+  const lesson = idMap[root];
+  const useKid = lesson.kids[1];
+  expect(useKid).toEqual({ type: 'block', id: 'C', overrides: { clip: '[3,4]' } });
+});

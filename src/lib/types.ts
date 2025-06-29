@@ -100,7 +100,7 @@ export interface ComponentMap {
 // A list of kids can have any of these; renderedCompiledChildren should handle all of these.
 // TODO: These should probably all be of type kidEntry, and the current type should move under a different key.
 export type BlueprintKidEntry =
-  | { type: 'block'; id: OLXId }
+  | { type: 'block'; id: OLXId; overrides?: Record<string, JSONValue> }
   | { type: 'text'; text: string }
   | { type: 'xml'; xml: string }
   | { type: 'cdata'; value: string }

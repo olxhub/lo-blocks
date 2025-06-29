@@ -53,15 +53,8 @@ export async function parseOLX(
         );
       }
 
-      const allowedAttrs = ['ref'];
-      const extraAttrs = Object.keys(attributes).filter(attr => !allowedAttrs.includes(attr));
-      if (extraAttrs.length > 0) {
-        throw new Error(
-          `<Use ref="..."> in ${formatProvenance(provenance)} must not have additional attributes (${extraAttrs.join(', ')}). ` +
-          `In the future, these will go into an 'overrides' dictionary.`
-        );
-      }
-      return { type: 'block', id: attributes.ref };
+      const { ref, ...overrides } = attributes;
+      return { type: 'block', id: ref, overrides };
     }
 
     const id = attributes.id || attributes.url_name || createId(node);

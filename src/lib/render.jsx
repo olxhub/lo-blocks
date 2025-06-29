@@ -37,8 +37,7 @@ export function render({ node, idMap, key, nodeInfo, componentMap = COMPONENT_MA
     return render({ node: entry, idMap, key, nodeInfo, componentMap, idPrefix });
   }
 
-  // Handle { type: 'block', id }
-  // We should also support overrides in the near future.
+  // Handle { type: 'block', id, overrides }
   if (
     typeof node === 'object' &&
     node !== null &&
@@ -56,7 +55,10 @@ export function render({ node, idMap, key, nodeInfo, componentMap = COMPONENT_MA
         />
       );
     }
-    return render({ node: entry, idMap, key, nodeInfo, componentMap, idPrefix });
+    const entryWithOverrides = node.overrides
+      ? { ...entry, attributes: { ...entry.attributes, ...node.overrides } }
+      : entry;
+    return render({ node: entryWithOverrides, idMap, key, nodeInfo, componentMap, idPrefix });
   }
 
   // Handle structured OLX-style node
@@ -152,7 +154,7 @@ export function renderCompiledKids( props ) {
       case 'block':
         return (
           <React.Fragment key={child.key}>
-            {render({ node: child.id, idMap, key: `${child.key}`, nodeInfo, componentMap, idPrefix })}
+            {render({ node: child, idMap, key: `${child.key}`, nodeInfo, componentMap, idPrefix })}
           </React.Fragment>
         );
 
