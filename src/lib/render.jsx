@@ -154,7 +154,7 @@ export function renderCompiledKids( props ) {
       case 'block':
         return (
           <React.Fragment key={child.key}>
-            {render({ node: child.id, idMap, key: `${child.key}`, nodeInfo, componentMap, idPrefix })}
+            {render({ node: child, idMap, key: `${child.key}`, nodeInfo, componentMap, idPrefix })}
           </React.Fragment>
         );
 
