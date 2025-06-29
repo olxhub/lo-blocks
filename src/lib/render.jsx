@@ -183,7 +183,7 @@ export function renderCompiledKids( props ) {
         return React.createElement(
           child.tag,
           { key: child.key, ...child.attributes },
-          renderCompiledKids({ kids: child.kids || [], idMap, nodeInfo, componentMap, idPrefix })
+          renderCompiledKids({ kids: child.kids ?? [], idMap, nodeInfo, componentMap, idPrefix })
         );
 
       case 'node':

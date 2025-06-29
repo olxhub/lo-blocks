@@ -9,7 +9,7 @@ function _NumberInput(props) {
   return (
     <>
       {children}
-      <input type="number" {...inputProps} className={className || 'border rounded px-2'} />
+      <input type="number" {...inputProps} className={className ?? 'border rounded px-2'} />
     </>
   );
 }

@@ -19,8 +19,8 @@ export class NetworkStorageProvider implements StorageProvider {
   listEndpoint: string;
 
   constructor(options: NetworkProviderOptions = {}) {
-    this.readEndpoint = (options.readEndpoint || '/api/file').replace(/\/$/, '');
-    this.listEndpoint = (options.listEndpoint || '/api/files').replace(/\/$/, '');
+    this.readEndpoint = (options.readEndpoint ?? '/api/file').replace(/\/$/, '');
+    this.listEndpoint = (options.listEndpoint ?? '/api/files').replace(/\/$/, '');
   }
 
   async loadXmlFilesWithStats(
@@ -40,7 +40,7 @@ export class NetworkStorageProvider implements StorageProvider {
     const res = await fetch(url);
     const json = await res.json();
     if (!json.ok) {
-      throw new Error(json.error || 'Failed to list files');
+      throw new Error(json.error ?? 'Failed to list files');
     }
     return json.tree as UriNode;
   }
@@ -51,7 +51,7 @@ export class NetworkStorageProvider implements StorageProvider {
     );
     const json = await res.json();
     if (!json.ok) {
-      throw new Error(json.error || 'Failed to read');
+      throw new Error(json.error ?? 'Failed to read');
     }
     return json.content as string;
   }
@@ -64,7 +64,7 @@ export class NetworkStorageProvider implements StorageProvider {
     });
     const json = await res.json();
     if (!json.ok) {
-      throw new Error(json.error || 'Failed to write');
+      throw new Error(json.error ?? 'Failed to write');
     }
   }
 

@@ -70,7 +70,7 @@ function createBlock(config: BlockBlueprint): React.ComponentType<any> {
     staticKids: config.staticKids,
     reducers: config.reducers ?? [],
     getValue: config.getValue,
-    fields: parsed?.fields?.fieldInfoByField || {},
+    fields: parsed?.fields?.fieldInfoByField ?? {},
 
     OLXName: olxName,
     description: parsed.description,

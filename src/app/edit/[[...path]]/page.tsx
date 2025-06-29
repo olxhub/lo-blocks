@@ -192,7 +192,7 @@ function NavigationPane() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [mode, setMode] = useState<'files' | 'components' | 'search'>(
-    (searchParams.get('nav') as 'files' | 'components' | 'search') || 'files'
+    (searchParams.get('nav') as 'files' | 'components' | 'search') ?? 'files'
   );
 
   const updateMode = (m: 'files' | 'components' | 'search') => {
@@ -229,7 +229,7 @@ function NavigationPane() {
 
 export default function EditPage() {
   // Provenance we're editing
-  const path = (useParams().path || []).join('/');
+  const path = (useParams().path ?? []).join('/');
   // Text of file
   const [content, setContent] = useEditComponentState(
     editorFields.fieldInfoByField.content,

@@ -20,8 +20,8 @@ export const Trace = ({
   // If a header isn't provided, try to build one from props
   if (!headerContent && props) {
     // Try to get a displayName or fallback to props.url_name/id
-    const name = props?.nodeInfo?.node?.tag || 'N/A';
-    const id = props?.id || 'n/a';
+    const name = props?.nodeInfo?.node?.tag ?? 'N/A';
+    const id = props?.id ?? 'n/a';
     headerContent = `[${name} / (id: ${id})]`;
   }
 
@@ -39,10 +39,10 @@ export const DebugWrapper = ({ props = {}, blueprint, children }) => {
   );
   if (!debug) return <>{children}</>;
 
-  const tag = props?.nodeInfo?.node?.tag || 'N/A';
-  const id = props?.nodeInfo?.node?.id || props.id || 'n/a';
-  const provenance = props?.nodeInfo?.node?.provenance || [];
-  const prefix = process.env.NEXT_PUBLIC_DEBUG_LINK_PREFIX || '';
+  const tag = props?.nodeInfo?.node?.tag ?? 'N/A';
+  const id = props?.nodeInfo?.node?.id ?? props.id ?? 'n/a';
+  const provenance = props?.nodeInfo?.node?.provenance ?? [];
+  const prefix = process.env.NEXT_PUBLIC_DEBUG_LINK_PREFIX ?? '';
 
   const parsed = provenance.map(p => parseProvenance(p));
 
@@ -50,7 +50,7 @@ export const DebugWrapper = ({ props = {}, blueprint, children }) => {
     file: (prov, label, key) => {
       // TODO: Move away from absolute file:/// URIs
       // HACK: Extracts relative from absolute URI
-      const rel = prov.path.split('/content/')[1] || prov.path;
+      const rel = prov.path.split('/content/')[1] ?? prov.path;
       const href = `/edit/${encodeURI(rel)}`;
       return <Link key={key} href={href}>{label}</Link>;
     }

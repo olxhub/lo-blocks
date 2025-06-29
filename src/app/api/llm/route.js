@@ -26,9 +26,9 @@ async function processPrompt(prompt, tokens, temperature) {
 }
 
 export async function GET(request) {
-  const prompt = request.nextUrl.searchParams.get('prompt') || default_prompt;
-  const tokens = request.nextUrl.searchParams.get('tokens') || default_tokens;
-  const temperature = request.nextUrl.searchParams.get('temperature') || default_temperature;
+  const prompt = request.nextUrl.searchParams.get('prompt') ?? default_prompt;
+  const tokens = request.nextUrl.searchParams.get('tokens') ?? default_tokens;
+  const temperature = request.nextUrl.searchParams.get('temperature') ?? default_temperature;
   const jsonResponse = await processPrompt(prompt, tokens, temperature);
   return NextResponse.json({'response': jsonResponse});
 }
@@ -37,9 +37,9 @@ export async function GET(request) {
 export async function POST(request) {
   const req = await request.json();
 
-  const prompt = req?.prompt || default_prompt;
-  const tokens = req?.tokens || default_tokens;
-  const temperature = req?.temperature || default_temperature;
+  const prompt = req?.prompt ?? default_prompt;
+  const tokens = req?.tokens ?? default_tokens;
+  const temperature = req?.temperature ?? default_temperature;
 
   const jsonResponse = await processPrompt(prompt, tokens, temperature);
   return NextResponse.json({'response': jsonResponse});

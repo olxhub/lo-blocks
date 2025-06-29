@@ -34,14 +34,14 @@ export function getKidsBFS(nodeInfo, { selector = () => true, includeRoot = fals
   const results = [];
   const queue = includeRoot
     ? [nodeInfo]
-    : Object.values(nodeInfo.renderedKids || {});
+    : Object.values(nodeInfo.renderedKids ?? {});
 
   while (queue.length) {
     const current = queue.shift();
     if (selector(current)) {
       results.push(current);
     }
-    queue.push(...Object.values(current.renderedKids || {}));
+    queue.push(...Object.values(current.renderedKids ?? {}));
   }
 
   return results;
@@ -57,7 +57,7 @@ export function getKidsDFS(nodeInfo, { selector = () => true, includeRoot = fals
     if ((includeRoot || !isRoot) && selector(ni)) {
       results.push(ni);
     }
-    Object.values(ni.renderedKids || {}).forEach(child =>
+    Object.values(ni.renderedKids ?? {}).forEach(child =>
       visit(child, false)
     );
   }

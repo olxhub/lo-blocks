@@ -66,7 +66,7 @@ function resolveIdForContext(context, matrix = ID_RESOLUTION_MATRIX) {
 const _reduxId = resolveIdForContext("reduxId");
 export const reduxId = (input, defaultValue) => {
   const base = _reduxId(input, defaultValue);
-  const prefix = input?.idPrefix || '';
+  const prefix = input?.idPrefix ?? '';
   return prefix ? `${prefix}.${base}` : base;
 };
 

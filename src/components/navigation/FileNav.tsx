@@ -35,7 +35,7 @@ export default function FileNav() {
     return (
       <li key={node.uri} className="ml-2">
         <details open>
-          <summary className="cursor-pointer select-none">{node.uri.split('/').pop() || 'content'}</summary>
+          <summary className="cursor-pointer select-none">{node.uri.split('/').pop() ?? 'content'}</summary>
           <ul className="ml-4">
             {node.children?.map(child => renderNode(child))}
           </ul>

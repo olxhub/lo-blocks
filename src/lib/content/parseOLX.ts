@@ -35,7 +35,7 @@ export async function parseOLX(
     const tag = Object.keys(node).find(k => ![':@', '#text', '#comment'].includes(k));
     if (!tag) return null;
 
-    const attributes = node[':@'] || {};
+    const attributes = node[':@'] ?? {};
 
     if (attributes.ref) {
       if (tag !== 'Use') {
@@ -57,7 +57,7 @@ export async function parseOLX(
       return { type: 'block', id: ref, overrides };
     }
 
-    const id = attributes.id || attributes.url_name || createId(node);
+    const id = attributes.id ?? attributes.url_name ?? createId(node);
 
     const Component = COMPONENT_MAP[tag] || COMPONENT_MAP[tag.charAt(0).toUpperCase() + tag.slice(1)];
     if (!Component) {
@@ -127,8 +127,8 @@ export async function parseOLX(
 }
 
 function createId(node) {
-  const attributes = node[':@'] || {};
-  const id = attributes.url_name || attributes.id;
+  const attributes = node[':@'] ?? {};
+  const id = attributes.url_name ?? attributes.id;
   if (id) return id;
 
   const canonical = JSON.stringify(node);

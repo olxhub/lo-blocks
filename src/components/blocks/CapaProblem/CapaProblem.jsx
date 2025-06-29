@@ -23,7 +23,7 @@ function capaParser({ id, tag, attributes, provenance, rawParsed, storeEntry }) 
     }
     const tag = Object.keys(node).find(k => ![':@', '#text', '#comment'].includes(k));
     if (!tag) return null;
-    const attributes = node[':@'] || {};
+    const attributes = node[':@'] ?? {};
     const kids = node[tag];
 
     /* TODO: from Open edX OLX, we need to handle cases like:

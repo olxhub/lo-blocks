@@ -8,7 +8,7 @@ import { DisplayError } from '@/lib/util/debug';
 
 export function _DigitSpanTask( props ) {
   const { id, kids = [], attributes = {}, fields } = props;
-  const mode = attributes.mode || 'forward'; // 'forward' | 'backward' | 'ascending'
+  const mode = attributes.mode ?? 'forward'; // 'forward' | 'backward' | 'ascending'
 
   const [sequence, setSequence] = useReduxState(props, fields.sequence, []);
   const [userInput, setUserInput] = useReduxState(props, fields.userInput, '');

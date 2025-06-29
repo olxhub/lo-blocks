@@ -18,7 +18,7 @@ function _TextArea( props ) {
       {renderCompiledKids( props )}
       <textarea
         {...inputProps}
-        className={className || 'large-input'}
+        className={className ?? 'large-input'}
       />
     </>
   );

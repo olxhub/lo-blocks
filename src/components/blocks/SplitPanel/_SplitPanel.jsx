@@ -7,8 +7,8 @@ import { render } from '@/lib/render';
 
 export default function _SplitPanel(props) {
   const { kids = {}, sizes = '50,50' } = props;
-  const left = kids.left || [];
-  const right = kids.right || [];
+  const left = kids.left ?? [];
+  const right = kids.right ?? [];
 
   const parsedSizes = sizes
     .split(',')

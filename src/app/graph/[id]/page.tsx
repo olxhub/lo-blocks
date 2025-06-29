@@ -66,10 +66,10 @@ function CustomNode({ data, id }) {
         {shortId}
       </div>
       <div style={{ color: '#666', fontSize: '0.7rem', marginBottom: 4 }}>
-        {data.tag || '(no tag)'}
+        {data.tag ?? '(no tag)'}
       </div>
       <div style={{ fontSize: '0.65rem', color: '#333' }}>
-        {Object.entries(data.attributes || {}).map(([key, value]) => (
+        {Object.entries(data.attributes ?? {}).map(([key, value]) => (
           <div key={key}>
             <strong>{key}</strong>: {value}
           </div>

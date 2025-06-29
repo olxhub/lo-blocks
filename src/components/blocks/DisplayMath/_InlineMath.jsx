@@ -9,7 +9,7 @@ import { DisplayError } from '@/lib/util/debug';
 export function _InlineMath( props ) {
   const { kids, url_name } = props;
   const latex = kids
-    ?.filter(k => k && k.type === 'text')
+    ?.filter(k => k?.type === 'text')
     .map(k => k.text)
     .join(' ')
     .trim();

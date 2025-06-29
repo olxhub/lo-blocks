@@ -39,7 +39,7 @@ export function parseIdMap(idMap) {
       id,
       data: {
         label: `${node.tag}\n(${id})`,
-        attributes: node.attributes || {},
+        attributes: node.attributes ?? {},
         tag: node.tag,
 	provenance: node.provenance
       },
