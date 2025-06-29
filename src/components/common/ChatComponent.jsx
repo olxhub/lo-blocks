@@ -13,10 +13,10 @@ const getAvatarColor = (name) => {
   ];
 
   // Simple hash function to get consistent color for same name
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
+  const hash = Array.from(name).reduce(
+    (acc, ch) => ch.charCodeAt(0) + ((acc << 5) - acc),
+    0
+  );
 
   const index = Math.abs(hash) % colors.length;
   return colors[index];

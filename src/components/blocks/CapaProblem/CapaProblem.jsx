@@ -113,14 +113,13 @@ function capaParser({ id, tag, attributes, provenance, rawParsed, storeEntry }) 
   return id;
 }
 
-function collectIds(nodes) {
-  let ids = [];
-  for (const n of nodes || []) {
-    if (!n) continue;
-    if (n.type === 'block' && n.id) ids.push(n.id);
-    if (n.type === 'html') ids = ids.concat(collectIds(n.kids));
-  }
-  return ids;
+function collectIds(nodes = []) {
+  return nodes.flatMap(n => {
+    if (!n) return [];
+    if (n.type === 'block' && n.id) return [n.id];
+    if (n.type === 'html') return collectIds(n.kids);
+    return [];
+  });
 }
 
 capaParser.staticKids = entry => collectIds(entry.kids);

@@ -23,11 +23,7 @@ export function _DigitSpanTask( props ) {
   }, [step, sequence]);
 
   function generateSequence(length) {
-    const seq = [];
-    for (let i = 0; i < length; i++) {
-      seq.push(Math.floor(Math.random() * 9) + 1);
-    }
-    return seq;
+    return Array.from({ length }, () => Math.floor(Math.random() * 9) + 1);
   }
 
   async function playSequence() {

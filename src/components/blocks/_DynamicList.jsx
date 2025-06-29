@@ -27,18 +27,15 @@ export default function _DynamicList(props) {
   const handleAdd = () => setCount(Math.min(parsedMax, count + 1));
   const handleRemove = () => setCount(Math.max(parsedMin, count - 1));
 
-  const entries = [];
-  for (let i = 0; i < count; i++) {
-    entries.push(
-      <div key={i} className="mb-2">
-        {renderCompiledKids({
-          ...props,
-          kids,
-          idPrefix: `${basePrefix}.${i}`,
-        })}
-      </div>
-    );
-  }
+  const entries = Array.from({ length: count }, (_, i) => (
+    <div key={i} className="mb-2">
+      {renderCompiledKids({
+        ...props,
+        kids,
+        idPrefix: `${basePrefix}.${i}`,
+      })}
+    </div>
+  ));
 
   return (
     <div>

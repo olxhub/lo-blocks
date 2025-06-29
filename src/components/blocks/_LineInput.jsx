@@ -15,10 +15,11 @@ export default function _LineInput( props ) {
     { updateValidator }
   );
 
-  const passthrough = {};
-  for (const key of allowedAttrs) {
-    if (rest[key] !== undefined) passthrough[key] = rest[key];
-  }
+  const passthrough = Object.fromEntries(
+    allowedAttrs
+      .filter(key => rest[key] !== undefined)
+      .map(key => [key, rest[key]])
+  );
 
   return (
     <>
