@@ -108,6 +108,12 @@ SectionUnderline
       expected("at least 3 dashes in section underline");
     }
 
+// Lookahead helper: detects a section header line followed by an underline
+// without consuming any input. Used to prevent Dialogue continuation lines
+// from capturing section headers.
+SectionHeaderBlockStart
+  = SectionHeaderTitle InlineMetadata? _ NewLine SectionUnderline
+
 StartCommandBlock
   = "---"
 
@@ -216,7 +222,7 @@ DialogueGroup
   }
 
 ContinuationLine
-  = !DialogueLineStart !MetadataLineStart !StartCommandBlock !ArrowCommand !PauseCommandStart !WaitCommandStart !CommentLineStart content:LineContent NewLine {
+  = !SectionHeaderBlockStart !DialogueLineStart !MetadataLineStart !StartCommandBlock !ArrowCommand !PauseCommandStart !WaitCommandStart !CommentLineStart content:LineContent NewLine {
       return { text: content };
   }
 
