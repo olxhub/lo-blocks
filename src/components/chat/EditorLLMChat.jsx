@@ -4,15 +4,6 @@
 import { useState } from 'react';
 import { ChatComponent, InputFooter } from '@/components/common/ChatComponent';
 
-// statusEnum.js
-export const ChatStatus = {
-  IDLE: 'idle',
-  LOADING: 'loading',
-  ERROR: 'error',
-  // Add more statuses as needed, e.g., TOOL_CALLING: 'tool_calling'
-};
-
-
 // TODO: Implement a state machine to disable the footer while waiting for a
 // response. This will likely leverage Redux and src/lib/llm/client.jsx.
 
@@ -29,14 +20,22 @@ const toolFunctions = {
   helloInGerman: async () => "Hallo, Welt!",
 };
 
+export const LLM_STATUS = {
+  INIT: 'LLM_INIT',
+  RUNNING: 'LLM_RUNNING',
+  RESPONSE_READY: 'LLM_RESPONSE_READY',
+  ERROR: 'LLM_ERROR',
+};
+
 function useChat(props) {
   const [messages, setMessages] = useState([
     { type: 'SystemMessage', text: 'Ask the LLM a question.' }
   ]);
-  const [status, setStatus] = useState('idle'); // idle | loading | error
+  const [status, setStatus] = useState(LLM_STATUS.INIT);
 
   const sendMessage = async (text) => {
-    setStatus('loading');
+    setStatus(LLM_STATUS.RUNNING);
+
     const userMessage = { type: 'Line', speaker: 'You', text };
     setMessages((m) => [...m, userMessage]);
 
@@ -54,18 +53,19 @@ function useChat(props) {
         body: JSON.stringify({
           model: 'gpt-3.5-turbo',
           messages: history,
-          // ...include any props.tools etc as needed
         }),
       });
       const json = await res.json();
       const content = json.choices?.[0]?.message?.content || json.response?.content;
       if (content) {
         setMessages((m) => [...m, { type: 'Line', speaker: 'LLM', text: content }]);
+        setStatus(LLM_STATUS.RESPONSE_READY);
+      } else {
+        setStatus(LLM_STATUS.ERROR);
       }
-      setStatus('idle');
     } catch (err) {
       setMessages((m) => [...m, { type: 'SystemMessage', text: 'Error contacting LLM' }]);
-      setStatus('error');
+      setStatus(LLM_STATUS.ERROR);
     }
   };
 
