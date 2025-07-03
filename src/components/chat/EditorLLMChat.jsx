@@ -13,21 +13,20 @@ const tools = [{
     name: "helloInGerman",
     description: "Returns the phrase 'Hello, World!' in German.",
     parameters: { type: "object", properties: {}, required: [] }
-  }
+  },
+  callback: async () => "Hallo, Welt!",
 }];
-
-const toolFunctions = {
-  helloInGerman: async () => "Hallo, Welt!",
-};
 
 export const LLM_STATUS = {
   INIT: 'LLM_INIT',
   RUNNING: 'LLM_RUNNING',
   RESPONSE_READY: 'LLM_RESPONSE_READY',
   ERROR: 'LLM_ERROR',
+  TOOL_RUNNING: 'LLM_TOOL_RUNNING',
 };
 
-function useChat(props) {
+function useChat(params = {}) {
+  const { tools = [] } = params;
   const [messages, setMessages] = useState([
     { type: 'SystemMessage', text: 'Ask the LLM a question.' }
   ]);
@@ -37,35 +36,40 @@ function useChat(props) {
     setStatus(LLM_STATUS.RUNNING);
 
     const userMessage = { type: 'Line', speaker: 'You', text };
-    setMessages((m) => [...m, userMessage]);
+    setMessages(m => [...m, userMessage]);
 
-    const history = [...messages, userMessage]
+    let history = [...messages, userMessage]
       .filter((msg) => msg.type === 'Line')
       .map((msg) => ({
         role: msg.speaker === 'You' ? 'user' : 'assistant',
         content: msg.text,
       }));
 
-    try {
-      const res = await fetch('/api/openai/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: history,
-        }),
-      });
-      const json = await res.json();
-      const content = json.choices?.[0]?.message?.content || json.response?.content;
-      if (content) {
-        setMessages((m) => [...m, { type: 'Line', speaker: 'LLM', text: content }]);
-        setStatus(LLM_STATUS.RESPONSE_READY);
-      } else {
+    let loopCount = 0;
+    while (loopCount++ < 5) {
+      try {
+        const res = await fetch('/api/openai/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'gpt-4.1-nano',
+            messages: history,
+            tools: tools ? tools.map(({ callback, ...rest }) => rest) : []
+          }),
+        });
+        const json = await res.json();
+        const content = json.choices?.[0]?.message?.content || json.response?.content;
+        if (content) {
+          setMessages((m) => [...m, { type: 'Line', speaker: 'LLM', text: content }]);
+          setStatus(LLM_STATUS.RESPONSE_READY);
+          break;
+        } else {
+          setStatus(LLM_STATUS.ERROR);
+        }
+      } catch (err) {
+        setMessages((m) => [...m, { type: 'SystemMessage', text: 'Error contacting LLM' }]);
         setStatus(LLM_STATUS.ERROR);
       }
-    } catch (err) {
-      setMessages((m) => [...m, { type: 'SystemMessage', text: 'Error contacting LLM' }]);
-      setStatus(LLM_STATUS.ERROR);
     }
   };
 
