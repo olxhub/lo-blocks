@@ -4,6 +4,15 @@
 import { useState } from 'react';
 import { ChatComponent, InputFooter } from '@/components/common/ChatComponent';
 
+// statusEnum.js
+export const ChatStatus = {
+  IDLE: 'idle',
+  LOADING: 'loading',
+  ERROR: 'error',
+  // Add more statuses as needed, e.g., TOOL_CALLING: 'tool_calling'
+};
+
+
 // TODO: Implement a state machine to disable the footer while waiting for a
 // response. This will likely leverage Redux and src/lib/llm/client.jsx.
 
@@ -24,8 +33,10 @@ function useChat(props) {
   const [messages, setMessages] = useState([
     { type: 'SystemMessage', text: 'Ask the LLM a question.' }
   ]);
+  const [status, setStatus] = useState('idle'); // idle | loading | error
 
   const sendMessage = async (text) => {
+    setStatus('loading');
     const userMessage = { type: 'Line', speaker: 'You', text };
     setMessages((m) => [...m, userMessage]);
 
@@ -37,21 +48,28 @@ function useChat(props) {
       }));
 
     try {
-      const res = await fetch('/api/llm', {
+      const res = await fetch('/api/openai/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: history, tools }),
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: history,
+          // ...include any props.tools etc as needed
+        }),
       });
       const json = await res.json();
-      if('content' in json.response) {
-        setMessages((m) => [...m, { type: 'Line', speaker: 'LLM', text: json.response.content }]);
+      const content = json.choices?.[0]?.message?.content || json.response?.content;
+      if (content) {
+        setMessages((m) => [...m, { type: 'Line', speaker: 'LLM', text: content }]);
       }
+      setStatus('idle');
     } catch (err) {
       setMessages((m) => [...m, { type: 'SystemMessage', text: 'Error contacting LLM' }]);
+      setStatus('error');
     }
   };
 
-  return { messages, sendMessage };
+  return { messages, sendMessage, status };
 }
 
 export default function EditorLLMChat() {
