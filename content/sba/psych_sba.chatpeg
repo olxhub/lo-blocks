@@ -3,8 +3,8 @@ Author: [Add author here]
 Course: Intro to Psychology
 ~~~~
 
-Introduction [id=scene.1]
--------------------------
+Introduction
+------------
 
 Annie: Hey, sorry I'm late. I was talking to my roommate about a problem. [id=start]
 
@@ -82,7 +82,7 @@ so every time they tried to bring the problem under control, they were only maki
 
 Lin: That means we need to figure out things to suggest that will reinforce cooperation. We don't want to accidentally reinforce the wrong thing!
 
-# [activity: display messages screenshot]
+# Note: This is a comment. We shoould implement a screenshot of shown messages.
 peg_sba_sidebar -> messages_image
 
 PreQuiz2 -- Positive/Negative Reinforcement and Punishment [id=scene.4]
@@ -113,17 +113,15 @@ Annie: Yeah...me, too. How about if we fill in something like this graphic?
 
 JJ: I found this chart on the Internet. I think it sums things up nicely!
 
-# [activity: multi-drop categorization]
+# Note: This is the multidrop characterization activity.
 peg_sba_sidebar -> positive_negative_reinforcement_punishment
 
 --- wait positive_negative_reinforcement_punishment ---
 
-# [activity: display poster image]
 peg_sba_sidebar -> poster_image
 
-### Section:
-
-# Quiz 1: Reinforcement and Punishment [id=scene.5]
+Quiz 1: Reinforcement and Punishment
+------------------------------------
 
 JJ: It sounds like we may still be a bit confused on these concepts. I don't think  
 we should give Annie's friend any advice until we're sure we know exactly  
@@ -138,32 +136,31 @@ discuss them ...
 
 Lin: Here are the first five questions on the quiz.
 
-# [activity: table of radio button questions 1-5]
+# Note: Make a table of radio button questions 1-5
 peg_sba_sidebar -> reinforce_punish_1
 
 Lin: Here are the questions six through ten on the quiz.
 
-# [activity: table of radio button questions 6-10]
+# Note: Show radio button questions 6-10]
 peg_sba_sidebar -> reinforce_punish_2
 
 Lin: Here are the questions eleven through fifteen on the quiz.
 
-# [activity: table of radio button questions 11-15]
+# 11-15
 peg_sba_sidebar -> reinforce_punish_3
 
 Lin: Here are the questions sixteen through twenty on the quiz.
 
-# [activity: table of radio button questions 16-20]
+# 16-20
 peg_sba_sidebar -> reinforce_punish_4
 
 Lin: Here is how we did on the quiz.
 
-# [activity: score table]
+# ... and finally, the score table
 peg_sba_sidebar -> quiz1_score
 --- wait quiz_percent>=80 ---
 
 JJ: Looks like we did pretty well!
---- wait quiz_percent<80 ---
 
 JJ: Looks like maybe we should review the answers. We got a fair number wrong.
 
@@ -215,8 +212,9 @@ the way psychologists think about it. If it increases the likelihood someone
 does something, psychologists call it reinforcement, and if it decreases  
 the likelihood, psychologists call it punishment.
 
-Quiz 2: Positive and Negative Reinforcement and Punishment [id=scene.6]
------------------------------------------------------------------------
+### Section:
+
+# [id=scene.6] Quiz 2: Positive and Negative Reinforcement and Punishment
 
 Lin: Hey everyone -- the TA just told me the quiz we took is a simplified version of the full quiz he gave in past years.
 
@@ -304,8 +302,9 @@ excluded in the past, she learned that she really did not want to participate in
 group after all. Essentially, she was discouraged from participating by having  
 participation taken away.
 
-Considering No-Rules Parenting [id=scene.7]
-------------------------------
+### Section:
+
+# [id=scene.7] Considering No-Rules Parenting
 
 Lin: Good job, Annie! That's a lot of content. I guess we had better each go over it before we discuss it.
 
