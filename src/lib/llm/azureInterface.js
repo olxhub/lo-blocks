@@ -1,4 +1,7 @@
 // src/lib/llm/azureInterface.js
+
+// OBSOLETE / DEPRECATED.
+
 import OpenAI from "openai";
 
 const client = new OpenAI({

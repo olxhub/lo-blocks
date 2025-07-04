@@ -1,6 +1,8 @@
 // src/app/api/llm/route.js
 /*
   This is an API for calling LLMs.
+
+  OBSOLETE / DEPRECATED. See src/app/api/openai
 */
 
 import { NextResponse, NextRequest } from 'next/server';
