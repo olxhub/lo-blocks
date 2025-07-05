@@ -32,6 +32,54 @@ function findToolByName(tools, name) {
   return tools?.find(t => t.function.name === name);
 }
 
+/* Move to something like:
+async function callLLM( params ) {
+  const { history, tools=[], statusCallback = () => null } = params;
+
+  let loopCount = 0;
+  let newMessages = [];
+  while (loopCount++ < 5) {
+    try {
+      const res = await fetch('/api/openai/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gpt-4.1-nano',
+          messages: [...history, ...newMessages],
+          tools: tools ? tools.map(({ callback, ...rest }) => rest) : []
+        }),
+      });
+      const json = (await res.json()).choices?.[0];
+      const content = json?.message?.content;
+      const toolCalls = json?.message.tool_calls;
+      if (toolCalls?.length) {
+        const toolResponses = await handleToolCalls(toolCalls, tools);
+        newMessages = [
+          ...newMessages,
+          json.message,
+          ...toolResponses
+        ];
+        continue;
+      }
+      if (content) {
+        statusCallback(LLM_STATUS.RESPONSE_READY);
+        return [...newMessages, { type: 'Line', speaker: 'LLM', text: content }];
+        break;
+      } else {
+        statusCallback(LLM_STATUS.ERROR);
+      }
+    } catch (err) {
+      statusCallback(LLM_STATUS.ERROR);
+      return [...newMessages,  { type: 'SystemMessage', text: 'Error contacting LLM' }];
+      break;
+    }
+  }
+}
+*/
+function callLLM( params ) {
+  const { statusCallback, history, tools=[] } = params;
+}
+
 export function useChat(params = {}) {
   const { tools = [] } = params;
   const [messages, setMessages] = useState([
@@ -53,6 +101,7 @@ export function useChat(params = {}) {
       }));
 
     let loopCount = 0;
+    let newMessages = [];
     while (loopCount++ < 5) {
       try {
         const res = await fetch('/api/openai/chat/completions', {
@@ -60,7 +109,7 @@ export function useChat(params = {}) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             model: 'gpt-4.1-nano',
-            messages: history,
+            messages: [...history, ...newMessages],
             tools: tools ? tools.map(({ callback, ...rest }) => rest) : []
           }),
         });
@@ -69,8 +118,8 @@ export function useChat(params = {}) {
         const toolCalls = json?.message.tool_calls;
         if (toolCalls?.length) {
           const toolResponses = await handleToolCalls(toolCalls, tools);
-          history = [
-            ...history,
+          newMessages = [
+            ...newMessages,
             json.message,
             ...toolResponses
           ];
