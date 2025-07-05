@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "firejail --noprofile --whitelist=$(pwd) next dev --turbopack",
+    "devfull": "npm run build:all && npm run dev",
     "build": "firejail --whitelist=$(pwd) npm run build:grammars && npm run build:gen-block-registry",
     "start": "firejail --noprofile --whitelist=$(pwd) next start",
     "lint": "firejail --whitelist=$(pwd) next lint",
@@ -12,6 +13,8 @@
     "xml2graph": "firejail --whitelist=$(pwd) npx tsx src/scripts/xml2graph.js",
     "build:grammars": "firejail --whitelist=$(pwd) node src/scripts/compile-grammars.js",
     "build:gen-block-registry": "firejail --whitelist=$(pwd) node src/scripts/generateBlockRegistry.js",
+    "build:all": "npm run build:grammars && npm run build:gen-block-registry",
+    "build:clean": "npm run clean && npm run clean-zombies ; npm install && npm run build:all",
     "clean": "firejail --whitelist=$(pwd) rm -rf .next node_modules .turbo out",
     "clean-zombies": "pkill -f next-server; pkill -f transform.js; pkill -f 'node dev'",
     "_comment_test_automation": "build-automation and test-automation are for automated build environments (e.g. ChatGPT sandbox, GitHub Actions, etc.), which are already sandboxed and might not have firejail",
