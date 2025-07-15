@@ -53,6 +53,7 @@ export async function callLLM(params) {
       const content = json?.message?.content;
       const toolCalls = json?.message.tool_calls;
       if (toolCalls?.length) {
+        statusCallback(LLM_STATUS.TOOL_RUNNING);
         const toolResponses = await handleToolCalls(toolCalls, tools);
         newMessages = [
           ...newMessages,
