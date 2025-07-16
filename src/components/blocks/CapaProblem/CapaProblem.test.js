@@ -7,11 +7,11 @@ it('wires inputs and graders with default IDs', async () => {
   const root = idMap['CapaDemo'];
   expect(root).toBeDefined();
 
-  const graderId = 'CapaDemo_grader_0';
-  const inputId0 = 'CapaDemo_input_0';
-  const inputId1 = 'CapaDemo_input_1';
-  const buttonId = 'CapaDemo_button';
-  const correctId = 'CapaDemo_correctness';
+  const graderId = 'CapaDemoRatio_grader_0';
+  const inputId0 = 'CapaDemoRatio_input_0';
+  const inputId1 = 'CapaDemoRatio_input_1';
+  const buttonId = 'CapaDemoRatio_button';
+  const correctId = 'CapaDemoRatio_correctness';
 
   expect(idMap[graderId]).toBeDefined();
   expect(idMap[inputId0]).toBeDefined();

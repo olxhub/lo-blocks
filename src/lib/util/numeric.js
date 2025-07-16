@@ -68,7 +68,7 @@ export function compareWithTolerance(student, instructor, tol=0) {
   return diff <= tol;
 }
 
-export function gradeNumerical(props, input) {
+export function gradeNumerical(props, { input } = {}) {
   const answer = props.answer;
 
   if (input === undefined || input === null || String(input).trim() === '') {
@@ -97,7 +97,7 @@ export function gradeNumerical(props, input) {
   return { correct: ok ? CORRECTNESS.CORRECT : CORRECTNESS.INCORRECT, message: '' };
 }
 
-export function gradeRatio(props, inputs) {
+export function gradeRatio(props, { inputs } = {}) {
   const answer = props.answer;
 
   if (!Array.isArray(inputs) || inputs.length < 2) {

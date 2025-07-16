@@ -88,13 +88,16 @@ export function grader({ grader, infer = true } = {}) {
       But if the grader expects a list, a list of length 1 should be okay.
     */
 
+    const param = values.length === 1
+      ? { input: values[0], inputs: values }
+      : { inputs: values };
     const { correct, message } = grader(
-      {...props, ...targetAttributes },
-      values.length === 1 ? values[0] : values
+      { ...props, ...targetAttributes },
+      param
     );
     console.log(grader(
-      {...props, ...targetAttributes },
-      values.length === 1 ? values[0] : values
+      { ...props, ...targetAttributes },
+      param
     ));
     // TODO: Add number of attempts
     // TODO Should we copy:
