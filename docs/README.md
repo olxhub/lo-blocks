@@ -25,7 +25,7 @@ grader function.
 ```javascript
 const SimpleCheck = blocks.test({
   ...blocks.grader({
-    grader: (props, input) =>
+    grader: (props, { input }) =>
       input === props.answer ? CORRECTNESS.CORRECT : CORRECTNESS.INCORRECT
   }),
   name: 'SimpleCheck',

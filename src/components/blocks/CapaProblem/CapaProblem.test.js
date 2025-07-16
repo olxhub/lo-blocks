@@ -7,13 +7,15 @@ it('wires inputs and graders with default IDs', async () => {
   const root = idMap['CapaDemo'];
   expect(root).toBeDefined();
 
-  const graderId = 'CapaDemo_grader_0';
-  const inputId = 'CapaDemo_input_0';
-  const buttonId = 'CapaDemo_button';
-  const correctId = 'CapaDemo_correctness';
+  const graderId = 'CapaDemoRatio_grader_0';
+  const inputId0 = 'CapaDemoRatio_input_0';
+  const inputId1 = 'CapaDemoRatio_input_1';
+  const buttonId = 'CapaDemoRatio_button';
+  const correctId = 'CapaDemoRatio_correctness';
 
   expect(idMap[graderId]).toBeDefined();
-  expect(idMap[inputId]).toBeDefined();
+  expect(idMap[inputId0]).toBeDefined();
+  expect(idMap[inputId1]).toBeDefined();
   expect(idMap[buttonId]).toBeDefined();
   expect(idMap[correctId]).toBeDefined();
 
@@ -21,7 +23,9 @@ it('wires inputs and graders with default IDs', async () => {
   const hasP = grader.kids.some(k => k.type === 'html' && k.tag === 'p');
   expect(hasP).toBe(true);
 
-  expect(idMap[graderId].attributes.targets).toBe(inputId);
+  expect(idMap[graderId].attributes.targets).toBe(
+    `${inputId0},${inputId1}`
+  );
   expect(idMap[buttonId].attributes.targets).toBe(graderId);
   expect(idMap[correctId].attributes.targets).toBe(graderId);
 });

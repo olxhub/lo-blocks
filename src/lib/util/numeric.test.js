@@ -1,5 +1,5 @@
 // src/lib/util/numeric.test.js
-import { parseComplex, parseTolerance, parseRange, inRange, compareWithTolerance, gradeNumerical } from './numeric.js';
+import { parseComplex, parseTolerance, parseRange, inRange, compareWithTolerance, gradeNumerical, gradeRatio } from './numeric.js';
 import { CORRECTNESS } from '../blocks/correctness.js';
 
 it('parses complex numbers and compares', () => {
@@ -18,9 +18,16 @@ it('handles ranges', () => {
 });
 
 it('grades numerical answers with tolerance', () => {
-  expect(gradeNumerical({answer:'5'}, '5').correct).toBe(CORRECTNESS.CORRECT);
-  expect(gradeNumerical({answer:'5', tolerance:'1'}, '5.5').correct).toBe(CORRECTNESS.CORRECT);
-  expect(gradeNumerical({answer:'[5,7)'} , '6').correct).toBe(CORRECTNESS.CORRECT);
-  expect(gradeNumerical({answer:'[5,7)'}, '7').correct).toBe(CORRECTNESS.INCORRECT);
-  expect(gradeNumerical({answer:'5'}, 'Hello').correct).toBe(CORRECTNESS.INVALID);
+  expect(gradeNumerical({answer:'5'}, {input:'5'}).correct).toBe(CORRECTNESS.CORRECT);
+  expect(gradeNumerical({answer:'5', tolerance:'1'}, {input:'5.5'}).correct).toBe(CORRECTNESS.CORRECT);
+  expect(gradeNumerical({answer:'[5,7)'} , {input:'6'}).correct).toBe(CORRECTNESS.CORRECT);
+  expect(gradeNumerical({answer:'[5,7)'}, {input:'7'}).correct).toBe(CORRECTNESS.INCORRECT);
+  expect(gradeNumerical({answer:'5'}, {input:'Hello'}).correct).toBe(CORRECTNESS.INVALID);
+});
+
+it('grades ratios of two numbers', () => {
+  expect(gradeRatio({answer:'0.5'}, {inputs:['1', '2']}).correct).toBe(CORRECTNESS.CORRECT);
+  expect(gradeRatio({answer:'0.5', tolerance:'0.1'}, {inputs:['2', '5']}).correct).toBe(CORRECTNESS.CORRECT);
+  expect(gradeRatio({answer:'2'}, {inputs:['1', '0']}).correct).toBe(CORRECTNESS.INVALID);
+  expect(gradeRatio({answer:'0.5'}, {inputs:['1', '3']}).correct).toBe(CORRECTNESS.INCORRECT);
 });

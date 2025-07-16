@@ -68,7 +68,7 @@ export function compareWithTolerance(student, instructor, tol=0) {
   return diff <= tol;
 }
 
-export function gradeNumerical(props, input) {
+export function gradeNumerical(props, { input } = {}) {
   const answer = props.answer;
 
   if (input === undefined || input === null || String(input).trim() === '') {
@@ -94,5 +94,38 @@ export function gradeNumerical(props, input) {
   const base = parseComplex(answer).abs();
   const tolerance = parseTolerance(props.tolerance, base);
   const ok = compareWithTolerance(student, answer, tolerance);
+  return { correct: ok ? CORRECTNESS.CORRECT : CORRECTNESS.INCORRECT, message: '' };
+}
+
+export function gradeRatio(props, { inputs } = {}) {
+  const answer = props.answer;
+
+  if (!Array.isArray(inputs) || inputs.length < 2) {
+    return { correct: CORRECTNESS.INVALID, message: 'Need two inputs' };
+  }
+
+  const [num, den] = inputs;
+
+  if (num === undefined || den === undefined ||
+      num === null || den === null ||
+      String(num).trim() === '' || String(den).trim() === '') {
+    return { correct: CORRECTNESS.INVALID, message: 'No answer provided' };
+  }
+
+  const numC = parseComplex(num);
+  const denC = parseComplex(den);
+
+  if (isNaN(numC.re) || isNaN(numC.im) || isNaN(denC.re) || isNaN(denC.im)) {
+    return { correct: CORRECTNESS.INVALID, message: 'Invalid number' };
+  }
+
+  if (denC.abs() === 0) {
+    return { correct: CORRECTNESS.INVALID, message: 'Division by zero' };
+  }
+
+  const studentRatio = numC.div(denC);
+  const base = parseComplex(answer).abs();
+  const tolerance = parseTolerance(props.tolerance, base);
+  const ok = compareWithTolerance(studentRatio, answer, tolerance);
   return { correct: ok ? CORRECTNESS.CORRECT : CORRECTNESS.INCORRECT, message: '' };
 }
