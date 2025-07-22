@@ -112,7 +112,7 @@ function PreviewPane({ path, content, idMap }) {
     null,
     { id: path }
   );
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Parse content when it changes
   useEffect(() => {
@@ -132,6 +132,7 @@ function PreviewPane({ path, content, idMap }) {
       try {
         const merged = { ...idMap, ...candidate.idMap };
         render({
+          key: candidate.root?.id ?? 'candidate-root',
           node: candidate.root,
           idMap: merged,
           nodeInfo: makeRootNode(),
@@ -157,6 +158,7 @@ function PreviewPane({ path, content, idMap }) {
     try {
       const merged = { ...idMap, ...parsed.idMap };
       return render({
+        key: parsed.root?.id ?? 'parsed-root',
         node: parsed.root,
         idMap: merged,
         nodeInfo: makeRootNode(),
@@ -229,7 +231,8 @@ function NavigationPane() {
 
 export default function EditPage() {
   // Provenance we're editing
-  const path = (useParams().path ?? []).join('/');
+  const rawPath = useParams().path;
+  const path = Array.isArray(rawPath) ? rawPath.join('/') : rawPath ?? '';
   // Text of file
   const [content, setContent] = useEditComponentState(
     editorFields.fieldInfoByField.content,
@@ -240,7 +243,7 @@ export default function EditPage() {
   // TODO: {status: , msg}
   // status: [ LOADING, SAVE_ERROR, SAVED, READY, SYNTAX_ERROR, ... ]
   // msg: Human-friendly message
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   // TODO: Overlay ReduxStorageProvider()
   const provider = new NetworkStorageProvider();

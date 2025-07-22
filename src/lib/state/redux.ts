@@ -132,15 +132,20 @@ export function useReduxState(
  * Helpers for component types.
  */
 
+type ReduxInputOptions = {
+  updateValidator?: (val: string) => boolean;
+};
+
 
 export function useReduxInput(
   props,
   field: FieldInfo,
   fallback = '',
-  { updateValidator } = {}
+  options: ReduxInputOptions = {}
 ) {
   const scope = field.scope ?? scopes.component;
   const fieldName = field.name;
+  const { updateValidator } = options;
 
   const selectorFn = (state) =>
     state && state[fieldName] !== undefined ? state[fieldName] : fallback;
@@ -183,7 +188,7 @@ export function useReduxInput(
     lo_event.logEvent(UPDATE_INPUT, payload);
   }, [id, tag, fieldName, updateValidator, scope]);
 
-  const ref = useRef();
+  const ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const input = ref.current;

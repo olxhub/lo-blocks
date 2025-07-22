@@ -8,5 +8,5 @@ import { enumdict } from '../util';
 // info on syntax highlighting, etc. for use in CodeMirror
 
 const _fileTypes = ['xml', 'olx', 'md'] as const;
-export const fileTypes = enumdict(_fileTypes) as const;
+export const fileTypes = enumdict(_fileTypes);
 export type FileType = (typeof _fileTypes)[number] | string;

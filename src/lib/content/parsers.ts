@@ -93,7 +93,20 @@ function extractInnerTextFromXmlNodes(rawParsed) {
 // through transparently.
 //
 // This seems to be a large number of parsers.
-export function childParser(fn, nameOverride) {
+type ParserFn = (ctx: any) => any;
+type StaticKidsFn = (entry: any) => any[];
+
+type ChildParserReturn = {
+  parser: (ctx: any) => Promise<any>;
+  staticKids?: StaticKidsFn;
+};
+
+interface ChildParserFn extends ParserFn {
+  _isChildParser?: boolean;
+  staticKids?: StaticKidsFn;
+}
+
+export function childParser(fn: ChildParserFn, nameOverride?: string): ChildParserReturn {
   fn._isChildParser = true;
 
   const wrapped = async function wrappedParser(ctx) {
@@ -118,7 +131,7 @@ export function childParser(fn, nameOverride) {
 
   // This is a bit of a hack. I hate having kidParsers with fn.staticKids.
   // They probably should return { parser, staticKids }.
-  const mixin = { parser: wrapped };
+  const mixin: ChildParserReturn = { parser: wrapped };
   if (typeof fn.staticKids === 'function') {
     mixin.staticKids = fn.staticKids;
   }
@@ -148,9 +161,9 @@ export const xml = {
         id, tag, attributes, provenance, rawParsed
       }
     ];
-  }
+  },
+  staticKids: () => []
 };
-xml.staticKids = () => [];
 
 // Assumes we have a list of OLX-style Blocks. E.g. for a learning sequence.
 export const blocks = childParser(async function blocksParser({ rawKids, parseNode }) {

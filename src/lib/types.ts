@@ -139,3 +139,22 @@ export interface OlxJson {
 export interface IdMap {
   [id: OLXId]: OlxJson;
 }
+
+
+export interface GraphNode {
+  id: string;
+  data: {
+    label: string;
+    attributes: Record<string, any>;
+    tag: string;
+    provenance?: any;
+  };
+  position: { x: number; y: number };
+  type: string;
+}
+
+export interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+}

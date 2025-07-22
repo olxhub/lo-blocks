@@ -9,7 +9,7 @@ const ReduxFieldInfo = z.object({
   scope: z.string(),
 }).strict();
 const ReduxFieldInfoMap = z.record(ReduxFieldInfo);
-const ReduxFieldsReturn = z.object({
+export const ReduxFieldsReturn = z.object({
   fieldInfoByField: ReduxFieldInfoMap,
   fieldInfoByEvent: ReduxFieldInfoMap,
 }).strict();
@@ -38,10 +38,25 @@ function assertUnimplemented<T>(field: T | undefined, fieldName: string) {
   }
 }
 
+type BlockComponent = React.ComponentType<any> & {
+  _isBlock: true;
+  component: React.ComponentType<any>;
+  action?: (...args: unknown[]) => unknown;
+  parser?: (...args: unknown[]) => unknown;
+  staticKids?: (...args: unknown[]) => unknown;
+  reducers: ((...args: unknown[]) => unknown)[];
+  getValue?: (...args: unknown[]) => unknown;
+  fields?: Record<string, any>;
+  OLXName: string;
+  description?: string;
+  namespace: string;
+  blueprint: BlockBlueprint;
+};
+
 // === Main factory ===
-function createBlock(config: BlockBlueprint): React.ComponentType<any> {
+function createBlock(config: BlockBlueprint): BlockComponent {
   const parsed = BlockBlueprintSchema.parse(config);
-  const Component = config.component ?? (() => null);
+  const Component: React.ComponentType<any> = config.component ?? (() => null);
 
   // === Strict name resolution ===
   const rawName =
@@ -61,24 +76,21 @@ function createBlock(config: BlockBlueprint): React.ComponentType<any> {
   // (Block as any)._isBlock = true
   // And similar.
   // Commit 430ab50f062a538d95c7d5d9630e7783d696de25 is the last one using the preferred format.
-  const Block = {
-    component: Component,
-    _isBlock: true,
+  const Block: BlockComponent = (props) => <Component {...props} />;
 
-    action: config.action,
-    parser: config.parser,
-    staticKids: config.staticKids,
-    reducers: config.reducers ?? [],
-    getValue: config.getValue,
-    fields: parsed?.fields?.fieldInfoByField ?? {},
-
-    OLXName: olxName,
-    description: parsed.description,
-    namespace: parsed.namespace,
-
-    blueprint: config
-  }
-
+  // ✅ Attach strongly typed metadata
+  Block._isBlock = true;
+  Block.component = Component;
+  Block.action = config.action;
+  Block.parser = config.parser;
+  Block.staticKids = config.staticKids;
+  Block.reducers = config.reducers ?? [];
+  Block.getValue = config.getValue;
+  Block.fields = parsed?.fields?.fieldInfoByField ?? {};
+  Block.OLXName = olxName;
+  Block.description = parsed.description;
+  Block.namespace = parsed.namespace;
+  Block.blueprint = config;
 
   assertUnimplemented(parsed.reducers, 'reducers');
 

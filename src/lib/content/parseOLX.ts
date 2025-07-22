@@ -16,7 +16,10 @@ const xmlParser = new XMLParser({
   attributeNamePrefix: '',
   preserveOrder: true,
   commentPropName: '#comment',
-  preserveTextNodeWhiteSpaces: true,
+  // TODO what is this used for? We get an error when building
+  // that `preseverTextNodeWhiteSpaces is not a known property
+  // of XMLParser.
+  // preserveTextNodeWhiteSpaces: true,
   trimValues: false,
   transformTagName
 });
@@ -28,8 +31,8 @@ export async function parseOLX(
 ) {
   const idMap: IdMap = {};
   const parsedTree = xmlParser.parse(xml);
-  const indexed = [];
-  let rootId = null;
+  const indexed: string[] = [];
+  let rootId: string | null = null;
 
   async function parseNode(node) {
     const tag = Object.keys(node).find(k => ![':@', '#text', '#comment'].includes(k));

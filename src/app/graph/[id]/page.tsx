@@ -19,6 +19,7 @@ import '@xyflow/react/dist/style.css';
 import dagre from 'dagre';
 import { COMPONENT_MAP } from '@/components/componentMap';
 import { parseIdMap } from '@/lib/graph/parseIdMap';
+import { GraphNode, GraphEdge } from '@/lib/types';
 
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -71,7 +72,7 @@ function CustomNode({ data, id }) {
       <div style={{ fontSize: '0.65rem', color: '#333' }}>
         {Object.entries(data.attributes ?? {}).map(([key, value]) => (
           <div key={key}>
-            <strong>{key}</strong>: {value}
+            <strong>{key}</strong>: {String(value)}
           </div>
         ))}
       </div>
@@ -81,15 +82,16 @@ function CustomNode({ data, id }) {
   );
 }
 
+
 function GraphPage() {
   const params = useParams();
   const id = params?.id;
 
-  const [issues, setIssues] = useState([]);
-  const [selectedNode, setSelectedNode] = useState(null);
+  const [issues, setIssues] = useState<string[]>([]);
+  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<GraphNode>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<GraphEdge>([]);
 
   const fetchData = useCallback(async () => {
     try {

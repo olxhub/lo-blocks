@@ -1,4 +1,6 @@
 import { Scope, scopes } from '../state/scopes';
+import { FieldInfoByField, FieldInfoByEvent, FieldInfo } from '../types';
+import { ReduxFieldsReturn } from '../blocks';
 
 const _fieldInfoByField: FieldInfoByField = {};
 const _fieldInfoByEvent: FieldInfoByEvent = {};
@@ -99,7 +101,8 @@ export function fields(fieldList: (string | { name: string; event?: string; scop
   };
 
   Object.defineProperty(result, 'extend', {
-    value: (...rest: ReduxFieldsReturn[]) => concatFields(result, ...rest),
+    // TODO I'm not sure what ReduxFieldsReturn is doing here - need to understand it a bit more
+    value: (...rest: typeof ReduxFieldsReturn[]) => concatFields(result, ...rest),
     enumerable: false,
   });
 

@@ -6,9 +6,9 @@ const _scopes = [
   'componentSetting',  // Per XML tag (e.g. video)
   'system',            // Global
   'storage'            // File storage (e.g. editor)
-];
+] as const;
 
-export const scopes = enumdict(_scopes) as const;
+export const scopes = enumdict(_scopes);
 export type Scope = typeof _scopes[number];
 
 // Thin helper so legacy code can keep string literals a bit longer if needed.
