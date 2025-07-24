@@ -14,18 +14,17 @@ const ChoiceInput = core({
   fields,
   getValue: (reduxState, id, props = {}) => {
     const value = reduxState?.[id]?.value ?? '';
-    let choices = [];
-    if (props.nodeInfo) {
-      const ids = inferRelatedNodes(props, {
-        selector: n => n.node.tag === 'Key' || n.node.tag === 'Distractor',
-        infer: ['kids'],
-        targets: props.targets
-      });
-      choices = ids.map(cid => {
-        const inst = props.idMap?.[cid];
-        return { id: cid, tag: inst?.tag };
-      });
-    }
+    const ids = inferRelatedNodes(props, {
+      selector: n => n.blueprint.name === 'Key' || n.blueprint.name === 'Distractor',
+      infer: ['kids'],
+      targets: props.targets
+    });
+    console.log("ids>>>>", ids);
+    const choices = ids.map(cid => {
+      const inst = props.idMap?.[cid];
+      return { id: cid, tag: inst?.tag };
+    });
+    console.log(">>>>>>>", value, choices);
     return { value, choices };
   }
 });

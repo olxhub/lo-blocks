@@ -9,10 +9,13 @@ import { renderCompiledKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 
 export default function _ChoiceItem(props) {
+  // TODO: useMemo()
   const parentIds = inferRelatedNodes(props, {
-    selector: n => n.node.tag === 'ChoiceInput',
+    selector: n => n?.blueprint?.name === 'ChoiceInput',
     infer: ['parents']
   });
+
+  // TODO: Make sure there is only one parent
   const parentId = parentIds[0];
   if (!parentId) {
     return (
@@ -39,8 +42,7 @@ export default function _ChoiceItem(props) {
         name={parentId}
         checked={checked}
         onChange={handleChange}
-        className="mr-1"
-      />
+       />
       {renderCompiledKids(props)}
     </label>
   );
