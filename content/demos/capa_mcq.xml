@@ -1,0 +1,11 @@
+<!-- content/demos/capa_mcq.xml -->
+<Lesson id="CapaMCQ" launchable="true">
+  <CapaProblem id="CapaMCQDemo">
+    <KeyGrader>
+      <ChoiceInput>
+	<Key> Hello! </Key>
+	<Distractor> Goodbye </Distractor>
+      </ChoiceInput>
+    </KeyGrader>
+  </CapaProblem>
+</Lesson>
