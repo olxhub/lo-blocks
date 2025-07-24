@@ -23,25 +23,6 @@ const ChoiceInput = core({
       const inst = props.idMap?.[cid];
       return { id: cid, tag: inst?.tag };
     });
-    // BUG: For some reason, choices is:
-    /* [
-      {
-      "id": "CapaMCQDemo_grader_0",
-      "tag": "KeyGrader"
-      },
-      {
-      "id": "CapaMCQDemo_key_0",
-      "tag": "Key"
-      },
-      {
-      "id": "CapaMCQDemo_distractor_1",
-      "tag": "Distractor"
-      }
-      ]
-    */
-    // console.log(choices) to see it.
-    //
-    // The selector should preclude the KeyGrader. We should figure out what's going on.
     return { value, choices };
   }
 });
