@@ -64,7 +64,10 @@ export function grader({ grader, infer = true } = {}) {
     const values = inputIds.map(id => {
       const inst = props.idMap[id];
       const blueprint = map[inst.tag];
-      return blueprint.getValue(state, id);
+      // TODO: Props should always be first
+      const inputNodeInfo = getNodeById(props, id);
+      const inputProps = { ...props, nodeInfo: inputNodeInfo, id, targets: inst.attributes?.targets };
+      return blueprint.getValue(state, id, inputProps);
     });
 
     /*
