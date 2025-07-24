@@ -1,3 +1,5 @@
+// TODO: Rename to ChoiceGrader?
+
 // src/components/blocks/ChoiceInput/KeyGrader.js
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
