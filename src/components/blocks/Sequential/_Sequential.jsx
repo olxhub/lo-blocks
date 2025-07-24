@@ -2,17 +2,17 @@
 'use client';
 
 import React from 'react';
-import { useFieldSelector, updateReduxField } from '@/lib/state';
+import { useReduxState } from '@/lib/state';
 import { renderCompiledKids } from '@/lib/render';
-import HistoryBar from '../common/HistoryBar';
+import HistoryBar from '../../common/HistoryBar';
 import { fields } from './Sequential';
 
 export default function _Sequential(props) {
   // Get current index from Redux state
-  const index = useFieldSelector(
+  const [index, setIndex] = useReduxState(
     props,
     fields.fieldInfoByField.index,
-    { fallback: 0 }
+    0
   );
 
   // Get the child components to display as sequence items
@@ -22,19 +22,19 @@ export default function _Sequential(props) {
   // Navigation handlers
   const handlePrev = () => {
     if (index > 0) {
-      updateReduxField(props, fields.fieldInfoByField.index, index - 1);
+      setIndex(index - 1);
     }
   };
 
   const handleNext = () => {
     if (index < numItems - 1) {
-      updateReduxField(props, fields.fieldInfoByField.index, index + 1);
+      setIndex(index + 1);
     }
   };
 
   const handleSelect = (newIndex) => {
     if (newIndex >= 0 && newIndex < numItems) {
-      updateReduxField(props, fields.fieldInfoByField.index, newIndex);
+      setIndex(newIndex);
     }
   };
 
