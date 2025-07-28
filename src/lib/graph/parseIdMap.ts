@@ -1,11 +1,11 @@
 // src/lib/graph/parseIdMap.ts
 import { COMPONENT_MAP } from '@/components/componentMap';
-import { GraphNode, GraphEdge } from '@/lib/types';
+import { GraphNode, GraphEdge, ParseError } from '@/lib/types';
 
 interface ParseResult {
   nodes: GraphNode[];
   edges: GraphEdge[];
-  issues: any[]; // Optional: can be typed better if needed
+  issues: ParseError[];
   launchable: string[];
 }
 
@@ -22,7 +22,7 @@ export function parseIdMap(idMap: Record<string, any>): ParseResult {
   // IF something goes wrong, we add it here
   // At present, unused, as nothing is going wrong.
   // We might remove it someday
-  const issues: any[] = [];
+  const issues = [];
 
   for (const [id, node] of Object.entries(idMap)) {
     let childIds = [];

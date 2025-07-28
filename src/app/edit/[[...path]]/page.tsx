@@ -34,6 +34,7 @@ import { render, makeRootNode } from '@/lib/render';
 import { COMPONENT_MAP } from '@/components/componentMap';
 import { NetworkStorageProvider } from '@/lib/storage/network';
 import { fileTypes } from '@/lib/storage/fileTypes';
+import { ComponentError } from '@/lib/types';
 
 // This causes CoadMirror not to load on all pages (it gets its own
 // chunk for pages that need it).
@@ -96,7 +97,6 @@ function EditControl({ content, setContent, handleSave, path }) {
   );
 }
 
-
 // TODO: This needs to be more robust to internal errors.
 //
 // * Bad OLX can lead to render-time problems which aren't caught by
@@ -112,7 +112,7 @@ function PreviewPane({ path, content, idMap }) {
     null,
     { id: path }
   );
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ComponentError>(null);
 
   // Parse content when it changes
   useEffect(() => {
@@ -243,7 +243,7 @@ export default function EditPage() {
   // TODO: {status: , msg}
   // status: [ LOADING, SAVE_ERROR, SAVED, READY, SYNTAX_ERROR, ... ]
   // msg: Human-friendly message
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ComponentError>(null);
 
   // TODO: Overlay ReduxStorageProvider()
   const provider = new NetworkStorageProvider();

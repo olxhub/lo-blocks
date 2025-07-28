@@ -100,8 +100,8 @@ export function fields(fieldList: (string | { name: string; event?: string; scop
     fieldInfoByEvent,
   };
 
+  // TODO document what this code is doing
   Object.defineProperty(result, 'extend', {
-    // TODO I'm not sure what ReduxFieldsReturn is doing here - need to understand it a bit more
     value: (...rest: typeof ReduxFieldsReturn[]) => concatFields(result, ...rest),
     enumerable: false,
   });

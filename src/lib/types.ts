@@ -114,6 +114,9 @@ export interface ComponentMap {
   [tag: string]: Block;
 }
 
+export type ComponentError = string | null;
+export type ParseError = string | null;
+
 // A list of kids can have any of these; renderedCompiledChildren should handle all of these.
 // TODO: These should probably all be of type kidEntry, and the current type should move under a different key.
 export type BlueprintKidEntry =
@@ -157,12 +160,11 @@ export interface IdMap {
   [id: OLXId]: OlxJson;
 }
 
-
 export interface GraphNode {
   id: string;
   data: {
     label: string;
-    attributes: Record<string, any>;
+    attributes: Record<string, string>;
     tag: string;
     provenance?: any;
   };

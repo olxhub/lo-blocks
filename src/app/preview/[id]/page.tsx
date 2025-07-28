@@ -8,10 +8,11 @@ import { COMPONENT_MAP } from '@/components/componentMap';
 import AppHeader from '@/components/common/AppHeader';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { useReduxState, settingsFields } from '@/lib/state';
+import { ComponentError } from '@/lib/types';
 
 export default function PreviewPage() {
   const params = useParams();
-  const id = params?.id as string;
+  const id = params.id as string;
   const [debug] = useReduxState(
     {},
     settingsFields.fieldInfoByField.debug,
@@ -20,7 +21,7 @@ export default function PreviewPage() {
   );
 
   const [idMap, setIdMap] = useState(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ComponentError>(null);
 
   useEffect(() => {
     if (!id) return;

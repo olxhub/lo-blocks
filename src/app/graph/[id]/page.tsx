@@ -19,7 +19,7 @@ import '@xyflow/react/dist/style.css';
 import dagre from 'dagre';
 import { COMPONENT_MAP } from '@/components/componentMap';
 import { parseIdMap } from '@/lib/graph/parseIdMap';
-import { GraphNode, GraphEdge } from '@/lib/types';
+import { GraphNode, GraphEdge, ParseError } from '@/lib/types';
 
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -47,6 +47,9 @@ function layoutElements(nodes, edges, direction = 'TB') {
   });
 }
 
+// TODO we ought to add a Type to parameters to avoid type checking code later on
+// The type should be GraphNode (custom), but that introduced other errors about
+// conflicting with type Node or NodeProps.
 function CustomNode({ data, id }) {
   const MAX_ID_LENGTH = 20;
 
@@ -70,11 +73,11 @@ function CustomNode({ data, id }) {
         {data.tag ?? '(no tag)'}
       </div>
       <div style={{ fontSize: '0.65rem', color: '#333' }}>
-        {Object.entries(data.attributes ?? {}).map(([key, value]) => (
+        {Object.entries(data.attributes ?? {}).map(([key, value]) => typeof value === 'string' ? (
           <div key={key}>
-            <strong>{key}</strong>: {String(value)}
+            <strong>{key}</strong>: {value}
           </div>
-        ))}
+        ) : (<>Received type {typeof value} for key {key}.</>))}
       </div>
       <Handle type="target" position={Position.Top} />
       <Handle type="source" position={Position.Bottom} />
@@ -87,7 +90,7 @@ function GraphPage() {
   const params = useParams();
   const id = params?.id;
 
-  const [issues, setIssues] = useState<string[]>([]);
+  const [issues, setIssues] = useState<ParseError[]>([]);
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
 
   const [nodes, setNodes, onNodesChange] = useNodesState<GraphNode>([]);

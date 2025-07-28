@@ -31,8 +31,8 @@ export async function parseOLX(
 ) {
   const idMap: IdMap = {};
   const parsedTree = xmlParser.parse(xml);
-  const indexed: string[] = [];
-  let rootId: string | null = null;
+  const parsedIds: string[] = [];
+  let rootId = '';
 
   async function parseNode(node) {
     const tag = Object.keys(node).find(k => ![':@', '#text', '#comment'].includes(k));
@@ -91,7 +91,7 @@ export async function parseOLX(
       },
     });
 
-    indexed.push(id);
+    parsedIds.push(id);
     return { type: 'block', id };
   }
 
@@ -124,9 +124,9 @@ export async function parseOLX(
     }
   }
 
-  if (!rootId && indexed.length) rootId = indexed[0];
+  if (!rootId && parsedIds.length) rootId = parsedIds[0];
 
-  return { ids: indexed, idMap, root: rootId };
+  return { ids: parsedIds, idMap, root: rootId };
 }
 
 function createId(node) {
