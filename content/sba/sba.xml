@@ -1,8 +1,0 @@
-<!-- content/sba/sba.xml -->
-<Chat
-    id="peg_sba"
-    title="Debug SBA"
-    launchable="true"
-    src="psych_sba.chatpeg"
-    clip="[3,8]"
-    />
