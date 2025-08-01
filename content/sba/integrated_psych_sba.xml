@@ -67,21 +67,21 @@
         <Use ref="psych_chat" clip="'Final Recommendation'" />
       </LeftPane>
       <RightPane>
-        <TextBlock>
-          ## Congratulations!
-          
-          You've completed the Psychology SBA case study. You successfully:
-          
-          - **Learned to distinguish reinforcement from punishment**
-          - **Practiced identifying positive vs negative types**  
-          - **Evaluated research on parenting approaches**
-          - **Selected evidence-based strategies**
-          - **Applied psychological principles to a real scenario**
-          
-          ### Final Recommendation
-          
-          **Positive Reinforcement** emerged as the evidence-based strategy with the strongest research support for Annie's roommate to use with the 6-year-old's bedtime resistance.
-        </TextBlock>
+        <Markdown>
+## Congratulations!
+
+You've completed the Psychology SBA case study. You successfully:
+
+- **Learned to distinguish reinforcement from punishment**
+- **Practiced identifying positive vs negative types**
+- **Evaluated research on parenting approaches**
+- **Selected evidence-based strategies**
+- **Applied psychological principles to a real scenario**
+
+### Final Recommendation
+
+**Positive Reinforcement** emerged as the evidence-based strategy with the strongest research support for Annie's roommate to use with the 6-year-old's bedtime resistance.
+        </Markdown>
       </RightPane>
     </SplitPanel>
 

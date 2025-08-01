@@ -2,15 +2,15 @@
  <!-- Student input activities -->
   <TextArea id="student_suggestion" placeholder="What do YOU think she should do to get the 6-year-old to go to sleep at bedtime?"/>
   
-  <TextBlock id="messages_image">
+  <Markdown id="messages_image">
     ## Messages between Annie's roommate and parents:
     
     **Parent:** "He's doing it again. Running around at bedtime."
     **Roommate:** "I tried everything. Should I just yell at him?"
     **Parent:** "That's what we usually do but it doesn't seem to help."
-  </TextBlock>
+  </Markdown>
 
-  <TextBlock id="positive_negative_reinforcement_punishment">
+  <Markdown id="positive_negative_reinforcement_punishment">
     ## Categorization Activity
     
     Drag each scenario into the correct category:
@@ -21,115 +21,115 @@
     **NEGATIVE PUNISHMENT** (Removing something good)
     
     *[Interactive drag-and-drop activity would go here]*
-  </TextBlock>
+  </Markdown>
 
-  <TextBlock id="poster_image">
+  <Markdown id="poster_image">
     ## Reinforcement vs Punishment Chart
     
     |                   | Add Something          | Remove Something       |
     |-------------------|------------------------|------------------------|
     | Increase Behavior | Positive Reinforcement | Negative Reinforcement |
     | Decrease Behavior | Positive Punishment    | Negative Punishment    |
-  </TextBlock>
+  </Markdown>
 
   <!-- Quiz components -->
-  <TextBlock id="reinforce_punish_1">
+  <Markdown id="reinforce_punish_1">
     ## Quiz Questions 1-5
     
     [Multiple choice questions about reinforcement vs punishment would go here]
     
     *Placeholder: Interactive quiz table with radio buttons*
-  </TextBlock>
+  </Markdown>
 
-  <TextBlock id="reinforce_punish_2">
+  <Markdown id="reinforce_punish_2">
     ## Quiz Questions 6-10
     
     [Multiple choice questions about reinforcement vs punishment would go here]
     
     *Placeholder: Interactive quiz table with radio buttons*
-  </TextBlock>
+  </Markdown>
 
-  <TextBlock id="reinforce_punish_3">
+  <Markdown id="reinforce_punish_3">
     ## Quiz Questions 11-15
     
     [Multiple choice questions about reinforcement vs punishment would go here]
     
     *Placeholder: Interactive quiz table with radio buttons*
-  </TextBlock>
+  </Markdown>
 
-  <TextBlock id="reinforce_punish_4">
+  <Markdown id="reinforce_punish_4">
     ## Quiz Questions 16-20
     
     [Multiple choice questions about reinforcement vs punishment would go here]
     
     *Placeholder: Interactive quiz table with radio buttons*
-  </TextBlock>
+  </Markdown>
 
-  <TextBlock id="quiz1_score">
+  <Markdown id="quiz1_score">
     ## Quiz 1 Results
     
     **Score: 85%**
     Great job! You got most questions correct.
-  </TextBlock>
+  </Markdown>
 
-  <TextBlock id="review_item">
+  <Markdown id="review_item">
     ## Review Option
     
     Would you like to review the answers?
     
     [Yes, review answers] [No, continue]
-  </TextBlock>
+  </Markdown>
 
   <!-- Advanced Quiz components -->
-  <TextBlock id="positive_negative_1">
+  <Markdown id="positive_negative_1">
     ## Advanced Quiz Questions 1-5
     
     [Questions requiring classification as positive/negative reinforcement/punishment]
     
     *Placeholder: Advanced quiz table with multiple choice options*
-  </TextBlock>
+  </Markdown>
 
-  <TextBlock id="positive_negative_2">
+  <Markdown id="positive_negative_2">
     ## Advanced Quiz Questions 6-10
     
     [Questions requiring classification as positive/negative reinforcement/punishment]
     
     *Placeholder: Advanced quiz table with multiple choice options*
-  </TextBlock>
+  </Markdown>
 
-  <TextBlock id="positive_negative_3">
+  <Markdown id="positive_negative_3">
     ## Advanced Quiz Questions 11-15
     
     [Questions requiring classification as positive/negative reinforcement/punishment]
     
     *Placeholder: Advanced quiz table with multiple choice options*
-  </TextBlock>
+  </Markdown>
 
-  <TextBlock id="positive_negative_4">
+  <Markdown id="positive_negative_4">
     ## Advanced Quiz Questions 16-20
     
     [Questions requiring classification as positive/negative reinforcement/punishment]
     
     *Placeholder: Advanced quiz table with multiple choice options*
-  </TextBlock>
+  </Markdown>
 
-  <TextBlock id="quiz2_score">
+  <Markdown id="quiz2_score">
     ## Quiz 2 Results
     
     **Score: 78%**
     Good work! This was a challenging quiz.
-  </TextBlock>
+  </Markdown>
 
-  <TextBlock id="review_item2">
+  <Markdown id="review_item2">
     ## Review Option
     
     Would you like to review the answers for Quiz 2?
     
     [Yes, review answers] [No, continue]
-  </TextBlock>
+  </Markdown>
 
   <!-- Research and email activities -->
-  <TextBlock id="norulesparenting_summary">
+  <Markdown id="norulesparenting_summary">
     ## No-Rules Parenting Research Summary
     
     **Key Findings:**
@@ -138,20 +138,20 @@
     • Lack of structure correlates with poor emotional regulation
     • Permissive parenting linked to increased anxiety in children
     • Consistent routines improve sleep quality and daytime behavior
-  </TextBlock>
+  </Markdown>
 
   <TextArea id="email_to_babysitter" placeholder="Draft an email to Annie's roommate explaining why she shouldn't use no-rules parenting and suggesting an alternative approach..."/>
 
   <TextArea id="email_to_babysitter_edit" placeholder="Revise your email based on the feedback provided..."/>
 
-  <TextBlock id="email_feedback">
+  <Markdown id="email_feedback">
     ## AI Feedback on Your Email
     
     **Feedback:** Your email effectively explains the problems with no-rules parenting and provides a clear alternative. Consider adding more specific examples of positive reinforcement techniques.
-  </TextBlock>
+  </Markdown>
 
   <!-- Strategy selection activities -->
-  <TextBlock id="age_appropriacy">
+  <Markdown id="age_appropriacy">
     ## Age Appropriateness Assessment
     
     Which strategies are appropriate for a 6-year-old? Check all that apply:
@@ -160,15 +160,15 @@
     - [ ] Empathy and Emotional Support
     - [ ] Collaborative Problem Solving
     - [ ] Complex Reasoning Approaches
-  </TextBlock>
+  </Markdown>
 
   <TextArea id="age_appropriacy_explanation" placeholder="Explain your reasoning for which strategies are age-appropriate..."/>
 
-  <TextBlock id="age_appropriacy_feedback">
+  <Markdown id="age_appropriacy_feedback">
     ## AI Feedback on Age Appropriateness
     
     **Feedback:** Good analysis! You correctly identified that 6-year-olds respond well to positive reinforcement and emotional support, but complex reasoning strategies may be too advanced.
-  </TextBlock>
+  </Markdown>
 
   <!-- Define the shared chat component -->
   <Chat id="psych_chat" src="psych_sba_complete.chatpeg" title="Psychology SBA Chat" />
