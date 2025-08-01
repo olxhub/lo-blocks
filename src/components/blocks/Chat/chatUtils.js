@@ -44,13 +44,21 @@ function process(conversation, ast) {
     if(idx !== false) return {start: idx, end: idx};
     sectionRange = section(conversation, ast.value);
     if(sectionRange) return sectionRange;
-    throw Error(`Unidentified range location: ${ast.value}`);
+
+    // Generate helpful error with available options
+    const availableSections = listSections(conversation).map(s => s.title);
+    const availableIds = listIds(conversation);
+    throw Error(`Unknown section or ID: "${ast.value}"\nAvailable sections: ${availableSections.map(s => `"${s}"`).join(', ')}\nAvailable IDs: ${availableIds.join(', ')}`);
   case 'quoted':
     sectionRange = section(conversation, ast.value);
     if(sectionRange) return sectionRange;
     idx = byId(conversation, ast.value);
     if(idx !== false) return {start: idx, end: idx};
-    throw Error(`Unidentified range location: ${ast.value}`);
+
+    // Generate helpful error with available options
+    const availableSections2 = listSections(conversation).map(s => s.title);
+    const availableIds2 = listIds(conversation);
+    throw Error(`Unknown section or ID: "${ast.value}"\nAvailable sections: ${availableSections2.map(s => `"${s}"`).join(', ')}\nAvailable IDs: ${availableIds2.join(', ')}`);
   case 'range':
     ast.start = process(conversation, ast.start);
     ast.end = process(conversation, ast.end);
@@ -68,21 +76,27 @@ export function clip(conversation, input) {
   const body = conversation.body;
   const len = body.length;
 
-  const parsed = parse(input);
+  let parsed;
   try {
-    const processed = process(conversation, parsed);
-    if (isNaN(processed.start)) processed.start = 0;
-    if (isNaN(processed.end)) processed.end = body.length - 1;
-
-    const valid = processed.start <= processed.end;
-
-    return {
-      start: Math.max(processed.start, 0),
-      end: Math.min(processed.end, body.length - 1),
-      valid,
-      message: valid ? null : "Invalid clip (start > end)"
-    };
-  } catch {
-    return false;
+    parsed = parse(input);
+  } catch (parseError) {
+    throw new Error(`Clip syntax error: ${parseError.message}\nInput: "${input}"`);
   }
+
+  const processed = process(conversation, parsed);
+  if (isNaN(processed.start)) processed.start = 0;
+  if (isNaN(processed.end)) processed.end = body.length - 1;
+
+  const valid = processed.start <= processed.end;
+
+  if (!valid) {
+    throw new Error(`Invalid clip range (start ${processed.start} > end ${processed.end}): "${input}"`);
+  }
+
+  return {
+    start: Math.max(processed.start, 0),
+    end: Math.min(processed.end, body.length - 1),
+    valid: true,
+    message: null
+  };
 }

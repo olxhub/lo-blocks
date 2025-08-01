@@ -5,6 +5,7 @@ import React, { useCallback, useMemo } from 'react';
 
 import { useReduxState, updateReduxField } from '@/lib/state';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
+import { DisplayError } from '@/lib/util/debug';
 
 import * as chatUtils from './chatUtils';
 
@@ -20,15 +21,40 @@ export function _Chat(props) {
       // Default: whole doc
       return { start: 0, end: allEntries.length - 1, valid: true };
     }
-    // Resolve using your PEG+process logic
-    return chatUtils.clip(
-      { body: allEntries }, clip) || { start: 0, end: allEntries.length - 1, valid: false };
+
+    try {
+      // Resolve using your PEG+process logic
+      return chatUtils.clip({ body: allEntries }, clip);
+    } catch (error) {
+      // Return error sentinel instead of throwing
+      return {
+        error: true,
+        message: error.message,
+        clip: clip,
+        start: 0,
+        end: 0,
+        valid: false
+      };
+    }
   }, [allEntries, clip]);
 
-  // Messages befiore the clip
+  // Messages before the clip
   const historyRange = useMemo(() => {
     if (!history) return null;
-    return chatUtils.clip({ body: allEntries }, history);
+
+    try {
+      return chatUtils.clip({ body: allEntries }, history);
+    } catch (error) {
+      // Return error sentinel instead of throwing
+      return {
+        error: true,
+        message: error.message,
+        clip: history,
+        start: 0,
+        end: 0,
+        valid: false
+      };
+    }
   }, [allEntries, history]);
 
   // All visible messages in the window
@@ -111,6 +137,32 @@ export function _Chat(props) {
   /* ----------------------------------------------------------------
    * Render
    * -------------------------------------------------------------- */
+
+  // Check for clip errors and render error display instead of chat
+  if (clipRange.error) {
+    return (
+      <DisplayError
+        props={props}
+        name="Chat Clip Error"
+        message={`Invalid clip: "${clipRange.clip}"`}
+        technical={clipRange.message}
+        id={`${id}_clip_error`}
+      />
+    );
+  }
+
+  // Check for history errors
+  if (historyRange?.error) {
+    return (
+      <DisplayError
+        props={props}
+        name="Chat History Error"
+        message={`Invalid history clip: "${historyRange.clip}"`}
+        technical={historyRange.message}
+        id={`${id}_history_error`}
+      />
+    );
+  }
 
   return (
     <ChatComponent

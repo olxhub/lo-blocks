@@ -1,0 +1,90 @@
+<!-- content/sba/integrated_psych_sba.xml -->
+<Lesson id="PsychSBA" title="Psychology SBA: Sleep Refusal Case Study" launchable="true">  
+  <Sequential id="SBASequence">
+    <!-- Scene 1: Introduction and Brainstorming -->
+    <SplitPanel id="Scene1" sizes="60,40">
+      <LeftPane>
+        <Use ref="psych_chat" clip="['Introduction','Brainstorming']" />
+      </LeftPane>
+      <RightPane>
+        <Use ref="psych_sba_sidebar" />
+      </RightPane>
+    </SplitPanel>
+
+    <!-- Scene 2: Understanding Reinforcement -->
+    <SplitPanel id="Scene2" sizes="60,40">
+      <LeftPane>
+        <Use ref="psych_chat" clip="['Understanding Reinforcement','Understanding Types']" />
+      </LeftPane>
+      <RightPane>
+        <Use ref="psych_sba_sidebar" />
+      </RightPane>
+    </SplitPanel>
+
+    <!-- Scene 3: Quiz 1 -->
+    <SplitPanel id="Scene3" sizes="60,40">
+      <LeftPane>
+        <Use ref="psych_chat" clip="'Quiz 1'" />
+      </LeftPane>
+      <RightPane>
+        <Use ref="psych_sba_sidebar" />
+      </RightPane>
+    </SplitPanel>
+
+    <!-- Scene 4: Quiz 2 -->
+    <SplitPanel id="Scene4" sizes="60,40">
+      <LeftPane>
+        <Use ref="psych_chat" clip="'Quiz 2'" />
+      </LeftPane>
+      <RightPane>
+        <Use ref="psych_sba_sidebar" />
+      </RightPane>
+    </SplitPanel>
+
+    <!-- Scene 5: Research and Email -->
+    <SplitPanel id="Scene5" sizes="60,40">
+      <LeftPane>
+        <Use ref="psych_chat" clip="Research" />
+      </LeftPane>
+      <RightPane>
+        <Use ref="psych_sba_sidebar" />
+      </RightPane>
+    </SplitPanel>
+
+    <!-- Scene 6: Strategy Selection -->
+    <SplitPanel id="Scene6" sizes="60,40">
+      <LeftPane>
+        <Use ref="psych_chat" clip="'Strategy Selection'" />
+      </LeftPane>
+      <RightPane>
+        <Use ref="psych_sba_sidebar" />
+      </RightPane>
+    </SplitPanel>
+
+    <!-- Scene 7: Final Recommendation -->
+    <SplitPanel id="Scene7" sizes="60,40">
+      <LeftPane>
+        <Use ref="psych_chat" clip="'Final Recommendation'" />
+      </LeftPane>
+      <RightPane>
+        <TextBlock>
+          ## Congratulations!
+          
+          You've completed the Psychology SBA case study. You successfully:
+          
+          - **Learned to distinguish reinforcement from punishment**
+          - **Practiced identifying positive vs negative types**  
+          - **Evaluated research on parenting approaches**
+          - **Selected evidence-based strategies**
+          - **Applied psychological principles to a real scenario**
+          
+          ### Final Recommendation
+          
+          **Positive Reinforcement** emerged as the evidence-based strategy with the strongest research support for Annie's roommate to use with the 6-year-old's bedtime resistance.
+        </TextBlock>
+      </RightPane>
+    </SplitPanel>
+
+  </Sequential>
+
+</Lesson>
