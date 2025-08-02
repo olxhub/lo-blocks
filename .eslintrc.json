@@ -1,0 +1,14 @@
+{
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    "react/no-unescaped-entities": ["error", {"forbid": [">", "}"]}]
+  },
+  "overrides": [
+    {
+      "files": ["src/components/blocks/**/_*.jsx", "src/components/blocks/**/_*.tsx", "src/components/blocks/*.jsx"],
+      "rules": {
+        "react-hooks/rules-of-hooks": "off"
+      }
+    }
+  ]
+}

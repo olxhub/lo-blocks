@@ -131,6 +131,7 @@ export function renderCompiledKids( props ) {
     console.log(kids);
     return [
       <DisplayError
+        key="invalid-kids-type"
         name="renderCompiledKids"
         message={`Expected kids to be an array, got ${typeof kids}`}
         data={kids}
