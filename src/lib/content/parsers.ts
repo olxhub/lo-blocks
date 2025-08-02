@@ -1,6 +1,7 @@
 // src/lib/olx/parsers.js
 import { XMLBuilder } from 'fast-xml-parser';
 import path from 'path';
+import type { OLXLoadingError } from '@/lib/types';
 
 // === Setup ===
 
@@ -218,6 +219,7 @@ export function peggyParser(
     provenance,
     provider,
     storeEntry,
+    errors
   }) {
     const tagParsed = rawParsed[tag];
     const kids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
@@ -247,22 +249,52 @@ export function peggyParser(
 
     const { text, ...rest } = preprocess(extracted);
 
-    let parsed;
+    let entry;
     try {
-      parsed = peggyParser.parse(text);
-    } catch (err) {
-      console.error('[peggyParser] Parse error:', err);
-      throw err;
+      const parsed = peggyParser.parse(text);
+      entry = {
+        id,
+        tag,
+        attributes,
+        provenance: prov,
+        rawParsed,
+        kids: postprocess({ type: 'parsed', parsed, ...rest })
+      };
+    } catch (parseError) {
+      const errorObj: OLXLoadingError = {
+        type: 'peg_error' as const,
+        file: prov.join(' → '),
+        message: parseError.message,
+        location: {
+          line: parseError.location?.start?.line,
+          column: parseError.location?.start?.column,
+          offset: parseError.location?.start?.offset
+        },
+        technical: {
+          expected: parseError.expected,
+          found: parseError.found,
+          name: parseError.name,
+          originalTag: tag,
+          fullError: parseError
+        }
+      };
+
+      entry = {
+        id,
+        tag: 'ErrorNode',
+        attributes,
+        provenance: prov,
+        rawParsed,
+        kids: errorObj,
+        parseError: true
+      };
+
+      // Accumulate error in the errors array if available
+      if (typeof errors !== 'undefined' && Array.isArray(errors)) {
+        errors.push(errorObj);
+      }
     }
 
-    const entry = {
-      id,
-      tag,
-      attributes,
-      provenance: prov,
-      rawParsed,
-      kids: postprocess({ type: 'parsed', parsed, ...rest }),
-    };
     storeEntry(id, entry);
     return id;
   }

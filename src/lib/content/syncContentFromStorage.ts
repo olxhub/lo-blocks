@@ -1,6 +1,6 @@
 // src/lib/content/syncContentFromStorage.ts
 import { StorageProvider, FileStorageProvider, fileTypes } from '@/lib/storage';
-import type { ProvenanceURI } from '@/lib/types';
+import type { ProvenanceURI, OLXLoadingError } from '@/lib/types';
 import { parseOLX } from '@/lib/content/parseOLX';
 
 const contentStore = {
@@ -20,6 +20,8 @@ export async function syncContentFromStorage(
     ...Object.keys(changed)
   ] as ProvenanceURI[]);
 
+  const errors = [];
+
   for (const [uri, fileInfo] of Object.entries({ ...added, ...changed }) as [ProvenanceURI, any][]) {
     if (fileInfo.type !== fileTypes.olx && fileInfo.type !== fileTypes.xml) {
       contentStore.byProvenance[uri] = {
@@ -29,24 +31,56 @@ export async function syncContentFromStorage(
       continue;
     }
 
-    const { ids, idMap } = await parseOLX(fileInfo.content, [uri], provider);
+    try {
+      const { ids, idMap, errors: fileErrors } = await parseOLX(fileInfo.content, [uri], provider);
 
-    for (const [storeId, entry] of Object.entries(idMap)) {
-      if (contentStore.byId[storeId]) {
-        throw new Error(`Duplicate ID "${storeId}" found in ${uri}`);
+      // Collect any errors from this file
+      if (fileErrors && fileErrors.length > 0) {
+        errors.push(...fileErrors);
       }
-      contentStore.byId[storeId] = entry;
-    }
 
-    contentStore.byProvenance[uri] = {
-      nodes: ids,
-      ...fileInfo
-    };
+      // Check for duplicate IDs and collect those errors too
+      for (const [storeId, entry] of Object.entries(idMap)) {
+        if (contentStore.byId[storeId]) {
+          errors.push({
+            type: 'duplicate_id',
+            file: uri,
+            message: `Duplicate ID "${storeId}" found in ${uri}`,
+            technical: { duplicateId: storeId, existingEntry: contentStore.byId[storeId] }
+          });
+          // Skip adding the duplicate, keep the first one
+          continue;
+        }
+        contentStore.byId[storeId] = entry;
+      }
+
+      contentStore.byProvenance[uri] = {
+        nodes: ids,
+        ...fileInfo
+      };
+
+    } catch (fatalError) {
+      // If parseOLX itself fails catastrophically, log it but continue
+      errors.push({
+        type: 'file_error',
+        file: uri,
+        message: `Failed to parse file: ${fatalError.message}`,
+        technical: fatalError
+      });
+
+      // Store minimal entry so we don't lose track of the file
+      contentStore.byProvenance[uri] = {
+        nodes: [],
+        ...fileInfo,
+        error: fatalError.message
+      };
+    }
   }
 
   return {
     parsed: contentStore.byProvenance,
-    idMap: contentStore.byId
+    idMap: contentStore.byId,
+    errors
   };
 }
 

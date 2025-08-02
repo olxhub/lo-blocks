@@ -9,6 +9,19 @@ export type JSONValue =
   | JSONValue[]
   | { [key: string]: JSONValue };
 
+// OLX Content Loading Errors
+export interface OLXLoadingError {
+  type: 'parse_error' | 'duplicate_id' | 'file_error' | 'peg_error';
+  file: string;
+  message: string;
+  location?: {
+    line?: number;
+    column?: number;
+    offset?: number;
+  };
+  technical?: any;
+}
+
 // Storage API: Grabbing OLX files from disk
 export interface FileProvenance {
   type: 'file';

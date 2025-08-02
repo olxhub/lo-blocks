@@ -33,6 +33,7 @@ export async function parseOLX(
   const parsedTree = xmlParser.parse(xml);
   const parsedIds: string[] = [];
   let rootId = '';
+  const errors = [];
 
   async function parseNode(node) {
     const tag = Object.keys(node).find(k => ![':@', '#text', '#comment'].includes(k));
@@ -83,12 +84,20 @@ export async function parseOLX(
       parseNode,
       storeEntry: (storeId, entry) => {
         if (idMap[storeId]) {
-          throw new Error(
-            `Duplicate ID "${storeId}" found in ${formatProvenanceList(provenance).join(', ')}. Each element must have a unique id.`
-          );
+          errors.push({
+            type: 'duplicate_id',
+            file: formatProvenanceList(provenance).join(', '),
+            message: `Duplicate ID "${storeId}" found in ${formatProvenanceList(provenance).join(', ')}. Each element must have a unique id.`,
+            location: { line: entry.line, column: entry.column },
+            technical: { duplicateId: storeId, existingEntry: idMap[storeId] }
+          });
+          // Skip the duplicate, keep the first one
+          return;
         }
         idMap[storeId] = entry;
       },
+      // Pass errors array to parsers so they can accumulate errors too
+      errors
     });
 
     parsedIds.push(id);
@@ -126,7 +135,7 @@ export async function parseOLX(
 
   if (!rootId && parsedIds.length) rootId = parsedIds[0];
 
-  return { ids: parsedIds, idMap, root: rootId };
+  return { ids: parsedIds, idMap, root: rootId, errors };
 }
 
 function createId(node) {
