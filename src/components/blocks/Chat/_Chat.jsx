@@ -117,6 +117,8 @@ export function _Chat(props) {
     }
 
     setIndex(Math.min(nextIndex, windowRange.end));
+    // fields.value and props intentionally omitted: would cause excessive re-creations, so we need
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [windowedIndex, windowRange, allEntries, setIndex]);
 
   /* ----------------------------------------------------------------

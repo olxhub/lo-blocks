@@ -32,6 +32,8 @@ export function _UseHistory(props) {
 
   useEffect(() => {
     if (follow) setIndex(history.length - 1);
+    // setIndex intentionally omitted: it's a stable setState function, so we need
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [follow, history.length]);
 
   const current = history[index];

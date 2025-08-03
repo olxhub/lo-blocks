@@ -110,6 +110,8 @@ function GraphPage() {
       setNodes([]);
       setEdges([]);
     }
+    // setNodes and setEdges intentionally omitted: they are stable setState functions, so we need
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {

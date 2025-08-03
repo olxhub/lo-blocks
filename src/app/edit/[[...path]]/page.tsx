@@ -151,6 +151,8 @@ function PreviewPane({ path, content, idMap }) {
     return () => {
       cancelled = true;
     };
+    // setParsed intentionally omitted (stable, but changes); path is too, and we should analyze path later. In either case, we need
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, idMap]);
 
   const rendered = useMemo(() => {
@@ -255,6 +257,8 @@ export default function EditPage() {
         setContent(cnt);
       })
       .catch(err => setError(`Error: ${err.message}`));
+    // provider and setContent intentionally omitted: provider is stable instance, setContent is stable setState function, so we need
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [path]);
 
   // Load base idMap from the server

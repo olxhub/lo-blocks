@@ -15,11 +15,12 @@ export function _DigitSpanTask( props ) {
   const [step, setStep] = useReduxState(props, fields.step, 'waiting'); // 'waiting' | 'playing' | 'answering' | 'feedback'
   const [theta, setTheta] = useReduxState(props, fields.theta, 0); // Ability estimate
   const [difficulty, setDifficulty] = useReduxState(props, fields.difficulty, 3); // Starting sequence length (proxy for difficulty)
-
   useEffect(() => {
     if (step === 'playing') {
       playSequence();
     }
+  // playSequence is intentionally omitted to avoid re-render loops, so we need
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, sequence]);
 
   function generateSequence(length) {
