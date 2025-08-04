@@ -1,0 +1,14 @@
+<!-- content/demos/element-demo.xml -->
+<Lesson id="element_demo" title="Element Block Demo" launchable="true">
+  <TextBlock>
+    ## Element Block Test
+    
+    This demo tests the Element block functionality.
+  </TextBlock>
+
+  <TextArea id="sample_input" placeholder="Type something here..." />
+
+  <TextBlock>The value you typed above is displayed below:</TextBlock>
+  
+  <Element id="elem_demo" visible="true">sample_input</Element>
+</Lesson>
