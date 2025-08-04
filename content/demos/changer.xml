@@ -15,73 +15,56 @@
 
   <ActionButton id="btn_first_grader" label="First Grader Text">
     <LLMAction id="action_first_grader" target="essay_rewrite">
-      <LLMPrompt id="prompt_first_grader">
-        Please rewrite this in simple English for a first grader:
-        <Element id="elem_first_grader">student_essay</Element>
-      </LLMPrompt>
+      Please rewrite this in simple English for a first grader:
+      <Element id="elem_first_grader">student_essay</Element>
     </LLMAction>
   </ActionButton>
 
   <ActionButton id="btn_academic" label="Academic SSR">
     <LLMAction id="action_academic" target="essay_rewrite">
-      <LLMPrompt id="prompt_academic">
-        Please rewrite this in contorted social sciences academic English:
-        <Element id="elem_academic">student_essay</Element>
-      </LLMPrompt>
+      Please rewrite this in contorted social sciences academic English:
+      <Element id="elem_academic">student_essay</Element>
     </LLMAction>
   </ActionButton>
 
   <ActionButton id="btn_business" label="Business">
     <LLMAction id="action_business" target="essay_rewrite">
-      <LLMPrompt id="prompt_business">
-        Please rewrite this in business English, with a marketing focus:
-        <Element id="elem_business">student_essay</Element>
-      </LLMPrompt>
+      Please rewrite this in business English, with a marketing focus:
+      <Element id="elem_business">student_essay</Element>
     </LLMAction>
   </ActionButton>
 
   <ActionButton id="btn_first_person" label="First person">
     <LLMAction id="action_first_person" target="essay_rewrite">
-      <LLMPrompt id="prompt_first_person">
-        Please rewrite this in first person:
-        <Element id="elem_first_person">student_essay</Element>
-      </LLMPrompt>
+      Please rewrite this in first person:
+      <Element id="elem_first_person">student_essay</Element>
     </LLMAction>
   </ActionButton>
 
   <ActionButton id="btn_comedian" label="Comedian">
     <LLMAction id="action_comedian" target="essay_rewrite">
-      <LLMPrompt id="prompt_comedian">
-        You're a world-class comedian. Please rewrite this to be hilarious, and with an edge. You can make stuff up (hey, it's comedy), but there should be real jokes (not just flippancy):
-        <Element id="elem_comedian">student_essay</Element>
-      </LLMPrompt>
+      You're a world-class comedian. Please rewrite this to be hilarious, and with an edge. You can make stuff up (hey, it's comedy), but there should be real jokes (not just flippancy):
+      <Element id="elem_comedian">student_essay</Element>
     </LLMAction>
   </ActionButton>
 
   <ActionButton id="btn_chinese" label="Chinese American">
     <LLMAction id="action_chinese" target="essay_rewrite">
-      <LLMPrompt id="prompt_chinese">
-        Please rewrite this using a Chinese communication style, organization, and argumentation structure (e.g. as described by Hofstede or Meyer), but in English:
-        <Element id="elem_chinese">student_essay</Element>
-      </LLMPrompt>
+      Please rewrite this using a Chinese communication style, organization, and argumentation structure (e.g. as described by Hofstede or Meyer), but in English:
     </LLMAction>
   </ActionButton>
 
   <ActionButton id="btn_lawyer" label="Lawyer">
     <LLMAction id="action_lawyer" target="essay_rewrite">
-      <LLMPrompt id="prompt_lawyer">
-        Please rewrite this text in legal English for a legal filing:
-        <Element id="elem_lawyer">student_essay</Element>
-      </LLMPrompt>
+      Please rewrite this text in legal English for a legal filing:
+      <Element id="elem_lawyer">student_essay</Element>
     </LLMAction>
   </ActionButton>
 
   <ActionButton id="btn_middle_school" label="Middle Schooler">
     <LLMAction id="action_middle_school" target="essay_rewrite">
-      <LLMPrompt id="prompt_middle_school">
-        Please rewrite this text as a lower-to-mid-level middle schooler. Please include middle-school level spelling errors, grammar errors, and style issues; we'll want middle-school students to find and correct issues:
-        <Element id="elem_middle_school">student_essay</Element>
-      </LLMPrompt>
+      Please rewrite this text as a lower-to-mid-level middle schooler. Please include middle-school level spelling errors, grammar errors, and style issues; we'll want middle-school students to find and correct issues:
+      <Element id="elem_middle_school">student_essay</Element>
     </LLMAction>
   </ActionButton>
 </Lesson>
