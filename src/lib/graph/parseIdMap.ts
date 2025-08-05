@@ -28,15 +28,27 @@ export function parseIdMap(idMap: Record<string, any>): ParseResult {
   const edges: GraphEdge[] = [];
   const launchable: string[] = [];
 
-  // IF something goes wrong, we add it here
-  // At present, unused, as nothing is going wrong.
-  // We might remove it someday
+  // Issues found during graph parsing - these should be surfaced to help debug problems
   const issues = [];
 
   for (const [id, node] of Object.entries(idMap)) {
     let childIds = [];
     const comp = COMPONENT_MAP[node.tag];
-    childIds = comp.staticKids(node);
+
+    // Missing components are serious errors - they indicate components that were parsed but aren't registered
+    if (!comp) {
+      const issue = `No component found for tag: <${node.tag}> (id: ${id}). This suggests the component exists in content but isn't properly registered in COMPONENT_MAP.`;
+      console.error(`[parseIdMap] ${issue}`);
+      issues.push({ type: 'missing_component', node: id, tag: node.tag, message: issue });
+      childIds = [];
+    } else if (!comp.staticKids) {
+      const issue = `Component ${node.tag} has no staticKids method (id: ${id}). All components should have a staticKids method for graph building.`;
+      console.error(`[parseIdMap] ${issue}`);
+      issues.push({ type: 'missing_static_kids', node: id, tag: node.tag, message: issue });
+      childIds = [];
+    } else {
+      childIds = comp.staticKids(node);
+    }
 
     // Avoid duplicates
     if(nodes.find(n => n.id === id)) {
