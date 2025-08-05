@@ -18,17 +18,28 @@ const Element = dev({
   fields,
   getValue: (state, id, _attributes, idMap) => {
     // Get the Element block from idMap to access its text content
-    const elementBlock = idMap?.[id];
-    if (!elementBlock) return '';
-    
+    if (!(id in idMap)) {
+      throw new Error(`Element getValue: Block with id "${id}" not found in idMap`);
+    }
+    const elementBlock = idMap[id];
+
     // Extract the referenced ID from the kids (text content)
     const referencedId = (typeof elementBlock.kids === 'string' ? elementBlock.kids : String(elementBlock.kids || '')).trim();
-    if (!referencedId) return '';
-    
+    if (!referencedId) {
+      throw new Error(`Element getValue: No field ID specified in Element block "${id}". Element content: "${elementBlock.kids}"`);
+    }
+
     // Get the 'value' field info and look up the referenced component's value
     const valueField = fieldByName('value');
-    if (!valueField) return '';
-    
+    if (!valueField) {
+      throw new Error(`Element getValue: Field 'value' not registered in field system. This indicates a major system error.`);
+    }
+
+    // Check if the referenced component exists
+    if (!(referencedId in idMap)) {
+      throw new Error(`Element getValue: Referenced component "${referencedId}" not found in idMap. Element "${id}" references a non-existent component.`);
+    }
+
     return fieldSelector(state, { id: referencedId }, valueField, { fallback: '' });
   }
 });
