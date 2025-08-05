@@ -7,7 +7,7 @@ import { useFieldSelector, fieldByName } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
 
 function _Element(props) {
-  const { visible = true, kids = '' } = props;
+  const { visible = false, kids = '' } = props;
 
   // The kids content contains the ID of the field we want to reference
   const referencedId = (typeof kids === 'string' ? kids : String(kids)).trim();
@@ -29,12 +29,14 @@ function _Element(props) {
     fallback: '' 
   });
 
-  if (String(visible) === 'false') {
+  if (String(visible) === 'false' || !visible) {
     // Still subscribe to value but render nothing
     return null;
   }
 
-  return <span>{fieldValue}</span>;
+  if( visible ) {
+    return <span>{fieldValue}</span>;
+  }
 }
 
 export default _Element;
