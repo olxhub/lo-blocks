@@ -161,7 +161,7 @@ export function renderCompiledKids( props ) {
 
   return keyedKids.map((child, i) => {
     if (typeof child === 'string') {
-      return <React.Fragment key={child.key}>{child}</React.Fragment>;
+      return <React.Fragment key={`string-${i}`}>{child}</React.Fragment>;
     }
 
     if (React.isValidElement(child)) {
