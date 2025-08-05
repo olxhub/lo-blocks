@@ -7,6 +7,10 @@ import { FileStorageProvider } from '../lib/storage';
 import fs from 'fs';
 import path from 'path';
 
+// Optional: Include graph validation to catch component registration issues
+// This can be safely removed if graph parsing is not needed or changes significantly
+const INCLUDE_GRAPH_VALIDATION = true;
+
 const args = process.argv.slice(2);
 const contentDir = path.resolve(process.env.OLX_CONTENT_DIR || './content');
 
@@ -39,16 +43,50 @@ function formatErrorForConsole(error) {
   return output;
 }
 
+/**
+ * Adds component registration validation by running graph parsing
+ * This catches missing components that would cause runtime failures
+ * Can be safely removed by setting INCLUDE_GRAPH_VALIDATION = false
+ * (or removing the code, if we ever change or remove the graph
+ * renderer).
+ *
+ * This is very optional, but a nice-to-have.
+ */
+async function addGraphValidationErrors(idMap, parseErrors) {
+  if (!INCLUDE_GRAPH_VALIDATION) {
+    return parseErrors || [];
+  }
+
+  try {
+    const { parseIdMap } = await import('../lib/graph/parseIdMap');
+    const { issues: graphIssues } = parseIdMap(idMap);
+
+    const graphErrors = (graphIssues || []).map(issue => ({
+      type: 'component_error',
+      message: issue.message,
+      technical: issue
+    }));
+
+    return [...(parseErrors || []), ...graphErrors];
+  } catch (error) {
+    console.warn('Graph validation failed, continuing without it:', error.message);
+    return parseErrors || [];
+  }
+}
+
 async function main() {
   try {
     const provider = new FileStorageProvider(contentDir);
-    const { idMap, errors } = await syncContentFromStorage(provider);
+    const { idMap, errors: parseErrors } = await syncContentFromStorage(provider);
+
+    // Add optional graph validation errors
+    const allErrors = await addGraphValidationErrors(idMap, parseErrors);
 
     // Always output the JSON, even if there are errors
     const output = {
       idMap,
-      hasErrors: errors && errors.length > 0,
-      errorCount: errors ? errors.length : 0
+      hasErrors: allErrors && allErrors.length > 0,
+      errorCount: allErrors ? allErrors.length : 0
     };
 
     const pretty = stringify(output, { space: 2 });
@@ -64,11 +102,11 @@ async function main() {
     }
 
     // Print errors to stderr if any exist
-    if (errors && errors.length > 0) {
-      console.error(`\n⚠️  Found ${errors.length} error(s) during content loading:\n`);
+    if (allErrors && allErrors.length > 0) {
+      console.error(`\n⚠️  Found ${allErrors.length} error(s) during content loading:\n`);
 
       // Group errors by type for better organization
-      const errorsByType = errors.reduce((acc, error) => {
+      const errorsByType = allErrors.reduce((acc, error) => {
         if (!acc[error.type]) acc[error.type] = [];
         acc[error.type].push(error);
         return acc;
@@ -83,7 +121,7 @@ async function main() {
         console.error(''); // Empty line between types
       }
 
-      console.error(`❌ Content loading completed with ${errors.length} error(s). Check the errors above.`);
+      console.error(`❌ Content loading completed with ${allErrors.length} error(s). Check the errors above.`);
       process.exit(1); // Exit with error code
     } else {
       console.error('✅ Content loading completed successfully with no errors.');
