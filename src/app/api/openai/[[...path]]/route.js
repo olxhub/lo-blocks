@@ -6,7 +6,9 @@ import { NextResponse } from 'next/server';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_BASE_URL = "https://api.openai.com/v1/";
-const USE_STUB = !OPENAI_API_KEY || process.env.NODE_ENV === 'development';
+
+// TODO: Should we just fail on no key?
+const USE_STUB = !OPENAI_API_KEY || process.env.LLM_MODE === 'STUB';
 
 export async function GET(request, { params }) {
   return proxyToOpenAI(request, params);
@@ -29,18 +31,25 @@ async function stubOpenAI(request, path) {
     const messages = body.messages || [];
     const userMessage = messages.find(m => m.role === 'user')?.content || 'Hello';
 
-    // Generate a simple response based on the prompt
-    let responseText = `Hello! This is a stub response to: "${userMessage.substring(0, 100)}${userMessage.length > 100 ? '...' : ''}"`;
+    // Extract student text from the prompt (look for text after common prompt patterns)
+    const studentTextMatch = userMessage.match(/(?:rewrite this|text:|content:)\s*(.+)$/i);
+    const studentText = studentTextMatch ? studentTextMatch[1].trim() : userMessage;
+    const preview = studentText.substring(0, 150) + (studentText.length > 150 ? '...' : '');
 
-    // Add some variety based on prompt content
+    // Generate response that mirrors student content with style-specific transformation
+    let responseText;
     if (userMessage.toLowerCase().includes('comedian')) {
-      responseText = "Why did the text go to therapy? Because it had too many character issues! 😄 (This is a stub response for testing.)";
+      responseText = `[STUB COMEDIAN] Here's your text with comedic flair: "${preview}" → "Why did the student write this? Because they had something important to say... and I'm making it funny! 🎭" (Stub response showing student input was received)`;
     } else if (userMessage.toLowerCase().includes('first grader')) {
-      responseText = "Hi! I am a computer helper. I can make words easy to read! (This is a test message.)";
+      responseText = `[STUB FIRST GRADER] Making it simple: "${preview}" → "This is easy words for little kids to read!" (Stub showing your text: ${preview})`;
     } else if (userMessage.toLowerCase().includes('business')) {
-      responseText = "Dear Valued Stakeholder, we are pleased to present this synergistic solution... (Stub response for development testing.)";
+      responseText = `[STUB BUSINESS] Professional version: "${preview}" → "We are pleased to leverage synergistic solutions..." (Stub echoing: ${preview})`;
     } else if (userMessage.toLowerCase().includes('legal')) {
-      responseText = "Whereas the aforementioned text, hereinafter referred to as 'the Content'... (Mock legal text for testing purposes.)";
+      responseText = `[STUB LEGAL] Legal format: "${preview}" → "Whereas the aforementioned content, hereinafter referred to as..." (Stub processing: ${preview})`;
+    } else if (userMessage.toLowerCase().includes('academic')) {
+      responseText = `[STUB ACADEMIC] Academic style: "${preview}" → "The hermeneutical implications of the aforementioned discourse..." (Stub received: ${preview})`;
+    } else {
+      responseText = `[STUB] Processed your text: "${preview}" → [This would be the transformed version] (Echo verification: student input received correctly)`;
     }
 
     return NextResponse.json({

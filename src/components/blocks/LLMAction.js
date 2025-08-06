@@ -4,95 +4,76 @@ import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import _Noop from './_Noop';
 
-export const fields = state.fields(['loading']);
+export const fields = state.fields([]);
 
-async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
-  // Server-side imports
+// Call LLM API with prompt text
+async function callLLMAPI(promptText) {
+  // Original LLM API code (commented out for testing):
+  const requestBody = {
+    model: 'gpt-3.5-turbo',
+    messages: [
+      { role: 'user', content: promptText }
+    ],
+    max_tokens: 500
+  };
+
+  const response = await fetch('/api/openai/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestBody)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('❌ LLMAction: API error details:', errorText);
+    throw new Error(`LLM API error: ${response.statusText} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content || 'No response';
+}
+
+// Update target field with content
+async function updateTargetField(props, targetInstance, content) {
   const { updateReduxField } = await import('@/lib/state');
+  const targetElementId = targetInstance.attributes.target;
 
+  if (!targetElementId) {
+    console.warn('⚠️ LLMAction: No target specified in action attributes');
+    return;
+  }
+
+  const targetNode = props.idMap[targetElementId];
+  const targetBlueprint = props.componentMap[targetNode.tag];
+
+  if (targetBlueprint.blueprint.fields.fieldInfoByField?.value) {
+    state.updateReduxField(
+      { ...props, id: targetElementId },
+      targetBlueprint.blueprint.fields.fieldInfoByField.value,
+      content,
+      { id: targetInstance.attributes.target }
+    );
+  } else {
+    console.warn('⚠️ LLMAction: Target component does not have a value field');
+    console.log('🔍 LLMAction: targetBlueprint.blueprint.fields:', targetBlueprint.blueprint.fields);
+    console.log('🔍 LLMAction: Available fieldInfoByField keys:', Object.keys(targetBlueprint.blueprint.fields.fieldInfoByField || {}));
+  }
+}
+
+// Main LLM action function
+async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
   try {
-    // Set loading state using action's own fields
-    //
-    // TODO: Note that this is wrong and doesn't work. Ergo, the wrapper.
-    // Probably, we're not adding fields to props properly in actions.js?
-    if (props.fields?.loading) {
-      updateReduxField(props, props.fields.loading, true);
-    }
-
-    // Extract prompt text directly from this action's content (kids)
     const promptText = await extractPromptText(props.nodeInfo.node, props);
-
     if (!promptText.trim()) {
       throw new Error('LLMAction: No prompt content found');
     }
 
-    // Call LLM API through OpenAI proxy
-    const requestBody = {
-      model: 'gpt-3.5-turbo',
-      messages: [
-        { role: 'user', content: promptText }
-      ],
-      max_tokens: 500
-    };
+    const content = await callLLMAPI(promptText);
+    await updateTargetField(props, targetInstance, content);
 
-    const response = await fetch('/api/openai/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody)
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ LLMAction: API error details:', errorText);
-      throw new Error(`LLM API error: ${response.statusText} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || 'No response';
-
-    // Update target component's value - get target from action's attributes
-    const targetElementId = targetInstance?.attributes?.target;
-    if (targetElementId) {
-      // Get target component's blueprint and fields
-      const targetNode = props.idMap[targetElementId];
-
-      const targetBlueprint = props.componentMap[targetNode.tag];
-
-      if (targetBlueprint.blueprint.fields.fieldInfoByField?.value) {
-        updateReduxField(
-          { ...props, id: targetElementId },
-          targetBlueprint.blueprint.fields.fieldInfoByField.value,
-          content
-        );
-      } else {
-        console.warn('⚠️ LLMAction: Target component does not have a value field');
-        console.log('🔍 LLMAction: targetBlueprint.blueprint.fields:', targetBlueprint?.blueprint?.fields);
-        console.log('🔍 LLMAction: Available fieldInfoByField keys:', Object.keys(targetBlueprint?.blueprint?.fields?.fieldInfoByField || {}));
-      }
-    } else {
-      console.warn('⚠️ LLMAction: No target specified in action attributes');
-    }
   } catch (error) {
     console.error('LLM generation failed:', error);
-
-    // Update target with error message
-    const targetElementId = targetInstance?.attributes?.target;
-    if (targetElementId) {
-      const targetNode = props.idMap[targetElementId];
-      const targetBlueprint = props.componentMap[targetNode?.tag];
-      if (targetBlueprint?.blueprint?.fields?.fieldInfoByField?.value) {
-        updateReduxField(
-          { ...props, id: targetElementId },
-          targetBlueprint.blueprint.fields.fieldInfoByField.value,
-          `Error: ${error.message}`
-        );
-      }
-    }
-  } finally {
-    // Clear loading state
-    if (props.fields?.loading) {
-      updateReduxField(props, props.fields.loading, false);
-    }
+    await updateTargetField(props, targetInstance, `Error: ${error.message}`);
   }
 }
 
@@ -109,9 +90,9 @@ async function extractPromptText(actionNode, props) {
       promptText += kid.text;
     } else if (kid.type === 'block') {
       const blockNode = props.idMap[kid.id];
-      const blockBlueprint = props.componentMap[blockNode?.tag];
+      const blockBlueprint = props.componentMap[blockNode.tag];
 
-      if (blockBlueprint?.getValue) {
+      if (blockBlueprint.getValue) {
         // Use the block's getValue method to get the actual value
         const reduxLogger = await import('lo_event/lo_event/reduxLogger.js');
         const state = reduxLogger.store.getState()?.application_state || {};
@@ -124,7 +105,7 @@ async function extractPromptText(actionNode, props) {
         );
         promptText += blockValue;
       } else {
-        console.warn(`⚠️ extractPromptText: Block ${blockNode?.tag} (${kid.id}) has no getValue method`);
+        console.warn(`⚠️ extractPromptText: Block ${blockNode.tag} (${kid.id}) has no getValue method`);
         const fallback = `[BLOCK_${kid.id}]`;
         promptText += fallback;
       }
@@ -133,7 +114,6 @@ async function extractPromptText(actionNode, props) {
     }
 
   }
-
   return promptText.trim();
 }
 

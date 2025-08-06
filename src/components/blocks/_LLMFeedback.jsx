@@ -4,7 +4,7 @@
 import React from 'react';
 
 import { useFieldSelector } from '@/lib/state';
-import { LLM_RUNNING, LLM_INIT } from '@/lib/llm/client.jsx';
+import { LLM_STATUS } from '@/lib/llm/reduxClient.jsx';
 
 import Spinner from './Spinner';
 
@@ -19,13 +19,13 @@ function _LLMFeedback(props) {
   const llmState = useFieldSelector(
     props,
     fields.state,
-    { selector: s => s?.state ?? LLM_INIT, fallback: LLM_INIT, id }
+    { selector: s => s?.state ?? LLM_STATUS.INIT, fallback: LLM_STATUS.INIT, id }
   );
 
   return (
     <div className="bg-gray-50 border rounded p-3 text-sm">
       <div className="text-center text-xl">🤖</div>
-      {llmState === LLM_RUNNING ? <Spinner /> : feedback}
+      {llmState === LLM_STATUS.RUNNING ? <Spinner /> : feedback}
     </div>
   );
 }

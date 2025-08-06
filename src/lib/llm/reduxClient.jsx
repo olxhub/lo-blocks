@@ -1,7 +1,10 @@
-// TODO: Aspirational: Not yet redux.
+// Main client-side interface to the LLM.
+//
+// TODO: The name is aspirational: We're not yet fully redux.
 
 import { useState } from 'react';
 
+// In progress: State machine of LLM status
 export const LLM_STATUS = {
   INIT: 'LLM_INIT',
   RUNNING: 'LLM_RUNNING',
@@ -28,11 +31,14 @@ async function handleToolCalls(toolCalls, tools) {
   }));
 }
 
+// Small helper to find tool in a list of tools
 function findToolByName(tools, name) {
   return tools?.find(t => t.function.name === name);
 }
 
 // Core LLM call logic, standalone async function.
+//
+// TODO: Do we want to replace this with a standard library?
 export async function callLLM(params) {
   const { history, tools = [], statusCallback = () => null } = params;
 
@@ -91,6 +97,9 @@ export async function callLLM(params) {
   };
 }
 
+// Most common interface to LLM.
+//
+// TODO: We should pass both props and additional params to this
 export function useChat(params = {}) {
   const { tools = [] } = params;
   const [messages, setMessages] = useState([

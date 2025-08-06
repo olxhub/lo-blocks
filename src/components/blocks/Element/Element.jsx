@@ -40,7 +40,11 @@ const Element = dev({
       throw new Error(`Element getValue: Referenced component "${referencedId}" not found in idMap. Element "${id}" references a non-existent component.`);
     }
 
-    return fieldSelector(state, { id: referencedId }, valueField, { fallback: '' });
+    // TODO: We have a bug around here.
+    // Try the same pattern as TextArea.getValue
+    const directResult = state?.[referencedId]?.value ?? '';
+    const result = fieldSelector(state, { id: referencedId }, valueField, { fallback: '' });
+    return directResult || result;
   }
 });
 
