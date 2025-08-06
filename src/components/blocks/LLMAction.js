@@ -6,32 +6,8 @@ import _Noop from './_Noop';
 
 export const fields = state.fields([]);
 
-// Call LLM API with prompt text
-async function callLLMAPI(promptText) {
-  // Original LLM API code (commented out for testing):
-  const requestBody = {
-    model: 'gpt-3.5-turbo',
-    messages: [
-      { role: 'user', content: promptText }
-    ],
-    max_tokens: 500
-  };
-
-  const response = await fetch('/api/openai/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(requestBody)
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('❌ LLMAction: API error details:', errorText);
-    throw new Error(`LLM API error: ${response.statusText} - ${errorText}`);
-  }
-
-  const data = await response.json();
-  return data.choices[0].message.content || 'No response';
-}
+// Import the unified LLM client
+import { callLLMSimple } from '@/lib/llm/reduxClient';
 
 // Update target field with content
 async function updateTargetField(props, targetInstance, content) {
@@ -68,7 +44,7 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
       throw new Error('LLMAction: No prompt content found');
     }
 
-    const content = await callLLMAPI(promptText);
+    const content = await callLLMSimple(promptText);
     await updateTargetField(props, targetInstance, content);
 
   } catch (error) {

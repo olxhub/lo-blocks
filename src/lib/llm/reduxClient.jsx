@@ -2,6 +2,8 @@
 //
 // TODO: The name is aspirational: We're not yet fully redux.
 
+'use client';
+
 import { useState } from 'react';
 
 // In progress: State machine of LLM status
@@ -40,7 +42,21 @@ function findToolByName(tools, name) {
 //
 // TODO: Do we want to replace this with a standard library?
 export async function callLLM(params) {
-  const { history, tools = [], statusCallback = () => null } = params;
+  const {
+    history,
+    prompt,
+    tools = [],
+    statusCallback = () => null,
+    model = 'gpt-4.1-nano'
+  } = params;
+
+  // Validation: exactly one of prompt or history must be provided
+  if ((!prompt && !history) || (prompt && history)) {
+    throw new Error('Must provide exactly one of: prompt or history');
+  }
+
+  // Convert prompt to history if needed
+  const messages = history || [{ role: 'user', content: prompt }];
 
   let loopCount = 0;
   let newMessages = [];
@@ -50,8 +66,8 @@ export async function callLLM(params) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'gpt-4.1-nano',
-          messages: [...history, ...newMessages],
+          model,
+          messages: [...messages, ...newMessages],
           tools: tools ? tools.map(({ callback, ...rest }) => rest) : [],
         }),
       });
@@ -132,4 +148,22 @@ export function useChat(params = {}) {
   };
 
   return { messages, sendMessage, status };
+}
+
+// Simple wrapper that returns just the text content
+export async function callLLMSimple(prompt, options = {}) {
+  const { model } = options;
+
+  const { messages, error } = await callLLM({
+    prompt,
+    model,
+    statusCallback: () => {}, // No status needed for simple calls
+  });
+
+  if (error) {
+    throw new Error(messages[0]?.text || 'LLM call failed');
+  }
+
+  // Extract just the text content
+  return messages.find(m => m.type === 'Line' && m.speaker === 'LLM')?.text || 'No response';
 }
