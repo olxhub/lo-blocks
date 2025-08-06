@@ -248,3 +248,44 @@ export function useReduxCheckbox(
   const onChange = useCallback((event) => setChecked(event.target.checked), [setChecked]);
   return [checked, { name: field.name, checked, onChange }];
 }
+
+/**
+ * Helper to get a field from another component by string name.
+ * Throws if the component or field is not found to prevent typos.
+ *
+ * Note that this should only be used when field names are coming
+ * from user input (e.g. OLX files). Otherwise, we should treat
+ * fields as if they were an enum or symbol, and only use as
+ * `fields.field`
+ *
+ * @param {Object} props - Component props with idMap and componentMap
+ * @param {string} targetId - ID of the target component
+ * @param {string} fieldName - Name of the field to access (e.g., 'value')
+ * @returns {FieldInfo} The field info
+ * @throws {Error} If component or field not found
+ */
+export function componentFieldByName(props, targetId, fieldName) {
+  // TODO: Flip around. If x not in y: raise exception. Then grab it.
+  // TODO: More human-friendly errors. This is for programmers, but teachers might see these editing.
+  // Possible TODO: Extract context from props for human-friendly errors.
+  // Possible TODO: Move to OLXDom or similar. I'm not sure this is the best place for this.
+  // Optimization: In production, we could go directly into the global field name maps. But this is better for dev + editing. The global map risks referencing a field which exists in the system, but not in the target component.
+
+  const targetNode = props.idMap?.[targetId];
+  if (!targetNode) {
+    throw new Error(`componentFieldByName: Component "${targetId}" not found in idMap`);
+  }
+
+  const targetBlueprint = props.componentMap?.[targetNode.tag];
+  if (!targetBlueprint) {
+    throw new Error(`componentFieldByName: No blueprint found for component type "${targetNode.tag}"`);
+  }
+
+  const field = targetBlueprint.blueprint.fields.fieldInfoByField?.[fieldName];
+  if (!field) {
+    const availableFields = Object.keys(targetBlueprint.blueprint.fields.fieldInfoByField || {});
+    throw new Error(`componentFieldByName: Field "${fieldName}" not found in component "${targetId}" (${targetNode.tag}). Available fields: ${availableFields.join(', ')}`);
+  }
+
+  return field;
+}

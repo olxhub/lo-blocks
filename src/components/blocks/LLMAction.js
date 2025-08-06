@@ -2,38 +2,22 @@
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
+import * as reduxClient from '@/lib/llm/reduxClient';
 import _Noop from './_Noop';
 
 export const fields = state.fields([]);
 
-// Import the unified LLM client
-import { callLLMSimple } from '@/lib/llm/reduxClient';
 
 // Update target field with content
 async function updateTargetField(props, targetInstance, content) {
-  const { updateReduxField } = await import('@/lib/state');
   const targetElementId = targetInstance.attributes.target;
-
   if (!targetElementId) {
     console.warn('⚠️ LLMAction: No target specified in action attributes');
     return;
   }
 
-  const targetNode = props.idMap[targetElementId];
-  const targetBlueprint = props.componentMap[targetNode.tag];
-
-  if (targetBlueprint.blueprint.fields.fieldInfoByField?.value) {
-    state.updateReduxField(
-      { ...props, id: targetElementId },
-      targetBlueprint.blueprint.fields.fieldInfoByField.value,
-      content,
-      { id: targetInstance.attributes.target }
-    );
-  } else {
-    console.warn('⚠️ LLMAction: Target component does not have a value field');
-    console.log('🔍 LLMAction: targetBlueprint.blueprint.fields:', targetBlueprint.blueprint.fields);
-    console.log('🔍 LLMAction: Available fieldInfoByField keys:', Object.keys(targetBlueprint.blueprint.fields.fieldInfoByField || {}));
-  }
+  const field = state.componentFieldByName(props, targetElementId, 'value');
+  state.updateReduxField(props, field, content, { id: targetElementId });
 }
 
 // Main LLM action function
@@ -44,7 +28,7 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
       throw new Error('LLMAction: No prompt content found');
     }
 
-    const content = await callLLMSimple(promptText);
+    const content = await reduxClient.callLLMSimple(promptText);
     await updateTargetField(props, targetInstance, content);
 
   } catch (error) {
