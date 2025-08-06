@@ -43,7 +43,6 @@ async function extractPromptText(actionNode, props) {
   let promptText = '';
 
   for (const [index, kid] of kids.entries()) {
-    // TODO: Are both 'string` and 'text' needed?
     if (typeof kid === 'string') {
       promptText += kid;
     } else if (kid.type === 'text') {
@@ -58,7 +57,7 @@ async function extractPromptText(actionNode, props) {
         const state = reduxLogger.store.getState()?.application_state || {};
 
         const blockValue = blockBlueprint.getValue(
-          state,
+          state.component,
           kid.id,
           blockNode.attributes,
           props.idMap
