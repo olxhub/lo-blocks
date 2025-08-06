@@ -191,6 +191,72 @@ export function inferRelatedNodes(props, {
   return [...new Set([...explicitTargets, ...parents, ...kids])];
 }
 
+// TODO: These functions belong in a new utility module (perhaps blocks/util.js)
+// They handle runtime value resolution and mixed content processing, which 
+// is distinct from the DOM traversal utilities above.
+
+/**
+ * Get the current value of a component by ID using its getValue method.
+ * 
+ * @param {Object} props - Component props with idMap and componentMap
+ * @param {string} id - ID of the component to get value from
+ * @returns {Promise<any>} The component's current value
+ */
+export async function getValueById(props, id) {
+  const blockNode = props.idMap[id];
+  const blockBlueprint = props.componentMap[blockNode.tag];
+
+  if (blockBlueprint.getValue) {
+    // Use the block's getValue method to get the actual value
+    // TODO: Top-level import? I think this await is just a relic of where this came from.
+    const reduxLogger = await import('lo_event/lo_event/reduxLogger.js');
+    const state = reduxLogger.store.getState()?.application_state || {};
+
+    const blockValue = await blockBlueprint.getValue(
+      state.component,
+      id,
+      blockNode.attributes,
+      props.idMap
+    );
+    return blockValue;
+  } else {
+    console.warn(`⚠️ getValueById: Block ${blockNode.tag} (${id}) has no getValue method`);
+  }
+}
+
+/**
+ * Extract text from child nodes, resolving block references to their current values.
+ * 
+ * For text nodes, accumulates the text content.
+ * For block nodes, calls their getValue() method to get current runtime value.
+ * 
+ * Originally designed to extract prompt text from LLMAction content.
+ * 
+ * @param {Object} props - Component props with idMap and componentMap
+ * @param {Object} actionNode - Node with kids array to process
+ * @returns {Promise<string>} The extracted and resolved text content
+ */
+export async function extractChildText(props, actionNode) {
+  const { kids = [] } = actionNode;
+  let promptText = '';
+
+  for (const [index, kid] of kids.entries()) {
+    if (typeof kid === 'string') {
+      promptText += kid;
+    } else if (kid.type === 'text') {
+      promptText += kid.text;
+    } else if (kid.type === 'block') {
+      const value = await getValueById(props, kid.id);
+      if(value) {
+        promptText += value;
+      } // TODO: else -- maybe recurse down?
+    } else {
+      console.warn(`❓ extractChildText: Unknown kid type:`, kid);
+    }
+  }
+  return promptText.trim();
+}
+
 export const __testables = {
   normalizeTargetIds,
   normalizeInfer

@@ -23,7 +23,7 @@ async function updateTargetField(props, targetInstance, content) {
 // Main LLM action function
 async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
   try {
-    const promptText = await extractChildText(props, props.nodeInfo.node);
+    const promptText = await blocks.extractChildText(props, props.nodeInfo.node);
     if (!promptText.trim()) {
       throw new Error('LLMAction: No prompt content found');
     }
@@ -35,57 +35,6 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
     console.error('LLM generation failed:', error);
     await updateTargetField(props, targetInstance, `Error: ${error.message}`);
   }
-}
-
-async function getValueById(props, id) {
-  const blockNode = props.idMap[id];
-  const blockBlueprint = props.componentMap[blockNode.tag];
-
-  if (blockBlueprint.getValue) {
-    // Use the block's getValue method to get the actual value
-    const reduxLogger = await import('lo_event/lo_event/reduxLogger.js');
-    const state = reduxLogger.store.getState()?.application_state || {};
-
-    const blockValue = await blockBlueprint.getValue(
-      state.component,
-      id,
-      blockNode.attributes,
-      props.idMap
-    );
-    return blockValue;
-  } else {
-    console.warn(`⚠️ getValueById: Block ${blockNode.tag} (${id}) has no getValue method`);
-  }
-}
-
-// Helper function to extract text from child nodes.
-//
-// For text nodes, it accumulates the text
-// For other blocks, it calls getValue()
-//
-// This was designed to extract prompt text from LLMAction content
-//
-// TODO: We should be able to handle kids recursively.
-async function extractChildText(props, actionNode) {
-  const { kids = [] } = actionNode;
-  let promptText = '';
-
-  for (const [index, kid] of kids.entries()) {
-    if (typeof kid === 'string') {
-      promptText += kid;
-    } else if (kid.type === 'text') {
-      promptText += kid.text;
-    } else if (kid.type === 'block') {
-      const value = await getValueById(props, kid.id);
-      if(value) {
-        promptText += value;
-      } // else -- maybe recurse down?
-    } else {
-      console.warn(`❓ extractChildText: Unknown kid type:`, kid);
-    }
-
-  }
-  return promptText.trim();
 }
 
 // Custom parser that handles mixed text and block content
