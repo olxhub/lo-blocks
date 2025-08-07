@@ -7,7 +7,7 @@ import _NumberInput from './_NumberInput';
 export const fields = state.fields(['value']);
 
 const NumberInput = core({
-  ...parsers.text,
+  ...parsers.text(),
   name: 'NumberInput',
   description: 'Numeric input field that parses and validates numerical values',
   component: _NumberInput,

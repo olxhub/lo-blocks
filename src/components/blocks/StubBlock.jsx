@@ -51,7 +51,7 @@ export default function createStubBlock(name) {
         </div>
       );
     },
-    ...parsers.ignore,
+    ...parsers.ignore(),
     // no kids expected,
   });
 }

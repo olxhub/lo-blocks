@@ -7,7 +7,7 @@ import _DynamicList from './_DynamicList';
 export const fields = state.fields(['count']);
 
 const DynamicList = core({
-  ...parsers.blocks,
+  ...parsers.blocks(),
   name: 'DynamicList',
   description: 'Container that repeat a child component with adjustable length (e.g. for supporting arguments in a graphic organizer)',
   component: _DynamicList,

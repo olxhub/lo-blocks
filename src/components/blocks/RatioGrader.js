@@ -8,7 +8,7 @@ import { gradeRatio } from '@/lib/util/numeric.js';
 export const fields = state.fields(['correct', 'message']);
 
 const RatioGrader = blocks.test({
-  ...parsers.blocks,
+  ...parsers.blocks(),
   ...blocks.grader({
     grader: gradeRatio,
   }),

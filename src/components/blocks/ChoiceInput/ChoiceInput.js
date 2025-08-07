@@ -8,7 +8,7 @@ import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 export const fields = state.fields(['value']);
 
 const ChoiceInput = core({
-  ...parsers.blocks,
+  ...parsers.blocks(),
   name: 'ChoiceInput',
   description: 'Multiple choice input collecting student selections from Key/Distractor options',
   component: _Noop,

@@ -78,7 +78,7 @@ courseParser.staticKids = entry => {
 };
 
 const Course = dev({
-  ...courseParser,
+  ...courseParser(),
   name: 'Course',
   description: 'Hierarchical course structure with chapter navigation and content display',
   component: _Course,

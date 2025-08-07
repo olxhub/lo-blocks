@@ -7,7 +7,7 @@ import _ReorderList from './_ReorderList';
 export const fields = state.fields(['order']);
 
 const ReorderList = dev({
-  ...parsers.blocks,
+  ...parsers.blocks(),
   name: 'ReorderList',
   description: 'Interactive drag-and-drop list for students to reorder items',
   component: _ReorderList,

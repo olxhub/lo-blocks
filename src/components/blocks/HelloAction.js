@@ -4,7 +4,7 @@ import * as blocks from '@/lib/blocks';
 import _Noop from './_Noop';
 
 const HelloAction = blocks.test({
-  ...parsers.ignore,
+  ...parsers.ignore(),
   ...blocks.action({
     action: ()=>alert("Hello, World!")
   }),

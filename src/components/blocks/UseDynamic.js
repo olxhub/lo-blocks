@@ -12,7 +12,7 @@ export const fields = state.fields(
 );
 
 const UseDynamic = dev({
-  ...ignore,
+  ...ignore(),
   name: 'UseDynamic',
   component: _UseDynamic,
   namespace: 'org.mitros.dev',

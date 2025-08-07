@@ -6,7 +6,7 @@ import _TextArea from './_TextArea';
 
 export const fields = state.fields(['value']);
 const TextArea = core({
-  ...parsers.blocks,
+  ...parsers.blocks(),
   name: 'TextArea',
   description: 'Multi-line text input field for longer student responses',
   component: _TextArea,

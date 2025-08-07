@@ -14,7 +14,7 @@ export const fields = state.fields([
 ]);
 
 const UseHistory = dev({
-  ...ignore,
+  ...ignore(),
   name: 'UseHistory',
   component: _UseHistory,
   namespace: 'org.mitros.dev',

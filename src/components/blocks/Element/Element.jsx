@@ -11,7 +11,7 @@ import _Element from './_Element';
 export const fields = state.fields([]);
 
 const Element = dev({
-  ...parsers.text, // Use text parser to extract the field reference
+  ...parsers.text(), // Use text parser to extract the field reference
   name: 'Element',
   description: 'References the value of another field by name',
   component: _Element,

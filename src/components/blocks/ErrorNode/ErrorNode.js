@@ -4,7 +4,7 @@ import * as parsers from '@/lib/content/parsers';
 import { _ErrorNode } from './_ErrorNode.jsx';
 
 const ErrorNode = core({
-  ...parsers.blocks,
+  ...parsers.blocks(),
   name: 'ErrorNode',
   component: _ErrorNode,
   namespace: 'org.mitros.core',

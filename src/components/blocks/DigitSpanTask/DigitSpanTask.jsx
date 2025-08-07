@@ -34,7 +34,7 @@ export const fields = state.fields([
 ]);
 
 const DigitSpanTask = dev({
-  ...parsers.ignore,
+  ...parsers.ignore(),
   name: 'DigitSpanTask',
   component: _DigitSpanTask,
   description,

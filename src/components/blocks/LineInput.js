@@ -7,7 +7,7 @@ import _LineInput from './_LineInput';
 export const fields = state.fields(['value']);
 
 const LineInput = core({
-  ...parsers.blocks,
+  ...parsers.blocks(),
   name: 'LineInput',
   description: 'Single-line text input field for student responses',
   component: _LineInput,

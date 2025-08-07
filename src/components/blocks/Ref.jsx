@@ -5,7 +5,7 @@ import { fieldByName, selectFromStore } from '@/lib/state';
 import _Ref from './_Ref';
 
 const Ref = core({
-  ...parsers.ignore,
+  ...parsers.ignore(),
   name: 'Ref',
   component: _Ref,
   description: 'Render the value of another block\'s field.',

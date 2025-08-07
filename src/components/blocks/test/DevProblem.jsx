@@ -4,7 +4,7 @@ import { test } from '@/lib/blocks';
 import { _DevProblem } from './_DevProblem';
 
 const DevProblem = test({
-  ...parsers.blocks,
+  ...parsers.blocks(),
   name: 'DevProblem',
   component: _DevProblem,
 });

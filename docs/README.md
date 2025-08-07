@@ -299,6 +299,10 @@ Avoid renaming / aliasing variables. If there's a conflict with the name
 fully qualified name: `import * as state from @/lib/state` followed
 by `state.fields`
 
+Avoid `await import` unless there are circular dependency issues or
+browser / node issues. Imports go at the top of the file. If you do
+need an await import, document why.
+
 Field Conventions
 -----------------
 
@@ -324,4 +328,3 @@ name.
 The rationale here is we can point things by ID. If an instructor
 points an action to an OLX ID, the system know to grab or push data to
 `id.[value]`.
-  

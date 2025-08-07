@@ -9,7 +9,7 @@ export const fields = state.fields([
 ]);
 
 const Sequential = core({
-  ...parsers.blocks,
+  ...parsers.blocks(),
   name: 'Sequential',
   description: 'Linear step-through showing one piece of content at a time, with guided, sequential navigation',
   component: _Sequential,

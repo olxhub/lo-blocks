@@ -35,7 +35,7 @@ function _Spinner() {
 }
 
 const Spinner = dev({
-  ...parsers.ignore,
+  ...parsers.ignore(),
   name: 'Spinner',
   description: 'Loading / processing indicator',
   component: _Spinner

@@ -12,7 +12,7 @@
     "xml2json": "firejail --whitelist=$(pwd) npx tsx src/scripts/xml2json.js",
     "xml2graph": "firejail --whitelist=$(pwd) npx tsx src/scripts/xml2graph.js",
     "build:grammars": "firejail --whitelist=$(pwd) node src/scripts/compile-grammars.js",
-    "build:gen-block-registry": "firejail --whitelist=$(pwd) node src/scripts/generateBlockRegistry.js",
+    "build:gen-block-registry": "firejail --whitelist=$(pwd) node src/scripts/generateRegistry.js",
     "build:generate-docs": "firejail --whitelist=$(pwd) node src/scripts/generate-docs.js",
     "build:all": "npm run build:grammars && npm run build:gen-block-registry",
     "build:clean": "npm run clean && npm run clean-zombies ; npm install && npm run build:all",

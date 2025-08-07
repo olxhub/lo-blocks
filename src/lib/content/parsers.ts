@@ -123,44 +123,49 @@ interface ChildParserFn extends ParserFn {
   staticKids?: StaticKidsFn;
 }
 
-export function childParser(fn: ChildParserFn, nameOverride?: string): ChildParserReturn {
+export function childParser(fn: ChildParserFn, nameOverride?: string) {
   fn._isChildParser = true;
 
-  const wrapped = async function wrappedParser(ctx) {
-    const { id, tag, attributes, provenance, rawParsed, storeEntry } = ctx;
-    const tagParsed = rawParsed[tag];
-    const kids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
-    const entry = {
-      id,
-      tag,
-      attributes,
-      provenance,
-      rawParsed,
-      kids: await fn({ ...ctx, rawKids: kids, rawParsed: tagParsed })
+  const factory = function childParserFactory(options = {}) {
+    const wrapped = async function wrappedParser(ctx) {
+      const { id, tag, attributes, provenance, rawParsed, storeEntry } = ctx;
+      const tagParsed = rawParsed[tag];
+      const kids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
+      const entry = {
+        id,
+        tag,
+        attributes,
+        provenance,
+        rawParsed,
+        kids: await fn({ ...ctx, rawKids: kids, rawParsed: tagParsed, ...options })
+      };
+      storeEntry(id, entry);
+      return id;
     };
-    storeEntry(id, entry);
-    return id;
+
+    Object.defineProperty(wrapped, 'name', {
+      value: `childParser(${nameOverride || fn.name || 'anonymous_child_parser'})`
+    });
+
+    // This is a bit of a hack. I hate having kidParsers with fn.staticKids.
+    // They probably should return { parser, staticKids }.
+    const mixin: ChildParserReturn = { parser: wrapped };
+    if (typeof factory.staticKids === 'function') {
+      mixin.staticKids = factory.staticKids;
+    }
+
+    return mixin;
   };
 
-  Object.defineProperty(wrapped, 'name', {
-    value: `childParser(${nameOverride || fn.name || 'anonymous_child_parser'})`
-  });
-
-  // This is a bit of a hack. I hate having kidParsers with fn.staticKids.
-  // They probably should return { parser, staticKids }.
-  const mixin: ChildParserReturn = { parser: wrapped };
-  if (typeof fn.staticKids === 'function') {
-    mixin.staticKids = fn.staticKids;
-  }
-
-  return mixin;
+  return factory;
 }
 
 // === Parsers ===
 
 // No internal information.
-export const ignore = childParser(() => null);
-ignore.staticKids = () => [];
+const ignoreFactory = childParser(() => null);
+ignoreFactory.staticKids = () => [];
+export const ignore = ignoreFactory;
 
 // Ad-hoc reconstruction of the source XML.
 //
@@ -183,7 +188,7 @@ export const xml = {
 };
 
 // Assumes we have a list of OLX-style Blocks. E.g. for a learning sequence.
-export const blocks = childParser(async function blocksParser({ rawKids, parseNode }) {
+const blocksFactory = childParser(async function blocksParser({ rawKids, parseNode }) {
   let promises = rawKids
     .filter(child => {
       const tag = Object.keys(child).find(k => !['#text', '#comment', ':@'].includes(k));
@@ -193,22 +198,32 @@ export const blocks = childParser(async function blocksParser({ rawKids, parseNo
   let awaited = await Promise.all(promises);
   return awaited.filter(entry => entry.id);
 });
-blocks.staticKids = (entry) =>
+blocksFactory.staticKids = (entry) =>
   (Array.isArray(entry.kids) ? entry.kids : []).filter(k => k && k.id).map(k => k.id);
+export const blocks = blocksFactory;
 
 // Pass through the parsed XML, in the fast-xml-parser format
-export const xmljson = childParser(({ rawParsed }) => [
+const xmljsonFactory = childParser(({ rawParsed }) => [
   { type: 'node', rawParsed }
 ]);
-xmljson.staticKids = () => [];
+xmljsonFactory.staticKids = () => [];
+export const xmljson = xmljsonFactory;
 
 // Feed through the text / CDATA content between the opening and closing tag.
 //
 // There should be no nested XML.
-export const text = childParser(function textParser({ rawParsed }) {
-  return extractInnerTextFromXmlNodes(rawParsed).text;
+const textFactory = childParser(async function textParser({ rawParsed, stripIndent = false }) {
+  let content = extractInnerTextFromXmlNodes(rawParsed).text;
+
+  if (stripIndent) {
+    const { stripIndent: stripIndentFn } = await import('@/lib/content/stripIndent');
+    content = stripIndentFn(content);
+  }
+
+  return content;
 });
-text.staticKids = () => [];
+textFactory.staticKids = () => [];
+export const text = textFactory;
 
 // === PEG Support ===
 //

@@ -9,7 +9,7 @@ export const fields = state.fields(
 );
 
 const DevQuestion = test({
-  ...parsers.ignore,
+  ...parsers.ignore(),
   name: 'DevQuestion',
   component: _DevQuestion,
   fields: fields

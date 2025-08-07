@@ -10,7 +10,7 @@ import _LLMFeedback from './_LLMFeedback';
 export const fields = state.fields(['value', 'state']);
 
 const LLMFeedback = dev({
-  ...parsers.ignore, // no kids expected yet... later
+  ...parsers.ignore(), // no kids expected yet... later
   name: 'LLMFeedback',
   description: 'Displays AI-generated feedback responses to student input',
   component: _LLMFeedback,

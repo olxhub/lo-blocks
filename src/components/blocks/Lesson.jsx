@@ -15,7 +15,7 @@ function _Lesson( props ) {
 }
 
 const Lesson = test({
-  ...parsers.blocks,
+  ...parsers.blocks(),
   name: 'Lesson',
   description: 'Test container component for development (should be replaced with proper OLX)',
   component: _Lesson,

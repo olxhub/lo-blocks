@@ -32,7 +32,7 @@ splitParser.staticKids = entry => [
 ].filter(k => k && k.id).map(k => k.id);
 
 const SplitPanel = dev({
-  ...splitParser,
+  ...splitParser(),
   name: 'SplitPanel',
   description: 'Two-column layout with separate LeftPane and RightPane sections',
   component: _SplitPanel

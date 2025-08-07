@@ -5,7 +5,7 @@ import * as parsers from '@/lib/content/parsers';
 import { dev } from '@/lib/blocks';
 
 const InlineMath = dev({
-  ...parsers.text,
+  ...parsers.text(),
   name: 'InlineMath',
   component: _InlineMath,
   description: 'Renders a short LaTeX math expression inline within text.'

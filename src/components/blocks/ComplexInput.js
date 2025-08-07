@@ -13,7 +13,7 @@ const _ComplexInput = (props) =>
   _LineInput({ ...props, updateValidator: validator });
 
 const ComplexInput = core({
-  ...parsers.blocks,
+  ...parsers.blocks(),
   name: 'ComplexInput',
   description: 'Text input for complex numbers with validation (supports i/j notation)',
   component: _ComplexInput,

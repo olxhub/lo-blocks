@@ -11,7 +11,7 @@ import { gradeNumerical } from '@/lib/util/numeric.js';
 export const fields = state.fields(['correct', 'message']);
 
 const NumericalGrader = blocks.test({
-  ...parsers.blocks,
+  ...parsers.blocks(),
   ...blocks.grader({
     grader: gradeNumerical,
   }),

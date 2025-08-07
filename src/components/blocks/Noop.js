@@ -4,7 +4,7 @@ import * as parsers from '@/lib/content/parsers';
 import _Noop from './_Noop';
 
 const Noop = core({
-  ...parsers.blocks,
+  ...parsers.blocks(),
   name: 'Noop',
   description: 'Invisible container that renders child components without additional styling',
   component: _Noop,
