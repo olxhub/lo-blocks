@@ -1,5 +1,5 @@
 <!-- content/demos/element-demo.xml -->
-<Lesson id="element_demo" title="Element Block Demo" launchable="true">
+<Vertical id="element_demo" title="Element Block Demo" launchable="true">
   <TextBlock>
     ## Element Block Test
     
@@ -11,4 +11,4 @@
   <TextBlock>The value you typed above is displayed below:</TextBlock>
   
   <Element id="elem_demo" visible="true">sample_input</Element>
-</Lesson>
+</Vertical>

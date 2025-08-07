@@ -1,5 +1,5 @@
 <!-- content/demos/changer.xml -->
-<Lesson id="rewrite_lesson" launchable="true" title="Text Rewriting Station">
+<Vertical id="rewrite_lesson" launchable="true" title="Text Rewriting Station">
   <SideBarPanel id="main_layout">
     <MainPane>
       <TextBlock>
@@ -74,4 +74,4 @@
       </ActionButton>
     </Sidebar>
   </SideBarPanel>
-</Lesson>
+</Vertical>

@@ -1,5 +1,5 @@
 <!-- content/sba/sba_holder.xml -->
-<Lesson id="sba_lesson" launchable="true" title="SBA Example Lesson">
+<Vertical id="sba_lesson" launchable="true" title="SBA Example Lesson">
   <SplitPanel sizes="50,50">
     <LeftPane>
       <Use ref="peg_sba" height="flex-1" />
@@ -8,4 +8,4 @@
       <UseHistory id="peg_sba_sidebar" target="eigen_q1"/>
     </RightPane>
   </SplitPanel>
-</Lesson>
+</Vertical>

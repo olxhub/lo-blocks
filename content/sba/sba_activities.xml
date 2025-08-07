@@ -1,4 +1,4 @@
-<Lesson id="activities">
+<Vertical id="activities">
  <!-- Student input activities -->
   <TextArea id="student_suggestion" placeholder="What do YOU think she should do to get the 6-year-old to go to sleep at bedtime?"/>
   
@@ -181,4 +181,4 @@
   
   <!-- Define the shared sidebar component -->
   <UseHistory id="psych_sba_sidebar" target="student_suggestion" />
-</Lesson>
+</Vertical>

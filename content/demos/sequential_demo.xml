@@ -1,10 +1,10 @@
 <!-- content/demos/sequential_demo.xml -->
-<Lesson id="SequentialDemo" launchable="true">
+<Vertical id="SequentialDemo" launchable="true">
   <Sequential id="LearningSequence">
-    <Lesson id="Step1">
+    <Vertical id="Step1">
       <TextBlock>Welcome to the first step of our learning sequence!</TextBlock>
       <TextBlock>This is where you would introduce concepts and provide initial content.</TextBlock>
-    </Lesson>
+    </Vertical>
     
     <CapaProblem id="Step2">
       <p>Now let's practice what we learned in step 1.</p>
@@ -17,10 +17,10 @@
       </KeyGrader>
     </CapaProblem>
     
-    <Lesson id="Step3">
+    <Vertical id="Step3">
       <TextBlock>Great! Now let's move on to more advanced concepts.</TextBlock>
       <TextBlock>Here you would build on the previous steps and introduce new material.</TextBlock>
-    </Lesson>
+    </Vertical>
     
     <CapaProblem id="Step4">
       <p>Finally, let's test your understanding with a comprehensive question.</p>
@@ -33,4 +33,4 @@
       </KeyGrader>
     </CapaProblem>
   </Sequential>
-</Lesson>
+</Vertical>

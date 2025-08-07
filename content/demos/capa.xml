@@ -1,5 +1,5 @@
 <!-- content/demos/capa.xml -->
-<Lesson id="CapaDemo" launchable="true">
+<Vertical id="CapaDemo" launchable="true">
   <CapaProblem id="CapaDemoNumeric">
     <NumericalGrader answer="100" tolerance="5">
       <p>This is a simple problem. The answer is 100, with a tolerance of 5.</p>
@@ -13,4 +13,4 @@
       <ComplexInput/>
     </RatioGrader>
   </CapaProblem>
-</Lesson>
+</Vertical>

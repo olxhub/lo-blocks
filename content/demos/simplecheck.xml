@@ -1,8 +1,8 @@
 <!-- content/demos/simplecheck.xml -->
-<Lesson id="simplecheck_lesson" launchable="true">
+<Vertical id="simplecheck_lesson" launchable="true">
   <NumberInput id="num"/>
   <ActionButton label="Check">
     <NumericalGrader id="ten" answer="10" targets="num"/>
   </ActionButton>
   <Correctness targets="ten"/>
-</Lesson>
+</Vertical>
