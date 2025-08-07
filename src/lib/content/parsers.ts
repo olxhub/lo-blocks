@@ -43,37 +43,68 @@ const prod = false;
 // === Utilities ===
 
 /**
- * Extracts and compacts all text content from a parsed XML node array.
+ * Extracts raw text content from a single XML node.
+ */
+function extractTextFromSingleNode(node) {
+  if ('#text' in node && typeof node['#text'] === 'string') {
+    return node['#text'];
+  } else if ('cdata' in node && Array.isArray(node.cdata)) {
+    let cdataResult = '';
+    for (const c of node.cdata) {
+      if (typeof c === 'object' && '#text' in c) {
+        cdataResult += c['#text'];
+      } else {
+        throw new Error(`Malformed CDATA structure: ${JSON.stringify(node)}`);
+      }
+    }
+    return cdataResult;
+  } else if (Object.keys(node).length > 0) {
+    throw new Error(`XML found in text data: ${JSON.stringify(node)}`);
+  }
+  return '';
+}
+
+/**
+ * Reconstructs XML as fallback when text extraction fails.
+ */
+function reconstructXmlAsFallback(rawParsed, error) {
+  console.warn('⚠️', error);
+  if (typeof prod !== 'undefined' && prod) {
+    const poorlyReconstructedText = builder.build({ fakeRoot: rawParsed })
+      .split('<fakeRoot>').join('')
+      .split('</fakeRoot>').join('')
+      .trim() + '\n';
+    return {
+      warning: error,
+      type: 'text',
+      text: poorlyReconstructedText
+    };
+  }
+  throw new Error(error);
+}
+
+/**
+ * Extracts text content from parsed XML node array with configurable post-processing.
  *
  * Accepts an array of parsed XML nodes (as returned by fast-xml-parser),
  * combining all `#text` and `cdata` content into a single string.
  *
  * - If any node contains unexpected keys (i.e., not `#text` or `cdata`), the function fails.
  * - If `prod` is true, it returns a fallback object on failure instead of throwing.
- * - Whitespace is preserved internally; leading/trailing whitespace is trimmed, and a newline is added at the end.
+ * - Post-processing can preserve or modify whitespace as needed.
  *
  * @param {Array<Object>} rawParsed - An array of parsed XML content nodes.
- * @returns {Object} - `{ text: string, type: 'text' }`, or fallback object on failure.
+ * @param {Object} options - Processing options.
+ * @param {boolean} options.preserveWhitespace - If true, preserves raw whitespace; if false, trims and adds newline.
+ * @returns {Object|string} - `{ text: string, type: 'text' }` or raw string, or fallback object on failure.
  */
-function extractInnerTextFromXmlNodes(rawParsed) {
-  const fail = (err) => {
-    console.warn('⚠️', err);
-    if (typeof prod !== 'undefined' && prod) {
-      const poorlyReconstructedText = builder.build({ fakeRoot: rawParsed })
-        .split('<fakeRoot>').join('')
-        .split('</fakeRoot>').join('')
-        .trim() + '\n';
-      return {
-        warning: err,
-        type: 'text',
-        text: poorlyReconstructedText
-      };
-    }
-    throw new Error(err);
-  };
-
+function extractTextFromXmlNodes(rawParsed, { preserveWhitespace = false } = {}) {
   if (!Array.isArray(rawParsed)) {
-    return fail(`Expected rawParsed to be an array`);
+    const error = `Expected rawParsed to be an array`;
+    if (preserveWhitespace) {
+      throw new Error(error);
+    }
+    return reconstructXmlAsFallback(rawParsed, error);
   }
 
   try {
@@ -81,27 +112,24 @@ function extractInnerTextFromXmlNodes(rawParsed) {
 
     for (const node of rawParsed) {
       if (typeof node === 'object') {
-        if ('#text' in node && typeof node['#text'] === 'string') {
-          result += node['#text'];
-        } else if ('cdata' in node && Array.isArray(node.cdata)) {
-          for (const c of node.cdata) {
-            if (typeof c === 'object' && '#text' in c) {
-              result += c['#text'];
-            } else {
-              return fail(`Malformed CDATA structure: ${JSON.stringify(node)}`);
-            }
-          }
-        } else if (Object.keys(node).length > 0) {
-          return fail(`XML found in text data: ${JSON.stringify(node)}`);
-        }
+        result += extractTextFromSingleNode(node);
       }
     }
 
-    return { type: 'text', text: result.trim() + '\n' };
+    if (preserveWhitespace) {
+      return result;
+    } else {
+      return { type: 'text', text: result.trim() + '\n' };
+    }
   } catch (error) {
-    return fail(error.message || error.toString());
+    const errorMessage = error.message || error.toString();
+    if (preserveWhitespace) {
+      throw new Error(errorMessage);
+    }
+    return reconstructXmlAsFallback(rawParsed, errorMessage);
   }
 }
+
 
 // Simple decorator which assumes the parser just wants to look at the
 // parsed XML kids, and not all the other context.
@@ -212,12 +240,26 @@ export const xmljson = xmljsonFactory;
 // Feed through the text / CDATA content between the opening and closing tag.
 //
 // There should be no nested XML.
-const textFactory = childParser(async function textParser({ rawParsed, stripIndent = false }) {
-  let content = extractInnerTextFromXmlNodes(rawParsed).text;
+const textFactory = childParser(async function textParser({ rawParsed, postprocess = 'trim' }) {
+  let content;
 
-  if (stripIndent) {
-    const { stripIndent: stripIndentFn } = await import('@/lib/content/stripIndent');
-    content = stripIndentFn(content);
+  if (postprocess === 'stripIndent') {
+    // Extract raw text without trimming so stripIndent can detect indentation properly
+    content = extractTextFromXmlNodes(rawParsed, { preserveWhitespace: true });
+    const { stripIndent } = await import('@/lib/content/stripIndent');
+    content = stripIndent(content);
+  } else if (postprocess === 'trim' || postprocess === undefined) {
+    // Use normal extraction with trimming (default behavior)
+    content = extractTextFromXmlNodes(rawParsed).text;
+  } else if (typeof postprocess === 'function') {
+    // Custom postprocess function
+    content = extractTextFromXmlNodes(rawParsed, { preserveWhitespace: true });
+    content = postprocess(content);
+  } else if (postprocess === 'none') {
+    // No postprocessing, return raw text
+    content = extractTextFromXmlNodes(rawParsed, { preserveWhitespace: true });
+  } else {
+    throw new Error(`Unknown postprocess option: ${postprocess}`);
   }
 
   return content;
@@ -275,7 +317,7 @@ export function peggyParser(
       const content = await provider.read(resolved);
       extracted = { type: 'text', text: content };
     } else {
-      extracted = extractInnerTextFromXmlNodes(kids);
+      extracted = extractTextFromXmlNodes(kids);
     }
 
     const { text, ...rest } = preprocess(extracted);
