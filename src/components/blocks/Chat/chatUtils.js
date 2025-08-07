@@ -9,7 +9,15 @@ import { parse } from './_clipParser.js';
 export function byId(conversation, id) {
   const { body } = conversation;
   const idx = body.findIndex(line => line?.metadata?.id === id);
-  return idx !== -1 ? idx : false;
+  if (idx === -1) return false;
+
+  // If the ID belongs to a SectionHeader, return the full section range
+  if (body[idx].type === 'SectionHeader') {
+    const sectionRange = section(conversation, body[idx].title);
+    return sectionRange;
+  }
+
+  return idx;
 }
 
 export function listSections(conversation) {
@@ -41,7 +49,12 @@ function process(conversation, ast) {
     return {start: ast.value, end: ast.value};
   case 'identifier':
     idx = byId(conversation, ast.value);
-    if(idx !== false) return {start: idx, end: idx};
+    if(idx !== false) {
+      // If byId returned a range object (for section headers), use it directly
+      if(typeof idx === 'object') return idx;
+      // Otherwise it's a simple index
+      return {start: idx, end: idx};
+    }
     sectionRange = section(conversation, ast.value);
     if(sectionRange) return sectionRange;
 
@@ -53,7 +66,12 @@ function process(conversation, ast) {
     sectionRange = section(conversation, ast.value);
     if(sectionRange) return sectionRange;
     idx = byId(conversation, ast.value);
-    if(idx !== false) return {start: idx, end: idx};
+    if(idx !== false) {
+      // If byId returned a range object (for section headers), use it directly
+      if(typeof idx === 'object') return idx;
+      // Otherwise it's a simple index
+      return {start: idx, end: idx};
+    }
 
     // Generate helpful error with available options
     const availableSections2 = listSections(conversation).map(s => s.title);
