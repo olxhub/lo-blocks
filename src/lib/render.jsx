@@ -117,18 +117,31 @@ export function render({ node, idMap, key, nodeInfo, componentMap = COMPONENT_MA
     idPrefix
   };
 
+  // Generate CSS classes for theming system
+  const blockClassName = `lo-tag-${tag.toLowerCase()}`;
+  // TODO: We might add lo-id-... and other classes as well, to refer to specific components
+  // later
+  const userClassName = attributes.class || '';
+  const combinedClassName = `${blockClassName} ${userClassName}`.trim();
+
+  // TODO: We probably want more than just data-block-type. Having IDs, etc. will be
+  // very nice for debugging and introspectoin.
+
+  // TODO: Should the wrapper be a <div> or a <span>?
   return (
     <DebugWrapper props={wrapperProps} blueprint={componentMap[tag].blueprint}>
-      <Component
-        { ...attributes }
-        kids={ kids }
-        idMap={ idMap }
-        blueprint={ componentMap[tag].blueprint }
-        fields={ componentMap[tag].blueprint?.fields?.fieldInfoByField }
-        nodeInfo={ childNodeInfo }
-        componentMap={ componentMap }
-        idPrefix={ idPrefix }
-      />
+      <div className={combinedClassName} data-block-type={tag}>
+        <Component
+          { ...attributes }
+          kids={ kids }
+          idMap={ idMap }
+          blueprint={ componentMap[tag].blueprint }
+          fields={ componentMap[tag].blueprint?.fields?.fieldInfoByField }
+          nodeInfo={ childNodeInfo }
+          componentMap={ componentMap }
+          idPrefix={ idPrefix }
+        />
+      </div>
     </DebugWrapper>
   );
 }
