@@ -1,5 +1,5 @@
 <!-- content/sba/integrated_psych_sba.xml -->
-<Vertical id="PsychSBA" title="Psychology SBA: Sleep Refusal Case Study" launchable="true">  
+<Vertical id="PsychSBA" title="Psychology SBA: Sleep Refusal Case Study" launchable="true">
   <Sequential id="SBASequence">
     <!-- Scene 1: Introduction and Brainstorming -->
     <SplitPanel id="Scene1" sizes="60,40">
