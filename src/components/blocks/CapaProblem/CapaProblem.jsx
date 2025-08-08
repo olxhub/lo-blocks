@@ -80,34 +80,6 @@ function capaParser({ id, tag, attributes, provenance, rawParsed, storeEntry }) 
     }
   });
 
-  // TODO:
-  // * Add <Status>
-  // * Move the standard fields (ActionButton, etc.) into _CapaProblem
-  const graderIds = graders.map(g => g.id);
-  if (graderIds.length > 0) {
-    const buttonId = `${id}_button`;
-    storeEntry(buttonId, {
-      id: buttonId,
-      tag: 'ActionButton',
-      attributes: { label: 'Check', targets: graderIds.join(',') },
-      provenance,
-      rawParsed: {},
-      kids: []
-    });
-    kidsParsed.push({ type: 'block', id: buttonId });
-
-    const correctnessId = `${id}_correctness`;
-    storeEntry(correctnessId, {
-      id: correctnessId,
-      tag: 'Correctness',
-      attributes: { targets: graderIds.join(',') },
-      provenance,
-      rawParsed: {},
-      kids: []
-    });
-    kidsParsed.push({ type: 'block', id: correctnessId });
-  }
-
   const entry = { id, tag, attributes, provenance, rawParsed, kids: kidsParsed };
   storeEntry(id, entry);
   return id;
