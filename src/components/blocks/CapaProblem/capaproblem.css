@@ -1,0 +1,59 @@
+/* src/components/blocks/CapaProblem/capaproblem.css */
+
+.lo-problem {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.5rem;
+  padding: 0.75rem 0.75rem 1rem;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 8px;
+  background: var(--color-background, #fff);
+}
+
+.lo-problem__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+/* Subtle correctness coloring for header */
+.lo-problem__header--correct {
+  color: #166534; /* green-700 */
+}
+.lo-problem__header--incorrect {
+  color: #991b1b; /* red-800 */
+}
+.lo-problem__header--invalid {
+  color: #92400e; /* amber-800 */
+}
+
+.lo-problem__title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.lo-problem__status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lo-problem__content {
+  padding: 0.25rem 0;
+}
+
+.lo-problem__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+
+.lo-problem__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}

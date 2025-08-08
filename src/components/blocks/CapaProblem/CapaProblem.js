@@ -1,4 +1,4 @@
-// src/components/blocks/CapaProblem/CapaProblem.jsx
+// src/components/blocks/CapaProblem/CapaProblem.js
 import { dev, reduxId } from '@/lib/blocks';
 import { isBlockTag } from '@/lib/util';
 import { COMPONENT_MAP } from '@/components/componentMap';
@@ -105,3 +105,4 @@ const CapaProblem = dev({
 });
 
 export default CapaProblem;
+
