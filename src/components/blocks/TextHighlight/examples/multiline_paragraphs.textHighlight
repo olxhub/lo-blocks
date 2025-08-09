@@ -1,0 +1,18 @@
+Find all mentions of sleep strategies:
+---
+First, they tried [positive reinforcement|para1_reinf] with rewards.
+
+In the second week, they attempted [gradual fading|para2_fade] where
+they slowly reduced their presence at bedtime.
+
+Finally, they found success with [a consistent routine|para3_routine] 
+that included {reading time and} [calming activities|para3_calm].
+---
+all: Excellent! You found all 4 strategies!
+>3: Almost there - one more strategy to find.
+>2: Good! Check the last paragraph for more.
+errors>2: Focus on sleep-specific strategies only.
+---
+para1_reinf & para2_fade: You found the first two strategies - keep looking!
+para3_routine: That's the most successful one!
+para3_calm: Good eye on the calming activities.

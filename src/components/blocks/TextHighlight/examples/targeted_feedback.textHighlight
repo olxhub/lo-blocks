@@ -1,0 +1,15 @@
+Identify the behavioral techniques:
+---
+They used [positive reinforcement|pos_reinf] by giving rewards. They tried 
+[negative punishment|neg_punish] by removing toys. The <<yelling>> actually 
+became {unintentional} [reinforcement|accident]. 
+---
+all: Excellent! All techniques identified. (3/3)
+>2: Good work! You found most techniques. (2/3)
+>1,errors<1: On the right track. (1/3)
+: Keep studying the concepts. (0/3)
+---
+pos_reinf: That's right! Adding something pleasant.
+neg_punish: Correct! Removing something the child wants.
+accident: Tricky one - the yelling reinforced bad behavior!
+yelling: Careful - what effect did the yelling actually have?

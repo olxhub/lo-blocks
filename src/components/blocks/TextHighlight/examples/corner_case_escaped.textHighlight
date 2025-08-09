@@ -1,0 +1,5 @@
+Find the array declarations:
+---
+The function returns \[array\] not [a real array|array1].
+You can also use \{object\} syntax or [objects|obj].
+The \<\<error\>\> is not <<a real error|err>>.
