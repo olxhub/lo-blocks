@@ -49,7 +49,7 @@ SegmentContent
 
 ContentChar
   = EscapedBracket
-  / ![|\[\]{}><] char:. { return char; }
+  / ![|\[\]><] char:. { return char; }
 
 TextChar
   = EscapedBracket
