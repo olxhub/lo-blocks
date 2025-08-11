@@ -80,7 +80,7 @@ Remember:
 ## Quiz: Reinforcement or Punishment? (Questions 1-5)
     </Markdown>
 
-    <CapaProblem id="quiz1_q1">
+    <CapaProblem title="Question 1: Screentime" id="reinforcement-v-punishment-screentime">
       <KeyGrader>
         <p>A child gets extra screen time for cleaning their room.</p>
         <ChoiceInput>
@@ -90,7 +90,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem id="quiz1_q2">
+    <CapaProblem title="Question 2: Car Privileges" id="reinforcement-v-punishment-car-privileges">
       <KeyGrader>
         <p>A teenager loses car privileges for coming home late.</p>
         <ChoiceInput>
@@ -100,7 +100,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem id="quiz1_q3">
+    <CapaProblem title="Question 3: Attendance Bonus" id="reinforcement-v-punishment-attendance-bonus">
       <KeyGrader>
         <p>A student earns bonus points for perfect attendance.</p>
         <ChoiceInput>
@@ -110,7 +110,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem id="quiz1_q4">
+    <CapaProblem title="Question 4: Extra Chores" id="reinforcement-v-punishment-extra-chores">
       <KeyGrader>
         <p>A child has to do extra chores for talking back.</p>
         <ChoiceInput>
@@ -120,7 +120,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem id="quiz1_q5">
+    <CapaProblem title="Question 5: Parking Spot" id="reinforcement-v-punishment-parking-spot">
       <KeyGrader>
         <p>An employee gets a parking spot closer to the building for good performance.</p>
         <ChoiceInput>
@@ -137,7 +137,7 @@ Remember:
   <Vertical id="reinforce_punish_2">
     <Markdown id="quiz1_q6to10_header">## Quiz Questions 6-10</Markdown>
 
-    <CapaProblem id="quiz1_q6">
+    <CapaProblem title="Question 6: No Final Exam" id="reinforcement-v-punishment-no-final-exam">
       <KeyGrader>
         <p>A student doesn't have to take the final if they have an A average.</p>
         <ChoiceInput>
@@ -147,7 +147,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem id="quiz1_q7">
+    <CapaProblem title="Question 7: Written Up" id="reinforcement-v-punishment-written-up">
       <KeyGrader>
         <p>A worker gets written up for being late.</p>
         <ChoiceInput>
@@ -157,7 +157,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem id="quiz1_q8">
+    <CapaProblem title="Question 8: Dog Treat" id="reinforcement-v-punishment-dog-treat">
       <KeyGrader>
         <p>A dog gets a treat for sitting on command.</p>
         <ChoiceInput>
@@ -167,7 +167,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem id="quiz1_q9">
+    <CapaProblem title="Question 9: Timeout" id="reinforcement-v-punishment-timeout">
       <KeyGrader>
         <p>A child gets timeout for hitting.</p>
         <ChoiceInput>
@@ -177,7 +177,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem id="quiz1_q10">
+    <CapaProblem title="Question 10: Employee Praise" id="reinforcement-v-punishment-employee-praise">
       <KeyGrader>
         <p>An employee gets praise for good work.</p>
         <ChoiceInput>
@@ -218,7 +218,7 @@ Lin's Score: 80%
 
   <!-- Review option -->
   <Vertical id="review_item">
-    <CapaProblem id="want_review">
+    <CapaProblem title="Review Option" id="want-review-explanations">
       <KeyGrader>
         <p>Would you like to review the correct answers?</p>
         <ChoiceInput>
@@ -236,7 +236,7 @@ Lin's Score: 80%
 ## Advanced Quiz: Four Types (Questions 1-5)
     </Markdown>
 
-    <CapaProblem id="quiz2_q1">
+    <CapaProblem title="Question 1: Gold Star" id="four-types-gold-star">
       <KeyGrader>
         <p>A child receives a gold star for good behavior.</p>
         <ChoiceInput>
@@ -248,7 +248,7 @@ Lin's Score: 80%
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem id="quiz2_q2">
+    <CapaProblem title="Question 2: Fewer Chores" id="four-types-fewer-chores">
       <KeyGrader>
         <p>Taking away chores when grades improve.</p>
         <ChoiceInput>
@@ -260,7 +260,7 @@ Lin's Score: 80%
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem id="quiz2_q3">
+    <CapaProblem title="Question 3: Speeding Ticket" id="four-types-speeding-ticket">
       <KeyGrader>
         <p>Getting a speeding ticket.</p>
         <ChoiceInput>
@@ -272,7 +272,7 @@ Lin's Score: 80%
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem id="quiz2_q4">
+    <CapaProblem title="Question 4: TV Privileges" id="four-types-tv-privileges">
       <KeyGrader>
         <p>Losing TV privileges for bad grades.</p>
         <ChoiceInput>
@@ -284,7 +284,7 @@ Lin's Score: 80%
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem id="quiz2_q5">
+    <CapaProblem title="Question 5: Seatbelt Beeping" id="four-types-seatbelt-beeping">
       <KeyGrader>
         <p>Buckle seatbelt to stop the beeping.</p>
         <ChoiceInput>
@@ -383,7 +383,7 @@ Based on child development research, select the most age-appropriate strategies:
     </Markdown>
 
     <TextHighlight id="select_strategies"
-                   mode="graded"
+                   mode="immediate"
                    src="psych_bedtime_strategies.textHighlight" />
 
     <ActionButton id="check_strategies_btn" target="psych_chat" action="advance">Check Answer</ActionButton>
