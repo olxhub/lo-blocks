@@ -24,17 +24,17 @@ Segment
   / TextSegment
 
 RequiredSegment
-  = "[" content:SegmentContent id:LabelId? "]" {
+  = "[" content:RequiredContent id:LabelId? "]" {
       return { type: 'required', content, id };
     }
 
 OptionalSegment
-  = "{" content:SegmentContent id:LabelId? "}" {
+  = "{" content:OptionalContent id:LabelId? "}" {
       return { type: 'optional', content, id };
     }
 
 FeedbackTriggerSegment
-  = "<<" content:SegmentContent id:LabelId? ">>" {
+  = "<<" content:FeedbackContent id:LabelId? ">>" {
       return { type: 'feedback_trigger', content, id };
     }
 
@@ -44,12 +44,26 @@ TextSegment
       return text ? { type: 'text', content: text } : null;
     }
 
-SegmentContent
-  = chars:ContentChar+ { return chars.join(''); }
+RequiredContent
+  = chars:RequiredChar+ { return chars.join(''); }
 
-ContentChar
+OptionalContent
+  = chars:OptionalChar+ { return chars.join(''); }
+
+FeedbackContent
+  = chars:FeedbackChar+ { return chars.join(''); }
+
+RequiredChar
   = EscapedBracket
-  / ![|\[\]><] char:. { return char; }
+  / ![|\[\]] char:. { return char; }
+
+OptionalChar
+  = EscapedBracket
+  / ![|{}] char:. { return char; }
+
+FeedbackChar
+  = EscapedBracket
+  / ![|><] !">>" char:. { return char; }
 
 TextChar
   = EscapedBracket

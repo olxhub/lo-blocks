@@ -25,7 +25,7 @@ test('parses optional highlights', () => {
 
   const result = parseTextHighlight(input);
   
-  expect(result.segments).toHaveLength(6);
+  expect(result.segments).toHaveLength(8);
   expect(result.segments[0]).toEqual({ type: 'optional', content: 'The', id: null });
   expect(result.segments[1]).toEqual({ type: 'text', content: ' ' });
   expect(result.segments[2]).toEqual({ type: 'required', content: 'cat', id: null });
