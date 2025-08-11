@@ -1,7 +1,7 @@
 // src/components/common/ChatComponent.jsx
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ChevronRight } from 'lucide-react';
 
 // Generate random colors based on name (consistent for same name)
@@ -129,17 +129,7 @@ export const InputFooter = ({ onSendMessage, disabled = false, placeholder = 'Ty
 
 // Continue/Advance Footer Component
 export const AdvanceFooter = ({ onAdvance, currentMessageIndex, totalMessages }) => {
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (e.key === ' ') {
-        onAdvance();
-        e.preventDefault();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [onAdvance]);
+  // No global key listeners — advancing is handled by the focused chat region.
 
   return (
     <div className="bg-gray-50 p-3 border-t border-gray-200">
@@ -153,7 +143,7 @@ export const AdvanceFooter = ({ onAdvance, currentMessageIndex, totalMessages })
         >
           Continue <ChevronRight className="ml-1 w-4 h-4" />
         </button>
-        <span className="text-xs text-gray-400">or press [space]</span>
+        <span className="text-xs text-gray-400">or focus chat and press [space]</span>
       </div>
     </div>
   );
@@ -166,6 +156,7 @@ export function ChatComponent({
   initialScrollPosition = 'bottom',
   footer,
   height = 'h-96',
+  onAdvance,
 }) {
   const chatContainerRef = useRef(null);
 
@@ -183,6 +174,19 @@ export function ChatComponent({
       }
     }
   }, [initialScrollPosition]);
+
+  // Handle Space to advance only when this chat region (or its children) has focus.
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (!onAdvance) return;
+      if (e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.code === 'Space' || e.key === ' ') {
+        e.preventDefault();
+        onAdvance();
+      }
+    },
+    [onAdvance]
+  );
 
   const renderMessage = (message, index) => {
     const isSequential = index > 0 &&
@@ -223,7 +227,11 @@ export function ChatComponent({
       </div>
       <div
         ref={chatContainerRef}
-        className={`${height} overflow-y-auto p-4 bg-white flex-1`}
+        className={`${height} overflow-y-auto p-4 bg-white flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+        tabIndex={0}
+        role="region"
+        aria-label="Chat transcript. Press space to advance."
+        onKeyDown={handleKeyDown}
       >
         {messages.map(renderMessage)}
       </div>
