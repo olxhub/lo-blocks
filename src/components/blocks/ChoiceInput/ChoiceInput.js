@@ -22,7 +22,21 @@ const ChoiceInput = core({
     });
     const choices = ids.map(cid => {
       const inst = props.idMap?.[cid];
-      return { id: cid, tag: inst?.tag };
+      let feedback;
+      const fbKid = (inst?.kids || []).find(
+        k => k.type === 'block' && props.idMap?.[k.id].tag === 'Feedback'
+      );
+      if (fbKid && Array.isArray(props.idMap?.[fbKid.id].kids)) {
+        feedback = props.idMap?.[fbKid.id].kids
+          .map(k => {
+            if (typeof k === 'string') return k;
+            if (k && typeof k === 'object' && k.type === 'text') return k.text;
+            return '';
+          })
+          .join('')
+          .trim();
+      }
+      return { id: cid, tag: inst?.tag, feedback };
     });
     return { value, choices };
   }

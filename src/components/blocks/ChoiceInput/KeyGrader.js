@@ -16,7 +16,8 @@ function gradeKeySelected(props, { input }) {
   const correct = choice?.tag === 'Key'
     ? CORRECTNESS.CORRECT
     : CORRECTNESS.INCORRECT;
-  return { correct, message: '' };
+  const message = choice?.feedback ?? '';
+  return { correct, message };
 }
 
 const KeyGrader = blocks.test({

@@ -3,8 +3,14 @@
   <CapaProblem id="CapaMCQDemo">
     <KeyGrader>
       <ChoiceInput>
-	<Key> Hello! </Key>
-	<Distractor> Goodbye </Distractor>
+        <Key>
+          Hello!
+          <Feedback>Great work!</Feedback>
+        </Key>
+        <Distractor>
+          Goodbye
+          <Feedback>Sorry, try again.</Feedback>
+        </Distractor>
       </ChoiceInput>
     </KeyGrader>
   </CapaProblem>
