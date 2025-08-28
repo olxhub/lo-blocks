@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { ChevronRight } from 'lucide-react';
 
 // Generate random colors based on name (consistent for same name)
@@ -56,7 +57,7 @@ const ChatMessage = ({ message, isSequential }) => {
           <span className="text-sm font-semibold mb-1">{message.speaker}</span>
         )}
         <div className="bg-gray-100 p-2 px-3 rounded-lg max-w-md">
-          {message.text}
+          <ReactMarkdown>{message.text || ''}</ReactMarkdown>
         </div>
       </div>
     </div>
@@ -183,7 +184,7 @@ export function ChatComponent({
         behavior: 'smooth',
       });
     }
-  }, [messages]);
+  }, [messages.length]);
 
   // Handle Space to advance only when this chat region (or its children) has focus.
   const handleKeyDown = useCallback(
@@ -233,11 +234,13 @@ export function ChatComponent({
         <div className="flex items-center">
           <span className="font-semibold">Chat</span>
           <span className="ml-2 text-gray-500 text-sm">{messages.length} messages</span>
+          {/* TODO Perhaps this should include a title for section name then sectionheader actions can do something */}
         </div>
       </div>
       <div
         ref={chatContainerRef}
-        className={`${height} overflow-y-auto p-4 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
+        className="overflow-y-auto p-4 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        style={{height}}
         tabIndex={0}
         role="region"
         aria-label="Chat transcript. Press space to advance."
