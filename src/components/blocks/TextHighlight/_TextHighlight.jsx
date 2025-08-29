@@ -87,7 +87,11 @@ export default function _TextHighlight(props) {
   const wordRefs = useRef(new Map()); // index -> HTMLElement
 
   // TODO: Consider moving selection state to Redux for learning analytics
-  // Currently using refs for performance during rapid selection updates
+  //
+  // useRef doesn't let us fully reconstruct state.
+  //
+  // This is a bug for later. We want to use redux selectors, rather than hooks here,
+  // probably.
   const isSelecting = useRef(false);
   const lastBrowserSelection = useRef(new Set()); // Track current browser selection
 
@@ -368,12 +372,18 @@ export default function _TextHighlight(props) {
     // Selfcheck mode with answer shown
     if (mode === 'selfcheck') {
       if (showAnswer) {
+        // Show instructor's answer with colors
         if (word.isRequired) backgroundColor = '#c3f0c3';
         else if (word.isOptional) backgroundColor = '#fff3cd';
         else if (word.isFeedbackTrigger) backgroundColor = '#ffcdd2';
+
+        // Overlay student's selection with gray border
+        if (isSelected) {
+          borderColor = '#9e9e9e';
+        }
         cursor = 'default';
       } else if (isSelected) {
-        // before reveal: neutral selection visualization
+        // Before reveal: neutral selection visualization
         backgroundColor = '#e0e0e0';
       }
     }
@@ -381,21 +391,16 @@ export default function _TextHighlight(props) {
     else if ((mode === 'graded' && checked) || (mode === 'immediate' && showRealtimeFeedback)) {
       if (isSelected) {
         if (!correctIndices.has(word.index)) {
+          // Student selected incorrectly - red background
           backgroundColor = '#ffcdd2';
         } else {
-          // Only show green/yellow if the whole group (all required in it) is satisfied
-          const g = groups.byToken?.get(word.index);
-          let groupSatisfied = true;
-          if (g) {
-            for (const idx of g.required) { if (!selectedIndices.has(idx)) { groupSatisfied = false; break; } }
-          }
-          if (groupSatisfied) {
-            backgroundColor = word.isRequired ? '#c3f0c3' : '#fff3cd';
-          } else {
-            backgroundColor = '#e3e3e3';
-            borderColor = '#9e9e9e';
-          }
+          // Student selected correctly - green/yellow background
+          backgroundColor = word.isRequired ? '#c3f0c3' : '#fff3cd';
         }
+      } else if (correctIndices.has(word.index)) {
+        // Student missed this - dashed border to show what should be selected
+        borderColor = word.isRequired ? '#4ade80' : '#fbbf24';
+        backgroundColor = 'transparent';
       }
     } else {
       // Selection state (all modes before reveal/check) — gray
@@ -407,7 +412,7 @@ export default function _TextHighlight(props) {
 
     return {
       backgroundColor,
-      outline: borderColor ? `2px solid ${borderColor}` : '',
+      outline: borderColor ? `2px ${backgroundColor === 'transparent' ? 'dashed' : 'solid'} ${borderColor}` : '',
       outlineOffset: '-2px',
       borderRadius: '3px',
       padding: '2px 4px',
