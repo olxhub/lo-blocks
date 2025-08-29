@@ -3,9 +3,23 @@
 
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useReduxState } from '@/lib/state';
+import { DisplayError } from '@/lib/util/debug';
 
 export default function _TextHighlight(props) {
   const { kids = {}, mode = 'immediate', showRealtimeFeedback = false, fields = {} } = props;
+
+  // Validate mode
+  const validModes = ['immediate', 'graded', 'selfcheck'];
+  if (!validModes.includes(mode)) {
+    return (
+      <DisplayError
+        props={props}
+        name="TextHighlight Mode Error"
+        message={`Mode must be one of: ${validModes.join(', ')}`}
+        technical={`Received mode: "${mode}"`}
+      />
+    );
+  }
 
   // Parse the content from kids
   const parsed = useMemo(() => {
@@ -239,9 +253,7 @@ export default function _TextHighlight(props) {
   // Click toggles a single word
   const handleWordClick = (e, wordIndex) => {
     if (wordIndex < 0) return;
-    if (mode === 'self-check' || mode === 'self_check') {
-      if (showAnswer) return;
-    }
+    if (mode === 'selfcheck' && showAnswer) return;
     if (mode === 'graded' && checked) return;
 
     // Only toggle on click without selection
@@ -262,7 +274,7 @@ export default function _TextHighlight(props) {
 
   // Handle selection start
   const handleMouseDown = (e) => {
-    if ((mode === 'self-check' || mode === 'self_check') && showAnswer) return;
+    if (mode === 'selfcheck' && showAnswer) return;
     if (mode === 'graded' && checked) return;
 
     isSelecting.current = true;
@@ -353,8 +365,8 @@ export default function _TextHighlight(props) {
     let borderColor = '';
     let cursor = 'pointer';
 
-    // Self-check mode with answer shown
-    if (mode === 'self-check' || mode === 'self_check') {
+    // Selfcheck mode with answer shown
+    if (mode === 'selfcheck') {
       if (showAnswer) {
         if (word.isRequired) backgroundColor = '#c3f0c3';
         else if (word.isOptional) backgroundColor = '#fff3cd';
@@ -407,10 +419,12 @@ export default function _TextHighlight(props) {
   // Error display
   if (parsed.error) {
     return (
-      <div className="text-highlight-error p-4 border-2 border-red-500 rounded bg-red-50">
-        <div className="font-bold text-red-800 mb-2">TextHighlight Error</div>
-        <div className="text-red-700">{parsed.prompt}</div>
-      </div>
+      <DisplayError
+        props={props}
+        name="TextHighlight Parsing Error"
+        message="Unable to parse TextHighlight content"
+        technical={parsed.prompt}
+      />
     );
   }
 
@@ -470,7 +484,7 @@ export default function _TextHighlight(props) {
         {mode === 'graded' && checked && (
           <button onClick={resetGraded} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">Try Again</button>
         )}
-        {(mode === 'self-check' || mode === 'self_check') && !showAnswer && (
+        {mode === 'selfcheck' && !showAnswer && (
           <button onClick={revealAnswer} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">Compare</button>
         )}
       </div>

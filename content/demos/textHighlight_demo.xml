@@ -33,7 +33,7 @@ Make your selections, then click "Check Answer" for feedback:
 Make your selections, then reveal the answer to compare:
   </Markdown>
 
-  <TextHighlight id="demo_self_check" mode="self_check" src="TextHighlight/self_check_mode.textHighlight" />
+  <TextHighlight id="demo_self_check" mode="selfcheck" src="TextHighlight/self_check_mode.textHighlight" />
 
   <!-- Advanced Example -->
   <Markdown>
