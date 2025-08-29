@@ -415,12 +415,26 @@ export default function _TextHighlight(props) {
       className="text-highlight-container p-4 border rounded-lg"
       ref={containerRef}
     >
+      <style>{`
+        .text-highlight-container .text-content ::selection {
+          background-color: transparent;
+        }
+        .text-highlight-container .text-content ::-moz-selection {
+          background-color: transparent;
+        }
+      `}</style>
       <div className="prompt mb-4 font-semibold text-lg">{parsed.prompt}</div>
 
       <div 
         className="text-content mb-4 text-base leading-relaxed" 
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
+        style={{
+          WebkitUserSelect: 'text',
+          MozUserSelect: 'text', 
+          msUserSelect: 'text',
+          userSelect: 'text'
+        }}
       >
         {wordData.map((word, idx) => (
           <span
