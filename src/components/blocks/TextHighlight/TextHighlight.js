@@ -8,11 +8,11 @@ const parser = parserModule.default || parserModule;
 import _TextHighlight from './_TextHighlight';
 
 export const fields = state.fields([
-  { name: 'value', scope: 'component' },      // Set of selected word indices  
-  { name: 'attempts', scope: 'component' },   // Number of check attempts
-  { name: 'feedback', scope: 'component' },   // Current feedback message
-  { name: 'showAnswer', scope: 'component' }, // Whether answer is revealed (self_check mode)
-  { name: 'checked', scope: 'component' }     // Whether graded mode has been checked
+  'value',      // Set of selected word indices
+  'attempts',   // Number of check attempts
+  'feedback',   // Current feedback message
+  'showAnswer', // Whether answer is revealed (self_check mode)
+  'checked'     // Whether graded mode has been checked
 ]);
 
 const TextHighlight = core({

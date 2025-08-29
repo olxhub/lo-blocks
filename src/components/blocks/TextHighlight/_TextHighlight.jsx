@@ -5,7 +5,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { useReduxState } from '@/lib/state';
 
 export default function _TextHighlight(props) {
-  const { kids = {}, mode = 'immediate', showRealtimeFeedback = false } = props;
+  const { kids = {}, mode = 'immediate', showRealtimeFeedback = false, fields = {} } = props;
 
   // Parse the content from kids
   const parsed = useMemo(() => {
@@ -56,21 +56,24 @@ export default function _TextHighlight(props) {
   }, [parsed.segments]);
 
   // Redux state management - store as array, work with as Set
-  const [selectedArray, setSelectedArray] = useReduxState(props, props.fields.value, []);
+  const [selectedArray, setSelectedArray] = useReduxState(props, fields.value, []);
   const selectedIndices = new Set(selectedArray || []);
   const setSelectedIndices = (newSet) => setSelectedArray(Array.from(newSet));
 
   // Local state to trigger re-renders during selection
   const [, forceUpdate] = React.useReducer(x => x + 1, 0);
 
-  const [attempts, setAttempts] = useReduxState(props, props.fields.attempts, 0);
-  const [feedback, setFeedback] = useReduxState(props, props.fields.feedback, '');
-  const [showAnswer, setShowAnswer] = useReduxState(props, props.fields.showAnswer, false);
-  const [checked, setChecked] = useReduxState(props, props.fields.checked, false);
+  const [attempts, setAttempts] = useReduxState(props, fields.attempts, 0);
+  const [feedback, setFeedback] = useReduxState(props, fields.feedback, '');
+  const [showAnswer, setShowAnswer] = useReduxState(props, fields.showAnswer, false);
+  const [checked, setChecked] = useReduxState(props, fields.checked, false);
 
   // Refs for DOM elements
   const containerRef = useRef(null);
   const wordRefs = useRef(new Map()); // index -> HTMLElement
+
+  // TODO: Consider moving selection state to Redux for learning analytics
+  // Currently using refs for performance during rapid selection updates
   const isSelecting = useRef(false);
   const lastBrowserSelection = useRef(new Set()); // Track current browser selection
 
@@ -182,28 +185,28 @@ export default function _TextHighlight(props) {
   const getSelectedWordIndices = () => {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return new Set();
-    
+
     const selectedIndices = new Set();
     const range = selection.getRangeAt(0);
-    
+
     // Check each word element to see if it's in the selection
     wordRefs.current.forEach((element, index) => {
       if (!element || index < 0) return;
-      
+
       // Check if this element intersects with the selection range
       const wordRange = document.createRange();
       wordRange.selectNodeContents(element);
-      
+
       // Compare ranges
-      const isInSelection = 
+      const isInSelection =
         range.compareBoundaryPoints(Range.START_TO_END, wordRange) >= 0 &&
         range.compareBoundaryPoints(Range.END_TO_START, wordRange) <= 0;
-      
+
       if (isInSelection) {
         selectedIndices.add(index);
       }
     });
-    
+
     return selectedIndices;
   };
 
@@ -221,7 +224,7 @@ export default function _TextHighlight(props) {
 
     // Create new selection by toggling browser-selected words
     const newSelection = new Set(oldRenderSelection);
-    
+
     browserSelection.forEach(idx => {
       if (newSelection.has(idx)) {
         newSelection.delete(idx); // Toggle off if already selected
@@ -229,7 +232,7 @@ export default function _TextHighlight(props) {
         newSelection.add(idx); // Toggle on if not selected
       }
     });
-    
+
     return newSelection;
   };
 
@@ -248,21 +251,22 @@ export default function _TextHighlight(props) {
     }
 
     const next = new Set(selectedIndices);
-    if (next.has(wordIndex)) next.delete(wordIndex); else next.add(wordIndex);
+    if (next.has(wordIndex)) {
+      next.delete(wordIndex);
+    } else {
+      next.add(wordIndex);
+    }
     setSelectedIndices(next);
     if (mode === 'immediate') updateImmediateFeedback(next);
   };
 
   // Handle selection start
   const handleMouseDown = (e) => {
-    if (mode === 'self-check' || mode === 'self_check') {
-      if (showAnswer) return;
-    }
+    if ((mode === 'self-check' || mode === 'self_check') && showAnswer) return;
     if (mode === 'graded' && checked) return;
-    
+
     isSelecting.current = true;
-    lastBrowserSelection.current = new Set(); // Clear last selection
-    // Clear any existing selection
+    lastBrowserSelection.current = new Set();
     window.getSelection().removeAllRanges();
   };
 
@@ -279,10 +283,10 @@ export default function _TextHighlight(props) {
 
     // Get the browser's selected word indices
     const browserSelection = getSelectedWordIndices();
-    
+
     // Compute new render selection using pure function
     const newRenderSelection = computeNewRenderSelection(selectedIndices, browserSelection);
-    
+
     // Update state with new selection
     setSelectedIndices(newRenderSelection);
     if (mode === 'immediate') updateImmediateFeedback(newRenderSelection);
@@ -304,7 +308,7 @@ export default function _TextHighlight(props) {
     };
 
     document.addEventListener('selectionchange', handleSelectionChange);
-    
+
     // Cleanup on unmount
     return () => {
       document.removeEventListener('selectionchange', handleSelectionChange);
@@ -336,7 +340,7 @@ export default function _TextHighlight(props) {
   // Get word color based on state and mode
   const getWordStyle = (word) => {
     if (word.index < 0) return {};
-    
+
     // During selection: render computeNewRenderSelection(selectionState, lastBrowserSelection)
     // Idle: render selectionState
     let effectiveSelection = selectedIndices;
@@ -425,13 +429,13 @@ export default function _TextHighlight(props) {
       `}</style>
       <div className="prompt mb-4 font-semibold text-lg">{parsed.prompt}</div>
 
-      <div 
-        className="text-content mb-4 text-base leading-relaxed" 
+      <div
+        className="text-content mb-4 text-base leading-relaxed"
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         style={{
           WebkitUserSelect: 'text',
-          MozUserSelect: 'text', 
+          MozUserSelect: 'text',
           msUserSelect: 'text',
           userSelect: 'text'
         }}
