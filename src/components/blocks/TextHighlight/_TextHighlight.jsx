@@ -190,6 +190,7 @@ export default function _TextHighlight(props) {
   };
 
   const getDragRect = () => {
+    // Keep in viewport coordinates to match getBoundingClientRect
     const x1 = Math.min(dragStartPoint.current.x, dragCurrentPoint.current.x);
     const y1 = Math.min(dragStartPoint.current.y, dragCurrentPoint.current.y);
     const x2 = Math.max(dragStartPoint.current.x, dragCurrentPoint.current.x);
@@ -247,13 +248,12 @@ export default function _TextHighlight(props) {
     dragCurrentPoint.current = { x: clientX, y: clientY };
     selectionAtDragStart.current = new Set(selectedIndices);
     computeWordRects();
+    // Simpler logic: if we start on a word, toggle based on that word's state
+    // Otherwise default to selecting (most common user intent)
     if (typeof startWordIndex === 'number' && startWordIndex >= 0) {
       paintSelect.current = !selectionAtDragStart.current.has(startWordIndex);
     } else {
-      const overlapped = indicesOverlappedByDrag();
-      let allSelected = overlapped.size > 0;
-      overlapped.forEach((idx) => { if (!selectionAtDragStart.current.has(idx)) allSelected = false; });
-      paintSelect.current = !allSelected;
+      paintSelect.current = true; // Default to selecting when starting in empty space
     }
   };
 
@@ -312,9 +312,12 @@ export default function _TextHighlight(props) {
     return () => {
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
+      // Clean up refs on unmount
+      wordRefs.current.clear();
+      wordRects.current.clear();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, showAnswer, checked, selectedArray]);
+    // No dependencies - handlers use refs which are stable
+  }, []);
 
   // Check answers for graded mode
   const checkAnswers = () => {
@@ -388,9 +391,11 @@ export default function _TextHighlight(props) {
 
     return {
       backgroundColor,
-      border: borderColor ? `2px solid ${borderColor}` : '',
+      outline: borderColor ? `2px solid ${borderColor}` : '',
+      outlineOffset: '-2px',
       borderRadius: '3px',
-      padding: '0 2px',
+      padding: '2px 4px',
+      margin: '0 -2px',
       cursor,
       userSelect: 'none'
     };
