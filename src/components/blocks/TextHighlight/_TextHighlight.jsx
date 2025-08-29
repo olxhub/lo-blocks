@@ -60,6 +60,9 @@ export default function _TextHighlight(props) {
   const selectedIndices = new Set(selectedArray || []);
   const setSelectedIndices = (newSet) => setSelectedArray(Array.from(newSet));
 
+  // Local state to trigger re-renders during selection
+  const [, forceUpdate] = React.useReducer(x => x + 1, 0);
+
   const [attempts, setAttempts] = useReduxState(props, props.fields.attempts, 0);
   const [feedback, setFeedback] = useReduxState(props, props.fields.feedback, '');
   const [showAnswer, setShowAnswer] = useReduxState(props, props.fields.showAnswer, false);
@@ -69,6 +72,7 @@ export default function _TextHighlight(props) {
   const containerRef = useRef(null);
   const wordRefs = useRef(new Map()); // index -> HTMLElement
   const isSelecting = useRef(false);
+  const lastBrowserSelection = useRef(new Set()); // Track current browser selection
 
   // Calculate correct answers
   const correctIndices = useMemo(() => {
@@ -257,6 +261,7 @@ export default function _TextHighlight(props) {
     if (mode === 'graded' && checked) return;
     
     isSelecting.current = true;
+    lastBrowserSelection.current = new Set(); // Clear last selection
     // Clear any existing selection
     window.getSelection().removeAllRanges();
   };
@@ -288,9 +293,21 @@ export default function _TextHighlight(props) {
     }, 10);
   };
 
+  // Track browser selection changes
   useEffect(() => {
+    const handleSelectionChange = () => {
+      if (isSelecting.current) {
+        // Update last browser selection while selecting
+        lastBrowserSelection.current = getSelectedWordIndices();
+        forceUpdate(); // Trigger re-render to show preview
+      }
+    };
+
+    document.addEventListener('selectionchange', handleSelectionChange);
+    
     // Cleanup on unmount
     return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange);
       wordRefs.current.clear();
     };
   }, []);
@@ -319,7 +336,14 @@ export default function _TextHighlight(props) {
   // Get word color based on state and mode
   const getWordStyle = (word) => {
     if (word.index < 0) return {};
-    const isSelected = selectedIndices.has(word.index);
+    
+    // During selection: render computeNewRenderSelection(selectionState, lastBrowserSelection)
+    // Idle: render selectionState
+    let effectiveSelection = selectedIndices;
+    if (isSelecting.current && lastBrowserSelection.current.size > 0) {
+      effectiveSelection = computeNewRenderSelection(selectedIndices, lastBrowserSelection.current);
+    }
+    const isSelected = effectiveSelection.has(word.index);
 
     let backgroundColor = '';
     let borderColor = '';
