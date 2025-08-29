@@ -203,6 +203,32 @@ export default function _TextHighlight(props) {
     return selectedIndices;
   };
 
+  /**
+   * Pure function to compute new render selection
+   * @param {Set} oldRenderSelection - Current rendered selection (set of word indices)
+   * @param {Set} browserSelection - Browser's current selection (set of word indices)
+   * @returns {Set} New render selection
+   */
+  const computeNewRenderSelection = (oldRenderSelection, browserSelection) => {
+    // If no browser selection, return old render selection unchanged
+    if (!browserSelection || browserSelection.size === 0) {
+      return oldRenderSelection;
+    }
+
+    // Create new selection by toggling browser-selected words
+    const newSelection = new Set(oldRenderSelection);
+    
+    browserSelection.forEach(idx => {
+      if (newSelection.has(idx)) {
+        newSelection.delete(idx); // Toggle off if already selected
+      } else {
+        newSelection.add(idx); // Toggle on if not selected
+      }
+    });
+    
+    return newSelection;
+  };
+
   // Click toggles a single word
   const handleWordClick = (e, wordIndex) => {
     if (wordIndex < 0) return;
@@ -246,22 +272,15 @@ export default function _TextHighlight(props) {
       return;
     }
 
-    // Get the selected word indices
-    const newlySelected = getSelectedWordIndices();
+    // Get the browser's selected word indices
+    const browserSelection = getSelectedWordIndices();
     
-    if (newlySelected.size > 0) {
-      // Add newly selected words to our selection
-      const next = new Set(selectedIndices);
-      newlySelected.forEach(idx => {
-        if (next.has(idx)) {
-          next.delete(idx); // Toggle off if already selected
-        } else {
-          next.add(idx); // Add if not selected
-        }
-      });
-      setSelectedIndices(next);
-      if (mode === 'immediate') updateImmediateFeedback(next);
-    }
+    // Compute new render selection using pure function
+    const newRenderSelection = computeNewRenderSelection(selectedIndices, browserSelection);
+    
+    // Update state with new selection
+    setSelectedIndices(newRenderSelection);
+    if (mode === 'immediate') updateImmediateFeedback(newRenderSelection);
 
     // Clear the browser selection after processing
     setTimeout(() => {
