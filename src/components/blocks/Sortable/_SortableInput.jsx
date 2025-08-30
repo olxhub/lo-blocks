@@ -3,7 +3,6 @@
 
 import React, { useState, useRef } from 'react';
 import { useReduxState } from '@/lib/state';
-import { shuffleArray } from './sortableUtils';
 import { render } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 
@@ -14,7 +13,6 @@ export default function _SortableInput(props) {
 
   // Redux state
   const [arrangement, setArrangement] = useReduxState(props, fields.arrangement, []);
-  const [attempts, setAttempts] = useReduxState(props, fields.attempts, 0);
   const [submitted, setSubmitted] = useReduxState(props, fields.submitted, false);
 
   // Drag state
@@ -32,6 +30,16 @@ export default function _SortableInput(props) {
       />
     );
   }
+
+  // Simple Fisher-Yates shuffle
+  const shuffleArray = (array) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
 
   // Initialize arrangement if empty - just an array of indices
   React.useEffect(() => {
@@ -145,7 +153,7 @@ export default function _SortableInput(props) {
 
       <div className="mt-4 text-sm text-gray-600">
         {submitted 
-          ? `Submitted after ${attempts} attempt${attempts !== 1 ? 's' : ''}`
+          ? 'Submitted'
           : 'Drag items to reorder them, then submit your answer'
         }
       </div>
