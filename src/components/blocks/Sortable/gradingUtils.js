@@ -2,51 +2,55 @@
 
 /**
  * Grade a sortable arrangement using various algorithms
- * @param {string[]} arrangement - Current arrangement of item IDs
- * @param {SortableItem[]} items - Items with correct positions
- * @param {GradingConfig} config - Grading configuration
- * @returns {GradingResult} Grading result with score and feedback
+ * This is called by the grader framework with (props, { input })
+ * where input is the arrangement array of indices
  */
-export function gradeArrangement(arrangement, items, config = {}) {
-  const { algorithm = 'exact', partialCredit = false } = config;
-
-  // Create lookup map for correct positions
-  const correctPositions = {};
-  items.forEach(item => {
-    correctPositions[item.id] = item.correctIndex;
-  });
+export function gradeArrangement(props, { input }) {
+  console.log('gradeArrangement called with:', { props, input });
+  const { algorithm = 'exact', partialCredit = false, kids = [] } = props;
+  
+  // Extract the actual arrangement array from the input object
+  const arrangement = input.arrangement || [];
+  console.log('extracted arrangement:', arrangement);
+  
+  // The correct order is the original order in the XML (0, 1, 2, ...)
+  const correctOrder = Array.from({ length: arrangement.length }, (_, i) => i);
+  console.log('correctOrder:', correctOrder);
+  
+  // Check if arrangement matches correct order
+  const isExactMatch = arrangement.length === correctOrder.length && 
+    arrangement.every((val, i) => val === correctOrder[i]);
 
   switch (algorithm) {
     case 'exact':
-      return gradeExact(arrangement, correctPositions);
+      return gradeExact(arrangement, correctOrder);
     
     case 'partial':
-      return gradePartial(arrangement, correctPositions, partialCredit);
+      return gradePartial(arrangement, correctOrder, partialCredit);
     
     case 'adjacent':
-      return gradeAdjacent(arrangement, correctPositions);
+      return gradeAdjacent(arrangement, correctOrder);
     
     case 'spearman':
-      return gradeSpearman(arrangement, correctPositions);
+      return gradeSpearman(arrangement, correctOrder);
     
     default:
-      throw new Error(`Unknown grading algorithm: ${algorithm}`);
+      return gradeExact(arrangement, correctOrder);
   }
 }
 
 /**
  * Exact match grading - all or nothing
  */
-function gradeExact(arrangement, correctPositions) {
-  const isCorrect = arrangement.every((itemId, index) => {
-    const correctPos = correctPositions[itemId];
-    return correctPos === index + 1; // Convert to 1-indexed
-  });
+function gradeExact(arrangement, correctOrder) {
+  console.log('gradeExact:', { arrangement, correctOrder });
+  const isCorrect = arrangement.length === correctOrder.length && 
+    arrangement.every((val, index) => val === correctOrder[index]);
 
   return {
     score: isCorrect ? 1.0 : 0.0,
-    isCorrect,
-    feedback: isCorrect 
+    correct: isCorrect,
+    message: isCorrect 
       ? 'Perfect! All items are in the correct order.'
       : 'Not quite right. Check the order and try again.'
   };
@@ -55,13 +59,12 @@ function gradeExact(arrangement, correctPositions) {
 /**
  * Partial credit grading - points for each correct position
  */
-function gradePartial(arrangement, correctPositions, allowPartialCredit = true) {
+function gradePartial(arrangement, correctOrder, allowPartialCredit = true) {
   let correctCount = 0;
   const total = arrangement.length;
   
-  arrangement.forEach((itemId, index) => {
-    const correctPos = correctPositions[itemId];
-    if (correctPos === index + 1) {
+  arrangement.forEach((value, index) => {
+    if (value === correctOrder[index]) {
       correctCount++;
     }
   });
@@ -69,42 +72,39 @@ function gradePartial(arrangement, correctPositions, allowPartialCredit = true) 
   const score = total > 0 ? correctCount / total : 0;
   const isCorrect = score === 1.0;
 
-  let feedback;
+  let message;
   if (isCorrect) {
-    feedback = 'Perfect! All items are in the correct order.';
+    message = 'Perfect! All items are in the correct order.';
   } else if (allowPartialCredit) {
-    feedback = `${correctCount} out of ${total} items are in the correct position.`;
+    message = `${correctCount} out of ${total} items are in the correct position.`;
   } else {
-    feedback = 'Not quite right. Check the order and try again.';
+    message = 'Not quite right. Check the order and try again.';
   }
 
   return {
     score: allowPartialCredit ? score : (isCorrect ? 1.0 : 0.0),
-    isCorrect,
-    feedback
+    correct: isCorrect,
+    message
   };
 }
 
 /**
  * Adjacent pairs grading - credit for correct adjacent relationships
  */
-function gradeAdjacent(arrangement, correctPositions) {
+function gradeAdjacent(arrangement, correctOrder) {
   if (arrangement.length < 2) {
-    return gradeExact(arrangement, correctPositions);
+    return gradeExact(arrangement, correctOrder);
   }
 
   let correctPairs = 0;
   let totalPairs = arrangement.length - 1;
 
   for (let i = 0; i < arrangement.length - 1; i++) {
-    const currentId = arrangement[i];
-    const nextId = arrangement[i + 1];
+    const currentVal = arrangement[i];
+    const nextVal = arrangement[i + 1];
     
-    const currentCorrect = correctPositions[currentId];
-    const nextCorrect = correctPositions[nextId];
-    
-    // Check if this pair is in correct relative order
-    if (currentCorrect < nextCorrect) {
+    // Check if this pair is in correct relative order (current < next)
+    if (currentVal < nextVal) {
       correctPairs++;
     }
   }
@@ -114,8 +114,8 @@ function gradeAdjacent(arrangement, correctPositions) {
 
   return {
     score,
-    isCorrect,
-    feedback: isCorrect 
+    correct: isCorrect,
+    message: isCorrect 
       ? 'Perfect! All adjacent relationships are correct.'
       : `${correctPairs} out of ${totalPairs} adjacent pairs are in correct order.`
   };
@@ -124,18 +124,18 @@ function gradeAdjacent(arrangement, correctPositions) {
 /**
  * Spearman correlation grading - measures rank correlation
  */
-function gradeSpearman(arrangement, correctPositions) {
+function gradeSpearman(arrangement, correctOrder) {
   const n = arrangement.length;
   if (n < 2) {
-    return gradeExact(arrangement, correctPositions);
+    return gradeExact(arrangement, correctOrder);
   }
 
   // Calculate rank differences
   let sumSquaredDifferences = 0;
   
-  arrangement.forEach((itemId, index) => {
+  arrangement.forEach((value, index) => {
     const actualRank = index + 1;
-    const correctRank = correctPositions[itemId];
+    const correctRank = value + 1; // Convert 0-based index to 1-based rank
     const difference = actualRank - correctRank;
     sumSquaredDifferences += difference * difference;
   });
@@ -149,8 +149,8 @@ function gradeSpearman(arrangement, correctPositions) {
 
   return {
     score,
-    isCorrect,
-    feedback: isCorrect 
+    correct: isCorrect,
+    message: isCorrect 
       ? 'Excellent! The order shows strong correlation with the correct answer.'
       : `The order shows ${Math.round(spearman * 100)}% correlation with the correct answer.`
   };
