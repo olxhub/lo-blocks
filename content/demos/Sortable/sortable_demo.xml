@@ -1,0 +1,25 @@
+<Vertical id="SortableDemo" launchable="true">
+  <CapaProblem id="SortableExample1">
+    <SortableGrader>
+      <SortableInput>
+        <TextBlock>Sort these programming languages by when they were first created:</TextBlock>
+        <TextBlock>3. Python (1991)</TextBlock>
+        <TextBlock>4. JavaScript (1995)</TextBlock>
+        <TextBlock>1. C++ (1985)</TextBlock>
+        <TextBlock>2. Java (1995)</TextBlock>
+      </SortableInput>
+    </SortableGrader>
+  </CapaProblem>
+
+  <CapaProblem id="SortableExample2">
+    <TextBlock>Order these planets by distance from the sun:</TextBlock>
+    <SortableGrader>
+      <SortableInput>
+        <TextBlock>2. Venus</TextBlock>
+        <TextBlock>4. Mars</TextBlock>
+        <TextBlock>1. Mercury</TextBlock>
+        <TextBlock>3. Earth</TextBlock>
+      </SortableInput>
+    </SortableGrader>
+  </CapaProblem>
+</Vertical>
