@@ -3,75 +3,49 @@
 
 import React, { useState, useRef } from 'react';
 import { useReduxState } from '@/lib/state';
-import { generateInitialArrangement, getItemById } from './sortableUtils';
-import { renderCompiledKids } from '@/lib/render';
+import { shuffleArray } from './sortableUtils';
+import { render } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 
 export default function _SortableInput(props) {
-  const { kids = [], dragMode = 'whole', fields = {} } = props;
+  const { kids = [], dragMode = 'whole', fields = {}, shuffle = true } = props;
 
-  // Parse content from OLX children
-  const parsedContent = React.useMemo(() => {
-    if (!Array.isArray(kids) || kids.length === 0) {
-      return {
-        prompt: 'No items provided',
-        items: [],
-        shuffle: false,
-        error: true
-      };
-    }
-
-    // Create items from kids array - just use them directly for rendering
-    const items = kids.map((kid, index) => {
-      const itemId = typeof kid === 'string' ? kid : (kid.id || `item-${index}`);
-      
-      return {
-        id: itemId,
-        renderKid: kid,
-        correctIndex: index + 1  // Simple ordering for now
-      };
-    });
-    
-    return {
-      prompt: "Drag to sort the items:",
-      items,
-      shuffle: true
-    };
-  }, [kids]);
+  // State management
 
   // Redux state
   const [arrangement, setArrangement] = useReduxState(props, fields.arrangement, []);
   const [attempts, setAttempts] = useReduxState(props, fields.attempts, 0);
   const [submitted, setSubmitted] = useReduxState(props, fields.submitted, false);
 
-  // Initialize arrangement if empty
-  React.useEffect(() => {
-    if (arrangement.length === 0 && parsedContent.items.length > 0) {
-      const initialOrder = generateInitialArrangement(parsedContent.items, parsedContent.shuffle);
-      setArrangement(initialOrder);
-    }
-  }, [arrangement.length, parsedContent.items, parsedContent.shuffle, setArrangement]);
-
   // Drag state
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
   const draggedIndex = useRef(null);
 
-  if (parsedContent.error) {
+  // Validation
+  if (!Array.isArray(kids) || kids.length === 0) {
     return (
       <DisplayError
         props={props}
         name="SortableInput Error"
-        message={parsedContent.prompt}
-        technical={parsedContent.errorDetails}
+        message="No items provided"
       />
     );
   }
 
-  const handleDragStart = (e, itemId, index) => {
+  // Initialize arrangement if empty - just an array of indices
+  React.useEffect(() => {
+    if (arrangement.length === 0 && kids.length > 0) {
+      const indices = Array.from({ length: kids.length }, (_, i) => i);
+      const initialOrder = shuffle ? shuffleArray(indices) : indices;
+      setArrangement(initialOrder);
+    }
+  }, [arrangement.length, kids.length, shuffle, setArrangement]);
+
+  const handleDragStart = (e, index) => {
     if (submitted) return;
     
-    setDraggedItem(itemId);
+    setDraggedItem(index);
     draggedIndex.current = index;
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/html', e.target);
@@ -91,16 +65,16 @@ export default function _SortableInput(props) {
   const handleDrop = (e, dropIndex) => {
     e.preventDefault();
     
-    if (!draggedItem || draggedIndex.current === null) return;
+    if (draggedItem === null || draggedIndex.current === null) return;
     
     const newArrangement = [...arrangement];
-    const draggedItemId = newArrangement[draggedIndex.current];
+    const draggedValue = newArrangement[draggedIndex.current];
     
     // Remove item from current position
     newArrangement.splice(draggedIndex.current, 1);
     
     // Insert at new position
-    newArrangement.splice(dropIndex, 0, draggedItemId);
+    newArrangement.splice(dropIndex, 0, draggedValue);
     
     setArrangement(newArrangement);
     
@@ -118,39 +92,34 @@ export default function _SortableInput(props) {
 
   return (
     <div className="sortable-input p-4 border rounded-lg bg-gray-50">
-      {parsedContent.prompt && (
-        <div className="prompt mb-4 font-semibold text-lg">
-          {parsedContent.prompt}
-        </div>
-      )}
+      <div className="prompt mb-4 font-semibold text-lg">
+        Drag to sort the items:
+      </div>
 
       <div className="sortable-list space-y-2">
-        {arrangement.map((arrangeItem, index) => {
-          const item = getItemById(parsedContent.items, arrangeItem);
-          if (!item) return null;
+        {arrangement.map((kidIndex, displayIndex) => {
+          const kid = kids[kidIndex];
+          if (!kid) return null;
           
-          const isDragging = draggedItem === arrangeItem;
-          const isDragOver = dragOverIndex === index;
-          
-          // Render child block using renderCompiledKids
-          const itemContent = (
-            <div>
-              {renderCompiledKids({ 
-                ...props, 
-                kids: [item.renderKid], 
-                idPrefix: `${props.idPrefix || ''}.sortitem.${index}` 
-              })}
-            </div>
-          );
+          const isDragging = draggedItem === displayIndex;
+          const isDragOver = dragOverIndex === displayIndex;
+
+          console.log(kid);
+          // Render child block using render to handle it properly
+          const itemContent = render({
+            ...props,
+            node: kid,
+            idPrefix: `${props.idPrefix || ''}.sortitem.${displayIndex}` 
+          });
           
           return (
             <div
-              key={arrangeItem}
+              key={kidIndex}
               draggable={!submitted && dragMode === 'whole'}
-              onDragStart={(e) => handleDragStart(e, arrangeItem, index)}
-              onDragOver={(e) => handleDragOver(e, index)}
+              onDragStart={(e) => handleDragStart(e, displayIndex)}
+              onDragOver={(e) => handleDragOver(e, displayIndex)}
               onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, index)}
+              onDrop={(e) => handleDrop(e, displayIndex)}
               onDragEnd={handleDragEnd}
               className={`
                 sortable-item p-3 bg-white border-2 rounded-md cursor-move transition-all
