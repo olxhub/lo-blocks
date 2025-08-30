@@ -1,0 +1,40 @@
+<Vertical id="SortableDemo" launchable="true">
+  <CapaProblem id="SortableExample1">
+    <SortableGrader>
+      <TextBlock>Sort these programming languages by when they were first created:</TextBlock>
+      <SortableInput>
+        <!-- Items in correct chronological order, with index attributes to control display -->
+        <TextBlock index="3">C++ (1985)</TextBlock>
+        <TextBlock index="1">Python (1991)</TextBlock>
+        <TextBlock index="4">Java (1995)</TextBlock>
+        <TextBlock index="2">JavaScript (1995)</TextBlock>
+      </SortableInput>
+    </SortableGrader>
+  </CapaProblem>
+
+  <CapaProblem id="SortableExample2">
+    <TextBlock>Order these planets by distance from the sun:</TextBlock>
+    <SortableGrader>
+      <SortableInput>
+        <!-- Items in correct order (Mercury, Venus, Earth, Mars), will be shuffled -->
+        <TextBlock>Mercury</TextBlock>
+        <TextBlock>Venus</TextBlock>
+        <TextBlock>Earth</TextBlock>
+        <TextBlock>Mars</TextBlock>
+      </SortableInput>
+    </SortableGrader>
+  </CapaProblem>
+
+  <CapaProblem id="SortableExample3">
+    <TextBlock>Put these web technologies in order of creation:</TextBlock>
+    <SortableGrader>
+      <SortableInput>
+        <!-- HTML always shown first as a hint, others shuffled -->
+        <TextBlock index="1">HTML (1993)</TextBlock>
+        <TextBlock>JavaScript (1995)</TextBlock>
+        <TextBlock>CSS (1996)</TextBlock>
+        <TextBlock>AJAX (2005)</TextBlock>
+      </SortableInput>
+    </SortableGrader>
+  </CapaProblem>
+</Vertical>

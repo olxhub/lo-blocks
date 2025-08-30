@@ -15,6 +15,23 @@ function capaParser({ id, tag, attributes, provenance, rawParsed, storeEntry }) 
   let nodeIndex = 0;
   const graders = [];
 
+  /* BUG: This is incorrect.
+     When CapaProblem encounters text content inside a block (like TextBlock), it wraps it in { type: 
+    'text', text: "..." } instead of letting the block's own parser handle it.
+
+    The issue is that when CapaProblem sees <TextBlock>Venus</TextBlock>, it:
+    1. Recognizes TextBlock as a block tag
+    2. Parses the children ("Venus") with parseChild
+    3. parseChild sees text and wraps it as { type: 'text', text: 'Venus' }
+    4. This wrapped object becomes the kids for TextBlock
+
+    But TextBlock has its own text() parser that should be handling
+    this text content directly.
+
+    This is not a trivial fix, since we extract a lot of information
+    at parse time, rather than dynamically from the OLX DOM.  That's a
+    problem for other reasons too.
+  */
   function parseChild(node, currentGrader = null) {
     if (node['#text'] !== undefined) {
       const text = node['#text'];
