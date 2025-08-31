@@ -276,14 +276,20 @@ export const text = textFactory;
  * PEG-based parser adapter for content inside OLX blocks.
  *
  * @param {Object} peggyParser - compiled PEG parser
- * @param {Function} preprocess - fn({ type: 'text', text }) => { content }
- * @param {Function} postprocess - fn(parsed) => any
+ * @param {Object} options - Parser options
+ * @param {Function} options.preprocess - fn({ type: 'text', text }) => { content }
+ * @param {Function} options.postprocess - fn(parsed) => any
+ * @param {boolean} options.skipStoreEntry - Skip the default storeEntry call (for custom handling)
  */
 export function peggyParser(
   peggyParser,
-  preprocess = (x) => ({ text: x.text }),
-  postprocess = (x) => x
+  options = {}
 ) {
+  const {
+    preprocess = (x) => ({ text: x.text }),
+    postprocess = (x) => x,
+    skipStoreEntry = false
+  } = options;
   async function parser({
     id,
     rawParsed,
@@ -325,13 +331,24 @@ export function peggyParser(
     let entry;
     try {
       const parsed = peggyParser.parse(text);
+      const processedKids = postprocess({ 
+        type: 'parsed', 
+        parsed, 
+        ...rest,
+        // Pass through context for advanced use cases
+        storeEntry,
+        id,
+        tag,
+        attributes
+      });
+      
       entry = {
         id,
         tag,
         attributes,
         provenance: prov,
         rawParsed,
-        kids: postprocess({ type: 'parsed', parsed, ...rest })
+        kids: processedKids
       };
     } catch (parseError) {
       const errorObj: OLXLoadingError = {
@@ -368,7 +385,10 @@ export function peggyParser(
       }
     }
 
-    storeEntry(id, entry);
+    // Allow postprocess to handle storage for complex cases
+    if (!skipStoreEntry) {
+      storeEntry(id, entry);
+    }
     return id;
   }
 
