@@ -200,23 +200,24 @@ export default function _SortableInput(props) {
               onDrop={(e) => handleDrop(e, displayIndex)}
               onDragEnd={dragMode === 'whole' ? handleDragEnd : undefined}
               className={`
-                sortable-item p-3 bg-white border-2 rounded-md transition-all
+                sortable-item bg-white border-2 rounded-md transition-all overflow-hidden
                 ${isDragging ? 'opacity-50' : ''}
                 ${isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
                 ${readOnly ? 'cursor-default bg-gray-100' : 'hover:border-gray-300'}
                 ${dragMode === 'whole' && !readOnly ? 'cursor-move' : ''}
+                ${dragMode === 'handle' ? 'p-0' : 'p-3'}
               `}
             >
-              <div className="flex items-center gap-3">
-                {dragMode === 'handle' && !readOnly && (
+              {dragMode === 'handle' && !readOnly ? (
+                <div className="flex items-stretch min-h-[3rem]">
                   <div
-                    className="drag-handle flex flex-col justify-center w-6 h-6 cursor-move text-gray-400 hover:text-gray-600 select-none"
+                    className="drag-handle flex flex-col justify-center w-10 bg-gray-100 hover:bg-gray-200 cursor-move text-gray-400 hover:text-gray-600 select-none border-r border-gray-200 px-2"
                     draggable
                     onDragStart={(e) => handleDragStart(e, displayIndex)}
                     onDragEnd={handleDragEnd}
                     title="Drag to reorder"
                   >
-                    <svg width="12" height="20" viewBox="0 0 12 20" fill="currentColor">
+                    <svg width="12" height="20" viewBox="0 0 12 20" fill="currentColor" className="mx-auto">
                       <circle cx="3" cy="4" r="1.5" />
                       <circle cx="9" cy="4" r="1.5" />
                       <circle cx="3" cy="10" r="1.5" />
@@ -225,11 +226,17 @@ export default function _SortableInput(props) {
                       <circle cx="9" cy="16" r="1.5" />
                     </svg>
                   </div>
-                )}
-                <div className="flex-1">
-                  {itemContent}
+                  <div className="flex-1 p-3">
+                    {itemContent}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <div className="flex-1">
+                    {itemContent}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
