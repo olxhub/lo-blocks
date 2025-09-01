@@ -15,8 +15,8 @@ const SortableInput = core({
   description: 'Drag-and-drop sortable input for ordering tasks',
   component: _SortableInput,
   fields,
-  getValue: (state, id) => ({
-    arrangement: state?.[id]?.arrangement || []
+  getValue: (props, state, id) => ({
+    arrangement: state?.application_state?.component?.[id]?.arrangement || []
   })
 });
 

@@ -17,7 +17,7 @@ function _Element(props) {
   }
 
   // Get the value from the referenced component using the new useValue hook
-  const fieldValue = useValue(props, referencedId, '');
+  const fieldValue = useValue(props, referencedId, { fallback: '' });
 
   if (String(visible) === 'false' || !visible) {
     // Still subscribe to value but render nothing

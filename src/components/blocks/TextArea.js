@@ -11,7 +11,7 @@ const TextArea = core({
   description: 'Multi-line text input field for longer student responses',
   component: _TextArea,
   fields: fields,
-  getValue: (state, id) => state?.[id]?.value ?? '',
+  getValue: (props, state, id) => state?.application_state?.component?.[id]?.value ?? '',
 });
 
 export default TextArea;

@@ -18,7 +18,7 @@ const ComplexInput = core({
   description: 'Text input for complex numbers with validation (supports i/j notation)',
   component: _ComplexInput,
   fields,
-  getValue: (state, id) => state?.[id]?.value ?? '',
+  getValue: (props, state, id) => state?.application_state?.component?.[id]?.value ?? '',
 });
 
 export default ComplexInput;

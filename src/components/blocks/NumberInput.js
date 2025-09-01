@@ -14,8 +14,8 @@ const NumberInput = core({
   fields,
   // TODO: Figure out this signature. In the generic, we'll probably need
   // more than this. It might be dependent on the component spec, etc.
-  getValue: (state, id) => {
-    const v = state?.[id]?.value;
+  getValue: (props, state, id) => {
+    const v = state?.application_state?.component?.[id]?.value;
     return v === undefined ? undefined : parseFloat(v);
   }
 });

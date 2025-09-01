@@ -76,17 +76,14 @@ export function grader({ grader, infer = true } = {}) {
       }
     );
 
-    // TODO: We shouldn't be mucking about inside reduxLogger manually.
-    // selectors do a lot of this.
-    const state = reduxLogger.store.getState()?.application_state?.component ?? {};
+    const state = reduxLogger.store.getState();
     const map = props.componentMap;
     const values = inputIds.map(id => {
       const inst = props.idMap[id];
       const blueprint = map[inst.tag];
-      // TODO: Props should always be first
       const inputNodeInfo = getNodeById(props, id);
       const inputProps = { ...props, nodeInfo: inputNodeInfo, id, targets: inst.attributes?.targets };
-      return blueprint.getValue(state, id, inputProps);
+      return blueprint.getValue(inputProps, state, id);
     });
 
     /*

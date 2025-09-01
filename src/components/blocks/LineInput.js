@@ -12,7 +12,7 @@ const LineInput = core({
   description: 'Single-line text input field for student responses',
   component: _LineInput,
   fields,
-  getValue: (state, id) => state?.[id]?.value ?? '',
+  getValue: (props, state, id) => state?.application_state?.component?.[id]?.value ?? '',
 });
 
 export default LineInput;

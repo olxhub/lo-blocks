@@ -297,10 +297,10 @@ export function componentFieldByName(props, targetId, fieldName) {
  * @param {Object} props - Component props with idMap and componentMap
  * @param {Object} state - Redux state
  * @param {string} id - ID of the component to get value from
- * @param {any} fallback - Default value if component/value not found
+ * @param {Object} options - Options object with fallback and other settings
  * @returns {any} The component's current value
  */
-export function valueSelector(props, state, id, fallback = '') {
+export function valueSelector(props, state, id, { fallback } = {}) {
   const targetNode = props?.idMap?.[id];
   if (!targetNode) {
     return fallback;
@@ -314,12 +314,7 @@ export function valueSelector(props, state, id, fallback = '') {
   // Try getValue first (for computed values like wordcount)
   if (blueprint.getValue) {
     try {
-      return blueprint.getValue(
-        state?.application_state?.component || {},
-        id,
-        targetNode.attributes,
-        props.idMap
-      );
+      return blueprint.getValue(props, state, id);
     } catch (e) {
       // Fall through to field access on error
       console.warn(`getValue failed for ${id}: ${e.message}`);
@@ -341,9 +336,9 @@ export function valueSelector(props, state, id, fallback = '') {
  *
  * @param {Object} props - Component props with idMap and componentMap
  * @param {string} id - ID of the component to get value from
- * @param {any} fallback - Default value if component/value not found
+ * @param {Object} options - Options object with fallback and other settings
  * @returns {any} The component's current value
  */
-export function useValue(props, id, fallback = '') {
-  return useSelector((state) => valueSelector(props, state, id, fallback));
+export function useValue(props, id, options = {}) {
+  return useSelector((state) => valueSelector(props, state, id, options));
 }

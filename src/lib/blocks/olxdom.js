@@ -208,15 +208,13 @@ export async function getValueById(props, id) {
 
   if (blockBlueprint.getValue) {
     // Use the block's getValue method to get the actual value
-    // TODO: Top-level import? I think this await is just a relic of where this came from.
     const reduxLogger = await import('lo_event/lo_event/reduxLogger.js');
-    const state = reduxLogger.store.getState()?.application_state || {};
+    const state = reduxLogger.store.getState();
 
     const blockValue = await blockBlueprint.getValue(
-      state.component,
-      id,
-      blockNode.attributes,
-      props.idMap
+      props,
+      state,
+      id
     );
     return blockValue;
   } else {
