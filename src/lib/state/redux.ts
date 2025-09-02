@@ -28,6 +28,7 @@ import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 import * as lo_event from 'lo_event';
 
 import * as idResolver from '../blocks/idResolver';
+import { fieldByName } from './fields';
 
 import { scopes } from '../state/scopes';
 import { FieldInfo } from '../types';
@@ -300,7 +301,7 @@ export function componentFieldByName(props, targetId, fieldName) {
  * @param {Object} options - Options object with fallback and other settings
  * @returns {any} The component's current value
  */
-export function valueSelector(props, state, id, { fallback } = {}) {
+export function valueSelector(props, state, id, { fallback } = {} as { fallback?: any }) {
   const targetNode = props?.idMap?.[id];
   if (!targetNode) {
     return fallback;
