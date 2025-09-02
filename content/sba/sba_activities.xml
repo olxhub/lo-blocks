@@ -24,7 +24,7 @@ What do YOU think Annie's roommate should do to get the 6-year-old to go to slee
     </Markdown>
     <TextArea id="initial_suggestion"
               placeholder="Share your initial strategy (2-3 sentences)..." />
-    <ActionButton id="submit_suggestion_btn" target="psych_chat" action="advance">Submit and Continue</ActionButton>
+    <ActionButton id="submit_suggestion_btn" target="psych_chat" action="advance" label="Submit and Continue" />
   </Vertical>
 
   <!-- Messages screenshot -->
@@ -53,7 +53,7 @@ Highlight the examples that demonstrate each type of behavior modification:
                    showRealtimeFeedback="true"
                    src="psych_positive_negative.textHighlight" />
 
-    <ActionButton id="continue_after_categorize" target="psych_chat" action="advance">Continue</ActionButton>
+    <ActionButton id="continue_after_categorize" target="psych_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- Reinforcement poster -->
@@ -130,7 +130,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <ActionButton id="quiz1_next1" target="psych_chat" action="advance">Next Set</ActionButton>
+    <ActionButton id="quiz1_next1" target="psych_chat" action="advance" label="Next Set" />
   </Vertical>
 
   <!-- Quiz 1 continues -->
@@ -187,19 +187,19 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <ActionButton id="quiz1_next2" target="psych_chat" action="advance">Next Set</ActionButton>
+    <ActionButton id="quiz1_next2" target="psych_chat" action="advance" label="Next Set" />
   </Vertical>
 
   <Vertical id="reinforce_punish_3">
     <Markdown id="quiz1_q11to15_header">## Quiz Questions 11-15</Markdown>
     <!-- Questions 11-15 would go here following similar pattern -->
-    <ActionButton id="quiz1_next3" target="psych_chat" action="advance">Next Set</ActionButton>
+    <ActionButton id="quiz1_next3" target="psych_chat" action="advance" label="Next Set" />
   </Vertical>
 
   <Vertical id="reinforce_punish_4">
     <Markdown id="quiz1_q16to20_header">## Quiz Questions 16-20</Markdown>
     <!-- Questions 16-20 would go here following similar pattern -->
-    <ActionButton id="quiz1_see_results" target="psych_chat" action="advance">See Results</ActionButton>
+    <ActionButton id="quiz1_see_results" target="psych_chat" action="advance" label="See Results" />
   </Vertical>
 
   <!-- Quiz 1 Score Display -->
@@ -213,7 +213,7 @@ Annie's Score: 85%
 JJ's Score: 90%
 Lin's Score: 80%
     </Markdown>
-    <ActionButton id="quiz1_continue" target="psych_chat" action="advance">Continue</ActionButton>
+    <ActionButton id="quiz1_continue" target="psych_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- Review option -->
@@ -227,7 +227,7 @@ Lin's Score: 80%
         </ChoiceInput>
       </KeyGrader>
     </CapaProblem>
-    <ActionButton id="review_continue" target="psych_chat" action="advance">Continue</ActionButton>
+    <ActionButton id="review_continue" target="psych_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- Quiz 2: Positive/Negative subcategories -->
@@ -296,26 +296,26 @@ Lin's Score: 80%
       </KeyGrader>
     </CapaProblem>
 
-    <ActionButton id="quiz2_next1" target="psych_chat" action="advance">Next Set</ActionButton>
+    <ActionButton id="quiz2_next1" target="psych_chat" action="advance" label="Next Set" />
   </Vertical>
 
   <!-- Continue pattern for quiz 2 sections -->
   <Vertical id="positive_negative_2">
     <Markdown id="quiz2_q6to10_header">## Advanced Quiz Questions 6-10</Markdown>
     <!-- MCQs for 6-10 would go here -->
-    <ActionButton id="quiz2_next2" target="psych_chat" action="advance">Next Set</ActionButton>
+    <ActionButton id="quiz2_next2" target="psych_chat" action="advance" label="Next Set" />
   </Vertical>
 
   <Vertical id="positive_negative_3">
     <Markdown id="quiz2_q11to15_header">## Advanced Quiz Questions 11-15</Markdown>
     <!-- MCQs for 11-15 would go here -->
-    <ActionButton id="quiz2_next3" target="psych_chat" action="advance">Next Set</ActionButton>
+    <ActionButton id="quiz2_next3" target="psych_chat" action="advance" label="Next Set" />
   </Vertical>
 
   <Vertical id="positive_negative_4">
     <Markdown id="quiz2_q16to20_header">## Advanced Quiz Questions 16-20</Markdown>
     <!-- MCQs for 16-20 would go here -->
-    <ActionButton id="quiz2_see_results" target="psych_chat" action="advance">See Results</ActionButton>
+    <ActionButton id="quiz2_see_results" target="psych_chat" action="advance" label="See Results" />
   </Vertical>
 
   <!-- Quiz 2 Score -->
@@ -325,7 +325,7 @@ Lin's Score: 80%
 
 Excellent! You've mastered the four types of behavior modification.
     </Markdown>
-    <ActionButton id="quiz2_continue" target="psych_chat" action="advance">Continue</ActionButton>
+    <ActionButton id="quiz2_continue" target="psych_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- No-rules parenting summary -->
@@ -343,7 +343,7 @@ Annie found research showing that "no-rules parenting" (permissive parenting) ca
 
 **Evidence suggests structured, positive approaches work better than either permissive or purely punitive methods.**
     </Markdown>
-    <ActionButton id="write_email_btn" target="psych_chat" action="advance">Write Email</ActionButton>
+    <ActionButton id="write_email_btn" target="psych_chat" action="advance" label="Write Email" />
   </Vertical>
 
   <!-- Email writing activity -->
@@ -357,7 +357,7 @@ Help write an email explaining why "giving up" isn't the answer and what might w
     <TextArea id="email_draft"
               placeholder="Draft your email here..." />
 
-    <ActionButton id="get_feedback_btn" target="psych_chat" action="advance">Get Feedback</ActionButton>
+    <ActionButton id="get_feedback_btn" target="psych_chat" action="advance" label="Get Feedback" />
   </Vertical>
 
   <!-- Email feedback -->
@@ -371,7 +371,7 @@ Good start! Make sure to include:
 - Suggest positive reinforcement strategies
 - Offer specific, actionable steps
     </Markdown>
-    <ActionButton id="email_feedback_continue" target="psych_chat" action="advance">Continue</ActionButton>
+    <ActionButton id="email_feedback_continue" target="psych_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- Age appropriateness activity -->
@@ -386,7 +386,7 @@ Based on child development research, select the most age-appropriate strategies:
                    mode="immediate"
                    src="psych_bedtime_strategies.textHighlight" />
 
-    <ActionButton id="check_strategies_btn" target="psych_chat" action="advance">Check Answer</ActionButton>
+    <ActionButton id="check_strategies_btn" target="psych_chat" action="advance" label="Check Answer" />
   </Vertical>
 
   <!-- Explanation activity -->
@@ -400,7 +400,7 @@ Why do you think positive reinforcement strategies work best for this age group?
     <TextArea id="strategy_explanation"
               placeholder="Explain your reasoning (2-3 sentences)..." />
 
-    <ActionButton id="submit_explanation_btn" target="psych_chat" action="advance">Submit</ActionButton>
+    <ActionButton id="submit_explanation_btn" target="psych_chat" action="advance" label="Submit" />
   </Vertical>
 
   <!-- Final feedback -->
@@ -419,7 +419,7 @@ You correctly identified that positive reinforcement works best for 6-year-olds 
 **Recommended approach**: Sticker chart + bedtime story reward + consistent praise
     </Markdown>
 
-    <ActionButton id="finish_btn" target="psych_chat" action="advance">Finish</ActionButton>
+    <ActionButton id="finish_btn" target="psych_chat" action="advance" label="Finish" />
   </Vertical>
 
 </Vertical>
