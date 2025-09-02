@@ -6,11 +6,11 @@ import { DisplayError } from '@/lib/util/debug';
 
 export function _ErrorNode(props) {
   const { id, kids } = props;
-  
+
   // Extract error information from the parsed content
   const errorInfo = kids?.parsed?.error ? kids.parsed : null;
   const parseError = props.parseError;
-  
+
   if (!errorInfo && !parseError) {
     return (
       <DisplayError
@@ -27,17 +27,17 @@ export function _ErrorNode(props) {
     // TODO: Make generic for any error
     // We probably want some error type, and then to dispatch on it, or similar?
     const { message, location, expected, found, name } = errorInfo;
-    
+
     let technicalDetails = `Error Type: ${name}\n`;
-    
+
     if (location && (location.line || location.column)) {
       technicalDetails += `Location: Line ${location.line || '?'}, Column ${location.column || '?'}\n`;
     }
-    
+
     if (found !== null && found !== undefined) {
       technicalDetails += `Found: "${found}"\n`;
     }
-    
+
     if (expected && expected.length > 0) {
       technicalDetails += `Expected: ${expected.map(e => `"${e.description || e}"`).join(', ')}\n`;
     }

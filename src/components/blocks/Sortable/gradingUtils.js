@@ -2,13 +2,13 @@
 
 /**
  * Grade a sortable arrangement
- * 
+ *
  * Called by the grader framework with (props, { input })
  * where input contains the arrangement from SortableInput.
- * 
+ *
  * The correct order is always [0,1,2,3...] representing the XML order.
  * Items should be arranged to match their order in the XML source.
- * 
+ *
  * @param {Object} props - Grader props including algorithm and partialCredit
  * @param {Object} input - Input state from SortableInput containing arrangement
  * @returns {Object} - { correct: boolean, message: string, score: number }
@@ -25,16 +25,16 @@ export function gradeArrangement(props, { input }) {
   switch (algorithm) {
     case 'exact':
       return gradeExact(arrangement, correctOrder);
-    
+
     case 'partial':
       return gradePartial(arrangement, correctOrder, partialCredit);
-    
+
     case 'adjacent':
       return gradeAdjacent(arrangement, correctOrder);
-    
+
     case 'spearman':
       return gradeSpearman(arrangement, correctOrder);
-    
+
     default:
       return gradeExact(arrangement, correctOrder);
   }
@@ -69,7 +69,7 @@ function gradeExact(arrangement, correctOrder) {
 function gradePartial(arrangement, correctOrder, allowPartialCredit = true) {
   let correctCount = 0;
   const total = arrangement.length;
-  
+
   arrangement.forEach((value, index) => {
     if (value === correctOrder[index]) {
       correctCount++;
@@ -112,7 +112,7 @@ function gradeAdjacent(arrangement, correctOrder) {
   for (let i = 0; i < arrangement.length - 1; i++) {
     const currentVal = arrangement[i];
     const nextVal = arrangement[i + 1];
-    
+
     // Check if this pair is in correct relative order (current < next)
     if (currentVal < nextVal) {
       correctPairs++;
@@ -125,7 +125,7 @@ function gradeAdjacent(arrangement, correctOrder) {
   return {
     score,
     correct: isCorrect,
-    message: isCorrect 
+    message: isCorrect
       ? 'Perfect! All adjacent relationships are correct.'
       : `${correctPairs} out of ${totalPairs} adjacent pairs are in correct order.`
   };
@@ -146,7 +146,7 @@ function gradeSpearman(arrangement, correctOrder) {
 
   // Calculate rank differences
   let sumSquaredDifferences = 0;
-  
+
   arrangement.forEach((value, index) => {
     const actualRank = index + 1;
     const correctRank = value + 1; // Convert 0-based index to 1-based rank
@@ -156,7 +156,7 @@ function gradeSpearman(arrangement, correctOrder) {
 
   // Spearman correlation coefficient
   const spearman = 1 - (6 * sumSquaredDifferences) / (n * (n * n - 1));
-  
+
   // Convert to 0-1 scale (spearman ranges from -1 to 1)
   const score = Math.max(0, (spearman + 1) / 2);
   const isCorrect = score >= 0.95; // Nearly perfect correlation
@@ -164,7 +164,7 @@ function gradeSpearman(arrangement, correctOrder) {
   return {
     score,
     correct: isCorrect,
-    message: isCorrect 
+    message: isCorrect
       ? 'Excellent! The order shows strong correlation with the correct answer.'
       : `The order shows ${Math.round(spearman * 100)}% correlation with the correct answer.`
   };

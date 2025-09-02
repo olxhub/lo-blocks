@@ -37,7 +37,7 @@ const courseParser = childParser(async function courseBlockParser({ rawKids, par
     if (tag === 'Chapter') {
       const chapterData = child[tag];
       const chapterAttributes = child[':@'] || {};
-      
+
       // Extract chapter info
       const chapter = {
         id: chapterAttributes.id || `chapter_${chapters.length}`,

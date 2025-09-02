@@ -192,12 +192,12 @@ export function inferRelatedNodes(props, {
 }
 
 // TODO: These functions belong in a new utility module (perhaps blocks/util.js)
-// They handle runtime value resolution and mixed content processing, which 
+// They handle runtime value resolution and mixed content processing, which
 // is distinct from the DOM traversal utilities above.
 
 /**
  * Get the current value of a component by ID using its getValue method.
- * 
+ *
  * @param {Object} props - Component props with idMap and componentMap
  * @param {string} id - ID of the component to get value from
  * @returns {Promise<any>} The component's current value
@@ -224,12 +224,12 @@ export async function getValueById(props, id) {
 
 /**
  * Extract text from child nodes, resolving block references to their current values.
- * 
+ *
  * For text nodes, accumulates the text content.
  * For block nodes, calls their getValue() method to get current runtime value.
- * 
+ *
  * Originally designed to extract prompt text from LLMAction content.
- * 
+ *
  * @param {Object} props - Component props with idMap and componentMap
  * @param {Object} actionNode - Node with kids array to process
  * @returns {Promise<string>} The extracted and resolved text content

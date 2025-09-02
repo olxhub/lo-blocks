@@ -9,9 +9,9 @@ function _Course(props) {
   const { kids = {}, fields, title = 'Course', ...otherProps } = props;
   const { chapters = [] } = kids;
 
-  const [selectedChild, setSelectedChild] = useReduxState(props, fields.selectedChild, 
+  const [selectedChild, setSelectedChild] = useReduxState(props, fields.selectedChild,
     chapters[0]?.children[0]?.id || null);
-  const [expandedChapter, setExpandedChapter] = useReduxState(props, fields.expandedChapter, 
+  const [expandedChapter, setExpandedChapter] = useReduxState(props, fields.expandedChapter,
     chapters[0]?.id || null);
 
   const handleChapterClick = (chapterId) => {
@@ -39,7 +39,7 @@ function _Course(props) {
         <div>
           <h1>{title}</h1>
         </div>
-        
+
         <div>
           {chapters.map((chapter) => (
             <div key={chapter.id}>
@@ -78,9 +78,9 @@ function _Course(props) {
       <div className="course-content">
         {selectedChildNode ? (
           <div>
-            {render({ 
-              node: selectedChildNode, 
-              idMap: props.idMap, 
+            {render({
+              node: selectedChildNode,
+              idMap: props.idMap,
               nodeInfo: props.nodeInfo,
               componentMap: props.componentMap,
               idPrefix: props.idPrefix

@@ -35,7 +35,7 @@ const Avatar = ({ name }) => {
   const bgColor = getAvatarColor(name);
 
   return (
-    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold ${bgColor}`}> 
+    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold ${bgColor}`}>
       {initials}
     </div>
   );
@@ -44,7 +44,7 @@ const Avatar = ({ name }) => {
 // Message component for chat lines
 const ChatMessage = ({ message, isSequential }) => {
   return (
-    <div className={`flex ${isSequential ? 'mt-1' : 'mt-4'}`}> 
+    <div className={`flex ${isSequential ? 'mt-1' : 'mt-4'}`}>
       {!isSequential ? (
         <div className="mr-2 flex-shrink-0">
           <Avatar name={message.speaker} />

@@ -35,7 +35,7 @@ export function evaluateSelections(parsed, selectedIndices) {
   // Count required segments and check selections
   parsed.segments.forEach((segment, index) => {
     const isSelected = selectedIndices.has(index);
-    
+
     if (segment.type === 'required') {
       results.requiredTotal++;
       if (isSelected) {
@@ -63,7 +63,7 @@ export function evaluateSelections(parsed, selectedIndices) {
 
   // Find matching scoring rule
   const scoringFeedback = findScoringFeedback(parsed.scoring, results);
-  
+
   // Collect targeted feedback
   const targetedMessages = [];
   results.selectedIds.forEach(id => {
@@ -140,7 +140,7 @@ function evaluateSingleCondition(condition, results) {
 
   const [, field, op, numStr] = match;
   const num = parseInt(numStr, 10);
-  
+
   let value;
   if (field === 'found') {
     value = results.requiredFound;

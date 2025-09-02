@@ -1,0 +1,32 @@
+<!-- content/demos/ref-demo.xml -->
+<Vertical id="ref_demo" title="Ref Block Demo" launchable="true">
+  <TextBlock>
+    ## Ref Block Test
+    
+    This demo tests the unified Ref block functionality with multiple syntax options.
+  </TextBlock>
+
+  <TextArea id="sample_input" placeholder="Type something here..." />
+
+  <TextBlock>
+    ### Different ways to reference the same value:
+    
+    **Using content syntax:** 
+  </TextBlock>
+  
+  <Ref id="ref1">sample_input</Ref>
+  
+  <TextBlock>**Using target attribute:**</TextBlock>
+  
+  <Ref id="ref2" target="sample_input" />
+  
+  <TextBlock>
+    **Hidden reference (for LLM prompts):** 
+  </TextBlock>
+  
+  <Ref id="ref3" target="sample_input" visible="false" />
+  
+  <TextBlock>
+    The hidden reference above subscribes to changes but doesn't display anything.
+  </TextBlock>
+</Vertical>

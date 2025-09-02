@@ -50,7 +50,7 @@ function readBlockIgnore(ignorePath) {
 
 function shouldExclude(filePath, ignorePatterns, excludePattern) {
   const relPath = path.relative(blocksDir, filePath).replace(/\\/g, '/');
-  
+
   // Check ignore patterns
   for (const pattern of ignorePatterns) {
     if (minimatch(relPath, pattern)) return true;
@@ -69,12 +69,12 @@ function shouldExclude(filePath, ignorePatterns, excludePattern) {
 
 function walkDirectories(dirs, filePattern, ignorePatterns, excludePattern) {
   let files = [];
-  
+
   for (const dir of dirs) {
     if (!fs.existsSync(dir)) continue;
     files = files.concat(walkDir(dir, filePattern, ignorePatterns, excludePattern));
   }
-  
+
   return files;
 }
 
@@ -96,15 +96,15 @@ function walkDir(dir, filePattern, ignorePatterns, excludePattern) {
 function generateRegistry(registryType) {
   const config = registryTypes[registryType];
   const ignorePatterns = readBlockIgnore(ignoreFile);
-  
+
   // For now, we only search blocksDir, but this could be extended
   // to search multiple directories for multi-repo block sources
   const searchDirs = [blocksDir];
-  
+
   const files = walkDirectories(
-    searchDirs, 
-    config.filePattern, 
-    ignorePatterns, 
+    searchDirs,
+    config.filePattern,
+    ignorePatterns,
     config.excludePattern
   );
 
@@ -115,18 +115,18 @@ function generateRegistry(registryType) {
   }
 
   const content = config.fileHeader + config.reducer(files, config.outputFile);
-  
+
   fs.writeFileSync(config.outputFile, content);
   console.log(`Generated ${registryType} registry at ${config.outputFile} with ${files.length} entries.`);
 }
 
 function main() {
   console.log('Generating all registries...');
-  
+
   for (const registryType of Object.keys(registryTypes)) {
     generateRegistry(registryType);
   }
-  
+
   console.log('All registries generated successfully.');
 }
 

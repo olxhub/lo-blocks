@@ -59,13 +59,13 @@
           
           <ActionButton id="btn_summarize" label="Summarize">
             <LLMAction id="action_summarize" target="ai_output">
-              Please provide a brief summary of: <Element id="elem_summarize">ai_input</Element>
+              Please provide a brief summary of: <Ref id="elem_summarize">ai_input</Ref>
             </LLMAction>
           </ActionButton>
           
           <ActionButton id="btn_expand" label="Expand">
             <LLMAction id="action_expand" target="ai_output">
-              Please expand on this idea with more details: <Element id="elem_expand">ai_input</Element>
+              Please expand on this idea with more details: <Ref id="elem_expand">ai_input</Ref>
             </LLMAction>
           </ActionButton>
         </Sidebar>

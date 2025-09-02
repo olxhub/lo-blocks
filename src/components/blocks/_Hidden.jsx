@@ -15,7 +15,7 @@ export default function _Hidden(props) {
   if (props.kids) {
     renderCompiledKids(props);
   }
-  
+
   // Return null to hide the content visually
   return null;
 }

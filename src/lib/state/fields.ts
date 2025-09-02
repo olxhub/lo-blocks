@@ -29,7 +29,7 @@ const _fieldInfoByEvent: FieldInfoByEvent = {};
  * Note this is only a default. We may handle some things differently
  * (mostly in the case of complex, adjecent acronyms; if we e.g. had
  * JSONSQLXMLTransmogifier for whatever reason)
- * 
+ *
  * Example:
  *   fieldNameToDefaultEventName('fieldName')      // returns 'UPDATE_FIELD_NAME'
  */

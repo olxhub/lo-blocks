@@ -16,7 +16,7 @@ function capaParser({ id, tag, attributes, provenance, rawParsed, storeEntry }) 
   const graders = [];
 
   /* BUG: This is incorrect.
-     When CapaProblem encounters text content inside a block (like TextBlock), it wraps it in { type: 
+     When CapaProblem encounters text content inside a block (like TextBlock), it wraps it in { type:
     'text', text: "..." } instead of letting the block's own parser handle it.
 
     The issue is that when CapaProblem sees <TextBlock>Venus</TextBlock>, it:

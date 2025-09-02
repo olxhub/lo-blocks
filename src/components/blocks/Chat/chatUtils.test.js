@@ -132,7 +132,7 @@ Jordan: Another message
         // "Test Section" should refer to the section (start: 0, end: 2)
         const sectionResult = clip(conflictConv, 'Test Section');
         expect(sectionResult).toEqual({ start: 0, end: 2, valid: true, message: null });
-        
+
         // "Test" should refer to the ID (just the Alex message at index 1)
         const idResult = clip(conflictConv, 'Test');
         expect(idResult).toEqual({ start: 1, end: 1, valid: true, message: null });

@@ -60,7 +60,7 @@ describe('getKidsDFS', () => {
 });
 
 describe('getParents', () => {
-  it('returns all parents, omitting self by default', () => {  
+  it('returns all parents, omitting self by default', () => {
     expect(getParents(tree.renderedKids.B.renderedKids.D).map(ni => ni.node.id)).toEqual(['B', 'A']);
   });
 

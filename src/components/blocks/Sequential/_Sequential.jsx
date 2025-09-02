@@ -59,7 +59,7 @@ export default function _Sequential(props) {
           onSelect={handleSelect}
         />
       </div>
-      
+
       {/* Current sequence item */}
       <div className="flex-1">
         {currentItem && (
@@ -68,7 +68,7 @@ export default function _Sequential(props) {
           </div>
         )}
       </div>
-      
+
       {/* Bottom navigation */}
       <div className="flex justify-between items-center mt-6 pt-4 border-t">
         <button
@@ -78,11 +78,11 @@ export default function _Sequential(props) {
         >
           Previous
         </button>
-        
+
         <div className="text-sm text-gray-500">
           {index + 1} of {numItems}
         </div>
-        
+
         <button
           onClick={handleNext}
           disabled={index >= numItems - 1}

@@ -48,7 +48,7 @@ export interface GenericProvenance {
   [key: string]: any;
 }
 
-/** 
+/**
   * TODO: These should be a branded or tagged type:
   *   type ProvenanceURI = string & { __brand: "ProvenanceURI" };
   * Then we use this as:

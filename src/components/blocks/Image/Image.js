@@ -10,9 +10,9 @@ import _Image from './_Image';
 // handling earlier in the process.
 function imageParser({ id, tag, attributes, provenance, rawParsed, storeEntry, provider }) {
   const { src, ...otherAttributes } = attributes;
-  
+
   let resolvedSrc = src;
-  
+
   // Resolve relative paths using storage provider during parsing
   if (src && !src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('//') && !src.startsWith('/')) {
     // This is a relative path - resolve it using storage provider
@@ -21,7 +21,7 @@ function imageParser({ id, tag, attributes, provenance, rawParsed, storeEntry, p
       resolvedSrc = provider.resolveRelativePath(currentProvenance, src);
     }
   }
-  
+
   const entry = {
     id,
     tag,
@@ -30,7 +30,7 @@ function imageParser({ id, tag, attributes, provenance, rawParsed, storeEntry, p
     rawParsed,
     kids: []
   };
-  
+
   storeEntry(id, entry);
   return id;
 }

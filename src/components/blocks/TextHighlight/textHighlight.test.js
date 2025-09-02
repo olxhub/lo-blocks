@@ -8,7 +8,7 @@ test('parses simple required highlights', () => {
 The [cat] sat on the [mat].`;
 
   const result = parseTextHighlight(input);
-  
+
   expect(result.prompt).toBe('Highlight the nouns:');
   expect(result.segments).toHaveLength(5);
   expect(result.segments[0]).toEqual({ type: 'text', content: 'The ' });
@@ -24,7 +24,7 @@ test('parses optional highlights', () => {
 {The} [cat] sat on {the} [mat].`;
 
   const result = parseTextHighlight(input);
-  
+
   expect(result.segments).toHaveLength(8);
   expect(result.segments[0]).toEqual({ type: 'optional', content: 'The', id: null });
   expect(result.segments[1]).toEqual({ type: 'text', content: ' ' });
@@ -37,11 +37,11 @@ test('parses feedback triggers', () => {
 They used [rewards] but also tried <<punishment>>.`;
 
   const result = parseTextHighlight(input);
-  
-  expect(result.segments).toContainEqual({ 
-    type: 'feedback_trigger', 
-    content: 'punishment', 
-    id: null 
+
+  expect(result.segments).toContainEqual({
+    type: 'feedback_trigger',
+    content: 'punishment',
+    id: null
   });
 });
 
@@ -51,16 +51,16 @@ test('parses labeled segments', () => {
 They used [positive reinforcement|pos] and [negative punishment|neg].`;
 
   const result = parseTextHighlight(input);
-  
-  expect(result.segments).toContainEqual({ 
-    type: 'required', 
-    content: 'positive reinforcement', 
-    id: 'pos' 
+
+  expect(result.segments).toContainEqual({
+    type: 'required',
+    content: 'positive reinforcement',
+    id: 'pos'
   });
-  expect(result.segments).toContainEqual({ 
-    type: 'required', 
-    content: 'negative punishment', 
-    id: 'neg' 
+  expect(result.segments).toContainEqual({
+    type: 'required',
+    content: 'negative punishment',
+    id: 'neg'
   });
 });
 
@@ -74,7 +74,7 @@ all: Perfect! (2/2)
 : Keep trying. (0/2)`;
 
   const result = parseTextHighlight(input);
-  
+
   expect(result.scoring).toHaveLength(3);
   expect(result.scoring[0]).toEqual({
     condition: 'all',
@@ -101,7 +101,7 @@ cat_id: That's right, cat is a noun!
 chair: Close, but we're looking for what the cat sat ON.`;
 
   const result = parseTextHighlight(input);
-  
+
   expect(result.targetedFeedback).toHaveProperty('cat_id');
   expect(result.targetedFeedback.cat_id).toBe("That's right, cat is a noun!");
   expect(result.targetedFeedback).toHaveProperty('chair');
@@ -113,14 +113,14 @@ test('handles nested brackets correctly', () => {
 {The big} [cat] and [{the small} dog].`;
 
   const result = parseTextHighlight(input);
-  
+
   // Should parse as separate segments, not nested
   expect(result.segments).toContainEqual({ type: 'optional', content: 'The big', id: null });
   expect(result.segments).toContainEqual({ type: 'required', content: 'cat', id: null });
-  expect(result.segments).toContainEqual({ 
-    type: 'required', 
+  expect(result.segments).toContainEqual({
+    type: 'required',
     content: '{the small} dog',  // Preserves internal braces as text
-    id: null 
+    id: null
   });
 });
 
@@ -130,7 +130,7 @@ test('handles content without mode directives', () => {
 The [cat] sat.`;
 
   const result = parseTextHighlight(input);
-  
+
   expect(result.prompt).toBe('Find the nouns:');
   expect(result.segments).toContainEqual({
     type: 'required',
@@ -149,7 +149,7 @@ Then they used [praise|para2] consistently.
 Finally, [sticker charts|para3] worked best.`;
 
   const result = parseTextHighlight(input);
-  
+
   const requiredSegments = result.segments.filter(s => s.type === 'required');
   expect(requiredSegments).toHaveLength(3);
   expect(requiredSegments[0].id).toBe('para1');
@@ -168,7 +168,7 @@ found>1,incorrect<2: Keep going.
 : Try again.`;
 
   const result = parseTextHighlight(input);
-  
+
   expect(result.scoring).toContainEqual({
     condition: '>2,errors<1',
     feedback: 'Almost there!'
@@ -185,15 +185,15 @@ test('escapes special characters', () => {
 The function returns \\[array\\] not [real array].`;
 
   const result = parseTextHighlight(input);
-  
+
   // Escaped brackets should be plain text
-  expect(result.segments).toContainEqual({ 
-    type: 'text', 
-    content: 'The function returns [array] not ' 
+  expect(result.segments).toContainEqual({
+    type: 'text',
+    content: 'The function returns [array] not '
   });
-  expect(result.segments).toContainEqual({ 
-    type: 'required', 
+  expect(result.segments).toContainEqual({
+    type: 'required',
     content: 'real array',
-    id: null 
+    id: null
   });
 });
