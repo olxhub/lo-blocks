@@ -52,7 +52,7 @@ CapaProblem
 Order these programming languages by when they were first created:
 ================================================================
 C++ (1985)
-Python (1991)  
+Python (1991)
 Java (1995)
 JavaScript (1995)
 </SimpleSortable>
@@ -133,7 +133,7 @@ Order these web technologies by creation date:
 ```xml
 <SortableGrader algorithm="exact">          <!-- Default: all-or-nothing -->
 <SortableGrader algorithm="partial">        <!-- Partial credit -->
-<SortableGrader algorithm="adjacent">       <!-- Adjacent pair relationships -->  
+<SortableGrader algorithm="adjacent">       <!-- Adjacent pair relationships -->
 <SortableGrader algorithm="spearman">       <!-- Rank correlation -->
 ```
 
@@ -175,7 +175,7 @@ This separation allows flexible presentation without affecting grading logic.
 ```xml
 <SimpleSortable id="WebTechnologies">
 Put these web technologies in order of creation:
-==============================================  
+==============================================
 HTML (1993)
 JavaScript (1995)
 CSS (1996)
@@ -209,7 +209,7 @@ Arrange these software development steps in order:
 ================================================
 Requirements gathering and analysis
 System design and architecture
-Implementation and coding  
+Implementation and coding
 Testing and quality assurance
 Deployment and maintenance
 </SimpleSortable>
@@ -228,7 +228,7 @@ Deployment and maintenance
 - **SimpleSortable**: Parse-time macro that expands to full component hierarchy
 
 ### Parsing Pipeline (SimpleSortable)
-1. **PEG Parser**: Text format → `{ prompt, items }` 
+1. **PEG Parser**: Text format → `{ prompt, items }`
 2. **Component Generation**: Creates CapaProblem → SortableGrader → SortableInput → Markdown blocks
 3. **ID Management**: Auto-generates unique IDs and maintains relationships
 4. **Store Entries**: Multiple `storeEntry` calls create full component tree
@@ -240,7 +240,7 @@ Deployment and maintenance
 - **Multiline PEG support**: Better grammar for items spanning multiple lines
 - **Additional grader variants**: Specific algorithm components
 
-### Medium Term  
+### Medium Term
 - **Template system**: Replace manual component generation with declarative templates
 - **Rich content support**: Images, videos, interactive elements in sortable items
 - **Accessibility improvements**: Keyboard navigation, screen reader support
@@ -265,12 +265,12 @@ This would use templating engines (Handlebars/Mustache) for cleaner, more mainta
 - Verify XML order matches intended correct answer
 - Check that all items are properly nested in SortableInput
 
-**Display order not working**  
+**Display order not working**
 - Ensure `initialPosition` attributes are 1-based (not 0-based)
 - Verify no duplicate initialPosition values
 
 **SimpleSortable not parsing**
-- Check separator line has adequate `=` characters  
+- Check separator line has adequate `=` characters
 - Ensure proper spacing around separator
 - Verify content doesn't have syntax conflicts
 
@@ -288,7 +288,7 @@ This shows the complete component tree and can help identify parsing or structur
 ```
 src/components/blocks/Sortable/
 ├── Sortable.md                    # This documentation
-├── SortableInput.js               # Main block definition  
+├── SortableInput.js               # Main block definition
 ├── _SortableInput.jsx             # React component
 ├── SortableGrader.js              # Grading component
 ├── SimpleSortable.js              # PEG-based authoring
@@ -302,6 +302,6 @@ src/components/blocks/Sortable/
 ## Related Components
 
 - **ChoiceInput**: For multiple choice questions
-- **TextHighlight**: For text selection exercises  
+- **TextHighlight**: For text selection exercises
 - **ReorderList**: Alternative reordering interface
 - **CapaProblem**: Problem container with automatic grading buttons

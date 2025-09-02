@@ -10,22 +10,22 @@ Annie: Hey, sorry I'm late. I was talking to my roommate about a problem. [id=st
 
 JJ: What's going on? Is it something you can tell us?
 
-Annie: Oh, yeah, it's not a secret. She's got a babysitting gig for some extra cash,  
-but the kid is giving her all kinds of trouble, just like his parents warned her.  
+Annie: Oh, yeah, it's not a secret. She's got a babysitting gig for some extra cash,
+but the kid is giving her all kinds of trouble, just like his parents warned her.
 He's six, and he doesn't want to go to bed. He just runs around when it's his bedtime.
 
 psych_sba_sidebar -> bedtime_scenario_image
 
 Lin: What did the parents say about it?
 
-Annie: They've tried pretty much everything. They've taken away his games and toys, they've tried  
-to just let him figure it out on his own, but it's almost like nothing will work for them to  
-fix this. She's really frustrated and thinks she should just let him do whatever he wants and  
-hope he'll grow out of it. I told her I was meeting with you all and we would try to come up  
-with something to help her from what we've been learning in our psychology class. 
+Annie: They've tried pretty much everything. They've taken away his games and toys, they've tried
+to just let him figure it out on his own, but it's almost like nothing will work for them to
+fix this. She's really frustrated and thinks she should just let him do whatever he wants and
+hope he'll grow out of it. I told her I was meeting with you all and we would try to come up
+with something to help her from what we've been learning in our psychology class.
 
-Lin: Hey! I read in our textbook that a good way to learn something is to actually use it to solve  
-a problem. We should be able to use what we're learning from psych to come up with a solution  
+Lin: Hey! I read in our textbook that a good way to learn something is to actually use it to solve
+a problem. We should be able to use what we're learning from psych to come up with a solution
 for your friend, Annie. We'll also be studying while we're helping!
 
 Annie: That sounds like a win-win, to me.
@@ -37,7 +37,7 @@ JJ: Let's brainstorm some ideas for her. I don't have any kids myself, but I hav
 
 Lin: And I've got little cousins.
 
-Annie: Thanks for helping out. She's really stressing about it.  
+Annie: Thanks for helping out. She's really stressing about it.
 OK, what do YOU think she should do to get the 6-year-old to go to sleep at bedtime???
 
 # [activity: constructed response]
@@ -47,8 +47,8 @@ psych_sba_sidebar -> student_suggestion
 
 Annie: Haha, we are all over the place with our ideas!
 
-Lin: It looks like the choices are between using behavioral techniques, like we're learning about in class,  
-or doing nothing. My suggestion was to do nothing, but now I'm not sure. I'm going to ask the AI  
+Lin: It looks like the choices are between using behavioral techniques, like we're learning about in class,
+or doing nothing. My suggestion was to do nothing, but now I'm not sure. I'm going to ask the AI
 assistant if there's evidence for that.
 
 # [Results/feedback from group - no activity, just text]
@@ -56,14 +56,14 @@ You: Tell him you'll give him 50 cents if he goes to bed on time. Hey, 50 cents 
 
 You: Say that you won't play any games with him ever again unless he goes to sleep at his bedtime.
 
-You: I'm with the "do nothing" crowd. She shouldn't do anything at all.  
+You: I'm with the "do nothing" crowd. She shouldn't do anything at all.
 If he stays up, he stays up. That's on him. He'll be so tired the next day, he'll probably never do it again!
 
 Understanding Reinforcement
 ---------------------------
 
-Lin: I think we're getting a lot closer to helping your roommate out,  
-Annie, but can you text her to see what she and the parents have  
+Lin: I think we're getting a lot closer to helping your roommate out,
+Annie, but can you text her to see what she and the parents have
 been doing recently to try to get the kid to go to bed?
 
 JJ: Good idea. We know it was sometimes "do nothing," but maybe not every time.
@@ -74,12 +74,12 @@ Annie: She texted right back. See for yourselves.
 
 Lin: So what is this? Punishment or reinforcement?
 
-JJ: You'd think yelling was punishment! But it doesn't seem to have worked as punishment,  
-because his refusing to go to sleep got worse. So in this case, yelling was a reinforcer.  
-If yelling worked as a punisher, we would expect that he would stop the problem behaviors  
+JJ: You'd think yelling was punishment! But it doesn't seem to have worked as punishment,
+because his refusing to go to sleep got worse. So in this case, yelling was a reinforcer.
+If yelling worked as a punisher, we would expect that he would stop the problem behaviors
 after being yelled at.
 
-Annie: In other words, their attempt to control his behavior gave him something he wanted, probably attention,  
+Annie: In other words, their attempt to control his behavior gave him something he wanted, probably attention,
 so every time they tried to bring the problem under control, they were only making it worse.
 
 Lin: That means we need to figure out things to suggest that will reinforce cooperation. We don't want to accidentally reinforce the wrong thing!
@@ -90,25 +90,25 @@ psych_sba_sidebar -> messages_image
 Understanding Types
 -------------------
 
-Annie: Hey guys, there's still something we need to get clear in our own heads before we offer any solutions to my roommate.  
-The most effective behavior modification technique, according to what we learned earlier, is **positive**  
+Annie: Hey guys, there's still something we need to get clear in our own heads before we offer any solutions to my roommate.
+The most effective behavior modification technique, according to what we learned earlier, is **positive**
 reinforcement. But I'm not really clear yet on the difference between positive and negative reinforcement.
 
 JJ: I just checked back through my notes ... here's what I have:
 
-JJ: So, positive doesn't mean good, and negative doesn't mean bad. Instead, positive means adding something, and negative  
+JJ: So, positive doesn't mean good, and negative doesn't mean bad. Instead, positive means adding something, and negative
 means taking something away! And it's the same for punishment. Look! Here's what I have in my notes:
 
-Lin: So positive punishment would be like spanking the child every time he tries to avoid bedtime.  
-The adult is **adding** spanking, something that is undesirable, to **decrease** the  
+Lin: So positive punishment would be like spanking the child every time he tries to avoid bedtime.
+The adult is **adding** spanking, something that is undesirable, to **decrease** the
 child's behavior of avoiding bedtime.
 
-Annie: And negative punishment would be like taking away his favorite toy whenever he avoids bedtime.  
+Annie: And negative punishment would be like taking away his favorite toy whenever he avoids bedtime.
 The adult is **taking away** the toy, something **desirable**, to **decrease** the child's behavior of avoiding bedtime.
 
 JJ: I'm still not as clear on this as I would like to be. Maybe some practice would help!
 
-Can we take some of the things that the parents have already tried or that we suggested  
+Can we take some of the things that the parents have already tried or that we suggested
 early on and figure out what category they fit into? I don't know about you, but that would help me.
 
 Annie: Yeah...me, too. How about if we fill in something like this graphic?
@@ -125,15 +125,15 @@ psych_sba_sidebar -> poster_image
 Quiz 1
 ------
 
-JJ: It sounds like we may still be a bit confused on these concepts. I don't think  
-we should give Annie's friend any advice until we're sure we know exactly  
+JJ: It sounds like we may still be a bit confused on these concepts. I don't think
+we should give Annie's friend any advice until we're sure we know exactly
 what positive reinforcement is!
 
-Lin: You're right!  
-Hey, everyone, I've got an idea.  
-Do you remember when the TA gave us that practice quiz handout with twenty extra  
-questions on it to help us practice telling the difference between reinforcement  
-and punishment? Why don't we try to answer those questions? Then, we can  
+Lin: You're right!
+Hey, everyone, I've got an idea.
+Do you remember when the TA gave us that practice quiz handout with twenty extra
+questions on it to help us practice telling the difference between reinforcement
+and punishment? Why don't we try to answer those questions? Then, we can
 discuss them ...
 
 Lin: Here are the first five questions on the quiz.
@@ -170,7 +170,7 @@ Quiz 2
 
 Lin: Hey everyone -- the TA just told me the quiz we took is a simplified version of the full quiz he gave in past years.
 
-Let's try the full version of the quiz, where we have to decide not only if something is reinforcement or punishment,  
+Let's try the full version of the quiz, where we have to decide not only if something is reinforcement or punishment,
 but if it's positive reinforcement, negative reinforcement, positive punishment, or negative punishment.
 
 JJ: I'm game.
@@ -204,20 +204,20 @@ Lin: Good job, Annie! That's a lot of content. I guess we had better each go ove
 
 JJ: This research is amazing!
 
-Annie: It is a lot. I actually had to ask the question several different ways to get  
-all of the information I found. Sometimes small differences in the way I asked  
+Annie: It is a lot. I actually had to ask the question several different ways to get
+all of the information I found. Sometimes small differences in the way I asked
 the question got me a very different answer.
 
 JJ: So much for "do nothing" lol. It seems like there's a lot more evidence against no-rules parenting than for it.
 
-Lin: I agree with JJ. Annie, since your friend is about ready to give up,  
-maybe we should put together an email that explains why giving up  
+Lin: I agree with JJ. Annie, since your friend is about ready to give up,
+maybe we should put together an email that explains why giving up
 and going with no-rules parenting (and no bedtime) would be a bad idea.
 
-Annie: All right. Once we write that, we can look into what we have learned about  
+Annie: All right. Once we write that, we can look into what we have learned about
 effective methods to set a consistent bedtime, and add that to our email.
 
-Annie: To make sure that our email is really good, let's get some feedback from AI.  
+Annie: To make sure that our email is really good, let's get some feedback from AI.
 If we need to improve our email, we can go back and change the text, then get more feedback.
 
 psych_sba_sidebar -> norulesparenting_summary
@@ -231,33 +231,33 @@ psych_sba_sidebar -> email_feedback
 Strategy Selection
 ------------------
 
-Annie: All right, I think we've covered no-rules parenting. But our email really needs  
-to give my friend a practical solution -- one we know will work, because there's good  
-psychological evidence for it. So I also dug into information about strategies we  
+Annie: All right, I think we've covered no-rules parenting. But our email really needs
+to give my friend a practical solution -- one we know will work, because there's good
+psychological evidence for it. So I also dug into information about strategies we
 could suggest to her, so she can solve that bedtime problem!
 
-There's only one issue. I have seven different ideas for how to address sleep  
+There's only one issue. I have seven different ideas for how to address sleep
 refusal. Which is a lot!
 
-Lin: Well, I know which one I like! Why don't we take a poll and see which of these choices  
+Lin: Well, I know which one I like! Why don't we take a poll and see which of these choices
 we think we should recommend?
 
-Annie: Well ... since it seems like we can't agree on what to recommend, maybe we should  
+Annie: Well ... since it seems like we can't agree on what to recommend, maybe we should
 take a closer look at the notes I put together about each strategy.
 
-JJ: Hey Annie, do you know if your friend's child gets scared or anxious when bedtime approaches?  
+JJ: Hey Annie, do you know if your friend's child gets scared or anxious when bedtime approaches?
 I hadn't even thought about the need for empathy and emotional support.
 
 Annie: I don't know. I'll have to ask her.
 
-JJ: Woah! There's honestly a lot of good strategies she could try,  
+JJ: Woah! There's honestly a lot of good strategies she could try,
 and we haven't even covered them all yet.
 
-Lin: Wow, Annie. There's so much information here,  
-I'm not sure how to explain it to your friend  
+Lin: Wow, Annie. There's so much information here,
+I'm not sure how to explain it to your friend
 or what she could even do with it.
 
-Annie: Yeah. I think we're going to have to figure out  
+Annie: Yeah. I think we're going to have to figure out
 which of these is the **best** thing for her to try and explain that!
 
 psych_sba_sidebar -> age_appropriacy

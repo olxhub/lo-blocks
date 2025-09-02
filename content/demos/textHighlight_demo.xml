@@ -1,16 +1,16 @@
 <!-- TextHighlight Block Demo -->
 <Vertical id="TextHighlightDemo" title="TextHighlight Block Demo" launchable="true">
-  
+
   <Markdown>
 # TextHighlight Block Demo
 
-The TextHighlight block allows students to interactively highlight text segments. 
+The TextHighlight block allows students to interactively highlight text segments.
 This demo shows all three modes and features.
   </Markdown>
 
   <!-- Basic Example - Immediate Mode -->
   <Markdown>
-## 1. Immediate Mode 
+## 1. Immediate Mode
 
 Click on words to highlight them. Feedback appears immediately:
   </Markdown>

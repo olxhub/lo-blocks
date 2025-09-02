@@ -58,11 +58,38 @@ export async function syncContentFromStorage(
       // Check for duplicate IDs and collect those errors too
       for (const [storeId, entry] of Object.entries(idMap)) {
         if (contentStore.byId[storeId]) {
+          const existingEntry = contentStore.byId[storeId];
+          const existingXml = existingEntry.rawParsed ? JSON.stringify(existingEntry.rawParsed, null, 2) : 'N/A';
+          const duplicateXml = entry.rawParsed ? JSON.stringify(entry.rawParsed, null, 2) : 'N/A';
+
           errors.push({
             type: 'duplicate_id',
             file: uri,
-            message: `Duplicate ID "${storeId}" found in ${uri}`,
-            technical: { duplicateId: storeId, existingEntry: contentStore.byId[storeId] }
+            message: `Duplicate ID "${storeId}" found in ${uri} (conflicts with entry from another file)
+
+🔍 EXISTING ENTRY (from different file):
+   File: ${existingEntry.file || 'unknown'}
+   Line: ${existingEntry.line || '?'}, Column: ${existingEntry.column || '?'}
+   Tag: <${existingEntry.tag || 'unknown'}>
+   Attributes: ${JSON.stringify(existingEntry.attributes || {}, null, 2)}
+   Content: ${existingEntry.text || existingEntry.kids || 'N/A'}
+   Full XML: ${existingXml.slice(0, 500)}${existingXml.length > 500 ? '...' : ''}
+
+🔍 DUPLICATE ENTRY (in current file ${uri}):
+   Line: ${entry.line || '?'}, Column: ${entry.column || '?'}
+   Tag: <${entry.tag || 'unknown'}>
+   Attributes: ${JSON.stringify(entry.attributes || {}, null, 2)}
+   Content: ${entry.text || entry.kids || 'N/A'}
+   Full XML: ${duplicateXml.slice(0, 500)}${duplicateXml.length > 500 ? '...' : ''}
+
+💡 TIP: IDs must be unique across ALL files in the project. Use different id attributes or prefixes for each file.`,
+            technical: {
+              duplicateId: storeId,
+              existingEntry: existingEntry,
+              duplicateEntry: entry,
+              existingXml: existingXml,
+              duplicateXml: duplicateXml
+            }
           });
           // Skip adding the duplicate, keep the first one
           continue;

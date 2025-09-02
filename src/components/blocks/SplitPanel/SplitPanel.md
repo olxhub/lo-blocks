@@ -53,7 +53,7 @@ SplitPanel creates side-by-side layout with two panes, enabling spatial organiza
 - Left: Controls and settings
 - Right: Content being modified by controls
 
-Note that in most cases, these should move to semantic blocks in the future (which might alias to SplitPanel, but where the design may change in the future). 
+Note that in most cases, these should move to semantic blocks in the future (which might alias to SplitPanel, but where the design may change in the future).
 
 ## Example File
 See `SplitPanel.olx` for working examples of different split ratios and content types.

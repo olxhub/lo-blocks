@@ -4,65 +4,65 @@
     <Sequential id="welcome" title="Welcome">
       <Markdown>
         # Welcome to Learning Observer!
-        
+
         This is your first lesson in our interactive learning platform.
         Learning Observer combines the power of modern web technologies
         with educational best practices.
       </Markdown>
     </Sequential>
-    
+
     <Sequential id="setup" title="Setup Guide">
       <Markdown>
         # Setting Up Your Environment
-        
+
         Let's get you set up with the tools you'll need:
-        
+
         1. Make sure you have a modern web browser
-        2. Enable JavaScript 
+        2. Enable JavaScript
         3. You're ready to learn!
       </Markdown>
     </Sequential>
   </Chapter>
-  
+
   <Chapter title="Interactive Features" id="ch2">
     <Sequential id="text_input" title="Text Input Example">
       <Markdown>
         ## Try Interactive Input
-        
+
         This lesson demonstrates how Learning Observer handles interactive content.
       </Markdown>
-      
+
       <TextArea id="student_response" placeholder="Type your thoughts here..." />
-      
+
       <Markdown>
-        Great! You can type in the box above. This state is managed 
+        Great! You can type in the box above. This state is managed
         automatically by the Learning Observer platform.
       </Markdown>
     </Sequential>
-    
+
     <Sequential id="llm_demo" title="AI Integration">
       <SideBarPanel id="ai_demo">
         <MainPane>
           <Markdown>
             ## AI-Powered Learning
-            
+
             Learning Observer integrates with AI to provide personalized feedback.
             Try typing something in the text area and click one of the buttons!
           </Markdown>
-          
+
           <TextArea id="ai_input" placeholder="Write something for AI feedback..." />
           <TextArea id="ai_output" placeholder="AI response will appear here..." readonly="true" />
         </MainPane>
-        
+
         <Sidebar>
           <Markdown>### AI Actions</Markdown>
-          
+
           <ActionButton id="btn_summarize" label="Summarize">
             <LLMAction id="action_summarize" target="ai_output">
               Please provide a brief summary of: <Ref id="elem_summarize">ai_input</Ref>
             </LLMAction>
           </ActionButton>
-          
+
           <ActionButton id="btn_expand" label="Expand">
             <LLMAction id="action_expand" target="ai_output">
               Please expand on this idea with more details: <Ref id="elem_expand">ai_input</Ref>
@@ -72,21 +72,21 @@
       </SideBarPanel>
     </Sequential>
   </Chapter>
-  
+
   <Chapter title="Advanced Concepts" id="ch3">
     <Sequential id="component_types" title="Component Types">
       <Markdown>
         # Learning Observer Components
-        
+
         Learning Observer supports many different types of interactive components:
-        
+
         - **Markdown**: For rich markdown content
         - **TextArea**: For student input
         - **ActionButton**: For triggering actions
         - **LLMAction**: For AI integration
         - **SideBarPanel**: For layout organization
         - **Course**: For hierarchical content (like this!)
-        
+
         Each component is designed to work seamlessly with others.
       </Markdown>
     </Sequential>

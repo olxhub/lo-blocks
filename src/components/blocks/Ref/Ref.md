@@ -25,7 +25,7 @@ This will simply mirror the text the student has written. We can do the same as:
 
 ### Hidden References
 
-It's also possible to include the reference without a UX component by setting `visible` to `false` (e.g. `<Ref target="content" visible="false" />`). However, text will still be extracted. This can be helpful when e.g. making content for LLMs. 
+It's also possible to include the reference without a UX component by setting `visible` to `false` (e.g. `<Ref target="content" visible="false" />`). However, text will still be extracted. This can be helpful when e.g. making content for LLMs.
 
 ### Field-Specific Access
 

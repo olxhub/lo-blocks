@@ -88,7 +88,7 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
 
 ## 5. Option Grader
 
-- **Old style, single-line**:  
+- **Old style, single-line**:
   List options separated by commas; enclose the correct answer in parentheses:
 
   ```
@@ -103,8 +103,8 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
   </OptionGrader>
   ```
 
-- **New style, multi-line**:  
-  Each line inside `[[ ... ]]` is an option.  
+- **New style, multi-line**:
+  Each line inside `[[ ... ]]` is an option.
   Parentheses around the option denote the correct answer.
 
   ```
@@ -127,7 +127,7 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
   </OptionGrader>
   ```
 
-- Hints for options:  
+- Hints for options:
   ```
   (blue) {{ This is a hint }}
   ```
@@ -189,7 +189,7 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
   </ChoiceGrader>
   ```
 
-- **Hints for choices**:  
+- **Hints for choices**:
   Attach using `{{ selected: ..., unselected: ... }}` inside a choice.
 
 ---
@@ -215,8 +215,8 @@ This file defines the translation layer in Open edX. It's a mess of regular expr
 **String Grader:**
 
 - Start lines with `s=` or `=`.
-- The first answer is the correct one.  
-- `or=` adds additional correct answers.  
+- The first answer is the correct one.
+- `or=` adds additional correct answers.
 - `not=` specifies answers that should produce a specific hint.
 
   ```
