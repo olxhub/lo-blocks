@@ -56,7 +56,7 @@ The group has several different suggestions. Rank these ideas from **best** to *
       <Markdown>Drag to rank from **best** (top) to **worst** (bottom):</Markdown>
       <SortableGrader id="bedtime_strategy_grader">
         <SortableInput dragMode="whole">
-          <Ref target="initial_suggestion" id="ref_student_suggestion_in_brainstorm" />
+          <Ref target="initial_suggestion" id="ref_student_suggestion_in_brainstorm" fallback="[Please make sure you've entered a suggestion on the prior screen]" />
           <TextBlock>Give him 50 cents if he goes to bed on time (money reward)</TextBlock>
           <TextBlock>Say you won't play games with him ever again unless he sleeps at bedtime (threat)</TextBlock>
           <TextBlock>Do nothing - let him stay up and be tired the next day (natural consequences)</TextBlock>
