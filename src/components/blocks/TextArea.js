@@ -12,7 +12,7 @@ const TextArea = core({
   description: 'Multi-line text input field for longer student responses',
   component: _TextArea,
   fields: fields,
-  getValue: (props, state, id) => fieldSelector(state, { ...props, id }, fieldByName('value'), { fallback: '' }),
+  getValue: (props, state, id) => fieldSelector(state, { ...props, id }, fieldByName('value'), { fallback: '', id }),
 });
 
 export default TextArea;
