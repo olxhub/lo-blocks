@@ -303,30 +303,32 @@ export function componentFieldByName(props, targetId, fieldName) {
  */
 export function valueSelector(props, state, id, { fallback } = {} as { fallback?: any }) {
   const targetNode = props?.idMap?.[id];
-  if (!targetNode) {
-    return fallback;
-  }
+  const blueprint = targetNode ? props?.componentMap?.[targetNode.tag] : null;
 
-  const blueprint = props?.componentMap?.[targetNode.tag];
-  if (!blueprint) {
-    return fallback;
+  if (!targetNode || !blueprint) {
+    const missing = [];
+    if (!targetNode) missing.push('targetNode');
+    if (!blueprint) missing.push('blueprint');
+
+    throw new Error(
+      `valueSelector: Missing ${missing.join(' and ')} for component id "${id}"\n` +
+      `  targetNode: ${!!targetNode}\n` +
+      `  blueprint: ${!!blueprint}`
+    );
   }
 
   // Try getValue first (for computed values like wordcount)
   if (blueprint.getValue) {
-    try {
-      return blueprint.getValue(props, state, id);
-    } catch (e) {
-      // Fall through to field access on error
-      console.warn(`getValue failed for ${id}: ${e.message}`);
-    }
+    return blueprint.getValue(props, state, id);
   }
 
   // Fall back to direct field access using the 'value' field
   const valueField = fieldByName('value');
   if (!valueField) {
-    console.warn(`Field 'value' not registered in system`);
-    return fallback;
+    throw new Error(
+      `valueSelector: MAJOR MISCONFIGURATION - 'value' field not registered in system\n` +
+      `  This indicates a critical system setup issue that must be fixed`
+    );
   }
 
   return fieldSelector(state, { ...props, id }, valueField, { fallback });
