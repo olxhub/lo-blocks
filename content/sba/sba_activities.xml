@@ -1,5 +1,22 @@
 <Vertical id="activities" launchable="true">
 
+  <!-- Introduction section -->
+  <Vertical id="bedtime_problem_introduction">
+    <Markdown id="bedtime_problem_intro_text">
+## Introduction
+
+In this module, you will review and apply several concepts from your coursework on behavioral modification. Specifically, you will:
+
+- Read about behavior modification techniques and think about how they apply to a real-life situation.
+- Understand the differences between reinforcement and punishment.
+- Identify whether behavior modification techniques are positive or negative.
+
+To complete these parts, you will imagine that you are working in a breakout group with classmates named Annie, JJ, and Lin. But keep in mind that this is not an actual breakout group, and these are not real people. They are characters who will help you as you go along. You will also be able to use an AI assistant that is built into this module.
+
+Let's begin.
+    </Markdown>
+  </Vertical>
+
   <!-- Opening screen - problem image -->
   <Vertical id="bedtime_scenario_image">
     <Markdown id="bedtime_intro_text">
@@ -25,6 +42,29 @@ What do YOU think Annie's roommate should do to get the 6-year-old to go to slee
     <TextArea id="initial_suggestion"
               placeholder="Share your initial strategy (2-3 sentences)..." />
     <ActionButton id="submit_suggestion_btn" target="psych_chat" action="advance" label="Submit and Continue" />
+  </Vertical>
+
+  <!-- Group brainstorm sorting activity -->
+  <Vertical id="brainstorm_sorting">
+    <Markdown id="brainstorm_sorting_prompt">
+## Comparing Ideas
+
+The group has several different suggestions. Rank these ideas from **best** to **worst** based on what you think would work for the 6-year-old:
+    </Markdown>
+
+    <CapaProblem id="rank_bedtime_strategies">
+      <Markdown>Drag to rank from **best** (top) to **worst** (bottom):</Markdown>
+      <SortableGrader id="bedtime_strategy_grader">
+        <SortableInput dragMode="whole">
+          <Ref target="initial_suggestion" id="ref_student_suggestion_in_brainstorm" />
+          <TextBlock>Give him 50 cents if he goes to bed on time (money reward)</TextBlock>
+          <TextBlock>Say you won't play games with him ever again unless he sleeps at bedtime (threat)</TextBlock>
+          <TextBlock>Do nothing - let him stay up and be tired the next day (natural consequences)</TextBlock>
+        </SortableInput>
+      </SortableGrader>
+    </CapaProblem>
+
+    <ActionButton id="continue_after_sorting" target="psych_chat" action="advance" label="Continue Discussion" />
   </Vertical>
 
   <!-- Messages screenshot -->
