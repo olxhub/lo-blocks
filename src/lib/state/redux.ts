@@ -331,7 +331,7 @@ export function valueSelector(props, state, id, { fallback } = {} as { fallback?
     );
   }
 
-  return fieldSelector(state, { ...props, id }, valueField, { fallback });
+  return fieldSelector(state, props, valueField, { id, fallback });
 }
 
 /**
