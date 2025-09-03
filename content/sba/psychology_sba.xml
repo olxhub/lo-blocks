@@ -8,7 +8,7 @@
 
   <!-- Right Panel: Activities reference -->
   <RightPane>
-    <UseHistory id="psych_sba_sidebar" initial="bedtime_scenario_image" />
+    <UseHistory id="psych_sba_sidebar" initial="bedtime_problem_introduction" />
   </RightPane>
 
 </SplitPanel>
