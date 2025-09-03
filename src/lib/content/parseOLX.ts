@@ -25,7 +25,7 @@ import * as parsers from '@/lib/content/parsers';
 import { Provenance, IdMap } from '@/lib/types';
 import { formatProvenanceList } from '@/lib/storage/provenance';
 
-const defaultParser = parsers.blocks.parser;
+const defaultParser = parsers.blocks().parser;
 
 const xmlParser = new XMLParser({
   ignoreAttributes: false,
@@ -155,8 +155,8 @@ export async function parseOLX(
   // comment as the root of the document.
   const rootNode = Array.isArray(parsedTree)
     ? parsedTree.find(n =>
-        !!Object.keys(n).find(k => ![':@', '#text', '#comment'].includes(k))
-      )
+      !!Object.keys(n).find(k => ![':@', '#text', '#comment'].includes(k))
+    )
     : parsedTree;
 
   if (rootNode) {
