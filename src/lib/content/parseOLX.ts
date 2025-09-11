@@ -102,6 +102,50 @@ function shouldBlockRequireUniqueId(Component, tag, storeId, entry, idMap, prove
   }
 }
 
+/**
+ * Build an extended identifier for entries in the idMap.
+ *
+ * Format: `[provider]@namespace/prefix::id#field`
+ * - `provider` is the storage backend class name plus any contextual detail
+ *   (e.g., base directory or endpoint) when available.
+ * - `namespace` comes from the component's declared namespace.
+ * - `prefix` represents dynamic id prefixing (may be empty).
+ * - `id` is the canonical identifier for the block.
+ * - `field` is an optional sub-field identifier (e.g., Ref's field attribute).
+ *
+ * We intentionally avoid using dots as separators so that block IDs may contain
+ * them without ambiguity. Other characters are minimally constrained; if any of
+ * the pieces include characters like `@` or `#`, additional escaping logic will
+ * be required in the future.
+ */
+function buildExtendedId({
+  provider,
+  Component,
+  prefix,
+  id,
+  field
+}: {
+  provider?: import('../storage').StorageProvider;
+  Component?: any;
+  prefix?: string;
+  id: string;
+  field?: string;
+}) {
+  const providerName = provider?.constructor?.name ?? 'unknown';
+  const providerDetail =
+    (provider as any)?.baseDir ??
+    (provider as any)?.readEndpoint ??
+    '';
+  const providerId = providerDetail
+    ? `${providerName}:${providerDetail}`
+    : providerName;
+
+  const namespaceId = Component?.namespace ?? '';
+  const prefixPart = prefix ? `/${prefix}` : '';
+  const fieldPart = field ? `#${field}` : '';
+  return `[${providerId}]@${namespaceId}${prefixPart}::${id}${fieldPart}`;
+}
+
 export async function parseOLX(
   xml,
   provenance: Provenance,
@@ -138,7 +182,6 @@ export async function parseOLX(
       const { ref, ...overrides } = attributes;
       return { type: 'block', id: ref, overrides };
     }
-
     const id = attributes.id ?? attributes.url_name ?? createId(node);
 
     const Component = COMPONENT_MAP[tag] || COMPONENT_MAP[tag.charAt(0).toUpperCase() + tag.slice(1)];
@@ -161,25 +204,38 @@ export async function parseOLX(
       provider,
       parseNode,
       storeEntry: (storeId, entry) => {
-        if (idMap[storeId]) {
+        const multiLevelPrefix =
+          (entry && (entry as any).idPrefix) ||
+          entry?.attributes?.idPrefix ||
+          '';
+        const field = entry?.attributes?.field;
+        const extendedId = buildExtendedId({
+          provider,
+          Component,
+          prefix: multiLevelPrefix,
+          id: storeId,
+          field
+        });
+        entry.extendedId = extendedId;
+        if (idMap[extendedId]) {
           const requiresUnique = shouldBlockRequireUniqueId(Component, tag, storeId, entry, idMap, provenance);
 
           if (!requiresUnique) {
             // Allow duplicate IDs for this block type - but still store in idMap
             // We'll overwrite the previous entry to keep the latest one
-            idMap[storeId] = entry;
+            idMap[extendedId] = entry;
             return;
           }
 
           // Get detailed information about both the existing and duplicate entries
-          const existingEntry = idMap[storeId];
+          const existingEntry = idMap[extendedId];
           const existingXml = existingEntry.rawParsed ? JSON.stringify(existingEntry.rawParsed, null, 2) : 'N/A';
           const duplicateXml = entry.rawParsed ? JSON.stringify(entry.rawParsed, null, 2) : 'N/A';
 
           errors.push({
             type: 'duplicate_id',
             file: formatProvenanceList(provenance).join(', '),
-            message: `Duplicate ID "${storeId}" found in ${formatProvenanceList(provenance).join(', ')}. Each element must have a unique id.
+            message: `Duplicate ID "${extendedId}" found in ${formatProvenanceList(provenance).join(', ')}. Each element must have a unique id.
 
 🔍 EXISTING ENTRY (Line ${existingEntry.line || '?'}, Column ${existingEntry.column || '?'}):
    Tag: <${existingEntry.tag || 'unknown'}>
@@ -196,7 +252,7 @@ export async function parseOLX(
 💡 TIP: If these appear to be different elements, they likely have the same text content and are generating the same hash ID. Add explicit id="unique_name" attributes to distinguish them.`,
             location: { line: entry.line, column: entry.column },
             technical: {
-              duplicateId: storeId,
+              duplicateId: extendedId,
               existingEntry: existingEntry,
               duplicateEntry: entry,
               existingXml: existingXml,
@@ -206,7 +262,7 @@ export async function parseOLX(
           // Skip the duplicate, keep the first one
           return;
         }
-        idMap[storeId] = entry;
+        idMap[extendedId] = entry;
       },
       // Pass errors array to parsers so they can accumulate errors too
       errors
@@ -246,7 +302,6 @@ export async function parseOLX(
   }
 
   if (!rootId && parsedIds.length) rootId = parsedIds[0];
-
   return { ids: parsedIds, idMap, root: rootId, errors };
 }
 
