@@ -1,0 +1,34 @@
+<!-- content/demos/tabs-demo.xml -->
+<Vertical id="TabsDemo" launchable="true">
+  <TextBlock>This is a demo of the Tabs component.</TextBlock>
+
+  <Tabs id="DemoTabs">
+    <Vertical id="CurrentActivity" label="Current Activity">
+      <TextBlock>This is the currently active activity tab.</TextBlock>
+      <TextBlock>You can put any block content here, including interactive components.</TextBlock>
+      <LineInput id="ActivityInput" placeholder="Enter your response..."/>
+    </Vertical>
+
+    <Vertical id="Artifact" label="Student Artifact">
+      <TextBlock>## Problem Statement</TextBlock>
+      <TextArea id="ProblemStatement" placeholder="Enter problem statement..."/>
+
+      <TextBlock>## Disciplinary Insights</TextBlock>
+      <TextArea id="Insights" placeholder="Enter insights..."/>
+    </Vertical>
+
+    <Vertical id="Library" label="Library of Readings">
+      <TextBlock>### Available Readings</TextBlock>
+      <TextBlock>- Reading 1: Introduction to the Topic</TextBlock>
+      <TextBlock>- Reading 2: Advanced Concepts</TextBlock>
+      <TextBlock>- Reading 3: Case Studies</TextBlock>
+    </Vertical>
+
+    <Vertical id="Personas" label="Directory of Personas">
+      <TextBlock>### Team Members</TextBlock>
+      <TextBlock>**Dr. Smith** - Psychology Expert</TextBlock>
+      <TextBlock>**Prof. Jones** - Sociology Researcher</TextBlock>
+      <TextBlock>**Dr. Lee** - Anthropology Specialist</TextBlock>
+    </Vertical>
+  </Tabs>
+</Vertical>

@@ -1,0 +1,83 @@
+<!-- content/demos/navigator-blocks-demo.xml -->
+<Vertical id="navigator_blocks_demo" title="Navigator with Child Blocks Demo" launchable="true">
+  <TextBlock>
+    ## Navigator with Child Blocks Demo
+    
+    This demonstrates the new Navigator component using actual child blocks as preview and detail components,
+    rather than hardcoded component types.
+  </TextBlock>
+
+  <Navigator id="team_navigator_blocks" 
+             title="Team Members"
+             data="- id: ty
+  name: Ty
+  role: Intern Teammate
+  bio: Data analysis and research specialist
+  experience: 6 months at Comm360
+  skills: [Data Analysis, Research, Program Evaluation]
+
+- id: peggy
+  name: Peggy
+  role: Intern Teammate
+  bio: Community outreach expert
+  experience: 4 months at Comm360
+  skills: [Community Outreach, Communication]
+
+- id: lianne
+  name: Lianne Park
+  role: Supervisor/Mentor
+  bio: Program director and mentor
+  experience: 5 years at Comm360
+  skills: [Program Management, Leadership]">
+  
+    <!-- Custom preview block -->
+    <NavigatorPreview id="team_preview">
+      <Vertical>
+        <TextBlock>**{{itemData.name}}** - {{itemData.role}}</TextBlock>
+        <TextBlock>{{itemData.experience}}</TextBlock>
+      </Vertical>
+    </NavigatorPreview>
+    
+    <!-- Custom detail block -->
+    <NavigatorDetail id="team_detail">
+      <Vertical>
+        <TextBlock>
+          # {{itemData.name}}
+          
+          **Role:** {{itemData.role}}
+          
+          **Experience:** {{itemData.experience}}
+          
+          **Background:** {{itemData.bio}}
+          
+          **Key Skills:** {{itemData.skills}}
+        </TextBlock>
+        
+        <TextArea id="notes_about_{{itemData.id}}" 
+                  placeholder="Notes about {{itemData.name}}..." />
+      </Vertical>
+    </NavigatorDetail>
+    
+  </Navigator>
+
+  <TextBlock>
+    ## How This Works
+    
+    - **Navigator** component uses `data` attribute for YAML content
+    - **NavigatorPreview** and **NavigatorDetail** are child blocks that define the UI
+    - Each gets `itemData` passed as context with the current item's data
+    - Uses template syntax `{{itemData.name}}` to display dynamic content
+    - Child blocks can be any Learning Observer blocks (TextBlock, TextArea, etc.)
+    - Each team member's notes get unique IDs like `notes_about_ty`
+  </TextBlock>
+
+  <TextBlock>
+    ## Benefits of Block-Based Approach
+    
+    - **Reusable**: Any block can be used as preview/detail
+    - **Flexible**: Mix text, inputs, images, etc. in custom layouts
+    - **Composable**: Follows Learning Observer's component philosophy
+    - **Powerful**: Each item can have its own interactive elements
+    - **Analytics**: All interactions are tracked via lo_event system
+  </TextBlock>
+</Vertical>
