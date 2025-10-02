@@ -1,0 +1,12 @@
+<Vertical id="interdisciplinary_activities" launchable="true">
+  <!-- Opening screen -->
+  <Markdown id="orientation">
+## Welcome to the Interdisciplinary Studies Module
+
+In this simulated internship at Community 360, you'll apply interdisciplinary analysis to understand the complex issue of high school dropout rates in the community.
+
+Working with supervisor Lianne Park and your intern teammates, you'll investigate causes, review research from multiple disciplines, and develop evidence-based recommendations.
+  </Markdown>
+  <!-- GSU professor image -->
+  <Image id="gsu_prof_image" src="images/GSU_prof.png" alt="Professor at Georgia State University" />
+</Vertical>
