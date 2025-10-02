@@ -6,9 +6,68 @@
     <Chat id="interdisciplinary_chat" src="../sba/interdisciplinary_sba_dialogue.chatpeg" height="600px" />
   </LeftPane>
 
-  <!-- Right Panel: Activities reference -->
+  <!-- Right Panel: Tabbed interface -->
   <RightPane>
-    <UseHistory id="interdisciplinary_sba_sidebar" initial="interdisciplinary_orientation" />
+    <Tabs id="interdisciplinary_sba_tabs">
+      <!-- Tab 1: Current Activity -->
+      <Vertical id="interdisciplinary_current_activity" label="Current Activity">
+        <UseHistory id="interdisciplinary_sba_sidebar" initial="interdisciplinary_orientation" />
+      </Vertical>
+
+      <!-- Tab 2: Student Artifact -->
+      <Vertical id="interdisciplinary_artifact" label="Artifact">
+        <Markdown id="artifact_instructions">
+## Your High School Dropout Analysis
+
+As you progress through this module, you'll build a comprehensive problem statement and analysis.
+
+### Problem Statement
+Your final problem statement should address:
+- The importance of the high school dropout issue
+- Evidence that it remains unresolved
+- Multiple disciplinary perspectives
+- Comm360's capacity to address specific causes
+        </Markdown>
+        <TextArea id="student_problem_statement" placeholder="Your problem statement will be developed here as you work through the module..." />
+      </Vertical>
+
+      <!-- Tab 3: Library of Readings -->
+      <Vertical id="interdisciplinary_library" label="Library">
+        <Markdown id="library_contents">
+## Library of Readings
+
+### Research Studies
+
+**ADHD and School Performance**
+- Focus: Psychology perspective on attention disorders
+- Key finding: Early identification critical for intervention
+
+**Employment and Education**
+- Focus: Economics perspective on opportunity costs
+- Key finding: Economic pressures drive dropout decisions
+
+**Rural vs. Urban Dropout Patterns**
+- Focus: Sociology perspective on environmental factors
+- Key finding: Geographic disparities in support systems
+
+**School Funding and Resources**
+- Focus: Political science perspective on policy impacts
+- Key finding: Funding inequities affect educational outcomes
+
+### Framework Resources
+
+**Repko's Broad Model of Interdisciplinary Research (2019)**
+- Criteria for interdisciplinary problems
+- Disciplinary integration methods
+- Problem statement development
+        </Markdown>
+      </Vertical>
+
+      <!-- Tab 4: Team Directory -->
+      <Vertical id="interdisciplinary_directory" label="Team">
+        <Use ref="interdisciplinary_team_members" />
+      </Vertical>
+    </Tabs>
   </RightPane>
 
 </SplitPanel>
