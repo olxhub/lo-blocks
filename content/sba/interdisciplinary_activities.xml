@@ -25,7 +25,7 @@ Explore the team directory to learn about your colleagues for this project. Clic
 - id: ty
   name: Ty
   role: Intern Teammate
-  photo: /team/ty.jpg
+  photo: /content/sba/images/ty.png
   bio: Intern at Comm360 focusing on program evaluation and data analysis.
   experience: 6 months at Comm360
   skills: [Data Analysis, Research, Program Evaluation]
@@ -33,7 +33,7 @@ Explore the team directory to learn about your colleagues for this project. Clic
 - id: peggy
   name: Peggy
   role: Intern Teammate
-  photo: /team/peggy.jpg
+  photo: /content/sba/images/peggy.png
   bio: Intern specializing in community outreach and stakeholder engagement.
   experience: 4 months at Comm360
   skills: [Community Outreach, Communication, Project Management]
@@ -41,7 +41,7 @@ Explore the team directory to learn about your colleagues for this project. Clic
 - id: lacy
   name: Lacy
   role: Intern Teammate
-  photo: /team/lacy.jpg
+  photo: /content/sba/images/lacy.png
   bio: Intern with focus on program development and implementation strategies.
   experience: 5 months at Comm360
   skills: [Program Development, Strategic Planning, Implementation]
@@ -49,7 +49,7 @@ Explore the team directory to learn about your colleagues for this project. Clic
 - id: lianne
   name: Lianne Park
   role: Supervisor/Mentor
-  photo: /team/lianne.jpg
+  photo: /content/sba/images/lianne.png
   bio: Director of multiple programs at Comm360 with extensive experience in program evaluation and development. Presents findings to the PDE committee.
   experience: 5 years at Comm360
   skills: [Program Management, Leadership, Strategic Planning, Evaluation]
@@ -57,7 +57,7 @@ Explore the team directory to learn about your colleagues for this project. Clic
 - id: anne
   name: Anne Hastings
   role: Chief Executive Officer
-  photo: /team/anne.jpg
+  photo: /content/sba/images/anne.png
   bio: CEO of Comm360, making ultimate decisions about programs and resources. Reports to the board of directors.
   experience: 8 years at Comm360, 15+ years leadership experience
   skills: [Executive Leadership, Strategic Decision Making, Resource Management, Organizational Development]
