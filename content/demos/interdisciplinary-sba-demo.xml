@@ -15,20 +15,8 @@
       </Vertical>
 
       <!-- Tab 2: Student Artifact -->
-      <Vertical id="interdisciplinary_artifact" label="Artifact">
-        <Markdown id="artifact_instructions">
-## Your High School Dropout Analysis
-
-As you progress through this module, you'll build a comprehensive problem statement and analysis.
-
-### Problem Statement
-Your final problem statement should address:
-- The importance of the high school dropout issue
-- Evidence that it remains unresolved
-- Multiple disciplinary perspectives
-- Comm360's capacity to address specific causes
-        </Markdown>
-        <TextArea id="student_problem_statement" placeholder="Your problem statement will be developed here as you work through the module..." />
+      <Vertical id="interdisciplinary_artifact_tab" label="Artifact">
+        <Use ref="interdisciplinary_artifact" />
       </Vertical>
 
       <!-- Tab 3: Library of Readings -->

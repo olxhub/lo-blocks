@@ -1,0 +1,173 @@
+<Vertical id="interdisciplinary_artifact">
+  <Markdown id="artifact_intro">
+## Your Research Artifact
+
+This is your accumulated work on the high school dropout analysis. Review your progress and outputs from each step of the interdisciplinary research process.
+  </Markdown>
+
+  <!-- Step 1: Problem Statement -->
+  <Collapsible id="artifact_step1" title="Step 1: Define the problem or state the research question">
+    <Markdown>
+Your comprehensive problem statement that addresses:
+- Why the problem is important (significance)
+- Why it's unresolved
+- Focus and scope aligned with Comm360's capacity
+    </Markdown>
+
+    <TextBlock>**Final Problem Statement:**</TextBlock>
+    <TextArea id="interdisciplinary_sba.full_problem_statement" placeholder="Your final problem statement will appear here once completed..." />
+
+    <TextBlock>**Revised Significance Statement:**</TextBlock>
+    <TextArea id="interdisciplinary_sba.problem_statement.revised" placeholder="Your significance statement will appear here..." />
+  </Collapsible>
+
+  <!-- Step 2: Justification -->
+  <Collapsible id="artifact_step2" title="Step 2: Justify using an interdisciplinary approach">
+    <Markdown>
+Evidence supporting the use of an interdisciplinary approach for this complex problem.
+    </Markdown>
+
+    <TextBlock>**Why You Selected These Reasons:**</TextBlock>
+    <TextArea id="interdisciplinary_sba.reason_explanation" placeholder="Your explanation will appear here..." />
+
+    <TextBlock>**Selected Causes to Research:**</TextBlock>
+    <Markdown id="interdisciplinary_sba.reasons">
+- [ ] Some school systems can't accommodate students with physical or other kinds of disabilities
+- [ ] Students need to earn money right away to help their family
+- [ ] Individual cause (from student input)
+- [ ] Schools use curricula that students don't see as relevant
+- [ ] Student's environment with gang activity, neighborhood instability
+- [ ] Structural cause (from student input)
+- [ ] Conditions like depression, anxiety, or ADHD interfere with engagement
+- [ ] School systems can't accommodate disabilities (duplicate)
+- [ ] Students lack family, friends, or teacher support
+- [ ] Negative peer influences encourage dropping out
+- [ ] Cultural responsibilities more important than high school
+- [ ] Legal trouble makes it difficult to continue school
+    </Markdown>
+
+    <TextBlock>**Importance Evidence:**</TextBlock>
+    <TextArea id="interdisciplinary_sba.source.5.importance.explanation" placeholder="Your explanation will appear here..." />
+
+    <TextBlock>**Unresolved Problem Evidence:**</TextBlock>
+    <TextArea id="interdisciplinary_sba.source.5.unresolved.explanation" placeholder="Your explanation will appear here..." />
+  </Collapsible>
+
+  <!-- Step 3: Relevant Disciplines -->
+  <Collapsible id="artifact_step3" title="Step 3: Identify relevant disciplines">
+    <Markdown>
+The disciplines you've identified as relevant to understanding high school dropout.
+    </Markdown>
+
+    <TextBlock>**Causes Mapped to Disciplines (Table):**</TextBlock>
+    <TextBlock>[Table component for interdisciplinary_sba.reasons discipline mapping - to be implemented]</TextBlock>
+
+    <TextBlock>**Priority Area Alignment:**</TextBlock>
+    <TextBlock>[Table component for interdisciplinary_sba.problem_areas - to be implemented]</TextBlock>
+    <TextArea id="interdisciplinary_sba.priority.explanation" placeholder="Your explanation will appear here..." />
+
+    <TextBlock>**Additional Relevant Disciplines:**</TextBlock>
+    <Markdown id="interdisciplinary_sba.additional_disciplines">
+- [ ] Health Sciences
+- [ ] Biology
+- [ ] Sociology
+- [ ] Economics
+- [ ] Political Science
+    </Markdown>
+    <TextArea id="interdisciplinary_sba.additional_disciplines.explanation" placeholder="Your explanation will appear here..." />
+  </Collapsible>
+
+  <!-- Step 4: Literature Review -->
+  <Collapsible id="artifact_step4" title="Step 4: Conduct a literature search">
+    <Markdown>
+Research studies you've reviewed from different disciplines.
+    </Markdown>
+
+    <TextBlock>**Study 1: ADHD Research (Psychology)**</TextBlock>
+    <TextBlock>[Highlight component for interdisciplinary_sba.source.1 - to be implemented]</TextBlock>
+
+    <TextBlock>**Study 2: Employment Research**</TextBlock>
+    <TextBlock>[Highlight component for interdisciplinary_sba.source.2 - to be implemented]</TextBlock>
+    <TextBlock>**Disciplines Identified:**</TextBlock>
+    <Markdown id="interdisciplinary_sba.source.2.classification">
+- [ ] Health Sciences
+- [ ] Biology
+- [ ] Psychology
+- [ ] Sociology
+- [ ] Economics
+- [ ] Political Science
+    </Markdown>
+    <TextArea id="interdisciplinary_sba.source.2.classification.explanation" placeholder="Your explanation will appear here..." />
+
+    <TextBlock>**Study 3: Rural/Urban Research**</TextBlock>
+    <TextBlock>[Highlight component for interdisciplinary_sba.source.3 - to be implemented]</TextBlock>
+    <TextBlock>**Disciplines Identified:**</TextBlock>
+    <Markdown id="interdisciplinary_sba.source.3.classification">
+- [ ] Health Sciences
+- [ ] Biology
+- [ ] Psychology
+- [ ] Sociology
+- [ ] Economics
+- [ ] Political Science
+    </Markdown>
+    <TextArea id="interdisciplinary_sba.source.3.classification.explanation" placeholder="Your explanation will appear here..." />
+
+    <TextBlock>**Study 4: School Funding Research**</TextBlock>
+    <TextBlock>[Highlight component for interdisciplinary_sba.source.4 - to be implemented]</TextBlock>
+    <TextBlock>**Disciplines Identified:**</TextBlock>
+    <Markdown id="interdisciplinary_sba.source.4.classification">
+- [ ] Health Sciences
+- [ ] Biology
+- [ ] Psychology
+- [ ] Sociology
+- [ ] Economics
+- [ ] Political Science
+    </Markdown>
+    <TextArea id="interdisciplinary_sba.source.4.classification.explanation" placeholder="Your explanation will appear here..." />
+  </Collapsible>
+
+  <!-- Step 5: Critical Analysis -->
+  <Collapsible id="artifact_step5" title="Step 5: Critically analyze the disciplinary insights and identify conflicts">
+    <Markdown>
+Analysis of how different disciplines view the problem and where they conflict.
+    </Markdown>
+
+    <TextBlock>**Key Insights from Psychology:**</TextBlock>
+    <TextArea id="interdisciplinary_sba.insights.psychology" placeholder="Psychology insights: ADHD, motivation, self-efficacy factors..." />
+
+    <TextBlock>**Key Insights from Sociology:**</TextBlock>
+    <TextArea id="interdisciplinary_sba.insights.sociology" placeholder="Sociology insights: Family structure, community factors, peer influences..." />
+
+    <TextBlock>**Key Insights from Economics:**</TextBlock>
+    <TextArea id="interdisciplinary_sba.insights.economics" placeholder="Economics insights: Employment pressures, cost-benefit of intervention..." />
+
+    <TextBlock>**Key Insights from Political Science:**</TextBlock>
+    <TextArea id="interdisciplinary_sba.insights.political_science" placeholder="Political Science insights: School funding, policy interventions..." />
+
+    <TextBlock>**Sources of Conflict:**</TextBlock>
+    <TextArea id="interdisciplinary_sba.insights.conflicts" placeholder="Where disciplines disagree or have different emphases..." />
+  </Collapsible>
+
+  <!-- Step 6: Reflection -->
+  <Collapsible id="artifact_step6" title="Step 6: Reflect on how the interdisciplinary process has enlarged your understanding">
+    <Markdown>
+How the interdisciplinary process has enlarged your understanding of high school dropout.
+    </Markdown>
+
+    <TextBlock>**Initial Understanding:**</TextBlock>
+    <TextBlock>**Your individual cause (internal):**</TextBlock>
+    <TextArea id="interdisciplinary_sba.cause_internal" placeholder="Type a cause that focuses on an individual's choice..." />
+
+    <TextBlock>**Your structural cause:**</TextBlock>
+    <TextArea id="interdisciplinary_sba.cause_structural" placeholder="Type a structural cause..." />
+
+    <TextBlock>**Evolved Understanding:**</TextBlock>
+    <TextArea id="interdisciplinary_sba.reflection.evolved_understanding" placeholder="How your understanding changed after reviewing multiple disciplines..." />
+
+    <TextBlock>**Integration of Perspectives:**</TextBlock>
+    <TextArea id="interdisciplinary_sba.reflection.integration" placeholder="How you synthesized insights from different disciplines..." />
+
+    <TextBlock>**New Insights:**</TextBlock>
+    <TextArea id="interdisciplinary_sba.reflection.new_insights" placeholder="What you learned that you didn't know before..." />
+  </Collapsible>
+</Vertical>

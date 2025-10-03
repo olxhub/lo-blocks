@@ -1,0 +1,49 @@
+<!-- content/demos/navigator-simple-demo.xml -->
+<Vertical id="navigator_simple" title="Simple Navigator Demo" launchable="true">
+  <TextBlock>
+    ## Simple Navigator with Block-Based Templates
+
+    This demo shows the new Navigator architecture using block refs for preview/detail templates.
+  </TextBlock>
+
+  <Navigator id="simple_team_nav"
+             title="Team Members"
+             preview="team_preview_template"
+             detail="team_detail_template">
+- id: ty
+  name: Ty
+  role: Intern Teammate
+  bio: Data analysis and research specialist
+  experience: 6 months at Comm360
+  skills: [Data Analysis, Research, Program Evaluation]
+  photo: /images/team/ty.jpg
+
+- id: peggy
+  name: Peggy
+  role: Intern Teammate
+  bio: Community outreach and stakeholder engagement expert
+  experience: 4 months at Comm360
+  skills: [Community Outreach, Communication, Project Management]
+
+- id: lianne
+  name: Lianne Park
+  role: Supervisor/Mentor
+  bio: Director of multiple programs, presents to PDE committee
+  experience: 5 years at Comm360
+  skills: [Program Management, Leadership, Strategic Planning]
+  </Navigator>
+
+  <Hidden>
+    <NavigatorTeamPreview id="team_preview_template" />
+    <NavigatorTeamDetail id="team_detail_template" />
+  </Hidden>
+
+  <TextBlock>
+    ## How It Works
+
+    - Navigator component now uses **block refs** instead of hardcoded component names
+    - Template blocks are placed in a Hidden component below the Navigator
+    - Item data from YAML is merged into template block attributes
+    - Templates can be any block that accepts the data as attributes or YAML content
+  </TextBlock>
+</Vertical>
