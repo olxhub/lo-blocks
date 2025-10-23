@@ -1,0 +1,92 @@
+<!-- content/demos/likert-scale-demo.xml -->
+<Vertical id="LikertScaleDemo" launchable="true" title="Likert Scale Block Deep Dive">
+  <TextBlock>
+    ## Likert Scale Block Deep Dive
+
+    This lesson showcases every configuration option available on the `LikertScale` block. Each example uses existing blocks
+    to provide the row content so you can remix these patterns in your own lessons.
+  </TextBlock>
+
+  <TextBlock>
+    ### Example 1: Classic Agreement Scale
+
+    - Uses the default 5-point agreement scale via the `scale` attribute.
+    - Demonstrates the optional `title` and `description` fields.
+    - Includes a mix of `TextBlock` and `Markdown` statements.
+  </TextBlock>
+
+  <LikertScale
+    id="CourseFeedbackScale"
+    title="Course Feedback"
+    description="Share how much you agree with the following statements about the learning experience."
+    scale="Strongly disagree,Disagree,Neither agree nor disagree,Agree,Strongly agree"
+  >
+    <TextBlock id="statement_engagement">The instructor kept me engaged throughout the lesson.</TextBlock>
+    <TextBlock id="statement_materials">The course materials helped me understand the topic.</TextBlock>
+    <TextBlock id="statement_pacing">The pacing of the session felt appropriate.</TextBlock>
+    <Markdown id="statement_support">
+      The available support resources (office hours, forums, etc.) met my needs.
+    </Markdown>
+  </LikertScale>
+
+  <TextBlock>
+    ### Example 2: Custom Options with Alternate Delimiter
+
+    - Uses the `options` attribute to define column headers.
+    - Specifies `scaleDelimiter="|"` to split the pipe-separated options string.
+    - Customizes the summary title with `summaryHeading`.
+  </TextBlock>
+
+  <LikertScale
+    id="LearningHabitsScale"
+    title="Learning Habits"
+    description="How often do these behaviors describe your learning routine?"
+    options="Never|Rarely|Sometimes|Often|Always"
+    scaleDelimiter="|"
+    summaryHeading="Your habits"
+  >
+    <TextBlock id="statement_practice">I practice new concepts on my own time.</TextBlock>
+    <TextBlock id="statement_questions">I ask questions when I am unsure about the material.</TextBlock>
+    <TextBlock id="statement_feedback">I review feedback from previous assignments.</TextBlock>
+  </LikertScale>
+
+  <TextBlock>
+    ### Example 3: Numeric Labels and Locked Responses
+
+    - Demonstrates the `labels` attribute for numeric scales.
+    - Disables the reset control with `allowReset="false"`.
+    - Keeps the summary visible so learners can confirm their selections.
+  </TextBlock>
+
+  <LikertScale
+    id="ConfidenceScale"
+    title="Confidence Check"
+    description="Rate your confidence level for each topic before moving on."
+    labels="1 - Not at all confident,2 - Slightly confident,3 - Moderately confident,4 - Very confident,5 - Extremely confident"
+    allowReset="false"
+  >
+    <TextBlock id="statement_functions">Working with functions in JavaScript.</TextBlock>
+    <TextBlock id="statement_state">Managing shared state across components.</TextBlock>
+    <TextBlock id="statement_a11y">Applying accessibility best practices.</TextBlock>
+  </LikertScale>
+
+  <TextBlock>
+    ### Example 4: Read-Only Display Without Summary
+
+    - Uses `readOnly="true"` to prevent changes, which is useful for reviewing saved answers.
+    - Hides the selections list with `showSummary="false"` while keeping the table layout visible.
+    - This configuration can be paired with pre-populated Redux state to show final responses.
+  </TextBlock>
+
+  <LikertScale
+    id="FinalReviewScale"
+    title="Final Review"
+    description="Your facilitator has locked these selections for review."
+    scale="Strongly disagree,Disagree,Neither agree nor disagree,Agree,Strongly agree"
+    readOnly="true"
+    showSummary="false"
+  >
+    <TextBlock id="statement_goals">The lesson objectives were clear and measurable.</TextBlock>
+    <TextBlock id="statement_tools">I know which tools to use to continue practicing independently.</TextBlock>
+  </LikertScale>
+</Vertical>
