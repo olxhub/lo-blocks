@@ -33,6 +33,12 @@ export class NetworkStorageProvider implements StorageProvider {
     this.readEndpoint = (options.readEndpoint ?? '/api/file').replace(/\/$/, '');
     this.listEndpoint = (options.listEndpoint ?? '/api/files').replace(/\/$/, '');
   }
+  resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: any): string {
+    throw new Error('Method not implemented.');
+  }
+  validateImagePath(imagePath: any): Promise<boolean> {
+    throw new Error('Method not implemented.');
+  }
 
   async loadXmlFilesWithStats(
     _prev: Record<ProvenanceURI, XmlFileInfo> = {}

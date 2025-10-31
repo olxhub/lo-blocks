@@ -33,6 +33,7 @@ export interface OLXLoadingError {
     offset?: number;
   };
   technical?: any;
+  stack?: any;
 }
 
 // Storage API: Grabbing OLX files from disk
@@ -125,7 +126,7 @@ export const BlockBlueprintSchema = z.object({
    * - `function`: Custom logic to determine uniqueness requirement at parse time.
    *   Receives context including parsed content, attributes, and current state.
    */
-  requiresUniqueId: z.union([z.boolean(), z.literal('children'), z.function()]).optional(),
+  requiresUniqueId: z.union([z.boolean(), z.literal('children'), z.function().returns(z.boolean())]).optional(),
 }).strict();
 
 export type BlockBlueprint = z.infer<typeof BlockBlueprintSchema>;
@@ -176,7 +177,12 @@ export interface ComponentMap {
 }
 
 export type ComponentError = string | null;
-export type ParseError = string | null;
+export type ParseError = string | null | {
+  type: 'missing_component' | 'missing_static_kids';
+  tag: string;
+  node: string;
+  message: string;
+};
 
 // A list of kids can have any of these; renderedCompiledChildren should handle all of these.
 // TODO: These should probably all be of type kidEntry, and the current type should move under a different key.

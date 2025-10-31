@@ -22,7 +22,7 @@ import { COMPONENT_MAP } from '@/components/componentMap';
 import { transformTagName } from '@/lib/content/xmlTransforms';
 
 import * as parsers from '@/lib/content/parsers';
-import { Provenance, IdMap } from '@/lib/types';
+import { Provenance, IdMap, OLXLoadingError } from '@/lib/types';
 import { formatProvenanceList } from '@/lib/storage/provenance';
 
 const defaultParser = parsers.blocks().parser;
@@ -111,7 +111,7 @@ export async function parseOLX(
   const parsedTree = xmlParser.parse(xml);
   const parsedIds: string[] = [];
   let rootId = '';
-  const errors = [];
+  const errors: OLXLoadingError[] = [];
 
   async function parseNode(node) {
     const tag = Object.keys(node).find(k => ![':@', '#text', '#comment'].includes(k));

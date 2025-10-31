@@ -146,7 +146,7 @@ function GraphPage() {
         <h4>Issues</h4>
         <ul style={{ fontSize: '0.8rem', color: 'darkred' }}>
           {issues.map((issue, idx) => (
-            <li key={idx}>{issue}</li>
+            <li key={idx}>{JSON.stringify(issue)}</li>
           ))}
         </ul>
       </div>

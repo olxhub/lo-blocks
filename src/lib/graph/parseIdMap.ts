@@ -29,7 +29,7 @@ export function parseIdMap(idMap: Record<string, any>): ParseResult {
   const launchable: string[] = [];
 
   // Issues found during graph parsing - these should be surfaced to help debug problems
-  const issues = [];
+  const issues: ParseError[] = [];
 
   for (const [id, node] of Object.entries(idMap)) {
     let childIds = [];

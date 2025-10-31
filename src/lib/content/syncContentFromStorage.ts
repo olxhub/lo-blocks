@@ -36,7 +36,7 @@ export async function syncContentFromStorage(
     ...Object.keys(changed)
   ] as ProvenanceURI[]);
 
-  const errors = [];
+  const errors: OLXLoadingError[] = [];
 
   for (const [uri, fileInfo] of Object.entries({ ...added, ...changed }) as [ProvenanceURI, any][]) {
     if (fileInfo.type !== fileTypes.olx && fileInfo.type !== fileTypes.xml) {

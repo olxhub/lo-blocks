@@ -145,6 +145,9 @@ type ChildParserReturn = {
   parser: (ctx: any) => Promise<any>;
   staticKids?: StaticKidsFn;
 };
+type ChildParserFactory = ((options?: Record<string, unknown>) => ChildParserReturn) & {
+  staticKids?: StaticKidsFn;
+};
 
 interface ChildParserFn extends ParserFn {
   _isChildParser?: boolean;
@@ -183,7 +186,7 @@ export function childParser(fn: ChildParserFn, nameOverride?: string) {
     }
 
     return mixin;
-  };
+  } as ChildParserFactory;
 
   return factory;
 }
@@ -237,26 +240,25 @@ const xmljsonFactory = childParser(({ rawParsed }) => [
 xmljsonFactory.staticKids = () => [];
 export const xmljson = xmljsonFactory;
 
+function extractString(extracted: ReturnType<typeof extractTextFromXmlNodes>): string {
+  if (typeof extracted === 'string') {
+    return extracted;
+  } else if (typeof extracted === 'object' && extracted !== null && 'text' in extracted) {
+    return extracted.text;
+  } else {
+    throw new Error(`extractTextFromXmlNodes returned unexpected type: ${typeof extracted}`);
+  }
+}
+
 // Feed through the text / CDATA content between the opening and closing tag.
 //
 // There should be no nested XML.
 const textFactory = childParser(async function textParser({ rawParsed, postprocess = 'trim' }) {
-  let content;
+  let content: string;
 
   if (postprocess === 'stripIndent') {
-    // Extract raw text without trimming so stripIndent can detect indentation properly
     const extracted = extractTextFromXmlNodes(rawParsed, { preserveWhitespace: true });
-
-    // Handle both string and object returns
-    let textContent = extracted;
-    if (typeof extracted === 'object' && extracted !== null) {
-      if (extracted.type === 'text' && typeof extracted.text === 'string') {
-        textContent = extracted.text;
-      } else {
-        console.error('Unexpected extracted format:', extracted);
-        throw new Error(`extractTextFromXmlNodes returned unexpected format: ${JSON.stringify(extracted).slice(0, 200)}`);
-      }
-    }
+    const textContent = extractString(extracted);
 
     const { stripIndent } = await import('@/lib/content/stripIndent');
     try {
@@ -265,18 +267,15 @@ const textFactory = childParser(async function textParser({ rawParsed, postproce
       console.error('stripIndent error for rawParsed:', JSON.stringify(rawParsed, null, 2));
       console.error('Extracted content type:', typeof textContent);
       console.error('Extracted content value:', textContent);
-      throw new Error(`Failed to process Markdown content: ${error.message}. Check that Markdown blocks contain only text, not nested elements.`);
+      throw new Error(`Failed to process Markdown content: ${error instanceof Error ? error.message : String(error)}. Check that Markdown blocks contain only text, not nested elements.`);
     }
   } else if (postprocess === 'trim' || postprocess === undefined) {
-    // Use normal extraction with trimming (default behavior)
-    content = extractTextFromXmlNodes(rawParsed).text;
+    content = extractString(extractTextFromXmlNodes(rawParsed));
   } else if (typeof postprocess === 'function') {
-    // Custom postprocess function
-    content = extractTextFromXmlNodes(rawParsed, { preserveWhitespace: true });
-    content = postprocess(content);
+    const extracted = extractTextFromXmlNodes(rawParsed, { preserveWhitespace: true });
+    content = postprocess(extractString(extracted));
   } else if (postprocess === 'none') {
-    // No postprocessing, return raw text
-    content = extractTextFromXmlNodes(rawParsed, { preserveWhitespace: true });
+    content = extractString(extractTextFromXmlNodes(rawParsed, { preserveWhitespace: true }));
   } else {
     throw new Error(`Unknown postprocess option: ${postprocess}`);
   }
@@ -302,7 +301,11 @@ export const text = textFactory;
  */
 export function peggyParser(
   peggyParser,
-  options = {}
+  options: {
+    preprocess?: (x: { type: string; text: string; [key: string]: any }) => any;
+    postprocess?: (parsed: any) => any;
+    skipStoreEntry?: boolean;
+  } = {}
 ) {
   const {
     preprocess = (x) => ({ text: x.text }),

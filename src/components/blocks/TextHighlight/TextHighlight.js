@@ -3,8 +3,7 @@ import { core } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as blocks from '@/lib/blocks';
 import { peggyParser } from '@/lib/content/parsers';
-import * as parserModule from './_textHighlightParser.js';
-const parser = parserModule.default || parserModule;
+import * as parser from './_textHighlightParser.js';
 import _TextHighlight from './_TextHighlight';
 
 export const fields = state.fields([

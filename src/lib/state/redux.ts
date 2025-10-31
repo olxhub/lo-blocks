@@ -306,7 +306,7 @@ export function valueSelector(props, state, id, { fallback } = {} as { fallback?
   const blueprint = targetNode ? props?.componentMap?.[targetNode.tag] : null;
 
   if (!targetNode || !blueprint) {
-    const missing = [];
+    const missing: string[] = [];
     if (!targetNode) missing.push('targetNode');
     if (!blueprint) missing.push('blueprint');
 
