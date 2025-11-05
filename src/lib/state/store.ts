@@ -18,6 +18,7 @@ import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 import * as lo_event from 'lo_event';
 import * as debug from 'lo_event/lo_event/debugLog.js';
 import { consoleLogger } from 'lo_event/lo_event/consoleLogger.js';
+import { websocketLogger } from 'lo_event/lo_event/websocketLogger.js';
 import { scopes, Scope } from './scopes';
 import type { FieldInfo, Fields } from '../types';
 
@@ -106,14 +107,16 @@ function configureStore({ extraFields = [] }: { extraFields?: ExtraFieldsParam }
   lo_event.init(
     'org.ets.sba',
     '0.0.1',
-    [consoleLogger(), reduxLogger.reduxLogger([], {})],
+    [consoleLogger(), reduxLogger.reduxLogger([], {}), websocketLogger('ws://localhost:8888/wsapi/in/')],
     {
       debugLevel: debug.LEVEL.EXTENDED,
       debugDest: [debug.LOG_OUTPUT.CONSOLE],
       useDisabler: false,
+      sendBrowserInfo: true,
       queueType: lo_event.QueueType.IN_MEMORY
     }
   );
+  lo_event.setFieldSet([{ activity: 'lo-blocks' }]);
   lo_event.go();
   return reduxLogger.store;
 }
