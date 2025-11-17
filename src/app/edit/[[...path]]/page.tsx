@@ -263,7 +263,7 @@ export default function EditPage() {
 
   // Load base idMap from the server
   useEffect(() => {
-    fetch('/api/content/all')
+    fetch('/special-route/api/content/all')
       .then(res => res.json())
       .then(data => {
         if (!data.ok) setError(data.error);

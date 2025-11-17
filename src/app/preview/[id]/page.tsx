@@ -26,7 +26,7 @@ export default function PreviewPage() {
   useEffect(() => {
     if (!id) return;
 
-    fetch(`/api/content/${id}`)
+    fetch(`/special-route/api/content/${id}`)
       .then(res => res.json())
       .then(data => {
         if (!data.ok) {

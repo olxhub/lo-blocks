@@ -98,7 +98,7 @@ function GraphPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch(`/api/content/${id}`);
+      const res = await fetch(`/special-route/api/content/${id}`);
       const json = await res.json();
       const { nodes, edges, issues } = parseIdMap(json.idMap);
       const laidOutNodes = layoutElements(nodes, edges, 'TB');

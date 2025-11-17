@@ -8,7 +8,7 @@ export default function Home() {
   const [entries, setEntries] = useState([]);
 
   useEffect(() => {
-    fetch('/api/content/root')
+    fetch('/special-route/api/content/root')
       .then(res => res.json())
       .then(data => {
         // Transform the object into an array of entries

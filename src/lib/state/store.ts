@@ -21,6 +21,8 @@ import { consoleLogger } from 'lo_event/lo_event/consoleLogger.js';
 import { scopes, Scope } from './scopes';
 import type { FieldInfo, Fields } from '../types';
 
+// TODO this ought to come from settings instead
+const WEBSOCKET_URL = 'ws://localhost:8002/wsapi/in/'
 const initialState = {
   component: {},
   componentSetting: {},

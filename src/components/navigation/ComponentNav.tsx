@@ -22,7 +22,7 @@ export default function ComponentNav() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    fetch('/api/content/root')
+    fetch('/special-route/api/content/root')
       .then(res => res.json())
       .then(data => {
         const list = Object.keys(data.idMap).map(id => ({ id, ...data.idMap[id] }));
