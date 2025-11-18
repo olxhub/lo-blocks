@@ -1,17 +1,24 @@
 // src/components/blocks/Chat/Chat.js
 import React from 'react';
-import { dev } from '@/lib/blocks';
+import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import * as cp  from './_chatParser.js';
-import { _Chat } from './_Chat';
+import { _Chat, callChatAdvanceHandler } from './_Chat';
 
 export const fields = state.fields([
   'value',           // pointer into the full body array
 ]);
 
-const Chat = dev({
+function advanceChat({ targetId }) {
+  callChatAdvanceHandler(targetId);
+}
+
+const Chat = blocks.dev({
   ...peggyParser(cp),
+  ...blocks.action({
+    action: advanceChat
+  }),
   name: 'Chat',
   component: _Chat,
   namespace: 'org.mitros.dev',

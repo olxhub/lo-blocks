@@ -1,13 +1,91 @@
 // src/components/blocks/Chat/_Chat.jsx
 'use client';
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 
 import { useReduxState, updateReduxField } from '@/lib/state';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
 
 import * as chatUtils from './chatUtils';
+import { getValueById } from '@/lib/blocks';
+
+/* ----------------------------------------------------------------
+ * Advance Handler Registry
+ * -------------------------------------------------------------- */
+const advanceHandlers = new Map();
+
+export function registerChatAdvanceHandler(id, handler) {
+  if (!id || typeof handler !== 'function') return;
+  advanceHandlers.set(id, handler);
+}
+
+export function unregisterChatAdvanceHandler(id, handler) {
+  if (!id) return;
+  const existing = advanceHandlers.get(id);
+  if (existing === handler) {
+    advanceHandlers.delete(id);
+  }
+}
+
+export function callChatAdvanceHandler(id) {
+  const handler = advanceHandlers.get(id);
+  if (typeof handler === 'function') {
+    handler();
+    return true;
+  }
+  console.warn(`[Chat] No advance handler registered for ${id}`);
+  return false;
+}
+
+/* ----------------------------------------------------------------
+ * Wait Command Requirement Checking
+ * -------------------------------------------------------------- */
+
+/**
+ * Checks if a value has meaningful content
+ */
+const valueHasContent = (value) => {
+  if (value == null) return false;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === 'string') return value.trim().length > 0;
+  if (typeof value === 'number') return true;
+  if (typeof value === 'boolean') return true;
+  if (value instanceof Date) return true;
+  if (typeof value === 'object') return Object.keys(value).length > 0;
+  return Boolean(value);
+};
+
+/**
+ * Check if all wait requirements are satisfied
+ * @param {Object} props - Component props for context
+ * @param {Array} requirements - Array of requirement objects with {id}
+ * @returns {Promise<boolean>} - True if all requirements are satisfied
+ */
+const checkRequirements = async (props, requirements) => {
+  if (!requirements?.length) return true;
+  try {
+    const results = await Promise.all(
+      requirements.map(async (requirement) => {
+        try {
+          const nodeValue = await getValueById(props, requirement.id);
+          return valueHasContent(nodeValue);
+        } catch (error) {
+          console.warn(`[Chat] Failed to resolve wait requirement ${requirement.id}`, error);
+          return false;
+        }
+      })
+    );
+    return results.every(Boolean);
+  } catch (error) {
+    console.warn('[Chat] Failed to resolve wait requirements', error);
+    return false;
+  }
+};
+
+/* ----------------------------------------------------------------
+ * Main Component
+ * -------------------------------------------------------------- */
 
 export function _Chat(props) {
   const { id, fields, kids, clip, history } = props;
@@ -64,8 +142,8 @@ export function _Chat(props) {
     return { start, end };
   }, [clipRange, historyRange]);
   /**
-   * `index` counts **how many raw entries** we’ve consumed
-   * (including command entries that never appear in the UI).
+   * `index` counts how many raw entries we've consumed
+   * (including command entries that never appear in the UI)
    */
   const [index, setIndex] = useReduxState(
     props,
@@ -83,7 +161,6 @@ export function _Chat(props) {
       .filter(b => b.type === 'Line');
   }, [allEntries, windowRange, windowedIndex]);
 
-
   /** Total number of dialogue lines (commands excluded) */
   const totalDialogueLines = useMemo(() => {
     return allEntries
@@ -96,9 +173,11 @@ export function _Chat(props) {
   /* ----------------------------------------------------------------
    * Advance handler
    * -------------------------------------------------------------- */
+  const [isDisabled, setIsDisabled] = useState(false);
 
-  const handleAdvance = useCallback(() => {
+  const handleAdvance = useCallback(async () => {
     let nextIndex = windowedIndex;
+    let shouldBlock = false;
     while (nextIndex < windowRange.end) {
       const block = allEntries[nextIndex + 1];
       if (!block) break;
@@ -106,6 +185,15 @@ export function _Chat(props) {
         updateReduxField(props, fields.value, block.target, { id: block.source });
         nextIndex += 1;
         continue;
+      }
+      if (block.type === 'WaitCommand') {
+        const requirements = block.requirements ?? [];
+        const satisfied = await checkRequirements(props, requirements);
+        if (!satisfied) {
+          shouldBlock = true;
+          break;
+        }
+        shouldBlock = false;
       }
       nextIndex += 1;
       if (block.type === 'Line' || block.type === 'PauseCommand') {
@@ -115,11 +203,12 @@ export function _Chat(props) {
       console.log(block);
       console.log(block.type);
     }
-
+    setIsDisabled(shouldBlock);
     setIndex(Math.min(nextIndex, windowRange.end));
-    // fields.value and props intentionally omitted: would cause excessive re-creations, so we need
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [windowedIndex, windowRange, allEntries, setIndex]);
+  }, [props, fields.value, windowedIndex, windowRange, allEntries, setIndex]);
+
+  // Register advance handler for external calls
+  useChatAdvanceRegistration(id, handleAdvance);
 
   /* ----------------------------------------------------------------
    * Footers
@@ -133,6 +222,7 @@ export function _Chat(props) {
       onAdvance={handleAdvance}
       currentMessageIndex={visibleMessages.length}
       totalMessages={totalDialogueLines}
+      disabled={isDisabled}
     />
   );
 
@@ -175,4 +265,15 @@ export function _Chat(props) {
       height={props.height ?? 'flex-1'}
     />
   );
+}
+
+/* ----------------------------------------------------------------
+ * Custom Hook for Handler Registration
+ * -------------------------------------------------------------- */
+
+export function useChatAdvanceRegistration(id, handler) {
+  useEffect(() => {
+    registerChatAdvanceHandler(id, handler);
+    return () => unregisterChatAdvanceHandler(id, handler);
+  }, [id, handler]);
 }

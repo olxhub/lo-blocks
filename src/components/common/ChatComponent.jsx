@@ -129,7 +129,7 @@ export const InputFooter = ({ onSendMessage, disabled = false, placeholder = 'Ty
 };
 
 // Continue/Advance Footer Component
-export const AdvanceFooter = ({ onAdvance, currentMessageIndex, totalMessages }) => {
+export const AdvanceFooter = ({ onAdvance, currentMessageIndex, totalMessages, disabled=false }) => {
   // No global key listeners — advancing is handled by the focused chat region.
 
   return (
@@ -140,7 +140,14 @@ export const AdvanceFooter = ({ onAdvance, currentMessageIndex, totalMessages })
         </span>
         <button
           onClick={onAdvance}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={disabled}
+          className="
+            bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center
+            hover:bg-blue-600
+            focus:outline-none focus:ring-2 focus:ring-blue-500
+            disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed
+            disabled:hover:bg-gray-300 disabled:focus:ring-0
+          "
         >
           Continue <ChevronRight className="ml-1 w-4 h-4" />
         </button>
