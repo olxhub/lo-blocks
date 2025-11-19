@@ -17,7 +17,7 @@ export function gradeArrangement(props, { input }) {
   const { algorithm = 'exact', partialCredit = false } = props;
 
   // Extract the actual arrangement array from the input object
-  const arrangement = input.arrangement || [];
+  const arrangement = input?.arrangement || [];
 
   // The correct order is always [0,1,2,3...] - the XML order
   const correctOrder = Array.from({ length: arrangement.length }, (_, i) => i);
@@ -35,9 +35,24 @@ export function gradeArrangement(props, { input }) {
     case 'spearman':
       return gradeSpearman(arrangement, correctOrder);
 
+    case 'survey':
+      return gradeSurvey()
+
     default:
       return gradeExact(arrangement, correctOrder);
   }
+}
+
+/**
+ * Survey grading - all orders are correct
+ * @returns {Object} - Grading result
+ */
+function gradeSurvey() {
+  return {
+    score: 1.0,
+    correct: true,
+    message: 'Response recorded. There is no single correct order for this activity.'
+  };
 }
 
 /**

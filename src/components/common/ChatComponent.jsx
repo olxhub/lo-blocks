@@ -162,6 +162,7 @@ export function ChatComponent({
   id,
   messages,
   initialScrollPosition = 'bottom',
+  subtitle,
   footer,
   height = 'h-96',
   onAdvance,
@@ -238,10 +239,14 @@ export function ChatComponent({
   return (
     <div className="flex flex-col h-full border border-gray-200 rounded-lg overflow-hidden">
       <div className="bg-white p-3 border-b border-gray-200">
-        <div className="flex items-center">
-          <span className="font-semibold">Chat</span>
-          <span className="ml-2 text-gray-500 text-sm">{messages.length} messages</span>
-          {/* TODO Perhaps this should include a title for section name then sectionheader actions can do something */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <span className="font-semibold">Chat</span>
+            <span className="ml-2 text-gray-500 text-sm">{messages.length} messages</span>
+          </div>
+          {subtitle && (
+            <span className="font-semibold text-sm text-gray-700">{subtitle}</span>
+          )}
         </div>
       </div>
       <div

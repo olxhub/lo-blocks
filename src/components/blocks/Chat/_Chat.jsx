@@ -9,6 +9,7 @@ import { DisplayError } from '@/lib/util/debug';
 
 import * as chatUtils from './chatUtils';
 import { getValueById } from '@/lib/blocks';
+import * as state from '@/lib/state';
 
 /* ----------------------------------------------------------------
  * Advance Handler Registry
@@ -40,20 +41,50 @@ export function callChatAdvanceHandler(id) {
 
 /* ----------------------------------------------------------------
  * Wait Command Requirement Checking
+ * TODO much of this logic can also be used for disabling blocks.
+ * This code should be abstracted so we can also do things like:
+ *   `<ActionButton dependsOn="radio_button_id,quiz_1>0.8"/>`
+ * The `dependsOn` parameter should follow the chat peg files
+ * wait command syntax. We should re-use the satisfaction logic.
  * -------------------------------------------------------------- */
-
-/**
- * Checks if a value has meaningful content
- */
-const valueHasContent = (value) => {
+function checkSatisfaction(requirement, value) {
+  // TODO the requirement might include an operation like `score>0.8`
   if (value == null) return false;
   if (Array.isArray(value)) return value.length > 0;
   if (typeof value === 'string') return value.trim().length > 0;
-  if (typeof value === 'number') return true;
-  if (typeof value === 'boolean') return true;
+  if (typeof value === 'number') return value > 0;
+  if (typeof value === 'boolean') return value;
   if (value instanceof Date) return true;
   if (typeof value === 'object') return Object.keys(value).length > 0;
   return Boolean(value);
+}
+
+function requirementValueFromGrader(props, id) {
+  try {
+    const correctField = state.componentFieldByName(props, id, 'correct');
+    return state.selectFromStore(correctField, {
+      id,
+      fallback: 0,
+      selector: s => s?.score ?? s
+    });
+  } catch (error) {
+    console.warn(`[Chat] Unable to read grader correctness for ${id}`, error);
+    return undefined;
+  }
+};
+
+async function isRequirementSatisfied(props, requirement) {
+  if (!requirement?.id) return false;
+  try {
+    const blockValue = await getValueById(props, requirement.id);
+    if (blockValue !== undefined) {
+      return checkSatisfaction(requirement, blockValue);
+    }
+  } catch (error) {
+    console.warn(`[Chat] getValueById failed for wait requirement ${requirement.id}`, error);
+  }
+  const blockScore = requirementValueFromGrader(props, requirement.id);
+  return checkSatisfaction(requirement, blockScore)
 };
 
 /**
@@ -62,14 +93,13 @@ const valueHasContent = (value) => {
  * @param {Array} requirements - Array of requirement objects with {id}
  * @returns {Promise<boolean>} - True if all requirements are satisfied
  */
-const checkRequirements = async (props, requirements) => {
+async function checkRequirements(props, requirements) {
   if (!requirements?.length) return true;
   try {
     const results = await Promise.all(
       requirements.map(async (requirement) => {
         try {
-          const nodeValue = await getValueById(props, requirement.id);
-          return valueHasContent(nodeValue);
+          return await isRequirementSatisfied(props, requirement)
         } catch (error) {
           console.warn(`[Chat] Failed to resolve wait requirement ${requirement.id}`, error);
           return false;
@@ -174,6 +204,7 @@ export function _Chat(props) {
    * Advance handler
    * -------------------------------------------------------------- */
   const [isDisabled, setIsDisabled] = useState(false);
+  const [sectionHeader, setSectionHeader] = useState();
 
   const handleAdvance = useCallback(async () => {
     let nextIndex = windowedIndex;
@@ -194,6 +225,13 @@ export function _Chat(props) {
           break;
         }
         shouldBlock = false;
+        nextIndex += 1;
+        continue;
+      }
+      if (block.type === 'SectionHeader') {
+        setSectionHeader(block.title);
+        nextIndex += 1;
+        continue
       }
       nextIndex += 1;
       if (block.type === 'Line' || block.type === 'PauseCommand') {
@@ -260,6 +298,7 @@ export function _Chat(props) {
     <ChatComponent
       id={`${id}_component`}
       messages={visibleMessages}
+      subtitle={sectionHeader}
       footer={footer}
       onAdvance={handleAdvance}
       height={props.height ?? 'flex-1'}

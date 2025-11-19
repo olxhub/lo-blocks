@@ -35,7 +35,7 @@ export default function _CapaProblem(props) {
 
   const targets = graderIds.join(',');
   const headerNode = renderBlock(props, 'Correctness', { id: `${id}_header_status`, targets });
-  const footerNode = renderBlock(props, 'CapaButton', { id: `${id}_footer_controls`, targets });
+  const footerNode = renderBlock(props, 'CapaButton', { id: `${id}_footer_controls`, targets, label: props.submitLabel });
 
   const title = props.title || props.displayName || props.id || 'Problem';
 
