@@ -6,10 +6,9 @@ import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { useReduxState, updateReduxField } from '@/lib/state';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
+import { checkRequirements } from '@/lib/util/requirements';
 
 import * as chatUtils from './chatUtils';
-import { getValueById } from '@/lib/blocks';
-import * as state from '@/lib/state';
 
 /* ----------------------------------------------------------------
  * Advance Handler Registry
@@ -38,80 +37,6 @@ export function callChatAdvanceHandler(id) {
   console.warn(`[Chat] No advance handler registered for ${id}`);
   return false;
 }
-
-/* ----------------------------------------------------------------
- * Wait Command Requirement Checking
- * TODO much of this logic can also be used for disabling blocks.
- * This code should be abstracted so we can also do things like:
- *   `<ActionButton dependsOn="radio_button_id,quiz_1>0.8"/>`
- * The `dependsOn` parameter should follow the chat peg files
- * wait command syntax. We should re-use the satisfaction logic.
- * -------------------------------------------------------------- */
-function checkSatisfaction(requirement, value) {
-  // TODO the requirement might include an operation like `score>0.8`
-  if (value == null) return false;
-  if (Array.isArray(value)) return value.length > 0;
-  if (typeof value === 'string') return value.trim().length > 0;
-  if (typeof value === 'number') return value > 0;
-  if (typeof value === 'boolean') return value;
-  if (value instanceof Date) return true;
-  if (typeof value === 'object') return Object.keys(value).length > 0;
-  return Boolean(value);
-}
-
-function requirementValueFromGrader(props, id) {
-  try {
-    const correctField = state.componentFieldByName(props, id, 'correct');
-    return state.selectFromStore(correctField, {
-      id,
-      fallback: 0,
-      selector: s => s?.score ?? s
-    });
-  } catch (error) {
-    console.warn(`[Chat] Unable to read grader correctness for ${id}`, error);
-    return undefined;
-  }
-};
-
-async function isRequirementSatisfied(props, requirement) {
-  if (!requirement?.id) return false;
-  try {
-    const blockValue = await getValueById(props, requirement.id);
-    if (blockValue !== undefined) {
-      return checkSatisfaction(requirement, blockValue);
-    }
-  } catch (error) {
-    console.warn(`[Chat] getValueById failed for wait requirement ${requirement.id}`, error);
-  }
-  const blockScore = requirementValueFromGrader(props, requirement.id);
-  return checkSatisfaction(requirement, blockScore)
-};
-
-/**
- * Check if all wait requirements are satisfied
- * @param {Object} props - Component props for context
- * @param {Array} requirements - Array of requirement objects with {id}
- * @returns {Promise<boolean>} - True if all requirements are satisfied
- */
-async function checkRequirements(props, requirements) {
-  if (!requirements?.length) return true;
-  try {
-    const results = await Promise.all(
-      requirements.map(async (requirement) => {
-        try {
-          return await isRequirementSatisfied(props, requirement)
-        } catch (error) {
-          console.warn(`[Chat] Failed to resolve wait requirement ${requirement.id}`, error);
-          return false;
-        }
-      })
-    );
-    return results.every(Boolean);
-  } catch (error) {
-    console.warn('[Chat] Failed to resolve wait requirements', error);
-    return false;
-  }
-};
 
 /* ----------------------------------------------------------------
  * Main Component
