@@ -2,6 +2,61 @@
 import { getValueById } from '@/lib/blocks';
 import * as state from '@/lib/state';
 
+const IDENTIFIER_REGEX = '[A-Za-z0-9_][A-Za-z0-9_-]*';
+const STATUS_REQUIREMENT = new RegExp(`^(${IDENTIFIER_REGEX})\\s+(${IDENTIFIER_REGEX})$`);
+const COMPARISON_REQUIREMENT = new RegExp(
+  `^(${IDENTIFIER_REGEX})\\s+(${IDENTIFIER_REGEX})\\s*(>=|<=|>|<|=)\\s*(\\d+(?:\\.\\d+)?)$`
+);
+
+function parseSingleRequirement(requirement) {
+  if (typeof requirement !== 'string') return null;
+  const trimmed = requirement.trim();
+  if (!trimmed) return null;
+
+  const comparisonMatch = trimmed.match(COMPARISON_REQUIREMENT);
+  if (comparisonMatch) {
+    return {
+      id: comparisonMatch[1],
+      field: comparisonMatch[2],
+      op: comparisonMatch[3],
+      value: parseFloat(comparisonMatch[4])
+    };
+  }
+
+  const statusMatch = trimmed.match(STATUS_REQUIREMENT);
+  if (statusMatch) {
+    return { id: statusMatch[1], status: statusMatch[2] };
+  }
+
+  const idMatch = trimmed.match(new RegExp(`^${IDENTIFIER_REGEX}$`));
+  if (idMatch) {
+    return { id: idMatch[0] };
+  }
+
+  console.warn(`[requirements] Unable to parse requirement expression "${requirement}"`);
+  return null;
+}
+
+export function parseRequirements(dependsOn) {
+  if (!dependsOn) return [];
+
+  if (Array.isArray(dependsOn)) {
+    return dependsOn
+      .map((req) => (typeof req === 'string' ? parseSingleRequirement(req) : req))
+      .filter(Boolean);
+  }
+
+  if (typeof dependsOn !== 'string') {
+    console.warn('[requirements] dependsOn must be a string or array');
+    return [];
+  }
+
+  return dependsOn
+    .split(',')
+    .map((req) => parseSingleRequirement(req))
+    .filter(Boolean);
+}
+
 function checkRequirementValue(requirement, value) {
   // TODO the requirement might include an operation like `score>0.8`
   if (value == null) return false;
