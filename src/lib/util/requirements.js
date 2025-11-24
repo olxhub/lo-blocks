@@ -1,4 +1,10 @@
 // src/lib/util/requirements.js
+/**
+ * Centralized helpers for expressing and evaluating block dependencies.
+ * We use these functions to make "wait until" logic consistent across components,
+ * so steps only run when their prerequisite blocks have produced meaningful data
+ * or grading results.
+ */
 import { getValueById } from '@/lib/blocks';
 import * as state from '@/lib/state';
 

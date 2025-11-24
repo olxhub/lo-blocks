@@ -143,7 +143,7 @@ export function executeNodeActions(props) {
   const ids = inferRelatedNodes( props, {
     selector: n => isAction(n.blueprint),
     infer: props.infer,
-    targets: props.targets || props.target
+    targets: props.target
   });
   const map = props.componentMap;
   ids.forEach(targetId => {

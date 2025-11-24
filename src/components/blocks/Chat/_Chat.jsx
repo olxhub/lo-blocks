@@ -1,7 +1,7 @@
 // src/components/blocks/Chat/_Chat.jsx
 'use client';
 
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 
 import { useReduxState, updateReduxField } from '@/lib/state';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
@@ -128,8 +128,8 @@ export function _Chat(props) {
   /* ----------------------------------------------------------------
    * Advance handler
    * -------------------------------------------------------------- */
-  const [isDisabled, setIsDisabled] = useState(false);
-  const [sectionHeader, setSectionHeader] = useState();
+  const [isDisabled, setIsDisabled] = useReduxState(props, fields.isDisabled, false);
+  const [sectionHeader, setSectionHeader] = useReduxState(props, fields.sectionHeader);
 
   const handleAdvance = useCallback(async () => {
     let nextIndex = windowedIndex;
@@ -168,7 +168,7 @@ export function _Chat(props) {
     }
     setIsDisabled(shouldBlock);
     setIndex(Math.min(nextIndex, windowRange.end));
-  }, [props, fields.value, windowedIndex, windowRange, allEntries, setIndex]);
+  }, [props, fields.value, windowedIndex, windowRange, allEntries, setIndex, setIsDisabled, setSectionHeader]);
 
   // Register advance handler for external calls
   useChatAdvanceRegistration(id, handleAdvance);

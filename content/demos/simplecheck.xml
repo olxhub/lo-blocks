@@ -2,7 +2,7 @@
 <Vertical id="simplecheck_lesson" launchable="true">
   <NumberInput id="num"/>
   <ActionButton label="Check">
-    <NumericalGrader id="ten" answer="10" targets="num"/>
+    <NumericalGrader id="ten" answer="10" target="num"/>
   </ActionButton>
-  <Correctness targets="ten"/>
+  <Correctness target="ten"/>
 </Vertical>

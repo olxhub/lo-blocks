@@ -8,6 +8,8 @@ import { _Chat, callChatAdvanceHandler } from './_Chat';
 
 export const fields = state.fields([
   'value',           // pointer into the full body array
+  'isDisabled',
+  'sectionHeader'
 ]);
 
 function advanceChat({ targetId }) {
