@@ -1,3 +1,4 @@
+// @vitest-environment node
 // src/lib/content/parseOLX.test.js
 import { parseOLX } from './parseOLX';
 

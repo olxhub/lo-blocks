@@ -1,3 +1,4 @@
+// @vitest-environment node
 // src/lib/content/loadContentTree.test.js
 import fs from 'fs/promises';
 import path from 'path';

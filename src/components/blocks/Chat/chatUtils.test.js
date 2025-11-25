@@ -1,3 +1,4 @@
+// @vitest-environment node
 // src/components/blocks/Chat/chatUtils.test.js
 
 // This is LLM-generated, with just a quick human review. It is not

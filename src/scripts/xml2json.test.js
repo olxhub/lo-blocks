@@ -1,3 +1,4 @@
+// @vitest-environment node
 // src/scripts/xml2json.test.js
 import { test, expect, afterEach } from 'vitest';
 import { spawn } from 'child_process';

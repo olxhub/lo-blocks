@@ -1,3 +1,4 @@
+// @vitest-environment node
 // src/lib/content/stripIndent.test.js
 import { stripIndent } from './stripIndent.js';
 

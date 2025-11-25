@@ -1,3 +1,4 @@
+// @vitest-environment node
 /**
  * Staleness tests for generated files.
  *

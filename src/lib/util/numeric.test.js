@@ -1,3 +1,4 @@
+// @vitest-environment node
 // src/lib/util/numeric.test.js
 import { parseComplex, parseTolerance, parseRange, inRange, compareWithTolerance, gradeNumerical, gradeRatio } from './numeric.js';
 import { CORRECTNESS } from '../blocks/correctness.js';

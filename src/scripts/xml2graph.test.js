@@ -1,3 +1,4 @@
+// @vitest-environment node
 // src/scripts/xml2graph.test.js
 
 import { test, expect, afterEach } from 'vitest';
