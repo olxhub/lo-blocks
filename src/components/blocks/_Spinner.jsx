@@ -2,7 +2,9 @@
 'use client';
 import React from 'react';
 
-import('./Spinner.css');
+if (typeof window !== 'undefined') {
+  import('./Spinner.css');
+}
 
 function _Spinner() {
   return (
