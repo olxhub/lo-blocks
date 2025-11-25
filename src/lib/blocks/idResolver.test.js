@@ -1,3 +1,4 @@
+// @vitest-environment node
 // src/lib/blocks/idResolver.test.js
 import * as idResolver from "./idResolver.js";
 

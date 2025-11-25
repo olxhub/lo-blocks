@@ -1,3 +1,4 @@
+// @vitest-environment node
 // src/integration/server-smoke.test.js
 /*
  * Basic smoke test: Does the server start and serve pages without 500

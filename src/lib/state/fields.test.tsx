@@ -1,3 +1,4 @@
+// @vitest-environment node
 // src/lib/blocks/redux.test.tsx
 import * as fields from './fields';
 

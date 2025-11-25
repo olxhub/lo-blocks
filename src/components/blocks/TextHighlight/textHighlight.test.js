@@ -1,3 +1,4 @@
+// @vitest-environment node
 // src/components/blocks/TextHighlight/textHighlight.test.js
 import { test, expect } from 'vitest';
 import { parseTextHighlight } from './textHighlightUtils';

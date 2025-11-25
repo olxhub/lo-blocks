@@ -22,6 +22,7 @@
     "build-automation": "node src/scripts/compile-grammars.js; node src/scripts/generateRegistry.js",
     "test-automation": " vitest run",
     "test": "firejail --noprofile --whitelist=$(pwd) vitest",
+    "test:unit": "firejail --noprofile --whitelist=$(pwd) vitest --exclude='**/integration/**'",
     "test:ui": "firejail --noprofile --whitelist=$(pwd) vitest --ui"
   },
   "dependencies": {

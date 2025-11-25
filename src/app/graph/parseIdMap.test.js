@@ -1,3 +1,4 @@
+// @vitest-environment node
 // src/app/graph/parseIdMap.test.js
 import { parseIdMap } from '@/lib/graph/parseIdMap';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';

@@ -93,31 +93,43 @@ function walkDir(dir, filePattern, ignorePatterns, excludePattern) {
   return files;
 }
 
-function generateRegistry(registryType) {
-  const config = registryTypes[registryType];
+/**
+ * Generate registry contents (without writing to disk).
+ * Returns { blocks: { content, outputFile, files }, css: { content, outputFile, files } }
+ */
+export function generateAllRegistryContents() {
   const ignorePatterns = readBlockIgnore(ignoreFile);
+  const result = {};
 
-  // For now, we only search blocksDir, but this could be extended
-  // to search multiple directories for multi-repo block sources
-  const searchDirs = [blocksDir];
+  for (const [name, config] of Object.entries(registryTypes)) {
+    const files = walkDirectories(
+      [blocksDir],
+      config.filePattern,
+      ignorePatterns,
+      config.excludePattern
+    );
+    result[name] = {
+      content: config.fileHeader + config.reducer(files, config.outputFile),
+      outputFile: config.outputFile,
+      files
+    };
+  }
 
-  const files = walkDirectories(
-    searchDirs,
-    config.filePattern,
-    ignorePatterns,
-    config.excludePattern
-  );
+  return result;
+}
+
+function generateRegistry(registryType) {
+  const all = generateAllRegistryContents();
+  const { content, outputFile } = all[registryType];
 
   // Ensure output directory exists
-  const outputDir = path.dirname(config.outputFile);
+  const outputDir = path.dirname(outputFile);
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  const content = config.fileHeader + config.reducer(files, config.outputFile);
-
-  fs.writeFileSync(config.outputFile, content);
-  console.log(`Generated ${registryType} registry at ${config.outputFile} with ${files.length} entries.`);
+  fs.writeFileSync(outputFile, content);
+  console.log(`Generated ${registryType} registry at ${outputFile}.`);
 }
 
 function main() {
@@ -130,4 +142,8 @@ function main() {
   console.log('All registries generated successfully.');
 }
 
-main();
+// Only run main() when executed directly, not when imported
+const isDirectRun = process.argv[1]?.endsWith('generateRegistry.js');
+if (isDirectRun) {
+  main();
+}

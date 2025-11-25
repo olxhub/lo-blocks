@@ -1,3 +1,4 @@
+// @vitest-environment node
 // src/lib/types.test.ts
 import { parseProvenance, formatProvenance, parseProvenanceList, formatProvenanceList } from './storage/provenance';
 
