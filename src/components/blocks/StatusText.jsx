@@ -23,35 +23,12 @@
 // The field must exist in the TARGET component, not in StatusText itself.
 // Will throw clear error if the target component doesn't have the requested field.
 //
-import React from 'react';
 import { dev } from '@/lib/blocks';
-import * as state from '@/lib/state';
-import { useFieldSelector } from '@/lib/state';
-import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import { ignore } from '@/lib/content/parsers';
-
-function _StatusText(props) {
-  const { targets, infer, field = 'message' } = props;
-  const ids = inferRelatedNodes(props, {
-    selector: n => n.node.blueprint?.isGrader,
-    infer,
-    targets
-  });
-  const targetId = ids[0];
-
-  // Get the field from the target component (not from our own fields)
-  const targetField = state.componentFieldByName(props, targetId, field);
-
-  const text = useFieldSelector(
-    props,
-    targetField,
-    { selector: s => s?.[field] ?? '', fallback: '', id: targetId }
-  );
-  return <span>{text}</span>;
-}
+import _StatusText from './_StatusText';
 
 const StatusText = dev({
-  ...ignore,
+  ...ignore(),
   name: 'StatusText',
   description: 'Displays field values from related components (typically graders). Use field="fieldName" to specify which field to display.',
   component: _StatusText

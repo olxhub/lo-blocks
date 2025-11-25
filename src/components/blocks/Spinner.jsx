@@ -14,25 +14,10 @@
  * Do NOT treat this as canonical component structure.
  */
 
-import React from 'react';
-
 import * as parsers from '@/lib/content/parsers';
 
-if (typeof window !== 'undefined') {
-  import('./Spinner.css');
-}
-
 import { dev } from '@/lib/blocks'; // adjust import path as needed
-
-function _Spinner() {
-  return (
-    <div className="spinner">
-      <div></div>
-      <div></div>
-      <div></div>
-    </div>
-  );
-}
+import _Spinner from './_Spinner';
 
 const Spinner = dev({
   ...parsers.ignore(),
