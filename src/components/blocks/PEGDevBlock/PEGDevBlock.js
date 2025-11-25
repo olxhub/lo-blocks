@@ -1,5 +1,4 @@
 // src/components/blocks/PEGDevBlock/PEGDevBlock.js
-import React from 'react';
 import { dev } from '@/lib/blocks';
 import { peggyParser } from '@/lib/content/parsers';
 import * as dp  from './_demoParser.js'; // <-- Tweak this line

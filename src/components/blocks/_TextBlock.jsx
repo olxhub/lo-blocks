@@ -1,11 +1,8 @@
-// src/components/blocks/TextBlock.jsx
+// src/components/blocks/_TextBlock.jsx
+'use client';
 import React from 'react';
 
-import * as parsers from '@/lib/content/parsers';
-// DebugWrapper will render debug details globally
-import { test } from '@/lib/blocks';
-
-function _TextBlock( props ) {
+function _TextBlock(props) {
   const { kids } = props;
 
   /*** HACK HACK HACK ***/
@@ -28,12 +25,4 @@ function _TextBlock( props ) {
   return <div>{kids}</div>;
 }
 
-const TextBlock = test({
-  ...parsers.text(),
-  name: "TextBlock",
-  description: 'Simple text container for testing and development',
-  component: _TextBlock,
-  requiresUniqueId: false
-});
-
-export default TextBlock;
+export default _TextBlock;

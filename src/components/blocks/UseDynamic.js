@@ -1,5 +1,4 @@
 // src/components/blocks/UseDynamic.js
-import React from 'react';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 
