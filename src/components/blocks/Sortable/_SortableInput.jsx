@@ -99,7 +99,7 @@ export default function _SortableInput(props) {
   // Determine interaction state based on related grader correctness
   const readOnly = isInputReadOnly(props);
 
-  // Drag state
+  // useState-ok: ephemeral drag state (not persisted, resets on re-render)
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
   const draggedIndex = useRef(null);
