@@ -19,7 +19,7 @@ const ChoiceInput = core({
     const ids = inferRelatedNodes(props, {
       selector: n => n.blueprint.name === 'Key' || n.blueprint.name === 'Distractor',
       infer: ['kids'],
-      targets: props.targets
+      targets: props.target
     });
     const choices = ids.map(cid => {
       const inst = props.idMap?.[cid];

@@ -6,11 +6,11 @@ import { useFieldSelector } from '@/lib/state';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 
 function _StatusText(props) {
-  const { targets, infer, field = 'message' } = props;
+  const { target, infer, field = 'message' } = props;
   const ids = inferRelatedNodes(props, {
     selector: n => n.node.blueprint?.isGrader,
     infer,
-    targets
+    targets: target
   });
   const targetId = ids[0];
 

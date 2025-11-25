@@ -19,7 +19,7 @@ then be used in courseware.
 Blocks can advertise themselves as **inputs** by supplying a `getValue`
 function. Other blocks can then query their values directly from the
 Redux store. A **grader** is an action block that collects values
-from related inputs (via `targets` or inference) and passes them to a
+from related inputs (via `target` or inference) and passes them to a
 grader function.
 
 ```javascript

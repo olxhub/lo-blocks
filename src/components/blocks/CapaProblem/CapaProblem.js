@@ -93,7 +93,7 @@ function capaParser({ id, tag, attributes, provenance, rawParsed, storeEntry }) 
 
   graders.forEach(g => {
     if (g.inputs.length > 0) {
-      g.entry.attributes.targets = g.inputs.join(',');
+      g.entry.attributes.target = g.inputs.join(',');
     }
   });
 

@@ -18,7 +18,7 @@ export default function _CapaProblem(props) {
   const graderIds = inferRelatedNodes(props, {
     selector: n => n.blueprint?.isGrader,
     infer: props.infer,
-    targets: props.targets
+    targets: props.target
   });
 
   if (graderIds.length === 0) {
@@ -33,9 +33,9 @@ export default function _CapaProblem(props) {
     );
   }
 
-  const targets = graderIds.join(',');
-  const headerNode = renderBlock(props, 'Correctness', { id: `${id}_header_status`, targets });
-  const footerNode = renderBlock(props, 'CapaButton', { id: `${id}_footer_controls`, targets, label: props.submitLabel });
+  const target = graderIds.join(',');
+  const headerNode = renderBlock(props, 'Correctness', { id: `${id}_header_status`, target });
+  const footerNode = renderBlock(props, 'CapaButton', { id: `${id}_footer_controls`, target });
 
   const title = props.title || props.displayName || props.id || 'Problem';
 

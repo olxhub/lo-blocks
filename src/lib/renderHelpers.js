@@ -1,6 +1,6 @@
 // src/lib/renderHelpers.js
 // Small helper to render a virtual block without exposing OLX node shape
-// Usage: renderBlock(props, 'Correctness', { id: 'x_status', targets: '...' })
+// Usage: renderBlock(props, 'Correctness', { id: 'x_status', target: '...' })
 //
 // TODO: Eventually, renderBlock, render, and renderCompiledChildren
 // needs to be rationalized. They grew up a bit organically, and a lot

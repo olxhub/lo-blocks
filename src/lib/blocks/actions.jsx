@@ -72,7 +72,7 @@ export function grader({ grader, infer = true } = {}) {
       {
         selector: n => n.blueprint && isInput(n.blueprint),
         infer,
-        targets: targetAttributes?.targets,
+        targets: targetAttributes?.target,
       }
     );
 
@@ -82,7 +82,7 @@ export function grader({ grader, infer = true } = {}) {
       const inst = props.idMap[id];
       const blueprint = map[inst.tag];
       const inputNodeInfo = getNodeById(props, id);
-      const inputProps = { ...props, nodeInfo: inputNodeInfo, id, targets: inst.attributes?.targets };
+      const inputProps = { ...props, nodeInfo: inputNodeInfo, id, target: inst.attributes?.target };
       return blueprint.getValue(inputProps, state, id);
     });
 
@@ -143,7 +143,7 @@ export function executeNodeActions(props) {
   const ids = inferRelatedNodes( props, {
     selector: n => isAction(n.blueprint),
     infer: props.infer,
-    targets: props.targets || props.target
+    targets: props.target
   });
   const map = props.componentMap;
   ids.forEach(targetId => {

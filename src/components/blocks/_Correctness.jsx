@@ -6,11 +6,11 @@ import { useFieldSelector } from '@/lib/state';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 
 function _Correctness(props) {
-  const { targets, infer, fields } = props;
+  const { target, infer, fields } = props;
   const ids = inferRelatedNodes(props, {
     selector: n => n.node.blueprint?.isGrader,
     infer,
-    targets
+    targets: target
   });
   const targetId = ids[0];
   const correctness = useFieldSelector(

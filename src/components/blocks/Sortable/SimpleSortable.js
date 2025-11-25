@@ -55,7 +55,7 @@ function generateSortableComponents({ parsed, storeEntry, id, tag, attributes })
     tag: 'SortableGrader',
     attributes: {
       id: graderId,
-      targets: inputId
+      target: inputId
     },
     kids: [
       { type: 'block', id: promptId },

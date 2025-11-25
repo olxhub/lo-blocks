@@ -18,7 +18,7 @@
 //   <StatusText />                    // Shows 'message' field from related grader
 //   <StatusText field="status" />     // Shows 'status' field from related grader
 //   <StatusText field="correct" />    // Shows 'correct' field from related grader
-//   <StatusText targets="grader1" />  // Shows 'message' field from specific component
+//   <StatusText target="grader1" />  // Shows 'message' field from specific component
 //
 // The field must exist in the TARGET component, not in StatusText itself.
 // Will throw clear error if the target component doesn't have the requested field.

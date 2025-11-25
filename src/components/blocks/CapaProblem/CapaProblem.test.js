@@ -27,7 +27,7 @@ it('wires inputs and graders; UI controls rendered at runtime', async () => {
   const hasP = grader.kids.some(k => k.type === 'html' && k.tag === 'p');
   expect(hasP).toBe(true);
 
-  expect(idMap[graderId].attributes.targets).toBe(
+  expect(idMap[graderId].attributes.target).toBe(
     `${inputId0},${inputId1}`
   );
 });

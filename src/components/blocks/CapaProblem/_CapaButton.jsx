@@ -26,7 +26,7 @@ function computeLabel(props) {
 
 export default function _CapaButton(props) {
   const { id, idMap, nodeInfo, componentMap, idPrefix } = props;
-  const targets = props.targets;
+  const target = props.target;
   const label = computeLabel(props);
 
   const buttonId = `${id}_action`;
@@ -36,11 +36,11 @@ export default function _CapaButton(props) {
   return (
     <div className="lo-capabutton">
       <div className="lo-capabutton__primary">
-        {renderBlock(props, 'ActionButton', { id: buttonId, label, targets })}
+        {renderBlock(props, 'ActionButton', { id: buttonId, label, target })}
       </div>
       <div className="lo-capabutton__status">
-        {renderBlock(props, 'Correctness', { id: statusIconId, targets })}
-        {renderBlock(props, 'StatusText', { id: statusTextId, targets, field: 'message' })}
+        {renderBlock(props, 'Correctness', { id: statusIconId, target })}
+        {renderBlock(props, 'StatusText', { id: statusTextId, target, field: 'message' })}
       </div>
     </div>
   );
