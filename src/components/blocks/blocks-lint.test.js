@@ -94,6 +94,15 @@ describe('Block components should use useReduxState instead of useState', () => 
   });
 });
 
+
+/*
+  We are checking if a blueprint file accidentally contains JSX. This
+  test uses regexps, and is a bit brittle. It's fine to remove if it
+  causes problems. It's important during the migration, but in due
+  course, we will deprecate .jsx/.tsx files.
+
+  Really, we should just be checking for importing react later.
+ */
 function findJSXInFile(filePath) {
   const lines = readFileSync(filePath, 'utf-8').split('\n');
   let inBlockComment = false;
