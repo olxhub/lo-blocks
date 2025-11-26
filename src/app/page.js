@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 
 export default function Home() {
   const [entries, setEntries] = useState([]);
+  const [params, setParams] = useState({});
   const endpointLinks = [
     {
       href: '/api/content/root',
@@ -20,8 +21,10 @@ export default function Home() {
       description: 'Complete content map (GET)',
     },
     {
-      href: null,
-      label: '/api/content/[id]',
+      key: 'contentId',
+      hrefTemplate: id => `/api/content/${id}`,
+      label: '/api/content/',
+      placeholder: 'id',
       type: 'JSON',
       description: 'Content lookup for a specific ID (GET)',
     },
@@ -32,8 +35,10 @@ export default function Home() {
       description: 'File tree for the content directory (GET)',
     },
     {
-      href: '/api/file?path=PATH/TO/FILE',
-      label: '/api/file?path=…',
+      key: 'filePath',
+      hrefTemplate: path => `/api/file?path=${encodeURIComponent(path)}`,
+      label: '/api/file?path=',
+      placeholder: 'path/to/file',
       type: 'JSON',
       description: 'Read an allowed file via a path query (GET)',
     },
@@ -86,8 +91,27 @@ export default function Home() {
         <p className="mb-3 text-gray-700">Direct links to read-only endpoints, including JSON responses where available:</p>
         <ul className="space-y-2 list-disc pl-6">
           {endpointLinks.map(endpoint => (
-            <li key={endpoint.label} className="space-x-2">
-              {endpoint.href ? (
+            <li key={endpoint.key || endpoint.label} className="space-x-2">
+              {endpoint.hrefTemplate ? (
+                <>
+                  <code className="text-sm bg-gray-100 px-1 py-0.5 rounded">{endpoint.label}</code>
+                  <input
+                    type="text"
+                    placeholder={endpoint.placeholder}
+                    value={params[endpoint.key] || ''}
+                    onChange={e => setParams({ ...params, [endpoint.key]: e.target.value })}
+                    className="text-sm border px-1 py-0.5 rounded w-32"
+                  />
+                  <a
+                    href={params[endpoint.key] ? endpoint.hrefTemplate(params[endpoint.key]) : '#'}
+                    className={`text-sm ${params[endpoint.key] ? 'text-blue-600 hover:underline' : 'text-gray-400'}`}
+                    target="_blank"
+                    onClick={e => !params[endpoint.key] && e.preventDefault()}
+                  >
+                    Go
+                  </a>
+                </>
+              ) : (
                 <Link
                   href={endpoint.href}
                   className="text-blue-600 hover:underline"
@@ -95,10 +119,6 @@ export default function Home() {
                 >
                   {endpoint.label}
                 </Link>
-              ) : (
-                <code className="text-sm bg-gray-100 px-1 py-0.5 rounded">
-                  {endpoint.label}
-                </code>
               )}
               <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">
                 {endpoint.type}
