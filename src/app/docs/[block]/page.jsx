@@ -4,6 +4,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { use } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function BlockDocsPage({ params }) {
   const { block } = use(params);
@@ -78,9 +80,9 @@ export default function BlockDocsPage({ params }) {
             <section className="bg-white rounded-lg shadow-sm border p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Documentation</h2>
               <div className="prose max-w-none">
-                <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {blockData.readme.content}
-                </pre>
+                </ReactMarkdown>
               </div>
             </section>
           ) : (
