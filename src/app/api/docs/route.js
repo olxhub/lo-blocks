@@ -1,104 +1,39 @@
 // src/app/api/docs/route.js
-import fs from 'fs';
-import path from 'path';
-
-const blocksDir = path.resolve('./src/components/blocks');
+//
+// Block documentation API - serves metadata for all registered blocks.
+// Uses COMPONENT_MAP which includes runtime metadata (description, fields, etc.)
+// plus source/readme/examples paths added by the registry generator.
+//
+import { COMPONENT_MAP } from '@/components/componentMap';
 
 /**
- * Extract block metadata from component definition file
+ * Generate documentation index from COMPONENT_MAP.
  */
-function extractBlockMetadata(componentPath) {
-  try {
-    const content = fs.readFileSync(componentPath, 'utf8');
-    
-    // Extract component name from core() call
-    const nameMatch = content.match(/name:\s*['"`]([^'"`]+)['"`]/);
-    const name = nameMatch ? nameMatch[1] : path.basename(path.dirname(componentPath));
-    
-    // Look for description or short description
-    const descMatch = content.match(/(?:description|shortDescription):\s*['"`]([^'"`]+)['"`]/);
-    const description = descMatch ? descMatch[1] : '';
-    
-    return {
-      name,
-      description,
-      componentPath: componentPath.replace(process.cwd() + '/', '')
-    };
-  } catch (err) {
-    return {
-      name: path.basename(path.dirname(componentPath)),
-      description: '',
-      componentPath: componentPath.replace(process.cwd() + '/', '')
-    };
+function generateDocumentation() {
+  const blocks = [];
+
+  for (const [exportName, block] of Object.entries(COMPONENT_MAP)) {
+    if (!block._isBlock) continue;
+
+    blocks.push({
+      name: block.OLXName || exportName,
+      exportName,
+      description: block.description || null,
+      namespace: block.namespace,
+      source: block.source || null,
+      readme: block.readme || null,
+      examples: block.examples || [],
+      fields: Object.keys(block.fields || {}),
+      hasAction: !!block.action,
+      hasParser: !!block.parser
+    });
   }
-}
 
-/**
- * Scan block directory for documentation files
- */
-function scanBlockDirectory(blockPath) {
-  const blockName = path.basename(blockPath);
-  const files = fs.readdirSync(blockPath);
-  
-  const docs = {
-    name: blockName,
-    path: blockPath.replace(process.cwd() + '/', ''),
-    component: null,
-    documentation: null,
-    examples: [],
-    metadata: {}
+  return {
+    generated: new Date().toISOString(),
+    totalBlocks: blocks.length,
+    blocks: blocks.sort((a, b) => a.name.localeCompare(b.name))
   };
-  
-  for (const file of files) {
-    const filePath = path.join(blockPath, file);
-    const fileStats = fs.statSync(filePath);
-    
-    if (fileStats.isFile()) {
-      const relativePath = filePath.replace(process.cwd() + '/', '');
-      
-      if ((file.endsWith('.js') || file.endsWith('.jsx')) && 
-          (file === `${blockName}.js` || file === `${blockName}.jsx` || file === 'index.js' || file === 'index.jsx')) {
-        docs.component = relativePath;
-        docs.metadata = extractBlockMetadata(filePath);
-      } else if (file.endsWith('.md')) {
-        docs.documentation = relativePath;
-      } else if (file.endsWith('.olx') || file.endsWith('.xml')) {
-        docs.examples.push(relativePath);
-      }
-    }
-  }
-  
-  return docs;
-}
-
-/**
- * Generate comprehensive documentation index
- */
-async function generateDocumentation() {
-  try {
-    const blocks = [];
-    const blockDirs = fs.readdirSync(blocksDir, { withFileTypes: true })
-      .filter(dirent => dirent.isDirectory())
-      .map(dirent => dirent.name);
-    
-    for (const blockDir of blockDirs) {
-      const blockPath = path.join(blocksDir, blockDir);
-      const blockDocs = scanBlockDirectory(blockPath);
-      
-      // Only include blocks that have actual documentation or examples
-      if (blockDocs.documentation || blockDocs.examples.length > 0 || blockDocs.component) {
-        blocks.push(blockDocs);
-      }
-    }
-    
-    return {
-      generated: new Date().toISOString(),
-      totalBlocks: blocks.length,
-      blocks: blocks.sort((a, b) => a.name.localeCompare(b.name))
-    };
-  } catch (err) {
-    throw new Error(`Failed to generate documentation: ${err.message}`);
-  }
 }
 
 export async function GET(request) {

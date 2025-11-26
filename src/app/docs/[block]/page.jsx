@@ -52,34 +52,45 @@ export default function BlockDocsPage({ params }) {
 
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {blockData.name} Block
+            {blockData.name}
           </h1>
-          {blockData.component && (
-            <p className="text-gray-600">
-              Component: <code className="bg-gray-100 px-2 py-1 rounded">{blockData.component.path}</code>
+          {blockData.description && (
+            <p className="text-gray-600 mb-2">{blockData.description}</p>
+          )}
+          {blockData.source && (
+            <p className="text-gray-500 text-sm">
+              Source: <code className="bg-gray-100 px-2 py-1 rounded">{blockData.source}</code>
+              {blockData.namespace && (
+                <span className="ml-2 text-gray-400">({blockData.namespace})</span>
+              )}
+            </p>
+          )}
+          {blockData.fields.length > 0 && (
+            <p className="text-gray-500 text-sm mt-1">
+              Fields: {blockData.fields.map(f => <code key={f} className="bg-gray-100 px-1 mx-0.5 rounded">{f}</code>)}
             </p>
           )}
         </header>
 
         <div className="space-y-8">
           {/* Documentation */}
-          {blockData.documentation ? (
+          {blockData.readme ? (
             <section className="bg-white rounded-lg shadow-sm border p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Documentation</h2>
               <div className="prose max-w-none">
                 <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
-                  {blockData.documentation.content}
+                  {blockData.readme.content}
                 </pre>
               </div>
             </section>
           ) : (
             <section className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
               <h2 className="text-xl font-semibold text-yellow-800 mb-2">
-                📝 Documentation Needed
+                Documentation Needed
               </h2>
               <p className="text-yellow-700">
-                This block doesn't have documentation yet. Create a <code>{blockData.name}.md</code> file 
-                in <code>src/components/blocks/{blockData.name}/</code> to add documentation.
+                This block doesn't have documentation yet. Create a <code>{blockData.name}.md</code> file
+                in the block's directory to add documentation.
               </p>
             </section>
           )}
@@ -106,11 +117,11 @@ export default function BlockDocsPage({ params }) {
           ) : (
             <section className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
               <h2 className="text-xl font-semibold text-yellow-800 mb-2">
-                🔧 Examples Needed
+                Examples Needed
               </h2>
               <p className="text-yellow-700">
-                This block doesn't have examples yet. Create <code>.olx</code> files 
-                in <code>src/components/blocks/{blockData.name}/</code> to add working examples.
+                This block doesn't have examples yet. Create <code>{blockData.name}.olx</code> files
+                in the block's directory to add working examples.
               </p>
             </section>
           )}
@@ -118,10 +129,10 @@ export default function BlockDocsPage({ params }) {
           {/* Future: Live Preview Section */}
           <section className="bg-blue-50 border border-blue-200 rounded-lg p-6">
             <h2 className="text-xl font-semibold text-blue-800 mb-2">
-              🚀 Live Preview (Coming Soon)
+              Live Preview (Coming Soon)
             </h2>
             <p className="text-blue-700">
-              In future versions, this section will render live, interactive examples 
+              In future versions, this section will render live, interactive examples
               of the block using the provided <code>.olx</code> files.
             </p>
           </section>

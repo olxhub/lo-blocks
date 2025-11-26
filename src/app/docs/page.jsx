@@ -57,13 +57,13 @@ export default function DocsPage() {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 mb-1">
-                    {block.metadata?.name || block.name}
+                    {block.name}
                   </h2>
-                  {block.metadata?.description && (
-                    <p className="text-gray-600 mb-3">{block.metadata.description}</p>
+                  {block.description && (
+                    <p className="text-gray-600 mb-3">{block.description}</p>
                   )}
                 </div>
-                <Link 
+                <Link
                   href={`/docs/${block.name}`}
                   className="text-blue-600 hover:text-blue-800 font-medium"
                 >
@@ -72,27 +72,40 @@ export default function DocsPage() {
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
-                {block.component && (
+                {block.source && (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    ✓ Component
+                    Component
                   </span>
                 )}
-                {block.documentation && (
+                {block.readme && (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    ✓ Documentation
+                    Docs
                   </span>
                 )}
                 {block.examples.length > 0 && (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                    ✓ Examples ({block.examples.length})
+                    Examples ({block.examples.length})
+                  </span>
+                )}
+                {block.hasAction && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    Action
+                  </span>
+                )}
+                {block.hasParser && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                    Parser
                   </span>
                 )}
               </div>
 
               <div className="text-sm text-gray-500">
                 <code className="bg-gray-100 px-2 py-1 rounded">
-                  {block.path}
+                  {block.source}
                 </code>
+                {block.namespace && (
+                  <span className="ml-2 text-xs text-gray-400">{block.namespace}</span>
+                )}
               </div>
             </div>
           ))}

@@ -1,82 +1,76 @@
 // src/app/api/docs/[block]/route.js
-import fs from 'fs';
+//
+// Individual block documentation API - serves detailed docs for a specific block.
+// Reads readme and example file contents from paths stored on the block object.
+//
+import fs from 'fs/promises';
 import path from 'path';
+import { COMPONENT_MAP } from '@/components/componentMap';
 import { resolveSafePath } from '@/lib/storage';
 
-const blocksDir = path.resolve('./src/components/blocks');
-
 export async function GET(request, { params }) {
-  const { block } = await params;
+  const { block: blockName } = await params;
 
   try {
-    // Validate path to prevent directory traversal attacks
-    const blockPath = await resolveSafePath(blocksDir, block);
+    // Find block by OLXName or export name
+    const block = Object.values(COMPONENT_MAP).find(
+      b => b._isBlock && (b.OLXName === blockName || b.exportName === blockName)
+    ) || COMPONENT_MAP[blockName];
 
-    // Check if block directory exists
-    if (!fs.existsSync(blockPath) || !fs.statSync(blockPath).isDirectory()) {
+    if (!block || !block._isBlock) {
       return Response.json(
-        {
-          ok: false,
-          error: `Block '${block}' not found`,
-        },
+        { ok: false, error: `Block '${blockName}' not found` },
         { status: 404 }
       );
     }
-    
-    const files = fs.readdirSync(blockPath);
+
     const blockDocs = {
-      name: block,
-      documentation: null,
-      examples: [],
-      component: null
+      name: block.OLXName,
+      description: block.description || null,
+      namespace: block.namespace,
+      source: block.source || null,
+      fields: Object.keys(block.fields || {}),
+      hasAction: !!block.action,
+      hasParser: !!block.parser,
+      readme: null,
+      examples: []
     };
-    
-    // Read documentation file if it exists
-    const mdFile = files.find(f => f.endsWith('.md'));
-    if (mdFile) {
-      const mdPath = path.join(blockPath, mdFile);
-      blockDocs.documentation = {
-        filename: mdFile,
-        content: fs.readFileSync(mdPath, 'utf8')
-      };
+
+    // Read readme content if path exists
+    if (block.readme) {
+      try {
+        const readmePath = await resolveSafePath(process.cwd(), block.readme);
+        blockDocs.readme = {
+          path: block.readme,
+          content: await fs.readFile(readmePath, 'utf8')
+        };
+      } catch (err) {
+        console.warn(`Could not read readme for ${blockName}: ${err.message}`);
+      }
     }
-    
-    // Read example files
-    const exampleFiles = files.filter(f => f.endsWith('.olx') || f.endsWith('.xml'));
-    for (const exampleFile of exampleFiles) {
-      const examplePath = path.join(blockPath, exampleFile);
-      blockDocs.examples.push({
-        filename: exampleFile,
-        content: fs.readFileSync(examplePath, 'utf8')
-      });
+
+    // Read example file contents
+    if (block.examples && block.examples.length > 0) {
+      for (const examplePath of block.examples) {
+        try {
+          const fullPath = await resolveSafePath(process.cwd(), examplePath);
+          blockDocs.examples.push({
+            path: examplePath,
+            filename: path.basename(examplePath),
+            content: await fs.readFile(fullPath, 'utf8')
+          });
+        } catch (err) {
+          console.warn(`Could not read example ${examplePath}: ${err.message}`);
+        }
+      }
     }
-    
-    // Get component info
-    const componentFile = files.find(f => 
-      (f.endsWith('.js') || f.endsWith('.jsx')) && 
-      (f === `${block}.js` || f === `${block}.jsx` || f === 'index.js' || f === 'index.jsx')
-    );
-    if (componentFile) {
-      blockDocs.component = {
-        filename: componentFile,
-        path: `src/components/blocks/${block}/${componentFile}`
-      };
-    }
-    
+
     return Response.json({
       ok: true,
       block: blockDocs
     });
   } catch (error) {
-    // Path validation errors (traversal attempts, symlinks) return 400
-    if (error.message === 'Invalid path' || error.message === 'Symlinks not allowed') {
-      return Response.json(
-        { ok: false, error: `Block '${block}' not found` },
-        { status: 400 }
-      );
-    }
-
-    console.error(`Error loading documentation for block '${block}':`, error);
+    console.error(`Error loading documentation for block '${blockName}':`, error);
 
     return Response.json(
       {
