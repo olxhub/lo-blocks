@@ -3,8 +3,8 @@ import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as reduxClient from '@/lib/llm/reduxClient';
-import _Noop from './_Noop';
-import _Hidden from './_Hidden';
+import _Noop from '@/components/blocks/layout/_Noop';
+import _Hidden from '@/components/blocks/layout/_Hidden';
 
 export const fields = state.fields([]);
 

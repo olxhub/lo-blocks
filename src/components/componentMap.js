@@ -2,7 +2,7 @@
 import React from 'react';
 
 import * as BlockRegistry from './blockRegistry.js';
-import createStubBlock from '@/components/blocks/StubBlock';
+import createStubBlock from '@/components/blocks/utility/StubBlock';
 
 export const COMPONENT_MAP = { ...BlockRegistry };
 

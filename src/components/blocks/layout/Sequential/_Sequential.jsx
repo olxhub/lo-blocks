@@ -4,7 +4,7 @@
 import React from 'react';
 import { useReduxState } from '@/lib/state';
 import { render, renderCompiledKids } from '@/lib/render';
-import HistoryBar from '../../common/HistoryBar';
+import HistoryBar from '@/components/common/HistoryBar';
 import { fields } from './Sequential';
 
 export default function _Sequential(props) {

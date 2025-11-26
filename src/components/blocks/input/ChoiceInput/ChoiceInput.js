@@ -3,7 +3,7 @@ import { core } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, fieldByName } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import _Noop from '../_Noop';
+import _Noop from '@/components/blocks/layout/_Noop';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 
 export const fields = state.fields(['value']);

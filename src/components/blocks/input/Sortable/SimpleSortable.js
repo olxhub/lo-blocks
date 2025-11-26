@@ -3,7 +3,7 @@ import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import * as sortParser from './_sortParser.js';
-import _Noop from '../_Noop';
+import _Noop from '@/components/blocks/layout/_Noop';
 
 /**
  * Generate all required components for a sortable problem
