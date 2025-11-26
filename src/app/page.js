@@ -63,6 +63,24 @@ export default function Home() {
     <main className="p-6">
       <h1 className="text-2xl font-bold mb-4">📚 Learning Blocks</h1>
       <p className="mb-4">Explore available lessons and activities:</p>
+      <ul className="space-y-2 list-disc pl-6">
+        {entries.map(entry => (
+          <li key={entry.id}>
+            <Link href={`/preview/${entry.id}`} className="text-blue-600 hover:underline">
+              {entry.attributes?.title || entry.id}
+            </Link>
+            <span className="ml-2 text-gray-500 text-sm">({entry.tag})</span>
+            [
+            <Link href={`/graph/${entry.id}`} className="ml-2 text-blue-600 hover:underline">
+              graph
+            </Link>
+            <Link href={`/api/content/${entry.id}`} className="ml-2 text-green-700 hover:underline" target="_blank">
+              api
+            </Link>
+            ]
+          </li>
+        ))}
+      </ul>
       <section className="mb-8">
         <h2 className="text-xl font-semibold mb-2">Endpoints</h2>
         <p className="mb-3 text-gray-700">Direct links to read-only endpoints, including JSON responses where available:</p>
@@ -90,24 +108,6 @@ export default function Home() {
           ))}
         </ul>
       </section>
-      <ul className="space-y-2 list-disc pl-6">
-        {entries.map(entry => (
-          <li key={entry.id}>
-            <Link href={`/preview/${entry.id}`} className="text-blue-600 hover:underline">
-              {entry.attributes?.title || entry.id}
-            </Link>
-            <span className="ml-2 text-gray-500 text-sm">({entry.tag})</span>
-            [
-            <Link href={`/graph/${entry.id}`} className="ml-2 text-blue-600 hover:underline">
-              graph
-            </Link>
-            <Link href={`/api/content/${entry.id}`} className="ml-2 text-green-700 hover:underline" target="_blank">
-              api
-            </Link>
-            ]
-          </li>
-        ))}
-      </ul>
     </main>
   );
 }
