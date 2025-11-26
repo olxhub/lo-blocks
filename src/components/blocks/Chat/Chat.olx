@@ -1,0 +1,20 @@
+<!-- Chat Block Example -->
+<Lesson id="ChatExample" title="Chat Block Demo" launchable="true">
+  
+  <!-- Student response component -->
+  <TextArea id="student_opinion" placeholder="What's your opinion on this topic?" />
+  
+  <!-- Simple chat demonstration -->
+  <Chat id="demo_chat" src="demo_conversation.chatpeg" title="Learning Discussion" />
+  
+  <!-- Chat with sidebar integration -->
+  <SplitPanel sizes="65,35">
+    <LeftPane>
+      <Chat id="interactive_chat" src="demo_conversation.chatpeg" title="Interactive Learning Chat" />
+    </LeftPane>
+    <RightPane>
+      <UseHistory id="chat_sidebar" target="student_opinion" />
+    </RightPane>
+  </SplitPanel>
+  
+</Lesson>
