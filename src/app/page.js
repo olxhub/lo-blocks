@@ -49,18 +49,33 @@ const ENDPOINT_LINKS = [
 
 function LessonsAndActivities() {
   const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetch('/api/content/root')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(data => {
         const allEntries = Object.keys(data.idMap).map(key => ({
           id: key,
           ...data.idMap[key]
         }));
         setEntries(allEntries);
-      });
+      })
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
   }, []);
+
+  if (loading) {
+    return <p className="text-gray-500">Loading lessons...</p>;
+  }
+
+  if (error) {
+    return <p className="text-red-600">Failed to load lessons: {error}</p>;
+  }
 
   return (
     <section className="mb-8">
