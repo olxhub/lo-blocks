@@ -3,12 +3,10 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { render, makeRootNode } from '@/lib/render';
-import { COMPONENT_MAP } from '@/components/componentMap';
 import AppHeader from '@/components/common/AppHeader';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
+import RenderOLX from '@/components/common/RenderOLX';
 import { useReduxState, settingsFields } from '@/lib/state';
-import { ComponentError } from '@/lib/types';
+import { ComponentError, IdMap } from '@/lib/types';
 
 export default function PreviewPage() {
   const params = useParams();
@@ -20,7 +18,7 @@ export default function PreviewPage() {
     { id: id, tag: 'preview' } // HACK: This works around not having proper props. Should be fixed. See below
   );
 
-  const [idMap, setIdMap] = useState(null);
+  const [idMap, setIdMap] = useState<IdMap | null>(null);
   const [error, setError] = useState<ComponentError>(null);
 
   useEffect(() => {
@@ -49,20 +47,13 @@ export default function PreviewPage() {
       <AppHeader />
       <div className="p-6 flex-1 overflow-auto">
         <h1 className="text-xl font-bold mb-4">Preview: {id}</h1>
-        <ErrorBoundary
-          resetKey={idMap}
-          handler={(err) => setError(err.message)}
-        >
-          <div className="space-y-4">
-            {render({
-              node: id,
-              key: id,
-              idMap,
-              nodeInfo: makeRootNode(),
-              componentMap: COMPONENT_MAP
-            })}
-          </div>
-        </ErrorBoundary>
+        <div className="space-y-4">
+          <RenderOLX
+            id={id}
+            baseIdMap={idMap}
+            onError={(err) => setError(err.message)}
+          />
+        </div>
 
         {debug && (
           <pre className="mt-4 bg-gray-100 p-4 text-xs rounded overflow-auto">

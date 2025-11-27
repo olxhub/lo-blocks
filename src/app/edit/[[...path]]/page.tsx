@@ -25,13 +25,10 @@ import FileNav from '@/components/navigation/FileNav';
 import ComponentNav from '@/components/navigation/ComponentNav';
 import SearchNav from '@/components/navigation/SearchNav';
 import AppHeader from '@/components/common/AppHeader';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
+import RenderOLX from '@/components/common/RenderOLX';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useReduxState } from '@/lib/state';
 import { editorFields } from '../editorFields';
-import { parseOLX } from '@/lib/content/parseOLX';
-import { render, makeRootNode } from '@/lib/render';
-import { COMPONENT_MAP } from '@/components/componentMap';
 import { NetworkStorageProvider } from '@/lib/storage/network';
 import { fileTypes } from '@/lib/storage/fileTypes';
 import { ComponentError } from '@/lib/types';
@@ -105,91 +102,37 @@ function EditControl({ content, setContent, handleSave, path }) {
 //   next.js surfaces even handled errors as issues in the UX
 // * We probably want an FSM for the loading / testing / last valid
 //   state regardless.
+//
+// This component uses RenderOLX for the actual rendering, but maintains
+// editor-specific behavior like Redux state persistence.
 function PreviewPane({ path, content, idMap }) {
-  const [parsed, setParsed] = useReduxState(
-    {},
-    editorFields.fieldInfoByField.parsed,
-    null,
-    { id: path }
-  );
   const [error, setError] = useState<ComponentError>(null);
 
-  // Parse content when it changes
-  useEffect(() => {
-    let cancelled = false;
-    async function doParse() {
-      let candidate;
-      try {
-	// HACK: We should not be manipulating paths directly
-        const prov = path ? [`file://${path}`] : [];
-        const provider = new NetworkStorageProvider();
-        candidate = await parseOLX(content, prov, provider);
-      } catch (err) {
-        console.log('Preview parse error:', err);
-        if (!cancelled) setError('Parse error: ' + (err.message || String(err)));
-        return;
-      }
-      try {
-        const merged = { ...idMap, ...candidate.idMap };
-        render({
-          key: candidate.root,
-          node: candidate.root,
-          idMap: merged,
-          nodeInfo: makeRootNode(),
-          componentMap: COMPONENT_MAP,
-        });
-        if (!cancelled) {
-          setParsed(candidate);
-          setError(null);
-        }
-      } catch (err) {
-        console.log('Preview render error:', err);
-        if (!cancelled) setError('Render error: ' + (err.message || String(err)));
-      }
-    }
-    doParse();
-    return () => {
-      cancelled = true;
-    };
-    // setParsed intentionally omitted (stable, but changes); path is too, and we should analyze path later. In either case, we need
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [content, idMap]);
+  // Create a stable provider for resolving src="" references
+  const resolveProvider = useMemo(() => new NetworkStorageProvider(), []);
 
-  const rendered = useMemo(() => {
-    if (!idMap || !parsed) return null;
-    try {
-      const merged = { ...idMap, ...parsed.idMap };
-      return render({
-        key: parsed.root,
-        node: parsed.root,
-        idMap: merged,
-        nodeInfo: makeRootNode(),
-        componentMap: COMPONENT_MAP,
-      });
-    } catch (err) {
-      console.log('Preview render error:', err);
-      return null;
-    }
-  }, [parsed, idMap]);
+  // Determine provenance from path
+  const provenance = path ? `file://${path}` : undefined;
 
-  console.log(rendered);
-  try {
-    return (
-      <ErrorBoundary
-        resetKey={parsed}
-        handler={(err) => setError('Render error: ' + err.message)}
-      >
-        <div>
-          {error && (
-            <pre className="text-red-600 mb-2">Error: {error}</pre>
-          )}
-          {rendered || (!idMap ? 'Loading...' : 'No valid preview')}
-        </div>
-      </ErrorBoundary>
-    );
-  } catch (err) {
-    return (<pre className="text-red-600 mb-2">Error: {err.message}</pre>);
+  if (!idMap) {
+    return <div>Loading...</div>;
   }
+
+  return (
+    <div>
+      {error && (
+        <pre className="text-red-600 mb-2">Error: {error}</pre>
+      )}
+      <RenderOLX
+        id={path || '_root'}
+        inline={content}
+        baseIdMap={idMap}
+        resolveProvider={resolveProvider}
+        provenance={provenance}
+        onError={(err) => setError(err.message)}
+      />
+    </div>
+  );
 }
 
 function NavigationPane() {
