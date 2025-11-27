@@ -15,6 +15,33 @@
 //   <RenderOLX id="demo" inline="<Markdown>Hello</Markdown>" />
 //   <RenderOLX id="page" inline={edits} baseIdMap={systemContent} />
 //
+// =============================================================================
+// ARCHITECTURE TODO
+// =============================================================================
+//
+// Current implementation parses inline/files content directly. The intended
+// design is to unify with syncContentFromStorage for proper change detection:
+//
+// 1. Each provider implements loadXmlFilesWithStats() returning:
+//    { added, changed, unchanged, deleted } with content hashes in _metadata
+//
+// 2. StackedStorageProvider.loadXmlFilesWithStats() merges results from all
+//    providers, with higher-priority providers' files shadowing lower ones
+//
+// 3. RenderOLX calls syncContentFromStorage(stackedProvider) which:
+//    - Scans all providers for OLX/XML files
+//    - Parses only added/changed files (using hashes for change detection)
+//    - Maintains incremental idMap updates
+//    - Returns merged idMap ready for rendering
+//
+// 4. For live editing, InMemoryStorageProvider tracks writes and reports
+//    changes on subsequent loadXmlFilesWithStats() calls (similar to immer)
+//
+// This unifies the content loading pipeline and enables efficient incremental
+// updates for the editor, documentation examples, and production rendering.
+//
+// =============================================================================
+//
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
