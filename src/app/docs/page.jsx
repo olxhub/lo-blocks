@@ -78,8 +78,12 @@ export default function DocsPage() {
       .then(data => {
         if (data.ok) {
           setDocs(data.documentation);
-          // Select first block by default
-          if (data.documentation.blocks.length > 0) {
+          // Check URL hash for initial block, otherwise select first
+          const hash = window.location.hash.slice(1);
+          const blockFromHash = hash && data.documentation.blocks.find(b => b.name === hash);
+          if (blockFromHash) {
+            setSelectedBlock(blockFromHash.name);
+          } else if (data.documentation.blocks.length > 0) {
             setSelectedBlock(data.documentation.blocks[0].name);
           }
         } else {
@@ -89,6 +93,13 @@ export default function DocsPage() {
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  // Update URL hash when selected block changes
+  useEffect(() => {
+    if (selectedBlock && typeof window !== 'undefined') {
+      window.history.replaceState(null, '', `#${selectedBlock}`);
+    }
+  }, [selectedBlock]);
 
   // Fetch block details when selection changes
   useEffect(() => {
