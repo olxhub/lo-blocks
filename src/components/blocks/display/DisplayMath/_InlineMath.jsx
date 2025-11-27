@@ -7,12 +7,8 @@ if (typeof window !== 'undefined') {
 import { DisplayError } from '@/lib/util/debug';
 
 export function _InlineMath( props ) {
-  const { kids, url_name } = props;
-  const latex = kids
-    ?.filter(k => k?.type === 'text')
-    .map(k => k.text)
-    .join(' ')
-    .trim();
+  const { kids } = props;
+  const latex = typeof kids === 'string' ? kids.trim() : '';
 
   let html = '';
   try {

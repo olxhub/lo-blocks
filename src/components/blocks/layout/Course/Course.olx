@@ -1,0 +1,47 @@
+<!-- Course Block Examples -->
+<Course id="CourseDemo" title="Sample Course">
+
+  <Chapter title="Welcome" id="welcome">
+    <Markdown id="welcome_text" title="Welcome">
+# Welcome to the Course
+
+This is an introductory chapter. Each chapter appears in the left navigation panel.
+
+Click on chapters to expand them and view their contents.
+    </Markdown>
+  </Chapter>
+
+  <Chapter title="Getting Started" id="getting_started">
+    <Vertical id="gs_content" title="Overview">
+      <Markdown id="gs_intro">
+## Getting Started
+
+This chapter covers the basics you need to begin.
+      </Markdown>
+
+      <Markdown id="gs_steps">
+### First Steps
+
+1. Read the overview
+2. Complete the exercises
+3. Check your understanding
+      </Markdown>
+    </Vertical>
+  </Chapter>
+
+  <Chapter title="Core Concepts" id="core">
+    <Sequential id="concepts_seq" title="Concepts">
+      <Markdown id="concept1">
+## Concept 1
+
+The first core concept to understand...
+      </Markdown>
+      <Markdown id="concept2">
+## Concept 2
+
+Building on the first concept...
+      </Markdown>
+    </Sequential>
+  </Chapter>
+
+</Course>

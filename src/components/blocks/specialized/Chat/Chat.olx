@@ -1,5 +1,5 @@
 <!-- Chat Block Example -->
-<Lesson id="ChatExample" title="Chat Block Demo" launchable="true">
+<Vertical id="ChatExample" title="Chat Block Demo" launchable="true">
   
   <!-- Student response component -->
   <TextArea id="student_opinion" placeholder="What's your opinion on this topic?" />
@@ -17,4 +17,4 @@
     </RightPane>
   </SplitPanel>
   
-</Lesson>
+</Vertical>

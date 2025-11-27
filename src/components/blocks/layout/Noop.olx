@@ -1,0 +1,16 @@
+<!-- Noop Block Examples -->
+<Vertical id="NoopDemo" title="Noop Block Demo" launchable="true">
+
+  <Markdown id="intro">
+## Noop Block Examples
+
+Noop renders children without adding visual styling. It's useful for logical grouping.
+  </Markdown>
+
+  <!-- Basic grouping -->
+  <Noop id="group1">
+    <Markdown id="g1_item1">This content is in a Noop group.</Markdown>
+    <Markdown id="g1_item2">No extra styling is added.</Markdown>
+  </Noop>
+
+</Vertical>

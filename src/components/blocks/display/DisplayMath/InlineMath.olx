@@ -1,0 +1,20 @@
+<!-- InlineMath Block Examples -->
+<Vertical id="InlineMathDemo" title="InlineMath Demo" launchable="true">
+
+  <Markdown id="intro">
+## Inline Math
+
+InlineMath renders LaTeX expressions inline, without creating a new line. Use the shorthand `&lt;$&gt;...&lt;/$&gt;` syntax.
+  </Markdown>
+
+  <Markdown id="examples_intro">### Examples</Markdown>
+
+  <$>ax^2 + bx + c = 0</$>
+
+  <$>\pi \approx 3.14159</$>
+
+  <$>E = mc^2</$>
+
+  <$>\sum_{i=1}^{n} i = \frac{n(n+1)}{2}</$>
+
+</Vertical>

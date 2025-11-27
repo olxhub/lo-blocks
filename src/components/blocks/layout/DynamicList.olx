@@ -1,0 +1,45 @@
+<!-- DynamicList Block Examples -->
+<Vertical id="DynamicListDemo" title="DynamicList Block Demo" launchable="true">
+
+  <Markdown id="intro">
+## DynamicList Examples
+
+DynamicList allows users to add or remove repeated content items.
+  </Markdown>
+
+  <!-- Simple text list -->
+  <Markdown id="q1">
+### Brainstorming
+
+List ideas for reducing plastic waste (add as many as you can think of):
+  </Markdown>
+  <DynamicList id="plastic_ideas">
+    <LineInput placeholder="Enter an idea..." />
+  </DynamicList>
+
+  <!-- Detailed responses -->
+  <Markdown id="q2">
+### Argument Support
+
+Provide at least 2 pieces of evidence to support your thesis:
+  </Markdown>
+  <DynamicList id="evidence_list" min="2">
+    <Vertical>
+      <TextArea placeholder="Describe your evidence..." rows="3" />
+    </Vertical>
+  </DynamicList>
+
+  <!-- With structure -->
+  <Markdown id="q3">
+### Compare and Contrast
+
+List similarities between the two concepts:
+  </Markdown>
+  <DynamicList id="similarities">
+    <Vertical>
+      <Markdown>**Similarity:**</Markdown>
+      <TextArea placeholder="Describe a similarity..." rows="2" />
+    </Vertical>
+  </DynamicList>
+
+</Vertical>

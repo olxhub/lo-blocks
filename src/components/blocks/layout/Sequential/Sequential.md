@@ -24,8 +24,8 @@ The Sequential block creates a step-by-step learning experiences where learners 
 
 ## Common Use Cases
 
-### 1. Tutorial Sequences
-Guide learners through multi-step processes with explanations and practice at each stage.
+### 1. Learning Sequences
+Guide learners through multi-step processes where they do a lot of the work, or you test their understanding along the way.
 
 ### 2. Problem-Solving Scaffolds
 Break complex problems into smaller sub-problems, providing support at each level.

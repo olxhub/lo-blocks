@@ -1,0 +1,56 @@
+<!-- DisplayMath Block Examples -->
+<Vertical id="MathDemo" title="Math Display Demo" launchable="true">
+
+  <Markdown id="math_intro">
+## Mathematical Equations
+
+Demonstrating block math rendering with LaTeX.
+  </Markdown>
+
+  <!-- Basic equation -->
+  <Markdown id="pythagorean_label">**Pythagorean Theorem:**</Markdown>
+  <BlockMath id="pythagorean">
+a^2 + b^2 = c^2
+  </BlockMath>
+
+  <!-- Quadratic formula -->
+  <Markdown id="quadratic_label">**Quadratic Formula:**</Markdown>
+  <BlockMath id="quadratic_formula">
+x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+  </BlockMath>
+
+  <!-- Calculus example -->
+  <Markdown id="integral_label">**Gaussian Integral:**</Markdown>
+  <BlockMath id="integral">
+\int_{0}^{\infty} e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
+  </BlockMath>
+
+  <!-- Summation -->
+  <Markdown id="summation_label">**Basel Problem:**</Markdown>
+  <BlockMath id="summation">
+\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}
+  </BlockMath>
+
+  <!-- Matrix example -->
+  <Markdown id="matrix_label">**Matrix Multiplication:**</Markdown>
+  <BlockMath id="matrix">
+\begin{pmatrix}
+a &amp; b \\
+c &amp; d
+\end{pmatrix}
+\begin{pmatrix}
+x \\
+y
+\end{pmatrix}
+=
+\begin{pmatrix}
+ax + by \\
+cx + dy
+\end{pmatrix}
+  </BlockMath>
+
+  <!-- Shorthand syntax -->
+  <Markdown id="shorthand_label">**Shorthand syntax:**</Markdown>
+  <$$>E = mc^2</$$>
+
+</Vertical>

@@ -1,0 +1,34 @@
+<!-- SideBarPanel Block Example -->
+<Vertical id="SideBarPanelDemo" title="SideBarPanel Block Demo" launchable="true">
+
+  <Markdown id="intro">
+## SideBarPanel Layout
+
+SideBarPanel creates a two-column layout with MainPane and Sidebar regions.
+  </Markdown>
+
+  <SideBarPanel id="basic_split">
+    <MainPane>
+      <Markdown id="main_content">
+## Main Content Area
+
+This is the primary content area where the main lesson or activity appears.
+
+The sidebar to the right can contain supporting materials, references, or hints.
+      </Markdown>
+    </MainPane>
+    <Sidebar>
+      <Markdown id="sidebar_content">
+### Sidebar
+
+Supporting content goes here:
+
+- Helpful links
+- Quick tips
+- Related concepts
+- Formulas or references
+      </Markdown>
+    </Sidebar>
+  </SideBarPanel>
+
+</Vertical>

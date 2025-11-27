@@ -1,0 +1,31 @@
+<!-- Hidden Block Example -->
+<Vertical id="HiddenDemo" title="Hidden Block Demo" launchable="true">
+
+  <Markdown id="intro">
+## Hidden Block
+
+**Advanced / System-Level Block**
+
+Hidden includes children in the content tree without displaying them. Content is accessible programmatically (e.g., by LLMs scanning the page) but invisible to users.
+  </Markdown>
+
+  <Markdown id="example_intro">
+### Example: Hidden Context for AI
+
+Below, an LLM could access the hidden rubric when analyzing the response, but students only see the question and input:
+  </Markdown>
+
+  <Vertical id="essay_example">
+    <Markdown id="question">Explain the water cycle.</Markdown>
+    <Hidden>
+      <Markdown id="rubric">
+**Rubric (hidden from students):**
+- Mentions evaporation, condensation, precipitation
+- Describes cyclical nature
+- Uses appropriate terminology
+      </Markdown>
+    </Hidden>
+    <TextArea id="response" placeholder="Write your explanation..." rows="4" />
+  </Vertical>
+
+</Vertical>
