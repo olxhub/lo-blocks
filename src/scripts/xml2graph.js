@@ -2,7 +2,7 @@
 // src/scripts/xml2graph.js
 import stringify from 'json-stable-stringify';
 import { syncContentFromStorage } from '../lib/content/syncContentFromStorage';
-import { FileStorageProvider } from '../lib/storage';
+import { FileStorageProvider } from '../lib/storage/providers/file';
 import { parseIdMap } from '../lib/graph/parseIdMap';
 import fs from 'fs';
 import path from 'path';

@@ -29,8 +29,7 @@ import RenderOLX from '@/components/common/RenderOLX';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useReduxState } from '@/lib/state';
 import { editorFields } from '../editorFields';
-import { NetworkStorageProvider } from '@/lib/storage/network';
-import { fileTypes } from '@/lib/storage/fileTypes';
+import { NetworkStorageProvider, fileTypes } from '@/lib/storage';
 import { ComponentError } from '@/lib/types';
 
 // This causes CoadMirror not to load on all pages (it gets its own

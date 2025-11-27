@@ -2,7 +2,8 @@
 // src/lib/content/loadContentTree.test.js
 import fs from 'fs/promises';
 import path from 'path';
-import { FileStorageProvider, fileTypes } from '../storage';
+import { fileTypes } from '../storage';
+import { FileStorageProvider } from '../storage/providers/file';
 
 it('handles added, unchanged, changed, and deleted files via filesystem mutation', async () => {
   const tmpDir = await fs.mkdtemp('content-test-');

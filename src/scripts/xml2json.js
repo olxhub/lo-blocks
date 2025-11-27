@@ -3,7 +3,7 @@
 import stringify from 'json-stable-stringify';
 
 import { syncContentFromStorage } from '../lib/content/syncContentFromStorage';
-import { FileStorageProvider } from '../lib/storage';
+import { FileStorageProvider } from '../lib/storage/providers/file';
 import fs from 'fs';
 import path from 'path';
 

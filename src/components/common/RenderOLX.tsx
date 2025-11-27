@@ -35,53 +35,8 @@ import { render, makeRootNode } from '@/lib/render';
 import { COMPONENT_MAP } from '@/components/componentMap';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import type { StorageProvider } from '@/lib/storage';
+import { InMemoryStorageProvider } from '@/lib/storage';
 import type { IdMap } from '@/lib/types';
-
-// In-memory provider for inline content and virtual filesystems
-class InMemoryStorageProvider implements StorageProvider {
-  private files: Record<string, string>;
-  private basePath: string;
-
-  constructor(files: Record<string, string>, basePath: string = '') {
-    this.files = files;
-    this.basePath = basePath;
-  }
-
-  async read(path: string): Promise<string> {
-    // Normalize path - remove leading ./ or /
-    const normalized = path.replace(/^\.?\//, '');
-
-    if (this.files[normalized] !== undefined) {
-      return this.files[normalized];
-    }
-
-    // Try with basePath prefix
-    const withBase = this.basePath ? `${this.basePath}/${normalized}` : normalized;
-    if (this.files[withBase] !== undefined) {
-      return this.files[withBase];
-    }
-
-    throw new Error(`File not found: ${path}`);
-  }
-
-  async exists(path: string): Promise<boolean> {
-    const normalized = path.replace(/^\.?\//, '');
-    return this.files[normalized] !== undefined;
-  }
-
-  // Required by StorageProvider interface but not needed for read-only use
-  async write(_path: string, _content: string): Promise<void> {
-    throw new Error('InMemoryStorageProvider is read-only');
-  }
-
-  async list(_path?: string): Promise<string[]> {
-    return Object.keys(this.files);
-  }
-
-  async loadXmlFilesWithStats(_existing: Record<string, any>): Promise<any> {
-    throw new Error('Not implemented for InMemoryStorageProvider');
-  }
-}
 
 export interface RenderOLXProps {
   /** Root node ID to render */
