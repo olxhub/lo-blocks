@@ -1,0 +1,47 @@
+<!-- ChoiceInput Block Examples -->
+<Vertical id="ChoiceInputDemo" title="ChoiceInput Block Demo" launchable="true">
+
+  <Markdown id="intro">
+## Multiple Choice Examples
+
+ChoiceInput presents options using Key (correct) and Distractor (incorrect) children. When used with grading, the ChoiceInput goes inside the KeyGrader, which goes inside CapaProblem.
+  </Markdown>
+
+  <!-- Basic single choice -->
+  <CapaProblem id="geography_problem">
+    <p>What is the capital of Japan?</p>
+    <KeyGrader>
+      <ChoiceInput>
+        <Key>Tokyo</Key>
+        <Distractor>Osaka</Distractor>
+        <Distractor>Kyoto</Distractor>
+        <Distractor>Yokohama</Distractor>
+      </ChoiceInput>
+    </KeyGrader>
+  </CapaProblem>
+
+  <!-- Science question -->
+  <CapaProblem id="biology_problem">
+    <p>Which organelle is responsible for producing ATP in cells?</p>
+    <KeyGrader>
+      <ChoiceInput>
+        <Distractor>Nucleus</Distractor>
+        <Key>Mitochondria</Key>
+        <Distractor>Ribosome</Distractor>
+        <Distractor>Golgi apparatus</Distractor>
+      </ChoiceInput>
+    </KeyGrader>
+  </CapaProblem>
+
+  <!-- True/False format -->
+  <CapaProblem id="tf_problem">
+    <p>True or False: The sun revolves around the Earth.</p>
+    <KeyGrader>
+      <ChoiceInput>
+        <Distractor>True</Distractor>
+        <Key>False</Key>
+      </ChoiceInput>
+    </KeyGrader>
+  </CapaProblem>
+
+</Vertical>

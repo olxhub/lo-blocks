@@ -1,0 +1,35 @@
+<!-- NumberInput Block Examples -->
+<Vertical id="NumberInputDemo" title="NumberInput Block Demo" launchable="true">
+
+  <Markdown id="intro">
+## NumberInput Examples
+
+NumberInput provides numeric entry. For graded problems, use inside CapaProblem with a grader.
+  </Markdown>
+
+  <!-- Graded problem -->
+  <CapaProblem id="arithmetic_problem">
+    <NumericalGrader answer="360">
+      <p>What is 24 × 15?</p>
+      <NumberInput />
+    </NumericalGrader>
+  </CapaProblem>
+
+  <!-- With tolerance -->
+  <CapaProblem id="physics_problem">
+    <NumericalGrader answer="5" tolerance="0.1">
+      <p>Calculate the acceleration (in m/s²) if a 10 kg object experiences a force of 50 N.</p>
+      <p><em>(Use F = ma)</em></p>
+      <NumberInput />
+    </NumericalGrader>
+  </CapaProblem>
+
+  <!-- Standalone data collection (no grading) -->
+  <Markdown id="data_intro">
+### Data Collection
+
+NumberInput can also be used standalone for surveys or data collection:
+  </Markdown>
+  <NumberInput id="temp_reading" placeholder="Enter temperature (°C)" />
+
+</Vertical>

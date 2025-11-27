@@ -1,10 +1,10 @@
 # Ref Component
 
-A unified reference component for accessing values from other blocks in Learning Observer.
+A reference component for accessing values from other blocks in Learning Observer.
 
 ## Overview
 
-The `Ref` component provides a clean, flexible way to reference and display values from other blocks. For example, if you would like to include a text a student has written in a multiple choice question, <Ref> lets you do that.
+The `Ref` component provides a clean, flexible way to reference and display values from other blocks. For example, if you would like to include a text a student has written in a text area, <Ref> lets you do that.
 
 ## Basic Usage
 
