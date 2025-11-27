@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { NetworkStorageProvider } from '@/lib/storage/network';
-import type { UriNode } from '@/lib/storage';
+import { NetworkStorageProvider, type UriNode } from '@/lib/storage';
 
 export default function FileNav() {
   const [tree, setTree] = useState<UriNode | null>(null);

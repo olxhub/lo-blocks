@@ -1,4 +1,4 @@
-// src/lib/storage/network.ts
+// src/lib/storage/providers/network.ts
 //
 // Network storage provider - HTTP-based content access for Learning Observer.
 //
@@ -11,14 +11,14 @@
 // The provider translates storage operations into HTTP requests against
 // configurable endpoints, maintaining the same interface as local file storage.
 //
+import type { ProvenanceURI } from '../../types';
 import type {
   StorageProvider,
   XmlFileInfo,
   XmlScanResult,
   FileSelection,
   UriNode,
-} from './index';
-import type { ProvenanceURI } from '../types';
+} from '../types';
 
 export interface NetworkProviderOptions {
   readEndpoint?: string;
@@ -33,10 +33,12 @@ export class NetworkStorageProvider implements StorageProvider {
     this.readEndpoint = (options.readEndpoint ?? '/api/file').replace(/\/$/, '');
     this.listEndpoint = (options.listEndpoint ?? '/api/files').replace(/\/$/, '');
   }
-  resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: any): string {
+
+  resolveRelativePath(_baseProvenance: ProvenanceURI, _relativePath: string): string {
     throw new Error('Method not implemented.');
   }
-  validateImagePath(imagePath: any): Promise<boolean> {
+
+  validateImagePath(_imagePath: string): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
 

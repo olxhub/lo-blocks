@@ -1,5 +1,5 @@
 // src/app/api/file/route.js
-import { FileStorageProvider } from '@/lib/storage';
+import { FileStorageProvider } from '@/lib/storage/providers/file';
 import pegExts from '@/generated/pegExtensions.json' assert { type: 'json' };
 
 function validatePath(relPath) {

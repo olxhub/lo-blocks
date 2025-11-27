@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import { store as loStore } from '@/lib/state/store';
 import { render, makeRootNode } from '@/lib/render';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
-import { FileStorageProvider } from '@/lib/storage';
+import { FileStorageProvider } from '@/lib/storage/providers/file';
 
 it('wires inputs and graders; UI controls rendered at runtime', async () => {
   const { idMap } = await syncContentFromStorage(new FileStorageProvider('content/demos'));
