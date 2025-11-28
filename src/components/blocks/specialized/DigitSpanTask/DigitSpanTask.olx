@@ -1,0 +1,40 @@
+<!-- DigitSpanTask Block Examples -->
+<Vertical id="DigitSpanTaskDemo" title="DigitSpanTask Block Demo" launchable="true">
+
+  <Markdown id="intro">
+## Digit Span Memory Task
+
+Test your working memory by listening to number sequences and typing them back.
+  </Markdown>
+
+  <!-- Forward span -->
+  <Markdown id="forward_instructions">
+### Forward Digit Span
+
+Listen to the sequence, then type the numbers **in the same order** you heard them.
+  </Markdown>
+  <DigitSpanTask id="forward_test" mode="forward" />
+
+  <Markdown id="backward_instructions">
+### Backward Digit Span
+
+Listen to the sequence, then type the numbers **in reverse order**.
+  </Markdown>
+  <DigitSpanTask id="backward_test" mode="backward" />
+
+  <Markdown id="ascending_instructions">
+### Ascending Digit Span
+
+Listen to the sequence, then type the numbers **from smallest to largest**.
+  </Markdown>
+  <DigitSpanTask id="ascending_test" mode="ascending" />
+
+  <Markdown id="explanation">
+### About This Task
+
+The digit span task is a classic measure of working memory capacity. The sequence length adapts based on your performance - correct answers lead to longer sequences, while errors lead to shorter ones.
+
+This adaptive approach provides a more accurate estimate of your memory span than fixed-length tests.
+  </Markdown>
+
+</Vertical>
