@@ -54,13 +54,17 @@ export async function GET(request, { params }) {
 
     // Read example file contents
     if (block.examples && block.examples.length > 0) {
-      for (const examplePath of block.examples) {
+      for (const example of block.examples) {
+        // Handle both old format (string) and new format ({path, gitStatus})
+        const examplePath = typeof example === 'string' ? example : example.path;
+        const gitStatus = typeof example === 'object' ? example.gitStatus : null;
         try {
           const fullPath = await resolveSafePath(process.cwd(), examplePath);
           blockDocs.examples.push({
             path: examplePath,
             filename: path.basename(examplePath),
-            content: await fs.readFile(fullPath, 'utf8')
+            content: await fs.readFile(fullPath, 'utf8'),
+            gitStatus
           });
         } catch (err) {
           console.warn(`Could not read example ${examplePath}: ${err.message}`);
