@@ -1,0 +1,12 @@
+<!-- TextHighlight with targeted feedback for each segment -->
+<TextHighlight id="feedback_energy" mode="immediate">
+Identify examples of renewable energy sources:
+---
+Power can come from [solar panels|solar], &lt;&lt;coal plants|coal&gt;&gt;, [wind turbines|wind], or &lt;&lt;natural gas|gas&gt;&gt;.
+---
+---
+solar: Correct! Solar energy is renewable - the sun keeps shining.
+wind: Right! Wind is a renewable resource.
+coal: Not quite - coal is a fossil fuel that takes millions of years to form.
+gas: Natural gas is also a fossil fuel, not renewable.
+</TextHighlight>
