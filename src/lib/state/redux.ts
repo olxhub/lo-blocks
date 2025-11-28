@@ -302,6 +302,11 @@ export function componentFieldByName(props, targetId, fieldName) {
  * @returns {any} The component's current value
  */
 export function valueSelector(props, state, id, { fallback } = {} as { fallback?: any }) {
+  // If no ID provided, return fallback (supports optional targetRef patterns)
+  if (id === undefined || id === null) {
+    return fallback;
+  }
+
   const targetNode = props?.idMap?.[id];
   const blueprint = targetNode ? props?.componentMap?.[targetNode.tag] : null;
 
