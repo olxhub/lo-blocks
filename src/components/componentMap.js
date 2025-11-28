@@ -8,13 +8,16 @@ import createStubBlock from '@/components/blocks/utility/StubBlock';
 // Merge metadata onto block objects
 export const COMPONENT_MAP = Object.fromEntries(
   Object.entries(BlockRegistry).map(([name, block]) => {
-    const meta = blockMetadata[name];
+    const meta = blockMetadata.blocks[name];
     if (meta) {
       Object.assign(block, meta);
     }
     return [name, block];
   })
 );
+
+// Export build metadata for debugging/cache invalidation
+export const BUILD_META = blockMetadata.meta;
 
 // Structural marker blocks - parsed by parent blocks, not rendered directly
 const STUB_BLOCKS = {

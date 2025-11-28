@@ -325,10 +325,47 @@ function generateRegistry(registryType) {
 
   // Write metadata JSON if present (blocks registry)
   if (metadata && metadataFile) {
-    const metadataContent = JSON.stringify(metadata, null, 2) + '\n';
+    const wrapped = {
+      meta: getBuildMeta(),
+      blocks: metadata
+    };
+    const metadataContent = JSON.stringify(wrapped, null, 2) + '\n';
     fs.writeFileSync(metadataFile, metadataContent);
     console.log(`Generated ${registryType} metadata at ${metadataFile}.`);
   }
+}
+
+/**
+ * Get build metadata for the generated files.
+ * Includes git info and timestamp for debugging and cache invalidation.
+ */
+function getBuildMeta() {
+  const meta = {
+    timestamp: new Date().toISOString()
+  };
+
+  try {
+    meta.gitHash = execSync('git rev-parse HEAD', {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    }).trim();
+
+    meta.gitBranch = execSync('git rev-parse --abbrev-ref HEAD', {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    }).trim();
+
+    // Check if working directory is dirty
+    const status = execSync('git status --porcelain', {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    }).trim();
+    meta.dirty = status.length > 0;
+  } catch (error) {
+    // Git not available - that's fine, just omit git fields
+  }
+
+  return meta;
 }
 
 function main() {
