@@ -1,0 +1,63 @@
+<!-- UseHistory Demo - Dynamic content with history navigation -->
+<Vertical id="UseHistoryDemo" title="UseHistory Demo" launchable="true">
+
+  <Markdown>
+## UseHistory with ChoiceInput
+
+Select topics below. UseHistory remembers your selections and lets you navigate back through them.
+  </Markdown>
+
+<CapaProblem title="Pick one!">
+  <!-- ChoiceInput with value attributes pointing to content IDs -->
+  <KeyGrader>
+  <ChoiceInput id="topic_selector">
+    <Key value="content_intro">Introduction</Key>
+    <Distractor value="content_basics">Basics</Distractor>
+    <Distractor value="content_advanced">Advanced</Distractor>
+  </ChoiceInput>
+  </KeyGrader>
+</CapaProblem>
+
+  <!-- UseHistory tracks all selections with navigation controls -->
+  <UseHistory id="history_display" target="content_intro" targetRef="topic_selector" />
+
+  <!-- Hidden content blocks -->
+  <Hidden>
+    <Markdown id="content_intro">
+### Introduction
+
+Welcome to the tutorial! This introduction covers the fundamentals
+you'll need before diving deeper.
+
+- What you'll learn
+- Prerequisites
+- How to use this guide
+    </Markdown>
+
+    <Markdown id="content_basics">
+### Basics
+
+Now let's cover the basic concepts:
+
+1. **Core Principles** - The foundation of everything
+2. **Key Terminology** - Words you need to know
+3. **Simple Examples** - See it in action
+    </Markdown>
+
+    <Markdown id="content_advanced">
+### Advanced Topics
+
+Ready for more? Here are advanced concepts:
+
+- Complex patterns and when to use them
+- Performance optimization techniques
+- Real-world case studies
+    </Markdown>
+  </Hidden>
+
+  <Markdown>
+---
+*Try selecting different topics, then use the dots above the content to navigate back through your history.*
+  </Markdown>
+
+</Vertical>
