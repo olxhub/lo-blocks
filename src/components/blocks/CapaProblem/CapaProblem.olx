@@ -1,0 +1,45 @@
+<!-- CapaProblem Examples -->
+<Vertical id="CapaProblemDemo" title="CapaProblem Demo" launchable="true">
+
+  <!-- Basic numerical problem - grader wraps input -->
+  <CapaProblem id="arithmetic" title="Arithmetic">
+    <NumericalGrader answer="56">
+      <p>What is 7 × 8?</p>
+      <NumberInput />
+    </NumericalGrader>
+  </CapaProblem>
+
+  <!-- Tolerance example -->
+  <CapaProblem id="pi_estimate" title="Estimating Pi">
+    <NumericalGrader answer="3.14" tolerance="0.01">
+      <p>What is the value of π to two decimal places?</p>
+      <NumberInput />
+    </NumericalGrader>
+  </CapaProblem>
+
+  <!-- Multiple choice -->
+  <CapaProblem id="planets" title="Solar System">
+    <KeyGrader>
+      <p>Which planet is closest to the Sun?</p>
+      <ChoiceInput>
+        <Key>Mercury</Key>
+        <Distractor>Venus</Distractor>
+        <Distractor>Earth</Distractor>
+        <Distractor>Mars</Distractor>
+      </ChoiceInput>
+    </KeyGrader>
+  </CapaProblem>
+
+  <!-- Rich content with math -->
+  <CapaProblem id="quadratic" title="Quadratic Equation">
+    <NumericalGrader answer="2">
+      <Markdown>
+Solve for x:
+      </Markdown>
+      <BlockMath>x^2 - 5x + 6 = 0</BlockMath>
+      <p>Enter the smaller root:</p>
+      <NumberInput />
+    </NumericalGrader>
+  </CapaProblem>
+
+</Vertical>

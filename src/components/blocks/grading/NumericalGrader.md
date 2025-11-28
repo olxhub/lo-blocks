@@ -1,69 +1,57 @@
-# NumericalGrader Block
+# NumericalGrader
 
-## Overview
+Grades numeric answers with support for tolerance, ranges, and complex numbers.
 
-NumericalGrader grades numeric responses by comparing student input to an expected value, with configurable tolerance for rounding and precision. It supports complex numbers, ranges, and both absolute and percentage tolerances.
+## Usage
 
-## Technical Usage
-
-### Basic Syntax
-
-Inside CapaProblem, the grader wraps its input:
+Works with any input that outputs a number:
 
 ```xml
-<CapaProblem id="math_problem">
+<CapaProblem id="with_number_input">
   <NumericalGrader answer="42">
     <p>What is 6 × 7?</p>
+    <NumberInput />
+  </NumericalGrader>
+</CapaProblem>
+```
+
+```xml
+<CapaProblem id="with_complex_input">
+  <NumericalGrader answer="5">
+    <p>What is |3 + 4i|?</p>
     <ComplexInput />
   </NumericalGrader>
 </CapaProblem>
 ```
 
-### Properties
+## Properties
 
-- `answer` (required): The correct numerical answer (supports complex numbers like `3+4i`)
-- `tolerance` (optional): Acceptable deviation - absolute number or percentage (e.g., `0.1` or `5%`)
+- `answer` (required): Expected value, range, or complex number
+- `tolerance` (optional): Acceptable deviation (absolute or percentage)
 
-### Compatible Inputs
-
-NumericalGrader works with any input that provides a numeric value (e.g., NumberInput, ComplexInput).
-
-### Tolerance Examples
+## Tolerance
 
 ```xml
-<!-- Exact match -->
-<NumericalGrader answer="100">
-
-<!-- Absolute tolerance: accepts 99-101 -->
-<NumericalGrader answer="100" tolerance="1">
-
-<!-- Percentage tolerance: accepts 95-105 (within 5%) -->
-<NumericalGrader answer="100" tolerance="5%">
+<NumericalGrader answer="100" />                 <!-- exact -->
+<NumericalGrader answer="100" tolerance="1" />   <!-- 99-101 -->
+<NumericalGrader answer="100" tolerance="5%" />  <!-- 95-105 -->
 ```
 
-### Range Answers
+## Range Answers
 
-Answers can specify a range using interval notation:
+Accept any value in a range:
 
 ```xml
-<!-- Accept any value from 10 to 20 (inclusive) -->
-<NumericalGrader answer="[10, 20]">
-
-<!-- Accept any value from 10 (exclusive) to 20 (inclusive) -->
-<NumericalGrader answer="(10, 20]">
+<NumericalGrader answer="[10, 20]" />   <!-- 10 ≤ x ≤ 20 -->
+<NumericalGrader answer="(10, 20]" />   <!-- 10 < x ≤ 20 -->
 ```
 
-### State Fields
+## Complex Numbers
 
-- `correct`: Correctness status (CORRECT, INCORRECT, INVALID)
-- `message`: Feedback message
+```xml
+<NumericalGrader answer="3+4i" tolerance="0.1" />
+```
 
-## Related Blocks
+## Compatible Inputs
 
-- **ComplexInput**: Text input for numerical/complex values
-- **RatioGrader**: For ratio/fraction answers with multiple inputs
-- **CapaProblem**: Container that provides grading UI
-
-## Example File
-
-See `NumericalGrader.olx` for working examples.
+Any input that returns a number: `NumberInput`, `ComplexInput`, or future inputs like sliders, number lines, etc.
