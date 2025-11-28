@@ -1,0 +1,56 @@
+<!-- Chat with sidebar showing student responses -->
+<Vertical id="ChatWithSidebar" title="Interactive Discussion">
+
+  <!-- Activities that appear in the sidebar -->
+  <Hidden>
+    <Markdown id="sidebar_intro">Activities will appear here as the conversation progresses.</Markdown>
+    <Vertical id="initial_thoughts_activity">
+      <Markdown>**What do you already know about effective study techniques?**</Markdown>
+      <TextArea id="initial_thoughts" placeholder="Type your thoughts here..." />
+      <ActionButton id="submit_initial" dependsOn="initial_thoughts" target="interactive_chat" action="advance" label="Submit" />
+    </Vertical>
+    <Vertical id="follow_up_activity">
+      <Markdown>**How might you apply these strategies to your own studying?**</Markdown>
+      <TextArea id="follow_up" placeholder="Describe your plan..." />
+      <ActionButton id="submit_follow_up" dependsOn="follow_up" target="interactive_chat" action="advance" label="Submit" />
+    </Vertical>
+  </Hidden>
+
+  <SplitPanel sizes="65,35">
+    <LeftPane>
+      <Chat id="interactive_chat" title="Study Session">
+Title: Study Session
+~~~~
+
+Alex: Welcome! Before we dive in - what do you already know about study techniques?
+
+sidebar -> initial_thoughts_activity
+
+--- wait initial_thoughts ---
+
+Alex: Thanks for sharing! Here's what research tells us.
+
+Alex: Active recall - testing yourself - is far more effective than passive review like re-reading.
+
+Sam: Like using flashcards?
+
+Alex: Exactly! And spacing practice over time beats cramming.
+
+Alex: Now, how might you apply this?
+
+sidebar -> follow_up_activity
+
+--- wait follow_up ---
+
+Alex: Great plan! The key is making it a habit.
+
+Sam: Thanks for the tips!
+      </Chat>
+    </LeftPane>
+    <RightPane>
+      <Markdown>### Your Responses</Markdown>
+      <UseHistory id="sidebar" initial="sidebar_intro" />
+    </RightPane>
+  </SplitPanel>
+
+</Vertical>

@@ -1,20 +1,19 @@
-<!-- Chat Block Example -->
-<Vertical id="ChatExample" title="Chat Block Demo" launchable="true">
-  
-  <!-- Student response component -->
-  <TextArea id="student_opinion" placeholder="What's your opinion on this topic?" />
-  
-  <!-- Simple chat demonstration -->
-  <Chat id="demo_chat" src="demo_conversation.chatpeg" title="Learning Discussion" />
-  
-  <!-- Chat with sidebar integration -->
-  <SplitPanel sizes="65,35">
-    <LeftPane>
-      <Chat id="interactive_chat" src="demo_conversation.chatpeg" title="Interactive Learning Chat" />
-    </LeftPane>
-    <RightPane>
-      <UseHistory id="chat_sidebar" target="student_opinion" />
-    </RightPane>
-  </SplitPanel>
-  
-</Vertical>
+<!-- Simple Chat example -->
+<Chat id="demo_chat" title="Study Group Discussion">
+Title: Study Group
+~~~~
+
+Alex: Hey! Ready to review for the exam?
+
+Sam: Definitely. I'm still confused about photosynthesis.
+
+Alex: Let's break it down. Plants take in carbon dioxide and water...
+
+Sam: And use sunlight to make glucose, right?
+
+Alex: Exactly! The light energy converts CO2 and H2O into sugar and oxygen.
+
+Sam: So the oxygen we breathe is basically a byproduct?
+
+Alex: You got it! That's why plants are so important for our atmosphere.
+</Chat>
