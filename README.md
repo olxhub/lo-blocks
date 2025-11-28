@@ -1,4 +1,4 @@
-cLearning Observer Blocks
+Learning Observer Blocks
 ========================
 
 **Learning Blocks** is a modular, extensible runtime for delivering rich, interactive learning and assessment experiences. It’s part of the [Learning Observer](https://github.com/ETS-Next-Gen/writing_observer) project — a flexible, open, and inspectable platform for learning analytics, course delivery, and authoring.
