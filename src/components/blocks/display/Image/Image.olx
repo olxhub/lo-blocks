@@ -1,0 +1,8 @@
+<!-- Image Block Examples -->
+<Vertical id="ImageDemo" title="Image Block Demo" launchable="true">
+
+  <Image id="example_image"
+         src="sba/images/sleep-refusal-llm.png"
+         alt="LLM response about sleep deprivation" />
+
+</Vertical>
