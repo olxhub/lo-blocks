@@ -78,13 +78,31 @@ export function grader({ grader, infer = true } = {}) {
 
     const state = reduxLogger.store.getState();
     const map = props.componentMap;
-    const values = inputIds.map(id => {
+
+    // Gather values and APIs from each input
+    const inputData = inputIds.map(id => {
       const inst = props.idMap[id];
       const blueprint = map[inst.tag];
       const inputNodeInfo = getNodeById(props, id);
       const inputProps = { ...props, nodeInfo: inputNodeInfo, id, target: inst.attributes?.target };
-      return blueprint.getValue(inputProps, state, id);
+
+      const value = blueprint.getValue(inputProps, state, id);
+
+      // Create bound API from locals - each function gets (props, state, id) pre-bound
+      const api = blueprint.locals
+        ? Object.fromEntries(
+            Object.entries(blueprint.locals).map(([name, fn]) => [
+              name,
+              (...args) => fn(inputProps, state, id, ...args)
+            ])
+          )
+        : {};
+
+      return { value, api };
     });
+
+    const values = inputData.map(d => d.value);
+    const apis = inputData.map(d => d.api);
 
     /*
       TODO: What should we pass into the grader?
@@ -105,11 +123,14 @@ export function grader({ grader, infer = true } = {}) {
       And we don't like values[0], values[1] as much as e.g. x, y.
 
       But if the grader expects a list, a list of length 1 should be okay.
+
+      The inputApi/inputApis provide access to the input's locals functions,
+      allowing graders to query additional context (e.g., ChoiceInput.getChoices()).
     */
 
     const param = values.length === 1
-      ? { input: values[0], inputs: values }
-      : { inputs: values };
+      ? { input: values[0], inputs: values, inputApi: apis[0], inputApis: apis }
+      : { inputs: values, inputApis: apis };
     const { correct, message, score } = grader(
       { ...props, ...targetAttributes },
       param

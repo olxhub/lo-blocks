@@ -1,0 +1,10 @@
+<!-- Graded TextHighlight - Submit to check with scoring feedback -->
+<TextHighlight id="graded_verbs" mode="graded">
+Find the verbs in this paragraph:
+---
+The dog [runs] quickly. It [barks] at the mailman and [chases] the car.
+---
+all: Perfect! You found all three verbs.
+>1: Good progress! There are more verbs to find.
+: Look for action words - what is the dog doing?
+</TextHighlight>

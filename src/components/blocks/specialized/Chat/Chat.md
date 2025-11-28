@@ -1,100 +1,186 @@
-# Chat Block
+# Chat
 
-## Overview
+Conversational learning interface with dialogue, activities, and flow control.
 
-The Chat block renders conversational content using a specialized PEG parser format. It displays dialogue in a modern SMS-like interface with support for character avatars, message grouping, and dynamic content integration.
+## Basic Usage
 
-## Technical Usage
-
-### Basic Syntax
 ```xml
-<Chat id="myChat" src="conversation.chatpeg" title="Learning Conversation" />
+<Chat id="discussion" title="Study Group">
+Title: Study Group
+~~~~
+
+Alex: Ready to review for the exam?
+
+Sam: Let's do it!
+</Chat>
 ```
 
-### Properties
-- `id` (required): Unique identifier for the chat component
-- `src` (required): Path to the .chatpeg file containing conversation content
-- `title` (optional): Display title for the chat interface
-- `clip` (optional): Specify which scenes/sections to display (e.g., "intro,main" or "scene1")
+Or with external file:
 
-### ChatPEG Format
-Chat content is written in a specialized .chatpeg format:
+```xml
+<Chat id="discussion" src="conversation.chatpeg" title="Study Group" />
+```
+
+## Chatpeg Format
 
 ```
-Title: My Learning Conversation
-Author: Education Team
+Title: Conversation Title
+Author: Optional Author
 ~~~~
 
 Scene Name
 ----------
 
-Character1: First message content
-Character2: Response message
+Speaker1: Dialogue line here.
 
-# [activity: type]
-activity_id -> target_component
+Speaker2: Another line.
 
---- wait condition ---
+# Comments start with hash
 
-Character1: Next message after activity completion
+--- pause ---
+
+Speaker1: Continues after user clicks.
 ```
 
-## Pedagogical Purpose
+### Header
 
-The Chat block was created to support **conversational learning** and **social constructivism**:
+Key-value pairs before the `~~~~` divider:
 
-1. **Natural Dialogue**: Learning through realistic conversation mimics how knowledge is actually shared
-2. **Character Perspectives**: Multiple viewpoints help learners see different approaches to problems
-3. **Scaffolded Discovery**: Characters can guide learners through complex topics step-by-step
-4. **Social Presence**: Conversational format increases engagement and reduces isolation
+```
+Title: Learning Discussion
+Author: Education Team
+Course: PSYCH 101
+~~~~
+```
 
-## Common Use Cases
+### Dialogue
 
-### 1. Scenario-Based Assessments (SBAs)
-Students join characters discussing real-world problems, contributing their own analysis and solutions.
+Lines with `Speaker: text` format. Multi-line content continues until the next speaker or command:
 
-### 2. Peer Learning Simulations
-Characters represent different student perspectives, modeling collaborative problem-solving approaches.
+```
+Alex: This is a longer message that
+continues on the next line.
 
-### 3. Expert Consultations
-Characters with different expertise levels guide learners through complex professional scenarios.
+Sam: Got it!
+```
 
-### 4. Socratic Dialogues
-Question-driven conversations that lead learners to discover concepts through guided inquiry.
+### Sections
 
-## Chat Integration Patterns
+Section headers with underlines organize content:
 
-### With Sequential Blocks
+```
+Introduction
+------------
+
+Alex: Welcome!
+
+Main Discussion
+---------------
+
+Alex: Let's dive in.
+```
+
+### Commands
+
+**Pause** - Waits for user to click continue:
+
+```
+--- pause ---
+```
+
+**Wait** - Blocks until a component has a value:
+
+```
+--- wait component_id ---
+```
+
+Multiple requirements:
+
+```
+--- wait quiz1, essay1 ---
+```
+
+With conditions:
+
+```
+--- wait quiz1 correct ---
+--- wait quiz1 score>=8 ---
+```
+
+**Arrow** - Copies a component's value to another (typically UseHistory):
+
+```
+student_input -> sidebar
+```
+
+## Activities Pattern
+
+To integrate student activities into conversation flow:
+
+1. Define activity components (often in `<Hidden>`)
+2. Use arrow command to display in sidebar
+3. Use wait command to pause until completed
+
 ```xml
-<Sequential>
-  <SplitPanel sizes="60,40">
+<Vertical id="lesson">
+  <Hidden>
+    <TextArea id="reflection" placeholder="Your thoughts?" />
+  </Hidden>
+
+  <SplitPanel sizes="65,35">
     <LeftPane>
-      <Chat src="discussion.chatpeg" clip="intro" />
+      <Chat id="chat" title="Discussion">
+Title: Discussion
+~~~~
+
+Alex: What do you think about this?
+
+reflection -> sidebar
+
+--- wait reflection ---
+
+Alex: Interesting perspective!
+      </Chat>
     </LeftPane>
     <RightPane>
-      <UseHistory target="student_input" />
+      <UseHistory id="sidebar" />
     </RightPane>
   </SplitPanel>
-</Sequential>
+</Vertical>
 ```
 
-### Dynamic Content Integration
-The Chat block integrates with other components through activity markers:
+## Attributes
+
+| Attribute | Required | Description |
+|-----------|----------|-------------|
+| `id` | Yes | Unique identifier |
+| `src` | No | Path to .chatpeg file (alternative to inline) |
+| `title` | No | Display title |
+| `clip` | No | Show only specific section(s) |
+| `history` | No | Include earlier sections as context |
+
+### Clips
+
+Show only part of a conversation:
+
+```xml
+<Chat id="ch1" src="full.chatpeg" clip="Introduction" />
+<Chat id="ch2" src="full.chatpeg" clip="Main Discussion" history="Introduction" />
 ```
-# [activity: constructed response]  
-sidebar_component -> student_reflection
 
---- wait student_reflection ---
+## State Fields
 
-Character: Great insight! Let me build on what you said...
-```
+- `value` - Current position in dialogue
+- `isDisabled` - Whether advance is blocked (waiting)
+- `sectionHeader` - Current section title
 
-## Best Practices
+## Pedagogical Applications
 
-- **Character Consistency**: Maintain distinct voices and perspectives for each character
-- **Pacing Control**: Use activity breaks to prevent overwhelming learners with long conversations
-- **Context Preservation**: When using clips, ensure each segment provides sufficient context
-- **Mobile Responsiveness**: Test chat interface on various screen sizes
+Chat supports scenario-based assessments where students join ongoing discussions, contributing analysis that influences how the conversation unfolds. Characters model different perspectives and reasoning approaches. The format increases engagement through social presence while the wait/activity pattern creates natural reflection points. Multiple characters can represent peer learners, experts, or contrasting viewpoints—supporting both Socratic dialogue and collaborative problem-solving pedagogies.
 
-## Example File
-See `Chat.olx` for a complete working example demonstrating conversation flow, character interaction, and activity integration.
+## Related Blocks
+
+- **UseHistory** - Displays timeline of student responses
+- **Hidden** - Contains activity components referenced by chat
+- **SplitPanel** - Common layout with chat and sidebar
+- **TextArea** - Student input that chat can wait for

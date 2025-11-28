@@ -32,10 +32,11 @@ export default function _ChoiceItem(props) {
     { id: parentId, fallback: '' }
   );
 
-  const checked = selected === props.id;
+  const itemValue = props.value ?? props.id;
+  const checked = selected === itemValue;
 
   const handleChange = () => {
-    updateReduxField(props, choiceFields.fieldInfoByField.value, props.id, { id: parentId });
+    updateReduxField(props, choiceFields.fieldInfoByField.value, itemValue, { id: parentId });
   };
 
   return (

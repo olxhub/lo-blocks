@@ -1,0 +1,30 @@
+<!-- UseDynamic Demo - Dynamic content selection via ChoiceInput -->
+<Vertical id="UseDynamicDemo" title="UseDynamic Demo" launchable="true">
+
+  <Markdown>
+## UseDynamic with ChoiceInput
+
+Select a topic below to see the corresponding content appear dynamically.
+  </Markdown>
+
+<CapaProblem title="Pick one!">
+  <!-- ChoiceInput for selecting which content to display -->
+  <KeyGrader>
+  <ChoiceInput id="topic_selector">
+    <Key value="topic_math">Mathematics</Key>
+    <Distractor value="topic_science">Science</Distractor>
+    <Distractor value="topic_history">History</Distractor>
+  </ChoiceInput>
+  </KeyGrader>
+</CapaProblem>
+
+  <!-- Hidden content blocks - each ID matches a choice ID -->
+  <Hidden>
+  <Markdown id="topic_math">Math is hard</<Markdown>
+  <Markdown id="topic_science">Science is hard</<Markdown>
+  <Markdown id="topic_history">History is hard</<Markdown>
+  </Hidden>
+
+  <UseDynamic id="dynamic_display" target="topic_math" targetRef="topic_selector" />
+
+</Vertical>

@@ -8,14 +8,14 @@ ChoiceInput presents options using Key (correct) and Distractor (incorrect) chil
   </Markdown>
 
   <!-- Basic single choice -->
-  <CapaProblem id="geography_problem">
+  <CapaProblem id="geography_problem" title="Capital of Japan">
     <p>What is the capital of Japan?</p>
-    <KeyGrader>
-      <ChoiceInput>
-        <Key>Tokyo</Key>
-        <Distractor>Osaka</Distractor>
-        <Distractor>Kyoto</Distractor>
-        <Distractor>Yokohama</Distractor>
+    <KeyGrader id="geography_grader">
+      <ChoiceInput id="geography_choices">
+        <Key id="tokyo">Tokyo</Key>
+        <Distractor id="osaka">Osaka</Distractor>
+        <Distractor id="kyoto">Kyoto</Distractor>
+        <Distractor id="yokohama">Yokohama</Distractor>
       </ChoiceInput>
     </KeyGrader>
   </CapaProblem>

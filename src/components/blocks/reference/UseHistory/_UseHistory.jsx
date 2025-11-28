@@ -3,15 +3,21 @@
 
 import React, { useEffect } from 'react';
 import { render } from '@/lib/render';
-import { useReduxInput, useReduxState } from '@/lib/state';
+import { useReduxInput, useReduxState, useValue } from '@/lib/state';
 import HistoryBar from '@/components/common/HistoryBar';
 
 export function _UseHistory(props) {
-  const { target, fields, initial } = props;
-  const defaultHistory = initial ? [initial] : (target ? [target] : []);
+  const { target, targetRef, fields, initial } = props;
+
+  // If targetRef is provided, get the target from another component's value
+  // Fall back to target if refValue is null/undefined (e.g., before selection)
+  const refValue = useValue(props, targetRef, { fallback: null });
+  const effectiveTarget = refValue ?? target;
+
+  const defaultHistory = initial ? [initial] : (effectiveTarget ? [effectiveTarget] : []);
   const defaultIndex = defaultHistory.length > 0 ? defaultHistory.length - 1 : 0;
 
-  const [value] = useReduxInput(props, fields.value, target);
+  const [value] = useReduxInput(props, fields.value, effectiveTarget);
   const [history, setHistory] = useReduxState(props, fields.history, defaultHistory);
   const [index, setIndex] = useReduxState(props, fields.index, defaultIndex);
   const [showHistory] = useReduxState(props, fields.showHistory, true);

@@ -56,7 +56,7 @@ Dynamic lists were created for a graphic organizer, where the student was asked 
 
 ## Related Blocks
 - **Vertical**: Fixed vertical layout
-- **ReorderList**: Reorderable but fixed items
+- **SortableInput**: Reorderable list for graded sorting exercises
 
 ## Example File
 See `DynamicList.olx` for working examples.

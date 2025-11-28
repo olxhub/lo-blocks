@@ -4,7 +4,7 @@ A reference component for accessing values from other blocks in Learning Observe
 
 ## Overview
 
-The `Ref` component provides a clean, flexible way to reference and display values from other blocks. For example, if you would like to include a text a student has written in a text area, <Ref> lets you do that.
+The `Ref` component provides a clean, flexible way to reference and display values from other blocks. For example, if you would like to include a text a student has written in a text area, <Ref> lets you do that. For example, if a student writes a thesis statement, and you'd like to show that when they're writing supporting arguments, <Ref> is a nice way to do that. Or if you'd like to do a Mad Libs.
 
 ## Basic Usage
 

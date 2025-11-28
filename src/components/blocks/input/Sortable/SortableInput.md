@@ -54,7 +54,6 @@ Order factors by importance or impact.
 ## Related Blocks
 - **SortableGrader**: Grades arrangements with various algorithms
 - **SimpleSortable**: Shorthand syntax using PEG format
-- **ReorderList**: Alternative sorting interface
 
 ## Example File
 See `SortableInput.olx` or `Sortable.md` for working examples.

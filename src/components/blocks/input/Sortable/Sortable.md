@@ -303,5 +303,4 @@ src/components/blocks/Sortable/
 
 - **ChoiceInput**: For multiple choice questions
 - **TextHighlight**: For text selection exercises
-- **ReorderList**: Alternative reordering interface
 - **CapaProblem**: Problem container with automatic grading buttons

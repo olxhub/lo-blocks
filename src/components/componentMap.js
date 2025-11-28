@@ -2,9 +2,22 @@
 import React from 'react';
 
 import * as BlockRegistry from './blockRegistry.js';
+import blockMetadata from './blockMetadata.json';
 import createStubBlock from '@/components/blocks/utility/StubBlock';
 
-export const COMPONENT_MAP = { ...BlockRegistry };
+// Merge metadata onto block objects
+export const COMPONENT_MAP = Object.fromEntries(
+  Object.entries(BlockRegistry).map(([name, block]) => {
+    const meta = blockMetadata.blocks[name];
+    if (meta) {
+      Object.assign(block, meta);
+    }
+    return [name, block];
+  })
+);
+
+// Export build metadata for debugging/cache invalidation
+export const BUILD_META = blockMetadata.meta;
 
 // Structural marker blocks - parsed by parent blocks, not rendered directly
 const STUB_BLOCKS = {

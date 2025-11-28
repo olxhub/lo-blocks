@@ -63,6 +63,7 @@ function createBlock(config: BlockBlueprint): Block {
     description: parsed.description,
     namespace: parsed.namespace,
     internal: config.internal,
+    category: config.category,
     requiresUniqueId: config.requiresUniqueId,
 
     blueprint: config
@@ -74,4 +75,4 @@ function createBlock(config: BlockBlueprint): Block {
 
 export const blocks = (namespace: string) =>
   (config: Omit<BlockBlueprint, 'namespace'>, locals?: any) =>
-    createBlock({ ...config, namespace, locals });
+    createBlock({ ...config, namespace, locals: locals ?? config.locals });

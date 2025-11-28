@@ -28,9 +28,14 @@ const CATEGORY_ORDER = [
   'Reference', 'Specialized', 'Utility', 'CAPA Problems', 'Test Blocks', 'Other'
 ];
 
-function getCategory(source) {
-  if (!source) return 'Other';
-  const match = source.match(/src\/components\/blocks\/([^/]+)\//);
+function getCategory(block) {
+  // Explicit category takes precedence
+  if (block.category) {
+    return CATEGORY_MAP[block.category] || block.category;
+  }
+  // Fall back to directory-based categorization
+  if (!block.source) return 'Other';
+  const match = block.source.match(/src\/components\/blocks\/([^/]+)\//);
   return match ? (CATEGORY_MAP[match[1]] || match[1]) : 'Other';
 }
 
@@ -54,7 +59,7 @@ function buildTabs(blockDetails) {
 function groupBlocksByCategory(blocks) {
   const grouped = {};
   blocks.forEach(block => {
-    const category = getCategory(block.source);
+    const category = getCategory(block);
     if (!grouped[category]) grouped[category] = [];
     grouped[category].push(block);
   });

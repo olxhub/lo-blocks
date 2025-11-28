@@ -8,6 +8,26 @@ import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 
 export const fields = state.fields(['value']);
 
+/**
+ * Get the list of choices (Key/Distractor children) with their metadata.
+ * Used by KeyGrader to determine correctness.
+ *
+ * @returns {Array<{id: string, tag: string, value: string}>}
+ */
+function getChoices(props, state, id) {
+  const ids = inferRelatedNodes(props, {
+    selector: n => n.blueprint.name === 'Key' || n.blueprint.name === 'Distractor',
+    infer: ['kids'],
+    targets: props.target
+  });
+  const choices = ids.map(cid => {
+    const inst = props.idMap?.[cid];
+    const choiceValue = inst?.attributes?.value ?? cid;
+    return { id: cid, tag: inst?.tag, value: choiceValue };
+  });
+  return choices;
+}
+
 const ChoiceInput = core({
   ...parsers.blocks(),
   name: 'ChoiceInput',
@@ -15,17 +35,10 @@ const ChoiceInput = core({
   component: _Noop,
   fields,
   getValue: (props, state, id) => {
-    const value = fieldSelector(state, { ...props, id }, fieldByName('value'), { fallback: '' });
-    const ids = inferRelatedNodes(props, {
-      selector: n => n.blueprint.name === 'Key' || n.blueprint.name === 'Distractor',
-      infer: ['kids'],
-      targets: props.target
-    });
-    const choices = ids.map(cid => {
-      const inst = props.idMap?.[cid];
-      return { id: cid, tag: inst?.tag };
-    });
-    return { value, choices };
+    return fieldSelector(state, { ...props, id }, fieldByName('value'), { fallback: '' });
+  },
+  locals: {
+    getChoices
   }
 });
 

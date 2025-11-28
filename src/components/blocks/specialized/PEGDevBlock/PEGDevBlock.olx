@@ -1,0 +1,18 @@
+<!-- PEGDevBlock Example -->
+<Vertical id="PEGDevBlockDemo" title="PEGDevBlock Demo" launchable="true">
+
+  <Markdown id="intro">
+## PEG Development Workbench
+
+PEGDevBlock parses content using `demo.pegjs` and displays the resulting AST. Use it to develop and test PEG grammars before integrating them into new blocks.
+
+The grammar below parses mathematical expressions with variables and function calls.
+  </Markdown>
+
+  <PEGDevBlock>2 + 3 * sin(x)</PEGDevBlock>
+
+  <Markdown id="note">
+Edit `demo.pegjs`, run `npm run build:grammars`, and refresh to see changes.
+  </Markdown>
+
+</Vertical>

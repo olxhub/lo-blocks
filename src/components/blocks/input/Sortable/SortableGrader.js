@@ -14,6 +14,7 @@ const SortableGrader = blocks.test({
   }),
   name: 'SortableGrader',
   description: 'Grades sortable arrangements with various algorithms (exact, partial, adjacent, spearman)',
+  category: 'grading',
   component: _Noop,
   fields,
 });

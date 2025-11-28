@@ -21,6 +21,7 @@ function generateDocumentation() {
       description: block.description || null,
       namespace: block.namespace,
       source: block.source || null,
+      category: block.category || null,
       readme: block.readme || null,
       examples: block.examples || [],
       fields: Object.keys(block.fields || {}),
