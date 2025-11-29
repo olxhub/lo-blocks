@@ -1,0 +1,19 @@
+<!-- Basic Sortable - Whole Item Dragging -->
+<Vertical id="SortableBasicDemo" title="Basic Sortable Demo" launchable="true">
+  <Markdown>
+## Basic Sorting - Inner Planets
+
+Drag anywhere on an item to move it. Order these planets from closest to furthest from the Sun.
+  </Markdown>
+
+  <CapaProblem id="planets_problem">
+    <SortableGrader id="planets_grader">
+      <SortableInput dragMode="whole">
+        <TextBlock initialPosition="2">Mercury</TextBlock>
+        <TextBlock initialPosition="4">Venus</TextBlock>
+        <TextBlock initialPosition="1">Earth</TextBlock>
+        <TextBlock initialPosition="3">Mars</TextBlock>
+      </SortableInput>
+    </SortableGrader>
+  </CapaProblem>
+</Vertical>

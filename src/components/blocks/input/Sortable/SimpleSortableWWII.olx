@@ -1,3 +1,5 @@
+<!-- SimpleSortable - WWII Events -->
+<SimpleSortable id="wwii_sort" title="WWII Chronology">
 Sort these events from World War II in chronological order
 =========================================================
 3. Pearl Harbor attack (December 7, 1941)
@@ -5,3 +7,4 @@ Sort these events from World War II in chronological order
 4. D-Day landings (June 6, 1944)
 2. Battle of Britain begins (July 10, 1940)
 5. Victory in Europe Day (May 8, 1945)
+</SimpleSortable>

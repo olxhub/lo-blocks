@@ -1,0 +1,21 @@
+<!-- Multi-line Content Demo -->
+<Vertical id="SortableMultilineDemo" title="Multi-line Content Demo" launchable="true">
+  <Markdown>
+## Scientific Method Steps
+
+Arrange these steps of the scientific method in the correct order. Each item contains detailed descriptions.
+  </Markdown>
+
+  <CapaProblem id="scientific_method_problem">
+    <SortableGrader id="scientific_method_grader">
+      <SortableInput dragMode="handle">
+        <TextBlock initialPosition="1">1. Make an Observation - Observe the world around you and identify something interesting or puzzling that you'd like to understand better. This observation should be specific and measurable.</TextBlock>
+        <TextBlock initialPosition="2">2. Ask a Question - Formulate a clear, focused question that you want to answer. The question should be testable and specific enough to investigate through experimentation.</TextBlock>
+        <TextBlock initialPosition="3">3. Form a Hypothesis - Develop a testable prediction that provides a possible answer to your question. A good hypothesis can be tested through controlled experiments.</TextBlock>
+        <TextBlock initialPosition="4">4. Conduct Experiments - Create a controlled experiment to test your hypothesis. Identify variables, establish a control group, and determine how you'll measure results.</TextBlock>
+        <TextBlock initialPosition="5">5. Analyze Data - Examine the data collected from your experiments. Determine whether the results support or refute your hypothesis.</TextBlock>
+        <TextBlock initialPosition="6">6. Communicate Results - Share your findings with others through reports or publications. This allows others to review and build upon your work.</TextBlock>
+      </SortableInput>
+    </SortableGrader>
+  </CapaProblem>
+</Vertical>

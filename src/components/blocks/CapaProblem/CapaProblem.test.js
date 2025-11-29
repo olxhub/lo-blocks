@@ -8,7 +8,7 @@ import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '@/lib/storage/providers/file';
 
 it('wires inputs and graders; UI controls rendered at runtime', async () => {
-  const { idMap } = await syncContentFromStorage(new FileStorageProvider('content/demos'));
+  const { idMap } = await syncContentFromStorage(new FileStorageProvider('src/components/blocks/CapaProblem'));
   const root = idMap['CapaDemo'];
   expect(root).toBeDefined();
 
@@ -33,7 +33,7 @@ it('wires inputs and graders; UI controls rendered at runtime', async () => {
 });
 
 it('renders ActionButton and Correctness at runtime', async () => {
-  const { idMap } = await syncContentFromStorage(new FileStorageProvider('content/demos'));
+  const { idMap } = await syncContentFromStorage(new FileStorageProvider('src/components/blocks/CapaProblem'));
   const node = idMap['CapaDemo'];
   const ui = render({ node, idMap, nodeInfo: makeRootNode() });
   const store = loStore.init();

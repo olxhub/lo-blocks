@@ -1,0 +1,6 @@
+<!-- HelloAction Demo -->
+<Vertical id="HelloActionDemo" title="HelloAction Demo" launchable="true">
+  <ActionButton label="Click me!">
+    <HelloAction/>
+  </ActionButton>
+</Vertical>

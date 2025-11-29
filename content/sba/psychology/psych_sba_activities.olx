@@ -1,4 +1,4 @@
-<Vertical id="activities" launchable="true">
+<Vertical id="psych_sba_activities" title="Activities for Psychology SBA" launchable="true">
 
   <!-- Introduction section -->
   <Vertical id="bedtime_problem_introduction">

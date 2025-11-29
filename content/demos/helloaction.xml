@@ -1,6 +1,0 @@
-<!-- content/demos/helloaction.xml -->
-<Vertical id="hello_action_lesson" launchable="true">
-  <ActionButton label="Click me!">
-    <HelloAction/>
-  </ActionButton>
-</Vertical>

@@ -1,0 +1,90 @@
+<!-- TextHighlight Block Demo -->
+<Vertical id="TextHighlightDemo" title="TextHighlight Block Demo" launchable="true">
+
+  <Markdown>
+# TextHighlight Block Demo
+
+The TextHighlight block allows students to interactively highlight text segments.
+This demo shows all three modes and features.
+  </Markdown>
+
+  <!-- Basic Example - Immediate Mode -->
+  <Markdown>
+## 1. Immediate Mode
+
+Click on words to highlight them. Feedback appears immediately:
+  </Markdown>
+
+  <TextHighlight id="demo_immediate" mode="immediate">
+Highlight all the nouns:
+---
+{The} [student] went to {the} [park] with {their} [friends].
+  </TextHighlight>
+
+  <!-- Graded Mode with Scoring -->
+  <Markdown>
+## 2. Graded Mode
+
+Make your selections, then click "Check Answer" for feedback:
+  </Markdown>
+
+  <TextHighlight id="demo_graded" mode="graded">
+Identify examples of positive reinforcement:
+---
+The parents tried [giving extra screen time|screen] when the child behaved well.
+They also tried &lt;&lt;yelling>> when frustrated. Later they used [a sticker chart|stickers]
+to track progress. Sometimes they would &lt;&lt;take away toys|toys>> as punishment.
+---
+all: Perfect! You found both positive reinforcement examples! (2/2)
+>1: Good start! There's one more example. (1/2)
+: Review positive reinforcement - it means adding something pleasant. (0/2)
+  </TextHighlight>
+
+  <!-- Self-Check Mode -->
+  <Markdown>
+## 3. Self-Check Mode
+
+Make your selections, then reveal the answer to compare:
+  </Markdown>
+
+  <TextHighlight id="demo_self_check" mode="selfcheck">
+Compare your highlighting with ours:
+---
+[Reinforcement] increases behavior while [punishment] decreases it.
+{Positive and negative} refer to [adding or removing], not good or bad.
+  </TextHighlight>
+
+  <!-- Advanced Example -->
+  <Markdown>
+## 4. Advanced Features
+
+This example shows targeted feedback for specific selections:
+  </Markdown>
+
+  <TextHighlight id="demo_advanced" mode="immediate">
+Identify the behavioral techniques:
+---
+They used [positive reinforcement|pos_reinf] by giving rewards. They tried
+[negative punishment|neg_punish] by removing toys. The &lt;&lt;yelling>> actually
+became {unintentional} [reinforcement|accident].
+---
+all: Excellent! All techniques identified. (3/3)
+>2: Good work! You found most techniques. (2/3)
+>1,errors&lt;1: On the right track. (1/3)
+: Keep studying the concepts. (0/3)
+---
+pos_reinf: That's right! Adding something pleasant.
+neg_punish: Correct! Removing something the child wants.
+accident: Tricky one - the yelling reinforced bad behavior!
+yelling: Careful - what effect did the yelling actually have?
+  </TextHighlight>
+
+  <Markdown>
+## Summary
+
+The TextHighlight block provides flexible, interactive text highlighting with three interaction modes, rich feedback systems, and teacher-friendly authoring.
+
+Perfect for language arts, psychology, science, and any subject where identifying key concepts in text is important!
+  </Markdown>
+
+</Vertical>

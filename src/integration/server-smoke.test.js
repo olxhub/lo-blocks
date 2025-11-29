@@ -35,7 +35,7 @@ test('Next.js server basic endpoints work', async () => {
 
     // Fetch single file
     const fileRes = await fetch(
-      `http://localhost:${port}/api/file?path=${encodeURIComponent('demos/changer.xml')}`
+      `http://localhost:${port}/api/file?path=${encodeURIComponent('demos/text-changer-demo.olx')}`
     );
     expect(fileRes.status).toBe(200);
     const fileJson = await fileRes.json();
