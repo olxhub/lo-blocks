@@ -27,16 +27,14 @@ Inside CapaProblem, the KeyGrader wraps the ChoiceInput:
 - `id` (recommended): Unique identifier for the input
 
 ### Child Blocks
-- **Key**: Correct answer option(s)
-- **Distractor**: Incorrect answer options
+- **Key**: Correct answer option(s) - supports optional `value` attribute
+- **Distractor**: Incorrect answer options - supports optional `value` attribute
 
 ### State Fields
-- `value`: ID of the selected option
+- `value`: The selected option's value (either the `value` attribute or the option's ID)
 
-### getValue
-Returns an object with:
-- `value`: The selected option ID
-- `choices`: Array of all options with their IDs and types
+### API (locals)
+- `getChoices()`: Returns array of all options with `{ id, tag, value }` for each
 
 ## Pedagogical Purpose
 
@@ -79,10 +77,31 @@ Multiple choice assessments offer:
 </CapaProblem>
 ```
 
+### Using value= with UseDynamic
+
+The `value` attribute on Key/Distractor sets the reference in redux and learning analytics, which would otherwise be auto-assigned (numeric position) or the ID. This is especially helpful when we want this to overlap with an existing ID, without ID conflicts. For example, with `UseDynamic`, we might use a ChoiceInput to select an ID:
+
+```xml
+<ChoiceInput id="topic_picker">
+  <Key id="choice_math" value="math_content">Mathematics</Key>
+  <Distractor id="choice_sci" value="science_content">Science</Distractor>
+</ChoiceInput>
+
+<UseDynamic target="math_content" targetRef="topic_picker" />
+
+<Hidden>
+  <Markdown id="math_content">Math details...</Markdown>
+  <Markdown id="science_content">Science details...</Markdown>
+</Hidden>
+```
+
+This pattern avoids ID conflicts: the choices have their own IDs (`choice_math`, etc.) while their `value` attributes point to content IDs (`math_content`, etc.).
+
 ## Related Blocks
 - **Key**: Marks correct answer(s)
 - **Distractor**: Marks incorrect answers
 - **KeyGrader**: Grades based on Key selection
+- **UseDynamic**: Can display content based on ChoiceInput selection
 
 ## Example File
 See `ChoiceInput.olx` for working examples.
