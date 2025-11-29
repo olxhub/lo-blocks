@@ -37,22 +37,7 @@
 'use client';
 import React from 'react';
 import NextImage from 'next/image';
-
-function resolveImageSrc(src) {
-  // External URLs
-  if (src.startsWith('http://') || src.startsWith('https://')) {
-    return { type: 'external', src };
-  }
-
-  // Platform-wide assets (// prefix)
-  if (src.startsWith('//')) {
-    return { type: 'platform', src: src.slice(2) };
-  }
-
-  // All other paths treated as content paths
-  // Relative paths should be resolved during parsing, not rendering
-  return { type: 'content', src: src.startsWith('/') ? src.slice(1) : src };
-}
+import { resolveImageSrc } from '@/lib/util';
 
 function _Image(props) {
   const { src, alt, width, height, nodeInfo } = props;
