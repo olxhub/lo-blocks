@@ -1,6 +1,0 @@
-<!-- content/demos/dynamiclist.xml -->
-<Vertical id="dynamic_list_demo" launchable="true">
-  <DynamicList id="Hello">
-    <LineInput id="World"/>
-  </DynamicList>
-</Vertical>
