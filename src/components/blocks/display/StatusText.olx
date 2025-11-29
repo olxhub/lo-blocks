@@ -1,0 +1,30 @@
+<!-- StatusText Block Examples -->
+<Vertical id="StatusTextDemo" title="StatusText Block Demo" launchable="true">
+
+  <Markdown id="intro">
+## StatusText Examples
+
+StatusText displays feedback messages from grading components. It appears automatically inside CapaProblem.
+  </Markdown>
+
+  <!-- CapaProblem / Grader status display -->
+  <CapaProblem id="math_problem" title="Capa Problem Status">
+    <p>What is 2 + 2? Try answering "Bob." </p>
+    <NumericalGrader answer="4">
+    <LineInput />
+    <p> Bonus status: </p>
+    <StatusText/>
+    </NumericalGrader>
+  </CapaProblem>
+
+  <Markdown id="ref_style"> And acting a bit like a Ref tag:</Markdown>
+  <LineInput id="sample_text"/>
+  <StatusText target="sample_text" field="value"/>
+
+  <Markdown id="explanation">
+### How It Works
+
+CapaProblem automatically includes StatusText to show feedback messages like "Correct!" or "Try again." The StatusText component reads the grader's status and message fields.
+  </Markdown>
+
+</Vertical>
