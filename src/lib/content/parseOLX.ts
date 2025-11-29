@@ -17,7 +17,7 @@
 //
 import SHA1 from 'crypto-js/sha1';
 
-import { XMLParser } from 'fast-xml-parser';
+import { XMLParser, XMLValidator } from 'fast-xml-parser';
 import { COMPONENT_MAP } from '@/components/componentMap';
 import { transformTagName } from '@/lib/content/xmlTransforms';
 
@@ -108,7 +108,54 @@ export async function parseOLX(
   provider?: import('../storage').StorageProvider
 ) {
   const idMap: IdMap = {};
-  const parsedTree = xmlParser.parse(xml);
+
+  // Validate XML first for better error messages
+  const provenanceStr = formatProvenanceList(provenance).join(', ');
+  const validation = XMLValidator.validate(xml, {
+    allowBooleanAttributes: true
+  });
+
+  if (validation !== true) {
+    // validation is an error object with err.code, err.msg, err.line, err.col
+    const err = validation.err;
+    const lines = xml.split('\n');
+
+    // Show context around the error line
+    const errorLine = err.line || 1;
+    const startLine = Math.max(0, errorLine - 3);
+    const endLine = Math.min(lines.length, errorLine + 2);
+    const context = lines.slice(startLine, endLine)
+      .map((line, i) => {
+        const lineNum = startLine + i + 1;
+        const marker = lineNum === errorLine ? '>>>' : '   ';
+        return `${marker} ${lineNum}: ${line}`;
+      })
+      .join('\n');
+
+    throw new Error(
+      `XML syntax error in ${provenanceStr} at line ${err.line}, column ${err.col}:\n` +
+      `${err.msg}\n\n` +
+      `Context:\n${context}\n\n` +
+      `Check for: unclosed quotes, missing closing tags, or invalid characters.`
+    );
+  }
+
+  let parsedTree;
+  try {
+    parsedTree = xmlParser.parse(xml);
+  } catch (parseError) {
+    // Fallback error handling if validation passed but parsing still failed
+    const lines = xml.split('\n');
+    const preview = lines.slice(0, 10).map((line, i) => `${i + 1}: ${line}`).join('\n');
+
+    throw new Error(
+      `XML parsing error in ${provenanceStr}:\n` +
+      `${parseError.message}\n\n` +
+      `First 10 lines of content:\n${preview}\n\n` +
+      `Check for: unclosed tags, invalid characters, or malformed XML syntax.`
+    );
+  }
+
   const parsedIds: string[] = [];
   let rootId = '';
   const errors: OLXLoadingError[] = [];
