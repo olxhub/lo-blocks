@@ -3,7 +3,6 @@ import * as parsers from '@/lib/content/parsers';
 
 import { _Markdown } from './_Markdown';
 
-// TODO: Add support for `src=` attribute
 const Markdown = core({
   ...parsers.text({ postprocess: 'stripIndent' }),
   name: 'Markdown',

@@ -43,6 +43,49 @@ const prod = false;
 // === Utilities ===
 
 /**
+ * Resolves and loads content from an external file via the `src` attribute.
+ *
+ * Handles file:// provenance resolution and returns both the loaded content
+ * and updated provenance chain.
+ *
+ * @param options.src - The src attribute value (relative path)
+ * @param options.provider - Storage provider for reading files
+ * @param options.provenance - Current provenance chain
+ * @returns { text, provenance } - Loaded content and updated provenance
+ */
+async function loadExternalSource({
+  src,
+  provider,
+  provenance
+}: {
+  src: string;
+  provider: any;
+  provenance: string[];
+}): Promise<{ text: string; provenance: string[] }> {
+  if (!provider) {
+    throw new Error('No storage provider supplied for src attribute');
+  }
+
+  const lastProv = provenance?.[provenance.length - 1];
+  let resolved = src;
+  let newProvenance: string[];
+
+  if (lastProv && lastProv.startsWith('file://')) {
+    // Resolve relative to the current file's directory
+    // HACK: Only handles file:// provenances. Non-file providers may break.
+    // TODO: Resolve src correctly for other storage providers.
+    const baseDir = path.dirname(lastProv.slice('file://'.length));
+    resolved = path.join(baseDir, src);
+    newProvenance = [...provenance, `file://${resolved}`];
+  } else {
+    newProvenance = [...provenance, resolved];
+  }
+
+  const content = await provider.read(resolved);
+  return { text: content, provenance: newProvenance };
+}
+
+/**
  * Extracts raw text content from a single XML node.
  */
 function extractTextFromSingleNode(node) {
@@ -253,13 +296,21 @@ function extractString(extracted: ReturnType<typeof extractTextFromXmlNodes>): s
 // Feed through the text / CDATA content between the opening and closing tag.
 //
 // There should be no nested XML.
-const textFactory = childParser(async function textParser({ rawParsed, postprocess = 'trim' }) {
+//
+// Supports `src` attribute for loading external text files.
+const textFactory = childParser(async function textParser({ rawParsed, attributes, provider, provenance, postprocess = 'trim' }) {
+  let textContent: string;
+
+  if (attributes?.src) {
+    const loaded = await loadExternalSource({ src: attributes.src, provider, provenance });
+    textContent = loaded.text;
+  } else {
+    const extracted = extractTextFromXmlNodes(rawParsed, { preserveWhitespace: postprocess === 'stripIndent' || postprocess === 'none' });
+    textContent = extractString(extracted);
+  }
+
   let content: string;
-
   if (postprocess === 'stripIndent') {
-    const extracted = extractTextFromXmlNodes(rawParsed, { preserveWhitespace: true });
-    const textContent = extractString(extracted);
-
     const { stripIndent } = await import('@/lib/content/stripIndent');
     try {
       content = stripIndent(textContent);
@@ -270,12 +321,11 @@ const textFactory = childParser(async function textParser({ rawParsed, postproce
       throw new Error(`Failed to process Markdown content: ${error instanceof Error ? error.message : String(error)}. Check that Markdown blocks contain only text, not nested elements.`);
     }
   } else if (postprocess === 'trim' || postprocess === undefined) {
-    content = extractString(extractTextFromXmlNodes(rawParsed));
+    content = textContent.trim() + '\n';
   } else if (typeof postprocess === 'function') {
-    const extracted = extractTextFromXmlNodes(rawParsed, { preserveWhitespace: true });
-    content = postprocess(extractString(extracted));
+    content = postprocess(textContent);
   } else if (postprocess === 'none') {
-    content = extractString(extractTextFromXmlNodes(rawParsed, { preserveWhitespace: true }));
+    content = textContent;
   } else {
     throw new Error(`Unknown postprocess option: ${postprocess}`);
   }
@@ -328,22 +378,9 @@ export function peggyParser(
     let extracted;
     let prov = provenance;
     if (attributes?.src) {
-      if (!provider) {
-        throw new Error('peggyParser: no storage provider supplied for src');
-      }
-      const lastProv = provenance[provenance.length - 1];
-      let resolved = attributes.src;
-      if (lastProv && lastProv.startsWith('file://')) {
-        // HACK: Only handles file:// provenances. Non-file providers may break.
-        // TODO: Resolve src correctly for other storage providers.
-        const baseDir = path.dirname(lastProv.slice('file://'.length));
-        resolved = path.join(baseDir, attributes.src);
-        prov = [...provenance, `file://${resolved}`];
-      } else {
-        prov = [...provenance, resolved];
-      }
-      const content = await provider.read(resolved);
-      extracted = { type: 'text', text: content };
+      const loaded = await loadExternalSource({ src: attributes.src, provider, provenance });
+      extracted = { type: 'text', text: loaded.text };
+      prov = loaded.provenance;
     } else {
       extracted = extractTextFromXmlNodes(kids);
     }
