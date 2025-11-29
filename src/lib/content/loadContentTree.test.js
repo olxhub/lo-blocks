@@ -23,10 +23,10 @@ it('handles added, unchanged, changed, and deleted files via filesystem mutation
 
   // Mutate: modify changer.xml
   await fs.appendFile(path.join(tmpDir, 'changer.xml'), ' ');
-  // Add textHighlight_demo.xml
+  // Add another file from content/sba
   await fs.copyFile(
-    path.join('content/demos/textHighlight_demo.xml'),
-    path.join(tmpDir, 'textHighlight_demo.xml')
+    path.join('content/sba/sba_holder.xml'),
+    path.join(tmpDir, 'sba_holder.xml')
   );
   // Delete ref-demo.xml
   await fs.rm(path.join(tmpDir, 'ref-demo.xml'));
@@ -39,7 +39,7 @@ it('handles added, unchanged, changed, and deleted files via filesystem mutation
 
   expect(Object.keys(second.unchanged).some(id => id.endsWith('course-demo.xml'))).toBe(true);
   expect(Object.keys(second.changed).some(id => id.endsWith('changer.xml'))).toBe(true);
-  expect(Object.keys(second.added).some(id => id.endsWith('textHighlight_demo.xml'))).toBe(true);
+  expect(Object.keys(second.added).some(id => id.endsWith('sba_holder.xml'))).toBe(true);
   expect(Object.keys(second.deleted).some(id => id.endsWith('ref-demo.xml'))).toBe(true);
 
   await fs.rm(tmpDir, { recursive: true, force: true });
