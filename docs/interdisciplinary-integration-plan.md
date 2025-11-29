@@ -183,8 +183,12 @@ function resolveImageSrc(src) {
   - Added `resolveImageSrc()` and `resolveImagePath()` to `src/lib/util/index.ts`
   - Updated `_Image.jsx` to import from shared util
   - All 199 tests pass
-- [ ] Phase 2a: Collapsible Block
-- [ ] Phase 2b: Tabs Block
+- [x] Phase 2a: Collapsible Block (completed 2025-11-29)
+  - Created `src/components/blocks/layout/Collapsible/`
+  - Fixed require() pattern to use proper imports
+- [x] Phase 2b: Tabs Block (completed 2025-11-29)
+  - Created `src/components/blocks/layout/Tabs/`
+  - All 203 tests pass
 - [ ] Phase 3a: TeamDirectory Block
 - [ ] Phase 3b: Navigator Block
 - [ ] Phase 4: Content and Images

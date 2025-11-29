@@ -1,0 +1,58 @@
+<!-- Tabs Block Demo -->
+<Vertical id="TabsDemo" title="Tabs Block Demo" launchable="true">
+
+  <Markdown>
+# Tabs Block Demo
+
+The Tabs block creates a tabbed interface where each child block becomes a tab panel.
+Tab labels come from the child's `label` or `title` attribute.
+  </Markdown>
+
+  <Tabs id="demo_tabs">
+    <Vertical id="tab_first" label="First Tab">
+      <Markdown>
+## First Tab Content
+
+This is the content of the first tab. You can include any blocks here.
+      </Markdown>
+      <LineInput id="tab1_input" placeholder="Input in first tab"/>
+    </Vertical>
+
+    <Vertical id="tab_second" label="Second Tab">
+      <Markdown>
+## Second Tab Content
+
+This is the content of the second tab.
+      </Markdown>
+      <TextArea id="tab2_textarea" placeholder="Text area in second tab"/>
+    </Vertical>
+
+    <Vertical id="tab_third" title="Third Tab">
+      <Markdown>
+## Third Tab Content
+
+Note: Both `label` and `title` attributes work for tab names.
+      </Markdown>
+    </Vertical>
+  </Tabs>
+
+  <Markdown>
+## Interactive Example
+
+Tabs can contain interactive components that maintain state independently.
+  </Markdown>
+
+  <Tabs id="interactive_tabs">
+    <Vertical id="activity_tab" label="Activity">
+      <Markdown>
+Enter your response below:
+      </Markdown>
+      <LineInput id="activity_input" placeholder="Your answer..."/>
+    </Vertical>
+
+    <Vertical id="notes_tab" label="Notes">
+      <TextArea id="notes_area" placeholder="Take notes here..."/>
+    </Vertical>
+  </Tabs>
+
+</Vertical>
