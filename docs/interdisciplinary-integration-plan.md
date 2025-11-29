@@ -197,6 +197,9 @@ function resolveImageSrc(src) {
   - Created `src/components/blocks/layout/Navigator/`
   - Includes 6 template sub-blocks: DefaultPreview, DefaultDetail, TeamPreview, TeamDetail, ReadingDetail
   - All 217 tests pass
+- [x] Phase 3c: Documentation (completed 2025-11-29)
+  - Created .md files for Collapsible, Tabs, TeamDirectory, Navigator
+  - Navigator docs include template block documentation
 - [ ] Phase 4: Content and Images
 - [ ] Phase 5: Demos and Extracted Content
 
