@@ -69,16 +69,60 @@ export function parseRequirements(dependsOn) {
     .filter(Boolean);
 }
 
-function checkRequirementValue(requirement, value) {
-  // TODO the requirement might include an operation like `score>0.8`
-  if (value == null) return false;
-  if (Array.isArray(value)) return value.length > 0;
-  if (typeof value === 'string') return value.trim().length > 0;
-  if (typeof value === 'number') return value > 0;
-  if (typeof value === 'boolean') return value;
-  if (value instanceof Date) return true;
-  if (typeof value === 'object') return Object.keys(value).length > 0;
-  return Boolean(value);
+function resolveRequirementValue(requirement, value) {
+  if (requirement?.field && value && typeof value === 'object') {
+    return value[requirement.field];
+  }
+  return value;
+}
+
+function normalizeNumber(value) {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string' && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+  return null;
+}
+
+export function checkRequirementValue(requirement, value) {
+  const resolvedValue = resolveRequirementValue(requirement, value);
+
+  if (requirement?.op && requirement?.value !== undefined) {
+    const actualNumber = normalizeNumber(resolvedValue);
+    const expectedNumber = normalizeNumber(requirement.value);
+    console.log(actualNumber, expectedNumber);
+    if (actualNumber == null || expectedNumber == null) return false;
+
+    switch (requirement.op) {
+      case '>':
+        return actualNumber > expectedNumber;
+      case '>=':
+        return actualNumber >= expectedNumber;
+      case '<':
+        return actualNumber < expectedNumber;
+      case '<=':
+        return actualNumber <= expectedNumber;
+      case '=':
+        return actualNumber === expectedNumber;
+      default:
+        return false;
+    }
+  }
+
+  if (requirement?.status) {
+    if (resolvedValue == null) return false;
+    return String(resolvedValue).toLowerCase() === String(requirement.status).toLowerCase();
+  }
+
+  if (resolvedValue == null) return false;
+  if (Array.isArray(resolvedValue)) return resolvedValue.length > 0;
+  if (typeof resolvedValue === 'string') return resolvedValue.trim().length > 0;
+  if (typeof resolvedValue === 'number') return resolvedValue > 0;
+  if (typeof resolvedValue === 'boolean') return resolvedValue;
+  if (resolvedValue instanceof Date) return true;
+  if (typeof resolvedValue === 'object') return Object.keys(resolvedValue).length > 0;
+  return Boolean(resolvedValue);
 }
 
 function requirementValueFromGrader(props, id) {

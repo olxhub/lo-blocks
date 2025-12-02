@@ -121,7 +121,7 @@ EndCommandBlock
   = "---" _ NewLine
 
 CommandContent
-  = content:(!EndCommandBlock .)* {
+  = content:(!EndCommandBlock c:. { return c; })* {
       return content.join('');
   }
 
@@ -197,10 +197,10 @@ WaitRequirement
 
 /* status words such as submitted / correct / attempted */
 RequirementCondition
-  = _ status:StatusWord                   { return { status }; }
-  / _ field:Identifier _ op:CompOp _ n:Num {
+  = _ field:Identifier _ op:CompOp _ n:Num {
       return { field, op, value: parseFloat(n) };
     }
+  / _ status:StatusWord { const normalizedStatus = Array.isArray(status) ? status.flat(Infinity).join('') : status; return { status: normalizedStatus }; }
 
 StatusWord       = $[a-zA-Z0-9_][a-zA-Z0-9_-]+
 CompOp           = ">=" / "<=" / ">" / "<" / "="

@@ -126,7 +126,7 @@ JJ: I found this chart on the Internet. I think it sums things up nicely!
 # Note: This is the multidrop characterization activity.
 psych_sba_sidebar -> positive_negative_reinforcement_punishment
 
---- wait positive_negative_reinforcement_punishment ---
+--- wait categorize_strategies score>0.7 ---
 
 psych_sba_sidebar -> poster_image
 

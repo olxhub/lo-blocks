@@ -14,6 +14,17 @@
       <TextArea id="follow_up" placeholder="Describe your plan..." />
       <ActionButton id="submit_follow_up" dependsOn="follow_up" target="interactive_chat" action="advance" label="Submit" />
     </Vertical>
+    <Vertical id="spacing_goal_activity">
+      <Markdown>**Set a spaced-practice goal:** How many shorter sessions will you spread across this week? Aim for at least 3.</Markdown>
+      <NumberInput id="spacing_goal" placeholder="e.g., 4" />
+      <ActionButton id="submit_spacing_goal" dependsOn="spacing_goal" target="interactive_chat" action="advance" label="Save goal" />
+    </Vertical>
+    <Vertical id="confidence_check_activity">
+      <Markdown>**Confidence check (0-1):** Rate how confident you are about sticking with spaced practice and add one thing that would boost it.</Markdown>
+      <NumberInput id="confidence_score" min="0" max="1" step="0.1" placeholder="e.g., 0.8" />
+      <TextArea id="confidence_note" placeholder="What's one thing that could raise it?" />
+      <ActionButton id="submit_confidence" dependsOn="confidence_score, confidence_note" target="interactive_chat" action="advance" label="Share confidence" />
+    </Vertical>
   </Hidden>
 
   <SplitPanel sizes="65,35">
@@ -43,6 +54,22 @@ sidebar -> follow_up_activity
 --- wait follow_up ---
 
 Alex: Great plan! The key is making it a habit.
+
+Alex: Let's set a quick spaced-practice goal. Enter how many short sessions you'll spread across this week.
+
+sidebar -> spacing_goal_activity
+
+--- wait spacing_goal value>=3 ---
+
+Alex: Planning at least three sessions is a solid start.
+
+Alex: Finally, rate your confidence in sticking with the plan and note one thing that would make it even easier.
+
+sidebar -> confidence_check_activity
+
+--- wait confidence_score value>=0.7, confidence_note ---
+
+Alex: Awesome—feeling 0.7 or higher and having a booster plan means you're ready to try this.
 
 Sam: Thanks for the tips!
       </Chat>
