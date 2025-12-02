@@ -21,10 +21,10 @@
     description="Share how much you agree with the following statements about the learning experience."
     scale="Strongly disagree,Disagree,Neither agree nor disagree,Agree,Strongly agree"
   >
-    <TextBlock id="statement_engagement">The instructor kept me engaged throughout the lesson.</TextBlock>
-    <TextBlock id="statement_materials">The course materials helped me understand the topic.</TextBlock>
-    <TextBlock id="statement_pacing">The pacing of the session felt appropriate.</TextBlock>
-    <Markdown id="statement_support">
+    <TextBlock id="statement_engagement" label="engaging">The instructor kept me engaged throughout the lesson.</TextBlock>
+    <TextBlock id="statement_materials" label="comprehensible">The course materials helped me understand the topic.</TextBlock>
+    <TextBlock id="statement_pacing" label="well-paced">The pacing of the session felt appropriate.</TextBlock>
+    <Markdown id="statement_support" label="supportive">
       The available support resources (office hours, forums, etc.) met my needs.
     </Markdown>
   </LikertScale>

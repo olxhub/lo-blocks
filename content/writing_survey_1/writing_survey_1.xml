@@ -1,0 +1,62 @@
+<!-- content/writing_survey_1/lesson1.xml -->
+<Sequential id="writing_lesson" launchable="true">
+  <TextBlock id="intro">
+    Think about how often you do various kinds of writing. The
+    screens that follow ask you to identify how often you
+    have do various kinds of writing.
+  </TextBlock>
+  <LikertScale
+    id="CourseFeedbackScale"
+    title="For School"
+    description="Indicate how often you have engaged in each of the following types of writing FOR SCHOOL."
+    scale="Daily,Weekly,Monthly,Every Semester,Rarely or Never"
+    showSummary="false"
+    showQuestions="true"
+    allowReset="false"
+  >
+    <TextBlock id="school_text" label="text message for school">A text message or direct message</TextBlock>
+    <TextBlock id="school_list" label="list for school">A list (e.g., to do list, grocery list)</TextBlock>
+    <TextBlock id="school_notes" label="notes for school">Notes on a lecture or passage</TextBlock>
+    <TextBlock id="school_poetry" label="poetry for school">Poetry or song lyrics</TextBlock>
+  </LikertScale>
+  <LikertScale
+    id="CourseFeedbackScale2"
+    title="Outside of School"
+    description="Indicate how often you have engaged in each of the following types of writing OUTSIDE OF SCHOOL."
+    scale="Daily,Weekly,Monthly,Rarely,Never"
+    showSummary="false"
+    allowReset="false"
+  >
+    <TextBlock id="nonschool_text" label="text message outside school">A text message or direct message</TextBlock>
+    <TextBlock id="nonschool_list" label="list outside school">A list (e.g., to do list, grocery list)</TextBlock>
+    <TextBlock id="nonschool_notes" label="notes outside school">Notes on a lecture or passage</TextBlock>
+    <TextBlock id="nonschool_poetry" label="poetry outside school">Poetry or song lyrics</TextBlock>
+  </LikertScale>
+  <LikertScale
+    id="CourseFeedbackScale3"
+    title="For School"
+    description="Indicate how often you have engaged in each of the following types of writing FOR SCHOOL."
+    scale="Daily,Weekly,Monthly,Every Semester,Rarely or Never"
+    showSummary="false"
+    allowReset="false"
+  >
+    <TextBlock id="school_research_paper" label="research paper for school">A research paper</TextBlock>
+    <TextBlock id="school_blog" label="blog entry for school">A blog entry</TextBlock>
+    <TextBlock id="school_letter" label="letter for school">A physical note (short message) or letter</TextBlock>
+    <TextBlock id="school_chatbot" label="chatbot for school">A chat with an AI chatbot</TextBlock>
+  </LikertScale>
+  <LikertScale
+    id="CourseFeedbackScale4"
+    title="Outside School"
+    description="Indicate how often you have engaged in each of the following types of writing OUTSIDE SCHOOL."
+    scale="Daily,Weekly,Monthly,Rarely,Never"
+    showSummary="false"
+    allowReset="false"
+  >
+    <TextBlock id="nonschool_research_paper" label="research paper outside school">A research paper</TextBlock>
+    <TextBlock id="nonschool_blog" label="blog entry outsidede school">A blog entry</TextBlock>
+    <TextBlock id="nonschool_letter" label="letter outside school">A physical note (short message) or letter</TextBlock>
+    <TextBlock id="nonschool_chatbot" label="chatbot outside school">A chat with an AI chatbot</TextBlock>
+  </LikertScale>
+  <Use ref="CourseFeedbackScale" showQuestions="false" showSummary="true" showHeader="false" />
+</Sequential>

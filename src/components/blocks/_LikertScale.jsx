@@ -73,7 +73,9 @@ function _LikertScale(props) {
     id: componentId,
     allowReset = true,
     readOnly: readOnlyProp,
-    showSummary = true
+    showHeader = true,
+    showSummary = true,
+    showQuestions = true
   } = props;
 
   const defaultResponses = useMemo(() => ({}), []);
@@ -88,9 +90,11 @@ function _LikertScale(props) {
     [scale, options, labels, scaleDelimiter]
   );
 
-  const readOnly = useMemo(() => normalizeBoolean(readOnlyProp, false), [readOnlyProp]);
-  const summaryEnabled = useMemo(() => normalizeBoolean(showSummary, true), [showSummary]);
-  const resetEnabled = useMemo(() => normalizeBoolean(allowReset, true), [allowReset]);
+  const readOnly = normalizeBoolean(readOnlyProp, false);
+  const summaryEnabled = normalizeBoolean(showSummary, true);
+  const headerEnabled = normalizeBoolean(showHeader, true);
+  const questionsEnabled = normalizeBoolean(showQuestions, true);
+  const resetEnabled = normalizeBoolean(allowReset, true);
 
   const statements = useMemo(() => {
     return kids
@@ -135,14 +139,15 @@ function _LikertScale(props) {
 
   return (
     <div className="likert-scale-component border border-gray-200 rounded-lg bg-white shadow-sm">
-      {(title || description) && (
+      {(title || description) && headerEnabled && (
         <div className="px-5 py-4 border-b border-gray-200">
           {title && <h3 className="text-lg font-semibold text-gray-900">{title}</h3>}
           {description && <p className="mt-1 text-sm text-gray-600">{description}</p>}
         </div>
       )}
 
-      <div className="overflow-x-auto">
+      {questionsEnabled &&
+      <div className="overflow-x-auto inline-block">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -166,8 +171,8 @@ function _LikertScale(props) {
               const name = `${componentId || 'LikertScale'}_${statement.id || rowIndex}`;
               return (
                 <tr key={statement.id} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                  <th scope="row" className="px-6 py-4 text-sm font-medium text-gray-900 align-top">
-                    <div className="max-w-prose space-y-1">
+                  <th scope="row" className="px-6 px-4 text-sm font-medium text-gray-900 align-top">
+                    <div className="max-w-prose space-y-1 my-2 text-left">
                       {render({
                         node: statement.child,
                         idMap,
@@ -180,7 +185,7 @@ function _LikertScale(props) {
                     const inputId = `${name}_${optionIndex}`;
                     const isSelected = response?.index === optionIndex;
                     return (
-                      <td key={inputId} className="px-4 py-4 text-center">
+                      <td key={inputId} className="px-2 py-2 text-center">
                         <label className="inline-flex items-center justify-center gap-2">
                           <input
                             id={inputId}
@@ -204,23 +209,24 @@ function _LikertScale(props) {
             })}
           </tbody>
         </table>
-      </div>
+      </div>}
 
       {(summaryEnabled || (resetEnabled && !readOnly)) && (
         <div className="px-5 py-4 border-t border-gray-200 bg-gray-50 space-y-3">
           {summaryEnabled && (
             <div>
-              {summaryHeading && (
+              {summaryHeading && headerEnabled && (
                 <h4 className="text-sm font-semibold text-gray-700 tracking-wide uppercase">{summaryHeading}</h4>
               )}
-              <dl className="mt-2 space-y-2">
+              <dl className="mt-2 space-y-2 inline-block">
                 {statements.map((statement, index) => {
                   const response = responses?.[statement.id];
                   return (
-                    <div key={`summary-${statement.id}`} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                      <dt className="text-sm font-medium text-gray-700">
+                    <div key={`summary-${statement.id}`} className="flex flex-col sm:flex-row sm:items-left sm:justify-between gap-1">
+                      <dt className="text-sm font-medium font-semibold text-gray-700">
                         {statement.label || `Statement ${index + 1}`}
                       </dt>
+                      <dd>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</dd>
                       <dd className="text-sm text-gray-600">
                         {response ? scaleOptions[response.index] : 'No response yet'}
                       </dd>
