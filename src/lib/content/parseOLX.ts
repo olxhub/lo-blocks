@@ -108,43 +108,14 @@ export async function parseOLX(
   provider?: import('../storage').StorageProvider
 ) {
   const idMap: IdMap = {};
-
-  // Validate XML first for better error messages
   const provenanceStr = formatProvenanceList(provenance).join(', ');
-  const validation = XMLValidator.validate(xml, {
-    allowBooleanAttributes: true
-  });
-
-  if (validation !== true) {
-    // validation is an error object with err.code, err.msg, err.line, err.col
-    const err = validation.err;
-    const lines = xml.split('\n');
-
-    // Show context around the error line
-    const errorLine = err.line || 1;
-    const startLine = Math.max(0, errorLine - 3);
-    const endLine = Math.min(lines.length, errorLine + 2);
-    const context = lines.slice(startLine, endLine)
-      .map((line, i) => {
-        const lineNum = startLine + i + 1;
-        const marker = lineNum === errorLine ? '>>>' : '   ';
-        return `${marker} ${lineNum}: ${line}`;
-      })
-      .join('\n');
-
-    throw new Error(
-      `XML syntax error in ${provenanceStr} at line ${err.line}, column ${err.col}:\n` +
-      `${err.msg}\n\n` +
-      `Context:\n${context}\n\n` +
-      `Check for: unclosed quotes, missing closing tags, or invalid characters.`
-    );
-  }
 
   let parsedTree;
   try {
+    // Parse first (which applies transforms)
     parsedTree = xmlParser.parse(xml);
   } catch (parseError) {
-    // Fallback error handling if validation passed but parsing still failed
+    // The parser itself will catch malformed XML
     const lines = xml.split('\n');
     const preview = lines.slice(0, 10).map((line, i) => `${i + 1}: ${line}`).join('\n');
 
@@ -153,6 +124,14 @@ export async function parseOLX(
       `${parseError.message}\n\n` +
       `First 10 lines of content:\n${preview}\n\n` +
       `Check for: unclosed tags, invalid characters, or malformed XML syntax.`
+    );
+  }
+
+  // Validate the parsed structure instead
+  if (!parsedTree || (Array.isArray(parsedTree) && parsedTree.length === 0)) {
+    throw new Error(
+      `Empty or invalid XML document in ${provenanceStr}.\n` +
+      `The document must contain at least one root element.`
     );
   }
 
