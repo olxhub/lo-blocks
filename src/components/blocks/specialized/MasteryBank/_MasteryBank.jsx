@@ -5,6 +5,7 @@ import React, { useMemo, useEffect, useRef } from 'react';
 import { render } from '@/lib/render';
 import { useReduxState, useFieldSelector, componentFieldByName } from '@/lib/state';
 import { CORRECTNESS } from '@/lib/blocks';
+import { DisplayError } from '@/lib/util/debug';
 
 /**
  * Fisher-Yates shuffle.
@@ -98,10 +99,17 @@ function MasteryProblem({ props, currentProblemId, currentIndex, problemIds, cor
   // Check if problem exists in idMap
   if (!idMap[currentProblemId]) {
     return (
-      <div className="lo-mastery-bank lo-mastery-bank--error">
-        <p>Problem not found: <code>{currentProblemId}</code></p>
-        <p>Make sure this problem is defined elsewhere in your content.</p>
-      </div>
+      <DisplayError
+        props={props}
+        name="MasteryBank"
+        message={`Problem not found: "${currentProblemId}"`}
+        technical={{
+          hint: 'Make sure this problem is defined elsewhere in your content.',
+          problemId: currentProblemId,
+          blockId: props.id
+        }}
+        id={`${props.id}_problem_not_found`}
+      />
     );
   }
 
@@ -165,17 +173,34 @@ export default function _MasteryBank(props) {
   // Error states - return before we need to watch problem state
   if (problemIds.length === 0) {
     return (
-      <div className="lo-mastery-bank lo-mastery-bank--error">
-        <p>No problems found in MasteryBank. Add problem IDs as content.</p>
-      </div>
+      <DisplayError
+        props={props}
+        name="MasteryBank"
+        message="No problems found in MasteryBank"
+        technical={{
+          hint: 'Add problem IDs as content, e.g., <MasteryBank>problem_id_1, problem_id_2</MasteryBank>',
+          blockId: id
+        }}
+        id={`${id}_no_problems`}
+      />
     );
   }
 
   if (!currentProblemId) {
+    // This shouldn't happen in normal operation, but handle it gracefully
     return (
-      <div className="lo-mastery-bank lo-mastery-bank--loading">
-        <p>Loading...</p>
-      </div>
+      <DisplayError
+        props={props}
+        name="MasteryBank"
+        message="Unable to select current problem"
+        technical={{
+          hint: 'Internal state error - shuffledOrder may not be initialized',
+          currentIndex,
+          shuffledOrderLength: shuffledOrder?.length,
+          blockId: id
+        }}
+        id={`${id}_no_current_problem`}
+      />
     );
   }
 
