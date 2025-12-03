@@ -1,7 +1,7 @@
 // src/components/blocks/specialized/MasteryBank/_MasteryBank.jsx
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { render } from '@/lib/render';
 import { useReduxState, useFieldSelector, componentFieldByName } from '@/lib/state';
 import { CORRECTNESS } from '@/lib/blocks';
@@ -30,7 +30,7 @@ function shuffleArray(array, seed = Date.now()) {
  * Inner component that renders when we have a valid problem ID.
  * This allows us to call useFieldSelector unconditionally.
  */
-function MasteryProblem({ props, currentProblemId, currentIndex, problemIds, correctStreak, goalNum, setCurrentIndex, setCorrectStreak, setShuffledOrder, setCompleted }) {
+function MasteryProblem({ props, currentProblemId, currentIndex, problemIds, correctStreak, goalNum, setCurrentIndex, setCorrectStreak, setShuffledOrder, setCompleted, firstSubmissionResult, setFirstSubmissionResult }) {
   const { idMap } = props;
 
   // Watch the current problem's grader correctness state
@@ -48,9 +48,30 @@ function MasteryProblem({ props, currentProblemId, currentIndex, problemIds, cor
     }
   );
 
-  // Handle next button click
+  // Track previous correctness to detect first submission
+  const prevCorrectnessRef = useRef(currentCorrectness);
+
+  // Capture first submission result when correctness changes from UNSUBMITTED
+  useEffect(() => {
+    const prevCorrectness = prevCorrectnessRef.current;
+    prevCorrectnessRef.current = currentCorrectness;
+
+    // Only capture if we haven't recorded a first submission yet
+    // and correctness just changed from UNSUBMITTED to something else
+    if (firstSubmissionResult === null &&
+        prevCorrectness === CORRECTNESS.UNSUBMITTED &&
+        currentCorrectness !== CORRECTNESS.UNSUBMITTED) {
+      if (currentCorrectness === CORRECTNESS.CORRECT) {
+        setFirstSubmissionResult('correct');
+      } else if (currentCorrectness === CORRECTNESS.INCORRECT) {
+        setFirstSubmissionResult('incorrect');
+      }
+    }
+  }, [currentCorrectness, firstSubmissionResult, setFirstSubmissionResult]);
+
+  // Handle next button click - use firstSubmissionResult for streak calculation
   const handleNext = () => {
-    if (currentCorrectness === CORRECTNESS.CORRECT) {
+    if (firstSubmissionResult === 'correct') {
       const newStreak = correctStreak + 1;
       setCorrectStreak(newStreak);
 
@@ -59,13 +80,16 @@ function MasteryProblem({ props, currentProblemId, currentIndex, problemIds, cor
       } else {
         advanceToNext();
       }
-    } else if (currentCorrectness === CORRECTNESS.INCORRECT) {
+    } else if (firstSubmissionResult === 'incorrect') {
       setCorrectStreak(0);
       advanceToNext();
     }
   };
 
   const advanceToNext = () => {
+    // Reset first submission tracking for the next problem
+    setFirstSubmissionResult(null);
+
     const nextIndex = currentIndex + 1;
     if (nextIndex >= problemIds.length) {
       const indices = Array.from({ length: problemIds.length }, (_, i) => i);
@@ -88,14 +112,16 @@ function MasteryProblem({ props, currentProblemId, currentIndex, problemIds, cor
 
   const problemNode = { type: 'block', id: currentProblemId };
 
+  // Show Next button once we have a first submission result
+  const showNextButton = firstSubmissionResult !== null;
+
   return (
     <>
       <div className="lo-mastery-bank__problem">
         {render({ ...props, node: problemNode })}
       </div>
 
-      {(currentCorrectness === CORRECTNESS.CORRECT ||
-        currentCorrectness === CORRECTNESS.INCORRECT) && (
+      {showNextButton && (
         <div className="lo-mastery-bank__footer">
           <button
             className="lo-mastery-bank__next-btn"
@@ -135,6 +161,7 @@ export default function _MasteryBank(props) {
   const [correctStreak, setCorrectStreak] = useReduxState(props, fields.correctStreak, 0);
   const [completed, setCompleted] = useReduxState(props, fields.completed, false);
   const [shuffledOrder, setShuffledOrder] = useReduxState(props, fields.shuffledOrder, initialShuffledOrder);
+  const [firstSubmissionResult, setFirstSubmissionResult] = useReduxState(props, fields.firstSubmissionResult, null);
 
   // Get current problem ID
   const currentProblemIndex = shuffledOrder?.[currentIndex % problemIds.length];
@@ -191,6 +218,8 @@ export default function _MasteryBank(props) {
         setCorrectStreak={setCorrectStreak}
         setShuffledOrder={setShuffledOrder}
         setCompleted={setCompleted}
+        firstSubmissionResult={firstSubmissionResult}
+        setFirstSubmissionResult={setFirstSubmissionResult}
       />
     </div>
   );

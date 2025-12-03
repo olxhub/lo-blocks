@@ -43,15 +43,7 @@ function questionToOlx(question, index) {
   const graderId = `${problemId}_grader`;
   const inputId = `${problemId}_input`;
 
-  // Shuffle options for variety (but deterministically based on index)
-  const shuffledOptions = [...ANSWER_OPTIONS];
-  // Simple deterministic shuffle based on index
-  for (let i = shuffledOptions.length - 1; i > 0; i--) {
-    const j = (index * 7 + i * 13) % (i + 1);
-    [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
-  }
-
-  const choicesXml = shuffledOptions.map(option => {
+  const choicesXml = ANSWER_OPTIONS.map(option => {
     const optionId = `${problemId}_${toKebabCase(option).replace(/-/g, '_')}`;
     const isKey = option === key;
     const tag = isKey ? 'Key' : 'Distractor';
@@ -63,7 +55,9 @@ function questionToOlx(question, index) {
   // Put explanation in a comment for now (Explanation block not yet implemented)
   const explanationComment = `<!-- Explanation: ${escapeXml(explanation)} -->`;
 
-  return `  <CapaProblem id="${problemId}">
+  const title = `Question ${index + 1}`;
+
+  return `  <CapaProblem id="${problemId}" title="${title}">
     <p>${escapeXml(stem)}</p>
     <KeyGrader id="${graderId}">
       <ChoiceInput id="${inputId}">
