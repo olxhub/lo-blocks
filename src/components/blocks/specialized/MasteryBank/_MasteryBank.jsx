@@ -96,7 +96,7 @@ function MasteryProblem({ props, currentProblemId, problemIds, correctStreak, go
     }
   );
 
-  // Track previous correctness to detect first submission
+  // Track previous correctness to detect state changes
   const prevCorrectnessRef = useRef(currentCorrectness);
 
   const advanceToNext = () => {
@@ -108,44 +108,54 @@ function MasteryProblem({ props, currentProblemId, problemIds, correctStreak, go
     setModeState(newState);
   };
 
-  // Handle first submission: auto-advance on correct, reset streak on incorrect
-  // States like INVALID, INCOMPLETE, SUBMITTED are no-ops - let student fix their input
+  // Handle correctness changes
+  // - First incorrect: reset streak, stay on problem (student must get it right to advance)
+  // - Correct after incorrect: advance but don't increment streak
+  // - First correct: increment streak and advance
+  // - INVALID, INCOMPLETE, SUBMITTED: no-ops, let student fix input
   useEffect(() => {
     const prevCorrectness = prevCorrectnessRef.current;
     prevCorrectnessRef.current = currentCorrectness;
 
-    // Only act if we haven't recorded a first submission yet
-    // and correctness just changed from UNSUBMITTED to something else
-    if (firstSubmissionResult === null &&
-        prevCorrectness === CORRECTNESS.UNSUBMITTED &&
-        currentCorrectness !== CORRECTNESS.UNSUBMITTED) {
-      if (currentCorrectness === CORRECTNESS.CORRECT) {
-        setFirstSubmissionResult(CORRECTNESS.CORRECT);
-        // Auto-advance on correct answer
+    // Only act when correctness actually changes
+    if (prevCorrectness === currentCorrectness) {
+      return;
+    }
+
+    // Ignore transitions that don't involve a real answer
+    if (currentCorrectness === CORRECTNESS.UNSUBMITTED ||
+        currentCorrectness === CORRECTNESS.INVALID ||
+        currentCorrectness === CORRECTNESS.INCOMPLETE ||
+        currentCorrectness === CORRECTNESS.SUBMITTED) {
+      return;
+    }
+
+    if (currentCorrectness === CORRECTNESS.CORRECT) {
+      if (firstSubmissionResult === null) {
+        // First submission was correct - increment streak
         const newStreak = correctStreak + 1;
         setCorrectStreak(newStreak);
+        setFirstSubmissionResult(CORRECTNESS.CORRECT);
 
         if (newStreak >= goalNum) {
           setCompleted(true);
         } else {
           advanceToNext();
         }
-      } else if (currentCorrectness === CORRECTNESS.INCORRECT ||
-                 currentCorrectness === CORRECTNESS.PARTIALLY_CORRECT) {
-        // Partially correct counts as incorrect for mastery purposes
+      } else if (firstSubmissionResult === CORRECTNESS.INCORRECT) {
+        // Got it right after getting it wrong - advance but don't increment streak
+        advanceToNext();
+      }
+    } else if (currentCorrectness === CORRECTNESS.INCORRECT ||
+               currentCorrectness === CORRECTNESS.PARTIALLY_CORRECT) {
+      if (firstSubmissionResult === null) {
+        // First submission was incorrect - reset streak, stay on problem
         setFirstSubmissionResult(CORRECTNESS.INCORRECT);
-        // Reset streak immediately on wrong answer
         setCorrectStreak(0);
       }
-      // INVALID, INCOMPLETE, SUBMITTED are no-ops - student can fix and resubmit
-      // firstSubmissionResult stays null so the next valid submission counts
+      // If already incorrect, do nothing - student is retrying
     }
   }, [currentCorrectness, firstSubmissionResult, setFirstSubmissionResult, setCorrectStreak, correctStreak, goalNum, setCompleted, problemIds.length, modeState, setModeState, orderMode]);
-
-  // Handle next button click (only shown for incorrect answers)
-  const handleNext = () => {
-    advanceToNext();
-  };
 
   // Check if problem exists in idMap
   if (!idMap[currentProblemId]) {
@@ -166,26 +176,10 @@ function MasteryProblem({ props, currentProblemId, problemIds, correctStreak, go
 
   const problemNode = { type: 'block', id: currentProblemId };
 
-  // Show Next button only on incorrect answer (correct auto-advances)
-  const showNextButton = firstSubmissionResult === CORRECTNESS.INCORRECT;
-
   return (
-    <>
-      <div className="lo-mastery-bank__problem">
-        {render({ ...props, node: problemNode })}
-      </div>
-
-      {showNextButton && (
-        <div className="lo-mastery-bank__footer">
-          <button
-            className="lo-mastery-bank__next-btn"
-            onClick={handleNext}
-          >
-            Next Problem →
-          </button>
-        </div>
-      )}
-    </>
+    <div className="lo-mastery-bank__problem">
+      {render({ ...props, node: problemNode })}
+    </div>
   );
 }
 
