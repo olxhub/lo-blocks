@@ -24,6 +24,7 @@ import { transformTagName } from '@/lib/content/xmlTransforms';
 import * as parsers from '@/lib/content/parsers';
 import { Provenance, IdMap, OLXLoadingError } from '@/lib/types';
 import { formatProvenanceList } from '@/lib/storage/provenance';
+import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 
 const defaultParser = parsers.blocks().parser;
 
@@ -192,6 +193,26 @@ export async function parseOLX(
     if (!Component) {
       console.warn(`[OLX] No component found for tag: <${tag}> — using defaultParser`);
     }
+
+    // Validate attributes - use component schema if defined, else base with passthrough
+    const schema = Component?.attributeSchema ?? baseAttributes.passthrough();
+    const result = schema.safeParse(attributes);
+    if (!result.success) {
+      const zodErrors = result.error.issues.map(i => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
+      errors.push({
+        type: 'attribute_validation',
+        file: formatProvenanceList(provenance).join(', '),
+        message: `Invalid attributes for <${tag} id="${id}">:\n${zodErrors}`,
+        location: { line: node.line, column: node.column },
+        technical: {
+          tag,
+          id,
+          attributes,
+          zodError: result.error
+        }
+      });
+    }
+
     const parser = Component?.parser || defaultParser;
 
     // Parse the node using the component's parser. The parser is responsible

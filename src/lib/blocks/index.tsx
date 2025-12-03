@@ -17,3 +17,4 @@ export { displayName, htmlId, nodeId, reactKey, reduxId, urlName } from './idRes
 export { action, executeNodeActions, grader, input, isAction, isInput } from './actions';
 export { CORRECTNESS } from './correctness';
 export { isInputReadOnly } from './inputInteraction';
+export { baseAttributes } from './attributeSchemas';

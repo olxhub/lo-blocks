@@ -20,6 +20,7 @@ import htmlTags from 'html-tags';
 import React from 'react';
 import { DisplayError, DebugWrapper } from '@/lib/util/debug';
 import { COMPONENT_MAP } from '@/components/componentMap';
+import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 
 export const makeRootNode = () => ({ sentinel: 'root', renderedKids: {} });
 
@@ -92,6 +93,22 @@ export function render({ node, idMap, key, nodeInfo, componentMap = COMPONENT_MA
   }
 
   const Component = componentMap[tag].component;
+  const blueprint = componentMap[tag].blueprint;
+
+  // Validate attributes - use component schema if defined, else base with passthrough
+  const attrSchema = blueprint?.attributeSchema ?? baseAttributes.passthrough();
+  const validationResult = attrSchema.safeParse(attributes);
+  if (!validationResult.success) {
+    const zodErrors = validationResult.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ');
+    return (
+      <DisplayError
+        id={`validation-${node.id}`}
+        name={tag}
+        message={`Invalid attributes: ${zodErrors}`}
+        technical={{ attributes, zodError: validationResult.error }}
+      />
+    );
+  }
 
   // Create a dynamic shadow hierarchy
   //

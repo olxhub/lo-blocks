@@ -24,7 +24,7 @@ export type JSONValue =
 
 // OLX Content Loading Errors
 export interface OLXLoadingError {
-  type: 'parse_error' | 'duplicate_id' | 'file_error' | 'peg_error';
+  type: 'parse_error' | 'duplicate_id' | 'file_error' | 'peg_error' | 'attribute_validation';
   file: string;
   message: string;
   location?: {
@@ -163,6 +163,11 @@ export const BlockBlueprintSchema = z.object({
    *   Receives context including parsed content, attributes, and current state.
    */
   requiresUniqueId: z.union([z.boolean(), z.literal('children'), z.function().returns(z.boolean())]).optional(),
+  /**
+   * Zod schema for validating block attributes at parse time and render time.
+   * If defined, invalid attributes produce errors in parseOLX and DisplayError at render.
+   */
+  attributeSchema: z.custom<z.ZodTypeAny>().optional(),
 }).strict();
 
 export type BlockBlueprint = z.infer<typeof BlockBlueprintSchema>;
@@ -215,6 +220,10 @@ export interface Block {
     entry: any,
     children?: any[]
   }) => boolean);
+  /**
+   * Zod schema for validating block attributes at parse time and render time.
+   */
+  attributeSchema?: z.ZodTypeAny;
   blueprint: BlockBlueprint;
 }
 
