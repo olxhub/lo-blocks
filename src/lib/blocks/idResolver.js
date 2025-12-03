@@ -94,5 +94,25 @@ export const htmlId = resolveIdForContext("htmlId");
 export const reactKey = resolveIdForContext("reactKey");
 export const displayName = resolveIdForContext("displayName");
 
+/**
+ * Extends the ID prefix for child components.
+ *
+ * Used when a block needs to render children with scoped state (e.g., list items,
+ * repeated problem attempts). Returns an object with `idPrefix` to spread into props.
+ *
+ * @param {object} props - The parent component's props (may contain idPrefix)
+ * @param {string} scope - The scope to add (e.g., "item_0", "attempt_1")
+ * @returns {{ idPrefix: string }} Object to spread into child props
+ *
+ * @example
+ * // In a list component:
+ * renderCompiledKids({ ...props, ...extendIdPrefix(props, `${id}.${index}`) })
+ *
+ * // In MasteryBank:
+ * render({ ...props, node: problemNode, ...extendIdPrefix(props, `${id}.attempt_${n}`) })
+ */
+export function extendIdPrefix(props, scope) {
+  return { idPrefix: props.idPrefix ? `${props.idPrefix}.${scope}` : scope };
+}
 
 export const __testables = { ID_RESOLUTION_MATRIX };

@@ -4,6 +4,7 @@
 import React, { useMemo, useEffect, useRef } from 'react';
 import { render } from '@/lib/render';
 import { useReduxState, useFieldSelector, componentFieldByName } from '@/lib/state';
+import { extendIdPrefix } from '@/lib/blocks/idResolver';
 import { CORRECTNESS } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
 
@@ -25,9 +26,14 @@ function shuffleIndices(length) {
  *
  * Each mode provides:
  *   - initial(itemCount): Returns initial state
- *   - nextItem(itemCount, state): Returns [nextItemIndex, newState]
+ *   - nextItem(itemCount, state): Returns { nextItem, newState, completedFullCycle }
  *   - currentItem(state): Returns current item index from state
  *   - position(state): Returns 0-indexed position for display
+ *
+ * The `completedFullCycle` flag indicates when we've gone through all problems
+ * and are starting over. This triggers an increment of `attemptNumber`, which
+ * scopes child state so previously-answered problems appear fresh (their old
+ * answers are stored under a different Redux key).
  */
 const ORDER_MODES = {
   // Linear: 0,1,2,0,1,2,0,1,2...
@@ -35,7 +41,8 @@ const ORDER_MODES = {
     initial: () => 0,
     nextItem: (itemCount, state) => {
       const next = (state + 1) % itemCount;
-      return [next, next];
+      const completedFullCycle = next === 0;
+      return { nextItem: next, newState: next, completedFullCycle };
     },
     currentItem: (state) => state,
     position: (state) => state
@@ -47,9 +54,9 @@ const ORDER_MODES = {
       const nextIndex = state.index + 1;
       if (nextIndex >= itemCount) {
         const newOrder = shuffleIndices(itemCount);
-        return [newOrder[0], { order: newOrder, index: 0 }];
+        return { nextItem: newOrder[0], newState: { order: newOrder, index: 0 }, completedFullCycle: true };
       }
-      return [state.order[nextIndex], { ...state, index: nextIndex }];
+      return { nextItem: state.order[nextIndex], newState: { ...state, index: nextIndex }, completedFullCycle: false };
     },
     currentItem: (state) => state.order[state.index],
     position: (state) => state.index
@@ -69,18 +76,22 @@ function isGradedAnswer(correctness) {
  * Inner component that watches grader state and handles advancement.
  * Separated to allow unconditional hook calls (useFieldSelector requires valid field).
  */
-function MasteryProblem({ props, problemId, masteryState, handlers }) {
-  const { idMap } = props;
+function MasteryProblem({ props, problemId, attemptNumber, masteryState, handlers }) {
+  const { id, idMap } = props;
   const { problemIds, correctStreak, goalNum, firstSubmissionResult, modeState, orderMode } = masteryState;
-  const { setCorrectStreak, setModeState, setCompleted, setFirstSubmissionResult } = handlers;
+  const { setCorrectStreak, setModeState, setCompleted, setFirstSubmissionResult, setAttemptNumber } = handlers;
 
-  // Watch the current problem's grader correctness state
-  const graderId = `${problemId}_grader`;
-  const graderField = componentFieldByName(props, graderId, 'correct');
+  // Watch the current problem's grader correctness state (scoped by attempt)
+  const scopedGraderId = `${problemId}_grader`;
+  const graderField = componentFieldByName(
+    { ...props, ...extendIdPrefix(props, `${id}.attempt_${attemptNumber}`) },
+    scopedGraderId,
+    'correct'
+  );
   const currentCorrectness = useFieldSelector(
-    props,
+    { ...props, ...extendIdPrefix(props, `${id}.attempt_${attemptNumber}`) },
     graderField,
-    { id: graderId, fallback: CORRECTNESS.UNSUBMITTED, selector: s => s?.correct }
+    { id: scopedGraderId, fallback: CORRECTNESS.UNSUBMITTED, selector: s => s?.correct }
   );
 
   const prevCorrectnessRef = useRef(currentCorrectness);
@@ -97,8 +108,11 @@ function MasteryProblem({ props, problemId, masteryState, handlers }) {
 
     const advanceToNext = () => {
       setFirstSubmissionResult(null);
-      const [, newState] = orderMode.nextItem(problemIds.length, modeState);
+      const { newState, completedFullCycle } = orderMode.nextItem(problemIds.length, modeState);
       setModeState(newState);
+      if (completedFullCycle) {
+        setAttemptNumber(attemptNumber + 1);
+      }
     };
 
     if (currentCorrectness === CORRECTNESS.CORRECT) {
@@ -124,7 +138,7 @@ function MasteryProblem({ props, problemId, masteryState, handlers }) {
         setCorrectStreak(0);
       }
     }
-  }, [currentCorrectness, firstSubmissionResult, correctStreak, goalNum, problemIds.length, modeState, orderMode, setCorrectStreak, setModeState, setCompleted, setFirstSubmissionResult]);
+  }, [currentCorrectness, firstSubmissionResult, correctStreak, goalNum, problemIds.length, modeState, orderMode, attemptNumber, setCorrectStreak, setModeState, setCompleted, setFirstSubmissionResult, setAttemptNumber]);
 
   if (!idMap[problemId]) {
     return (
@@ -144,7 +158,7 @@ function MasteryProblem({ props, problemId, masteryState, handlers }) {
 
   return (
     <div className="lo-mastery-bank__problem">
-      {render({ ...props, node: { type: 'block', id: problemId } })}
+      {render({ ...props, node: { type: 'block', id: problemId }, ...extendIdPrefix(props, `${id}.attempt_${attemptNumber}`) })}
     </div>
   );
 }
@@ -168,6 +182,7 @@ export default function _MasteryBank(props) {
   const [completed, setCompleted] = useReduxState(props, fields.completed, false);
   const [modeState, setModeState] = useReduxState(props, fields.modeState, initialModeState);
   const [firstSubmissionResult, setFirstSubmissionResult] = useReduxState(props, fields.firstSubmissionResult, null);
+  const [attemptNumber, setAttemptNumber] = useReduxState(props, fields.attemptNumber, 0);
 
   // Error: no problems
   if (problemIds.length === 0) {
@@ -234,8 +249,9 @@ export default function _MasteryBank(props) {
       <MasteryProblem
         props={props}
         problemId={currentProblemId}
+        attemptNumber={attemptNumber}
         masteryState={{ problemIds, correctStreak, goalNum, firstSubmissionResult, modeState, orderMode }}
-        handlers={{ setCorrectStreak, setModeState, setCompleted, setFirstSubmissionResult }}
+        handlers={{ setCorrectStreak, setModeState, setCompleted, setFirstSubmissionResult, setAttemptNumber }}
       />
     </div>
   );

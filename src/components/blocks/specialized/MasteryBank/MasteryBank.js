@@ -21,7 +21,8 @@ export const fields = state.fields([
   'correctStreak',          // Current streak of correct answers
   'modeState',              // Mode-specific state (number for linear, object for shuffle)
   'completed',              // Whether mastery has been achieved
-  'firstSubmissionResult'   // First submission result: null, CORRECTNESS.CORRECT, or CORRECTNESS.INCORRECT
+  'firstSubmissionResult',  // First submission result: null, CORRECTNESS.CORRECT, or CORRECTNESS.INCORRECT
+  'attemptNumber'           // Increments when looping through all problems, scopes child state
 ]);
 
 const MasteryBank = dev({
