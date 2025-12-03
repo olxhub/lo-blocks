@@ -1,0 +1,127 @@
+<!-- Operant Conditioning Mastery Quiz -->
+<!-- Uses problems from operant-questions.olx -->
+
+<Vertical id="operant_mastery_quiz" title="Operant Conditioning Mastery Quiz" launchable="true">
+
+  <Markdown id="operant_instructions">
+## Operant Conditioning Practice
+
+Answer **6 questions correctly in a row** to demonstrate mastery.
+
+Each question presents a scenario and asks you to identify which type of operant conditioning is being illustrated:
+- **Positive Reinforcement**: Adding something pleasant to increase behavior
+- **Negative Reinforcement**: Removing something unpleasant to increase behavior
+- **Positive Punishment**: Adding something unpleasant to decrease behavior
+- **Negative Punishment**: Removing something pleasant to decrease behavior
+
+Pay attention to:
+1. Did the behavior **increase** or **decrease**?
+2. Was something **added** or **removed**?
+  </Markdown>
+
+  <MasteryBank id="operant_mastery" goal="6">
+    operant_001_positive_reinforcement
+    operant_002_negative_reinforcement
+    operant_003_negative_punishment
+    operant_004_positive_reinforcement
+    operant_005_positive_reinforcement
+    operant_006_negative_reinforcement
+    operant_007_positive_punishment
+    operant_008_negative_punishment
+    operant_009_positive_reinforcement
+    operant_010_positive_reinforcement
+    operant_011_negative_reinforcement
+    operant_012_positive_punishment
+    operant_013_negative_punishment
+    operant_014_positive_reinforcement
+    operant_015_negative_reinforcement
+    operant_016_positive_punishment
+    operant_017_negative_punishment
+    operant_018_positive_reinforcement
+    operant_019_negative_reinforcement
+    operant_020_positive_punishment
+    operant_021_negative_punishment
+    operant_022_positive_reinforcement
+    operant_023_negative_reinforcement
+    operant_024_positive_punishment
+    operant_025_negative_punishment
+    operant_026_positive_reinforcement
+    operant_027_negative_reinforcement
+    operant_028_positive_punishment
+    operant_029_negative_punishment
+    operant_030_positive_reinforcement
+    operant_031_negative_reinforcement
+    operant_032_positive_punishment
+    operant_033_negative_punishment
+    operant_034_positive_reinforcement
+    operant_035_negative_reinforcement
+    operant_036_positive_punishment
+    operant_037_negative_punishment
+    operant_038_positive_reinforcement
+    operant_039_negative_reinforcement
+    operant_040_positive_punishment
+    operant_041_negative_punishment
+    operant_042_positive_reinforcement
+    operant_043_negative_reinforcement
+    operant_044_positive_punishment
+    operant_045_negative_punishment
+    operant_046_positive_reinforcement
+    operant_047_negative_reinforcement
+    operant_048_positive_punishment
+    operant_049_negative_punishment
+    operant_050_positive_reinforcement
+    operant_051_negative_reinforcement
+    operant_052_positive_punishment
+    operant_053_negative_punishment
+    operant_054_positive_reinforcement
+    operant_055_negative_reinforcement
+    operant_056_positive_punishment
+    operant_057_negative_punishment
+    operant_058_positive_reinforcement
+    operant_059_negative_reinforcement
+    operant_060_positive_punishment
+    operant_061_negative_punishment
+    operant_062_positive_reinforcement
+    operant_063_negative_reinforcement
+    operant_064_negative_punishment
+    operant_065_positive_punishment
+    operant_066_positive_reinforcement
+    operant_067_negative_reinforcement
+    operant_068_positive_punishment
+    operant_069_negative_punishment
+    operant_070_positive_reinforcement
+    operant_071_negative_reinforcement
+    operant_072_negative_punishment
+    operant_073_positive_punishment
+    operant_074_negative_reinforcement
+    operant_075_positive_reinforcement
+    operant_076_negative_reinforcement
+    operant_077_positive_punishment
+    operant_078_negative_punishment
+    operant_079_positive_reinforcement
+    operant_080_negative_reinforcement
+    operant_081_positive_punishment
+    operant_082_negative_punishment
+    operant_083_positive_reinforcement
+    operant_084_negative_reinforcement
+    operant_085_negative_punishment
+    operant_086_positive_punishment
+    operant_087_positive_reinforcement
+    operant_088_negative_reinforcement
+    operant_089_positive_punishment
+    operant_090_negative_punishment
+    operant_091_negative_reinforcement
+    operant_092_negative_reinforcement
+    operant_093_positive_punishment
+    operant_094_negative_punishment
+    operant_095_positive_reinforcement
+    operant_096_negative_reinforcement
+    operant_097_positive_punishment
+    operant_098_negative_punishment
+    operant_099_positive_reinforcement
+    operant_100_negative_reinforcement
+    operant_101_positive_punishment
+    operant_102_negative_punishment
+  </MasteryBank>
+
+</Vertical>

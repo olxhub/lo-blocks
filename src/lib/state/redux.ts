@@ -79,7 +79,11 @@ export const fieldSelector = <T>(
         return selector(scopedState);
       case scopes.storage:
       case scopes.component: {
-        const id = optId ?? idResolver.reduxId(props);
+        // If optId is provided, apply prefix via reduxId (supports /absolute syntax)
+        // Otherwise, use the component's own ID from props
+        const id = optId !== undefined
+          ? idResolver.reduxId({ ...props, id: optId })
+          : idResolver.reduxId(props);
         return selector(scopedState?.[id]);
       }
       default:
@@ -121,7 +125,13 @@ export function updateReduxField(
   assertValidField(field);
   const scope = field.scope;
   const fieldName = field.name;
-  const resolvedId = id ?? (scope === scopes.component ? idResolver.reduxId(props) : undefined);
+  // If id override is provided, apply prefix via reduxId (supports /absolute syntax)
+  // Otherwise, use the component's own ID from props
+  const resolvedId = (scope === scopes.component || scope === scopes.storage)
+    ? (id !== undefined
+        ? idResolver.reduxId({ ...props, id })
+        : idResolver.reduxId(props))
+    : undefined;
   const resolvedTag = tag ?? props?.blueprint?.OLXName;
 
   lo_event.logEvent(field.event, {

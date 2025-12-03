@@ -69,6 +69,12 @@ function resolveIdForContext(context, matrix = ID_RESOLUTION_MATRIX) {
 //    graphic_organizer.3.supporting_argument
 // All of this still comes from the OLX node supporting_argument
 //
+// ID references support path-like syntax:
+//   - "foo"      → relative, gets idPrefix applied (most common)
+//   - "/foo"     → absolute, bypasses idPrefix
+//   - "./foo"    → explicit relative (same as "foo")
+//   - "../foo"   → parent scope (TODO: not yet implemented)
+//
 // TODO:
 // * Helpers to point targets, graders, LLMs, etc. appropriately.
 // * Corresponding OLX formats.
@@ -77,8 +83,17 @@ function resolveIdForContext(context, matrix = ID_RESOLUTION_MATRIX) {
 const _reduxId = resolveIdForContext("reduxId");
 export const reduxId = (input, defaultValue) => {
   const base = _reduxId(input, defaultValue);
+
+  // Absolute references (starting with /) bypass the prefix
+  if (base.startsWith('/')) {
+    return base.slice(1);
+  }
+
+  // Explicit relative (starting with ./) - strip prefix marker
+  const resolvedBase = base.startsWith('./') ? base.slice(2) : base;
+
   const prefix = input?.idPrefix ?? '';
-  return prefix ? `${prefix}.${base}` : base;
+  return prefix ? `${prefix}.${resolvedBase}` : resolvedBase;
 };
 
 // If we would like to look ourselves up in idMap.
@@ -94,5 +109,25 @@ export const htmlId = resolveIdForContext("htmlId");
 export const reactKey = resolveIdForContext("reactKey");
 export const displayName = resolveIdForContext("displayName");
 
+/**
+ * Extends the ID prefix for child components.
+ *
+ * Used when a block needs to render children with scoped state (e.g., list items,
+ * repeated problem attempts). Returns an object with `idPrefix` to spread into props.
+ *
+ * @param {object} props - The parent component's props (may contain idPrefix)
+ * @param {string} scope - The scope to add (e.g., "item_0", "attempt_1")
+ * @returns {{ idPrefix: string }} Object to spread into child props
+ *
+ * @example
+ * // In a list component:
+ * renderCompiledKids({ ...props, ...extendIdPrefix(props, `${id}.${index}`) })
+ *
+ * // In MasteryBank:
+ * render({ ...props, node: problemNode, ...extendIdPrefix(props, `${id}.attempt_${n}`) })
+ */
+export function extendIdPrefix(props, scope) {
+  return { idPrefix: props.idPrefix ? `${props.idPrefix}.${scope}` : scope };
+}
 
 export const __testables = { ID_RESOLUTION_MATRIX };

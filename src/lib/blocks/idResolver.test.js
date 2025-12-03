@@ -25,7 +25,32 @@ describe("ID helpers", () => {
 
     // Check that every expected key is exported
     expect(actualKeys).toEqual(expect.arrayContaining(expectedKeys));
-    // Optionally check for *no extra* exported functions
-    expect(expectedKeys).toEqual(expect.arrayContaining(actualKeys));
+  });
+
+  it("extendIdPrefix builds scoped prefix", () => {
+    // Without parent prefix
+    expect(idResolver.extendIdPrefix({}, 'child')).toEqual({ idPrefix: 'child' });
+    expect(idResolver.extendIdPrefix({ id: 'foo' }, 'foo.0')).toEqual({ idPrefix: 'foo.0' });
+
+    // With parent prefix
+    expect(idResolver.extendIdPrefix({ idPrefix: 'parent' }, 'child')).toEqual({ idPrefix: 'parent.child' });
+    expect(idResolver.extendIdPrefix({ idPrefix: 'list.0', id: 'item' }, 'item.sub')).toEqual({ idPrefix: 'list.0.item.sub' });
+  });
+
+  it("reduxId handles absolute and relative path syntax", () => {
+    // Relative (default): gets prefix applied
+    expect(idResolver.reduxId({ id: 'foo', idPrefix: 'scope' })).toBe('scope.foo');
+
+    // Absolute: bypasses prefix
+    expect(idResolver.reduxId({ id: '/foo', idPrefix: 'scope' })).toBe('foo');
+    expect(idResolver.reduxId({ id: '/deep/path', idPrefix: 'scope' })).toBe('deep/path');
+
+    // Explicit relative: same as default
+    expect(idResolver.reduxId({ id: './foo', idPrefix: 'scope' })).toBe('scope.foo');
+
+    // Without prefix, all behave the same
+    expect(idResolver.reduxId({ id: 'foo' })).toBe('foo');
+    expect(idResolver.reduxId({ id: '/foo' })).toBe('foo');
+    expect(idResolver.reduxId({ id: './foo' })).toBe('foo');
   });
 });

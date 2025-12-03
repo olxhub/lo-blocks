@@ -37,6 +37,11 @@ The result of a grader is logged via the `UPDATE_CORRECT` event and stored
 in Redux under the `correct` field. Possible values are defined in
 `blocks.CORRECTNESS`.
 
+When actions execute, they inherit the `idPrefix` from the triggering
+component. This ensures that graders in scoped contexts (like a problem
+inside a MasteryBank) update the correct scoped state rather than global
+state. See "ID Prefixes for Scoped State" below.
+
 This terminology may change slightly by the time you read this for
 better alignment with existing systems, as well as for being more
 human-friendly.
@@ -185,6 +190,51 @@ This distinction came down when handling lists in a graphic organizer
 and considering certain types of templated content. One OLX node
 definition may come up multiple times in a render if it is e.g. from
 an expanding list of documents in a graphic organizer.
+
+### ID Prefixes for Scoped State
+
+When a single OLX node is rendered multiple times (e.g., in a list or
+mastery bank), each instance needs its own Redux state. We handle this
+with `idPrefix`, which scopes the Redux key:
+
+```
+OLX node: <TextArea id="response"/>
+
+Without prefix:  Redux key = "response"
+With prefix:     Redux key = "list.0.response", "list.1.response", etc.
+```
+
+The `extendIdPrefix(props, scope)` utility builds scoped prefixes for
+child components. Components that render children with scoped state
+(DynamicList, MasteryBank) use this:
+
+```javascript
+// In a list component:
+renderCompiledKids({ ...props, ...extendIdPrefix(props, `${id}.${index}`) })
+
+// In MasteryBank (scoped by attempt number):
+render({ ...props, node: problemNode, ...extendIdPrefix(props, `${id}.attempt_${n}`) })
+```
+
+### ID Path Syntax
+
+When referencing other components' state (e.g., a grader looking up an
+input's value, or a child referencing a parent), IDs support path-like
+syntax to control whether the `idPrefix` is applied:
+
+* `foo` — **Relative** (default): `idPrefix` is applied. Most common case.
+* `/foo` — **Absolute**: Bypasses `idPrefix`, references global state.
+* `./foo` — **Explicit relative**: Same as `foo`, but clearer in intent.
+* `../foo` — **Parent scope**: Not yet implemented.
+
+This matters when a component inside a scoped context (like a problem
+inside a MasteryBank) needs to reference something outside that scope.
+
+The `fieldSelector` and `updateReduxField` functions automatically
+apply `idPrefix` to ID overrides, so components don't need to manually
+scope IDs. If you pass `{ id: 'parent_input' }` to these functions and
+`idPrefix` is set, the lookup will use `prefix.parent_input`. To bypass
+this, use `{ id: '/parent_input' }`.
 
 DAG Structure
 -------------

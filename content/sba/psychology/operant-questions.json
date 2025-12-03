@@ -1,0 +1,614 @@
+[
+  {
+    "title": "Classroom Joke Telling",
+    "stem": "Billy tells a joke to his class, and the class laughs. The next day, Billy tells another joke. In this case, laughter serves as...",
+    "key": "positive reinforcement",
+    "explanation": "The laughter (something added) increases the likelihood of Billy telling jokes in the future. Adding a pleasant stimulus to increase behavior is positive reinforcement."
+  },
+  {
+    "title": "Whining About Worksheets",
+    "stem": "Jenny whines to her teacher when given a math worksheet because it's 'too hard.' The teacher removes the worksheet. The next day, Jenny whines again when given a new worksheet. In this case, removing the worksheet serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing the aversive stimulus (worksheet) increased the whining behavior. This is negative reinforcement—removing something unpleasant to increase a behavior."
+  },
+  {
+    "title": "Missing Curfew and Phone Privileges",
+    "stem": "Marcus stays out past curfew. His parents take away his phone for a week. The following weekend, Marcus comes home before curfew. In this case, taking away the phone serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing something desirable (the phone) decreased the unwanted behavior (staying out late). This is negative punishment."
+  },
+  {
+    "title": "Sibling Poking and Yelling",
+    "stem": "Sarah's younger brother keeps poking her while she's reading. Sarah yells at him loudly. The next day, her brother pokes her again. In this case, yelling serves as...",
+    "key": "positive reinforcement",
+    "explanation": "This is tricky—since the brother continued poking, the yelling actually reinforced the behavior. The attention (even negative attention) was added and increased the behavior, making it positive reinforcement."
+  },
+  {
+    "title": "Rat Lever Press: Food Pellet",
+    "stem": "A rat presses a lever and receives a food pellet. The rat begins pressing the lever more frequently. The food pellet serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding food (a pleasant stimulus) increases lever-pressing behavior. This is the classic example of positive reinforcement."
+  },
+  {
+    "title": "Rat Lever Press: Noise Cessation",
+    "stem": "A rat presses a lever and an annoying loud noise stops. The rat begins pressing the lever more frequently. The cessation of noise serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing the aversive noise increases lever-pressing. This is negative reinforcement—the behavior increases because something unpleasant is removed."
+  },
+  {
+    "title": "Dog Jumping: Water Spray",
+    "stem": "Every time a dog jumps on visitors, the owner sprays water in its face. The dog eventually stops jumping on visitors. The water spray serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding an unpleasant stimulus (water spray) decreases the jumping behavior. This is positive punishment."
+  },
+  {
+    "title": "Teen Curfew and Car Privileges",
+    "stem": "A teenager comes home after curfew and loses car privileges for a month. She never misses curfew again. Removing car privileges serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing something desirable (car privileges) decreased the late behavior. This is negative punishment."
+  },
+  {
+    "title": "Grocery Store Tantrum",
+    "stem": "A child throws a tantrum in the grocery store. The parent gives the child candy to quiet them down. The child throws more tantrums on future shopping trips. The candy serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding candy (pleasant stimulus) increased tantrum behavior. This is positive reinforcement, even though it was unintentional."
+  },
+  {
+    "title": "Employee Deadline Bonus",
+    "stem": "An employee consistently meets deadlines and receives a bonus. The employee continues to meet deadlines. The bonus serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding money (pleasant stimulus) increases deadline-meeting behavior. This is positive reinforcement."
+  },
+  {
+    "title": "Studying and Exam Exemption",
+    "stem": "A student studies hard and the teacher exempts them from the final exam. The student studies hard in other classes hoping for the same result. The exam exemption serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing the aversive stimulus (exam) increased studying behavior. This is negative reinforcement."
+  },
+  {
+    "title": "Hot Stove Burn",
+    "stem": "A child touches a hot stove and gets burned. The child no longer touches the stove. The burn serves as...",
+    "key": "positive punishment",
+    "explanation": "The painful stimulus (burn) was added and decreased the touching behavior. This is positive punishment, even though it was a natural consequence."
+  },
+  {
+    "title": "Talking Out of Turn: Recess Loss",
+    "stem": "A student talks out of turn and the teacher takes away 5 minutes of recess. The student stops talking out of turn. Losing recess serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing something desirable (recess time) decreased the talking-out behavior. This is negative punishment."
+  },
+  {
+    "title": "Dog Sit Command: Treat",
+    "stem": "A dog sits on command and receives a treat. The dog sits more reliably on command. The treat serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding a pleasant stimulus (treat) increases sitting behavior. Classic positive reinforcement."
+  },
+  {
+    "title": "Vegetables and Dish Duty",
+    "stem": "When a child finishes their vegetables, they are excused from washing dishes. The child eats vegetables more often. Being excused from dishes serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing an aversive task (dishes) increases vegetable-eating. This is negative reinforcement."
+  },
+  {
+    "title": "Inappropriate Joke: Silent Stares",
+    "stem": "A coworker makes an inappropriate joke and everyone in the room goes silent and stares. The coworker makes fewer inappropriate jokes. The silence and staring serves as...",
+    "key": "positive punishment",
+    "explanation": "The awkward social response was added and decreased the joke-telling. Social disapproval can function as positive punishment."
+  },
+  {
+    "title": "Misbehavior and Time-Out",
+    "stem": "A child misbehaves and is sent to time-out, away from toys and attention. The child misbehaves less. Time-out serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing access to reinforcers (toys, attention) decreased misbehavior. Time-out is a classic example of negative punishment."
+  },
+  {
+    "title": "Hand Raising in Class",
+    "stem": "A student raises their hand and the teacher calls on them. The student continues raising their hand. Being called on serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding attention and opportunity to speak (pleasant) increases hand-raising. This is positive reinforcement."
+  },
+  {
+    "title": "Aspirin for Headache",
+    "stem": "A person takes aspirin for a headache and the pain goes away. They take aspirin more readily for future headaches. Pain relief serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing pain (aversive stimulus) increases aspirin-taking behavior. This is a common real-world example of negative reinforcement."
+  },
+  {
+    "title": "Cat Scratching: Water Squirt",
+    "stem": "A cat scratches the furniture and the owner squirts it with water. The cat stops scratching the furniture. The water serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding an aversive stimulus (water) decreased scratching. This is positive punishment."
+  },
+  {
+    "title": "Staying Out Late: Allowance Withheld",
+    "stem": "A teenager stays out too late and has their allowance withheld. They come home on time afterward. Withholding allowance serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing money (desirable) decreased staying out late. This is negative punishment."
+  },
+  {
+    "title": "Pigeon Key Peck: Food",
+    "stem": "A pigeon pecks a key and food appears. The pigeon pecks more frequently. The food serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding food increases pecking behavior. This is the standard operant conditioning positive reinforcement paradigm."
+  },
+  {
+    "title": "Seatbelt and Beeping",
+    "stem": "A driver fastens their seatbelt and an annoying beeping stops. They fasten their seatbelt more quickly in the future. The cessation of beeping serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing the annoying sound increases seatbelt-fastening behavior. This is negative reinforcement built into car design."
+  },
+  {
+    "title": "Cursing: Soap in Mouth",
+    "stem": "A child says a curse word and their parent washes their mouth out with soap. The child stops cursing. The soap serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding an unpleasant taste decreased cursing behavior. This is positive punishment."
+  },
+  {
+    "title": "Rudeness: Party Exclusion",
+    "stem": "A student is rude to classmates and is excluded from the class party. The student is less rude afterward. Exclusion from the party serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing access to a fun event (desirable) decreased rude behavior. This is negative punishment."
+  },
+  {
+    "title": "Room Cleaning: Screen Time",
+    "stem": "A child cleans their room without being asked and their parent gives them extra screen time. The child cleans their room more often. Extra screen time serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding screen time (pleasant) increases room-cleaning behavior. This is positive reinforcement."
+  },
+  {
+    "title": "Competence and Reduced Micromanagement",
+    "stem": "An employee who has been micromanaged earns more autonomy after demonstrating competence. They continue working competently. Gaining autonomy serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing micromanagement (aversive) increases competent work behavior. This is negative reinforcement."
+  },
+  {
+    "title": "Cheating: Zero Grade",
+    "stem": "A student cheats on a test and receives a zero. The student doesn't cheat again. The zero serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding a bad grade (aversive consequence) decreased cheating. This is positive punishment."
+  },
+  {
+    "title": "Homework Refusal: Video Game Loss",
+    "stem": "A child refuses to do homework and loses video game privileges. The child starts doing homework. Losing video games serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing video games (desirable) decreased homework refusal. This is negative punishment."
+  },
+  {
+    "title": "Toddler Says Please: Cookie",
+    "stem": "A toddler says 'please' and receives a cookie. The toddler says 'please' more often. The cookie serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding a treat (pleasant) increases polite behavior. This is positive reinforcement."
+  },
+  {
+    "title": "Prisoner: Release from Solitary",
+    "stem": "A prisoner exhibits good behavior and is released from solitary confinement. They continue behaving well. Release from solitary serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing isolation (aversive) increases good behavior. This is negative reinforcement."
+  },
+  {
+    "title": "Dog Barking: Shock Collar",
+    "stem": "A dog barks excessively and receives a mild shock from a bark collar. The dog barks less. The shock serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding a shock (aversive) decreases barking. This is positive punishment."
+  },
+  {
+    "title": "Disrespect: Lost Rides",
+    "stem": "A teenager is disrespectful and their parent stops giving them rides to see friends. The teenager becomes more respectful. Losing rides serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing transportation (desirable privilege) decreased disrespect. This is negative punishment."
+  },
+  {
+    "title": "Sharing Toys: Praise",
+    "stem": "A child shares toys with a sibling and receives praise from their parent. The child shares more in the future. Praise serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding praise (pleasant social stimulus) increases sharing. This is positive reinforcement."
+  },
+  {
+    "title": "Extra Credit: Homework Exemption",
+    "stem": "A student completes extra credit and is excused from a homework assignment. The student does more extra credit. Homework exemption serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing homework (aversive task) increases extra credit behavior. This is negative reinforcement."
+  },
+  {
+    "title": "Lying: Apology Letter",
+    "stem": "A child lies to their parent and has to write an apology letter. The child lies less often. Writing apology letters serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding an aversive task (writing letters) decreased lying. This is positive punishment."
+  },
+  {
+    "title": "Bullying: Team Removal",
+    "stem": "A student bullies others and is removed from the basketball team. The student stops bullying. Removal from the team serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing team membership (desirable) decreased bullying. This is negative punishment."
+  },
+  {
+    "title": "Monkey Lever: Banana",
+    "stem": "A monkey pulls a lever and receives a banana. The monkey pulls the lever more frequently. The banana serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding food (pleasant) increases lever-pulling. This is positive reinforcement."
+  },
+  {
+    "title": "Factory Earplugs",
+    "stem": "A worker wears earplugs and the loud factory noise becomes bearable. They wear earplugs consistently. Noise reduction serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Reducing noise (aversive stimulus) increases earplug-wearing. This is negative reinforcement."
+  },
+  {
+    "title": "Bird Pecking: Beak Flick",
+    "stem": "A bird pecks at a researcher and the researcher flicks the bird's beak. The bird stops pecking. The flick serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding an aversive stimulus (flick) decreased pecking. This is positive punishment."
+  },
+  {
+    "title": "Hitting Sibling: TV Loss",
+    "stem": "A child hits their sibling and is not allowed to watch their favorite show. The child stops hitting. Losing the show serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing TV access (desirable) decreased hitting. This is negative punishment."
+  },
+  {
+    "title": "Class Participation: Extra Credit",
+    "stem": "A student participates in class discussion and receives extra credit points. The student participates more. Extra credit serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding points (pleasant) increases participation. This is positive reinforcement."
+  },
+  {
+    "title": "Chronic Pain Medication",
+    "stem": "A patient takes medication and their chronic pain decreases. They continue taking the medication. Pain reduction serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing pain (aversive) increases medication-taking. This is negative reinforcement."
+  },
+  {
+    "title": "Interrupting: Extra Chores",
+    "stem": "A child interrupts adults and is given extra chores. The child interrupts less. Extra chores serve as...",
+    "key": "positive punishment",
+    "explanation": "Adding chores (aversive task) decreased interrupting. This is positive punishment."
+  },
+  {
+    "title": "Irresponsible Driving: Car Loss",
+    "stem": "A teenager uses the car irresponsibly and loses car privileges. They drive more responsibly later. Losing car privileges serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing car access (desirable) decreased irresponsible driving. This is negative punishment."
+  },
+  {
+    "title": "Rat Maze: Cheese",
+    "stem": "A lab rat navigates a maze correctly and finds cheese at the end. The rat learns the maze faster. The cheese serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding food reward (pleasant) increases correct maze navigation. This is positive reinforcement."
+  },
+  {
+    "title": "Sunscreen and Sunburn Prevention",
+    "stem": "A person applies sunscreen and avoids getting sunburned. They apply sunscreen more consistently. Avoiding sunburn serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Preventing/removing the aversive outcome (sunburn) increases sunscreen use. This is negative reinforcement."
+  },
+  {
+    "title": "Dog Counter Jumping: Yelling",
+    "stem": "A dog jumps on the counter and the owner yells loudly. The dog stops jumping on the counter. Yelling serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding a loud noise (aversive) decreased counter-jumping. This is positive punishment."
+  },
+  {
+    "title": "Unfinished Dinner: No Dessert",
+    "stem": "A child doesn't finish dinner and dessert is taken away. The child finishes dinner next time. Losing dessert serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing dessert (desirable) increased dinner-finishing behavior. This is negative punishment."
+  },
+  {
+    "title": "Athlete Training: Medal",
+    "stem": "An athlete trains hard and wins a medal. The athlete trains even harder. The medal serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding recognition/reward (pleasant) increases training behavior. This is positive reinforcement."
+  },
+  {
+    "title": "Early Assignment: Skip Practice Problems",
+    "stem": "A student finishes their assignment early and doesn't have to do the extra practice problems. They finish assignments early more often. Skipping extra problems serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing additional work (aversive) increases early completion behavior. This is negative reinforcement."
+  },
+  {
+    "title": "Puppy Chewing: Nose Tap",
+    "stem": "A puppy chews on shoes and the owner taps its nose. The puppy chews on shoes less. The nose tap serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding an aversive stimulus (tap) decreased chewing. This is positive punishment."
+  },
+  {
+    "title": "Throwing Food: Table Removal",
+    "stem": "A child throws food and is removed from the dinner table. The child stops throwing food. Removal from table serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing access to dinner/family (desirable) decreased food throwing. This is negative punishment."
+  },
+  {
+    "title": "Sales Commission",
+    "stem": "A salesperson makes a sale and earns commission. They work harder to make more sales. Commission serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding money (pleasant) increases sales behavior. This is positive reinforcement."
+  },
+  {
+    "title": "Swimming on Hot Day",
+    "stem": "A swimmer dives into cool water on a hot day and feels relief. They swim more on hot days. Temperature relief serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing discomfort from heat (aversive) increases swimming behavior. This is negative reinforcement."
+  },
+  {
+    "title": "Texting in Class: Detention",
+    "stem": "A student texts during class and must stay after for detention. The student texts less in class. Detention serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding detention (aversive) decreased texting. This is positive punishment."
+  },
+  {
+    "title": "Rule Breaking: Wi-Fi Revoked",
+    "stem": "A teenager breaks a house rule and Wi-Fi access is revoked. The teenager follows rules better. Losing Wi-Fi serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing internet access (desirable) decreased rule-breaking. This is negative punishment."
+  },
+  {
+    "title": "Good Test: Gold Star",
+    "stem": "A child does well on a test and gets a gold star sticker. The child tries harder on future tests. The sticker serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding a reward (pleasant) increases studying behavior. This is positive reinforcement."
+  },
+  {
+    "title": "Cleaning and Reduced Anxiety",
+    "stem": "A person cleans their house and their anxiety about unexpected visitors decreases. They clean more regularly. Reduced anxiety serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing anxiety (aversive internal state) increases cleaning behavior. This is negative reinforcement."
+  },
+  {
+    "title": "Writing on Walls: Scrubbing",
+    "stem": "A child writes on the walls and must scrub the walls clean. The child stops writing on walls. Having to scrub serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding an aversive task (scrubbing) decreased wall-writing. This is positive punishment."
+  },
+  {
+    "title": "Missing Curfew: No Concert",
+    "stem": "A teenager misses curfew and can't go to the concert. The teenager doesn't miss curfew again. Missing the concert serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing access to the event (desirable) decreased missing curfew. This is negative punishment."
+  },
+  {
+    "title": "Dolphin Trick: Fish",
+    "stem": "A dolphin performs a trick and receives a fish. The dolphin performs more tricks. The fish serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding food (pleasant) increases trick performance. This is positive reinforcement."
+  },
+  {
+    "title": "Noise-Canceling Headphones",
+    "stem": "A student wears noise-canceling headphones and can focus better because the distracting sounds are gone. They wear the headphones more often. Blocking noise serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing distracting sounds (aversive) increases headphone-wearing. This is negative reinforcement."
+  },
+  {
+    "title": "Biting: Eating Alone",
+    "stem": "A child bites another child and must sit alone at lunch. The child bites less. Sitting alone serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing social interaction (desirable) decreased biting. This is negative punishment—note that isolation removes something rather than adding something."
+  },
+  {
+    "title": "Rat Electrified Bar",
+    "stem": "A rat touches an electrified bar and receives a shock. The rat avoids the bar. The shock serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding pain (aversive) decreased bar-touching. This is positive punishment."
+  },
+  {
+    "title": "Bedtime Crying: Parent Stays",
+    "stem": "A child cries at bedtime and the parent stays in the room longer. The child cries more at bedtime. The parent staying serves as...",
+    "key": "positive reinforcement",
+    "explanation": "This is tricky—even though the parent may not intend it, adding their presence (pleasant for child) increased crying behavior. This is positive reinforcement."
+  },
+  {
+    "title": "Exercise and Back Pain",
+    "stem": "A person exercises regularly and their back pain diminishes. They continue exercising. Pain reduction serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing pain (aversive) increases exercise behavior. This is negative reinforcement."
+  },
+  {
+    "title": "Plagiarism: F Grade",
+    "stem": "A student plagiarizes and receives an F on the paper. The student doesn't plagiarize again. The F serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding a bad grade (aversive) decreased plagiarism. This is positive punishment."
+  },
+  {
+    "title": "Mean to Pet: Pet Rehomed",
+    "stem": "A child is mean to their pet and the pet is temporarily rehomed to grandma's. The child is nicer to animals. Losing the pet serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing the pet (desirable) decreased mean behavior. This is negative punishment."
+  },
+  {
+    "title": "Blogger: Positive Comments",
+    "stem": "A blogger writes a popular post and receives many positive comments. The blogger writes more posts. Comments serve as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding positive feedback (pleasant) increases writing behavior. This is positive reinforcement."
+  },
+  {
+    "title": "Apologizing: Reduced Tension",
+    "stem": "A person apologizes after an argument and the tension in the room decreases. They apologize more readily in the future. Reduced tension serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing social tension (aversive) increases apologizing behavior. This is negative reinforcement."
+  },
+  {
+    "title": "Bad Manners: Eat in Kitchen",
+    "stem": "A child uses bad manners at the table and must eat alone in the kitchen. The child uses better manners. Eating alone serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing family dinner access (desirable social experience) decreased bad manners. This is negative punishment."
+  },
+  {
+    "title": "Horse Kicking: Prod",
+    "stem": "A horse kicks at the trainer and the trainer pokes it with a prod. The horse kicks less. The prod serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding an aversive stimulus (prod) decreased kicking. This is positive punishment."
+  },
+  {
+    "title": "Punctuality: Stopped Monitoring",
+    "stem": "An employee comes to work on time consistently and their supervisor stops monitoring their arrival. They continue coming on time. Stopping the monitoring serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing oversight (aversive scrutiny) increases punctuality behavior. This is negative reinforcement."
+  },
+  {
+    "title": "Gamer Achievement Badges",
+    "stem": "A gamer plays skillfully and earns achievement badges. They play more to earn more badges. Badges serve as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding virtual rewards (pleasant) increases skilled play. This is positive reinforcement."
+  },
+  {
+    "title": "Chores Done: No Trash Duty",
+    "stem": "A child completes their chores and doesn't have to take out the trash for a week. They complete chores faster. Not taking out trash serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing an unpleasant chore (aversive) increases chore completion. This is negative reinforcement."
+  },
+  {
+    "title": "Making Fun: Class Extra Homework",
+    "stem": "A student makes fun of a classmate and the whole class is given extra homework. The student stops making fun of others. Extra homework serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding an aversive consequence (homework, plus social pressure) decreased teasing behavior. This is positive punishment."
+  },
+  {
+    "title": "Not Sharing: Playdate Ends",
+    "stem": "A child refuses to share and is removed from the playdate. The child shares more in the future. Ending the playdate serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing play opportunity (desirable) increased sharing. This is negative punishment."
+  },
+  {
+    "title": "Musician: Mastery Feeling",
+    "stem": "A musician practices a difficult piece and finally masters it, feeling proud. They practice more. The feeling of mastery serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding an intrinsic reward (pride, mastery feelings) increases practice. This is positive reinforcement."
+  },
+  {
+    "title": "Antacids and Heartburn",
+    "stem": "A person takes antacids and their heartburn goes away. They take antacids whenever they have heartburn. Heartburn relief serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing pain (aversive) increases antacid-taking. This is negative reinforcement."
+  },
+  {
+    "title": "Dishes in Sink: Week of Dishes",
+    "stem": "A teenager leaves dishes in the sink and must wash everyone's dishes for a week. They put their dishes away after that. Extra dish duty serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding extra work (aversive) decreased leaving dishes out. This is positive punishment."
+  },
+  {
+    "title": "Rude to Grandparents: No Present",
+    "stem": "A child is rude to grandparents and doesn't get to open their birthday present. The child is polite next visit. Losing the present serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing the gift (desirable) decreased rudeness. This is negative punishment."
+  },
+  {
+    "title": "Sea Lion Ball Balance: Fish",
+    "stem": "A sea lion balances a ball and receives a fish. It balances the ball more reliably. The fish serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding food (pleasant) increases ball-balancing. This is positive reinforcement."
+  },
+  {
+    "title": "Bug Spray and Mosquitoes",
+    "stem": "A hiker applies bug spray and mosquitoes stop biting. They apply bug spray more consistently. Preventing bites serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing/preventing bites (aversive) increases bug spray use. This is negative reinforcement."
+  },
+  {
+    "title": "Parrot Biting: Back to Cage",
+    "stem": "A parrot bites its owner and the owner puts it back in the cage immediately. The parrot bites less. Returning to the cage serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing freedom/attention (desirable) decreased biting. This is negative punishment."
+  },
+  {
+    "title": "Running in Hall: Walk Slowly",
+    "stem": "A child runs in the hallway at school and must walk back and forth slowly 10 times. The child stops running. Walking slowly serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding a tedious task (aversive) decreased running. This is positive punishment (overcorrection)."
+  },
+  {
+    "title": "Dog Begging: Table Scraps",
+    "stem": "A dog begs at the table and occasionally receives scraps. The dog begs more persistently. Scraps serve as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding food (pleasant) increases begging. This is positive reinforcement on an intermittent schedule, making it especially persistent."
+  },
+  {
+    "title": "Sunglasses and Bright Light",
+    "stem": "A child puts on sunglasses and the bright light no longer hurts their eyes. They wear sunglasses more often in bright light. Reduced glare serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing the aversive bright light increases sunglasses-wearing. This is negative reinforcement."
+  },
+  {
+    "title": "Passing Notes: Read Aloud",
+    "stem": "A student passes notes in class and the teacher reads the note aloud to the class. The student stops passing notes. Public embarrassment serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding embarrassment (aversive) decreased note-passing. This is positive punishment."
+  },
+  {
+    "title": "No Homework: No Video Games",
+    "stem": "A child doesn't complete homework and can't play video games. The child completes homework next time. Losing games serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing game access (desirable) increased homework completion. This is negative punishment."
+  },
+  {
+    "title": "Parent Gives In to Tantrum",
+    "stem": "A child throws a tantrum and the parent eventually gives in and buys the toy. The parent gives in more quickly to future tantrums. For the parent, the end of the tantrum serves as...",
+    "key": "negative reinforcement",
+    "explanation": "This is tricky—from the parent's perspective, removing the aversive tantrum increased giving-in behavior. The parent is being negatively reinforced to give in."
+  },
+  {
+    "title": "Meditation and Stress",
+    "stem": "A person meditates and their stress level decreases. They meditate more regularly. Stress reduction serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing stress (aversive internal state) increases meditation behavior. This is negative reinforcement."
+  },
+  {
+    "title": "Lying: Writing Lines",
+    "stem": "A child tells a lie and has to write 'I will not lie' 100 times. The child lies less. Writing lines serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding a tedious task (aversive) decreased lying. This is positive punishment."
+  },
+  {
+    "title": "Speeding: License Suspended",
+    "stem": "A teenager is caught speeding and their license is suspended. They drive slower afterward. License suspension serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing driving privileges (desirable) decreased speeding. This is negative punishment."
+  },
+  {
+    "title": "Yard Work: Ice Cream",
+    "stem": "A child helps with yard work and gets ice cream afterward. The child volunteers to help more. Ice cream serves as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding a treat (pleasant) increases helping behavior. This is positive reinforcement."
+  },
+  {
+    "title": "Allergy Medication: Sneezing Stops",
+    "stem": "A patient takes allergy medication and their sneezing stops. They take the medication regularly during allergy season. Stopping sneezing serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing sneezing (aversive) increases medication-taking. This is negative reinforcement."
+  },
+  {
+    "title": "Slamming Doors: Oil Hinges",
+    "stem": "A child slams doors and must oil all the door hinges in the house. The child stops slamming doors. Having to oil hinges serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding a chore (aversive) decreased door slamming. This is positive punishment."
+  },
+  {
+    "title": "Forgot Materials: Lost Points",
+    "stem": "A student forgets to bring materials to class and loses participation points. The student remembers materials next time. Losing points serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing points (desirable) increased remembering materials. This is negative punishment."
+  },
+  {
+    "title": "Monkey Shape Sorting: Grapes",
+    "stem": "A researcher gives a monkey a grape each time it correctly sorts shapes. The monkey sorts shapes more accurately. Grapes serve as...",
+    "key": "positive reinforcement",
+    "explanation": "Adding food (pleasant) increases correct sorting. This is positive reinforcement."
+  },
+  {
+    "title": "Early Project: Leave Early",
+    "stem": "A worker completes a project early and gets to leave work early that day. They complete projects early more often. Leaving early serves as...",
+    "key": "negative reinforcement",
+    "explanation": "Removing work time (aversive obligation) increases early completion. This is negative reinforcement."
+  },
+  {
+    "title": "Drawing on Desk: Clean All Desks",
+    "stem": "A student draws on their desk and must clean all the desks in the classroom. The student stops drawing on desks. Cleaning all desks serves as...",
+    "key": "positive punishment",
+    "explanation": "Adding extensive cleaning (aversive) decreased drawing on desks. This is positive punishment."
+  },
+  {
+    "title": "Taking Toys: Lose Own Toy",
+    "stem": "A child uses their sibling's toys without asking and loses access to their own favorite toy. The child asks permission next time. Losing their toy serves as...",
+    "key": "negative punishment",
+    "explanation": "Removing their own toy (desirable) decreased taking without asking. This is negative punishment."
+  }
+]

@@ -21,6 +21,7 @@ import { inferRelatedNodes, getAllNodes } from './olxdom';
 import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 import * as lo_event from 'lo_event';
 import { CORRECTNESS } from './correctness';
+import { reduxId } from './idResolver';
 
 // Mix-in to make a block an action
 export function action({ action }) {
@@ -144,8 +145,11 @@ export function grader({ grader, infer = true } = {}) {
     // TODO: Add number of attempts
     // TODO Should we copy:
     // https://edx.readthedocs.io/projects/devdata/en/stable/internal_data_formats/tracking_logs/student_event_types.html#problem-check
+    //
+    // Use reduxId to get scoped ID (applies idPrefix for list/repeated contexts)
+    const scopedTargetId = reduxId({ ...props, id: targetId });
     lo_event.logEvent('UPDATE_CORRECT', {
-      id: targetId,
+      id: scopedTargetId,
       correct: correctness,
       message,
       score,
@@ -185,7 +189,7 @@ export function executeNodeActions(props) {
       // Copy essential props from original context
       idMap: props.idMap,
       componentMap: props.componentMap,
-      idPrefix: undefined,  // Actions use their own ID context, not the triggering component's prefix. TODO: Get the right one in.
+      idPrefix: props.idPrefix,  // Preserve prefix so actions update scoped state
 
       // Target-specific props (like render.jsx does)
       ...targetInstance.attributes,        // OLX attributes from target action

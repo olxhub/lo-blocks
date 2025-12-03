@@ -3,6 +3,7 @@
 
 import React from 'react';
 import { useReduxState } from '@/lib/state';
+import { extendIdPrefix } from '@/lib/blocks/idResolver';
 import { renderCompiledKids } from '@/lib/render';
 
 export default function _DynamicList(props) {
@@ -10,7 +11,6 @@ export default function _DynamicList(props) {
     kids = [],
     fields,
     id,
-    idPrefix = '',
     min = 1,
     max = Infinity,
     start = 3,
@@ -22,8 +22,6 @@ export default function _DynamicList(props) {
 
   const [count, setCount] = useReduxState(props, fields.count, parsedStart);
 
-  const basePrefix = idPrefix ? `${idPrefix}.${id}` : id;
-
   const handleAdd = () => setCount(Math.min(parsedMax, count + 1));
   const handleRemove = () => setCount(Math.max(parsedMin, count - 1));
 
@@ -32,7 +30,7 @@ export default function _DynamicList(props) {
       {renderCompiledKids({
         ...props,
         kids,
-        idPrefix: `${basePrefix}.${i}`,
+        ...extendIdPrefix(props, `${id}.${i}`),
       })}
     </div>
   ));

@@ -4,6 +4,7 @@
 import React, { useMemo } from 'react';
 import { useFieldSelector, updateReduxField } from '@/lib/state';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
+import { reduxId } from '@/lib/blocks/idResolver';
 import { fields as choiceFields } from './ChoiceInput';
 import { renderCompiledKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
@@ -26,6 +27,7 @@ export default function _ChoiceItem(props) {
     );
   }
 
+  // useFieldSelector and updateReduxField automatically apply idPrefix to the id override
   const selected = useFieldSelector(
     props,
     choiceFields.fieldInfoByField.value,
@@ -39,11 +41,14 @@ export default function _ChoiceItem(props) {
     updateReduxField(props, choiceFields.fieldInfoByField.value, itemValue, { id: parentId });
   };
 
+  // Radio button name needs the scoped ID for proper grouping
+  const scopedParentId = reduxId({ ...props, id: parentId });
+
   return (
     <label className="block">
       <input
         type="radio"
-        name={parentId}
+        name={scopedParentId}
         checked={checked}
         onChange={handleChange}
        />

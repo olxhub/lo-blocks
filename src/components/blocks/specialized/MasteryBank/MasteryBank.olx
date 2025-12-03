@@ -1,0 +1,48 @@
+<!-- Demo: MasteryBank with sample problems -->
+<Vertical id="mastery_demo" title="Mastery Bank Demo" launchable="true">
+
+  <Markdown>Example:</Markdown>
+
+  <!-- MasteryBank referencing the problems -->
+  <MasteryBank id="demo_mastery" goal="3">
+    demo_q1
+    demo_q2
+    demo_q3
+  </MasteryBank>
+
+  <Markdown>Made from these problems. Note how we don't share state be default:</Markdown>
+  <!-- Define some simple problems -->
+  <CapaProblem id="demo_q1" title="Question 1">
+    <p>What is 2 + 2?</p>
+    <KeyGrader id="demo_q1_grader">
+      <ChoiceInput id="demo_q1_input">
+        <Distractor id="demo_q1_a">3</Distractor>
+        <Key id="demo_q1_b">4</Key>
+        <Distractor id="demo_q1_c">5</Distractor>
+      </ChoiceInput>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="demo_q2" title="Question 2">
+    <p>What is 3 + 3?</p>
+    <KeyGrader id="demo_q2_grader">
+      <ChoiceInput id="demo_q2_input">
+        <Distractor id="demo_q2_a">5</Distractor>
+        <Key id="demo_q2_b">6</Key>
+        <Distractor id="demo_q2_c">7</Distractor>
+      </ChoiceInput>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="demo_q3" title="Question 3">
+    <p>What is 4 + 4?</p>
+    <KeyGrader id="demo_q3_grader">
+      <ChoiceInput id="demo_q3_input">
+        <Distractor id="demo_q3_a">7</Distractor>
+        <Key id="demo_q3_b">8</Key>
+        <Distractor id="demo_q3_c">9</Distractor>
+      </ChoiceInput>
+    </KeyGrader>
+  </CapaProblem>
+
+</Vertical>
