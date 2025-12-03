@@ -1,6 +1,16 @@
 <!-- Demo: MasteryBank with sample problems -->
 <Vertical id="mastery_demo" title="Mastery Bank Demo" launchable="true">
 
+  <Markdown>Example:</Markdown>
+
+  <!-- MasteryBank referencing the problems -->
+  <MasteryBank id="demo_mastery" goal="3">
+    demo_q1
+    demo_q2
+    demo_q3
+  </MasteryBank>
+
+  <Markdown>Made from these problems. Note how we don't share state be default:</Markdown>
   <!-- Define some simple problems -->
   <CapaProblem id="demo_q1" title="Question 1">
     <p>What is 2 + 2?</p>
@@ -34,12 +44,5 @@
       </ChoiceInput>
     </KeyGrader>
   </CapaProblem>
-
-  <!-- MasteryBank referencing the problems -->
-  <MasteryBank id="demo_mastery" goal="3">
-    demo_q1
-    demo_q2
-    demo_q3
-  </MasteryBank>
 
 </Vertical>

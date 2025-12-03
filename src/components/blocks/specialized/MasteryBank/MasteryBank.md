@@ -69,3 +69,19 @@ The block tracks:
 - `correctStreak` - Current consecutive correct answers
 - `shuffledOrder` - Randomized order of problem indices
 - `completed` - Whether mastery has been achieved
+
+## Catches
+
+Note that completing problems within a problem bank will *not*
+translate to those same problems being completed elsewhere. This is by
+design -- we scope IDs. A major motivation is so we can repeat
+problems within the problem bank. If a user works through all the
+problems in the bank with errors, we need to reuse problems, and we
+need them to be clear. We could either reset state or scope IDs with a
+prefix. We chose the latter. Be mindful of this in the process data.
+
+In the future, this might be a configuration option. If scoping were
+toggled off, we would need to either:
+
+* End when we're out of problems; or
+* Clear problems before loading them
