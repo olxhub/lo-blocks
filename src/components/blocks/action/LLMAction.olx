@@ -1,0 +1,73 @@
+<!-- LLMAction Block Examples -->
+<Vertical id="LLMActionDemo" title="LLMAction Block Demo" launchable="true">
+
+  <Markdown id="intro">
+## LLM-Powered Feedback Examples
+
+LLMAction sends prompts to an AI model and displays responses in LLMFeedback components.
+
+**Important**: LLMAction must be nested **inside** ActionButton for automatic discovery.
+  </Markdown>
+
+  <!-- Basic feedback example -->
+  <Vertical id="water_cycle_example">
+    <Markdown id="q1">
+### Writing Feedback
+
+Write a paragraph explaining the water cycle:
+    </Markdown>
+    <TextArea id="water_cycle_response" rows="6" placeholder="Describe the water cycle..." />
+    <LLMFeedback id="water_feedback" />
+
+    <ActionButton id="water_btn" label="Get Feedback">
+      <LLMAction id="water_action" target="water_feedback">
+        A student wrote this explanation of the water cycle:
+        <Ref id="water_ref" target="water_cycle_response" />
+        Provide brief, encouraging feedback on their explanation. Note any key concepts they covered well and any important points they may have missed.
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <!-- Multiple input reference -->
+  <Vertical id="compare_example">
+    <Markdown id="q2">
+### Compare and Contrast
+
+Topic A:
+    </Markdown>
+    <TextArea id="topic_a" rows="3" placeholder="Describe topic A..." />
+
+    <Markdown id="q2b">
+Topic B:
+    </Markdown>
+    <TextArea id="topic_b" rows="3" placeholder="Describe topic B..." />
+    <LLMFeedback id="comparison_feedback" />
+
+    <ActionButton id="compare_btn" label="Analyze Comparison">
+      <LLMAction id="compare_action" target="comparison_feedback">
+        A student described two topics:
+
+        Topic A: <Ref id="topic_a_ref" target="topic_a" />
+
+        Topic B: <Ref id="topic_b_ref" target="topic_b" />
+
+        Help them identify similarities and differences they may have missed.
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <Markdown id="note">
+### How It Works
+
+The LLMAction contains the prompt text sent to the AI. Use `&lt;Ref id="unique_id" target="component_id" /&gt;` to include values from input components:
+
+```xml
+&lt;LLMAction target="feedback"&gt;
+  Please review: &lt;Ref id="my_ref" target="text_input" /&gt;
+&lt;/LLMAction&gt;
+```
+
+The `target` attribute specifies which LLMFeedback component displays the response.
+  </Markdown>
+
+</Vertical>

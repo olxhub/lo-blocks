@@ -1,0 +1,74 @@
+<!-- LLMFeedback Block Examples -->
+<Vertical id="LLMFeedbackDemo" title="LLMFeedback Block Demo" launchable="true">
+
+  <Markdown id="intro">
+## LLMFeedback Display Examples
+
+LLMFeedback displays AI-generated responses with a robot icon and loading states.
+
+**Pattern**: LLMFeedback receives responses from LLMAction when triggered via ActionButton.
+  </Markdown>
+
+  <!-- Basic usage -->
+  <Vertical id="basic_example">
+    <Markdown id="q1">
+### Basic Feedback Display
+
+Enter a question for the AI to answer:
+    </Markdown>
+    <TextArea id="user_question" placeholder="Ask a question..." rows="3" />
+    <LLMFeedback id="ai_answer" />
+
+    <ActionButton id="ask_btn" label="Ask AI">
+      <LLMAction id="ask_action" target="ai_answer">
+        Answer this question concisely:
+        <Ref id="question_ref" target="user_question" />
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <Markdown id="states_explanation">
+### LLMFeedback States
+
+The component shows:
+- **Nothing** when no request has been made
+- **Spinner** while waiting for the LLM response
+- **Text** when feedback is received
+- **Error message** if something goes wrong
+  </Markdown>
+
+  <!-- Multiple feedback displays -->
+  <Vertical id="multi_example">
+    <Markdown id="q2">
+### Multiple Feedback Components
+
+You can have multiple LLMFeedback components, each receiving responses from different LLMActions:
+    </Markdown>
+    <TextArea id="code_sample" placeholder="Paste code here..." rows="4" />
+
+    <Markdown id="style_label">**Style Review:**</Markdown>
+    <LLMFeedback id="style_feedback" />
+
+    <Markdown id="logic_label">**Logic Review:**</Markdown>
+    <LLMFeedback id="logic_feedback" />
+
+    <ActionButton id="review_btn" label="Review Code">
+      <LLMAction id="style_action" target="style_feedback">
+        Review this code for style: <Ref id="style_ref" target="code_sample" />
+      </LLMAction>
+      <LLMAction id="logic_action" target="logic_feedback">
+        Review this code for logic errors: <Ref id="logic_ref" target="code_sample" />
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <Markdown id="connection_note">
+### Connecting LLMFeedback to LLMAction
+
+The connection is made through matching IDs:
+1. LLMFeedback has an `id` (e.g., `id="feedback"`)
+2. LLMAction has a `target` pointing to that ID (e.g., `target="feedback"`)
+3. LLMAction is nested inside ActionButton for triggering
+  </Markdown>
+
+</Vertical>
