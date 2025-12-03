@@ -7,20 +7,15 @@ import { useReduxState, useFieldSelector, componentFieldByName } from '@/lib/sta
 import { CORRECTNESS } from '@/lib/blocks';
 
 /**
- * Fisher-Yates shuffle with seeded random for reproducibility
+ * Fisher-Yates shuffle.
+ * Uses Math.random() for true randomness so each student sees a different order.
  */
-function shuffleArray(array, seed = Date.now()) {
+function shuffleArray(array) {
   const result = [...array];
   let m = result.length;
 
-  // Simple seeded random
-  const random = () => {
-    seed = (seed * 9301 + 49297) % 233280;
-    return seed / 233280;
-  };
-
   while (m) {
-    const i = Math.floor(random() * m--);
+    const i = Math.floor(Math.random() * m--);
     [result[m], result[i]] = [result[i], result[m]];
   }
   return result;
