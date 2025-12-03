@@ -6,9 +6,10 @@ import { useReduxState } from '@/lib/state';
 import { render } from '@/lib/render';
 
 function _Course(props) {
-  const { kids = {}, fields, title = 'Course', ...otherProps } = props;
+  const { kids = {}, fields, title = 'Course' } = props;
   const { chapters = [] } = kids;
 
+  // children are { type: 'block', id } objects from parseNode
   const [selectedChild, setSelectedChild] = useReduxState(props, fields.selectedChild,
     chapters[0]?.children[0]?.id || null);
   const [expandedChapter, setExpandedChapter] = useReduxState(props, fields.expandedChapter,
@@ -23,11 +24,12 @@ function _Course(props) {
   };
 
   // Find the currently selected child to render
+  // chapter.children are { type: 'block', id } objects, so we match by id
   let selectedChildNode = null;
   for (const chapter of chapters) {
     const found = chapter.children.find(child => child.id === selectedChild);
     if (found) {
-      selectedChildNode = found;
+      selectedChildNode = props.idMap?.[selectedChild];
       break;
     }
   }
@@ -58,15 +60,21 @@ function _Course(props) {
               {/* Chapter Children */}
               {expandedChapter === chapter.id && (
                 <div>
-                  {chapter.children.map((child) => (
-                    <button
-                      key={child.id}
-                      onClick={() => handleChildClick(child.id)}
-                      className={selectedChild === child.id ? 'selected' : ''}
-                    >
-                      {child.attributes?.title || child.tag || child.id}
-                    </button>
-                  ))}
+                  {chapter.children.map((child) => {
+                    // child is { type: 'block', id }, look up full entry from idMap
+                    const childId = child.id;
+                    const childEntry = props.idMap?.[childId];
+                    const title = childEntry?.attributes?.title || childEntry?.tag || childId;
+                    return (
+                      <button
+                        key={childId}
+                        onClick={() => handleChildClick(childId)}
+                        className={selectedChild === childId ? 'selected' : ''}
+                      >
+                        {title}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
