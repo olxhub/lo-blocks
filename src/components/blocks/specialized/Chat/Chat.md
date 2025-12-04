@@ -94,7 +94,7 @@ Alex: Let's dive in.
 --- wait component_id ---
 ```
 
-Multiple requirements:
+Multiple prerequisites:
 
 ```
 --- wait quiz1, essay1 ---

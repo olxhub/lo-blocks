@@ -6,7 +6,7 @@ import React, { useCallback, useMemo, useEffect } from 'react';
 import { useReduxState, updateReduxField } from '@/lib/state';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
-import { checkRequirements } from '@/lib/util/prerequisites';
+import { checkPrerequisites } from '@/lib/util/prerequisites';
 
 import * as chatUtils from './chatUtils';
 
@@ -147,8 +147,8 @@ export function _Chat(props) {
         continue;
       }
       if (block.type === 'WaitCommand') {
-        const requirements = block.requirements ?? [];
-        const satisfied = await checkRequirements(props, requirements);
+        const prerequisites = block.prerequisites ?? [];
+        const satisfied = await checkPrerequisites(props, prerequisites);
         if (!satisfied) {
           shouldBlock = true;
           break;

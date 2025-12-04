@@ -4,36 +4,36 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { executeNodeActions } from '@/lib/blocks';
 import { renderCompiledKids } from '@/lib/render';
-import { checkRequirements, parseRequirements } from '@/lib/util/prerequisites';
+import { checkPrerequisites, parsePrerequisites } from '@/lib/util/prerequisites';
 import { useReduxState } from '@/lib/state';
 import { store } from 'lo_event/lo_event/reduxLogger.js';
 
 function _ActionButton(props) {
   const { label, dependsOn, fields } = props;
-  const requirements = useMemo(() => parseRequirements(dependsOn), [dependsOn]);
-  const [isDisabled, setIsDisabled] = useReduxState(props, fields.isDisabled, requirements.length > 0);
+  const prerequisites = useMemo(() => parsePrerequisites(dependsOn), [dependsOn]);
+  const [isDisabled, setIsDisabled] = useReduxState(props, fields.isDisabled, prerequisites.length > 0);
 
-  const evaluateRequirements = useCallback(async () => {
-    if (!requirements.length) {
+  const evaluatePrerequisites = useCallback(async () => {
+    if (!prerequisites.length) {
       setIsDisabled(false);
       return;
     }
 
-    const satisfied = await checkRequirements(props, requirements);
+    const satisfied = await checkPrerequisites(props, prerequisites);
     const newDisabledState = !satisfied;
 
     // Only update if the value actually changed
     if (newDisabledState !== isDisabled) {
       setIsDisabled(newDisabledState);
     }
-  }, [props, requirements, setIsDisabled, isDisabled]);
+  }, [props, prerequisites, setIsDisabled, isDisabled]);
 
   useEffect(() => {
     let cancelled = false;
 
-    evaluateRequirements();
+    evaluatePrerequisites();
 
-    if (!requirements.length) {
+    if (!prerequisites.length) {
       return () => {
         cancelled = true;
       };
@@ -41,7 +41,7 @@ function _ActionButton(props) {
 
     const unsubscribe = store.subscribe(() => {
       if (!cancelled) {
-        evaluateRequirements();
+        evaluatePrerequisites();
       }
     });
 
@@ -49,7 +49,7 @@ function _ActionButton(props) {
       cancelled = true;
       unsubscribe?.();
     };
-  }, [evaluateRequirements, requirements.length]);
+  }, [evaluatePrerequisites, prerequisites.length]);
 
   const onClick = () => executeNodeActions(props);
   return (

@@ -181,22 +181,22 @@ WaitCommandStart
   = _ "-"+ _ "wait"
 
 WaitCommand
-  = WaitCommandStart _ reqs:WaitRequirementList _ "-"+ _ NewLine {
-      return { type: "WaitCommand", requirements: reqs };
+  = WaitCommandStart _ reqs:WaitPrerequisiteList _ "-"+ _ NewLine {
+      return { type: "WaitCommand", prerequisites: reqs };
     }
 
-WaitRequirementList
-  = first:WaitRequirement rest:(_ "," _ WaitRequirement)* {
+WaitPrerequisiteList
+  = first:WaitPrerequisite rest:(_ "," _ WaitPrerequisite)* {
       return [first].concat(rest.map(r => r[3]));
     }
 
-WaitRequirement
-  = _ id:Identifier cond:RequirementCondition? {
+WaitPrerequisite
+  = _ id:Identifier cond:PrerequisiteCondition? {
       return cond ? { id, ...cond } : { id };
     }
 
 /* status words such as submitted / correct / attempted */
-RequirementCondition
+PrerequisiteCondition
   = _ field:Identifier _ op:CompOp _ n:Num {
       return { field, op, value: parseFloat(n) };
     }
@@ -204,7 +204,7 @@ RequirementCondition
 
 StatusWord       = $[a-zA-Z0-9_][a-zA-Z0-9_-]+
 CompOp           = ">=" / "<=" / ">" / "<" / "="
-Num              = $[0-9]+ ("." [0-9]+)?
+Num              = $([0-9]+ ("." [0-9]+)?)
 
 
 DialogueGroup
