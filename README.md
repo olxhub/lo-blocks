@@ -11,11 +11,12 @@ This repository implements the **delivery and runtime system**: rendering block-
 
 Learning Blocks allows you to:
 
-- Render modular lessons and assessments from XML or JSON
+- Render modular lessons and assessments from XML or markup languages
 - Compose learning experiences using reusable “blocks”
 - Enable dynamic, LLM-enhanced input and feedback
 - Capture detailed event data for learning research and replay
 - Deliver adaptive, inspectable, remixable activities
+- **Rapidly** develop new rich, integrated educational interactives
 
 ---
 
@@ -25,25 +26,52 @@ Learning Blocks allows you to:
 - Composable component protocol (with `createBlock()`)
 - Redux-based state tracking and dispatch
 - Real-time or offline-compatible delivery
-- Declarative XML (or JSX) authoring
+- Declarative XML authoring or simplified markup authoring (with proper PEG grammars)
 - Clean introspection metadata for every block
 - Seamless integration with [`lo_event`](https://github.com/ETS-Next-Gen/lo_event)
+- Easy things are easy to author. Hard things are possible too. Long, but smooth learning curve for teachers, faculty, and instructional designers.
 
 ## 🧠 Design Philosophy
 
 - **Functional-first** — blocks are stateless where possible, driven by Redux and `lo_event`
 - **Declarative layout** — layouts like `<SideBarPanel>` or `<Lesson>` drive visual structure
 - **Composable interactions** — `<LLMButton>` + `<LLMPrompt>` + `<TextArea>` → full loop
-- **Minimal magic** — XML → JSX transforms are explicit; no hidden loaders or runtime hacks
+- **Minimal magic** — XML → JSX and PEG → JSX transforms are explicit; well-defined grammars and validation
 - **Batteries included** — reusable reducers, event dispatchers, component selectors
 
 ---
 
 ## ✍️ Authoring Format
 
-Learning Blocks uses a structured XML format (a successor to the OLX 1.0 format I designed for edX, which is a spiritual successor to the LON-CAPA XML format). It's designed to be as easy to work with as early HTML (recall the 2.0 days, when middle school kids could author?).
+Learning Blocks uses a structured XML format (a successor to the OLX 1.0 format I designed for edX, which is a spiritual successor to the LON-CAPA XML format). It's designed to be as easy to work with as early HTML (recall the 2.0 days, when middle school kids could author?):
+
+```
+<SortableInput id="method_sort">
+  <Markdown id="step1">Make an observation</Markdown>
+  <Markdown id="step2">Ask a question</Markdown>
+  <Markdown id="step3">Form a hypothesis</Markdown>
+  <Markdown id="step4">Test the hypothesis</Markdown>
+  <Markdown id="step5">Analyze the data</Markdown>
+</SortableInput>
+```
+
+We can have simple formats too:
+
+```
+<SimpleSortable id="scientific_method" title="Scientific Method">
+Put the scientific method steps in order:
+===
+1. Ask a question
+2. Form a hypothesis
+3. Design an experiment
+4. Collect data
+5. Draw conclusions
+</SimpleSortable>
+```
 
 Each top-level file is compiled into a normalized ID-based map. All references are via ID; components may be embedded or split across files.
+
+This is very friendly for LLM authoring too.
 
 ---
 
@@ -69,6 +97,8 @@ This ensures that every block is:
 
 You can inspect and render any block by ID at runtime.
 
+We support much more than above -- we can add other types metadata too which, if in place, allows for automated documentation, validation, etc.
+
 ---
 
 ## 📊 Event Architecture
@@ -79,6 +109,8 @@ All interaction flows through [`lo_event`](https://github.com/ETS-Next-Gen/writi
 - Time-aware and replayable
 - Supports real-time dashboards, logs, and analytics
 - Hooks into analytics modules such as [`writing_observer`](https://github.com/ETS-Next-Gen/writing_observer)
+
+Because state is managed explicitly through redux, we guarantee the event stream allows a full reconstruction and replay of learner state. It also allows for full introspection and inspection of the system state while debugging.
 
 ---
 
