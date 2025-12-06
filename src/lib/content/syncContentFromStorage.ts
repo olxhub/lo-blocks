@@ -32,6 +32,53 @@ export async function syncContentFromStorage(
     contentStore.byProvenance as Record<ProvenanceURI, any>
   );
 
+  // Check if any auxiliary files (non-OLX) changed that would require re-parsing
+  // OLX files that depend on them. We detect this by scanning the idMap for entries
+  // whose provenance chain includes the changed auxiliary file.
+  const changedAuxiliaryFiles = new Set<ProvenanceURI>();
+  for (const uri of [...Object.keys(added), ...Object.keys(changed), ...Object.keys(deleted)] as ProvenanceURI[]) {
+    const fileInfo = added[uri] || changed[uri] || deleted[uri];
+    if (fileInfo?.type !== fileTypes.olx && fileInfo?.type !== fileTypes.xml) {
+      changedAuxiliaryFiles.add(uri);
+    }
+  }
+
+  // Find OLX files that depend on changed auxiliary files and move them to 'changed'
+  if (changedAuxiliaryFiles.size > 0) {
+    const olxFilesToReparse = new Set<ProvenanceURI>();
+
+    for (const entry of Object.values(contentStore.byId) as any[]) {
+      if (!entry.provenance || !Array.isArray(entry.provenance)) continue;
+
+      // Check if any auxiliary file in this entry's provenance chain has changed
+      for (const prov of entry.provenance) {
+        if (changedAuxiliaryFiles.has(prov as ProvenanceURI)) {
+          // The root OLX file is the first element in the provenance chain
+          const rootOlx = entry.provenance[0] as ProvenanceURI;
+          if (rootOlx && unchanged[rootOlx]) {
+            olxFilesToReparse.add(rootOlx);
+          }
+          break;
+        }
+      }
+    }
+
+    // Move affected OLX files from unchanged to changed (need to re-read content)
+    for (const olxUri of olxFilesToReparse) {
+      const fileInfo = unchanged[olxUri];
+      // Re-read the file content since unchanged files don't have content loaded
+      const filePath = olxUri.startsWith('file://') ? olxUri.slice(7) : olxUri;
+      try {
+        const content = await provider.read(filePath);
+        changed[olxUri] = { ...fileInfo, content };
+        delete unchanged[olxUri];
+      } catch (err) {
+        // If we can't read the file, leave it unchanged and log warning
+        console.warn(`Could not re-read ${olxUri} for dependency update:`, err);
+      }
+    }
+  }
+
   deleteNodesByProvenance([
     ...Object.keys(deleted),
     ...Object.keys(changed)
