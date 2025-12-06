@@ -48,6 +48,7 @@ src/lib/template/**/_*Parser.js
 src/components/blockRegistry.js
 src/components/blockMetadata.json
 src/generated/pegExtensions.json
+src/styles/components.css
 
 # Autosaves
 *~
