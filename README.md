@@ -102,9 +102,9 @@ This project is licensed under the **GNU Affero General Public License (AGPL)**.
 
 ## 🤝 Contributing
 
-We welcome collaborators working, although Learning Blocks is an **early-stage prototype** and not really ready for general contribution, and definitely not ready for general use. 
+We welcome collaborators working, although Learning Blocks is an **early-stage prototype** and not really ready for general contribution, and definitely not ready for general use.
 
-If you’re interested in:
+If you're interested in:
 
 - Research-driven learning platforms
 - Open educational infrastructure
@@ -112,53 +112,54 @@ If you’re interested in:
 
 Please talk to us! We're education nerds, and talking is fun.
 
-Hacking
--------
+---
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## 🛠️ Development
 
-## Getting Started
+### Getting Started
 
-First, run the development server:
+Install dependencies and run the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run build:all  # Build grammars, registry, and content
+npm run dev        # Start development server at http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+For testing:
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```bash
+npm run test       # Run all tests
+npm run test:unit  # Unit tests only
+npm run test:ui    # Interactive test UI
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Sandboxed Development
 
-### Sandboxed environments
+For security, we use [Firejail](https://firejail.wordpress.com/) sandboxing in development to limit the impact of potentially compromised dependencies.
 
-For local development, we use Firejail. Firejail will limit the scope of if e.g. an npm package is backdoored or otherwise compromised.
+**Local development** (recommended):
+- Use standard scripts: `npm run dev`, `npm run build`, `npm run test`
+- These are Firejail-wrapped for security
 
-- Firejail-wrapped scripts will fail under extra sandboxes (e.g., github CI/CD, Codex Web). In such environments, prefer `npm run build-automation` and `npm run test-automation` (no Firejail wrappers).
-- For local development (humans or agents on a dev machine), use the standard Firejail-wrapped scripts
-- Codex CLI: run commands outside the extra Codex sandbox ("escalated permissions").
-  - Typical failure signatures: `cannot create /run/firejail/profile/...` (Firejail) and `listen EPERM ... /tmp/tsx-XXXX/....pipe` (tsx/vitest).
+**CI/CD or pre-sandboxed environments** (GitHub Actions, containerized builds):
+- Use automation scripts: `npm run build-automation`, `npm run test-automation`
+- These omit Firejail (already running in a sandbox)
+- Typical failure signature: `cannot create /run/firejail/profile/...`
 
-The `xml2json` script is generally not a CI/CD step and does not have an automation wrapper (although it’s exercised through wrapped tests when needed).
+### Technologies Used
 
-## Learn More
+- **Runtime**: [Next.js 15](https://nextjs.org) (React 19)
+- **State management**: [Redux](https://redux.js.org) via [`lo_event`](https://github.com/ETS-Next-Gen/writing_observer/tree/master/modules/lo_event)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com)
+- **XML parsing**: [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser)
+- **Testing**: [Vitest](https://vitest.dev)
+- **Grammar parsing**: [Peggy](https://peggyjs.org/)
 
-To learn more about Next.js, take a look at the following resources:
+### Documentation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [`docs/AGENTS.md`](docs/AGENTS.md) — Using LLM agents in the authoring workflow
+- [`docs/edit-preview-design.md`](docs/edit-preview-design.md) — Editor and preview architecture
+- [`docs/backlog.md`](docs/backlog.md) — Development roadmap and known issues
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
