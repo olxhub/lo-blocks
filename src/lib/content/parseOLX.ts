@@ -199,7 +199,7 @@ function extractSiblingMetadata(siblings: any[], nodeIndex: number): OLXMetadata
     return {};
   }
 
-  // Look backwards for the nearest preceding comment
+  // Look backwards for a comment with valid metadata
   for (let i = nodeIndex - 1; i >= 0; i--) {
     const sibling = siblings[i];
 
@@ -212,10 +212,15 @@ function extractSiblingMetadata(siblings: any[], nodeIndex: number): OLXMetadata
       break; // Stop at non-whitespace text
     }
 
-    // Found a comment - extract and return metadata
+    // Found a comment - check if it has valid metadata
     if ('#comment' in sibling) {
       const commentText = sibling['#comment']?.[0]?.['#text'];
-      return extractMetadataFromComment(commentText);
+      const metadata = extractMetadataFromComment(commentText);
+      if (Object.keys(metadata).length > 0) {
+        return metadata; // Found valid metadata
+      }
+      // No metadata in this comment, continue searching
+      continue;
     }
 
     // Stop at any other element
