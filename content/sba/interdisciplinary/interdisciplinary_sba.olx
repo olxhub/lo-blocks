@@ -40,20 +40,6 @@
      REFERENCED CONTENT BLOCKS
      ============================================================ -->
 
-<!-- Orientation block (initial sidebar content) -->
-<Markdown id="interdisciplinary_orientation">
-## Welcome to Comm360
-
-You're starting an internship at Community 360, a nonprofit organization that addresses community-based needs through responsive programming.
-
-Your team has been asked to investigate the causes of high school dropout so Comm360 can develop services to address the problem.
-
-**Use the tabs on the right to:**
-- View your current activity
-- Build your research artifact
-- Access the reading library
-- Meet your team members
-</Markdown>
 
 <!-- Team Directory -->
 <TeamDirectory id="interdisciplinary_team_members" title="Comm360 Team"/>
