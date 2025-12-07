@@ -1,196 +1,388 @@
 // src/lib/content/syncContentFromStorage.ts
 //
-// Content synchronization - main orchestrator for loading OLX content into memory.
+// Content synchronization - loads OLX content from storage into memory.
 //
-// Manages the complete pipeline from file system to in-memory representation:
-// - Scans storage provider for OLX/XML files with change detection
-// - Parses files through the OLX parser with error collection
-// - Maintains global idMap for block lookups across all content
-// - Handles duplicate ID detection and conflict resolution
-// - Triggers image synchronization for Next.js serving
+// This module maintains two indexes:
+// 1. parsedFiles: Maps file URIs to their parsed block IDs and metadata
+// 2. blockIndex: Maps block IDs to their parsed block data
 //
-// This is the primary entry point for loading Learning Observer content,
-// providing both initial loading and incremental updates as files change.
-// The system maintains provenance tracking so errors can be traced back
-// to specific files and locations.
+// The sync process:
+// 1. Scan storage for added/changed/unchanged/deleted files
+// 2. Detect when auxiliary files (e.g., .chatpeg) change, requiring re-parse of dependent OLX
+// 3. Remove stale blocks from the index
+// 4. Parse new/changed files and update indexes
 //
+
 import { StorageProvider, fileTypes } from '@/lib/storage';
 import { FileStorageProvider } from '@/lib/storage/providers/file';
 import type { ProvenanceURI, OLXLoadingError } from '@/lib/types';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { copyImagesToPublic } from '@/lib/content/imageSync';
 
-const contentStore = {
-  byProvenance: {},
-  byId: {}
+// =============================================================================
+// Types
+// =============================================================================
+
+/**
+ * Metadata and content for a file from storage.
+ * Matches XmlFileInfo from storage/types.ts
+ */
+interface FileRecord {
+  id: ProvenanceURI;   // The file:// URI identifying this file
+  type: string;        // File type (olx, xml, chatpeg, etc.)
+  content: string;     // The file's text content
+  _metadata: any;      // Provider-specific metadata (stat, hash, etc.)
+}
+
+/**
+ * A parsed file's entry in the parsedFiles index.
+ * Extends FileRecord with parsing results.
+ */
+interface ParsedFileEntry extends FileRecord {
+  blockIds: string[];  // IDs of blocks parsed from this file
+  error?: string;      // Set if parsing failed
+}
+
+/** The in-memory content store */
+interface ContentStore {
+  /** Maps file URI -> parsed file entry (what blocks came from this file) */
+  parsedFiles: Record<ProvenanceURI, ParsedFileEntry>;
+  /** Maps block ID -> block data (the actual parsed content) */
+  blockIndex: Record<string, any>;
+}
+
+/** Result of categorizing files by change status */
+interface FileChangeSets {
+  added: Record<ProvenanceURI, FileRecord>;
+  changed: Record<ProvenanceURI, FileRecord>;
+  unchanged: Record<ProvenanceURI, ParsedFileEntry>;
+  deleted: Record<ProvenanceURI, ParsedFileEntry>;
+}
+
+// =============================================================================
+// Module State
+// =============================================================================
+
+const contentStore: ContentStore = {
+  parsedFiles: {},
+  blockIndex: {}
 };
+
+// =============================================================================
+// Main Entry Point
+// =============================================================================
 
 export async function syncContentFromStorage(
   provider: StorageProvider = new FileStorageProvider('./content')
 ) {
-  const { added, changed, unchanged, deleted } = await provider.loadXmlFilesWithStats(
-    contentStore.byProvenance as Record<ProvenanceURI, any>
+  // Step 1: Get file change sets from storage
+  const changeSets = await provider.loadXmlFilesWithStats(
+    contentStore.parsedFiles as Record<ProvenanceURI, any>
+  ) as FileChangeSets;
+
+  // Step 2: Find OLX files that need re-parsing due to auxiliary file changes
+  await promoteFilesWithChangedDependencies(changeSets, contentStore.blockIndex, provider);
+
+  // Step 3: Remove blocks from files that are deleted or about to be re-parsed
+  const filesToRemove = [
+    ...Object.keys(changeSets.deleted),
+    ...Object.keys(changeSets.changed)
+  ] as ProvenanceURI[];
+  removeBlocksFromFiles(filesToRemove, contentStore);
+
+  // Step 4: Parse all new and changed files
+  const filesToParse = { ...changeSets.added, ...changeSets.changed };
+  const errors = await parseAndIndexFiles(filesToParse, contentStore, provider);
+
+  // Step 5: Sync images
+  await copyImagesToPublic(provider);
+
+  // Return with legacy property names for backward compatibility
+  // Internally we use: parsedFiles/blockIds, externally: parsed/nodes/idMap
+  const parsed = Object.fromEntries(
+    Object.entries(contentStore.parsedFiles).map(([uri, entry]) => [
+      uri,
+      { ...entry, nodes: entry.blockIds }  // Alias blockIds as nodes
+    ])
   );
 
-  // Check if any auxiliary files (non-OLX) changed that would require re-parsing
-  // OLX files that depend on them. We detect this by scanning the idMap for entries
-  // whose provenance chain includes the changed auxiliary file.
-  const changedAuxiliaryFiles = new Set<ProvenanceURI>();
-  for (const uri of [...Object.keys(added), ...Object.keys(changed), ...Object.keys(deleted)] as ProvenanceURI[]) {
-    const fileInfo = added[uri] || changed[uri] || deleted[uri];
-    if (fileInfo?.type !== fileTypes.olx && fileInfo?.type !== fileTypes.xml) {
-      changedAuxiliaryFiles.add(uri);
+  return {
+    parsed,
+    idMap: contentStore.blockIndex,
+    errors
+  };
+}
+
+// =============================================================================
+// Step 2: Dependency Detection
+// =============================================================================
+
+/**
+ * When an auxiliary file (e.g., .chatpeg) changes, any OLX file that references
+ * it must be re-parsed. This function finds such OLX files in the "unchanged"
+ * set and moves them to "changed".
+ */
+async function promoteFilesWithChangedDependencies(
+  changeSets: FileChangeSets,
+  blockIndex: Record<string, any>,
+  provider: StorageProvider
+): Promise<void> {
+  const changedAuxiliaryFiles = findChangedAuxiliaryFiles(changeSets);
+  if (changedAuxiliaryFiles.size === 0) return;
+
+  const olxFilesToReparse = findOlxFilesDependingOn(changedAuxiliaryFiles, blockIndex, changeSets.unchanged);
+
+  for (const olxUri of olxFilesToReparse) {
+    await moveUnchangedToChanged(olxUri, changeSets, provider);
+  }
+}
+
+/** Returns URIs of non-OLX/XML files that were added, changed, or deleted */
+function findChangedAuxiliaryFiles(changeSets: FileChangeSets): Set<ProvenanceURI> {
+  const auxiliaryFiles = new Set<ProvenanceURI>();
+
+  const allChangedFiles = [
+    ...Object.entries(changeSets.added),
+    ...Object.entries(changeSets.changed),
+    ...Object.entries(changeSets.deleted)
+  ];
+
+  for (const [uri, fileRecord] of allChangedFiles) {
+    const isOlxOrXml = fileRecord?.type === fileTypes.olx || fileRecord?.type === fileTypes.xml;
+    if (!isOlxOrXml) {
+      auxiliaryFiles.add(uri as ProvenanceURI);
     }
   }
 
-  // Find OLX files that depend on changed auxiliary files and move them to 'changed'
-  if (changedAuxiliaryFiles.size > 0) {
-    const olxFilesToReparse = new Set<ProvenanceURI>();
+  return auxiliaryFiles;
+}
 
-    for (const entry of Object.values(contentStore.byId) as any[]) {
-      if (!entry.provenance || !Array.isArray(entry.provenance)) continue;
+/**
+ * Finds OLX files that depend on any of the changed auxiliary files.
+ * A dependency is detected by checking if any block's provenance chain
+ * includes the auxiliary file.
+ */
+function findOlxFilesDependingOn(
+  changedAuxiliaryFiles: Set<ProvenanceURI>,
+  blockIndex: Record<string, any>,
+  unchangedFiles: Record<ProvenanceURI, ParsedFileEntry>
+): Set<ProvenanceURI> {
+  const olxFilesToReparse = new Set<ProvenanceURI>();
 
-      // Check if any auxiliary file in this entry's provenance chain has changed
-      for (const prov of entry.provenance) {
-        if (changedAuxiliaryFiles.has(prov as ProvenanceURI)) {
-          // The root OLX file is the first element in the provenance chain
-          const rootOlx = entry.provenance[0] as ProvenanceURI;
-          if (rootOlx && unchanged[rootOlx]) {
-            olxFilesToReparse.add(rootOlx);
-          }
-          break;
-        }
-      }
-    }
+  for (const block of Object.values(blockIndex)) {
+    if (!block.provenance || !Array.isArray(block.provenance)) continue;
 
-    // Move affected OLX files from unchanged to changed (need to re-read content)
-    for (const olxUri of olxFilesToReparse) {
-      const fileInfo = unchanged[olxUri];
-      // Re-read the file content since unchanged files don't have content loaded
-      const filePath = olxUri.startsWith('file://') ? olxUri.slice(7) : olxUri;
-      try {
-        const content = await provider.read(filePath);
-        changed[olxUri] = { ...fileInfo, content };
-        delete unchanged[olxUri];
-      } catch (err) {
-        // If we can't read the file, leave it unchanged and log warning
-        console.warn(`Could not re-read ${olxUri} for dependency update:`, err);
+    // Check if this block's provenance includes a changed auxiliary file
+    const dependsOnChangedFile = block.provenance.some(
+      (prov: string) => changedAuxiliaryFiles.has(prov as ProvenanceURI)
+    );
+
+    if (dependsOnChangedFile) {
+      // The root OLX file is the first element in the provenance chain
+      const rootOlxFile = block.provenance[0] as ProvenanceURI;
+      if (rootOlxFile && unchangedFiles[rootOlxFile]) {
+        olxFilesToReparse.add(rootOlxFile);
       }
     }
   }
 
-  deleteNodesByProvenance([
-    ...Object.keys(deleted),
-    ...Object.keys(changed)
-  ] as ProvenanceURI[]);
+  return olxFilesToReparse;
+}
 
+/**
+ * Moves a file from unchanged to changed, re-reading its content.
+ *
+ * IMPORTANT: We copy only the metadata, not the old blockIds.
+ * The old entry may have blockIds from a previous parse, but we don't
+ * want those carried into the changed set - fresh blockIds will be
+ * set after re-parsing.
+ */
+async function moveUnchangedToChanged(
+  fileUri: ProvenanceURI,
+  changeSets: FileChangeSets,
+  provider: StorageProvider
+): Promise<void> {
+  const existingEntry = changeSets.unchanged[fileUri];
+  if (!existingEntry) return;
+
+  // Re-read the file content (unchanged files don't have content loaded)
+  const filePath = fileUri.startsWith('file://') ? fileUri.slice(7) : fileUri;
+
+  try {
+    const content = await provider.read(filePath);
+
+    // Create a clean FileRecord without the old blockIds
+    const fileRecord: FileRecord = {
+      id: existingEntry.id,
+      type: existingEntry.type,
+      content,
+      _metadata: existingEntry._metadata
+    };
+
+    changeSets.changed[fileUri] = fileRecord;
+    delete changeSets.unchanged[fileUri];
+  } catch (err) {
+    console.warn(`Could not re-read ${fileUri} for dependency update:`, err);
+    // Leave unchanged if we can't read it
+  }
+}
+
+// =============================================================================
+// Step 3: Block Removal
+// =============================================================================
+
+/**
+ * Removes all blocks that were parsed from the given files.
+ * This cleans up the blockIndex before re-parsing.
+ */
+function removeBlocksFromFiles(
+  fileUris: ProvenanceURI[],
+  store: ContentStore
+): void {
+  for (const fileUri of fileUris) {
+    const parsedFile = store.parsedFiles[fileUri];
+    if (parsedFile?.blockIds) {
+      for (const blockId of parsedFile.blockIds) {
+        delete store.blockIndex[blockId];
+      }
+    }
+    delete store.parsedFiles[fileUri];
+  }
+}
+
+// =============================================================================
+// Step 4: Parsing
+// =============================================================================
+
+/**
+ * Parses all files and updates the content store.
+ * Returns any errors encountered during parsing.
+ */
+async function parseAndIndexFiles(
+  filesToParse: Record<ProvenanceURI, FileRecord>,
+  store: ContentStore,
+  provider: StorageProvider
+): Promise<OLXLoadingError[]> {
   const errors: OLXLoadingError[] = [];
 
-  for (const [uri, fileInfo] of Object.entries({ ...added, ...changed }) as [ProvenanceURI, any][]) {
-    if (fileInfo.type !== fileTypes.olx && fileInfo.type !== fileTypes.xml) {
-      contentStore.byProvenance[uri] = {
-        nodes: [],
-        ...fileInfo,
+  for (const [fileUri, fileRecord] of Object.entries(filesToParse) as [ProvenanceURI, FileRecord][]) {
+    // Non-OLX files (auxiliary files) are stored but not parsed for blocks
+    if (fileRecord.type !== fileTypes.olx && fileRecord.type !== fileTypes.xml) {
+      store.parsedFiles[fileUri] = {
+        ...fileRecord,
+        blockIds: []
       };
       continue;
     }
 
     try {
-      const { ids, idMap, errors: fileErrors } = await parseOLX(fileInfo.content, [uri], provider);
+      const parseResult = await parseOLX(fileRecord.content, [fileUri], provider);
 
-      // Collect any errors from this file
-      if (fileErrors && fileErrors.length > 0) {
-        errors.push(...fileErrors);
-      }
+      collectParseErrors(parseResult.errors, errors);
+      indexParsedBlocks(parseResult.idMap, store.blockIndex, fileUri, errors);
 
-      // Check for duplicate IDs and collect those errors too
-      for (const [storeId, entry] of Object.entries(idMap)) {
-        if (contentStore.byId[storeId]) {
-          const existingEntry = contentStore.byId[storeId];
-          const existingXml = existingEntry.rawParsed ? JSON.stringify(existingEntry.rawParsed, null, 2) : 'N/A';
-          const duplicateXml = entry.rawParsed ? JSON.stringify(entry.rawParsed, null, 2) : 'N/A';
-
-          errors.push({
-            type: 'duplicate_id',
-            file: uri,
-            message: `Duplicate ID "${storeId}" found in ${uri} (conflicts with entry from another file)
-
-🔍 EXISTING ENTRY (from different file):
-   File: ${existingEntry.file || 'unknown'}
-   Line: ${existingEntry.line || '?'}, Column: ${existingEntry.column || '?'}
-   Tag: <${existingEntry.tag || 'unknown'}>
-   Attributes: ${JSON.stringify(existingEntry.attributes || {}, null, 2)}
-   Content: ${existingEntry.text || existingEntry.kids || 'N/A'}
-   Full XML: ${existingXml.slice(0, 500)}${existingXml.length > 500 ? '...' : ''}
-
-🔍 DUPLICATE ENTRY (in current file ${uri}):
-   Line: ${entry.line || '?'}, Column: ${entry.column || '?'}
-   Tag: <${entry.tag || 'unknown'}>
-   Attributes: ${JSON.stringify(entry.attributes || {}, null, 2)}
-   Content: ${entry.text || entry.kids || 'N/A'}
-   Full XML: ${duplicateXml.slice(0, 500)}${duplicateXml.length > 500 ? '...' : ''}
-
-💡 TIP: IDs must be unique across ALL files in the project. Use different id attributes or prefixes for each file.`,
-            technical: {
-              duplicateId: storeId,
-              existingEntry: existingEntry,
-              duplicateEntry: entry,
-              existingXml: existingXml,
-              duplicateXml: duplicateXml
-            }
-          });
-          // Skip adding the duplicate, keep the first one
-          continue;
-        }
-        contentStore.byId[storeId] = entry;
-      }
-
-      contentStore.byProvenance[uri] = {
-        nodes: ids,
-        ...fileInfo
+      // IMPORTANT: Spread fileRecord FIRST, then set blockIds.
+      // This ensures fresh blockIds from parsing overwrite any stale
+      // blockIds that might exist in fileRecord (when an unchanged file
+      // was promoted to changed due to auxiliary file changes).
+      store.parsedFiles[fileUri] = {
+        ...fileRecord,
+        blockIds: parseResult.ids  // Must come AFTER spread to win
       };
 
-    } catch (fatalError) {
-      // If parseOLX itself fails catastrophically, log it but continue
-      console.error(`\n❌ DETAILED ERROR for ${uri}:`);
+    } catch (fatalError: any) {
+      console.error(`\n❌ DETAILED ERROR for ${fileUri}:`);
       console.error('Message:', fatalError.message);
       console.error('Stack trace:', fatalError.stack);
 
       errors.push({
         type: 'file_error',
-        file: uri,
+        file: fileUri,
         message: `Failed to parse file: ${fatalError.message}`,
         technical: fatalError,
         stack: fatalError.stack
       });
 
-      // Store minimal entry so we don't lose track of the file
-      contentStore.byProvenance[uri] = {
-        nodes: [],
-        ...fileInfo,
+      store.parsedFiles[fileUri] = {
+        ...fileRecord,
+        blockIds: [],
         error: fatalError.message
       };
     }
   }
 
-  // Copy images to public directory for Next.js optimization
-  await copyImagesToPublic(provider);
-
-  return {
-    parsed: contentStore.byProvenance,
-    idMap: contentStore.byId,
-    errors
-  };
+  return errors;
 }
 
-function deleteNodesByProvenance(uris: ProvenanceURI[]) {
-  for (const uri of uris) {
-    const prev = contentStore.byProvenance[uri];
-    if (prev?.nodes) {
-      for (const id of prev.nodes) {
-        delete contentStore.byId[id];
-      }
-    }
-    delete contentStore.byProvenance[uri];
+/** Adds parse errors to the error collection */
+function collectParseErrors(
+  parseErrors: OLXLoadingError[] | undefined,
+  allErrors: OLXLoadingError[]
+): void {
+  if (parseErrors && parseErrors.length > 0) {
+    allErrors.push(...parseErrors);
   }
+}
+
+/**
+ * Adds parsed blocks to the block index, checking for duplicates.
+ * Duplicate blocks are skipped and an error is recorded.
+ */
+function indexParsedBlocks(
+  newBlocks: Record<string, any>,
+  blockIndex: Record<string, any>,
+  sourceFile: ProvenanceURI,
+  errors: OLXLoadingError[]
+): void {
+  for (const [blockId, block] of Object.entries(newBlocks)) {
+    const existingBlock = blockIndex[blockId];
+
+    if (existingBlock) {
+      errors.push(createDuplicateIdError(blockId, existingBlock, block, sourceFile));
+      continue;  // Skip duplicate, keep the first one
+    }
+
+    blockIndex[blockId] = block;
+  }
+}
+
+/** Creates a detailed error message for duplicate block IDs */
+function createDuplicateIdError(
+  blockId: string,
+  existingBlock: any,
+  duplicateBlock: any,
+  sourceFile: ProvenanceURI
+): OLXLoadingError {
+  const existingXml = existingBlock.rawParsed ? JSON.stringify(existingBlock.rawParsed, null, 2) : 'N/A';
+  const duplicateXml = duplicateBlock.rawParsed ? JSON.stringify(duplicateBlock.rawParsed, null, 2) : 'N/A';
+
+  return {
+    type: 'duplicate_id',
+    file: sourceFile,
+    message: `Duplicate ID "${blockId}" found in ${sourceFile} (conflicts with entry from another file)
+
+🔍 EXISTING ENTRY (from different file):
+   File: ${existingBlock.file || 'unknown'}
+   Line: ${existingBlock.line || '?'}, Column: ${existingBlock.column || '?'}
+   Tag: <${existingBlock.tag || 'unknown'}>
+   Attributes: ${JSON.stringify(existingBlock.attributes || {}, null, 2)}
+   Content: ${existingBlock.text || existingBlock.kids || 'N/A'}
+   Full XML: ${existingXml.slice(0, 500)}${existingXml.length > 500 ? '...' : ''}
+
+🔍 DUPLICATE ENTRY (in current file ${sourceFile}):
+   Line: ${duplicateBlock.line || '?'}, Column: ${duplicateBlock.column || '?'}
+   Tag: <${duplicateBlock.tag || 'unknown'}>
+   Attributes: ${JSON.stringify(duplicateBlock.attributes || {}, null, 2)}
+   Content: ${duplicateBlock.text || duplicateBlock.kids || 'N/A'}
+   Full XML: ${duplicateXml.slice(0, 500)}${duplicateXml.length > 500 ? '...' : ''}
+
+💡 TIP: IDs must be unique across ALL files in the project. Use different id attributes or prefixes for each file.`,
+    technical: {
+      duplicateId: blockId,
+      existingEntry: existingBlock,
+      duplicateEntry: duplicateBlock,
+      existingXml: existingXml,
+      duplicateXml: duplicateXml
+    }
+  };
 }
