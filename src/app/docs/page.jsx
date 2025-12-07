@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import RenderOLX from '@/components/common/RenderOLX';
+import Spinner from '@/components/common/Spinner';
 
 // =============================================================================
 // Utilities
@@ -515,7 +516,7 @@ export default function DocsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-lg">Loading documentation...</div>
+        <Spinner>Loading documentation...</Spinner>
       </div>
     );
   }

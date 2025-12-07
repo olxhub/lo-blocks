@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import AppHeader from '@/components/common/AppHeader';
 import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
 import { useContentLoader } from '@/lib/content/useContentLoader';
@@ -57,7 +56,79 @@ const ENDPOINT_LINKS = [
   },
 ];
 
-function LessonsAndActivities() {
+function categorizeActivities(entries) {
+  const categories = {
+    demos: { title: 'Demos', icon: '🎯', color: 'blue', items: [] },
+    psychology: { title: 'Psychology', icon: '🧠', color: 'purple', items: [] },
+    interdisciplinary: { title: 'Interdisciplinary', icon: '🔗', color: 'green', items: [] },
+    other: { title: 'Other', icon: '📚', color: 'gray', items: [] }
+  };
+
+  entries.forEach(entry => {
+    const id = entry.id.toLowerCase();
+    if (id.includes('demo')) {
+      categories.demos.items.push(entry);
+    } else if (id.includes('psych')) {
+      categories.psychology.items.push(entry);
+    } else if (id.includes('interdisciplinary')) {
+      categories.interdisciplinary.items.push(entry);
+    } else {
+      categories.other.items.push(entry);
+    }
+  });
+
+  return Object.values(categories).filter(cat => cat.items.length > 0);
+}
+
+function ActivityRow({ entry }) {
+  const title = entry.attributes?.title || entry.id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const description = entry.attributes?.description;
+  const type = entry.tag || 'Activity';
+
+  return (
+    <div className="group py-4 border-b border-gray-200/50 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-transparent transition-all">
+      <div className="flex items-start gap-4">
+        <div className="flex-1 min-w-0">
+          <Link
+            href={`/preview/${entry.id}`}
+            className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors inline-block"
+          >
+            {title}
+          </Link>
+          {description && (
+            <p className="text-sm text-gray-600 mt-1 leading-relaxed">{description}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-5 text-sm shrink-0 opacity-70 group-hover:opacity-100 transition-opacity">
+          <span className="text-xs text-gray-400 font-mono">
+            {type}
+          </span>
+          <Link
+            href={`/edit/${entry.id}`}
+            className="text-gray-500 hover:text-gray-900 transition-colors"
+          >
+            Edit
+          </Link>
+          <Link
+            href={`/graph/${entry.id}`}
+            className="text-gray-400 hover:text-gray-700 transition-colors"
+          >
+            Graph
+          </Link>
+          <Link
+            href={`/api/content/${entry.id}`}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            target="_blank"
+          >
+            API
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Activities() {
   const { idMap, error, loading } = useContentLoader('root');
 
   const entries = idMap ? Object.keys(idMap).map(key => ({
@@ -66,103 +137,140 @@ function LessonsAndActivities() {
   })) : [];
 
   if (loading) {
-    return <Spinner>Loading lessons...</Spinner>;
+    return <Spinner>Loading activities...</Spinner>;
   }
 
   if (error) {
     return (
       <DisplayError
         props={{ id: 'lessons', tag: 'home' }}
-        name="Failed to Load Lessons"
-        message="Could not retrieve available lessons and activities"
+        name="Failed to Load Activities"
+        message="Could not retrieve available activities"
         technical={error}
         id="lessons_load_error"
       />
     );
   }
 
+  const categories = categorizeActivities(entries);
+
   return (
-    <section className="mb-8">
-      <p className="mb-4">Explore available lessons and activities:</p>
-      <ul className="space-y-2 list-disc pl-6">
-        {entries.map(entry => (
-          <li key={entry.id}>
-            <Link href={`/preview/${entry.id}`} className="text-blue-600 hover:underline">
-              {entry.attributes?.title || entry.id}
-            </Link>
-            <span className="ml-2 text-gray-500 text-sm">({entry.tag})</span>
-            [
-            <Link href={`/graph/${entry.id}`} className="ml-2 text-blue-600 hover:underline">
-              graph
-            </Link>
-            <Link href={`/api/content/${entry.id}`} className="ml-2 text-green-700 hover:underline" target="_blank">
-              api
-            </Link>
-            ]
-          </li>
-        ))}
-      </ul>
-    </section>
+    <div className="space-y-8">
+      {categories.map(category => (
+        <section key={category.title}>
+          <h2 className="flex items-center gap-2 text-base font-semibold text-gray-700 mb-3 pb-2 border-b-2 border-gray-200">
+            <span className="text-xl">{category.icon}</span>
+            {category.title}
+          </h2>
+          <div className="bg-white rounded-lg">
+            {category.items.map(entry => (
+              <ActivityRow key={entry.id} entry={entry} />
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
   );
 }
 
-function EndpointList() {
+function Sidebar() {
+  const [showEndpoints, setShowEndpoints] = useState(false);
   const [params, setParams] = useState({});
 
   return (
-    <section className="mb-8">
-      <h2 className="text-xl font-semibold mb-2">Endpoints</h2>
-      <p className="mb-3 text-gray-700">Direct links to read-only endpoints, including JSON responses where available:</p>
-      <ul className="space-y-2 list-disc pl-6">
-        {ENDPOINT_LINKS.map(endpoint => (
-          <li key={endpoint.key || endpoint.label} className="space-x-2">
-            {endpoint.hrefTemplate ? (
-              <>
-                <code className="text-sm bg-gray-100 px-1 py-0.5 rounded">{endpoint.label}</code>
-                <input
-                  type="text"
-                  placeholder={endpoint.placeholder}
-                  value={params[endpoint.key] || ''}
-                  onChange={e => setParams({ ...params, [endpoint.key]: e.target.value })}
-                  className="text-sm border px-1 py-0.5 rounded w-32"
-                />
-                <a
-                  href={params[endpoint.key] ? endpoint.hrefTemplate(params[endpoint.key]) : '#'}
-                  className={`text-sm ${params[endpoint.key] ? 'text-blue-600 hover:underline' : 'text-gray-400'}`}
-                  target="_blank"
-                  onClick={e => !params[endpoint.key] && e.preventDefault()}
-                >
-                  Go
-                </a>
-              </>
-            ) : (
-              <Link
-                href={endpoint.href}
-                className="text-blue-600 hover:underline"
-                target="_blank"
-              >
-                {endpoint.label}
-              </Link>
-            )}
-            <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">
-              {endpoint.type}
-            </span>
-            <span className="text-gray-700">{endpoint.description}</span>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <aside className="w-64 bg-gray-50 border-r border-gray-200 p-6 flex flex-col gap-6">
+      <div>
+        <h1 className="text-lg font-semibold text-gray-900 mb-4">Learning Observer</h1>
+        <nav className="space-y-2">
+          <Link
+            href="/docs"
+            className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
+          >
+            📖 Documentation
+          </Link>
+          <a
+            href="https://github.com/ETS-Next-Gen/lo-blocks"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
+          >
+            🔗 GitHub
+          </a>
+          <a
+            href="https://learning-observer.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
+          >
+            🌐 Learning Observer
+          </a>
+        </nav>
+      </div>
+
+      <div>
+        <button
+          onClick={() => setShowEndpoints(!showEndpoints)}
+          className="w-full flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
+        >
+          <span>Developer Tools</span>
+          <span className="text-gray-400">{showEndpoints ? '▼' : '▶'}</span>
+        </button>
+
+        {showEndpoints && (
+          <div className="mt-2 pl-3 space-y-3 text-xs">
+            {ENDPOINT_LINKS.map(endpoint => (
+              <div key={endpoint.key || endpoint.label}>
+                {endpoint.hrefTemplate ? (
+                  <div className="space-y-1">
+                    <code className="text-gray-600">{endpoint.label}</code>
+                    <div className="flex gap-1">
+                      <input
+                        type="text"
+                        placeholder={endpoint.placeholder}
+                        value={params[endpoint.key] || ''}
+                        onChange={e => setParams({ ...params, [endpoint.key]: e.target.value })}
+                        className="flex-1 text-xs border border-gray-300 px-2 py-1 rounded"
+                      />
+                      <a
+                        href={params[endpoint.key] ? endpoint.hrefTemplate(params[endpoint.key]) : '#'}
+                        className={`px-2 py-1 text-xs rounded ${params[endpoint.key] ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-200 text-gray-400'}`}
+                        target="_blank"
+                        onClick={e => !params[endpoint.key] && e.preventDefault()}
+                      >
+                        Go
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <Link
+                    href={endpoint.href}
+                    className="block text-blue-600 hover:underline"
+                    target="_blank"
+                  >
+                    {endpoint.label}
+                  </Link>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </aside>
   );
 }
 
 export default function Home() {
   return (
-    <div className="flex flex-col h-screen">
-      <AppHeader home user />
-      <main className="p-6 flex-1 overflow-auto">
-        <h1 className="text-2xl font-bold mb-4">📚 Learning Blocks</h1>
-        <LessonsAndActivities />
-        <EndpointList />
+    <div className="flex h-screen">
+      <Sidebar />
+      <main className="flex-1 overflow-auto bg-gray-50/30">
+        <div className="max-w-4xl mx-auto p-8">
+          <header className="mb-8">
+            <h1 className="text-3xl font-semibold text-gray-900">Activities</h1>
+            <p className="text-gray-600 mt-2">Choose an activity to begin</p>
+          </header>
+          <Activities />
+        </div>
       </main>
     </div>
   );

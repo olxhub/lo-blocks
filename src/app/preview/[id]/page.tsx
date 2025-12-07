@@ -1,6 +1,7 @@
 // src/app/preview/[id]/page.tsx
 'use client';
 
+import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import AppHeader from '@/components/common/AppHeader';
 import RenderOLX from '@/components/common/RenderOLX';
@@ -8,6 +9,7 @@ import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
 import { useReduxState, settings } from '@/lib/state';
 import { useContentLoader } from '@/lib/content/useContentLoader';
+import { ComponentError } from '@/lib/types';
 
 export default function PreviewPage() {
   const params = useParams();
@@ -20,6 +22,7 @@ export default function PreviewPage() {
   );
 
   const { idMap, error, loading } = useContentLoader(id);
+  const [renderError, setRenderError] = useState<ComponentError>(null);
 
   if (error) {
     return (
@@ -69,11 +72,21 @@ export default function PreviewPage() {
       <div className="p-6 flex-1 overflow-auto">
         {debug && (<h1 className="text-xl font-bold mb-4">Preview: {id}</h1>)}
         <div className="space-y-4">
-          <RenderOLX
-            id={id}
-            baseIdMap={idMap}
-            onError={(err) => setError(err.message)}
-          />
+          {renderError ? (
+            <DisplayError
+              props={{ id: id, tag: 'preview' }}
+              name="Render Error"
+              message={`Failed to render content: ${id}`}
+              technical={renderError}
+              id={`${id}_render_error`}
+            />
+          ) : (
+            <RenderOLX
+              id={id}
+              baseIdMap={idMap}
+              onError={(err) => setRenderError(err.message)}
+            />
+          )}
         </div>
 
         {debug && (
