@@ -44,7 +44,7 @@ export default function PreviewPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <AppHeader />
+      <AppHeader home debug user />
       <div className="p-6 flex-1 overflow-auto">
         <h1 className="text-xl font-bold mb-4">Preview: {id}</h1>
         <div className="space-y-4">
