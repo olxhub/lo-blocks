@@ -3,6 +3,9 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import AppHeader from '@/components/common/AppHeader';
+import Spinner from '@/components/common/Spinner';
+import { DisplayError } from '@/lib/util/debug';
 
 const ENDPOINT_LINKS = [
   {
@@ -76,11 +79,19 @@ function LessonsAndActivities() {
   }, []);
 
   if (loading) {
-    return <p className="text-gray-500">Loading lessons...</p>;
+    return <Spinner>Loading lessons...</Spinner>;
   }
 
   if (error) {
-    return <p className="text-red-600">Failed to load lessons: {error}</p>;
+    return (
+      <DisplayError
+        props={{ id: 'lessons', tag: 'home' }}
+        name="Failed to Load Lessons"
+        message="Could not retrieve available lessons and activities"
+        technical={error}
+        id="lessons_load_error"
+      />
+    );
   }
 
   return (
@@ -159,10 +170,13 @@ function EndpointList() {
 
 export default function Home() {
   return (
-    <main className="p-6">
-      <h1 className="text-2xl font-bold mb-4">📚 Learning Blocks</h1>
-      <LessonsAndActivities />
-      <EndpointList />
-    </main>
+    <div className="flex flex-col h-screen">
+      <AppHeader home user />
+      <main className="p-6 flex-1 overflow-auto">
+        <h1 className="text-2xl font-bold mb-4">📚 Learning Blocks</h1>
+        <LessonsAndActivities />
+        <EndpointList />
+      </main>
+    </div>
   );
 }
