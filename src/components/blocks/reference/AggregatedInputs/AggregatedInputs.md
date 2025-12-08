@@ -1,7 +1,7 @@
-# AggregateProgress
+# AggregatedInputs
 
 Visual helper block that shows how to read the same Redux field across multiple component IDs.
-It calls `AggregateProgress` under the hood and renders each ID/value pair in a list so you can
+It calls `AggregatedInputs` under the hood and renders each ID/value pair in a list so you can
 audit state quickly while developing or debugging.
 
 ## Attributes
@@ -19,19 +19,19 @@ audit state quickly while developing or debugging.
 Render the current `value` field for three inputs:
 
 ```xml
-<AggregateProgress targets="input_one, input_two, input_three" />
+<AggregatedInputs targets="input_one, input_two, input_three" />
 ```
 
 Use a different field and a custom heading:
 
 ```xml
-<AggregateProgress targets="grader_a grader_b" field="correct" heading="Grader correctness" />
+<AggregatedInputs targets="grader_a grader_b" field="correct" heading="Grader correctness" />
 ```
 
 Use a `CapaProblem` ID to automatically inspect its graders:
 
 ```xml
-<AggregateProgress targets="capa_problem" field="correct" heading="Problem grader correctness" />
+<AggregatedInputs targets="capa_problem" field="correct" heading="Problem grader correctness" />
 ```
 
 ## Notes

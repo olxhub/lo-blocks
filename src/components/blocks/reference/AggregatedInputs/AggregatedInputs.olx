@@ -1,5 +1,5 @@
-<!-- src/components/blocks/reference/AggregateProgress.olx -->
-<Vertical id="AggregateProgressDemo" title="Aggregate Progress Demo" launchable="true">
+<!-- src/components/blocks/reference/AggregatedInputs.olx -->
+<Vertical id="AggregatedInputsDemo" title="Aggregate Progress Demo" launchable="true">
   <Markdown id="intro">
     This demo includes 3 number inputs. As you update these, the Aggregate component updates.
   </Markdown>
@@ -7,7 +7,7 @@
   <NumberInput id="score_q1">Question 1 score</NumberInput>
   <NumberInput id="score_q2">Question 2 score</NumberInput>
   <NumberInput id="score_q3">Question 3 score</NumberInput>
-  <AggregateProgress id="three_score_progress" target="score_q1, score_q2, score_q3" />
+  <AggregatedInputs id="three_score_progress" target="score_q1, score_q2, score_q3" />
 
   <Markdown id="intro">
     This demo includes 2 CapaProblems and an Aggregate that updates as you submit answers.
@@ -35,5 +35,5 @@
       </ChoiceInput>
     </KeyGrader>
   </CapaProblem>
-  <AggregateProgress id="aggregate_progress" target="biology_problem, tf_problem" field="correct" />
+  <AggregatedInputs id="aggregate_progress" target="biology_problem, tf_problem" field="correct" />
 </Vertical>

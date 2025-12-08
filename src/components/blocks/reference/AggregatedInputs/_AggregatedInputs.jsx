@@ -1,4 +1,4 @@
-// src/components/blocks/reference/AggregateProgress/_AggregateProgress.jsx
+// src/components/blocks/reference/AggregatedInputs/_AggregatedInputs.jsx
 'use client';
 
 import React, { useMemo } from 'react';
@@ -70,7 +70,7 @@ function resolveTargetIds(props, targetIds) {
  * hook reads the same field across each target and renders the results in a
  * list for quick inspection.
  */
-export function _AggregateProgress(props) {
+export function _AggregatedInputs(props) {
   const {
     target,
     targets,
@@ -124,4 +124,4 @@ export function _AggregateProgress(props) {
   );
 }
 
-export default _AggregateProgress;
+export default _AggregatedInputs;
