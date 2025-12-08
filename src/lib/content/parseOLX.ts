@@ -125,7 +125,8 @@ function extractMetadataFromComment(
   // Trim whitespace and check for YAML frontmatter delimiters (---)
   // Must start with --- and end with --- to be treated as metadata
   const trimmed = commentText.trim();
-  const frontmatterMatch = trimmed.match(/^---\s*\n([\s\S]*?)\n---\s*$/);
+  // Allow optional whitespace before closing --- to handle indented comments in tests
+  const frontmatterMatch = trimmed.match(/^---\s*\n([\s\S]*?)\n\s*---\s*$/);
   if (!frontmatterMatch) {
     return {}; // Not metadata, just a regular comment
   }
@@ -469,7 +470,7 @@ export async function parseOLX(
     // `rootNode`. The parser can rewrite the ID (for example when handling
     // `<Use ref="...">`), so the value returned here reflects the final ID
     // stored in the ID map.
-    // Pass parsedTree as siblings so root can extract file-level metadata
+    // Pass parsedTree as siblings so root can extract metadata from preceding comments
     const rootIndex = Array.isArray(parsedTree) ? parsedTree.indexOf(rootNode) : -1;
     const parsedRoot = await parseNode(rootNode, parsedTree, rootIndex);
     if (parsedRoot?.id) {
@@ -480,7 +481,7 @@ export async function parseOLX(
   if (Array.isArray(parsedTree)) {
     // The remaining nodes are parsed only for their side effects. Each call to
     // `parseNode` populates `idMap` via `storeEntry`; the return values are not
-    // used here.
+    // used here. Skip rootNode since we already parsed it above.
     for (let i = 0; i < parsedTree.length; i++) {
       const n = parsedTree[i];
       if (n !== rootNode) {
