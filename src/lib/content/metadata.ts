@@ -28,30 +28,27 @@ import { z } from 'zod';
  *
  * Currently supports:
  * - description: Brief text description of the activity/content
- *
- * Future fields (commented out for now):
- * - author: Content creator name
- * - tags: Array of categorization tags
- * - category: Primary category
- * - namespace: Organizational namespace
- * - modified: Last modification date
- * - version: Content version
- * - contributors: Array of contributor objects
  */
 export const OLXMetadataSchema = z.object({
   description: z.string().optional(),
   category: z.string().optional(),
 
-  // Future fields - uncomment and implement as needed:
-  // author: z.string().optional(),
-  // tags: z.array(z.string()).optional(),
-  // namespace: z.string().optional(),
-  // modified: z.string().datetime().optional(),
-  // version: z.string().optional(),
+  // Potential future fields - uncomment and implement as needed:
+
+  // commitAuthor[s]: z.string().optional(),
   // contributors: z.array(z.object({
   //   name: z.string(),
   //   role: z.string().optional()
   // })).optional(),
-}).passthrough(); // Allow unknown fields for forward compatibility
+
+  // tags: z.array(z.string()).optional(),
+  // namespace: z.string().optional(),
+  // modified: z.string().datetime().optional(),
+
+  // This might be a link to the parent objects, a git hash, a
+  // human-friendly version number, some combination, or something
+  // else
+  // version: z.string().optional(),
+})
 
 export type OLXMetadata = z.infer<typeof OLXMetadataSchema>;

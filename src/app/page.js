@@ -56,6 +56,7 @@ const ENDPOINT_LINKS = [
   },
 ];
 
+// TODO: This should not be hardcoded.
 function categorizeActivities(entries) {
   const categories = {
     demo: { title: 'Demos', icon: '🎯', color: 'blue', items: [] },
@@ -90,8 +91,8 @@ function categorizeActivities(entries) {
 }
 
 function ActivityRow({ entry }) {
-  const title = entry.attributes?.title || entry.id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-  const description = entry.description || entry.attributes?.description;  // Prefer metadata description
+  const title = entry.attributes.title || entry.id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const description = entry.description || entry.attributes.description;  // Prefer metadata description
   const type = entry.tag || 'Activity';
 
   return (

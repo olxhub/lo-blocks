@@ -114,11 +114,34 @@ function shouldBlockRequireUniqueId(Component, tag, storeId, entry, idMap, prove
  * @returns Parsed and validated metadata object, or {} if none found or invalid
  */
 function extractMetadataFromComment(
-  commentText: string,
+  commentText: any,
   provenance: Provenance,
   errors: OLXLoadingError[]
 ): OLXMetadata {
-  if (!commentText || typeof commentText !== 'string') {
+  const file = provenance.join(' → ');
+
+  // Fail early if comment structure is invalid
+  //
+  // This is likely obsolete / overly-defensive, and the next two if
+  // statements should be removed if these issues are never triggered.
+
+  if (commentText === undefined || commentText === null) {
+    errors.push({
+      type: 'parse_error',
+      file,
+      message: 'Internal parser error: Comment node found but text content is missing. This may indicate a parser configuration issue.',
+      technical: { commentText }
+    });
+    return {};
+  }
+
+  if (typeof commentText !== 'string') {
+    errors.push({
+      type: 'parse_error',
+      file,
+      message: `Internal parser error: Comment text has unexpected type '${typeof commentText}' (expected string).`,
+      technical: { commentText, type: typeof commentText }
+    });
     return {};
   }
 
@@ -132,7 +155,6 @@ function extractMetadataFromComment(
   }
 
   const yamlContent = frontmatterMatch[1];
-  const file = provenance.join(' → ');
 
   try {
     // Parse YAML
@@ -255,7 +277,10 @@ function extractSiblingMetadata(
 
     // Found a comment - check if it has valid metadata
     if ('#comment' in sibling) {
-      const commentText = sibling['#comment']?.[0]?.['#text'];
+      // With fast-xml-parser preserveOrder:true, comments have structure:
+      // { '#comment': [{ '#text': 'content' }] }
+      // Using direct property access (not ?.) to fail fast if structure is unexpected
+      const commentText = sibling['#comment'][0]['#text'];
       const metadata = extractMetadataFromComment(commentText, provenance, errors);
       if (Object.keys(metadata).length > 0) {
         return metadata; // Found valid metadata
