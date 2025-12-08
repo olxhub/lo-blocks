@@ -1,0 +1,39 @@
+<!-- src/components/blocks/reference/AggregatedInputs.olx -->
+<Vertical id="AggregatedInputsDemo" title="Aggregate Progress Demo" launchable="true">
+  <Markdown id="intro">
+    This demo includes 3 number inputs. As you update these, the Aggregate component updates.
+  </Markdown>
+
+  <NumberInput id="score_q1">Question 1 score</NumberInput>
+  <NumberInput id="score_q2">Question 2 score</NumberInput>
+  <NumberInput id="score_q3">Question 3 score</NumberInput>
+  <AggregatedInputs id="three_score_progress" target="score_q1, score_q2, score_q3" />
+
+  <Markdown id="intro">
+    This demo includes 2 CapaProblems and an Aggregate that updates as you submit answers.
+  </Markdown>
+
+  <CapaProblem id="biology_problem">
+    <p>Which organelle is responsible for producing ATP in cells?</p>
+    <KeyGrader>
+      <ChoiceInput>
+        <Distractor>Nucleus</Distractor>
+        <Key>Mitochondria</Key>
+        <Distractor>Ribosome</Distractor>
+        <Distractor>Golgi apparatus</Distractor>
+      </ChoiceInput>
+    </KeyGrader>
+  </CapaProblem>
+
+  <!-- True/False format -->
+  <CapaProblem id="tf_problem">
+    <p>True or False: The sun revolves around the Earth.</p>
+    <KeyGrader>
+      <ChoiceInput>
+        <Distractor>True</Distractor>
+        <Key>False</Key>
+      </ChoiceInput>
+    </KeyGrader>
+  </CapaProblem>
+  <AggregatedInputs id="aggregate_progress" target="biology_problem, tf_problem" field="correct" />
+</Vertical>

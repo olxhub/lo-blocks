@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import { renderHook, act } from '@testing-library/react';
 
 import { fields } from './fields';
-import { useReduxState } from './redux';
+import { useReduxState, useReduxStates, updateReduxField } from './redux';
 import { scopes } from './scopes';
 import { store } from './store';
 
@@ -113,5 +113,48 @@ describe('useReduxState integration', () => {
     expect(result.current[0]).toBe('abc');
     const state = reduxStore.getState();
     expect(state.application_state.storage.file1.content).toBe('abc');
+  });
+});
+
+describe('useReduxStates aggregate hook', () => {
+  it('returns values for multiple component IDs', async () => {
+    const reduxStore = store.init();
+    const wrapper = ({ children }: any) => (
+      <Provider store={reduxStore}>{children}</Provider>
+    );
+
+    await act(async () => {
+      updateReduxField(props, testFields.fieldInfoByField.input, 'alpha', { id: 'first' });
+      updateReduxField(props, testFields.fieldInfoByField.input, 'beta', { id: 'second' });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const ids = ['first', 'second'];
+    const { result } = renderHook(
+      () => useReduxStates(props, testFields.fieldInfoByField.input, ids, { fallback: '' }),
+      { wrapper }
+    );
+
+    expect(result.current).toEqual(['alpha', 'beta']);
+  });
+
+  it('can return an object keyed by ID when requested', async () => {
+    const reduxStore = store.init();
+    const wrapper = ({ children }: any) => (
+      <Provider store={reduxStore}>{children}</Provider>
+    );
+
+    await act(async () => {
+      updateReduxField(props, testFields.fieldInfoByField.input, 'alpha', { id: 'first' });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const ids = ['first', 'missing'];
+    const { result } = renderHook(
+      () => useReduxStates(props, testFields.fieldInfoByField.input, ids, { fallback: 'fallback', asObject: true }),
+      { wrapper }
+    );
+
+    expect(result.current).toEqual({ first: 'alpha', missing: 'fallback' });
   });
 });

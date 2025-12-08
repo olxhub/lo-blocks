@@ -47,7 +47,6 @@ export interface SelectorOptions<T> {
   equalityFn?: (a: T, b: T) => boolean;
 }
 
-
 export const fieldSelector = <T>(
   state,
   props,
@@ -62,10 +61,8 @@ export const fieldSelector = <T>(
     selector = (s: any) => s?.[field.name],
     fallback,
   } = options;
-
   const { scope } = field;
   const scopedState = state?.application_state?.[scope];
-
   const value: T | undefined = (() => {
     switch (scope) {
       case scopes.componentSetting: {
@@ -90,7 +87,6 @@ export const fieldSelector = <T>(
         throw new Error('Unrecognized scope');
     }
   })();
-
   return value === undefined ? (fallback as T) : value;
 };
 
@@ -156,6 +152,42 @@ export function useReduxState(
   const setValue = (newValue) => updateReduxField(props, field, newValue, { id, tag });
 
   return [value, setValue];
+}
+
+type ReduxMultiStateOptions<T> = {
+  fallback?: T;
+  tag?: string;
+  asObject?: boolean;
+};
+
+/**
+ * React hook to read the same field for multiple component IDs.
+ *
+ * This mirrors `useReduxState`'s read-path but aggregates the values from
+ * several IDs into either an array (default) or an object keyed by ID.
+ */
+export function useReduxStates<T = any>(
+  props,
+  field: FieldInfo,
+  ids: string[],
+  { fallback, tag, asObject = false }: ReduxMultiStateOptions<T> = {}
+) {
+  assertValidField(field);
+
+  return useSelector(
+    (state) => {
+      const values = ids.map((id) =>
+        fieldSelector(state, props, field, { fallback, id, tag }),
+      );
+
+      if (asObject) {
+        return Object.fromEntries(ids.map((id, index) => [id, values[index]]));
+      }
+
+      return values;
+    },
+    shallowEqual,
+  );
 }
 
 
