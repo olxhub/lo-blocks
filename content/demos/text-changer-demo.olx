@@ -1,3 +1,9 @@
+<!--
+---
+description: Interactive writing tool that demonstrates different writing styles and rhetorical approaches using AI
+category: demo
+---
+-->
 <!-- content/demos/changer.xml -->
 <Vertical id="rewrite_lesson" launchable="true" title="Text Rewriting Station">
   <SideBarPanel id="main_layout">

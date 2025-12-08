@@ -1,3 +1,9 @@
+<!--
+---
+description: Instructor collection of psychology SBA activities for editing and review
+category: psychology
+---
+-->
 <Vertical id="psych_sba_activities" title="Activities for Psychology SBA" launchable="true">
 
   <!-- Introduction section -->

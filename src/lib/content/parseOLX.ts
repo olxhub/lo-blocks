@@ -16,6 +16,7 @@
 // by ID, relationships are explicit, and the structure supports DAG reuse patterns.
 //
 import SHA1 from 'crypto-js/sha1';
+import yaml from 'js-yaml';
 
 import { XMLParser, XMLValidator } from 'fast-xml-parser';
 import { COMPONENT_MAP } from '@/components/componentMap';
@@ -25,6 +26,7 @@ import * as parsers from '@/lib/content/parsers';
 import { Provenance, IdMap, OLXLoadingError } from '@/lib/types';
 import { formatProvenanceList } from '@/lib/storage/provenance';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
+import { OLXMetadataSchema, type OLXMetadata } from '@/lib/content/metadata';
 
 const defaultParser = parsers.blocks().parser;
 
@@ -103,6 +105,197 @@ function shouldBlockRequireUniqueId(Component, tag, storeId, entry, idMap, prove
   }
 }
 
+/**
+ * Extracts metadata from a comment node's text content.
+ *
+ * @param commentText - The text content of an XML comment
+ * @param provenance - Current provenance chain for error reporting
+ * @param errors - Array to collect parsing errors
+ * @returns Parsed and validated metadata object, or {} if none found or invalid
+ */
+function extractMetadataFromComment(
+  commentText: any,
+  provenance: Provenance,
+  errors: OLXLoadingError[]
+): OLXMetadata {
+  const file = provenance.join(' → ');
+
+  // Fail early if comment structure is invalid
+  //
+  // This is likely obsolete / overly-defensive, and the next two if
+  // statements should be removed if these issues are never triggered.
+
+  if (commentText === undefined || commentText === null) {
+    errors.push({
+      type: 'parse_error',
+      file,
+      message: 'Internal parser error: Comment node found but text content is missing. This may indicate a parser configuration issue.',
+      technical: { commentText }
+    });
+    return {};
+  }
+
+  if (typeof commentText !== 'string') {
+    errors.push({
+      type: 'parse_error',
+      file,
+      message: `Internal parser error: Comment text has unexpected type '${typeof commentText}' (expected string).`,
+      technical: { commentText, type: typeof commentText }
+    });
+    return {};
+  }
+
+  // Trim whitespace and check for YAML frontmatter delimiters (---)
+  // Must start with --- and end with --- to be treated as metadata
+  const trimmed = commentText.trim();
+  // Allow optional whitespace before closing --- to handle indented comments in tests
+  const frontmatterMatch = trimmed.match(/^---\s*\n([\s\S]*?)\n\s*---\s*$/);
+  if (!frontmatterMatch) {
+    return {}; // Not metadata, just a regular comment
+  }
+
+  const yamlContent = frontmatterMatch[1];
+
+  try {
+    // Parse YAML
+    const parsed = yaml.load(yamlContent);
+
+    // Validate with Zod schema
+    const result = OLXMetadataSchema.safeParse(parsed);
+
+    if (!result.success) {
+      // Create teacher-friendly error message
+      const issues = result.error.issues.map(issue =>
+        `  • ${issue.path.join('.')}: ${issue.message}`
+      ).join('\n');
+
+      errors.push({
+        type: 'metadata_error',
+        file,
+        message: `📝 Metadata Format Error
+
+The metadata in your comment has formatting issues:
+
+${issues}
+
+📍 FOUND IN:
+   ${trimmed.split('\n').slice(0, 5).join('\n   ')}${trimmed.split('\n').length > 5 ? '\n   ...' : ''}
+
+💡 TIP: Check that your metadata follows the correct format. For example:
+   <!--
+   ---
+   description: A brief description of your activity
+   category: psychology
+   ---
+   -->
+
+Common issues:
+• Make sure field names are spelled correctly
+• Text values should be in quotes if they contain special characters
+• Lists need proper YAML formatting with dashes (-)`,
+        technical: {
+          yamlContent,
+          zodIssues: result.error.issues
+        }
+      });
+      return {};
+    }
+
+    return result.data;
+  } catch (yamlError: any) {
+    // YAML parsing failed
+    errors.push({
+      type: 'metadata_error',
+      file,
+      message: `📝 Metadata YAML Syntax Error
+
+The metadata in your comment contains invalid YAML syntax:
+
+${yamlError.message}
+
+📍 FOUND IN:
+   ${trimmed.split('\n').slice(0, 5).join('\n   ')}${trimmed.split('\n').length > 5 ? '\n   ...' : ''}
+
+💡 TIP: Common YAML syntax issues:
+• Missing spaces after colons (use "key: value" not "key:value")
+• Incorrect indentation (use 2 spaces per level)
+• Unmatched quotes or brackets
+• Tabs instead of spaces (YAML requires spaces)
+
+Example of correct format:
+   <!--
+   ---
+   description: Master operant conditioning concepts
+   category: psychology
+   ---
+   -->`,
+      technical: {
+        yamlContent,
+        yamlError: yamlError.message,
+        yamlErrorDetails: yamlError
+      }
+    });
+    return {};
+  }
+}
+
+/**
+ * Extracts metadata from a preceding sibling comment.
+ *
+ * Searches backwards from the current node index to find the nearest
+ * preceding comment with YAML frontmatter, skipping only whitespace.
+ * Metadata always applies to the next element after the comment.
+ *
+ * @param siblings - Array of sibling nodes
+ * @param nodeIndex - Index of the current node in the siblings array
+ * @param provenance - Current provenance chain for error reporting
+ * @param errors - Array to collect parsing errors
+ * @returns Parsed and validated metadata object, or {} if none found
+ */
+function extractSiblingMetadata(
+  siblings: any[],
+  nodeIndex: number,
+  provenance: Provenance,
+  errors: OLXLoadingError[]
+): OLXMetadata {
+  if (!siblings || nodeIndex <= 0) {
+    return {};
+  }
+
+  // Look backwards for a comment with valid metadata
+  for (let i = nodeIndex - 1; i >= 0; i--) {
+    const sibling = siblings[i];
+
+    // Skip whitespace text nodes
+    if ('#text' in sibling) {
+      const text = sibling['#text'];
+      if (text && typeof text === 'string' && text.trim() === '') {
+        continue; // Skip whitespace
+      }
+      break; // Stop at non-whitespace text
+    }
+
+    // Found a comment - check if it has valid metadata
+    if ('#comment' in sibling) {
+      // With fast-xml-parser preserveOrder:true, comments have structure:
+      // { '#comment': [{ '#text': 'content' }] }
+      // Using direct property access (not ?.) to fail fast if structure is unexpected
+      const commentText = sibling['#comment'][0]['#text'];
+      const metadata = extractMetadataFromComment(commentText, provenance, errors);
+      if (Object.keys(metadata).length > 0) {
+        return metadata; // Found valid metadata
+      }
+      // No metadata in this comment, continue searching
+      continue;
+    }
+
+    // Stop at any other element
+    break;
+  }
+
+  return {};
+}
+
 export async function parseOLX(
   xml,
   provenance: Provenance,
@@ -161,11 +354,14 @@ export async function parseOLX(
   let rootId = '';
   const errors: OLXLoadingError[] = [];
 
-  async function parseNode(node) {
+  async function parseNode(node, siblings = null, nodeIndex = -1) {
     const tag = Object.keys(node).find(k => ![':@', '#text', '#comment'].includes(k));
     if (!tag) return null;
 
     const attributes = node[':@'] ?? {};
+
+    // Extract metadata from preceding sibling comment
+    const metadata = extractSiblingMetadata(siblings, nodeIndex, provenance, errors);
 
     if (attributes.ref) {
       if (tag !== 'Use') {
@@ -228,6 +424,7 @@ export async function parseOLX(
       provenance,
       provider,
       parseNode,
+      metadata,  // Pass metadata to parser so it can include in entry
       storeEntry: (storeId, entry) => {
         if (idMap[storeId]) {
           const requiresUnique = shouldBlockRequireUniqueId(Component, tag, storeId, entry, idMap, provenance);
@@ -298,17 +495,22 @@ export async function parseOLX(
     // `rootNode`. The parser can rewrite the ID (for example when handling
     // `<Use ref="...">`), so the value returned here reflects the final ID
     // stored in the ID map.
-    const parsedRoot = await parseNode(rootNode);
-    if (parsedRoot?.id) rootId = parsedRoot.id;
+    // Pass parsedTree as siblings so root can extract metadata from preceding comments
+    const rootIndex = Array.isArray(parsedTree) ? parsedTree.indexOf(rootNode) : -1;
+    const parsedRoot = await parseNode(rootNode, parsedTree, rootIndex);
+    if (parsedRoot?.id) {
+      rootId = parsedRoot.id;
+    }
   }
 
   if (Array.isArray(parsedTree)) {
     // The remaining nodes are parsed only for their side effects. Each call to
     // `parseNode` populates `idMap` via `storeEntry`; the return values are not
-    // used here.
-    for (const n of parsedTree) {
+    // used here. Skip rootNode since we already parsed it above.
+    for (let i = 0; i < parsedTree.length; i++) {
+      const n = parsedTree[i];
       if (n !== rootNode) {
-        await parseNode(n);
+        await parseNode(n, parsedTree, i);
       }
     }
   }

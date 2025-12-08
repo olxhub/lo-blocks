@@ -174,3 +174,55 @@ test('Explicit different IDs should work for all block types', async () => {
   const { errors } = await parseOLX(xml, PROV);
   expect(errors.length).toBe(0);
 });
+
+// === Tests for metadata parsing ===
+
+test('parses valid metadata and ignores regular comments', async () => {
+  const xml = `
+    <!-- Regular comment -->
+    <!--
+    ---
+    description: Test description
+    category: psychology
+    ---
+    -->
+    <Vertical id="test">
+      <TextBlock>Content</TextBlock>
+    </Vertical>
+  `;
+  const { idMap, errors } = await parseOLX(xml, PROV);
+  expect(errors.length).toBe(0);
+  expect(idMap.test.description).toBe('Test description');
+  expect(idMap.test.category).toBe('psychology');
+});
+
+test('reports teacher-friendly error for invalid YAML metadata', async () => {
+  const xml = `
+    <!--
+    ---
+    description: Test
+    invalid yaml: [unclosed
+    ---
+    -->
+    <Vertical id="test">
+      <TextBlock>Content</TextBlock>
+    </Vertical>
+  `;
+  const { errors, idMap } = await parseOLX(xml, PROV);
+  expect(errors.length).toBe(1);
+  expect(errors[0].type).toBe('metadata_error');
+  expect(errors[0].message).toContain('📝');
+  expect(errors[0].message).toContain('💡 TIP');
+  expect(idMap.test.description).toBeUndefined();
+});
+
+test('empty comment produces empty string (documents parser behavior)', async () => {
+  // This test documents what fast-xml-parser produces for empty comments
+  // If this test passes, we know empty comments produce empty strings, not undefined
+  const xml = `<!----><Vertical id="test"><TextBlock>Content</TextBlock></Vertical>`;
+  const { errors, idMap } = await parseOLX(xml, PROV);
+  // Empty comment should not cause parser errors (it's just an empty string)
+  expect(errors.filter(e => e.type === 'parse_error').length).toBe(0);
+  // And should not extract any metadata
+  expect(idMap.test.description).toBeUndefined();
+});

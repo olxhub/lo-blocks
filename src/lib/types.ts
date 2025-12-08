@@ -24,7 +24,7 @@ export type JSONValue =
 
 // OLX Content Loading Errors
 export interface OLXLoadingError {
-  type: 'parse_error' | 'duplicate_id' | 'file_error' | 'peg_error' | 'attribute_validation';
+  type: 'parse_error' | 'duplicate_id' | 'file_error' | 'peg_error' | 'attribute_validation' | 'metadata_error';
   file: string;
   message: string;
   location?: {

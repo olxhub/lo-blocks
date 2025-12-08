@@ -56,24 +56,34 @@ const ENDPOINT_LINKS = [
   },
 ];
 
+// TODO: This should not be hardcoded.
 function categorizeActivities(entries) {
   const categories = {
-    demos: { title: 'Demos', icon: '🎯', color: 'blue', items: [] },
+    demo: { title: 'Demos', icon: '🎯', color: 'blue', items: [] },
+    writing: { title: 'Writing', icon: '✍️', color: 'amber', items: [] },
     psychology: { title: 'Psychology', icon: '🧠', color: 'purple', items: [] },
     interdisciplinary: { title: 'Interdisciplinary', icon: '🔗', color: 'green', items: [] },
     other: { title: 'Other', icon: '📚', color: 'gray', items: [] }
   };
 
   entries.forEach(entry => {
-    const id = entry.id.toLowerCase();
-    if (id.includes('demo')) {
-      categories.demos.items.push(entry);
-    } else if (id.includes('psych')) {
-      categories.psychology.items.push(entry);
-    } else if (id.includes('interdisciplinary')) {
-      categories.interdisciplinary.items.push(entry);
+    // Use metadata category if available, otherwise fall back to ID-based categorization
+    const category = entry.category?.toLowerCase();
+
+    if (category && categories[category]) {
+      categories[category].items.push(entry);
     } else {
-      categories.other.items.push(entry);
+      // Fallback: ID-based categorization for uncategorized items
+      const id = entry.id.toLowerCase();
+      if (id.includes('demo')) {
+        categories.demo.items.push(entry);
+      } else if (id.includes('psych')) {
+        categories.psychology.items.push(entry);
+      } else if (id.includes('interdisciplinary')) {
+        categories.interdisciplinary.items.push(entry);
+      } else {
+        categories.other.items.push(entry);
+      }
     }
   });
 
@@ -81,8 +91,8 @@ function categorizeActivities(entries) {
 }
 
 function ActivityRow({ entry }) {
-  const title = entry.attributes?.title || entry.id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-  const description = entry.attributes?.description;
+  const title = entry.attributes.title || entry.id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const description = entry.description || entry.attributes.description;  // Prefer metadata description
   const type = entry.tag || 'Activity';
 
   return (

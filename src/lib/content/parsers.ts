@@ -202,7 +202,7 @@ export function childParser(fn: ChildParserFn, nameOverride?: string) {
 
   const factory = function childParserFactory(options = {}) {
     const wrapped = async function wrappedParser(ctx) {
-      const { id, tag, attributes, provenance, rawParsed, storeEntry } = ctx;
+      const { id, tag, attributes, provenance, rawParsed, storeEntry, metadata } = ctx;
       const tagParsed = rawParsed[tag];
       const kids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
       const entry = {
@@ -211,7 +211,8 @@ export function childParser(fn: ChildParserFn, nameOverride?: string) {
         attributes,
         provenance,
         rawParsed,
-        kids: await fn({ ...ctx, rawKids: kids, rawParsed: tagParsed, ...options })
+        kids: await fn({ ...ctx, rawKids: kids, rawParsed: tagParsed, ...options }),
+        ...(metadata || {})  // Spread metadata fields flat into entry
       };
       storeEntry(id, entry);
       return id;
@@ -263,12 +264,16 @@ export const xml = {
 
 // Assumes we have a list of OLX-style Blocks. E.g. for a learning sequence.
 const blocksFactory = childParser(async function blocksParser({ rawKids, parseNode }) {
-  let promises = rawKids
-    .filter(child => {
+  // Filter out non-element nodes but keep indices aligned with rawKids
+  const childrenToProcess = rawKids.map((child, index) => ({ child, index }))
+    .filter(({ child }) => {
       const tag = Object.keys(child).find(k => !['#text', '#comment', ':@'].includes(k));
       return !!tag;
-    })
-    .map(parseNode);
+    });
+
+  let promises = childrenToProcess.map(({ child, index }) =>
+    parseNode(child, rawKids, index)
+  );
   let awaited = await Promise.all(promises);
   return awaited.filter(entry => entry.id);
 });
@@ -370,7 +375,8 @@ export function peggyParser(
     provenance,
     provider,
     storeEntry,
-    errors
+    errors,
+    metadata
   }) {
     const tagParsed = rawParsed[tag];
     const kids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
@@ -407,7 +413,8 @@ export function peggyParser(
         attributes,
         provenance: prov,
         rawParsed,
-        kids: processedKids
+        kids: processedKids,
+        ...(metadata || {})  // Spread metadata fields flat into entry
       };
     } catch (parseError) {
       const errorObj: OLXLoadingError = {
@@ -435,7 +442,8 @@ export function peggyParser(
         provenance: prov,
         rawParsed,
         kids: errorObj,
-        parseError: true
+        parseError: true,
+        ...(metadata || {})  // Spread metadata even for error nodes
       };
 
       // Accumulate error in the errors array if available
