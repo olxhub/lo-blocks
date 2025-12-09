@@ -71,25 +71,29 @@ export default function _Sequential(props) {
 
       {/* Bottom navigation */}
       <div className="flex justify-between items-center mt-6 pt-4 border-t">
-        <button
-          onClick={handlePrev}
-          disabled={index <= 0}
-          className="px-4 py-2 bg-gray-200 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300"
-        >
-          Previous
-        </button>
+        {numItems > 1 ? (
+          <button
+            onClick={handlePrev}
+            disabled={index <= 0}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300"
+          >
+            Previous
+          </button>
+        ) : <div />}
 
         <div className="text-sm text-gray-500">
           {index + 1} of {numItems}
         </div>
 
-        <button
-          onClick={handleNext}
-          disabled={index >= numItems - 1}
-          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700"
-        >
-          Next
-        </button>
+        {numItems > 1 ? (
+          <button
+            onClick={handleNext}
+            disabled={index >= numItems - 1}
+            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700"
+          >
+            Next
+          </button>
+        ) : <div />}
       </div>
     </div>
   );
