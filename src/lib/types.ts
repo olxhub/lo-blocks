@@ -98,6 +98,7 @@ const ReduxFieldInfoMap = z.record(ReduxFieldInfo);
 export const ReduxFieldsReturn = z.object({
   fieldInfoByField: ReduxFieldInfoMap,
   fieldInfoByEvent: ReduxFieldInfoMap,
+  extend: z.function().optional(),
 }).strict();
 
 // === Schema ===

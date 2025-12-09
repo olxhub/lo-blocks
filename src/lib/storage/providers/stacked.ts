@@ -13,7 +13,9 @@
 //
 
 export class StackedStorageProvider {
-  constructor(providers) {
+  providers: any[];
+
+  constructor(providers: any[]) {
     if (providers.length === 0) {
       throw new Error('StackedStorageProvider requires at least one provider');
     }

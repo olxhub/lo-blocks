@@ -95,12 +95,12 @@ export default function RenderOLX({
   onError,
   componentMap = COMPONENT_MAP,
 }: RenderOLXProps) {
-  const [parsed, setParsed] = useState(null);
-  const [error, setError] = useState(null);
+  const [parsed, setParsed] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Build provider stack for src="" resolution during parsing
   const effectiveProvider = useMemo(() => {
-    const stack = [];
+    const stack: any[] = [];
 
     if (inline) {
       stack.push(new InMemoryStorageProvider({ '_inline.olx': inline }));
@@ -158,7 +158,7 @@ export default function RenderOLX({
         // Parse all OLX/XML files from files prop
         if (files) {
           let mergedIdMap = {};
-          let lastRoot = null;
+          let lastRoot: string | null = null;
 
           for (const [filename, content] of Object.entries(files)) {
             if (!filename.endsWith('.olx') && !filename.endsWith('.xml')) {

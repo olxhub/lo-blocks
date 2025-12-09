@@ -1,16 +1,22 @@
-// src/lib/debug.jsx
+// src/lib/util/debug.tsx
 'use client';
 
-import React from 'react';
+import React, { ReactNode } from 'react';
 import Link from 'next/link';
 import { parseProvenance, formatProvenance } from '@/lib/storage/provenance';
 import { useReduxState, settings } from '@/lib/state';
+
+interface TraceProps {
+  children?: ReactNode;
+  props?: any;
+  header?: string;
+}
 
 export const Trace = ({
   children,
   props = {},
   header
-}) => {
+}: TraceProps) => {
   const [debug] = useReduxState(props, settings.debug, false,
     { tag: true, id: true} // HACK
   );
@@ -33,7 +39,13 @@ export const Trace = ({
   );
 };
 
-export const DebugWrapper = ({ props = {}, blueprint, children }) => {
+interface DebugWrapperProps {
+  props?: any;
+  blueprint?: any;
+  children?: ReactNode;
+}
+
+export const DebugWrapper = ({ props = {}, blueprint, children }: DebugWrapperProps) => {
   const [debug] = useReduxState(props, settings.debug, false,
     { tag: true, id: true} // HACK
   );
@@ -79,12 +91,22 @@ export const DebugWrapper = ({ props = {}, blueprint, children }) => {
   );
 };
 
-export const debugLog = (...args) => {
+export const debugLog = (...args: any[]) => {
   console.log(...args);
 };
 
-// 🔥 Safe, debuggable error wrapper
-export function DisplayError({ props={}, name = 'Error', message, technical = null, data, id = 'error' }) {
+interface DisplayErrorProps {
+  props?: any;
+  name?: string;
+  message: string;
+  /** Technical details (error message, stack trace, etc.) */
+  technical?: string | Error | any;
+  data?: any;
+  id?: string;
+}
+
+// Safe, debuggable error wrapper
+export function DisplayError({ props={}, name = 'Error', message, technical, data, id = 'error' }: DisplayErrorProps) {
   // Log raw data for dev console inspection
   debugLog(`[${name}] ${message}`, { technical, data });
 

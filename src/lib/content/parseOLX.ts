@@ -253,7 +253,7 @@ Example of correct format:
  * @returns Parsed and validated metadata object, or {} if none found
  */
 function extractSiblingMetadata(
-  siblings: any[],
+  siblings: any[] | null,
   nodeIndex: number,
   provenance: Provenance,
   errors: OLXLoadingError[]
@@ -354,7 +354,7 @@ export async function parseOLX(
   let rootId = '';
   const errors: OLXLoadingError[] = [];
 
-  async function parseNode(node, siblings = null, nodeIndex = -1) {
+  async function parseNode(node, siblings: any[] | null = null, nodeIndex = -1) {
     const tag = Object.keys(node).find(k => ![':@', '#text', '#comment'].includes(k));
     if (!tag) return null;
 

@@ -14,7 +14,10 @@ const CONTENT_EXTENSIONS = ['.xml', '.olx', '.md'];
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp'];
 
 export class InMemoryStorageProvider {
-  constructor(files, basePath = '') {
+  files: Record<string, string>;
+  basePath: string;
+
+  constructor(files: Record<string, string>, basePath = '') {
     this.files = files;
     this.basePath = basePath;
   }

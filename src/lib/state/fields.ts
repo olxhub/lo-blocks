@@ -113,16 +113,15 @@ export function fields(fieldList: (string | { name: string; event?: string; scop
   Object.assign(_fieldInfoByField, fieldInfoByField);
   Object.assign(_fieldInfoByEvent, fieldInfoByEvent);
 
-  const result = {
+  const result: {
+    fieldInfoByField: FieldInfoByField;
+    fieldInfoByEvent: FieldInfoByEvent;
+    extend: (...rest: any[]) => { fieldInfoByField: FieldInfoByField; fieldInfoByEvent: FieldInfoByEvent };
+  } = {
     fieldInfoByField,
     fieldInfoByEvent,
+    extend: (...rest) => concatFields(result, ...rest),
   };
-
-  // TODO document what this code is doing
-  Object.defineProperty(result, 'extend', {
-    value: (...rest: typeof ReduxFieldsReturn[]) => concatFields(result, ...rest),
-    enumerable: false,
-  });
 
   return result;
 }

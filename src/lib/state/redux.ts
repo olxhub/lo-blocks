@@ -40,8 +40,8 @@ const INVALIDATED_INPUT = 'INVALIDATED_INPUT'; // informational
 
 
 export interface SelectorOptions<T> {
-  id?: string;
-  tag?: string;
+  id?: string | boolean;
+  tag?: string | boolean;
   selector?: (state) => T;
   fallback?: T;
   equalityFn?: (a: T, b: T) => boolean;
@@ -116,7 +116,7 @@ export function updateReduxField(
   props,
   field: FieldInfo,
   newValue,
-  { id, tag }: { id?: string; tag?: string } = {}
+  { id, tag }: { id?: string | boolean; tag?: string | boolean } = {}
 ) {
   assertValidField(field);
   const scope = field.scope;
@@ -143,7 +143,7 @@ export function useReduxState(
   props,
   field: FieldInfo,
   fallback,
-  { id, tag }: { id?: string; tag?: string } = {}
+  { id, tag }: { id?: string | boolean; tag?: string | boolean } = {}
 ) {
   assertValidField(field);
 
