@@ -1,0 +1,8 @@
+<Vertical id="tabular_mcq_checkbox_demo" launchable="true">
+  <Markdown>Select all subjects each student likes:</Markdown>
+  <TabularMCQ id="subjects">
+    mode: checkbox
+    cols: Math, Science, Art, Music
+    rows: Jim, Sue, Bob
+  </TabularMCQ>
+</Vertical>

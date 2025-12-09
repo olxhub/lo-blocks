@@ -1,92 +1,131 @@
 // src/components/blocks/TabularMCQ/_TabularMCQ.jsx
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useReduxState } from '@/lib/state';
-import { renderCompiledKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 
-/**
- * Parse YAML-style array string or return array as-is
- * Handles: "['item1', 'item2']" or ["item1", "item2"]
- */
-function parseArrayAttribute(attr) {
-  if (Array.isArray(attr)) return attr;
-  if (typeof attr !== 'string') return [];
-
-  try {
-    // Try parsing as JSON (handles ['a', 'b'] format)
-    const parsed = JSON.parse(attr.replace(/'/g, '"'));
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (e) {
-    // If JSON parsing fails, try simple comma split
-    return attr.split(',').map(s => s.trim()).filter(Boolean);
-  }
-}
-
 export default function _TabularMCQ(props) {
-  const { fields } = props;
+  const { fields, kids } = props;
 
-  // Parse rows and cols attributes
-  const rows = parseArrayAttribute(props.rows);
-  const cols = parseArrayAttribute(props.cols);
+  // Parse the content from kids (peggyParser wraps in { type: 'parsed', parsed: {...} })
+  const parsed = useMemo(() => {
+    if (kids?.parsed) return kids.parsed;
+    if (kids?.rows && kids?.cols) return kids;
+    return null;
+  }, [kids]);
 
-  // State: { rowIndex: colIndex }
+  // State: { rowId: colIndex } for radio, { rowId: [colIndex, ...] } for checkbox
   const [value, setValue] = useReduxState(props, fields.value, {});
 
-  // Validation
+  // Handle parsing errors or missing data
+  if (!parsed) {
+    // Check if this is an ErrorNode (PEG parsing failure)
+    if (props.parseError || kids?.type === 'peg_error') {
+      // Let the ErrorNode system handle it - don't show our own error
+      return (
+        <DisplayError
+          props={props}
+          name="TabularMCQ Parse Error"
+          message={kids?.message || "Failed to parse TabularMCQ content"}
+          technical={kids?.technical ? JSON.stringify(kids.technical, null, 2) : undefined}
+        />
+      );
+    }
+
+    // No parsed data at all
+    return (
+      <DisplayError
+        props={props}
+        name="TabularMCQ Error"
+        message="No content provided"
+        technical={`Expected PEG syntax inside <TabularMCQ>:\ncols: Col1, Col2, Col3\nrows: Row1, Row2, Row3\n\nReceived kids: ${JSON.stringify(kids, null, 2)}`}
+      />
+    );
+  }
+
+  const mode = parsed.mode || 'radio';
+  const rows = parsed.rows || [];
+  const cols = parsed.cols || [];
+
+  // Validate rows
   if (!Array.isArray(rows) || rows.length === 0) {
     return (
       <DisplayError
         props={props}
         name="TabularMCQ Error"
-        message={`No rows provided. Use rows attribute with YAML list. Received: ${JSON.stringify(props.rows)}`}
+        message="No rows defined"
+        technical={`Add rows to your content:\nrows: Item1, Item2, Item3\n\nParsed data: ${JSON.stringify(parsed, null, 2)}`}
       />
     );
   }
 
+  // Validate cols
   if (!Array.isArray(cols) || cols.length === 0) {
     return (
       <DisplayError
         props={props}
         name="TabularMCQ Error"
-        message={`No columns provided. Use cols attribute with YAML list. Received: ${JSON.stringify(props.cols)}`}
+        message="No columns defined"
+        technical={`Add columns to your content:\ncols: Col1, Col2, Col3\n\nParsed data: ${JSON.stringify(parsed, null, 2)}`}
       />
     );
   }
 
-  const handleChange = (rowIndex, colIndex) => {
+  const handleRadioChange = (rowId, colIndex) => {
     setValue({
       ...value,
-      [rowIndex]: colIndex
+      [rowId]: colIndex
     });
+  };
+
+  const handleCheckboxChange = (rowId, colIndex) => {
+    const current = value[rowId] || [];
+    const newSelection = current.includes(colIndex)
+      ? current.filter(idx => idx !== colIndex)
+      : [...current, colIndex].sort((a, b) => a - b);
+
+    setValue({
+      ...value,
+      [rowId]: newSelection
+    });
+  };
+
+  const isChecked = (rowId, colIndex) => {
+    if (mode === 'checkbox') {
+      return (value[rowId] || []).includes(colIndex);
+    }
+    return value[rowId] === colIndex;
   };
 
   return (
     <div className="tabular-mcq">
-      {renderCompiledKids(props)}
       <table className="border-collapse border border-gray-300 w-full">
         <thead>
           <tr>
             <th className="border border-gray-300 bg-gray-100 p-2"></th>
             {cols.map((col, colIndex) => (
-              <th key={colIndex} className="border border-gray-300 bg-gray-100 p-2">
-                {col}
+              <th key={col.id || colIndex} className="border border-gray-300 bg-gray-100 p-2 text-center">
+                {col.text}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {rows.map((row, rowIndex) => (
-            <tr key={rowIndex}>
-              <td className="border border-gray-300 p-2 font-medium">{row}</td>
+          {rows.map((row) => (
+            <tr key={row.id}>
+              <td className="border border-gray-300 p-2 font-medium">{row.text}</td>
               {cols.map((col, colIndex) => (
-                <td key={colIndex} className="border border-gray-300 p-2 text-center">
+                <td key={col.id || colIndex} className="border border-gray-300 p-2 text-center">
                   <input
-                    type="radio"
-                    name={`tabular-mcq-row-${props.id}-${rowIndex}`}
-                    checked={value[rowIndex] === colIndex}
-                    onChange={() => handleChange(rowIndex, colIndex)}
+                    type={mode === 'checkbox' ? 'checkbox' : 'radio'}
+                    name={mode === 'radio' ? `tabular-mcq-row-${props.id}-${row.id}` : undefined}
+                    checked={isChecked(row.id, colIndex)}
+                    onChange={() =>
+                      mode === 'checkbox'
+                        ? handleCheckboxChange(row.id, colIndex)
+                        : handleRadioChange(row.id, colIndex)
+                    }
                     className="cursor-pointer"
                   />
                 </td>

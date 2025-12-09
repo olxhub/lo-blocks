@@ -1,0 +1,9 @@
+<Vertical id="tabular_mcq_scored_demo" launchable="true">
+  <Markdown># Personality Assessment
+
+Rate your agreement with each statement:</Markdown>
+  <TabularMCQ id="personality">
+    cols: Strongly Disagree|-2, Disagree|-1, Neutral|0, Agree|1, Strongly Agree|2
+    rows: I enjoy meeting new people|extrovert_1, I prefer quiet evenings|introvert_1, I think before I act|thinking_1
+  </TabularMCQ>
+</Vertical>

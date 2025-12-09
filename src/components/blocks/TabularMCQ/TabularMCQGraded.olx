@@ -1,0 +1,11 @@
+<Vertical id="tabular_mcq_graded_demo" launchable="true">
+  <CapaProblem id="graded_quiz">
+    <TabularMCQGrader target="parts_of_speech">
+      <Markdown>Identify the part of speech for each word:</Markdown>
+      <TabularMCQ id="parts_of_speech">
+        cols: Noun, Verb, Adjective
+        rows: Dog[Noun], Run[Verb], Happy[Adjective]
+      </TabularMCQ>
+    </TabularMCQGrader>
+  </CapaProblem>
+</Vertical>
