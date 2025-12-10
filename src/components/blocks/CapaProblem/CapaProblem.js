@@ -56,17 +56,14 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
 
     if (isBlockTag(childTag)) {
       const component = COMPONENT_MAP[childTag];
-      if (!component) {
-        console.warn(`[CapaProblem] Unknown block type: <${childTag}>. Block will be rendered with default parser.`);
-      }
-      const blueprint = component?.blueprint;
+      const blueprint = component.blueprint;
 
       // Assign predictable IDs based on block type (if not already set)
       if (!childAttrs.id) {
         let defaultId;
-        if (blueprint && blueprint.isGrader) {
+        if (blueprint.isGrader) {
           defaultId = `${id}_grader_${graderIndex++}`;
-        } else if (blueprint && blueprint.getValue) {
+        } else if (blueprint.getValue) {
           defaultId = `${id}_input_${inputIndex++}`;
         } else {
           defaultId = `${id}_${childTag.toLowerCase()}_${nodeIndex++}`;
@@ -78,13 +75,13 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
 
       // Track grader context
       let mapping = currentGrader;
-      if (blueprint && blueprint.isGrader) {
+      if (blueprint.isGrader) {
         mapping = { id: blockId, inputs: [] };
         graders.push(mapping);
       }
 
       // Track inputs for grader association
-      if (blueprint && blueprint.getValue && currentGrader) {
+      if (blueprint.getValue && currentGrader) {
         currentGrader.inputs.push(blockId);
       }
 
