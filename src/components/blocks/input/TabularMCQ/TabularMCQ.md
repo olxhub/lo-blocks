@@ -1,6 +1,6 @@
 # TabularMCQ
 
-Matrix-style multiple choice for surveys, assessments, and personality tests.
+Matrix-style multiple choice for surveys, assessments, personality tests, and many Likert-scale items.
 
 ## Basic Usage
 
