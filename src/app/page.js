@@ -94,15 +94,8 @@ function ActivityRow({ entry }) {
   const title = entry.attributes.title || entry.id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   const description = entry.description || entry.attributes.description;  // Prefer metadata description
   const type = entry.tag || 'Activity';
-  // Extract file path from provenance for edit link
-  // Provenance is like "file:///abs/path/to/content/demos/foo.xml" - we need "demos/foo.xml"
-  const fileProv = entry.provenance?.find(p => p.startsWith('file://'));
-  let editPath = entry.id;
-  if (fileProv) {
-    const fullPath = fileProv.slice('file://'.length);
-    const contentIdx = fullPath.indexOf('/content/');
-    editPath = contentIdx >= 0 ? fullPath.slice(contentIdx + '/content/'.length) : fullPath;
-  }
+  // editPath is computed server-side from provenance (see /api/content/[id])
+  const editPath = entry.editPath || entry.id;
 
   return (
     <div className="group py-4 border-b border-gray-200/50 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-transparent transition-all">
@@ -122,12 +115,21 @@ function ActivityRow({ entry }) {
           <span className="text-xs text-gray-400 font-mono">
             {type}
           </span>
-          <Link
-            href={`/edit/${editPath}`}
-            className="text-gray-500 hover:text-gray-900 transition-colors"
-          >
-            Edit
-          </Link>
+          {editPath ? (
+            <Link
+              href={`/edit/${editPath}`}
+              className="text-gray-500 hover:text-gray-900 transition-colors"
+            >
+              Edit
+            </Link>
+          ) : (
+            <span
+              className="text-gray-300 cursor-not-allowed"
+              title={entry.editError || 'Editing not available'}
+            >
+              Edit
+            </span>
+          )}
           <Link
             href={`/graph/${entry.id}`}
             className="text-gray-400 hover:text-gray-700 transition-colors"
