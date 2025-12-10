@@ -32,10 +32,19 @@ function formatErrorForConsole(error) {
   if (error.technical) {
     // TODO: Make this generic. We don't want error handling to have
     // special cases for types.
-    if (error.type === 'peg_error' && error.technical.expected) {
-      output += `\n   🔍 Expected: ${error.technical.expected.map(e => `"${e.description || e}"`).join(', ')}`;
-      if (error.technical.found !== null) {
-        output += `\n   🔍 Found: "${error.technical.found}"`;
+    if (error.type === 'peg_error') {
+      if (error.technical.originalTag) {
+        let blockInfo = `<${error.technical.originalTag}>`;
+        if (error.technical.originalId) {
+          blockInfo += ` id="${error.technical.originalId}"`;
+        }
+        output += `\n   🏷️  Block: ${blockInfo}`;
+      }
+      if (error.technical.expected) {
+        output += `\n   🔍 Expected: ${error.technical.expected.map(e => `"${e.description || e}"`).join(', ')}`;
+        if (error.technical.found !== null) {
+          output += `\n   🔍 Found: "${error.technical.found}"`;
+        }
       }
     }
   }

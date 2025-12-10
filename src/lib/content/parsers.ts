@@ -488,6 +488,7 @@ export function peggyParser(
           found: parseError.found,
           name: parseError.name,
           originalTag: tag,
+          originalId: id,
           fullError: parseError
         }
       };

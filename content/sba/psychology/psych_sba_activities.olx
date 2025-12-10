@@ -732,11 +732,11 @@ Based on psychological research, drag these strategies to rank them from **MOST 
       <SortableGrader>
         <SimpleSortable id="bedtime_strategies_rank">
 Rank these bedtime strategies from most to least effective for a 6-year-old (most effective first):
-=======================================================================================================
-Positive reinforcement with sticker chart and bedtime story reward
-Consistent routine with clear expectations and gentle reminders
-Natural consequences with parental support (child gets tired next day)
-Punishment-based approach (yelling, threats, taking away privileges)
+===
+1. Positive reinforcement with sticker chart and bedtime story reward
+2. Consistent routine with clear expectations and gentle reminders
+3. Natural consequences with parental support (child gets tired next day)
+4. Punishment-based approach (yelling, threats, taking away privileges)
         </SimpleSortable>
       </SortableGrader>
     </CapaProblem>
@@ -767,7 +767,10 @@ Now that you've ranked the strategies, let's focus on why positive reinforcement
           <Markdown id="strategy_timeout">Sending the child to their room alone as punishment</Markdown>
           <Markdown id="strategy_threats">Threatening to cancel weekend activities if bedtime problems continue</Markdown>
           <Markdown id="strategy_ignoring">Ignoring the child completely when they refuse to go to bed</Markdown>
-          <Markdown id="strategy_student_suggestion">Your initial suggestion: <Ref id="ref_student_suggestion_in_sortable" target="initial_suggestion" /></Markdown>
+          <Vertical id="strategy_student_suggestion">
+            <Markdown>Your initial suggestion:</Markdown>
+            <Ref id="ref_student_suggestion_in_sortable" target="initial_suggestion" />
+          </Vertical>
         </SortableInput>
       </SortableGrader>
     </CapaProblem>
