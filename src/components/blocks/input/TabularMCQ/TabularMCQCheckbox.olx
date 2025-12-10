@@ -1,5 +1,5 @@
 <TabularMCQ id="checkbox_demo">
-mode: checkbox
-cols: Math, Science, Art, Music
-rows: Jim, Sue, Bob
+  mode: checkbox
+  cols: Math, Science, Art, Music
+  rows: Jim, Sue, Bob
 </TabularMCQ>

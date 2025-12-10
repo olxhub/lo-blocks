@@ -1,8 +1,0 @@
-<CapaProblem id="graded_quiz">
-  <TabularMCQGrader>
-    <TabularMCQ id="parts_of_speech">
-cols: Noun, Verb, Adjective
-rows: Dog[Noun], Run[Verb], Happy[Adjective]
-    </TabularMCQ>
-  </TabularMCQGrader>
-</CapaProblem>

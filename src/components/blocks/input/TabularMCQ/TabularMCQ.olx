@@ -1,4 +1,4 @@
 <TabularMCQ id="demo">
-cols: love, like, neutral, dislike, hate
-rows: Jim, Sue, Bob, Alice
+  cols: Love, Like, Neutral, Dislike, Hate
+  rows: Jim, Sue, Bob, Alice
 </TabularMCQ>
