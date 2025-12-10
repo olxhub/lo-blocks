@@ -8,14 +8,14 @@ import RenderOLX from '@/components/common/RenderOLX';
 import CodeEditor from '@/components/common/CodeEditor';
 import Spinner from '@/components/common/Spinner';
 import { useReduxState } from '@/lib/state';
-import { docsFields } from './docsFields';
+import { editorFields } from '../edit/editorFields';
 
 // Hook for docs example editing - uses Redux state with docs-specific provenance
 function useDocsExampleState(blockName, exampleFilename, originalContent) {
   const provenance = `docs://${blockName}/${exampleFilename}`;
   return useReduxState(
     {}, // No component context needed
-    docsFields.fieldInfoByField.editedContent,
+    editorFields.fieldInfoByField.editedContent,
     originalContent,
     { id: provenance }
   );

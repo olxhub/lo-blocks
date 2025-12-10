@@ -5,5 +5,6 @@
     Blue
   </DropdownInput>
 
-  <p>You selected: <Ref target="colorPicker" /></p>
+  <Markdown>You selected:</Markdown>
+  <Ref target="colorPicker" />
 </Vertical>
