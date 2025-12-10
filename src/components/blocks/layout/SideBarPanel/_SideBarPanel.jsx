@@ -1,6 +1,7 @@
 // src/components/blocks/SideBarPanel/_SideBarPanel.jsx
 'use client';
 
+import React from 'react';
 import { render } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 
