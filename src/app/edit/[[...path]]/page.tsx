@@ -30,6 +30,7 @@ import { useReduxState } from '@/lib/state';
 import { editorFields } from '../editorFields';
 import { NetworkStorageProvider } from '@/lib/storage';
 import { ComponentError } from '@/lib/types';
+import { DisplayError } from '@/lib/util/debug';
 
 // TODO: This should be a new scope
 // We HACK this into useReduxState since it's there
@@ -214,15 +215,28 @@ export default function EditPage() {
 
   const ready = content && idMap;
 
+  // Error display for the right panes
+  const errorPane = error ? (
+    <div className="p-4">
+      <DisplayError
+        props={{ id: path || 'editor', tag: 'EditPage' }}
+        name="Failed to Load"
+        message={error || 'Unknown error'}
+        technical={error}
+        id="edit_page_error"
+      />
+    </div>
+  ) : null;
+
   return (
     <div className="flex flex-col h-screen">
       <AppHeader />
       <div className="flex-1 overflow-hidden">
         <FourPaneLayout
           TopLeft={<NavigationPane />}
-          TopRight={ready ? <EditControl path={path} content={content} setContent={setContent} handleSave={handleSave} /> : <Spinner>Loading editor...</Spinner>}
+          TopRight={error ? errorPane : (ready ? <EditControl path={path} content={content} setContent={setContent} handleSave={handleSave} /> : <Spinner>Loading editor...</Spinner>)}
           BottomLeft={<EditorLLMChat />}
-          BottomRight={ready ? <PreviewPane path={path} content={content} idMap={idMap}/> : <Spinner>Loading preview...</Spinner>}
+          BottomRight={error ? errorPane : (ready ? <PreviewPane path={path} content={content} idMap={idMap}/> : <Spinner>Loading preview...</Spinner>)}
         />
       </div>
     </div>

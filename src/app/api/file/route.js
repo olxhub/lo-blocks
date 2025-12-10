@@ -15,13 +15,22 @@ export async function GET(request) {
   if (!relPath) {
     return Response.json({ ok: false, error: 'Missing path' }, { status: 400 });
   }
+  if (!validatePath(relPath)) {
+    const allowed = ['.xml', '.olx', '.md', ...pegExts.map(e => `.${e}`)].join(', ');
+    return Response.json({
+      ok: false,
+      error: `Invalid file type. Path must end with: ${allowed}`
+    }, { status: 400 });
+  }
   try {
-    if (!validatePath(relPath)) throw new Error('Invalid file type');
     const content = await provider.read(relPath);
     return Response.json({ ok: true, content });
   } catch (err) {
-    console.log(err.message)
-    return Response.json({ ok: false, error: "Failed" }, { status: 500 });
+    const isNotFound = err.code === 'ENOENT' || err.message?.includes('not found');
+    const status = isNotFound ? 404 : 500;
+    const error = isNotFound ? `File not found: ${relPath}` : err.message;
+    console.error(`[API /file GET] ${error}`);
+    return Response.json({ ok: false, error }, { status });
   }
 }
 
@@ -30,13 +39,21 @@ export async function POST(request) {
   if (!relPath) {
     return Response.json({ ok: false, error: 'Missing path' }, { status: 400 });
   }
+  if (!validatePath(relPath)) {
+    const allowed = ['.xml', '.olx', '.md', ...pegExts.map(e => `.${e}`)].join(', ');
+    return Response.json({
+      ok: false,
+      error: `Invalid file type. Path must end with: ${allowed}`
+    }, { status: 400 });
+  }
+  if (content?.length > 100_000) {
+    return Response.json({ ok: false, error: 'File too large (max 100KB)' }, { status: 400 });
+  }
   try {
-    if (content.length > 100_000) throw new Error('File too large');
-    if (!validatePath(relPath)) throw new Error('Invalid file type');
     await provider.write(relPath, content);
     return Response.json({ ok: true });
   } catch (err) {
-    console.log(err.message);
-    return Response.json({ ok: false, error: "Failed" }, { status: 500 });
+    console.error(`[API /file POST] ${err.message}`);
+    return Response.json({ ok: false, error: err.message }, { status: 500 });
   }
 }
