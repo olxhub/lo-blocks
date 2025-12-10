@@ -6,7 +6,7 @@
 Order these events chronologically (earliest to latest).
   </Markdown>
 
-  <CapaProblem id="history_problem">
+  <CapaProblem id="history_problem" title="Historical Events">
     <SortableGrader id="history_grader">
       <SortableInput dragMode="handle">
         <TextBlock>1492 - Columbus reaches the Americas</TextBlock>

@@ -7,7 +7,7 @@
 Correctness shows visual feedback (checkmark/X) for graded responses. CapaProblem includes one automatically in the header.
   </Markdown>
 
-  <CapaProblem id="math_problem">
+  <CapaProblem id="math_problem" title="Multiplication">
     <NumericalGrader answer="56">
       <p>What is 7 × 8?</p>
       <NumberInput />

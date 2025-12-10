@@ -8,7 +8,7 @@ Order these from smallest to largest. Use the drag handles on the left.
 Handle mode lets you select text in the items while still being able to reorder.
   </Markdown>
 
-  <CapaProblem id="sizes_problem">
+  <CapaProblem id="sizes_problem" title="Order by Size">
     <SortableGrader id="sizes_grader">
       <SortableInput dragMode="handle">
         <TextBlock>Atom</TextBlock>

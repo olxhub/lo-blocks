@@ -17,7 +17,7 @@
     </Markdown>
     
     <!-- Step 2: Interactive Problem -->
-    <CapaProblem id="Practice">
+    <CapaProblem id="Practice" title="Quick Check">
       <p>Let's practice! What does a Sequential block do?</p>
       <KeyGrader>
         <ChoiceInput>

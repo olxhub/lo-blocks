@@ -1,12 +1,11 @@
-<!-- content/demos/capa.xml -->
 <Vertical id="CapaDemo" launchable="true">
-  <CapaProblem id="CapaDemoNumeric">
+  <CapaProblem id="CapaDemoNumeric" title="Numerical with Tolerance">
     <NumericalGrader answer="100" tolerance="5">
       <p>This is a simple problem. The answer is 100, with a tolerance of 5.</p>
       <ComplexInput/>
     </NumericalGrader>
   </CapaProblem>
-  <CapaProblem id="CapaDemoRatio">
+  <CapaProblem id="CapaDemoRatio" title="Ratio Grading">
     <RatioGrader answer="0.333" tolerance="0.01">
       <p>This is a simple problem. Any two numbers in a 1:3 ratio will work!</p>
       <ComplexInput/>

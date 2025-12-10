@@ -6,7 +6,7 @@
 Drag anywhere on an item to move it. Order these planets from closest to furthest from the Sun.
   </Markdown>
 
-  <CapaProblem id="planets_problem">
+  <CapaProblem id="planets_problem" title="Order the Planets">
     <SortableGrader id="planets_grader">
       <SortableInput dragMode="whole">
         <TextBlock initialPosition="2">Mercury</TextBlock>

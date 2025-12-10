@@ -1,11 +1,9 @@
-<!-- content/demos/capa_mcq.xml -->
-<Vertical id="CapaMCQ" launchable="true">
-  <CapaProblem id="CapaMCQDemo">
-    <KeyGrader>
-      <ChoiceInput>
-	<Key> Hello! </Key>
-	<Distractor> Goodbye </Distractor>
-      </ChoiceInput>
-    </KeyGrader>
-  </CapaProblem>
-</Vertical>
+<CapaProblem id="CapaMCQDemo" title="Basic Multiple Choice">
+  <Markdown>What is the proper greeting?</Markdown>
+  <KeyGrader>
+    <ChoiceInput>
+      <Key>Hello!</Key>
+      <Distractor>Goodbye</Distractor>
+    </ChoiceInput>
+  </KeyGrader>
+</CapaProblem>

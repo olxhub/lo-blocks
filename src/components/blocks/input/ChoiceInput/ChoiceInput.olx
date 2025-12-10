@@ -21,7 +21,7 @@ ChoiceInput presents options using Key (correct) and Distractor (incorrect) chil
   </CapaProblem>
 
   <!-- Science question -->
-  <CapaProblem id="biology_problem">
+  <CapaProblem id="biology_problem" title="Cell Biology">
     <p>Which organelle is responsible for producing ATP in cells?</p>
     <KeyGrader>
       <ChoiceInput>
@@ -34,7 +34,7 @@ ChoiceInput presents options using Key (correct) and Distractor (incorrect) chil
   </CapaProblem>
 
   <!-- True/False format -->
-  <CapaProblem id="tf_problem">
+  <CapaProblem id="tf_problem" title="True or False">
     <p>True or False: The sun revolves around the Earth.</p>
     <KeyGrader>
       <ChoiceInput>

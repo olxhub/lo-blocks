@@ -8,7 +8,7 @@ Monday and Friday are already positioned correctly. Place the remaining days in 
 Items with `initialPosition` attributes start at specific positions. Use `shuffle="false"` to preserve the source order for items without positions.
   </Markdown>
 
-  <CapaProblem id="days_problem">
+  <CapaProblem id="days_problem" title="Days of the Week">
     <SortableGrader id="days_grader">
       <SortableInput dragMode="handle" shuffle="false">
         <TextBlock initialPosition="1">Monday</TextBlock>

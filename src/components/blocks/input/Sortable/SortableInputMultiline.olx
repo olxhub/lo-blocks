@@ -6,7 +6,7 @@
 Arrange these steps of the scientific method in the correct order. Each item contains detailed descriptions.
   </Markdown>
 
-  <CapaProblem id="scientific_method_problem">
+  <CapaProblem id="scientific_method_problem" title="Scientific Method Steps">
     <SortableGrader id="scientific_method_grader">
       <SortableInput dragMode="handle">
         <TextBlock initialPosition="1">1. Make an Observation - Observe the world around you and identify something interesting or puzzling that you'd like to understand better. This observation should be specific and measurable.</TextBlock>

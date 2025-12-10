@@ -8,7 +8,7 @@ NumericalGrader evaluates numeric answers with configurable tolerance. It works 
   </Markdown>
 
   <!-- With ComplexInput -->
-  <CapaProblem id="complex_problem">
+  <CapaProblem id="complex_problem" title="Squares">
     <NumericalGrader answer="144">
       <p>What is 12 × 12?</p>
       <ComplexInput />
@@ -16,7 +16,7 @@ NumericalGrader evaluates numeric answers with configurable tolerance. It works 
   </CapaProblem>
 
   <!-- With NumberInput -->
-  <CapaProblem id="number_problem">
+  <CapaProblem id="number_problem" title="Division with Tolerance">
     <NumericalGrader answer="33.33" tolerance="0.01">
       <p>Calculate: 100 ÷ 3 (round to 2 decimal places)</p>
       <NumberInput />
@@ -24,7 +24,7 @@ NumericalGrader evaluates numeric answers with configurable tolerance. It works 
   </CapaProblem>
 
   <!-- With percentage tolerance -->
-  <CapaProblem id="percentage_problem">
+  <CapaProblem id="percentage_problem" title="Percentage Tolerance">
     <NumericalGrader answer="6" tolerance="5%">
       <p>A car accelerates from 0 to 60 m/s in 10 seconds. What is the acceleration in m/s²?</p>
       <p><em>(Answer within 5% accepted)</em></p>

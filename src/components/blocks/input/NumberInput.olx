@@ -8,7 +8,7 @@ NumberInput provides numeric entry. For graded problems, use inside CapaProblem 
   </Markdown>
 
   <!-- Graded problem -->
-  <CapaProblem id="arithmetic_problem">
+  <CapaProblem id="arithmetic_problem" title="Arithmetic">
     <NumericalGrader answer="360">
       <p>What is 24 × 15?</p>
       <NumberInput />
@@ -16,7 +16,7 @@ NumberInput provides numeric entry. For graded problems, use inside CapaProblem 
   </CapaProblem>
 
   <!-- With tolerance -->
-  <CapaProblem id="physics_problem">
+  <CapaProblem id="physics_problem" title="Physics with Tolerance">
     <NumericalGrader answer="5" tolerance="0.1">
       <p>Calculate the acceleration (in m/s²) if a 10 kg object experiences a force of 50 N.</p>
       <p><em>(Use F = ma)</em></p>

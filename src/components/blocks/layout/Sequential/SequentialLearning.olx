@@ -6,7 +6,7 @@
       <TextBlock>This is where you would introduce concepts and provide initial content.</TextBlock>
     </Vertical>
 
-    <CapaProblem id="Step2">
+    <CapaProblem id="Step2" title="Practice Question">
       <p>Now let's practice what we learned in step 1.</p>
       <KeyGrader>
         <ChoiceInput>
@@ -22,7 +22,7 @@
       <TextBlock>Here you would build on the previous steps and introduce new material.</TextBlock>
     </Vertical>
 
-    <CapaProblem id="Step4">
+    <CapaProblem id="Step4" title="Comprehensive Question">
       <p>Finally, let's test your understanding with a comprehensive question.</p>
       <KeyGrader>
         <ChoiceInput>
