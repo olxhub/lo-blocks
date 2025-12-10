@@ -24,6 +24,18 @@ const DropdownInput = core({
         return [];
       }
       return parsed.options;
+    },
+    // Compatible with KeyGrader - returns { id, tag, value } for each option
+    getChoices: (props) => {
+      const parsed = props.kids?.parsed;
+      if (!parsed || !parsed.options) {
+        return [];
+      }
+      return parsed.options.map((opt, idx) => ({
+        id: `${props.id}_opt_${idx}`,
+        tag: opt.tag || null,  // 'Key', 'Distractor', or null
+        value: opt.value
+      }));
     }
   }
 });

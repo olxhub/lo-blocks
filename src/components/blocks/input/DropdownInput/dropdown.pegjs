@@ -10,15 +10,23 @@
 //
 // Comma-separated:
 //   Red, Green, Blue
+//
+// With key/distractor markers (Open edX style):
+//   (x) Correct answer
+//   ( ) Wrong answer
+//   ( ) Another wrong answer
+//   (x) Also correct (multiple keys allowed)
 
 {
-  function createOption(text, value) {
+  function createOption(text, value, tag) {
     const trimmed = (text || '').trim();
     if (!trimmed) return null;
-    return {
+    const opt = {
       text: trimmed,
       value: value ? value.trim() : trimmed
     };
+    if (tag) opt.tag = tag;
+    return opt;
   }
 }
 
@@ -40,8 +48,8 @@ commaRest
     }
 
 inlineOption
-  = text:$[^,|\n\r]+ value:("|" v:$[^,\n\r]+ { return v; })? {
-      return createOption(text, value);
+  = tag:marker? _ text:$[^,|\n\r]+ value:("|" v:$[^,\n\r]+ { return v; })? {
+      return createOption(text, value, tag);
     }
 
 // Line-separated: each line is an option
@@ -57,15 +65,20 @@ line
   / _ nl { return null; }
 
 lineOption
-  = text:$[^|\n\r]+ value:("|" v:$[^\n\r]+ { return v; })? {
-      return createOption(text, value);
+  = tag:marker? _ text:$[^|\n\r]+ value:("|" v:$[^\n\r]+ { return v; })? {
+      return createOption(text, value, tag);
     }
 
 // Last line might not have a newline
 lastLine
-  = _ text:$[^|\n\r]+ value:("|" v:$[^\n\r]* { return v; })? _ {
-      return createOption(text, value);
+  = _ tag:marker? _ text:$[^|\n\r]+ value:("|" v:$[^\n\r]* { return v; })? _ {
+      return createOption(text, value, tag);
     }
+
+// Key/Distractor markers - Open edX style
+marker
+  = "(x)" _ { return 'Key'; }
+  / "( )" _ { return 'Distractor'; }
 
 nl
   = "\r\n" / "\r" / "\n"

@@ -32,6 +32,34 @@ With custom values (text|value):
 </DropdownInput>
 ```
 
+### With Grading (Open edX style)
+
+Mark correct answers with `(x)` and distractors with `( )`:
+
+```xml
+<CapaProblem>
+  <KeyGrader>
+    <DropdownInput id="sky_color" placeholder="Choose...">
+      ( ) Red
+      ( ) Green
+      (x) Blue
+      ( ) Yellow
+    </DropdownInput>
+  </KeyGrader>
+</CapaProblem>
+```
+
+Multiple correct answers are supported:
+
+```xml
+<DropdownInput id="primary">
+  (x) Red
+  (x) Blue
+  ( ) Orange
+  (x) Yellow
+</DropdownInput>
+```
+
 ### Attribute-based
 
 For dynamic options or simpler markup:
@@ -68,3 +96,8 @@ Use `<Ref>` to display the selected value:
 ## Fields
 
 - `value` - The currently selected option value
+
+## API (locals)
+
+- `getOptions()` - Returns array of `{ text, value, tag? }` for each option
+- `getChoices()` - Returns array of `{ id, tag, value }` for KeyGrader compatibility
