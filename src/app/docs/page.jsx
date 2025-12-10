@@ -1,11 +1,16 @@
 // src/app/docs/page.jsx
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import dynamic from 'next/dynamic';
+import { xml } from '@codemirror/lang-xml';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
+
+// Dynamic import for CodeMirror to avoid SSR issues
+const CodeMirror = dynamic(() => import('@uiw/react-codemirror').then(mod => mod.default), { ssr: false });
 
 // =============================================================================
 // Utilities
@@ -304,6 +309,18 @@ function QuickReference({ block }) {
 }
 
 function ExamplePreview({ example, showMoreCount }) {
+  const [editedContent, setEditedContent] = useState(example.content);
+  const isModified = editedContent !== example.content;
+
+  // Reset when example changes
+  useEffect(() => {
+    setEditedContent(example.content);
+  }, [example.content]);
+
+  const handleReset = useCallback(() => {
+    setEditedContent(example.content);
+  }, [example.content]);
+
   return (
     <section className="bg-white rounded-lg border p-6">
       <h3 className="text-lg font-semibold mb-4">Example</h3>
@@ -313,19 +330,38 @@ function ExamplePreview({ example, showMoreCount }) {
           Live Preview
         </div>
         <div className="p-4 bg-white">
-          <RenderOLX inline={example.content} />
+          <RenderOLX inline={editedContent} />
         </div>
       </div>
 
       <div className="border rounded-lg overflow-hidden">
         <div className="px-3 py-2 bg-gray-100 border-b text-xs text-gray-500 flex justify-between items-center">
-          <span>OLX Source</span>
-          <span className="text-gray-400">{example.filename}</span>
+          <span className="flex items-center gap-2">
+            OLX Source
+            {isModified && (
+              <span className="text-amber-600 text-xs">(modified)</span>
+            )}
+          </span>
+          <span className="flex items-center gap-2">
+            {isModified && (
+              <button
+                onClick={handleReset}
+                className="px-2 py-0.5 text-xs bg-gray-200 hover:bg-gray-300 rounded"
+              >
+                Reset
+              </button>
+            )}
+            <span className="text-gray-400">{example.filename}</span>
+          </span>
         </div>
-        <div className="p-4 bg-gray-50 overflow-x-auto max-h-64">
-          <pre className="text-sm">
-            <code>{example.content}</code>
-          </pre>
+        <div className="bg-gray-50 overflow-hidden">
+          <CodeMirror
+            value={editedContent}
+            onChange={setEditedContent}
+            extensions={[xml()]}
+            basicSetup={{ lineNumbers: true, foldGutter: false }}
+            maxHeight="256px"
+          />
         </div>
       </div>
 
@@ -369,6 +405,18 @@ function ReadmeTab({ content, path }) {
 }
 
 function ExampleTab({ example }) {
+  const [editedContent, setEditedContent] = useState(example.content);
+  const isModified = editedContent !== example.content;
+
+  // Reset when example changes
+  useEffect(() => {
+    setEditedContent(example.content);
+  }, [example.content]);
+
+  const handleReset = useCallback(() => {
+    setEditedContent(example.content);
+  }, [example.content]);
+
   return (
     <div className="space-y-6">
       <section className="bg-white rounded-lg border overflow-hidden">
@@ -377,19 +425,37 @@ function ExampleTab({ example }) {
           <code className="text-xs text-gray-500">{example.path || example.filename}</code>
         </div>
         <div className="p-6">
-          <RenderOLX inline={example.content} />
+          <RenderOLX inline={editedContent} />
         </div>
       </section>
 
       <section className="bg-white rounded-lg border overflow-hidden">
         <div className="px-4 py-3 bg-gray-50 border-b flex justify-between items-center">
-          <span className="font-medium text-gray-700">Source Code</span>
-          <code className="text-xs text-gray-500">{example.path || example.filename}</code>
+          <span className="flex items-center gap-2">
+            <span className="font-medium text-gray-700">Source Code</span>
+            {isModified && (
+              <span className="text-amber-600 text-xs">(modified)</span>
+            )}
+          </span>
+          <span className="flex items-center gap-2">
+            {isModified && (
+              <button
+                onClick={handleReset}
+                className="px-2 py-0.5 text-xs bg-gray-200 hover:bg-gray-300 rounded"
+              >
+                Reset
+              </button>
+            )}
+            <code className="text-xs text-gray-500">{example.path || example.filename}</code>
+          </span>
         </div>
-        <div className="p-4 overflow-x-auto bg-gray-50">
-          <pre className="text-sm">
-            <code>{example.content}</code>
-          </pre>
+        <div className="bg-gray-50 overflow-hidden">
+          <CodeMirror
+            value={editedContent}
+            onChange={setEditedContent}
+            extensions={[xml()]}
+            basicSetup={{ lineNumbers: true, foldGutter: false }}
+          />
         </div>
       </section>
     </div>
