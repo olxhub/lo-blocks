@@ -359,7 +359,7 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
                 Reset
               </button>
             )}
-            <span className="text-gray-400">{example.filename}</span>
+            <span className="text-gray-400">{example.path}</span>
           </span>
         </div>
         <div className="bg-gray-50 overflow-hidden">
