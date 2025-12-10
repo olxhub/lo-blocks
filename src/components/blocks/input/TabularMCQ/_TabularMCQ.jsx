@@ -92,12 +92,12 @@ export default function _TabularMCQ(props) {
 
   return (
     <div className="tabular-mcq">
-      <table className="border-collapse border border-gray-300 w-full">
+      <table>
         <thead>
           <tr>
-            <th className="border border-gray-300 bg-gray-100 p-2"></th>
+            <th></th>
             {cols.map((col, colIndex) => (
-              <th key={col.id || colIndex} className="border border-gray-300 bg-gray-100 p-2 text-center">
+              <th key={col.id || colIndex}>
                 {col.text}
               </th>
             ))}
@@ -106,22 +106,27 @@ export default function _TabularMCQ(props) {
         <tbody>
           {rows.map((row) => (
             <tr key={row.id}>
-              <td className="border border-gray-300 p-2 font-medium">{row.text}</td>
-              {cols.map((col, colIndex) => (
-                <td key={col.id || colIndex} className="border border-gray-300 p-2 text-center">
-                  <input
-                    type={mode === 'checkbox' ? 'checkbox' : 'radio'}
-                    name={mode === 'radio' ? `tabular-mcq-row-${props.id}-${row.id}` : undefined}
-                    checked={isChecked(row.id, colIndex)}
-                    onChange={() =>
-                      mode === 'checkbox'
-                        ? handleCheckboxChange(row.id, colIndex)
-                        : handleRadioChange(row.id, colIndex)
-                    }
-                    className="cursor-pointer"
-                  />
-                </td>
-              ))}
+              <td>{row.text}</td>
+              {cols.map((col, colIndex) => {
+                const inputId = `${props.id}-${row.id}-${colIndex}`;
+                return (
+                  <td key={col.id || colIndex}>
+                    <label htmlFor={inputId}>
+                      <input
+                        id={inputId}
+                        type={mode === 'checkbox' ? 'checkbox' : 'radio'}
+                        name={mode === 'radio' ? `tabular-mcq-row-${props.id}-${row.id}` : undefined}
+                        checked={isChecked(row.id, colIndex)}
+                        onChange={() =>
+                          mode === 'checkbox'
+                            ? handleCheckboxChange(row.id, colIndex)
+                            : handleRadioChange(row.id, colIndex)
+                        }
+                      />
+                    </label>
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>
