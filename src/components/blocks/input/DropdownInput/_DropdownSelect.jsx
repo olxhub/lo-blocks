@@ -1,0 +1,78 @@
+// src/components/blocks/input/DropdownInput/_DropdownSelect.jsx
+'use client';
+
+import React, { useCallback, useMemo } from 'react';
+import { useFieldSelector, updateReduxField } from '@/lib/state';
+import { DisplayError } from '@/lib/util/debug';
+import { fields } from './DropdownInput';
+
+/**
+ * Parse comma-separated options string into options array.
+ * Supports: "Red, Green, Blue" or "Red|r, Green|g, Blue|b"
+ */
+function parseOptionsAttribute(optionsStr) {
+  if (!optionsStr) return [];
+  return optionsStr.split(',').map(item => {
+    const trimmed = item.trim();
+    const pipeIdx = trimmed.indexOf('|');
+    if (pipeIdx >= 0) {
+      return {
+        text: trimmed.slice(0, pipeIdx).trim(),
+        value: trimmed.slice(pipeIdx + 1).trim()
+      };
+    }
+    return { text: trimmed, value: trimmed };
+  }).filter(opt => opt.text);
+}
+
+export default function _DropdownSelect(props) {
+  const { placeholder, kids, options: optionsAttr } = props;
+
+  const parsedOptions = kids?.parsed?.options || [];
+  const attrOptions = useMemo(() => parseOptionsAttribute(optionsAttr), [optionsAttr]);
+
+  // Check for conflicting sources
+  const hasParsedContent = parsedOptions.length > 0;
+  const hasAttrOptions = attrOptions.length > 0;
+
+  if (hasParsedContent && hasAttrOptions) {
+    return (
+      <DisplayError
+        name="DropdownInput"
+        message="Cannot specify both content and options attribute"
+        data={{ id: props.id }}
+      />
+    );
+  }
+
+  const options = hasParsedContent ? parsedOptions : attrOptions;
+
+  const value = useFieldSelector(
+    props,
+    fields.fieldInfoByField.value,
+    { fallback: '' }
+  );
+
+  const handleChange = useCallback((e) => {
+    updateReduxField(props, fields.fieldInfoByField.value, e.target.value);
+  }, [props]);
+
+  return (
+    <select
+      value={value}
+      onChange={handleChange}
+      className="border rounded px-2 py-1"
+    >
+      {placeholder && (
+        <option value="" disabled>
+          {placeholder}
+        </option>
+      )}
+      {options.map((opt, idx) => (
+        <option key={opt.value || idx} value={opt.value}>
+          {opt.text}
+        </option>
+      ))}
+    </select>
+  );
+}
