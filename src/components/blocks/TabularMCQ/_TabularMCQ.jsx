@@ -1,52 +1,44 @@
 // src/components/blocks/TabularMCQ/_TabularMCQ.jsx
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useReduxState } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
 
 export default function _TabularMCQ(props) {
   const { fields, kids } = props;
 
-  // Parse the content from kids (peggyParser wraps in { type: 'parsed', parsed: {...} })
-  const parsed = useMemo(() => {
-    if (kids?.parsed) return kids.parsed;
-    if (kids?.rows && kids?.cols) return kids;
-    return null;
-  }, [kids]);
-
   // State: { rowId: colIndex } for radio, { rowId: [colIndex, ...] } for checkbox
   const [value, setValue] = useReduxState(props, fields.value, {});
 
-  // Handle parsing errors or missing data
-  if (!parsed) {
-    // Check if this is an ErrorNode (PEG parsing failure)
-    if (props.parseError || kids?.type === 'peg_error') {
-      // Let the ErrorNode system handle it - don't show our own error
-      return (
-        <DisplayError
-          props={props}
-          name="TabularMCQ Parse Error"
-          message={kids?.message || "Failed to parse TabularMCQ content"}
-          technical={kids?.technical ? JSON.stringify(kids.technical, null, 2) : undefined}
-        />
-      );
-    }
+  // Check for PEG parsing failure (ErrorNode)
+  if (props.parseError || (kids && kids.type === 'peg_error')) {
+    return (
+      <DisplayError
+        props={props}
+        name="TabularMCQ Parse Error"
+        message={kids.message || "Failed to parse TabularMCQ content"}
+        technical={kids.technical ? JSON.stringify(kids.technical, null, 2) : undefined}
+      />
+    );
+  }
 
-    // No parsed data at all
+  // peggyParser always produces { type: 'parsed', parsed: {...} }
+  if (!kids || !kids.parsed) {
     return (
       <DisplayError
         props={props}
         name="TabularMCQ Error"
         message="No content provided"
-        technical={`Expected PEG syntax inside <TabularMCQ>:\ncols: Col1, Col2, Col3\nrows: Row1, Row2, Row3\n\nReceived kids: ${JSON.stringify(kids, null, 2)}`}
+        technical={`Expected PEG syntax inside <TabularMCQ>:\ncols: Col1, Col2, Col3\nrows: Row1, Row2, Row3\n\nReceived: ${JSON.stringify(kids, null, 2)}`}
       />
     );
   }
 
+  const parsed = kids.parsed;
   const mode = parsed.mode || 'radio';
-  const rows = parsed.rows || [];
-  const cols = parsed.cols || [];
+  const rows = parsed.rows;
+  const cols = parsed.cols;
 
   // Validate rows
   if (!Array.isArray(rows) || rows.length === 0) {

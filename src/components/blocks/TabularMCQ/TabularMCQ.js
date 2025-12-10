@@ -32,26 +32,44 @@ const TabularMCQ = core({
   component: _TabularMCQ,
   fields,
   locals: {
-    // Helper to get parsed data (peggyParser wraps in { type: 'parsed', parsed: {...} })
-    _getParsed: (props) => props.kids?.parsed || props.kids || {},
+    // peggyParser always produces { type: 'parsed', parsed: {...} }
+    // These accessors extract the parsed content for graders and other consumers.
 
-    // Get full parsed config
-    getConfig: (props) => props.kids?.parsed || props.kids,
+    // Get full parsed config: { mode, cols, rows }
+    getConfig: (props) => {
+      const kids = props.kids;
+      if (!kids || !kids.parsed) {
+        throw new Error('TabularMCQ: Expected parsed content from peggyParser');
+      }
+      return kids.parsed;
+    },
 
     // Get rows array
-    getRows: (props) => (props.kids?.parsed || props.kids)?.rows || [],
+    getRows: (props) => {
+      const parsed = props.kids.parsed;
+      if (!parsed || !parsed.rows) {
+        throw new Error('TabularMCQ: No rows defined. Add: rows: Item1, Item2, Item3');
+      }
+      return parsed.rows;
+    },
 
     // Get columns array
-    getCols: (props) => (props.kids?.parsed || props.kids)?.cols || [],
+    getCols: (props) => {
+      const parsed = props.kids.parsed;
+      if (!parsed || !parsed.cols) {
+        throw new Error('TabularMCQ: No columns defined. Add: cols: Col1, Col2, Col3');
+      }
+      return parsed.cols;
+    },
 
     // Get mode ('radio' or 'checkbox')
-    getMode: (props) => (props.kids?.parsed || props.kids)?.mode || 'radio',
+    getMode: (props) => props.kids.parsed.mode || 'radio',
 
     // Get expected answers for grading: { rowId: expectedColIndex }
     getAnswers: (props) => {
-      const parsed = props.kids?.parsed || props.kids || {};
-      const rows = parsed.rows || [];
-      const cols = parsed.cols || [];
+      const parsed = props.kids.parsed;
+      const rows = parsed.rows;
+      const cols = parsed.cols;
       const answers = {};
       rows.forEach(row => {
         if (row.answer !== null) {
@@ -74,8 +92,7 @@ const TabularMCQ = core({
 
     // Get column values for scoring: { colIndex: value }
     getColValues: (props) => {
-      const parsed = props.kids?.parsed || props.kids || {};
-      const cols = parsed.cols || [];
+      const cols = props.kids.parsed.cols;
       const values = {};
       cols.forEach((col, idx) => {
         if (col.value !== undefined) {
@@ -88,17 +105,23 @@ const TabularMCQ = core({
     // Calculate total score based on selections and column values
     getScore: (props, reduxState, id) => {
       const value = fieldSelector(reduxState, { ...props, id }, fieldByName('value'), { fallback: {} });
-      const parsed = props.kids?.parsed || props.kids || {};
-      const cols = parsed.cols || [];
+      const cols = props.kids.parsed.cols;
       let total = 0;
       Object.values(value).forEach(colIdx => {
-        if (typeof colIdx === 'number' && cols[colIdx]?.value !== undefined) {
-          total += cols[colIdx].value;
+        // colIdx comes from user selection - validate it exists
+        if (typeof colIdx === 'number' && colIdx >= 0 && colIdx < cols.length) {
+          const col = cols[colIdx];
+          if (col.value !== undefined) {
+            total += col.value;
+          }
         } else if (Array.isArray(colIdx)) {
           // Checkbox mode - sum all selected values
           colIdx.forEach(idx => {
-            if (cols[idx]?.value !== undefined) {
-              total += cols[idx].value;
+            if (idx >= 0 && idx < cols.length) {
+              const col = cols[idx];
+              if (col.value !== undefined) {
+                total += col.value;
+              }
             }
           });
         }
