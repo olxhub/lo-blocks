@@ -1,0 +1,21 @@
+<Vertical id="StateViewerDemo" title="StateViewer Demo" launchable="true">
+  <Markdown>
+## StateViewer Demo
+
+The StateViewer component displays the Redux state of another component. Type in the inputs below and watch their state update in real-time.
+  </Markdown>
+
+  <SplitPanel sizes="60,40">
+    <LeftPane>
+      <LineInput id="demo_text" placeholder="Type something here..." />
+      <NumberInput id="demo_number">Enter a number</NumberInput>
+      <TextArea id="demo_textarea" placeholder="Multi-line text..." />
+    </LeftPane>
+    <RightPane>
+      <Markdown>### State</Markdown>
+      <StateViewer target="demo_text" />
+      <StateViewer target="demo_number" />
+      <StateViewer target="demo_textarea" />
+    </RightPane>
+  </SplitPanel>
+</Vertical>

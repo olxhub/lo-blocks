@@ -396,3 +396,28 @@ export function valueSelector(props, state, id, { fallback } = {} as { fallback?
 export function useValue(props, id, options = {}) {
   return useSelector((state) => valueSelector(props, state, id, options));
 }
+
+/**
+ * React hook to get the full Redux state object for a component.
+ *
+ * INTENDED FOR DEBUGGING/INTROSPECTION ONLY - not for regular block development.
+ * Use useFieldSelector or useValue for normal state access.
+ *
+ * @param {Object} props - Component props (for ID resolution context)
+ * @param {string} targetId - ID of the component to inspect
+ * @param {Object} options - Options object
+ * @param {string} options.scope - State scope (defaults to 'component')
+ * @returns {Object|null} The full state object for the component, or null if none
+ */
+export function useComponentState(
+  props,
+  targetId: string,
+  { scope = scopes.component }: { scope?: string } = {}
+) {
+  const resolvedId = idResolver.reduxId({ ...props, id: targetId });
+
+  return useSelector(
+    (state: any) => state?.application_state?.[scope]?.[resolvedId] || null,
+    shallowEqual
+  );
+}

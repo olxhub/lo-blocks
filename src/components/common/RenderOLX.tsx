@@ -44,7 +44,7 @@
 //
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { render, makeRootNode } from '@/lib/render';
 import { COMPONENT_MAP } from '@/components/componentMap';
@@ -79,6 +79,8 @@ interface RenderOLXProps {
   provenance?: string;
   /** Called when parsing or rendering errors occur */
   onError?: (err: any) => void;
+  /** Called after parsing completes with the merged idMap and root ID */
+  onParsed?: (result: { idMap: Record<string, any>; root: string | null }) => void;
   /** Custom component map (defaults to COMPONENT_MAP) */
   componentMap?: Record<string, any>;
 }
@@ -93,6 +95,7 @@ export default function RenderOLX({
   resolveProvider,
   provenance,
   onError,
+  onParsed,
   componentMap = COMPONENT_MAP,
 }: RenderOLXProps) {
   const [parsed, setParsed] = useState<any>(null);
@@ -204,6 +207,17 @@ export default function RenderOLX({
     if (!baseIdMap) return parsed.idMap;
     return { ...baseIdMap, ...parsed.idMap };
   }, [parsed, baseIdMap]);
+
+  // Use ref for onParsed to avoid infinite loops when caller passes inline function
+  const onParsedRef = useRef(onParsed);
+  onParsedRef.current = onParsed;
+
+  // Notify parent when idMap changes
+  useEffect(() => {
+    if (onParsedRef.current && mergedIdMap) {
+      onParsedRef.current({ idMap: mergedIdMap, root: parsed?.root || null });
+    }
+  }, [mergedIdMap, parsed?.root]);
 
   // Render content
   const rendered = useMemo(() => {
