@@ -7,6 +7,7 @@ import remarkGfm from 'remark-gfm';
 import RenderOLX from '@/components/common/RenderOLX';
 import CodeEditor from '@/components/common/CodeEditor';
 import Spinner from '@/components/common/Spinner';
+import StatePanel from '@/components/common/StatePanel';
 import { useReduxState } from '@/lib/state';
 import { editorFields } from '../edit/editorFields';
 
@@ -323,11 +324,16 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
     example.filename,
     example.content
   );
+  const [parsedIdMap, setParsedIdMap] = useState(null);
   const isModified = editedContent !== example.content;
 
   const handleReset = useCallback(() => {
     setEditedContent(example.content);
   }, [example.content, setEditedContent]);
+
+  const handleParsed = useCallback(({ idMap }) => {
+    setParsedIdMap(idMap);
+  }, []);
 
   return (
     <section className="bg-white rounded-lg border p-6">
@@ -338,7 +344,7 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
           Live Preview
         </div>
         <div className="p-4 bg-white">
-          <RenderOLX inline={editedContent} />
+          <RenderOLX inline={editedContent} onParsed={handleParsed} />
         </div>
       </div>
 
@@ -371,6 +377,8 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
           />
         </div>
       </div>
+
+      <StatePanel idMap={parsedIdMap} />
 
       {showMoreCount > 0 && (
         <p className="mt-4 text-sm text-gray-500">
@@ -417,11 +425,16 @@ function ExampleTab({ example, blockName }) {
     example.filename,
     example.content
   );
+  const [parsedIdMap, setParsedIdMap] = useState(null);
   const isModified = editedContent !== example.content;
 
   const handleReset = useCallback(() => {
     setEditedContent(example.content);
   }, [example.content, setEditedContent]);
+
+  const handleParsed = useCallback(({ idMap }) => {
+    setParsedIdMap(idMap);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -431,8 +444,9 @@ function ExampleTab({ example, blockName }) {
           <code className="text-xs text-gray-500">{example.path || example.filename}</code>
         </div>
         <div className="p-6">
-          <RenderOLX inline={editedContent} />
+          <RenderOLX inline={editedContent} onParsed={handleParsed} />
         </div>
+        <StatePanel idMap={parsedIdMap} />
       </section>
 
       <section className="bg-white rounded-lg border overflow-hidden">

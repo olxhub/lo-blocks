@@ -79,6 +79,8 @@ interface RenderOLXProps {
   provenance?: string;
   /** Called when parsing or rendering errors occur */
   onError?: (err: any) => void;
+  /** Called after parsing completes with the merged idMap and root ID */
+  onParsed?: (result: { idMap: Record<string, any>; root: string | null }) => void;
   /** Custom component map (defaults to COMPONENT_MAP) */
   componentMap?: Record<string, any>;
 }
@@ -93,6 +95,7 @@ export default function RenderOLX({
   resolveProvider,
   provenance,
   onError,
+  onParsed,
   componentMap = COMPONENT_MAP,
 }: RenderOLXProps) {
   const [parsed, setParsed] = useState<any>(null);
@@ -204,6 +207,13 @@ export default function RenderOLX({
     if (!baseIdMap) return parsed.idMap;
     return { ...baseIdMap, ...parsed.idMap };
   }, [parsed, baseIdMap]);
+
+  // Notify parent when idMap changes
+  useEffect(() => {
+    if (onParsed && mergedIdMap) {
+      onParsed({ idMap: mergedIdMap, root: parsed?.root || null });
+    }
+  }, [mergedIdMap, parsed?.root, onParsed]);
 
   // Render content
   const rendered = useMemo(() => {
