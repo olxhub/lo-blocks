@@ -73,8 +73,6 @@ function resolveTargetIds(props, targetIds) {
 export function _AggregatedInputs(props) {
   const {
     target,
-    targets,
-    ids,
     field = 'value',
     fallback = '',
     aggregate,
@@ -83,8 +81,8 @@ export function _AggregatedInputs(props) {
   } = props;
 
   const targetIds = useMemo(
-    () => normalizeTargets(targets ?? ids ?? target),
-    [targets, ids, target]
+    () => normalizeTargets(target),
+    [target]
   );
 
   const resolvedTargetIds = useMemo(

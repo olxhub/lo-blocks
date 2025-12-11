@@ -6,7 +6,7 @@ audit state quickly while developing or debugging.
 
 ## Attributes
 
-- `targets` / `target` / `ids`: Comma- or space-separated list of component IDs to read
+- `target`: Comma- or space-separated list of component IDs to read
 - `field`: Field name to read from each target (default: `value`)
 - `fallback`: Value to use when a target does not yet have state (default: empty string)
 - `heading`: Optional heading text displayed above the list
@@ -19,19 +19,19 @@ audit state quickly while developing or debugging.
 Render the current `value` field for three inputs:
 
 ```xml
-<AggregatedInputs targets="input_one, input_two, input_three" />
+<AggregatedInputs target="input_one, input_two, input_three" />
 ```
 
 Use a different field and a custom heading:
 
 ```xml
-<AggregatedInputs targets="grader_a grader_b" field="correct" heading="Grader correctness" />
+<AggregatedInputs target="grader_a grader_b" field="correct" heading="Grader correctness" />
 ```
 
 Use a `CapaProblem` ID to automatically inspect its graders:
 
 ```xml
-<AggregatedInputs targets="capa_problem" field="correct" heading="Problem grader correctness" />
+<AggregatedInputs target="capa_problem" field="correct" heading="Problem grader correctness" />
 ```
 
 ## Notes
