@@ -3,29 +3,26 @@ import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as reduxClient from '@/lib/llm/reduxClient';
-import _Noop from '@/components/blocks/layout/_Noop';
 import _Hidden from '@/components/blocks/layout/_Hidden';
+import { fields as feedbackFields } from './LLMFeedback';
 
 export const fields = state.fields([]);
 
-
-// Update target field with content
-async function updateTargetField(props, targetInstance, fieldName, content) {
+// Main LLM action function
+async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
   const targetElementId = targetInstance.attributes.target;
   if (!targetElementId) {
     console.warn('⚠️ LLMAction: No target specified in action attributes');
     return;
   }
 
-  const field = state.componentFieldByName(props, targetElementId, fieldName);
-  state.updateReduxField(props, field, content, { id: targetElementId });
-}
+  // TODO: Should use processed fields (e.g., `const { value, state } = fields`) instead of
+  // accessing .fieldInfoByField directly. Need to figure out cross-component field access pattern.
+  const { value: valueField, state: stateField } = feedbackFields.fieldInfoByField;
 
-// Main LLM action function
-async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
   try {
-    // Set loading state
-    await updateTargetField(props, targetInstance, 'state', reduxClient.LLM_STATUS.RUNNING);
+    state.updateReduxField(props, valueField, '', { id: targetElementId });
+    state.updateReduxField(props, stateField, reduxClient.LLM_STATUS.RUNNING, { id: targetElementId });
 
     const promptText = await blocks.extractChildText(props, props.nodeInfo.node);
     if (!promptText.trim()) {
@@ -33,13 +30,13 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
     }
 
     const content = await reduxClient.callLLMSimple(promptText);
-    await updateTargetField(props, targetInstance, 'value', content);
-    await updateTargetField(props, targetInstance, 'state', reduxClient.LLM_STATUS.RESPONSE_READY);
+    state.updateReduxField(props, valueField, content, { id: targetElementId });
+    state.updateReduxField(props, stateField, reduxClient.LLM_STATUS.RESPONSE_READY, { id: targetElementId });
 
   } catch (error) {
     console.error('LLM generation failed:', error);
-    await updateTargetField(props, targetInstance, 'value', `Error: ${error.message}`);
-    await updateTargetField(props, targetInstance, 'state', reduxClient.LLM_STATUS.ERROR);
+    state.updateReduxField(props, valueField, `Error: ${error.message}`, { id: targetElementId });
+    state.updateReduxField(props, stateField, reduxClient.LLM_STATUS.ERROR, { id: targetElementId });
   }
 }
 
