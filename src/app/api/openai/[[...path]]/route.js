@@ -7,8 +7,14 @@ import { NextResponse } from 'next/server';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_BASE_URL = "https://api.openai.com/v1/";
 
-// TODO: Should we just fail on no key?
 const USE_STUB = !OPENAI_API_KEY || process.env.LLM_MODE === 'STUB';
+
+if (USE_STUB) {
+  console.log('\n⚠️  LLM running in STUB mode - responses are fake.\n' +
+    '   To use real OpenAI, set OPENAI_API_KEY and restart:\n' +
+    '     export OPENAI_API_KEY=sk-...\n' +
+    '   Or add it to .env.local\n');
+}
 
 export async function GET(request, { params }) {
   return proxyToOpenAI(request, params);
