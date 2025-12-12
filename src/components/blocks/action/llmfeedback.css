@@ -9,10 +9,22 @@
   margin: var(--lo-space-lg) 0;
 }
 
+/* Empty state - subtle dotted border */
+.lo-tag-llmfeedback .llm-feedback-container.llm-feedback-empty {
+  border-style: dashed;
+  border-color: var(--lo-border);
+  background-color: var(--lo-surface-muted, #fafafa);
+}
+
 .lo-tag-llmfeedback .llm-feedback-icon {
   text-align: center;
   font-size: var(--lo-font-size-xl);
   margin-bottom: var(--lo-space-md);
+}
+
+/* Dimmed icon when empty */
+.lo-tag-llmfeedback .llm-feedback-empty .llm-feedback-icon {
+  opacity: 0.5;
 }
 
 .lo-tag-llmfeedback .llm-feedback-content {
@@ -22,10 +34,7 @@
   word-wrap: break-word;
 }
 
-.lo-tag-llmfeedback .llm-feedback-content:empty {
+.lo-tag-llmfeedback .llm-feedback-placeholder {
   color: var(--lo-text-muted);
-}
-
-.lo-tag-llmfeedback .llm-feedback-content:empty::before {
-  content: "Waiting for AI response...";
+  font-style: italic;
 }
