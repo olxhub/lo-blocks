@@ -10,31 +10,36 @@ export const fields = state.fields([]);
 
 
 // Update target field with content
-async function updateTargetField(props, targetInstance, content) {
+async function updateTargetField(props, targetInstance, fieldName, content) {
   const targetElementId = targetInstance.attributes.target;
   if (!targetElementId) {
     console.warn('⚠️ LLMAction: No target specified in action attributes');
     return;
   }
 
-  const field = state.componentFieldByName(props, targetElementId, 'value');
+  const field = state.componentFieldByName(props, targetElementId, fieldName);
   state.updateReduxField(props, field, content, { id: targetElementId });
 }
 
 // Main LLM action function
 async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
   try {
+    // Set loading state
+    await updateTargetField(props, targetInstance, 'state', reduxClient.LLM_STATUS.RUNNING);
+
     const promptText = await blocks.extractChildText(props, props.nodeInfo.node);
     if (!promptText.trim()) {
       throw new Error('LLMAction: No prompt content found');
     }
 
     const content = await reduxClient.callLLMSimple(promptText);
-    await updateTargetField(props, targetInstance, content);
+    await updateTargetField(props, targetInstance, 'value', content);
+    await updateTargetField(props, targetInstance, 'state', reduxClient.LLM_STATUS.RESPONSE_READY);
 
   } catch (error) {
     console.error('LLM generation failed:', error);
-    await updateTargetField(props, targetInstance, `Error: ${error.message}`);
+    await updateTargetField(props, targetInstance, 'value', `Error: ${error.message}`);
+    await updateTargetField(props, targetInstance, 'state', reduxClient.LLM_STATUS.ERROR);
   }
 }
 
