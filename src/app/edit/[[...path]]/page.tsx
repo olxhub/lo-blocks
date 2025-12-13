@@ -23,7 +23,8 @@ import ComponentNav from '@/components/navigation/ComponentNav';
 import SearchNav from '@/components/navigation/SearchNav';
 import AppHeader from '@/components/common/AppHeader';
 import RenderOLX from '@/components/common/RenderOLX';
-import CodeEditor from '@/components/common/CodeEditor';
+import CodeEditor, { isPEGGrammarFile, isPEGContentFile } from '@/components/common/CodeEditor';
+import PEGPreviewPane from '@/components/common/PEGPreviewPane';
 import Spinner from '@/components/common/Spinner';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useReduxState } from '@/lib/state';
@@ -214,6 +215,7 @@ export default function EditPage() {
   };
 
   const ready = content && idMap;
+  const isPegFile = isPEGGrammarFile(path) || isPEGContentFile(path);
 
   // Error display for the right panes
   const errorPane = error ? (
@@ -228,6 +230,21 @@ export default function EditPage() {
     </div>
   ) : null;
 
+  // Choose preview pane based on file type
+  const renderPreview = () => {
+    if (error) return errorPane;
+    if (!content) return <Spinner>Loading preview...</Spinner>;
+
+    // PEG files get their own preview pane (don't need idMap)
+    if (isPegFile) {
+      return <PEGPreviewPane path={path} content={content} />;
+    }
+
+    // OLX files need idMap for rendering
+    if (!idMap) return <Spinner>Loading preview...</Spinner>;
+    return <PreviewPane path={path} content={content} idMap={idMap} />;
+  };
+
   return (
     <div className="flex flex-col h-screen">
       <AppHeader />
@@ -236,7 +253,7 @@ export default function EditPage() {
           TopLeft={<NavigationPane />}
           TopRight={error ? errorPane : (ready ? <EditControl path={path} content={content} setContent={setContent} handleSave={handleSave} /> : <Spinner>Loading editor...</Spinner>)}
           BottomLeft={<EditorLLMChat />}
-          BottomRight={error ? errorPane : (ready ? <PreviewPane path={path} content={content} idMap={idMap}/> : <Spinner>Loading preview...</Spinner>)}
+          BottomRight={renderPreview()}
         />
       </div>
     </div>

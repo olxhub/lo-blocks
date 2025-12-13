@@ -14,7 +14,8 @@ import pegExts from '@/generated/pegExtensions.json';
 const CONTENT_BASE = path.resolve('./content');
 
 // Valid file extensions for content files
-const ALLOWED_EXTENSIONS = ['.xml', '.olx', '.md', ...pegExts.map(e => `.${e}`)];
+// Includes OLX, markdown, PEG grammars, and PEG content formats
+const ALLOWED_EXTENSIONS = ['.xml', '.olx', '.md', '.pegjs', ...pegExts.map(e => `.${e}`)];
 
 export interface PathValidation {
   valid: boolean;
