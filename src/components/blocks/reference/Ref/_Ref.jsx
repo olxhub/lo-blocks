@@ -5,8 +5,10 @@ import React from 'react';
 import { useValue } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
 
+const VALID_FORMATS = ['code'];
+
 export default function _Ref(props) {
-  const { visible = true, fallback = '' } = props;
+  const { visible = true, fallback = '', format } = props;
 
   // Call Ref's own getValue via useValue - this is the single source of truth
   // for value formatting, field access, and validation
@@ -22,13 +24,12 @@ export default function _Ref(props) {
     return <DisplayError props={props} name="Ref" message={value.message} />;
   }
 
-  // getValue returns a string - check if it's JSON for code styling
-  const isJson = typeof value === 'string' &&
-    value.length > 2 &&
-    ((value.startsWith('{') && value.endsWith('}')) ||
-     (value.startsWith('[') && value.endsWith(']')));
+  // Validate format attribute if provided
+  if (format && !VALID_FORMATS.includes(format)) {
+    return <DisplayError props={props} name="Ref" message={`Unknown format "${format}". Valid options: ${VALID_FORMATS.join(', ')}`} />;
+  }
 
-  if (isJson) {
+  if (format === 'code') {
     return <code style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>{value}</code>;
   }
 
