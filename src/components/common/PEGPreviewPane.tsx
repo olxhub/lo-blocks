@@ -6,6 +6,8 @@ import { useState, useMemo, useEffect } from 'react';
 import { getParserForExtension } from '@/generated/parserRegistry';
 import { injectPreviewContent } from '@/lib/template/previewTemplate';
 import RenderOLX from '@/components/common/RenderOLX';
+import Spinner from '@/components/common/Spinner';
+import { DisplayError } from '@/lib/util/debug';
 
 interface PEGPreviewPaneProps {
   path: string;
@@ -25,7 +27,7 @@ interface ParseResult {
 }
 
 function getExtension(path: string): string {
-  return path.split('.').pop()?.toLowerCase() || '';
+  return path.split('.').pop() || '';
 }
 
 type TabType = 'parse' | 'preview';
@@ -38,6 +40,7 @@ export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
   const [activeTab, setActiveTab] = useState<TabType>('preview');
   const [previewOLX, setPreviewOLX] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const ext = useMemo(() => getExtension(path), [path]);
 
@@ -46,15 +49,17 @@ export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
     if (!ext) {
       setPreviewOLX(null);
       setPreviewError(null);
+      setLoading(false);
       return;
     }
 
+    setLoading(true);
     fetch(`/api/docs/grammar/${encodeURIComponent(ext)}`)
       .then(res => {
         if (!res.ok) {
           if (res.status === 404) {
             setPreviewOLX(null);
-            setPreviewError(null); // No error, just no grammar found
+            setPreviewError(`Grammar '${ext}' not found`);
           } else {
             throw new Error(`Failed to load grammar: ${res.status}`);
           }
@@ -65,13 +70,18 @@ export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
       .then(data => {
         if (data?.grammar?.preview) {
           setPreviewOLX(data.grammar.preview);
-        } else {
-          setPreviewOLX(null); // No preview available for this grammar
+          setPreviewError(null);
+        } else if (data) {
+          setPreviewOLX(null);
+          setPreviewError(null); // Grammar exists but no preview template
         }
       })
       .catch(err => {
         setPreviewError(err.message);
         setPreviewOLX(null);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, [ext]);
 
@@ -181,17 +191,19 @@ export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
 
         {activeTab === 'preview' && (
           <div className="p-4">
-            {previewError ? (
-              <div className="text-red-600">Error loading preview: {previewError}</div>
+            {loading ? (
+              <Spinner>Loading preview...</Spinner>
+            ) : previewError ? (
+              <DisplayError message={previewError} />
             ) : previewWithContent && 'error' in previewWithContent ? (
-              <div className="text-red-600">{previewWithContent.error}</div>
+              <DisplayError message={previewWithContent.error} />
             ) : previewWithContent && 'olx' in previewWithContent ? (
               <RenderOLX
                 id={`peg-preview-${ext}`}
                 inline={previewWithContent.olx}
               />
             ) : (
-              <div className="text-gray-500">Loading preview...</div>
+              <div className="text-gray-500">No preview available for this grammar</div>
             )}
           </div>
         )}
