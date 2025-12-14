@@ -176,8 +176,8 @@ Our `capa.pegjs` grammar supports most core features:
 | Multiple Questions | `---` separator | ✅ |
 | Inline Feedback | `{{ feedback }}` | ✅ |
 | Hints | `\|\|hint\|\|` | ✅ |
+| Demand Hints | `{{ hint ==== hint ==== hint }}` | ✅ |
 | Paragraphs | Plain text | ✅ |
-| Demand Hints | `{{ hint ==== hint }}` | ❌ |
 | Scripts | `[code]...[/code]` | ❌ |
 | Variable Substitution | `$variable` | ❌ |
 

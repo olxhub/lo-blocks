@@ -21,6 +21,7 @@ block
   / header
   / question
   / explanation
+  / demandHints      // Must come before paragraph (starts with {{)
   / choiceBlock
   / checkboxBlock
   / numericalInput   // Must come before textInput (both start with =)
@@ -73,6 +74,31 @@ hint
 hintText
   = chars:[^\n\r|]+ {
       return trimText(chars);
+    }
+
+// Demand hints: {{ hint1 ==== hint2 ==== hint3 }}
+// Multi-line block with ==== separators between progressive hints
+demandHints
+  = '{{' _ newline hints:demandHintList '}}' _ newline {
+      return { type: "demandHints", hints: hints };
+    }
+
+demandHintList
+  = first:demandHintContent rest:(demandHintSeparator h:demandHintContent { return h; })* {
+      return [first, ...rest];
+    }
+
+demandHintSeparator
+  = _ '====' _ newline
+
+demandHintContent
+  = lines:demandHintLine+ {
+      return lines.join('\n').trim();
+    }
+
+demandHintLine
+  = !('====') !('}}') chars:[^\n\r]* newline {
+      return chars.join('');
     }
 
 // [explanation] ... [/explanation]
@@ -219,6 +245,7 @@ paragraphText
   = !('(' ('x' / ' ') ')')
     !('[' ('x' / ' ') ']')
     !('||')
+    !('{{')
     !('=')
     !('or=')
     !('not=')
