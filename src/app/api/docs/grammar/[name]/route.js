@@ -9,34 +9,26 @@ import { resolveSafeReadPath } from '@/lib/storage/providers/file';
 import { grammarInfo, PEG_CONTENT_EXTENSIONS } from '@/generated/parserRegistry';
 
 /**
- * Extract description from the comment block at the top of a .pegjs file.
+ * Extract metadata from YAML frontmatter in a .pegjs file.
+ * Format: /*--- ... ---*​/
  */
-function extractDescription(content) {
-  const blockMatch = content.match(/^\/\*\*?\s*\n?([\s\S]*?)\*\//);
-  if (blockMatch) {
-    const lines = blockMatch[1]
-      .split('\n')
-      .map(line => line.replace(/^\s*\*\s?/, '').trim())
-      .filter(line => line.length > 0);
-
-    const descLines = [];
-    for (const line of lines) {
-      if (line.match(/^[-=]{3,}/) || line.match(/^(Example|Future|TODO|Note):/i)) break;
-      descLines.push(line);
-    }
-    return descLines.join(' ').trim() || null;
+function extractMetadata(content) {
+  const frontmatterMatch = content.match(/^\/\*---\s*\n([\s\S]*?)\n---\*\//);
+  if (!frontmatterMatch) {
+    return {};
   }
 
-  const lineComments = [];
-  for (const line of content.split('\n')) {
-    const match = line.match(/^\/\/\s*(.*)/);
+  const yamlContent = frontmatterMatch[1];
+  const metadata = {};
+
+  for (const line of yamlContent.split('\n')) {
+    const match = line.match(/^\s*(\w+)\s*:\s*(.+?)\s*$/);
     if (match) {
-      lineComments.push(match[1]);
-    } else if (line.trim() && !line.startsWith('//')) {
-      break;
+      metadata[match[1]] = match[2];
     }
   }
-  return lineComments.join(' ').trim() || null;
+
+  return metadata;
 }
 
 export async function GET(request, { params }) {
@@ -77,7 +69,8 @@ export async function GET(request, { params }) {
     const fullPath = await resolveSafeReadPath(projectRoot, grammarFilePath);
     const content = await fs.readFile(fullPath, 'utf-8');
     result.grammar = content;
-    result.description = extractDescription(content);
+    const metadata = extractMetadata(content);
+    result.description = metadata.description || null;
   } catch (err) {
     if (err.code !== 'ENOENT') {
       console.warn(`[API /docs/grammar] Could not read ${grammarFilePath}: ${err.message}`);

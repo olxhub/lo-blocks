@@ -13,6 +13,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import RenderOLX from '@/components/common/RenderOLX';
 import CodeEditor from '@/components/common/CodeEditor';
+import PEGPreviewPane from '@/components/common/PEGPreviewPane';
 import Spinner from '@/components/common/Spinner';
 import StatePanel from '@/components/common/StatePanel';
 import { useReduxState } from '@/lib/state';
@@ -421,37 +422,48 @@ function GrammarExamplePreview({ example, grammarName, extension }) {
   }, [example.content, setEditedContent]);
 
   return (
-    <section className="bg-white rounded-lg border p-6">
-      <h3 className="text-lg font-semibold mb-4">Example</h3>
+    <section className="bg-white rounded-lg border overflow-hidden">
+      <h3 className="text-lg font-semibold p-4 pb-0">Example</h3>
 
-      <div className="border rounded-lg overflow-hidden">
-        <div className="px-3 py-2 bg-gray-100 border-b text-xs text-gray-500 flex justify-between items-center">
-          <span className="flex items-center gap-2">
-            Content Source
-            {isModified && (
-              <span className="text-amber-600 text-xs">(modified)</span>
-            )}
-          </span>
-          <span className="flex items-center gap-2">
-            {isModified && (
-              <button
-                onClick={handleReset}
-                className="px-2 py-0.5 text-xs bg-gray-200 hover:bg-gray-300 rounded"
-              >
-                Reset
-              </button>
-            )}
-            <span className="text-gray-400">{example.path}</span>
-          </span>
+      {/* Editor section */}
+      <div className="p-4">
+        <div className="border rounded-lg overflow-hidden">
+          <div className="px-3 py-2 bg-gray-100 border-b text-xs text-gray-500 flex justify-between items-center">
+            <span className="flex items-center gap-2">
+              Content Source
+              {isModified && (
+                <span className="text-amber-600 text-xs">(modified)</span>
+              )}
+            </span>
+            <span className="flex items-center gap-2">
+              {isModified && (
+                <button
+                  onClick={handleReset}
+                  className="px-2 py-0.5 text-xs bg-gray-200 hover:bg-gray-300 rounded"
+                >
+                  Reset
+                </button>
+              )}
+              <span className="text-gray-400">{example.path}</span>
+            </span>
+          </div>
+          <div className="bg-gray-50 overflow-hidden">
+            <CodeEditor
+              value={editedContent}
+              onChange={setEditedContent}
+              path={`example.${extension}`}
+              maxHeight="200px"
+            />
+          </div>
         </div>
-        <div className="bg-gray-50 overflow-hidden">
-          <CodeEditor
-            value={editedContent}
-            onChange={setEditedContent}
-            path={`example.${extension}`}
-            maxHeight="256px"
-          />
-        </div>
+      </div>
+
+      {/* Preview pane - reuses PEGPreviewPane component */}
+      <div className="border-t h-64">
+        <PEGPreviewPane
+          path={`example.${extension}`}
+          content={editedContent}
+        />
       </div>
     </section>
   );
@@ -489,7 +501,8 @@ function GrammarExampleTab({ example, grammarName, extension }) {
   }, [example.content, setEditedContent]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Editor section */}
       <section className="bg-white rounded-lg border overflow-hidden">
         <div className="px-4 py-3 bg-gray-50 border-b flex justify-between items-center">
           <span className="font-medium text-gray-700 flex items-center gap-2">
@@ -515,9 +528,17 @@ function GrammarExampleTab({ example, grammarName, extension }) {
             value={editedContent}
             onChange={setEditedContent}
             path={`example.${extension}`}
-            maxHeight="400px"
+            maxHeight="300px"
           />
         </div>
+      </section>
+
+      {/* Preview pane - reuses PEGPreviewPane component */}
+      <section className="bg-white rounded-lg border overflow-hidden h-80">
+        <PEGPreviewPane
+          path={`example.${extension}`}
+          content={editedContent}
+        />
       </section>
     </div>
   );

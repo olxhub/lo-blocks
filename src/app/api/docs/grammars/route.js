@@ -10,41 +10,35 @@ import { grammarInfo, PEG_CONTENT_EXTENSIONS } from '@/generated/parserRegistry'
 import { resolveSafeReadPath } from '@/lib/storage/providers/file';
 
 /**
- * Extract description from the comment block at the top of a .pegjs file.
- * Looks for block comments or line comments at the start.
+ * Extract metadata from YAML frontmatter in a .pegjs file.
+ * Format parallel to OLX:
+ *
+ * /×---
+ * description: This describes a conversation...
+ * category: specialized
+ * ---×/
+ *
+ * (× used above to avoid breaking this comment)
  */
-function extractDescription(content) {
-  // Try block comment first
-  const blockMatch = content.match(/^\/\*\*?\s*\n?([\s\S]*?)\*\//);
-  if (blockMatch) {
-    // Clean up the comment content
-    const lines = blockMatch[1]
-      .split('\n')
-      .map(line => line.replace(/^\s*\*\s?/, '').trim())
-      .filter(line => line.length > 0);
-
-    // Take first paragraph (up to empty line or specific markers)
-    const descLines = [];
-    for (const line of lines) {
-      // Stop at section headers or specific patterns
-      if (line.match(/^[-=]{3,}/) || line.match(/^(Example|Future|TODO|Note):/i)) break;
-      descLines.push(line);
-    }
-    return descLines.join(' ').trim() || null;
+function extractMetadata(content) {
+  // Look for YAML frontmatter in block comment: /*--- ... ---*/
+  const frontmatterMatch = content.match(/^\/\*---\s*\n([\s\S]*?)\n---\*\//);
+  if (!frontmatterMatch) {
+    return {};
   }
 
-  // Try line comments
-  const lineComments = [];
-  for (const line of content.split('\n')) {
-    const match = line.match(/^\/\/\s*(.*)/);
+  const yamlContent = frontmatterMatch[1];
+  const metadata = {};
+
+  // Simple YAML parsing for key: value pairs
+  for (const line of yamlContent.split('\n')) {
+    const match = line.match(/^\s*(\w+)\s*:\s*(.+?)\s*$/);
     if (match) {
-      lineComments.push(match[1]);
-    } else if (line.trim() && !line.startsWith('//')) {
-      break; // Stop at first non-comment line
+      metadata[match[1]] = match[2];
     }
   }
 
-  return lineComments.join(' ').trim() || null;
+  return metadata;
 }
 
 /**
@@ -74,11 +68,12 @@ async function generateGrammarDocs() {
       exampleCount: 0
     };
 
-    // Read grammar file to extract description
+    // Read grammar file to extract metadata
     try {
       const fullPath = await resolveSafeReadPath(projectRoot, grammarFilePath);
       const content = await fs.readFile(fullPath, 'utf-8');
-      grammar.description = extractDescription(content);
+      const metadata = extractMetadata(content);
+      grammar.description = metadata.description || null;
     } catch (err) {
       // Grammar file might not exist (stale registry entry)
       if (err.code !== 'ENOENT') {

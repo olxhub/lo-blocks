@@ -1,3 +1,7 @@
+/*---
+description: Human-readable format for dialogue-driven scenarios, simulations, and training modules
+category: specialized
+---*/
 // src/components/blocks/Chat/chat.pegjs
 /*
  * Conversation Format Grammar
