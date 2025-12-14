@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { getParserForExtension, getPreviewPath } from '@/generated/parserRegistry';
+import { getParserForExtension } from '@/generated/parserRegistry';
 import RenderOLX from '@/components/common/RenderOLX';
 
 interface PEGPreviewPaneProps {
@@ -39,37 +39,40 @@ export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
   const [previewError, setPreviewError] = useState<string | null>(null);
 
   const ext = useMemo(() => getExtension(path), [path]);
-  const previewPath = useMemo(() => getPreviewPath(ext), [ext]);
 
-  // Load preview OLX file if it exists
+  // Load grammar metadata including preview template
   useEffect(() => {
-    if (!previewPath) {
+    if (!ext) {
       setPreviewOLX(null);
       setPreviewError(null);
       return;
     }
 
-    fetch(`/api/preview-olx?path=${encodeURIComponent(previewPath)}`)
+    fetch(`/api/docs/grammar/${encodeURIComponent(ext)}`)
       .then(res => {
         if (!res.ok) {
           if (res.status === 404) {
             setPreviewOLX(null);
-            setPreviewError(null); // No error, just no preview available
+            setPreviewError(null); // No error, just no grammar found
           } else {
-            throw new Error(`Failed to load preview: ${res.status}`);
+            throw new Error(`Failed to load grammar: ${res.status}`);
           }
           return null;
         }
-        return res.text();
+        return res.json();
       })
-      .then(text => {
-        if (text) setPreviewOLX(text);
+      .then(data => {
+        if (data?.grammar?.preview) {
+          setPreviewOLX(data.grammar.preview);
+        } else {
+          setPreviewOLX(null); // No preview available for this grammar
+        }
       })
       .catch(err => {
         setPreviewError(err.message);
         setPreviewOLX(null);
       });
-  }, [previewPath]);
+  }, [ext]);
 
   const parseResult = useMemo((): ParseResult | null => {
     if (!content.trim()) return null;
@@ -104,11 +107,11 @@ export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
     if (!previewOLX || !content) return null;
 
     if (!previewOLX.includes('{{CONTENT}}')) {
-      return { error: `Preview OLX is missing {{CONTENT}} placeholder. File: ${previewPath}` };
+      return { error: `Preview OLX is missing {{CONTENT}} placeholder for grammar: ${ext}` };
     }
 
     return { olx: previewOLX.replace('{{CONTENT}}', content) };
-  }, [previewOLX, content, previewPath]);
+  }, [previewOLX, content, ext]);
 
   return (
     <div className="h-full flex flex-col">
@@ -124,7 +127,7 @@ export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
                 ? 'text-gray-500 hover:text-gray-700'
                 : 'text-gray-300 cursor-not-allowed'
           }`}
-          title={hasPreview ? undefined : 'No preview available (create ' + (previewPath || 'preview.olx') + ')'}
+          title={hasPreview ? undefined : `No preview available for ${ext}`}
         >
           Preview
         </button>
