@@ -98,12 +98,14 @@ ${grammarInfoEntries}
 };
 
 export function getParserForExtension(ext: string): PEGParser | undefined {
-  const normalized = ext.replace(/^\\./, '').toLowerCase();
+  // Case-sensitive - extensions like textHighlightpeg preserve case
+  const normalized = ext.replace(/^\\./, '');
   return parserRegistry[normalized as PEGContentExtension];
 }
 
 export function isPEGContentExtension(ext: string): ext is PEGContentExtension {
-  const normalized = ext.replace(/^\\./, '').toLowerCase();
+  // Case-sensitive - extensions like textHighlightpeg preserve case
+  const normalized = ext.replace(/^\\./, '');
   return PEG_CONTENT_EXTENSIONS.includes(normalized as PEGContentExtension);
 }
 
@@ -113,7 +115,8 @@ export function isPEGContentExtension(ext: string): ext is PEGContentExtension {
  * Returns the path relative to project root (e.g., "src/components/blocks/Chat/chat.pegjs.preview.olx")
  */
 export function getPreviewPath(ext: string): string | undefined {
-  const normalized = ext.replace(/^\\./, '').toLowerCase();
+  // Case-sensitive - extensions like textHighlightpeg preserve case
+  const normalized = ext.replace(/^\\./, '');
   const info = grammarInfo[normalized as PEGContentExtension];
   if (!info) return undefined;
   // Convert @/foo to src/foo for file system access
