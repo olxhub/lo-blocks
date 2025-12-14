@@ -1,6 +1,13 @@
 // src/app/docs/page.jsx
 //
 // Block and Grammar documentation page.
+//
+// TODO: This file is ~1000 lines. Consider splitting into:
+//   - DocsPageSidebar.jsx (~150 lines) - BlockSidebar component
+//   - DocsBlockComponents.jsx (~200 lines) - QuickReference, ExamplePreview, OverviewTab, etc.
+//   - DocsGrammarComponents.jsx (~200 lines) - GrammarQuickReference, GrammarExamplePreview, etc.
+//   - This file (~400 lines) - main page, routing, state management
+//
 // NOTE: Currently grammars are shown inline with blocks in a "Grammars" category.
 // As we add more resource types (templates, archives, etc.), consider migrating
 // to a tabbed interface: "Blocks | Grammars | Templates | ..."

@@ -3,6 +3,11 @@
 // Grammar documentation: metadata, examples, READMEs.
 // Used by API routes and directly by tools/LLMs.
 //
+// TODO: Consider extracting shared helpers between getGrammarMetadata and
+// getAllGrammarsMetadata (path construction, README discovery, file loading).
+//
+// the duplication is ~80 lines (but the file is still readable).
+//
 import { promises as fs } from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
