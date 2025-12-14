@@ -6,6 +6,7 @@ import { useFieldSelector } from '@/lib/state';
 import { CORRECTNESS } from '@/lib/blocks';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import { renderCompiledKids } from '@/lib/render';
+import { DisplayError } from '@/lib/util/debug';
 
 /**
  * Explanation displays its children conditionally based on grader state.
@@ -27,20 +28,35 @@ function _Explanation(props) {
   });
   const targetId = graderIds[0];
 
-  // If no grader found, still render but default to hidden (unless showWhen=always)
+  // Fail fast if no grader found
+  if (!targetId) {
+    return (
+      <DisplayError
+        props={props}
+        id={`${id}_no_grader`}
+        name="Explanation"
+        message="No grader found. Explanation must be nested inside a grader."
+        technical={{
+          hint: 'Place Explanation inside a grader block (e.g., NumericalGrader, KeyGrader).',
+          target: target || '(none specified)',
+          infer: infer ?? 'default (parents, kids)',
+          blockId: id
+        }}
+      />
+    );
+  }
+
   let correctness = CORRECTNESS.UNSUBMITTED;
-  if (targetId) {
-    try {
-      const correctField = state.componentFieldByName(props, targetId, 'correct');
-      correctness = useFieldSelector(
-        props,
-        correctField,
-        { id: targetId, fallback: CORRECTNESS.UNSUBMITTED, selector: s => s?.correct }
-      );
-      if (correctness == null) correctness = CORRECTNESS.UNSUBMITTED;
-    } catch (e) {
-      correctness = CORRECTNESS.UNSUBMITTED;
-    }
+  try {
+    const correctField = state.componentFieldByName(props, targetId, 'correct');
+    correctness = useFieldSelector(
+      props,
+      correctField,
+      { id: targetId, fallback: CORRECTNESS.UNSUBMITTED, selector: s => s?.correct }
+    );
+    if (correctness == null) correctness = CORRECTNESS.UNSUBMITTED;
+  } catch (e) {
+    correctness = CORRECTNESS.UNSUBMITTED;
   }
 
   // Determine visibility

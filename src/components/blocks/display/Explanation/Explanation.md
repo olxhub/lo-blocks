@@ -112,9 +112,13 @@ The answer is 2x because...
 
 **lo-blocks OLX equivalent:**
 ```xml
-<NumericalGrader answer="2x">
+<KeyGrader>
   <p>What is the derivative of x²?</p>
-  <TextInput />
-  <Explanation>The answer is 2x because...</Explanation>
-</NumericalGrader>
+  <ChoiceInput>
+    <Key>2x</Key>
+    <Distractor>x²</Distractor>
+    <Distractor>2x²</Distractor>
+  </ChoiceInput>
+  <Explanation>The answer is 2x because of the power rule: d/dx(x^n) = nx^(n-1).</Explanation>
+</KeyGrader>
 ```
