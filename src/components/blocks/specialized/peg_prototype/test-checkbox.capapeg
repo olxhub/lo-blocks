@@ -1,0 +1,13 @@
+Checkbox Example
+===
+
+>>Which of the following are prime numbers? Select all that apply.<<
+
+[x] 2
+[x] 3
+[ ] 4
+[x] 5
+[ ] 6
+[x] 7
+
+||Prime numbers are only divisible by 1 and themselves.||

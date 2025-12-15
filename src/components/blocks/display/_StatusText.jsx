@@ -3,31 +3,22 @@
 import React from 'react';
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
-import { inferRelatedNodes } from '@/lib/blocks/olxdom';
+import { getGrader } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
 
 function _StatusText(props) {
-  const { id, target, infer, field = 'message' } = props;
-  const ids = inferRelatedNodes(props, {
-    selector: n => n.blueprint?.isGrader,
-    infer,
-    targets: target
-  });
-  const targetId = ids[0];
+  const { id, field = 'message' } = props;
 
-  if (!targetId) {
+  let targetId;
+  try {
+    targetId = getGrader(props);
+  } catch (e) {
     return (
       <DisplayError
         props={props}
-        id={`${id}_no_grader`}
+        id={`${id}_grader_error`}
         name="StatusText"
-        message="No grader found. StatusText needs a grader block (with isGrader=true) to display feedback."
-        technical={{
-          hint: 'StatusText looks for graders in parent/child nodes. Use inside CapaProblem, or specify a target="grader_id".',
-          target: target || '(none specified)',
-          infer: infer ?? 'default (parents, kids)',
-          blockId: id
-        }}
+        message={e.message}
       />
     );
   }

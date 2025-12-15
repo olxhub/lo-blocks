@@ -1,0 +1,22 @@
+Multi-Question Example
+===
+
+>>What color is the sky on a clear day?<<
+
+( ) Green
+(x) Blue
+( ) Red
+
+---
+
+>>What color is grass?<<
+
+(x) Green
+( ) Blue
+( ) Red
+
+---
+
+>>What is 1 + 1?<<
+
+=2

@@ -1,0 +1,15 @@
+Demand Hints Example
+===
+
+>>What is the derivative of x^2?<<
+
+=2x
+or=2*x
+
+{{
+Think about the power rule: d/dx(x^n) = n*x^(n-1)
+====
+For x^2, n=2, so the derivative is 2*x^(2-1) = 2*x^1 = 2x
+====
+The answer is 2x
+}}

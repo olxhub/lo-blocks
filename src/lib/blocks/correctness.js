@@ -21,3 +21,50 @@ export const CORRECTNESS = {
   INVALID: 'invalid'
 };
 
+/**
+ * Visibility handlers for conditional content (Explanation, Answer, etc.)
+ *
+ * Open edX supports these show_answer options:
+ * - "always"                      - Always show
+ * - "answered"                    - After valid submission (not unsubmitted or invalid)
+ * - "attempted"                   - Alias for answered
+ * - "correct"                     - Only when correct
+ * - "never"                       - Never show
+ *
+ * Future (require additional CapaProblem-level state):
+ * - "closed"                      - When problem is closed
+ * - "finished"                    - When course/section is finished
+ * - "past_due"                    - After due date
+ * - "correct_or_past_due"         - When correct OR past due
+ * - "after_all_attempts"          - After max attempts used
+ * - "after_all_attempts_or_correct" - After all attempts OR correct
+ * - "attempted_no_past_due"       - Attempted but not past due
+ */
+export const VISIBILITY_HANDLERS = {
+  always: () => true,
+  never: () => false,
+  answered: ({ correctness }) =>
+    correctness !== CORRECTNESS.UNSUBMITTED && correctness !== CORRECTNESS.INVALID,
+  attempted: ({ correctness }) =>
+    correctness !== CORRECTNESS.UNSUBMITTED && correctness !== CORRECTNESS.INVALID,
+  correct: ({ correctness }) => correctness === CORRECTNESS.CORRECT,
+};
+
+/**
+ * Compute visibility based on showWhen option and problem state.
+ *
+ * @param {string} showWhen - Visibility option (must be key in VISIBILITY_HANDLERS)
+ * @param {Object} state - Problem state
+ * @param {string} state.correctness - Current CORRECTNESS state from grader
+ * @returns {boolean} - Whether content should be visible
+ * @throws {Error} - If showWhen is not a valid option
+ */
+export function computeVisibility(showWhen, { correctness /* dueDate, attempts, maxAttempts */ } = {}) {
+  const handler = VISIBILITY_HANDLERS[showWhen];
+  if (!handler) {
+    const validOptions = Object.keys(VISIBILITY_HANDLERS).join(', ');
+    throw new Error(`Invalid showWhen="${showWhen}". Valid options: ${validOptions}`);
+  }
+  return handler({ correctness });
+}
+

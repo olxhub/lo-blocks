@@ -1,33 +1,23 @@
 // src/components/blocks/_Correctness.jsx
 'use client';
 import React from 'react';
-import { CORRECTNESS } from '@/lib/blocks';
+import { CORRECTNESS, getGrader } from '@/lib/blocks';
 import { useFieldSelector } from '@/lib/state';
-import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import { DisplayError } from '@/lib/util/debug';
 
 function _Correctness(props) {
-  const { id, target, infer, fields } = props;
-  const ids = inferRelatedNodes(props, {
-    selector: n => n.blueprint?.isGrader,
-    infer,
-    targets: target
-  });
-  const targetId = ids[0];
+  const { id, fields } = props;
 
-  if (!targetId) {
+  let targetId;
+  try {
+    targetId = getGrader(props);
+  } catch (e) {
     return (
       <DisplayError
         props={props}
-        id={`${id}_no_grader`}
+        id={`${id}_grader_error`}
         name="Correctness"
-        message="No grader found. Correctness indicator needs a grader block (with isGrader=true)."
-        technical={{
-          hint: 'Correctness looks for graders in parent/child nodes. Use inside CapaProblem, or specify a target="grader_id".',
-          target: target || '(none specified)',
-          infer: infer ?? 'default (parents, kids)',
-          blockId: id
-        }}
+        message={e.message}
       />
     );
   }

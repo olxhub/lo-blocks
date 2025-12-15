@@ -1,58 +1,262 @@
 /*---
-description: CAPA-style multiple choice problems (prototype)
+description: CAPA-style problem format (Open edX markdown compatible)
 ---*/
 {
   function trimText(chars) {
     return chars.join("").trim();
   }
+
+  function trimString(str) {
+    return str.trim();
+  }
 }
 
 document
-  = _ blocks:(block _)* {
+  = __ blocks:(block __)* {
       return blocks.map(b => b[0]);
     }
 
 block
-  = header
+  = questionSeparator
+  / header
   / question
+  / explanation
+  / demandHints      // Must come before paragraph (starts with {{)
   / choiceBlock
+  / checkboxBlock
+  / numericalInput   // Must come before textInput (both start with =)
+  / textInput
+  / dropdown
   / hint
   / paragraph
 
+// --- marks separation between questions in a multi-question problem
+questionSeparator
+  = '---' _ newline {
+      return { type: "separator" };
+    }
+
 header
-  = line:lineText newline '===' newline {
+  = line:headerText newline '===' '='* _ newline {
       return { type: "h3", content: line };
     }
 
+// Header text can contain special chars since it's followed by ===
+headerText
+  = chars:[^\n\r]+ {
+      return trimText(chars);
+    }
+
 question
-  = '>>' q:lineText '<<' newline {
+  = '>>' q:questionText '<<' _ newline {
       return { type: "question", label: q };
     }
 
+// Question text can contain dropdown inline
+questionText
+  = parts:(dropdown / questionChar)+ {
+      // If there's a dropdown, return structured; otherwise just text
+      const hasDropdown = parts.some(p => typeof p === 'object');
+      if (hasDropdown) {
+        return parts;
+      }
+      return parts.join('').trim();
+    }
+
+questionChar
+  = char:[^\n\r<>\[\]] { return char; }
+
 hint
-  = '||' h:lineText '||' newline {
+  = '||' h:hintText '||' _ newline {
       return { type: "hint", content: h };
     }
 
+hintText
+  = chars:[^\n\r|]+ {
+      return trimText(chars);
+    }
+
+// Demand hints: {{ hint1 ==== hint2 ==== hint3 }}
+// Multi-line block with ==== separators between progressive hints
+demandHints
+  = '{{' _ newline hints:demandHintList '}}' _ newline {
+      return { type: "demandHints", hints: hints };
+    }
+
+demandHintList
+  = first:demandHintContent rest:(demandHintSeparator h:demandHintContent { return h; })* {
+      return [first, ...rest];
+    }
+
+demandHintSeparator
+  = _ '====' _ newline
+
+demandHintContent
+  = lines:demandHintLine+ {
+      return lines.join('\n').trim();
+    }
+
+demandHintLine
+  = !('====') !('}}') chars:[^\n\r]* newline {
+      return chars.join('');
+    }
+
+// [explanation] ... [/explanation]
+explanation
+  = '[explanation]' _ newline content:explanationContent '[/explanation]' _ newline {
+      return { type: "explanation", content: content.trim() };
+    }
+
+explanationContent
+  = chars:(!('[/explanation]') .)* {
+      return chars.map(c => c[1]).join('');
+    }
+
+// Multiple choice: (x) or ( )
 choiceBlock
-  = choices:(choiceLine+ newline?) {
+  = choices:choiceLine+ {
       return { type: "choices", options: choices };
     }
 
 choiceLine
-  = c:('(' marker:('x' / ' ') ')' _ t:lineText newline {
-      return { selected: marker === 'x', text: t };
-    })
+  = '(' marker:('x' / ' ') ')' _ t:choiceText feedback:inlineFeedback? _ newline {
+      const result = { selected: marker === 'x', text: t };
+      if (feedback) result.feedback = feedback;
+      return result;
+    }
+
+// Checkbox: [x] or [ ]
+checkboxBlock
+  = choices:checkboxLine+ {
+      return { type: "checkboxes", options: choices };
+    }
+
+checkboxLine
+  = '[' marker:('x' / ' ') ']' _ t:choiceText feedback:inlineFeedback? _ newline {
+      const result = { checked: marker === 'x', text: t };
+      if (feedback) result.feedback = feedback;
+      return result;
+    }
+
+// Choice/checkbox text - stops before {{ (feedback) or newline
+choiceText
+  = chars:[^\n\r{}]+ {
+      return trimText(chars);
+    }
+
+// Inline feedback: {{ feedback text }}
+inlineFeedback
+  = '{{' content:feedbackContent '}}' {
+      return content.trim();
+    }
+
+feedbackContent
+  = chars:[^}]+ {
+      return chars.join('');
+    }
+
+// Text input: = answer, or= alternative, not= wrong answer with feedback
+textInput
+  = primary:textAnswer alternatives:textAlternative* {
+      const result = { type: "textInput", answer: primary.answer };
+      if (primary.feedback) result.feedback = primary.feedback;
+      if (alternatives.length > 0) {
+        result.alternatives = alternatives.filter(a => a.type === 'or').map(a => a.answer);
+        const wrongAnswers = alternatives.filter(a => a.type === 'not');
+        if (wrongAnswers.length > 0) {
+          result.wrongAnswers = wrongAnswers.map(a => ({ answer: a.answer, feedback: a.feedback }));
+        }
+      }
+      return result;
+    }
+
+textAnswer
+  = '=' _ answer:answerText feedback:inlineFeedback? _ newline {
+      const result = { answer: answer };
+      if (feedback) result.feedback = feedback;
+      return result;
+    }
+
+textAlternative
+  = 'or=' _ answer:answerText _ newline {
+      return { type: 'or', answer: answer };
+    }
+  / 'not=' _ answer:answerText feedback:inlineFeedback? _ newline {
+      return { type: 'not', answer: answer, feedback: feedback };
+    }
+
+// Numerical input: = number, = number +- tolerance, = [min, max]
+numericalInput
+  = '=' _ value:number _ tolerance:tolerance? _ newline {
+      const result = { type: "numericalInput", value: value };
+      if (tolerance) result.tolerance = tolerance;
+      return result;
+    }
+  / '=' _ '[' _ min:number _ ',' _ max:number _ ']' _ newline {
+      return { type: "numericalInput", range: { min: min, max: max } };
+    }
+
+tolerance
+  = '+-' _ value:number { return value; }
+
+number
+  = sign:'-'? digits:[0-9]+ decimal:('.' [0-9]+)? {
+      const str = (sign || '') + digits.join('') + (decimal ? '.' + decimal[1].join('') : '');
+      return parseFloat(str);
+    }
+
+// Answer text for text input (not numerical)
+answerText
+  = chars:[^\n\r{}]+ {
+      return trimText(chars);
+    }
+
+// Dropdown: [[option1, (correct), option2]]
+dropdown
+  = '[[' options:dropdownOptions ']]' {
+      return { type: "dropdown", options: options };
+    }
+
+dropdownOptions
+  = first:dropdownOption rest:(',' _ opt:dropdownOption { return opt; })* {
+      return [first, ...rest];
+    }
+
+dropdownOption
+  = _ '(' text:dropdownText ')' _ {
+      return { text: text, correct: true };
+    }
+  / _ text:dropdownText _ {
+      return { text: text, correct: false };
+    }
+
+dropdownText
+  = chars:[^\n\r,\[\]()]+ {
+      return trimText(chars);
+    }
 
 paragraph
-  = t:lineText newline {
+  = t:paragraphText newline {
       return { type: "p", content: t };
     }
 
-lineText
-  = chars:[^\n\r<>\[\]()|]+ {
+// Paragraph text - must not start with special markers
+paragraphText
+  = !('(' ('x' / ' ') ')')
+    !('[' ('x' / ' ') ']')
+    !('||')
+    !('{{')
+    !('=')
+    !('or=')
+    !('not=')
+    !('---')
+    !('[explanation]')
+    !('[/explanation]')
+    !('>>')
+    chars:[^\n\r]+ {
       return trimText(chars);
     }
 
 newline = '\r\n' / '\n' / '\r'
 _       = [ \t]*
+__      = [ \t\n\r]*

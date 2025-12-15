@@ -1,4 +1,30 @@
 // src/components/blocks/CapaProblem/CapaProblem.js
+
+/*
+ * TODO: This codebase (CapaProblem, _CapaProblem) should be
+ * re-architected at some point. It started as scaffolding to develop
+ * inputs and graders, and has evolved incrementally without a proper
+ * rethink.
+ *
+ * The major questions are about:
+ * - What should be done at parse time versus render time?
+ * - Specifically, when and how should controls / chrome like
+ *   explanations, buttons, etc. be injected?
+ * - To what extent should we have a default look-and-feel?
+ * - Which OLX commands should lead to rendering versus be
+ *   treated as data (e.g. <Explanation>)?
+ * - Which chrome is associated with each grader versus the
+ *   whole problem? Submit once per grader? All at once?
+ * Etc.
+ *
+ * This was difficult to do in the early system, but the frameworks
+ * for graders, inputs, and parsing are thoughtful and robust. That
+ * means we can do a redesign whenever we get around to it.
+ *
+ * However, CapaProblem itself should not be treated as especially
+ * thoughtful or robust itself. It is not.
+ */
+
 import { dev, reduxId } from '@/lib/blocks';
 import { isBlockTag } from '@/lib/util';
 import { COMPONENT_MAP } from '@/components/componentMap';

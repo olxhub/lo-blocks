@@ -54,17 +54,14 @@ function questionToOlx(question, index) {
     return `        <${tag} id="${optionId}">${escapeXml(label)}</${tag}>`;
   }).join('\n');
 
-  // Put explanation in a comment for now (Explanation block not yet implemented)
-  const explanationComment = `<!-- Explanation: ${escapeXml(explanation)} -->`;
-
   return `  <CapaProblem id="${problemId}" title="${escapeXml(title)}">
-    <p>${escapeXml(stem)}</p>
     <KeyGrader id="${graderId}">
+      <p>${escapeXml(stem)}</p>
       <ChoiceInput id="${inputId}">
 ${choicesXml}
       </ChoiceInput>
+      <Explanation showWhen="answered">${escapeXml(explanation)}</Explanation>
     </KeyGrader>
-    ${explanationComment}
   </CapaProblem>`;
 }
 

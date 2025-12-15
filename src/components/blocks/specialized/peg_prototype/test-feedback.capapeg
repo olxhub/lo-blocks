@@ -1,0 +1,9 @@
+Inline Feedback Example
+===
+
+>>What is the largest planet in our solar system?<<
+
+( ) Earth {{Earth is actually a relatively small planet.}}
+( ) Mars {{Mars is smaller than Earth.}}
+(x) Jupiter {{Correct! Jupiter is the largest planet.}}
+( ) Venus {{Venus is similar in size to Earth.}}
