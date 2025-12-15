@@ -1,27 +1,81 @@
 // src/components/blocks/CapaProblem/_CapaProblem.jsx
 'use client';
-import React from 'react';
-import { CORRECTNESS } from '@/lib/blocks';
+import React, { useEffect } from 'react';
+import { CORRECTNESS, aggregateCorrectness } from '@/lib/blocks';
+import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import * as state from '@/lib/state';
 import { renderCompiledKids } from '@/lib/render';
 import { renderBlock } from '@/lib/renderHelpers';
-import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import { DisplayError } from '@/lib/util/debug';
 
 export default function _CapaProblem(props) {
-  const { id, kids = [] } = props;
+  const { id, kids = [], fields } = props;
 
   // First render problem content to populate dynamic OLX DOM (renderedKids)
   const content = renderCompiledKids({ ...props, kids });
 
-  // Then infer grader targets from the now-populated nodeInfo
-  const graderIds = inferRelatedNodes(props, {
-    selector: n => n.blueprint?.isGrader,
-    infer: props.infer,
+  // Find child graders (not self - we search kids only to avoid finding parent CapaProblems)
+  const childGraderIds = inferRelatedNodes(props, {
+    selector: n => n.blueprint?.isGrader && n.node?.id !== id,
+    infer: ['kids'],
     targets: props.target
   });
 
-  if (graderIds.length === 0) {
+  // For rendering header/footer, we don't pass target - they'll find CapaProblem as their grader
+  const headerNode = renderBlock(props, 'Correctness', { id: `${id}_header_status` });
+  const footerNode = renderBlock(props, 'CapaButton', { id: `${id}_footer_controls`, target: childGraderIds.join(',') });
+
+  const title = props.title || props.displayName || props.id || 'Problem';
+
+  // Aggregate correctness from all child graders
+  // Note: We need a valid field even if empty to satisfy hook rules
+  const hasChildGraders = childGraderIds.length > 0;
+  const sampleGraderId = childGraderIds[0] || id; // Use own id as fallback for field lookup
+
+  const correctField = state.componentFieldByName(props, sampleGraderId, 'correct');
+  const childCorrectnessValues = state.useAggregate(
+    props,
+    correctField,
+    hasChildGraders ? childGraderIds : [],
+    {
+      fallback: CORRECTNESS.UNSUBMITTED,
+      aggregate: (values) => values.map(v => v?.correct ?? v ?? CORRECTNESS.UNSUBMITTED)
+    }
+  );
+
+  const correctness = hasChildGraders
+    ? aggregateCorrectness(childCorrectnessValues)
+    : CORRECTNESS.UNSUBMITTED;
+
+  // Aggregate messages from child graders (combine non-empty messages)
+  const messageField = state.componentFieldByName(props, sampleGraderId, 'message');
+  const childMessages = state.useAggregate(
+    props,
+    messageField,
+    hasChildGraders ? childGraderIds : [],
+    {
+      fallback: '',
+      aggregate: (values) => values.map(v => v?.message ?? v ?? '')
+    }
+  );
+  const message = childMessages.filter(m => m).join(' ');
+
+  // Update CapaProblem's own fields with aggregated values
+  useEffect(() => {
+    if (fields?.correct) {
+      state.updateReduxField(props, fields.correct, correctness);
+    }
+  }, [correctness, props.id, fields]);
+
+  useEffect(() => {
+    if (fields?.message) {
+      state.updateReduxField(props, fields.message, message);
+    }
+  }, [message, props.id, fields]);
+
+  // No child graders is valid if this is a display-only problem or a survey
+  // But typically we want at least one grader
+  if (childGraderIds.length === 0 && !props.allowEmpty) {
     return (
       <DisplayError
         props={props}
@@ -33,31 +87,9 @@ export default function _CapaProblem(props) {
     );
   }
 
-  const target = graderIds.join(',');
-  const headerNode = renderBlock(props, 'Correctness', { id: `${id}_header_status`, target });
-  const footerNode = renderBlock(props, 'CapaButton', { id: `${id}_footer_controls`, target });
-
-  const title = props.title || props.displayName || props.id || 'Problem';
-
-  // Compute header color based on correctness of first grader (via state hooks)
-  const firstGraderId = graderIds[0];
-  let correctness = CORRECTNESS.UNSUBMITTED;
-  if (firstGraderId) {
-    try {
-      const correctField = state.componentFieldByName(props, firstGraderId, 'correct');
-      correctness = state.useFieldSelector(
-        props,
-        correctField,
-        { id: firstGraderId, fallback: CORRECTNESS.UNSUBMITTED, selector: s => s?.correct }
-      );
-      if (correctness == null) correctness = CORRECTNESS.UNSUBMITTED;
-    } catch (e) {
-      // If field not available, default to UNSUBMITTED
-      correctness = CORRECTNESS.UNSUBMITTED;
-    }
-  }
   const headerStateClass =
     correctness === CORRECTNESS.CORRECT ? 'lo-problem__header--correct' :
+    correctness === CORRECTNESS.PARTIALLY_CORRECT ? 'lo-problem__header--partial' :
     correctness === CORRECTNESS.INVALID ? 'lo-problem__header--invalid' :
     correctness === CORRECTNESS.INCORRECT ? 'lo-problem__header--incorrect' :
     '';

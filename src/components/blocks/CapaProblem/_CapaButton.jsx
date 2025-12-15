@@ -33,14 +33,16 @@ export default function _CapaButton(props) {
   const statusIconId = `${id}_status_icon`;
   const statusTextId = `${id}_status_text`;
 
+  // ActionButton needs target to trigger child grader actions
+  // Correctness/StatusText find CapaProblem (metagrader) via parent inference
   return (
     <div className="lo-capabutton">
       <div className="lo-capabutton__primary">
         {renderBlock(props, 'ActionButton', { id: buttonId, label, target })}
       </div>
       <div className="lo-capabutton__status">
-        {renderBlock(props, 'Correctness', { id: statusIconId, target })}
-        {renderBlock(props, 'StatusText', { id: statusTextId, target, field: 'message' })}
+        {renderBlock(props, 'Correctness', { id: statusIconId })}
+        {renderBlock(props, 'StatusText', { id: statusTextId, field: 'message' })}
       </div>
     </div>
   );

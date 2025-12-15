@@ -28,7 +28,13 @@
 import { dev, reduxId } from '@/lib/blocks';
 import { isBlockTag } from '@/lib/util';
 import { COMPONENT_MAP } from '@/components/componentMap';
+import * as state from '@/lib/state';
 import _CapaProblem from './_CapaProblem';
+
+// CapaProblem acts as a "metagrader" - it aggregates correctness from child graders.
+// This allows Correctness/StatusText inside CapaProblem to find CapaProblem itself
+// as their grader and display aggregate state.
+export const fields = state.fields(['correct', 'message']);
 
 // CapaProblem parser:
 // 1. Assigns scoped IDs to descendant inputs and graders
@@ -158,7 +164,9 @@ const CapaProblem = dev({
   staticKids: capaParser.staticKids,
   name: 'CapaProblem',
   description: 'Interactive problem container with inputs, grading, and automatic check/status buttons',
-  component: _CapaProblem
+  component: _CapaProblem,
+  fields,
+  isGrader: true  // Metagrader: aggregates child grader states
 });
 
 export default CapaProblem;

@@ -68,3 +68,54 @@ export function computeVisibility(showWhen, { correctness /* dueDate, attempts, 
   return handler({ correctness });
 }
 
+/**
+ * Aggregate correctness from multiple graders (for CapaProblem metagrader pattern).
+ *
+ * @param {string[]} correctnessValues - Array of CORRECTNESS values from child graders
+ * @returns {string} - Aggregated CORRECTNESS value
+ */
+export function aggregateCorrectness(correctnessValues) {
+  if (!correctnessValues || correctnessValues.length === 0) {
+    return CORRECTNESS.UNSUBMITTED;
+  }
+
+  const counts = {
+    correct: 0,
+    incorrect: 0,
+    unsubmitted: 0,
+    invalid: 0,
+    other: 0
+  };
+
+  for (const c of correctnessValues) {
+    if (c === CORRECTNESS.CORRECT) counts.correct++;
+    else if (c === CORRECTNESS.INCORRECT) counts.incorrect++;
+    else if (c === CORRECTNESS.UNSUBMITTED) counts.unsubmitted++;
+    else if (c === CORRECTNESS.INVALID) counts.invalid++;
+    else counts.other++;
+  }
+
+  const total = correctnessValues.length;
+
+  // All unsubmitted → unsubmitted
+  if (counts.unsubmitted === total) return CORRECTNESS.UNSUBMITTED;
+
+  // Any invalid → invalid (validation errors block progress)
+  if (counts.invalid > 0) return CORRECTNESS.INVALID;
+
+  // All correct → correct
+  if (counts.correct === total) return CORRECTNESS.CORRECT;
+
+  // Mix of correct and incorrect → partially correct
+  if (counts.correct > 0 && counts.incorrect > 0) return CORRECTNESS.PARTIALLY_CORRECT;
+
+  // All incorrect → incorrect
+  if (counts.incorrect === total) return CORRECTNESS.INCORRECT;
+
+  // Some unsubmitted with some answered → incomplete
+  if (counts.unsubmitted > 0) return CORRECTNESS.INCOMPLETE;
+
+  // Fallback
+  return CORRECTNESS.UNSUBMITTED;
+}
+

@@ -188,12 +188,16 @@ export function getAllNodes(nodeInfo, { selector = () => true } = {}) {
  *   - targets:  string | string[] | comma string | undefined
  *       - Accepts array, comma-separated string, or single string.
  *       - true/false/null/undefined are treated as []
+ *   - closest:  boolean (default false)
+ *       - If true, return only the nearest match in each direction (first parent, first kid)
+ *       - Useful when you want the immediate grader, not all graders up the tree
  * @returns {Object[]} Array of nodeInfos matching selector/inference/targets, deduped by id
  */
 export function inferRelatedNodes(props, {
   selector,
   infer,
   targets,
+  closest = false,
 } = {}) {
   const { nodeInfo } = props;
   if (!nodeInfo) { console.log(props); throw new Error("inferRelatedNodes: props.nodeInfo is required"); };
@@ -209,32 +213,43 @@ export function inferRelatedNodes(props, {
   // Extract each group separately
   const explicitTargets = targetIds ? targetIds : [];
 
-  const parents = inferModes.includes('parents')
-        ? getParents(nodeInfo, { selector, includeRoot: false }).map(n => getNodeId(n, 'inferRelatedNodes (parents)'))
-        : [];
+  let parents = [];
+  if (inferModes.includes('parents')) {
+    const allParents = getParents(nodeInfo, { selector, includeRoot: false });
+    // getParents returns nearest-first, so [0] is the closest parent
+    parents = closest && allParents.length > 0
+      ? [getNodeId(allParents[0], 'inferRelatedNodes (parents)')]
+      : allParents.map(n => getNodeId(n, 'inferRelatedNodes (parents)'));
+  }
 
-  const kids = inferModes.includes('kids')
-        ? getKidsBFS(nodeInfo, { selector, includeRoot: false }).map(n => getNodeId(n, 'inferRelatedNodes (kids)'))
-        : [];
+  let kids = [];
+  if (inferModes.includes('kids')) {
+    const allKids = getKidsBFS(nodeInfo, { selector, includeRoot: false });
+    // BFS returns nearest-first, so [0] is the closest kid
+    kids = closest && allKids.length > 0
+      ? [getNodeId(allKids[0], 'inferRelatedNodes (kids)')]
+      : allKids.map(n => getNodeId(n, 'inferRelatedNodes (kids)'));
+  }
 
   // Combine all IDs and deduplicate using Set
   return [...new Set([...explicitTargets, ...parents, ...kids])];
 }
 
 /**
- * Get the related grader ID. Expects exactly one grader.
+ * Get the related grader ID. Finds the nearest grader (closest in hierarchy).
  *
  * @param {Object} props - Component props with nodeInfo and optional target attribute
  * @param {Object} [options] - Optional overrides
  * @param {string|string[]} [options.infer] - Override inference direction ('parents', 'kids', or both)
  * @returns {string} Grader ID
- * @throws {Error} If no grader found or multiple graders found
+ * @throws {Error} If no grader found or multiple graders found at same level
  */
 export function getGrader(props, { infer } = {}) {
   const ids = inferRelatedNodes(props, {
     selector: n => n.blueprint?.isGrader,
     targets: props.target,
-    infer
+    infer,
+    closest: true  // Find nearest grader, not all graders up the tree
   });
   if (ids.length === 0) {
     throw new Error(
@@ -242,6 +257,7 @@ export function getGrader(props, { infer } = {}) {
     );
   }
   if (ids.length > 1) {
+    // Can still get multiple if there's one in parents AND one in kids
     throw new Error(
       `Ambiguous grader reference: found ${ids.length} graders (${ids.join(', ')}). ` +
       `Add target="grader_id" to specify which one.`
