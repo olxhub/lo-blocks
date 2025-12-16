@@ -1,0 +1,50 @@
+<!-- StringGrader Examples -->
+<Vertical id="StringGraderDemo" title="String Grader Demo" launchable="true">
+
+  <Markdown id="intro">
+## StringGrader Examples
+
+Text input grading with exact match, case-insensitive, and regexp support.
+  </Markdown>
+
+  <!-- Exact match (default) -->
+  <CapaProblem id="exact_problem" title="Exact Match">
+    <Markdown id="q1">
+What is the capital of France? (case-sensitive)
+    </Markdown>
+    <StringGrader answer="Paris">
+      <LineInput id="exact_input" />
+    </StringGrader>
+  </CapaProblem>
+
+  <!-- Case-insensitive -->
+  <CapaProblem id="ci_problem" title="Case-Insensitive">
+    <Markdown id="q2">
+What is the largest planet? (any capitalization)
+    </Markdown>
+    <StringGrader answer="Jupiter" ignoreCase="true">
+      <LineInput id="ci_input" />
+    </StringGrader>
+  </CapaProblem>
+
+  <!-- Regexp -->
+  <CapaProblem id="regexp_problem" title="Regular Expression">
+    <Markdown id="q3">
+Enter a valid email address:
+    </Markdown>
+    <StringGrader answer="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" regexp="true">
+      <LineInput id="regexp_input" />
+    </StringGrader>
+  </CapaProblem>
+
+  <!-- Case-insensitive regexp -->
+  <CapaProblem id="ci_regexp_problem" title="Case-Insensitive Regexp">
+    <Markdown id="q4">
+Enter either "color" or "colour" (American or British spelling):
+    </Markdown>
+    <StringGrader answer="colou?r" regexp="true" ignoreCase="true">
+      <LineInput id="ci_regexp_input" />
+    </StringGrader>
+  </CapaProblem>
+
+</Vertical>

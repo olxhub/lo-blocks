@@ -24,6 +24,17 @@ function findChildGraderIds(props) {
 }
 
 /**
+ * Find DemandHints ID within this CapaProblem (if any).
+ */
+function findDemandHintsId(props) {
+  const ids = inferRelatedNodes(props, {
+    selector: n => n.blueprint?.name === 'DemandHints',
+    infer: ['kids']
+  });
+  return ids.length > 0 ? ids[0] : null;
+}
+
+/**
  * Map CORRECTNESS to CSS modifier class.
  */
 function getHeaderStateClass(correctness) {
@@ -128,8 +139,9 @@ export default function _CapaProblem(props) {
   // Render content first to populate dynamic OLX DOM
   const content = renderCompiledKids({ ...props, kids });
 
-  // Find child graders
+  // Find child graders and DemandHints
   const childGraderIds = findChildGraderIds(props);
+  const hintsId = findDemandHintsId(props);
 
   // Aggregate state from child graders
   const { correctness } = useGraderAggregation(props, childGraderIds);
@@ -152,7 +164,8 @@ export default function _CapaProblem(props) {
   const headerNode = renderBlock(props, 'Correctness', { id: `${id}_header_status` });
   const footerNode = renderBlock(props, 'CapaFooter', {
     id: `${id}_footer_controls`,
-    target: childGraderIds.join(',')
+    target: childGraderIds.join(','),
+    hintsTarget: hintsId
   });
 
   return (
