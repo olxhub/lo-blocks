@@ -3,6 +3,7 @@
 
 import React, { useCallback, useMemo } from 'react';
 import { useFieldSelector, updateReduxField } from '@/lib/state';
+import { useGraderAnswer } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
 import { fields } from './DropdownInput';
 
@@ -53,26 +54,41 @@ export default function _DropdownSelect(props) {
     { fallback: '' }
   );
 
+  // Check if grader is showing the answer
+  const { showAnswer, displayAnswer } = useGraderAnswer(props);
+
   const handleChange = useCallback((e) => {
     updateReduxField(props, fields.fieldInfoByField.value, e.target.value);
   }, [props]);
 
+  // Find display text for the correct answer
+  const correctOptionText = displayAnswer
+    ? options.find(opt => opt.value === displayAnswer)?.text ?? displayAnswer
+    : null;
+
   return (
-    <select
-      value={value}
-      onChange={handleChange}
-      className="border rounded px-2 py-1"
-    >
-      {placeholder && (
-        <option value="" disabled>
-          {placeholder}
-        </option>
+    <>
+      <select
+        value={value}
+        onChange={handleChange}
+        className="border rounded px-2 py-1"
+      >
+        {placeholder && (
+          <option value="" disabled>
+            {placeholder}
+          </option>
+        )}
+        {options.map((opt, idx) => (
+          <option key={opt.value || idx} value={opt.value}>
+            {opt.text}
+          </option>
+        ))}
+      </select>
+      {showAnswer && correctOptionText != null && (
+        <span className="lo-show-answer-label">
+          Correct: {correctOptionText}
+        </span>
       )}
-      {options.map((opt, idx) => (
-        <option key={opt.value || idx} value={opt.value}>
-          {opt.text}
-        </option>
-      ))}
-    </select>
+    </>
   );
 }

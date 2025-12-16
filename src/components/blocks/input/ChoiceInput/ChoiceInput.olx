@@ -7,7 +7,7 @@
 ChoiceInput presents options using Key (correct) and Distractor (incorrect) children. When used with grading, the ChoiceInput goes inside the KeyGrader, which goes inside CapaProblem.
   </Markdown>
 
-  <!-- Basic single choice -->
+  <!-- Basic single choice - Show Answer button is in footer automatically -->
   <CapaProblem id="geography_problem" title="Capital of Japan">
     <p>What is the capital of Japan?</p>
     <KeyGrader id="geography_grader">

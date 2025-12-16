@@ -93,3 +93,35 @@ body {
 * {
   transition: colors 150ms ease, border-color 150ms ease, background-color 150ms ease;
 }
+
+/* Show Answer Label - used across input components */
+.lo-show-answer-label {
+  display: inline-block;
+  margin-left: var(--lo-space-sm);
+  padding: var(--lo-space-xs) var(--lo-space-sm);
+  background-color: var(--lo-success-light);
+  color: var(--lo-success);
+  font-size: var(--lo-font-size-sm);
+  font-weight: 500;
+  border-radius: var(--lo-radius-md);
+}
+
+/* Sortable position label - overlay showing correct position number */
+.lo-sortable-position-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: rgba(5, 150, 105, 0.75); /* --lo-success with alpha */
+  color: var(--lo-text-inverse);
+  font-size: var(--lo-font-size-xl);
+  font-weight: 700;
+  border-radius: 50%;
+  pointer-events: none; /* Allow clicking through to drag */
+  z-index: 10;
+}

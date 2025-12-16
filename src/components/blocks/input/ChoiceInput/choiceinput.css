@@ -1,0 +1,16 @@
+/* src/components/blocks/input/ChoiceInput/choiceinput.css */
+
+/* Show Answer styling - scoped to Key items within ChoiceInput */
+.lo-tag-key .lo-choiceinput-show-answer {
+  background-color: #d4edda;
+  border-left: 3px solid #28a745;
+  padding-left: 0.5rem;
+  margin-left: -0.5rem;
+}
+
+.lo-tag-key .lo-choiceinput-show-answer::after {
+  content: ' \2713';  /* checkmark */
+  color: #28a745;
+  font-weight: bold;
+  margin-left: 0.5rem;
+}

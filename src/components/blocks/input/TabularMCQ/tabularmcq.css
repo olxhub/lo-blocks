@@ -97,6 +97,16 @@
   background-color: var(--lo-primary-light);
 }
 
+/* Show answer - correct cell highlight */
+.tabular-mcq tbody td.tabular-mcq-correct {
+  background-color: var(--lo-success-light);
+  border-color: var(--lo-success);
+}
+
+.tabular-mcq tbody td.tabular-mcq-correct label {
+  background-color: var(--lo-success-light);
+}
+
 /* Disabled state (for future use) */
 .tabular-mcq.disabled {
   opacity: 0.6;

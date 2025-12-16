@@ -3,7 +3,7 @@
 
 import React, { useMemo } from 'react';
 import { useFieldSelector, updateReduxField } from '@/lib/state';
-import { inferRelatedNodes } from '@/lib/blocks/olxdom';
+import { inferRelatedNodes, useGraderAnswer } from '@/lib/blocks';
 import { reduxId } from '@/lib/blocks/idResolver';
 import { fields as choiceFields } from './ChoiceInput';
 import { DisplayError } from '@/lib/util/debug';
@@ -33,6 +33,11 @@ export default function _ChoiceItem(props) {
     { id: parentId, fallback: '' }
   );
 
+  // Check if grader is showing the answer
+  const { showAnswer } = useGraderAnswer(props);
+  const isKey = props.blueprint?.name === 'Key';
+  const showCorrectHighlight = showAnswer && isKey;
+
   const itemValue = props.value ?? props.id;
   const checked = selected === itemValue;
 
@@ -48,8 +53,13 @@ export default function _ChoiceItem(props) {
   // a mixed content parser, and this component should use renderCompiledKids instead.
   const { kids } = props;
 
+  const labelClasses = [
+    'block',
+    showCorrectHighlight && 'lo-choiceinput-show-answer',
+  ].filter(Boolean).join(' ');
+
   return (
-    <label className="block">
+    <label className={labelClasses}>
       <input
         type="radio"
         name={scopedParentId}

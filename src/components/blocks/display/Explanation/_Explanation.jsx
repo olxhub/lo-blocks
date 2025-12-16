@@ -3,9 +3,8 @@
 import React from 'react';
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
-import { CORRECTNESS, VISIBILITY_HANDLERS, computeVisibility, getGrader } from '@/lib/blocks';
+import { CORRECTNESS, computeVisibility } from '@/lib/blocks';
 import { renderCompiledKids } from '@/lib/render';
-import { DisplayError } from '@/lib/util/debug';
 
 /**
  * Explanation displays its children conditionally based on grader state.
@@ -17,56 +16,20 @@ import { DisplayError } from '@/lib/util/debug';
  * - "always": Always show (useful for debugging)
  * - "never": Never show (hide explanation)
  *
- * Default should be inherited from CapaProblem; currently defaults to 'correct'.
+ * Note: requiresGrader=true in block definition means graderId is injected by render.
+ * showWhen is validated by attributeSchema at parse time.
  */
 function _Explanation(props) {
-  // TODO: Inherit default showWhen from parent CapaProblem
-  const { id, kids = [], showWhen = 'correct', title } = props;
+  // graderId injected by render (requiresGrader: true)
+  // showWhen validated by attributeSchema
+  const { kids = [], showWhen = 'correct', title, graderId } = props;
 
-  // Find related grader (throws on zero or multiple)
-  let targetId;
-  try {
-    targetId = getGrader(props);
-  } catch (e) {
-    return (
-      <DisplayError
-        props={props}
-        id={`${id}_grader_error`}
-        name="Explanation"
-        message={e.message}
-      />
-    );
-  }
-
-  let correctness = CORRECTNESS.UNSUBMITTED;
-  try {
-    const correctField = state.componentFieldByName(props, targetId, 'correct');
-    correctness = useFieldSelector(
-      props,
-      correctField,
-      { id: targetId, fallback: CORRECTNESS.UNSUBMITTED, selector: s => s?.correct }
-    );
-    if (correctness == null) correctness = CORRECTNESS.UNSUBMITTED;
-  } catch (e) {
-    correctness = CORRECTNESS.UNSUBMITTED;
-  }
-
-  // Validate showWhen and compute visibility (throws on invalid option)
-  if (!VISIBILITY_HANDLERS[showWhen]) {
-    const validOptions = Object.keys(VISIBILITY_HANDLERS).join(', ');
-    return (
-      <DisplayError
-        props={props}
-        id={`${id}_invalid_showWhen`}
-        name="Explanation"
-        message={`Invalid showWhen="${showWhen}".`}
-        technical={{
-          hint: `Valid options: ${validOptions}`,
-          blockId: id
-        }}
-      />
-    );
-  }
+  const correctField = state.componentFieldByName(props, graderId, 'correct');
+  const correctness = useFieldSelector(
+    props,
+    correctField,
+    { id: graderId, fallback: CORRECTNESS.UNSUBMITTED, selector: s => s?.correct }
+  ) ?? CORRECTNESS.UNSUBMITTED;
 
   if (!computeVisibility(showWhen, { correctness })) {
     return null;

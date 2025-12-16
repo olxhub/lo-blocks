@@ -21,6 +21,7 @@ import React from 'react';
 import { DisplayError, DebugWrapper } from '@/lib/util/debug';
 import { COMPONENT_MAP } from '@/components/componentMap';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
+import { getGrader } from '@/lib/blocks/olxdom';
 
 export const makeRootNode = () => ({ sentinel: 'root', renderedKids: {} });
 
@@ -133,6 +134,23 @@ export function render({ node, idMap, key, nodeInfo, componentMap = COMPONENT_MA
     idPrefix
   };
 
+  // Check requiresGrader - inject graderId or show error
+  let graderId = null;
+  if (blueprint?.requiresGrader) {
+    try {
+      graderId = getGrader({ ...wrapperProps, idMap });
+    } catch (e) {
+      return (
+        <DisplayError
+          id={`grader-required-${node.id}`}
+          name={tag}
+          message={e.message}
+          technical={{ blockId: node.id, requiresGrader: true }}
+        />
+      );
+    }
+  }
+
   // Generate CSS classes for theming system
   const blockClassName = `lo-tag-${tag.toLowerCase()}`;
   // TODO: We might add lo-id-... and other classes as well, to refer to specific components
@@ -158,6 +176,7 @@ export function render({ node, idMap, key, nodeInfo, componentMap = COMPONENT_MA
           nodeInfo={ childNodeInfo }
           componentMap={ componentMap }
           idPrefix={ idPrefix }
+          { ...(graderId && { graderId }) }
         />
       </div>
     </DebugWrapper>

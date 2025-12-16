@@ -12,6 +12,7 @@ const Correctness = dev({
   description: 'Visual indicator showing grading status (correct/incorrect/unsubmitted)',
   component: _Correctness,
   fields,
+  requiresGrader: true,
   internal: true
 });
 

@@ -169,6 +169,19 @@ export const BlockBlueprintSchema = z.object({
    * If defined, invalid attributes produce errors in parseOLX and DisplayError at render.
    */
   attributeSchema: z.custom<z.ZodTypeAny>().optional(),
+  /**
+   * Declares that this block requires a parent grader in the hierarchy.
+   * When true, render will inject `graderId` into props or show DisplayError if not found.
+   */
+  requiresGrader: z.boolean().optional(),
+  /**
+   * Marks this block as a grader. Factory auto-extends fields and schema.
+   */
+  isGrader: z.boolean().optional(),
+  /**
+   * Returns the answer to display (may differ from grading answer).
+   */
+  getDisplayAnswer: z.function().optional(),
 }).strict();
 
 export type BlockBlueprint = z.infer<typeof BlockBlueprintSchema>;
@@ -225,6 +238,18 @@ export interface Block {
    * Zod schema for validating block attributes at parse time and render time.
    */
   attributeSchema?: z.ZodTypeAny;
+  /**
+   * Declares that this block requires a parent grader in the hierarchy.
+   */
+  requiresGrader?: boolean;
+  /**
+   * Marks this block as a grader. Factory auto-extends fields and schema.
+   */
+  isGrader?: boolean;
+  /**
+   * Returns the answer to display (may differ from grading answer).
+   */
+  getDisplayAnswer?: (props: any) => any;
   blueprint: BlockBlueprint;
 }
 

@@ -5,7 +5,7 @@ import React, { useState, useRef } from 'react';
 import { useReduxState } from '@/lib/state';
 import { render } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
-import { isInputReadOnly } from '@/lib/blocks';
+import { isInputReadOnly, useGraderAnswer } from '@/lib/blocks';
 
 /**
  * Fisher-Yates shuffle algorithm
@@ -96,7 +96,11 @@ export default function _SortableInput(props) {
   // Redux state
   const [arrangement, setArrangement] = useReduxState(props, fields.arrangement, []);
 
+  // Check if grader is showing the answer
+  const { showAnswer } = useGraderAnswer(props);
+
   // Determine interaction state based on related grader correctness
+  // Note: showAnswer doesn't disable dragging - student can still rearrange
   const readOnly = isInputReadOnly(props);
 
   // useState-ok: ephemeral drag state (not persisted, resets on re-render)
@@ -184,6 +188,8 @@ export default function _SortableInput(props) {
 
           const isDragging = draggedItem === displayIndex;
           const isDragOver = dragOverIndex === displayIndex;
+          // Correct position is kidIndex + 1 (1-indexed)
+          const correctPosition = kidIndex + 1;
 
           const itemContent = render({
             ...props,
@@ -201,7 +207,7 @@ export default function _SortableInput(props) {
               onDrop={(e) => handleDrop(e, displayIndex)}
               onDragEnd={dragMode === 'whole' ? handleDragEnd : undefined}
               className={`
-                sortable-item bg-white border-2 rounded-md transition-all overflow-hidden
+                sortable-item relative bg-white border-2 rounded-md transition-all overflow-hidden
                 ${isDragging ? 'opacity-50' : ''}
                 ${isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
                 ${readOnly ? 'cursor-default bg-gray-100' : 'hover:border-gray-300'}
@@ -209,6 +215,9 @@ export default function _SortableInput(props) {
                 ${dragMode === 'handle' ? 'p-0' : 'p-3'}
               `}
             >
+              {showAnswer && (
+                <span className="lo-sortable-position-label">{correctPosition}</span>
+              )}
               {dragMode === 'handle' && !readOnly ? (
                 <div className="flex items-stretch min-h-[3rem]">
                   <div
@@ -244,9 +253,11 @@ export default function _SortableInput(props) {
       </div>
 
       <div className="mt-4 text-sm text-gray-600">
-        {readOnly
-          ? 'Submitted'
-          : 'Drag items to reorder them, then submit your answer'
+        {showAnswer
+          ? 'Numbers show the correct position for each item'
+          : readOnly
+            ? 'Submitted'
+            : 'Drag items to reorder them, then submit your answer'
         }
       </div>
     </div>

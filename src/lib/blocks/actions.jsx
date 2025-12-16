@@ -161,7 +161,9 @@ export function grader({ grader, infer = true } = {}) {
 
   return {
     action,
-    isGrader: true
+    isGrader: true,
+    // Default display answer - can be overridden in block definition
+    getDisplayAnswer: (props) => props.displayAnswer ?? props.answer,
   };
 }
 

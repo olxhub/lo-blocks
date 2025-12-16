@@ -15,8 +15,11 @@
 // support for organizing blocks by domain/author.
 //
 import React from 'react';
+import { z } from 'zod';
 
 import { BlockBlueprint, BlockBlueprintSchema, Block, FieldInfoByField } from '../types';
+import { baseAttributes } from './attributeSchemas';
+import * as state from '@/lib/state';
 
 function assertUnimplemented<T>(field: T | undefined, fieldName: string) {
   if (field !== undefined && field !== null) {
@@ -24,10 +27,59 @@ function assertUnimplemented<T>(field: T | undefined, fieldName: string) {
   }
 }
 
+// === Mixin extensions ===
+// These functions extend config based on mixin flags (isGrader, isInput, etc.)
+
+// Standard fields for graders
+const GRADER_FIELDS = ['correct', 'message', 'showAnswer'];
+
+// Standard attributes for graders
+const GRADER_ATTRIBUTES = baseAttributes.extend({
+  answer: z.string().optional(),
+  displayAnswer: z.string().optional(),
+  target: z.string().optional(),
+});
+
+/**
+ * Extend config for grader blocks.
+ * Adds standard fields (correct, message, showAnswer) and attributes (answer, displayAnswer, target).
+ */
+function applyGraderExtensions(config: BlockBlueprint): BlockBlueprint {
+  if (!config.isGrader) return config;
+
+  // Extend fields - only add grader fields not already defined
+  const existingFieldNames = Object.keys(config.fields?.fieldInfoByField ?? {});
+  const fieldsToAdd = GRADER_FIELDS.filter(f => !existingFieldNames.includes(f));
+
+  let extendedFields = config.fields;
+  if (fieldsToAdd.length > 0) {
+    const newFields = state.fields(fieldsToAdd);
+    extendedFields = config.fields
+      ? config.fields.extend(newFields)
+      : newFields;
+  }
+
+  // Extend attributeSchema - merge with grader attributes
+  const extendedSchema = config.attributeSchema
+    ? config.attributeSchema.and(GRADER_ATTRIBUTES)
+    : GRADER_ATTRIBUTES;
+
+  return {
+    ...config,
+    fields: extendedFields,
+    attributeSchema: extendedSchema,
+  };
+}
+
+// Future: applyInputExtensions, applyActionExtensions, etc.
+
 // === Main factory ===
 function createBlock(config: BlockBlueprint): Block {
-  const parsed = BlockBlueprintSchema.parse(config);
-  const Component: React.ComponentType<any> = config.component ?? (() => null);
+  // Apply mixin extensions
+  const effectiveConfig = applyGraderExtensions(config);
+
+  const parsed = BlockBlueprintSchema.parse(effectiveConfig);
+  const Component: React.ComponentType<any> = effectiveConfig.component ?? (() => null);
 
   // === Strict name resolution ===
   const rawName =
@@ -51,23 +103,26 @@ function createBlock(config: BlockBlueprint): Block {
     component: Component,
     _isBlock: true,
 
-    action: config.action,
-    parser: config.parser,
-    staticKids: config.staticKids,
-    reducers: config.reducers ?? [],
-    getValue: config.getValue,
+    action: effectiveConfig.action,
+    parser: effectiveConfig.parser,
+    staticKids: effectiveConfig.staticKids,
+    reducers: effectiveConfig.reducers ?? [],
+    getValue: effectiveConfig.getValue,
     fields: parsed?.fields?.fieldInfoByField as FieldInfoByField ?? {},
-    locals: config.locals,
+    locals: effectiveConfig.locals,
 
     OLXName: olxName,
     description: parsed.description,
     namespace: parsed.namespace,
-    internal: config.internal,
-    category: config.category,
-    requiresUniqueId: config.requiresUniqueId,
-    attributeSchema: config.attributeSchema,
+    internal: effectiveConfig.internal,
+    category: effectiveConfig.category,
+    requiresUniqueId: effectiveConfig.requiresUniqueId,
+    attributeSchema: effectiveConfig.attributeSchema,
+    requiresGrader: effectiveConfig.requiresGrader,
+    isGrader: effectiveConfig.isGrader,
+    getDisplayAnswer: effectiveConfig.getDisplayAnswer,
 
-    blueprint: config
+    blueprint: effectiveConfig
   }
   assertUnimplemented(parsed.reducers, 'reducers');
 

@@ -4,12 +4,16 @@
 import React from 'react';
 import { useReduxState } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
+import { useGraderAnswer } from '@/lib/blocks/useGraderAnswer';
 
 export default function _TabularMCQ(props) {
   const { fields, kids } = props;
 
   // State: { rowId: colIndex } for radio, { rowId: [colIndex, ...] } for checkbox
   const [value, setValue] = useReduxState(props, fields.value, {});
+
+  // Show answer support - displayAnswer is { rowId: correctColIndex }
+  const { showAnswer, displayAnswer } = useGraderAnswer(props);
 
   // Check for PEG parsing failure (ErrorNode)
   if (props.parseError || (kids && kids.type === 'peg_error')) {
@@ -109,8 +113,9 @@ export default function _TabularMCQ(props) {
               <td>{row.text}</td>
               {cols.map((col, colIndex) => {
                 const inputId = `${props.id}-${row.id}-${colIndex}`;
+                const isCorrectCell = showAnswer && displayAnswer?.[row.id] === colIndex;
                 return (
-                  <td key={col.id || colIndex}>
+                  <td key={col.id || colIndex} className={isCorrectCell ? 'tabular-mcq-correct' : ''}>
                     <label htmlFor={inputId}>
                       <input
                         id={inputId}

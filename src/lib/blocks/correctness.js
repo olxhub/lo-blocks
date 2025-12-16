@@ -21,6 +21,47 @@ export const CORRECTNESS = {
   INVALID: 'invalid'
 };
 
+// Derived utilities - single source of truth
+const ALL_STATES = new Set(Object.values(CORRECTNESS));
+
+/**
+ * Check if a value is a valid correctness state.
+ */
+export function isValidCorrectness(value) {
+  return ALL_STATES.has(value);
+}
+
+/**
+ * Validate a correctness value. Throws on invalid state (fail-fast).
+ */
+export function validateCorrectness(value) {
+  if (!ALL_STATES.has(value)) {
+    const valid = Array.from(ALL_STATES).join(', ');
+    throw new Error(`Invalid correctness value: "${value}". Valid values: ${valid}`);
+  }
+}
+
+/**
+ * Get all valid correctness states.
+ */
+export function getAllCorrectnessStates() {
+  return ALL_STATES;
+}
+
+/**
+ * Ordering for worst-case aggregation (lower = worse).
+ * Used by grading aggregators to determine priority.
+ */
+export const CORRECTNESS_PRIORITY = {
+  [CORRECTNESS.INVALID]: 0,
+  [CORRECTNESS.UNSUBMITTED]: 1,
+  [CORRECTNESS.INCOMPLETE]: 2,
+  [CORRECTNESS.SUBMITTED]: 3,
+  [CORRECTNESS.INCORRECT]: 4,
+  [CORRECTNESS.PARTIALLY_CORRECT]: 5,
+  [CORRECTNESS.CORRECT]: 6,
+};
+
 /**
  * Visibility handlers for conditional content (Explanation, Answer, etc.)
  *
