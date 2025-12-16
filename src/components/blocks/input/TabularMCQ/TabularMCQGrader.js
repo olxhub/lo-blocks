@@ -12,11 +12,37 @@
 //
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
-import { core, CORRECTNESS } from '@/lib/blocks';
+import { core, CORRECTNESS, getInputs } from '@/lib/blocks';
 import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 
 export const fields = state.fields(['correct', 'message', 'score']);
+
+/**
+ * Get display answer for TabularMCQ - returns { rowId: colIndex } map of correct answers.
+ * Used by _TabularMCQ.jsx when showAnswer is true.
+ */
+function getTabularMCQDisplayAnswer(props) {
+  if (props.displayAnswer != null) return props.displayAnswer;
+  if (props.answer != null) return props.answer;
+
+  try {
+    const inputIds = getInputs(props);
+    const inputNode = props.idMap?.[inputIds[0]];
+    const inputBlueprint = inputNode ? props.componentMap?.[inputNode.tag] : null;
+
+    if (inputBlueprint?.locals?.getAnswers) {
+      const inputProps = {
+        ...props,
+        id: inputIds[0],
+        ...inputNode?.attributes,
+        kids: inputNode?.kids
+      };
+      return inputBlueprint.locals.getAnswers(inputProps);
+    }
+  } catch (e) { /* Return null if we can't find answers */ }
+  return null;
+}
 
 function gradeTabularMCQ(props, { input, inputApi }) {
   const answers = inputApi.getAnswers();
@@ -63,6 +89,7 @@ const TabularMCQGrader = core({
   category: 'grading',
   component: _Noop,
   fields,
+  getDisplayAnswer: getTabularMCQDisplayAnswer,
 });
 
 export default TabularMCQGrader;
