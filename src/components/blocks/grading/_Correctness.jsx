@@ -1,26 +1,15 @@
 // src/components/blocks/_Correctness.jsx
+//
+// Visual indicator showing grading status.
+// Note: requiresGrader=true in block definition means graderId is injected by render.
+//
 'use client';
 import React from 'react';
-import { CORRECTNESS, getGrader } from '@/lib/blocks';
+import { CORRECTNESS } from '@/lib/blocks';
 import { useFieldSelector } from '@/lib/state';
-import { DisplayError } from '@/lib/util/debug';
 
 function _Correctness(props) {
-  const { id, fields } = props;
-
-  let targetId;
-  try {
-    targetId = getGrader(props);
-  } catch (e) {
-    return (
-      <DisplayError
-        props={props}
-        id={`${id}_grader_error`}
-        name="Correctness"
-        message={e.message}
-      />
-    );
-  }
+  const { fields, graderId } = props;
 
   const correctness = useFieldSelector(
     props,
@@ -28,7 +17,7 @@ function _Correctness(props) {
     {
       selector: s => s?.correct ?? CORRECTNESS.UNSUBMITTED,
       fallback: CORRECTNESS.UNSUBMITTED,
-      id: targetId
+      id: graderId
     }
   );
 

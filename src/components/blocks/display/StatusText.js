@@ -32,6 +32,7 @@ const StatusText = dev({
   name: 'StatusText',
   description: 'Displays field values from related components (typically graders). Use field="fieldName" to specify which field to display.',
   component: _StatusText,
+  requiresGrader: true,
   internal: true
 });
 

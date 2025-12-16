@@ -41,7 +41,7 @@ export default function _CapaFooter(props) {
 
   // ActionButton needs target to trigger child grader actions
   // ShowAnswerButton targets same graders to toggle showAnswer state
-  // Correctness/StatusText find CapaProblem (metagrader) via parent inference
+  // Correctness/StatusText use requiresGrader: true - render injects graderId from CapaProblem
   return (
     <div className="lo-capafooter">
       <div className="lo-capafooter__actions">
