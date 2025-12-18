@@ -14,7 +14,7 @@
 //   </RulesGrader>
 //
 import { z } from 'zod';
-import { core, grader, baseAttributes, isMatch } from '@/lib/blocks';
+import { core, grader, baseAttributes, isMatch, inferRelatedNodes } from '@/lib/blocks';
 import { CORRECTNESS } from '@/lib/blocks/correctness.js';
 import * as parsers from '@/lib/content/parsers';
 import _Noop from '@/components/blocks/layout/_Noop';
@@ -27,24 +27,21 @@ import _Noop from '@/components/blocks/layout/_Noop';
  * @returns {{ correct: CORRECTNESS, message: string, score?: number }}
  */
 function gradeRules(props, context) {
-  const { kids = [], idMap, componentMap } = props;
+  const { idMap, componentMap } = props;
 
   // TODO: Handle other CORRECTNESS states (UNSUBMITTED, INCOMPLETE, etc.)
   // Currently delegated to Match rules, but may need RulesGrader-level logic
 
   // Evaluate child Match rules in order
-  for (const kid of kids) {
-    if (kid.type !== 'block') continue;
-
-    const childEntry = idMap[kid.id];
+  const matchIds = inferRelatedNodes(props, {
+    selector: n => isMatch(n.blueprint),
+    infer: 'kids'
+  });
+  for (const matchId of matchIds) {
+    const childEntry = idMap[matchId];
     if (!childEntry) continue;
 
     const childBlueprint = componentMap[childEntry.tag];
-
-    // Skip non-Match blocks (like LineInput)
-    if (!isMatch(childBlueprint)) {
-      continue;
-    }
 
     // Attributes are already parsed/transformed at parse time by parseOLX
     const attrs = childEntry.attributes || {};

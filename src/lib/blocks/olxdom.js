@@ -282,20 +282,6 @@ export function getInputs(props, { infer } = {}) {
   });
 }
 
-/**
- * Get all child Match block IDs (for RulesGrader).
- *
- * @param {Object} props - Component props with nodeInfo
- * @param {Object} [options] - Optional overrides
- * @param {string|string[]} [options.infer] - Override inference direction (default: 'kids')
- * @returns {string[]} Array of Match block IDs
- */
-export function getMatches(props, { infer = 'kids' } = {}) {
-  return inferRelatedNodes(props, {
-    selector: n => typeof n.blueprint?.locals?.match === 'function',
-    infer
-  });
-}
 
 // TODO: These functions belong in a new utility module (perhaps blocks/util.js)
 // They handle runtime value resolution and mixed content processing, which
