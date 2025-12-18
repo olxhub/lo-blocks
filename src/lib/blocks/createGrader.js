@@ -86,10 +86,11 @@ export function createGrader({
     category: 'grading',
     component: _Noop,
     internal: true,  // Hide from main docs - it's used inside RulesGrader
+    // Use strict() to catch attribute typos like bob="doo"
     attributes: baseAttributes.extend({
       ...RULE_ATTRIBUTES,
       ...attributes,
-    }),
+    }).strict(),
     // Store the matching function so RulesGrader can call it
     locals: {
       match: graderFn,
