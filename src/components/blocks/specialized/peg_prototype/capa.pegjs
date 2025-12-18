@@ -54,7 +54,7 @@ question
 
 // Question text can contain dropdown inline
 questionText
-  = parts:(dropdown / questionChar)+ {
+  = parts:(dropdown / questionChars)+ {
       // If there's a dropdown, return structured; otherwise just text
       const hasDropdown = parts.some(p => typeof p === 'object');
       if (hasDropdown) {
@@ -63,8 +63,9 @@ questionText
       return parts.join('').trim();
     }
 
-questionChar
-  = char:[^\n\r<>\[\]] { return char; }
+// Match multiple non-special characters at once (not one at a time)
+questionChars
+  = chars:[^\n\r<>\[\]]+ { return chars.join(''); }
 
 hint
   = '||' h:hintText '||' _ newline {
@@ -224,10 +225,10 @@ dropdownOptions
 
 dropdownOption
   = _ '(' text:dropdownText ')' _ {
-      return { text: text, correct: true };
+      return { text: text, value: text, tag: 'Key' };
     }
   / _ text:dropdownText _ {
-      return { text: text, correct: false };
+      return { text: text, value: text, tag: 'Distractor' };
     }
 
 dropdownText

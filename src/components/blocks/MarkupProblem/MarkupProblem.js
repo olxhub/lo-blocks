@@ -59,18 +59,79 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       }
 
       case 'question': {
-        // Question label becomes Markdown with emphasis
-        const qId = `${id}_question_${contentIndex++}`;
-        const content = typeof block.label === 'string'
-          ? `**${block.label}**`
-          : `**${block.label.filter(p => typeof p === 'string').join('')}**`;
-        storeEntry(qId, {
-          id: qId,
-          tag: 'Markdown',
-          attributes: { id: qId },
-          kids: content
-        });
-        problemKids.push({ type: 'block', id: qId });
+        // Question label can be a string or array with inline dropdowns
+        if (typeof block.label === 'string') {
+          // Simple question without dropdowns
+          const qId = `${id}_question_${contentIndex++}`;
+          storeEntry(qId, {
+            id: qId,
+            tag: 'Markdown',
+            attributes: { id: qId },
+            kids: `**${block.label}**`
+          });
+          problemKids.push({ type: 'block', id: qId });
+        } else {
+          // Question with inline dropdowns - handle each part
+          const parts = block.label;
+          const questionKids = [];
+          let textBuffer = '';
+
+          for (const part of parts) {
+            if (typeof part === 'string') {
+              textBuffer += part;
+            } else if (part.type === 'dropdown') {
+              // Flush text buffer as Markdown
+              if (textBuffer.trim()) {
+                const textId = `${id}_qtext_${contentIndex++}`;
+                storeEntry(textId, {
+                  id: textId,
+                  tag: 'Markdown',
+                  attributes: { id: textId },
+                  kids: textBuffer
+                });
+                questionKids.push({ type: 'block', id: textId });
+                textBuffer = '';
+              }
+
+              // Create KeyGrader with DropdownInput for inline dropdown
+              const graderId = `${id}_grader_${graderIndex++}`;
+              const inputId = `${id}_input_${inputIndex++}`;
+
+              // Store DropdownInput with pre-parsed options (grammar outputs DropdownInput format directly)
+              storeEntry(inputId, {
+                id: inputId,
+                tag: 'DropdownInput',
+                attributes: { id: inputId, placeholder: 'Select...' },
+                kids: { type: 'parsed', parsed: { options: part.options } }
+              });
+
+              // Store KeyGrader wrapping the DropdownInput
+              storeEntry(graderId, {
+                id: graderId,
+                tag: 'KeyGrader',
+                attributes: { id: graderId, target: inputId },
+                kids: [{ type: 'block', id: inputId }]
+              });
+
+              questionKids.push({ type: 'block', id: graderId });
+            }
+          }
+
+          // Flush any remaining text
+          if (textBuffer.trim()) {
+            const textId = `${id}_qtext_${contentIndex++}`;
+            storeEntry(textId, {
+              id: textId,
+              tag: 'Markdown',
+              attributes: { id: textId },
+              kids: textBuffer
+            });
+            questionKids.push({ type: 'block', id: textId });
+          }
+
+          // Add all question kids to problem
+          questionKids.forEach(kid => problemKids.push(kid));
+        }
         break;
       }
 
@@ -282,8 +343,27 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       }
 
       case 'dropdown': {
-        // Inline dropdown - DropdownInput with KeyGrader
-        // TODO: Handle inline dropdowns in questions
+        // Standalone dropdown - KeyGrader with DropdownInput
+        const graderId = `${id}_grader_${graderIndex++}`;
+        const inputId = `${id}_input_${inputIndex++}`;
+
+        // Store DropdownInput with pre-parsed options (grammar outputs DropdownInput format directly)
+        storeEntry(inputId, {
+          id: inputId,
+          tag: 'DropdownInput',
+          attributes: { id: inputId, placeholder: 'Select...' },
+          kids: { type: 'parsed', parsed: { options: block.options } }
+        });
+
+        // Store KeyGrader wrapping the DropdownInput
+        storeEntry(graderId, {
+          id: graderId,
+          tag: 'KeyGrader',
+          attributes: { id: graderId, target: inputId },
+          kids: [{ type: 'block', id: inputId }]
+        });
+
+        problemKids.push({ type: 'block', id: graderId });
         break;
       }
 
