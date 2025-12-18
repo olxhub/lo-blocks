@@ -1,0 +1,59 @@
+<Vertical id="MarkupProblemDemo" title="MarkupProblem Demo" launchable="true">
+
+  <Markdown id="intro">
+## MarkupProblem
+
+Simple markup syntax for authoring problems. Supports multiple choice,
+text input, numerical input, hints, and explanations.
+  </Markdown>
+
+  <!-- Multiple choice example -->
+  <MarkupProblem id="physics_mc" title="Physics Question"><![CDATA[
+Newton's Laws
+===
+
+Consider a ball thrown straight up into the air.
+
+>>At the highest point of its trajectory, what is the net force on the ball?<<
+
+( ) Zero - the ball is momentarily at rest
+(x) Downward - gravity acts continuously
+( ) Upward - residual force from the throw
+( ) Undefined - forces cancel out
+
+||Think about what force is always acting on objects near Earth's surface.||
+
+[explanation]
+At the highest point, the ball is momentarily at rest, but gravity never stops acting.
+The net force is mg downward, which is why the ball starts falling back down.
+[/explanation]
+]]></MarkupProblem>
+
+  <!-- Text input example -->
+  <MarkupProblem id="derivative_text" title="Calculus Question"><![CDATA[
+Derivatives
+===
+
+>>What is the derivative of x squared?<<
+
+= 2x
+or= 2*x
+not= x^2 {{Remember to apply the power rule: bring down the exponent and reduce it by 1}}
+not= 2 {{Do not forget the x term}}
+]]></MarkupProblem>
+
+  <!-- Numerical input example -->
+  <MarkupProblem id="numerical_example" title="Numerical Question"><![CDATA[
+Basic Math
+===
+
+>>What is 2 + 2?<<
+
+= 4
+
+[explanation]
+2 + 2 = 4. This is basic addition.
+[/explanation]
+]]></MarkupProblem>
+
+</Vertical>
