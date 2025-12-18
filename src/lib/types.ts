@@ -168,7 +168,7 @@ export const BlockBlueprintSchema = z.object({
    * Zod schema for validating block attributes at parse time and render time.
    * If defined, invalid attributes produce errors in parseOLX and DisplayError at render.
    */
-  attributeSchema: z.custom<z.ZodTypeAny>().optional(),
+  attributes: z.custom<z.ZodTypeAny>().optional(),
   /**
    * Declares that this block requires a parent grader in the hierarchy.
    * When true, render will inject `graderId` into props or show DisplayError if not found.
@@ -237,7 +237,7 @@ export interface Block {
   /**
    * Zod schema for validating block attributes at parse time and render time.
    */
-  attributeSchema?: z.ZodTypeAny;
+  attributes?: z.ZodTypeAny;
   /**
    * Declares that this block requires a parent grader in the hierarchy.
    */

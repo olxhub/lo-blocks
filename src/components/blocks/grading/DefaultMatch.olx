@@ -1,0 +1,40 @@
+<!--
+---
+description: Catch-all matching rule for use as the last rule in RulesGrader
+---
+-->
+<Vertical>
+  <Markdown>
+    ## DefaultMatch Demo
+
+    DefaultMatch always matches and should be the last rule in a RulesGrader.
+    It provides a catch-all for any input not matched by previous rules.
+  </Markdown>
+
+  <CapaProblem title="Simple Example">
+    <Markdown>What is 2 + 2?</Markdown>
+
+    <RulesGrader>
+      <StringMatch answer="4" score="1" feedback="Correct!"/>
+      <StringMatch answer="four" ignoreCase="true" score="1" feedback="Correct! (we accept words too)"/>
+      <DefaultMatch score="0" feedback="That's not right. 2 + 2 = 4."/>
+      <LineInput/>
+    </RulesGrader>
+  </CapaProblem>
+
+  <Markdown>
+    ### Without DefaultMatch
+
+    If no DefaultMatch is present and no rules match, the student gets no feedback.
+  </Markdown>
+
+  <CapaProblem title="Without Default">
+    <Markdown>What color is the sky?</Markdown>
+
+    <RulesGrader>
+      <StringMatch answer="blue" ignoreCase="true" score="1" feedback="Correct!"/>
+      <StringMatch answer="azure" ignoreCase="true" score="1" feedback="Very poetic! Correct."/>
+      <LineInput/>
+    </RulesGrader>
+  </CapaProblem>
+</Vertical>

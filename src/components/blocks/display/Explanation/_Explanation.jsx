@@ -17,11 +17,11 @@ import { renderCompiledKids } from '@/lib/render';
  * - "never": Never show (hide explanation)
  *
  * Note: requiresGrader=true in block definition means graderId is injected by render.
- * showWhen is validated by attributeSchema at parse time.
+ * showWhen is validated by attributes schema at parse time.
  */
 function _Explanation(props) {
   // graderId injected by render (requiresGrader: true)
-  // showWhen validated by attributeSchema
+  // showWhen validated by attributes schema
   const { kids = [], showWhen = 'correct', title, graderId } = props;
 
   const correctField = state.componentFieldByName(props, graderId, 'correct');

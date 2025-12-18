@@ -1,0 +1,47 @@
+<!--
+---
+description: Grader that evaluates Match rules top-to-bottom with partial credit
+---
+-->
+<Vertical>
+  <Markdown>
+    ## RulesGrader Demo
+
+    RulesGrader evaluates child Match rules top-to-bottom, returning the first match.
+    Each rule can specify a score (0-1) and feedback message.
+
+    The input (LineInput) is a sibling inside the RulesGrader.
+  </Markdown>
+
+  <CapaProblem title="Derivative Question">
+    <Markdown>What is the derivative of x²?</Markdown>
+
+    <RulesGrader>
+      <StringMatch answer="2x" score="1" feedback="Correct! The power rule gives us 2x."/>
+      <StringMatch answer="2*x" score="1" feedback="Correct! (2x and 2*x are equivalent)"/>
+      <StringMatch answer="x" score="0.25" feedback="You have the right variable, but what coefficient should be in front?"/>
+      <StringMatch answer="2" score="0.25" feedback="That's the coefficient, but you need the variable too."/>
+      <StringMatch answer="x^2" score="0" feedback="That's the original function, not its derivative."/>
+      <DefaultMatch score="0" feedback="Remember: d/dx of x^n = n·x^(n-1)"/>
+      <LineInput/>
+    </RulesGrader>
+  </CapaProblem>
+
+  <Markdown>
+    ## Case-Insensitive Example
+
+    This example uses `ignoreCase="true"` for flexible matching.
+  </Markdown>
+
+  <CapaProblem title="State Capital">
+    <Markdown>What is the capital of Michigan?</Markdown>
+
+    <RulesGrader>
+      <StringMatch answer="Lansing" ignoreCase="true" score="1" feedback="Correct!"/>
+      <StringMatch answer="Detroit" ignoreCase="true" score="0" feedback="Detroit is the largest city, but not the capital."/>
+      <StringMatch answer="Ann Arbor" ignoreCase="true" score="0" feedback="Ann Arbor is home to U of M, but not the capital."/>
+      <DefaultMatch score="0" feedback="The capital of Michigan is Lansing."/>
+      <LineInput/>
+    </RulesGrader>
+  </CapaProblem>
+</Vertical>

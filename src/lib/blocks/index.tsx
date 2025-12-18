@@ -20,3 +20,4 @@ export { worstCaseCorrectness, proportionalCorrectness, computeScore, formatScor
 export { isInputReadOnly } from './inputInteraction';
 export { baseAttributes } from './attributeSchemas';
 export { useGraderAnswer } from './useGraderAnswer';
+export { createGrader } from './createGrader';

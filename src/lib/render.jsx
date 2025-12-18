@@ -97,7 +97,7 @@ export function render({ node, idMap, key, nodeInfo, componentMap = COMPONENT_MA
   const blueprint = componentMap[tag].blueprint;
 
   // Validate attributes - use component schema if defined, else base with passthrough
-  const attrSchema = blueprint?.attributeSchema ?? baseAttributes.passthrough();
+  const attrSchema = blueprint?.attributes ?? baseAttributes.passthrough();
   const validationResult = attrSchema.safeParse(attributes);
   if (!validationResult.success) {
     const zodErrors = validationResult.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ');

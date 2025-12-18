@@ -21,14 +21,8 @@
 //   ignoreCase: If true, match is case-insensitive
 //
 import { z } from 'zod';
-import * as parsers from '@/lib/content/parsers';
-import * as blocks from '@/lib/blocks';
-import { baseAttributes } from '@/lib/blocks';
+import { createGrader } from '@/lib/blocks';
 import { CORRECTNESS } from '@/lib/blocks/correctness.js';
-import _Noop from '@/components/blocks/layout/_Noop';
-import * as state from '@/lib/state';
-
-export const fields = state.fields(['correct', 'message']);
 
 // Strict boolean schema - only accepts true, false, "true", "false"
 const strictBoolean = z.union([
@@ -73,21 +67,15 @@ function gradeString(props, { input }) {
   };
 }
 
-const StringGrader = blocks.core({
-  ...parsers.blocks.allowHTML(),
-  ...blocks.grader({ grader: gradeString }),
-  name: 'StringGrader',
+const StringGrader = createGrader({
+  base: 'String',
   description: 'Grades text answers with exact match or regexp support',
-  category: 'grading',
-  component: _Noop,
-  attributeSchema: baseAttributes.extend({
+  grader: gradeString,
+  attributes: {
     answer: z.string({ required_error: 'answer is required' }),
-    target: z.string().optional(),
     regexp: strictBoolean,
     ignoreCase: strictBoolean,
-  }),
-  fields,
-  getDisplayAnswer: (props) => props.displayAnswer ?? props.answer,
+  },
 });
 
 export default StringGrader;

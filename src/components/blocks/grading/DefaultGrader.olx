@@ -1,0 +1,35 @@
+<!--
+---
+description: Catch-all grader that accepts any answer with specified score/feedback
+---
+-->
+<Vertical>
+  <Markdown>
+    ## DefaultGrader Demo
+
+    DefaultGrader accepts any answer and returns a fixed score/feedback.
+    Useful for open-ended questions or reflection prompts.
+  </Markdown>
+
+  <CapaProblem title="Open-Ended Reflection">
+    <Markdown>What did you learn from this lesson? (Any answer accepted)</Markdown>
+
+    <DefaultGrader score="1" feedback="Thank you for your reflection!">
+      <LineInput/>
+    </DefaultGrader>
+  </CapaProblem>
+
+  <Markdown>
+    ### Feedback Without Full Credit
+
+    You can give feedback with partial or zero credit:
+  </Markdown>
+
+  <CapaProblem title="Partial Credit Example">
+    <Markdown>Write anything you'd like:</Markdown>
+
+    <DefaultGrader score="0.5" feedback="Thanks for participating! Partial credit awarded.">
+      <LineInput/>
+    </DefaultGrader>
+  </CapaProblem>
+</Vertical>

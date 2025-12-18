@@ -24,7 +24,7 @@ const Explanation = dev({
   description: 'Displays explanation content conditionally based on grader state (e.g., after correct answer)',
   component: _Explanation,
   requiresGrader: true,
-  attributeSchema: baseAttributes.extend({
+  attributes: baseAttributes.extend({
     showWhen: z.enum(validShowWhen).default('correct'),
     target: z.string().optional(),
   }),

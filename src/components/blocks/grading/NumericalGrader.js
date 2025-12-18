@@ -1,28 +1,19 @@
-// src/components/blocks/NumericalGrader.js
-import * as parsers from '@/lib/content/parsers';
-import * as blocks from '@/lib/blocks';
-import { baseAttributes } from '@/lib/blocks';
-import _Noop from '@/components/blocks/layout/_Noop';
-import * as state from '@/lib/state';
-import { gradeNumerical } from '@/lib/util/numeric.js';
+// src/components/blocks/grading/NumericalGrader.js
+//
+// Grader for numeric answers with tolerance for rounding and formatting variations.
+//
 import { z } from 'zod';
+import { createGrader } from '@/lib/blocks';
+import { gradeNumerical } from '@/lib/util/numeric.js';
 
-export const fields = state.fields(['correct', 'message']);
-
-const NumericalGrader = blocks.test({
-  ...parsers.blocks.allowHTML(),
-  ...blocks.grader({
-    grader: gradeNumerical,
-  }),
-  name: 'NumericalGrader',
+const NumericalGrader = createGrader({
+  base: 'Numerical',
   description: 'Grades numeric answers with tolerance for rounding and formatting variations',
-  component: _Noop,
-  attributeSchema: baseAttributes.extend({
+  grader: gradeNumerical,
+  attributes: {
     answer: z.string({ required_error: 'answer is required' }),
-    target: z.string().optional(),
     tolerance: z.string().optional(),
-  }),
-  fields,
+  },
 });
 
 export default NumericalGrader;

@@ -59,15 +59,15 @@ function applyGraderExtensions(config: BlockBlueprint): BlockBlueprint {
       : newFields;
   }
 
-  // Extend attributeSchema - merge with grader attributes
-  const extendedSchema = config.attributeSchema
-    ? config.attributeSchema.and(GRADER_ATTRIBUTES)
+  // Extend attributes - merge with grader attributes
+  const extendedSchema = config.attributes
+    ? config.attributes.and(GRADER_ATTRIBUTES)
     : GRADER_ATTRIBUTES;
 
   return {
     ...config,
     fields: extendedFields,
-    attributeSchema: extendedSchema,
+    attributes: extendedSchema,
   };
 }
 
@@ -117,7 +117,7 @@ function createBlock(config: BlockBlueprint): Block {
     internal: effectiveConfig.internal,
     category: effectiveConfig.category,
     requiresUniqueId: effectiveConfig.requiresUniqueId,
-    attributeSchema: effectiveConfig.attributeSchema,
+    attributes: effectiveConfig.attributes,
     requiresGrader: effectiveConfig.requiresGrader,
     isGrader: effectiveConfig.isGrader,
     getDisplayAnswer: effectiveConfig.getDisplayAnswer,

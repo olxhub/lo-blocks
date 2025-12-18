@@ -87,9 +87,11 @@ export function useGraderAnswer(props) {
 
     if (graderBlueprint?.getDisplayAnswer) {
       // Build grader props for getDisplayAnswer call
+      // Include kids from grader instance so getDisplayAnswer can inspect children
       const graderProps = {
         ...props,
         id: graderId,
+        kids: graderInstance?.kids,
         ...graderInstance?.attributes,
       };
       displayAnswer = graderBlueprint.getDisplayAnswer(graderProps);

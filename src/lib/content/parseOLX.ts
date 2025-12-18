@@ -391,7 +391,7 @@ export async function parseOLX(
     }
 
     // Validate attributes - use component schema if defined, else base with passthrough
-    const schema = Component?.attributeSchema ?? baseAttributes.passthrough();
+    const schema = Component?.attributes ?? baseAttributes.passthrough();
     const result = schema.safeParse(attributes);
     if (!result.success) {
       const zodErrors = result.error.issues.map(i => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
