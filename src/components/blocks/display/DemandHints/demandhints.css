@@ -1,0 +1,47 @@
+/* DemandHints Component Styles */
+
+.lo-demand-hints {
+  margin: var(--lo-space-md) 0;
+  padding: var(--lo-space-md);
+  background-color: var(--lo-warning-light);
+  border-left: 3px solid var(--lo-warning);
+  border-radius: var(--lo-radius-md);
+}
+
+.lo-demand-hints__header {
+  font-size: var(--lo-font-size-sm);
+  font-weight: 600;
+  color: var(--lo-text-secondary);
+  margin-bottom: var(--lo-space-sm);
+}
+
+.lo-demand-hints__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lo-space-sm);
+}
+
+.lo-demand-hints__item {
+  display: flex;
+  gap: var(--lo-space-sm);
+}
+
+.lo-demand-hints__number {
+  font-weight: 600;
+  color: var(--lo-warning-dark);
+  min-width: 1.5rem;
+}
+
+.lo-demand-hints__content {
+  flex: 1;
+  color: var(--lo-text-primary);
+}
+
+/* Reduce margins on child content */
+.lo-demand-hints__content > * {
+  margin: 0;
+}
+
+.lo-demand-hints__content p {
+  margin: 0;
+}

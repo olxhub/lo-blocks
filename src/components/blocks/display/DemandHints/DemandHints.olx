@@ -1,0 +1,16 @@
+<!-- DemandHints demo - HintButton auto-added to footer when DemandHints present -->
+<CapaProblem id="derivative_problem" title="Calculus: Power Rule">
+  <Markdown id="question">
+## What is the derivative of x^2?
+
+Enter your answer below:
+  </Markdown>
+  <StringGrader answer="2x" ignoreCase="true">
+    <LineInput id="answer_input" />
+  </StringGrader>
+  <DemandHints id="hints">
+    <Hint>Think about the power rule: d/dx(x^n) = n*x^(n-1)</Hint>
+    <Hint>For x^2, we have n=2. Apply the formula...</Hint>
+    <Hint>The derivative is 2*x^(2-1) = 2*x^1 = 2x</Hint>
+  </DemandHints>
+</CapaProblem>

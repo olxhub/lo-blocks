@@ -31,21 +31,25 @@ function computeCheckLabel(props) {
 export default function _CapaFooter(props) {
   const { id } = props;
   const target = props.target;
+  const hintsTarget = props.hintsTarget; // DemandHints ID if present
   const checkLabel = computeCheckLabel(props);
   const showAnswerEnabled = props.showAnswer !== 'never';
 
   const buttonId = `${id}_action`;
   const showAnswerId = `${id}_show_answer`;
+  const hintButtonId = `${id}_hint`;
   const statusIconId = `${id}_status_icon`;
   const statusTextId = `${id}_status_text`;
 
   // ActionButton needs target to trigger child grader actions
   // ShowAnswerButton targets same graders to toggle showAnswer state
+  // HintButton targets DemandHints to reveal hints sequentially
   // Correctness/StatusText use requiresGrader: true - render injects graderId from CapaProblem
   return (
     <div className="lo-capafooter">
       <div className="lo-capafooter__actions">
         {renderBlock(props, 'ActionButton', { id: buttonId, label: checkLabel, target })}
+        {hintsTarget && renderBlock(props, 'HintButton', { id: hintButtonId, target: hintsTarget })}
         {showAnswerEnabled && renderBlock(props, 'ShowAnswerButton', { id: showAnswerId, target })}
       </div>
       <div className="lo-capafooter__status">
