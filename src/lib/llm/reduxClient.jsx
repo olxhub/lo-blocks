@@ -47,7 +47,8 @@ export async function callLLM(params) {
     prompt,
     tools = [],
     statusCallback = () => null,
-    model = 'gpt-4.1-nano'
+    model = 'gpt-4.1-nano',
+    provider = 'openai',
   } = params;
 
   // Validation: exactly one of prompt or history must be provided
@@ -62,7 +63,7 @@ export async function callLLM(params) {
   let newMessages = [];
   while (loopCount++ < 5) {
     try {
-      const res = await fetch('/api/openai/chat/completions', {
+      const res = await fetch(`/api/llm/${provider}/chat/completions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -117,7 +118,7 @@ export async function callLLM(params) {
 //
 // TODO: We should pass both props and additional params to this
 export function useChat(params = {}) {
-  const { tools = [] } = params;
+  const { tools = [], provider = 'openai' } = params;
   const [messages, setMessages] = useState([
     { type: 'SystemMessage', text: 'Ask the LLM a question.' }
   ]);
@@ -139,6 +140,7 @@ export function useChat(params = {}) {
     const { messages: newMessages, error } = await callLLM({
       history,
       tools,
+      provider,
       statusCallback: setStatus,
     });
 
@@ -152,11 +154,12 @@ export function useChat(params = {}) {
 
 // Simple wrapper that returns just the text content
 export async function callLLMSimple(prompt, options = {}) {
-  const { model } = options;
+  const { model, provider = 'openai' } = options;
 
   const { messages, error } = await callLLM({
     prompt,
     model,
+    provider,
     statusCallback: () => {}, // No status needed for simple calls
   });
 

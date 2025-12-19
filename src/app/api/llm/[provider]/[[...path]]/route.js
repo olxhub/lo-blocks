@@ -1,37 +1,59 @@
-// src/app/api/openai/[[...path]]/route.js
+// src/app/api/llm/[provider]/[[...path]]/route.js
 
 // Critical TODO: Add filtering, rate limiting, etc.
+// Generic LLM proxy route supporting multiple providers.
 
 import { NextResponse } from 'next/server';
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const OPENAI_BASE_URL = "https://api.openai.com/v1/";
+const PROVIDER_CONFIGS = {
+  openai: {
+    apiKey: process.env.OPENAI_API_KEY,
+    baseUrl: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1/',
+    buildHeaders: (apiKey) => ({ Authorization: `Bearer ${apiKey}` }),
+    name: 'OpenAI',
+  },
+  azure: {
+    apiKey: process.env.AZURE_OPENAI_API_KEY,
+    baseUrl: process.env.AZURE_OPENAI_BASE_URL,
+    buildHeaders: (apiKey) => ({ 'api-key': apiKey }),
+    name: 'Azure OpenAI',
+  },
+};
 
-const USE_STUB = !OPENAI_API_KEY || process.env.LLM_MODE === 'STUB';
+const isStubMode = process.env.LLM_MODE === 'STUB';
 
-if (USE_STUB) {
-  console.log('\n⚠️  LLM running in STUB mode - responses are fake.\n' +
-    '   To use real OpenAI, set OPENAI_API_KEY and restart:\n' +
-    '     export OPENAI_API_KEY=sk-...\n' +
-    '   Or add it to .env.local\n');
+function normalizeProvider(provider) {
+  return provider?.toLowerCase();
+}
+
+function getProviderConfig(provider) {
+  const normalized = normalizeProvider(provider);
+  return normalized ? PROVIDER_CONFIGS[normalized] : undefined;
+}
+
+function ensureTrailingSlash(url) {
+  if (!url) return url;
+  return url.endsWith('/') ? url : `${url}/`;
 }
 
 export async function GET(request, { params }) {
-  return proxyToOpenAI(request, params);
+  return proxyToProvider(request, params);
 }
+
 export async function POST(request, { params }) {
-  return proxyToOpenAI(request, params);
+  return proxyToProvider(request, params);
 }
+
 export async function PUT(request, { params }) {
-  return proxyToOpenAI(request, params);
+  return proxyToProvider(request, params);
 }
+
 export async function DELETE(request, { params }) {
-  return proxyToOpenAI(request, params);
+  return proxyToProvider(request, params);
 }
 
 // Stub implementation for development/testing
-async function stubOpenAI(request, path) {
-  // Handle chat completions specifically
+async function stubLLM(request, path, providerName = 'Unknown provider') {
   if (path === 'chat/completions' && request.method === 'POST') {
     const body = await request.json();
     const messages = body.messages || [];
@@ -81,27 +103,39 @@ async function stubOpenAI(request, path) {
 
   // Generic stub response for other endpoints
   return NextResponse.json({
-    message: 'Stub OpenAI API endpoint',
+    message: 'Stub LLM API endpoint',
+    provider: providerName,
     path,
     method: request.method
   });
 }
 
 // Generic proxy handler for all methods
-async function proxyToOpenAI(request, params) {
+async function proxyToProvider(request, params) {
+  const provider = normalizeProvider((await params).provider);
   const path = (await params).path ? (await params).path.join('/') : '';
 
-  // Use stub if no API key is configured or in development
-  if (USE_STUB) {
-    console.log(`🤖 Using OpenAI stub for ${request.method} /${path}`);
-    return stubOpenAI(request, path);
+  const config = getProviderConfig(provider);
+
+  const missingConfig = !config || !config.apiKey || !config.baseUrl;
+  const useStub = isStubMode || missingConfig;
+
+  if (useStub) {
+    const reason = isStubMode
+      ? 'LLM_MODE set to STUB'
+      : `Missing configuration for provider: ${provider || 'unknown'}`;
+    console.log(`\n⚠️  LLM running in STUB mode (${reason}).\n` +
+      `   Requested provider: ${config?.name || provider || 'unknown'}\n` +
+      `   To use a real provider, ensure API keys and URLs are configured.\n`);
+    return stubLLM(request, path, config?.name || provider || 'unknown');
   }
 
-  const url = `${OPENAI_BASE_URL}${path}${request.nextUrl.search}`;
+  const url = `${ensureTrailingSlash(config.baseUrl)}${path}${request.nextUrl.search}`;
 
   // Copy headers, replace Authorization
   const headers = new Headers(request.headers);
-  headers.set('Authorization', `Bearer ${OPENAI_API_KEY}`);
+  const providerHeaders = config.buildHeaders(config.apiKey) || {};
+  Object.entries(providerHeaders).forEach(([key, value]) => headers.set(key, value));
   headers.set('Content-Type', 'application/json');
 
   // Remove headers that shouldn't be forwarded
@@ -113,7 +147,6 @@ async function proxyToOpenAI(request, params) {
     ? await request.text()
     : undefined;
 
-  // Fetch from OpenAI
   const response = await fetch(url, {
     method: request.method,
     headers,
