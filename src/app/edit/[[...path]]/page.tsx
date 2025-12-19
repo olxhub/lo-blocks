@@ -12,7 +12,7 @@
 // would allow us to have students authoring content!
 
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams } from 'next/navigation';
 
 import { FourPaneLayout } from './FourPaneLayout';
@@ -214,6 +214,31 @@ export default function EditPage() {
     }
   };
 
+  // Handle edit proposals from the LLM
+  const handleProposeEdit = useCallback(({ oldText, newText, explanation }) => {
+    if (!content) return;
+
+    // Validate inputs
+    if (!oldText || oldText.trim() === '') {
+      console.warn('LLM proposed edit with empty oldText - ignoring');
+      return;
+    }
+
+    // Check if oldText exists in content
+    if (!content.includes(oldText)) {
+      console.warn('LLM proposed edit but oldText not found in content');
+      // TODO: Show error to user via chat
+      return;
+    }
+
+    // Apply the edit
+    // TODO: Show diff UI for approval instead of auto-applying
+    const newContent = content.replace(oldText, newText);
+    setContent(newContent);
+
+    console.log('Edit applied:', explanation);
+  }, [content, setContent]);
+
   const ready = content && idMap;
   const isPegFile = isPEGContentFile(path);
 
@@ -252,7 +277,7 @@ export default function EditPage() {
         <FourPaneLayout
           TopLeft={<NavigationPane />}
           TopRight={error ? errorPane : (ready ? <EditControl path={path} content={content} setContent={setContent} handleSave={handleSave} /> : <Spinner>Loading editor...</Spinner>)}
-          BottomLeft={<EditorLLMChat />}
+          BottomLeft={<EditorLLMChat path={path} content={content} onProposeEdit={handleProposeEdit} />}
           BottomRight={renderPreview()}
         />
       </div>

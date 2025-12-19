@@ -1,27 +1,54 @@
 // src/components/chat/EditorLLMChat.jsx
 'use client';
 
+import { useState, useEffect, useMemo } from 'react';
 import { ChatComponent, InputFooter } from '@/components/common/ChatComponent';
 import { useChat } from '@/lib/llm/reduxClient.jsx';
+import { buildSystemPrompt } from '@/lib/editor/context';
+import { createEditorTools } from '@/lib/editor/tools';
 
-// TODO: Implement a state machine to disable the footer while waiting for a
-// response. This will likely leverage Redux and src/lib/llm/client.jsx.
+/**
+ * LLM chat for the editor pane.
+ *
+ * @param {object} props
+ * @param {string} props.path - Current file path
+ * @param {string} props.content - Current file content
+ * @param {function} props.onProposeEdit - Called when LLM proposes an edit
+ */
+export default function EditorLLMChat({ path, content, onProposeEdit }) {
+  const [systemPrompt, setSystemPrompt] = useState(null);
 
-const tools = [{
-  type: "function",
-  function: {
-    name: "helloInGerman",
-    description: "Returns the phrase 'Hello, World!' in German.",
-    parameters: { type: "object", properties: {}, required: [] }
-  },
-  callback: async () => "Hallo, Welt!",
-}];
+  // Build system prompt when path/content changes
+  useEffect(() => {
+    buildSystemPrompt({ path, content })
+      .then(setSystemPrompt)
+      .catch(err => console.error('Failed to build system prompt:', err));
+  }, [path, content]);
 
-export default function EditorLLMChat() {
-  const { messages, sendMessage } = useChat({tools: tools});
+  // Create tools with edit callback
+  const tools = useMemo(
+    () => createEditorTools({ onProposeEdit }),
+    [onProposeEdit]
+  );
+
+  const initialMessage = path
+    ? `Editing: ${path}. Ask me to help with this content.`
+    : 'Select a file to edit, then ask me for help.';
+
+  const { messages, sendMessage } = useChat({
+    tools,
+    systemPrompt,
+    initialMessage,
+  });
+
   const footer = <InputFooter onSendMessage={sendMessage} />;
 
   return (
-    <ChatComponent id="editor_llm_chat" messages={messages} footer={footer} height="flex-1" />
+    <ChatComponent
+      id="editor_llm_chat"
+      messages={messages}
+      footer={footer}
+      height="flex-1"
+    />
   );
 }

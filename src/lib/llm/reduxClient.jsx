@@ -60,7 +60,7 @@ export async function callLLM(params) {
 
   let loopCount = 0;
   let newMessages = [];
-  while (loopCount++ < 5) {
+  while (loopCount++ < 10) {
     try {
       const res = await fetch('/api/openai/chat/completions', {
         method: 'POST',
@@ -73,7 +73,9 @@ export async function callLLM(params) {
       });
       const json = (await res.json()).choices?.[0];
       const content = json?.message?.content;
-      const toolCalls = json?.message.tool_calls;
+      const toolCalls = json?.message?.tool_calls;
+
+      // Handle tool calls if present
       if (toolCalls?.length) {
         statusCallback(LLM_STATUS.TOOL_RUNNING);
         const toolResponses = await handleToolCalls(toolCalls, tools);
@@ -82,8 +84,18 @@ export async function callLLM(params) {
           json.message,
           ...toolResponses
         ];
+        // If there's also content, return it (some models send both)
+        if (content) {
+          statusCallback(LLM_STATUS.RESPONSE_READY);
+          return {
+            messages: [...newMessages, { type: 'Line', speaker: 'LLM', text: content }],
+            error: false,
+          };
+        }
         continue;
       }
+
+      // No tool calls - check for content
       if (content) {
         statusCallback(LLM_STATUS.RESPONSE_READY);
         return {
@@ -108,18 +120,21 @@ export async function callLLM(params) {
   // If loop exceeds
   statusCallback(LLM_STATUS.ERROR);
   return {
-    messages: [...newMessages, { type: 'SystemMessage', text: 'Too many loops, LLM gave no final answer.' }],
+    messages: [...newMessages, { type: 'SystemMessage', text: 'Too many tool calls without a final response. Try asking again.' }],
     error: true,
   };
 }
 
 // Most common interface to LLM.
 //
-// TODO: We should pass both props and additional params to this
+// @param {object} params
+// @param {array} params.tools - Tool definitions with callbacks
+// @param {string} params.systemPrompt - System prompt (injected at start of each request)
+// @param {string} params.initialMessage - Initial message to show (default: 'Ask the LLM a question.')
 export function useChat(params = {}) {
-  const { tools = [] } = params;
+  const { tools = [], systemPrompt, initialMessage = 'Ask the LLM a question.' } = params;
   const [messages, setMessages] = useState([
-    { type: 'SystemMessage', text: 'Ask the LLM a question.' }
+    { type: 'SystemMessage', text: initialMessage }
   ]);
   const [status, setStatus] = useState(LLM_STATUS.INIT);
 
@@ -129,12 +144,18 @@ export function useChat(params = {}) {
     const userMessage = { type: 'Line', speaker: 'You', text };
     setMessages(m => [...m, userMessage]);
 
+    // Build history from messages
     let history = [...messages, userMessage]
       .filter((msg) => msg.type === 'Line')
       .map((msg) => ({
         role: msg.speaker === 'You' ? 'user' : 'assistant',
         content: msg.text,
       }));
+
+    // Prepend system prompt if provided
+    if (systemPrompt) {
+      history = [{ role: 'system', content: systemPrompt }, ...history];
+    }
 
     const { messages: newMessages, error } = await callLLM({
       history,
