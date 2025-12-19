@@ -80,9 +80,18 @@ function collectEventTypes(extraFields: ExtraFieldsParam = []) {
   const fieldList = Array.isArray(extraFields)
     ? extraFields
     : Object.values(extraFields.fieldInfoByField);
+
+  // TODO: This type annotation is a workaround so we could build, but
+  // it's not clear it's correct. The fields structure has a confusing
+  // two-tier design (fieldInfoByField/fieldInfoByEvent/extend at
+  // blueprint level vs flattened at component props level). Claude
+  // believes the code below returns undefined for all values since
+  // entry.fields contains maps, not FieldInfo objects and the event
+  // types are actually registered elsewhere. I'm not sure that's
+  // right, but this whole architecture needs rethinking.
   const componentEventTypes = Object.values(COMPONENT_MAP)
     .flatMap(entry =>
-      entry.fields ? Object.values(entry.fields).map(info => info.event) : []
+      entry.fields ? Object.values(entry.fields).map((info: { event?: string }) => info.event) : []
     );
   const commonEventTypes = [
     'LOAD_DATA_EVENT', 'LOAD_STATE', 'NAVIGATE', 'SHOW_SECTION',
