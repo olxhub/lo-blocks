@@ -120,13 +120,15 @@ export default function _SortableInput(props) {
   }
 
   // Initialize arrangement if empty
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when arrangement/kids change, props used for initial build only
+  // Only re-run when arrangement/kids change, props used for initial build only
+  /* eslint-disable react-hooks/exhaustive-deps */
   React.useEffect(() => {
     if (arrangement.length === 0 && kids.length > 0) {
       const initialOrder = buildInitialArrangement(props);
       setArrangement(initialOrder);
     }
   }, [arrangement.length, kids.length, shuffle, setArrangement]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const handleDragStart = (e, index) => {
     if (readOnly) return;
