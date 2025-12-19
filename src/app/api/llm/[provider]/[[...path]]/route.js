@@ -15,6 +15,7 @@ const PROVIDER_CONFIGS = {
   azure: {
     apiKey: process.env.AZURE_OPENAI_API_KEY,
     baseUrl: process.env.AZURE_OPENAI_BASE_URL,
+    defaultParams: { 'api-version': process.env.AZURE_OPENAI_API_VERSION },
     buildHeaders: (apiKey) => ({ 'api-key': apiKey }),
     name: 'Azure OpenAI',
   },
@@ -31,9 +32,31 @@ function getProviderConfig(provider) {
   return normalized ? PROVIDER_CONFIGS[normalized] : undefined;
 }
 
-function ensureTrailingSlash(url) {
-  if (!url) return url;
-  return url.endsWith('/') ? url : `${url}/`;
+function ensureTrailingSlash(pathname) {
+  if (!pathname) return '/';
+  return pathname.endsWith('/') ? pathname : `${pathname}/`;
+}
+
+function buildProviderUrl(config, path, requestSearch) {
+  if (!config?.baseUrl) return config?.baseUrl;
+
+  const url = new URL(config.baseUrl);
+  url.pathname = ensureTrailingSlash(url.pathname) + (path || '');
+
+  if (requestSearch) {
+    const requestParams = new URLSearchParams(requestSearch);
+    requestParams.forEach((value, key) => url.searchParams.append(key, value));
+  }
+
+  if (config.defaultParams) {
+    Object.entries(config.defaultParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && !url.searchParams.has(key)) {
+        url.searchParams.set(key, value);
+      }
+    });
+  }
+
+  return url.toString();
 }
 
 export async function GET(request, { params }) {
@@ -130,7 +153,7 @@ async function proxyToProvider(request, params) {
     return stubLLM(request, path, config?.name || provider || 'unknown');
   }
 
-  const url = `${ensureTrailingSlash(config.baseUrl)}${path}${request.nextUrl.search}`;
+  const url = buildProviderUrl(config, path, request.nextUrl.search);
 
   // Copy headers, replace Authorization
   const headers = new Headers(request.headers);
