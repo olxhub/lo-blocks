@@ -85,7 +85,16 @@ export function concatFields(...lists) {
     Object.assign(fieldInfoByField, list.fieldInfoByField);
     Object.assign(fieldInfoByEvent, list.fieldInfoByEvent);
   }
-  return { fieldInfoByField, fieldInfoByEvent };
+  const result: {
+    fieldInfoByField: FieldInfoByField;
+    fieldInfoByEvent: FieldInfoByEvent;
+    extend: (...rest: any[]) => { fieldInfoByField: FieldInfoByField; fieldInfoByEvent: FieldInfoByEvent };
+  } = {
+    fieldInfoByField,
+    fieldInfoByEvent,
+    extend: (...rest) => concatFields(result, ...rest),
+  };
+  return result;
 }
 
 export function fields(fieldList: (string | { name: string; event?: string; scope?: Scope })[]) {

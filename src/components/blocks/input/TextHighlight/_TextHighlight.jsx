@@ -71,7 +71,7 @@ export default function _TextHighlight(props) {
 
   // Redux state management - store as array, work with as Set
   const [selectedArray, setSelectedArray] = useReduxState(props, fields.value, []);
-  const selectedIndices = new Set(selectedArray || []);
+  const selectedIndices = useMemo(() => new Set(selectedArray || []), [selectedArray]);
   const setSelectedIndices = (newSet) => setSelectedArray(Array.from(newSet));
 
   // Local state to trigger re-renders during selection
@@ -327,10 +327,13 @@ export default function _TextHighlight(props) {
 
     document.addEventListener('selectionchange', handleSelectionChange);
 
+    // Capture ref value for cleanup
+    const refs = wordRefs.current;
+
     // Cleanup on unmount
     return () => {
       document.removeEventListener('selectionchange', handleSelectionChange);
-      wordRefs.current.clear();
+      refs.clear();
     };
   }, []);
 

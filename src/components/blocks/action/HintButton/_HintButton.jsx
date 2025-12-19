@@ -32,13 +32,15 @@ export default function _HintButton(props) {
   const { id } = props;
 
   // Find target DemandHints component
-  const hintsId = useMemo(() => findDemandHints(props), [props.target, props.nodeInfo]);
+  const { target, nodeInfo, idMap, componentMap } = props;
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when target or nodeInfo changes
+  const hintsId = useMemo(() => findDemandHints(props), [target, nodeInfo]);
 
   // Get hint count from DemandHints blueprint
   const hintCount = useMemo(() => {
     if (!hintsId) return 0;
-    const hintsNode = props.idMap?.[hintsId];
-    const hintsBlueprint = hintsNode ? props.componentMap?.[hintsNode.tag] : null;
+    const hintsNode = idMap?.[hintsId];
+    const hintsBlueprint = hintsNode ? componentMap?.[hintsNode.tag] : null;
     if (hintsBlueprint?.locals?.getHintCount) {
       const hintsProps = {
         ...props,
@@ -49,7 +51,8 @@ export default function _HintButton(props) {
       return hintsBlueprint.locals.getHintCount(hintsProps);
     }
     return 0;
-  }, [hintsId, props.idMap, props.componentMap]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when hintsId or maps change
+  }, [hintsId, idMap, componentMap]);
 
   // Read/write hintsRevealed field on the DemandHints component
   const hintsRevealedField = hintsId

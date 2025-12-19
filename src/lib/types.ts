@@ -98,7 +98,7 @@ const ReduxFieldInfoMap = z.record(ReduxFieldInfo);
 export const ReduxFieldsReturn = z.object({
   fieldInfoByField: ReduxFieldInfoMap,
   fieldInfoByEvent: ReduxFieldInfoMap,
-  extend: z.function().optional(),
+  extend: z.function(),
 }).strict();
 
 // === Schema ===
@@ -174,10 +174,6 @@ export const BlockBlueprintSchema = z.object({
    * When true, render will inject `graderId` into props or show DisplayError if not found.
    */
   requiresGrader: z.boolean().optional(),
-  /**
-   * Marks this block as a grader. Factory auto-extends fields and schema.
-   */
-  isGrader: z.boolean().optional(),
   /**
    * Returns the answer to display (may differ from grading answer).
    */

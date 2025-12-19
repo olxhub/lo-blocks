@@ -49,8 +49,6 @@ function _Correctness(props) {
     ? (submitCount % 2 === 0 ? 'lo-correctness-flash-a' : 'lo-correctness-flash-b')
     : '';
 
-  console.log('Correctness render - submitCount:', submitCount, 'flashClass:', flashClass);
-
   return (
     <>
       <style>{`

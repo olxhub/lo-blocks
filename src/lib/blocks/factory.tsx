@@ -56,7 +56,7 @@ function applyGraderExtensions(config: BlockBlueprint): BlockBlueprint {
   if (fieldsToAdd.length > 0) {
     const newFields = state.fields(fieldsToAdd);
     extendedFields = config.fields
-      ? config.fields.extend(newFields)
+      ? config.fields.extend(newFields) as typeof config.fields
       : newFields;
   }
 

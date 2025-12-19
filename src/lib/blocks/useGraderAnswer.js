@@ -1,7 +1,10 @@
 // src/lib/blocks/useGraderAnswer.js
 //
 // Hook for inputs to access their grader's answer display state.
-// Returns { showAnswer, displayAnswer } for rendering answer hints/highlights.
+// Returns { showAnswer, displayAnswer, graderId } for rendering answer hints/highlights.
+//
+// Inputs can be used both inside graders and standalone. When no grader exists,
+// returns { showAnswer: false, displayAnswer: undefined, graderId: null }.
 //
 // Finds grader by (in priority order):
 // 1. Grader with target pointing to this input (sibling graders - most specific)
@@ -38,9 +41,26 @@ function findTargetingGrader(props) {
 }
 
 /**
+ * Find the grader for this input, or null if none exists.
+ * Does not throw - inputs can legitimately exist without graders.
+ */
+function findGrader(props) {
+  // First try targeting grader (sibling pattern)
+  const targetingGrader = findTargetingGrader(props);
+  if (targetingGrader) return targetingGrader;
+
+  // Then try parent grader
+  try {
+    return getGrader(props);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Hook for input components to access grader's answer state.
  *
- * @param {object} props - Component props (with nodeInfo, idMap, componentMap)
+ * @param {object} props - Component props (with nodeInfo, idMap, componentMap, fields)
  * @returns {{ showAnswer: boolean, displayAnswer: any, graderId: string|null }}
  *
  * Usage in input component:
@@ -50,49 +70,38 @@ function findTargetingGrader(props) {
  *   }
  */
 export function useGraderAnswer(props) {
-  let graderId = null;
-  let showAnswer = false;
-  let displayAnswer = undefined;
+  // Find grader (may be null for standalone inputs)
+  const graderId = findGrader(props);
 
-  // Find grader: prefer targeting grader (more specific) over parent grader
-  // This handles sibling patterns like <SortableInput/><SortableGrader target="..."/>
-  graderId = findTargetingGrader(props);
+  // Get showAnswer field from grader, or null if no grader
+  const showAnswerField = graderId
+    ? state.componentFieldByName(props, graderId, 'showAnswer')
+    : null;
 
-  if (!graderId) {
-    // No targeting grader - try parent grader
-    try {
-      graderId = getGrader(props);
-    } catch (e) {
-      // No grader found at all
-      return { showAnswer: false, displayAnswer: undefined, graderId: null };
+  // Subscribe to field (hook must always be called, but selector handles null field)
+  const showAnswer = useFieldSelector(
+    props,
+    showAnswerField || props.fields?.value,  // Fallback to any valid field
+    {
+      id: graderId || props.id,
+      fallback: false,
+      // When no grader, selector always returns false
+      selector: showAnswerField ? (s => s?.showAnswer ?? false) : (() => false)
     }
-  }
+  );
 
-  // Subscribe to grader's showAnswer field
-  try {
-    const showAnswerField = state.componentFieldByName(props, graderId, 'showAnswer');
-    showAnswer = useFieldSelector(
-      props,
-      showAnswerField,
-      { id: graderId, fallback: false, selector: s => s?.showAnswer ?? false }
-    );
-  } catch (e) {
-    showAnswer = false;
-  }
-
-  // Get displayAnswer from grader's blueprint
+  // Get displayAnswer from grader's blueprint when showAnswer is true
+  let displayAnswer = undefined;
   if (showAnswer && graderId) {
-    const graderInstance = props.idMap?.[graderId];
-    const graderBlueprint = graderInstance ? props.componentMap?.[graderInstance.tag] : null;
+    const graderInstance = props.idMap[graderId];
+    const graderBlueprint = props.componentMap[graderInstance.tag];
 
-    if (graderBlueprint?.getDisplayAnswer) {
-      // Build grader props for getDisplayAnswer call
-      // Include kids from grader instance so getDisplayAnswer can inspect children
+    if (graderBlueprint.getDisplayAnswer) {
       const graderProps = {
         ...props,
         id: graderId,
-        kids: graderInstance?.kids,
-        ...graderInstance?.attributes,
+        kids: graderInstance.kids,
+        ...graderInstance.attributes,
       };
       displayAnswer = graderBlueprint.getDisplayAnswer(graderProps);
     }
