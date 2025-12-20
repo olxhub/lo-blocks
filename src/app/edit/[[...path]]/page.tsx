@@ -214,11 +214,6 @@ export default function EditPage() {
     }
   };
 
-  // Handle edits from the LLM (validation already done in tool callback)
-  const handleApplyEdit = useCallback((newContent) => {
-    setContent(newContent);
-  }, [setContent]);
-
   const ready = content && idMap;
   const isPegFile = isPEGContentFile(path);
 
@@ -257,7 +252,7 @@ export default function EditPage() {
         <FourPaneLayout
           TopLeft={<NavigationPane />}
           TopRight={error ? errorPane : (ready ? <EditControl path={path} content={content} setContent={setContent} handleSave={handleSave} /> : <Spinner>Loading editor...</Spinner>)}
-          BottomLeft={<EditorLLMChat path={path} content={content} onApplyEdit={handleApplyEdit} />}
+          BottomLeft={<EditorLLMChat path={path} content={content} onApplyEdit={setContent} />}
           BottomRight={renderPreview()}
         />
       </div>
