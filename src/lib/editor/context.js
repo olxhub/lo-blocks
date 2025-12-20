@@ -17,14 +17,19 @@ export function getFileType(path) {
   return ext || 'unknown';
 }
 
+let cachedBlockList = null;
+
 /**
  * Fetch list of all blocks with short descriptions.
  */
 export async function fetchBlockList() {
+  if (cachedBlockList) return cachedBlockList;
+
   const res = await fetch('/api/docs');
   if (!res.ok) return [];
   const data = await res.json();
-  return data.documentation?.blocks || [];
+  cachedBlockList = data.documentation.blocks;
+  return cachedBlockList;
 }
 
 /**
