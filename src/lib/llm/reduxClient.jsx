@@ -15,38 +15,18 @@ export const LLM_STATUS = {
   TOOL_RUNNING: 'LLM_TOOL_RUNNING',
 };
 
+// Execute tool calls and return canonical results.
+// Caller derives API and display formats as needed.
 async function handleToolCalls(toolCalls, tools) {
-  // Collect promises for all tool calls in parallel
-  const results = await Promise.all(toolCalls.map(async (call) => {
+  return Promise.all(toolCalls.map(async (call) => {
     const tool = findToolByName(tools, call.function.name);
     let args = {};
     try { args = JSON.parse(call.function.arguments || '{}'); } catch {}
+    const result = tool ? await tool.callback(args) : '';
 
-    let result = '';
-    if (tool) {
-      result = await tool.callback(args);
-    }
-
-    return {
-      toolResponse: {
-        role: 'tool',
-        content: result,
-        tool_call_id: call.id,
-      },
-      // For display in chat
-      displayMessage: {
-        type: 'ToolCall',
-        name: call.function.name,
-        args,
-        result,
-      }
-    };
+    // Single canonical format
+    return { id: call.id, name: call.function.name, args, result };
   }));
-
-  return {
-    toolResponses: results.map(r => r.toolResponse),
-    displayMessages: results.map(r => r.displayMessage),
-  };
 }
 
 // Small helper to find tool in a list of tools
@@ -95,17 +75,20 @@ export async function callLLM(params) {
       // Handle tool calls if present
       if (toolCalls?.length) {
         statusCallback(LLM_STATUS.TOOL_RUNNING);
-        const { toolResponses, displayMessages } = await handleToolCalls(toolCalls, tools);
+        const toolResults = await handleToolCalls(toolCalls, tools);
 
         // Add to API history (for next request)
         newMessages = [
           ...newMessages,
           json.message,
-          ...toolResponses
+          ...toolResults.map(r => ({ role: 'tool', content: r.result, tool_call_id: r.id }))
         ];
 
         // Add to display messages
-        displayMessagesAccum = [...displayMessagesAccum, ...displayMessages];
+        displayMessagesAccum = [
+          ...displayMessagesAccum,
+          ...toolResults.map(r => ({ type: 'ToolCall', name: r.name, args: r.args, result: r.result }))
+        ];
 
         // If there's also content, return it (some models send both)
         if (content) {
