@@ -5,8 +5,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import RenderOLX from '@/components/common/RenderOLX';
-import EditorLLMChat from '@/components/chat/EditorLLMChat';
-import { ElementsInFile, BlockList } from '@/components/common/BlockList';
+import { ChatPanel, DataPanel, DocsPanel, FilesPanel, SearchPanel } from './panels';
 import { useDocsData } from '@/lib/docs';
 import { NetworkStorageProvider } from '@/lib/storage';
 import type { UriNode } from '@/lib/storage/types';
@@ -219,20 +218,38 @@ export default function StudioPage() {
                 ))}
               </nav>
               <div className="studio-sidebar-content">
-                <SidebarPanel
-                  tab={sidebarTab}
-                  filePath={filePath}
-                  content={content}
-                  onApplyEdit={setContent}
-                  onFileSelect={handleFileSelect}
-                  onFileCreate={handleFileCreate}
-                  onFileDelete={handleFileDelete}
-                  onFileRename={handleFileRename}
-                  onRefreshFiles={refreshFiles}
-                  fileTree={fileTree}
-                  idMap={idMap}
-                  docsData={docsData}
-                />
+                {sidebarTab === 'files' && (
+                  <FilesPanel
+                    fileTree={fileTree}
+                    currentPath={filePath}
+                    onFileSelect={handleFileSelect}
+                    onFileCreate={handleFileCreate}
+                    onFileDelete={handleFileDelete}
+                    onFileRename={handleFileRename}
+                  />
+                )}
+                {sidebarTab === 'chat' && (
+                  <ChatPanel
+                    filePath={filePath}
+                    content={content}
+                    onApplyEdit={setContent}
+                  />
+                )}
+                {sidebarTab === 'search' && (
+                  <SearchPanel
+                    idMap={idMap}
+                    content={content}
+                    onFileSelect={handleFileSelect}
+                  />
+                )}
+                {sidebarTab === 'data' && <DataPanel />}
+                {sidebarTab === 'docs' && (
+                  <DocsPanel
+                    filePath={filePath}
+                    content={content}
+                    docsData={docsData}
+                  />
+                )}
               </div>
             </aside>
             <Resizer onResize={(delta) => setSidebarWidth(w => Math.max(200, Math.min(600, w + delta)))} />
@@ -379,403 +396,6 @@ function PaneResizer({
       onMouseDown={handleMouseDown}
     />
   );
-}
-
-interface SidebarPanelProps {
-  tab: SidebarTab;
-  filePath: string;
-  content: string;
-  onApplyEdit: (newContent: string) => void;
-  onFileSelect: (path: string) => void;
-  onFileCreate: (path: string, content: string) => Promise<void>;
-  onFileDelete: (path: string) => Promise<void>;
-  onFileRename: (oldPath: string, newPath: string) => Promise<void>;
-  onRefreshFiles: () => void;
-  fileTree: UriNode | null;
-  idMap: IdMap | null;
-  docsData: ReturnType<typeof useDocsData>;
-}
-
-// Extract IDs and their tag names from OLX content
-function extractIds(content: string): Array<{ id: string; tag: string }> {
-  const results: Array<{ id: string; tag: string }> = [];
-  // Match <TagName ... id="value" ...>
-  const regex = /<(\w+)[^>]*\bid=["']([^"']+)["'][^>]*>/g;
-  let match;
-  while ((match = regex.exec(content)) !== null) {
-    results.push({ tag: match[1], id: match[2] });
-  }
-  return results;
-}
-
-// Extract unique element tags used in content
-function extractElements(content: string): string[] {
-  const tags = new Set<string>();
-  // Match opening tags <TagName ...>
-  const regex = /<([A-Z]\w*)/g;
-  let match;
-  while ((match = regex.exec(content)) !== null) {
-    tags.add(match[1]);
-  }
-  return Array.from(tags).sort();
-}
-
-// Detect file type for context-aware docs
-function getFileDocType(path: string): 'olx' | 'peg' | 'markdown' | 'unknown' {
-  const ext = path.split('.').pop()?.toLowerCase();
-  if (ext === 'olx' || ext === 'xml') return 'olx';
-  if (ext === 'chatpeg' || ext === 'sortpeg' || ext === 'matchpeg') return 'peg';
-  if (ext === 'md' || ext === 'markdown') return 'markdown';
-  return 'unknown';
-}
-
-interface FileTreeNodeProps {
-  node: UriNode;
-  depth: number;
-  onSelect: (path: string) => void;
-  currentPath: string;
-  onShowActions: (path: string) => void;
-  actionPath: string | null;
-  onDelete: (path: string) => void;
-  onRename: (path: string) => void;
-  renameValue: string;
-  onRenameChange: (value: string) => void;
-}
-
-function FileTreeNode({
-  node, depth, onSelect, currentPath,
-  onShowActions, actionPath, onDelete, onRename, renameValue, onRenameChange
-}: FileTreeNodeProps) {
-  const [expanded, setExpanded] = useState(depth < 2);
-  const isDir = node.children && node.children.length > 0;
-  const name = node.uri.split('/').pop() || node.uri;
-  const isActive = node.uri === currentPath;
-  const showingActions = actionPath === node.uri;
-
-  return (
-    <div>
-      <div
-        className={`file-item ${isActive ? 'active' : ''}`}
-        style={{ paddingLeft: depth * 12 + 8 }}
-        onClick={() => isDir ? setExpanded(!expanded) : onSelect(node.uri)}
-      >
-        {isDir && <span className="file-icon">{expanded ? '▼' : '▶'}</span>}
-        {!isDir && <span className="file-icon">📄</span>}
-        <span className="file-name">{name}</span>
-        {!isDir && (
-          <button
-            className="file-menu-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              onShowActions(showingActions ? '' : node.uri);
-            }}
-          >
-            ⋮
-          </button>
-        )}
-      </div>
-
-      {/* Action menu for this file */}
-      {showingActions && !isDir && (
-        <div className="file-actions" style={{ paddingLeft: depth * 12 + 20 }}>
-          <input
-            type="text"
-            className="file-rename-input"
-            value={renameValue}
-            onChange={(e) => onRenameChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') onRename(node.uri);
-              if (e.key === 'Escape') onShowActions('');
-            }}
-            onClick={(e) => e.stopPropagation()}
-          />
-          <div className="file-action-buttons">
-            <button onClick={() => onRename(node.uri)}>Rename</button>
-            <button className="danger" onClick={() => onDelete(node.uri)}>Delete</button>
-          </div>
-        </div>
-      )}
-
-      {isDir && expanded && node.children?.map((child, i) => (
-        <FileTreeNode
-          key={child.uri || i}
-          node={child}
-          depth={depth + 1}
-          onSelect={onSelect}
-          currentPath={currentPath}
-          onShowActions={onShowActions}
-          actionPath={actionPath}
-          onDelete={onDelete}
-          onRename={onRename}
-          renameValue={renameValue}
-          onRenameChange={onRenameChange}
-        />
-      ))}
-    </div>
-  );
-}
-
-function SidebarPanel({
-  tab, filePath, content, onApplyEdit, onFileSelect,
-  onFileCreate, onFileDelete, onFileRename, onRefreshFiles,
-  fileTree, idMap, docsData
-}: SidebarPanelProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showNewFileDialog, setShowNewFileDialog] = useState(false);
-  const [newFileName, setNewFileName] = useState('');
-  const [fileActionPath, setFileActionPath] = useState<string | null>(null);
-  const [renameValue, setRenameValue] = useState('');
-  const localIds = tab === 'search' ? extractIds(content) : [];
-
-  const handleCreateFile = async () => {
-    if (!newFileName.trim()) return;
-    const path = newFileName.endsWith('.olx') ? newFileName : `${newFileName}.olx`;
-    const template = `<Vertical>
-  <Markdown>
-# New Content
-
-Start writing here.
-  </Markdown>
-</Vertical>`;
-    try {
-      await onFileCreate(path, template);
-      setShowNewFileDialog(false);
-      setNewFileName('');
-    } catch (err) {
-      console.error('Failed to create file:', err);
-    }
-  };
-
-  const handleDeleteFile = async (path: string) => {
-    if (!confirm(`Delete ${path}?`)) return;
-    try {
-      await onFileDelete(path);
-      setFileActionPath(null);
-    } catch (err) {
-      console.error('Failed to delete:', err);
-    }
-  };
-
-  const handleRenameFile = async (oldPath: string) => {
-    if (!renameValue.trim() || renameValue === oldPath) {
-      setFileActionPath(null);
-      return;
-    }
-    try {
-      await onFileRename(oldPath, renameValue);
-      setFileActionPath(null);
-      setRenameValue('');
-    } catch (err) {
-      console.error('Failed to rename:', err);
-    }
-  };
-
-  switch (tab) {
-    case 'files':
-      return (
-        <div className="sidebar-panel">
-          <div className="sidebar-panel-header">
-            Files
-            <button
-              className="file-action-btn"
-              onClick={() => setShowNewFileDialog(true)}
-              title="New file"
-            >
-              +
-            </button>
-          </div>
-
-          {/* New file dialog */}
-          {showNewFileDialog && (
-            <div className="file-dialog">
-              <input
-                type="text"
-                className="search-input"
-                placeholder="filename.olx"
-                value={newFileName}
-                onChange={(e) => setNewFileName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleCreateFile()}
-                autoFocus
-              />
-              <div className="file-dialog-actions">
-                <button className="file-dialog-btn" onClick={handleCreateFile}>Create</button>
-                <button className="file-dialog-btn cancel" onClick={() => setShowNewFileDialog(false)}>Cancel</button>
-              </div>
-            </div>
-          )}
-
-          <div className="file-tree">
-            {fileTree ? (
-              fileTree.children?.map((node, i) => (
-                <FileTreeNode
-                  key={node.uri || i}
-                  node={node}
-                  depth={0}
-                  onSelect={onFileSelect}
-                  currentPath={filePath}
-                  onShowActions={(path) => {
-                    setFileActionPath(path);
-                    setRenameValue(path);
-                  }}
-                  actionPath={fileActionPath}
-                  onDelete={handleDeleteFile}
-                  onRename={handleRenameFile}
-                  renameValue={renameValue}
-                  onRenameChange={setRenameValue}
-                />
-              ))
-            ) : (
-              <div className="file-tree-loading">Loading...</div>
-            )}
-          </div>
-        </div>
-      );
-    case 'chat':
-      return (
-        <div className="sidebar-panel chat-panel">
-          <EditorLLMChat
-            path={filePath}
-            content={content}
-            onApplyEdit={onApplyEdit}
-            theme="dark"
-          />
-        </div>
-      );
-    case 'search': {
-      // Extract relative path from provenance
-      const getRelPath = (prov?: string[]): string | null => {
-        if (!prov || prov.length === 0) return null;
-        const idx = prov[0].indexOf('/content/');
-        return idx >= 0 ? prov[0].slice(idx + '/content/'.length) : prov[0];
-      };
-
-      // Filter idMap by search query
-      const searchResults = idMap && searchQuery.trim()
-        ? Object.entries(idMap)
-            .filter(([id, entry]) => {
-              const q = searchQuery.toLowerCase();
-              const title = (entry.attributes?.title as string) || '';
-              return id.toLowerCase().includes(q) || title.toLowerCase().includes(q);
-            })
-            .slice(0, 20) // Limit results
-        : [];
-
-      return (
-        <div className="sidebar-panel">
-          <div className="sidebar-panel-header">Search</div>
-          <input
-            type="text"
-            className="search-input"
-            placeholder="Search by ID or title..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-
-          {/* Search results from idMap */}
-          {searchQuery.trim() && (
-            <>
-              <div className="search-section">
-                Results ({searchResults.length}{searchResults.length === 20 ? '+' : ''})
-              </div>
-              <div className="search-results">
-                {searchResults.length === 0 ? (
-                  <div className="search-hint">No matching IDs found</div>
-                ) : (
-                  searchResults.map(([id, entry]) => {
-                    const relPath = getRelPath(entry.provenance);
-                    const title = (entry.attributes?.title as string) || id;
-                    return (
-                      <div
-                        key={id}
-                        className="search-result-item clickable"
-                        onClick={() => relPath && onFileSelect(relPath)}
-                      >
-                        <div className="search-result-main">
-                          <span className="search-id">{id}</span>
-                          <span className="search-type">{entry.tag}</span>
-                        </div>
-                        {title !== id && (
-                          <div className="search-result-title">{title}</div>
-                        )}
-                        {relPath && (
-                          <div className="search-result-file">{relPath}</div>
-                        )}
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </>
-          )}
-
-          {/* IDs in current file */}
-          <div className="search-section">IDs in current file ({localIds.length})</div>
-          <div className="search-results">
-            {localIds.length === 0 ? (
-              <div className="search-hint">No IDs found in content</div>
-            ) : (
-              localIds.map(({ id, tag }) => (
-                <div key={id} className="search-result-item">
-                  <span className="search-id">{id}</span>
-                  <span className="search-type">{tag}</span>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      );
-    }
-    case 'data':
-      return (
-        <div className="sidebar-panel">
-          <div className="sidebar-panel-header">Data</div>
-          <div className="data-placeholder">
-            Item statistics and psychometrics.
-            <br /><br />
-            <strong>Avg time:</strong> 45s<br />
-            <strong>% correct:</strong> 72%<br />
-            <strong>Discrimination:</strong> 0.45
-          </div>
-        </div>
-      );
-    case 'docs': {
-      const docType = getFileDocType(filePath);
-      const elements = extractElements(content);
-
-      return (
-        <div className="sidebar-panel docs-panel">
-          <div className="sidebar-panel-header">Documentation</div>
-          <div className="docs-list">
-            <a href="/docs/" target="_blank" className="docs-link">Full Documentation</a>
-
-            {/* File-type specific docs */}
-            {docType === 'peg' && (
-              <div className="docs-section-links">
-                <a href="/docs#peg-format" target="_blank" className="docs-item">PEG Syntax Guide</a>
-                <a href="/docs#chatpeg" target="_blank" className="docs-item">ChatPEG Format</a>
-              </div>
-            )}
-
-            {docType === 'markdown' && (
-              <div className="docs-section-links">
-                <a href="/docs#Markdown" target="_blank" className="docs-item">Markdown Block</a>
-              </div>
-            )}
-
-            {/* Elements used in current file - shared component */}
-            <ElementsInFile elements={elements} blockDocs={docsData.blocksByName} />
-
-            {/* All blocks and grammars by category - shared component */}
-            {docsData.loading ? (
-              <div className="search-hint">Loading blocks...</div>
-            ) : (
-              <BlockList blocks={docsData.allItems} />
-            )}
-          </div>
-        </div>
-      );
-    }
-  }
 }
 
 // Template snippets for insertion
