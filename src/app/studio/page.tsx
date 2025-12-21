@@ -19,6 +19,13 @@ const CodeEditor = dynamic(
 type SidebarTab = 'chat' | 'docs' | 'search' | 'files' | 'data';
 type PreviewLayout = 'horizontal' | 'vertical';
 
+// IdMap entry from /api/content/root
+interface IdMapEntry {
+  tag: string;
+  attributes?: Record<string, unknown>;
+  provenance?: string[];
+}
+
 const DEMO_CONTENT = `<Vertical>
   <Markdown>
 # Welcome to Studio
@@ -54,10 +61,16 @@ export default function StudioPage() {
   const [editorRatio, setEditorRatio] = useState(50); // percentage for editor pane
   const [fileTree, setFileTree] = useState<UriNode | null>(null);
   const [loading, setLoading] = useState(false);
+  const [idMap, setIdMap] = useState<Record<string, IdMapEntry> | null>(null);
 
-  // Load file tree on mount
+  // Load file tree and idMap on mount
   useEffect(() => {
     storage.listFiles().then(setFileTree).catch(console.error);
+    // Use 'all' to get all IDs, not just launchable ones
+    fetch('/api/content/all')
+      .then(res => res.json())
+      .then(data => setIdMap(data.idMap))
+      .catch(console.error);
   }, []);
 
   // Load file content when path changes
@@ -182,6 +195,7 @@ export default function StudioPage() {
                   onApplyEdit={setContent}
                   onFileSelect={handleFileSelect}
                   fileTree={fileTree}
+                  idMap={idMap}
                 />
               </div>
             </aside>
@@ -338,6 +352,7 @@ interface SidebarPanelProps {
   onApplyEdit: (newContent: string) => void;
   onFileSelect: (path: string) => void;
   fileTree: UriNode | null;
+  idMap: Record<string, IdMapEntry> | null;
 }
 
 // Extract IDs and their tag names from OLX content
@@ -364,20 +379,96 @@ function extractElements(content: string): string[] {
   return Array.from(tags).sort();
 }
 
-// Doc links for common elements
-const ELEMENT_DOCS: Record<string, { path: string; desc: string }> = {
-  Markdown: { path: '/docs/blocks/display/Markdown', desc: 'Rich text content' },
-  CapaProblem: { path: '/docs/blocks/problems/', desc: 'Problem container' },
-  KeyGrader: { path: '/docs/blocks/graders/KeyGrader', desc: 'Answer key grading' },
-  ChoiceInput: { path: '/docs/blocks/inputs/ChoiceInput', desc: 'Multiple choice' },
-  Vertical: { path: '/docs/blocks/layout/Vertical', desc: 'Vertical layout' },
-  Horizontal: { path: '/docs/blocks/layout/Horizontal', desc: 'Horizontal layout' },
-  Hint: { path: '/docs/blocks/display/Hint', desc: 'Collapsible hint' },
-  Image: { path: '/docs/blocks/display/Image', desc: 'Image display' },
-  Video: { path: '/docs/blocks/display/Video', desc: 'Video player' },
-  TextInput: { path: '/docs/blocks/inputs/TextInput', desc: 'Text response' },
-  NumberInput: { path: '/docs/blocks/inputs/NumberInput', desc: 'Numeric response' },
+// Inline docs for elements - description + example
+const ELEMENT_DOCS: Record<string, { desc: string; example: string }> = {
+  Markdown: {
+    desc: 'Rich text content using Markdown syntax',
+    example: `<Markdown>
+# Heading
+**Bold** and *italic* text.
+</Markdown>`,
+  },
+  CapaProblem: {
+    desc: 'Container for a graded problem with inputs and graders',
+    example: `<CapaProblem id="q1" title="Question">
+  <KeyGrader>
+    <p>Question text</p>
+    <ChoiceInput>...</ChoiceInput>
+  </KeyGrader>
+</CapaProblem>`,
+  },
+  KeyGrader: {
+    desc: 'Grades based on Key/Distractor answer keys',
+    example: `<KeyGrader>
+  <p>Which is correct?</p>
+  <ChoiceInput>
+    <Key id="a">Correct</Key>
+    <Distractor id="b">Wrong</Distractor>
+  </ChoiceInput>
+</KeyGrader>`,
+  },
+  ChoiceInput: {
+    desc: 'Multiple choice input with Key and Distractor options',
+    example: `<ChoiceInput>
+  <Key id="correct">Right answer</Key>
+  <Distractor id="d1">Wrong 1</Distractor>
+  <Distractor id="d2">Wrong 2</Distractor>
+</ChoiceInput>`,
+  },
+  Key: {
+    desc: 'Correct answer option in a ChoiceInput',
+    example: `<Key id="correct">The right answer</Key>`,
+  },
+  Distractor: {
+    desc: 'Incorrect answer option in a ChoiceInput',
+    example: `<Distractor id="wrong1">A wrong answer</Distractor>`,
+  },
+  Vertical: {
+    desc: 'Stack children vertically',
+    example: `<Vertical>
+  <Markdown>First</Markdown>
+  <Markdown>Second</Markdown>
+</Vertical>`,
+  },
+  Horizontal: {
+    desc: 'Arrange children horizontally',
+    example: `<Horizontal>
+  <Markdown>Left</Markdown>
+  <Markdown>Right</Markdown>
+</Horizontal>`,
+  },
+  Hint: {
+    desc: 'Collapsible hint that students can reveal',
+    example: `<Hint title="Need help?">
+  <Markdown>Here's a hint...</Markdown>
+</Hint>`,
+  },
+  Image: {
+    desc: 'Display an image',
+    example: `<Image src="/path/to/image.png" alt="Description" />`,
+  },
+  Video: {
+    desc: 'Embed a video player',
+    example: `<Video src="https://youtube.com/watch?v=..." />`,
+  },
+  TextInput: {
+    desc: 'Free-text input field',
+    example: `<TextInput id="answer" placeholder="Type here..." />`,
+  },
+  NumberInput: {
+    desc: 'Numeric input field',
+    example: `<NumberInput id="num" min="0" max="100" />`,
+  },
 };
+
+// Detect file type for context-aware docs
+function getFileDocType(path: string): 'olx' | 'peg' | 'markdown' | 'unknown' {
+  const ext = path.split('.').pop()?.toLowerCase();
+  if (ext === 'olx' || ext === 'xml') return 'olx';
+  if (ext === 'chatpeg' || ext === 'sortpeg' || ext === 'matchpeg') return 'peg';
+  if (ext === 'md' || ext === 'markdown') return 'markdown';
+  return 'unknown';
+}
 
 function FileTreeNode({ node, depth, onSelect, currentPath }: {
   node: UriNode;
@@ -414,8 +505,9 @@ function FileTreeNode({ node, depth, onSelect, currentPath }: {
   );
 }
 
-function SidebarPanel({ tab, filePath, content, onApplyEdit, onFileSelect, fileTree }: SidebarPanelProps) {
-  const ids = tab === 'search' ? extractIds(content) : [];
+function SidebarPanel({ tab, filePath, content, onApplyEdit, onFileSelect, fileTree, idMap }: SidebarPanelProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const localIds = tab === 'search' ? extractIds(content) : [];
 
   switch (tab) {
     case 'files':
@@ -450,21 +542,80 @@ function SidebarPanel({ tab, filePath, content, onApplyEdit, onFileSelect, fileT
           />
         </div>
       );
-    case 'search':
+    case 'search': {
+      // Extract relative path from provenance
+      const getRelPath = (prov?: string[]): string | null => {
+        if (!prov || prov.length === 0) return null;
+        const idx = prov[0].indexOf('/content/');
+        return idx >= 0 ? prov[0].slice(idx + '/content/'.length) : prov[0];
+      };
+
+      // Filter idMap by search query
+      const searchResults = idMap && searchQuery.trim()
+        ? Object.entries(idMap)
+            .filter(([id, entry]) => {
+              const q = searchQuery.toLowerCase();
+              const title = (entry.attributes?.title as string) || '';
+              return id.toLowerCase().includes(q) || title.toLowerCase().includes(q);
+            })
+            .slice(0, 20) // Limit results
+        : [];
+
       return (
         <div className="sidebar-panel">
           <div className="sidebar-panel-header">Search</div>
           <input
             type="text"
             className="search-input"
-            placeholder="Search by ID, text, or file..."
+            placeholder="Search by ID or title..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <div className="search-section">IDs in current file ({ids.length})</div>
+
+          {/* Search results from idMap */}
+          {searchQuery.trim() && (
+            <>
+              <div className="search-section">
+                Results ({searchResults.length}{searchResults.length === 20 ? '+' : ''})
+              </div>
+              <div className="search-results">
+                {searchResults.length === 0 ? (
+                  <div className="search-hint">No matching IDs found</div>
+                ) : (
+                  searchResults.map(([id, entry]) => {
+                    const relPath = getRelPath(entry.provenance);
+                    const title = (entry.attributes?.title as string) || id;
+                    return (
+                      <div
+                        key={id}
+                        className="search-result-item clickable"
+                        onClick={() => relPath && onFileSelect(relPath)}
+                      >
+                        <div className="search-result-main">
+                          <span className="search-id">{id}</span>
+                          <span className="search-type">{entry.tag}</span>
+                        </div>
+                        {title !== id && (
+                          <div className="search-result-title">{title}</div>
+                        )}
+                        {relPath && (
+                          <div className="search-result-file">{relPath}</div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </>
+          )}
+
+          {/* IDs in current file */}
+          <div className="search-section">IDs in current file ({localIds.length})</div>
           <div className="search-results">
-            {ids.length === 0 ? (
+            {localIds.length === 0 ? (
               <div className="search-hint">No IDs found in content</div>
             ) : (
-              ids.map(({ id, tag }) => (
+              localIds.map(({ id, tag }) => (
                 <div key={id} className="search-result-item">
                   <span className="search-id">{id}</span>
                   <span className="search-type">{tag}</span>
@@ -472,10 +623,9 @@ function SidebarPanel({ tab, filePath, content, onApplyEdit, onFileSelect, fileT
               ))
             )}
           </div>
-          <div className="search-section">By Text</div>
-          <div className="search-hint">Type to search content...</div>
         </div>
       );
+    }
     case 'data':
       return (
         <div className="sidebar-panel">
@@ -490,9 +640,8 @@ function SidebarPanel({ tab, filePath, content, onApplyEdit, onFileSelect, fileT
         </div>
       );
     case 'docs': {
+      const docType = getFileDocType(filePath);
       const elements = extractElements(content);
-      const usedWithDocs = elements.filter(e => ELEMENT_DOCS[e]);
-      const usedWithoutDocs = elements.filter(e => !ELEMENT_DOCS[e]);
 
       return (
         <div className="sidebar-panel">
@@ -500,38 +649,100 @@ function SidebarPanel({ tab, filePath, content, onApplyEdit, onFileSelect, fileT
           <div className="docs-list">
             <a href="/docs/" target="_blank" className="docs-link">Full Documentation</a>
 
+            {/* File-type specific docs */}
+            {docType === 'peg' && (
+              <DocsSection title="PEG Format" defaultOpen>
+                <a href="/docs#peg-format" target="_blank" className="docs-item">PEG Syntax Guide</a>
+                <a href="/docs#chatpeg" target="_blank" className="docs-item">ChatPEG Format</a>
+                <a href="/docs#sortpeg" target="_blank" className="docs-item">SortPEG Format</a>
+              </DocsSection>
+            )}
+
+            {docType === 'markdown' && (
+              <DocsSection title="Markdown" defaultOpen>
+                <a href="/docs#markdown-syntax" target="_blank" className="docs-item">Markdown Syntax</a>
+                <a href="/docs#Markdown" target="_blank" className="docs-item">Markdown Block</a>
+              </DocsSection>
+            )}
+
+            {/* Elements used in current file - each is expandable */}
             {elements.length > 0 && (
               <>
-                <div className="docs-section">Elements in this file</div>
-                {usedWithDocs.map(tag => (
-                  <a
-                    key={tag}
-                    href={ELEMENT_DOCS[tag].path}
-                    target="_blank"
-                    className="docs-item-link"
-                  >
-                    <span className="docs-tag">{tag}</span>
-                    <span className="docs-desc">{ELEMENT_DOCS[tag].desc}</span>
-                  </a>
-                ))}
-                {usedWithoutDocs.map(tag => (
-                  <div key={tag} className="docs-item">
-                    <span className="docs-tag">{tag}</span>
-                  </div>
+                <div className="docs-section-label">Elements in file</div>
+                {elements.map(tag => (
+                  <ElementDocItem key={tag} tag={tag} />
                 ))}
               </>
             )}
 
-            <div className="docs-section">Quick Reference</div>
-            <a href="/docs/blocks/" target="_blank" className="docs-item">All Blocks</a>
-            <a href="/docs/blocks/problems/" target="_blank" className="docs-item">Problem Types</a>
-            <a href="/docs/blocks/layout/" target="_blank" className="docs-item">Layout Components</a>
-            <a href="/docs/blocks/graders/" target="_blank" className="docs-item">Graders</a>
+            {/* Quick reference sections */}
+            <DocsSection title="Layout">
+              <a href="/docs#Vertical" target="_blank" className="docs-item">Vertical</a>
+              <a href="/docs#Horizontal" target="_blank" className="docs-item">Horizontal</a>
+              <a href="/docs#Tabs" target="_blank" className="docs-item">Tabs</a>
+            </DocsSection>
+
+            <DocsSection title="Problems">
+              <a href="/docs#CapaProblem" target="_blank" className="docs-item">CapaProblem</a>
+              <a href="/docs#KeyGrader" target="_blank" className="docs-item">KeyGrader</a>
+              <a href="/docs#ChoiceInput" target="_blank" className="docs-item">ChoiceInput</a>
+              <a href="/docs#TextInput" target="_blank" className="docs-item">TextInput</a>
+            </DocsSection>
+
+            <DocsSection title="Display">
+              <a href="/docs#Markdown" target="_blank" className="docs-item">Markdown</a>
+              <a href="/docs#Image" target="_blank" className="docs-item">Image</a>
+              <a href="/docs#Video" target="_blank" className="docs-item">Video</a>
+              <a href="/docs#Hint" target="_blank" className="docs-item">Hint</a>
+            </DocsSection>
           </div>
         </div>
       );
     }
   }
+}
+
+// Expandable element doc item
+function ElementDocItem({ tag }: { tag: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const doc = ELEMENT_DOCS[tag];
+
+  return (
+    <div className="element-doc-item">
+      <div className="element-doc-header" onClick={() => setExpanded(!expanded)}>
+        <span className="element-doc-tag">{tag}</span>
+        {doc && <span className="element-doc-desc">{doc.desc}</span>}
+        <span className="element-doc-toggle">{expanded ? '▼' : '▶'}</span>
+      </div>
+      {expanded && doc && (
+        <div className="element-doc-content">
+          <pre className="element-doc-example">{doc.example}</pre>
+          <a href={`/docs#${tag}`} target="_blank" className="element-doc-link">
+            Full docs →
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Expandable section header (for quick reference)
+function DocsSection({ title, children, defaultOpen = false }: {
+  title: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div className="docs-section-container">
+      <div className="docs-section-header" onClick={() => setOpen(!open)}>
+        <span className="docs-section-icon">{open ? '▼' : '▶'}</span>
+        <span>{title}</span>
+      </div>
+      {open && <div className="docs-section-content">{children}</div>}
+    </div>
+  );
 }
 
 // Template snippets for insertion
