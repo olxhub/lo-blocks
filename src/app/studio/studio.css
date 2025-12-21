@@ -98,7 +98,7 @@
   flex-shrink: 0;
 }
 
-/* Resizer */
+/* Sidebar Resizer */
 .studio-resizer {
   width: 4px;
   cursor: col-resize;
@@ -108,6 +108,27 @@
 }
 
 .studio-resizer:hover {
+  background: #388bfd;
+}
+
+/* Pane Resizer (editor/preview) */
+.studio-pane-resizer {
+  flex-shrink: 0;
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.studio-pane-resizer.horizontal {
+  width: 4px;
+  cursor: col-resize;
+}
+
+.studio-pane-resizer.vertical {
+  height: 4px;
+  cursor: row-resize;
+}
+
+.studio-pane-resizer:hover {
   background: #388bfd;
 }
 
@@ -278,14 +299,42 @@
 }
 
 .docs-item {
+  display: block;
   padding: 6px 8px;
   border-radius: 4px;
   cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
 
 .docs-item:hover {
   background: #21262d;
   color: #58a6ff;
+}
+
+.docs-item-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.docs-item-link:hover {
+  background: #21262d;
+}
+
+.docs-tag {
+  font-family: 'SF Mono', Consolas, monospace;
+  color: #58a6ff;
+  font-size: 13px;
+}
+
+.docs-desc {
+  font-size: 11px;
+  color: #8b949e;
 }
 
 /* Main editor */
@@ -415,7 +464,8 @@
   transition: background 0.1s;
 }
 
-.command-palette-item:hover {
+.command-palette-item:hover,
+.command-palette-item.selected {
   background: #21262d;
 }
 

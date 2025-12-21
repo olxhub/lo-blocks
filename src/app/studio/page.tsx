@@ -6,6 +6,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import RenderOLX from '@/components/common/RenderOLX';
 import EditorLLMChat from '@/components/chat/EditorLLMChat';
+import { NetworkStorageProvider } from '@/lib/storage';
+import type { UriNode } from '@/lib/storage/types';
 import './studio.css';
 
 // Dynamic import CodeMirror to avoid SSR issues
@@ -37,6 +39,9 @@ This is a **live preview** of your content. Edit on the left, see changes on the
   </CapaProblem>
 </Vertical>`;
 
+// Create a single storage provider instance
+const storage = new NetworkStorageProvider();
+
 export default function StudioPage() {
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('chat');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -46,10 +51,39 @@ export default function StudioPage() {
   const [showPreview, setShowPreview] = useState(true);
   const [previewLayout, setPreviewLayout] = useState<PreviewLayout>('horizontal');
   const [sidebarWidth, setSidebarWidth] = useState(320);
+  const [editorRatio, setEditorRatio] = useState(50); // percentage for editor pane
+  const [fileTree, setFileTree] = useState<UriNode | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSave = useCallback(() => {
-    console.log('Save:', filePath, content);
-    // TODO: Implement save
+  // Load file tree on mount
+  useEffect(() => {
+    storage.listFiles().then(setFileTree).catch(console.error);
+  }, []);
+
+  // Load file content when path changes
+  const handleFileSelect = useCallback(async (path: string) => {
+    setLoading(true);
+    try {
+      const fileContent = await storage.read(path);
+      setContent(fileContent);
+      setFilePath(path);
+    } catch (err) {
+      console.error('Failed to load file:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const handleSave = useCallback(async () => {
+    setLoading(true);
+    try {
+      await storage.write(filePath, content);
+      console.log('Saved:', filePath);
+    } catch (err) {
+      console.error('Failed to save:', err);
+    } finally {
+      setLoading(false);
+    }
   }, [filePath, content]);
 
   // Keyboard shortcuts
@@ -146,6 +180,8 @@ export default function StudioPage() {
                   filePath={filePath}
                   content={content}
                   onApplyEdit={setContent}
+                  onFileSelect={handleFileSelect}
+                  fileTree={fileTree}
                 />
               </div>
             </aside>
@@ -155,7 +191,13 @@ export default function StudioPage() {
 
         {/* Main Editor Area */}
         <main className={`studio-main ${showPreview ? `split ${previewLayout}` : ''}`}>
-          <div className="studio-editor-pane">
+          <div
+            className="studio-editor-pane"
+            style={showPreview ? {
+              [previewLayout === 'horizontal' ? 'width' : 'height']: `${editorRatio}%`,
+              flex: 'none'
+            } : undefined}
+          >
             <CodeEditor
               value={content}
               onChange={setContent}
@@ -164,19 +206,33 @@ export default function StudioPage() {
             />
           </div>
           {showPreview && (
-            <div className="studio-preview-pane">
-              <div className="studio-preview-header">Preview</div>
-              <div className="studio-preview-content">
-                <RenderOLX id="studio-preview" inline={content} />
+            <>
+              <PaneResizer
+                direction={previewLayout === 'horizontal' ? 'horizontal' : 'vertical'}
+                onResize={(delta, containerSize) => {
+                  const deltaPct = (delta / containerSize) * 100;
+                  setEditorRatio(r => Math.max(20, Math.min(80, r + deltaPct)));
+                }}
+              />
+              <div className="studio-preview-pane">
+                <div className="studio-preview-header">Preview</div>
+                <div className="studio-preview-content">
+                  <RenderOLX id="studio-preview" inline={content} />
+                </div>
               </div>
-            </div>
+            </>
           )}
         </main>
       </div>
 
       {/* Command Palette */}
       {commandPaletteOpen && (
-        <CommandPalette onClose={() => setCommandPaletteOpen(false)} />
+        <CommandPalette
+          onClose={() => setCommandPaletteOpen(false)}
+          onSave={handleSave}
+          onTogglePreview={() => setShowPreview(p => !p)}
+          onInsert={(template) => setContent(c => c + '\n\n' + template)}
+        />
       )}
 
       {/* Footer hint */}
@@ -221,11 +277,67 @@ function Resizer({ onResize }: { onResize: (delta: number) => void }) {
   return <div className="studio-resizer" onMouseDown={handleMouseDown} />;
 }
 
+// Draggable resizer for editor/preview panes (supports both directions)
+function PaneResizer({
+  direction,
+  onResize
+}: {
+  direction: 'horizontal' | 'vertical';
+  onResize: (delta: number, containerSize: number) => void;
+}) {
+  const startPos = useRef(0);
+  const dragging = useRef(false);
+  const resizerRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    startPos.current = direction === 'horizontal' ? e.clientX : e.clientY;
+    dragging.current = true;
+    document.body.style.cursor = direction === 'horizontal' ? 'col-resize' : 'row-resize';
+    document.body.style.userSelect = 'none';
+
+    // Get container size for percentage calculation
+    const container = resizerRef.current?.parentElement;
+    const containerSize = container
+      ? (direction === 'horizontal' ? container.clientWidth : container.clientHeight)
+      : 1000;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!dragging.current) return;
+      const currentPos = direction === 'horizontal' ? e.clientX : e.clientY;
+      const delta = currentPos - startPos.current;
+      startPos.current = currentPos;
+      onResize(delta, containerSize);
+    };
+
+    const handleMouseUp = () => {
+      dragging.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  return (
+    <div
+      ref={resizerRef}
+      className={`studio-pane-resizer ${direction}`}
+      onMouseDown={handleMouseDown}
+    />
+  );
+}
+
 interface SidebarPanelProps {
   tab: SidebarTab;
   filePath: string;
   content: string;
   onApplyEdit: (newContent: string) => void;
+  onFileSelect: (path: string) => void;
+  fileTree: UriNode | null;
 }
 
 // Extract IDs and their tag names from OLX content
@@ -240,7 +352,69 @@ function extractIds(content: string): Array<{ id: string; tag: string }> {
   return results;
 }
 
-function SidebarPanel({ tab, filePath, content, onApplyEdit }: SidebarPanelProps) {
+// Extract unique element tags used in content
+function extractElements(content: string): string[] {
+  const tags = new Set<string>();
+  // Match opening tags <TagName ...>
+  const regex = /<([A-Z]\w*)/g;
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    tags.add(match[1]);
+  }
+  return Array.from(tags).sort();
+}
+
+// Doc links for common elements
+const ELEMENT_DOCS: Record<string, { path: string; desc: string }> = {
+  Markdown: { path: '/docs/blocks/display/Markdown', desc: 'Rich text content' },
+  CapaProblem: { path: '/docs/blocks/problems/', desc: 'Problem container' },
+  KeyGrader: { path: '/docs/blocks/graders/KeyGrader', desc: 'Answer key grading' },
+  ChoiceInput: { path: '/docs/blocks/inputs/ChoiceInput', desc: 'Multiple choice' },
+  Vertical: { path: '/docs/blocks/layout/Vertical', desc: 'Vertical layout' },
+  Horizontal: { path: '/docs/blocks/layout/Horizontal', desc: 'Horizontal layout' },
+  Hint: { path: '/docs/blocks/display/Hint', desc: 'Collapsible hint' },
+  Image: { path: '/docs/blocks/display/Image', desc: 'Image display' },
+  Video: { path: '/docs/blocks/display/Video', desc: 'Video player' },
+  TextInput: { path: '/docs/blocks/inputs/TextInput', desc: 'Text response' },
+  NumberInput: { path: '/docs/blocks/inputs/NumberInput', desc: 'Numeric response' },
+};
+
+function FileTreeNode({ node, depth, onSelect, currentPath }: {
+  node: UriNode;
+  depth: number;
+  onSelect: (path: string) => void;
+  currentPath: string;
+}) {
+  const [expanded, setExpanded] = useState(depth < 2);
+  const isDir = node.children && node.children.length > 0;
+  const name = node.uri.split('/').pop() || node.uri;
+  const isActive = node.uri === currentPath;
+
+  return (
+    <div>
+      <div
+        className={`file-item ${isActive ? 'active' : ''}`}
+        style={{ paddingLeft: depth * 12 + 8 }}
+        onClick={() => isDir ? setExpanded(!expanded) : onSelect(node.uri)}
+      >
+        {isDir && <span className="file-icon">{expanded ? '▼' : '▶'}</span>}
+        {!isDir && <span className="file-icon">📄</span>}
+        {name}
+      </div>
+      {isDir && expanded && node.children?.map((child, i) => (
+        <FileTreeNode
+          key={child.uri || i}
+          node={child}
+          depth={depth + 1}
+          onSelect={onSelect}
+          currentPath={currentPath}
+        />
+      ))}
+    </div>
+  );
+}
+
+function SidebarPanel({ tab, filePath, content, onApplyEdit, onFileSelect, fileTree }: SidebarPanelProps) {
   const ids = tab === 'search' ? extractIds(content) : [];
 
   switch (tab) {
@@ -249,11 +423,19 @@ function SidebarPanel({ tab, filePath, content, onApplyEdit }: SidebarPanelProps
         <div className="sidebar-panel">
           <div className="sidebar-panel-header">Files</div>
           <div className="file-tree">
-            <div className="file-item">content/</div>
-            <div className="file-item indent">demo.olx</div>
-            <div className="file-item indent">quiz.olx</div>
-            <div className="file-item">components/</div>
-            <div className="file-item indent">mcq-template.olx</div>
+            {fileTree ? (
+              fileTree.children?.map((node, i) => (
+                <FileTreeNode
+                  key={node.uri || i}
+                  node={node}
+                  depth={0}
+                  onSelect={onFileSelect}
+                  currentPath={filePath}
+                />
+              ))
+            ) : (
+              <div className="file-tree-loading">Loading...</div>
+            )}
           </div>
         </div>
       );
@@ -307,42 +489,105 @@ function SidebarPanel({ tab, filePath, content, onApplyEdit }: SidebarPanelProps
           </div>
         </div>
       );
-    case 'docs':
+    case 'docs': {
+      const elements = extractElements(content);
+      const usedWithDocs = elements.filter(e => ELEMENT_DOCS[e]);
+      const usedWithoutDocs = elements.filter(e => !ELEMENT_DOCS[e]);
+
       return (
         <div className="sidebar-panel">
           <div className="sidebar-panel-header">Documentation</div>
           <div className="docs-list">
             <a href="/docs/" target="_blank" className="docs-link">Full Documentation</a>
+
+            {elements.length > 0 && (
+              <>
+                <div className="docs-section">Elements in this file</div>
+                {usedWithDocs.map(tag => (
+                  <a
+                    key={tag}
+                    href={ELEMENT_DOCS[tag].path}
+                    target="_blank"
+                    className="docs-item-link"
+                  >
+                    <span className="docs-tag">{tag}</span>
+                    <span className="docs-desc">{ELEMENT_DOCS[tag].desc}</span>
+                  </a>
+                ))}
+                {usedWithoutDocs.map(tag => (
+                  <div key={tag} className="docs-item">
+                    <span className="docs-tag">{tag}</span>
+                  </div>
+                ))}
+              </>
+            )}
+
             <div className="docs-section">Quick Reference</div>
-            <div className="docs-item">OLX Elements</div>
-            <div className="docs-item">Problem Types</div>
-            <div className="docs-item">Layout Components</div>
-            <div className="docs-item">Grading & Scoring</div>
+            <a href="/docs/blocks/" target="_blank" className="docs-item">All Blocks</a>
+            <a href="/docs/blocks/problems/" target="_blank" className="docs-item">Problem Types</a>
+            <a href="/docs/blocks/layout/" target="_blank" className="docs-item">Layout Components</a>
+            <a href="/docs/blocks/graders/" target="_blank" className="docs-item">Graders</a>
           </div>
         </div>
       );
+    }
   }
 }
 
-function CommandPalette({ onClose }: { onClose: () => void }) {
+// Template snippets for insertion
+const TEMPLATES = {
+  mcq: `<CapaProblem id="new-mcq" title="New Question">
+  <KeyGrader>
+    <p>Question text here</p>
+    <ChoiceInput>
+      <Key id="correct">Correct answer</Key>
+      <Distractor id="d1">Wrong answer 1</Distractor>
+      <Distractor id="d2">Wrong answer 2</Distractor>
+    </ChoiceInput>
+  </KeyGrader>
+</CapaProblem>`,
+  hint: `<Hint title="Hint">
+  <Markdown>
+Hint content here.
+  </Markdown>
+</Hint>`,
+  markdown: `<Markdown>
+Content here. Use **bold**, *italic*, and other markdown formatting.
+</Markdown>`,
+};
+
+interface CommandPaletteProps {
+  onClose: () => void;
+  onSave: () => void;
+  onTogglePreview: () => void;
+  onInsert: (template: string) => void;
+}
+
+function CommandPalette({ onClose, onSave, onTogglePreview, onInsert }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
 
   const commands = [
-    { id: 'goto-id', label: 'Go to ID...', shortcut: '⌘G' },
-    { id: 'new-file', label: 'New File', shortcut: '⌘N' },
-    { id: 'save', label: 'Save', shortcut: '⌘S' },
-    { id: 'insert-mcq', label: 'Insert: Multiple Choice Question', shortcut: '' },
-    { id: 'insert-hint', label: 'Insert: Hint', shortcut: '' },
-    { id: 'insert-markdown', label: 'Insert: Markdown Block', shortcut: '' },
-    { id: 'toggle-preview', label: 'Toggle Preview', shortcut: '⌘P' },
-    { id: 'fork', label: 'Fork to new file...', shortcut: '' },
-    { id: 'history', label: 'Show version history', shortcut: '' },
-    { id: 'docs', label: 'Open documentation', shortcut: 'F1' },
+    { id: 'save', label: 'Save', shortcut: '⌘S', action: () => { onSave(); onClose(); } },
+    { id: 'toggle-preview', label: 'Toggle Preview', shortcut: '⌘P', action: () => { onTogglePreview(); onClose(); } },
+    { id: 'insert-mcq', label: 'Insert: Multiple Choice Question', shortcut: '', action: () => { onInsert(TEMPLATES.mcq); onClose(); } },
+    { id: 'insert-hint', label: 'Insert: Hint', shortcut: '', action: () => { onInsert(TEMPLATES.hint); onClose(); } },
+    { id: 'insert-markdown', label: 'Insert: Markdown Block', shortcut: '', action: () => { onInsert(TEMPLATES.markdown); onClose(); } },
+    { id: 'docs', label: 'Open documentation', shortcut: 'F1', action: () => { window.open('/docs/', '_blank'); onClose(); } },
+    { id: 'goto-id', label: 'Go to ID...', shortcut: '⌘G', action: () => { /* TODO: implement ID search */ onClose(); } },
+    { id: 'new-file', label: 'New File', shortcut: '⌘N', action: () => { /* TODO: implement new file */ onClose(); } },
+    { id: 'fork', label: 'Fork to new file...', shortcut: '', action: () => { /* TODO: implement fork */ onClose(); } },
+    { id: 'history', label: 'Show version history', shortcut: '', action: () => { /* TODO: implement history */ onClose(); } },
   ];
 
   const filtered = commands.filter(c =>
     c.label.toLowerCase().includes(query.toLowerCase())
   );
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && filtered.length > 0) {
+      filtered[0].action();
+    }
+  };
 
   return (
     <div className="command-palette-overlay" onClick={onClose}>
@@ -353,11 +598,16 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
           placeholder="Type a command..."
           value={query}
           onChange={e => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
           autoFocus
         />
         <div className="command-palette-results">
-          {filtered.map(cmd => (
-            <div key={cmd.id} className="command-palette-item">
+          {filtered.map((cmd, idx) => (
+            <div
+              key={cmd.id}
+              className={`command-palette-item ${idx === 0 ? 'selected' : ''}`}
+              onClick={cmd.action}
+            >
               <span>{cmd.label}</span>
               {cmd.shortcut && <kbd>{cmd.shortcut}</kbd>}
             </div>
