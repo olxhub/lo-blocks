@@ -201,6 +201,155 @@
   padding-left: 24px;
 }
 
+.file-item {
+  display: flex;
+  align-items: center;
+}
+
+.file-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-menu-btn {
+  opacity: 0;
+  background: none;
+  border: none;
+  color: #8b949e;
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+.file-item:hover .file-menu-btn {
+  opacity: 1;
+}
+
+.file-menu-btn:hover {
+  background: #30363d;
+  color: #c9d1d9;
+}
+
+.file-actions {
+  padding: 8px;
+  margin: 4px 0;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+}
+
+.file-rename-input {
+  width: 100%;
+  padding: 6px 8px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  color: #c9d1d9;
+  font-size: 12px;
+  font-family: 'SF Mono', Consolas, monospace;
+  margin-bottom: 8px;
+}
+
+.file-rename-input:focus {
+  outline: none;
+  border-color: #58a6ff;
+}
+
+.file-action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.file-action-buttons button {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  background: #21262d;
+  color: #c9d1d9;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.file-action-buttons button:hover {
+  background: #30363d;
+}
+
+.file-action-buttons button.danger {
+  border-color: #f85149;
+  color: #f85149;
+}
+
+.file-action-buttons button.danger:hover {
+  background: #f8514922;
+}
+
+/* File action button in header */
+.sidebar-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.file-action-btn {
+  background: none;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  color: #8b949e;
+  cursor: pointer;
+  padding: 2px 8px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.file-action-btn:hover {
+  background: #21262d;
+  color: #c9d1d9;
+}
+
+/* New file dialog */
+.file-dialog {
+  padding: 8px;
+  margin-bottom: 8px;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+}
+
+.file-dialog-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.file-dialog-btn {
+  flex: 1;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background: #238636;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.file-dialog-btn:hover {
+  background: #2ea043;
+}
+
+.file-dialog-btn.cancel {
+  background: #21262d;
+  border: 1px solid #30363d;
+  color: #c9d1d9;
+}
+
+.file-dialog-btn.cancel:hover {
+  background: #30363d;
+}
+
 /* Search */
 .search-input {
   width: 100%;

@@ -63,15 +63,20 @@ export default function StudioPage() {
   const [loading, setLoading] = useState(false);
   const [idMap, setIdMap] = useState<Record<string, IdMapEntry> | null>(null);
 
+  // Load file tree
+  const refreshFiles = useCallback(() => {
+    storage.listFiles().then(setFileTree).catch(console.error);
+  }, []);
+
   // Load file tree and idMap on mount
   useEffect(() => {
-    storage.listFiles().then(setFileTree).catch(console.error);
+    refreshFiles();
     // Use 'all' to get all IDs, not just launchable ones
     fetch('/api/content/all')
       .then(res => res.json())
       .then(data => setIdMap(data.idMap))
       .catch(console.error);
-  }, []);
+  }, [refreshFiles]);
 
   // Load file content when path changes
   const handleFileSelect = useCallback(async (path: string) => {
@@ -98,6 +103,33 @@ export default function StudioPage() {
       setLoading(false);
     }
   }, [filePath, content]);
+
+  const handleFileCreate = useCallback(async (path: string, fileContent: string) => {
+    await storage.write(path, fileContent);
+    refreshFiles();
+    // Open the new file
+    setContent(fileContent);
+    setFilePath(path);
+  }, [refreshFiles]);
+
+  const handleFileDelete = useCallback(async (path: string) => {
+    await storage.delete(path);
+    refreshFiles();
+    // If we deleted the current file, clear the editor
+    if (path === filePath) {
+      setContent(DEMO_CONTENT);
+      setFilePath('untitled.olx');
+    }
+  }, [filePath, refreshFiles]);
+
+  const handleFileRename = useCallback(async (oldPath: string, newPath: string) => {
+    await storage.rename(oldPath, newPath);
+    refreshFiles();
+    // If we renamed the current file, update the path
+    if (oldPath === filePath) {
+      setFilePath(newPath);
+    }
+  }, [filePath, refreshFiles]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -194,6 +226,10 @@ export default function StudioPage() {
                   content={content}
                   onApplyEdit={setContent}
                   onFileSelect={handleFileSelect}
+                  onFileCreate={handleFileCreate}
+                  onFileDelete={handleFileDelete}
+                  onFileRename={handleFileRename}
+                  onRefreshFiles={refreshFiles}
                   fileTree={fileTree}
                   idMap={idMap}
                 />
@@ -351,6 +387,10 @@ interface SidebarPanelProps {
   content: string;
   onApplyEdit: (newContent: string) => void;
   onFileSelect: (path: string) => void;
+  onFileCreate: (path: string, content: string) => Promise<void>;
+  onFileDelete: (path: string) => Promise<void>;
+  onFileRename: (oldPath: string, newPath: string) => Promise<void>;
+  onRefreshFiles: () => void;
   fileTree: UriNode | null;
   idMap: Record<string, IdMapEntry> | null;
 }
@@ -470,16 +510,28 @@ function getFileDocType(path: string): 'olx' | 'peg' | 'markdown' | 'unknown' {
   return 'unknown';
 }
 
-function FileTreeNode({ node, depth, onSelect, currentPath }: {
+interface FileTreeNodeProps {
   node: UriNode;
   depth: number;
   onSelect: (path: string) => void;
   currentPath: string;
-}) {
+  onShowActions: (path: string) => void;
+  actionPath: string | null;
+  onDelete: (path: string) => void;
+  onRename: (path: string) => void;
+  renameValue: string;
+  onRenameChange: (value: string) => void;
+}
+
+function FileTreeNode({
+  node, depth, onSelect, currentPath,
+  onShowActions, actionPath, onDelete, onRename, renameValue, onRenameChange
+}: FileTreeNodeProps) {
   const [expanded, setExpanded] = useState(depth < 2);
   const isDir = node.children && node.children.length > 0;
   const name = node.uri.split('/').pop() || node.uri;
   const isActive = node.uri === currentPath;
+  const showingActions = actionPath === node.uri;
 
   return (
     <div>
@@ -490,8 +542,41 @@ function FileTreeNode({ node, depth, onSelect, currentPath }: {
       >
         {isDir && <span className="file-icon">{expanded ? '▼' : '▶'}</span>}
         {!isDir && <span className="file-icon">📄</span>}
-        {name}
+        <span className="file-name">{name}</span>
+        {!isDir && (
+          <button
+            className="file-menu-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onShowActions(showingActions ? '' : node.uri);
+            }}
+          >
+            ⋮
+          </button>
+        )}
       </div>
+
+      {/* Action menu for this file */}
+      {showingActions && !isDir && (
+        <div className="file-actions" style={{ paddingLeft: depth * 12 + 20 }}>
+          <input
+            type="text"
+            className="file-rename-input"
+            value={renameValue}
+            onChange={(e) => onRenameChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') onRename(node.uri);
+              if (e.key === 'Escape') onShowActions('');
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <div className="file-action-buttons">
+            <button onClick={() => onRename(node.uri)}>Rename</button>
+            <button className="danger" onClick={() => onDelete(node.uri)}>Delete</button>
+          </div>
+        </div>
+      )}
+
       {isDir && expanded && node.children?.map((child, i) => (
         <FileTreeNode
           key={child.uri || i}
@@ -499,21 +584,107 @@ function FileTreeNode({ node, depth, onSelect, currentPath }: {
           depth={depth + 1}
           onSelect={onSelect}
           currentPath={currentPath}
+          onShowActions={onShowActions}
+          actionPath={actionPath}
+          onDelete={onDelete}
+          onRename={onRename}
+          renameValue={renameValue}
+          onRenameChange={onRenameChange}
         />
       ))}
     </div>
   );
 }
 
-function SidebarPanel({ tab, filePath, content, onApplyEdit, onFileSelect, fileTree, idMap }: SidebarPanelProps) {
+function SidebarPanel({
+  tab, filePath, content, onApplyEdit, onFileSelect,
+  onFileCreate, onFileDelete, onFileRename, onRefreshFiles,
+  fileTree, idMap
+}: SidebarPanelProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [showNewFileDialog, setShowNewFileDialog] = useState(false);
+  const [newFileName, setNewFileName] = useState('');
+  const [fileActionPath, setFileActionPath] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
   const localIds = tab === 'search' ? extractIds(content) : [];
+
+  const handleCreateFile = async () => {
+    if (!newFileName.trim()) return;
+    const path = newFileName.endsWith('.olx') ? newFileName : `${newFileName}.olx`;
+    const template = `<Vertical>
+  <Markdown>
+# New Content
+
+Start writing here.
+  </Markdown>
+</Vertical>`;
+    try {
+      await onFileCreate(path, template);
+      setShowNewFileDialog(false);
+      setNewFileName('');
+    } catch (err) {
+      console.error('Failed to create file:', err);
+    }
+  };
+
+  const handleDeleteFile = async (path: string) => {
+    if (!confirm(`Delete ${path}?`)) return;
+    try {
+      await onFileDelete(path);
+      setFileActionPath(null);
+    } catch (err) {
+      console.error('Failed to delete:', err);
+    }
+  };
+
+  const handleRenameFile = async (oldPath: string) => {
+    if (!renameValue.trim() || renameValue === oldPath) {
+      setFileActionPath(null);
+      return;
+    }
+    try {
+      await onFileRename(oldPath, renameValue);
+      setFileActionPath(null);
+      setRenameValue('');
+    } catch (err) {
+      console.error('Failed to rename:', err);
+    }
+  };
 
   switch (tab) {
     case 'files':
       return (
         <div className="sidebar-panel">
-          <div className="sidebar-panel-header">Files</div>
+          <div className="sidebar-panel-header">
+            Files
+            <button
+              className="file-action-btn"
+              onClick={() => setShowNewFileDialog(true)}
+              title="New file"
+            >
+              +
+            </button>
+          </div>
+
+          {/* New file dialog */}
+          {showNewFileDialog && (
+            <div className="file-dialog">
+              <input
+                type="text"
+                className="search-input"
+                placeholder="filename.olx"
+                value={newFileName}
+                onChange={(e) => setNewFileName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleCreateFile()}
+                autoFocus
+              />
+              <div className="file-dialog-actions">
+                <button className="file-dialog-btn" onClick={handleCreateFile}>Create</button>
+                <button className="file-dialog-btn cancel" onClick={() => setShowNewFileDialog(false)}>Cancel</button>
+              </div>
+            </div>
+          )}
+
           <div className="file-tree">
             {fileTree ? (
               fileTree.children?.map((node, i) => (
@@ -523,6 +694,15 @@ function SidebarPanel({ tab, filePath, content, onApplyEdit, onFileSelect, fileT
                   depth={0}
                   onSelect={onFileSelect}
                   currentPath={filePath}
+                  onShowActions={(path) => {
+                    setFileActionPath(path);
+                    setRenameValue(path);
+                  }}
+                  actionPath={fileActionPath}
+                  onDelete={handleDeleteFile}
+                  onRename={handleRenameFile}
+                  renameValue={renameValue}
+                  onRenameChange={setRenameValue}
                 />
               ))
             ) : (

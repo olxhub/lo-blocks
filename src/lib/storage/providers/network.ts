@@ -90,4 +90,27 @@ export class NetworkStorageProvider implements StorageProvider {
   async update(path: string, content: string): Promise<void> {
     await this.write(path, content);
   }
+
+  async delete(path: string): Promise<void> {
+    const res = await fetch(
+      `${this.readEndpoint}?path=${encodeURIComponent(path)}`,
+      { method: 'DELETE' }
+    );
+    const json = await res.json();
+    if (!json.ok) {
+      throw new Error(json.error ?? 'Failed to delete');
+    }
+  }
+
+  async rename(oldPath: string, newPath: string): Promise<void> {
+    const res = await fetch(this.readEndpoint, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: oldPath, newPath }),
+    });
+    const json = await res.json();
+    if (!json.ok) {
+      throw new Error(json.error ?? 'Failed to rename');
+    }
+  }
 }
