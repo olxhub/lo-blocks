@@ -4,6 +4,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { ChevronRight } from 'lucide-react';
+import { acceptString } from '@/lib/util/fileTypes';
 
 // Generate random colors based on name (consistent for same name)
 const getAvatarColor = (name) => {
@@ -197,7 +198,7 @@ export const InputFooter = ({
               type="file"
               ref={fileInputRef}
               className="hidden"
-              accept=".txt,.md,.olx,.xml,.json,.js,.jsx,.ts,.tsx,.css,.html,.py,.yaml,.yml,.pegjs,.chatpeg,.sortpeg"
+              accept={acceptString('uploadable')} // .olx,.xml,.md,.chatpeg,.sortpeg,.js,.jsx,...
               onChange={handleFileSelect}
             />
             <button

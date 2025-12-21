@@ -23,7 +23,8 @@ import ComponentNav from '@/components/navigation/ComponentNav';
 import SearchNav from '@/components/navigation/SearchNav';
 import AppHeader from '@/components/common/AppHeader';
 import RenderOLX from '@/components/common/RenderOLX';
-import CodeEditor, { isPEGContentFile } from '@/components/common/CodeEditor';
+import CodeEditor from '@/components/common/CodeEditor';
+import { isPEGFile } from '@/lib/util/fileTypes';
 import PEGPreviewPane from '@/components/common/PEGPreviewPane';
 import Spinner from '@/components/common/Spinner';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -215,7 +216,7 @@ export default function EditPage() {
   };
 
   const ready = content && idMap;
-  const isPegFile = isPEGContentFile(path);
+  const isPegFile = isPEGFile(path);
 
   // Error display for the right panes
   const errorPane = error ? (

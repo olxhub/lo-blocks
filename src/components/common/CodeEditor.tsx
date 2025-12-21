@@ -8,11 +8,8 @@ import { markdown } from '@codemirror/lang-markdown';
 import { linter, lintGutter, Diagnostic } from '@codemirror/lint';
 import { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
-import {
-  isPEGContentExtension,
-  getParserForExtension,
-  type PEGContentExtension
-} from '@/generated/parserRegistry';
+import { getParserForExtension, type PEGContentExtension } from '@/generated/parserRegistry';
+import { getExtension, isPEGFile, isOLXFile, isMarkdownFile } from '@/lib/util/fileTypes';
 
 // Dynamic import for CodeMirror to avoid SSR issues
 const CodeMirror = dynamic(
@@ -154,38 +151,11 @@ function getLanguageExtension(language?: CodeLanguage): Extension | undefined {
   }
 }
 
-function detectLanguageFromPath(path?: string): CodeLanguage | undefined {
-  if (!path) return undefined;
-  const ext = path.split('.').pop()?.toLowerCase();
-
-  // Check for PEG content extensions (e.g., .chatpeg, .sortpeg)
-  if (ext && isPEGContentExtension(ext)) {
-    return ext as PEGContentExtension;
-  }
-
-  switch (ext) {
-    case 'xml':
-    case 'olx':
-      return 'xml';
-    case 'md':
-      return 'md';
-    default:
-      return undefined;
-  }
-}
-
-/** Check if a language/path indicates a PEG content file (.chatpeg, .sortpeg, etc.) */
-export function isPEGContentFile(path?: string, language?: CodeLanguage): boolean {
-  if (language && isPEGContentExtension(language)) return true;
-  if (!path) return false;
-  const ext = path.split('.').pop()?.toLowerCase();
-  return ext ? isPEGContentExtension(ext) : false;
-}
-
-/** Get the extension from a path */
-function getExtensionFromPath(path?: string): string | undefined {
-  if (!path) return undefined;
-  return path.split('.').pop()?.toLowerCase();
+/** Detect syntax highlighting language from file path */
+function detectLanguageFromPath(path?: string): 'xml' | 'md' | undefined {
+  if (isOLXFile(path)) return 'xml';
+  if (isMarkdownFile(path)) return 'md';
+  return undefined;
 }
 
 /**
@@ -209,8 +179,8 @@ export default function CodeEditor({
   extensions: additionalExtensions = [],
 }: CodeEditorProps) {
   const effectiveLanguage = language ?? detectLanguageFromPath(path);
-  const isPegContent = isPEGContentFile(path, effectiveLanguage);
-  const ext = getExtensionFromPath(path);
+  const ext = getExtension(path);
+  const isPegContent = isPEGFile(path);
 
   const extensions = useMemo(() => {
     const exts: Extension[] = [];

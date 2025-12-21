@@ -50,6 +50,7 @@ import { render, makeRootNode } from '@/lib/render';
 import { COMPONENT_MAP } from '@/components/componentMap';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { InMemoryStorageProvider, StackedStorageProvider } from '@/lib/storage';
+import { isOLXFile } from '@/lib/util/fileTypes';
 
 /**
  * Props for RenderOLX component.
@@ -164,7 +165,7 @@ export default function RenderOLX({
           let lastRoot: string | null = null;
 
           for (const [filename, content] of Object.entries(files)) {
-            if (!filename.endsWith('.olx') && !filename.endsWith('.xml')) {
+            if (!isOLXFile(filename)) {
               continue;
             }
 

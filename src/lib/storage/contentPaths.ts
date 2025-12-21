@@ -8,14 +8,13 @@
 // NOTE: Server-only module (uses Node.js path). Do not import from client code.
 //
 import path from 'path';
-import pegExts from '@/generated/pegExtensions.json';
+import { extensionsWithDots, CATEGORY } from '@/lib/util/fileTypes';
 
 // Base directory for content - resolved once at module load
 const CONTENT_BASE = path.resolve('./content');
 
-// Valid file extensions for content files
-// Includes OLX, markdown, and PEG content formats
-const ALLOWED_EXTENSIONS = ['.xml', '.olx', '.md', ...pegExts.map(e => `.${e}`)];
+// Valid file extensions for content files (derived from central fileTypes)
+const ALLOWED_EXTENSIONS = extensionsWithDots(CATEGORY.content); // ['.olx', '.xml', '.md', '.chatpeg', ...]
 
 export interface PathValidation {
   valid: boolean;

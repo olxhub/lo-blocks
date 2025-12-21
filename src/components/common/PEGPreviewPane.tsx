@@ -8,6 +8,7 @@ import { injectPreviewContent } from '@/lib/template/previewTemplate';
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
+import { getExtension } from '@/lib/util/fileTypes';
 
 interface PEGPreviewPaneProps {
   path: string;
@@ -24,10 +25,6 @@ interface ParseResult {
       column: number;
     };
   };
-}
-
-function getExtension(path: string): string {
-  return path.split('.').pop() || '';
 }
 
 type TabType = 'parse' | 'preview';

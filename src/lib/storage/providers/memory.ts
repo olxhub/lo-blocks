@@ -10,8 +10,9 @@
 // - Multi-file content where files reference each other via src=""
 //
 
-const CONTENT_EXTENSIONS = ['.xml', '.olx', '.md'];
-const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp'];
+import { isContentFile, getExtension, EXT } from '@/lib/util/fileTypes';
+
+const IMAGE_EXTENSIONS = EXT.image;
 
 export class InMemoryStorageProvider {
   files: Record<string, string>;
@@ -59,9 +60,6 @@ export class InMemoryStorageProvider {
   }
 
   async loadXmlFilesWithStats(previous = {}) {
-    const isContentFile = (filename) =>
-      CONTENT_EXTENSIONS.some(ext => filename.endsWith(ext));
-
     const added = {};
     const unchanged = {};
 
@@ -69,7 +67,7 @@ export class InMemoryStorageProvider {
       if (!isContentFile(filename)) continue;
 
       const uri = `memory://${filename}`;
-      const ext = filename.split('.').pop() || '';
+      const ext = getExtension(filename);
 
       if (previous[uri]) {
         unchanged[uri] = previous[uri];
