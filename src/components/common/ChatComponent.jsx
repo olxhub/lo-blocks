@@ -90,11 +90,11 @@ const DateSeparator = ({ message }) => {
 const ToolCallMessage = ({ message }) => {
   const [expanded, setExpanded] = useState(false);
 
-  // Truncate long args for display
-  const argsPreview = JSON.stringify(message.args || {});
-  const truncatedArgs = argsPreview.length > 60
-    ? argsPreview.slice(0, 60) + '...'
-    : argsPreview;
+  // Truncate result for synopsis display
+  const synopsis = message.result || '(no result)';
+  const truncatedSynopsis = synopsis.length > 80
+    ? synopsis.slice(0, 80) + '...'
+    : synopsis;
 
   return (
     <div className="my-2 mx-10">
@@ -104,21 +104,15 @@ const ToolCallMessage = ({ message }) => {
       >
         <span className="text-gray-500">🔧</span>
         <span className="font-mono ml-1 text-blue-600">{message.name}</span>
-        {!expanded && (
-          <span className="text-gray-400 ml-2">{truncatedArgs}</span>
-        )}
+        <span className="text-gray-600 ml-2">{truncatedSynopsis}</span>
         <span className="text-gray-400 ml-2">{expanded ? '▼' : '▶'}</span>
       </div>
       {expanded && (
         <div className="mt-1 p-2 bg-gray-50 border border-gray-200 rounded text-xs font-mono overflow-x-auto">
           <div className="text-gray-600">Args:</div>
           <pre className="text-gray-800 whitespace-pre-wrap">{JSON.stringify(message.args, null, 2)}</pre>
-          {message.result && (
-            <>
-              <div className="text-gray-600 mt-2">Result:</div>
-              <pre className="text-gray-800 whitespace-pre-wrap">{message.result}</pre>
-            </>
-          )}
+          <div className="text-gray-600 mt-2">Result:</div>
+          <pre className="text-gray-800 whitespace-pre-wrap">{message.result}</pre>
         </div>
       )}
     </div>
