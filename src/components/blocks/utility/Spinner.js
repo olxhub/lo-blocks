@@ -9,7 +9,8 @@
  *
  * TODO:
  * - Migrate Spinner to use standard XML / OLX / templated HTML ingestion
- * - Remove manual registration in COMPONENT_MAP if applicable
+ * - BUG: This block duplicates logic from @/components/common/Spinner which has
+ *   text support. The block version should wrap or use the common version.
  *
  * Do NOT treat this as canonical component structure.
  */
