@@ -231,6 +231,11 @@
   white-space: nowrap;
 }
 
+.file-item.dirty .file-name {
+  font-style: italic;
+  color: #f0a020;
+}
+
 .file-menu-btn {
   opacity: 0;
   background: none;

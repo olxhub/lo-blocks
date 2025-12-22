@@ -11,7 +11,7 @@ import { NetworkStorageProvider, VersionConflictError } from '@/lib/storage';
 import type { UriNode } from '@/lib/storage/types';
 import type { IdMap } from '@/lib/types';
 import { useNotifications, ToastNotifications } from '@/lib/util/debug';
-import { useReduxState } from '@/lib/state';
+import { useReduxState, selectFromStore } from '@/lib/state';
 import { editorFields } from '../edit/editorFields';
 import './studio.css';
 
@@ -91,6 +91,18 @@ export default function StudioPage() {
   // Get current file's saved state (for dirty detection)
   const savedState = fileStateRef.current.get(filePath);
   const isDirty = savedState ? content !== savedState.content : false;
+
+  // Compute all dirty files (for beforeunload and file tree indicators)
+  const getDirtyFiles = useCallback((): Set<string> => {
+    const dirty = new Set<string>();
+    for (const [path, saved] of fileStateRef.current.entries()) {
+      const current = selectFromStore(editorFields.fieldInfoByField.content, { id: path });
+      if (current !== undefined && current !== saved.content) {
+        dirty.add(path);
+      }
+    }
+    return dirty;
+  }, []);
 
   // Toast notifications
   const { notifications, notify, dismiss: dismissNotification } = useNotifications();
@@ -276,10 +288,11 @@ export default function StudioPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleSave]);
 
-  // Warn before closing with unsaved changes
+  // Warn before closing with unsaved changes (any file)
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
+      const dirtyFiles = getDirtyFiles();
+      if (dirtyFiles.size > 0) {
         e.preventDefault();
         // Modern browsers ignore custom messages, but we need to set returnValue
         e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
@@ -288,7 +301,7 @@ export default function StudioPage() {
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isDirty]);
+  }, [getDirtyFiles]);
 
   return (
     <div className="studio">
@@ -357,6 +370,7 @@ export default function StudioPage() {
                   <FilesPanel
                     fileTree={fileTree}
                     currentPath={filePath}
+                    dirtyFiles={getDirtyFiles()}
                     onFileSelect={handleFileSelect}
                     onFileCreate={handleFileCreate}
                     onFileDelete={handleFileDelete}

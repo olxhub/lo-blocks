@@ -7,6 +7,7 @@ import type { UriNode } from '@/lib/storage/types';
 interface FilesPanelProps {
   fileTree: UriNode | null;
   currentPath: string;
+  dirtyFiles?: Set<string>;
   onFileSelect: (path: string) => void;
   onFileCreate: (path: string, content: string) => Promise<void>;
   onFileDelete: (path: string) => Promise<void>;
@@ -16,6 +17,7 @@ interface FilesPanelProps {
 export function FilesPanel({
   fileTree,
   currentPath,
+  dirtyFiles = new Set(),
   onFileSelect,
   onFileCreate,
   onFileDelete,
@@ -110,6 +112,7 @@ Start writing here.
               depth={0}
               onSelect={onFileSelect}
               currentPath={currentPath}
+              dirtyFiles={dirtyFiles}
               onShowActions={(path) => {
                 setFileActionPath(path);
                 setRenameValue(path);
@@ -135,6 +138,7 @@ interface FileTreeNodeProps {
   depth: number;
   onSelect: (path: string) => void;
   currentPath: string;
+  dirtyFiles: Set<string>;
   onShowActions: (path: string) => void;
   actionPath: string | null;
   onDelete: (path: string) => void;
@@ -144,25 +148,26 @@ interface FileTreeNodeProps {
 }
 
 function FileTreeNode({
-  node, depth, onSelect, currentPath,
+  node, depth, onSelect, currentPath, dirtyFiles,
   onShowActions, actionPath, onDelete, onRename, renameValue, onRenameChange
 }: FileTreeNodeProps) {
   const [expanded, setExpanded] = useState(depth < 2);
   const isDir = Array.isArray(node.children);
   const name = node.uri.split('/').pop() || node.uri;
   const isActive = node.uri === currentPath;
+  const isDirty = dirtyFiles.has(node.uri);
   const showingActions = actionPath === node.uri;
 
   return (
     <div>
       <div
-        className={`file-item ${isActive ? 'active' : ''}`}
+        className={`file-item ${isActive ? 'active' : ''} ${isDirty ? 'dirty' : ''}`}
         style={{ paddingLeft: depth * 12 + 8 }}
         onClick={() => isDir ? setExpanded(!expanded) : onSelect(node.uri)}
       >
         {isDir && <span className="file-icon">{expanded ? '▼' : '▶'}</span>}
         {!isDir && <span className="file-icon">📄</span>}
-        <span className="file-name">{name}</span>
+        <span className="file-name">{isDirty ? `${name} *` : name}</span>
         {!isDir && (
           <button
             className="file-menu-btn"
@@ -204,6 +209,7 @@ function FileTreeNode({
           depth={depth + 1}
           onSelect={onSelect}
           currentPath={currentPath}
+          dirtyFiles={dirtyFiles}
           onShowActions={onShowActions}
           actionPath={actionPath}
           onDelete={onDelete}
