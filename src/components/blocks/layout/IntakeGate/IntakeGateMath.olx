@@ -1,0 +1,136 @@
+<!--
+  IntakeGate Math Demo - Personalized Linear Equations
+
+  Demonstrates IntakeGate for personalized problem generation.
+  Students enter an interest, LLM rewrites problem contexts,
+  then students solve linear equation multiple choice problems.
+
+  Demo concept from Burcu Arslan (ETS). See:
+  - Arslan et al. (2024) "Opportunities and challenges of using generative AI
+    to personalize educational assessment" Frontiers in AI
+  - Walkington (2013) on interest-based personalization in math education
+-->
+<Vertical id="personalized_math" launchable="true" title="Personalized Math Problems">
+  <IntakeGate targets="context_1,context_2,context_3">
+    <!-- Intake: Collect interest and trigger generation -->
+    <Vertical id="interest_gate">
+      <Markdown>
+## Personalized Linear Equations
+
+In this activity, you'll practice identifying linear equations from word problems.
+First, tell us what interests you, and we'll customize the problems just for you!
+
+### What topic interests you?
+
+Enter something you're passionate about (e.g., basketball, video games, cooking, music, Taylor Swift).
+      </Markdown>
+
+      <TextArea id="user_interest" placeholder="Type your interest here..." />
+
+      <ActionButton id="generate_btn" label="Generate My Problems">
+        <LLMAction id="gen_1" target="context_1">
+Solve this problem mentally but don't show your work:
+"A worker charges a setup fee plus hourly rate. After 2 hours: $180. After 5 hours: $330. Find y = mx + b."
+
+Answer: m=50, b=80, so y = 50x + 80.
+
+Now rewrite ONLY the problem scenario (not the question or answers) for someone interested in: <Ref>user_interest</Ref>
+
+Keep the same numbers ($180 after 2 hours, $330 after 5 hours) but change the context to match their interest.
+For example, if they like basketball, make it about a basketball coach's fees.
+
+Return ONLY 2-3 sentences describing the scenario. No math, no solution.
+        </LLMAction>
+
+        <LLMAction id="gen_2" target="context_2">
+Solve this problem mentally but don't show your work:
+"Someone sells items with a base cost plus per-item fee. 3 items cost $45. 7 items cost $85. Find y = mx + b."
+
+Answer: m=10, b=15, so y = 10x + 15.
+
+Now rewrite ONLY the problem scenario for someone interested in: <Ref>user_interest</Ref>
+
+Keep the same numbers (3 items = $45, 7 items = $85) but change what's being sold to match their interest.
+
+Return ONLY 2-3 sentences describing the scenario. No math, no solution.
+        </LLMAction>
+
+        <LLMAction id="gen_3" target="context_3">
+Solve this problem mentally but don't show your work:
+"A service charges a monthly fee plus per-use rate. After 10 uses: $450. After 20 uses: $600. Find y = mx + b."
+
+Answer: m=15, b=300, so y = 15x + 300.
+
+Now rewrite ONLY the problem scenario for someone interested in: <Ref>user_interest</Ref>
+
+Keep the same numbers (10 uses = $450, 20 uses = $600) but change the service to match their interest.
+
+Return ONLY 2-3 sentences describing the scenario. No math, no solution.
+        </LLMAction>
+      </ActionButton>
+    </Vertical>
+
+    <!-- Content: Personalized problems -->
+    <Sequential id="problems_section">
+      <Markdown>
+## Your Personalized Problems
+
+Here are linear equation problems customized for your interest!
+      </Markdown>
+
+      <CapaProblem id="problem_1" title="Problem 1">
+        <KeyGrader id="grader_1">
+          <TextSlot id="context_1" />
+          <p>Which equation represents the total amount (y) based on hours/units (x)?</p>
+          <ChoiceInput id="input_1">
+            <Key id="p1_correct">y = 50x + 80</Key>
+            <Distractor id="p1_d1">y = 80x + 50</Distractor>
+            <Distractor id="p1_d2">y = 90x</Distractor>
+            <Distractor id="p1_d3">y = 65x + 15</Distractor>
+          </ChoiceInput>
+          <Explanation showWhen="answered">
+The slope (rate) is (330-180)/(5-2) = 150/3 = 50.
+The y-intercept (base fee) is 180 - 50(2) = 80.
+So y = 50x + 80.
+          </Explanation>
+        </KeyGrader>
+      </CapaProblem>
+
+      <CapaProblem id="problem_2" title="Problem 2">
+        <KeyGrader id="grader_2">
+          <TextSlot id="context_2" />
+          <p>Which equation represents the total cost (y) based on number of items (x)?</p>
+          <ChoiceInput id="input_2">
+            <Key id="p2_correct">y = 10x + 15</Key>
+            <Distractor id="p2_d1">y = 15x + 10</Distractor>
+            <Distractor id="p2_d2">y = 15x</Distractor>
+            <Distractor id="p2_d3">y = 12x + 9</Distractor>
+          </ChoiceInput>
+          <Explanation showWhen="answered">
+The slope (per-item cost) is (85-45)/(7-3) = 40/4 = 10.
+The y-intercept (base cost) is 45 - 10(3) = 15.
+So y = 10x + 15.
+          </Explanation>
+        </KeyGrader>
+      </CapaProblem>
+
+      <CapaProblem id="problem_3" title="Problem 3">
+        <KeyGrader id="grader_3">
+          <TextSlot id="context_3" />
+          <p>Which equation represents the total cost (y) based on number of uses (x)?</p>
+          <ChoiceInput id="input_3">
+            <Key id="p3_correct">y = 15x + 300</Key>
+            <Distractor id="p3_d1">y = 300x + 15</Distractor>
+            <Distractor id="p3_d2">y = 45x</Distractor>
+            <Distractor id="p3_d3">y = 30x + 150</Distractor>
+          </ChoiceInput>
+          <Explanation showWhen="answered">
+The slope (per-use rate) is (600-450)/(20-10) = 150/10 = 15.
+The y-intercept (monthly fee) is 450 - 15(10) = 300.
+So y = 15x + 300.
+          </Explanation>
+        </KeyGrader>
+      </CapaProblem>
+    </Sequential>
+  </IntakeGate>
+</Vertical>

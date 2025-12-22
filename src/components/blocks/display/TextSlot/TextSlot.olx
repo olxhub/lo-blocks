@@ -1,0 +1,10 @@
+<!-- TextSlot Minimal Template -->
+<Vertical>
+  <TextArea id="user_input" />
+  <TextSlot id="output" />
+  <ActionButton label="Generate">
+    <LLMAction target="output">
+      Echo: <Ref>user_input</Ref>
+    </LLMAction>
+  </ActionButton>
+</Vertical>
