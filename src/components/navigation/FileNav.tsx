@@ -2,12 +2,10 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { NetworkStorageProvider, type UriNode } from '@/lib/storage';
 
 export default function FileNav() {
   const [tree, setTree] = useState<UriNode | null>(null);
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     const provider = new NetworkStorageProvider();
@@ -19,9 +17,7 @@ export default function FileNav() {
 
   function renderNode(node: UriNode) {
     if (!node.children) {
-      const nav = searchParams.get('nav');
-      const query = nav ? `?nav=${encodeURIComponent(nav)}` : '';
-      const href = '/edit/' + node.uri.split('/').map(encodeURIComponent).join('/') + query;
+      const href = `/studio?file=${encodeURIComponent(node.uri)}`;
       return (
         <li key={node.uri} className="ml-4 list-disc">
           <Link href={href} className="text-blue-600 hover:underline">

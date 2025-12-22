@@ -117,7 +117,7 @@ function ActivityRow({ entry }) {
           </span>
           {editPath ? (
             <Link
-              href={`/edit/${editPath}`}
+              href={`/studio?file=${encodeURIComponent(editPath)}`}
               className="text-gray-500 hover:text-gray-900 transition-colors"
             >
               Edit

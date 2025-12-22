@@ -63,7 +63,7 @@ export const DebugWrapper = ({ props = {}, blueprint, children }: DebugWrapperPr
       // TODO: Move away from absolute file:/// URIs
       // HACK: Extracts relative from absolute URI
       const rel = prov.path.split('/content/')[1] ?? prov.path;
-      const href = `/edit/${encodeURI(rel)}`;
+      const href = `/studio?file=${encodeURIComponent(rel)}`;
       return <Link key={key} href={href}>{label}</Link>;
     }
   };

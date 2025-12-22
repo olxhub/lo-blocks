@@ -3,6 +3,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import PreviewPane from '@/components/common/PreviewPane';
 import { ChatPanel, DataPanel, DocsPanel, FilesPanel, SearchPanel } from './panels';
@@ -61,12 +62,16 @@ function useEditComponentState(field, provenance, defaultState) {
 }
 
 export default function StudioPage() {
+  // Read initial file from URL query param
+  const searchParams = useSearchParams();
+  const initialFile = searchParams.get('file') || 'untitled.olx';
+
   // TODO: Consider moving UI state to redux for analytics
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('chat');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-  // TODO: Move filePath to redux (navigation state)
-  const [filePath, setFilePath] = useState('untitled.olx');
+  // File path synced with URL via ?file= param
+  const [filePath, setFilePath] = useState(initialFile);
 
   // Content stored in Redux - enables analytics and persistence
   const [content, setContent] = useEditComponentState(
@@ -161,10 +166,27 @@ export default function StudioPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filePath]); // Only reload when filePath changes
 
-  // File selection just updates the path - content loading handled by effect above
+  // Update URL without page reload using History API
+  const updateUrl = useCallback((path: string, replace = false) => {
+    const url = new URL(window.location.href);
+    if (path === 'untitled.olx') {
+      url.searchParams.delete('file');
+    } else {
+      url.searchParams.set('file', path);
+    }
+    // Use pushState for file changes (enables back/forward), replaceState for renames
+    if (replace) {
+      window.history.replaceState({}, '', url.toString());
+    } else {
+      window.history.pushState({}, '', url.toString());
+    }
+  }, []);
+
+  // File selection updates path and URL - content loading handled by effect above
   const handleFileSelect = useCallback((path: string) => {
     setFilePath(path);
-  }, []);
+    updateUrl(path);
+  }, [updateUrl]);
 
   const handleSave = useCallback(async (force = false) => {
     setSaving(true);
@@ -212,6 +234,7 @@ export default function StudioPage() {
       // Open the new file and get its metadata
       const result = await storage.read(path);
       setFilePath(path);
+      updateUrl(path);
       setContent(result.content);
       fileStateRef.current.set(path, {
         content: result.content,
@@ -223,7 +246,7 @@ export default function StudioPage() {
       notify('error', `Failed to create ${path}`, err instanceof Error ? err.message : String(err));
       throw err; // Re-throw so FilesPanel can handle it
     }
-  }, [refreshFiles, notify]);
+  }, [refreshFiles, notify, updateUrl]);
 
   const handleFileDelete = useCallback(async (path: string) => {
     try {
@@ -234,6 +257,7 @@ export default function StudioPage() {
       // If we deleted the current file, clear the editor
       if (path === filePath) {
         setFilePath('untitled.olx');
+        updateUrl('untitled.olx');
         setContent(DEMO_CONTENT);
       }
       notify('success', `Deleted ${path}`);
@@ -242,7 +266,7 @@ export default function StudioPage() {
       notify('error', `Failed to delete ${path}`, err instanceof Error ? err.message : String(err));
       throw err;
     }
-  }, [filePath, refreshFiles, notify]);
+  }, [filePath, refreshFiles, notify, updateUrl]);
 
   const handleFileRename = useCallback(async (oldPath: string, newPath: string) => {
     try {
@@ -254,9 +278,10 @@ export default function StudioPage() {
         fileStateRef.current.delete(oldPath);
         fileStateRef.current.set(newPath, cachedState);
       }
-      // If we renamed the current file, update the path
+      // If we renamed the current file, update the path and URL (replace, not push)
       if (oldPath === filePath) {
         setFilePath(newPath);
+        updateUrl(newPath, true);
       }
       notify('success', `Renamed to ${newPath}`);
     } catch (err) {
@@ -264,7 +289,20 @@ export default function StudioPage() {
       notify('error', `Failed to rename ${oldPath}`, err instanceof Error ? err.message : String(err));
       throw err;
     }
-  }, [filePath, refreshFiles, notify]);
+  }, [filePath, refreshFiles, notify, updateUrl]);
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const url = new URL(window.location.href);
+      const fileParam = url.searchParams.get('file') || 'untitled.olx';
+      if (fileParam !== filePath) {
+        setFilePath(fileParam);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [filePath]);
 
   // Keyboard shortcuts
   useEffect(() => {
