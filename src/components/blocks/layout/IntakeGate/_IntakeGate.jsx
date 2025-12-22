@@ -1,6 +1,6 @@
-// src/components/blocks/layout/Gated/_Gated.jsx
+// src/components/blocks/layout/IntakeGate/_IntakeGate.jsx
 //
-// Gated layout - shows content only after prerequisite actions complete.
+// IntakeGate layout - gates content behind an intake process.
 //
 // Uses explicit targets attribute to know what to watch.
 //
@@ -13,7 +13,7 @@ import { LLM_STATUS } from '@/lib/llm/reduxClient';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
 
-function _Gated(props) {
+function _IntakeGate(props) {
   const { kids = [], targets, id } = props;
 
   // Validate: exactly 2 children required
@@ -21,8 +21,8 @@ function _Gated(props) {
     return (
       <DisplayError
         id={id}
-        name="Gated"
-        message={`Gated requires exactly 2 children (gate and content), but got ${kids.length}`}
+        name="IntakeGate"
+        message={`IntakeGate requires exactly 2 children (intake and content), but got ${kids.length}`}
         technical={{ kids }}
       />
     );
@@ -33,9 +33,9 @@ function _Gated(props) {
     return (
       <DisplayError
         id={id}
-        name="Gated"
-        message="Gated requires a targets attribute listing PersonalizedText IDs to watch"
-        technical={{ example: '<Gated targets="context_1,context_2">' }}
+        name="IntakeGate"
+        message="IntakeGate requires a targets attribute listing PersonalizedText IDs to watch"
+        technical={{ example: '<IntakeGate targets="context_1,context_2">' }}
       />
     );
   }
@@ -74,7 +74,7 @@ function _Gated(props) {
 
   if (phase === 'gate') {
     return (
-      <div className="gated gated-gate">
+      <div className="intake-gate intake-gate--intake">
         {gateRendered}
       </div>
     );
@@ -82,17 +82,17 @@ function _Gated(props) {
 
   if (phase === 'loading') {
     return (
-      <div className="gated gated-loading">
+      <div className="intake-gate intake-gate--loading">
         <Spinner>Personalizing content...</Spinner>
       </div>
     );
   }
 
   return (
-    <div className="gated gated-content">
+    <div className="intake-gate intake-gate--content">
       {contentRendered}
     </div>
   );
 }
 
-export default _Gated;
+export default _IntakeGate;

@@ -6,8 +6,8 @@ category: demo
 -->
 <!-- content/demos/personalized-math-demo.olx -->
 <Vertical id="personalized_math" launchable="true" title="Personalized Math Problems">
-  <Gated targets="context_1,context_2,context_3">
-    <!-- Gate: Collect interest and trigger generation -->
+  <IntakeGate targets="context_1,context_2,context_3">
+    <!-- Intake: Collect interest and trigger generation -->
     <Vertical id="interest_gate">
       <Markdown>
 ## Personalized Linear Equations
@@ -127,5 +127,5 @@ So y = 15x + 300.
         </KeyGrader>
       </CapaProblem>
     </Sequential>
-  </Gated>
+  </IntakeGate>
 </Vertical>
