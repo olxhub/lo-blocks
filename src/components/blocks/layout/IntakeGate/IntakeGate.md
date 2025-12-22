@@ -178,4 +178,8 @@ The block currently checks `LLM_STATUS.RUNNING` specifically. A future "Doneness
 
 ## References
 
+Arslan, B., Lehman, B., Tenison, C., Sparks, J. R., López, A. A., Gu, L., & Zapata-Rivera, D. (2024). Opportunities and challenges of using generative AI to personalize educational assessment. *Frontiers in Artificial Intelligence*, 7, 1460651.
+
+Arslan, B., Wilschut, T., van Rijn, H., & van der Velde, M. (2024). Evidence-Based Dynamic Personalization for Learning and Assessment Tools (ED-PLAT): Machine- and Learner-Driven Adaptation to Support All Learners. *International Conference on Artificial Intelligence in Education*, 477-491.
+
 Walkington, C. A. (2013). Using adaptive learning technologies to personalize instruction to student interests: The impact of relevant contexts on performance and learning outcomes. *Journal of Educational Psychology*, 105(4), 932-945.
