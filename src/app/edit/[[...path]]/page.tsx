@@ -141,8 +141,8 @@ export default function EditPage() {
     if (!path) return;
     provider
       .read(path)
-      .then(cnt => {
-        setContent(cnt);
+      .then(result => {
+        setContent(result.content);
       })
       .catch(err => setError(`Error: ${err.message}`));
     // provider and setContent intentionally omitted: provider is stable instance, setContent is stable setState function, so we need

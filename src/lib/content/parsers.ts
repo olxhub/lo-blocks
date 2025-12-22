@@ -81,7 +81,7 @@ async function loadExternalSource({
     newProvenance = [...provenance, resolved];
   }
 
-  const content = await provider.read(resolved);
+  const { content } = await provider.read(resolved);
   return { text: content, provenance: newProvenance };
 }
 

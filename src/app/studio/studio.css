@@ -231,8 +231,21 @@
   white-space: nowrap;
 }
 
+.file-item.active {
+  background: #2d333b;
+  font-weight: 500;
+}
+
+.file-item.active .file-name {
+  color: #58a6ff;
+}
+
 .file-item.dirty .file-name {
   font-style: italic;
+  color: #f0a020;
+}
+
+.file-item.active.dirty .file-name {
   color: #f0a020;
 }
 
