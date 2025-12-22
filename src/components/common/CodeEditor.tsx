@@ -52,6 +52,7 @@ const errorTheme = EditorView.baseTheme({
   },
 });
 
+
 /**
  * Creates diagnostics from a PEG parse error.
  */
@@ -124,6 +125,8 @@ interface CodeEditorProps {
   path?: string;
   /** Explicit language override (takes precedence over path) */
   language?: CodeLanguage;
+  /** Theme - 'light' or 'dark'. Defaults to 'light'. */
+  theme?: 'light' | 'dark';
   /** Height constraint - defaults to "100%" */
   height?: string;
   /** Max height constraint */
@@ -194,6 +197,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
   onChange,
   path,
   language,
+  theme = 'dark',
   height = '100%',
   maxHeight,
   basicSetup = { lineNumbers: true, foldGutter: false },
@@ -270,6 +274,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
       ref={editorRef}
       value={value}
       onChange={onChange}
+      theme={theme}
       extensions={extensions}
       height={height}
       maxHeight={maxHeight}

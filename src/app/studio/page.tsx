@@ -184,8 +184,8 @@ export default function StudioPage() {
       notify('success', `Saved ${filePath}`);
     } catch (err) {
       console.error('Failed to save:', err);
-      // Handle version conflict
-      if (err instanceof VersionConflictError || (err as any)?.name === 'VersionConflictError') {
+      // Handle version conflict (only offer retry if not already forcing)
+      if (!force && (err instanceof VersionConflictError || (err as any)?.name === 'VersionConflictError')) {
         const shouldOverwrite = window.confirm(
           'This file has been modified externally since you opened it.\n\n' +
           'Do you want to overwrite the external changes with your version?'

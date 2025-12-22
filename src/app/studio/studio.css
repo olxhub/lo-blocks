@@ -553,6 +553,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative; /* Required for loading overlay */
 }
 
 .studio-editor-pane > div {
@@ -756,6 +757,3 @@
   animation: btn-spin 0.8s linear infinite;
 }
 
-.studio-editor-pane {
-  position: relative;
-}
