@@ -28,13 +28,13 @@ export class InMemoryStorageProvider {
     const normalized = path.replace(/^\.?\//, '');
 
     if (this.files[normalized] !== undefined) {
-      return this.files[normalized];
+      return { content: this.files[normalized], metadata: {} };
     }
 
     // Try with basePath prefix
     const withBase = this.basePath ? `${this.basePath}/${normalized}` : normalized;
     if (this.files[withBase] !== undefined) {
-      return this.files[withBase];
+      return { content: this.files[withBase], metadata: {} };
     }
 
     const availableFiles = Object.keys(this.files).join(', ') || '(none)';
