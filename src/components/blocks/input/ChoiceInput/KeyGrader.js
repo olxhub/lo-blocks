@@ -29,30 +29,25 @@ function gradeKeySelected(props, { input, inputApi }) {
  * Returns a single string value.
  */
 function getKeyDisplayAnswer(props) {
-  // If explicit answer/displayAnswer provided, use that
   if (props.displayAnswer != null) return props.displayAnswer;
   if (props.answer != null) return props.answer;
 
-  // Otherwise, find the Key choice from the input
-  try {
-    const inputIds = getInputs(props);
-    if (inputIds.length === 0) return null;
-
-    const inputId = inputIds[0];
-    const inputNode = props.idMap?.[inputId];
-    const inputBlueprint = inputNode ? props.componentMap?.[inputNode.tag] : null;
-
-    // Use getChoices() if available (ChoiceInput, DropdownInput)
-    if (inputBlueprint?.locals?.getChoices) {
-      const inputProps = { ...props, id: inputId, ...inputNode?.attributes, kids: inputNode?.kids };
-      const choices = inputBlueprint.locals.getChoices(inputProps);
-      const keyChoice = choices.find(c => c.tag === 'Key');
-      return keyChoice?.value ?? null;
-    }
-  } catch (e) {
-    // No inputs found or error - return null
+  const inputIds = getInputs(props);
+  if (inputIds.length === 0) {
+    throw new Error(`KeyGrader "${props.id}": No input found. Nest a ChoiceInput inside, or add target="inputId".`);
   }
-  return null;
+
+  const inputId = inputIds[0];
+  const inputNode = props.idMap[inputId];
+  if (!inputNode) {
+    throw new Error(`KeyGrader "${props.id}": Input "${inputId}" not found. Check the target attribute.`);
+  }
+
+  const inputBlueprint = props.componentMap[inputNode.tag];
+  const inputProps = { ...props, id: inputId, ...inputNode.attributes, kids: inputNode.kids };
+  const choices = inputBlueprint.locals.getChoices(inputProps);
+  const keyChoice = choices.find(c => c.tag === 'Key');
+  return keyChoice?.value ?? null;
 }
 
 const KeyGrader = blocks.test({

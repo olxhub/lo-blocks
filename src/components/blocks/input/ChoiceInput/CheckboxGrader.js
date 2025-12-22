@@ -80,30 +80,25 @@ function gradeCheckboxSelected(props, { input, inputApi }) {
  * Returns an array of values.
  */
 function getCheckboxDisplayAnswer(props) {
-  // If explicit answer/displayAnswer provided, use that
   if (props.displayAnswer != null) return props.displayAnswer;
   if (props.answer != null) return props.answer;
 
-  // Otherwise, find all Key choices from the input
-  try {
-    const inputIds = getInputs(props);
-    if (inputIds.length === 0) return null;
-
-    const inputId = inputIds[0];
-    const inputNode = props.idMap?.[inputId];
-    const inputBlueprint = inputNode ? props.componentMap?.[inputNode.tag] : null;
-
-    // Use getChoices() if available
-    if (inputBlueprint?.locals?.getChoices) {
-      const inputProps = { ...props, id: inputId, ...inputNode?.attributes, kids: inputNode?.kids };
-      const choices = inputBlueprint.locals.getChoices(inputProps);
-      const keyChoices = choices.filter(c => c.tag === 'Key');
-      return keyChoices.map(k => k.value);
-    }
-  } catch (e) {
-    // No inputs found or error - return null
+  const inputIds = getInputs(props);
+  if (inputIds.length === 0) {
+    throw new Error(`CheckboxGrader "${props.id}": No input found. Nest a CheckboxInput inside, or add target="inputId".`);
   }
-  return null;
+
+  const inputId = inputIds[0];
+  const inputNode = props.idMap[inputId];
+  if (!inputNode) {
+    throw new Error(`CheckboxGrader "${props.id}": Input "${inputId}" not found. Check the target attribute.`);
+  }
+
+  const inputBlueprint = props.componentMap[inputNode.tag];
+  const inputProps = { ...props, id: inputId, ...inputNode.attributes, kids: inputNode.kids };
+  const choices = inputBlueprint.locals.getChoices(inputProps);
+  const keyChoices = choices.filter(c => c.tag === 'Key');
+  return keyChoices.map(k => k.value);
 }
 
 const CheckboxGrader = blocks.test({
