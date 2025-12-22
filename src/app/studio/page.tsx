@@ -19,6 +19,9 @@ const CodeEditor = dynamic(
   { ssr: false }
 );
 
+// Import the handle type for the editor ref
+import type { CodeEditorHandle } from '@/components/common/CodeEditor';
+
 type SidebarTab = 'chat' | 'docs' | 'search' | 'files' | 'data';
 type PreviewLayout = 'horizontal' | 'vertical';
 
@@ -60,6 +63,13 @@ export default function StudioPage() {
   const [saving, setSaving] = useState(false);
   const [idMap, setIdMap] = useState<IdMap | null>(null);
 
+  // Editor ref for insert operations
+  const editorRef = useRef<CodeEditorHandle>(null);
+
+  // Track saved content for dirty state detection
+  const savedContentRef = useRef(DEMO_CONTENT);
+  const isDirty = content !== savedContentRef.current;
+
   // Toast notifications
   const { notifications, notify, dismiss: dismissNotification } = useNotifications();
 
@@ -88,6 +98,7 @@ export default function StudioPage() {
       const fileContent = await storage.read(path);
       setContent(fileContent);
       setFilePath(path);
+      savedContentRef.current = fileContent; // Mark as clean
     } catch (err) {
       console.error('Failed to load file:', err);
       notify('error', `Failed to load ${path}`, err instanceof Error ? err.message : String(err));
@@ -100,6 +111,7 @@ export default function StudioPage() {
     setSaving(true);
     try {
       await storage.write(filePath, content);
+      savedContentRef.current = content; // Mark as clean
       notify('success', `Saved ${filePath}`);
     } catch (err) {
       console.error('Failed to save:', err);
@@ -116,6 +128,7 @@ export default function StudioPage() {
       // Open the new file
       setContent(fileContent);
       setFilePath(path);
+      savedContentRef.current = fileContent; // Mark as clean
       notify('success', `Created ${path}`);
     } catch (err) {
       console.error('Failed to create file:', err);
@@ -132,6 +145,7 @@ export default function StudioPage() {
       if (path === filePath) {
         setContent(DEMO_CONTENT);
         setFilePath('untitled.olx');
+        savedContentRef.current = DEMO_CONTENT; // Mark as clean
       }
       notify('success', `Deleted ${path}`);
     } catch (err) {
@@ -186,6 +200,20 @@ export default function StudioPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleSave]);
 
+  // Warn before closing with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        // Modern browsers ignore custom messages, but we need to set returnValue
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
   return (
     <div className="studio">
       {/* Sticky Header */}
@@ -201,7 +229,9 @@ export default function StudioPage() {
           <span className="studio-title">studio</span>
         </div>
         <div className="studio-header-center">
-          <span className="studio-filepath">{filePath}</span>
+          <span className="studio-filepath">
+            {filePath}{isDirty && <span className="studio-dirty-indicator" title="Unsaved changes"> •</span>}
+          </span>
         </div>
         <div className="studio-header-right">
           <button
@@ -300,6 +330,7 @@ export default function StudioPage() {
               </div>
             )}
             <CodeEditor
+              ref={editorRef}
               value={content}
               onChange={setContent}
               path={filePath}
@@ -332,7 +363,7 @@ export default function StudioPage() {
           onClose={() => setCommandPaletteOpen(false)}
           onSave={handleSave}
           onTogglePreview={() => setShowPreview(p => !p)}
-          onInsert={(template) => setContent(c => c + '\n\n' + template)}
+          onInsert={(template) => editorRef.current?.insertAtCursor(template)}
         />
       )}
 
@@ -491,6 +522,7 @@ interface CommandPaletteProps {
 
 function CommandPalette({ onClose, onSave, onTogglePreview, onInsert }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const commands = [
     { id: 'save', label: 'Save', shortcut: '⌘S', action: () => { onSave(); onClose(); } },
@@ -509,9 +541,26 @@ function CommandPalette({ onClose, onSave, onTogglePreview, onInsert }: CommandP
     c.label.toLowerCase().includes(query.toLowerCase())
   );
 
+  // Reset selection when results change
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [query]);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && filtered.length > 0) {
-      filtered[0].action();
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(i => Math.min(i + 1, filtered.length - 1));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(i => Math.max(i - 1, 0));
+        break;
+      case 'Enter':
+        if (filtered.length > 0 && filtered[selectedIndex]) {
+          filtered[selectedIndex].action();
+        }
+        break;
     }
   };
 
@@ -531,8 +580,9 @@ function CommandPalette({ onClose, onSave, onTogglePreview, onInsert }: CommandP
           {filtered.map((cmd, idx) => (
             <div
               key={cmd.id}
-              className={`command-palette-item ${idx === 0 ? 'selected' : ''}`}
+              className={`command-palette-item ${idx === selectedIndex ? 'selected' : ''}`}
               onClick={cmd.action}
+              onMouseEnter={() => setSelectedIndex(idx)}
             >
               <span>{cmd.label}</span>
               {cmd.shortcut && <kbd>{cmd.shortcut}</kbd>}

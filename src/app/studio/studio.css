@@ -1,8 +1,8 @@
 /* src/app/studio/studio.css */
 /* Prototype editor styles */
 
-/* CSS Custom Properties for BlockList component in dark theme */
 .studio {
+  /* CSS Custom Properties for BlockList component in dark theme */
   --block-list-muted: #8b949e;
   --block-list-text: #c9d1d9;
   --block-list-accent: #58a6ff;
@@ -13,9 +13,8 @@
   --block-list-code-bg: rgba(0, 0, 0, 0.3);
   --block-list-tooltip-bg: #1f2937;
   --block-list-tooltip-text: #fff;
-}
 
-.studio {
+  /* Layout */
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -57,6 +56,11 @@
   color: #8b949e;
   font-size: 14px;
   font-family: 'SF Mono', Consolas, monospace;
+}
+
+.studio-dirty-indicator {
+  color: #f0883e;
+  font-weight: bold;
 }
 
 /* Buttons */
