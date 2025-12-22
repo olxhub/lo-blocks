@@ -1,0 +1,67 @@
+// src/components/common/PreviewPane.tsx
+//
+// Unified preview component for all content types.
+// Handles OLX, PEG (chatpeg, sortpeg, etc.), and future formats.
+//
+'use client';
+
+import { useMemo } from 'react';
+import RenderOLX from './RenderOLX';
+import PEGPreviewPane from './PEGPreviewPane';
+import { isPEGFile } from '@/lib/util/fileTypes';
+import { NetworkStorageProvider } from '@/lib/storage';
+import type { IdMap } from '@/lib/types';
+import type { StorageProvider } from '@/lib/storage/types';
+
+export interface PreviewPaneProps {
+  /** File path - used for file type detection and provenance */
+  path: string;
+  /** Content to preview */
+  content: string;
+  /** Base ID map for cross-file references (OLX only) */
+  idMap?: IdMap | null;
+  /** Provider for resolving src="" references (OLX only) */
+  resolveProvider?: StorageProvider;
+  /** Called when parsing/rendering errors occur */
+  onError?: (err: any) => void;
+  /** Called after parsing completes with merged idMap (OLX only) */
+  onParsed?: (result: { idMap: Record<string, any>; root: string | null }) => void;
+}
+
+/**
+ * Unified preview component that renders content based on file type.
+ *
+ * - PEG files (.chatpeg, .sortpeg, etc.) → PEGPreviewPane
+ * - OLX files (.olx, .xml) → RenderOLX with full props
+ */
+export default function PreviewPane({
+  path,
+  content,
+  idMap,
+  resolveProvider,
+  onError,
+  onParsed,
+}: PreviewPaneProps) {
+  // Create default provider if none supplied (for src="" resolution)
+  const defaultProvider = useMemo(() => new NetworkStorageProvider(), []);
+  const provider = resolveProvider ?? defaultProvider;
+  const provenance = path ? `file://${path}` : undefined;
+
+  // PEG files get their own preview pane
+  if (isPEGFile(path)) {
+    return <PEGPreviewPane path={path} content={content} />;
+  }
+
+  // OLX files use RenderOLX with full props
+  return (
+    <RenderOLX
+      id={path || '_preview'}
+      inline={content}
+      baseIdMap={idMap ?? undefined}
+      resolveProvider={provider}
+      provenance={provenance}
+      onError={onError}
+      onParsed={onParsed}
+    />
+  );
+}
