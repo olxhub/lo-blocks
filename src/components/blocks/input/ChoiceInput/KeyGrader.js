@@ -47,7 +47,10 @@ function getKeyDisplayAnswer(props) {
   const inputProps = { ...props, id: inputId, ...inputNode.attributes, kids: inputNode.kids };
   const choices = inputBlueprint.locals.getChoices(inputProps);
   const keyChoice = choices.find(c => c.tag === 'Key');
-  return keyChoice?.value ?? null;
+  if (!keyChoice) {
+    throw new Error(`KeyGrader "${props.id}": No Key choice found. Add a <Key> element inside the ChoiceInput.`);
+  }
+  return keyChoice.value;
 }
 
 const KeyGrader = blocks.test({

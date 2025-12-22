@@ -25,9 +25,9 @@ function getChoices(props, state, id) {
     targets: props.target
   });
   const choices = ids.map(cid => {
-    const inst = props.idMap?.[cid];
-    const choiceValue = inst?.attributes?.value ?? cid;
-    return { id: cid, tag: inst?.tag, value: choiceValue };
+    const inst = props.idMap[cid];
+    const choiceValue = inst.attributes.value ?? cid;
+    return { id: cid, tag: inst.tag, value: choiceValue };
   });
   return choices;
 }

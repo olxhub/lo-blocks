@@ -17,7 +17,7 @@ export default function _ChoiceItem(props) {
   const { parentId, isCheckbox } = useMemo(() => {
     // First try CheckboxInput
     const checkboxParents = inferRelatedNodes(props, {
-      selector: n => n?.blueprint?.name === 'CheckboxInput',
+      selector: n => n.blueprint.name === 'CheckboxInput',
       infer: ['parents']
     });
     if (checkboxParents.length > 0) {
@@ -26,7 +26,7 @@ export default function _ChoiceItem(props) {
 
     // Fall back to ChoiceInput
     const choiceParents = inferRelatedNodes(props, {
-      selector: n => n?.blueprint?.name === 'ChoiceInput',
+      selector: n => n.blueprint.name === 'ChoiceInput',
       infer: ['parents']
     });
     return { parentId: choiceParents[0], isCheckbox: false };
@@ -50,7 +50,7 @@ export default function _ChoiceItem(props) {
 
   // Check if grader is showing the answer
   const { showAnswer } = useGraderAnswer(props);
-  const isKey = props.blueprint?.name === 'Key';
+  const isKey = props.blueprint.name === 'Key';
   const showCorrectHighlight = showAnswer && isKey;
 
   const itemValue = props.value ?? props.id;
