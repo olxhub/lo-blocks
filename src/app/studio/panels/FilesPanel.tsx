@@ -23,6 +23,7 @@ export function FilesPanel({
   onFileDelete,
   onFileRename,
 }: FilesPanelProps) {
+  // TODO: Consider moving dialog state to redux for analytics
   const [showNewFileDialog, setShowNewFileDialog] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [fileActionPath, setFileActionPath] = useState<string | null>(null);
@@ -30,14 +31,28 @@ export function FilesPanel({
 
   const handleCreateFile = async () => {
     if (!newFileName.trim()) return;
-    const path = newFileName.endsWith('.olx') ? newFileName : `${newFileName}.olx`;
-    const template = `<Vertical>
+
+    // Determine the filename with extension
+    const validExtensions = ['.olx', '.xml', '.md', '.chatpeg', '.textHighlight'];
+    const hasValidExtension = validExtensions.some(ext => newFileName.endsWith(ext));
+    const filename = hasValidExtension ? newFileName : `${newFileName}.olx`;
+
+    // Create in the same directory as the current file
+    const currentDir = currentPath.includes('/') ? currentPath.substring(0, currentPath.lastIndexOf('/')) : '';
+    const path = currentDir ? `${currentDir}/${filename}` : filename;
+
+    // Template based on extension
+    const isOlx = filename.endsWith('.olx') || filename.endsWith('.xml');
+    const template = isOlx
+      ? `<Vertical>
   <Markdown>
 # New Content
 
 Start writing here.
   </Markdown>
-</Vertical>`;
+</Vertical>`
+      : '';
+
     try {
       await onFileCreate(path, template);
       setShowNewFileDialog(false);
@@ -151,6 +166,7 @@ function FileTreeNode({
   node, depth, onSelect, currentPath, dirtyFiles,
   onShowActions, actionPath, onDelete, onRename, renameValue, onRenameChange
 }: FileTreeNodeProps) {
+  // TODO: Consider moving expanded state to redux (persist tree state)
   const [expanded, setExpanded] = useState(depth < 2);
   const isDir = Array.isArray(node.children);
   const name = node.uri.split('/').pop() || node.uri;

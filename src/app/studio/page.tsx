@@ -61,9 +61,11 @@ function useEditComponentState(field, provenance, defaultState) {
 }
 
 export default function StudioPage() {
+  // TODO: Consider moving UI state to redux for analytics
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('chat');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  // TODO: Move filePath to redux (navigation state)
   const [filePath, setFilePath] = useState('untitled.olx');
 
   // Content stored in Redux - enables analytics and persistence
@@ -72,20 +74,25 @@ export default function StudioPage() {
     filePath,
     DEMO_CONTENT,
   );
+  // TODO: Consider moving layout preferences to redux (persist across sessions)
   const [showPreview, setShowPreview] = useState(true);
   const [previewLayout, setPreviewLayout] = useState<PreviewLayout>('horizontal');
   const [sidebarWidth, setSidebarWidth] = useState(320);
   const [editorRatio, setEditorRatio] = useState(50); // percentage for editor pane
+  // TODO: Move fileTree to redux (shared across components)
   const [fileTree, setFileTree] = useState<UriNode | null>(null);
+  // TODO: Move loading/saving to redux for global status tracking
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  // TODO: Move idMap to redux (shared content index)
   const [idMap, setIdMap] = useState<IdMap | null>(null);
 
-  // Editor ref for insert operations
+  // Editor ref for insert operations (DOM ref - keep as useRef)
   const editorRef = useRef<CodeEditorHandle>(null);
 
   // Track per-file saved state for dirty detection and conflict detection
   // Maps filePath -> { content, metadata } for files we've loaded
+  // TODO: Move file metadata tracking to redux (enables cross-component dirty detection)
   const fileStateRef = useRef<Map<string, { content: string; metadata: unknown }>>(new Map());
 
   // Get current file's saved state (for dirty detection)

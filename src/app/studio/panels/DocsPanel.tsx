@@ -12,6 +12,7 @@ interface DocsPanelProps {
 }
 
 // Extract unique element tags used in content
+// TODO: Should we use XML parse results or parsed OLX DOM instead of regex?
 function extractElements(content: string): string[] {
   const tags = new Set<string>();
   const regex = /<([A-Z]\w*)/g;
@@ -33,10 +34,10 @@ export function DocsPanel({ filePath, content, docsData }: DocsPanelProps) {
         <a href="/docs/" target="_blank" className="docs-link">Full Documentation</a>
 
         {/* File-type specific docs */}
+        {/* TODO: Add general PEG syntax guide page. For now, link to specific grammars. */}
         {docType === 'peg' && (
           <div className="docs-section-links">
-            <a href="/docs#peg-format" target="_blank" className="docs-item">PEG Syntax Guide</a>
-            <a href="/docs#chatpeg" target="_blank" className="docs-item">ChatPEG Format</a>
+            <a href="/docs#Chat" target="_blank" className="docs-item">ChatPEG Format</a>
           </div>
         )}
 

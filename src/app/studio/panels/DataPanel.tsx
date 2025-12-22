@@ -6,11 +6,8 @@ export function DataPanel() {
     <div className="sidebar-panel">
       <div className="sidebar-panel-header">Data</div>
       <div className="data-placeholder">
-        Item statistics and psychometrics.
-        <br /><br />
-        <strong>Avg time:</strong> 45s<br />
-        <strong>% correct:</strong> 72%<br />
-        <strong>Discrimination:</strong> 0.45
+        <em>Coming soon:</em> Item statistics and psychometrics
+        (response times, percent correct, discrimination indices).
       </div>
     </div>
   );
