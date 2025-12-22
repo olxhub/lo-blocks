@@ -7,8 +7,8 @@
 'use client';
 
 import React from 'react';
-import { useSelector } from 'react-redux';
 import { renderCompiledKids } from '@/lib/render';
+import * as state from '@/lib/state';
 import { LLM_STATUS } from '@/lib/llm/reduxClient';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
@@ -47,27 +47,25 @@ function _Gated(props) {
   const gateKids = kids.slice(0, 1);
   const contentKids = kids.slice(1);
 
-  // Selector for phase based on target states
-  const selectPhase = state => {
-    if (targetIds.length === 0) return 'gate';
+  // Get field from first target to use for aggregation
+  // (all targets should be same type with same fields)
+  const sampleTargetId = targetIds[0];
+  const valueField = state.componentFieldByName(props, sampleTargetId, 'value');
+  const stateField = state.componentFieldByName(props, sampleTargetId, 'state');
 
-    const componentState = state.application_state?.component || {};
-    const targets = targetIds.map(id => componentState[id] || {});
+  // Aggregate values from all targets
+  const targetValues = state.useAggregate(props, valueField, targetIds, { fallback: '' });
+  const targetStates = state.useAggregate(props, stateField, targetIds, { fallback: null });
 
-    const allReady = targets.every(t => t.value != null && t.value !== '');
-    if (allReady) return 'content';
+  // Compute phase from aggregated values
+  // TODO: This should check a general "Doneness" state, not LLM_STATUS specifically.
+  // Gated should be able to gate on anything - problem correctness, form completion,
+  // LLM responses, etc. LLM blocks should implement Doneness (they don't yet).
+  // For now, we check LLM_STATUS.RUNNING as a proxy for "in progress".
+  const allReady = targetValues.every(v => v != null && v !== '');
+  const anyStarted = targetStates.some(s => s === LLM_STATUS.RUNNING) || targetValues.some(v => v);
 
-    // TODO: This should check a general "Doneness" state, not LLM_STATUS specifically.
-    // Gated should be able to gate on anything - problem correctness, form completion,
-    // LLM responses, etc. LLM blocks should implement Doneness (they don't yet).
-    // For now, we check LLM_STATUS.RUNNING as a proxy for "in progress".
-    const anyStarted = targets.some(t => t.state === LLM_STATUS.RUNNING || t.value);
-    if (anyStarted) return 'loading';
-
-    return 'gate';
-  };
-
-  const phase = useSelector(selectPhase);
+  const phase = allReady ? 'content' : anyStarted ? 'loading' : 'gate';
 
   // Always render both children to build the OLX DOM tree
   // Only include the appropriate one in React output based on phase
