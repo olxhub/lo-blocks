@@ -1,6 +1,8 @@
-// TODO: Rename to ChoiceGrader?
-
 // src/components/blocks/ChoiceInput/KeyGrader.js
+//
+// Grader for single-select (radio button) multiple choice questions.
+// For multi-select (checkbox) questions, use CheckboxGrader instead.
+//
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import { getInputs } from '@/lib/blocks/olxdom';
@@ -24,32 +26,31 @@ function gradeKeySelected(props, { input, inputApi }) {
 /**
  * Find the correct answer value by looking for the Key choice.
  * Works with both ChoiceInput (Key/Distractor children) and DropdownInput ((x) marker).
+ * Returns a single string value.
  */
 function getKeyDisplayAnswer(props) {
-  // If explicit answer/displayAnswer provided, use that
   if (props.displayAnswer != null) return props.displayAnswer;
   if (props.answer != null) return props.answer;
 
-  // Otherwise, find the Key choice from the input
-  try {
-    const inputIds = getInputs(props);
-    if (inputIds.length === 0) return null;
-
-    const inputId = inputIds[0];
-    const inputNode = props.idMap?.[inputId];
-    const inputBlueprint = inputNode ? props.componentMap?.[inputNode.tag] : null;
-
-    // Use getChoices() if available (ChoiceInput, DropdownInput)
-    if (inputBlueprint?.locals?.getChoices) {
-      const inputProps = { ...props, id: inputId, ...inputNode?.attributes, kids: inputNode?.kids };
-      const choices = inputBlueprint.locals.getChoices(inputProps);
-      const keyChoice = choices.find(c => c.tag === 'Key');
-      return keyChoice?.value ?? null;
-    }
-  } catch (e) {
-    // No inputs found or error - return null
+  const inputIds = getInputs(props);
+  if (inputIds.length === 0) {
+    throw new Error(`KeyGrader "${props.id}": No input found. Nest a ChoiceInput inside, or add target="inputId".`);
   }
-  return null;
+
+  const inputId = inputIds[0];
+  const inputNode = props.idMap[inputId];
+  if (!inputNode) {
+    throw new Error(`KeyGrader "${props.id}": Input "${inputId}" not found. Check the target attribute.`);
+  }
+
+  const inputBlueprint = props.componentMap[inputNode.tag];
+  const inputProps = { ...props, id: inputId, ...inputNode.attributes, kids: inputNode.kids };
+  const choices = inputBlueprint.locals.getChoices(inputProps);
+  const keyChoice = choices.find(c => c.tag === 'Key');
+  if (!keyChoice) {
+    throw new Error(`KeyGrader "${props.id}": No Key choice found. Add a <Key> element inside the ChoiceInput.`);
+  }
+  return keyChoice.value;
 }
 
 const KeyGrader = blocks.test({

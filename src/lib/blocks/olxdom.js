@@ -156,8 +156,8 @@ function getNodeId(nodeInfo, context = 'getNodeId') {
     if (nodeInfo.sentinel === 'root') {
       throw new Error(
         `${context}: Attempted to get ID from root sentinel node. ` +
-        `This usually means a selector matched the root, which shouldn't have blueprint/node properties. ` +
-        `Check that your selector uses n.blueprint (not n.node.blueprint) and handles undefined cases.`
+        `This usually means a selector matched the root (blueprint.name === 'Root'). ` +
+        `Selectors should filter out the root node.`
       );
     }
     throw new Error(
@@ -246,7 +246,7 @@ export function inferRelatedNodes(props, {
  */
 export function getGrader(props, { infer } = {}) {
   const ids = inferRelatedNodes(props, {
-    selector: n => n.blueprint?.isGrader,
+    selector: n => n.blueprint.isGrader,
     targets: props.target,
     infer,
     closest: true  // Find nearest grader, not all graders up the tree
@@ -276,7 +276,7 @@ export function getGrader(props, { infer } = {}) {
  */
 export function getInputs(props, { infer } = {}) {
   return inferRelatedNodes(props, {
-    selector: n => n.blueprint?.isInput,
+    selector: n => n.blueprint.isInput,
     targets: props.target,
     infer
   });

@@ -69,4 +69,49 @@ Shown after correct answer
 
 ## Examples
 
-See the demo file for complete examples.
+### Multiple Choice (radio)
+
+```xml
+<MarkupProblem id="markup_radio">
+What is the capital of France?
+===
+( ) London
+(x) Paris
+( ) Berlin
+</MarkupProblem>
+```
+
+### Checkboxes (multi-select)
+
+```xml
+<MarkupProblem id="markup_checkbox">
+Select all prime numbers:
+===
+[x] 2
+[x] 3
+[ ] 4
+[x] 5
+[ ] 6
+</MarkupProblem>
+```
+
+### Text Input
+
+```xml
+<MarkupProblem id="markup_text">
+What color is the sky?
+===
+= blue
+or= Blue
+</MarkupProblem>
+```
+
+### Numerical Input
+
+```xml
+<MarkupProblem id="markup_numerical">
+What is pi to two decimal places?
+===
+= 3.14 +- 0.01
+</MarkupProblem>
+```

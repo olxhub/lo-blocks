@@ -173,7 +173,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       }
 
       case 'checkboxes': {
-        // Checkboxes - similar to choices but multi-select
+        // Checkboxes - multi-select using CheckboxInput and CheckboxGrader
         // Grammar outputs { text, value, tag: 'Key'/'Distractor', feedback? } directly
         const graderId = `${id}_grader_${graderIndex++}`;
         const inputId = `${id}_input_${inputIndex++}`;
@@ -189,17 +189,23 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
           return { type: 'block', id: choiceId };
         });
 
+        // CheckboxInput for multi-select (value is array)
         storeEntry(inputId, {
           id: inputId,
-          tag: 'ChoiceInput',
+          tag: 'CheckboxInput',
           attributes: { id: inputId },
           kids: choiceKids
         });
 
+        // CheckboxGrader - optionally add partialCredit="true" if block specifies it
+        const graderAttrs = { id: graderId, target: inputId };
+        if (block.partialCredit) {
+          graderAttrs.partialCredit = 'true';
+        }
         storeEntry(graderId, {
           id: graderId,
-          tag: 'KeyGrader',
-          attributes: { id: graderId, target: inputId },
+          tag: 'CheckboxGrader',
+          attributes: graderAttrs,
           kids: [{ type: 'block', id: inputId }]
         });
 

@@ -1,7 +1,7 @@
-// src/components/blocks/ChoiceInput/ChoiceInput.js
+// src/components/blocks/ChoiceInput/CheckboxInput.js
 //
-// Single-select (radio button) input. Value is stored as a string.
-// For multi-select (checkboxes), use CheckboxInput instead.
+// Multi-select checkbox input. Value is stored as an array of selected values.
+// For single-select (radio buttons), use ChoiceInput instead.
 //
 import { core } from '@/lib/blocks';
 import * as state from '@/lib/state';
@@ -14,7 +14,7 @@ export const fields = state.fields(['value']);
 
 /**
  * Get the list of choices (Key/Distractor children) with their metadata.
- * Used by KeyGrader to determine correctness.
+ * Used by CheckboxGrader to determine correctness.
  *
  * @returns {Array<{id: string, tag: string, value: string}>}
  */
@@ -32,18 +32,23 @@ function getChoices(props, state, id) {
   return choices;
 }
 
-const ChoiceInput = core({
+const CheckboxInput = core({
   ...parsers.blocks(),
-  name: 'ChoiceInput',
-  description: 'Single-select (radio button) input collecting student selection from Key/Distractor options. Value is a string.',
+  name: 'CheckboxInput',
+  description: 'Multi-select checkbox input collecting student selections from Key/Distractor options. Value is an array.',
   component: _Noop,
   fields,
   getValue: (props, state, id) => {
-    return fieldSelector(state, { ...props, id }, fieldByName('value'), { fallback: '' });
+    const value = fieldSelector(state, { ...props, id }, fieldByName('value'), { fallback: [] });
+    // Ensure array even if stored value was a string (migration case)
+    if (!Array.isArray(value)) {
+      return value ? [value] : [];
+    }
+    return value;
   },
   locals: {
     getChoices
   }
 });
 
-export default ChoiceInput;
+export default CheckboxInput;

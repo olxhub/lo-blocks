@@ -23,7 +23,10 @@ import { COMPONENT_MAP } from '@/components/componentMap';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { getGrader } from '@/lib/blocks/olxdom';
 
-export const makeRootNode = () => ({ sentinel: 'root', renderedKids: {} });
+// Root sentinel has minimal blueprint so selectors don't need ?. checks
+// TODO: Give root a real blueprint created via blocks.core() for consistency
+const ROOT_BLUEPRINT = Object.freeze({ name: 'Root', isGrader: false, isInput: false });
+export const makeRootNode = () => ({ sentinel: 'root', renderedKids: {}, blueprint: ROOT_BLUEPRINT });
 
 // Main render function: handles single nodes, strings, JSX, and blocks
 export function render({ node, idMap, key, nodeInfo, componentMap = COMPONENT_MAP, idPrefix = '' }) {
