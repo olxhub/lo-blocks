@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import type { UriNode } from '@/lib/storage/types';
+import { isEditableFile, isOLXFile } from '@/lib/util/fileTypes';
 
 interface FilesPanelProps {
   fileTree: UriNode | null;
@@ -32,18 +33,15 @@ export function FilesPanel({
   const handleCreateFile = async () => {
     if (!newFileName.trim()) return;
 
-    // Determine the filename with extension
-    const validExtensions = ['.olx', '.xml', '.md', '.chatpeg', '.textHighlight'];
-    const hasValidExtension = validExtensions.some(ext => newFileName.endsWith(ext));
-    const filename = hasValidExtension ? newFileName : `${newFileName}.olx`;
+    // Determine the filename with extension (use fileTypes for valid extensions)
+    const filename = isEditableFile(newFileName) ? newFileName : `${newFileName}.olx`;
 
     // Create in the same directory as the current file
     const currentDir = currentPath.includes('/') ? currentPath.substring(0, currentPath.lastIndexOf('/')) : '';
     const path = currentDir ? `${currentDir}/${filename}` : filename;
 
     // Template based on extension
-    const isOlx = filename.endsWith('.olx') || filename.endsWith('.xml');
-    const template = isOlx
+    const template = isOLXFile(filename)
       ? `<Vertical>
   <Markdown>
 # New Content
