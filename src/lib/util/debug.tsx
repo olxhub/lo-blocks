@@ -4,6 +4,7 @@
 import React, { ReactNode, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { parseProvenance, formatProvenance } from '@/lib/storage/provenance';
+import { getExtension } from '@/lib/util/fileTypes';
 import { useReduxState, settings } from '@/lib/state';
 
 interface TraceProps {
@@ -45,6 +46,30 @@ interface DebugWrapperProps {
   children?: ReactNode;
 }
 
+// Clickable span styled like a link - avoids nested button issues
+const ClickableText = ({ onClick, children, style = {}, title }: {
+  onClick: () => void;
+  children: ReactNode;
+  style?: React.CSSProperties;
+  title?: string;
+}) => (
+  <span
+    role="button"
+    tabIndex={0}
+    onClick={onClick}
+    onKeyDown={(e) => e.key === 'Enter' && onClick()}
+    title={title}
+    style={{
+      cursor: 'pointer',
+      textDecoration: 'underline',
+      color: '#666',
+      ...style
+    }}
+  >
+    {children}
+  </span>
+);
+
 export const DebugWrapper = ({ props = {}, blueprint, children }: DebugWrapperProps) => {
   const [debug] = useReduxState(props, settings.debug, false,
     { tag: true, id: true} // HACK
@@ -59,19 +84,21 @@ export const DebugWrapper = ({ props = {}, blueprint, children }: DebugWrapperPr
   const parsed = provenance.map(p => parseProvenance(p));
 
   const linkRenderers = {
-    file: (prov, label, key) => {
+    file: (prov, key) => {
       // TODO: Move away from absolute file:/// URIs
       // HACK: Extracts relative from absolute URI
       const rel = prov.path.split('/content/')[1] ?? prov.path;
       const href = `/studio?file=${encodeURIComponent(rel)}`;
-      return <Link key={key} href={href}>{label}</Link>;
+      const fileType = getExtension(prov.path) || 'file';
+      return <Link key={key} href={href} title={rel}>{fileType}</Link>;
     }
   };
 
   const links = parsed.map((prov, idx) => {
-    const label = parsed.length > 1 ? `src${idx + 1}` : 'src';
     const renderer = linkRenderers[prov.type];
-    if (renderer) return renderer(prov, label, idx);
+    if (renderer) return renderer(prov, idx);
+    // Fallback for non-file provenances
+    const label = prov.type || 'src';
     return <a key={idx} href={`${prefix}${formatProvenance(prov)}`}>{label}</a>;
   });
 
@@ -80,10 +107,21 @@ export const DebugWrapper = ({ props = {}, blueprint, children }: DebugWrapperPr
   const DebugComponent = blueprint?.extraDebug;
 
   return (
-    <div style={{ border: '1px dashed #999', padding: 4, margin: 2 }}>
-      <div style={{ fontSize: '0.75rem', marginBottom: 4 }}>
-        [{tag} / {id}] {links.map((l, i) => <React.Fragment key={i}>{l}{' '}</React.Fragment>)}
-        <button onClick={handleLog} style={{ marginLeft: 4 }}>log</button>
+    <div style={{ position: 'relative', outline: '1px dashed #999', outlineOffset: -1 }}>
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        fontSize: '0.65rem',
+        color: '#000',
+        background: 'rgba(255, 255, 255, 0.9)',
+        padding: '1px 4px',
+        borderRadius: '0 0 4px 0',
+        zIndex: 1000,
+        whiteSpace: 'nowrap',
+      }}>
+        [{tag}/{id}] {links.map((l, i) => <React.Fragment key={i}>{l}{' '}</React.Fragment>)}
+        <ClickableText onClick={handleLog} title="Log component props to console">props</ClickableText>
       </div>
       {DebugComponent && <DebugComponent {...props} />}
       {children}
@@ -266,11 +304,12 @@ export function ToastNotifications({
               </div>
             )}
           </div>
-          <button
+          <span
+            role="button"
+            tabIndex={0}
             onClick={() => onDismiss(n.id)}
+            onKeyDown={(e) => e.key === 'Enter' && onDismiss(n.id)}
             style={{
-              background: 'none',
-              border: 'none',
               cursor: 'pointer',
               padding: 0,
               fontSize: 18,
@@ -280,7 +319,7 @@ export function ToastNotifications({
             aria-label="Dismiss"
           >
             ×
-          </button>
+          </span>
         </div>
       ))}
       <style>{`
