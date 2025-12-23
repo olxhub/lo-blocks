@@ -5,6 +5,7 @@
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import PreviewPane from '@/components/common/PreviewPane';
 import Spinner from '@/components/common/Spinner';
 import { ChatPanel, DataPanel, DocsPanel, FilesPanel, SearchPanel } from './panels';
@@ -13,7 +14,7 @@ import { NetworkStorageProvider, VersionConflictError } from '@/lib/storage';
 import type { UriNode } from '@/lib/storage/types';
 import type { IdMap } from '@/lib/types';
 import { useNotifications, ToastNotifications } from '@/lib/util/debug';
-import { useReduxState, selectFromStore } from '@/lib/state';
+import { useReduxState, selectFromStore, settings } from '@/lib/state';
 import { editorFields } from '@/lib/state/editorFields';
 import './studio.css';
 
@@ -66,6 +67,9 @@ function StudioPageContent() {
   // Read initial file from URL query param
   const searchParams = useSearchParams();
   const initialFile = searchParams.get('file') || 'untitled.olx';
+
+  // Debug mode toggle (system-wide setting)
+  const [debug, setDebug] = useReduxState({}, settings.debug, false, { tag: 'studio', id: 'studio' });
 
   // TODO: Consider moving UI state to redux for analytics
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('chat');
@@ -361,7 +365,7 @@ function StudioPageContent() {
           >
             ≡
           </button>
-          <span className="studio-title">studio</span>
+          <Link href="/" className="studio-title" title="Go to home">studio</Link>
         </div>
         <div className="studio-header-center">
           <span className="studio-filepath">
@@ -516,6 +520,16 @@ function StudioPageContent() {
       {/* Footer hint */}
       <footer className="studio-footer">
         <kbd>⌘K</kbd> Command palette
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={() => setDebug(!debug)}
+          onKeyDown={(e) => e.key === 'Enter' && setDebug(!debug)}
+          className="studio-debug-toggle"
+          title="Toggle debug mode"
+        >
+          {debug ? '[debug on]' : '[debug]'}
+        </span>
       </footer>
     </div>
   );

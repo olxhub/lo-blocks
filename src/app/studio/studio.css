@@ -50,6 +50,11 @@
 .studio-title {
   font-weight: 600;
   color: #58a6ff;
+  text-decoration: none;
+}
+
+.studio-title:hover {
+  text-decoration: underline;
 }
 
 .studio-filepath {
@@ -619,6 +624,17 @@
   border-radius: 4px;
   font-family: inherit;
   margin-right: 4px;
+}
+
+.studio-debug-toggle {
+  float: right;
+  cursor: pointer;
+  color: #6e7681;
+  font-size: 11px;
+}
+
+.studio-debug-toggle:hover {
+  color: #8b949e;
 }
 
 /* Command Palette */
