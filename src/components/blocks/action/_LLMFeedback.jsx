@@ -9,8 +9,10 @@ import { DisplayError } from '@/lib/util/debug';
 
 import Spinner from '@/components/blocks/utility/_Spinner';
 
+const DEFAULT_PLACEHOLDER = 'AI feedback will appear here';
+
 function _LLMFeedback(props) {
-  const { id, fields } = props;
+  const { id, fields, placeholder = DEFAULT_PLACEHOLDER } = props;
 
   const feedback = useFieldSelector(props, fields.value, { fallback: '', id });
   const llmState = useFieldSelector(props, fields.state, { fallback: LLM_STATUS.INIT, id });
@@ -26,7 +28,7 @@ function _LLMFeedback(props) {
       return <DisplayError name="LLMFeedback" message={feedback || 'LLM request failed'} />;
     }
     if (isEmpty) {
-      return <span className="llm-feedback-placeholder">AI feedback will appear here</span>;
+      return <span className="llm-feedback-placeholder">{placeholder}</span>;
     }
     return feedback;
   };
