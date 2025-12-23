@@ -36,7 +36,11 @@ export function parseProvenance(uri: ProvenanceURI): ProvenanceStruct {
         });
       }
       return result;
-    }
+    },
+    // Inline OLX embedded directly (e.g., in RenderOLX component)
+    'inline': suf => ({ path: suf || 'inline' }),
+    // OLX embedded within markdown code blocks
+    'markdown-embed': suf => ({ path: suf || 'markdown-embed' }),
   };
 
   if (!(type in converters)) {
@@ -57,7 +61,9 @@ export function formatProvenance(item: ProvenanceEntry): ProvenanceURI {
       const { path, type, ...rest } = obj;
       const query = new URLSearchParams(rest).toString();
       return `file://${path}${query ? `?${query}` : ''}`;
-    }
+    },
+    'inline': (obj: GenericProvenance) => `inline://${obj.path || ''}`,
+    'markdown-embed': (obj: GenericProvenance) => `markdown-embed://${obj.path || ''}`,
   };
 
   const conv = converters[item.type];
