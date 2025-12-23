@@ -1,8 +1,34 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { OLXCodeBlock, isOLXLanguage } from '@/components/common/OLXCodeBlock';
+// Note: markdown.css is loaded via the generated components.css registry
 
-export function _Markdown( props ) {
+/**
+ * Custom code block renderer that handles OLX embeds.
+ * Falls back to default rendering for non-OLX languages.
+ */
+function CodeBlockRenderer({ node, inline, className, children, ...props }) {
+  // Extract language from className (e.g., "language-olx" -> "olx")
+  const match = /language-(\S+)/.exec(className || '');
+  const language = match ? match[1] : null;
+
+  // Handle OLX code blocks
+  if (!inline && isOLXLanguage(language)) {
+    return <OLXCodeBlock language={language}>{children}</OLXCodeBlock>;
+  }
+
+  // Default code rendering
+  return inline ? (
+    <code className={className} {...props}>{children}</code>
+  ) : (
+    <pre className={className} {...props}>
+      <code>{children}</code>
+    </pre>
+  );
+}
+
+export function _Markdown(props) {
   const { kids } = props;
 
   /*** HACK HACK HACK ***/
@@ -19,5 +45,14 @@ export function _Markdown( props ) {
   }
   /*** end of hack ***/
 
-  return <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>;
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        code: CodeBlockRenderer,
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
 }

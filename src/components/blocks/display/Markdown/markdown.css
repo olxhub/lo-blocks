@@ -95,3 +95,116 @@
 .lo-tag-markdown a:hover {
   text-decoration-color: var(--lo-primary);
 }
+
+/* =============================================================================
+ * OLX Embeds in Markdown
+ * Styles for ```olx, ```olx:code, and ```olx:playground code blocks
+ * ============================================================================= */
+
+/* Rendered OLX view - no extra chrome, let blocks provide their own styling */
+
+/* Code-only view */
+.olx-code-block {
+  background: var(--lo-surface);
+  padding: var(--lo-space-lg);
+  border-radius: var(--lo-radius-md);
+  overflow-x: auto;
+  margin: var(--lo-space-lg) 0;
+  font-family: var(--lo-font-mono);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.olx-code-block code {
+  background: none;
+  padding: 0;
+  color: var(--lo-text-primary);
+}
+
+/* TODO: Add proper syntax highlighting via highlight.js or CodeMirror */
+
+/* Playground view - side-by-side editor and preview */
+.olx-playground {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--lo-space-md);
+  margin: var(--lo-space-lg) 0;
+  border: 1px solid var(--lo-border);
+  border-radius: var(--lo-radius-md);
+  overflow: hidden;
+  min-height: 300px;
+}
+
+@media (max-width: 768px) {
+  .olx-playground {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+}
+
+.olx-playground-editor,
+.olx-playground-preview {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.olx-playground-editor {
+  background: #1e1e1e;
+}
+
+.olx-playground-preview {
+  background: var(--lo-bg);
+  border-left: 1px solid var(--lo-border);
+}
+
+@media (max-width: 768px) {
+  .olx-playground-preview {
+    border-left: none;
+    border-top: 1px solid var(--lo-border);
+  }
+}
+
+.olx-playground-header {
+  padding: var(--lo-space-sm) var(--lo-space-md);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--lo-border);
+}
+
+.olx-playground-editor .olx-playground-header {
+  background: #2d2d2d;
+  color: #cccccc;
+  border-color: #404040;
+}
+
+.olx-playground-preview .olx-playground-header {
+  background: var(--lo-surface);
+  color: var(--lo-text-secondary);
+}
+
+/* Textarea in playground (TODO: replace with CodeMirror) */
+.olx-playground-textarea {
+  flex: 1;
+  width: 100%;
+  padding: var(--lo-space-md);
+  background: #1e1e1e;
+  color: #d4d4d4;
+  border: none;
+  font-family: var(--lo-font-mono);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  resize: none;
+}
+
+.olx-playground-textarea:focus {
+  outline: none;
+}
+
+.olx-playground-content {
+  flex: 1;
+  padding: var(--lo-space-md);
+  overflow-y: auto;
+}
