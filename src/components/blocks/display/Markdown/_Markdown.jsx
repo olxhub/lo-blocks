@@ -39,6 +39,15 @@ function CodeRenderer({ inline, className, children, ...props }) {
   return <code className={className} {...props}>{children}</code>;
 }
 
+/**
+ * Shared ReactMarkdown component overrides for OLX embedding.
+ * Export for use in docs page and other markdown renderers.
+ */
+export const markdownComponents = {
+  pre: PreRenderer,
+  code: CodeRenderer,
+};
+
 export function _Markdown(props) {
   const { kids } = props;
 
@@ -59,10 +68,7 @@ export function _Markdown(props) {
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
-      components={{
-        pre: PreRenderer,
-        code: CodeRenderer,
-      }}
+      components={markdownComponents}
     >
       {content}
     </ReactMarkdown>

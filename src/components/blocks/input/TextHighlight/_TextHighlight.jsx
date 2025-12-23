@@ -392,8 +392,8 @@ export default function _TextHighlight(props) {
         backgroundColor = '#e0e0e0';
       }
     }
-    // Graded mode after check or immediate mode with realtime feedback
-    else if ((mode === 'graded' && checked) || (mode === 'immediate' && showRealtimeFeedback)) {
+    // Graded mode after check
+    else if (mode === 'graded' && checked) {
       if (isSelected) {
         if (!correctIndices.has(word.index)) {
           // Student selected incorrectly - red background
@@ -407,6 +407,19 @@ export default function _TextHighlight(props) {
         borderColor = word.isRequired ? '#4ade80' : '#fbbf24';
         backgroundColor = 'transparent';
       }
+    }
+    // Immediate mode with realtime feedback - only show feedback on selections, no hints
+    else if (mode === 'immediate' && showRealtimeFeedback) {
+      if (isSelected) {
+        if (!correctIndices.has(word.index)) {
+          // Student selected incorrectly - red background
+          backgroundColor = '#ffcdd2';
+        } else {
+          // Student selected correctly - green/yellow background
+          backgroundColor = word.isRequired ? '#c3f0c3' : '#fff3cd';
+        }
+      }
+      // No dashed borders for unselected correct answers - don't give away the answer
     } else {
       // Selection state (all modes before reveal/check) — gray
       if (isSelected) {

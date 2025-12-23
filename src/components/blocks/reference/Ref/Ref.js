@@ -78,6 +78,8 @@ const Ref = core({
     // Check if a specific field is requested
     const field = refNode.attributes?.field;
 
+    const fallback = refNode.attributes?.fallback || '';
+
     let rawValue;
     if (field) {
       // Access specific field using fieldSelector
@@ -85,14 +87,14 @@ const Ref = core({
       if (!fieldInfo) {
         return { error: true, message: `Unknown field "${field}"` };
       }
-      rawValue = fieldSelector(state, { ...props, id: targetId }, fieldInfo, { fallback: '' });
+      rawValue = fieldSelector(state, { ...props, id: targetId }, fieldInfo, { fallback });
     } else {
       // Use valueSelector to get the target's value (calls getValue if available)
-      rawValue = valueSelector(props, state, targetId, { fallback: '' });
+      rawValue = valueSelector(props, state, targetId, { fallback });
     }
 
     // Always return a string for valid values
-    return formatRefValue(rawValue, '');
+    return formatRefValue(rawValue, fallback);
   }
 });
 

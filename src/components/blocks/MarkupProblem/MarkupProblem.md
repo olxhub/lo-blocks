@@ -71,8 +71,8 @@ Shown after correct answer
 
 ### Multiple Choice (radio)
 
-```xml
-<MarkupProblem id="markup_radio">
+```olx:playground
+<MarkupProblem id="markup_radio" title="Geography Quiz">
 What is the capital of France?
 ===
 ( ) London
