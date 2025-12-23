@@ -353,7 +353,7 @@ export function valueSelector(props, state, id, { fallback } = {} as { fallback?
     return fallback;
   }
 
-  // Use idMapKey to strip path prefixes - idMap uses plain IDs without "/" or "./" prefixes
+  // Use idMapKey to strip prefixes - idMap uses plain IDs (last dot-separated segment)
   const mapKey = idResolver.idMapKey(id);
   const targetNode = props?.idMap?.[mapKey];
   const blueprint = targetNode ? props?.componentMap?.[targetNode.tag] : null;

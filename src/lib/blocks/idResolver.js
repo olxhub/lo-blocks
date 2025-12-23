@@ -106,22 +106,41 @@ export const nodeId = (input) => {
 /**
  * Extract the idMap key from an ID string.
  *
- * The idMap uses plain IDs without path prefixes. This function strips
- * the "/" prefix used for absolute references and "./" for explicit relative.
+ * The idMap uses plain IDs (the base ID without namespace prefixes).
+ * This function:
+ * - Strips "/" prefix for absolute references
+ * - Strips "./" prefix for explicit relative
+ * - Extracts the last dot-separated segment (the base ID)
  *
- * @param {string} id - The ID which may have path prefixes
+ * Note: OLX IDs should not contain ".", "/", ":", or whitespace.
+ * These are reserved as namespace/path delimiters.
+ *
+ * @param {string} id - The ID which may have prefixes
  * @returns {string} The key to use for idMap lookup
  *
  * @example
- * idMapKey('/foo')   // => 'foo'
- * idMapKey('./foo')  // => 'foo'
- * idMapKey('foo')    // => 'foo'
+ * idMapKey('/foo')                    // => 'foo'
+ * idMapKey('./foo')                   // => 'foo'
+ * idMapKey('foo')                     // => 'foo'
+ * idMapKey('list.0.child')            // => 'child'
+ * idMapKey('mastery.attempt_0.q1')    // => 'q1'
+ * idMapKey('/list.0.child')           // => 'child'
  */
 export const idMapKey = (id) => {
   if (typeof id !== 'string') return id;
-  if (id.startsWith('/')) return id.slice(1);
-  if (id.startsWith('./')) return id.slice(2);
-  return id;
+
+  // Strip path prefixes first
+  let result = id;
+  if (result.startsWith('/')) result = result.slice(1);
+  else if (result.startsWith('./')) result = result.slice(2);
+
+  // Extract last segment (the base ID) - namespace prefixes come before it
+  const lastDot = result.lastIndexOf('.');
+  if (lastDot !== -1) {
+    result = result.slice(lastDot + 1);
+  }
+
+  return result;
 };
 
 // And, e.g.:

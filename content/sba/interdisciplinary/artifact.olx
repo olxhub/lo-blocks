@@ -15,10 +15,10 @@ Your comprehensive problem statement that addresses:
     </Markdown>
 
     <Markdown id="artifact_tb_1">**Final Problem Statement:**</Markdown>
-    <TextArea id="interdisciplinary_sba.full_problem_statement" placeholder="Your final problem statement will appear here once completed..." />
+    <TextArea id="interdisciplinary_sba_full_problem_statement" placeholder="Your final problem statement will appear here once completed..." />
 
     <Markdown id="artifact_tb_2">**Revised Significance Statement:**</Markdown>
-    <TextArea id="interdisciplinary_sba.problem_statement.revised" placeholder="Your significance statement will appear here..." />
+    <TextArea id="interdisciplinary_sba_problem_statement_revised" placeholder="Your significance statement will appear here..." />
   </Collapsible>
 
   <!-- Step 2: Justification -->
@@ -28,10 +28,10 @@ Evidence supporting the use of an interdisciplinary approach for this complex pr
     </Markdown>
 
     <Markdown id="artifact_tb_3">**Why You Selected These Reasons:**</Markdown>
-    <TextArea id="interdisciplinary_sba.reason_explanation" placeholder="Your explanation will appear here..." />
+    <TextArea id="interdisciplinary_sba_reason_explanation" placeholder="Your explanation will appear here..." />
 
     <Markdown id="artifact_tb_4">**Selected Causes to Research:**</Markdown>
-    <Markdown id="interdisciplinary_sba.reasons">
+    <Markdown id="interdisciplinary_sba_reasons">
 - [ ] Some school systems can't accommodate students with physical or other kinds of disabilities
 - [ ] Students need to earn money right away to help their family
 - [ ] Individual cause (from student input)
@@ -47,10 +47,10 @@ Evidence supporting the use of an interdisciplinary approach for this complex pr
     </Markdown>
 
     <Markdown id="artifact_tb_5">**Importance Evidence:**</Markdown>
-    <TextArea id="interdisciplinary_sba.source.5.importance.explanation" placeholder="Your explanation will appear here..." />
+    <TextArea id="interdisciplinary_sba_source_5_importance_explanation" placeholder="Your explanation will appear here..." />
 
     <Markdown id="artifact_tb_6">**Unresolved Problem Evidence:**</Markdown>
-    <TextArea id="interdisciplinary_sba.source.5.unresolved.explanation" placeholder="Your explanation will appear here..." />
+    <TextArea id="interdisciplinary_sba_source_5_unresolved_explanation" placeholder="Your explanation will appear here..." />
   </Collapsible>
 
   <!-- Step 3: Relevant Disciplines -->
@@ -60,21 +60,21 @@ The disciplines you've identified as relevant to understanding high school dropo
     </Markdown>
 
     <Markdown id="artifact_tb_7">**Causes Mapped to Disciplines (Table):**</Markdown>
-    <Markdown id="artifact_tb_8">[Table component for interdisciplinary_sba.reasons discipline mapping - to be implemented]</Markdown>
+    <Markdown id="artifact_tb_8">[Table component for interdisciplinary_sba_reasons discipline mapping - to be implemented]</Markdown>
 
     <Markdown id="artifact_tb_9">**Priority Area Alignment:**</Markdown>
-    <Markdown id="artifact_tb_10">[Table component for interdisciplinary_sba.problem_areas - to be implemented]</Markdown>
-    <TextArea id="interdisciplinary_sba.priority.explanation" placeholder="Your explanation will appear here..." />
+    <Markdown id="artifact_tb_10">[Table component for interdisciplinary_sba_problem_areas - to be implemented]</Markdown>
+    <TextArea id="interdisciplinary_sba_priority_explanation" placeholder="Your explanation will appear here..." />
 
     <Markdown id="artifact_tb_11">**Additional Relevant Disciplines:**</Markdown>
-    <Markdown id="interdisciplinary_sba.additional_disciplines">
+    <Markdown id="interdisciplinary_sba_additional_disciplines">
 - [ ] Health Sciences
 - [ ] Biology
 - [ ] Sociology
 - [ ] Economics
 - [ ] Political Science
     </Markdown>
-    <TextArea id="interdisciplinary_sba.additional_disciplines.explanation" placeholder="Your explanation will appear here..." />
+    <TextArea id="interdisciplinary_sba_additional_disciplines_explanation" placeholder="Your explanation will appear here..." />
   </Collapsible>
 
   <!-- Step 4: Literature Review -->
@@ -84,12 +84,12 @@ Research studies you've reviewed from different disciplines.
     </Markdown>
 
     <Markdown id="artifact_tb_12">**Study 1: ADHD Research (Psychology)**</Markdown>
-    <Markdown id="artifact_tb_13">[Highlight component for interdisciplinary_sba.source.1 - to be implemented]</Markdown>
+    <Markdown id="artifact_tb_13">[Highlight component for interdisciplinary_sba_source.1 - to be implemented]</Markdown>
 
     <Markdown id="artifact_tb_14">**Study 2: Employment Research**</Markdown>
-    <Markdown id="artifact_tb_15">[Highlight component for interdisciplinary_sba.source.2 - to be implemented]</Markdown>
+    <Markdown id="artifact_tb_15">[Highlight component for interdisciplinary_sba_source.2 - to be implemented]</Markdown>
     <Markdown id="artifact_tb_16">**Disciplines Identified:**</Markdown>
-    <Markdown id="interdisciplinary_sba.source.2.classification">
+    <Markdown id="interdisciplinary_sba_source_2_classification">
 - [ ] Health Sciences
 - [ ] Biology
 - [ ] Psychology
@@ -97,12 +97,12 @@ Research studies you've reviewed from different disciplines.
 - [ ] Economics
 - [ ] Political Science
     </Markdown>
-    <TextArea id="interdisciplinary_sba.source.2.classification.explanation" placeholder="Your explanation will appear here..." />
+    <TextArea id="interdisciplinary_sba_source_2_classification_explanation" placeholder="Your explanation will appear here..." />
 
     <Markdown id="artifact_tb_17">**Study 3: Rural/Urban Research**</Markdown>
-    <Markdown id="artifact_tb_18">[Highlight component for interdisciplinary_sba.source.3 - to be implemented]</Markdown>
+    <Markdown id="artifact_tb_18">[Highlight component for interdisciplinary_sba_source.3 - to be implemented]</Markdown>
     <Markdown id="artifact_tb_19">**Disciplines Identified:**</Markdown>
-    <Markdown id="interdisciplinary_sba.source.3.classification">
+    <Markdown id="interdisciplinary_sba_source_3_classification">
 - [ ] Health Sciences
 - [ ] Biology
 - [ ] Psychology
@@ -110,12 +110,12 @@ Research studies you've reviewed from different disciplines.
 - [ ] Economics
 - [ ] Political Science
     </Markdown>
-    <TextArea id="interdisciplinary_sba.source.3.classification.explanation" placeholder="Your explanation will appear here..." />
+    <TextArea id="interdisciplinary_sba_source_3_classification_explanation" placeholder="Your explanation will appear here..." />
 
     <Markdown id="artifact_tb_20">**Study 4: School Funding Research**</Markdown>
-    <Markdown id="artifact_tb_21">[Highlight component for interdisciplinary_sba.source.4 - to be implemented]</Markdown>
+    <Markdown id="artifact_tb_21">[Highlight component for interdisciplinary_sba_source.4 - to be implemented]</Markdown>
     <Markdown id="artifact_tb_22">**Disciplines Identified:**</Markdown>
-    <Markdown id="interdisciplinary_sba.source.4.classification">
+    <Markdown id="interdisciplinary_sba_source_4_classification">
 - [ ] Health Sciences
 - [ ] Biology
 - [ ] Psychology
@@ -123,7 +123,7 @@ Research studies you've reviewed from different disciplines.
 - [ ] Economics
 - [ ] Political Science
     </Markdown>
-    <TextArea id="interdisciplinary_sba.source.4.classification.explanation" placeholder="Your explanation will appear here..." />
+    <TextArea id="interdisciplinary_sba_source_4_classification_explanation" placeholder="Your explanation will appear here..." />
   </Collapsible>
 
   <!-- Step 5: Critical Analysis -->
@@ -133,19 +133,19 @@ Analysis of how different disciplines view the problem and where they conflict.
     </Markdown>
 
     <Markdown id="artifact_tb_23">**Key Insights from Psychology:**</Markdown>
-    <TextArea id="interdisciplinary_sba.insights.psychology" placeholder="Psychology insights: ADHD, motivation, self-efficacy factors..." />
+    <TextArea id="interdisciplinary_sba_insights_psychology" placeholder="Psychology insights: ADHD, motivation, self-efficacy factors..." />
 
     <Markdown id="artifact_tb_24">**Key Insights from Sociology:**</Markdown>
-    <TextArea id="interdisciplinary_sba.insights.sociology" placeholder="Sociology insights: Family structure, community factors, peer influences..." />
+    <TextArea id="interdisciplinary_sba_insights_sociology" placeholder="Sociology insights: Family structure, community factors, peer influences..." />
 
     <Markdown id="artifact_tb_25">**Key Insights from Economics:**</Markdown>
-    <TextArea id="interdisciplinary_sba.insights.economics" placeholder="Economics insights: Employment pressures, cost-benefit of intervention..." />
+    <TextArea id="interdisciplinary_sba_insights_economics" placeholder="Economics insights: Employment pressures, cost-benefit of intervention..." />
 
     <Markdown id="artifact_tb_26">**Key Insights from Political Science:**</Markdown>
-    <TextArea id="interdisciplinary_sba.insights.political_science" placeholder="Political Science insights: School funding, policy interventions..." />
+    <TextArea id="interdisciplinary_sba_insights_political_science" placeholder="Political Science insights: School funding, policy interventions..." />
 
     <Markdown id="artifact_tb_27">**Sources of Conflict:**</Markdown>
-    <TextArea id="interdisciplinary_sba.insights.conflicts" placeholder="Where disciplines disagree or have different emphases..." />
+    <TextArea id="interdisciplinary_sba_insights_conflicts" placeholder="Where disciplines disagree or have different emphases..." />
   </Collapsible>
 
   <!-- Step 6: Reflection -->
@@ -156,18 +156,18 @@ How the interdisciplinary process has enlarged your understanding of high school
 
     <Markdown id="artifact_tb_28">**Initial Understanding:**</Markdown>
     <Markdown id="artifact_tb_29">**Your individual cause (internal):**</Markdown>
-    <TextArea id="interdisciplinary_sba.cause_internal" placeholder="Type a cause that focuses on an individual's choice..." />
+    <TextArea id="interdisciplinary_sba_cause_internal" placeholder="Type a cause that focuses on an individual's choice..." />
 
     <Markdown id="artifact_tb_30">**Your structural cause:**</Markdown>
-    <TextArea id="interdisciplinary_sba.cause_structural" placeholder="Type a structural cause..." />
+    <TextArea id="interdisciplinary_sba_cause_structural" placeholder="Type a structural cause..." />
 
     <Markdown id="artifact_tb_31">**Evolved Understanding:**</Markdown>
-    <TextArea id="interdisciplinary_sba.reflection.evolved_understanding" placeholder="How your understanding changed after reviewing multiple disciplines..." />
+    <TextArea id="interdisciplinary_sba_reflection_evolved_understanding" placeholder="How your understanding changed after reviewing multiple disciplines..." />
 
     <Markdown id="artifact_tb_32">**Integration of Perspectives:**</Markdown>
-    <TextArea id="interdisciplinary_sba.reflection.integration" placeholder="How you synthesized insights from different disciplines..." />
+    <TextArea id="interdisciplinary_sba_reflection_integration" placeholder="How you synthesized insights from different disciplines..." />
 
     <Markdown id="artifact_tb_33">**New Insights:**</Markdown>
-    <TextArea id="interdisciplinary_sba.reflection.new_insights" placeholder="What you learned that you didn't know before..." />
+    <TextArea id="interdisciplinary_sba_reflection_new_insights" placeholder="What you learned that you didn't know before..." />
   </Collapsible>
 </Vertical>

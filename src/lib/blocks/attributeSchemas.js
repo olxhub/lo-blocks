@@ -15,15 +15,40 @@
 import { z } from 'zod';
 
 /**
+ * Valid OLX ID pattern - must not contain namespace/path delimiters.
+ * Reserved characters: . / : and whitespace
+ * These are used for runtime namespacing (e.g., "list.0.child") and path syntax.
+ */
+const VALID_ID_PATTERN = /^[^./:,\s]+$/;
+
+/**
+ * Zod refinement for validating OLX IDs.
+ * Returns undefined if valid, error message if invalid.
+ */
+const validateOlxId = (id) => {
+  if (!id) return undefined; // Optional IDs are fine
+  if (!VALID_ID_PATTERN.test(id)) {
+    return `ID "${id}" contains reserved characters. IDs cannot contain: . / : , or whitespace`;
+  }
+  return undefined;
+};
+
+/**
  * Base attributes common to all blocks.
  * Extend this for block-specific attributes.
  * STRICT: unknown attributes will cause validation errors.
  */
 export const baseAttributes = z.object({
-  id: z.string().optional(),
+  id: z.string().optional().refine(
+    (id) => !id || VALID_ID_PATTERN.test(id),
+    (id) => ({ message: validateOlxId(id) })
+  ),
   title: z.string().optional(),
   class: z.string().optional(),
-  url_name: z.string().optional(),  // legacy edX attribute
+  url_name: z.string().optional().refine(
+    (id) => !id || VALID_ID_PATTERN.test(id),
+    (id) => ({ message: validateOlxId(id) })
+  ),  // legacy edX attribute
   launchable: z.string().optional(), // "true" marks block as standalone-launchable
   // TODO: Rename 'label' to 'title' for consistency (label is used by Tabs for tab titles)
   label: z.string().optional().describe('Tab label when used as child of Tabs'),
