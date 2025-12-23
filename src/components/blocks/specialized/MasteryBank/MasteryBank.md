@@ -17,7 +17,7 @@ A mastery-based practice block that presents problems from a bank until the stud
 ### External ID List
 
 ```xml
-<MasteryBank id="operant_quiz" goal="6" src="problem_ids.txt" />
+<MasteryBank id="operant_quiz" goal="6" src="problem_ids.idlistpeg" />
 ```
 
 ### With Problems Defined Elsewhere

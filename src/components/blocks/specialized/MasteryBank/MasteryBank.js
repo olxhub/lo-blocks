@@ -9,7 +9,7 @@
 //   </MasteryBank>
 //
 // Or with external file:
-//   <MasteryBank id="quiz" goal="6" src="problem_ids.txt" />
+//   <MasteryBank id="quiz" goal="6" src="problem_ids.idlistpeg" />
 
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
