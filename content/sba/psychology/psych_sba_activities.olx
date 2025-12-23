@@ -109,7 +109,7 @@ Categorize each strategy into the correct type of behavior modification:
     <TextHighlight id="categorize_strategies"
                    mode="immediate"
                    showRealtimeFeedback="true"
-                   src="psych_positive_negative.textHighlight" />
+                   src="psych_positive_negative.textHighlightpeg" />
 
     <ActionButton id="continue_after_categorize" target="psych_chat" action="advance" label="Continue" />
   </Vertical>
