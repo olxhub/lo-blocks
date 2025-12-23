@@ -1,16 +1,26 @@
 // src/lib/util/prerequisites.js
 /**
- * This is a set of helpers for expressing whether we are ready to take
- * some action, such as a student advancing to the next set of exercises.
- * In most cases, this might be simply checking whether some set of exercises
- * is finished, but there may be more complex dependencies as well.
- * 
- * We are still evaluating the right format for this, but this version should
- * be sufficient for the current SBAs. We are less than comfortable with the
- * level of regexps used and the code complexity, and we need a documented,
- * human-friendly format to use in the courseware. This is the start of a
- * work-in-progress
+ * Generic gating/prerequisite system for Learning Observer blocks.
+ *
+ * Supports gating on various conditions:
+ * - Component has value: `componentId` (non-empty string, array with items, etc.)
+ * - Specific field value: `componentId fieldName` (e.g., `grader correct`)
+ * - Numeric comparison: `componentId fieldName >= 0.8` (e.g., `grader score >= 0.8`)
+ * - Status check: `componentId status` (e.g., `llm_action complete`)
+ *
+ * Usage:
+ *   // Reactive hook (recommended) - re-renders when values change
+ *   const satisfied = usePrerequisitesSatisfied(props, 'input1, input2');
+ *
+ *   // Selector for custom useSelector usage
+ *   const satisfied = useSelector(state =>
+ *     prerequisitesSatisfiedSelector(props, state, prerequisites)
+ *   );
+ *
+ *   // Imperative (legacy) - does NOT react to changes
+ *   const satisfied = await checkPrerequisites(props, prerequisites);
  */
+import { useSelector } from 'react-redux';
 import { getValueById } from '@/lib/blocks';
 import * as state from '@/lib/state';
 
@@ -138,42 +148,136 @@ function prerequisiteValueFromGrader(props, id) {
   }
 }
 
-export async function isPrerequisiteSatisfied(props, prerequisite) {
+export function isPrerequisiteSatisfied(props, prerequisite) {
   if (!prerequisite?.id) return false;
   try {
-    const blockValue = await getValueById(props, prerequisite.id);
+    const blockValue = getValueById(props, prerequisite.id);
     if (blockValue !== undefined) {
       return checkPrerequisiteValue(prerequisite, blockValue);
     }
   } catch (error) {
-    console.warn(`[Chat] getValueById failed for wait prerequisite ${prerequisite.id}`, error);
+    console.warn(`[prereq] getValueById failed for ${prerequisite.id}`, error);
   }
   const blockScore = prerequisiteValueFromGrader(props, prerequisite.id);
   return checkPrerequisiteValue(prerequisite, blockScore);
 }
 
 /**
- * Check if all wait prerequisites are satisfied
+ * Check if all wait prerequisites are satisfied (legacy version)
  * @param {Object} props - Component props for context
  * @param {Array} prerequisites - Array of prerequisite objects with {id}
- * @returns {Promise<boolean>} - True if all prerequisites are satisfied
+ * @returns {boolean} - True if all prerequisites are satisfied
+ * @deprecated Use usePrerequisitesSatisfied hook for reactive updates
  */
-export async function checkPrerequisites(props, prerequisites) {
+export function checkPrerequisites(props, prerequisites) {
   if (!prerequisites?.length) return true;
   try {
-    const results = await Promise.all(
-      prerequisites.map(async (prerequisite) => {
-        try {
-          return await isPrerequisiteSatisfied(props, prerequisite);
-        } catch (error) {
-          console.warn(`[Chat] Failed to resolve wait prerequisite ${prerequisite.id}`, error);
-          return false;
-        }
-      })
-    );
-    return results.every(Boolean);
+    return prerequisites.every((prerequisite) => {
+      try {
+        return isPrerequisiteSatisfied(props, prerequisite);
+      } catch (error) {
+        console.warn(`[Chat] Failed to resolve wait prerequisite ${prerequisite.id}`, error);
+        return false;
+      }
+    });
   } catch (error) {
     console.warn('[Chat] Failed to resolve wait prerequisites', error);
     return false;
   }
+}
+
+/* ================================================================
+ * REACTIVE GATING - Selector and Hook
+ * ================================================================ */
+
+/**
+ * Check if a single prerequisite is satisfied (synchronous, for use in selectors).
+ *
+ * @param {Object} props - Component props with idMap, componentMap
+ * @param {Object} reduxState - Current Redux state
+ * @param {Object} prerequisite - Parsed prerequisite {id, field?, op?, value?, status?}
+ * @returns {boolean} - True if prerequisite is satisfied
+ */
+export function isPrerequisiteSatisfiedSync(props, reduxState, prerequisite) {
+  if (!prerequisite?.id) return false;
+
+  // HACK: Force absolute path for cross-block references.
+  // See Ref.js for detailed explanation of this workaround.
+  // TODO: Unify ID resolution so this hack isn't needed.
+  const absoluteId = prerequisite.id.startsWith('/') ? prerequisite.id : `/${prerequisite.id}`;
+
+  try {
+    // Get the component's value using valueSelector (synchronous)
+    const blockValue = state.valueSelector(props, reduxState, absoluteId, { fallback: undefined });
+
+    if (blockValue !== undefined) {
+      return checkPrerequisiteValue(prerequisite, blockValue);
+    }
+  } catch (error) {
+    // Component not found or other error - try grader fallback
+  }
+
+  // Fallback: check grader score field
+  try {
+    const correctField = state.componentFieldByName(props, prerequisite.id, 'correct');
+    const graderValue = state.fieldSelector(reduxState, props, correctField, {
+      id: absoluteId,
+      fallback: 0,
+      selector: (s) => s?.score ?? s
+    });
+    return checkPrerequisiteValue(prerequisite, graderValue);
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Selector: Check if all prerequisites are satisfied.
+ * Use inside useSelector for reactive updates.
+ *
+ * @param {Object} props - Component props with idMap, componentMap
+ * @param {Object} reduxState - Current Redux state
+ * @param {string|Array} prerequisites - Comma-separated string or array of prerequisite expressions
+ * @returns {boolean} - True if all prerequisites are satisfied
+ *
+ * @example
+ * const satisfied = useSelector(state =>
+ *   prerequisitesSatisfiedSelector(props, state, 'input1, input2')
+ * );
+ */
+export function prerequisitesSatisfiedSelector(props, reduxState, prerequisites) {
+  const parsed = typeof prerequisites === 'string' || Array.isArray(prerequisites)
+    ? parsePrerequisites(prerequisites)
+    : prerequisites;
+
+  if (!parsed?.length) return true;
+
+  return parsed.every(prereq => isPrerequisiteSatisfiedSync(props, reduxState, prereq));
+}
+
+/**
+ * Hook: Reactively check if prerequisites are satisfied.
+ * Re-renders component when prerequisite values change.
+ *
+ * @param {Object} props - Component props with idMap, componentMap
+ * @param {string|Array} prerequisites - Comma-separated string or array of prerequisite expressions
+ * @returns {boolean} - True if all prerequisites are satisfied
+ *
+ * @example
+ * function MyGatedComponent(props) {
+ *   const canProceed = usePrerequisitesSatisfied(props, 'textArea1, checkbox1');
+ *   return <button disabled={!canProceed}>Continue</button>;
+ * }
+ */
+export function usePrerequisitesSatisfied(props, prerequisites) {
+  const parsed = typeof prerequisites === 'string' || Array.isArray(prerequisites)
+    ? parsePrerequisites(prerequisites)
+    : prerequisites;
+
+  return useSelector(
+    (reduxState) => {
+      if (!parsed?.length) return true;
+      return parsed.every(prereq => isPrerequisiteSatisfiedSync(props, reduxState, prereq));
+    }
+  );
 }

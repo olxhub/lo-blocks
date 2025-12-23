@@ -26,7 +26,7 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
     state.updateReduxField(props, valueField, '', { id: targetElementId });
     state.updateReduxField(props, stateField, reduxClient.LLM_STATUS.RUNNING, { id: targetElementId });
 
-    const promptText = await blocks.extractChildText(props, props.nodeInfo.node);
+    const promptText = blocks.extractChildText(props, props.nodeInfo.node);
     if (!promptText.trim()) {
       throw new Error('LLMAction: No prompt content found');
     }

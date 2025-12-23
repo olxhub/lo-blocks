@@ -2,6 +2,9 @@
 //
 // OLX DOM traversal - navigation utilities for the Learning Observer
 // dynamic content DAG.
+
+import * as state from '@/lib/state';
+import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 //
 // The OLX DOM is Learning Observer's internal representation of educational content,
 // distinct from both the React virtual DOM and the browser DOM. It represents the
@@ -288,30 +291,21 @@ export function getInputs(props, { infer } = {}) {
 // is distinct from the DOM traversal utilities above.
 
 /**
- * Get the current value of a component by ID using its getValue method.
+ * Get the current value of a component by ID.
+ *
+ * Delegates to the state module's valueSelector which handles all ID
+ * resolution complexity (prefixes, absolute paths, etc.) transparently.
  *
  * @param {Object} props - Component props with idMap and componentMap
  * @param {string} id - ID of the component to get value from
- * @returns {Promise<any>} The component's current value
+ * @returns {any} The component's current value
  */
-export async function getValueById(props, id) {
-  const blockNode = props.idMap[id];
-  const blockBlueprint = props.componentMap[blockNode.tag];
+export function getValueById(props, id) {
+  const reduxState = reduxLogger.store.getState();
 
-  if (blockBlueprint.getValue) {
-    // Use the block's getValue method to get the actual value
-    const reduxLogger = await import('lo_event/lo_event/reduxLogger.js');
-    const state = reduxLogger.store.getState();
-
-    const blockValue = await blockBlueprint.getValue(
-      props,
-      state,
-      id
-    );
-    return blockValue;
-  } else {
-    console.warn(`⚠️ getValueById: Block ${blockNode.tag} (${id}) has no getValue method`);
-  }
+  // valueSelector handles all ID resolution (idMapKey for lookup, proper
+  // prefix handling for state access) - blocks don't need to know about IDs
+  return state.valueSelector(props, reduxState, id);
 }
 
 /**
@@ -324,20 +318,20 @@ export async function getValueById(props, id) {
  *
  * @param {Object} props - Component props with idMap and componentMap
  * @param {Object} actionNode - Node with kids array to process
- * @returns {Promise<string>} The extracted and resolved text content
+ * @returns {string} The extracted and resolved text content
  */
-export async function extractChildText(props, actionNode) {
+export function extractChildText(props, actionNode) {
   const { kids = [] } = actionNode;
   let promptText = '';
 
-  for (const [index, kid] of kids.entries()) {
+  for (const kid of kids) {
     if (typeof kid === 'string') {
       promptText += kid;
     } else if (kid.type === 'text') {
       promptText += kid.text;
     } else if (kid.type === 'block') {
-      const value = await getValueById(props, kid.id);
-      if(value) {
+      const value = getValueById(props, kid.id);
+      if (value) {
         promptText += value;
       } // TODO: else -- maybe recurse down?
     } else {
