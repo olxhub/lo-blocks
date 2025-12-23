@@ -318,7 +318,9 @@ export function componentFieldByName(props, targetId, fieldName) {
   // Possible TODO: Move to OLXDom or similar. I'm not sure this is the best place for this.
   // Optimization: In production, we could go directly into the global field name maps. But this is better for dev + editing. The global map risks referencing a field which exists in the system, but not in the target component.
 
-  const targetNode = props.idMap?.[targetId];
+  // Use idMapKey to normalize the ID for idMap lookup
+  const normalizedId = idResolver.idMapKey(targetId);
+  const targetNode = props.idMap?.[normalizedId];
   if (!targetNode) {
     throw new Error(`componentFieldByName: Component "${targetId}" not found in idMap`);
   }

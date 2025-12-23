@@ -81,6 +81,7 @@ const PROJECT_ROOT = process.cwd();
 function getAllowedReadDirs(): string[] {
   const dirs = [
     path.join(PROJECT_ROOT, 'src/components/blocks'),
+    path.join(PROJECT_ROOT, 'src/lib/template'),  // For template grammar
     path.join(PROJECT_ROOT, 'content'),
   ];
   // Support custom content directory via environment variable
