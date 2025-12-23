@@ -69,8 +69,9 @@ export function getExtension(filePath: string | undefined | null): string {
  * Use the named helpers below for common cases.
  */
 export function fileHasExtension(path: string | undefined | null, extensions: readonly string[]): boolean {
-  const ext = getExtension(path);
-  return ext !== '' && extensions.includes(ext);
+  const ext = getExtension(path);  // Already lowercased
+  // Case-insensitive comparison (extensions may have mixed case like textHighlightpeg)
+  return ext !== '' && extensions.some(e => e.toLowerCase() === ext);
 }
 
 /**
@@ -94,17 +95,22 @@ export type ContentType = 'olx' | 'markdown' | 'peg' | 'code' | 'text' | 'image'
  * const editors = { olx: OLXEditor, markdown: MarkdownEditor };
  * const Editor = editors[getContentType(path)];
  */
+// Case-insensitive extension check (ext is already lowercased)
+function extInList(ext: string, list: readonly string[]): boolean {
+  return list.some(e => e.toLowerCase() === ext);
+}
+
 export function getContentType(path: string | undefined | null): ContentType {
   const ext = getExtension(path);
   if (!ext) return 'unknown';
-  if ((EXT.olx as readonly string[]).includes(ext)) return 'olx';
-  if ((EXT.markdown as readonly string[]).includes(ext)) return 'markdown';
-  if ((EXT.peg as readonly string[]).includes(ext)) return 'peg';
-  if ((EXT.code as readonly string[]).includes(ext)) return 'code';
-  if ((EXT.plainText as readonly string[]).includes(ext)) return 'text';
-  if ((EXT.image as readonly string[]).includes(ext)) return 'image';
-  if ((EXT.video as readonly string[]).includes(ext)) return 'video';
-  if ((EXT.document as readonly string[]).includes(ext)) return 'document';
+  if (extInList(ext, EXT.olx)) return 'olx';
+  if (extInList(ext, EXT.markdown)) return 'markdown';
+  if (extInList(ext, EXT.peg)) return 'peg';
+  if (extInList(ext, EXT.code)) return 'code';
+  if (extInList(ext, EXT.plainText)) return 'text';
+  if (extInList(ext, EXT.image)) return 'image';
+  if (extInList(ext, EXT.video)) return 'video';
+  if (extInList(ext, EXT.document)) return 'document';
   return 'unknown';
 }
 

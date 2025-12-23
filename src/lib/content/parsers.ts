@@ -18,6 +18,7 @@
 import { XMLBuilder } from 'fast-xml-parser';
 import path from 'path';
 import type { OLXLoadingError } from '@/lib/types';
+import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
 
 // === Setup ===
 
@@ -64,6 +65,12 @@ async function loadExternalSource({
 }): Promise<{ text: string; provenance: string[] }> {
   if (!provider) {
     throw new Error('No storage provider supplied for src attribute');
+  }
+
+  // Validate file extension before loading (defense-in-depth)
+  if (!isContentFile(src)) {
+    const allowed = extensionsWithDots(CATEGORY.content).join(', ');
+    throw new Error(`Invalid src file type: "${src}". Allowed extensions: ${allowed}`);
   }
 
   const lastProv = provenance?.[provenance.length - 1];
