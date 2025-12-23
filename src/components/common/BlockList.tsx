@@ -88,7 +88,6 @@ function ExpandableBlockItem({ name, block, onInsert, isGrammar, extension }: Ex
   return (
     <div className="expandable-block-item">
       <button className="expandable-block-item__header" onClick={() => setExpanded(!expanded)}>
-        <span className="expandable-block-item__toggle">{expanded ? '▼' : '▶'}</span>
         <span className="expandable-block-item__name">
           {name}
           {isGrammar && extension && (
@@ -98,6 +97,7 @@ function ExpandableBlockItem({ name, block, onInsert, isGrammar, extension }: Ex
         {block?.description && (
           <span className="expandable-block-item__desc">{block.description}</span>
         )}
+        <span className="expandable-block-item__toggle">{expanded ? '▾' : '▸'}</span>
       </button>
       {expanded && (
         <div className="expandable-block-item__content">
@@ -118,7 +118,9 @@ function ExpandableBlockItem({ name, block, onInsert, isGrammar, extension }: Ex
                     <code className="expandable-block-item__attr-name">{attr.name}</code>
                     {attr.enumValues ? (
                       <span className="expandable-block-item__attr-type">
-                        {attr.enumValues.map(v => `"${v}"`).join(' | ')}
+                        {attr.enumValues.length <= 3
+                          ? attr.enumValues.map(v => `"${v}"`).join('|')
+                          : `${attr.enumValues.length} options`}
                       </span>
                     ) : (
                       <span className="expandable-block-item__attr-type">{attr.type}</span>
@@ -275,11 +277,9 @@ export function BlockList({
               className="block-list__category-header"
               onClick={() => toggleCategory(category)}
             >
-              <span className="block-list__category-icon">
-                {isCollapsed ? '▶' : '▼'}
-              </span>
               <span className="block-list__category-name">{category}</span>
               <span className="block-list__category-count">{items.length}</span>
+              <span className="block-list__category-toggle">{isCollapsed ? '▸' : '▾'}</span>
             </button>
 
             {!isCollapsed && (
