@@ -1,0 +1,16 @@
+<CapaProblem id="CheckboxPartialDemo" title="Dehydration Symptoms">
+  <CheckboxGrader partialCredit="true">
+    Select symptoms of dehydration (partial credit for each correct answer):
+    <CheckboxInput>
+      <Key>Thirst</Key>
+      <Key>Dark urine</Key>
+      <Key>Fatigue</Key>
+      <Key>Dizziness</Key>
+      <Distractor>Runny nose</Distractor>
+      <Distractor>Rash</Distractor>
+    </CheckboxInput>
+    <Explanation>
+      Common signs of dehydration include thirst, dark-colored urine, fatigue, and dizziness. A runny nose is typically associated with colds or allergies, and rashes have various causes unrelated to hydration.
+    </Explanation>
+  </CheckboxGrader>
+</CapaProblem>
