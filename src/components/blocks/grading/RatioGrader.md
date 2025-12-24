@@ -7,7 +7,7 @@ Grades ratio/fraction answers by comparing two numeric inputs. Accepts any equiv
 Works with any two inputs that output numbers:
 
 ```olx:code
-<CapaProblem id="effect_size">
+<CapaProblem id="effect_size" title="Learning Gains Ratio">
   <RatioGrader answer="2.0" displayAnswer="2 and 1">
     In Hake's study, interactive engagement produced roughly how many times the learning gain of traditional lecture?
 
