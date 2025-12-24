@@ -1,6 +1,6 @@
 <CapaProblem id="CapaProblemChoice" title="Solar System">
   <KeyGrader>
-    <p>Which planet is closest to the Sun?</p>
+    Which planet is closest to the Sun?
     <ChoiceInput>
       <Distractor>Venus</Distractor>
       <Key>Mercury</Key>

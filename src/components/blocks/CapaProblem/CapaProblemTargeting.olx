@@ -2,7 +2,7 @@
   <Markdown>
 When inputs can't be nested inside the grader, use `target=` to connect them.
   </Markdown>
-  <p>Enter a fraction equal to one half:</p>
+  Enter a fraction equal to one half:
   <NumberInput id="num" /> / <NumberInput id="den" />
   <RatioGrader answer="0.5" target="num,den" />
   <DemandHints>

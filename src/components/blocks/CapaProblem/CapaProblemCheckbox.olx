@@ -1,6 +1,6 @@
 <CapaProblem id="CapaProblemCheckbox" title="Prime Numbers">
   <CheckboxGrader>
-    <p>Which are prime numbers? (Select all that apply)</p>
+    Which are prime numbers? (Select all that apply)
     <CheckboxInput>
       <Key>2</Key>
       <Key>3</Key>

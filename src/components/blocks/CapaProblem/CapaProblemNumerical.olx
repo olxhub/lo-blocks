@@ -1,6 +1,6 @@
 <CapaProblem id="CapaProblemNumerical" title="Gravitational Acceleration">
   <NumericalGrader answer="9.8" tolerance="0.1">
-    <p>What is the acceleration due to gravity on Earth's surface (in m/s²)?</p>
+    What is the acceleration due to gravity on Earth's surface (in m/s²)?
     <NumberInput />
   </NumericalGrader>
   <DemandHints>

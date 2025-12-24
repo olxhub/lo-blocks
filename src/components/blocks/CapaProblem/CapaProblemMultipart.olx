@@ -1,13 +1,11 @@
 <CapaProblem id="CapaProblemMultipart" title="Exponents (Multipart)">
-  <Markdown>
-Multipart problems aggregate correctness across all graders. If students get one part wrong, it can be hard to identify which. Consider using separate problems instead.
-  </Markdown>
+  Multipart problems aggregate correctness across all graders. If students get one part wrong, it can be hard to identify which. Consider using separate problems instead.
   <NumericalGrader answer="8">
-    <p>Part A: What is 2³?</p>
+    Part A: What is 2³?
     <NumberInput />
   </NumericalGrader>
   <NumericalGrader answer="9">
-    <p>Part B: What is 3²?</p>
+    Part B: What is 3²?
     <NumberInput />
   </NumericalGrader>
   <Explanation>

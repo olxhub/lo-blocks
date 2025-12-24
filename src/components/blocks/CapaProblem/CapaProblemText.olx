@@ -1,6 +1,6 @@
 <CapaProblem id="CapaProblemText" title="Photosynthesis">
   <RulesGrader>
-    <p>What gas do plants absorb from the atmosphere during photosynthesis?</p>
+    What gas do plants absorb from the atmosphere during photosynthesis?
     <StringMatch answer="carbon dioxide" score="1" feedback="Correct!" />
     <StringMatch answer="co2" score="1" feedback="Correct! CO₂ is the chemical formula." />
     <StringMatch answer="oxygen" score="0" feedback="Plants release oxygen; they absorb a different gas." />
