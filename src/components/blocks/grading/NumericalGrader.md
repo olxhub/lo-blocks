@@ -3,7 +3,7 @@
 Grades numeric answers with support for tolerance, ranges, and complex numbers.
 
 ```olx:playground
-<CapaProblem id="demo">
+<CapaProblem id="demo" title="Interactive Engagement">
   <NumericalGrader answer="2" tolerance="0.05">
     <Markdown>In Hake's study, interactive engagement produced roughly how many times the learning gains of traditional lecture?</Markdown>
     <NumberInput />
@@ -21,7 +21,7 @@ Grades numeric answers with support for tolerance, ranges, and complex numbers.
 Works with any input that outputs a number:
 
 ```olx:playground
-<CapaProblem id="effect_size">
+<CapaProblem id="effect_size" title="Cohen's d">
   <NumericalGrader answer="0.5" tolerance="0.02">
     <Markdown>Calculate Cohen's d: Treatment M=85, Control M=80, SD=10</Markdown>
     <NumberInput placeholder="d = " />
@@ -42,7 +42,7 @@ Accept approximate answers:
 Example with tolerance:
 
 ```olx:playground
-<CapaProblem id="pi_problem">
+<CapaProblem id="pi_problem" title="Value of Pi">
   <NumericalGrader answer="3.14159" tolerance="0.01">
     <Markdown>What is π to at least 2 decimal places?</Markdown>
     <NumberInput />
@@ -60,7 +60,7 @@ Accept any value in a range (useful for estimation problems):
 ```
 
 ```olx:playground
-<CapaProblem id="estimate">
+<CapaProblem id="estimate" title="Active Learning Effect">
   <NumericalGrader answer="[45, 55]">
     <Markdown>Freeman's meta-analysis found active learning reduced failure rates by approximately what percentage?</Markdown>
     <NumberInput placeholder="%" />
@@ -71,7 +71,7 @@ Accept any value in a range (useful for estimation problems):
 ## Physics Example
 
 ```olx:playground
-<CapaProblem id="physics">
+<CapaProblem id="physics" title="Free Fall">
   <NumericalGrader answer="20" tolerance="0.5">
     <Markdown>
 A ball is dropped from rest. After falling for 2 seconds (using g = 10 m/s²), what is its velocity in m/s?

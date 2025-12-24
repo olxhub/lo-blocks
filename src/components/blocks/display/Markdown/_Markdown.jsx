@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
-import 'katex/dist/katex.min.css';
+// Note: katex.min.css is loaded via globals.css (can't import CSS in Node.js scripts)
 import { OLXCodeBlock, isOLXLanguage } from '@/components/common/OLXCodeBlock';
 // Note: markdown.css is loaded via the generated components.css registry
 

@@ -1,56 +1,84 @@
-# NumberInput Block
+# NumberInput
 
-## Overview
+Input field optimized for numerical values. Parses input to floating-point numbers for use with numerical graders.
 
-The NumberInput block provides an input field optimized for numerical values. It parses input to floating-point numbers and can be used with numerical graders for math and science questions.
-
-## Technical Usage
-
-### Basic Syntax
-```xml
-<NumberInput id="answer" label="Enter your answer:" />
+```olx:playground
+<CapaProblem id="demo" title="Attrition Rate">
+  <NumericalGrader answer="35">
+    <Markdown>A study has 100 participants. If 35 drop out, what is the attrition rate (as a percentage)?</Markdown>
+    <NumberInput placeholder="%" />
+  </NumericalGrader>
+</CapaProblem>
 ```
 
-### Properties
-- `id` (recommended): Unique identifier for the input
+## Properties
 - `label` (optional): Label text displayed with the input
 - `placeholder` (optional): Hint text when empty
 
-### State Fields
-- `value`: The current numerical value (stored as string, parsed to float on getValue)
+## State
+- `value`: Current value (stored as string, parsed to float on getValue)
 
-### getValue
+## getValue
 Returns a floating-point number parsed from the input, or `undefined` if empty.
 
 ## Common Use Cases
 
-### Graded Problems
+### Calculation Problems
 
-For graded problems, use inside CapaProblem with a grader:
+```olx:playground
+<CapaProblem id="calculation" title="Test Score Proportion">
+  <NumericalGrader answer="0.2" tolerance="0.01">
+    <Markdown>
+A student takes a 50-item test and gets 40 correct.
 
-```xml
-<CapaProblem id="speed_problem">
-  <NumericalGrader answer="60" tolerance="0.1">
-    <p>A car travels 120 km in 2 hours. What is its average speed in km/h?</p>
+What proportion did they get wrong?
+    </Markdown>
     <NumberInput />
   </NumericalGrader>
 </CapaProblem>
 ```
 
-### Data Collection
+### With Tolerance for Estimation
 
-For surveys or data collection (no grading):
+```olx:playground
+<CapaProblem id="estimation" title="Testing Effect">
+  <NumericalGrader answer="10" tolerance="0.5">
+    <Markdown>
+In Roediger & Butler's study, students who were tested retained material for about how many times longer than those who restudied?
 
-```xml
-<Markdown>Enter the measured voltage (V):</Markdown>
-<NumberInput id="voltage" />
+(Round to the nearest whole number)
+    </Markdown>
+    <NumberInput />
+  </NumericalGrader>
+</CapaProblem>
+```
+
+### Multiple Inputs with RatioGrader
+
+```olx:playground
+<CapaProblem id="ratio" title="Learning Gains Ratio">
+  <RatioGrader answer="0.5">
+    <Markdown>Express the ratio of traditional to interactive learning gains (0.23 to 0.48) as a fraction in lowest terms:</Markdown>
+    <NumberInput id="num" placeholder="numerator" /> / <NumberInput id="denom" placeholder="denominator" />
+  </RatioGrader>
+</CapaProblem>
+```
+
+### Data Collection (Ungraded)
+
+For surveys, experiments, or data collection without automated grading:
+
+```olx:playground
+<Vertical id="survey">
+  <Markdown>How many hours did you study for the last exam?</Markdown>
+  <NumberInput id="study_hours" placeholder="hours" />
+  <Markdown>What score did you get (0-100)?</Markdown>
+  <NumberInput id="score" placeholder="score" />
+</Vertical>
 ```
 
 ## Related Blocks
-- **ComplexInput**: Alternative numeric input with complex number support
+- **ComplexInput**: Numeric input with complex number support
 - **NumericalGrader**: Grades numerical responses with tolerance
 - **RatioGrader**: Grades ratios using two inputs
 - **CapaProblem**: Container for graded problems
-
-## Example File
-See `NumberInput.olx` for working examples.
