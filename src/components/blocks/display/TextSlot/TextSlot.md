@@ -69,7 +69,7 @@ Embed personalized context within problem text:
       Write a brief scenario (2-3 sentences) about a student preparing for an exam next week.
     </LLMAction>
   </ActionButton>
-  <CapaProblem title="Study Strategy">
+  <CapaProblem id="study_strategy" title="Study Strategy">
     <TextSlot id="problem_context" />
     Based on this scenario, what study strategy would you recommend?
     <KeyGrader>
