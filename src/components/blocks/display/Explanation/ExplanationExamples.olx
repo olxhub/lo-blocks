@@ -1,5 +1,4 @@
-<!-- Explanation Block Examples -->
-<Vertical id="ExplanationDemo" title="Explanation Block Demo" launchable="true">
+<Vertical id="ExplanationDemo" title="Explanation Block Demo">
 
   <Markdown id="intro">
 ## Explanation Block
