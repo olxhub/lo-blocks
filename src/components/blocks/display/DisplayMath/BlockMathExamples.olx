@@ -1,5 +1,4 @@
-<!-- DisplayMath Block Examples -->
-<Vertical id="MathDemo" title="Math Display Demo" launchable="true">
+<Vertical id="MathDemo" title="Math Display Demo">
 
   <Markdown id="math_intro">
 ## Mathematical Equations

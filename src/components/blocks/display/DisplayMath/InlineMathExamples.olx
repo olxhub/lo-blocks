@@ -1,5 +1,4 @@
-<!-- InlineMath Block Examples -->
-<Vertical id="InlineMathDemo" title="InlineMath Demo" launchable="true">
+<Vertical id="InlineMathDemo" title="InlineMath Demo">
 
   <Markdown id="intro">
 ## Inline Math
