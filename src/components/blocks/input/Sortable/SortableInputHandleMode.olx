@@ -1,21 +1,11 @@
-<!-- Handle-based Dragging Demo -->
-<Vertical id="SortableHandleDemo" title="Handle Mode Demo" launchable="true">
-  <Markdown>
-## Handle-based Dragging - Sizes
-
-Order these from smallest to largest. Use the drag handles on the left.
-
-Handle mode lets you select text in the items while still being able to reorder.
-  </Markdown>
-
-  <CapaProblem id="sizes_problem" title="Order by Size">
-    <SortableGrader id="sizes_grader">
-      <SortableInput dragMode="handle">
-        <TextBlock>Atom</TextBlock>
-        <TextBlock>Molecule</TextBlock>
-        <TextBlock initialPosition="2">Cell</TextBlock>
-        <TextBlock>Organ</TextBlock>
-      </SortableInput>
-    </SortableGrader>
-  </CapaProblem>
-</Vertical>
+<CapaProblem id="SortableHandleDemo" title="Order by Size">
+  Order these from smallest to largest (use the drag handles on the left):
+  <SortableGrader>
+    <SortableInput dragMode="handle">
+      <TextBlock>Atom</TextBlock>
+      <TextBlock>Molecule</TextBlock>
+      <TextBlock initialPosition="2">Cell</TextBlock>
+      <TextBlock>Organ</TextBlock>
+    </SortableInput>
+  </SortableGrader>
+</CapaProblem>

@@ -1,21 +1,13 @@
-<!-- Chronological Ordering Demo -->
-<Vertical id="SortableChronologicalDemo" title="Chronological Ordering Demo" launchable="true">
-  <Markdown>
-## Historical Events
-
-Order these events chronologically (earliest to latest).
-  </Markdown>
-
-  <CapaProblem id="history_problem" title="Historical Events">
-    <SortableGrader id="history_grader">
-      <SortableInput dragMode="handle">
-        <TextBlock>1492 - Columbus reaches the Americas</TextBlock>
-        <TextBlock initialPosition="2">1776 - American Independence</TextBlock>
-        <TextBlock>1789 - French Revolution</TextBlock>
-        <TextBlock>1865 - American Civil War ends</TextBlock>
-        <TextBlock>1969 - Moon landing</TextBlock>
-        <TextBlock initialPosition="1">1989 - Fall of Berlin Wall</TextBlock>
-      </SortableInput>
-    </SortableGrader>
-  </CapaProblem>
-</Vertical>
+<CapaProblem id="SortableChronologicalDemo" title="Historical Events">
+  Order these events chronologically (earliest to latest):
+  <SortableGrader>
+    <SortableInput dragMode="handle">
+      <TextBlock>1492 - Columbus reaches the Americas</TextBlock>
+      <TextBlock initialPosition="2">1776 - American Independence</TextBlock>
+      <TextBlock>1789 - French Revolution</TextBlock>
+      <TextBlock>1865 - American Civil War ends</TextBlock>
+      <TextBlock>1969 - Moon landing</TextBlock>
+      <TextBlock initialPosition="1">1989 - Fall of Berlin Wall</TextBlock>
+    </SortableInput>
+  </SortableGrader>
+</CapaProblem>
