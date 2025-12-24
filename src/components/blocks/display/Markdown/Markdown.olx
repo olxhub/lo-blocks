@@ -1,71 +1,8 @@
-<!-- Markdown Block Examples -->
-<Vertical id="MarkdownDemo" title="Markdown Block Demo" launchable="true">
+<Markdown id="MarkdownDemo" title="Markdown Example">
+## The Testing Effect
 
-  <!-- Basic markdown formatting -->
-  <Markdown id="basic_markdown">
-# Introduction to Markdown
+Research shows that **retrieval practice** improves long-term retention.
 
-Markdown is a lightweight markup language. Here are some features:
-
-## Text Formatting
-
-- **Bold text** for emphasis
-- *Italic text* for style
-- ~~Strikethrough~~ for corrections
-- `inline code` for technical terms
-
-## Lists
-
-1. First ordered item
-2. Second ordered item
-3. Third ordered item
-
-- Unordered item A
-- Unordered item B
-  - Nested item
-
-## Code Block
-
-```python
-def hello():
-    print("Hello, World!")
-```
-
-## Links and More
-
-Visit [our documentation](https://example.com) for more information.
-
-> This is a blockquote for highlighting important points.
-  </Markdown>
-
-  <!-- Mathematical content with markdown -->
-  <Markdown id="math_instructions">
-## Solving Quadratic Equations
-
-To solve equations of the form `ax² + bx + c = 0`:
-
-1. Identify coefficients `a`, `b`, and `c`
-2. Apply the quadratic formula
-3. Simplify the result
-
-**Note:** Remember to check for complex solutions when the discriminant is negative.
-  </Markdown>
-
-  <!-- GFM Tables -->
-  <Markdown id="table_example">
-## Grade Breakdown
-
-| Component | Weight | Due Date |
-|-----------|--------|----------|
-| Homework  | 30%    | Weekly   |
-| Midterm   | 30%    | Week 8   |
-| Final     | 40%    | Week 16  |
-
-### Task List
-
-- [x] Read chapter 1
-- [x] Complete practice problems
-- [ ] Review for exam
-  </Markdown>
-
-</Vertical>
+- Active recall strengthens memory
+- Even *failed* retrieval attempts help learning
+</Markdown>

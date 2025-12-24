@@ -1,34 +1,33 @@
-# Markdown Block
+# Markdown
 
-## Overview
+Renders text using GitHub-Flavored Markdown (GFM). Provides rich text display including headers, lists, links, code blocks, and tables.
 
-The Markdown block renders text using Markdown formatting with GitHub-Flavored Markdown (GFM) support. It provides rich text display including headers, lists, links, code blocks, tables, and more.
+```olx:playground
+<Markdown>
+## The Testing Effect
 
-## Technical Usage
+Research consistently shows that **retrieval practice** is more effective than passive review:
 
-### Basic Syntax
-```xml
-<Markdown id="intro">
-# Welcome
+- Roediger &amp; Karpicke (2006): 50% better retention after one week
+- The act of *retrieving* information strengthens memory traces
+- Even unsuccessful retrieval attempts improve subsequent learning
 
-This is **bold** and *italic* text.
-
-- List item 1
-- List item 2
+> "Testing is a learning event, not just an assessment."
 </Markdown>
 ```
 
-### External File
-```xml
-<Markdown id="article" src="content/article.md"/>
-```
-
-### Properties
-- `id` (optional): Unique identifier for the block
+## Properties
 - `src` (optional): Path to an external markdown file
 
-### Supported Markdown Features
-- Headers (`#`, `##`, `###`, etc.)
+## External Files
+
+```olx:code
+<Markdown src="content/spaced_practice.md" />
+```
+
+## Supported Features
+
+- Headers (`#`, `##`, `###`)
 - Bold (`**text**`) and italic (`*text*`)
 - Links (`[text](url)`)
 - Images (`![alt](src)`)
@@ -36,58 +35,73 @@ This is **bold** and *italic* text.
 - Inline code (single backticks)
 - Ordered and unordered lists
 - Tables (GFM)
-- Strikethrough (`~~text~~`)
+- Blockquotes (`>`)
 - Task lists (`- [ ]` and `- [x]`)
-
-## Pedagogical Purpose
-
-Markdown provides a natural way to author educational content:
-
-1. **Readable Source**: Content is readable even in raw form
-2. **Focus on Content**: Authors focus on structure, not formatting
-3. **Familiar Format**: Standard format used across many platforms
-4. **Maintainability**: Easy to update and version control
 
 ## Common Use Cases
 
-### Instructional Text
-Present concepts, explanations, and instructions to learners.
+### Instructional Content
 
-### Formatted Problem Statements
-Structure complex problem descriptions with headers and lists.
+```olx:playground
+<Markdown>
+### Worked Example: Calculating Effect Size
 
-### Rich Feedback
-Provide structured feedback with examples and code snippets.
+**Given:** Treatment mean = 75, Control mean = 70, SD = 10
+
+**Step 1:** Cohen's d = (M₁ - M₂) / SD
+
+**Step 2:** d = (75 - 70) / 10 = 0.5
+
+**Interpretation:** This is a "medium" effect size.
+</Markdown>
+```
+
+### Tables for Data Presentation
+
+```olx:playground
+<Markdown>
+| Strategy | Effect Size | Source |
+|----------|-------------|--------|
+| Practice testing | 0.70 | Dunlosky et al. (2013) |
+| Distributed practice | 0.60 | Cepeda et al. (2006) |
+| Interleaved practice | 0.60 | Rohrer &amp; Taylor (2007) |
+| Self-explanation | 0.55 | Chi et al. (1989) |
+</Markdown>
+```
+
+### Combined with Interactive Elements
+
+Use CDATA when embedding OLX inside Markdown to avoid XML parsing conflicts:
+
+~~~olx:playground
+<Markdown id="combo"><![CDATA[
+### Pre-Test
+
+Before reading about the spacing effect, predict the answer:
+
+```olx:render
+<CapaProblem id="pretest">
+  <KeyGrader>
+    Which study schedule produces the best long-term retention?
+    <ChoiceInput>
+      <Distractor>Massed practice (cramming)</Distractor>
+      <Key>Distributed practice (spaced over time)</Key>
+      <Distractor>No difference - total time is what matters</Distractor>
+    </ChoiceInput>
+  </KeyGrader>
+</CapaProblem>
+```
+]]></Markdown>
+~~~
 
 ## OLX Embedding (Prototype)
 
-Markdown supports embedding live OLX components using special fenced code blocks.
-This is prototype functionality - syntax may change.
+Markdown supports embedding live OLX components using special fenced code blocks:
 
-### Modes
+- ` ```olx:render ` - Renders live component
+- ` ```olx:code ` - Shows code only
+- ` ```olx:playground ` - Side-by-side editor + preview
 
-```markdown
-```olx:render
-<ChoiceInput>...</ChoiceInput>
-```                                   <!-- Renders live component -->
-
-```olx:code
-<ChoiceInput>...</ChoiceInput>
-```                                   <!-- Shows code (no highlighting yet) -->
-
-```olx:playground
-<Markdown>Edit me!</Markdown>
-```                                   <!-- Side-by-side editor + preview -->
-```
-
-### Notes
-
-- Use `src=` attribute or CDATA to avoid XML parsing issues when the Markdown
-  contains OLX tags (the outer parser would otherwise try to parse them)
-- Plain `olx` without a mode suffix is not yet defined
-- Syntax highlighting and CodeMirror integration are TODO
+Use `src=` attribute or CDATA to avoid XML parsing issues when Markdown contains OLX tags.
 
 See `/content/demos/olx-in-markdown-demo.olx` for a working example.
-
-## Example File
-See `Markdown.olx` for working examples.
