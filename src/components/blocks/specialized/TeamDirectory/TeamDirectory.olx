@@ -1,16 +1,1 @@
-<!-- TeamDirectory Block Demo -->
-<Vertical id="TeamDirectoryDemo" title="TeamDirectory Block Demo" launchable="true">
-
-  <Markdown>
-# TeamDirectory Block Demo
-
-The TeamDirectory block displays an interactive team roster with grid and detail views.
-Click on a team member to see their full profile.
-
-Note: This block currently uses default Comm360 team data. Future versions will support
-custom team definitions via OLX.
-  </Markdown>
-
-  <TeamDirectory id="demo_team" title="Comm360 Team"/>
-
-</Vertical>
+<TeamDirectory id="TeamDirectoryDemo" title="Comm360 Team" />
