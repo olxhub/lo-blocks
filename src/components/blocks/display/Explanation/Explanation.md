@@ -1,17 +1,15 @@
-# Explanation Block
+# Explanation
 
 Displays explanation content conditionally based on grader state. Compatible with Open edX CAPA `[explanation]` blocks.
 
-## Basic Usage
-
-```xml
-<CapaProblem id="physics" title="Kinematics">
-  <NumericalGrader answer="20">
-    <p>A ball drops from 20m. What is its final velocity? (g=10 m/s²)</p>
+```olx:playground
+<CapaProblem id="spacing" title="Spacing Effect">
+  <NumericalGrader answer="50">
+    <Markdown>In Roediger &amp; Karpicke's 2006 study, students who used retrieval practice remembered approximately what percent more than those who restudied after one week?</Markdown>
     <NumberInput />
-    <Explanation>
-      Using v² = 2gh, we get v = √(2 × 10 × 20) = 20 m/s
-    </Explanation>
+    <Explanation><Markdown>
+      Students who practiced retrieval retained about **50% more** after one week compared to those who restudied. This demonstrates the testing effect - the act of retrieving information strengthens memory more than passive review.
+    </Markdown></Explanation>
   </NumericalGrader>
 </CapaProblem>
 ```
@@ -31,63 +29,40 @@ Control when the explanation appears:
 | `always` | Always visible (useful for debugging) |
 | `never` | Never visible (hidden) |
 
-```xml
-<NumericalGrader answer="42">
-  <p>What is the answer?</p>
-  <NumberInput />
-  <!-- Show explanation after any attempt -->
-  <Explanation showWhen="answered">
-    The answer involves the power rule...
-  </Explanation>
-</NumericalGrader>
-
-<!-- Always visible (for development) -->
-<NumericalGrader answer="100">
-  <p>Debug problem</p>
-  <NumberInput />
-  <Explanation showWhen="always">
-    Debug: This explanation is always shown
-  </Explanation>
-</NumericalGrader>
+```olx:playground
+<CapaProblem id="after_attempt" title="Immediate Feedback">
+  <KeyGrader>
+    <Markdown>According to research, which is more effective for long-term retention?</Markdown>
+    <ChoiceInput>
+      <Distractor>Rereading material multiple times</Distractor>
+      <Key>Taking practice tests on the material</Key>
+      <Distractor>Highlighting key passages</Distractor>
+    </ChoiceInput>
+    <Explanation showWhen="answered"><Markdown>
+      **Practice testing** is one of the most effective study strategies. Dunlosky et al. (2013) rated it as having "high utility" based on extensive research showing it produces durable, transferable learning.
+    </Markdown></Explanation>
+  </KeyGrader>
+</CapaProblem>
 ```
 
 ## Multiple Graders
 
 In problems with multiple graders, nest each Explanation inside its grader:
 
-```xml
-<CapaProblem id="multi">
-  <NumericalGrader id="part_a" answer="4">
-    <p>Part A: What is 2+2?</p>
+```olx:playground
+<CapaProblem id="multi" title="Study Strategies">
+  <NumericalGrader id="part_a" answer="48">
+    <Markdown>**Part A:** In Hake's 1998 physics study, what was the average normalized gain for interactive engagement classes? (Enter as percentage)</Markdown>
     <NumberInput />
-    <Explanation>Explanation for Part A.</Explanation>
+    <Explanation><Markdown>Interactive engagement classes achieved ~48% normalized gain, roughly double the ~23% for traditional lecture.</Markdown></Explanation>
   </NumericalGrader>
 
-  <NumericalGrader id="part_b" answer="9">
-    <p>Part B: What is 3×3?</p>
+  <NumericalGrader id="part_b" answer="23">
+    <Markdown>**Part B:** What was the average normalized gain for traditional lecture classes?</Markdown>
     <NumberInput />
-    <Explanation>Explanation for Part B.</Explanation>
+    <Explanation><Markdown>Traditional lecture classes averaged ~23% normalized gain - demonstrating that passive instruction is significantly less effective.</Markdown></Explanation>
   </NumericalGrader>
 </CapaProblem>
-```
-
-## Rich Content
-
-Explanations support any block content:
-
-```xml
-<NumericalGrader answer="20">
-  <p>Calculate the velocity.</p>
-  <NumberInput />
-  <Explanation>
-    <Markdown>
-### Solution
-
-The formula is $v = \sqrt{2gh}$
-    </Markdown>
-    <BlockMath>v = \sqrt{2 \times 10 \times 20} = 20</BlockMath>
-  </Explanation>
-</NumericalGrader>
 ```
 
 ## Styling
@@ -99,26 +74,3 @@ The component uses these CSS classes:
 
 Default styling shows a blue-highlighted box with left border.
 
-## Open edX Compatibility
-
-This block provides functional compatibility with Open edX `[explanation]` markdown:
-
-**Open edX markdown:**
-```
-[explanation]
-The answer is 2x because...
-[/explanation]
-```
-
-**lo-blocks OLX equivalent:**
-```xml
-<KeyGrader>
-  <p>What is the derivative of x²?</p>
-  <ChoiceInput>
-    <Key>2x</Key>
-    <Distractor>x²</Distractor>
-    <Distractor>2x²</Distractor>
-  </ChoiceInput>
-  <Explanation>The answer is 2x because of the power rule: d/dx(x^n) = nx^(n-1).</Explanation>
-</KeyGrader>
-```
