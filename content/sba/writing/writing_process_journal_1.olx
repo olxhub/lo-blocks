@@ -1,0 +1,772 @@
+<!--
+---
+description: Survey exploring students' writing habits across different contexts—school, social media, creative, and everyday communication
+category: writing
+---
+-->
+<!-- content/sba/writing/writing_process_journal_1.olx -->
+<Sequential id="writing_frequency_demo" title="Writing Process Journal 1" launchable="true">
+   <Vertical id="Introduction">
+       <Markdown>
+            # Writing Process Journal 1
+            **Frequency of Past Writing Experiences**
+            
+            Think about how often you do various kinds of writing.
+            The next several screens ask you to estimate how often you write each type.
+       </Markdown>
+   </Vertical>
+   <Vertical id="Step_1">
+       <Markdown>
+           # Writing For School
+           Indicate how often you have engaged in each of the following activities **for school**.
+       </Markdown>
+       <TabularMCQ id="writing_frequency_1">
+         cols: Daily, Weekly, Monthly, Every Semester, Rarely or Never
+         rows: Fiction (including drama and fan fiction and graphic novels), A list (e.g. to do list or grocery list), An essay, A text message or direct message, An annotated bibliography
+       </TabularMCQ>
+       <Markdown>
+         Select one option for each row. Your selections are automatically saved.
+       </Markdown>
+       <ActionButton label="Summarize my responses">
+           <LLMAction target="response_summary_1">
+                   For the first survey page that asks about writing for school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Every Semester (corresponding to 3),
+                         Rarely or Never (corresponding to 4)
+
+                   Our row headers are: 
+                         Fiction (including drama and fan fiction and graphic novels),
+                         A list (e.g. to do list or grocery list),
+                         An essay,
+                         A text message or direct message,
+                         An annotated bibliography
+                         
+                   Our data is: 
+                   <Ref target="writing_frequency_1" />
+                   
+                 Interpret the data by substituting each column header only for the number it corresponds
+                  to, adding the row headers to indicate the frequency with which the student writes in each genre
+                  for school. Do not include the numbers or mention the mapping. Format the interpretation as a list.
+                  Precede the list with a statement that says this is how frequently the student
+                  does each writing task for school.
+
+           </LLMAction>
+           <LLMAction target="response_feedback_1">
+                   <Ref target="response_summary_1" />
+                   In five very short summary statements, addressing the student as "you",
+                   compare the exact frequency with which this student writes in each genre
+                   to the exact writing frequency of a typical student, who:
+                   never writes fiction for school,
+                   writes lists for school on a weekly or daily basis, 
+                   may write essays for school only once a semester,
+                   writes text messages for school every day, 
+                   and creates an annotated bibliography for school once a semester or never.
+                   Do not add interpretive statements that go beyond the basic comparison.
+                   Format the statements as a bulleted list.
+           </LLMAction>
+       </ActionButton>
+     </Vertical>
+     <Vertical id="Step_1c">
+           <LLMFeedback id="response_feedback_1" />
+     </Vertical>
+     <Vertical id="Step_2">
+       <Markdown>
+           # Writing Outside of School
+           Indicate how often you have engaged in each of the following activities **outside of school**.
+       </Markdown>
+       <TabularMCQ id="writing_frequency_2">
+         cols: Daily, Weekly, Monthly, Rarely, Never
+         rows: Fiction (including drama and fan fiction and graphic novels), A list (e.g. to do list or grocery list), An essay, A text message or direct message, An annotated bibliography
+       </TabularMCQ>
+       <Markdown>
+         Select one option for each row. Your selections are automatically saved.
+       </Markdown>
+     </Vertical>
+     <Vertical id="Step_2b">
+           <Markdown>
+               _I don't actually want to show this screen to students. I want this variable to be
+               calculated automatically when the student advances from the previous screen, so that
+               the text description of the student's answer *is available for later LLM actions to use*.
+               I have found that ChatGPT's interpretation of this kind of tabular data is very fragile
+               and I get much better results if I first feed the response object through a very carefully
+               designed interpretive step, and then use the result of that interpretation step as input
+               to other LLM actions._
+           </Markdown>
+           <ActionButton label="Summarize my responses">
+               <LLMAction target="response_summary_2">
+                   For the first survey page that asks about writing outside of school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Rarely (corresponding to 3),
+                         Never (corresponding to 4)
+
+                   Our row headers are: 
+                         Fiction (including drama and fan fiction and graphic novels),
+                         A list (e.g. to do list or grocery list),
+                         An essay,
+                         A text message or direct message,
+                         An annotated bibliography
+                         
+                   Our data is: 
+                   <Ref target="writing_frequency_2" />
+                   
+                 Interpret the data by substituting each column header only for the number it corresponds
+                  to, adding the row headers to indicate the frequency with which the student writes in each genre
+                  outside of school. Do not include the numbers or mention the mapping. 
+                  Format the interpretation as a list.
+                  Precede the list with a statement that says this is how frequently the student
+                  does each writing task outside of school.
+
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="response_summary_2" />
+     </Vertical>
+     <Vertical id="Step_2c">
+           <Markdown>
+               _This we want to display to students, but ideally NOT as a button to push,
+                but as feedback that comes up automatically when the student advances
+                to this screen. Note: we should rerun the LLM whenever the underlying data changes
+                and we advance to this screen._
+           </Markdown>
+           <ActionButton label="Compare my responses to other students">
+               <LLMAction target="response_feedback_2">
+                   <Ref target="response_summary_2" />
+                   In five very short summary statements, addressing the student as "you",
+                   compare the exact frequency with which this student writes in each genre
+                   to the exact writing frequency of a typical student, who:
+                   never writes fiction outside of school,
+                   may write list outside of school at any frequency, 
+                   never writes essays outside of school,
+                   writes text messages outside of school every day, 
+                   and creates an annotated bibliography outside of school rarely or never.
+                   Do not add interpretive statements that go beyond the basic comparison.
+                   Format the statements as a bulleted list.
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="response_feedback_2" />
+     </Vertical>
+
+     <Vertical id="Step_3">
+       <Markdown>
+           # Writing For School
+           Indicate how often you have engaged in each of the following activities **for school**.
+       </Markdown>
+       <TabularMCQ id="writing_frequency_3">
+         cols: Daily, Weekly, Monthly, Every Semester, Rarely or Never
+         rows: A group chat or message board (e.g. Discord or Reddit), A podcast or vlog (video blog) post, Notes on a lecture or passage, Poetry or song lyrics, A physical note (short message) or letter
+       </TabularMCQ>
+       <Markdown>
+         Select one option for each row. Your selections are automatically saved.
+       </Markdown>
+     </Vertical>
+     <Vertical id="Step_3b">
+           <Markdown>
+               _I don't actually want to show this screen to students. I want this variable to be
+               calculated automatically when the student advances from the previous screen, so that
+               the text description of the student's answer *is available for later LLM actions to use*.
+               I have found that ChatGPT's interpretation of this kind of tabular data is very fragile
+               and I get much better results if I first feed the response object through a very carefully
+               designed interpretive step, and then use the result of that interpretation step as input
+               to other LLM actions._
+           </Markdown>
+           <ActionButton label="Summarize my responses">
+               <LLMAction target="response_summary_3">
+                   For the first survey page that asks about writing for school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Every Semester (corresponding to 3),
+                         Rarely or Never (corresponding to 4)
+
+                   Our row headers are: 
+                         A group chat or message board (e.g. Discord or Reddit),
+                         A podcast or vlog (video blog) post, 
+                         Notes on a lecture or passage, 
+                         Poetry or song lyrics, 
+                         A physical note (short message) or letter
+                         
+                   Our data is: 
+                   <Ref target="writing_frequency_3" />
+                   
+                 Interpret the data by substituting each column header only for the number it corresponds
+                  to, adding the row headers to indicate the frequency with which the student writes in each genre
+                  for school. Do not include the numbers or mention the mapping. Format the interpretation as a list.
+                  Precede the list with a statement that says this is how frequently the student
+                  does each writing task for school.
+
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="response_summary_3" />
+     </Vertical>
+     <Vertical id="Step_3c">
+           <Markdown>
+               _This we want to display to students, but ideally NOT as a button to push,
+                but as feedback that comes up automatically when the student advances
+                to this screen. Note: we should rerun the LLM whenever the underlying data changes
+                and we advance to this screen._
+          </Markdown>
+          <ActionButton label="Compare my responses to other students">
+               <LLMAction target="response_feedback_3">
+                   <Ref target="response_summary_3" />
+                   In five very short summary statements, addressing the student as "you",
+                   compare the exact frequency with which this student writes in each genre
+                   to the exact writing frequency of a typical student, who:
+                   participates in group chat for school weekly or daily,
+                   never produces podcasts or vlogs for school, 
+                   takes notes on a passage for school weekly or daily,
+                   never writes poetry or song lyrics for school, 
+                   and writes physical letters or notes for school at least monthly.
+                   Do not add interpretive statements that go beyond the basic comparison.
+                   Format the statements as a bulleted list.
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="response_feedback_3" />
+     </Vertical>
+     <Vertical id="Step_4">
+       <Markdown>
+           # Writing Outside of School
+           Indicate how often you have engaged in each of the following activities **outside of school**.
+       </Markdown>
+       <TabularMCQ id="writing_frequency_4">
+         cols: Daily, Weekly, Monthly, Rarely, Never
+         rows: A group chat or message board (e.g. Discord or Reddit), A podcast or vlog (video blog) post, Notes on a lecture or passage, Poetry or song lyrics, A physical note (short message) or letter
+       </TabularMCQ>
+       <Markdown>
+         Select one option for each row. Your selections are automatically saved.
+       </Markdown>
+     </Vertical>
+     <Vertical id="Step_4b">
+           <Markdown>
+               _I don't actually want to show this screen to students. I want this variable to be
+               calculated automatically when the student advances from the previous screen, so that
+               the text description of the student's answer *is available for later LLM actions to use*.
+               I have found that ChatGPT's interpretation of this kind of tabular data is very fragile
+               and I get much better results if I first feed the response object through a very carefully
+               designed interpretive step, and then use the result of that interpretation step as input
+               to other LLM actions._
+           </Markdown>
+           <ActionButton label="Summarize my responses">
+               <LLMAction target="response_summary_4">
+                   For the first survey page that asks about writing outside of school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Rarely (corresponding to 3),
+                         Never (corresponding to 4)
+
+                   Our row headers are: 
+                         A group chat or message board (e.g. Discord or Reddit),
+                         A podcast or vlog (video blog) post, 
+                         Notes on a lecture or passage, 
+                         Poetry or song lyrics, 
+                         A physical note (short message) or letter
+                         
+                   Our data is: 
+                   <Ref target="writing_frequency_4" />
+                   
+                 Interpret the data by substituting each column header only for the number it corresponds
+                  to, adding the row headers to indicate the frequency with which the student writes in each genre
+                  outside of school. Do not include the numbers or mention the mapping. Format the interpretation
+                  as a list. Precede the list with a statement that says this is how frequently the student
+                  does each writing task outside of school.
+
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="response_summary_4" />
+     </Vertical>
+     <Vertical id="Step_4c">
+           <Markdown>
+               _This we want to display to students, but ideally NOT as a button to push,
+                but as feedback that comes up automatically when the student advances
+                to this screen. Note: we should rerun the LLM whenever the underlying data changes
+                and we advance to this screen._
+          </Markdown>
+          <ActionButton label="Compare my responses to other students">
+               <LLMAction target="response_feedback_4">
+                   <Ref target="response_summary_4" />
+                   In five very short summary statements, addressing the student as "you",
+                   compare the exact frequency with which this student writes in each genre
+                   to the exact writing frequency of a typical student, who:
+                   participates in group chat outside of school daily,
+                   never produces podcasts or vlogs outside of school, 
+                   never takes notes on a passage outside of school,
+                   never writes poetry or song lyrics outside of school, 
+                   and may write physical letters or notes outside of school anywhere from daily to never.
+                   Do not add interpretive statements that go beyond the basic comparison.
+                   Format the statements as a bulleted list.
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="response_feedback_4" />
+     </Vertical>
+     <Vertical id="Step_5">
+       <Markdown>
+           # Writing For School
+           Indicate how often you have engaged in each of the following activities **for school**.
+       </Markdown>
+       <TabularMCQ id="writing_frequency_5">
+         cols: Daily, Weekly, Monthly, Every Semester, Rarely or Never
+         rows: An email, A research paper, A chat with an AI chatbot, A blog entry, A post on social media
+       </TabularMCQ>
+       <Markdown>
+         Select one option for each row. Your selections are automatically saved.
+       </Markdown>
+     </Vertical>
+     <Vertical id="Step_5b">
+           <Markdown>
+               _I don't actually want to show this screen to students. I want this variable to be
+               calculated automatically when the student advances from the previous screen, so that
+               the text description of the student's answer *is available for later LLM actions to use*.
+               I have found that ChatGPT's interpretation of this kind of tabular data is very fragile
+               and I get much better results if I first feed the response object through a very carefully
+               designed interpretive step, and then use the result of that interpretation step as input
+               to other LLM actions._
+           </Markdown>
+           <ActionButton label="Summarize my responses">
+               <LLMAction target="response_summary_5">
+                   For the first survey page that asks about writing for school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Once a Semester (corresponding to 3),
+                         Rarely or Never (corresponding to 4)
+
+                   Our row headers are: 
+                         An email, 
+                         A research paper,
+                         A chat with an AI chatbot, 
+                         A blog entry, 
+                         A post on social media
+                         
+                   Our data is: 
+                   <Ref target="writing_frequency_5" />
+                   
+                 Interpret the data by substituting each column header only for the number it corresponds
+                  to, adding the row headers to indicate the frequency with which the student writes in each genre
+                  for school. Do not include the numbers or mention the mapping. Format the interpretation as a list.
+                  Precede the list with a statement that says this is how frequently the student
+                  does each writing task for school.
+
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="response_summary_5" />
+     </Vertical>
+     <Vertical id="Step_5c">
+           <Markdown>
+               _This we want to display to students, but ideally NOT as a button to push,
+                but as feedback that comes up automatically when the student advances
+                to this screen. Note: we should rerun the LLM whenever the underlying data changes
+                and we advance to this screen._
+          </Markdown>
+          <ActionButton label="Compare my responses to other students">
+               <LLMAction target="response_feedback_5">
+                   <Ref target="response_summary_5" />
+                   In five very short summary statements, addressing the student as "you",
+                   compare the exact frequency with which this student writes in each genre
+                   to the exact writing frequency of a typical student, who:
+                         writes an email for school weekly or daily, 
+                         writes a research paper for school once a semester,
+                         may have a chat with an AI chatbot for school at any frequency from daily to never, 
+                         never writes a blog entry for school, 
+                         and may make a post on social media for school at any frequency from daily to never.
+                   Do not add interpretive statements that go beyond the basic comparison.
+                   Format the statements as a bulleted list.
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="response_feedback_5" />
+     </Vertical>
+     <Vertical id="Step_6">
+       <Markdown>
+           # Writing Outside of School
+           Indicate how often you have engaged in each of the following activities **outside of school**.
+       </Markdown>
+       <TabularMCQ id="writing_frequency_6">
+         cols: Daily, Weekly, Monthly, Rarely, Never
+         rows: An email, A research paper, A chat with an AI chatbot, A blog entry, A post on social media
+       </TabularMCQ>
+       <Markdown>
+         Select one option for each row. Your selections are automatically saved.
+       </Markdown>
+     </Vertical>
+     <Vertical id="Step_6b">
+           <Markdown>
+               _I don't actually want to show this screen to students. I want this variable to be
+               calculated automatically when the student advances from the previous screen, so that
+               the text description of the student's answer *is available for later LLM actions to use*.
+               I have found that ChatGPT's interpretation of this kind of tabular data is very fragile
+               and I get much better results if I first feed the response object through a very carefully
+               designed interpretive step, and then use the result of that interpretation step as input
+               to other LLM actions._
+           </Markdown>
+           <ActionButton label="Summarize my responses">
+               <LLMAction target="response_summary_6">
+                   For the first survey page that asks about writing outside of school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Rarely (corresponding to 3),
+                         Never (corresponding to 4)
+
+                   Our row headers are: 
+                         An email, 
+                         A research paper,
+                         A chat with an AI chatbot, 
+                         A blog entry, 
+                         A post on social media
+                         
+                   Our data is: 
+                   <Ref target="writing_frequency_6" />
+                   
+                 Interpret the data by substituting each column header only for the number it corresponds
+                  to, adding the row headers to indicate the frequency with which the student writes in each genre
+                  outside of school. Do not include the numbers or mention the mapping. Format the interpretation
+                  as a list. Precede the list with a statement that says this is how frequently the student
+                  does each writing task outside of school.
+
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="response_summary_6" />
+     </Vertical>
+     <Vertical id="Step_6c">
+           <Markdown>
+               _This we want to display to students, but ideally NOT as a button to push,
+                but as feedback that comes up automatically when the student advances
+                to this screen. Note: we should rerun the LLM whenever the underlying data changes
+                and we advance to this screen._
+          </Markdown>
+          <ActionButton label="Compare my responses to other students">
+               <LLMAction target="response_feedback_6">
+                   <Ref target="response_summary_6" />
+                   In five very short summary statements, addressing the student as "you",
+                   compare the exact frequency with which this student writes in each genre
+                   to the exact writing frequency of a typical student, who:
+                         writes an email outside of school weekly or daily, 
+                         never writes a research paper outside of school,
+                         may have a chat with an AI chatbot outside of school at any frequency from daily to never, 
+                         rarely or never writes a blog entry outside of school, 
+                         and may make a post on social media outside of school daily or weekly.
+                   Do not add interpretive statements that go beyond the basic comparison.
+                   Format the statements as a bulleted list.
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="response_feedback_6" />
+     </Vertical>
+   <Vertical id="Step_7">
+       <Markdown>
+           # Writing For School
+           Indicate how often you have engaged in each of the following activities **for school**.
+       </Markdown>
+       <TabularMCQ id="writing_frequency_7">
+         cols: Daily, Weekly, Monthly, Every Semester, Rarely or Never
+         rows: A Powerpoint or other multimedia presentation, A summary or review, A report, A comment or response on social media, Other writing activities not listed here or on previous screens
+       </TabularMCQ>
+       <Markdown>
+         Select one option for each row. Your selections are automatically saved.
+         ## Other Kinds of Writing I Do for School.
+         </Markdown>
+         <TextArea id="other_for_school" placeholder="List other kinds of writing you do for school here..." />
+     </Vertical>
+     <Vertical id="Step_7b">
+           <Markdown>
+               _I don't actually want to show this screen to students. I want this variable to be
+               calculated automatically when the student advances from the previous screen, so that
+               the text description of the student's answer *is available for later LLM actions to use*.
+               I have found that ChatGPT's interpretation of this kind of tabular data is very fragile
+               and I get much better results if I first feed the response object through a very carefully
+               designed interpretive step, and then use the result of that interpretation step as input
+               to other LLM actions._
+           </Markdown>
+           <ActionButton label="Summarize my responses">
+               <LLMAction target="response_summary_7">
+                   For the first survey page that asks about writing for school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Once a Semester (corresponding to 3),
+                         Rarely or Never (corresponding to 4)
+
+                   Our row headers are: 
+                         A Powerpoint or other multimedia presentation,
+                         A summary or review,
+                         A report,
+                         A comment or response on social media,
+                         Other writing activities not listed here or on previous screens                         
+                   Our data is: 
+                   <Ref target="writing_frequency_7" />
+                   
+                 Interpret the data by substituting each column header only for the number it corresponds
+                  to, adding the row headers to indicate the frequency with which the student writes in each genre
+                  for school. Do not include the numbers or mention the mapping. Format the interpretation as a list.
+                  Precede the list with a statement that says this is how frequently the student
+                  does each writing task for school.
+
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="response_summary_7" />
+     </Vertical>
+     <Vertical id="Step_7c">
+           <Markdown>
+               _This we want to display to students, but ideally NOT as a button to push,
+                but as feedback that comes up automatically when the student advances
+                to this screen. Note: we should rerun the LLM whenever the underlying data changes
+                and we advance to this screen._
+          </Markdown>
+          <ActionButton label="Compare my responses to other students">
+               <LLMAction target="response_feedback_7">
+                   <Ref target="response_summary_7" />
+                   In five very short summary statements, addressing the student as "you",
+                   compare the exact frequency with which this student writes in each genre
+                   to the exact writing frequency of a typical student, who:
+                         writes a Powerpoint or other multimedia presentation for school once a semester or never, 
+                         writes a summary or review for school weeklyr,
+                         writes a report for school once a semester or never, 
+                         and never writes a comment or response on social media for school.
+                   Do not add interpretive statements that go beyond the basic comparison.
+                   Format the statements as a bulleted list.
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="response_feedback_7" />
+     </Vertical>
+
+   <Vertical id="Step_8">
+       <Markdown>
+           # Writing Outside of School
+           Indicate how often you have engaged in each of the following activities **outside of school**.
+       </Markdown>
+       <TabularMCQ id="writing_frequency_8">
+         cols: Daily, Weekly, Monthly, Rarely, Never
+         rows: A Powerpoint or other multimedia presentation, A summary or review, A report, A comment or response on social media, Other writing activities not listed here or on previous screens
+         </TabularMCQ>
+       <Markdown>
+         Select one option for each row. Your selections are automatically saved.
+         ## Other Kinds of Writing I Do Outside of School.
+       </Markdown>
+       <TextArea id="other_nonschool" placeholder="List other kinds of writing you do outside of school here..." />
+     </Vertical>
+     <Vertical id="Step_8b">
+           <Markdown>
+               _I don't actually want to show this screen to students. I want this variable to be
+               calculated automatically when the student advances from the previous screen, so that
+               the text description of the student's answer *is available for later LLM actions to use*.
+               I have found that ChatGPT's interpretation of this kind of tabular data is very fragile
+               and I get much better results if I first feed the response object through a very carefully
+               designed interpretive step, and then use the result of that interpretation step as input
+               to other LLM actions._
+           </Markdown>
+           <ActionButton label="Summarize my responses">
+               <LLMAction target="response_summary_8">
+                   For the first survey page that asks about writing outside of school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Rarely (corresponding to 3),
+                         Never (corresponding to 4)
+
+                   Our row headers are: 
+                         A Powerpoint or other multimedia presentation,
+                         A summary or review,
+                         A report,
+                         A comment or response on social media,
+                         Other writing activities not listed here or on previous screens                         
+                         
+                   Our data is: 
+                   <Ref target="writing_frequency_8" />
+                   
+                 Interpret the data by substituting each column header only for the number it corresponds
+                  to, adding the row headers to indicate the frequency with which the student writes in each genre
+                  outside of school. Do not include the numbers or mention the mapping. Format the interpretation
+                  as a list. Precede the list with a statement that says this is how frequently the student
+                  does each writing task outside of school.
+
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="response_summary_8" />
+     </Vertical>
+     <Vertical id="Step_8c">
+           <Markdown>
+               _This we want to display to students, but ideally NOT as a button to push,
+                but as feedback that comes up automatically when the student advances
+                to this screen. Note: we should rerun the LLM whenever the underlying data changes
+                and we advance to this screen._
+          </Markdown>
+          <ActionButton label="Compare my responses to other students">
+               <LLMAction target="response_feedback_8">
+                   <Ref target="response_summary_8" />
+                   In five very short summary statements, addressing the student as "you",
+                   compare the exact frequency with which this student writes in each genre
+                   to the exact writing frequency of a typical student, who:
+                         rarely or neverwrites a Powerpoint or other multimedia presentation outside of school, 
+                         never writes a summary or review outside of school,
+                         never writes a report outside of school, 
+                         and writes a comments or responses on social media outside of school daily.
+                   Do not add interpretive statements that go beyond the basic comparison.
+                   Format the statements as a bulleted list.
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="response_feedback_8" />
+     </Vertical>
+     <Vertical id="Step_9">
+          <AggregatedInputs id="all_data" target="writing_frequency_1, writing_frequency_2, writing_frequency_3, writing_frequency_4, writing_frequency_5, writing_frequency_6, writing_frequency_7, writing_frequency_8" field="value" aggregate="object" />
+          <TextArea id="all_data[0]">
+                
+          </TextArea>
+          <Markdown>
+              The next screen contained a generative AI task that created a summary of
+              the student's responses. The version we had didn't seem to really spark
+              student interest and we need to redo it.
+              
+              After the AI summary, students were given the following CR prompt:
+              
+              _Reread the computer's list of statements about your writing based on your
+              responses. Choose on that you agree with and provide an example from your
+              writing experience to explain why you agree._
+              
+              On the next screen after that, students got the following CR prompt:
+              
+              _Now choose one item from the list that surprises you or that you disagree with
+              and provide an explanation from your writing experiences to explain why the
+              statement surprises you or why you disagree with it._
+              
+              The next two screens provide some useful information we can use to discuss
+              next design steps to get this basic structure back up and running in the new system.
+          </Markdown>
+     </Vertical>
+     <Vertical id="Step_10">
+          <Markdown>
+              # Factor Analysis
+              
+              Factor analysis of student responses suggests that we should report the following
+              categories:
+              
+              **Factor 1**: _Academic activities OUTSIDE OF SCHOOL_
+              
+              Any of the following outside of school: essays, reports, summaries,
+              research papers, notetaking, annotated bibliographies, multimedia presentations
+              ( + blog posts, podcasts, letters, chatbot interactions)
+              
+              **Factor 3**: _Academic activities FOR SCHOOL_
+              
+              Any of the following done for school: essays, reports, summaries, 
+              research papers, notetaking, annotated bibliographies, multimedia presentations
+              
+              **Factor 4**: _Creative Activities_
+              
+              Fiction both for and outside of school, poetry both for and outside of school
+              (blogs, podcasts, multimedia presentations, and research papers for school are
+              also aligned here as creative activities)
+              
+              **Factor 5**: _Everyday Social Media Use_
+              
+              Email (whether for or out of school) and any of the following out of school:
+              social media posts, comments, group chats or message boards, direct messages,
+              podcasts, and blog posts,
+              
+              **Factor 2**: _Social Media Use for School Purposes_
+              
+              Any of the following when done for school:
+              Social media posts and comments, group chats or message boards, direct messages,
+              making lists, writing letters, using a chatbot
+          </Markdown>
+     </Vertical>
+     <Vertical id="Step_11">
+          <Markdown>
+                 # Notes from Writing Group Advance Analysis
+          
+                 This text summarizes the classifications of these writing activities
+                 that were worked out **in advance of collecting data** by members of the
+                 writing team. It was used as part of the prompt for the AI activity
+                 that summarized the student's writing patterns.
+                   
+                 1. _The following activities should be classified as creative activities
+                 (but especially fiction and poetry!)_:
+                   -  posts to group chats or message boards
+                   -  blog entries
+                   - podcasts and vlogs or video postings
+                   - posts on social media
+                   - fiction
+                   - poetry or song lyrics
+                 2. _The following activities should be classified as social activities_:
+                   - text messages or direct messages
+                   - posts to group chats or message boards
+                   - blog entries
+                   - podcasts, vlogs, or video postings
+                   - posts or comments on social media
+                   - letters
+
+                 3. _The following activities should be classified as informal activities_:
+                   - text messages or direct messages
+                   - posts to group chats or message boards
+                   - chats with an AI chatbot
+                   - posts or comments on social media
+                   - notes on a lecture or passage
+
+                 4. _The following activities should be classified as formal writing tasks_:
+                   - emails
+                   - letters
+                   - essays
+                   - reports
+                   - summaries or reviews
+                   - bibliographies
+                   - research papers
+                   - Powerpoint or other multimedia presentations
+
+                 5. _The following activities should be classified as public writing tasks_:
+                   - posts to group chats or message boards
+                   - blog entires
+                   - posts on social media
+                   - comments or responses on social media
+                   - Powerpoint or other multimedia presentations
+
+                 6. _The following activities should be classified as often being physically
+                   written rather than created digitally_:
+                   - lists
+                   - letters
+                   - essays
+                   - notes on a lecture or passage
+                   - fiction
+                   - poetry or song lyrics
+
+                 7. _The following activities should be classified as requiring a specific text structure_:
+                   - lists
+                   - letters
+                   - essays
+                   - reports
+                   - summaries or reviews
+                   - bibliographies
+                   - research papers
+                   - Powerpoint or other multimedia presentations
+
+                 8. _The following activities should be classified as unstructured_:
+                   - text messages or direct messages
+                   - posts to group chats or message boards
+                   - chats with AI chatbots
+                   - notes on a lecture or passage
+                 # Functions
+
+                   Text messages, direct messages, posts and comments on social media,
+                   and letters have the function of fostering direct interaction.
+                   
+                   Interactions with an AI chatbot and note taking have the function of fostering learning.
+
+                   Emails, reports, summaries or reviews, and research papers have the function
+                   of providing information to the reader.
+                   
+                   Blog entries and essays have the function of persuading the reader.
+                   
+                   Lists and annotated bibliographies have the function of helping the writer plan.
+                   
+                   Fiction, poetry, song lyrics, podcasts, vlogs, and videos have the function
+                   of entertaining the reader.
+          </Markdown>
+     </Vertical>
+</Sequential>

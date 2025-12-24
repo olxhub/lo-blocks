@@ -5,7 +5,8 @@
 import { NextResponse } from 'next/server';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const OPENAI_BASE_URL = "https://api.openai.com/v1/";
+const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL 
+//const OPENAI_BASE_URL = "https://api.openai.com/v1/";
 
 const USE_STUB = !OPENAI_API_KEY || process.env.LLM_MODE === 'STUB';
 
