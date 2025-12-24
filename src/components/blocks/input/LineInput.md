@@ -1,53 +1,59 @@
-# LineInput Block
+# LineInput
 
-## Overview
+Single-line text input for short student responses like names, single words, or brief answers. Works as an input inside CapaProblem.
 
-The LineInput block provides a single-line text input field for short student responses like names, single words, or brief answers. This can be used as an input inside CapaProblem.
-
-## Technical Usage
-
-### Basic Syntax
-```xml
-<LineInput id="answer" placeholder="Enter your answer" />
+```olx:playground
+<Vertical id="recall">
+  <Markdown>What psychologist is credited with discovering the "testing effect" (showing that retrieval practice strengthens memory)?</Markdown>
+  <LineInput id="researcher" placeholder="Last name..." />
+</Vertical>
 ```
 
-### Properties
+## Properties
 - `id` (recommended): Unique identifier for the input
 - `placeholder` (optional): Hint text displayed when empty
 
-### State Fields
+## State Fields
 - `value`: The current text entered by the student
-
-### getValue
-Returns the text string entered by the student.
-
-## Pedagogical Purpose
-
-LineInput supports targeted responses:
-
-1. **Focused Answers**: Single-line limits encourage concise responses
-2. **Specific Recall**: Tests particular knowledge items
-3. **Quick Input**: Fast response collection for simple questions
-4. **Grading Compatibility**: Works well with string-matching graders
 
 ## Common Use Cases
 
 ### Fill-in-the-Blank
-```xml
-<Markdown>The capital of France is _______.</Markdown>
-<LineInput id="capital_answer" />
+
+```olx:playground
+<Vertical id="fill_blank">
+  <Markdown>In Bjork's framework, conditions that make learning harder during practice but improve long-term retention are called _______ difficulties.</Markdown>
+  <LineInput id="term" placeholder="Type a term..." />
+</Vertical>
 ```
 
-### Vocabulary Questions
-```xml
-<Markdown>Define the term "mitosis":</Markdown>
-<LineInput id="definition" />
+### Graded Short Answer
+
+```olx:playground
+<CapaProblem id="short_answer" title="Terminology">
+  <StringGrader answer="testing effect" caseInsensitive="true">
+    <Markdown>What is the phenomenon called when taking a test improves later retention more than additional study?</Markdown>
+    <LineInput id="effect_name" />
+    <Explanation>
+      The **testing effect** (also called retrieval practice effect) was demonstrated by Roediger &amp; Karpicke (2006), showing 50% better retention after one week for students who practiced retrieval versus those who restudied.
+    </Explanation>
+  </StringGrader>
+</CapaProblem>
 ```
 
-### Name/Identifier Entry
-```xml
-<LineInput id="student_name" label="Your Name" placeholder="Enter your name" />
+### Prediction Prompt
+
+```olx:playground
+<Vertical id="predict">
+  <Markdown>Before reading the research, predict: Which study method do you think produces better long-term retention?</Markdown>
+  <LineInput id="prediction" placeholder="Your prediction..." />
+  <Markdown>**Your prediction:**</Markdown>
+  <Ref target="prediction" />
+</Vertical>
 ```
 
-## Example File
-See `LineInput.olx` for working examples.
+## Related Blocks
+- **TextArea**: For longer, multi-line responses
+- **NumberInput**: For numerical responses
+- **StringGrader**: For grading text answers
+
