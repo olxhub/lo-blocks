@@ -4,9 +4,10 @@ Catch-all grader that accepts any answer with a specified score and feedback.
 
 ## Usage
 
-```xml
-<DefaultGrader score="1" feedback="Any answer is accepted!">
-  <LineInput/>
+```olx:code
+<DefaultGrader score="1" feedback="Thank you for sharing your perspective.">
+  <Markdown>How do you involve families in your students' learning?</Markdown>
+  <TextArea rows="4" />
 </DefaultGrader>
 ```
 
@@ -30,5 +31,7 @@ Catch-all grader that accepts any answer with a specified score and feedback.
 Use DefaultGrader when:
 - Any answer should be accepted (e.g., open-ended reflection questions)
 - You want to provide feedback without grading
+- Collecting peer instruction responses before discussion
 
 For grading with multiple rules and partial credit, use `RulesGrader` with `DefaultMatch` as the catch-all instead.
+
