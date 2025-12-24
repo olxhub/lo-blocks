@@ -1,14 +1,5 @@
-<CapaProblem id="ChoiceInputDemo" title="Children's Houses">
-  <KeyGrader>
-    <Markdown>Who wrote the 1909 book on "Scientific Pedagogy as Applied to Child Education in 'The Children's Houses'"?</Markdown>
-    <ChoiceInput>
-      <Distractor>John Dewey</Distractor>
-      <Key>Maria Montessori</Key>
-      <Distractor>Jean Piaget</Distractor>
-      <Distractor>Lev Vygotsky</Distractor>
-    </ChoiceInput>
-    <Explanation>
-Maria Montessori developed her method while working with children in the Casa dei Bambini ("Children's Houses") in Rome starting in 1907. Her approach emphasized prepared environments, mixed-age classrooms, child-led learning, and critically, parent training and engagement as essential components of the educational process.
-    </Explanation>
-  </KeyGrader>
-</CapaProblem>
+<ChoiceInput id="ChoiceInputDemo">
+  <Distractor>LON-CAPA</Distractor>
+  <Distractor>Open edX</Distractor>
+  <Key>Learning Observer</Key>
+</ChoiceInput>

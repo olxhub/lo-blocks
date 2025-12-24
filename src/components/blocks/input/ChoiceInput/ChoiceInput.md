@@ -3,7 +3,7 @@
 Creates multiple choice questions using Key (correct) and Distractor (incorrect) options. Renders as radio buttons for single-selection.
 
 ```olx:playground
-<CapaProblem id="scaffolding">
+<CapaProblem id="scaffolding" title="Instructional Strategies">
   <KeyGrader>
     <Markdown>Which instructional strategy involves breaking complex tasks into smaller, manageable steps with temporary support?</Markdown>
     <ChoiceInput>
@@ -43,7 +43,7 @@ Multiple choice assessments offer:
 ### Conceptual Understanding
 
 ```olx:playground
-<CapaProblem id="zpd">
+<CapaProblem id="zpd" title="Zone of Proximal Development">
   <KeyGrader>
     <Markdown>A student can solve basic algebra problems alone but needs teacher help with word problems. According to Vygotsky, word problems are in the student's:</Markdown>
     <ChoiceInput>
@@ -61,7 +61,7 @@ Multiple choice assessments offer:
 Well-crafted distractors reveal misconceptions:
 
 ```olx:playground
-<CapaProblem id="hake">
+<CapaProblem id="hake" title="Hake's Study">
   <KeyGrader>
     <Markdown>In Hake's 1998 study of 6,000 physics students, what was the approximate normalized gain for interactive engagement vs. traditional lecture?</Markdown>
     <ChoiceInput>
