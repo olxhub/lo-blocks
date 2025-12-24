@@ -18,14 +18,35 @@ export const fields = state.fields(['value']);
  * Get the list of choices (Key/Distractor children) with their metadata.
  * Used by KeyGrader to determine correctness.
  *
+ * Works in two modes:
+ * 1. From kids prop (block references) - works without matching nodeInfo, such as from MarkupProblem
+ * 2. From nodeInfo tree traversal - handles targets or nested hierarchies
+ *
  * @returns {Array<{id: string, tag: string, value: string}>}
  */
 function getChoices(props, state, id) {
-  const ids = inferRelatedNodes(props, {
-    selector: n => n.blueprint.name === 'Key' || n.blueprint.name === 'Distractor',
-    infer: ['kids'],
-    targets: props.target
-  });
+  let ids = [];
+
+  // Try to get IDs from kids prop first (works without matching nodeInfo, such as from MarkupProblem)
+  if (Array.isArray(props.kids)) {
+    ids = props.kids
+      .filter(k => k?.type === 'block' && k?.id)
+      .map(k => k.id)
+      .filter(cid => {
+        const inst = props.idMap[cid];
+        return inst && (inst.tag === 'Key' || inst.tag === 'Distractor');
+      });
+  }
+
+  // Fall back to inferRelatedNodes if searching kids directly didn't work (such as targets or nested hierarchies)
+  if (ids.length === 0 && props.nodeInfo) {
+    ids = inferRelatedNodes(props, {
+      selector: n => n.blueprint.name === 'Key' || n.blueprint.name === 'Distractor',
+      infer: ['kids'],
+      targets: props.target
+    });
+  }
+
   const choices = ids.map(cid => {
     const inst = props.idMap[cid];
     const choiceValue = inst.attributes.value ?? cid;
