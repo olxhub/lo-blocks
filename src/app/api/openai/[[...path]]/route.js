@@ -30,8 +30,27 @@ const USE_AZURE = !USE_BEDROCK && !!OPENAI_DEPLOYMENT_ID;
 const USE_STUB = !USE_BEDROCK && !OPENAI_API_KEY || process.env.LLM_MODE === 'STUB';
 
 if (USE_STUB) {
-  console.log('\n⚠️  LLM running in STUB mode - responses are fake.\n' +
-    '   To use real LLM, set OPENAI_API_KEY or AWS_BEDROCK_MODEL and restart.\n');
+  console.log(`
+⚠️  LLM running in STUB mode - responses are fake.
+
+To configure a real LLM provider, set these environment variables:
+
+  Bedrock (Claude):
+    AWS_BEDROCK_MODEL=us.anthropic.claude-3-5-sonnet-20241022-v2:0
+    AWS_ACCESS_KEY_ID=...
+    AWS_SECRET_ACCESS_KEY=...
+    AWS_REGION=us-east-1
+
+  Azure OpenAI:
+    OPENAI_API_KEY=...
+    OPENAI_DEPLOYMENT_ID=my-deployment
+    OPENAI_BASE_URL=https://myresource.openai.azure.com/openai/
+
+  OpenAI:
+    OPENAI_API_KEY=sk-...
+
+See docs/llm-setup.md for details.
+`);
 }
 
 export async function POST(request) {
