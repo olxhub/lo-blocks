@@ -2,16 +2,15 @@
 
 Grades multiple choice by checking if a `Key` (correct) or `Distractor` (incorrect) was selected.
 
-## Usage
-
-```xml
-<CapaProblem id="mc">
+```olx:playground
+<CapaProblem id="spacing_effect" title="Spacing Effect">
   <KeyGrader>
-    <p>What is the capital of France?</p>
+    <Markdown>According to Cepeda et al., what is the optimal spacing interval relative to the retention interval?</Markdown>
     <ChoiceInput>
-      <Key>Paris</Key>
-      <Distractor>London</Distractor>
-      <Distractor>Berlin</Distractor>
+      <Distractor>1-2%</Distractor>
+      <Key>10-20%</Key>
+      <Distractor>50-60%</Distractor>
+      <Distractor>Same length as retention interval</Distractor>
     </ChoiceInput>
   </KeyGrader>
 </CapaProblem>
@@ -28,3 +27,4 @@ Grades multiple choice by checking if a `Key` (correct) or `Distractor` (incorre
 - `ChoiceInput` - collects the selection
 - `Key` - marks correct answer(s)
 - `Distractor` - marks wrong answers
+

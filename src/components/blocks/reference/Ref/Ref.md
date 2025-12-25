@@ -1,107 +1,151 @@
-# Ref Component
+# Ref
 
-A reference component for accessing values from other blocks in Learning Observer.
+References and displays values from other blocks. Enables patterns like showing a student's thesis statement while they write supporting arguments, or including student input in LLM prompts.
 
-## Overview
-
-The `Ref` component provides a clean, flexible way to reference and display values from other blocks. For example, if you would like to include a text a student has written in a text area, `<Ref>` lets you do that. If a student writes a thesis statement, and you'd like to show that when they're writing supporting arguments, `<Ref>` is a nice way to do that. Or if you'd like to do a Mad Libs.
+```olx:playground
+<Vertical id="demo">
+  <Markdown>Write a claim about effective studying:</Markdown>
+  <LineInput id="claim" placeholder="I believe that..." />
+  <Markdown>Your claim:</Markdown>
+  <Ref target="claim" />
+  <Markdown>Now provide evidence to support it:</Markdown>
+  <TextArea id="evidence" rows="3" placeholder="Research shows..." />
+</Vertical>
+```
 
 ## Basic Usage
 
-### Example usage:
-```xml
-<TextArea id="student_essay">Write your essay here...</TextArea>
+Reference by target ID:
+```olx:code
+<TextArea id="student_essay" />
+<Ref target="student_essay" />
+```
+
+Or with child text:
+```olx:code
 <Ref>student_essay</Ref>
 ```
 
-This will simply mirror the text the student has written. We can do the same with the `target` attribute:
+## Properties
+- `target`: ID of the block to reference
+- `visible` (optional): Set to `false` for hidden references (useful in LLM prompts)
+- `field` (optional): Access a specific field instead of `getValue()`
+- `format` (optional): `"code"` for monospace code block display
 
-```xml
-<LineInput id="answer">Your answer</LineInput>
-<Ref target="answer" />
+## Common Use Cases
+
+### Thesis-Evidence Pattern
+
+Research on writing shows that keeping claims visible while writing supporting arguments improves coherence:
+
+```olx:playground
+<Vertical id="thesis_evidence">
+  <Markdown>**Step 1:** Write a thesis about the testing effect:</Markdown>
+  <TextArea id="thesis" rows="2" placeholder="The testing effect demonstrates that..." />
+
+  <Markdown>**Step 2:** Your thesis:</Markdown>
+  <Ref target="thesis" />
+  <Markdown>Now provide three pieces of evidence supporting this thesis:</Markdown>
+  <DynamicList id="evidence" min="2">
+    <TextArea placeholder="Evidence..." rows="2" />
+  </DynamicList>
+</Vertical>
 ```
 
-## Advanced Features
+### LLM Prompt Construction
 
-### Hidden References
+Use Ref to include student work in LLM prompts. Hidden refs are useful when you need the value but don't want it displayed:
 
-It's possible to include the reference without a visible component by setting `visible` to `false`:
+```olx:playground
+<Vertical id="llm_prompt">
+  <Markdown>Explain why spaced practice is more effective than massed practice:</Markdown>
+  <TextArea id="explanation" rows="4" />
+  <LLMFeedback id="feedback" />
+  <ActionButton label="Get Feedback">
+    <LLMAction target="feedback">
+      Evaluate this student explanation of spaced practice.
 
-```xml
-<Ref target="content" visible="false" />
+      Key points they should address:
+      - Forgetting between sessions forces retrieval (desirable difficulty)
+      - Each retrieval strengthens the memory trace
+      - Spacing should match desired retention interval
+
+      Be specific about what's correct and what's missing:
+
+      Student response: <Ref target="explanation" />
+    </LLMAction>
+  </ActionButton>
+</Vertical>
 ```
 
-The text will still be extracted for use in LLM prompts or other contexts, but nothing will be rendered.
+### Displaying Input Values
 
-### Field-Specific Access
+Show student responses with labels. Note: each Ref appears on its own line due to the block-level limitation described below.
 
-By default, Ref calls `getValue()` on the target component. However, you can specify a field to extract instead using the `field` attribute:
+```olx:playground
+<Vertical id="display_values">
+  <Markdown>Enter study strategy details:</Markdown>
+  <LineInput id="strategy" placeholder="A learning strategy" />
+  <LineInput id="percent" placeholder="A percentage (e.g., 25%)" />
 
-```xml
-<Ref target="input_field" field="value" />
+  <Markdown>---</Markdown>
+  <Markdown>**Your Entries:**</Markdown>
+  <Markdown>Strategy:</Markdown>
+  <Ref target="strategy" />
+  <Markdown>Improvement:</Markdown>
+  <Ref target="percent" />
+</Vertical>
 ```
 
-This converts a raw field into a getValue-style value. Many blocks only expose certain data through `getValue()` and don't support arbitrary field access. The `field` attribute lets you bypass `getValue()` and access the underlying field directly.
+### Aggregating Multiple Inputs
 
-For example, if a component has both `value` and `state` fields but its `getValue()` only returns the formatted value, you can use `field="state"` to access the state field directly.
+Useful for summarizing or submitting multiple student responses:
 
-### Complex Values (Dictionaries, Arrays)
+```olx:playground
+<Vertical id="aggregate">
+  <Markdown>Rate your confidence in these study strategies (1-10):</Markdown>
+  <Markdown>Retrieval practice:</Markdown>
+  <NumberInput id="retrieval" />
+  <Markdown>Spaced practice:</Markdown>
+  <NumberInput id="spaced" />
+  <Markdown>Interleaving:</Markdown>
+  <NumberInput id="interleave" />
 
-When the target component's value is a complex type (object, array), Ref converts it to a string representation:
-
-```xml
-<TabularMCQ id="survey">...</TabularMCQ>
-<Ref target="survey" />
+  <Collapsible id="summary" title="View Summary">
+    <Markdown>Your ratings:</Markdown>
+    <Markdown>Retrieval practice:</Markdown>
+    <Ref target="retrieval" />
+    <Markdown>Spaced practice:</Markdown>
+    <Ref target="spaced" />
+    <Markdown>Interleaving:</Markdown>
+    <Ref target="interleave" />
+  </Collapsible>
+</Vertical>
 ```
-
-**Value formatting rules:**
-- Strings and numbers: displayed as-is
-- Booleans: converted to "true" or "false"
-- Arrays of primitives: joined with ", "
-- Objects and complex arrays: JSON stringified (with indentation)
-
-### Code Formatting
-
-Use `format="code"` to render the value in a monospace code block with preserved whitespace. This is useful for displaying JSON or other structured data:
-
-```xml
-<Ref target="survey" format="code" />
-```
-
-Invalid format values display an error listing the valid options.
-
-### Error Handling
-
-If the target doesn't exist or the field is invalid, Ref displays a helpful error message:
-
-```xml
-<Ref target="typo_id" />
-<!-- Displays error: Target "typo_id" not found -->
-
-<Ref target="valid_id" field="nonexistent" />
-<!-- Displays error: Unknown field "nonexistent" -->
-```
-
-This helps course authors catch typos during development.
 
 ## Technical Notes
+
+**Block-level only:** Ref cannot be embedded inside Markdown text. This means inline patterns like `**My name is <Ref/> and I come from <Ref/>**` aren't currently possible. The examples above use label+value patterns that work with block-level Ref. True inline interpolation requires a future text-span block. (Exception: LLMAction supports embedded Ref for constructing prompts.)
 
 **getValue behavior:**
 - Returns a **string** for valid values (all types are formatted)
 - Returns an **error object** `{ error: true, message: "..." }` for validation failures
 
-This distinction is important: strings may come from user input, while objects are always system-generated. Downstream code can safely check `typeof value === 'object' && value.error` to detect errors.
+**Value formatting:**
+- Strings and numbers: displayed as-is
+- Booleans: converted to "true" or "false"
+- Arrays of primitives: joined with ", "
+- Objects and complex arrays: JSON stringified
+
+## Related Blocks
+- **AggregatedInputs**: Collects multiple input values
+- **UseDynamic**: Conditional display based on referenced values
 
 ## Future Directions
 
-1. **Functional Syntax**: `<Ref>word_count(essay)</Ref>`
-2. **Same, with async**: `<Ref>llm_prompt(student_thesis, 'summarize this in 3 bullets')</Ref>`
-3. **Concise Notation**: e.g. `<Ref target="block.field" />`
+1. **Inline Interpolation**: Allow references inside Markdown text, e.g. `{{claim}}` or `<Ref target="claim" />` within prose
+2. **Functional Syntax**: `<Ref>word_count(essay)</Ref>`
+3. **Async Functions**: `<Ref>llm_prompt(student_thesis, 'summarize this in 3 bullets')</Ref>`
+4. **Concise Notation**: e.g. `<Ref target="block.field" />`
 
-For functional syntax, we'd make a small PEG + evaluator, which is easy, but we'd also need to come up with a transformation registration scheme, not to mention, thinking about async.
-
-For concise notation is hard. `edu.mit.student_thesis` could either be:
-* ID="edu.mit" field="student_thesis"; OR
-* ID="edu.mit.student_thesis" field="getValue"
-
-We could either introspect and guess, use a different delimiter (e.g. `essay:cursorPosition` or `essay/cursorPosition`) or otherwise.
+For inline interpolation, Markdown would need to support mixed content parsing. For functional syntax, we'd make a small PEG + evaluator, plus a transformation registration scheme and async handling. For concise notation, we need to handle ambiguity between `edu.mit.field` as ID="edu.mit" field="field" vs ID="edu.mit.field" - likely via a different delimiter like `essay:cursorPosition`.

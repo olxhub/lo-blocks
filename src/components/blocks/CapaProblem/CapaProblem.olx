@@ -1,43 +1,6 @@
-<!-- CapaProblem Examples -->
-<!-- For input-specific examples, see:
-     - NumberInput.olx (numeric problems)
-     - ComplexInput.olx (complex number problems)
-     - ChoiceInput.olx (multiple choice)
-     - SortableInput.olx (ordering problems)
--->
-<Vertical id="CapaProblemDemo" title="CapaProblem Demo" launchable="true">
-
-  <Markdown id="intro">
-## CapaProblem Features
-
-See individual input blocks for more examples. This file demonstrates CapaProblem-specific features.
-  </Markdown>
-
-  <!-- Explicit targeting with multiple inputs -->
-  <CapaProblem id="explicit_target" title="Explicit Targeting">
-    <Markdown>
-### Using target= for complex layouts
-
-When inputs can't be nested inside the grader:
-    </Markdown>
-    <p>Enter numerator and denominator:</p>
-    <NumberInput id="num" /> / <NumberInput id="den" />
-    <RatioGrader answer="0.5" target="num,den" />
-  </CapaProblem>
-
-  <!-- Multiple graders in one problem -->
-  <CapaProblem id="multi_grader" title="Multiple Parts">
-    <Markdown>
-### Problem with multiple graded parts
-    </Markdown>
-    <NumericalGrader answer="8">
-      <p>Part A: What is 2³?</p>
-      <NumberInput />
-    </NumericalGrader>
-    <NumericalGrader answer="9">
-      <p>Part B: What is 3²?</p>
-      <NumberInput />
-    </NumericalGrader>
-  </CapaProblem>
-
-</Vertical>
+<CapaProblem id="CapaProblemDemo" title="Very Basic Example">
+  <NumericalGrader answer="8">
+    What is 2³?
+    <NumberInput />
+  </NumericalGrader>
+</CapaProblem>

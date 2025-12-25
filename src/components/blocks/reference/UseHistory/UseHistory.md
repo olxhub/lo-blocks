@@ -1,39 +1,55 @@
 # UseHistory
 
-Like UseDynamic, but maintains a history of all targets that have been displayed, with navigation controls to move back and forward through the history.
+Like UseDynamic, but maintains a history of all targets displayed, with navigation controls to move back and forward.
 
-## Attributes
+```olx:playground
+<Hidden>
+  <Markdown id="panel_a">**Panel A**: First content panel</Markdown>
+  <Markdown id="panel_b">**Panel B**: Second content panel</Markdown>
+  <Markdown id="panel_c">**Panel C**: Third content panel</Markdown>
+</Hidden>
 
-- `target`: Default component ID to render
-- `targetRef`: ID of another component whose `value` determines what to render
-- `initial`: Initial history entry (shown before any dynamic updates)
+<ChoiceInput id="selector">
+  <Key value="panel_a">Show A</Key>
+  <Distractor value="panel_b">Show B</Distractor>
+  <Distractor value="panel_c">Show C</Distractor>
+</ChoiceInput>
 
-## Basic Usage
+<UseHistory initial="panel_a" targetRef="selector" />
+```
+
+Select different panels, then use the navigation dots to browse your history.
 
 ### With Chat Sidebar
 
-UseHistory is commonly used with Chat blocks to show activities that accumulate as a conversation progresses:
-
-```xml
+```olx:playground
 <Hidden>
   <Markdown id="sidebar_intro">Activities will appear here...</Markdown>
-  <Vertical id="activity_1">
-    <Markdown>**First Activity**</Markdown>
-    <TextArea id="response_1" />
+  <Vertical id="activity_one">
+    <Markdown>**Reflection 1**</Markdown>
+    <TextArea id="reflect1" rows="2" placeholder="Your thoughts..." />
   </Vertical>
-  <Vertical id="activity_2">
-    <Markdown>**Second Activity**</Markdown>
-    <TextArea id="response_2" />
+  <Vertical id="activity_two">
+    <Markdown>**Reflection 2**</Markdown>
+    <TextArea id="reflect2" rows="2" placeholder="Your thoughts..." />
   </Vertical>
 </Hidden>
 
-<SplitPanel>
+<SplitPanel sizes="65,35">
   <LeftPane>
     <Chat id="discussion">
-      ...conversation that triggers sidebar changes...
-      sidebar -> activity_1
-      ...more conversation...
-      sidebar -> activity_2
+Title: Discussion
+~~~~
+
+Alex: Let's think about this topic.
+
+sidebar -> activity_one
+
+Kim: Good point! Here's another angle.
+
+sidebar -> activity_two
+
+Alex: That makes sense.
     </Chat>
   </LeftPane>
   <RightPane>
@@ -42,24 +58,14 @@ UseHistory is commonly used with Chat blocks to show activities that accumulate 
 </SplitPanel>
 ```
 
-### With Dynamic Input
+## Attributes
 
-Like UseDynamic, can follow an input's value:
-
-```xml
-<ChoiceInput id="selector">
-  <Key id="opt_a" value="panel_a">Panel A</Key>
-  <Distractor id="opt_b" value="panel_b">Panel B</Distractor>
-</ChoiceInput>
-
-<UseHistory target="panel_a" targetRef="selector" />
-```
-
-Each selection adds to the history, allowing users to navigate back to previous views.
+- `initial`: Initial content to display before any selections
+- `targetRef`: ID of component whose `value` determines what to render
 
 ## Navigation Controls
 
-UseHistory displays dot indicators and arrow controls for navigating through history:
+UseHistory displays dot indicators for navigating through history:
 - Click dots to jump to any point in history
 - Use arrows to move forward/backward one step
 - New items are added to the end of history
@@ -69,18 +75,8 @@ UseHistory displays dot indicators and arrow controls for navigating through his
 - `value`: Current target ID being rendered
 - `history`: Array of all target IDs that have been shown
 - `index`: Current position in the history array
-- `showHistory`: Whether to display navigation controls (component setting)
-- `follow`: Whether to auto-advance to newest items (component setting)
-
-## Use Cases
-
-- **Chat sidebars**: Accumulate activities/exercises as conversation progresses
-- **Guided tutorials**: Track progress through steps with ability to review
-- **Exploration interfaces**: Let users navigate back to previous content
-- **Wizard with review**: Complete steps while maintaining access to earlier ones
 
 ## Related Blocks
 
 - **UseDynamic**: Simpler version without history tracking
 - **Use**: Static content inclusion
-- **Chat**: Often paired with UseHistory for sidebar activities

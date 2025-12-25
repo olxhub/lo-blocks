@@ -1,13 +1,28 @@
 # MarkupProblem
 
-Simple markup language for authoring interactive problems. Uses edX-style syntax
-that's easier to write than full OLX.
+Simple markup language for authoring interactive problems. Uses edX-style syntax that's easier to write than full OLX.
 
-## Syntax
+```olx:playground
+<MarkupProblem id="demo" title="Quick Demo"><![CDATA[
+>>What is 2 + 2?<<
+
+( ) 3
+(x) 4
+( ) 5
+
+||Think about counting on your fingers.||
+
+[explanation]
+2 + 2 = 4
+[/explanation]
+]]></MarkupProblem>
+```
+
+## Syntax Reference
 
 ### Headers
 ```
-Question Title
+Problem Title
 ===
 ```
 
@@ -16,7 +31,7 @@ Question Title
 >>What is the answer?<<
 ```
 
-### Multiple Choice
+### Multiple Choice (radio)
 ```
 ( ) Wrong answer
 (x) Correct answer
@@ -44,7 +59,7 @@ not= wrong answer {{feedback for this wrong answer}}
 = [1, 10]
 ```
 
-### Hints
+### Inline Hints
 ```
 ||Hint text shown inline||
 ```
@@ -67,51 +82,63 @@ Shown after correct answer
 [/explanation]
 ```
 
-## Examples
+## Examples by Type
 
-### Multiple Choice (radio)
+### Multiple Choice
 
 ```olx:playground
-<MarkupProblem id="markup_radio" title="Geography Quiz">
-What is the capital of France?
-===
+<MarkupProblem id="mcq" title="Geography"><![CDATA[
+>>What is the capital of France?<<
+
 ( ) London
 (x) Paris
 ( ) Berlin
-</MarkupProblem>
+
+[explanation]
+Paris is the capital and largest city of France.
+[/explanation]
+]]></MarkupProblem>
 ```
 
-### Checkboxes (multi-select)
+### Checkboxes
 
-```xml
-<MarkupProblem id="markup_checkbox">
-Select all prime numbers:
-===
+```olx:playground
+<MarkupProblem id="checkbox" title="Math"><![CDATA[
+>>Select all prime numbers:<<
+
 [x] 2
 [x] 3
 [ ] 4
 [x] 5
-[ ] 6
-</MarkupProblem>
+
+||A prime number is only divisible by 1 and itself.||
+]]></MarkupProblem>
 ```
 
 ### Text Input
 
-```xml
-<MarkupProblem id="markup_text">
-What color is the sky?
-===
+```olx:playground
+<MarkupProblem id="text" title="Science"><![CDATA[
+>>What color is the sky on a clear day?<<
+
 = blue
 or= Blue
-</MarkupProblem>
+not= red {{That's the color at sunset!}}
+]]></MarkupProblem>
 ```
 
 ### Numerical Input
 
-```xml
-<MarkupProblem id="markup_numerical">
-What is pi to two decimal places?
-===
+```olx:playground
+<MarkupProblem id="numerical" title="Math"><![CDATA[
+>>What is pi to two decimal places?<<
+
 = 3.14 +- 0.01
-</MarkupProblem>
+
+{{
+Pi is the ratio of a circle's circumference to its diameter.
+====
+It starts with 3.14159...
+}}
+]]></MarkupProblem>
 ```

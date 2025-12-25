@@ -1,71 +1,34 @@
-# Vertical Block
+# Vertical
 
-## Overview
+Container that groups blocks in a vertical stack. Use it to combine different block types that need to stay together.
 
-The Vertical block is a container that arranges child blocks in a vertical stack. It follows edX OLX conventions and provides basic vertical layout for grouping related content.
-
-## Technical Usage
-
-### Basic Syntax
-```xml
-<Vertical>
-  <Markdown>First block</Markdown>
-  <Markdown>Second block</Markdown>
-  <Markdown>Third block</Markdown>
+```olx:playground
+<Vertical id="greeting">
+  <LineInput id="name" placeholder="Your name..." />
+  <Markdown>**Hello,**</Markdown>
+  <Ref target="name" />
 </Vertical>
 ```
 
-### Properties
+## Properties
 - `id` (optional): Unique identifier
 
-### Child Blocks
-Any block can be a child of Vertical. Children are rendered in document order from top to bottom.
+## When to Use
 
-## Pedagogical Purpose
+Vertical is needed when you want to group multiple block types together:
 
-Vertical layout supports content organization:
-
-1. **Natural Reading Flow**: Top-to-bottom matches reading direction
-2. **Logical Grouping**: Related content stays together
-3. **Simple Structure**: No complex layout to distract from content
-4. **Flexible Content**: Any combination of blocks
-
-## Common Use Cases
-
-### Question with Feedback
-```xml
-<Vertical>
-  <Markdown>What is 2 + 2?</Markdown>
-  <NumberInput id="answer" />
-  <NumericalGrader target="answer" expected="4" />
-  <Correctness />
-  <StatusText />
+```olx:playground
+<Vertical id="survey">
+  <Markdown>Rate your understanding:</Markdown>
+  <DropdownInput id="rating">Not at all, Somewhat, Very well</DropdownInput>
+  <Markdown>Explain your rating:</Markdown>
+  <TextArea id="explain" rows="2" />
 </Vertical>
 ```
 
-### Instructional Sequence
-```xml
-<Vertical>
-  <Markdown>## Introduction</Markdown>
-  <Image src="diagram.png" alt="Concept diagram" />
-  <Markdown>## Details</Markdown>
-  <Markdown>Additional explanation...</Markdown>
-</Vertical>
-```
-
-### Grouped Inputs
-```xml
-<Vertical>
-  <LineInput id="name" label="Name:" />
-  <LineInput id="email" label="Email:" />
-  <TextArea id="message" label="Message:" />
-</Vertical>
-```
+For pure text content, a single Markdown block is simpler.
 
 ## Related Blocks
 - **Sequential**: Step-by-step progression with navigation
 - **SplitPanel**: Side-by-side layout
 - **SideBarPanel**: Main content with sidebar
-
-## Example File
-See `Vertical.olx` for working examples.

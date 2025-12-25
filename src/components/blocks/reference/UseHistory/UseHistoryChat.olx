@@ -1,1 +1,80 @@
-../../specialized/Chat/ChatWithSidebar.olx
+<Vertical id="ChatWithSidebar" title="Interactive Discussion">
+
+  <!-- Activities that appear in the sidebar -->
+  <Hidden>
+    <Markdown id="sidebar_intro">Activities will appear here as the conversation progresses.</Markdown>
+    <Vertical id="initial_thoughts_activity">
+      <Markdown>**What do you already know about effective study techniques?**</Markdown>
+      <TextArea id="initial_thoughts" placeholder="Type your thoughts here..." />
+      <ActionButton id="submit_initial" dependsOn="initial_thoughts" target="interactive_chat" action="advance" label="Submit" />
+    </Vertical>
+    <Vertical id="follow_up_activity">
+      <Markdown>**How might you apply these strategies to your own studying?**</Markdown>
+      <TextArea id="follow_up" placeholder="Describe your plan..." />
+      <ActionButton id="submit_follow_up" dependsOn="follow_up" target="interactive_chat" action="advance" label="Submit" />
+    </Vertical>
+    <Vertical id="spacing_goal_activity">
+      <Markdown>**Set a spaced-practice goal:** How many shorter sessions will you spread across this week? Aim for at least 3.</Markdown>
+      <NumberInput id="spacing_goal" placeholder="e.g., 4" />
+      <ActionButton id="submit_spacing_goal" dependsOn="spacing_goal" target="interactive_chat" action="advance" label="Save goal" />
+    </Vertical>
+    <Vertical id="confidence_check_activity">
+      <Markdown>**Confidence check (0-1):** Rate how confident you are about sticking with spaced practice and add one thing that would boost it.</Markdown>
+      <NumberInput id="confidence_score" min="0" max="1" step="0.1" placeholder="e.g., 0.8" />
+      <TextArea id="confidence_note" placeholder="What's one thing that could raise it?" />
+      <ActionButton id="submit_confidence" dependsOn="confidence_score, confidence_note" target="interactive_chat" action="advance" label="Share confidence" />
+    </Vertical>
+  </Hidden>
+
+  <SplitPanel sizes="65,35">
+    <LeftPane>
+      <Chat id="interactive_chat" title="Study Session">
+Title: Study Session
+~~~~
+
+Alex: Welcome! Before we dive in - what do you already know about study techniques?
+
+--- wait initial_thoughts ---
+
+Alex: Thanks for sharing! Here's what research tells us.
+
+Alex: Active recall - testing yourself - is far more effective than passive review like re-reading.
+
+Sam: Like using flashcards?
+
+Alex: Exactly! And spacing practice over time beats cramming.
+
+sidebar -> follow_up_activity
+
+Alex: Now, how might you apply this?
+
+--- wait follow_up ---
+
+Alex: Great plan! The key is making it a habit.
+
+sidebar -> spacing_goal_activity
+
+Alex: Let's set a quick spaced-practice goal. Enter how many short sessions you'll spread across this week.
+
+--- wait spacing_goal value>=3 ---
+
+Alex: Planning at least three sessions is a solid start.
+
+sidebar -> confidence_check_activity
+
+Alex: Finally, rate your confidence in sticking with the plan and note one thing that would make it even easier.
+
+--- wait confidence_score value>=0.7, confidence_note ---
+
+Alex: Awesome—feeling 0.7 or higher and having a booster plan means you're ready to try this.
+
+Sam: Thanks for the tips!
+      </Chat>
+    </LeftPane>
+    <RightPane>
+      <Markdown>### Your Responses</Markdown>
+      <UseHistory id="sidebar" initial="initial_thoughts_activity" />
+    </RightPane>
+  </SplitPanel>
+
+</Vertical>

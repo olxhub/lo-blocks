@@ -1,5 +1,4 @@
-<!-- LLMFeedback Block Examples -->
-<Vertical id="LLMFeedbackDemo" title="LLMFeedback Block Demo" launchable="true">
+<Vertical id="LLMFeedbackDemo" title="LLMFeedback Block Demo">
 
   <Markdown id="intro">
 ## LLMFeedback Display Examples

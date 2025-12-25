@@ -1,68 +1,7 @@
-<!--
----
-description: Demo of CheckboxInput with all-or-nothing and partial credit grading
-category: demo
----
--->
-<Vertical id="checkbox_demo" launchable="true" title="Checkbox Input Demo">
-
-  <Markdown>
-    ## Checkbox Questions
-
-    Use `CheckboxInput` + `CheckboxGrader` for "select all that apply" questions.
-  </Markdown>
-
-  <!-- All-or-nothing grading (default) -->
-  <CapaProblem id="checkbox_allornone">
-    <CheckboxGrader>
-      <Markdown>### All-or-Nothing Mode
-
-Select all the **gas giants** in our solar system:</Markdown>
-      <CheckboxInput>
-        <Key>Jupiter</Key>
-        <Key>Saturn</Key>
-        <Key>Uranus</Key>
-        <Key>Neptune</Key>
-        <Distractor>Earth</Distractor>
-        <Distractor>Mars</Distractor>
-        <Distractor>Mercury</Distractor>
-      </CheckboxInput>
-    </CheckboxGrader>
-  </CapaProblem>
-
-  <!-- Partial credit grading -->
-  <CapaProblem id="checkbox_partial">
-    <CheckboxGrader partialCredit="true">
-      <Markdown>### Partial Credit Mode
-
-Select symptoms of dehydration (you'll get partial credit for each correct answer):</Markdown>
-      <CheckboxInput>
-        <Key>Thirst</Key>
-        <Key>Dark urine</Key>
-        <Key>Fatigue</Key>
-        <Key>Dizziness</Key>
-        <Distractor>Runny nose</Distractor>
-        <Distractor>Rash</Distractor>
-      </CheckboxInput>
-    </CheckboxGrader>
-  </CapaProblem>
-
-  <!-- MarkupProblem syntax -->
-  <Markdown>
-    ## Using MarkupProblem Syntax
-
-    You can also use the simpler MarkupProblem syntax with `[x]` and `[ ]`:
-  </Markdown>
-
-  <MarkupProblem id="markup_checkbox_demo">
-Select all prime numbers:
-===
-[x] 2
-[x] 3
-[ ] 4
-[x] 5
-[ ] 6
-[x] 7
-  </MarkupProblem>
-
-</Vertical>
+<CheckboxInput id="CheckboxInputDemo">
+  <Key>LON-CAPA</Key>
+  <Key>Open edX</Key>
+  <Key>Learning Observer</Key>
+  <Distractor>Blackboard</Distractor>
+  <Distractor>Canvas</Distractor>
+</CheckboxInput>

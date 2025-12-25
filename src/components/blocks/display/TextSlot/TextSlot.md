@@ -10,14 +10,15 @@ The name reflects its purpose: it's a slot in your content where text gets fille
 
 ## Basic Usage
 
-```xml
-<TextSlot id="my_slot" />
-
-<ActionButton label="Fill Slot">
-  <LLMAction target="my_slot">
-    Generate some text here.
-  </LLMAction>
-</ActionButton>
+```olx:playground
+<Vertical id="basic_slot">
+  <TextSlot id="my_slot" />
+  <ActionButton label="Fill Slot">
+    <LLMAction target="my_slot">
+      Write a one-sentence fact about memory.
+    </LLMAction>
+  </ActionButton>
+</Vertical>
 ```
 
 ## How It Works
@@ -39,20 +40,21 @@ When an LLMAction targets a TextSlot, it writes to both fields. The slot shows:
 
 The primary use case. IntakeGate watches TextSlots and reveals content when they're populated:
 
-```xml
-<IntakeGate targets="greeting">
+```olx:playground
+<IntakeGate id="gate_demo" targets="personalized_intro">
   <Vertical>
-    <TextArea id="name" placeholder="Your name" />
+    <Markdown>What's your learning goal?</Markdown>
+    <TextArea id="goal" placeholder="I want to learn..." />
     <ActionButton label="Go">
-      <LLMAction target="greeting">
-        Write a friendly greeting for <Ref>name</Ref>
+      <LLMAction target="personalized_intro">
+        Write an introduction to metacognition for someone whose goal is: <Ref>goal</Ref>
       </LLMAction>
     </ActionButton>
   </Vertical>
 
-  <Markdown>
-    <TextSlot id="greeting" />
-  </Markdown>
+  <Vertical>
+    <TextSlot id="personalized_intro" />
+  </Vertical>
 </IntakeGate>
 ```
 
@@ -60,47 +62,49 @@ The primary use case. IntakeGate watches TextSlots and reveals content when they
 
 Embed personalized context within problem text:
 
-```xml
-<CapaProblem>
-  <p><TextSlot id="problem_context" /></p>
-  <p>What is the total cost?</p>
-  <KeyGrader>
-    <NumberInput id="answer" />
-  </KeyGrader>
-</CapaProblem>
+```olx:playground
+<Vertical id="inline_demo">
+  <ActionButton label="Generate Scenario">
+    <LLMAction target="problem_context">
+      Write a brief scenario (2-3 sentences) about a student preparing for an exam next week.
+    </LLMAction>
+  </ActionButton>
+  <CapaProblem id="study_strategy" title="Study Strategy">
+    <TextSlot id="problem_context" />
+    Based on this scenario, what study strategy would you recommend?
+    <KeyGrader>
+      <ChoiceInput>
+        <Key>Spaced retrieval practice</Key>
+        <Distractor>Cramming the night before</Distractor>
+      </ChoiceInput>
+    </KeyGrader>
+  </CapaProblem>
+</Vertical>
 ```
 
 ### Multiple Slots
 
 Generate several pieces of content in parallel:
 
-```xml
-<ActionButton label="Generate All">
-  <LLMAction target="intro">Write an introduction...</LLMAction>
-  <LLMAction target="example">Create an example...</LLMAction>
-  <LLMAction target="summary">Summarize...</LLMAction>
-</ActionButton>
-
-<Vertical>
-  <TextSlot id="intro" />
-  <TextSlot id="example" />
-  <TextSlot id="summary" />
+```olx:playground
+<Vertical id="multi_slot">
+  <ActionButton label="Generate All">
+    <LLMAction target="surface">Define surface learning in one sentence.</LLMAction>
+    <LLMAction target="deep">Define deep learning in one sentence.</LLMAction>
+    <LLMAction target="transfer">Define transfer learning in one sentence.</LLMAction>
+  </ActionButton>
+  <Markdown>**Surface:**</Markdown>
+  <TextSlot id="surface" />
+  <Markdown>**Deep:**</Markdown>
+  <TextSlot id="deep" />
+  <Markdown>**Transfer:**</Markdown>
+  <TextSlot id="transfer" />
 </Vertical>
 ```
 
 ## Styling
 
 TextSlot renders with class `text-slot`. During loading, it has `text-slot--loading`.
-
-```css
-.text-slot {
-  /* Default: no special styling, flows with surrounding text */
-}
-
-.text-slot--loading {
-  /* Shows "..." indicator */
-}
-```
 
 ## Attributes
 
@@ -130,3 +134,4 @@ Use TextSlot when you want generated text to blend into surrounding content. Use
 - **LLMAction**: Writes to TextSlot via `target` attribute
 - **LLMFeedback**: Alternative for styled feedback display
 - **Ref**: References values in LLM prompts
+

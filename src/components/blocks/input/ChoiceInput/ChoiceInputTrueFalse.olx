@@ -1,0 +1,9 @@
+<CapaProblem id="ChoiceInputTF" title="True or False">
+  <Markdown>True or False: According to research on the testing effect, taking practice tests is more effective for long-term retention than spending the same time re-reading material.</Markdown>
+  <KeyGrader>
+    <ChoiceInput>
+      <Key>True</Key>
+      <Distractor>False</Distractor>
+    </ChoiceInput>
+  </KeyGrader>
+</CapaProblem>

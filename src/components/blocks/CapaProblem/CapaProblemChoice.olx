@@ -1,0 +1,17 @@
+<CapaProblem id="CapaProblemChoice" title="Solar System">
+  <KeyGrader>
+    Which planet is closest to the Sun?
+    <ChoiceInput>
+      <Distractor>Venus</Distractor>
+      <Key>Mercury</Key>
+      <Distractor>Earth</Distractor>
+      <Distractor>Mars</Distractor>
+    </ChoiceInput>
+  </KeyGrader>
+  <DemandHints>
+    <Hint>It's the smallest planet in our solar system.</Hint>
+  </DemandHints>
+  <Explanation>
+Mercury orbits at an average distance of 58 million km from the Sun, making it the closest planet. Venus is second at 108 million km.
+  </Explanation>
+</CapaProblem>

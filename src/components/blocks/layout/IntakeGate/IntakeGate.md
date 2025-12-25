@@ -4,7 +4,7 @@ Gates content behind an intake process. Collects input, shows a loading state wh
 
 ## Why IntakeGate Exists
 
-Traditional educational content is static: all students see the same problems and examples. Research shows that personalization improves engagement and learning outcomes. When word problems reference students' actual interests (basketball, cooking, video games), students engage more deeply with the underlying concepts.
+Traditional educational content is static: all students see the same problems and examples. Research suggests that personalization improves engagement and learning outcomes. When word problems reference students' actual interests, students engage more deeply with the underlying concepts.
 
 IntakeGate enables a powerful pattern: **gather information about the learner, then dynamically generate personalized content**. The intake phase collects preferences, prior knowledge, or context. The system processes this (typically via LLM), then reveals content tailored to that specific learner.
 
@@ -12,10 +12,11 @@ This mirrors effective tutoring. A good tutor asks questions first ("What are yo
 
 ## Basic Usage
 
-```xml
+```olx:code
 <IntakeGate targets="output_slot">
   <!-- First child: intake form -->
   <Vertical>
+    <Markdown>What topic would you like to explore?</Markdown>
     <TextArea id="user_input" />
     <ActionButton label="Generate">
       <LLMAction target="output_slot">
@@ -51,11 +52,11 @@ The `targets` attribute lists TextSlot IDs to watch. When all targets have value
 
 ### Personalized Word Problems
 
-The motivating use case. Students enter an interest, then receive math problems recontextualized around that interest. The underlying mathematics stays fixed (ensuring valid assessment), but the narrative changes.
+Students enter an interest, then receive math problems recontextualized around that interest. The underlying mathematics stays fixed (ensuring valid assessment), but the narrative changes.
 
 From Walkington (2013): students who received personalized algebra problems showed significantly better transfer to novel problems compared to those receiving generic versions.
 
-```xml
+```olx:code
 <IntakeGate targets="problem_context">
   <Vertical>
     <Markdown>What topic interests you?</Markdown>
@@ -69,9 +70,9 @@ From Walkington (2013): students who received personalized algebra problems show
     </ActionButton>
   </Vertical>
 
-  <CapaProblem>
+  <CapaProblem id="personalized_problem" title="Linear Equations">
     <TextSlot id="problem_context" />
-    <p>Which equation represents total cost (y) for hours worked (x)?</p>
+    <Markdown>Which equation represents total cost (y) for hours worked (x)?</Markdown>
     <KeyGrader>
       <ChoiceInput>
         <Key>y = 50x + 80</Key>
@@ -84,20 +85,20 @@ From Walkington (2013): students who received personalized algebra problems show
 
 ### Adaptive Explanations
 
-Adjust explanation complexity based on stated background:
+Adjust explanation complexity based on stated background - supporting student autonomy by meeting them where they are:
 
-```xml
+```olx:code
 <IntakeGate targets="explanation">
   <Vertical>
-    <Markdown>How familiar are you with calculus?</Markdown>
+    <Markdown>How familiar are you with this topic?</Markdown>
     <ChoiceInput id="background">
-      <Choice>Never studied it</Choice>
-      <Choice>Took a course years ago</Choice>
-      <Choice>Use it regularly</Choice>
+      <Choice>New to this</Choice>
+      <Choice>Some background</Choice>
+      <Choice>Experienced</Choice>
     </ChoiceInput>
     <ActionButton label="Continue">
       <LLMAction target="explanation">
-        Explain derivatives to someone with this background: <Ref>background</Ref>
+        Explain metacognition to someone with this background: <Ref>background</Ref>
         Adjust terminology and examples appropriately.
       </LLMAction>
     </ActionButton>
@@ -111,47 +112,25 @@ Adjust explanation complexity based on stated background:
 
 ### Scenario Generation
 
-Generate case studies or scenarios based on student-provided context:
+Generate case studies based on student context:
 
-```xml
+```olx:code
 <IntakeGate targets="case_study">
   <Vertical>
-    <Markdown>What field do you work in or plan to enter?</Markdown>
-    <TextArea id="field" />
+    <Markdown>What context would be most relevant to you?</Markdown>
+    <TextArea id="context" />
     <ActionButton label="Generate Case Study">
       <LLMAction target="case_study">
-        Create a brief ethics case study relevant to: <Ref>field</Ref>
-        Include a dilemma with competing considerations.
+        Create a scenario about executive function challenges in: <Ref>context</Ref>
+        Include planning, inhibition, and working memory aspects.
       </LLMAction>
     </ActionButton>
   </Vertical>
 
   <Vertical>
     <TextSlot id="case_study" />
-    <TextArea id="response" placeholder="How would you handle this situation?" />
+    <TextArea id="response" placeholder="How would you support this learner?" />
   </Vertical>
-</IntakeGate>
-```
-
-## Multiple TextSlots
-
-IntakeGate can watch multiple targets. Content reveals only when all are populated:
-
-```xml
-<IntakeGate targets="context_1,context_2,context_3">
-  <!-- Intake with multiple LLMActions -->
-  <ActionButton label="Generate All">
-    <LLMAction target="context_1">...</LLMAction>
-    <LLMAction target="context_2">...</LLMAction>
-    <LLMAction target="context_3">...</LLMAction>
-  </ActionButton>
-
-  <!-- Content with multiple slots -->
-  <Sequential>
-    <TextSlot id="context_1" />
-    <TextSlot id="context_2" />
-    <TextSlot id="context_3" />
-  </Sequential>
 </IntakeGate>
 ```
 
@@ -159,15 +138,13 @@ IntakeGate can watch multiple targets. Content reveals only when all are populat
 
 **Keep intake lightweight.** Long forms before content creates friction. Ask only what's needed for meaningful personalization.
 
-**Validate the pattern.** Personalization should serve learning, not novelty. The Walkington research worked because interest-based contexts helped students see the relevance of abstract math. Arbitrary personalization ("Here's a problem about Taylor Swift") without pedagogical purpose may distract rather than help.
+**Validate the pattern.** Personalization should serve learning, not novelty. The Walkington research worked because interest-based contexts helped students see the relevance of abstract math.
 
 **Fixed assessments, flexible contexts.** For valid assessment, keep the underlying structure constant. Change the narrative wrapper, not the mathematical relationships or answer options.
 
 ## Technical Notes
 
 IntakeGate watches TextSlot `value` and `state` fields. It transitions to loading when any target's LLM starts running, and to content when all targets have non-empty values.
-
-The block currently checks `LLM_STATUS.RUNNING` specifically. A future "Doneness" abstraction would allow gating on any completion state (problem correctness, form validation, etc.).
 
 ## Related Blocks
 
@@ -182,4 +159,6 @@ Arslan, B., Lehman, B., Tenison, C., Sparks, J. R., López, A. A., Gu, L., & Zap
 
 Arslan, B., Wilschut, T., van Rijn, H., & van der Velde, M. (2024). Evidence-Based Dynamic Personalization for Learning and Assessment Tools (ED-PLAT): Machine- and Learner-Driven Adaptation to Support All Learners. *International Conference on Artificial Intelligence in Education*, 477-491.
 
+
 Walkington, C. A. (2013). Using adaptive learning technologies to personalize instruction to student interests: The impact of relevant contexts on performance and learning outcomes. *Journal of Educational Psychology*, 105(4), 932-945.
+

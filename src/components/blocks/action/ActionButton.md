@@ -1,35 +1,33 @@
-# ActionButton Block
+# ActionButton
 
-## Overview
+A clickable button that triggers actions on child components. When clicked, it finds and executes all action blocks (graders, LLMActions, etc.) nested inside it.
 
-The ActionButton block provides a clickable button that triggers actions on its child components. When clicked, it automatically finds and executes all action blocks (graders, LLMActions, etc.) that are nested inside it.
-
-## Technical Usage
-
-### Basic Syntax
-```xml
-<ActionButton label="Check Answer">
-  <NumericalGrader target="input" expected="42" />
-</ActionButton>
+```olx:playground
+<Vertical id="feedback_demo">
+  <Markdown>Explain how cognitive load theory applies to instructional design:</Markdown>
+  <TextArea id="response" rows="4" placeholder="Cognitive load theory suggests..." />
+  <LLMFeedback id="feedback" />
+  <ActionButton label="Get Feedback">
+    <LLMAction target="feedback">
+      A student is learning about cognitive load theory. Provide specific, constructive feedback on their explanation. If they mention intrinsic, extraneous, or germane load correctly, acknowledge it. If there are gaps, suggest what they might add:
+      <Ref target="response" />
+    </LLMAction>
+  </ActionButton>
+</Vertical>
 ```
 
-### Properties
-- `id` (optional): Unique identifier
+## Properties
 - `label` (required): Button text to display
 - `dependsOn` (optional): Prerequisite conditions before button is enabled
 
-### State Fields
+## State
 - `isDisabled`: Whether the button is currently disabled
 
-### Action Discovery
+## Action Discovery
 
-ActionButton uses `inferRelatedNodes` to find actions to execute. By default, it searches:
-- **Kids**: All descendant (child) nodes of the button
-- **Parents**: All ancestor nodes (rarely used for actions)
+Actions must be **children** of ActionButton, not siblings:
 
-**Important**: Actions must be **children** of ActionButton, not siblings:
-
-```xml
+```olx:code
 <!-- CORRECT: Action is a child -->
 <ActionButton label="Get Feedback">
   <LLMAction target="feedback">...</LLMAction>
@@ -40,57 +38,58 @@ ActionButton uses `inferRelatedNodes` to find actions to execute. By default, it
 <ActionButton label="Get Feedback" />
 ```
 
-## Pedagogical Purpose
-
-ActionButton enables interactive assessment:
-
-1. **Student Agency**: Students control when to submit
-2. **Deliberate Action**: Prevents accidental submissions
-3. **Multi-Action Coordination**: Triggers multiple graders/actions at once
-4. **Visual Feedback**: Clear interaction point for students
-
 ## Common Use Cases
 
 ### Trigger Grading
-```xml
-<NumberInput id="answer" />
-<ActionButton label="Check Answer">
-  <NumericalGrader id="grader" target="answer" answer="42" />
-</ActionButton>
-<Correctness target="grader" />
+
+```olx:playground
+<Vertical id="grading_demo">
+  <Markdown>According to Bloom's revised taxonomy, how many cognitive levels are there?</Markdown>
+  <NumberInput id="answer" />
+  <ActionButton label="Check Answer">
+    <NumericalGrader id="grader" target="answer" answer="6" />
+  </ActionButton>
+  <Correctness target="grader" />
+</Vertical>
 ```
 
-Note: `Correctness` targets the **grader**, not the input. The grader stores the correctness state.
+Note the wiring: `NumericalGrader` targets the input (`answer`) to get its value, and `Correctness` targets the grader (`grader`) to display its `correct` state. `CapaProblem` handles this wiring automatically.
 
-### Request LLM Feedback
-```xml
-<TextArea id="response" />
-<LLMFeedback id="feedback" />
-<ActionButton label="Get Feedback">
-  <LLMAction target="feedback">
-    Evaluate this student response:
-    <Ref id="response_ref" target="response" />
-  </LLMAction>
-</ActionButton>
-```
+### Multiple Parallel Analyses
 
-### Multiple Actions
-```xml
-<TextArea id="essay" />
-<LLMFeedback id="grammar" />
-<LLMFeedback id="style" />
-<ActionButton label="Analyze">
-  <LLMAction target="grammar">Check grammar: <Ref id="g_ref" target="essay" /></LLMAction>
-  <LLMAction target="style">Analyze style: <Ref id="s_ref" target="essay" /></LLMAction>
-</ActionButton>
+```olx:playground
+<Vertical id="multi_demo">
+  <Markdown>Write a brief learning objective for a lesson on photosynthesis:</Markdown>
+  <TextArea id="objective" rows="2" placeholder="Students will be able to..." />
+  <LLMFeedback id="bloom_feedback" />
+  <LLMFeedback id="measurable_feedback" />
+  <ActionButton label="Analyze Objective">
+    <LLMAction target="bloom_feedback">
+      Identify which level of Bloom's taxonomy this learning objective addresses (Remember, Understand, Apply, Analyze, Evaluate, or Create):
+      <Ref target="objective" />
+    </LLMAction>
+    <LLMAction target="measurable_feedback">
+      Evaluate whether this learning objective is measurable. Does it use an observable action verb? How could it be improved?
+      <Ref target="objective" />
+    </LLMAction>
+  </ActionButton>
+</Vertical>
 ```
 
 ### Conditional Enable
-```xml
-<TextArea id="essay" />
-<ActionButton label="Submit" dependsOn="essay:filled">
-  <LLMAction target="feedback">...</LLMAction>
-</ActionButton>
+
+```olx:playground
+<Vertical id="conditional_demo">
+  <Markdown>Describe Piaget's stages of cognitive development:</Markdown>
+  <TextArea id="essay" rows="3" placeholder="Start typing..." />
+  <LLMFeedback id="fb" />
+  <ActionButton label="Submit for Feedback" dependsOn="essay:filled">
+    <LLMAction target="fb">
+      Evaluate this description of Piaget's stages. Check for accuracy and completeness:
+      <Ref target="essay" />
+    </LLMAction>
+  </ActionButton>
+</Vertical>
 ```
 
 ## Related Blocks
@@ -99,6 +98,3 @@ Note: `Correctness` targets the **grader**, not the input. The grader stores the
 - **LLMAction**: Executes LLM prompts when triggered
 - **LLMFeedback**: Displays LLM responses
 - **CapaProblem**: Provides automatic Check button for graded problems
-
-## Example File
-See `ActionButton.olx` for working examples.

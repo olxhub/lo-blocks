@@ -1,59 +1,25 @@
-<Vertical id="MarkupProblemDemo" title="MarkupProblem Demo" launchable="true">
-
-  <Markdown id="intro">
-## MarkupProblem
-
-Simple markup syntax for authoring problems. Supports multiple choice,
-text input, numerical input, hints, and explanations.
-  </Markdown>
-
-  <!-- Multiple choice example -->
-  <MarkupProblem id="physics_mc" title="Physics Question"><![CDATA[
-Newton's Laws
+<MarkupProblem id="MarkupProblemDemo" title="Authoring problems with simple markup"><![CDATA[
+Checkbox Example
 ===
 
-Consider a ball thrown straight up into the air.
+>>What kinds of problems can MarkupProblem author?<<
 
->>At the highest point of its trajectory, what is the net force on the ball?<<
+[x] Multiple choice: ( ) and (x)
+[ ] Equation entry
+[x] Checkbox: [ ] and [x]
+[ ] Code execution
+[x] Text input: = answer, or= alternative, not= wrong
+[x] Numerical: = 42 +- 5 or = [min, max]
 
-( ) Zero - the ball is momentarily at rest
-(x) Downward - gravity acts continuously
-( ) Upward - residual force from the throw
-( ) Undefined - forces cancel out
+||MarkupProblem handles selected-response and simple constructed-response items.||
 
-||Think about what force is always acting on objects near Earth's surface.||
+{{
+Progressive hints appear one at a time.
+====
+Use ==== to separate multiple hints.
+}}
 
 [explanation]
-At the highest point, the ball is momentarily at rest, but gravity never stops acting.
-The net force is mg downward, which is why the ball starts falling back down.
+MarkupProblem provides quick authoring using simple text syntax. For complex interactions, use full XML with specialized blocks.
 [/explanation]
 ]]></MarkupProblem>
-
-  <!-- Text input example -->
-  <MarkupProblem id="derivative_text" title="Calculus Question"><![CDATA[
-Derivatives
-===
-
->>What is the derivative of x squared?<<
-
-= 2x
-or= 2*x
-not= x^2 {{Remember to apply the power rule: bring down the exponent and reduce it by 1}}
-not= 2 {{Do not forget the x term}}
-]]></MarkupProblem>
-
-  <!-- Numerical input example -->
-  <MarkupProblem id="numerical_example" title="Numerical Question"><![CDATA[
-Basic Math
-===
-
->>What is 2 + 2?<<
-
-= 4
-
-[explanation]
-2 + 2 = 4. This is basic addition.
-[/explanation]
-]]></MarkupProblem>
-
-</Vertical>

@@ -182,7 +182,7 @@ textInput
 
       // Alternative correct answers (score 1)
       alternatives.filter(a => a.type === 'or').forEach(a => {
-        rules.push({ answer: a.answer, score: 1, feedback: 'Correct!' });
+        rules.push({ answer: a.answer, score: 1, feedback: a.feedback || 'Correct!' });
       });
 
       // Wrong answers with targeted feedback (score 0)
@@ -201,8 +201,8 @@ textAnswer
     }
 
 textAlternative
-  = 'or=' _ answer:answerText _ newline {
-      return { type: 'or', answer: answer };
+  = 'or=' _ answer:answerText feedback:inlineFeedback? _ newline {
+      return { type: 'or', answer: answer, feedback: feedback };
     }
   / 'not=' _ answer:answerText feedback:inlineFeedback? _ newline {
       return { type: 'not', answer: answer, feedback: feedback };

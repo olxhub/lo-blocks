@@ -164,7 +164,7 @@ const CapaProblem = dev({
   parser: capaParser,
   staticKids: capaParser.staticKids,
   name: 'CapaProblem',
-  description: 'Interactive problem container with inputs, grading, and automatic check/status buttons',
+  description: 'Interactive problem with rich content, inputs, grading, hints, explanations, and feedback',
   component: _CapaProblem,
   fields,
   isGrader: true,  // Metagrader: aggregates child grader states

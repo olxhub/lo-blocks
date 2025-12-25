@@ -1,29 +1,7 @@
-<!-- RatioGrader Block Examples -->
-<Vertical id="RatioGraderDemo" title="RatioGrader Block Demo" launchable="true">
-
-  <Markdown id="intro">
-## RatioGrader Examples
-
-RatioGrader accepts equivalent ratios, not just exact values. It works with both ComplexInput and NumberInput.
-  </Markdown>
-
-  <!-- With ComplexInput -->
-  <CapaProblem id="complex_ratio" title="Equivalent Ratios">
-    <RatioGrader answer="0.5" tolerance="0.01">
-      <p>Express the ratio 1:2 using any equivalent numbers:</p>
-      <p><em>(Examples: 2:4, 3:6, 5:10 are all correct)</em></p>
-      <ComplexInput />
-      <ComplexInput />
-    </RatioGrader>
-  </CapaProblem>
-
-  <!-- With NumberInput -->
-  <CapaProblem id="number_ratio" title="Chemistry Ratio">
-    <RatioGrader answer="2" tolerance="0.01">
-      <p>What is the ratio of hydrogen to oxygen atoms in H₂O?</p>
-      <NumberInput />
-      <NumberInput />
-    </RatioGrader>
-  </CapaProblem>
-
-</Vertical>
+<CapaProblem id="RatioGraderDemo" title="Chemistry Ratio">
+  What is the ratio of hydrogen to oxygen atoms in H₂O?
+  <RatioGrader answer="2" tolerance="0.01" displayAnswer="2 and 1">
+    <NumberInput />
+    <NumberInput />
+  </RatioGrader>
+</CapaProblem>

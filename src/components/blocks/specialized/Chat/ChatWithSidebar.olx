@@ -1,4 +1,3 @@
-<!-- Chat with sidebar showing student responses -->
 <Vertical id="ChatWithSidebar" title="Interactive Discussion">
 
   <!-- Activities that appear in the sidebar -->
@@ -35,8 +34,6 @@ Title: Study Session
 
 Alex: Welcome! Before we dive in - what do you already know about study techniques?
 
-sidebar -> initial_thoughts_activity
-
 --- wait initial_thoughts ---
 
 Alex: Thanks for sharing! Here's what research tells us.
@@ -47,25 +44,25 @@ Sam: Like using flashcards?
 
 Alex: Exactly! And spacing practice over time beats cramming.
 
-Alex: Now, how might you apply this?
-
 sidebar -> follow_up_activity
+
+Alex: Now, how might you apply this?
 
 --- wait follow_up ---
 
 Alex: Great plan! The key is making it a habit.
 
-Alex: Let's set a quick spaced-practice goal. Enter how many short sessions you'll spread across this week.
-
 sidebar -> spacing_goal_activity
+
+Alex: Let's set a quick spaced-practice goal. Enter how many short sessions you'll spread across this week.
 
 --- wait spacing_goal value>=3 ---
 
 Alex: Planning at least three sessions is a solid start.
 
-Alex: Finally, rate your confidence in sticking with the plan and note one thing that would make it even easier.
-
 sidebar -> confidence_check_activity
+
+Alex: Finally, rate your confidence in sticking with the plan and note one thing that would make it even easier.
 
 --- wait confidence_score value>=0.7, confidence_note ---
 
@@ -76,7 +73,7 @@ Sam: Thanks for the tips!
     </LeftPane>
     <RightPane>
       <Markdown>### Your Responses</Markdown>
-      <UseHistory id="sidebar" initial="sidebar_intro" />
+      <UseHistory id="sidebar" initial="initial_thoughts_activity" />
     </RightPane>
   </SplitPanel>
 

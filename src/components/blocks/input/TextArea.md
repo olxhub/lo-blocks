@@ -1,63 +1,100 @@
-# TextArea Block
+# TextArea
 
-## Overview
+Multi-line text input for longer student responses. Supports essays, explanations, self-explanations, and open-ended answers.
 
-The TextArea block provides a multi-line text input field for longer student responses such as essays, explanations, and open-ended answers. This can be used as an input inside of CapaProblem too.
-
-## Technical Usage
-
-### Basic Syntax
-```xml
-<TextArea id="essay" placeholder="Write your response here..." />
+```olx:playground
+<Vertical id="demo">
+  <Markdown>After reading about the spacing effect, explain in your own words why distributed practice is more effective than massed practice:</Markdown>
+  <TextArea id="explanation" rows="4" placeholder="Distributed practice works better because..." />
+</Vertical>
 ```
 
-### Properties
-- `id` (recommended): Unique identifier for the input
+## Properties
 - `placeholder` (optional): Hint text displayed when empty
 - `rows` (optional): Number of visible text rows
 
-### State Fields
-- `value`: The current text content entered by the student
+## State
+- `value`: The current text content
 
-### getValue
+## getValue
 Returns the text string entered by the student.
 
 ## Pedagogical Purpose
 
-TextArea supports constructed response assessments:
+TextArea enables **self-explanation**, one of the most effective learning strategies. Chi et al. (1989) found that students who explained material to themselves learned significantly more than those who didn't. The act of generating explanations:
 
-1. **Deep Thinking**: Extended writing promotes deeper engagement
-2. **Expression**: Students articulate understanding in their own words
-3. **Flexibility**: Accommodates varied response lengths
-4. **Formative Assessment**: Reveals student thinking processes
+1. **Reveals gaps**: Students discover what they don't understand
+2. **Promotes integration**: Forces connection to prior knowledge
+3. **Deepens encoding**: Generation is more effective than re-reading
 
 ## Common Use Cases
 
-### Essay Questions
-```xml
-<Markdown>Explain the significance of the Civil War.</Markdown>
-<TextArea id="essay_response" rows="10" />
+### Self-Explanation Prompts
+
+Research shows prompting students to explain *why* something works improves transfer:
+
+```olx:playground
+<Vertical id="self_explain">
+  <Markdown>
+A physics student solves this problem:
+
+*A 2kg ball dropped from 5m. What's its speed at the bottom?*
+
+Using v² = 2gh, they get v = 10 m/s.
+  </Markdown>
+  <Markdown>**Explain why energy conservation (mgh = ½mv²) gives the same answer:**</Markdown>
+  <TextArea id="explanation" rows="3" placeholder="The energy approach works because..." />
+</Vertical>
 ```
 
-### Reflection Prompts
-```xml
-<Markdown>What did you learn from this activity?</Markdown>
-<TextArea id="reflection" placeholder="Share your thoughts..." />
+### Retrieval Practice
+
+The testing effect shows retrieval strengthens memory more than re-reading. Use TextArea for free recall:
+
+```olx:playground
+<Vertical id="retrieval">
+  <Markdown>Without looking back, list everything you remember about how spaced practice affects long-term retention:</Markdown>
+  <TextArea id="recall" rows="4" placeholder="From what I remember..." />
+  <Collapsible id="check" title="Check your recall">
+    <Markdown>
+Key points:
+- Spacing produces better long-term retention than massing
+- Optimal spacing increases as retention interval increases
+- Forgetting between sessions is actually beneficial ("desirable difficulty")
+- Cepeda et al. (2008): optimal gap is 10-20% of retention interval
+    </Markdown>
+  </Collapsible>
+</Vertical>
 ```
 
-### Code Entry
-```xml
-<Markdown>Write a function to calculate factorial:</Markdown>
-<TextArea id="code_input" rows="8" />
+### Prediction Before Instruction
+
+Having students predict outcomes before learning improves subsequent encoding:
+
+```olx:playground
+<Vertical id="predict">
+  <Markdown>Before watching the video on peer instruction, predict: Why might having students discuss physics problems with each other improve learning more than additional lectures?</Markdown>
+  <TextArea id="prediction" rows="3" placeholder="I think discussion helps because..." />
+</Vertical>
 ```
 
-## Integration with Graders
+### With LLM Feedback
 
-TextArea works with LLM-based grading for open-ended responses:
-```xml
-<TextArea id="response" />
-<LLMFeedback target="response" />
+TextArea integrates with LLM-based feedback for formative assessment:
+
+```olx:playground
+<Vertical id="llm_demo">
+  <Markdown>Explain why interleaving different problem types during practice leads to better transfer than blocking by type:</Markdown>
+  <TextArea id="response" rows="4" />
+  <LLMFeedback id="feedback" />
+  <ActionButton label="Get Feedback">
+    <LLMAction target="feedback">
+      A student is explaining interleaving vs. blocking in learning. The key insight is that interleaving forces discrimination between problem types and strengthens retrieval of appropriate strategies, even though it feels harder during practice (a "desirable difficulty").
+
+      Check if they mention: (1) discrimination/categorization benefits, (2) the counterintuitive finding that blocked feels easier but interleaved produces better transfer, (3) any connection to real-world application.
+
+      Student response: <Ref target="response" />
+    </LLMAction>
+  </ActionButton>
+</Vertical>
 ```
-
-## Example File
-See `TextArea.olx` for working examples.

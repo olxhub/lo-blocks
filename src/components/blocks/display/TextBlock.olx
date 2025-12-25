@@ -1,3 +1,1 @@
-<Vertical id="TextBlockDemo" title="TextBlock Demo" launchable="true">
-  <TextBlock id="simple">Hello world</TextBlock>
-</Vertical>
+<TextBlock id="TextBlockDemo" title="TextBlock Demo">Hello world</TextBlock>

@@ -6,6 +6,7 @@ Simple container that renders text content in a `<div>`. Used for testing and de
 
 ## Usage
 
-```xml
+```olx:code
 <TextBlock>Hello world</TextBlock>
 ```
+

@@ -1,0 +1,21 @@
+<Vertical id="CollapsibleNested" title="Nested Collapsibles">
+
+  <Collapsible id="evidence" title="Evidence-Based Instruction">
+    <Markdown>
+Research consistently shows that active learning outperforms passive instruction across disciplines.
+    </Markdown>
+
+    <Collapsible id="physics" title="Physics Education Research">
+      <Markdown>
+Hake (1998) analyzed 62 physics courses and found interactive engagement doubled learning gains. The Force Concept Inventory became a standard measure for comparing instructional approaches.
+      </Markdown>
+    </Collapsible>
+
+    <Collapsible id="biology" title="Biology Education">
+      <Markdown>
+Freeman et al. (2014) meta-analysis of 225 studies found active learning reduced failure rates by 55% and increased exam scores by half a standard deviation.
+      </Markdown>
+    </Collapsible>
+  </Collapsible>
+
+</Vertical>

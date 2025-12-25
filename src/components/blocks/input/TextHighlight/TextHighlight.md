@@ -12,8 +12,8 @@ TextHighlight presents text where students click or drag to highlight words. Sup
 
 ## Basic Usage
 
-```xml
-<TextHighlight id="nouns" mode="immediate" src="nouns.textHighlight" />
+```olx:code
+<TextHighlight id="concepts" mode="immediate" src="cooperative_learning.textHighlight" />
 ```
 
 The `src` attribute points to a `.textHighlight` file containing the exercise content.
@@ -40,9 +40,9 @@ Regular text with [required words] and {optional words} marked.
 ### Example Content File
 
 ```
-Highlight all the nouns:
+Highlight the key elements of Jigsaw classroom:
 ---
-The [student] went to the [park] with their [friends].
+In [Jigsaw], students become [experts] on different [subtopics] and then [teach] their peers.
 ```
 
 ## Modes
@@ -51,7 +51,7 @@ The [student] went to the [park] with their [friends].
 
 Feedback updates as students select. Good for practice and exploration.
 
-```xml
+```olx:code
 <TextHighlight id="practice" mode="immediate" src="exercise.textHighlight" />
 ```
 
@@ -59,7 +59,7 @@ Feedback updates as students select. Good for practice and exploration.
 
 Students make selections, then click "Check" to see results. Supports multiple attempts.
 
-```xml
+```olx:code
 <TextHighlight id="quiz" mode="graded" src="exercise.textHighlight" />
 ```
 
@@ -67,7 +67,7 @@ Students make selections, then click "Check" to see results. Supports multiple a
 
 Students make selections, then click "Compare" to see the instructor's answer overlaid.
 
-```xml
+```olx:code
 <TextHighlight id="review" mode="selfcheck" src="exercise.textHighlight" />
 ```
 
@@ -78,13 +78,13 @@ Students make selections, then click "Compare" to see the instructor's answer ov
 Add labels to segments using `|label` syntax:
 
 ```
-Identify positive reinforcement:
+Identify elements of positive interdependence:
 ---
-They used [giving rewards|reward] and <<yelling|yell>> as strategies.
+Johnson & Johnson found that [shared goals|goals] and <<individual competition|competition>> affect outcomes.
 ---
 ---
-reward: Correct! Adding something pleasant increases behavior.
-yell: Careful - yelling is actually punishment, not reinforcement.
+goals: Correct! Shared goals create positive interdependence.
+competition: Individual competition typically undermines group learning.
 ```
 
 ### Scoring Rules
@@ -92,13 +92,13 @@ yell: Careful - yelling is actually punishment, not reinforcement.
 Add conditional feedback based on performance:
 
 ```
-Find the key concepts:
+Find the key cooperative learning researchers:
 ---
-[Reinforcement] increases behavior. [Punishment] decreases it.
+[Aronson] developed Jigsaw. [Slavin] studied achievement effects. [Johnson & Johnson] defined essential elements.
 ---
-all: Perfect! You found all key concepts.
->1: Good start! Keep looking.
-: Review the definitions and try again.
+all: Excellent! You identified all three major researchers.
+>1: Good start! There are more influential researchers.
+: Review the history of cooperative learning research.
 ```
 
 Scoring conditions:
@@ -136,9 +136,10 @@ After checking (graded) or revealing (selfcheck):
 
 ## Pedagogical Applications
 
-Text highlighting appears frequently in standardized assessments (identifying evidence, classifying concepts) and supports active reading strategies. In one psychology course, students used highlighting to identify key claims in readings they would later cite in essays—making the highlighting personally meaningful rather than abstract. The interaction generates rich learning analytics: systems like Learning Catalytics display heatmaps showing which phrases students highlighted, revealing both common understanding and points of confusion. This aggregate view helps instructors see where the class struggles before discussion begins.
+Text highlighting appears frequently in standardized assessments (identifying evidence, classifying concepts) and supports active reading strategies. The interaction generates rich learning analytics: systems like Learning Catalytics display heatmaps showing which phrases students highlighted, revealing both common understanding and points of confusion. This aggregate view helps instructors see where the class struggles before discussion begins.
 
 ## Related Blocks
 
 - **CapaProblem**: Wrapper for graded exercises
 - **Markdown**: For prompt text and instructions
+

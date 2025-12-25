@@ -1,0 +1,22 @@
+<MarkupProblem id="MarkupProblemNumeric" title="Numerical Input"><![CDATA[
+Research Methods
+===
+
+A researcher conducts a study with 24 participants, finding a correlation of r = 0.45 between study time and test scores.
+
+>>What is the coefficient of determination (r²) for this correlation? Express as a percentage.<<
+
+= 20 +- 1
+
+||The coefficient of determination tells us the proportion of variance explained.||
+
+{{
+To find r², simply square the correlation coefficient.
+====
+0.45² = 0.2025, which as a percentage is about 20%.
+}}
+
+[explanation]
+The coefficient of determination r² = 0.45² = 0.2025, or approximately 20%. This means that about 20% of the variance in test scores can be explained by study time. The remaining 80% is due to other factors not measured in this study.
+[/explanation]
+]]></MarkupProblem>

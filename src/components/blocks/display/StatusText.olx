@@ -1,5 +1,4 @@
-<!-- StatusText Block Examples -->
-<Vertical id="StatusTextDemo" title="StatusText Block Demo" launchable="true">
+<Vertical id="StatusTextDemo" title="StatusText Block Demo">
 
   <Markdown id="intro">
 ## StatusText Examples

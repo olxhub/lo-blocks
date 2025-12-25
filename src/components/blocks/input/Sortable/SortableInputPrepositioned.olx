@@ -1,22 +1,12 @@
-<!-- Pre-positioned Items Demo -->
-<Vertical id="SortablePrepositionedDemo" title="Pre-positioned Items Demo" launchable="true">
-  <Markdown>
-## Pre-positioned Items - Days of Week
-
-Monday and Friday are already positioned correctly. Place the remaining days in order.
-
-Items with `initialPosition` attributes start at specific positions. Use `shuffle="false"` to preserve the source order for items without positions.
-  </Markdown>
-
-  <CapaProblem id="days_problem" title="Days of the Week">
-    <SortableGrader id="days_grader">
-      <SortableInput dragMode="handle" shuffle="false">
-        <TextBlock initialPosition="1">Monday</TextBlock>
-        <TextBlock>Tuesday</TextBlock>
-        <TextBlock>Wednesday</TextBlock>
-        <TextBlock>Thursday</TextBlock>
-        <TextBlock initialPosition="5">Friday</TextBlock>
-      </SortableInput>
-    </SortableGrader>
-  </CapaProblem>
-</Vertical>
+<CapaProblem id="SortablePrepositionedDemo" title="Days of the Week">
+  Monday and Friday are already positioned. Place the remaining days in order:
+  <SortableGrader>
+    <SortableInput dragMode="handle" shuffle="false">
+      <TextBlock initialPosition="1">Monday</TextBlock>
+      <TextBlock>Tuesday</TextBlock>
+      <TextBlock>Wednesday</TextBlock>
+      <TextBlock>Thursday</TextBlock>
+      <TextBlock initialPosition="5">Friday</TextBlock>
+    </SortableInput>
+  </SortableGrader>
+</CapaProblem>

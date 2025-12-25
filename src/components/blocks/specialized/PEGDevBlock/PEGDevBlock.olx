@@ -1,5 +1,4 @@
-<!-- PEGDevBlock Example -->
-<Vertical id="PEGDevBlockDemo" title="PEGDevBlock Demo" launchable="true">
+<Vertical id="PEGDevBlockDemo" title="PEGDevBlock Demo">
 
   <Markdown id="intro">
 ## PEG Development Workbench

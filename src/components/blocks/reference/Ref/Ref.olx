@@ -1,39 +1,5 @@
-<!-- Ref Block Examples -->
-<Vertical id="RefDemo" title="Ref Block Demo" launchable="true">
-
-  <Markdown id="intro">
-## Ref Block
-
-Ref displays the current value of another component, updating live as it changes.
-  </Markdown>
-
-  <!-- Basic reference -->
-  <Markdown id="example1_label">### Live Value Display</Markdown>
-  <Markdown id="example1_prompt">Type something below:</Markdown>
-  <LineInput id="user_input" placeholder="Type here..." />
-  <Markdown id="example1_result">You typed: </Markdown>
-  <Ref target="user_input" />
-
-  <!-- Number input reference -->
-  <Markdown id="example2_label">### Numeric Reference</Markdown>
-  <Markdown id="example2_prompt">Enter a number:</Markdown>
-  <NumberInput id="num_input" />
-  <Markdown id="example2_result">Your number doubled is: </Markdown>
-  <Ref target="num_input" />
-  <Markdown id="example2_note"> × 2 = (calculation would go here)</Markdown>
-
-  <!-- Hidden reference for LLM context -->
-  <Markdown id="example3_label">### Use in LLM Prompts</Markdown>
-  <Markdown id="example3_note">
-Ref is commonly used inside LLMAction to include user responses in prompts:
-  </Markdown>
-  <TextArea id="essay" rows="3" placeholder="Write a short response..." />
-  <LLMFeedback id="feedback" />
-  <ActionButton label="Get Feedback">
-    <LLMAction target="feedback">
-      Provide feedback on this response:
-      <Ref target="essay" />
-    </LLMAction>
-  </ActionButton>
-
+<Vertical id="RefDemo">
+  <LineInput id="name" placeholder="Enter your name..." />
+  <Markdown>Hello, </Markdown>
+  <Ref target="name" />
 </Vertical>

@@ -5,7 +5,7 @@ import { useReduxInput } from '@/lib/state';
 import { useGraderAnswer } from '@/lib/blocks';
 
 function _NumberInput(props) {
-  const { className, fields, children } = props;
+  const { className, fields, children, min, max, step, placeholder } = props;
   const [value, inputProps] = useReduxInput(props, fields.value, '');
 
   // Check if grader is showing the answer
@@ -17,6 +17,10 @@ function _NumberInput(props) {
       <input
         type="number"
         {...inputProps}
+        min={min}
+        max={max}
+        step={step}
+        placeholder={placeholder}
         className={className ?? 'border rounded px-2'}
       />
       {showAnswer && displayAnswer != null && (

@@ -1,6 +1,4 @@
-<!-- SplitPanel Block Example -->
-<!-- Basic 50/50 Split -->
-<SplitPanel id="BasicSplit" sizes="50,50">
+<SplitPanel id="SplitPanelDemo" title="Split Panel" sizes="50,50">
   <LeftPane>
     <Markdown>
 # Left Panel Content

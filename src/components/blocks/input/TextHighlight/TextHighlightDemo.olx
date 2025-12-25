@@ -1,5 +1,4 @@
-<!-- TextHighlight Block Demo -->
-<Vertical id="TextHighlightDemo" title="TextHighlight Block Demo" launchable="true">
+<Vertical id="TextHighlightDemo" title="TextHighlight Block Demo">
 
   <Markdown>
 # TextHighlight Block Demo

@@ -1,5 +1,4 @@
-<!-- DigitSpanTask Block Examples -->
-<Vertical id="DigitSpanTaskDemo" title="DigitSpanTask Block Demo" launchable="true">
+<Vertical id="DigitSpanTaskDemo" title="DigitSpanTask Block Demo">
 
   <Markdown id="intro">
 ## Digit Span Memory Task

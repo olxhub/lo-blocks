@@ -1,83 +1,125 @@
-# Tabs Block
+# Tabs
 
-## Overview
+Creates a tabbed interface where each child block becomes a separate panel. Only one panel is visible at a time, with tab headers for navigation.
 
-Tabs creates a tabbed interface where each child block becomes a separate panel. Only one panel is visible at a time, with tab headers for navigation. Useful for organizing related content without vertical scrolling.
+```olx:playground
+<Tabs id="learning_theories">
+  <Vertical label="Behaviorism">
+    <Markdown>
+**Behaviorism** focuses on observable behaviors and external stimuli.
 
-## Technical Usage
+Key figures: B.F. Skinner, Ivan Pavlov, Edward Thorndike
 
-### Basic Syntax
-```xml
-<Tabs id="myTabs">
-  <Vertical id="tab1" label="First Tab">
-    <!-- Content for first tab -->
+Core idea: Learning is a change in behavior resulting from stimulus-response associations.
+    </Markdown>
   </Vertical>
-  <Vertical id="tab2" label="Second Tab">
-    <!-- Content for second tab -->
+  <Vertical label="Cognitivism">
+    <Markdown>
+**Cognitivism** focuses on internal mental processes.
+
+Key figures: Jean Piaget, Jerome Bruner, David Ausubel
+
+Core idea: Learning involves organizing information into mental schemas.
+    </Markdown>
+  </Vertical>
+  <Vertical label="Constructivism">
+    <Markdown>
+**Constructivism** focuses on active knowledge construction.
+
+Key figures: Lev Vygotsky, John Dewey
+
+Core idea: Learners build understanding through experience and social interaction.
+    </Markdown>
   </Vertical>
 </Tabs>
 ```
 
-### Properties
+## Properties
 - `id` (required): Unique identifier for the tabs container
 
-### Child Properties
-Each child block's `label` or `title` attribute becomes the tab header text. If neither is provided, tabs are numbered "Tab 1", "Tab 2", etc.
+## Child Properties
+Each child block's `label` or `title` attribute becomes the tab header text.
 
-### State
+## State
 - `activeTab`: Index of currently selected tab, persisted across sessions
 
 ## Common Use Cases
 
-### 1. Multi-View Content
+### Multi-View Content
 Present the same topic from different angles:
-```xml
-<Tabs id="learning_views">
-  <Vertical label="Video"><!-- Video content --></Vertical>
-  <Vertical label="Text"><!-- Written explanation --></Vertical>
-  <Vertical label="Interactive"><!-- Simulation --></Vertical>
+
+```olx:playground
+<Tabs id="views">
+  <Vertical label="Overview">
+    <Markdown>The testing effect (retrieval practice) shows that actively recalling information strengthens memory more than passive review.</Markdown>
+  </Vertical>
+  <Vertical label="Research">
+    <Markdown>Roediger &amp; Karpicke (2006) found students who took practice tests retained 50% more material after one week than those who restudied.</Markdown>
+  </Vertical>
+  <Vertical label="Application">
+    <Markdown>Use low-stakes quizzes, flashcards, and self-testing to leverage the testing effect in your classroom.</Markdown>
+  </Vertical>
 </Tabs>
 ```
 
-### 2. Workspace Organization
+### Workspace Organization
 Structure complex activities with dedicated areas:
-```xml
+
+```olx:playground
 <Tabs id="workspace">
-  <Vertical label="Current Activity"><!-- Active work --></Vertical>
-  <Vertical label="Notes"><!-- Student notes --></Vertical>
-  <Vertical label="Resources"><!-- Reference materials --></Vertical>
+  <Vertical label="Task">
+    <Markdown>Design a 10-minute active learning activity for teaching photosynthesis.</Markdown>
+    <TextArea id="plan" rows="4" placeholder="My activity will..." />
+  </Vertical>
+  <Vertical label="Resources">
+    <Markdown>
+**Active Learning Strategies:**
+- Think-Pair-Share
+- Concept mapping
+- Peer instruction
+- Case studies
+    </Markdown>
+  </Vertical>
+  <Vertical label="Rubric">
+    <Markdown>
+Your activity will be evaluated on:
+- Student engagement level (ICAP framework)
+- Alignment with learning objectives
+- Feasibility within time constraints
+    </Markdown>
+  </Vertical>
 </Tabs>
 ```
 
-### 3. Step-by-Step with Random Access
-Unlike Sequential, tabs allow jumping directly to any step:
-```xml
-<Tabs id="process">
-  <Vertical label="Step 1: Research">...</Vertical>
-  <Vertical label="Step 2: Draft">...</Vertical>
-  <Vertical label="Step 3: Review">...</Vertical>
-</Tabs>
-```
+### Comparison Tasks
+Compare options without side-by-side layout:
 
-### 4. Artifact Building
-Track accumulated work across an activity:
-```xml
-<Tabs id="artifact">
-  <Vertical label="Problem Statement">...</Vertical>
-  <Vertical label="Evidence">...</Vertical>
-  <Vertical label="Conclusion">...</Vertical>
-</Tabs>
-```
-
-### 5. Comparison Tasks
-Side-by-side isn't always ideal; tabs can compare sequentially:
-```xml
+```olx:playground
 <Tabs id="compare">
-  <Vertical label="Option A">...</Vertical>
-  <Vertical label="Option B">...</Vertical>
-  <Vertical label="Your Analysis">...</Vertical>
+  <Vertical label="Traditional">
+    <Markdown>
+**Traditional Lecture**
+- Teacher talks, students listen
+- Information transfer model
+- Hake's study: ~0.23 normalized gain
+    </Markdown>
+  </Vertical>
+  <Vertical label="Interactive">
+    <Markdown>
+**Interactive Engagement**
+- Students actively participate
+- Peer discussion, problem-solving
+- Hake's study: ~0.48 normalized gain
+    </Markdown>
+  </Vertical>
+  <Vertical label="Your Analysis">
+    <Markdown>Which approach would you use for teaching Newton's Laws? Why?</Markdown>
+    <TextArea id="analysis" rows="3" />
+  </Vertical>
 </Tabs>
 ```
 
-## Example File
-See `Tabs.olx` for working examples including interactive content within tabs.
+## Related Blocks
+- **Sequential**: Linear progression (vs. random access)
+- **Navigator**: More complex navigation patterns
+- **SplitPanel**: Side-by-side layout

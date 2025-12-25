@@ -11,27 +11,28 @@ Marks an incorrect answer option inside `ChoiceInput`. See `ChoiceInput` for ful
 
 ### Basic
 
-```xml
+```olx:code
 <ChoiceInput>
-  <Key>Correct answer</Key>
-  <Distractor>Wrong answer A</Distractor>
-  <Distractor>Wrong answer B</Distractor>
+  <Key>Practice testing strengthens memory traces</Key>
+  <Distractor>Highlighting is the most effective study strategy</Distractor>
+  <Distractor>Rereading produces the best long-term retention</Distractor>
 </ChoiceInput>
 ```
 
-### Note: Value
+### With Value for Dynamic Content
 
-Value allows us to avoid id conflicts. For example, when integrating with UseDynamic, we can use `value` to specify which content to display:
+Value allows avoiding ID conflicts. For example, when integrating with UseDynamic:
 
-```xml
+```olx:code
 <ChoiceInput id="selector">
-  <Key id="opt_correct" value="content_a">Option A</Key>
-  <Distractor id="opt_wrong" value="content_b">Option B</Distractor>
+  <Key id="opt_correct" value="content_testing">Practice Testing</Key>
+  <Distractor id="opt_wrong" value="content_highlighting">Highlighting</Distractor>
 </ChoiceInput>
 
-<UseDynamic targetRef="selector" target="content_a" />
+<UseDynamic targetRef="selector" target="content_testing" />
 ```
 
 The `value` attribute lets the choice reference a content ID without ID conflicts.
 
 Graded by `KeyGrader`.
+

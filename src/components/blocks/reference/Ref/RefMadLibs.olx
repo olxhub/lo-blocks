@@ -1,5 +1,4 @@
-<!-- Mad Libs Example: Demonstrates Ref block for dynamic text composition -->
-<Vertical id="MadLibsDemo" title="Mad Libs" launchable="true">
+<Vertical id="MadLibsDemo" title="Mad Libs">
 
   <Markdown id="intro">
 ## Mad Libs
