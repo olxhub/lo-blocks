@@ -1,5 +1,4 @@
-<!-- LLMAction Block Examples -->
-<Vertical id="LLMActionDemo" title="LLMAction Block Demo" launchable="true">
+<Vertical id="LLMActionDemo" title="LLMAction Block Demo">
 
   <Markdown id="intro">
 ## LLM-Powered Feedback Examples

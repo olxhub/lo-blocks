@@ -1,50 +1,48 @@
-# LLMFeedback Block
+# LLMFeedback
 
-## Overview
+Displays AI-generated responses from LLMAction calls. Shows a robot icon, spinner while loading, and renders feedback text when available.
 
-The LLMFeedback block displays AI-generated responses from LLMAction calls. It shows a robot icon, displays a spinner while waiting for responses, and renders the feedback text when available.
-
-## Technical Usage
-
-### Basic Syntax
-```xml
-<LLMFeedback id="feedback" />
+```olx:playground
+<Vertical id="demo">
+  <Markdown>Explain the difference between formative and summative assessment:</Markdown>
+  <TextArea id="essay" rows="3" placeholder="Formative assessment is..." />
+  <LLMFeedback id="feedback" />
+  <ActionButton label="Get Feedback">
+    <LLMAction target="feedback">
+      A student is learning about assessment types. Evaluate their explanation for accuracy and suggest one thing they might add:
+      <Ref target="essay" />
+    </LLMAction>
+  </ActionButton>
+</Vertical>
 ```
 
-### Properties
+## Properties
 - `id` (required): Unique identifier (referenced by LLMAction's `target` attribute)
+- `placeholder` (optional): Text shown before any feedback is received
 
-### State Fields
+## State
 - `value`: The feedback text received from the LLM
 - `state`: Loading state (waiting, complete, error)
 
-### Visual States
-- **Empty**: No feedback requested yet
+## Visual States
+- **Empty**: No feedback requested yet (shows placeholder if set)
 - **Loading**: Spinner shown while LLM processes
 - **Complete**: Feedback text displayed with robot icon
 - **Error**: Error message displayed
 
 ## Complete Pattern
 
-LLMFeedback is typically used with TextArea, LLMAction, and ActionButton:
+LLMFeedback is typically used with TextArea, LLMAction, and ActionButton. Note that LLMAction is nested **inside** ActionButton:
 
-```xml
-<!-- Input: where student writes -->
+```olx:code
 <TextArea id="essay" />
-
-<!-- Output: where feedback appears -->
 <LLMFeedback id="feedback" />
-
-<!-- Trigger: button with nested action -->
 <ActionButton label="Get Feedback">
   <LLMAction target="feedback">
-    Evaluate this writing:
-    <Ref id="essay_ref" target="essay" />
+    Prompt here: <Ref target="essay" />
   </LLMAction>
 </ActionButton>
 ```
-
-Note that LLMAction is nested **inside** ActionButton, and LLMFeedback's ID matches LLMAction's `target`.
 
 ## Pedagogical Purpose
 
@@ -58,45 +56,54 @@ LLMFeedback supports learning through:
 ## Common Use Cases
 
 ### Essay Review
-```xml
-<TextArea id="essay" />
-<LLMFeedback id="review" />
-<ActionButton label="Get Review">
-  <LLMAction target="review">
-    Review this essay for clarity and structure:
-    <Ref id="e_ref" target="essay" />
-  </LLMAction>
-</ActionButton>
+
+```olx:playground
+<Vertical id="essay_demo">
+  <Markdown>Describe how Bloom's Taxonomy can guide lesson planning:</Markdown>
+  <TextArea id="essay" rows="4" />
+  <LLMFeedback id="review" />
+  <ActionButton label="Get Review">
+    <LLMAction target="review">
+      Review this student's understanding of Bloom's Taxonomy. Check if they correctly describe the levels and their application to lesson planning:
+      <Ref target="essay" />
+    </LLMAction>
+  </ActionButton>
+</Vertical>
 ```
 
 ### Problem Hints
-```xml
-<NumberInput id="answer" />
-<LLMFeedback id="hint" />
-<ActionButton label="Get Hint">
-  <LLMAction target="hint">
-    The student answered: <Ref id="a_ref" target="answer" />
-    Provide a helpful hint without revealing the answer.
-  </LLMAction>
-</ActionButton>
+
+```olx:playground
+<Vertical id="hint_demo">
+  <Markdown>What is the effect size (Cohen's d) if the treatment mean is 85, control mean is 80, and pooled SD is 10?</Markdown>
+  <NumberInput id="answer" />
+  <LLMFeedback id="hint" />
+  <ActionButton label="Get Hint">
+    <LLMAction target="hint">
+      The student answered: <Ref target="answer" />
+      The correct answer is 0.5. If they're close, encourage them. If not, give a hint about the formula without revealing the answer.
+    </LLMAction>
+  </ActionButton>
+</Vertical>
 ```
 
 ### Multiple Feedback Panels
-```xml
-<TextArea id="text" />
-<LLMFeedback id="grammar" />
-<LLMFeedback id="style" />
-<ActionButton label="Analyze">
-  <LLMAction target="grammar">Check grammar: <Ref id="g" target="text" /></LLMAction>
-  <LLMAction target="style">Analyze style: <Ref id="s" target="text" /></LLMAction>
-</ActionButton>
+
+```olx:playground
+<Vertical id="multi_demo">
+  <Markdown>Write a learning objective for a lesson on the water cycle:</Markdown>
+  <TextArea id="objective" rows="2" placeholder="Students will be able to..." />
+  <LLMFeedback id="bloom" />
+  <LLMFeedback id="measurable" />
+  <ActionButton label="Analyze">
+    <LLMAction target="bloom">What Bloom's level does this target? <Ref target="objective" /></LLMAction>
+    <LLMAction target="measurable">Is this objective measurable? <Ref target="objective" /></LLMAction>
+  </ActionButton>
+</Vertical>
 ```
 
 ## Related Blocks
 - **LLMAction**: Triggers LLM calls that populate this component
-- **ActionButton**: User interaction to trigger feedback (parent of LLMAction)
+- **ActionButton**: User interaction to trigger feedback
 - **TextArea**: Collects input for LLM analysis
 - **Ref**: References input values in LLMAction prompts
-
-## Example File
-See `ActionButton.olx` for working examples with LLMFeedback.
