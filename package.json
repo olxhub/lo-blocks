@@ -32,6 +32,7 @@
     "test:ui": "firejail --noprofile --whitelist=$(pwd) vitest --ui"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.958.0",
     "@codemirror/lang-markdown": "^6.3.3",
     "@codemirror/lang-xml": "^6.1.0",
     "@fontsource/geist-mono": "^5.2.6",
