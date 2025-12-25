@@ -3,8 +3,8 @@
 
 import React from 'react';
 import { useReduxInput } from '@/lib/state';
-import { useGraderAnswer } from '@/lib/blocks';
 import { renderCompiledKids } from '@/lib/render';
+import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 
 const allowedAttrs = ['min', 'max', 'placeholder', 'type', 'step'];
 
@@ -15,9 +15,6 @@ export default function _LineInput( props ) {
     props, fields.value, '',
     { updateValidator }
   );
-
-  // Check if grader is showing the answer
-  const { showAnswer, displayAnswer } = useGraderAnswer(props);
 
   const passthrough = Object.fromEntries(
     allowedAttrs
@@ -33,11 +30,7 @@ export default function _LineInput( props ) {
         {...passthrough}
         className="border rounded px-2"
       />
-      {showAnswer && displayAnswer != null && (
-        <span className="lo-show-answer-label">
-          Correct: {displayAnswer}
-        </span>
-      )}
+      <DisplayAnswer props={props} />
     </>
   );
 }

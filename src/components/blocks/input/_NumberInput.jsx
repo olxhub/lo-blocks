@@ -2,14 +2,11 @@
 'use client';
 import React from 'react';
 import { useReduxInput } from '@/lib/state';
-import { useGraderAnswer } from '@/lib/blocks';
+import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 
 function _NumberInput(props) {
   const { className, fields, children, min, max, step, placeholder } = props;
   const [value, inputProps] = useReduxInput(props, fields.value, '');
-
-  // Check if grader is showing the answer
-  const { showAnswer, displayAnswer } = useGraderAnswer(props);
 
   return (
     <>
@@ -23,11 +20,7 @@ function _NumberInput(props) {
         placeholder={placeholder}
         className={className ?? 'border rounded px-2'}
       />
-      {showAnswer && displayAnswer != null && (
-        <span className="lo-show-answer-label">
-          Correct: {displayAnswer}
-        </span>
-      )}
+      <DisplayAnswer props={props} />
     </>
   );
 }
