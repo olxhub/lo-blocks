@@ -1,5 +1,4 @@
-<!-- Navigator Reading Demo -->
-<Vertical id="NavigatorReadingsDemo" title="Navigator Readings Demo" launchable="true">
+<Vertical id="NavigatorReadingsDemo" title="Navigator Readings Demo">
 
   <Markdown>
 # Navigator with Readings

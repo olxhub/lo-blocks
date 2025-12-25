@@ -7,34 +7,30 @@ import { render, makeRootNode } from '@/lib/render';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '@/lib/storage/providers/file';
 
-it('wires inputs and graders; UI controls rendered at runtime', async () => {
+it('wires inputs and graders with explicit targeting', async () => {
   const { idMap } = await syncContentFromStorage(new FileStorageProvider('src/components/blocks/CapaProblem'));
-  const root = idMap['CapaDemo'];
+  const root = idMap['CapaProblemTargeting'];
   expect(root).toBeDefined();
 
-  const graderId = 'CapaDemoRatio_grader_0';
-  const inputId0 = 'CapaDemoRatio_input_0';
-  const inputId1 = 'CapaDemoRatio_input_1';
-
+  // RatioGrader with explicit target="num,den"
+  const graderId = 'CapaProblemTargeting_grader_0';
   expect(idMap[graderId]).toBeDefined();
-  expect(idMap[inputId0]).toBeDefined();
-  expect(idMap[inputId1]).toBeDefined();
+  expect(idMap['num']).toBeDefined();
+  expect(idMap['den']).toBeDefined();
+
+  // Grader should have target wired to the two inputs
+  expect(idMap[graderId].attributes.target).toBe('num,den');
+
   // Render-time controls should NOT be injected into idMap by the parser
-  expect(Object.keys(idMap)).not.toContain('CapaDemoRatio_button');
-  expect(Object.keys(idMap)).not.toContain('CapaDemoRatio_correctness');
-
-  const grader = idMap[graderId];
-  const hasP = grader.kids.some(k => k.type === 'html' && k.tag === 'p');
-  expect(hasP).toBe(true);
-
-  expect(idMap[graderId].attributes.target).toBe(
-    `${inputId0},${inputId1}`
-  );
+  expect(Object.keys(idMap)).not.toContain('CapaProblemTargeting_button');
+  expect(Object.keys(idMap)).not.toContain('CapaProblemTargeting_correctness');
 });
 
 it('renders ActionButton and Correctness at runtime', async () => {
   const { idMap } = await syncContentFromStorage(new FileStorageProvider('src/components/blocks/CapaProblem'));
-  const node = idMap['CapaDemo'];
+  const node = idMap['CapaProblemDemo'];
+  expect(node).toBeDefined();
+
   const ui = render({ node, idMap, nodeInfo: makeRootNode() });
   const store = loStore.init();
   const { container } = rtlRender(

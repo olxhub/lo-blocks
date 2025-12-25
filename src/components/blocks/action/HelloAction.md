@@ -8,19 +8,19 @@ Useful for debugging: if an LLMAction or grader isn't working, swap in HelloActi
 
 Actions can be associated with ActionButton in three ways:
 
-```xml
+```olx:code
 <!-- Nested inside ActionButton (recommended) -->
 <ActionButton label="Click me!">
-  <HelloAction/>
+  <HelloAction />
 </ActionButton>
 
 <!-- As a sibling with explicit target -->
-<HelloAction id="hello"/>
-<ActionButton label="Click me!" target="hello"/>
+<HelloAction id="hello" />
+<ActionButton label="Click me!" target="hello" />
 
 <!-- Action wrapping the button (less common) -->
 <HelloAction>
-  <ActionButton label="Click me!"/>
+  <ActionButton label="Click me!" />
 </HelloAction>
 ```
 
@@ -30,3 +30,4 @@ When the button is clicked, it finds related actions via `inferRelatedNodes`, wh
 
 - **ActionButton**: Triggers the action on click
 - **LLMAction**: Action that makes LLM calls
+

@@ -1,5 +1,4 @@
-<!-- content/demos/sequential_demo.xml -->
-<Vertical id="SequentialDemo" launchable="true">
+<Vertical id="SequentialDemo">
   <Sequential id="LearningSequence">
     <Vertical id="Step1">
       <TextBlock>Welcome to the first step of our learning sequence!</TextBlock>

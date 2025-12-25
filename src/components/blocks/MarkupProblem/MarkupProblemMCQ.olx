@@ -1,0 +1,31 @@
+<MarkupProblem id="MarkupProblemMCQ" title="Multiple Choice"><![CDATA[
+Cognitive Load Theory
+===
+
+A student is learning to solve quadratic equations while simultaneously trying to remember the quadratic formula. According to cognitive load theory, this represents:
+
+>>What type of cognitive load is the formula memorization creating?<<
+
+( ) Germane load - it's helping build schemas
+(x) Extraneous load - it could be eliminated with a formula sheet
+( ) Intrinsic load - it's inherent to the task
+( ) There is no cognitive load issue here
+
+||Consider whether memorizing the formula is essential to understanding how to solve quadratics.||
+
+{{
+Cognitive load theory distinguishes between load that's necessary for learning and load that isn't.
+====
+Extraneous load comes from how material is presented, not from the material itself.
+====
+Providing a formula sheet would let the student focus on the problem-solving process.
+}}
+
+[explanation]
+Per cognitive load theory, the formula memorization creates extraneous load because it's not essential to learning the problem-solving process. Providing a formula sheet would reduce this load, allowing the student to focus cognitive resources on understanding when and how to apply the formula - which would be the actual learning goal.
+
+However, physics education research often advocates for complex multiconcept problems that integrate multiple ideas, with good evidence for their effectiveness.
+
+Goals and context matter.
+[/explanation]
+]]></MarkupProblem>

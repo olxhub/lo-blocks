@@ -4,13 +4,13 @@ Grades TabularMCQ responses by comparing selections against expected answers.
 
 ## Usage
 
-```xml
-<CapaProblem id="quiz">
-  <TabularMCQGrader target="mcq_input">
-    <Markdown>Identify the part of speech:</Markdown>
-    <TabularMCQ id="mcq_input">
-cols: Noun, Verb, Adjective
-rows: Dog[Noun], Run[Verb], Happy[Adjective]
+```olx:playground
+<CapaProblem id="coop_elements" title="Cooperative Learning">
+  <TabularMCQGrader target="elements_quiz">
+    Match each element to the correct researcher:
+    <TabularMCQ id="elements_quiz">
+cols: Johnson &amp; Johnson, Slavin, Aronson
+rows: Positive interdependence[Johnson &amp; Johnson], STAD method[Slavin], Jigsaw classroom[Aronson]
     </TabularMCQ>
   </TabularMCQGrader>
 </CapaProblem>
@@ -18,7 +18,7 @@ rows: Dog[Noun], Run[Verb], Happy[Adjective]
 
 ## How It Works
 
-1. Reads expected answers from TabularMCQ rows (e.g., `Dog[Noun]`)
+1. Reads expected answers from TabularMCQ rows (e.g., `Positive interdependence[Johnson &amp; Johnson]`)
 2. Compares student selections against expected answers
 3. Returns CORRECT if all rows match, INCORRECT otherwise
 4. Score = (correct rows) / (total graded rows)
@@ -35,12 +35,9 @@ rows: Dog[Noun], Run[Verb], Happy[Adjective]
 - `message` - Feedback message (e.g., "2 of 3 correct")
 - `score` - Numeric score from 0 to 1
 
-## Example: Parts of Speech Quiz
-
-See [TabularMCQGraded.olx](./TabularMCQGraded.olx) for a complete example.
-
 ## Related Blocks
 
 - **TabularMCQ** - The input component
 - **CapaProblem** - Problem container with submit button
 - **KeyGrader** - Similar grader for ChoiceInput
+

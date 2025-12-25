@@ -1,4 +1,3 @@
-<!-- Course Block Examples -->
 <Course id="CourseDemo" title="Sample Course">
 
   <Chapter title="Welcome" id="welcome">

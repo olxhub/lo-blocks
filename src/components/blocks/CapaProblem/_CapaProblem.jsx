@@ -52,6 +52,22 @@ function getHeaderStateClass(correctness) {
 /**
  * Aggregate correctness and messages from child graders.
  * Updates CapaProblem's own fields with aggregated values.
+ *
+ * TODO: Multipart problem aggregation needs work. Current issues:
+ * - Messages are joined with spaces, so feedback from one part floats to the footer
+ *   disconnected from its question (e.g., "Correct! Bandura's..." appears at bottom)
+ * - No way to know which part the feedback belongs to
+ * - Same issue affects demand hints - unclear which question hints apply to
+ * - "Show Answer" displays answers inline but feedback aggregates to footer
+ *
+ * Possible fixes:
+ * 1. Show feedback inline with each grader, footer only shows aggregate status
+ * 2. Prefix messages with question context: "Q3: Correct! Bandura's..."
+ * 3. Don't aggregate messages for multipart - just show correctness
+ *
+ * Note: Multipart problems are pedagogically tricky anyway - if student gets one
+ * part wrong, there's no clear way to identify which part or see the right answer.
+ * Checkbox and text input problems have similar issues. See MarkupProblemMultipart.olx.
  */
 function useGraderAggregation(props, childGraderIds) {
   const { id, fields } = props;

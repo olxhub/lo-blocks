@@ -52,6 +52,7 @@ export const baseAttributes = z.object({
   launchable: z.string().optional(), // "true" marks block as standalone-launchable
   // TODO: Rename 'label' to 'title' for consistency (label is used by Tabs for tab titles)
   label: z.string().optional().describe('Tab label when used as child of Tabs'),
+  initialPosition: z.string().optional().describe('Initial position for sortable items'),
 }).strict();
 
 /**

@@ -1,10 +1,9 @@
-<!-- TextSlot Minimal Template -->
-<Vertical>
-  <TextArea id="user_input" />
+<Vertical id="TextSlotDemo" title="TextSlot Demo">
+  <TextArea id="user_input" placeholder="Enter some text..." />
   <TextSlot id="output" />
-  <ActionButton label="Generate">
+  <ActionButton label="Reverse">
     <LLMAction target="output">
-      Echo: <Ref>user_input</Ref>
+      Reverse this text (write it backwards, character by character): <Ref>user_input</Ref>
     </LLMAction>
   </ActionButton>
 </Vertical>

@@ -1,39 +1,5 @@
-<!-- Sortable Block Examples -->
-<Vertical id="SortableDemo" title="Sortable Block Demo" launchable="true">
-
-  <Markdown id="intro">
-## Sortable Examples
-
-Drag and drop items to arrange them in the correct order.
-  </Markdown>
-
-  <!-- Basic sortable with explicit components -->
-  <CapaProblem id="history_problem" title="Historical Timeline">
-    <Markdown id="q1">
-Arrange these events in chronological order:
-    </Markdown>
-    <SortableInput id="history_sort">
-      <Markdown id="event1">World War I begins (1914)</Markdown>
-      <Markdown id="event2">World War II ends (1945)</Markdown>
-      <Markdown id="event3">Moon landing (1969)</Markdown>
-      <Markdown id="event4">Berlin Wall falls (1989)</Markdown>
-    </SortableInput>
-    <SortableGrader id="history_grader" target="history_sort" />
-  </CapaProblem>
-
-  <!-- Process ordering -->
-  <CapaProblem id="method_problem" title="Scientific Process">
-    <Markdown id="q2">
-Arrange the steps of the scientific method:
-    </Markdown>
-    <SortableInput id="method_sort">
-      <Markdown id="step1">Make an observation</Markdown>
-      <Markdown id="step2">Ask a question</Markdown>
-      <Markdown id="step3">Form a hypothesis</Markdown>
-      <Markdown id="step4">Test the hypothesis</Markdown>
-      <Markdown id="step5">Analyze the data</Markdown>
-    </SortableInput>
-    <SortableGrader id="method_grader" target="method_sort" />
-  </CapaProblem>
-
-</Vertical>
+<SortableInput id="SortableInputDemo">
+  <TextBlock>First item</TextBlock>
+  <TextBlock>Second item</TextBlock>
+  <TextBlock>Third item</TextBlock>
+</SortableInput>

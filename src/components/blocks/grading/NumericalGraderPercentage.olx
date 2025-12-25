@@ -1,0 +1,6 @@
+<CapaProblem id="NumericalGraderPercentage" title="Percentage Tolerance">
+  A car accelerates from 0 to 60 m/s in 10 seconds. What is the acceleration in m/s²? (Answer within 5% accepted)
+  <NumericalGrader answer="6" tolerance="5%">
+    <ComplexInput />
+  </NumericalGrader>
+</CapaProblem>

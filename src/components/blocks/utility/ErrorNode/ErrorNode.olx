@@ -1,5 +1,4 @@
-<!-- ErrorNode Block Example -->
-<Vertical id="ErrorNodeDemo" title="ErrorNode Block Demo" launchable="true">
+<Vertical id="ErrorNodeDemo" title="ErrorNode Block Demo">
 
   <Markdown id="intro">
 ## ErrorNode

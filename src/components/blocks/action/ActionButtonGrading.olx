@@ -1,0 +1,8 @@
+<Vertical id="ActionButtonGrading" title="ActionButton with Grader">
+  <Markdown>A classroom has 28 students. If the teacher wants to form groups of 4 for a collaborative learning activity, how many complete groups can be formed?</Markdown>
+  <NumberInput id="num_input" placeholder="Number of groups..." />
+  <ActionButton label="Check Answer">
+    <NumericalGrader id="grader" target="num_input" answer="7" />
+  </ActionButton>
+  <Correctness target="grader" />
+</Vertical>

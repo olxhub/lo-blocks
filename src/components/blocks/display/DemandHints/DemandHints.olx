@@ -1,4 +1,3 @@
-<!-- DemandHints demo - HintButton auto-added to footer when DemandHints present -->
 <CapaProblem id="derivative_problem" title="Calculus: Power Rule">
   <Markdown id="question">
 ## What is the derivative of x^2?

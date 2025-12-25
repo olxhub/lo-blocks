@@ -1,6 +1,9 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+// Note: katex.min.css is loaded via globals.css (can't import CSS in Node.js scripts)
 import { OLXCodeBlock, isOLXLanguage } from '@/components/common/OLXCodeBlock';
 // Note: markdown.css is loaded via the generated components.css registry
 
@@ -67,7 +70,8 @@ export function _Markdown(props) {
 
   return (
     <ReactMarkdown
-      remarkPlugins={[remarkGfm]}
+      remarkPlugins={[remarkGfm, remarkMath]}
+      rehypePlugins={[rehypeKatex]}
       components={markdownComponents}
     >
       {content}

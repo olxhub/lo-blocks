@@ -1,19 +1,19 @@
-# Image Block
+# Image
 
-Displays images using Next.js Image component with automatic optimization.
+Displays images.
 
 ## Usage
 
-```xml
-<Image id="diagram" src="path/to/image.png" alt="Description" />
+```olx:code
+<Image id="diagram" src="path/to/image.png" alt="Diagram showing the testing effect" />
 ```
 
 ## Properties
 
 - `src` (required): Image path or URL
 - `alt` (optional): Alt text, defaults to "Content image"
-- `width` (optional): Width in pixels, defaults to 400
-- `height` (optional): Height in pixels, defaults to 300
+- `width` (optional): Width in pixels, defaults to 400 (may be ignored depending on context)
+- `height` (optional): Height in pixels, defaults to 300 (may be ignored depending on context)
 
 ## Path Resolution
 
@@ -23,3 +23,4 @@ Displays images using Next.js Image component with automatic optimization.
 - **External URLs** (`https://...`): Passed through directly
 
 Images are copied to `public/content/` during content sync for production serving.
+

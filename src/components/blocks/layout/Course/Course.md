@@ -1,35 +1,33 @@
-# Course Block
+# Course
 
-## Overview
+Provides a hierarchical course structure with chapter-based navigation. Displays an accordion navigation sidebar on the left and selected content on the right. Modeled after the original Open edX user interface, designed to facilitate easy import of Open edX courses.
 
-The Course block provides a hierarchical course structure with chapter-based navigation. It displays an accordion navigation sidebar on the left and selected content on the right. This is modeled after the original Open edX user interface, and designed to facilitate easy import of Open edX courses.
+## Syntax
 
-## Technical Usage
-
-### Basic Syntax
-```xml
-<Course title="Introduction to Programming">
-  <Chapter title="Getting Started" id="ch1">
+```olx:code
+<Course title="The Science of Learning">
+  <Chapter title="Retrieval Practice" id="ch1">
     <Sequential>...</Sequential>
     <Vertical>...</Vertical>
   </Chapter>
-  <Chapter title="Variables" id="ch2">
+  <Chapter title="Spacing Effect" id="ch2">
     <Markdown>Content here</Markdown>
   </Chapter>
 </Course>
 ```
 
-### Properties
+## Properties
 - `id` (optional): Unique identifier
 - `title` (required): Course title displayed in header
 
-### Chapter Structure
+## Chapter Structure
+
 Each `<Chapter>` element requires:
 - `id` (required): Unique identifier for the chapter
 - `title` (required): Display title in navigation
 - Child blocks: Content to display when chapter is selected
 
-### State Fields
+## State Fields
 - `selectedChild`: Currently displayed content item
 - `expandedChapter`: Currently expanded chapter in navigation
 
@@ -42,29 +40,31 @@ The course structure is designed to provide a default linear pathway, while stil
 3. **Progress Awareness**: Visible structure shows learning journey
 4. **Modular Design**: Authors can organize content logically
 
-Open edX courses were designed to allow students to self-navigate -- advanced students could skip ahead and only to problems on sections which are review, while students with gaps could use many aids, and revisit content.
+Open edX courses were designed to allow students to self-navigate - advanced students could skip ahead and only do problems on sections which are review, while students with gaps could use many aids and revisit content.
 
 ## Common Use Cases
 
 ### Multi-Unit Course
-```xml
-<Course title="Biology 101">
-  <Chapter title="Unit 1: Cells" id="unit1">
+
+```olx:code
+<Course title="Learning Science 101">
+  <Chapter title="Unit 1: Testing Effect" id="unit1">
     <Sequential>...</Sequential>
   </Chapter>
-  <Chapter title="Unit 2: Genetics" id="unit2">
+  <Chapter title="Unit 2: Spacing Effect" id="unit2">
     <Sequential>...</Sequential>
   </Chapter>
 </Course>
 ```
 
 ### Tutorial Series
-```xml
-<Course title="Python Tutorial">
-  <Chapter title="Basics" id="basics">
+
+```olx:code
+<Course title="Evidence-Based Teaching">
+  <Chapter title="Active Learning" id="active">
     <Vertical>...</Vertical>
   </Chapter>
-  <Chapter title="Functions" id="functions">
+  <Chapter title="Formative Assessment" id="formative">
     <Vertical>...</Vertical>
   </Chapter>
 </Course>
@@ -74,5 +74,3 @@ Open edX courses were designed to allow students to self-navigate -- advanced st
 - **Sequential**: Step-by-step progression within chapters
 - **Vertical**: Simple vertical layout for content
 
-## Example File
-See `Course.olx` for working examples.

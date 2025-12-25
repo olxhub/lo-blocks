@@ -1,21 +1,19 @@
-# ComplexInput Block
+# ComplexInput
 
-## Overview
+Validated text input for complex numbers, accepting both `i` and `j` notation commonly used in mathematics and engineering.
 
-The ComplexInput block provides a validated text input for complex numbers, accepting both `i` and `j` notation commonly used in mathematics and engineering.
+## Syntax
 
-## Technical Usage
-
-### Basic Syntax
-```xml
+```olx:code
 <ComplexInput id="answer" />
 ```
 
-### Properties
+## Properties
 - `id` (recommended): Unique identifier for the input
 - `placeholder` (optional): Hint text
 
-### Input Validation
+## Input Validation
+
 Accepts characters: `0-9`, `.`, `e`, `+`, `-`, `i`, `j`
 
 Valid inputs:
@@ -25,7 +23,7 @@ Valid inputs:
 - `5i`
 - `-3.14`
 
-### State Fields
+## State Fields
 - `value`: The current complex number string
 
 ## Notes
@@ -41,12 +39,10 @@ ComplexInput supports:
 
 ### Graded Problems
 
-For graded problems, use inside CapaProblem with a grader:
-
-```xml
-<CapaProblem id="complex_problem">
+```olx:playground
+<CapaProblem id="complex_problem" title="Complex Multiplication">
   <NumericalGrader answer="5-i">
-    <p>Calculate (2 + 3i) × (1 - i):</p>
+    Calculate (2 + 3i) × (1 - i):
     <ComplexInput />
   </NumericalGrader>
 </CapaProblem>
@@ -54,14 +50,12 @@ For graded problems, use inside CapaProblem with a grader:
 
 ### Circuit Analysis
 
-```xml
-<CapaProblem id="impedance_problem">
-  <NumericalGrader answer="100+50i" tolerance="1">
-    <p>What is the impedance of a circuit with R=100Ω and XL=50Ω?</p>
+```olx:playground
+<CapaProblem id="impedance" title="Circuit Impedance">
+  <NumericalGrader answer="100+50j" tolerance="1">
+    What is the impedance of a circuit with R=100Ω and X_L=50Ω?
     <ComplexInput placeholder="e.g., 100+50j" />
   </NumericalGrader>
 </CapaProblem>
 ```
 
-## Example File
-See `ComplexInput.olx` for working examples.

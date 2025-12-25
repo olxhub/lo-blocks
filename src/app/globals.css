@@ -15,6 +15,9 @@
 @import "../styles/theme.css";
 @import "../styles/components.css";
 
+/* KaTeX for math rendering in Markdown */
+@import "katex/dist/katex.min.css";
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

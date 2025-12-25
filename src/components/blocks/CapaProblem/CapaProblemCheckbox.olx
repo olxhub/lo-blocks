@@ -1,0 +1,20 @@
+<CapaProblem id="CapaProblemCheckbox" title="Prime Numbers">
+  <CheckboxGrader>
+    Which are prime numbers? (Select all that apply)
+    <CheckboxInput>
+      <Key>2</Key>
+      <Key>3</Key>
+      <Distractor>4</Distractor>
+      <Key>5</Key>
+      <Distractor>6</Distractor>
+      <Key>7</Key>
+    </CheckboxInput>
+  </CheckboxGrader>
+  <DemandHints>
+    <Hint>A prime number has exactly two factors: 1 and itself.</Hint>
+    <Hint>2 is the only even prime number.</Hint>
+  </DemandHints>
+  <Explanation>
+Prime numbers (2, 3, 5, 7) have exactly two factors. 4 = 2×2 and 6 = 2×3 are composite.
+  </Explanation>
+</CapaProblem>

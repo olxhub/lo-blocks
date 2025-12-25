@@ -1,1 +1,11 @@
-SortableInput.olx
+<CapaProblem id="SortableGraderDemo" title="Order the Planets">
+  Order the inner planets from closest to furthest from the Sun:
+  <SortableGrader id="planets_grader">
+    <SortableInput>
+      <TextBlock initialPosition="2">Mercury</TextBlock>
+      <TextBlock initialPosition="4">Venus</TextBlock>
+      <TextBlock initialPosition="1">Earth</TextBlock>
+      <TextBlock initialPosition="3">Mars</TextBlock>
+    </SortableInput>
+  </SortableGrader>
+</CapaProblem>

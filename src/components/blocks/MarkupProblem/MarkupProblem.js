@@ -231,7 +231,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
             attributes: {
               id: matchId,
               answer: rule.answer,
-              score: String(rule.score),
+              score: rule.score,
               feedback: rule.feedback
             },
             kids: []
@@ -246,7 +246,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
           tag: 'DefaultMatch',
           attributes: {
             id: defaultMatchId,
-            score: '0',
+            score: 0,
             feedback: 'Try again'
           },
           kids: []

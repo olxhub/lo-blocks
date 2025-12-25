@@ -1,0 +1,10 @@
+<CapaProblem id="DefaultMatchDemo" title="DefaultMatch">
+    <Markdown>What is 2 + 2?</Markdown>
+
+    <RulesGrader>
+      <StringMatch answer="4" score="1" feedback="Correct!"/>
+      <StringMatch answer="four" ignoreCase="true" score="1" feedback="Correct! (we accept words too)"/>
+      <DefaultMatch score="0" feedback="That's not right. 2 + 2 = 4."/>
+      <LineInput/>
+    </RulesGrader>
+  </CapaProblem>

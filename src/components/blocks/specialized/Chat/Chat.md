@@ -2,22 +2,24 @@
 
 Conversational learning interface with dialogue, activities, and flow control.
 
-## Basic Usage
-
-```xml
+```olx:playground
 <Chat id="discussion" title="Study Group">
 Title: Study Group
 ~~~~
 
-Alex: Ready to review for the exam?
+Kim: Did you see the Roediger study? Students who took practice tests remembered 50% more after a week.
 
-Sam: Let's do it!
+Alex: That's counterintuitive. You'd think studying more would help more than testing.
+
+--- pause ---
+
+Kim: That's exactly why it's called "desirable difficulty" - it feels harder during practice but produces better long-term retention.
 </Chat>
 ```
 
-Or with external file:
+## External File Usage
 
-```xml
+```olx:code
 <Chat id="discussion" src="conversation.chatpeg" title="Study Group" />
 ```
 
@@ -53,17 +55,6 @@ Course: PSYCH 101
 ~~~~
 ```
 
-### Dialogue
-
-Lines with `Speaker: text` format. Multi-line content continues until the next speaker or command:
-
-```
-Alex: This is a longer message that
-continues on the next line.
-
-Sam: Got it!
-```
-
 ### Sections
 
 Section headers with underlines organize content:
@@ -92,58 +83,54 @@ Alex: Let's dive in.
 
 ```
 --- wait component_id ---
-```
-
-Multiple prerequisites:
-
-```
 --- wait quiz1, essay1 ---
-```
-
-With conditions:
-
-```
 --- wait quiz1 correct ---
---- wait quiz1 score>=8 ---
 ```
 
-**Arrow** - Copies a component's value to another (typically UseHistory):
+**Arrow** - Repoints a dynamic component to show different content:
 
 ```
-student_input -> sidebar
+sidebar -> student_input
 ```
 
 ## Activities Pattern
 
-To integrate student activities into conversation flow:
+Integrate student activities into conversation flow:
 
-1. Define activity components (often in `<Hidden>`)
-2. Use arrow command to display in sidebar
-3. Use wait command to pause until completed
-
-```xml
+```olx:playground
 <Vertical id="lesson">
   <Hidden>
-    <TextArea id="reflection" placeholder="Your thoughts?" />
+    <Vertical id="prediction">
+      <Markdown>**Your Prediction**</Markdown>
+      <TextArea id="prediction_input" placeholder="Which do you think is more effective for long-term retention?" />
+    </Vertical>
+    <Vertical id="summary">
+      <Markdown>**Key Finding**</Markdown>
+      <Markdown>Spacing study sessions produces dramatically better retention than massed practice.</Markdown>
+    </Vertical>
   </Hidden>
 
   <SplitPanel sizes="65,35">
     <LeftPane>
-      <Chat id="chat" title="Discussion">
-Title: Discussion
+      <Chat id="chat" title="Peer Discussion">
+Title: Peer Discussion
 ~~~~
 
-Alex: What do you think about this?
+Alex: Before we look at the research, what do you think: is it better to study in one long session or multiple shorter sessions?
 
-reflection -> sidebar
+--- wait prediction_input ---
 
---- wait reflection ---
+Kim: Interesting! Let's see what the research says...
 
-Alex: Interesting perspective!
+--- pause ---
+
+Kim: Cepeda et al. found that spacing study sessions produces dramatically better retention - especially when the spacing matches how long you need to remember.
+
+sidebar -> summary
       </Chat>
     </LeftPane>
     <RightPane>
-      <UseHistory id="sidebar" />
+      <UseHistory id="sidebar" initial="prediction" />
     </RightPane>
   </SplitPanel>
 </Vertical>
@@ -154,19 +141,21 @@ Alex: Interesting perspective!
 | Attribute | Required | Description |
 |-----------|----------|-------------|
 | `id` | Yes | Unique identifier |
-| `src` | No | Path to .chatpeg file (alternative to inline) |
+| `src` | No | Path to .chatpeg file |
 | `title` | No | Display title |
 | `clip` | No | Show only specific section(s) |
 | `history` | No | Include earlier sections as context |
 
 ### Clips
 
-Show only part of a conversation:
+A single conversation script can span multiple screens or sections of a course. Write the full dialogue once, then use clips to show specific sections where needed:
 
-```xml
+```olx:code
 <Chat id="ch1" src="full.chatpeg" clip="Introduction" />
 <Chat id="ch2" src="full.chatpeg" clip="Main Discussion" history="Introduction" />
 ```
+
+The `history` attribute provides earlier context so the conversation flows naturally even when split across pages.
 
 ## State Fields
 
@@ -176,7 +165,9 @@ Show only part of a conversation:
 
 ## Pedagogical Applications
 
-Chat supports scenario-based assessments where students join ongoing discussions, contributing analysis that influences how the conversation unfolds. Characters model different perspectives and reasoning approaches. The format increases engagement through social presence while the wait/activity pattern creates natural reflection points. Multiple characters can represent peer learners, experts, or contrasting viewpoints—supporting both Socratic dialogue and collaborative problem-solving pedagogies.
+Chat supports scenario-based assessments where students join ongoing discussions, contributing analysis that influences how the conversation unfolds. Characters model different perspectives and reasoning approaches. The format increases engagement through social presence while the wait/activity pattern creates natural reflection points.
+
+The predict-then-explain pattern shown above leverages the finding that making predictions improves subsequent encoding of correct information.
 
 ## Related Blocks
 

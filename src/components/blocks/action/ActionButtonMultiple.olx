@@ -1,0 +1,16 @@
+<Vertical id="ActionButtonMultiple" title="Multiple Actions">
+  <Markdown>Write a brief lesson plan introduction for teaching photosynthesis to 7th graders:</Markdown>
+  <TextArea id="essay" rows="4" placeholder="Today we'll explore how plants make their own food..." />
+  <LLMFeedback id="clarity_feedback" />
+  <LLMFeedback id="engagement_feedback" />
+  <ActionButton label="Analyze Lesson Plan">
+    <LLMAction target="clarity_feedback">
+      Evaluate this lesson plan introduction for clarity and age-appropriateness for 7th graders. Is the language accessible? Are concepts introduced clearly?
+      <Ref target="essay" />
+    </LLMAction>
+    <LLMAction target="engagement_feedback">
+      Evaluate this lesson plan introduction for student engagement. Does it hook students' interest? Does it connect to their prior knowledge or real-world experiences?
+      <Ref target="essay" />
+    </LLMAction>
+  </ActionButton>
+</Vertical>

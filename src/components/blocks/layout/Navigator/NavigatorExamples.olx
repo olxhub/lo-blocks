@@ -1,0 +1,112 @@
+<Vertical id="NavigatorDemo" title="Navigator Block Demo">
+
+  <Markdown>
+# Navigator Block Demo
+
+The Navigator block creates a two-pane interface: a searchable list on the left
+and detail view on the right. Item data comes from YAML in the block content.
+Templates for preview/detail are referenced by block ID.
+  </Markdown>
+
+  <Markdown>
+## 1. Default Templates
+
+The simplest usage with NavigatorDefaultPreview and NavigatorDefaultDetail:
+  </Markdown>
+
+  <Navigator id="default_navigator"
+             title="Project Tasks"
+             preview="default_preview"
+             detail="default_detail">
+- id: task1
+  title: Research Phase
+  subtitle: Week 1-2
+  description: Gather background information and review existing literature on the topic.
+
+- id: task2
+  title: Data Collection
+  subtitle: Week 3-4
+  description: Design surveys, conduct interviews, and collect quantitative data.
+
+- id: task3
+  title: Analysis
+  subtitle: Week 5-6
+  description: Process collected data, identify patterns, and draw preliminary conclusions.
+
+- id: task4
+  title: Report Writing
+  subtitle: Week 7-8
+  description: Synthesize findings into a comprehensive final report with recommendations.
+  </Navigator>
+
+  <Hidden>
+    <NavigatorDefaultPreview id="default_preview"/>
+    <NavigatorDefaultDetail id="default_detail"/>
+  </Hidden>
+
+  <Markdown>
+## 2. Team Templates
+
+NavigatorTeamPreview and NavigatorTeamDetail for people directories:
+  </Markdown>
+
+  <Navigator id="team_navigator"
+             title="Team Members"
+             preview="team_preview"
+             detail="team_detail">
+- id: alice
+  name: Alice Chen
+  role: Project Lead
+  bio: Leading the development team with 10 years of experience in software architecture and team management.
+  experience: 10 years in tech
+  skills: [Leadership, Strategy, Development]
+
+- id: bob
+  name: Bob Smith
+  role: Senior Developer
+  bio: Full-stack developer specializing in React and Node.js. Passionate about clean code and testing.
+  experience: 7 years development
+  skills: [React, Node.js, TypeScript]
+
+- id: carol
+  name: Carol Davis
+  role: Designer
+  bio: UX/UI designer focused on accessible design and user research methodologies.
+  experience: 5 years design
+  skills: [UI Design, UX Research, Figma]
+  </Navigator>
+
+  <Hidden>
+    <NavigatorTeamPreview id="team_preview"/>
+    <NavigatorTeamDetail id="team_detail"/>
+  </Hidden>
+
+  <Markdown>
+## 3. No Templates (Raw JSON)
+
+Without preview/detail attributes, Navigator shows raw item data:
+  </Markdown>
+
+  <Navigator id="raw_navigator" title="Raw Data View" searchable="false">
+- id: item_a
+  title: First Item
+  category: Category A
+  value: 100
+
+- id: item_b
+  title: Second Item
+  category: Category B
+  value: 200
+  </Navigator>
+
+  <Markdown>
+## How It Works
+
+1. **YAML Content**: Items defined as YAML list in block text
+2. **Template References**: `preview` and `detail` attributes point to block IDs
+3. **Data as Props**: All item fields passed as attributes to templates
+4. **Search**: Filters by name, title, role, or description fields
+5. **State**: Selected item and search query persisted in Redux
+  </Markdown>
+
+</Vertical>

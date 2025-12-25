@@ -1,39 +1,32 @@
-# ChoiceInput Block
+# ChoiceInput
 
-## Overview
+Creates multiple choice questions using Key (correct) and Distractor (incorrect) options. Renders as radio buttons for single-selection.
 
-The ChoiceInput block creates multiple choice questions by collecting student selections from Key (correct) and Distractor (incorrect) child options. It renders as radio buttons for single-selection questions.
-
-## Technical Usage
-
-### Basic Syntax
-
-Inside CapaProblem, the KeyGrader wraps the ChoiceInput:
-
-```xml
-<CapaProblem id="geography">
+```olx:playground
+<CapaProblem id="scaffolding" title="Instructional Strategies">
   <KeyGrader>
-    <p>What is the capital of France?</p>
+    <Markdown>Which instructional strategy involves breaking complex tasks into smaller, manageable steps with temporary support?</Markdown>
     <ChoiceInput>
-      <Key>Paris</Key>
-      <Distractor>London</Distractor>
-      <Distractor>Berlin</Distractor>
+      <Distractor>Direct instruction</Distractor>
+      <Key>Scaffolding</Key>
+      <Distractor>Discovery learning</Distractor>
+      <Distractor>Rote memorization</Distractor>
     </ChoiceInput>
   </KeyGrader>
 </CapaProblem>
 ```
 
-### Properties
+## Properties
 - `id` (recommended): Unique identifier for the input
 
-### Child Blocks
+## Child Blocks
 - **Key**: Correct answer option(s) - supports optional `value` attribute
 - **Distractor**: Incorrect answer options - supports optional `value` attribute
 
-### State Fields
-- `value`: The selected option's value (either the `value` attribute or the option's ID)
+## State
+- `value`: The selected option's value
 
-### API (locals)
+## API (locals)
 - `getChoices()`: Returns array of all options with `{ id, tag, value }` for each
 
 ## Pedagogical Purpose
@@ -41,37 +34,41 @@ Inside CapaProblem, the KeyGrader wraps the ChoiceInput:
 Multiple choice assessments offer:
 
 1. **Quick Assessment**: Rapid evaluation of understanding
-2. **Diagnostic Value**: Distractors reveal common misconceptions
+2. **Diagnostic Value**: Well-designed distractors reveal common misconceptions
 3. **Objective Grading**: Clear right/wrong determination
-4. **Scaffolding**: Can guide learners toward correct thinking, by asking obvious questions
+4. **Scaffolding**: Can guide learners toward correct thinking through obvious questions
 
 ## Common Use Cases
 
-### Single Correct Answer
+### Conceptual Understanding
 
-```xml
-<CapaProblem id="capital_problem">
+```olx:playground
+<CapaProblem id="zpd" title="Zone of Proximal Development">
   <KeyGrader>
-    <p>What is the capital of Italy?</p>
+    <Markdown>A student can solve basic algebra problems alone but needs teacher help with word problems. According to Vygotsky, word problems are in the student's:</Markdown>
     <ChoiceInput>
-      <Key>Rome</Key>
-      <Distractor>Milan</Distractor>
-      <Distractor>Venice</Distractor>
+      <Distractor>Comfort zone</Distractor>
+      <Key>Zone of proximal development</Key>
+      <Distractor>Frustration zone</Distractor>
+      <Distractor>Mastery zone</Distractor>
     </ChoiceInput>
   </KeyGrader>
 </CapaProblem>
 ```
 
-### With Math Content
+### Diagnostic Distractors
 
-```xml
-<CapaProblem id="formula_problem">
+Well-crafted distractors reveal misconceptions:
+
+```olx:playground
+<CapaProblem id="hake" title="Hake's Study">
   <KeyGrader>
-    <p>Which equation represents mass-energy equivalence?</p>
+    <Markdown>In Hake's 1998 study of 6,000 physics students, what was the approximate normalized gain for interactive engagement vs. traditional lecture?</Markdown>
     <ChoiceInput>
-      <Key><$>E = mc^2</$></Key>
-      <Distractor><$>E = mc</$></Distractor>
-      <Distractor><$>E = m^2c</$></Distractor>
+      <Distractor>Both showed gains around 0.25</Distractor>
+      <Key>IE: ~0.48, Traditional: ~0.23</Key>
+      <Distractor>IE: ~0.23, Traditional: ~0.48</Distractor>
+      <Distractor>No significant difference was found</Distractor>
     </ChoiceInput>
   </KeyGrader>
 </CapaProblem>
@@ -79,29 +76,26 @@ Multiple choice assessments offer:
 
 ### Using value= with UseDynamic
 
-The `value` attribute on Key/Distractor sets the reference in redux and learning analytics, which would otherwise be auto-assigned (numeric position) or the ID. This is especially helpful when we want this to overlap with an existing ID, without ID conflicts. For example, with `UseDynamic`, we might use a ChoiceInput to select an ID:
+The `value` attribute on Key/Distractor sets the reference value, useful with `UseDynamic` to show content based on selection:
 
-```xml
-<ChoiceInput id="topic_picker">
-  <Key id="choice_math" value="math_content">Mathematics</Key>
-  <Distractor id="choice_sci" value="science_content">Science</Distractor>
-</ChoiceInput>
+```olx:playground
+<Vertical id="adaptive">
+  <ChoiceInput id="topic_picker">
+    <Key id="choice_behav" value="behaviorist_content">Behaviorism</Key>
+    <Distractor id="choice_cog" value="cognitive_content">Cognitivism</Distractor>
+  </ChoiceInput>
 
-<UseDynamic target="math_content" targetRef="topic_picker" />
+  <UseDynamic target="behaviorist_content" targetRef="topic_picker" />
 
-<Hidden>
-  <Markdown id="math_content">Math details...</Markdown>
-  <Markdown id="science_content">Science details...</Markdown>
-</Hidden>
+  <Hidden>
+    <Markdown id="behaviorist_content">**Behaviorism** focuses on observable behaviors and external stimuli, as studied by Skinner and Pavlov.</Markdown>
+    <Markdown id="cognitive_content">**Cognitivism** focuses on internal mental processes like memory and problem-solving.</Markdown>
+  </Hidden>
+</Vertical>
 ```
-
-This pattern avoids ID conflicts: the choices have their own IDs (`choice_math`, etc.) while their `value` attributes point to content IDs (`math_content`, etc.).
 
 ## Related Blocks
 - **Key**: Marks correct answer(s)
 - **Distractor**: Marks incorrect answers
 - **KeyGrader**: Grades based on Key selection
-- **UseDynamic**: Can display content based on ChoiceInput selection
-
-## Example File
-See `ChoiceInput.olx` for working examples.
+- **UseDynamic**: Can display content based on selection

@@ -1,40 +1,5 @@
-<!-- Collapsible Block Demo -->
-<Vertical id="CollapsibleDemo" title="Collapsible Block Demo" launchable="true">
-
+<Collapsible id="CollapsibleDemo" title="Research Background">
   <Markdown>
-# Collapsible Block Demo
-
-The Collapsible block creates expandable/collapsible sections for organizing content.
+Hake's 1998 study of 6,000 physics students found that interactive engagement methods produced normalized learning gains of ~0.48, compared to ~0.23 for traditional lecture - roughly doubling student learning.
   </Markdown>
-
-  <!-- Basic usage -->
-  <Collapsible id="basic_collapsible" title="Click to expand this section">
-    <Markdown>
-This content is hidden by default and revealed when the header is clicked.
-
-You can put any blocks inside a Collapsible section.
-    </Markdown>
-  </Collapsible>
-
-  <!-- Using label attribute -->
-  <Collapsible id="labeled_collapsible" label="More Information">
-    <Markdown>
-Both `title` and `label` attributes work for setting the header text.
-    </Markdown>
-    <LineInput id="hidden_input" placeholder="Hidden input field"/>
-  </Collapsible>
-
-  <!-- Nested collapsibles -->
-  <Collapsible id="outer_collapsible" title="Nested Sections">
-    <Markdown>
-Collapsible sections can contain other collapsible sections.
-    </Markdown>
-
-    <Collapsible id="inner_collapsible" title="Inner Section">
-      <Markdown>
-This is a nested collapsible section.
-      </Markdown>
-    </Collapsible>
-  </Collapsible>
-
-</Vertical>
+</Collapsible>

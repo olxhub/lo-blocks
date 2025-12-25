@@ -1,5 +1,4 @@
-<!-- Spinner Block Example -->
-<Vertical id="SpinnerDemo" title="Spinner Block Demo" launchable="true">
+<Vertical id="SpinnerDemo" title="Spinner Block Demo">
 
   <Markdown id="intro">
 ## Spinner

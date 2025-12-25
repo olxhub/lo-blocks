@@ -1,27 +1,16 @@
-# InlineMath Block
+# InlineMath
 
-## Overview
+Renders LaTeX mathematical expressions inline. Unlike BlockMath, it does not create a separate line.
 
-The InlineMath block renders LaTeX mathematical expressions inline within text. Unlike BlockMath, it does not create a separate line, making it suitable for referencing variables and short expressions within paragraphs.
-
-## Technical Usage
-
-### Basic Syntax
-```xml
-<InlineMath>x = 5</InlineMath>
+```olx:playground
+<InlineMath id="example">\alpha = 0.85</InlineMath>
 ```
 
-### Shorthand Syntax (XML validation disabled only)
-```xml
-<$>x = 5</$>
-```
-
-**Note:** The shorthand `<$>` syntax only works when XML validation is disabled, as `$` is not a valid XML tag name. When validation is enabled (the default), use `<InlineMath>` instead.
-
-### Properties
+## Properties
 - `id` (optional): Unique identifier for the block
 
-### LaTeX Support
+## LaTeX Support
+
 InlineMath supports the same LaTeX notation as BlockMath:
 - Variables (`x`, `y`, `\alpha`)
 - Simple expressions (`x + y = z`)
@@ -31,14 +20,14 @@ InlineMath supports the same LaTeX notation as BlockMath:
 
 ## Usage Notes
 
-InlineMath is a standalone block element. To mix text and math, alternate between Markdown and InlineMath blocks:
+InlineMath is a standalone block element. To mix text and math inline, use Markdown's built-in math support with `$...$` for inline and `$$...$$` for display:
 
-```xml
-<Markdown>The value of </Markdown><InlineMath>\pi</InlineMath><Markdown> is approximately 3.14159.</Markdown>
+```olx:playground
+<Markdown id="mixed_math">
+With a sample size of $n = 100$ and effect size $d = 0.5$, the statistical power is approximately 80%.
+</Markdown>
 ```
 
 ## Related Blocks
 - **BlockMath**: For prominent, centered equations
 
-## Example File
-See `InlineMath.olx` for working examples.

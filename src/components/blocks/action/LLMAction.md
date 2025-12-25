@@ -1,40 +1,42 @@
-# LLMAction Block
+# LLMAction
 
-## Overview
+Executes LLM prompts when triggered by ActionButton. References student inputs using `<Ref>` and updates target components (typically LLMFeedback) with the response.
 
-The LLMAction block executes LLM (Large Language Model) prompts when triggered by an ActionButton. It references student inputs using `<Ref>` elements and updates target components (typically LLMFeedback) with the response.
+```olx:playground
+<Vertical id="demo">
+  <Markdown>Explain why spaced practice is more effective than massed practice:</Markdown>
+  <TextArea id="explanation" rows="4" />
+  <LLMFeedback id="feedback" />
+  <ActionButton label="Get Feedback">
+    <LLMAction target="feedback">
+      A student is explaining spaced vs. massed practice. The key mechanisms are:
+      1. Spacing forces retrieval, which strengthens memory (testing effect)
+      2. Forgetting between sessions is a "desirable difficulty"
+      3. Each relearning episode strengthens the memory trace
 
-## Technical Usage
+      Evaluate their explanation. Be specific about what's correct, what's missing, and avoid generic praise:
 
-### Basic Syntax
-```xml
-<TextArea id="student_response" />
-<LLMFeedback id="feedback_display" />
-<ActionButton label="Get Feedback">
-  <LLMAction id="feedback_action" target="feedback_display">
-    Evaluate this student response:
-    <Ref id="response_ref" target="student_response" />
-
-    Provide constructive feedback on clarity and completeness.
-  </LLMAction>
-</ActionButton>
+      Student response: <Ref target="explanation" />
+    </LLMAction>
+  </ActionButton>
+</Vertical>
 ```
 
-### Properties
-- `id` (optional): Unique identifier for the action
+## Properties
 - `target` (required): ID of component to update with LLM response
 
-### Content
+## Content
+
 The child content is the prompt sent to the LLM. It can include:
 - Plain text instructions
-- `<Ref id="unique_id" target="component_id" />` to include student input values
-- Markdown formatting
+- `<Ref target="component_id" />` to include student input values
+- Context about correct answers or common misconceptions
 
-### Action Nesting
+## Action Nesting
 
-LLMAction must be a **child** of ActionButton for automatic discovery:
+LLMAction must be a **child** of ActionButton:
 
-```xml
+```olx:code
 <!-- CORRECT: LLMAction nested inside ActionButton -->
 <ActionButton label="Get Feedback">
   <LLMAction target="feedback">...</LLMAction>
@@ -45,64 +47,75 @@ LLMAction must be a **child** of ActionButton for automatic discovery:
 <ActionButton label="Get Feedback" />
 ```
 
-## Pedagogical Purpose
+## Prompt Design
 
-LLM-powered feedback supports learning:
+Good prompts include:
 
-1. **Personalized Feedback**: Responses tailored to student input
-2. **Immediate Response**: No waiting for instructor feedback
-3. **Scalable Assessment**: Handles open-ended responses
-4. **Scaffolding**: Can provide hints, explanations, or encouragement
+1. **Context about correct content** - what should the student know?
+2. **Common misconceptions to check for** - what mistakes are typical?
+3. **Specific feedback instructions** - avoid generic responses
 
-## Common Use Cases
+### Weak Prompt
 
-### Essay Feedback
-```xml
-<TextArea id="essay" />
-<LLMFeedback id="feedback" />
-<ActionButton label="Get Feedback">
-  <LLMAction target="feedback">
-    Review this essay for thesis clarity, supporting evidence, and organization:
-    <Ref id="essay_ref" target="essay" />
-    Provide specific, constructive feedback.
-  </LLMAction>
-</ActionButton>
+```olx:code
+<LLMAction target="feedback">
+  Give feedback on this essay: <Ref target="essay" />
+</LLMAction>
 ```
 
-### Problem-Solving Guidance
-```xml
-<TextArea id="solution" />
-<LLMFeedback id="hints" />
-<ActionButton label="Check My Work">
-  <LLMAction target="hints">
-    The student attempted this math problem:
-    <Ref id="solution_ref" target="solution" />
-    If incorrect, provide a hint without giving the answer.
-  </LLMAction>
-</ActionButton>
+### Better Prompt
+
+```olx:playground
+<Vertical id="better_prompt">
+  <Markdown>Explain the difference between interleaving and blocking in practice:</Markdown>
+  <TextArea id="answer" rows="3" />
+  <LLMFeedback id="fb" />
+  <ActionButton label="Check Understanding">
+    <LLMAction target="fb">
+      The student is explaining interleaving vs. blocking.
+
+      Key points they should include:
+      - Interleaving mixes different problem types; blocking groups same types together
+      - Interleaving feels harder but produces better transfer (Rohrer &amp; Taylor, 2007)
+      - The mechanism is forcing discrimination between problem types
+
+      Common misconceptions to watch for:
+      - Thinking that "harder during practice = worse learning"
+      - Confusing interleaving with spaced practice
+
+      If they have misconceptions, explain gently. If they're mostly correct, acknowledge specifics rather than generic praise.
+
+      Student response: <Ref target="answer" />
+    </LLMAction>
+  </ActionButton>
+</Vertical>
 ```
 
-### Text Transformation
-```xml
-<TextArea id="original" />
-<LLMFeedback id="rewritten" />
-<ActionButton label="Simplify">
-  <LLMAction target="rewritten">
-    Rewrite this text in simple English for a young reader:
-    <Ref id="original_ref" target="original" />
-  </LLMAction>
-</ActionButton>
+## Multiple Analyses
+
+Trigger multiple LLM calls for different aspects:
+
+```olx:playground
+<Vertical id="multi">
+  <Markdown>Describe how you would apply retrieval practice in a classroom:</Markdown>
+  <TextArea id="plan" rows="4" />
+  <LLMFeedback id="accuracy" />
+  <LLMFeedback id="practicality" />
+  <ActionButton label="Analyze Plan">
+    <LLMAction target="accuracy">
+      Does this plan accurately reflect research on retrieval practice? Check for: low-stakes quizzing, immediate feedback, spaced intervals.
+      Plan: <Ref target="plan" />
+    </LLMAction>
+    <LLMAction target="practicality">
+      Is this plan practical for a real classroom? Consider: time constraints, student engagement, implementation complexity.
+      Plan: <Ref target="plan" />
+    </LLMAction>
+  </ActionButton>
+</Vertical>
 ```
-
-## Security Notes
-
-LLM calls are sandboxed and subject to system policies. Content is sent to the configured LLM endpoint.
 
 ## Related Blocks
 - **LLMFeedback**: Displays LLM responses (typically the `target`)
-- **ActionButton**: Triggers the LLM call (must be parent of LLMAction)
+- **ActionButton**: Triggers the LLM call (must be parent)
 - **Ref**: References input values in prompts
 - **TextArea**: Collects student text for analysis
-
-## Example File
-See `ActionButton.olx` for working examples with LLMAction.

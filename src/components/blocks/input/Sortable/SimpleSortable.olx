@@ -1,10 +1,8 @@
-<!-- SimpleSortable - Shorthand for sortable problems -->
-<SimpleSortable id="scientific_method" title="Scientific Method">
-Put the scientific method steps in order:
+<SimpleSortable id="icap_framework" title="ICAP Framework">
+According to Chi's ICAP framework, sort these learning activities from least to most effective:
 ===
-1. Ask a question
-2. Form a hypothesis
-3. Design an experiment
-4. Collect data
-5. Draw conclusions
+1. Passive - listening to a lecture without taking notes
+2. Active - highlighting text while reading
+3. Constructive - generating explanations or summaries
+4. Interactive - debating ideas with a peer
 </SimpleSortable>

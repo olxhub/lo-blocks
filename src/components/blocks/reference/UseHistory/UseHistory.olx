@@ -1,5 +1,4 @@
-<!-- UseHistory Demo - Dynamic content with history navigation -->
-<Vertical id="UseHistoryDemo" title="UseHistory Demo" launchable="true">
+<Vertical id="UseHistoryDemo" title="UseHistory Demo">
 
   <Markdown>
 ## UseHistory with ChoiceInput
@@ -7,7 +6,7 @@
 Select topics below. UseHistory remembers your selections and lets you navigate back through them.
   </Markdown>
 
-<CapaProblem title="Pick one!">
+<CapaProblem id="topic_choice" title="Pick a Topic">
   <!-- ChoiceInput with value attributes pointing to content IDs -->
   <KeyGrader>
   <ChoiceInput id="topic_selector">
@@ -19,7 +18,7 @@ Select topics below. UseHistory remembers your selections and lets you navigate 
 </CapaProblem>
 
   <!-- UseHistory tracks all selections with navigation controls -->
-  <UseHistory id="history_display" target="content_intro" targetRef="topic_selector" />
+  <UseHistory id="history_display" initial="content_intro" targetRef="topic_selector" />
 
   <!-- Hidden content blocks -->
   <Hidden>

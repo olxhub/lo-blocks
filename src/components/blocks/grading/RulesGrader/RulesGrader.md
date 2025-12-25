@@ -2,15 +2,29 @@
 
 Grader that evaluates Match rules top-to-bottom, returning the first match. Supports partial credit and targeted feedback.
 
-## Usage
+```olx:playground
+<CapaProblem id="learning_types" title="Learning Depths">
+  <RulesGrader>
+    <StringMatch answer="transfer" ignoreCase="true" score="1" feedback="Correct!"/>
+    <StringMatch answer="transfer learning" ignoreCase="true" score="1" feedback="Correct!"/>
+    <StringMatch answer="deep" ignoreCase="true" score="0.5" feedback="Deep learning consolidates understanding, but transfer applies it to new contexts."/>
+    <StringMatch answer="deep learning" ignoreCase="true" score="0.5" feedback="Deep learning consolidates understanding, but transfer applies it to new contexts."/>
+    <StringMatch answer="surface" ignoreCase="true" score="0.25" feedback="Surface learning is foundational, but the question asks about applying to novel situations."/>
+    <StringMatch answer="surface learning" ignoreCase="true" score="0.25" feedback="Surface learning is foundational, but the question asks about applying to novel situations."/>
+    <DefaultMatch score="0" feedback="Consider: surface → deep → transfer"/>
+    What type of learning involves applying knowledge to novel situations?
+    <LineInput />
+  </RulesGrader>
+  <Explanation><Markdown>
+Learning progresses through three phases (Hattie, Fisher and Frey):
 
-```xml
-<RulesGrader>
-  <StringMatch answer="2x" score="1" feedback="Correct!"/>
-  <StringMatch answer="x" score="0.25" feedback="Right variable, wrong coefficient"/>
-  <DefaultMatch score="0" feedback="Try again"/>
-  <LineInput/>
-</RulesGrader>
+**Surface:** Initial exposure to concepts, skills, and strategies. Provides the foundation.
+
+**Deep:** Consolidating understanding and extending surface knowledge to support deeper conceptual understanding.
+
+**Transfer:** Applying consolidated knowledge to new scenarios and different contexts, including metacognitive reflection.
+  </Markdown></Explanation>
+</CapaProblem>
 ```
 
 ## How It Works
@@ -45,12 +59,12 @@ Plus their type-specific attributes (e.g., `answer`, `ignoreCase` for StringMatc
 
 Use fractional scores to award partial credit:
 
-```xml
+```olx:code
 <RulesGrader>
-  <StringMatch answer="2x" score="1"/>
-  <StringMatch answer="x" score="0.25" feedback="Partial credit"/>
-  <DefaultMatch score="0"/>
-  <LineInput/>
+  <StringMatch answer="metacognition" ignoreCase="true" score="1" feedback="Correct! Thinking about your own thinking."/>
+  <StringMatch answer="reflection" ignoreCase="true" score="0.5" feedback="Related concept - metacognition is more specific."/>
+  <DefaultMatch score="0" feedback="Consider: what do we call 'thinking about thinking'?"/>
+  <LineInput />
 </RulesGrader>
 ```
 
@@ -58,13 +72,18 @@ Use fractional scores to award partial credit:
 
 Reference another block for complex feedback:
 
-```xml
+```olx:code
 <RulesGrader>
-  <StringMatch answer="x" score="0.1" feedbackBlock="hint_problem"/>
-  <LineInput/>
+  <StringMatch answer="chunking" score="0.1" feedbackBlock="chunking_hint"/>
+  <LineInput />
 </RulesGrader>
 
-<CapaProblem id="hint_problem">
-  <!-- Follow-up problem shown as feedback -->
-</CapaProblem>
+<Hidden>
+  <Markdown id="chunking_hint">
+Good start! Chunking groups information into meaningful units.
+
+How does chunking relate to working memory limitations?
+  </Markdown>
+</Hidden>
 ```
+

@@ -1,5 +1,4 @@
-<!-- Demo: MasteryBank with sample problems -->
-<Vertical id="mastery_demo" title="Mastery Bank Demo" launchable="true">
+<Vertical id="mastery_demo" title="Mastery Bank Demo">
 
   <Markdown>Example:</Markdown>
 

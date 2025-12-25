@@ -1,1 +1,13 @@
-../grading/CorrectnessStandalone.olx
+<Vertical id="standalone_correctness" title="Standalone Problem Demo">
+  <Markdown>
+## Standalone Correctness, Input, Button, and Grader
+
+This shows how to use Correctness, an Input, a Grader, and ActionButton outside of CapaProblem. Enter 10 and click Check.
+  </Markdown>
+
+  <NumberInput id="num"/>
+  <ActionButton label="Check">
+    <NumericalGrader id="ten" answer="10" target="num"/>
+  </ActionButton>
+  <Correctness target="ten"/>
+</Vertical>

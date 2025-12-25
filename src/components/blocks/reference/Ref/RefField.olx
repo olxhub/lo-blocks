@@ -1,4 +1,3 @@
-<!-- Ref Field Attribute: Demonstrates accessing specific fields instead of getValue -->
 <Vertical id="RefFieldDemo" title="Ref Field Access">
 
   <Markdown>

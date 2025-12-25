@@ -1,29 +1,28 @@
-# BlockMath Block
+# BlockMath
 
-## Overview
+Renders LaTeX mathematical equations as centered, block-level elements. Displays equations prominently, typically on their own line, suitable for important formulas and equations.
 
-The BlockMath block renders LaTeX mathematical equations as centered, block-level elements. It displays equations prominently, typically on their own line, suitable for important formulas and equations.
+## Syntax
 
-## Technical Usage
-
-### Basic Syntax
-```xml
-<BlockMath id="quadratic">
-x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+```olx:code
+<BlockMath id="cronbach">
+\alpha = \frac{k}{k-1}\left(1 - \frac{\sum_{i=1}^{k} \sigma^2_{Y_i}}{\sigma^2_X}\right)
 </BlockMath>
 ```
 
 ### Shorthand Syntax (XML validation disabled only)
-```xml
-<$$>E = mc^2</$$>
+
+```olx:code
+<$$>d = \frac{M_1 - M_2}{SD_{pooled}}</$$>
 ```
 
-**Note:** The shorthand `<$$>` syntax only works when XML validation is disabled, as `$$` is not a valid XML tag name. When validation is enabled (the default), use `<BlockMath>` instead.
+**Note:** The shorthand `<$$>` syntax only works when XML validation is disabled, as `$$` is not a valid XML tag name.
 
-### Properties
+## Properties
 - `id` (optional): Unique identifier for the block
 
-### LaTeX Support
+## LaTeX Support
+
 BlockMath uses KaTeX for rendering and supports standard LaTeX math notation including:
 - Fractions (`\frac{a}{b}`)
 - Square roots (`\sqrt{x}`)
@@ -33,28 +32,38 @@ BlockMath uses KaTeX for rendering and supports standard LaTeX math notation inc
 - Summations and integrals (`\sum`, `\int`)
 - Trigonometric functions (`\sin`, `\cos`, `\tan`)
 
-## Pedagogical Purpose
-
-Block math equations support STEM education by:
-
-1. **Clarity**: Centered display makes equations prominent and readable
-2. **Reference**: Important formulas stand out for future reference
-3. **Professional Formatting**: Publication-quality equation rendering
-4. **Accessibility**: Screen readers can access LaTeX source
-
 ## Common Use Cases
 
-### Defining Key Equations
-Display fundamental equations that learners should memorize or reference.
+### Cronbach's Alpha
 
-### Step-by-Step Solutions
-Show each step of a mathematical derivation.
+Cronbach's Alpha measures internal consistency reliability - how well a set of items measure the same construct. Values above 0.7 are generally acceptable; above 0.9 may indicate redundancy.
 
-### Theorem Statements
-Present mathematical theorems in formal notation.
+```olx:playground
+<BlockMath id="cronbachs_alpha">
+\alpha = \frac{k}{k-1}\left(1 - \frac{\sum_{i=1}^{k} \sigma^2_{Y_i}}{\sigma^2_X}\right)
+</BlockMath>
+```
+
+### Cohen's d
+
+Cohen's d quantifies effect size as the standardized difference between two means. Values of 0.2, 0.5, and 0.8 are conventionally interpreted as small, medium, and large effects.
+
+```olx:playground
+<BlockMath id="cohens_d">
+d = \frac{M_{treatment} - M_{control}}{SD_{pooled}}
+</BlockMath>
+```
+
+### IRT: 3-Parameter Logistic Model
+
+The 3PL model predicts the probability of a correct response given ability (θ). Parameters: *a* = discrimination (slope), *b* = difficulty (location), *c* = pseudo-guessing (lower asymptote).
+
+```olx:playground
+<BlockMath id="irt_3pl">
+P(\theta) = c + (1-c)\frac{1}{1 + e^{-a(\theta - b)}}
+</BlockMath>
+```
 
 ## Related Blocks
 - **InlineMath**: For equations within flowing text
 
-## Example File
-See `BlockMath.olx` for working examples.

@@ -60,7 +60,9 @@
     "react-markdown": "^10.1.0",
     "react-redux": "^9.2.0",
     "react-split": "^2.0.14",
+    "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
     "vitest": "^3.1.4",
     "zod": "^3.24.2"
   },

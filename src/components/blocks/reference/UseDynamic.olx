@@ -1,5 +1,4 @@
-<!-- UseDynamic Demo - Dynamic content selection via ChoiceInput -->
-<Vertical id="UseDynamicDemo" title="UseDynamic Demo" launchable="true">
+<Vertical id="UseDynamicDemo" title="UseDynamic Demo">
 
   <Markdown>
 ## UseDynamic with ChoiceInput
@@ -7,7 +6,7 @@
 Select a topic below to see the corresponding content appear dynamically.
   </Markdown>
 
-<CapaProblem title="Pick one!">
+<CapaProblem id="topic_choice" title="Pick a Topic">
   <!-- ChoiceInput for selecting which content to display -->
   <KeyGrader>
   <ChoiceInput id="topic_selector">

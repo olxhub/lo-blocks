@@ -1,16 +1,10 @@
 <!--
-  IntakeGate Math Demo - Personalized Linear Equations
-
-  Demonstrates IntakeGate for personalized problem generation.
-  Students enter an interest, LLM rewrites problem contexts,
-  then students solve linear equation multiple choice problems.
-
   Demo concept from Burcu Arslan (ETS). See:
   - Arslan et al. (2024) "Opportunities and challenges of using generative AI
     to personalize educational assessment" Frontiers in AI
   - Walkington (2013) on interest-based personalization in math education
 -->
-<Vertical id="personalized_math" launchable="true" title="Personalized Math Problems">
+<Vertical id="IntakeGateMathDemo" title="Personalized Math Problems">
   <IntakeGate targets="context_1,context_2,context_3">
     <!-- Intake: Collect interest and trigger generation -->
     <Vertical id="interest_gate">

@@ -3,8 +3,8 @@
 
 import React from 'react';
 import { useReduxInput } from '@/lib/state';
-import { useGraderAnswer } from '@/lib/blocks';
 import { renderCompiledKids } from '@/lib/render';
+import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 
 function _TextArea( props ) {
   // Note: updateValidator is a function, and so can't come from OLX or JSON.
@@ -14,9 +14,6 @@ function _TextArea( props ) {
     { updateValidator }
   );
 
-  // Check if grader is showing the answer
-  const { showAnswer, displayAnswer } = useGraderAnswer(props);
-
   return (
     <>
       {renderCompiledKids( props )}
@@ -24,11 +21,7 @@ function _TextArea( props ) {
         {...inputProps}
         className={className ?? 'large-input'}
       />
-      {showAnswer && displayAnswer != null && (
-        <div className="lo-show-answer-label">
-          Correct: {displayAnswer}
-        </div>
-      )}
+      <DisplayAnswer props={props} />
     </>
   );
 }

@@ -1,0 +1,7 @@
+<CapaProblem id="RatioGraderEquivalent" title="Equivalent Ratios">
+  Express the ratio 1:2 using any equivalent numbers (e.g., 2:4, 3:6, 5:10):
+  <RatioGrader answer="0.5" tolerance="0.01" displayAnswer="1 and 2">
+    <ComplexInput />
+    <ComplexInput />
+  </RatioGrader>
+</CapaProblem>

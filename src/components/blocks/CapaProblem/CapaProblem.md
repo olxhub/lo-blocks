@@ -1,13 +1,11 @@
-# CapaProblem Block
+# CapaProblem
 
 Interactive problem container inspired by LON-CAPA and Open edX. Combines inputs, graders, and feedback into a complete assessment experience.
 
-## Basic Usage
-
-```xml
-<CapaProblem id="addition">
+```olx:playground
+<CapaProblem id="demo" title="Basic Arithmetic">
   <NumericalGrader answer="4">
-    <p>What is 2 + 2?</p>
+    <Markdown>What is 2 + 2?</Markdown>
     <NumberInput />
   </NumericalGrader>
 </CapaProblem>
@@ -49,10 +47,10 @@ This decoupling means you can swap inputs without changing graders. A numeric sl
 
 **Nesting (preferred)**: Graders find inputs among their children:
 
-```xml
-<CapaProblem id="nested">
+```olx:playground
+<CapaProblem id="nested" title="Ultimate Answer">
   <NumericalGrader answer="42">
-    <p>What is the answer?</p>
+    <Markdown>According to Douglas Adams, what is the answer to life, the universe, and everything?</Markdown>
     <NumberInput />
   </NumericalGrader>
 </CapaProblem>
@@ -60,64 +58,51 @@ This decoupling means you can swap inputs without changing graders. A numeric sl
 
 **Explicit targeting**: Use `target` when inputs can't be nested:
 
-```xml
-<CapaProblem id="explicit">
-  <p>Enter numerator and denominator:</p>
+```olx:playground
+<CapaProblem id="explicit" title="Fraction Entry">
+  <Markdown>Express 1/2 as a fraction:</Markdown>
   <NumberInput id="x" /> / <NumberInput id="y" />
-  <RatioGrader answer="2" target="x,y" />
+  <RatioGrader answer="0.5" target="x,y" />
 </CapaProblem>
 ```
 
 ## Numerical Problems
 
-### Basic
-
-```xml
-<CapaProblem id="multiply">
-  <NumericalGrader answer="56">
-    <p>What is 7 × 8?</p>
-    <NumberInput />
-  </NumericalGrader>
-</CapaProblem>
-```
-
 ### With Tolerance
 
 Accept answers within a range:
 
-```xml
-<NumericalGrader answer="3.14159" tolerance="0.01" />
-<NumericalGrader answer="100" tolerance="5%" />
+```olx:playground
+<CapaProblem id="pi" title="Value of Pi">
+  <NumericalGrader answer="3.14159" tolerance="0.01">
+    <Markdown>What is pi to at least two decimal places?</Markdown>
+    <NumberInput />
+  </NumericalGrader>
+</CapaProblem>
 ```
 
 ### Range Answers
 
 Accept any value in a range:
 
-```xml
+```olx:code
 <NumericalGrader answer="[0, 10]" />   <!-- 0 ≤ x ≤ 10 -->
 <NumericalGrader answer="(0, 10)" />   <!-- 0 < x < 10 -->
-```
-
-### Complex Numbers
-
-```xml
-<NumericalGrader answer="3+4i" tolerance="0.1" />
 ```
 
 ## Multiple Choice
 
 Use `Key` for correct answers, `Distractor` for wrong ones:
 
-```xml
-<CapaProblem id="planets">
+```olx:playground
+<CapaProblem id="mcq" title="Learning Theorists">
   <KeyGrader>
-    <p>Which planet is closest to the Sun?</p>
+    <Markdown>Which learning theorist emphasized the importance of "scaffolding" in the zone of proximal development?</Markdown>
     <ChoiceInput>
-      <Key>Mercury</Key>
-      <Distractor>Venus</Distractor>
-      <Distractor>Earth</Distractor>
-      <Distractor>Mars</Distractor>
+      <Distractor>B.F. Skinner</Distractor>
+      <Key>Lev Vygotsky</Key>
+      <Distractor>Jean Piaget</Distractor>
+      <Distractor>John Watson</Distractor>
     </ChoiceInput>
   </KeyGrader>
 </CapaProblem>
@@ -127,10 +112,10 @@ Use `Key` for correct answers, `Distractor` for wrong ones:
 
 RatioGrader compares the ratio of two NumberInputs:
 
-```xml
-<CapaProblem id="fraction">
+```olx:playground
+<CapaProblem id="fraction" title="Fraction as Ratio">
   <RatioGrader answer="0.75">
-    <p>Express 0.75 as a fraction in lowest terms:</p>
+    <Markdown>Express 3/4 as a fraction:</Markdown>
     <NumberInput /> / <NumberInput />
   </RatioGrader>
 </CapaProblem>
@@ -138,14 +123,15 @@ RatioGrader compares the ratio of two NumberInputs:
 
 ## Ordering Problems
 
-```xml
-<CapaProblem id="timeline">
+```olx:playground
+<CapaProblem id="timeline" title="Psychology Milestones">
   <SortableGrader>
-    <p>Arrange in chronological order:</p>
+    <Markdown>Arrange these educational psychology milestones chronologically:</Markdown>
     <SortableInput>
-      <Markdown>World War I (1914)</Markdown>
-      <Markdown>World War II (1939)</Markdown>
-      <Markdown>Moon Landing (1969)</Markdown>
+      <Markdown>Thorndike's Law of Effect (1898)</Markdown>
+      <Markdown>Piaget's Stages of Development (1936)</Markdown>
+      <Markdown>Bloom's Taxonomy (1956)</Markdown>
+      <Markdown>Vygotsky's ZPD translated to English (1978)</Markdown>
     </SortableInput>
   </SortableGrader>
 </CapaProblem>
@@ -153,26 +139,24 @@ RatioGrader compares the ratio of two NumberInputs:
 
 Grading algorithms: `exact`, `partial`, `adjacent`, `spearman`, `survey`
 
-## HTML Content
+## Rich Content
 
-For backwards compatibility with Open edX and LON-CAPA, HTML can be mixed with blocks:
+Problems can include math, markdown, and complex layouts. For backwards compatibility with Open edX and LON-CAPA, raw HTML can be mixed with blocks. This is sometimes necessary for complex layouts (dropdowns on images, input arrays via `<table>`, etc.), but **prefer native blocks when possible**. Native components provide accessibility, mobile support, i18n, semantic analytics, and versioning that raw HTML cannot.
 
-```xml
-<CapaProblem id="physics">
+```olx:playground
+<CapaProblem id="physics" title="Kinematics">
   <NumericalGrader answer="20" tolerance="0.5">
     <Markdown>
 ### Kinematics
 
-A ball is dropped from height *h*. Using $g = 10 \text{ m/s}^2$:
+A ball is dropped from height *h*. Using g = 10 m/s²:
     </Markdown>
     <BlockMath>v = \sqrt{2gh}</BlockMath>
-    <p>If h = 20m, what is v?</p>
+    <Markdown>If h = 20m, what is v (in m/s)?</Markdown>
     <NumberInput />
   </NumericalGrader>
 </CapaProblem>
 ```
-
-This is sometimes necessary for complex layouts (dropdowns on images, input arrays via `<table>`, etc.), but **prefer native blocks when possible**. Native components provide accessibility, mobile support, i18n, semantic analytics, and versioning that raw HTML cannot.
 
 ## How It Works
 
@@ -186,13 +170,11 @@ This is sometimes necessary for complex layouts (dropdowns on images, input arra
 
 CapaProblem renders several internal components automatically:
 
-- **Header**: Problem title + `Correctness` indicator (✅❌❔)
+- **Header**: Problem title + `Correctness` indicator
 - **Footer**: `CapaButton` containing:
   - `ActionButton` - triggers grading
   - `Correctness` - icon showing result
   - `StatusText` - displays grader's `message` field
-
-These internal components use `target` to find and display state from graders.
 
 ### Grader State
 
@@ -200,6 +182,10 @@ Graders maintain two fields that drive the UI:
 - `correct` - CORRECTNESS enum (CORRECT, INCORRECT, INVALID, UNSUBMITTED, etc.)
 - `message` - Feedback text shown to student
 
-## Background
+## History
 
-The name comes from LON-CAPA (Learning Online Network - Computer-Assisted Personalized Approach), which pioneered computer-based STEM assessment in the 1990s. Open edX adopted similar XML markup. This implementation provides compatible semantics with a cleaner component model.
+The name "CAPA" comes from LON-CAPA (Learning Online Network - Computer-Assisted Personalized Approach), a system developed by Gerd Kortemeyer at Michigan State University that pioneered computer-based STEM assessment starting in the 1990s.
+
+When Open edX was built at MIT, Piotr Mitros adapted CAPA's problem markup into what became OLX (Open Learning XML), working closely with Kortemeyer who was visiting MIT at the time. OLX 1.0 cleaned up some of LON-CAPA's historical quirks while preserving its core semantics.
+
+This implementation continues that evolution: a further cleanup with a modern component model, while maintaining conceptual compatibility. The progression is LON-CAPA XML → Open edX OLX 1.0 → lo-blocks OLX 2.0, each step tightening the design while preserving the fundamental insight that assessment markup should be declarative and composable.

@@ -1,0 +1,15 @@
+<Vertical id="StringGraderRegExpDemo" title="StringGrader with RegExp">
+  <CapaProblem id="regexp_problem" title="Email Validation">
+    Enter a valid email address:
+    <StringGrader answer="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" regexp="true" displayAnswer="user@example.com">
+      <LineInput />
+    </StringGrader>
+  </CapaProblem>
+
+  <CapaProblem id="spelling_problem" title="British or American Spelling">
+    Enter either "color" or "colour":
+    <StringGrader answer="colou?r" regexp="true" ignoreCase="true" displayAnswer="color or colour">
+      <LineInput />
+    </StringGrader>
+  </CapaProblem>
+</Vertical>

@@ -1,0 +1,52 @@
+<MarkupProblem id="MarkupProblemMultipart" title="Multipart Problem (Advanced)"><![CDATA[
+Multipart Problems
+===
+
+This demonstrates a multipart problem with multiple question types. While MarkupProblem supports this, multipart problems can confuse students: if they get one part wrong, it's hard to identify which part or find the correct answer. Consider using separate single-question problems instead.
+
+---
+
+>>Who developed the theory of the "zone of proximal development"?<<
+
+( ) Piaget
+( ) Skinner
+(x) Vygotsky
+( ) Bandura
+
+||This psychologist emphasized the social nature of learning.||
+
+{{
+The theory focuses on what learners can do with guidance versus alone.
+====
+This researcher worked in the Soviet Union in the early 20th century.
+}}
+
+[explanation]
+Lev Vygotsky developed the zone of proximal development (ZPD), which describes the space between what a learner can do independently and what they can achieve with guidance. This was a measurement methodology. A common misconception is that kids ought to be taught within the ZPD (which consistently leads to kids not being sufficiently challenged).
+[/explanation]
+
+---
+
+>>Select all constructivist learning theorists:<<
+
+[x] Piaget {{Stages of cognitive development}}
+[x] Vygotsky {{Social constructivism and ZPD}}
+[ ] Skinner {{Behaviorist - operant conditioning}}
+[x] Bruner {{Discovery learning and scaffolding}}
+[ ] Thorndike {{Behaviorist - law of effect}}
+
+---
+
+>>What is the term for learning through observation of others?<<
+
+= social learning {{Correct! Bandura's social learning theory.}}
+or= observational learning {{Also called social learning.}}
+or= modeling {{A key mechanism in social learning.}}
+not= conditioning {{That's a behaviorist concept, not observational.}}
+
+---
+
+>>In Bloom's taxonomy, approximately what percentage of learning objectives typically address higher-order thinking skills?<<
+
+= 30 +- 15
+]]></MarkupProblem>

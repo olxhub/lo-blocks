@@ -2,61 +2,80 @@
 
 A dropdown select input for choosing from a list of options.
 
+```olx:playground
+<Vertical id="dropdown_demo">
+  <Markdown>Which study strategy has the highest effect size according to Dunlosky et al. (2013)?</Markdown>
+  <DropdownInput id="strategy" placeholder="Select a strategy...">
+    Highlighting
+    Rereading
+    Practice testing
+    Summarization
+  </DropdownInput>
+  <Markdown>**You selected:**</Markdown>
+  <Ref target="strategy" />
+</Vertical>
+```
+
 ## Usage
 
 ### Content-based (PEG parsed)
 
 Options as content, one per line:
 
-```xml
-<DropdownInput id="color" placeholder="Pick a color...">
-  Red
-  Green
-  Blue
+```olx:playground
+<DropdownInput id="spacing" placeholder="Choose...">
+  Same-day review
+  Next-day review
+  Weekly review
+  Monthly review
 </DropdownInput>
 ```
 
 Or comma-separated:
 
-```xml
-<DropdownInput id="color">Red, Green, Blue</DropdownInput>
+```olx:playground
+<DropdownInput id="effect">Low utility, Moderate utility, High utility</DropdownInput>
 ```
 
 With custom values (text|value):
 
-```xml
-<DropdownInput id="size">
-  Small|s
-  Medium|m
-  Large|l
+```olx:playground
+<DropdownInput id="interval">
+  Review tomorrow|1day
+  Review in one week|1week
+  Review in one month|1month
 </DropdownInput>
 ```
 
-### With Grading (Open edX style)
+### With Grading
 
 Mark correct answers with `(x)` and distractors with `( )`:
 
-```xml
-<CapaProblem>
+```olx:playground
+<CapaProblem id="graded_dropdown" title="Study Strategies">
   <KeyGrader>
-    <DropdownInput id="sky_color" placeholder="Choose...">
-      ( ) Red
-      ( ) Green
-      (x) Blue
-      ( ) Yellow
+    <Markdown>Which strategy did Dunlosky et al. rate as having "high utility" for learning?</Markdown>
+    <DropdownInput id="rated" placeholder="Choose...">
+      ( ) Highlighting
+      ( ) Rereading
+      (x) Distributed practice
+      ( ) Summarization
     </DropdownInput>
+    <Explanation>
+      **Distributed practice** (spacing) was rated high utility. Highlighting and rereading were rated low utility despite being popular among students.
+    </Explanation>
   </KeyGrader>
 </CapaProblem>
 ```
 
 Multiple correct answers are supported:
 
-```xml
-<DropdownInput id="primary">
-  (x) Red
-  (x) Blue
-  ( ) Orange
-  (x) Yellow
+```olx:playground
+<DropdownInput id="high_utility">
+  (x) Practice testing
+  (x) Distributed practice
+  ( ) Highlighting
+  ( ) Rereading
 </DropdownInput>
 ```
 
@@ -64,14 +83,8 @@ Multiple correct answers are supported:
 
 For dynamic options or simpler markup:
 
-```xml
-<DropdownInput id="color" options="Red, Green, Blue" />
-```
-
-With custom values:
-
-```xml
-<DropdownInput id="size" options="Small|s, Medium|m, Large|l" />
+```olx:playground
+<DropdownInput id="gain" options="Low gain (< 0.3), Medium gain (0.3-0.5), High gain (> 0.5)" />
 ```
 
 **Note:** You cannot use both content and `options` attribute - this will raise an error.
@@ -84,15 +97,6 @@ With custom values:
 | `placeholder` | Placeholder text shown when no option is selected |
 | `options` | Comma-separated options (alternative to content) |
 
-## Reading the Value
-
-Use `<Ref>` to display the selected value:
-
-```xml
-<DropdownInput id="color">Red, Green, Blue</DropdownInput>
-<p>Selected: <Ref target="color" /></p>
-```
-
 ## Fields
 
 - `value` - The currently selected option value
@@ -101,3 +105,4 @@ Use `<Ref>` to display the selected value:
 
 - `getOptions()` - Returns array of `{ text, value, tag? }` for each option
 - `getChoices()` - Returns array of `{ id, tag, value }` for KeyGrader compatibility
+
