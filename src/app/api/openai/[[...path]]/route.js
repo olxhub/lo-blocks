@@ -8,22 +8,33 @@
 //
 // Provider configs:
 //   bedrock: AWS_BEDROCK_MODEL (use us. prefix), AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
-//   azure:   OPENAI_DEPLOYMENT_ID, OPENAI_BASE_URL, OPENAI_API_KEY
+//   azure:   AZURE_API_KEY, AZURE_DEPLOYMENT_ID, AZURE_BASE_URL
 //   openai:  OPENAI_API_KEY and/or OPENAI_BASE_URL, OPENAI_MODEL (optional)
 //   stub:    LLM_PROVIDER=stub, or no provider config detected
 
 import { NextResponse } from 'next/server';
 
 // --- Config ---
+
+// Bedrock
 const AWS_BEDROCK_MODEL = process.env.AWS_BEDROCK_MODEL;
 const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
+
+// Azure (separate namespace to avoid conflicts)
+const AZURE_API_KEY = process.env.AZURE_API_KEY;
+const AZURE_DEPLOYMENT_ID = process.env.AZURE_DEPLOYMENT_ID;
+const AZURE_API_VERSION = process.env.AZURE_API_VERSION || '2024-02-15';
+const rawAzureUrl = process.env.AZURE_BASE_URL;
+const AZURE_BASE_URL = rawAzureUrl
+  ? (rawAzureUrl.endsWith('/') ? rawAzureUrl : rawAzureUrl + '/')
+  : null;
+
+// OpenAI (and compatible)
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4.1-nano';
-const OPENAI_DEPLOYMENT_ID = process.env.OPENAI_DEPLOYMENT_ID;
-const OPENAI_API_VERSION = process.env.OPENAI_API_VERSION || '2024-02-15';
-const rawBaseUrl = process.env.OPENAI_BASE_URL;
-const OPENAI_BASE_URL = rawBaseUrl
-  ? (rawBaseUrl.endsWith('/') ? rawBaseUrl : rawBaseUrl + '/')
+const rawOpenaiUrl = process.env.OPENAI_BASE_URL;
+const OPENAI_BASE_URL = rawOpenaiUrl
+  ? (rawOpenaiUrl.endsWith('/') ? rawOpenaiUrl : rawOpenaiUrl + '/')
   : 'https://api.openai.com/v1/';
 
 // --- Provider Detection ---
@@ -39,8 +50,8 @@ function detectProvider() {
   // Infer from env vars
   const signals = {
     bedrock: !!AWS_BEDROCK_MODEL,
-    azure: !!OPENAI_DEPLOYMENT_ID,
-    openai: !!(OPENAI_API_KEY || rawBaseUrl),  // API key OR custom base URL (e.g., Ollama)
+    azure: !!AZURE_DEPLOYMENT_ID,
+    openai: !!(OPENAI_API_KEY || rawOpenaiUrl),  // API key OR custom base URL (e.g., Ollama)
   };
 
   const detected = Object.entries(signals).filter(([, v]) => v).map(([k]) => k);
@@ -78,9 +89,9 @@ To configure a real LLM provider, set LLM_PROVIDER and required env vars:
 
   Azure OpenAI:
     LLM_PROVIDER=azure
-    OPENAI_API_KEY=...
-    OPENAI_DEPLOYMENT_ID=my-deployment
-    OPENAI_BASE_URL=https://myresource.openai.azure.com/openai/
+    AZURE_API_KEY=...
+    AZURE_DEPLOYMENT_ID=my-deployment
+    AZURE_BASE_URL=https://myresource.openai.azure.com/openai/
 
   OpenAI (or compatible, e.g., Ollama):
     LLM_PROVIDER=openai
@@ -252,12 +263,12 @@ async function openaiResponse(body) {
 // --- Azure OpenAI ---
 
 async function azureResponse(body) {
-  const url = `${OPENAI_BASE_URL}deployments/${OPENAI_DEPLOYMENT_ID}/chat/completions?api-version=${OPENAI_API_VERSION}`;
+  const url = `${AZURE_BASE_URL}deployments/${AZURE_DEPLOYMENT_ID}/chat/completions?api-version=${AZURE_API_VERSION}`;
 
   const response = await fetch(url, {
     method: 'POST',
     headers: {
-      'api-key': OPENAI_API_KEY,
+      'api-key': AZURE_API_KEY,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),

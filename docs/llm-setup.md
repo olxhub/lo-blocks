@@ -67,13 +67,15 @@ The model is controlled server-side only (client cannot override). Common models
 
 ```bash
 LLM_PROVIDER=azure
-OPENAI_API_KEY=...
-OPENAI_DEPLOYMENT_ID=my-gpt4-deployment
-OPENAI_BASE_URL=https://myresource.openai.azure.com/openai/
-OPENAI_API_VERSION=2024-02-15      # optional
+AZURE_API_KEY=...
+AZURE_DEPLOYMENT_ID=my-gpt4-deployment
+AZURE_BASE_URL=https://myresource.openai.azure.com/openai/
+AZURE_API_VERSION=2024-02-15      # optional
 ```
 
-The `OPENAI_DEPLOYMENT_ID` is the name you gave when deploying a model in Azure Portal, not the model name itself.
+The `AZURE_DEPLOYMENT_ID` is the name you gave when deploying a model in Azure Portal, not the model name itself.
+
+Note: Azure uses `AZURE_*` prefix (not `OPENAI_*`) to avoid conflicts when inferring provider from env vars.
 
 ## OpenAI-Compatible Providers
 
@@ -125,9 +127,9 @@ AWS_BEDROCK_MODEL=us.anthropic.claude-3-5-sonnet-20241022-v2:0
 
 ### 404 errors (Azure)
 
-Ensure `OPENAI_BASE_URL` includes `/openai/` at the end:
+Ensure `AZURE_BASE_URL` includes `/openai/` at the end:
 ```bash
-OPENAI_BASE_URL=https://myresource.openai.azure.com/openai/
+AZURE_BASE_URL=https://myresource.openai.azure.com/openai/
 ```
 
 ### URL concatenation errors
