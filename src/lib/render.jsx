@@ -104,10 +104,11 @@ export function render({ node, idMap, key, nodeInfo, componentMap = COMPONENT_MA
   const validationResult = attrSchema.safeParse(attributes);
   if (!validationResult.success) {
     const zodErrors = validationResult.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ');
+    const blockLabel = node.id ? `${tag} id="${node.id}"` : tag;
     return (
       <DisplayError
         id={`validation-${node.id}`}
-        name={tag}
+        name={blockLabel}
         message={`Invalid attributes: ${zodErrors}`}
         technical={{ attributes, zodError: validationResult.error }}
       />

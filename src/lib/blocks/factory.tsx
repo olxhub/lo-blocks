@@ -33,8 +33,8 @@ function assertUnimplemented<T>(field: T | undefined, fieldName: string) {
 // Standard fields for graders
 const GRADER_FIELDS = ['correct', 'message', 'showAnswer', 'submitCount'];
 
-// Standard attributes for graders - passthrough preserves additional attrs (like src for PEG parsers)
-// Individual graders can use .strict() on their schema to catch attribute typos
+// Default attributes for graders that don't define their own schema.
+// Uses passthrough for flexibility. Graders that define attributes get strict validation.
 const GRADER_ATTRIBUTES = baseAttributes.extend({
   answer: z.string().optional(),
   displayAnswer: z.string().optional(),
@@ -70,7 +70,10 @@ function applyGraderExtensions(config: BlockBlueprint): BlockBlueprint {
     const graderShape = GRADER_ATTRIBUTES.shape;
     // Existing attrs take precedence (grader-specific overrides base)
     const mergedShape = { ...graderShape, ...existingShape };
-    extendedSchema = z.object(mergedShape).passthrough();
+    // Preserve the original schema's strictness mode
+    // If block didn't define attributes, use passthrough (for flexibility)
+    // If block defined attributes, use strict (to catch typos)
+    extendedSchema = z.object(mergedShape).strict();
   }
 
   return {

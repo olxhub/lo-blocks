@@ -141,12 +141,25 @@ interface DisplayErrorProps {
   technical?: string | Error | any;
   data?: any;
   id?: string;
+  /** Child errors to include in this error (for meta-errors) */
+  childErrors?: ChildErrorInfo[];
+}
+
+/** Info about a child error, extracted from React tree */
+export interface ChildErrorInfo {
+  name: string;
+  message: string;
+  technical?: any;
 }
 
 // Safe, debuggable error wrapper
-export function DisplayError({ props={}, name = 'Error', message, technical, data, id = 'error' }: DisplayErrorProps) {
+export function DisplayError({ props={}, name = 'Error', message, technical, data, id = 'error', childErrors }: DisplayErrorProps) {
+  // Include block ID in the name if available from props
+  const blockId = props?.id;
+  const displayName = blockId ? `${name} id="${blockId}"` : name;
+
   // Log raw data for dev console inspection
-  debugLog(`[${name}] ${message}`, { technical, data });
+  debugLog(`[${displayName}] ${message}`, { technical, data, childErrors });
 
   // Helper: stringify safely
   const safe = (value) => {
@@ -163,13 +176,26 @@ export function DisplayError({ props={}, name = 'Error', message, technical, dat
   // In debug mode, crash hard
   if (debug) {
     const techMsg = technical ? ` [Technical: ${technical}]` : '';
-    throw new Error(`[${name}] ${message}${techMsg}`);
+    throw new Error(`[${displayName}] ${message}${techMsg}`);
   }
 
   // In production / non-debug mode, render friendly box
   return (
     <div key={id} className="lo-display-error bg-yellow-50 text-yellow-800 text-sm p-3 rounded border border-yellow-200 whitespace-pre-wrap overflow-auto">
-      <div><strong>{name}</strong>: {message}</div>
+      <div><strong>{displayName}</strong>: {message}</div>
+
+      {childErrors && childErrors.length > 0 && (
+        <div style={{ marginTop: '0.75rem', paddingLeft: '1rem', borderLeft: '3px solid #fbbf24' }}>
+          <div style={{ fontSize: '0.85rem', fontWeight: 500, marginBottom: '0.5rem' }}>
+            Child errors ({childErrors.length}):
+          </div>
+          {childErrors.map((err, i) => (
+            <div key={i} style={{ marginBottom: '0.5rem', fontSize: '0.85rem' }}>
+              <strong>{err.name}</strong>: {err.message}
+            </div>
+          ))}
+        </div>
+      )}
 
       {technical && (
         <details style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>
@@ -179,6 +205,45 @@ export function DisplayError({ props={}, name = 'Error', message, technical, dat
       )}
     </div>
   );
+}
+
+// Mark DisplayError for identification in React tree
+DisplayError.isDisplayError = true;
+
+/**
+ * Recursively collect DisplayError info from a rendered React tree.
+ *
+ * This is useful for parent components that want to report child errors
+ * in a meta-error (e.g., CapaProblem showing "no grader found" when the
+ * actual issue is a typo in a grader's attributes).
+ *
+ * @param children - React children (from renderCompiledKids or similar)
+ * @returns Array of child error info objects
+ */
+export function collectChildErrors(children: React.ReactNode): ChildErrorInfo[] {
+  const errors: ChildErrorInfo[] = [];
+
+  React.Children.forEach(children, (child) => {
+    if (!React.isValidElement(child)) return;
+
+    // Check if this is a DisplayError component
+    const elementType = child.type as any;
+    if (elementType?.isDisplayError || elementType === DisplayError) {
+      const props = child.props as DisplayErrorProps;
+      errors.push({
+        name: props.name || 'Error',
+        message: props.message,
+        technical: props.technical,
+      });
+    }
+
+    // Recurse into children (handles Fragment, div wrappers, etc.)
+    if (child.props?.children) {
+      errors.push(...collectChildErrors(child.props.children));
+    }
+  });
+
+  return errors;
 }
 
 // ============================================================================

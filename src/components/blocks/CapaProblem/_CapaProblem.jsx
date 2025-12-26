@@ -6,7 +6,7 @@ import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import * as state from '@/lib/state';
 import { renderCompiledKids } from '@/lib/render';
 import { renderBlock } from '@/lib/renderHelpers';
-import { DisplayError } from '@/lib/util/debug';
+import { DisplayError, collectChildErrors } from '@/lib/util/debug';
 
 // --- Logic Functions ---
 
@@ -187,6 +187,22 @@ export default function _CapaProblem(props) {
 
   // Validate: require at least one grader unless explicitly allowed
   if (childGraderIds.length === 0 && !props.allowEmpty) {
+    // Check if the issue is child errors (e.g., typo in grader attributes)
+    const childErrors = collectChildErrors(content);
+
+    if (childErrors.length > 0) {
+      return (
+        <DisplayError
+          props={props}
+          id={`${id}_child_errors`}
+          name="CapaProblem"
+          message="Problem failed to render due to errors in child blocks:"
+          childErrors={childErrors}
+          technical={{ hint: 'Fix the child errors listed above to render this problem' }}
+        />
+      );
+    }
+
     return (
       <DisplayError
         props={props}
