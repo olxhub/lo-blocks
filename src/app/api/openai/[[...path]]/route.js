@@ -256,7 +256,8 @@ async function openaiResponse(body) {
 
   return new NextResponse(response.body, {
     status: response.status,
-    headers: { 'Content-Type': 'application/json' },
+    // Pass through content-type for streaming support (text/event-stream)
+    headers: { 'Content-Type': response.headers.get('content-type') || 'application/json' },
   });
 }
 
@@ -276,7 +277,8 @@ async function azureResponse(body) {
 
   return new NextResponse(response.body, {
     status: response.status,
-    headers: { 'Content-Type': 'application/json' },
+    // Pass through content-type for streaming support (text/event-stream)
+    headers: { 'Content-Type': response.headers.get('content-type') || 'application/json' },
   });
 }
 
