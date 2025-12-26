@@ -37,13 +37,14 @@ function findToolByName(tools, name) {
 // Core LLM call logic, standalone async function.
 //
 // TODO: Do we want to replace this with a standard library?
+// TODO: Add a 'profile' parameter that selects server-side presets
+//       (model, system prompt, rate limits, etc.)
 export async function callLLM(params) {
   const {
     history,
     prompt,
     tools = [],
     statusCallback = () => null,
-    model = 'gpt-4.1-nano'
   } = params;
 
   // Validation: exactly one of prompt or history must be provided
@@ -63,7 +64,6 @@ export async function callLLM(params) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model,
           messages: [...messages, ...newMessages],
           tools: tools ? tools.map(({ callback, ...rest }) => rest) : [],
         }),
@@ -202,12 +202,9 @@ export function useChat(params = {}) {
 }
 
 // Simple wrapper that returns just the text content
-export async function callLLMSimple(prompt, options = {}) {
-  const { model } = options;
-
+export async function callLLMSimple(prompt) {
   const { messages, error } = await callLLM({
     prompt,
-    model,
     statusCallback: () => {}, // No status needed for simple calls
   });
 
