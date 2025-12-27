@@ -22,6 +22,7 @@ import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 import * as lo_event from 'lo_event';
 import { CORRECTNESS } from './correctness';
 import { reduxId } from './idResolver';
+import { getBlockByOLXId } from './index';
 
 // Mix-in to make a block an action
 export function action({ action }) {
@@ -68,7 +69,7 @@ export function grader({ grader, infer = true } = {}) {
   //
   // This is scaffolding and should be fixed on a future pass.
 
-  const action = ({ targetId, targetInstance, props }) => {
+  const action = async ({ targetId, targetInstance, props }) => {
     const targetNodeInfo = getNodeById(props, targetId);
     const targetAttributes = targetInstance.attributes;
 
@@ -85,8 +86,8 @@ export function grader({ grader, infer = true } = {}) {
     const map = props.componentMap;
 
     // Gather values and APIs from each input
-    const inputData = inputIds.map(id => {
-      const inst = props.idMap[id];
+    const inputData = await Promise.all(inputIds.map(async id => {
+      const inst = await getBlockByOLXId(props, id);
       const blueprint = map[inst.tag];
       const inputNodeInfo = getNodeById(props, id);
       // HACK: We don't have the input's full props, so copy over fields that downstream code needs
@@ -105,7 +106,7 @@ export function grader({ grader, infer = true } = {}) {
         : {};
 
       return { value, api };
-    });
+    }));
 
     const values = inputData.map(d => d.value);
     const apis = inputData.map(d => d.api);
@@ -173,15 +174,15 @@ export function grader({ grader, infer = true } = {}) {
   };
 }
 
-export function executeNodeActions(props) {
+export async function executeNodeActions(props) {
   const ids = inferRelatedNodes( props, {
     selector: n => isAction(n.blueprint),
     infer: props.infer,
     targets: props.target
   });
   const map = props.componentMap;
-  ids.forEach(targetId => {
-    const targetInstance = props.idMap[targetId];
+  for (const targetId of ids) {
+    const targetInstance = await getBlockByOLXId(props, targetId);
     const targetBlueprint = map[targetInstance.tag];
 
     // Find the action's nodeInfo in the dynamic OLX DOM tree
@@ -209,11 +210,11 @@ export function executeNodeActions(props) {
       nodeInfo: actionNodeInfo,
     };
 
-    targetBlueprint.action({
+    await targetBlueprint.action({
       targetId,
       targetInstance,
       targetBlueprint,
       props: actionProps
     });
-  });
+  }
 }
