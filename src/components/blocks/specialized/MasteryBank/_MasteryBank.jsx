@@ -5,7 +5,7 @@ import React, { useMemo, useEffect, useRef } from 'react';
 import { render } from '@/lib/render';
 import { useReduxState, useFieldSelector, componentFieldByName } from '@/lib/state';
 import { extendIdPrefix } from '@/lib/blocks/idResolver';
-import { CORRECTNESS } from '@/lib/blocks';
+import { CORRECTNESS, useBlockByOLXId } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
 
 /**
@@ -77,7 +77,7 @@ function isGradedAnswer(correctness) {
  * Separated to allow unconditional hook calls (useFieldSelector requires valid field).
  */
 function MasteryProblem({ props, problemId, attemptNumber, masteryState, handlers }) {
-  const { id, idMap } = props;
+  const { id } = props;
   const { problemIds, correctStreak, goalNum, firstSubmissionResult, modeState, orderMode } = masteryState;
   const { setCorrectStreak, setModeState, setCompleted, setCorrect, setFirstSubmissionResult, setAttemptNumber } = handlers;
 
@@ -143,7 +143,8 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
     }
   }, [currentCorrectness, firstSubmissionResult, correctStreak, goalNum, problemIds.length, modeState, orderMode, attemptNumber, setCorrectStreak, setModeState, setCompleted, setCorrect, setFirstSubmissionResult, setAttemptNumber]);
 
-  if (!idMap[problemId]) {
+  const problemBlock = useBlockByOLXId(props, problemId);
+  if (!problemBlock) {
     return (
       <DisplayError
         props={props}

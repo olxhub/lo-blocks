@@ -4,6 +4,7 @@
 import React from 'react';
 import { DisplayError } from '@/lib/util/debug';
 import { useComponentState } from '@/lib/state';
+import { useBlockByOLXId } from '@/lib/blocks';
 
 export default function _StateViewer(props) {
   const { target, scope, kids = '' } = props;
@@ -11,16 +12,17 @@ export default function _StateViewer(props) {
   // Target can come from attribute or children text (like Ref)
   const targetId = target || (typeof kids === 'string' ? kids : String(kids)).trim();
 
+  // Hooks must be called unconditionally, so call before any early returns
+  const targetBlock = useBlockByOLXId(props, targetId || '_invalid_');
+  const componentState = useComponentState(props, targetId, { scope });
+
   if (!targetId) {
     return <DisplayError name="StateViewer" message="No target specified. Use target attribute or provide component ID as content." />;
   }
 
-  // Check if target block exists in idMap
-  if (!props.idMap || !props.idMap[targetId]) {
+  if (!targetBlock) {
     return <DisplayError name="StateViewer" message={`Target block "${targetId}" not found`} />;
   }
-
-  const componentState = useComponentState(props, targetId, { scope });
 
   return (
     <div className="state-viewer">

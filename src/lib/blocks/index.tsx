@@ -39,4 +39,5 @@ export { worstCaseCorrectness, proportionalCorrectness, computeScore, formatScor
 export { isInputReadOnly } from './inputInteraction';
 export { baseAttributes, BASE_ATTRIBUTE_NAMES } from './attributeSchemas';
 export { useGraderAnswer } from './useGraderAnswer';
+export { useBlockByOLXId } from './useBlockByOLXId';
 export { createGrader } from './createGrader';
