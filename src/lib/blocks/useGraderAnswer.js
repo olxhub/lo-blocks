@@ -13,8 +13,8 @@
 'use client';
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
-import { idMapKey } from './idResolver';
 import { getGrader, getAllNodes } from './olxdom';
+import { useBlockByOLXId } from './useBlockByOLXId';
 
 /**
  * Find a grader that targets this input (for sibling grader patterns).
@@ -93,12 +93,12 @@ export function useGraderAnswer(props) {
     }
   );
 
+  // Get grader instance unconditionally (hook must always be called)
+  const graderInstance = useBlockByOLXId(props, graderId || '');
+
   // Get displayAnswer from grader's blueprint when showAnswer is true
   let displayAnswer = undefined;
-  if (showAnswer && graderId) {
-    // Use idMapKey for consistent ID resolution (graderId is already a base ID,
-    // but this protects against future changes)
-    const graderInstance = props.idMap[idMapKey(graderId)];
+  if (showAnswer && graderId && graderInstance) {
     const graderBlueprint = props.componentMap[graderInstance.tag];
 
     if (graderBlueprint.getDisplayAnswer) {

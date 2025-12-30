@@ -1,13 +1,27 @@
 // src/components/blocks/layout/Tabs/_Tabs.jsx
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useReduxState } from '@/lib/state';
 import { renderCompiledKids } from '@/lib/render';
+import { useBlocksByOLXIds } from '@/lib/blocks/useBlockByOLXId';
 
 export default function _Tabs(props) {
-  const { fields, kids = [], idMap } = props;
+  const { fields, kids = [] } = props;
   const [activeTab, setActiveTab] = useReduxState(props, fields.activeTab, 0);
+
+  // Extract kid IDs for batch lookup
+  const kidIds = useMemo(
+    () => kids.filter(k => k?.type === 'block' && k?.id).map(k => k.id),
+    [kids]
+  );
+  const kidBlocks = useBlocksByOLXIds(props, kidIds);
+
+  // Create a map for easy lookup by ID
+  const kidBlockMap = useMemo(
+    () => Object.fromEntries(kidIds.map((id, i) => [id, kidBlocks[i]])),
+    [kidIds, kidBlocks]
+  );
 
   if (kids.length === 0) {
     return <div className="p-4 text-gray-500">No tabs defined</div>;
@@ -26,11 +40,13 @@ export default function _Tabs(props) {
         {kids.map((kid, index) => {
           const isActive = index === currentTab;
 
-          // Extract title from the child block's attributes
+          // Extract title from the child block's attributes (using pre-fetched blocks)
           let tabLabel = `Tab ${index + 1}`;
-          if (kid.type === 'block' && kid.id && idMap?.[kid.id]) {
-            const childBlock = idMap[kid.id];
-            tabLabel = childBlock.attributes?.title || tabLabel;
+          if (kid.type === 'block' && kid.id) {
+            const childBlock = kidBlockMap[kid.id];
+            if (childBlock) {
+              tabLabel = childBlock.attributes?.title || tabLabel;
+            }
           }
 
           return (

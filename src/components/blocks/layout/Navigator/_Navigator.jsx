@@ -4,6 +4,7 @@
 import React, { useMemo } from 'react';
 import { useReduxState } from '@/lib/state';
 import { render } from '@/lib/render';
+import { useBlockByOLXId } from '@/lib/blocks/useBlockByOLXId';
 
 function _Navigator(props) {
   const {
@@ -13,8 +14,11 @@ function _Navigator(props) {
     preview,
     detail,
     searchable = true,
-    idMap
   } = props;
+
+  // Look up template blocks unconditionally (hooks must always be called)
+  const previewBlock = useBlockByOLXId(props, preview || '');
+  const detailBlock = useBlockByOLXId(props, detail || '');
 
   const [selectedItem, setSelectedItem] = useReduxState(props, fields.selectedItem, null);
   const [searchQuery, setSearchQuery] = useReduxState(props, fields.searchQuery, '');
@@ -100,13 +104,13 @@ function _Navigator(props) {
     setSelectedItem(null);
   };
 
-  // Render preview or detail by looking up the block ID and rendering with item data as attributes
+  // Render preview or detail using pre-fetched blocks
   const renderTemplate = (blockId, item, additionalProps = {}) => {
-    if (!blockId || !idMap?.[blockId]) {
+    // Use the pre-fetched block based on which template we're rendering
+    const block = blockId === preview ? previewBlock : detailBlock;
+    if (!blockId || !block) {
       return <div className="p-4 text-red-500">Template block &quot;{blockId}&quot; not found</div>;
     }
-
-    const block = idMap[blockId];
 
     // Create a modified node with item data merged into attributes
     const nodeWithData = {
