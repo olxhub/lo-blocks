@@ -3,7 +3,7 @@ import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { store as loStore } from '@/lib/state/store';
-import { render, makeRootNode } from '@/lib/render';
+import RenderOLX from '@/components/common/RenderOLX';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '@/lib/storage/providers/file';
 
@@ -28,15 +28,15 @@ it('wires inputs and graders with explicit targeting', async () => {
 
 it('renders ActionButton and Correctness at runtime', async () => {
   const { idMap } = await syncContentFromStorage(new FileStorageProvider('src/components/blocks/CapaProblem'));
-  const node = idMap['CapaProblemDemo'];
-  expect(node).toBeDefined();
+  expect(idMap['CapaProblemDemo']).toBeDefined();
 
-  const ui = render({ node, idMap, nodeInfo: makeRootNode() });
   const store = loStore.init();
   const { container } = rtlRender(
-    React.createElement(Provider, { store }, ui)
+    React.createElement(Provider, { store },
+      React.createElement(RenderOLX, { id: 'CapaProblemDemo', baseIdMap: idMap })
+    )
   );
-  // Sync thenables with status:'fulfilled' are unwrapped synchronously by use()
+
   const btn = container.querySelector('[data-block-type="ActionButton"]');
   const status = container.querySelector('[data-block-type="Correctness"]');
   expect(btn).toBeTruthy();
