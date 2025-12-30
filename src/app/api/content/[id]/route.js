@@ -1,11 +1,37 @@
 // src/app/api/content/[id]/route.js
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { getEditPathFromProvenance } from '@/lib/storage/contentPaths';
+import { COMPONENT_MAP } from '@/components/componentMap';
 
-// Toggle for testing one-at-a-time block fetching.
-// When true: returns only the requested block (stress-tests async loading)
-// When false: returns full idMap (current behavior, fast but sends everything)
-const SINGLE_BLOCK_MODE = true;
+// Block fetching mode for testing async loading:
+//   'all'         - return full idMap (fast, sends everything)
+//   'single'      - return only requested block (stress-tests async, one-at-a-time)
+//   'static-kids' - return block + its static children (practical middle ground)
+//
+// 'static-kids' is the recommended mode: it serves blocks that need their
+// children loaded together (ChoiceInput+Key, graders, etc.) while still
+// testing async loading for dynamic references.
+const SINGLE_BLOCK_MODE = 'static-kids';
+
+/**
+ * Recursively collect a block and all its static children.
+ * Uses each component's staticKids() method to determine children.
+ */
+function collectBlockWithKids(idMap, id, collected = {}) {
+  if (!id || collected[id] || !idMap[id]) return collected;
+
+  const entry = idMap[id];
+  collected[id] = entry;
+
+  const comp = COMPONENT_MAP[entry.tag];
+  if (comp?.staticKids) {
+    for (const childId of comp.staticKids(entry)) {
+      collectBlockWithKids(idMap, childId, collected);
+    }
+  }
+
+  return collected;
+}
 
 /**
  * Add editPath and editError to an entry based on its provenance.
@@ -60,20 +86,28 @@ export async function GET(request, { params }) {
       );
     }
 
-    if (SINGLE_BLOCK_MODE) {
-      // Stress-test mode: return only the requested block
-      // This forces the client to fetch each block individually
-      return Response.json({
-        ok: true,
-        idMap: { [id]: idMap[id] }
-      });
-    } else {
-      // Normal mode: return full idMap (current behavior)
-      return Response.json({
-        ok: true,
-        idMap
-      });
+    // Return blocks based on SINGLE_BLOCK_MODE setting
+    let responseIdMap;
+    switch (SINGLE_BLOCK_MODE) {
+      case 'single':
+        // Stress-test mode: return only the requested block
+        responseIdMap = { [id]: idMap[id] };
+        break;
+      case 'static-kids':
+        // Practical mode: return block + static children
+        responseIdMap = collectBlockWithKids(idMap, id);
+        break;
+      case 'all':
+      default:
+        // Full mode: return entire idMap
+        responseIdMap = idMap;
+        break;
     }
+
+    return Response.json({
+      ok: true,
+      idMap: responseIdMap
+    });
   } catch (error) {
     console.error('Error loading content:', error);
 

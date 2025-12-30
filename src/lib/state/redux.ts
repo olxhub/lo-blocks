@@ -317,6 +317,21 @@ export function componentFieldByName(props, targetId, fieldName) {
   // Possible TODO: Extract context from props for human-friendly errors.
   // Possible TODO: Move to OLXDom or similar. I'm not sure this is the best place for this.
   // Optimization: In production, we could go directly into the global field name maps. But this is better for dev + editing. The global map risks referencing a field which exists in the system, but not in the target component.
+  //
+  // ==========================================================================
+  // ASYNC TODO (idMap refactor)
+  // ==========================================================================
+  // This function accesses props.idMap synchronously. With SINGLE_BLOCK_MODE,
+  // the target component may not be loaded yet, causing "not found" errors.
+  //
+  // To fix: Either make this async (returns Promise/thenable), or ensure
+  // callers pre-load required blocks via useBlockByOLXId before calling.
+  // See MasteryBank for the pattern: load grader with useBlockByOLXId first,
+  // then call componentFieldByName.
+  //
+  // Long-term: Fields need a major refactor - serve field metadata via API,
+  // decouple from idMap. Track in separate PR.
+  // ==========================================================================
 
   // Use idMapKey to normalize the ID for idMap lookup
   const normalizedId = idResolver.idMapKey(targetId);

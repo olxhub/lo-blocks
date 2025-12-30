@@ -3,6 +3,20 @@
 // Single-select (radio button) input. Value is stored as a string.
 // For multi-select (checkboxes), use CheckboxInput instead.
 //
+// ==========================================================================
+// ASYNC TODO (idMap refactor)
+// ==========================================================================
+// This file accesses props.idMap synchronously in getChoices() and locals.
+// With SINGLE_BLOCK_MODE, Key/Distractor children may not be loaded yet.
+//
+// Current workaround: SINGLE_BLOCK_MODE='static-kids' serves parent + children
+// together, so this works. Full fix requires making locals/getChoices async
+// or pre-loading children in the component via useBlocksByOLXIds.
+//
+// Same issue affects: CheckboxInput.js, KeyGrader.js, CheckboxGrader.js,
+// RulesGrader.js, Ref.js
+// ==========================================================================
+//
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as state from '@/lib/state';
