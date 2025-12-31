@@ -1,17 +1,13 @@
 // src/components/blocks/Course/_Course.jsx
 'use client';
 
-import React, { use, Suspense } from 'react';
+import React from 'react';
 import { useReduxState } from '@/lib/state';
-import { render } from '@/lib/render';
-import Spinner from '@/components/common/Spinner';
+import { useBlock } from '@/lib/render';
 
 function CourseContent({ props, selectedChild }) {
-  const rendered = use(render({
-    ...props,
-    node: selectedChild,
-  }));
-  return <>{rendered}</>;
+  const { block } = useBlock(props, selectedChild);
+  return <>{block}</>;
 }
 
 function _Course(props) {
@@ -92,9 +88,7 @@ function _Course(props) {
       {/* Right Content Area */}
       <div className="course-content">
         {hasValidSelection && selectedChild ? (
-          <Suspense fallback={<Spinner>Loading...</Spinner>}>
-            <CourseContent props={props} selectedChild={selectedChild} />
-          </Suspense>
+          <CourseContent props={props} selectedChild={selectedChild} />
         ) : (
           <div>
             <p>Select a section from the navigation to begin.</p>

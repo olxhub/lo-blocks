@@ -1,14 +1,13 @@
 // src/components/blocks/SplitPanel/_SplitPanel.jsx
 'use client';
 
-import React, { use, Suspense } from 'react';
+import React from 'react';
 import Split from 'react-split';
-import { render } from '@/lib/render';
-import Spinner from '@/components/common/Spinner';
+import { useKids } from '@/lib/render';
 
-function PaneContent({ props, node }) {
-  const rendered = use(render({ ...props, node }));
-  return <>{rendered}</>;
+function PaneContent({ props, paneKids }) {
+  const { kids } = useKids({ ...props, kids: paneKids });
+  return <>{kids}</>;
 }
 
 export default function _SplitPanel(props) {
@@ -33,14 +32,10 @@ export default function _SplitPanel(props) {
         style={{ display: 'flex' }}
       >
         <div className="p-2 overflow-auto flex flex-col h-full">
-          <Suspense fallback={<Spinner>Loading...</Spinner>}>
-            <PaneContent props={props} node={left} />
-          </Suspense>
+          <PaneContent props={props} paneKids={left} />
         </div>
         <div className="p-2 overflow-auto flex flex-col h-full">
-          <Suspense fallback={<Spinner>Loading...</Spinner>}>
-            <PaneContent props={props} node={right} />
-          </Suspense>
+          <PaneContent props={props} paneKids={right} />
         </div>
       </Split>
     </div>

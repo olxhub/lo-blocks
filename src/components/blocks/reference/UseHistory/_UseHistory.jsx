@@ -1,15 +1,15 @@
 // src/components/blocks/_UseHistory.jsx
 'use client';
 
-import React, { use, useEffect, Suspense } from 'react';
-import { render } from '@/lib/render';
+import React, { useEffect, Suspense } from 'react';
+import { useBlock } from '@/lib/render';
 import { useReduxInput, useReduxState, useValue } from '@/lib/state';
 import HistoryBar from '@/components/common/HistoryBar';
 import Spinner from '@/components/common/Spinner';
 
 function HistoryContent({ props, current }) {
-  const rendered = use(render({ ...props, node: current }));
-  return <>{rendered}</>;
+  const { block } = useBlock(props, current);
+  return <>{block}</>;
 }
 
 export function _UseHistory(props) {

@@ -251,8 +251,7 @@ export default function RenderOLX({
 
     // render() now returns a promise
     return render({
-      key: rootId,
-      node: rootId,
+      node: { type: 'block', id: rootId },
       idMap: mergedIdMap,
       nodeInfo: makeRootNode(),
       componentMap,

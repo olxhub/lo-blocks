@@ -1,17 +1,17 @@
 // src/components/blocks/_Sequential.jsx
 'use client';
 
-import React, { use } from 'react';
+import React from 'react';
 import { useReduxState } from '@/lib/state';
-import { render } from '@/lib/render';
+import { useKids } from '@/lib/render';
 import HistoryBar from '@/components/common/HistoryBar';
 import { fields } from './Sequential';
 
 // Child component for rendering the current item with use()
 // Separated because use() cannot be called conditionally
 function SequentialItem({ props, node }) {
-  const rendered = use(render({ ...props, node }));
-  return <>{rendered}</>;
+  const { kids } = useKids({ ...props, kids: [node] });
+  return <>{kids}</>;
 }
 
 export default function _Sequential(props) {

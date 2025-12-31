@@ -3,9 +3,15 @@
 
 import React, { useState, useRef } from 'react';
 import { useReduxState } from '@/lib/state';
-import { render } from '@/lib/render';
+import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import { isInputReadOnly, useGraderAnswer } from '@/lib/blocks';
+
+// Component to render a single sortable item's content
+function SortableItemContent({ props, kid, itemIdPrefix }) {
+  const { kids } = useKids({ ...props, kids: [kid], idPrefix: itemIdPrefix });
+  return <>{kids}</>;
+}
 
 /**
  * Fisher-Yates shuffle algorithm
@@ -193,12 +199,11 @@ export default function _SortableInput(props) {
           const isDragOver = dragOverIndex === displayIndex;
           // Correct position is kidIndex + 1 (1-indexed)
           const correctPosition = kidIndex + 1;
+          const itemIdPrefix = `${props.idPrefix || ''}.sortitem.${displayIndex}`;
 
-          const itemContent = render({
-            ...props,
-            node: kid,
-            idPrefix: `${props.idPrefix || ''}.sortitem.${displayIndex}`
-          });
+          const itemContent = (
+            <SortableItemContent props={props} kid={kid} itemIdPrefix={itemIdPrefix} />
+          );
 
           return (
             <div

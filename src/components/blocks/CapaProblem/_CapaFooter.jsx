@@ -5,7 +5,7 @@
 //
 'use client';
 import React from 'react';
-import { renderBlock } from '@/lib/renderHelpers';
+import { renderBlock } from '@/lib/render';
 
 // We have untested logic here:
 //

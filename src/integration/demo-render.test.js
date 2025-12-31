@@ -123,7 +123,7 @@ describe('Demo OLX files render without errors', () => {
 
         // Render the component
         const element = render({
-          node: root,
+          node: { type: 'block', id: root },
           idMap,
           nodeInfo: makeRootNode(),
           componentMap: COMPONENT_MAP

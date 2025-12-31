@@ -1,8 +1,8 @@
 // src/components/blocks/specialized/MasteryBank/_MasteryBank.jsx
 'use client';
 
-import React, { use, useMemo, useEffect, useRef, Suspense } from 'react';
-import { render } from '@/lib/render';
+import React, { useMemo, useEffect, useRef, Suspense } from 'react';
+import { useBlock } from '@/lib/render';
 import { useReduxState, useFieldSelector, componentFieldByName } from '@/lib/state';
 import { extendIdPrefix } from '@/lib/blocks/idResolver';
 import { CORRECTNESS } from '@/lib/blocks';
@@ -90,8 +90,8 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   const problemBlock = useBlockByOLXId(props, problemId);
   const graderBlock = useBlockByOLXId(props, scopedGraderId);
 
-  // Render problem (use() because render() is async)
-  const renderedProblem = use(render({ ...scopedProps, node: { type: 'block', id: problemId } }));
+  // Render problem
+  const { block: renderedProblem } = useBlock(scopedProps, problemId);
 
   // Now safe to access grader field (grader is loaded)
   const graderField = graderBlock

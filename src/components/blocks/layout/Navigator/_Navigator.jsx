@@ -3,8 +3,14 @@
 
 import React, { useMemo } from 'react';
 import { useReduxState } from '@/lib/state';
-import { render } from '@/lib/render';
+import { useKids } from '@/lib/render';
 import { useBlockByOLXId } from '@/lib/blocks/useBlockByOLXId';
+
+// Component to render a template with item data
+function TemplateContent({ props, node }) {
+  const { kids } = useKids({ ...props, kids: [node] });
+  return <>{kids}</>;
+}
 
 function _Navigator(props) {
   const {
@@ -124,7 +130,7 @@ function _Navigator(props) {
       }
     };
 
-    return render({ ...props, node: nodeWithData });
+    return <TemplateContent props={props} node={nodeWithData} />;
   };
 
   return (

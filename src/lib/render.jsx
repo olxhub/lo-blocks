@@ -64,15 +64,10 @@ function kidsCacheKey(kids, idPrefix) {
 
 /**
  * Generate cache key for render() from node.
- * Handles string refs, arrays, and object nodes.
+ * Handles arrays and object nodes ({ type: 'block', id } or { tag, id, ... }).
  * See idResolver.js for cacheKey documentation.
  */
 function nodeCacheKey(node, idPrefix) {
-  // String node = ID reference
-  if (typeof node === 'string') {
-    return idPrefix ? `ref.${idPrefix}.${node}` : `ref.${node}`;
-  }
-
   // Array of kids
   if (Array.isArray(node)) {
     const arrKey = kidsCacheKey(node, '');
@@ -80,9 +75,9 @@ function nodeCacheKey(node, idPrefix) {
   }
 
   // Object nodes - use cacheKey from idResolver (includes overrides!)
-  if (typeof node === 'object') {
+  if (typeof node === 'object' && node !== null) {
     if (!node.id && !node.tag) {
-      throw new Error('render: object node missing id');
+      throw new Error('render: object node missing id or tag');
     }
     return nodeCacheKeyBase(node, { idPrefix });
   }
@@ -95,9 +90,14 @@ function nodeCacheKey(node, idPrefix) {
 const ROOT_BLUEPRINT = Object.freeze({ name: 'Root', isGrader: false, isInput: false });
 export const makeRootNode = () => ({ sentinel: 'root', renderedKids: {}, blueprint: ROOT_BLUEPRINT });
 
-// Main render function: handles single nodes, strings, JSX, and blocks
+// Main render function: handles structured nodes and block references.
 // Returns a cached thenable to work with React's use() hook.
 // React requires the same thenable instance across re-renders.
+//
+// Node types accepted:
+//   - { type: 'block', id, overrides? } - reference to block in idMap
+//   - { tag, id, attributes, kids } - inline OLX node
+//   - Array of kids - rendered via renderCompiledKids
 export function render({ node, idMap, nodeInfo, componentMap = COMPONENT_MAP, idPrefix = '' }) {
   // Handle null - return singleton thenable (callers may use(render(...)))
   if (!node) return NULL_RENDER_THENABLE;
@@ -159,29 +159,13 @@ export function render({ node, idMap, nodeInfo, componentMap = COMPONENT_MAP, id
   return thenable;
 }
 
-// Internal render implementation
-async function renderInternal({ node, idMap, key, nodeInfo, componentMap = COMPONENT_MAP, idPrefix = '' }) {
+// Internal render implementation - dispatches by node type
+async function renderInternal({ node, idMap, nodeInfo, componentMap = COMPONENT_MAP, idPrefix = '' }) {
   if (!node) return null;
 
   // Handle list of kids
   if (Array.isArray(node)) {
     return renderCompiledKids({ kids: node, idMap, nodeInfo, componentMap, idPrefix });
-  }
-
-  // Handle string ID - used when render() is called with root ID from parseOLX
-  if (typeof node === 'string') {
-    const entry = await getBlockByOLXId({ idMap }, node);
-    if (!entry) {
-      return (
-        <DisplayError
-          id={`missing-id-${node}`}
-          name="render"
-          message={`Could not resolve node ID "${node}" in idMap`}
-          data={{ node, idMap }}
-        />
-      );
-    }
-    return render({ node: entry, idMap, key, nodeInfo, componentMap, idPrefix });
   }
 
   // Handle { type: 'block', id, overrides }
@@ -205,7 +189,7 @@ async function renderInternal({ node, idMap, key, nodeInfo, componentMap = COMPO
     const entryWithOverrides = node.overrides
       ? { ...entry, attributes: { ...entry.attributes, ...node.overrides } }
       : entry;
-    return render({ node: entryWithOverrides, idMap, key, nodeInfo, componentMap, idPrefix });
+    return render({ node: entryWithOverrides, idMap, nodeInfo, componentMap, idPrefix });
   }
 
   // Handle structured OLX-style node
@@ -405,6 +389,25 @@ export function useKids(props) {
   return { kids };
 }
 
+/**
+ * Hook for rendering a single block by OLX ID.
+ * Fetches the block from idMap and renders it.
+ *
+ * @param {object} props - Component props (must include idMap, nodeInfo, componentMap)
+ * @param {string} id - The OLX ID of the block to render
+ * @returns {{ block: React.ReactNode }} Object containing rendered block
+ *
+ * @example
+ * function MyComponent(props) {
+ *   const { block } = useBlock(props, targetId);
+ *   return <div>{block}</div>;
+ * }
+ */
+export function useBlock(props, id) {
+  const block = use(render({ ...props, node: { type: 'block', id } }));
+  return { block };
+}
+
 // Internal async implementation of renderCompiledKids
 async function renderCompiledKidsInternal(props) {
   let { kids, children, idMap, nodeInfo, componentMap = COMPONENT_MAP, idPrefix = '' } = props;
@@ -441,26 +444,12 @@ async function renderCompiledKidsInternal(props) {
       case 'block':
         return (
           <React.Fragment key={child.key}>
-            {await render({ node: child, idMap, key: `${child.key}`, nodeInfo, componentMap, idPrefix })}
+            {await render({ node: child, idMap, nodeInfo, componentMap, idPrefix })}
           </React.Fragment>
         );
 
       case 'text':
         return <span key={child.key}>{child.text}</span>;
-
-      case 'xml':
-        return (
-          <pre key={child.key} className="bg-gray-50 p-2 rounded text-sm overflow-auto">
-            {child.xml}
-          </pre>
-        );
-
-      case 'cdata':
-        return (
-          <pre key={child.key} className="bg-yellow-50 p-2 rounded text-sm overflow-auto">
-            {child.value}
-          </pre>
-        );
 
       case 'html':
         // React fails -- spectacularly -- on invalid HTML tags.
@@ -471,13 +460,6 @@ async function renderCompiledKidsInternal(props) {
           child.tag,
           { key: child.key, ...child.attributes },
           await renderCompiledKidsInternal({ kids: child.kids ?? [], idMap, nodeInfo, componentMap, idPrefix })
-        );
-
-      case 'node':
-        return (
-          <pre key={child.key} className="bg-blue-50 p-2 rounded text-xs text-gray-700 overflow-auto">
-            {JSON.stringify(child.rawParsed, null, 2)}
-          </pre>
         );
 
       default:
@@ -495,4 +477,21 @@ async function renderCompiledKidsInternal(props) {
   return renderedKids;
 }
 
-
+/**
+ * Helper to render a virtual block without exposing OLX node shape.
+ * Used for programmatically creating blocks (e.g., CapaProblem status icons).
+ *
+ * @param {object} props - Component props (must include idMap, nodeInfo, componentMap)
+ * @param {string} tag - The component tag (e.g., 'Correctness')
+ * @param {object} options - { id, ...attributes }
+ * @param {Array} kids - Child nodes
+ * @returns Thenable for the rendered block
+ *
+ * @example
+ * renderBlock(props, 'Correctness', { id: 'x_status', target: '...' })
+ */
+export function renderBlock(props, tag, options = {}, kids = []) {
+  const { id, ...attributes } = options || {};
+  const node = { id, tag, attributes, kids };
+  return render({ ...props, node });
+}

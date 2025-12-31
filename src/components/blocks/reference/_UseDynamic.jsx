@@ -1,12 +1,12 @@
 // src/components/blocks/_UseDynamic.jsx
-import React, { use, Suspense } from 'react';
-import { render } from '@/lib/render';
+import React, { Suspense } from 'react';
+import { useBlock } from '@/lib/render';
 import { useReduxState, useValue } from '@/lib/state';
 import Spinner from '@/components/common/Spinner';
 
 function DynamicContent({ props, value }) {
-  const rendered = use(render({ ...props, node: value }));
-  return <>{rendered}</>;
+  const { block } = useBlock(props, value);
+  return <>{block}</>;
 }
 
 export function _UseDynamic( props ) {

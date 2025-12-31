@@ -4,8 +4,7 @@ import React, { useEffect } from 'react';
 import { CORRECTNESS, worstCaseCorrectness } from '@/lib/blocks';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import * as state from '@/lib/state';
-import { useKids } from '@/lib/render';
-import { renderBlock } from '@/lib/renderHelpers';
+import { useKids, renderBlock } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 
 // --- Logic Functions ---
