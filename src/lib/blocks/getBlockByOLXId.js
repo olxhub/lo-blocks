@@ -20,11 +20,12 @@ const thenableCacheByIdMap = new WeakMap(); // idMap -> Map<id, Thenable>
 
 // Singleton thenable for null/empty IDs - must be same instance every time
 // to satisfy React's use() hook requirement for stable thenable identity.
-const NULL_THENABLE = Object.freeze({
+// Note: Don't freeze - React adds _debugInfo property in dev mode.
+const NULL_THENABLE = {
   status: 'fulfilled',
   value: undefined,
   then(onFulfilled) { onFulfilled(undefined); }
-});
+};
 
 /**
  * Fetch a block from the server by ID.
