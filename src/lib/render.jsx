@@ -122,15 +122,9 @@ export function render({ node, idMap, key, nodeInfo, componentMap = COMPONENT_MA
   // Handle null - return singleton thenable (callers may use(render(...)))
   if (!node) return NULL_RENDER_THENABLE;
 
-  // JSX passthrough - wrap in fulfilled thenable for use() compatibility
-  // Note: Creates new thenable each time, but JSX passthrough is rare
-  // and typically not in hot render paths
+  // JSX should not be passed to render() - the OLX pipeline produces structured nodes
   if (React.isValidElement(node)) {
-    return {
-      status: 'fulfilled',
-      value: node,
-      then(onFulfilled) { if (onFulfilled) onFulfilled(node); }
-    };
+    throw new Error('render(): JSX element passed directly. Use structured nodes from OLX parser.');
   }
 
   // Get or create cache for this idMap
@@ -188,18 +182,13 @@ export function render({ node, idMap, key, nodeInfo, componentMap = COMPONENT_MA
 // Internal render implementation
 async function renderInternal({ node, idMap, key, nodeInfo, componentMap = COMPONENT_MAP, idPrefix = '' }) {
   if (!node) return null;
-  // JSX passthrough
-  if (React.isValidElement(node)) return node;
 
   // Handle list of kids
   if (Array.isArray(node)) {
     return renderCompiledKids({ kids: node, idMap, nodeInfo, componentMap, idPrefix });
   }
 
-  // Handle string ID,
-  //
-  // This path may be deprecated, as we're moving towards always
-  // having { type: 'block', id: [id] } for where we once used this.
+  // Handle string ID - used when render() is called with root ID from parseOLX
   if (typeof node === 'string') {
     const entry = await getBlockByOLXId({ idMap }, node);
     if (!entry) {
@@ -463,8 +452,9 @@ async function renderCompiledKidsInternal(props) {
       return <React.Fragment key={`string-${i}`}>{child}</React.Fragment>;
     }
 
+    // JSX should not appear in kids array - parser produces structured nodes
     if (React.isValidElement(child)) {
-      return <React.Fragment key={child.key}>{child}</React.Fragment>;
+      throw new Error('renderCompiledKids: JSX element in kids array. Use structured nodes from OLX parser.');
     }
 
     switch (child.type) {
