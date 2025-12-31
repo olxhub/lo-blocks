@@ -299,8 +299,8 @@ async function renderInternal({ node, idMap, nodeInfo, componentMap = COMPONENT_
 
 // Render kids array that may include: text, JSX, OLX, etc.
 // Returns a cached thenable to work with React's use() hook.
-// Components should use: use(renderCompiledKids(props))
-export function renderCompiledKids(props) {
+// Internal function - components should use useKids() hook instead.
+function renderCompiledKids(props) {
   let { kids, children, idMap, nodeInfo, componentMap = COMPONENT_MAP, idPrefix = '' } = props;
   if (kids === undefined && children !== undefined) {
     console.log(

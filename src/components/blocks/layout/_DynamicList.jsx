@@ -4,7 +4,8 @@
 import React, { use } from 'react';
 import { useReduxState } from '@/lib/state';
 import { extendIdPrefix } from '@/lib/blocks/idResolver';
-import { renderCompiledKids } from '@/lib/render';
+import { render } from '@/lib/render';
+import { DisplayError } from '@/lib/util/debug';
 
 export default function _DynamicList(props) {
   const {
@@ -24,13 +25,36 @@ export default function _DynamicList(props) {
   const handleAdd = () => setCount(Math.min(parsedMax, count + 1));
   const handleRemove = () => setCount(Math.max(parsedMin, count - 1));
 
+  // DynamicList expects exactly one child (the template to repeat)
+  const template = props.kids?.[0];
+  if (!template) {
+    return (
+      <DisplayError
+        id={id}
+        name="DynamicList"
+        message="DynamicList requires a child element to use as a template"
+      />
+    );
+  }
+  if (props.kids.length > 1) {
+    return (
+      <DisplayError
+        id={id}
+        name="DynamicList"
+        message="DynamicList expects exactly one child. Wrap multiple elements in a Vertical or other container."
+        data={{ childCount: props.kids.length }}
+      />
+    );
+  }
+
   // use() must be called unconditionally - batch render all entries
   // Each entry needs different idPrefix, so we use Promise.all
   const renderedEntries = use(
     Promise.all(
       Array.from({ length: count }, (_, i) =>
-        renderCompiledKids({
+        render({
           ...props,
+          node: template,
           ...extendIdPrefix(props, `${id}.${i}`),
         })
       )
