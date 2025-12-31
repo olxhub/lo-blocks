@@ -113,8 +113,10 @@ function _Navigator(props) {
     }
 
     // Create a modified node with item data merged into attributes
+    // IMPORTANT: Each item needs a unique ID for caching to work correctly
     const nodeWithData = {
       ...block,
+      id: `${block.id}_${item.id}`,  // Unique ID per item
       attributes: {
         ...block.attributes,
         ...item,  // Merge all item fields as attributes
