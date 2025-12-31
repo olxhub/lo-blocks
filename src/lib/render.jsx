@@ -37,6 +37,14 @@ const renderKidsCache = new WeakMap();
 // Cache for render() thenables, keyed by idMap then by node+prefix
 const renderCache = new WeakMap();
 
+// Singleton thenable for null nodes - must be same instance every time
+// to satisfy React's use() hook requirement for stable thenable identity.
+const NULL_RENDER_THENABLE = {
+  status: 'fulfilled',
+  value: null,
+  then(onFulfilled) { if (onFulfilled) onFulfilled(null); }
+};
+
 /**
  * Generate a stable cache key from kids array and idPrefix.
  * Uses kid IDs/types rather than object identity for stability.
@@ -55,18 +63,35 @@ function getRenderCacheKey(kids, idPrefix) {
 
 /**
  * Generate a stable cache key for render() from node and idPrefix.
+ * Precondition: node is not null/undefined and not a React element (handled before caching).
+ *
+ * IMPORTANT: String IDs and object nodes with the same ID must have DIFFERENT cache keys!
+ * render("myblock") fetches the object then calls render(object), and if they share
+ * a cache key, the outer thenable waits for inner which returns the same thenable → deadlock.
  */
 function getNodeCacheKey(node, idPrefix) {
-  if (node == null) return `null|${idPrefix || ''}`;
-  if (typeof node === 'string') return `str:${node}|${idPrefix || ''}`;
-  if (React.isValidElement(node)) return `jsx:${node.key || 'nokey'}|${idPrefix || ''}`;
-  if (Array.isArray(node)) return `arr:${getRenderCacheKey(node, '')}|${idPrefix || ''}`;
+  // String node = ID reference that will be looked up in idMap
+  // Prefix with 'ref:' to distinguish from resolved object nodes
+  if (typeof node === 'string') return `ref:${node}|${idPrefix}`;
+
+  // Array of kids
+  if (Array.isArray(node)) return `arr:${getRenderCacheKey(node, '')}|${idPrefix}`;
+
+  // Object nodes - the actual block data
   if (typeof node === 'object') {
-    if (node.type === 'block') return `block:${node.id}|${idPrefix || ''}`;
-    if (node.tag) return `tag:${node.tag}:${node.id || '?'}|${idPrefix || ''}`;
-    return `obj:${node.id || JSON.stringify(node).slice(0, 50)}|${idPrefix || ''}`;
+    if (node.type === 'block') {
+      if (!node.id) throw new Error('render: block node missing id');
+      return `block:${node.id}|${idPrefix}`;
+    }
+    if (node.tag) {
+      if (!node.id) throw new Error(`render: ${node.tag} node missing id`);
+      return `tag:${node.id}|${idPrefix}`;
+    }
+    if (!node.id) throw new Error('render: object node missing id');
+    return `obj:${node.id}|${idPrefix}`;
   }
-  return `unknown|${idPrefix || ''}`;
+
+  throw new Error(`render: unexpected node type: ${typeof node}`);
 }
 
 // Root sentinel has minimal blueprint so selectors don't need ?. checks
@@ -78,6 +103,20 @@ export const makeRootNode = () => ({ sentinel: 'root', renderedKids: {}, bluepri
 // Returns a cached thenable to work with React's use() hook.
 // React requires the same thenable instance across re-renders.
 export function render({ node, idMap, key, nodeInfo, componentMap = COMPONENT_MAP, idPrefix = '' }) {
+  // Handle null - return singleton thenable (callers may use(render(...)))
+  if (!node) return NULL_RENDER_THENABLE;
+
+  // JSX passthrough - wrap in fulfilled thenable for use() compatibility
+  // Note: Creates new thenable each time, but JSX passthrough is rare
+  // and typically not in hot render paths
+  if (React.isValidElement(node)) {
+    return {
+      status: 'fulfilled',
+      value: node,
+      then(onFulfilled) { if (onFulfilled) onFulfilled(node); }
+    };
+  }
+
   // Get or create cache for this idMap
   let cacheForIdMap = renderCache.get(idMap);
   if (!cacheForIdMap) {
