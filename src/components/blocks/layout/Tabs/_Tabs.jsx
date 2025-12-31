@@ -1,9 +1,9 @@
 // src/components/blocks/layout/Tabs/_Tabs.jsx
 'use client';
 
-import React, { use } from 'react';
+import React from 'react';
 import { useReduxState } from '@/lib/state';
-import { renderCompiledKids } from '@/lib/render';
+import { useKids } from '@/lib/render';
 import { useBlocksByOLXIds } from '@/lib/blocks/useBlockByOLXId';
 
 export default function _Tabs(props) {
@@ -17,8 +17,8 @@ export default function _Tabs(props) {
   // Create a map for easy lookup by ID
   const kidBlockMap = Object.fromEntries(kidIds.map((id, i) => [id, kidBlocks[i]]));
 
-  // Render all tab content upfront (use() must be called unconditionally)
-  const renderedContent = use(renderCompiledKids(props));
+  // Render all tab content upfront (useKids must be called unconditionally)
+  const { kids: renderedContent } = useKids(props);
 
   if (kids.length === 0) {
     return <div className="p-4 text-gray-500">No tabs defined</div>;

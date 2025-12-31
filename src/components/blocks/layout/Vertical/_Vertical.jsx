@@ -1,9 +1,9 @@
 // src/components/blocks/Vertical/_Vertical.jsx
-import React, { use } from 'react';
-import { renderCompiledKids } from '@/lib/render';
+import React from 'react';
+import { useKids } from '@/lib/render';
 
 export function _Vertical( props ) {
-  const kids = use(renderCompiledKids({ ...props, kids: props.kids }));
+  const { kids } = useKids(props);
   return (
     <div className="vertical-container">
       {kids}

@@ -1,16 +1,16 @@
 // src/components/blocks/layout/Collapsible/_Collapsible.jsx
 'use client';
 
-import React, { use } from 'react';
+import React from 'react';
 import { useReduxState } from '@/lib/state';
-import { renderCompiledKids } from '@/lib/render';
+import { useKids } from '@/lib/render';
 
 export default function _Collapsible(props) {
   const { fields, title, label } = props;
   const [expanded, setExpanded] = useReduxState(props, fields.expanded, false);
 
-  // use() must be called unconditionally, even if we don't display when collapsed
-  const renderedKids = use(renderCompiledKids(props));
+  // useKids must be called unconditionally, even if we don't display when collapsed
+  const { kids: renderedKids } = useKids(props);
 
   const handleToggle = () => {
     setExpanded(!expanded);

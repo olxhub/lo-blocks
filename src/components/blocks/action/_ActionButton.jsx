@@ -1,9 +1,9 @@
 // src/components/blocks/_ActionButton.jsx
 'use client';
 
-import React, { use, useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { executeNodeActions } from '@/lib/blocks';
-import { renderCompiledKids } from '@/lib/render';
+import { useKids } from '@/lib/render';
 import { checkPrerequisites, parsePrerequisites } from '@/lib/util/prerequisites';
 import { useReduxState } from '@/lib/state';
 import { store } from 'lo_event/lo_event/reduxLogger.js';
@@ -51,7 +51,7 @@ function _ActionButton(props) {
     };
   }, [evaluatePrerequisites, prerequisites.length]);
 
-  const kids = use(renderCompiledKids(props));
+  const { kids } = useKids(props);
 
   const onClick = () => executeNodeActions(props);
   return (

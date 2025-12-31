@@ -16,15 +16,16 @@
 // The dynamic OLX structure enables the actions system to find related blocks
 // and coordinate behaviors across the content hierarchy.
 //
-// render() and renderCompiledKids() are async to support fetching blocks that
-// aren't in the local idMap. Components should use: use(renderCompiledKids(props))
+// render() and renderCompiledKids() return cached thenables to support async
+// fetching of blocks not in the local idMap. Components should use the useKids()
+// hook rather than calling use(renderCompiledKids(...)) directly.
 //
-// IMPORTANT: renderCompiledKids returns a cached thenable to work with React's use().
+// IMPORTANT: These functions return cached thenables to work with React's use().
 // React's use() hook requires the same promise instance across re-renders, otherwise
 // it suspends every time. We cache by idMap + kids IDs + idPrefix.
 //
 import htmlTags from 'html-tags';
-import React from 'react';
+import React, { use } from 'react';
 import { DisplayError, DebugWrapper } from '@/lib/util/debug';
 import { COMPONENT_MAP } from '@/components/componentMap';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
@@ -409,6 +410,30 @@ export function renderCompiledKids(props) {
 
   cacheForIdMap.set(cacheKey, thenable);
   return thenable;
+}
+
+/**
+ * Hook for rendering kids in a component.
+ * Wraps renderCompiledKids with React's use() for cleaner component code.
+ *
+ * @param {object} props - Component props (must include idMap, nodeInfo, componentMap)
+ * @returns {{ kids: React.ReactNode[] }} Object containing rendered kids
+ *
+ * @example
+ * function MyComponent(props) {
+ *   const { kids } = useKids(props);
+ *   return <div>{kids}</div>;
+ * }
+ *
+ * // With custom kids:
+ * const { kids } = useKids({ ...props, kids: customKids });
+ *
+ * TODO: Add loading and error states for more explicit control than Suspense:
+ *   const { kids, loading, error } = useKids(props);
+ */
+export function useKids(props) {
+  const kids = use(renderCompiledKids(props));
+  return { kids };
 }
 
 // Internal async implementation of renderCompiledKids

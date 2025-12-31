@@ -1,9 +1,9 @@
 // src/components/blocks/display/DemandHints/_DemandHints.jsx
 'use client';
 
-import React, { use } from 'react';
+import React from 'react';
 import { useReduxState } from '@/lib/state';
-import { renderCompiledKids } from '@/lib/render';
+import { useKids } from '@/lib/render';
 
 export default function _DemandHints(props) {
   const { fields, kids } = props;
@@ -23,8 +23,8 @@ export default function _DemandHints(props) {
   const totalHints = hintBlocks.length;
   const revealedHints = hintBlocks.slice(0, hintsRevealed);
 
-  // use() must be called unconditionally - render all revealed hints at once
-  const renderedHints = use(renderCompiledKids({ ...props, kids: revealedHints }));
+  // useKids must be called unconditionally - render all revealed hints at once
+  const { kids: renderedHints } = useKids({ ...props, kids: revealedHints });
 
   if (totalHints === 0) {
     return null; // No hints defined

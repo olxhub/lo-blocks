@@ -1,9 +1,9 @@
 // src/components/blocks/specialized/TeamDirectory/_TeamDirectory.jsx
 'use client';
 
-import React, { use } from 'react';
+import React from 'react';
 import { useReduxState } from '@/lib/state';
-import { renderCompiledKids } from '@/lib/render';
+import { useKids } from '@/lib/render';
 
 // Default team data for the Comm360 SBA
 // TODO: Make this configurable via OLX children or data attribute
@@ -80,7 +80,7 @@ function _TeamDirectory(props) {
     return `/content/${photo}`;
   };
 
-  const renderedKids = use(renderCompiledKids(props));
+  const { kids: renderedKids } = useKids(props);
 
   return (
     <div className="team-directory p-4 border rounded-lg bg-white">

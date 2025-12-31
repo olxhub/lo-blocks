@@ -6,8 +6,8 @@
 //
 'use client';
 
-import React, { use } from 'react';
-import { renderCompiledKids } from '@/lib/render';
+import React from 'react';
+import { useKids } from '@/lib/render';
 import * as state from '@/lib/state';
 import { LLM_STATUS } from '@/lib/llm/reduxClient';
 import { DisplayError } from '@/lib/util/debug';
@@ -69,9 +69,9 @@ function _IntakeGate(props) {
 
   // Always render both children to build the OLX DOM tree
   // Only include the appropriate one in React output based on phase
-  // use() must be called unconditionally
-  const gateRendered = use(renderCompiledKids({ ...props, kids: gateKids }));
-  const contentRendered = use(renderCompiledKids({ ...props, kids: contentKids }));
+  // useKids must be called unconditionally
+  const { kids: gateRendered } = useKids({ ...props, kids: gateKids });
+  const { kids: contentRendered } = useKids({ ...props, kids: contentKids });
 
   if (phase === 'gate') {
     return (

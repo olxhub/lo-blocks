@@ -10,10 +10,10 @@
  * - Raising exceptions if passed children / unexpected attributes?
  */
 
-import React, { use } from 'react';
-import { renderCompiledKids } from '@/lib/render';
+import React from 'react';
+import { useKids } from '@/lib/render';
 
 export default function _Noop(props) {
-  const kids = use(renderCompiledKids(props));
+  const { kids } = useKids(props);
   return <>{kids}</>;
 }

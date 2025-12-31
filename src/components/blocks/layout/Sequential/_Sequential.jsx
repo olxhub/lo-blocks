@@ -1,11 +1,18 @@
 // src/components/blocks/_Sequential.jsx
 'use client';
 
-import React from 'react';
+import React, { use } from 'react';
 import { useReduxState } from '@/lib/state';
-import { render, renderCompiledKids } from '@/lib/render';
+import { render } from '@/lib/render';
 import HistoryBar from '@/components/common/HistoryBar';
 import { fields } from './Sequential';
+
+// Child component for rendering the current item with use()
+// Separated because use() cannot be called conditionally
+function SequentialItem({ props, node }) {
+  const rendered = use(render({ ...props, node }));
+  return <>{rendered}</>;
+}
 
 export default function _Sequential(props) {
   // Get current index from Redux state
@@ -43,9 +50,6 @@ export default function _Sequential(props) {
   // Create history array for HistoryBar (just indices)
   const history = Array.from({ length: numItems }, (_, i) => i);
 
-  // Render only the current item for performance
-  const currentItem = currentChild ? render({ ...props, node: currentChild }) : null;
-
   return (
     <div className="w-full">
       {/* Icon bar at top */}
@@ -62,9 +66,9 @@ export default function _Sequential(props) {
 
       {/* Current sequence item */}
       <div className="flex-1">
-        {currentItem && (
+        {currentChild && (
           <div key={index} className="min-h-96">
-            {currentItem}
+            <SequentialItem props={props} node={currentChild} />
           </div>
         )}
       </div>

@@ -1,10 +1,10 @@
 // src/components/blocks/display/Explanation/_Explanation.jsx
 'use client';
-import React, { use } from 'react';
+import React from 'react';
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
 import { CORRECTNESS, computeVisibility } from '@/lib/blocks';
-import { renderCompiledKids } from '@/lib/render';
+import { useKids } from '@/lib/render';
 
 /**
  * Explanation displays its children conditionally based on grader state.
@@ -31,8 +31,8 @@ function _Explanation(props) {
     { id: graderId, fallback: CORRECTNESS.UNSUBMITTED, selector: s => s?.correct }
   ) ?? CORRECTNESS.UNSUBMITTED;
 
-  // use() must be called unconditionally
-  const kids = use(renderCompiledKids(props));
+  // useKids must be called unconditionally
+  const { kids } = useKids(props);
 
   if (!computeVisibility(showWhen, { correctness })) {
     return null;
