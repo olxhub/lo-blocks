@@ -15,8 +15,8 @@
 // HTML and React are trees. IDs and keys MUST be unique per position.
 //
 // This creates tension:
-//   - Same element reused twice → MUST share Redux state (same reduxId)
-//   - Same element in two list items → MUST have separate state (different reduxId)
+//   - Same element reused twice → MUST share Redux state (same reduxKey)
+//   - Same element in two list items → MUST have separate state (different reduxKey)
 //   - Both cases → MUST have unique React keys (different reactKey)
 //
 // ID TYPES AND THEIR RELATIONSHIPS
@@ -24,9 +24,9 @@
 //
 //   ref (OLX input)     What's written in OLX: "/foo", "./foo", "foo"
 //         ↓
-//   idMapKey            Resolved key for idMap lookup: "foo"
+//   olxKey              Resolved key for idMap lookup: "foo"
 //         ↓             (strips /, ./, namespaces)
-//   reduxId             State storage key: "list.0.foo"
+//   reduxKey            State storage key: "list.0.foo"
 //                       (adds idPrefix for scoped instances)
 //
 //   For rendering:
@@ -36,8 +36,8 @@
 // | ID Type    | Purpose                    | Uniqueness           | Example              |
 // |------------|----------------------------|----------------------|----------------------|
 // | ref        | ID as written in OLX       | n/a (input form)     | "/foo", "./foo"      |
-// | idMapKey   | Definition lookup          | Per definition       | "foo"                |
-// | reduxId    | State storage              | Per logical instance | "list.0.foo"         |
+// | olxKey     | Definition lookup          | Per definition       | "foo"                |
+// | reduxKey   | State storage              | Per logical instance | "list.0.foo"         |
 // | reactKey   | React reconciliation       | Per sibling position | "foo", "foo.1"       |
 // | htmlId     | DOM element ID             | Per rendered element | "foo"                |
 // | cacheKey   | Render thenable cache      | Per render operation | "block.list.0.foo.{...}" |
@@ -45,7 +45,7 @@
 // NOTE ON cacheKey: Currently includes serialized overrides because the same
 // block can be rendered with different overrides (e.g., Tabs rendering same
 // component with different labels). In the future, if we eliminate overrides,
-// cacheKey could potentially just use reduxId.
+// cacheKey could potentially just use reduxKey.
 //
 // REFERENCE FORMS
 // ---------------
@@ -58,8 +58,8 @@
 // OPERATIONS
 // ----------
 // Resolution:
-//   reduxId(props)              - "prefix.id" for state storage
-//   idMapKey(id)                - strips prefix, gets base ID for idMap lookup
+//   refToReduxKey(props)        - "prefix.id" for state storage
+//   refToOlxKey(id)             - strips prefix, gets base ID for idMap lookup
 //   htmlId(props)               - DOM-safe ID
 //   cacheKey(node, props)       - render cache key (TODO: move from render.jsx)
 //
@@ -76,7 +76,7 @@
 //
 
 const ID_RESOLUTION_MATRIX = {
-  reduxId:      ["stateId", "id", "urlName", "url_name"],
+  refToReduxKey: ["stateId", "id", "urlName", "url_name"],
   nodeId:       "nodeId.sentinel",  // Handled out-of-line; included for introspection in test case
   // And, e.g.:
   urlName:      ["urlName", "url_name", "id"],
@@ -100,7 +100,7 @@ function resolveIdForContext(context, matrix = ID_RESOLUTION_MATRIX) {
     }
     if (defaultValue !== undefined) return defaultValue;
     // Provide a friendly error message when an ID is missing
-    if (context === 'reduxId') {
+    if (context === 'refToReduxKey') {
       const name =
         input?.blueprint?.OLXName ||
         input?.nodeInfo?.node?.tag ||
@@ -113,31 +113,37 @@ function resolveIdForContext(context, matrix = ID_RESOLUTION_MATRIX) {
   };
 }
 
-// ID used for maintaining state.
-//
-// One node in OLX may lead to between zero and many states. For example, in
-// lists and templated content, a node like:
-//    <TextArea id="supporting_argument/>
-// May need to translate to have multiple state for each time it appears:
-//    graphic_organizer.1.supporting_argument
-//    graphic_organizer.2.supporting_argument
-//    graphic_organizer.3.supporting_argument
-// All of this still comes from the OLX node supporting_argument
-//
-// ID references support path-like syntax:
-//   - "foo"      → relative, gets idPrefix applied (most common)
-//   - "/foo"     → absolute, bypasses idPrefix
-//   - "./foo"    → explicit relative (same as "foo")
-//   - "../foo"   → parent scope (TODO: not yet implemented)
-//
-// TODO:
-// * Helpers to point targets, graders, LLMs, etc. appropriately.
-// * Corresponding OLX formats.
-// * Helpers to properly combine prefixes. E.g. lists-of-lists or
-//   lists-in-namespaces
-const _reduxId = resolveIdForContext("reduxId");
-export const reduxId = (input, defaultValue) => {
-  const base = _reduxId(input, defaultValue);
+/**
+ * Convert an OLX reference to a Redux state key.
+ *
+ * One node in OLX may lead to between zero and many states. For example, in
+ * lists and templated content, a node like:
+ *    <TextArea id="supporting_argument/>
+ * May need to translate to have multiple state for each time it appears:
+ *    graphic_organizer.1.supporting_argument
+ *    graphic_organizer.2.supporting_argument
+ *    graphic_organizer.3.supporting_argument
+ * All of this still comes from the OLX node supporting_argument
+ *
+ * ID references support path-like syntax:
+ *   - "foo"      → relative, gets idPrefix applied (most common)
+ *   - "/foo"     → absolute, bypasses idPrefix
+ *   - "./foo"    → explicit relative (same as "foo")
+ *   - "../foo"   → parent scope (TODO: not yet implemented)
+ *
+ * @param {string|object} input - OLX reference string, or object with id/stateId and idPrefix
+ * @param {any} defaultValue - Fallback if ID cannot be resolved
+ * @returns {string} ReduxStateKey for state access
+ *
+ * @example
+ * refToReduxKey({ id: 'foo', idPrefix: 'list.0' })  // => 'list.0.foo'
+ * refToReduxKey({ id: '/foo', idPrefix: 'list.0' }) // => 'foo' (absolute)
+ * refToReduxKey({ id: './foo', idPrefix: 'scope' }) // => 'scope.foo'
+ * refToReduxKey({ id: 'foo' })                      // => 'foo'
+ */
+const _refToReduxKey = resolveIdForContext("refToReduxKey");
+export const refToReduxKey = (input, defaultValue) => {
+  const base = _refToReduxKey(input, defaultValue);
 
   // Absolute references (starting with /) bypass the prefix
   if (base.startsWith('/')) {
@@ -159,7 +165,7 @@ export const nodeId = (input) => {
 };
 
 /**
- * Extract the idMap key from an ID string.
+ * Convert an OLX reference to an OlxKey for idMap lookup.
  *
  * The idMap uses plain IDs (the base ID without namespace prefixes).
  * This function:
@@ -170,22 +176,22 @@ export const nodeId = (input) => {
  * Note: OLX IDs should not contain ".", "/", ":", or whitespace.
  * These are reserved as namespace/path delimiters.
  *
- * @param {string} id - The ID which may have prefixes
- * @returns {string} The key to use for idMap lookup
+ * @param {string} ref - OLX reference which may have prefixes
+ * @returns {string} OlxKey for idMap lookup
  *
  * @example
- * idMapKey('/foo')                    // => 'foo'
- * idMapKey('./foo')                   // => 'foo'
- * idMapKey('foo')                     // => 'foo'
- * idMapKey('list.0.child')            // => 'child'
- * idMapKey('mastery.attempt_0.q1')    // => 'q1'
- * idMapKey('/list.0.child')           // => 'child'
+ * refToOlxKey('/foo')                    // => 'foo'
+ * refToOlxKey('./foo')                   // => 'foo'
+ * refToOlxKey('foo')                     // => 'foo'
+ * refToOlxKey('list.0.child')            // => 'child'
+ * refToOlxKey('mastery.attempt_0.q1')    // => 'q1'
+ * refToOlxKey('/list.0.child')           // => 'child'
  */
-export const idMapKey = (id) => {
-  if (typeof id !== 'string') return id;
+export const refToOlxKey = (ref) => {
+  if (typeof ref !== 'string') return ref;
 
   // Strip path prefixes first
-  let result = id;
+  let result = ref;
   if (result.startsWith('/')) result = result.slice(1);
   else if (result.startsWith('./')) result = result.slice(2);
 

@@ -8,7 +8,7 @@
 import React, { useMemo } from 'react';
 import { useFieldSelector, updateReduxField } from '@/lib/state';
 import { inferRelatedNodes, useGraderAnswer } from '@/lib/blocks';
-import { reduxId } from '@/lib/blocks/idResolver';
+import { refToReduxKey } from '@/lib/blocks/idResolver';
 import { fields as choiceFields } from './ChoiceInput';
 import { DisplayError } from '@/lib/util/debug';
 
@@ -75,7 +75,7 @@ export default function _ChoiceItem(props) {
   };
 
   // Radio button name needs the scoped ID for proper grouping
-  const scopedParentId = reduxId({ ...props, id: parentId });
+  const scopedParentId = refToReduxKey({ ...props, id: parentId });
 
   // TODO: Key/Distractor currently use parsers.text() which only supports string content.
   // To support images or rich content in choices, they should use parsers.blocks() or

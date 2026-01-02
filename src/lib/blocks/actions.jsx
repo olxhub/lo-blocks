@@ -21,7 +21,7 @@ import { inferRelatedNodes, getAllNodes } from './olxdom';
 import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 import * as lo_event from 'lo_event';
 import { CORRECTNESS } from './correctness';
-import { reduxId } from './idResolver';
+import { refToReduxKey } from './idResolver';
 import { getBlockByOLXId } from './getBlockByOLXId';
 
 // Mix-in to make a block an action
@@ -148,8 +148,8 @@ export function grader({ grader, infer = true } = {}) {
                        correct === false ? CORRECTNESS.INCORRECT :
                        correct; // In case it's already a CORRECTNESS value
 
-    // Use reduxId to get scoped ID (applies idPrefix for list/repeated contexts)
-    const scopedTargetId = reduxId({ ...props, id: targetId });
+    // Use refToReduxKey to get scoped ID (applies idPrefix for list/repeated contexts)
+    const scopedTargetId = refToReduxKey({ ...props, id: targetId });
 
     // Get current submitCount and increment it for UI flash feedback
     const currentState = state.application_state?.component?.[scopedTargetId] || {};

@@ -76,11 +76,11 @@ export const fieldSelector = <T>(
         return selector(scopedState);
       case scopes.storage:
       case scopes.component: {
-        // If optId is provided, apply prefix via reduxId (supports /absolute syntax)
+        // If optId is provided, apply prefix via refToReduxKey (supports /absolute syntax)
         // Otherwise, use the component's own ID from props
         const id = optId !== undefined
-          ? idResolver.reduxId({ ...props, id: optId })
-          : idResolver.reduxId(props);
+          ? idResolver.refToReduxKey({ ...props, id: optId })
+          : idResolver.refToReduxKey(props);
         return selector(scopedState?.[id]);
       }
       default:
@@ -121,12 +121,12 @@ export function updateReduxField(
   assertValidField(field);
   const scope = field.scope;
   const fieldName = field.name;
-  // If id override is provided, apply prefix via reduxId (supports /absolute syntax)
+  // If id override is provided, apply prefix via refToReduxKey (supports /absolute syntax)
   // Otherwise, use the component's own ID from props
   const resolvedId = (scope === scopes.component || scope === scopes.storage)
     ? (id !== undefined
-        ? idResolver.reduxId({ ...props, id })
-        : idResolver.reduxId(props))
+        ? idResolver.refToReduxKey({ ...props, id })
+        : idResolver.refToReduxKey(props))
     : undefined;
   const resolvedTag = tag ?? props?.blueprint?.OLXName;
 
@@ -231,7 +231,7 @@ export function useReduxInput(
     }
   );
 
-  const id = idResolver.reduxId(props);
+  const id = idResolver.refToReduxKey(props);
   const tag = props?.blueprint.OLXName;
 
   const onChange = useCallback((event) => {
@@ -333,8 +333,8 @@ export function componentFieldByName(props, targetId, fieldName) {
   // decouple from idMap. Track in separate PR.
   // ==========================================================================
 
-  // Use idMapKey to normalize the ID for idMap lookup
-  const normalizedId = idResolver.idMapKey(targetId);
+  // Use refToOlxKey to normalize the ID for idMap lookup
+  const normalizedId = idResolver.refToOlxKey(targetId);
   const targetNode = props.idMap?.[normalizedId];
   if (!targetNode) {
     throw new Error(`componentFieldByName: Component "${targetId}" not found in idMap`);
@@ -370,8 +370,8 @@ export function valueSelector(props, state, id, { fallback } = {} as { fallback?
     return fallback;
   }
 
-  // Use idMapKey to strip prefixes - idMap uses plain IDs (last dot-separated segment)
-  const mapKey = idResolver.idMapKey(id);
+  // Use refToOlxKey to strip prefixes - idMap uses plain IDs (last dot-separated segment)
+  const mapKey = idResolver.refToOlxKey(id);
   const targetNode = props?.idMap?.[mapKey];
   const blueprint = targetNode ? props?.componentMap?.[targetNode.tag] : null;
 
@@ -434,7 +434,7 @@ export function useComponentState(
   targetId: string,
   { scope = scopes.component }: { scope?: string } = {}
 ) {
-  const resolvedId = idResolver.reduxId({ ...props, id: targetId });
+  const resolvedId = idResolver.refToReduxKey({ ...props, id: targetId });
 
   return useSelector(
     (state: any) => state?.application_state?.[scope]?.[resolvedId] || null,

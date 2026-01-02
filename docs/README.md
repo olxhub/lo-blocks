@@ -630,11 +630,17 @@ context-relevant blocks. This allows us to, instead of passing IDs, to
 pass around `props`, and change the logic around extracting IDs as
 this evolves and as we figure things out.
 
-At this stage, though, we only have two ID types:
+At this stage, though, we have two main ID types:
 
-* reduxId (should this be stateId?) refers to what we store the item
-  under in redux
-* nodeId refers to where the node goes in idMap
+* `reduxKey` - The key used to store component state in Redux.
+  May include `idPrefix` for scoped instances (e.g., `list.0.response`).
+* `olxKey` - The base ID used for idMap lookup.
+  Just the plain ID without prefixes (e.g., `response`).
+
+And two functions to convert refs to these types:
+
+* `refToReduxKey(props)` - Converts a ref to a reduxKey.
+* `refToOlxKey(ref)` - Converts a ref to an olxKey.
 
 This distinction came down when handling lists in a graphic organizer
 and considering certain types of templated content. One OLX node

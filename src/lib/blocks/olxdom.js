@@ -303,7 +303,7 @@ export function getInputs(props, { infer } = {}) {
 export function getValueById(props, id) {
   const reduxState = reduxLogger.store.getState();
 
-  // valueSelector handles all ID resolution (idMapKey for lookup, proper
+  // valueSelector handles all ID resolution (refToOlxKey for lookup, proper
   // prefix handling for state access) - blocks don't need to know about IDs
   return state.valueSelector(props, reduxState, id);
 }

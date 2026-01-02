@@ -57,10 +57,18 @@ export interface GenericProvenance {
   * And it stops being interchangeable with strings.
   */
 export type ProvenanceURI = string;
-export type OLXId = string;
 export type OLXTag = string;
 
-// TODO: Add similar tagged types for things like Block ID, etc.
+// ID Types (Branded)
+// See docs/README.md "IDs" section for documentation.
+export type OlxReference = string & { __brand: 'OlxReference' };  // "/foo", "./foo", "foo"
+export type OlxKey = OlxReference & { __resolved: true };         // idMap lookup key
+export type ReduxStateKey = string & { __brand: 'ReduxStateKey' }; // state key with idPrefix
+export type ReactKey = string & { __brand: 'ReactKey' };          // React reconciliation
+export type HtmlId = string & { __brand: 'HtmlId' };              // DOM element ID
+
+// Legacy alias
+export type OLXId = string;
 
 /** Primary representation for provenance references */
 export type Provenance = ProvenanceURI[];

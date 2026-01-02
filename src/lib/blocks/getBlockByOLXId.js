@@ -8,7 +8,7 @@
 // OLX ID = static ID from markup: <Block id="myblockid">
 // Redux ID = runtime ID with suffixes: myblockid_1, myblockid_2 (for repeated blocks)
 //
-import { idMapKey } from './idResolver';
+import { refToOlxKey } from './idResolver';
 
 // Thenable cache for React's use() hook.
 // React requires the same thenable instance on re-renders - creating a new one
@@ -75,7 +75,7 @@ export function getBlockByOLXId(props, id) {
     return NULL_THENABLE;
   }
 
-  const key = idMapKey(id);
+  const key = refToOlxKey(id);
 
   // Get or create cache for this specific idMap
   let cacheForIdMap = thenableCacheByIdMap.get(props.idMap);

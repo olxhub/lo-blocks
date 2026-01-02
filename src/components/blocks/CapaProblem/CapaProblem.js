@@ -25,7 +25,7 @@
  * thoughtful or robust itself. It is not.
  */
 
-import { dev, reduxId } from '@/lib/blocks';
+import { dev, refToReduxKey } from '@/lib/blocks';
 import { isBlockTag } from '@/lib/util';
 import { COMPONENT_MAP } from '@/components/componentMap';
 import * as state from '@/lib/state';
@@ -85,7 +85,7 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
         }
         childAttrs.id = defaultId;
       }
-      const blockId = reduxId(childAttrs, childAttrs.id);
+      const blockId = refToReduxKey(childAttrs, childAttrs.id);
       childAttrs.id = blockId;
 
       let mapping = currentGrader;
