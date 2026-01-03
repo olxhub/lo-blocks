@@ -7,7 +7,7 @@ import { fieldSelector, fieldByName } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _LineInput from './_LineInput';
-import type { PropType } from '@/lib/types';
+import type { RuntimeProps } from '@/lib/types';
 
 export const fields = state.fields(['value']);
 
@@ -22,7 +22,7 @@ const ComplexInput = core({
   description: 'Text input for complex numbers with validation (supports i/j notation)',
   component: _ComplexInput,
   fields,
-  getValue: (props: PropType, state, id) => fieldSelector(state, { ...props, id }, fieldByName('value'), { fallback: '' }),
+  getValue: (props: RuntimeProps, state, id) => fieldSelector(state, { ...props, id }, fieldByName('value'), { fallback: '' }),
   attributes: baseAttributes.extend({
     placeholder: z.string().optional().describe('Placeholder text shown when empty'),
   }),

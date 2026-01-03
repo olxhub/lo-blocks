@@ -23,7 +23,7 @@ import * as state from '@/lib/state';
 import { fieldSelector, fieldByName } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
-import type { PropType, OlxKey, BlueprintKidEntry } from '@/lib/types';
+import type { RuntimeProps, OlxKey, BlueprintKidEntry } from '@/lib/types';
 import _Noop from '@/components/blocks/layout/_Noop';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import { refToOlxKey } from '@/lib/blocks/idResolver';
@@ -44,7 +44,7 @@ export const fields = state.fields(['value']);
 // but when passed to fieldSelector it gets converted to ReduxStateKey internally
 // by applying idPrefix. The naming `id` is ambiguous - consider renaming to `olxId`
 // or documenting the conversion flow more clearly. See docs/README.md "IDs" section.
-function getChoices(props: PropType, state, id) {
+function getChoices(props: RuntimeProps, state, id) {
   let ids: OlxKey[] = [];  // OlxKey for idMap lookups (props.idMap[cid])
 
   // Try to get IDs from kids prop first (works without matching nodeInfo, such as from MarkupProblem)
@@ -82,7 +82,7 @@ const ChoiceInput = core({
   description: 'Single-select (radio button) input collecting student selection from Key/Distractor options. Value is a string.',
   component: _Noop,
   fields,
-  getValue: (props: PropType, state, id) => {
+  getValue: (props: RuntimeProps, state, id) => {
     return fieldSelector(state, { ...props, id }, fieldByName('value'), { fallback: '' });
   },
   attributes: baseAttributes.extend({

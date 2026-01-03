@@ -11,7 +11,7 @@ import * as parsers from '@/lib/content/parsers';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
-import type { PropType } from '@/lib/types';
+import type { RuntimeProps } from '@/lib/types';
 
 export const fields = state.fields(['value']);
 
@@ -21,7 +21,7 @@ export const fields = state.fields(['value']);
  *
  * @returns {Array<{id: string, tag: string, value: string}>}
  */
-function getChoices(props: PropType, state, id) {
+function getChoices(props: RuntimeProps, state, id) {
   const ids = inferRelatedNodes(props, {
     selector: n => n.blueprint.name === 'Key' || n.blueprint.name === 'Distractor',
     infer: ['kids'],
@@ -41,7 +41,7 @@ const CheckboxInput = core({
   description: 'Multi-select checkbox input collecting student selections from Key/Distractor options. Value is an array.',
   component: _Noop,
   fields,
-  getValue: (props: PropType, state, id) => {
+  getValue: (props: RuntimeProps, state, id) => {
     const value = fieldSelector(state, { ...props, id }, fieldByName('value'), { fallback: [] });
     // Ensure array even if stored value was a string (migration case)
     if (!Array.isArray(value)) {

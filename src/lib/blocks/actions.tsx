@@ -23,9 +23,9 @@ import * as lo_event from 'lo_event';
 import { CORRECTNESS } from './correctness';
 import { refToReduxKey } from './idResolver';
 import { getBlockByOLXId } from './getBlockByOLXId';
-import type { PropType } from '@/lib/types';
+import type { RuntimeProps } from '@/lib/types';
 
-type GraderFn = (props: PropType, params: { input?: unknown; inputs?: unknown[]; inputApi?: object; inputApis?: object[] }) => { correct: unknown; message: unknown; score?: number };
+type GraderFn = (props: RuntimeProps, params: { input?: unknown; inputs?: unknown[]; inputApi?: object; inputApis?: object[] }) => { correct: unknown; message: unknown; score?: number };
 
 // Mix-in to make a block an action
 export function action({ action }) {

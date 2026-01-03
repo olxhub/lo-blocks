@@ -6,7 +6,7 @@
 import * as state from '@/lib/state';
 import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 import { refToOlxKey, toOlxReference } from './idResolver';
-import type { NodeInfo, NodeSelector, OlxKey, OlxReference, PropType } from '@/lib/types';
+import type { NodeInfo, NodeSelector, OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
 //
 // The OLX DOM is Learning Observer's internal representation of educational content,
 // distinct from both the React virtual DOM and the browser DOM. It represents the
@@ -206,7 +206,7 @@ export function getAllNodes(nodeInfo: NodeInfo, { selector = (_: NodeInfo) => tr
  *       - Useful when you want the immediate grader, not all graders up the tree
  * @returns {Object[]} Array of nodeInfos matching selector/inference/targets, deduped by id
  */
-export function inferRelatedNodes(props: PropType, {
+export function inferRelatedNodes(props: RuntimeProps, {
   selector,
   infer,
   targets,
@@ -258,7 +258,7 @@ export function inferRelatedNodes(props: PropType, {
  * @returns {string} Grader ID
  * @throws {Error} If no grader found or multiple graders found at same level
  */
-export function getGrader(props: PropType, { infer }: { infer? } = {}): OlxKey {
+export function getGrader(props: RuntimeProps, { infer }: { infer? } = {}): OlxKey {
   const ids = inferRelatedNodes(props, {
     selector: n => n.blueprint.isGrader,
     targets: props.target,

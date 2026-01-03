@@ -26,7 +26,7 @@ import * as parsers from '@/lib/content/parsers';
 import { grader } from './actions';
 import { graderAttributes, baseAttributes } from './attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
-import type { PropType, LocalsAPI } from '@/lib/types';
+import type { RuntimeProps, LocalsAPI } from '@/lib/types';
 
 // Registry of Match blocks created by createGrader
 // componentMap.js will merge these in
@@ -55,9 +55,9 @@ const RULE_ATTRIBUTES = {
 interface CreateGraderConfig {
   base: string;
   description: string;
-  grader: (props: PropType, params: { input?: any; inputs?: any[] }) => { correct: any; message: any };
+  grader: (props: RuntimeProps, params: { input?: any; inputs?: any[] }) => { correct: any; message: any };
   attributes?: Record<string, any>;
-  getDisplayAnswer?: (props: PropType) => any;
+  getDisplayAnswer?: (props: RuntimeProps) => any;
   locals?: LocalsAPI;
 }
 
@@ -81,7 +81,7 @@ export function createGrader({
     category: 'grading',
     component: _Noop,
     attributes: graderAttributes.extend(attributes),
-    getDisplayAnswer: getDisplayAnswer ?? ((props: PropType) => props.displayAnswer ?? props.answer),
+    getDisplayAnswer: getDisplayAnswer ?? ((props: RuntimeProps) => props.displayAnswer ?? props.answer),
   }, locals);
 
   // Create the Match block (a rule for use inside RulesGrader)

@@ -7,7 +7,7 @@ import { fieldSelector, fieldByName } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _SortableInput from './_SortableInput';
-import type { PropType } from '@/lib/types';
+import type { RuntimeProps } from '@/lib/types';
 
 export const fields = state.fields([
   'arrangement'   // Current order of items (array of indices)
@@ -19,7 +19,7 @@ const SortableInput = core({
   description: 'Drag-and-drop sortable input for ordering tasks',
   component: _SortableInput,
   fields,
-  getValue: (props: PropType, state, id) => ({
+  getValue: (props: RuntimeProps, state, id) => ({
     arrangement: fieldSelector(state, { ...props, id }, fieldByName('arrangement'), { fallback: [] })
   }),
   attributes: baseAttributes.extend({

@@ -7,7 +7,7 @@ import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import * as parser from './_dropdownParser';
 import _DropdownSelect from './_DropdownSelect';
-import type { PropType } from '@/lib/types';
+import type { RuntimeProps } from '@/lib/types';
 
 export const fields = state.fields(['value']);
 
@@ -17,7 +17,7 @@ const DropdownInput = core({
   description: 'Dropdown select input for choosing from a list of options',
   component: _DropdownSelect,
   fields,
-  getValue: (props: PropType, state, id) => {
+  getValue: (props: RuntimeProps, state, id) => {
     return fieldSelector(state, { ...props, id }, fieldByName('value'), { fallback: '' });
   },
   attributes: srcAttributes.extend({

@@ -18,7 +18,7 @@ import { core, grader, baseAttributes, isMatch, inferRelatedNodes, refToOlxKey }
 import { CORRECTNESS } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
 import _Noop from '@/components/blocks/layout/_Noop';
-import type { PropType } from '@/lib/types';
+import type { RuntimeProps } from '@/lib/types';
 
 /**
  * Grade by evaluating child Match rules top-to-bottom, returning first match.
@@ -27,7 +27,7 @@ import type { PropType } from '@/lib/types';
  * @param {Object} context - { input, inputs, inputApi, inputApis }
  * @returns {{ correct: CORRECTNESS, message: string, score?: number }}
  */
-function gradeRules(props: PropType, context) {
+function gradeRules(props: RuntimeProps, context) {
   const { idMap, componentMap } = props;
 
   // TODO: Handle other CORRECTNESS states (UNSUBMITTED, INCOMPLETE, etc.)
@@ -89,7 +89,7 @@ const RulesGrader = core({
     target: z.string().optional().describe('ID of the input block to grade (inferred from children if omitted)'),
   }),
   // Display answer: find first Match child with score=1
-  getDisplayAnswer: (props: PropType) => {
+  getDisplayAnswer: (props: RuntimeProps) => {
     if (props.displayAnswer) return props.displayAnswer;
 
     const { kids = [], idMap, componentMap } = props;

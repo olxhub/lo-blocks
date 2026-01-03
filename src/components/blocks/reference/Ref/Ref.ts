@@ -6,7 +6,7 @@ import { valueSelector, fieldByName, fieldSelector } from '@/lib/state';
 import { refToOlxKey, toOlxReference } from '@/lib/blocks/idResolver';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import _Ref from './_Ref';
-import type { PropType } from '@/lib/types';
+import type { RuntimeProps } from '@/lib/types';
 
 /**
  * Convert any value to a string representation for display.
@@ -57,7 +57,7 @@ const Ref = core({
     fallback: z.string().optional().describe('Fallback value when target is empty'),
     format: z.enum(['code']).optional().describe('Display format for the value'),
   }),
-  getValue: (props: PropType, state, id: string) => {
+  getValue: (props: RuntimeProps, state, id: string) => {
     // Get the Ref block from idMap to access its attributes and content
     // Use refToOlxKey to handle absolute/prefixed IDs transparently
     const refNode = props.idMap[refToOlxKey(id)];

@@ -317,15 +317,34 @@ export interface NodeInfo {
 /** Selector function for filtering nodes in DOM traversal */
 export type NodeSelector = (nodeInfo: NodeInfo) => boolean;
 
-export interface PropType {
+/**
+ * RuntimeProps - the context bag passed through the system.
+ *
+ * This is a hybrid of three things (pragmatic compromise for React):
+ * 1. Opaque context (idMap, nodeInfo, componentMap, idPrefix) - thread through, don't inspect
+ * 2. Block machinery (blueprint, fields, locals) - framework injects these
+ * 3. OLX attributes - flow in via [key: string]: any
+ *
+ * Most functions just pass props through without inspecting. Blocks destructure
+ * only what they need (usually just attributes and fields).
+ */
+export interface RuntimeProps {
+  // This block's identity and content
   id: string;
   kids: BlueprintKidEntry[];
+
+  // Opaque context - thread through
   idMap: IdMap;
-  blueprint: BlockBlueprint;
-  fields: FieldInfoByField;
   nodeInfo: NodeInfo;
   componentMap: ComponentMap;
   idPrefix?: string;
+
+  // Block machinery - framework injects these
+  blueprint: BlockBlueprint;
+  fields: FieldInfoByField;
+  locals: LocalsAPI;  // {} if none, not undefined
+
+  // OLX attributes flow in here
   [key: string]: any;
 }
 

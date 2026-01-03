@@ -6,7 +6,7 @@ import { fieldSelector, fieldByName } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { srcAttributes, placeholder } from '@/lib/blocks/attributeSchemas';
 import _NumberInput from './_NumberInput';
-import type { PropType } from '@/lib/types';
+import type { RuntimeProps } from '@/lib/types';
 
 export const fields = state.fields(['value']);
 
@@ -18,7 +18,7 @@ const NumberInput = core({
   fields,
   // TODO: Figure out this signature. In the generic, we'll probably need
   // more than this. It might be dependent on the component spec, etc.
-  getValue: (props: PropType, state, id) => {
+  getValue: (props: RuntimeProps, state, id) => {
     const v = fieldSelector(state, { ...props, id }, fieldByName('value'));
     return v === undefined ? undefined : parseFloat(v as string);
   },

@@ -15,7 +15,7 @@ import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
 import { getGrader, getAllNodes } from './olxdom';
 import { useBlockByOLXId } from './useBlockByOLXId';
-import type { OlxKey, OlxReference, PropType } from '@/lib/types';
+import type { OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
 
 /**
  * Find a grader that targets this input (for sibling grader patterns).
@@ -25,7 +25,7 @@ import type { OlxKey, OlxReference, PropType } from '@/lib/types';
  * may return duplicates, but we return on first match so this is benign.
  * If performance becomes an issue, add a visited set.
  */
-function findTargetingGrader(props: PropType): OlxKey | null {
+function findTargetingGrader(props: RuntimeProps): OlxKey | null {
   const { id, nodeInfo } = props;
   if (!nodeInfo) return null;
 
@@ -50,7 +50,7 @@ function findTargetingGrader(props: PropType): OlxKey | null {
  * Does not throw - inputs can legitimately exist without graders.
  * Exported for conditional rendering (e.g., only render DisplayAnswer if grader exists).
  */
-export function findGrader(props: PropType): OlxKey | null {
+export function findGrader(props: RuntimeProps): OlxKey | null {
   // First try targeting grader (sibling pattern)
   const targetingGrader = findTargetingGrader(props);
   if (targetingGrader) return targetingGrader;
@@ -75,7 +75,7 @@ export function findGrader(props: PropType): OlxKey | null {
  *     // Highlight correct answer, show hint, etc.
  *   }
  */
-export function useGraderAnswer(props: PropType) {
+export function useGraderAnswer(props: RuntimeProps) {
   // Find grader (may be null for standalone inputs)
   const graderId = findGrader(props);
 
