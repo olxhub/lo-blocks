@@ -214,11 +214,11 @@ async function renderInternal({ node, idMap, nodeInfo, componentMap = COMPONENT_
     );
   }
 
-  const Component = componentMap[tag].component;
-  const blueprint = componentMap[tag].blueprint;
+  const blockType = componentMap[tag];
+  const Component = blockType.component;
 
   // Validate attributes - use component schema if defined, else base with passthrough
-  const attrSchema = blueprint?.attributes ?? baseAttributes.passthrough();
+  const attrSchema = blockType.attributes ?? baseAttributes.passthrough();
   const validationResult = attrSchema.safeParse(attributes);
   if (!validationResult.success) {
     const zodErrors = validationResult.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ');
@@ -243,7 +243,7 @@ async function renderInternal({ node, idMap, nodeInfo, componentMap = COMPONENT_
   // TODO: Check if this causes extra renders, and if we need to memoize anything
   let childNodeInfo = nodeInfo.renderedKids[node.id];
   if (!childNodeInfo) {
-    childNodeInfo = { node, renderedKids: {}, parent: nodeInfo, blueprint: componentMap[tag].blueprint };
+    childNodeInfo = { node, renderedKids: {}, parent: nodeInfo, blueprint: blockType };
     nodeInfo.renderedKids[node.id] = childNodeInfo;
   }
 
@@ -257,7 +257,7 @@ async function renderInternal({ node, idMap, nodeInfo, componentMap = COMPONENT_
 
   // Check requiresGrader - inject graderId or show error
   let graderId: OlxKey | null = null;
-  if (blueprint.requiresGrader) {
+  if (blockType.requiresGrader) {
     try {
       graderId = getGrader({ ...wrapperProps, idMap });
     } catch (e) {
@@ -284,16 +284,16 @@ async function renderInternal({ node, idMap, nodeInfo, componentMap = COMPONENT_
 
   // TODO: Should the wrapper be a <div> or a <span>?
   return (
-    <DebugWrapper props={wrapperProps} blueprint={componentMap[tag].blueprint}>
+    <DebugWrapper props={wrapperProps} blueprint={blockType}>
       <div className={combinedClassName} data-block-type={tag}>
         <Component
           { ...attributes }
           id={node.id}
           kids={ kids }
           idMap={ idMap }
-          blueprint={ componentMap[tag].blueprint }
-          locals={ componentMap[tag].locals }
-          fields={ componentMap[tag].blueprint?.fields?.fieldInfoByField }
+          blueprint={ blockType }
+          locals={ blockType.locals }
+          fields={ blockType.fields }
           nodeInfo={ childNodeInfo }
           componentMap={ componentMap }
           idPrefix={ idPrefix }

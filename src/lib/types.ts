@@ -203,10 +203,6 @@ export const BlockBlueprintSchema = z.object({
 
 export type BlockBlueprint = z.infer<typeof BlockBlueprintSchema>;
 
-// For registration: use z.input to allow optional fields without requiring defaults
-export type BlockBlueprintInput = z.input<typeof BlockBlueprintSchema>;
-export type BlockBlueprintReg = Omit<BlockBlueprintInput, "namespace">;
-
 /**
  * BlockType - the processed block type definition (code, not content).
  *
@@ -277,7 +273,6 @@ export interface BlockType {
    * Returns the answer to display (may differ from grading answer).
    */
   getDisplayAnswer?: (props: any) => any;
-  blueprint: BlockBlueprintInput;
 
   // Documentation properties (added by generateRegistry at build time)
   /** Path to the block's source file relative to project root */

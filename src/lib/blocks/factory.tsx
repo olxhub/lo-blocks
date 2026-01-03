@@ -17,7 +17,11 @@
 import React from 'react';
 import { z } from 'zod';
 
-import { BlockBlueprint, BlockBlueprintInput, BlockBlueprintReg, BlockBlueprintSchema, BlockType, FieldInfoByField, OLXTag } from '../types';
+import { BlockBlueprintSchema, BlockType, FieldInfoByField, OLXTag } from '../types';
+
+// Factory-local type aliases derived from the schema
+type BlueprintInput = z.input<typeof BlockBlueprintSchema>;
+type BlueprintReg = Omit<BlueprintInput, "namespace">;
 import { baseAttributes } from './attributeSchemas';
 import * as state from '@/lib/state';
 
@@ -45,7 +49,7 @@ const GRADER_ATTRIBUTES = baseAttributes.extend({
  * Extend config for grader blocks.
  * Adds standard fields (correct, message, showAnswer) and attributes (answer, displayAnswer, target).
  */
-function applyGraderExtensions(config: BlockBlueprintInput): BlockBlueprintInput {
+function applyGraderExtensions(config: BlueprintInput): BlueprintInput {
   if (!config.isGrader) return config;
 
   // Extend fields - only add grader fields not already defined
@@ -83,7 +87,7 @@ function applyGraderExtensions(config: BlockBlueprintInput): BlockBlueprintInput
 // Future: applyInputExtensions, applyActionExtensions, etc.
 
 // === Main factory ===
-function createBlock(config: BlockBlueprintInput): BlockType {
+function createBlock(config: BlueprintInput): BlockType {
   // Apply mixin extensions
   const effectiveConfig = applyGraderExtensions(config);
 
@@ -132,12 +136,6 @@ function createBlock(config: BlockBlueprintInput): BlockType {
     requiresGrader: effectiveConfig.requiresGrader,
     isGrader: effectiveConfig.isGrader,
     getDisplayAnswer: effectiveConfig.getDisplayAnswer,
-
-    // TODO: This should rarely be used. But I see .blueprint in code
-    // a lot. I suspect each of these should be replaced with:
-    // - Moving anything missing into this type
-    // - Removing .blueprint
-    blueprint: effectiveConfig
   }
   assertUnimplemented(parsed.reducers, 'reducers');
 
@@ -145,5 +143,5 @@ function createBlock(config: BlockBlueprintInput): BlockType {
 }
 
 export const blocks = (namespace: string) =>
-  (config: BlockBlueprintReg, locals?: any) =>
+  (config: BlueprintReg, locals?: any) =>
     createBlock({ ...config, namespace, locals: locals ?? config.locals });

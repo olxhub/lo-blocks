@@ -345,9 +345,9 @@ export function componentFieldByName(props, targetId: OlxReference, fieldName: s
     throw new Error(`componentFieldByName: No blueprint found for component type "${targetNode.tag}"`);
   }
 
-  const field = targetBlueprint.blueprint.fields.fieldInfoByField?.[fieldName];
+  const field = targetBlueprint.fields?.[fieldName];
   if (!field) {
-    const availableFields = Object.keys(targetBlueprint.blueprint.fields.fieldInfoByField || {});
+    const availableFields = Object.keys(targetBlueprint.fields || {});
     throw new Error(`componentFieldByName: Field "${fieldName}" not found in component "${targetId}" (${targetNode.tag}). Available fields: ${availableFields.join(', ')}`);
   }
 

@@ -22,10 +22,9 @@ function findStatefulIds(idMap, componentMap = COMPONENT_MAP) {
 
   return Object.entries(idMap)
     .filter(([id, node]: [OlxKey, OlxJson]) => {
-      const blueprint = componentMap[node.tag]?.blueprint;
-      // Has fields defined = stateful (fieldInfoByField is the map of field name -> FieldInfo)
-      const hasFields = blueprint?.fields?.fieldInfoByField &&
-                        Object.keys(blueprint.fields.fieldInfoByField).length > 0;
+      const blockType = componentMap[node.tag];
+      // Has fields defined = stateful (fields is the map of field name -> FieldInfo)
+      const hasFields = blockType?.fields && Object.keys(blockType.fields).length > 0;
       return hasFields;
     })
     .map(([id]) => id);

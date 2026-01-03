@@ -75,14 +75,13 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
     // TODO: Handle Open edX OLX cases: Label, Description, ResponseParam
 
     if (isBlockTag(childTag)) {
-      const component = COMPONENT_MAP[childTag];
-      const blueprint = component.blueprint;
+      const blockType = COMPONENT_MAP[childTag];
 
       if (!childAttrs.id) {
         let defaultId;
-        if (blueprint.isGrader) {
+        if (blockType.isGrader) {
           defaultId = `${id}_grader_${graderIndex++}`;
-        } else if (blueprint.getValue) {
+        } else if (blockType.getValue) {
           defaultId = `${id}_input_${inputIndex++}`;
         } else {
           defaultId = `${id}_${childTag.toLowerCase()}_${nodeIndex++}`;
@@ -93,11 +92,11 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
       childAttrs.id = blockId;
 
       let mapping = currentGrader;
-      if (blueprint.isGrader) {
+      if (blockType.isGrader) {
         mapping = { id: blockId, inputs: [] };
         graders.push(mapping);
       }
-      if (blueprint.getValue && currentGrader) {
+      if (blockType.getValue && currentGrader) {
         currentGrader.inputs.push(blockId);
       }
 
