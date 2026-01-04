@@ -1,0 +1,124 @@
+// src/lib/blocks/useOlxJson.ts
+//
+// Hook for accessing OlxJson from Redux with automatic fetch-on-demand.
+//
+// All content lives in Redux. Hooks read from Redux, triggering fetch
+// for missing blocks if needed.
+//
+'use client';
+
+import { useSelector } from 'react-redux';
+import { useEffect, useRef } from 'react';
+import {
+  selectBlockState,
+  dispatchOlxJsonLoading,
+  dispatchOlxJson,
+  dispatchOlxJsonError
+} from '@/lib/state/olxjson';
+import { refToOlxKey } from '@/lib/blocks/idResolver';
+import type { OlxJson, OlxKey, OlxReference } from '@/lib/types';
+
+export interface OlxJsonResult {
+  olxJson: OlxJson | null;
+  loading: boolean;
+  error: string | null;
+}
+
+/**
+ * Hook to access OlxJson by ID from Redux.
+ *
+ * - Reads from Redux state
+ * - If not found, triggers a fetch
+ * - Returns { olxJson, loading, error }
+ *
+ * @param id - The OLX ID to look up
+ * @param source - Content source (default: 'content')
+ */
+export function useOlxJson(
+  id: OlxReference | string | null,
+  source: string = 'content'
+): OlxJsonResult {
+  // Handle null/undefined id
+  if (!id) {
+    return { olxJson: null, loading: false, error: null };
+  }
+
+  const olxKey = refToOlxKey(id);
+
+  // Read from Redux
+  const blockState = useSelector((state: any) =>
+    selectBlockState(state, [source], olxKey)
+  );
+
+  // Track fetch attempts to prevent infinite loops
+  const fetchAttempted = useRef<Set<string>>(new Set());
+
+  // Trigger fetch for missing blocks
+  useEffect(() => {
+    // Already in Redux or already attempted
+    if (blockState || fetchAttempted.current.has(olxKey)) return;
+    fetchAttempted.current.add(olxKey);
+
+    // Mark as loading
+    dispatchOlxJsonLoading(source, olxKey);
+
+    fetch(`/api/content/${olxKey}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.ok) {
+          dispatchOlxJsonError(source, olxKey, data.error || `Failed to load ${olxKey}`);
+        } else {
+          dispatchOlxJson(source, data.idMap);
+        }
+      })
+      .catch(err => {
+        dispatchOlxJsonError(source, olxKey, err.message || `Failed to load ${olxKey}`);
+      });
+  }, [blockState, olxKey, source]);
+
+  // Return based on Redux state
+  if (!blockState) {
+    return { olxJson: null, loading: true, error: null };
+  }
+
+  const isLoading = blockState.loadingState?.status === 'loading';
+  const hasError = blockState.loadingState?.status === 'error';
+
+  if (isLoading) {
+    return { olxJson: null, loading: true, error: null };
+  }
+
+  if (hasError) {
+    return {
+      olxJson: null,
+      loading: false,
+      error: blockState.error?.message || `Error loading "${olxKey}"`
+    };
+  }
+
+  return { olxJson: blockState.olxJson, loading: false, error: null };
+}
+
+/**
+ * Hook to access multiple OlxJson blocks by IDs.
+ */
+export function useOlxJsonMultiple(
+  ids: (OlxReference | string)[],
+  source: string = 'content'
+): {
+  olxJsons: (OlxJson | null)[];
+  anyLoading: boolean;
+  firstError: string | null;
+  allReady: boolean;
+} {
+  // Call useOlxJson for each ID
+  // Note: Array length must be stable across renders (React rules of hooks)
+  const results = ids.map(id => useOlxJson(id, source));
+
+  const olxJsons = results.map(r => r.olxJson);
+  const anyLoading = results.some(r => r.loading);
+  const firstError = results.find(r => r.error)?.error || null;
+  const allReady = results.every(r => !r.loading && !r.error && r.olxJson !== null);
+
+  return { olxJsons, anyLoading, firstError, allReady };
+}
