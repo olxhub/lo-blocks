@@ -78,5 +78,11 @@ export function mathShorthand(tagName) {
   return tagName;
 }
 
+// TODO: Future transforms:
+// - url_name → id (for importing Open edX OLX content)
+// - i18n tag names (requested by Open edX partners to author in native languages,
+//   e.g., <Sekwencja>, <Pytanie> for Polish)
+// lo-blocks uses `id` as the canonical ID attribute.
+
 // Default transforms
 export const transformTagName = mathShorthand;

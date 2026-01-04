@@ -8,23 +8,13 @@ describe("ID helpers", () => {
     expect(idResolver.refToReduxKey("foo")).toBe("foo");
 
     // Resolves correct key from object
-    expect(idResolver.refToReduxKey({ stateId: "bar", id: "XXX" })).toBe("bar");
     expect(idResolver.refToReduxKey({ id: "bar" })).toBe("bar");
-    expect(idResolver.urlName({ url_name: "baz" })).toBe("baz");
 
     // Throws if no id found
     expect(() => idResolver.refToReduxKey({})).toThrow(/requires a well-formed ID/);
 
-    // Default value if missing
-    expect(idResolver.refToReduxKey({}, 'fallback')).toBe('fallback');
+    // With prefix
     expect(idResolver.refToReduxKey({ id: 'foo', idPrefix: 'bar' })).toBe('bar.foo');
-  });
-  it("exports a named function for each ID_RESOLUTION_MATRIX key", () => {
-    const expectedKeys = Object.keys(idResolver.__testables.ID_RESOLUTION_MATRIX);
-    const actualKeys = Object.keys(idResolver).filter(k=>!k.startsWith("_"));
-
-    // Check that every expected key is exported
-    expect(actualKeys).toEqual(expect.arrayContaining(expectedKeys));
   });
 
   it("extendIdPrefix builds scoped prefix", () => {

@@ -1,5 +1,5 @@
 // src/lib/blocks/idResolver.ts
-import type { OlxReference, OlxKey, ReduxStateKey, ReactKey, HtmlId } from '../types';
+import type { OlxReference, OlxKey, ReduxStateKey } from '../types';
 //
 // ID Resolution System
 // ====================
@@ -121,44 +121,6 @@ export function toOlxReference(input: string, context = 'ID'): OlxReference {
   return trimmed as OlxReference;
 }
 
-const ID_RESOLUTION_MATRIX = {
-  refToReduxKey: ["stateId", "id", "urlName", "url_name"],
-  nodeId:       "nodeId.sentinel",  // Handled out-of-line; included for introspection in test case
-  // And, e.g.:
-  urlName:      ["urlName", "url_name", "id"],
-  htmlId:       ["id", "urlName", "url_name", "key"],
-  reactKey:     ["key", "id", "urlName", "url_name"],
-  displayName:  ["displayName", "display_name", "urlName", "url_name", "name", "id"]
-};
-
-/**
- * Internal generic resolver: returns string ID or throws.
- */
-function resolveIdForContext(context, matrix = ID_RESOLUTION_MATRIX) {
-  return (input, defaultValue) => {
-    if (typeof input === "string") return input;
-    const priorityList = matrix[context];
-    if (!priorityList) throw new Error(`Unknown ID context: ${context}`);
-    for (const key of priorityList) {
-      if (input && typeof input[key] === "string" && input[key].length > 0) {
-        return input[key];
-      }
-    }
-    if (defaultValue !== undefined) return defaultValue;
-    // Provide a friendly error message when an ID is missing
-    if (context === 'refToReduxKey') {
-      const name =
-        input?.loBlock?.OLXName ||
-        input?.nodeInfo?.node?.tag ||
-        input?.displayName ||
-        input?.name ||
-        'Component';
-      throw new Error(`${name} requires a well-formed ID`);
-    }
-    throw new Error(`Could not resolve ID. [Context: '${context}' / Input: ${input}]`);
-  };
-}
-
 /**
  * Convert an OLX reference to a Redux state key.
  *
@@ -177,9 +139,8 @@ function resolveIdForContext(context, matrix = ID_RESOLUTION_MATRIX) {
  *   - "./foo"    → explicit relative (same as "foo")
  *   - "../foo"   → parent scope (TODO: not yet implemented)
  *
- * @param {string|object} input - OLX reference string, or object with id/stateId and idPrefix
- * @param {any} defaultValue - Fallback if ID cannot be resolved
- * @returns {string} ReduxStateKey for state access
+ * @param input - OLX reference string, or props object with id and optional idPrefix
+ * @returns ReduxStateKey for state access
  *
  * @example
  * refToReduxKey({ id: 'foo', idPrefix: 'list.0' })  // => 'list.0.foo'
@@ -187,17 +148,28 @@ function resolveIdForContext(context, matrix = ID_RESOLUTION_MATRIX) {
  * refToReduxKey({ id: './foo', idPrefix: 'scope' }) // => 'scope.foo'
  * refToReduxKey({ id: 'foo' })                      // => 'foo'
  */
-/** Input type for refToReduxKey - either a string ref or props object with id */
 type RefToReduxKeyInput = OlxReference | string | {
   id?: OlxReference | string;
-  stateId?: string;
   idPrefix?: string;
   [key: string]: unknown;
 };
 
-const _refToReduxKey = resolveIdForContext("refToReduxKey");
-export const refToReduxKey = (input: RefToReduxKeyInput, defaultValue?: string): ReduxStateKey => {
-  const base = _refToReduxKey(input, defaultValue);
+export const refToReduxKey = (input: RefToReduxKeyInput): ReduxStateKey => {
+  // Extract base ID from string or props.id
+  let base: string;
+  if (typeof input === 'string') {
+    base = input;
+  } else if (input && typeof input.id === 'string' && input.id.length > 0) {
+    base = input.id;
+  } else {
+    // Provide a friendly error message when an ID is missing
+    const name =
+      (input as any)?.loBlock?.OLXName ||
+      (input as any)?.nodeInfo?.node?.tag ||
+      (input as any)?.name ||
+      'Component';
+    throw new Error(`${name} requires a well-formed ID`);
+  }
 
   // Absolute references (starting with /) bypass the prefix
   if (base.startsWith('/')) {
@@ -209,13 +181,6 @@ export const refToReduxKey = (input: RefToReduxKeyInput, defaultValue?: string):
 
   const prefix = (input as { idPrefix?: string })?.idPrefix ?? '';
   return (prefix ? `${prefix}.${resolvedBase}` : resolvedBase) as ReduxStateKey;
-};
-
-// If we would like to look ourselves up in idMap.
-//
-// In the above example, supporting_argument
-export const nodeId = (input) => {
-  return input.node.id;
 };
 
 /**
@@ -257,12 +222,6 @@ export const refToOlxKey = (ref: OlxReference | string): OlxKey => {
 
   return result as OlxKey;
 };
-
-// Other ID resolvers - these extract IDs from props objects
-export const urlName = resolveIdForContext("urlName");
-export const htmlId: (input: unknown, defaultValue?: string) => HtmlId = resolveIdForContext("htmlId");
-export const reactKey: (input: unknown, defaultValue?: string) => ReactKey = resolveIdForContext("reactKey");
-export const displayName = resolveIdForContext("displayName");
 
 /**
  * Extends the ID prefix for child components.
@@ -364,4 +323,4 @@ export function cacheKey(node, props) {
   return key;
 }
 
-export const __testables = { ID_RESOLUTION_MATRIX, assignReactKeys };
+export const __testables = { assignReactKeys };

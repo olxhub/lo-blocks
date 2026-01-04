@@ -383,7 +383,7 @@ export async function parseOLX(
       return { type: 'block', id: ref as OlxReference, overrides };
     }
 
-    const id: OlxKey = (attributes.id ?? attributes.url_name ?? createId(node)) as OlxKey;
+    const id: OlxKey = (attributes.id ?? createId(node)) as OlxKey;
 
     const Component = COMPONENT_MAP[tag] || COMPONENT_MAP[tag.charAt(0).toUpperCase() + tag.slice(1)];
     if (!Component) {
@@ -540,8 +540,7 @@ export async function parseOLX(
 
 function createId(node): OlxKey {
   const attributes = node[':@'] ?? {};
-  const id = attributes.url_name ?? attributes.id;
-  if (id) return id as OlxKey;
+  if (attributes.id) return attributes.id as OlxKey;
 
   const canonical = JSON.stringify(node);
   return SHA1(canonical).toString() as OlxKey;

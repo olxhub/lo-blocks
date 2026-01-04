@@ -88,7 +88,7 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
         }
         childAttrs.id = defaultId;
       }
-      const blockId = refToReduxKey(childAttrs, childAttrs.id);
+      const blockId = refToReduxKey(childAttrs);
       childAttrs.id = blockId;
 
       let mapping = currentGrader;

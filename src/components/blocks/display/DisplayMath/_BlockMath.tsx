@@ -7,7 +7,7 @@ if (typeof window !== 'undefined') {
 // DebugWrapper now handles debug info globally
 
 export function _BlockMath( props ) {
-  const { kids, url_name } = props;
+  const { kids } = props;
   let html = '';
   try {
     html = katex.renderToString(kids, {
