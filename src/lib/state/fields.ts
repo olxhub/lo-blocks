@@ -23,6 +23,27 @@ import { ReduxFieldsReturn } from '../types';
 const _fieldInfoByField: FieldInfoByField = {};
 const _fieldInfoByEvent: FieldInfoByEvent = {};
 
+// =============================================================================
+// HACK: System-level fields - always available via fieldByName()
+// =============================================================================
+// These fields are registered globally at module load time, so they're available
+// even before specific blocks are loaded. This is a workaround for incremental
+// loading where a component (e.g., MasteryBank) needs to reference another
+// component's field (e.g., grader's 'correct') before that component is loaded.
+//
+// Long-term: Fields need a major refactor - server should send field metadata
+// on startup, decoupled from idMap/block loading. See plan for details.
+// =============================================================================
+const SYSTEM_FIELDS: FieldInfo[] = [
+  { type: 'field', name: 'correct', event: 'UPDATE_CORRECT', scope: scopes.component },
+];
+
+// Register system fields immediately
+for (const field of SYSTEM_FIELDS) {
+  _fieldInfoByField[field.name] = field;
+  _fieldInfoByEvent[field.event] = field;
+}
+
 /**
  * Converts a camelCase or PascalCase field name into a default event name string.
  *

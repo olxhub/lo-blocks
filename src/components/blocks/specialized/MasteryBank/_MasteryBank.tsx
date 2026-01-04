@@ -3,7 +3,7 @@
 
 import React, { useMemo, useEffect, useRef, Suspense } from 'react';
 import { useBlock } from '@/lib/render';
-import { useReduxState, useFieldSelector, componentFieldByName } from '@/lib/state';
+import { useReduxState, useFieldSelector, fieldByName } from '@/lib/state';
 import { extendIdPrefix, toOlxReference } from '@/lib/blocks/idResolver';
 import { CORRECTNESS } from '@/lib/blocks';
 import { useBlockByOLXId } from '@/lib/blocks/useBlockByOLXId';
@@ -87,17 +87,15 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   const problemRef = toOlxReference(problemId, 'MasteryBank problem');
   const scopedGraderRef = toOlxReference(`${problemId}_grader`, 'MasteryBank grader');
 
-  // Load problem and grader blocks before accessing fields (suspends if not loaded)
+  // Load problem block (grader field is now a system field, always available)
   const problemBlock = useBlockByOLXId(props, problemRef);
-  const graderBlock = useBlockByOLXId(props, scopedGraderRef);
 
   // Render problem
   const { block: renderedProblem } = useBlock(scopedProps, problemId);
 
-  // Now safe to access grader field (grader is loaded)
-  const graderField = graderBlock
-    ? componentFieldByName(scopedProps, scopedGraderRef, 'correct')
-    : null;
+  // HACK: 'correct' is registered as a system field, so fieldByName always works
+  // even if the grader block isn't loaded yet. See fields.ts SYSTEM_FIELDS.
+  const graderField = fieldByName('correct');
 
   const currentCorrectness = useFieldSelector(
     scopedProps,
