@@ -52,6 +52,7 @@ import ErrorBoundary from '@/components/common/ErrorBoundary';
 import Spinner from '@/components/common/Spinner';
 import { InMemoryStorageProvider, StackedStorageProvider } from '@/lib/storage';
 import { isOLXFile } from '@/lib/util/fileTypes';
+import { dispatchOlxJson } from '@/lib/state/olxjson';
 
 /**
  * Props for RenderOLX component.
@@ -85,6 +86,8 @@ interface RenderOLXProps {
   onParsed?: (result: { idMap: Record<string, any>; root: string | null }) => void;
   /** Custom component map (defaults to COMPONENT_MAP) */
   componentMap?: Record<string, any>;
+  /** Source name for Redux state namespacing (e.g., 'content', 'inline', 'studio'). Defaults to 'content'. */
+  source?: string;
 }
 
 export default function RenderOLX({
@@ -99,6 +102,7 @@ export default function RenderOLX({
   onError,
   onParsed,
   componentMap = COMPONENT_MAP,
+  source = 'content',
 }: RenderOLXProps) {
   const [parsed, setParsed] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -160,6 +164,8 @@ export default function RenderOLX({
             effectiveProvider
           );
           if (!cancelled) {
+            // Dispatch to Redux for reactive block access
+            dispatchOlxJson(source, result.idMap);
             // startTransition prevents Suspense - shows old content while rendering new
             startTransition(() => {
               setParsed(result);
@@ -190,6 +196,8 @@ export default function RenderOLX({
           }
 
           if (!cancelled) {
+            // Dispatch to Redux for reactive block access
+            dispatchOlxJson(source, mergedIdMap);
             startTransition(() => {
               setParsed({
                 root: lastRoot,
@@ -211,7 +219,7 @@ export default function RenderOLX({
 
     doParse();
     return () => { cancelled = true; };
-  }, [inline, files, effectiveProvider, provenance, onError, startTransition]);
+  }, [inline, files, effectiveProvider, provenance, onError, startTransition, source]);
 
   // Merge parsed idMap with baseIdMap (parsed overrides base)
   const mergedIdMap = useMemo(() => {

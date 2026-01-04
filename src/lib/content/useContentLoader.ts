@@ -1,14 +1,20 @@
 // src/lib/content/useContentLoader.ts
 import { useState, useEffect } from 'react';
 import { IdMap, ComponentError } from '@/lib/types';
+import { dispatchOlxJson } from '@/lib/state/olxjson';
 
 /**
  * Hook to load content from the API by ID
  *
+ * Fetches content from the server and dispatches it to Redux for reactive access.
+ *
+ * @param id - Content ID to load
+ * @param source - Source name for Redux state namespacing (defaults to 'content')
+ *
  * Usage:
  * const { idMap, error, loading } = useContentLoader('my_content_id');
  */
-export function useContentLoader(id: string) {
+export function useContentLoader(id: string, source = 'content') {
   const [idMap, setIdMap] = useState<IdMap | null>(null);
   const [error, setError] = useState<ComponentError>(null);
   const [loading, setLoading] = useState(true);
@@ -28,6 +34,8 @@ export function useContentLoader(id: string) {
         if (!data.ok) {
           setError(data.error);
         } else {
+          // Dispatch to Redux for reactive block access
+          dispatchOlxJson(source, data.idMap);
           setIdMap(data.idMap);
         }
         setLoading(false);
@@ -36,7 +44,7 @@ export function useContentLoader(id: string) {
         setError(err.message);
         setLoading(false);
       });
-  }, [id]);
+  }, [id, source]);
 
   return { idMap, error, loading };
 }

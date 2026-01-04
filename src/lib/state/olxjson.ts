@@ -16,7 +16,8 @@
 'use client';
 
 import { useSelector } from 'react-redux';
-import type { OlxJson, OlxKey } from '../types';
+import * as lo_event from 'lo_event';
+import type { OlxJson, OlxKey, IdMap } from '../types';
 
 // =============================================================================
 // Types
@@ -55,6 +56,67 @@ export const LOAD_OLXJSON = 'LOAD_OLXJSON';
 export const OLXJSON_LOADING = 'OLXJSON_LOADING';
 export const OLXJSON_ERROR = 'OLXJSON_ERROR';
 export const CLEAR_OLXJSON = 'CLEAR_OLXJSON';
+
+// =============================================================================
+// Dispatch Helpers
+// =============================================================================
+
+/**
+ * Dispatch parsed OLX content to Redux via lo_event.
+ *
+ * Call this after content is loaded/parsed to populate the Redux store.
+ * Content is namespaced by source - same block ID in different sources
+ * is tracked separately, with higher-priority sources overriding lower ones
+ * when accessed via selectors.
+ *
+ * @param source - Source identifier (e.g., 'content', 'inline', 'studio')
+ * @param blocks - IdMap of parsed blocks: { [id]: OlxJson }
+ *
+ * @example
+ * // After fetching from API:
+ * dispatchOlxJson('content', data.idMap);
+ *
+ * // After parsing inline content:
+ * dispatchOlxJson('inline', parseResult.idMap);
+ */
+export function dispatchOlxJson(source: string, blocks: IdMap): void {
+  if (!blocks || Object.keys(blocks).length === 0) {
+    return; // Nothing to dispatch
+  }
+
+  lo_event.logEvent(LOAD_OLXJSON, { source, blocks });
+}
+
+/**
+ * Mark a block as loading in Redux.
+ *
+ * @param source - Source identifier
+ * @param id - Block ID being loaded
+ */
+export function dispatchOlxJsonLoading(source: string, id: string): void {
+  lo_event.logEvent(OLXJSON_LOADING, { source, id });
+}
+
+/**
+ * Mark a block as failed in Redux.
+ *
+ * @param source - Source identifier
+ * @param id - Block ID that failed
+ * @param error - Error information
+ */
+export function dispatchOlxJsonError(source: string, id: string, error: string | Error): void {
+  const message = typeof error === 'string' ? error : error.message;
+  lo_event.logEvent(OLXJSON_ERROR, { source, id, error: { message } });
+}
+
+/**
+ * Clear a source from Redux (or all sources if source is empty).
+ *
+ * @param source - Source to clear, or empty/undefined to clear all
+ */
+export function dispatchClearOlxJson(source?: string): void {
+  lo_event.logEvent(CLEAR_OLXJSON, { source });
+}
 
 // =============================================================================
 // Initial State
