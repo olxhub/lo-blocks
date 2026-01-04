@@ -273,10 +273,9 @@ export default function RenderOLX({
     );
   }
 
-  // Render synchronously
+  // Render synchronously - content is in Redux via dispatchOlxJson above
   const rendered = render({
     node: { type: 'block', id: rootId },
-    idMap: mergedIdMap,
     nodeInfo: makeRootNode(),
     componentMap,
     olxJsonSources: [source],

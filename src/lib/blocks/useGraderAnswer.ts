@@ -1,4 +1,4 @@
-// src/lib/blocks/useGraderAnswer.js
+// src/lib/blocks/useGraderAnswer.ts
 //
 // Hook for inputs to access their grader's answer display state.
 // Returns { showAnswer, displayAnswer, graderId } for rendering answer hints/highlights.

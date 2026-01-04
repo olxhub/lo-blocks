@@ -1,4 +1,4 @@
-// src/components/blocks/grading/RulesGrader/RulesGrader.js
+// src/components/blocks/grading/RulesGrader/RulesGrader.ts
 //
 // RulesGrader - Grader that evaluates Match rules top-to-bottom.
 //
@@ -14,7 +14,7 @@
 //   </RulesGrader>
 //
 import { z } from 'zod';
-import { core, grader, baseAttributes, isMatch, inferRelatedNodes, refToOlxKey } from '@/lib/blocks';
+import { core, grader, baseAttributes, isMatch, inferRelatedNodes, refToOlxKey, getBlockByOLXId } from '@/lib/blocks';
 import { CORRECTNESS } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
 import _Noop from '@/components/blocks/layout/_Noop';
@@ -28,7 +28,7 @@ import type { RuntimeProps } from '@/lib/types';
  * @returns {{ correct: CORRECTNESS, message: string, score?: number }}
  */
 function gradeRules(props: RuntimeProps, context) {
-  const { idMap, componentMap } = props;
+  const { componentMap } = props;
 
   // TODO: Handle other CORRECTNESS states (UNSUBMITTED, INCOMPLETE, etc.)
   // Currently delegated to Match rules, but may need RulesGrader-level logic
@@ -39,7 +39,7 @@ function gradeRules(props: RuntimeProps, context) {
     infer: 'kids'
   });
   for (const matchId of matchIds) {
-    const childEntry = idMap[matchId];
+    const childEntry = getBlockByOLXId(props, matchId);
     if (!childEntry) continue;
 
     const childBlueprint = componentMap[childEntry.tag];
@@ -92,10 +92,10 @@ const RulesGrader = core({
   getDisplayAnswer: (props: RuntimeProps) => {
     if (props.displayAnswer) return props.displayAnswer;
 
-    const { kids = [], idMap, componentMap } = props;
+    const { kids = [], componentMap } = props;
     for (const kid of kids) {
       if (kid.type !== 'block') continue;
-      const childEntry = idMap[refToOlxKey(kid.id)];
+      const childEntry = getBlockByOLXId(props, kid.id);
       if (!childEntry) continue;
 
       const childBlueprint = componentMap?.[childEntry.tag];

@@ -7,7 +7,7 @@ import { refToOlxKey, toOlxReference } from '@/lib/blocks/idResolver';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import { selectBlock } from '@/lib/state/olxjson';
 import _Ref from './_Ref';
-import type { RuntimeProps } from '@/lib/types';
+import type { RuntimeProps, OlxReference } from '@/lib/types';
 
 /**
  * Convert any value to a string representation for display.
@@ -58,7 +58,7 @@ const Ref = core({
     fallback: z.string().optional().describe('Fallback value when target is empty'),
     format: z.enum(['code']).optional().describe('Display format for the value'),
   }),
-  getValue: (props: RuntimeProps, state, id: string) => {
+  getValue: (props: RuntimeProps, state: any, id: OlxReference) => {
     // Get the Ref block from Redux to access its attributes and content
     const sources = props.olxJsonSources ?? ['content'];
     const refNode = selectBlock(state, sources, refToOlxKey(id));
