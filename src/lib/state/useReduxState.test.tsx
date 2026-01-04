@@ -14,7 +14,7 @@ const storageFields = fields([{ name: 'content', event: 'SET_CONTENT', scope: sc
 
 // Baseline props with enough context for tests not to fail
 const props = {
-  id: 'sentinelId', blueprint: { OLXName: 'sentinelTag' }
+  id: 'sentinelId', loBlock: { OLXName: 'sentinelTag' }
 };
 
 // TODO: These should probably be streamlined into one `it` statement which
@@ -56,7 +56,7 @@ describe('useReduxState integration', () => {
     const { result } = renderHook(
       () =>
         useReduxState(
-          { id: 'vid1', blueprint: { OLXName: 'video' } },
+          { id: 'vid1', loBlock: { OLXName: 'video' } },
           settingFields.fieldInfoByField.speed,
           1
         ),

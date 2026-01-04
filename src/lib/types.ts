@@ -204,16 +204,14 @@ export const BlockBlueprintSchema = z.object({
 export type BlockBlueprint = z.infer<typeof BlockBlueprintSchema>;
 
 /**
- * BlockType - the processed block type definition (code, not content).
+ * LoBlock - a Learning Observer block type (code, not content).
  *
- * Created from BlockBlueprint by factory.tsx. This is the "class" - the code
- * that defines how a block type works. Distinct from:
- * - OlxJson: A block instance in content (static, from parsing)
- * - OlxDomNode: A rendered block instance (dynamic, with tree relationships)
+ * Created from BlockBlueprint by factory.tsx. Stored in ComponentMap.
  *
- * BlockType is stored in ComponentMap, keyed by OLX tag name.
+ * The block lifecycle:
+ *   BlockBlueprint (what devs write) → LoBlock (processed) → OlxJson (instance) → OlxDomNode (rendered)
  */
-export interface BlockType {
+export interface LoBlock {
   component: React.ComponentType<any>;
   _isBlock: true;
   action?: Function;
@@ -223,9 +221,13 @@ export interface BlockType {
   getValue?: Function;
   locals?: Record<string, any>;
   fields: FieldInfoByField;
+  name?: string;  // Block name for selector matching
   OLXName: OLXTag;
   description?: string;
   namespace: string;
+  isInput: boolean;
+  isMatch: boolean;
+  isGrader: boolean;
   /**
    * Marks this block as internal/system use only.
    * Internal blocks are hidden from the main documentation navigation.
@@ -266,10 +268,6 @@ export interface BlockType {
    */
   requiresGrader?: boolean;
   /**
-   * Marks this block as a grader. Factory auto-extends fields and schema.
-   */
-  isGrader?: boolean;
-  /**
    * Returns the answer to display (may differ from grading answer).
    */
   getDisplayAnswer?: (props: any) => any;
@@ -288,7 +286,7 @@ export interface BlockType {
 }
 
 export interface ComponentMap {
-  [tag: string]: BlockType;
+  [tag: string]: LoBlock;
 }
 
 export type ComponentError = string | null;
@@ -321,7 +319,7 @@ export interface OlxDomNode {
   node: OlxJson;
   renderedKids: Record<OlxKey, OlxDomNode>;
   parent?: OlxDomNode;
-  blueprint: BlockBlueprint;
+  loBlock: LoBlock;
   sentinel?: string;  // 'root' for root node
 }
 
@@ -333,7 +331,7 @@ export type OlxDomSelector = (node: OlxDomNode) => boolean;
  *
  * This is a hybrid of three things (pragmatic compromise for React):
  * 1. Opaque context (idMap, nodeInfo, componentMap, idPrefix) - thread through, don't inspect
- * 2. Block machinery (blueprint, fields, locals) - framework injects these
+ * 2. Block machinery (loBlock, fields, locals) - framework injects these
  * 3. OLX attributes - flow in via [key: string]: any
  *
  * Most functions just pass props through without inspecting. Blocks destructure
@@ -351,7 +349,7 @@ export interface RuntimeProps {
   idPrefix?: string;
 
   // Block machinery - framework injects these
-  blueprint: BlockBlueprint;
+  loBlock: LoBlock;
   fields: FieldInfoByField;
   locals: LocalsAPI;  // {} if none, not undefined
 

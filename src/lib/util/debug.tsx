@@ -42,7 +42,7 @@ export const Trace = ({
 
 interface DebugWrapperProps {
   props?: any;
-  blueprint?: any;
+  loBlock?: any;
   children?: ReactNode;
 }
 
@@ -70,7 +70,7 @@ const ClickableText = ({ onClick, children, style = {}, title }: {
   </span>
 );
 
-export const DebugWrapper = ({ props = {}, blueprint, children }: DebugWrapperProps) => {
+export const DebugWrapper = ({ props = {}, loBlock, children }: DebugWrapperProps) => {
   const [debug] = useReduxState(props, settings.debug, false,
     { tag: true, id: true} // HACK
   );
@@ -104,7 +104,7 @@ export const DebugWrapper = ({ props = {}, blueprint, children }: DebugWrapperPr
 
   const handleLog = () => console.log('[props]', props);
 
-  const DebugComponent = blueprint?.extraDebug;
+  const DebugComponent = loBlock?.extraDebug;
 
   return (
     <div style={{ position: 'relative', outline: '1px dashed #999', outlineOffset: -1 }}>

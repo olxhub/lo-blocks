@@ -148,7 +148,7 @@ function resolveIdForContext(context, matrix = ID_RESOLUTION_MATRIX) {
     // Provide a friendly error message when an ID is missing
     if (context === 'refToReduxKey') {
       const name =
-        input?.blueprint?.OLXName ||
+        input?.loBlock?.OLXName ||
         input?.nodeInfo?.node?.tag ||
         input?.displayName ||
         input?.name ||

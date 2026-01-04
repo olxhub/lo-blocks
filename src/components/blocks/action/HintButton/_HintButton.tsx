@@ -22,7 +22,7 @@ function findDemandHints(props) {
   if (!nodeInfo) return null;
 
   const hintsNodes = getAllNodes(nodeInfo, {
-    selector: (n) => n.blueprint.name === 'DemandHints'
+    selector: (n) => n.loBlock.name === 'DemandHints'
   });
 
   return hintsNodes.length > 0 ? hintsNodes[0].node?.id : null;

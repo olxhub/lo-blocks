@@ -86,10 +86,10 @@ function nodeCacheKey(node, idPrefix) {
   throw new Error(`render: unexpected node type: ${typeof node}`);
 }
 
-// Root sentinel has minimal blueprint so selectors don't need ?. checks
-// TODO: Give root a real blueprint created via blocks.core() for consistency
-const ROOT_BLUEPRINT = Object.freeze({ name: 'Root', isGrader: false, isInput: false });
-export const makeRootNode = () => ({ sentinel: 'root', renderedKids: {}, blueprint: ROOT_BLUEPRINT });
+// Root sentinel has minimal loBlock so selectors don't need ?. checks
+// TODO: Give root a real loBlock created via blocks.core() for consistency
+const ROOT_LOBLOCK = Object.freeze({ name: 'Root', isGrader: false, isInput: false });
+export const makeRootNode = () => ({ sentinel: 'root', renderedKids: {}, loBlock: ROOT_LOBLOCK });
 
 // Main render function: handles structured nodes and block references.
 // Returns a cached thenable to work with React's use() hook.
@@ -243,7 +243,7 @@ async function renderInternal({ node, idMap, nodeInfo, componentMap = COMPONENT_
   // TODO: Check if this causes extra renders, and if we need to memoize anything
   let childNodeInfo = nodeInfo.renderedKids[node.id];
   if (!childNodeInfo) {
-    childNodeInfo = { node, renderedKids: {}, parent: nodeInfo, blueprint: blockType };
+    childNodeInfo = { node, renderedKids: {}, parent: nodeInfo, loBlock: blockType };
     nodeInfo.renderedKids[node.id] = childNodeInfo;
   }
 
@@ -284,14 +284,14 @@ async function renderInternal({ node, idMap, nodeInfo, componentMap = COMPONENT_
 
   // TODO: Should the wrapper be a <div> or a <span>?
   return (
-    <DebugWrapper props={wrapperProps} blueprint={blockType}>
+    <DebugWrapper props={wrapperProps} loBlock={blockType}>
       <div className={combinedClassName} data-block-type={tag}>
         <Component
           { ...attributes }
           id={node.id}
           kids={ kids }
           idMap={ idMap }
-          blueprint={ blockType }
+          loBlock={ blockType }
           locals={ blockType.locals }
           fields={ blockType.fields }
           nodeInfo={ childNodeInfo }

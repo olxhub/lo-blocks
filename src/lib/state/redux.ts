@@ -68,7 +68,7 @@ export const fieldSelector = <T>(
       case scopes.componentSetting: {
         const tag =
           optTag ??
-          props?.blueprint?.OLXName ??
+          props?.loBlock?.OLXName ??
           props.nodeInfo?.node?.tag;
         return selector(scopedState?.[tag]);
       }
@@ -128,7 +128,7 @@ export function updateReduxField(
         ? idResolver.refToReduxKey({ ...props, id })
         : idResolver.refToReduxKey(props))
     : undefined;
-  const resolvedTag = tag ?? props?.blueprint?.OLXName;
+  const resolvedTag = tag ?? props?.loBlock?.OLXName;
 
   lo_event.logEvent(field.event, {
     scope,
@@ -232,7 +232,7 @@ export function useReduxInput(
   );
 
   const id = idResolver.refToReduxKey(props);
-  const tag = props?.blueprint.OLXName;
+  const tag = props?.loBlock.OLXName;
 
   const onChange = useCallback((event) => {
     const val = event.target.value;
@@ -340,14 +340,14 @@ export function componentFieldByName(props, targetId: OlxReference, fieldName: s
     throw new Error(`componentFieldByName: Component "${targetId}" not found in idMap`);
   }
 
-  const targetBlueprint = props.componentMap?.[targetNode.tag];
-  if (!targetBlueprint) {
-    throw new Error(`componentFieldByName: No blueprint found for component type "${targetNode.tag}"`);
+  const targetLoBlock = props.componentMap?.[targetNode.tag];
+  if (!targetLoBlock) {
+    throw new Error(`componentFieldByName: No LoBlock found for component type "${targetNode.tag}"`);
   }
 
-  const field = targetBlueprint.fields?.[fieldName];
+  const field = targetLoBlock.fields?.[fieldName];
   if (!field) {
-    const availableFields = Object.keys(targetBlueprint.fields || {});
+    const availableFields = Object.keys(targetLoBlock.fields || {});
     throw new Error(`componentFieldByName: Field "${fieldName}" not found in component "${targetId}" (${targetNode.tag}). Available fields: ${availableFields.join(', ')}`);
   }
 
@@ -373,24 +373,24 @@ export function valueSelector(props, state, id: OlxReference | null | undefined,
   // Use refToOlxKey to strip prefixes - idMap uses plain IDs (last dot-separated segment)
   const mapKey = idResolver.refToOlxKey(id);
   const targetNode = props?.idMap?.[mapKey];
-  const blueprint = targetNode ? props?.componentMap?.[targetNode.tag] : null;
+  const loBlock = targetNode ? props?.componentMap?.[targetNode.tag] : null;
 
-  if (!targetNode || !blueprint) {
+  if (!targetNode || !loBlock) {
     const missing: string[] = [];
     if (!targetNode) missing.push('targetNode');
-    if (!blueprint) missing.push('blueprint');
+    if (!loBlock) missing.push('loBlock');
 
     throw new Error(
       `valueSelector: Missing ${missing.join(' and ')} for component id "${id}"` +
       (id !== mapKey ? ` (idMap key: "${mapKey}")` : '') + `\n` +
       `  targetNode: ${!!targetNode}\n` +
-      `  blueprint: ${!!blueprint}`
+      `  loBlock: ${!!loBlock}`
     );
   }
 
   // Try getValue first (for computed values like wordcount)
-  if (blueprint.getValue) {
-    return blueprint.getValue(props, state, id);
+  if (loBlock.getValue) {
+    return loBlock.getValue(props, state, id);
   }
 
   // Fall back to direct field access using the 'value' field

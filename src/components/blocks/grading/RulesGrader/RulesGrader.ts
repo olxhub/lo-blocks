@@ -35,7 +35,7 @@ function gradeRules(props: RuntimeProps, context) {
 
   // Evaluate child Match rules in order
   const matchIds = inferRelatedNodes(props, {
-    selector: n => isMatch(n.blueprint),
+    selector: n => isMatch(n.loBlock),
     infer: 'kids'
   });
   for (const matchId of matchIds) {

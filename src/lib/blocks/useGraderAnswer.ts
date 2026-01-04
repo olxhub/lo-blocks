@@ -30,7 +30,7 @@ function findTargetingGrader(props: RuntimeProps): OlxKey | null {
   if (!nodeInfo) return null;
 
   const graderNodes = getAllNodes(nodeInfo, {
-    selector: (n) => !!n.blueprint.isGrader && !!n.node.attributes.target
+    selector: (n) => !!n.loBlock.isGrader && !!n.node.attributes.target
   });
 
   for (const graderNodeInfo of graderNodes) {

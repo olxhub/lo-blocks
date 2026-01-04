@@ -260,7 +260,7 @@ export function inferRelatedNodes(props: RuntimeProps, {
  */
 export function getGrader(props: RuntimeProps, { infer }: { infer? } = {}): OlxKey {
   const ids = inferRelatedNodes(props, {
-    selector: n => n.blueprint.isGrader,
+    selector: n => n.loBlock.isGrader,
     targets: props.target,
     infer,
     closest: true  // Find nearest grader, not all graders up the tree
@@ -290,7 +290,7 @@ export function getGrader(props: RuntimeProps, { infer }: { infer? } = {}): OlxK
  */
 export function getInputs(props, { infer }: { infer? } = {}) {
   return inferRelatedNodes(props, {
-    selector: n => n.blueprint.isInput,
+    selector: n => n.loBlock.isInput,
     targets: props.target,
     infer
   });

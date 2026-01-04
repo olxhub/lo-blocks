@@ -32,8 +32,8 @@ export function action({ action }) {
   return { action };
 }
 
-export function isAction(blueprint) {
-  return typeof blueprint?.action === "function";
+export function isAction(loBlock) {
+  return typeof loBlock?.action === "function";
 }
 
 /**
@@ -69,12 +69,14 @@ export function input({ getValue }) {
   return { getValue };
 }
 
-export function isInput(blueprint) {
-  return typeof blueprint?.getValue === "function";
+// TODO: Duck-typing via getValue is a mistake. Should check loBlock.isInput
+// and populate that explicitly in factory.tsx from blueprint.isInput.
+export function isInput(loBlock) {
+  return typeof loBlock?.getValue === "function";
 }
 
-export function isMatch(blueprint) {
-  return typeof blueprint?.locals?.match === 'function';
+export function isMatch(loBlock) {
+  return typeof loBlock?.locals?.match === 'function';
 }
 
 // This does a full tree search, which is not performant. Probably doesn't matter
@@ -107,7 +109,7 @@ export function grader({ grader, infer = true }: { grader: GraderFn; infer?: boo
     const inputIds = inferRelatedNodes(
       { ...props, nodeInfo: targetNodeInfo },
       {
-        selector: n => n.blueprint && isInput(n.blueprint),
+        selector: n => n.loBlock && isInput(n.loBlock),
         infer,
         targets: targetAttributes?.target,
       }
@@ -119,17 +121,17 @@ export function grader({ grader, infer = true }: { grader: GraderFn; infer?: boo
     // Gather values and APIs from each input
     const inputData = await Promise.all(inputIds.map(async id => {
       const inst = await getBlockByOLXId(props, id);
-      const blueprint = map[inst.tag];
+      const loBlock = map[inst.tag];
       const inputNodeInfo = getNodeById(props, id);
       // HACK: We don't have the input's full props, so copy over fields that downstream code needs
       const inputProps = { ...props, nodeInfo: inputNodeInfo, id, target: inst.attributes?.target, kids: inst.kids };
 
-      const value = blueprint.getValue(inputProps, state, id);
+      const value = loBlock.getValue(inputProps, state, id);
 
       // Create bound API from locals - each function gets (props, state, id) pre-bound
-      const api = blueprint.locals
+      const api = loBlock.locals
         ? Object.fromEntries(
-          Object.entries(blueprint.locals).map(([name, fn]: [string, Function]) => [
+          Object.entries(loBlock.locals).map(([name, fn]: [string, Function]) => [
             name,
             (...args: any[]) => fn(inputProps, state, id, ...args)
           ])
@@ -207,7 +209,7 @@ export function grader({ grader, infer = true }: { grader: GraderFn; infer?: boo
 
 export async function executeNodeActions(props) {
   const ids = inferRelatedNodes(props, {
-    selector: n => isAction(n.blueprint),
+    selector: n => isAction(n.loBlock),
     infer: props.infer,
     targets: props.target
   });
@@ -236,7 +238,7 @@ export async function executeNodeActions(props) {
       ...targetInstance.attributes,        // OLX attributes from target action
       kids: targetInstance.kids || [],     // Children of the action block
       id: targetId,
-      blueprint: targetBlueprint,
+      loBlock: targetBlueprint,
       fields: targetBlueprint.fields?.fieldInfoByField || {}, // Transformed fields like render.jsx:127
       nodeInfo: actionNodeInfo,
     };

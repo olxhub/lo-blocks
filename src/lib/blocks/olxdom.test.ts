@@ -9,15 +9,15 @@ const { normalizeTargetIds, normalizeInfer} = __testables;
 // See render.jsx:107 where nodeInfo is created.
 const tree = {
   node: { id: 'A' },
-  blueprint: { isAction: true, isGrader: false, isInput: false, isMatch: false },
+  loBlock: { isAction: true, isGrader: false, isInput: false, isMatch: false },
   renderedKids: {
     B: {
       node: { id: 'B' },
-      blueprint: { isAction: false, isGrader: false, isInput: false, isMatch: false },
+      loBlock: { isAction: false, isGrader: false, isInput: false, isMatch: false },
       renderedKids: {
         D: {
           node: { id: 'D' },
-          blueprint: { isAction: true, isGrader: false, isInput: false, isMatch: false },
+          loBlock: { isAction: true, isGrader: false, isInput: false, isMatch: false },
           renderedKids: {},
           // parent assigned below
         },
@@ -26,7 +26,7 @@ const tree = {
     },
     C: {
       node: { id: 'C' },
-      blueprint: { isAction: true, isGrader: false, isInput: false, isMatch: false },
+      loBlock: { isAction: true, isGrader: false, isInput: false, isMatch: false },
       renderedKids: {},
       // parent assigned below
     },
@@ -152,7 +152,7 @@ describe('inferRelatedNodes', () => {
     // Only nodes with isAction: true (blueprint is on nodeInfo, not nodeInfo.node)
     const result = inferRelatedNodes(
       { nodeInfo: tree },
-      { selector: n => n.blueprint.isAction, infer: true }
+      { selector: n => n.loBlock.isAction, infer: true }
     );
     expect(result.sort()).toEqual(['C', 'D']);
   });

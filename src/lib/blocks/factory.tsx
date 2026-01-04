@@ -17,7 +17,7 @@
 import React from 'react';
 import { z } from 'zod';
 
-import { BlockBlueprintSchema, BlockType, FieldInfoByField, OLXTag } from '../types';
+import { BlockBlueprintSchema, LoBlock, FieldInfoByField, OLXTag } from '../types';
 
 // Factory-local type aliases derived from the schema
 type BlueprintInput = z.input<typeof BlockBlueprintSchema>;
@@ -87,7 +87,7 @@ function applyGraderExtensions(config: BlueprintInput): BlueprintInput {
 // Future: applyInputExtensions, applyActionExtensions, etc.
 
 // === Main factory ===
-function createBlock(config: BlueprintInput): BlockType {
+function createBlock(config: BlueprintInput): LoBlock {
   // Apply mixin extensions
   const effectiveConfig = applyGraderExtensions(config);
 
@@ -114,7 +114,7 @@ function createBlock(config: BlueprintInput): BlockType {
     );
   }
 
-  const block: BlockType = {
+  const block: LoBlock = {
     component: Component,
     _isBlock: true,
 
@@ -126,15 +126,20 @@ function createBlock(config: BlueprintInput): BlockType {
     fields: parsed?.fields?.fieldInfoByField as FieldInfoByField ?? {},
     locals: effectiveConfig.locals,
 
+    name: rawName,
     OLXName: olxName,
     description: parsed.description,
     namespace: parsed.namespace,
+    // TODO: isInput/isMatch currently derived from getValue/locals.match presence.
+    // Should be explicit in blueprint for better semantics.
+    isInput: typeof effectiveConfig.getValue === 'function',
+    isMatch: typeof effectiveConfig.locals?.match === 'function',
+    isGrader: parsed.isGrader,
     internal: effectiveConfig.internal,
     category: effectiveConfig.category,
     requiresUniqueId: effectiveConfig.requiresUniqueId,
     attributes: effectiveConfig.attributes,
     requiresGrader: effectiveConfig.requiresGrader,
-    isGrader: effectiveConfig.isGrader,
     getDisplayAnswer: effectiveConfig.getDisplayAnswer,
   }
   assertUnimplemented(parsed.reducers, 'reducers');

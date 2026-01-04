@@ -23,7 +23,7 @@ export const fields = state.fields(['value']);
  */
 function getChoices(props: RuntimeProps, state, id) {
   const ids = inferRelatedNodes(props, {
-    selector: n => n.blueprint.name === 'Key' || n.blueprint.name === 'Distractor',
+    selector: n => n.loBlock.name === 'Key' || n.loBlock.name === 'Distractor',
     infer: ['kids'],
     targets: props.target
   });

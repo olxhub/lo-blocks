@@ -16,7 +16,7 @@ import { DisplayError } from '@/lib/util/debug';
 function findChildGraderIds(props) {
   const { id, target } = props;
   return inferRelatedNodes(props, {
-    selector: n => n.blueprint.isGrader && n.node.id !== id,
+    selector: n => n.loBlock.isGrader && n.node.id !== id,
     infer: ['kids'],
     targets: target
   });
@@ -27,7 +27,7 @@ function findChildGraderIds(props) {
  */
 function findDemandHintsId(props) {
   const ids = inferRelatedNodes(props, {
-    selector: n => n.blueprint.name === 'DemandHints',
+    selector: n => n.loBlock.name === 'DemandHints',
     infer: ['kids']
   });
   return ids.length > 0 ? ids[0] : null;

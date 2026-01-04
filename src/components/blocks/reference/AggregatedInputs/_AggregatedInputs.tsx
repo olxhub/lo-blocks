@@ -43,7 +43,7 @@ function resolveTargetIds(props, targetIds) {
       ? inferRelatedNodes(
           { ...props, nodeInfo: targetNodeInfo },
           {
-            selector: (nodeInfo) => nodeInfo.blueprint.isGrader,
+            selector: (nodeInfo) => nodeInfo.loBlock.isGrader,
             infer: ['kids'],
             targets: undefined
           }

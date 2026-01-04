@@ -62,7 +62,7 @@ function getChoices(props: RuntimeProps, state, id) {
   // Fall back to inferRelatedNodes if searching kids directly didn't work (such as targets or nested hierarchies)
   if (ids.length === 0 && props.nodeInfo) {
     ids = inferRelatedNodes(props, {
-      selector: n => n.blueprint.name === 'Key' || n.blueprint.name === 'Distractor',
+      selector: n => n.loBlock.name === 'Key' || n.loBlock.name === 'Distractor',
       infer: ['kids'],
       targets: props.target
     });

@@ -29,7 +29,7 @@ export function isInputReadOnly(props) {
 
   // 2. Try to determine from related grader states
   const graderIds = inferRelatedNodes(props, {
-    selector: n => n.blueprint.isGrader,
+    selector: n => n.loBlock.isGrader,
     infer: true
   });
 
@@ -75,7 +75,7 @@ export function isInputReadOnly(props) {
  */
 function getInputInteractionMode(props) {
   const graderIds = inferRelatedNodes(props, {
-    selector: n => n.blueprint.isGrader,
+    selector: n => n.loBlock.isGrader,
     infer: true
   });
 
