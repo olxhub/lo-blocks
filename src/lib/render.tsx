@@ -1,4 +1,4 @@
-// src/lib/render.jsx
+// src/lib/render.tsx
 //
 // Rendering engine - transforms static OLX structure into dynamic rendered tree.
 //
@@ -16,91 +16,34 @@
 // The dynamic OLX structure enables the actions system to find related blocks
 // and coordinate behaviors across the content hierarchy.
 //
-// render() and renderCompiledKids() return cached thenables to support async
-// fetching of blocks not in the local idMap. Components should use the useKids()
-// hook rather than calling use(renderCompiledKids(...)) directly.
-//
-// IMPORTANT: These functions return cached thenables to work with React's use().
-// React's use() hook requires the same promise instance across re-renders, otherwise
-// it suspends every time. We cache by idMap + kids IDs + idPrefix.
+// SYNCHRONOUS RENDERING: All render functions are synchronous. If a block is not
+// found in idMap, an error is displayed (no async fetching). Content must be
+// loaded into idMap before rendering.
 //
 import htmlTags from 'html-tags';
-import React, { use } from 'react';
-import { useSelector } from 'react-redux';
+import React from 'react';
 import { DisplayError, DebugWrapper } from '@/lib/util/debug';
 import { COMPONENT_MAP } from '@/components/componentMap';
-import type { OlxKey, BlueprintKidEntry } from '@/lib/types';
+import type { OlxKey } from '@/lib/types';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { getGrader } from '@/lib/blocks/olxdom';
-import { getBlockByOLXId } from '@/lib/blocks/getBlockByOLXId';
-import { assignReactKeys, cacheKey as nodeCacheKeyBase, refToOlxKey } from '@/lib/blocks/idResolver';
-import { selectBlockState, type BlockEntry } from '@/lib/state/olxjson';
-
-// Cache for renderCompiledKids thenables, keyed by idMap then by kids+prefix
-const renderKidsCache = new WeakMap();
-
-// Cache for render() thenables, keyed by idMap then by node+prefix
-const renderCache = new WeakMap();
-
-// Singleton thenable for null nodes - must be same instance every time
-// to satisfy React's use() hook requirement for stable thenable identity.
-const NULL_RENDER_THENABLE = {
-  status: 'fulfilled',
-  value: null,
-  then(onFulfilled) { if (onFulfilled) onFulfilled(null); }
-};
-
-/**
- * Generate cache key for kids array.
- * Uses cacheKey for each child, joined with commas.
- */
-function kidsCacheKey(kids, idPrefix) {
-  if (!Array.isArray(kids)) return idPrefix ? `invalid.${idPrefix}` : 'invalid';
-  const kidsKey = kids.map(k => {
-    if (k == null) return 'null';
-    if (typeof k === 'string') return `s.${k}`;
-    if (typeof k !== 'object') return `p.${String(k)}`;
-    return nodeCacheKeyBase(k, { idPrefix: '' });
-  }).join(',');
-  return idPrefix ? `${kidsKey}.${idPrefix}` : kidsKey;
-}
-
-/**
- * Generate cache key for render() from node.
- * Handles arrays and object nodes ({ type: 'block', id } or { tag, id, ... }).
- * See idResolver.js for cacheKey documentation.
- */
-function nodeCacheKey(node, idPrefix) {
-  // Array of kids
-  if (Array.isArray(node)) {
-    const arrKey = kidsCacheKey(node, '');
-    return idPrefix ? `arr.${idPrefix}.${arrKey}` : `arr.${arrKey}`;
-  }
-
-  // Object nodes - use cacheKey from idResolver (includes overrides!)
-  if (typeof node === 'object' && node !== null) {
-    if (!node.id && !node.tag) {
-      throw new Error('render: object node missing id or tag');
-    }
-    return nodeCacheKeyBase(node, { idPrefix });
-  }
-
-  throw new Error(`render: unexpected node type: ${typeof node}`);
-}
+import { assignReactKeys, refToOlxKey } from '@/lib/blocks/idResolver';
 
 // Root sentinel has minimal loBlock so selectors don't need ?. checks
 // TODO: Give root a real loBlock created via blocks.core() for consistency
 const ROOT_LOBLOCK = Object.freeze({ name: 'Root', isGrader: false, isInput: false });
 export const makeRootNode = () => ({ sentinel: 'root', renderedKids: {}, loBlock: ROOT_LOBLOCK });
 
-// Main render function: handles structured nodes and block references.
-// Returns a cached thenable to work with React's use() hook.
-// React requires the same thenable instance across re-renders.
-//
-// Node types accepted:
-//   - { type: 'block', id, overrides? } - reference to block in idMap
-//   - { tag, id, attributes, kids } - inline OLX node
-//   - Array of kids - rendered via renderCompiledKids
+/**
+ * Main render function - synchronously renders a node to React elements.
+ *
+ * Node types accepted:
+ *   - { type: 'block', id, overrides? } - reference to block in idMap
+ *   - { tag, id, attributes, kids } - inline OLX node
+ *   - Array of kids - rendered via renderCompiledKids
+ *
+ * @returns React element(s) or null
+ */
 export function render({ node, idMap, nodeInfo, componentMap = COMPONENT_MAP, idPrefix = '', olxJsonSources }: {
   node: any;
   idMap: any;
@@ -108,84 +51,13 @@ export function render({ node, idMap, nodeInfo, componentMap = COMPONENT_MAP, id
   componentMap?: any;
   idPrefix?: string;
   olxJsonSources?: string[];
-}) {
-  // Handle null - return singleton thenable (callers may use(render(...)))
-  if (!node) return NULL_RENDER_THENABLE;
+}): React.ReactNode {
+  if (!node) return null;
 
   // JSX should not be passed to render() - the OLX pipeline produces structured nodes
   if (React.isValidElement(node)) {
     throw new Error('render(): JSX element passed directly. Use structured nodes from OLX parser.');
   }
-
-  // Get or create cache for this idMap
-  let cacheForIdMap = renderCache.get(idMap);
-  if (!cacheForIdMap) {
-    cacheForIdMap = new Map();
-    renderCache.set(idMap, cacheForIdMap);
-  }
-
-  const key = nodeCacheKey(node, idPrefix);
-
-  // Return cached thenable if available
-  if (cacheForIdMap.has(key)) {
-    return cacheForIdMap.get(key);
-  }
-
-  // Create thenable that will be cached
-  // Type annotation needed because status/value/promise change after initialization
-  const thenable: {
-    status: string;
-    value: any;
-    reason: any;
-    _promise: Promise<any> | null;
-    then: (onFulfilled?: any, onRejected?: any) => void;
-  } = {
-    status: 'pending',
-    value: undefined,
-    reason: undefined,
-    _promise: null,
-    then(onFulfilled, onRejected) {
-      if (this.status === 'fulfilled') {
-        if (onFulfilled) onFulfilled(this.value);
-        return;
-      }
-      if (this.status === 'rejected') {
-        if (onRejected) onRejected(this.reason);
-        return;
-      }
-      this._promise!.then(onFulfilled, onRejected);
-    }
-  };
-
-  // Start render immediately and update thenable when done
-  thenable._promise = renderInternal({ node, idMap, nodeInfo, componentMap, idPrefix, olxJsonSources }).then(
-    result => {
-      thenable.status = 'fulfilled';
-      thenable.value = result;
-      return result;
-    },
-    err => {
-      thenable.status = 'rejected';
-      thenable.reason = err;
-      console.error('[render] Error:', err);
-      throw err;
-    }
-  );
-
-  cacheForIdMap.set(key, thenable);
-  return thenable;
-}
-
-// Internal render implementation - dispatches by node type
-async function renderInternal({ node, idMap, nodeInfo, componentMap = COMPONENT_MAP, idPrefix = '', olxJsonSources }: {
-  node: any;
-  idMap: any;
-  nodeInfo: any;
-  componentMap?: any;
-  idPrefix?: string;
-  olxJsonSources?: string[];
-}) {
-  if (!node) return null;
 
   // Handle list of kids
   if (Array.isArray(node)) {
@@ -199,14 +71,16 @@ async function renderInternal({ node, idMap, nodeInfo, componentMap = COMPONENT_
     node.type === 'block' &&
     typeof node.id === 'string'
   ) {
-    const entry = await getBlockByOLXId({ idMap }, node.id);
+    // Synchronous lookup in idMap - no async fetching
+    const olxKey = refToOlxKey(node.id);
+    const entry = idMap?.[olxKey];
     if (!entry) {
       return (
         <DisplayError
           id={`missing-id-${node.id}`}
           name="render"
-          message={`Could not resolve block ID "${node.id}" in idMap`}
-          data={{ node, idMap }}
+          message={`Block "${node.id}" not found in content`}
+          data={{ nodeId: node.id, olxKey }}
         />
       );
     }
@@ -219,7 +93,7 @@ async function renderInternal({ node, idMap, nodeInfo, componentMap = COMPONENT_
   // Handle structured OLX-style node
   const { tag, attributes = {}, kids = [] } = node;
 
-  if (!componentMap[tag] || ! componentMap[tag].component) {
+  if (!componentMap[tag] || !componentMap[tag].component) {
     return (
       <DisplayError
         id={`unknown-tag-${tag}`}
@@ -296,240 +170,43 @@ async function renderInternal({ node, idMap, nodeInfo, componentMap = COMPONENT_
   const combinedClassName = `${blockClassName} ${userClassName}`.trim();
 
   // TODO: We probably want more than just data-block-type. Having IDs, etc. will be
-  // very nice for debugging and introspectoin.
+  // very nice for debugging and introspection.
 
   // TODO: Should the wrapper be a <div> or a <span>?
   return (
     <DebugWrapper props={wrapperProps} loBlock={blockType}>
       <div className={combinedClassName} data-block-type={tag}>
         <Component
-          { ...attributes }
+          {...attributes}
           id={node.id}
-          kids={ kids }
-          idMap={ idMap }
-          loBlock={ blockType }
-          locals={ blockType.locals }
-          fields={ blockType.fields }
-          nodeInfo={ childNodeInfo }
-          componentMap={ componentMap }
-          idPrefix={ idPrefix }
-          olxJsonSources={ olxJsonSources }
-          { ...(graderId && { graderId }) }
+          kids={kids}
+          idMap={idMap}
+          loBlock={blockType}
+          locals={blockType.locals}
+          fields={blockType.fields}
+          nodeInfo={childNodeInfo}
+          componentMap={componentMap}
+          idPrefix={idPrefix}
+          olxJsonSources={olxJsonSources}
+          {...(graderId && { graderId })}
         />
       </div>
     </DebugWrapper>
   );
 }
 
-
-// Render kids array that may include: text, JSX, OLX, etc.
-// Returns a cached thenable to work with React's use() hook.
-// Internal function - components should use useKids() hook instead.
-function renderCompiledKids(props) {
+/**
+ * Render kids array that may include: text, block references, HTML, etc.
+ * Synchronous - all content must already be in idMap.
+ *
+ * @returns Array of React elements
+ */
+export function renderCompiledKids(props): React.ReactNode[] {
   let { kids, children, idMap, nodeInfo, componentMap = COMPONENT_MAP, idPrefix = '', olxJsonSources } = props;
   if (kids === undefined && children !== undefined) {
     console.log(
       "[renderCompiledKids] WARNING: 'children' prop used instead of 'kids'. Please migrate to 'kids'."
     );
-    kids = children;
-  }
-
-  // Get or create cache for this idMap
-  let cacheForIdMap = renderKidsCache.get(idMap);
-  if (!cacheForIdMap) {
-    cacheForIdMap = new Map();
-    renderKidsCache.set(idMap, cacheForIdMap);
-  }
-
-  const key = kidsCacheKey(kids, idPrefix);
-
-  // Return cached thenable if available
-  if (cacheForIdMap.has(key)) {
-    return cacheForIdMap.get(key);
-  }
-
-  // Create thenable that will be cached
-  // Start the internal render immediately - this allows it to resolve
-  // before React's use() is called if all data is sync
-  // Type annotation needed because status/value/promise change after initialization
-  const thenable: {
-    status: string;
-    value: any;
-    reason: any;
-    _promise: Promise<any> | null;
-    then: (onFulfilled?: any, onRejected?: any) => void;
-  } = {
-    status: 'pending',
-    value: undefined,
-    reason: undefined,
-    _promise: null,
-    then(onFulfilled, onRejected) {
-      if (this.status === 'fulfilled') {
-        // Sync resolution - call callback immediately
-        if (onFulfilled) onFulfilled(this.value);
-        return;
-      }
-      if (this.status === 'rejected') {
-        if (onRejected) onRejected(this.reason);
-        return;
-      }
-      // Still pending - chain to the promise
-      this._promise!.then(onFulfilled, onRejected);
-    }
-  };
-
-  // Start render immediately and update thenable when done
-  thenable._promise = renderCompiledKidsInternal(props).then(
-    result => {
-      thenable.status = 'fulfilled';
-      thenable.value = result;
-      return result;
-    },
-    err => {
-      thenable.status = 'rejected';
-      thenable.reason = err;
-      console.error('[renderCompiledKids] Error in internal render:', err);
-      throw err;
-    }
-  );
-
-  cacheForIdMap.set(key, thenable);
-  return thenable;
-}
-
-/**
- * Hook for rendering kids in a component.
- * Wraps renderCompiledKids with React's use() for cleaner component code.
- *
- * @param {object} props - Component props (must include idMap, nodeInfo, componentMap)
- * @returns {{ kids: React.ReactNode[] }} Object containing rendered kids
- *
- * @example
- * function MyComponent(props) {
- *   const { kids } = useKids(props);
- *   return <div>{kids}</div>;
- * }
- *
- * // With custom kids:
- * const { kids } = useKids({ ...props, kids: customKids });
- *
- * TODO: Add loading and error states for more explicit control than Suspense:
- *   const { kids, loading, error } = useKids(props);
- */
-export function useKids(props): { kids: React.ReactElement[] } {
-  const kids = use(renderCompiledKids(props)) as React.ReactElement[];
-  return { kids };
-}
-
-/**
- * Extract block IDs from a kids array.
- * Used by useKidsWithState to check Redux loading states.
- */
-function extractBlockIds(kids: BlueprintKidEntry[]): string[] {
-  if (!Array.isArray(kids)) return [];
-
-  const ids: string[] = [];
-  for (const kid of kids) {
-    if (kid && typeof kid === 'object' && kid.type === 'block' && kid.id) {
-      ids.push(refToOlxKey(kid.id));
-    }
-  }
-  return ids;
-}
-
-/**
- * Hook for rendering kids with explicit loading/error state.
- *
- * Unlike useKids (which suspends), this hook returns loading/error state
- * explicitly. Use this for blocks that need to know when children are ready
- * (e.g., MasteryBank, Chat).
- *
- * @param {object} props - Component props (must include kids, olxJsonSources)
- * @returns {{ kids: React.ReactNode[], ready: boolean, error: string | null }}
- *
- * @example
- * function _MasteryBank(props) {
- *   const { kids, ready, error } = useKidsWithState(props);
- *   if (error) return <DisplayError error={error} />;
- *   if (!ready) return <Spinner />;
- *   return <div>{kids}</div>;
- * }
- */
-export function useKidsWithState(props): {
-  kids: React.ReactElement[];
-  ready: boolean;
-  error: string | null;
-} {
-  const { kids: kidsFromProps, olxJsonSources } = props;
-  const sources = olxJsonSources || ['content'];
-
-  // Extract block IDs from kids to check their loading states
-  const blockIds = extractBlockIds(kidsFromProps);
-
-  // Check Redux state for each block
-  // Note: We use a single selector that checks all blocks to avoid multiple subscriptions
-  const blockStates = useSelector((state: any) => {
-    const states: Record<string, BlockEntry | undefined> = {};
-    for (const id of blockIds) {
-      states[id] = selectBlockState(state, sources, id);
-    }
-    return states;
-  });
-
-  // Determine overall ready/error state
-  let ready = true;
-  let error: string | null = null;
-
-  for (const id of blockIds) {
-    const blockState = blockStates[id];
-    if (!blockState) {
-      // Block not in Redux - check if it's in idMap (legacy path)
-      if (!props.idMap?.[id]) {
-        ready = false;
-      }
-      continue;
-    }
-
-    if (blockState.loadingState.status === 'loading') {
-      ready = false;
-    } else if (blockState.loadingState.status === 'error' && blockState.error) {
-      error = blockState.error.message;
-      ready = false;
-    }
-  }
-
-  // Render kids using current pipeline
-  // If not ready, this may suspend - caller should check ready first
-  const renderedKids = ready
-    ? (use(renderCompiledKids(props)) as React.ReactElement[])
-    : [];
-
-  return { kids: renderedKids, ready, error };
-}
-
-/**
- * Hook for rendering a single block by OLX ID.
- * Fetches the block from idMap and renders it.
- *
- * @param {object} props - Component props (must include idMap, nodeInfo, componentMap)
- * @param {string} id - The OLX ID of the block to render
- * @returns {{ block: React.ReactNode }} Object containing rendered block
- *
- * @example
- * function MyComponent(props) {
- *   const { block } = useBlock(props, targetId);
- *   return <div>{block}</div>;
- * }
- */
-export function useBlock(props, id) {
-  const block = use(render({ ...props, node: { type: 'block', id } }));
-  return { block };
-}
-
-// Internal async implementation of renderCompiledKids
-async function renderCompiledKidsInternal(props) {
-  let { kids, children, idMap, nodeInfo, componentMap = COMPONENT_MAP, idPrefix = '', olxJsonSources } = props;
-  if (kids === undefined && children !== undefined) {
     kids = children;
   }
 
@@ -547,8 +224,8 @@ async function renderCompiledKidsInternal(props) {
 
   const keyedKids = assignReactKeys(kids);
 
-  // Process all children, awaiting any async renders
-  const renderedKids = await Promise.all(keyedKids.map(async (child, i) => {
+  // Process all children synchronously
+  return keyedKids.map((child, i) => {
     if (typeof child === 'string') {
       return <React.Fragment key={`string-${i}`}>{child}</React.Fragment>;
     }
@@ -558,42 +235,69 @@ async function renderCompiledKidsInternal(props) {
       throw new Error('renderCompiledKids: JSX element in kids array. Use structured nodes from OLX parser.');
     }
 
-    switch (child.type) {
-      case 'block':
-        return (
-          <React.Fragment key={child.key}>
-            {await render({ node: child, idMap, nodeInfo, componentMap, idPrefix, olxJsonSources })}
-          </React.Fragment>
-        );
+    // Handle different child types
+    // Note: Inline OLX nodes have {tag, id, attributes} but no type property
+    // Block references have {type: 'block', id}
 
-      case 'text':
-        return <span key={child.key}>{child.text}</span>;
-
-      case 'html':
-        // React fails -- spectacularly -- on invalid HTML tags.
-        if (!htmlTags.includes(child.tag)) {
-           return(<p> Invalid tag: {child.tag} </p>);
-        }
-        return React.createElement(
-          child.tag,
-          { key: child.key, ...child.attributes },
-          await renderCompiledKidsInternal({ kids: child.kids ?? [], idMap, nodeInfo, componentMap, idPrefix, olxJsonSources })
-        );
-
-      default:
-        return (
-          <DisplayError
-            key={child.key}
-            name="renderCompiledKids"
-            message={`Unknown child type: "${child.type}"`}
-            data={child}
-          />
-        );
+    if (child.type === 'block') {
+      return (
+        <React.Fragment key={child.key}>
+          {render({ node: child, idMap, nodeInfo, componentMap, idPrefix, olxJsonSources })}
+        </React.Fragment>
+      );
     }
-  }));
 
-  return renderedKids;
+    if (child.type === 'text') {
+      return <span key={child.key}>{child.text}</span>;
+    }
+
+    if (child.type === 'html') {
+      // React fails -- spectacularly -- on invalid HTML tags.
+      if (!htmlTags.includes(child.tag)) {
+        return <p key={child.key}>Invalid tag: {child.tag}</p>;
+      }
+      return React.createElement(
+        child.tag,
+        { key: child.key, ...child.attributes },
+        renderCompiledKids({ kids: child.kids ?? [], idMap, nodeInfo, componentMap, idPrefix, olxJsonSources })
+      );
+    }
+
+    // Inline OLX node - has tag property but no type
+    // This happens when components pass full block entries as kids (e.g., Navigator's TemplateContent)
+    if (child.tag && typeof child.tag === 'string') {
+      return (
+        <React.Fragment key={child.key}>
+          {render({ node: child, idMap, nodeInfo, componentMap, idPrefix, olxJsonSources })}
+        </React.Fragment>
+      );
+    }
+
+    // Unknown child type
+    return (
+      <DisplayError
+        key={child.key}
+        name="renderCompiledKids"
+        message={`Unknown child type: "${child.type}"`}
+        data={child}
+      />
+    );
+  });
 }
+
+// =============================================================================
+// HOOKS - Re-exported from useRenderedBlock.ts
+// =============================================================================
+//
+// The actual hook implementations live in src/lib/blocks/useRenderedBlock.ts
+// They are re-exported here for backward compatibility with existing imports.
+//
+// Hooks:
+// - useBlock(props, id) - Render a single block with loading/error handling
+// - useKids(props) - Render children from props.kids
+// - useKidsWithState(props) - Like useKids but exposes ready/error state
+//
+export { useBlock, useKids, useKidsWithState } from '@/lib/blocks/useRenderedBlock.tsx';
 
 /**
  * Helper to render a virtual block without exposing OLX node shape.
@@ -603,12 +307,12 @@ async function renderCompiledKidsInternal(props) {
  * @param {string} tag - The component tag (e.g., 'Correctness')
  * @param {object} options - { id, ...attributes }
  * @param {Array} kids - Child nodes
- * @returns Thenable for the rendered block
+ * @returns Rendered React element
  *
  * @example
  * renderBlock(props, 'Correctness', { id: 'x_status', target: '...' })
  */
-export function renderBlock(props, tag, options: { id?: string; [key: string]: any } = {}, kids = []) {
+export function renderBlock(props, tag, options: { id?: string; [key: string]: any } = {}, kids = []): React.ReactNode {
   const { id, ...attributes } = options;
   const node = { id, tag, attributes, kids };
   return render({ ...props, node });

@@ -244,8 +244,8 @@ export function childParser(fn: ChildParserFn, nameOverride?: string) {
 
 // === Parsers ===
 
-// No internal information.
-const ignoreFactory = childParser(() => null);
+// No internal information - returns empty kids array (not null).
+const ignoreFactory = childParser(() => []);
 ignoreFactory.staticKids = () => [];
 export const ignore = ignoreFactory;
 

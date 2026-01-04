@@ -44,7 +44,7 @@
 //
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef, Suspense, use, useTransition } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useTransition } from 'react';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { render, makeRootNode } from '@/lib/render';
 import { COMPONENT_MAP } from '@/components/componentMap';
@@ -240,33 +240,6 @@ export default function RenderOLX({
     }
   }, [mergedIdMap, parsed?.root]);
 
-  // Create render promise (render() is async now)
-  // The promise is created in useMemo, then unwrapped by AsyncRenderer via use()
-  const renderPromise = useMemo(() => {
-    if (!mergedIdMap) return null;
-
-    // Use requested id, fall back to parsed root
-    const rootId = mergedIdMap[id] ? id : (parsed?.root || id);
-
-    if (!mergedIdMap[rootId]) {
-      // Return a resolved promise with error element
-      return Promise.resolve(
-        <div className="text-red-600">
-          RenderOLX: ID &quot;{rootId}&quot; not found in content
-        </div>
-      );
-    }
-
-    // render() now returns a promise
-    return render({
-      node: { type: 'block', id: rootId },
-      idMap: mergedIdMap,
-      nodeInfo: makeRootNode(),
-      componentMap,
-      olxJsonSources: [source],
-    });
-  }, [mergedIdMap, parsed, id, componentMap, source]);
-
   // Error state
   if (error) {
     return (
@@ -286,12 +259,28 @@ export default function RenderOLX({
         </div>
       );
     }
-    return <div className="text-gray-500">Loading...</div>;
+    return <Spinner>Loading...</Spinner>;
   }
 
-  if (!renderPromise) {
-    return <div className="text-gray-500">Loading...</div>;
+  // Use requested id, fall back to parsed root
+  const rootId = mergedIdMap[id] ? id : (parsed?.root || id);
+
+  if (!mergedIdMap[rootId]) {
+    return (
+      <div className="text-red-600">
+        RenderOLX: ID &quot;{rootId}&quot; not found in content
+      </div>
+    );
   }
+
+  // Render synchronously
+  const rendered = render({
+    node: { type: 'block', id: rootId },
+    idMap: mergedIdMap,
+    nodeInfo: makeRootNode(),
+    componentMap,
+    olxJsonSources: [source],
+  });
 
   return (
     <ErrorBoundary
@@ -301,15 +290,7 @@ export default function RenderOLX({
         onError?.(err);
       }}
     >
-      <Suspense fallback={<Spinner>Loading content...</Spinner>}>
-        <AsyncRenderer promise={renderPromise} />
-      </Suspense>
+      {rendered}
     </ErrorBoundary>
   );
-}
-
-// Helper component that unwraps the render promise using use()
-function AsyncRenderer({ promise }: { promise: Promise<React.ReactNode> }) {
-  const rendered = use(promise);
-  return <>{rendered}</>;
 }

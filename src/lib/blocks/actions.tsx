@@ -118,9 +118,13 @@ export function grader({ grader, infer = true }: { grader: GraderFn; infer?: boo
     const state = reduxLogger.store.getState();
     const map = props.componentMap;
 
-    // Gather values and APIs from each input
-    const inputData = await Promise.all(inputIds.map(async id => {
-      const inst = await getBlockByOLXId(props, id);
+    // Gather values and APIs from each input (synchronous - blocks are in idMap)
+    const inputData = inputIds.map(id => {
+      const inst = getBlockByOLXId(props, id);
+      if (!inst) {
+        console.warn(`[runGrader] Input block "${id}" not found in idMap`);
+        return { value: undefined, api: {} };
+      }
       const loBlock = map[inst.tag];
       const inputNodeInfo = getNodeById(props, id);
       // HACK: We don't have the input's full props, so copy over fields that downstream code needs
@@ -139,7 +143,7 @@ export function grader({ grader, infer = true }: { grader: GraderFn; infer?: boo
         : {};
 
       return { value, api };
-    }));
+    });
 
     const values = inputData.map(d => d.value);
     const apis = inputData.map(d => d.api);
@@ -215,7 +219,11 @@ export async function executeNodeActions(props) {
   });
   const map = props.componentMap;
   for (const targetId of ids) {
-    const targetInstance = await getBlockByOLXId(props, targetId);
+    const targetInstance = getBlockByOLXId(props, targetId);
+    if (!targetInstance) {
+      console.warn(`[executeNodeActions] Action block "${targetId}" not found in idMap`);
+      continue;
+    }
     const targetBlueprint = map[targetInstance.tag];
 
     // Find the action's nodeInfo in the dynamic OLX DOM tree
