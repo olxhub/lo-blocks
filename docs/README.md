@@ -287,15 +287,16 @@ requiresUniqueId options:
 - false - Duplicates allowed (e.g., Markdown, TextBlock)
 - 'children' - Require uniqueness if any child requires it
 
-### `BlockSpecification`s
+### `LoBlock`
 
-`BlockBlueprint`s are parsed through zod and a bit of logic into a `BlockSpec` (confusing, still named `blueprint` in most of the code, as of this writing; we're redoing naming). This is quite similar, but with:
+`BlockBlueprint`s are parsed through zod and the factory into an `LoBlock`. This is quite similar, but with:
 * Type validation
 * Inference for defaults
+* Guaranteed fields (isInput, isMatch, isGrader are always set)
 * Additions (e.g. documentation and template files belong here, eventually)
 * Etc.
 
-TODO: Consider renaming to `BlockType`.
+The block lifecycle is: `BlockBlueprint` (what devs write) → `LoBlock` (processed) → `OlxJson` (instance) → `OlxDomNode` (rendered)
 
 ## Instantiating Blocks -- Part 1: Static OLX
 
@@ -331,7 +332,7 @@ creates an instance of that block. The OLX is the archival format-of-record for 
 }
 ```
 
-TODO: Consider renaming to `StaticInstance`
+This is `OlxJson` in types.ts.
 
 ## Instantiating Blocks -- Part 2: Dynamic DOM
 
@@ -347,7 +348,7 @@ For example, a `MasteryBank` will pull in kids from a bank of items. A DynamicLi
 
 If the `helloblock` was something with state, and we pulled up redux developer tools, we would see `list.0.helloblock`, `list.1.helloblock`, etc. as IDs for the specific child nodes.
 
-TODO: Consider renaming to DynamicInstance
+This is `OlxDomNode` in types.ts.
 
 # IDs
 
@@ -384,26 +385,30 @@ We also have a lot of hacks in code. Common one:
   // HACK: Force absolute path for cross-block references.
   const absoluteId = id.startsWith('/') ? id : `/${id}`;
 ```
-And similar. Much of this will go away with branded types.
+And similar. Much of this is now handled by `refToReduxKey` and `refToOlxKey`.
 
-## Branded types (planned)
+## Branded types
+
+These are defined in `types.ts`:
 
 ```typescript
-// === Destination Types (where the ID addresses) ===
-type OlxReference = string & { __brand: 'OlxReference' };
-type OlxKey = string & { __brand: 'OlxKey' };
-type ReduxStateKey = string & { __brand: 'ReduxStateKey' };
-type ReactKey = string & { __brand: 'ReactKey' };
-type HtmlId = string & { __brand: 'HtmlId' };
+type OlxReference = string & { __brand: 'OlxReference' };  // "/foo", "./foo", "foo"
+type OlxKey = OlxReference & { __resolved: true };         // idMap lookup key
+type ReduxStateKey = string & { __brand: 'ReduxStateKey' }; // state key with idPrefix
+type ReactKey = string & { __brand: 'ReactKey' };          // React reconciliation
+type HtmlId = string & { __brand: 'HtmlId' };              // DOM element ID
 ```
 
-With explicit functions for conversion (e.g. prefix + OLX Ket => React Key, etc), e.g.:
+Conversion functions in `idResolver.ts`:
 ```typescript
-// Reference → IdMapKey (for idMap lookup)
-toIdMapKey(props, ref: OlxReference, options = {}): OlxKey
+// Reference → OlxKey (for idMap lookup, strips prefixes)
+refToOlxKey(ref: OlxReference | string): OlxKey
 
-// Reference → ReduxStateKey (for state access, applies prefix)
-toReduxStateKey(props, ref: OlxReference, options = {}): ReduxStateKey
+// Props/ref → ReduxStateKey (for state access, applies idPrefix)
+refToReduxKey(input: RefToReduxKeyInput): ReduxStateKey
+
+// Validate raw string as OlxReference (at system boundaries)
+toOlxReference(input: string, context?: string): OlxReference
 ```
 
 ## Key Assignment Contexts and Helpers
@@ -625,7 +630,7 @@ use `target` to refer to their "main" redux state:
 `
 
 We are still trying to figure this out, but
-`src/lib/blocks/idResolver.js` is a stab at trying to make
+`src/lib/blocks/idResolver.ts` is a stab at trying to make
 context-relevant blocks. This allows us to, instead of passing IDs, to
 pass around `props`, and change the logic around extracting IDs as
 this evolves and as we figure things out.
