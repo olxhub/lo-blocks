@@ -13,6 +13,7 @@ import { COMPONENT_MAP } from '@/components/componentMap';
 import { Provider } from 'react-redux';
 import React from 'react';
 import { store } from '@/lib/state/store';
+import { dispatchOlxJsonSync } from '@/lib/state/olxjson';
 import { render as rtlRender, cleanup } from '@testing-library/react';
 import fs from 'fs/promises';
 import path from 'path';
@@ -22,6 +23,21 @@ import { injectPreviewContent } from '@/lib/template/previewTemplate';
 if (typeof Element !== 'undefined' && !Element.prototype.scrollTo) {
   Element.prototype.scrollTo = function() {};
 }
+
+// Mock fetch for content API requests - blocks not in Redux will trigger fetch
+// In test environment, return error for any fetch attempts
+const originalFetch = global.fetch;
+global.fetch = async (url: string | URL | Request, options?: RequestInit) => {
+  const urlStr = typeof url === 'string' ? url : url.toString();
+  if (urlStr.includes('/api/content/')) {
+    // Return a 404 response for any content API requests
+    return new Response(JSON.stringify({ ok: false, error: `Block not found (test environment)` }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  return originalFetch(url, options);
+};
 
 // Recursively find all .olx files in a directory
 async function findOlxFiles(dir) {
@@ -118,8 +134,9 @@ describe('Demo OLX files render without errors', () => {
           continue;
         }
 
-        // Create Redux store
+        // Create Redux store and populate with parsed content synchronously
         const reduxStore = store.init();
+        dispatchOlxJsonSync(reduxStore, 'content', idMap);
 
         // Render the component
         const element = render({

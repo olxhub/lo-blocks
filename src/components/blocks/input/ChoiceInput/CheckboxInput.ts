@@ -1,10 +1,10 @@
-// src/components/blocks/ChoiceInput/CheckboxInput.js
+// src/components/blocks/ChoiceInput/CheckboxInput.ts
 //
 // Multi-select checkbox input. Value is stored as an array of selected values.
 // For single-select (radio buttons), use ChoiceInput instead.
 //
 import { z } from 'zod';
-import { core } from '@/lib/blocks';
+import { core, getBlockByOLXId } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, fieldByName } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
@@ -28,10 +28,11 @@ function getChoices(props: RuntimeProps, state, id) {
     targets: props.target
   });
   const choices = ids.map(cid => {
-    const inst = props.idMap[cid];
+    const inst = getBlockByOLXId(props, cid);
+    if (!inst) return null;
     const choiceValue = inst.attributes.value ?? cid;
     return { id: cid, tag: inst.tag, value: choiceValue };
-  });
+  }).filter(Boolean);
   return choices;
 }
 

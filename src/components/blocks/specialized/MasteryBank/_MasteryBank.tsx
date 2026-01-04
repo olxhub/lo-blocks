@@ -6,7 +6,7 @@ import { useBlock } from '@/lib/render';
 import { useReduxState, useFieldSelector, fieldByName } from '@/lib/state';
 import { extendIdPrefix, toOlxReference } from '@/lib/blocks/idResolver';
 import { CORRECTNESS } from '@/lib/blocks';
-import { useBlockByOLXId } from '@/lib/blocks/useBlockByOLXId';
+import { useOlxJson } from '@/lib/blocks/useOlxJson';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
 
@@ -88,7 +88,7 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   const scopedGraderRef = toOlxReference(`${problemId}_grader`, 'MasteryBank grader');
 
   // Load problem block (grader field is now a system field, always available)
-  const problemBlock = useBlockByOLXId(props, problemRef);
+  const { olxJson: problemBlock } = useOlxJson(problemRef);
 
   // Render problem
   const { block: renderedProblem } = useBlock(scopedProps, problemId);

@@ -1,4 +1,4 @@
-// src/components/blocks/ChoiceInput/CheckboxGrader.js
+// src/components/blocks/ChoiceInput/CheckboxGrader.ts
 //
 // Grader for multi-select (checkbox) questions.
 // For single-select (radio button) questions, use KeyGrader instead.
@@ -10,6 +10,7 @@
 import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
+import { getBlockByOLXId } from '@/lib/blocks';
 import { getInputs } from '@/lib/blocks/olxdom';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
@@ -91,7 +92,7 @@ function getCheckboxDisplayAnswer(props) {
   }
 
   const inputId = inputIds[0];
-  const inputNode = props.idMap[inputId];
+  const inputNode = getBlockByOLXId(props, inputId);
   if (!inputNode) {
     throw new Error(`CheckboxGrader "${props.id}": Input "${inputId}" not found. Check the target attribute.`);
   }

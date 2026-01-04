@@ -14,7 +14,7 @@
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
 import { getGrader, getAllNodes } from './olxdom';
-import { useBlockByOLXId } from './useBlockByOLXId';
+import { useOlxJson } from './useOlxJson';
 import type { OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
 
 /**
@@ -99,8 +99,8 @@ export function useGraderAnswer(props: RuntimeProps) {
   );
 
   // Get grader instance unconditionally (hook must always be called).
-  // Pass graderId directly - getBlockByOLXId handles null gracefully.
-  const graderInstance = useBlockByOLXId(props, graderId);
+  // Pass graderId directly - useOlxJson handles null gracefully.
+  const { olxJson: graderInstance } = useOlxJson(graderId);
 
   // Get displayAnswer from grader's blueprint when showAnswer is true
   let displayAnswer = undefined;

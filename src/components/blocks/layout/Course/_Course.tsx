@@ -1,9 +1,10 @@
-// src/components/blocks/Course/_Course.jsx
+// src/components/blocks/Course/_Course.tsx
 'use client';
 
 import React from 'react';
 import { useReduxState } from '@/lib/state';
 import { useBlock } from '@/lib/render';
+import { getBlockByOLXId } from '@/lib/blocks';
 
 function CourseContent({ props, selectedChild }) {
   const { block } = useBlock(props, selectedChild);
@@ -64,9 +65,9 @@ function _Course(props) {
               {expandedChapter === chapter.id && (
                 <div>
                   {chapter.children.map((child) => {
-                    // child is { type: 'block', id }, look up full entry from idMap
+                    // child is { type: 'block', id }, look up full entry from Redux
                     const childId = child.id;
-                    const childEntry = props.idMap?.[childId];
+                    const childEntry = getBlockByOLXId(props, childId);
                     const title = childEntry?.attributes?.title || childEntry?.tag || childId;
                     return (
                       <button

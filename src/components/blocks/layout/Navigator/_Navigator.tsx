@@ -4,7 +4,7 @@
 import React, { useMemo } from 'react';
 import { useReduxState } from '@/lib/state';
 import { useKids } from '@/lib/render';
-import { useBlockByOLXId } from '@/lib/blocks/useBlockByOLXId';
+import { useOlxJson } from '@/lib/blocks/useOlxJson';
 
 // Component to render a template with item data
 function TemplateContent({ props, node }) {
@@ -23,8 +23,8 @@ function _Navigator(props) {
   } = props;
 
   // Look up template blocks unconditionally (hooks must always be called)
-  const previewBlock = useBlockByOLXId(props, preview || '');
-  const detailBlock = useBlockByOLXId(props, detail || '');
+  const { olxJson: previewBlock } = useOlxJson(preview || '');
+  const { olxJson: detailBlock } = useOlxJson(detail || '');
 
   const [selectedItem, setSelectedItem] = useReduxState(props, fields.selectedItem, null);
   const [searchQuery, setSearchQuery] = useReduxState(props, fields.searchQuery, '');

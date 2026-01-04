@@ -1,4 +1,4 @@
-// src/components/blocks/ChoiceInput/KeyGrader.js
+// src/components/blocks/ChoiceInput/KeyGrader.ts
 //
 // Grader for single-select (radio button) multiple choice questions.
 // For multi-select (checkbox) questions, use CheckboxGrader instead.
@@ -6,6 +6,7 @@
 import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
+import { getBlockByOLXId } from '@/lib/blocks';
 import { getInputs } from '@/lib/blocks/olxdom';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
@@ -40,7 +41,7 @@ function getKeyDisplayAnswer(props) {
   }
 
   const inputId = inputIds[0];
-  const inputNode = props.idMap[inputId];
+  const inputNode = getBlockByOLXId(props, inputId);
   if (!inputNode) {
     throw new Error(`KeyGrader "${props.id}": Input "${inputId}" not found. Check the target attribute.`);
   }

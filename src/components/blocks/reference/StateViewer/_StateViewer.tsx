@@ -4,7 +4,7 @@
 import React from 'react';
 import { DisplayError } from '@/lib/util/debug';
 import { useComponentState } from '@/lib/state';
-import { useBlockByOLXId } from '@/lib/blocks/useBlockByOLXId';
+import { useOlxJson } from '@/lib/blocks/useOlxJson';
 
 export default function _StateViewer(props) {
   const { target, scope, kids = '' } = props;
@@ -13,7 +13,7 @@ export default function _StateViewer(props) {
   const targetId = target || (typeof kids === 'string' ? kids : String(kids)).trim();
 
   // Hooks must be called unconditionally, so call before any early returns
-  const targetBlock = useBlockByOLXId(props, targetId || '_invalid_');
+  const { olxJson: targetBlock } = useOlxJson(targetId || '_invalid_');
   const componentState = useComponentState(props, targetId, { scope });
 
   if (!targetId) {

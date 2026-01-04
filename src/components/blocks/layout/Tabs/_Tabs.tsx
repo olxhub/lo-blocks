@@ -4,7 +4,7 @@
 import React from 'react';
 import { useReduxState } from '@/lib/state';
 import { useKids } from '@/lib/render';
-import { useBlocksByOLXIds } from '@/lib/blocks/useBlockByOLXId';
+import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
 
 export default function _Tabs(props) {
   const { fields, kids = [] } = props;
@@ -12,7 +12,7 @@ export default function _Tabs(props) {
 
   // Extract kid IDs for batch lookup (for tab labels)
   const kidIds = kids.filter(k => k?.type === 'block' && k?.id).map(k => k.id);
-  const kidBlocks = useBlocksByOLXIds(props, kidIds);
+  const { olxJsons: kidBlocks } = useOlxJsonMultiple(kidIds);
 
   // Create a map for easy lookup by ID
   const kidBlockMap = Object.fromEntries(kidIds.map((id, i) => [id, kidBlocks[i]]));

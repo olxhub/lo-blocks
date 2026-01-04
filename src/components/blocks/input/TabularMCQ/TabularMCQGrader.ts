@@ -1,4 +1,4 @@
-// src/components/blocks/TabularMCQ/TabularMCQGrader.js
+// src/components/blocks/TabularMCQ/TabularMCQGrader.ts
 //
 // Grader for TabularMCQ - checks selections against expected answers.
 //
@@ -12,7 +12,7 @@
 //
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
-import { core, CORRECTNESS, getInputs } from '@/lib/blocks';
+import { core, CORRECTNESS, getInputs, getBlockByOLXId } from '@/lib/blocks';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
@@ -29,7 +29,7 @@ function getTabularMCQDisplayAnswer(props) {
 
   try {
     const inputIds = getInputs(props);
-    const inputNode = props.idMap?.[inputIds[0]];
+    const inputNode = getBlockByOLXId(props, inputIds[0]);
     const inputBlueprint = inputNode ? props.componentMap?.[inputNode.tag] : null;
 
     if (inputBlueprint?.locals?.getAnswers) {

@@ -221,7 +221,7 @@ export async function executeNodeActions(props) {
   for (const targetId of ids) {
     const targetInstance = getBlockByOLXId(props, targetId);
     if (!targetInstance) {
-      console.warn(`[executeNodeActions] Action block "${targetId}" not found in idMap`);
+      console.warn(`[executeNodeActions] Action block "${targetId}" not found in Redux`);
       continue;
     }
     const targetBlueprint = map[targetInstance.tag];
@@ -238,7 +238,7 @@ export async function executeNodeActions(props) {
     // Match the props structure that render.jsx creates for normal components
     const actionProps = {
       // Copy essential props from original context
-      idMap: props.idMap,
+      olxJsonSources: props.olxJsonSources,
       componentMap: props.componentMap,
       idPrefix: props.idPrefix,  // Preserve prefix so actions update scoped state
 

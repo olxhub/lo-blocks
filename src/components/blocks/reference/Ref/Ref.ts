@@ -1,10 +1,11 @@
-// src/components/blocks/Ref.jsx
+// src/components/blocks/Ref.ts
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { valueSelector, fieldByName, fieldSelector } from '@/lib/state';
 import { refToOlxKey, toOlxReference } from '@/lib/blocks/idResolver';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
+import { selectBlock } from '@/lib/state/olxjson';
 import _Ref from './_Ref';
 import type { RuntimeProps } from '@/lib/types';
 
@@ -58,9 +59,9 @@ const Ref = core({
     format: z.enum(['code']).optional().describe('Display format for the value'),
   }),
   getValue: (props: RuntimeProps, state, id: string) => {
-    // Get the Ref block from idMap to access its attributes and content
-    // Use refToOlxKey to handle absolute/prefixed IDs transparently
-    const refNode = props.idMap[refToOlxKey(id)];
+    // Get the Ref block from Redux to access its attributes and content
+    const sources = props.olxJsonSources ?? ['content'];
+    const refNode = selectBlock(state, sources, refToOlxKey(id));
     if (!refNode) {
       return { error: true, message: 'Component not found' };
     }
@@ -74,8 +75,8 @@ const Ref = core({
       return { error: true, message: 'No target specified. Use target attribute or provide ID as content.' };
     }
 
-    // Check if target exists in idMap (use refToOlxKey for lookup)
-    if (!props.idMap[refToOlxKey(targetId)]) {
+    // Check if target exists in Redux
+    if (!selectBlock(state, sources, refToOlxKey(targetId))) {
       return { error: true, message: `Target "${targetId}" not found` };
     }
 
@@ -88,16 +89,12 @@ const Ref = core({
 
     // HACK: Force absolute path for cross-block references.
     //
-    // TODO: This is a workaround for the ID resolution split between:
-    //   1. idMap lookup (uses refToOlxKey - works correctly)
-    //   2. Redux state access (uses refToReduxKey which applies idPrefix)
-    //
+    // TODO: This is a workaround for idPrefix context differences.
     // When Ref is rendered in one context (e.g., inside a SortableInput) but
     // references a component rendered elsewhere (e.g., a TextArea), the idPrefix
     // contexts differ. Absolute paths ("/id") bypass idPrefix in refToReduxKey.
     //
     // Proper fix: Unify ID resolution so cross-block refs work without this hack.
-    // See: idResolver.js, redux.ts (refToReduxKey, fieldSelector)
     const absoluteTargetId = targetId.startsWith('/') ? targetId : `/${targetId}`;
 
     let rawValue;

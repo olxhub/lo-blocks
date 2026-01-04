@@ -1,24 +1,10 @@
-// src/components/blocks/ChoiceInput/ChoiceInput.js
+// src/components/blocks/ChoiceInput/ChoiceInput.ts
 //
 // Single-select (radio button) input. Value is stored as a string.
 // For multi-select (checkboxes), use CheckboxInput instead.
 //
-// ==========================================================================
-// ASYNC TODO (idMap refactor)
-// ==========================================================================
-// This file accesses props.idMap synchronously in getChoices() and locals.
-// With SINGLE_BLOCK_MODE, Key/Distractor children may not be loaded yet.
-//
-// Current workaround: SINGLE_BLOCK_MODE='static-kids' serves parent + children
-// together, so this works. Full fix requires making locals/getChoices async
-// or pre-loading children in the component via useBlocksByOLXIds.
-//
-// Same issue affects: CheckboxInput.js, KeyGrader.js, CheckboxGrader.js,
-// RulesGrader.js, Ref.js
-// ==========================================================================
-//
 import { z } from 'zod';
-import { core } from '@/lib/blocks';
+import { core, getBlockByOLXId } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, fieldByName } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
@@ -40,21 +26,16 @@ export const fields = state.fields(['value']);
  *
  * @returns {Array<{id: string, tag: string, value: string}>}
  */
-// TODO: Clarify ID types. The `id` parameter here is an OlxKey (for idMap lookup),
-// but when passed to fieldSelector it gets converted to ReduxStateKey internally
-// by applying idPrefix. The naming `id` is ambiguous - consider renaming to `olxId`
-// or documenting the conversion flow more clearly. See docs/README.md "IDs" section.
 function getChoices(props: RuntimeProps, state, id) {
-  let ids: OlxKey[] = [];  // OlxKey for idMap lookups (props.idMap[cid])
+  let ids: OlxKey[] = [];
 
   // Try to get IDs from kids prop first (works without matching nodeInfo, such as from MarkupProblem)
-  // Convert OlxReference → OlxKey for idMap lookup
   if (Array.isArray(props.kids)) {
     ids = props.kids
       .filter((k): k is Extract<BlueprintKidEntry, { type: 'block' }> => k.type === 'block')
       .map(k => refToOlxKey(k.id))
       .filter(cid => {
-        const inst = props.idMap[cid];
+        const inst = getBlockByOLXId(props, cid);
         return inst && (inst.tag === 'Key' || inst.tag === 'Distractor');
       });
   }
@@ -69,10 +50,11 @@ function getChoices(props: RuntimeProps, state, id) {
   }
 
   const choices = ids.map(cid => {
-    const inst = props.idMap[cid];
+    const inst = getBlockByOLXId(props, cid);
+    if (!inst) return null;
     const choiceValue = inst.attributes.value ?? cid;
     return { id: cid, tag: inst.tag, value: choiceValue };
-  });
+  }).filter(Boolean);
   return choices;
 }
 

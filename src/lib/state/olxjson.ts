@@ -88,6 +88,37 @@ export function dispatchOlxJson(source: string, blocks: IdMap): void {
 }
 
 /**
+ * Synchronously dispatch OLX content to Redux.
+ *
+ * BYPASSES lo_event's async queue for immediate state updates.
+ * Use this for initial render where content must be available synchronously.
+ *
+ * For learning analytics logging, use dispatchOlxJson() instead.
+ *
+ * @param reduxStore - The Redux store (from store.init())
+ * @param source - Source identifier (e.g., 'content')
+ * @param blocks - IdMap of parsed blocks
+ */
+export function dispatchOlxJsonSync(
+  reduxStore: any,
+  source: string,
+  blocks: IdMap
+): void {
+  if (!blocks || Object.keys(blocks).length === 0) {
+    return;
+  }
+
+  // Dispatch in lo_event's expected format:
+  // - redux_type: EMIT_EVENT tells the reducer to process this
+  // - payload: JSON-stringified event data
+  reduxStore.dispatch({
+    redux_type: 'EMIT_EVENT',
+    type: 'lo_event',
+    payload: JSON.stringify({ event: LOAD_OLXJSON, source, blocks })
+  });
+}
+
+/**
  * Mark a block as loading in Redux.
  *
  * @param source - Source identifier

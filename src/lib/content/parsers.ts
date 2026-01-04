@@ -428,7 +428,7 @@ export function peggyParser(
 ) {
   const {
     preprocess = (x) => ({ text: x.text }),
-    postprocess = (x) => x,
+    postprocess = ({ parsed }) => ({ type: 'parsed', parsed }),  // Default: wrap in standard structure, excluding functions
     skipStoreEntry = false
   } = options;
   async function parser({
