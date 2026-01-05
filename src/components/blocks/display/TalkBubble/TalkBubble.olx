@@ -1,0 +1,19 @@
+<Vertical id="talk_bubble_examples">
+  <Markdown>## TalkBubble Examples</Markdown>
+
+  <TalkBubble speaker="Chip">
+    <Markdown>This is a default left-aligned speech bubble. Perfect for the main character or interviewer.</Markdown>
+  </TalkBubble>
+
+  <TalkBubble speaker="Clara" position="right">
+    <Markdown>And this is a right-aligned bubble! Use this for responses or alternate speakers.</Markdown>
+  </TalkBubble>
+
+  <TalkBubble speaker="Dr. Smith" avatar="/avatars/professor.png">
+    <Markdown>You can also provide custom avatar images using the `avatar` attribute.</Markdown>
+  </TalkBubble>
+
+  <TalkBubble>
+    <Markdown>Speech bubbles work without a speaker name too, though it's less clear who's talking.</Markdown>
+  </TalkBubble>
+</Vertical>

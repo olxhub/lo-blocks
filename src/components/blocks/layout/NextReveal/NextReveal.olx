@@ -1,0 +1,31 @@
+<NextReveal id="dialogue_example">
+  <TalkBubble speaker="Chip">
+    <Markdown>Hey, Clara. How's it going? Are you ready to break out?</Markdown>
+  </TalkBubble>
+
+  <TalkBubble speaker="Clara" position="right">
+    <Markdown>Haha. Hey, Chip. Yeah, I'm ready. Discourse communities, right?</Markdown>
+  </TalkBubble>
+
+  <TalkBubble speaker="Chip">
+    <Markdown>Exactly. After our last class, I was thinking about some examples. Want to brainstorm some more with me?</Markdown>
+  </TalkBubble>
+
+  <TalkBubble speaker="Clara" position="right">
+    <Markdown>I had the same idea! I started a list on my phone.</Markdown>
+  </TalkBubble>
+
+  <TalkBubble speaker="Chip">
+    <Markdown>Me too. Well, let's put them together to see what we have.</Markdown>
+  </TalkBubble>
+
+  <Markdown>## Activity: Identify Discourse Communities
+
+Think of 3 examples of discourse communities you belong to.</Markdown>
+
+  <TextArea id="discourse_examples" rows="5" placeholder="List your examples here..." />
+
+  <TalkBubble speaker="Clara" position="right">
+    <Markdown>Great examples! Let's move on to analyzing their characteristics.</Markdown>
+  </TalkBubble>
+</NextReveal>
