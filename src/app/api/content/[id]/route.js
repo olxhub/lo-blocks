@@ -1,7 +1,7 @@
 // src/app/api/content/[id]/route.js
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { getEditPathFromProvenance } from '@/lib/storage/contentPaths';
-import { COMPONENT_MAP } from '@/components/componentMap';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 
 // Block fetching mode for testing async loading:
 //   'all'         - return full idMap (fast, sends everything)
@@ -23,7 +23,7 @@ function collectBlockWithKids(idMap, id, collected = {}) {
   const entry = idMap[id];
   collected[id] = entry;
 
-  const comp = COMPONENT_MAP[entry.tag];
+  const comp = BLOCK_REGISTRY[entry.tag];
   if (comp?.staticKids) {
     for (const childId of comp.staticKids(entry)) {
       collectBlockWithKids(idMap, childId, collected);

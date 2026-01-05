@@ -21,7 +21,7 @@
 import htmlTags from 'html-tags';
 import React from 'react';
 import { DisplayError, DebugWrapper } from '@/lib/util/debug';
-import { COMPONENT_MAP } from '@/components/componentMap';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { OlxKey } from '@/lib/types';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { getGrader } from '@/lib/blocks/olxdom';
@@ -44,10 +44,10 @@ export const makeRootNode = () => ({ sentinel: 'root', renderedKids: {}, loBlock
  *
  * @returns React element(s) or null
  */
-export function render({ node, nodeInfo, componentMap = COMPONENT_MAP, idPrefix = '', olxJsonSources }: {
+export function render({ node, nodeInfo, blockRegistry = BLOCK_REGISTRY, idPrefix = '', olxJsonSources }: {
   node: any;
   nodeInfo: any;
-  componentMap?: any;
+  blockRegistry?: any;
   idPrefix?: string;
   olxJsonSources?: string[];
 }): React.ReactNode {
@@ -60,7 +60,7 @@ export function render({ node, nodeInfo, componentMap = COMPONENT_MAP, idPrefix 
 
   // Handle list of kids
   if (Array.isArray(node)) {
-    return renderCompiledKids({ kids: node, nodeInfo, componentMap, idPrefix, olxJsonSources });
+    return renderCompiledKids({ kids: node, nodeInfo, blockRegistry, idPrefix, olxJsonSources });
   }
 
   // Handle { type: 'block', id, overrides }
@@ -87,13 +87,13 @@ export function render({ node, nodeInfo, componentMap = COMPONENT_MAP, idPrefix 
     const entryWithOverrides = node.overrides
       ? { ...entry, attributes: { ...entry.attributes, ...node.overrides } }
       : entry;
-    return render({ node: entryWithOverrides, nodeInfo, componentMap, idPrefix, olxJsonSources });
+    return render({ node: entryWithOverrides, nodeInfo, blockRegistry, idPrefix, olxJsonSources });
   }
 
   // Handle structured OLX-style node
   const { tag, attributes = {}, kids = [] } = node;
 
-  if (!componentMap[tag] || !componentMap[tag].component) {
+  if (!blockRegistry[tag] || !blockRegistry[tag].component) {
     return (
       <DisplayError
         id={`unknown-tag-${tag}`}
@@ -104,7 +104,7 @@ export function render({ node, nodeInfo, componentMap = COMPONENT_MAP, idPrefix 
     );
   }
 
-  const blockType = componentMap[tag];
+  const blockType = blockRegistry[tag];
   const Component = blockType.component;
 
   // Validate attributes - use component schema if defined, else base with passthrough
@@ -141,7 +141,7 @@ export function render({ node, nodeInfo, componentMap = COMPONENT_MAP, idPrefix 
     ...attributes,
     id: node.id,
     nodeInfo: childNodeInfo,
-    componentMap,
+    blockRegistry,
     idPrefix
   };
 
@@ -184,7 +184,7 @@ export function render({ node, nodeInfo, componentMap = COMPONENT_MAP, idPrefix 
           locals={blockType.locals}
           fields={blockType.fields}
           nodeInfo={childNodeInfo}
-          componentMap={componentMap}
+          blockRegistry={blockRegistry}
           idPrefix={idPrefix}
           olxJsonSources={olxJsonSources}
           {...(graderId && { graderId })}
@@ -200,7 +200,7 @@ export function render({ node, nodeInfo, componentMap = COMPONENT_MAP, idPrefix 
  * @returns Array of React elements
  */
 export function renderCompiledKids(props): React.ReactNode[] {
-  let { kids, children, nodeInfo, componentMap = COMPONENT_MAP, idPrefix = '', olxJsonSources } = props;
+  let { kids, children, nodeInfo, blockRegistry = BLOCK_REGISTRY, idPrefix = '', olxJsonSources } = props;
   if (kids === undefined && children !== undefined) {
     console.log(
       "[renderCompiledKids] WARNING: 'children' prop used instead of 'kids'. Please migrate to 'kids'."
@@ -240,7 +240,7 @@ export function renderCompiledKids(props): React.ReactNode[] {
     if (child.type === 'block') {
       return (
         <React.Fragment key={child.key}>
-          {render({ node: child, nodeInfo, componentMap, idPrefix, olxJsonSources })}
+          {render({ node: child, nodeInfo, blockRegistry, idPrefix, olxJsonSources })}
         </React.Fragment>
       );
     }
@@ -257,7 +257,7 @@ export function renderCompiledKids(props): React.ReactNode[] {
       return React.createElement(
         child.tag,
         { key: child.key, ...child.attributes },
-        renderCompiledKids({ kids: child.kids ?? [], nodeInfo, componentMap, idPrefix, olxJsonSources })
+        renderCompiledKids({ kids: child.kids ?? [], nodeInfo, blockRegistry, idPrefix, olxJsonSources })
       );
     }
 
@@ -266,7 +266,7 @@ export function renderCompiledKids(props): React.ReactNode[] {
     if (child.tag && typeof child.tag === 'string') {
       return (
         <React.Fragment key={child.key}>
-          {render({ node: child, nodeInfo, componentMap, idPrefix, olxJsonSources })}
+          {render({ node: child, nodeInfo, blockRegistry, idPrefix, olxJsonSources })}
         </React.Fragment>
       );
     }
@@ -303,24 +303,24 @@ export { useBlock, useKids, useKidsWithState } from '@/lib/blocks/useRenderedBlo
  * Use this when you have the OlxJson object already (e.g., from useOlxJson hook).
  * This is the preferred method for components that use hooks to access content.
  *
- * @param props - Render props (nodeInfo, componentMap, idPrefix, etc.)
+ * @param props - Render props (nodeInfo, blockRegistry, idPrefix, etc.)
  * @param props.node - The OlxJson to render
  */
 export function renderOlxJson(props: {
   node: any;
   nodeInfo: any;
-  componentMap?: any;
+  blockRegistry?: any;
   idPrefix?: string;
 }): React.ReactNode {
-  const { node, nodeInfo, componentMap = COMPONENT_MAP, idPrefix = '' } = props;
-  return render({ node, nodeInfo, componentMap, idPrefix });
+  const { node, nodeInfo, blockRegistry = BLOCK_REGISTRY, idPrefix = '' } = props;
+  return render({ node, nodeInfo, blockRegistry, idPrefix });
 }
 
 /**
  * Helper to render a virtual block without exposing OLX node shape.
  * Used for programmatically creating blocks (e.g., CapaProblem status icons).
  *
- * @param {object} props - Component props (must include nodeInfo, componentMap)
+ * @param {object} props - Component props (must include nodeInfo, blockRegistry)
  * @param {string} tag - The component tag (e.g., 'Correctness')
  * @param {object} options - { id, ...attributes }
  * @param {Array} kids - Child nodes

@@ -206,7 +206,7 @@ export type BlockBlueprint = z.infer<typeof BlockBlueprintSchema>;
 /**
  * LoBlock - a Learning Observer block type (code, not content).
  *
- * Created from BlockBlueprint by factory.tsx. Stored in ComponentMap.
+ * Created from BlockBlueprint by factory.tsx. Stored in BlockRegistry.
  *
  * The block lifecycle:
  *   BlockBlueprint (what devs write) → LoBlock (processed) → OlxJson (instance) → OlxDomNode (rendered)
@@ -272,7 +272,7 @@ export interface LoBlock {
    */
   getDisplayAnswer?: (props: any) => any;
 
-  // Documentation properties (added by generateRegistry at build time)
+  // Documentation properties (added by generateBlockRegistry at build time)
   /** Path to the block's source file relative to project root */
   source?: string;
   /** Path to the block's README.md documentation file */
@@ -285,9 +285,12 @@ export interface LoBlock {
   gitStatus?: 'committed' | 'modified' | 'untracked';
 }
 
-export interface ComponentMap {
+export interface BlockRegistry {
   [tag: string]: LoBlock;
 }
+
+/** @deprecated Use BlockRegistry instead */
+export type ComponentMap = BlockRegistry;
 
 export type ComponentError = string | null;
 export type ParseError = string | null | {
@@ -330,7 +333,7 @@ export type OlxDomSelector = (node: OlxDomNode) => boolean;
  * RuntimeProps - the context bag passed through the system.
  *
  * This is a hybrid of three things (pragmatic compromise for React):
- * 1. Opaque context (idMap, nodeInfo, componentMap, idPrefix) - thread through, don't inspect
+ * 1. Opaque context (nodeInfo, blockRegistry, idPrefix) - thread through, don't inspect
  * 2. Block machinery (loBlock, fields, locals) - framework injects these
  * 3. OLX attributes - flow in via [key: string]: any
  *
@@ -344,7 +347,7 @@ export interface RuntimeProps {
 
   // Opaque context - thread through
   nodeInfo: OlxDomNode;
-  componentMap: ComponentMap;
+  blockRegistry: BlockRegistry;
   idPrefix?: string;
   olxJsonSources?: string[];  // Redux source names in priority order for OlxJson lookup
 

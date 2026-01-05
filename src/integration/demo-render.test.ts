@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { render, makeRootNode } from '@/lib/render';
-import { COMPONENT_MAP } from '@/components/componentMap';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { Provider } from 'react-redux';
 import React from 'react';
 import { store } from '@/lib/state/store';
@@ -143,7 +143,7 @@ describe('Demo OLX files render without errors', () => {
           node: { type: 'block', id: root },
           idMap,
           nodeInfo: makeRootNode(),
-          componentMap: COMPONENT_MAP
+          blockRegistry: BLOCK_REGISTRY
         });
 
         // Use React Testing Library to actually mount the component

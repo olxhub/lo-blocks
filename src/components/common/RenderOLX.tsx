@@ -47,7 +47,7 @@
 import React, { useState, useEffect, useMemo, useRef, useTransition } from 'react';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { render, makeRootNode } from '@/lib/render';
-import { COMPONENT_MAP } from '@/components/componentMap';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import Spinner from '@/components/common/Spinner';
 import { InMemoryStorageProvider, StackedStorageProvider } from '@/lib/storage';
@@ -84,8 +84,8 @@ interface RenderOLXProps {
   onError?: (err: any) => void;
   /** Called after parsing completes with the merged idMap and root ID */
   onParsed?: (result: { idMap: Record<string, any>; root: string | null }) => void;
-  /** Custom component map (defaults to COMPONENT_MAP) */
-  componentMap?: Record<string, any>;
+  /** Custom block registry (defaults to BLOCK_REGISTRY) */
+  blockRegistry?: Record<string, any>;
   /** Source name for Redux state namespacing (e.g., 'content', 'inline', 'studio'). Defaults to 'content'. */
   source?: string;
 }
@@ -101,7 +101,7 @@ export default function RenderOLX({
   provenance,
   onError,
   onParsed,
-  componentMap = COMPONENT_MAP,
+  blockRegistry = BLOCK_REGISTRY,
   source = 'content',
 }: RenderOLXProps) {
   const [parsed, setParsed] = useState<any>(null);
@@ -277,7 +277,7 @@ export default function RenderOLX({
   const rendered = render({
     node: { type: 'block', id: rootId },
     nodeInfo: makeRootNode(),
-    componentMap,
+    blockRegistry,
     olxJsonSources: [source],
   });
 

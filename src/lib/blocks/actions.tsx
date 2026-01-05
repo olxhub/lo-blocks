@@ -116,7 +116,7 @@ export function grader({ grader, infer = true }: { grader: GraderFn; infer?: boo
     );
 
     const state = reduxLogger.store.getState();
-    const map = props.componentMap;
+    const map = props.blockRegistry;
 
     // Gather values and APIs from each input (synchronous - blocks are in idMap)
     const inputData = inputIds.map(id => {
@@ -217,7 +217,7 @@ export async function executeNodeActions(props) {
     infer: props.infer,
     targets: props.target
   });
-  const map = props.componentMap;
+  const map = props.blockRegistry;
   for (const targetId of ids) {
     const targetInstance = getBlockByOLXId(props, targetId);
     if (!targetInstance) {
@@ -239,7 +239,7 @@ export async function executeNodeActions(props) {
     const actionProps = {
       // Copy essential props from original context
       olxJsonSources: props.olxJsonSources,
-      componentMap: props.componentMap,
+      blockRegistry: props.blockRegistry,
       idPrefix: props.idPrefix,  // Preserve prefix so actions update scoped state
 
       // Target-specific props (like render.jsx does)

@@ -11,18 +11,18 @@
 
 import React, { useState, useMemo } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
-import { COMPONENT_MAP } from '@/components/componentMap';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { OlxKey, OlxJson, IdMap } from '@/lib/types';
 
 /**
  * Find all component IDs in idMap that have stateful fields.
  */
-function findStatefulIds(idMap, componentMap = COMPONENT_MAP) {
+function findStatefulIds(idMap, blockRegistry = BLOCK_REGISTRY) {
   if (!idMap) return [];
 
   return Object.entries(idMap)
     .filter(([id, node]: [OlxKey, OlxJson]) => {
-      const blockType = componentMap[node.tag];
+      const blockType = blockRegistry[node.tag];
       // Has fields defined = stateful (fields is the map of field name -> FieldInfo)
       const hasFields = blockType?.fields && Object.keys(blockType.fields).length > 0;
       return hasFields;
@@ -61,12 +61,12 @@ function StateRow({ id, idMap }) {
 /**
  * Collapsible panel showing state for all stateful components.
  */
-export default function StatePanel({ idMap, componentMap = COMPONENT_MAP }) {
+export default function StatePanel({ idMap, blockRegistry = BLOCK_REGISTRY }) {
   const [expanded, setExpanded] = useState(false);
 
   const statefulIds = useMemo(
-    () => findStatefulIds(idMap, componentMap),
-    [idMap, componentMap]
+    () => findStatefulIds(idMap, blockRegistry),
+    [idMap, blockRegistry]
   );
 
   if (statefulIds.length === 0) {

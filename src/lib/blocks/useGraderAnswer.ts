@@ -69,7 +69,7 @@ export function findGrader(props: RuntimeProps): OlxKey | null {
 /**
  * Hook for input components to access grader's answer state.
  *
- * @param {object} props - Component props (with nodeInfo, idMap, componentMap, fields)
+ * @param {object} props - Component props (with nodeInfo, blockRegistry, fields)
  * @returns {{ showAnswer: boolean, displayAnswer: any, graderId: string|null }}
  *
  * Usage in input component:
@@ -108,7 +108,7 @@ export function useGraderAnswer(props: RuntimeProps) {
   // Get displayAnswer from grader's blueprint when showAnswer is true
   let displayAnswer = undefined;
   if (showAnswer && graderId && graderInstance) {
-    const graderBlueprint = props.componentMap[graderInstance.tag];
+    const graderBlueprint = props.blockRegistry[graderInstance.tag];
 
     if (graderBlueprint.getDisplayAnswer) {
       const graderProps = {

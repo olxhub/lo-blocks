@@ -31,7 +31,7 @@ export interface RenderedBlockResult {
  * Reads block data from Redux via useOlxJson. If not found, triggers a fetch.
  * Returns { block, ready, error } for handling loading/error states.
  *
- * @param props - Component props (nodeInfo, componentMap, olxJsonSources, etc.)
+ * @param props - Component props (nodeInfo, blockRegistry, olxJsonSources, etc.)
  * @param id - The OLX ID to render
  */
 export function useBlock(

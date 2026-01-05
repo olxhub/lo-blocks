@@ -19,7 +19,7 @@ import SHA1 from 'crypto-js/sha1';
 import yaml from 'js-yaml';
 
 import { XMLParser, XMLValidator } from 'fast-xml-parser';
-import { COMPONENT_MAP } from '@/components/componentMap';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { transformTagName } from '@/lib/content/xmlTransforms';
 
 import * as parsers from '@/lib/content/parsers';
@@ -385,7 +385,7 @@ export async function parseOLX(
 
     const id: OlxKey = (attributes.id ?? createId(node)) as OlxKey;
 
-    const Component = COMPONENT_MAP[tag] || COMPONENT_MAP[tag.charAt(0).toUpperCase() + tag.slice(1)];
+    const Component = BLOCK_REGISTRY[tag] || BLOCK_REGISTRY[tag.charAt(0).toUpperCase() + tag.slice(1)];
     if (!Component) {
       console.warn(`[OLX] No component found for tag: <${tag}> — using defaultParser`);
     }

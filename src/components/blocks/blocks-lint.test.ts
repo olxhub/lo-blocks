@@ -27,7 +27,7 @@
 import { readFileSync } from 'fs';
 import { globSync } from 'glob';
 import { relative } from 'path';
-import { generateAllRegistryContents } from '@/scripts/generateRegistry';
+import { generateAllRegistryContents } from '@/scripts/generateBlockRegistry';
 
 const BLOCKS_DIR = __dirname;
 

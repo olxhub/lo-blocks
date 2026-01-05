@@ -13,7 +13,7 @@
 // and comprehensive learning analytics.
 //
 'use client';
-import { COMPONENT_MAP } from '@/components/componentMap';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 import * as lo_event from 'lo_event';
 import * as debug from 'lo_event/lo_event/debugLog.js';
@@ -123,7 +123,7 @@ function collectEventTypes(extraFields: ExtraFieldsParam = []) {
   // entry.fields contains maps, not FieldInfo objects and the event
   // types are actually registered elsewhere. I'm not sure that's
   // right, but this whole architecture needs rethinking.
-  const componentEventTypes = Object.values(COMPONENT_MAP)
+  const componentEventTypes = Object.values(BLOCK_REGISTRY)
     .flatMap(entry =>
       entry.fields ? Object.values(entry.fields).map((info: { event?: string }) => info.event) : []
     );

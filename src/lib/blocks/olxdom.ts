@@ -307,7 +307,7 @@ export function getInputs(props, { infer }: { infer? } = {}) {
  * Delegates to the state module's valueSelector which handles all ID
  * resolution complexity (prefixes, absolute paths, etc.) transparently.
  *
- * @param {Object} props - Component props with idMap and componentMap
+ * @param {Object} props - Component props with blockRegistry
  * @param {string} id - ID of the component to get value from
  * @returns {any} The component's current value
  */
@@ -327,7 +327,7 @@ export function getValueById(props, id) {
  *
  * Originally designed to extract prompt text from LLMAction content.
  *
- * @param {Object} props - Component props with idMap and componentMap
+ * @param {Object} props - Component props with blockRegistry
  * @param {Object} actionNode - Node with kids array to process
  * @returns {string} The extracted and resolved text content
  */

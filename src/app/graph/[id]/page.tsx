@@ -17,7 +17,7 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import dagre from 'dagre';
-import { COMPONENT_MAP } from '@/components/componentMap';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { parseIdMap } from '@/lib/graph/parseIdMap';
 import { GraphNode, GraphEdge, ParseError } from '@/lib/types';
 

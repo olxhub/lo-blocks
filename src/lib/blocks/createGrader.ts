@@ -29,7 +29,7 @@ import _Noop from '@/components/blocks/layout/_Noop';
 import type { RuntimeProps, LocalsAPI } from '@/lib/types';
 
 // Registry of Match blocks created by createGrader
-// componentMap.js will merge these in
+// blockRegistry.ts will merge these in
 export const MATCH_BLOCKS = {};
 
 // Shared attributes for rules (score, feedback, feedbackBlock)
@@ -106,7 +106,7 @@ export function createGrader({
     },
   });
 
-  // Register the Match block for componentMap to pick up
+  // Register the Match block for blockRegistry to pick up
   MATCH_BLOCKS[matchName] = matchBlock;
 
   // Return only the Grader block (the default export)

@@ -6,4 +6,4 @@ MainPane is a structural marker used inside SideBarPanel to designate the main c
 
 ## Details
 
-Created using `createStubBlock()` in `componentMap.js`. See **SideBarPanel** for usage and documentation.
+Created using `createStubBlock()` in `blockRegistry.ts`. See **SideBarPanel** for usage and documentation.

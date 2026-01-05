@@ -8,7 +8,7 @@
 //
 // Currently used for debugging content structure and relationships in DAG-based content.
 //
-import { COMPONENT_MAP } from '@/components/componentMap';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { GraphNode, GraphEdge, ParseError } from '@/lib/types';
 
 interface ParseResult {
@@ -33,11 +33,11 @@ export function parseIdMap(idMap: Record<string, any>): ParseResult {
 
   for (const [id, node] of Object.entries(idMap)) {
     let childIds = [];
-    const comp = COMPONENT_MAP[node.tag];
+    const comp = BLOCK_REGISTRY[node.tag];
 
     // Missing components are serious errors - they indicate components that were parsed but aren't registered
     if (!comp) {
-      const issue = `No component found for tag: <${node.tag}> (id: ${id}). This suggests the component exists in content but isn't properly registered in COMPONENT_MAP.`;
+      const issue = `No component found for tag: <${node.tag}> (id: ${id}). This suggests the component exists in content but isn't properly registered in BLOCK_REGISTRY.`;
       console.error(`[parseIdMap] ${issue}`);
       issues.push({ type: 'missing_component', node: id, tag: node.tag, message: issue });
       childIds = [];

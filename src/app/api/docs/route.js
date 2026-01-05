@@ -1,19 +1,19 @@
 // src/app/api/docs/route.js
 //
 // Block documentation API - serves metadata for all registered blocks.
-// Uses COMPONENT_MAP which includes runtime metadata (description, fields, etc.)
+// Uses BLOCK_REGISTRY which includes runtime metadata (description, fields, etc.)
 // plus source/readme/examples paths added by the registry generator.
 //
-import { COMPONENT_MAP } from '@/components/componentMap';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { extractAttributes } from '@/lib/docs/schemaUtils';
 
 /**
- * Generate documentation index from COMPONENT_MAP.
+ * Generate documentation index from BLOCK_REGISTRY.
  */
 function generateDocumentation() {
   const blocks = [];
 
-  for (const [exportName, block] of Object.entries(COMPONENT_MAP)) {
+  for (const [exportName, block] of Object.entries(BLOCK_REGISTRY)) {
     if (!block._isBlock) continue;
 
     blocks.push({

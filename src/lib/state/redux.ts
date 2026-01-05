@@ -306,7 +306,7 @@ export function useReduxCheckbox(
  * fields as if they were an enum or symbol, and only use as
  * `fields.field`
  *
- * @param {Object} props - Component props with componentMap and olxJsonSources
+ * @param {Object} props - Component props with blockRegistry and olxJsonSources
  * @param {string} targetId - ID of the target component
  * @param {string} fieldName - Name of the field to access (e.g., 'value')
  * @returns {FieldInfo} The field info
@@ -324,7 +324,7 @@ export function componentFieldByName(props, targetId: OlxReference, fieldName: s
     throw new Error(`componentFieldByName: Component "${targetId}" not found in content`);
   }
 
-  const targetLoBlock = props.componentMap?.[targetNode.tag];
+  const targetLoBlock = props.blockRegistry?.[targetNode.tag];
   if (!targetLoBlock) {
     throw new Error(`componentFieldByName: No LoBlock found for component type "${targetNode.tag}"`);
   }
@@ -342,7 +342,7 @@ export function componentFieldByName(props, targetId: OlxReference, fieldName: s
  * Selector function to get a component's value by ID.
  * Tries getValue method first, falls back to direct field access.
  *
- * @param {Object} props - Component props with componentMap and olxJsonSources
+ * @param {Object} props - Component props with blockRegistry and olxJsonSources
  * @param {Object} state - Redux state
  * @param {string} id - ID of the component to get value from
  * @param {Object} options - Options object with fallback and other settings
@@ -358,7 +358,7 @@ export function valueSelector(props, state, id: OlxReference | null | undefined,
   const mapKey = idResolver.refToOlxKey(id);
   const sources = props?.olxJsonSources ?? ['content'];
   const targetNode = selectBlock(reduxLogger.store?.getState(), sources, mapKey);
-  const loBlock = targetNode ? props?.componentMap?.[targetNode.tag] : null;
+  const loBlock = targetNode ? props.blockRegistry?.[targetNode.tag] : null;
 
   if (!targetNode || !loBlock) {
     const missing: string[] = [];
@@ -393,7 +393,7 @@ export function valueSelector(props, state, id: OlxReference | null | undefined,
 /**
  * React hook to get a component's value by ID with automatic re-rendering.
  *
- * @param {Object} props - Component props with componentMap and olxJsonSources
+ * @param {Object} props - Component props with blockRegistry and olxJsonSources
  * @param {string} id - ID of the component to get value from
  * @param {Object} options - Options object with fallback and other settings
  * @returns {any} The component's current value
