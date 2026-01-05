@@ -28,7 +28,6 @@ import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 import * as lo_event from 'lo_event';
 
 import * as idResolver from '../blocks/idResolver';
-import { fieldByName } from './fields';
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';

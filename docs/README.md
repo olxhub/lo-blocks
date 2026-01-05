@@ -53,11 +53,14 @@ A typical example has quite a bit more:
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as state from '@/lib/state';
+import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes, placeholder } from '@/lib/blocks/attributeSchemas';
 import _LineInput from './_LineInput';
 
-export const fields = state.fields(['value']);
+// Use commonFields for standard fields like 'value', 'correct', 'showAnswer'
+// Use string names for block-specific fields: state.fields(['myCustomField'])
+export const fields = state.fields([commonFields.value]);
 
 const LineInput = core({
   ...parsers.blocks(),                                                 // Parser so line label can be any OLX block
@@ -66,7 +69,7 @@ const LineInput = core({
   component: _LineInput,
   fields,                                                              // Where we store our state in redux
   getValue: (props, state, id) =>                                      // What data we send to a grader
-    state.fieldSelector(state, { ...props, id }, state.fieldByName('value'), { fallback: '' }),
+    fieldSelector(state, { ...props, id }, fields.value, { fallback: '' }),
   attributes: baseAttributes.extend({                                  // Validation for our attributes
     ...placeholder,
     type: z.enum(['text', 'number', 'email']).optional().describe('HTML input type'),
@@ -213,14 +216,21 @@ If this is impossible, this can be overridden with `target=`. In most cases, bot
 Blocks can advertise themselves as **inputs** by supplying a `getValue` selector, e.g.:
 
 ```
-  getValue: (props, state, id) => fieldSelector(state, props, fieldByName('value'), { fallback: '', id }),
+  getValue: (props, state, id) => fieldSelector(state, { ...props, id }, fields.value, { fallback: '' }),
 ```
 
-This is almost certainly the wrong way to do this. `value` is the default place to keep the state of *any* block, and `useValue` will either use the `value` field or call `getValue` function on any block. In the future, we should make a:
+For standard fields like `value`, use `commonFields.value` in your field definition and `fields.value` in your selectors. This provides type safety and ensures cross-component field access works correctly.
+
 ```
-...input
+// In block definition:
+import { fieldSelector, commonFields } from '@/lib/state';
+export const fields = state.fields([commonFields.value]);
+
+// In getValue:
+getValue: (props, state, id) => fieldSelector(state, { ...props, id }, fields.value, { fallback: '' })
 ```
-mix-in which, by default, returns the value, but allows richer selectors.
+
+The `useValue` hook will either use the `value` field or call the `getValue` function on any block.
 
 ##### Graders
 
