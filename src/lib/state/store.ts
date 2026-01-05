@@ -18,6 +18,18 @@ import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 import * as lo_event from 'lo_event';
 import * as debug from 'lo_event/lo_event/debugLog.js';
 import { consoleLogger } from 'lo_event/lo_event/consoleLogger.js';
+
+// Simple array logger for event capture - could move to lo_event
+function createArrayLogger() {
+  const events: any[] = [];
+  function logEvent(jsonEvent: string) { events.push(JSON.parse(jsonEvent)); }
+  logEvent.init = async () => {};
+  logEvent.setField = () => {};
+  logEvent.getEvents = () => [...events];
+  logEvent.clear = () => { events.length = 0; };
+  logEvent.lo_name = 'Array Logger';
+  return logEvent;
+}
 import { websocketLogger } from 'lo_event/lo_event/websocketLogger.js';
 import { scopes, Scope } from './scopes';
 import type { FieldInfo, FieldInfoByField } from '../types';
@@ -143,6 +155,9 @@ function collectEventTypes(extraFields: ExtraFieldsParam = []) {
   ]));
 }
 
+// Event capture logger - accessible via window.__eventCapture in browser
+let eventCaptureLogger: ReturnType<typeof createArrayLogger> | null = null;
+
 function configureStore({ extraFields = [] }: { extraFields?: ExtraFieldsParam } = {}) {
   const allEventTypes = collectEventTypes(extraFields);
   reduxLogger.registerReducer(
@@ -150,9 +165,13 @@ function configureStore({ extraFields = [] }: { extraFields?: ExtraFieldsParam }
     updateResponseReducer
   );
 
+  // Create event capture logger for debugging/replay
+  eventCaptureLogger = createArrayLogger();
+
   const loggers = [
     consoleLogger(),
     reduxLogger.reduxLogger([], {}),
+    eventCaptureLogger,
     // websocketLogger(WEBSOCKET_URL)
   ];
 
@@ -175,8 +194,33 @@ function configureStore({ extraFields = [] }: { extraFields?: ExtraFieldsParam }
 
 export const store = { init: configureStore };
 
-// Debug helper - expose lo_event on window for console testing
-// Usage: __lo.logEvent('LOAD_OLXJSON', { source: 'test', blocks: { foo: { id: 'foo', tag: 'Markdown' } } })
+// Debug helpers - expose on window for console testing
+// Usage:
+//   __lo.logEvent('LOAD_OLXJSON', { source: 'test', blocks: { foo: { id: 'foo', tag: 'Markdown' } } })
+//   __events.getEvents()  // Get all captured events
+//   __events.clear()      // Clear captured events
+//   __events.json()       // Get JSON string (select all + copy from console)
+//   __events.download()   // Download as file
 if (typeof window !== 'undefined') {
   (window as any).__lo = lo_event;
+  (window as any).__events = {
+    getEvents: () => eventCaptureLogger?.getEvents() ?? [],
+    clear: () => eventCaptureLogger?.clear(),
+    // Get as JSON string - select from console output to copy
+    json: () => JSON.stringify(eventCaptureLogger?.getEvents() ?? [], null, 2),
+    // Download as file (works without user activation)
+    download: (filename = 'events.json') => {
+      const events = eventCaptureLogger?.getEvents() ?? [];
+      const json = JSON.stringify({ description: 'Captured events', events }, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      console.log(`Downloaded ${events.length} events to ${filename}`);
+      return events.length;
+    }
+  };
 }
