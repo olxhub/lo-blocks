@@ -5,7 +5,6 @@ import React from 'react';
 import { useReduxState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import HistoryBar from '@/components/common/HistoryBar';
-import { fields } from './Sequential';
 
 // Child component for rendering the current item with use()
 // Separated because use() cannot be called conditionally
@@ -15,10 +14,11 @@ function SequentialItem({ props, node }) {
 }
 
 export default function _Sequential(props) {
+  const { fields } = props;
   // Get current index from Redux state
   const [index, setIndex] = useReduxState(
     props,
-    fields.fieldInfoByField.index,
+    fields.index,
     0
   );
 
