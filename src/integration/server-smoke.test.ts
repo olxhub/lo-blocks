@@ -3,20 +3,47 @@
 /*
  * Basic smoke test: Does the server start and serve pages without 500
  * errors.
+ *
+ * Uses a separate .next-test directory to avoid conflicting with user's
+ * dev server (Next.js 14+ uses a directory-level lock file).
  */
 import { test, expect } from 'vitest';
 import { spawn } from 'child_process';
+import { rmSync } from 'fs';
+import { join } from 'path';
 import getPort from 'get-port';
+
+// Use separate build directory so tests don't conflict with dev server
+const TEST_DIST_DIR = '.next-test';
+
+/**
+ * Clean up test build directory before/after test.
+ */
+function cleanupTestDir() {
+  const testDir = join(process.cwd(), TEST_DIST_DIR);
+  try {
+    rmSync(testDir, { recursive: true, force: true });
+  } catch {
+    // May not exist, that's fine
+  }
+}
 
 // Combined test: server startup, page serving, and graceful shutdown
 test('Next.js server basic endpoints work', async () => {
+  // Clean up any previous test build directory
+  cleanupTestDir();
+
   const port = await getPort();
   let proc, res, shutdownRes;
 
   try {
     proc = spawn('npx', ['next', 'dev', '-p', port, '--turbo'], {
       cwd: process.cwd(),
-      env: { ...process.env, NODE_ENV: 'development' },
+      env: {
+        ...process.env,
+        NODE_ENV: 'development',
+        NEXT_DIST_DIR: TEST_DIST_DIR,  // Use separate build dir to avoid lock conflicts
+      },
       stdio: 'inherit',
       detached: true,
     });
@@ -55,10 +82,12 @@ test('Next.js server basic endpoints work', async () => {
     if (proc && proc.pid && !proc.killed) {
       try {
         process.kill(-proc.pid, 'SIGTERM');
-      } catch (e) {
+      } catch {
         // Process already dead, ignore
       }
     }
+    // Clean up test build directory
+    cleanupTestDir();
   }
 }, 60000);
 

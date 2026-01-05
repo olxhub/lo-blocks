@@ -109,7 +109,7 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
       // TODO BUG HACK: CapaProblem generates ReduxStateKey-formatted IDs at parse time,
       // but BlueprintKidEntry expects OlxReference. This conflates two ID stages:
       // - OlxReference: static refs in OLX content (e.g., "foo", "./foo")
-      // - ReduxStateKey: runtime keys with idPrefix (e.g., "problem.0.foo")
+      // - ReduxStateKey: runtime keys with idPrefix (e.g., "problem:0:foo")
       //
       // This is a type system violation that masks a real architectural issue.
       // Fix by either:

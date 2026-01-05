@@ -21,9 +21,9 @@ describe('assignReactKeys', () => {
     const expected = [
       { id: "foo", data: 1, key: "foo" },
       { id: "bar", data: 2, key: "bar" },
-      { id: "foo", data: 3, key: "foo.1" },
+      { id: "foo", data: 3, key: "foo:1" },
       { id: "baz", data: 4, key: "baz" },
-      { id: "foo", data: 5, key: "foo.2" },
+      { id: "foo", data: 5, key: "foo:2" },
       { data: 6, key: "__idx__5" },
       null,
       "string",

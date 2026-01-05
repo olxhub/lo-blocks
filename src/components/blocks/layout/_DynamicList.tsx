@@ -12,7 +12,7 @@ function DynamicListEntry({ props, template, index, id }) {
   const { kids } = useKids({
     ...props,
     kids: [template],
-    ...extendIdPrefix(props, `${id}.${index}`),
+    ...extendIdPrefix(props, [id, index]),
   });
   return <div className="mb-2">{kids}</div>;
 }

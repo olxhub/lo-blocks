@@ -7,6 +7,15 @@ import type { OlxReference, OlxKey, ReduxStateKey } from '../types';
 // Single source of truth for converting between different ID types.
 // See docs/architecture/id-*.md for detailed design documentation.
 //
+// TWO DIFFERENT SEPARATORS
+// ------------------------
+// (a) OLX paths: "/" for namespaces like "/edu.mit/pmitros/6.002x/hw1"
+// (b) Redux scopes: ":" for instance scoping like "thesistopics:1:topic"
+//
+// These serve different roles:
+// - OLX paths identify content definitions (directory-style hierarchy)
+// - Redux scopes identify runtime instances (e.g., DynamicList items)
+//
 // WHY MULTIPLE ID TYPES?
 // ----------------------
 // OLX is a DAG (directed acyclic graph). The same element can appear multiple
@@ -27,8 +36,8 @@ import type { OlxReference, OlxKey, ReduxStateKey } from '../types';
 //         ↓
 //   olxKey              Resolved key for idMap lookup: "foo"
 //         ↓             (strips /, ./, namespaces)
-//   reduxKey            State storage key: "list.0.foo"
-//                       (adds idPrefix for scoped instances)
+//   reduxKey            State storage key: "list:0:foo"
+//                       (adds idPrefix for scoped instances, using ":")
 //
 //   For rendering:
 //   kids[]  → assignReactKeys() → reactKey per child (unique among siblings)
@@ -37,8 +46,8 @@ import type { OlxReference, OlxKey, ReduxStateKey } from '../types';
 // |------------|----------------------------|----------------------|----------------------|
 // | ref        | ID as written in OLX       | n/a (input form)     | "/foo", "./foo"      |
 // | olxKey     | Definition lookup          | Per definition       | "foo"                |
-// | reduxKey   | State storage              | Per logical instance | "list.0.foo"         |
-// | reactKey   | React reconciliation       | Per sibling position | "foo", "foo.1"       |
+// | reduxKey   | State storage              | Per logical instance | "list:0:foo"         |
+// | reactKey   | React reconciliation       | Per sibling position | "foo", "foo:1"       |
 // | htmlId     | DOM element ID             | Per rendered element | "foo"                |
 //
 // REFERENCE FORMS
@@ -57,7 +66,7 @@ import type { OlxReference, OlxKey, ReduxStateKey } from '../types';
 //   htmlId(props)               - DOM-safe ID
 //
 // Scoping:
-//   extendIdPrefix(props, scope)  - { idPrefix: "parent.scope" }
+//   extendIdPrefix(props, scope)  - { idPrefix: "parent:scope" }
 //
 // Arrays:
 //   assignReactKeys(children)     - unique keys for siblings (TODO: move from render.jsx)
@@ -67,6 +76,13 @@ import type { OlxReference, OlxKey, ReduxStateKey } from '../types';
 // OLX IDs should NOT contain: ".", "/", ":", or whitespace
 // These characters are reserved as namespace/path delimiters.
 //
+
+// =============================================================================
+// SEPARATORS
+// =============================================================================
+// Redux scope separator - used to build scoped instance keys like "list:0:item"
+// This is distinct from "/" used in OLX paths for content namespaces.
+export const REDUX_SCOPE_SEPARATOR = ':';
 
 // Valid ID pattern: alphanumeric, underscores, hyphens
 // Path prefixes (/, ./, ../) are allowed for references
@@ -135,9 +151,9 @@ export function toOlxReference(input: string, context = 'ID'): OlxReference {
  * @returns ReduxStateKey for state access
  *
  * @example
- * refToReduxKey({ id: 'foo', idPrefix: 'list.0' })  // => 'list.0.foo'
- * refToReduxKey({ id: '/foo', idPrefix: 'list.0' }) // => 'foo' (absolute)
- * refToReduxKey({ id: './foo', idPrefix: 'scope' }) // => 'scope.foo'
+ * refToReduxKey({ id: 'foo', idPrefix: 'list:0' })  // => 'list:0:foo'
+ * refToReduxKey({ id: '/foo', idPrefix: 'list:0' }) // => 'foo' (absolute)
+ * refToReduxKey({ id: './foo', idPrefix: 'scope' }) // => 'scope:foo'
  * refToReduxKey({ id: 'foo' })                      // => 'foo'
  */
 type RefToReduxKeyInput = OlxReference | string | {
@@ -172,7 +188,7 @@ export const refToReduxKey = (input: RefToReduxKeyInput): ReduxStateKey => {
   const resolvedBase = base.startsWith('./') ? base.slice(2) : base;
 
   const prefix = (input as { idPrefix?: string })?.idPrefix ?? '';
-  return (prefix ? `${prefix}.${resolvedBase}` : resolvedBase) as ReduxStateKey;
+  return (prefix ? `${prefix}${REDUX_SCOPE_SEPARATOR}${resolvedBase}` : resolvedBase) as ReduxStateKey;
 };
 
 /**
@@ -194,9 +210,9 @@ export const refToReduxKey = (input: RefToReduxKeyInput): ReduxStateKey => {
  * refToOlxKey('/foo')                    // => 'foo'
  * refToOlxKey('./foo')                   // => 'foo'
  * refToOlxKey('foo')                     // => 'foo'
- * refToOlxKey('list.0.child')            // => 'child'
- * refToOlxKey('mastery.attempt_0.q1')    // => 'q1'
- * refToOlxKey('/list.0.child')           // => 'child'
+ * refToOlxKey('list:0:child')            // => 'child'
+ * refToOlxKey('mastery:attempt_0:q1')    // => 'q1'
+ * refToOlxKey('/list:0:child')           // => 'child'
  */
 export const refToOlxKey = (ref: OlxReference | string): OlxKey => {
   if (typeof ref !== 'string') return ref as unknown as OlxKey;
@@ -206,10 +222,11 @@ export const refToOlxKey = (ref: OlxReference | string): OlxKey => {
   if (result.startsWith('/')) result = result.slice(1);
   else if (result.startsWith('./')) result = result.slice(2);
 
-  // Extract last segment (the base ID) - namespace prefixes come before it
-  const lastDot = result.lastIndexOf('.');
-  if (lastDot !== -1) {
-    result = result.slice(lastDot + 1);
+  // Extract last segment (the base ID) - scope prefixes come before it
+  // Use ":" as the Redux scope separator
+  const lastSeparator = result.lastIndexOf(REDUX_SCOPE_SEPARATOR);
+  if (lastSeparator !== -1) {
+    result = result.slice(lastSeparator + 1);
   }
 
   return result as OlxKey;
@@ -222,18 +239,28 @@ export const refToOlxKey = (ref: OlxReference | string): OlxKey => {
  * repeated problem attempts). Returns an object with `idPrefix` to spread into props.
  *
  * @param {object} props - The parent component's props (may contain idPrefix)
- * @param {string} scope - The scope to add (e.g., "item_0", "attempt_1")
+ * @param {string | (string | number)[]} scope - The scope to add. Can be a string
+ *        or array of parts that will be joined with the separator.
  * @returns {{ idPrefix: string }} Object to spread into child props
  *
  * @example
- * // In a list component:
- * renderCompiledKids({ ...props, ...extendIdPrefix(props, `${id}.${index}`) })
+ * // In a list component (array form keeps separator logic centralized):
+ * renderCompiledKids({ ...props, ...extendIdPrefix(props, [id, index]) })
  *
  * // In MasteryBank:
- * render({ ...props, node: problemNode, ...extendIdPrefix(props, `${id}.attempt_${n}`) })
+ * render({ ...props, node: problemNode, ...extendIdPrefix(props, [id, 'attempt', n]) })
+ *
+ * // Simple string form still works:
+ * extendIdPrefix(props, 'child')
  */
-export function extendIdPrefix(props, scope) {
-  return { idPrefix: props.idPrefix ? `${props.idPrefix}.${scope}` : scope };
+export function extendIdPrefix(
+  props: { idPrefix?: string; [key: string]: unknown },
+  scope: string | (string | number)[]
+): { idPrefix: string } {
+  const scopeStr = Array.isArray(scope)
+    ? scope.join(REDUX_SCOPE_SEPARATOR)
+    : scope;
+  return { idPrefix: props.idPrefix ? `${props.idPrefix}${REDUX_SCOPE_SEPARATOR}${scopeStr}` : scopeStr };
 }
 
 /**
@@ -249,7 +276,7 @@ export function extendIdPrefix(props, scope) {
  *
  * @example
  * // Input:  [{ id: "foo" }, { id: "bar" }, { id: "foo" }]
- * // Output: [{ id: "foo", key: "foo" }, { id: "bar", key: "bar" }, { id: "foo", key: "foo.1" }]
+ * // Output: [{ id: "foo", key: "foo" }, { id: "bar", key: "bar" }, { id: "foo", key: "foo:1" }]
  */
 export function assignReactKeys(children) {
   const idCounts = {};
@@ -270,7 +297,7 @@ export function assignReactKeys(children) {
         idCounts[child.id] = 1;
         key = child.id;
       } else {
-        key = `${child.id}.${idCounts[child.id]}`;
+        key = `${child.id}${REDUX_SCOPE_SEPARATOR}${idCounts[child.id]}`;
         idCounts[child.id]++;
       }
     } else {
