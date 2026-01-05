@@ -15,6 +15,7 @@
 // A major goal is to make redux simple.
 export * from './scopes';
 export * from './fields';
+export * from './commonFields';
 export * from './settings';
 export * from './redux';
 export * from './store';

@@ -21,27 +21,23 @@
 //
 import { Scope, scopes } from '../state/scopes';
 import { FieldInfoByField, FieldInfoByEvent, FieldInfo } from '../types';
+import { commonFields } from './commonFields';
 
 const _fieldInfoByField: FieldInfoByField = {};
 const _fieldInfoByEvent: FieldInfoByEvent = {};
 
 // =============================================================================
-// HACK: System-level fields - always available via fieldByName()
+// Common fields - pre-registered for cross-component access
 // =============================================================================
 // These fields are registered globally at module load time, so they're available
-// even before specific blocks are loaded. This is a workaround for incremental
-// loading where a component (e.g., MasteryBank) needs to reference another
-// component's field (e.g., grader's 'correct') before that component is loaded.
+// even before specific blocks are loaded. This enables cross-component field
+// access (e.g., MasteryBank checking a grader's 'correct' field).
 //
-// Long-term: Fields need a major refactor - server should send field metadata
-// on startup, decoupled from idMap/block loading. See plan for details.
+// The definitions live in commonFields.ts for type-safe access.
 // =============================================================================
-const SYSTEM_FIELDS: FieldInfo[] = [
-  { type: 'field', name: 'correct', event: 'UPDATE_CORRECT', scope: scopes.component },
-];
 
-// Register system fields immediately
-for (const field of SYSTEM_FIELDS) {
+// Register common fields immediately
+for (const field of Object.values(commonFields)) {
   _fieldInfoByField[field.name] = field;
   _fieldInfoByEvent[field.event] = field;
 }

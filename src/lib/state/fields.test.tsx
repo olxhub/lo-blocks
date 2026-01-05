@@ -1,6 +1,7 @@
 // @vitest-environment node
-// src/lib/blocks/redux.test.tsx
+// src/lib/state/fields.test.tsx
 import * as fields from './fields';
+import { commonFields } from './commonFields';
 
 const { __testables } = fields;
 
@@ -62,4 +63,35 @@ describe('fields mapping and conflict detection', () => {
     expect(extended.error).toEqual({ type: 'field', name: 'error', event: 'UPDATE_ERROR', scope: 'component' });
     expect(typeof extended.extend).toBe('function');
   });
+});
+
+describe('commonFields', () => {
+  it('provides typed FieldInfo for common fields', () => {
+    expect(commonFields.value).toEqual({
+      type: 'field',
+      name: 'value',
+      event: 'UPDATE_VALUE',
+      scope: 'component'
+    });
+
+    expect(commonFields.correct).toEqual({
+      type: 'field',
+      name: 'correct',
+      event: 'UPDATE_CORRECT',
+      scope: 'component'
+    });
+  });
+
+  it('includes all expected common fields', () => {
+    expect(commonFields.value).toBeDefined();
+    expect(commonFields.correct).toBeDefined();
+    expect(commonFields.message).toBeDefined();
+    expect(commonFields.submitCount).toBeDefined();
+    expect(commonFields.showAnswer).toBeDefined();
+  });
+
+  // Note: commonFields are registered in the global field registry at module load
+  // time. The fieldByName('correct') integration is tested implicitly through
+  // the system tests (e.g., MasteryBank using commonFields.correct).
+  // We don't test it here because __testables.reset() in other tests clears the registry.
 });

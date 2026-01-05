@@ -3,7 +3,7 @@
 
 import React, { useMemo, useEffect, useRef } from 'react';
 import { useBlock } from '@/lib/render';
-import { useReduxState, useFieldSelector, fieldByName } from '@/lib/state';
+import { useReduxState, useFieldSelector, commonFields } from '@/lib/state';
 import { extendIdPrefix, toOlxReference } from '@/lib/blocks/idResolver';
 import { CORRECTNESS } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
@@ -87,9 +87,9 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   // Render problem - useBlock handles loading state with Spinner
   const { block: renderedProblem, error } = useBlock(scopedProps, problemId);
 
-  // HACK: 'correct' is registered as a system field, so fieldByName always works
-  // even if the grader block isn't loaded yet. See fields.ts SYSTEM_FIELDS.
-  const graderField = fieldByName('correct');
+  // Use commonFields.correct for cross-component field access.
+  // Common fields are pre-registered so they're available even if the grader isn't loaded yet.
+  const graderField = commonFields.correct;
 
   const currentCorrectness = useFieldSelector(
     scopedProps,

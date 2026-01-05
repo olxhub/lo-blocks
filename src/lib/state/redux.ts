@@ -29,6 +29,7 @@ import * as lo_event from 'lo_event';
 
 import * as idResolver from '../blocks/idResolver';
 import { fieldByName } from './fields';
+import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
 import { FieldInfo, OlxReference, OlxKey } from '../types';
@@ -378,16 +379,8 @@ export function valueSelector(props, state, id: OlxReference | null | undefined,
     return loBlock.getValue(props, state, id);
   }
 
-  // Fall back to direct field access using the 'value' field
-  const valueField = fieldByName('value');
-  if (!valueField) {
-    throw new Error(
-      `valueSelector: MAJOR MISCONFIGURATION - 'value' field not registered in system\n` +
-      `  This indicates a critical system setup issue that must be fixed`
-    );
-  }
-
-  return fieldSelector(state, props, valueField, { id, fallback });
+  // Fall back to direct field access using the common 'value' field
+  return fieldSelector(state, props, commonFields.value, { id, fallback });
 }
 
 /**
