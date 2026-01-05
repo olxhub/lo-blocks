@@ -1,14 +1,13 @@
-// src/components/blocks/specialized/MasteryBank/_MasteryBank.jsx
+// src/components/blocks/specialized/MasteryBank/_MasteryBank.tsx
 'use client';
 
-import React, { useMemo, useEffect, useRef, Suspense } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { useBlock } from '@/lib/render';
 import { useReduxState, useFieldSelector, fieldByName } from '@/lib/state';
 import { extendIdPrefix, toOlxReference } from '@/lib/blocks/idResolver';
 import { CORRECTNESS } from '@/lib/blocks';
 import { useOlxJson } from '@/lib/blocks/useOlxJson';
 import { DisplayError } from '@/lib/util/debug';
-import Spinner from '@/components/common/Spinner';
 
 /**
  * Fisher-Yates shuffle - returns array of indices [0, length) in random order.
@@ -259,15 +258,13 @@ export default function _MasteryBank(props) {
         </div>
       </div>
 
-      <Suspense fallback={<Spinner>Loading problem...</Spinner>}>
-        <MasteryProblem
-          props={props}
-          problemId={currentProblemId}
-          attemptNumber={attemptNumber}
-          masteryState={{ problemIds, correctStreak, goalNum, firstSubmissionResult, modeState, orderMode }}
-          handlers={{ setCorrectStreak, setModeState, setCompleted, setCorrect, setFirstSubmissionResult, setAttemptNumber }}
-        />
-      </Suspense>
+      <MasteryProblem
+        props={props}
+        problemId={currentProblemId}
+        attemptNumber={attemptNumber}
+        masteryState={{ problemIds, correctStreak, goalNum, firstSubmissionResult, modeState, orderMode }}
+        handlers={{ setCorrectStreak, setModeState, setCompleted, setCorrect, setFirstSubmissionResult, setAttemptNumber }}
+      />
     </div>
   );
 }

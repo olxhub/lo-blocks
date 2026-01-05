@@ -32,7 +32,6 @@ import type { OlxReference, OlxKey, ReduxStateKey } from '../types';
 //
 //   For rendering:
 //   kids[]  → assignReactKeys() → reactKey per child (unique among siblings)
-//   node    → cacheKey()        → thenable cache key (includes overrides)
 //
 // | ID Type    | Purpose                    | Uniqueness           | Example              |
 // |------------|----------------------------|----------------------|----------------------|
@@ -41,12 +40,6 @@ import type { OlxReference, OlxKey, ReduxStateKey } from '../types';
 // | reduxKey   | State storage              | Per logical instance | "list.0.foo"         |
 // | reactKey   | React reconciliation       | Per sibling position | "foo", "foo.1"       |
 // | htmlId     | DOM element ID             | Per rendered element | "foo"                |
-// | cacheKey   | Render thenable cache      | Per render operation | "block.list.0.foo.{...}" |
-//
-// NOTE ON cacheKey: Currently includes serialized overrides because the same
-// block can be rendered with different overrides (e.g., Tabs rendering same
-// component with different labels). In the future, if we eliminate overrides,
-// cacheKey could potentially just use reduxKey.
 //
 // REFERENCE FORMS
 // ---------------
@@ -62,7 +55,6 @@ import type { OlxReference, OlxKey, ReduxStateKey } from '../types';
 //   refToReduxKey(props)        - "prefix.id" for state storage
 //   refToOlxKey(id)             - strips prefix, gets base ID for idMap lookup
 //   htmlId(props)               - DOM-safe ID
-//   cacheKey(node, props)       - render cache key (TODO: move from render.jsx)
 //
 // Scoping:
 //   extendIdPrefix(props, scope)  - { idPrefix: "parent.scope" }
@@ -286,41 +278,6 @@ export function assignReactKeys(children) {
     }
     return { ...child, key };
   });
-}
-
-/**
- * Generate a cache key for render thenable caching.
- *
- * Used to cache render() results for React's use() hook, which requires
- * the same thenable instance across re-renders.
- *
- * @param {object} node - The node being rendered
- * @param {string} node.type - Node type: 'block', 'text', 'html', etc.
- * @param {string} node.id - Node ID
- * @param {object} [node.overrides] - Attribute overrides (e.g., from Tabs)
- * @param {object} props - Render props
- * @param {string} [props.idPrefix] - Scope prefix for list contexts
- * @returns {string} Unique cache key for this render operation
- */
-export function cacheKey(node, props) {
-  if (!node || typeof node !== 'object') {
-    return `primitive.${String(node)}`;
-  }
-
-  const { idPrefix = '' } = props || {};
-  const type = node.type || node.tag || 'unknown';
-  const id = node.id || '?';
-
-  // Base key: type.prefix.id or type.id
-  let key = idPrefix ? `${type}.${idPrefix}.${id}` : `${type}.${id}`;
-
-  // Include overrides in cache key - same block with different overrides
-  // must cache separately (e.g., Tabs rendering same component with different labels)
-  if (node.overrides && Object.keys(node.overrides).length > 0) {
-    key += `.${JSON.stringify(node.overrides)}`;
-  }
-
-  return key;
 }
 
 export const __testables = { assignReactKeys };

@@ -526,6 +526,15 @@ type HtmlNode = {
 
 Kids might still be strings (for Markdown, PEG), hierarchies (for various navigation blocks), etc. but where convenient, the above should be used. This allows us to use Kids with the simplified `useKids()`.
 
+# Incremental loading
+
+The content supports different loading strategies:
+- Grab all content from the server
+- Grab an item and its static kids, and load other content dynamically
+- Grab each item as its loaded
+
+We might have more strategies in the future (e.g. grab all content from a certain directory or namespace).
+
 Validation, TypeScript, and zod
 -------------------------------
 
