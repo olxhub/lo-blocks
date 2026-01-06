@@ -32,7 +32,7 @@ function createArrayLogger() {
 }
 import { websocketLogger } from 'lo_event/lo_event/websocketLogger.js';
 import { scopes, Scope } from './scopes';
-import type { FieldInfo, FieldInfoByField } from '../types';
+import type { FieldInfo, Fields } from '../types';
 import {
   olxjsonReducer,
   initialOlxJsonState,
@@ -120,7 +120,7 @@ export const updateResponseReducer = (state = initialState, action) => {
   }
 };
 
-type ExtraFieldsParam = FieldInfoByField | (FieldInfo | string)[];
+type ExtraFieldsParam = Fields | (FieldInfo | string)[];
 
 function collectEventTypes(extraFields: ExtraFieldsParam = []) {
   // Extract FieldInfo objects from either array or object form

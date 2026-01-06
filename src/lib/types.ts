@@ -13,6 +13,7 @@
 // Focus is on documenting contracts between system components, not exhaustive typing.
 //
 import { z } from 'zod';
+import { scopeNames } from './state/scopes';
 
 export type JSONValue =
   | string
@@ -85,16 +86,15 @@ export interface FieldInfo {
   scope: import('./state/scopes').Scope;
 }
 
-export interface FieldInfoByField { [name: string]: FieldInfo; }
 export interface FieldInfoByEvent { [event: string]: FieldInfo; }
 
 /**
- * @deprecated Use FieldInfoByField directly. The old two-tier structure is gone.
+ * Field definitions for a block. Maps field names to FieldInfo.
+ * Includes extend() for composing field sets.
  */
-export interface Fields {
-  fieldInfoByField: FieldInfoByField;
-  fieldInfoByEvent: FieldInfoByEvent;
-}
+export type Fields = Record<string, FieldInfo> & {
+  extend: (...more: Fields[]) => Fields;
+};
 
 /**
  * A valid JavaScript identifier (e.g., foo, getChoices, _private).
@@ -115,7 +115,7 @@ const ReduxFieldInfo = z.object({
   type: z.literal('field'),
   name: z.string(),
   event: z.string(),
-  scope: z.string(),
+  scope: z.enum(scopeNames),
 }).strict();
 
 // Fields schema: { fieldName: FieldInfo, ..., extend?: fn }
@@ -225,7 +225,7 @@ export interface LoBlock {
   reducers: Function[];
   getValue?: Function;
   locals?: Record<string, any>;
-  fields: FieldInfoByField;
+  fields: Fields;
   name?: string;  // Block name for selector matching
   OLXName: OLXTag;
   description?: string;
@@ -358,7 +358,7 @@ export interface RuntimeProps {
 
   // Block machinery - framework injects these
   loBlock: LoBlock;
-  fields: FieldInfoByField;
+  fields: Fields;
   locals: LocalsAPI;  // {} if none, not undefined
 
   // OLX attributes flow in here

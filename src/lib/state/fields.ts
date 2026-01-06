@@ -20,10 +20,10 @@
 //   - Collision detection (same field name can't have different events)
 //
 import { Scope, scopes } from '../state/scopes';
-import { FieldInfoByField, FieldInfoByEvent, FieldInfo } from '../types';
+import { Fields, FieldInfoByEvent, FieldInfo } from '../types';
 import { commonFields } from './commonFields';
 
-const _fieldInfoByField: FieldInfoByField = {};
+const _fieldInfoByField: Record<string, FieldInfo> = {};
 const _fieldInfoByEvent: FieldInfoByEvent = {};
 
 // =============================================================================
@@ -80,7 +80,7 @@ export function fieldByName(fieldname) {
  * @param {Object} newMap - The new mapping to check.
  * @param {string} type - A string label for error clarity ("field" or "event").
  */
-function checkConflicts(globalMap: FieldInfoByField | FieldInfoByEvent, newMap: FieldInfoByField | FieldInfoByEvent, type = "field") {
+function checkConflicts(globalMap: Record<string, FieldInfo>, newMap: Record<string, FieldInfo>, type = "field") {
   for (const [key, value] of Object.entries(newMap)) {
     if (globalMap.hasOwnProperty(key)) {
       const existing = globalMap[key];
@@ -98,19 +98,11 @@ function checkConflicts(globalMap: FieldInfoByField | FieldInfoByEvent, newMap: 
 }
 
 /**
- * FieldsResult is FieldInfoByField with an extend() method for composition.
- * This is what fields() returns and what blocks/components receive.
- */
-export type FieldsResult = FieldInfoByField & {
-  extend: (...more: FieldsResult[]) => FieldsResult;
-};
-
-/**
  * Concatenate multiple field definitions into one.
  * Used by extend() and for combining field sets.
  */
-export function concatFields(...lists: FieldsResult[]): FieldsResult {
-  const merged: FieldInfoByField = {};
+export function concatFields(...lists: Fields[]): Fields {
+  const merged: Record<string, FieldInfo> = {};
   for (const list of lists) {
     // Copy all FieldInfo entries (skip the extend method)
     for (const [key, value] of Object.entries(list)) {
@@ -121,8 +113,8 @@ export function concatFields(...lists: FieldsResult[]): FieldsResult {
   }
   const result = {
     ...merged,
-    extend: (...more: FieldsResult[]) => concatFields(result as FieldsResult, ...more),
-  } as FieldsResult;
+    extend: (...more: Fields[]) => concatFields(result as Fields, ...more),
+  } as Fields;
   return result;
 }
 
@@ -149,7 +141,7 @@ type FieldSpec = string | FieldInfo | { name: string; event?: string; scope?: Sc
  *   { name: 'setting', scope: scopes.componentSetting }
  * ]);
  */
-export function fields(fieldList: FieldSpec[]): FieldsResult {
+export function fields(fieldList: FieldSpec[]): Fields {
   const infos: FieldInfo[] = fieldList.map(item => {
     if (typeof item === 'string') {
       return { type: 'field', name: item, event: fieldNameToDefaultEventName(item), scope: scopes.component };
@@ -162,27 +154,26 @@ export function fields(fieldList: FieldSpec[]): FieldsResult {
   });
 
   // Build the result object: { fieldName: FieldInfo, ... }
-  const fieldInfoByField: FieldInfoByField = {};
-  const fieldInfoByEvent: FieldInfoByEvent = {};
+  const fieldsByName: Record<string, FieldInfo> = {};
+  const fieldsByEvent: FieldInfoByEvent = {};
 
   for (const info of infos) {
-    fieldInfoByField[info.name] = info;
-    fieldInfoByEvent[info.event] = info;
+    fieldsByName[info.name] = info;
+    fieldsByEvent[info.event] = info;
   }
 
   // Check for conflicts with globally registered fields
-  checkConflicts(_fieldInfoByField, fieldInfoByField, "field");
-  checkConflicts(_fieldInfoByEvent, fieldInfoByEvent, "event");
+  checkConflicts(_fieldInfoByField, fieldsByName, "field");
+  checkConflicts(_fieldInfoByEvent, fieldsByEvent, "event");
 
   // Register globally for fieldByName() and collision detection
-  Object.assign(_fieldInfoByField, fieldInfoByField);
-  Object.assign(_fieldInfoByEvent, fieldInfoByEvent);
+  Object.assign(_fieldInfoByField, fieldsByName);
+  Object.assign(_fieldInfoByEvent, fieldsByEvent);
 
-  // Return FieldInfoByField directly with extend method
   const result = {
-    ...fieldInfoByField,
-    extend: (...more: FieldsResult[]) => concatFields(result as FieldsResult, ...more),
-  } as FieldsResult;
+    ...fieldsByName,
+    extend: (...more: Fields[]) => concatFields(result as Fields, ...more),
+  } as Fields;
 
   return result;
 }
