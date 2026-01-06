@@ -9,6 +9,7 @@ import * as lo_event from 'lo_event';
 
 import { store, extendSettings } from '@/lib/state';
 import { editorFields } from '@/lib/state/editorFields';
+import GlobalDebugPanel from '@/components/common/debug/GlobalDebugPanel';
 
 const reduxStore = store.init({
   extraFields: extendSettings(editorFields)
@@ -44,6 +45,7 @@ const StoreWrapper = ({ children, reduxID = DEFAULT_REDUX_STORE_ID }) => (
   <Provider store={reduxStore}>
     <ReduxStoreLoader id={reduxID} />
     {children}
+    <GlobalDebugPanel />
   </Provider>
 );
 

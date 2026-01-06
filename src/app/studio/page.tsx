@@ -520,6 +520,7 @@ function StudioPageContent() {
       {/* Footer hint */}
       <footer className="studio-footer">
         <kbd>⌘K</kbd> Command palette
+        <kbd>⌘`</kbd> Debug panel
         <span
           role="button"
           tabIndex={0}
