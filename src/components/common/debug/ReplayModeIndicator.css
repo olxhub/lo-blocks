@@ -1,0 +1,52 @@
+/* src/components/common/debug/ReplayModeIndicator.css */
+/* Visual indicator for replay mode - appears at top of page content */
+
+.replay-mode-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #1a3a5c 0%, #0d1f33 100%);
+  border-bottom: 2px solid #58a6ff;
+  color: #c9d1d9;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.replay-mode-icon {
+  font-size: 16px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.replay-mode-text {
+  color: #58a6ff;
+  font-weight: 500;
+}
+
+.replay-mode-exit {
+  padding: 4px 12px;
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  color: #c9d1d9;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.replay-mode-exit:hover {
+  background: #30363d;
+  border-color: #58a6ff;
+}

@@ -7,13 +7,14 @@
 // - Live event stream with idPrefix scoping
 // - Redux state inspection (live or time-travel to any event)
 // - OLX content inspection (from Redux olxjson)
-// - Time-travel: click an event to see state at that point
+// - Time-travel: click an event to see state at that point AND re-render UI
 //
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { replayToEvent, diffStates, AppState, LoggedEvent } from '@/lib/replay';
+import { useReplayContext } from '@/lib/state/replayContext';
 import SettingsTab from './SettingsTab';
 import './DebugPanel.css';
 
@@ -47,10 +48,10 @@ export default function DebugPanel({ onClose, idPrefix = '' }: DebugPanelProps) 
   const [expandedEvents, setExpandedEvents] = useState<Set<number>>(new Set());
   const eventsEndRef = useRef<HTMLDivElement>(null);
 
-  // Time-travel state: when set, show historical state instead of live
-  // -1 means "live" (no time-travel), 0+ means "state after event N"
-  const [selectedEventIndex, setSelectedEventIndex] = useState<number>(-1);
-  const isTimeTraveling = selectedEventIndex >= 0;
+  // Time-travel state from replay context
+  // This controls both the State tab display AND the actual UI rendering
+  const replayCtx = useReplayContext();
+  const { isActive: isTimeTraveling, selectedEventIndex, toggleEvent, clearReplay } = replayCtx;
 
   // Get Redux state reactively via useSelector
   const reduxState = useSelector((state: any) => state);
@@ -157,20 +158,15 @@ export default function DebugPanel({ onClose, idPrefix = '' }: DebugPanelProps) 
 
   // Select an event for time-travel (clicking the event row, not expand button)
   const selectEventForTimeTravel = useCallback((index: number) => {
-    // Toggle: clicking same event clears selection
-    if (selectedEventIndex === index) {
-      setSelectedEventIndex(-1);
-    } else {
-      setSelectedEventIndex(index);
-      // Auto-switch to state tab to show the result
+    toggleEvent(index);
+    // Auto-switch to state tab to show the result (if newly selected)
+    if (selectedEventIndex !== index) {
       setActiveTab('state');
     }
-  }, [selectedEventIndex]);
+  }, [selectedEventIndex, toggleEvent]);
 
-  // Clear time-travel selection
-  const clearTimeTravel = useCallback(() => {
-    setSelectedEventIndex(-1);
-  }, []);
+  // Clear time-travel selection (alias for context function)
+  const clearTimeTravel = clearReplay;
 
   // Handle escape key
   useEffect(() => {
