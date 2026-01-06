@@ -75,7 +75,7 @@ const StoreWrapper = ({ children, reduxID = DEFAULT_REDUX_STORE_ID }) => {
   return (
     <Provider store={reduxStore}>
       <ReduxStoreLoader id={reduxID} />
-      <ReplayControlProvider>
+      <ReplayControlProvider getEvents={getEventsCallback}>
         <ReplayModeIndicator />
         <ReplayStoreProvider getEvents={getEventsCallback}>
           {children}

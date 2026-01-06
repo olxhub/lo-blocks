@@ -37,6 +37,12 @@ interface ReplayContextValue {
   // The selected event index (-1 = live, 0+ = viewing state after that event)
   selectedEventIndex: number;
 
+  // Total number of events available
+  eventCount: number;
+
+  // Get all events (for scrubber timestamp access)
+  getEvents: () => LoggedEvent[];
+
   // Enter replay mode at a specific event
   selectEvent: (index: number) => void;
 
@@ -45,6 +51,10 @@ interface ReplayContextValue {
 
   // Toggle replay for an event (click same event to exit)
   toggleEvent: (index: number) => void;
+
+  // Navigation helpers
+  nextEvent: () => void;
+  prevEvent: () => void;
 }
 
 // =============================================================================
@@ -92,6 +102,7 @@ function createReplayStore(state: AppState) {
 
 interface ReplayControlProviderProps {
   children: React.ReactNode;
+  getEvents: () => LoggedEvent[];
 }
 
 /**
@@ -101,9 +112,23 @@ interface ReplayControlProviderProps {
  * the context to control replay, and ReplayStoreProvider (wrapping just
  * page content) actually swaps the store.
  */
-export function ReplayControlProvider({ children }: ReplayControlProviderProps) {
+export function ReplayControlProvider({ children, getEvents }: ReplayControlProviderProps) {
   const [selectedEventIndex, setSelectedEventIndex] = useState(-1);
   const isActive = selectedEventIndex >= 0;
+
+  // Track event count (updates when events change)
+  const [eventCount, setEventCount] = useState(0);
+
+  // Update event count periodically when replay is active
+  React.useEffect(() => {
+    const updateCount = () => setEventCount(getEvents().length);
+    updateCount();
+    // Poll for new events while replay is active
+    if (isActive) {
+      const interval = setInterval(updateCount, 500);
+      return () => clearInterval(interval);
+    }
+  }, [isActive, getEvents]);
 
   const selectEvent = useCallback((index: number) => {
     setSelectedEventIndex(index);
@@ -117,13 +142,32 @@ export function ReplayControlProvider({ children }: ReplayControlProviderProps) 
     setSelectedEventIndex(prev => prev === index ? -1 : index);
   }, []);
 
+  const nextEvent = useCallback(() => {
+    const count = getEvents().length;
+    setSelectedEventIndex(prev => {
+      if (prev < 0) return 0;  // Start from beginning if not active
+      return Math.min(prev + 1, count - 1);  // Clamp to last event
+    });
+  }, [getEvents]);
+
+  const prevEvent = useCallback(() => {
+    setSelectedEventIndex(prev => {
+      if (prev <= 0) return 0;  // Can't go before first event
+      return prev - 1;
+    });
+  }, []);
+
   const value: ReplayContextValue = useMemo(() => ({
     isActive,
     selectedEventIndex,
+    eventCount,
+    getEvents,
     selectEvent,
     clearReplay,
     toggleEvent,
-  }), [isActive, selectedEventIndex, selectEvent, clearReplay, toggleEvent]);
+    nextEvent,
+    prevEvent,
+  }), [isActive, selectedEventIndex, eventCount, getEvents, selectEvent, clearReplay, toggleEvent, nextEvent, prevEvent]);
 
   return (
     <ReplayContext.Provider value={value}>
