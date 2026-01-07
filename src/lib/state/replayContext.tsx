@@ -22,7 +22,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
-import { Provider } from 'react-redux';
+import { Provider, useStore } from 'react-redux';
 import { legacy_createStore as createStore } from 'redux';
 import { replayToEvent, LoggedEvent, AppState } from '@/lib/replay';
 
@@ -184,13 +184,14 @@ interface ReplayStoreProviderProps {
 }
 
 /**
- * Conditionally wraps children with a replay store when replay is active.
+ * Provides the appropriate Redux store based on replay state.
  *
- * When replay is active, creates a Redux store with the historical state
- * and wraps children in a new Provider. Components using useSelector
- * will see the replay state instead of live state.
+ * IMPORTANT: Always wraps children in a Provider to maintain stable React tree.
+ * Switching between <Provider>{children}</Provider> and <>{children}</> would
+ * cause remounts and trigger side effects (event logging, fetches, etc.).
  *
- * When replay is inactive, just renders children (they see the outer Provider).
+ * When replay is active, uses a replay store with historical state.
+ * When replay is inactive, uses the live store from the outer Provider.
  *
  * Note: logEvent is not provided via context. Components check isActive
  * directly via useReplayContextOptional() to determine whether to log.
@@ -198,6 +199,7 @@ interface ReplayStoreProviderProps {
 export function ReplayStoreProvider({ children, getEvents }: ReplayStoreProviderProps) {
   const replayCtx = useReplayContextOptional();
   const isReplayActive = replayCtx?.isActive ?? false;
+  const liveStore = useStore();
 
   // Compute replay store when replay is active
   const replayStore = useMemo(() => {
@@ -211,15 +213,13 @@ export function ReplayStoreProvider({ children, getEvents }: ReplayStoreProvider
     return createReplayStore(state);
   }, [isReplayActive, replayCtx?.selectedEventIndex, getEvents]);
 
-  // When replay is active and we have a store, wrap children in new Provider
-  if (isReplayActive && replayStore) {
-    return (
-      <Provider store={replayStore}>
-        {children}
-      </Provider>
-    );
-  }
+  // Always wrap in Provider to maintain stable tree structure (prevents remounts)
+  // Use replay store when active, otherwise use live store
+  const activeStore = isReplayActive && replayStore ? replayStore : liveStore;
 
-  // Otherwise, just render children (they see the outer Provider)
-  return <>{children}</>;
+  return (
+    <Provider store={activeStore}>
+      {children}
+    </Provider>
+  );
 }

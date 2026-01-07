@@ -112,9 +112,12 @@ export default function RenderOLX({
   const [error, setError] = useState<string | null>(null);
 
   // Check if we're in replay mode - if so, use no-op to prevent event logging
+  // and disable side effects (fetches, etc.)
   const replayCtx = useReplayContextOptional();
   const noopLogEvent = () => {};
-  const logEvent = replayCtx?.isActive ? noopLogEvent : lo_event.logEvent;
+  const isReplaying = replayCtx?.isActive ?? false;
+  const logEvent = isReplaying ? noopLogEvent : lo_event.logEvent;
+  const sideEffectFree = isReplaying;
 
   // useTransition prevents Suspense during edits - React shows stale content
   // while new content is preparing instead of showing spinners
@@ -173,8 +176,10 @@ export default function RenderOLX({
             effectiveProvider
           );
           if (!cancelled) {
-            // Dispatch to Redux for reactive block access
-            dispatchOlxJson(source, result.idMap);
+            // Dispatch to Redux for reactive block access (skip during replay - viewing historical state)
+            if (!sideEffectFree) {
+              dispatchOlxJson({ logEvent }, source, result.idMap);
+            }
             // startTransition prevents Suspense - shows old content while rendering new
             startTransition(() => {
               setParsed(result);
@@ -205,8 +210,10 @@ export default function RenderOLX({
           }
 
           if (!cancelled) {
-            // Dispatch to Redux for reactive block access
-            dispatchOlxJson(source, mergedIdMap);
+            // Dispatch to Redux for reactive block access (skip during replay - viewing historical state)
+            if (!sideEffectFree) {
+              dispatchOlxJson({ logEvent }, source, mergedIdMap);
+            }
             startTransition(() => {
               setParsed({
                 root: lastRoot,
@@ -228,7 +235,7 @@ export default function RenderOLX({
 
     doParse();
     return () => { cancelled = true; };
-  }, [inline, files, effectiveProvider, provenance, onError, startTransition, source]);
+  }, [inline, files, effectiveProvider, provenance, onError, startTransition, source, sideEffectFree, logEvent]);
 
   // Merge parsed idMap with baseIdMap (parsed overrides base)
   const mergedIdMap = useMemo(() => {
@@ -257,11 +264,16 @@ export default function RenderOLX({
     olxJsonSources: [source],
     store,
     logEvent,
-  }), [blockRegistry, source, store, logEvent]);
+    sideEffectFree,
+  }), [blockRegistry, source, store, logEvent, sideEffectFree]);
+
+  // Determine which ID to render - use parsed root if available, else requested id
+  // This handles the case where `id` is a file path but parsed content has different IDs
+  const renderIdToQuery = parsed?.root || id;
 
   // useBlock handles loading/error states and renders from Redux
   // Shows spinner while loading, error if failed, rendered content when ready
-  const { block, ready } = useBlock(blockProps, id, source);
+  const { block, ready } = useBlock(blockProps, renderIdToQuery, source);
 
   // Parse error (from inline/files parsing)
   if (error) {

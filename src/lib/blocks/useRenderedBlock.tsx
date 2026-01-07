@@ -41,7 +41,7 @@ export function useBlock(
   source: string = 'content'
 ): RenderedBlockResult {
   // Always call the hook unconditionally (React rules of hooks)
-  const { olxJson: reduxOlxJson, loading, error } = useOlxJson(id, source);
+  const { olxJson: reduxOlxJson, loading, error } = useOlxJson(props, id, source);
 
   if (!id) {
     return { block: null, ready: true, error: null };

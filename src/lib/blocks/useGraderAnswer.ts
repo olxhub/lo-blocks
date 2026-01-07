@@ -103,7 +103,7 @@ export function useGraderAnswer(props: RuntimeProps) {
 
   // Get grader instance unconditionally (hook must always be called).
   // Pass graderId directly - useOlxJson handles null gracefully.
-  const { olxJson: graderInstance } = useOlxJson(graderId);
+  const { olxJson: graderInstance } = useOlxJson(props, graderId);
 
   // Get displayAnswer from grader's blueprint when showAnswer is true
   let displayAnswer = undefined;
