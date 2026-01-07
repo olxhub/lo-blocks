@@ -27,19 +27,21 @@ function _LLMFeedback(props) {
     switch (render) {
       case 'markdown':
         return (
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm, remarkMath]}
-            rehypePlugins={[rehypeKatex]}
-            components={markdownComponents}
-          >
-            {feedback}
-          </ReactMarkdown>
+          <div className="llm-feedback-markdown">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm, remarkMath]}
+              rehypePlugins={[rehypeKatex]}
+              components={markdownComponents}
+            >
+              {feedback}
+            </ReactMarkdown>
+          </div>
         );
       case 'code':
         return <pre className="llm-feedback-code"><code>{feedback}</code></pre>;
       case 'text':
       default:
-        return feedback;
+        return <span className="llm-feedback-text">{feedback}</span>;
     }
   };
 
