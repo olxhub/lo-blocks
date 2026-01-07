@@ -23,16 +23,16 @@
 
 import { useRef, useEffect, useCallback } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
-import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 
 import * as lo_event from 'lo_event';
 
 import * as idResolver from '../blocks/idResolver';
-import { fieldByName } from './fields';
+import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
-import { FieldInfo, OlxReference, OlxKey } from '../types';
+import { FieldInfo, OlxReference, OlxKey, RuntimeProps } from '../types';
 import { assertValidField } from './fields';
+import type { Store } from 'redux';
 import { selectBlock } from './olxjson';
 
 
@@ -93,10 +93,11 @@ export const fieldSelector = <T>(
 
 // Convenience selector that fetches the current Redux state automatically.
 export const selectFromStore = <T>(
+  props: { store: Store },
   field: FieldInfo,
   options: SelectorOptions<T> = {}
 ): T => {
-  const state = reduxLogger.store.getState();
+  const state = props.store.getState();
   return fieldSelector(state, undefined, field, options);
 };
 
@@ -131,7 +132,9 @@ export function updateReduxField(
     : undefined;
   const resolvedTag = tag ?? props?.loBlock?.OLXName;
 
-  lo_event.logEvent(field.event, {
+  // Use props.logEvent if available (respects replay mode), fallback to lo_event.logEvent
+  const logEvent = props.logEvent ?? lo_event.logEvent;
+  logEvent(field.event, {
     scope,
     [fieldName]: newValue,
     ...(scope === scopes.component || scope === scopes.storage ? { id: resolvedId } : {}),
@@ -234,6 +237,8 @@ export function useReduxInput(
 
   const id = idResolver.refToReduxKey(props);
   const tag = props?.loBlock.OLXName;
+  // Use props.logEvent if available (respects replay mode), fallback to lo_event.logEvent
+  const logEvent = props.logEvent ?? lo_event.logEvent;
 
   const onChange = useCallback((event) => {
     const val = event.target.value;
@@ -249,12 +254,12 @@ export function useReduxInput(
     if (scope === scopes.componentSetting) payload.tag = tag;
 
     if (updateValidator && !updateValidator(val)) {
-      lo_event.logEvent(INVALIDATED_INPUT, payload);
+      logEvent(INVALIDATED_INPUT, payload);
       return;
     }
 
-    lo_event.logEvent(UPDATE_INPUT, payload);
-  }, [id, tag, fieldName, updateValidator, scope]);
+    logEvent(UPDATE_INPUT, payload);
+  }, [id, tag, fieldName, updateValidator, scope, logEvent]);
 
   const ref = useRef<HTMLInputElement>(null);
 
@@ -306,25 +311,25 @@ export function useReduxCheckbox(
  * fields as if they were an enum or symbol, and only use as
  * `fields.field`
  *
- * @param {Object} props - Component props with componentMap and olxJsonSources
+ * @param {Object} props - Component props with blockRegistry and olxJsonSources
  * @param {string} targetId - ID of the target component
  * @param {string} fieldName - Name of the field to access (e.g., 'value')
  * @returns {FieldInfo} The field info
  * @throws {Error} If component or field not found
  */
-export function componentFieldByName(props, targetId: OlxReference, fieldName: string) {
+export function componentFieldByName(props: RuntimeProps, targetId: OlxReference, fieldName: string) {
   // TODO: More human-friendly errors. This is for programmers, but teachers might see these editing.
   // Possible TODO: Move to OLXDom or similar. I'm not sure this is the best place for this.
 
   // Use refToOlxKey to normalize the ID for Redux lookup
   const normalizedId = idResolver.refToOlxKey(targetId);
   const sources = props.olxJsonSources ?? ['content'];
-  const targetNode = selectBlock(reduxLogger.store?.getState(), sources, normalizedId);
+  const targetNode = selectBlock(props.store.getState(), sources, normalizedId);
   if (!targetNode) {
     throw new Error(`componentFieldByName: Component "${targetId}" not found in content`);
   }
 
-  const targetLoBlock = props.componentMap?.[targetNode.tag];
+  const targetLoBlock = props.blockRegistry?.[targetNode.tag];
   if (!targetLoBlock) {
     throw new Error(`componentFieldByName: No LoBlock found for component type "${targetNode.tag}"`);
   }
@@ -342,13 +347,13 @@ export function componentFieldByName(props, targetId: OlxReference, fieldName: s
  * Selector function to get a component's value by ID.
  * Tries getValue method first, falls back to direct field access.
  *
- * @param {Object} props - Component props with componentMap and olxJsonSources
+ * @param {Object} props - Component props with blockRegistry and olxJsonSources
  * @param {Object} state - Redux state
  * @param {string} id - ID of the component to get value from
  * @param {Object} options - Options object with fallback and other settings
  * @returns {any} The component's current value
  */
-export function valueSelector(props, state, id: OlxReference | null | undefined, { fallback } = {} as { fallback?: any }) {
+export function valueSelector(props: RuntimeProps, state: any, id: OlxReference | null | undefined, { fallback } = {} as { fallback?: any }) {
   // If no ID provided, return fallback (supports optional targetRef patterns)
   if (id === undefined || id === null) {
     return fallback;
@@ -357,8 +362,8 @@ export function valueSelector(props, state, id: OlxReference | null | undefined,
   // Use refToOlxKey to strip prefixes for Redux lookup
   const mapKey = idResolver.refToOlxKey(id);
   const sources = props?.olxJsonSources ?? ['content'];
-  const targetNode = selectBlock(reduxLogger.store?.getState(), sources, mapKey);
-  const loBlock = targetNode ? props?.componentMap?.[targetNode.tag] : null;
+  const targetNode = selectBlock(props.store.getState(), sources, mapKey);
+  const loBlock = targetNode ? props.blockRegistry?.[targetNode.tag] : null;
 
   if (!targetNode || !loBlock) {
     const missing: string[] = [];
@@ -378,22 +383,14 @@ export function valueSelector(props, state, id: OlxReference | null | undefined,
     return loBlock.getValue(props, state, id);
   }
 
-  // Fall back to direct field access using the 'value' field
-  const valueField = fieldByName('value');
-  if (!valueField) {
-    throw new Error(
-      `valueSelector: MAJOR MISCONFIGURATION - 'value' field not registered in system\n` +
-      `  This indicates a critical system setup issue that must be fixed`
-    );
-  }
-
-  return fieldSelector(state, props, valueField, { id, fallback });
+  // Fall back to direct field access using the common 'value' field
+  return fieldSelector(state, props, commonFields.value, { id, fallback });
 }
 
 /**
  * React hook to get a component's value by ID with automatic re-rendering.
  *
- * @param {Object} props - Component props with componentMap and olxJsonSources
+ * @param {Object} props - Component props with blockRegistry and olxJsonSources
  * @param {string} id - ID of the component to get value from
  * @param {Object} options - Options object with fallback and other settings
  * @returns {any} The component's current value

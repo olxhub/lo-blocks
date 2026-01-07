@@ -11,10 +11,6 @@ export function _DevQuestion( props ) {
   const optionList = typeof options === 'string' ? options.split(',') : options;
   const [activeIndex, setActiveIndex] = useReduxState(
     props,
-    // blueprint.fields.fieldInfoByField.activeIndex also works
-    //
-    // We might want a more concise version of this, e.g. pass in fields
-    // directly, but perhaps once this matures a bit more.
     fields.activeIndex,
     0
   );

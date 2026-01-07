@@ -27,7 +27,7 @@ describe('useReduxState integration', () => {
     );
 
     const { result } = renderHook(
-      () => useReduxState({ ...props, id: 'test' }, testFields.fieldInfoByField.input, 'bob'),
+      () => useReduxState({ ...props, id: 'test' }, testFields.input, 'bob'),
       { wrapper }
     );
 
@@ -57,7 +57,7 @@ describe('useReduxState integration', () => {
       () =>
         useReduxState(
           { id: 'vid1', loBlock: { OLXName: 'video' } },
-          settingFields.fieldInfoByField.speed,
+          settingFields.speed,
           1
         ),
       { wrapper }
@@ -80,7 +80,7 @@ describe('useReduxState integration', () => {
     );
 
     const { result } = renderHook(
-      () => useReduxState(props, systemFields.fieldInfoByField.lang, 'en'),
+      () => useReduxState(props, systemFields.lang, 'en'),
       { wrapper }
     );
 
@@ -101,7 +101,7 @@ describe('useReduxState integration', () => {
     );
 
     const { result } = renderHook(
-      () => useReduxState({}, storageFields.fieldInfoByField.content, '', { id: 'file1' }),
+      () => useReduxState({}, storageFields.content, '', { id: 'file1' }),
       { wrapper }
     );
 
@@ -124,14 +124,14 @@ describe('useAggregate aggregate hook', () => {
     );
 
     await act(async () => {
-      updateReduxField(props, testFields.fieldInfoByField.input, 'alpha', { id: 'first' });
-      updateReduxField(props, testFields.fieldInfoByField.input, 'beta', { id: 'second' });
+      updateReduxField(props, testFields.input, 'alpha', { id: 'first' });
+      updateReduxField(props, testFields.input, 'beta', { id: 'second' });
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     const ids = ['first', 'second'];
     const { result } = renderHook(
-      () => useAggregate(props, testFields.fieldInfoByField.input, ids, { fallback: '' }),
+      () => useAggregate(props, testFields.input, ids, { fallback: '' }),
       { wrapper }
     );
 
@@ -145,13 +145,13 @@ describe('useAggregate aggregate hook', () => {
     );
 
     await act(async () => {
-      updateReduxField(props, testFields.fieldInfoByField.input, 'alpha', { id: 'first' });
+      updateReduxField(props, testFields.input, 'alpha', { id: 'first' });
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     const ids = ['first', 'missing'];
     const { result } = renderHook(
-      () => useAggregate(props, testFields.fieldInfoByField.input, ids, { fallback: 'fallback', aggregate: 'object' }),
+      () => useAggregate(props, testFields.input, ids, { fallback: 'fallback', aggregate: 'object' }),
       { wrapper }
     );
 
@@ -165,15 +165,15 @@ describe('useAggregate aggregate hook', () => {
     );
 
     await act(async () => {
-      updateReduxField(props, testFields.fieldInfoByField.input, 'hello', { id: 'first' });
-      updateReduxField(props, testFields.fieldInfoByField.input, 'world', { id: 'second' });
+      updateReduxField(props, testFields.input, 'hello', { id: 'first' });
+      updateReduxField(props, testFields.input, 'world', { id: 'second' });
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     const ids = ['first', 'second'];
     const { result } = renderHook(
       () =>
-        useAggregate(props, testFields.fieldInfoByField.input, ids, {
+        useAggregate(props, testFields.input, ids, {
           fallback: '',
           aggregate: (values) => values.join('-'),
         }),

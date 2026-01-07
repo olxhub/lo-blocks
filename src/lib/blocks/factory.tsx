@@ -17,7 +17,7 @@
 import React from 'react';
 import { z } from 'zod';
 
-import { BlockBlueprintSchema, LoBlock, FieldInfoByField, OLXTag } from '../types';
+import { BlockBlueprintSchema, LoBlock, Fields, OLXTag } from '../types';
 
 // Factory-local type aliases derived from the schema
 type BlueprintInput = z.input<typeof BlockBlueprintSchema>;
@@ -53,14 +53,16 @@ function applyGraderExtensions(config: BlueprintInput): BlueprintInput {
   if (!config.isGrader) return config;
 
   // Extend fields - only add grader fields not already defined
-  const existingFieldNames = Object.keys(config.fields?.fieldInfoByField ?? {});
+  const existingFieldNames = config.fields
+    ? Object.keys(config.fields).filter(k => k !== 'extend')
+    : [];
   const fieldsToAdd = GRADER_FIELDS.filter(f => !existingFieldNames.includes(f));
 
-  let extendedFields = config.fields;
+  let extendedFields = config.fields as Fields | undefined;
   if (fieldsToAdd.length > 0) {
     const newFields = state.fields(fieldsToAdd);
-    extendedFields = config.fields
-      ? config.fields.extend(newFields) as typeof config.fields
+    extendedFields = extendedFields
+      ? extendedFields.extend(newFields)
       : newFields;
   }
 
@@ -123,7 +125,7 @@ function createBlock(config: BlueprintInput): LoBlock {
     staticKids: effectiveConfig.staticKids,
     reducers: effectiveConfig.reducers ?? [],
     getValue: effectiveConfig.getValue,
-    fields: parsed?.fields?.fieldInfoByField as FieldInfoByField ?? {},
+    fields: (effectiveConfig.fields as Fields) ?? state.fields([]),
     locals: effectiveConfig.locals,
 
     name: rawName,

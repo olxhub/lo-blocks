@@ -9,6 +9,10 @@ const nextConfig = {
   // We probably want:
   ...(process.env.STANDALONE === 'true' && { output: 'standalone' }),
   // So we can toggle it.
+
+  // Allow tests to use a separate build directory to avoid lock file conflicts
+  // with user's dev server. Usage: NEXT_DIST_DIR=.next-test npx next dev
+  ...(process.env.NEXT_DIST_DIR && { distDir: process.env.NEXT_DIST_DIR }),
 };
 
 export default nextConfig;

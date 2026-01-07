@@ -14,6 +14,7 @@ import { NetworkStorageProvider, VersionConflictError } from '@/lib/storage';
 import type { UriNode } from '@/lib/storage/types';
 import type { IdMap } from '@/lib/types';
 import { useNotifications, ToastNotifications } from '@/lib/util/debug';
+import { useStore } from 'react-redux';
 import { useReduxState, selectFromStore, settings } from '@/lib/state';
 import { editorFields } from '@/lib/state/editorFields';
 import './studio.css';
@@ -64,6 +65,8 @@ function useEditComponentState(field, provenance, defaultState) {
 }
 
 function StudioPageContent() {
+  const store = useStore();
+
   // Read initial file from URL query param
   const searchParams = useSearchParams();
   const initialFile = searchParams.get('file') || 'untitled.olx';
@@ -80,7 +83,7 @@ function StudioPageContent() {
 
   // Content stored in Redux - enables analytics and persistence
   const [content, setContent] = useEditComponentState(
-    editorFields.fieldInfoByField.content,
+    editorFields.content,
     filePath,
     DEMO_CONTENT,
   );
@@ -113,13 +116,13 @@ function StudioPageContent() {
   const getDirtyFiles = useCallback((): Set<string> => {
     const dirty = new Set<string>();
     for (const [path, saved] of fileStateRef.current.entries()) {
-      const current = selectFromStore(editorFields.fieldInfoByField.content, { id: path });
+      const current = selectFromStore({ store }, editorFields.content, { id: path });
       if (current !== undefined && current !== saved.content) {
         dirty.add(path);
       }
     }
     return dirty;
-  }, []);
+  }, [store]);
 
   // Toast notifications
   const { notifications, notify, dismiss: dismissNotification } = useNotifications();
@@ -520,6 +523,7 @@ function StudioPageContent() {
       {/* Footer hint */}
       <footer className="studio-footer">
         <kbd>⌘K</kbd> Command palette
+        <kbd>⌘`</kbd> Debug panel
         <span
           role="button"
           tabIndex={0}

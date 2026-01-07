@@ -6,7 +6,6 @@ import * as state from '@/lib/state';
 import * as reduxClient from '@/lib/llm/reduxClient';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Hidden from '@/components/blocks/layout/_Hidden';
-import { fields as feedbackFields } from './LLMFeedback';
 
 export const fields = state.fields([]);
 
@@ -18,9 +17,9 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
     return;
   }
 
-  // TODO: Should use processed fields (e.g., `const { value, state } = fields`) instead of
-  // accessing .fieldInfoByField directly. Need to figure out cross-component field access pattern.
-  const { value: valueField, state: stateField } = feedbackFields.fieldInfoByField;
+  // Get target component's fields dynamically
+  const valueField = state.componentFieldByName(props, targetElementId, 'value');
+  const stateField = state.componentFieldByName(props, targetElementId, 'state');
 
   try {
     state.updateReduxField(props, valueField, '', { id: targetElementId });

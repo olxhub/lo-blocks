@@ -13,7 +13,7 @@ export default function _StateViewer(props) {
   const targetId = target || (typeof kids === 'string' ? kids : String(kids)).trim();
 
   // Hooks must be called unconditionally, so call before any early returns
-  const { olxJson: targetBlock } = useOlxJson(targetId || '_invalid_');
+  const { olxJson: targetBlock } = useOlxJson(props, targetId || '_invalid_');
   const componentState = useComponentState(props, targetId, { scope });
 
   if (!targetId) {

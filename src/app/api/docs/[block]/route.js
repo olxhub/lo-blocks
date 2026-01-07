@@ -5,17 +5,17 @@
 //
 import fs from 'fs/promises';
 import path from 'path';
-import { COMPONENT_MAP } from '@/components/componentMap';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { resolveSafeReadPath } from '@/lib/storage/providers/file';
 
 export async function GET(request, { params }) {
   const { block: blockName } = await params;
 
   try {
-    // Find block by export name (key in COMPONENT_MAP) or OLXName
-    let block = COMPONENT_MAP[blockName];
+    // Find block by export name (key in BLOCK_REGISTRY) or OLXName
+    let block = BLOCK_REGISTRY[blockName];
     if (!block || !block._isBlock) {
-      block = Object.values(COMPONENT_MAP).find(
+      block = Object.values(BLOCK_REGISTRY).find(
         b => b._isBlock && b.OLXName === blockName
       );
     }

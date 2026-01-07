@@ -1,11 +1,20 @@
 // src/lib/blocks/idResolver.ts
-import type { OlxReference, OlxKey, ReduxStateKey } from '../types';
+import type { OlxReference, OlxKey, ReduxStateKey, IdPrefix } from '../types';
 //
 // ID Resolution System
 // ====================
 //
 // Single source of truth for converting between different ID types.
 // See docs/architecture/id-*.md for detailed design documentation.
+//
+// TWO DIFFERENT SEPARATORS
+// ------------------------
+// (a) OLX paths: "/" for namespaces like "/edu.mit/pmitros/6.002x/hw1"
+// (b) Redux scopes: ":" for instance scoping like "thesistopics:1:topic"
+//
+// These serve different roles:
+// - OLX paths identify content definitions (directory-style hierarchy)
+// - Redux scopes identify runtime instances (e.g., DynamicList items)
 //
 // WHY MULTIPLE ID TYPES?
 // ----------------------
@@ -27,26 +36,19 @@ import type { OlxReference, OlxKey, ReduxStateKey } from '../types';
 //         ↓
 //   olxKey              Resolved key for idMap lookup: "foo"
 //         ↓             (strips /, ./, namespaces)
-//   reduxKey            State storage key: "list.0.foo"
-//                       (adds idPrefix for scoped instances)
+//   reduxKey            State storage key: "list:0:foo"
+//                       (adds idPrefix for scoped instances, using ":")
 //
 //   For rendering:
 //   kids[]  → assignReactKeys() → reactKey per child (unique among siblings)
-//   node    → cacheKey()        → thenable cache key (includes overrides)
 //
 // | ID Type    | Purpose                    | Uniqueness           | Example              |
 // |------------|----------------------------|----------------------|----------------------|
 // | ref        | ID as written in OLX       | n/a (input form)     | "/foo", "./foo"      |
 // | olxKey     | Definition lookup          | Per definition       | "foo"                |
-// | reduxKey   | State storage              | Per logical instance | "list.0.foo"         |
-// | reactKey   | React reconciliation       | Per sibling position | "foo", "foo.1"       |
+// | reduxKey   | State storage              | Per logical instance | "list:0:foo"         |
+// | reactKey   | React reconciliation       | Per sibling position | "foo", "foo:1"       |
 // | htmlId     | DOM element ID             | Per rendered element | "foo"                |
-// | cacheKey   | Render thenable cache      | Per render operation | "block.list.0.foo.{...}" |
-//
-// NOTE ON cacheKey: Currently includes serialized overrides because the same
-// block can be rendered with different overrides (e.g., Tabs rendering same
-// component with different labels). In the future, if we eliminate overrides,
-// cacheKey could potentially just use reduxKey.
 //
 // REFERENCE FORMS
 // ---------------
@@ -62,10 +64,9 @@ import type { OlxReference, OlxKey, ReduxStateKey } from '../types';
 //   refToReduxKey(props)        - "prefix.id" for state storage
 //   refToOlxKey(id)             - strips prefix, gets base ID for idMap lookup
 //   htmlId(props)               - DOM-safe ID
-//   cacheKey(node, props)       - render cache key (TODO: move from render.jsx)
 //
 // Scoping:
-//   extendIdPrefix(props, scope)  - { idPrefix: "parent.scope" }
+//   extendIdPrefix(props, scope)  - { idPrefix: "parent:scope" }
 //
 // Arrays:
 //   assignReactKeys(children)     - unique keys for siblings (TODO: move from render.jsx)
@@ -75,6 +76,13 @@ import type { OlxReference, OlxKey, ReduxStateKey } from '../types';
 // OLX IDs should NOT contain: ".", "/", ":", or whitespace
 // These characters are reserved as namespace/path delimiters.
 //
+
+// =============================================================================
+// SEPARATORS
+// =============================================================================
+// Redux scope separator - used to build scoped instance keys like "list:0:item"
+// This is distinct from "/" used in OLX paths for content namespaces.
+export const REDUX_SCOPE_SEPARATOR = ':';
 
 // Valid ID pattern: alphanumeric, underscores, hyphens
 // Path prefixes (/, ./, ../) are allowed for references
@@ -143,14 +151,14 @@ export function toOlxReference(input: string, context = 'ID'): OlxReference {
  * @returns ReduxStateKey for state access
  *
  * @example
- * refToReduxKey({ id: 'foo', idPrefix: 'list.0' })  // => 'list.0.foo'
- * refToReduxKey({ id: '/foo', idPrefix: 'list.0' }) // => 'foo' (absolute)
- * refToReduxKey({ id: './foo', idPrefix: 'scope' }) // => 'scope.foo'
+ * refToReduxKey({ id: 'foo', idPrefix: 'list:0' })  // => 'list:0:foo'
+ * refToReduxKey({ id: '/foo', idPrefix: 'list:0' }) // => 'foo' (absolute)
+ * refToReduxKey({ id: './foo', idPrefix: 'scope' }) // => 'scope:foo'
  * refToReduxKey({ id: 'foo' })                      // => 'foo'
  */
 type RefToReduxKeyInput = OlxReference | string | {
   id?: OlxReference | string;
-  idPrefix?: string;
+  idPrefix?: IdPrefix;
   [key: string]: unknown;
 };
 
@@ -180,7 +188,7 @@ export const refToReduxKey = (input: RefToReduxKeyInput): ReduxStateKey => {
   const resolvedBase = base.startsWith('./') ? base.slice(2) : base;
 
   const prefix = (input as { idPrefix?: string })?.idPrefix ?? '';
-  return (prefix ? `${prefix}.${resolvedBase}` : resolvedBase) as ReduxStateKey;
+  return (prefix ? `${prefix}${REDUX_SCOPE_SEPARATOR}${resolvedBase}` : resolvedBase) as ReduxStateKey;
 };
 
 /**
@@ -202,9 +210,9 @@ export const refToReduxKey = (input: RefToReduxKeyInput): ReduxStateKey => {
  * refToOlxKey('/foo')                    // => 'foo'
  * refToOlxKey('./foo')                   // => 'foo'
  * refToOlxKey('foo')                     // => 'foo'
- * refToOlxKey('list.0.child')            // => 'child'
- * refToOlxKey('mastery.attempt_0.q1')    // => 'q1'
- * refToOlxKey('/list.0.child')           // => 'child'
+ * refToOlxKey('list:0:child')            // => 'child'
+ * refToOlxKey('mastery:attempt_0:q1')    // => 'q1'
+ * refToOlxKey('/list:0:child')           // => 'child'
  */
 export const refToOlxKey = (ref: OlxReference | string): OlxKey => {
   if (typeof ref !== 'string') return ref as unknown as OlxKey;
@@ -214,10 +222,11 @@ export const refToOlxKey = (ref: OlxReference | string): OlxKey => {
   if (result.startsWith('/')) result = result.slice(1);
   else if (result.startsWith('./')) result = result.slice(2);
 
-  // Extract last segment (the base ID) - namespace prefixes come before it
-  const lastDot = result.lastIndexOf('.');
-  if (lastDot !== -1) {
-    result = result.slice(lastDot + 1);
+  // Extract last segment (the base ID) - scope prefixes come before it
+  // Use ":" as the Redux scope separator
+  const lastSeparator = result.lastIndexOf(REDUX_SCOPE_SEPARATOR);
+  if (lastSeparator !== -1) {
+    result = result.slice(lastSeparator + 1);
   }
 
   return result as OlxKey;
@@ -230,18 +239,31 @@ export const refToOlxKey = (ref: OlxReference | string): OlxKey => {
  * repeated problem attempts). Returns an object with `idPrefix` to spread into props.
  *
  * @param {object} props - The parent component's props (may contain idPrefix)
- * @param {string} scope - The scope to add (e.g., "item_0", "attempt_1")
+ * @param {string | (string | number)[]} scope - The scope to add. Can be a string
+ *        or array of parts that will be joined with the separator.
  * @returns {{ idPrefix: string }} Object to spread into child props
  *
  * @example
- * // In a list component:
- * renderCompiledKids({ ...props, ...extendIdPrefix(props, `${id}.${index}`) })
+ * // In a list component (array form keeps separator logic centralized):
+ * renderCompiledKids({ ...props, ...extendIdPrefix(props, [id, index]) })
  *
  * // In MasteryBank:
- * render({ ...props, node: problemNode, ...extendIdPrefix(props, `${id}.attempt_${n}`) })
+ * render({ ...props, node: problemNode, ...extendIdPrefix(props, [id, 'attempt', n]) })
+ *
+ * // Simple string form still works:
+ * extendIdPrefix(props, 'child')
  */
-export function extendIdPrefix(props, scope) {
-  return { idPrefix: props.idPrefix ? `${props.idPrefix}.${scope}` : scope };
+export function extendIdPrefix(
+  props: { idPrefix?: IdPrefix; [key: string]: unknown },
+  scope: string | (string | number)[]
+): { idPrefix: IdPrefix } {
+  const scopeStr = Array.isArray(scope)
+    ? scope.join(REDUX_SCOPE_SEPARATOR)
+    : scope;
+  const newPrefix = props.idPrefix
+    ? `${props.idPrefix}${REDUX_SCOPE_SEPARATOR}${scopeStr}`
+    : scopeStr;
+  return { idPrefix: newPrefix as IdPrefix };
 }
 
 /**
@@ -257,7 +279,7 @@ export function extendIdPrefix(props, scope) {
  *
  * @example
  * // Input:  [{ id: "foo" }, { id: "bar" }, { id: "foo" }]
- * // Output: [{ id: "foo", key: "foo" }, { id: "bar", key: "bar" }, { id: "foo", key: "foo.1" }]
+ * // Output: [{ id: "foo", key: "foo" }, { id: "bar", key: "bar" }, { id: "foo", key: "foo:1" }]
  */
 export function assignReactKeys(children) {
   const idCounts = {};
@@ -278,7 +300,7 @@ export function assignReactKeys(children) {
         idCounts[child.id] = 1;
         key = child.id;
       } else {
-        key = `${child.id}.${idCounts[child.id]}`;
+        key = `${child.id}${REDUX_SCOPE_SEPARATOR}${idCounts[child.id]}`;
         idCounts[child.id]++;
       }
     } else {
@@ -286,41 +308,6 @@ export function assignReactKeys(children) {
     }
     return { ...child, key };
   });
-}
-
-/**
- * Generate a cache key for render thenable caching.
- *
- * Used to cache render() results for React's use() hook, which requires
- * the same thenable instance across re-renders.
- *
- * @param {object} node - The node being rendered
- * @param {string} node.type - Node type: 'block', 'text', 'html', etc.
- * @param {string} node.id - Node ID
- * @param {object} [node.overrides] - Attribute overrides (e.g., from Tabs)
- * @param {object} props - Render props
- * @param {string} [props.idPrefix] - Scope prefix for list contexts
- * @returns {string} Unique cache key for this render operation
- */
-export function cacheKey(node, props) {
-  if (!node || typeof node !== 'object') {
-    return `primitive.${String(node)}`;
-  }
-
-  const { idPrefix = '' } = props || {};
-  const type = node.type || node.tag || 'unknown';
-  const id = node.id || '?';
-
-  // Base key: type.prefix.id or type.id
-  let key = idPrefix ? `${type}.${idPrefix}.${id}` : `${type}.${id}`;
-
-  // Include overrides in cache key - same block with different overrides
-  // must cache separately (e.g., Tabs rendering same component with different labels)
-  if (node.overrides && Object.keys(node.overrides).length > 0) {
-    key += `.${JSON.stringify(node.overrides)}`;
-  }
-
-  return key;
 }
 
 export const __testables = { assignReactKeys };

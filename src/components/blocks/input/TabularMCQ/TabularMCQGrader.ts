@@ -30,7 +30,7 @@ function getTabularMCQDisplayAnswer(props) {
   try {
     const inputIds = getInputs(props);
     const inputNode = getBlockByOLXId(props, inputIds[0]);
-    const inputBlueprint = inputNode ? props.componentMap?.[inputNode.tag] : null;
+    const inputBlueprint = inputNode ? props.blockRegistry?.[inputNode.tag] : null;
 
     if (inputBlueprint?.locals?.getAnswers) {
       const inputProps = {

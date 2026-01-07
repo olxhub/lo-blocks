@@ -45,14 +45,17 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef, useTransition } from 'react';
+import { useStore } from 'react-redux';
+import * as lo_event from 'lo_event';
 import { parseOLX } from '@/lib/content/parseOLX';
-import { render, makeRootNode } from '@/lib/render';
-import { COMPONENT_MAP } from '@/components/componentMap';
+import { makeRootNode } from '@/lib/render';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
-import Spinner from '@/components/common/Spinner';
 import { InMemoryStorageProvider, StackedStorageProvider } from '@/lib/storage';
 import { isOLXFile } from '@/lib/util/fileTypes';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
+import { useBlock } from '@/lib/blocks/useRenderedBlock';
+import { useReplayContextOptional } from '@/lib/state/replayContext';
 
 /**
  * Props for RenderOLX component.
@@ -84,8 +87,8 @@ interface RenderOLXProps {
   onError?: (err: any) => void;
   /** Called after parsing completes with the merged idMap and root ID */
   onParsed?: (result: { idMap: Record<string, any>; root: string | null }) => void;
-  /** Custom component map (defaults to COMPONENT_MAP) */
-  componentMap?: Record<string, any>;
+  /** Custom block registry (defaults to BLOCK_REGISTRY) */
+  blockRegistry?: Record<string, any>;
   /** Source name for Redux state namespacing (e.g., 'content', 'inline', 'studio'). Defaults to 'content'. */
   source?: string;
 }
@@ -101,11 +104,20 @@ export default function RenderOLX({
   provenance,
   onError,
   onParsed,
-  componentMap = COMPONENT_MAP,
+  blockRegistry = BLOCK_REGISTRY,
   source = 'content',
 }: RenderOLXProps) {
+  const store = useStore();
   const [parsed, setParsed] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Check if we're in replay mode - if so, use no-op to prevent event logging
+  // and disable side effects (fetches, etc.)
+  const replayCtx = useReplayContextOptional();
+  const noopLogEvent = () => {};
+  const isReplaying = replayCtx?.isActive ?? false;
+  const logEvent = isReplaying ? noopLogEvent : lo_event.logEvent;
+  const sideEffectFree = isReplaying;
 
   // useTransition prevents Suspense during edits - React shows stale content
   // while new content is preparing instead of showing spinners
@@ -164,8 +176,10 @@ export default function RenderOLX({
             effectiveProvider
           );
           if (!cancelled) {
-            // Dispatch to Redux for reactive block access
-            dispatchOlxJson(source, result.idMap);
+            // Dispatch to Redux for reactive block access (skip during replay - viewing historical state)
+            if (!sideEffectFree) {
+              dispatchOlxJson({ logEvent }, source, result.idMap);
+            }
             // startTransition prevents Suspense - shows old content while rendering new
             startTransition(() => {
               setParsed(result);
@@ -196,8 +210,10 @@ export default function RenderOLX({
           }
 
           if (!cancelled) {
-            // Dispatch to Redux for reactive block access
-            dispatchOlxJson(source, mergedIdMap);
+            // Dispatch to Redux for reactive block access (skip during replay - viewing historical state)
+            if (!sideEffectFree) {
+              dispatchOlxJson({ logEvent }, source, mergedIdMap);
+            }
             startTransition(() => {
               setParsed({
                 root: lastRoot,
@@ -219,7 +235,7 @@ export default function RenderOLX({
 
     doParse();
     return () => { cancelled = true; };
-  }, [inline, files, effectiveProvider, provenance, onError, startTransition, source]);
+  }, [inline, files, effectiveProvider, provenance, onError, startTransition, source, sideEffectFree, logEvent]);
 
   // Merge parsed idMap with baseIdMap (parsed overrides base)
   const mergedIdMap = useMemo(() => {
@@ -240,7 +256,26 @@ export default function RenderOLX({
     }
   }, [mergedIdMap, parsed?.root]);
 
-  // Error state
+  // Build props for useBlock - must be before the hook call
+  const blockProps = useMemo(() => ({
+    nodeInfo: makeRootNode(),
+    blockRegistry,
+    idPrefix: '',
+    olxJsonSources: [source],
+    store,
+    logEvent,
+    sideEffectFree,
+  }), [blockRegistry, source, store, logEvent, sideEffectFree]);
+
+  // Determine which ID to render - use parsed root if available, else requested id
+  // This handles the case where `id` is a file path but parsed content has different IDs
+  const renderIdToQuery = parsed?.root || id;
+
+  // useBlock handles loading/error states and renders from Redux
+  // Shows spinner while loading, error if failed, rendered content when ready
+  const { block, ready } = useBlock(blockProps, renderIdToQuery, source);
+
+  // Parse error (from inline/files parsing)
   if (error) {
     return (
       <div className="text-red-600 p-2 border border-red-300 rounded bg-red-50">
@@ -250,37 +285,16 @@ export default function RenderOLX({
     );
   }
 
-  // No content
-  if (!mergedIdMap) {
-    if (!inline && !files && !baseIdMap) {
-      return (
-        <div className="text-red-600">
-          RenderOLX: No content source provided
-        </div>
-      );
-    }
-    return <Spinner>Loading...</Spinner>;
-  }
-
-  // Use requested id, fall back to parsed root
-  const rootId = mergedIdMap[id] ? id : (parsed?.root || id);
-
-  if (!mergedIdMap[rootId]) {
+  // No content source provided
+  if (!inline && !files && !baseIdMap && !ready) {
     return (
       <div className="text-red-600">
-        RenderOLX: ID &quot;{rootId}&quot; not found in content
+        RenderOLX: No content source provided
       </div>
     );
   }
 
-  // Render synchronously - content is in Redux via dispatchOlxJson above
-  const rendered = render({
-    node: { type: 'block', id: rootId },
-    nodeInfo: makeRootNode(),
-    componentMap,
-    olxJsonSources: [source],
-  });
-
+  // useBlock handles spinner/error display - just wrap in ErrorBoundary
   return (
     <ErrorBoundary
       resetKey={parsed}
@@ -289,7 +303,7 @@ export default function RenderOLX({
         onError?.(err);
       }}
     >
-      {rendered}
+      {block}
     </ErrorBoundary>
   );
 }

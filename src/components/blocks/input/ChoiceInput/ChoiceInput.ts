@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import { core, getBlockByOLXId } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, fieldByName } from '@/lib/state';
+import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import type { RuntimeProps, OlxKey, BlueprintKidEntry } from '@/lib/types';
@@ -14,7 +14,7 @@ import _Noop from '@/components/blocks/layout/_Noop';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import { refToOlxKey } from '@/lib/blocks/idResolver';
 
-export const fields = state.fields(['value']);
+export const fields = state.fields([commonFields.value]);
 
 /**
  * Get the list of choices (Key/Distractor children) with their metadata.
@@ -65,7 +65,7 @@ const ChoiceInput = core({
   component: _Noop,
   fields,
   getValue: (props: RuntimeProps, state, id) => {
-    return fieldSelector(state, { ...props, id }, fieldByName('value'), { fallback: '' });
+    return fieldSelector(state, { ...props, id }, fields.value, { fallback: '' });
   },
   attributes: baseAttributes.extend({
     target: z.string().optional().describe('Comma-separated IDs of Key/Distractor children if not directly nested'),

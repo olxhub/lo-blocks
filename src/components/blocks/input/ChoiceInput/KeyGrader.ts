@@ -46,7 +46,7 @@ function getKeyDisplayAnswer(props) {
     throw new Error(`KeyGrader "${props.id}": Input "${inputId}" not found. Check the target attribute.`);
   }
 
-  const inputBlueprint = props.componentMap[inputNode.tag];
+  const inputBlueprint = props.blockRegistry[inputNode.tag];
   const inputProps = { ...props, id: inputId, ...inputNode.attributes, kids: inputNode.kids };
   const choices = inputBlueprint.locals.getChoices(inputProps);
   const keyChoice = choices.find(c => c.tag === 'Key');

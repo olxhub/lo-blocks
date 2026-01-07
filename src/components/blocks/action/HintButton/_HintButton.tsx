@@ -5,13 +5,14 @@ import React, { useMemo, useCallback } from 'react';
 import * as state from '@/lib/state';
 import { getAllNodes } from '@/lib/blocks/olxdom';
 import { DisplayError } from '@/lib/util/debug';
+import * as DemandHints from '@/components/blocks/display/DemandHints/DemandHints';
 
 /**
  * Find DemandHints component in the OLX DOM.
  * Searches for a component with name 'DemandHints'.
  */
 function findDemandHints(props) {
-  const { target, nodeInfo, idMap, componentMap } = props;
+  const { target, nodeInfo, idMap, blockRegistry } = props;
 
   // If explicit target, use that
   if (target) {
@@ -32,7 +33,7 @@ export default function _HintButton(props) {
   const { id } = props;
 
   // Find target DemandHints component
-  const { target, nodeInfo, idMap, componentMap } = props;
+  const { target, nodeInfo, idMap, blockRegistry } = props;
   // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when target or nodeInfo changes
   const hintsId = useMemo(() => findDemandHints(props), [target, nodeInfo]);
 
@@ -40,7 +41,7 @@ export default function _HintButton(props) {
   const hintCount = useMemo(() => {
     if (!hintsId) return 0;
     const hintsNode = idMap?.[hintsId];
-    const hintsBlueprint = hintsNode ? componentMap?.[hintsNode.tag] : null;
+    const hintsBlueprint = hintsNode ? blockRegistry?.[hintsNode.tag] : null;
     if (hintsBlueprint?.locals?.getHintCount) {
       const hintsProps = {
         ...props,
@@ -52,15 +53,13 @@ export default function _HintButton(props) {
     }
     return 0;
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when hintsId or maps change
-  }, [hintsId, idMap, componentMap]);
+  }, [hintsId, idMap, blockRegistry]);
 
   // Read/write hintsRevealed field on the DemandHints component
-  const hintsRevealedField = hintsId
-    ? state.componentFieldByName(props, hintsId, 'hintsRevealed')
-    : null;
+  // Use the field definition from DemandHints directly (avoids null field issue)
   const [hintsRevealed, setHintsRevealed] = state.useReduxState(
     props,
-    hintsRevealedField,
+    DemandHints.fields.hintsRevealed,
     0,
     { id: hintsId || id }
   );

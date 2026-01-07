@@ -1,12 +1,15 @@
 // src/lib/content/useContentLoader.ts
 import { useState, useEffect } from 'react';
+import * as lo_event from 'lo_event';
 import { IdMap, ComponentError } from '@/lib/types';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
+import { useReplayContextOptional } from '@/lib/state/replayContext';
 
 /**
  * Hook to load content from the API by ID
  *
  * Fetches content from the server and dispatches it to Redux for reactive access.
+ * Skips fetch and dispatch during replay mode (sideEffectFree).
  *
  * @param id - Content ID to load
  * @param source - Source name for Redux state namespacing (defaults to 'content')
@@ -19,7 +22,19 @@ export function useContentLoader(id: string, source = 'content') {
   const [error, setError] = useState<ComponentError>(null);
   const [loading, setLoading] = useState(true);
 
+  // Check if we're in replay mode - if so, skip side effects
+  const replayCtx = useReplayContextOptional();
+  const isReplaying = replayCtx?.isActive ?? false;
+  const noopLogEvent = () => {};
+  const logEvent = isReplaying ? noopLogEvent : lo_event.logEvent;
+
   useEffect(() => {
+    // Skip side effects during replay
+    if (isReplaying) {
+      setLoading(false);
+      return;
+    }
+
     if (!id) {
       setLoading(false);
       return;
@@ -35,7 +50,7 @@ export function useContentLoader(id: string, source = 'content') {
           setError(data.error);
         } else {
           // Dispatch to Redux for reactive block access
-          dispatchOlxJson(source, data.idMap);
+          dispatchOlxJson({ logEvent }, source, data.idMap);
           setIdMap(data.idMap);
         }
         setLoading(false);
@@ -44,7 +59,7 @@ export function useContentLoader(id: string, source = 'content') {
         setError(err.message);
         setLoading(false);
       });
-  }, [id, source]);
+  }, [id, source, isReplaying, logEvent]);
 
   return { idMap, error, loading };
 }

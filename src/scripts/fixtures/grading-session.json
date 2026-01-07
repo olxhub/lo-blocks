@@ -1,0 +1,75 @@
+{
+  "description": "Sample grading session: student answers 12x12, gets it wrong, tries again, gets it right",
+  "events": [
+    {
+      "event": "LOAD_OLXJSON",
+      "source": "content",
+      "blocks": {
+        "NumericalGraderBasic": {
+          "id": "NumericalGraderBasic",
+          "tag": "CapaProblem",
+          "attributes": { "id": "NumericalGraderBasic", "title": "Squares" },
+          "provenance": ["file://src/components/blocks/grading/NumericalGraderBasic.olx"],
+          "rawParsed": {}
+        },
+        "NumericalGraderBasic.grader": {
+          "id": "NumericalGraderBasic.grader",
+          "tag": "NumericalGrader",
+          "attributes": { "answer": "144" },
+          "provenance": ["file://src/components/blocks/grading/NumericalGraderBasic.olx"],
+          "rawParsed": {}
+        },
+        "NumericalGraderBasic.input": {
+          "id": "NumericalGraderBasic.input",
+          "tag": "ComplexInput",
+          "attributes": {},
+          "provenance": ["file://src/components/blocks/grading/NumericalGraderBasic.olx"],
+          "rawParsed": {}
+        }
+      },
+      "metadata": { "iso_ts": "2026-01-05T12:00:00.000Z" }
+    },
+    {
+      "event": "UPDATE_VALUE",
+      "scope": "component",
+      "id": "NumericalGraderBasic.input",
+      "value": "100",
+      "metadata": { "iso_ts": "2026-01-05T12:00:05.000Z" }
+    },
+    {
+      "event": "UPDATE_SUBMIT_COUNT",
+      "scope": "component",
+      "id": "NumericalGraderBasic.grader",
+      "submitCount": 1,
+      "metadata": { "iso_ts": "2026-01-05T12:00:06.000Z" }
+    },
+    {
+      "event": "UPDATE_CORRECT",
+      "scope": "component",
+      "id": "NumericalGraderBasic.grader",
+      "correct": "incorrect",
+      "metadata": { "iso_ts": "2026-01-05T12:00:06.100Z" }
+    },
+    {
+      "event": "UPDATE_VALUE",
+      "scope": "component",
+      "id": "NumericalGraderBasic.input",
+      "value": "144",
+      "metadata": { "iso_ts": "2026-01-05T12:00:10.000Z" }
+    },
+    {
+      "event": "UPDATE_SUBMIT_COUNT",
+      "scope": "component",
+      "id": "NumericalGraderBasic.grader",
+      "submitCount": 2,
+      "metadata": { "iso_ts": "2026-01-05T12:00:11.000Z" }
+    },
+    {
+      "event": "UPDATE_CORRECT",
+      "scope": "component",
+      "id": "NumericalGraderBasic.grader",
+      "correct": "correct",
+      "metadata": { "iso_ts": "2026-01-05T12:00:11.100Z" }
+    }
+  ]
+}

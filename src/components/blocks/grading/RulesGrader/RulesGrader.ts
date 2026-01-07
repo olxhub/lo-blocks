@@ -28,7 +28,7 @@ import type { RuntimeProps } from '@/lib/types';
  * @returns {{ correct: CORRECTNESS, message: string, score?: number }}
  */
 function gradeRules(props: RuntimeProps, context) {
-  const { componentMap } = props;
+  const { blockRegistry } = props;
 
   // TODO: Handle other CORRECTNESS states (UNSUBMITTED, INCOMPLETE, etc.)
   // Currently delegated to Match rules, but may need RulesGrader-level logic
@@ -42,7 +42,7 @@ function gradeRules(props: RuntimeProps, context) {
     const childEntry = getBlockByOLXId(props, matchId);
     if (!childEntry) continue;
 
-    const childBlueprint = componentMap[childEntry.tag];
+    const childBlueprint = blockRegistry[childEntry.tag];
 
     // Attributes are already parsed/transformed at parse time by parseOLX
     const attrs = childEntry.attributes || {};
@@ -92,13 +92,13 @@ const RulesGrader = core({
   getDisplayAnswer: (props: RuntimeProps) => {
     if (props.displayAnswer) return props.displayAnswer;
 
-    const { kids = [], componentMap } = props;
+    const { kids = [], blockRegistry } = props;
     for (const kid of kids) {
       if (kid.type !== 'block') continue;
       const childEntry = getBlockByOLXId(props, kid.id);
       if (!childEntry) continue;
 
-      const childBlueprint = componentMap?.[childEntry.tag];
+      const childBlueprint = blockRegistry?.[childEntry.tag];
       if (!isMatch(childBlueprint)) continue;
 
       const attrs = childEntry.attributes || {};

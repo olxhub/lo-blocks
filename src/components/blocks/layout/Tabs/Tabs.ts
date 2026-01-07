@@ -2,7 +2,7 @@
 
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, fieldByName } from '@/lib/state';
+import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Tabs from './_Tabs';
@@ -17,7 +17,7 @@ const Tabs = dev({
   fields: fields,
   // as any: See getValue spec in lib/blocks/actions.tsx
   getValue: ((props, state, id) => {
-    const activeTab = fieldSelector(state, props, fieldByName('activeTab'), { fallback: 0, id });
+    const activeTab = fieldSelector(state, props, fields.activeTab, { fallback: 0, id });
     return { activeTab };
   }) as any,
   attributes: baseAttributes.strict(),

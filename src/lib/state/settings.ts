@@ -14,9 +14,8 @@ const settingsFields = fields([
   { name: 'debug', event: 'SET_DEBUG', scope: scopes.system }
 ]);
 
-// Export only the public interface (fieldInfoByField)
-// This is what external users should consume
-export const settings = settingsFields.fieldInfoByField;
+// Fields are now directly { fieldName: FieldInfo }
+export const settings = settingsFields;
 
 // TODO: The whole pattern of extending settings fields and combining them in storeWrapper
 // is convoluted. Settings should be settings. Editor state should be editor state. Those

@@ -1,4 +1,4 @@
-// src/lib/blocks/actions.jsx
+// src/lib/blocks/actions.tsx
 //
 // Block actions system - enables blocks to perform behaviors beyond rendering.
 //
@@ -17,13 +17,16 @@
 // The system uses inference to automatically find related blocks (inputs for
 // graders, targets for actions) based on DOM hierarchy and explicit targeting.
 //
+// NOTE: Actions receive a Redux store from their caller (typically ActionButton).
+// This enables replay mode where a different store provides historical state.
+//
 import { inferRelatedNodes, getAllNodes } from './olxdom';
-import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 import * as lo_event from 'lo_event';
 import { CORRECTNESS } from './correctness';
 import { refToReduxKey } from './idResolver';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import type { RuntimeProps } from '@/lib/types';
+import type { Store } from 'redux';
 
 type GraderFn = (props: RuntimeProps, params: { input?: unknown; inputs?: unknown[]; inputApi?: object; inputApis?: object[] }) => { correct: unknown; message: unknown; score?: number };
 
@@ -115,8 +118,8 @@ export function grader({ grader, infer = true }: { grader: GraderFn; infer?: boo
       }
     );
 
-    const state = reduxLogger.store.getState();
-    const map = props.componentMap;
+    const state = props.store.getState();
+    const map = props.blockRegistry;
 
     // Gather values and APIs from each input (synchronous - blocks are in idMap)
     const inputData = inputIds.map(id => {
@@ -192,7 +195,9 @@ export function grader({ grader, infer = true }: { grader: GraderFn; infer?: boo
     const currentState = state.application_state?.component?.[scopedTargetId] || {};
     const submitCount = (currentState.submitCount || 0) + 1;
 
-    lo_event.logEvent('UPDATE_CORRECT', {
+    // Use props.logEvent if available (respects replay mode), fallback to lo_event.logEvent
+    const logEvent = props.logEvent ?? lo_event.logEvent;
+    logEvent('UPDATE_CORRECT', {
       id: scopedTargetId,
       correct: correctness,
       message,
@@ -211,13 +216,13 @@ export function grader({ grader, infer = true }: { grader: GraderFn; infer?: boo
   };
 }
 
-export async function executeNodeActions(props) {
+export async function executeNodeActions(props: RuntimeProps) {
   const ids = inferRelatedNodes(props, {
     selector: n => isAction(n.loBlock),
     infer: props.infer,
     targets: props.target
   });
-  const map = props.componentMap;
+  const map = props.blockRegistry;
   for (const targetId of ids) {
     const targetInstance = getBlockByOLXId(props, targetId);
     if (!targetInstance) {
@@ -225,6 +230,10 @@ export async function executeNodeActions(props) {
       continue;
     }
     const targetBlueprint = map[targetInstance.tag];
+    if (!targetBlueprint?.action) {
+      console.warn(`[executeNodeActions] Block "${targetId}" (${targetInstance.tag}) has no action method`);
+      continue;
+    }
 
     // Find the action's nodeInfo in the dynamic OLX DOM tree
     // Actions should already be rendered as part of the tree, so we need to find them
@@ -239,15 +248,17 @@ export async function executeNodeActions(props) {
     const actionProps = {
       // Copy essential props from original context
       olxJsonSources: props.olxJsonSources,
-      componentMap: props.componentMap,
+      blockRegistry: props.blockRegistry,
       idPrefix: props.idPrefix,  // Preserve prefix so actions update scoped state
+      store: props.store,        // Redux store for state access
+      logEvent: props.logEvent,  // Event logging (no-op during replay)
 
       // Target-specific props (like render.jsx does)
       ...targetInstance.attributes,        // OLX attributes from target action
       kids: targetInstance.kids || [],     // Children of the action block
       id: targetId,
       loBlock: targetBlueprint,
-      fields: targetBlueprint.fields?.fieldInfoByField || {}, // Transformed fields like render.jsx:127
+      fields: targetBlueprint.fields || {}, // Fields are now directly { fieldName: FieldInfo }
       nodeInfo: actionNodeInfo,
     };
 

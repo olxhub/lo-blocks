@@ -2,44 +2,42 @@
 //
 // Field definition system - declarative state management for Learning Observer blocks.
 //
-// CRITICAL TRANSFORMATION: What blocks declare vs. what React components receive:
+// The `fields()` function declares what state a block uses. It returns an object
+// where each field name maps to a FieldInfo object:
 //
-// 1. Block declares: `fields: state.fields(['value', 'loading'])`
-// 2. `fields()` returns: `{ fieldInfoByField: { value: FieldInfo, loading: FieldInfo }, ... }`
-// 3. Render extracts: `fields={ blueprint.fields.fieldInfoByField }` (render.jsx:127)
-// 4. Component receives: `props.fields.value` (as FieldInfo object)
+//   export const fields = state.fields(['value', 'loading']);
+//   // Returns: { value: FieldInfo, loading: FieldInfo, extend: fn }
 //
-// So blocks work with simple field names, but the internals have FieldInfo
-// objects that contain the mapping to events and scopes. The render system does
-// the transformation from the blueprint's fieldInfoByField to fields in component props.
+// This same shape flows through the system:
+//   - Block definition: fields.value works
+//   - Component props: props.fields.value works
+//   - Both are FieldInfo objects with {name, event, scope}
 //
 // Usage in components: `useReduxInput(props, props.fields.value, fallback)`
-// where `props.fields.value` is a FieldInfo with {name, event, scope}.
+//
+// Internally, fields are also registered globally for:
+//   - `fieldByName()` lookups (for dynamic OLX references like target="foo.value")
+//   - Collision detection (same field name can't have different events)
 //
 import { Scope, scopes } from '../state/scopes';
-import { FieldInfoByField, FieldInfoByEvent, FieldInfo } from '../types';
-import { ReduxFieldsReturn } from '../types';
+import { Fields, FieldInfoByEvent, FieldInfo } from '../types';
+import { commonFields } from './commonFields';
 
-const _fieldInfoByField: FieldInfoByField = {};
+const _fieldInfoByField: Record<string, FieldInfo> = {};
 const _fieldInfoByEvent: FieldInfoByEvent = {};
 
 // =============================================================================
-// HACK: System-level fields - always available via fieldByName()
+// Common fields - pre-registered for cross-component access
 // =============================================================================
 // These fields are registered globally at module load time, so they're available
-// even before specific blocks are loaded. This is a workaround for incremental
-// loading where a component (e.g., MasteryBank) needs to reference another
-// component's field (e.g., grader's 'correct') before that component is loaded.
+// even before specific blocks are loaded. This enables cross-component field
+// access (e.g., MasteryBank checking a grader's 'correct' field).
 //
-// Long-term: Fields need a major refactor - server should send field metadata
-// on startup, decoupled from idMap/block loading. See plan for details.
+// The definitions live in commonFields.ts for type-safe access.
 // =============================================================================
-const SYSTEM_FIELDS: FieldInfo[] = [
-  { type: 'field', name: 'correct', event: 'UPDATE_CORRECT', scope: scopes.component },
-];
 
-// Register system fields immediately
-for (const field of SYSTEM_FIELDS) {
+// Register common fields immediately
+for (const field of Object.values(commonFields)) {
   _fieldInfoByField[field.name] = field;
   _fieldInfoByEvent[field.event] = field;
 }
@@ -82,7 +80,7 @@ export function fieldByName(fieldname) {
  * @param {Object} newMap - The new mapping to check.
  * @param {string} type - A string label for error clarity ("field" or "event").
  */
-function checkConflicts(globalMap: FieldInfoByField | FieldInfoByEvent, newMap: FieldInfoByField | FieldInfoByEvent, type = "field") {
+function checkConflicts(globalMap: Record<string, FieldInfo>, newMap: Record<string, FieldInfo>, type = "field") {
   for (const [key, value] of Object.entries(newMap)) {
     if (globalMap.hasOwnProperty(key)) {
       const existing = globalMap[key];
@@ -99,59 +97,83 @@ function checkConflicts(globalMap: FieldInfoByField | FieldInfoByEvent, newMap: 
   }
 }
 
-export function concatFields(...lists) {
-  const fieldInfoByField = {};
-  const fieldInfoByEvent = {};
+/**
+ * Concatenate multiple field definitions into one.
+ * Used by extend() and for combining field sets.
+ */
+export function concatFields(...lists: Fields[]): Fields {
+  const merged: Record<string, FieldInfo> = {};
   for (const list of lists) {
-    Object.assign(fieldInfoByField, list.fieldInfoByField);
-    Object.assign(fieldInfoByEvent, list.fieldInfoByEvent);
+    // Copy all FieldInfo entries (skip the extend method)
+    for (const [key, value] of Object.entries(list)) {
+      if (key !== 'extend' && value && typeof value === 'object' && value.type === 'field') {
+        merged[key] = value;
+      }
+    }
   }
-  const result: {
-    fieldInfoByField: FieldInfoByField;
-    fieldInfoByEvent: FieldInfoByEvent;
-    extend: (...rest: any[]) => { fieldInfoByField: FieldInfoByField; fieldInfoByEvent: FieldInfoByEvent };
-  } = {
-    fieldInfoByField,
-    fieldInfoByEvent,
-    extend: (...rest) => concatFields(result, ...rest),
-  };
+  const result = {
+    ...merged,
+    extend: (...more: Fields[]) => concatFields(result as Fields, ...more),
+  } as Fields;
   return result;
 }
 
-export function fields(fieldList: (string | { name: string; event?: string; scope?: Scope })[]) {
+type FieldSpec = string | FieldInfo | { name: string; event?: string; scope?: Scope };
+
+/**
+ * Declare fields for a block. Returns an object where field names map to FieldInfo.
+ *
+ * @example
+ * // Simple field names (default event and scope)
+ * export const fields = state.fields(['value', 'loading']);
+ * // fields.value is FieldInfo { name: 'value', event: 'UPDATE_VALUE', scope: 'component' }
+ *
+ * @example
+ * // Using common fields (preferred for value, correct, etc.)
+ * export const fields = state.fields([commonFields.value]);
+ * // Reuses the pre-registered field definition
+ *
+ * @example
+ * // Custom event or scope
+ * export const fields = state.fields([
+ *   'value',
+ *   { name: 'history', event: 'HISTORY_CHANGED' },
+ *   { name: 'setting', scope: scopes.componentSetting }
+ * ]);
+ */
+export function fields(fieldList: FieldSpec[]): Fields {
   const infos: FieldInfo[] = fieldList.map(item => {
     if (typeof item === 'string') {
       return { type: 'field', name: item, event: fieldNameToDefaultEventName(item), scope: scopes.component };
     }
+    // Object with name - fill in any missing defaults
     const name = item.name;
     const event = item.event ?? fieldNameToDefaultEventName(name);
     const scope = item.scope ?? scopes.component;
     return { type: 'field', name, event, scope };
   });
 
-  const fieldInfoByField: FieldInfoByField = {};
-  const fieldInfoByEvent: FieldInfoByEvent = {};
+  // Build the result object: { fieldName: FieldInfo, ... }
+  const fieldsByName: Record<string, FieldInfo> = {};
+  const fieldsByEvent: FieldInfoByEvent = {};
 
   for (const info of infos) {
-    fieldInfoByField[info.name] = info;
-    fieldInfoByEvent[info.event] = info;
+    fieldsByName[info.name] = info;
+    fieldsByEvent[info.event] = info;
   }
 
-  checkConflicts(_fieldInfoByField, fieldInfoByField, "field");
-  checkConflicts(_fieldInfoByEvent, fieldInfoByEvent, "event");
+  // Check for conflicts with globally registered fields
+  checkConflicts(_fieldInfoByField, fieldsByName, "field");
+  checkConflicts(_fieldInfoByEvent, fieldsByEvent, "event");
 
-  Object.assign(_fieldInfoByField, fieldInfoByField);
-  Object.assign(_fieldInfoByEvent, fieldInfoByEvent);
+  // Register globally for fieldByName() and collision detection
+  Object.assign(_fieldInfoByField, fieldsByName);
+  Object.assign(_fieldInfoByEvent, fieldsByEvent);
 
-  const result: {
-    fieldInfoByField: FieldInfoByField;
-    fieldInfoByEvent: FieldInfoByEvent;
-    extend: (...rest: any[]) => { fieldInfoByField: FieldInfoByField; fieldInfoByEvent: FieldInfoByEvent };
-  } = {
-    fieldInfoByField,
-    fieldInfoByEvent,
-    extend: (...rest) => concatFields(result, ...rest),
-  };
+  const result = {
+    ...fieldsByName,
+    extend: (...more: Fields[]) => concatFields(result as Fields, ...more),
+  } as Fields;
 
   return result;
 }

@@ -5,7 +5,6 @@ import React, { useCallback, useMemo } from 'react';
 import { useFieldSelector, updateReduxField } from '@/lib/state';
 import { useGraderAnswer } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
-import { fields } from './DropdownInput';
 
 /**
  * Parse comma-separated options string into options array.
@@ -27,7 +26,7 @@ function parseOptionsAttribute(optionsStr) {
 }
 
 export default function _DropdownSelect(props) {
-  const { placeholder, kids, options: optionsAttr } = props;
+  const { placeholder, kids, options: optionsAttr, fields } = props;
 
   const parsedOptions = kids?.parsed?.options || [];
   const attrOptions = useMemo(() => parseOptionsAttribute(optionsAttr), [optionsAttr]);
@@ -50,7 +49,7 @@ export default function _DropdownSelect(props) {
 
   const value = useFieldSelector(
     props,
-    fields.fieldInfoByField.value,
+    fields.value,
     { fallback: '' }
   );
 
@@ -58,8 +57,8 @@ export default function _DropdownSelect(props) {
   const { showAnswer, displayAnswer } = useGraderAnswer(props);
 
   const handleChange = useCallback((e) => {
-    updateReduxField(props, fields.fieldInfoByField.value, e.target.value);
-  }, [props]);
+    updateReduxField(props, fields.value, e.target.value);
+  }, [props, fields]);
 
   // Find display text for the correct answer
   const correctOptionText = displayAnswer

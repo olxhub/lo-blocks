@@ -12,19 +12,19 @@
 import { core } from '@/lib/blocks';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, fieldByName } from '@/lib/state';
+import { fieldSelector, commonFields } from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import * as parser from './_tabularMCQParser';
 import _TabularMCQ from './_TabularMCQ';
 
-export const fields = state.fields(['value']);
+export const fields = state.fields([commonFields.value]);
 
 const TabularMCQ = core({
   ...peggyParser(parser),
   ...blocks.input({
     getValue: (props, reduxState, id) => {
-      const value = fieldSelector(reduxState, { ...props, id }, fieldByName('value'), { fallback: {} });
+      const value = fieldSelector(reduxState, { ...props, id }, fields.value, { fallback: {} });
       return value;  // { rowId: colIndex } for radio, { rowId: [colIndex, ...] } for checkbox
     }
   }),
@@ -106,7 +106,7 @@ const TabularMCQ = core({
 
     // Calculate total score based on selections and column values
     getScore: (props, reduxState, id) => {
-      const value = fieldSelector(reduxState, { ...props, id }, fieldByName('value'), { fallback: {} });
+      const value = fieldSelector(reduxState, { ...props, id }, fields.value, { fallback: {} });
       const cols = props.kids.parsed.cols;
       let total = 0;
       Object.values(value).forEach(colIdx => {

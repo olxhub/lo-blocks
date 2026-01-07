@@ -7,7 +7,7 @@
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, fieldByName } from '@/lib/state';
+import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import _Navigator from './_Navigator';
@@ -26,9 +26,9 @@ const Navigator = dev({
   fields: fields,
   // as any: See getValue spec in lib/blocks/actions.tsx
   getValue: ((props, state, id) => {
-    const selectedItem = fieldSelector(state, props, fieldByName('selectedItem'), { fallback: null, id });
-    const searchQuery = fieldSelector(state, props, fieldByName('searchQuery'), { fallback: '', id });
-    const viewMode = fieldSelector(state, props, fieldByName('viewMode'), { fallback: 'default', id });
+    const selectedItem = fieldSelector(state, props, fields.selectedItem, { fallback: null, id });
+    const searchQuery = fieldSelector(state, props, fields.searchQuery, { fallback: '', id });
+    const viewMode = fieldSelector(state, props, fields.viewMode, { fallback: 'default', id });
     return { selectedItem, searchQuery, viewMode };
   }) as any,
   attributes: srcAttributes.extend({

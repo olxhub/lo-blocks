@@ -13,6 +13,8 @@
 // Focus is on documenting contracts between system components, not exhaustive typing.
 //
 import { z } from 'zod';
+import { scopeNames } from './state/scopes';
+import type { Store } from 'redux';
 
 export type JSONValue =
   | string
@@ -64,6 +66,7 @@ export type OLXTag = string & { __brand: 'OLXTag' };
 // See docs/README.md "IDs" section for documentation.
 export type OlxReference = string & { __brand: 'OlxReference' };  // "/foo", "./foo", "foo"
 export type OlxKey = OlxReference & { __resolved: true };         // idMap lookup key
+export type IdPrefix = string & { __brand: 'IdPrefix' };          // scope prefix for Redux keys
 export type ReduxStateKey = string & { __brand: 'ReduxStateKey' }; // state key with idPrefix
 export type ReactKey = string & { __brand: 'ReactKey' };          // React reconciliation
 export type HtmlId = string & { __brand: 'HtmlId' };              // DOM element ID
@@ -84,13 +87,15 @@ export interface FieldInfo {
   scope: import('./state/scopes').Scope;
 }
 
-export interface FieldInfoByField { [name: string]: FieldInfo; }
 export interface FieldInfoByEvent { [event: string]: FieldInfo; }
 
-export interface Fields {
-  fieldInfoByField: FieldInfoByField;
-  fieldInfoByEvent: FieldInfoByEvent;
-}
+/**
+ * Field definitions for a block. Maps field names to FieldInfo.
+ * Includes extend() for composing field sets.
+ */
+export type Fields = Record<string, FieldInfo> & {
+  extend: (...more: Fields[]) => Fields;
+};
 
 /**
  * A valid JavaScript identifier (e.g., foo, getChoices, _private).
@@ -111,14 +116,15 @@ const ReduxFieldInfo = z.object({
   type: z.literal('field'),
   name: z.string(),
   event: z.string(),
-  scope: z.string(),
+  scope: z.enum(scopeNames),
 }).strict();
-const ReduxFieldInfoMap = z.record(ReduxFieldInfo);
-export const ReduxFieldsReturn = z.object({
-  fieldInfoByField: ReduxFieldInfoMap,
-  fieldInfoByEvent: ReduxFieldInfoMap,
-  extend: z.function(),
-}).strict();
+
+// Fields schema: { fieldName: FieldInfo, ..., extend?: fn }
+// Uses record for dynamic field names. The extend method is validated separately
+// since Zod records require uniform value types.
+export const ReduxFieldsReturn = z.record(
+  z.union([ReduxFieldInfo, z.function()])
+);
 
 // === Schema ===
 export const BlockBlueprintSchema = z.object({
@@ -206,7 +212,7 @@ export type BlockBlueprint = z.infer<typeof BlockBlueprintSchema>;
 /**
  * LoBlock - a Learning Observer block type (code, not content).
  *
- * Created from BlockBlueprint by factory.tsx. Stored in ComponentMap.
+ * Created from BlockBlueprint by factory.tsx. Stored in BlockRegistry.
  *
  * The block lifecycle:
  *   BlockBlueprint (what devs write) → LoBlock (processed) → OlxJson (instance) → OlxDomNode (rendered)
@@ -220,7 +226,7 @@ export interface LoBlock {
   reducers: Function[];
   getValue?: Function;
   locals?: Record<string, any>;
-  fields: FieldInfoByField;
+  fields: Fields;
   name?: string;  // Block name for selector matching
   OLXName: OLXTag;
   description?: string;
@@ -272,7 +278,7 @@ export interface LoBlock {
    */
   getDisplayAnswer?: (props: any) => any;
 
-  // Documentation properties (added by generateRegistry at build time)
+  // Documentation properties (added by generateBlockRegistry at build time)
   /** Path to the block's source file relative to project root */
   source?: string;
   /** Path to the block's README.md documentation file */
@@ -285,9 +291,12 @@ export interface LoBlock {
   gitStatus?: 'committed' | 'modified' | 'untracked';
 }
 
-export interface ComponentMap {
+export interface BlockRegistry {
   [tag: string]: LoBlock;
 }
+
+/** @deprecated Use BlockRegistry instead */
+export type ComponentMap = BlockRegistry;
 
 export type ComponentError = string | null;
 export type ParseError = string | null | {
@@ -330,7 +339,7 @@ export type OlxDomSelector = (node: OlxDomNode) => boolean;
  * RuntimeProps - the context bag passed through the system.
  *
  * This is a hybrid of three things (pragmatic compromise for React):
- * 1. Opaque context (idMap, nodeInfo, componentMap, idPrefix) - thread through, don't inspect
+ * 1. Opaque context (nodeInfo, blockRegistry, idPrefix) - thread through, don't inspect
  * 2. Block machinery (loBlock, fields, locals) - framework injects these
  * 3. OLX attributes - flow in via [key: string]: any
  *
@@ -344,13 +353,16 @@ export interface RuntimeProps {
 
   // Opaque context - thread through
   nodeInfo: OlxDomNode;
-  componentMap: ComponentMap;
-  idPrefix?: string;
+  blockRegistry: BlockRegistry;
+  idPrefix?: IdPrefix;
   olxJsonSources?: string[];  // Redux source names in priority order for OlxJson lookup
+  store: Store;  // Redux store - enables replay mode where a different store provides historical state
+  logEvent: (event: string, payload: any) => void;  // Event logging - no-op during replay
+  sideEffectFree: boolean;  // True during replay - disables fetches, event logging, etc.
 
   // Block machinery - framework injects these
   loBlock: LoBlock;
-  fields: FieldInfoByField;
+  fields: Fields;
   locals: LocalsAPI;  // {} if none, not undefined
 
   // OLX attributes flow in here

@@ -27,7 +27,7 @@
 
 import { dev, refToReduxKey } from '@/lib/blocks';
 import { isBlockTag } from '@/lib/util';
-import { COMPONENT_MAP } from '@/components/componentMap';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import * as state from '@/lib/state';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _CapaProblem from './_CapaProblem';
@@ -75,7 +75,7 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
     // TODO: Handle Open edX OLX cases: Label, Description, ResponseParam
 
     if (isBlockTag(childTag)) {
-      const blockType = COMPONENT_MAP[childTag];
+      const blockType = BLOCK_REGISTRY[childTag];
 
       if (!childAttrs.id) {
         let defaultId;
@@ -109,7 +109,7 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
       // TODO BUG HACK: CapaProblem generates ReduxStateKey-formatted IDs at parse time,
       // but BlueprintKidEntry expects OlxReference. This conflates two ID stages:
       // - OlxReference: static refs in OLX content (e.g., "foo", "./foo")
-      // - ReduxStateKey: runtime keys with idPrefix (e.g., "problem.0.foo")
+      // - ReduxStateKey: runtime keys with idPrefix (e.g., "problem:0:foo")
       //
       // This is a type system violation that masks a real architectural issue.
       // Fix by either:

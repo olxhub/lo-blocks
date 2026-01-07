@@ -3,11 +3,9 @@
 
 import Link from 'next/link';
 import { Home, UserCircle } from 'lucide-react';
-import { useReduxCheckbox, settings } from '@/lib/state';
 
 interface AppHeaderProps {
   home?: boolean;
-  debug?: boolean;
   user?: boolean;
 }
 
@@ -27,29 +25,17 @@ function HomeLink() {
   );
 }
 
-function DebugSwitch() {
-  const [, debugProps] = useReduxCheckbox({}, settings.debug, false,
-    { id: 'AppHeader', tag: 'AppHeader' }); // HACK.
-  return (
-    <label className="flex items-center space-x-1 text-sm cursor-pointer text-gray-600">
-      <input type="checkbox" className="h-4 w-4" {...debugProps} />
-      <span>Debug</span>
-    </label>
-  );
-}
-
 function UserIcon() {
   return <UserCircle className="w-4 h-4 text-gray-600" />;
 }
 
-export default function AppHeader({ home = true, debug = true, user = true }: AppHeaderProps) {
+export default function AppHeader({ home = true, user = true }: AppHeaderProps) {
   return (
     <header className={`flex items-center justify-between px-4 py-2 sticky top-0 z-10 ${HEADER_STYLE}`}>
       <div className="flex items-center space-x-4">
         {home && <HomeLink />}
       </div>
       <div className="flex items-center space-x-4">
-        {debug && <DebugSwitch />}
         {user && <UserIcon />}
       </div>
     </header>

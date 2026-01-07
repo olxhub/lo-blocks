@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, fieldByName } from '@/lib/state';
+import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _SortableInput from './_SortableInput';
@@ -20,7 +20,7 @@ const SortableInput = core({
   component: _SortableInput,
   fields,
   getValue: (props: RuntimeProps, state, id) => ({
-    arrangement: fieldSelector(state, { ...props, id }, fieldByName('arrangement'), { fallback: [] })
+    arrangement: fieldSelector(state, { ...props, id }, fields.arrangement, { fallback: [] })
   }),
   attributes: baseAttributes.extend({
     dragMode: z.enum(['whole', 'handle']).optional().describe('Drag mode: "whole" (entire item) or "handle" (handle only)'),

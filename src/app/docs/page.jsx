@@ -31,7 +31,7 @@ function useDocsExampleState(blockName, exampleFilename, originalContent) {
   const provenance = `docs://${blockName}/${exampleFilename}`;
   return useReduxState(
     {}, // No component context needed
-    editorFields.fieldInfoByField.editedContent,
+    editorFields.editedContent,
     originalContent,
     { id: provenance }
   );

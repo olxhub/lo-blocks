@@ -27,7 +27,7 @@ export default function PreviewPage() {
   if (error) {
     return (
       <div className="flex flex-col h-screen">
-        <AppHeader home debug user />
+        <AppHeader home user />
         <div className="p-6 flex-1">
           <DisplayError
             props={{ id: id, tag: 'preview' }}
@@ -44,7 +44,7 @@ export default function PreviewPage() {
   if (loading) {
     return (
       <div className="flex flex-col h-screen">
-        <AppHeader home debug user />
+        <AppHeader home user />
         <Spinner>Loading content...</Spinner>
       </div>
     );
@@ -53,7 +53,7 @@ export default function PreviewPage() {
   if (!idMap) {
     return (
       <div className="flex flex-col h-screen">
-        <AppHeader home debug user />
+        <AppHeader home user />
         <div className="p-6 flex-1">
           <DisplayError
             props={{ id: id, tag: 'preview' }}
@@ -68,7 +68,7 @@ export default function PreviewPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <AppHeader home debug user />
+      <AppHeader home user />
       <div className="p-6 flex-1 overflow-auto">
         <div className="space-y-4">
           {renderError ? (

@@ -2,12 +2,12 @@
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, fieldByName } from '@/lib/state';
+import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes, placeholder } from '@/lib/blocks/attributeSchemas';
 import _TextArea from './_TextArea';
 
-export const fields = state.fields(['value']);
+export const fields = state.fields([commonFields.value]);
 const TextArea = core({
   ...parsers.blocks(),
   name: 'TextArea',
@@ -15,7 +15,7 @@ const TextArea = core({
   component: _TextArea,
   fields: fields,
   // as any: See getValue spec in lib/blocks/actions.tsx
-  getValue: ((props, state, id) => fieldSelector(state, props, fieldByName('value'), { fallback: '', id })) as any,
+  getValue: ((props, state, id) => fieldSelector(state, props, fields.value, { fallback: '', id })) as any,
   attributes: baseAttributes.extend({
     ...placeholder,
     rows: z.string().optional().describe('Number of visible text rows'),

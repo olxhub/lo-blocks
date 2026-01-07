@@ -53,11 +53,14 @@ A typical example has quite a bit more:
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as state from '@/lib/state';
+import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes, placeholder } from '@/lib/blocks/attributeSchemas';
 import _LineInput from './_LineInput';
 
-export const fields = state.fields(['value']);
+// Use commonFields for standard fields like 'value', 'correct', 'showAnswer'
+// Use string names for block-specific fields: state.fields(['myCustomField'])
+export const fields = state.fields([commonFields.value]);
 
 const LineInput = core({
   ...parsers.blocks(),                                                 // Parser so line label can be any OLX block
@@ -66,7 +69,7 @@ const LineInput = core({
   component: _LineInput,
   fields,                                                              // Where we store our state in redux
   getValue: (props, state, id) =>                                      // What data we send to a grader
-    state.fieldSelector(state, { ...props, id }, state.fieldByName('value'), { fallback: '' }),
+    fieldSelector(state, { ...props, id }, fields.value, { fallback: '' }),
   attributes: baseAttributes.extend({                                  // Validation for our attributes
     ...placeholder,
     type: z.enum(['text', 'number', 'email']).optional().describe('HTML input type'),
@@ -213,14 +216,21 @@ If this is impossible, this can be overridden with `target=`. In most cases, bot
 Blocks can advertise themselves as **inputs** by supplying a `getValue` selector, e.g.:
 
 ```
-  getValue: (props, state, id) => fieldSelector(state, props, fieldByName('value'), { fallback: '', id }),
+  getValue: (props, state, id) => fieldSelector(state, { ...props, id }, fields.value, { fallback: '' }),
 ```
 
-This is almost certainly the wrong way to do this. `value` is the default place to keep the state of *any* block, and `useValue` will either use the `value` field or call `getValue` function on any block. In the future, we should make a:
+For standard fields like `value`, use `commonFields.value` in your field definition and `fields.value` in your selectors. This provides type safety and ensures cross-component field access works correctly.
+
 ```
-...input
+// In block definition:
+import { fieldSelector, commonFields } from '@/lib/state';
+export const fields = state.fields([commonFields.value]);
+
+// In getValue:
+getValue: (props, state, id) => fieldSelector(state, { ...props, id }, fields.value, { fallback: '' })
 ```
-mix-in which, by default, returns the value, but allows richer selectors.
+
+The `useValue` hook will either use the `value` field or call the `getValue` function on any block.
 
 ##### Graders
 
@@ -526,188 +536,131 @@ type HtmlNode = {
 
 Kids might still be strings (for Markdown, PEG), hierarchies (for various navigation blocks), etc. but where convenient, the above should be used. This allows us to use Kids with the simplified `useKids()`.
 
-Validation, TypeScript, and zod
--------------------------------
+# Incremental loading
 
-This project is TypeScript-optional. We use tools judiciously. Most of
-our code is plain JavaScript, but we try to be very careful about
-having type safety and meaningful parameter checking at interfaces.
+The content supports different loading strategies:
+- Grab all content from the server
+- Grab an item and its static kids, and load other content dynamically
+- Grab each item as its loaded
 
-Since the blocks are designed to be developer-friendly, we also use
-zod for type-validation for our major user-facing APIs. Not that zod
-supports both parsing and validation. In most cases, we avoid using
-zod for parsing, as zod may do things like typecast functions in ways
-which strip metadata. It can also lose important properties, like
-equality.
+We might have more strategies in the future (e.g. grab all content from a certain directory or namespace).
+
+# Type Validation, TypeScript, and zod
+
+This project is TypeScript-optional. We use tools judiciously. Most of our code is plain JavaScript, but we try to be very careful about having type safety and meaningful parameter checking at interfaces.
+
+Since the blocks are designed to be developer-friendly, we also use zod for type-validation for our major user-facing APIs. Not that zod supports both parsing and validation. In most cases, we avoid using zod for parsing, as zod may do things like typecast functions in ways which strip metadata. It can also lose important properties, like equality.
 
 ```
 const parsed = ZodSchema.parse(config); // Validate config
 ```
 
-But to continue to use `config` rather than `parsed`, or to only use
-`parsed` for relatively simple types. 
+But to continue to use `config` rather than `parsed`, or to only use `parsed` for relatively simple types. 
 
 Short story:
 
-* Internal code: Mostly pure JavaScript
-* Interface code: Support TypeScript for the benefit of downstream
-  TypeScript projects, and do additional validation
+* Internal code: Mostly use pure JavaScript, except for what's in types.ts:
+  - Major types
+  - Branded IDs
+* Interface code: Support TypeScript for the benefit of downstream TypeScript projects, and do additional validation
 
-Test Philosophy
----------------
+Most of the other typescript is to prevent errors. We don't proactively tag types.
 
-We try to have reasonable unit tests and integration
-tests. "Reasonable" does not mean "comprehensive." In many projects,
-test infrastructure becomes heavyweight, introduces subtle couplings,
-and contorts architecture. We want to avoid that.
+# Test Philosophy
 
-* We favor short, simple, readable tests where it's convenient to have
-  them. One simple multidimensional test is better than five
-  unidimensional ones.
-* We like tests to act as documentation. Overly-complex or unreasbale
-  ones don't do that.
-* We don't want to introduce extensive stubbing or test fixtures,
-  since those often break abstraction barriers and introduce
-  unnecessary coupling between otherwise-independent pieces of code.
+We try to have reasonable unit tests and integration tests. "Reasonable" does not mean "comprehensive." In many projects, test infrastructure becomes heavyweight, introduces subtle couplings, and contorts architecture. We want to avoid that.
 
-Our experience is that most failure lead to exceptions, crashes, and
-similar grand failures, so simple end-to-end smoke tests (does every
-page load?) tend to do most of the work for a minority of the effort.
+* We like tests to act as documentation. Overly-complex ones don't do that. Tests should be understandable.
+* We favor short, simple, readable unit tests where it's convenient to have them.
+* One simple multidimensional test is better than five unidimensional ones.
+* We don't want to introduce extensive stubbing or test fixtures, since those often break abstraction barriers and introduce unnecessary coupling between otherwise-independent pieces of code.
+* We do large-scale automated end-to-end test suites (e.g. running all OLX from documentation through render+parse)
+* The reactive nature of the code renders itself well to replay tests. This infrastructure is not built, but reducer + event stream + checking aspects of final state is very, very testable.
+* We like smoke tests (see if a page renders without a 500 error)
 
-What we are very careful to do, however, is to architect for
-testability of modules. We rely on things like modular reducers,
-well-defined data formats, and a declarative, functional programming
-style.
+Our experience is that most failure lead to exceptions, crashes, and similar grand failures, so simple end-to-end smoke tests (does every page load?) tend to do most of the work for a minority of the effort and coupling introduced by more comprehensive tests.
+
+What we are very careful to do, however, is to architect for testability of modules. We rely on things like modular reducers, well-defined data formats, and a declarative, functional programming style.
 
 Tools
 -----
 
-* The system runs in firejail, a lightweight sandbox. This helps
-  mitigate the risk from e.g. a compromised `npm` package
-* The system uses `next.js`. We like `next.js`, but the rather unusual
-  dynamic development requirements (e.g. ability to dynamically edit
-  and reload blocks) may make this type of framework a poor fit. At
-  some point, we should evaluate `vite`, other frameworks, or rolling
-  our own.
-* Data streams into the [Learning
-  Observer](https://github.com/ETS-Next-Gen/writing_observer), which
-  allows for rather rich, real-time dashboard.
+* The system runs in firejail, a lightweight sandbox. This helps mitigate the risk from e.g. a compromised `npm` package. Developers on some systems find they need to disable this. If you're in a defective operating system, just remove the `firejail` from `package.json`.
+* We also have automation versions of scripts (github CI/CD, online LLMs, etc. don't have Firejail installed). You can use those, but those are designed for machines and not humans. The system uses `next.js`. We like `next.js`, but the rather unusual dynamic development requirements (e.g. ability to dynamically edit and reload blocks) may make this type of framework a poor fit. At some point, we should evaluate `vite`, other frameworks, or rolling our own.
+* Data streams into the [Learning Observer](https://github.com/ETS-Next-Gen/writing_observer), which allows for rather rich, real-time dashboard.
 
-Names and IDs
--------------
+# Names and IDs
 
-We are mixing React concepts, OLX concepts, and others. Just to keep
-things clear, here is a list of *external* names and keys -- meaning
-ones from other systems where we'd like to maintain compatibility:
+We are mixing React concepts, OLX concepts, and others. Just to keep things clear, here is a list of *external* names and keys -- meaning ones from other systems where we'd like to maintain compatibility:
 
-* `url_name`: Used as a key in OLX 1.0. Designed to be human-friendly
-  (e.g. "eigen_pset"), but often GUIDs. This was originally created,
-  in part, so URLs would be friendly
-  (e.g. `/linear_algebra/eigenvalues` instead of `/[GUID]/[GUID]`),
-  and to simplify analytics and debugging.
-* `display_name`: Human-friendly short decriptive text
-  (e.g. "Eigenvalue Problem Set")
-* `id` (HTML / DOM Attribute): Web-page wide unique ID
-* `key` (React-specific): Unique identifier, esp. for elements in a
-  list.
-* `name` (HTML/DOM Attribute): Names an element (typically form controls
-  for form data submission)
-* `displayName` (React-Specific): Human-readable name for a React
-  component, useful for debugging
+* OLX 1.0 `url_name`: Used as a key. Designed to be human-friendly (e.g. "eigen_pset"), but often GUIDs. This was originally created, in part, so URLs would be friendly (e.g. `/linear_algebra/eigenvalues` instead of `/[GUID]/[GUID]`), and to simplify analytics and debugging. We split this into `OlxReference`, `OlxKey`, and `ReactKey`. 
+* OLX 1.0 `display_name`: Human-friendly short decriptive text (e.g. "Eigenvalue Problem Set"). We use `title`.
+* HTML `id`: Web-page wide unique ID
+* React `key`: Unique identifier, esp. for elements in a list.
+* HTML `name` (HTML/DOM Attribute): Names an element (typically form controls for form data submission)
+* `displayName` (React-Specific): Human-readable name for a React component, useful for debugging
 
-Internally, we need to refer to keys for *state* and for
-*layout*. State may be shared across multiple elements in a
-layout. For example, a video player, subtitles, and scrubber may have
-the same *state ID* (e.g. component ID in redux) but need a different
-HTML `id` and react `key`
+In `lo-blocks`, this is refactored as:
+* `OlxReference` (e.g. "/foo", "./foo", "foo"): ID as found in OLX
+* `OlxKey`: Same, but uniquely dereferenced
+* `ReduxStateKey`: As stored in the state. The same OLX element may appear multiple places under the same ID (OLX is a DAG) or different IDs (e.g. a `DynamicList`, which adds a prefix). There are also cases where different OLX elements might share a Redux ID (for example, a video player, its scrubber, etc. could be implemented like this, although newer code is moving to `target=`)
+* We also have `ReactKey` and `HtmlId`, although those are rarely relevant to block developers.
+* We pass around an `IdPrefix`, which is generally used in `OlxKey` -> `ReduxStateKey` conversions
 
-Again, stylistically, we aim to use *semantic keys* where possible,
-for the same reasons as `url_name` in edX:
+We resolve keys with
+* `refToReduxKey(props)` - Converts a ref to a reduxKey.
+* `refToOlxKey(ref)` - Converts a ref to an olxKey.
+
+Stylistically, we aim to use *semantic keys* where possible, for the same reasons as `url_name` in edX:
   <Lesson id="linalg_eigen"/>
 is much easier to understand than:
   <Lesson id="3a0512ad31dc81fc166507f20ddebfe700d64daf"/>
 
-This has many downsides, including key collisions, the associated need
-for namespaces, and IDs going out-of-date (e.g. a problem changes what
-it teaches). We've made the decision to accept those.
+This has many downsides, including key collisions, the associated need for namespaces, and IDs going out-of-date (e.g. a problem changes what it teaches). We've made the decision to accept those. As a hierarchy:
 
-Every OLX component *must* have an ID, however.
+semantic > SHA hash > GUID
 
-Peer components (e.g. an analytic for another component) will often
-use `target` to refer to their "main" redux state:
+Every OLX component *must* have an ID.
 
-`
+Peer components (e.g. an analytic for another component) will often use `target` to refer to their "main" redux state:
+
+```
   <Input id="essay"\>
   <Wordcount target="essay"\>
-`
-
-We are still trying to figure this out, but
-`src/lib/blocks/idResolver.ts` is a stab at trying to make
-context-relevant blocks. This allows us to, instead of passing IDs, to
-pass around `props`, and change the logic around extracting IDs as
-this evolves and as we figure things out.
-
-At this stage, though, we have two main ID types:
-
-* `reduxKey` - The key used to store component state in Redux.
-  May include `idPrefix` for scoped instances (e.g., `list.0.response`).
-* `olxKey` - The base ID used for idMap lookup.
-  Just the plain ID without prefixes (e.g., `response`).
-
-And two functions to convert refs to these types:
-
-* `refToReduxKey(props)` - Converts a ref to a reduxKey.
-* `refToOlxKey(ref)` - Converts a ref to an olxKey.
-
-This distinction came down when handling lists in a graphic organizer
-and considering certain types of templated content. One OLX node
-definition may come up multiple times in a render if it is e.g. from
-an expanding list of documents in a graphic organizer.
-
-### ID Prefixes for Scoped State
-
-When a single OLX node is rendered multiple times (e.g., in a list or
-mastery bank), each instance needs its own Redux state. We handle this
-with `idPrefix`, which scopes the Redux key:
-
-```
-OLX node: <TextArea id="response"/>
-
-Without prefix:  Redux key = "response"
-With prefix:     Redux key = "list.0.response", "list.1.response", etc.
 ```
 
-The `extendIdPrefix(props, scope)` utility builds scoped prefixes for
-child components. Components that render children with scoped state
-(DynamicList, MasteryBank) use this:
+## ID Prefixes for Scoped State
 
-```javascript
-// In a list component:
-renderCompiledKids({ ...props, ...extendIdPrefix(props, `${id}.${index}`) })
+When a single OLX node is rendered multiple times (e.g., in a list or mastery bank), each instance needs its own Redux state. We handle this with `idPrefix`, which scopes the Redux key:
 
-// In MasteryBank (scoped by attempt number):
-render({ ...props, node: problemNode, ...extendIdPrefix(props, `${id}.attempt_${n}`) })
+```
+OLX node: `<DynamicList id="list"><TextArea id="response"/></DynamicList>`
+
+OLX key has no prefix: `response`
+React key has a prefix: `list:0:response`, `list:1:response`, etc.
 ```
 
-### ID Path Syntax
+The `extendIdPrefix(props, scope)` utility builds scoped prefixes for child components.
 
-When referencing other components' state (e.g., a grader looking up an
-input's value, or a child referencing a parent), IDs support path-like
-syntax to control whether the `idPrefix` is applied:
+## ID Path Syntax
+
+When referencing other components' state (e.g., a grader looking up an input's value, or a child referencing a parent), IDs should support path-like syntax to control whether the `idPrefix` is applied:
 
 * `foo` — **Relative** (default): `idPrefix` is applied. Most common case.
 * `/foo` — **Absolute**: Bypasses `idPrefix`, references global state.
 * `./foo` — **Explicit relative**: Same as `foo`, but clearer in intent.
 * `../foo` — **Parent scope**: Not yet implemented.
 
-This matters when a component inside a scoped context (like a problem
-inside a MasteryBank) needs to reference something outside that scope.
+This matters when a component inside a scoped context (like a problem inside a MasteryBank) needs to reference something outside that scope.
 
-The `fieldSelector` and `updateReduxField` functions automatically
-apply `idPrefix` to ID overrides, so components don't need to manually
-scope IDs. If you pass `{ id: 'parent_input' }` to these functions and
-`idPrefix` is set, the lookup will use `prefix.parent_input`. To bypass
-this, use `{ id: '/parent_input' }`.
+The `fieldSelector` and `updateReduxField` functions automatically apply `idPrefix` to ID overrides, so components don't need to manually scope IDs. If you pass `{ id: 'parent_input' }` to these functions and `idPrefix` is set, the lookup will use `prefix.parent_input`.
+
+Right now, this is a little bit confused, since we have two types of scoping:
+
+* Static scoping (e.g. `mit.edu/pmitros/6002x/hw1/problem5`) at the OLX Key level. `/` seperator
+* Dynamic scoping (e.g. `DynamicList`). `:` separator
+
+Which we still need to figure out.
 
 DAG Structure
 -------------
@@ -814,17 +767,11 @@ level of expertise:
 3. Block developers: Clever highschool student or an undergrad researcher
 4. Core developers: Professional computer scientists / software engineers
 
-Code Style
-----------
+# Code Style
 
-Avoid renaming / aliasing variables. If there's a conflict with the name
-`fields`, we don't `import fields as f from @/lib/state`, but we use the
-fully qualified name: `import * as state from @/lib/state` followed
-by `state.fields`
+Avoid renaming / aliasing variables. If there's a conflict with the name `fields`, we don't `import fields as someAlias from @/lib/state`, but we use the fully qualified name: `import * as state from @/lib/state` followed by `state.fields`
 
-Avoid `await import` unless there are circular dependency issues or
-browser / node issues. Imports go at the top of the file. If you do
-need an await import, document why.
+Avoid `await import` unless there are circular dependency issues or browser / node issues. Imports go at the top of the file. If you do need an await import, document why.
 
 Field Conventions
 -----------------
@@ -851,3 +798,10 @@ name.
 The rationale here is we can point things by ID. If an instructor
 points an action to an OLX ID, the system know to grab or push data to
 `id.[value]`.
+
+Clean code
+----------
+
+The general philosophy is to always leave the codebase cleaner than you found it. A PR doesn't need to be perfect, but it should improve code quality. If there's a pre-existing issue, fix it.
+
+Never paper over bugs.

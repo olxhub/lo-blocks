@@ -137,7 +137,7 @@ export function checkPrerequisiteValue(prerequisite, value) {
 function prerequisiteValueFromGrader(props, id) {
   try {
     const correctField = state.componentFieldByName(props, id, 'correct');
-    return state.selectFromStore(correctField, {
+    return state.selectFromStore(props, correctField, {
       id,
       fallback: 0,
       selector: (s) => s?.score ?? s
@@ -193,7 +193,7 @@ export function checkPrerequisites(props, prerequisites) {
 /**
  * Check if a single prerequisite is satisfied (synchronous, for use in selectors).
  *
- * @param {Object} props - Component props with idMap, componentMap
+ * @param {Object} props - Component props with blockRegistry
  * @param {Object} reduxState - Current Redux state
  * @param {Object} prerequisite - Parsed prerequisite {id, field?, op?, value?, status?}
  * @returns {boolean} - True if prerequisite is satisfied
@@ -235,7 +235,7 @@ export function isPrerequisiteSatisfiedSync(props, reduxState, prerequisite) {
  * Selector: Check if all prerequisites are satisfied.
  * Use inside useSelector for reactive updates.
  *
- * @param {Object} props - Component props with idMap, componentMap
+ * @param {Object} props - Component props with blockRegistry
  * @param {Object} reduxState - Current Redux state
  * @param {string|Array} prerequisites - Comma-separated string or array of prerequisite expressions
  * @returns {boolean} - True if all prerequisites are satisfied
@@ -259,7 +259,7 @@ export function prerequisitesSatisfiedSelector(props, reduxState, prerequisites)
  * Hook: Reactively check if prerequisites are satisfied.
  * Re-renders component when prerequisite values change.
  *
- * @param {Object} props - Component props with idMap, componentMap
+ * @param {Object} props - Component props with blockRegistry
  * @param {string|Array} prerequisites - Comma-separated string or array of prerequisite expressions
  * @returns {boolean} - True if all prerequisites are satisfied
  *

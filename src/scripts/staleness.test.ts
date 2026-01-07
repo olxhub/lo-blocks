@@ -14,7 +14,7 @@
 import { readFileSync, existsSync, statSync } from 'fs';
 import { globSync } from 'glob';
 import path from 'path';
-import { generateAllRegistryContents } from './generateRegistry';
+import { generateAllRegistryContents } from './generateBlockRegistry';
 
 describe('Generated files should be up-to-date', () => {
 

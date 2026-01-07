@@ -18,6 +18,7 @@
 import { useSelector } from 'react-redux';
 import * as lo_event from 'lo_event';
 import type { OlxJson, OlxKey, IdMap } from '../types';
+import type { LogEventFn } from '../render';
 
 // =============================================================================
 // Types
@@ -69,22 +70,27 @@ export const CLEAR_OLXJSON = 'CLEAR_OLXJSON';
  * is tracked separately, with higher-priority sources overriding lower ones
  * when accessed via selectors.
  *
+ * @param props - Component props (must include logEvent)
  * @param source - Source identifier (e.g., 'content', 'inline', 'studio')
  * @param blocks - IdMap of parsed blocks: { [id]: OlxJson }
  *
  * @example
  * // After fetching from API:
- * dispatchOlxJson('content', data.idMap);
+ * dispatchOlxJson(props, 'content', data.idMap);
  *
  * // After parsing inline content:
- * dispatchOlxJson('inline', parseResult.idMap);
+ * dispatchOlxJson(props, 'inline', parseResult.idMap);
  */
-export function dispatchOlxJson(source: string, blocks: IdMap): void {
+export function dispatchOlxJson(
+  props: { logEvent: LogEventFn },
+  source: string,
+  blocks: IdMap
+): void {
   if (!blocks || Object.keys(blocks).length === 0) {
     return; // Nothing to dispatch
   }
 
-  lo_event.logEvent(LOAD_OLXJSON, { source, blocks });
+  props.logEvent(LOAD_OLXJSON, { source, blocks });
 }
 
 /**
@@ -121,32 +127,47 @@ export function dispatchOlxJsonSync(
 /**
  * Mark a block as loading in Redux.
  *
+ * @param props - Component props (must include logEvent)
  * @param source - Source identifier
  * @param id - Block ID being loaded
  */
-export function dispatchOlxJsonLoading(source: string, id: string): void {
-  lo_event.logEvent(OLXJSON_LOADING, { source, id });
+export function dispatchOlxJsonLoading(
+  props: { logEvent: LogEventFn },
+  source: string,
+  id: string
+): void {
+  props.logEvent(OLXJSON_LOADING, { source, id });
 }
 
 /**
  * Mark a block as failed in Redux.
  *
+ * @param props - Component props (must include logEvent)
  * @param source - Source identifier
  * @param id - Block ID that failed
  * @param error - Error information
  */
-export function dispatchOlxJsonError(source: string, id: string, error: string | Error): void {
+export function dispatchOlxJsonError(
+  props: { logEvent: LogEventFn },
+  source: string,
+  id: string,
+  error: string | Error
+): void {
   const message = typeof error === 'string' ? error : error.message;
-  lo_event.logEvent(OLXJSON_ERROR, { source, id, error: { message } });
+  props.logEvent(OLXJSON_ERROR, { source, id, error: { message } });
 }
 
 /**
  * Clear a source from Redux (or all sources if source is empty).
  *
+ * @param props - Component props (must include logEvent)
  * @param source - Source to clear, or empty/undefined to clear all
  */
-export function dispatchClearOlxJson(source?: string): void {
-  lo_event.logEvent(CLEAR_OLXJSON, { source });
+export function dispatchClearOlxJson(
+  props: { logEvent: LogEventFn },
+  source?: string
+): void {
+  props.logEvent(CLEAR_OLXJSON, { source });
 }
 
 // =============================================================================

@@ -6,10 +6,9 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { useFieldSelector, updateReduxField } from '@/lib/state';
+import * as state from '@/lib/state';
 import { inferRelatedNodes, useGraderAnswer } from '@/lib/blocks';
 import { refToReduxKey } from '@/lib/blocks/idResolver';
-import { fields as choiceFields } from './ChoiceInput';
 import { DisplayError } from '@/lib/util/debug';
 
 export default function _ChoiceItem(props) {
@@ -40,11 +39,12 @@ export default function _ChoiceItem(props) {
     );
   }
 
-  // useFieldSelector and updateReduxField automatically apply idPrefix to the id override
+  // Get the parent input's value field dynamically
+  const valueField = state.componentFieldByName(props, parentId, 'value');
   // For checkboxes, fallback to empty array; for radio, fallback to empty string
-  const selected = useFieldSelector(
+  const selected = state.useFieldSelector(
     props,
-    choiceFields.fieldInfoByField.value,
+    valueField,
     { id: parentId, fallback: isCheckbox ? [] : '' }
   );
 
@@ -67,10 +67,10 @@ export default function _ChoiceItem(props) {
       const newSelection = currentSelection.includes(itemValue)
         ? currentSelection.filter(v => v !== itemValue)
         : [...currentSelection, itemValue];
-      updateReduxField(props, choiceFields.fieldInfoByField.value, newSelection, { id: parentId });
+      state.updateReduxField(props, valueField, newSelection, { id: parentId });
     } else {
       // Radio: set single value
-      updateReduxField(props, choiceFields.fieldInfoByField.value, itemValue, { id: parentId });
+      state.updateReduxField(props, valueField, itemValue, { id: parentId });
     }
   };
 

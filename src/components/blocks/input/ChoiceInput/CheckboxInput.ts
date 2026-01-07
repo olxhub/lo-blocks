@@ -6,14 +6,14 @@
 import { z } from 'zod';
 import { core, getBlockByOLXId } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, fieldByName } from '@/lib/state';
+import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import type { RuntimeProps } from '@/lib/types';
 
-export const fields = state.fields(['value']);
+export const fields = state.fields([commonFields.value]);
 
 /**
  * Get the list of choices (Key/Distractor children) with their metadata.
@@ -43,7 +43,7 @@ const CheckboxInput = core({
   component: _Noop,
   fields,
   getValue: (props: RuntimeProps, state, id) => {
-    const value = fieldSelector(state, { ...props, id }, fieldByName('value'), { fallback: [] });
+    const value = fieldSelector(state, { ...props, id }, fields.value, { fallback: [] });
     // Ensure array even if stored value was a string (migration case)
     if (!Array.isArray(value)) {
       return value ? [value] : [];

@@ -2,7 +2,7 @@
 
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, fieldByName } from '@/lib/state';
+import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _TeamDirectory from './_TeamDirectory';
@@ -20,8 +20,8 @@ const TeamDirectory = dev({
   fields: fields,
   attributes: baseAttributes.strict(),
   getValue: (props, state, id) => {
-    const selectedMember = fieldSelector(state, props, fieldByName('selectedMember'), { fallback: null, id });
-    const viewMode = fieldSelector(state, props, fieldByName('viewMode'), { fallback: 'grid', id });
+    const selectedMember = fieldSelector(state, props, fields.selectedMember, { fallback: null, id });
+    const viewMode = fieldSelector(state, props, fields.viewMode, { fallback: 'grid', id });
     return { selectedMember, viewMode };
   }
 });

@@ -2,13 +2,13 @@
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, fieldByName } from '@/lib/state';
+import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes, placeholder } from '@/lib/blocks/attributeSchemas';
 import _LineInput from './_LineInput';
 import type { RuntimeProps } from '@/lib/types';
 
-export const fields = state.fields(['value']);
+export const fields = state.fields([commonFields.value]);
 
 // HTML input types per MDN. We support a subset that makes sense for educational content.
 // Full list: button, checkbox, color, date, datetime-local, email, file, hidden, image,
@@ -29,7 +29,7 @@ const LineInput = core({
   // TODO: The `id` parameter naming is confusing. It's an OlxKey that fieldSelector
   // converts to ReduxStateKey by applying idPrefix. Consider renaming to `olxId`
   // or documenting the conversion. See docs/README.md "IDs" section.
-  getValue: (props: RuntimeProps, state, id) => fieldSelector(state, { ...props, id }, fieldByName('value'), { fallback: '' }),
+  getValue: (props: RuntimeProps, state, id) => fieldSelector(state, { ...props, id }, fields.value, { fallback: '' }),
   attributes: baseAttributes.extend({
     ...placeholder,
     min: z.string().optional().describe('Minimum allowed value (for numeric types)'),

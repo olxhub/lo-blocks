@@ -12,7 +12,7 @@ export default function _Tabs(props) {
 
   // Extract kid IDs for batch lookup (for tab labels)
   const kidIds = kids.filter(k => k?.type === 'block' && k?.id).map(k => k.id);
-  const { olxJsons: kidBlocks } = useOlxJsonMultiple(kidIds);
+  const { olxJsons: kidBlocks } = useOlxJsonMultiple(props, kidIds);
 
   // Create a map for easy lookup by ID
   const kidBlockMap = Object.fromEntries(kidIds.map((id, i) => [id, kidBlocks[i]]));

@@ -6,6 +6,7 @@ import { useReduxState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import { isInputReadOnly, useGraderAnswer, refToOlxKey } from '@/lib/blocks';
+import { extendIdPrefix } from '@/lib/blocks/idResolver';
 
 // Component to render a single sortable item's content
 function SortableItemContent({ props, kid, itemIdPrefix }) {
@@ -199,7 +200,7 @@ export default function _SortableInput(props) {
           const isDragOver = dragOverIndex === displayIndex;
           // Correct position is kidIndex + 1 (1-indexed)
           const correctPosition = kidIndex + 1;
-          const itemIdPrefix = `${props.idPrefix || ''}.sortitem.${displayIndex}`;
+          const itemIdPrefix = extendIdPrefix(props, ['sortitem', displayIndex]).idPrefix;
 
           const itemContent = (
             <SortableItemContent props={props} kid={kid} itemIdPrefix={itemIdPrefix} />

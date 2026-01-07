@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
-import { fieldSelector, fieldByName } from '@/lib/state';
+import { fieldSelector } from '@/lib/state';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Collapsible from './_Collapsible';
 
@@ -18,7 +18,7 @@ const Collapsible = dev({
   fields: fields,
   // as any: See getValue spec in lib/blocks/actions.tsx
   getValue: ((props, state, id) => {
-    const expanded = fieldSelector(state, props, fieldByName('expanded'), { fallback: false, id });
+    const expanded = fieldSelector(state, props, fields.expanded, { fallback: false, id });
     return { expanded };
   }) as any,
   attributes: baseAttributes.extend({

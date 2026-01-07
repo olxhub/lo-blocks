@@ -8,12 +8,17 @@
 // OLX ID = static ID from markup: <Block id="myblockid">
 // Redux ID = runtime ID with suffixes: myblockid_1, myblockid_2 (for repeated blocks)
 //
+// NOTE: State is accessed via props.store. This enables replay mode where
+// a different store provides historical state. The store is threaded through
+// props from React components using useStore().
+//
 import { refToOlxKey } from './idResolver';
 import { selectBlock } from '@/lib/state/olxjson';
-import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 import type { OlxJson, OlxReference } from '@/lib/types';
+import type { Store } from 'redux';
 
-interface PropsWithSources {
+interface PropsWithStore {
+  store: Store;
   olxJsonSources?: string[];
 }
 
@@ -23,11 +28,11 @@ interface PropsWithSources {
  * Synchronous lookup - returns the block or undefined.
  * Content must already be in Redux before calling.
  *
- * @param props - Object containing olxJsonSources (optional, defaults to ['content'])
+ * @param props - Props containing store and olxJsonSources
  * @param id - The OLX ID to look up (can be null for optional lookups)
  * @returns The block entry, or undefined if not found
  */
-export function getBlockByOLXId(props: PropsWithSources, id: OlxReference | string | null): OlxJson | undefined {
+export function getBlockByOLXId(props: PropsWithStore, id: OlxReference | string | null): OlxJson | undefined {
   if (id == null) {
     return undefined;
   }
@@ -39,7 +44,8 @@ export function getBlockByOLXId(props: PropsWithSources, id: OlxReference | stri
 
   const key = refToOlxKey(id);
   const sources = props?.olxJsonSources ?? ['content'];
-  return selectBlock(reduxLogger.store?.getState(), sources, key);
+  const state = props.store.getState();
+  return selectBlock(state, sources, key);
 }
 
 /**
@@ -47,10 +53,10 @@ export function getBlockByOLXId(props: PropsWithSources, id: OlxReference | stri
  *
  * Synchronous lookup - returns an array of blocks.
  *
- * @param props - Object containing olxJsonSources (optional)
+ * @param props - Props containing store and olxJsonSources
  * @param ids - Array of OLX IDs to look up
  * @returns Array of block entries (undefined for blocks not found)
  */
-export function getBlocksByOLXIds(props: PropsWithSources, ids: (OlxReference | string)[]): (OlxJson | undefined)[] {
+export function getBlocksByOLXIds(props: PropsWithStore, ids: (OlxReference | string)[]): (OlxJson | undefined)[] {
   return ids.map(id => getBlockByOLXId(props, id));
 }

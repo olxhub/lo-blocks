@@ -1,14 +1,12 @@
-// src/components/blocks/specialized/MasteryBank/_MasteryBank.jsx
+// src/components/blocks/specialized/MasteryBank/_MasteryBank.tsx
 'use client';
 
-import React, { useMemo, useEffect, useRef, Suspense } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { useBlock } from '@/lib/render';
-import { useReduxState, useFieldSelector, fieldByName } from '@/lib/state';
+import { useReduxState, useFieldSelector, commonFields } from '@/lib/state';
 import { extendIdPrefix, toOlxReference } from '@/lib/blocks/idResolver';
 import { CORRECTNESS } from '@/lib/blocks';
-import { useOlxJson } from '@/lib/blocks/useOlxJson';
 import { DisplayError } from '@/lib/util/debug';
-import Spinner from '@/components/common/Spinner';
 
 /**
  * Fisher-Yates shuffle - returns array of indices [0, length) in random order.
@@ -84,18 +82,14 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   const { setCorrectStreak, setModeState, setCompleted, setCorrect, setFirstSubmissionResult, setAttemptNumber } = handlers;
 
   const scopedProps = { ...props, ...extendIdPrefix(props, `${id}.attempt_${attemptNumber}`) };
-  const problemRef = toOlxReference(problemId, 'MasteryBank problem');
   const scopedGraderRef = toOlxReference(`${problemId}_grader`, 'MasteryBank grader');
 
-  // Load problem block (grader field is now a system field, always available)
-  const { olxJson: problemBlock } = useOlxJson(problemRef);
+  // Render problem - useBlock handles loading state with Spinner
+  const { block: renderedProblem, error } = useBlock(scopedProps, problemId);
 
-  // Render problem
-  const { block: renderedProblem } = useBlock(scopedProps, problemId);
-
-  // HACK: 'correct' is registered as a system field, so fieldByName always works
-  // even if the grader block isn't loaded yet. See fields.ts SYSTEM_FIELDS.
-  const graderField = fieldByName('correct');
+  // Use commonFields.correct for cross-component field access.
+  // Common fields are pre-registered so they're available even if the grader isn't loaded yet.
+  const graderField = commonFields.correct;
 
   const currentCorrectness = useFieldSelector(
     scopedProps,
@@ -152,7 +146,8 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
     }
   }, [currentCorrectness, firstSubmissionResult, correctStreak, goalNum, problemIds.length, modeState, orderMode, attemptNumber, setCorrectStreak, setModeState, setCompleted, setCorrect, setFirstSubmissionResult, setAttemptNumber]);
 
-  if (!problemBlock) {
+  // Show helpful error for content authors if problem not found
+  if (error) {
     return (
       <DisplayError
         props={props}
@@ -161,13 +156,15 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
         technical={{
           hint: 'Make sure this problem is defined elsewhere in your content.',
           problemId,
-          blockId: props.id
+          blockId: props.id,
+          error
         }}
         id={`${props.id}_problem_not_found`}
       />
     );
   }
 
+  // useBlock returns Spinner when loading - just render the block
   return (
     <div className="lo-mastery-bank__problem">
       {renderedProblem as React.ReactNode}
@@ -259,15 +256,13 @@ export default function _MasteryBank(props) {
         </div>
       </div>
 
-      <Suspense fallback={<Spinner>Loading problem...</Spinner>}>
-        <MasteryProblem
-          props={props}
-          problemId={currentProblemId}
-          attemptNumber={attemptNumber}
-          masteryState={{ problemIds, correctStreak, goalNum, firstSubmissionResult, modeState, orderMode }}
-          handlers={{ setCorrectStreak, setModeState, setCompleted, setCorrect, setFirstSubmissionResult, setAttemptNumber }}
-        />
-      </Suspense>
+      <MasteryProblem
+        props={props}
+        problemId={currentProblemId}
+        attemptNumber={attemptNumber}
+        masteryState={{ problemIds, correctStreak, goalNum, firstSubmissionResult, modeState, orderMode }}
+        handlers={{ setCorrectStreak, setModeState, setCompleted, setCorrect, setFirstSubmissionResult, setAttemptNumber }}
+      />
     </div>
   );
 }

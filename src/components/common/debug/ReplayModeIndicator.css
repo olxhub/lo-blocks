@@ -1,0 +1,211 @@
+/* src/components/common/debug/ReplayModeIndicator.css */
+/* Visual indicator and scrubber for replay mode */
+
+.replay-mode-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: linear-gradient(135deg, #1a3a5c 0%, #0d1f33 100%);
+  border-bottom: 2px solid #58a6ff;
+  color: #c9d1d9;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.replay-mode-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+}
+
+.replay-mode-icon {
+  font-size: 16px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Info display */
+.replay-mode-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.replay-mode-event-count {
+  color: #58a6ff;
+  font-weight: 500;
+}
+
+.replay-mode-timestamp {
+  font-family: 'SF Mono', Consolas, monospace;
+  font-size: 12px;
+  color: #8b949e;
+}
+
+.replay-mode-duration {
+  color: #6e7681;
+}
+
+/* Navigation buttons */
+.replay-mode-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.replay-mode-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  color: #c9d1d9;
+  font-size: 10px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.replay-mode-btn:hover:not(:disabled) {
+  background: #30363d;
+  border-color: #58a6ff;
+}
+
+.replay-mode-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Mode toggle */
+.replay-mode-toggle {
+  display: flex;
+  background: #0d1117;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #30363d;
+}
+
+.replay-mode-toggle-btn {
+  padding: 4px 10px;
+  background: transparent;
+  border: none;
+  color: #8b949e;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.replay-mode-toggle-btn:hover {
+  background: #21262d;
+}
+
+.replay-mode-toggle-btn.active {
+  background: #58a6ff;
+  color: #0d1117;
+}
+
+/* Exit button */
+.replay-mode-exit {
+  margin-left: auto;
+  padding: 4px 12px;
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  color: #c9d1d9;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.replay-mode-exit:hover {
+  background: #30363d;
+  border-color: #58a6ff;
+}
+
+/* Scrubber */
+.replay-mode-scrubber {
+  padding: 8px 16px 10px;
+  cursor: pointer;
+}
+
+.replay-mode-scrubber-track {
+  position: relative;
+  height: 12px;
+  background: #21262d;
+  border-radius: 6px;
+  overflow: visible;
+}
+
+/* Event markers */
+.replay-mode-scrubber-marker {
+  position: absolute;
+  top: 50%;
+  width: 2px;
+  height: 8px;
+  background: #6e7681;
+  transform: translate(-50%, -50%);
+  border-radius: 1px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.replay-mode-scrubber-marker.active {
+  background: #58a6ff;
+  height: 12px;
+  width: 3px;
+}
+
+.replay-mode-scrubber-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(88, 166, 255, 0.3) 0%, rgba(121, 192, 255, 0.3) 100%);
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.replay-mode-scrubber-thumb {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  background: #58a6ff;
+  border: 2px solid #0d1f33;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.replay-mode-scrubber:hover .replay-mode-scrubber-thumb {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.replay-mode-scrubber:active .replay-mode-scrubber-thumb {
+  transform: translate(-50%, -50%) scale(1.2);
+  box-shadow: 0 2px 8px rgba(88, 166, 255, 0.4);
+}
+
+/* Keyboard hint */
+.replay-mode-indicator::after {
+  content: '← → to navigate';
+  position: absolute;
+  bottom: 4px;
+  right: 16px;
+  font-size: 10px;
+  color: #6e7681;
+  opacity: 0.7;
+}

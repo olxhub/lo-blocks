@@ -2,14 +2,14 @@
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, fieldByName } from '@/lib/state';
+import { fieldSelector, commonFields } from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import * as parser from './_dropdownParser';
 import _DropdownSelect from './_DropdownSelect';
 import type { RuntimeProps } from '@/lib/types';
 
-export const fields = state.fields(['value']);
+export const fields = state.fields([commonFields.value]);
 
 const DropdownInput = core({
   ...peggyParser(parser),
@@ -18,7 +18,7 @@ const DropdownInput = core({
   component: _DropdownSelect,
   fields,
   getValue: (props: RuntimeProps, state, id) => {
-    return fieldSelector(state, { ...props, id }, fieldByName('value'), { fallback: '' });
+    return fieldSelector(state, { ...props, id }, fields.value, { fallback: '' });
   },
   attributes: srcAttributes.extend({
     placeholder: z.string().optional().describe('Placeholder text for empty selection'),
