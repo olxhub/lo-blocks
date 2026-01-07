@@ -83,6 +83,7 @@ export default function PreviewPage() {
             <RenderOLX
               id={id}
               baseIdMap={idMap}
+              eventContext="preview"
               onError={(err) => setRenderError(err.message)}
             />
           )}

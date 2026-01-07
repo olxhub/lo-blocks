@@ -78,7 +78,11 @@ export const updateResponseReducer = (state = initialState, action) => {
     };
   }
 
-  const { scope = scopes.component, id, tag, ...rest } = action;
+  // Destructure out metadata fields that shouldn't go into state:
+  // - context: event hierarchy for filtering (e.g., 'preview.quiz.input')
+  // - event: the event type (already extracted above as eventType)
+  // - metadata: lo_event timestamps, etc.
+  const { scope = scopes.component, id, tag, context, event, metadata, ...rest } = action;
 
   // TODO: This should be simplified now that we can use [scope] instead of
   // componentSetting, etc.

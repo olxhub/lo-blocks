@@ -11,7 +11,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { useReplayContextOptional } from '@/lib/state/replayContext';
+import { useDebugSettings } from '@/lib/state/debugSettings';
 import type { LoggedEvent } from '@/lib/replay';
 import './ReplayModeIndicator.css';
 
@@ -42,21 +42,37 @@ function getEventTimestamp(event: LoggedEvent): number | null {
 }
 
 export default function ReplayModeIndicator() {
-  const replayCtx = useReplayContextOptional();
+  const { replayMode, replayEventIndex, setReplayMode, setReplayEventIndex, getEvents } = useDebugSettings();
   const [scrubberMode, setScrubberMode] = useState<ScrubberMode>('event');
   const scrubberRef = useRef<HTMLDivElement>(null);
 
-  // Extract values with fallbacks for when context is inactive
-  const isActive = replayCtx?.isActive ?? false;
-  const selectedEventIndex = replayCtx?.selectedEventIndex ?? 0;
-  const eventCount = replayCtx?.eventCount ?? 0;
-  const getEvents = replayCtx?.getEvents ?? (() => []);
-  const selectEvent = replayCtx?.selectEvent ?? (() => {});
-  const clearReplay = replayCtx?.clearReplay ?? (() => {});
-  const nextEvent = replayCtx?.nextEvent ?? (() => {});
-  const prevEvent = replayCtx?.prevEvent ?? (() => {});
-
+  // Extract values
+  const isActive = replayMode;
+  const selectedEventIndex = replayEventIndex >= 0 ? replayEventIndex : 0;
   const events = getEvents();
+  const eventCount = events.length;
+
+  // Navigation helpers
+  const selectEvent = useCallback((index: number) => {
+    setReplayMode(true);
+    setReplayEventIndex(index);
+  }, [setReplayMode, setReplayEventIndex]);
+
+  const clearReplay = useCallback(() => {
+    setReplayMode(false);
+    setReplayEventIndex(-1);
+  }, [setReplayMode, setReplayEventIndex]);
+
+  const nextEvent = useCallback(() => {
+    const count = getEvents().length;
+    const current = replayEventIndex < 0 ? 0 : replayEventIndex;
+    setReplayEventIndex(Math.min(current + 1, count - 1));
+  }, [getEvents, replayEventIndex, setReplayEventIndex]);
+
+  const prevEvent = useCallback(() => {
+    const current = replayEventIndex <= 0 ? 0 : replayEventIndex;
+    setReplayEventIndex(Math.max(current - 1, 0));
+  }, [replayEventIndex, setReplayEventIndex]);
 
   // Compute timestamps for all events
   const timestamps = useMemo(() => {

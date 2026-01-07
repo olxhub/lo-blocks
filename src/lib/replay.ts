@@ -46,11 +46,26 @@ export interface LoggedEvent {
   event: string;
   id?: string;
   scope?: string;
+  context?: string;  // Hierarchical context like 'preview.quiz.input1'
   metadata?: {
     iso_ts?: string;
     [key: string]: any;
   };
   [key: string]: any;
+}
+
+/**
+ * Filter events by context prefix.
+ *
+ * Use this to get events for a specific context (e.g., 'preview' shows only
+ * preview-related events, filtering out debug panel events, studio events, etc.)
+ *
+ * @param events - Raw event list
+ * @param prefix - Context prefix to match (e.g., 'preview', 'studio')
+ * @returns Filtered events where context starts with prefix
+ */
+export function filterByContext(events: LoggedEvent[], prefix: string): LoggedEvent[] {
+  return events.filter(e => e.context?.startsWith(prefix));
 }
 
 /**

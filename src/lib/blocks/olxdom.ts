@@ -23,6 +23,28 @@ import type { OlxDomNode, OlxDomSelector, OlxKey, OlxReference, RuntimeProps } f
 // This should not be confused with the static OLX DAG.
 
 /**
+ * Build event context path by walking up the nodeInfo tree.
+ * Returns dot-separated IDs from root to current node.
+ *
+ * Used to scope events to their location in the OLX DOM hierarchy.
+ * Example: "preview.quiz.problem_5"
+ *
+ * @param nodeInfo - The current nodeInfo
+ * @returns Dot-separated context path
+ */
+export function getEventContext(nodeInfo: OlxDomNode | null | undefined): string {
+  const ids: string[] = [];
+  let current = nodeInfo;
+  while (current) {
+    // Get ID from nodeInfo or its node
+    const id = (current as any).id ?? current.node?.id;
+    if (id) ids.unshift(id);
+    current = current.parent;
+  }
+  return ids.join('.');
+}
+
+/**
  * Traverses up the parent chain, returning all parent nodeInfos
  * that match the selector function. Closest parent first.
  *

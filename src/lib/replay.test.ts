@@ -10,6 +10,7 @@ import {
   findEventWhere,
   getFieldHistory,
   diffStates,
+  filterByContext,
   initialReplayState,
   LoggedEvent,
 } from './replay';
@@ -217,6 +218,21 @@ describe('replay', () => {
       expect(diff.component.added).toEqual([]);
       expect(diff.component.removed).toEqual([]);
       expect(diff.component.changed).toEqual([]);
+    });
+  });
+
+  describe('filterByContext', () => {
+    it('filters events by context prefix', () => {
+      const events: LoggedEvent[] = [
+        { event: 'A', context: 'preview.quiz.input' },
+        { event: 'B', context: 'debug' },
+        { event: 'C', context: 'preview.quiz.submit' },
+        { event: 'D', context: 'studio.editor' },
+        { event: 'E' },  // no context
+      ];
+
+      const preview = filterByContext(events, 'preview');
+      expect(preview.map(e => e.event)).toEqual(['A', 'C']);
     });
   });
 });

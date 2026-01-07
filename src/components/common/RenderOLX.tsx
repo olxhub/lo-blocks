@@ -51,11 +51,15 @@ import { parseOLX } from '@/lib/content/parseOLX';
 import { makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+import Spinner from '@/components/common/Spinner';
 import { InMemoryStorageProvider, StackedStorageProvider } from '@/lib/storage';
 import { isOLXFile } from '@/lib/util/fileTypes';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
 import { useBlock } from '@/lib/blocks/useRenderedBlock';
-import { useReplayContextOptional } from '@/lib/state/replayContext';
+import { useDebugSettings } from '@/lib/state/debugSettings';
+
+// Stable no-op for replay mode - avoids creating new function on each render
+const noopLogEvent = () => {};
 
 /**
  * Props for RenderOLX component.
@@ -91,6 +95,8 @@ interface RenderOLXProps {
   blockRegistry?: Record<string, any>;
   /** Source name for Redux state namespacing (e.g., 'content', 'inline', 'studio'). Defaults to 'content'. */
   source?: string;
+  /** Event context root (e.g., 'preview', 'studio'). Sets the root nodeInfo ID for event context hierarchy. */
+  eventContext?: string;
 }
 
 export default function RenderOLX({
@@ -106,6 +112,7 @@ export default function RenderOLX({
   onParsed,
   blockRegistry = BLOCK_REGISTRY,
   source = 'content',
+  eventContext,
 }: RenderOLXProps) {
   const store = useStore();
   const [parsed, setParsed] = useState<any>(null);
@@ -113,11 +120,10 @@ export default function RenderOLX({
 
   // Check if we're in replay mode - if so, use no-op to prevent event logging
   // and disable side effects (fetches, etc.)
-  const replayCtx = useReplayContextOptional();
-  const noopLogEvent = () => {};
-  const isReplaying = replayCtx?.isActive ?? false;
-  const logEvent = isReplaying ? noopLogEvent : lo_event.logEvent;
-  const sideEffectFree = isReplaying;
+  const { replayMode } = useDebugSettings();
+  // Use stable reference for noopLogEvent to prevent effect re-runs
+  const logEvent = replayMode ? noopLogEvent : lo_event.logEvent;
+  const sideEffectFree = replayMode;
 
   // useTransition prevents Suspense during edits - React shows stale content
   // while new content is preparing instead of showing spinners
@@ -149,6 +155,15 @@ export default function RenderOLX({
   }, [inline, files, provider, providers, resolveProvider]);
 
   // Parse inline/files content
+  //
+  // BUG: Switching replay modes triggers re-parsing and spurious LOAD_OLXJSON events.
+  // Root cause: RenderOLX manages local parsing state and has effects with mode-related deps.
+  //
+  // Proper fix: Eliminate local state. Studio/docs should use Redux content.* like production.
+  // RenderOLX becomes pure (reads from Redux, renders). Replay mode becomes a Redux setting
+  // (debug.replayMode) that affects props threading at top level, not a context. With content
+  // already in Redux and no parsing effects here, mode switches have nothing to re-trigger.
+  //
   useEffect(() => {
     // Nothing to parse - render from baseIdMap only
     if (!inline && !files) {
@@ -258,22 +273,27 @@ export default function RenderOLX({
 
   // Build props for useBlock - must be before the hook call
   const blockProps = useMemo(() => ({
-    nodeInfo: makeRootNode(),
+    nodeInfo: makeRootNode(eventContext),
     blockRegistry,
     idPrefix: '',
     olxJsonSources: [source],
     store,
     logEvent,
     sideEffectFree,
-  }), [blockRegistry, source, store, logEvent, sideEffectFree]);
+  }), [eventContext, blockRegistry, source, store, logEvent, sideEffectFree]);
 
   // Determine which ID to render - use parsed root if available, else requested id
   // This handles the case where `id` is a file path but parsed content has different IDs
   const renderIdToQuery = parsed?.root || id;
 
+  // Wait for parsing to complete when inline/files content is provided
+  // This prevents useBlock from triggering fetches for IDs that only exist in inline content
+  const parsingPending = (inline || files) && !parsed;
+
   // useBlock handles loading/error states and renders from Redux
   // Shows spinner while loading, error if failed, rendered content when ready
-  const { block, ready } = useBlock(blockProps, renderIdToQuery, source);
+  // Pass null ID when parsing is pending to prevent fetch attempts
+  const { block, ready } = useBlock(blockProps, parsingPending ? null : renderIdToQuery, source);
 
   // Parse error (from inline/files parsing)
   if (error) {
@@ -292,6 +312,11 @@ export default function RenderOLX({
         RenderOLX: No content source provided
       </div>
     );
+  }
+
+  // Parsing in progress - show loading state
+  if (parsingPending) {
+    return <Spinner>Parsing...</Spinner>;
   }
 
   // useBlock handles spinner/error display - just wrap in ErrorBoundary
