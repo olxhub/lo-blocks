@@ -2,15 +2,11 @@
 'use client';
 
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
+import RenderMarkdown from '@/components/common/RenderMarkdown';
 
 import { useFieldSelector } from '@/lib/state';
 import { LLM_STATUS } from '@/lib/llm/reduxClient';
 import { DisplayError } from '@/lib/util/debug';
-import { markdownComponents } from '@/components/blocks/display/Markdown/_Markdown';
 
 import Spinner from '@/components/blocks/utility/_Spinner';
 
@@ -28,13 +24,7 @@ function _LLMFeedback(props) {
       case 'markdown':
         return (
           <div className="llm-feedback-markdown">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm, remarkMath]}
-              rehypePlugins={[rehypeKatex]}
-              components={markdownComponents}
-            >
-              {feedback}
-            </ReactMarkdown>
+            <RenderMarkdown>{feedback}</RenderMarkdown>
           </div>
         );
       case 'code':

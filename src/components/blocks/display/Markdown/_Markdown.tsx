@@ -1,55 +1,8 @@
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-// Note: katex.min.css is loaded via globals.css (can't import CSS in Node.js scripts)
-import { OLXCodeBlock, isOLXLanguage } from '@/components/common/OLXCodeBlock';
-// Note: markdown.css is loaded via the generated components.css registry
+import RenderMarkdown, { markdownComponents } from '@/components/common/RenderMarkdown';
 
-/**
- * Custom pre renderer - intercepts fenced code blocks for OLX handling.
- * This avoids hydration errors from <pre> inside <p>.
- */
-function PreRenderer({ children, node, ...props }) {
-  // For fenced code blocks, children is a <code> element
-  // Check the node's first child for the language class
-  const codeNode = node?.children?.[0];
-  const className = codeNode?.properties?.className?.[0] || '';
-  const match = /language-(\S+)/.exec(className);
-  const language = match ? match[1] : null;
-
-  if (isOLXLanguage(language)) {
-    // Extract text content from the code node
-    const text = codeNode?.children?.[0]?.value || '';
-    return <OLXCodeBlock language={language}>{text}</OLXCodeBlock>;
-  }
-
-  // Default pre rendering
-  return <pre {...props}>{children}</pre>;
-}
-
-/**
- * Custom code renderer - handles inline code only.
- * Fenced code blocks are handled by PreRenderer.
- */
-function CodeRenderer({ inline, className, children, ...props }) {
-  // Inline code - just render as <code>
-  if (inline) {
-    return <code className={className} {...props}>{children}</code>;
-  }
-  // Fenced code blocks come through PreRenderer, but just in case:
-  return <code className={className} {...props}>{children}</code>;
-}
-
-/**
- * Shared ReactMarkdown component overrides for OLX embedding.
- * Export for use in docs page and other markdown renderers.
- */
-export const markdownComponents = {
-  pre: PreRenderer,
-  code: CodeRenderer,
-};
+// Re-export for backwards compatibility
+export { markdownComponents };
 
 export function _Markdown(props) {
   const { kids } = props;
@@ -68,13 +21,5 @@ export function _Markdown(props) {
   }
   /*** end of hack ***/
 
-  return (
-    <ReactMarkdown
-      remarkPlugins={[remarkGfm, remarkMath]}
-      rehypePlugins={[rehypeKatex]}
-      components={markdownComponents}
-    >
-      {content}
-    </ReactMarkdown>
-  );
+  return <RenderMarkdown>{content}</RenderMarkdown>;
 }

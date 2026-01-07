@@ -8,7 +8,8 @@
 import { useMemo } from 'react';
 import RenderOLX from './RenderOLX';
 import PEGPreviewPane from './PEGPreviewPane';
-import { isPEGFile } from '@/lib/util/fileTypes';
+import RenderMarkdown from './RenderMarkdown';
+import { isPEGFile, isMarkdownFile } from '@/lib/util/fileTypes';
 import { NetworkStorageProvider } from '@/lib/storage';
 import type { IdMap } from '@/lib/types';
 import type { StorageProvider } from '@/lib/storage/types';
@@ -32,6 +33,7 @@ export interface PreviewPaneProps {
  * Unified preview component that renders content based on file type.
  *
  * - PEG files (.chatpeg, .sortpeg, etc.) → PEGPreviewPane
+ * - Markdown files (.md) → _Markdown renderer
  * - OLX files (.olx, .xml) → RenderOLX with full props
  */
 export default function PreviewPane({
@@ -50,6 +52,15 @@ export default function PreviewPane({
   // PEG files get their own preview pane
   if (isPEGFile(path)) {
     return <PEGPreviewPane path={path} content={content} />;
+  }
+
+  // Markdown files render directly
+  if (isMarkdownFile(path)) {
+    return (
+      <div className="markdown-preview">
+        <RenderMarkdown>{content}</RenderMarkdown>
+      </div>
+    );
   }
 
   // OLX files use RenderOLX with full props
