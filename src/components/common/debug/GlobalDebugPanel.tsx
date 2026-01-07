@@ -7,11 +7,16 @@
 //
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
+import { useDebugSettings } from '@/lib/state/debugSettings';
 import DebugPanel from './DebugPanel';
 
 export default function GlobalDebugPanel() {
-  const [open, setOpen] = useState(false);
+  const { panelOpen, setPanelOpen } = useDebugSettings();
+
+  const handleClose = useCallback(() => {
+    setPanelOpen(false);
+  }, [setPanelOpen]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -20,20 +25,20 @@ export default function GlobalDebugPanel() {
       // Toggle debug panel (Ctrl+` or ⌘`)
       if (mod && e.key === '`') {
         e.preventDefault();
-        setOpen(p => !p);
+        setPanelOpen(!panelOpen);
       }
 
       // Escape closes
-      if (e.key === 'Escape' && open) {
-        setOpen(false);
+      if (e.key === 'Escape' && panelOpen) {
+        setPanelOpen(false);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open]);
+  }, [panelOpen, setPanelOpen]);
 
-  if (!open) return null;
+  if (!panelOpen) return null;
 
-  return <DebugPanel onClose={() => setOpen(false)} />;
+  return <DebugPanel onClose={handleClose} />;
 }

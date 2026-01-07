@@ -14,7 +14,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { replayToEvent, diffStates, AppState, LoggedEvent } from '@/lib/replay';
-import { useReplayContext } from '@/lib/state/replayContext';
+import { useDebugSettings } from '@/lib/state/debugSettings';
 import SettingsTab from './SettingsTab';
 import './DebugPanel.css';
 
@@ -23,14 +23,6 @@ type DebugTab = 'events' | 'state' | 'content' | 'settings';
 interface DebugPanelProps {
   onClose: () => void;
   idPrefix?: string;
-}
-
-// Get events from the global event capture logger
-function getEvents(): any[] {
-  if (typeof window !== 'undefined' && (window as any).__events) {
-    return (window as any).__events.getEvents() ?? [];
-  }
-  return [];
 }
 
 // Clear captured events
@@ -48,10 +40,29 @@ export default function DebugPanel({ onClose, idPrefix = '' }: DebugPanelProps) 
   const [expandedEvents, setExpandedEvents] = useState<Set<number>>(new Set());
   const eventsEndRef = useRef<HTMLDivElement>(null);
 
-  // Time-travel state from replay context
-  // This controls both the State tab display AND the actual UI rendering
-  const replayCtx = useReplayContext();
-  const { isActive: isTimeTraveling, selectedEventIndex, toggleEvent, clearReplay } = replayCtx;
+  // Time-travel state from Redux (via debug settings context)
+  const { replayMode, replayEventIndex, setReplayMode, setReplayEventIndex, getEvents } = useDebugSettings();
+  const isTimeTraveling = replayMode;
+  const selectedEventIndex = replayEventIndex;
+
+  // Toggle replay for an event (click same event to exit)
+  const toggleEvent = useCallback((index: number) => {
+    if (replayEventIndex === index) {
+      // Clicking same event - exit replay
+      setReplayMode(false);
+      setReplayEventIndex(-1);
+    } else {
+      // Select new event
+      setReplayMode(true);
+      setReplayEventIndex(index);
+    }
+  }, [replayEventIndex, setReplayMode, setReplayEventIndex]);
+
+  // Exit replay mode
+  const clearReplay = useCallback(() => {
+    setReplayMode(false);
+    setReplayEventIndex(-1);
+  }, [setReplayMode, setReplayEventIndex]);
 
   // Get Redux state reactively via useSelector
   const reduxState = useSelector((state: any) => state);
@@ -61,7 +72,7 @@ export default function DebugPanel({ onClose, idPrefix = '' }: DebugPanelProps) 
   // Uses ALL events (not filtered) because replay needs the full stream
   const historicalState = useMemo(() => {
     if (!isTimeTraveling) return null;
-    const allEvents = getEvents();
+    const allEvents = getEvents() as LoggedEvent[];
     // Find the actual event in the unfiltered list
     const targetEvent = events[selectedEventIndex];
     if (!targetEvent) return null;
@@ -78,7 +89,7 @@ export default function DebugPanel({ onClose, idPrefix = '' }: DebugPanelProps) 
   // Compute diff from previous event (for highlighting changes)
   const stateDiff = useMemo(() => {
     if (!isTimeTraveling || !historicalState || selectedEventIndex <= 0) return null;
-    const allEvents = getEvents();
+    const allEvents = getEvents() as LoggedEvent[];
     const targetEvent = events[selectedEventIndex];
     const prevEvent = events[selectedEventIndex - 1];
     if (!targetEvent || !prevEvent) return null;

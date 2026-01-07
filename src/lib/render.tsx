@@ -24,7 +24,7 @@ import { DisplayError, DebugWrapper } from '@/lib/util/debug';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { OlxKey } from '@/lib/types';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
-import { getGrader } from '@/lib/blocks/olxdom';
+import { getGrader, getEventContext } from '@/lib/blocks/olxdom';
 import { assignReactKeys, refToOlxKey } from '@/lib/blocks/idResolver';
 import { selectBlock } from '@/lib/state/olxjson';
 import type { Store } from 'redux';
@@ -32,7 +32,17 @@ import type { Store } from 'redux';
 // Root sentinel has minimal loBlock so selectors don't need ?. checks
 // TODO: Give root a real loBlock created via blocks.core() for consistency
 const ROOT_LOBLOCK = Object.freeze({ name: 'Root', isGrader: false, isInput: false });
-export const makeRootNode = () => ({ sentinel: 'root', renderedKids: {}, loBlock: ROOT_LOBLOCK });
+
+/**
+ * Create a root nodeInfo for rendering.
+ * @param contextId - Optional ID for event context (e.g., "preview", "studio", "debug")
+ */
+export const makeRootNode = (contextId?: string) => ({
+  sentinel: 'root',
+  id: contextId,
+  renderedKids: {},
+  loBlock: ROOT_LOBLOCK
+});
 
 /**
  * Main render function - synchronously renders a node to React elements.
@@ -175,6 +185,20 @@ export function render({ node, nodeInfo, blockRegistry = BLOCK_REGISTRY, idPrefi
   const userClassName = attributes.class || '';
   const combinedClassName = `${blockClassName} ${userClassName}`.trim();
 
+  // Wrap logEvent to include context from OLX DOM hierarchy
+  // Don't overwrite if context already set by a deeper child
+  const contextualLogEvent: LogEventFn = logEvent
+    ? (event, payload) => {
+        if (payload?.context) {
+          // Child already set context - pass through unchanged
+          logEvent(event, payload);
+        } else {
+          const context = getEventContext(childNodeInfo);
+          logEvent(event, { ...payload, ...(context && { context }) });
+        }
+      }
+    : (() => {}) as LogEventFn;  // No-op if logEvent not provided
+
   // TODO: We probably want more than just data-block-type. Having IDs, etc. will be
   // very nice for debugging and introspection.
 
@@ -194,7 +218,7 @@ export function render({ node, nodeInfo, blockRegistry = BLOCK_REGISTRY, idPrefi
           idPrefix={idPrefix}
           olxJsonSources={olxJsonSources}
           store={store}
-          logEvent={logEvent}
+          logEvent={contextualLogEvent}
           sideEffectFree={sideEffectFree}
           {...(graderId && { graderId })}
         />

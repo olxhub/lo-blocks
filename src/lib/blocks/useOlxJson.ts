@@ -47,23 +47,22 @@ export function useOlxJson(
   id: OlxReference | string | null,
   source: string = 'content'
 ): OlxJsonResult {
-  // Handle null/undefined id
-  if (!id) {
-    return { olxJson: null, loading: false, error: null };
-  }
+  // Compute olxKey outside hooks - use empty string for null id (won't match anything)
+  const olxKey = id ? refToOlxKey(id) : '';
 
-  const olxKey = refToOlxKey(id);
-
-  // Read from Redux
+  // Read from Redux - always call hook (Rules of Hooks)
   const blockState = useSelector((state: any) =>
-    selectBlockState(state, [source], olxKey)
+    id ? selectBlockState(state, [source], olxKey) : undefined
   );
 
-  // Track fetch attempts to prevent infinite loops
+  // Track fetch attempts to prevent infinite loops - always call hook
   const fetchAttempted = useRef<Set<string>>(new Set());
 
-  // Trigger fetch for missing blocks (skip if sideEffectFree)
+  // Trigger fetch for missing blocks (skip if sideEffectFree) - always call hook
   useEffect(() => {
+    // Skip if no id
+    if (!id) return;
+
     // Skip side effects during replay/analytics
     if (props.sideEffectFree) return;
 
@@ -86,7 +85,12 @@ export function useOlxJson(
       .catch(err => {
         dispatchOlxJsonError(props, source, olxKey, err.message || `Failed to load ${olxKey}`);
       });
-  }, [blockState, olxKey, source, props.sideEffectFree, props.logEvent]);
+  }, [id, blockState, olxKey, source, props.sideEffectFree, props.logEvent]);
+
+  // Handle null/undefined id - return after hooks are called
+  if (!id) {
+    return { olxJson: null, loading: false, error: null };
+  }
 
   // Return based on Redux state
   if (!blockState) {

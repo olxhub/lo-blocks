@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import * as lo_event from 'lo_event';
 import { IdMap, ComponentError } from '@/lib/types';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
-import { useReplayContextOptional } from '@/lib/state/replayContext';
+import { useDebugSettings } from '@/lib/state/debugSettings';
 
 /**
  * Hook to load content from the API by ID
@@ -23,14 +23,13 @@ export function useContentLoader(id: string, source = 'content') {
   const [loading, setLoading] = useState(true);
 
   // Check if we're in replay mode - if so, skip side effects
-  const replayCtx = useReplayContextOptional();
-  const isReplaying = replayCtx?.isActive ?? false;
+  const { replayMode } = useDebugSettings();
   const noopLogEvent = () => {};
-  const logEvent = isReplaying ? noopLogEvent : lo_event.logEvent;
+  const logEvent = replayMode ? noopLogEvent : lo_event.logEvent;
 
   useEffect(() => {
     // Skip side effects during replay
-    if (isReplaying) {
+    if (replayMode) {
       setLoading(false);
       return;
     }
@@ -59,7 +58,7 @@ export function useContentLoader(id: string, source = 'content') {
         setError(err.message);
         setLoading(false);
       });
-  }, [id, source, isReplaying, logEvent]);
+  }, [id, source, replayMode, logEvent]);
 
   return { idMap, error, loading };
 }
