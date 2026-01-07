@@ -28,7 +28,7 @@ import * as lo_event from 'lo_event';
 import { store, extendSettings, useReduxState } from '@/lib/state';
 import { settings } from '@/lib/state/settings';
 import { editorFields } from '@/lib/state/editorFields';
-import { replayToEvent, LoggedEvent, AppState } from '@/lib/replay';
+import { replayToEvent, filterByContext, LoggedEvent, AppState } from '@/lib/replay';
 import { DebugSettingsContext, type DebugSettings } from '@/lib/state/debugSettings';
 import GlobalDebugPanel from '@/components/common/debug/GlobalDebugPanel';
 import ReplayModeIndicator from '@/components/common/debug/ReplayModeIndicator';
@@ -112,10 +112,12 @@ function ReplayProvider({ children, replayMode, replayEventIndex }: ReplayProvid
   const liveStore = useStore();
 
   // Compute replay store when replay is active
+  // Filter to 'preview' context - excludes debug events, studio events, etc.
   const replayStore = useMemo(() => {
     if (!replayMode || replayEventIndex < 0) return null;
 
-    const events = getEvents();
+    const allEvents = getEvents();
+    const events = filterByContext(allEvents, 'preview');
     if (events.length === 0) return null;
 
     const state = replayToEvent(events, replayEventIndex + 1);
@@ -159,8 +161,10 @@ function StoreWrapperInner({ children, reduxID }: StoreWrapperInnerProps) {
     -1
   );
 
-  // Stable getEvents callback
-  const getEventsCallback = useCallback(getEvents, []);
+  // Stable getEvents callback - returns filtered events (preview context only)
+  const getEventsCallback = useCallback(() => {
+    return filterByContext(getEvents(), 'preview');
+  }, []);
 
   // Debug settings context value
   const debugSettings = useMemo(() => ({
