@@ -374,7 +374,7 @@ category: writing
              cols: Weakest, Weaker, Stronger, Strongest
              rows: Understanding the writing assignments the teacher gives me,Planning my time to get the work done by the deadline,Focusing on my work and avoiding distractions,Continuing to write even when I am having difficulties,Coming up with good ideas to include in my writing
            </TabularMCQ>
-           <Markdown>
+           <Markdown id="wpj2_savenotice">
              Select one option for each row. Your selections are automatically saved.
            </Markdown>
     </Vertical>
@@ -393,9 +393,7 @@ category: writing
              cols: Weakest, Weaker, Stronger, Strongest
              rows: Choosing the best plan for organizing my content,Finding the right words to express my ideas,Stating my thesis or main idea clearly,Writing paragraphs with clear topic sentences,Using transition words to connect related ideas
            </TabularMCQ>
-           <Markdown>
-             Select one option for each row. Your selections are automatically saved.
-           </Markdown>
+           <Markdown id="wpj2_savenotice" />
     </Vertical>
     <Vertical id="wpj2_Step_15" title="My Self-Evaluation">
            <Markdown>
@@ -412,9 +410,7 @@ category: writing
              cols: Weakest, Weaker, Stronger, Strongest
              rows: Determining when ideas are missing or when details/examples should be added,Determining when something I write is wrong or does not make sense,Reorganizing a document to make it clearer and easier to understand,Changing how sentences are worded to make the meaning clearer,Changing my writing style to fit the task and the audience
            </TabularMCQ>
-           <Markdown>
-             Select one option for each row. Your selections are automatically saved.
-           </Markdown>
+           <Markdown id="wpj2_savenotice" />
     </Vertical>
     <Vertical id="wpj2_Step_16" title="My Self-Evaluation">
            <Markdown>
@@ -431,9 +427,7 @@ category: writing
              cols: Weakest, Weaker, Stronger, Strongest
              rows: Avoiding errors in grammar/spelling/mechanics/usage/style,Proofreading what I write to fix errors in grammar/spelling/mechanics/usage/style,Typing quickly without looking at the keys when writing on the computer,Providing good feedback to help other writers improve their work,Making good use of feedback I get from others
            </TabularMCQ>
-           <Markdown>
-             Select one option for each row. Your selections are automatically saved.
-           </Markdown>
+           <Markdown id="wpj2_savenotice" />
     </Vertical>
     <SplitPanel id="wpj1_Step_17" title="Summary of Writing Strengths and Weaknesses" sizes="50,50">
         <LeftPane>
@@ -477,10 +471,10 @@ category: writing
                    - Making good use of feedback I get from others
                    
                    Our data that addresses writing for school includes: 
-                   <Ref id="wpj_ref10" target="wpj2_self_evaluation_1" />                 
-                   <Ref id="wpj_ref11" target="wpj2_self_evaluation_2" />
-                   <Ref id="wpj_ref12" target="wpj2_self_evaluation_3" />
-                   <Ref id="wpj_ref13" target="wpj2_self_evaluation_4" />
+                   <Ref id="wpj2_ref10" target="wpj2_self_evaluation_1" />                 
+                   <Ref id="wpj2_ref11" target="wpj2_self_evaluation_2" />
+                   <Ref id="wpj2_ref12" target="wpj2_self_evaluation_3" />
+                   <Ref id="wpj2_ref13" target="wpj2_self_evaluation_4" />
  
                   All of the data can be interpreted by mapping each number onto the column header it corresponds
                   to and using the corresponding row headers to indicate how the student evaluates their
@@ -542,11 +536,11 @@ category: writing
         </RightPane>
     </SplitPanel>
     <Vertical id="wpj2_last_screen">
-        <Markdown>
+        <Markdown id="wpj2_done_markdown">
             **If you are done, please click on the checkbox below.**
         </Markdown>
         <CheckboxInput id="wpj2_complete">
-            <Key>I have finished this assignment</Key>
+            <Key id="wpj2_key1">I have finished this assignment</Key>
         </CheckboxInput>
     </Vertical>
 </Sequential>
