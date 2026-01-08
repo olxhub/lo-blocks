@@ -1,60 +1,50 @@
 // src/components/blocks/_ActionButton.tsx
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import { executeNodeActions } from '@/lib/blocks';
 import { useKids } from '@/lib/render';
-import { checkPrerequisites, parsePrerequisites } from '@/lib/util/prerequisites';
-import { useReduxState } from '@/lib/state';
+import {
+  parse,
+  extractStructuredRefs,
+  useReferences,
+  evaluate,
+  createContext,
+  EMPTY_REFS
+} from '@/lib/stateLanguage';
 
 function _ActionButton(props) {
-  const { label, dependsOn, fields, store } = props;
-  const prerequisites = useMemo(() => parsePrerequisites(dependsOn), [dependsOn]);
-  const [isDisabled, setIsDisabled] = useReduxState(props, fields.isDisabled, prerequisites.length > 0);
+  const { label, dependsOn } = props;
 
-  // Use ref for comparison to avoid infinite loops (isDisabled in deps would cause callback recreation)
-  const isDisabledRef = useRef(isDisabled);
-  isDisabledRef.current = isDisabled;
-
-  const evaluatePrerequisites = useCallback(async () => {
-    if (!prerequisites.length) {
-      if (isDisabledRef.current !== false) {
-        setIsDisabled(false);
-      }
-      return;
+  // Parse expression and extract refs once
+  const { ast, refs } = useMemo(() => {
+    if (!dependsOn) return { ast: null, refs: EMPTY_REFS };
+    try {
+      const ast = parse(dependsOn);
+      const refs = extractStructuredRefs(dependsOn);
+      return { ast, refs };
+    } catch (e) {
+      console.warn('[ActionButton] Failed to parse dependsOn:', dependsOn, e);
+      return { ast: null, refs: EMPTY_REFS };
     }
+  }, [dependsOn]);
 
-    const satisfied = await checkPrerequisites(props, prerequisites);
-    const newDisabledState = !satisfied;
+  // Subscribe to all referenced values (stable hook call)
+  const resolved = useReferences(props, refs);
+  const context = createContext(resolved);
 
-    // Only update if the value actually changed
-    if (newDisabledState !== isDisabledRef.current) {
-      setIsDisabled(newDisabledState);
+  // Evaluate condition
+  const isSatisfied = useMemo(() => {
+    if (!ast) return true;
+    try {
+      return Boolean(evaluate(ast, context));
+    } catch (e) {
+      console.warn('[ActionButton] Failed to evaluate dependsOn:', dependsOn, e);
+      return false;
     }
-  }, [props, prerequisites, setIsDisabled]);
+  }, [ast, context, dependsOn]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    evaluatePrerequisites();
-
-    if (!prerequisites.length) {
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    const unsubscribe = store.subscribe(() => {
-      if (!cancelled) {
-        evaluatePrerequisites();
-      }
-    });
-
-    return () => {
-      cancelled = true;
-      unsubscribe?.();
-    };
-  }, [evaluatePrerequisites, prerequisites.length, store]);
+  const isDisabled = !isSatisfied;
 
   const { kids } = useKids(props);
 

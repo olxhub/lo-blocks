@@ -47,7 +47,7 @@ What do YOU think Annie's roommate should do to get the 6-year-old to go to slee
     </Markdown>
     <TextArea id="initial_suggestion"
               placeholder="Share your initial strategy (2-3 sentences)..." />
-    <ActionButton id="submit_suggestion_btn" dependsOn="initial_suggestion" target="psych_chat" action="advance" label="Submit and Continue" />
+    <ActionButton id="submit_suggestion_btn" dependsOn="@initial_suggestion.value" target="psych_chat" action="advance" label="Submit and Continue" />
   </Vertical>
 
   <!-- Group brainstorm sorting activity -->
@@ -70,7 +70,7 @@ The group has several different suggestions. Rank these ideas from **best** to *
       </SortableGrader>
     </CapaProblem>
 
-    <ActionButton id="continue_after_sorting" dependsOn="bedtime_strategy_grader" target="psych_chat" action="advance" label="Continue Discussion" />
+    <ActionButton id="continue_after_sorting" dependsOn="@bedtime_strategy_grader.submitCount > 0" target="psych_chat" action="advance" label="Continue Discussion" />
   </Vertical>
 
   <!-- Messages screenshot -->
