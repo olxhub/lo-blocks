@@ -580,6 +580,21 @@ category: writing
                          An essay,
                          A text message or direct message,
                          An annotated bibliography
+                         A group chat or message board (e.g. Discord or Reddit),
+                         A podcast or vlog (video blog) post, 
+                         Notes on a lecture or passage, 
+                         Poetry or song lyrics, 
+                         A physical note (short message) or letter
+                         An email, 
+                         A research paper,
+                         A chat with an AI chatbot, 
+                         A blog entry, 
+                         A post on social media
+                         A Powerpoint or other multimedia presentation,
+                         A summary or review,
+                         A report,
+                         A comment or response on social media,
+                         Other writing activities not listed here or on previous screens                          
                          
                    Our data that addresses writing outside of school includes: 
                    <Ref id="wpj_ref13" target="wpj1_writing_frequency_2" />                 
@@ -611,12 +626,13 @@ category: writing
                   
                   DIRECTIONS: 
                     If the student's response data is missing, note that and say nothing more;
-                    otherwise, using the student's response data, describe succinctly how often
-                    the student undertakes writing tasks along each of the major dimensions 
-                    (academic writing for school, academic writing outside school, creative writing,
-                    everyday social media activities, and social media activities done for school),
-                    providing an interpretation of the student's overall pattern of writing behavior
-                    in terms of the student's likely overall writing identity.
+                    otherwise, using the student's response data, describe succinctly in no more
+                    than one short paragraph how often the student undertakes writing tasks
+                    along each of the major dimensions (academic writing for school, academic
+                    writing outside school, creative writing, everyday social media activities,
+                    and social media activities done for school), providing an interpretation
+                    of the student's overall pattern of writing behavior in terms of the
+                    student's likely overall writing identity.
                </LLMAction>
            </ActionButton>
            <LLMFeedback id="wpj1_writing_habits_analysis" />

@@ -169,7 +169,180 @@ category: writing
             <TextBlock>Using well-chosen words and expressions that make writing interesting.</TextBlock>
         </SortableInput>
     </Vertical>    
-    <Vertical id="wpj2_Step_10" title="How do People Learn to Write Well?">
+    <SplitPanel id="wpj2_Step_10" title="Feedback for Questions 1-8" sizes="50,50">
+         <LeftPane>
+             <Markdown>
+                 ## Analysis
+                         The statements in questions 2 through 8 can be grouped into the
+                         following general categories:
+
+                         1. Exploration during Prewriting
+                         2. Planning and Drafting
+                         3. Grammar, Usage, Mechanics, and Style
+                         4. Revision and Editing
+                         5. Speed and Efficiency                         
+
+                 Click the 'Analyze' button to see what the computer makes of your
+                 answers to questions 1 to 8, based on these categories.
+             </Markdown>
+             <ActionButton label="Analyze">
+                 <LLMAction target="wpj2_response_summary_1">
+                     BACKGROUND INFORMATION:
+                     
+                         Question 1. The question was: "Think about a moment, experience,
+                         or even a piece of feedback about writing that made you feel like
+                         you were a good or bad writer. Tell us the story about this experience.
+                         How did it shape the way you felt about yourself as a writer? Do you
+                         think that people are naturally good or bad writers? Can everyone
+                         learn to write well?"
+                         
+                         The student's answer was:
+                         <Ref id="wpj2_ref1" target="wpj2_define_good_writer" />
+                     
+                         Question 2.
+                         The following statements are coded as follows --
+                         - Using sophisticated words and well-developed sentences: 0
+                         - Figuring out what one really thinks about a topic before writing: 1
+                         - Taking the time to understand assignments before starting to write: 2
+                         - Expressing ideas accurately: 3.
+                         The following data shows the arrangement, or order, that the student put
+                         these statements in --
+                         <Ref id="wpj2_ref2" target="wpj2_sortable1" />
+                         
+                         Question 3.
+                         The following statements are coded as follows --
+                         - Making sure to write something that is long enough for the task: 0
+                         - Planning one's writing using an outline or graphic organizer: 1
+                         - Taking the time to research a topic before writing about it: 2
+                         - Using correct spelling and punctuation: 3.
+                         The following data shows the arrangement, or order, that the student put
+                         these statements in --
+                         <Ref id="wpj2_ref3" target="wpj2_sortable2" />
+
+                         Question 4.
+                         The following statements are coded as follows --
+                         - Producing good writing on the first try: 0
+                         - Free-writing to brainstorm ideas: 1
+                         - Experimenting with different ways to express key points: 2
+                         - Finishing writing tasks quickly: 3.
+                         The following data shows the arrangement, or order, that the student put
+                         these statements in --
+                         <Ref id="wpj2_ref4" target="wpj2_sortable3" />
+
+                         Question 5.
+                         The following statements are coded as follows --
+                         - Giving good feedback to one's peers about their writing: 0
+                         - Completing a draft of what one is writing in a single session: 1
+                         - Proofreading one's own writing carefully: 2
+                         - Reorganizing what one has written to make it clearer and easier to understand: 3.
+                         The following data shows the arrangement, or order, that the student put
+                         these statements in --
+                         <Ref id="wpj2_ref5" target="wpj2_sortable4" />
+
+                         Question 6.
+                         The following statements are coded as follows --
+                         - Avoiding grammar and usage errors: 0
+                         - Taking time to complete more than one draft: 1
+                         - Using a wide variety of word and sentence patterns: 2
+                         - Recognizing and fixing unclear language: 3.
+                         The following data shows the arrangement, or order, that the student put
+                         these statements in --
+                         <Ref id="wpj2_ref6" target="wpj2_sortable5" />
+
+                         Question 7.
+                         The following statements are coded as follows --
+                         - Providing details about the most important ideas: 0
+                         - Focusing on the main idea and not going off topic: 1
+                         - Considering different ways to think about the topic: 2
+                         - Taking time to come up with good ideas: 3.
+                         The following data shows the arrangement, or order, that the student put
+                         these statements in --
+                         <Ref id="wpj2_ref7" target="wpj2_sortable6" />
+
+                         Question 8.
+                         The following statements are coded as follows --
+                         - Writing in standard English, avoiding slang and informal language: 0
+                         - Being open to explore the subject and learn new things: 1
+                         - Coming up with a clear understanding of the ideas one wants to express: 2
+                         - Using well-chosen words and expressions that make writing interesting: 3.
+                         The following data shows the arrangement, or order, that the student put
+                         these statements in --
+                         <Ref id="wpj2_ref8" target="wpj2_sortable7" />
+
+                         The statements in questions 2 through 8 can be grouped into the
+                         following general categories:
+                         
+                         1. Exploration during Prewriting --
+                         - Being open to explore the subject and learn new things
+                         - Taking the time to research a topic before writing about it
+                         - Taking time to come up with good ideas
+                         - Considering different ways to think about the topic
+                         - Free-writing to brainstorm ideas.
+
+                         2. Planning and Drafting --
+                         - Coming up with a clear understanding of the ideas one wants to express
+                         - Planning one's writing using an outline or graphic organizer
+                         - Focusing on the main idea and not going off topic
+                         - Providing details about the most important ideas
+                         - Using well-chosen words and expressions that make writing interesting
+                         
+                         3. Grammar, Usage, Mechanics, and Style --
+                         - Using a wide variety of word and sentence patterns
+                         - Writing in standard English, avoiding slang and informal language
+                         - Using correct spelling and punctuation
+                         - Proofreading one's own writing carefully
+                         - Avoiding grammar and usage errors
+
+                         4. Revision --
+                         - Taking time to complete more than one draft
+                         - Experimenting with different ways to express key points
+                         - Reorganizing what one has written to make it clearer and easier to understand
+                         - Recognizing and fixing unclear language
+                         - Giving good feedback to one's peers about their writing
+
+                         5. Speed and Efficiency --
+                         - Making sure to write something that is long enough for the task
+                         - Producing good writing on the first try
+                         - Completing a draft of what one is writing in a single session
+                         - Finishing writing tasks quickly.
+
+                     INSTRUCTIONS:
+                         In a single short paragraph, based on the student's
+                         beliefs about good writing as expressed in his/her
+                         answer to Question 1, and priorities for writing
+                         expressed in his/her answers to Questions 2 through 8,
+                         describe the student's beliefs about good writing in terms
+                         of the of the five categories listed above (Speed and efficiency;
+                         exploration during prewriting; planning and drafting; grammar, usage,
+                         mechanics and style; revision). Refer to the student as "you" or "your".
+                 </LLMAction>
+             </ActionButton>
+        </LeftPane>
+        <RightPane>
+             <Markdown>
+                 ## Computer Summary
+             </Markdown>
+             <LLMFeedback id="wpj2_response_summary_1" render="markdown" />
+        </RightPane>
+    </SplitPanel>
+    <SplitPanel id="wpj2_Step_11" title="Summary of Writing Priorities" sizes="50,50">
+        <LeftPane>
+            <Markdown>
+            ## The Computer's Summary
+            </Markdown>            
+            <Ref id="wpj2_ref9" target="wpj2_response_summary_1" />
+        </LeftPane>
+        <RightPane>
+             <Markdown>
+                 ## What You Think of This Summmary
+                 
+                 Evaluate the computer's summary of your writing priorities. Is it accurate?
+                 Was there anything that surprised you or that you disagreed with?
+             </Markdown>
+            <TextArea id="wpj2_response_to_feedback_1" rows="6" placeholder="What I think of the computer's summary ..." />
+        </RightPane>
+    </SplitPanel>
+    <Vertical id="wpj2_Step_12" title="How do People Learn to Write Well?">
              <Markdown>
                  ## How do People Learn to Write Well?
         
@@ -185,6 +358,196 @@ category: writing
                  - What do you think people can to do to become better writers?
              </Markdown>
             <TextArea id="wpj2_how_to_learn_writing" rows="12" placeholder="People need to learn how to ..." />
+    </Vertical>
+    <Vertical id="wpj2_Step_13" title="My Self-Evaluation">
+           <Markdown>
+               ## Self-Evaluation
+               ### Question 10
+               
+               For each writing behavior described below, click on a radio button to show
+               how well you think you can do it. If it is something you really struggle
+               with, click under "Weakest" in the leftmost column. If you can do it very
+               well, click under "Strongest" in the rightmost column. Place other skills
+               somewhere in between.
+           </Markdown>
+           <TabularMCQ id="wpj2_self_evaluation_1">
+             cols: Weakest, Weaker, Stronger, Strongest
+             rows: Understanding the writing assignments the teacher gives me,Planning my time to get the work done by the deadline,Focusing on my work and avoiding distractions,Continuing to write even when I am having difficulties,Coming up with good ideas to include in my writing
+           </TabularMCQ>
+           <Markdown>
+             Select one option for each row. Your selections are automatically saved.
+           </Markdown>
+    </Vertical>
+    <Vertical id="wpj2_Step_14" title="My Self-Evaluation">
+           <Markdown>
+               ## Self-Evaluation
+               ### Question 11
+               
+               For each writing behavior described below, click on a radio button to show
+               how well you think you can do it. If it is something you really struggle
+               with, click under "Weakest" in the leftmost column. If you can do it very
+               well, click under "Strongest" in the rightmost column. Place other skills
+               somewhere in between.
+           </Markdown>
+           <TabularMCQ id="wpj2_self_evaluation_2">
+             cols: Weakest, Weaker, Stronger, Strongest
+             rows: Choosing the best plan for organizing my content,Finding the right words to express my ideas,Stating my thesis or main idea clearly,Writing paragraphs with clear topic sentences,Using transition words to connect related ideas
+           </TabularMCQ>
+           <Markdown>
+             Select one option for each row. Your selections are automatically saved.
+           </Markdown>
+    </Vertical>
+    <Vertical id="wpj2_Step_15" title="My Self-Evaluation">
+           <Markdown>
+               ## Self-Evaluation
+               ### Question 12
+               
+               For each writing behavior described below, click on a radio button to show
+               how well you think you can do it. If it is something you really struggle
+               with, click under "Weakest" in the leftmost column. If you can do it very
+               well, click under "Strongest" in the rightmost column. Place other skills
+               somewhere in between.
+           </Markdown>
+           <TabularMCQ id="wpj2_self_evaluation_3">
+             cols: Weakest, Weaker, Stronger, Strongest
+             rows: Determining when ideas are missing or when details/examples should be added,Determining when something I write is wrong or does not make sense,Reorganizing a document to make it clearer and easier to understand,Changing how sentences are worded to make the meaning clearer,Changing my writing style to fit the task and the audience
+           </TabularMCQ>
+           <Markdown>
+             Select one option for each row. Your selections are automatically saved.
+           </Markdown>
+    </Vertical>
+    <Vertical id="wpj2_Step_16" title="My Self-Evaluation">
+           <Markdown>
+               ## Self-Evaluation
+               ### Question 13
+               
+               For each writing behavior described below, click on a radio button to show
+               how well you think you can do it. If it is something you really struggle
+               with, click under "Weakest" in the leftmost column. If you can do it very
+               well, click under "Strongest" in the rightmost column. Place other skills
+               somewhere in between.
+           </Markdown>
+           <TabularMCQ id="wpj2_self_evaluation_4">
+             cols: Weakest, Weaker, Stronger, Strongest
+             rows: Avoiding errors in grammar/spelling/mechanics/usage/style,Proofreading what I write to fix errors in grammar/spelling/mechanics/usage/style,Typing quickly without looking at the keys when writing on the computer,Providing good feedback to help other writers improve their work,Making good use of feedback I get from others
+           </TabularMCQ>
+           <Markdown>
+             Select one option for each row. Your selections are automatically saved.
+           </Markdown>
+    </Vertical>
+    <SplitPanel id="wpj1_Step_17" title="Summary of Writing Strengths and Weaknesses" sizes="50,50">
+        <LeftPane>
+          <Markdown>
+              ## Analysis
+          
+              Before you go on, click on the button that says "Analyze My Strengths
+              and Weaknesses and read how the computer describes you as a writer.
+          </Markdown>
+          <ActionButton label="Analyze My Strengths and Weaknesses">
+              <LLMAction target="wpj2_self_eval_analysis">
+                  BACKGROUND INFORMATION:
+                   For the survey pages that ask the students to evaluate their own writing skills --
+                   
+                   Our column headers are: 
+                    - Weakest (corresponding to 0),
+                    - Weaker (corresponding to 1),
+                    - Stronger (corresponding to 2),
+                    - Strongest (corresponding to 3),
+
+                   Our row headers are: 
+                   - Understanding the writing assignments the teacher gives me
+                   - Planning my time to get the work done by the deadline
+                   - Focusing on my work and avoiding distractions
+                   - Continuing to write even when I am having difficulties
+                   - Coming up with good ideas to include in my writing
+                   - Choosing the best plan for organizing my content
+                   - Finding the right words to express my ideas- 
+                   - Stating my thesis or main idea clearly
+                   - Writing paragraphs with clear topic sentences
+                   - Using transition words to connect related ideas
+                   - Determining when ideas are missing or when details/examples should be added
+                   - Determining when something I write is wrong or does not make sense
+                   - Reorganizing a document to make it clearer and easier to understand
+                   - Changing how sentences are worded to make the meaning clearer
+                   - Changing my writing style to fit the task and the audience
+                   - Avoiding errors in grammar/spelling/mechanics/usage/style
+                   - Proofreading what I write to fix errors in grammar/spelling/mechanics/usage/style
+                   - Typing quickly without looking at the keys when writing on the computer
+                   - Providing good feedback to help other writers improve their work
+                   - Making good use of feedback I get from others
+                   
+                   Our data that addresses writing for school includes: 
+                   <Ref id="wpj_ref10" target="wpj2_self_evaluation_1" />                 
+                   <Ref id="wpj_ref11" target="wpj2_self_evaluation_2" />
+                   <Ref id="wpj_ref12" target="wpj2_self_evaluation_3" />
+                   <Ref id="wpj_ref13" target="wpj2_self_evaluation_4" />
+ 
+                  All of the data can be interpreted by mapping each number onto the column header it corresponds
+                  to and using the corresponding row headers to indicate how the student evaluates their
+                  skill at this particular writing task.
+                  
+                  The student's writing skills can be analyzed along the following dimensions:
+          
+                  Planning/Prewriting:
+                   - Understanding the writing assignments the teacher gives me
+                   - Planning my time to get the work done by the deadline                  
+                   - Focusing on my work and avoiding distractions                   
+                   - Continuing to write even when I am having difficulties
+
+                  Drafting:
+                   - Coming up with good ideas to include in my writing
+                   - Choosing the best plan for organizing my content
+                   - Finding the right words to express my ideas- 
+                   - Stating my thesis or main idea clearly
+                   - Writing paragraphs with clear topic sentences
+                   - Using transition words to connect related ideas
+                   - Changing my writing style to fit the task and the audience
+
+                 Revising:
+                   - Determining when ideas are missing or when details/examples should be added
+                   - Determining when something I write is wrong or does not make sense
+                   - Reorganizing a document to make it clearer and easier to understand
+                   - Changing how sentences are worded to make the meaning clearer
+                   - Providing good feedback to help other writers improve their work
+                   - Making good use of feedback I get from others          
+                   
+                Typing/Proofreading:
+                   - Typing quickly without looking at the keys when writing on the computer
+                   - Avoiding errors in grammar/spelling/mechanics/usage/style
+                   - Proofreading what I write to fix errors in grammar/spelling/mechanics/usage/style
+
+                  DIRECTIONS: 
+                    If the student's response data is missing, note that and say nothing more;
+                    otherwise, using the student's response data, describe succinctly in no more
+                    than one short paragraph which skills the student considers strengths
+                    and weaknesses along each of the major dimensions (Planning/Prewriting,
+                    Drafting, Revising, Typing/Proofreading). Then in a second paragraph,
+                    suggest what strategies the student should use to strengthen the
+                    skills they identified as their weakest. Address the student as "you" 
+                    and "your".
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="wpj2_self_eval_analysis" />
+        </LeftPane>
+        <RightPane>
+            <Markdown>
+                ## Your Response
+                
+                What do you think of what the computer said. Did it describe your strengths
+                and weaknesses accurately? What do you think of its suggestions about ways
+                to improve your writing? If there are any other strategies you think would
+                help you, describe them, too.
+            </Markdown>
+            <TextArea id="wpj2_response_to_strengths_weaknesses" rows="12" placeholder="Enter your response here." />
+        </RightPane>
+    </SplitPanel>
+    <Vertical id="wpj2_last_screen">
+        <Markdown>
+            **If you are done, please click on the checkbox below.**
+        </Markdown>
+        <CheckboxInput id="wpj2_complete">
+            <Key>I have finished this assignment</Key>
+        </CheckboxInput>
     </Vertical>
 </Sequential>
 
