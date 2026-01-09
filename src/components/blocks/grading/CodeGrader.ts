@@ -9,7 +9,7 @@
 // - Complex validation logic
 //
 // Usage:
-//   <CodeGrader>
+//   <CodeGrader target="answer">
 //     if (input === 42) return { correct: 'correct', message: 'Perfect!' };
 //     if (Math.abs(input - 42) < 5) return { correct: 'partially-correct', message: 'Close!', score: 0.5 };
 //     return { correct: 'incorrect', message: 'Try again' };
@@ -25,10 +25,135 @@
 //   - message: Feedback string (optional)
 //   - score: Numeric score 0-1 (optional, defaults based on correct value)
 //
+// ============================================================================
+// SECURITY MODEL
+// ============================================================================
+//
+// CURRENT STATE: CodeGrader uses `new Function()` which executes code with
+// access to the global scope. This is NOT sandboxed.
+//
+// THREAT MODEL:
+// - OLX content is authored by course creators (instructors, TAs, content teams)
+// - Unlike JSX, OLX is designed to be a safer declarative format
+// - CodeGrader breaks this model by allowing arbitrary JS execution
+// - A malicious or compromised course author could:
+//   - In browser: Access localStorage, cookies, make fetch requests, exfiltrate data
+//   - In Node.js: Access filesystem, environment variables, network, child_process
+//
+// WHY THIS MATTERS:
+// - Multi-tenant LMS platforms host content from many authors
+// - Server-side rendering/grading would expose the server to code injection
+// - Course authors ≠ course facilitators:
+//   - Author: Creates the course content (e.g., teacher at School A)
+//   - Facilitator: Runs the course for students (e.g., teacher at School B using A's course)
+//   - Facilitators need access to their students' data
+//   - Authors should NOT have access to data from other institutions using their course
+// - Threat vectors include:
+//   - Compromised author computers
+//   - Student-contributed content
+//   - Large K-12 deployments with many teachers (large attack surface)
+//
+// CURRENT MITIGATION:
+// - CodeGrader is DISABLED in Node.js environments (throws exception)
+// - Browser execution is permitted but not sandboxed (defense in depth needed)
+//
+// FUTURE SOLUTIONS (in order of implementation complexity):
+//
+// 1. Web Workers (browser only)
+//    - Run code in isolated thread, no DOM/global access
+//    - Can terminate on timeout
+//    - Async communication via postMessage
+//    - Limitation: Browser-only, doesn't help server-side
+//
+// 2. SES/Lockdown (Agoric's Secure ECMAScript)
+//    - Hardens JavaScript by freezing primordials
+//    - Same-thread execution with controlled globals
+//    - Works in both browser and Node.js
+//    - npm: ses, @agoric/lockdown
+//
+// 3. isolated-vm (Node.js)
+//    - Uses V8 isolates for true memory isolation
+//    - Used by Cloudflare Workers
+//    - Strong isolation with timeout/memory limits
+//    - npm: isolated-vm
+//
+// 4. QuickJS in WebAssembly (cross-platform)
+//    - Run a complete JS interpreter compiled to WASM
+//    - Total isolation - separate memory space
+//    - Works everywhere WASM runs
+//    - Heavy (~500KB), but bulletproof
+//    - npm: quickjs-emscripten
+//
+// 5. Container/subprocess (server-side)
+//    - Run graders in isolated Docker containers
+//    - Or separate Node process with restricted permissions
+//    - Heaviest but most battle-tested for untrusted code
+//
+// RECOMMENDATION:
+// For production multi-tenant use, implement option 2 (SES) for immediate
+// protection, then option 3 or 4 for stronger isolation. The current
+// `new Function()` approach should only be used in trusted single-tenant
+// deployments where course authors are fully trusted.
+//
+// ============================================================================
+//
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
 import { CORRECTNESS } from '@/lib/blocks/correctness';
 import _Hidden from '@/components/blocks/layout/_Hidden';
+
+/**
+ * Security error message explaining why CodeGrader is disabled server-side.
+ * This is a const so it can be referenced in both the exception and tests.
+ */
+export const CODE_GRADER_SECURITY_ERROR = `
+CodeGrader is disabled in Node.js environments for security reasons.
+
+CodeGrader executes arbitrary JavaScript code provided by course authors using
+\`new Function()\`, which has access to the global scope. In a Node.js environment,
+this would allow malicious code to:
+- Access the filesystem (fs module)
+- Read environment variables (process.env)
+- Make network requests
+- Execute system commands (child_process)
+- Access any server-side secrets or databases
+
+SOLUTIONS:
+
+1. Run grading client-side only (current behavior)
+   - CodeGrader works in browsers where damage is limited to the user's session
+
+2. Implement sandboxed execution (future work)
+   - SES/Lockdown for same-thread hardened JS
+   - isolated-vm for V8 isolate-based isolation
+   - QuickJS in WebAssembly for complete isolation
+   - Container-based execution for strongest guarantees
+
+3. Use declarative graders instead
+   - StringGrader, NumericalGrader, RulesGrader for most cases
+   - These are safe because they don't execute arbitrary code
+
+See the SECURITY MODEL section in CodeGrader.ts for detailed documentation.
+`.trim();
+
+/**
+ * Check if we're in a safe environment for code execution.
+ * Returns true only if we're confident we're in a browser context.
+ */
+function isSafeExecutionEnvironment(): boolean {
+  // Not in browser; may be faked with jsdom or similar polyfills
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  // In Node.js; return false. May fail to flag oddball environments like Deno/Bun.
+  if (typeof process !== 'undefined' && process.versions?.node != null) {
+    return false;
+  }
+
+  // Not in Node AND in browser
+  return true;
+}
 
 /**
  * Normalize correctness value to CORRECTNESS enum.
@@ -63,12 +188,18 @@ function normalizeCorrectness(value: unknown): string {
  * - Math: standard Math object
  *
  * Security note: This executes author-trusted code, not student input.
- * Authors have the same trust level as the OLX content itself.
+ * This assumes that authors have the same trust level as the OLX
+ * content itself.
  */
 function executeGradingCode(
   code: string,
   context: { input: unknown; inputs: unknown[] }
 ): { correct: string; message: string; score?: number } {
+  // Security check: Only execute in safe (browser) environments
+  if (!isSafeExecutionEnvironment()) {
+    throw new Error(CODE_GRADER_SECURITY_ERROR);
+  }
+
   try {
     // Wrap code in a function that can use return statements
     const wrappedCode = `
