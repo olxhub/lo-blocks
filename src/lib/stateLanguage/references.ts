@@ -1,7 +1,11 @@
 // src/lib/stateLanguage/references.ts
 //
-// Extract references from AST by walking the tree.
-// No regex - proper AST traversal.
+// HACK: redux-react plugins were a little complex when we were
+// developing this, so we just do a regexp for {{ }} before rendering.
+//
+// We should extract references from AST by walking the tree.  No
+// regex - proper AST traversal.
+
 
 import { parse, tryParse } from './parser';
 import type { ASTNode, SigilRef } from './parser';
