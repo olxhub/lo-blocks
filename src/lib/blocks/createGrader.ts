@@ -66,6 +66,8 @@ interface CreateGraderConfig {
   createMatch?: boolean;
   /** Custom component to render. Default: _Noop (renders children). Use _Hidden to hide children. */
   component?: React.ComponentType<any>;
+  /** Custom parser for children. Default: parsers.blocks.allowHTML(). Use parsers.text() for code content. */
+  parser?: { parser: (ctx: any) => Promise<any>; staticKids?: (entry: any) => any[] };
 }
 
 export function createGrader({
@@ -78,13 +80,14 @@ export function createGrader({
   infer = true,
   createMatch = true,
   component = _Noop,
+  parser,
 }: CreateGraderConfig) {
   const graderName = `${base}Grader`;
   const matchName = `${base}Match`;
 
   // Create the full Grader block (connects to inputs, grades them)
   const graderBlock = core({
-    ...parsers.blocks.allowHTML(),
+    ...(parser ?? parsers.blocks.allowHTML()),
     ...grader({ grader: graderFn, infer }),
     name: graderName,
     description,

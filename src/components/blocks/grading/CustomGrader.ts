@@ -100,6 +100,7 @@
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
 import { CORRECTNESS } from '@/lib/blocks/correctness';
+import * as parsers from '@/lib/content/parsers';
 import _Hidden from '@/components/blocks/layout/_Hidden';
 
 /**
@@ -254,24 +255,12 @@ function executeGradingCode(
 
 /**
  * Extract code content from kids.
- * Handles both string content and text node arrays.
+ * With parsers.text, kids is a string (the code content).
  */
 function extractCode(kids: unknown): string {
   if (typeof kids === 'string') {
     return kids.trim();
   }
-
-  if (Array.isArray(kids)) {
-    return kids
-      .map((kid) => {
-        if (typeof kid === 'string') return kid;
-        if (typeof kid === 'object' && kid?.type === 'text') return kid.text;
-        return '';
-      })
-      .join('')
-      .trim();
-  }
-
   return '';
 }
 
@@ -305,6 +294,8 @@ const CustomGrader = createGrader({
   attributes: {
     // target is required since we can't infer inputs from children
     target: z.string({ required_error: 'target is required - specify the input block(s) to grade' }),
+    // Optional: load code from external file
+    src: z.string().optional(),
   },
   // Children are code, not inputs - require explicit target
   infer: false,
@@ -314,6 +305,8 @@ const CustomGrader = createGrader({
   getDisplayAnswer: () => undefined,
   // Hide the code from rendering (children are code, not content)
   component: _Hidden,
+  // Parse children as text (code), not blocks. Supports src= for external files.
+  parser: parsers.text({ postprocess: 'none' }),
 });
 
 export default CustomGrader;

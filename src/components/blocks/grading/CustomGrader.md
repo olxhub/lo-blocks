@@ -18,14 +18,17 @@ For simple cases, prefer declarative graders:
 ## Basic Usage
 
 ```xml
-<LineInput id="answer" />
-<CustomGrader target="answer">
-  if (input === 42) return { correct: 'correct', message: 'Perfect!' };
-  if (Math.abs(input - 42) < 5) return { correct: 'partially-correct', score: 0.5 };
-  return { correct: 'incorrect', message: 'Try again' };
-</CustomGrader>
-<ActionButton target="grader" label="Check" />
+<CapaProblem id="quiz1" title="The Ultimate Question">
+  <LineInput id="answer" />
+  <CustomGrader target="answer">
+    if (input === 42) return { correct: 'correct', message: 'Perfect!' };
+    if (Math.abs(input - 42) &lt; 5) return { correct: 'partially-correct', score: 0.5 };
+    return { correct: 'incorrect', message: 'Try again' };
+  </CustomGrader>
+</CapaProblem>
 ```
+
+**Note:** CapaProblem automatically provides Submit/Reset buttons and wires them to the grader.
 
 ## Attributes
 
@@ -33,6 +36,7 @@ For simple cases, prefer declarative graders:
 |-----------|----------|-------------|
 | `id` | Yes | Unique identifier for the grader |
 | `target` | Yes | Comma-separated IDs of input blocks to grade |
+| `src` | No | Path to external `.js` file containing grading code |
 
 **Note:** Unlike other graders, `target` is required because CustomGrader's children contain code, not input blocks.
 
@@ -70,23 +74,25 @@ Your code must return an object with:
 Accept multiple representations of the same value:
 
 ```xml
-<LineInput id="half" />
-<CustomGrader target="half">
-  const s = (input || '').toLowerCase().trim();
-  if (!s) return { correct: 'unsubmitted' };
+<CapaProblem id="half-value" title="Expressing One-Half">
+  <LineInput id="half" />
+  <CustomGrader target="half"><![CDATA[
+    const s = (input || '').toLowerCase().trim();
+    if (!s) return { correct: 'unsubmitted' };
 
-  // Accept various formats
-  if (s === '0.5' || s === '.5') return { correct: 'correct', message: 'Decimal form' };
-  if (s === '1/2') return { correct: 'correct', message: 'Fraction form' };
-  if (s === '50%') return { correct: 'correct', message: 'Percentage form' };
-  if (s === 'half' || s === 'one half') return { correct: 'correct', message: 'Word form' };
+    // Accept various formats
+    if (s === '0.5' || s === '.5') return { correct: 'correct', message: 'Decimal form' };
+    if (s === '1/2') return { correct: 'correct', message: 'Fraction form' };
+    if (s === '50%') return { correct: 'correct', message: 'Percentage form' };
+    if (s === 'half' || s === 'one half') return { correct: 'correct', message: 'Word form' };
 
-  // Check numeric equivalence
-  const n = parseFloat(s);
-  if (!isNaN(n) &amp;&amp; Math.abs(n - 0.5) &lt; 0.001) return { correct: 'correct' };
+    // Check numeric equivalence
+    const n = parseFloat(s);
+    if (!isNaN(n) && Math.abs(n - 0.5) < 0.001) return { correct: 'correct' };
 
-  return { correct: 'incorrect', message: 'Try a different format' };
-</CustomGrader>
+    return { correct: 'incorrect', message: 'Try a different format' };
+  ]]></CustomGrader>
+</CapaProblem>
 ```
 
 ### Multi-Input Validation
@@ -94,20 +100,22 @@ Accept multiple representations of the same value:
 Grade two inputs that must satisfy a relationship:
 
 ```xml
-<LineInput id="r1" />
-<LineInput id="r2" />
-<CustomGrader target="r1, r2">
-  const [r1, r2] = inputs.map(parseFloat);
-  if (isNaN(r1) || isNaN(r2)) return { correct: 'invalid', message: 'Enter numbers' };
+<CapaProblem id="voltage-divider" title="Voltage Divider Design">
+  <LineInput id="r1" />
+  <LineInput id="r2" />
+  <CustomGrader target="r1, r2"><![CDATA[
+    const [r1, r2] = inputs.map(parseFloat);
+    if (isNaN(r1) || isNaN(r2)) return { correct: 'invalid', message: 'Enter numbers' };
 
-  const ratio = r2 / (r1 + r2);
-  const target = 0.2;
+    const ratio = r2 / (r1 + r2);
+    const target = 0.2;
 
-  if (Math.abs(ratio - target) / target &lt;= 0.05) {
-    return { correct: 'correct', message: `Ratio = ${ratio.toFixed(3)}` };
-  }
-  return { correct: 'incorrect', message: `Ratio is ${ratio.toFixed(3)}, need ${target}` };
-</CustomGrader>
+    if (Math.abs(ratio - target) / target <= 0.05) {
+      return { correct: 'correct', message: `Ratio = ${ratio.toFixed(3)}` };
+    }
+    return { correct: 'incorrect', message: `Ratio is ${ratio.toFixed(3)}, need ${target}` };
+  ]]></CustomGrader>
+</CapaProblem>
 ```
 
 ### Partial Credit
@@ -115,20 +123,22 @@ Grade two inputs that must satisfy a relationship:
 Award partial credit based on answer quality:
 
 ```xml
-<LineInput id="estimate" />
-<CustomGrader target="estimate">
-  const answer = parseFloat(input);
-  const correct = 3.14159;
+<CapaProblem id="pi-estimate" title="Estimate Pi">
+  <LineInput id="estimate" />
+  <CustomGrader target="estimate"><![CDATA[
+    const answer = parseFloat(input);
+    const correct = 3.14159;
 
-  if (isNaN(answer)) return { correct: 'invalid' };
+    if (isNaN(answer)) return { correct: 'invalid' };
 
-  const error = Math.abs(answer - correct) / correct;
+    const error = Math.abs(answer - correct) / correct;
 
-  if (error &lt; 0.001) return { correct: 'correct', score: 1, message: 'Excellent precision!' };
-  if (error &lt; 0.01) return { correct: 'partially-correct', score: 0.8, message: 'Good approximation' };
-  if (error &lt; 0.1) return { correct: 'partially-correct', score: 0.5, message: 'Rough estimate' };
-  return { correct: 'incorrect', message: 'Too far off' };
-</CustomGrader>
+    if (error < 0.001) return { correct: 'correct', score: 1, message: 'Excellent precision!' };
+    if (error < 0.01) return { correct: 'partially-correct', score: 0.8, message: 'Good approximation' };
+    if (error < 0.1) return { correct: 'partially-correct', score: 0.5, message: 'Rough estimate' };
+    return { correct: 'incorrect', message: 'Too far off' };
+  ]]></CustomGrader>
+</CapaProblem>
 ```
 
 ### Domain-Specific Validation
@@ -136,27 +146,32 @@ Award partial credit based on answer quality:
 Validate against domain constraints (e.g., standard resistor values):
 
 ```xml
-<CustomGrader target="resistor">
-  const E24 = [1.0, 1.1, 1.2, 1.3, 1.5, 1.6, 1.8, 2.0, 2.2, 2.4, 2.7, 3.0,
-               3.3, 3.6, 3.9, 4.3, 4.7, 5.1, 5.6, 6.2, 6.8, 7.5, 8.2, 9.1];
+<CapaProblem id="e24-check" title="Standard Resistor Value">
+  <LineInput id="resistor" />
+  <CustomGrader target="resistor"><![CDATA[
+    const E24 = [1.0, 1.1, 1.2, 1.3, 1.5, 1.6, 1.8, 2.0, 2.2, 2.4, 2.7, 3.0,
+                 3.3, 3.6, 3.9, 4.3, 4.7, 5.1, 5.6, 6.2, 6.8, 7.5, 8.2, 9.1];
 
-  function isStandard(r) {
-    let n = r;
-    while (n &gt;= 10) n /= 10;
-    while (n &lt; 1) n *= 10;
-    return E24.some(std =&gt; Math.abs(n - std) / std &lt; 0.02);
-  }
+    function isStandard(r) {
+      let n = r;
+      while (n >= 10) n /= 10;
+      while (n < 1) n *= 10;
+      return E24.some(std => Math.abs(n - std) / std < 0.02);
+    }
 
-  const value = parseFloat(input);
-  if (isNaN(value)) return { correct: 'invalid' };
-  if (!isStandard(value)) return { correct: 'incorrect', message: 'Not a standard E24 value' };
-  return { correct: 'correct' };
-</CustomGrader>
+    const value = parseFloat(input);
+    if (isNaN(value)) return { correct: 'invalid' };
+    if (!isStandard(value)) return { correct: 'incorrect', message: 'Not a standard E24 value' };
+    return { correct: 'correct' };
+  ]]></CustomGrader>
+</CapaProblem>
 ```
 
-## XML Escaping
+## Handling Special Characters
 
-In OLX, you must escape certain characters:
+JavaScript code frequently uses `<`, `>`, and `&` which are special in XML. Three options:
+
+### Option 1: XML Entity Escaping
 
 | Character | Escape |
 |-----------|--------|
@@ -164,7 +179,34 @@ In OLX, you must escape certain characters:
 | `>` | `&gt;` |
 | `&` | `&amp;` |
 
-Example: `if (x &lt; 5 &amp;&amp; y &gt; 0)` instead of `if (x < 5 && y > 0)`
+```xml
+<CustomGrader target="answer">
+  if (x &lt; 5 &amp;&amp; y &gt; 0) return { correct: 'correct' };
+</CustomGrader>
+```
+
+### Option 2: CDATA Section (Recommended for complex code)
+
+CDATA sections let you write code without escaping:
+
+```xml
+<CustomGrader target="answer"><![CDATA[
+  if (x < 5 && y > 0) {
+    return { correct: 'correct', message: 'In range!' };
+  }
+  return { correct: 'incorrect' };
+]]></CustomGrader>
+```
+
+### Option 3: External File with src=
+
+For complex graders, keep code in a separate `.js` file:
+
+```xml
+<CustomGrader target="answer" src="./graders/voltage-divider.js" />
+```
+
+The file path is resolved relative to the OLX file location. This keeps your OLX clean and allows reusing grading code across problems.
 
 ## Security
 

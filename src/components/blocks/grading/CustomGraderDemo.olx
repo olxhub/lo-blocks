@@ -10,7 +10,7 @@ This demonstrates the CustomGrader block, which lets authors write custom JavaSc
 Enter 42 (the answer to life, the universe, and everything):
   </Markdown>
 
-  <CapaProblem>
+  <CapaProblem id="hitchhikers-answer" title="The Ultimate Question">
     <LineInput id="answer1" />
     <CustomGrader target="answer1">
       const value = parseFloat(input);
@@ -26,7 +26,7 @@ Enter 42 (the answer to life, the universe, and everything):
 Enter a primary color (red, blue, or yellow):
   </Markdown>
 
-  <CapaProblem>
+  <CapaProblem id="primary-colors" title="Primary Colors">
     <LineInput id="answer2" />
     <CustomGrader target="answer2">
       const answer = (input || '').toLowerCase().trim();
@@ -45,7 +45,7 @@ Enter a primary color (red, blue, or yellow):
 Enter one-half (accepts: 0.5, 1/2, 50%, half):
   </Markdown>
 
-  <CapaProblem>
+  <CapaProblem id="one-half" title="Expressing One-Half">
     <LineInput id="answer3" />
     <CustomGrader target="answer3">
       const answer = (input || '').toLowerCase().trim();
@@ -72,7 +72,7 @@ Vout = Vin * R2/(R1+R2), so we need R2/(R1+R2) = 0.2
 Enter two **standard 5% resistor values** (E24 series):
   </Markdown>
 
-  <CapaProblem>
+  <CapaProblem id="voltage-divider" title="Voltage Divider Design">
     <Markdown>R1 (top resistor, to Vin):</Markdown>
     <LineInput id="r1" />
     <Markdown>R2 (bottom resistor, to ground):</Markdown>
