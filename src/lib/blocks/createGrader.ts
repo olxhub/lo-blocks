@@ -20,6 +20,7 @@
 //     },
 //   });
 //
+import React from 'react';
 import { z } from 'zod';
 import { core } from './namespaces';
 import * as parsers from '@/lib/content/parsers';
@@ -59,6 +60,12 @@ interface CreateGraderConfig {
   attributes?: Record<string, any>;
   getDisplayAnswer?: (props: RuntimeProps) => any;
   locals?: LocalsAPI;
+  /** If false, don't infer inputs from children (use explicit target). Default: true */
+  infer?: boolean;
+  /** If false, don't create a Match block variant. Default: true */
+  createMatch?: boolean;
+  /** Custom component to render. Default: _Noop (renders children). Use _Hidden to hide children. */
+  component?: React.ComponentType<any>;
 }
 
 export function createGrader({
@@ -68,6 +75,9 @@ export function createGrader({
   attributes = {},
   getDisplayAnswer,
   locals,
+  infer = true,
+  createMatch = true,
+  component = _Noop,
 }: CreateGraderConfig) {
   const graderName = `${base}Grader`;
   const matchName = `${base}Match`;
@@ -75,39 +85,42 @@ export function createGrader({
   // Create the full Grader block (connects to inputs, grades them)
   const graderBlock = core({
     ...parsers.blocks.allowHTML(),
-    ...grader({ grader: graderFn }),
+    ...grader({ grader: graderFn, infer }),
     name: graderName,
     description,
     category: 'grading',
-    component: _Noop,
+    component,
     attributes: graderAttributes.extend(attributes),
     getDisplayAnswer: getDisplayAnswer ?? ((props: RuntimeProps) => props.displayAnswer ?? props.answer),
   }, locals);
 
   // Create the Match block (a rule for use inside RulesGrader)
   // Match blocks don't connect to inputs - they just define matching logic
-  const matchBlock = core({
-    ...parsers.blocks(),  // No allowHTML needed for simple rules
-    name: matchName,
-    description: `Matching rule for ${base} patterns, used inside RulesGrader`,
-    category: 'grading',
-    component: _Noop,
-    internal: true,  // Hide from main docs - it's used inside RulesGrader
-    isMatch: true,   // Mark as a Match block (used by RulesGrader)
-    // Use strict() to catch attribute typos like bob="doo"
-    attributes: baseAttributes.extend({
-      ...RULE_ATTRIBUTES,
-      ...attributes,
-    }).strict(),
-    // Store the matching function so RulesGrader can call it
-    locals: {
-      match: graderFn,
-      ...(locals || {}),
-    },
-  });
+  // Some graders (like CodeGrader) don't need a Match variant
+  if (createMatch) {
+    const matchBlock = core({
+      ...parsers.blocks(),  // No allowHTML needed for simple rules
+      name: matchName,
+      description: `Matching rule for ${base} patterns, used inside RulesGrader`,
+      category: 'grading',
+      component: _Noop,
+      internal: true,  // Hide from main docs - it's used inside RulesGrader
+      isMatch: true,   // Mark as a Match block (used by RulesGrader)
+      // Use strict() to catch attribute typos like bob="doo"
+      attributes: baseAttributes.extend({
+        ...RULE_ATTRIBUTES,
+        ...attributes,
+      }).strict(),
+      // Store the matching function so RulesGrader can call it
+      locals: {
+        match: graderFn,
+        ...(locals || {}),
+      },
+    });
 
-  // Register the Match block for blockRegistry to pick up
-  MATCH_BLOCKS[matchName] = matchBlock;
+    // Register the Match block for blockRegistry to pick up
+    MATCH_BLOCKS[matchName] = matchBlock;
+  }
 
   // Return only the Grader block (the default export)
   return graderBlock;

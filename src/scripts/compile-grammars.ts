@@ -24,19 +24,22 @@ async function compileAllPEG() {
     const parsedName = path.basename(file).replace('.pegjs', '');
 
     // Special handling for grammars with multiple entry points
-    const options: peggy.ParserBuildOptions = { output: 'source', format: 'es' };
-    if (parsedName === 'expand') {
-      options.allowedStartRules = ['Condition', 'Template', 'FormatTemplate'];
-    }
+    const options = {
+      output: 'source' as const,
+      format: 'es' as const,
+      allowedStartRules: parsedName === 'expand'
+        ? ['Condition', 'Template', 'FormatTemplate']
+        : undefined,
+    };
 
-    const parser = peggy.generate(grammar, options);
+    const parserSource = peggy.generate(grammar, options) as string;
 
     const outFile = path.join(
       path.dirname(file),
       `_${parsedName}Parser.js`
     );
 
-    await fs.writeFile(outFile, parser);
+    await fs.writeFile(outFile, parserSource);
     console.log(`✅ Compiled ${file} → ${outFile}`);
 
     extensions.push(`${parsedName}peg`);
