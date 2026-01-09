@@ -62,6 +62,50 @@ export function parseRange(str) {
   };
 }
 
+/**
+ * Validate NumericalGrader attributes at parse time.
+ * Returns array of error messages or undefined if valid.
+ */
+export function validateNumericalAttributes(attrs: Record<string, any>): string[] | undefined {
+  const errors: string[] = [];
+
+  // Validate answer
+  if (attrs.answer !== undefined) {
+    const answerStr = String(attrs.answer).trim();
+
+    // Check if it's a range
+    if (/^\s*[\[(].*[\])]\s*$/.test(answerStr)) {
+      const range = parseRange(answerStr);
+      if (!range) {
+        errors.push(`answer: Invalid range format "${attrs.answer}". Expected format like "[0, 10]" or "(0, 10)".`);
+      } else {
+        if (isNaN(range.lower.re) || isNaN(range.lower.im)) {
+          errors.push(`answer: Invalid lower bound in range "${attrs.answer}".`);
+        }
+        if (isNaN(range.upper.re) || isNaN(range.upper.im)) {
+          errors.push(`answer: Invalid upper bound in range "${attrs.answer}".`);
+        }
+      }
+    } else {
+      // Single value - must be a valid number/complex
+      const parsed = parseComplex(answerStr);
+      if (isNaN(parsed.re) || isNaN(parsed.im)) {
+        errors.push(`answer: "${attrs.answer}" is not a valid number.`);
+      }
+    }
+  }
+
+  // Validate tolerance
+  if (attrs.tolerance !== undefined && attrs.tolerance !== '') {
+    const tol = parseTolerance(attrs.tolerance, 1); // Use 1 as base for percentage check
+    if (isNaN(tol)) {
+      errors.push(`tolerance: "${attrs.tolerance}" is not a valid tolerance. Use a number or percentage like "5%".`);
+    }
+  }
+
+  return errors.length > 0 ? errors : undefined;
+}
+
 export function inRange(value, range, tol=0) {
   const v = parseComplex(value);
   const lo = range.lower;

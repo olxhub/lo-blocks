@@ -197,6 +197,19 @@ export const BlockBlueprintSchema = z.object({
    */
   attributes: z.custom<z.ZodTypeAny>().optional(),
   /**
+   * Semantic validation for attributes beyond what Zod schema can express.
+   * Called after Zod parsing succeeds. Use for domain-specific validation like:
+   * - NumericalGrader: answer must be a valid number/range
+   * - StringGrader with regexp=true: answer must be a valid regex
+   *
+   * @param attrs - The parsed attributes (after Zod transforms)
+   * @returns Array of error messages, or empty/undefined if valid
+   */
+  validateAttributes: z.function()
+    .args(z.record(z.string(), z.any()))
+    .returns(z.array(z.string()).optional())
+    .optional(),
+  /**
    * Declares that this block requires a parent grader in the hierarchy.
    * When true, render will inject `graderId` into props or show DisplayError if not found.
    */
@@ -269,6 +282,11 @@ export interface LoBlock {
    * Zod schema for validating block attributes at parse time and render time.
    */
   attributes?: z.ZodTypeAny;
+  /**
+   * Semantic validation for attributes beyond what Zod schema can express.
+   * Returns array of error messages or undefined if valid.
+   */
+  validateAttributes?: (attrs: Record<string, any>) => string[] | undefined;
   /**
    * Declares that this block requires a parent grader in the hierarchy.
    */

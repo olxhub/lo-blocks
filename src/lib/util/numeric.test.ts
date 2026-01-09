@@ -1,6 +1,6 @@
 // @vitest-environment node
 // src/lib/util/numeric.test.ts
-import { parseComplex, parseTolerance, parseRange, inRange, compareWithTolerance, numericalMatch, gradeRatio } from './numeric';
+import { parseComplex, parseTolerance, parseRange, inRange, compareWithTolerance, numericalMatch, gradeRatio, validateNumericalAttributes } from './numeric';
 import { CORRECTNESS } from '../blocks/correctness';
 
 it('parses complex numbers and compares', () => {
@@ -50,4 +50,42 @@ it('grades ratios of two numbers', () => {
   expect(gradeRatio({answer:'0.5', tolerance:'0.1'}, {inputs:['2', '5']}).correct).toBe(CORRECTNESS.CORRECT);
   expect(gradeRatio({answer:'2'}, {inputs:['1', '0']}).correct).toBe(CORRECTNESS.INVALID);
   expect(gradeRatio({answer:'0.5'}, {inputs:['1', '3']}).correct).toBe(CORRECTNESS.INCORRECT);
+});
+
+describe('validateNumericalAttributes', () => {
+  it('accepts valid numbers', () => {
+    expect(validateNumericalAttributes({ answer: '42' })).toBeUndefined();
+    expect(validateNumericalAttributes({ answer: '3.14' })).toBeUndefined();
+    expect(validateNumericalAttributes({ answer: '-5' })).toBeUndefined();
+    expect(validateNumericalAttributes({ answer: '3+4i' })).toBeUndefined();
+  });
+
+  it('accepts valid ranges', () => {
+    expect(validateNumericalAttributes({ answer: '[0, 10]' })).toBeUndefined();
+    expect(validateNumericalAttributes({ answer: '(0, 10)' })).toBeUndefined();
+    expect(validateNumericalAttributes({ answer: '[0.5, 1.5]' })).toBeUndefined();
+  });
+
+  it('accepts valid tolerances', () => {
+    expect(validateNumericalAttributes({ answer: '42', tolerance: '0.1' })).toBeUndefined();
+    expect(validateNumericalAttributes({ answer: '42', tolerance: '5%' })).toBeUndefined();
+  });
+
+  it('rejects invalid answers', () => {
+    const errors = validateNumericalAttributes({ answer: 'Bob is great!' });
+    expect(errors).toBeDefined();
+    expect(errors![0]).toContain('not a valid number');
+  });
+
+  it('rejects invalid tolerances', () => {
+    const errors = validateNumericalAttributes({ answer: '42', tolerance: 'abc' });
+    expect(errors).toBeDefined();
+    expect(errors![0]).toContain('not a valid tolerance');
+  });
+
+  it('rejects invalid ranges', () => {
+    const errors = validateNumericalAttributes({ answer: '[abc, 10]' });
+    expect(errors).toBeDefined();
+    expect(errors![0]).toContain('Invalid lower bound');
+  });
 });

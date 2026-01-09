@@ -113,6 +113,15 @@ interface CreateGraderConfig {
    */
   grader?: (props: RuntimeProps, params: { input?: any; inputs?: any[] }) => { correct: any; message: any };
   attributes?: Record<string, any>;
+  /**
+   * Semantic validation for attributes at parse time.
+   * Called after Zod parsing succeeds. Returns array of error messages or empty/undefined if valid.
+   * Use for domain-specific validation like:
+   * - answer must be a valid number/range
+   * - regexp pattern must be valid
+   * - tolerance must be a valid number or percentage
+   */
+  validateAttributes?: (attrs: Record<string, any>) => string[] | undefined;
   getDisplayAnswer?: (props: RuntimeProps) => any;
   locals?: LocalsAPI;
   /** If false, don't infer inputs from children (use explicit target). Default: true */
@@ -131,6 +140,7 @@ export function createGrader({
   match: matchFn,
   grader: customGraderFn,
   attributes = {},
+  validateAttributes,
   getDisplayAnswer,
   locals,
   infer = true,
@@ -169,6 +179,7 @@ export function createGrader({
     category: 'grading',
     component,
     attributes: graderAttributes.extend(attributes),
+    validateAttributes,
     getDisplayAnswer: getDisplayAnswer ?? ((props: RuntimeProps) => props.displayAnswer ?? props.answer),
   }, locals);
 

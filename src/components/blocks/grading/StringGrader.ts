@@ -25,10 +25,10 @@
 //
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
-import { stringMatch } from './stringMatch';
+import { stringMatch, validateStringAttributes } from './stringMatch';
 
 // Re-export for convenience
-export { stringMatch } from './stringMatch';
+export { stringMatch, validateStringAttributes } from './stringMatch';
 export type { StringMatchOptions } from './stringMatch';
 
 // Strict boolean schema - only accepts true, false, "true", "false"
@@ -48,6 +48,7 @@ const StringGrader = createGrader({
     regexp: strictBoolean,
     ignoreCase: strictBoolean,
   },
+  validateAttributes: validateStringAttributes,
 });
 
 export default StringGrader;

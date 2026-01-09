@@ -9,6 +9,26 @@ import { MATCH, NO_MATCH, UNSUBMITTED, invalid } from '@/lib/blocks/matchResult'
 import type { MatchResult } from '@/lib/blocks/matchResult';
 
 /**
+ * Validate StringGrader attributes at parse time.
+ * Returns array of error messages or undefined if valid.
+ */
+export function validateStringAttributes(attrs: Record<string, any>): string[] | undefined {
+  const errors: string[] = [];
+
+  // If regexp=true, validate that the answer is a valid regex pattern
+  if (attrs.regexp === true && attrs.answer !== undefined) {
+    try {
+      new RegExp(attrs.answer);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      errors.push(`answer: Invalid regular expression "${attrs.answer}". ${msg}`);
+    }
+  }
+
+  return errors.length > 0 ? errors : undefined;
+}
+
+/**
  * Options for string matching.
  */
 export interface StringMatchOptions {
