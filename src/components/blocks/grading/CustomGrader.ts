@@ -1,4 +1,4 @@
-// src/components/blocks/grading/CodeGrader.ts
+// src/components/blocks/grading/CustomGrader.ts
 //
 // Grader that executes author-provided JavaScript code for custom grading logic.
 //
@@ -9,11 +9,11 @@
 // - Complex validation logic
 //
 // Usage:
-//   <CodeGrader target="answer">
+//   <CustomGrader target="answer">
 //     if (input === 42) return { correct: 'correct', message: 'Perfect!' };
 //     if (Math.abs(input - 42) < 5) return { correct: 'partially-correct', message: 'Close!', score: 0.5 };
 //     return { correct: 'incorrect', message: 'Try again' };
-//   </CodeGrader>
+//   </CustomGrader>
 //
 // The code has access to:
 //   - input: The student's answer (single input case)
@@ -29,13 +29,13 @@
 // SECURITY MODEL
 // ============================================================================
 //
-// CURRENT STATE: CodeGrader uses `new Function()` which executes code with
+// CURRENT STATE: CustomGrader uses `new Function()` which executes code with
 // access to the global scope. This is NOT sandboxed.
 //
 // THREAT MODEL:
 // - OLX content is authored by course creators (instructors, TAs, content teams)
 // - Unlike JSX, OLX is designed to be a safer declarative format
-// - CodeGrader breaks this model by allowing arbitrary JS execution
+// - CustomGrader breaks this model by allowing arbitrary JS execution
 // - A malicious or compromised course author could:
 //   - In browser: Access localStorage, cookies, make fetch requests, exfiltrate data
 //   - In Node.js: Access filesystem, environment variables, network, child_process
@@ -54,7 +54,7 @@
 //   - Large K-12 deployments with many teachers (large attack surface)
 //
 // CURRENT MITIGATION:
-// - CodeGrader is DISABLED in Node.js environments (throws exception)
+// - CustomGrader is DISABLED in Node.js environments (throws exception)
 // - Browser execution is permitted but not sandboxed (defense in depth needed)
 //
 // FUTURE SOLUTIONS (in order of implementation complexity):
@@ -103,13 +103,13 @@ import { CORRECTNESS } from '@/lib/blocks/correctness';
 import _Hidden from '@/components/blocks/layout/_Hidden';
 
 /**
- * Security error message explaining why CodeGrader is disabled server-side.
+ * Security error message explaining why CustomGrader is disabled server-side.
  * This is a const so it can be referenced in both the exception and tests.
  */
-export const CODE_GRADER_SECURITY_ERROR = `
-CodeGrader is disabled in Node.js environments for security reasons.
+export const CUSTOM_GRADER_SECURITY_ERROR = `
+CustomGrader is disabled in Node.js environments for security reasons.
 
-CodeGrader executes arbitrary JavaScript code provided by course authors using
+CustomGrader executes arbitrary JavaScript code provided by course authors using
 \`new Function()\`, which has access to the global scope. In a Node.js environment,
 this would allow malicious code to:
 - Access the filesystem (fs module)
@@ -121,7 +121,7 @@ this would allow malicious code to:
 SOLUTIONS:
 
 1. Run grading client-side only (current behavior)
-   - CodeGrader works in browsers where damage is limited to the user's session
+   - CustomGrader works in browsers where damage is limited to the user's session
 
 2. Implement sandboxed execution (future work)
    - SES/Lockdown for same-thread hardened JS
@@ -133,7 +133,7 @@ SOLUTIONS:
    - StringGrader, NumericalGrader, RulesGrader for most cases
    - These are safe because they don't execute arbitrary code
 
-See the SECURITY MODEL section in CodeGrader.ts for detailed documentation.
+See the SECURITY MODEL section in CustomGrader.ts for detailed documentation.
 `.trim();
 
 /**
@@ -197,7 +197,7 @@ function executeGradingCode(
 ): { correct: string; message: string; score?: number } {
   // Security check: Only execute in safe (browser) environments
   if (!isSafeExecutionEnvironment()) {
-    throw new Error(CODE_GRADER_SECURITY_ERROR);
+    throw new Error(CUSTOM_GRADER_SECURITY_ERROR);
   }
 
   try {
@@ -244,7 +244,7 @@ function executeGradingCode(
       score: typeof result.score === 'number' ? result.score : undefined,
     };
   } catch (error) {
-    console.error('[CodeGrader] Execution error:', error);
+    console.error('[CustomGrader] Execution error:', error);
     return {
       correct: CORRECTNESS.INVALID,
       message: `Grading error: ${error instanceof Error ? error.message : String(error)}`,
@@ -286,7 +286,9 @@ function gradeCode(props, { input, inputs }) {
   }
 
   // Handle unsubmitted case
-  if (input === undefined || input === null || input === '') {
+  // Note: For multi-input graders, `input` is undefined - only `inputs` is set
+  const firstInput = input ?? inputs?.[0];
+  if (firstInput === undefined || firstInput === null || firstInput === '') {
     return {
       correct: CORRECTNESS.UNSUBMITTED,
       message: '',
@@ -296,8 +298,8 @@ function gradeCode(props, { input, inputs }) {
   return executeGradingCode(code, { input, inputs: inputs ?? [input] });
 }
 
-const CodeGrader = createGrader({
-  base: 'Code',
+const CustomGrader = createGrader({
+  base: 'Custom',
   description: 'Grades answers using custom JavaScript code for complex grading logic',
   grader: gradeCode,
   attributes: {
@@ -314,4 +316,4 @@ const CodeGrader = createGrader({
   component: _Hidden,
 });
 
-export default CodeGrader;
+export default CustomGrader;
