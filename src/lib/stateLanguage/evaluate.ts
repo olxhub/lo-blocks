@@ -125,10 +125,15 @@ function evaluateIdentifier(name: string, context: ContextData): any {
   if (name === 'completion') return completion;
   if (name === 'correctness') return correctness;
 
-  // Math object
-  if (name === 'Math') {
-    return Math;
-  }
+  // Built-in objects
+  if (name === 'Math') return Math;
+  // HACK: Object.keys() works but is instructor-unfriendly for wait conditions.
+  // TODO: Replace with instructor-friendly alternatives, then remove Object:
+  //   - isFilled(@value) - generic helper for objects, arrays, strings
+  //   - .numberFilled field on TabularMCQ
+  //   - tmcqFilled(@tabularMCQ.value) helper function
+  // Once we have better options, remove Object to keep the DSL simple.
+  if (name === 'Object') return Object;
 
   // DSL functions from registry (stringMatch, numericalMatch, etc.)
   if (name in dslFunctions) {

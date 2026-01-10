@@ -419,21 +419,18 @@ An interdisciplinary problem statement should:
 **Map Causes to Comm360's Priority Areas**
 
 Select which priority areas could address each cause:
-
-| Cause | Education &amp; Training | Health &amp; Wellness | Family &amp; Youth Services | Community Building |
-|-------|---------------------|-------------------|--------------------------|-------------------|
-| Students need money | ☐ | ☐ | ☐ | ☐ |
-| Depression/ADHD | ☐ | ☐ | ☐ | ☐ |
-| Gang activity | ☐ | ☐ | ☐ | ☐ |
-| School funding | ☐ | ☐ | ☐ | ☐ |
       </Markdown>
-      <TextArea id="problem_areas" placeholder="Enter your mappings here. For example: 'Money - Education, Family; ADHD - Health; ...'" />
+      <TabularMCQ id="priority_mapping">
+        mode: checkbox
+        cols: Education &amp; Training, Health &amp; Wellness, Family &amp; Youth Services, Community Building
+        rows: Students need money, Depression/ADHD, Gang activity, School funding
+      </TabularMCQ>
     </Vertical>
 
     <!-- Show priorities mapping -->
     <Vertical id="causes_by_priorities_shown">
       <Markdown>**Your Priority Area Mappings:**</Markdown>
-      <Ref target="problem_areas" />
+      <Ref target="priority_mapping" />
     </Vertical>
 
     <!-- Priority explanation input -->

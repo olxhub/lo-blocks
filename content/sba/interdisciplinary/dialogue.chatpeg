@@ -236,7 +236,8 @@ Peggy: Let's figure out which disciplines are likely to give us the most insight
 
 interdisciplinary_sba_sidebar -> causes_by_disciplines
 
---- wait @reasons_classification.value ---
+// HACK: Object.keys().length is instructor-unfriendly. TODO: Add isFilled() or .numberFilled field
+--- wait Object.keys(@discipline_mapping.value).length > 0 ---
 
 Peggy: Ok, I summed up our responses and this shows any category that got more than one vote. We didn't always agree on each discipline, but overall we all seem to see how different disciplines might investigate the problem.
 
@@ -475,7 +476,8 @@ Peggy: You may find that all or none of the choices apply to a specific cause. F
 
 interdisciplinary_sba_sidebar -> causes_by_priorities_table
 
---- wait @problem_areas.value ---
+// HACK: Object.keys().length is instructor-unfriendly. TODO: Add isFilled() or .numberFilled field
+--- wait Object.keys(@priority_mapping.value).length > 0 ---
 
 Lianne: Can you explain why you think these causes are aligned with Comm360's priority areas?
 
