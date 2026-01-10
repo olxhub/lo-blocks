@@ -1,4 +1,4 @@
-// src/components/blocks/grading/DefaultGrader.js
+// src/components/blocks/grading/DefaultGrader.ts
 //
 // Catch-all grader that accepts any answer with specified score/feedback.
 //
@@ -14,28 +14,34 @@
 //     <LineInput/>
 //   </RulesGrader>
 //
+// The pure match function `defaultMatch` is available in DSL expressions:
+//   defaultMatch(@answer.value)  // true if non-empty
+//
+import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
-import { CORRECTNESS } from '@/lib/blocks/correctness';
 
 /**
- * Default always "matches" any non-empty input.
+ * Pure match function - matches any input (always returns true).
+ *
+ * Note: The framework handles empty input → UNSUBMITTED before calling match.
+ * So by the time this is called, input is guaranteed non-empty.
+ *
+ * @param _input - The student's answer (ignored - always matches)
+ * @param _pattern - Ignored (DefaultMatch has no pattern)
+ * @returns true (always matches non-empty input)
  */
-function gradeDefault(props, { input }) {
-  if (input === undefined || input === null || input === '') {
-    return { correct: CORRECTNESS.UNSUBMITTED, message: '' };
-  }
-
-  // Always match - RulesGrader will use score/feedback from attributes
-  return {
-    correct: CORRECTNESS.CORRECT,
-    message: props.feedback || '',
-  };
+export function defaultMatch(
+  _input: any,
+  _pattern?: any
+): boolean {
+  return true;
 }
 
 const DefaultGrader = createGrader({
   base: 'Default',
   description: 'Catch-all grader that accepts any answer with specified score/feedback',
-  grader: gradeDefault,
+  match: defaultMatch,
+  inputSchema: z.string(),  // Single string input
   attributes: {
     // No answer required - Default matches everything
   },

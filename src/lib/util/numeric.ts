@@ -13,9 +13,6 @@
 // with flexible tolerance specifications.
 //
 import Complex from 'complex.js';
-import { CORRECTNESS } from '../blocks/correctness';
-import { MATCH, NO_MATCH, UNSUBMITTED, invalid } from '../blocks/matchResult';
-import type { MatchResult } from '../blocks/matchResult';
 
 // TODO: We probably want to treat int as int, float as float,
 // etc. instead of making everything complex
@@ -136,7 +133,22 @@ export interface NumericalMatchOptions {
 }
 
 /**
- * Pure numerical matching function.
+ * Validate that a numerical input is a valid number.
+ * Used by the framework's state machine before calling the match function.
+ *
+ * @param input - The student's answer
+ * @returns Array of error messages, or undefined if valid
+ */
+export function validateNumericalInput(input: any): string[] | undefined {
+  const student = parseComplex(input);
+  if (isNaN(student.re) || isNaN(student.im)) {
+    return ['Invalid number'];
+  }
+  return undefined;
+}
+
+/**
+ * Pure numerical matching function (boolean predicate).
  *
  * This is the core predicate used by NumericalGrader, extracted for use in:
  * - DSL expressions: numericalMatch(@answer.value, 42, { tolerance: 0.1 })
@@ -148,26 +160,21 @@ export interface NumericalMatchOptions {
  * - Absolute tolerance: { tolerance: 0.1 }
  * - Percentage tolerance: { tolerance: "5%" }
  *
+ * Note: Assumes input has been validated. The framework handles
+ * empty input (→ UNSUBMITTED) and invalid input (→ INVALID) before
+ * calling this function.
+ *
  * @param input - The student's answer (string or number)
  * @param answer - The expected answer or range
  * @param options - Match options (tolerance)
- * @returns MatchResult indicating match state
+ * @returns true if input matches answer within tolerance
  */
 export function numericalMatch(
-  input: string | number | null | undefined,
+  input: string | number,
   answer: string | number,
   options?: NumericalMatchOptions
-): MatchResult {
-  // Handle empty/null input
-  if (input === undefined || input === null || String(input).trim() === '') {
-    return UNSUBMITTED;
-  }
-
+): boolean {
   const student = parseComplex(input);
-  if (isNaN(student.re) || isNaN(student.im)) {
-    return invalid('Invalid number');
-  }
-
   const answerStr = String(answer);
 
   // Handle range notation
@@ -175,49 +182,88 @@ export function numericalMatch(
     const range = parseRange(answerStr);
     if (!range) {
       // Invalid range - author error, should be caught at parse time
-      return invalid('Invalid range specification');
+      // Throw to let framework handle as INVALID
+      throw new Error('Invalid range specification');
     }
 
     const base = Math.abs(range.upper.re - range.lower.re);
     const tolerance = parseTolerance(options?.tolerance, base);
-    return inRange(student, range, tolerance) ? MATCH : NO_MATCH;
+    return inRange(student, range, tolerance);
   }
 
   // Handle single value with tolerance
   const base = parseComplex(answer).abs();
   const tolerance = parseTolerance(options?.tolerance, base);
-  return compareWithTolerance(student, answer, tolerance) ? MATCH : NO_MATCH;
+  return compareWithTolerance(student, answer, tolerance);
 }
 
-export function gradeRatio(props, { inputs }: { inputs: any[] }) {
-  const answer = props.answer;
-
+/**
+ * Validate ratio inputs (two numbers, denominator not zero).
+ * Used by the framework's state machine before calling the match function.
+ *
+ * @param inputs - Array [numerator, denominator]
+ * @returns Array of error messages, or undefined if valid
+ */
+export function validateRatioInputs(inputs: [any, any]): string[] | undefined {
   if (!Array.isArray(inputs) || inputs.length < 2) {
-    return { correct: CORRECTNESS.INVALID, message: 'Need two inputs' };
+    return ['Need two inputs (numerator and denominator)'];
   }
 
   const [num, den] = inputs;
 
-  if (num === undefined || den === undefined ||
-      num === null || den === null ||
-      String(num).trim() === '' || String(den).trim() === '') {
-    return { correct: CORRECTNESS.INVALID, message: 'No answer provided' };
-  }
-
+  // Parse the inputs
   const numC = parseComplex(num);
   const denC = parseComplex(den);
 
-  if (isNaN(numC.re) || isNaN(numC.im) || isNaN(denC.re) || isNaN(denC.im)) {
-    return { correct: CORRECTNESS.INVALID, message: 'Invalid number' };
+  if (isNaN(numC.re) || isNaN(numC.im)) {
+    return ['Invalid numerator'];
+  }
+
+  if (isNaN(denC.re) || isNaN(denC.im)) {
+    return ['Invalid denominator'];
   }
 
   if (denC.abs() === 0) {
-    return { correct: CORRECTNESS.INVALID, message: 'Division by zero' };
+    return ['Division by zero'];
   }
 
+  return undefined;
+}
+
+/**
+ * Pure match function for ratio/fraction answers (boolean predicate).
+ *
+ * Compares the ratio of two numbers against an expected value.
+ * For example, inputs [1, 2] and [4, 8] both match answer "0.5".
+ *
+ * Note: Assumes inputs have been validated. The framework handles
+ * empty input (→ UNSUBMITTED) and invalid input (→ INVALID) before
+ * calling this function.
+ *
+ * @param inputs - Array [numerator, denominator]
+ * @param answer - The expected ratio as a string (e.g., "0.5", "2")
+ * @param options - Optional { tolerance: string }
+ * @returns true if ratio matches answer within tolerance
+ *
+ * @example
+ * ratioMatch([1, 2], "0.5")  // true
+ * ratioMatch([4, 8], "0.5")  // true
+ */
+export function ratioMatch(
+  inputs: [any, any],
+  answer: string,
+  options?: { tolerance?: string }
+): boolean {
+  const [num, den] = inputs;
+
+  // Parse the inputs (assumed valid by now)
+  const numC = parseComplex(num);
+  const denC = parseComplex(den);
+
+  // Calculate ratio and compare
   const studentRatio = numC.div(denC);
   const base = parseComplex(answer).abs();
-  const tolerance = parseTolerance(props.tolerance, base);
-  const ok = compareWithTolerance(studentRatio, answer, tolerance);
-  return { correct: ok ? CORRECTNESS.CORRECT : CORRECTNESS.INCORRECT, message: '' };
+  const tolerance = parseTolerance(options?.tolerance, base);
+  return compareWithTolerance(studentRatio, answer, tolerance);
 }
+

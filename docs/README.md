@@ -232,40 +232,81 @@ getValue: (props, state, id) => fieldSelector(state, { ...props, id }, fields.va
 
 The `useValue` hook will either use the `value` field or call the `getValue` function on any block.
 
+We plan to move to be more declarative in the future, along the lines of what we do for graders.
+
 ##### Graders
 
-A **grader** is an action block that collects values from related inputs (via `target` or inference e.g. `inferRelatedNodes`) and grades them:
+A **grader** is an action block that collects values from related inputs (via `target` or inference e.g. `inferRelatedNodes`) and grades them.
+
+Match functions are **pure boolean predicates**. The framework handles the state machine:
+- Empty input → UNSUBMITTED
+- validateInputs fails → INVALID
+- match returns true → CORRECT
+- match returns false → INCORRECT
 
 ```javascript
-const SimpleCheck = blocks.test({
-  ...blocks.grader({
-    grader: (props, { input }) =>
-      input === props.answer ? CORRECTNESS.CORRECT : CORRECTNESS.INCORRECT
-  }),
-  name: 'SimpleCheck',
-  component: _Noop
+// Simple example: exact string match
+const simpleMatch = (input, answer) => input === answer;
+
+const SimpleCheck = createGrader({
+  base: 'Simple',
+  description: 'Exact string match',
+  match: simpleMatch,
+  inputSchema: z.string(),
+  attributes: {
+    answer: z.string({ required_error: 'answer is required' }),
+  },
 });
+```
+
+The full signature is:
+```
+interface CreateGraderConfig {
+  base: string;
+  description: string;
+
+  // === Core grading ===
+  match?: (input: any, pattern: any, options) => boolean;  // Pure predicate!
+  grader?: GraderFunction;  // Escape hatch for complex cases
+
+  // === Schemas ===
+  inputSchema?: z.ZodType;
+  attributes?: Record<string, z.ZodType>;
+
+  // === Validation ===
+  validatePattern?: (pattern: any, attrs: Record<string, any>) => string[] | undefined;
+  validateInputs?: (input: any, attrs: Record<string, any>) => string[] | undefined;
+  // (receives input or inputs based on inputSchema)
+
+  // === Display ===
+  getDisplayAnswer?: (props: RuntimeProps) => any;
+
+  // === Extensions ===
+  locals?: LocalsAPI;
+  infer?: boolean;
+
+  // === Block creation ===
+  createMatch?: boolean;
+  createGraderBlock?: boolean;
+
+  // === Rendering ===
+  component?: React.ComponentType<any>;
+  parser?: ParserConfig;
+}
 ```
 
 The result of a grader is logged via the `UPDATE_CORRECT` event and stored in Redux under the `correct` field. Possible values are defined in `blocks.CORRECTNESS`.
 
-Notes:
+In most cases, graders are inferred from `match` and `validateInputs`. However, it's possible to specify one explicitly. A grader function will receive:
 
-Graders automatically receive:
-- input - Single input value (typical use case)
+- input - Single input value (typical use case); or
 - inputs - Array of all input values (for when we expect multiple inputs)
-- inputApi - Bound locals from the input block
-- inputApis - Array of all input APIs
 
-TODO: The above should be handled more declaratively (e.g. if a grader expects one or multiple inputs)
+Which one is based on the zod signature `inputSchema`. In contrast to a match function, they also receive `options`, consisting of: `{ props, attributes, inputApi | inputApis /* Bound locals from input or inputs, based on zod signature*/ }
 
 Correctness states are defined in `src/lib/blocks/correctness.js` and currently include:  UNSUBMITTED, SUBMITTED, CORRECT, PARTIALLY_CORRECT, INCORRECT, INCOMPLETE, and INVALID. This is inspired by Open edX, but may extend in the future.
 
-TODO: We also need a Doneness, as well as more standard scoring.
-
 When actions execute, they inherit the `idPrefix` from the triggering component. This ensures that graders in scoped contexts (like a problem inside a MasteryBank) update the correct scoped state rather than global state. See "ID Prefixes for Scoped State" below.
-
-TODO: Graders are also used to auto-generate Match components for use in hinting. E.g. `<StringGrader>` also generates a `<StringMatch>` which can be used to give feedback for specific answers. We should document how (and perhaps improve the API here).
 
 #### Actions
 

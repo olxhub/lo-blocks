@@ -5,8 +5,6 @@
 // This file is separate from StringGrader.ts to avoid circular imports
 // when importing the match function from tests or other contexts.
 //
-import { MATCH, NO_MATCH, UNSUBMITTED, invalid } from '@/lib/blocks/matchResult';
-import type { MatchResult } from '@/lib/blocks/matchResult';
 
 /**
  * Validate StringGrader attributes at parse time.
@@ -39,27 +37,27 @@ export interface StringMatchOptions {
 }
 
 /**
- * Pure string matching function.
+ * Pure string matching function (boolean predicate).
  *
  * This is the core predicate used by StringGrader, usable in:
  * - DSL expressions: stringMatch(@answer.value, 'Paris', { ignoreCase: true })
  * - RulesGrader: <StringMatch answer="Paris" ignoreCase="true" />
  *
+ * Note: Assumes input has been validated (non-empty). The framework handles
+ * empty input (→ UNSUBMITTED) before calling this function.
+ *
  * @param input - The student's answer (will be trimmed)
  * @param pattern - The expected answer or regexp pattern
  * @param options - Match options (ignoreCase, regexp)
- * @returns MatchResult indicating match state
+ * @returns true if input matches pattern
  */
 export function stringMatch(
-  input: string | null | undefined,
+  input: string,
   pattern: string,
   options?: StringMatchOptions
-): MatchResult {
+): boolean {
   const studentAnswer = (input ?? '').toString().trim();
   const expectedAnswer = (pattern ?? '').toString();
-
-  // Empty input is unsubmitted
-  if (studentAnswer === '') return UNSUBMITTED;
 
   const ignoreCase = options?.ignoreCase === true;
   const isRegexp = options?.regexp === true;
@@ -68,17 +66,17 @@ export function stringMatch(
     try {
       const flags = ignoreCase ? 'i' : '';
       const regex = new RegExp(`^${expectedAnswer}$`, flags);
-      return regex.test(studentAnswer) ? MATCH : NO_MATCH;
+      return regex.test(studentAnswer);
     } catch (e) {
       // Invalid regex - this is an author error, should be caught at parse time
-      // At runtime we return invalid since we can't grade
-      return invalid('Invalid regular expression pattern');
+      // At runtime, throw to let framework handle as INVALID
+      throw new Error('Invalid regular expression pattern');
     }
   }
 
   if (ignoreCase) {
-    return studentAnswer.toLowerCase() === expectedAnswer.toLowerCase() ? MATCH : NO_MATCH;
+    return studentAnswer.toLowerCase() === expectedAnswer.toLowerCase();
   }
 
-  return studentAnswer === expectedAnswer ? MATCH : NO_MATCH;
+  return studentAnswer === expectedAnswer;
 }

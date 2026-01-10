@@ -43,6 +43,7 @@ const StringGrader = createGrader({
   base: 'String',
   description: 'Grades text answers with exact match or regexp support',
   match: stringMatch,
+  inputSchema: z.string(),  // Single string input
   attributes: {
     answer: z.string({ required_error: 'answer is required' }),
     regexp: strictBoolean,

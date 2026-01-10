@@ -1,0 +1,8 @@
+<RulesGrader>
+  <p>What is the capital of France?</p>
+  <Rule when="stringMatch(input, 'Paris')" score="1" feedback="Correct! Paris is the capital of France." />
+  <Rule when="stringMatch(input, 'paris', { ignoreCase: true })" score="0.75" feedback="Right answer but watch your capitalization!" />
+  <Rule when="stringMatch(input, 'Lyon|Marseille|Nice', { regexp: true })" score="0.25" feedback="That's a French city, but not the capital." />
+  <Rule when="true" score="0" feedback="Try again. Hint: It starts with 'P'." />
+  <LineInput />
+</RulesGrader>

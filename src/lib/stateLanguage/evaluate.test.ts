@@ -9,14 +9,10 @@ import { stringMatch } from '@/components/blocks/grading/stringMatch';
 import { numericalMatch } from '@/lib/util/numeric';
 import { registerDSLFunction } from './functions';
 
-// Register DSL wrappers that return boolean (like createGrader does)
+// Register match functions for DSL evaluation
 // In production, these are registered by createGrader when grader modules load
-registerDSLFunction('stringMatch', (input, pattern, options) =>
-  stringMatch(input, pattern, options).state === 'match'
-);
-registerDSLFunction('numericalMatch', (input, answer, options) =>
-  numericalMatch(input, answer, options).state === 'match'
-);
+registerDSLFunction('stringMatch', stringMatch);
+registerDSLFunction('numericalMatch', numericalMatch);
 
 describe('evaluate', () => {
   describe('literals', () => {

@@ -1,7 +1,17 @@
 // @vitest-environment node
 // src/lib/util/numeric.test.ts
-import { parseComplex, parseTolerance, parseRange, inRange, compareWithTolerance, numericalMatch, gradeRatio, validateNumericalAttributes } from './numeric';
-import { CORRECTNESS } from '../blocks/correctness';
+import {
+  parseComplex,
+  parseTolerance,
+  parseRange,
+  inRange,
+  compareWithTolerance,
+  numericalMatch,
+  validateNumericalInput,
+  ratioMatch,
+  validateRatioInputs,
+  validateNumericalAttributes,
+} from './numeric';
 
 it('parses complex numbers and compares', () => {
   expect(parseComplex('3+4i').toString()).toBe('3 + 4i');
@@ -19,40 +29,92 @@ it('handles ranges', () => {
 });
 
 describe('numericalMatch', () => {
+  // numericalMatch now returns boolean (pure predicate)
+  // The framework handles empty/invalid input before calling match
+
   it('matches exact values', () => {
-    expect(numericalMatch('5', '5')).toEqual({ state: 'match' });
-    expect(numericalMatch('5', '6')).toEqual({ state: 'no_match' });
+    expect(numericalMatch('5', '5')).toBe(true);
+    expect(numericalMatch('5', '6')).toBe(false);
   });
 
   it('matches with tolerance', () => {
-    expect(numericalMatch('5.5', '5', { tolerance: '1' })).toEqual({ state: 'match' });
-    expect(numericalMatch('5.5', '5', { tolerance: '0.1' })).toEqual({ state: 'no_match' });
+    expect(numericalMatch('5.5', '5', { tolerance: '1' })).toBe(true);
+    expect(numericalMatch('5.5', '5', { tolerance: '0.1' })).toBe(false);
   });
 
   it('matches ranges', () => {
-    expect(numericalMatch('6', '[5,7)')).toEqual({ state: 'match' });
-    expect(numericalMatch('7', '[5,7)')).toEqual({ state: 'no_match' });
+    expect(numericalMatch('6', '[5,7)')).toBe(true);
+    expect(numericalMatch('7', '[5,7)')).toBe(false);
   });
 
-  it('returns unsubmitted for empty input', () => {
-    expect(numericalMatch('', '5')).toEqual({ state: 'unsubmitted' });
-    expect(numericalMatch(null, '5')).toEqual({ state: 'unsubmitted' });
-    expect(numericalMatch(undefined, '5')).toEqual({ state: 'unsubmitted' });
+  // Note: Invalid range formats are caught by validateNumericalAttributes at parse time.
+  // By the time match is called, the answer should be valid.
+});
+
+describe('validateNumericalInput', () => {
+  // Framework calls this before numericalMatch
+
+  it('accepts valid numbers', () => {
+    expect(validateNumericalInput('42')).toBeUndefined();
+    expect(validateNumericalInput('3.14')).toBeUndefined();
+    expect(validateNumericalInput('-5')).toBeUndefined();
+    expect(validateNumericalInput('3+4i')).toBeUndefined();
   });
 
-  it('returns invalid for non-numeric input', () => {
-    expect(numericalMatch('Hello', '5')).toEqual({ state: 'invalid', message: 'Invalid number' });
+  it('rejects non-numeric input', () => {
+    expect(validateNumericalInput('Hello')).toEqual(['Invalid number']);
+    expect(validateNumericalInput('abc')).toEqual(['Invalid number']);
   });
 });
 
-it('grades ratios of two numbers', () => {
-  expect(gradeRatio({answer:'0.5'}, {inputs:['1', '2']}).correct).toBe(CORRECTNESS.CORRECT);
-  expect(gradeRatio({answer:'0.5', tolerance:'0.1'}, {inputs:['2', '5']}).correct).toBe(CORRECTNESS.CORRECT);
-  expect(gradeRatio({answer:'2'}, {inputs:['1', '0']}).correct).toBe(CORRECTNESS.INVALID);
-  expect(gradeRatio({answer:'0.5'}, {inputs:['1', '3']}).correct).toBe(CORRECTNESS.INCORRECT);
+describe('ratioMatch', () => {
+  // ratioMatch now returns boolean (pure predicate)
+  // The framework handles empty/invalid input before calling match
+
+  it('matches ratios with array input', () => {
+    expect(ratioMatch(['1', '2'], '0.5')).toBe(true);
+    expect(ratioMatch(['4', '8'], '0.5')).toBe(true);
+    expect(ratioMatch(['1', '3'], '0.5')).toBe(false);
+  });
+
+  it('matches with tolerance', () => {
+    expect(ratioMatch(['2', '5'], '0.5', { tolerance: '0.1' })).toBe(true);
+    expect(ratioMatch(['2', '5'], '0.5', { tolerance: '0.01' })).toBe(false);
+  });
+});
+
+describe('validateRatioInputs', () => {
+  // Framework calls this before ratioMatch
+
+  it('accepts valid ratio inputs', () => {
+    expect(validateRatioInputs(['1', '2'])).toBeUndefined();
+    expect(validateRatioInputs(['4', '8'])).toBeUndefined();
+  });
+
+  it('rejects non-array input', () => {
+    expect(validateRatioInputs('1' as any)).toEqual(['Need two inputs (numerator and denominator)']);
+  });
+
+  it('rejects array with less than 2 elements', () => {
+    expect(validateRatioInputs(['1'] as any)).toEqual(['Need two inputs (numerator and denominator)']);
+  });
+
+  it('rejects invalid numerator', () => {
+    expect(validateRatioInputs(['abc', '2'])).toEqual(['Invalid numerator']);
+  });
+
+  it('rejects invalid denominator', () => {
+    expect(validateRatioInputs(['1', 'xyz'])).toEqual(['Invalid denominator']);
+  });
+
+  it('rejects division by zero', () => {
+    expect(validateRatioInputs(['1', '0'])).toEqual(['Division by zero']);
+  });
 });
 
 describe('validateNumericalAttributes', () => {
+  // Validates author's answer/tolerance at parse time
+
   it('accepts valid numbers', () => {
     expect(validateNumericalAttributes({ answer: '42' })).toBeUndefined();
     expect(validateNumericalAttributes({ answer: '3.14' })).toBeUndefined();

@@ -7,17 +7,19 @@
 //
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
-import { numericalMatch, validateNumericalAttributes } from '@/lib/util/numeric';
+import { numericalMatch, validateNumericalInput, validateNumericalAttributes } from '@/lib/util/numeric';
 
 const NumericalGrader = createGrader({
   base: 'Numerical',
   description: 'Grades numeric answers with tolerance for rounding and formatting variations',
   match: numericalMatch,
+  inputSchema: z.string(),  // Single string input
   attributes: {
     answer: z.string({ required_error: 'answer is required' }),
     tolerance: z.string().optional(),
   },
   validateAttributes: validateNumericalAttributes,
+  validateInputs: validateNumericalInput,
 });
 
 export default NumericalGrader;
