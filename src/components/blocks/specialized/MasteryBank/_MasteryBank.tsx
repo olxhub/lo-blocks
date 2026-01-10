@@ -66,10 +66,10 @@ const ORDER_MODES = {
 /**
  * Checks if correctness represents a "real" graded answer (not pending/invalid states).
  */
-function isGradedAnswer(correctness) {
-  return correctness === correctness.correct ||
-         correctness === correctness.incorrect ||
-         correctness === correctness.partiallyCorrect;
+function isGradedAnswer(value) {
+  return value === correctness.correct ||
+         value === correctness.incorrect ||
+         value === correctness.partiallyCorrect;
 }
 
 /**

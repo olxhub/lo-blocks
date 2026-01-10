@@ -121,9 +121,9 @@ function useGraderAggregation(props, childGraderIds) {
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (fields?.correct) {
-      state.updateReduxField(props, fields.correct, correctness);
+      state.updateReduxField(props, fields.correct, aggregatedCorrectness);
     }
-  }, [correctness, props.id, fields]);
+  }, [aggregatedCorrectness, props.id, fields]);
 
   useEffect(() => {
     if (fields?.message) {
