@@ -97,21 +97,13 @@ export function selectReferences(
 
 /**
  * Resolve a reference ID to a Redux key.
- * Handles both relative IDs and absolute paths.
+ * Delegates to idResolver.refToReduxKey which handles all reference forms:
+ * - "/foo" (absolute) → "foo"
+ * - "./foo" (explicit relative) → applies idPrefix
+ * - "foo" (bare) → applies idPrefix
  */
 function resolveToReduxKey(props: any, id: string): string {
-  // Absolute paths start with /
-  if (id.startsWith('/')) {
-    return id;
-  }
-  // Relative paths need resolution through idResolver
-  try {
-    return idResolver.refToReduxKey({ ...props, id });
-  } catch {
-    // Fallback: prefix with current scope
-    const prefix = props?.nodeInfo?.prefix ?? '';
-    return prefix ? `${prefix}/${id}` : `/${id}`;
-  }
+  return idResolver.refToReduxKey({ ...props, id });
 }
 
 /**
