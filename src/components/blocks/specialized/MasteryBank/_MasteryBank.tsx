@@ -5,7 +5,7 @@ import React, { useMemo, useEffect, useRef } from 'react';
 import { useBlock } from '@/lib/render';
 import { useReduxState, useFieldSelector, commonFields } from '@/lib/state';
 import { extendIdPrefix, toOlxReference } from '@/lib/blocks/idResolver';
-import { CORRECTNESS } from '@/lib/blocks';
+import { correctness } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
 
 /**
@@ -66,10 +66,10 @@ const ORDER_MODES = {
 /**
  * Checks if correctness represents a "real" graded answer (not pending/invalid states).
  */
-function isGradedAnswer(correctness) {
-  return correctness === CORRECTNESS.CORRECT ||
-         correctness === CORRECTNESS.INCORRECT ||
-         correctness === CORRECTNESS.PARTIALLY_CORRECT;
+function isGradedAnswer(value) {
+  return value === correctness.correct ||
+         value === correctness.incorrect ||
+         value === correctness.partiallyCorrect;
 }
 
 /**
@@ -94,7 +94,7 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   const currentCorrectness = useFieldSelector(
     scopedProps,
     graderField,
-    { id: scopedGraderRef, fallback: CORRECTNESS.UNSUBMITTED, selector: s => s?.correct }
+    { id: scopedGraderRef, fallback: correctness.unsubmitted, selector: s => s?.correct }
   );
 
   const prevCorrectnessRef = useRef(currentCorrectness);
@@ -118,20 +118,20 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
       }
     };
 
-    if (currentCorrectness === CORRECTNESS.CORRECT) {
+    if (currentCorrectness === correctness.correct) {
       if (firstSubmissionResult === null) {
         // First try correct - increment streak and advance
         const newStreak = correctStreak + 1;
         setCorrectStreak(newStreak);
-        setFirstSubmissionResult(CORRECTNESS.CORRECT);
+        setFirstSubmissionResult(correctness.correct);
         if (newStreak >= goalNum) {
           setCompleted(true);
-          setCorrect(CORRECTNESS.CORRECT);
+          setCorrect(correctness.correct);
         } else {
-          setCorrect(CORRECTNESS.INCOMPLETE);
+          setCorrect(correctness.incomplete);
           advanceToNext();
         }
-      } else if (firstSubmissionResult === CORRECTNESS.INCORRECT) {
+      } else if (firstSubmissionResult === correctness.incorrect) {
         // Correct after incorrect - advance without incrementing streak
         advanceToNext();
       }
@@ -139,9 +139,9 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
       // INCORRECT or PARTIALLY_CORRECT
       if (firstSubmissionResult === null) {
         // First try wrong - reset streak, stay on problem
-        setFirstSubmissionResult(CORRECTNESS.INCORRECT);
+        setFirstSubmissionResult(correctness.incorrect);
         setCorrectStreak(0);
-        setCorrect(CORRECTNESS.INCOMPLETE);
+        setCorrect(correctness.incomplete);
       }
     }
   }, [currentCorrectness, firstSubmissionResult, correctStreak, goalNum, problemIds.length, modeState, orderMode, attemptNumber, setCorrectStreak, setModeState, setCompleted, setCorrect, setFirstSubmissionResult, setAttemptNumber]);

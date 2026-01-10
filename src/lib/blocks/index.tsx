@@ -15,7 +15,7 @@ export { core, dev, test } from './namespaces';
 export { getAllNodes, getKidsBFS, getKidsDFS, getParents, inferRelatedNodes, getGrader, getInputs, getValueById, extractChildText } from './olxdom';
 export { refToOlxKey, refToReduxKey } from './idResolver';
 export { action, executeNodeActions, grader, input, isAction, isInput, isMatch } from './actions';
-export { CORRECTNESS, CORRECTNESS_PRIORITY, VISIBILITY_HANDLERS, computeVisibility, isValidCorrectness, validateCorrectness, getAllCorrectnessStates } from './correctness';
+export { correctness, correctnessPriority, visibilityHandlers, computeVisibility, isValidCorrectness, validateCorrectness, getAllCorrectnessStates, completion, completionPriority, isValidCompletion, validateCompletion, getAllCompletionStates } from './correctness';
 export { worstCaseCorrectness, proportionalCorrectness, computeScore, formatScore, countCorrectness } from '@/lib/grading';
 export { isInputReadOnly } from './inputInteraction';
 export { baseAttributes, BASE_ATTRIBUTE_NAMES } from './attributeSchemas';

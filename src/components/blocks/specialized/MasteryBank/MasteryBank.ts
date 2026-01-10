@@ -23,7 +23,7 @@ export const fields = state.fields([
   'correctStreak',          // Current streak of correct answers
   'modeState',              // Mode-specific state (number for linear, object for shuffle)
   'completed',              // Internal: whether mastery has been achieved
-  'firstSubmissionResult',  // First submission result: null, CORRECTNESS.CORRECT, or CORRECTNESS.INCORRECT
+  'firstSubmissionResult',  // First submission result: null, correctness.correct, or correctness.incorrect
   'attemptNumber',          // Increments when looping through all problems, scopes child state
   // TODO: Semantically, MasteryBank completion is "doneness" not "correctness" - the student
   // finished the task, but there's no right/wrong answer for the block itself. We don't yet

@@ -54,18 +54,31 @@ export interface LoggedEvent {
   [key: string]: any;
 }
 
+// Event types that must be included regardless of context (essential for state reconstruction)
+const CONTEXT_INDEPENDENT_EVENTS = new Set([
+  'LOAD_OLXJSON',
+  'OLXJSON_LOADING',
+  'OLXJSON_ERROR',
+  'CLEAR_OLXJSON',
+]);
+
 /**
  * Filter events by context prefix.
  *
  * Use this to get events for a specific context (e.g., 'preview' shows only
  * preview-related events, filtering out debug panel events, studio events, etc.)
  *
+ * Content events (LOAD_OLXJSON, etc.) are always included regardless of context
+ * since they're essential for state reconstruction during replay.
+ *
  * @param events - Raw event list
  * @param prefix - Context prefix to match (e.g., 'preview', 'studio')
- * @returns Filtered events where context starts with prefix
+ * @returns Filtered events where context starts with prefix OR are content events
  */
 export function filterByContext(events: LoggedEvent[], prefix: string): LoggedEvent[] {
-  return events.filter(e => e.context?.startsWith(prefix));
+  return events.filter(e =>
+    e.context?.startsWith(prefix) || CONTEXT_INDEPENDENT_EVENTS.has(e.event)
+  );
 }
 
 /**

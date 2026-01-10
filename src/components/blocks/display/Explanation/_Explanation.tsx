@@ -3,13 +3,13 @@
 import React from 'react';
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
-import { CORRECTNESS, computeVisibility } from '@/lib/blocks';
+import { correctness, computeVisibility } from '@/lib/blocks';
 import { useKids } from '@/lib/render';
 
 /**
  * Explanation displays its children conditionally based on grader state.
  *
- * showWhen options (see VISIBILITY_HANDLERS):
+ * showWhen options (see visibilityHandlers):
  * - "correct": Show when answer is correct
  * - "answered": Show after valid submission (not invalid)
  * - "attempted": Alias for answered
@@ -25,16 +25,16 @@ function _Explanation(props) {
   const { showWhen = 'correct', title, graderId } = props;
 
   const correctField = state.componentFieldByName(props, graderId, 'correct');
-  const correctness = useFieldSelector(
+  const correctnessValue = useFieldSelector(
     props,
     correctField,
-    { id: graderId, fallback: CORRECTNESS.UNSUBMITTED, selector: s => s?.correct }
-  ) ?? CORRECTNESS.UNSUBMITTED;
+    { id: graderId, fallback: correctness.unsubmitted, selector: s => s?.correct }
+  ) ?? correctness.unsubmitted;
 
   // useKids must be called unconditionally
   const { kids } = useKids(props);
 
-  if (!computeVisibility(showWhen, { correctness })) {
+  if (!computeVisibility(showWhen, { correctness: correctnessValue })) {
     return null;
   }
 

@@ -12,7 +12,7 @@
 //
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
-import { core, CORRECTNESS, getInputs, getBlockByOLXId } from '@/lib/blocks';
+import { core, correctness, getInputs, getBlockByOLXId } from '@/lib/blocks';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
@@ -60,7 +60,7 @@ function gradeTabularMCQ(props, { input, inputApi }) {
     // Correctness tracks grading. Surveys are "done" but not "graded".
     // For now, return CORRECT to indicate completion.
     return {
-      correct: CORRECTNESS.CORRECT,
+      correct: correctness.correct,
       message: 'Survey completed.',
       score: 1
     };
@@ -80,7 +80,7 @@ function gradeTabularMCQ(props, { input, inputApi }) {
   const score = total > 0 ? correct / total : 0;
 
   return {
-    correct: allCorrect ? CORRECTNESS.CORRECT : CORRECTNESS.INCORRECT,
+    correct: allCorrect ? correctness.correct : correctness.incorrect,
     message: allCorrect ? '' : `${correct} of ${total} correct`,
     score
   };

@@ -20,7 +20,7 @@
 // progress introspection.
 
 import {
-  CORRECTNESS,
+  correctness,
   validateCorrectness,
   getAllCorrectnessStates
 } from '@/lib/blocks/correctness';
@@ -54,75 +54,75 @@ export function countCorrectness(values: string[]): CorrectnessCounts {
  * Worst-case aggregation: returns the "worst" correctness state.
  *
  * Priority (worst to best):
- *   INVALID > UNSUBMITTED > INCOMPLETE > SUBMITTED > INCORRECT > PARTIALLY_CORRECT > CORRECT
+ *   invalid > unsubmitted > incomplete > submitted > incorrect > partiallyCorrect > correct
  *
  * Use case: Strict prerequisite checking where any failure blocks progress.
  */
 export function worstCaseCorrectness(values: string[]): string {
   if (!values || values.length === 0) {
-    return CORRECTNESS.UNSUBMITTED;
+    return correctness.unsubmitted;
   }
 
   const counts = countCorrectness(values);
 
   // Invalid blocks everything
-  if (counts[CORRECTNESS.INVALID] > 0) return CORRECTNESS.INVALID;
+  if (counts[correctness.invalid] > 0) return correctness.invalid;
 
   // Any unsubmitted means not started
-  if (counts[CORRECTNESS.UNSUBMITTED] > 0) return CORRECTNESS.UNSUBMITTED;
+  if (counts[correctness.unsubmitted] > 0) return correctness.unsubmitted;
 
   // Any incomplete means partially done
-  if (counts[CORRECTNESS.INCOMPLETE] > 0) return CORRECTNESS.INCOMPLETE;
+  if (counts[correctness.incomplete] > 0) return correctness.incomplete;
 
   // Any submitted but not graded means waiting
-  if (counts[CORRECTNESS.SUBMITTED] > 0) return CORRECTNESS.SUBMITTED;
+  if (counts[correctness.submitted] > 0) return correctness.submitted;
 
   // Any incorrect means incorrect (or partial if some correct)
-  if (counts[CORRECTNESS.INCORRECT] > 0) {
-    return counts[CORRECTNESS.CORRECT] > 0 ? CORRECTNESS.PARTIALLY_CORRECT : CORRECTNESS.INCORRECT;
+  if (counts[correctness.incorrect] > 0) {
+    return counts[correctness.correct] > 0 ? correctness.partiallyCorrect : correctness.incorrect;
   }
 
   // Any partial means partial
-  if (counts[CORRECTNESS.PARTIALLY_CORRECT] > 0) return CORRECTNESS.PARTIALLY_CORRECT;
+  if (counts[correctness.partiallyCorrect] > 0) return correctness.partiallyCorrect;
 
   // All correct
-  return CORRECTNESS.CORRECT;
+  return correctness.correct;
 }
 
 /**
  * Proportional aggregation: returns state based on fraction correct.
  *
- * - All correct → CORRECT
- * - All incorrect → INCORRECT
- * - Mixed → PARTIALLY_CORRECT
+ * - All correct → correctness.correct
+ * - All incorrect → correctness.incorrect
+ * - Mixed → correctness.partiallyCorrect
  * - Any unsubmitted/incomplete/submitted → that state (not final)
  *
  * Use case: Traditional grading where partial credit matters.
  */
 export function proportionalCorrectness(values: string[]): string {
   if (!values || values.length === 0) {
-    return CORRECTNESS.UNSUBMITTED;
+    return correctness.unsubmitted;
   }
 
   const counts = countCorrectness(values);
 
-  if (counts[CORRECTNESS.INVALID] > 0) return CORRECTNESS.INVALID;
-  if (counts[CORRECTNESS.UNSUBMITTED] > 0) return CORRECTNESS.UNSUBMITTED;
-  if (counts[CORRECTNESS.INCOMPLETE] > 0) return CORRECTNESS.INCOMPLETE;
-  if (counts[CORRECTNESS.SUBMITTED] > 0) return CORRECTNESS.SUBMITTED;
-  if (counts[CORRECTNESS.CORRECT] === counts.total) return CORRECTNESS.CORRECT;
-  if (counts[CORRECTNESS.INCORRECT] === counts.total) return CORRECTNESS.INCORRECT;
+  if (counts[correctness.invalid] > 0) return correctness.invalid;
+  if (counts[correctness.unsubmitted] > 0) return correctness.unsubmitted;
+  if (counts[correctness.incomplete] > 0) return correctness.incomplete;
+  if (counts[correctness.submitted] > 0) return correctness.submitted;
+  if (counts[correctness.correct] === counts.total) return correctness.correct;
+  if (counts[correctness.incorrect] === counts.total) return correctness.incorrect;
 
-  return CORRECTNESS.PARTIALLY_CORRECT;
+  return correctness.partiallyCorrect;
 }
 
 /**
  * Compute a numeric score (0-1) from correctness values.
  *
- * - CORRECT = 1
- * - PARTIALLY_CORRECT = 0.5 (could be customized)
- * - INCORRECT = 0
- * - UNSUBMITTED/INVALID = not counted as attempted
+ * - correctness.correct = 1
+ * - correctness.partiallyCorrect = 0.5 (could be customized)
+ * - correctness.incorrect = 0
+ * - unsubmitted/invalid = not counted as attempted
  *
  * Returns { score, attempted, total }
  */
@@ -132,9 +132,9 @@ export function computeScore(values: string[]): { score: number; attempted: numb
   }
 
   const counts = countCorrectness(values);
-  const correct = counts[CORRECTNESS.CORRECT];
-  const partial = counts[CORRECTNESS.PARTIALLY_CORRECT];
-  const incorrect = counts[CORRECTNESS.INCORRECT];
+  const correct = counts[correctness.correct];
+  const partial = counts[correctness.partiallyCorrect];
+  const incorrect = counts[correctness.incorrect];
 
   const attempted = correct + partial + incorrect;
   const score = correct + (partial * 0.5);
@@ -158,7 +158,7 @@ export function formatScore(
   }
 
   const counts = countCorrectness(values);
-  const correct = counts[CORRECTNESS.CORRECT];
+  const correct = counts[correctness.correct];
 
   if (format === 'percent') {
     const pct = counts.total > 0 ? Math.round((correct / counts.total) * 100) : 0;

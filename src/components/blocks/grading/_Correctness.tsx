@@ -5,18 +5,18 @@
 //
 'use client';
 import React from 'react';
-import { CORRECTNESS } from '@/lib/blocks';
+import { correctness } from '@/lib/blocks';
 import { useFieldSelector } from '@/lib/state';
 
 function _Correctness(props) {
   const { fields, graderId } = props;
 
-  const correctness = useFieldSelector(
+  const correctnessValue = useFieldSelector(
     props,
     fields.correct,
     {
-      selector: s => s?.correct ?? CORRECTNESS.UNSUBMITTED,
-      fallback: CORRECTNESS.UNSUBMITTED,
+      selector: s => s?.correct ?? correctness.unsubmitted,
+      fallback: correctness.unsubmitted,
       id: graderId
     }
   );
@@ -34,13 +34,13 @@ function _Correctness(props) {
   );
 
   const icons = {
-    [CORRECTNESS.CORRECT]: '✅',
-    [CORRECTNESS.PARTIALLY_CORRECT]: '🟡',
-    [CORRECTNESS.INCORRECT]: '❌',
-    [CORRECTNESS.INCOMPLETE]: '⚠️',
-    [CORRECTNESS.INVALID]: '⚠️',
-    [CORRECTNESS.SUBMITTED]: '⏳',
-    [CORRECTNESS.UNSUBMITTED]: '❔'
+    [correctness.correct]: '✅',
+    [correctness.partiallyCorrect]: '🟡',
+    [correctness.incorrect]: '❌',
+    [correctness.incomplete]: '⚠️',
+    [correctness.invalid]: '⚠️',
+    [correctness.submitted]: '⏳',
+    [correctness.unsubmitted]: '❔'
   };
 
   // Alternate between two identical animation classes to force re-trigger
@@ -68,7 +68,7 @@ function _Correctness(props) {
         }
       `}</style>
       <span className={flashClass} style={{ display: 'inline-block' }}>
-        {icons[correctness] || icons[CORRECTNESS.UNSUBMITTED]}
+        {icons[correctnessValue] || icons[correctness.unsubmitted]}
       </span>
     </>
   );

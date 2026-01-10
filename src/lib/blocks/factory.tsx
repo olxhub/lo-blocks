@@ -141,6 +141,7 @@ function createBlock(config: BlueprintInput): LoBlock {
     category: effectiveConfig.category,
     requiresUniqueId: effectiveConfig.requiresUniqueId,
     attributes: effectiveConfig.attributes,
+    validateAttributes: effectiveConfig.validateAttributes,
     requiresGrader: effectiveConfig.requiresGrader,
     getDisplayAnswer: effectiveConfig.getDisplayAnswer,
   }

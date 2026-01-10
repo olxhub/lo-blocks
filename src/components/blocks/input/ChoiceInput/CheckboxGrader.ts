@@ -15,7 +15,7 @@ import { getInputs } from '@/lib/blocks/olxdom';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
-import { CORRECTNESS } from '@/lib/blocks/correctness';
+import { correctness } from '@/lib/blocks/correctness';
 
 export const fields = state.fields(['correct', 'message']);
 
@@ -43,12 +43,12 @@ function gradeCheckboxes(selected, choices, options: { partialCredit?: boolean }
 
   // All-or-nothing: must select all keys and no distractors
   if (allKeysSelected && noDistractorsSelected) {
-    return { correct: CORRECTNESS.CORRECT, message: '', score: 1 };
+    return { correct: correctness.correct, message: '', score: 1 };
   }
 
   if (!partialCredit) {
     // All-or-nothing mode: anything less than perfect is incorrect
-    return { correct: CORRECTNESS.INCORRECT, message: '', score: 0 };
+    return { correct: correctness.incorrect, message: '', score: 0 };
   }
 
   // Partial credit mode: score = (keysSelected - distractorsSelected) / totalKeys
@@ -56,18 +56,18 @@ function gradeCheckboxes(selected, choices, options: { partialCredit?: boolean }
   const totalKeys = keys.length;
   if (totalKeys === 0) {
     // Edge case: no keys defined
-    return { correct: CORRECTNESS.INCORRECT, message: '', score: 0 };
+    return { correct: correctness.incorrect, message: '', score: 0 };
   }
 
   const rawScore = (keysSelected - distractorsSelected) / totalKeys;
   const score = Math.max(0, Math.min(1, rawScore));
 
   if (score === 0) {
-    return { correct: CORRECTNESS.INCORRECT, message: '', score };
+    return { correct: correctness.incorrect, message: '', score };
   } else if (score === 1) {
-    return { correct: CORRECTNESS.CORRECT, message: '', score };
+    return { correct: correctness.correct, message: '', score };
   } else {
-    return { correct: CORRECTNESS.PARTIALLY_CORRECT, message: `${keysSelected}/${totalKeys} correct`, score };
+    return { correct: correctness.partiallyCorrect, message: `${keysSelected}/${totalKeys} correct`, score };
   }
 }
 

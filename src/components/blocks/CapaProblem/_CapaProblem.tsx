@@ -1,7 +1,7 @@
 // src/components/blocks/CapaProblem/_CapaProblem.jsx
 'use client';
 import React, { useEffect } from 'react';
-import { CORRECTNESS, worstCaseCorrectness } from '@/lib/blocks';
+import { correctness, worstCaseCorrectness } from '@/lib/blocks';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import * as state from '@/lib/state';
 import { useKids, renderBlock } from '@/lib/render';
@@ -34,14 +34,14 @@ function findDemandHintsId(props) {
 }
 
 /**
- * Map CORRECTNESS to CSS modifier class.
+ * Map correctness value to CSS modifier class.
  */
-function getHeaderStateClass(correctness) {
-  switch (correctness) {
-    case CORRECTNESS.CORRECT: return 'lo-problem__header--correct';
-    case CORRECTNESS.PARTIALLY_CORRECT: return 'lo-problem__header--partial';
-    case CORRECTNESS.INVALID: return 'lo-problem__header--invalid';
-    case CORRECTNESS.INCORRECT: return 'lo-problem__header--incorrect';
+function getHeaderStateClass(correctnessValue: string) {
+  switch (correctnessValue) {
+    case correctness.correct: return 'lo-problem__header--correct';
+    case correctness.partiallyCorrect: return 'lo-problem__header--partial';
+    case correctness.invalid: return 'lo-problem__header--invalid';
+    case correctness.incorrect: return 'lo-problem__header--incorrect';
     default: return '';
   }
 }
@@ -80,14 +80,14 @@ function useGraderAggregation(props, childGraderIds) {
     correctField,
     hasChildGraders ? childGraderIds : [],
     {
-      fallback: CORRECTNESS.UNSUBMITTED,
-      aggregate: (values) => values.map(v => v ?? CORRECTNESS.UNSUBMITTED)
+      fallback: correctness.unsubmitted,
+      aggregate: (values) => values.map(v => v ?? correctness.unsubmitted)
     }
   );
 
-  const correctness = hasChildGraders
+  const aggregatedCorrectness = hasChildGraders
     ? worstCaseCorrectness(childCorrectnessValues)
-    : CORRECTNESS.UNSUBMITTED;
+    : correctness.unsubmitted;
 
   // Subscribe to child grader messages
   const messageField = state.componentFieldByName(props, sampleGraderId, 'message');
@@ -121,9 +121,9 @@ function useGraderAggregation(props, childGraderIds) {
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (fields?.correct) {
-      state.updateReduxField(props, fields.correct, correctness);
+      state.updateReduxField(props, fields.correct, aggregatedCorrectness);
     }
-  }, [correctness, props.id, fields]);
+  }, [aggregatedCorrectness, props.id, fields]);
 
   useEffect(() => {
     if (fields?.message) {
@@ -138,13 +138,13 @@ function useGraderAggregation(props, childGraderIds) {
   }, [totalSubmitCount, props.id, fields]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
-  return { correctness, message };
+  return { correctness: aggregatedCorrectness, message };
 }
 
 // --- Presentation Components ---
 
-function CapaHeader({ title, correctness, headerNode }) {
-  const stateClass = getHeaderStateClass(correctness);
+function CapaHeader({ title, correctness: correctnessValue, headerNode }) {
+  const stateClass = getHeaderStateClass(correctnessValue);
   return (
     <div className={`lo-problem__header ${stateClass}`}>
       <div className="lo-problem__title">{title}</div>

@@ -45,7 +45,7 @@ psych_sba_sidebar -> student_suggestion
 Annie: Thanks for helping out. She's really stressing about it.
 OK, what do YOU think she should do to get the 6-year-old to go to sleep at bedtime???
 
---- wait initial_suggestion ---
+--- wait @initial_suggestion.value ---
 
 Annie: Haha, we are all over the place with our ideas!
 
@@ -61,7 +61,7 @@ JJ: We really do have different approaches! Why don't we rank these from best to
 
 psych_sba_sidebar -> brainstorm_sorting
 
---- wait bedtime_strategy_grader ---
+--- wait @bedtime_strategy_grader.submitCount > 0 ---
 
 Lin: Interesting rankings! It looks like the choices are between using behavioral techniques, like we're learning about in class,
 or doing nothing. My suggestion was to do nothing, but now I'm not sure. I'm going to ask the AI
@@ -121,12 +121,12 @@ early on and figure out what category they fit into? I don't know about you, but
 
 Annie: Yeah...me, too. How about if we fill in something like this graphic?
 
-JJ: I found this chart on the Internet. I think it sums things up nicely!
-
 # Note: This is the multidrop characterization activity.
 psych_sba_sidebar -> positive_negative_reinforcement_punishment
 
---- wait categorize_strategies score>0.7 ---
+JJ: I found this chart on the Internet. I think it sums things up nicely!
+
+--- wait @categorize_strategies.score > 0.7 ---
 
 psych_sba_sidebar -> poster_image
 
@@ -160,10 +160,8 @@ Lin: Here are the questions sixteen through twenty on the quiz.
 
 psych_sba_sidebar -> reinforce_punish_4
 
-Lin: Here is how we did on the quiz.
-
 psych_sba_sidebar -> quiz1_score
---- wait quiz_percent>=80 ---
+Lin: Here is how we did on the quiz.
 
 JJ: Looks like we did pretty well!
 
@@ -222,17 +220,18 @@ Lin: I agree with JJ. Annie, since your friend is about ready to give up,
 maybe we should put together an email that explains why giving up
 and going with no-rules parenting (and no bedtime) would be a bad idea.
 
+psych_sba_sidebar -> norulesparenting_summary
+
 Annie: All right. Once we write that, we can look into what we have learned about
 effective methods to set a consistent bedtime, and add that to our email.
+
+psych_sba_sidebar -> email_to_babysitter
 
 Annie: To make sure that our email is really good, let's get some feedback from AI.
 If we need to improve our email, we can go back and change the text, then get more feedback.
 
-psych_sba_sidebar -> norulesparenting_summary
 
-psych_sba_sidebar -> email_to_babysitter
-
---- wait email_to_babysitter ---
+--- wait @email_draft.value ---
 
 psych_sba_sidebar -> email_feedback
 
@@ -270,11 +269,11 @@ which of these is the **best** thing for her to try and explain that!
 
 psych_sba_sidebar -> age_appropriacy
 
---- wait age_appropriacy ---
+--- wait @age_appropriate_selection.submitCount > 0 ---
 
 psych_sba_sidebar -> age_appropriacy_explanation
 
---- wait age_appropriacy_explanation ---
+--- wait @strategy_explanation.value ---
 
 psych_sba_sidebar -> age_appropriacy_feedback
 

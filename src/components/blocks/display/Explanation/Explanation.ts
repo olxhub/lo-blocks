@@ -11,12 +11,12 @@
 //   <Explanation showWhen="always">Always visible (debugging)</Explanation>
 //
 import { z } from 'zod';
-import { dev, VISIBILITY_HANDLERS } from '@/lib/blocks';
+import { dev, visibilityHandlers } from '@/lib/blocks';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import * as parsers from '@/lib/content/parsers';
 import _Explanation from './_Explanation';
 
-const validShowWhen = Object.keys(VISIBILITY_HANDLERS) as [string, ...string[]];
+const validShowWhen = Object.keys(visibilityHandlers) as [string, ...string[]];
 
 const Explanation = dev({
   ...parsers.blocks.allowHTML(),

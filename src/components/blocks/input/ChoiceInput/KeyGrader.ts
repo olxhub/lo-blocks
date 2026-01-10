@@ -11,7 +11,7 @@ import { getInputs } from '@/lib/blocks/olxdom';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
-import { CORRECTNESS } from '@/lib/blocks/correctness';
+import { correctness } from '@/lib/blocks/correctness';
 
 export const fields = state.fields(['correct', 'message']);
 
@@ -21,8 +21,8 @@ function gradeKeySelected(props, { input, inputApi }) {
   const choice = choices.find(c => c.value === selected);
   // TODO: Handle the situation where nothing is selected (and possible invalid inputs; e.g. if there's a bug)
   const correct = choice?.tag === 'Key'
-    ? CORRECTNESS.CORRECT
-    : CORRECTNESS.INCORRECT;
+    ? correctness.correct
+    : correctness.incorrect;
   return { correct, message: '' };
 }
 

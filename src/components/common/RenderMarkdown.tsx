@@ -3,6 +3,8 @@
 // Shared Markdown renderer with consistent GFM, math, and KaTeX support.
 // Use this component for all Markdown rendering to ensure consistency.
 //
+// Note: {{...}} interpolation is handled by _Markdown.tsx before calling this component.
+//
 'use client';
 
 import ReactMarkdown from 'react-markdown';

@@ -9,7 +9,7 @@ In this simulated internship at Community 360, you'll apply interdisciplinary an
 Working with supervisor Lianne Park and your intern teammates, you'll investigate causes, review research from multiple disciplines, and develop evidence-based recommendations.
   </Markdown>
 
-  <Image id="interdisciplinary_gsu_prof_image" src="/sba/images/GSU_prof.png" alt="Professor at Georgia State University" />
+  <Image id="interdisciplinary_gsu_prof_image" src="/sba/interdisciplinary/images/GSU_prof.png" alt="Professor at Georgia State University" />
 
   <!-- TEAM AND LIBRARY - resolved from interdisciplinary_sba.olx -->
 
@@ -161,15 +161,12 @@ The causes of high school dropout involve individual psychology, family sociolog
 **Map Each Cause to Relevant Disciplines**
 
 For each cause, select all disciplines that might study it:
-
-| Cause | Psychology | Sociology | Economics | Political Science | Health Sciences |
-|-------|------------|-----------|-----------|-------------------|-----------------|
-| Students need money to help family | ☐ | ☐ | ☐ | ☐ | ☐ |
-| Depression/anxiety/ADHD interferes | ☐ | ☐ | ☐ | ☐ | ☐ |
-| Gang activity / neighborhood instability | ☐ | ☐ | ☐ | ☐ | ☐ |
-| Lack of school funding | ☐ | ☐ | ☐ | ☐ | ☐ |
       </Markdown>
-      <TextArea id="reasons_classification" placeholder="Enter your discipline mappings here. For example: 'Money - Economics, Sociology; ADHD - Psychology, Health Sciences; ...'" />
+      <TabularMCQ id="discipline_mapping">
+        mode: checkbox
+        cols: Psychology, Sociology, Economics, Political Science, Health Sciences
+        rows: Students need money to help family, Depression/anxiety/ADHD interferes, Gang activity / neighborhood instability, Lack of school funding
+      </TabularMCQ>
     </Vertical>
 
     <!-- Display discipline mapping results -->
@@ -422,21 +419,18 @@ An interdisciplinary problem statement should:
 **Map Causes to Comm360's Priority Areas**
 
 Select which priority areas could address each cause:
-
-| Cause | Education &amp; Training | Health &amp; Wellness | Family &amp; Youth Services | Community Building |
-|-------|---------------------|-------------------|--------------------------|-------------------|
-| Students need money | ☐ | ☐ | ☐ | ☐ |
-| Depression/ADHD | ☐ | ☐ | ☐ | ☐ |
-| Gang activity | ☐ | ☐ | ☐ | ☐ |
-| School funding | ☐ | ☐ | ☐ | ☐ |
       </Markdown>
-      <TextArea id="problem_areas" placeholder="Enter your mappings here. For example: 'Money - Education, Family; ADHD - Health; ...'" />
+      <TabularMCQ id="priority_mapping">
+        mode: checkbox
+        cols: Education &amp; Training, Health &amp; Wellness, Family &amp; Youth Services, Community Building
+        rows: Students need money, Depression/ADHD, Gang activity, School funding
+      </TabularMCQ>
     </Vertical>
 
     <!-- Show priorities mapping -->
     <Vertical id="causes_by_priorities_shown">
       <Markdown>**Your Priority Area Mappings:**</Markdown>
-      <Ref target="problem_areas" />
+      <Ref target="priority_mapping" />
     </Vertical>
 
     <!-- Priority explanation input -->

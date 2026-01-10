@@ -140,7 +140,7 @@ Lacy: Here are all of our reasons, Lianne. What do you think?
 
 interdisciplinary_sba_sidebar -> causes_list
 
---- wait cause_internal, cause_structural ---
+--- wait @cause_internal.value && @cause_structural.value ---
 
 Lianne: This is a good list. It reflects a lot of what we heard in a focus group we conducted after we got the results of our community needs survey. We spoke to various stakeholders - students and their families, teachers, and other community members.
 
@@ -157,7 +157,7 @@ interdisciplinary_sba_sidebar -> focus_group_transcript_pt1
 
 Lianne: Highlight any reasons that our participants gave for students dropping out of high school.
 
---- wait focus_group_pt1 ---
+--- wait @focus_group_pt1.value ---
 
 Lianne: Now let's look at the second part of the focus group transcript.
 
@@ -165,7 +165,7 @@ interdisciplinary_sba_sidebar -> focus_group_transcript_pt2
 
 Lianne: Again, highlight any reasons that our participants gave for students dropping out of high school.
 
---- wait focus_group_pt2 ---
+--- wait @focus_group_pt2.value ---
 
 Ty: I hope we get to work on focus groups here because that was really interesting. Here's what I highlighted.
 
@@ -188,7 +188,8 @@ Lacy: Which ones would you select to research?
 
 interdisciplinary_sba_sidebar -> reasons_checklist
 
---- wait reasons ---
+// TODO: Figure out how to handle doneness for a list (empty array [] is truthy)
+--- wait @reasons.value ---
 
 Lianne: I agree with you on some of your choices. Why did you select that set?
 
@@ -196,7 +197,7 @@ interdisciplinary_sba_sidebar -> reasons_shown
 
 interdisciplinary_sba_sidebar -> reason_explanation_input
 
---- wait reason_explanation ---
+--- wait @reason_explanation.value ---
 
 Task Set 3: Is This Interdisciplinary? [id=interdisciplinary_check]
 --------------------------------------
@@ -236,7 +237,8 @@ Peggy: Let's figure out which disciplines are likely to give us the most insight
 
 interdisciplinary_sba_sidebar -> causes_by_disciplines
 
---- wait reasons_classification ---
+// HACK: Object.keys().length is instructor-unfriendly. TODO: Add isFilled() or .numberFilled field
+--- wait Object.keys(@discipline_mapping.value).length > 0 ---
 
 Peggy: Ok, I summed up our responses and this shows any category that got more than one vote. We didn't always agree on each discipline, but overall we all seem to see how different disciplines might investigate the problem.
 
@@ -301,19 +303,19 @@ Lianne: See if you can find the clue words that indicate which disciplines are r
 
 Lianne: Click on words to highlight them; make sure you scroll down to the bottom to read the whole summary.
 
---- wait source_2_highlights ---
+--- wait @source_2_highlights.value ---
 
 Lianne: So which disciplines do you think are represented in this study?
 
 interdisciplinary_sba_sidebar -> employment_discipline_checkboxes
 
---- wait source_2_classification ---
+--- wait @source_2_classification.value ---
 
 Lianne: How are the clues you picked representative of the disciplines you picked? Can you explain?
 
 interdisciplinary_sba_sidebar -> source_2_explanation_input
 
---- wait source_2_classification_explanation ---
+--- wait @source_2_classification_explanation.value ---
 
 Rural and Urban Study [id=literature_rural_urban]
 ---------------------
@@ -322,17 +324,17 @@ Lacy: I think it makes sense to use this highlighting method for other studies w
 
 interdisciplinary_sba_sidebar -> rural_urban_study_text
 
---- wait source_3_highlights ---
+--- wait @source_3_highlights.value ---
 
 Lianne: So which disciplines do you think are represented in this study?
 
 interdisciplinary_sba_sidebar -> rural_discipline_checkboxes
 
---- wait source_3_classification ---
+--- wait @source_3_classification.value ---
 
 interdisciplinary_sba_sidebar -> source_3_explanation_input
 
---- wait source_3_classification_explanation ---
+--- wait @source_3_classification_explanation.value ---
 
 School Funding Study [id=literature_funding]
 --------------------
@@ -341,17 +343,17 @@ Ty: I'm going to add this study to the ones we should review.
 
 interdisciplinary_sba_sidebar -> funding_study_text
 
---- wait source_4_highlights ---
+--- wait @source_4_highlights.value ---
 
 Lianne: So which disciplines do you think are represented in this study?
 
 interdisciplinary_sba_sidebar -> funding_discipline_checkboxes
 
---- wait source_4_classification ---
+--- wait @source_4_classification.value ---
 
 interdisciplinary_sba_sidebar -> source_4_explanation_input
 
---- wait source_4_classification_explanation ---
+--- wait @source_4_classification_explanation.value ---
 
 Task Set 5: Develop Problem Statement [id=problem_statement_start]
 --------------------------------------
@@ -377,7 +379,7 @@ interdisciplinary_sba_sidebar -> nces_trends_text
 
 Lianne: This would be a good time to use the highlighting method to look for information in the text that speaks to the importance of this problem.
 
---- wait source_5_importance_highlights ---
+--- wait @source_5_importance_highlights.value ---
 
 Lianne: Here is the text you highlighted.
 
@@ -385,7 +387,7 @@ interdisciplinary_sba_sidebar -> nces_importance_highlights_shown
 
 interdisciplinary_sba_sidebar -> importance_explanation_input
 
---- wait source_5_importance_explanation ---
+--- wait @source_5_importance_explanation.value ---
 
 Unresolved Nature of Problem [id=unresolved_criterion]
 ----------------------------
@@ -394,7 +396,7 @@ Lianne: Now we should focus on whether the text source helps us know if the prob
 
 interdisciplinary_sba_sidebar -> nces_trends_text
 
---- wait source_5_unresolved_highlights ---
+--- wait @source_5_unresolved_highlights.value ---
 
 Lianne: Here is the text you highlighted.
 
@@ -402,7 +404,7 @@ interdisciplinary_sba_sidebar -> nces_unresolved_highlights_shown
 
 interdisciplinary_sba_sidebar -> unresolved_explanation_input
 
---- wait source_5_unresolved_explanation ---
+--- wait @source_5_unresolved_explanation.value ---
 
 Avoiding Disciplinary Bias [id=avoiding_bias]
 --------------------------
@@ -424,7 +426,7 @@ Revising the Statement [id=revision_task]
 
 interdisciplinary_sba_sidebar -> revision_instructions
 
---- wait problem_statement_revised ---
+--- wait @problem_statement_revised.value ---
 
 Peggy: I can see that my sentence needed to be fixed. Thanks for the suggested revision. I'll take it into account!
 
@@ -475,7 +477,8 @@ Peggy: You may find that all or none of the choices apply to a specific cause. F
 
 interdisciplinary_sba_sidebar -> causes_by_priorities_table
 
---- wait problem_areas ---
+// HACK: Object.keys().length is instructor-unfriendly. TODO: Add isFilled() or .numberFilled field
+--- wait Object.keys(@priority_mapping.value).length > 0 ---
 
 Lianne: Can you explain why you think these causes are aligned with Comm360's priority areas?
 
@@ -483,7 +486,7 @@ interdisciplinary_sba_sidebar -> causes_by_priorities_shown
 
 interdisciplinary_sba_sidebar -> priority_explanation_input
 
---- wait priority_explanation ---
+--- wait @priority_explanation.value ---
 
 Lianne: These look great! Looks like the causes fall in with three of our priority areas: Family and Youth Services, Health and Wellness, and Community Building and Advocacy.
 
@@ -504,11 +507,11 @@ Lianne: We know that Psychology offers relevant insights on this cause and we ca
 
 interdisciplinary_sba_sidebar -> additional_disciplines_checkboxes
 
---- wait additional_disciplines ---
+--- wait @additional_disciplines.value ---
 
 interdisciplinary_sba_sidebar -> additional_disciplines_explanation_input
 
---- wait additional_disciplines_explanation ---
+--- wait @additional_disciplines_explanation.value ---
 
 Writing the Final Problem Statement [id=final_statement]
 ---------------------------------------
@@ -521,7 +524,7 @@ Lianne: Use your notes to help you write your problem statement. You can copy an
 
 interdisciplinary_sba_sidebar -> full_problem_statement_input
 
---- wait full_problem_statement ---
+--- wait @full_problem_statement.value ---
 
 Conclusion [id=conclusion]
 ----------

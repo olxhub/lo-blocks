@@ -6,7 +6,7 @@
 // related grader correctness states. This replaces the problematic "submitted" boolean
 // approach with a proper state query system based on existing correctness states.
 //
-import { CORRECTNESS } from './correctness';
+import { correctness } from './correctness';
 import { inferRelatedNodes } from './olxdom';
 import * as state from '@/lib/state';
 
@@ -44,12 +44,12 @@ export function isInputReadOnly(props) {
 
   try {
     const correctField = state.componentFieldByName(props, graderId, 'correct');
-    const correctness = state.useFieldSelector(
+    const correctnessValue = state.useFieldSelector(
       props,
       correctField,
       {
         id: graderId,
-        fallback: CORRECTNESS.UNSUBMITTED,
+        fallback: correctness.unsubmitted,
         selector: s => s?.correct
       }
     );
@@ -57,7 +57,7 @@ export function isInputReadOnly(props) {
     // Default behavior: allow infinite attempts (only lock if explicitly SUBMITTED and not allowing retries)
     // For now, we'll be more permissive - only lock on SUBMITTED pending grading
     // TODO: Add attempt limiting logic based on container configuration
-    return correctness === CORRECTNESS.SUBMITTED;
+    return correctnessValue === correctness.submitted;
 
   } catch (e) {
     // If we can't determine grader state, default to interactive (fail open)

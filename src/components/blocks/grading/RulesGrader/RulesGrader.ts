@@ -15,7 +15,7 @@
 //
 import { z } from 'zod';
 import { core, grader, baseAttributes, isMatch, inferRelatedNodes, refToOlxKey, getBlockByOLXId } from '@/lib/blocks';
-import { CORRECTNESS } from '@/lib/blocks/correctness';
+import { correctness } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
 import _Noop from '@/components/blocks/layout/_Noop';
 import type { RuntimeProps } from '@/lib/types';
@@ -25,12 +25,12 @@ import type { RuntimeProps } from '@/lib/types';
  *
  * @param {Object} props - RulesGrader props including kids
  * @param {Object} context - { input, inputs, inputApi, inputApis }
- * @returns {{ correct: CORRECTNESS, message: string, score?: number }}
+ * @returns {{ correct: correctness, message: string, score?: number }}
  */
 function gradeRules(props: RuntimeProps, context) {
   const { blockRegistry } = props;
 
-  // TODO: Handle other CORRECTNESS states (UNSUBMITTED, INCOMPLETE, etc.)
+  // TODO: Handle other correctness states (unsubmitted, incomplete, etc.)
   // Currently delegated to Match rules, but may need RulesGrader-level logic
 
   // Evaluate child Match rules in order
@@ -53,7 +53,7 @@ function gradeRules(props: RuntimeProps, context) {
     const result = matchFn(matchProps, context);
 
     // Check if this rule matched (correct === CORRECT or true)
-    const matched = result.correct === CORRECTNESS.CORRECT || result.correct === true;
+    const matched = result.correct === correctness.correct || result.correct === true;
 
     if (matched) {
       // Use score/feedback from attributes
@@ -61,8 +61,8 @@ function gradeRules(props: RuntimeProps, context) {
       const feedback = attrs.feedback || result.message || '';
 
       return {
-        correct: score >= 1 ? CORRECTNESS.CORRECT :
-                 score > 0 ? CORRECTNESS.PARTIALLY_CORRECT : CORRECTNESS.INCORRECT,
+        correct: score >= 1 ? correctness.correct :
+                 score > 0 ? correctness.partiallyCorrect : correctness.incorrect,
         message: feedback,
         score,
         feedbackBlock: attrs.feedbackBlock,
@@ -72,7 +72,7 @@ function gradeRules(props: RuntimeProps, context) {
 
   // No rule matched - return incorrect with no feedback
   return {
-    correct: CORRECTNESS.INCORRECT,
+    correct: correctness.incorrect,
     message: '',
     score: 0,
   };

@@ -31,7 +31,7 @@ const TextHighlight = core({
     grader: (props, { input }: { input: any }) => {
       // This would be called by an ActionButton
       // The actual grading logic is in the component
-      return input?.correct || blocks.CORRECTNESS.UNSUBMITTED;
+      return input?.correct || blocks.correctness.unsubmitted;
     }
   }),
   name: 'TextHighlight',

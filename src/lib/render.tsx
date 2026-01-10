@@ -138,6 +138,21 @@ export function render({ node, nodeInfo, blockRegistry = BLOCK_REGISTRY, idPrefi
     );
   }
 
+  // Semantic validation beyond what Zod can express (e.g., valid number, valid regex)
+  if (blockType.validateAttributes) {
+    const semanticErrors = blockType.validateAttributes(validationResult.data);
+    if (semanticErrors && semanticErrors.length > 0) {
+      return (
+        <DisplayError
+          id={`semantic-validation-${node.id}`}
+          name={tag}
+          message={`Invalid attributes:\n${semanticErrors.join('\n')}`}
+          technical={{ attributes: validationResult.data, semanticErrors }}
+        />
+      );
+    }
+  }
+
   // Create a dynamic shadow hierarchy
   //
   // Note if the same component appears multiple times, we only include it once.

@@ -6,7 +6,7 @@ import React, { useCallback, useMemo, useEffect } from 'react';
 import { useReduxState, updateReduxField } from '@/lib/state';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
-import { usePrerequisitesSatisfied } from '@/lib/util/prerequisites';
+import { useWaitConditions } from './waitConditions';
 
 import * as chatUtils from './chatUtils';
 
@@ -130,37 +130,20 @@ export function _Chat(props) {
   const conversationFinished = windowedIndex >= clipRange.end;
 
   /* ----------------------------------------------------------------
-   * Pending prerequisites - derive from current position
+   * Wait conditions - check if we can advance past any wait commands
    * -------------------------------------------------------------- */
-  // Find the next WaitCommand we might be blocked on
-  const pendingPrerequisites = useMemo(() => {
-    // Look ahead from current position to find a WaitCommand
-    for (let i = windowedIndex + 1; i <= windowRange.end; i++) {
-      const block = allEntries[i];
-      if (!block) break;
-      if (block.type === 'WaitCommand') {
-        return block.prerequisites ?? [];
-      }
-      // Stop at content that would be shown (Line, PauseCommand)
-      if (block.type === 'Line' || block.type === 'PauseCommand') {
-        break;
-      }
-    }
-    return [];
-  }, [allEntries, windowedIndex, windowRange.end]);
-
-  // Reactively check if pending prerequisites are satisfied
-  const prerequisitesSatisfied = usePrerequisitesSatisfied(props, pendingPrerequisites);
+  const { canAdvance, isWaitSatisfied } = useWaitConditions(props, allEntries, windowedIndex, windowRange.end);
 
   /* ----------------------------------------------------------------
    * Advance handler
    * -------------------------------------------------------------- */
   const [sectionHeader, setSectionHeader] = useReduxState(props, fields.sectionHeader);
 
-  // isDisabled is now derived from prerequisitesSatisfied, not stored in Redux
-  const isDisabled = pendingPrerequisites.length > 0 && !prerequisitesSatisfied;
+  const isDisabled = !canAdvance;
 
   const handleAdvance = useCallback(() => {
+    if (!canAdvance) return;
+
     let nextIndex = windowedIndex;
     while (nextIndex < windowRange.end) {
       const block = allEntries[nextIndex + 1];
@@ -171,9 +154,11 @@ export function _Chat(props) {
         continue;
       }
       if (block.type === 'WaitCommand') {
-        // Prerequisites are checked reactively via usePrerequisitesSatisfied
-        // If we reach here during advance, prerequisites must be satisfied
-        // (button is disabled otherwise), so just skip past the wait
+        if (!isWaitSatisfied(block)) {
+          // Unsatisfied wait - stop here, user must wait for condition
+          break;
+        }
+        // Satisfied - skip past it
         nextIndex += 1;
         continue;
       }
@@ -191,7 +176,7 @@ export function _Chat(props) {
       console.log(block.type);
     }
     setIndex(Math.min(nextIndex, windowRange.end));
-  }, [props, fields.value, windowedIndex, windowRange, allEntries, setIndex, setSectionHeader]);
+  }, [canAdvance, isWaitSatisfied, props, fields.value, windowedIndex, windowRange, allEntries, setIndex, setSectionHeader]);
 
   // Register advance handler for external calls
   useChatAdvanceRegistration(id, handleAdvance);

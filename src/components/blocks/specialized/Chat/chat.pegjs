@@ -169,45 +169,22 @@ PauseCommand
 
 /* ─────────────────────────────  Wait command  ────────────────────────── */
 /*
- * Supported today in the parser (not necessarily in the code)
- *   --- wait lab1 ---
- *   --- wait lab1 submitted ---
- *   --- wait lab1 correct, quiz2 attempted ---
- *   --- wait quiz1 score>=8, quiz2 attempted ---
- *
- * Possible future plans (not yet enforced/evaluated)
- *   - dotted sub-IDs:    problemA.score
- *   - boolean operators: (lab1 correct OR quiz2 correct) AND hw1 submitted
+ * Wait commands use state language expressions:
+ *   --- wait @grader.correct === correctness.correct ---
+ *   --- wait @essay.value ---
+ *   --- wait @quiz.done === completion.done && @essay.value ---
  */
 
 WaitCommandStart
   = _ "-"+ _ "wait"
 
 WaitCommand
-  = WaitCommandStart _ reqs:WaitPrerequisiteList _ "-"+ _ NewLine {
-      return { type: "WaitCommand", prerequisites: reqs };
+  = WaitCommandStart _ expr:WaitExpression _ "-"+ _ NewLine {
+      return { type: "WaitCommand", expression: expr };
     }
 
-WaitPrerequisiteList
-  = first:WaitPrerequisite rest:(_ "," _ WaitPrerequisite)* {
-      return [first].concat(rest.map(r => r[3]));
-    }
-
-WaitPrerequisite
-  = _ id:Identifier cond:PrerequisiteCondition? {
-      return cond ? { id, ...cond } : { id };
-    }
-
-/* status words such as submitted / correct / attempted */
-PrerequisiteCondition
-  = _ field:Identifier _ op:CompOp _ n:Num {
-      return { field, op, value: parseFloat(n) };
-    }
-  / _ status:StatusWord { const normalizedStatus = Array.isArray(status) ? status.flat(Infinity).join('') : status; return { status: normalizedStatus }; }
-
-StatusWord       = $[a-zA-Z0-9_][a-zA-Z0-9_-]+
-CompOp           = ">=" / "<=" / ">" / "<" / "="
-Num              = $([0-9]+ ("." [0-9]+)?)
+WaitExpression
+  = chars:[^-\r\n]+ { return chars.join('').trim(); }
 
 
 DialogueGroup

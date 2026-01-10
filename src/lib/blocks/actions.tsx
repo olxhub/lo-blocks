@@ -22,7 +22,7 @@
 //
 import { inferRelatedNodes, getAllNodes } from './olxdom';
 import * as lo_event from 'lo_event';
-import { CORRECTNESS } from './correctness';
+import { correctness } from './correctness';
 import { refToReduxKey } from './idResolver';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import type { RuntimeProps } from '@/lib/types';
@@ -183,10 +183,10 @@ export function grader({ grader, infer = true }: { grader: GraderFn; infer?: boo
       param
     );
 
-    // Convert boolean correct to CORRECTNESS enum for display
-    const correctness = correct === true ? CORRECTNESS.CORRECT :
-      correct === false ? CORRECTNESS.INCORRECT :
-        correct; // In case it's already a CORRECTNESS value
+    // Convert boolean correct to correctness enum for display
+    const correctnessValue = correct === true ? correctness.correct :
+      correct === false ? correctness.incorrect :
+        correct; // In case it's already a correctness value
 
     // Use refToReduxKey to get scoped ID (applies idPrefix for list/repeated contexts)
     const scopedTargetId = refToReduxKey({ ...props, id: targetId });
@@ -199,7 +199,7 @@ export function grader({ grader, infer = true }: { grader: GraderFn; infer?: boo
     const logEvent = props.logEvent ?? lo_event.logEvent;
     logEvent('UPDATE_CORRECT', {
       id: scopedTargetId,
-      correct: correctness,
+      correct: correctnessValue,
       message,
       score,
       submitCount,

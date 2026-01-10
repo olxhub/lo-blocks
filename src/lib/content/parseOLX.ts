@@ -412,6 +412,27 @@ export async function parseOLX(
     } else {
       // Use transformed attributes (e.g., "true" -> true for booleans)
       parsedAttributes = result.data;
+
+      // Semantic validation beyond what Zod schema can express
+      // e.g., NumericalGrader answer must be a valid number, StringGrader regexp must be valid
+      if (Component?.validateAttributes) {
+        const semanticErrors = Component.validateAttributes(parsedAttributes);
+        if (semanticErrors && semanticErrors.length > 0) {
+          const errorList = semanticErrors.map(e => `  - ${e}`).join('\n');
+          errors.push({
+            type: 'attribute_validation',
+            file: formatProvenanceList(provenance).join(', '),
+            message: `Invalid attributes for <${tag} id="${id}">:\n${errorList}`,
+            location: { line: node.line, column: node.column },
+            technical: {
+              tag,
+              id,
+              attributes: parsedAttributes,
+              semanticErrors
+            }
+          });
+        }
+      }
     }
 
     const parser = Component?.parser || defaultParser;
