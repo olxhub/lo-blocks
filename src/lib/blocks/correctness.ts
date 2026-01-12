@@ -61,6 +61,8 @@ export const correctness = {
   invalid: 'invalid',              // Malformed input ("hello" in numeric field)
 } as const;
 
+export type Correctness = typeof correctness[keyof typeof correctness];
+
 // =============================================================================
 // COMPLETION - Progress/Done States
 // =============================================================================
@@ -105,6 +107,8 @@ export const completion = {
   closed: 'closed',                // Window passed (deadline, max attempts)
 } as const;
 
+export type Completion = typeof completion[keyof typeof completion];
+
 // Derived utilities - single source of truth
 // Typed as Set<string> since these are used for validating arbitrary input
 const ALL_CORRECTNESS_STATES: Set<string> = new Set(Object.values(correctness));
@@ -113,15 +117,15 @@ const ALL_COMPLETION_STATES: Set<string> = new Set(Object.values(completion));
 /**
  * Check if a value is a valid correctness state.
  */
-export function isValidCorrectness(value: unknown): boolean {
-  return ALL_CORRECTNESS_STATES.has(value as string);
+export function isValidCorrectness(value: unknown): value is Correctness {
+  return ALL_CORRECTNESS_STATES.has(value as Correctness);
 }
 
 /**
  * Validate a correctness value. Throws on invalid state (fail-fast).
  */
-export function validateCorrectness(value: unknown): void {
-  if (!ALL_CORRECTNESS_STATES.has(value as string)) {
+export function validateCorrectness(value: unknown): asserts value is Correctness {
+  if (!ALL_CORRECTNESS_STATES.has(value as Correctness)) {
     const valid = Array.from(ALL_CORRECTNESS_STATES).join(', ');
     throw new Error(`Invalid correctness value: "${value}". Valid values: ${valid}`);
   }
@@ -155,15 +159,15 @@ export const correctnessPriority = {
 /**
  * Check if a value is a valid completion state.
  */
-export function isValidCompletion(value: unknown): boolean {
-  return ALL_COMPLETION_STATES.has(value as string);
+export function isValidCompletion(value: unknown): value is Completion {
+  return ALL_COMPLETION_STATES.has(value as Completion);
 }
 
 /**
  * Validate a completion value. Throws on invalid state (fail-fast).
  */
-export function validateCompletion(value: unknown): void {
-  if (!ALL_COMPLETION_STATES.has(value as string)) {
+export function validateCompletion(value: unknown): asserts value is Completion {
+  if (!ALL_COMPLETION_STATES.has(value as Completion)) {
     const valid = Array.from(ALL_COMPLETION_STATES).join(', ');
     throw new Error(`Invalid completion value: "${value}". Valid values: ${valid}`);
   }
