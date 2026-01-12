@@ -138,7 +138,7 @@ function useGraderAggregation(props, childGraderIds) {
   }, [totalSubmitCount, props.id, fields]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
-  return { correctness: aggregatedCorrectness, message };
+  return { correctness: aggregatedCorrectness, message, submitCount: totalSubmitCount };
 }
 
 // --- Presentation Components ---
@@ -182,7 +182,7 @@ export default function _CapaProblem(props) {
   const hintsId = findDemandHintsId(props);
 
   // Aggregate state from child graders
-  const { correctness } = useGraderAggregation(props, childGraderIds);
+  const { correctness, submitCount } = useGraderAggregation(props, childGraderIds);
 
   // Validate: require at least one grader unless explicitly allowed
   if (childGraderIds.length === 0 && !props.allowEmpty) {
@@ -203,7 +203,12 @@ export default function _CapaProblem(props) {
   const footerNode = renderBlock(props, 'CapaFooter', {
     id: `${id}_footer_controls`,
     target: childGraderIds.join(','),
-    hintsTarget: hintsId
+    hintsTarget: hintsId,
+    // Problem mode settings
+    maxAttempts: props.maxAttempts,
+    showanswer: props.showanswer,
+    submitCount,
+    correct: correctness,
   });
 
   return (

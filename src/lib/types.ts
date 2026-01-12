@@ -135,6 +135,23 @@ export const BlockBlueprintSchema = z.object({
   isGrader: z.boolean().optional().default(false),
   isInput: z.boolean().optional().default(false),
   isMatch: z.boolean().optional().default(false),
+  /**
+   * Named slots for multi-input graders.
+   * When provided, the framework resolves inputs to slots and passes an
+   * inputDict object to the grader instead of an array.
+   * Example: ['numerator', 'denominator'] for RatioGrader
+   */
+  slots: z.array(z.string()).optional(),
+  /**
+   * How to display the answer when "Show Answer" is clicked.
+   * - 'per-input': Show next to each input (default)
+   * - 'summary': Show once after all inputs
+   * - 'custom': Grader handles display (e.g., MCQ highlights choices)
+   * - 'none': No answer to show
+   */
+  answerDisplayMode: z.enum(['per-input', 'summary', 'custom', 'none']).optional(),
+  /** Get display answers per slot for multi-input graders. */
+  getDisplayAnswers: z.function().optional(),
   parser: z.function().optional(),
   staticKids: z.function().optional(),
   reducers: z.array(z.function()).optional(),
@@ -294,6 +311,25 @@ export interface LoBlock {
    * Returns the answer to display (may differ from grading answer).
    */
   getDisplayAnswer?: (props: any) => any;
+  /**
+   * Named slots for multi-input graders.
+   * When provided, the framework resolves inputs to slots and passes an
+   * inputDict object to the grader instead of an array.
+   */
+  slots?: string[];
+  /**
+   * How to display the answer when "Show Answer" is clicked.
+   * - 'per-input': Show next to each input (default)
+   * - 'summary': Show once after all inputs
+   * - 'custom': Grader handles display (MCQ highlights, etc.)
+   * - 'none': No answer to show
+   */
+  answerDisplayMode?: 'per-input' | 'summary' | 'custom' | 'none';
+  /**
+   * Returns display answers per slot for multi-input graders.
+   * Used when answerDisplayMode is 'per-input' with slots defined.
+   */
+  getDisplayAnswers?: (props: any) => Record<string, any>;
 
   // Documentation properties (added by generateBlockRegistry at build time)
   /** Path to the block's source file relative to project root */

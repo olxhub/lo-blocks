@@ -68,47 +68,46 @@ describe('validateNumericalInput', () => {
 });
 
 describe('ratioMatch', () => {
-  // ratioMatch now returns boolean (pure predicate)
+  // ratioMatch returns boolean (pure predicate)
   // The framework handles empty/invalid input before calling match
+  // Now expects { numerator, denominator } object from grader framework
 
-  it('matches ratios with array input', () => {
-    expect(ratioMatch(['1', '2'], '0.5')).toBe(true);
-    expect(ratioMatch(['4', '8'], '0.5')).toBe(true);
-    expect(ratioMatch(['1', '3'], '0.5')).toBe(false);
+  it('matches ratios with object input', () => {
+    expect(ratioMatch({ numerator: '1', denominator: '2' }, '0.5')).toBe(true);
+    expect(ratioMatch({ numerator: '4', denominator: '8' }, '0.5')).toBe(true);
+    expect(ratioMatch({ numerator: '1', denominator: '3' }, '0.5')).toBe(false);
   });
 
   it('matches with tolerance', () => {
-    expect(ratioMatch(['2', '5'], '0.5', { tolerance: '0.1' })).toBe(true);
-    expect(ratioMatch(['2', '5'], '0.5', { tolerance: '0.01' })).toBe(false);
+    expect(ratioMatch({ numerator: '2', denominator: '5' }, '0.5', { tolerance: '0.1' })).toBe(true);
+    expect(ratioMatch({ numerator: '2', denominator: '5' }, '0.5', { tolerance: '0.01' })).toBe(false);
   });
 });
 
 describe('validateRatioInputs', () => {
   // Framework calls this before ratioMatch
+  // Now expects { numerator, denominator } object from grader framework
 
   it('accepts valid ratio inputs', () => {
-    expect(validateRatioInputs(['1', '2'])).toBeUndefined();
-    expect(validateRatioInputs(['4', '8'])).toBeUndefined();
+    expect(validateRatioInputs({ numerator: '1', denominator: '2' })).toBeUndefined();
+    expect(validateRatioInputs({ numerator: '4', denominator: '8' })).toBeUndefined();
   });
 
-  it('rejects non-array input', () => {
-    expect(validateRatioInputs('1' as any)).toEqual(['Need two inputs (numerator and denominator)']);
-  });
-
-  it('rejects array with less than 2 elements', () => {
-    expect(validateRatioInputs(['1'] as any)).toEqual(['Need two inputs (numerator and denominator)']);
+  it('rejects missing slots', () => {
+    expect(validateRatioInputs({ numerator: '1' } as any)).toEqual(['Need two inputs (numerator and denominator)']);
+    expect(validateRatioInputs({ denominator: '2' } as any)).toEqual(['Need two inputs (numerator and denominator)']);
   });
 
   it('rejects invalid numerator', () => {
-    expect(validateRatioInputs(['abc', '2'])).toEqual(['Invalid numerator']);
+    expect(validateRatioInputs({ numerator: 'abc', denominator: '2' })).toEqual(['Invalid numerator']);
   });
 
   it('rejects invalid denominator', () => {
-    expect(validateRatioInputs(['1', 'xyz'])).toEqual(['Invalid denominator']);
+    expect(validateRatioInputs({ numerator: '1', denominator: 'xyz' })).toEqual(['Invalid denominator']);
   });
 
   it('rejects division by zero', () => {
-    expect(validateRatioInputs(['1', '0'])).toEqual(['Division by zero']);
+    expect(validateRatioInputs({ numerator: '1', denominator: '0' })).toEqual(['Division by zero']);
   });
 });
 

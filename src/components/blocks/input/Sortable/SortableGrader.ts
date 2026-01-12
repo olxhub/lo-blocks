@@ -13,6 +13,7 @@ const SortableGrader = blocks.test({
   ...parsers.blocks.allowHTML(),
   ...blocks.grader({
     grader: gradeArrangement,
+    inputType: 'single',
   }),
   name: 'SortableGrader',
   description: 'Grades sortable arrangements with various algorithms (exact, partial, adjacent, spearman, survey)',

@@ -28,7 +28,13 @@ import { getBlockByOLXId } from './getBlockByOLXId';
 import type { RuntimeProps } from '@/lib/types';
 import type { Store } from 'redux';
 
-type GraderFn = (props: RuntimeProps, params: { input?: unknown; inputs?: unknown[]; inputApi?: object; inputApis?: object[] }) => { correct: unknown; message: unknown; score?: number };
+// Grader parameter types - each grader receives exactly one of these
+export type SingleParam = { input: unknown; inputApi: object };
+export type ListParam = { inputList: unknown[]; inputApis: object[] };
+export type DictParam = { inputDict: Record<string, unknown>; inputApiDict: Record<string, object> };
+export type GraderParams = SingleParam | ListParam | DictParam;
+
+type GraderFn = (props: RuntimeProps, params: GraderParams) => { correct: unknown; message: unknown; score?: number };
 
 // Mix-in to make a block an action
 export function action({ action }) {
@@ -69,13 +75,14 @@ export function isAction(loBlock) {
  * and graders without understanding implementation details.
  */
 export function input({ getValue }) {
-  return { getValue };
+  return { getValue, isInput: true };
 }
 
-// TODO: Duck-typing via getValue is a mistake. Should check loBlock.isInput
-// and populate that explicitly in factory.tsx from blueprint.isInput.
+// Input blocks should set isInput: true on the blueprint.
+// The blocks.input() mixin does this automatically.
+// For legacy compatibility, we also check for getValue presence.
 export function isInput(loBlock) {
-  return typeof loBlock?.getValue === "function";
+  return loBlock?.isInput || typeof loBlock?.getValue === "function";
 }
 
 export function isMatch(loBlock) {
@@ -94,9 +101,89 @@ function getNodeById(props, id) {
   return nodes[0]; // TODO: Error handling?
 }
 
+/**
+ * Resolve input IDs to named slots.
+ *
+ * If the grader declares `slots` (e.g., ['numerator', 'denominator']),
+ * this function maps inputs to slots by:
+ * 1. Explicit `slot="numerator"` attribute on input (highest priority)
+ * 2. Positional: first input → first slot, second → second slot
+ *
+ * Returns { slotMap, errors } where slotMap is { slot: inputId } and errors
+ * contains any validation issues (missing slots, unknown slots, etc.)
+ */
+function resolveInputSlots(
+  slots: string[],
+  inputIds: string[],
+  getInputSlot: (id: string) => string | undefined
+): { slotMap: Record<string, string>; errors: string[] } {
+  const errors: string[] = [];
+  const slotMap: Record<string, string> = {};
+  const usedSlots = new Set<string>();
+  const slotSet = new Set(slots);
+
+  // First pass: handle explicit slot= attributes
+  for (const inputId of inputIds) {
+    const explicitSlot = getInputSlot(inputId);
+    if (explicitSlot) {
+      if (!slotSet.has(explicitSlot)) {
+        errors.push(`Unknown slot "${explicitSlot}" on input "${inputId}", expected: ${slots.join(', ')}`);
+        continue;
+      }
+      if (usedSlots.has(explicitSlot)) {
+        errors.push(`Duplicate slot "${explicitSlot}" - each slot can only be assigned once`);
+        continue;
+      }
+      slotMap[explicitSlot] = inputId;
+      usedSlots.add(explicitSlot);
+    }
+  }
+
+  // Second pass: positional assignment for remaining inputs
+  let slotIndex = 0;
+  for (const inputId of inputIds) {
+    const explicitSlot = getInputSlot(inputId);
+    if (explicitSlot) continue; // Already handled
+
+    // Find next unassigned slot
+    while (slotIndex < slots.length && usedSlots.has(slots[slotIndex])) {
+      slotIndex++;
+    }
+
+    if (slotIndex >= slots.length) {
+      errors.push(`Too many inputs: grader expects ${slots.length} (${slots.join(', ')}), found more`);
+      break;
+    }
+
+    const slot = slots[slotIndex];
+    slotMap[slot] = inputId;
+    usedSlots.add(slot);
+    slotIndex++;
+  }
+
+  // Check for missing slots
+  for (const slot of slots) {
+    if (!usedSlots.has(slot)) {
+      errors.push(`Missing input for slot "${slot}"`);
+    }
+  }
+
+  return { slotMap, errors };
+}
+
 // Helper to define a grading action. This used to be called a
 // "response" in OLX 1.0 terminology.
-export function grader({ grader, infer = true }: { grader: GraderFn; infer?: boolean }) {
+//
+// Param shape the grader receives:
+// - slots defined: { inputDict, inputApiDict } - named slots
+// - inputType: 'list': { inputList, inputApis } - array of inputs
+// - default (single): { input, inputApi } - one input (most common)
+export function grader({ grader, infer = true, slots, inputType }: {
+  grader: GraderFn;
+  infer?: boolean;
+  slots?: string[];
+  inputType?: 'single' | 'list';
+}) {
   // TODO: Throughout here, we mix up props in ways which should be cleaner.
   //
   // We only have the props for the action source. For the rest, we
@@ -151,33 +238,53 @@ export function grader({ grader, infer = true }: { grader: GraderFn; infer?: boo
     const values = inputData.map(d => d.value);
     const apis = inputData.map(d => d.api);
 
-    /*
-      TODO: What should we pass into the grader?
+    // Build grader parameters based on declared input type
+    let param: GraderParams;
 
-      Worth reviewing:
-      https://docs.openedx.org/en/latest/educators/references/course_development/exercise_tools/guide_custom_python_problem.html
-      https://docs.openedx.org/en/latest/educators/how-tos/course_development/exercise_tools/create_custom_python_problem.html
-      https://docs.openedx.org/en/latest/educators/references/course_development/exercise_tools/custom_javascript.html
+    if (slots && slots.length > 0) {
+      // Dict mode: resolve inputs to named slots
+      const getInputSlot = (id: string) => {
+        const inst = getBlockByOLXId(props, id);
+        return inst?.attributes?.slot as string | undefined;
+      };
 
-      An open question is whether / how we name inputs. In many cases,
-      for multiple, we'll want a dictionary.
+      const { slotMap, errors } = resolveInputSlots(slots, inputIds as string[], getInputSlot);
 
-      Another question is how to keep the most common case (one input)
-      simple, while allowing multiple. A basic value=answer is much
-      nicer. values[0] is especially imperfect, since it suggests
-      asserting the length is one.
+      if (errors.length > 0) {
+        // Slot resolution failed - return invalid with error message
+        return {
+          correct: correctness.invalid,
+          message: errors[0],
+        };
+      }
 
-      And we don't like values[0], values[1] as much as e.g. x, y.
+      // Build slot→value and slot→api maps
+      const inputDict: Record<string, unknown> = {};
+      const inputApiDict: Record<string, object> = {};
 
-      But if the grader expects a list, a list of length 1 should be okay.
+      for (const [slot, inputId] of Object.entries(slotMap)) {
+        const idx = (inputIds as string[]).indexOf(inputId);
+        if (idx >= 0) {
+          inputDict[slot] = values[idx];
+          inputApiDict[slot] = apis[idx];
+        }
+      }
 
-      The inputApi/inputApis provide access to the input's locals functions,
-      allowing graders to query additional context (e.g., ChoiceInput.getChoices()).
-    */
-
-    const param = values.length === 1
-      ? { input: values[0], inputs: values, inputApi: apis[0], inputApis: apis }
-      : { inputs: values, inputApis: apis };
+      param = { inputDict, inputApiDict };
+    } else if (inputType === 'list') {
+      // List mode - explicitly requested
+      param = { inputList: values, inputApis: apis };
+    } else {
+      // Single input mode (default when no slots specified)
+      // Most graders expect a single input
+      if (values.length === 0) {
+        return {
+          correct: correctness.invalid,
+          message: 'No input found',
+        };
+      }
+      param = { input: values[0], inputApi: apis[0] };
+    }
     const { correct, message, score } = grader(
       { ...props, ...targetAttributes },
       param
@@ -211,6 +318,7 @@ export function grader({ grader, infer = true }: { grader: GraderFn; infer?: boo
   return {
     action,
     isGrader: true,
+    slots,  // Named slots for multi-input graders
     // Default display answer - can be overridden in block definition
     getDisplayAnswer: (props) => props.displayAnswer ?? props.answer,
   };

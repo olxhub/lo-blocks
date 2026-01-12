@@ -4,12 +4,18 @@
 //
 // Usage:
 //   <RatioGrader answer="0.5">
-//     <LineInput id="numerator" />
-//     <LineInput id="denominator" />
+//     <NumberInput />  <!-- numerator (by position) -->
+//     <NumberInput />  <!-- denominator (by position) -->
+//   </RatioGrader>
+//
+// Or with explicit slots:
+//   <RatioGrader answer="0.5">
+//     <NumberInput slot="denominator" />
+//     <NumberInput slot="numerator" />
 //   </RatioGrader>
 //
 // The pure match function `ratioMatch` is available in DSL expressions:
-//   ratioMatch([@num.value, @denom.value], '0.5')
+//   ratioMatch({ numerator: 2, denominator: 4 }, '0.5')
 //
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
@@ -22,13 +28,19 @@ const RatioGrader = createGrader({
   base: 'Ratio',
   description: 'Grades ratio and fraction answers, comparing the ratio between two inputs',
   match: ratioMatch,
-  inputSchema: z.tuple([z.string(), z.string()]),  // Two string inputs: [numerator, denominator]
+  slots: ['numerator', 'denominator'],  // Named input slots
   attributes: {
     answer: z.string({ required_error: 'answer is required' }),
     tolerance: z.string().optional(),
+    displayAnswer: z.string().optional(),  // e.g., "2:1" for display
   },
   validateAttributes: validateNumericalAttributes,
   validateInputs: validateRatioInputs,
+  answerDisplayMode: 'per-input',
+  // Show answer next to numerator only (not both inputs)
+  getDisplayAnswers: (props) => ({
+    numerator: props.displayAnswer ?? props.answer,
+  }),
 });
 
 export default RatioGrader;

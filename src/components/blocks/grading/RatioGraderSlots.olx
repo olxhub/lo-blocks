@@ -1,0 +1,7 @@
+<CapaProblem id="RatioGraderSlotsDemo" title="Ratio with Explicit Slots">
+  Express the ratio 3:4 using explicit slot attributes (order is swapped):
+  <RatioGrader answer="0.75" tolerance="0.01" displayAnswer="3 and 4">
+    Denominator: <NumberInput slot="denominator" placeholder="denominator" />
+    Numerator: <NumberInput slot="numerator" placeholder="numerator" />
+  </RatioGrader>
+</CapaProblem>

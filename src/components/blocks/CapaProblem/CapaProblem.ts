@@ -25,11 +25,12 @@
  * thoughtful or robust itself. It is not.
  */
 
+import { z } from 'zod';
 import { dev, refToReduxKey } from '@/lib/blocks';
 import { isBlockTag } from '@/lib/util';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import * as state from '@/lib/state';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes, problemMixin } from '@/lib/blocks/attributeSchemas';
 import _CapaProblem from './_CapaProblem';
 import type { ReduxStateKey, BlueprintKidEntry, OlxReference } from '@/lib/types';
 
@@ -182,7 +183,9 @@ const CapaProblem = dev({
   component: _CapaProblem,
   fields,
   isGrader: true,  // Metagrader: aggregates child grader states
-  attributes: baseAttributes.strict(),
+  attributes: baseAttributes.extend(problemMixin.shape).extend({
+    displayName: z.string().optional().describe('Display name for the problem'),
+  }),
 });
 
 export default CapaProblem;

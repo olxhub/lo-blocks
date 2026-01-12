@@ -106,8 +106,9 @@ export const completion = {
 } as const;
 
 // Derived utilities - single source of truth
-const ALL_CORRECTNESS_STATES = new Set(Object.values(correctness));
-const ALL_COMPLETION_STATES = new Set(Object.values(completion));
+// Typed as Set<string> since these are used for validating arbitrary input
+const ALL_CORRECTNESS_STATES: Set<string> = new Set(Object.values(correctness));
+const ALL_COMPLETION_STATES: Set<string> = new Set(Object.values(completion));
 
 /**
  * Check if a value is a valid correctness state.

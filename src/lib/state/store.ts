@@ -42,8 +42,9 @@ import {
   CLEAR_OLXJSON,
 } from './olxjson';
 
-// TODO this ought to come from settings instead
-const WEBSOCKET_URL = 'ws://localhost:8888/wsapi/in/'
+// Event server URL for capturing events in dev
+// Always enabled - server silently fails if event-server isn't running
+const WEBSOCKET_URL = 'ws://localhost:8888/wsapi/in/';
 
 // Initial state - includes olxjson alongside component state
 //
@@ -176,7 +177,7 @@ function configureStore({ extraFields = [] }: { extraFields?: ExtraFieldsParam }
     consoleLogger(),
     reduxLogger.reduxLogger([], {}),
     eventCaptureLogger,
-    // websocketLogger(WEBSOCKET_URL)
+    websocketLogger(WEBSOCKET_URL)  // Streams to event-server if running
   ];
 
   lo_event.init(

@@ -3,17 +3,18 @@
 /**
  * Grade a sortable arrangement
  *
- * Called by the grader framework with (props, { input })
- * where input contains the arrangement from SortableInput.
+ * Called by the grader framework with (props, params)
+ * where params.input contains the arrangement from SortableInput.
  *
  * The correct order is always [0,1,2,3...] representing the XML order.
  * Items should be arranged to match their order in the XML source.
  *
  * @param {Object} props - Grader props including algorithm and partialCredit
- * @param {Object} input - Input state from SortableInput containing arrangement
+ * @param {Object} params - Grader params containing input from SortableInput
  * @returns {Object} - { correct: boolean, message: string, score: number }
  */
-export function gradeArrangement(props, { input }) {
+export function gradeArrangement(props, params) {
+  const { input } = params as { input: any };
   const { algorithm = 'exact', partialCredit = false } = props;
 
   // Extract the actual arrangement array from the input object

@@ -264,7 +264,8 @@ function extractCode(kids: unknown): string {
   return '';
 }
 
-function gradeCode(props, { input, inputs }) {
+function gradeCode(props, params) {
+  const { inputList } = params as { inputList: unknown[] };
   const code = extractCode(props.kids);
 
   if (!code) {
@@ -275,8 +276,7 @@ function gradeCode(props, { input, inputs }) {
   }
 
   // Handle unsubmitted case
-  // Note: For multi-input graders, `input` is undefined - only `inputs` is set
-  const firstInput = input ?? inputs?.[0];
+  const firstInput = inputList?.[0];
   if (firstInput === undefined || firstInput === null || firstInput === '') {
     return {
       correct: correctness.unsubmitted,
@@ -284,13 +284,15 @@ function gradeCode(props, { input, inputs }) {
     };
   }
 
-  return executeGradingCode(code, { input, inputs: inputs ?? [input] });
+  // Pass input (first) and inputs (all) for backwards compat with existing grading code
+  return executeGradingCode(code, { input: inputList[0], inputs: inputList });
 }
 
 const CustomGrader = createGrader({
   base: 'Custom',
   description: 'Grades answers using custom JavaScript code for complex grading logic',
   grader: gradeCode,
+  inputType: 'list',  // Can handle any number of inputs
   attributes: {
     // target is required since we can't infer inputs from children
     target: z.string({ required_error: 'target is required - specify the input block(s) to grade' }),

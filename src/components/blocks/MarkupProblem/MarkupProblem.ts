@@ -13,7 +13,7 @@
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
-import { srcAttributes } from '@/lib/blocks/attributeSchemas';
+import { srcAttributes, problemMixin } from '@/lib/blocks/attributeSchemas';
 import * as capaParser from '../specialized/peg_prototype/_capaParser';
 import _Noop from '@/components/blocks/layout/_Noop';
 import type { BlueprintKidEntry, OlxReference } from '@/lib/types';
@@ -448,7 +448,7 @@ const MarkupProblem = dev({
   description: 'Simple markup language for authoring problems - expands to CapaProblem with graders and inputs',
   component: _Noop,
   fields,
-  attributes: srcAttributes.strict(),
+  attributes: srcAttributes.extend(problemMixin.shape).strict(),
 });
 
 export default MarkupProblem;

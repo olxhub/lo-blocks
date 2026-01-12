@@ -29,6 +29,8 @@ function generateDocumentation() {
       attributes: extractAttributes(block.attributes),
       hasAction: !!block.action,
       hasParser: !!block.parser,
+      isInput: block.isInput || false,
+      isGrader: block.isGrader || false,
       internal: block.internal || false,
       gitStatus: block.gitStatus || null,
       readmeGitStatus: block.readmeGitStatus || null

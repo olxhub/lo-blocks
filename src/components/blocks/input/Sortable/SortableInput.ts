@@ -16,6 +16,7 @@ export const fields = state.fields([
 const SortableInput = core({
   ...parsers.blocks(), // Handle child blocks
   name: 'SortableInput',
+  isInput: true,
   description: 'Drag-and-drop sortable input for ordering tasks',
   component: _SortableInput,
   fields,

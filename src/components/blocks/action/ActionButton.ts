@@ -23,6 +23,7 @@ const ActionButton = blocks.dev({
     // It may be intended for targets with multiple named actions (e.g., action="advance" vs action="reset").
     action: z.string().optional().describe('Named action to invoke (currently unused; reserved for multi-action targets)'),
     dependsOn: z.string().optional().describe('Prerequisite conditions (comma-separated element IDs with optional operators)'),
+    disabled: z.string().optional().describe('Explicitly disable the button (set to "true" to disable)'),
   }),
 });
 
