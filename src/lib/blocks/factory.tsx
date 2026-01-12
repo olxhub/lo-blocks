@@ -22,7 +22,7 @@ import { BlockBlueprintSchema, LoBlock, Fields, OLXTag } from '../types';
 // Factory-local type aliases derived from the schema
 type BlueprintInput = z.input<typeof BlockBlueprintSchema>;
 type BlueprintReg = Omit<BlueprintInput, "namespace">;
-import { baseAttributes } from './attributeSchemas';
+import { baseAttributes, slot } from './attributeSchemas';
 import * as state from '@/lib/state';
 
 function assertUnimplemented<T>(field: T | undefined, fieldName: string) {
@@ -86,12 +86,41 @@ function applyGraderExtensions(config: BlueprintInput): BlueprintInput {
   };
 }
 
-// Future: applyInputExtensions, applyActionExtensions, etc.
+/**
+ * Extend config for input blocks.
+ * Adds slot attribute for multi-input grader support.
+ */
+function applyInputExtensions(config: BlueprintInput): BlueprintInput {
+  if (!config.isInput) return config;
+
+  // Extend attributes with slot - merge by combining shapes
+  let extendedSchema = config.attributes ?? baseAttributes.extend(slot);
+  if (config.attributes && config.attributes._def?.typeName === 'ZodObject') {
+    const existingShape = (config.attributes as z.ZodObject<any>).shape;
+    // Only add slot if not already defined
+    if (!existingShape.slot) {
+      const mergedShape = { ...existingShape, ...slot };
+      // Preserve strictness - check if original was strict
+      const isStrict = config.attributes._def?.unknownKeys === 'strict';
+      extendedSchema = isStrict
+        ? z.object(mergedShape).strict()
+        : z.object(mergedShape).passthrough();
+    }
+  }
+
+  return {
+    ...config,
+    attributes: extendedSchema,
+  };
+}
+
+// Future: applyActionExtensions, etc.
 
 // === Main factory ===
 function createBlock(config: BlueprintInput): LoBlock {
   // Apply mixin extensions
-  const effectiveConfig = applyGraderExtensions(config);
+  let effectiveConfig = applyGraderExtensions(config);
+  effectiveConfig = applyInputExtensions(effectiveConfig);
 
   // We are using zod primarily for **validation** rather than parsing.
   //
@@ -146,7 +175,7 @@ function createBlock(config: BlueprintInput): LoBlock {
     getDisplayAnswer: effectiveConfig.getDisplayAnswer,
     slots: effectiveConfig.slots,
     answerDisplayMode: effectiveConfig.answerDisplayMode,
-    getDisplayAnswers: effectiveConfig.getDisplayAnswers,
+    getDisplayAnswers: effectiveConfig.getDisplayAnswers as LoBlock['getDisplayAnswers'],
   }
   assertUnimplemented(parsed.reducers, 'reducers');
 

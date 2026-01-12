@@ -23,6 +23,7 @@ const INPUT_TYPES = ['text', 'number', 'email', 'tel', 'url', 'password', 'searc
 const LineInput = core({
   ...parsers.blocks(),
   name: 'LineInput',
+  isInput: true,
   description: 'Single-line text input field for student responses',
   component: _LineInput,
   fields,

@@ -63,6 +63,14 @@ export const placeholder = {
 };
 
 /**
+ * Slot attribute - mixin for input blocks used with multi-input graders.
+ * Use with baseAttributes.extend(slot) or inputAttributes
+ */
+export const slot = {
+  slot: z.string().optional().describe('Named slot for multi-input graders (e.g., "numerator")'),
+};
+
+/**
  * Attributes for blocks that support external source loading via src attribute.
  * Used by blocks with text() or peggyParser() parsers.
  * Inherits strictness from baseAttributes.
@@ -70,6 +78,12 @@ export const placeholder = {
 export const srcAttributes = baseAttributes.extend({
   src: z.string().optional().describe('Path to external file containing content'),
 });
+
+/**
+ * Attributes for input blocks.
+ * Includes slot for multi-input graders (e.g., RatioGrader).
+ */
+export const inputAttributes = baseAttributes.extend(slot);
 
 /**
  * Attributes for grader blocks.

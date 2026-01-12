@@ -11,6 +11,7 @@ export const fields = state.fields([commonFields.value]);
 const TextArea = core({
   ...parsers.blocks(),
   name: 'TextArea',
+  isInput: true,
   description: 'Multi-line text input field for longer student responses',
   component: _TextArea,
   fields: fields,

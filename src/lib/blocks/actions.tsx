@@ -75,13 +75,14 @@ export function isAction(loBlock) {
  * and graders without understanding implementation details.
  */
 export function input({ getValue }) {
-  return { getValue };
+  return { getValue, isInput: true };
 }
 
-// TODO: Duck-typing via getValue is a mistake. Should check loBlock.isInput
-// and populate that explicitly in factory.tsx from blueprint.isInput.
+// Input blocks should set isInput: true on the blueprint.
+// The blocks.input() mixin does this automatically.
+// For legacy compatibility, we also check for getValue presence.
 export function isInput(loBlock) {
-  return typeof loBlock?.getValue === "function";
+  return loBlock?.isInput || typeof loBlock?.getValue === "function";
 }
 
 export function isMatch(loBlock) {
