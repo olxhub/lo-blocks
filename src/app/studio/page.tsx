@@ -435,6 +435,7 @@ function StudioPageContent() {
                     filePath={filePath}
                     content={content}
                     onApplyEdit={setContent}
+                    onOpenFile={handleFileSelect}
                   />
                 )}
                 {sidebarTab === 'search' && (

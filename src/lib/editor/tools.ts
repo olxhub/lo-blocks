@@ -9,8 +9,10 @@
 // ------------
 // Edit         - Modify current file using search-and-replace
 // Read         - Read files from storage
+// Write        - Create or overwrite files
 // Glob         - Find files by pattern
 // Grep         - Search file contents
+// OpenFile     - Open a file in the editor
 // GetBlockInfo - Get documentation for OLX blocks (custom, not SDK)
 //
 
@@ -25,10 +27,14 @@ const defaultStorage = new NetworkStorageProvider();
 interface EditorToolsParams {
   /** Called with new content string when LLM applies an edit */
   onApplyEdit?: (content: string) => void;
+  /** Called to open a file in the editor */
+  onOpenFile?: (path: string) => void;
   /** Returns current file content */
   getCurrentContent?: () => string;
   /** Returns current file type (e.g., 'olx', 'chatpeg') */
   getFileType?: () => string;
+  /** Returns current file path */
+  getCurrentPath?: () => string;
   /** Storage provider for file operations (defaults to NetworkStorageProvider) */
   storage?: StorageProvider;
 }
@@ -38,8 +44,10 @@ interface EditorToolsParams {
  */
 export function createEditorTools({
   onApplyEdit,
+  onOpenFile,
   getCurrentContent,
   getFileType,
+  getCurrentPath,
   storage = defaultStorage,
 }: EditorToolsParams) {
   return [
@@ -241,6 +249,73 @@ export function createEditorTools({
             .join('\n');
           const suffix = matches.length > 50 ? `\n\n... and ${matches.length - 50} more` : '';
           return `Found ${matches.length} matches:\n\n${formatted}${suffix}`;
+        } catch (err: any) {
+          return `Error: ${err.message}`;
+        }
+      }
+    },
+
+    // =========================================================================
+    // Write - Create or overwrite a file
+    // =========================================================================
+    {
+      type: "function",
+      function: {
+        name: "Write",
+        description: "Create a new file or overwrite an existing file in the content library.",
+        parameters: {
+          type: "object",
+          properties: {
+            file_path: {
+              type: "string",
+              description: "Path for the file, e.g. 'courses/studio_sba.olx'"
+            },
+            content: {
+              type: "string",
+              description: "File content to write."
+            }
+          },
+          required: ["file_path", "content"]
+        }
+      },
+      callback: async ({ file_path, content }: { file_path: string; content: string }) => {
+        try {
+          await storage.write(file_path, content);
+          return `File created: ${file_path}`;
+        } catch (err: any) {
+          return `Error: ${err.message}`;
+        }
+      }
+    },
+
+    // =========================================================================
+    // OpenFile - Open a file in the editor
+    // =========================================================================
+    {
+      type: "function",
+      function: {
+        name: "OpenFile",
+        description: "Open a file in the editor. Use this after creating a new file, or when asked to open/show a file.",
+        parameters: {
+          type: "object",
+          properties: {
+            file_path: {
+              type: "string",
+              description: "Path to the file to open"
+            }
+          },
+          required: ["file_path"]
+        }
+      },
+      callback: async ({ file_path }: { file_path: string }) => {
+        if (!onOpenFile) {
+          return `Cannot open file: editor integration not available.`;
+        }
+        try {
+          // Verify file exists first
+          await storage.read(file_path);
+          onOpenFile(file_path);
+          return `Opened: ${file_path}`;
         } catch (err: any) {
           return `Error: ${err.message}`;
         }
