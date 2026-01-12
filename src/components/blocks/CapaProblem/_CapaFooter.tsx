@@ -1,40 +1,51 @@
-// src/components/blocks/CapaProblem/_CapaFooter.jsx
+// src/components/blocks/CapaProblem/_CapaFooter.tsx
 //
 // Footer component for CapaProblem containing action buttons and status display.
-// Renders: Check/Grade button, Show Answer button, correctness icon, status text.
+// Renders: Check/Submit button, Show Answer button, Hint button, correctness icon, status text.
+//
+// Uses problemModes utilities for:
+// - Button labels (Check vs Submit based on attempts)
+// - Show Answer visibility (based on showanswer mode)
+// - Disabling submit when attempts exhausted
 //
 'use client';
 import React from 'react';
 import { renderBlock } from '@/lib/render';
+import {
+  getButtonLabel,
+  shouldShowAnswer,
+  isSubmitDisabled,
+  getAttemptsDisplay,
+  parseMaxAttempts,
+  type ProblemState,
+} from '@/lib/blocks/problemModes';
 
-// We have untested logic here:
-//
-// 1 attempt (or final attempt) / show correctness: Grade
-// Many attempts remaining: "Check"
-// Black box submission (e.g. teacher-graded): Submit
-//
-// teacherScored is wrong. TODO: Align structure to Open edX, as closely as reasonable
-function computeCheckLabel(props) {
-  const { label, teacherScored, attemptsMax, attemptsUsed } = props;
-  if (label) return label;
-  const max = attemptsMax != null ? Number(attemptsMax) : undefined;
-  const used = attemptsUsed != null ? Number(attemptsUsed) : undefined;
-
-  if (teacherScored) return 'Submit';
-  if (max === 1) return 'Grade';
-  if (typeof max === 'number' && !Number.isNaN(max) && typeof used === 'number' && !Number.isNaN(used)) {
-    return `Check ${used}/${max}`;
-  }
-  return 'Check';
+/**
+ * Build ProblemState from component props.
+ */
+function buildProblemState(props): ProblemState {
+  return {
+    submitCount: props.submitCount ?? 0,
+    maxAttempts: parseMaxAttempts(props.maxAttempts),
+    correct: props.correct ?? null,
+  };
 }
 
 export default function _CapaFooter(props) {
-  const { id } = props;
-  const target = props.target;
-  const hintsTarget = props.hintsTarget; // DemandHints ID if present
-  const checkLabel = computeCheckLabel(props);
-  const showAnswerEnabled = props.showAnswer !== 'never';
+  const { id, target, hintsTarget, label, showanswer } = props;
 
+  // Build state for problemModes utilities
+  const problemState = buildProblemState(props);
+
+  // Compute button label and disabled state
+  const buttonLabel = label || getButtonLabel(problemState);
+  const submitDisabled = isSubmitDisabled(problemState);
+  const attemptsDisplay = getAttemptsDisplay(problemState);
+
+  // Compute Show Answer visibility
+  const showAnswerVisible = shouldShowAnswer(showanswer, problemState);
+
+  // Element IDs
   const buttonId = `${id}_action`;
   const showAnswerId = `${id}_show_answer`;
   const hintButtonId = `${id}_hint`;
@@ -48,13 +59,21 @@ export default function _CapaFooter(props) {
   return (
     <div className="lo-capafooter">
       <div className="lo-capafooter__actions">
-        {renderBlock(props, 'ActionButton', { id: buttonId, label: checkLabel, target })}
+        {renderBlock(props, 'ActionButton', {
+          id: buttonId,
+          label: buttonLabel,
+          target,
+          disabled: submitDisabled ? 'true' : undefined,
+        })}
         {hintsTarget && renderBlock(props, 'HintButton', { id: hintButtonId, target: hintsTarget })}
-        {showAnswerEnabled && renderBlock(props, 'ShowAnswerButton', { id: showAnswerId, target })}
+        {showAnswerVisible && renderBlock(props, 'ShowAnswerButton', { id: showAnswerId, target })}
       </div>
       <div className="lo-capafooter__status">
         {renderBlock(props, 'Correctness', { id: statusIconId })}
         {renderBlock(props, 'StatusText', { id: statusTextId, field: 'message' })}
+        {attemptsDisplay && (
+          <span className="lo-capafooter__attempts">{attemptsDisplay}</span>
+        )}
       </div>
     </div>
   );

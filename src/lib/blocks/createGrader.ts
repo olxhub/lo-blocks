@@ -33,7 +33,7 @@ import React from 'react';
 import { z } from 'zod';
 import { core } from './namespaces';
 import * as parsers from '@/lib/content/parsers';
-import { grader } from './actions';
+import { grader, type GraderParams, type SingleParam, type ListParam, type DictParam } from './actions';
 import { graderAttributes, baseAttributes } from './attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import { registerDSLFunction } from '@/lib/stateLanguage/functions';
@@ -67,16 +67,6 @@ function hasEmptyInputs(inputs: any[]): boolean {
   return inputs.some(isEmptyInput);
 }
 
-/**
- * Check if a Zod schema represents a multi-input (tuple or array).
- */
-function isMultiInputSchema(schema: z.ZodType | undefined): boolean {
-  if (!schema) return false;
-  // Check for ZodTuple or ZodArray
-  const typeName = (schema as any)._def?.typeName;
-  return typeName === 'ZodTuple' || typeName === 'ZodArray';
-}
-
 // Type for boolean match functions
 export type MatchFunction = (input: any, pattern: any, options?: Record<string, any>) => boolean;
 
@@ -93,20 +83,35 @@ function graderFromMatch(
   matchFn: MatchFunction,
   config: {
     validateInputs?: (input: any, attrs: Record<string, any>) => string[] | undefined;
-    inputSchema?: z.ZodType;
+    slots?: string[];
+    inputType?: 'single' | 'list';
   }
-): (props: RuntimeProps, params: { input?: any; inputs?: any[] }) => { correct: string; message: string } {
-  const isMultiInput = isMultiInputSchema(config.inputSchema);
+): (props: RuntimeProps, params: GraderParams) => { correct: string; message: string } {
+  // Determine param mode: dict (if slots), list (if explicit), or single (default)
+  const paramMode = config.slots ? 'dict' : (config.inputType === 'list' ? 'list' : 'single');
 
   return (props, params) => {
     // Extract options from props (everything except answer and standard grader attrs)
     const { answer, target, displayAnswer, ...options } = props;
 
-    // Get the input(s) based on schema
-    const input = isMultiInput ? params.inputs : params.input;
+    // Get the input based on param mode
+    let input: any;
+    if (paramMode === 'dict') {
+      input = (params as DictParam).inputDict;
+    } else if (paramMode === 'single') {
+      input = (params as SingleParam).input;
+    } else {
+      input = (params as ListParam).inputList;
+    }
 
     // Step 1: Check for empty input → UNSUBMITTED
-    if (isMultiInput) {
+    if (paramMode === 'dict') {
+      // For dict, check if any slot value is empty
+      const values = Object.values(input as Record<string, any>);
+      if (values.length === 0 || values.some(isEmptyInput)) {
+        return { correct: correctness.unsubmitted, message: '' };
+      }
+    } else if (paramMode === 'list') {
       if (!Array.isArray(input) || input.length === 0 || hasEmptyInputs(input)) {
         return { correct: correctness.unsubmitted, message: '' };
       }
@@ -141,6 +146,15 @@ function graderFromMatch(
   };
 }
 
+/**
+ * Answer display mode for graders.
+ * - 'per-input': Show answer next to each input (default for single-input graders)
+ * - 'summary': Show answer once after all inputs (for multi-input like RatioGrader)
+ * - 'custom': Grader renders its own answer display (MCQ highlights, Sortable overlays)
+ * - 'none': No answer to show (RulesGrader, LLMGrader with rubrics)
+ */
+export type AnswerDisplayMode = 'per-input' | 'summary' | 'custom' | 'none';
+
 interface CreateGraderConfig {
   base: string;
   description: string;
@@ -159,7 +173,7 @@ interface CreateGraderConfig {
    * Custom grader function. If match is provided and grader is not, the grader
    * is auto-generated from match. Required if match is not provided.
    */
-  grader?: (props: RuntimeProps, params: { input?: any; inputs?: any[] }) => { correct: any; message: any };
+  grader?: (props: RuntimeProps, params: GraderParams) => { correct: any; message: any };
   /**
    * Zod schema for the input(s) this grader expects. Required when using match.
    *
@@ -173,6 +187,32 @@ interface CreateGraderConfig {
    * - Editor UI hints
    */
   inputSchema?: z.ZodType;
+  /**
+   * Named slots for multi-input graders.
+   *
+   * When provided, the framework resolves inputs to slots and passes an
+   * inputDict to the grader. This enables semantic access like
+   * `{ numerator, denominator }` instead of positional arrays.
+   *
+   * Resolution priority:
+   * 1. Explicit `slot="numerator"` attribute on input
+   * 2. Positional: first input → first slot, second → second slot
+   *
+   * Example:
+   *   slots: ['numerator', 'denominator']
+   *
+   * The grader then receives:
+   *   { inputDict: { numerator: '2', denominator: '1' }, inputApiDict: {...} }
+   */
+  slots?: string[];
+  /**
+   * Input type for graders without named slots.
+   * - 'single': Expects exactly one input → receives { input, inputApi }
+   * - 'list': Expects zero or more inputs → receives { inputList, inputApis }
+   *
+   * If slots is provided, inputType is ignored (dict mode is used).
+   */
+  inputType?: 'single' | 'list';
   attributes?: Record<string, any>;
   /**
    * Semantic validation for the answer/pattern at parse time.
@@ -192,7 +232,25 @@ interface CreateGraderConfig {
    * - Denominator cannot be zero
    */
   validateInputs?: (input: any, attrs: Record<string, any>) => string[] | undefined;
+  /**
+   * How to display the answer when "Show Answer" is clicked.
+   * - 'per-input': Show next to each input (default)
+   * - 'summary': Show once after all inputs
+   * - 'custom': Grader handles display (e.g., MCQ highlights choices)
+   * - 'none': No answer to show
+   */
+  answerDisplayMode?: AnswerDisplayMode;
+  /**
+   * Get a single display answer (for 'per-input' with single input, or 'summary' mode).
+   * Default: returns props.displayAnswer ?? props.answer
+   */
   getDisplayAnswer?: (props: RuntimeProps) => any;
+  /**
+   * Get display answers per slot (for 'per-input' with multi-input graders).
+   * Returns { slot: displayValue } where slot matches the `slots` declaration.
+   * When provided and mode is 'per-input', each input shows its slot's answer.
+   */
+  getDisplayAnswers?: (props: RuntimeProps) => Record<string, any>;
   locals?: LocalsAPI;
   /** If false, don't infer inputs from children (use explicit target). Default: true */
   infer?: boolean;
@@ -210,10 +268,14 @@ export function createGrader({
   match: matchFn,
   grader: customGraderFn,
   inputSchema,
+  slots,
+  inputType,
   attributes = {},
   validateAttributes,
   validateInputs,
+  answerDisplayMode,
   getDisplayAnswer,
+  getDisplayAnswers,
   locals,
   infer = true,
   createMatch = true,
@@ -231,32 +293,34 @@ export function createGrader({
   }
 
   // Auto-generate grader from match function, or use custom grader if provided
-  let graderFn: ((props: RuntimeProps, params: { input?: any; inputs?: any[] }) => { correct: any; message: any }) | undefined;
+  let graderFn: ((props: RuntimeProps, params: GraderParams) => { correct: any; message: any }) | undefined;
 
   if (customGraderFn) {
     graderFn = customGraderFn;
   } else if (matchFn) {
-    if (!inputSchema) {
-      throw new Error(`createGrader(${base}): inputSchema is required when using match`);
-    }
-    graderFn = graderFromMatch(matchFn, { validateInputs, inputSchema });
+    graderFn = graderFromMatch(matchFn, { validateInputs, slots, inputType });
   }
 
   if (!graderFn) {
     throw new Error(`createGrader(${base}): Either match or grader must be provided`);
   }
 
+  // Determine default answer display mode based on input configuration
+  const effectiveAnswerDisplayMode = answerDisplayMode ?? (slots ? 'summary' : 'per-input');
+
   // Create the full Grader block (connects to inputs, grades them)
   const graderBlock = core({
     ...(parser ?? parsers.blocks.allowHTML()),
-    ...grader({ grader: graderFn, infer }),
+    ...grader({ grader: graderFn, infer, slots, inputType }),
     name: graderName,
     description,
     category: 'grading',
     component,
     attributes: graderAttributes.extend(attributes),
     validateAttributes,
+    answerDisplayMode: effectiveAnswerDisplayMode,
     getDisplayAnswer: getDisplayAnswer ?? ((props: RuntimeProps) => props.displayAnswer ?? props.answer),
+    getDisplayAnswers,
   }, locals);
 
   // Create the Match block (a rule for use inside RulesGrader)

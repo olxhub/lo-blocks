@@ -39,6 +39,7 @@ function getChoices(props: RuntimeProps, state, id) {
 const CheckboxInput = core({
   ...parsers.blocks(),
   name: 'CheckboxInput',
+  isInput: true,
   description: 'Multi-select checkbox input collecting student selections from Key/Distractor options. Value is an array.',
   component: _Noop,
   fields,

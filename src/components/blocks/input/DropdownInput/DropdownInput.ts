@@ -14,6 +14,7 @@ export const fields = state.fields([commonFields.value]);
 const DropdownInput = core({
   ...peggyParser(parser),
   name: 'DropdownInput',
+  isInput: true,
   description: 'Dropdown select input for choosing from a list of options',
   component: _DropdownSelect,
   fields,

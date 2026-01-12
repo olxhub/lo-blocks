@@ -23,6 +23,15 @@ import Spinner from '@/components/common/Spinner';
 import StatePanel from '@/components/common/StatePanel';
 import { useReduxState } from '@/lib/state';
 import { editorFields } from '@/lib/state/editorFields';
+import { baseAttributes, inputMixin, graderMixin } from '@/lib/blocks/attributeSchemas';
+
+// Shared attribute sets for documentation display.
+// Derives attribute names from the actual mixin definitions (DRY).
+const SHARED_ATTRIBUTE_SETS = [
+  { label: 'Input attributes', names: Object.keys(inputMixin.shape), blockProp: 'isInput' },
+  { label: 'Grader attributes', names: Object.keys(graderMixin.shape), blockProp: 'isGrader' },
+  { label: 'Base attributes', names: Object.keys(baseAttributes.shape), blockProp: null },
+];
 
 // Hook for docs example editing - uses Redux state with docs-specific provenance
 function useDocsExampleState(blockName, exampleFilename, originalContent) {
@@ -353,9 +362,22 @@ function BlockTabs({ tabs, activeTab, onTabChange }) {
 // =============================================================================
 
 function QuickReference({ block }) {
-  const attributes = block.attributes;
-  const customAttrs = attributes?.filter(attr => !attr.isBaseAttribute) || [];
-  const baseAttrs = attributes?.filter(attr => attr.isBaseAttribute) || [];
+  const attributes = block.attributes || [];
+
+  // Collect all shared attribute names
+  const allSharedNames = SHARED_ATTRIBUTE_SETS.flatMap(set => set.names);
+
+  // Block-specific attributes (not in any shared set)
+  const customAttrs = attributes.filter(attr => !allSharedNames.includes(attr.name));
+
+  // Filter shared sets: only show if block has matching prop (or no condition)
+  const applicableSets = SHARED_ATTRIBUTE_SETS
+    .filter(set => !set.blockProp || block[set.blockProp])
+    .map(set => ({
+      ...set,
+      attrs: attributes.filter(attr => set.names.includes(attr.name))
+    }))
+    .filter(set => set.attrs.length > 0);
 
   return (
     <section className="bg-white rounded-lg border p-6">
@@ -386,7 +408,7 @@ function QuickReference({ block }) {
       </dl>
 
       {/* Attributes section */}
-      {attributes && attributes.length > 0 && (
+      {attributes.length > 0 && (
         <>
           <hr className="my-6 border-gray-200" />
           <h4 className="text-md font-semibold mb-3 text-gray-700">Attributes</h4>
@@ -428,22 +450,25 @@ function QuickReference({ block }) {
             </table>
           )}
 
-          {baseAttrs.length > 0 && (
-            <div className="text-sm text-gray-500">
-              <span className="font-medium">Base attributes: </span>
-              {baseAttrs.map((attr, i) => (
-                <span key={attr.name}>
-                  {i > 0 && ', '}
-                  <code
-                    className="text-gray-600 cursor-help border-b border-dotted border-gray-400"
-                    title={attr.description || attr.name}
-                  >
-                    {attr.name}
-                  </code>
-                </span>
-              ))}
-            </div>
-          )}
+          {/* Shared attribute sets (input, grader, base) */}
+          <div className="space-y-1 text-sm text-gray-500">
+            {applicableSets.map(set => (
+              <div key={set.label}>
+                <span className="font-medium">{set.label}: </span>
+                {set.attrs.map((attr, i) => (
+                  <span key={attr.name}>
+                    {i > 0 && ', '}
+                    <code
+                      className="text-gray-600 cursor-help border-b border-dotted border-gray-400"
+                      title={attr.description || attr.name}
+                    >
+                      {attr.name}
+                    </code>
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
         </>
       )}
     </section>

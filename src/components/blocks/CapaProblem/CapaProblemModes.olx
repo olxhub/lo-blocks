@@ -1,0 +1,57 @@
+<Vertical>
+  <!-- Test 1: Limited attempts with 'finished' mode (default) -->
+  <CapaProblem id="test_attempts" title="Limited Attempts (3 max, showanswer=finished)" maxAttempts="3">
+    What is 2 + 2?
+    <NumericalGrader answer="4">
+      <NumberInput placeholder="Enter answer" />
+    </NumericalGrader>
+  </CapaProblem>
+
+  <!-- Test 2: showanswer="never" -->
+  <CapaProblem id="test_never" title="Show Answer Never" maxAttempts="2" showanswer="never">
+    What is 3 + 3?
+    <NumericalGrader answer="6">
+      <NumberInput placeholder="Enter answer" />
+    </NumericalGrader>
+  </CapaProblem>
+
+  <!-- Test 3: showanswer="always" -->
+  <CapaProblem id="test_always" title="Show Answer Always" showanswer="always">
+    What is 5 + 5?
+    <NumericalGrader answer="10">
+      <NumberInput placeholder="Enter answer" />
+    </NumericalGrader>
+  </CapaProblem>
+
+  <!-- Test 4: showanswer="attempted" -->
+  <CapaProblem id="test_attempted" title="Show Answer After Attempted" maxAttempts="3" showanswer="attempted">
+    What is 7 + 7?
+    <NumericalGrader answer="14">
+      <NumberInput placeholder="Enter answer" />
+    </NumericalGrader>
+  </CapaProblem>
+
+  <!-- Test 5: showanswer="answered" (only after correct) -->
+  <CapaProblem id="test_answered" title="Show Answer After Correct" showanswer="answered">
+    What is 8 + 8?
+    <NumericalGrader answer="16">
+      <NumberInput placeholder="Enter answer" />
+    </NumericalGrader>
+  </CapaProblem>
+
+  <!-- Test 6: Single attempt (should show "Submit" not "Check") -->
+  <CapaProblem id="test_single" title="Single Attempt" maxAttempts="1">
+    What is 9 + 9?
+    <NumericalGrader answer="18">
+      <NumberInput placeholder="Enter answer" />
+    </NumericalGrader>
+  </CapaProblem>
+
+  <!-- Test 7: showanswer="closed" (only after attempts exhausted) -->
+  <CapaProblem id="test_closed" title="Show Answer When Closed (2 attempts)" maxAttempts="2" showanswer="closed">
+    What is 10 + 10?
+    <NumericalGrader answer="20">
+      <NumberInput placeholder="Enter answer" />
+    </NumericalGrader>
+  </CapaProblem>
+</Vertical>

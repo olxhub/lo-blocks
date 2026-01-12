@@ -10,7 +10,8 @@ const ErrorNode = core({
   component: _ErrorNode,
   description: 'Displays content loading and parsing errors in a user-friendly format',
   internal: true,
-  attributes: baseAttributes.strict(),
+  // Passthrough - ErrorNode inherits attributes from the failed node, which could be anything
+  attributes: baseAttributes.passthrough(),
 });
 
 export default ErrorNode;

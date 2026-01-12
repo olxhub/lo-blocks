@@ -13,6 +13,7 @@ export const fields = state.fields([commonFields.value]);
 const NumberInput = core({
   ...parsers.text(),
   name: 'NumberInput',
+  isInput: true,
   description: 'Numeric input field that parses and validates numerical values',
   component: _NumberInput,
   fields,

@@ -14,7 +14,7 @@ import {
 } from '@/lib/stateLanguage';
 
 function _ActionButton(props) {
-  const { label, dependsOn } = props;
+  const { label, dependsOn, disabled: disabledAttr } = props;
 
   // Parse expression and extract refs once
   const { ast, refs } = useMemo(() => {
@@ -44,7 +44,8 @@ function _ActionButton(props) {
     }
   }, [ast, resolved, dependsOn]);
 
-  const isDisabled = !isSatisfied;
+  // Disabled if: explicit attribute, OR dependsOn condition not satisfied
+  const isDisabled = disabledAttr === 'true' || !isSatisfied;
 
   const { kids } = useKids(props);
 

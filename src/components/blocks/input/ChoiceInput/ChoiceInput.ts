@@ -61,6 +61,7 @@ function getChoices(props: RuntimeProps, state, id) {
 const ChoiceInput = core({
   ...parsers.blocks(),
   name: 'ChoiceInput',
+  isInput: true,
   description: 'Single-select (radio button) input collecting student selection from Key/Distractor options. Value is a string.',
   component: _Noop,
   fields,

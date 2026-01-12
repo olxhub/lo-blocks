@@ -201,19 +201,19 @@ export function numericalMatch(
  * Validate ratio inputs (two numbers, denominator not zero).
  * Used by the framework's state machine before calling the match function.
  *
- * @param inputs - Array [numerator, denominator]
+ * @param inputDict - { numerator, denominator } object from grader framework
  * @returns Array of error messages, or undefined if valid
  */
-export function validateRatioInputs(inputs: [any, any]): string[] | undefined {
-  if (!Array.isArray(inputs) || inputs.length < 2) {
+export function validateRatioInputs(inputDict: { numerator: any; denominator: any }): string[] | undefined {
+  const { numerator, denominator } = inputDict;
+
+  if (numerator === undefined || denominator === undefined) {
     return ['Need two inputs (numerator and denominator)'];
   }
 
-  const [num, den] = inputs;
-
   // Parse the inputs
-  const numC = parseComplex(num);
-  const denC = parseComplex(den);
+  const numC = parseComplex(numerator);
+  const denC = parseComplex(denominator);
 
   if (isNaN(numC.re) || isNaN(numC.im)) {
     return ['Invalid numerator'];
@@ -234,31 +234,31 @@ export function validateRatioInputs(inputs: [any, any]): string[] | undefined {
  * Pure match function for ratio/fraction answers (boolean predicate).
  *
  * Compares the ratio of two numbers against an expected value.
- * For example, inputs [1, 2] and [4, 8] both match answer "0.5".
+ * For example, inputDict { numerator: 1, denominator: 2 } matches answer "0.5".
  *
  * Note: Assumes inputs have been validated. The framework handles
  * empty input (→ UNSUBMITTED) and invalid input (→ INVALID) before
  * calling this function.
  *
- * @param inputs - Array [numerator, denominator]
+ * @param inputDict - { numerator, denominator } object from grader framework
  * @param answer - The expected ratio as a string (e.g., "0.5", "2")
  * @param options - Optional { tolerance: string }
  * @returns true if ratio matches answer within tolerance
  *
  * @example
- * ratioMatch([1, 2], "0.5")  // true
- * ratioMatch([4, 8], "0.5")  // true
+ * ratioMatch({ numerator: 1, denominator: 2 }, "0.5")  // true
+ * ratioMatch({ numerator: 4, denominator: 8 }, "0.5")  // true
  */
 export function ratioMatch(
-  inputs: [any, any],
+  inputDict: { numerator: any; denominator: any },
   answer: string,
   options?: { tolerance?: string }
 ): boolean {
-  const [num, den] = inputs;
+  const { numerator, denominator } = inputDict;
 
   // Parse the inputs (assumed valid by now)
-  const numC = parseComplex(num);
-  const denC = parseComplex(den);
+  const numC = parseComplex(numerator);
+  const denC = parseComplex(denominator);
 
   // Calculate ratio and compare
   const studentRatio = numC.div(denC);

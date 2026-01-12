@@ -28,11 +28,13 @@ const TextHighlight = core({
     }
   }),
   ...blocks.grader({
-    grader: (props, { input }: { input: any }) => {
+    grader: (props, params) => {
+      const { input } = params as { input: any };
       // This would be called by an ActionButton
       // The actual grading logic is in the component
       return input?.correct || blocks.correctness.unsubmitted;
-    }
+    },
+    inputType: 'single',
   }),
   name: 'TextHighlight',
   description: 'Interactive text highlighting exercise with feedback',

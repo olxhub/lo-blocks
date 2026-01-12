@@ -4,15 +4,17 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "firejail --noprofile --whitelist=$(pwd) next dev --turbopack",
+    "dev": "npm run event-server & firejail --noprofile --whitelist=$(pwd) next dev --turbopack",
+    "dev:next": "firejail --noprofile --whitelist=$(pwd) next dev --turbopack",
     "dev-automation": "next dev --turbopack",
     "devfull": "npm run build && npm run dev",
+    "event-server": "firejail --noprofile --whitelist=$(pwd) npx tsx src/scripts/event-server.ts",
     "build": "npm run build:grammars && npm run build:parser-registry && npm run build:gen-block-registry && npm run build:content",
     "build:parser-registry": "firejail --whitelist=$(pwd) npx tsx src/scripts/generate-parser-registry.ts",
-    "build:prod": "npm run build && npx next build",
+    "build:prod": "npm run build && firejail --noprofile --whitelist=$(pwd) npx next build",
     "start": "firejail --noprofile --whitelist=$(pwd) next start",
-    "start:prod": "npx next start",
-    "typecheck": "npx tsc --noEmit",
+    "start:prod": "firejail --noprofile --whitelist=$(pwd) npx next start",
+    "typecheck": "firejail --noprofile --whitelist=$(pwd) npx tsc --noEmit",
     "lint": "firejail --whitelist=$(pwd) next lint",
     "xml2json": "firejail --whitelist=$(pwd) npx tsx src/scripts/xml2json.js",
     "xml2graph": "firejail --whitelist=$(pwd) npx tsx src/scripts/xml2graph.js",
@@ -75,6 +77,7 @@
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.14.0",
     "@types/react": "^19.1.0",
+    "@types/ws": "^8.18.1",
     "eslint": "^9",
     "eslint-config-next": "^16.1.1",
     "glob": "^11.0.2",
@@ -83,6 +86,7 @@
     "postcss-nesting": "^13.0.1",
     "tailwindcss": "^4",
     "tsx": "^4.19.4",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "ws": "^8.19.0"
   }
 }
