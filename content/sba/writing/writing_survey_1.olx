@@ -27,7 +27,7 @@ category: writing
               cols: Strongly Agree, Agree, Disagree, Strongly Disagree
               rows: Writing is a skill I want to get better at.,It is frustrating to have to write about a subject that I did not choose.,Writing is usually boring for me.,I worry that other people will criticize my writing.,I like to write outside of school.
             </TabularMCQ>
-            <Markdown>
+            <Markdown id="ws1_directions">
               Select one option for each row. Your selections are automatically saved.
             </Markdown>
         </LeftPane>
@@ -86,7 +86,7 @@ category: writing
               cols: Strongly Agree, Agree, Disagree, Strongly Disagree
               rows: It upsets me when I get low grades on a writing assignment.,I am too impatient to spend a lot of time writing.,I get so involved in my writing that I often lose track of time.,Writing helps me learn.,I feel it is important to know how to write well.
             </TabularMCQ>
-            <Markdown>
+            <Markdown id="ws1_directions">
               Select one option for each row. Your selections are automatically saved.
             </Markdown>
         </LeftPane>
@@ -145,7 +145,7 @@ category: writing
               cols: Strongly Agree, Agree, Disagree, Strongly Disagree
               rows: I prefer to avoid writing when it isn't required.,I like getting lots of shares or likes on social media when I post something I have written.,There are some subjects that I really enjoy writing about.,I dislike writing.,I find it difficult to communicate my ideas through writing.
             </TabularMCQ>
-            <Markdown>
+            <Markdown id="ws1_directions">
               Select one option for each row. Your selections are automatically saved.
             </Markdown>
           <SplitPanel id="ws1_Step_3_feedback" sizes="20, 80">
@@ -209,7 +209,7 @@ category: writing
               rows: I like it when people compliment my writing skills.,I feel confident when I am writing.,It's important that I get a good grade on a writing assignment.,When I write I create content that I can be proud of.,Writing feels really hard.
 
             </TabularMCQ>
-            <Markdown>
+            <Markdown id="ws1_directions">
               Select one option for each row. Your selections are automatically saved.
             </Markdown>
         </LeftPane>
@@ -266,7 +266,7 @@ category: writing
               cols: Strongly Agree, Agree, Disagree, Strongly Disagree
               rows: I usually enjoy writing in school.,I find writing interesting.,I enjoy writing most when I get to decide what to write about.,I understand things better when I write about them.,There are some kinds of writing that I really like.,I like it when I can focus and my writing flows. 
             </TabularMCQ>
-            <Markdown>
+            <Markdown id="ws1_directions">
               Select one option for each row. Your selections are automatically saved.
             </Markdown>
         </LeftPane>
