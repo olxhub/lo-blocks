@@ -1,10 +1,18 @@
 // Main client-side interface to the LLM.
 //
-// TODO: The name is aspirational: We're not yet fully redux.
+// Uses Redux for persistent chat state that survives component unmount/remount.
 
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import * as lo_event from 'lo_event';
+import { hashContent } from '@/lib/util/index';
+import {
+  CHAT_ADD_MESSAGE,
+  CHAT_ADD_MESSAGES,
+  CHAT_SET_STATUS,
+} from '@/lib/state/store';
 
 // In progress: State machine of LLM status
 export const LLM_STATUS = {
@@ -133,24 +141,52 @@ export async function callLLM(params) {
 
 // Most common interface to LLM.
 //
+// Chat state is persisted in Redux, keyed by chatId. This allows chat history
+// to survive component unmount/remount (e.g., when switching sidebar tabs).
+//
 // @param {object} params
+// @param {string} params.chatId - Unique ID for this chat (default: 'default')
 // @param {array} params.tools - Default tool definitions (can be overridden per-call)
 // @param {string} params.systemPrompt - Default system prompt (can be overridden per-call)
 // @param {string} params.initialMessage - Initial message to show (default: 'Ask the LLM a question.')
 export function useChat(params = {}) {
   const {
+    chatId = 'default',
     tools: defaultTools = [],
     systemPrompt: defaultSystemPrompt,
     initialMessage = 'Ask the LLM a question.'
   } = params;
-  const [messages, setMessages] = useState([
-    { type: 'SystemMessage', text: initialMessage }
-  ]);
-  const [status, setStatus] = useState(LLM_STATUS.INIT);
+
+  // Read from Redux
+  const chatState = useSelector(
+    (state) => state?.application_state?.chat?.[chatId]
+  );
+  const messages = chatState?.messages ?? [];
+  const status = chatState?.status ?? LLM_STATUS.INIT;
+
+  // Dispatch helpers
+  const addMessage = useCallback((message) => {
+    lo_event.logEvent(CHAT_ADD_MESSAGE, { chatId, message });
+  }, [chatId]);
+
+  const addMessages = useCallback((msgs) => {
+    lo_event.logEvent(CHAT_ADD_MESSAGES, { chatId, messages: msgs });
+  }, [chatId]);
+
+  const setStatus = useCallback((newStatus) => {
+    lo_event.logEvent(CHAT_SET_STATUS, { chatId, status: newStatus });
+  }, [chatId]);
+
+  // Initialize with initial message if chat is empty
+  useEffect(() => {
+    if (messages.length === 0) {
+      addMessage({ type: 'SystemMessage', text: initialMessage });
+    }
+  }, [chatId, messages.length, initialMessage, addMessage]);
 
   // sendMessage accepts per-call overrides for tools and systemPrompt
   // This allows building fresh tools with current values at call time
-  const sendMessage = async (text, options = {}) => {
+  const sendMessage = useCallback(async (text, options = {}) => {
     const {
       attachments = [],
       tools = defaultTools,
@@ -159,28 +195,58 @@ export function useChat(params = {}) {
 
     setStatus(LLM_STATUS.RUNNING);
 
-    // Build display text (what user sees in chat)
-    const attachmentSuffix = attachments.length > 0
-      ? '\n\n' + attachments.map(a => `📎 ${a.name}`).join('\n')
+    // Process attachments: add hash, prepare for storage/API/display
+    // TODO: convertToText(attachment.content) once conversion abstraction is implemented
+    //       (e.g., pptx2text, pdf2text). For now, assume content is already text.
+    //       Then: uploadToS3orSimilarStore({ key: hash, text: convertedText, name, body, timestamp })
+    const processedAttachments = attachments.map(a => ({
+      name: a.name,
+      hash: hashContent(a.content),
+      body: a.content,  // To be replaced with convertedText once conversion is implemented
+    }));
+
+    // Build display text (what user sees in chat - strip body)
+    const attachmentSuffix = processedAttachments.length > 0
+      ? '\n\n' + processedAttachments.map(a => `📎 ${a.name}`).join('\n')
       : '';
     const displayText = (text || '') + attachmentSuffix;
 
-    // Build API text (what LLM sees - includes full file content)
-    const attachmentContent = attachments.length > 0
-      ? '\n\n' + attachments.map(a => `[Attached file: ${a.name}]\n\`\`\`\n${a.content}\n\`\`\``).join('\n\n')
+    // Build API text for LLM (what LLM sees - full file content)
+    const attachmentContent = processedAttachments.length > 0
+      ? '\n\n' + processedAttachments.map(a => `[Attached file: ${a.name}]\n\`\`\`\n${a.body}\n\`\`\``).join('\n\n')
       : '';
     const apiText = (text || '') + attachmentContent;
 
-    const userMessage = { type: 'Line', speaker: 'You', text: displayText };
-    setMessages(m => [...m, userMessage]);
+    // Store message with attachments so they persist across follow-ups
+    // User messages store: { name, hash, body } for full replicability
+    // This allows follow-up questions to reference the same files
+    const userMessage = {
+      type: 'Line',
+      speaker: 'You',
+      text: displayText,
+      attachments: processedAttachments.length > 0 ? processedAttachments : undefined,
+    };
+    addMessage(userMessage);
 
-    // Build history from messages (use apiText for the current message)
+    // Build history from messages (reconstructing apiText for LLM context)
+    // This ensures follow-up questions include full file content in history
+    // Note: messages here is the snapshot at time of call
     let history = [...messages, { type: 'Line', speaker: 'You', text: apiText }]
       .filter((msg) => msg.type === 'Line')
-      .map((msg) => ({
-        role: msg.speaker === 'You' ? 'user' : 'assistant',
-        content: msg.text,
-      }));
+      .map((msg) => {
+        // Reconstruct apiText for user messages with attachments
+        let content = msg.text;
+        if (msg.attachments && msg.attachments.length > 0) {
+          const attachmentContent = msg.attachments
+            .map(a => `[Attached file: ${a.name}]\n\`\`\`\n${a.body}\n\`\`\``)
+            .join('\n\n');
+          content = msg.text.replace(/\n\n📎.*$/s, '') + '\n\n' + attachmentContent;
+        }
+        return {
+          role: msg.speaker === 'You' ? 'user' : 'assistant',
+          content,
+        };
+      });
 
     // Prepend system prompt if provided
     if (systemPrompt) {
@@ -193,10 +259,10 @@ export function useChat(params = {}) {
       statusCallback: setStatus,
     });
 
-    setMessages((m) => [...m, ...newMessages]);
+    addMessages(newMessages);
     if (error) setStatus(LLM_STATUS.ERROR);
     // Otherwise, statusCallback inside callLLM handles success
-  };
+  }, [messages, defaultTools, defaultSystemPrompt, addMessage, addMessages, setStatus]);
 
   return { messages, sendMessage, status };
 }

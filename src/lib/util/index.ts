@@ -8,7 +8,10 @@
 //   (used to distinguish blocks from HTML tags during parsing and rendering)
 // - `resolveImageSrc`: Classifies image paths by type (external, platform, content)
 // - `resolveImagePath`: Resolves image paths to final URLs for Next.js Image
+// - `hashContent`: Hash file/content for replicability in learning analytics
 //
+
+import { createHash } from 'crypto';
 export function enumdict<T extends string>(keys: readonly T[]): { readonly [K in T]: K } {
   return Object.fromEntries(keys.map(k => [k, k])) as { readonly [K in T]: K };
 }
@@ -71,4 +74,13 @@ export function resolveImagePath(src: string | null | undefined): string | null 
     case 'content':
       return `/content/${resolved.src}`;
   }
+}
+
+/**
+ * Hash content (file body) for replicability in learning analytics.
+ * Used to identify files across sessions and enable download restoration.
+ * Returns 8-char hex string (first 64 bits of SHA256).
+ */
+export function hashContent(content: string): string {
+  return createHash('sha256').update(content).digest('hex').slice(0, 8);
 }

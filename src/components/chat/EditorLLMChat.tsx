@@ -22,7 +22,8 @@ export default function EditorLLMChat({ path, content, onApplyEdit, onOpenFile, 
     ? `Editing: ${path}. Ask me to help with this content.`
     : 'Select a file to edit, then ask me for help.';
 
-  const { messages, sendMessage } = useChat({ initialMessage });
+  // Use 'editor_llm_chat' as the chatId to persist chat state across tab switches
+  const { messages, sendMessage } = useChat({ chatId: 'editor_llm_chat', initialMessage });
 
   // Build tools and context fresh at call time - no stale closures
   const handleSendMessage = useCallback(async (text, attachedFile) => {
