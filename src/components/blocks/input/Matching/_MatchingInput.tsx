@@ -77,11 +77,59 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 /**
- * Build initial right-side order (may be shuffled)
+ * Extract initialPosition from right-side items
+ */
+function extractDisplayPositions(pairs: any[]) {
+  const positioned: { pairIndex: number; position: number }[] = [];
+  const unpositioned: number[] = [];
+
+  pairs.forEach((pair, pairIndex) => {
+    const rightKid = pair.rightKid;
+    const position = rightKid?.attributes?.initialPosition;
+
+    if (position !== undefined) {
+      const pos = parseInt(position, 10) - 1; // Convert to 0-based
+      positioned.push({ pairIndex, position: pos });
+    } else {
+      unpositioned.push(pairIndex);
+    }
+  });
+
+  return { positioned, unpositioned };
+}
+
+/**
+ * Build initial right-side order (respects initialPosition, then shuffles remaining)
  */
 function buildInitialRightOrder(pairs: any[], shuffle: boolean) {
-  const order = pairs.map((_, i) => i);
-  return shuffle ? shuffleArray(order) : order;
+  const { positioned, unpositioned } = extractDisplayPositions(pairs);
+  const result = new Array(pairs.length);
+
+  // Place items with initialPosition at specified positions
+  positioned.forEach(({ pairIndex, position }) => {
+    if (position >= 0 && position < pairs.length) {
+      result[position] = pairIndex;
+    }
+  });
+
+  // Find empty slots and fill with unpositioned items
+  const emptySlots: number[] = [];
+  for (let i = 0; i < result.length; i++) {
+    if (result[i] === undefined) {
+      emptySlots.push(i);
+    }
+  }
+
+  // Shuffle or keep order of unpositioned items
+  const orderedUnpositioned = shuffle ? shuffleArray(unpositioned) : unpositioned;
+
+  emptySlots.forEach((slot, i) => {
+    if (i < orderedUnpositioned.length) {
+      result[slot] = orderedUnpositioned[i];
+    }
+  });
+
+  return result;
 }
 
 /**

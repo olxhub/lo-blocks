@@ -26,7 +26,33 @@ Connect items from a left column to their matches in a right column. Students cl
 ## Properties
 
 - `id` (optional): Unique identifier for the input
-- `shuffle` (optional, default: true): Whether to shuffle the right-side items
+- `shuffle` (optional, default: true): Whether to shuffle the right-side items that don't have `initialPosition`
+
+## Item Positioning
+
+By default, right-side items are shuffled to prevent left-to-right positional bias. You can control the display order using the `initialPosition` attribute on right-side items (1-indexed):
+
+```olx:playground
+<CapaProblem id="positioned_matching" title="Ordered Matching">
+  <MatchingGrader>
+    <Markdown>Match in the order shown on the right:</Markdown>
+    <MatchingInput id="ordered">
+      <Markdown>Third item</Markdown>
+      <Markdown initialPosition="3">C - Goes in position 3</Markdown>
+
+      <Markdown>First item</Markdown>
+      <Markdown initialPosition="1">A - Goes in position 1</Markdown>
+
+      <Markdown>Second item</Markdown>
+      <Markdown initialPosition="2">B - Goes in position 2</Markdown>
+    </MatchingInput>
+  </MatchingGrader>
+</CapaProblem>
+```
+
+- Items with `initialPosition` appear in their specified order
+- Items without `initialPosition` fill remaining slots (shuffled if `shuffle="true"`)
+- Use `shuffle="false"` to disable shuffling of unpositioned items
 
 ## State Fields
 
