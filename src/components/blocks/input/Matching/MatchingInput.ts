@@ -29,8 +29,8 @@ import type { MatchingArrangement } from './types';
 export const fields = state.fields([
   'arrangement',  // Current matching: left item ID → right item ID
   'selectedId',   // Currently selected item ID for matching
-  'selectedSide', // Side of selected item: 'left' | 'right'
-  'rightOrder'    // Display order of right-side items (indices into pairs array, fixed after initial shuffle)
+  'selectedSide', // Side of selected item: 'start' | 'end'
+  'endOrder'      // Display order of end-side items (indices into pairs array, fixed after initial shuffle)
 ]);
 
 /**

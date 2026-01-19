@@ -101,10 +101,10 @@ function extractDisplayPositions(pairs: any[]) {
 }
 
 /**
- * Build initial right-side order (respects initialPosition, then shuffles remaining)
- * Returns array of right-side item IDs in display order
+ * Build initial end-side order (respects initialPosition, then shuffles remaining)
+ * Returns array of end-side item IDs in display order
  */
-function buildInitialRightOrder(pairs: any[], shuffle: boolean): string[] {
+function buildInitialEndOrder(pairs: any[], shuffle: boolean): string[] {
   const { positioned, unpositioned } = extractDisplayPositions(pairs);
   const result = new Array(pairs.length) as (string | undefined)[];
 
@@ -141,7 +141,7 @@ function buildInitialRightOrder(pairs: any[], shuffle: boolean): string[] {
 function ConnectionLines({
   pairs,
   arrangement,
-  rightOrder,
+  endOrder,
   correctArrangement,
   showAnswer,
   containerRef,
@@ -151,12 +151,12 @@ function ConnectionLines({
 }: {
   pairs: MatchingPair[];
   arrangement: MatchingArrangement;
-  rightOrder: number[];
+  endOrder: string[];
   correctArrangement: MatchingArrangement;
   showAnswer: boolean;
   containerRef: React.RefObject<HTMLDivElement | null>;
   selectedId: string | null;
-  selectedSide: 'left' | 'right' | null;
+  selectedSide: 'start' | 'end' | null;
   mousePos: { x: number; y: number } | null;
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -328,12 +328,12 @@ export default function _MatchingInput(props) {
   const [arrangement, setArrangement] = useReduxState(props, fields.arrangement, {});
   const [selectedId, setSelectedId] = useReduxState(props, fields.selectedId, null);
   const [selectedSide, setSelectedSide] = useReduxState(props, fields.selectedSide, null);
-  let [rightOrder, setRightOrder] = useReduxState(props, fields.rightOrder, []);
+  let [endOrder, setEndOrder] = useReduxState(props, fields.endOrder, []);
 
-  // Initialize rightOrder on first render if not already set
-  if (!rightOrder || rightOrder.length === 0) {
-    rightOrder = buildInitialRightOrder(pairs, shuffle);
-    setRightOrder(rightOrder);
+  // Initialize endOrder on first render if not already set
+  if (!endOrder || endOrder.length === 0) {
+    endOrder = buildInitialEndOrder(pairs, shuffle);
+    setEndOrder(endOrder);
   }
 
   // useState-ok: ephemeral visual feedback state (mouse position for preview line only)
@@ -399,14 +399,14 @@ export default function _MatchingInput(props) {
     correctArrangement[pair.leftId] = pair.rightId;
   });
 
-  // Handle connection point click (left or right)
-  const handleConnectionPointClick = (itemId: string, side: 'left' | 'right') => {
+  // Handle connection point click (start or end)
+  const handleConnectionPointClick = (itemId: string, side: 'start' | 'end') => {
     if (readOnly) return;
 
     // If clicking the same item, toggle disconnect (if connected) or deselect
     if (selectedId === itemId && selectedSide === side) {
-      // For left items, check if they're connected and disconnect
-      if (side === 'left' && arrangement[itemId] !== undefined) {
+      // For start items, check if they're connected and disconnect
+      if (side === 'start' && arrangement[itemId] !== undefined) {
         const newArrangement = { ...arrangement };
         delete newArrangement[itemId];
         setArrangement(newArrangement);
@@ -414,8 +414,8 @@ export default function _MatchingInput(props) {
         setSelectedSide(null);
         return;
       }
-      // For right items, find and remove the connection pointing to it
-      if (side === 'right') {
+      // For end items, find and remove the connection pointing to it
+      if (side === 'end') {
         const leftItemWithConnection = Object.entries(arrangement).find(
           ([_, rightId]) => rightId === itemId
         )?.[0];
@@ -443,8 +443,8 @@ export default function _MatchingInput(props) {
       }
 
       // Different side - create connection
-      const leftId = selectedSide === 'left' ? selectedId : itemId;
-      const rightId = selectedSide === 'left' ? itemId : selectedId;
+      const leftId = selectedSide === 'start' ? selectedId : itemId;
+      const rightId = selectedSide === 'start' ? itemId : selectedId;
 
       const newArrangement = { ...arrangement };
 
@@ -493,7 +493,7 @@ export default function _MatchingInput(props) {
       <ConnectionLines
         pairs={pairs}
         arrangement={arrangement}
-        rightOrder={rightOrder}
+        endOrder={endOrder}
         correctArrangement={correctArrangement}
         showAnswer={showAnswer}
         containerRef={containerRef}
@@ -506,7 +506,7 @@ export default function _MatchingInput(props) {
         {/* Left column */}
         <div className="matching-left flex-1 space-y-3">
           {pairs.map((pair) => {
-            const isSelected = selectedId === pair.leftId && selectedSide === 'left';
+            const isSelected = selectedId === pair.leftId && selectedSide === 'start';
             const isMatched = arrangement[pair.leftId] !== undefined;
 
             return (
@@ -538,7 +538,7 @@ export default function _MatchingInput(props) {
                   `}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleConnectionPointClick(pair.leftId, 'left');
+                    handleConnectionPointClick(pair.leftId, 'start');
                   }}
                 />
 
@@ -562,13 +562,13 @@ export default function _MatchingInput(props) {
 
         {/* Right column */}
         <div className="matching-right flex-1 space-y-3">
-          {rightOrder.map((rightId) => {
+          {endOrder.map((rightId) => {
             const pair = pairs.find(p => p.rightId === rightId);
             if (!pair) return null; // Skip if pair not found (shouldn't happen)
 
-            const isSelected = selectedId === rightId && selectedSide === 'right';
+            const isSelected = selectedId === rightId && selectedSide === 'end';
             const isMatchedByStudent = Object.values(arrangement).includes(rightId);
-            const canConnect = selectedId !== null && selectedSide !== null && selectedSide !== 'right';
+            const canConnect = selectedId !== null && selectedSide !== null && selectedSide !== 'end';
 
             return (
               <div
@@ -600,7 +600,7 @@ export default function _MatchingInput(props) {
                   `}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleConnectionPointClick(rightId, 'right');
+                    handleConnectionPointClick(rightId, 'end');
                   }}
                 />
               </div>
@@ -614,7 +614,7 @@ export default function _MatchingInput(props) {
         {readOnly
           ? 'Submitted'
           : selectedId && selectedSide
-            ? selectedSide === 'left'
+            ? selectedSide === 'start'
               ? 'Click a definition on the right to connect'
               : 'Click an item on the left to connect'
             : 'Click dots to match'}
