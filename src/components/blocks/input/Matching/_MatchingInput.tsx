@@ -228,7 +228,7 @@ function ConnectionLines({
       if (leftPos && rightPos) {
         const key = `${leftId}-${rightId}-${isCorrect ? 'correct' : 'student'}`;
         const stroke = isCorrect ? '#22c55e' : '#3b82f6'; // green or blue
-        const strokeWidth = isCorrect ? 6 : 2.5; // Correct lines thicker but more transparent
+        const strokeWidth = isCorrect ? 10 : 2.5; // Correct lines much thicker
 
         lines.push(
           <line
@@ -239,6 +239,7 @@ function ConnectionLines({
             y2={rightPos.y}
             stroke={stroke}
             strokeWidth={strokeWidth}
+            strokeLinecap="round"
             opacity={opacity}
             className="matching-line"
           />
@@ -253,7 +254,7 @@ function ConnectionLines({
 
   // Render correct arrangement first (underneath) if showAnswer
   if (showAnswer && correctArrangement && Object.keys(correctArrangement).length > 0) {
-    svgLines.push(...renderLines(correctArrangement, true, 0.2));
+    svgLines.push(...renderLines(correctArrangement, true, 0.3));
   }
 
   // Render student arrangement (on top)
@@ -276,6 +277,7 @@ function ConnectionLines({
           stroke="#a78bfa"
           strokeWidth="2"
           strokeDasharray="5,5"
+          strokeLinecap="round"
           opacity="0.6"
           className="matching-preview-line"
         />
