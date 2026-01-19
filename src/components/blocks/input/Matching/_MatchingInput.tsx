@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useReduxState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
-import { isInputReadOnly, useGraderAnswer } from '@/lib/blocks';
+import { isInputReadOnly, useGraderAnswer, refToOlxKey } from '@/lib/blocks';
 import { extendIdPrefix } from '@/lib/blocks/idResolver';
 import { HandleCommon } from '@/components/common/DragHandle';
 import { fields } from './MatchingInput';
@@ -79,14 +79,16 @@ function shuffleArray<T>(array: T[]): T[] {
 
 /**
  * Extract initialPosition from right-side items
+ * Needs idMap to resolve block references
  */
-function extractDisplayPositions(pairs: any[]) {
+function extractDisplayPositions(pairs: any[], idMap: any) {
   const positioned: { pairIndex: number; position: number }[] = [];
   const unpositioned: number[] = [];
 
   pairs.forEach((pair, pairIndex) => {
-    const rightKid = pair.rightKid;
-    const position = rightKid?.attributes?.initialPosition;
+    // Resolve the block reference using idMap and refToOlxKey
+    const rightBlock = idMap?.[refToOlxKey(pair.rightId)];
+    const position = rightBlock?.attributes?.initialPosition;
 
     if (position !== undefined) {
       const pos = parseInt(position, 10) - 1; // Convert to 0-based
@@ -102,8 +104,8 @@ function extractDisplayPositions(pairs: any[]) {
 /**
  * Build initial right-side order (respects initialPosition, then shuffles remaining)
  */
-function buildInitialRightOrder(pairs: any[], shuffle: boolean) {
-  const { positioned, unpositioned } = extractDisplayPositions(pairs);
+function buildInitialRightOrder(pairs: any[], shuffle: boolean, idMap: any) {
+  const { positioned, unpositioned } = extractDisplayPositions(pairs, idMap);
   const result = new Array(pairs.length);
 
   // Place items with initialPosition at specified positions
@@ -299,7 +301,7 @@ function ConnectionLines({
  * Main MatchingInput component
  */
 export default function _MatchingInput(props) {
-  const { kids = [], shuffle = true, idPrefix } = props;
+  const { kids = [], shuffle = true, idPrefix, idMap = {} } = props;
 
   // Parse pairs
   const pairs = parseMatchingPairs(kids);
@@ -316,7 +318,7 @@ export default function _MatchingInput(props) {
 
   // State management
   const [arrangement, setArrangement] = useReduxState(props, fields.arrangement, {});
-  const [rightOrder, setRightOrder] = useState(() => buildInitialRightOrder(pairs, shuffle));
+  const [rightOrder, setRightOrder] = useState(() => buildInitialRightOrder(pairs, shuffle, idMap));
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedSide, setSelectedSide] = useState<'left' | 'right' | null>(null);
   const [draggedId, setDraggedId] = useState<string | null>(null);

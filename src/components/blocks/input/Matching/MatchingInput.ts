@@ -17,7 +17,7 @@
  */
 
 import { z } from 'zod';
-import { core } from '@/lib/blocks';
+import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
@@ -52,7 +52,7 @@ function getCorrectArrangement(props: RuntimeProps) {
   return correct;
 }
 
-const MatchingInput = core({
+const MatchingInput = dev({
   ...parsers.blocks(), // Handle child blocks
   name: 'MatchingInput',
   description: 'Match items from left column to right column',
