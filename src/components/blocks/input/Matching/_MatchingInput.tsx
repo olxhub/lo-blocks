@@ -143,6 +143,9 @@ function ConnectionLines({
   correctArrangement,
   showAnswer,
   containerRef,
+  selectedId,
+  selectedSide,
+  mousePos,
 }: {
   pairs: MatchingPair[];
   arrangement: MatchingArrangement;
@@ -150,6 +153,9 @@ function ConnectionLines({
   correctArrangement: MatchingArrangement;
   showAnswer: boolean;
   containerRef: React.RefObject<HTMLDivElement | null>;
+  selectedId: string | null;
+  selectedSide: 'left' | 'right' | null;
+  mousePos: { x: number; y: number } | null;
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [positions, setPositions] = useState<Record<string, ItemPosition>>({});
@@ -215,6 +221,7 @@ function ConnectionLines({
       if (leftPos && rightPos) {
         const key = `${leftId}-${rightId}-${isCorrect ? 'correct' : 'student'}`;
         const stroke = isCorrect ? '#22c55e' : '#3b82f6'; // green or blue
+        const strokeWidth = isCorrect ? 6 : 2.5; // Correct lines thicker but more transparent
 
         lines.push(
           <line
@@ -224,7 +231,7 @@ function ConnectionLines({
             x2={rightPos.x}
             y2={rightPos.y}
             stroke={stroke}
-            strokeWidth="2"
+            strokeWidth={strokeWidth}
             opacity={opacity}
             className="matching-line"
           />
@@ -237,14 +244,36 @@ function ConnectionLines({
 
   const svgLines: React.ReactNode[] = [];
 
-  // Render student arrangement
-  if (Object.keys(arrangement).length > 0) {
-    svgLines.push(...renderLines(arrangement, false, 0.7));
+  // Render correct arrangement first (underneath) if showAnswer
+  if (showAnswer && correctArrangement && Object.keys(correctArrangement).length > 0) {
+    svgLines.push(...renderLines(correctArrangement, true, 0.2));
   }
 
-  // Render correct arrangement if showAnswer
-  if (showAnswer && correctArrangement && Object.keys(correctArrangement).length > 0) {
-    svgLines.push(...renderLines(correctArrangement, true, 0.5));
+  // Render student arrangement (on top)
+  if (Object.keys(arrangement).length > 0) {
+    svgLines.push(...renderLines(arrangement, false, 0.9));
+  }
+
+  // Render preview line (follows mouse from selected point)
+  if (selectedId && selectedSide && mousePos) {
+    const selectedPos = positions[selectedId];
+    if (selectedPos) {
+      const previewKey = `preview-${selectedId}`;
+      svgLines.push(
+        <line
+          key={previewKey}
+          x1={selectedPos.x}
+          y1={selectedPos.y}
+          x2={mousePos.x}
+          y2={mousePos.y}
+          stroke="#a78bfa"
+          strokeWidth="2"
+          strokeDasharray="5,5"
+          opacity="0.6"
+          className="matching-preview-line"
+        />
+      );
+    }
   }
 
   return (
@@ -258,6 +287,7 @@ function ConnectionLines({
         width: '100%',
         height: '100%',
         pointerEvents: 'none',
+        zIndex: 20,
       }}
     >
       {svgLines}
@@ -291,11 +321,38 @@ export default function _MatchingInput(props) {
   const [selectedSide, setSelectedSide] = useState<'left' | 'right' | null>(null);
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [draggedSide, setDraggedSide] = useState<'left' | 'right' | null>(null);
+  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
 
   const readOnly = isInputReadOnly(props);
   const { showAnswer } = useGraderAnswer(props);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Track mouse movement for preview lines
+  useEffect(() => {
+    if (!containerRef.current || !selectedId) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      setMousePos({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
+    };
+
+    const handleMouseLeave = () => {
+      setMousePos(null);
+    };
+
+    containerRef.current.addEventListener('mousemove', handleMouseMove);
+    containerRef.current.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      containerRef.current?.removeEventListener('mousemove', handleMouseMove);
+      containerRef.current?.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [selectedId]);
 
   // Build correct arrangement (odd indices match with their right neighbors)
   const correctArrangement: MatchingArrangement = {};
@@ -400,9 +457,12 @@ export default function _MatchingInput(props) {
         correctArrangement={correctArrangement}
         showAnswer={showAnswer}
         containerRef={containerRef}
+        selectedId={selectedId}
+        selectedSide={selectedSide}
+        mousePos={mousePos}
       />
 
-      <div className="matching-content flex gap-8 relative z-10">
+      <div className="matching-content flex gap-8 relative" style={{ zIndex: 5 }}>
         {/* Left column */}
         <div className="matching-left flex-1 space-y-3">
           {pairs.map((pair) => {
