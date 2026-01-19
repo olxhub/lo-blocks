@@ -15,13 +15,10 @@ import type { MatchingArrangement, MatchingGradingResult } from './types';
  * @returns Object with correct, score, message
  */
 export function gradeMatching(props: any, { input, inputApi }: any) {
-  const studentArrangement = input?.arrangement || {};
+  const studentArrangement = input.arrangement;
 
   // Get correct arrangement from the input block's locals
-  let correctArrangement: MatchingArrangement = {};
-  if (inputApi?.getCorrectArrangement) {
-    correctArrangement = inputApi.getCorrectArrangement();
-  }
+  const correctArrangement = inputApi.getCorrectArrangement();
 
   const totalMatches = Object.keys(correctArrangement).length;
 
@@ -66,9 +63,7 @@ export function buildCorrectArrangement(kids: any[]): MatchingArrangement {
     const leftItem = kids[i];
     const rightItem = kids[i + 1];
 
-    if (leftItem?.id && rightItem?.id) {
-      correct[leftItem.id] = rightItem.id;
-    }
+    correct[leftItem.id] = rightItem.id;
   }
 
   return correct;

@@ -45,11 +45,8 @@ function getCorrectArrangement(props: RuntimeProps) {
     const leftKid = kids[i];
     const rightKid = kids[i + 1];
 
-    // Extract ID from block reference, or use index-based fallback
-    const leftId = (leftKid?.type === 'block' && leftKid?.id) ? leftKid.id : `item_${i}`;
-    const rightId = (rightKid?.type === 'block' && rightKid?.id) ? rightKid.id : `item_${i + 1}`;
-
-    correct[leftId] = rightId;
+    // Kids are guaranteed to be block references with IDs
+    correct[leftKid.id] = rightKid.id;
   }
 
   return correct;

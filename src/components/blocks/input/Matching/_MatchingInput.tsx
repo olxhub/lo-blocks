@@ -22,8 +22,8 @@ function MatchingItemContent({ props, kid, itemIdPrefix }) {
  * Generate a stable ID for an item if not present
  */
 function ensureItemId(item: any, index: number): string {
-  if (item?.id) return item.id;
-  // Generate stable ID from content hash if no id attribute
+  if (item.id) return item.id;
+  // Fallback: generate ID from index if truly missing
   return `item_${index}`;
 }
 
