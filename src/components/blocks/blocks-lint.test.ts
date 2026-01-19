@@ -62,7 +62,7 @@ function findUseStateViolations(filePath) {
 
   lines.forEach((line, index) => {
     if (line.trimStart().startsWith('import ')) return;
-    if (!line.includes('useState(')) return;
+    if (!line.match(/useState[<(]/)) return;  // Match useState< (TypeScript) or useState( (JavaScript)
     if (isExempted(lines, index)) return;
 
     violations.push({ line: index + 1, content: line.trim() });

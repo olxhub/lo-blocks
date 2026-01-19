@@ -159,57 +159,63 @@ function ConnectionLines({
   mousePos: { x: number; y: number } | null;
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const [positions, setPositions] = useState<Record<string, ItemPosition>>({});
+  // useState-ok: layout change tracking for re-renders, not user interaction state
+  const [layoutVersion, setLayoutVersion] = useState(0);
 
-  // Update positions on resize/scroll using ResizeObserver
+  // Calculate positions on-demand from the DOM
+  const getPositions = () => {
+    if (!containerRef.current) return {};
+
+    const positions: Record<string, ItemPosition> = {};
+    const container = containerRef.current;
+    const containerRect = container.getBoundingClientRect();
+
+    // Find all connection points within this container
+    container.querySelectorAll('[data-matching-point]').forEach((el: HTMLElement) => {
+      const itemId = el.getAttribute('data-item-id');
+      if (itemId) {
+        const rect = el.getBoundingClientRect();
+        positions[itemId] = {
+          itemId,
+          x: rect.left - containerRect.left + rect.width / 2,
+          y: rect.top - containerRect.top + rect.height / 2,
+        };
+      }
+    });
+
+    return positions;
+  };
+
+  // Trigger re-renders on layout changes using ResizeObserver
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const updatePositions = () => {
-      if (!containerRef.current) return;
-
-      const newPositions: Record<string, ItemPosition> = {};
-      const container = containerRef.current;
-      const containerRect = container.getBoundingClientRect();
-
-      // Find all connection points within this container
-      container.querySelectorAll('[data-matching-point]').forEach((el: HTMLElement) => {
-        const itemId = el.getAttribute('data-item-id');
-        if (itemId) {
-          const rect = el.getBoundingClientRect();
-          newPositions[itemId] = {
-            itemId,
-            x: rect.left - containerRect.left + rect.width / 2,
-            y: rect.top - containerRect.top + rect.height / 2,
-          };
-        }
-      });
-
-      setPositions(newPositions);
+    const updateLayout = () => {
+      setLayoutVersion(v => v + 1);
     };
-
-    // Initial update
-    updatePositions();
 
     // Use ResizeObserver for robust reflow handling (browser only)
     let resizeObserver: ResizeObserver | null = null;
     if (typeof ResizeObserver !== 'undefined') {
-      resizeObserver = new ResizeObserver(() => updatePositions());
+      resizeObserver = new ResizeObserver(updateLayout);
       resizeObserver.observe(containerRef.current);
     }
 
     // Also listen for scroll and window resize as fallback
-    window.addEventListener('resize', updatePositions);
-    window.addEventListener('scroll', updatePositions, true);
+    window.addEventListener('resize', updateLayout);
+    window.addEventListener('scroll', updateLayout, true);
 
     return () => {
       if (resizeObserver) {
         resizeObserver.disconnect();
       }
-      window.removeEventListener('resize', updatePositions);
-      window.removeEventListener('scroll', updatePositions, true);
+      window.removeEventListener('resize', updateLayout);
+      window.removeEventListener('scroll', updateLayout, true);
     };
   }, [containerRef]);
+
+  // Get positions (trigger recalculation on layout changes via layoutVersion)
+  const positions = getPositions();
 
   // Render lines
   const renderLines = (currentArrangement: MatchingArrangement, isCorrect: boolean, opacity: number): React.ReactNode[] => {
@@ -319,10 +325,14 @@ export default function _MatchingInput(props) {
   const [arrangement, setArrangement] = useReduxState(props, fields.arrangement, {});
   const [selectedId, setSelectedId] = useReduxState(props, fields.selectedId, null);
   const [selectedSide, setSelectedSide] = useReduxState(props, fields.selectedSide, null);
-  const [draggedId, setDraggedId] = useReduxState(props, fields.draggedId, null);
-  const [draggedSide, setDraggedSide] = useReduxState(props, fields.draggedSide, null);
-  // Derive display order from initialPosition and shuffle (not state - computed on each render)
-  const rightOrder = buildInitialRightOrder(pairs, shuffle, idMap);
+  let [rightOrder, setRightOrder] = useReduxState(props, fields.rightOrder, []);
+
+  // Initialize rightOrder on first render if not already set
+  if (!rightOrder || rightOrder.length === 0) {
+    rightOrder = buildInitialRightOrder(pairs, shuffle, idMap);
+    setRightOrder(rightOrder);
+  }
+
   // useState-ok: ephemeral visual feedback state (mouse position for preview line only)
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
 
@@ -437,41 +447,6 @@ export default function _MatchingInput(props) {
     setSelectedSide(side);
   };
 
-  // Handle drag start
-  const handleDragStart = (itemId: string, side: 'left' | 'right') => {
-    if (readOnly) return;
-    setDraggedId(itemId);
-    setDraggedSide(side);
-  };
-
-  // Handle drag over
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer!.dropEffect = 'link';
-  };
-
-  // Handle drop
-  const handleDrop = (targetId: string, targetSide: 'left' | 'right') => {
-    if (readOnly || !draggedId || !draggedSide) return;
-
-    // Can't drop on same side
-    if (draggedSide === targetSide) {
-      setDraggedId(null);
-      setDraggedSide(null);
-      return;
-    }
-
-    // Create connection
-    const leftId = draggedSide === 'left' ? draggedId : targetId;
-    const rightId = draggedSide === 'left' ? targetId : draggedId;
-
-    const newArrangement = { ...arrangement };
-    newArrangement[leftId] = rightId;
-    setArrangement(newArrangement);
-
-    setDraggedId(null);
-    setDraggedSide(null);
-  };
 
   // Disconnect a matching
   const handleDisconnect = (leftId: string) => {
@@ -506,17 +481,13 @@ export default function _MatchingInput(props) {
         <div className="matching-left flex-1 space-y-3">
           {pairs.map((pair) => {
             const isSelected = selectedId === pair.leftId && selectedSide === 'left';
-            const isDragged = draggedId === pair.leftId && draggedSide === 'left';
             const isMatched = arrangement[pair.leftId] !== undefined;
 
             return (
               <div
                 key={pair.leftId}
-                className={`matching-item matching-left-item relative p-3 border-2 rounded-md transition-all
-                  ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}
-                  ${isMatched ? 'bg-green-50 border-green-300' : 'bg-white'}
-                  ${readOnly ? 'bg-gray-100' : ''}
-                  pr-12
+                className={`matching-item matching-left-item relative p-3 border-2 rounded-md transition-all pr-12
+                  ${readOnly ? 'bg-gray-100 border-gray-300' : isSelected ? 'border-blue-500 bg-blue-50' : isMatched ? 'bg-green-50 border-green-300' : 'bg-white border-gray-300'}
                 `}
               >
                 <div className="flex items-center">
@@ -569,22 +540,16 @@ export default function _MatchingInput(props) {
             const pair = pairs[pairIndex];
             const rightId = pair.rightId;
             const isSelected = selectedId === rightId && selectedSide === 'right';
-            const isDragged = draggedId === rightId && draggedSide === 'right';
             const isMatchedByStudent = Object.values(arrangement).includes(rightId);
             const canConnect = selectedId !== null && selectedSide !== null && selectedSide !== 'right';
 
             return (
               <div
                 key={rightId}
-                className={`matching-item matching-right-item relative p-3 border-2 rounded-md transition-all
-                  ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}
-                  ${isMatchedByStudent ? 'bg-green-50 border-green-300' : 'bg-white'}
+                className={`matching-item matching-right-item relative p-3 border-2 rounded-md transition-all pl-12
+                  ${readOnly ? 'bg-gray-100 border-gray-300' : isSelected ? 'border-blue-500 bg-blue-50' : isMatchedByStudent ? 'bg-green-50 border-green-300' : 'bg-white border-gray-300'}
                   ${canConnect && !isMatchedByStudent ? 'hover:border-blue-400 hover:bg-blue-50' : ''}
-                  ${readOnly ? 'bg-gray-100' : ''}
-                  pl-12
                 `}
-                onDragOver={canConnect || draggedSide === 'left' ? handleDragOver : undefined}
-                onDrop={() => handleDrop(rightId, 'right')}
               >
                 <div className="flex items-center">
                   <div className="flex-1">
