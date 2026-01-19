@@ -87,8 +87,11 @@ describe('Block components should use useReduxState instead of useState', () => 
 
       const details = violations.map(v => `  Line ${v.line}: ${v.content}`).join('\n');
       expect.fail(
-        `Found useState that should be useReduxState:\n${details}\n\n` +
-        `To exempt, add a comment: // useState-ok: <reason>`
+        `Found useState that should be useReduxState:\n${details}\n\n` //+
+        // Line below makes LLMs just mask errors...
+        // `To exempt, add a comment: // useState-ok: <reason>`
+        // The above should be RARELY used, and only for things which
+        // emit events every few ms (like a mouse drag)
       );
     });
   });

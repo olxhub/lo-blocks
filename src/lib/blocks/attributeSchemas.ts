@@ -48,7 +48,7 @@ export const baseAttributes = z.object({
   title: z.string().optional().describe('Display title (shown in tabs, course navigation, headers)'),
   class: z.string().optional().describe('Visual styling classes (CSS classes for developers)'),
   launchable: z.string().optional().describe('Set to "true" to show in activity indexes'),
-  initialPosition: z.string().optional().describe('Initial position for sortable items'),
+  initialPosition: z.coerce.number().optional().describe('Initial position for sortable items (1-indexed)'),
 }).strict();
 
 // =============================================================================

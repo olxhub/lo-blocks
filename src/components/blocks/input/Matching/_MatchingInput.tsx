@@ -7,6 +7,8 @@ import { DisplayError } from '@/lib/util/debug';
 import { isInputReadOnly, useGraderAnswer, refToOlxKey } from '@/lib/blocks';
 import { extendIdPrefix } from '@/lib/blocks/idResolver';
 import { HandleCommon } from '@/components/common/DragHandle';
+import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
+import { buildArrangementWithPositions } from '@/lib/utils/shuffle';
 import { fields } from './MatchingInput';
 import type { MatchingArrangement, ItemPosition } from './types';
 
@@ -64,76 +66,6 @@ function parseMatchingPairs(kids: any[]): MatchingPair[] | null {
   return pairs;
 }
 
-/**
- * Shuffle array using Fisher-Yates
- */
-function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
-
-/**
- * Extract initialPosition from right-side items
- * Uses the rightKid data directly from pairs (no idMap lookup)
- * Returns positioned and unpositioned right items by their ID
- */
-function extractDisplayPositions(pairs: any[]) {
-  const positioned: { rightId: string; position: number }[] = [];
-  const unpositioned: string[] = [];
-
-  pairs.forEach((pair) => {
-    // rightKid already contains the block data from parsing
-    const position = pair.rightKid.attributes?.initialPosition;
-
-    if (position !== undefined) {
-      const pos = parseInt(position, 10) - 1; // Convert to 0-based
-      positioned.push({ rightId: pair.rightId, position: pos });
-    } else {
-      unpositioned.push(pair.rightId);
-    }
-  });
-
-  return { positioned, unpositioned };
-}
-
-/**
- * Build initial end-side order (respects initialPosition, then shuffles remaining)
- * Returns array of end-side item IDs in display order
- */
-function buildInitialEndOrder(pairs: any[], shuffle: boolean): string[] {
-  const { positioned, unpositioned } = extractDisplayPositions(pairs);
-  const result = new Array(pairs.length) as (string | undefined)[];
-
-  // Place items with initialPosition at specified positions
-  positioned.forEach(({ rightId, position }) => {
-    if (position >= 0 && position < pairs.length) {
-      result[position] = rightId;
-    }
-  });
-
-  // Find empty slots and fill with unpositioned items
-  const emptySlots: number[] = [];
-  for (let i = 0; i < result.length; i++) {
-    if (result[i] === undefined) {
-      emptySlots.push(i);
-    }
-  }
-
-  // Shuffle or keep order of unpositioned items
-  const orderedUnpositioned = shuffle ? shuffleArray(unpositioned) : unpositioned;
-
-  emptySlots.forEach((slot, i) => {
-    if (i < orderedUnpositioned.length) {
-      result[slot] = orderedUnpositioned[i];
-    }
-  });
-
-  return result as string[];
-}
 
 /**
  * Connection Lines Component - renders SVG lines between matched items
@@ -324,16 +256,37 @@ export default function _MatchingInput(props) {
     );
   }
 
+  // Fetch block definitions to get attributes for right-side items
+  const rightKidIds = pairs.map((p) => p.rightKid.id).filter((id) => id);
+  const { olxJsons: rightKidBlocks } = useOlxJsonMultiple(props, rightKidIds);
+  const rightKidBlockMap = Object.fromEntries(rightKidIds.map((id, i) => [id, rightKidBlocks[i]]));
+
   // State management
   const [arrangement, setArrangement] = useReduxState(props, fields.arrangement, {});
   const [selectedId, setSelectedId] = useReduxState(props, fields.selectedId, null);
   const [selectedSide, setSelectedSide] = useReduxState(props, fields.selectedSide, null);
   let [endOrder, setEndOrder] = useReduxState(props, fields.endOrder, []);
 
-  // Initialize endOrder on first render if not already set
-  if (!endOrder || endOrder.length === 0) {
-    endOrder = buildInitialEndOrder(pairs, shuffle);
-    setEndOrder(endOrder);
+  // Compute endOrder with positioned items if not already set
+  if ((!endOrder || endOrder.length === 0)) {
+    const rightKidBlocks = pairs.map((p) => rightKidBlockMap[p.rightKid.id]).filter((block) => block);
+
+    const result = buildArrangementWithPositions(rightKidBlocks, {
+      idSelector: (block) => block.id,
+      positionSelector: (block) => block.attributes?.initialPosition,
+      shouldShuffleUnpositioned: shuffle,
+    });
+
+    if ('error' in result) {
+      return <DisplayError {...result.error} props={props} />;
+    }
+
+    // Map arranged blocks back to their rightIds and store for future renders
+    const blockIdToRightId = new Map(pairs.map((p) => [p.rightKid.id, p.rightId]));
+    const arrangedOrder = result.arrangement.map((block) => blockIdToRightId.get(block.id));
+    setEndOrder(arrangedOrder);
+    // Use the computed order immediately in this render
+    endOrder = arrangedOrder;
   }
 
   // useState-ok: ephemeral visual feedback state (mouse position for preview line only)
