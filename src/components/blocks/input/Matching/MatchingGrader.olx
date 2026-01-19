@@ -1,0 +1,18 @@
+<CapaProblem id="MatchingGraderDemo" title="Match Scientific Concepts">
+  Match each biological term to its definition:
+  <MatchingGrader id="concept_grader">
+    <MatchingInput id="concepts">
+      <Markdown id="term_mitochondria">Mitochondria</Markdown>
+      <Markdown id="def_mitochondria">Powerhouse of the cell; produces ATP through cellular respiration</Markdown>
+
+      <Markdown id="term_chloroplast">Chloroplast</Markdown>
+      <Markdown id="def_chloroplast">Organelle in plant cells where photosynthesis occurs</Markdown>
+
+      <Markdown id="term_nucleus">Nucleus</Markdown>
+      <Markdown id="def_nucleus">Control center of the cell; contains genetic material (DNA)</Markdown>
+
+      <Markdown id="term_ribosome">Ribosome</Markdown>
+      <Markdown id="def_ribosome">Site of protein synthesis; reads mRNA instructions</Markdown>
+    </MatchingInput>
+  </MatchingGrader>
+</CapaProblem>

@@ -1,0 +1,21 @@
+<CapaProblem id="SpanishVocabMatching" title="Spanish Vocabulary">
+  Match Spanish words to their English translations:
+  <MatchingGrader id="spanish_grader">
+    <MatchingInput id="spanish_vocab">
+      <Markdown id="spanish_libro">Libro</Markdown>
+      <Markdown id="english_libro">Book</Markdown>
+
+      <Markdown id="spanish_casa">Casa</Markdown>
+      <Markdown id="english_casa">House</Markdown>
+
+      <Markdown id="spanish_gato">Gato</Markdown>
+      <Markdown id="english_gato">Cat</Markdown>
+
+      <Markdown id="spanish_agua">Agua</Markdown>
+      <Markdown id="english_agua">Water</Markdown>
+
+      <Markdown id="spanish_cielo">Cielo</Markdown>
+      <Markdown id="english_cielo">Sky</Markdown>
+    </MatchingInput>
+  </MatchingGrader>
+</CapaProblem>

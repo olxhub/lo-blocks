@@ -1,12 +1,14 @@
 // src/components/blocks/Sortable/_SortableInput.jsx
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import { useReduxState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import { isInputReadOnly, useGraderAnswer, refToOlxKey } from '@/lib/blocks';
 import { extendIdPrefix } from '@/lib/blocks/idResolver';
+import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
+import { buildArrangementWithPositions } from '@/lib/utils/shuffle';
 
 // Component to render a single sortable item's content
 function SortableItemContent({ props, kid, itemIdPrefix }) {
@@ -14,106 +16,8 @@ function SortableItemContent({ props, kid, itemIdPrefix }) {
   return <>{kids}</>;
 }
 
-/**
- * Fisher-Yates shuffle algorithm
- * @param {Array} array - Array to shuffle
- * @returns {Array} - New shuffled array
- */
-function shuffleArray(array) {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
-
-/**
- * Extract display positions from kids' initialPosition attributes
- * @param {Array} kids - Array of kid elements with optional initialPosition attributes
- * @returns {Object} - { positioned: items with initialPosition, unpositioned: items without }
- */
-function extractDisplayPositions(kids) {
-  const positioned: { kidIndex: number; position: number }[] = [];
-  const unpositioned: number[] = [];
-
-  kids.forEach((kid, i) => {
-    const index = kid?.attributes?.initialPosition;
-    if (index !== undefined) {
-      const position = parseInt(index, 10) - 1; // Convert to 0-based
-      positioned.push({ kidIndex: i, position });
-    } else {
-      unpositioned.push(i);
-    }
-  });
-
-  return { positioned, unpositioned };
-}
-
-/**
- * Build initial arrangement based on initialPosition attributes and shuffle parameter
- * @param {Array} kids - Array of kid elements
- * @param {boolean} shuffle - Whether to shuffle unpositioned items
- * @returns {Array} - Initial arrangement of indices
- */
-function buildInitialArrangement({ kids, idMap, shuffle }) {
-  const indices = Array.from({ length: kids.length }, (_, i) => i);
-  const updatedKids = kids.map(kid => idMap?.[refToOlxKey(kid.id)]);
-  const hasInitialPositionAttributes = updatedKids.some(kid => kid?.attributes?.initialPosition);
-
-  if (!hasInitialPositionAttributes) {
-    // No initialPosition attributes - use shuffle parameter
-    return shuffle ? shuffleArray(indices) : indices;
-  }
-
-  // Build arrangement based on initialPosition attributes
-  const { positioned, unpositioned } = extractDisplayPositions(updatedKids);
-  const result = new Array(kids.length);
-
-  // Place items with initialPosition attributes at specified positions
-  positioned.forEach(({ kidIndex, position }) => {
-    if (position >= 0 && position < kids.length) {
-      result[position] = kidIndex;
-    }
-  });
-
-  // Find empty slots and fill with shuffled unpositioned items
-  const emptySlots: number[] = [];
-  for (let i = 0; i < result.length; i++) {
-    if (result[i] === undefined) {
-      emptySlots.push(i);
-    }
-  }
-
-  const shuffledUnpositioned = shuffleArray(unpositioned);
-  emptySlots.forEach((slot, i) => {
-    if (i < shuffledUnpositioned.length) {
-      result[slot] = shuffledUnpositioned[i];
-    }
-  });
-
-  return result;
-}
-
 export default function _SortableInput(props) {
   const { kids = [], dragMode = 'whole', fields = {}, shuffle = true } = props;
-
-  // State management
-
-  // Redux state
-  const [arrangement, setArrangement] = useReduxState(props, fields.arrangement, []);
-
-  // Check if grader is showing the answer
-  const { showAnswer } = useGraderAnswer(props);
-
-  // Determine interaction state based on related grader correctness
-  // Note: showAnswer doesn't disable dragging - student can still rearrange
-  const readOnly = isInputReadOnly(props);
-
-  // useState-ok: ephemeral drag state (not persisted, resets on re-render)
-  const [draggedItem, setDraggedItem] = useState(null);
-  const [dragOverIndex, setDragOverIndex] = useState(null);
-  const draggedIndex = useRef(null);
 
   // Validation
   if (!Array.isArray(kids) || kids.length === 0) {
@@ -126,29 +30,54 @@ export default function _SortableInput(props) {
     );
   }
 
+  // Fetch block definitions to get attributes
+  const kidIds = kids.filter((k) => k?.id).map((k) => k.id);
+  const { olxJsons: kidBlocks } = useOlxJsonMultiple(props, kidIds);
+  const kidBlockMap = Object.fromEntries(kidIds.map((id, i) => [id, kidBlocks[i]]));
+
+  // State management
+  const [arrangement, setArrangement] = useReduxState(props, fields.arrangement, []);
+  const [draggedItem, setDraggedItem] = useReduxState(props, fields.draggedItem, null);
+  const [dragOverIndex, setDragOverIndex] = useReduxState(props, fields.dragOverIndex, null);
+  const { showAnswer } = useGraderAnswer(props);
+  const readOnly = isInputReadOnly(props);
+
   // Initialize arrangement if empty
-  // Only re-run when arrangement/kids change, props used for initial build only
-  /* eslint-disable react-hooks/exhaustive-deps */
-  React.useEffect(() => {
-    if (arrangement.length === 0 && kids.length > 0) {
-      const initialOrder = buildInitialArrangement(props);
-      setArrangement(initialOrder);
+  let currentArrangement = arrangement;
+  if (arrangement.length === 0 && kids.length > 0) {
+    const blockDefinitions = kids.map((kid) => kidBlockMap[kid.id]).filter((block) => block);
+
+    const result = buildArrangementWithPositions(blockDefinitions, {
+      idSelector: (block) => block.id,
+      positionSelector: (block) => block.attributes?.initialPosition,
+      shouldShuffleUnpositioned: shuffle,
+    });
+
+    if ('error' in result) {
+      return <DisplayError {...result.error} props={props} />;
     }
-  }, [arrangement.length, kids.length, shuffle, setArrangement]);
-  /* eslint-enable react-hooks/exhaustive-deps */
+
+    // Convert arranged blocks back to indices based on original kids array
+    const kidIdToIndex = new Map(kids.map((kid, i) => [kid.id, i]));
+    const indicesArrangement = result.arrangement.map(
+      (block) => kidIdToIndex.get(block.id)
+    );
+    setArrangement(indicesArrangement);
+    // Use the computed arrangement immediately in this render
+    currentArrangement = indicesArrangement;
+  }
 
   const handleDragStart = (e, index) => {
     if (readOnly) return;
 
     setDraggedItem(index);
-    draggedIndex.current = index;
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/html', e.target);
   };
 
   const handleDragOver = (e, index) => {
     e.preventDefault();
-    if (draggedItem && index !== draggedIndex.current) {
+    if (draggedItem !== null && index !== draggedItem) {
       setDragOverIndex(index);
     }
   };
@@ -160,13 +89,13 @@ export default function _SortableInput(props) {
   const handleDrop = (e, dropIndex) => {
     e.preventDefault();
 
-    if (draggedItem === null || draggedIndex.current === null) return;
+    if (draggedItem === null) return;
 
     const newArrangement = [...arrangement];
-    const draggedValue = newArrangement[draggedIndex.current];
+    const draggedValue = newArrangement[draggedItem];
 
     // Remove item from current position
-    newArrangement.splice(draggedIndex.current, 1);
+    newArrangement.splice(draggedItem, 1);
 
     // Insert at new position
     newArrangement.splice(dropIndex, 0, draggedValue);
@@ -176,13 +105,11 @@ export default function _SortableInput(props) {
     // Clean up
     setDraggedItem(null);
     setDragOverIndex(null);
-    draggedIndex.current = null;
   };
 
   const handleDragEnd = () => {
     setDraggedItem(null);
     setDragOverIndex(null);
-    draggedIndex.current = null;
   };
 
   return (
@@ -192,7 +119,7 @@ export default function _SortableInput(props) {
       </div>
 
       <div className="sortable-list space-y-2">
-        {arrangement.map((kidIndex, displayIndex) => {
+        {currentArrangement.map((kidIndex, displayIndex) => {
           const kid = kids[kidIndex];
           if (!kid) return null;
 

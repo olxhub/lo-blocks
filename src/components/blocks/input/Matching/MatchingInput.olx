@@ -1,0 +1,6 @@
+<MatchingInput id="MatchingInputDemo">
+  <TextBlock>Left item 1</TextBlock>
+  <TextBlock>Right item 1</TextBlock>
+  <TextBlock>Left item 2</TextBlock>
+  <TextBlock>Right item 2</TextBlock>
+</MatchingInput>

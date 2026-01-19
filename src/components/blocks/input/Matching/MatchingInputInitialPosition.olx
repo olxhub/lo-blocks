@@ -1,0 +1,24 @@
+<CapaProblem id="MatchingInitialPositionDemo" title="Timeline: History of Educational Practice">
+  <MatchingGrader>
+    <Markdown>Match each time period to the educational development that occurred. Events are shuffled; use initialPosition to control display order.
+
+Based on "How People Learn: Brain, Mind, Experience, and School", Chapter 6: "The Design of Learning Environments"</Markdown>
+    <MatchingInput id="timeline_matching">
+      <!-- Left side: Dates in chronological order -->
+      <Markdown id="date_1800s">Early 1800s</Markdown>
+      <Markdown id="event_1800s">Writing instruction focuses on notation mechanics; students transcribe dictation from teachers</Markdown>
+
+      <Markdown id="date_late1800s">Mid to late 1800s</Markdown>
+      <Markdown initialPosition="3" id="event_late1800s">Writing begins to be taught on a mass level across Europe; students start composing their own written texts</Markdown>
+
+      <Markdown id="date_1916">1916</Markdown>
+      <Markdown initialPosition="1" id="event_1916">John Dewey identifies knowledge as both "records" of previous cultural accomplishments and engagement in active processes ("to do")</Markdown>
+
+      <Markdown id="date_1930s">1930s</Markdown>
+      <Markdown initialPosition="2" id="event_1930s">Primary school students begin expressing themselves in writing as a deliberate educational goal</Markdown>
+
+      <Markdown id="date_today">Today</Markdown>
+      <Markdown id="event_today">Students are expected to understand current knowledge, build on it, and make decisions under uncertainty; graduates should display adaptive expertise</Markdown>
+    </MatchingInput>
+  </MatchingGrader>
+</CapaProblem>

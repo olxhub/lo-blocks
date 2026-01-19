@@ -10,7 +10,9 @@ import _SortableInput from './_SortableInput';
 import type { RuntimeProps } from '@/lib/types';
 
 export const fields = state.fields([
-  'arrangement'   // Current order of items (array of indices)
+  'arrangement',   // Current order of items (array of indices)
+  'draggedItem',   // Index of item being dragged
+  'dragOverIndex'  // Index of drop target
 ]);
 
 const SortableInput = core({

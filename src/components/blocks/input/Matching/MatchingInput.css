@@ -1,0 +1,79 @@
+/**
+ * Styles for MatchingInput block
+ */
+
+.matching-input {
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.matching-content {
+  display: flex;
+  gap: 2rem;
+}
+
+.matching-left,
+.matching-right {
+  flex: 1;
+}
+
+.matching-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 3rem;
+  transition: all 150ms ease;
+}
+
+.matching-left-item {
+  /* padding-right handled by parent class */
+}
+
+.matching-right-item {
+  /* padding-left handled by parent class */
+}
+
+.matching-point {
+  display: inline-block;
+  border: 2px solid currentColor;
+  transition: all 150ms ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.matching-point:hover {
+  transform: scale(1.15) !important;
+}
+
+.matching-point:active {
+  transform: scale(1.05) !important;
+}
+
+.matching-line {
+  transition: opacity 150ms ease;
+  pointer-events: none;
+}
+
+.matching-line:hover {
+  opacity: 1 !important;
+}
+
+/* Responsive: stack on narrow screens */
+@media (max-width: 768px) {
+  .matching-content {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .matching-left,
+  .matching-right {
+    width: 100%;
+  }
+
+  .matching-left-item {
+    padding-right: 2.5rem;
+  }
+
+  .matching-right-item {
+    padding-left: 2.5rem;
+  }
+}
