@@ -8,32 +8,32 @@ import { validateContentPath, getEditPathFromProvenance } from './contentPaths';
 
 describe('validateContentPath security', () => {
   describe('path traversal attacks', () => {
-    test('rejects ../../../etc/passwd', () => {
-      const result = validateContentPath('../../../etc/passwd');
+    test('rejects content/../../../etc/passwd', () => {
+      const result = validateContentPath('content/../../../etc/passwd');
       expect(result.valid).toBe(false);
       expect(result.error).toMatch(/escapes content directory/i);
     });
 
-    test('rejects ../../etc/passwd.olx', () => {
+    test('rejects content/../../etc/passwd.olx', () => {
       // Even with valid extension, traversal should be blocked
-      const result = validateContentPath('../../etc/passwd.olx');
+      const result = validateContentPath('content/../../etc/passwd.olx');
       expect(result.valid).toBe(false);
       expect(result.error).toMatch(/escapes content directory/i);
     });
 
-    test('rejects subdir/../../../etc/passwd.olx', () => {
-      const result = validateContentPath('subdir/../../../etc/passwd.olx');
+    test('rejects content/subdir/../../../etc/passwd.olx', () => {
+      const result = validateContentPath('content/subdir/../../../etc/passwd.olx');
       expect(result.valid).toBe(false);
       expect(result.error).toMatch(/escapes content directory/i);
     });
 
-    test('rejects ..', () => {
-      const result = validateContentPath('..');
+    test('rejects content/..', () => {
+      const result = validateContentPath('content/..');
       expect(result.valid).toBe(false);
     });
 
-    test('rejects path with embedded ..', () => {
-      const result = validateContentPath('foo/../../bar.olx');
+    test('rejects content/foo/../../bar.olx', () => {
+      const result = validateContentPath('content/foo/../../bar.olx');
       expect(result.valid).toBe(false);
     });
   });
@@ -58,58 +58,58 @@ describe('validateContentPath security', () => {
 
   describe('extension validation', () => {
     test('rejects .exe files', () => {
-      const result = validateContentPath('malware.exe');
+      const result = validateContentPath('content/malware.exe');
       expect(result.valid).toBe(false);
       expect(result.error).toMatch(/invalid file type/i);
     });
 
     test('rejects .sh files', () => {
-      const result = validateContentPath('script.sh');
+      const result = validateContentPath('content/script.sh');
       expect(result.valid).toBe(false);
     });
 
     test('rejects files with no extension', () => {
-      const result = validateContentPath('passwd');
+      const result = validateContentPath('content/passwd');
       expect(result.valid).toBe(false);
     });
 
     test('rejects .js files', () => {
       // Even though .js is in EXT.code, it's not in CATEGORY.content
-      const result = validateContentPath('evil.js');
+      const result = validateContentPath('content/evil.js');
       expect(result.valid).toBe(false);
     });
   });
 
   describe('valid paths', () => {
     test('accepts .olx files', () => {
-      const result = validateContentPath('demo.olx');
+      const result = validateContentPath('content/demo.olx');
       expect(result.valid).toBe(true);
       expect(result.relativePath).toBe('demo.olx');
     });
 
     test('accepts .xml files', () => {
-      const result = validateContentPath('course.xml');
+      const result = validateContentPath('content/course.xml');
       expect(result.valid).toBe(true);
     });
 
     test('accepts .md files', () => {
-      const result = validateContentPath('readme.md');
+      const result = validateContentPath('content/readme.md');
       expect(result.valid).toBe(true);
     });
 
     test('accepts .chatpeg files', () => {
-      const result = validateContentPath('dialogue.chatpeg');
+      const result = validateContentPath('content/dialogue.chatpeg');
       expect(result.valid).toBe(true);
     });
 
     test('accepts nested paths', () => {
-      const result = validateContentPath('demos/intro/lesson1.olx');
+      const result = validateContentPath('content/demos/intro/lesson1.olx');
       expect(result.valid).toBe(true);
       expect(result.relativePath).toBe('demos/intro/lesson1.olx');
     });
 
     test('normalizes paths', () => {
-      const result = validateContentPath('demos/./intro/../intro/lesson.olx');
+      const result = validateContentPath('content/demos/./intro/../intro/lesson.olx');
       expect(result.valid).toBe(true);
       expect(result.relativePath).toBe('demos/intro/lesson.olx');
     });
