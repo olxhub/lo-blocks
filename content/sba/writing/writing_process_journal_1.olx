@@ -1,0 +1,684 @@
+<!--
+---
+description: Survey exploring students' writing habits across different contexts—school, social media, creative, and everyday communication
+category: writing
+---
+-->
+<!-- content/sba/writing/writing_process_journal_1.olx -->
+<Sequential id="writing_frequency_demo" title="Writing Process Journal 1" launchable="true">
+    <Vertical id="wpj1_Introduction">
+       <Markdown>
+            # Writing Process Journal 1
+            **Frequency of Past Writing Experiences**
+            
+            The purpose of this journal assignment is to get you thinking about how often
+            you do various kinds of writing. What are your writing habits? What kinds of
+            writing do you do often -- or rarely?
+            
+            Your writing experiences have almost certainly shaped your expectations
+            about writing. So it's a good idea to take some time to reflect about
+            those experiences and use that as a springboard into developing your
+            own identity as a writer.
+            
+            The next several screens ask you to estimate how often you perform many
+            different writing tasks, either for school or outside of school.
+            
+            You will get a chance to ask the computer to compare your responses to those
+            of a typical student in this class.
+            
+            At the end, the computer will analyze your writing habits. It may be wrong,
+            so read the analysis carefully! Then you will have a chance to react to
+            what the computer wrote (and your own writing experiences, as reflected
+            in the survey questions) by writing two reflective journal entries.
+            
+       </Markdown>
+    </Vertical>
+    <SplitPanel id="wpj1_Step_1" title="Survey Questions 1-5" sizes="80,20">
+        <LeftPane>
+            <Markdown>
+                ## Questions 1-5: Writing For School
+                Indicate how often you have engaged in each of the following activities **for school**.
+            </Markdown>
+            <TabularMCQ id="wpj1_writing_frequency_1">
+              cols: Daily, Weekly, Monthly, Every Semester, Rarely or Never
+              rows: Fiction (including drama and fan fiction and graphic novels), A list (e.g. to do list or grocery list), An essay, A text message or direct message, An annotated bibliography
+            </TabularMCQ>
+            <Markdown>
+              Select one option for each row. Your selections are automatically saved.
+            </Markdown>
+        </LeftPane>
+        <RightPane>
+           <ActionButton label="Compare my responses to a typical student's">
+               <LLMAction target="wpj1_response_summary_1">
+                  BACKGROUND INFORMATION:
+                   For the first survey page that asks about writing for school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Every Semester (corresponding to 3),
+                         Rarely or Never (corresponding to 4)
+
+                   Our row headers are: 
+                         Fiction (including drama and fan fiction and graphic novels),
+                         A list (e.g. to do list or grocery list),
+                         An essay,
+                         A text message or direct message,
+                         An annotated bibliography
+                         
+                   Our data is: 
+                   <Ref id="wpj_ref1" target="wpj1_writing_frequency_1" />
+                   
+                  This data can be interpreted by mapping each number onto the column header it corresponds
+                  to and using the row headers to indicate the frequency with which the student writes in each genre
+                  for school.
+                  DIRECTIONS: 
+                   If any of the student's response data is blank, say so and stop; otherwise,
+                   in five very short summary statements using the information from the data interpretation,
+                   addressing the student as "you",
+                   compare the frequency that the student reports writing in each genre 
+                   to the exact writing frequency of a typical student, who:
+                   rarely or never writes fiction,
+                   writes lists on a weekly or daily basis, 
+                   may write essays only once a semester,
+                   writes text messages every day, 
+                   and creates an annotated bibliography once a semester or never.
+                   Do not add interpretive statements that go beyond the basic comparison.
+                   If the student's response is like that of the typical student, say so,
+                   rather than contrasting his/her response to the typical student's.
+                   Make each statement as succinct as possible.
+                   Format the statements as a bulleted list.
+           </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="wpj1_response_summary_1" />
+         </RightPane>
+    </SplitPanel>
+    <SplitPanel id="wpj1_Step_2" title="Survey Questions 6-10" sizes="80,20">
+         <LeftPane>
+           <Markdown>
+               ## Questions 6-10: Writing Outside of School
+               Indicate how often you have engaged in each of the following activities **outside of school**.
+           </Markdown>
+           <TabularMCQ id="wpj1_writing_frequency_2">
+             cols: Daily, Weekly, Monthly, Rarely, Never
+             rows: Fiction (including drama and fan fiction and graphic novels), A list (e.g. to do list or grocery list), An essay, A text message or direct message, An annotated bibliography
+           </TabularMCQ>
+           <Markdown>
+             Select one option for each row. Your selections are automatically saved.
+           </Markdown>
+        </LeftPane>
+        <RightPane>
+           <ActionButton label="Compare my responses to a typical student's">
+               <LLMAction target="wpj1_response_summary_2">
+                 BACKGROUND INFORMATION:
+                   For the first survey page that asks about writing outside of school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Rarely (corresponding to 3),
+                         Never (corresponding to 4)
+
+                   Our row headers are: 
+                         Fiction (including drama and fan fiction and graphic novels),
+                         A list (e.g. to do list or grocery list),
+                         An essay,
+                         A text message or direct message,
+                         An annotated bibliography
+                         
+                   Our data is: 
+                   <Ref id="wpj_ref2" target="wpj1_writing_frequency_2" />
+                   
+                   This data can be interpreted by mapping each number onto the column header it corresponds
+                   to and using the row headers to indicate the frequency with which the student writes in each genre
+                   outside of school.
+                 DIRECTIONS:
+                   If any of the student's response data is blank, say so and stop; otherwise,
+                   in five very short summary statements using the information from the data interpretation,
+                   addressing the student as "you",
+                   compare the frequency that the student reports writing in each genre 
+                   to the exact writing frequency of a typical student, who:
+                   never writes fiction,
+                   may write lists at any frequency, 
+                   never writes essays,
+                   writes text messages every day, 
+                   and rarely or never creates an annotated bibliography.
+                   Do not add interpretive statements that go beyond the basic comparison.
+                   If the student's response is like that of the typical student, say so,
+                   rather than contrasting his/her response to the typical student's.
+                   Make each statement as succinct as possible.
+                   Format the statements as a bulleted list.
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="wpj1_response_summary_2" />
+        </RightPane>
+    </SplitPanel>
+    <SplitPanel id="wpj1_Step_3" title="Survey Questions 11-15" sizes="80,20">
+        <LeftPane>
+           <Markdown>
+               ## Questions 11-15: Writing For School
+               Indicate how often you have engaged in each of the following activities **for school**.
+           </Markdown>
+           <TabularMCQ id="wpj1_writing_frequency_3">
+             cols: Daily, Weekly, Monthly, Every Semester, Rarely or Never
+             rows: A group chat or message board (e.g. Discord or Reddit), A podcast or vlog (video blog) post, Notes on a lecture or passage, Poetry or song lyrics, A physical note (short message) or letter
+           </TabularMCQ>
+           <Markdown>
+             Select one option for each row. Your selections are automatically saved.
+           </Markdown>
+        </LeftPane>
+        <RightPane>
+           <ActionButton label="Compare my responses to a typical student's">
+               <LLMAction target="wpj1_response_summary_3">
+                 BACKGROUND:
+                   For the first survey page that asks about writing for school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Every Semester (corresponding to 3),
+                         Rarely or Never (corresponding to 4)
+
+                   Our row headers are: 
+                         A group chat or message board (e.g. Discord or Reddit),
+                         A podcast or vlog (video blog) post, 
+                         Notes on a lecture or passage, 
+                         Poetry or song lyrics, 
+                         A physical note (short message) or letter
+                         
+                   Our data is: 
+                   <Ref id="wpj_ref3" target="wpj1_writing_frequency_3" />
+                   
+                   This data can be interpreted by mapping each number onto the column header it corresponds
+                   to and using the row headers to indicate the frequency with which the student writes in each genre
+                   outside of school.
+
+                 DIRECTIONS:
+                   If any of the student's response data is blank, say so and stop; otherwise,
+                   in five very short summary statements using the information from the data interpretation,
+                   addressing the student as "you",
+                   compare the frequency that the student reports writing in each genre 
+                   to the exact writing frequency of a typical student, who:
+                       participates in group chat daily or weekly,
+                       never produces podcasts or vlogs, 
+                       takes notes on a passage daily or weekly,
+                       never writes poetry or song lyrics, 
+                       and may write physical letters or notes at least monthly.
+                   Do not add interpretive statements that go beyond the basic comparison.
+                   If the student's response is like that of the typical student, say so,
+                   rather than contrasting his/her response to the typical student's.
+                   Make each statement as succinct as possible.
+                   Format the statements as a bulleted list.
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="wpj1_response_summary_3" />
+        </RightPane>
+    </SplitPanel>
+    <SplitPanel id="wpj1_Step_4" title="Survey Questions 16-20" sizes="80,20">
+        <LeftPane>
+           <Markdown>
+               ## Questions 16-20: Writing Outside of School 
+               Indicate how often you have engaged in each of the following activities **outside of school**.
+           </Markdown>
+           <TabularMCQ id="wpj1_writing_frequency_4">
+             cols: Daily, Weekly, Monthly, Rarely, Never
+             rows: A group chat or message board (e.g. Discord or Reddit), A podcast or vlog (video blog) post, Notes on a lecture or passage, Poetry or song lyrics, A physical note (short message) or letter
+           </TabularMCQ>
+           <Markdown>
+             Select one option for each row. Your selections are automatically saved.
+           </Markdown>
+        </LeftPane>
+        <RightPane>
+           <ActionButton label="Compare my responses to a typical student's">
+               <LLMAction target="wpj1_response_summary_4">
+                 BACKGROUND:
+                   For the first survey page that asks about writing outside of school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Rarely (corresponding to 3),
+                         Never (corresponding to 4)
+
+                   Our row headers are: 
+                         A group chat or message board (e.g. Discord or Reddit),
+                         A podcast or vlog (video blog) post, 
+                         Notes on a lecture or passage, 
+                         Poetry or song lyrics, 
+                         A physical note (short message) or letter
+                         
+                   Our data is: 
+                   <Ref id="wpj_ref4" target="wpj1_writing_frequency_4" />
+                   
+                   This data can be interpreted by mapping each number onto the column header it corresponds
+                   to and using the row headers to indicate the frequency with which the student writes in each genre
+                   outside of school.
+
+                DIRECTIONS:
+                   If any of the student's response data is blank, say so and stop; otherwise,
+                   in five very short summary statements using the information from the data interpretation,
+                   addressing the student as "you",
+                   compare the frequency that the student reports writing in each genre 
+                   to the exact writing frequency of a typical student, who:
+                   participates in group chat daily,
+                   never produces podcasts or vlogs, 
+                   never takes notes on a passage,
+                   never writes poetry or song lyrics, 
+                   and may write physical letters or notes anywhere from daily to never.
+                   If the student's response is like that of the typical student, say so,
+                   rather than contrasting his/her response to the typical student's.
+                   Make each statement as succinct as possible.
+                   Do not add interpretive statements that go beyond the basic comparison.
+                   Format the statements as a bulleted list.
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="wpj1_response_summary_4" />
+        </RightPane>
+    </SplitPanel>
+    <SplitPanel id="wpj1_Step_5" title="Survey Questions 21-25" sizes="80,20">
+        <LeftPane>
+           <Markdown>
+               ## Questions 21-25: Writing For School
+               Indicate how often you have engaged in each of the following activities **for school**.
+           </Markdown>
+           <TabularMCQ id="wpj1_writing_frequency_5">
+             cols: Daily, Weekly, Monthly, Every Semester, Rarely or Never
+             rows: An email, A research paper, A chat with an AI chatbot, A blog entry, A post on social media
+           </TabularMCQ>
+           <Markdown>
+             Select one option for each row. Your selections are automatically saved.
+           </Markdown>
+        </LeftPane>
+        <RightPane>
+           <ActionButton label="Compare my responses to a typical student's">
+               <LLMAction target="wpj1_response_summary_5">
+                 BACKGROUND:
+                   For the first survey page that asks about writing for school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Once a Semester (corresponding to 3),
+                         Rarely or Never (corresponding to 4)
+
+                   Our row headers are: 
+                         An email, 
+                         A research paper,
+                         A chat with an AI chatbot, 
+                         A blog entry, 
+                         A post on social media
+                         
+                   Our data is: 
+                   <Ref id="wpj_ref5" target="wpj1_writing_frequency_5" />
+                   
+                   This data can be interpreted by mapping each number onto the column header it corresponds
+                   to and using the row headers to indicate the frequency with which the student writes in each genre
+                   outside of school.
+
+                 DIRECTIONS:
+                   If any of the student's response data is blank, say so and stop; otherwise,
+                   in five very short summary statements using the information from the data interpretation,
+                   addressing the student as "you",
+                   compare the frequency that the student reports writing in each genre 
+                   to the exact writing frequency of a typical student, who:
+                         writes an email weekly or daily, 
+                         writes a research paper once a semester,
+                         may have a chat with an AI chatbot any frequency from daily to never, 
+                         rarely or never writes a blog entry, 
+                         and may make a post on social media at any frequency from daily to never.
+                   If the student's response is like that of the typical student, say so,
+                   rather than contrasting his/her response to the typical student's.
+                   Make each statement as succinct as possible.
+                   Do not add interpretive statements that go beyond the basic comparison.
+                   Format the statements as a bulleted list.
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="wpj1_response_summary_5" />
+        </RightPane>
+    </SplitPanel>
+    <SplitPanel id="wpj1_Step_6" title="Survey Questions 26-30" sizes="80,20">
+        <LeftPane>
+           <Markdown>
+               ## Questions 26-30: Writing Outside of School
+               Indicate how often you have engaged in each of the following activities **outside of school**.
+           </Markdown>
+           <TabularMCQ id="wpj1_writing_frequency_6">
+             cols: Daily, Weekly, Monthly, Rarely, Never
+             rows: An email, A research paper, A chat with an AI chatbot, A blog entry, A post on social media
+           </TabularMCQ>
+           <Markdown>
+             Select one option for each row. Your selections are automatically saved.
+           </Markdown>
+        </LeftPane>
+        <RightPane>
+           <ActionButton label="Compare my responses to a typical student's">
+               <LLMAction target="wpj1_response_summary_6">
+                 BACKGROUND:
+                   For the first survey page that asks about writing outside of school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Rarely (corresponding to 3),
+                         Never (corresponding to 4)
+
+                   Our row headers are: 
+                         An email, 
+                         A research paper,
+                         A chat with an AI chatbot, 
+                         A blog entry, 
+                         A post on social media
+                         
+                   Our data is: 
+                   <Ref id="wpj_ref6" target="wpj1_writing_frequency_6" />
+                   
+                   This data can be interpreted by mapping each number onto the column header it corresponds
+                   to and using the row headers to indicate the frequency with which the student writes in each genre
+                   outside of school.
+
+                DIRECTIONS:
+                   If any of the student's response data is blank, say so and stop; otherwise,
+                   in five very short summary statements using the information from the data interpretation,
+                   addressing the student as "you",
+                   compare the frequency that the student reports writing in each genre 
+                   to the exact writing frequency of a typical student, who:
+                         writes an email weekly or daily, 
+                         never writes a research paper,
+                         may have a chat with an AI chatbot at any frequency from daily to never, 
+                         rarely or never writes a blog entry, 
+                         and may make a post on social media daily or weekly.
+                   If the student's response is like that of the typical student, say so,
+                   rather than contrasting his/her response to the typical student's.
+                   Make each statement as succinct as possible.
+                   Do not add interpretive statements that go beyond the basic comparison.
+                   Format the statements as a bulleted list.
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="wpj1_response_summary_6" />
+        </RightPane>
+    </SplitPanel>
+    <SplitPanel id="wpj1_Step_7" title="Survey Questions 31-35" sizes="80,20">
+        <LeftPane>
+           <Markdown>
+               ## Questions 31-35: Writing For School
+               Indicate how often you have engaged in each of the following activities **for school**.
+           </Markdown>
+           <TabularMCQ id="wpj1_writing_frequency_7">
+             cols: Daily, Weekly, Monthly, Every Semester, Rarely or Never
+             rows: A Powerpoint or other multimedia presentation, A summary or review, A report, A comment or response on social media, Other writing activities not listed here or earlier
+           </TabularMCQ>
+           <Markdown>
+             Select one option for each row. Your selections are automatically saved.
+             
+             **Other Kinds of Writing I Do for School.**
+           </Markdown>
+           <TextArea id="wpj1_other_for_school" rows="1" placeholder="Enter your response here." />
+        </LeftPane>
+        <RightPane>
+           <ActionButton label="Compare my responses to a typical student's">
+               <LLMAction target="wpj1_response_summary_7">
+                 BACKGROUND:
+                   For the first survey page that asks about writing for school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Once a Semester (corresponding to 3),
+                         Rarely or Never (corresponding to 4)
+
+                   Our row headers are: 
+                         A Powerpoint or other multimedia presentation,
+                         A summary or review,
+                         A report,
+                         A comment or response on social media,
+                         Other writing activities not listed here or on previous screens                         
+                   Our data is: 
+                   <Ref id="wpj_ref7" target="wpj1_writing_frequency_7" />
+                   
+                   This data can be interpreted by mapping each number onto the column header it corresponds
+                   to and using the row headers to indicate the frequency with which the student writes in each genre
+                   outside of school.
+
+                 DIRECTIONS:
+                   If any of the student's response data is blank, say so and stop; otherwise,
+                   in four very short summary statements using the information from the data interpretation,
+                   addressing the student as "you",
+                   compare the frequency that the student reports writing in each genre 
+                   to the exact writing frequency of a typical student, who:
+                         writes a Powerpoint or other multimedia presentation once a semester or never, 
+                         writes a summary or review weekly,
+                         writes a report once a semester or never, 
+                         and rarely or never writes a comment or response on social media.
+                   If the student's response is like that of the typical student, say so,
+                   rather than contrasting his/her response to the typical student's.
+                   Make each statement as succinct as possible.
+                   Do not add interpretive statements that go beyond the basic comparison.
+                   Format the statements as a bulleted list.
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="wpj1_response_summary_7" />
+        </RightPane>
+    </SplitPanel>
+    <SplitPanel id="wpj1_Step_8" title="Survey Questions 36-40" sizes="80,20">
+        <LeftPane>
+           <Markdown>
+               ## Questions 36-40: Writing Outside of School
+               Indicate how often you have engaged in each of the following activities **outside of school**.
+           </Markdown>
+           <TabularMCQ id="wpj1_writing_frequency_8">
+             cols: Daily, Weekly, Monthly, Rarely, Never
+             rows: A Powerpoint or other multimedia presentation, A summary or review, A report, A comment or response on social media, Other writing activities not listed here or on previous screens
+             </TabularMCQ>
+           <Markdown>
+             Select one option for each row. Your selections are automatically saved.
+             
+             **Other Kinds of Writing I Do for School.**
+           </Markdown>
+           <TextArea id="owpj1_ther_outside_school" rows="1" placeholder="Enter your response here." />
+        </LeftPane>
+        <RightPane>
+           <ActionButton label="Compare my responses to a typical student's">
+               <LLMAction target="wpj1_response_summary_8">
+                   For the first survey page that asks about writing outside of school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Rarely (corresponding to 3),
+                         Never (corresponding to 4)
+
+                   Our row headers are: 
+                         A Powerpoint or other multimedia presentation,
+                         A summary or review,
+                         A report,
+                         A comment or response on social media,
+                         Other writing activities not listed here or on previous screens                         
+                         
+                   Our data is: 
+                   <Ref id="wpj_ref8" target="wpj1_writing_frequency_8" />
+                   
+                   This data can be interpreted by mapping each number onto the column header it corresponds
+                   to and using the row headers to indicate the frequency with which the student writes in each genre
+                   outside of school.
+
+                 DIRECTIONS:
+                   If any of the student's response data is blank, say so and stop; otherwise,
+                   in four very short summary statements using the information from the data interpretation,
+                   addressing the student as "you",
+                   compare the frequency that the student reports writing in each genre 
+                   to the exact writing frequency of a typical student, who:
+                         rarely or never writes a Powerpoint or other multimedia presentation, 
+                         never writes a summary or review,
+                         never writes a report, 
+                         and writes a comments or responses on social media daily.
+                   If the student's response is like that of the typical student, say so,
+                   rather than contrasting his/her response to the typical student's.
+                   Make each statement as succinct as possible.
+                   Do not add interpretive statements that go beyond the basic comparison.
+                   Format the statements as a bulleted list.
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="wpj1_response_summary_8" />
+        </RightPane>
+    </SplitPanel>
+    <Vertical id="wpj1_Step_9">
+          <Markdown>
+              Before you go on, click on the button that says "Analyze My Writing Habits"
+              and read how the computer describes you as a writer. Think about it. Do
+              you agree or disagree with anything the computer said. Was there anything
+              you learned about yourself that surprised you?
+          </Markdown>
+          <ActionButton label="Analyze My Writing Habits">
+              <LLMAction target="wpj1_writing_habits_analysis">
+                  BACKGROUND INFORMATION:
+                   For the survey pages that ask about writing for school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Every Semester (corresponding to 3),
+                         Rarely or Never (corresponding to 4)
+
+                   Our row headers are: 
+                         Fiction (including drama and fan fiction and graphic novels),
+                         A list (e.g. to do list or grocery list),
+                         An essay,
+                         A text message or direct message,
+                         An annotated bibliography
+                         A group chat or message board (e.g. Discord or Reddit),
+                         A podcast or vlog (video blog) post, 
+                         Notes on a lecture or passage, 
+                         Poetry or song lyrics, 
+                         A physical note (short message) or letter
+                         An email, 
+                         A research paper,
+                         A chat with an AI chatbot, 
+                         A blog entry, 
+                         A post on social media
+                         A Powerpoint or other multimedia presentation,
+                         A summary or review,
+                         A report,
+                         A comment or response on social media,
+                         Other writing activities not listed here or on previous screens                          
+                   Our data that addresses writing for school includes: 
+                   <Ref id="wpj_ref9" target="wpj1_writing_frequency_1" />                 
+                   <Ref id="wpj_ref10" target="wpj1_writing_frequency_3" />
+                   <Ref id="wpj_ref11" target="wpj1_writing_frequency_5" />
+                   <Ref id="wpj_ref12" target="wpj1_writing_frequency_7" />
+                   
+                   For the survey pages that ask about writing outside of school,
+                   Our column headers are: 
+                         Daily (corresponding to 0),
+                         Weekly (corresponding to 1),
+                         Monthly (corresponding to 2),
+                         Rarely (corresponding to 3),
+                         Never (corresponding to 4)
+
+                   Our row headers include: 
+                         Fiction (including drama and fan fiction and graphic novels),
+                         A list (e.g. to do list or grocery list),
+                         An essay,
+                         A text message or direct message,
+                         An annotated bibliography
+                         A group chat or message board (e.g. Discord or Reddit),
+                         A podcast or vlog (video blog) post, 
+                         Notes on a lecture or passage, 
+                         Poetry or song lyrics, 
+                         A physical note (short message) or letter
+                         An email, 
+                         A research paper,
+                         A chat with an AI chatbot, 
+                         A blog entry, 
+                         A post on social media
+                         A Powerpoint or other multimedia presentation,
+                         A summary or review,
+                         A report,
+                         A comment or response on social media,
+                         Other writing activities not listed here or on previous screens                          
+                         
+                   Our data that addresses writing outside of school includes: 
+                   <Ref id="wpj_ref13" target="wpj1_writing_frequency_2" />                 
+                   <Ref id="wpj_ref14" target="wpj1_writing_frequency_4" />
+                   <Ref id="wpj_ref15" target="wpj1_writing_frequency_6" />
+                   <Ref id="wpj_ref16" target="wpj1_writing_frequency_8" />
+ 
+                  All of the data can be interpreted by mapping each number onto the column header it corresponds
+                  to and using the corresponding row headers to indicate the frequency with which 
+                  the student writes in each genre.
+                  
+                  The student's writing can be analyzed along the following dimensions:
+                  1. Academic writing tasks for school purposes, including essays, reports,
+                      summaries, notes on a lecture or passage, Powerpoints or other multimedia
+                      presentations, letters, research papers, and annotated bibliographies,
+                      and chatbot conversations.
+                  2. Academic writing tasks undertaken outside of school, including essays, reports,
+                      summaries, notes on a lecture or passage, Powerpoints or other multimedia
+                      presentations, letters, research papers, and annotated bibliographies,
+                      and chatbot conversations.
+                  3. Creative writing tasks like fiction, poetry or song lyrics, blogs, podcasts or vlogs,
+                      and multimedia presentations done outside of school.
+                  4. Everyday social media activities, including emails, posts and comments to
+                      social media sites when not required for school, text messages/direct messages,
+                      blogs, podcasts, and/or vlogs when not required for school.               
+                  5. Social media activities done for school purposes, including posts and comments to
+                      social media sites when not required for school, and text messages/direct messages,
+                      blogs, podcasts, and/or vlogs when not required for school.
+                  
+                  DIRECTIONS: 
+                    If the student's response data is missing, note that and say nothing more;
+                    otherwise, using the student's response data, describe succinctly in no more
+                    than one short paragraph how often the student undertakes writing tasks
+                    along each of the major dimensions (academic writing for school, academic
+                    writing outside school, creative writing, everyday social media activities,
+                    and social media activities done for school), providing an interpretation
+                    of the student's overall pattern of writing behavior in terms of the
+                    student's likely overall writing identity.
+               </LLMAction>
+           </ActionButton>
+           <LLMFeedback id="wpj1_writing_habits_analysis" />
+    </Vertical>
+    <SplitPanel id="wpj1_Step_10" title="What I Agree with and Why" sizes="50,50">
+         <LeftPane>
+             <Markdown>
+                 ## What the Computer Said
+             </Markdown>
+             <Ref id="wpj1_ref17" target="wpj1_writing_habits_analysis" />
+         </LeftPane>
+         <RightPane>
+             <Markdown>
+                 ## What I Agree With and Why
+                 
+                 Reread the computer's analysis of your writing habits based on your
+                 responses. Choose one thing the computer says that you agree with
+                 and provide an example from your writing experience to explain why you agree.
+             </Markdown>
+             <TextArea id="wpj1_agree" rows="6" placeholder="Enter your response here." />
+        </RightPane>
+    </SplitPanel>
+    <SplitPanel id="wpj1_Step_11" title="What I Disagree with and Why" sizes="50,50">
+        <LeftPane>
+             <Markdown>
+                 ## What the Computer Said            
+             </Markdown>
+             <Ref id="wpj_ref18" target="wpj1_writing_habits_analysis" />
+        </LeftPane>
+        <RightPane>
+            <Markdown>
+                 ## What I Disagree With (Or was Surprised By) and Why
+                
+                 Now choose one item from the list that surprises you or that you disagree with
+                 and provide an explanation from your writing experiences to explain why the
+                 statement surprises you or why you disagree with it.
+            </Markdown>
+            <TextArea id="wpj1_disagree" rows="6" placeholder="Enter your response here." />
+        </RightPane>
+    </SplitPanel>
+    <Vertical id="wpj1_last_screen">
+        <Markdown>
+            **If you are done, please click on the checkbox below.**
+        </Markdown>
+        <CheckboxInput id="wpj1_complete">
+            <Key>I have finished this assignment</Key>
+        </CheckboxInput>
+    </Vertical>
+</Sequential>
