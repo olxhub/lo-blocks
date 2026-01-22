@@ -21,7 +21,7 @@ category: writing
         <LeftPane>
             <Markdown>
                 ## Questions 1-5
-                Indicate how strongly you agree or disagree with thye following statements.
+                Indicate how strongly you agree or disagree with the following statements.
             </Markdown>
             <TabularMCQ id="ws1_affect_1">
               cols: Strongly Agree, Agree, Disagree, Strongly Disagree
