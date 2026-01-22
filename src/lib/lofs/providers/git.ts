@@ -1,4 +1,4 @@
-// src/lib/storage/providers/git.ts
+// s../lib/lofs/providers/git.ts
 //
 // Git storage provider - version-controlled content access (stub).
 //

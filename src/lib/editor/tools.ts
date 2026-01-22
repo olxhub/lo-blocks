@@ -18,8 +18,8 @@
 
 import { parseOLX } from '@/lib/content/parseOLX';
 import { isPEGContentExtension, getParserForExtension } from '@/generated/parserRegistry';
-import { NetworkStorageProvider } from '@/lib/storage/providers/network';
-import type { StorageProvider } from '@/lib/storage/types';
+import { NetworkStorageProvider } from '@/lib/lofs/providers/network';
+import type { StorageProvider } from '@/lib/lofs/types';
 
 // Default storage provider for client-side use
 const defaultStorage = new NetworkStorageProvider();

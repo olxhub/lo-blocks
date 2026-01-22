@@ -4,7 +4,7 @@
 // Render tests are covered by demo-render.test.js which tests all .olx files.
 //
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
-import { FileStorageProvider } from '@/lib/storage/providers/file';
+import { FileStorageProvider } from '@/lib/lofs/providers/file';
 
 it('wires inputs and graders with explicit targeting', async () => {
   const { idMap } = await syncContentFromStorage(new FileStorageProvider('src/components/blocks/CapaProblem'));

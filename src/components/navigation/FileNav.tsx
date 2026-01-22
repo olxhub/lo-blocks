@@ -2,7 +2,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { NetworkStorageProvider, type UriNode } from '@/lib/storage';
+import { NetworkStorageProvider, type UriNode } from '@/lib/lofs';
 
 export default function FileNav() {
   const [tree, setTree] = useState<UriNode | null>(null);

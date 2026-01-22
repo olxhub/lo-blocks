@@ -3,7 +3,7 @@
 
 import React, { ReactNode, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { parseProvenance, formatProvenance } from '@/lib/storage/provenance';
+import { parseProvenance, formatProvenance } from '@/lib/lofs/provenance';
 import { getExtension } from '@/lib/util/fileTypes';
 import { useReduxState, settings } from '@/lib/state';
 

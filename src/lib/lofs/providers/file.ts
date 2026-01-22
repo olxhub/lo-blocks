@@ -1,4 +1,4 @@
-// src/lib/storage/providers/file.ts
+// s../lib/lofs/providers/file.ts
 //
 // File storage provider - local filesystem access for Learning Observer.
 //

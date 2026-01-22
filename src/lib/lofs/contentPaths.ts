@@ -1,4 +1,4 @@
-// src/lib/storage/contentPaths.ts
+// s../lib/lofs/contentPaths.ts
 //
 // Server-side utilities for content path validation and resolution.
 //

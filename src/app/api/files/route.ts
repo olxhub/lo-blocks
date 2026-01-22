@@ -5,7 +5,7 @@
 // GET /api/files           - Returns file tree
 // GET /api/files?pattern=  - Returns files matching glob pattern
 //
-import { FileStorageProvider } from '@/lib/storage/providers/file';
+import { FileStorageProvider } from '@/lib/lofs/providers/file';
 
 const provider = new FileStorageProvider('./content');
 

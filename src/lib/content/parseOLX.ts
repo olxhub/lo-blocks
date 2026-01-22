@@ -24,7 +24,7 @@ import { transformTagName } from '@/lib/content/xmlTransforms';
 
 import * as parsers from '@/lib/content/parsers';
 import { Provenance, IdMap, OLXLoadingError, OlxReference, OlxKey } from '@/lib/types';
-import { formatProvenanceList } from '@/lib/storage/provenance';
+import { formatProvenanceList } from '@/lib/lofs/provenance';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { OLXMetadataSchema, type OLXMetadata } from '@/lib/content/metadata';
 

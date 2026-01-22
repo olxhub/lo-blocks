@@ -6,7 +6,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import { resolveSafeReadPath } from '@/lib/storage/providers/file';
+import { resolveSafeReadPath } from '@/lib/lofs/providers/file';
 
 export async function GET(request, { params }) {
   const { block: blockName } = await params;

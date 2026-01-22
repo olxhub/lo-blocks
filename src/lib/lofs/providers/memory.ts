@@ -1,4 +1,4 @@
-// src/lib/storage/providers/memory.ts
+// s../lib/lofs/providers/memory.ts
 //
 // In-memory storage provider - virtual filesystem for testing and inline content.
 //

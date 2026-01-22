@@ -2,8 +2,8 @@
 // src/lib/content/loadContentTree.test.js
 import fs from 'fs/promises';
 import path from 'path';
-import { fileTypes } from '../storage';
-import { FileStorageProvider } from '../storage/providers/file';
+import { fileTypes } from '../lofs';
+import { FileStorageProvider } from '../lofs/providers/file';
 import { syncContentFromStorage } from './syncContentFromStorage';
 
 it('handles added, unchanged, changed, and deleted files via filesystem mutation', async () => {

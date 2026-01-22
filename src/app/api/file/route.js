@@ -1,7 +1,7 @@
 // src/app/api/file/route.js
-import { FileStorageProvider } from '@/lib/storage/providers/file';
-import { VersionConflictError } from '@/lib/storage/types';
-import { validateContentPath } from '@/lib/storage/contentPaths';
+import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { VersionConflictError } from '@/lib/lofs/types';
+import { validateContentPath } from '@/lib/lofs/contentPaths';
 
 const provider = new FileStorageProvider('./content');
 

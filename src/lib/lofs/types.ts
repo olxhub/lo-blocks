@@ -1,4 +1,4 @@
-// src/lib/storage/types.ts
+// s../lib/lofs/types.ts
 //
 // Type definitions for the storage abstraction layer.
 //

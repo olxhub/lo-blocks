@@ -10,9 +10,9 @@ import RenderOLX from './RenderOLX';
 import PEGPreviewPane from './PEGPreviewPane';
 import RenderMarkdown from './RenderMarkdown';
 import { isPEGFile, isMarkdownFile } from '@/lib/util/fileTypes';
-import { NetworkStorageProvider } from '@/lib/storage';
+import { NetworkStorageProvider } from '@/lib/lofs';
 import type { IdMap } from '@/lib/types';
-import type { StorageProvider } from '@/lib/storage/types';
+import type { StorageProvider } from '@/lib/lofs/types';
 
 export interface PreviewPaneProps {
   /** File path - used for file type detection and provenance */

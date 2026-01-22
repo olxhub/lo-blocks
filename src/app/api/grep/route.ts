@@ -5,7 +5,7 @@
 // GET /api/grep?pattern=    - Search file contents for pattern
 // GET /api/grep?pattern=&path=&include=&limit=  - With options
 //
-import { FileStorageProvider } from '@/lib/storage/providers/file';
+import { FileStorageProvider } from '@/lib/lofs/providers/file';
 
 const provider = new FileStorageProvider('./content');
 
