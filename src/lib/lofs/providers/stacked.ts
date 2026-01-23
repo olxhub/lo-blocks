@@ -269,4 +269,14 @@ export class StackedStorageProvider implements StorageProvider {
 
     return results;
   }
+
+  // Delete from the first provider
+  async delete(filePath: string): Promise<void> {
+    return this.providers[0].delete(filePath);
+  }
+
+  // Rename in the first provider
+  async rename(oldPath: string, newPath: string): Promise<void> {
+    return this.providers[0].rename(oldPath, newPath);
+  }
 }

@@ -160,4 +160,12 @@ export class InMemoryStorageProvider implements StorageProvider {
 
     return matches;
   }
+
+  async delete(): Promise<void> {
+    throw new Error('InMemoryStorageProvider is read-only');
+  }
+
+  async rename(): Promise<void> {
+    throw new Error('InMemoryStorageProvider is read-only');
+  }
 }

@@ -61,4 +61,12 @@ export class GitStorageProvider implements StorageProvider {
   async grep(_pattern: string, _options?: GrepOptions): Promise<GrepMatch[]> {
     throw new Error('git storage not implemented');
   }
+
+  async delete(_path: string): Promise<void> {
+    throw new Error('git storage not implemented');
+  }
+
+  async rename(_oldPath: string, _newPath: string): Promise<void> {
+    throw new Error('git storage not implemented');
+  }
 }
