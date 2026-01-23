@@ -199,11 +199,11 @@ export function useChat(params = {}) {
     // TODO: convertToText(attachment.content) once conversion abstraction is implemented
     //       (e.g., pptx2text, pdf2text). For now, assume content is already text.
     //       Then: uploadToS3orSimilarStore({ key: hash, text: convertedText, name, body, timestamp })
-    const processedAttachments = attachments.map(a => ({
+    const processedAttachments = await Promise.all(attachments.map(async a => ({
       name: a.name,
-      hash: hashContent(a.content),
+      hash: await hashContent(a.content),
       body: a.content,  // To be replaced with convertedText once conversion is implemented
-    }));
+    })));
 
     // Build display text (what user sees in chat - strip body)
     const attachmentSuffix = processedAttachments.length > 0
