@@ -1,14 +1,15 @@
-// src/lib/storage/contentPaths.ts
+// src/lib/lofs/contentPaths.ts
 //
 // Server-side utilities for content path validation and resolution.
 //
-// Centralizes path security checks used by API routes and storage providers.
-// Ensures paths stay within the content directory and have valid extensions.
+// Validates LofsPath (storage layer paths like "content/demos/foo.olx")
+// and converts them to FileSystemPath for safe filesystem access.
 //
 // NOTE: Server-only module (uses Node.js path). Do not import from client code.
 //
 import path from 'path';
 import { extensionsWithDots, CATEGORY } from '@/lib/util/fileTypes';
+import type { LofsPath, FileSystemPath, OlxRelativePath } from '@/lib/types';
 
 // Base directory for content - resolved once at module load
 const CONTENT_BASE = path.resolve('./content');
@@ -18,23 +19,47 @@ const ALLOWED_EXTENSIONS = extensionsWithDots(CATEGORY.content); // ['.olx', '.x
 
 export interface PathValidation {
   valid: boolean;
-  relativePath?: string;
+  relativePath?: string;  // FileSystemPath relative to content base (when valid: true)
   error?: string;
 }
 
 /**
- * Validate and normalize a relative content path.
+ * Validate a LofsPath and extract the FileSystemPath relative to content base.
+ *
+ * LofsPath must include the "content/" prefix to enforce LOFS path structure.
+ * Extracts and validates the relative path within the content directory.
  *
  * Checks:
- * 1. Path doesn't escape content directory (no ..)
- * 2. Path has a valid extension
+ * 1. Path starts with "content/" prefix (LOFS structure requirement)
+ * 2. Relative path doesn't escape content directory (no ..)
+ * 3. File has a valid extension
  *
- * @param relPath - Relative path within content directory
- * @returns Validation result with normalized path or error message
+ * @param lofsPath - Storage path including "content/" prefix (e.g., "content/demos/foo.olx")
+ * @returns PathValidation with extracted FileSystemPath relative to content base, or error
+ * @example
+ * validateContentPath("content/demos/foo.olx")
+ * // => { valid: true, relativePath: "demos/foo.olx" }
  */
-export function validateContentPath(relPath: string): PathValidation {
-  if (!relPath) {
+export function validateContentPath(lofsPath: string): PathValidation {
+  if (!lofsPath) {
     return { valid: false, error: 'Missing path' };
+  }
+
+  const CONTENT_PREFIX = 'content/';
+
+  // Enforce content/ prefix
+  if (!lofsPath.startsWith(CONTENT_PREFIX)) {
+    return {
+      valid: false,
+      error: `Path must start with '${CONTENT_PREFIX}' prefix (received: '${lofsPath}')`
+    };
+  }
+
+  // Extract relative path (remove "content/" prefix)
+  const relPath = lofsPath.slice(CONTENT_PREFIX.length);
+
+  if (!relPath) {
+    return { valid: false, error: "Path cannot be empty after 'content/' prefix" };
   }
 
   // Normalize and check for directory traversal

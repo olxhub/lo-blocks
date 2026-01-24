@@ -71,6 +71,18 @@ export type ReduxStateKey = string & { __brand: 'ReduxStateKey' }; // state key 
 export type ReactKey = string & { __brand: 'ReactKey' };          // React reconciliation
 export type HtmlId = string & { __brand: 'HtmlId' };              // DOM element ID
 
+// Path Types (Branded) - Storage Layer Transformation Pipeline
+// See docs/architecture/lofs.md for documentation.
+//
+// Transformation pipeline:
+//   OlxRelativePath (as in XML) → LofsPath (storage layer)
+//                                    ↓ (filesystem provider only)
+//                                    → FileSystemPath (actual filesystem location)
+//
+export type OlxRelativePath = string & { __brand: 'OlxRelativePath' };  // "demos/foo.olx", "../bar/img.png"
+export type LofsPath = string & { __brand: 'LofsPath' };                // "content/demos/foo.olx", "runtime/chat/msg.txt"
+export type FileSystemPath = string & { __brand: 'FileSystemPath' };    // "./content/demos/foo.olx" or absolute path
+
 
 /** Primary representation for provenance references */
 export type Provenance = ProvenanceURI[];

@@ -1,4 +1,4 @@
-// src/lib/storage/providers/file.ts
+// src/lib/lofs/providers/file.ts
 //
 // File storage provider - local filesystem access for Learning Observer.
 //
@@ -7,6 +7,7 @@
 // sandboxing to prevent path traversal attacks.
 //
 import path from 'path';
+import { glob as globLib } from 'glob';
 import pegExts from '../../../generated/pegExtensions.json' assert { type: 'json' };
 import type { ProvenanceURI } from '../../types';
 import {
@@ -17,9 +18,23 @@ import {
   type UriNode,
   type ReadResult,
   type WriteOptions,
+  type GrepOptions,
+  type GrepMatch,
   VersionConflictError,
 } from '../types';
 import { fileTypes } from '../fileTypes';
+import type { JSONValue } from '../../types';
+
+/**
+ * FileStorageProvider-specific metadata structure.
+ * Extends the generic ProviderMetadata type with filesystem-specific fields.
+ *
+ * Note: fs.Stats is a class instance, but all its properties are JSON-serializable
+ * (numbers, strings, booleans). We cast to JSONValue when storing in _metadata.
+ */
+interface FileMetadata {
+  stat: any; // fs.Stats - properties are all numbers/strings
+}
 
 /*
  * =============================================================================
@@ -366,15 +381,16 @@ export class FileStorageProvider implements StorageProvider {
           found[id] = true;
           const prev = previous[id];
           if (prev) {
-            if (fileChanged(prev._metadata.stat, stat)) {
+            const prevMetadata = prev._metadata as unknown as FileMetadata;
+            if (fileChanged(prevMetadata.stat, stat)) {
               const content = await fs.readFile(fullPath, 'utf-8');
-              changed[id] = { id, type, _metadata: { stat }, content };
+              changed[id] = { id, type, _metadata: { stat } as unknown as JSONValue, content };
             } else {
               unchanged[id] = prev;
             }
           } else {
             const content = await fs.readFile(fullPath, 'utf-8');
-            added[id] = { id, type, _metadata: { stat }, content };
+            added[id] = { id, type, _metadata: { stat } as unknown as JSONValue, content };
           }
         }
       }
@@ -502,5 +518,76 @@ export class FileStorageProvider implements StorageProvider {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Find files matching a glob pattern.
+   * Uses the 'glob' package for pattern matching.
+   */
+  async glob(pattern: string, basePath?: string): Promise<string[]> {
+    const searchDir = basePath
+      ? path.join(this.baseDir, basePath)
+      : this.baseDir;
+
+    // Validate the search directory is within allowed paths
+    await resolveSafeReadPath(this.baseDir, basePath || '.');
+
+    const matches = await globLib(pattern, {
+      cwd: searchDir,
+      nodir: true,  // Only return files, not directories
+      dot: false,   // Don't match dotfiles
+    });
+
+    // Return paths relative to baseDir (not searchDir)
+    return matches.map(m => basePath ? path.join(basePath, m) : m);
+  }
+
+  /**
+   * Search file contents for a pattern.
+   * Returns matching lines with file path and line number.
+   */
+  async grep(pattern: string, options: GrepOptions = {}): Promise<GrepMatch[]> {
+    const { basePath, include, limit = 1000 } = options;
+    const fs = await import('fs/promises');
+
+    // First, get the list of files to search
+    const filePattern = include || '**/*';
+    const files = await this.glob(filePattern, basePath);
+
+    // Content file extensions we should search
+    const searchableExts = ['.xml', '.olx', '.md', '.ts', '.tsx', '.js', '.jsx', '.json', ...pegExts.map(e => `.${e}`)];
+
+    const regex = new RegExp(pattern);
+    const matches: GrepMatch[] = [];
+
+    for (const filePath of files) {
+      // Skip non-searchable files
+      const ext = path.extname(filePath).toLowerCase();
+      if (!searchableExts.includes(ext)) continue;
+
+      try {
+        const fullPath = await resolveSafeReadPath(this.baseDir, filePath);
+        const content = await fs.readFile(fullPath, 'utf-8');
+        const lines = content.split('\n');
+
+        for (let i = 0; i < lines.length; i++) {
+          if (regex.test(lines[i])) {
+            matches.push({
+              path: filePath,
+              line: i + 1,  // 1-indexed
+              content: lines[i].trim(),
+            });
+
+            if (matches.length >= limit) {
+              return matches;
+            }
+          }
+        }
+      } catch {
+        // Skip files that can't be read
+      }
+    }
+
+    return matches;
   }
 }

@@ -13,8 +13,8 @@
 // 4. Parse new/changed files and update indexes
 //
 
-import { StorageProvider, fileTypes } from '@/lib/storage';
-import { FileStorageProvider } from '@/lib/storage/providers/file';
+import { StorageProvider, fileTypes } from '@/lib/lofs';
+import { FileStorageProvider } from '@/lib/lofs/providers/file';
 import type { ProvenanceURI, OLXLoadingError } from '@/lib/types';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { copyImagesToPublic } from '@/lib/content/imageSync';

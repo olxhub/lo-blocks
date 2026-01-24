@@ -1,6 +1,6 @@
 // @vitest-environment node
 // src/lib/types.test.ts
-import { parseProvenance, formatProvenance, parseProvenanceList, formatProvenanceList } from './storage/provenance';
+import { parseProvenance, formatProvenance, parseProvenanceList, formatProvenanceList } from './lofs/provenance';
 
 describe('provenance helpers', () => {
   it('parses file URIs with and without query', () => {

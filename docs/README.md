@@ -600,22 +600,6 @@ Short story:
 
 Most of the other typescript is to prevent errors. We don't proactively tag types.
 
-# Test Philosophy
-
-We try to have reasonable unit tests and integration tests. "Reasonable" does not mean "comprehensive." In many projects, test infrastructure becomes heavyweight, introduces subtle couplings, and contorts architecture. We want to avoid that.
-
-* We like tests to act as documentation. Overly-complex ones don't do that. Tests should be understandable.
-* We favor short, simple, readable unit tests where it's convenient to have them.
-* One simple multidimensional test is better than five unidimensional ones.
-* We don't want to introduce extensive stubbing or test fixtures, since those often break abstraction barriers and introduce unnecessary coupling between otherwise-independent pieces of code.
-* We do large-scale automated end-to-end test suites (e.g. running all OLX from documentation through render+parse)
-* The reactive nature of the code renders itself well to replay tests. This infrastructure is not built, but reducer + event stream + checking aspects of final state is very, very testable.
-* We like smoke tests (see if a page renders without a 500 error)
-
-Our experience is that most failure lead to exceptions, crashes, and similar grand failures, so simple end-to-end smoke tests (does every page load?) tend to do most of the work for a minority of the effort and coupling introduced by more comprehensive tests.
-
-What we are very careful to do, however, is to architect for testability of modules. We rely on things like modular reducers, well-defined data formats, and a declarative, functional programming style.
-
 Tools
 -----
 
@@ -833,9 +817,42 @@ The rationale here is we can point things by ID. If an instructor
 points an action to an OLX ID, the system know to grab or push data to
 `id.[value]`.
 
-Clean code
-----------
+# Code Philosophy
 
-The general philosophy is to always leave the codebase cleaner than you found it. A PR doesn't need to be perfect, but it should improve code quality. If there's a pre-existing issue, fix it.
+* Always leave the codebase cleaner than you found it. A PR doesn't need to be perfect, but it should improve code quality. If there's a pre-existing issue, fix it. Test flakey? TSC issue? Fix it.
+* Never paper over bugs. If lint is failing, fix the issue, don't leave a pragma. If something isn't working, don't wrap it. No shortcuts.
+* Shortcuts are okay as scaffolding during a refactor or new development, but must be documented as such. HACK, TODO, and similar comments.
+* Fail fast. Think many times before having failovers like `?.` We should fail as early as possible.
+* Error handling focuses on **understandable, friendly messages** -- not robustness to errors. If OLX has a bug, we'd like to deliver a message a teacher can understand.
 
-Never paper over bugs.
+## Vertical Integration
+
+Traditional web apps are horizontally-integrated. In redux, we have files for `events`, `actions`, `reducers`, etc. In `next.js`, we have logic in `/lib`, associated UX in `/components/`, and pages in `/app/`. This is the **opposite** of what we want in this codebase.
+
+The code is structured, as much as possible, in **atomic, independent, self-contained apps**. The split between e.g. business logic and UX is **within an app** (be that a block, a major page, or otherwise). `redux` is organized around related events, actions, and reducers. Etc.
+
+* `/lib/` forms a runtime for those apps. It's for generic system-wide infrastructure, as well as common utilities. There would never be a directory in `/lib/` specific to an "app".
+* `/components/` are for generic, shared components for DRY and common look-and-feel. Components specific to an "app" (be that a block or a page in /app/) belong with the app.
+
+There is no hard-and-fast rule, but code generally migrates from "apps" into the core `/lib/` or `/components/` when:
+
+* It is clean, stable, and mature;
+* It is needed at least two places
+
+Apps, internally, of course, should have clear seperation-of-concerns between UX and logic. But conceptually, the structure is `myApplication/businessLogicFile`, `myApplication/uxFile`  and not `businessLogic/applicationFile`, `ux/applicationFile`.
+
+## Test Philosophy
+
+We try to have reasonable unit tests and integration tests. "Reasonable" does not mean "comprehensive." In many projects, test infrastructure becomes heavyweight, introduces subtle couplings, and contorts architecture. We want to avoid that.
+
+* We like tests to act as documentation. Overly-complex ones don't do that. Tests should be understandable.
+* We favor short, simple, readable unit tests where it's convenient to have them.
+* One simple multidimensional test is better than five unidimensional ones.
+* We don't want to introduce extensive stubbing or test fixtures, since those often break abstraction barriers and introduce unnecessary coupling between otherwise-independent pieces of code.
+* We do large-scale automated end-to-end test suites (e.g. running all OLX from documentation through render+parse)
+* The reactive nature of the code renders itself well to replay tests. This infrastructure is not built, but reducer + event stream + checking aspects of final state is very, very testable.
+* We like smoke tests (see if a page renders without a 500 error)
+
+Our experience is that most failure lead to exceptions, crashes, and similar grand failures, so simple end-to-end smoke tests (does every page load?) tend to do most of the work for a minority of the effort and coupling introduced by more comprehensive tests.
+
+What we are very careful to do, however, is to architect for testability of modules. We rely on things like modular reducers, well-defined data formats, and a declarative, functional programming style.

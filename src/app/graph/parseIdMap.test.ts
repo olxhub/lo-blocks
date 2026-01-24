@@ -2,7 +2,7 @@
 // src/app/graph/parseIdMap.test.js
 import { parseIdMap } from '@/lib/graph/parseIdMap';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
-import { FileStorageProvider } from '@/lib/storage/providers/file';
+import { FileStorageProvider } from '@/lib/lofs/providers/file';
 
 describe('parseIdMap', () => {
   it('builds a graph from demo content without issues', async () => {

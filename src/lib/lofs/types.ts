@@ -1,17 +1,34 @@
-// src/lib/storage/types.ts
+// src/lib/lofs/types.ts
 //
 // Type definitions for the storage abstraction layer.
 //
 // Defines the StorageProvider interface and related types used across
 // all storage implementations (file, network, memory, git, postgres).
 //
-import { ProvenanceURI } from '../types';
+import { ProvenanceURI, JSONValue } from '../types';
 import { FileType } from './fileTypes';
+
+/**
+ * Provider-specific metadata for change detection.
+ *
+ * Opaque to consumers. Each provider extends this with what it actually tracks.
+ * Must be JSON-serializable - all properties should be primitives, arrays, or plain objects.
+ *
+ * Examples:
+ * - FileStorageProvider: { stat: fs.Stats } (all properties are numbers/strings)
+ * - MemoryStorageProvider: {} (empty for in-memory)
+ * - GitStorageProvider: { hash: string } (commit hash)
+ * - PostgresStorageProvider: { version: number, updated_at: string } (DB metadata)
+ *
+ * Future: May be branded or converted to a union type for better type safety.
+ */
+export type ProviderMetadata = JSONValue;
 
 export interface XmlFileInfo {
   id: ProvenanceURI;
   type: FileType;
-  _metadata: any;
+  /** Provider-specific metadata for change detection (opaque to consumers). */
+  _metadata: ProviderMetadata;
   content: string;
 }
 
@@ -65,6 +82,30 @@ export class VersionConflictError extends Error {
   }
 }
 
+/**
+ * Options for grep operation
+ */
+export interface GrepOptions {
+  /** Base path to search from (default: root) */
+  basePath?: string;
+  /** Glob pattern to filter files (e.g., "*.olx") */
+  include?: string;
+  /** Maximum number of results to return */
+  limit?: number;
+}
+
+/**
+ * A single grep match result
+ */
+export interface GrepMatch {
+  /** Path to the file containing the match */
+  path: string;
+  /** Line number (1-indexed) */
+  line: number;
+  /** Content of the matching line */
+  content: string;
+}
+
 export interface StorageProvider {
   /**
    * Scan for XML/OLX files returning added/changed/unchanged/deleted
@@ -76,7 +117,25 @@ export interface StorageProvider {
   read(path: string): Promise<ReadResult>;
   write(path: string, content: string, options?: WriteOptions): Promise<void>;
   update(path: string, content: string): Promise<void>;
+  delete(path: string): Promise<void>;
+  rename(oldPath: string, newPath: string): Promise<void>;
   listFiles(selection?: FileSelection): Promise<UriNode>;
+
+  /**
+   * Find files matching a glob pattern
+   * @param pattern - Glob pattern (e.g., "**​/*.olx", "sba/**​/*psychology*")
+   * @param basePath - Base path to search from (default: root)
+   * @returns Array of matching file paths
+   */
+  glob(pattern: string, basePath?: string): Promise<string[]>;
+
+  /**
+   * Search file contents for a pattern
+   * @param pattern - Search pattern (regex supported)
+   * @param options - Search options (basePath, include filter, limit)
+   * @returns Array of matches with file, line number, and content
+   */
+  grep(pattern: string, options?: GrepOptions): Promise<GrepMatch[]>;
 
   /**
    * Resolve a relative path against a base provenance URI

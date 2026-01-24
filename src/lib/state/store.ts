@@ -42,6 +42,13 @@ import {
   CLEAR_OLXJSON,
 } from './olxjson';
 
+// Chat event types
+export const CHAT_ADD_MESSAGE = 'CHAT_ADD_MESSAGE';
+export const CHAT_ADD_MESSAGES = 'CHAT_ADD_MESSAGES';
+export const CHAT_CLEAR = 'CHAT_CLEAR';
+export const CHAT_SET_STATUS = 'CHAT_SET_STATUS';
+const CHAT_EVENT_TYPES = [CHAT_ADD_MESSAGE, CHAT_ADD_MESSAGES, CHAT_CLEAR, CHAT_SET_STATUS];
+
 // Event server URL for capturing events in dev
 // Always enabled - server silently fails if event-server isn't running
 const WEBSOCKET_URL = 'ws://localhost:8888/wsapi/in/';
@@ -62,6 +69,7 @@ const initialState = {
   system: {},
   storage: {},
   olxjson: initialOlxJsonState,
+  chat: {} as Record<string, { messages: any[]; status: string }>,
 };
 
 // Event types for olxjson state
@@ -77,6 +85,49 @@ export const updateResponseReducer = (state = initialState, action) => {
       ...state,
       olxjson: olxjsonReducer(state.olxjson, { ...action, type: eventType }),
     };
+  }
+
+  // Handle chat events
+  if (CHAT_EVENT_TYPES.includes(eventType)) {
+    const { chatId, message, messages, status } = action;
+    const currentChat = state.chat?.[chatId] || { messages: [], status: 'LLM_INIT' };
+
+    switch (eventType) {
+      case CHAT_ADD_MESSAGE:
+        return {
+          ...state,
+          chat: {
+            ...state.chat,
+            [chatId]: { ...currentChat, messages: [...currentChat.messages, message] },
+          },
+        };
+      case CHAT_ADD_MESSAGES:
+        return {
+          ...state,
+          chat: {
+            ...state.chat,
+            [chatId]: { ...currentChat, messages: [...currentChat.messages, ...messages] },
+          },
+        };
+      case CHAT_SET_STATUS:
+        return {
+          ...state,
+          chat: {
+            ...state.chat,
+            [chatId]: { ...currentChat, status },
+          },
+        };
+      case CHAT_CLEAR:
+        return {
+          ...state,
+          chat: {
+            ...state.chat,
+            [chatId]: { messages: [], status: 'LLM_INIT' },
+          },
+        };
+      default:
+        return state;
+    }
   }
 
   // Destructure out metadata fields that shouldn't go into state:
@@ -157,11 +208,15 @@ function collectEventTypes(extraFields: ExtraFieldsParam = []) {
     ...componentEventTypes,
     ...extraEventTypes,
     ...OLXJSON_EVENT_TYPES,
+    ...CHAT_EVENT_TYPES,
   ]));
 }
 
 // Event capture logger - accessible via window.__eventCapture in browser
 let eventCaptureLogger: ReturnType<typeof createArrayLogger> | null = null;
+
+// Module-level store reference for getReduxState
+let reduxStoreInstance: any = null;
 
 function configureStore({ extraFields = [] }: { extraFields?: ExtraFieldsParam } = {}) {
   const allEventTypes = collectEventTypes(extraFields);
@@ -194,10 +249,21 @@ function configureStore({ extraFields = [] }: { extraFields?: ExtraFieldsParam }
   );
   lo_event.setFieldSet([{ activity: 'lo-blocks' }]);
   lo_event.go();
-  return reduxLogger.store;
+
+  // Store the reference for getReduxState to use
+  reduxStoreInstance = reduxLogger.store;
+  return reduxStoreInstance;
 }
 
 export const store = { init: configureStore };
+
+// Singleton access for getReduxState - internal to /state/
+export const getReduxStoreInstance = () => {
+  if (!reduxStoreInstance) {
+    throw new Error('Redux store not initialized. Call store.init() first.');
+  }
+  return reduxStoreInstance;
+};
 
 // Debug helpers - expose on window for console testing
 // Usage:

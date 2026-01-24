@@ -1,16 +1,17 @@
 // src/app/api/file/route.js
-import { FileStorageProvider } from '@/lib/storage/providers/file';
-import { VersionConflictError } from '@/lib/storage/types';
-import { validateContentPath } from '@/lib/storage/contentPaths';
+import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { VersionConflictError } from '@/lib/lofs/types';
+import { validateContentPath } from '@/lib/lofs/contentPaths';
 
 const provider = new FileStorageProvider('./content');
 
 export async function GET(request) {
   const url = new URL(request.url);
-  const relPath = url.searchParams.get('path');
+  const lofsPath = url.searchParams.get('path');
 
-  const validation = validateContentPath(relPath);
+  const validation = validateContentPath(lofsPath);
   if (!validation.valid) {
+    // Invalid path format - return 400 Bad Request
     return Response.json({ ok: false, error: validation.error }, { status: 400 });
   }
 
@@ -20,16 +21,16 @@ export async function GET(request) {
   } catch (err) {
     const isNotFound = err.code === 'ENOENT' || err.message?.includes('not found');
     const status = isNotFound ? 404 : 500;
-    const error = isNotFound ? `File not found: ${relPath}` : err.message;
+    const error = isNotFound ? `File not found: ${lofsPath}` : err.message;
     console.error(`[API /file GET] ${error}`);
     return Response.json({ ok: false, error }, { status });
   }
 }
 
 export async function POST(request) {
-  const { path: relPath, content, previousMetadata, force } = await request.json();
+  const { path: lofsPath, content, previousMetadata, force } = await request.json();
 
-  const validation = validateContentPath(relPath);
+  const validation = validateContentPath(lofsPath);
   if (!validation.valid) {
     return Response.json({ ok: false, error: validation.error }, { status: 400 });
   }
@@ -59,9 +60,9 @@ export async function POST(request) {
 
 export async function DELETE(request) {
   const url = new URL(request.url);
-  const relPath = url.searchParams.get('path');
+  const lofsPath = url.searchParams.get('path');
 
-  const validation = validateContentPath(relPath);
+  const validation = validateContentPath(lofsPath);
   if (!validation.valid) {
     return Response.json({ ok: false, error: validation.error }, { status: 400 });
   }
@@ -72,21 +73,21 @@ export async function DELETE(request) {
   } catch (err) {
     const isNotFound = err.code === 'ENOENT' || err.message?.includes('not found');
     const status = isNotFound ? 404 : 500;
-    const error = isNotFound ? `File not found: ${relPath}` : err.message;
+    const error = isNotFound ? `File not found: ${lofsPath}` : err.message;
     console.error(`[API /file DELETE] ${error}`);
     return Response.json({ ok: false, error }, { status });
   }
 }
 
 export async function PUT(request) {
-  const { path: relPath, newPath } = await request.json();
+  const { path: oldLofsPath, newPath: newLofsPath } = await request.json();
 
-  const srcValidation = validateContentPath(relPath);
+  const srcValidation = validateContentPath(oldLofsPath);
   if (!srcValidation.valid) {
     return Response.json({ ok: false, error: srcValidation.error }, { status: 400 });
   }
 
-  const dstValidation = validateContentPath(newPath);
+  const dstValidation = validateContentPath(newLofsPath);
   if (!dstValidation.valid) {
     return Response.json({ ok: false, error: dstValidation.error }, { status: 400 });
   }
@@ -97,7 +98,7 @@ export async function PUT(request) {
   } catch (err) {
     const isNotFound = err.code === 'ENOENT' || err.message?.includes('not found');
     const status = isNotFound ? 404 : 500;
-    const error = isNotFound ? `File not found: ${relPath}` : err.message;
+    const error = isNotFound ? `File not found: ${oldLofsPath}` : err.message;
     console.error(`[API /file PUT] ${error}`);
     return Response.json({ ok: false, error }, { status });
   }

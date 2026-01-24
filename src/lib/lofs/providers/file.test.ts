@@ -1,4 +1,4 @@
-// src/lib/storage/providers/file.test.ts
+// src/lib/lofs/providers/file.test.ts
 //
 // Security tests for FileStorageProvider.
 // Ensures path traversal, null byte injection, and other attacks are blocked.

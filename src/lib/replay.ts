@@ -36,6 +36,7 @@ export interface AppState {
   system: Record<string, any>;
   storage: Record<string, Record<string, any>>;
   olxjson: Record<string, Record<string, any>>;
+  chat: Record<string, { messages: any[]; status: string }>;
 }
 
 /**
@@ -104,6 +105,7 @@ export const initialReplayState: AppState = {
   system: {},
   storage: {},
   olxjson: initialOlxJsonState,
+  chat: {},
 };
 
 // =============================================================================

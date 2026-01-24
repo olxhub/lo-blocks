@@ -8,14 +8,14 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import PreviewPane from '@/components/common/PreviewPane';
 import Spinner from '@/components/common/Spinner';
-import { ChatPanel, DataPanel, DocsPanel, FilesPanel, SearchPanel } from './panels';
+import { DataPanel, DocsPanel, FilesPanel, SearchPanel } from './panels';
+import EditorLLMChat from './EditorLLMChat';
 import { useDocsData } from '@/lib/docs';
-import { NetworkStorageProvider, VersionConflictError } from '@/lib/storage';
-import type { UriNode } from '@/lib/storage/types';
+import { NetworkStorageProvider, VersionConflictError } from '@/lib/lofs';
+import type { UriNode } from '@/lib/lofs/types';
 import type { IdMap } from '@/lib/types';
 import { useNotifications, ToastNotifications } from '@/lib/util/debug';
-import { useStore } from 'react-redux';
-import { useReduxState, selectFromStore, settings } from '@/lib/state';
+import { useReduxState, getReduxState, settings } from '@/lib/state';
 import { editorFields } from '@/lib/state/editorFields';
 import './studio.css';
 
@@ -51,8 +51,9 @@ This is a **live preview** of your content. Edit on the left, see changes on the
   </CapaProblem>
 </Vertical>`;
 
-// Create a single storage provider instance
-const storage = new NetworkStorageProvider();
+// Create a single storage provider instance for content files
+// Paths are relative to this namespace (OlxRelativePath), automatically converted to LofsPath
+const storage = new NetworkStorageProvider('content');
 
 // Redux state wrapper - matches /edit/ pattern for content persistence
 function useEditComponentState(field, provenance, defaultState) {
@@ -64,9 +65,17 @@ function useEditComponentState(field, provenance, defaultState) {
   );
 }
 
-function StudioPageContent() {
-  const store = useStore();
+// Synchronous getter for edit component state - parallel to useEditComponentState
+function getEditComponentState(field, provenance, defaultState) {
+  return getReduxState(
+    {},
+    field,
+    defaultState,
+    { id: provenance }
+  );
+}
 
+function StudioPageContent() {
   // Read initial file from URL query param
   const searchParams = useSearchParams();
   const initialFile = searchParams.get('file') || 'untitled.olx';
@@ -116,13 +125,13 @@ function StudioPageContent() {
   const getDirtyFiles = useCallback((): Set<string> => {
     const dirty = new Set<string>();
     for (const [path, saved] of fileStateRef.current.entries()) {
-      const current = selectFromStore({ store }, editorFields.content, { id: path });
+      const current = getEditComponentState(editorFields.content, path, DEMO_CONTENT);
       if (current !== undefined && current !== saved.content) {
         dirty.add(path);
       }
     }
     return dirty;
-  }, [store]);
+  }, []);
 
   // Toast notifications
   const { notifications, notify, dismiss: dismissNotification } = useNotifications();
@@ -431,11 +440,15 @@ function StudioPageContent() {
                   />
                 )}
                 {sidebarTab === 'chat' && (
-                  <ChatPanel
-                    filePath={filePath}
-                    content={content}
-                    onApplyEdit={setContent}
-                  />
+                  <div className="sidebar-panel chat-panel">
+                    <EditorLLMChat
+                      path={filePath}
+                      getContent={() => getEditComponentState(editorFields.content, filePath, DEMO_CONTENT)}
+                      onApplyEdit={setContent}
+                      onOpenFile={handleFileSelect}
+                      theme="dark"
+                    />
+                  </div>
                 )}
                 {sidebarTab === 'search' && (
                   <SearchPanel

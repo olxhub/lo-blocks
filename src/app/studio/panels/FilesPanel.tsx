@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { UriNode } from '@/lib/storage/types';
+import type { UriNode } from '@/lib/lofs/types';
 import { isEditableFile, isOLXFile } from '@/lib/util/fileTypes';
 
 interface FilesPanelProps {

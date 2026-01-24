@@ -1,4 +1,4 @@
-// src/lib/storage/providers/git.ts
+// src/lib/lofs/providers/git.ts
 //
 // Git storage provider - version-controlled content access (stub).
 //
@@ -17,6 +17,8 @@ import type {
   UriNode,
   ReadResult,
   WriteOptions,
+  GrepOptions,
+  GrepMatch,
 } from '../types';
 
 export class GitStorageProvider implements StorageProvider {
@@ -49,6 +51,22 @@ export class GitStorageProvider implements StorageProvider {
   }
 
   async validateImagePath(_imagePath: string): Promise<boolean> {
+    throw new Error('git storage not implemented');
+  }
+
+  async glob(_pattern: string, _basePath?: string): Promise<string[]> {
+    throw new Error('git storage not implemented');
+  }
+
+  async grep(_pattern: string, _options?: GrepOptions): Promise<GrepMatch[]> {
+    throw new Error('git storage not implemented');
+  }
+
+  async delete(_path: string): Promise<void> {
+    throw new Error('git storage not implemented');
+  }
+
+  async rename(_oldPath: string, _newPath: string): Promise<void> {
     throw new Error('git storage not implemented');
   }
 }

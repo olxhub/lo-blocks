@@ -34,6 +34,7 @@ import { FieldInfo, OlxReference, OlxKey, RuntimeProps } from '../types';
 import { assertValidField } from './fields';
 import type { Store } from 'redux';
 import { selectBlock } from './olxjson';
+import { getReduxStoreInstance } from './store';
 
 
 const UPDATE_INPUT = 'UPDATE_INPUT'; // TODO: Import
@@ -101,6 +102,21 @@ export const selectFromStore = <T>(
   return fieldSelector(state, undefined, field, options);
 };
 
+// Synchronous getter for Redux state - mirrors useReduxState but without re-renders
+// Same signature as useReduxState: (props, field, fallback, { id, tag })
+// Gets store from singleton internally (initialized in storeWrapper.tsx)
+export const getReduxState = (
+  props: any,
+  field: FieldInfo,
+  fallback: any,
+  { id, tag }: { id?: string | boolean; tag?: string | boolean } = {}
+): any => {
+  assertValidField(field);
+
+  const store = getReduxStoreInstance();
+  const state = store.getState();
+  return fieldSelector(state, props, field, { fallback, id, tag });
+};
 
 /** React-friendly wrapper that forwards any equalityFn from options. */
 export const useFieldSelector = <T>(

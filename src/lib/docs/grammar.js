@@ -12,7 +12,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 import { grammarInfo, PEG_CONTENT_EXTENSIONS } from '@/generated/parserRegistry';
-import { resolveSafeReadPath } from '@/lib/storage/providers/file';
+import { resolveSafeReadPath } from '@/lib/lofs/providers/file';
 
 // Regex to find YAML frontmatter in a block comment: /*--- ... ---*/
 const FRONTMATTER_REGEX = /^\/\*---\s*\n([\s\S]*?)\n---\*\//;

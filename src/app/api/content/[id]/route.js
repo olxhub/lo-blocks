@@ -1,6 +1,6 @@
 // src/app/api/content/[id]/route.js
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
-import { getEditPathFromProvenance } from '@/lib/storage/contentPaths';
+import { getEditPathFromProvenance } from '@/lib/lofs/contentPaths';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 
 // Block fetching mode for testing async loading:
