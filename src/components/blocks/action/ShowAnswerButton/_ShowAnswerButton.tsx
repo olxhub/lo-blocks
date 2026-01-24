@@ -36,7 +36,7 @@ function _ShowAnswerButton(props) {
     // Toggle all targeted graders
     for (const graderId of graderIds) {
       const field = state.componentFieldByName(props, graderId, 'showAnswer');
-      state.updateReduxField(props, field, newValue, { id: graderId });
+      state.updateField(props, field, newValue, { id: graderId });
     }
   }, [showAnswer, graderIds, props]);
 

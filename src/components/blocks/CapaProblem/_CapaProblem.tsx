@@ -121,19 +121,19 @@ function useGraderAggregation(props, childGraderIds) {
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (fields?.correct) {
-      state.updateReduxField(props, fields.correct, aggregatedCorrectness);
+      state.updateField(props, fields.correct, aggregatedCorrectness);
     }
   }, [aggregatedCorrectness, props.id, fields]);
 
   useEffect(() => {
     if (fields?.message) {
-      state.updateReduxField(props, fields.message, message);
+      state.updateField(props, fields.message, message);
     }
   }, [message, props.id, fields]);
 
   useEffect(() => {
     if (fields?.submitCount) {
-      state.updateReduxField(props, fields.submitCount, totalSubmitCount);
+      state.updateField(props, fields.submitCount, totalSubmitCount);
     }
   }, [totalSubmitCount, props.id, fields]);
   /* eslint-enable react-hooks/exhaustive-deps */

@@ -671,7 +671,7 @@ When referencing other components' state (e.g., a grader looking up an input's v
 
 This matters when a component inside a scoped context (like a problem inside a MasteryBank) needs to reference something outside that scope.
 
-The `fieldSelector` and `updateReduxField` functions automatically apply `idPrefix` to ID overrides, so components don't need to manually scope IDs. If you pass `{ id: 'parent_input' }` to these functions and `idPrefix` is set, the lookup will use `prefix.parent_input`.
+The `fieldSelector` and `updateField` functions automatically apply `idPrefix` to ID overrides, so components don't need to manually scope IDs. If you pass `{ id: 'parent_input' }` to these functions and `idPrefix` is set, the lookup will use `prefix.parent_input`.
 
 Right now, this is a little bit confused, since we have two types of scoping:
 

@@ -67,10 +67,10 @@ export default function _ChoiceItem(props) {
       const newSelection = currentSelection.includes(itemValue)
         ? currentSelection.filter(v => v !== itemValue)
         : [...currentSelection, itemValue];
-      state.updateReduxField(props, valueField, newSelection, { id: parentId });
+      state.updateField(props, valueField, newSelection, { id: parentId });
     } else {
       // Radio: set single value
-      state.updateReduxField(props, valueField, itemValue, { id: parentId });
+      state.updateField(props, valueField, itemValue, { id: parentId });
     }
   };
 

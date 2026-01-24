@@ -11,7 +11,7 @@
 //
 // Key functions:
 // - `useFieldSelector`: Get state values with automatic re-rendering
-// - `updateReduxField`: Update state and trigger analytics logging
+// - `updateField`: Update state and trigger analytics logging
 // - `useReduxInput`: Complete form control integration with selection state
 // - `fieldSelector`: Core selector logic for different state scopes
 //
@@ -130,7 +130,7 @@ export const useFieldSelector = <T>(
   );
 
 
-export function updateReduxField(
+export function updateField(
   props,
   field: FieldInfo,
   newValue,
@@ -169,7 +169,7 @@ export function useFieldState(
 
   const value = useFieldSelector(props, field, { fallback, id, tag });
 
-  const setValue = (newValue) => updateReduxField(props, field, newValue, { id, tag });
+  const setValue = (newValue) => updateField(props, field, newValue, { id, tag });
 
   return [value, setValue];
 }

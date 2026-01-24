@@ -3,7 +3,7 @@
 
 import React, { useCallback, useMemo, useEffect } from 'react';
 
-import { useFieldState, updateReduxField } from '@/lib/state';
+import { useFieldState, updateField } from '@/lib/state';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
 import { useWaitConditions } from './waitConditions';
@@ -149,7 +149,7 @@ export function _Chat(props) {
       const block = allEntries[nextIndex + 1];
       if (!block) break;
       if (block.type === 'ArrowCommand') {
-        updateReduxField(props, fields.value, block.target, { id: block.source });
+        updateField(props, fields.value, block.target, { id: block.source });
         nextIndex += 1;
         continue;
       }

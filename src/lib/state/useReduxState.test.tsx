@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import { renderHook, act } from '@testing-library/react';
 
 import { fields } from './fields';
-import { useFieldState, useAggregate, updateReduxField } from './redux';
+import { useFieldState, useAggregate, updateField } from './redux';
 import { scopes } from './scopes';
 import { store } from './store';
 
@@ -124,8 +124,8 @@ describe('useAggregate aggregate hook', () => {
     );
 
     await act(async () => {
-      updateReduxField(props, testFields.input, 'alpha', { id: 'first' });
-      updateReduxField(props, testFields.input, 'beta', { id: 'second' });
+      updateField(props, testFields.input, 'alpha', { id: 'first' });
+      updateField(props, testFields.input, 'beta', { id: 'second' });
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
@@ -145,7 +145,7 @@ describe('useAggregate aggregate hook', () => {
     );
 
     await act(async () => {
-      updateReduxField(props, testFields.input, 'alpha', { id: 'first' });
+      updateField(props, testFields.input, 'alpha', { id: 'first' });
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
@@ -165,8 +165,8 @@ describe('useAggregate aggregate hook', () => {
     );
 
     await act(async () => {
-      updateReduxField(props, testFields.input, 'hello', { id: 'first' });
-      updateReduxField(props, testFields.input, 'world', { id: 'second' });
+      updateField(props, testFields.input, 'hello', { id: 'first' });
+      updateField(props, testFields.input, 'world', { id: 'second' });
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 

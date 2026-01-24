@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useCallback, useMemo } from 'react';
-import { useFieldSelector, updateReduxField } from '@/lib/state';
+import { useFieldSelector, updateField } from '@/lib/state';
 import { useGraderAnswer } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
 
@@ -57,7 +57,7 @@ export default function _DropdownSelect(props) {
   const { showAnswer, displayAnswer } = useGraderAnswer(props);
 
   const handleChange = useCallback((e) => {
-    updateReduxField(props, fields.value, e.target.value);
+    updateField(props, fields.value, e.target.value);
   }, [props, fields]);
 
   // Find display text for the correct answer
