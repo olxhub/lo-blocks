@@ -215,6 +215,9 @@ function collectEventTypes(extraFields: ExtraFieldsParam = []) {
 // Event capture logger - accessible via window.__eventCapture in browser
 let eventCaptureLogger: ReturnType<typeof createArrayLogger> | null = null;
 
+// Module-level store reference for getReduxState
+let reduxStoreInstance: any = null;
+
 function configureStore({ extraFields = [] }: { extraFields?: ExtraFieldsParam } = {}) {
   const allEventTypes = collectEventTypes(extraFields);
   reduxLogger.registerReducer(
@@ -246,10 +249,21 @@ function configureStore({ extraFields = [] }: { extraFields?: ExtraFieldsParam }
   );
   lo_event.setFieldSet([{ activity: 'lo-blocks' }]);
   lo_event.go();
-  return reduxLogger.store;
+
+  // Store the reference for getReduxState to use
+  reduxStoreInstance = reduxLogger.store;
+  return reduxStoreInstance;
 }
 
 export const store = { init: configureStore };
+
+// Singleton access for getReduxState - internal to /state/
+export const getReduxStoreInstance = () => {
+  if (!reduxStoreInstance) {
+    throw new Error('Redux store not initialized. Call store.init() first.');
+  }
+  return reduxStoreInstance;
+};
 
 // Debug helpers - expose on window for console testing
 // Usage:
