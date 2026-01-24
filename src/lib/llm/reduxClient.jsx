@@ -23,18 +23,21 @@ export const LLM_STATUS = {
   TOOL_RUNNING: 'LLM_TOOL_RUNNING',
 };
 
-// Execute tool calls and return canonical results.
+// Execute tool calls sequentially and return canonical results.
+// Tools run in order so each sees the effects of previous tools.
 // Caller derives API and display formats as needed.
 async function handleToolCalls(toolCalls, tools) {
-  return Promise.all(toolCalls.map(async (call) => {
+  const results = [];
+  for (const call of toolCalls) {
     const tool = findToolByName(tools, call.function.name);
     let args = {};
     try { args = JSON.parse(call.function.arguments || '{}'); } catch {}
     const result = tool ? await tool.callback(args) : '';
 
     // Single canonical format
-    return { id: call.id, name: call.function.name, args, result };
-  }));
+    results.push({ id: call.id, name: call.function.name, args, result });
+  }
+  return results;
 }
 
 // Small helper to find tool in a list of tools
