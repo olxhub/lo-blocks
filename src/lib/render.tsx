@@ -57,36 +57,26 @@ export const makeRootNode = (contextId?: string) => ({
 // Type for logEvent function - matches lo_event.logEvent signature
 export type LogEventFn = (event: string, payload: Record<string, any>) => void;
 
-export function render({ node, nodeInfo, runtime, blockRegistry, idPrefix, olxJsonSources, store, logEvent, sideEffectFree }: {
+export function render({ node, nodeInfo, runtime }: {
   node: any;
   nodeInfo: any;
-  runtime?: LoBlockRuntimeContext;
-  blockRegistry?: any;
-  idPrefix?: string;
-  olxJsonSources?: string[];
-  store?: Store;
-  logEvent?: LogEventFn;
-  sideEffectFree?: boolean;
+  runtime: LoBlockRuntimeContext;
 }): React.ReactNode {
-  // Construct runtime from individual props if not bundled (for backward compat)
   if (!runtime) {
-    runtime = {
-      blockRegistry: blockRegistry || BLOCK_REGISTRY,
-      store: store!,
-      logEvent: logEvent || (() => {}),
-      sideEffectFree: sideEffectFree ?? false,
-      olxJsonSources,
-      idPrefix: (idPrefix ?? '') as any,
-    };
+    throw new Error(
+      'render() requires runtime context. ' +
+      'This indicates incomplete prop threading - ' +
+      'all components should receive and pass through the runtime bundle.'
+    );
   }
 
   const {
-    blockRegistry: actualBlockRegistry = BLOCK_REGISTRY,
-    idPrefix: actualIdPrefix = '',
-    olxJsonSources: actualOlxJsonSources,
-    store: actualStore,
-    logEvent: actualLogEvent,
-    sideEffectFree: actualSideEffectFree,
+    blockRegistry: actualBlockRegistry = runtime.blockRegistry,
+    idPrefix: actualIdPrefix = runtime.idPrefix ?? '',
+    olxJsonSources: actualOlxJsonSources = runtime.olxJsonSources,
+    store: actualStore = runtime.store,
+    logEvent: actualLogEvent = runtime.logEvent,
+    sideEffectFree: actualSideEffectFree = runtime.sideEffectFree,
   } = runtime;
   if (!node) return null;
 
@@ -283,17 +273,11 @@ export function render({ node, nodeInfo, runtime, blockRegistry, idPrefix, olxJs
 export function renderCompiledKids(props): React.ReactNode[] {
   let { kids, children, nodeInfo, runtime } = props;
 
-  // Fallback: construct runtime from individual props if not bundled
-  // (This handles components that haven't been updated to preserve runtime yet)
   if (!runtime) {
-    runtime = {
-      blockRegistry: props.blockRegistry || {},
-      store: props.store,
-      logEvent: props.logEvent || (() => {}),
-      sideEffectFree: props.sideEffectFree ?? false,
-      olxJsonSources: props.olxJsonSources,
-      idPrefix: (props.idPrefix ?? '') as any,
-    };
+    throw new Error(
+      'renderCompiledKids() requires runtime context in props. ' +
+      'This indicates broken prop threading - render() should pass runtime to all components.'
+    );
   }
 
   const { blockRegistry = BLOCK_REGISTRY, idPrefix = '', olxJsonSources, store, logEvent, sideEffectFree } = runtime;
@@ -406,25 +390,16 @@ export { useBlock, useKids, useKidsWithState } from '@/lib/blocks/useRenderedBlo
 export function renderOlxJson(props: {
   node: any;
   nodeInfo: any;
-  blockRegistry?: any;
-  idPrefix?: string;
-  store?: Store;
-  logEvent?: LogEventFn;
-  sideEffectFree?: boolean;
-  olxJsonSources?: string[];
-  runtime?: LoBlockRuntimeContext;
+  runtime: LoBlockRuntimeContext;
 }): React.ReactNode {
-  const { node, nodeInfo, runtime: existingRuntime } = props;
+  const { node, nodeInfo, runtime } = props;
 
-  // Use existing runtime if available, otherwise construct from individual props
-  const runtime = existingRuntime || {
-    blockRegistry: props.blockRegistry || BLOCK_REGISTRY,
-    store: props.store!,
-    logEvent: props.logEvent || (() => {}),
-    sideEffectFree: props.sideEffectFree ?? false,
-    olxJsonSources: props.olxJsonSources,
-    idPrefix: (props.idPrefix ?? '') as any,
-  };
+  if (!runtime) {
+    throw new Error(
+      'renderOlxJson() requires runtime context. ' +
+      'This indicates incomplete prop threading.'
+    );
+  }
 
   return render({
     node,
@@ -437,7 +412,7 @@ export function renderOlxJson(props: {
  * Helper to render a virtual block without exposing OLX node shape.
  * Used for programmatically creating blocks (e.g., CapaProblem status icons).
  *
- * @param {object} props - Component props (must include nodeInfo, blockRegistry)
+ * @param {object} props - Component props (must include nodeInfo, runtime)
  * @param {string} tag - The component tag (e.g., 'Correctness')
  * @param {object} options - { id, ...attributes }
  * @param {Array} kids - Child nodes
@@ -447,7 +422,17 @@ export function renderOlxJson(props: {
  * renderBlock(props, 'Correctness', { id: 'x_status', target: '...' })
  */
 export function renderBlock(props, tag, options: { id?: string;[key: string]: any } = {}, kids = []): React.ReactNode {
+  if (!props.runtime) {
+    throw new Error(
+      'renderBlock() requires runtime context in props. ' +
+      'This indicates incomplete prop threading.'
+    );
+  }
   const { id, ...attributes } = options;
   const node = { id, tag, attributes, kids };
-  return render({ ...props, node });
+  return render({
+    node,
+    nodeInfo: props.nodeInfo,
+    runtime: props.runtime
+  });
 }
