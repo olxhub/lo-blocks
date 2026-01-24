@@ -141,10 +141,15 @@ describe('Demo OLX files render without errors', () => {
         // Render the component
         const element = render({
           node: { type: 'block', id: root },
-          idMap,
           nodeInfo: makeRootNode(),
-          blockRegistry: BLOCK_REGISTRY,
-          store: reduxStore
+          runtime: {
+            blockRegistry: BLOCK_REGISTRY,
+            store: reduxStore,
+            logEvent: () => {}, // no-op for tests
+            sideEffectFree: false,
+            olxJsonSources: ['content'],
+            idPrefix: '' as any,
+          }
         });
 
         // Use React Testing Library to actually mount the component

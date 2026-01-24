@@ -193,7 +193,7 @@ export default function RenderOLX({
           if (!cancelled) {
             // Dispatch to Redux for reactive block access (skip during replay - viewing historical state)
             if (!sideEffectFree) {
-              dispatchOlxJson({ logEvent }, source, result.idMap);
+              dispatchOlxJson({ runtime: { logEvent } }, source, result.idMap);
             }
             // startTransition prevents Suspense - shows old content while rendering new
             startTransition(() => {
@@ -227,7 +227,7 @@ export default function RenderOLX({
           if (!cancelled) {
             // Dispatch to Redux for reactive block access (skip during replay - viewing historical state)
             if (!sideEffectFree) {
-              dispatchOlxJson({ logEvent }, source, mergedIdMap);
+              dispatchOlxJson({ runtime: { logEvent } }, source, mergedIdMap);
             }
             startTransition(() => {
               setParsed({
@@ -285,6 +285,7 @@ export default function RenderOLX({
   const blockProps = useMemo(() => ({
     nodeInfo: makeRootNode(eventContext),
     runtime,
+    // FIXME: These individual fields are deprecated (kept for migration safety, remove after verification)
     blockRegistry,
     idPrefix: '',
     olxJsonSources: [source],

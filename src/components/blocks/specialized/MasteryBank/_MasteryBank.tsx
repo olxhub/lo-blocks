@@ -82,10 +82,11 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   const { setCorrectStreak, setModeState, setCompleted, setCorrect, setFirstSubmissionResult, setAttemptNumber } = handlers;
 
   const { idPrefix: scopedIdPrefix } = extendIdPrefix(props, `${id}.attempt_${attemptNumber}`);
+
+  // FIXME: Should not spread runtime like this - need proper scoped runtime factory
+  // Components should treat runtime as black box. Only idPrefix changes at boundaries.
   const scopedRuntime = { ...props.runtime, idPrefix: scopedIdPrefix };
 
-  // HACK: Spreading ...props includes deprecated RuntimeProps fields (store, blockRegistry, etc.)
-  // Remove in Phase 6 when old fields removed from RuntimeProps interface
   const scopedProps = {
     ...props,
     runtime: scopedRuntime,

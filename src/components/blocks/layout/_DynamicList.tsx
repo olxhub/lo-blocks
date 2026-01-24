@@ -10,10 +10,11 @@ import { DisplayError } from '@/lib/util/debug';
 // Each entry renders independently - avoids Promise.all suspense issues
 function DynamicListEntry({ props, template, index, id }) {
   const { idPrefix: itemIdPrefix } = extendIdPrefix(props, [id, index]);
+
+  // FIXME: Should not spread runtime like this - need proper scoped runtime factory
+  // Components should treat runtime as black box. Only idPrefix changes at boundaries.
   const itemRuntime = { ...props.runtime, idPrefix: itemIdPrefix };
 
-  // HACK: Spreading ...props includes deprecated RuntimeProps fields (store, blockRegistry, etc.)
-  // Remove in Phase 6 when old fields removed from RuntimeProps interface
   const { kids } = useKids({
     ...props,
     kids: [template],

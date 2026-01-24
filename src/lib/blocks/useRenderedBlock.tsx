@@ -88,6 +88,7 @@ export function useBlock(
   }
 
   // Ready from Redux - render the block
+  // If runtime is bundled, use it; otherwise renderOlxJson will handle constructing it from individual props
   const block = renderOlxJson({ ...props, node: reduxOlxJson });
   return { block, ready: true, error: null };
 }

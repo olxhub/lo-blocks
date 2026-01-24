@@ -57,16 +57,37 @@ export const makeRootNode = (contextId?: string) => ({
 // Type for logEvent function - matches lo_event.logEvent signature
 export type LogEventFn = (event: string, payload: Record<string, any>) => void;
 
-export function render({ node, nodeInfo, blockRegistry = BLOCK_REGISTRY, idPrefix = '', olxJsonSources, store, logEvent, sideEffectFree }: {
+export function render({ node, nodeInfo, runtime, blockRegistry, idPrefix, olxJsonSources, store, logEvent, sideEffectFree }: {
   node: any;
   nodeInfo: any;
-  blockRegistry: any;
-  idPrefix: string;
+  runtime?: LoBlockRuntimeContext;
+  blockRegistry?: any;
+  idPrefix?: string;
   olxJsonSources?: string[];
-  store: Store;
-  logEvent: LogEventFn;
-  sideEffectFree: boolean;
+  store?: Store;
+  logEvent?: LogEventFn;
+  sideEffectFree?: boolean;
 }): React.ReactNode {
+  // Construct runtime from individual props if not bundled (for backward compat)
+  if (!runtime) {
+    runtime = {
+      blockRegistry: blockRegistry || BLOCK_REGISTRY,
+      store: store!,
+      logEvent: logEvent || (() => {}),
+      sideEffectFree: sideEffectFree ?? false,
+      olxJsonSources,
+      idPrefix: (idPrefix ?? '') as any,
+    };
+  }
+
+  const {
+    blockRegistry: actualBlockRegistry = BLOCK_REGISTRY,
+    idPrefix: actualIdPrefix = '',
+    olxJsonSources: actualOlxJsonSources,
+    store: actualStore,
+    logEvent: actualLogEvent,
+    sideEffectFree: actualSideEffectFree,
+  } = runtime;
   if (!node) return null;
 
   // JSX should not be passed to render() - the OLX pipeline produces structured nodes
@@ -76,7 +97,7 @@ export function render({ node, nodeInfo, blockRegistry = BLOCK_REGISTRY, idPrefi
 
   // Handle list of kids
   if (Array.isArray(node)) {
-    return renderCompiledKids({ kids: node, nodeInfo, blockRegistry, idPrefix, olxJsonSources, store, logEvent, sideEffectFree });
+    return renderCompiledKids({ kids: node, nodeInfo, runtime });
   }
 
   // Handle { type: 'block', id, overrides }
@@ -87,9 +108,19 @@ export function render({ node, nodeInfo, blockRegistry = BLOCK_REGISTRY, idPrefi
     typeof node.id === 'string'
   ) {
     // Synchronous lookup in Redux store
+    if (!actualStore) {
+      return (
+        <DisplayError
+          id={`missing-store-${node.id}`}
+          name="render"
+          message="Redux store not available"
+          technical={{ blockId: node.id, hint: 'Store is missing from runtime context' }}
+        />
+      );
+    }
     const olxKey = refToOlxKey(node.id);
-    const sources = olxJsonSources ?? ['content'];
-    const entry = selectBlock(store?.getState(), sources, olxKey);
+    const sources = actualOlxJsonSources ?? ['content'];
+    const entry = selectBlock(actualStore.getState(), sources, olxKey);
     if (!entry) {
       return (
         <DisplayError
@@ -103,13 +134,13 @@ export function render({ node, nodeInfo, blockRegistry = BLOCK_REGISTRY, idPrefi
     const entryWithOverrides = node.overrides
       ? { ...entry, attributes: { ...entry.attributes, ...node.overrides } }
       : entry;
-    return render({ node: entryWithOverrides, nodeInfo, blockRegistry, idPrefix, olxJsonSources, store, logEvent, sideEffectFree });
+    return render({ node: entryWithOverrides, nodeInfo, runtime });
   }
 
   // Handle structured OLX-style node
   const { tag, attributes = {}, kids = [] } = node;
 
-  if (!blockRegistry[tag] || !blockRegistry[tag].component) {
+  if (!actualBlockRegistry[tag] || !actualBlockRegistry[tag].component) {
     return (
       <DisplayError
         id={`unknown-tag-${tag}`}
@@ -120,7 +151,7 @@ export function render({ node, nodeInfo, blockRegistry = BLOCK_REGISTRY, idPrefi
     );
   }
 
-  const blockType = blockRegistry[tag];
+  const blockType = actualBlockRegistry[tag];
   const Component = blockType.component;
 
   // Validate attributes - use component schema if defined, else base with passthrough
@@ -172,8 +203,8 @@ export function render({ node, nodeInfo, blockRegistry = BLOCK_REGISTRY, idPrefi
     ...attributes,
     id: node.id,
     nodeInfo: childNodeInfo,
-    blockRegistry,
-    idPrefix
+    blockRegistry: actualBlockRegistry,
+    idPrefix: actualIdPrefix
   };
 
   // Check requiresGrader - inject graderId or show error
@@ -202,26 +233,23 @@ export function render({ node, nodeInfo, blockRegistry = BLOCK_REGISTRY, idPrefi
 
   // Wrap logEvent to include context from OLX DOM hierarchy
   // Don't overwrite if context already set by a deeper child
-  const contextualLogEvent: LogEventFn = logEvent
+  const contextualLogEvent: LogEventFn = actualLogEvent
     ? (event, payload) => {
         if (payload?.context) {
           // Child already set context - pass through unchanged
-          logEvent(event, payload);
+          actualLogEvent(event, payload);
         } else {
           const context = getEventContext(childNodeInfo);
-          logEvent(event, { ...payload, ...(context && { context }) });
+          actualLogEvent(event, { ...payload, ...(context && { context }) });
         }
       }
     : (() => {}) as LogEventFn;  // No-op if logEvent not provided
 
-  // Bundle runtime context
-  const runtime = {
-    blockRegistry,
-    store,
+  // Update runtime with contextual logEvent
+  const finalRuntime: LoBlockRuntimeContext = {
+    ...runtime,
     logEvent: contextualLogEvent,
-    sideEffectFree,
-    olxJsonSources,
-    idPrefix,
+    idPrefix: actualIdPrefix as any,
   };
 
   // TODO: We probably want more than just data-block-type. Having IDs, etc. will be
@@ -239,13 +267,7 @@ export function render({ node, nodeInfo, blockRegistry = BLOCK_REGISTRY, idPrefi
           locals={blockType.locals}
           fields={blockType.fields}
           nodeInfo={childNodeInfo}
-          runtime={runtime}
-          blockRegistry={blockRegistry}
-          idPrefix={idPrefix}
-          olxJsonSources={olxJsonSources}
-          store={store}
-          logEvent={contextualLogEvent}
-          sideEffectFree={sideEffectFree}
+          runtime={finalRuntime}
           {...(graderId && { graderId })}
         />
       </div>
@@ -259,7 +281,22 @@ export function render({ node, nodeInfo, blockRegistry = BLOCK_REGISTRY, idPrefi
  * @returns Array of React elements
  */
 export function renderCompiledKids(props): React.ReactNode[] {
-  let { kids, children, nodeInfo, blockRegistry = BLOCK_REGISTRY, idPrefix = '', olxJsonSources, store, logEvent, sideEffectFree } = props;
+  let { kids, children, nodeInfo, runtime } = props;
+
+  // Fallback: construct runtime from individual props if not bundled
+  // (This handles components that haven't been updated to preserve runtime yet)
+  if (!runtime) {
+    runtime = {
+      blockRegistry: props.blockRegistry || {},
+      store: props.store,
+      logEvent: props.logEvent || (() => {}),
+      sideEffectFree: props.sideEffectFree ?? false,
+      olxJsonSources: props.olxJsonSources,
+      idPrefix: (props.idPrefix ?? '') as any,
+    };
+  }
+
+  const { blockRegistry = BLOCK_REGISTRY, idPrefix = '', olxJsonSources, store, logEvent, sideEffectFree } = runtime;
 
   if (kids === undefined && children !== undefined) {
     console.log(
@@ -300,7 +337,7 @@ export function renderCompiledKids(props): React.ReactNode[] {
     if (child.type === 'block') {
       return (
         <React.Fragment key={child.key}>
-          {render({ node: child, nodeInfo, blockRegistry, idPrefix, olxJsonSources, store, logEvent, sideEffectFree })}
+          {render({ node: child, nodeInfo, runtime })}
         </React.Fragment>
       );
     }
@@ -317,7 +354,7 @@ export function renderCompiledKids(props): React.ReactNode[] {
       return React.createElement(
         child.tag,
         { key: child.key, ...child.attributes },
-        renderCompiledKids({ kids: child.kids ?? [], nodeInfo, blockRegistry, idPrefix, olxJsonSources, store, logEvent, sideEffectFree })
+        renderCompiledKids({ kids: child.kids ?? [], nodeInfo, runtime })
       );
     }
 
@@ -326,7 +363,7 @@ export function renderCompiledKids(props): React.ReactNode[] {
     if (child.tag && typeof child.tag === 'string') {
       return (
         <React.Fragment key={child.key}>
-          {render({ node: child, nodeInfo, blockRegistry, idPrefix, olxJsonSources, store, logEvent, sideEffectFree })}
+          {render({ node: child, nodeInfo, runtime })}
         </React.Fragment>
       );
     }
@@ -371,12 +408,29 @@ export function renderOlxJson(props: {
   nodeInfo: any;
   blockRegistry?: any;
   idPrefix?: string;
-  store: Store;
-  logEvent: LogEventFn;
-  sideEffectFree: boolean;
+  store?: Store;
+  logEvent?: LogEventFn;
+  sideEffectFree?: boolean;
+  olxJsonSources?: string[];
+  runtime?: LoBlockRuntimeContext;
 }): React.ReactNode {
-  const { node, nodeInfo, blockRegistry = BLOCK_REGISTRY, idPrefix = '', store, logEvent, sideEffectFree } = props;
-  return render({ node, nodeInfo, blockRegistry, idPrefix, store, logEvent, sideEffectFree });
+  const { node, nodeInfo, runtime: existingRuntime } = props;
+
+  // Use existing runtime if available, otherwise construct from individual props
+  const runtime = existingRuntime || {
+    blockRegistry: props.blockRegistry || BLOCK_REGISTRY,
+    store: props.store!,
+    logEvent: props.logEvent || (() => {}),
+    sideEffectFree: props.sideEffectFree ?? false,
+    olxJsonSources: props.olxJsonSources,
+    idPrefix: (props.idPrefix ?? '') as any,
+  };
+
+  return render({
+    node,
+    nodeInfo,
+    runtime
+  });
 }
 
 /**

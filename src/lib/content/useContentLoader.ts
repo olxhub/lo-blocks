@@ -49,7 +49,7 @@ export function useContentLoader(id: string, source = 'content') {
           setError(data.error);
         } else {
           // Dispatch to Redux for reactive block access
-          dispatchOlxJson({ logEvent }, source, data.idMap);
+          dispatchOlxJson({ runtime: { logEvent } }, source, data.idMap);
           setIdMap(data.idMap);
         }
         setLoading(false);

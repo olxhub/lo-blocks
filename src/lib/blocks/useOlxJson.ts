@@ -27,8 +27,7 @@ export interface OlxJsonResult {
 
 // Props type for useOlxJson - requires logEvent and sideEffectFree
 interface UseOlxJsonProps {
-  logEvent: LogEventFn;
-  sideEffectFree: boolean;
+  runtime: { logEvent: LogEventFn; sideEffectFree: boolean };
 }
 
 /**

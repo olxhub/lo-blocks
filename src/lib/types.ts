@@ -440,15 +440,7 @@ export interface RuntimeProps {
 
   // Opaque context - thread through
   nodeInfo: OlxDomNode;
-  runtime?: LoBlockRuntimeContext;  // New: bundled runtime context
-
-  // (DEPRECATED - kept for migration, use runtime.* instead)
-  blockRegistry?: BlockRegistry;
-  idPrefix?: IdPrefix;
-  olxJsonSources?: string[];  // Redux source names in priority order for OlxJson lookup
-  store?: Store;  // Redux store - enables replay mode where a different store provides historical state
-  logEvent?: (event: string, payload: any) => void;  // Event logging - no-op during replay
-  sideEffectFree?: boolean;  // True during replay - disables fetches, event logging, etc.
+  runtime: LoBlockRuntimeContext;  // Bundled runtime context (required)
 
   // Block machinery - framework injects these
   loBlock: LoBlock;
