@@ -57,6 +57,9 @@ import { isOLXFile } from '@/lib/util/fileTypes';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
 import { useBlock } from '@/lib/blocks/useRenderedBlock';
 import { useDebugSettings } from '@/lib/state/debugSettings';
+import { settings } from '@/lib/state/settings';
+import { useSetting } from '@/lib/state/settingsAccess';
+import { getTextDirection, getBrowserLocale } from '@/lib/i18n/getTextDirection';
 
 // Stable no-op for replay mode - avoids creating new function on each render
 const noopLogEvent = () => {};
@@ -121,9 +124,23 @@ export default function RenderOLX({
   // Check if we're in replay mode - if so, use no-op to prevent event logging
   // and disable side effects (fetches, etc.)
   const { replayMode } = useDebugSettings();
+
   // Use stable reference for noopLogEvent to prevent effect re-runs
   const logEvent = replayMode ? noopLogEvent : lo_event.logEvent;
   const sideEffectFree = replayMode;
+
+  // Get locale from settings layer, with fallback to browser default
+  // Use logEvent from runtime for proper state updates
+  const [reduxLocale, setReduxLocale] = useSetting({ logEvent }, settings.locale);
+
+  // Initialize with browser locale if Redux has no setting
+  if (!reduxLocale) {
+    const code = getBrowserLocale();
+    setReduxLocale({ code, dir: getTextDirection(code) });
+  }
+
+  const effectiveLocaleCode = reduxLocale?.code || getBrowserLocale();
+  const effectiveTextDir = reduxLocale?.dir || getTextDirection(effectiveLocaleCode);
 
   // useTransition prevents Suspense during edits - React shows stale content
   // while new content is preparing instead of showing spinners
@@ -279,7 +296,11 @@ export default function RenderOLX({
     sideEffectFree,
     olxJsonSources: [source],
     idPrefix: '',
-  }), [blockRegistry, store, logEvent, sideEffectFree, source]);
+    locale: {
+      code: effectiveLocaleCode,
+      dir: effectiveTextDir,
+    },
+  }), [blockRegistry, store, logEvent, sideEffectFree, source, effectiveLocaleCode, effectiveTextDir]);
 
   // Build props for useBlock - must be before the hook call
   const blockProps = useMemo(() => ({

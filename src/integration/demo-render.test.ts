@@ -18,6 +18,7 @@ import { render as rtlRender, cleanup } from '@testing-library/react';
 import fs from 'fs/promises';
 import path from 'path';
 import { injectPreviewContent } from '@/lib/template/previewTemplate';
+import { getTextDirection } from '@/lib/i18n/getTextDirection';
 
 // Mock scrollTo for jsdom (Chat components use this)
 if (typeof Element !== 'undefined' && !Element.prototype.scrollTo) {
@@ -139,6 +140,7 @@ describe('Demo OLX files render without errors', () => {
         dispatchOlxJsonSync(reduxStore, 'content', idMap);
 
         // Render the component
+        const localeCode = 'en-US';
         const element = render({
           node: { type: 'block', id: root },
           nodeInfo: makeRootNode(),
@@ -149,6 +151,7 @@ describe('Demo OLX files render without errors', () => {
             sideEffectFree: false,
             olxJsonSources: ['content'],
             idPrefix: '' as any,
+            locale: { code: localeCode, dir: getTextDirection(localeCode) },
           }
         });
 

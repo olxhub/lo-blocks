@@ -401,6 +401,17 @@ export interface OlxDomNode {
 export type OlxDomSelector = (node: OlxDomNode) => boolean;
 
 /**
+ * LocaleContext - language and text direction configuration.
+ *
+ * Enables i18n throughout the platform. For now, `dir` comes from Redux settings.
+ * Future: derive `dir` from Intl.Locale.getTextInfo() when browser support is universal.
+ */
+export interface LocaleContext {
+  code: string;  // BCP 47 locale code: 'en-US', 'zh-Hans-CN', 'ar-SA', 'pl-PL', 'tr-TR'
+  dir: 'ltr' | 'rtl';  // Text direction from Redux settings
+}
+
+/**
  * LoBlockRuntimeContext - runtime configuration that flows through the component tree.
  *
  * Contains system-wide runtime properties that may change based on context:
@@ -421,6 +432,7 @@ export interface LoBlockRuntimeContext {
   sideEffectFree: boolean;  // True during replay - disables fetches, event logging, etc.
   olxJsonSources?: string[];  // Redux source names in priority order for OlxJson lookup
   idPrefix?: IdPrefix;  // Scope prefix for Redux state (changes at list boundaries)
+  locale: LocaleContext;  // Language and text direction
 }
 
 /**
