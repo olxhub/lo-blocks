@@ -6,7 +6,7 @@ import "./globals.css";
 
 export const metadata = {
   title: "Learning Observer Blocks",
-  description: "Learnimg Components",
+  description: "Learning Components",
 };
 
 export default function RootLayout({ children }) {

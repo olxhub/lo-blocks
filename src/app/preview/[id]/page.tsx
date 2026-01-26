@@ -9,6 +9,7 @@ import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
 import { useFieldState, settings } from '@/lib/state';
 import { useContentLoader } from '@/lib/content/useContentLoader';
+import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { ComponentError } from '@/lib/types';
 
 export default function PreviewPage() {
@@ -23,10 +24,11 @@ export default function PreviewPage() {
 
   const { idMap, error, loading } = useContentLoader(id);
   const [renderError, setRenderError] = useState<ComponentError>(null);
+  const localeAttrs = useLocaleAttributes();
 
   if (error) {
     return (
-      <div className="flex flex-col h-screen">
+      <div {...localeAttrs} className="flex flex-col h-screen">
         <AppHeader home user />
         <div className="p-6 flex-1">
           <DisplayError
@@ -43,7 +45,7 @@ export default function PreviewPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col h-screen">
+      <div {...localeAttrs} className="flex flex-col h-screen">
         <AppHeader home user />
         <Spinner>Loading content...</Spinner>
       </div>
@@ -52,7 +54,7 @@ export default function PreviewPage() {
 
   if (!idMap) {
     return (
-      <div className="flex flex-col h-screen">
+      <div {...localeAttrs} className="flex flex-col h-screen">
         <AppHeader home user />
         <div className="p-6 flex-1">
           <DisplayError
@@ -67,7 +69,7 @@ export default function PreviewPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div {...localeAttrs} className="flex flex-col h-screen">
       <AppHeader home user />
       <div className="p-6 flex-1 overflow-auto">
         <div className="space-y-4">
