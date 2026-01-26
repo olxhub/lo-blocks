@@ -23,7 +23,7 @@ category: writing
        </Markdown>
     </Vertical>
     <Vertical id="ws2_Step_1">
-            <Markdown>
+            <Markdown id="ws2_md1">
             # Writing Survey 2
             ## Questions 1-5
             
@@ -38,7 +38,7 @@ category: writing
             </Markdown>
     </Vertical>
     <Vertical id="ws2_Step_2">
-            <Markdown>
+            <Markdown id="ws2_md2">
                 ## Questions 6-10
                 Indicate how strongly you agree or disagree with the following statements.
             </Markdown>
@@ -51,7 +51,7 @@ category: writing
             </Markdown>
     </Vertical>
     <Vertical id="ws2_Step_3">
-            <Markdown>
+            <Markdown id="ws2_md3">
                 ## Questions 11-15
                 Indicate how strongly you agree or disagree with the following statements.
             </Markdown>
@@ -64,7 +64,7 @@ category: writing
             </Markdown>
     </Vertical>
     <Vertical id="ws2_Step_4">
-            <Markdown>
+            <Markdown id="ws2_md4">
                 ## Questions 16-20
                 Indicate how strongly you agree or disagree with the following statements.
             </Markdown>
@@ -77,7 +77,7 @@ category: writing
             </Markdown>
     </Vertical>
     <Vertical id="ws2_Step_5">
-            <Markdown>
+            <Markdown id="ws2_md5">
                 ## Questions 21-26
                 Indicate how strongly you agree or disagree with the following statements.
             </Markdown>

@@ -7,7 +7,7 @@ category: writing
 <!-- content/sba/writing/writing_process_journal_1.olx -->
 <Sequential id="writing_survey_1" title="Writing Survey 1" launchable="true">
     <Vertical id="ws1_intro">
-       <Markdown>
+       <Markdown id="ws1_md1">
             # Writing Survey 1
             ## Introduction
 
@@ -16,7 +16,7 @@ category: writing
        </Markdown>
     </Vertical>
     <Vertical id="ws1_Step_1">
-            <Markdown>
+            <Markdown id="ws1_md2">
                 ## Questions 1-5
                 Indicate how strongly you agree or disagree with the following statements.
             </Markdown>
@@ -29,7 +29,7 @@ category: writing
             </Markdown>
     </Vertical>
     <Vertical id="ws1_Step_2">
-            <Markdown>
+            <Markdown id="ws1_md3">
                 ## Questions 6-10
                 Indicate how strongly you agree or disagree with the following statements.
             </Markdown>
@@ -42,7 +42,7 @@ category: writing
             </Markdown>
     </Vertical>
     <Vertical id="ws1_Step_3">
-            <Markdown>
+            <Markdown id="ws1_md4">
                 ## Questions 11-15
                 Indicate how strongly you agree or disagree with the following statements.
             </Markdown>
@@ -55,7 +55,7 @@ category: writing
             </Markdown>
     </Vertical>
     <Vertical id="ws1_Step_4">
-            <Markdown>
+            <Markdown id="ws1_md5">
                 ## Questions 16-20
                 Indicate how strongly you agree or disagree with the following statements.
             </Markdown>
@@ -69,7 +69,7 @@ category: writing
             </Markdown>
     </Vertical>
     <Vertical id="ws1_Step_5">
-            <Markdown>
+            <Markdown id="ws1_md6">
                 ## Questions 21-26
                 Indicate how strongly you agree or disagree with the following statements.
             </Markdown>
