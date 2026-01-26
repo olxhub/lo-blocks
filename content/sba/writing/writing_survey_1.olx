@@ -12,13 +12,10 @@ category: writing
             ## Introduction
 
             In this survey, you will reflect on how you feel about writing and various kinds
-            of writing situations. To probe how you feel, you will be presented with a series of statements, and asked to indicate whether you (a) strongly agree, (b) agree, (c) disagree, or (d) strongly disagree with that statement. Work your way through these statements, picking the answer that seems to match your own experience and feelings best. There are quite a few statements to get through, so don't take too much time on any single statement. At the end, we will give you a computer-generated summary of your answers.
-            xx
-                        
+            of writing situations. To probe how you feel, you will be presented with a series of statements, and asked to indicate whether you (a) strongly agree, (b) agree, (c) disagree, or (d) strongly disagree with that statement. Work your way through these statements, picking the answer that seems to match your own experience and feelings best. There are quite a few statements to get through, so don't take too much time on any single statement. At the end, we will give you a computer-generated summary of your answers.                       
        </Markdown>
     </Vertical>
-    <SplitPanel id="ws1_Step_1" title="Survey Questions 1-5" sizes="80,20">
-        <LeftPane>
+    <Vertical id="ws1_Step_1">
             <Markdown>
                 ## Questions 1-5
                 Indicate how strongly you agree or disagree with the following statements.
@@ -30,54 +27,8 @@ category: writing
             <Markdown id="ws1_directions">
               Select one option for each row. Your selections are automatically saved.
             </Markdown>
-        </LeftPane>
-        <RightPane>
-           <ActionButton label="Compare my responses to a typical student's">
-               <LLMAction target="ws1_response_summary_1">
-                  BACKGROUND INFORMATION:
-                   For the first survey page that asks about student feelings about writing,
-                   Our column headers are: 
-                         Strongly Agree (corresponding to 0),
-                         Agree (corresponding to 1),
-                         Disagree (corresponding to 2),
-                         Strongly Disagree (corresponding to 3),
-
-                   Our row headers are:
-                   Writing is a skill I want to get better at.
-                   It is frustrating to have to write about a subject that I did not choose.
-                   Writing is usually boring for me.
-                   I worry that other people will criticize my writing.
-                   I like to write outside of school.                         
-                   
-                   Our data is: 
-                   <Ref id="ws1_ref1" target="ws1_affect_1" />
-                   
-                  This data can be interpreted by mapping each number onto the column header it corresponds
-                  to and using the row headers to indicate the frequency with which the student writes in each genre
-                  for school.
-                  
-                  Typical students:
-                         Agree (or strongly agree) that writing is a skill they want to get better at,
-                         Agree that it is frustrating to have to write about a subject that they did not choose.
-                         May agree or disagree about whether they consider writing usually boring,
-                             but do not have strong feelings either way,
-                         Disagree strongly with the statement that they worry about other people
-                             criticizing their writing,
-                         Disagree strongly with the statement that they like to write outside school.
-
-                  DIRECTIONS: 
-                   If any of the student's response data is blank, say so and stop; otherwise,
-                   using the information from the data interpretation, and addressing the 
-                   student as "you", write one sentence that explains how the student's feelings
-                   resemble those of typical students, and (if appropriate) one sentence that
-                   explains how the student's feelings are different from those of typical students. 
-           </LLMAction>
-           </ActionButton>
-           <LLMFeedback id="ws1_response_summary_1" />
-         </RightPane>
-    </SplitPanel>
-    <SplitPanel id="ws1_Step_2" title="Survey Questions 6-10" sizes="80,20">
-        <LeftPane>
+    </Vertical>
+    <Vertical id="ws1_Step_2">
             <Markdown>
                 ## Questions 6-10
                 Indicate how strongly you agree or disagree with the following statements.
@@ -89,53 +40,7 @@ category: writing
             <Markdown id="ws1_directions">
               Select one option for each row. Your selections are automatically saved.
             </Markdown>
-        </LeftPane>
-        <RightPane>
-           <ActionButton label="Compare my responses to a typical student's">
-               <LLMAction target="ws1_response_summary_2">
-                  BACKGROUND INFORMATION:
-                   For the second survey page that asks about student feelings about writing,
-                   Our column headers are: 
-                         Strongly Agree (corresponding to 0),
-                         Agree (corresponding to 1),
-                         Disagree (corresponding to 2),
-                         Strongly Disagree (corresponding to 3),
-
-                   Our row headers are:
-                   It upsets me when I get low grades on a writing assignment.
-                   I am too impatient to spend a lot of time writing.
-                   I get so involved in my writing that I often lose track of time.
-                   Writing helps me learn.
-                   I feel it is important to know how to write well.
-                   
-                   Our data is: 
-                   <Ref id="ws1_ref2" target="ws1_affect_2" />
-                   
-                  This data can be interpreted by mapping each number onto the column header it corresponds
-                  to and using the row headers to indicate the frequency with which the student writes in each genre
-                  for school.
-                  
-                  Typical students:
-                       Strongly agree that it upsets them when they get low grades on a writing assignment.
-                       Most students disagree with the statement that they are too impatient to spend
-                            a lot of time writing; very few strongly agree or strongly disagree.
-                       Most student disagree with the statement that they get so involved in their
-                            writing that they often lose track of time; very few strongly agree or disagree.
-                       Most students agree that writing helps them learn; very few disagree.
-                       Most students strongly agree that it is important to know how to write well.
-                            Very few disagree.
-
-                  DIRECTIONS: 
-                   If any of the student's response data is blank, say so and stop; otherwise,
-                   using the information from the data interpretation, and addressing the 
-                   student as "you", write one sentence that explains how the student's feelings
-                   resemble those of typical students, and (if appropriate) one sentence that
-                   explains how the student's feelings are different from those of typical students. 
-           </LLMAction>
-           </ActionButton>
-           <LLMFeedback id="ws1_response_summary_2" />
-         </RightPane>
-    </SplitPanel>
+    </Vertical>
     <Vertical id="ws1_Step_3">
             <Markdown>
                 ## Questions 11-15
@@ -148,58 +53,8 @@ category: writing
             <Markdown id="ws1_directions">
               Select one option for each row. Your selections are automatically saved.
             </Markdown>
-          <SplitPanel id="ws1_Step_3_feedback" sizes="20, 80">
-             <LeftPane>
-           <ActionButton label="Compare my responses to a typical student's">
-               <LLMAction target="ws1_response_summary_3">
-                  BACKGROUND INFORMATION:
-                   For the third survey page that asks about student feelings about writing,
-                   Our column headers are: 
-                         Strongly Agree (corresponding to 0),
-                         Agree (corresponding to 1),
-                         Disagree (corresponding to 2),
-                         Strongly Disagree (corresponding to 3),
-
-                   Our row headers are:
-                   I prefer to avoid writing when it isn't required.
-                   I like getting lots of shares or likes on social media when I post something I have written.
-                   There are some subjects that I really enjoy writing about.
-                   I dislike writing.
-                   I find it difficult to communicate my ideas through writing.              
-                   
-                   Our data is: 
-                   <Ref id="ws1_ref3" target="ws1_affect_3" />
-                   
-                  This data can be interpreted by mapping each number onto the column header it corresponds
-                  to and using the row headers to indicate the frequency with which the student writes in each genre
-                  for school.
-                  
-                  Typical students:
-                       Agree (or strongly agree) that they prefer to avoid writing when it isn't required.
-                       Vary quite a bit in whether they agree or disagree that they like getting lots
-                            of shares or likes on social media when they post something they have written
-                            (but tend not to have strong feelings on the matter).
-                       Agree (or strongly agree) that there are some subjects they enjoy writing about.
-                       Disagree that they dislike writing (though not strongly).
-                       May agree or disagree that they find it difficult to communicate their ideas
-                            through writing, but without strong feelings either way.
-
-                  DIRECTIONS: 
-                   If any of the student's response data is blank, say so and stop; otherwise,
-                   using the information from the data interpretation, and addressing the 
-                   student as "you", write one sentence that explains how the student's feelings
-                   resemble those of typical students, and (if appropriate) one sentence that
-                   explains how the student's feelings are different from those of typical students. 
-           </LLMAction>
-           </ActionButton>
-           </LeftPane>
-           <RightPane>
-                <LLMFeedback id="ws1_response_summary_3" />
-           </RightPane>
-           </SplitPanel>
     </Vertical>
-    <SplitPanel id="ws1_Step_4" title="Survey Questions 16-20" sizes="80,20">
-        <LeftPane>
+    <Vertical id="ws1_Step_4">
             <Markdown>
                 ## Questions 16-20
                 Indicate how strongly you agree or disagree with the following statements.
@@ -212,52 +67,8 @@ category: writing
             <Markdown id="ws1_directions">
               Select one option for each row. Your selections are automatically saved.
             </Markdown>
-        </LeftPane>
-        <RightPane>
-           <ActionButton label="Compare my responses to a typical student's">
-               <LLMAction target="ws1_response_summary_4">
-                  BACKGROUND INFORMATION:
-                   For the fourth survey page that asks about student feelings about writing,
-                   Our column headers are: 
-                         Strongly Agree (corresponding to 0),
-                         Agree (corresponding to 1),
-                         Disagree (corresponding to 2),
-                         Strongly Disagree (corresponding to 3),
-
-                   Our row headers are:
-                  I like it when people compliment my writing skills.
-                  I feel confident when I am writing.
-                  It's important that I get a good grade on a writing assignment.
-                  When I write I create content that I can be proud of.
-                  Writing feels really hard.
-                   
-                   Our data is: 
-                   <Ref id="ws1_ref4" target="ws1_affect_4" />
-                   
-                  This data can be interpreted by mapping each number onto the column header it corresponds
-                  to and using the row headers to indicate the frequency with which the student writes in each genre
-                  for school.
-                  
-                  Typical students:
-                      Strongly agree that they like it when people compliment their writing skills.
-                      Agree that they feel confident when they are writing.
-                      Strongly agree that it's important that they get a good grade on a writing assignment.
-                      Agree that when they write they create content that they can be proud of.
-                      Vary in whether writing feels really hard, but without strong feelings in either direction.
-
-                  DIRECTIONS: 
-                   If any of the student's response data is blank, say so and stop; otherwise,
-                   using the information from the data interpretation, and addressing the 
-                   student as "you", write one sentence that explains how the student's feelings
-                   resemble those of typical students, and (if appropriate) one sentence that
-                   explains how the student's feelings are different from those of typical students. 
-           </LLMAction>
-           </ActionButton>
-           <LLMFeedback id="ws1_response_summary_4" />
-         </RightPane>
-    </SplitPanel>
-    <SplitPanel id="ws1_Step_5" title="Survey Questions 21-26" sizes="80,20">
-        <LeftPane>
+    </Vertical>
+    <Vertical id="ws1_Step_5">
             <Markdown>
                 ## Questions 21-26
                 Indicate how strongly you agree or disagree with the following statements.
@@ -269,52 +80,7 @@ category: writing
             <Markdown id="ws1_directions">
               Select one option for each row. Your selections are automatically saved.
             </Markdown>
-        </LeftPane>
-        <RightPane>
-           <ActionButton label="Compare my responses to a typical student's">
-               <LLMAction target="ws1_response_summary_5">
-                  BACKGROUND INFORMATION:
-                   For the fifth survey page that asks about student feelings about writing,
-                   Our column headers are: 
-                         Strongly Agree (corresponding to 0),
-                         Agree (corresponding to 1),
-                         Disagree (corresponding to 2),
-                         Strongly Disagree (corresponding to 3),
-
-                   Our row headers are:
-                   I usually enjoy writing in school.
-                   I find writing interesting.
-                   I enjoy writing most when I get to decide what to write about.
-                   I understand things better when I write about them.\
-                   There are some kinds of writing that I really like.
-                   I like it when I can focus and my writing flows.                    
-                   
-                   Our data is: 
-                   <Ref id="ws1_ref5" target="ws1_affect_5" />
-                   
-                  This data can be interpreted by mapping each number onto the column header it corresponds
-                  to and using the row headers to indicate the frequency with which the student writes in each genre
-                  for school.
-                  
-                  Typical students:
-                       Agree that they usually enjoy writing in school.
-                       Agree that they find writing interesting.
-                       Agree that they enjoy writing most when they get to decide what to write about.
-                       Agree that they understand things better when they write about them.
-                       Agree that there are some kinds of writing they really like.
-                       Strongly agree that they like it when they can focus and their writing flows.
-
-                  DIRECTIONS: 
-                   If any of the student's response data is blank, say so and stop; otherwise,
-                   using the information from the data interpretation, and addressing the 
-                   student as "you", write one sentence that explains how the student's feelings
-                   resemble those of typical students, and (if appropriate) one sentence that
-                   explains how the student's feelings are different from those of typical students. 
-           </LLMAction>
-           </ActionButton>
-           <LLMFeedback id="ws1_response_summary_5" />
-         </RightPane>
-    </SplitPanel>
+    </Vertical>
     <Vertical id="ws1_Step_6">
            <ActionButton label="Analyze my feelings about writing">
                <LLMAction target="ws1_response_summary_6">
@@ -416,12 +182,58 @@ category: writing
                   Writing is a skill I want to get better at.
                   I worry that other people will criticize my writing.
  
+                  Typical students' response patterns look like this --
+                  
+                  On Factor 1 (Difficulty/Interest), typical students:
+                       Disagree that they dislike writing (though not strongly),
+                       Agree that it is frustrating to have to write about a subject that they did not choose,
+                       May agree or disagree about whether they consider writing usually boring,
+                           but do not have strong feelings either way,
+                       May agree or disagree that they find it difficult to communicate their ideas
+                            through writing, but without strong feelings either way,
+                       Agree (or strongly agree) that they prefer to avoid writing when it isn't required.
+                       Vary in whether writing feels really hard, but without strong feelings
+                            in either direction,                       
+                       Agree that they find writing interesting, and 
+                       Agree that they understand things better when they write about them.                  I 
+                       
+                  On Factor 2 (Agency), typical students:
+                       Agree (or strongly agree) that there are some subjects they really enjoy writing about,
+                       Strongly agree that they like it when they can focus and their writing flows,
+                       Agree that there are some kinds of writing they really like,                       
+                       Agree that they enjoy writing most when they get to decide what to write about,
+                       Strongly agree that they like it when people compliment their writing skills, and
+                       Strongly agree that it's important that they get a good grade on a writing assignment.  
+                  
+                  On Factor 3 (Self-efficacy), typical students:
+                       Vary quite a bit in whether they agree or disagree that they like getting lots
+                            of shares or likes on social media when they post something they have written
+                            (but tend not to have strong feelings on the matter).
+                       Most student disagree with the statement that they get so involved in their
+                            writing that they often lose track of time; very few strongly agree or disagree.
+                       Agree that they feel confident when they are writing.
+                       Agree that they usually enjoy writing in school.
+                       Agree that when they write they create content that they can be proud of.
+                       Disagree strongly with the statement that they like to write outside school.
+                       Most students disagree with the statement that they are too impatient to spend
+                            a lot of time writing; very few strongly agree or strongly disagree.
+       
+                  On Factor 4 (Intrinsic value), typical students:
+                       Agree (or strongly agree) that writing is a skill they want to get better at,
+                       Disagree strongly with the statement that they worry about other people
+                           criticizing their writing,
+                       Strongly agree that it upsets them when they get low grades on a writing assignment,
+                       Most students agree that writing helps them learn; very few disagree, and
+                       Most students strongly agree that it is important to know how to write well;
+                            Very few disagree.
+
                   DIRECTIONS: 
                    If any of the student's response data is blank, say so and stop; otherwise,
                    using the information from the data interpretation, and addressing the 
-                   student as "you", write a numbered, bulleted list that describes the student's 
-                   attitudes towards writing in terms of these four factors. Do not include
-                   the phrases "Factor 1", "Factor 2", "Factor 3" or "Factor 4" in your response.
+                   student as "you", describe the student's attitudes towards writing in terms
+                   of these four factors, emphasizing where their responses differ from the
+                   typical student's. Do not include the phrases "Factor 1", "Factor 2", "Factor 3"
+                   or "Factor 4" in your response.
            </LLMAction>
           </ActionButton>
         <LLMFeedback id="ws1_response_summary_6" />

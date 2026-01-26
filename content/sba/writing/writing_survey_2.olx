@@ -36,48 +36,7 @@ category: writing
             <Markdown id="ws2_directions">
               Select one option for each row. Your selections are automatically saved.
             </Markdown>
-           <ActionButton label="Compare my responses to a typical student's">
-               <LLMAction target="ws2_response_summary_1">
-                  BACKGROUND INFORMATION:
-                   For the first survey page that asks about student feelings about writing,
-                   Our column headers are: 
-                         Strongly Agree (corresponding to 0),
-                         Agree (corresponding to 1),
-                         Disagree (corresponding to 2),
-                         Strongly Disagree (corresponding to 3),
-
-                   Our row headers are:
-                   I often write in order to express how I feel.
-                   I work hard to improve my writing skills.
-                   When I write I try to finish as quickly as I can.
-                   When I write I try to find easier ways to complete the task.
-                   When I write I try to get my ideas across clearly.
-                   
-                   Our data is: 
-                   <Ref id="ws2_ref1" target="ws2_goals_1" />
-                   
-                  This data can be interpreted by mapping each number onto the column header it corresponds
-                  to and using the row headers to indicate the frequency with which the student writes in each genre
-                  for school.
-                  
-                  Typical students:
-                         Agree (or strongly agree) that they often write in order to express how they feel,
-                         Agree (or strongly agree) that they work hard to improve their writing skills.
-                         Agree (or strongly agree) that when they write they try to finish as quickly as they can,
-                         Agree (or strongly agree) that when they write they try to find easier ways to complete the task,
-                         Agree (or strongly agree) that when they write they try to get their ideas across clearly.
-
-                  DIRECTIONS: 
-                   If any of the student's response data is blank, say so and stop; otherwise,
-                   using the information from the data interpretation, and addressing the 
-                   student as "you", write one sentence that explains how the student's writing goals
-                   resemble those of typical students, and (if appropriate) one sentence that
-                   explains how the student's writing goalss are different from those of typical students. 
-           </LLMAction>
-           </ActionButton>
-           <LLMFeedback id="ws2_response_summary_1" />
     </Vertical>
-
     <Vertical id="ws2_Step_2">
             <Markdown>
                 ## Questions 6-10
@@ -90,47 +49,7 @@ category: writing
             <Markdown id="ws2_directions">
               Select one option for each row. Your selections are automatically saved.
             </Markdown>
-           <ActionButton label="Compare my responses to a typical student's">
-               <LLMAction target="ws2_response_summary_2">
-                  BACKGROUND INFORMATION:
-                   For the first survey page that asks about student goals for writing,
-                   Our column headers are: 
-                         Strongly Agree (corresponding to 0),
-                         Agree (corresponding to 1),
-                         Disagree (corresponding to 2),
-                         Strongly Disagree (corresponding to 3),
-
-                   Our row headers are:
-                   When I write I try to keep working and make steady progress.
-                   I am sometimes embarrassed or nervous about my writing.
-                   When I write for school I try hard to please my teacher.
-                   I prefer to write about subjects that I choose for myself.
-                   I try to keep my writing private so I won't feel embarrassed about my mistakes.                   
-                   Our data is: 
-                   <Ref id="ws2_ref2" target="ws2_goals_2" />
-                   
-                  This data can be interpreted by mapping each number onto the column header it corresponds
-                  to and using the row headers to indicate the frequency with which the student writes in each genre
-                  for school.
-                  
-                  Typical students:
-                   Agree that when they write they try to keep working and make steady progress,
-                   agree that they are am sometimes embarrassed or nervous about their writing,
-                   agree that when they write for school they try hard to please their teacher,
-                   strongly agree they prefer to write about subjects that they choose for themselves.
-                   agree that they try to keep their writing private so they won't feel embarrassed about their mistakes.                   
-
-                  DIRECTIONS: 
-                   If any of the student's response data is blank, say so and stop; otherwise,
-                   using the information from the data interpretation, and addressing the 
-                   student as "you", write one sentence that explains how the student's writing goalss
-                   resemble those of typical students, and (if appropriate) one sentence that
-                   explains how the student's writing goals are different from those of typical students. 
-           </LLMAction>
-           </ActionButton>
-           <LLMFeedback id="ws2_response_summary_2" />
     </Vertical>
-
     <Vertical id="ws2_Step_3">
             <Markdown>
                 ## Questions 11-15
@@ -143,50 +62,7 @@ category: writing
             <Markdown id="ws2_directions">
               Select one option for each row. Your selections are automatically saved.
             </Markdown>
-           <ActionButton label="Compare my responses to a typical student's">
-               <LLMAction target="ws2_response_summary_3">
-                  BACKGROUND INFORMATION:
-                   For the first survey page that asks about student goals for writing,
-                   Our column headers are: 
-                         Strongly Agree (corresponding to 0),
-                         Agree (corresponding to 1),
-                         Disagree (corresponding to 2),
-                         Strongly Disagree (corresponding to 3),
-
-                   Our row headers are:
-                   I often write to convince other people to agree with me.
-                   I often try to write things other people will enjoy.
-                   I often write to figure out what I really think.
-                   I write to communicate with other people.
-                   I set high standards for myself when I write.              
-                   
-                   Our data is: 
-                   <Ref id="ws2_ref3" target="ws2_goals_3" />
-                   
-                  This data can be interpreted by mapping each number onto the column header it corresponds
-                  to and using the row headers to indicate the frequency with which the student writes in each genre
-                  for school.
-                  
-                  Typical students:
-                   disagree that they often write to convince other people to agree with them,.
-                   agree that they often try to write things other people will enjoy,
-                   agree that they often write to figure out what they really think,
-                   agree that they write to communicate with other people,
-                   agree (or strongly agree) that they set high standards for themselves when they write.              
-
-
-                  DIRECTIONS: 
-                   If any of the student's response data is blank, say so and stop; otherwise,
-                   using the information from the data interpretation, and addressing the 
-                   student as "you", write one sentence that explains how the student's writing goals
-                   resemble those of typical students, and (if appropriate) one sentence that
-                   explains how the student's writing goals are different from those of typical students. 
-           </LLMAction>
-           </ActionButton>
-           <LLMFeedback id="ws2_response_summary_3" />
     </Vertical>
-
-
     <Vertical id="ws2_Step_4">
             <Markdown>
                 ## Questions 16-20
@@ -199,49 +75,7 @@ category: writing
             <Markdown id="ws2_directions">
               Select one option for each row. Your selections are automatically saved.
             </Markdown>
-           <ActionButton label="Compare my responses to a typical student's">
-               <LLMAction target="ws2_response_summary_4">
-                  BACKGROUND INFORMATION:
-                   For the first survey page that asks about student goals for writing,
-                   Our column headers are: 
-                         Strongly Agree (corresponding to 0),
-                         Agree (corresponding to 1),
-                         Disagree (corresponding to 2),
-                         Strongly Disagree (corresponding to 3),
-
-                   Our row headers are:
-                   When I write I try to get the task done as quickly as possible.
-                   I choose to write about subjects that I find personally meaningful.
-                   I try to write things that other people will want to read.
-                   When I write I keep on working no matter how hard it gets.
-                   When I write for school I do my best to get good grades.             
-                   
-                   Our data is: 
-                   <Ref id="ws2_ref4" target="ws2_goals_4" />
-                   
-                  This data can be interpreted by mapping each number onto the column header it corresponds
-                  to and using the row headers to indicate the frequency with which the student writes in each genre
-                  for school.
-                  
-                  Typical students:
-                   Agree that when they write they try to get the task done as quickly as possible,
-                   agree that they choose to write about subjects that they find personally meaningful,
-                   agree that they try to write things that other people will want to read,
-                   agree that when they write they keep on working no matter how hard it gets,
-                   strongly agree that when they write for school they do their best to get good grades.             
-
-                  DIRECTIONS: 
-                   If any of the student's response data is blank, say so and stop; otherwise,
-                   using the information from the data interpretation, and addressing the 
-                   student as "you", write one sentence that explains how the student's writing goals
-                   resemble those of typical students, and (if appropriate) one sentence that
-                   explains how the student's writing goals are different from those of typical students. 
-           </LLMAction>
-           </ActionButton>
-           <LLMFeedback id="ws2_response_summary_4" />
     </Vertical>
-
-
     <Vertical id="ws2_Step_5">
             <Markdown>
                 ## Questions 21-26
@@ -254,47 +88,6 @@ category: writing
             <Markdown id="ws2_directions">
               Select one option for each row. Your selections are automatically saved.
             </Markdown>
-           <ActionButton label="Compare my responses to a typical student's">
-               <LLMAction target="ws2_response_summary_5">
-                  BACKGROUND INFORMATION:
-                   For the first survey page that asks about student goals for writing,
-                   Our column headers are: 
-                         Strongly Agree (corresponding to 0),
-                         Agree (corresponding to 1),
-                         Disagree (corresponding to 2),
-                         Strongly Disagree (corresponding to 3),
-
-                   Our row headers are:
-                   I use my writing to improve my understanding of the subject I am writing about.
-                   I try to impress people with my writing.
-                   I put a lot of effort into learning how to write better.
-                   When I write for school the most important thing is completing the assignment.
-                   When I write I try to stay focused and maintain my concentration.
-                   I work hard to avoid making mistakes while I am writing.                   
-                   Our data is: 
-                   <Ref id="ws2_ref5" target="ws2_goals_5" />
-                   
-                  This data can be interpreted by mapping each number onto the column header it corresponds
-                  to and using the row headers to indicate the frequency with which the student writes in each genre
-                  for school.
-                  
-                  Typical students:
-                   agree that they use their writing to improve their understanding of the subject they am writing about,
-                   agree that they try to impress people with their writing,
-                   agree that they put a lot of effort into learning how to write better.,
-                   agree that when they write for school the most important thing is completing the assignment,
-                   strongly agree that when they write they try to stay focused and maintain their concentration,
-                   agree that they work hard to avoid making mistakes while they are writing.                   
-
-                  DIRECTIONS: 
-                   If any of the student's response data is blank, say so and stop; otherwise,
-                   using the information from the data interpretation, and addressing the 
-                   student as "you", write one sentence that explains how the student's writing goals
-                   resemble those of typical students, and (if appropriate) one sentence that
-                   explains how the student's writing goals are different from those of typical students. 
-           </LLMAction>
-           </ActionButton>
-           <LLMFeedback id="ws2_response_summary_5" />
     </Vertical>
     <Vertical id="ws2_Step_6">
            <ActionButton label="Analyze my writing goals">
