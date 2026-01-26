@@ -32,7 +32,10 @@ function HomeLink() {
 
 function LocaleSelector() {
   const props = useBaselineProps();
-  const [locale, setLocale] = useSetting(props, settings.locale);
+  // HACK: Coerce props to RuntimeProps. System-scoped settings don't actually use props,
+  // but useSetting's signature requires it. Future changes to store/logEvent will
+  // force us to revisit this. See useBaselineProps comment about prop hierarchy.
+  const [locale, setLocale] = useSetting(props as any, settings.locale);
 
   const localeOptions = [
     { code: 'ar-SA', label: 'Arabic' },

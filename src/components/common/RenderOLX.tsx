@@ -80,7 +80,11 @@ export function useBaselineProps() {
   const logEvent = replayMode ? noopLogEvent : lo_event.logEvent;
   const sideEffectFree = replayMode;
 
-  const [reduxLocale, setReduxLocale] = useSetting({ logEvent }, settings.locale);
+  // HACK: We coerce minimal props to RuntimeProps. We really want a prop hierarchy:
+  // MVPStoreProps { store, logEvent } < GlobalProps < BlockProps
+  // For now, this minimal set is enough for useSetting to work. Future refactor
+  // should introduce proper prop types for non-block contexts.
+  const [reduxLocale, setReduxLocale] = useSetting({ logEvent } as any, settings.locale);
 
   // Initialize with browser locale if Redux has no setting
   let locale = reduxLocale;
@@ -146,11 +150,11 @@ function useBuildProviderStack(
 function useParseContent(
   inline?: string,
   files?: Record<string, string>,
-  effectiveProvider: any,
-  provenance: string | undefined,
-  source: string,
-  logEvent: any,
-  sideEffectFree: boolean,
+  effectiveProvider?: any,
+  provenance?: string,
+  source?: string,
+  logEvent?: any,
+  sideEffectFree?: boolean,
   onError?: (err: any) => void
 ) {
   const [parsed, setParsed] = useState<any>(null);
@@ -186,6 +190,8 @@ function useParseContent(
           if (!cancelled) {
             // Dispatch to Redux for reactive block access (skip during replay - viewing historical state)
             if (!sideEffectFree) {
+              if (!logEvent) throw new Error('useParseContent: logEvent is required for dispatching');
+              if (!source) throw new Error('useParseContent: source is required for dispatching');
               dispatchOlxJson({ runtime: { logEvent } }, source, result.idMap);
             }
             // startTransition prevents Suspense - shows old content while rendering new
@@ -220,6 +226,8 @@ function useParseContent(
           if (!cancelled) {
             // Dispatch to Redux for reactive block access (skip during replay - viewing historical state)
             if (!sideEffectFree) {
+              if (!logEvent) throw new Error('useParseContent: logEvent is required for dispatching');
+              if (!source) throw new Error('useParseContent: source is required for dispatching');
               dispatchOlxJson({ runtime: { logEvent } }, source, mergedIdMap);
             }
             startTransition(() => {
