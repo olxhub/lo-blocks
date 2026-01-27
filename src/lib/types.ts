@@ -407,7 +407,7 @@ export type OlxDomSelector = (node: OlxDomNode) => boolean;
  * Future: derive `dir` from Intl.Locale.getTextInfo() when browser support is universal.
  */
 export interface LocaleContext {
-  code: string;  // BCP 47 locale code: 'en-US', 'zh-Hans-CN', 'ar-SA', 'pl-PL', 'tr-TR'
+  code: string;  // BCP 47 locale code: 'en-Latn-US', 'zh-Hans-CN', 'ar-Arab-SA', 'pl-Latn-PL', 'tr-TR'
   dir: 'ltr' | 'rtl';  // Text direction from Redux settings
 }
 
@@ -473,7 +473,9 @@ export interface OlxJson {
 }
 
 export interface IdMap {
-  [id: OlxKey]: OlxJson;
+  [id: OlxKey]: {
+    [lang: string]: OlxJson;
+  };
 }
 
 export interface GraphNode {

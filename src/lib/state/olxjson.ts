@@ -114,13 +114,29 @@ export function dispatchOlxJsonSync(
     return;
   }
 
+  // FIXME: Extract language from runtime context instead of hardcoding 'en-Latn-US'
+  // Handle both nested { id: { lang: OlxJson } } and flat { id: OlxJson } structures
+  const lang = 'en-Latn-US';
+  const flatBlocks: Record<string, any> = {};
+
+  for (const [id, entry] of Object.entries(blocks)) {
+    // Check if this is nested (has a language key) or already flat
+    if (entry && typeof entry === 'object' && entry[lang] && !entry.tag) {
+      // Nested: { id: { 'en-Latn-US': OlxJson, ... } }
+      flatBlocks[id] = entry[lang];
+    } else {
+      // Already flat: { id: OlxJson }
+      flatBlocks[id] = entry;
+    }
+  }
+
   // Dispatch in lo_event's expected format:
   // - redux_type: EMIT_EVENT tells the reducer to process this
   // - payload: JSON-stringified event data
   reduxStore.dispatch({
     redux_type: 'EMIT_EVENT',
     type: 'lo_event',
-    payload: JSON.stringify({ event: LOAD_OLXJSON, source, blocks })
+    payload: JSON.stringify({ event: LOAD_OLXJSON, source, blocks: flatBlocks })
   });
 }
 
@@ -187,6 +203,7 @@ export function olxjsonReducer(
   switch (action.type) {
     case LOAD_OLXJSON: {
       // Bulk load parsed content: { source: 'system', blocks: { [id]: OlxJson } }
+      // (Language extraction happens in indexParsedBlocks)
       const { source, blocks } = action;
       if (!source || !blocks) return state;
 

@@ -454,28 +454,32 @@ export async function parseOLX(
         // Support both direct entry and updater function patterns:
         // - storeEntry(id, entry) - store/overwrite
         // - storeEntry(id, (existing) => newEntry) - update existing
+        // FIXME: Extract language from metadata provider instead of hardcoding 'en-Latn-US'
+        const lang = 'en-Latn-US';
         const entry = typeof entryOrUpdater === 'function'
-          ? entryOrUpdater(idMap[storeId])
+          ? entryOrUpdater(idMap[storeId]?.[lang])
           : entryOrUpdater;
 
         // If this is an update to an existing entry, just update it
-        if (typeof entryOrUpdater === 'function' && idMap[storeId]) {
-          idMap[storeId] = entry;
+        if (typeof entryOrUpdater === 'function' && idMap[storeId]?.[lang]) {
+          if (!idMap[storeId]) idMap[storeId] = {};
+          idMap[storeId][lang] = entry;
           return;
         }
 
-        if (idMap[storeId]) {
+        if (idMap[storeId]?.[lang]) {
           const requiresUnique = shouldBlockRequireUniqueId(Component, tag, storeId, entry, idMap, provenance);
 
           if (!requiresUnique) {
             // Allow duplicate IDs for this block type - but still store in idMap
             // We'll overwrite the previous entry to keep the latest one
-            idMap[storeId] = entry;
+            if (!idMap[storeId]) idMap[storeId] = {};
+            idMap[storeId][lang] = entry;
             return;
           }
 
           // Get detailed information about both the existing and duplicate entries
-          const existingEntry = idMap[storeId];
+          const existingEntry = idMap[storeId][lang];
 
           errors.push({
             type: 'duplicate_id',
@@ -503,7 +507,8 @@ export async function parseOLX(
           // Skip the duplicate, keep the first one
           return;
         }
-        idMap[storeId] = entry;
+        if (!idMap[storeId]) idMap[storeId] = {};
+        idMap[storeId][lang] = entry;
       },
       // Pass errors array to parsers so they can accumulate errors too
       errors

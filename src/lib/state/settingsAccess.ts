@@ -6,7 +6,7 @@
  *
  * The call signature is designed to support context-aware resolution:
  * - useSetting(props, 'localeCode', { school: 'kaust' }) → resolves with attributes
- * - Later can match against rules: if school='kaust' then locale='ar-SA'
+ * - Later can match against rules: if school='kaust' then locale='ar-Arab-SA'
  *
  * Access patterns:
  * - selectSetting(state, key, attrs?) - Redux selector (pure, takes state directly)
@@ -25,7 +25,7 @@ import { useFieldState } from './redux';
  * These represent conditions that can match against configuration rules.
  * Examples:
  *   { school: 'mit', user: '123', mode: 'replay' }
- *   { region: 'middle-east', locale: 'ar-SA' }
+ *   { region: 'middle-east', locale: 'ar-Arab-SA' }
  *
  * In PMSS: rules match against these attributes via CSS-like selectors.
  */

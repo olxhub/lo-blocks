@@ -6,6 +6,9 @@ import { fileTypes } from '../lofs';
 import { FileStorageProvider } from '../lofs/providers/file';
 import { syncContentFromStorage } from './syncContentFromStorage';
 
+// Helper to get OlxJson from idMap (language extraction happens in indexParsedBlocks)
+const getOlxJson = (idMap: any, id: string) => idMap[id];
+
 it('handles added, unchanged, changed, and deleted files via filesystem mutation', async () => {
   const tmpDir = await fs.mkdtemp('content-test-');
 
@@ -68,10 +71,10 @@ it('re-parses OLX files when their auxiliary dependencies change', async () => {
 
     // First sync - parses both files
     const first = await syncContentFromStorage(provider);
-    expect(first.idMap['test_chat_dep']).toBeDefined();
+    expect(getOlxJson(first.idMap, 'test_chat_dep')).toBeDefined();
 
     // The Chat block's provenance should include both the OLX and chatpeg files
-    const chatEntry = first.idMap['test_chat_dep'];
+    const chatEntry = getOlxJson(first.idMap, 'test_chat_dep');
     expect(chatEntry.provenance).toBeDefined();
     expect(chatEntry.provenance.length).toBe(2);
     expect(chatEntry.provenance[0]).toContain('test.olx');
@@ -88,11 +91,11 @@ it('re-parses OLX files when their auxiliary dependencies change', async () => {
     const second = await syncContentFromStorage(provider);
 
     // The Chat block should still exist
-    expect(second.idMap['test_chat_dep']).toBeDefined();
+    expect(getOlxJson(second.idMap, 'test_chat_dep')).toBeDefined();
 
     // Verify the content was actually re-parsed - the title should have changed
-    const updatedEntry = second.idMap['test_chat_dep'];
-    expect(updatedEntry.kids.parsed.header.Title).toBe('Updated');
+    const updatedEntry = getOlxJson(second.idMap, 'test_chat_dep');
+    expect(updatedEntry?.kids?.parsed?.header?.Title).toBe('Updated');
   } finally {
     await fs.rm(tmpDir, { recursive: true, force: true });
   }
@@ -124,7 +127,7 @@ it('byProvenance.nodes stays in sync with byId when auxiliary files add/remove I
 
     // First sync
     const first = await syncContentFromStorage(provider);
-    expect(first.idMap['chat_main']).toBeDefined();
+    expect(getOlxJson(first.idMap, 'chat_main')).toBeDefined();
 
     // Get the OLX file's provenance URI
     const olxUri = Object.keys(first.parsed).find(k => k.endsWith('test.olx'));
@@ -143,8 +146,8 @@ it('byProvenance.nodes stays in sync with byId when auxiliary files add/remove I
     const second = await syncContentFromStorage(provider);
 
     // The chat_main block should still exist with updated content
-    expect(second.idMap['chat_main']).toBeDefined();
-    expect(second.idMap['chat_main'].kids.parsed.header.Title).toBe('V2');
+    expect(getOlxJson(second.idMap, 'chat_main')).toBeDefined();
+    expect(getOlxJson(second.idMap, 'chat_main')?.kids?.parsed?.header?.Title).toBe('V2');
 
     // CRITICAL CHECK: byProvenance.nodes must match what's actually in byId
     const secondNodes = second.parsed[olxUri].nodes;
@@ -154,12 +157,14 @@ it('byProvenance.nodes stays in sync with byId when auxiliary files add/remove I
 
     // Every ID in nodes should exist in idMap
     for (const nodeId of secondNodes) {
-      expect(second.idMap[nodeId]).toBeDefined();
+    const nodeEntry = getOlxJson(second.idMap, nodeId);
+      expect(nodeEntry).toBeDefined();
     }
 
     // Every ID in idMap that came from this file should be in nodes
-    for (const [id, entry] of Object.entries(second.idMap)) {
-      if (entry.provenance && entry.provenance[0] === olxUri) {
+    for (const [id, langMap] of Object.entries(second.idMap)) {
+      const entry = (langMap as any)['en-Latn-US'];
+      if (entry?.provenance && entry.provenance[0] === olxUri) {
         expect(secondNodes).toContain(id);
       }
     }
@@ -173,14 +178,14 @@ it('byProvenance.nodes stays in sync with byId when auxiliary files add/remove I
     // Verify old IDs are properly cleaned up (not left as orphans in byId)
     // If the bug exists, deleteNodesByProvenance would use stale node IDs
     // and fail to remove the correct entries
-    expect(third.idMap['chat_main']).toBeDefined();
-    expect(third.idMap['chat_main'].kids.parsed.header.Title).toBe('V3');
+    expect(getOlxJson(third.idMap, 'chat_main')).toBeDefined();
+    expect(getOlxJson(third.idMap, 'chat_main')?.kids?.parsed?.header?.Title).toBe('V3');
 
     const thirdNodes = third.parsed[olxUri].nodes;
 
     // Again verify consistency
     for (const nodeId of thirdNodes) {
-      expect(third.idMap[nodeId]).toBeDefined();
+      expect(getOlxJson(third.idMap, nodeId)).toBeDefined();
     }
 
   } finally {
@@ -243,10 +248,10 @@ it('stale nodes array does not overwrite fresh IDs after auxiliary file change',
     // Must have both chat1 AND text_new
     expect(secondNodes).toContain('chat1');
     expect(secondNodes).toContain('text_new');
-    expect(second.idMap['text_new']).toBeDefined();
+    expect(getOlxJson(second.idMap, 'text_new')).toBeDefined();
 
     // Verify the chat was updated too
-    expect(second.idMap['chat1'].kids.parsed.header.Title).toBe('V2');
+    expect(getOlxJson(second.idMap, 'chat1')?.kids?.parsed?.header?.Title).toBe('V2');
 
   } finally {
     await fs.rm(tmpDir, { recursive: true, force: true });
@@ -292,7 +297,7 @@ it('auxiliary-only change preserves correct nodes after spread', async () => {
     const second = await syncContentFromStorage(provider);
 
     // Content should be updated
-    expect(second.idMap['the_chat'].kids.parsed.header.Title).toBe('Version2');
+    expect(getOlxJson(second.idMap, 'the_chat')?.kids?.parsed?.header?.Title).toBe('Version2');
 
     // HERE'S THE BUG CHECK:
     // The nodes array in byProvenance should be the FRESH one from parseOLX,
@@ -311,7 +316,7 @@ it('auxiliary-only change preserves correct nodes after spread', async () => {
 
     // The chat should be GONE - if nodes was stale, deleteNodesByProvenance
     // might have tried to delete wrong IDs and left orphans
-    expect(third.idMap['the_chat']).toBeUndefined();
+    expect(getOlxJson(third.idMap, 'the_chat')).toBeUndefined();
 
   } finally {
     await fs.rm(tmpDir, { recursive: true, force: true });

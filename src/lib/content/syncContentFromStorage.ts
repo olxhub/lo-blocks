@@ -334,7 +334,12 @@ function indexParsedBlocks(
   sourceFile: ProvenanceURI,
   errors: OLXLoadingError[]
 ): void {
-  for (const [blockId, block] of Object.entries(newBlocks)) {
+  // FIXME: Extract language from metadata provider instead of hardcoding 'en-Latn-US'
+  const lang = 'en-Latn-US';
+
+  for (const [blockId, langMap] of Object.entries(newBlocks)) {
+    // Extract the language variant: newBlocks is { id: { lang: OlxJson } }
+    const block = (langMap as any)[lang];
     const existingBlock = blockIndex[blockId];
 
     if (existingBlock) {

@@ -6,6 +6,9 @@
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
 
+// Helper to get OlxJson from idMap (language extraction happens in indexParsedBlocks)
+const getOlxJson = (idMap: any, id: string) => idMap[id];
+
 it('wires inputs and graders with explicit targeting', async () => {
   const { idMap } = await syncContentFromStorage(new FileStorageProvider('src/components/blocks/CapaProblem'));
   const root = idMap['CapaProblemTargeting'];
@@ -13,12 +16,12 @@ it('wires inputs and graders with explicit targeting', async () => {
 
   // RatioGrader with explicit target="num,den"
   const graderId = 'CapaProblemTargeting_grader_0';
-  expect(idMap[graderId]).toBeDefined();
-  expect(idMap['num']).toBeDefined();
-  expect(idMap['den']).toBeDefined();
+  expect(getOlxJson(idMap, graderId)).toBeDefined();
+  expect(getOlxJson(idMap, 'num')).toBeDefined();
+  expect(getOlxJson(idMap, 'den')).toBeDefined();
 
   // Grader should have target wired to the two inputs
-  expect(idMap[graderId].attributes.target).toBe('num,den');
+  expect(getOlxJson(idMap, graderId).attributes.target).toBe('num,den');
 
   // Render-time controls should NOT be injected into idMap by the parser
   expect(Object.keys(idMap)).not.toContain('CapaProblemTargeting_button');

@@ -38,15 +38,15 @@ function LocaleSelector() {
   const [locale, setLocale] = useSetting(props as any, settings.locale);
 
   const localeOptions = [
-    { code: 'ar-SA', label: 'Arabic' },
-    { code: 'en-KE', label: 'English (Kenya)' },
-    { code: 'pl-PL', label: 'Polish' },
-    { code: 'es-ES', label: 'Spanish' },
+    { code: 'ar-Arab-SA', label: 'Arabic' },
+    { code: 'en-Latn-KE', label: 'English (Kenya)' },
+    { code: 'pl-Latn-PL', label: 'Polish' },
+    { code: 'es-Latn-ES', label: 'Spanish' },
   ];
 
   return (
     <select
-      value={locale?.code || 'en-KE'}
+      value={locale?.code || 'en-Latn-KE'}
       onChange={(e) => {
         const code = e.target.value;
         setLocale({ code, dir: getTextDirection(code) });

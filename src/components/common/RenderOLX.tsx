@@ -90,9 +90,9 @@ export function useBaselineProps() {
   let locale = reduxLocale;
   if (!locale) {
     const browserCode = getBrowserLocale();
-    // HACK: Map unsupported locales to en-KE default
-    const supportedCodes = new Set(['ar-SA', 'en-KE', 'pl-PL', 'es-ES']);
-    const code = supportedCodes.has(browserCode) ? browserCode : 'en-KE';
+    // HACK: Map unsupported locales to en-Latn-KE default
+    const supportedCodes = new Set(['ar-Arab-SA', 'en-Latn-KE', 'pl-Latn-PL', 'es-Latn-ES']);
+    const code = supportedCodes.has(browserCode) ? browserCode : 'en-Latn-KE';
     const dir = getTextDirection(code);
     locale = { code, dir };
     setReduxLocale(locale);

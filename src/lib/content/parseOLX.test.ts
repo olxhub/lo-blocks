@@ -4,6 +4,10 @@ import { parseOLX } from './parseOLX';
 
 const PROV = ['file://test.xml'];
 
+// Helper to get OlxJson from idMap nested structure returned by parseOLX
+// (parseOLX returns nested { id: { lang: OlxJson } }, extraction happens in indexParsedBlocks for syncContentFromStorage)
+const getOlxJson = (idMap: any, id: string) => idMap[id]?.['en-Latn-US'];
+
 test('returns root id of single element', async () => {
   const xml = '<Vertical id="root"><TextBlock id="child"/></Vertical>';
   const { root, idMap } = await parseOLX(xml, PROV);
@@ -20,7 +24,7 @@ test('returns first element id when multiple roots', async () => {
 test('parses <Use> with attribute overrides', async () => {
   const xml = '<Vertical id="L"><Chat id="C" clip="[1,2]"/><Use ref="C" clip="[3,4]"/></Vertical>';
   const { idMap, root } = await parseOLX(xml, PROV);
-  const lesson = idMap[root];
+  const lesson = getOlxJson(idMap, root);
   const useKid = lesson.kids[1];
   expect(useKid).toEqual({ type: 'block', id: 'C', overrides: { clip: '[3,4]' } });
 });
@@ -46,7 +50,10 @@ test('CRITICAL: Parser must preserve numeric text as strings (prevents "text.tri
   const result = await parseOLX(xml, PROV);
 
   // Find TextBlock nodes in the parsed result
-  const textBlocks = Object.values(result.idMap).filter(node => node.tag === 'TextBlock');
+  // FIXME: idMap is now nested { id: { lang: OlxJson } }, so flatten it
+  const textBlocks = Object.entries(result.idMap)
+    .map(([_, langMap]: any) => langMap['en-Latn-US'])
+    .filter(node => node?.tag === 'TextBlock');
 
   expect(textBlocks.length).toBeGreaterThan(0);
 
@@ -106,7 +113,10 @@ test('TextBlock elements with same content should allow duplicates', async () =>
   expect(errors.length).toBe(0);
 
   // Both should be stored in idMap (latest overwrites)
-  const textBlocks = Object.values(idMap).filter(node => node.tag === 'TextBlock');
+  // FIXME: idMap is now nested { id: { lang: OlxJson } }, so flatten it
+  const textBlocks = Object.entries(idMap)
+    .map(([_, langMap]: any) => langMap['en-Latn-US'])
+    .filter(node => node?.tag === 'TextBlock');
   expect(textBlocks.length).toBeGreaterThan(0);
 });
 
@@ -115,7 +125,10 @@ test('Markdown elements with same content should allow duplicates', async () => 
   const { errors, idMap } = await parseOLX(xml, PROV);
   expect(errors.length).toBe(0);
 
-  const markdownBlocks = Object.values(idMap).filter(node => node.tag === 'Markdown');
+  // FIXME: idMap is now nested { id: { lang: OlxJson } }, so flatten it
+  const markdownBlocks = Object.entries(idMap)
+    .map(([_, langMap]: any) => langMap['en-Latn-US'])
+    .filter(node => node?.tag === 'Markdown');
   expect(markdownBlocks.length).toBeGreaterThan(0);
 });
 
@@ -185,8 +198,8 @@ test('parses valid metadata and ignores regular comments', async () => {
   `;
   const { idMap, errors } = await parseOLX(xml, PROV);
   expect(errors.length).toBe(0);
-  expect(idMap.test.description).toBe('Test description');
-  expect(idMap.test.category).toBe('psychology');
+  expect(getOlxJson(idMap, 'test').description).toBe('Test description');
+  expect(getOlxJson(idMap, 'test').category).toBe('psychology');
 });
 
 test('reports teacher-friendly error for invalid YAML metadata', async () => {
@@ -206,7 +219,7 @@ test('reports teacher-friendly error for invalid YAML metadata', async () => {
   expect(errors[0].type).toBe('metadata_error');
   expect(errors[0].message).toContain('📝');
   expect(errors[0].message).toContain('💡 TIP');
-  expect(idMap.test.description).toBeUndefined();
+  expect(getOlxJson(idMap, 'test')?.description).toBeUndefined();
 });
 
 test('empty comment produces empty string (documents parser behavior)', async () => {
@@ -217,5 +230,5 @@ test('empty comment produces empty string (documents parser behavior)', async ()
   // Empty comment should not cause parser errors (it's just an empty string)
   expect(errors.filter(e => e.type === 'parse_error').length).toBe(0);
   // And should not extract any metadata
-  expect(idMap.test.description).toBeUndefined();
+  expect(getOlxJson(idMap, 'test')?.description).toBeUndefined();
 });

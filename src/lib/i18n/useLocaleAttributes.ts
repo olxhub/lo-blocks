@@ -18,11 +18,11 @@ import { settings } from '@/lib/state/settings';
 export function useLocaleAttributes() {
   // For system-scoped settings, props can be null since there's no ID/tag resolution needed
   const locale = useFieldSelector(null, settings.locale, {
-    fallback: { code: 'en-KE', dir: 'ltr' }
+    fallback: { code: 'en-Latn-KE', dir: 'ltr' }
   });
 
   return {
     dir: locale?.dir || 'ltr',
-    lang: locale?.code || 'en-KE',
+    lang: locale?.code || 'en-Latn-KE',
   };
 }
