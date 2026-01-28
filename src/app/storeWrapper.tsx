@@ -22,6 +22,7 @@
 import React, { useMemo, useCallback, useEffect, useRef } from 'react';
 import { Provider, useSelector, useStore } from 'react-redux';
 import { legacy_createStore as createStore } from 'redux';
+import { usePathname } from 'next/navigation';
 
 import * as lo_event from 'lo_event';
 
@@ -194,6 +195,14 @@ function StoreWrapperInner({ children, reduxID }: StoreWrapperInnerProps) {
 // =============================================================================
 
 const StoreWrapper = ({ children, reduxID = DEFAULT_REDUX_STORE_ID }) => {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (pathname) {
+      lo_event.setFieldSet([{ page: pathname }]);
+    }
+  }, [pathname]);
+
   return (
     <Provider store={reduxStore}>
       <StoreWrapperInner reduxID={reduxID}>
