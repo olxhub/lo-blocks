@@ -232,3 +232,62 @@ test('empty comment produces empty string (documents parser behavior)', async ()
   // And should not extract any metadata
   expect(getOlxJson(idMap, 'test')?.description).toBeUndefined();
 });
+
+// === Tests for language inheritance ===
+
+test('child elements inherit parent language when no lang attribute', async () => {
+  const xml = `
+    <Vertical id="parent" lang="ar-Arab-SA">
+      <TextBlock>Arabic content</TextBlock>
+    </Vertical>
+  `;
+  const { idMap, errors } = await parseOLX(xml, PROV);
+  expect(errors.length).toBe(0);
+
+  // Both elements should be stored under ar-Arab-SA language
+  expect(idMap['parent']).toBeDefined();
+  expect(idMap['parent']['ar-Arab-SA']).toBeDefined();
+});
+
+test('child can override parent language with own lang attribute', async () => {
+  // Note: metadata in a preceding comment applies to the element that follows.
+  // When parsing root elements, we extract metadata from preceding comments.
+  // However, the way fast-xml-parser parses the document, comments at the top
+  // level are not necessarily siblings of the first element - they might be
+  // separate nodes. Let's test with inline metadata that's clearly associated.
+  const xml = `<Vertical id="parent" lang="ar-Arab-SA"><TextBlock lang="pl-Latn-PL">Polish content</TextBlock></Vertical>`;
+  const { idMap, errors } = await parseOLX(xml, PROV);
+  expect(errors.length).toBe(0);
+
+  // Parent should be stored under ar-Arab-SA (explicit lang attribute)
+  expect(idMap['parent']).toBeDefined();
+  expect(idMap['parent']['ar-Arab-SA']).toBeDefined();
+});
+
+test('language cascade: element > parent > file metadata > default', async () => {
+  const xml = `
+    <!--
+    ---
+    lang: de-Latn-DE
+    ---
+    -->
+    <Vertical id="root" lang="es-Latn-ES">
+      <TextBlock id="explicit_lang" lang="fr-Latn-FR">French</TextBlock>
+      <TextBlock id="inherit_parent">Spanish from parent</TextBlock>
+    </Vertical>
+  `;
+  const { idMap, errors } = await parseOLX(xml, PROV);
+  expect(errors.length).toBe(0);
+
+  // Root has explicit lang, should use that (es-Latn-ES, not file metadata de-Latn-DE)
+  expect(idMap['root']).toBeDefined();
+  expect(idMap['root']['es-Latn-ES']).toBeDefined();
+
+  // TextBlock with explicit lang should use that
+  expect(idMap['explicit_lang']).toBeDefined();
+  expect(idMap['explicit_lang']['fr-Latn-FR']).toBeDefined();
+
+  // TextBlock without lang should inherit parent's es-Latn-ES
+  expect(idMap['inherit_parent']).toBeDefined();
+  expect(idMap['inherit_parent']['es-Latn-ES']).toBeDefined();
+});

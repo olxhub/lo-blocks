@@ -29,9 +29,23 @@ import { z } from 'zod';
  * Currently supports:
  * - description: Brief text description of the activity/content
  */
+// BCP 47 language tag validator using Intl API
+const languageTagSchema = z.string().refine(
+  (value) => {
+    try {
+      Intl.getCanonicalLocales(value);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  { message: "Invalid BCP 47 language tag" }
+);
+
 export const OLXMetadataSchema = z.object({
   description: z.string().optional(),
   category: z.string().optional(),
+  lang: languageTagSchema.optional(),  // BCP 47 language tag (e.g., 'en-Latn-US', 'ar-Arab-SA')
 
   // Potential future fields - uncomment and implement as needed:
 

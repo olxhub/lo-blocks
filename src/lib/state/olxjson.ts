@@ -90,7 +90,23 @@ export function dispatchOlxJson(
     return; // Nothing to dispatch
   }
 
-  props.runtime.logEvent(LOAD_OLXJSON, { source, blocks });
+  // FIXME: Extract language from runtime context instead of hardcoding 'en-Latn-US'
+  // Handle both nested { id: { lang: OlxJson } } and flat { id: OlxJson } structures
+  const lang = 'en-Latn-US';
+  const flatBlocks: Record<string, any> = {};
+
+  for (const [id, entry] of Object.entries(blocks)) {
+    // Check if this is nested (has a language key) or already flat
+    if (entry && typeof entry === 'object' && entry[lang] && !entry.tag) {
+      // Nested: { id: { 'en-Latn-US': OlxJson, ... } }
+      flatBlocks[id] = entry[lang];
+    } else {
+      // Already flat: { id: OlxJson }
+      flatBlocks[id] = entry;
+    }
+  }
+
+  props.runtime.logEvent(LOAD_OLXJSON, { source, blocks: flatBlocks });
 }
 
 /**

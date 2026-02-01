@@ -49,6 +49,7 @@ export const baseAttributes = z.object({
   class: z.string().optional().describe('Visual styling classes (CSS classes for developers)'),
   launchable: z.string().optional().describe('Set to "true" to show in activity indexes'),
   initialPosition: z.coerce.number().optional().describe('Initial position for sortable items (1-indexed)'),
+  lang: z.string().optional().describe('BCP 47 language tag (e.g., en-Latn-US, ar-Arab-SA). Overrides parent and file-level language.'),
 }).strict();
 
 // =============================================================================

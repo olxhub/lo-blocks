@@ -105,6 +105,42 @@ function shouldBlockRequireUniqueId(Component, tag, storeId, entry, idMap, prove
 }
 
 /**
+ * Resolves the language for an element using the cascade:
+ * 1. OLX attribute on element (`lang="..."`)
+ * 2. Parent element's language
+ * 3. File-level metadata language
+ * 4. Default to 'en-Latn-US'
+ *
+ * @param elementAttributes - The parsed attributes of the current element
+ * @param parentLang - Language inherited from parent element
+ * @param fileLang - Language from file metadata
+ * @returns The resolved BCP 47 language tag
+ */
+function resolveElementLanguage(
+  elementAttributes: Record<string, any>,
+  parentLang: string | undefined,
+  fileLang: string | undefined
+): string {
+  // 1. Check element's own lang attribute
+  if (elementAttributes?.lang && typeof elementAttributes.lang === 'string') {
+    return elementAttributes.lang;
+  }
+
+  // 2. Inherit from parent
+  if (parentLang) {
+    return parentLang;
+  }
+
+  // 3. Use file-level language from metadata
+  if (fileLang) {
+    return fileLang;
+  }
+
+  // 4. Default
+  return 'en-Latn-US';
+}
+
+/**
  * Extracts metadata from a comment node's text content.
  *
  * @param commentText - The text content of an XML comment
@@ -353,7 +389,7 @@ export async function parseOLX(
   let rootId = '';
   const errors: OLXLoadingError[] = [];
 
-  async function parseNode(node, siblings: any[] | null = null, nodeIndex = -1) {
+  async function parseNode(node, siblings: any[] | null = null, nodeIndex = -1, parentLang: string | undefined = undefined) {
     const tag = Object.keys(node).find(k => ![':@', '#text', '#comment'].includes(k));
     if (!tag) return null;
 
@@ -361,6 +397,14 @@ export async function parseOLX(
 
     // Extract metadata from preceding sibling comment
     const metadata = extractSiblingMetadata(siblings, nodeIndex, provenance, errors);
+
+    // Resolve language for this element using cascade:
+    // 1. Element's own lang attribute
+    // 2. Inherited from parent element
+    // 3. File-level metadata language
+    // 4. Default 'en-Latn-US'
+    const metadataLang = metadata?.lang;
+    const currentLang = resolveElementLanguage(attributes, parentLang, metadataLang);
 
     if (attributes.ref) {
       if (tag !== 'Use') {
@@ -436,6 +480,11 @@ export async function parseOLX(
 
     const parser = Component?.parser || defaultParser;
 
+    // Create a wrapper around parseNode that passes currentLang as parentLang for child elements.
+    // This ensures language inheritance works correctly throughout the tree.
+    const parseNodeWithLang = (childNode, childSiblings, childIndex) =>
+      parseNode(childNode, childSiblings, childIndex, currentLang);
+
     // Parse the node using the component's parser. The parser is responsible
     // for calling `storeEntry` for every piece of data that should be tracked
     // in the ID map. A single node may generate multiple entries this way.
@@ -448,14 +497,20 @@ export async function parseOLX(
       attributes: parsedAttributes,
       provenance,
       provider,
-      parseNode,
+      parseNode: parseNodeWithLang,
       metadata,  // Pass metadata to parser so it can include in entry
       storeEntry: (storeId, entryOrUpdater) => {
         // Support both direct entry and updater function patterns:
         // - storeEntry(id, entry) - store/overwrite
         // - storeEntry(id, (existing) => newEntry) - update existing
-        // FIXME: Extract language from metadata provider instead of hardcoding 'en-Latn-US'
-        const lang = 'en-Latn-US';
+        // Resolve language using cascade: element attr → parent → metadata (file-level) → default
+        // For direct entries, prefer the entry's own attributes (for blocks created by parsers)
+        // For updater functions or missing attributes, fall back to current element's attributes
+        let entryAttributes = parsedAttributes;
+        if (typeof entryOrUpdater === 'object' && entryOrUpdater !== null && entryOrUpdater.attributes) {
+          entryAttributes = entryOrUpdater.attributes;
+        }
+        const lang = resolveElementLanguage(entryAttributes, parentLang, metadataLang);
         const entry = typeof entryOrUpdater === 'function'
           ? entryOrUpdater(idMap[storeId]?.[lang])
           : entryOrUpdater;
@@ -527,6 +582,8 @@ export async function parseOLX(
     )
     : parsedTree;
 
+  let fileMetadata: OLXMetadata = {};
+
   if (rootNode) {
     // We take the ID from the result of `parseNode` rather than directly from
     // `rootNode`. The parser can rewrite the ID (for example when handling
@@ -534,6 +591,7 @@ export async function parseOLX(
     // stored in the ID map.
     // Pass parsedTree as siblings so root can extract metadata from preceding comments
     const rootIndex = Array.isArray(parsedTree) ? parsedTree.indexOf(rootNode) : -1;
+
     const parsedRoot = await parseNode(rootNode, parsedTree, rootIndex);
     if (parsedRoot?.id) {
       rootId = parsedRoot.id;
