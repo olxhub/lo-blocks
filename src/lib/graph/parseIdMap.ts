@@ -9,6 +9,7 @@
 // Currently used for debugging content structure and relationships in DAG-based content.
 //
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import { extractLocalizedVariant } from '@/lib/i18n/getBestLocale';
 import { GraphNode, GraphEdge, ParseError } from '@/lib/types';
 
 interface ParseResult {
@@ -22,7 +23,6 @@ interface ParseResult {
  * Parses the idMap structure into React Flow compatible nodes and edges.
  *
  * TODO: Remove duplicate IDs
- * TODO: Hardcoded locale. Use browser locale and proper accessors
  */
 export function parseIdMap(idMap: Record<string, any>, locale: string = 'en-Latn-US'): ParseResult {
   const nodes: GraphNode[] = [];
@@ -34,14 +34,8 @@ export function parseIdMap(idMap: Record<string, any>, locale: string = 'en-Latn
 
   for (const [id, langMap] of Object.entries(idMap)) {
     // Extract OlxJson from nested structure { locale: OlxJson }
-    let node = langMap[locale];
-
-    // Fallback to first available locale if requested locale not found
-    // HACK. Should be using common locale fallback logic in lib/i18n
-    if (!node) {
-      const availableLocales = Object.keys(langMap);
-      node = availableLocales.length > 0 ? langMap[availableLocales[0]] : undefined;
-    }
+    // Use extractLocalizedVariant for consistent fallback logic
+    const node = extractLocalizedVariant(langMap, locale);
 
     if (!node) {
       continue;

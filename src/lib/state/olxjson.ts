@@ -17,6 +17,7 @@
 
 import { useSelector } from 'react-redux';
 import * as lo_event from 'lo_event';
+import { extractLocalizedVariant } from '@/lib/i18n/getBestLocale';
 import type { OlxJson, OlxKey, IdMap } from '../types';
 import type { LogEventFn } from '../render';
 
@@ -288,21 +289,10 @@ export function selectBlock(
   for (const source of sources) {
     const entry = olxjson[source]?.[id];
     if (entry?.loadingState.status === 'ready' && entry.olxJson) {
-      const stored = entry.olxJson as any;
-      const availableLocales = Object.keys(stored);
-      if (availableLocales.length === 0) continue;
-
       // Nested structure: { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... }
-      // Try exact locale match first
-      // HACK HACK HACK. The selection / fallback logic should be common in /lib/i18n
-      let langVariant = stored[locale];
+      const langVariant = extractLocalizedVariant(entry.olxJson as any, locale);
 
-      // Fallback to first available locale if requested locale not found
-      if (!langVariant) {
-        langVariant = stored[availableLocales[0]];
-      }
-
-      if (langVariant && typeof langVariant === 'object' && langVariant.tag) {
+      if (langVariant && typeof langVariant === 'object' && (langVariant as any).tag) {
         return langVariant as OlxJson;
       }
 

@@ -17,7 +17,7 @@ import {
   dispatchOlxJsonError
 } from '@/lib/state/olxjson';
 import { refToOlxKey } from '@/lib/blocks/idResolver';
-import { getBestLocaleClient } from '@/lib/i18n/getBestLocale';
+import { extractLocalizedVariant } from '@/lib/i18n/getBestLocale';
 import type { OlxJson, OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
 import type { LogEventFn } from '@/lib/render';
 
@@ -126,14 +126,8 @@ export function useOlxJson(
   }
 
   // Nested structure: { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... }
-  const availableLocales = Object.keys(stored);
-  if (availableLocales.length === 0) {
-    return { olxJson: null, loading: false, error: null };
-  }
-
-  // Use getBestLocaleClient to find best match with fallback
-  const bestLocale = getBestLocaleClient(props as RuntimeProps, availableLocales);
-  const langVariant = stored[bestLocale];
+  // Use extractLocalizedVariant for consistent fallback logic
+  const langVariant = extractLocalizedVariant(stored, userLocale);
 
   return { olxJson: langVariant, loading: false, error: null };
 }

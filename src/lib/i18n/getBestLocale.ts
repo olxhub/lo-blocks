@@ -52,3 +52,37 @@ export function getBestLocaleClient(
 
   return availableLocales[0];
 }
+
+/**
+ * Extract locale variant from nested i18n structure.
+ *
+ * Given a nested structure { locale: data }, extract the requested locale's data
+ * with fallback to the first available locale if requested locale is not found.
+ *
+ * This handles the common pattern: try exact locale match, fall back to first available.
+ *
+ * @param langMap - Nested structure { 'en-Latn-US': data, 'ar-Arab-SA': data, ... }
+ * @param requestedLocale - BCP 47 locale code to look for (e.g., 'en-Latn-US')
+ * @returns The data for the best matching locale, or undefined if langMap is empty
+ */
+export function extractLocalizedVariant<T>(
+  langMap: Record<string, T>,
+  requestedLocale: string
+): T | undefined {
+  if (!langMap || typeof langMap !== 'object') {
+    return undefined;
+  }
+
+  const availableLocales = Object.keys(langMap);
+  if (availableLocales.length === 0) {
+    return undefined;
+  }
+
+  // Try exact locale match first
+  if (langMap[requestedLocale]) {
+    return langMap[requestedLocale];
+  }
+
+  // Fall back to first available locale
+  return langMap[availableLocales[0]];
+}
