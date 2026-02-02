@@ -6,22 +6,28 @@
       "source": "content",
       "blocks": {
         "NumericalGraderBasic": {
-          "id": "NumericalGraderBasic",
-          "tag": "CapaProblem",
-          "attributes": { "id": "NumericalGraderBasic", "title": "Squares" },
-          "provenance": ["file://src/components/blocks/grading/NumericalGraderBasic.olx"]
+          "en-Latn-US": {
+            "id": "NumericalGraderBasic",
+            "tag": "CapaProblem",
+            "attributes": { "id": "NumericalGraderBasic", "title": "Squares" },
+            "provenance": ["file://src/components/blocks/grading/NumericalGraderBasic.olx"]
+          }
         },
         "NumericalGraderBasic.grader": {
-          "id": "NumericalGraderBasic.grader",
-          "tag": "NumericalGrader",
-          "attributes": { "answer": "144" },
-          "provenance": ["file://src/components/blocks/grading/NumericalGraderBasic.olx"]
+          "en-Latn-US": {
+            "id": "NumericalGraderBasic.grader",
+            "tag": "NumericalGrader",
+            "attributes": { "answer": "144" },
+            "provenance": ["file://src/components/blocks/grading/NumericalGraderBasic.olx"]
+          }
         },
         "NumericalGraderBasic.input": {
-          "id": "NumericalGraderBasic.input",
-          "tag": "ComplexInput",
-          "attributes": {},
-          "provenance": ["file://src/components/blocks/grading/NumericalGraderBasic.olx"]
+          "en-Latn-US": {
+            "id": "NumericalGraderBasic.input",
+            "tag": "ComplexInput",
+            "attributes": {},
+            "provenance": ["file://src/components/blocks/grading/NumericalGraderBasic.olx"]
+          }
         }
       },
       "metadata": { "iso_ts": "2026-01-05T12:00:00.000Z" }
