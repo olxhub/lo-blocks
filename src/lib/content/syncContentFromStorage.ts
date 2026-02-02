@@ -334,20 +334,20 @@ function indexParsedBlocks(
   sourceFile: ProvenanceURI,
   errors: OLXLoadingError[]
 ): void {
-  // FIXME: Extract language from metadata provider instead of hardcoding 'en-Latn-US'
-  const lang = 'en-Latn-US';
-
   for (const [blockId, langMap] of Object.entries(newBlocks)) {
-    // Extract the language variant: newBlocks is { id: { lang: OlxJson } }
-    const block = (langMap as any)[lang];
+    // newBlocks is { id: { lang: OlxJson } }
+    // Store the entire nested structure with all language variants
     const existingBlock = blockIndex[blockId];
 
     if (existingBlock) {
-      errors.push(createDuplicateIdError(blockId, existingBlock, block, sourceFile));
+      // existingBlock is also nested { lang: OlxJson }, extract first available for error message
+      const existingLang = Object.values(existingBlock)[0] as any;
+      const newLang = Object.values(langMap)[0] as any;
+      errors.push(createDuplicateIdError(blockId, existingLang, newLang, sourceFile));
       continue;  // Skip duplicate, keep the first one
     }
 
-    blockIndex[blockId] = block;
+    blockIndex[blockId] = langMap;  // Store nested structure with all languages
   }
 }
 

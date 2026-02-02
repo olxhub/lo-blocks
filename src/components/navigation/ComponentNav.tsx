@@ -23,7 +23,15 @@ export default function ComponentNav() {
     fetch('/api/content/root')
       .then(res => res.json())
       .then(data => {
-        const list = Object.keys(data.idMap).map(id => ({ id, ...data.idMap[id] }));
+        const list = Object.keys(data.idMap).map(id => {
+          const langMap = data.idMap[id];
+          // Extract the OlxJson from nested structure { lang: OlxJson }
+          const olxJson = langMap?.['en-Latn-US'];
+          if (!olxJson || typeof olxJson !== 'object' || !olxJson.tag) {
+            throw new Error(`Block "${id}" does not have en-Latn-US variant`);
+          }
+          return { id, ...olxJson };
+        });
         setEntries(list);
       })
       .catch(err => console.error(err));

@@ -39,8 +39,10 @@ function StateRow({ id, idMap }) {
     shallowEqual
   );
 
-  const node = idMap[id];
-  const tag = node?.tag || '?';
+  // Extract the OlxJson from nested structure { lang: OlxJson }
+  const langMap = idMap[id];
+  const olxJson = langMap?.['en-Latn-US'];
+  const tag = olxJson?.tag || '?';
 
   return (
     <div className="border-b last:border-b-0 py-2">

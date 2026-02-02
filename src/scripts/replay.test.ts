@@ -39,7 +39,7 @@ describe('Event Replay', () => {
     const state = reduxStore.getState();
 
     // Verify OLX content is in Redux
-    const block = selectBlock(state, ['content'], 'NumericalGraderBasic');
+    const block = selectBlock(state, ['content'], 'NumericalGraderBasic', 'en-Latn-US');
     expect(block).toBeDefined();
     expect(block?.tag).toBe('CapaProblem');
     expect(block?.attributes.title).toBe('Squares');

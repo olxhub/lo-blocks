@@ -111,7 +111,27 @@ export function useOlxJson(
     };
   }
 
-  return { olxJson: blockState.olxJson, loading: false, error: null };
+  // Extract the language variant from nested structure
+  const stored = blockState.olxJson as any;
+  if (!stored) {
+    return { olxJson: null, loading: false, error: null };
+  }
+
+  const locale = (props as any).runtime?.locale?.code;
+  if (!locale) {
+    throw new Error('useOlxJson: runtime.locale.code is required for language-aware rendering');
+  }
+
+  // Nested structure: { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... }
+  const langVariant = stored[locale];
+  if (!langVariant || typeof langVariant !== 'object' || !(langVariant as any).tag) {
+    throw new Error(
+      `useOlxJson: Block "${olxKey}" does not have a variant for locale "${locale}". ` +
+      `Available: ${Object.keys(stored).join(', ')}`
+    );
+  }
+
+  return { olxJson: langVariant, loading: false, error: null };
 }
 
 /**

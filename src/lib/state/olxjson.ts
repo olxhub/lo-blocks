@@ -90,23 +90,9 @@ export function dispatchOlxJson(
     return; // Nothing to dispatch
   }
 
-  // FIXME: Extract language from runtime context instead of hardcoding 'en-Latn-US'
-  // Handle both nested { id: { lang: OlxJson } } and flat { id: OlxJson } structures
-  const lang = 'en-Latn-US';
-  const flatBlocks: Record<string, any> = {};
-
-  for (const [id, entry] of Object.entries(blocks)) {
-    // Check if this is nested (has a language key) or already flat
-    if (entry && typeof entry === 'object' && entry[lang] && !entry.tag) {
-      // Nested: { id: { 'en-Latn-US': OlxJson, ... } }
-      flatBlocks[id] = entry[lang];
-    } else {
-      // Already flat: { id: OlxJson }
-      flatBlocks[id] = entry;
-    }
-  }
-
-  props.runtime.logEvent(LOAD_OLXJSON, { source, blocks: flatBlocks });
+  // Pass nested structure as-is - selectors will extract the correct language variant
+  // based on runtime.locale.code
+  props.runtime.logEvent(LOAD_OLXJSON, { source, blocks });
 }
 
 /**
@@ -130,29 +116,12 @@ export function dispatchOlxJsonSync(
     return;
   }
 
-  // FIXME: Extract language from runtime context instead of hardcoding 'en-Latn-US'
-  // Handle both nested { id: { lang: OlxJson } } and flat { id: OlxJson } structures
-  const lang = 'en-Latn-US';
-  const flatBlocks: Record<string, any> = {};
-
-  for (const [id, entry] of Object.entries(blocks)) {
-    // Check if this is nested (has a language key) or already flat
-    if (entry && typeof entry === 'object' && entry[lang] && !entry.tag) {
-      // Nested: { id: { 'en-Latn-US': OlxJson, ... } }
-      flatBlocks[id] = entry[lang];
-    } else {
-      // Already flat: { id: OlxJson }
-      flatBlocks[id] = entry;
-    }
-  }
-
-  // Dispatch in lo_event's expected format:
-  // - redux_type: EMIT_EVENT tells the reducer to process this
-  // - payload: JSON-stringified event data
+  // Dispatch nested structure directly - selectors will extract the correct language variant
+  // based on runtime.locale.code
   reduxStore.dispatch({
     redux_type: 'EMIT_EVENT',
     type: 'lo_event',
-    payload: JSON.stringify({ event: LOAD_OLXJSON, source, blocks: flatBlocks })
+    payload: JSON.stringify({ event: LOAD_OLXJSON, source, blocks })
   });
 }
 
@@ -218,15 +187,16 @@ export function olxjsonReducer(
 ): OlxJsonState {
   switch (action.type) {
     case LOAD_OLXJSON: {
-      // Bulk load parsed content: { source: 'system', blocks: { [id]: OlxJson } }
-      // (Language extraction happens in indexParsedBlocks)
+      // Bulk load parsed content: { source: 'system', blocks: { [id]: { [lang]: OlxJson } } }
+      // blocks is now the nested structure with language variants
       const { source, blocks } = action;
       if (!source || !blocks) return state;
 
       const entries: SourceState = {};
-      for (const [id, olxJson] of Object.entries(blocks)) {
+      for (const [id, langMap] of Object.entries(blocks)) {
+        // Store the entire language map: { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... }
         entries[id] = {
-          olxJson: olxJson as OlxJson,
+          olxJson: langMap as any,  // Now stores { [lang: string]: OlxJson }
           loadingState: { status: 'ready' },
         };
       }
@@ -299,20 +269,34 @@ export function olxjsonReducer(
  * @param state - Redux root state
  * @param sources - Array of source names in priority order (first match wins)
  * @param id - OlxKey to look up
+ * @param locale - BCP 47 locale code (e.g., 'en-Latn-US'). Defaults to 'en-Latn-US' for backward compatibility.
  * @returns OlxJson if found and ready, undefined otherwise
  */
 export function selectBlock(
   state: RootState,
   sources: string[],
-  id: OlxKey | string
+  id: OlxKey | string,
+  locale: string
 ): OlxJson | undefined {
+  if (!locale) {
+    throw new Error('selectBlock: locale parameter is required for language-aware rendering');
+  }
+
   const olxjson = state.application_state?.olxjson;
   if (!olxjson) return undefined;
 
   for (const source of sources) {
     const entry = olxjson[source]?.[id];
     if (entry?.loadingState.status === 'ready' && entry.olxJson) {
-      return entry.olxJson;
+      const stored = entry.olxJson as any;
+
+      // Nested structure: { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... }
+      const langVariant = stored[locale];
+      if (langVariant && typeof langVariant === 'object' && langVariant.tag) {
+        return langVariant as OlxJson;
+      }
+
+      // No matching locale in this source - continue to next source
     }
   }
   return undefined;
@@ -395,10 +379,14 @@ export function selectAllBlockIds(state: RootState, sources: string[]): string[]
  *
  * @param sources - Array of source names in priority order
  * @param id - OlxKey to look up
+ * @param locale - BCP 47 locale code (e.g., 'en-Latn-US')
  * @returns OlxJson if found and ready, undefined otherwise
  */
-export function useOlxJsonBlock(sources: string[], id: OlxKey | string): OlxJson | undefined {
-  return useSelector((state: RootState) => selectBlock(state, sources, id));
+export function useOlxJsonBlock(sources: string[], id: OlxKey | string, locale: string): OlxJson | undefined {
+  if (!locale) {
+    throw new Error('useOlxJsonBlock: locale is required');
+  }
+  return useSelector((state: RootState) => selectBlock(state, sources, id, locale));
 }
 
 /**

@@ -357,7 +357,11 @@ export function componentFieldByName(props: RuntimeProps, targetId: OlxReference
   // Use refToOlxKey to normalize the ID for Redux lookup
   const normalizedId = idResolver.refToOlxKey(targetId);
   const sources = props.runtime.olxJsonSources ?? ['content'];
-  const targetNode = selectBlock(props.runtime.store.getState(), sources, normalizedId);
+  const locale = props.runtime.locale?.code;
+  if (!locale) {
+    throw new Error('componentFieldByName: runtime.locale.code is required');
+  }
+  const targetNode = selectBlock(props.runtime.store.getState(), sources, normalizedId, locale);
   if (!targetNode) {
     throw new Error(`componentFieldByName: Component "${targetId}" not found in content`);
   }
@@ -395,7 +399,11 @@ export function valueSelector(props: RuntimeProps, state: any, id: OlxReference 
   // Use refToOlxKey to strip prefixes for Redux lookup
   const mapKey = idResolver.refToOlxKey(id);
   const sources = props.runtime.olxJsonSources ?? ['content'];
-  const targetNode = selectBlock(props.runtime.store.getState(), sources, mapKey);
+  const locale = props.runtime.locale?.code;
+  if (!locale) {
+    throw new Error('valueSelector: runtime.locale.code is required');
+  }
+  const targetNode = selectBlock(props.runtime.store.getState(), sources, mapKey, locale);
   const loBlock = targetNode ? props.runtime.blockRegistry[targetNode.tag] : null;
 
   if (!targetNode || !loBlock) {

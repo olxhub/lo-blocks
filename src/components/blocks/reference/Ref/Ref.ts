@@ -63,7 +63,11 @@ const Ref = core({
     // so it can access runtime context properly without accessing props directly.
     // Get the Ref block from Redux to access its attributes and content
     const sources = props.runtime.olxJsonSources ?? ['content'];
-    const refNode = selectBlock(state, sources, refToOlxKey(id));
+    const locale = props.runtime.locale?.code;
+    if (!locale) {
+      return { error: true, message: 'runtime.locale.code is required' };
+    }
+    const refNode = selectBlock(state, sources, refToOlxKey(id), locale);
     if (!refNode) {
       return { error: true, message: 'Component not found' };
     }
@@ -78,7 +82,7 @@ const Ref = core({
     }
 
     // Check if target exists in Redux
-    if (!selectBlock(state, sources, refToOlxKey(targetId))) {
+    if (!selectBlock(state, sources, refToOlxKey(targetId), locale)) {
       return { error: true, message: `Target "${targetId}" not found` };
     }
 

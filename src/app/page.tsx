@@ -152,10 +152,18 @@ function ActivityRow({ entry }) {
 function Activities() {
   const { idMap, error, loading } = useContentLoader('root');
 
-  const entries = idMap ? Object.keys(idMap).map(key => ({
-    id: key,
-    ...idMap[key]
-  })) : [];
+  const entries = idMap ? Object.keys(idMap).map(key => {
+    const langMap = idMap[key];
+    // Extract the OlxJson from nested structure { lang: OlxJson }
+    const olxJson = langMap?.['en-Latn-US'];
+    if (!olxJson || typeof olxJson !== 'object' || !olxJson.tag) {
+      throw new Error(`Block "${key}" does not have en-Latn-US variant`);
+    }
+    return {
+      id: key,
+      ...olxJson
+    };
+  }) : [];
 
   if (loading) {
     return <Spinner>Loading activities...</Spinner>;

@@ -20,8 +20,12 @@ const SINGLE_BLOCK_MODE = 'static-kids';
 function collectBlockWithKids(idMap, id, collected = {}) {
   if (!id || collected[id] || !idMap[id]) return collected;
 
-  const entry = idMap[id];
-  collected[id] = entry;
+  const langMap = idMap[id];
+  // langMap is nested structure { 'en-Latn-US': OlxJson, ... }
+  const entry = langMap?.['en-Latn-US'];
+  if (!entry) return collected;
+
+  collected[id] = langMap;  // Store the nested structure
 
   const comp = BLOCK_REGISTRY[entry.tag];
   if (comp?.staticKids) {
@@ -34,17 +38,22 @@ function collectBlockWithKids(idMap, id, collected = {}) {
 }
 
 /**
- * Add editPath and editError to an entry based on its provenance.
+ * Add editPath and editError to nested entry based on its provenance.
  * editPath is the content-relative path for editing.
  * editError explains why editing isn't available (if applicable).
  */
-function addEditInfo(entry) {
+function addEditInfo(langMap) {
+  // langMap is nested structure { 'en-Latn-US': OlxJson, ... }
+  const entry = langMap?.['en-Latn-US'];
+  if (!entry) return langMap;
+
   const result = getEditPathFromProvenance(entry.provenance);
-  if (result.valid) {
-    return { ...entry, editPath: result.relativePath };
-  } else {
-    return { ...entry, editPath: null, editError: result.error };
-  }
+  const editedEntry = result.valid
+    ? { ...entry, editPath: result.relativePath }
+    : { ...entry, editPath: null, editError: result.error };
+
+  // Return nested structure with edited entry
+  return { ...langMap, 'en-Latn-US': editedEntry };
 }
 
 export async function GET(request, { params }) {
@@ -57,8 +66,12 @@ export async function GET(request, { params }) {
     if (id === 'root') {
       const launchableEntries = Object.fromEntries(
         Object.entries(idMap)
-          .filter(([_, val]) => val?.attributes?.launchable === 'true')
-          .map(([key, val]) => [key, addEditInfo(val)])
+          .filter(([_, langMap]) => {
+            // langMap is nested structure { 'en-Latn-US': OlxJson, ... }
+            const olxJson = langMap?.['en-Latn-US'];
+            return olxJson?.attributes?.launchable === 'true';
+          })
+          .map(([key, langMap]) => [key, addEditInfo(langMap)])
       );
 
       return Response.json({
