@@ -19,12 +19,7 @@ export function getBestLocaleServer(
   }
 
   const preferredLocale = request.headers.get('accept-language');
-
-  if (preferredLocale && availableLocales.includes(preferredLocale)) {
-    return preferredLocale;
-  }
-
-  return availableLocales[0];
+  return pickBestLocale(preferredLocale, availableLocales);
 }
 
 /**
@@ -45,9 +40,64 @@ export function getBestLocaleClient(
   }
 
   const preferredLocale = props.runtime.locale.code;
+  return pickBestLocale(preferredLocale, availableLocales);
+}
 
-  if (preferredLocale && availableLocales.includes(preferredLocale)) {
-    return preferredLocale;
+function pickBestLocale(
+  requestedLocale: string | null | undefined,
+  availableLocales: string[]
+): string {
+  if (!requestedLocale) {
+    return availableLocales[0];
+  }
+
+  // Accept-Language can include a list; take the first tag if present.
+  const normalizedLocale = requestedLocale.split(',')[0].trim();
+
+  if (availableLocales.includes(normalizedLocale)) {
+    return normalizedLocale;
+  }
+
+  // Parse requested locale: language[-script[-region]]
+  const reqParts = normalizedLocale.split('-');
+  const reqLanguage = reqParts[0];
+  const reqScript = reqParts.length > 1 && reqParts[1].length === 4 ? reqParts[1] : undefined;
+  const reqRegion = reqParts.length > 1 && reqParts[1].length === 2
+    ? reqParts[1]
+    : (reqParts.length > 2 ? reqParts[2] : undefined);
+
+  let bestMatch: { locale: string; score: number } | null = null;
+
+  for (const availableLocale of availableLocales) {
+    const avParts = availableLocale.split('-');
+    const avLanguage = avParts[0];
+    const avScript = avParts.length > 1 && avParts[1].length === 4 ? avParts[1] : undefined;
+    const avRegion = avParts.length > 1 && avParts[1].length === 2
+      ? avParts[1]
+      : (avParts.length > 2 ? avParts[2] : undefined);
+
+    // Score matching: exact match (4) > language+script (3) > language+region (2) > language only (1) > no match (0)
+    let score = 0;
+    if (avLanguage === reqLanguage) {
+      score = 1; // Language matches
+      if (avScript && reqScript && avScript === reqScript) {
+        score = 3; // Language + script match
+      }
+      if (avRegion && reqRegion && avRegion === reqRegion) {
+        score = Math.max(score, 2); // Language + region match
+      }
+      if (avScript === reqScript && avRegion === reqRegion) {
+        score = 4; // All parts match (exact or equivalent)
+      }
+    }
+
+    if (score > (bestMatch?.score ?? 0)) {
+      bestMatch = { locale: availableLocale, score };
+    }
+  }
+
+  if (bestMatch && bestMatch.score > 0) {
+    return bestMatch.locale;
   }
 
   return availableLocales[0];
