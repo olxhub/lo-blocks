@@ -46,7 +46,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   color: inherit;
 }
 
@@ -58,7 +58,7 @@
   font-size: 10px;
   color: var(--block-list-muted, #8b949e);
   flex-shrink: 0;
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .expandable-block-item__name {
@@ -139,7 +139,7 @@
   color: var(--block-list-success, #7ee787);
   font-family: 'SF Mono', Consolas, monospace;
   font-size: 9px;
-  margin-left: 4px;
+  margin-inline-start: 4px;
 }
 
 .expandable-block-item__attr-desc {
@@ -235,7 +235,7 @@
   background: var(--block-list-section-bg, rgba(255,255,255,0.02));
   border: none;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   color: inherit;
 }
 
@@ -289,7 +289,7 @@
   border-radius: 4px;
   cursor: pointer;
   text-decoration: none;
-  text-align: left;
+  text-align: start;
   color: inherit;
   font-size: 13px;
 }
@@ -354,9 +354,9 @@
 
 .block-list__tooltip {
   position: absolute;
-  left: 100%;
+  inset-inline-start: 100%;
   top: 0;
-  margin-left: 8px;
+  margin-inline-start: 8px;
   z-index: 50;
   width: 220px;
   padding: 8px 10px;

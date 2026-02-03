@@ -10,7 +10,7 @@
 .lo-tag-sidebarpanel .main-pane {
   flex: 1;
   min-width: 0; /* Allows flex item to shrink below content size */
-  padding-right: var(--lo-space-md);
+  padding-inline-end: var(--lo-space-md);
 }
 
 .lo-tag-sidebarpanel .sidebar {
@@ -49,7 +49,7 @@
   }
   
   .lo-tag-sidebarpanel .main-pane {
-    padding-right: 0;
+    padding-inline-end: 0;
   }
 }
 

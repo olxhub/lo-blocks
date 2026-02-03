@@ -473,7 +473,7 @@ export default function _MatchingInput(props) {
             return (
               <div
                 key={pair.leftId}
-                className={`matching-item matching-left-item relative p-3 border-2 rounded-md transition-all pr-12
+                className={`matching-item matching-left-item relative p-3 border-2 rounded-md transition-all pe-12
                   ${readOnly ? 'bg-gray-100 border-gray-300' : isSelected ? 'border-blue-500 bg-blue-50' : isMatched ? 'bg-green-50 border-green-300' : 'bg-white border-gray-300'}
                 `}
               >
@@ -487,14 +487,14 @@ export default function _MatchingInput(props) {
                   </div>
                 </div>
 
-                {/* Connection handle - RIGHT SIDE */}
+                {/* Connection handle - INLINE END SIDE */}
                 <HandleCommon
                   pattern="connect-the-dots"
                   title="Click to select and match"
                   dataMatchingPointId={pair.leftId}
                   className={`
-                    absolute right-0 top-0 bottom-0 w-8
-                    border-r-2 transition-all
+                    absolute end-0 top-0 bottom-0 w-8
+                    border-e-2 transition-all
                     ${isSelected ? 'bg-blue-200 border-blue-400' : isMatched ? 'bg-green-100 border-green-300' : 'border-gray-200'}
                   `}
                   onClick={(e) => {
@@ -510,7 +510,7 @@ export default function _MatchingInput(props) {
                       e.stopPropagation();
                       handleDisconnect(pair.leftId);
                     }}
-                    className="absolute top-1 right-2 px-1 py-0 text-xs bg-gray-200 hover:bg-gray-300 text-gray-600 rounded transition-all"
+                    className="absolute top-1 end-2 px-1 py-0 text-xs bg-gray-200 hover:bg-gray-300 text-gray-600 rounded transition-all"
                     title="Remove connection"
                   >
                     ✕
@@ -534,7 +534,7 @@ export default function _MatchingInput(props) {
             return (
               <div
                 key={rightId}
-                className={`matching-item matching-right-item relative p-3 border-2 rounded-md transition-all pl-12
+                className={`matching-item matching-right-item relative p-3 border-2 rounded-md transition-all ps-12
                   ${readOnly ? 'bg-gray-100 border-gray-300' : isSelected ? 'border-blue-500 bg-blue-50' : isMatchedByStudent ? 'bg-green-50 border-green-300' : 'bg-white border-gray-300'}
                   ${canConnect && !isMatchedByStudent ? 'hover:border-blue-400 hover:bg-blue-50' : ''}
                 `}
@@ -549,14 +549,14 @@ export default function _MatchingInput(props) {
                   </div>
                 </div>
 
-                {/* Connection handle - LEFT SIDE */}
+                {/* Connection handle - INLINE START SIDE */}
                 <HandleCommon
                   pattern="connect-the-dots"
                   title="Click to select and match"
                   dataMatchingPointId={rightId}
                   className={`
-                    absolute left-0 top-0 bottom-0 w-8
-                    border-l-2 transition-all
+                    absolute start-0 top-0 bottom-0 w-8
+                    border-s-2 transition-all
                     ${isSelected ? 'bg-blue-200 border-blue-400' : isMatchedByStudent ? 'bg-green-100 border-green-300' : 'border-gray-200'}
                   `}
                   onClick={(e) => {

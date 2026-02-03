@@ -1,22 +1,27 @@
-<SplitPanel id="SplitPanelDemo" title="Split Panel" sizes="50,50">
-  <LeftPane>
+<SplitPanel id="SplitPanelDemo" title="Split Panel: Instruction + Practice" sizes="55,45">
+  <StartPane>
     <Markdown>
-# Left Panel Content
+# How to Design a Study Schedule
 
-SplitPanel creates side-by-side layouts perfect for:
-- Instruction + Practice
-- Content + Activities
-- Chat + Sidebar
-- Compare and Contrast
+Follow these steps to space out your studying:
+
+**Step 1:** Decide when your test or assessment is
+
+**Step 2:** Count backward from that date
+
+**Step 3:** Plan study sessions at intervals of 10-20% of total time until the test
+
+For example, if your test is in 30 days:
+- Schedule sessions about 3-6 days apart
+- This spacing helps your brain retain information longer
     </Markdown>
-  </LeftPane>
-  <RightPane>
+  </StartPane>
+  <EndPane>
     <Markdown>
-# Right Panel Content
+# Try It Yourself
 
-This panel shows how content can be organized spatially for better learning experiences.
-
-The `sizes` attribute controls the relative widths (e.g., "60,40" for 60%/40% split).
+Create your own study schedule:
     </Markdown>
-  </RightPane>
+    <TextArea id="schedule" rows="5" placeholder="When is your test? Create a schedule..." />
+  </EndPane>
 </SplitPanel>

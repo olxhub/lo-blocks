@@ -54,15 +54,20 @@ export function getBestLocaleClient(
 }
 
 /**
- * Extract locale variant from nested i18n structure.
+ * Extract locale variant from nested i18n structure with BCP 47 hierarchy fallback.
  *
  * Given a nested structure { locale: data }, extract the requested locale's data
- * with fallback to the first available locale if requested locale is not found.
+ * with intelligent fallback based on BCP 47 locale hierarchies.
  *
- * This handles the common pattern: try exact locale match, fall back to first available.
+ * Fallback chain:
+ * 1. Exact match (e.g., en-Latn-KE)
+ * 2. Language-Script (e.g., en-Latn)
+ * 3. Language-Region (e.g., en-KE)
+ * 4. Language only (e.g., en)
+ * 5. First available locale
  *
  * @param langMap - Nested structure { 'en-Latn-US': data, 'ar-Arab-SA': data, ... }
- * @param requestedLocale - BCP 47 locale code to look for (e.g., 'en-Latn-US')
+ * @param requestedLocale - BCP 47 locale code to look for (e.g., 'en-Latn-KE')
  * @returns The data for the best matching locale, or undefined if langMap is empty
  */
 export function extractLocalizedVariant<T>(
@@ -81,6 +86,28 @@ export function extractLocalizedVariant<T>(
   // Try exact locale match first
   if (langMap[requestedLocale]) {
     return langMap[requestedLocale];
+  }
+
+  // Parse BCP 47 locale code: language[-script[-region]]
+  const parts = requestedLocale.split('-');
+  const fallbackChain: string[] = [];
+
+  // If we have 3 parts (language-script-region), try language-script and language-region
+  if (parts.length === 3) {
+    fallbackChain.push(`${parts[0]}-${parts[1]}`); // language-script
+    fallbackChain.push(`${parts[0]}-${parts[2]}`); // language-region
+  }
+
+  // If we have 2 parts (language-script or language-region), try just language
+  if (parts.length >= 2) {
+    fallbackChain.push(parts[0]); // language only
+  }
+
+  // Try each fallback in priority order
+  for (const fallback of fallbackChain) {
+    if (langMap[fallback]) {
+      return langMap[fallback];
+    }
   }
 
   // Fall back to first available locale
