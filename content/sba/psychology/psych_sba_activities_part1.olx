@@ -4,7 +4,7 @@ description: Instructor collection of psychology SBA activities for editing and 
 category: psychology
 ---
 -->
-<Vertical id="psych_sba_activities_part1" title="Activities for Psychology SBA, Part 1" launchable="true">
+<Vertical id="psych_sba_activities_part1" title="Activities for Psychology SBA, Part 1" launchable="false">
 
   <!-- Introduction section -->
   <Vertical id="bedtime_problem_introduction">
