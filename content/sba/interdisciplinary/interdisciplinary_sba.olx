@@ -6,7 +6,7 @@
 ---
 description: Analyze high school dropout rates using interdisciplinary research methods and statistical reasoning
 category: interdisciplinary
-lang: en-US
+lang: en-Latn-US
 ---
 -->
 <SplitPanel id="interdisciplinary_sba_demo" title="Interdisciplinary Studies SBA - High School Dropout Analysis" launchable="true">

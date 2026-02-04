@@ -806,9 +806,13 @@ What we are very careful to do, however, is to architect for testability of modu
 
 # i18n and global, accessible content
 
-This is in the early stages of development. We are building a **global platform**, and the system should not give preference to English (or any other language).
+This is in the early stages of development. We are building a **global platform**, and the system should not give preference to English (or any other language). The goal is to develop a robust architecture for a worldwide pool of educators, researchers, and students with diverse languages and cultures. The platform should support:
+- Support translanguaging (users reading/writing in multiple languages with priority order)
+- Enable cultural adaptation beyond just translation (examples, pedagogy, values, accessibility)
+- Support a git-like content model with variants (language, culture, context, accessibility, etc.)
+- Track translation versions and re-translate when source changes
 
-The goal is to support multilingual content and UI while handling the unique challenges of educational content. Locale isn't just language. Robust courses provide contextual variants, not just translations. `en-US` might use baseball, `en-IN`, cricket, and so on.
+We want to support multilingual content and UI while handling the unique challenges of educational content. Locale isn't just language. Robust courses provide contextual variants, not just translations. `en-US` might use baseball, `en-IN`, cricket, and so on.
 
 The dimensions of adaptation (beyond language):
 
@@ -823,7 +827,7 @@ The dimensions of adaptation (beyond language):
 
 With introspectable content + LLM generation + human curation, you could theoretically take any educational content and make it culturally responsive at scale. That's different from traditional i18n.
 
-Our goal is global collaboration. This means the editor should support 
+Our long-term goal is **global collaboration**. This means the editor should eventually support course teams in Israel, Jordan, Poland, Turkey, and Russia collaborating around localized content with a common core. I can adapt content (passing through a translation boundary) and suggest improvments back. A lot of this is about provenance -- e.g. if I translated your content in 2023, and you've updated it, there's a concept of a cross-language diff, where I'd like to be able to adapt the content, while keeping my local language. And vice-versa.
 
 ## Terminology
 
