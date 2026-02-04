@@ -1,7 +1,7 @@
 // src/app/api/content/[id]/route.js
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { getEditPathFromProvenance } from '@/lib/lofs/contentPaths';
-import { getBestLocaleServer } from '@/lib/i18n/getBestLocale';
+import { getBestVariantServer } from '@/lib/i18n/getBestLocale';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 
 // Block fetching mode for testing async loading:
@@ -21,15 +21,15 @@ const SINGLE_BLOCK_MODE = 'static-kids';
 function collectBlockWithKids(idMap, id, request, collected = {}) {
   if (!id || collected[id] || !idMap[id]) return collected;
 
-  const langMap = idMap[id];
-  // langMap is nested structure { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... }
-  const availableLocales = Object.keys(langMap);
-  const bestLocale = getBestLocaleServer(request, availableLocales);
-  if (!bestLocale) return collected;  // No valid locale for this block
-  const entry = langMap[bestLocale];
+  const variantMap = idMap[id];
+  // variantMap is nested structure { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... }
+  const availableVariants = Object.keys(variantMap);
+  const bestVariant = getBestVariantServer(request, availableVariants);
+  if (!bestVariant) return collected;  // No valid variant for this block
+  const entry = variantMap[bestVariant];
   if (!entry) return collected;
 
-  collected[id] = langMap;  // Store the nested structure
+  collected[id] = variantMap;  // Store the nested structure
 
   const comp = BLOCK_REGISTRY[entry.tag];
   if (comp?.staticKids) {
@@ -46,13 +46,13 @@ function collectBlockWithKids(idMap, id, request, collected = {}) {
  * editPath is the content-relative path for editing.
  * editError explains why editing isn't available (if applicable).
  */
-function addEditInfo(langMap, request) {
-  // langMap is nested structure { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... }
-  const availableLocales = Object.keys(langMap);
-  const bestLocale = getBestLocaleServer(request, availableLocales);
-  if (!bestLocale) return langMap;  // No valid locale for this block
-  const entry = langMap[bestLocale];
-  if (!entry) return langMap;
+function addEditInfo(variantMap, request) {
+  // variantMap is nested structure { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... }
+  const availableVariants = Object.keys(variantMap);
+  const bestVariant = getBestVariantServer(request, availableVariants);
+  if (!bestVariant) return variantMap;  // No valid variant for this block
+  const entry = variantMap[bestVariant];
+  if (!entry) return variantMap;
 
   const result = getEditPathFromProvenance(entry.provenance);
   const editedEntry = result.valid
@@ -60,7 +60,7 @@ function addEditInfo(langMap, request) {
     : { ...entry, editPath: null, editError: result.error };
 
   // Return nested structure with edited entry updated
-  return { ...langMap, [bestLocale]: editedEntry };
+  return { ...variantMap, [bestVariant]: editedEntry };
 }
 
 export async function GET(request, { params }) {

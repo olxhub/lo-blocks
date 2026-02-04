@@ -11,7 +11,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
-import { getBestLocaleClient } from '@/lib/i18n/getBestLocale';
+import { getBestVariantClient } from '@/lib/i18n/getBestLocale';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { OlxKey, OlxJson, IdMap, RuntimeProps } from '@/lib/types';
 
@@ -22,13 +22,13 @@ function findStatefulIds(idMap, blockRegistry = BLOCK_REGISTRY, locale?: string)
   if (!idMap) return [];
 
   return Object.entries(idMap)
-    .filter(([id, langMap]) => {
-      // langMap is nested structure { 'en-Latn-US': OlxJson, ... }
-      const langMapTyped = langMap as any;
-      const availableLocales = Object.keys(langMapTyped);
+    .filter(([id, variantMap]) => {
+      // variantMap is nested structure { 'en-Latn-US': OlxJson, ... }
+      const variantMapTyped = variantMap as any;
+      const availableVariants = Object.keys(variantMapTyped);
       // Use provided locale if available, otherwise first available
-      const bestLocale = locale && availableLocales.includes(locale) ? locale : availableLocales[0];
-      const node = langMapTyped[bestLocale];
+      const bestVariant = locale && availableVariants.includes(locale) ? locale : availableVariants[0];
+      const node = variantMapTyped[bestVariant];
       if (!node) return false;
 
       const blockType = blockRegistry[node.tag];
@@ -48,10 +48,10 @@ function StateRow({ id, idMap }) {
     shallowEqual
   );
 
-  // Extract the OlxJson from nested structure { lang: OlxJson, ... }
-  const langMap = idMap[id] as any;
-  const availableLocales = Object.keys(langMap);
-  const olxJson = langMap[availableLocales[0]];
+  // Extract the OlxJson from nested structure { variant: OlxJson, ... }
+  const variantMap = idMap[id] as any;
+  const availableVariants = Object.keys(variantMap);
+  const olxJson = variantMap[availableVariants[0]];
   const tag = olxJson.tag;
 
   return (

@@ -12,14 +12,14 @@ import { useSelector } from 'react-redux';
 import { useSetting } from '@/lib/state/settingsAccess';
 import { settings } from '@/lib/state/settings';
 import { getTextDirection, getBrowserLocale } from '@/lib/i18n/getTextDirection';
-import { selectLocalesTiers } from '@/lib/state/olxjson';
+import { selectVariantTiers } from '@/lib/state/olxjson';
 import { useBaselineProps } from '@/components/common/RenderOLX';
 import { ALL_LANGUAGES, getLanguageLabel, filterLanguages } from '@/lib/i18n/languages';
 
 interface LanguageSwitcherProps {
   className?: string;
-  sources?: string[];  // Which sources to scan for available locales (defaults to all)
-  availableLocales?: string[];  // Optional: explicit list of available locales (e.g., from activities)
+  sources?: string[];  // Which sources to scan for available variants (defaults to all)
+  availableLocales?: string[];  // Optional: explicit list of available variants (e.g., from activities)
 }
 
 export default function LanguageSwitcher({ className = '', sources, availableLocales }: LanguageSwitcherProps) {
@@ -31,13 +31,13 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
   const [locale, setLocale] = useSetting(props as any, settings.locale);
   const localeCode = locale?.code || 'en-Latn-KE';
 
-  // Get available locales from either explicit prop or Redux selector
-  // Note: selectLocalesTiers scans all sources; sources prop is ignored when using Redux
+  // Get available variants from either explicit prop or Redux selector
+  // Note: selectVariantTiers scans all sources; sources prop is ignored when using Redux
   // Memoize the selector result to prevent infinite re-renders (selector returns new object reference)
   const olxjson = useSelector((state: any) => state.application_state?.olxjson);
   const reduxTiers = useMemo(() => {
     if (!olxjson) return { curated: [], bestEffort: [], all: [] };
-    return selectLocalesTiers({ application_state: { olxjson } } as any);
+    return selectVariantTiers({ application_state: { olxjson } } as any);
   }, [olxjson]);
 
   const tiers = availableLocales

@@ -2,45 +2,45 @@ import type { NextRequest } from 'next/server';
 import type { RuntimeProps, UserLocale, ContentVariant, RenderedVariant } from '@/lib/types';
 
 /**
- * Select best locale on the server from Accept-Language header.
+ * Select best variant on the server from Accept-Language header.
  *
- * Requires availableLocales to be non-empty. Throws if empty (indicates malformed content).
+ * Requires availableVariants to be non-empty. Throws if empty (indicates malformed content).
  *
  * @param request - NextRequest with headers
- * @param availableLocales - Array of available BCP 47 locale codes (must be non-empty)
- * @returns The best matching locale
+ * @param availableVariants - Array of available BCP 47 locale codes (must be non-empty)
+ * @returns The best matching variant
  */
-export function getBestLocaleServer(
+export function getBestVariantServer(
   request: NextRequest,
-  availableLocales: string[]
+  availableVariants: string[]
 ): string {
-  if (!availableLocales || availableLocales.length === 0) {
-    throw new Error('getBestLocaleServer: availableLocales cannot be empty');
+  if (!availableVariants || availableVariants.length === 0) {
+    throw new Error('getBestVariantServer: availableVariants cannot be empty');
   }
 
   const preferredLocale = request.headers.get('accept-language');
-  return pickBestLocale(preferredLocale, availableLocales);
+  return pickBestVariant(preferredLocale, availableVariants);
 }
 
 /**
- * Select best locale on the client from Redux.
+ * Select best variant on the client from Redux.
  *
  * Fails fast if props.runtime.locale is missing.
  *
  * @param props - Component props with runtime.locale.code
- * @param availableLocales - Array of available BCP 47 locale codes
- * @returns The best matching locale, or first available as fallback
+ * @param availableVariants - Array of available BCP 47 locale codes
+ * @returns The best matching variant, or first available as fallback
  */
-export function getBestLocaleClient(
+export function getBestVariantClient(
   props: RuntimeProps,
-  availableLocales: string[]
+  availableVariants: string[]
 ): string {
-  if (!availableLocales || availableLocales.length === 0) {
-    throw new Error('getBestLocaleClient: availableLocales cannot be empty');
+  if (!availableVariants || availableVariants.length === 0) {
+    throw new Error('getBestVariantClient: availableVariants cannot be empty');
   }
 
   const preferredLocale = props.runtime.locale.code;
-  return pickBestLocale(preferredLocale, availableLocales);
+  return pickBestVariant(preferredLocale, availableVariants);
 }
 
 /**
@@ -88,36 +88,36 @@ export function scoreBCP47Match(requested: string, available: string): number {
   return score;
 }
 
-function pickBestLocale(
+function pickBestVariant(
   requestedLocale: string | null | undefined,
-  availableLocales: string[]
+  availableVariants: string[]
 ): string {
   if (!requestedLocale) {
-    return availableLocales[0];
+    return availableVariants[0];
   }
 
   // Accept-Language can include a list; take the first tag if present.
   const normalizedLocale = requestedLocale.split(',')[0].trim();
 
-  if (availableLocales.includes(normalizedLocale)) {
+  if (availableVariants.includes(normalizedLocale)) {
     return normalizedLocale;
   }
 
   // Find best match using BCP 47 hierarchy
-  let bestMatch: { locale: string; score: number } | null = null;
+  let bestMatch: { variant: string; score: number } | null = null;
 
-  for (const availableLocale of availableLocales) {
-    const score = scoreBCP47Match(normalizedLocale, availableLocale);
+  for (const availableVariant of availableVariants) {
+    const score = scoreBCP47Match(normalizedLocale, availableVariant);
     if (score > (bestMatch?.score ?? 0)) {
-      bestMatch = { locale: availableLocale, score };
+      bestMatch = { variant: availableVariant, score };
     }
   }
 
   if (bestMatch && bestMatch.score > 0) {
-    return bestMatch.locale;
+    return bestMatch.variant;
   }
 
-  return availableLocales[0];
+  return availableVariants[0];
 }
 
 /**
@@ -191,9 +191,9 @@ export function selectBestVariant(
 }
 
 /**
- * Extract locale variant from nested i18n structure with BCP 47 hierarchy fallback.
+ * Extract variant from nested i18n structure with BCP 47 hierarchy fallback.
  *
- * Given a nested structure { locale: data }, extract the requested locale's data
+ * Given a nested structure { variant: data }, extract the requested variant's data
  * with intelligent fallback based on BCP 47 locale hierarchies.
  *
  * Fallback chain:
@@ -201,44 +201,51 @@ export function selectBestVariant(
  * 2. Language-Script (e.g., en-Latn)
  * 3. Language-Region (e.g., en-KE)
  * 4. Language only (e.g., en)
- * 5. First available locale
+ * 5. Generic variant (*) if available
+ * 6. First available variant
  *
- * @param langMap - Nested structure { 'en-Latn-US': data, 'ar-Arab-SA': data, ... }
+ * @param variantMap - Nested structure { 'en-Latn-US': data, 'ar-Arab-SA': data, ... }
  * @param requestedLocale - BCP 47 locale code to look for (e.g., 'en-Latn-KE')
- * @returns The data for the best matching locale, or undefined if langMap is empty
+ * @returns The data for the best matching variant, or undefined if variantMap is empty
  */
 export function extractLocalizedVariant<T>(
-  langMap: Record<string, T>,
+  variantMap: Record<string, T>,
   requestedLocale: string
 ): T | undefined {
-  if (!langMap || typeof langMap !== 'object') {
+  if (!variantMap || typeof variantMap !== 'object') {
     return undefined;
   }
 
-  const availableLocales = Object.keys(langMap);
-  if (availableLocales.length === 0) {
+  const availableVariants = Object.keys(variantMap);
+  if (availableVariants.length === 0) {
     return undefined;
   }
 
-  // Try exact locale match first
-  if (langMap[requestedLocale]) {
-    return langMap[requestedLocale];
+  // Try exact variant match first
+  if (variantMap[requestedLocale]) {
+    return variantMap[requestedLocale];
   }
 
   // Find best match using BCP 47 hierarchy
-  let bestMatch: { locale: string; score: number } | null = null;
+  let bestMatch: { variant: string; score: number } | null = null;
 
-  for (const availableLocale of availableLocales) {
-    const score = scoreBCP47Match(requestedLocale, availableLocale);
+  for (const availableVariant of availableVariants) {
+    const score = scoreBCP47Match(requestedLocale, availableVariant);
     if (score > (bestMatch?.score ?? 0)) {
-      bestMatch = { locale: availableLocale, score };
+      bestMatch = { variant: availableVariant, score };
     }
   }
 
   if (bestMatch && bestMatch.score > 0) {
-    return langMap[bestMatch.locale];
+    return variantMap[bestMatch.variant];
   }
 
-  // Fall back to first available locale
-  return langMap[availableLocales[0]];
+  // Try generic variant (*) if available
+  if (variantMap['*']) {
+    return variantMap['*'];
+  }
+
+  // Fall back to first available variant
+  return variantMap[availableVariants[0]];
 }
+
