@@ -25,6 +25,7 @@ function collectBlockWithKids(idMap, id, request, collected = {}) {
   // langMap is nested structure { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... }
   const availableLocales = Object.keys(langMap);
   const bestLocale = getBestLocaleServer(request, availableLocales);
+  if (!bestLocale) return collected;  // No valid locale for this block
   const entry = langMap[bestLocale];
   if (!entry) return collected;
 
@@ -49,6 +50,7 @@ function addEditInfo(langMap, request) {
   // langMap is nested structure { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... }
   const availableLocales = Object.keys(langMap);
   const bestLocale = getBestLocaleServer(request, availableLocales);
+  if (!bestLocale) return langMap;  // No valid locale for this block
   const entry = langMap[bestLocale];
   if (!entry) return langMap;
 

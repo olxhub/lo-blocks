@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
           // langMap is { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... }
           const availableLocales = Object.keys(langMap);
           const bestLocale = getBestLocaleServer(request, availableLocales);
+          if (!bestLocale) return false;  // Skip entries with no valid locales
           const olxJson = langMap[bestLocale];
           return olxJson?.attributes?.launchable === 'true';
         })
@@ -63,9 +64,9 @@ export async function GET(request: NextRequest) {
 
           // Get edit path from provenance
           const bestLocale = getBestLocaleServer(request, availableLocales);
-          const bestEntry = langMap[bestLocale] as any;
+          const bestEntry = bestLocale ? langMap[bestLocale] : null;
           const editPathResult = getEditPathFromProvenance(bestEntry?.provenance);
-          const editPath = editPathResult.valid ? editPathResult.relativePath : '';
+          const editPath = editPathResult.valid ? editPathResult.relativePath : null;
 
           return [
             id,

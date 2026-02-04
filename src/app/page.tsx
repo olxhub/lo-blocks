@@ -122,7 +122,7 @@ function ActivityRow({ entry, userLocale }) {
   }
 
   const type = entry.tag || 'Activity';
-  const editPath = entry.editPath || entry.id;
+  const editPath = entry.editPath;  // null if provenance invalid
 
   return (
     <div className="group py-4 border-b border-gray-200/50 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-transparent transition-all">
