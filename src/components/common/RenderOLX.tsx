@@ -99,14 +99,21 @@ export function useBaselineRuntime(): LoBlockRuntimeContext {
   const baselineProps: BaselineProps = { runtime: runtimeForSettings };
   const [reduxLocale, setReduxLocale] = useSetting(baselineProps, settings.locale);
 
-  // Initialize with browser locale if Redux has no setting
-  let locale = reduxLocale;
-  if (!locale) {
-    const code = getBrowserLocale();
-    const dir = getTextDirection(code);
-    locale = { code, dir };
-    setReduxLocale(locale);
-  }
+  // Initialize locale from browser after hydration.
+  // Must be in useEffect (not during render) to avoid SSR/client mismatch:
+  // server has no navigator.language, so both sides see no locale initially,
+  // then client sets browser locale after hydration.
+  useEffect(() => {
+    if (!reduxLocale) {
+      const code = getBrowserLocale();
+      const dir = getTextDirection(code);
+      setReduxLocale({ code, dir });
+    }
+  }, [reduxLocale, setReduxLocale]);
+
+  // Before hydration, locale is empty. Pages should gate on locale being
+  // ready (via useLocaleAttributes().lang) before rendering localized content.
+  const locale = reduxLocale || { code: '' as UserLocale, dir: 'ltr' as const };
 
   return {
     blockRegistry: BLOCK_REGISTRY,
