@@ -10,7 +10,7 @@
 //
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
-import { GraphNode, GraphEdge, ParseError } from '@/lib/types';
+import { GraphNode, GraphEdge, ParseError, IdMap, OlxKey } from '@/lib/types';
 
 interface ParseResult {
   nodes: GraphNode[];
@@ -20,11 +20,21 @@ interface ParseResult {
 }
 
 /**
+ * Helper to iterate IdMap entries with proper OlxKey typing.
+ * Object.entries() returns string keys even for branded types, so we cast them back.
+ */
+function* entriesIdMap(idMap: IdMap): Generator<[OlxKey, IdMap[OlxKey]]> {
+  for (const [id, variants] of Object.entries(idMap)) {
+    yield [id as OlxKey, variants];
+  }
+}
+
+/**
  * Parses the idMap structure into React Flow compatible nodes and edges.
  *
  * TODO: Remove duplicate IDs
  */
-export function parseIdMap(idMap: Record<string, any>, locale: string = 'en-Latn-US'): ParseResult {
+export function parseIdMap(idMap: IdMap, locale: string = 'en-Latn-US'): ParseResult {
   const nodes: GraphNode[] = [];
   const edges: GraphEdge[] = [];
   const launchable: string[] = [];
@@ -32,7 +42,7 @@ export function parseIdMap(idMap: Record<string, any>, locale: string = 'en-Latn
   // Issues found during graph parsing - these should be surfaced to help debug problems
   const issues: ParseError[] = [];
 
-  for (const [id, langMap] of Object.entries(idMap)) {
+  for (const [id, langMap] of entriesIdMap(idMap)) {
     // Extract OlxJson from nested structure { locale: OlxJson }
     // Use extractLocalizedVariant for consistent fallback logic
     const node = extractLocalizedVariant(langMap, locale) as any;
@@ -68,7 +78,7 @@ export function parseIdMap(idMap: Record<string, any>, locale: string = 'en-Latn
     for (const childId of childIds) {
       const edgeId = `${id}->${childId}`;
       if (!edges.find(e => e.id === edgeId)) {
-        edges.push({ id: edgeId, source: id, target: childId });
+        edges.push({ id: edgeId, source: id, target: childId as OlxKey });
       }
     }
 
