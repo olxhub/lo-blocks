@@ -52,7 +52,7 @@ import { makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import Spinner from '@/components/common/Spinner';
-import { InMemoryStorageProvider, StackedStorageProvider } from '@/lib/lofs';
+import { InMemoryStorageProvider, StackedStorageProvider, toMemoryProvenanceURI } from '@/lib/lofs';
 import { isOLXFile } from '@/lib/util/fileTypes';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
 import { useBlock } from '@/lib/blocks/useRenderedBlock';
@@ -60,7 +60,7 @@ import { useDebugSettings } from '@/lib/state/debugSettings';
 import { settings } from '@/lib/state/settings';
 import { useSetting } from '@/lib/state/settingsAccess';
 import { getTextDirection, getBrowserLocale } from '@/lib/i18n/getTextDirection';
-import type { BaselineProps, LoBlockRuntimeContext, UserLocale } from '@/lib/types';
+import type { BaselineProps, LoBlockRuntimeContext, UserLocale, ProvenanceURI } from '@/lib/types';
 
 // Stable no-op for replay mode - avoids creating new function on each render
 const noopLogEvent = () => { };
@@ -216,7 +216,7 @@ function useParseContent(
         if (inline) {
           const result = await parseOLX(
             inline,
-            [provenance || 'inline://'],
+            [(provenance || 'inline://') as ProvenanceURI],
             effectiveProvider
           );
           if (!cancelled) {
@@ -247,7 +247,7 @@ function useParseContent(
 
             const result = await parseOLX(
               content,
-              [provenance || `memory://${filename}`],
+              [provenance as ProvenanceURI || toMemoryProvenanceURI(filename)],
               effectiveProvider
             );
 
