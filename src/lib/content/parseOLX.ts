@@ -111,6 +111,10 @@ function shouldBlockRequireUniqueId(Component, tag, storeId, entry, idMap, prove
  * 3. Parent element's resolved language (carries file-level lang via cascade)
  * 4. Default '*' (language-agnostic)
  *
+ * TODO: Should we swap #1 and #2? Logically, the current order makes sense,
+ * but swapping would be more flexible (lang= also sets user locale; metadata
+ * does not).
+ *
  * File-level language doesn't need a separate parameter - the root element's
  * metadata lang becomes its resolved lang, which cascades to children via parentLang.
  *
