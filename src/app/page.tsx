@@ -147,18 +147,10 @@ function Activities() {
   const userLocale = localeAttrs.lang;
 
   useEffect(() => {
-    if (!userLocale) {
-      setLoading(false);
-      return;
-    }
-
+    // Activities list is locale-independent, fetch once on mount
     setLoading(true);
     setError(null);
-    globalThis.fetch('/api/activities', {
-      headers: {
-        'Accept-Language': userLocale,
-      },
-    })
+    globalThis.fetch('/api/activities')
       .then(res => res.json())
       .then(data => {
         if (!data.ok) {
@@ -172,7 +164,7 @@ function Activities() {
         setError(err.message);
         setLoading(false);
       });
-  }, [userLocale]);
+  }, []);
 
   const entries = activities ? Object.values(activities) : [];
 
