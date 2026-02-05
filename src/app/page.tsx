@@ -7,6 +7,7 @@ import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
+import { useBaselineProps } from '@/components/common/RenderOLX';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
 import type { ContentVariant, Locale } from '@/lib/types';
@@ -294,6 +295,9 @@ function Sidebar() {
 }
 
 export default function Home() {
+  // Ensure Redux is initialized with locale before rendering
+  useBaselineProps();
+
   const [availableLocales, setAvailableLocales] = useState<Locale[]>([]);
   const localeAttrs = useLocaleAttributes();
   const userLocale = localeAttrs.lang;
