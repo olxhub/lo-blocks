@@ -8,6 +8,126 @@ Introduction
 
 psych_sba_sidebar2 -> bedtime_problem_introduction2
 
+Annie: Well, we're making progress! We can tell Lin's friend to use positive
+reinforcement as her bedtime strategy.
+
+JJ: It's a great idea, but maybe we should make sure we really understand
+positive reinforcement, to make sure we give good advice.
+
+psych_sba_sidebar2 -> lecture_notes_1
+
+JJ: Don't you think this is where we can bring in the things we're studying in Psych class? Here are my lecture notes... I've got a definition of "reinforcement." It's from our textbook.
+
+Lin: I'm not quite sure I get this. In the class, we learned about both **positive** and **negative** reinforcement. Isn't that basically just reward vs. punishment?
+
+JJ: Uh, no ... punishment isn't the same thing as negative reinforcement. Let me look up my notes.
+
+psych_sba_sidebar2 -> lecture_notes_2
+
+JJ: Here we go. Here's how my notes say punishment is defined.
+
+Annie: Looking at the examples confuses me a little. It seems to include unintentional consequences! I mean, in the second example, Amelia's teacher wasn't trying to punish her.
+
+Lin: **Reinforcement** and **punishment** are being used as technical terms. _Anything that makes a preceding behavior more likely_ is a **reinforcement**. _Anything that makes it less likely_ is a **punishment**.
+
+JJ: I'm still a bit confused. Why are the examples with Ella and Nathan classified as punishment instead of reinforcement?
+
+Annie: This is tricky: "following classroom rules" is just "not breaking them" and "withdrawing from group activities" is just "not participating in them".
+
+Annie: So, what behavior is really being changed? Being sent to the principal's office is caused by rule-breaking, not rule following, and you can't be laughed at unless you're participating in group activities!
+
+Annie: Since the behaviors of rule-breaking and participating are decreasing, these scenarios are examples of punishment.
+
+JJ: It sounds like we may still be a bit confused on these concepts. I don't think we should give Annie's friend any advice until we're sure we know exactly what positive reinforcement is!
+
+Lin: You're right!
+
+Hey, everyone, I've got an idea.
+
+Lin: Do you remember when the TA gave us that practice page with twenty extra questions on it to help us practice telling the difference between reinforcement and punishment, before we took the quiz? Why don’t we try to answer those questions? Then, we can discuss them ...
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1
+
+--- wait @reinforcement_v_punishment_sticker.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1b
+
+--- wait @reinforcement_v_punishment_asking.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1c
+
+--- wait @reinforcement_v_punishment_getting_burned.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1d
+
+--- wait @reinforcement_v_punishment_tantrum.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1e
+
+--- wait @reinforcement_v_punishment_glaring.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1f
+
+--- wait @reinforcement_v_punishment_screentime.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1g
+
+--- wait @reinforcement_v_punishment_candy.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1h
+
+--- wait @reinforcement_v_punishment_cheer_on.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1i
+
+--- wait @reinforcement_v_punishment_upset.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1j
+
+--- wait @reinforcement_v_punishment_not_called_on.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1k
+
+--- wait @reinforcement_v_punishment_artist.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1l
+
+--- wait @reinforcement_v_punishment_firm_command.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1m
+
+--- wait @reinforcement_v_punishment_timeout.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1n
+
+--- wait @reinforcement_v_punishment_lose_recess_time.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1o
+
+--- wait @reinforcement_v_punishment_grounded.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1p
+
+--- wait @reinforcement_v_punishment_removing_dessert.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1q
+
+--- wait @reinforcement_v_punishment_being_told.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1r
+
+--- wait @reinforcement_v_punishment_offer_snack.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1s
+
+--- wait @reinforcement_v_punishment_excluded.submitCount > 0 ---
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1t
+
+--- wait @reinforcement_v_punishment_badge.submitCount > 0 ---
+
+Lin: Here are questions 6 to 10 in the practice quiz.
+
 Lin: I think we're getting a lot closer to helping your roommate out,
 Annie, but can you text her to see what she and the parents have
 been doing recently to try to get the kid to go to bed?
