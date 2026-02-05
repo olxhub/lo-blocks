@@ -533,14 +533,15 @@ export async function parseOLX(
         // Support both direct entry and updater function patterns:
         // - storeEntry(id, entry) - store/overwrite
         // - storeEntry(id, (existing) => newEntry) - update existing
-        // Resolve language using cascade: element attr → element metadata → parent → default
-        // For direct entries, prefer the entry's own attributes (for blocks created by parsers)
-        // For updater functions or missing attributes, fall back to current element's attributes
+        // Resolve language: if the entry has its own lang attribute, use it;
+        // otherwise inherit from the current element's resolved language (currentLang).
+        // We pass currentLang (not parentLang) because parser-generated entries
+        // are conceptually children of this element, not siblings.
         let entryAttributes = parsedAttributes;
         if (typeof entryOrUpdater === 'object' && entryOrUpdater !== null && entryOrUpdater.attributes) {
           entryAttributes = entryOrUpdater.attributes;
         }
-        const lang = resolveElementLanguage(entryAttributes, parentLang, metadataLang);
+        const lang = resolveElementLanguage(entryAttributes, currentLang, metadataLang);
         const entry = typeof entryOrUpdater === 'function'
           ? entryOrUpdater(idMap[storeId]?.[lang])
           : entryOrUpdater;
