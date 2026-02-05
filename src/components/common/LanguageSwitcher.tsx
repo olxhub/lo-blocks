@@ -8,7 +8,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, shallowEqual } from 'react-redux';
 import { useSetting } from '@/lib/state/settingsAccess';
 import { settings } from '@/lib/state/settings';
 import { getTextDirection, getBrowserLocale } from '@/lib/i18n/getTextDirection';

@@ -4,7 +4,6 @@
 import Link from 'next/link';
 import { Home, UserCircle } from 'lucide-react';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
-// TODO: Import useBaselineProps from lib/blocks/baselineProps once it's extracted
 import { useBaselineProps } from '@/components/common/RenderOLX';
 
 interface AppHeaderProps {

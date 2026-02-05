@@ -24,11 +24,7 @@ function findStatefulIds(idMap, blockRegistry = BLOCK_REGISTRY, locale?: string)
   return Object.entries(idMap)
     .filter(([id, variantMap]) => {
       // variantMap is nested structure { 'en-Latn-US': OlxJson, ... }
-      const variantMapTyped = variantMap as any;
-      const availableVariants = Object.keys(variantMapTyped);
-      // Use provided locale if available, otherwise first available
-      const bestVariant = locale && availableVariants.includes(locale) ? locale : availableVariants[0];
-      const node = variantMapTyped[bestVariant];
+      const node = getBestVariantClient(variantMap as any, locale);
       if (!node) return false;
 
       const blockType = blockRegistry[node.tag];
@@ -48,10 +44,17 @@ function StateRow({ id, idMap }) {
     shallowEqual
   );
 
+  // Get current locale for variant selection
+  const locale = useSelector((state: any) => state?.application_state?.settings?.locale?.code);
+
   // Extract the OlxJson from nested structure { variant: OlxJson, ... }
   const variantMap = idMap[id] as any;
-  const availableVariants = Object.keys(variantMap);
-  const olxJson = variantMap[availableVariants[0]];
+  const olxJson = getBestVariantClient(variantMap, locale);
+
+  if (!olxJson) {
+    return null;
+  }
+
   const tag = olxJson.tag;
 
   return (
