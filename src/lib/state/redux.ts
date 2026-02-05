@@ -278,8 +278,7 @@ export function useReduxInput(
 
   const id = idResolver.refToReduxKey(props);
   const tag = props?.loBlock.OLXName; // TODO: Eliminate ?.
-  // Use props.logEvent if available (respects replay mode), fallback to lo_event.logEvent
-  const logEvent = props.logEvent ?? lo_event.logEvent;
+  const logEvent = props.runtime.logEvent;
 
   const onChange = useCallback((event) => {
     const val = event.target.value;

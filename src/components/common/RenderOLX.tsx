@@ -92,7 +92,7 @@ export function useBaselineRuntime(): LoBlockRuntimeContext {
     store,
     logEvent,
     sideEffectFree,
-    locale: { code: 'en-Latn-US' as any, dir: 'ltr' }  // Dummy initial value
+    locale: { code: 'eo' as any, dir: 'ltr' }  // Esperanto placeholder - overwritten from Redux/browser below
   };
 
   // Wrap in BaselineProps structure for useSetting
