@@ -104,8 +104,8 @@ Parsers define how to transform OLX content into the internal representation. Yo
 | parsers.blocks()                             | ...parsers.blocks()           | Children are blocks. Filters out text/comments. |
 | parsers.blocks.allowHTML()                   | ...parsers.blocks.allowHTML() | Mixed content: blocks + HTML tags + text.       |
 | parsers.text()                               | ...parsers.text()             | Text content only. No nested XML allowed.       |
-| parsers.text({ postprocess: 'stripIndent' }) | For Markdown                  | Strips leading indentation from multiline text. |
-| parsers.text({ postprocess: 'none' })        | Raw text                      | Preserves all whitespace.                       |
+| parsers.text.stripIndent()                   | ...parsers.text.stripIndent() | Strips leading indentation from multiline text. |
+| parsers.text.raw()                           | ...parsers.text.raw()         | Preserves all whitespace.                       |
 | parsers.xmljson()                            | ...parsers.xmljson()          | Pass through raw parsed XML structure.          |
 | parsers.xml                                  | parser: parsers.xml.parser    | Reconstructs XML as a string.                   |
 | parsers.assetSrc()                           | ...parsers.assetSrc()         | Resolves `src` attr via provider. No children. (HACK) |

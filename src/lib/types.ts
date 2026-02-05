@@ -524,12 +524,13 @@ export type BlueprintKidEntry =
  * - React DOM (the actual browser rendering)
  */
 export interface OlxDomNode {
-  node: OlxJson;
-  renderedKids: Record<OlxKey, OlxDomNode>;
+  olxJson: OlxJson;
+  reduxKey: ReduxStateKey;  // Scoped runtime key (idPrefix + id), e.g. "factors:0:factor"
+  renderedKids: Record<ReduxStateKey, OlxDomNode>;
   parent?: OlxDomNode;
   loBlock: LoBlock;
   sentinel?: string;  // 'root' for root node
-  // runtime: LoBlockRuntimeContext;  // TODO: Uncomment and store at render time so actions can retrieve it
+  runtime: LoBlockRuntimeContext;  // Stored at render time (render.tsx) for actions/valueSelector
 }
 
 /** Selector function for filtering OlxDomNodes in DOM traversal */
@@ -774,6 +775,7 @@ export interface OlxJson {
   id: OlxKey;
   tag: OLXTag;
   attributes: Record<string, JSONValue>;  // Always present, defaults to {} in parsing
+  kids?: BlueprintKidEntry[];  // Child nodes (text, block refs, HTML elements)
   provenance: Provenance;
 
   // Optional metadata (from YAML frontmatter or parsed attributes)
