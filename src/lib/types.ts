@@ -581,14 +581,37 @@ export interface LoBlockRuntimeContext {
  * Most functions just pass props through without inspecting. Blocks destructure
  * only what they need (usually just attributes and fields).
  */
-export interface RuntimeProps {
+
+/**
+ * BaselineProps - Minimal props for global/system context.
+ *
+ * Used in global components (LanguageSwitcher, RenderOLX initialization) and
+ * functions that only need access to the runtime context (store, logEvent, locale).
+ *
+ * Most system-level functions (settings access, locale selection, logging) only
+ * require BaselineProps, not the full RuntimeProps with block-specific machinery.
+ *
+ * FUTURE: As we establish global context infrastructure (root page context, DOM
+ * navigation, global state), some fields from RuntimeProps may migrate here:
+ * - rootId: Global page identifier for resolving /absolute references
+ * - domPath: Path through OLX DOM tree for context-aware resolution
+ * - breadcrumbs: Stack of ancestor IDs for relative reference resolution
+ * - globalFields: System-level state fields (vs block-scoped fields in RuntimeProps)
+ *
+ * The distinction is: BaselineProps has things that exist globally and propagate
+ * everywhere; RuntimeProps has things specific to rendering a particular block.
+ */
+export interface BaselineProps {
+  runtime: LoBlockRuntimeContext;  // Required - contains store, logEvent, locale, blockRegistry
+}
+
+export interface RuntimeProps extends BaselineProps {
   // This block's identity and content
   id: string;
   kids: BlueprintKidEntry[];
 
   // Opaque context - thread through
   nodeInfo: OlxDomNode;
-  runtime: LoBlockRuntimeContext;  // Bundled runtime context (required)
 
   // Block machinery - framework injects these
   loBlock: LoBlock;

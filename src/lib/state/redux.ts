@@ -47,7 +47,7 @@ import * as idResolver from '../blocks/idResolver';
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
-import { FieldInfo, OlxReference, OlxKey, RuntimeProps } from '../types';
+import { FieldInfo, OlxReference, OlxKey, RuntimeProps, BaselineProps } from '../types';
 import { assertValidField } from './fields';
 import type { Store } from 'redux';
 import { selectBlock } from './olxjson';
@@ -66,6 +66,13 @@ export interface SelectorOptions<T> {
   equalityFn?: (a: T, b: T) => boolean;
 }
 
+/**
+ * Core selector for field values.
+ *
+ * Accepts BaselineProps or RuntimeProps. For component/storage scope, needs the
+ * full props object with id/nodeInfo for ID resolution. For system scope, only
+ * needs the scope name from field.
+ */
 export const fieldSelector = <T>(
   state,
   props,
@@ -85,7 +92,7 @@ export const fieldSelector = <T>(
   const value: T | undefined = (() => {
     switch (scope) {
       case scopes.componentSetting: {
-        const tag =
+        const tag = // TODO: Simplify
           optTag ??
           props?.loBlock?.OLXName ??
           props.nodeInfo?.node?.tag;
@@ -148,7 +155,7 @@ export const useFieldSelector = <T>(
 
 
 export function updateField(
-  props,
+  props: BaselineProps | RuntimeProps | any,
   field: FieldInfo,
   newValue,
   { id, tag }: { id?: string | boolean; tag?: string | boolean } = {}
@@ -165,10 +172,9 @@ export function updateField(
     : undefined;
   const resolvedTag = tag ?? props?.loBlock?.OLXName;
 
-  // Use props.logEvent if available (respects replay mode), HACK: fallback to lo_event.logEvent
-  // TODO: Global components like LanguageSwitcher pass null props, then fall back to global logEvent.
-  // Should have root/global props threaded through instead of reaching into global namespace.
-  const logEvent = props?.logEvent ?? lo_event.logEvent;
+  // Extract logEvent from props. If props is null, use global lo_event.logEvent.
+  // TODO: With baselineprops, we should be able to eliminate all cases where it might be null
+  const logEvent = props?.runtime?.logEvent ?? lo_event.logEvent;
   logEvent(field.event, {
     scope,
     [fieldName]: newValue,
@@ -271,7 +277,7 @@ export function useReduxInput(
   );
 
   const id = idResolver.refToReduxKey(props);
-  const tag = props?.loBlock.OLXName;
+  const tag = props?.loBlock.OLXName; // TODO: Eliminate ?.
   // Use props.logEvent if available (respects replay mode), fallback to lo_event.logEvent
   const logEvent = props.logEvent ?? lo_event.logEvent;
 

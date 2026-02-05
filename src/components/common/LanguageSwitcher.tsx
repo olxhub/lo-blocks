@@ -14,6 +14,7 @@ import { settings } from '@/lib/state/settings';
 import { getTextDirection, getBrowserLocale } from '@/lib/i18n/getTextDirection';
 import { selectVariantTiers } from '@/lib/state/olxjson';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
+import { useBaselineProps } from '@/components/common/RenderOLX';
 import { ALL_LANGUAGES, getLanguageLabel, filterLanguages } from '@/lib/i18n/languages';
 
 interface LanguageSwitcherProps {
@@ -22,16 +23,36 @@ interface LanguageSwitcherProps {
   availableLocales?: string[];  // Optional: explicit list of available variants (e.g., from activities)
 }
 
+/**
+ * TODO:
+ *
+ * Current design: LanguageSwitcher is self-contained - calls useBaselineProps()
+ * internally to initialize Redux locale. This works well but prevents detecting
+ * available language variants from currently-rendered content.
+ *
+ * Future enhancement (when implementing variant discovery):
+ * - Call baselineProps in the top-level page
+ * - Accept baselineProps and availableVariants as props from parent
+ * - Parent (e.g., RenderOLX) can detect variants from rendered content
+ * - This enables LanguageSwitcher to show variants available on current page
+ * - See: docs/architecture/identify-ids-on-page.md (Option B approach)
+ *
+ * This would allow all OLX on a page to interact via the dynamic OLX DOM!
+ */
+
 export default function LanguageSwitcher({ className = '', sources, availableLocales }: LanguageSwitcherProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Read current locale from Redux with fallback
+  // Initialize Redux locale (ensures Redux has locale before any locale-dependent code runs)
+  const baselineProps = useBaselineProps();
+
+  // Read current locale from Redux
   const localeAttrs = useLocaleAttributes();
   const localeCode = localeAttrs.lang;
 
-  // Get setter for locale changes
-  const [, setLocale] = useSetting(null, settings.locale);
+  // Get setter for locale changes - properly typed, no type cast needed
+  const [, setLocale] = useSetting(baselineProps, settings.locale);
 
   // Get available variants from either explicit prop or Redux selector
   // Note: selectVariantTiers scans all sources; sources prop is ignored when using Redux
@@ -106,9 +127,8 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
                   return (
                     <button
                       onClick={() => handleSelectLocale(browserLanguage)}
-                      className={`w-full text-left px-3 py-1.5 hover:bg-blue-50 flex justify-between items-center ${
-                        localeCode === browserLanguage ? 'bg-blue-100 font-semibold' : ''
-                      }`}
+                      className={`w-full text-left px-3 py-1.5 hover:bg-blue-50 flex justify-between items-center ${localeCode === browserLanguage ? 'bg-blue-100 font-semibold' : ''
+                        }`}
                     >
                       <span className="font-sans">{displayName}</span>
                       <span className="text-xs text-gray-500 font-mono ms-4 flex-shrink-0">({browserLanguage})</span>
@@ -133,9 +153,8 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
                     <button
                       key={code}
                       onClick={() => handleSelectLocale(code)}
-                      className={`w-full text-left px-3 py-1.5 hover:bg-green-50 flex justify-between items-center ${
-                        localeCode === code ? 'bg-green-100 font-semibold' : ''
-                      }`}
+                      className={`w-full text-left px-3 py-1.5 hover:bg-green-50 flex justify-between items-center ${localeCode === code ? 'bg-green-100 font-semibold' : ''
+                        }`}
                     >
                       <span className="font-sans">{displayName}</span>
                       <span className="text-xs text-gray-500 font-mono ms-4 flex-shrink-0">({code})</span>
@@ -159,9 +178,8 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
                     <button
                       key={code}
                       onClick={() => handleSelectLocale(code)}
-                      className={`w-full text-left px-3 py-1.5 hover:bg-amber-50 flex justify-between items-center ${
-                        localeCode === code ? 'bg-amber-100 font-semibold' : ''
-                      }`}
+                      className={`w-full text-left px-3 py-1.5 hover:bg-amber-50 flex justify-between items-center ${localeCode === code ? 'bg-amber-100 font-semibold' : ''
+                        }`}
                     >
                       <span className="font-sans">{displayName}</span>
                       <span className="text-xs text-gray-500 font-mono ms-4 flex-shrink-0">({code})</span>
@@ -195,9 +213,8 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
                     <button
                       key={lang.code}
                       onClick={() => handleSelectLocale(lang.code)}
-                      className={`w-full text-left px-2 py-1.5 rounded hover:bg-gray-50 flex justify-between items-center ${
-                        localeCode === lang.code ? 'bg-gray-100 font-semibold' : ''
-                      }`}
+                      className={`w-full text-left px-2 py-1.5 rounded hover:bg-gray-50 flex justify-between items-center ${localeCode === lang.code ? 'bg-gray-100 font-semibold' : ''
+                        }`}
                     >
                       <span className="font-sans">{displayName}</span>
                       <span className="text-xs text-gray-500 font-mono ms-4 flex-shrink-0">({lang.code})</span>

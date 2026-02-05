@@ -10,13 +10,13 @@
  *
  * Access patterns:
  * - selectSetting(state, key, attrs?) - Redux selector (pure, takes state directly)
- * - useSetting(props: RuntimeProps, key, attrs?) - React hook for components
- * - getSetting(props: DummySettingsProps, key, attrs?) - Direct access for non-React code
+ * - useSetting(props: BaselineProps, key, attrs?) - React hook for components
+ * - getSetting(props: SettingsProps, key, attrs?) - Direct access for non-React code
  */
 
 import { useSelector } from 'react-redux';
 import type { Store } from 'redux';
-import type { RuntimeProps, FieldInfo } from '@/lib/types';
+import type { RuntimeProps, BaselineProps, FieldInfo } from '@/lib/types';
 import { useFieldState } from './redux';
 
 /**
@@ -66,14 +66,14 @@ export function selectSetting(state: any, field: { name: string }, attributes?: 
  * Usage:
  *   const [locale, setLocale] = useSetting(props, settings.locale)
  *   const [locale, setLocale] = useSetting(props, settings.locale, { school: 'kaust' })
- *   const [locale, setLocale] = useSetting(null, settings.locale)  // HACK: props optional until PMSS integration
+ *   const [locale, setLocale] = useSetting(null, settings.locale)  // props optional for now
  *
- * @param props - RuntimeProps (contains store, accessed via Redux context). HACK: Optional for now, required when PMSS cascading is implemented.
+ * @param props - BaselineProps (contains runtime.logEvent, runtime.store). Also accepts RuntimeProps which extends BaselineProps.
  * @param field - FieldInfo for the setting (e.g., settings.locale)
  * @param attributes - Optional context for cascade matching (reserved for future PMSS integration, currently unused)
  * @returns Tuple of [value, setter] where setter updates Redux state
  */
-export function useSetting(props: RuntimeProps | null | undefined, field: FieldInfo, attributes?: SettingAttributes): [any, (value: any) => void] {
+export function useSetting(props: BaselineProps | null | undefined, field: FieldInfo, attributes?: SettingAttributes): [any, (value: any) => void] {
   // TODO: When PMSS-style cascading is implemented, use attributes to select among matching rules
   // For now: attributes parameter is reserved but unused
   return useFieldState(props, field, undefined, {}) as [any, (value: any) => void];
@@ -88,11 +88,11 @@ export function useSetting(props: RuntimeProps | null | undefined, field: FieldI
  *
  * Used in non-React contexts or when you already have a props-like object.
  *
- * @param props - Object with store (SettingsProps, or full RuntimeProps)
+ * @param props - SettingsProps (contains store), BaselineProps, or RuntimeProps
  * @param field - Field definition with name property (from settings object)
  * @param attributes - Optional context for cascade matching
  * @returns Setting value or undefined if not set
  */
-export function getSetting(props: SettingsProps, field: { name: string }, attributes?: SettingAttributes): any {
+export function getSetting(props: SettingsProps | any, field: { name: string }, attributes?: SettingAttributes): any {
   return selectSetting(props.store.getState(), field, attributes);
 }
