@@ -143,16 +143,26 @@ function resolveElementLanguage(
 /**
  * Extracts metadata from a comment node's text content.
  *
+ * Looks for YAML frontmatter in the format:
+ *   <!--
+ *   ---
+ *   key: value
+ *   ---
+ *   -->
+ *
  * @param commentText - The text content of an XML comment
  * @param provenance - Current provenance chain for error reporting
  * @param errors - Array to collect parsing errors
- * @returns Parsed and validated metadata object, or {} if none found or invalid
+ * @returns Three possible outcomes:
+ *   - null: No YAML frontmatter found (comment doesn't have --- delimiters)
+ *   - OLXLoadingError: Metadata frontmatter found but has syntax/validation errors
+ *   - OLXMetadata: Valid metadata successfully parsed and validated
  */
 function extractMetadataFromComment(
   commentText: any,
   provenance: Provenance,
   errors: OLXLoadingError[]
-): OLXMetadata {
+): OLXMetadata | OLXLoadingError | null {
   const file = provenance.join(' → ');
 
   // Fail early if comment structure is invalid
@@ -161,23 +171,25 @@ function extractMetadataFromComment(
   // statements should be removed if these issues are never triggered.
 
   if (commentText === undefined || commentText === null) {
-    errors.push({
+    const error: OLXLoadingError = {
       type: 'parse_error',
       file,
       message: 'Internal parser error: Comment node found but text content is missing. This may indicate a parser configuration issue.',
       technical: { commentText }
-    });
-    return OLXMetadataSchema.parse({});
+    };
+    errors.push(error);
+    return error;
   }
 
   if (typeof commentText !== 'string') {
-    errors.push({
+    const error: OLXLoadingError = {
       type: 'parse_error',
       file,
       message: `Internal parser error: Comment text has unexpected type '${typeof commentText}' (expected string).`,
       technical: { commentText, type: typeof commentText }
-    });
-    return OLXMetadataSchema.parse({});
+    };
+    errors.push(error);
+    return error;
   }
 
   // Trim whitespace and check for YAML frontmatter delimiters (---)
@@ -186,7 +198,7 @@ function extractMetadataFromComment(
   // Allow optional whitespace before closing --- to handle indented comments in tests
   const frontmatterMatch = trimmed.match(/^---\s*\n([\s\S]*?)\n\s*---\s*$/);
   if (!frontmatterMatch) {
-    return OLXMetadataSchema.parse({}); // Not metadata, just a regular comment
+    return null; // No YAML frontmatter - not metadata, just a regular comment
   }
 
   const yamlContent = frontmatterMatch[1];
@@ -204,7 +216,7 @@ function extractMetadataFromComment(
         `  • ${issue.path.join('.')}: ${issue.message}`
       ).join('\n');
 
-      errors.push({
+      const error: OLXLoadingError = {
         type: 'metadata_error',
         file,
         message: `📝 Metadata Format Error
@@ -232,14 +244,15 @@ Common issues:
           yamlContent,
           zodIssues: result.error.issues
         }
-      });
-      return OLXMetadataSchema.parse({});
+      };
+      errors.push(error);
+      return error;
     }
 
     return result.data;
   } catch (yamlError: any) {
     // YAML parsing failed
-    errors.push({
+    const error: OLXLoadingError = {
       type: 'metadata_error',
       file,
       message: `📝 Metadata YAML Syntax Error
@@ -269,8 +282,9 @@ Example of correct format:
         yamlError: yamlError.message,
         yamlErrorDetails: yamlError
       }
-    });
-    return OLXMetadataSchema.parse({});
+    };
+    errors.push(error);
+    return error;
   }
 }
 
@@ -278,14 +292,15 @@ Example of correct format:
  * Extracts metadata from a preceding sibling comment.
  *
  * Searches backwards from the current node index to find the nearest
- * preceding comment with YAML frontmatter, skipping only whitespace.
- * Metadata always applies to the next element after the comment.
+ * preceding comment with valid YAML metadata frontmatter, skipping whitespace.
+ * Stops searching when a metadata comment is found, or when encountering
+ * non-comment, non-whitespace content.
  *
  * @param siblings - Array of sibling nodes
  * @param nodeIndex - Index of the current node in the siblings array
  * @param provenance - Current provenance chain for error reporting
- * @param errors - Array to collect parsing errors
- * @returns Parsed and validated metadata object, or {} if none found
+ * @param errors - Array to collect parsing errors (errors are added by extractMetadataFromComment)
+ * @returns Metadata object with defaults applied, empty if no valid metadata found
  */
 function extractSiblingMetadata(
   siblings: any[] | null,
@@ -310,21 +325,29 @@ function extractSiblingMetadata(
       break; // Stop at non-whitespace text
     }
 
-    // Found a comment - check if it has valid metadata
+    // Found a comment - try to extract metadata
     if ('#comment' in sibling) {
       // With fast-xml-parser preserveOrder:true, comments have structure:
       // { '#comment': [{ '#text': 'content' }] }
       // Using direct property access (not ?.) to fail fast if structure is unexpected
       const commentText = sibling['#comment'][0]['#text'];
-      const metadata = extractMetadataFromComment(commentText, provenance, errors);
-      if (Object.keys(metadata).length > 0) {
-        return metadata; // Found valid metadata
+      const result = extractMetadataFromComment(commentText, provenance, errors);
+
+      if (result === null) {
+        // No YAML frontmatter - keep searching backwards for a metadata comment
+        continue;
       }
-      // No metadata in this comment, continue searching
-      continue;
+
+      if ('type' in result && result.type === 'metadata_error') {
+        // Error found in metadata - return defaults (error already added to errors array by extractMetadataFromComment)
+        return OLXMetadataSchema.parse({});
+      }
+
+      // Valid metadata found (result is now narrowed to OLXMetadata)
+      return result as OLXMetadata;
     }
 
-    // Stop at any other element
+    // Stop at any other element (not comment, not whitespace)
     break;
   }
 
