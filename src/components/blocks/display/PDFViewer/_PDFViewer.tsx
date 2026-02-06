@@ -1,23 +1,11 @@
 // src/components/blocks/display/PDFViewer/_PDFViewer.tsx
-/*
- * PDF Viewer Block Implementation
- *
- * Uses the browser's built-in PDF viewer via <iframe>.
- *
- * SUPPORTED PATH TYPES (same as Image):
- * 1. Relative paths: "handouts/syllabus.pdf"
- *    - Resolved relative to current OLX file directory
- * 2. Content-absolute paths: "/mycourse/handouts/syllabus.pdf"
- *    - Resolved relative to content root directory
- * 3. Platform-wide assets: "//static/guide.pdf"
- *    - Served from Next.js public/ directory
- * 4. External URLs: "https://example.com/paper.pdf"
- *    - Passed through directly
- */
+//
+// Uses the browser's built-in PDF viewer via <iframe>.
+// Path resolution follows the same conventions as Image (see Image block docs).
 
 'use client';
 import React from 'react';
-import { resolveImageSrc } from '@/lib/util';
+import { resolveContentPath } from '@/lib/util';
 
 function _PDFViewer(props) {
   const { src, width, height } = props;
@@ -29,20 +17,7 @@ function _PDFViewer(props) {
   }
 
   try {
-    const resolved = resolveImageSrc(src);
-
-    let finalSrc;
-    switch (resolved.type) {
-      case 'external':
-        finalSrc = resolved.src;
-        break;
-      case 'platform':
-        finalSrc = `/${resolved.src}`;
-        break;
-      case 'content':
-        finalSrc = `/content/${resolved.src}`;
-        break;
-    }
+    const finalSrc = resolveContentPath(src)!;
 
     return (
       <iframe

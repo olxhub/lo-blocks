@@ -130,14 +130,14 @@ export class NetworkStorageProvider implements StorageProvider {
   /**
    * Check if an image file exists via HEAD request.
    */
-  async validateImagePath(imagePath: string): Promise<boolean> {
-    const imageExts = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp'];
-    if (!imageExts.some(ext => imagePath.toLowerCase().endsWith(ext))) {
+  async validateAssetPath(assetPath: string): Promise<boolean> {
+    const { isMediaFile } = await import('@/lib/util/fileTypes');
+    if (!isMediaFile(assetPath)) {
       return false;
     }
 
     try {
-      const res = await fetch(`${this.imageEndpoint}/${imagePath}`, { method: 'HEAD' });
+      const res = await fetch(`${this.imageEndpoint}/${assetPath}`, { method: 'HEAD' });
       return res.ok;
     } catch {
       return false;

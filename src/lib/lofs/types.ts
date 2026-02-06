@@ -146,9 +146,9 @@ export interface StorageProvider {
   resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): string;
 
   /**
-   * Check if an image file exists and is valid
-   * @param imagePath - Path relative to content root
+   * Check if a static asset file exists and is valid
+   * @param assetPath - Path relative to content root
    * @returns Promise<boolean>
    */
-  validateImagePath(imagePath: string): Promise<boolean>;
+  validateAssetPath(assetPath: string): Promise<boolean>;
 }

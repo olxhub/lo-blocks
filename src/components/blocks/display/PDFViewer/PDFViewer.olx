@@ -1,2 +1,2 @@
 <PDFViewer id="PDFViewerDemo" title="PDF Viewer Example"
-           src="demos/handouts/montessori.pdf" />
+           src="/demos/handouts/montessori.pdf" />

@@ -3,7 +3,7 @@
 
 import React from 'react';
 import NextImage from 'next/image';
-import { resolveImagePath } from '@/lib/util';
+import { resolveContentPath } from '@/lib/util';
 
 export default function _NavigatorTeamDetail(props) {
   const { name, role, photo, bio, experience, skills } = props;
@@ -16,7 +16,7 @@ export default function _NavigatorTeamDetail(props) {
     ? skills
     : (skills ? skills.split(',').map(s => s.trim()) : []);
 
-  const photoUrl = resolveImagePath(photo);
+  const photoUrl = resolveContentPath(photo);
 
   return (
     <div className="p-6">

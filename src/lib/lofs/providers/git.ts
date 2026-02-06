@@ -50,7 +50,7 @@ export class GitStorageProvider implements StorageProvider {
     throw new Error('git storage not implemented');
   }
 
-  async validateImagePath(_imagePath: string): Promise<boolean> {
+  async validateAssetPath(_assetPath: string): Promise<boolean> {
     throw new Error('git storage not implemented');
   }
 

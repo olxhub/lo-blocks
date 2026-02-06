@@ -17,7 +17,7 @@ import { StorageProvider, fileTypes } from '@/lib/lofs';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
 import type { ProvenanceURI, OLXLoadingError, OlxJson, IdMap, OlxKey, ContentVariant } from '@/lib/types';
 import { parseOLX } from '@/lib/content/parseOLX';
-import { copyImagesToPublic } from '@/lib/content/imageSync';
+import { copyAssetsToPublic } from '@/lib/content/staticAssetSync';
 
 // =============================================================================
 // Types
@@ -112,7 +112,7 @@ export async function syncContentFromStorage(
   const errors = await parseAndIndexFiles(filesToParse, contentStore, provider);
 
   // Step 5: Sync images
-  await copyImagesToPublic(provider);
+  await copyAssetsToPublic(provider);
 
   // Return with legacy property names for backward compatibility
   // Internally we use: parsedFiles/blockIds, externally: parsed/nodes/idMap

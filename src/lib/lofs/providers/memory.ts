@@ -11,7 +11,7 @@
 //
 
 import { minimatch } from 'minimatch';
-import { isContentFile, getExtension, EXT } from '@/lib/util/fileTypes';
+import { isContentFile, getExtension } from '@/lib/util/fileTypes';
 import type {
   StorageProvider,
   ReadResult,
@@ -22,8 +22,6 @@ import type {
   GrepMatch,
 } from '../types';
 import type { ProvenanceURI } from '../../types';
-
-const IMAGE_EXTENSIONS = EXT.image;
 
 export class InMemoryStorageProvider implements StorageProvider {
   files: Record<string, string>;
@@ -96,11 +94,9 @@ export class InMemoryStorageProvider implements StorageProvider {
     return relativePath.replace(/^\.?\//, '');
   }
 
-  async validateImagePath(imagePath: string): Promise<boolean> {
-    const hasImageExt = IMAGE_EXTENSIONS.some(ext =>
-      imagePath.toLowerCase().endsWith(ext)
-    );
-    return hasImageExt && this.exists(imagePath);
+  async validateAssetPath(assetPath: string): Promise<boolean> {
+    const { isMediaFile } = await import('@/lib/util/fileTypes');
+    return isMediaFile(assetPath) && this.exists(assetPath);
   }
 
   /**

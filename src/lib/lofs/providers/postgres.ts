@@ -50,7 +50,7 @@ export class PostgresStorageProvider implements StorageProvider {
     throw new Error('postgres storage not implemented');
   }
 
-  async validateImagePath(_imagePath: string): Promise<boolean> {
+  async validateAssetPath(_assetPath: string): Promise<boolean> {
     throw new Error('postgres storage not implemented');
   }
 

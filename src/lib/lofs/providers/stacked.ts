@@ -15,7 +15,7 @@
 // - read(): First provider with the file wins (highest priority)
 // - listFiles(): Union of all providers, higher priority shadows lower
 // - loadXmlFilesWithStats(): Merged scan, higher priority files shadow lower
-// - validateImagePath(): True if exists in any provider
+// - validateAssetPath(): True if exists in any provider
 //
 import type { ProvenanceURI } from '../../types';
 import {
@@ -202,11 +202,11 @@ export class StackedStorageProvider implements StorageProvider {
     throw new Error(`Cannot resolve path in any provider: ${relativePath}`);
   }
 
-  // Check if image exists in any provider
-  async validateImagePath(imagePath: string): Promise<boolean> {
+  // Check if asset exists in any provider
+  async validateAssetPath(assetPath: string): Promise<boolean> {
     for (const provider of this.providers) {
       try {
-        if (await provider.validateImagePath(imagePath)) {
+        if (await provider.validateAssetPath(assetPath)) {
           return true;
         }
       } catch {

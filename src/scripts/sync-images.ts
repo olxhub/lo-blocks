@@ -1,17 +1,17 @@
 #!/usr/bin/env tsx
 /**
- * Sync images from content directory to public folder for Next.js static serving
+ * Sync static assets from content directory to public folder for Next.js static serving
  */
 
 import { FileStorageProvider } from '../lib/lofs/providers/file.js';
-import { copyImagesToPublic } from '../lib/content/imageSync.js';
+import { copyAssetsToPublic } from '../lib/content/staticAssetSync.js';
 
 async function main() {
   try {
     const provider = new FileStorageProvider('./content');
-    await copyImagesToPublic(provider);
+    await copyAssetsToPublic(provider);
   } catch (error) {
-    console.error('❌ Failed to sync images:', error);
+    console.error('Failed to sync assets:', error);
     process.exit(1);
   }
 }

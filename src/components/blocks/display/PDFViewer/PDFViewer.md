@@ -7,7 +7,7 @@ NOTE: In most cases, we recommend **against** using PDFs. These are sometimes he
 ## Usage
 
 ```olx:playground
-<PDFViewer id="syllabus" src="demos/handouts/montessori.pdf" />
+<PDFViewer id="syllabus" src="/demos/handouts/montessori.pdf" />
 ```
 
 ## Properties

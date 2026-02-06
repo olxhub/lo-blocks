@@ -504,14 +504,14 @@ export class FileStorageProvider implements StorageProvider {
     return path.normalize(resolved);
   }
 
-  async validateImagePath(imagePath: string): Promise<boolean> {
+  async validateAssetPath(assetPath: string): Promise<boolean> {
     try {
-      const imageExts = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp'];
-      if (!imageExts.some(ext => imagePath.toLowerCase().endsWith(ext))) {
+      const { isMediaFile } = await import('@/lib/util/fileTypes');
+      if (!isMediaFile(assetPath)) {
         return false;
       }
 
-      const fullPath = await resolveSafeReadPath(this.baseDir, imagePath);
+      const fullPath = await resolveSafeReadPath(this.baseDir, assetPath);
       const fs = await import('fs/promises');
       const stat = await fs.stat(fullPath);
       return stat.isFile();
