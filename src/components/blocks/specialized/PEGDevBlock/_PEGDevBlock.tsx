@@ -2,7 +2,6 @@
 import React from 'react';
 
 export function _PEGDevBlock({ kids }) {
-  console.log(kids);
   const parsed = kids.parsed;
 
   return (

@@ -202,13 +202,10 @@ function evaluateUnaryOp(
  * Evaluate member access (obj.prop)
  */
 function evaluateMemberAccess(
-  ast: { object: ASTNode | string; property: string },
+  ast: { object: ASTNode; property: string },
   context: ContextData
 ): any {
-  // Handle string object (from grammar - plain identifiers)
-  const obj = typeof ast.object === 'string'
-    ? evaluateIdentifier(ast.object, context)
-    : evaluate(ast.object, context);
+  const obj = evaluate(ast.object, context);
 
   if (obj == null) return undefined;
   return obj[ast.property];
@@ -218,25 +215,14 @@ function evaluateMemberAccess(
  * Evaluate a function call
  */
 function evaluateCall(
-  ast: { callee: ASTNode | string; arguments: ASTNode[] },
+  ast: { callee: ASTNode; arguments: ASTNode[] },
   context: ContextData
 ): any {
   const args = ast.arguments.map(arg => evaluate(arg, context));
 
-  // Handle string callee (simple function call like `wordcount(...)`)
-  if (typeof ast.callee === 'string') {
-    const fn = evaluateIdentifier(ast.callee, context);
-    if (typeof fn !== 'function') {
-      throw new Error(`Cannot call non-function: ${ast.callee}`);
-    }
-    return fn(...args);
-  }
-
   // Handle method calls (obj.method(...)) - need to preserve binding
   if (ast.callee.type === 'MemberAccess') {
-    const obj = typeof ast.callee.object === 'string'
-      ? evaluateIdentifier(ast.callee.object, context)
-      : evaluate(ast.callee.object, context);
+    const obj = evaluate(ast.callee.object, context);
 
     if (obj == null) {
       throw new Error(`Cannot access method on null/undefined: ${JSON.stringify(ast.callee)}`);
@@ -251,7 +237,7 @@ function evaluateCall(
     return method.apply(obj, args);
   }
 
-  // Other callee types
+  // Other callee types (identifiers, nested calls, etc.)
   const callee = evaluate(ast.callee, context);
   if (typeof callee !== 'function') {
     throw new Error(`Cannot call non-function: ${JSON.stringify(ast.callee)}`);

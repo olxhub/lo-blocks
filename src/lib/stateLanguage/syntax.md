@@ -49,7 +49,7 @@ Standard comparison operators return BinaryOp nodes:
 { "type": "BinaryOp", "op": ">", "left": { "type": "SigilRef", "sigil": "@", "id": "x", "fields": [] }, "right": { "type": "Number", "value": 5 } }
 
 >>> @x.done === completion.done
-{ "type": "BinaryOp", "op": "===", "left": { "type": "SigilRef", "sigil": "@", "id": "x", "fields": ["done"] }, "right": { "type": "MemberAccess", "object": "completion", "property": "done" } }
+{ "type": "BinaryOp", "op": "===", "left": { "type": "SigilRef", "sigil": "@", "id": "x", "fields": ["done"] }, "right": { "type": "MemberAccess", "object": { "type": "Identifier", "name": "completion" }, "property": "done" } }
 
 Other comparison operators (these just need to parse, AST structure is similar):
 
@@ -113,7 +113,7 @@ Other arithmetic (parse only):
 Function calls produce Call nodes:
 
 >>> wordcount(@essay.value)
-{ "type": "Call", "callee": "wordcount", "arguments": [{ "type": "SigilRef", "sigil": "@", "id": "essay", "fields": ["value"] }] }
+{ "type": "Call", "callee": { "type": "Identifier", "name": "wordcount" }, "arguments": [{ "type": "SigilRef", "sigil": "@", "id": "essay", "fields": ["value"] }] }
 
 Math functions use MemberAccess for the callee:
 
@@ -134,12 +134,12 @@ More function calls (parse only):
 Member access on arrays (e.g., caller-provided target lists):
 
 >>> items.length
-{ "type": "MemberAccess", "object": "items", "property": "length" }
+{ "type": "MemberAccess", "object": { "type": "Identifier", "name": "items" }, "property": "length" }
 
 Array methods with arrow functions:
 
 >>> items.every(c => c.done === completion.done)
-{ "type": "Call", "callee": { "type": "MemberAccess", "object": "items", "property": "every" }, "arguments": [{ "type": "ArrowFunction", "param": "c", "body": { "type": "BinaryOp", "op": "===", "left": { "type": "MemberAccess", "object": "c", "property": "done" }, "right": { "type": "MemberAccess", "object": "completion", "property": "done" } } }] }
+{ "type": "Call", "callee": { "type": "MemberAccess", "object": { "type": "Identifier", "name": "items" }, "property": "every" }, "arguments": [{ "type": "ArrowFunction", "param": "c", "body": { "type": "BinaryOp", "op": "===", "left": { "type": "MemberAccess", "object": { "type": "Identifier", "name": "c" }, "property": "done" }, "right": { "type": "MemberAccess", "object": { "type": "Identifier", "name": "completion" }, "property": "done" } } }] }
 
 More aggregation patterns (parse only):
 

@@ -297,7 +297,6 @@ export function renderCompiledKids(props): React.ReactNode[] {
   }
 
   if (!Array.isArray(kids)) {
-    console.log(kids);
     return [
       <DisplayError
         key="invalid-kids-type"

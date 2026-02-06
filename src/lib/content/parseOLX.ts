@@ -460,9 +460,6 @@ export async function parseOLX(
     const id: OlxKey = (attributes.id ?? createId(node)) as OlxKey;
 
     const Component = BLOCK_REGISTRY[tag] || BLOCK_REGISTRY[tag.charAt(0).toUpperCase() + tag.slice(1)];
-    if (!Component) {
-      console.warn(`[OLX] No component found for tag: <${tag}> — using defaultParser`);
-    }
 
     // Validate and transform attributes - use component schema if defined, else base with passthrough
     // Passthrough preserves unknown attrs; strict() rejects unknown (catching typos like scr= vs src=)

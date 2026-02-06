@@ -25,43 +25,16 @@ export default function _StateViewer(props) {
   }
 
   return (
-    <div className="state-viewer">
-      <div className="state-viewer-header">
-        <code>{targetId}</code>
+    <div style={{ fontFamily: 'monospace', fontSize: '12px', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' }}>
+      <div style={{ background: '#f5f5f5', padding: '4px 8px', borderBottom: '1px solid #ddd' }}>
+        <code style={{ fontWeight: 'bold' }}>{targetId}</code>
       </div>
-      <pre className="state-viewer-content">
+      <pre style={{ margin: 0, padding: '8px', background: '#fafafa', overflowX: 'auto' }}>
         {componentState === null
-          ? <span className="state-empty">(no state)</span>
+          ? <span style={{ color: '#999', fontStyle: 'italic' }}>(no state)</span>
           : JSON.stringify(componentState, null, 2)
         }
       </pre>
-      <style jsx>{`
-        .state-viewer {
-          font-family: monospace;
-          font-size: 12px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          overflow: hidden;
-        }
-        .state-viewer-header {
-          background: #f5f5f5;
-          padding: 4px 8px;
-          border-bottom: 1px solid #ddd;
-        }
-        .state-viewer-header code {
-          font-weight: bold;
-        }
-        .state-viewer-content {
-          margin: 0;
-          padding: 8px;
-          background: #fafafa;
-          overflow-x: auto;
-        }
-        .state-empty {
-          color: #999;
-          font-style: italic;
-        }
-      `}</style>
     </div>
   );
 }
