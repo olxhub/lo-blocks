@@ -2,11 +2,10 @@ Title: Psychology Study Group, Task 2
 Author: Psychology Department
 Course: Intro to Psychology
 ~~~~
-
-Introduction
-------------
-
 psych_sba_sidebar2 -> bedtime_problem_introduction2
+
+Reinforcement vs. Punishment
+----------------------------
 
 Annie: Well, we're making progress! We can tell Lin's friend to use positive
 reinforcement as her bedtime strategy.
@@ -30,9 +29,9 @@ Annie: Looking at the examples confuses me a little. It seems to include uninten
 
 Lin: **Reinforcement** and **punishment** are being used as technical terms. _Anything that makes a preceding behavior more likely_ is a **reinforcement**. _Anything that makes it less likely_ is a **punishment**.
 
-JJ: I'm still a bit confused. Why are the examples with Ella and Nathan classified as punishment instead of reinforcement?
+Lin: I'm still a bit confused. Why are the examples with Ella and Nathan classified as punishment instead of reinforcement?
 
-Annie: This is tricky: "following classroom rules" is just "not breaking them" and "withdrawing from group activities" is just "not participating in them".
+Annie: This **is** tricky: "following classroom rules" is just "not breaking them" and "withdrawing from group activities" is just "not participating in them".
 
 Annie: So, what behavior is really being changed? Being sent to the principal's office is caused by rule-breaking, not rule following, and you can't be laughed at unless you're participating in group activities!
 
@@ -42,9 +41,12 @@ JJ: It sounds like we may still be a bit confused on these concepts. I don't thi
 
 Lin: You're right!
 
-Hey, everyone, I've got an idea.
+Practice Quiz 1
+---------------
 
-Lin: Do you remember when the TA gave us that practice page with twenty extra questions on it to help us practice telling the difference between reinforcement and punishment, before we took the quiz? Why don’t we try to answer those questions? Then, we can discuss them ...
+JJ: Hey, everyone, I've got an idea.
+
+JJ: Do you remember when the TA gave us that practice page with twenty extra questions on it to help us practice telling the difference between reinforcement and punishment, before we took the quiz? Why don’t we try to answer those questions? Then, we can discuss them ...
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1
 
@@ -126,7 +128,10 @@ psych_sba_sidebar2 -> reinforce_punish_practice_1t
 
 --- wait @reinforcement_v_punishment_badge.submitCount > 0 ---
 
-Lin: Here are questions 6 to 10 in the practice quiz.
+Understanding Types
+-------------------
+
+psych_sba_sidebar2 -> operant_conditioning_clear_screen_1
 
 Lin: I think we're getting a lot closer to helping your roommate out,
 Annie, but can you text her to see what she and the parents have
@@ -136,10 +141,10 @@ JJ: Good idea. We know it was sometimes "do nothing," but maybe not every time.
 
 Annie: Sure, I'll text her now and let you know what she says.
 
-Annie: She texted right back. See for yourselves.
-
 # Note: This shows screenshot of messages between Annie's roommate and parents
 psych_sba_sidebar2 -> messages_image
+
+Annie: She texted right back. See for yourselves.
 
 Lin: So what is this? Punishment or reinforcement?
 
@@ -153,82 +158,41 @@ so every time they tried to bring the problem under control, they were only maki
 
 Lin: That means we need to figure out things to suggest that will reinforce cooperation. We don't want to accidentally reinforce the wrong thing!
 
+Annie: Hey guys, there's still something we need to get clear in our own heads before we offer any solutions to my roommate. The most effective behavior modification technique, according to what we learned earlier, is **positive**  reinforcement. But I'm not really clear yet on the difference between positive and negative reinforcement.
 
-Understanding Types
--------------------
+psych_sba_sidebar2 -> operant_conditioning_reinforcement_notes
 
-Annie: Hey guys, there's still something we need to get clear in our own heads before we offer any solutions to my roommate.
-The most effective behavior modification technique, according to what we learned earlier, is **positive**
-reinforcement. But I'm not really clear yet on the difference between positive and negative reinforcement.
+JJ: I just checked back through my notes ... here's what I have.
 
-JJ: I just checked back through my notes ... here's what I have:
+JJ: So, positive doesn't mean good, and negative doesn't mean bad. Instead, positive means adding something, and negative means taking something away! And it's the same for punishment. 
 
-JJ: So, positive doesn't mean good, and negative doesn't mean bad. Instead, positive means adding something, and negative
-means taking something away! And it's the same for punishment. Look! Here's what I have in my notes:
+psych_sba_sidebar2 -> operant_conditioning_reinforcement_notes2
 
-Lin: So positive punishment would be like spanking the child every time he tries to avoid bedtime.
-The adult is **adding** spanking, something that is undesirable, to **decrease** the
-child's behavior of avoiding bedtime.
+JJ: Look! Here's what I have in my notes.
 
-Annie: And negative punishment would be like taking away his favorite toy whenever he avoids bedtime.
-The adult is **taking away** the toy, something **desirable**, to **decrease** the child's behavior of avoiding bedtime.
+Lin: So positive punishment would be like spanking the child every time he tries to avoid bedtime. The adult is **adding** spanking, something that is **undesirable**, to **decrease** the child’s behavior of avoiding bedtime.
 
-JJ: I'm still not as clear on this as I would like to be. Maybe some practice would help!
+Annie: And negative punishment would be like taking away his favorite toy whenever he avoids bedtime. The adult is **taking away** the toy, something **desirable**, to decrease the child’s behavior of avoiding bedtime. 
 
-Can we take some of the things that the parents have already tried or that we suggested
-early on and figure out what category they fit into? I don't know about you, but that would help me.
-
-Annie: Yeah...me, too. How about if we fill in something like this graphic?
-
-# Note: This is the multidrop characterization activity.
-psych_sba_sidebar2 -> positive_negative_reinforcement_punishment
-
---- wait @categorize_strategies.score > 0.7 ---
+psych_sba_sidebar2 -> operant_conditioning_poster
 
 JJ: I found this chart on the Internet. I think it sums things up nicely!
 
-psych_sba_sidebar2 -> poster_image
+Lin: I'm still not as clear on this as I would like to be. Maybe some practice would help!
 
-Quiz 1
-------
+JJ: Maybe we can take some of the things that the parents have already tried or that we suggested early on and figure out what category they fit into? I don't know about you, but that would help me.
 
-JJ: It sounds like we may still be a bit confused on these concepts. I don't think
-we should give Annie's friend any advice until we're sure we know exactly
-what positive reinforcement is!
+psych_sba_sidebar2 -> conditioning_example_chart
 
-Lin: You're right!
-Hey, everyone, I've got an idea.
-Do you remember when the TA gave us that practice quiz handout with twenty extra
-questions on it to help us practice telling the difference between reinforcement
-and punishment? Why don't we try to answer those questions? Then, we can
-discuss them ...
+Annie: OK, let's give it a try!
 
-Lin: Here are the first five questions on the quiz.
+--- wait @positive_reinforcement_example.value && @positive_punishment_example.value && @negative_reinforcement_example.value && @negative_punishment_example.value ---
 
-psych_sba_sidebar2 -> reinforce_punish_1
+psych_sba_sidebar2 -> filled_out_poster
 
-Lin: Here are the questions six through ten on the quiz.
+Annie: Here is how I filled out my chart.
 
-psych_sba_sidebar2 -> reinforce_punish_2
-
-Lin: Here are the questions eleven through fifteen on the quiz.
-
-psych_sba_sidebar2 -> reinforce_punish_3
-
-Lin: Here are the questions sixteen through twenty on the quiz.
-
-psych_sba_sidebar2 -> reinforce_punish_4
-
-psych_sba_sidebar2 -> quiz1_score
-Lin: Here is how we did on the quiz.
-
-JJ: Looks like we did pretty well!
-
-Lin: Do you guys want to review the answers? Sometimes it helps to review, even if you got most of the answers right.
-
-You: Indicate whether you want to review the correct answers
-
-psych_sba_sidebar2 -> review_item
+Lin: I think we're making progress here! It's a bit clearer to me now.
 
 Quiz 2
 ------
@@ -241,6 +205,30 @@ but if it's positive reinforcement, negative reinforcement, positive punishment,
 JJ: I'm game.
 
 Annie: I am, too. Let's give it a try!
+
+psych_sba_sidebar2 -> four_types_practice_1
+
+--- wait @four_types_sticker.submitCount > 0 ---
+
+psych_sba_sidebar2 -> four_types_practice_1b
+
+--- wait @four_types_asking.submitCount > 0 ---
+
+psych_sba_sidebar2 -> four_types_practice_1c
+
+--- wait @four_types_getting_burned.submitCount > 0 ---
+
+psych_sba_sidebar2 -> four_types_practice_1d
+
+--- wait @four_types_tantrum.submitCount > 0 ---
+
+psych_sba_sidebar2 -> four_types_practice_1e
+
+--- wait @four_types_glaring.submitCount > 0 ---
+
+psych_sba_sidebar2 -> four_types_practice_1f
+
+--- wait @four_types_screentime.submitCount > 0 ---
 
 Lin: Here are the first five questions on the quiz.
 
