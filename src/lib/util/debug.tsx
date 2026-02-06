@@ -19,7 +19,7 @@ export const Trace = ({
   header
 }: TraceProps) => {
   const [debug] = useFieldState(props, settings.debug, false,
-    { tag: true, id: true} // HACK
+    { tag: true, id: true } // HACK
   );
   if (!debug) return null;
 
@@ -72,7 +72,7 @@ const ClickableText = ({ onClick, children, style = {}, title }: {
 
 export const DebugWrapper = ({ props = {}, loBlock, children }: DebugWrapperProps) => {
   const [debug] = useFieldState(props, settings.debug, false,
-    { tag: true, id: true} // HACK
+    { tag: true, id: true } // HACK
   );
   if (!debug) return <>{children}</>;
 
@@ -130,7 +130,12 @@ export const DebugWrapper = ({ props = {}, loBlock, children }: DebugWrapperProp
 };
 
 export const debugLog = (...args: any[]) => {
-  console.log(...args);
+  // We suppress debug messages in tests. Eventually, we probably want
+  // these for failed tests, but we chose to squelch these since it tests
+  // should cover failure cases, where we risk console spam.
+  if (process.env.VITEST !== 'true') {
+    console.debug(...args);
+  }
 };
 
 interface DisplayErrorProps {
@@ -144,7 +149,7 @@ interface DisplayErrorProps {
 }
 
 // Safe, debuggable error wrapper
-export function DisplayError({ props={}, name = 'Error', message, technical, data, id = 'error' }: DisplayErrorProps) {
+export function DisplayError({ props = {}, name = 'Error', message, technical, data, id = 'error' }: DisplayErrorProps) {
   // Log raw data for dev console inspection
   debugLog(`[${name}] ${message}`, { technical, data });
 

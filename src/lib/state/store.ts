@@ -228,11 +228,14 @@ function configureStore({ extraFields = [] }: { extraFields?: ExtraFieldsParam }
   // Create event capture logger for debugging/replay
   eventCaptureLogger = createArrayLogger();
 
+  const debugEvents = false; // Toggle here to log events to the console
+  const isTest = process.env.VITEST === 'true';
+
   const loggers = [
-    consoleLogger(),
     reduxLogger.reduxLogger([], {}),
     eventCaptureLogger,
-    websocketLogger(WEBSOCKET_URL)  // Streams to event-server if running
+    ...(debugEvents ? [consoleLogger()] : []),
+    ...(!isTest ? [websocketLogger(WEBSOCKET_URL)] : []),
   ];
 
   lo_event.init(
@@ -240,10 +243,10 @@ function configureStore({ extraFields = [] }: { extraFields?: ExtraFieldsParam }
     '0.0.1',
     loggers,
     {
-      debugLevel: debug.LEVEL.EXTENDED,
-      debugDest: [debug.LOG_OUTPUT.CONSOLE],
+      debugLevel: debugEvents ? debug.LEVEL.EXTENDED : debug.LEVEL.NONE,
+      debugDest: debugEvents ? [debug.LOG_OUTPUT.CONSOLE] : [],
       useDisabler: false,
-      sendBrowserInfo: true,
+      sendBrowserInfo: !isTest,
       queueType: lo_event.QueueType.IN_MEMORY
     }
   );

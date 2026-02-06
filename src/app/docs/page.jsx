@@ -24,6 +24,7 @@ import StatePanel from '@/components/common/StatePanel';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import { useFieldState } from '@/lib/state';
 import { editorFields } from '@/lib/state/editorFields';
+import { useBaselineProps } from '@/components/common/RenderOLX';
 import { baseAttributes, inputMixin, graderMixin } from '@/lib/blocks/attributeSchemas';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 
@@ -38,8 +39,9 @@ const SHARED_ATTRIBUTE_SETS = [
 // Hook for docs example editing - uses Redux state with docs-specific provenance
 function useDocsExampleState(blockName, exampleFilename, originalContent) {
   const provenance = `docs://${blockName}/${exampleFilename}`;
+  const baselineProps = useBaselineProps();
   return useFieldState(
-    {}, // No component context needed
+    baselineProps,
     editorFields.editedContent,
     originalContent,
     { id: provenance }

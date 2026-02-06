@@ -132,7 +132,7 @@ Primary
   / TemplateLiteral
   / ObjectLiteral
   / MathObject
-  / Identifier
+  / id:Identifier { return { type: 'Identifier', name: id }; }
   / "(" _ expr:Expression _ ")" { return expr; }
 
 // ============================================

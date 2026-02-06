@@ -11,6 +11,13 @@ import * as idResolver from '../blocks/idResolver';
 import type { References } from './references';
 import type { ContextData } from './evaluate';
 
+// Two-level shallow equality for ContextData: shallowEqual on each namespace
+function contextDataEqual(a: ContextData, b: ContextData): boolean {
+  return shallowEqual(a.componentState, b.componentState) &&
+         shallowEqual(a.olxContent, b.olxContent) &&
+         shallowEqual(a.globalVar, b.globalVar);
+}
+
 // Stable empty context for when there are no references
 const EMPTY_CONTEXT: ContextData = {
   componentState: {},
@@ -31,7 +38,7 @@ export function useReferences(props: any, refs: References): ContextData {
   // Build selector that fetches all referenced values
   const contextData = useSelector((state: any) => {
     return selectReferences(state, props, refs);
-  }, shallowEqual);
+  }, contextDataEqual);
 
   return contextData;
 }
