@@ -66,5 +66,8 @@ content/sba/psychology/operant-questions.olx
 # Logs
 logs/
 
+# Captured event streams (from event-server)
+events/
+
 # Runtime artifacts (ephemeral, machine-local)
 lofs/runtime/
