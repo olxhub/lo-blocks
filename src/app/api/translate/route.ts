@@ -358,6 +358,9 @@ export async function POST(request: Request) {
       );
     }
 
+    // Ensure content store is hydrated (cold start / new serverless instance)
+    await syncContentFromStorage(provider);
+
     // Look up source file from blockId + sourceLocale
     const sourceFileUri = getSourceFile(blockId, sourceLocale);
     if (!sourceFileUri) {
