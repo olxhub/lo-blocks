@@ -75,8 +75,11 @@ import yaml from 'js-yaml';
 const contentDir = process.env.OLX_CONTENT_DIR || './content';
 const provider = new FileStorageProvider(contentDir);
 
-// Server-side dedup: concurrent requests for same file+locale await the same promise
+// Server-side dedup: concurrent requests for same file+locale await the same promise.
+// Entries are cleaned up in the route handler's finally block. The timeout below
+// prevents a hung LLM call from blocking that key permanently.
 const inFlightTranslations = new Map<string, Promise<any>>();
+const TRANSLATION_TIMEOUT_MS = 600_000; // 10 minutes
 
 type TranslationResult = { ok: boolean; idMap?: any; error?: string };
 
@@ -372,10 +375,16 @@ export async function POST(request: Request) {
     }
 
     const promise = doTranslation(blockId, sourceFileUri, targetLocale, sourceLocale);
-    inFlightTranslations.set(dedupeKey, promise);
+    const timedPromise = Promise.race([
+      promise,
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Translation timed out')), TRANSLATION_TIMEOUT_MS)
+      ),
+    ]);
+    inFlightTranslations.set(dedupeKey, timedPromise);
 
     try {
-      const result = await promise;
+      const result = await timedPromise;
       if (!result.ok) {
         return NextResponse.json(result, { status: 500 });
       }
