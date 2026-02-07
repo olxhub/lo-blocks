@@ -187,6 +187,19 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validate locale format (BCP 47: alphanumeric segments separated by hyphens)
+    //
+    // Paths should be validated by the storage provider before write, but this is
+    // part of defense-in-depth. It will need to be expanded when variants expand
+    // beyond locale.
+    const bcp47Re = /^[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*$/;
+    if (!bcp47Re.test(targetLocale) || !bcp47Re.test(sourceLocale)) {
+      return NextResponse.json(
+        { ok: false, error: 'Invalid locale format' },
+        { status: 400 }
+      );
+    }
+
     // Stub mode: no real translation available
     if (getProvider().provider === 'stub') {
       return NextResponse.json(
