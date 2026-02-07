@@ -19,10 +19,12 @@ import {
 import { refToOlxKey } from '@/lib/blocks/idResolver';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
+import type { LangMap } from '@/lib/state/olxjson';
 import type { LogEventFn } from '@/lib/render';
 
 export interface OlxJsonResult {
   olxJson: OlxJson | null;
+  langMap: LangMap | null;
   loading: boolean;
   error: string | null;
 }
@@ -91,24 +93,25 @@ export function useOlxJson(
 
   // Handle null/undefined id - return after hooks are called
   if (!id) {
-    return { olxJson: null, loading: false, error: null };
+    return { olxJson: null, langMap: null, loading: false, error: null };
   }
 
   // Return based on Redux state
   if (!blockState) {
-    return { olxJson: null, loading: true, error: null };
+    return { olxJson: null, langMap: null, loading: true, error: null };
   }
 
   const isLoading = blockState.loadingState?.status === 'loading';
   const hasError = blockState.loadingState?.status === 'error';
 
   if (isLoading) {
-    return { olxJson: null, loading: true, error: null };
+    return { olxJson: null, langMap: null, loading: true, error: null };
   }
 
   if (hasError) {
     return {
       olxJson: null,
+      langMap: null,
       loading: false,
       error: blockState.error?.message || `Error loading "${olxKey}"`
     };
@@ -117,13 +120,13 @@ export function useOlxJson(
   // Extract the language variant from nested structure
   const stored = blockState.olxJson;
   if (!stored) {
-    return { olxJson: null, loading: false, error: null };
+    return { olxJson: null, langMap: null, loading: false, error: null };
   }
 
   const userLocale = props.runtime.locale.code;
   const langVariant = extractLocalizedVariant(stored, userLocale);
 
-  return { olxJson: langVariant || null, loading: false, error: null };
+  return { olxJson: langVariant || null, langMap: stored, loading: false, error: null };
 }
 
 /**
