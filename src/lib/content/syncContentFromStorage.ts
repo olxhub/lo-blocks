@@ -15,7 +15,7 @@
 
 import { StorageProvider, fileTypes } from '@/lib/lofs';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
-import type { ProvenanceURI, OLXLoadingError, OlxJson, IdMap, OlxKey, ContentVariant } from '@/lib/types';
+import type { ProvenanceURI, OLXLoadingError, OlxJson, IdMap, OlxKey, ContentVariant, VariantMap } from '@/lib/types';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { copyAssetsToPublic } from '@/lib/content/staticAssetSync';
 
@@ -39,12 +39,85 @@ interface FileRecord {
  * Extends FileRecord with parsing results.
  */
 interface ParsedFileEntry extends FileRecord {
-  blockIds: string[];  // IDs of blocks parsed from this file
+  blockIds: OlxKey[];  // IDs of blocks parsed from this file
   error?: string;      // Set if parsing failed
 }
 
-/** Language variant map: { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... } */
-type LangMap = Record<string, OlxJson>;
+
+// =============================================================================
+// Block Lookup (used by translate endpoint to find source files)
+// =============================================================================
+
+/**
+ * Find the source OLX file for a block in a given locale.
+ *
+ * Walks the block's provenance chain and returns the first entry that
+ * is a parsed OLX/XML file. This avoids depending on provenance ordering —
+ * the check is "which provenance entry is an OLX file we parsed?"
+ *
+ * Returns a file:// URI, or null if the block/locale doesn't exist.
+ */
+export function getSourceFile(blockId: OlxKey, locale: ContentVariant): ProvenanceURI | null {
+  const variantMap = contentStore.blockIndex[blockId];
+  if (!variantMap?.[locale]?.provenance) return null;
+
+  for (const prov of variantMap[locale].provenance) {
+    const entry = contentStore.parsedFiles[prov as ProvenanceURI];
+    if (entry && (entry.type === fileTypes.olx || entry.type === fileTypes.xml)) {
+      return prov as ProvenanceURI;
+    }
+  }
+  return null;
+}
+
+/**
+ * Return the OlxJson for a specific block + locale from the content store.
+ * Returns null if the block or locale variant doesn't exist.
+ */
+export function getBlockVariant(blockId: OlxKey, locale: ContentVariant): OlxJson | null {
+  const variantMap = contentStore.blockIndex[blockId];
+  return variantMap?.[locale] || null;
+}
+
+/**
+ * Return the first human-authored (non-generated) variant for a block.
+ * Used to find the original source variant when starting from a translation.
+ * Returns null if no variants exist or all are generated.
+ */
+export function getOriginalVariant(blockId: OlxKey): OlxJson | null {
+  const variantMap = contentStore.blockIndex[blockId];
+  if (!variantMap) return null;
+  for (const olxJson of Object.values(variantMap)) {
+    if (!olxJson.generated) return olxJson;
+  }
+  return null;
+}
+
+/**
+ * Return the full variant map for every block parsed from the given file(s).
+ *
+ * Accepts multiple URIs to cover both source and translated files — they
+ * have different auto-generated child IDs, and the client needs both sets
+ * so that whichever variant extractLocalizedVariant picks, its children
+ * are available.
+ */
+export function getBlocksForFiles(...fileUris: ProvenanceURI[]): Record<OlxKey, VariantMap> {
+  const result: Record<OlxKey, VariantMap> = {} as Record<OlxKey, VariantMap>;
+  for (const fileUri of fileUris) {
+    const entry = contentStore.parsedFiles[fileUri];
+    if (!entry) continue;
+    for (const blockId of entry.blockIds) {
+      if (contentStore.blockIndex[blockId]) {
+        result[blockId] = contentStore.blockIndex[blockId];
+      }
+    }
+  }
+  return result;
+}
+
+// =============================================================================
+// Internal Types and Helpers
+// =============================================================================
 
 /** Typed iteration over IdMap entries (Object.entries loses branded key types) */
 function* entriesIdMap(idMap: IdMap): Generator<[OlxKey, IdMap[OlxKey]]> {
@@ -65,7 +138,7 @@ interface ContentStore {
   /** Maps file URI -> parsed file entry (what blocks came from this file) */
   parsedFiles: Record<ProvenanceURI, ParsedFileEntry>;
   /** Maps block ID -> language variant map (the actual parsed content) */
-  blockIndex: Record<string, LangMap>;
+  blockIndex: Record<OlxKey, VariantMap>;
 }
 
 /** Result of categorizing files by change status */
@@ -141,7 +214,7 @@ export async function syncContentFromStorage(
  */
 async function promoteFilesWithChangedDependencies(
   changeSets: FileChangeSets,
-  blockIndex: Record<string, LangMap>,
+  blockIndex: Record<OlxKey, VariantMap>,
   provider: StorageProvider
 ): Promise<void> {
   const changedAuxiliaryFiles = findChangedAuxiliaryFiles(changeSets);
@@ -181,16 +254,16 @@ function findChangedAuxiliaryFiles(changeSets: FileChangeSets): Set<ProvenanceUR
  */
 function findOlxFilesDependingOn(
   changedAuxiliaryFiles: Set<ProvenanceURI>,
-  blockIndex: Record<string, LangMap>,
+  blockIndex: Record<OlxKey, VariantMap>,
   unchangedFiles: Record<ProvenanceURI, ParsedFileEntry>
 ): Set<ProvenanceURI> {
   const olxFilesToReparse = new Set<ProvenanceURI>();
 
-  for (const langMap of Object.values(blockIndex)) {
-    // blockIndex stores nested structure { locale: OlxJson }
-    // Check ALL locale variants for dependencies on changed auxiliary files
+  for (const variantMap of Object.values(blockIndex)) {
+    // blockIndex stores nested structure { variant: OlxJson }
+    // Check ALL variants for dependencies on changed auxiliary files
     // (e.g., Arabic variant might include src="aux.ar.png" that English doesn't)
-    for (const olxJson of Object.values(langMap)) {
+    for (const olxJson of Object.values(variantMap)) {
       if (!olxJson?.provenance || !Array.isArray(olxJson.provenance)) continue;
 
       // Check if this variant's provenance includes a changed auxiliary file
@@ -356,21 +429,21 @@ function collectParseErrors(
  */
 function indexParsedBlocks(
   newBlocks: IdMap,
-  blockIndex: Record<string, LangMap>,
+  blockIndex: Record<OlxKey, VariantMap>,
   sourceFile: ProvenanceURI,
   errors: OLXLoadingError[]
 ): void {
-  for (const [blockId, newLangMap] of entriesIdMap(newBlocks)) {
+  for (const [blockId, newVariantMap] of entriesIdMap(newBlocks)) {
     const existingBlock = blockIndex[blockId];
 
     if (!existingBlock) {
       // First time seeing this ID - store the entire language map
-      blockIndex[blockId] = newLangMap;
+      blockIndex[blockId] = newVariantMap;
       continue;
     }
 
     // Block exists - merge language variants
-    for (const [lang, newOlxJson] of entriesVariantMap(newLangMap)) {
+    for (const [lang, newOlxJson] of entriesVariantMap(newVariantMap)) {
       if (existingBlock[lang]) {
         // Same ID + same language in different files = real duplicate error
         const existingOlxJson = existingBlock[lang];
@@ -386,7 +459,7 @@ function indexParsedBlocks(
 
 /** Creates a detailed error message for duplicate block IDs */
 function createDuplicateIdError(
-  blockId: string,
+  blockId: OlxKey,
   existingBlock: any,
   duplicateBlock: any,
   sourceFile: ProvenanceURI

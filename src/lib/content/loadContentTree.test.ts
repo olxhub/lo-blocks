@@ -5,15 +5,15 @@ import path from 'path';
 import { fileTypes } from '../lofs';
 import { FileStorageProvider } from '../lofs/providers/file';
 import { syncContentFromStorage } from './syncContentFromStorage';
+import type { IdMap, OlxJson, OlxKey, ContentVariant } from '../types';
 
-// Helper to get OlxJson from idMap (language extraction happens in indexParsedBlocks)
-// idMap now stores nested structure: { id: { locale: OlxJson } }
-// For tests, use first available locale (same fallback as getBestLocale functions)
-const getOlxJson = (idMap: any, id: string) => {
-  const langMap = idMap[id];
-  if (!langMap) return undefined;
-  const locales = Object.keys(langMap);
-  return locales.length > 0 ? langMap[locales[0]] : undefined;
+// Helper: extract first available variant from idMap for a given block ID.
+// Accepts string for convenience in tests (cast to OlxKey internally).
+const getOlxJson = (idMap: IdMap, id: string): OlxJson | undefined => {
+  const variantMap = idMap[id as OlxKey];
+  if (!variantMap) return undefined;
+  const variants = Object.keys(variantMap) as ContentVariant[];
+  return variants.length > 0 ? variantMap[variants[0]] : undefined;
 };
 
 it('handles added, unchanged, changed, and deleted files via filesystem mutation', async () => {
@@ -169,8 +169,8 @@ it('byProvenance.nodes stays in sync with byId when auxiliary files add/remove I
     }
 
     // Every ID in idMap that came from this file should be in nodes
-    for (const [id, langMap] of Object.entries(second.idMap)) {
-      const entry = (langMap as Record<string, any>)['*'];
+    for (const [id, variantMap] of Object.entries(second.idMap) as [OlxKey, IdMap[OlxKey]][]) {
+      const entry = variantMap['*' as ContentVariant];
       if (entry?.provenance && entry.provenance[0] === olxUri) {
         expect(secondNodes).toContain(id);
       }

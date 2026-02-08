@@ -42,10 +42,10 @@ export function parseIdMap(idMap: IdMap, locale: string = 'en-Latn-US'): ParseRe
   // Issues found during graph parsing - these should be surfaced to help debug problems
   const issues: ParseError[] = [];
 
-  for (const [id, langMap] of entriesIdMap(idMap)) {
+  for (const [id, variantMap] of entriesIdMap(idMap)) {
     // Extract OlxJson from nested structure { locale: OlxJson }
     // Use extractLocalizedVariant for consistent fallback logic
-    const node = extractLocalizedVariant(langMap, locale);
+    const node = extractLocalizedVariant(variantMap, locale);
 
     if (!node || typeof node !== 'object' || !node.tag) {
       continue;

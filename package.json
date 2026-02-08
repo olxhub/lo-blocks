@@ -26,6 +26,7 @@
     "build:content": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) ./node_modules/.bin/tsx content/sba/psychology/convert-psych-mcq.js content/sba/psychology/operant-questions.json",
     "build:clean": "npm run clean && npm run clean-zombies ; npm install && npm run build",
     "clean": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) rm -rf .next node_modules .turbo out public/content",
+    "clean-translations": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) ./node_modules/.bin/tsx src/scripts/clean-translations.ts",
     "clean-zombies": "pkill -9 -f 'next-server' ; pkill -9 -f 'next dev' ; pkill -9 -f postcss.js",
     "_comment_test_automation": "build-automation and test-automation are for automated build environments (e.g. ChatGPT sandbox, GitHub Actions, etc.), which are already sandboxed and might not have firejail",
     "build-automation": "npx tsx src/scripts/compile-grammars.ts && npx tsx src/scripts/generate-parser-registry.ts && node src/scripts/generateBlockRegistry.js && npx tsx content/sba/psychology/convert-psych-mcq.js content/sba/psychology/operant-questions.json",

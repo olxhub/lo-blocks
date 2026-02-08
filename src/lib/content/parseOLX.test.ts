@@ -1,13 +1,14 @@
 // @vitest-environment node
 // src/lib/content/parseOLX.test.js
 import { parseOLX } from './parseOLX';
+import type { IdMap, OlxJson, OlxKey, ContentVariant } from '../types';
 
 const PROV = ['file://test.xml'];
 
-// Helper to get OlxJson from idMap nested structure returned by parseOLX
-// (parseOLX returns nested { id: { lang: OlxJson } }, extraction happens in indexParsedBlocks for syncContentFromStorage)
-// Default variant is '*' (generic/language-agnostic) unless content specifies a lang: metadata
-const getOlxJson = (idMap: any, id: string) => idMap[id]?.['*'];
+// Helper: extract the '*' (language-agnostic) variant for a block ID.
+// Accepts string for convenience in tests (cast to branded types internally).
+const getOlxJson = (idMap: IdMap, id: string): OlxJson | undefined =>
+  idMap[id as OlxKey]?.['*' as ContentVariant];
 
 test('returns root id of single element', async () => {
   const xml = '<Vertical id="root"><TextBlock id="child"/></Vertical>';
@@ -53,7 +54,7 @@ test('CRITICAL: Parser must preserve numeric text as strings (prevents "text.tri
   // Find TextBlock nodes in the parsed result
   // FIXME: idMap is now nested { id: { lang: OlxJson } }, so flatten it
   const textBlocks = Object.entries(result.idMap)
-    .map(([_, langMap]: any) => langMap['*'])
+    .map(([_, variantMap]) => variantMap['*' as ContentVariant])
     .filter(node => node?.tag === 'TextBlock');
 
   expect(textBlocks.length).toBeGreaterThan(0);
@@ -116,7 +117,7 @@ test('TextBlock elements with same content should allow duplicates', async () =>
   // Both should be stored in idMap (latest overwrites)
   // FIXME: idMap is now nested { id: { lang: OlxJson } }, so flatten it
   const textBlocks = Object.entries(idMap)
-    .map(([_, langMap]: any) => langMap['*'])
+    .map(([_, variantMap]) => variantMap['*' as ContentVariant])
     .filter(node => node?.tag === 'TextBlock');
   expect(textBlocks.length).toBeGreaterThan(0);
 });
@@ -128,7 +129,7 @@ test('Markdown elements with same content should allow duplicates', async () => 
 
   // FIXME: idMap is now nested { id: { lang: OlxJson } }, so flatten it
   const markdownBlocks = Object.entries(idMap)
-    .map(([_, langMap]: any) => langMap['*'])
+    .map(([_, variantMap]) => variantMap['*' as ContentVariant])
     .filter(node => node?.tag === 'Markdown');
   expect(markdownBlocks.length).toBeGreaterThan(0);
 });
