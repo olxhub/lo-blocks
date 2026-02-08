@@ -195,8 +195,11 @@ export function olxjsonReducer(
 
       const entries: SourceState = {};
       for (const [id, variantMap] of Object.entries(blocks)) {
+        // Merge with existing variants so a partial update (e.g., a new
+        // translation) doesn't discard variants already in Redux.
+        const existing = state[source]?.[id]?.olxJson;
         entries[id] = {
-          olxJson: variantMap as VariantMap,
+          olxJson: { ...existing, ...variantMap as VariantMap },
           loadingState: { status: 'ready' },
         };
       }
