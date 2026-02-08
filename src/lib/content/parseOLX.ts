@@ -544,6 +544,12 @@ export async function parseOLX(
           ? entryOrUpdater(idMap[storeId]?.[lang])
           : entryOrUpdater;
 
+        // Ensure every entry has its resolved lang — it's used as the variant
+        // map key AND needed on the entry for translation mismatch detection.
+        if (entry && typeof entry === 'object' && !('lang' in entry)) {
+          entry.lang = lang;
+        }
+
         // If this is an update to an existing entry, just update it
         if (typeof entryOrUpdater === 'function' && idMap[storeId]?.[lang]) {
           if (!idMap[storeId]) idMap[storeId] = {};

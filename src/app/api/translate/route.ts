@@ -173,16 +173,28 @@ function relPathToUri(relPath: string): ProvenanceURI {
 // =============================================================================
 
 /** If the source is a translation, follow source_file back to the original.
- *  Always translate from human-authored source to avoid quality degradation. */
-function resolveOriginalFileUri(sourceFileUri: ProvenanceURI, blockId: OlxKey, sourceLocale: ContentVariant): ProvenanceURI {
+ *  Always translate from human-authored source to avoid quality degradation.
+ *  Returns both the resolved file URI and the effective source locale (from the
+ *  original, not the intermediate translation) so the LLM prompt matches the
+ *  actual source content. */
+function resolveOriginalSource(
+  sourceFileUri: ProvenanceURI, blockId: OlxKey, sourceLocale: ContentVariant
+): { fileUri: ProvenanceURI; locale: ContentVariant } {
   const sourceVariant = getBlockVariant(blockId, sourceLocale);
   if (sourceVariant?.generated?.method !== 'machineTranslated' || !sourceVariant?.generated?.source_file) {
-    return sourceFileUri;
+    return { fileUri: sourceFileUri, locale: sourceLocale };
   }
   const originalFileName = sourceVariant.generated.source_file;
   const sourceRelPath = uriToRelPath(sourceFileUri);
   const originalRelPath = path.join(path.dirname(path.dirname(sourceRelPath)), originalFileName);
-  return relPathToUri(originalRelPath);
+
+  // Derive the actual language from the human-authored original so the LLM
+  // prompt says "translate from English" when the source content is English,
+  // even if the request came through a French intermediate translation.
+  const original = getOriginalVariant(blockId);
+  const effectiveLocale = (original?.lang as ContentVariant) || sourceLocale;
+
+  return { fileUri: relPathToUri(originalRelPath), locale: effectiveLocale };
 }
 
 /** Check if a translation already exists. If so, re-sync and return its blocks. */
@@ -290,7 +302,8 @@ async function doTranslation(
   sourceLocale: ContentVariant
 ): Promise<TranslationResult> {
   // Resolve to the human-authored original (skip intermediate translations)
-  const effectiveFileUri = resolveOriginalFileUri(sourceFileUri, blockId, sourceLocale);
+  const { fileUri: effectiveFileUri, locale: effectiveSourceLocale } =
+    resolveOriginalSource(sourceFileUri, blockId, sourceLocale);
   const effectiveRelPath = uriToRelPath(effectiveFileUri);
 
   // Read source file content
@@ -309,7 +322,7 @@ async function doTranslation(
   // Translate via LLM
   let llmOutput: string;
   try {
-    llmOutput = await translateWithLLM(sourceContent, sourceLocale, targetLocale);
+    llmOutput = await translateWithLLM(sourceContent, effectiveSourceLocale, targetLocale);
   } catch (err: any) {
     return { ok: false, error: `LLM translation failed: ${err.message}` };
   }
