@@ -10,10 +10,10 @@ import { syncContentFromStorage } from './syncContentFromStorage';
 // idMap now stores nested structure: { id: { locale: OlxJson } }
 // For tests, use first available locale (same fallback as getBestLocale functions)
 const getOlxJson = (idMap: any, id: string) => {
-  const langMap = idMap[id];
-  if (!langMap) return undefined;
-  const locales = Object.keys(langMap);
-  return locales.length > 0 ? langMap[locales[0]] : undefined;
+  const variantMap = idMap[id];
+  if (!variantMap) return undefined;
+  const locales = Object.keys(variantMap);
+  return locales.length > 0 ? variantMap[locales[0]] : undefined;
 };
 
 it('handles added, unchanged, changed, and deleted files via filesystem mutation', async () => {
@@ -169,8 +169,8 @@ it('byProvenance.nodes stays in sync with byId when auxiliary files add/remove I
     }
 
     // Every ID in idMap that came from this file should be in nodes
-    for (const [id, langMap] of Object.entries(second.idMap)) {
-      const entry = (langMap as Record<string, any>)['*'];
+    for (const [id, variantMap] of Object.entries(second.idMap)) {
+      const entry = (variantMap as Record<string, any>)['*'];
       if (entry?.provenance && entry.provenance[0] === olxUri) {
         expect(secondNodes).toContain(id);
       }

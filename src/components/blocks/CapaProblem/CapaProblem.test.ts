@@ -10,10 +10,10 @@ import { FileStorageProvider } from '@/lib/lofs/providers/file';
 // idMap now stores nested structure: { id: { locale: OlxJson } }
 // For tests, use first available locale (same fallback as getBestLocale functions)
 const getOlxJson = (idMap: any, id: string) => {
-  const langMap = idMap[id];
-  if (!langMap) return undefined;
-  const locales = Object.keys(langMap);
-  return locales.length > 0 ? langMap[locales[0]] : undefined;
+  const variantMap = idMap[id];
+  if (!variantMap) return undefined;
+  const locales = Object.keys(variantMap);
+  return locales.length > 0 ? variantMap[locales[0]] : undefined;
 };
 
 it('wires inputs and graders with explicit targeting', async () => {
