@@ -14,7 +14,7 @@
 import { syncContentFromStorage, getSourceFile } from '../lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '../lib/lofs/providers/file';
 import path from 'path';
-import type { IdMap, OlxJson, ContentVariant } from '../lib/types';
+import type { IdMap, OlxJson, OlxKey, ContentVariant } from '../lib/types';
 
 const contentDir = path.resolve(process.env.OLX_CONTENT_DIR || './content');
 const dryRun = !process.argv.includes('--rm');
@@ -26,7 +26,7 @@ async function main() {
   // Collect provenance URIs of machine-translated files
   const filesToDelete = new Set<string>();
 
-  for (const [blockId, variantMap] of Object.entries(idMap as IdMap)) {
+  for (const [blockId, variantMap] of Object.entries(idMap) as [OlxKey, IdMap[OlxKey]][]) {
     for (const [variant, olxJson] of Object.entries(variantMap) as [ContentVariant, OlxJson][]) {
       if (olxJson.generated?.method !== 'machineTranslated') continue;
 

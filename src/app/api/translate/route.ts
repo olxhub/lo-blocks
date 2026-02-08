@@ -72,6 +72,7 @@ import { callLLM } from '@/lib/llm/serverCall';
 import { getProvider } from '@/lib/llm/provider';
 import { getLanguageLabel } from '@/lib/i18n/languages';
 import { hashContent } from '@/lib/util';
+import type { OlxKey, ContentVariant, ProvenanceURI } from '@/lib/types';
 import yaml from 'js-yaml';
 
 const contentDir = process.env.OLX_CONTENT_DIR || './content';
@@ -151,20 +152,20 @@ function buildFrontmatter(metadata: Record<string, any>): string {
 // =============================================================================
 
 // demos/algebra101lesson.olx → demos/algebra101lesson/ar-Arab-SA.auto.olx
-function computeTranslationPath(sourceRelPath: string, targetLocale: string): string {
+function computeTranslationPath(sourceRelPath: string, targetLocale: ContentVariant): string {
   const ext = path.extname(sourceRelPath);
   const base = sourceRelPath.slice(0, -ext.length);
   return `${base}/${targetLocale}.auto${ext}`;
 }
 
 /** Convert a file:// URI or absolute path to a provider-relative path. */
-function uriToRelPath(fileUri: string): string {
+function uriToRelPath(fileUri: ProvenanceURI): string {
   return provider.toRelativePath(fileUri);
 }
 
 /** Convert a provider-relative path to a file:// URI. */
-function relPathToUri(relPath: string): string {
-  return `file://${path.resolve(contentDir, relPath)}`;
+function relPathToUri(relPath: string): ProvenanceURI {
+  return `file://${path.resolve(contentDir, relPath)}` as ProvenanceURI;
 }
 
 // =============================================================================
@@ -173,7 +174,7 @@ function relPathToUri(relPath: string): string {
 
 /** If the source is a translation, follow source_file back to the original.
  *  Always translate from human-authored source to avoid quality degradation. */
-function resolveOriginalFileUri(sourceFileUri: string, blockId: string, sourceLocale: string): string {
+function resolveOriginalFileUri(sourceFileUri: ProvenanceURI, blockId: OlxKey, sourceLocale: ContentVariant): ProvenanceURI {
   const sourceVariant = getBlockVariant(blockId, sourceLocale);
   if (sourceVariant?.generated?.method !== 'machineTranslated' || !sourceVariant?.generated?.source_file) {
     return sourceFileUri;
@@ -187,7 +188,7 @@ function resolveOriginalFileUri(sourceFileUri: string, blockId: string, sourceLo
 /** Check if a translation already exists. If so, re-sync and return its blocks. */
 async function checkExistingTranslation(
   targetRelPath: string,
-  sourceFileUri: string
+  sourceFileUri: ProvenanceURI
 ): Promise<TranslationResult | null> {
   try {
     await provider.read(targetRelPath);
@@ -200,8 +201,8 @@ async function checkExistingTranslation(
 
 /** Build the LLM prompt for OLX translation. */
 function buildTranslationPrompt(
-  sourceLocale: string,
-  targetLocale: string
+  sourceLocale: ContentVariant,
+  targetLocale: ContentVariant
 ): { role: string; content: string }[] {
   const systemPrompt = `You are a translator for educational content in OLX (XML) format.
 
@@ -228,8 +229,8 @@ Output ONLY the translated content — no explanations, no markdown fencing, no 
 /** Call the LLM to translate OLX content. */
 async function translateWithLLM(
   sourceContent: string,
-  sourceLocale: string,
-  targetLocale: string
+  sourceLocale: ContentVariant,
+  targetLocale: ContentVariant
 ): Promise<string> {
   const sourceLanguageName = getLanguageLabel(sourceLocale, 'en', 'name');
   const targetLanguageName = getLanguageLabel(targetLocale, 'en', 'name');
@@ -250,8 +251,8 @@ async function buildTranslatedFile(
   llmOutput: string,
   sourceContent: string,
   effectiveRelPath: string,
-  targetLocale: string,
-  blockId: string
+  targetLocale: ContentVariant,
+  blockId: OlxKey
 ): Promise<string> {
   const { comments, body } = extractLeadingComments(llmOutput);
   const llmMeta = parseMetadataFromComments(comments);
@@ -283,10 +284,10 @@ async function writeTranslatedFile(targetRelPath: string, fileContent: string): 
 // =============================================================================
 
 async function doTranslation(
-  blockId: string,
-  sourceFileUri: string,
-  targetLocale: string,
-  sourceLocale: string
+  blockId: OlxKey,
+  sourceFileUri: ProvenanceURI,
+  targetLocale: ContentVariant,
+  sourceLocale: ContentVariant
 ): Promise<TranslationResult> {
   // Resolve to the human-authored original (skip intermediate translations)
   const effectiveFileUri = resolveOriginalFileUri(sourceFileUri, blockId, sourceLocale);
@@ -332,9 +333,9 @@ async function doTranslation(
 
 export async function POST(request: Request) {
   try {
-    const { blockId, targetLocale, sourceLocale } = await request.json();
+    const body = await request.json();
 
-    if (!blockId || !targetLocale || !sourceLocale) {
+    if (!body.blockId || !body.targetLocale || !body.sourceLocale) {
       return NextResponse.json(
         { ok: false, error: 'Missing required fields: blockId, targetLocale, sourceLocale' },
         { status: 400 }
@@ -347,12 +348,17 @@ export async function POST(request: Request) {
     // part of defense-in-depth. It will need to be expanded when variants expand
     // beyond locale.
     const bcp47Re = /^[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*$/;
-    if (!bcp47Re.test(targetLocale) || !bcp47Re.test(sourceLocale)) {
+    if (!bcp47Re.test(body.targetLocale) || !bcp47Re.test(body.sourceLocale)) {
       return NextResponse.json(
         { ok: false, error: 'Invalid locale format' },
         { status: 400 }
       );
     }
+
+    // Cast after validation — branded types prevent accidental string confusion
+    const blockId = body.blockId as OlxKey;
+    const targetLocale = body.targetLocale as ContentVariant;
+    const sourceLocale = body.sourceLocale as ContentVariant;
 
     // Stub mode: no real translation available
     if (getProvider().provider === 'stub') {

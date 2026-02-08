@@ -65,7 +65,7 @@ export const OLXMetadataSchema = z.object({
   //   - Translation chain: method === 'machineTranslated' → follow source_file back to original
   //   - clean-translations: method === 'machineTranslated' → safe to delete
   generated: z.object({
-    method: z.string(),                    // e.g., 'machineTranslated', 'build'
+    method: z.enum(['machineTranslated', 'build']),
     source_file: z.string().optional(),    // source file (e.g., 'mult.olx', 'questions.json')
     source_version: z.string().optional(), // hash of source at generation time
   }).optional(),

@@ -18,7 +18,7 @@
 import { useSelector } from 'react-redux';
 import * as lo_event from 'lo_event';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
-import type { OlxJson, OlxKey, IdMap, UserLocale } from '../types';
+import type { OlxJson, OlxKey, IdMap, UserLocale, VariantMap } from '../types';
 import type { LogEventFn } from '../render';
 
 // =============================================================================
@@ -27,11 +27,8 @@ import type { LogEventFn } from '../render';
 
 export type LoadingStatus = 'ready' | 'loading' | 'error';
 
-/** Nested language map: { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... } */
-export type LangMap = Record<string, OlxJson>;
-
 export interface BlockEntry {
-  olxJson: LangMap | null;  // Nested structure: { [lang: string]: OlxJson }
+  olxJson: VariantMap | null;
   loadingState: { status: LoadingStatus };
   error?: { message: string };
 }
@@ -197,10 +194,9 @@ export function olxjsonReducer(
       if (!source || !blocks) return state;
 
       const entries: SourceState = {};
-      for (const [id, langMap] of Object.entries(blocks)) {
-        // Store the entire language map: { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... }
+      for (const [id, variantMap] of Object.entries(blocks)) {
         entries[id] = {
-          olxJson: langMap as LangMap,
+          olxJson: variantMap as VariantMap,
           loadingState: { status: 'ready' },
         };
       }

@@ -15,7 +15,7 @@
 
 import { StorageProvider, fileTypes } from '@/lib/lofs';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
-import type { ProvenanceURI, OLXLoadingError, OlxJson, IdMap, OlxKey, ContentVariant } from '@/lib/types';
+import type { ProvenanceURI, OLXLoadingError, OlxJson, IdMap, OlxKey, ContentVariant, VariantMap } from '@/lib/types';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { copyAssetsToPublic } from '@/lib/content/staticAssetSync';
 
@@ -39,12 +39,10 @@ interface FileRecord {
  * Extends FileRecord with parsing results.
  */
 interface ParsedFileEntry extends FileRecord {
-  blockIds: string[];  // IDs of blocks parsed from this file
+  blockIds: OlxKey[];  // IDs of blocks parsed from this file
   error?: string;      // Set if parsing failed
 }
 
-/** Variant map: { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... } */
-type VariantMap = Record<string, OlxJson>;
 
 // =============================================================================
 // Block Lookup (used by translate endpoint to find source files)
@@ -59,7 +57,7 @@ type VariantMap = Record<string, OlxJson>;
  *
  * Returns a file:// URI, or null if the block/locale doesn't exist.
  */
-export function getSourceFile(blockId: string, locale: string): ProvenanceURI | null {
+export function getSourceFile(blockId: OlxKey, locale: ContentVariant): ProvenanceURI | null {
   const variantMap = contentStore.blockIndex[blockId];
   if (!variantMap?.[locale]?.provenance) return null;
 
@@ -76,9 +74,9 @@ export function getSourceFile(blockId: string, locale: string): ProvenanceURI | 
  * Return the OlxJson for a specific block + locale from the content store.
  * Returns null if the block or locale variant doesn't exist.
  */
-export function getBlockVariant(blockId: string, locale: string): import('@/lib/types').OlxJson | null {
+export function getBlockVariant(blockId: OlxKey, locale: ContentVariant): OlxJson | null {
   const variantMap = contentStore.blockIndex[blockId];
-  return (variantMap?.[locale] as import('@/lib/types').OlxJson) || null;
+  return variantMap?.[locale] || null;
 }
 
 /**
@@ -86,11 +84,10 @@ export function getBlockVariant(blockId: string, locale: string): import('@/lib/
  * Used to find the original source variant when starting from a translation.
  * Returns null if no variants exist or all are generated.
  */
-export function getOriginalVariant(blockId: string): import('@/lib/types').OlxJson | null {
+export function getOriginalVariant(blockId: OlxKey): OlxJson | null {
   const variantMap = contentStore.blockIndex[blockId];
   if (!variantMap) return null;
-  for (const variant of Object.values(variantMap)) {
-    const olxJson = variant as import('@/lib/types').OlxJson;
+  for (const olxJson of Object.values(variantMap)) {
     if (!olxJson.generated) return olxJson;
   }
   return null;
@@ -104,10 +101,10 @@ export function getOriginalVariant(blockId: string): import('@/lib/types').OlxJs
  * so that whichever variant extractLocalizedVariant picks, its children
  * are available.
  */
-export function getBlocksForFiles(...fileUris: string[]): Record<string, VariantMap> {
-  const result: Record<string, VariantMap> = {};
+export function getBlocksForFiles(...fileUris: ProvenanceURI[]): Record<OlxKey, VariantMap> {
+  const result: Record<OlxKey, VariantMap> = {} as Record<OlxKey, VariantMap>;
   for (const fileUri of fileUris) {
-    const entry = contentStore.parsedFiles[fileUri as ProvenanceURI];
+    const entry = contentStore.parsedFiles[fileUri];
     if (!entry) continue;
     for (const blockId of entry.blockIds) {
       if (contentStore.blockIndex[blockId]) {
@@ -141,7 +138,7 @@ interface ContentStore {
   /** Maps file URI -> parsed file entry (what blocks came from this file) */
   parsedFiles: Record<ProvenanceURI, ParsedFileEntry>;
   /** Maps block ID -> language variant map (the actual parsed content) */
-  blockIndex: Record<string, VariantMap>;
+  blockIndex: Record<OlxKey, VariantMap>;
 }
 
 /** Result of categorizing files by change status */
@@ -217,7 +214,7 @@ export async function syncContentFromStorage(
  */
 async function promoteFilesWithChangedDependencies(
   changeSets: FileChangeSets,
-  blockIndex: Record<string, VariantMap>,
+  blockIndex: Record<OlxKey, VariantMap>,
   provider: StorageProvider
 ): Promise<void> {
   const changedAuxiliaryFiles = findChangedAuxiliaryFiles(changeSets);
@@ -257,7 +254,7 @@ function findChangedAuxiliaryFiles(changeSets: FileChangeSets): Set<ProvenanceUR
  */
 function findOlxFilesDependingOn(
   changedAuxiliaryFiles: Set<ProvenanceURI>,
-  blockIndex: Record<string, VariantMap>,
+  blockIndex: Record<OlxKey, VariantMap>,
   unchangedFiles: Record<ProvenanceURI, ParsedFileEntry>
 ): Set<ProvenanceURI> {
   const olxFilesToReparse = new Set<ProvenanceURI>();
@@ -432,7 +429,7 @@ function collectParseErrors(
  */
 function indexParsedBlocks(
   newBlocks: IdMap,
-  blockIndex: Record<string, VariantMap>,
+  blockIndex: Record<OlxKey, VariantMap>,
   sourceFile: ProvenanceURI,
   errors: OLXLoadingError[]
 ): void {
@@ -462,7 +459,7 @@ function indexParsedBlocks(
 
 /** Creates a detailed error message for duplicate block IDs */
 function createDuplicateIdError(
-  blockId: string,
+  blockId: OlxKey,
   existingBlock: any,
   duplicateBlock: any,
   sourceFile: ProvenanceURI
