@@ -6,7 +6,7 @@ lang: en-Latn-US
 ---
 -->
 <!-- Operant Conditioning Mastery Quiz -->
-<!-- Uses problems from operant-questions.olx -->
+<!-- Uses problems from operant-questions.auto.olx -->
 
 <Vertical id="operant_mastery_quiz" title="Operant Conditioning Mastery Quiz" launchable="true">
 

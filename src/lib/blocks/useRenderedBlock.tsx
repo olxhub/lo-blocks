@@ -13,9 +13,11 @@
 
 import React from 'react';
 import { useOlxJson } from '@/lib/blocks/useOlxJson';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { renderOlxJson, renderCompiledKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
+import TranslatingIndicator from '@/lib/i18n/TranslatingIndicator';
 import type { OlxReference } from '@/lib/types';
 import { refToOlxKey } from '@/lib/blocks/idResolver';
 
@@ -40,8 +42,9 @@ export function useBlock(
   id: OlxReference | string | null,
   source: string = 'content'
 ): RenderedBlockResult {
-  // Always call the hook unconditionally (React rules of hooks)
+  // Always call hooks unconditionally (React rules of hooks)
   const { olxJson: reduxOlxJson, loading, error } = useOlxJson(props, id, source);
+  const translationState = useTranslation(props, reduxOlxJson, source);
 
   if (!id) {
     return { block: null, ready: true, error: null };
@@ -87,9 +90,13 @@ export function useBlock(
     };
   }
 
-  // Ready from Redux - render the block
-  // If runtime is bundled, use it; otherwise renderOlxJson will handle constructing it from individual props
-  const block = renderOlxJson({ ...props, node: reduxOlxJson });
+  // Ready from Redux - render the block, wrapped with translation indicator
+  const rendered = renderOlxJson({ ...props, node: reduxOlxJson });
+  const block = (
+    <TranslatingIndicator translationState={translationState}>
+      {rendered}
+    </TranslatingIndicator>
+  );
   return { block, ready: true, error: null };
 }
 

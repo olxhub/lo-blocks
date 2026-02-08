@@ -464,8 +464,20 @@ export class FileStorageProvider implements StorageProvider {
 
   async delete(filePath: string): Promise<void> {
     const fs = await import('fs/promises');
-    const full = await resolveSafeWritePath(this.baseDir, filePath);
+    const relPath = this.toRelativePath(filePath);
+    const full = await resolveSafeWritePath(this.baseDir, relPath);
     await fs.unlink(full);
+  }
+
+  /** Convert a path or file:// provenance URI to a provider-relative path. */
+  toRelativePath(pathOrUri: string): string {
+    if (!pathOrUri.startsWith('file://')) return pathOrUri;
+    const absPath = pathOrUri.slice(7);
+    const rel = path.relative(this.baseDir, absPath);
+    if (rel.startsWith('..')) {
+      throw new Error(`Path outside base directory: ${pathOrUri}`);
+    }
+    return rel;
   }
 
   async rename(oldPath: string, newPath: string): Promise<void> {

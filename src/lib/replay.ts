@@ -55,12 +55,15 @@ export interface LoggedEvent {
   [key: string]: any;
 }
 
-// Event types that must be included regardless of context (essential for state reconstruction)
+// Event types that must be included regardless of context (essential for state reconstruction).
+// Without these, replayed state is incomplete: LOAD_OLXJSON provides content,
+// SET_LOCALE determines which language variant to render.
 const CONTEXT_INDEPENDENT_EVENTS = new Set([
   'LOAD_OLXJSON',
   'OLXJSON_LOADING',
   'OLXJSON_ERROR',
   'CLEAR_OLXJSON',
+  'SET_LOCALE',
 ]);
 
 /**

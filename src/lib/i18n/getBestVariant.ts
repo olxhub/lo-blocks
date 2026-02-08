@@ -255,7 +255,13 @@ export function extractLocalizedVariant<T>(
     return variantMap['*'];
   }
 
-  // Fall back to first available variant
-  return variantMap[availableVariants[0]];
+  // Fall back: prefer human-authored (non-generated) content over translations.
+  // Uses duck-typing so this works for OlxJson variant maps (which have a generated
+  // field) and is a no-op for simpler T types like strings.
+  const preferred = availableVariants.find(v => {
+    const val = variantMap[v] as any;
+    return val && typeof val === 'object' && !val.generated;
+  });
+  return variantMap[preferred || availableVariants[0]];
 }
 
