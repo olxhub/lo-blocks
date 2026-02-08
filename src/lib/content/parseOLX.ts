@@ -416,7 +416,7 @@ export async function parseOLX(
     );
   }
 
-  const parsedIds: string[] = [];
+  const parsedIds: OlxKey[] = [];
   let rootId = '';
   const errors: OLXLoadingError[] = [];
 
