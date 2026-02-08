@@ -155,10 +155,9 @@ function computeTranslationPath(sourceRelPath: string, targetLocale: string): st
   return `${base}/${targetLocale}${ext}`;
 }
 
-/** Convert a file:// URI to a provider-relative path. */
+/** Convert a file:// URI or absolute path to a provider-relative path. */
 function uriToRelPath(fileUri: string): string {
-  const absPath = fileUri.startsWith('file://') ? fileUri.slice(7) : fileUri;
-  return path.relative(path.resolve(contentDir), absPath);
+  return provider.toRelativePath(fileUri);
 }
 
 /** Convert a provider-relative path to a file:// URI. */
