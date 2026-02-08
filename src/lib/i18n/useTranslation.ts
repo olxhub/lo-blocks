@@ -15,7 +15,8 @@
 import { useRef, useEffect, useState } from 'react';
 import { scoreBCP47Match } from '@/lib/i18n/getBestVariant';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
-import type { OlxJson } from '@/lib/types';
+import type { OlxJson, UserLocale, ContentVariant } from '@/lib/types';
+import type { LogEventFn } from '@/lib/render';
 
 export interface TranslationState {
   /** True when showing content in a different language than the user requested */
@@ -23,9 +24,9 @@ export interface TranslationState {
   /** True if translation was attempted and failed */
   translationFailed: boolean;
   /** The locale of the content being shown as fallback, or null if exact match */
-  fallbackLocale: string | null;
+  fallbackLocale: ContentVariant | null;
   /** The locale being translated to, or null if no translation needed */
-  targetLocale: string | null;
+  targetLocale: UserLocale | null;
 }
 
 const NO_TRANSLATION: TranslationState = {
@@ -47,7 +48,7 @@ const translationsInFlight = new Set<string>();
  * score >= 1 = same language family, acceptable match.
  * score < 1 = completely different language, needs translation.
  */
-function needsTranslation(userLocale: string, contentLang: string | undefined): boolean {
+function needsTranslation(userLocale: UserLocale, contentLang: ContentVariant | undefined): boolean {
   if (!contentLang || contentLang === '*') return false;
   return scoreBCP47Match(userLocale, contentLang) < 1;
 }
@@ -62,8 +63,16 @@ function needsTranslation(userLocale: string, contentLang: string | undefined): 
  * When the translation completes, the new variant is dispatched to Redux,
  * and React reactivity automatically re-renders the block.
  */
+interface UseTranslationProps {
+  runtime: {
+    locale: { code: UserLocale };
+    sideEffectFree: boolean;
+    logEvent: LogEventFn;
+  };
+}
+
 export function useTranslation(
-  props: any,
+  props: UseTranslationProps,
   olxJson: OlxJson | null,
   source: string = 'content'
 ): TranslationState {
@@ -72,9 +81,9 @@ export function useTranslation(
   const propsRef = useRef(props);
   propsRef.current = props;
 
-  const userLocale = props.runtime.locale.code;
-  const blockId = olxJson?.id;
-  const contentLang = olxJson?.lang;
+  const userLocale: UserLocale = props.runtime.locale.code;
+  const blockId = olxJson?.id;  // OlxKey | undefined
+  const contentLang = olxJson?.lang as ContentVariant | undefined;
 
   const isFallback = userLocale && blockId
     ? needsTranslation(userLocale, contentLang)
