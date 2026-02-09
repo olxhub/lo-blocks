@@ -108,6 +108,7 @@ Parsers define how to transform OLX content into the internal representation. Yo
 | parsers.text({ postprocess: 'none' })        | Raw text                      | Preserves all whitespace.                       |
 | parsers.xmljson()                            | ...parsers.xmljson()          | Pass through raw parsed XML structure.          |
 | parsers.xml                                  | parser: parsers.xml.parser    | Reconstructs XML as a string.                   |
+| parsers.assetSrc()                           | ...parsers.assetSrc()         | Resolves `src` attr via provider. No children. (HACK) |
 | parsers.peggyParser(grammar)                 | ...parsers.peggyParser(cp)    | Parse with a PEG grammar (see below).           |
 
 For major, reusable blocks, it is reasonable (and not hard) to define your own XML grammar. If you do craft your own parser, **clean error messages are key**.

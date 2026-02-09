@@ -6,8 +6,8 @@
 // - `enumdict`: Creates type-safe enums from string arrays
 // - `isBlockTag`: Identifies Learning Observer block tags by PascalCase convention
 //   (used to distinguish blocks from HTML tags during parsing and rendering)
-// - `resolveImageSrc`: Classifies image paths by type (external, platform, content)
-// - `resolveImagePath`: Resolves image paths to final URLs for Next.js Image
+// - `resolveContentSrc`: Classifies content paths by type (external, platform, content)
+// - `resolveContentPath`: Resolves content paths to final URLs for serving
 // - `hashContent`: Hash file/content for replicability in learning analytics
 //
 
@@ -23,24 +23,24 @@ export function isBlockTag(tag: string) {
 }
 
 /**
- * Image path types for resolution
+ * Content path types for resolution
  */
-export type ImagePathType = 'external' | 'platform' | 'content';
+export type ContentPathType = 'external' | 'platform' | 'content';
 
-export interface ResolvedImageSrc {
-  type: ImagePathType;
+export interface ResolvedContentSrc {
+  type: ContentPathType;
   src: string;
 }
 
 /**
- * Classify an image source path by type.
+ * Classify a content source path by type.
  *
  * Path types:
  * - external: Full URLs (http://, https://)
  * - platform: Platform-wide assets (// prefix, served from public/)
  * - content: Content-relative paths (everything else)
  */
-export function resolveImageSrc(src: string): ResolvedImageSrc {
+export function resolveContentSrc(src: string): ResolvedContentSrc {
   // External URLs
   if (src.startsWith('http://') || src.startsWith('https://')) {
     return { type: 'external', src };
@@ -56,14 +56,14 @@ export function resolveImageSrc(src: string): ResolvedImageSrc {
 }
 
 /**
- * Resolve an image path to a final URL for Next.js Image component.
+ * Resolve a content path to a final URL for serving.
  *
  * Returns null for null/undefined input.
  */
-export function resolveImagePath(src: string | null | undefined): string | null {
+export function resolveContentPath(src: string | null | undefined): string | null {
   if (!src) return null;
 
-  const resolved = resolveImageSrc(src);
+  const resolved = resolveContentSrc(src);
 
   switch (resolved.type) {
     case 'external':

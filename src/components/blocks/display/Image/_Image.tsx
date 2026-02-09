@@ -37,32 +37,19 @@
 'use client';
 import React from 'react';
 import NextImage from 'next/image';
-import { resolveImageSrc } from '@/lib/util';
+import { resolveContentPath } from '@/lib/util';
 
 function _Image(props) {
   const { src, alt, width, height, nodeInfo } = props;
 
   if (!src) {
     return <div className="text-red-500 border border-red-300 p-2 rounded">
-      ❌ Image error: src attribute required
+      Image error: src attribute required
     </div>;
   }
 
   try {
-    const resolved = resolveImageSrc(src);
-
-    let finalSrc;
-    switch (resolved.type) {
-      case 'external':
-        finalSrc = resolved.src;
-        break;
-      case 'platform':
-        finalSrc = `/${resolved.src}`;
-        break;
-      case 'content':
-        finalSrc = `/content/${resolved.src}`;
-        break;
-    }
+    const finalSrc = resolveContentPath(src)!;
 
     // Only pass explicitly defined image-related props
     return (
@@ -76,7 +63,7 @@ function _Image(props) {
     );
   } catch (error) {
     return <div className="text-red-500 border border-red-300 p-2 rounded">
-      ❌ Image error: {error.message}
+      Image error: {error.message}
     </div>;
   }
 }

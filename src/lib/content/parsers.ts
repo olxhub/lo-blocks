@@ -416,7 +416,7 @@ export const text = textFactory;
 export function peggyParser(
   peggyParser,
   options: {
-    preprocess?: (x: { type: string; text: string; [key: string]: any }) => any;
+    preprocess?: (x: { type: string; text: string;[key: string]: any }) => any;
     postprocess?: (parsed: any) => any;
     skipStoreEntry?: boolean;
   } = {}
@@ -521,3 +521,58 @@ export function peggyParser(
 
   return { parser, staticKids: () => [] };
 }
+
+// === Asset Source Parser ===
+//
+// Reusable parser for blocks that reference content files via `src`
+// (Image, PDFViewer, Audio, Video, etc.). Resolves relative paths
+// using the storage provider during parsing.
+//
+// TODO: Figure out how to do this right. I'm deeply not convinced
+// by this as a parser.
+//
+// We need some kind of helper, but this breaks for e.g. multiple
+// video sources, any place where we have src= as well as structured
+// content, etc. We should be able to simply map a path to a URL.
+//
+// HACK HACK HACK
+
+/**
+ * Creates a parser that resolves the `src` attribute against the
+ * storage provider. No children.
+ *
+ * Usage:
+ *   import * as parsers from '@/lib/content/parsers';
+ *   const Image = core({ ...parsers.assetSrc(), ... });
+ */
+const assetSrcFactory = function assetSrc() {
+  function assetSrcParser({ id, tag, attributes, provenance, storeEntry, provider }) {
+    const { src, ...otherAttributes } = attributes;
+
+    let resolvedSrc = src;
+    let updatedProvenance = provenance;
+
+    // Resolve relative paths and track the asset as a dependency
+    if (src && !src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('//') && !src.startsWith('/')) {
+      if (provenance && provenance.length > 0 && provider?.resolveRelativePath) {
+        if (provenance.length !== 1) {
+          throw new Error(`assetSrc parser expects exactly one provenance entry (the OLX file), got ${provenance.length}: ${JSON.stringify(provenance)}`);
+        }
+        const olxProvenance = provenance[0];
+        resolvedSrc = provider.resolveRelativePath(olxProvenance, src);
+
+        // Add asset to provenance for dependency tracking (like peg/md parsers do)
+        if (olxProvenance.startsWith('file://')) {
+          const baseDir = path.dirname(olxProvenance.slice('file://'.length));
+          updatedProvenance = [...provenance, `file://${path.resolve(baseDir, src)}`];
+        }
+      }
+    }
+
+    storeEntry(id, { id, tag, attributes: { ...otherAttributes, src: resolvedSrc }, provenance: updatedProvenance, kids: [] });
+    return id;
+  }
+
+  return { parser: assetSrcParser, staticKids: () => [] };
+};
+export const assetSrc = assetSrcFactory;

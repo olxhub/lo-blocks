@@ -3,7 +3,7 @@
 
 import React from 'react';
 import NextImage from 'next/image';
-import { resolveImagePath } from '@/lib/util';
+import { resolveContentPath } from '@/lib/util';
 
 export default function _NavigatorTeamPreview(props) {
   const { name, role, photo } = props;
@@ -12,7 +12,7 @@ export default function _NavigatorTeamPreview(props) {
     return <div className="p-3 text-red-500 text-sm">Missing name or role</div>;
   }
 
-  const photoUrl = resolveImagePath(photo);
+  const photoUrl = resolveContentPath(photo);
 
   return (
     <div className="p-3 border-b cursor-pointer transition-all hover:bg-gray-50">
