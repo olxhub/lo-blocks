@@ -517,12 +517,8 @@ The group has several different suggestions. Rank these ideas from **best** to *
     </Markdown>
   </Vertical>
   <Vertical id="psych_sba_article_view">
-    <Image src="images/Article.png" height="200px"/>
-    <Markdown id="article1">
-        [What to teach parents to reduce disruptive child behavior --
-         two meta-analyses of parenting program components
-        ](https://www.jaacap.org/action/showPdf?pii=S0890-8567%2818%2931980-4)
-    </Markdown>
+     <PDFViewer id="PDFViewerDemo" title="PDF Viewer Example"
+           src="images/PIIS0890856718319804.pdf" />
   </Vertical>
   
   <Vertical id="psych_sba_article_excerpt">
