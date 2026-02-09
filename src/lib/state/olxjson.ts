@@ -27,6 +27,9 @@ import type { LogEventFn } from '../render';
 
 export type LoadingStatus = 'ready' | 'loading' | 'error';
 
+/** Nested language map: { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... } */
+export type LangMap = Record<string, OlxJson>;
+
 export interface BlockEntry {
   olxJson: VariantMap | null;
   loadingState: { status: LoadingStatus };

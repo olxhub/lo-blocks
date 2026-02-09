@@ -12,6 +12,9 @@ export default function HistoryBar({
   onNext = () => {},
   onSelect = (_i: number) => {},
 }) {
+  const { dir } = useLocaleAttributes();
+  const isRtl = dir === 'rtl';
+
   return (
     <div className="flex items-center gap-1">
       <button

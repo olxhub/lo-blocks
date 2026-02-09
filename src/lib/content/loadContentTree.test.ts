@@ -16,6 +16,16 @@ const getOlxJson = (idMap: IdMap, id: string): OlxJson | undefined => {
   return variants.length > 0 ? variantMap[variants[0]] : undefined;
 };
 
+// Helper to get OlxJson from idMap (language extraction happens in indexParsedBlocks)
+// idMap now stores nested structure: { id: { locale: OlxJson } }
+// For tests, use first available locale (same fallback as getBestLocale functions)
+const getOlxJson = (idMap: any, id: string) => {
+  const langMap = idMap[id];
+  if (!langMap) return undefined;
+  const locales = Object.keys(langMap);
+  return locales.length > 0 ? langMap[locales[0]] : undefined;
+};
+
 it('handles added, unchanged, changed, and deleted files via filesystem mutation', async () => {
   const tmpDir = await fs.mkdtemp('content-test-');
 
