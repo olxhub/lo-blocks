@@ -128,12 +128,42 @@ psych_sba_sidebar2 -> reinforce_punish_practice_1t
 
 --- wait @reinforcement_v_punishment_badge.submitCount > 0 ---
 
-Understanding Types
--------------------
+psych_sba_sidebar2 -> reinforce_punish_practice_1c
+
+JJ: I got #3 wrong. I was confused by "accidentally". It didn't matter if it was an accident. It reduced the likelihood that Lucas would touch the stove to zero, so in terms of psychological theory, it was a punishment.
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1e
+
+Lin: #5 confused me, because the dad's actions are making it MORE likely that Michael will stay seated. But what's really happening is that the dad is frowning angrily when Michael stands up, and that's making Michael less likely to stand. So it's also a punishment.
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1i
+
+Annie: #9 confused me. But I guess you can paraphrase it as "Whenever his mom gets upset, that makes Matthew more likely to make his bed in the morning," so it's a reinforcer.
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1j
+
+Lin: #10 confused me because I didn't think NOT doing something would count as punishment. But her teacher never calling on her to speak made it less likely that Luna would ask questions in class, so it counts as punishment.
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1k
+
+JJ: #16 confused me because the sister is probably calling her an artist to be sarcastic. She wants her to stop! But the sarcastic praise is still making her more likely to scribble on the walls, so it's a reinforcer. 
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1o
+
+Annie: #15 confused me, because dessert was taken away only once. But that one time had a big impact, and took the probability that Jackson will try new foods down to zero, so it counts as punishment psychologically.
+
+psych_sba_sidebar2 -> reinforce_punish_practice_1q
+
+JJ: #17 confused me, because the teacher giving Chloe an order didn't seem like a punishment to me! But it counts as one, because it made Chloe less likely to play with scissors.
 
 psych_sba_sidebar2 -> operant_conditioning_clear_screen_1
 
-Lin: I think we're getting a lot closer to helping your roommate out,
+Annie: Well, I think we've cleared all of that up now!
+
+Understanding Types
+-------------------
+
+Lin: Yes, I think we're getting a lot closer to helping your roommate out,
 Annie, but can you text her to see what she and the parents have
 been doing recently to try to get the kid to go to bed?
 
@@ -230,107 +260,113 @@ psych_sba_sidebar2 -> four_types_practice_1f
 
 --- wait @four_types_screentime.submitCount > 0 ---
 
-Lin: Here are the first five questions on the quiz.
+psych_sba_sidebar2 -> four_types_practice_1g
 
-psych_sba_sidebar2 -> positive_negative_1
+--- wait @four_types_candy.submitCount > 0 ---
 
-Lin: Here are the questions six through ten on the quiz.
+psych_sba_sidebar2 -> four_types_practice_1h
 
-psych_sba_sidebar2 -> positive_negative_2
+--- wait @four_types_cheer_on.submitCount > 0 ---
 
-Lin: Here are the questions eleven through fifteen on the quiz.
+psych_sba_sidebar2 -> four_types_practice_1i
 
-psych_sba_sidebar2 -> positive_negative_3
+--- wait @four_types_upset.submitCount > 0 ---
 
-Lin: Here are the questions sixteen through twenty on the quiz.
+psych_sba_sidebar2 -> four_types_practice_1j
 
-psych_sba_sidebar2 -> positive_negative_4
+--- wait @four_types_not_called_on.submitCount > 0 ---
 
-Lin: Here is how we did on the quiz.
+psych_sba_sidebar2 -> four_types_practice_1k
 
-psych_sba_sidebar2 -> quiz2_score
+--- wait @four_types_artist.submitCount > 0 ---
 
-Research
---------
+psych_sba_sidebar2 -> four_types_practice_1l
 
-Lin: Good job, Annie! That's a lot of content. I guess we had better each go over it before we discuss it.
+--- wait @four_types_firm_command.submitCount > 0 ---
 
-JJ: This research is amazing!
+psych_sba_sidebar2 -> four_types_practice_1m
 
-Annie: It is a lot. I actually had to ask the question several different ways to get
-all of the information I found. Sometimes small differences in the way I asked
-the question got me a very different answer.
+--- wait @four_types_timeout.submitCount > 0 ---
 
-JJ: So much for "do nothing" lol. It seems like there's a lot more evidence against no-rules parenting than for it.
+psych_sba_sidebar2 -> four_types_practice_1n
 
-Lin: I agree with JJ. Annie, since your friend is about ready to give up,
-maybe we should put together an email that explains why giving up
-and going with no-rules parenting (and no bedtime) would be a bad idea.
+--- wait @four_types_lose_recess_time.submitCount > 0 ---
+
+psych_sba_sidebar2 -> four_types_practice_1o
+
+--- wait @four_types_grounded.submitCount > 0 ---
+
+psych_sba_sidebar2 -> four_types_practice_1p
+
+--- wait @four_types_removing_dessert.submitCount > 0 ---
+
+psych_sba_sidebar2 -> four_types_practice_1q
+
+--- wait @four_types_being_told.submitCount > 0 ---
+
+psych_sba_sidebar2 -> four_types_practice_1r
+
+--- wait @four_types_offer_snack.submitCount > 0 ---
+
+psych_sba_sidebar2 -> four_types_practice_1s
+
+--- wait @four_types_excluded.submitCount > 0 ---
+
+psych_sba_sidebar2 -> four_types_practice_1t
+
+--- wait @four_types_badge.submitCount > 0 ---
+
+psych_sba_sidebar2 -> clear_screen_after_quiz
+
+Lin: Phew...we've covered a lot of ground.
+
+JJ: For real. I think we have the difference between positive and negative reinforcement and positive and negative punishment down.
+
+Writing the Final Email to Lin's Friend
+---------------------------------------
+
+Annie: Don't forget that the whole **point** of this was to figure out what to tell my friend! We still have to solve her babysitting problem.
 
 psych_sba_sidebar2 -> norulesparenting_summary
 
-Annie: All right. Once we write that, we can look into what we have learned about
-effective methods to set a consistent bedtime, and add that to our email.
+Lin: So, here's what we already wrote ... What do we need to do next?
 
-psych_sba_sidebar2 -> email_to_babysitter
+Annie: Well, we had better tell her that we're recommending she use positive reinforcement, and explain why.
 
-Annie: To make sure that our email is really good, let's get some feedback from AI.
-If we need to improve our email, we can go back and change the text, then get more feedback.
+Lin: And we should probably explain what positive reinforcement is. It gave us all a lot of trouble, and we're taking a psychology class. She isn't.
+
+psych_sba_sidebar2 -> outline_of_full_email
+
+JJ: Most important of all, we need a list of specific positive reinforcement techniques we should suggest to her. Let's give her some good ideas!
+
+psych_sba_sidebar2 -> draft_full_email
+
+Annie: Let's go!
+
+--- wait @email_draft.value && @recommended_technique.value && @explanation_of_positive_reinforcement.value && @technique1.value && @technique2.value && @technique3.value && @technique4.value && @technique5.value && @final_paragraph.value ---
+
+Annie: I'm done!
+
+JJ: So am I!
+
+Lin: I am, too.
+
+psych_sba_sidebar2 -> final_email_tab
+
+You: I'm going to go ahead and pull together the final email. I'll pull the best ideas out of all our outlines.
+
+--- wait @final_email.value ---
+
+You: OK. I've finished the email!
+
+Annie: Ok. I'm so excited! I sent the email to my roommate and have been waiting eagerly to hear how things went. I just now got an answer back.
+
+psych_sba_sidebar2 -> roommate_response
+
+Annie: Positive reinforcement worked!
+
+psych_sba_sidebar2 -> psych_sba_part_2_completion_page
+
+Annie: Thank YOU so much! I'm glad we were able to help my roommate by sharing what we have been learning in psych. So cool. Applying psych to our own lives pays off... Let's get together and study for our exam. I think we work really well together!
 
 
---- wait @email_draft.value ---
-
-psych_sba_sidebar2 -> email_feedback
-
-Strategy Selection
-------------------
-
-Annie: All right, I think we've covered no-rules parenting. But our email really needs
-to give my friend a practical solution -- one we know will work, because there's good
-psychological evidence for it. So I also dug into information about strategies we
-could suggest to her, so she can solve that bedtime problem!
-
-There's only one issue. I have seven different ideas for how to address sleep
-refusal. Which is a lot!
-
-Lin: Well, I know which one I like! Why don't we take a poll and see which of these choices
-we think we should recommend?
-
-Annie: Well ... since it seems like we can't agree on what to recommend, maybe we should
-take a closer look at the notes I put together about each strategy.
-
-JJ: Hey Annie, do you know if your friend's child gets scared or anxious when bedtime approaches?
-I hadn't even thought about the need for empathy and emotional support.
-
-Annie: I don't know. I'll have to ask her.
-
-JJ: Woah! There's honestly a lot of good strategies she could try,
-and we haven't even covered them all yet.
-
-Lin: Wow, Annie. There's so much information here,
-I'm not sure how to explain it to your friend
-or what she could even do with it.
-
-Annie: Yeah. I think we're going to have to figure out
-which of these is the **best** thing for her to try and explain that!
-
-psych_sba_sidebar2 -> age_appropriacy
-
---- wait @age_appropriate_selection.submitCount > 0 ---
-
-psych_sba_sidebar2 -> age_appropriacy_explanation
-
---- wait @strategy_explanation.value ---
-
-psych_sba_sidebar2 -> age_appropriacy_feedback
-
-Final Recommendation
---------------------
-
-Annie: Perfect! So we're all agreed. Let me draft the final email with our recommendation.
-
-Lin: This has been such a great learning experience. We really did use what we learned in class to solve a real problem!
-
-JJ: And we helped Annie's friend at the same time. Win-win, just like Lin said at the beginning.
-
-Annie: Thanks, everyone. This was way more educational than I expected when I was just venting about her problem this morning!

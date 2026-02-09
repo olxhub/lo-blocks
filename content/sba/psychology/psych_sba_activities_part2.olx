@@ -215,7 +215,7 @@ Let's begin.
       </KeyGrader>
       <Explanation>
           Getting cheered on increases the likelihood that Noah will practice daily,
-          so this is punishment.
+          so this is reinforcement.
       </Explanation>
     </CapaProblem>
   </Vertical>
@@ -350,8 +350,8 @@ Let's begin.
       <KeyGrader>
         <p>Aiden studies for tests to avoid being grounded for poor grades.</p>
         <ChoiceInput>
-          <Key id="pq15_key">Reinforcement</Key>
-          <Distractor id="pq15_distractor">Punishment</Distractor>
+          <Key id="pq15_distractor">Reinforcement</Key>
+          <Distractor id="pq15_key">Punishment</Distractor>
         </ChoiceInput>
       </KeyGrader>
       <Explanation>
@@ -475,7 +475,7 @@ Let's begin.
        **Positive reinforcement** strengthens responding by **presenting** a typically
        **pleasurable** stimulus immediately after a response.
 
-       **Negative reinforcement** strengthens a response by **reducing or removing**
+       **Negative reinforcement** strengthens a response by **reducing or removing**&nbsp;
        a typically **unpleasant** stimulus immediately after a response.
     </Markdown>
   </Vertical>
@@ -720,13 +720,19 @@ Remember:
       <KeyGrader>
         <p>Mia whines at the store because her parents give her candy to quiet her.</p>
         <ChoiceInput>
-          <Key id="pq7_key">Reinforcement</Key>
-          <Distractor id="pq7_distractor">Punishment</Distractor>
+          <Key id="four_types_q7_key">Positive Reinforcement</Key>
+          <Distractor id="four_types_q7_distractor1">Negative Reinforcement</Distractor>
+          <Distractor id="four_types_q7_distractor2">Positive Punishment</Distractor>
+          <Distractor id="four_types_q7_distractor3">Negative Punishment</Distractor>
         </ChoiceInput>
       </KeyGrader>
       <Explanation>
-          The parents giving Mia candy makes her more likely to whine,
-          so this is reinforcement.
+          <Markdown>
+             - Something desirable is added 
+               (parents give her candy) - Positive
+             - Behavior happens more often 
+               (whining at store) - Reinforcement
+          </Markdown>
       </Explanation>
     </CapaProblem>
   </Vertical>
@@ -740,19 +746,25 @@ Remember:
       <KeyGrader>
         <p>Noah practices the piano daily because his parents cheer him on after each session.</p>
         <ChoiceInput>
-          <Key id="pq8_key">Reinforcement</Key>
-          <Distractor id="pq8_distractor">Punishment</Distractor>
+          <Key id="four_types_q8_key">Positive Reinforcement</Key>
+          <Distractor id="four_types_q8_distractor1">Negative Reinforcement</Distractor>
+          <Distractor id="four_types_q8_distractor2">Positive Punishment</Distractor>
+          <Distractor id="four_types_q8_distractor3">Negative Punishment</Distractor>
         </ChoiceInput>
       </KeyGrader>
       <Explanation>
-          Getting cheered on increases the likelihood that Noah will practice daily,
-          so this is punishment.
+          <Markdown>
+            - Something desirable is added (his parents 
+              cheer him on after each session) - Positive
+            - Behavior happens more often (practices the
+              piano daily) - Reinforcement
+          </Markdown>
       </Explanation>
     </CapaProblem>
   </Vertical>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 9 -->
-  <Vertical id="rfour_types_practice_1i">
+  <Vertical id="four_types_practice_1i">
     <Markdown id="pq2_9">
       ## Practice Quiz: The Four Types of Operant Conditioning
     </Markdown>
@@ -760,13 +772,17 @@ Remember:
       <KeyGrader>
         <p>Matthew makes his bed every morning so his mom doesn't get upset.</p>
         <ChoiceInput>
-          <Key id="pq9_key">Reinforcement</Key>
-          <Distractor id="pq9_distractor">Punishment</Distractor>
+          <Distractor id="four_types_q9_distractor1">Positive Reinforcement</Distractor>
+          <Key id="four_types_q9_key">Negative Reinforcement</Key>
+          <Distractor id="four_types_q9_distractor2">Positive Punishment</Distractor>
+          <Distractor id="four_types_q9_distractor3">Negative Punishment</Distractor>
         </ChoiceInput>
       </KeyGrader>
       <Explanation>
-          His mom getting upset increases the probability of Matthew making his bed
-          every morning, so this is reinforcement.
+          <Markdown>
+            - Something undesirable is taken away (mom being upset) - Negative
+            - Behavior happens more often (making bed every morning) - Reinforcement
+          </Markdown>
       </Explanation>
     </CapaProblem>
   </Vertical>
@@ -780,12 +796,19 @@ Remember:
       <KeyGrader>
         <p>Luna stops asking questions in class because her teacher never calls on her to speak.</p>
         <ChoiceInput>
-          <Distractor id="pq10_distractor">Reinforcement</Distractor>
-          <Key id="pq10_key">Punishment</Key>
+          <Distractor id="four_types_q10_distractor1">Positive Reinforcement</Distractor>
+          <Distractor id="four_types_q10_distractor2">Negative Reinforcement</Distractor>
+          <Distractor id="four_types_q10_distractor3">Positive Punishment</Distractor>
+          <Key id="four_types_q10_key">Negative Punishment</Key>
         </ChoiceInput>
       </KeyGrader>
       <Explanation>
-          Not being called on makes Luna less likely to ask questions in class, so this is punishment.
+          <Markdown>
+            - Something undesirable is taken away (teacher never |
+              calling on her to speak) - Negative
+            - Behavior happens less often (asking questions
+              in class) - Punishment
+          </Markdown>
       </Explanation>
     </CapaProblem>
   </Vertical>
@@ -799,13 +822,17 @@ Remember:
       <KeyGrader>
         <p>Layla scribbles on walls because her sibling laughs and calls her "an artist."</p>
         <ChoiceInput>
-          <Key id="pq11_key">Reinforcement</Key>
-          <Distractor id="pq11_distractor">Punishment</Distractor>
+          <Key id="four_types_q11_key">Positive Reinforcement</Key>
+          <Distractor id="four_types_q11_distractor1">Negative Reinforcement</Distractor>
+          <Distractor id="four_types_q11_distractor2">Positive Punishment</Distractor>
+          <Distractor id="four_types_q11_distractor3">Negative Punishment</Distractor>
         </ChoiceInput>
       </KeyGrader>
       <Explanation>
-          Being called an artist makes Layla more likely to scribble on walls,
-          so this is reinforcement.
+          <Markdown>
+            - Something desirable is added (sibling laughing and calling her "an artist") - Positive
+            - Behavior happens more often (scribbles on walls) - Reinforcement
+          </Markdown>
       </Explanation>
     </CapaProblem>
   </Vertical>
@@ -820,13 +847,18 @@ Remember:
       <KeyGrader>
         <p>Benjamin stops throwing toys after being told firmly that it's unacceptable.</p>
         <ChoiceInput>
-          <Distractor id="pq12_distractor">Reinforcement</Distractor>
-          <Key id="pq12_key">Punishment</Key>
+          <Distractor id="four_types_q12_distractor1">Positive Reinforcement</Distractor>
+          <Distractor id="four_types_q12_distractor2">Negative Reinforcement</Distractor>
+          <Key id="four_types_q12_key">Positive Punishment</Key>
+          <Distractor id="four_types_q12_distractor3">Negative Punishment</Distractor>
         </ChoiceInput>
       </KeyGrader>
       <Explanation>
-          Being firmly told that it's unacceptable decreases the probability of Benjamin throwing toys,
-          so it's punishment.
+          <Markdown>
+            - Something undesirable is added (being told firmly that
+              it's unacceptable) - Positive
+            - Behavior happens less often (throwing toys) - Punishment
+          </Markdown>
       </Explanation>
     </CapaProblem>
   </Vertical>
@@ -840,13 +872,18 @@ Remember:
       <KeyGrader>
         <p>Nathan stops interrupting when his teacher starts making him sit in a "quiet corner."</p>
         <ChoiceInput>
-          <Distractor id="pq13_distractor">Reinforcement</Distractor>
-          <Key id="pq13_key">Punishment</Key>
+          <Distractor id="four_types_q13_distractor1">Positive Reinforcement</Distractor>
+          <Distractor id="four_types_q13_distractor2">Negative Reinforcement</Distractor>
+          <Key id="four_types_q13_key">Positive Punishment</Key>
+          <Distractor id="four_types_q13_distractor3">Negative Punishment</Distractor>
         </ChoiceInput>
       </KeyGrader>
       <Explanation>
-           Being made to sit in a quiet corner makes Nathan less likely to interrupt,
-           so this is punishment.
+          <Markdown>
+            - Something undesirable is added - making him sit in
+              a "quiet corner" - Positive
+            - Behavior happens less often (interrupting) - Punishment
+          </Markdown>
       </Explanation>
     </CapaProblem>
   </Vertical>
@@ -860,13 +897,19 @@ Remember:
       <KeyGrader>
         <p>William follows playground rules so he doesn't lose recess time.</p>
         <ChoiceInput>
-          <Key id="pq14_key">Reinforcement</Key>
-          <Distractor id="pq14_distractor">Punishment</Distractor>
+          <Distractor id="four_types_q14_distractor1">Positive Reinforcement</Distractor>
+          <Key id="four_types_q14_key">Negative Reinforcement</Key>
+          <Distractor id="four_types_q14_distractor2">Positive Punishment</Distractor>
+          <Distractor id="four_types_q14_distractor3">Negative Punishment</Distractor>
         </ChoiceInput>
       </KeyGrader>
       <Explanation>
-           Losing recess time makes William more likely to follow classroom rules,
-           so this is reinforcement.
+          <Markdown>
+            - Something undesirable is taken away (losing 
+              recess time) - Negative
+            - Behavior happens more often (follows
+              playground rules) - Reinforcement
+          </Markdown>
       </Explanation>
     </CapaProblem>
   </Vertical>
@@ -880,14 +923,19 @@ Remember:
       <KeyGrader>
         <p>Aiden studies for tests to avoid being grounded for poor grades.</p>
         <ChoiceInput>
-          <Key id="pq15_key">Reinforcement</Key>
-          <Distractor id="pq15_distractor">Punishment</Distractor>
+          <Distractor id="four_types_q15_distractor1">Positive Reinforcement</Distractor>
+          <Key id="four_types_q15_key">Negative Reinforcement</Key>
+          <Distractor id="four_types_q15_distractor2">Positive Punishment</Distractor>
+          <Distractor id="four_types_q15_distractor3">Negative Punishment</Distractor>
         </ChoiceInput>
       </KeyGrader>
       <Explanation>
-          Getting grounded for poor grades makes Aiden more likely to study,
-          so this is reinforcement.
-      </Explanation>
+          <Markdown>
+            - Something undesirable is taken away (being grounded
+              for poor grades) - Negative
+            - Behavior happens more often (studying) - Reinforcement
+          </Markdown>
+        </Explanation>
     </CapaProblem>
   </Vertical>  
   
@@ -901,13 +949,18 @@ Remember:
         <p>Jackson doesn't try new foods because his favorite dessert 
            was once removed for refusing broccoli.</p>
         <ChoiceInput>
-          <Distractor id="pq16_distractor">Reinforcement</Distractor>
-          <Key id="pq16_key">Punishment</Key>
+          <Distractor id="four_types_q16_distractor1">Positive Reinforcement</Distractor>
+          <Distractor id="four_types_q16_distractor2">Negative Reinforcement</Distractor>
+          <Distractor id="four_types_q16_distractor3">Positive Punishment</Distractor>
+          <Key id="four_types_q16_key">Negative Punishment</Key>
         </ChoiceInput>
       </KeyGrader>
       <Explanation>
-          Removing desserts made Jackson less likely to try new foods,
-          so this is punishment.
+          <Markdown>
+            - Something desirable is taken away (his favorite
+              dessert) - Negative
+            - Behavior happens less often (trying new foods) - Punishment
+          </Markdown>
       </Explanation>
     </CapaProblem>
   </Vertical>  
@@ -921,13 +974,19 @@ Remember:
       <KeyGrader>
         <p>Chloe stops playing with scissors after being told by her teacher.</p>
         <ChoiceInput>
-          <Distractor id="pq17_distractor">Reinforcement</Distractor>
-          <Key id="pq17_key">Punishment</Key>
+          <Distractor id="four_types_q17_distractor1">Positive Reinforcement</Distractor>
+          <Distractor id="four_types_q17_distractor2">Negative Reinforcement</Distractor>
+          <Key id="four_types_q17_key">Positive Punishment</Key>
+          <Distractor id="four_types_q17_distractor3">Negative Punishment</Distractor>
         </ChoiceInput>
       </KeyGrader>
       <Explanation>
-          The teacher telling her to stop made Chloe less likely to play with scissors,
-          so this is punishment.
+          <Markdown>
+            - Something undesirable is added (being told by
+              her teacher) - Positive
+            - Behavior happens less often (playing with
+              scissors) - Punishment
+          </Markdown>
       </Explanation>
     </CapaProblem>
   </Vertical>  
@@ -941,13 +1000,17 @@ Remember:
       <KeyGrader>
         <p>Jack refuses to put on his shoes until his parent offers a snack as a bribe.</p>
         <ChoiceInput>
-          <Key id="pq18_key">Reinforcement</Key>
-          <Distractor id="pq18_distractor">Punishment</Distractor>
+          <Key id="four_types_q18_key">Positive Reinforcement</Key>
+          <Distractor id="four_types_q18_distractor1">Negative Reinforcement</Distractor>
+          <Distractor id="four_types_q18_distractor2">Positive Punishment</Distractor>
+          <Distractor id="four_types_q18_distractor3">Negative Punishment</Distractor>
         </ChoiceInput>
       </KeyGrader>
       <Explanation>
-        Offering a snack made Jack more likely to put on his shoes,
-        so this is reinforcement.
+          <Markdown>
+             - Something desirable is added (offering a snack) - Positive
+             - Behavior happens more often (putting on shoes) - Reinforcement
+          </Markdown>
       </Explanation>
     </CapaProblem>
   </Vertical>  
@@ -961,12 +1024,17 @@ Remember:
       <KeyGrader>
         <p>Amelia stops participating in group activities after being excluded as punishment in the past.</p>
         <ChoiceInput>
-          <Distractor id="pq19_distractor">Reinforcement</Distractor>
-          <Key id="pq19_key">Punishment</Key>
+          <Distractor id="four_types_q19_distractor1">Positive Reinforcement</Distractor>
+          <Distractor id="four_types_q19_distractor2">Negative Reinforcement</Distractor>
+          <Distractor id="four_types_q19_distractor3">Positive Punishment</Distractor>
+          <Key id="four_types_q19_key">Negative Punishment</Key>
         </ChoiceInput>
       </KeyGrader>
       <Explanation>
-          Being excluded made Amelia less likely to participate in group activities, so this is punishment.
+          <Markdown>
+            - Something desirable is being taken away (being included) - Negative
+            - Behavior happens less often (participating) - Punishment
+          </Markdown>
       </Explanation>
     </CapaProblem>
   </Vertical>  
@@ -981,480 +1049,290 @@ Remember:
         <p>Charlotte organizes her desk because she earns a "Super 
            Organized" badge from her teacher for doing so.</p>
         <ChoiceInput>
-          <Key id="pq20_key">Reinforcement</Key>
-          <Distractor id="pq20_distractor">Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          Getting the badge made Charlotte more likely to organized her desk,
-          so this is reinforcement.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>  
-
-
-
-
-  <!-- Quiz 2: Positive/Negative subcategories -->
-  <Vertical id="positive_negative_1">
-    <Markdown id="quiz2_q1to5_header">
-## Advanced Quiz: Four Types (Questions 1-5)
-    </Markdown>
-
-    <CapaProblem title="Question 1: Gold Star" id="four-types-gold-star">
-      <KeyGrader>
-        <p>A child receives a gold star for good behavior.</p>
-        <ChoiceInput>
-          <Key id="four_types_q1_key">Positive Reinforcement</Key>
-          <Distractor id="four_types_q1_distractor1">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q1_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q1_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <CapaProblem title="Question 2: Fewer Chores" id="four-types-fewer-chores">
-      <KeyGrader>
-        <p>Taking away chores when grades improve.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q2_distractor1">Positive Reinforcement</Distractor>
-          <Key id="four_types_q2_key">Negative Reinforcement</Key>
-          <Distractor id="four_types_q2_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q2_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <CapaProblem title="Question 3: Speeding Ticket" id="four-types-speeding-ticket">
-      <KeyGrader>
-        <p>Getting a speeding ticket.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q3_distractor1">Positive Reinforcement</Distractor>
-          <Distractor id="four_types_q3_distractor2">Negative Reinforcement</Distractor>
-          <Key id="four_types_q3_key">Positive Punishment</Key>
-          <Distractor id="four_types_q3_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <CapaProblem title="Question 4: TV Privileges" id="four-types-tv-privileges">
-      <KeyGrader>
-        <p>Losing TV privileges for bad grades.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q4_distractor1">Positive Reinforcement</Distractor>
-          <Distractor id="four_types_q4_distractor2">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q4_distractor3">Positive Punishment</Distractor>
-          <Key id="four_types_q4_key">Negative Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <CapaProblem title="Question 5: Seatbelt Beeping" id="four-types-seatbelt-beeping">
-      <KeyGrader>
-        <p>Buckle seatbelt to stop the beeping.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q5_distractor1">Positive Reinforcement</Distractor>
-          <Key id="four_types_q5_key">Negative Reinforcement</Key>
-          <Distractor id="four_types_q5_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q5_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <ActionButton id="quiz2_next1" target="psych_chat" action="advance" label="Next Set" />
-  </Vertical>
-
-  <!-- Continue pattern for quiz 2 sections -->
-  <Vertical id="positive_negative_2">
-    <Markdown id="quiz2_q6to10_header">## Advanced Quiz Questions 6-10</Markdown>
-
-    <CapaProblem title="Question 6: Exercise to Stop Pain" id="four-types-exercise-pain">
-      <KeyGrader>
-        <p>Taking medication to stop a headache.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q6_distractor1">Positive Reinforcement</Distractor>
-          <Key id="four_types_q6_key">Negative Reinforcement</Key>
-          <Distractor id="four_types_q6_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q6_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <CapaProblem title="Question 7: Extra Credit" id="four-types-extra-credit">
-      <KeyGrader>
-        <p>A student earns extra credit points for volunteering.</p>
-        <ChoiceInput>
-          <Key id="four_types_q7_key">Positive Reinforcement</Key>
-          <Distractor id="four_types_q7_distractor1">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q7_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q7_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <CapaProblem title="Question 8: Loud Noise" id="four-types-loud-noise">
-      <KeyGrader>
-        <p>Playing loud music when someone doesn't clean their room.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q8_distractor1">Positive Reinforcement</Distractor>
-          <Distractor id="four_types_q8_distractor2">Negative Reinforcement</Distractor>
-          <Key id="four_types_q8_key">Positive Punishment</Key>
-          <Distractor id="four_types_q8_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <CapaProblem title="Question 9: Internet Privileges" id="four-types-internet-privileges">
-      <KeyGrader>
-        <p>Losing internet privileges for bad behavior.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q9_distractor1">Positive Reinforcement</Distractor>
-          <Distractor id="four_types_q9_distractor2">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q9_distractor3">Positive Punishment</Distractor>
-          <Key id="four_types_q9_key">Negative Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <CapaProblem title="Question 10: Remove Homework" id="four-types-remove-homework">
-      <KeyGrader>
-        <p>Canceling homework for good classroom behavior.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q10_distractor1">Positive Reinforcement</Distractor>
-          <Key id="four_types_q10_key">Negative Reinforcement</Key>
-          <Distractor id="four_types_q10_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q10_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <ActionButton id="quiz2_next2" target="psych_chat" action="advance" label="Next Set" />
-  </Vertical>
-
-  <Vertical id="positive_negative_3">
-    <Markdown id="quiz2_q11to15_header">## Advanced Quiz Questions 11-15</Markdown>
-
-    <CapaProblem title="Question 11: Employee Bonus" id="four-types-employee-bonus">
-      <KeyGrader>
-        <p>Getting a bonus for meeting sales goals.</p>
-        <ChoiceInput>
-          <Key id="four_types_q11_key">Positive Reinforcement</Key>
-          <Distractor id="four_types_q11_distractor1">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q11_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q11_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <CapaProblem title="Question 12: Remove Alarm" id="four-types-remove-alarm">
-      <KeyGrader>
-        <p>Turning off alarm by waking up on time.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q12_distractor1">Positive Reinforcement</Distractor>
-          <Key id="four_types_q12_key">Negative Reinforcement</Key>
-          <Distractor id="four_types_q12_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q12_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <CapaProblem title="Question 13: Written Warning" id="four-types-written-warning">
-      <KeyGrader>
-        <p>Receiving a written warning for tardiness.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q13_distractor1">Positive Reinforcement</Distractor>
-          <Distractor id="four_types_q13_distractor2">Negative Reinforcement</Distractor>
-          <Key id="four_types_q13_key">Positive Punishment</Key>
-          <Distractor id="four_types_q13_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <CapaProblem title="Question 14: No Dessert" id="four-types-no-dessert">
-      <KeyGrader>
-        <p>No dessert for not eating vegetables.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q14_distractor1">Positive Reinforcement</Distractor>
-          <Distractor id="four_types_q14_distractor2">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q14_distractor3">Positive Punishment</Distractor>
-          <Key id="four_types_q14_key">Negative Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <CapaProblem title="Question 15: Stop Nagging" id="four-types-stop-nagging">
-      <KeyGrader>
-        <p>Parent stops nagging when child cleans room.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q15_distractor1">Positive Reinforcement</Distractor>
-          <Key id="four_types_q15_key">Negative Reinforcement</Key>
-          <Distractor id="four_types_q15_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q15_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <ActionButton id="quiz2_next3" target="psych_chat" action="advance" label="Next Set" />
-  </Vertical>
-
-  <Vertical id="positive_negative_4">
-    <Markdown id="quiz2_q16to20_header">## Advanced Quiz Questions 16-20</Markdown>
-
-    <CapaProblem title="Question 16: Gift Card" id="four-types-gift-card">
-      <KeyGrader>
-        <p>Receiving a gift card for volunteer work.</p>
-        <ChoiceInput>
-          <Key id="four_types_q16_key">Positive Reinforcement</Key>
-          <Distractor id="four_types_q16_distractor1">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q16_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q16_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <CapaProblem title="Question 17: Remove Restrictions" id="four-types-remove-restrictions">
-      <KeyGrader>
-        <p>Lifting driving restrictions for good grades.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q17_distractor1">Positive Reinforcement</Distractor>
-          <Key id="four_types_q17_key">Negative Reinforcement</Key>
-          <Distractor id="four_types_q17_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q17_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <CapaProblem title="Question 18: Public Criticism" id="four-types-public-criticism">
-      <KeyGrader>
-        <p>Being criticized in front of others for poor performance.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q18_distractor1">Positive Reinforcement</Distractor>
-          <Distractor id="four_types_q18_distractor2">Negative Reinforcement</Distractor>
-          <Key id="four_types_q18_key">Positive Punishment</Key>
-          <Distractor id="four_types_q18_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <CapaProblem title="Question 19: Loss of Allowance" id="four-types-loss-allowance">
-      <KeyGrader>
-        <p>Losing allowance for not doing chores.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q19_distractor1">Positive Reinforcement</Distractor>
-          <Distractor id="four_types_q19_distractor2">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q19_distractor3">Positive Punishment</Distractor>
-          <Key id="four_types_q19_key">Negative Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-    </CapaProblem>
-
-    <CapaProblem title="Question 20: Umbrella Relief" id="four-types-umbrella-relief">
-      <KeyGrader>
-        <p>Using an umbrella to escape from rain.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q20_distractor1">Positive Reinforcement</Distractor>
-          <Key id="four_types_q20_key">Negative Reinforcement</Key>
+          <Key id="four_types_q20_key">Positive Reinforcement</Key>
+          <Distractor id="four_types_q20_distractor1">Negative Reinforcement</Distractor>
           <Distractor id="four_types_q20_distractor2">Positive Punishment</Distractor>
           <Distractor id="four_types_q20_distractor3">Negative Punishment</Distractor>
         </ChoiceInput>
       </KeyGrader>
+      <Explanation>
+          <Markdown>
+            - Something desirable is added (earns a 'Super Organized'
+              badge) - Positive
+            - Behavior happens more often (organizes her desk) - Reinforcement
+          </Markdown>
+      </Explanation>
     </CapaProblem>
+  </Vertical>  
 
-    <ActionButton id="quiz2_see_results" target="psych_chat" action="advance" label="See Results" />
-  </Vertical>
-
-  <!-- Quiz 2 Score -->
-  <Vertical id="quiz2_score">
-    <Markdown id="quiz2_results_text">
-## Quiz 2 Results
-
-Excellent! You've mastered the four types of behavior modification.
+  <!-- Clear screen -->
+  <Vertical id="clear_screen_after_quiz">
+    <Markdown id="csaq">
+        &nbsp;
     </Markdown>
-    <ActionButton id="quiz2_continue" target="psych_chat" action="advance" label="Continue" />
   </Vertical>
-
-  <!-- No-rules parenting summary -->
+ 
+  <!-- The opening for the email we wrote in the previous task -->
   <Vertical id="norulesparenting_summary">
-    <Markdown id="norules_research_text">
-## Research on No-Rules Parenting
-
-Annie found research showing that "no-rules parenting" (permissive parenting) can lead to:
-
-- Poor self-regulation
-- Difficulty with boundaries
-- Increased behavioral problems
-- Lower academic achievement
-- Higher rates of anxiety
-
-**Evidence suggests structured, positive approaches work better than either permissive or purely punitive methods.**
-    </Markdown>
-    <ActionButton id="write_email_btn" target="psych_chat" action="advance" label="Write Email" />
-  </Vertical>
-
-  <!-- Email writing activity -->
-  <Vertical id="email_to_babysitter">
     <Markdown id="email_draft_prompt">
-## Draft Email to the Babysitter
-
-Help write an email explaining why "giving up" isn't the answer and what might work better.
+        ## The Opening We Wrote
     </Markdown>
-
-    <UseDynamic id="email_draft2"
-              target="email_draft" />
-
-    <ActionButton id="get_feedback_btn" target="psych_chat" action="advance" label="Get Feedback" />
+    <TextArea id="email_draft" />
   </Vertical>
+ 
+  <Vertical id="outline_of_full_email">
+      <Markdown>
+          ## Outline for Our Email to Annie's Friend
 
-  <!-- Email feedback -->
-  <Vertical id="email_feedback">
-    <Markdown id="email_feedback_text">
-## Feedback on Your Email
+          1. Why Annie’s friend shouldn’t give up on setting a bedtime
+      </Markdown>
+           <Ref id="email_opening"
+                target="email_draft" />
+      <Markdown>
+          2. What psychological technique we are recommending (positive reinforcement)
 
-Good start! Make sure to include:
-- Acknowledge the frustration
-- Explain why consistency matters
-- Suggest positive reinforcement strategies
-- Offer specific, actionable steps
-    </Markdown>
-    <ActionButton id="email_feedback_continue" target="psych_chat" action="advance" label="Continue" />
-  </Vertical>
+          3. Explanation of what positive reinforcement is and why it works
 
-  <!-- Strategy effectiveness ranking -->
-  <Vertical id="strategy_effectiveness_ranking">
-    <Markdown id="strategy_ranking_prompt">
-## Rank Bedtime Strategies by Effectiveness
+          4. List of positive reinforcement techniques she can try to
+             get the kid to go to sleep at bedtime
 
-Based on psychological research, drag these strategies to rank them from **MOST effective** to **LEAST effective** for a 6-year-old:
-    </Markdown>
+          5. Final paragraph -- wish her luck!
+      </Markdown>
+    </Vertical>
+ 
+  <Vertical id="draft_full_email">
+      <Markdown>
+          ## Writing the Email to Annie's Friend
+          
+          _As you are filling in your email outline, so are your friends._
 
-    <CapaProblem id="bedtime_strategy_ranking">
-      <SortableGrader>
-        <SimpleSortable id="bedtime_strategies_rank">
-Rank these bedtime strategies from most to least effective for a 6-year-old (most effective first):
-===
-1. Positive reinforcement with sticker chart and bedtime story reward
-2. Consistent routine with clear expectations and gentle reminders
-3. Natural consequences with parental support (child gets tired next day)
-4. Punishment-based approach (yelling, threats, taking away privileges)
-        </SimpleSortable>
-      </SortableGrader>
-    </CapaProblem>
+          1. Why Annie’s friend shouldn’t give up on setting a bedtime
+      </Markdown>
+      <UseDynamic id="email_opening_final"
+            target="email_draft" />
+      <Markdown>
+          2. What psychological technique we are recommending (positive reinforcement)
+      </Markdown>
+      <LineInput id="recommended_technique"
+                placeholder="" />
+      <Markdown>
+          3. Explanation of what positive reinforcement is and why it works
+      </Markdown>
+      <TextArea id="explanation_of_positive_reinforcement"
+                rows="3"
+                placeholder="" />
+      <Markdown>
+          4. List of positive reinforcement techniques she can try to
+             get the kid to go to sleep at bedtime
+      </Markdown>
+      <LineInput id="technique1"
+                 placeholder="" />
+      <LineInput id="technique2"
+                 placeholder="" />
+      <LineInput id="technique3"
+                 placeholder="" />
+      <LineInput id="technique4"
+                 placeholder="" />
+      <LineInput id="technique5"
+                 placeholder="" />
+      <Markdown>
+          5. Final paragraph -- wish her luck!
+      </Markdown>
+      <TextArea id="final_paragraph"
+                rows="3"
+                placeholder="" />
+    </Vertical>    
+    <Tabs id="final_email_tab">
+        <Vertical id="tab1" title="The Final Email">
+            <Markdown>
+                ### Write the final email
+            </Markdown>
+            <TextArea id="final_email" 
+                      rows="10"
+            />
+        </Vertical>
+        <Vertical id="tab2" title="JJ's Outline">
+            <Markdown>
+                 1. _Why Annie's Friend Shouldn't Give Up On Setting Bedtime._
+            </Markdown>
+            <Ref id="email_opening_final_tab2"
+                        target="email_draft" />
+            <Markdown>
+                 2. _What psychological technique we are recommending (positive reinforcement)._
 
-    <ActionButton id="continue_to_selection" target="psych_chat" action="advance" label="Continue" />
-  </Vertical>
+                    To encourage a child to go to bed at bedtime, it's a great idea
+                    to use positive reinforcement.
 
-  <!-- Age appropriateness activity -->
-  <Vertical id="age_appropriacy">
-    <Markdown id="age_strategy_prompt">
-## Which Strategy is Best for a 6-Year-Old?
+                 3. _Explanation of what positive reinforcement is and why it works._
 
-Now that you've ranked the strategies, let's focus on why positive reinforcement works best.
+                    Instead of focusing on what the child is doing wrong, positive
+                    reinforcement highlights and rewards good behavior, making it
+                    more likely to happen again in the future.
 
-**Rank these strategies with the most age-appropriate for a 6-year-old at the top, including your own initial suggestion:**
-    </Markdown>
+                    Positive reinforcement is effective because it strengthens the
+                    behavior you want to see. Instead of focusing on what the child
+                    might do "wrong," this method encourages compliance and cooperation
+                    by creating positive associations with bedtime. Children are more
+                    likely to repeat behaviors that earn them rewards and praise, and
+                    they feel more motivated when they know their actions are recognized
+                    in a positive way.
 
-    <CapaProblem id="age_appropriate_selection">
-      <SortableGrader>
-        <SortableInput id="age_appropriate_strategies">
-          <Markdown id="strategy_bedtime_story">Offering a special bedtime story if the child gets ready for bed on time</Markdown>
-          <Markdown id="strategy_sticker_chart">Creating a sticker chart where the child earns stars for each successful bedtime</Markdown>
-          <Markdown id="strategy_extra_playtime">Allowing extra playtime the next day when bedtime goes smoothly</Markdown>
-          <Markdown id="strategy_praise">Praising the child enthusiastically when they cooperate with bedtime routine</Markdown>
-          <Markdown id="strategy_reward_system">Setting up a reward system where 5 good bedtimes earn a small toy</Markdown>
-          <Markdown id="strategy_take_toys">Taking away toys when the child refuses to go to bed</Markdown>
-          <Markdown id="strategy_yelling">Yelling at the child when they run around at bedtime</Markdown>
-          <Markdown id="strategy_timeout">Sending the child to their room alone as punishment</Markdown>
-          <Markdown id="strategy_threats">Threatening to cancel weekend activities if bedtime problems continue</Markdown>
-          <Markdown id="strategy_ignoring">Ignoring the child completely when they refuse to go to bed</Markdown>
-          <Vertical id="strategy_student_suggestion">
-            <Markdown>Your initial suggestion:</Markdown>
-            <Ref id="ref_student_suggestion_in_sortable" target="initial_suggestion" />
-          </Vertical>
-        </SortableInput>
-      </SortableGrader>
-    </CapaProblem>
+                 4. _List of positive reinforcement techniques she can try to get the kid to bed at bedtime._
 
-    <ActionButton id="check_strategies_btn" target="psych_chat" action="advance" label="Check Answer" />
-  </Vertical>
+                    **Sticker Chart**: Reward each on-time bedtime with a sticker to
+                    track progress visually.
+                    
+                    **Bedtime Story**: Offer a favorite bedtime story as a reward for
+                    getting into bed on time.
 
-  <!-- Explanation activity -->
-  <Vertical id="age_appropriacy_explanation">
-    <Markdown id="explain_choice_prompt">
-## Explain Your Choice
+                    **Special Night Light**: Let them choose a fun night light or glowing toy
+                    for their room.
+                    
+                    **Cozy Blanket**: Reward with a special cozy blanket or plush pillow
+                    for their efforts.
 
-Why do you think positive reinforcement strategies work best for this age group?
-    </Markdown>
+                5.  _Final paragraph -- wish her luck!_
 
-    <TextArea id="strategy_explanation"
-              placeholder="Explain your reasoning (2-3 sentences)..." />
+                    I hope with this advice, your next babysitting gig goes much better.
+            </Markdown>
+        </Vertical>
+        <Vertical id="tab3" title="Lin's Outline">
+            <Markdown>
+                 1. _Why Annie's Friend Shouldn't Give Up On Setting Bedtime._
+            </Markdown>
+            <Ref id="email_opening_final_tab2"
+                        target="email_draft" />
+            <Markdown>
+                 2. _What psychological technique we are recommending (positive reinforcement)._
 
-    <ActionButton id="submit_explanation_btn" target="psych_chat" action="advance" label="Submit" />
-  </Vertical>
+                    Using positive reinforcement is an effective way to encourage a child
+                    to go to bed at bedtime.
 
-  <!-- Final feedback -->
-  <Vertical id="age_appropriacy_feedback">
-    <Markdown id="final_feedback_text">
-## Excellent Analysis!
+                 3. _Explanation of what positive reinforcement is and why it works._
 
-You correctly identified that positive reinforcement works best for 6-year-olds because:
+                    Positive reinforcement involves rewarding the child when they perform
+                    the desired behavior, which increases the likelihood that they will
+                    repeat it in the future.
 
-1. **Developmentally appropriate**: Children this age respond well to concrete rewards
-2. **Builds positive associations**: Makes bedtime a positive experience
-3. **Clear expectations**: Visual charts and immediate rewards are easy to understand
-4. **Promotes autonomy**: Child feels in control of earning rewards
-5. **Sustainable**: Creates lasting behavior change vs temporary compliance
+                    It helps establish a clear connection between the desired behavior
+                    (going to bed on time) and the rewarding outcome. This approach
+                    encourages the child to view bedtime as a positive experience rather
+                    than something to resist, fostering motivation and cooperation over
+                    time. By focusing on rewarding good behavior rather than punishing
+                    noncompliance, the child is more likely to feel empowered and develop
+                    healthy habits.
 
-**Recommended approach**: Sticker chart + bedtime story reward + consistent praise
+                 4. _List of positive reinforcement techniques she can try to get the kid to bed at bedtime._
 
-### Comparison to Your Initial Thoughts
+                     **Sing a Lullaby**: Offer to sing their favorite lullaby if they go
+                     to bed without delay.
+                     
+                     **Golden Star Award**: Create a "Golden Star" award for being a
+                     good bedtime hero.
+                     
+                     **Pajama Party Theme**: Let them pick fun pajamas as part of
+                     bedtime preparation.
+                     
+                     **Countdown Timer**: Use a timer with a cheerful tune to make bedtime
+                     feel exciting.
+                     
+                    **Bedtime Snack**: Reward with a small, healthy snack like fruit or
+                    yogurt before bed.
 
-Let's look back at your initial suggestion and see how psychology research compares:
-    </Markdown>
+                5.  _Final paragraph -- wish her luck!_
 
-    <Markdown id="initial_strategy_label">**Your initial strategy was:**</Markdown>
-    <Ref id="ref_initial_strategy_comparison" target="initial_suggestion" />
+                    With luck, this will help!
+            </Markdown>
+        </Vertical>
+        <Vertical id="tab4" title="Annie's Outline">
+            <Markdown>
+                 1. _Why Annie's Friend Shouldn't Give Up On Setting Bedtime._
+            </Markdown>
+            <Ref id="email_opening_final_tab2"
+                        target="email_draft" />
+            <Markdown>
+                 2. _What psychological technique we are recommending (positive reinforcement)._
 
-    <Markdown id="research_recommendation">
-**Research-based recommendation:** Use positive reinforcement with a structured bedtime routine, sticker charts, and consistent praise rather than punishment or "giving up" approaches.
+                    Positive reinforcement is a powerful strategy to encourage desired
+                    behaviors in children, such as going to bed at bedtime.
 
-This demonstrates how psychological principles can guide us toward more effective, evidence-based solutions!
-    </Markdown>
+                 3. _Explanation of what positive reinforcement is and why it works._
 
-    <ActionButton id="finish_btn" target="psych_chat" action="advance" label="Finish" />
-  </Vertical>
+                    Positive reinforcement involves providing a desirable reward or
+                    incentive after the desired behavior occurs, increasing the likelihood
+                    that the behavior will be repeated.
 
-  <!-- Completion summary with cross-references -->
-  <Vertical id="completion_summary">
-    <Markdown id="session_summary">
-## Psychology Session Complete!
+                    It is effective because it motivates behavior through encouragement
+                    rather than conflict. Children are more likely to cooperate when they
+                    know their efforts will be recognized and appreciated. Additionally,
+                    it helps build their sense of accomplishment and strengthens their
+                    ability to follow routines, which is crucial for their development.
+                    By using positive reinforcement, you create a routine that feels
+                    rewarding and enjoyable for the child, making it easier for them
+                    to develop healthy habits over time.
 
-### What You've Learned:
 
-1. **Behavior Modification Basics**: You can now distinguish between reinforcement and punishment
-2. **Four Types Mastery**: You understand positive/negative reinforcement and punishment
-3. **Practical Application**: You know how to apply psychological principles to real-world problems
-4. **Evidence-Based Thinking**: You can evaluate strategies based on research rather than intuition
+                 4. _List of positive reinforcement techniques she can try to get the kid to bed at bedtime._
 
-### Your Journey:
-You've made several important contributions throughout this session that demonstrate your learning progress.
+                     **Bedtime Buddy**: Allow them to sleep with their favorite stuffed animal
+                     or toy.
+                     
+                     **Favorite Song**: Play one favorite soothing song before lights out
+                     as a reward.
+                     
+                     **Superhero Role**: Call them a "bedtime superhero" for helping achieve
+                     their goals.
+                     
+                     **Magical Bedtime Passport**: Stamp their bedtime passport for every
+                     on-time bed night.
+                     
+                     **Calming Scents**: Reward with a choice of calming scents like
+                     lavender-scented mist for their room
 
-    </Markdown>
+                5.  _Final paragraph -- wish her luck!_
 
-    <Markdown id="journey_initial_label">**Initial suggestion:**</Markdown>
-    <Ref id="ref_journey_initial_suggestion" target="initial_suggestion" />
+                    I hope these techniques make your net babysitting experience a lot easier!
+            </Markdown>
+        </Vertical>
+    </Tabs>
+    <Vertical id="roommate_response">
+        <Markdown>
+          ## Annie's roommate's email:
 
-    <Markdown id="journey_email_label">**Email draft:**</Markdown>
-    <Ref target="email_draft" />
+          Hey!
 
-    <Markdown id="journey_strategy_label">**Strategy explanation:**</Markdown>
-    <Ref target="strategy_explanation" />
+          I just wanted to thank you and your friends for helping me out
+          with the bedtime situation!
 
-    <Markdown id="key_insight">
-### Key Insight:
-Psychology provides tools to move beyond trial-and-error approaches to evidence-based solutions that are more effective and humane.
+          I tried the positive reinforcement technique you all suggested,
+          and it actually worked!
 
-**Great work using psychology to help Annie's roommate solve a real problem!**
-    </Markdown>
-  </Vertical>
+          It took me a while to figure out the perfect reinforcement. He loves
+          Paw Patrol, so I started giving him Paw Patrol stickers to reinforce him
+          going to bed on time. I gave him one sticker for getting into bed and
+          told him that I would leave more stickers for his mom to give him in
+          the morning, IF he stayed in bed and went to sleep. 😊
+
+          So far, he has gone to bed without a fuss three nights in a row!
+
+          Please tell everyone I really appreciate their ideas! Y’all are lifesavers!
+      </Markdown>
+    </Vertical>
+    <Vertical id="psych_sba_part_2_completion_page">
+      <Markdown>
+        **Confirm that you are done with this exercise.**
+      </Markdown>
+      <CheckboxInput id="pysch_part_2_finished">
+          <Key id="completion_message2">I'm finished with this task!</Key>
+      </CheckboxInput>
+      <Markdown>
+        - In this activity, you learned about **the four types of operant conditioning** 
+          (positive and negative reinforcement and punishment) and developed recommendations
+          for Annie's roommate to use positive reinforcement to address the child's
+          sleep refusal.
+        - Next time, you will review and apply several other concepts from your coursework
+          in psychology to help Annie's roommate even more.
+      </Markdown>
+    </Vertical> 
 
 </Vertical>
