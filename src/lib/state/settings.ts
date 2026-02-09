@@ -29,7 +29,7 @@ const settingsFields = fields([
   { name: 'debugReplayMode', event: 'SET_DEBUG_REPLAY_MODE', scope: scopes.system },
   // Replay event index: -1 = live, 0+ = viewing state after that event
   { name: 'debugReplayEventIndex', event: 'SET_DEBUG_REPLAY_EVENT_INDEX', scope: scopes.system },
-  // Locale: { code: 'en-US', dir: 'ltr' } - null means use browser default
+  // Locale: { code: 'en-Latn-US', dir: 'ltr' } - null means use browser default
   { name: 'locale', event: 'SET_LOCALE', scope: scopes.system },
 ]);
 

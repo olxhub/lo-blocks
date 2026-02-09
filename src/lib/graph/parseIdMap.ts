@@ -9,7 +9,8 @@
 // Currently used for debugging content structure and relationships in DAG-based content.
 //
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import { GraphNode, GraphEdge, ParseError } from '@/lib/types';
+import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
+import { GraphNode, GraphEdge, ParseError, IdMap, OlxKey } from '@/lib/types';
 
 interface ParseResult {
   nodes: GraphNode[];
@@ -19,11 +20,21 @@ interface ParseResult {
 }
 
 /**
+ * Helper to iterate IdMap entries with proper OlxKey typing.
+ * Object.entries() returns string keys even for branded types, so we cast them back.
+ */
+function* entriesIdMap(idMap: IdMap): Generator<[OlxKey, IdMap[OlxKey]]> {
+  for (const [id, variants] of Object.entries(idMap)) {
+    yield [id as OlxKey, variants];
+  }
+}
+
+/**
  * Parses the idMap structure into React Flow compatible nodes and edges.
  *
  * TODO: Remove duplicate IDs
  */
-export function parseIdMap(idMap: Record<string, any>): ParseResult {
+export function parseIdMap(idMap: IdMap, locale: string = 'en-Latn-US'): ParseResult {
   const nodes: GraphNode[] = [];
   const edges: GraphEdge[] = [];
   const launchable: string[] = [];
@@ -31,7 +42,15 @@ export function parseIdMap(idMap: Record<string, any>): ParseResult {
   // Issues found during graph parsing - these should be surfaced to help debug problems
   const issues: ParseError[] = [];
 
-  for (const [id, node] of Object.entries(idMap)) {
+  for (const [id, langMap] of entriesIdMap(idMap)) {
+    // Extract OlxJson from nested structure { locale: OlxJson }
+    // Use extractLocalizedVariant for consistent fallback logic
+    const node = extractLocalizedVariant(langMap, locale);
+
+    if (!node || typeof node !== 'object' || !node.tag) {
+      continue;
+    }
+
     let childIds = [];
     const comp = BLOCK_REGISTRY[node.tag];
 
@@ -51,15 +70,15 @@ export function parseIdMap(idMap: Record<string, any>): ParseResult {
     }
 
     // Avoid duplicates
-    if(nodes.find(n => n.id === id)) {
+    if (nodes.find(n => n.id === id)) {
       continue;
     }
 
     // Add edges
     for (const childId of childIds) {
       const edgeId = `${id}->${childId}`;
-      if(!edges.find(e => e.id === edgeId)) {
-	edges.push({ id: edgeId, source: id, target: childId });
+      if (!edges.find(e => e.id === edgeId)) {
+        edges.push({ id: edgeId, source: id, target: childId as OlxKey });
       }
     }
 
@@ -70,14 +89,14 @@ export function parseIdMap(idMap: Record<string, any>): ParseResult {
         label: `${node.tag}\n(${id})`,
         attributes: node.attributes ?? {},
         tag: node.tag,
-	provenance: node.provenance
+        provenance: node.provenance
       },
       position: { x: Math.random() * 400, y: Math.random() * 400 },
       type: 'custom'
     });
 
     // Include root nodes
-    if(node?.attributes?.launchable) {
+    if (node?.attributes?.launchable) {
       launchable.push(id);
     }
   }

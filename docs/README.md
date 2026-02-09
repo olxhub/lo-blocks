@@ -16,7 +16,7 @@ We will walk through the lifespan of a typical block. The most confusing parts t
                  ↓
               LoBlock      Compiled / validated / cleaned up by the system)
                  ↓
-   OLX →      OlxJson      Static content (**instance** of a LoBlock)
+   OLX →      OlxJson     Static content (**instance** of a LoBlock)
                  ↓
              OlxDomNode    Dynamic content (close to 1:1 to static content, but not always, with components like <DynamicList> and other forms of reuse / rewriting)
                  ↓
@@ -406,6 +406,44 @@ If the `helloblock` was something with state, and we pulled up redux developer t
 
 This is `OlxDomNode` in types.ts.
 
+# DAG Structure
+
+The content is structured as a DAG, not a tree (I structured Open edX the same way, until people broke it). This is important for many reasons, but it's very common that we have something like:
+
+* Read this problem but don't do it: [Problem]
+* Intro video
+* Do part 1: [Problem]
+* Text about concepts in part 2
+* Do part 2: [Problem]
+* ...
+* Grade yourself on a rubric: [Problem] + [Rubric]
+
+There are many ways to have this work. The <Use ref="id"> tag is handled during parsing and creates a DAG (it does not take its own ID, since it is not itself added to the DAG). Attributes on <Use> override those on the referenced block, so `<Use ref="foo" clip="[8,12]"/>` will render the block "foo" with a different clip. The <UseDynamic target="id"> is its own block, and renders a subnode.
+
+We can the DAG in two ways:
+
+* The graph API generates a static OLX DAG, based on the kid nodes in the system.
+* The render function generates a dynamic DAG (renderedKids), as the system renders them. For reasons, it collapses multiple kids into one node if identical.
+
+The distinction comes in for two reasons:
+
+* Not all child nodes are necessarily rendered. For example, a learning sequences might have 10 elements, but only one shown at a type. The static DAG will have all 10, and the rendered one will have the active child.
+* Not all rendered nodes will be in the static bank. For example, a block is welcome to pull nodes out of a problem bank. The UseDynamic block can render literally any node in the system.
+
+## `kids`, `children`, and Shadows.
+
+We have a pipeline from JSX to OLX. Both of these have a hidden DOM. Note that while these often map to each other, this is not universal. The React shadow DOM and the OLX shadow DOM are *not* the same:
+
+* The OLX DOM has blocks which may be composed of many React nodes for complex graphical components.
+* The OLX DOM can have elements -- like `action`s -- which have no react nodes.
+* The OLX DOM is a DAG. The React one is a tree.
+
+Don't confuse the two.
+
+React has `children`. In React, `children` are required to be React components. That doesn't always work for us, since child nodes often have semantic meaning. We might want to demark them in some way other than order. Passing that via `children` raises exceptions. Ergo, in OLX, we use the `kids` property to refer to child nodes.
+
+Be very mindful if you mean `children` or `kid
+
 # IDs
 
 This will explain why IDs are among the most confusing parts of this system. We have many types of IDs:
@@ -419,7 +457,7 @@ React key | | Most be unique per element
 HTML ID   | | Must be unique per page
 
 A few notes:
-* An OLX Reference is **not** unique (many-to-many). We need absolute and relative references. **This is unimplemented as of this writing** 
+* An OLX Reference is **not** unique (many-to-many). We need absolute and relative references. **This is unimplemented as of this writing**
 * An OLX Key is **not** unique (one-to-many). It's a DAG, not a tree, and with `Use`, the same key can occur multiple times on the same page.
 * In OLX, we write `id=`
 * The same Redux State key can occur multiple times on the same page (one-to-many)
@@ -442,6 +480,81 @@ We also have a lot of hacks in code. Common one:
   const absoluteId = id.startsWith('/') ? id : `/${id}`;
 ```
 And similar. Much of this is now handled by `refToReduxKey` and `refToOlxKey`.
+
+## IDs in React, OLX, HTML, ...
+
+We interact with other uses of IDs. This contributes a lot to the complexity!
+
+We are mixing React concepts, OLX concepts, and others. Just to keep things clear, here is a list of *external* names and keys -- meaning ones from other systems where we'd like to maintain compatibility:
+
+* OLX 1.0 `url_name`: Used as a key. Designed to be human-friendly (e.g. "eigen_pset"), but often GUIDs. This was originally created, in part, so URLs would be friendly (e.g. `/linear_algebra/eigenvalues` instead of `/[GUID]/[GUID]`), and to simplify analytics and debugging. We split this into `OlxReference`, `OlxKey`, and `ReactKey`.
+* OLX 1.0 `display_name`: Human-friendly short decriptive text (e.g. "Eigenvalue Problem Set"). We use `title`.
+* HTML `id`: Web-page wide unique ID
+* React `key`: Unique identifier, esp. for elements in a list.
+* HTML `name` (HTML/DOM Attribute): Names an element (typically form controls for form data submission)
+* `displayName` (React-Specific): Human-readable name for a React component, useful for debugging
+
+In `lo-blocks`, this is refactored as:
+* `OlxReference` (e.g. "/foo", "./foo", "foo"): ID as found in OLX
+* `OlxKey`: Same, but uniquely dereferenced
+* `ReduxStateKey`: As stored in the state. The same OLX element may appear multiple places under the same ID (OLX is a DAG) or different IDs (e.g. a `DynamicList`, which adds a prefix). There are also cases where different OLX elements might share a Redux ID (for example, a video player, its scrubber, etc. could be implemented like this, although newer code is moving to `target=`)
+* We also have `ReactKey` and `HtmlId`, although those are rarely relevant to block developers.
+* We pass around an `IdPrefix`, which is generally used in `OlxKey` -> `ReduxStateKey` conversions
+
+We resolve keys with
+* `refToReduxKey(props)` - Converts a ref to a reduxKey.
+* `refToOlxKey(ref)` - Converts a ref to an olxKey.
+
+Stylistically, we aim to use *semantic keys* where possible, for the same reasons as `url_name` in edX:
+  <Lesson id="linalg_eigen"/>
+is much easier to understand than:
+  <Lesson id="3a0512ad31dc81fc166507f20ddebfe700d64daf"/>
+
+This has many downsides, including key collisions, the associated need for namespaces, and IDs going out-of-date (e.g. a problem changes what it teaches). We've made the decision to accept those. As a hierarchy:
+
+semantic > SHA hash > GUID
+
+Every OLX component *must* have an ID.
+
+Peer components (e.g. an analytic for another component) will often use `target` to refer to their "main" redux state:
+
+```
+  <Input id="essay"\>
+  <Wordcount target="essay"\>
+```
+
+## ID Prefixes for Scoped State
+
+When a single OLX node is rendered multiple times (e.g., in a list or mastery bank), each instance needs its own Redux state. We handle this with `idPrefix`, which scopes the Redux key:
+
+```
+OLX node: `<DynamicList id="list"><TextArea id="response"/></DynamicList>`
+
+OLX key has no prefix: `response`
+React key has a prefix: `list:0:response`, `list:1:response`, etc.
+```
+
+The `extendIdPrefix(props, scope)` utility builds scoped prefixes for child components.
+
+## ID Path Syntax
+
+When referencing other components' state (e.g., a grader looking up an input's value, or a child referencing a parent), IDs should support path-like syntax to control whether the `idPrefix` is applied:
+
+* `foo` — **Relative** (default): `idPrefix` is applied. Most common case.
+* `/foo` — **Absolute**: Bypasses `idPrefix`, references global state.
+* `./foo` — **Explicit relative**: Same as `foo`, but clearer in intent.
+* `../foo` — **Parent scope**: Not yet implemented.
+
+This matters when a component inside a scoped context (like a problem inside a MasteryBank) needs to reference something outside that scope.
+
+The `fieldSelector` and `updateField` functions automatically apply `idPrefix` to ID overrides, so components don't need to manually scope IDs. If you pass `{ id: 'parent_input' }` to these functions and `idPrefix` is set, the lookup will use `prefix.parent_input`.
+
+Right now, this is a little bit confused, since we have two types of scoping:
+
+* Static scoping (e.g. `mit.edu/pmitros/6002x/hw1/problem5`) at the OLX Key level. `/` seperator
+* Dynamic scoping (e.g. `DynamicList`). `:` separator
+
+Which we still need to figure out.
 
 ## Branded types
 
@@ -579,6 +692,10 @@ The content supports different loading strategies:
 
 We might have more strategies in the future (e.g. grab all content from a certain directory or namespace).
 
+The various hooks for rendering blocks will return spinners while a block is loading, as well as an indication if it is ready.
+
+Gotcha: React `<Suspense>` looks like a natural fit here, but as of early 2026, it doesn't really work for this use-case (it runs into serious performance issues where _any_ component might suspend).
+
 # Type Validation, TypeScript, and zod
 
 This project is TypeScript-optional. We use tools judiciously. Most of our code is plain JavaScript, but we try to be very careful about having type safety and meaningful parameter checking at interfaces.
@@ -589,7 +706,7 @@ Since the blocks are designed to be developer-friendly, we also use zod for type
 const parsed = ZodSchema.parse(config); // Validate config
 ```
 
-But to continue to use `config` rather than `parsed`, or to only use `parsed` for relatively simple types. 
+But to continue to use `config` rather than `parsed`, or to only use `parsed` for relatively simple types.
 
 Short story:
 
@@ -600,149 +717,11 @@ Short story:
 
 Most of the other typescript is to prevent errors. We don't proactively tag types.
 
-Tools
------
+# Tools
 
 * The system runs in firejail, a lightweight sandbox. This helps mitigate the risk from e.g. a compromised `npm` package. Developers on some systems find they need to disable this. If you're in a defective operating system, just remove the `firejail` from `package.json`.
 * We also have automation versions of scripts (github CI/CD, online LLMs, etc. don't have Firejail installed). You can use those, but those are designed for machines and not humans. The system uses `next.js`. We like `next.js`, but the rather unusual dynamic development requirements (e.g. ability to dynamically edit and reload blocks) may make this type of framework a poor fit. At some point, we should evaluate `vite`, other frameworks, or rolling our own.
 * Data streams into the [Learning Observer](https://github.com/ETS-Next-Gen/writing_observer), which allows for rather rich, real-time dashboard.
-
-# Names and IDs
-
-We are mixing React concepts, OLX concepts, and others. Just to keep things clear, here is a list of *external* names and keys -- meaning ones from other systems where we'd like to maintain compatibility:
-
-* OLX 1.0 `url_name`: Used as a key. Designed to be human-friendly (e.g. "eigen_pset"), but often GUIDs. This was originally created, in part, so URLs would be friendly (e.g. `/linear_algebra/eigenvalues` instead of `/[GUID]/[GUID]`), and to simplify analytics and debugging. We split this into `OlxReference`, `OlxKey`, and `ReactKey`. 
-* OLX 1.0 `display_name`: Human-friendly short decriptive text (e.g. "Eigenvalue Problem Set"). We use `title`.
-* HTML `id`: Web-page wide unique ID
-* React `key`: Unique identifier, esp. for elements in a list.
-* HTML `name` (HTML/DOM Attribute): Names an element (typically form controls for form data submission)
-* `displayName` (React-Specific): Human-readable name for a React component, useful for debugging
-
-In `lo-blocks`, this is refactored as:
-* `OlxReference` (e.g. "/foo", "./foo", "foo"): ID as found in OLX
-* `OlxKey`: Same, but uniquely dereferenced
-* `ReduxStateKey`: As stored in the state. The same OLX element may appear multiple places under the same ID (OLX is a DAG) or different IDs (e.g. a `DynamicList`, which adds a prefix). There are also cases where different OLX elements might share a Redux ID (for example, a video player, its scrubber, etc. could be implemented like this, although newer code is moving to `target=`)
-* We also have `ReactKey` and `HtmlId`, although those are rarely relevant to block developers.
-* We pass around an `IdPrefix`, which is generally used in `OlxKey` -> `ReduxStateKey` conversions
-
-We resolve keys with
-* `refToReduxKey(props)` - Converts a ref to a reduxKey.
-* `refToOlxKey(ref)` - Converts a ref to an olxKey.
-
-Stylistically, we aim to use *semantic keys* where possible, for the same reasons as `url_name` in edX:
-  <Lesson id="linalg_eigen"/>
-is much easier to understand than:
-  <Lesson id="3a0512ad31dc81fc166507f20ddebfe700d64daf"/>
-
-This has many downsides, including key collisions, the associated need for namespaces, and IDs going out-of-date (e.g. a problem changes what it teaches). We've made the decision to accept those. As a hierarchy:
-
-semantic > SHA hash > GUID
-
-Every OLX component *must* have an ID.
-
-Peer components (e.g. an analytic for another component) will often use `target` to refer to their "main" redux state:
-
-```
-  <Input id="essay"\>
-  <Wordcount target="essay"\>
-```
-
-## ID Prefixes for Scoped State
-
-When a single OLX node is rendered multiple times (e.g., in a list or mastery bank), each instance needs its own Redux state. We handle this with `idPrefix`, which scopes the Redux key:
-
-```
-OLX node: `<DynamicList id="list"><TextArea id="response"/></DynamicList>`
-
-OLX key has no prefix: `response`
-React key has a prefix: `list:0:response`, `list:1:response`, etc.
-```
-
-The `extendIdPrefix(props, scope)` utility builds scoped prefixes for child components.
-
-## ID Path Syntax
-
-When referencing other components' state (e.g., a grader looking up an input's value, or a child referencing a parent), IDs should support path-like syntax to control whether the `idPrefix` is applied:
-
-* `foo` — **Relative** (default): `idPrefix` is applied. Most common case.
-* `/foo` — **Absolute**: Bypasses `idPrefix`, references global state.
-* `./foo` — **Explicit relative**: Same as `foo`, but clearer in intent.
-* `../foo` — **Parent scope**: Not yet implemented.
-
-This matters when a component inside a scoped context (like a problem inside a MasteryBank) needs to reference something outside that scope.
-
-The `fieldSelector` and `updateField` functions automatically apply `idPrefix` to ID overrides, so components don't need to manually scope IDs. If you pass `{ id: 'parent_input' }` to these functions and `idPrefix` is set, the lookup will use `prefix.parent_input`.
-
-Right now, this is a little bit confused, since we have two types of scoping:
-
-* Static scoping (e.g. `mit.edu/pmitros/6002x/hw1/problem5`) at the OLX Key level. `/` seperator
-* Dynamic scoping (e.g. `DynamicList`). `:` separator
-
-Which we still need to figure out.
-
-DAG Structure
--------------
-
-The content is structured as a DAG, not a tree (I structured Open edX
-the same way, until people broke it). This is important for many
-reasons, but it's very common that we have something like:
-
-* Read this problem but don't do it: [Problem]
-* Intro video
-* Do part 1: [Problem]
-* Text about concepts in part 2
-* Do part 2: [Problem]
-* ...
-* Grade yourself on a rubric: [Problem] + [Rubric]
-
-There are many ways to have this work. The <Use ref="id"> tag is
-handled during parsing and creates a DAG (it does not take its own ID,
-since it is not itself added to the DAG). Attributes on <Use> override
-those on the referenced block, so `<Use ref="foo" clip="[8,12]"/>` will
-render the block "foo" with a different clip. The <UseDynamic target="id">
-is its own block, and renders a subnode.
-
-We can the DAG in two ways:
-
-* The graph API generates a static OLX DAG, based on the kid nodes
-  in the system.
-* The render function generates a dynamic DAG (renderedKids), as the
-  system renders them. For reasons, it collapses multiple kids into
-  one node if identical.
-
-The distinction comes in for two reasons:
-
-* Not all child nodes are necessarily rendered. For example, a
-  learning sequences might have 10 elements, but only one shown at a
-  type. The static DAG will have all 10, and the rendered one will
-  have the active child.
-* Not all rendered nodes will be in the static bank. For example, a
-  block is welcome to pull nodes out of a problem bank. The UseDynamic
-  block can render literally any node in the system.
-
-`kids`, `children`, and Shadows.
---------------------------------
-
-We have a pipeline from JSX to OLX. Both of these have a hidden
-DOM. Note that while these often map to each other, this is not
-universal. The React shadow DOM and the OLX shadow DOM are *not* the
-same:
-
-* The OLX DOM has blocks which may be composed of many React nodes for
-  complex graphical components.
-* The OLX DOM can have elements -- like `action`s -- which have no
-  react nodes.
-* The OLX DOM is a DAG. The React one is a tree.
-
-Don't confuse the two.
-
-React has `children`. In React, `children` are required to be React
-components. That doesn't always work for us, since child nodes often
-have semantic meaning. We might want to demark them in some way other
-than order. Passing that via `children` raises exceptions. Ergo, in
-OLX, we use the `kids` property to refer to child nodes.
-
-Be very mindful if you mean `children` or `kids`.
 
 Redux
 -----
@@ -755,8 +734,9 @@ components interact with each other.
 Eventually, we'd also like to allow reducers to live serverside, in
 _Learning Observer_, for social features like chat.
 
-Code philosophy
----------------
+# Developing in this repo
+
+## Code Complexity and Magic
 
 We have four rings:
 
@@ -767,15 +747,9 @@ We have four rings:
 
 These form a hierarchy:
 
-1. First and foremost is the student learning experience (even if that
-   makes life complex for course authors)
-2. Second is the course author experience, even if that makes life
-   hard for developers. Formats and tools should be human-friendly
-   (even if doing so makes them less machine-friendly)
-3. Third is the block development experience. We're happy to add a lot
-   of magic and complexity to the core code to keep block code simple,
-   readable, and friendly. The audience might be an undergrad developer
-   or a simpler LLM.
+1. First and foremost is the student learning experience (even if that makes life complex for course authors)
+2. Second is the course author experience, even if that makes life hard for developers. Formats and tools should be human-friendly (even if doing so makes them less machine-friendly)
+3. Third is the block development experience. We're happy to add a lot of magic and complexity to the core code to keep block code simple, readable, and friendly. The audience might be an undergrad developer or a simpler LLM.
 
 Conversely, operating in each of these rings requires a different
 level of expertise:
@@ -785,37 +759,10 @@ level of expertise:
 3. Block developers: Clever highschool student or an undergrad researcher
 4. Core developers: Professional computer scientists / software engineers
 
-# Code Style
+## Code Style
 
-Avoid renaming / aliasing variables. If there's a conflict with the name `fields`, we don't `import fields as someAlias from @/lib/state`, but we use the fully qualified name: `import * as state from @/lib/state` followed by `state.fields`
-
-Avoid `await import` unless there are circular dependency issues or browser / node issues. Imports go at the top of the file. If you do need an await import, document why.
-
-Field Conventions
------------------
-
-We'd like blocks to be plug-and-play. Repoint a `target` and
-go. Switch an input inside a grader, and go. We would like to propose
-a set of conventions:
-
-* If a block has only one thing it manages, call the field `value.`
-* Points go in `grade`: This should be overrideable with a `getGrade`
-  in the blueprint. The structure is { value, maxValue }. _Question:
-  This follows edX. Should this be the more sensible score?_
-* Correctness / doneness. edX uses `correct`, but we should use
-  `status`? `done`?
-
-Otherwise, ideally, fields would map 1:1 to OLX attributes as often as
-practical, but this is not always practical. OLX is human-facing, and
-should have human-friendly semantic names. Fields are designed to be
-part of an automated system, and should have standardized names
-(e.g. `value`, as per above). For example, a semantic attribute mapped
-to `value` is probably better than a bad attribute name or bad field
-name.
-
-The rationale here is we can point things by ID. If an instructor
-points an action to an OLX ID, the system know to grab or push data to
-`id.[value]`.
+* Avoid renaming / aliasing variables. If there's a conflict with the name `fields`, we don't `import fields as someAlias from @/lib/state`, but we use the fully qualified name: `import * as state from @/lib/state` followed by `state.fields`
+* Avoid `await import` unless there are circular dependency issues or browser / node issues. Imports go at the top of the file. If you do need an await import, document why.
 
 # Code Philosophy
 
@@ -856,3 +803,133 @@ We try to have reasonable unit tests and integration tests. "Reasonable" does no
 Our experience is that most failure lead to exceptions, crashes, and similar grand failures, so simple end-to-end smoke tests (does every page load?) tend to do most of the work for a minority of the effort and coupling introduced by more comprehensive tests.
 
 What we are very careful to do, however, is to architect for testability of modules. We rely on things like modular reducers, well-defined data formats, and a declarative, functional programming style.
+
+# i18n and global, accessible content
+
+This is in the early stages of development. We are building a **global platform**, and the system should not give preference to English (or any other language). The goal is to develop a robust architecture for a worldwide pool of educators, researchers, and students with diverse languages and cultures. The platform should support:
+- Support translanguaging (users reading/writing in multiple languages with priority order)
+- Enable cultural adaptation beyond just translation (examples, pedagogy, values, accessibility)
+- Support a git-like content model with variants (language, culture, context, accessibility, etc.)
+- Track translation versions and re-translate when source changes
+
+We want to support multilingual content and UI while handling the unique challenges of educational content. Locale isn't just language. Robust courses provide contextual variants, not just translations. `en-US` might use baseball, `en-IN`, cricket, and so on.
+
+The dimensions of adaptation (beyond language):
+
+1. Examples - mangoes vs apples, wedding customs, family structures, professional contexts
+2. Communication style - thesis-first (Western) vs logic-first (many other cultures), formality levels, directness
+3. Representation - imagery, names, scenarios reflecting local demographics
+4. Values - what's emphasized (individual achievement vs collective success, innovation vs tradition)
+5. Taboos/compliance - religious, legal, cultural sensitivities
+6. Pedagogy - teaching styles, assessment approaches vary by culture
+7. Accessibility - literacy levels, visual/text ratios, pace
+8. Visual language - Emoji? "Serious" colors? "Fun" colors?
+
+With introspectable content + LLM generation + human curation, you could theoretically take any educational content and make it culturally responsive at scale. That's different from traditional i18n.
+
+Our long-term goal is **global collaboration**. This means the editor should eventually support course teams in Israel, Jordan, Poland, Turkey, and Russia collaborating around localized content with a common core. I can adapt content (passing through a translation boundary) and suggest improvments back. A lot of this is about provenance -- e.g. if I translated your content in 2023, and you've updated it, there's a concept of a cross-language diff, where I'd like to be able to adapt the content, while keeping my local language. And vice-versa.
+
+## Terminology
+
+We have several different concepts:
+
+- **Content variant**: E.g. `ar-Arab-SA:no-audio`.
+  - **Content locale**: E.g. `ar-Arab-SA`
+  - **Other properties**: no-audio, audio-only, etc.
+- **User profile**:
+  - What language does the user prefer? e.g. `[ar-Arab-SA, pl-Latn-PL]`
+  - Context (e.g. audio-only, e.g. while commuting to work)
+  - a11y (e.g. vision-impaired)
+
+These can be used to select a specific locale to render by ID. It is very, very easy to confuse these. Metadata defines the **language of the content in a file**:
+
+```
+<!--
+lang: ar-Arab-SA
+-->
+```
+
+On the other hand, OLX attributes also **override the user locale*:
+
+```
+<!--
+lang: en-Latn-GB
+-->
+<Vertical>
+  <Markdown>Mandarin Chinese Assignment 3</Markdown>
+  <Problem id="chinese-problem-1" lang='zh-Hans-CN/> <!-- Change / override the internal locale. Of course, this also means this problem is of that locale -->
+</Vertical>
+```
+
+A *content variant* can be a full code (`en-Latn-US`) or a subset (e.g. `en`). This is common in translation. `2 + 2 = 4` is mostly region-generic, but Arab counries might have `٢ + ٢ = ٤`. Much of English content is global, but a few words and examples (globalization vs. globalisation) are not. We generally prefer the most specific match. And if no match is available, we'd like to fall back to the closest (e.g. Castilian Spanish should fall back to Mexican Spanish over French).
+
+## Translanguaging
+
+We plan to adapt the loading hooks to be able to translanguage content:
+
+- Loading: Show spinner
+- Loaded / untranslated: Show best available language, with translation indication
+- Translated: Show final version
+
+Hooks are set up for this, but as of this writing, it needs to be wired through.
+
+## Organization
+
+Organization depends on usage. For example, for autogen translation, something along the lines of:
+
+```
+content/
+  course.olx
+  course/
+    es.olx
+    zh.olx
+    ...
+  lesson1.olx
+  lesson1/
+    es.olx
+    zh.olx
+    ...
+```
+
+For course teams collaborating pushing changes back-and-forth, we might conceptually have:
+
+```
+content/course/en/[course.olx, lesson1.olx, ...]
+content/course/es/*
+content/course/zh/*
+```
+This might be implemented with directories or seperate repositories.
+
+For bilingual lesson authored in Texas, content might be in the same file:
+```
+content/course/lesson1.olx
+<!--
+lang: en-Latn-US
+-->
+<Vertical id="lesson1"> ... </Vertical>
+<!--
+lang: es-Latn-MX
+-->
+<Vertical id="lesson1"> ... </Vertical>
+```
+
+Field Conventions
+-----------------
+
+We'd like blocks to be plug-and-play. Repoint a `target` and go. Switch an input inside a grader, and go. We would like to propose a set of conventions:
+
+* If a block has only one thing it manages, call the field `value.`
+* Points go in `grade`: This should be overrideable with a `getGrade` in the blueprint. The structure is { value, maxValue }. _Question: This follows edX. Should this be the more sensible score?_
+* Correctness / doneness. edX uses `correct`, but we should use `status`? `done`?
+
+Otherwise, ideally, fields would map 1:1 to OLX attributes as often as
+practical, but this is not always practical. OLX is human-facing, and
+should have human-friendly semantic names. Fields are designed to be
+part of an automated system, and should have standardized names
+(e.g. `value`, as per above). For example, a semantic attribute mapped
+to `value` is probably better than a bad attribute name or bad field
+name.
+
+The rationale here is we can point things by ID. If an instructor
+points an action to an OLX ID, the system know to grab or push data to
+`id.[value]`.

@@ -1,18 +1,22 @@
 // src/app/page.js
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
-import { useContentLoader } from '@/lib/content/useContentLoader';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher';
+import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
+import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
+import { localeFromVariant } from '@/lib/i18n/localeUtils';
+import type { ContentVariant, Locale } from '@/lib/types';
 
 const ENDPOINT_LINKS = [
   {
-    href: '/api/content/root',
-    label: '/api/content/root',
+    href: '/api/activities',
+    label: '/api/activities',
     type: 'JSON',
-    description: 'Launchable content entries (GET)',
+    description: 'Activity cards for browsing and launching (GET)',
   },
   {
     href: '/api/content/all',
@@ -67,35 +71,26 @@ function categorizeActivities(entries) {
   };
 
   entries.forEach(entry => {
-    // Use metadata category if available, otherwise fall back to ID-based categorization
-    const category = entry.category?.toLowerCase();
-
-    if (category && categories[category]) {
+    const category = entry.category?.toLowerCase() || 'other';
+    if (categories[category]) {
       categories[category].items.push(entry);
     } else {
-      // Fallback: ID-based categorization for uncategorized items
-      const id = entry.id.toLowerCase();
-      if (id.includes('demo')) {
-        categories.demo.items.push(entry);
-      } else if (id.includes('psych')) {
-        categories.psychology.items.push(entry);
-      } else if (id.includes('interdisciplinary')) {
-        categories.interdisciplinary.items.push(entry);
-      } else {
-        categories.other.items.push(entry);
-      }
+      categories.other.items.push(entry);
     }
   });
 
   return Object.values(categories).filter(cat => cat.items.length > 0);
 }
 
-function ActivityRow({ entry }) {
-  const title = entry.attributes.title || entry.id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-  const description = entry.description || entry.attributes.description;  // Prefer metadata description
+function ActivityRow({ entry, userLocale }: { entry: any; userLocale: string }) {
+  // Pick best title from available locales with BCP 47 fallback
+  const title: string = extractLocalizedVariant(entry.title, userLocale) || entry.id;
+
+  // Pick best description from available locales with BCP 47 fallback
+  const description: string = extractLocalizedVariant(entry.description, userLocale) || '';
+
   const type = entry.tag || 'Activity';
-  // editPath is computed server-side from provenance (see /api/content/[id])
-  const editPath = entry.editPath || entry.id;
+  const editPath = entry.editPath;
 
   return (
     <div className="group py-4 border-b border-gray-200/50 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-transparent transition-all">
@@ -123,12 +118,7 @@ function ActivityRow({ entry }) {
               Edit
             </Link>
           ) : (
-            <span
-              className="text-gray-300 cursor-not-allowed"
-              title={entry.editError || 'Editing not available'}
-            >
-              Edit
-            </span>
+            <span className="text-gray-300 cursor-not-allowed">Edit</span>
           )}
           <Link
             href={`/graph/${entry.id}`}
@@ -150,12 +140,35 @@ function ActivityRow({ entry }) {
 }
 
 function Activities() {
-  const { idMap, error, loading } = useContentLoader('root');
+  const [activities, setActivities] = useState(null); // TODO: useFieldState
+  const [error, setError] = useState(null); // TODO: useFieldState
+  const [loading, setLoading] = useState(true); // TODO: useFieldState
 
-  const entries = idMap ? Object.keys(idMap).map(key => ({
-    id: key,
-    ...idMap[key]
-  })) : [];
+  // Get user's locale from Redux
+  const localeAttrs = useLocaleAttributes();
+  const userLocale = localeAttrs.lang;
+
+  useEffect(() => {
+    // Activities list is locale-independent, fetch once on mount
+    setLoading(true);
+    setError(null);
+    globalThis.fetch('/api/activities')
+      .then(res => res.json())
+      .then(data => {
+        if (!data.ok) {
+          setError(data.error);
+        } else {
+          setActivities(data.activities);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
+
+  const entries = activities ? Object.values(activities) : [];
 
   if (loading) {
     return <Spinner>Loading activities...</Spinner>;
@@ -185,7 +198,7 @@ function Activities() {
           </h2>
           <div className="bg-white rounded-lg">
             {category.items.map(entry => (
-              <ActivityRow key={entry.id} entry={entry} />
+              <ActivityRow key={entry.id} entry={entry} userLocale={userLocale} />
             ))}
           </div>
         </section>
@@ -281,16 +294,60 @@ function Sidebar() {
 }
 
 export default function Home() {
+  const [availableLocales, setAvailableLocales] = useState<Locale[]>([]);
+  const localeAttrs = useLocaleAttributes();
+  const userLocale = localeAttrs.lang;
+
+  // Extract available locales when activities load
+  useEffect(() => {
+    if (!userLocale) return;
+
+    globalThis.fetch('/api/activities', {
+      headers: {
+        'Accept-Language': userLocale,
+      },
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.activities) {
+          // Extract available locales from activity titles/descriptions
+          // Variants come from idMap keys; extract just the language part (no feature flags)
+          const localeSet = new Set<Locale>();
+          for (const activity of Object.values(data.activities) as Record<string, any>[]) {
+            if (activity.title && typeof activity.title === 'object') {
+              Object.keys(activity.title).forEach(variant => {
+                localeSet.add(localeFromVariant(variant as ContentVariant));
+              });
+            }
+            if (activity.description && typeof activity.description === 'object') {
+              Object.keys(activity.description).forEach(variant => {
+                localeSet.add(localeFromVariant(variant as ContentVariant));
+              });
+            }
+          }
+          setAvailableLocales(Array.from(localeSet).sort());
+        }
+      })
+      .catch(() => {
+        // Silently fail - Activities component will handle the fetch
+      });
+  }, [userLocale]);
+
   return (
-    <div className="flex h-screen">
+    <div {...localeAttrs} className="flex h-screen">
       <Sidebar />
-      <main className="flex-1 overflow-auto bg-gray-50/30">
-        <div className="max-w-4xl mx-auto p-8">
-          <header className="mb-8">
-            <h1 className="text-3xl font-semibold text-gray-900">Activities</h1>
-            <p className="text-gray-600 mt-2">Choose an activity to begin</p>
-          </header>
-          <Activities />
+      <main className="flex-1 overflow-auto bg-gray-50/30 flex flex-col">
+        <div className="flex justify-end p-4 border-b border-gray-200">
+          <LanguageSwitcher availableLocales={availableLocales} />
+        </div>
+        <div className="flex-1 overflow-auto">
+          <div className="max-w-4xl mx-auto p-8">
+            <header className="mb-8">
+              <h1 className="text-3xl font-semibold text-gray-900">Activities</h1>
+              <p className="text-gray-600 mt-2">Choose an activity to begin</p>
+            </header>
+            <Activities />
+          </div>
         </div>
       </main>
     </div>

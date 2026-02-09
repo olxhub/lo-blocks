@@ -56,9 +56,10 @@ This is a **live preview** of your content. Edit on the left, see changes on the
 const storage = new NetworkStorageProvider('content');
 
 // Redux state wrapper - matches /edit/ pattern for content persistence
+// TODO: Pass baselineProps from useBaselineProps() instead of null
 function useEditComponentState(field, provenance, defaultState) {
   return useFieldState(
-    {},
+    null,
     field,
     defaultState,
     { id: provenance }
@@ -66,9 +67,10 @@ function useEditComponentState(field, provenance, defaultState) {
 }
 
 // Synchronous getter for edit component state - parallel to useEditComponentState
+// TODO: Pass baselineProps instead of null
 function getEditComponentState(field, provenance, defaultState) {
   return getReduxState(
-    {},
+    null,
     field,
     defaultState,
     { id: provenance }
@@ -81,7 +83,8 @@ function StudioPageContent() {
   const initialFile = searchParams.get('file') || 'untitled.olx';
 
   // Debug mode toggle (system-wide setting)
-  const [debug, setDebug] = useFieldState({}, settings.debug, false, { tag: 'studio', id: 'studio' });
+  // TODO: Pass baselineProps from useBaselineProps() instead of null
+  const [debug, setDebug] = useFieldState(null, settings.debug, false, { tag: 'studio', id: 'studio' });
 
   // TODO: Consider moving UI state to redux for analytics
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('chat');

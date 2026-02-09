@@ -60,6 +60,7 @@ import { useDebugSettings } from '@/lib/state/debugSettings';
 import { settings } from '@/lib/state/settings';
 import { useSetting } from '@/lib/state/settingsAccess';
 import { getTextDirection, getBrowserLocale } from '@/lib/i18n/getTextDirection';
+import type { BaselineProps, LoBlockRuntimeContext, UserLocale } from '@/lib/types';
 
 // Stable no-op for replay mode - avoids creating new function on each render
 const noopLogEvent = () => { };
@@ -69,42 +70,73 @@ const noopLogEvent = () => { };
 // ============================================================================
 
 /**
- * Build baseline runtime props: logEvent, locale, store, blockRegistry.
- * These are available everywhere and form the foundation for content props.
+ * Build baseline runtime context: logEvent, locale, store, blockRegistry.
+ * Returns the core runtime bundle that's available everywhere in the system.
+ *
+ * This is returned as a bare LoBlockRuntimeContext for functions that work
+ * directly with runtime properties. Most consumers should use useBaselineProps()
+ * to get BaselineProps, which wraps this in the standard prop structure.
  *
  * TODO: Move to lib/blocks/baselineProps.ts once dependencies stabilize
  */
-export function useBaselineProps() {
+export function useBaselineRuntime(): LoBlockRuntimeContext {
   const store = useStore();
   const { replayMode } = useDebugSettings();
   const logEvent = replayMode ? noopLogEvent : lo_event.logEvent;
   const sideEffectFree = replayMode;
 
-  // HACK: We coerce minimal props to RuntimeProps. We really want a prop hierarchy:
-  // MVPStoreProps { store, logEvent } < GlobalProps < BlockProps
-  // For now, this minimal set is enough for useSetting to work. Future refactor
-  // should introduce proper prop types for non-block contexts.
-  const [reduxLocale, setReduxLocale] = useSetting({ logEvent } as any, settings.locale);
-
-  // Initialize with browser locale if Redux has no setting
-  let locale = reduxLocale;
-  if (!locale) {
-    const browserCode = getBrowserLocale();
-    // HACK: Map unsupported locales to en-KE default
-    const supportedCodes = new Set(['ar-SA', 'en-KE', 'pl-PL', 'es-ES']);
-    const code = supportedCodes.has(browserCode) ? browserCode : 'en-KE';
-    const dir = getTextDirection(code);
-    locale = { code, dir };
-    setReduxLocale(locale);
-  }
-
-  return {
+  // Create minimal runtime structure for useSetting call
+  // Note: locale will be populated from Redux or browser below
+  const runtimeForSettings: LoBlockRuntimeContext = {
+    blockRegistry: BLOCK_REGISTRY,
     store,
     logEvent,
     sideEffectFree,
+    locale: { code: 'eo' as UserLocale, dir: 'ltr' }  // Esperanto placeholder - overwritten from Redux/browser below
+  };
+
+  // Wrap in BaselineProps structure for useSetting
+  const baselineProps: BaselineProps = { runtime: runtimeForSettings };
+  const [reduxLocale, setReduxLocale] = useSetting(baselineProps, settings.locale);
+
+  // Initialize locale from browser after hydration.
+  // Must be in useEffect (not during render) to avoid SSR/client mismatch:
+  // server has no navigator.language, so both sides see no locale initially,
+  // then client sets browser locale after hydration.
+  useEffect(() => {
+    if (!reduxLocale) {
+      const code = getBrowserLocale();
+      const dir = getTextDirection(code);
+      setReduxLocale({ code, dir });
+    }
+  }, [reduxLocale, setReduxLocale]);
+
+  // Before hydration, locale is empty. Pages should gate on locale being
+  // ready (via useLocaleAttributes().lang) before rendering localized content.
+  const locale = reduxLocale || { code: '' as UserLocale, dir: 'ltr' as const };
+
+  return {
     blockRegistry: BLOCK_REGISTRY,
+    store,
+    logEvent,
+    sideEffectFree,
     locale
   };
+}
+
+/**
+ * Get baseline props for global/system context.
+ *
+ * Returns BaselineProps which wraps LoBlockRuntimeContext in the standard prop
+ * structure. This is what most system-level functions expect (useSetting,
+ * LanguageSwitcher, etc.).
+ *
+ * Prefer this over useBaselineRuntime() unless you specifically need the
+ * bare runtime context.
+ */
+export function useBaselineProps(): BaselineProps {
+  const runtime = useBaselineRuntime();
+  return { runtime };
 }
 
 /**
@@ -332,12 +364,12 @@ export default function RenderOLX({
   source = 'content',
   eventContext,
 }: RenderOLXProps) {
-  // Build baseline runtime context
-  let baselineProps = useBaselineProps();
+  // Build baseline runtime context - use bare runtime, not wrapped BaselineProps
+  let runtimeContext = useBaselineRuntime();
 
   // Override blockRegistry if a custom one was provided
   if (blockRegistry !== BLOCK_REGISTRY) {
-    baselineProps = { ...baselineProps, blockRegistry };
+    runtimeContext = { ...runtimeContext, blockRegistry };
   }
 
   // Build provider stack for src="" resolution
@@ -350,13 +382,13 @@ export default function RenderOLX({
     effectiveProvider,
     provenance,
     source,
-    baselineProps.logEvent,
-    baselineProps.sideEffectFree,
+    runtimeContext.logEvent,
+    runtimeContext.sideEffectFree,
     onError
   );
 
-  // Merge parsed content into baseline props
-  const renderProps = mergeContentIntoProps(baselineProps, parsed, baseIdMap);
+  // Merge parsed content into runtime context
+  const renderProps = mergeContentIntoProps(runtimeContext, parsed, baseIdMap);
 
   // Notify parent when content is parsed
   useEffect(() => {
@@ -395,6 +427,13 @@ export default function RenderOLX({
 
   // Wait for parsing to complete when inline/files content is provided
   const parsingPending = (inline || files) && !parsed;
+
+  // Wait for locale to be available before rendering children
+  // (setReduxLocale is de facto synchronous, but adding a guard ensures
+  // we never render with undefined locale, which would break all getValue logic)
+  if (!runtime.locale?.code) {
+    return <Spinner>Loading language settings...</Spinner>;
+  }
 
   // Render the block
   const { block, ready } = useBlock(blockProps, parsingPending ? null : renderIdToQuery, source);

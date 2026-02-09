@@ -140,7 +140,7 @@ describe('Demo OLX files render without errors', () => {
         dispatchOlxJsonSync(reduxStore, 'content', idMap);
 
         // Render the component
-        const localeCode = 'en-US';
+        const localeCode = 'en-Latn-US';
         const element = render({
           node: { type: 'block', id: root },
           nodeInfo: makeRootNode(),

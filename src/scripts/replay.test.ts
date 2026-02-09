@@ -14,6 +14,7 @@ import { store } from '../lib/state/store';
 import { fieldSelector } from '../lib/state/redux';
 import { commonFields } from '../lib/state/commonFields';
 import { selectBlock } from '../lib/state/olxjson';
+import type { OlxKey, UserLocale } from '../lib/types';
 
 // Load fixture
 const fixturePath = path.join(__dirname, 'fixtures/grading-session.json');
@@ -39,7 +40,7 @@ describe('Event Replay', () => {
     const state = reduxStore.getState();
 
     // Verify OLX content is in Redux
-    const block = selectBlock(state, ['content'], 'NumericalGraderBasic');
+    const block = selectBlock(state, ['content'], 'NumericalGraderBasic' as OlxKey, 'en-Latn-US' as UserLocale);
     expect(block).toBeDefined();
     expect(block?.tag).toBe('CapaProblem');
     expect(block?.attributes.title).toBe('Squares');

@@ -21,9 +21,11 @@ import PreviewPane from '@/components/common/PreviewPane';
 import CodeEditor from '@/components/common/CodeEditor';
 import Spinner from '@/components/common/Spinner';
 import StatePanel from '@/components/common/StatePanel';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import { useFieldState } from '@/lib/state';
 import { editorFields } from '@/lib/state/editorFields';
 import { baseAttributes, inputMixin, graderMixin } from '@/lib/blocks/attributeSchemas';
+import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 
 // Shared attribute sets for documentation display.
 // Derives attribute names from the actual mixin definitions (DRY).
@@ -894,6 +896,7 @@ function BlockContent({ block, details, activeTab, loading, isGrammar = false })
 // =============================================================================
 
 export default function DocsPage() {
+  const localeAttrs = useLocaleAttributes();
   const [docs, setDocs] = useState(null);
   const [grammars, setGrammars] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -1067,16 +1070,19 @@ export default function DocsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white border-b px-6 py-4">
-        <Link href="/" className="text-2xl font-bold text-gray-900 hover:text-gray-700">
-          <h1>Learning Observer Blocks</h1>
-        </Link>
-        <p className="text-sm text-gray-500">
-          {docs.totalBlocks} blocks
-          {grammars?.totalGrammars > 0 && ` • ${grammars.totalGrammars} grammars`}
-          {' • '}Generated {new Date(docs.generated).toLocaleDateString()}
-        </p>
+    <div {...localeAttrs} className="min-h-screen bg-gray-50 flex flex-col">
+      <header className="bg-white border-b px-6 py-4 flex justify-between items-start">
+        <div>
+          <Link href="/" className="text-2xl font-bold text-gray-900 hover:text-gray-700">
+            <h1>Learning Observer Blocks</h1>
+          </Link>
+          <p className="text-sm text-gray-500">
+            {docs.totalBlocks} blocks
+            {grammars?.totalGrammars > 0 && ` • ${grammars.totalGrammars} grammars`}
+            {' • '}Generated {new Date(docs.generated).toLocaleDateString()}
+          </p>
+        </div>
+        <LanguageSwitcher />
       </header>
 
       <div className="flex flex-1 overflow-hidden">

@@ -2,6 +2,7 @@
 ---
 description: Demonstration of NextReveal and TalkBubble blocks for creating SBA dialogues with interleaved activities
 category: demo
+lang: en-Latn-US
 ---
 -->
 <NextReveal id="discourse_community_dialogue" title="Discourse Communities Discussion" launchable="true">

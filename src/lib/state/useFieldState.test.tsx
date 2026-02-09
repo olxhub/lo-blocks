@@ -2,6 +2,8 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { renderHook, act } from '@testing-library/react';
 
+import * as lo_event from 'lo_event';
+
 import { fields } from './fields';
 import { useFieldState, useAggregate, updateField } from './redux';
 import { scopes } from './scopes';
@@ -12,9 +14,12 @@ const settingFields = fields([{ name: 'speed', event: 'SET_SPEED', scope: scopes
 const systemFields = fields([{ name: 'lang', event: 'SET_LANG', scope: scopes.system }]);
 const storageFields = fields([{ name: 'content', event: 'SET_CONTENT', scope: scopes.storage }]);
 
-// Baseline props with enough context for tests not to fail
+// Minimal RuntimeProps-like object for tests.
+// Includes runtime.logEvent (required by updateField) and block identity fields.
 const props = {
-  id: 'sentinelId', loBlock: { OLXName: 'sentinelTag' }
+  id: 'sentinelId',
+  loBlock: { OLXName: 'sentinelTag' },
+  runtime: { logEvent: lo_event.logEvent },
 };
 
 // TODO: These should probably be streamlined into one `it` statement which
@@ -56,7 +61,7 @@ describe('useFieldState integration', () => {
     const { result } = renderHook(
       () =>
         useFieldState(
-          { id: 'vid1', loBlock: { OLXName: 'video' } },
+          { id: 'vid1', loBlock: { OLXName: 'video' }, runtime: { logEvent: lo_event.logEvent } },
           settingFields.speed,
           1
         ),
@@ -101,7 +106,7 @@ describe('useFieldState integration', () => {
     );
 
     const { result } = renderHook(
-      () => useFieldState({}, storageFields.content, '', { id: 'file1' }),
+      () => useFieldState(null, storageFields.content, '', { id: 'file1' }),
       { wrapper }
     );
 

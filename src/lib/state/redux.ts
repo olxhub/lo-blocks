@@ -47,7 +47,7 @@ import * as idResolver from '../blocks/idResolver';
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
-import { FieldInfo, OlxReference, OlxKey, RuntimeProps } from '../types';
+import { FieldInfo, OlxReference, OlxKey, RuntimeProps, BaselineProps } from '../types';
 import { assertValidField } from './fields';
 import type { Store } from 'redux';
 import { selectBlock } from './olxjson';
@@ -66,6 +66,13 @@ export interface SelectorOptions<T> {
   equalityFn?: (a: T, b: T) => boolean;
 }
 
+/**
+ * Core selector for field values.
+ *
+ * Accepts BaselineProps or RuntimeProps. For component/storage scope, needs the
+ * full props object with id/nodeInfo for ID resolution. For system scope, only
+ * needs the scope name from field.
+ */
 export const fieldSelector = <T>(
   state,
   props,
@@ -85,10 +92,7 @@ export const fieldSelector = <T>(
   const value: T | undefined = (() => {
     switch (scope) {
       case scopes.componentSetting: {
-        const tag =
-          optTag ??
-          props?.loBlock?.OLXName ??
-          props.nodeInfo?.node?.tag;
+        const tag = optTag ?? props?.loBlock?.OLXName;
         return selector(scopedState?.[tag]);
       }
       case scopes.system:
@@ -147,8 +151,11 @@ export const useFieldSelector = <T>(
   );
 
 
+// Accepts BaselineProps (system scope) or RuntimeProps (component/storage scope).
+// Polymorphic: branches on field.scope to access different properties.
+// TODO: Consider splitting into updateSystemField / updateComponentField for type safety.
 export function updateField(
-  props,
+  props: BaselineProps | null,
   field: FieldInfo,
   newValue,
   { id, tag }: { id?: string | boolean; tag?: string | boolean } = {}
@@ -156,17 +163,16 @@ export function updateField(
   assertValidField(field);
   const scope = field.scope;
   const fieldName = field.name;
-  // If id override is provided, apply prefix via refToReduxKey (supports /absolute syntax)
-  // Otherwise, use the component's own ID from props
+  // For component/storage scope, resolve the ID for Redux state key.
+  // These scopes require RuntimeProps (with id/idPrefix) for resolution.
   const resolvedId = (scope === scopes.component || scope === scopes.storage)
-    ? (id !== undefined
-      ? idResolver.refToReduxKey({ ...props, id })
-      : idResolver.refToReduxKey(props))
+    ? (typeof id === 'string'
+      ? idResolver.refToReduxKey({ ...(props as RuntimeProps), id })
+      : idResolver.refToReduxKey(props as RuntimeProps))
     : undefined;
-  const resolvedTag = tag ?? props?.loBlock?.OLXName;
+  const resolvedTag = tag ?? (props as RuntimeProps)?.loBlock?.OLXName;
 
-  // Use props.logEvent if available (respects replay mode), fallback to lo_event.logEvent
-  const logEvent = props.logEvent ?? lo_event.logEvent;
+  const logEvent = props ? props.runtime.logEvent : lo_event.logEvent;
   logEvent(field.event, {
     scope,
     [fieldName]: newValue,
@@ -177,9 +183,9 @@ export function updateField(
 
 
 export function useFieldState(
-  props,
+  props: BaselineProps | null,
   field: FieldInfo,
-  fallback,
+  fallback?,
   { id, tag }: { id?: string | boolean; tag?: string | boolean } = {}
 ) {
   assertValidField(field);
@@ -242,7 +248,7 @@ type ReduxInputOptions = {
 
 
 export function useReduxInput(
-  props,
+  props: RuntimeProps,
   field: FieldInfo,
   fallback = '',
   options: ReduxInputOptions = {}
@@ -269,9 +275,8 @@ export function useReduxInput(
   );
 
   const id = idResolver.refToReduxKey(props);
-  const tag = props?.loBlock.OLXName;
-  // Use props.logEvent if available (respects replay mode), fallback to lo_event.logEvent
-  const logEvent = props.logEvent ?? lo_event.logEvent;
+  const tag = props.loBlock.OLXName;
+  const logEvent = props.runtime.logEvent;
 
   const onChange = useCallback((event) => {
     const val = event.target.value;
@@ -357,7 +362,8 @@ export function componentFieldByName(props: RuntimeProps, targetId: OlxReference
   // Use refToOlxKey to normalize the ID for Redux lookup
   const normalizedId = idResolver.refToOlxKey(targetId);
   const sources = props.runtime.olxJsonSources ?? ['content'];
-  const targetNode = selectBlock(props.runtime.store.getState(), sources, normalizedId);
+  const locale = props.runtime.locale.code;
+  const targetNode = selectBlock(props.runtime.store.getState(), sources, normalizedId, locale);
   if (!targetNode) {
     throw new Error(`componentFieldByName: Component "${targetId}" not found in content`);
   }
@@ -395,7 +401,8 @@ export function valueSelector(props: RuntimeProps, state: any, id: OlxReference 
   // Use refToOlxKey to strip prefixes for Redux lookup
   const mapKey = idResolver.refToOlxKey(id);
   const sources = props.runtime.olxJsonSources ?? ['content'];
-  const targetNode = selectBlock(props.runtime.store.getState(), sources, mapKey);
+  const locale = props.runtime.locale.code;
+  const targetNode = selectBlock(props.runtime.store.getState(), sources, mapKey, locale);
   const loBlock = targetNode ? props.runtime.blockRegistry[targetNode.tag] : null;
 
   if (!targetNode || !loBlock) {

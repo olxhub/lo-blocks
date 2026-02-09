@@ -1,3 +1,10 @@
+<!--
+---
+description: Student artifact portal for the interdisciplinary research project displaying work from each research phase
+category: interdisciplinary
+lang: en-Latn-US
+---
+-->
 <Vertical id="interdisciplinary_artifact">
   <Markdown id="artifact_intro">
 ## Your Research Artifact

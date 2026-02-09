@@ -15,8 +15,9 @@ import { ComponentError } from '@/lib/types';
 export default function PreviewPage() {
   const params = useParams();
   const id = params.id as string;
+  // TODO: Pass baselineProps from useBaselineProps() instead of null
   const [debug] = useFieldState(
-    {},
+    null,
     settings.debug,
     false,
     { id: id, tag: 'preview' } // HACK: This works around not having proper props. Should be fixed. See below

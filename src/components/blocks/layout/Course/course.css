@@ -9,7 +9,7 @@
 
 .lo-tag-course .course-navigation {
   width: var(--lo-sidebar-width);
-  border-right: 1px solid var(--lo-border);
+  border-inline-end: 1px solid var(--lo-border);
   background-color: var(--lo-surface);
   overflow-y: auto;
   flex-shrink: 0;
@@ -36,7 +36,7 @@
 
 .lo-tag-course .course-navigation > div:last-child > div > button {
   width: 100%;
-  text-align: left;
+  text-align: start;
   padding: var(--lo-space-lg);
   border: none;
   border-radius: var(--lo-radius-md);
@@ -77,13 +77,13 @@
 
 /* Chapter children */
 .lo-tag-course .course-navigation > div:last-child > div > div {
-  margin-left: var(--lo-space-lg);
+  margin-inline-start: var(--lo-space-lg);
   margin-top: var(--lo-space-md);
 }
 
 .lo-tag-course .course-navigation > div:last-child > div > div > button {
   width: 100%;
-  text-align: left;
+  text-align: start;
   padding: var(--lo-space-md) var(--lo-space-lg);
   margin-bottom: var(--lo-space-xs);
   font-size: var(--lo-font-size-sm);

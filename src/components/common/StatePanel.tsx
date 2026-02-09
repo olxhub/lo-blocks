@@ -11,36 +11,57 @@
 
 import React, { useState, useMemo } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
+import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import type { OlxKey, OlxJson, IdMap } from '@/lib/types';
+import type { OlxKey, OlxJson, IdMap, RuntimeProps, UserLocale } from '@/lib/types';
+
+/** Typed iteration over IdMap entries (Object.entries loses branded key types in TS 5.8) */
+function* entriesIdMap(idMap: IdMap): Generator<[OlxKey, IdMap[OlxKey]]> {
+  for (const [id, variants] of Object.entries(idMap)) {
+    yield [id as OlxKey, variants];
+  }
+}
 
 /**
  * Find all component IDs in idMap that have stateful fields.
  */
-function findStatefulIds(idMap, blockRegistry = BLOCK_REGISTRY) {
+function findStatefulIds(idMap: IdMap, blockRegistry = BLOCK_REGISTRY, locale?: UserLocale) {
   if (!idMap) return [];
 
-  return Object.entries(idMap)
-    .filter(([id, node]: [OlxKey, OlxJson]) => {
-      const blockType = blockRegistry[node.tag];
-      // Has fields defined = stateful (fields is the map of field name -> FieldInfo)
-      const hasFields = blockType?.fields && Object.keys(blockType.fields).length > 0;
-      return hasFields;
-    })
-    .map(([id]) => id);
+  const result: OlxKey[] = [];
+  for (const [id, variantMap] of entriesIdMap(idMap)) {
+    // variantMap is nested structure { 'en-Latn-US': OlxJson, ... }
+    const node = extractLocalizedVariant(variantMap, locale || '');
+    if (!node) continue;
+
+    const blockType = blockRegistry[node.tag];
+    const hasFields = blockType?.fields && Object.keys(blockType.fields).length > 0;
+    if (hasFields) result.push(id);
+  }
+  return result;
 }
 
 /**
  * Single state viewer row - shows component ID and its state.
  */
-function StateRow({ id, idMap }) {
+function StateRow({ id, idMap }: { id: OlxKey; idMap: IdMap }) {
   const componentState = useSelector(
     (state: any) => state?.application_state?.component?.[id] || null,
     shallowEqual
   );
 
-  const node = idMap[id];
-  const tag = node?.tag || '?';
+  // Get current locale for variant selection
+  const locale = useSelector((state: any) => state?.application_state?.settings?.locale?.code);
+
+  // Extract the OlxJson from nested structure { variant: OlxJson, ... }
+  const variantMap = idMap[id];
+  const olxJson = extractLocalizedVariant(variantMap, locale || '');
+
+  if (!olxJson) {
+    return null;
+  }
+
+  const tag = olxJson.tag;
 
   return (
     <div className="border-b last:border-b-0 py-2">
@@ -61,12 +82,13 @@ function StateRow({ id, idMap }) {
 /**
  * Collapsible panel showing state for all stateful components.
  */
-export default function StatePanel({ idMap, blockRegistry = BLOCK_REGISTRY }) {
+export default function StatePanel({ idMap, blockRegistry = BLOCK_REGISTRY }: { idMap: IdMap; blockRegistry?: typeof BLOCK_REGISTRY }) {
   const [expanded, setExpanded] = useState(false);
+  const locale = useSelector((state: any) => state?.application_state?.settings?.locale?.code);
 
   const statefulIds = useMemo(
-    () => findStatefulIds(idMap, blockRegistry),
-    [idMap, blockRegistry]
+    () => findStatefulIds(idMap, blockRegistry, locale),
+    [idMap, blockRegistry, locale]
   );
 
   if (statefulIds.length === 0) {

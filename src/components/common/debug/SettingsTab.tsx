@@ -7,8 +7,9 @@
 import { useFieldState, settings } from '@/lib/state';
 
 export default function SettingsTab() {
+  // TODO: Pass baselineProps from useBaselineProps() instead of null
   const [showBlockOverlays, setShowBlockOverlays] = useFieldState(
-    {},
+    null,
     settings.debug,
     false,
     { tag: 'debug-panel', id: 'debug-panel' }

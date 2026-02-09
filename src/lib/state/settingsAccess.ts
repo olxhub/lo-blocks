@@ -6,17 +6,17 @@
  *
  * The call signature is designed to support context-aware resolution:
  * - useSetting(props, 'localeCode', { school: 'kaust' }) → resolves with attributes
- * - Later can match against rules: if school='kaust' then locale='ar-SA'
+ * - Later can match against rules: if school='kaust' then locale='ar-Arab-SA'
  *
  * Access patterns:
  * - selectSetting(state, key, attrs?) - Redux selector (pure, takes state directly)
- * - useSetting(props: RuntimeProps, key, attrs?) - React hook for components
- * - getSetting(props: DummySettingsProps, key, attrs?) - Direct access for non-React code
+ * - useSetting(props: BaselineProps, key, attrs?) - React hook for components
+ * - getSetting(props: SettingsProps, key, attrs?) - Direct access for non-React code
  */
 
 import { useSelector } from 'react-redux';
 import type { Store } from 'redux';
-import type { RuntimeProps, FieldInfo } from '@/lib/types';
+import type { RuntimeProps, BaselineProps, FieldInfo } from '@/lib/types';
 import { useFieldState } from './redux';
 
 /**
@@ -25,7 +25,7 @@ import { useFieldState } from './redux';
  * These represent conditions that can match against configuration rules.
  * Examples:
  *   { school: 'mit', user: '123', mode: 'replay' }
- *   { region: 'middle-east', locale: 'ar-SA' }
+ *   { region: 'middle-east', locale: 'ar-Arab-SA' }
  *
  * In PMSS: rules match against these attributes via CSS-like selectors.
  */
@@ -36,8 +36,9 @@ export interface SettingAttributes {
 /**
  * Minimal interface for settings access outside React components.
  *
- * HACK: This is a temporary subset of RuntimeProps. Eventually we'll have
- * a proper settings context object that components and actions can pass.
+ * TODO: Deprecated by BaselineProps. getSetting should accept BaselineProps
+ * and access props.runtime.store instead of props.store. Remove SettingsProps
+ * once getSetting is updated (currently has no callers, so low urgency).
  */
 export interface SettingsProps {
   store: Store;
@@ -68,15 +69,15 @@ export function selectSetting(state: any, field: { name: string }, attributes?: 
  *   const [locale, setLocale] = useSetting(props, settings.locale, { school: 'kaust' })
  *   const [locale, setLocale] = useSetting(null, settings.locale)  // HACK: props optional until PMSS integration
  *
- * @param props - RuntimeProps (contains store, accessed via Redux context). HACK: Optional for now, required when PMSS cascading is implemented.
+ * @param props - BaselineProps (contains runtime.logEvent, runtime.store). Also accepts RuntimeProps which extends BaselineProps.
  * @param field - FieldInfo for the setting (e.g., settings.locale)
  * @param attributes - Optional context for cascade matching (reserved for future PMSS integration, currently unused)
  * @returns Tuple of [value, setter] where setter updates Redux state
  */
-export function useSetting(props: RuntimeProps | null | undefined, field: FieldInfo, attributes?: SettingAttributes): [any, (value: any) => void] {
+export function useSetting(props: BaselineProps | null | undefined, field: FieldInfo, attributes?: SettingAttributes): [any, (value: any) => void] {
   // TODO: When PMSS-style cascading is implemented, use attributes to select among matching rules
   // For now: attributes parameter is reserved but unused
-  return useFieldState(props, field, undefined, {}) as [any, (value: any) => void];
+  return useFieldState(props ?? null, field, undefined, {}) as [any, (value: any) => void];
 }
 
 /**
@@ -88,11 +89,15 @@ export function useSetting(props: RuntimeProps | null | undefined, field: FieldI
  *
  * Used in non-React contexts or when you already have a props-like object.
  *
- * @param props - Object with store (SettingsProps, or full RuntimeProps)
+ * TODO: Migrate to accept BaselineProps and use props.runtime.store.
+ * The `SettingsProps | any` type is meaningless (collapses to any).
+ * No callers exist yet, so this can be fixed when first used.
+ *
+ * @param props - SettingsProps (contains store), BaselineProps, or RuntimeProps
  * @param field - Field definition with name property (from settings object)
  * @param attributes - Optional context for cascade matching
  * @returns Setting value or undefined if not set
  */
-export function getSetting(props: SettingsProps, field: { name: string }, attributes?: SettingAttributes): any {
+export function getSetting(props: SettingsProps | any, field: { name: string }, attributes?: SettingAttributes): any {
   return selectSetting(props.store.getState(), field, attributes);
 }

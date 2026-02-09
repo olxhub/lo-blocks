@@ -8,7 +8,7 @@
   width: 420px;
   max-height: calc(100vh - 96px); /* Leave room for header and footer */
   background: #161b22;
-  border-left: 1px solid #30363d;
+  border-inline-start: 1px solid #30363d;
   display: flex;
   flex-direction: column;
   z-index: 50;
@@ -100,7 +100,7 @@
 }
 
 .debug-footer-hint {
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 /* Events tab */
@@ -216,7 +216,7 @@
 }
 
 .debug-event-time {
-  margin-left: auto;
+  margin-inline-start: auto;
   font-size: 10px;
   color: #6e7681;
 }
@@ -281,7 +281,7 @@
 
 .debug-tree-preview {
   color: #8b949e;
-  margin-left: 4px;
+  margin-inline-start: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -289,19 +289,20 @@
 }
 
 .debug-tree-children {
-  margin-left: 16px;
-  border-left: 1px solid #30363d;
-  padding-left: 8px;
+  margin-inline-start: 16px;
+  border-inline-start: 1px solid #30363d;
+  padding-inline-start: 8px;
 }
 
 .debug-count {
   color: #6e7681;
   font-size: 11px;
-  margin-left: 4px;
+  margin-inline-start: 4px;
 }
 
 .debug-block-detail {
-  margin: 4px 0 4px 16px;
+  margin: 4px 0 4px;
+  margin-inline-start: 16px;
   padding: 8px;
   background: #0d1117;
   border-radius: 4px;
@@ -449,8 +450,8 @@
 /* Time-travel: selected event */
 .debug-event.selected {
   background: rgba(88, 166, 255, 0.15);
-  border-left: 3px solid #58a6ff;
-  padding-left: 5px;
+  border-inline-start: 3px solid #58a6ff;
+  padding-inline-start: 5px;
 }
 
 .debug-event-expand {
@@ -475,7 +476,7 @@
   border-radius: 3px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 /* Time-travel banner */
@@ -499,7 +500,7 @@
 .debug-btn-small {
   padding: 2px 8px;
   font-size: 11px;
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 /* Diff summary */

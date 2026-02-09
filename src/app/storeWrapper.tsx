@@ -32,6 +32,7 @@ import { replayToEvent, filterByContext, LoggedEvent, AppState } from '@/lib/rep
 import { DebugSettingsContext, type DebugSettings } from '@/lib/state/debugSettings';
 import GlobalDebugPanel from '@/components/common/debug/GlobalDebugPanel';
 import ReplayModeIndicator from '@/components/common/debug/ReplayModeIndicator';
+import type { BaselineProps } from '@/lib/types';
 
 // Re-export for backward compatibility
 export { useDebugSettings } from '@/lib/state/debugSettings';
@@ -144,19 +145,24 @@ interface StoreWrapperInnerProps {
 
 function StoreWrapperInner({ children, reduxID }: StoreWrapperInnerProps) {
   // Read debug settings from Redux (using debugLogEvent with "debug" context)
-  // These are separate from app's event context hierarchy
+  // These are separate from app's event context hierarchy.
+  // Minimal BaselineProps: only runtime.logEvent is used for system-scope settings.
+  const debugProps = {
+    runtime: { logEvent: debugLogEvent, store: reduxStore },
+  } as BaselineProps;
+
   const [panelOpen, setPanelOpen] = useFieldState(
-    { store: reduxStore, logEvent: debugLogEvent },
+    debugProps,
     settings.debugPanel,
     false
   );
   const [replayMode, setReplayMode] = useFieldState(
-    { store: reduxStore, logEvent: debugLogEvent },
+    debugProps,
     settings.debugReplayMode,
     false
   );
   const [replayEventIndex, setReplayEventIndex] = useFieldState(
-    { store: reduxStore, logEvent: debugLogEvent },
+    debugProps,
     settings.debugReplayEventIndex,
     -1
   );

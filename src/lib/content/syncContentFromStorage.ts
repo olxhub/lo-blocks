@@ -15,7 +15,7 @@
 
 import { StorageProvider, fileTypes } from '@/lib/lofs';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
-import type { ProvenanceURI, OLXLoadingError } from '@/lib/types';
+import type { ProvenanceURI, OLXLoadingError, OlxJson, IdMap, OlxKey, ContentVariant } from '@/lib/types';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { copyImagesToPublic } from '@/lib/content/imageSync';
 
@@ -43,12 +43,29 @@ interface ParsedFileEntry extends FileRecord {
   error?: string;      // Set if parsing failed
 }
 
+/** Language variant map: { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... } */
+type LangMap = Record<string, OlxJson>;
+
+/** Typed iteration over IdMap entries (Object.entries loses branded key types) */
+function* entriesIdMap(idMap: IdMap): Generator<[OlxKey, IdMap[OlxKey]]> {
+  for (const [id, variants] of Object.entries(idMap)) {
+    yield [id as OlxKey, variants];
+  }
+}
+
+/** Typed iteration over variant map entries */
+function* entriesVariantMap(variantMap: IdMap[OlxKey]): Generator<[ContentVariant, OlxJson]> {
+  for (const [variant, olxJson] of Object.entries(variantMap)) {
+    yield [variant as ContentVariant, olxJson as OlxJson];
+  }
+}
+
 /** The in-memory content store */
 interface ContentStore {
   /** Maps file URI -> parsed file entry (what blocks came from this file) */
   parsedFiles: Record<ProvenanceURI, ParsedFileEntry>;
-  /** Maps block ID -> block data (the actual parsed content) */
-  blockIndex: Record<string, any>;
+  /** Maps block ID -> language variant map (the actual parsed content) */
+  blockIndex: Record<string, LangMap>;
 }
 
 /** Result of categorizing files by change status */
@@ -124,7 +141,7 @@ export async function syncContentFromStorage(
  */
 async function promoteFilesWithChangedDependencies(
   changeSets: FileChangeSets,
-  blockIndex: Record<string, any>,
+  blockIndex: Record<string, LangMap>,
   provider: StorageProvider
 ): Promise<void> {
   const changedAuxiliaryFiles = findChangedAuxiliaryFiles(changeSets);
@@ -164,24 +181,29 @@ function findChangedAuxiliaryFiles(changeSets: FileChangeSets): Set<ProvenanceUR
  */
 function findOlxFilesDependingOn(
   changedAuxiliaryFiles: Set<ProvenanceURI>,
-  blockIndex: Record<string, any>,
+  blockIndex: Record<string, LangMap>,
   unchangedFiles: Record<ProvenanceURI, ParsedFileEntry>
 ): Set<ProvenanceURI> {
   const olxFilesToReparse = new Set<ProvenanceURI>();
 
-  for (const block of Object.values(blockIndex)) {
-    if (!block.provenance || !Array.isArray(block.provenance)) continue;
+  for (const langMap of Object.values(blockIndex)) {
+    // blockIndex stores nested structure { locale: OlxJson }
+    // Check ALL locale variants for dependencies on changed auxiliary files
+    // (e.g., Arabic variant might include src="aux.ar.png" that English doesn't)
+    for (const olxJson of Object.values(langMap)) {
+      if (!olxJson?.provenance || !Array.isArray(olxJson.provenance)) continue;
 
-    // Check if this block's provenance includes a changed auxiliary file
-    const dependsOnChangedFile = block.provenance.some(
-      (prov: string) => changedAuxiliaryFiles.has(prov as ProvenanceURI)
-    );
+      // Check if this variant's provenance includes a changed auxiliary file
+      const dependsOnChangedFile = olxJson.provenance.some(
+        (prov: string) => changedAuxiliaryFiles.has(prov as ProvenanceURI)
+      );
 
-    if (dependsOnChangedFile) {
-      // The root OLX file is the first element in the provenance chain
-      const rootOlxFile = block.provenance[0] as ProvenanceURI;
-      if (rootOlxFile && unchangedFiles[rootOlxFile]) {
-        olxFilesToReparse.add(rootOlxFile);
+      if (dependsOnChangedFile) {
+        // The root OLX file is the first element in the provenance chain
+        const rootOlxFile = olxJson.provenance[0] as ProvenanceURI;
+        if (rootOlxFile && unchangedFiles[rootOlxFile]) {
+          olxFilesToReparse.add(rootOlxFile);
+        }
       }
     }
   }
@@ -325,24 +347,40 @@ function collectParseErrors(
 }
 
 /**
- * Adds parsed blocks to the block index, checking for duplicates.
- * Duplicate blocks are skipped and an error is recorded.
+ * Adds parsed blocks to the block index, merging language variants.
+ *
+ * Same block ID across files is allowed if they have different languages.
+ * Different languages are merged into nested structure: { id: { lang: OlxJson } }
+ *
+ * Duplicate error only if: same ID + same language in different files.
  */
 function indexParsedBlocks(
-  newBlocks: Record<string, any>,
-  blockIndex: Record<string, any>,
+  newBlocks: IdMap,
+  blockIndex: Record<string, LangMap>,
   sourceFile: ProvenanceURI,
   errors: OLXLoadingError[]
 ): void {
-  for (const [blockId, block] of Object.entries(newBlocks)) {
+  for (const [blockId, newLangMap] of entriesIdMap(newBlocks)) {
     const existingBlock = blockIndex[blockId];
 
-    if (existingBlock) {
-      errors.push(createDuplicateIdError(blockId, existingBlock, block, sourceFile));
-      continue;  // Skip duplicate, keep the first one
+    if (!existingBlock) {
+      // First time seeing this ID - store the entire language map
+      blockIndex[blockId] = newLangMap;
+      continue;
     }
 
-    blockIndex[blockId] = block;
+    // Block exists - merge language variants
+    for (const [lang, newOlxJson] of entriesVariantMap(newLangMap)) {
+      if (existingBlock[lang]) {
+        // Same ID + same language in different files = real duplicate error
+        const existingOlxJson = existingBlock[lang];
+        errors.push(createDuplicateIdError(blockId, existingOlxJson, newOlxJson, sourceFile));
+        continue;  // Skip this language variant, keep the first one
+      }
+
+      // New language for this ID - merge it in
+      existingBlock[lang] = newOlxJson;
+    }
   }
 }
 

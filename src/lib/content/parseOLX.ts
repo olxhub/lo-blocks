@@ -23,7 +23,7 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { transformTagName } from '@/lib/content/xmlTransforms';
 
 import * as parsers from '@/lib/content/parsers';
-import { Provenance, IdMap, OLXLoadingError, OlxReference, OlxKey } from '@/lib/types';
+import { Provenance, IdMap, OLXLoadingError, OlxReference, OlxKey, JSONValue } from '@/lib/types';
 import { formatProvenanceList } from '@/lib/lofs/provenance';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { OLXMetadataSchema, type OLXMetadata } from '@/lib/content/metadata';
@@ -105,18 +105,71 @@ function shouldBlockRequireUniqueId(Component, tag, storeId, entry, idMap, prove
 }
 
 /**
+ * Resolves the language for an element using the cascade:
+ * 1. OLX attribute on element (`lang="..."`)
+ * 2. Element's own metadata language (from YAML comment above it)
+ * 3. Parent element's resolved language (carries file-level lang via cascade)
+ * 4. Default '*' (language-agnostic)
+ *
+ * TODO: Should we swap #1 and #2? Logically, the current order makes sense,
+ * but swapping would be more flexible (lang= also sets user locale; metadata
+ * does not).
+ *
+ * File-level language doesn't need a separate parameter - the root element's
+ * metadata lang becomes its resolved lang, which cascades to children via parentLang.
+ *
+ * @param elementAttributes - The parsed attributes of the current element
+ * @param parentLang - Language inherited from parent element
+ * @param metadataLang - Language from this element's own metadata comment
+ * @returns The resolved BCP 47 language tag
+ */
+function resolveElementLanguage(
+  elementAttributes: Record<string, JSONValue>,
+  parentLang: string | undefined,
+  metadataLang: string | undefined
+): string {
+  // 1. Check element's own lang attribute
+  if (elementAttributes?.lang && typeof elementAttributes.lang === 'string') {
+    return elementAttributes.lang;
+  }
+
+  // 2. Check element's own metadata (from YAML comment above this element)
+  if (metadataLang) {
+    return metadataLang;
+  }
+
+  // 3. Inherit from parent (carries file-level lang via cascade)
+  if (parentLang) {
+    return parentLang;
+  }
+
+  // 4. Default - generic/language-agnostic content (shown to everyone)
+  return '*';
+}
+
+/**
  * Extracts metadata from a comment node's text content.
+ *
+ * Looks for YAML frontmatter in the format:
+ *   <!--
+ *   ---
+ *   key: value
+ *   ---
+ *   -->
  *
  * @param commentText - The text content of an XML comment
  * @param provenance - Current provenance chain for error reporting
  * @param errors - Array to collect parsing errors
- * @returns Parsed and validated metadata object, or {} if none found or invalid
+ * @returns Three possible outcomes:
+ *   - null: No YAML frontmatter found (comment doesn't have --- delimiters)
+ *   - OLXLoadingError: Metadata frontmatter found but has syntax/validation errors
+ *   - OLXMetadata: Valid metadata successfully parsed and validated
  */
 function extractMetadataFromComment(
   commentText: any,
   provenance: Provenance,
   errors: OLXLoadingError[]
-): OLXMetadata {
+): OLXMetadata | OLXLoadingError | null {
   const file = provenance.join(' → ');
 
   // Fail early if comment structure is invalid
@@ -125,23 +178,25 @@ function extractMetadataFromComment(
   // statements should be removed if these issues are never triggered.
 
   if (commentText === undefined || commentText === null) {
-    errors.push({
+    const error: OLXLoadingError = {
       type: 'parse_error',
       file,
       message: 'Internal parser error: Comment node found but text content is missing. This may indicate a parser configuration issue.',
       technical: { commentText }
-    });
-    return {};
+    };
+    errors.push(error);
+    return error;
   }
 
   if (typeof commentText !== 'string') {
-    errors.push({
+    const error: OLXLoadingError = {
       type: 'parse_error',
       file,
       message: `Internal parser error: Comment text has unexpected type '${typeof commentText}' (expected string).`,
       technical: { commentText, type: typeof commentText }
-    });
-    return {};
+    };
+    errors.push(error);
+    return error;
   }
 
   // Trim whitespace and check for YAML frontmatter delimiters (---)
@@ -150,7 +205,7 @@ function extractMetadataFromComment(
   // Allow optional whitespace before closing --- to handle indented comments in tests
   const frontmatterMatch = trimmed.match(/^---\s*\n([\s\S]*?)\n\s*---\s*$/);
   if (!frontmatterMatch) {
-    return {}; // Not metadata, just a regular comment
+    return null; // No YAML frontmatter - not metadata, just a regular comment
   }
 
   const yamlContent = frontmatterMatch[1];
@@ -168,7 +223,7 @@ function extractMetadataFromComment(
         `  • ${issue.path.join('.')}: ${issue.message}`
       ).join('\n');
 
-      errors.push({
+      const error: OLXLoadingError = {
         type: 'metadata_error',
         file,
         message: `📝 Metadata Format Error
@@ -196,14 +251,15 @@ Common issues:
           yamlContent,
           zodIssues: result.error.issues
         }
-      });
-      return {};
+      };
+      errors.push(error);
+      return error;
     }
 
     return result.data;
   } catch (yamlError: any) {
     // YAML parsing failed
-    errors.push({
+    const error: OLXLoadingError = {
       type: 'metadata_error',
       file,
       message: `📝 Metadata YAML Syntax Error
@@ -233,8 +289,9 @@ Example of correct format:
         yamlError: yamlError.message,
         yamlErrorDetails: yamlError
       }
-    });
-    return {};
+    };
+    errors.push(error);
+    return error;
   }
 }
 
@@ -242,14 +299,15 @@ Example of correct format:
  * Extracts metadata from a preceding sibling comment.
  *
  * Searches backwards from the current node index to find the nearest
- * preceding comment with YAML frontmatter, skipping only whitespace.
- * Metadata always applies to the next element after the comment.
+ * preceding comment with valid YAML metadata frontmatter, skipping whitespace.
+ * Stops searching when a metadata comment is found, or when encountering
+ * non-comment, non-whitespace content.
  *
  * @param siblings - Array of sibling nodes
  * @param nodeIndex - Index of the current node in the siblings array
  * @param provenance - Current provenance chain for error reporting
- * @param errors - Array to collect parsing errors
- * @returns Parsed and validated metadata object, or {} if none found
+ * @param errors - Array to collect parsing errors (errors are added by extractMetadataFromComment)
+ * @returns Metadata object with defaults applied, empty if no valid metadata found
  */
 function extractSiblingMetadata(
   siblings: any[] | null,
@@ -258,7 +316,7 @@ function extractSiblingMetadata(
   errors: OLXLoadingError[]
 ): OLXMetadata {
   if (!siblings || nodeIndex <= 0) {
-    return {};
+    return OLXMetadataSchema.parse({});
   }
 
   // Look backwards for a comment with valid metadata
@@ -274,25 +332,34 @@ function extractSiblingMetadata(
       break; // Stop at non-whitespace text
     }
 
-    // Found a comment - check if it has valid metadata
+    // Found a comment - try to extract metadata
     if ('#comment' in sibling) {
       // With fast-xml-parser preserveOrder:true, comments have structure:
       // { '#comment': [{ '#text': 'content' }] }
       // Using direct property access (not ?.) to fail fast if structure is unexpected
       const commentText = sibling['#comment'][0]['#text'];
-      const metadata = extractMetadataFromComment(commentText, provenance, errors);
-      if (Object.keys(metadata).length > 0) {
-        return metadata; // Found valid metadata
+      const result = extractMetadataFromComment(commentText, provenance, errors);
+
+      if (result === null) {
+        // No YAML frontmatter - keep searching backwards for a metadata comment
+        continue;
       }
-      // No metadata in this comment, continue searching
-      continue;
+
+      if ('type' in result) {
+        // Error found in metadata (parse_error or metadata_error) -
+        // return defaults. Error already added to errors array by extractMetadataFromComment.
+        return OLXMetadataSchema.parse({});
+      }
+
+      // Valid metadata found (result is now narrowed to OLXMetadata)
+      return result as OLXMetadata;
     }
 
-    // Stop at any other element
+    // Stop at any other element (not comment, not whitespace)
     break;
   }
 
-  return {};
+  return OLXMetadataSchema.parse({});
 }
 
 export async function parseOLX(
@@ -353,7 +420,7 @@ export async function parseOLX(
   let rootId = '';
   const errors: OLXLoadingError[] = [];
 
-  async function parseNode(node, siblings: any[] | null = null, nodeIndex = -1) {
+  async function parseNode(node, siblings: any[] | null = null, nodeIndex = -1, parentLang: string | undefined = undefined) {
     const tag = Object.keys(node).find(k => ![':@', '#text', '#comment'].includes(k));
     if (!tag) return null;
 
@@ -361,6 +428,14 @@ export async function parseOLX(
 
     // Extract metadata from preceding sibling comment
     const metadata = extractSiblingMetadata(siblings, nodeIndex, provenance, errors);
+
+    // Resolve language for this element using cascade:
+    // 1. Element's own lang attribute
+    // 2. Element's own metadata language (from YAML comment above)
+    // 3. Inherited from parent element (carries file-level lang via cascade)
+    // 4. Default '*'
+    const metadataLang = metadata?.lang;
+    const currentLang = resolveElementLanguage(attributes, parentLang, metadataLang);
 
     if (attributes.ref) {
       if (tag !== 'Use') {
@@ -436,6 +511,11 @@ export async function parseOLX(
 
     const parser = Component?.parser || defaultParser;
 
+    // Create a wrapper around parseNode that passes currentLang as parentLang for child elements.
+    // This ensures language inheritance works correctly throughout the tree.
+    const parseNodeWithLang = (childNode, childSiblings, childIndex) =>
+      parseNode(childNode, childSiblings, childIndex, currentLang);
+
     // Parse the node using the component's parser. The parser is responsible
     // for calling `storeEntry` for every piece of data that should be tracked
     // in the ID map. A single node may generate multiple entries this way.
@@ -448,34 +528,45 @@ export async function parseOLX(
       attributes: parsedAttributes,
       provenance,
       provider,
-      parseNode,
+      parseNode: parseNodeWithLang,
       metadata,  // Pass metadata to parser so it can include in entry
       storeEntry: (storeId, entryOrUpdater) => {
         // Support both direct entry and updater function patterns:
         // - storeEntry(id, entry) - store/overwrite
         // - storeEntry(id, (existing) => newEntry) - update existing
+        // Resolve language: if the entry has its own lang attribute, use it;
+        // otherwise inherit from the current element's resolved language (currentLang).
+        // We pass currentLang (not parentLang) because parser-generated entries
+        // are conceptually children of this element, not siblings.
+        let entryAttributes = parsedAttributes;
+        if (typeof entryOrUpdater === 'object' && entryOrUpdater !== null && entryOrUpdater.attributes) {
+          entryAttributes = entryOrUpdater.attributes;
+        }
+        const lang = resolveElementLanguage(entryAttributes, currentLang, metadataLang);
         const entry = typeof entryOrUpdater === 'function'
-          ? entryOrUpdater(idMap[storeId])
+          ? entryOrUpdater(idMap[storeId]?.[lang])
           : entryOrUpdater;
 
         // If this is an update to an existing entry, just update it
-        if (typeof entryOrUpdater === 'function' && idMap[storeId]) {
-          idMap[storeId] = entry;
+        if (typeof entryOrUpdater === 'function' && idMap[storeId]?.[lang]) {
+          if (!idMap[storeId]) idMap[storeId] = {};
+          idMap[storeId][lang] = entry;
           return;
         }
 
-        if (idMap[storeId]) {
+        if (idMap[storeId]?.[lang]) {
           const requiresUnique = shouldBlockRequireUniqueId(Component, tag, storeId, entry, idMap, provenance);
 
           if (!requiresUnique) {
             // Allow duplicate IDs for this block type - but still store in idMap
             // We'll overwrite the previous entry to keep the latest one
-            idMap[storeId] = entry;
+            if (!idMap[storeId]) idMap[storeId] = {};
+            idMap[storeId][lang] = entry;
             return;
           }
 
           // Get detailed information about both the existing and duplicate entries
-          const existingEntry = idMap[storeId];
+          const existingEntry = idMap[storeId][lang];
 
           errors.push({
             type: 'duplicate_id',
@@ -503,7 +594,8 @@ export async function parseOLX(
           // Skip the duplicate, keep the first one
           return;
         }
-        idMap[storeId] = entry;
+        if (!idMap[storeId]) idMap[storeId] = {};
+        idMap[storeId][lang] = entry;
       },
       // Pass errors array to parsers so they can accumulate errors too
       errors
@@ -522,6 +614,8 @@ export async function parseOLX(
     )
     : parsedTree;
 
+  let fileMetadata: OLXMetadata = OLXMetadataSchema.parse({});
+
   if (rootNode) {
     // We take the ID from the result of `parseNode` rather than directly from
     // `rootNode`. The parser can rewrite the ID (for example when handling
@@ -529,6 +623,7 @@ export async function parseOLX(
     // stored in the ID map.
     // Pass parsedTree as siblings so root can extract metadata from preceding comments
     const rootIndex = Array.isArray(parsedTree) ? parsedTree.indexOf(rootNode) : -1;
+
     const parsedRoot = await parseNode(rootNode, parsedTree, rootIndex);
     if (parsedRoot?.id) {
       rootId = parsedRoot.id;

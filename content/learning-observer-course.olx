@@ -1,3 +1,10 @@
+<!--
+---
+description: Overview and guide for authoring content in the Learning Observer system
+category: demo
+lang: en-Latn-US
+---
+-->
 <!-- content/demos/course-demo.xml -->
 <Course id="intro_course" title="Introduction to Learning Observer" launchable="true">
   <Chapter title="Getting Started" id="ch1">

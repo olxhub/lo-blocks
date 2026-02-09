@@ -1,9 +1,10 @@
 // src/lib/content/useContentLoader.ts
 import { useState, useEffect } from 'react';
-import * as lo_event from 'lo_event';
 import { IdMap, ComponentError } from '@/lib/types';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
 import { useDebugSettings } from '@/lib/state/debugSettings';
+import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
+import { useBaselineProps } from '@/components/common/RenderOLX';
 
 /**
  * Hook to load content from the API by ID
@@ -24,8 +25,12 @@ export function useContentLoader(id: string, source = 'content') {
 
   // Check if we're in replay mode - if so, skip side effects
   const { replayMode } = useDebugSettings();
-  const noopLogEvent = () => {};
-  const logEvent = replayMode ? noopLogEvent : lo_event.logEvent;
+
+  // Get locale from Redux
+  const localeAttrs = useLocaleAttributes();
+  const locale = localeAttrs.lang;
+
+  const baselineProps = useBaselineProps();
 
   useEffect(() => {
     // Skip side effects during replay
@@ -34,7 +39,7 @@ export function useContentLoader(id: string, source = 'content') {
       return;
     }
 
-    if (!id) {
+    if (!id || !locale) {
       setLoading(false);
       return;
     }
@@ -42,14 +47,19 @@ export function useContentLoader(id: string, source = 'content') {
     setLoading(true);
     setError(null);
 
-    fetch(`/api/content/${id}`)
+    // Use globalThis.fetch with Accept-Language header
+    globalThis.fetch(`/api/content/${id}`, {
+      headers: {
+        'Accept-Language': locale,
+      },
+    })
       .then(res => res.json())
       .then(data => {
         if (!data.ok) {
           setError(data.error);
         } else {
           // Dispatch to Redux for reactive block access
-          dispatchOlxJson({ runtime: { logEvent } }, source, data.idMap);
+          dispatchOlxJson(baselineProps, source, data.idMap);
           setIdMap(data.idMap);
         }
         setLoading(false);
@@ -58,7 +68,8 @@ export function useContentLoader(id: string, source = 'content') {
         setError(err.message);
         setLoading(false);
       });
-  }, [id, source, replayMode, logEvent]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- baselineProps is stable (same logEvent/store), but creates new object each render
+  }, [id, source, replayMode, locale]);
 
   return { idMap, error, loading };
 }

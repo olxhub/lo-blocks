@@ -9,6 +9,7 @@
 
 import { useSelector } from 'react-redux';
 import { useEffect, useRef } from 'react';
+import * as api from '@/lib/api';
 import {
   selectBlockState,
   dispatchOlxJsonLoading,
@@ -16,7 +17,8 @@ import {
   dispatchOlxJsonError
 } from '@/lib/state/olxjson';
 import { refToOlxKey } from '@/lib/blocks/idResolver';
-import type { OlxJson, OlxKey, OlxReference } from '@/lib/types';
+import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
+import type { OlxJson, OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
 import type { LogEventFn } from '@/lib/render';
 
 export interface OlxJsonResult {
@@ -25,9 +27,9 @@ export interface OlxJsonResult {
   error: string | null;
 }
 
-// Props type for useOlxJson - requires logEvent and sideEffectFree
-interface UseOlxJsonProps {
-  runtime: { logEvent: LogEventFn; sideEffectFree: boolean };
+// Props type for useOlxJson - extends RuntimeProps for locale and includes sideEffectFree
+interface UseOlxJsonProps extends RuntimeProps {
+  runtime: RuntimeProps['runtime'] & { sideEffectFree: boolean };
 }
 
 /**
@@ -72,7 +74,8 @@ export function useOlxJson(
     // Mark as loading
     dispatchOlxJsonLoading(props, source, olxKey);
 
-    fetch(`/api/content/${olxKey}`)
+    api
+      .fetch(props, `/api/content/${olxKey}`)
       .then(res => res.json())
       .then(data => {
         if (!data.ok) {
@@ -111,7 +114,16 @@ export function useOlxJson(
     };
   }
 
-  return { olxJson: blockState.olxJson, loading: false, error: null };
+  // Extract the language variant from nested structure
+  const stored = blockState.olxJson;
+  if (!stored) {
+    return { olxJson: null, loading: false, error: null };
+  }
+
+  const userLocale = props.runtime.locale.code;
+  const langVariant = extractLocalizedVariant(stored, userLocale);
+
+  return { olxJson: langVariant || null, loading: false, error: null };
 }
 
 /**

@@ -108,9 +108,10 @@ export function render({ node, nodeInfo, runtime }: {
         />
       );
     }
+    const locale = runtime.locale.code;
     const olxKey = refToOlxKey(node.id);
     const sources = actualOlxJsonSources ?? ['content'];
-    const entry = selectBlock(actualStore.getState(), sources, olxKey);
+    const entry = selectBlock(actualStore.getState(), sources, olxKey, locale);
     if (!entry) {
       return (
         <DisplayError

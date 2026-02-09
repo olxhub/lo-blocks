@@ -70,10 +70,10 @@
   }
 
   .matching-left-item {
-    padding-right: 2.5rem;
+    padding-inline-end: 2.5rem;
   }
 
   .matching-right-item {
-    padding-left: 2.5rem;
+    padding-inline-start: 2.5rem;
   }
 }
