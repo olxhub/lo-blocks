@@ -128,14 +128,7 @@ psych_sba_sidebar2 -> reinforce_punish_practice_1t
 
 --- wait @reinforcement_v_punishment_badge.submitCount > 0 ---
 
-<<<<<<< HEAD
 psych_sba_sidebar2 -> reinforce_punish_practice_1c
-=======
-Understanding Types
--------------------
-
-psych_sba_sidebar2 -> operant_conditioning_clear_screen_1
->>>>>>> c75d6fb (Continuing edits to Psych SBA Part 2)
 
 JJ: I got #3 wrong. I was confused by "accidentally". It didn't matter if it was an accident. It reduced the likelihood that Lucas would touch the stove to zero, so in terms of psychological theory, it was a punishment.
 
@@ -244,33 +237,6 @@ JJ: I'm game.
 Annie: I am, too. Let's give it a try!
 
 psych_sba_sidebar2 -> four_types_practice_1
-<<<<<<< HEAD
-=======
-
---- wait @four_types_sticker.submitCount > 0 ---
-
-psych_sba_sidebar2 -> four_types_practice_1b
-
---- wait @four_types_asking.submitCount > 0 ---
-
-psych_sba_sidebar2 -> four_types_practice_1c
-
---- wait @four_types_getting_burned.submitCount > 0 ---
-
-psych_sba_sidebar2 -> four_types_practice_1d
-
---- wait @four_types_tantrum.submitCount > 0 ---
-
-psych_sba_sidebar2 -> four_types_practice_1e
-
---- wait @four_types_glaring.submitCount > 0 ---
-
-psych_sba_sidebar2 -> four_types_practice_1f
-
---- wait @four_types_screentime.submitCount > 0 ---
-
-Lin: Here are the first five questions on the quiz.
->>>>>>> c75d6fb (Continuing edits to Psych SBA Part 2)
 
 --- wait @four_types_sticker.submitCount > 0 ---
 
