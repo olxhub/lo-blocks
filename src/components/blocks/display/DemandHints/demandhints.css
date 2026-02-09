@@ -4,7 +4,7 @@
   margin: var(--lo-space-md) 0;
   padding: var(--lo-space-md);
   background-color: var(--lo-warning-light);
-  border-left: 3px solid var(--lo-warning);
+  border-inline-start: 3px solid var(--lo-warning);
   border-radius: var(--lo-radius-md);
 }
 

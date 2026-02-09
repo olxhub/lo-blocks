@@ -4,8 +4,8 @@
 .replay-mode-indicator {
   position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   z-index: 1000;
   background: linear-gradient(135deg, #1a3a5c 0%, #0d1f33 100%);
   border-bottom: 2px solid #58a6ff;
@@ -116,7 +116,7 @@
 
 /* Exit button */
 .replay-mode-exit {
-  margin-left: auto;
+  margin-inline-start: auto;
   padding: 4px 12px;
   background: #21262d;
   border: 1px solid #30363d;
@@ -168,7 +168,7 @@
 .replay-mode-scrubber-fill {
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   height: 100%;
   background: linear-gradient(90deg, rgba(88, 166, 255, 0.3) 0%, rgba(121, 192, 255, 0.3) 100%);
   border-radius: 6px;
@@ -204,7 +204,7 @@
   content: '← → to navigate';
   position: absolute;
   bottom: 4px;
-  right: 16px;
+  inset-inline-end: 16px;
   font-size: 10px;
   color: #6e7681;
   opacity: 0.7;

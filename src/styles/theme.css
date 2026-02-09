@@ -97,7 +97,7 @@ body {
 /* Show Answer Label - used across input components */
 .lo-show-answer-label {
   display: inline-block;
-  margin-left: var(--lo-space-sm);
+  margin-inline-start: var(--lo-space-sm);
   padding: var(--lo-space-xs) var(--lo-space-sm);
   background-color: var(--lo-success-light);
   color: var(--lo-success);
@@ -110,7 +110,7 @@ body {
 .lo-sortable-position-label {
   position: absolute;
   top: 50%;
-  left: 50%;
+  inset-inline-start: 50%;
   transform: translate(-50%, -50%);
   display: flex;
   align-items: center;

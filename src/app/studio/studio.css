@@ -115,7 +115,7 @@
 /* Sidebar */
 .studio-sidebar {
   background: #161b22;
-  border-right: 1px solid #30363d;
+  border-inline-end: 1px solid #30363d;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -221,7 +221,7 @@
 }
 
 .file-item.indent {
-  padding-left: 24px;
+  padding-inline-start: 24px;
 }
 
 .file-item {
@@ -548,7 +548,7 @@
 }
 
 .studio-main.split.vertical .studio-preview-pane {
-  border-left: none;
+  border-inline-start: none;
   border-top: 1px solid #30363d;
 }
 
@@ -583,7 +583,7 @@
 .studio-preview-pane {
   flex: 1;
   min-width: 0;
-  border-left: 1px solid #30363d;
+  border-inline-start: 1px solid #30363d;
   display: flex;
   flex-direction: column;
   background: #fff;
@@ -623,11 +623,11 @@
   border: 1px solid #30363d;
   border-radius: 4px;
   font-family: inherit;
-  margin-right: 4px;
+  margin-inline-end: 4px;
 }
 
 .studio-debug-toggle {
-  float: right;
+  float: inline-end;
   cursor: pointer;
   color: #6e7681;
   font-size: 11px;
@@ -709,7 +709,7 @@
   border-top-color: #fff;
   border-radius: 50%;
   animation: btn-spin 0.8s linear infinite;
-  margin-right: 6px;
+  margin-inline-end: 6px;
   vertical-align: middle;
 }
 
@@ -787,4 +787,3 @@
   border-radius: 50%;
   animation: btn-spin 0.8s linear infinite;
 }
-

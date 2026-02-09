@@ -38,7 +38,7 @@
 
 .lo-tag-markdown ul, .lo-tag-markdown ol {
   margin-bottom: var(--lo-space-lg);
-  padding-left: var(--lo-space-xl);
+  padding-inline-start: var(--lo-space-xl);
 }
 
 .lo-tag-markdown li {
@@ -78,8 +78,8 @@
 }
 
 .lo-tag-markdown blockquote {
-  border-left: 4px solid var(--lo-primary);
-  padding-left: var(--lo-space-lg);
+  border-inline-start: 4px solid var(--lo-primary);
+  padding-inline-start: var(--lo-space-lg);
   margin: var(--lo-space-lg) 0;
   color: var(--lo-text-secondary);
   font-style: italic;
@@ -155,12 +155,12 @@
 
 .olx-playground-preview {
   background: var(--lo-bg);
-  border-left: 1px solid var(--lo-border);
+  border-inline-start: 1px solid var(--lo-border);
 }
 
 @media (max-width: 768px) {
   .olx-playground-preview {
-    border-left: none;
+    border-inline-start: none;
     border-top: 1px solid var(--lo-border);
   }
 }
