@@ -1,22 +1,14 @@
 <!--
 ---
-<<<<<<< HEAD
 description: Review the concepts of operant conditioning (positive and negative reinforcement and punishment) and apply them to solve a child's bedtime problem. (Continuation of the interactive study group discussion)
-=======
-description: Review the concepts of operant conditioning (positive and negative reinforcement and punishment) and apply them to solve a child's bedtime problem. (Continuation of theh interactive study group discussion)
->>>>>>> cbabca2 (Edits to Psychology tasks)
 category: psychology
 ---
 -->
 <!-- Psychology SBA: Sleep Refusal Scenario -->
-<<<<<<< HEAD
 <SplitPanel 
      id="psych_sba2"
      sizes="40, 60"
      title="Psychology Study Group: 2. Operant Conditioning" launchable="true">
-=======
-<SplitPanel id="psych_sba2" title="Psychology Study Group: 2. Operant Conditioning" launchable="true">
->>>>>>> cbabca2 (Edits to Psychology tasks)
 
   <!-- Left Panel: SMS Conversation -->
   <LeftPane>
