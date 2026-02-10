@@ -10,6 +10,8 @@
 //
 'use client';
 
+import NavArrow from '@/components/common/NavArrow';
+
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useDebugSettings } from '@/lib/state/debugSettings';
 import type { LoggedEvent } from '@/lib/replay';
@@ -238,17 +240,17 @@ export default function ReplayModeIndicator() {
             className="replay-mode-btn"
             onClick={prevEvent}
             disabled={isAtStart}
-            title="Previous event (←)"
+            title="Previous event"
           >
-            ◀
+            <NavArrow direction="back" className="w-3 h-3" />
           </button>
           <button
             className="replay-mode-btn"
             onClick={nextEvent}
             disabled={isAtEnd}
-            title="Next event (→)"
+            title="Next event"
           >
-            ▶
+            <NavArrow direction="forward" className="w-3 h-3" />
           </button>
         </div>
 

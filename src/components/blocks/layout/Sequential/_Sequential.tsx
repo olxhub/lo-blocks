@@ -5,6 +5,7 @@ import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import HistoryBar from '@/components/common/HistoryBar';
+import NavArrow from '@/components/common/NavArrow';
 
 // Child component for rendering the current item with use()
 // Separated because use() cannot be called conditionally
@@ -79,9 +80,9 @@ export default function _Sequential(props) {
           <button
             onClick={handlePrev}
             disabled={index <= 0}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300"
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 inline-flex items-center gap-1"
           >
-            Previous
+            <NavArrow direction="back" /> Previous
           </button>
         ) : <div />}
 
@@ -93,9 +94,9 @@ export default function _Sequential(props) {
           <button
             onClick={handleNext}
             disabled={index >= numItems - 1}
-            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 inline-flex items-center gap-1"
           >
-            Next
+            Next <NavArrow direction="forward" />
           </button>
         ) : <div />}
       </div>

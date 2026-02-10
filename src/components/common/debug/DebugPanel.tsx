@@ -15,6 +15,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { replayToEvent, diffStates, AppState, LoggedEvent } from '@/lib/replay';
 import { useDebugSettings } from '@/lib/state/debugSettings';
+import ExpandIcon from '@/components/common/ExpandIcon';
 import SettingsTab from './SettingsTab';
 import './DebugPanel.css';
 
@@ -247,7 +248,7 @@ export default function DebugPanel({ onClose, idPrefix = '' }: DebugPanelProps) 
                         onClick={(e) => toggleEventExpanded(idx, e)}
                         title={expandedEvents.has(idx) ? 'Collapse' : 'Expand'}
                       >
-                        {expandedEvents.has(idx) ? '▼' : '▶'}
+                        <ExpandIcon expanded={expandedEvents.has(idx)} />
                       </button>
                       <span className="debug-event-type">{event.event}</span>
                       {event.id && <span className="debug-event-id">{event.id}</span>}
@@ -391,7 +392,7 @@ function StateTree({ data, highlightKeys }: { data: any; highlightKeys?: string[
                 onClick={() => isExpandable && toggle(key)}
               >
                 {isExpandable && (
-                  <span className="debug-tree-arrow">{isExpanded ? '▼' : '▶'}</span>
+                  <span className="debug-tree-arrow"><ExpandIcon expanded={isExpanded} /></span>
                 )}
                 <span className="debug-key-name">{key}</span>
                 {!isExpandable && <>: <span className="debug-tree-preview">{summarizeValue(value)}</span></>}
@@ -446,7 +447,7 @@ function OlxJsonTree({ data }: { data: Record<string, any> }) {
         return (
           <div key={source} className="debug-tree-node">
             <div className="debug-tree-key expandable" onClick={() => toggleSource(source)}>
-              <span className="debug-tree-arrow">{isExpanded ? '▼' : '▶'}</span>
+              <span className="debug-tree-arrow"><ExpandIcon expanded={isExpanded} /></span>
               <span className="debug-key-name">{source}</span>
               <span className="debug-count">({blockIds.length} blocks)</span>
             </div>
@@ -460,7 +461,7 @@ function OlxJsonTree({ data }: { data: Record<string, any> }) {
                   return (
                     <div key={blockId} className="debug-tree-node">
                       <div className="debug-tree-key expandable" onClick={() => toggleBlock(blockKey)}>
-                        <span className="debug-tree-arrow">{blockExpanded ? '▼' : '▶'}</span>
+                        <span className="debug-tree-arrow"><ExpandIcon expanded={blockExpanded} /></span>
                         <span className="debug-content-key">{blockId}</span>
                         <span className="debug-content-tag">{block?.olxJson?.tag || block?.tag || '?'}</span>
                       </div>

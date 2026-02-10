@@ -2,8 +2,7 @@
 'use client';
 
 import React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
+import NavArrow from '@/components/common/NavArrow';
 
 export default function HistoryBar({
   history = [] as any[],
@@ -13,9 +12,6 @@ export default function HistoryBar({
   onNext = () => {},
   onSelect = (_i: number) => {},
 }) {
-  const { dir } = useLocaleAttributes();
-  const isRtl = dir === 'rtl';
-
   return (
     <div className="flex items-center gap-1">
       <button
@@ -23,7 +19,7 @@ export default function HistoryBar({
         disabled={index <= 0}
         className="p-1 disabled:opacity-50"
       >
-        {isRtl ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        <NavArrow direction="back" />
       </button>
       {showDots && (
         <div className="flex gap-1 overflow-x-auto">
@@ -41,7 +37,7 @@ export default function HistoryBar({
         disabled={index >= history.length - 1}
         className="p-1 disabled:opacity-50"
       >
-        {isRtl ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        <NavArrow direction="forward" />
       </button>
     </div>
   );

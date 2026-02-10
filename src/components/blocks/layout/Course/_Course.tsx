@@ -5,6 +5,7 @@ import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { useBlock } from '@/lib/render';
 import { getBlockByOLXId } from '@/lib/blocks';
+import ExpandIcon from '@/components/common/ExpandIcon';
 
 function CourseContent({ props, selectedChild }) {
   const { block } = useBlock(props, selectedChild);
@@ -55,9 +56,7 @@ function _Course(props) {
               >
                 <div>
                   <span>{chapter.title}</span>
-                  <span>
-                    {expandedChapter === chapter.id ? '▼' : '▶'}
-                  </span>
+                  <ExpandIcon expanded={expandedChapter === chapter.id} />
                 </div>
               </button>
 
