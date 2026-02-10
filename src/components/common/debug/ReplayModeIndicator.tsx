@@ -14,6 +14,7 @@ import NavArrow from '@/components/common/NavArrow';
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useDebugSettings } from '@/lib/state/debugSettings';
+import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import type { LoggedEvent } from '@/lib/replay';
 import './ReplayModeIndicator.css';
 
@@ -190,21 +191,24 @@ export default function ReplayModeIndicator() {
   }, [handleScrubberInteraction]);
 
   // Keyboard navigation (only when replay is active)
+  // In RTL, ArrowLeft = forward (next), ArrowRight = backward (prev)
+  const { dir } = useLocaleAttributes();
   useEffect(() => {
     if (!isActive) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      const isRtl = dir === 'rtl';
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        prevEvent();
+        isRtl ? nextEvent() : prevEvent();
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        nextEvent();
+        isRtl ? prevEvent() : nextEvent();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isActive, prevEvent, nextEvent]);
+  }, [isActive, prevEvent, nextEvent, dir]);
 
   // Don't render if replay context isn't available or replay isn't active
   if (!isActive) {
