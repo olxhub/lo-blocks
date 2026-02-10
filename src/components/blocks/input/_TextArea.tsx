@@ -30,7 +30,7 @@ function _TextArea( props ) {
       <textarea
         {...inputProps}
         {...passthrough}
-        className={className ?? 'large-input'}
+        className={className}
       />
       <DisplayAnswer props={props} />
     </>

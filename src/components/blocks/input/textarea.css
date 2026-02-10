@@ -2,7 +2,6 @@
 
 .lo-tag-textarea textarea {
   width: 100%;
-  min-height: 120px;
   padding: var(--lo-space-lg);
   border: 1px solid var(--lo-border);
   border-radius: var(--lo-radius-md);
