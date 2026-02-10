@@ -8,6 +8,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { getCategory, sortCategories } from '@/lib/docs';
 import type { AttributeDoc } from '@/lib/docs';
+import ExpandIcon from '@/components/common/ExpandIcon';
 import './BlockList.css';
 
 export interface BlockItem {
@@ -97,7 +98,7 @@ function ExpandableBlockItem({ name, block, onInsert, isGrammar, extension }: Ex
         {block?.description && (
           <span className="expandable-block-item__desc">{block.description}</span>
         )}
-        <span className="expandable-block-item__toggle">{expanded ? '▾' : '▸'}</span>
+        <span className="expandable-block-item__toggle"><ExpandIcon expanded={expanded} /></span>
       </button>
       {expanded && (
         <div className="expandable-block-item__content">
@@ -279,7 +280,7 @@ export function BlockList({
             >
               <span className="block-list__category-name">{category}</span>
               <span className="block-list__category-count">{items.length}</span>
-              <span className="block-list__category-toggle">{isCollapsed ? '▸' : '▾'}</span>
+              <span className="block-list__category-toggle"><ExpandIcon expanded={!isCollapsed} /></span>
             </button>
 
             {!isCollapsed && (
