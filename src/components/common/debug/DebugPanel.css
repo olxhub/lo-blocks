@@ -4,7 +4,7 @@
 .debug-panel {
   position: fixed;
   top: 48px; /* Below header */
-  right: 0;
+  inset-inline-end: 0;
   width: 420px;
   max-height: calc(100vh - 96px); /* Leave room for header and footer */
   background: #161b22;

@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import type { UriNode } from '@/lib/lofs/types';
 import { isEditableFile, isOLXFile } from '@/lib/util/fileTypes';
+import ExpandIcon from '@/components/common/ExpandIcon';
 
 interface FilesPanelProps {
   fileTree: UriNode | null;
@@ -176,10 +177,10 @@ function FileTreeNode({
     <div>
       <div
         className={`file-item ${isActive ? 'active' : ''} ${isDirty ? 'dirty' : ''}`}
-        style={{ paddingLeft: depth * 12 + 8 }}
+        style={{ paddingInlineStart: depth * 12 + 8 }}
         onClick={() => isDir ? setExpanded(!expanded) : onSelect(node.uri)}
       >
-        {isDir && <span className="file-icon">{expanded ? '▼' : '▶'}</span>}
+        {isDir && <span className="file-icon"><ExpandIcon expanded={expanded} /></span>}
         {!isDir && <span className="file-icon">📄</span>}
         <span className="file-name">{isDirty ? `${name} *` : name}</span>
         {!isDir && (

@@ -3,7 +3,8 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { ChevronRight } from 'lucide-react';
+import NavArrow from '@/components/common/NavArrow';
+import ExpandIcon from '@/components/common/ExpandIcon';
 import { acceptString } from '@/lib/util/fileTypes';
 
 // Theme definitions
@@ -156,7 +157,7 @@ const ToolCallMessage = ({ message, theme }) => {
         <span className={t.toolIcon}>🔧</span>
         <span className="font-mono ml-1 text-blue-500">{message.name}</span>
         <span className={`${t.toolText} ml-2`}>{truncatedSynopsis}</span>
-        <span className={`${t.headerSubtle} ml-2`}>{expanded ? '▼' : '▶'}</span>
+        <ExpandIcon expanded={expanded} className={`${t.headerSubtle} ml-2`} />
       </div>
       {expanded && (
         <div className={`mt-1 p-2 ${t.toolBg} border rounded text-xs font-mono overflow-x-auto`}>
@@ -309,7 +310,7 @@ export const AdvanceFooter = ({ onAdvance, currentMessageIndex, totalMessages, d
             disabled:hover:bg-gray-300 disabled:focus:ring-0
           "
         >
-          Continue <ChevronRight className="ml-1 w-4 h-4" />
+          Continue <NavArrow direction="forward" className="ms-1 w-4 h-4" />
         </button>
         <span className="text-xs text-gray-400">or focus chat and press [space]</span>
       </div>

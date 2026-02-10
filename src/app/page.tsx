@@ -7,6 +7,7 @@ import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
+import ExpandIcon from '@/components/common/ExpandIcon';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
 import type { ContentVariant, Locale } from '@/lib/types';
@@ -247,7 +248,7 @@ function Sidebar() {
           className="w-full flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
         >
           <span>Developer Tools</span>
-          <span className="text-gray-400">{showEndpoints ? '▼' : '▶'}</span>
+          <ExpandIcon expanded={showEndpoints} className="text-gray-400" />
         </button>
 
         {showEndpoints && (
