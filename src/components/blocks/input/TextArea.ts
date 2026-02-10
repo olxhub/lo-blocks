@@ -19,7 +19,7 @@ const TextArea = core({
   getValue: ((props, state, id) => fieldSelector(state, props, fields.value, { fallback: '', id })) as any,
   attributes: baseAttributes.extend({
     ...placeholder,
-    rows: z.string().optional().describe('Number of visible text rows'),
+    rows: z.string().default('4').describe('Number of visible text rows'),
     readonly: z.enum(['true', 'false']).optional().describe('Make textarea read-only'),
   }),
 });

@@ -265,6 +265,7 @@ export function render({ node, nodeInfo, runtime }: {
           fields={blockType.fields}
           nodeInfo={childNodeInfo}
           runtime={finalRuntime}
+          idPrefix={actualIdPrefix}
           {...(graderId && { graderId })}
         />
       </div>
