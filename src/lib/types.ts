@@ -57,15 +57,19 @@ export interface GenericProvenance {
   [key: string]: any;
 }
 
-// Provenance Types (Branded)
-//
-// URI identifying a content source. Sub-branded by scheme so TypeScript
-// can distinguish file://, memory://, etc. at compile time.
-//
-// Runtime checks (startsWith('file://') etc.) remain as defense-in-depth —
-// TypeScript brands are documentation, not hard enforcement (JS callers
-// and `as` casts bypass them).
-//
+/*
+ * Provenance Types (Branded)
+ *
+ * Every piece of parsed content carries a provenance URI tracking where
+ * it came from — "file:///home/.../content/demos/foo.olx", "memory://test",
+ * "inline://editor", etc. This enables precise error messages ("syntax
+ * error in demos/foo.olx:42"), content dependency tracking, and authoring
+ * workflows (knowing which file to save edits back to).
+ *
+ * Sub-branded by scheme so TypeScript can distinguish file:// from memory://
+ * at compile time. Runtime checks (startsWith('file://')) stay as
+ * defense-in-depth — `as` casts and JS callers bypass brands.
+ */
 /** Any provenance URI — base brand for all schemes */
 export type ProvenanceURI = string & { __brand: 'Provenance' };
 /** file:// provenance — content loaded from local filesystem */
@@ -85,41 +89,85 @@ export type ReduxStateKey = string & { __brand: 'ReduxStateKey' }; // state key 
 export type ReactKey = string & { __brand: 'ReactKey' };          // React reconciliation
 export type HtmlId = string & { __brand: 'HtmlId' };              // DOM element ID
 
-// Path Types (Branded) - Storage Layer Transformation Pipeline
-// See docs/architecture/lofs.md for documentation.
-//
-// Transformation pipeline:
-//   OlxRelativePath (as in XML) → LofsPath (storage layer)
-//                                    ↓ (filesystem provider only)
-//                                    → FileSystemPath (actual filesystem location)
-//
-// Safety convention:
-//   No __safe property  = safety not claimed (treat as untrusted)
-//   __safe: true        = verified safe (escape-checked or produced by security validation)
-//
-// This documents the trust model in the type system. A developer reading a
-// function signature knows whether a path has been security-validated without
-// tracing the call chain.
-//
-
-/** Relative path as written in OLX XML (e.g., "demos/foo.olx", "../bar/img.png").
- *  Not safe — may contain traversal attacks. Structurally validated only
- *  (no null bytes, not absolute). Produced by toOlxRelativePath() at trust boundaries. */
+/*
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * PATH TYPES - How content paths flow through the system
+ * ═══════════════════════════════════════════════════════════════════════════════
+ *
+ * In OLX, we'd like authors to have flexibility in how they refer to files.
+ * For example, inside /uofa/writing/101/bar.olx, we might reference:
+ *   teammates.md
+ *   ../teammates.md
+ *   /uofm/electronics/teammates.md
+ * etc. We call this:
+ */
 export type OlxRelativePath = string & { __brand: 'OlxRelativePath' };
-
-/** Escape-validated relative path — confirmed to stay within content directory.
- *  Safe for use without further traversal checks.
- *  Produced by resolveRelativePath() and validateContentPath(). */
+/*
+ * These are really more like IDs than paths — analogous to OlxReference
+ * for block IDs. They come from user input (OLX attributes, URL params,
+ * LLM tool callbacks) and may be invalid (traversal attacks, nonexistent
+ * files, etc.). At trust boundaries, we brand them via toOlxRelativePath()
+ * which does minimal structural checks (no null bytes, not absolute) but
+ * does NOT reject ".." — that's the provider's job during resolution.
+ *
+ * When an OLX file references another file relatively
+ * (src="../foo.md"), we need to resolve that against the referring
+ * file's location to get a canonical, unique path, which can be used
+ * as a key — just like resolving OlxReference → OlxKey.  If ../foo.md
+ * appears in uofa/writing/101/bar.olx, it resolves to
+ * uofa/writing/foo.md. This canonical form is:
+ */
 export type SafeRelativePath = OlxRelativePath & { __safe: true };
-
-/** Storage-layer path with namespace prefix (e.g., "content/demos/foo.olx").
- *  Not safe — internal to storage providers, validated at API boundary. */
+/*
+ * Produced by resolveRelativePath(provenance, relativePath). The name
+ * emphasizes safety (no directory escape) but the real point is identity:
+ * a canonical path relative to the content root, with "../" resolved away.
+ * In the future, this could also validate the file exists (keeping in mind
+ * that with provider stacks, existence checks span multiple backends).
+ *
+ * From here, it must be read from storage. The location in our
+ * virtual filesystem is:
+ */
 export type LofsPath = string & { __brand: 'LofsPath' };
+/*
+ * This might have a prefix, and be managed differently by different
+ * providers. For example:
+ *
+ * - FileStorageProvider: resolves against baseDir to an absolute path,
+ *   validated by resolveSafeReadPath / resolveSafeWritePath (traversal
+ *   checks, symlink validation, allowed-directory rules).
+ *
+ * - NetworkStorageProvider: prepends a namespace ("content/") to form
+ *   a wire-format path for HTTP API calls, then strips it back on the
+ *   response side. This namespaced form is:
 
-/** Resolved absolute filesystem path, safe for I/O.
- *  Always produced by resolveSafeReadPath / resolveSafeWritePath which
- *  enforce traversal checks, symlink validation, and allowed-directory rules. */
+ *   Used internally by NetworkStorageProvider and validated by
+ *   contentPaths.ts on the server. Not every provider needs this —
+ *   FileStorageProvider goes straight from OlxRelativePath to the
+ *   filesystem, and a postgres provider would use SQL queries.
+ *
+ * - InMemoryStorageProvider: uses OlxRelativePath directly as a map key.
+ *
+ * For filesystem I/O specifically, the final resolved absolute path is:
+ */
 export type FileSystemPath = string & { __brand: 'FileSystemPath', __safe: true };
+/*
+ * Always produced by resolveSafeReadPath / resolveSafeWritePath. Only
+ * relevant to FileStorageProvider.
+ *
+ * In summary:
+ * - The OLX universal types are OlxRelativePath (unresolved) and
+ *   SafeRelativePath (canonical).
+ * - LofsPath is internal to our virtual filesystem.
+ * - FileSystemPath represents a specific file on disk.
+ *
+ * Safety convention: __safe: true means "verified safe" (escape-checked,
+ * canonical). Its absence means "safety not claimed — treat as untrusted."
+ * These are TS "soft" checks — documentation for developers and LLMs, not
+ * hard enforcement. An `as` cast can bypass them, which is why runtime
+ * checks (resolveSafeReadPath, etc.) are needed as well for security and
+ * defense-in-depth.
+ */
 
 
 /** Primary representation for provenance references */
