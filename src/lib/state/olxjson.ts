@@ -326,7 +326,7 @@ export function selectBlock(
 export function selectBlockState(
   state: RootState,
   sources: string[],
-  id: OlxKey | string
+  id: OlxKey
 ): BlockEntry | undefined {
   const olxjson = state.application_state?.olxjson;
   if (!olxjson) return undefined;
@@ -478,7 +478,7 @@ export function useOlxJsonBlock(sources: string[], id: OlxKey, locale: UserLocal
  */
 export function useOlxJsonBlockState(
   sources: string[],
-  id: OlxKey | string
+  id: OlxKey
 ): BlockEntry | undefined {
   return useSelector((state: RootState) => selectBlockState(state, sources, id));
 }

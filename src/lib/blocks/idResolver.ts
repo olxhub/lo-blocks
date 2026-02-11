@@ -156,8 +156,8 @@ export function toOlxReference(input: string, context = 'ID'): OlxReference {
  * refToReduxKey({ id: './foo', idPrefix: 'scope' }) // => 'scope:foo'
  * refToReduxKey({ id: 'foo' })                      // => 'foo'
  */
-type RefToReduxKeyInput = OlxReference | string | {
-  id?: OlxReference | string;
+type RefToReduxKeyInput = OlxReference | {
+  id?: OlxReference;
   idPrefix?: IdPrefix;
   [key: string]: unknown;
 };
@@ -214,11 +214,12 @@ export const refToReduxKey = (input: RefToReduxKeyInput): ReduxStateKey => {
  * refToOlxKey('mastery:attempt_0:q1')    // => 'q1'
  * refToOlxKey('/list:0:child')           // => 'child'
  */
-export const refToOlxKey = (ref: OlxReference | string): OlxKey => {
+export const refToOlxKey = (ref: OlxReference): OlxKey => {
   if (typeof ref !== 'string') return ref as unknown as OlxKey;
 
   // Strip path prefixes first
-  let result = ref;
+  // (slice returns plain string — OK, we rebrand at the end)
+  let result: string = ref;
   if (result.startsWith('/')) result = result.slice(1);
   else if (result.startsWith('./')) result = result.slice(2);
 
@@ -231,6 +232,31 @@ export const refToOlxKey = (ref: OlxReference | string): OlxKey => {
 
   return result as OlxKey;
 };
+
+/**
+ * Validate and brand a string as OlxKey.
+ *
+ * Use at system boundaries where IDs enter as already-resolved keys
+ * (no path prefixes like / or ./). For raw OLX references that may
+ * have prefixes, use toOlxReference() + refToOlxKey().
+ *
+ * Validation can be extended later to check if the key exists in idMap.
+ */
+export function toOlxKey(input: string): OlxKey {
+  if (!input || typeof input !== 'string') {
+    throw new Error(`toOlxKey: expected non-empty string but got "${input}"`);
+  }
+  const trimmed = input.trim();
+  if (!trimmed) {
+    throw new Error(`toOlxKey: ID cannot be empty or whitespace`);
+  }
+  if (!VALID_ID_SEGMENT.test(trimmed)) {
+    throw new Error(
+      `toOlxKey: "${input}" is not a valid OlxKey (letters, numbers, underscores, hyphens only)`
+    );
+  }
+  return trimmed as OlxKey;
+}
 
 /**
  * Extends the ID prefix for child components.

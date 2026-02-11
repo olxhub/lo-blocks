@@ -73,6 +73,7 @@ import { getProvider } from '@/lib/llm/provider';
 import { getLanguageLabel } from '@/lib/i18n/languages';
 import { hashContent } from '@/lib/util';
 import type { OlxKey, ContentVariant, ProvenanceURI, OlxRelativePath, SafeRelativePath } from '@/lib/types';
+import { toOlxKey } from '@/lib/blocks/idResolver';
 import { toOlxRelativePath } from '@/lib/lofs/types';
 import yaml from 'js-yaml';
 
@@ -370,8 +371,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Cast after validation — branded types prevent accidental string confusion
-    const blockId = body.blockId as OlxKey;
+    // Brand at trust boundary — blockId comes from HTTP request body (untrusted)
+    const blockId = toOlxKey(body.blockId);
     const targetLocale = body.targetLocale as ContentVariant;
     const sourceLocale = body.sourceLocale as ContentVariant;
 

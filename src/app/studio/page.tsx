@@ -17,6 +17,7 @@ import type { UriNode } from '@/lib/lofs/types';
 import type { IdMap } from '@/lib/types';
 import { useNotifications, ToastNotifications } from '@/lib/util/debug';
 import { useFieldState, getReduxState, settings } from '@/lib/state';
+import { toOlxKey } from '@/lib/blocks/idResolver';
 import { editorFields } from '@/lib/state/editorFields';
 import './studio.css';
 
@@ -85,7 +86,7 @@ function StudioPageContent() {
 
   // Debug mode toggle (system-wide setting)
   // TODO: Pass baselineProps from useBaselineProps() instead of null
-  const [debug, setDebug] = useFieldState(null, settings.debug, false, { tag: 'studio', id: 'studio' });
+  const [debug, setDebug] = useFieldState(null, settings.debug, false, { tag: 'studio', id: toOlxKey('studio') });
 
   // TODO: Consider moving UI state to redux for analytics
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('chat');

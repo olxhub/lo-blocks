@@ -735,7 +735,7 @@ export interface BaselineProps {
 
 export interface RuntimeProps extends BaselineProps {
   // This block's identity and content
-  id: string;
+  id: OlxKey;
   kids: BlueprintKidEntry[];
 
   // Opaque context - thread through

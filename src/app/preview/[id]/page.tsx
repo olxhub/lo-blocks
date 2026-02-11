@@ -9,6 +9,7 @@ import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
 import { useFieldState, settings } from '@/lib/state';
 import { useContentLoader } from '@/lib/content/useContentLoader';
+import { toOlxKey } from '@/lib/blocks/idResolver';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { ComponentError } from '@/lib/types';
 
@@ -20,7 +21,7 @@ export default function PreviewPage() {
     null,
     settings.debug,
     false,
-    { id: id, tag: 'preview' } // HACK: This works around not having proper props. Should be fixed. See below
+    { id: toOlxKey(id), tag: 'preview' } // HACK: This works around not having proper props. Should be fixed. See below
   );
 
   const { idMap, error, loading } = useContentLoader(id);

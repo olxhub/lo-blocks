@@ -31,7 +31,7 @@ interface PropsWithStore {
  * @param id - The OLX ID to look up (can be null for optional lookups)
  * @returns The block entry, or undefined if not found
  */
-export function getBlockByOLXId(props: PropsWithStore, id: OlxReference | string | null): OlxJson | undefined {
+export function getBlockByOLXId(props: PropsWithStore, id: OlxReference | null): OlxJson | undefined {
   if (id == null) {
     return undefined;
   }
@@ -61,6 +61,6 @@ export function getBlockByOLXId(props: PropsWithStore, id: OlxReference | string
  * @param ids - Array of OLX IDs to look up
  * @returns Array of block entries (undefined for blocks not found)
  */
-export function getBlocksByOLXIds(props: PropsWithStore, ids: (OlxReference | string)[]): (OlxJson | undefined)[] {
+export function getBlocksByOLXIds(props: PropsWithStore, ids: OlxReference[]): (OlxJson | undefined)[] {
   return ids.map(id => getBlockByOLXId(props, id));
 }
