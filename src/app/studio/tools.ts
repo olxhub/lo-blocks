@@ -196,8 +196,8 @@ export function createEditorTools({
       },
       callback: async ({ pattern, path }: { pattern: string; path?: string }) => {
         try {
-          const brandedPath = path ? toOlxRelativePath(path, 'Glob tool base path') : undefined;
-          const files = await storage.glob(pattern, brandedPath);
+          const basePath = path ? toOlxRelativePath(path) : undefined;
+          const files = await storage.glob(pattern, basePath);
           if (files.length === 0) {
             return 'No files found matching pattern.';
           }
@@ -241,8 +241,8 @@ export function createEditorTools({
         include?: string;
       }) => {
         try {
-          const brandedPath = path ? toOlxRelativePath(path, 'Grep tool base path') : undefined;
-          const matches = await storage.grep(pattern, { basePath: brandedPath, include });
+          const basePath = path ? toOlxRelativePath(path) : undefined;
+          const matches = await storage.grep(pattern, { basePath, include });
           if (matches.length === 0) {
             return 'No matches found.';
           }

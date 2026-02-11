@@ -171,15 +171,15 @@ function StudioPageContent() {
 
     // First time loading this file - fetch from storage
     setLoading(true);
-    let brandedPath;
+    let olxPath;
     try {
-      brandedPath = toOlxRelativePath(filePath, 'studio file load');
+      olxPath = toOlxRelativePath(filePath);
     } catch (err) {
       notify('error', `Invalid file path: ${filePath}`, err instanceof Error ? err.message : String(err));
       setLoading(false);
       return;
     }
-    storage.read(brandedPath)
+    storage.read(olxPath)
       .then(result => {
         setContent(result.content);
         fileStateRef.current.set(filePath, {
@@ -221,13 +221,13 @@ function StudioPageContent() {
     setSaving(true);
     try {
       const previousMetadata = fileStateRef.current.get(filePath)?.metadata;
-      const brandedPath = toOlxRelativePath(filePath, 'studio save');
-      await storage.write(brandedPath, content, {
+      const olxPath = toOlxRelativePath(filePath);
+      await storage.write(olxPath, content, {
         previousMetadata,
         force,
       });
       // Re-read to get updated metadata
-      const result = await storage.read(brandedPath);
+      const result = await storage.read(olxPath);
       // Update saved state (marks file as clean, updates metadata for conflict detection)
       fileStateRef.current.set(filePath, {
         content,
@@ -259,11 +259,11 @@ function StudioPageContent() {
 
   const handleFileCreate = useCallback(async (path: string, fileContent: string) => {
     try {
-      const brandedPath = toOlxRelativePath(path, 'studio create');
-      await storage.write(brandedPath, fileContent);
+      const olxPath = toOlxRelativePath(path);
+      await storage.write(olxPath, fileContent);
       refreshFiles();
       // Open the new file and get its metadata
-      const result = await storage.read(brandedPath);
+      const result = await storage.read(olxPath);
       setFilePath(path);
       updateUrl(path);
       setContent(result.content);
@@ -281,7 +281,7 @@ function StudioPageContent() {
 
   const handleFileDelete = useCallback(async (path: string) => {
     try {
-      await storage.delete(toOlxRelativePath(path, 'studio delete'));
+      await storage.delete(toOlxRelativePath(path));
       refreshFiles();
       // Remove from cache
       fileStateRef.current.delete(path);
@@ -301,7 +301,7 @@ function StudioPageContent() {
 
   const handleFileRename = useCallback(async (oldPath: string, newPath: string) => {
     try {
-      await storage.rename(toOlxRelativePath(oldPath, 'studio rename old'), toOlxRelativePath(newPath, 'studio rename new'));
+      await storage.rename(toOlxRelativePath(oldPath), toOlxRelativePath(newPath));
       refreshFiles();
       // Move cache entry to new path
       const cachedState = fileStateRef.current.get(oldPath);
