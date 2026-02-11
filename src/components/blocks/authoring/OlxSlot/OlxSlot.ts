@@ -1,4 +1,4 @@
-// src/components/blocks/display/OlxSlot/OlxSlot.ts
+// src/components/blocks/authoring/OlxSlot/OlxSlot.ts
 //
 // OlxSlot block - a slot that receives OLX from other blocks (e.g., LLMAction)
 // or reactively reads OLX from a target component, and renders it as live
@@ -25,7 +25,7 @@ const OlxSlot = test({
   attributes: baseAttributes.extend({
     target: z.string().optional()
       .describe('ID of another component to reactively read OLX from (e.g., a TextArea)'),
-    debounce: z.coerce.number().default(500)
+    debounce: z.coerce.number().default(150)
       .describe('Debounce delay in ms before re-parsing OLX (only used with target)'),
   }),
 });

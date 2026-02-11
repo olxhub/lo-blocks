@@ -71,7 +71,7 @@ Content here.
 |-----------|----------|---------|-------------|
 | `id` | Yes | | Unique identifier |
 | `target` | No | | ID of component to read OLX from reactively |
-| `debounce` | No | 500 | Debounce delay in ms (only used with `target`) |
+| `debounce` | No | 150 | Debounce delay in ms (only used with `target`) |
 
 ## State Fields
 
@@ -84,12 +84,12 @@ Content here.
 
 OlxSlot uses the existing `RenderOLX` component internally. When the OLX string changes:
 
-1. The string is debounced (in target mode) to avoid re-parsing on every keystroke
-2. `RenderOLX` parses the OLX via `parseOLX()`
-3. Parsed content is dispatched to Redux under a unique source (`olxslot:{id}`)
-4. The content renders as fully interactive blocks
+1. The string is debounced (in target mode, default 150ms)
+2. The debounced string is validated with `parseOLX()`
+3. If valid, `RenderOLX` renders it as interactive blocks
+4. If invalid, the **last successful render** is kept and a subtle "Editing..." indicator appears
 
-Parse errors are displayed inline by RenderOLX's error handling.
+This means parse errors mid-typing don't blow away the preview -- only successful parses update it. For LLMAction mode (no target), errors are shown directly since the LLM should produce valid OLX.
 
 ## Comparison
 

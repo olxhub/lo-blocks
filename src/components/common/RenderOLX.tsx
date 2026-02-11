@@ -273,7 +273,7 @@ function useParseContent(
           }
         }
       } catch (err) {
-        console.error('RenderOLX parse error:', err);
+
         if (!cancelled) {
           setError(err.message || String(err));
           onError?.(err);
