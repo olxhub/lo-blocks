@@ -3,7 +3,7 @@
 
 import React, { ReactNode, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { parseProvenance, formatProvenance } from '@/lib/lofs/provenance';
+import type { ProvenanceURI } from '@/lib/types';
 import { getExtension } from '@/lib/util/fileTypes';
 import { useFieldState, settings } from '@/lib/state';
 
@@ -81,25 +81,25 @@ export const DebugWrapper = ({ props = {}, loBlock, children }: DebugWrapperProp
   const provenance = props?.nodeInfo?.node?.provenance ?? [];
   const prefix = process.env.NEXT_PUBLIC_DEBUG_LINK_PREFIX ?? '';
 
-  const parsed = provenance.map(p => parseProvenance(p));
+  /** Extract scheme and path from a provenance URI (e.g., "file:///foo" → ["file", "/foo"]) */
+  function splitProvenance(uri: ProvenanceURI): { scheme: string; path: string } {
+    const idx = uri.indexOf('://');
+    if (idx < 0) return { scheme: 'unknown', path: uri };
+    return { scheme: uri.slice(0, idx), path: uri.slice(idx + 3) };
+  }
 
-  const linkRenderers = {
-    file: (prov, key) => {
+  const links = provenance.map((uri, idx) => {
+    const { scheme, path: uriPath } = splitProvenance(uri);
+    if (scheme === 'file') {
       // TODO: Move away from absolute file:/// URIs
       // HACK: Extracts relative from absolute URI
-      const rel = prov.path.split('/content/')[1] ?? prov.path;
+      const rel = uriPath.split('/content/')[1] ?? uriPath;
       const href = `/studio?file=${encodeURIComponent(rel)}`;
-      const fileType = getExtension(prov.path) || 'file';
-      return <Link key={key} href={href} title={rel}>{fileType}</Link>;
+      const fileType = getExtension(uriPath) || 'file';
+      return <Link key={idx} href={href} title={rel}>{fileType}</Link>;
     }
-  };
-
-  const links = parsed.map((prov, idx) => {
-    const renderer = linkRenderers[prov.type];
-    if (renderer) return renderer(prov, idx);
     // Fallback for non-file provenances
-    const label = prov.type || 'src';
-    return <a key={idx} href={`${prefix}${formatProvenance(prov)}`}>{label}</a>;
+    return <a key={idx} href={`${prefix}${uri}`}>{scheme}</a>;
   });
 
   const handleLog = () => console.log('[props]', props);

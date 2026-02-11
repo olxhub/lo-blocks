@@ -24,7 +24,7 @@ import { transformTagName } from '@/lib/content/xmlTransforms';
 
 import * as parsers from '@/lib/content/parsers';
 import { Provenance, IdMap, OLXLoadingError, OlxReference, OlxKey, JSONValue } from '@/lib/types';
-import { formatProvenanceList } from '@/lib/lofs/provenance';
+
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { OLXMetadataSchema, type OLXMetadata } from '@/lib/content/metadata';
 
@@ -370,7 +370,7 @@ export async function parseOLX(
   const idMap: IdMap = {};
 
   // Validate XML first for better error messages
-  const provenanceStr = formatProvenanceList(provenance).join(', ');
+  const provenanceStr = provenance.join(', ');
   const validation = XMLValidator.validate(xml, {
     allowBooleanAttributes: true
   });
@@ -440,7 +440,7 @@ export async function parseOLX(
     if (attributes.ref) {
       if (tag !== 'Use') {
         throw new Error(
-          `Invalid 'ref' attribute on <${tag}> in ${formatProvenanceList(provenance).join(', ')}. Only <use> elements may have 'ref'.`
+          `Invalid 'ref' attribute on <${tag}> in ${provenance.join(', ')}. Only <use> elements may have 'ref'.`
         );
       }
 
@@ -449,7 +449,7 @@ export async function parseOLX(
       );
       if (childKeys.length > 0) {
         throw new Error(
-          `<Use ref="..."> in ${formatProvenanceList(provenance).join(', ')} must not have kid elements. Found kids: ${childKeys.join(', ')}`
+          `<Use ref="..."> in ${provenance.join(', ')} must not have kid elements. Found kids: ${childKeys.join(', ')}`
         );
       }
 
@@ -470,7 +470,7 @@ export async function parseOLX(
       const zodErrors = result.error.issues.map(i => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
       errors.push({
         type: 'attribute_validation',
-        file: formatProvenanceList(provenance).join(', '),
+        file: provenance.join(', '),
         message: `Invalid attributes for <${tag} id="${id}">:\n${zodErrors}`,
         location: { line: node.line, column: node.column },
         technical: {
@@ -492,7 +492,7 @@ export async function parseOLX(
           const errorList = semanticErrors.map(e => `  - ${e}`).join('\n');
           errors.push({
             type: 'attribute_validation',
-            file: formatProvenanceList(provenance).join(', '),
+            file: provenance.join(', '),
             message: `Invalid attributes for <${tag} id="${id}">:\n${errorList}`,
             location: { line: node.line, column: node.column },
             technical: {
@@ -573,8 +573,8 @@ export async function parseOLX(
 
           errors.push({
             type: 'duplicate_id',
-            file: formatProvenanceList(provenance).join(', '),
-            message: `Duplicate ID "${storeId}" found in ${formatProvenanceList(provenance).join(', ')}. Each element must have a unique id.
+            file: provenance.join(', '),
+            message: `Duplicate ID "${storeId}" found in ${provenance.join(', ')}. Each element must have a unique id.
 
 🔍 EXISTING ENTRY (Line ${existingEntry.line || '?'}, Column ${existingEntry.column || '?'}):
    Tag: <${existingEntry.tag || 'unknown'}>

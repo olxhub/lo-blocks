@@ -134,29 +134,7 @@ export type FileProvenanceURI = ProvenanceURI & { __scheme: 'file' };
 /** memory:// provenance — content from in-memory storage (tests, virtual FS) */
 export type MemoryProvenanceURI = ProvenanceURI & { __scheme: 'memory' };
 
-// For convenience, we have data structure versions as well. Not clear
-// yet if this is helpful or the opposite.
-
-// Storage API: Grabbing OLX files from disk
-export interface FileProvenance {
-  type: 'file';
-  path: string;
-  [key: string]: any;
-}
-
-// Other types, tbd
-export interface GenericProvenance {
-  type: string;
-  path?: string;
-  [key: string]: any;
-}
-
-export type ProvenanceStruct = FileProvenance | GenericProvenance;
-export type ProvenanceEntry = ProvenanceURI | ProvenanceStruct;
-
-// Our primary type is a list, since a piece of JsonOlx might have
-// multiple sources. For example, `<Markdown src='foo.md'>` might
-// require **both** `foo.olx` and `foo.md` to build.
+/** Primary representation for provenance references */
 export type Provenance = ProvenanceURI[];
 
 

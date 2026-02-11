@@ -32,4 +32,3 @@ export * from './providers';
 
 // Other modules
 export * from './fileTypes';
-export * from './provenance';
