@@ -1,0 +1,51 @@
+<!--
+  LLM-generated OLX demo.
+  The LLM generates a full interactive quiz as OLX, rendered live by OlxSlot.
+-->
+<IntakeGate id="OlxSlotLLMDemo" targets="generated_quiz">
+  <Vertical id="quiz_intake">
+    <Markdown>
+## AI Quiz Generator
+
+Enter a topic and we'll generate an interactive multiple-choice quiz.
+    </Markdown>
+    <TextArea id="quiz_topic" placeholder="e.g., photosynthesis, the French Revolution, linear algebra" />
+    <ActionButton id="gen_quiz_btn" label="Generate Quiz">
+      <LLMAction id="gen_quiz" target="generated_quiz">
+Generate a 2-question multiple choice quiz about: <Ref>quiz_topic</Ref>
+
+Return ONLY valid OLX. Wrap everything in a single Sequential tag.
+Use this exact format:
+
+&lt;Sequential id="quiz"&gt;
+  &lt;CapaProblem id="q1" title="Question 1"&gt;
+    &lt;Markdown&gt;Question text here&lt;/Markdown&gt;
+    &lt;KeyGrader&gt;
+      &lt;ChoiceInput&gt;
+        &lt;Key&gt;Correct answer&lt;/Key&gt;
+        &lt;Distractor&gt;Wrong answer 1&lt;/Distractor&gt;
+        &lt;Distractor&gt;Wrong answer 2&lt;/Distractor&gt;
+        &lt;Distractor&gt;Wrong answer 3&lt;/Distractor&gt;
+      &lt;/ChoiceInput&gt;
+    &lt;/KeyGrader&gt;
+  &lt;/CapaProblem&gt;
+  &lt;CapaProblem id="q2" title="Question 2"&gt;
+    &lt;Markdown&gt;Question text here&lt;/Markdown&gt;
+    &lt;KeyGrader&gt;
+      &lt;ChoiceInput&gt;
+        &lt;Key&gt;Correct answer&lt;/Key&gt;
+        &lt;Distractor&gt;Wrong answer 1&lt;/Distractor&gt;
+        &lt;Distractor&gt;Wrong answer 2&lt;/Distractor&gt;
+        &lt;Distractor&gt;Wrong answer 3&lt;/Distractor&gt;
+      &lt;/ChoiceInput&gt;
+    &lt;/KeyGrader&gt;
+  &lt;/CapaProblem&gt;
+&lt;/Sequential&gt;
+
+Return ONLY the OLX. No explanation, no markdown fences.
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <OlxSlot id="generated_quiz" />
+</IntakeGate>
