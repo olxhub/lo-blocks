@@ -95,7 +95,7 @@ const ChatMessage = ({ message, isSequential, theme }) => {
   return (
     <div className={`flex ${isSequential ? 'mt-1' : 'mt-4'}`}>
       {!isSequential ? (
-        <div className="mr-2 flex-shrink-0">
+        <div className="me-2 flex-shrink-0">
           <Avatar name={message.speaker} />
         </div>
       ) : (
@@ -155,9 +155,9 @@ const ToolCallMessage = ({ message, theme }) => {
         onClick={() => setExpanded(!expanded)}
       >
         <span className={t.toolIcon}>🔧</span>
-        <span className="font-mono ml-1 text-blue-500">{message.name}</span>
-        <span className={`${t.toolText} ml-2`}>{truncatedSynopsis}</span>
-        <ExpandIcon expanded={expanded} className={`${t.headerSubtle} ml-2`} />
+        <span className="font-mono ms-1 text-blue-500">{message.name}</span>
+        <span className={`${t.toolText} ms-2`}>{truncatedSynopsis}</span>
+        <ExpandIcon expanded={expanded} className={`${t.headerSubtle} ms-2`} />
       </div>
       {expanded && (
         <div className={`mt-1 p-2 ${t.toolBg} border rounded text-xs font-mono overflow-x-auto`}>
@@ -221,10 +221,10 @@ export const InputFooter = ({
       {/* Show attached file */}
       {attachedFile && (
         <div className={`mb-2 flex items-center text-sm ${t.fileBadge} rounded px-2 py-1`}>
-          <span className="mr-2">📎</span>
+          <span className="me-2">📎</span>
           <span className="flex-1 truncate">{attachedFile.name}</span>
           <button
-            className={`ml-2 ${t.headerSubtle} hover:text-red-500`}
+            className={`ms-2 ${t.headerSubtle} hover:text-red-500`}
             onClick={() => setAttachedFile(null)}
           >
             ✕
@@ -236,7 +236,7 @@ export const InputFooter = ({
         <div className={`mb-2 flex items-center text-sm ${t.errorBadge} rounded px-2 py-1`}>
           <span className="flex-1">{fileError}</span>
           <button
-            className="ml-2 hover:text-red-600"
+            className="ms-2 hover:text-red-600"
             onClick={() => setFileError(null)}
           >
             ✕
@@ -255,7 +255,7 @@ export const InputFooter = ({
               onChange={handleFileSelect}
             />
             <button
-              className={`mr-2 p-2 rounded-full ${disabled ? `${t.headerSubtle} cursor-not-allowed` : `${t.toolIcon} hover:${t.message}`}`}
+              className={`me-2 p-2 rounded-full ${disabled ? `${t.headerSubtle} cursor-not-allowed` : `${t.toolIcon} hover:${t.message}`}`}
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled}
               title="Attach file"
@@ -276,7 +276,7 @@ export const InputFooter = ({
           disabled={disabled}
         />
         <button
-          className={`ml-2 rounded-full p-2 ${disabled ? t.buttonDisabled + ' cursor-not-allowed' : t.button + ' focus:outline-none focus:ring-2 focus:ring-blue-500'}`}
+          className={`ms-2 rounded-full p-2 ${disabled ? t.buttonDisabled + ' cursor-not-allowed' : t.button + ' focus:outline-none focus:ring-2 focus:ring-blue-500'}`}
           onClick={handleSend}
           disabled={disabled}
         >
@@ -411,7 +411,7 @@ export function ChatComponent({
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <span className={`font-semibold ${t.headerText}`}>Chat</span>
-            <span className={`ml-2 ${t.headerSubtle} text-sm`}>{messages.length} messages</span>
+            <span className={`ms-2 ${t.headerSubtle} text-sm`}>{messages.length} messages</span>
           </div>
           {subtitle && (
             <span className={`font-semibold text-sm ${t.headerText}`}>{subtitle}</span>

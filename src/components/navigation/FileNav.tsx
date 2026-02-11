@@ -19,7 +19,7 @@ export default function FileNav() {
     if (!node.children) {
       const href = `/studio?file=${encodeURIComponent(node.uri)}`;
       return (
-        <li key={node.uri} className="ml-4 list-disc">
+        <li key={node.uri} className="ms-4 list-disc">
           <Link href={href} className="text-blue-600 hover:underline">
             {node.uri.split('/').pop()}
           </Link>
@@ -28,10 +28,10 @@ export default function FileNav() {
     }
 
     return (
-      <li key={node.uri} className="ml-2">
+      <li key={node.uri} className="ms-2">
         <details open>
           <summary className="cursor-pointer select-none">{node.uri.split('/').pop() ?? 'content'}</summary>
-          <ul className="ml-4">
+          <ul className="ms-4">
             {node.children?.map(child => renderNode(child))}
           </ul>
         </details>
