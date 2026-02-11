@@ -91,13 +91,48 @@ export class InMemoryStorageProvider implements StorageProvider {
     return { added, changed: {}, unchanged, deleted: {} };
   }
 
-  resolveRelativePath(_baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
-    // In-memory provider has no filesystem escape risk — all paths are keys in a Record.
-    return relativePath.replace(/^\.?\//, '') as SafeRelativePath;
+  resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
+    // Only handle memory:// provenance — lets the stacked provider fall through
+    // to the file provider for file:// URIs.
+    if (!baseProvenance.startsWith('memory://')) {
+      throw new Error(`Unsupported provenance format: ${baseProvenance}`);
+    }
+
+    // Extract directory from base provenance URI and resolve relative to it.
+    // e.g., memory://subdir/lesson.olx + "notes.md" → "subdir/notes.md"
+    const memoryPath = baseProvenance.slice('memory://'.length);
+    const lastSlash = memoryPath.lastIndexOf('/');
+    const baseDir = lastSlash >= 0 ? memoryPath.substring(0, lastSlash) : '';
+    const joined = baseDir ? `${baseDir}/${relativePath}` : relativePath;
+
+    // Normalize: resolve ., .., strip leading ./
+    const segments = joined.split('/');
+    const resolved: string[] = [];
+    for (const seg of segments) {
+      if (seg === '' || seg === '.') continue;
+      if (seg === '..') { resolved.pop(); continue; }
+      resolved.push(seg);
+    }
+
+    return resolved.join('/') as SafeRelativePath;
   }
 
   toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
-    return toMemoryProvenanceURI(safePath);
+    // Only claim provenance for files that actually exist in this provider.
+    // In a stacked provider, this lets the file provider claim provenance
+    // for files that aren't in memory.
+    const normalized = (safePath as string).replace(/^\.?\//, '');
+    if (this.files[normalized] !== undefined) {
+      return toMemoryProvenanceURI(safePath);
+    }
+    // Try with basePath prefix
+    if (this.basePath) {
+      const withBase = `${this.basePath}/${normalized}`;
+      if (this.files[withBase] !== undefined) {
+        return toMemoryProvenanceURI(safePath);
+      }
+    }
+    throw new Error(`File not found in memory provider: ${safePath}`);
   }
 
   async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {

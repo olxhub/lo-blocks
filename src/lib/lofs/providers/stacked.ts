@@ -190,7 +190,9 @@ export class StackedStorageProvider implements StorageProvider {
     return merged;
   }
 
-  // Resolve path using first provider that works
+  // Resolve path using the provider whose scheme matches the provenance.
+  // Each provider checks its own scheme (memory://, file://, etc.) and throws
+  // on mismatch, so the right provider handles the resolution.
   resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
     for (const provider of this.providers) {
       try {
@@ -202,9 +204,10 @@ export class StackedStorageProvider implements StorageProvider {
     throw new Error(`Cannot resolve path in any provider: ${relativePath}`);
   }
 
-  // Construct provenance from the first provider that can resolve the path
-  // (same priority order as read — the provider that would serve a read
-  // is the one whose provenance matters)
+  // Construct provenance from the provider that actually has the file.
+  // Each provider checks existence and throws if it doesn't have the file,
+  // so the first provider that has it claims the provenance — matching
+  // read() priority order.
   toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
     for (const provider of this.providers) {
       try {
