@@ -171,7 +171,15 @@ function StudioPageContent() {
 
     // First time loading this file - fetch from storage
     setLoading(true);
-    storage.read(toOlxRelativePath(filePath, 'studio file load'))
+    let brandedPath;
+    try {
+      brandedPath = toOlxRelativePath(filePath, 'studio file load');
+    } catch (err) {
+      notify('error', `Invalid file path: ${filePath}`, err instanceof Error ? err.message : String(err));
+      setLoading(false);
+      return;
+    }
+    storage.read(brandedPath)
       .then(result => {
         setContent(result.content);
         fileStateRef.current.set(filePath, {
