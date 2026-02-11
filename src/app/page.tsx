@@ -252,7 +252,7 @@ function Sidebar() {
         </button>
 
         {showEndpoints && (
-          <div className="mt-2 pl-3 space-y-3 text-xs">
+          <div className="mt-2 ps-3 space-y-3 text-xs">
             {ENDPOINT_LINKS.map(endpoint => (
               <div key={endpoint.key || endpoint.label}>
                 {endpoint.hrefTemplate ? (

@@ -27,6 +27,7 @@ import { editorFields } from '@/lib/state/editorFields';
 import { useBaselineProps } from '@/components/common/RenderOLX';
 import { baseAttributes, inputMixin, graderMixin } from '@/lib/blocks/attributeSchemas';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
+import ExpandIcon from '@/components/common/ExpandIcon';
 
 // Shared attribute sets for documentation display.
 // Derives attribute names from the actual mixin definitions (DRY).
@@ -146,7 +147,7 @@ function BlockSidebar({
   const [hoveredBlock, setHoveredBlock] = useState(null);
 
   return (
-    <aside className="w-64 bg-white border-r flex flex-col overflow-hidden">
+    <aside className="w-64 bg-white border-e flex flex-col overflow-hidden">
       <div className="p-3 border-b">
         <input
           type="text"
@@ -167,18 +168,12 @@ function BlockSidebar({
               <span>{category}</span>
               <span className="flex items-center gap-1">
                 <span className="text-xs text-gray-400">{blocks.length}</span>
-                <svg
-                  className={`w-4 h-4 transition-transform ${collapsedCategories[category] ? '' : 'rotate-90'}`}
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
+<ExpandIcon expanded={!collapsedCategories[category]} className="w-4 h-4" />
               </span>
             </button>
 
             {!collapsedCategories[category] && (
-              <div className="ml-2 mt-1">
+              <div className="ms-2 mt-1">
                 {blocks.map(block => {
                   // Determine if block or its docs are uncommitted
                   const blockUncommitted = block.gitStatus && block.gitStatus !== 'committed';
@@ -202,7 +197,7 @@ function BlockSidebar({
                     >
                       <button
                         onClick={() => onSelectBlock(block.name, block._isGrammar)}
-                        className={`w-full text-left px-2 py-1 text-sm rounded flex items-center gap-1.5 ${
+                        className={`w-full text-start px-2 py-1 text-sm rounded flex items-center gap-1.5 ${
                           selectedBlock === block.name
                             ? 'bg-blue-100 text-blue-800'
                             : 'text-gray-600 hover:bg-gray-100'
@@ -211,7 +206,7 @@ function BlockSidebar({
                         <span className={`truncate ${blockUncommitted ? 'italic' : ''}`}>
                           {block.name}
                           {block._isGrammar && (
-                            <span className="text-gray-400 text-xs ml-1">.{block.extension}</span>
+                            <span className="text-gray-400 text-xs ms-1">.{block.extension}</span>
                           )}
                         </span>
                         {/* For grammars, show preview indicator instead of readme */}
@@ -249,7 +244,7 @@ function BlockSidebar({
                       </button>
 
                       {hoveredBlock === block && block.description && (
-                        <div className="absolute left-full ml-2 top-0 z-50 w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg">
+                        <div className="absolute start-full ms-2 top-0 z-50 w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg">
                           {block.description}
                           {anyUncommitted && (
                             <div className="mt-1 pt-1 border-t border-gray-700 text-amber-300">
@@ -290,7 +285,7 @@ function BlockHeader({ block, isGrammar = false }) {
       <h2 className="text-xl font-bold text-gray-900">
         {block.name}
         {isGrammar && (
-          <span className="text-gray-400 font-normal ml-2">.{block.extension}</span>
+          <span className="text-gray-400 font-normal ms-2">.{block.extension}</span>
         )}
       </h2>
       {block.description && (
@@ -421,19 +416,19 @@ function QuickReference({ block }) {
             <table className="w-full text-sm mb-4">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-2 pr-4 font-medium text-gray-700">Name</th>
-                  <th className="text-left py-2 pr-4 font-medium text-gray-700">Type</th>
-                  <th className="text-left py-2 font-medium text-gray-700">Description</th>
+                  <th className="text-start py-2 pe-4 font-medium text-gray-700">Name</th>
+                  <th className="text-start py-2 pe-4 font-medium text-gray-700">Type</th>
+                  <th className="text-start py-2 font-medium text-gray-700">Description</th>
                 </tr>
               </thead>
               <tbody>
                 {customAttrs.map(attr => (
                   <tr key={attr.name} className="border-b border-gray-100">
-                    <td className="py-2 pr-4">
+                    <td className="py-2 pe-4">
                       <code className="text-blue-600">{attr.name}</code>
-                      {attr.required && <span className="text-red-500 ml-1">*</span>}
+                      {attr.required && <span className="text-red-500 ms-1">*</span>}
                     </td>
-                    <td className="py-2 pr-4">
+                    <td className="py-2 pe-4">
                       {attr.enumValues ? (
                         <span className="font-mono text-xs">
                           {attr.enumValues.map((v, i) => (

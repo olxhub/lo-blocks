@@ -59,7 +59,7 @@ export default function _TalkBubble(props) {
       {/* Speech bubble */}
       <div className="flex-1 max-w-2xl">
         {speaker && (
-          <div className={`text-sm font-semibold text-gray-700 mb-1 ${isLeft ? 'text-left' : 'text-right'}`}>
+          <div className={`text-sm font-semibold text-gray-700 mb-1 ${isLeft ? 'text-start' : 'text-end'}`}>
             {speaker}
           </div>
         )}
