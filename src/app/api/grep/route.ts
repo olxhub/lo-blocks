@@ -49,7 +49,7 @@ export async function GET(request: Request) {
 
   try {
     // Brand at trust boundary — path comes from HTTP request (untrusted)
-    const basePath = rawBasePath ? toOlxRelativePath(rawBasePath, 'grep API path') : undefined;
+    const basePath = rawBasePath ? toOlxRelativePath(rawBasePath) : undefined;
     const matches = await provider.grep(pattern, { basePath, include, limit });
     return Response.json({ ok: true, matches });
   } catch (err: any) {

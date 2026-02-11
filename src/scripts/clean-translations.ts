@@ -53,7 +53,7 @@ async function main() {
   for (const fileUri of filesToDelete) {
     console.log(`  ${label}: ${provider.toRelativePath(fileUri)}`);
     if (!dryRun) {
-      const relPath = toOlxRelativePath(provider.toRelativePath(fileUri), 'clean-translations');
+      const relPath = toOlxRelativePath(provider.toRelativePath(fileUri));
       await provider.delete(relPath);
     }
   }

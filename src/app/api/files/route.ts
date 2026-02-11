@@ -24,7 +24,7 @@ export async function GET(request: Request) {
 
   try {
     // Brand at trust boundary — path comes from HTTP request (untrusted)
-    const basePath = rawBasePath ? toOlxRelativePath(rawBasePath, 'files API path') : undefined;
+    const basePath = rawBasePath ? toOlxRelativePath(rawBasePath) : undefined;
     if (pattern) {
       // Glob mode - return array of matching files
       const files = await provider.glob(pattern, basePath);

@@ -103,21 +103,34 @@ export class VersionConflictError extends Error {
  * - No null bytes (security)
  * - Not absolute (doesn't start with /)
  *
- * Does NOT reject ".." — parent traversal is valid in OLX relative paths.
+ * Does NOT reject ".." — parent traversal is valid in OLX relative paths
+ * (e.g., src="../x.png" in /foo/bar/baz.olx refers to /foo/x.png).
+ * Resolution of ".." against a referring file's location is handled by
+ * resolveRelativePath, not here.
+ *
  * Security enforcement (traversal, symlinks, allowed dirs) stays at the
  * filesystem provider level (resolveSafeReadPath / resolveSafeWritePath).
  *
  * Client-safe: no Node.js path module dependency.
  */
-export function toOlxRelativePath(input: string, context = 'path'): OlxRelativePath {
+export function toOlxRelativePath(
+  input: string,
+  // context?: { namespace?: string; referrer?: string }
+  //
+  // Future: resolution context for scoped paths. If content is namespaced
+  // (e.g., Prof. Smith's electronics course at UofC), the context would
+  // carry the namespace so that "problemset1.olx" resolves to
+  // "uofc/electronics/smith/problemset1.olx". For now, callers handle
+  // scoping externally and pass already-scoped paths.
+): OlxRelativePath {
   if (!input || typeof input !== 'string') {
-    throw new Error(`${context}: path is required but got "${input}"`);
+    throw new Error(`toOlxRelativePath: expected non-empty string but got "${input}"`);
   }
   if (input.includes('\0')) {
-    throw new Error(`${context}: path contains null bytes`);
+    throw new Error(`toOlxRelativePath: path contains null bytes: "${input}"`);
   }
   if (input.startsWith('/')) {
-    throw new Error(`${context}: expected relative path but got absolute "${input}"`);
+    throw new Error(`toOlxRelativePath: expected relative path but got absolute "${input}"`);
   }
   return input as OlxRelativePath;
 }

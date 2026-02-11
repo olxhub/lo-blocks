@@ -163,7 +163,7 @@ export function createEditorTools({
       },
       callback: async ({ file_path }: { file_path: string }) => {
         try {
-          const result = await storage.read(toOlxRelativePath(file_path, 'Read tool'));
+          const result = await storage.read(toOlxRelativePath(file_path));
           return `# ${file_path}\n\n\`\`\`\n${result.content}\n\`\`\``;
         } catch (err: any) {
           return `Error: ${err.message}`;
@@ -283,7 +283,7 @@ export function createEditorTools({
       },
       callback: async ({ file_path, content }: { file_path: string; content: string }) => {
         try {
-          await storage.write(toOlxRelativePath(file_path, 'Write tool'), content);
+          await storage.write(toOlxRelativePath(file_path), content);
           return `File created: ${file_path}`;
         } catch (err: any) {
           return `Error: ${err.message}`;
@@ -316,7 +316,7 @@ export function createEditorTools({
         }
         try {
           // Verify file exists first
-          await storage.read(toOlxRelativePath(file_path, 'OpenFile tool'));
+          await storage.read(toOlxRelativePath(file_path));
           onOpenFile(file_path);
           return `Opened: ${file_path}`;
         } catch (err: any) {
