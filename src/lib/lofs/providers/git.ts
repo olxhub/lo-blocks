@@ -8,7 +8,7 @@
 // - Tracking content history and changes
 // - Integration with git-based authoring workflows
 //
-import type { ProvenanceURI } from '../../types';
+import type { ProvenanceURI, OlxRelativePath, SafeRelativePath } from '../../types';
 import type {
   StorageProvider,
   XmlFileInfo,
@@ -30,15 +30,15 @@ export class GitStorageProvider implements StorageProvider {
     throw new Error('git storage not implemented');
   }
 
-  async read(_path: string): Promise<ReadResult> {
+  async read(_path: OlxRelativePath): Promise<ReadResult> {
     throw new Error('git storage not implemented');
   }
 
-  async write(_path: string, _content: string, _options?: WriteOptions): Promise<void> {
+  async write(_path: OlxRelativePath, _content: string, _options?: WriteOptions): Promise<void> {
     throw new Error('git storage not implemented');
   }
 
-  async update(_path: string, _content: string): Promise<void> {
+  async update(_path: OlxRelativePath, _content: string): Promise<void> {
     throw new Error('git storage not implemented');
   }
 
@@ -46,15 +46,15 @@ export class GitStorageProvider implements StorageProvider {
     throw new Error('git storage not implemented');
   }
 
-  resolveRelativePath(_baseProvenance: ProvenanceURI, _relativePath: string): string {
+  resolveRelativePath(_baseProvenance: ProvenanceURI, _relativePath: string): SafeRelativePath {
     throw new Error('git storage not implemented');
   }
 
-  async validateAssetPath(_assetPath: string): Promise<boolean> {
+  async validateAssetPath(_assetPath: OlxRelativePath): Promise<boolean> {
     throw new Error('git storage not implemented');
   }
 
-  async glob(_pattern: string, _basePath?: string): Promise<string[]> {
+  async glob(_pattern: string, _basePath?: OlxRelativePath): Promise<OlxRelativePath[]> {
     throw new Error('git storage not implemented');
   }
 
@@ -62,11 +62,11 @@ export class GitStorageProvider implements StorageProvider {
     throw new Error('git storage not implemented');
   }
 
-  async delete(_path: string): Promise<void> {
+  async delete(_path: OlxRelativePath): Promise<void> {
     throw new Error('git storage not implemented');
   }
 
-  async rename(_oldPath: string, _newPath: string): Promise<void> {
+  async rename(_oldPath: OlxRelativePath, _newPath: OlxRelativePath): Promise<void> {
     throw new Error('git storage not implemented');
   }
 }

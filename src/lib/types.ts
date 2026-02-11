@@ -57,8 +57,21 @@ export interface GenericProvenance {
   [key: string]: any;
 }
 
-/** URI identifying a source (e.g., "file://content/demos/foo.olx") */
-export type ProvenanceURI = string;
+// Provenance Types (Branded)
+//
+// URI identifying a content source. Sub-branded by scheme so TypeScript
+// can distinguish file://, memory://, etc. at compile time.
+//
+// Runtime checks (startsWith('file://') etc.) remain as defense-in-depth —
+// TypeScript brands are documentation, not hard enforcement (JS callers
+// and `as` casts bypass them).
+//
+/** Any provenance URI — base brand for all schemes */
+export type ProvenanceURI = string & { __brand: 'Provenance' };
+/** file:// provenance — content loaded from local filesystem */
+export type FileProvenanceURI = ProvenanceURI & { __scheme: 'file' };
+/** memory:// provenance — content from in-memory storage (tests, virtual FS) */
+export type MemoryProvenanceURI = ProvenanceURI & { __scheme: 'memory' };
 
 /** OLX element tag name (e.g., "Vertical", "Sequential", "ChoiceInput") */
 export type OLXTag = string & { __brand: 'OLXTag' };
@@ -80,9 +93,33 @@ export type HtmlId = string & { __brand: 'HtmlId' };              // DOM element
 //                                    ↓ (filesystem provider only)
 //                                    → FileSystemPath (actual filesystem location)
 //
-export type OlxRelativePath = string & { __brand: 'OlxRelativePath' };  // "demos/foo.olx", "../bar/img.png"
-export type LofsPath = string & { __brand: 'LofsPath' };                // "content/demos/foo.olx", "runtime/chat/msg.txt"
-export type FileSystemPath = string & { __brand: 'FileSystemPath' };    // "./content/demos/foo.olx" or absolute path
+// Safety convention:
+//   No __safe property  = safety not claimed (treat as untrusted)
+//   __safe: true        = verified safe (escape-checked or produced by security validation)
+//
+// This documents the trust model in the type system. A developer reading a
+// function signature knows whether a path has been security-validated without
+// tracing the call chain.
+//
+
+/** Relative path as written in OLX XML (e.g., "demos/foo.olx", "../bar/img.png").
+ *  Not safe — may contain traversal attacks. Structurally validated only
+ *  (no null bytes, not absolute). Produced by toOlxRelativePath() at trust boundaries. */
+export type OlxRelativePath = string & { __brand: 'OlxRelativePath' };
+
+/** Escape-validated relative path — confirmed to stay within content directory.
+ *  Safe for use without further traversal checks.
+ *  Produced by resolveRelativePath() and validateContentPath(). */
+export type SafeRelativePath = OlxRelativePath & { __safe: true };
+
+/** Storage-layer path with namespace prefix (e.g., "content/demos/foo.olx").
+ *  Not safe — internal to storage providers, validated at API boundary. */
+export type LofsPath = string & { __brand: 'LofsPath' };
+
+/** Resolved absolute filesystem path, safe for I/O.
+ *  Always produced by resolveSafeReadPath / resolveSafeWritePath which
+ *  enforce traversal checks, symlink validation, and allowed-directory rules. */
+export type FileSystemPath = string & { __brand: 'FileSystemPath', __safe: true };
 
 
 /** Primary representation for provenance references */

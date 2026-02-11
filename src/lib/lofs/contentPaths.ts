@@ -9,7 +9,7 @@
 //
 import path from 'path';
 import { extensionsWithDots, CATEGORY } from '@/lib/util/fileTypes';
-import type { LofsPath, FileSystemPath, OlxRelativePath } from '@/lib/types';
+import type { LofsPath, FileSystemPath, OlxRelativePath, SafeRelativePath } from '@/lib/types';
 
 // Base directory for content - resolved once at module load
 const CONTENT_BASE = path.resolve('./content');
@@ -19,7 +19,8 @@ const ALLOWED_EXTENSIONS = extensionsWithDots(CATEGORY.content); // ['.olx', '.x
 
 export interface PathValidation {
   valid: boolean;
-  relativePath?: string;  // FileSystemPath relative to content base (when valid: true)
+  /** Escape-validated relative path within content directory (when valid: true). */
+  relativePath?: SafeRelativePath;
   error?: string;
 }
 
@@ -77,7 +78,7 @@ export function validateContentPath(lofsPath: string): PathValidation {
     };
   }
 
-  return { valid: true, relativePath: normalized };
+  return { valid: true, relativePath: normalized as SafeRelativePath };
 }
 
 /**
@@ -108,7 +109,7 @@ export function getEditPathFromProvenance(provenance: string[] | undefined): Pat
     return { valid: false, error: 'File is outside content directory' };
   }
 
-  return { valid: true, relativePath };
+  return { valid: true, relativePath: relativePath as SafeRelativePath };
 }
 
 /**

@@ -21,7 +21,8 @@ import type {
   GrepOptions,
   GrepMatch,
 } from '../types';
-import type { ProvenanceURI } from '../../types';
+import type { ProvenanceURI, OlxRelativePath, SafeRelativePath } from '../../types';
+import { toMemoryProvenanceURI } from '../types';
 
 export class InMemoryStorageProvider implements StorageProvider {
   files: Record<string, string>;
@@ -32,7 +33,7 @@ export class InMemoryStorageProvider implements StorageProvider {
     this.basePath = basePath;
   }
 
-  async read(path: string): Promise<ReadResult> {
+  async read(path: OlxRelativePath): Promise<ReadResult> {
     // Normalize path - remove leading ./ or /
     const normalized = path.replace(/^\.?\//, '');
 
@@ -77,7 +78,7 @@ export class InMemoryStorageProvider implements StorageProvider {
     for (const [filename, content] of Object.entries(this.files)) {
       if (!isContentFile(filename)) continue;
 
-      const uri = `memory://${filename}` as ProvenanceURI;
+      const uri = toMemoryProvenanceURI(filename);
       const ext = getExtension(filename);
 
       if (previous[uri]) {
@@ -90,11 +91,12 @@ export class InMemoryStorageProvider implements StorageProvider {
     return { added, changed: {}, unchanged, deleted: {} };
   }
 
-  resolveRelativePath(_baseProvenance: ProvenanceURI, relativePath: string): string {
-    return relativePath.replace(/^\.?\//, '');
+  resolveRelativePath(_baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
+    // In-memory provider has no filesystem escape risk — all paths are keys in a Record.
+    return relativePath.replace(/^\.?\//, '') as SafeRelativePath;
   }
 
-  async validateAssetPath(assetPath: string): Promise<boolean> {
+  async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {
     const { isMediaFile } = await import('@/lib/util/fileTypes');
     return isMediaFile(assetPath) && this.exists(assetPath);
   }
@@ -102,11 +104,12 @@ export class InMemoryStorageProvider implements StorageProvider {
   /**
    * Find files matching a glob pattern in the in-memory filesystem.
    */
-  async glob(pattern: string, basePath?: string): Promise<string[]> {
+  async glob(pattern: string, basePath?: OlxRelativePath): Promise<OlxRelativePath[]> {
     const files = Object.keys(this.files);
     const searchBase = basePath?.replace(/^\.?\//, '') || '';
 
-    return files.filter(file => {
+    // Keys in this.files are OlxRelativePath (set via write/update which take branded paths)
+    return (files as OlxRelativePath[]).filter(file => {
       // Filter by base path first
       if (searchBase && !file.startsWith(searchBase)) {
         return false;
@@ -142,7 +145,7 @@ export class InMemoryStorageProvider implements StorageProvider {
       for (let i = 0; i < lines.length; i++) {
         if (regex.test(lines[i])) {
           matches.push({
-            path: filePath,
+            path: filePath as OlxRelativePath,
             line: i + 1,
             content: lines[i].trim(),
           });

@@ -9,7 +9,7 @@
 import path from 'path';
 import { glob as globLib } from 'glob';
 import pegExts from '../../../generated/pegExtensions.json' assert { type: 'json' };
-import type { ProvenanceURI } from '../../types';
+import type { ProvenanceURI, OlxRelativePath, SafeRelativePath } from '../../types';
 import {
   type StorageProvider,
   type XmlFileInfo,
@@ -21,6 +21,7 @@ import {
   type GrepOptions,
   type GrepMatch,
   VersionConflictError,
+  toFileProvenanceURI,
 } from '../types';
 import { fileTypes } from '../fileTypes';
 import type { JSONValue } from '../../types';
@@ -374,7 +375,7 @@ export class FileStorageProvider implements StorageProvider {
         if (entry.isDirectory()) {
           await walk(fullPath);
         } else if (isContentFile(entry, fullPath)) {
-          const id = `file://${fullPath}` as ProvenanceURI;
+          const id = toFileProvenanceURI(fullPath);
           const stat = await fs.stat(fullPath);
           const ext = path.extname(fullPath).slice(1);
           const type = (fileTypes as any)[ext] ?? ext;
@@ -408,7 +409,7 @@ export class FileStorageProvider implements StorageProvider {
     return { added, changed, unchanged, deleted };
   }
 
-  async read(filePath: string): Promise<ReadResult> {
+  async read(filePath: OlxRelativePath): Promise<ReadResult> {
     const fs = await import('fs/promises');
     const full = await resolveSafeReadPath(this.baseDir, filePath);
     try {
@@ -428,7 +429,7 @@ export class FileStorageProvider implements StorageProvider {
     }
   }
 
-  async write(filePath: string, content: string, options: WriteOptions = {}): Promise<void> {
+  async write(filePath: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
     const { previousMetadata, force = false } = options;
     const fs = await import('fs/promises');
     const full = await resolveSafeWritePath(this.baseDir, filePath);
@@ -458,11 +459,11 @@ export class FileStorageProvider implements StorageProvider {
     await fs.writeFile(full, content, 'utf-8');
   }
 
-  async update(path: string, content: string): Promise<void> {
+  async update(path: OlxRelativePath, content: string): Promise<void> {
     await this.write(path, content);
   }
 
-  async delete(filePath: string): Promise<void> {
+  async delete(filePath: OlxRelativePath): Promise<void> {
     const fs = await import('fs/promises');
     const relPath = this.toRelativePath(filePath);
     const full = await resolveSafeWritePath(this.baseDir, relPath);
@@ -480,7 +481,7 @@ export class FileStorageProvider implements StorageProvider {
     return rel;
   }
 
-  async rename(oldPath: string, newPath: string): Promise<void> {
+  async rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
     const fs = await import('fs/promises');
     // Validate both paths with write safety checks
     const fullOld = await resolveSafeWritePath(this.baseDir, oldPath);
@@ -497,9 +498,12 @@ export class FileStorageProvider implements StorageProvider {
     return listFileTree(selection, this.baseDir);
   }
 
-  resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): string {
+  resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
     // Extract the file path from provenance URI relative to this provider's baseDir
     // e.g., "file:///home/user/projects/lo-blocks/content/sba/file.xml" -> "sba/file.xml"
+    //
+    // Runtime scheme check stays as defense-in-depth — TypeScript brands document
+    // intent but don't prevent `as` casts or JS callers from passing wrong schemes.
     if (!baseProvenance.startsWith('file://')) {
       throw new Error(`Unsupported provenance format: ${baseProvenance}`);
     }
@@ -512,11 +516,18 @@ export class FileStorageProvider implements StorageProvider {
     }
 
     const baseDir = path.dirname(relativeFilePath);
-    const resolved = path.join(baseDir, relativePath);
-    return path.normalize(resolved);
+    const resolved = path.normalize(path.join(baseDir, relativePath));
+
+    // Security: validate resolved result stays within base directory.
+    // Without this, a relativePath like "../../../../etc/passwd" could escape.
+    if (resolved.startsWith('..') || path.isAbsolute(resolved)) {
+      throw new Error(`Resolved path escapes base directory: ${relativePath}`);
+    }
+
+    return resolved as SafeRelativePath;
   }
 
-  async validateAssetPath(assetPath: string): Promise<boolean> {
+  async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {
     try {
       const { isMediaFile } = await import('@/lib/util/fileTypes');
       if (!isMediaFile(assetPath)) {
@@ -536,7 +547,7 @@ export class FileStorageProvider implements StorageProvider {
    * Find files matching a glob pattern.
    * Uses the 'glob' package for pattern matching.
    */
-  async glob(pattern: string, basePath?: string): Promise<string[]> {
+  async glob(pattern: string, basePath?: OlxRelativePath): Promise<OlxRelativePath[]> {
     const searchDir = basePath
       ? path.join(this.baseDir, basePath)
       : this.baseDir;
@@ -551,7 +562,7 @@ export class FileStorageProvider implements StorageProvider {
     });
 
     // Return paths relative to baseDir (not searchDir)
-    return matches.map(m => basePath ? path.join(basePath, m) : m);
+    return matches.map(m => (basePath ? path.join(basePath, m) : m) as OlxRelativePath);
   }
 
   /**

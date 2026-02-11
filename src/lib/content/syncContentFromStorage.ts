@@ -15,7 +15,7 @@
 
 import { StorageProvider, fileTypes } from '@/lib/lofs';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
-import type { ProvenanceURI, OLXLoadingError, OlxJson, IdMap, OlxKey, ContentVariant, VariantMap } from '@/lib/types';
+import type { ProvenanceURI, OLXLoadingError, OlxJson, IdMap, OlxKey, ContentVariant, VariantMap, OlxRelativePath } from '@/lib/types';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { copyAssetsToPublic } from '@/lib/content/staticAssetSync';
 
@@ -301,10 +301,13 @@ async function moveUnchangedToChanged(
   if (!existingEntry) return;
 
   // Re-read the file content (unchanged files don't have content loaded)
+  // TODO: fileUri.slice(7) produces an absolute filesystem path, not an OlxRelativePath.
+  // FileStorageProvider.read handles this safely via resolveSafeReadPath, but it
+  // violates the type contract. Should use provider.toRelativePath() or equivalent.
   const filePath = fileUri.startsWith('file://') ? fileUri.slice(7) : fileUri;
 
   try {
-    const { content } = await provider.read(filePath);
+    const { content } = await provider.read(filePath as OlxRelativePath);
 
     // Create a clean FileRecord without the old blockIds
     const fileRecord: FileRecord = {

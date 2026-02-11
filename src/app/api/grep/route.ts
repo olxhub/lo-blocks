@@ -6,6 +6,7 @@
 // GET /api/grep?pattern=&path=&include=&limit=  - With options
 //
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { toOlxRelativePath } from '@/lib/lofs/types';
 
 const provider = new FileStorageProvider('./content');
 
@@ -34,17 +35,20 @@ export async function GET(request: Request) {
   // 4. Consider indexing grep results or caching frequent searches
   // 5. Add timeout to grep operations (currently unbounded)
 
-  let basePath = url.searchParams.get('path') || undefined;
+  let rawBasePath = url.searchParams.get('path') || undefined;
   const include = url.searchParams.get('include') || undefined;
   const limitStr = url.searchParams.get('limit');
   const limit = limitStr ? parseInt(limitStr, 10) : undefined;
 
   // Strip namespace prefix if present (client sends "content/..." but FileStorageProvider expects relative paths)
-  if (basePath?.startsWith('content/')) {
-    basePath = basePath.slice('content/'.length) || undefined;
-  } else if (basePath === 'content') {
-    basePath = undefined;
+  if (rawBasePath?.startsWith('content/')) {
+    rawBasePath = rawBasePath.slice('content/'.length) || undefined;
+  } else if (rawBasePath === 'content') {
+    rawBasePath = undefined;
   }
+
+  // Brand at trust boundary — path comes from HTTP request (untrusted)
+  const basePath = rawBasePath ? toOlxRelativePath(rawBasePath, 'grep API path') : undefined;
 
   try {
     const matches = await provider.grep(pattern, { basePath, include, limit });

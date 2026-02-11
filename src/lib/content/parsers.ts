@@ -20,7 +20,7 @@
 //
 import { XMLBuilder } from 'fast-xml-parser';
 import path from 'path';
-import type { OLXLoadingError, OlxReference, OlxKey } from '@/lib/types';
+import type { OLXLoadingError, OlxReference, OlxKey, OlxRelativePath } from '@/lib/types';
 import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
 
 // === Setup ===
@@ -91,7 +91,11 @@ async function loadExternalSource({
     newProvenance = [...provenance, resolved];
   }
 
-  const { content } = await provider.read(resolved);
+  // TODO: This passes an absolute filesystem path as OlxRelativePath when
+  // provenance is file://. Should use provider.resolveRelativePath() instead of
+  // manual path.join. The file provider's resolveSafeReadPath handles this safely
+  // at runtime, but it violates the OlxRelativePath contract.
+  const { content } = await provider.read(resolved as OlxRelativePath);
   return { text: content, provenance: newProvenance };
 }
 

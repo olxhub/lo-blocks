@@ -68,7 +68,7 @@ export function formatProvenance(item: ProvenanceEntry): ProvenanceURI {
 
   const conv = converters[item.type];
   if (!conv) throw new Error(`Unknown provenance type: ${item.type}`);
-  return conv(item);
+  return conv(item) as ProvenanceURI;
 }
 
 export function formatProvenanceList(list: ProvenanceEntry[]): ProvenanceURI[] {
