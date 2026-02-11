@@ -19,7 +19,6 @@
 // that need to do their own XML processing. Not currently implemented.
 //
 import { XMLBuilder } from 'fast-xml-parser';
-import path from 'path';
 import type { OLXLoadingError, OlxReference, OlxKey } from '@/lib/types';
 import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
 
@@ -77,19 +76,14 @@ async function loadExternalSource({
   }
 
   const lastProv = provenance?.[provenance.length - 1];
-  let resolved = src;
-  let newProvenance: string[];
 
-  if (lastProv && lastProv.startsWith('file://')) {
-    // Resolve relative to the current file's directory
-    // HACK: Only handles file:// provenances. Non-file providers may break.
-    // TODO: Resolve src correctly for other storage providers.
-    const baseDir = path.dirname(lastProv.slice('file://'.length));
-    resolved = path.join(baseDir, src);
-    newProvenance = [...provenance, `file://${resolved}`];
-  } else {
-    newProvenance = [...provenance, resolved];
-  }
+  // Resolve src against the current file's location to get a canonical
+  // SafeRelativePath — same idea as OlxReference → OlxKey for block IDs.
+  const resolved = provider.resolveRelativePath(lastProv, src);
+
+  // Let the provider construct provenance — it knows its own scheme
+  // (file://, memory://, postgres://, etc.). Parsers don't need to.
+  const newProvenance = [...provenance, provider.toProvenanceURI(resolved)];
 
   const { content } = await provider.read(resolved);
   return { text: content, provenance: newProvenance };
@@ -561,10 +555,10 @@ const assetSrcFactory = function assetSrc() {
         const olxProvenance = provenance[0];
         resolvedSrc = provider.resolveRelativePath(olxProvenance, src);
 
-        // Add asset to provenance for dependency tracking (like peg/md parsers do)
-        if (olxProvenance.startsWith('file://')) {
-          const baseDir = path.dirname(olxProvenance.slice('file://'.length));
-          updatedProvenance = [...provenance, `file://${path.resolve(baseDir, src)}`];
+        // Add asset to provenance for dependency tracking (like peg/md parsers do).
+        // Let the provider construct the URI — it knows its own scheme.
+        if (provider.toProvenanceURI) {
+          updatedProvenance = [...provenance, provider.toProvenanceURI(resolvedSrc)];
         }
       }
     }

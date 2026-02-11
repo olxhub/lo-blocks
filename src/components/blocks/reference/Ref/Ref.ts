@@ -79,7 +79,7 @@ const Ref = core({
     }
 
     // Check if target exists in Redux
-    if (!selectBlock(state, sources, refToOlxKey(targetId), locale)) {
+    if (!selectBlock(state, sources, refToOlxKey(toOlxReference(targetId)), locale)) {
       return { error: true, message: `Target "${targetId}" not found` };
     }
 

@@ -25,7 +25,7 @@ import * as lo_event from 'lo_event';
 import { correctness } from './correctness';
 import { refToReduxKey } from './idResolver';
 import { getBlockByOLXId } from './getBlockByOLXId';
-import type { RuntimeProps } from '@/lib/types';
+import type { RuntimeProps, OlxKey } from '@/lib/types';
 import type { Store } from 'redux';
 
 // Grader parameter types - each grader receives exactly one of these
@@ -114,8 +114,8 @@ function getNodeById(props, id) {
  */
 function resolveInputSlots(
   slots: string[],
-  inputIds: string[],
-  getInputSlot: (id: string) => string | undefined
+  inputIds: OlxKey[],
+  getInputSlot: (id: OlxKey) => string | undefined
 ): { slotMap: Record<string, string>; errors: string[] } {
   const errors: string[] = [];
   const slotMap: Record<string, string> = {};
@@ -254,12 +254,12 @@ export function grader({ grader, infer = true, slots, inputType }: {
 
     if (slots && slots.length > 0) {
       // Dict mode: resolve inputs to named slots
-      const getInputSlot = (id: string) => {
+      const getInputSlot = (id: OlxKey) => {
         const inst = getBlockByOLXId(props, id);
         return inst?.attributes?.slot as string | undefined;
       };
 
-      const { slotMap, errors } = resolveInputSlots(slots, inputIds as string[], getInputSlot);
+      const { slotMap, errors } = resolveInputSlots(slots, inputIds, getInputSlot);
 
       if (errors.length > 0) {
         // Slot resolution failed - return invalid with error message

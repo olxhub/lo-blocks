@@ -5,6 +5,7 @@
 'use client';
 
 import { useFieldState, settings } from '@/lib/state';
+import { toOlxKey } from '@/lib/blocks/idResolver';
 
 export default function SettingsTab() {
   // TODO: Pass baselineProps from useBaselineProps() instead of null
@@ -12,7 +13,7 @@ export default function SettingsTab() {
     null,
     settings.debug,
     false,
-    { tag: 'debug-panel', id: 'debug-panel' }
+    { tag: 'debug-panel', id: toOlxKey('debug-panel') }
   );
 
   return (

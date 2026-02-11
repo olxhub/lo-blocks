@@ -39,7 +39,7 @@ export interface RenderedBlockResult {
  */
 export function useBlock(
   props: any,
-  id: OlxReference | string | null,
+  id: OlxReference | null,
   source: string = 'content'
 ): RenderedBlockResult {
   // Always call hooks unconditionally (React rules of hooks)
@@ -135,7 +135,7 @@ export function useKidsWithState(props: any): {
  * Component for rendering a block reference with async loading.
  * Used for dynamic content that may not be pre-loaded.
  */
-export function BlockRef({ id, ...props }: { id: string; [key: string]: any }) {
+export function BlockRef({ id, ...props }: { id: OlxReference; [key: string]: any }) {
   const { block } = useBlock(props, id);
   return <>{block}</>;
 }

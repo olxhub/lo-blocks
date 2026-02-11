@@ -5,7 +5,10 @@
 // Defines the StorageProvider interface and related types used across
 // all storage implementations (file, network, memory, git, postgres).
 //
-import { ProvenanceURI, JSONValue } from '../types';
+import type {
+  ProvenanceURI, FileProvenanceURI, MemoryProvenanceURI,
+  JSONValue, OlxRelativePath, SafeRelativePath,
+} from '../types';
 import { FileType } from './fileTypes';
 
 /**
@@ -56,6 +59,15 @@ export interface ReadResult {
   content: string;
   /** Provider-specific metadata (mtime, git hash, etag, etc.) - opaque to consumers */
   metadata?: unknown;
+  /**
+   * Provenance URI identifying which specific storage instance served this read.
+   * The same SafeRelativePath may exist in multiple providers (postgres, git,
+   * memory); this tells you which one the content actually came from.
+   *
+   * Optional for backwards compatibility — new provider implementations
+   * should always set this.
+   */
+  provenance?: ProvenanceURI;
 }
 
 /**
@@ -83,11 +95,69 @@ export class VersionConflictError extends Error {
 }
 
 /**
+ * Validate and brand a string as OlxRelativePath.
+ * Use at system boundaries where user input enters the storage type system.
+ *
+ * Minimal validation (parallel to toOlxReference for IDs):
+ * - Non-empty string
+ * - No null bytes (security)
+ * - Not absolute (doesn't start with /)
+ *
+ * Does NOT reject ".." — parent traversal is valid in OLX relative paths
+ * (e.g., src="../x.png" in /foo/bar/baz.olx refers to /foo/x.png).
+ * Resolution of ".." against a referring file's location is handled by
+ * resolveRelativePath, not here.
+ *
+ * Security enforcement (traversal, symlinks, allowed dirs) stays at the
+ * filesystem provider level (resolveSafeReadPath / resolveSafeWritePath).
+ *
+ * Client-safe: no Node.js path module dependency.
+ */
+export function toOlxRelativePath(
+  input: string,
+  // context?: { namespace?: string; referrer?: string }
+  //
+  // Future: resolution context for scoped paths. If content is namespaced
+  // (e.g., Prof. Smith's electronics course at UofC), the context would
+  // carry the namespace so that "problemset1.olx" resolves to
+  // "uofc/electronics/smith/problemset1.olx". For now, callers handle
+  // scoping externally and pass already-scoped paths.
+): OlxRelativePath {
+  if (!input || typeof input !== 'string') {
+    throw new Error(`toOlxRelativePath: expected non-empty string but got "${input}"`);
+  }
+  if (input.includes('\0')) {
+    throw new Error(`toOlxRelativePath: path contains null bytes: "${input}"`);
+  }
+  if (input.startsWith('/')) {
+    throw new Error(`toOlxRelativePath: expected relative path but got absolute "${input}"`);
+  }
+  return input as OlxRelativePath;
+}
+
+/**
+ * Brand a file:// provenance URI. Use when constructing provenance from
+ * a known filesystem path (e.g., in FileStorageProvider or translate route).
+ *
+ * Runtime scheme checks (startsWith('file://')) remain as defense-in-depth.
+ */
+export function toFileProvenanceURI(absPath: string): FileProvenanceURI {
+  return `file://${absPath}` as FileProvenanceURI;
+}
+
+/**
+ * Brand a memory:// provenance URI. Used by InMemoryStorageProvider.
+ */
+export function toMemoryProvenanceURI(name: string): MemoryProvenanceURI {
+  return `memory://${name}` as MemoryProvenanceURI;
+}
+
+/**
  * Options for grep operation
  */
 export interface GrepOptions {
   /** Base path to search from (default: root) */
-  basePath?: string;
+  basePath?: OlxRelativePath;
   /** Glob pattern to filter files (e.g., "*.olx") */
   include?: string;
   /** Maximum number of results to return */
@@ -99,7 +169,7 @@ export interface GrepOptions {
  */
 export interface GrepMatch {
   /** Path to the file containing the match */
-  path: string;
+  path: OlxRelativePath;
   /** Line number (1-indexed) */
   line: number;
   /** Content of the matching line */
@@ -114,20 +184,20 @@ export interface StorageProvider {
    */
   loadXmlFilesWithStats(previous?: Record<ProvenanceURI, XmlFileInfo>): Promise<XmlScanResult>;
 
-  read(path: string): Promise<ReadResult>;
-  write(path: string, content: string, options?: WriteOptions): Promise<void>;
-  update(path: string, content: string): Promise<void>;
-  delete(path: string): Promise<void>;
-  rename(oldPath: string, newPath: string): Promise<void>;
+  read(path: OlxRelativePath): Promise<ReadResult>;
+  write(path: OlxRelativePath, content: string, options?: WriteOptions): Promise<void>;
+  update(path: OlxRelativePath, content: string): Promise<void>;
+  delete(path: OlxRelativePath): Promise<void>;
+  rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void>;
   listFiles(selection?: FileSelection): Promise<UriNode>;
 
   /**
    * Find files matching a glob pattern
    * @param pattern - Glob pattern (e.g., "**​/*.olx", "sba/**​/*psychology*")
    * @param basePath - Base path to search from (default: root)
-   * @returns Array of matching file paths
+   * @returns Array of matching file paths (OlxRelativePath)
    */
-  glob(pattern: string, basePath?: string): Promise<string[]>;
+  glob(pattern: string, basePath?: OlxRelativePath): Promise<OlxRelativePath[]>;
 
   /**
    * Search file contents for a pattern
@@ -138,17 +208,32 @@ export interface StorageProvider {
   grep(pattern: string, options?: GrepOptions): Promise<GrepMatch[]>;
 
   /**
-   * Resolve a relative path against a base provenance URI
+   * Resolve a relative path against a base provenance URI.
+   * Validates the resolved result stays within the content directory.
+   *
    * @param baseProvenance - Provenance URI of current OLX file
-   * @param relativePath - Relative path from OLX (e.g., "static/image.png")
-   * @returns Resolved path relative to content root (e.g., "mycourse/static/image.png")
+   * @param relativePath - Raw relative path from OLX (e.g., "static/image.png")
+   * @returns SafeRelativePath — escape-validated, safe to use without further traversal checks
    */
-  resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): string;
+  resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath;
+
+  /**
+   * Construct the provenance URI for a content path in this provider.
+   *
+   * Maps from a canonical name (SafeRelativePath) to this provider's
+   * location URI. For example:
+   * - FileStorageProvider:   "sba/foo.olx" → "file:///home/.../content/sba/foo.olx"
+   * - InMemoryStorageProvider: "sba/foo.olx" → "memory://sba/foo.olx"
+   *
+   * Used by parsers to extend provenance chains without knowing about
+   * storage schemes. See also ReadResult.provenance (set during read).
+   */
+  toProvenanceURI(path: SafeRelativePath): ProvenanceURI;
 
   /**
    * Check if a static asset file exists and is valid
    * @param assetPath - Path relative to content root
    * @returns Promise<boolean>
    */
-  validateAssetPath(assetPath: string): Promise<boolean>;
+  validateAssetPath(assetPath: OlxRelativePath): Promise<boolean>;
 }

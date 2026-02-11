@@ -17,7 +17,7 @@
 // - loadXmlFilesWithStats(): Merged scan, higher priority files shadow lower
 // - validateAssetPath(): True if exists in any provider
 //
-import type { ProvenanceURI } from '../../types';
+import type { ProvenanceURI, OlxRelativePath, SafeRelativePath } from '../../types';
 import {
   type StorageProvider,
   type XmlFileInfo,
@@ -113,7 +113,7 @@ export class StackedStorageProvider implements StorageProvider {
   }
 
   // Read from the first provider that has the file
-  async read(filePath: string): Promise<ReadResult> {
+  async read(filePath: OlxRelativePath): Promise<ReadResult> {
     let lastError: Error | null = null;
 
     for (const provider of this.providers) {
@@ -128,12 +128,12 @@ export class StackedStorageProvider implements StorageProvider {
   }
 
   // Write to the first provider
-  async write(filePath: string, content: string, options?: WriteOptions): Promise<void> {
+  async write(filePath: OlxRelativePath, content: string, options?: WriteOptions): Promise<void> {
     return this.providers[0].write(filePath, content, options);
   }
 
   // Update in the first provider
-  async update(filePath: string, content: string): Promise<void> {
+  async update(filePath: OlxRelativePath, content: string): Promise<void> {
     return this.providers[0].update(filePath, content);
   }
 
@@ -190,8 +190,10 @@ export class StackedStorageProvider implements StorageProvider {
     return merged;
   }
 
-  // Resolve path using first provider that works
-  resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): string {
+  // Resolve path using the provider whose scheme matches the provenance.
+  // Each provider checks its own scheme (memory://, file://, etc.) and throws
+  // on mismatch, so the right provider handles the resolution.
+  resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
     for (const provider of this.providers) {
       try {
         return provider.resolveRelativePath(baseProvenance, relativePath);
@@ -202,8 +204,23 @@ export class StackedStorageProvider implements StorageProvider {
     throw new Error(`Cannot resolve path in any provider: ${relativePath}`);
   }
 
+  // Construct provenance from the provider that actually has the file.
+  // Each provider checks existence and throws if it doesn't have the file,
+  // so the first provider that has it claims the provenance — matching
+  // read() priority order.
+  toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
+    for (const provider of this.providers) {
+      try {
+        return provider.toProvenanceURI(safePath);
+      } catch {
+        // Continue to next provider
+      }
+    }
+    throw new Error(`Cannot construct provenance in any provider for: ${safePath}`);
+  }
+
   // Check if asset exists in any provider
-  async validateAssetPath(assetPath: string): Promise<boolean> {
+  async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {
     for (const provider of this.providers) {
       try {
         if (await provider.validateAssetPath(assetPath)) {
@@ -217,9 +234,9 @@ export class StackedStorageProvider implements StorageProvider {
   }
 
   // Glob merged from all providers (union, higher priority shadows lower)
-  async glob(pattern: string, basePath?: string): Promise<string[]> {
+  async glob(pattern: string, basePath?: OlxRelativePath): Promise<OlxRelativePath[]> {
     const seen = new Set<string>();
-    const results: string[] = [];
+    const results: OlxRelativePath[] = [];
 
     // Collect from all providers, higher priority first
     for (const provider of this.providers) {
@@ -271,12 +288,12 @@ export class StackedStorageProvider implements StorageProvider {
   }
 
   // Delete from the first provider
-  async delete(filePath: string): Promise<void> {
+  async delete(filePath: OlxRelativePath): Promise<void> {
     return this.providers[0].delete(filePath);
   }
 
   // Rename in the first provider
-  async rename(oldPath: string, newPath: string): Promise<void> {
+  async rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
     return this.providers[0].rename(oldPath, newPath);
   }
 }

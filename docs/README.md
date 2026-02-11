@@ -447,46 +447,7 @@ Be very mindful if you mean `children` or `kid
 
 # IDs
 
-This will explain why IDs are among the most confusing parts of this system. We have many types of IDs:
-
-Type            |  Example                                                                        | Description
-----------------|---------------------------------------------------------------------------------|------------
-OLX Reference   | `/mit.edu/6002x/resistorProblem`, `resistorProblem`, `../6002x/resistorProblem` | As found in source OLX
-OLX Key         | `/mit.edu/6002x/resistorProblem`                                                | As found in key-value stores, etc.
-Redux State key | `AdaptivePractice:/mit.edu/6002x/resistorProblem`                               | Modified by OLX namespaces, CapaProblem, DynamicList, etc.
-React key | | Most be unique per element
-HTML ID   | | Must be unique per page
-
-A few notes:
-* An OLX Reference is **not** unique (many-to-many). We need absolute and relative references. **This is unimplemented as of this writing**
-* An OLX Key is **not** unique (one-to-many). It's a DAG, not a tree, and with `Use`, the same key can occur multiple times on the same page.
-* In OLX, we write `id=`
-* The same Redux State key can occur multiple times on the same page (one-to-many)
-* React keys are unique per list
-* HTML IDs are unique per page
-
-Notice: We use `/` for namespacing in static OLX, and `:` in the dynamic DOM. **Note:** The current version of the codebase uses `.` instead of `:` as of this writing. This should be fixed soon.
-
-In most cases, namespacing in the OLX DOM is done by attaching an `idPrefix` (which is accumulated in `props`).
-
-## ID Format
-
-OLX IDs should NOT contain: ., /, :, or whitespace (unless being used as part of namespaces), as these characters are reserved as namespace/path delimiters.
-
-However, we are currently doing our best to restrict IDs to [a-z][A-Z]_[0-9]. This is because we're still figuring out formats. We plan to relax this once we know more about what we're doing. If tomorrow, we'd like to introduce ^, #, or otherwise, we want that option. It's not unlikely we'll want to be able to refer to specific versions (e.g. use older content) by version number, git hash, or whatnot, and have other features. Until we figure that out, it makes sense to be conservative in content authoring.
-
-We also have a lot of hacks in code. Common one:
-```
-  // HACK: Force absolute path for cross-block references.
-  const absoluteId = id.startsWith('/') ? id : `/${id}`;
-```
-And similar. Much of this is now handled by `refToReduxKey` and `refToOlxKey`.
-
-## IDs in React, OLX, HTML, ...
-
-We interact with other uses of IDs. This contributes a lot to the complexity!
-
-We are mixing React concepts, OLX concepts, and others. Just to keep things clear, here is a list of *external* names and keys -- meaning ones from other systems where we'd like to maintain compatibility:
+IDs are hard. We have internal ID types (static OLX, dynamic OLX, etc.). We interact with other uses of IDs. This contributes a lot to the complexity! For example:
 
 * OLX 1.0 `url_name`: Used as a key. Designed to be human-friendly (e.g. "eigen_pset"), but often GUIDs. This was originally created, in part, so URLs would be friendly (e.g. `/linear_algebra/eigenvalues` instead of `/[GUID]/[GUID]`), and to simplify analytics and debugging. We split this into `OlxReference`, `OlxKey`, and `ReactKey`.
 * OLX 1.0 `display_name`: Human-friendly short decriptive text (e.g. "Eigenvalue Problem Set"). We use `title`.
@@ -495,49 +456,23 @@ We are mixing React concepts, OLX concepts, and others. Just to keep things clea
 * HTML `name` (HTML/DOM Attribute): Names an element (typically form controls for form data submission)
 * `displayName` (React-Specific): Human-readable name for a React component, useful for debugging
 
-In `lo-blocks`, this is refactored as:
-* `OlxReference` (e.g. "/foo", "./foo", "foo"): ID as found in OLX
-* `OlxKey`: Same, but uniquely dereferenced
-* `ReduxStateKey`: As stored in the state. The same OLX element may appear multiple places under the same ID (OLX is a DAG) or different IDs (e.g. a `DynamicList`, which adds a prefix). There are also cases where different OLX elements might share a Redux ID (for example, a video player, its scrubber, etc. could be implemented like this, although newer code is moving to `target=`)
-* We also have `ReactKey` and `HtmlId`, although those are rarely relevant to block developers.
-* We pass around an `IdPrefix`, which is generally used in `OlxKey` -> `ReduxStateKey` conversions
+We are mixing React concepts, OLX concepts, and others. This leads to a rather complex system. It took a while to figure out, and we're moving detailed documentation from here to `lib/types.ts` now that it appears to be mostly figured-out.
 
-We resolve keys with
-* `refToReduxKey(props)` - Converts a ref to a reduxKey.
-* `refToOlxKey(ref)` - Converts a ref to an olxKey.
+A few rules:
 
-Stylistically, we aim to use *semantic keys* where possible, for the same reasons as `url_name` in edX:
-  <Lesson id="linalg_eigen"/>
-is much easier to understand than:
-  <Lesson id="3a0512ad31dc81fc166507f20ddebfe700d64daf"/>
+* Use [a-z][A-Z][0-9]_ in IDs. Avoid other characters, except as delimeters. We may extend this later, but first, we need to figure out what to reserve and for what purpose.
+* Keys should be as semantic and meaningful as possible. `resistor_divider_problem` is better than a SHA hash. A SHA hash is better than a GUID. These feed into downstream analytics. `<Lesson id="linalg_eigen"/>` is a lot nicer to work with than `<Lesson id="3a0512ad31dc81fc166507f20ddebfe700d64daf"/>`. 
+* Semantic IDs have many downsides, including key collisions, the associated need for namespaces, and IDs going out-of-date (e.g. a problem changes what it teaches). Those are worth it.
+* Every OLX component *must* have an ID. Many of these are auto-assigned.
+* As a convention, peer components (e.g. an analytic for another component) will often use `target`. E.g. `<Input id="essay"\>` might have a `<Wordcount target="essay"\>`. We used to have targetRef and others. These should be removed.
 
-This has many downsides, including key collisions, the associated need for namespaces, and IDs going out-of-date (e.g. a problem changes what it teaches). We've made the decision to accept those. As a hierarchy:
+**Scoped state**: When a single OLX node is rendered multiple times (e.g., in a list or mastery bank), each instance needs its own Redux state. We handle this with `idPrefix`, which scopes the Redux key:
 
-semantic > SHA hash > GUID
-
-Every OLX component *must* have an ID.
-
-Peer components (e.g. an analytic for another component) will often use `target` to refer to their "main" redux state:
-
-```
-  <Input id="essay"\>
-  <Wordcount target="essay"\>
-```
-
-## ID Prefixes for Scoped State
-
-When a single OLX node is rendered multiple times (e.g., in a list or mastery bank), each instance needs its own Redux state. We handle this with `idPrefix`, which scopes the Redux key:
-
-```
-OLX node: `<DynamicList id="list"><TextArea id="response"/></DynamicList>`
-
-OLX key has no prefix: `response`
-React key has a prefix: `list:0:response`, `list:1:response`, etc.
-```
+* OLX node: `<DynamicList id="list"><TextArea id="response"/></DynamicList>`
+* OLXReference has no prefix: `response`
+* ReduxStateKey has a prefix: `list:0:response`, `list:1:response`, etc.
 
 The `extendIdPrefix(props, scope)` utility builds scoped prefixes for child components.
-
-## ID Path Syntax
 
 When referencing other components' state (e.g., a grader looking up an input's value, or a child referencing a parent), IDs should support path-like syntax to control whether the `idPrefix` is applied:
 
@@ -550,40 +485,14 @@ This matters when a component inside a scoped context (like a problem inside a M
 
 The `fieldSelector` and `updateField` functions automatically apply `idPrefix` to ID overrides, so components don't need to manually scope IDs. If you pass `{ id: 'parent_input' }` to these functions and `idPrefix` is set, the lookup will use `prefix.parent_input`.
 
-Right now, this is a little bit confused, since we have two types of scoping:
+Right now, this is a little bit confusing, since we have two types of scoping:
 
 * Static scoping (e.g. `mit.edu/pmitros/6002x/hw1/problem5`) at the OLX Key level. `/` seperator
 * Dynamic scoping (e.g. `DynamicList`). `:` separator
 
-Which we still need to figure out.
+Which we still need to figure out how to best manage both in a developer- and human-friendly way.
 
-## Branded types
-
-These are defined in `types.ts`:
-
-```typescript
-type OlxReference = string & { __brand: 'OlxReference' };  // "/foo", "./foo", "foo"
-type OlxKey = OlxReference & { __resolved: true };         // idMap lookup key
-type ReduxStateKey = string & { __brand: 'ReduxStateKey' }; // state key with idPrefix
-type ReactKey = string & { __brand: 'ReactKey' };          // React reconciliation
-type HtmlId = string & { __brand: 'HtmlId' };              // DOM element ID
-```
-
-Conversion functions in `idResolver.ts`:
-```typescript
-// Reference → OlxKey (for idMap lookup, strips prefixes)
-refToOlxKey(ref: OlxReference | string): OlxKey
-
-// Props/ref → ReduxStateKey (for state access, applies idPrefix)
-refToReduxKey(input: RefToReduxKeyInput): ReduxStateKey
-
-// Validate raw string as OlxReference (at system boundaries)
-toOlxReference(input: string, context?: string): OlxReference
-```
-
-## Key Assignment Contexts and Helpers
-
-We need to work through key assignment strategy if `id=` is not specified (and sometimes, if it is!).
+**Key Assignment** We need to work through key assignment strategy if `id=` is not specified (and sometimes, if it is!).
 
 We would like to have an abstracted set of helpers:
 

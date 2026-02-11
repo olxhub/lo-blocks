@@ -130,7 +130,7 @@ export const getReduxState = (
   props: any,
   field: FieldInfo,
   fallback: any,
-  { id, tag }: { id?: string | boolean; tag?: string | boolean } = {}
+  { id, tag }: { id?: OlxKey | boolean; tag?: string | boolean } = {}
 ): any => {
   assertValidField(field);
 
@@ -158,7 +158,7 @@ export function updateField(
   props: BaselineProps | null,
   field: FieldInfo,
   newValue,
-  { id, tag }: { id?: string | boolean; tag?: string | boolean } = {}
+  { id, tag }: { id?: OlxKey | boolean; tag?: string | boolean } = {}
 ) {
   assertValidField(field);
   const scope = field.scope;
@@ -186,7 +186,7 @@ export function useFieldState(
   props: BaselineProps | null,
   field: FieldInfo,
   fallback?,
-  { id, tag }: { id?: string | boolean; tag?: string | boolean } = {}
+  { id, tag }: { id?: OlxKey | boolean; tag?: string | boolean } = {}
 ) {
   assertValidField(field);
 
@@ -332,7 +332,7 @@ export function useReduxCheckbox(
   props,
   field: FieldInfo,
   fallback = false,
-  opts: { id?: string; tag?: string } = {}
+  opts: { id?: OlxKey; tag?: string } = {}
 ) {
   assertValidField(field);
   const [checked, setChecked] = useFieldState(props, field, fallback, opts);
