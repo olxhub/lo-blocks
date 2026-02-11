@@ -47,9 +47,15 @@ export async function GET(request: Request) {
     rawBasePath = undefined;
   }
 
+  // Brand at trust boundary — path comes from HTTP request (untrusted)
+  let basePath;
   try {
-    // Brand at trust boundary — path comes from HTTP request (untrusted)
-    const basePath = rawBasePath ? toOlxRelativePath(rawBasePath) : undefined;
+    basePath = rawBasePath ? toOlxRelativePath(rawBasePath) : undefined;
+  } catch (err: any) {
+    return Response.json({ ok: false, error: err.message }, { status: 400 });
+  }
+
+  try {
     const matches = await provider.grep(pattern, { basePath, include, limit });
     return Response.json({ ok: true, matches });
   } catch (err: any) {

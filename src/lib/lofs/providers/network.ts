@@ -118,6 +118,9 @@ export class NetworkStorageProvider implements StorageProvider {
 
     for (const part of parts) {
       if (part === '..') {
+        if (resolved.length === 0) {
+          throw new Error(`Path traversal above root: "${relativePath}" from "${baseProvenance}"`);
+        }
         resolved.pop();
       } else if (part !== '.') {
         resolved.push(part);

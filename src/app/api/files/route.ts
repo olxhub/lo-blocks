@@ -22,9 +22,15 @@ export async function GET(request: Request) {
     rawBasePath = undefined;
   }
 
+  // Brand at trust boundary — path comes from HTTP request (untrusted)
+  let basePath;
   try {
-    // Brand at trust boundary — path comes from HTTP request (untrusted)
-    const basePath = rawBasePath ? toOlxRelativePath(rawBasePath) : undefined;
+    basePath = rawBasePath ? toOlxRelativePath(rawBasePath) : undefined;
+  } catch (err: any) {
+    return Response.json({ ok: false, error: err.message }, { status: 400 });
+  }
+
+  try {
     if (pattern) {
       // Glob mode - return array of matching files
       const files = await provider.glob(pattern, basePath);
