@@ -38,13 +38,13 @@ export class InMemoryStorageProvider implements StorageProvider {
     const normalized = path.replace(/^\.?\//, '');
 
     if (this.files[normalized] !== undefined) {
-      return { content: this.files[normalized], metadata: {} };
+      return { content: this.files[normalized], metadata: {}, provenance: toMemoryProvenanceURI(normalized) };
     }
 
     // Try with basePath prefix
     const withBase = this.basePath ? `${this.basePath}/${normalized}` : normalized;
     if (this.files[withBase] !== undefined) {
-      return { content: this.files[withBase], metadata: {} };
+      return { content: this.files[withBase], metadata: {}, provenance: toMemoryProvenanceURI(withBase) };
     }
 
     const availableFiles = Object.keys(this.files).join(', ') || '(none)';
@@ -96,6 +96,10 @@ export class InMemoryStorageProvider implements StorageProvider {
     return relativePath.replace(/^\.?\//, '') as SafeRelativePath;
   }
 
+  toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
+    return toMemoryProvenanceURI(safePath);
+  }
+
   async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {
     const { isMediaFile } = await import('@/lib/util/fileTypes');
     return isMediaFile(assetPath) && this.exists(assetPath);
@@ -145,6 +149,7 @@ export class InMemoryStorageProvider implements StorageProvider {
       for (let i = 0; i < lines.length; i++) {
         if (regex.test(lines[i])) {
           matches.push({
+            // Keys come from this.files which is written via write(path: OlxRelativePath, ...)
             path: filePath as OlxRelativePath,
             line: i + 1,
             content: lines[i].trim(),

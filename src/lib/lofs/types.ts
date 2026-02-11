@@ -59,6 +59,15 @@ export interface ReadResult {
   content: string;
   /** Provider-specific metadata (mtime, git hash, etag, etc.) - opaque to consumers */
   metadata?: unknown;
+  /**
+   * Provenance URI identifying which specific storage instance served this read.
+   * The same SafeRelativePath may exist in multiple providers (postgres, git,
+   * memory); this tells you which one the content actually came from.
+   *
+   * Optional for backwards compatibility — new provider implementations
+   * should always set this.
+   */
+  provenance?: ProvenanceURI;
 }
 
 /**
@@ -194,6 +203,19 @@ export interface StorageProvider {
    * @returns SafeRelativePath — escape-validated, safe to use without further traversal checks
    */
   resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath;
+
+  /**
+   * Construct the provenance URI for a content path in this provider.
+   *
+   * Maps from a canonical name (SafeRelativePath) to this provider's
+   * location URI. For example:
+   * - FileStorageProvider:   "sba/foo.olx" → "file:///home/.../content/sba/foo.olx"
+   * - InMemoryStorageProvider: "sba/foo.olx" → "memory://sba/foo.olx"
+   *
+   * Used by parsers to extend provenance chains without knowing about
+   * storage schemes. See also ReadResult.provenance (set during read).
+   */
+  toProvenanceURI(path: SafeRelativePath): ProvenanceURI;
 
   /**
    * Check if a static asset file exists and is valid

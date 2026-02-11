@@ -9,7 +9,7 @@
 import path from 'path';
 import { glob as globLib } from 'glob';
 import pegExts from '../../../generated/pegExtensions.json' assert { type: 'json' };
-import type { ProvenanceURI, OlxRelativePath, SafeRelativePath } from '../../types';
+import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, FileSystemPath } from '../../types';
 import {
   type StorageProvider,
   type XmlFileInfo,
@@ -149,7 +149,7 @@ function isPathAllowed(canonicalPath: string, allowedDirs: string[]): boolean {
  * @returns Resolved path (follows symlinks internally but returns logical path)
  * @throws Error if path escapes allowed directories or contains null bytes
  */
-export async function resolveSafeReadPath(baseDir: string, relPath: string): Promise<string> {
+export async function resolveSafeReadPath(baseDir: string, relPath: string): Promise<FileSystemPath> {
   if (typeof relPath !== 'string' || relPath.includes('\0')) {
     throw new Error('Invalid path: null bytes not allowed');
   }
@@ -172,7 +172,7 @@ export async function resolveSafeReadPath(baseDir: string, relPath: string): Pro
   } catch (err: any) {
     if (err.code === 'ENOENT') {
       // File doesn't exist - return logical path, caller will handle ENOENT
-      return full;
+      return full as FileSystemPath;
     }
     throw err;
   }
@@ -182,7 +182,7 @@ export async function resolveSafeReadPath(baseDir: string, relPath: string): Pro
     throw new Error('Invalid path: resolves outside allowed directories');
   }
 
-  return full;
+  return full as FileSystemPath;
 }
 
 /**
@@ -197,7 +197,7 @@ export async function resolveSafeReadPath(baseDir: string, relPath: string): Pro
  * @returns Resolved path
  * @throws Error if path contains symlinks, escapes allowed directories, or contains null bytes
  */
-export async function resolveSafeWritePath(baseDir: string, relPath: string): Promise<string> {
+export async function resolveSafeWritePath(baseDir: string, relPath: string): Promise<FileSystemPath> {
   if (typeof relPath !== 'string' || relPath.includes('\0')) {
     throw new Error('Invalid path: null bytes not allowed');
   }
@@ -238,7 +238,7 @@ export async function resolveSafeWritePath(baseDir: string, relPath: string): Pr
         }
         throw parentErr;
       }
-      return full;
+      return full as FileSystemPath;
     }
     throw err;
   }
@@ -253,7 +253,7 @@ export async function resolveSafeWritePath(baseDir: string, relPath: string): Pr
     throw new Error('Invalid path: outside allowed write directories');
   }
 
-  return full;
+  return full as FileSystemPath;
 }
 
 /**
@@ -420,6 +420,7 @@ export class FileStorageProvider implements StorageProvider {
       return {
         content,
         metadata: { mtime: stat.mtimeMs, size: stat.size },
+        provenance: toFileProvenanceURI(full),
       };
     } catch (err: any) {
       if (err.code === 'ENOENT') {
@@ -525,6 +526,10 @@ export class FileStorageProvider implements StorageProvider {
     }
 
     return resolved as SafeRelativePath;
+  }
+
+  toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
+    return toFileProvenanceURI(path.resolve(this.baseDir, safePath));
   }
 
   async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {

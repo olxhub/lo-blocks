@@ -2,7 +2,9 @@
 //
 // Type definitions - central TypeScript types for Learning Observer architecture.
 //
-// Defines the core data structures that flow through the Learning Observer system:
+// This file defines and explains the core data structures that flow
+// through the Learning Observer system:
+//
 // - Content types (OLX, provenance, errors)
 // - Block system types (blueprints, components, fields)
 // - State management types (Redux fields, scopes)
@@ -16,6 +18,12 @@ import { z } from 'zod';
 import { scopeNames } from './state/scopes';
 import type { Store } from 'redux';
 
+/**
+ * ════════════
+ * COMMON TYPES
+ * ════════════
+ */
+
 export type JSONValue =
   | string
   | number
@@ -24,11 +32,13 @@ export type JSONValue =
   | JSONValue[]
   | { [key: string]: JSONValue };
 
-// Content tier - computed from `generated` field
-// - 'supported': Human-authored or reviewed content (generated absent)
-// - 'bestEffort': Machine-generated content (generated present)
-// Future: Computation can become more complex (e.g., generated + reviewed by 2 people = supported)
-export type ContentTier = 'supported' | 'bestEffort';
+/**
+ * ═══════════
+ * ERROR TYPES
+ * ═══════════
+ *
+ * Aspirational goal: Consolidate error handling here.
+ */
 
 // OLX Content Loading Errors
 export interface OLXLoadingError {
@@ -44,27 +54,74 @@ export interface OLXLoadingError {
   stack?: any;
 }
 
-// Storage API: Grabbing OLX files from disk
-export interface FileProvenance {
-  type: 'file';
-  path: string;
-  [key: string]: any;
-}
-
-export interface GenericProvenance {
-  type: string;
-  path?: string;
-  [key: string]: any;
-}
-
-/*
- * Provenance Types (Branded)
+/**
+ * ════════
+ * ID TYPES
+ * ════════
  *
- * Every piece of parsed content carries a provenance URI tracking where
- * it came from — "file:///home/.../content/demos/foo.olx", "memory://test",
- * "inline://editor", etc. This enables precise error messages ("syntax
- * error in demos/foo.olx:42"), content dependency tracking, and authoring
- * workflows (knowing which file to save edits back to).
+ */
+
+// We start with an OLX Reference
+//   e.g. `/mit.edu/6002x/resistorProblem`, `resistorProblem`, `../6002x/resistorProblem`,
+// as found in source OLX. We import these with `toOlxReference`. It takes a context, since
+// eventually we might want namespacing.
+export type OlxReference = string & { __brand: 'OlxReference' };
+//                    |
+//                    | refToOlxKey(ref)
+//                    v
+// Which is converted to a canonical ID, e.g. `/mit.edu/6002x/resistorProblem`, which can be
+// used as a key into the static OLX
+export type OlxKey = OlxReference & { __resolved: true };
+// However, when we render, this is many:many. For example, <Use> allows us to use the same block
+// from the static OLX DOM in the dunamic rendered DOM. Conversely, something like a <DynamicList>
+// might repeat the same OLX DOM under different keys. We combine this with an optional scoping
+// prefix:
+//                    |
+export type IdPrefix = string & { __brand: 'IdPrefix' };
+//                    |     |
+//                    |     |   `refToReduxKey(props)`
+//                    v     v
+// To make a key used to maintain redux state:
+export type ReduxStateKey = string & { __brand: 'ReduxStateKey' };
+
+// This is all well and good, but React Keys and HTML IDs have
+// different uniqueness constraints:
+export type ReactKey = string & { __brand: 'ReactKey' };          // React reconciliation
+export type HtmlId = string & { __brand: 'HtmlId' };              // DOM element ID
+
+// And a final type of ID: OLX element tag name (e.g., "Vertical", "Sequential", "ChoiceInput")
+export type OLXTag = string & { __brand: 'OLXTag' };
+
+
+/**
+ * ═══════════
+ * Provenances
+ * ═══════════
+ *
+ * Every piece of parsed content carries a provenance chain — an array of
+ * URIs recording where it came from. For a block in foo.olx that includes
+ * quiz.chatpeg, that chain might be:
+ *   ["file:///home/.../content/demos/foo.olx", "file:///home/.../content/demos/quiz.chatpeg"]
+ *
+ * This enables:
+ * - Precise error messages ("syntax error in demos/foo.olx:42")
+ * - Dependency tracking (if quiz.chatpeg changes, re-parse foo.olx)
+ * - Authoring workflows (knowing which file to save edits back to)
+ *
+ * Provenance is a *location*, not an *identity*. The same content name
+ * (SafeRelativePath "uofa/writing/foo.md") can exist in multiple places
+ * simultaneously — a university postgres database, a professor's git repo,
+ * an in-memory editing buffer. Each has its own provenance:
+ *   postgres://profx@uofa.edu/uofa/writing/foo.md
+ *   git://profx@github.com/profx/olxrepo/uofa/writing/foo.md
+ *   inline://uofa/writing/foo.md
+ *
+ * "Save" might push content from inline → git; "publish" from git → postgres.
+ * The true canonical identity is ultimately the content itself (a SHA hash),
+ * with paths and provenance URIs serving as mutable pointers.
+ *
+ * Providers construct provenance URIs — parsers should never need to know
+ * about schemes. See StorageProvider.toProvenanceURI().
  *
  * Sub-branded by scheme so TypeScript can distinguish file:// from memory://
  * at compile time. Runtime checks (startsWith('file://')) stay as
@@ -77,17 +134,31 @@ export type FileProvenanceURI = ProvenanceURI & { __scheme: 'file' };
 /** memory:// provenance — content from in-memory storage (tests, virtual FS) */
 export type MemoryProvenanceURI = ProvenanceURI & { __scheme: 'memory' };
 
-/** OLX element tag name (e.g., "Vertical", "Sequential", "ChoiceInput") */
-export type OLXTag = string & { __brand: 'OLXTag' };
+// For convenience, we have data structure versions as well. Not clear
+// yet if this is helpful or the opposite.
 
-// ID Types (Branded)
-// See docs/README.md "IDs" section for documentation.
-export type OlxReference = string & { __brand: 'OlxReference' };  // "/foo", "./foo", "foo"
-export type OlxKey = OlxReference & { __resolved: true };         // idMap lookup key
-export type IdPrefix = string & { __brand: 'IdPrefix' };          // scope prefix for Redux keys
-export type ReduxStateKey = string & { __brand: 'ReduxStateKey' }; // state key with idPrefix
-export type ReactKey = string & { __brand: 'ReactKey' };          // React reconciliation
-export type HtmlId = string & { __brand: 'HtmlId' };              // DOM element ID
+// Storage API: Grabbing OLX files from disk
+export interface FileProvenance {
+  type: 'file';
+  path: string;
+  [key: string]: any;
+}
+
+// Other types, tbd
+export interface GenericProvenance {
+  type: string;
+  path?: string;
+  [key: string]: any;
+}
+
+export type ProvenanceStruct = FileProvenance | GenericProvenance;
+export type ProvenanceEntry = ProvenanceURI | ProvenanceStruct;
+
+// Our primary type is a list, since a piece of JsonOlx might have
+// multiple sources. For example, `<Markdown src='foo.md'>` might
+// require **both** `foo.olx` and `foo.md` to build.
+export type Provenance = ProvenanceURI[];
+
 
 /*
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -120,10 +191,12 @@ export type OlxRelativePath = string & { __brand: 'OlxRelativePath' };
 export type SafeRelativePath = OlxRelativePath & { __safe: true };
 /*
  * Produced by resolveRelativePath(provenance, relativePath). The name
- * emphasizes safety (no directory escape) but the real point is identity:
- * a canonical path relative to the content root, with "../" resolved away.
- * In the future, this could also validate the file exists (keeping in mind
- * that with provider stacks, existence checks span multiple backends).
+ * emphasizes safety (no directory escape) but the real point is
+ * canonicalization: a unique name in the virtual namespace, with "../"
+ * resolved away. This is a *name*, not a *location* — the same
+ * SafeRelativePath can exist in multiple storage providers simultaneously
+ * (postgres, git, in-memory). The provider's toProvenanceURI() maps
+ * from name → location.
  *
  * From here, it must be read from storage. The location in our
  * virtual filesystem is:
@@ -138,13 +211,11 @@ export type LofsPath = string & { __brand: 'LofsPath' };
  *   checks, symlink validation, allowed-directory rules).
  *
  * - NetworkStorageProvider: prepends a namespace ("content/") to form
- *   a wire-format path for HTTP API calls, then strips it back on the
- *   response side. This namespaced form is:
-
- *   Used internally by NetworkStorageProvider and validated by
- *   contentPaths.ts on the server. Not every provider needs this —
- *   FileStorageProvider goes straight from OlxRelativePath to the
- *   filesystem, and a postgres provider would use SQL queries.
+ *   a wire-format path (LofsPath) for HTTP API calls, then strips it
+ *   back on the response side. Validated by contentPaths.ts on the
+ *   server. Not every provider needs this — FileStorageProvider goes
+ *   straight from OlxRelativePath to the filesystem, and a postgres
+ *   provider would use SQL queries.
  *
  * - InMemoryStorageProvider: uses OlxRelativePath directly as a map key.
  *
@@ -170,12 +241,6 @@ export type FileSystemPath = string & { __brand: 'FileSystemPath', __safe: true 
  */
 
 
-/** Primary representation for provenance references */
-export type Provenance = ProvenanceURI[];
-
-/** Structured representation used in debug output */
-export type ProvenanceStruct = FileProvenance | GenericProvenance;
-export type ProvenanceEntry = ProvenanceURI | ProvenanceStruct;
 
 // Fields API
 export interface FieldInfo {
@@ -816,3 +881,9 @@ export interface GraphEdge {
   source: OlxKey;  // Source block ID
   target: OlxKey;  // Target block ID
 }
+
+// Content tier - computed from `generated` field
+// - 'supported': Human-authored or reviewed content (generated absent)
+// - 'bestEffort': Machine-generated content (generated present)
+// Future: Computation can become more complex (e.g., generated + reviewed by 2 people = supported)
+export type ContentTier = 'supported' | 'bestEffort';

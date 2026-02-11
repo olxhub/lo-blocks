@@ -50,6 +50,10 @@ export class GitStorageProvider implements StorageProvider {
     throw new Error('git storage not implemented');
   }
 
+  toProvenanceURI(_path: SafeRelativePath): ProvenanceURI {
+    throw new Error('git storage not implemented');
+  }
+
   async validateAssetPath(_assetPath: OlxRelativePath): Promise<boolean> {
     throw new Error('git storage not implemented');
   }

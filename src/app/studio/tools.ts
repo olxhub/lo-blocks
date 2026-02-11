@@ -111,7 +111,7 @@ export function createEditorTools({
         // Validate content by parsing it
         if (fileType === 'olx' || fileType === 'xml') {
           try {
-            const { errors } = await parseOLX(newContent, ['editor' as ProvenanceURI]);
+            const { errors } = await parseOLX(newContent, ['editor://' as ProvenanceURI]);
             if (errors.length > 0) {
               const messages = errors.map(e => e.message).join('\n\n---\n\n');
               return `Error (${errors.length} issue${errors.length > 1 ? 's' : ''}):\n\n${messages}`;

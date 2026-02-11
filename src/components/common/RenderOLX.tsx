@@ -52,7 +52,7 @@ import { makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import Spinner from '@/components/common/Spinner';
-import { InMemoryStorageProvider, StackedStorageProvider } from '@/lib/lofs';
+import { InMemoryStorageProvider, StackedStorageProvider, toMemoryProvenanceURI } from '@/lib/lofs';
 import { isOLXFile } from '@/lib/util/fileTypes';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
 import { useBlock } from '@/lib/blocks/useRenderedBlock';
@@ -247,7 +247,7 @@ function useParseContent(
 
             const result = await parseOLX(
               content,
-              [(provenance || `memory://${filename}`) as ProvenanceURI],
+              [provenance as ProvenanceURI || toMemoryProvenanceURI(filename)],
               effectiveProvider
             );
 

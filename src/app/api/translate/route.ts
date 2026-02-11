@@ -156,6 +156,7 @@ function buildFrontmatter(metadata: Record<string, any>): string {
 function computeTranslationPath(sourceRelPath: OlxRelativePath, targetLocale: ContentVariant): OlxRelativePath {
   const ext = path.extname(sourceRelPath);
   const base = sourceRelPath.slice(0, -ext.length);
+  // Derived from already-branded sourceRelPath — safe to re-brand
   return `${base}/${targetLocale}.auto${ext}` as OlxRelativePath;
 }
 
@@ -188,6 +189,7 @@ function resolveOriginalSource(
   }
   const originalFileName = sourceVariant.generated.source_file;
   const sourceRelPath = uriToRelPath(sourceFileUri);
+  // Derived from branded sourceRelPath + content-store filename — safe to re-brand
   const originalRelPath = path.join(path.dirname(path.dirname(sourceRelPath)), originalFileName) as OlxRelativePath;
 
   // Derive the actual language from the human-authored original so the LLM

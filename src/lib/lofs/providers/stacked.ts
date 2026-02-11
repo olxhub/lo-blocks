@@ -202,6 +202,20 @@ export class StackedStorageProvider implements StorageProvider {
     throw new Error(`Cannot resolve path in any provider: ${relativePath}`);
   }
 
+  // Construct provenance from the first provider that can resolve the path
+  // (same priority order as read — the provider that would serve a read
+  // is the one whose provenance matters)
+  toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
+    for (const provider of this.providers) {
+      try {
+        return provider.toProvenanceURI(safePath);
+      } catch {
+        // Continue to next provider
+      }
+    }
+    throw new Error(`Cannot construct provenance in any provider for: ${safePath}`);
+  }
+
   // Check if asset exists in any provider
   async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {
     for (const provider of this.providers) {

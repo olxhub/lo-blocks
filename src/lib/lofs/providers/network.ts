@@ -127,6 +127,13 @@ export class NetworkStorageProvider implements StorageProvider {
     return resolved.join('/') as SafeRelativePath;
   }
 
+  toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
+    // NetworkStorageProvider is client-side; provenance is typically constructed
+    // server-side during loadXmlFilesWithStats. For client-side use (e.g., editor
+    // tools), return a network:// URI.
+    return `network://${this.namespace}/${safePath}` as ProvenanceURI;
+  }
+
   /**
    * Check if an asset file exists via HEAD request.
    */

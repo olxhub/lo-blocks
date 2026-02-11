@@ -15,7 +15,7 @@
 
 import { StorageProvider, fileTypes } from '@/lib/lofs';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
-import type { ProvenanceURI, OLXLoadingError, OlxJson, IdMap, OlxKey, ContentVariant, VariantMap, OlxRelativePath } from '@/lib/types';
+import type { ProvenanceURI, OLXLoadingError, OlxJson, IdMap, OlxKey, ContentVariant, VariantMap } from '@/lib/types';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { copyAssetsToPublic } from '@/lib/content/staticAssetSync';
 
@@ -171,7 +171,7 @@ export async function syncContentFromStorage(
   ) as FileChangeSets;
 
   // Step 2: Find OLX files that need re-parsing due to auxiliary file changes
-  await promoteFilesWithChangedDependencies(changeSets, contentStore.blockIndex, provider);
+  promoteFilesWithChangedDependencies(changeSets, contentStore.blockIndex);
 
   // Step 3: Remove blocks from files that are deleted or about to be re-parsed
   const filesToRemove = [
@@ -212,18 +212,17 @@ export async function syncContentFromStorage(
  * it must be re-parsed. This function finds such OLX files in the "unchanged"
  * set and moves them to "changed".
  */
-async function promoteFilesWithChangedDependencies(
+function promoteFilesWithChangedDependencies(
   changeSets: FileChangeSets,
   blockIndex: Record<OlxKey, VariantMap>,
-  provider: StorageProvider
-): Promise<void> {
+): void {
   const changedAuxiliaryFiles = findChangedAuxiliaryFiles(changeSets);
   if (changedAuxiliaryFiles.size === 0) return;
 
   const olxFilesToReparse = findOlxFilesDependingOn(changedAuxiliaryFiles, blockIndex, changeSets.unchanged);
 
   for (const olxUri of olxFilesToReparse) {
-    await moveUnchangedToChanged(olxUri, changeSets, provider);
+    moveUnchangedToChanged(olxUri, changeSets);
   }
 }
 
@@ -285,44 +284,34 @@ function findOlxFilesDependingOn(
 }
 
 /**
- * Moves a file from unchanged to changed, re-reading its content.
+ * Moves a file from unchanged to changed for re-parsing.
+ *
+ * The file itself hasn't changed (it's in "unchanged"), but a dependency
+ * (e.g., a .chatpeg it references) changed, so the OLX needs re-parsing.
+ * Content comes from the previous scan — no re-read needed.
  *
  * IMPORTANT: We copy only the metadata, not the old blockIds.
  * The old entry may have blockIds from a previous parse, but we don't
  * want those carried into the changed set - fresh blockIds will be
  * set after re-parsing.
  */
-async function moveUnchangedToChanged(
+function moveUnchangedToChanged(
   fileUri: ProvenanceURI,
   changeSets: FileChangeSets,
-  provider: StorageProvider
-): Promise<void> {
+): void {
   const existingEntry = changeSets.unchanged[fileUri];
   if (!existingEntry) return;
 
-  // Re-read the file content (unchanged files don't have content loaded)
-  // TODO: fileUri.slice(7) produces an absolute filesystem path, not an OlxRelativePath.
-  // FileStorageProvider.read handles this safely via resolveSafeReadPath, but it
-  // violates the type contract. Should use provider.toRelativePath() or equivalent.
-  const filePath = fileUri.startsWith('file://') ? fileUri.slice(7) : fileUri;
+  // Create a clean FileRecord without the old blockIds
+  const fileRecord: FileRecord = {
+    id: existingEntry.id,
+    type: existingEntry.type,
+    content: existingEntry.content,
+    _metadata: existingEntry._metadata
+  };
 
-  try {
-    const { content } = await provider.read(filePath as OlxRelativePath);
-
-    // Create a clean FileRecord without the old blockIds
-    const fileRecord: FileRecord = {
-      id: existingEntry.id,
-      type: existingEntry.type,
-      content,
-      _metadata: existingEntry._metadata
-    };
-
-    changeSets.changed[fileUri] = fileRecord;
-    delete changeSets.unchanged[fileUri];
-  } catch (err) {
-    console.warn(`Could not re-read ${fileUri} for dependency update:`, err);
-    // Leave unchanged if we can't read it
-  }
+  changeSets.changed[fileUri] = fileRecord;
+  delete changeSets.unchanged[fileUri];
 }
 
 // =============================================================================
