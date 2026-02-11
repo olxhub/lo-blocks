@@ -40,7 +40,7 @@ const DEMO_CONTENT = `<Vertical>
 This is a **live preview** of your content. Edit on the left, see changes on the right.
   </Markdown>
 
-  <CapaProblem id="demo-mcq" title="Example Question">
+  <CapaProblem id="demo_mcq" title="Example Question">
     <KeyGrader>
       <p>What makes a good content editor?</p>
       <ChoiceInput>
@@ -677,7 +677,7 @@ function PaneResizer({
 
 // Template snippets for insertion
 const TEMPLATES = {
-  mcq: `<CapaProblem id="new-mcq" title="New Question">
+  mcq: `<CapaProblem id="new_mcq" title="New Question">
   <KeyGrader>
     <p>Question text here</p>
     <ChoiceInput>

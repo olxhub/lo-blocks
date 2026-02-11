@@ -18,7 +18,7 @@ For simple cases, prefer declarative graders:
 ## Basic Usage
 
 ```olx:playground
-<CapaProblem id="ultimate-question" title="The Ultimate Question">
+<CapaProblem id="ultimate_question" title="The Ultimate Question">
   <Markdown>What is the answer to life, the universe, and everything?</Markdown>
   <LineInput id="answer" />
   <CustomGrader target="answer"><![CDATA[
@@ -81,7 +81,7 @@ Your code must return an object with:
 Accept multiple representations of the same value:
 
 ```olx:playground
-<CapaProblem id="half-value" title="Expressing One-Half">
+<CapaProblem id="half_value" title="Expressing One-Half">
   <Markdown>Enter one-half in any format (0.5, 1/2, 50%, half):</Markdown>
   <LineInput id="half" />
   <CustomGrader target="half"><![CDATA[
@@ -108,7 +108,7 @@ Accept multiple representations of the same value:
 Grade two inputs that must satisfy a relationship:
 
 ```olx:playground
-<CapaProblem id="voltage-divider" title="Voltage Divider Design">
+<CapaProblem id="voltage_divider" title="Voltage Divider Design">
   <Markdown>Design a voltage divider to produce 0.2V from 1V. Enter R1 and R2:</Markdown>
   <Markdown>R1 (top resistor):</Markdown>
   <LineInput id="r1" />
@@ -134,7 +134,7 @@ Grade two inputs that must satisfy a relationship:
 Award partial credit based on answer quality:
 
 ```olx:playground
-<CapaProblem id="pi-estimate" title="Estimate Pi">
+<CapaProblem id="pi_estimate" title="Estimate Pi">
   <Markdown>What is the value of pi (to at least 2 decimal places)?</Markdown>
   <LineInput id="estimate" />
   <CustomGrader target="estimate"><![CDATA[
@@ -158,7 +158,7 @@ Award partial credit based on answer quality:
 Validate against domain constraints (e.g., standard resistor values):
 
 ```olx:playground
-<CapaProblem id="e24-check" title="Standard Resistor Value">
+<CapaProblem id="e24_check" title="Standard Resistor Value">
   <Markdown>Enter any standard E24 resistor value (e.g., 1k, 2.2k, 4.7k):</Markdown>
   <LineInput id="resistor" />
   <CustomGrader target="resistor"><![CDATA[
@@ -203,7 +203,7 @@ JavaScript code frequently uses `<`, `>`, and `&` which are special in XML. Thre
 CDATA sections let you write code without escaping:
 
 ```olx:playground
-<CapaProblem id="range-check" title="Range Check">
+<CapaProblem id="range_check" title="Range Check">
   <Markdown>Enter a number between 0 and 5:</Markdown>
   <LineInput id="answer" />
   <CustomGrader target="answer"><![CDATA[

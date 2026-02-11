@@ -73,8 +73,22 @@ import type { OlxReference, OlxKey, ReduxStateKey, IdPrefix } from '../types';
 //
 // ID CONSTRAINTS
 // --------------
-// OLX IDs should NOT contain: ".", "/", ":", or whitespace
-// These characters are reserved as namespace/path delimiters.
+// User-authored IDs must match: [a-zA-Z_][a-zA-Z0-9_]*
+//   - Start with a letter or underscore
+//   - Contain only letters, digits, and underscores
+//   - Python/JS identifier-friendly
+//
+// Auto-generated IDs: "_" + SHA1 hex hash (avoids leading-digit violation)
+//
+// RESERVED DELIMITER CHARACTERS (never in user IDs)
+// -------------------------------------------------
+// | Char | Purpose                                          |
+// |------|--------------------------------------------------|
+// | :    | Redux scope separator (list:0:child)              |
+// | /    | OLX reference path prefix (/absolute, ./relative) |
+// | .    | Reserved for future namespace hierarchy            |
+// | -    | Reserved for future use                            |
+// | ,    | Target list separator (target="input1,input2")     |
 //
 
 // =============================================================================
@@ -84,10 +98,11 @@ import type { OlxReference, OlxKey, ReduxStateKey, IdPrefix } from '../types';
 // This is distinct from "/" used in OLX paths for content namespaces.
 export const REDUX_SCOPE_SEPARATOR = ':';
 
-// Valid ID pattern: alphanumeric, underscores, hyphens
-// Path prefixes (/, ./, ../) are allowed for references
-const VALID_ID_SEGMENT = /^[a-zA-Z0-9_-]+$/;
-const INVALID_CHARS_DISPLAY = /[^\w\s/-]/g;  // For error messages
+// Valid ID segment: must start with letter or underscore, then letters/digits/underscores.
+// No hyphens, dots, colons, slashes, or commas — those are reserved as delimiters.
+// Path prefixes (/, ./, ../) are stripped before validation.
+export const VALID_ID_SEGMENT = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+const INVALID_CHARS_DISPLAY = /[^a-zA-Z0-9_\s]/g;  // For error messages
 
 /**
  * Validate and brand a user-provided ID string as OlxReference.
@@ -122,7 +137,7 @@ export function toOlxReference(input: string, context = 'ID'): OlxReference {
     const charList = invalidChars ? [...new Set(invalidChars)].join(' ') : 'special characters';
     throw new Error(
       `${context}: ID "${input}" contains invalid characters: ${charList}\n` +
-      `IDs should only contain letters, numbers, underscores, and hyphens.`
+      `IDs must start with a letter or underscore and contain only letters, digits, and underscores.`
     );
   }
 
@@ -252,7 +267,7 @@ export function toOlxKey(input: string): OlxKey {
   }
   if (!VALID_ID_SEGMENT.test(trimmed)) {
     throw new Error(
-      `toOlxKey: "${input}" is not a valid OlxKey (letters, numbers, underscores, hyphens only)`
+      `toOlxKey: "${input}" is not a valid OlxKey (must start with letter or underscore, then letters/digits/underscores)`
     );
   }
   return trimmed as OlxKey;

@@ -65,6 +65,10 @@ export interface OLXLoadingError {
 //   e.g. `/mit.edu/6002x/resistorProblem`, `resistorProblem`, `../6002x/resistorProblem`,
 // as found in source OLX. We import these with `toOlxReference`. It takes a context, since
 // eventually we might want namespacing.
+//
+// Valid ID segments: [a-zA-Z_][a-zA-Z0-9_]* (no hyphens, dots, colons, slashes, commas).
+// Auto-generated IDs are "_" + SHA1 hex hash.
+// See idResolver.ts VALID_ID_SEGMENT for the canonical regex and delimiter conventions.
 export type OlxReference = string & { __brand: 'OlxReference' };
 //                    |
 //                    | refToOlxKey(ref)

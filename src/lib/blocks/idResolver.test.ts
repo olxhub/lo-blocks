@@ -71,4 +71,54 @@ describe("ID helpers", () => {
     expect(idResolver.refToOlxKey('a:b:c:d')).toBe('d');
     expect(idResolver.refToOlxKey('sortable:sortitem:0:ref_id')).toBe('ref_id');
   });
+
+  it("toOlxReference rejects hyphens and leading digits", () => {
+    // Hyphens are reserved delimiter characters
+    expect(() => idResolver.toOlxReference('foo-bar')).toThrow(/invalid characters/);
+    expect(() => idResolver.toOlxReference('my-id')).toThrow(/invalid characters/);
+
+    // Leading digits are not allowed
+    expect(() => idResolver.toOlxReference('0abc')).toThrow(/invalid characters/);
+    expect(() => idResolver.toOlxReference('123')).toThrow(/invalid characters/);
+
+    // Underscore-prefixed IDs are valid (used by auto-generated hashes)
+    expect(idResolver.toOlxReference('_foo')).toBe('_foo');
+    expect(idResolver.toOlxReference('_abc123')).toBe('_abc123');
+
+    // Standard valid IDs
+    expect(idResolver.toOlxReference('foo')).toBe('foo');
+    expect(idResolver.toOlxReference('foo_bar')).toBe('foo_bar');
+    expect(idResolver.toOlxReference('FooBar')).toBe('FooBar');
+
+    // Path prefixes still work
+    expect(idResolver.toOlxReference('/foo')).toBe('/foo');
+    expect(idResolver.toOlxReference('./foo')).toBe('./foo');
+  });
+
+  it("toOlxKey rejects hyphens and leading digits", () => {
+    expect(() => idResolver.toOlxKey('foo-bar')).toThrow(/not a valid OlxKey/);
+    expect(() => idResolver.toOlxKey('0abc')).toThrow(/not a valid OlxKey/);
+    expect(idResolver.toOlxKey('_foo')).toBe('_foo');
+    expect(idResolver.toOlxKey('foo_bar')).toBe('foo_bar');
+  });
+
+  it("VALID_ID_SEGMENT matches expected patterns", () => {
+    const re = idResolver.VALID_ID_SEGMENT;
+    // Valid
+    expect(re.test('foo')).toBe(true);
+    expect(re.test('Foo')).toBe(true);
+    expect(re.test('_foo')).toBe(true);
+    expect(re.test('foo123')).toBe(true);
+    expect(re.test('_')).toBe(true);
+    expect(re.test('a')).toBe(true);
+
+    // Invalid
+    expect(re.test('foo-bar')).toBe(false);   // hyphen reserved
+    expect(re.test('0foo')).toBe(false);       // leading digit
+    expect(re.test('foo.bar')).toBe(false);    // dot reserved
+    expect(re.test('foo:bar')).toBe(false);    // colon reserved
+    expect(re.test('foo/bar')).toBe(false);    // slash reserved
+    expect(re.test('foo,bar')).toBe(false);    // comma reserved
+    expect(re.test('')).toBe(false);           // empty
+  });
 });

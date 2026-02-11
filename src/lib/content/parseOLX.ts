@@ -654,6 +654,8 @@ function createId(node): OlxKey {
   const attributes = node[':@'] ?? {};
   if (attributes.id) return attributes.id as OlxKey;
 
+  // Prefix with "_" so the hex hash never starts with a digit,
+  // keeping auto-generated IDs valid per VALID_ID_SEGMENT.
   const canonical = JSON.stringify(node);
-  return SHA1(canonical).toString() as OlxKey;
+  return ('_' + SHA1(canonical).toString()) as OlxKey;
 }
