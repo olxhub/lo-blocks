@@ -11,7 +11,7 @@
 // The provider translates storage operations into HTTP requests against
 // configurable endpoints, maintaining the same interface as local file storage.
 //
-import type { ProvenanceURI, OlxRelativePath, LofsPath } from '../../types';
+import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, LofsPath } from '../../types';
 import {
   type StorageProvider,
   type XmlFileInfo,
@@ -95,7 +95,7 @@ export class NetworkStorageProvider implements StorageProvider {
    * Resolve a relative path against a base provenance URI.
    * Works client-side by manipulating path strings.
    */
-  resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): string {
+  resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
     // Extract path from provenance URI
     // Provenance format varies: "file://...", "network://...", or just a path
     let basePath: string;
@@ -118,19 +118,29 @@ export class NetworkStorageProvider implements StorageProvider {
 
     for (const part of parts) {
       if (part === '..') {
+        if (resolved.length === 0) {
+          throw new Error(`Path traversal above root: "${relativePath}" from "${baseProvenance}"`);
+        }
         resolved.pop();
       } else if (part !== '.') {
         resolved.push(part);
       }
     }
 
-    return resolved.join('/');
+    return resolved.join('/') as SafeRelativePath;
+  }
+
+  toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
+    // NetworkStorageProvider is client-side; provenance is typically constructed
+    // server-side during loadXmlFilesWithStats. For client-side use (e.g., editor
+    // tools), return a network:// URI.
+    return `network://${this.namespace}/${safePath}` as ProvenanceURI;
   }
 
   /**
    * Check if an asset file exists via HEAD request.
    */
-  async validateAssetPath(assetPath: string): Promise<boolean> {
+  async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {
     const { isMediaFile } = await import('@/lib/util/fileTypes');
     if (!isMediaFile(assetPath)) {
       return false;
@@ -176,8 +186,8 @@ export class NetworkStorageProvider implements StorageProvider {
     return json.tree as UriNode;
   }
 
-  async read(path: string): Promise<ReadResult> {
-    const lofsPath = this.toLofsPath(path as OlxRelativePath);
+  async read(path: OlxRelativePath): Promise<ReadResult> {
+    const lofsPath = this.toLofsPath(path);
     const res = await fetch(
       `${this.readEndpoint}?path=${encodeURIComponent(lofsPath)}`,
     );
@@ -191,8 +201,8 @@ export class NetworkStorageProvider implements StorageProvider {
     };
   }
 
-  async write(path: string, content: string, options: WriteOptions = {}): Promise<void> {
-    const lofsPath = this.toLofsPath(path as OlxRelativePath);
+  async write(path: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
+    const lofsPath = this.toLofsPath(path);
     const { previousMetadata, force = false } = options;
     const res = await fetch(this.readEndpoint, {
       method: 'POST',
@@ -208,12 +218,12 @@ export class NetworkStorageProvider implements StorageProvider {
     }
   }
 
-  async update(path: string, content: string): Promise<void> {
+  async update(path: OlxRelativePath, content: string): Promise<void> {
     await this.write(path, content);
   }
 
-  async delete(path: string): Promise<void> {
-    const lofsPath = this.toLofsPath(path as OlxRelativePath);
+  async delete(path: OlxRelativePath): Promise<void> {
+    const lofsPath = this.toLofsPath(path);
     const res = await fetch(
       `${this.readEndpoint}?path=${encodeURIComponent(lofsPath)}`,
       { method: 'DELETE' }
@@ -224,9 +234,9 @@ export class NetworkStorageProvider implements StorageProvider {
     }
   }
 
-  async rename(oldPath: string, newPath: string): Promise<void> {
-    const oldLofsPath = this.toLofsPath(oldPath as OlxRelativePath);
-    const newLofsPath = this.toLofsPath(newPath as OlxRelativePath);
+  async rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
+    const oldLofsPath = this.toLofsPath(oldPath);
+    const newLofsPath = this.toLofsPath(newPath);
     const res = await fetch(this.readEndpoint, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -242,10 +252,10 @@ export class NetworkStorageProvider implements StorageProvider {
    * Find files matching a glob pattern.
    * Returns results as OlxRelativePath (relative to the provider's namespace).
    */
-  async glob(pattern: string, basePath?: string): Promise<string[]> {
+  async glob(pattern: string, basePath?: OlxRelativePath): Promise<OlxRelativePath[]> {
     const params = new URLSearchParams({ pattern });
     if (basePath) {
-      const lofsBasePath = this.toLofsPath(basePath as OlxRelativePath);
+      const lofsBasePath = this.toLofsPath(basePath);
       params.set('path', lofsBasePath);
     } else {
       // If no basePath, search from namespace root
@@ -270,7 +280,7 @@ export class NetworkStorageProvider implements StorageProvider {
   async grep(pattern: string, options: GrepOptions = {}): Promise<GrepMatch[]> {
     const params = new URLSearchParams({ pattern });
     if (options.basePath) {
-      const lofsBasePath = this.toLofsPath(options.basePath as OlxRelativePath);
+      const lofsBasePath = this.toLofsPath(options.basePath);
       params.set('path', lofsBasePath);
     } else {
       // If no basePath, search from namespace root

@@ -92,6 +92,19 @@ test('CRITICAL: Parser must preserve numeric text as strings (prevents "text.tri
   }
 });
 
+test('auto-generated IDs start with underscore', async () => {
+  // Blocks without explicit id= get SHA1-based IDs prefixed with "_"
+  // to avoid leading-digit violations (hex hashes can start with 0-9).
+  const xml = '<Vertical id="root"><TextBlock>Some content</TextBlock></Vertical>';
+  const { idMap } = await parseOLX(xml, PROV);
+  const ids = Object.keys(idMap);
+  const autoIds = ids.filter(id => id !== 'root');
+  expect(autoIds.length).toBeGreaterThan(0);
+  for (const id of autoIds) {
+    expect(id).toMatch(/^_[a-f0-9]+$/);
+  }
+});
+
 // === Tests for requiresUniqueId attribute ===
 
 test('TextArea blocks with duplicate IDs should fail (default behavior)', async () => {

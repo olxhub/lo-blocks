@@ -19,7 +19,8 @@
 import { parseOLX } from '@/lib/content/parseOLX';
 import { isPEGContentExtension, getParserForExtension } from '@/generated/parserRegistry';
 import { NetworkStorageProvider } from '@/lib/lofs/providers/network';
-import type { StorageProvider } from '@/lib/lofs/types';
+import { type StorageProvider, toOlxRelativePath } from '@/lib/lofs/types';
+import type { ProvenanceURI } from '@/lib/types';
 
 // Default storage provider for client-side use
 const defaultStorage = new NetworkStorageProvider();
@@ -110,7 +111,7 @@ export function createEditorTools({
         // Validate content by parsing it
         if (fileType === 'olx' || fileType === 'xml') {
           try {
-            const { errors } = await parseOLX(newContent, ['editor']);
+            const { errors } = await parseOLX(newContent, ['editor://' as ProvenanceURI]);
             if (errors.length > 0) {
               const messages = errors.map(e => e.message).join('\n\n---\n\n');
               return `Error (${errors.length} issue${errors.length > 1 ? 's' : ''}):\n\n${messages}`;
@@ -162,7 +163,7 @@ export function createEditorTools({
       },
       callback: async ({ file_path }: { file_path: string }) => {
         try {
-          const result = await storage.read(file_path);
+          const result = await storage.read(toOlxRelativePath(file_path));
           return `# ${file_path}\n\n\`\`\`\n${result.content}\n\`\`\``;
         } catch (err: any) {
           return `Error: ${err.message}`;
@@ -195,7 +196,8 @@ export function createEditorTools({
       },
       callback: async ({ pattern, path }: { pattern: string; path?: string }) => {
         try {
-          const files = await storage.glob(pattern, path);
+          const basePath = path ? toOlxRelativePath(path) : undefined;
+          const files = await storage.glob(pattern, basePath);
           if (files.length === 0) {
             return 'No files found matching pattern.';
           }
@@ -239,7 +241,8 @@ export function createEditorTools({
         include?: string;
       }) => {
         try {
-          const matches = await storage.grep(pattern, { basePath: path, include });
+          const basePath = path ? toOlxRelativePath(path) : undefined;
+          const matches = await storage.grep(pattern, { basePath, include });
           if (matches.length === 0) {
             return 'No matches found.';
           }
@@ -280,7 +283,7 @@ export function createEditorTools({
       },
       callback: async ({ file_path, content }: { file_path: string; content: string }) => {
         try {
-          await storage.write(file_path, content);
+          await storage.write(toOlxRelativePath(file_path), content);
           return `File created: ${file_path}`;
         } catch (err: any) {
           return `Error: ${err.message}`;
@@ -313,7 +316,7 @@ export function createEditorTools({
         }
         try {
           // Verify file exists first
-          await storage.read(file_path);
+          await storage.read(toOlxRelativePath(file_path));
           onOpenFile(file_path);
           return `Opened: ${file_path}`;
         } catch (err: any) {

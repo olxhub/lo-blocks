@@ -45,11 +45,11 @@ interface UseOlxJsonProps extends RuntimeProps {
  */
 export function useOlxJson(
   props: UseOlxJsonProps,
-  id: OlxReference | string | null,
+  id: OlxReference | null,
   source: string = 'content'
 ): OlxJsonResult {
-  // Compute olxKey outside hooks - use empty string for null id (won't match anything)
-  const olxKey = id ? refToOlxKey(id) : '';
+  // Compute olxKey outside hooks — empty string for null id (won't match anything)
+  const olxKey: OlxKey = id ? refToOlxKey(id) : '' as OlxKey;
 
   // Read from Redux - always call hook (Rules of Hooks)
   const blockState = useSelector((state: any) =>
@@ -135,7 +135,7 @@ export function useOlxJson(
  */
 export function useOlxJsonMultiple(
   props: UseOlxJsonProps,
-  ids: (OlxReference | string)[],
+  ids: OlxReference[],
   source: string = 'content'
 ): {
   olxJsons: (OlxJson | null)[];

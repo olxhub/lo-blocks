@@ -23,8 +23,8 @@ function _Navigator(props) {
   } = props;
 
   // Look up template blocks unconditionally (hooks must always be called)
-  const { olxJson: previewBlock } = useOlxJson(props, preview || '');
-  const { olxJson: detailBlock } = useOlxJson(props, detail || '');
+  const { olxJson: previewBlock } = useOlxJson(props, preview || null);
+  const { olxJson: detailBlock } = useOlxJson(props, detail || null);
 
   const [selectedItem, setSelectedItem] = useFieldState(props, fields.selectedItem, null);
   const [searchQuery, setSearchQuery] = useFieldState(props, fields.searchQuery, '');

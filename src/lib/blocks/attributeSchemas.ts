@@ -12,22 +12,17 @@
 // This allows a block to be input+grader+src without combinatorial explosion.
 //
 import { z } from 'zod';
-
-/**
- * Valid OLX ID pattern - must not contain namespace/path delimiters.
- * Reserved characters: . / : and whitespace
- * These are used for runtime namespacing (e.g., "list.0.child") and path syntax.
- */
-const VALID_ID_PATTERN = /^[^./:,\s]+$/;
+import { VALID_ID_SEGMENT } from './idResolver';
 
 /**
  * Zod refinement for validating OLX IDs.
+ * Uses the canonical regex from idResolver.ts.
  * Returns undefined if valid, error message if invalid.
  */
 const validateOlxId = (id) => {
   if (!id) return undefined;
-  if (!VALID_ID_PATTERN.test(id)) {
-    return `ID "${id}" contains reserved characters. IDs cannot contain: . / : , or whitespace`;
+  if (!VALID_ID_SEGMENT.test(id)) {
+    return `ID "${id}" is invalid. IDs must start with a letter or underscore and contain only letters, digits, and underscores.`;
   }
   return undefined;
 };
@@ -42,9 +37,9 @@ const validateOlxId = (id) => {
  */
 export const baseAttributes = z.object({
   id: z.string().optional().refine(
-    (id) => !id || VALID_ID_PATTERN.test(id),
+    (id) => !id || VALID_ID_SEGMENT.test(id),
     (id) => ({ message: validateOlxId(id) })
-  ).describe('Unique identifier (letters, numbers, underscore)'),
+  ).describe('Unique identifier (letter or underscore start, then letters/digits/underscores)'),
   title: z.string().optional().describe('Display title (shown in tabs, course navigation, headers)'),
   class: z.string().optional().describe('Visual styling classes (CSS classes for developers)'),
   launchable: z.string().optional().describe('Set to "true" to show in activity indexes'),

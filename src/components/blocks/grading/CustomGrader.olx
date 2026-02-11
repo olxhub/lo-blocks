@@ -7,7 +7,7 @@ Design a voltage divider to produce **0.2V** from a 1V input.
 Use standard 5% resistor values (E24 series).
   </Markdown>
 
-  <CapaProblem id="voltage-divider" title="Voltage Divider">
+  <CapaProblem id="voltage_divider" title="Voltage Divider">
     <Markdown>R1 (top resistor):</Markdown>
     <LineInput id="r1" />
     <Markdown>R2 (bottom resistor):</Markdown>

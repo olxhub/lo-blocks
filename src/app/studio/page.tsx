@@ -12,10 +12,12 @@ import { DataPanel, DocsPanel, FilesPanel, SearchPanel } from './panels';
 import EditorLLMChat from './EditorLLMChat';
 import { useDocsData } from '@/lib/docs';
 import { NetworkStorageProvider, VersionConflictError } from '@/lib/lofs';
+import { toOlxRelativePath } from '@/lib/lofs/types';
 import type { UriNode } from '@/lib/lofs/types';
 import type { IdMap } from '@/lib/types';
 import { useNotifications, ToastNotifications } from '@/lib/util/debug';
 import { useFieldState, getReduxState, settings } from '@/lib/state';
+import { toOlxKey } from '@/lib/blocks/idResolver';
 import { editorFields } from '@/lib/state/editorFields';
 import './studio.css';
 
@@ -38,7 +40,7 @@ const DEMO_CONTENT = `<Vertical>
 This is a **live preview** of your content. Edit on the left, see changes on the right.
   </Markdown>
 
-  <CapaProblem id="demo-mcq" title="Example Question">
+  <CapaProblem id="demo_mcq" title="Example Question">
     <KeyGrader>
       <p>What makes a good content editor?</p>
       <ChoiceInput>
@@ -84,7 +86,7 @@ function StudioPageContent() {
 
   // Debug mode toggle (system-wide setting)
   // TODO: Pass baselineProps from useBaselineProps() instead of null
-  const [debug, setDebug] = useFieldState(null, settings.debug, false, { tag: 'studio', id: 'studio' });
+  const [debug, setDebug] = useFieldState(null, settings.debug, false, { tag: 'studio', id: toOlxKey('studio') });
 
   // TODO: Consider moving UI state to redux for analytics
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('chat');
@@ -170,7 +172,15 @@ function StudioPageContent() {
 
     // First time loading this file - fetch from storage
     setLoading(true);
-    storage.read(filePath)
+    let olxPath;
+    try {
+      olxPath = toOlxRelativePath(filePath);
+    } catch (err) {
+      notify('error', `Invalid file path: ${filePath}`, err instanceof Error ? err.message : String(err));
+      setLoading(false);
+      return;
+    }
+    storage.read(olxPath)
       .then(result => {
         setContent(result.content);
         fileStateRef.current.set(filePath, {
@@ -212,12 +222,13 @@ function StudioPageContent() {
     setSaving(true);
     try {
       const previousMetadata = fileStateRef.current.get(filePath)?.metadata;
-      await storage.write(filePath, content, {
+      const olxPath = toOlxRelativePath(filePath);
+      await storage.write(olxPath, content, {
         previousMetadata,
         force,
       });
       // Re-read to get updated metadata
-      const result = await storage.read(filePath);
+      const result = await storage.read(olxPath);
       // Update saved state (marks file as clean, updates metadata for conflict detection)
       fileStateRef.current.set(filePath, {
         content,
@@ -249,10 +260,11 @@ function StudioPageContent() {
 
   const handleFileCreate = useCallback(async (path: string, fileContent: string) => {
     try {
-      await storage.write(path, fileContent);
+      const olxPath = toOlxRelativePath(path);
+      await storage.write(olxPath, fileContent);
       refreshFiles();
       // Open the new file and get its metadata
-      const result = await storage.read(path);
+      const result = await storage.read(olxPath);
       setFilePath(path);
       updateUrl(path);
       setContent(result.content);
@@ -270,7 +282,7 @@ function StudioPageContent() {
 
   const handleFileDelete = useCallback(async (path: string) => {
     try {
-      await storage.delete(path);
+      await storage.delete(toOlxRelativePath(path));
       refreshFiles();
       // Remove from cache
       fileStateRef.current.delete(path);
@@ -290,7 +302,7 @@ function StudioPageContent() {
 
   const handleFileRename = useCallback(async (oldPath: string, newPath: string) => {
     try {
-      await storage.rename(oldPath, newPath);
+      await storage.rename(toOlxRelativePath(oldPath), toOlxRelativePath(newPath));
       refreshFiles();
       // Move cache entry to new path
       const cachedState = fileStateRef.current.get(oldPath);
@@ -665,7 +677,7 @@ function PaneResizer({
 
 // Template snippets for insertion
 const TEMPLATES = {
-  mcq: `<CapaProblem id="new-mcq" title="New Question">
+  mcq: `<CapaProblem id="new_mcq" title="New Question">
   <KeyGrader>
     <p>Question text here</p>
     <ChoiceInput>

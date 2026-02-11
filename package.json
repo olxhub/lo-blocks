@@ -30,8 +30,8 @@
     "clean-zombies": "pkill -9 -f 'next-server' ; pkill -9 -f 'next dev' ; pkill -9 -f postcss.js",
     "_comment_test_automation": "build-automation and test-automation are for automated build environments (e.g. ChatGPT sandbox, GitHub Actions, etc.), which are already sandboxed and might not have firejail",
     "build-automation": "npx tsx src/scripts/compile-grammars.ts && npx tsx src/scripts/generate-parser-registry.ts && node src/scripts/generateBlockRegistry.js && npx tsx content/sba/psychology/convert-psych-mcq.js content/sba/psychology/operant-questions.json",
-    "test-automation": " vitest run",
-    "test": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) vitest",
+    "test-automation": "npx tsc --noEmit && vitest run",
+    "test": "npm run typecheck && firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) vitest",
     "test:unit": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) vitest --exclude='**/integration/**'",
     "test:ui": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) vitest --ui"
   },

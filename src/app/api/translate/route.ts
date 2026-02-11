@@ -72,7 +72,9 @@ import { callLLM } from '@/lib/llm/serverCall';
 import { getProvider } from '@/lib/llm/provider';
 import { getLanguageLabel } from '@/lib/i18n/languages';
 import { hashContent } from '@/lib/util';
-import type { OlxKey, ContentVariant, ProvenanceURI } from '@/lib/types';
+import type { OlxKey, ContentVariant, ProvenanceURI, OlxRelativePath, SafeRelativePath } from '@/lib/types';
+import { toOlxKey } from '@/lib/blocks/idResolver';
+import { toOlxRelativePath } from '@/lib/lofs/types';
 import yaml from 'js-yaml';
 
 const contentDir = process.env.OLX_CONTENT_DIR || './content';
@@ -152,20 +154,19 @@ function buildFrontmatter(metadata: Record<string, any>): string {
 // =============================================================================
 
 // demos/algebra101lesson.olx → demos/algebra101lesson/ar-Arab-SA.auto.olx
-function computeTranslationPath(sourceRelPath: string, targetLocale: ContentVariant): string {
+function computeTranslationPath(sourceRelPath: OlxRelativePath, targetLocale: ContentVariant): OlxRelativePath {
   const ext = path.extname(sourceRelPath);
   const base = sourceRelPath.slice(0, -ext.length);
-  return `${base}/${targetLocale}.auto${ext}`;
+  // Canonical path with no ".." — safe to brand directly
+  return `${base}/${targetLocale}.auto${ext}` as OlxRelativePath;
 }
 
-/** Convert a file:// URI or absolute path to a provider-relative path. */
-function uriToRelPath(fileUri: ProvenanceURI): string {
-  return provider.toRelativePath(fileUri);
-}
-
-/** Convert a provider-relative path to a file:// URI. */
-function relPathToUri(relPath: string): ProvenanceURI {
-  return `file://${path.resolve(contentDir, relPath)}` as ProvenanceURI;
+/** Convert a file:// provenance URI to a content-relative path.
+ *  toRelativePath strips the file:// prefix and validates the path
+ *  is within the provider's baseDir — the result is always a valid
+ *  OlxRelativePath (relative, no escape). */
+function uriToRelPath(fileUri: ProvenanceURI): OlxRelativePath {
+  return provider.toRelativePath(fileUri) as OlxRelativePath;
 }
 
 // =============================================================================
@@ -186,7 +187,8 @@ function resolveOriginalSource(
   }
   const originalFileName = sourceVariant.generated.source_file;
   const sourceRelPath = uriToRelPath(sourceFileUri);
-  const originalRelPath = path.join(path.dirname(path.dirname(sourceRelPath)), originalFileName);
+  // Navigate from translation subdir back to source: demos/foo/fr.auto.olx → demos/originalFileName
+  const originalRelPath = path.join(path.dirname(path.dirname(sourceRelPath)), originalFileName) as OlxRelativePath;
 
   // Derive the actual language from the human-authored original so the LLM
   // prompt says "translate from English" when the source content is English,
@@ -194,12 +196,13 @@ function resolveOriginalSource(
   const original = getOriginalVariant(blockId);
   const effectiveLocale = (original?.lang as ContentVariant) || sourceLocale;
 
-  return { fileUri: relPathToUri(originalRelPath), locale: effectiveLocale };
+  // originalRelPath is derived from canonical paths (no ..) — safe to treat as SafeRelativePath
+  return { fileUri: provider.toProvenanceURI(originalRelPath as SafeRelativePath), locale: effectiveLocale };
 }
 
 /** Check if a translation already exists. If so, re-sync and return its blocks. */
 async function checkExistingTranslation(
-  targetRelPath: string,
+  targetRelPath: OlxRelativePath,
   sourceFileUri: ProvenanceURI
 ): Promise<TranslationResult | null> {
   try {
@@ -208,7 +211,7 @@ async function checkExistingTranslation(
     return null; // Doesn't exist — proceed with translation
   }
   await syncContentFromStorage(provider);
-  return { ok: true, idMap: getBlocksForFiles(sourceFileUri, relPathToUri(targetRelPath)) };
+  return { ok: true, idMap: getBlocksForFiles(sourceFileUri, provider.toProvenanceURI(targetRelPath as SafeRelativePath)) };
 }
 
 /** Build the LLM prompt for OLX translation. */
@@ -262,7 +265,7 @@ async function translateWithLLM(
 async function buildTranslatedFile(
   llmOutput: string,
   sourceContent: string,
-  effectiveRelPath: string,
+  effectiveRelPath: OlxRelativePath,
   targetLocale: ContentVariant,
   blockId: OlxKey
 ): Promise<string> {
@@ -285,7 +288,7 @@ async function buildTranslatedFile(
 }
 
 /** Write a translated file to storage, creating parent directories as needed. */
-async function writeTranslatedFile(targetRelPath: string, fileContent: string): Promise<void> {
+async function writeTranslatedFile(targetRelPath: OlxRelativePath, fileContent: string): Promise<void> {
   const fullTargetPath = path.resolve(contentDir, targetRelPath);
   await fs.mkdir(path.dirname(fullTargetPath), { recursive: true });
   await provider.write(targetRelPath, fileContent);
@@ -337,7 +340,7 @@ async function doTranslation(
 
   // Re-sync and return blocks from both source and translated files
   await syncContentFromStorage(provider);
-  return { ok: true, idMap: getBlocksForFiles(sourceFileUri, relPathToUri(targetRelPath)) };
+  return { ok: true, idMap: getBlocksForFiles(sourceFileUri, provider.toProvenanceURI(targetRelPath as SafeRelativePath)) };
 }
 
 // =============================================================================
@@ -368,8 +371,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Cast after validation — branded types prevent accidental string confusion
-    const blockId = body.blockId as OlxKey;
+    // Brand at trust boundary — blockId comes from HTTP request body (untrusted)
+    const blockId = toOlxKey(body.blockId);
     const targetLocale = body.targetLocale as ContentVariant;
     const sourceLocale = body.sourceLocale as ContentVariant;
 

@@ -13,6 +13,7 @@
 
 import { syncContentFromStorage, getSourceFile } from '../lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '../lib/lofs/providers/file';
+import { toOlxRelativePath } from '../lib/lofs/types';
 import path from 'path';
 import type { IdMap, OlxJson, OlxKey, ContentVariant } from '../lib/types';
 
@@ -52,7 +53,8 @@ async function main() {
   for (const fileUri of filesToDelete) {
     console.log(`  ${label}: ${provider.toRelativePath(fileUri)}`);
     if (!dryRun) {
-      await provider.delete(fileUri);
+      const relPath = toOlxRelativePath(provider.toRelativePath(fileUri));
+      await provider.delete(relPath);
     }
   }
 

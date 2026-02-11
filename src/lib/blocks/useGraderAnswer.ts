@@ -21,7 +21,7 @@ import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
 import { getGrader, getAllNodes, inferRelatedNodes } from './olxdom';
 import { useOlxJson } from './useOlxJson';
-import { refToOlxKey } from './idResolver';
+import { refToOlxKey, toOlxReference } from './idResolver';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { isInput } from './actions';
 import type { OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
@@ -48,7 +48,7 @@ function findTargetingGrader(props: RuntimeProps): OlxKey | null {
     // target is a comma-separated list of OlxRefs (guaranteed by selector filter)
     const targetList = graderNodeInfo.node.attributes.target;
     if (typeof targetList !== 'string') continue;  // Type guard for TypeScript
-    const targets = targetList.split(',').map(t => refToOlxKey(t.trim()));
+    const targets = targetList.split(',').map(t => refToOlxKey(toOlxReference(t.trim())));
     if (targets.includes(normalizedId)) {
       return graderNodeInfo.node.id;
     }
@@ -90,7 +90,7 @@ function resolveInputSlot(
   const inputId = props.id;
 
   // Check for explicit slot= attribute on this input
-  const inputInstance = getBlockByOLXId(props, inputId as OlxKey);
+  const inputInstance = getBlockByOLXId(props, inputId);
   if (inputInstance?.attributes?.slot) {
     return inputInstance.attributes.slot as string;
   }
@@ -117,7 +117,7 @@ function resolveInputSlot(
       selector: n => n.loBlock && isInput(n.loBlock),
       infer: true,
       targets: targetAttr,
-    }) as OlxKey[];
+    });
   } catch {
     return undefined;
   }

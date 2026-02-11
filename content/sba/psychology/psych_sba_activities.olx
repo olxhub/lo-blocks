@@ -139,7 +139,7 @@ Remember:
 ## Quiz: Reinforcement or Punishment? (Questions 1-5)
     </Markdown>
 
-    <CapaProblem title="Question 1: Screentime" id="reinforcement-v-punishment-screentime">
+    <CapaProblem title="Question 1: Screentime" id="reinforcement_v_punishment_screentime">
       <KeyGrader>
         <p>A child gets extra screen time for cleaning their room.</p>
         <ChoiceInput>
@@ -149,7 +149,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 2: Car Privileges" id="reinforcement-v-punishment-car-privileges">
+    <CapaProblem title="Question 2: Car Privileges" id="reinforcement_v_punishment_car_privileges">
       <KeyGrader>
         <p>A teenager loses car privileges for coming home late.</p>
         <ChoiceInput>
@@ -159,7 +159,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 3: Attendance Bonus" id="reinforcement-v-punishment-attendance-bonus">
+    <CapaProblem title="Question 3: Attendance Bonus" id="reinforcement_v_punishment_attendance_bonus">
       <KeyGrader>
         <p>A student earns bonus points for perfect attendance.</p>
         <ChoiceInput>
@@ -169,7 +169,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 4: Extra Chores" id="reinforcement-v-punishment-extra-chores">
+    <CapaProblem title="Question 4: Extra Chores" id="reinforcement_v_punishment_extra_chores">
       <KeyGrader>
         <p>A child has to do extra chores for talking back.</p>
         <ChoiceInput>
@@ -179,7 +179,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 5: Parking Spot" id="reinforcement-v-punishment-parking-spot">
+    <CapaProblem title="Question 5: Parking Spot" id="reinforcement_v_punishment_parking_spot">
       <KeyGrader>
         <p>An employee gets a parking spot closer to the building for good performance.</p>
         <ChoiceInput>
@@ -196,7 +196,7 @@ Remember:
   <Vertical id="reinforce_punish_2">
     <Markdown id="quiz1_q6to10_header">## Quiz Questions 6-10</Markdown>
 
-    <CapaProblem title="Question 6: No Final Exam" id="reinforcement-v-punishment-no-final-exam">
+    <CapaProblem title="Question 6: No Final Exam" id="reinforcement_v_punishment_no_final_exam">
       <KeyGrader>
         <p>A student doesn't have to take the final if they have an A average.</p>
         <ChoiceInput>
@@ -206,7 +206,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 7: Written Up" id="reinforcement-v-punishment-written-up">
+    <CapaProblem title="Question 7: Written Up" id="reinforcement_v_punishment_written_up">
       <KeyGrader>
         <p>A worker gets written up for being late.</p>
         <ChoiceInput>
@@ -216,7 +216,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 8: Dog Treat" id="reinforcement-v-punishment-dog-treat">
+    <CapaProblem title="Question 8: Dog Treat" id="reinforcement_v_punishment_dog_treat">
       <KeyGrader>
         <p>A dog gets a treat for sitting on command.</p>
         <ChoiceInput>
@@ -226,7 +226,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 9: Timeout" id="reinforcement-v-punishment-timeout">
+    <CapaProblem title="Question 9: Timeout" id="reinforcement_v_punishment_timeout">
       <KeyGrader>
         <p>A child gets timeout for hitting.</p>
         <ChoiceInput>
@@ -236,7 +236,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 10: Employee Praise" id="reinforcement-v-punishment-employee-praise">
+    <CapaProblem title="Question 10: Employee Praise" id="reinforcement_v_punishment_employee_praise">
       <KeyGrader>
         <p>An employee gets praise for good work.</p>
         <ChoiceInput>
@@ -252,7 +252,7 @@ Remember:
   <Vertical id="reinforce_punish_3">
     <Markdown id="quiz1_q11to15_header">## Quiz Questions 11-15</Markdown>
 
-    <CapaProblem title="Question 11: Study Group" id="reinforcement-v-punishment-study-group">
+    <CapaProblem title="Question 11: Study Group" id="reinforcement_v_punishment_study_group">
       <KeyGrader>
         <p>A student joins study groups after getting good grades.</p>
         <ChoiceInput>
@@ -262,7 +262,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 12: Phone Taken Away" id="reinforcement-v-punishment-phone-taken">
+    <CapaProblem title="Question 12: Phone Taken Away" id="reinforcement_v_punishment_phone_taken">
       <KeyGrader>
         <p>A teenager's phone is taken away for breaking curfew.</p>
         <ChoiceInput>
@@ -272,7 +272,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 13: Recognition" id="reinforcement-v-punishment-recognition">
+    <CapaProblem title="Question 13: Recognition" id="reinforcement_v_punishment_recognition">
       <KeyGrader>
         <p>An employee gets public recognition for meeting targets.</p>
         <ChoiceInput>
@@ -282,7 +282,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 14: Detention" id="reinforcement-v-punishment-detention">
+    <CapaProblem title="Question 14: Detention" id="reinforcement_v_punishment_detention">
       <KeyGrader>
         <p>A student gets detention for skipping class.</p>
         <ChoiceInput>
@@ -292,7 +292,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 15: Bonus Payment" id="reinforcement-v-punishment-bonus">
+    <CapaProblem title="Question 15: Bonus Payment" id="reinforcement_v_punishment_bonus">
       <KeyGrader>
         <p>A worker receives a bonus for excellent customer service.</p>
         <ChoiceInput>
@@ -308,7 +308,7 @@ Remember:
   <Vertical id="reinforce_punish_4">
     <Markdown id="quiz1_q16to20_header">## Quiz Questions 16-20</Markdown>
 
-    <CapaProblem title="Question 16: Speed Limit Fine" id="reinforcement-v-punishment-speed-fine">
+    <CapaProblem title="Question 16: Speed Limit Fine" id="reinforcement_v_punishment_speed_fine">
       <KeyGrader>
         <p>A driver gets a fine for speeding.</p>
         <ChoiceInput>
@@ -318,7 +318,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 17: Free Coffee" id="reinforcement-v-punishment-free-coffee">
+    <CapaProblem title="Question 17: Free Coffee" id="reinforcement_v_punishment_free_coffee">
       <KeyGrader>
         <p>A customer gets free coffee for being a regular.</p>
         <ChoiceInput>
@@ -328,7 +328,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 18: Grounding" id="reinforcement-v-punishment-grounding">
+    <CapaProblem title="Question 18: Grounding" id="reinforcement_v_punishment_grounding">
       <KeyGrader>
         <p>A teen is grounded for missing curfew.</p>
         <ChoiceInput>
@@ -338,7 +338,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 19: Pet Treats" id="reinforcement-v-punishment-pet-treats">
+    <CapaProblem title="Question 19: Pet Treats" id="reinforcement_v_punishment_pet_treats">
       <KeyGrader>
         <p>A cat gets treats for using the litter box.</p>
         <ChoiceInput>
@@ -348,7 +348,7 @@ Remember:
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 20: Library Fees" id="reinforcement-v-punishment-library-fees">
+    <CapaProblem title="Question 20: Library Fees" id="reinforcement_v_punishment_library_fees">
       <KeyGrader>
         <p>A student pays late fees for overdue library books.</p>
         <ChoiceInput>
@@ -385,7 +385,7 @@ Now that you understand the basics, let's move on to the four specific types of 
 
   <!-- Review option -->
   <Vertical id="review_item">
-    <CapaProblem title="Review Option" id="want-review-explanations">
+    <CapaProblem title="Review Option" id="want_review_explanations">
       <KeyGrader>
         <p>Would you like to review the correct answers?</p>
         <ChoiceInput>
@@ -403,7 +403,7 @@ Now that you understand the basics, let's move on to the four specific types of 
 ## Advanced Quiz: Four Types (Questions 1-5)
     </Markdown>
 
-    <CapaProblem title="Question 1: Gold Star" id="four-types-gold-star">
+    <CapaProblem title="Question 1: Gold Star" id="four_types_gold_star">
       <KeyGrader>
         <p>A child receives a gold star for good behavior.</p>
         <ChoiceInput>
@@ -415,7 +415,7 @@ Now that you understand the basics, let's move on to the four specific types of 
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 2: Fewer Chores" id="four-types-fewer-chores">
+    <CapaProblem title="Question 2: Fewer Chores" id="four_types_fewer_chores">
       <KeyGrader>
         <p>Taking away chores when grades improve.</p>
         <ChoiceInput>
@@ -427,7 +427,7 @@ Now that you understand the basics, let's move on to the four specific types of 
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 3: Speeding Ticket" id="four-types-speeding-ticket">
+    <CapaProblem title="Question 3: Speeding Ticket" id="four_types_speeding_ticket">
       <KeyGrader>
         <p>Getting a speeding ticket.</p>
         <ChoiceInput>
@@ -439,7 +439,7 @@ Now that you understand the basics, let's move on to the four specific types of 
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 4: TV Privileges" id="four-types-tv-privileges">
+    <CapaProblem title="Question 4: TV Privileges" id="four_types_tv_privileges">
       <KeyGrader>
         <p>Losing TV privileges for bad grades.</p>
         <ChoiceInput>
@@ -451,7 +451,7 @@ Now that you understand the basics, let's move on to the four specific types of 
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 5: Seatbelt Beeping" id="four-types-seatbelt-beeping">
+    <CapaProblem title="Question 5: Seatbelt Beeping" id="four_types_seatbelt_beeping">
       <KeyGrader>
         <p>Buckle seatbelt to stop the beeping.</p>
         <ChoiceInput>
@@ -470,7 +470,7 @@ Now that you understand the basics, let's move on to the four specific types of 
   <Vertical id="positive_negative_2">
     <Markdown id="quiz2_q6to10_header">## Advanced Quiz Questions 6-10</Markdown>
 
-    <CapaProblem title="Question 6: Exercise to Stop Pain" id="four-types-exercise-pain">
+    <CapaProblem title="Question 6: Exercise to Stop Pain" id="four_types_exercise_pain">
       <KeyGrader>
         <p>Taking medication to stop a headache.</p>
         <ChoiceInput>
@@ -482,7 +482,7 @@ Now that you understand the basics, let's move on to the four specific types of 
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 7: Extra Credit" id="four-types-extra-credit">
+    <CapaProblem title="Question 7: Extra Credit" id="four_types_extra_credit">
       <KeyGrader>
         <p>A student earns extra credit points for volunteering.</p>
         <ChoiceInput>
@@ -494,7 +494,7 @@ Now that you understand the basics, let's move on to the four specific types of 
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 8: Loud Noise" id="four-types-loud-noise">
+    <CapaProblem title="Question 8: Loud Noise" id="four_types_loud_noise">
       <KeyGrader>
         <p>Playing loud music when someone doesn't clean their room.</p>
         <ChoiceInput>
@@ -506,7 +506,7 @@ Now that you understand the basics, let's move on to the four specific types of 
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 9: Internet Privileges" id="four-types-internet-privileges">
+    <CapaProblem title="Question 9: Internet Privileges" id="four_types_internet_privileges">
       <KeyGrader>
         <p>Losing internet privileges for bad behavior.</p>
         <ChoiceInput>
@@ -518,7 +518,7 @@ Now that you understand the basics, let's move on to the four specific types of 
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 10: Remove Homework" id="four-types-remove-homework">
+    <CapaProblem title="Question 10: Remove Homework" id="four_types_remove_homework">
       <KeyGrader>
         <p>Canceling homework for good classroom behavior.</p>
         <ChoiceInput>
@@ -536,7 +536,7 @@ Now that you understand the basics, let's move on to the four specific types of 
   <Vertical id="positive_negative_3">
     <Markdown id="quiz2_q11to15_header">## Advanced Quiz Questions 11-15</Markdown>
 
-    <CapaProblem title="Question 11: Employee Bonus" id="four-types-employee-bonus">
+    <CapaProblem title="Question 11: Employee Bonus" id="four_types_employee_bonus">
       <KeyGrader>
         <p>Getting a bonus for meeting sales goals.</p>
         <ChoiceInput>
@@ -548,7 +548,7 @@ Now that you understand the basics, let's move on to the four specific types of 
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 12: Remove Alarm" id="four-types-remove-alarm">
+    <CapaProblem title="Question 12: Remove Alarm" id="four_types_remove_alarm">
       <KeyGrader>
         <p>Turning off alarm by waking up on time.</p>
         <ChoiceInput>
@@ -560,7 +560,7 @@ Now that you understand the basics, let's move on to the four specific types of 
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 13: Written Warning" id="four-types-written-warning">
+    <CapaProblem title="Question 13: Written Warning" id="four_types_written_warning">
       <KeyGrader>
         <p>Receiving a written warning for tardiness.</p>
         <ChoiceInput>
@@ -572,7 +572,7 @@ Now that you understand the basics, let's move on to the four specific types of 
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 14: No Dessert" id="four-types-no-dessert">
+    <CapaProblem title="Question 14: No Dessert" id="four_types_no_dessert">
       <KeyGrader>
         <p>No dessert for not eating vegetables.</p>
         <ChoiceInput>
@@ -584,7 +584,7 @@ Now that you understand the basics, let's move on to the four specific types of 
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 15: Stop Nagging" id="four-types-stop-nagging">
+    <CapaProblem title="Question 15: Stop Nagging" id="four_types_stop_nagging">
       <KeyGrader>
         <p>Parent stops nagging when child cleans room.</p>
         <ChoiceInput>
@@ -602,7 +602,7 @@ Now that you understand the basics, let's move on to the four specific types of 
   <Vertical id="positive_negative_4">
     <Markdown id="quiz2_q16to20_header">## Advanced Quiz Questions 16-20</Markdown>
 
-    <CapaProblem title="Question 16: Gift Card" id="four-types-gift-card">
+    <CapaProblem title="Question 16: Gift Card" id="four_types_gift_card">
       <KeyGrader>
         <p>Receiving a gift card for volunteer work.</p>
         <ChoiceInput>
@@ -614,7 +614,7 @@ Now that you understand the basics, let's move on to the four specific types of 
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 17: Remove Restrictions" id="four-types-remove-restrictions">
+    <CapaProblem title="Question 17: Remove Restrictions" id="four_types_remove_restrictions">
       <KeyGrader>
         <p>Lifting driving restrictions for good grades.</p>
         <ChoiceInput>
@@ -626,7 +626,7 @@ Now that you understand the basics, let's move on to the four specific types of 
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 18: Public Criticism" id="four-types-public-criticism">
+    <CapaProblem title="Question 18: Public Criticism" id="four_types_public_criticism">
       <KeyGrader>
         <p>Being criticized in front of others for poor performance.</p>
         <ChoiceInput>
@@ -638,7 +638,7 @@ Now that you understand the basics, let's move on to the four specific types of 
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 19: Loss of Allowance" id="four-types-loss-allowance">
+    <CapaProblem title="Question 19: Loss of Allowance" id="four_types_loss_allowance">
       <KeyGrader>
         <p>Losing allowance for not doing chores.</p>
         <ChoiceInput>
@@ -650,7 +650,7 @@ Now that you understand the basics, let's move on to the four specific types of 
       </KeyGrader>
     </CapaProblem>
 
-    <CapaProblem title="Question 20: Umbrella Relief" id="four-types-umbrella-relief">
+    <CapaProblem title="Question 20: Umbrella Relief" id="four_types_umbrella_relief">
       <KeyGrader>
         <p>Using an umbrella to escape from rain.</p>
         <ChoiceInput>
