@@ -193,7 +193,17 @@ export function useFieldState(
 
   const value = useFieldSelector(props, field, { fallback, id, tag });
 
-  const setValue = (newValue) => updateField(props, field, newValue, { id, tag });
+  // Stable setter (like useState): ref holds latest args so the callback
+  // identity never changes, safe to use in useEffect deps.
+  const ref = useRef({ props, field, id, tag });
+  ref.current = { props, field, id, tag };
+  const setValue = useCallback(
+    (newValue) => {
+      const { props, field, id, tag } = ref.current;
+      updateField(props, field, newValue, { id, tag });
+    },
+    []
+  );
 
   return [value, setValue];
 }

@@ -12,8 +12,8 @@
 //
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useFieldSelector, useValue } from '@/lib/state';
+import React, { useEffect, useRef } from 'react';
+import { useFieldSelector, useFieldState, useValue } from '@/lib/state';
 import { LLM_STATUS } from '@/lib/llm/reduxClient';
 import { parseOLX } from '@/lib/content/parseOLX';
 import type { ProvenanceURI } from '@/lib/types';
@@ -25,35 +25,45 @@ import { useKids } from '@/lib/render';
 // HACK HACK HACK
 // We want debounce at the field level.
 // But this works for now.
-function useDebounce(value: string, delay: number): string {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-  return debounced;
-}
-
 const ERROR_DEBOUNCE_MS = 600;
 
-/**
- * Parses candidate OLX and returns what to render.
- * - Valid OLX: updates immediately
- * - Invalid OLX: keeps last valid render, shows error after ERROR_DEBOUNCE_MS
- */
-function useValidatedOlx(candidate: string, activity: any) {
-  const [validOlx, setValidOlx] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [stale, setStale] = useState(false);
+function _OlxSlot(props) {
+  const { id, fields, target, debounce: debounceMs = 150 } = props;
+
+  // Mode 1: Read from own value field (LLMAction writes here)
+  const ownValue = useFieldSelector(props, fields.value, { fallback: '', id });
+  const status = useFieldSelector(props, fields.state, { fallback: LLM_STATUS.INIT, id });
+
+  // Mode 2: Read from target component's getValue (respects initial content, etc.)
+  const targetValue = useValue(props, target, { fallback: '' });
+
+  // Use target value if target is set, otherwise own value
+  const rawOlx = target ? targetValue : ownValue;
+
+  // --- Debounce (HACK: should be a debounced field) ---
+  const [debounced, setDebounced] = useFieldState(props, fields.debounced, '');
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(rawOlx), target ? debounceMs : 0);
+    return () => clearTimeout(timer);
+  }, [rawOlx, target, debounceMs, setDebounced]);
+
+  const debouncedOlx = target ? debounced : rawOlx;
+
+  // --- Validation state (all in Redux for replay) ---
+  const [validOlx, setValidOlx] = useFieldState(props, fields.validOlx, '');
+  const [parseError, setParseError] = useFieldState(props, fields.error, null);
+  const [stale, setStale] = useFieldState(props, fields.stale, false);
   const errorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Every keystroke (rawOlx change) clears the error timer.
   // Errors only show after ERROR_DEBOUNCE_MS of inactivity.
   useEffect(() => {
     if (errorTimer.current) clearTimeout(errorTimer.current);
-    setError(null);
-  }, [activity]);
+    setParseError(null);
+  }, [rawOlx, setParseError]);
 
+  // Validate debounced OLX (target mode only)
+  const candidate = target ? debouncedOlx : '';
   useEffect(() => {
     if (!candidate || !candidate.trim()) {
       setValidOlx('');
@@ -69,21 +79,19 @@ function useValidatedOlx(candidate: string, activity: any) {
         if (cancelled) return;
 
         if (result.root && result.errors.length === 0) {
-          // Valid -- render immediately
           setValidOlx(candidate);
           setStale(false);
         } else {
-          // Invalid -- keep last valid render, schedule error display
           setStale(true);
           errorTimer.current = setTimeout(() => {
-            if (!cancelled) setError(candidate);  // Store the bad OLX itself
+            if (!cancelled) setParseError(candidate);
           }, ERROR_DEBOUNCE_MS);
         }
       } catch {
         if (!cancelled) {
           setStale(true);
           errorTimer.current = setTimeout(() => {
-            if (!cancelled) setError(candidate);
+            if (!cancelled) setParseError(candidate);
           }, ERROR_DEBOUNCE_MS);
         }
       }
@@ -91,30 +99,8 @@ function useValidatedOlx(candidate: string, activity: any) {
 
     validate();
     return () => { cancelled = true; };
-  }, [candidate]);
+  }, [candidate, setValidOlx, setStale, setParseError]);
 
-  return { validOlx, error, stale };
-}
-
-function _OlxSlot(props) {
-  const { id, fields, target, debounce: debounceMs = 150 } = props;
-
-  // Mode 1: Read from own value field (LLMAction writes here)
-  const ownValue = useFieldSelector(props, fields.value, { fallback: '', id });
-  const status = useFieldSelector(props, fields.state, { fallback: LLM_STATUS.INIT, id });
-
-  // Mode 2: Read from target component's getValue (respects initial content, etc.)
-  const targetValue = useValue(props, target, { fallback: '' });
-
-  // Use target value if target is set, otherwise own value
-  const rawOlx = target ? targetValue : ownValue;
-
-  // Debounce for reactive target mode; skip debounce for LLMAction mode
-  const debouncedOlx = useDebounce(rawOlx, target ? debounceMs : 0);
-
-  // In target mode, validate before rendering (fast valid, slow errors).
-  // In own-value mode (LLMAction), render directly (let RenderOLX show errors).
-  const { validOlx, error: parseError, stale } = useValidatedOlx(target ? debouncedOlx : '', rawOlx);
   const olxString = target ? validOlx : debouncedOlx;
 
   // Children are placeholder content (text or blocks) shown when empty
