@@ -1,10 +1,12 @@
 # CodeInput
 
-A CodeMirror-based code editor as an OLX block. Provides syntax highlighting for OLX, XML, and Markdown, with the value stored in Redux for other blocks to read.
+**Experimental / Prototype** -- this block is exploratory and its API will likely change.
+
+A CodeMirror editor as an OLX block. Provides syntax highlighting for OLX, XML, Markdown, and PEG content formats.
 
 ## Overview
 
-CodeInput wraps the CodeEditor component (used in Studio) as a first-class OLX block. Its value is stored in Redux like any input block, so other blocks can reference it. The primary use case is pairing with OlxSlot for live OLX authoring.
+Wraps the CodeEditor component as an OLX block. Value is stored in Redux so other blocks can read it (e.g., OlxSlot for live preview).
 
 ## Basic Usage
 
@@ -16,7 +18,7 @@ CodeInput wraps the CodeEditor component (used in Studio) as a first-class OLX b
 
 ## With OlxSlot (Live Preview)
 
-The core authoring pattern -- edit OLX with syntax highlighting and see it rendered live:
+Edit OLX with syntax highlighting and see it rendered live:
 
 ```olx:playground
 <Vertical id="live_edit">
@@ -25,9 +27,9 @@ The core authoring pattern -- edit OLX with syntax highlighting and see it rende
 </Vertical>
 ```
 
-## Student Authoring (SBA)
+## Example: Student Authoring
 
-Use in a training course where students build learning activities:
+Prototype for a training course where students build learning activities:
 
 ```olx:playground
 <Vertical id="sba_demo">
@@ -48,7 +50,7 @@ ChoiceInput, Key, and Distractor blocks.
 | Attribute | Required | Default | Description |
 |-----------|----------|---------|-------------|
 | `id` | Yes | | Unique identifier |
-| `language` | No | `olx` | Syntax highlighting: `olx`, `xml`, `md`, `markdown` |
+| `language` | No | `olx` | Syntax highlighting: `olx`, `xml`, `md`, `markdown`, plus PEG content formats |
 | `height` | No | `300px` | Editor height (any CSS value) |
 | `theme` | No | `light` | Color theme: `light` or `dark` |
 | (children) | No | | Initial content shown in the editor |

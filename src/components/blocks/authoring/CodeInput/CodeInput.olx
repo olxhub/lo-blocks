@@ -1,10 +1,10 @@
 <Vertical id="CodeInputDemo" title="CodeInput Demo">
   <Markdown>
-## OLX Live Editor
+## OLX Live Editor (Prototype)
 
 Edit OLX in the code editor below and see it rendered live.
   </Markdown>
-  <CodeInput id="my_olx" language="olx" height="200px">&lt;Markdown&gt;Hello World!&lt;/Markdown&gt;</CodeInput>
+  <CodeInput id="my_olx" language="olx" height="200px"><![CDATA[<Markdown>Hello World!</Markdown>]]></CodeInput>
   <Markdown>### Preview</Markdown>
   <OlxSlot target="my_olx" debounce="150" id="olx_preview" />
 </Vertical>

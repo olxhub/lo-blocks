@@ -1,11 +1,11 @@
 // src/components/blocks/authoring/OlxSlot/_OlxSlot.tsx
 //
-// Renders OLX from its value field (written by LLMAction) or from a
-// target component's value field (reactive student authoring).
+// EXPERIMENTAL / PROTOTYPE
 //
-// Uses RenderOLX internally for full OLX parsing and rendering.
+// Renders an OLX string as live content. Exploring patterns for dynamic
+// OLX authoring; API will likely change.
 //
-// Key UX in target mode:
+// Current UX in target mode:
 // - Valid OLX renders quickly (150ms debounce)
 // - Errors show after a longer delay (600ms) so mid-typing doesn't flash errors
 // - Last successful render stays visible while typing, with "Editing..." indicator
@@ -65,6 +65,8 @@ function _OlxSlot(props) {
   // Validate debounced OLX (target mode only)
   const candidate = target ? debouncedOlx : '';
   useEffect(() => {
+    // Nothing to validate: editor empty or cleared. Reset to clean state
+    // so we show the placeholder (children) instead of a stale render.
     if (!candidate || !candidate.trim()) {
       setValidOlx('');
       setStale(false);

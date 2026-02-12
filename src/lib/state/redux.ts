@@ -410,21 +410,28 @@ export function componentFieldByName(props: RuntimeProps, targetId: OlxReference
  *
  * Used when we need a component's own props outside of its render tree
  * (e.g., calling getValue from valueSelector). Looks up the component's
- * OlxDomNode for correct runtime context (idPrefix, logEvent); falls back
- * to the caller's runtime if the component hasn't been rendered yet.
+ * OlxDomNode for correct runtime context (idPrefix, logEvent).
+ *
+ * Falls back to the caller's runtime if the target hasn't been rendered yet.
+ * This is wrong (wrong idPrefix, wrong logEvent context) but currently
+ * unavoidable for components that haven't mounted. Callers that need
+ * accurate runtime should ensure the target has rendered first.
  */
 export function propsForNode(callerProps: RuntimeProps, node: any, loBlock: any) {
   const domNode = callerProps.nodeInfo
     ? getAllNodes(callerProps.nodeInfo, { selector: n => n.node?.id === node.id })[0] ?? null
     : null;
 
+  // TODO: runtime/nodeInfo fallbacks are incorrect — they use the caller's
+  // context, not the target's. Works when both share the same idPrefix
+  // (common case) but will break for cross-scope references.
   return {
     ...node.attributes,
     id: node.id,
     kids: node.kids,
     loBlock,
     fields: loBlock.fields,
-    locals: loBlock.locals ?? {},
+    locals: loBlock.locals,
     runtime: domNode?.runtime ?? callerProps.runtime,
     nodeInfo: domNode ?? callerProps.nodeInfo,
   };

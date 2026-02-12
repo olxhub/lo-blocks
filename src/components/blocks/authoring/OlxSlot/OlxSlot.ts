@@ -1,11 +1,10 @@
 // src/components/blocks/authoring/OlxSlot/OlxSlot.ts
 //
-// OlxSlot block - a slot that receives OLX from other blocks (e.g., LLMAction)
-// or reactively reads OLX from a target component, and renders it as live
-// interactive content.
+// EXPERIMENTAL / PROTOTYPE
 //
-// Like TextSlot, but renders OLX instead of plain text. Drop-in replacement
-// wherever you want LLM or student-authored OLX rendered dynamically.
+// OlxSlot - renders an OLX string as live content. Exploring patterns for
+// dynamic OLX authoring (LLM-generated and student-authored). API will
+// likely change significantly.
 //
 import { z } from 'zod';
 import { test } from '@/lib/blocks';
@@ -19,7 +18,7 @@ export const fields = state.fields(['value', 'state', 'debounced', 'validOlx', '
 const OlxSlot = test({
   ...parsers.blocks.allowHTML(),
   name: 'OlxSlot',
-  description: 'A slot that receives OLX and renders it as live interactive content',
+  description: 'Experimental: renders an OLX string as live content',
   component: _OlxSlot,
   fields,
   attributes: baseAttributes.extend({

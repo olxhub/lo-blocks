@@ -1,9 +1,9 @@
 <Vertical id="OlxSlotDemo" title="OlxSlot Demo">
   <Markdown>
-## Live OLX Authoring
+## Live OLX Authoring (Prototype)
 
 Type OLX in the text area below and see it rendered live.
   </Markdown>
-  <TextArea id="student_olx" placeholder="&lt;Markdown&gt;Hello World!&lt;/Markdown&gt;" />
+  <TextArea id="student_olx" placeholder="<Markdown>Hello World!</Markdown>" />
   <OlxSlot target="student_olx" debounce="150" id="olx_preview" />
 </Vertical>

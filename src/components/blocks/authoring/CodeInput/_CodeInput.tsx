@@ -1,8 +1,8 @@
 // src/components/blocks/authoring/CodeInput/_CodeInput.tsx
 //
-// CodeMirror editor wired to Redux. Value is stored in the component's
-// `value` field so other blocks (e.g., OlxSlot) can read it via
-// componentFieldByName or fieldSelector.
+// EXPERIMENTAL / PROTOTYPE
+//
+// CodeMirror editor wired to Redux. API will likely change.
 //
 'use client';
 

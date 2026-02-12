@@ -1,17 +1,17 @@
 # OlxSlot
 
-A slot that receives OLX and renders it as live, interactive content. Like TextSlot, but for full OLX instead of plain text.
+**Experimental / Prototype** -- this block is exploratory and its API will likely change.
+
+Renders an OLX string as live content. Takes OLX from an LLM, a student editor, or another source and renders it as interactive blocks.
 
 ## Overview
-
-OlxSlot bridges dynamic content generation and the OLX rendering pipeline. It takes an OLX string -- from an LLM, from a student typing in a TextArea, or from any other source -- and renders it as fully interactive blocks.
 
 Two modes of operation:
 
 1. **Own value** (LLMAction target): LLMAction writes OLX to the slot's `value` field
-2. **Reactive target**: Reads OLX from another component's `value` field with debouncing
+2. **Reactive target**: Reads OLX from another component's value with debouncing
 
-## Basic Usage: Student Authoring
+## Example: Reactive Target
 
 ```olx:playground
 <Vertical id="basic_olxslot">
@@ -21,9 +21,9 @@ Two modes of operation:
 </Vertical>
 ```
 
-## LLM-Generated OLX
+## Example: LLM-Generated OLX
 
-Use with LLMAction to have an LLM generate interactive content:
+Prototype for LLM-generated interactive content:
 
 ```olx:playground
 <Vertical id="llm_olxslot">
@@ -41,7 +41,7 @@ Return ONLY the OLX, no markdown fences.
 </Vertical>
 ```
 
-## With IntakeGate
+## Example: With IntakeGate
 
 OlxSlot works with IntakeGate -- the gate watches the slot's `value` field:
 
