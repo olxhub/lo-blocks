@@ -4,22 +4,26 @@ import { getKidsBFS, getKidsDFS, getParents, inferRelatedNodes, getAllNodes, __t
 const { normalizeTargetIds, normalizeInfer} = __testables;
 
 // Minimal mock node tree
-// Note: In production, `blueprint` is on nodeInfo, not on nodeInfo.node.
-// The `node` property contains the OLX node (id, tag, attributes, kids).
-// See render.jsx:107 where nodeInfo is created.
+// Note: In production, `blueprint` is on nodeInfo, not on nodeInfo.olxJson.
+// The `olxJson` property contains the parsed OLX (id, tag, attributes, kids).
+const mockRuntime = {} as any;  // Tests don't exercise runtime
+
 const tree = {
   olxJson: { id: 'A' },
   reduxKey: 'A' as any,
+  runtime: mockRuntime,
   loBlock: { isAction: true, isGrader: false, isInput: false, isMatch: false },
   renderedKids: {
     B: {
       olxJson: { id: 'B' },
       reduxKey: 'B' as any,
+      runtime: mockRuntime,
       loBlock: { isAction: false, isGrader: false, isInput: false, isMatch: false },
       renderedKids: {
         D: {
           olxJson: { id: 'D' },
           reduxKey: 'D' as any,
+          runtime: mockRuntime,
           loBlock: { isAction: true, isGrader: false, isInput: false, isMatch: false },
           renderedKids: {},
           // parent assigned below
@@ -30,6 +34,7 @@ const tree = {
     C: {
       olxJson: { id: 'C' },
       reduxKey: 'C' as any,
+      runtime: mockRuntime,
       loBlock: { isAction: true, isGrader: false, isInput: false, isMatch: false },
       renderedKids: {},
       // parent assigned below

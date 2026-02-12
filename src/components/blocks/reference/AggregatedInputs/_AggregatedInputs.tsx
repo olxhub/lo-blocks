@@ -3,6 +3,7 @@
 
 import React, { useMemo } from 'react';
 import { inferRelatedNodes, getAllNodes } from '@/lib/blocks/olxdom';
+import { refToReduxKey } from '@/lib/blocks/idResolver';
 import { useAggregate, componentFieldByName } from '@/lib/state';
 
 function normalizeTargets(rawTargets) {
@@ -25,11 +26,18 @@ function normalizeTargets(rawTargets) {
 function findNodeInfoById(props, targetId) {
   if (!props.nodeInfo) return null;
 
-  const matches = getAllNodes(props.nodeInfo, {
+  // Prefer reduxKey match for scoped instances (DynamicList correctness)
+  const expectedReduxKey = refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix });
+  const byReduxKey = getAllNodes(props.nodeInfo, {
+    selector: (nodeInfo) => nodeInfo.reduxKey === expectedReduxKey
+  });
+  if (byReduxKey.length > 0) return byReduxKey[0];
+
+  // Fallback: match by olxJson.id (for cross-scope references)
+  const byOlxId = getAllNodes(props.nodeInfo, {
     selector: (nodeInfo) => nodeInfo?.olxJson?.id === targetId
   });
-
-  return matches[0] || null;
+  return byOlxId[0] || null;
 }
 
 function resolveTargetIds(props, targetIds) {

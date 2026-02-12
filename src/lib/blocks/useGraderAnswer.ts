@@ -21,7 +21,7 @@ import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
 import { getGrader, getAllNodes, inferRelatedNodes } from './olxdom';
 import { useOlxJson } from './useOlxJson';
-import { refToOlxKey, toOlxReference } from './idResolver';
+import { refToOlxKey, refToReduxKey, toOlxReference } from './idResolver';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { isInput } from './actions';
 import type { OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
@@ -103,9 +103,12 @@ function resolveInputSlot(
   // Get input IDs (same inference logic as grader action)
   let inputIds: OlxKey[] = [];
   try {
-    // Find the grader's actual nodeInfo by traversing from root
-    // We can't just swap id - inferRelatedNodes uses nodeInfo for traversal
+    // Find the grader's actual nodeInfo by traversing from root.
+    // Prefer reduxKey match for scoped instances (DynamicList correctness).
+    const expectedReduxKey = refToReduxKey({ id: graderId, idPrefix: props.runtime?.idPrefix });
     const graderNodeInfo = getAllNodes(props.nodeInfo, {
+      selector: n => n.reduxKey === expectedReduxKey
+    })[0] ?? getAllNodes(props.nodeInfo, {
       selector: n => n.olxJson?.id === graderId
     })[0];
 

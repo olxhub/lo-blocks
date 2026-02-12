@@ -22,7 +22,7 @@ import htmlTags from 'html-tags';
 import React from 'react';
 import { DisplayError, DebugWrapper } from '@/lib/util/debug';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import type { OlxKey, IdPrefix, ReduxStateKey, LoBlockRuntimeContext } from '@/lib/types';
+import type { OlxKey, IdPrefix, ReduxStateKey, LoBlockRuntimeContext, OlxJson } from '@/lib/types';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { getGrader, getEventContext } from '@/lib/blocks/olxdom';
 import { assignReactKeys, refToOlxKey, refToReduxKey } from '@/lib/blocks/idResolver';
@@ -33,17 +33,26 @@ import type { Store } from 'redux';
 // TODO: Give root a real loBlock created via blocks.core() for consistency
 const ROOT_LOBLOCK = Object.freeze({ name: 'Root', isGrader: false, isInput: false });
 
+const ROOT_OLXJSON: OlxJson = Object.freeze({
+  id: 'root' as OlxKey,
+  tag: 'Root' as any,
+  attributes: {},
+  provenance: [] as any,
+});
+
 /**
  * Create a root nodeInfo for rendering.
+ * @param runtime - The runtime context for this render tree
  * @param contextId - Optional ID for event context (e.g., "preview", "studio", "debug")
  */
-export const makeRootNode = (contextId?: string) => ({
+export const makeRootNode = (runtime: LoBlockRuntimeContext, contextId?: string) => ({
   sentinel: 'root',
   id: contextId,
-  olxJson: null,
+  olxJson: ROOT_OLXJSON,
   reduxKey: 'root' as ReduxStateKey,
   renderedKids: {},
-  loBlock: ROOT_LOBLOCK
+  loBlock: ROOT_LOBLOCK,
+  runtime,
 });
 
 /**

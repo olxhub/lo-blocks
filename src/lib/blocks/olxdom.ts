@@ -374,56 +374,16 @@ export function extractChildText(props, actionNode) {
 }
 
 // =============================================================================
-// DESIGN: Store Runtime Context in NodeInfo for Later Retrieval
+// DESIGN: Runtime Context in NodeInfo (IMPLEMENTED)
 // =============================================================================
 //
-// PROBLEM
-// -------
-// When actions/graders find related blocks (inputs, targets), we currently copy
-// the source's runtime context verbatim. This is incomplete:
+// Each OlxDomNode stores its runtime context (idPrefix, logEvent, etc.)
+// captured at render time. When actions/graders find related blocks, they
+// read runtime from the target's nodeInfo rather than copying the caller's.
 //
-// 1. idPrefix scope: If an input is inside a list at a different nesting level,
-//    it has a different idPrefix (determined by render-time context).
-//
-// 2. Side-effect context: A frozen replay context should affect how the node
-//    renders (no side effects, no event logging).
-//
-// 3. Event logging: The logEvent context path is built from the OLX DOM
-//    hierarchy, which is specific to each node's position.
-//
-// SOLUTION
-// --------
-// Store the complete runtime context on each nodeInfo when it's created.
-// When actions later need props for a target node, read runtime from nodeInfo.
-//
-// Implementation:
-// 1. Uncomment runtime field in OlxDomNode type (src/lib/types.ts line ~397)
-// 2. In render.tsx, store finalRuntime on childNodeInfo:
-//    ```
-//    childNodeInfo.runtime = finalRuntime;
-//    ```
-// 3. In actions.tsx, retrieve it directly:
-//    ```
-//    const inputProps = {
-//      runtime: inputNodeInfo.runtime,  // Use captured runtime from render time
-//      nodeInfo: inputNodeInfo,
-//      ...
-//    };
-//    ```
-//
-// Benefits:
-// - Runtime context is captured at render time when it's correct
-// - No need to reconstruct/compute from walks
-// - Explicit overrides possible if needed (store alternate runtime on nodeInfo)
-// - No behavioral changes needed in components
-//
-// CURRENT STATUS
-// ---------------
-// TODO: Implement this design
-// Marked with TODO comments in:
-// - src/lib/render.tsx line ~198: Store runtime on childNodeInfo
-// - src/lib/blocks/actions.tsx line ~216: Use nodeInfo.runtime for inputs
-// - src/lib/blocks/actions.tsx line ~359: Use nodeInfo.runtime for actions
+// - render.tsx: stores finalRuntime on childNodeInfo during render
+// - actions.tsx: reads nodeInfo.runtime for input and action props
+// - OlxDomNode.runtime: required field on the type (src/lib/types.ts)
 //
 
 export const __testables = {

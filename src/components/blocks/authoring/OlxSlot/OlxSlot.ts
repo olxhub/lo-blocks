@@ -23,7 +23,7 @@ const OlxSlot = test({
   fields,
   attributes: baseAttributes.extend({
     target: z.string().optional()
-      .describe('ReduxKey of another component to read OLX from (e.g., "my_textarea" or "list:0:editor" for scoped instances)'),
+      .describe('ID of another component to read OLX from (resolved via useValue)'),
     debounce: z.coerce.number().default(150)
       .describe('Debounce delay in ms before re-parsing OLX (only used with target)'),
   }),

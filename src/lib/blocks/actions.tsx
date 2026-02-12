@@ -89,16 +89,26 @@ export function isMatch(loBlock) {
   return typeof loBlock?.locals?.match === 'function';
 }
 
-// This does a full tree search, which is not performant. Probably doesn't matter
-// right now, but in the future, it may.
+// Find a specific node in the rendered OLX DOM tree by OlxKey.
 //
-// TODO: Make more efficient? Does it matter?
+// Prefers matching by reduxKey (idPrefix + id) to correctly identify scoped
+// instances in DynamicList contexts (e.g., list:0:factor vs list:1:factor).
+// Falls back to olxJson.id match for cross-scope / absolute references.
 function getNodeById(props, id) {
-  const nodes = getAllNodes(
+  // Try scoped match first (correct for DynamicList items)
+  const expectedReduxKey = refToReduxKey({ id, idPrefix: props.runtime?.idPrefix });
+  const byReduxKey = getAllNodes(
     props.nodeInfo,
-    { selector: (n) => n?.olxJson?.id == id }
+    { selector: (n) => n.reduxKey === expectedReduxKey }
   );
-  return nodes[0]; // TODO: Error handling?
+  if (byReduxKey.length > 0) return byReduxKey[0];
+
+  // Fallback: match by olxJson.id (for cross-scope references)
+  const byOlxId = getAllNodes(
+    props.nodeInfo,
+    { selector: (n) => n?.olxJson?.id === id }
+  );
+  return byOlxId[0] ?? null;
 }
 
 /**
@@ -214,14 +224,10 @@ export function grader({ grader, infer = true, slots, inputType }: {
       const loBlock = map[inst.tag];
       const inputNodeInfo = getNodeById(props, id);
 
-      // TODO: Use runtime from nodeInfo (when implemented)
-      // Currently we use the source's runtime context, but the input may have been
-      // rendered with a different context (different idPrefix, frozen state, etc).
-      //
-      // Once OlxDomNode.runtime is uncommented and populated during render(), use:
-      //   const inputRuntime = inputNodeInfo.runtime;
+      // Use the input's own runtime (captured at render time) for correct idPrefix,
+      // logEvent context, etc. Falls back to caller's runtime if nodeInfo unavailable.
       const inputProps = {
-        runtime: props.runtime,
+        runtime: inputNodeInfo?.runtime ?? props.runtime,
         nodeInfo: inputNodeInfo,
         id,
         kids: inst.kids || [],
@@ -363,16 +369,11 @@ export async function executeNodeActions(props: RuntimeProps) {
     }
 
     // Create proper props for the action component
-    // Match the props structure that render.jsx creates for normal components
-    //
-    // TODO: Use runtime from nodeInfo (when implemented)
-    // Currently we use the button's runtime context, but the action may have been
-    // rendered with a different context (different idPrefix, frozen state, etc).
-    //
-    // Once OlxDomNode.runtime is uncommented and populated during render(), use:
-    //   const actionRuntime = actionNodeInfo.runtime;
+    // Match the props structure that render.jsx creates for normal components.
+    // Use the action's own runtime (captured at render time) for correct idPrefix,
+    // logEvent context, etc. Falls back to caller's runtime if unavailable.
     const actionProps = {
-      runtime: props.runtime,
+      runtime: actionNodeInfo.runtime ?? props.runtime,
 
       // Target-specific props (like render.jsx does)
       ...targetInstance.attributes,        // OLX attributes from target action
