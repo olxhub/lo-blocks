@@ -39,7 +39,6 @@ Annie's roommate has been trying positive reinforcement techniques to get Johnny
 - She chases after him and keeps nagging him to go to bed
 - He eventually gets tired and goes to bed, but she's left feeling tired and frustrated
     </Markdown>
-    <ActionButton id="continue_roommate" target="psych_fba_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- Function of behavior introduction -->
@@ -49,26 +48,47 @@ Annie's roommate has been trying positive reinforcement techniques to get Johnny
 
 One of the things we learned in class was that whenever you need to intervene with a behavior, the intervention must address the **function of the behavior**.
     </Markdown>
-    <ActionButton id="ask_ai_function" target="psych_fba_chat" action="advance" label="Ask AI About Function" />
   </Vertical>
 
   <!-- AI interface for function definition -->
   <Vertical id="ai_function_definition">
     <Markdown id="ai_function_prompt">
-## Ask AI
-
-Ask the AI to provide a definition of the function of a behavior.
+### What is the Function of a Behavior?
+Try to explain what the function of a behavior is, based on what you know or remember from class.
     </Markdown>
-    <TextArea id="ai_function_query" placeholder="Type your question about function of behavior..." />
-    <LLMFeedback id="function_ai_response" placeholder="AI response will appear here..." />
-    <ActionButton id="ask_ai_function_btn" label="Ask AI" dependsOn="@ai_function_query.value">
+    <TextArea 
+        id="ai_function_query"
+        rows="2"
+        placeholder="Type your explanation of function of behavior here..." />
+    <LLMFeedback 
+        id="function_ai_response"
+        render="markdown"
+        placeholder="The AI response will appear here..." />
+    <ActionButton id="ask_ai_function_btn" label="Get AI Feedback" dependsOn="@ai_function_query.value">
       <LLMAction target="function_ai_response">
-You are a helpful psychology teaching assistant. Explain the concept of 'function of behavior' in behavioral psychology. Include that it refers to the purpose or reason behind why a behavior occurs - what the person gains from the behavior. Mention the four main functions: attention, escape, access to tangibles/preferred items, and sensory/automatic reinforcement. Keep the explanation accessible for undergraduate students.
+          You are a helpful psychology teaching assistant. One of your students has
+          provided the following attempt to explain what function of behavior is:
 
-Student's question: <Ref target="ai_function_query" />
+          <Ref id="ai_function_query_ref" target="ai_function_query" />
+
+          If their response is not a good-faith effort to explain what function
+          of behavior is, reprimand them about that, and stop without mentioning
+          what the function of a behavior is or what the four main functions are. 
+          Otherwise, let them know what
+          they've gotten right and explain anything they've missed or misstated, making
+          your goal to explain the concept of 'function of behavior' in behavioral 
+          psychology, including the fact that 'function of behavior' refers to the
+          purpose or reason behind why a behavior occurs -- what the person gains
+          from the behavior -- and mentioning mention the four main functions: 
+          attention, escape, access to tangibles/preferred items, and sensory/
+          automatic reinforcement. 
+          
+          Keep your response accessible for undergraduate students.
+
+          Output your response in Markdown with bolded paragraph and list headers, but
+          keep it short -- no more than a few paragraphs.
       </LLMAction>
     </ActionButton>
-    <ActionButton id="continue_after_ai_function" dependsOn="@function_ai_response.value" target="psych_fba_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- Lin's notes on 4 functions -->
@@ -82,27 +102,27 @@ The four main functions of behavior are:
 
 | Function | Description |
 |----------|-------------|
-| **Attention** | Behavior occurs to get attention from others |
-| **Escape** | Behavior occurs to avoid or get away from something |
-| **Access** | Behavior occurs to gain access to a preferred activity or object |
-| **Sensory** | Behavior occurs because it feels good (automatic reinforcement) |
+| **Attention** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Behavior occurs to get attention from others |
+| **Escape** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Behavior occurs to avoid or get away from something |
+| **Access** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Behavior occurs to gain access to a preferred activity or object |
+| **Sensory** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Behavior occurs because it feels good (automatic reinforcement) |
 
-JJ's notes say that the function always refers to a type of reinforcement, positive or negative.
     </Markdown>
-    <ActionButton id="continue_functions" target="psych_fba_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- Review MCQ: Reinforcement concepts -->
-  <Vertical id="review_reinforcement">
+  <Vertical id="review_reinforcement1">
     <Markdown id="review_header">
-## Review: Reinforcement Concepts
+        ## Review: Reinforcement Concepts
 
-Let's review some examples from Lianne's notes.
+        Let's review some examples from Lianne's notes.
     </Markdown>
 
     <CapaProblem title="Billy's Joke" id="review_billy_joke">
       <KeyGrader>
-        <p>Billy tells a joke to his class, and the class laughs. The next day, Billy tells another joke, and the class laughs again. In this case, laughter serves as...</p>
+        <p>Billy tells a joke to his class, and the class laughs. The next day,
+           Billy tells another joke, and the class laughs again. In this case,
+          laughter serves as...</p>
         <ChoiceInput>
           <Key id="billy_key">Positive Reinforcement</Key>
           <Distractor id="billy_d1">Negative Reinforcement</Distractor>
@@ -110,8 +130,22 @@ Let's review some examples from Lianne's notes.
           <Distractor id="billy_d3">Negative Punishment</Distractor>
         </ChoiceInput>
       </KeyGrader>
+      <Explanation>
+          <Markdown>
+            - The laughter results in Billy telling jokes **more often**, so this is **reinforcement**.
+            - Something is **added** (laughter), so this is **positive** reinforcement.
+          </Markdown>
+      </Explanation>
     </CapaProblem>
+  </Vertical>
 
+  <!-- Review MCQ: Reinforcement concepts2 -->
+  <Vertical id="review_reinforcement2">
+    <Markdown id="review_header2">
+        ## Review: Reinforcement Concepts
+
+        Let's review some examples from Lianne's notes.
+    </Markdown>
     <CapaProblem title="Jenny's Whining" id="review_jenny_whining">
       <KeyGrader>
         <p>Jenny whines to her teacher when given a math worksheet. After trying the problems, Jenny whines again that it is "too hard." The teacher then removes the worksheet. The next day, Jenny whines again when given a new worksheet. In this case, whining serves as...</p>
@@ -122,8 +156,16 @@ Let's review some examples from Lianne's notes.
           <Distractor id="jenny_d3">Negative Punishment</Distractor>
         </ChoiceInput>
       </KeyGrader>
+      <Explanation>
+          <Markdown>
+              - The teacher's response makes Jenny **more likely** to white, so this is **reinforcement**.
+              - The teacher responded by **taking something away** (the worksheet), so this is **negative** reinforcement.
+          </Markdown>
+      </Explanation>
     </CapaProblem>
-
+  </Vertical>
+  
+  <Vertical id="four_functions_notes">
     <Markdown id="lecture_notes_reminder">
 **Lecture Notes Reminder:**
 
@@ -146,27 +188,114 @@ Lianne also said during class:
 - If the function is **escape**, it typically involves **negative reinforcement**
 - For **sensory**, it can be either one
     </Markdown>
-    <ActionButton id="ask_ai_chart" target="psych_fba_chat" action="advance" label="Ask AI for Chart" />
   </Vertical>
 
   <!-- AI interface for chart -->
   <Vertical id="ai_function_chart">
     <Markdown id="ai_chart_prompt">
-## Ask AI for a Chart
-
-Ask the AI to create a chart that incorporates functions of behavior and types of reinforcement.
+       **Examples of Positive and Negative Feedback with Each of the Four Functions**
     </Markdown>
-    <TextArea id="ai_chart_query" placeholder="Example: Put all four functions of behavior in a chart with examples of positive and negative reinforcement side-by-side" />
     <LLMFeedback id="chart_ai_response" placeholder="AI response will appear here..." />
-    <ActionButton id="ask_ai_chart_btn" label="Ask AI" dependsOn="@ai_chart_query.value">
+    <ActionButton id="ask_ai_chart_btn" label="Ask AI">
       <LLMAction target="chart_ai_response">
-You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement. Use a markdown table format. Include concrete examples for each function.
+You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement. Use a markdown table format. Include concrete examples for each function. Include a blank columns to set off each column from the ones next to it.
 
 Student's request: <Ref target="ai_chart_query" />
       </LLMAction>
     </ActionButton>
-    <ActionButton id="continue_after_chart" dependsOn="@chart_ai_response.value" target="psych_fba_chat" action="advance" label="Continue" />
   </Vertical>
+
+  <SplitPanel id="own_examples_page_attention">
+      <LeftPane>
+          <Markdown>
+              **Examples of Positive Reinforcement**
+              
+              1. Attention
+          </Markdown>
+          <TextArea 
+              id="positive_reinforcement_for_attention"
+              rows="2" />
+      </LeftPane>
+      <RightPane>
+          <Markdown>
+              **Examples of Negative Reinforcement**
+              
+              1. Attention
+          </Markdown>
+          <TextArea 
+              id="negative_reinforcement_for_attention"
+              rows="2" />
+      </RightPane>
+  </SplitPanel>
+
+  <SplitPanel id="own_examples_page_escape">
+      <LeftPane>
+          <Markdown>
+              **Examples of Positive Reinforcement**
+              
+              2. Escape
+          </Markdown>
+          <TextArea 
+              id="positive_reinforcement_for_escape"
+              rows="2" />
+      </LeftPane>
+      <RightPane>
+          <Markdown>
+              **Examples of Negative Reinforcement**
+              
+              2. Escape
+          </Markdown>
+          <TextArea 
+              id="negative_reinforcement_for_escape"
+              rows="2" />
+      </RightPane>
+  </SplitPanel>
+
+  <SplitPanel id="own_examples_page_access">
+      <LeftPane>
+          <Markdown>
+              **Examples of Positive Reinforcement**
+              
+              3. Access
+          </Markdown>
+          <TextArea 
+              id="positive_reinforcement_for_access"
+              rows="2" />
+      </LeftPane>
+      <RightPane>
+          <Markdown>
+              **Examples of Negative Reinforcement**
+              
+              3. Access
+          </Markdown>
+          <TextArea 
+              id="negative_reinforcement_for_access"
+              rows="2" />
+      </RightPane>
+  </SplitPanel>
+
+  <SplitPanel id="own_examples_page_sensory">
+      <LeftPane>
+          <Markdown>
+              **Examples of Positive Reinforcement**
+              
+              4. Sensory
+          </Markdown>
+          <TextArea 
+              id="positive_reinforcement_for_sensory"
+              rows="2" />
+      </LeftPane>
+      <RightPane>
+          <Markdown>
+              **Examples of Negative Reinforcement**
+              
+              4. Sensory
+          </Markdown>
+          <TextArea 
+              id="negative_reinforcement_for_sensory"
+              rows="2" />
+      </RightPane>
+  </SplitPanel>
 
   <!-- Why no punishment function -->
   <Vertical id="no_punishment_function">
@@ -197,17 +326,14 @@ So while punishment is an important concept in behavior modification, it's not c
 In your own words, explain why there is no function for punishment.
     </Markdown>
     <TextArea id="punishment_explanation" placeholder="Explain in your own words..." />
-    <ActionButton id="submit_punishment_explanation" dependsOn="@punishment_explanation.value" target="psych_fba_chat" action="advance" label="Submit" />
   </Vertical>
 
   <!-- Practice: Function identification drag-and-drop set 1 -->
   <Vertical id="function_practice_1">
     <Markdown id="function_practice_header1">
-## Practice: Identify the Function (1-5)
-
-Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
     </Markdown>
-
     <CapaProblem title="Michelle hides under desks" id="function_michelle">
       <KeyGrader>
         <p>Michelle does not want to do her math test, so instead she gets up out of her seat and hides under desks and furniture in her classroom.</p>
@@ -219,7 +345,9 @@ Categorize each behavior by its function: Escape, Attention, Sensory, or Access/
         </ChoiceInput>
       </KeyGrader>
     </CapaProblem>
-
+  </Vertical>
+  <!-- Practice: Function identification drag-and-drop set 1 -->
+  <Vertical id="function_practice_1b">
     <CapaProblem title="Beth argues with teacher" id="function_beth">
       <KeyGrader>
         <p>Beth does not want to do her science seatwork, so instead she talks back and argues with her teacher, yelling that the teacher is unfair and trying to get other students to agree with her.</p>
@@ -231,7 +359,9 @@ Categorize each behavior by its function: Escape, Attention, Sensory, or Access/
         </ChoiceInput>
       </KeyGrader>
     </CapaProblem>
-
+  </Vertical>
+  <!-- Practice: Function identification drag-and-drop set 1 -->
+  <Vertical id="function_practice_1c">
     <CapaProblem title="Randy hums softly" id="function_randy">
       <KeyGrader>
         <p>Randy hums softly to himself while doing his work because it feels calming, even if no one responds.</p>
@@ -243,7 +373,9 @@ Categorize each behavior by its function: Escape, Attention, Sensory, or Access/
         </ChoiceInput>
       </KeyGrader>
     </CapaProblem>
-
+  </Vertical>
+  <!-- Practice: Function identification drag-and-drop set 1 -->
+  <Vertical id="function_practice_1d">
     <CapaProblem title="Ryan rushes through math" id="function_ryan">
       <KeyGrader>
         <p>Ryan wants to play with his iPad but needs to finish his work first. He then rushes through his math work and answers "100" for every question just so he can play with the iPad.</p>
@@ -255,7 +387,9 @@ Categorize each behavior by its function: Escape, Attention, Sensory, or Access/
         </ChoiceInput>
       </KeyGrader>
     </CapaProblem>
-
+  </Vertical>
+  <!-- Practice: Function identification drag-and-drop set 1 -->
+  <Vertical id="function_practice_1e">
     <CapaProblem title="Emily makes silly noises" id="function_emily">
       <KeyGrader>
         <p>Emily makes silly noises during silent reading time because she knows her peers will turn around to giggle and talk to her.</p>
@@ -267,10 +401,7 @@ Categorize each behavior by its function: Escape, Attention, Sensory, or Access/
         </ChoiceInput>
       </KeyGrader>
     </CapaProblem>
-
-    <ActionButton id="continue_function_practice1" target="psych_fba_chat" action="advance" label="Next Set" />
   </Vertical>
-
   <!-- Practice: Function identification set 2 -->
   <Vertical id="function_practice_2">
     <Markdown id="function_practice_header2">
@@ -288,7 +419,9 @@ Categorize each behavior by its function: Escape, Attention, Sensory, or Access/
         </ChoiceInput>
       </KeyGrader>
     </CapaProblem>
-
+  </Vertical>
+  <!-- Practice: Function identification set 2 -->
+  <Vertical id="function_practice_2b">
     <CapaProblem title="Aidan blurts out" id="function_aidan">
       <KeyGrader>
         <p>Aidan repeatedly blurts out answers and makes comments during his teacher's lessons to make the teacher laugh.</p>
@@ -300,7 +433,9 @@ Categorize each behavior by its function: Escape, Attention, Sensory, or Access/
         </ChoiceInput>
       </KeyGrader>
     </CapaProblem>
-
+  </Vertical>
+  <!-- Practice: Function identification set 2 -->
+  <Vertical id="function_practice_2c">
     <CapaProblem title="Matthew taps foot" id="function_matthew">
       <KeyGrader>
         <p>Matthew taps his foot because the movement feels good, regardless of what others say or do.</p>
@@ -312,7 +447,9 @@ Categorize each behavior by its function: Escape, Attention, Sensory, or Access/
         </ChoiceInput>
       </KeyGrader>
     </CapaProblem>
-
+  </Vertical>
+  <!-- Practice: Function identification set 2 -->
+  <Vertical id="function_practice_2d">
     <CapaProblem title="Jasmine tantrums" id="function_jasmine">
       <KeyGrader>
         <p>Jasmine tantrums when she is told that she cannot have the snack she wants at the grocery store.</p>
@@ -324,7 +461,9 @@ Categorize each behavior by its function: Escape, Attention, Sensory, or Access/
         </ChoiceInput>
       </KeyGrader>
     </CapaProblem>
-
+  </Vertical>
+  <!-- Practice: Function identification set 2 -->
+  <Vertical id="function_practice_2e">
     <CapaProblem title="Simon needs bathroom" id="function_simon">
       <KeyGrader>
         <p>Simon suddenly needs to go to the bathroom every time it is time to transition to math class.</p>
@@ -336,10 +475,15 @@ Categorize each behavior by its function: Escape, Attention, Sensory, or Access/
         </ChoiceInput>
       </KeyGrader>
     </CapaProblem>
-
-    <ActionButton id="continue_function_practice2" target="psych_fba_chat" action="advance" label="Continue" />
   </Vertical>
 
+  <!-- Screen clearer -->
+  <Vertical id="abc_screen_clear">
+    <Markdown id="abc_intro_claear">
+        &nbsp;
+    </Markdown>
+  </Vertical>
+  
   <!-- ABCs Introduction -->
   <Vertical id="abc_introduction">
     <Markdown id="abc_intro_text">
@@ -353,7 +497,6 @@ To figure out the function of behavior, we need to look at:
 
 As the professor said: "It's as easy as learning your ABCs!"
     </Markdown>
-    <ActionButton id="ask_ai_abc" target="psych_fba_chat" action="advance" label="Ask AI for Examples" />
   </Vertical>
 
   <!-- AI interface for ABC diagrams -->
@@ -363,16 +506,19 @@ As the professor said: "It's as easy as learning your ABCs!"
 
 Ask AI to come up with diagrams explaining antecedents, behaviors, and consequences using the 4 functions of behavior.
     </Markdown>
-    <TextArea id="ai_abc_query" placeholder="Ask AI for ABC examples with different functions..." />
-    <LLMFeedback id="abc_ai_response" placeholder="AI response will appear here..." />
-    <ActionButton id="ask_ai_abc_btn" label="Ask AI" dependsOn="@ai_abc_query.value">
+    <LLMFeedback 
+        id="abc_ai_response" 
+        render="markdown"
+        placeholder="AI response will appear here..." />
+    <ActionButton id="ask_ai_abc_btn" label="Ask AI">
       <LLMAction target="abc_ai_response">
 You are a helpful psychology teaching assistant. Create clear examples of ABC (Antecedent-Behavior-Consequence) sequences for each of the four functions of behavior (escape, attention, access/tangible, sensory). Use a simple format showing: Antecedent -> Behavior -> Consequence -> Function. Include concrete, relatable examples a student would understand.
+
+Format your response in markdown, putting Put a separator line ('-----------------') first, the antecedent on the next line, the behavior on the line after that, the consequence on the line after that, and the the function on the last line in the set, with a right arrow before the behavior, consequence, and function. Reduce "Behavior: Behavior:" to "Behavior:" and "Consequent: Consequent:" to "Consequent:". Bold the words antecedent, behavior, consequent, and function.
 
 Student's request: <Ref target="ai_abc_query" />
       </LLMAction>
     </ActionButton>
-    <ActionButton id="continue_abc" dependsOn="@abc_ai_response.value" target="psych_fba_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- ABC Example walkthrough -->
@@ -384,16 +530,15 @@ Let's look at an example:
 
 | Component | Example |
 |-----------|---------|
-| **Antecedent** | Teacher gives a difficult task |
-| **Behavior** | Student puts head down |
-| **Consequence** | Task is removed or delayed |
-| **Function** | **Escape** |
+| **Antecedent** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Teacher gives a difficult task |
+| **Behavior** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Student puts head down |
+| **Consequence** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Task is removed or delayed |
+| **Function** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**Escape** |
 
 **JJ explains:** The teacher gave a hard task, then the student put their head down instead of working on it. Then the teacher probably got sick of waiting and gave up on making them do it, or just assigned it for homework.
 
 **Lin adds:** Right, the student continued to put their head down for so long that maybe the teacher just delayed the task. Either way, the student successfully escaped the aversive task.
     </Markdown>
-    <ActionButton id="continue_abc_example" target="psych_fba_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- ABC Check: Johnny scenario -->
@@ -410,7 +555,6 @@ Explain the sequence of Antecedent, Behavior, and Consequence from Annie's roomm
 > *Annie: Well, yeah, but not without a fight. After he runs away, my roommate chases after him and keeps nagging on him to go to bed. I think he eventually gets tired and goes to bed, but my roommate is left feeling tired and frustrated, just like before.*
     </Markdown>
     <TextArea id="abc_johnny_explanation" placeholder="Describe the A-B-C sequence for Johnny's bedtime behavior..." />
-    <ActionButton id="submit_abc_johnny" dependsOn="@abc_johnny_explanation.value" target="psych_fba_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- ABC Summary and Function MCQ -->
@@ -435,8 +579,6 @@ Explain the sequence of Antecedent, Behavior, and Consequence from Annie's roomm
         </ChoiceInput>
       </KeyGrader>
     </CapaProblem>
-
-    <ActionButton id="continue_abc_summary" target="psych_fba_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- Competing Behavior Pathway introduction -->
@@ -640,7 +782,7 @@ Plan A correctly fits the function of the behavior, which is **escape**. Plan B 
   </Vertical>
 
   <!-- Final email -->
-  <Vertical id="final_email">
+  <Vertical id="final_intervention_email">
     <Markdown id="final_email_prompt">
 ## Write the Intervention Email
 

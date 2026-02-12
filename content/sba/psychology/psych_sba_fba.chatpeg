@@ -12,9 +12,7 @@ psych_fba_sidebar -> fba_introduction
 
 JJ: How's that going? Did our suggestions help?
 
-Annie: She has been trying positive reinforcement techniques to get him to go to bed, but she says they aren't working out like she thought they would.
-
-psych_fba_sidebar -> roommate_situation
+Annie: She has been trying positive reinforcement techniques to get him to go to bed, but she says they aren't working out like she thought they would. Everything went fine at first, but after a brief improvement, things got worse again.
 
 Lin: Oh no! That must be hard. What's going on?
 
@@ -30,6 +28,8 @@ Annie: Then, she tells him to get into bed, but like always, he runs away from t
 
 JJ: Well, does he eventually go to bed?
 
+psych_fba_sidebar -> roommate_situation
+
 Annie: Well, yeah, but not without a fight. After he runs away, my roommate chases after him and keeps nagging on him to go to bed. I think he eventually gets tired and goes to bed, but my roommate is left feeling tired and frustrated, just like before.
 
 Lin: Yikes. Looks like it's time to go back to the drawing board!
@@ -44,6 +44,12 @@ Lin: One of the things we learned in class was that whenever you need to interve
 Annie: What in the world does that mean? Function??
 
 JJ: I don't remember at all. Let's ask AI.
+
+Lin: Wait, I remember my T.A. telling us that it's better to try to actively remember something if you can, rather than passively reading it somewhere. You understand it better that way.
+
+JJ: Well, it's worth a try if one of you remembers better than I do. But I'll write a prompt to get the AI to comment on your answer. That may help us identify if we miss something!
+
+Lin: And I'll dig up my notes from class while you're all doing that. I'm sure I have them around here somewhere ...
 
 psych_fba_sidebar -> ai_function_definition
 
@@ -64,7 +70,13 @@ Lin: I took a picture of a couple of examples that our TA Lianne wrote down on t
 Review Concepts
 ---------------
 
-psych_fba_sidebar -> review_reinforcement
+psych_fba_sidebar -> review_reinforcement1
+
+--- wait @review_billy_joke.submitCount > 0 ---
+
+psych_fba_sidebar -> review_reinforcement2
+
+--- wait @review_jenny_whining.submitCount > 0 ---
 
 JJ: Whew, thank you for the refresher. I needed that.
 
@@ -74,7 +86,11 @@ psych_fba_sidebar -> function_reinforcement
 
 Lin: Lianne also said a couple of other things during our last class. She said that if the function is for attention or tangibles, it usually involves positive reinforcement. If the function is escape, it typically involves negative reinforcement. And for sensory, it can be either one.
 
-Annie: I think it would really help my brain if we put all these concepts together. I think AI would help here.
+Annie: I think it would really help my brain if we put all these concepts together. I think AI could help here.
+
+JJ: OK, I've written a prompt we can use. Here it is --
+
+JJ: You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement. 
 
 AI Chart
 --------
@@ -85,15 +101,33 @@ psych_fba_sidebar -> ai_function_chart
 
 Lin: That chart makes things so much clearer!
 
-Annie: I agree!
+Annie: I agree! But we won't really remember this unless we try to do the same thing ourselves. So let's fill in a blank chart with our own examples.
 
-JJ: But didn't we learn about punishment too?
+psych_fba_sidebar -> own_examples_page_attention
+
+--- wait @positive_reinforcement_for_attention.value && @negative_reinforcement_for_attention.value ---
+
+psych_fba_sidebar -> own_examples_page_escape
+
+--- wait @positive_reinforcement_for_escape.value && @negative_reinforcement_for_escape.value ---
+
+psych_fba_sidebar -> own_examples_page_access
+
+--- wait @positive_reinforcement_for_access.value && @negative_reinforcement_for_access.value ---
+
+psych_fba_sidebar -> own_examples_page_sensory
+
+--- wait @positive_reinforcement_for_sensory.value && @negative_reinforcement_for_sensory.value ---
+
+Lin: After this exercise, I think that I've got the relationship between reinforcement and function of behavior down really well!
+
+JJ: Yes, but didn't we learn about punishment too?
 
 Lin: Yeah, I thought punishment could be a function too.
 
-Annie: I had that same thought, so I asked AI. Here's what it told me, and it made a lot of sense.
-
 psych_fba_sidebar -> no_punishment_function
+
+Annie: I had that same thought, so I asked AI. Here's what it told me, and it made a lot of sense.
 
 Check Understanding
 -------------------
@@ -113,9 +147,45 @@ Practice Functions
 
 psych_fba_sidebar -> function_practice_1
 
-JJ: Nice work on the first set! Let's try some more.
+--- wait @function_michelle.submitCount > 0 ---
+
+psych_fba_sidebar -> function_practice_1b
+
+--- wait @function_beth.submitCount > 0 ---
+
+psych_fba_sidebar -> function_practice_1c
+
+--- wait @function_randy.submitCount > 0 ---
+
+psych_fba_sidebar -> function_practice_1d
+
+--- wait @function_ryan.submitCount > 0 ---
+
+psych_fba_sidebar -> function_practice_1e
+
+--- wait @function_emily.submitCount > 0 ---
 
 psych_fba_sidebar -> function_practice_2
+
+--- wait @function_sally.submitCount > 0 ---
+
+psych_fba_sidebar -> function_practice_2b
+
+--- wait @function_aidan.submitCount > 0 ---
+
+psych_fba_sidebar -> function_practice_2c
+
+--- wait @function_matthew.submitCount > 0 ---
+
+psych_fba_sidebar -> function_practice_2d
+
+--- wait @function_jasmine.submitCount > 0 ---
+
+psych_fba_sidebar -> function_practice_2e
+
+--- wait @function_simon.submitCount > 0 ---
+
+psych_fba_sidebar -> abc_screen_clear
 
 Lin: Great job! I think we're getting the hang of identifying functions.
 
@@ -133,6 +203,10 @@ Annie: Oh, that's right, I remember now. The professor said, "It's as easy as le
 psych_fba_sidebar -> abc_introduction
 
 Annie: Let's ask AI to help us better understand the ABCs.
+
+Lin: I wrote the following prompt ...
+
+Lin: You are a helpful psychology teaching assistant. Create clear examples of ABC (Antecedent-Behavior-Consequence) sequences for each of the four functions of behavior (escape, attention, access/tangible, sensory). Use a simple format showing: Antecedent -> Behavior -> Consequence -> Function. Include concrete, relatable examples a student would understand.
 
 psych_fba_sidebar -> ai_abc_diagrams
 
@@ -227,7 +301,7 @@ Annie: Me too. What do you think?
 Final Email
 -----------
 
-psych_fba_sidebar -> final_email
+psych_fba_sidebar -> final_intervention_email
 
 Annie: Great! Let's write up our intervention plan in an email to my roommate.
 
