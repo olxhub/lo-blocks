@@ -12,21 +12,23 @@ import { test } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes, placeholder } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _CodeInput from './_CodeInput';
 
 export const fields = state.fields([commonFields.value]);
 
 const CodeInput = test({
-  ...parsers.ignore(),
+  ...parsers.text({ postprocess: 'none' }),
   name: 'CodeInput',
   isInput: true,
   description: 'CodeMirror-based code editor with syntax highlighting, usable as an OLX block',
   component: _CodeInput,
   fields,
-  getValue: ((props, reduxState, id) => fieldSelector(reduxState, props, fields.value, { fallback: '', id })) as any,
+  getValue: ((props, reduxState, id) => {
+    const fieldValue = fieldSelector(reduxState, props, fields.value, { fallback: null, id });
+    return fieldValue || props.kids || '';
+  }) as any,
   attributes: baseAttributes.extend({
-    ...placeholder,
     language: z.enum(['olx', 'xml', 'md', 'markdown']).default('olx')
       .describe('Syntax highlighting language'),
     height: z.string().default('300px')

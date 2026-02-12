@@ -7,13 +7,14 @@
 'use client';
 
 import React, { useCallback } from 'react';
-import { useFieldState } from '@/lib/state';
+import { useFieldState, useValue } from '@/lib/state';
 import CodeEditor from '@/components/common/CodeEditor';
 
 function _CodeInput(props) {
-  const { fields, language = 'olx', height = '300px', theme = 'light', placeholder } = props;
+  const { id, fields, language = 'olx', height = '300px', theme = 'light' } = props;
 
-  const [value, setValue] = useFieldState(props, fields.value, placeholder || '');
+  const [, setValue] = useFieldState(props, fields.value, null);
+  const value = useValue(props, id, { fallback: '' });
 
   // CodeEditor's onChange passes the string directly (not a DOM event)
   const onChange = useCallback((newValue: string) => {

@@ -356,6 +356,9 @@ function extractString(extracted: ReturnType<typeof extractTextFromXmlNodes>): s
 // There should be no nested XML.
 //
 // Supports `src` attribute for loading external text files.
+// FIXME: postprocess should be a typed enum, not a string.
+// It's typed as (parsed: any) => any. You could pass postprocess: 'banana' and TS wouldn't complain.
+// Consider ...postprocess.none (spread pattern) vs { postprocess: PostProcess.NONE } (enum pattern).
 const textFactory = childParser(async function textParser({ rawParsed, attributes, provider, provenance, postprocess = 'trim' }) {
   let textContent: string;
 

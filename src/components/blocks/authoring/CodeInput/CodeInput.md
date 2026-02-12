@@ -20,8 +20,7 @@ The core authoring pattern -- edit OLX with syntax highlighting and see it rende
 
 ```olx:playground
 <Vertical id="live_edit">
-  <CodeInput id="my_olx" language="olx" height="200px"
-    placeholder="&lt;Markdown&gt;# Hello!&lt;/Markdown&gt;" />
+  <CodeInput id="my_olx" language="olx" height="200px">&lt;Markdown&gt;# Hello!&lt;/Markdown&gt;</CodeInput>
   <OlxSlot target="my_olx" debounce="150" id="preview" />
 </Vertical>
 ```
@@ -52,7 +51,7 @@ ChoiceInput, Key, and Distractor blocks.
 | `language` | No | `olx` | Syntax highlighting: `olx`, `xml`, `md`, `markdown` |
 | `height` | No | `300px` | Editor height (any CSS value) |
 | `theme` | No | `light` | Color theme: `light` or `dark` |
-| `placeholder` | No | | Initial content shown in the editor |
+| (children) | No | | Initial content shown in the editor |
 
 ## State Fields
 

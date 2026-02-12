@@ -4,7 +4,7 @@
 
 Edit OLX in the code editor below and see it rendered live.
   </Markdown>
-  <CodeInput id="my_olx" language="olx" height="200px" placeholder="&lt;Markdown&gt;Hello World!&lt;/Markdown&gt;" />
+  <CodeInput id="my_olx" language="olx" height="200px">&lt;Markdown&gt;Hello World!&lt;/Markdown&gt;</CodeInput>
   <Markdown>### Preview</Markdown>
   <OlxSlot target="my_olx" debounce="150" id="olx_preview" />
 </Vertical>

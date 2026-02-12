@@ -13,7 +13,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useFieldSelector, componentFieldByName } from '@/lib/state';
+import { useFieldSelector, useValue } from '@/lib/state';
 import { LLM_STATUS } from '@/lib/llm/reduxClient';
 import { parseOLX } from '@/lib/content/parseOLX';
 import RenderOLX from '@/components/common/RenderOLX';
@@ -98,17 +98,8 @@ function _OlxSlot(props) {
   const ownValue = useFieldSelector(props, fields.value, { fallback: '', id });
   const status = useFieldSelector(props, fields.state, { fallback: LLM_STATUS.INIT, id });
 
-  // Mode 2: Read from target component's value field
-  let targetValue = '';
-  if (target) {
-    try {
-      const targetValueField = componentFieldByName(props, target, 'value');
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      targetValue = useFieldSelector(props, targetValueField, { fallback: '', id: target });
-    } catch {
-      // Target not found yet (e.g., loading) - fall back to empty
-    }
-  }
+  // Mode 2: Read from target component's getValue (respects initial content, etc.)
+  const targetValue = useValue(props, target, { fallback: '' });
 
   // Use target value if target is set, otherwise own value
   const rawOlx = target ? targetValue : ownValue;
