@@ -39,18 +39,18 @@ function findTargetingGrader(props: RuntimeProps): OlxKey | null {
   if (!nodeInfo) return null;
 
   const graderNodes = getAllNodes(nodeInfo, {
-    selector: (n) => !!n.loBlock.isGrader && !!n.node.attributes.target
+    selector: (n) => !!n.loBlock.isGrader && !!n.olxJson.attributes.target
   });
 
   const normalizedId = refToOlxKey(id);
 
   for (const graderNodeInfo of graderNodes) {
     // target is a comma-separated list of OlxRefs (guaranteed by selector filter)
-    const targetList = graderNodeInfo.node.attributes.target;
+    const targetList = graderNodeInfo.olxJson.attributes.target;
     if (typeof targetList !== 'string') continue;  // Type guard for TypeScript
     const targets = targetList.split(',').map(t => refToOlxKey(toOlxReference(t.trim())));
     if (targets.includes(normalizedId)) {
-      return graderNodeInfo.node.id;
+      return graderNodeInfo.olxJson.id;
     }
   }
   return null;
@@ -106,7 +106,7 @@ function resolveInputSlot(
     // Find the grader's actual nodeInfo by traversing from root
     // We can't just swap id - inferRelatedNodes uses nodeInfo for traversal
     const graderNodeInfo = getAllNodes(props.nodeInfo, {
-      selector: n => n.node?.id === graderId
+      selector: n => n.olxJson?.id === graderId
     })[0];
 
     if (!graderNodeInfo) return undefined;

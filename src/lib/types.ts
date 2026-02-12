@@ -524,8 +524,9 @@ export type BlueprintKidEntry =
  * - React DOM (the actual browser rendering)
  */
 export interface OlxDomNode {
-  node: OlxJson;
-  renderedKids: Record<OlxKey, OlxDomNode>;
+  olxJson: OlxJson;
+  reduxKey: ReduxStateKey;  // Scoped runtime key (idPrefix + id), e.g. "factors:0:factor"
+  renderedKids: Record<ReduxStateKey, OlxDomNode>;
   parent?: OlxDomNode;
   loBlock: LoBlock;
   sentinel?: string;  // 'root' for root node

@@ -96,7 +96,7 @@ export function isMatch(loBlock) {
 function getNodeById(props, id) {
   const nodes = getAllNodes(
     props.nodeInfo,
-    { selector: (n) => n?.node?.id == id }
+    { selector: (n) => n?.olxJson?.id == id }
   );
   return nodes[0]; // TODO: Error handling?
 }

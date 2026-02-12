@@ -47,7 +47,7 @@ import * as idResolver from '../blocks/idResolver';
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
-import { FieldInfo, OlxReference, OlxKey, RuntimeProps, BaselineProps } from '../types';
+import { FieldInfo, OlxReference, OlxKey, ReduxStateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock } from '../types';
 import { assertValidField } from './fields';
 import type { Store } from 'redux';
 import { selectBlock } from './olxjson';
@@ -410,21 +410,15 @@ export function componentFieldByName(props: RuntimeProps, targetId: OlxReference
  *
  * Used when we need a component's own props outside of its render tree
  * (e.g., calling getValue from valueSelector). Looks up the component's
- * OlxDomNode for correct runtime context (idPrefix, logEvent).
+ * OlxDomNode by ReduxStateKey for correct runtime context (idPrefix, logEvent).
  *
- * Falls back to the caller's runtime if the target hasn't been rendered yet.
- * This is wrong (wrong idPrefix, wrong logEvent context) but currently
- * unavoidable for components that haven't mounted. Callers that need
- * accurate runtime should ensure the target has rendered first.
+ * Falls back to caller's runtime if the target hasn't been rendered yet.
  */
-export function propsForNode(callerProps: RuntimeProps, node: any, loBlock: any) {
+export function propsForNode(callerProps: RuntimeProps, reduxKey: ReduxStateKey, node: OlxJson, loBlock: LoBlock) {
   const domNode = callerProps.nodeInfo
-    ? getAllNodes(callerProps.nodeInfo, { selector: n => n.node?.id === node.id })[0] ?? null
+    ? getAllNodes(callerProps.nodeInfo, { selector: n => n.reduxKey === reduxKey })[0] ?? null
     : null;
 
-  // TODO: runtime/nodeInfo fallbacks are incorrect — they use the caller's
-  // context, not the target's. Works when both share the same idPrefix
-  // (common case) but will break for cross-scope references.
   return {
     ...node.attributes,
     id: node.id,
@@ -464,7 +458,8 @@ export function valueSelector(props: RuntimeProps, state: any, id: OlxReference 
   }
 
   if (loBlock.getValue) {
-    const targetProps = propsForNode(props, targetNode, loBlock);
+    const reduxKey = idResolver.refToReduxKey({ ...props, id });
+    const targetProps = propsForNode(props, reduxKey, targetNode, loBlock);
     return loBlock.getValue(targetProps, state, id);
   }
 

@@ -37,7 +37,7 @@ export function getEventContext(nodeInfo: OlxDomNode | null | undefined): string
   let current = nodeInfo;
   while (current) {
     // Get ID from nodeInfo or its node
-    const id = (current as any).id ?? current.node?.id;
+    const id = (current as any).id ?? current.olxJson?.id;
     if (id) ids.unshift(id);
     current = current.parent;
   }
@@ -182,11 +182,11 @@ function root(nodeInfo: OlxDomNode): OlxDomNode {
  * @param {Object} nodeInfo - The nodeInfo to get ID from
  * @param {string} context - Description of what operation is being performed
  * @returns {string} The node ID
- * @throws {Error} If nodeInfo.node or nodeInfo.node.id is missing
+ * @throws {Error} If nodeInfo.olxJson or nodeInfo.olxJson.id is missing
  */
 function getNodeId(nodeInfo: OlxDomNode, context = 'getNodeId'): OlxKey {
-  if (!nodeInfo.node) {
-    // Root node has sentinel instead of node
+  if (!nodeInfo.olxJson) {
+    // Root node has sentinel instead of olxJson
     if (nodeInfo.sentinel === 'root') {
       throw new Error(
         `${context}: Attempted to get ID from root sentinel node. ` +
@@ -195,16 +195,16 @@ function getNodeId(nodeInfo: OlxDomNode, context = 'getNodeId'): OlxKey {
       );
     }
     throw new Error(
-      `${context}: nodeInfo.node is undefined. nodeInfo keys: [${Object.keys(nodeInfo).join(', ')}]`
+      `${context}: nodeInfo.olxJson is undefined. nodeInfo keys: [${Object.keys(nodeInfo).join(', ')}]`
     );
   }
-  if (nodeInfo.node.id === undefined) {
+  if (nodeInfo.olxJson.id === undefined) {
     throw new Error(
-      `${context}: nodeInfo.node.id is undefined. node keys: [${Object.keys(nodeInfo.node).join(', ')}], ` +
-      `tag: ${nodeInfo.node.tag || 'N/A'}`
+      `${context}: nodeInfo.olxJson.id is undefined. olxJson keys: [${Object.keys(nodeInfo.olxJson).join(', ')}], ` +
+      `tag: ${nodeInfo.olxJson.tag || 'N/A'}`
     );
   }
-  return nodeInfo.node.id;
+  return nodeInfo.olxJson.id;
 }
 
 export function getAllNodes(nodeInfo: OlxDomNode, { selector = (_: OlxDomNode) => true }: { selector?: OlxDomSelector } = {}) {

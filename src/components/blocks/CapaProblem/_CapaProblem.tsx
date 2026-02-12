@@ -16,7 +16,7 @@ import { DisplayError } from '@/lib/util/debug';
 function findChildGraderIds(props) {
   const { id, target } = props;
   return inferRelatedNodes(props, {
-    selector: n => n.loBlock.isGrader && n.node.id !== id,
+    selector: n => n.loBlock.isGrader && n.olxJson.id !== id,
     infer: ['kids'],
     targets: target
   });

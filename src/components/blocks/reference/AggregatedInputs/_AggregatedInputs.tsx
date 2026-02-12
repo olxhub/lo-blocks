@@ -26,7 +26,7 @@ function findNodeInfoById(props, targetId) {
   if (!props.nodeInfo) return null;
 
   const matches = getAllNodes(props.nodeInfo, {
-    selector: (nodeInfo) => nodeInfo?.node?.id === targetId
+    selector: (nodeInfo) => nodeInfo?.olxJson?.id === targetId
   });
 
   return matches[0] || null;

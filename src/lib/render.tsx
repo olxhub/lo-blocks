@@ -22,10 +22,10 @@ import htmlTags from 'html-tags';
 import React from 'react';
 import { DisplayError, DebugWrapper } from '@/lib/util/debug';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import type { OlxKey, LoBlockRuntimeContext } from '@/lib/types';
+import type { OlxKey, IdPrefix, ReduxStateKey, LoBlockRuntimeContext } from '@/lib/types';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { getGrader, getEventContext } from '@/lib/blocks/olxdom';
-import { assignReactKeys, refToOlxKey } from '@/lib/blocks/idResolver';
+import { assignReactKeys, refToOlxKey, refToReduxKey } from '@/lib/blocks/idResolver';
 import { selectBlock } from '@/lib/state/olxjson';
 import type { Store } from 'redux';
 
@@ -40,6 +40,8 @@ const ROOT_LOBLOCK = Object.freeze({ name: 'Root', isGrader: false, isInput: fal
 export const makeRootNode = (contextId?: string) => ({
   sentinel: 'root',
   id: contextId,
+  olxJson: null,
+  reduxKey: 'root' as ReduxStateKey,
   renderedKids: {},
   loBlock: ROOT_LOBLOCK
 });
@@ -72,7 +74,7 @@ export function render({ node, nodeInfo, runtime }: {
 
   const {
     blockRegistry: actualBlockRegistry = runtime.blockRegistry,
-    idPrefix: actualIdPrefix = runtime.idPrefix ?? '',
+    idPrefix: actualIdPrefix = runtime.idPrefix ?? ('' as IdPrefix),
     olxJsonSources: actualOlxJsonSources = runtime.olxJsonSources,
     store: actualStore = runtime.store,
     logEvent: actualLogEvent = runtime.logEvent,
@@ -177,17 +179,16 @@ export function render({ node, nodeInfo, runtime }: {
 
   // Create a dynamic shadow hierarchy
   //
-  // Note if the same component appears multiple times, we only include it once.
+  // Keyed by ReduxStateKey (idPrefix + node.id) so scoped instances
+  // (e.g. factors:0:factor vs factors:1:factor) each get their own entry.
   //
-  // I'm not sure if that's a bug or a feature. For <Use> we will only have one element.
-  //
-  // This is because render() can be called multiple times (e.g. in Strict mode)
-  //
-  // TODO: Check if this causes extra renders, and if we need to memoize anything
-  let childNodeInfo = nodeInfo.renderedKids[node.id];
+  // Note: render() can be called multiple times (e.g. in Strict mode),
+  // so we reuse existing entries if present.
+  const reduxKey = refToReduxKey({ id: node.id, idPrefix: actualIdPrefix });
+  let childNodeInfo = nodeInfo.renderedKids[reduxKey];
   if (!childNodeInfo) {
-    childNodeInfo = { node, renderedKids: {}, parent: nodeInfo, loBlock: blockType };
-    nodeInfo.renderedKids[node.id] = childNodeInfo;
+    childNodeInfo = { olxJson: node, reduxKey, renderedKids: {}, parent: nodeInfo, loBlock: blockType };
+    nodeInfo.renderedKids[reduxKey] = childNodeInfo;
   }
 
   const wrapperProps = {
@@ -240,7 +241,7 @@ export function render({ node, nodeInfo, runtime }: {
   const finalRuntime: LoBlockRuntimeContext = {
     ...runtime,
     logEvent: contextualLogEvent,
-    idPrefix: actualIdPrefix as any,
+    idPrefix: actualIdPrefix,
   };
 
   // Capture the correct runtime context (with proper idPrefix, logEvent, etc.)
