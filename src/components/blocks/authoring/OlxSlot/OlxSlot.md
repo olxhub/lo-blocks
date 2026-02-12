@@ -87,9 +87,10 @@ OlxSlot uses the existing `RenderOLX` component internally. When the OLX string 
 1. The string is debounced (in target mode, default 150ms)
 2. The debounced string is validated with `parseOLX()`
 3. If valid, `RenderOLX` renders it as interactive blocks
-4. If invalid, the **last successful render** is kept and a subtle "Editing..." indicator appears
+4. If invalid and a previous successful render exists, the last render is kept with an "Editing..." indicator
+5. If invalid and no previous render exists, the error is shown after a 600ms delay
 
-This means parse errors mid-typing don't blow away the preview -- only successful parses update it. For LLMAction mode (no target), errors are shown directly since the LLM should produce valid OLX.
+Parse errors mid-typing don't blow away the preview -- only successful parses update it. For LLMAction mode (no target), errors are shown directly since the LLM should produce valid OLX.
 
 ## Comparison
 

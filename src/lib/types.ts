@@ -529,7 +529,7 @@ export interface OlxDomNode {
   parent?: OlxDomNode;
   loBlock: LoBlock;
   sentinel?: string;  // 'root' for root node
-  // runtime: LoBlockRuntimeContext;  // TODO: Uncomment and store at render time so actions can retrieve it
+  runtime: LoBlockRuntimeContext;  // Stored at render time (render.tsx) for actions/valueSelector
 }
 
 /** Selector function for filtering OlxDomNodes in DOM traversal */

@@ -17,7 +17,7 @@ import _OlxSlot from './_OlxSlot';
 export const fields = state.fields(['value', 'state']);
 
 const OlxSlot = test({
-  ...parsers.ignore(),
+  ...parsers.blocks.allowHTML(),
   name: 'OlxSlot',
   description: 'A slot that receives OLX and renders it as live interactive content',
   component: _OlxSlot,

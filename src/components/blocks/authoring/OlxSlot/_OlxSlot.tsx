@@ -16,9 +16,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useFieldSelector, useValue } from '@/lib/state';
 import { LLM_STATUS } from '@/lib/llm/reduxClient';
 import { parseOLX } from '@/lib/content/parseOLX';
+import type { ProvenanceURI } from '@/lib/types';
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
+import { useKids } from '@/lib/render';
 
 // HACK HACK HACK
 // We want debounce at the field level.
@@ -39,17 +41,20 @@ const ERROR_DEBOUNCE_MS = 600;
  * - Valid OLX: updates immediately
  * - Invalid OLX: keeps last valid render, shows error after ERROR_DEBOUNCE_MS
  */
-function useValidatedOlx(candidate: string) {
+function useValidatedOlx(candidate: string, activity: any) {
   const [validOlx, setValidOlx] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [stale, setStale] = useState(false);
   const errorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Every keystroke (rawOlx change) clears the error timer.
+  // Errors only show after ERROR_DEBOUNCE_MS of inactivity.
   useEffect(() => {
-    // Clear previous error and timer on every new candidate (keystroke fix)
     if (errorTimer.current) clearTimeout(errorTimer.current);
     setError(null);
+  }, [activity]);
 
+  useEffect(() => {
     if (!candidate || !candidate.trim()) {
       setValidOlx('');
       setStale(false);
@@ -60,7 +65,7 @@ function useValidatedOlx(candidate: string) {
 
     async function validate() {
       try {
-        const result = await parseOLX(candidate, ['validate://']);
+        const result = await parseOLX(candidate, ['validate://' as ProvenanceURI]);
         if (cancelled) return;
 
         if (result.root && result.errors.length === 0) {
@@ -109,8 +114,11 @@ function _OlxSlot(props) {
 
   // In target mode, validate before rendering (fast valid, slow errors).
   // In own-value mode (LLMAction), render directly (let RenderOLX show errors).
-  const { validOlx, error: parseError, stale } = useValidatedOlx(target ? debouncedOlx : '');
+  const { validOlx, error: parseError, stale } = useValidatedOlx(target ? debouncedOlx : '', rawOlx);
   const olxString = target ? validOlx : debouncedOlx;
+
+  // Children are placeholder content (text or blocks) shown when empty
+  const { kids } = useKids(props);
 
   // Loading state (from LLMAction)
   if (!target && status === LLM_STATUS.RUNNING) {
@@ -146,18 +154,27 @@ function _OlxSlot(props) {
     );
   }
 
-  // Empty state
+  // Empty state — show placeholder children if provided
   if (!olxString || !olxString.trim()) {
-    return null;
+    return kids ? <div className="olx-slot olx-slot--placeholder">{kids}</div> : null;
   }
 
-  // Render OLX (last valid version), with error below if stale
+  // Render OLX (last valid version), with stale indicator or error
   return (
     <div className={`olx-slot olx-slot--rendered${stale ? ' olx-slot--stale' : ''}`}>
-      {stale && (
+      {stale && !parseError && (
         <div className="olx-slot-stale-indicator">
           Editing...
         </div>
+      )}
+      {stale && parseError && (
+        <RenderOLX
+          id={id}
+          inline={parseError}
+          source={`olxslot:${id}:error`}
+          eventContext={`olxslot:${id}`}
+          provenance={`olxslot://${id}`}
+        />
       )}
       <RenderOLX
         id={id}

@@ -59,6 +59,7 @@ const CATEGORY_MAP = {
   'grading': 'Grading',
   'layout': 'Layout',
   'action': 'Action',
+  'authoring': 'Authoring',
   'reference': 'Reference',
   'specialized': 'Specialized',
   'utility': 'Utility',

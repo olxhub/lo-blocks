@@ -51,6 +51,7 @@ import { FieldInfo, OlxReference, OlxKey, RuntimeProps, BaselineProps } from '..
 import { assertValidField } from './fields';
 import type { Store } from 'redux';
 import { selectBlock } from './olxjson';
+import { getAllNodes } from '../blocks/olxdom';
 import { getReduxStoreInstance } from './store';
 
 
@@ -392,6 +393,33 @@ export function componentFieldByName(props: RuntimeProps, targetId: OlxReference
  * @param {Object} options - Options object with fallback and other settings
  * @returns {any} The component's current value
  */
+
+
+/**
+ * Reconstruct a component's RuntimeProps from its OlxJson node and blueprint.
+ *
+ * Used when we need a component's own props outside of its render tree
+ * (e.g., calling getValue from valueSelector). Looks up the component's
+ * OlxDomNode for correct runtime context (idPrefix, logEvent); falls back
+ * to the caller's runtime if the component hasn't been rendered yet.
+ */
+export function propsForNode(callerProps: RuntimeProps, node: any, loBlock: any) {
+  const domNode = callerProps.nodeInfo
+    ? getAllNodes(callerProps.nodeInfo, { selector: n => n.node?.id === node.id })[0] ?? null
+    : null;
+
+  return {
+    ...node.attributes,
+    id: node.id,
+    kids: node.kids,
+    loBlock,
+    fields: loBlock.fields,
+    locals: loBlock.locals ?? {},
+    runtime: domNode?.runtime ?? callerProps.runtime,
+    nodeInfo: domNode ?? callerProps.nodeInfo,
+  };
+}
+
 export function valueSelector(props: RuntimeProps, state: any, id: OlxReference | null | undefined, { fallback } = {} as { fallback?: any }) {
   // If no ID provided, return fallback (supports optional targetRef patterns)
   if (id === undefined || id === null) {
@@ -418,9 +446,9 @@ export function valueSelector(props: RuntimeProps, state: any, id: OlxReference 
     );
   }
 
-  // Try getValue first (for computed values like wordcount)
   if (loBlock.getValue) {
-    return loBlock.getValue(props, state, id);
+    const targetProps = propsForNode(props, targetNode, loBlock);
+    return loBlock.getValue(targetProps, state, id);
   }
 
   // Fall back to direct field access using the common 'value' field

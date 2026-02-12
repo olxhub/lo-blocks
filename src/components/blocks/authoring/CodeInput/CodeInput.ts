@@ -26,7 +26,7 @@ const CodeInput = test({
   fields,
   getValue: ((props, reduxState, id) => {
     const fieldValue = fieldSelector(reduxState, props, fields.value, { fallback: null, id });
-    return fieldValue || props.kids || '';
+    return fieldValue ?? props.kids ?? null;
   }) as any,
   attributes: baseAttributes.extend({
     language: z.enum(['olx', 'xml', 'md', 'markdown']).default('olx')
