@@ -5,7 +5,7 @@
 
 import * as state from '@/lib/state';
 import { refToOlxKey, toOlxReference } from './idResolver';
-import type { OlxDomNode, OlxDomSelector, OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
+import type { OlxDomNode, OlxDomSelector, OlxKey, OlxReference, ReduxStateKey, RuntimeProps } from '@/lib/types';
 //
 // The OLX DOM is Learning Observer's internal representation of educational content,
 // distinct from both the React virtual DOM and the browser DOM. It represents the
@@ -209,6 +209,22 @@ function getNodeId(nodeInfo: OlxDomNode, context = 'getNodeId'): OlxKey {
 
 export function getAllNodes(nodeInfo: OlxDomNode, { selector = (_: OlxDomNode) => true }: { selector?: OlxDomSelector } = {}) {
   return getKidsDFS(root(nodeInfo), { selector, includeRoot: true });
+}
+
+/**
+ * Find a specific OlxDomNode in the rendered tree by ReduxStateKey.
+ *
+ * Callers convert OlxKey → ReduxStateKey (via refToReduxKey) before calling,
+ * which makes the scoping (idPrefix) explicit at the call site.
+ *
+ * @param props - Must include nodeInfo (tree to search)
+ * @param key - The ReduxStateKey identifying the node
+ * @returns The matching OlxDomNode, or null
+ */
+export function getDomNodeByReduxKey(props: RuntimeProps, key: ReduxStateKey): OlxDomNode | null {
+  return getAllNodes(props.nodeInfo, {
+    selector: n => n.reduxKey === key
+  })[0] ?? null;
 }
 
 /**

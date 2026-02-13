@@ -51,7 +51,7 @@ import { FieldInfo, OlxReference, OlxKey, ReduxStateKey, RuntimeProps, BaselineP
 import { assertValidField } from './fields';
 import type { Store } from 'redux';
 import { selectBlock } from './olxjson';
-import { getAllNodes } from '../blocks/olxdom';
+import { getDomNodeByReduxKey } from '../blocks/olxdom';
 import { getReduxStoreInstance } from './store';
 
 
@@ -416,7 +416,7 @@ export function componentFieldByName(props: RuntimeProps, targetId: OlxReference
  */
 export function propsForNode(callerProps: RuntimeProps, reduxKey: ReduxStateKey, node: OlxJson, loBlock: LoBlock) {
   const domNode = callerProps.nodeInfo
-    ? getAllNodes(callerProps.nodeInfo, { selector: n => n.reduxKey === reduxKey })[0] ?? null
+    ? getDomNodeByReduxKey(callerProps, reduxKey)
     : null;
 
   const runtime = domNode?.runtime ?? callerProps.runtime;

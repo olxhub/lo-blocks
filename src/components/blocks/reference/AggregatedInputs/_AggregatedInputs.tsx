@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { inferRelatedNodes, getAllNodes } from '@/lib/blocks/olxdom';
+import { inferRelatedNodes, getDomNodeByReduxKey } from '@/lib/blocks/olxdom';
 import { refToReduxKey } from '@/lib/blocks/idResolver';
 import { useAggregate, componentFieldByName } from '@/lib/state';
 
@@ -23,29 +23,13 @@ function normalizeTargets(rawTargets) {
   return [];
 }
 
-function findNodeInfoById(props, targetId) {
-  if (!props.nodeInfo) return null;
-
-  // Prefer reduxKey match for scoped instances (DynamicList correctness)
-  const expectedReduxKey = refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix });
-  const byReduxKey = getAllNodes(props.nodeInfo, {
-    selector: (nodeInfo) => nodeInfo.reduxKey === expectedReduxKey
-  });
-  if (byReduxKey.length > 0) return byReduxKey[0];
-
-  // Fallback: match by olxJson.id (for cross-scope references)
-  const byOlxId = getAllNodes(props.nodeInfo, {
-    selector: (nodeInfo) => nodeInfo?.olxJson?.id === targetId
-  });
-  return byOlxId[0] || null;
-}
-
 function resolveTargetIds(props, targetIds) {
   const results: any[] = [];
   const seen = new Set();
 
   targetIds.forEach((targetId) => {
-    const targetNodeInfo = findNodeInfoById(props, targetId);
+    // OlxKey → ReduxStateKey (applies idPrefix for DynamicList scoping)
+    const targetNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ ...props, id: targetId }));
 
     const graderIds = targetNodeInfo
       ? inferRelatedNodes(

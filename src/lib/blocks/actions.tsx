@@ -20,7 +20,7 @@
 // NOTE: Actions receive a Redux store from their caller (typically ActionButton).
 // This enables replay mode where a different store provides historical state.
 //
-import { inferRelatedNodes, getAllNodes } from './olxdom';
+import { inferRelatedNodes, getDomNodeByReduxKey } from './olxdom';
 import * as lo_event from 'lo_event';
 import { correctness } from './correctness';
 import { refToReduxKey } from './idResolver';
@@ -87,28 +87,6 @@ export function isInput(loBlock) {
 
 export function isMatch(loBlock) {
   return typeof loBlock?.locals?.match === 'function';
-}
-
-// Find a specific node in the rendered OLX DOM tree by OlxKey.
-//
-// Prefers matching by reduxKey (idPrefix + id) to correctly identify scoped
-// instances in DynamicList contexts (e.g., list:0:factor vs list:1:factor).
-// Falls back to olxJson.id match for cross-scope / absolute references.
-function getNodeById(props, id) {
-  // Try scoped match first (correct for DynamicList items)
-  const expectedReduxKey = refToReduxKey({ id, idPrefix: props.runtime?.idPrefix });
-  const byReduxKey = getAllNodes(
-    props.nodeInfo,
-    { selector: (n) => n.reduxKey === expectedReduxKey }
-  );
-  if (byReduxKey.length > 0) return byReduxKey[0];
-
-  // Fallback: match by olxJson.id (for cross-scope references)
-  const byOlxId = getAllNodes(
-    props.nodeInfo,
-    { selector: (n) => n?.olxJson?.id === id }
-  );
-  return byOlxId[0] ?? null;
 }
 
 /**
@@ -199,7 +177,8 @@ export function grader({ grader, infer = true, slots, inputType }: {
   // blueprint and nodeInfo. The runtime context is shared from the source props.
 
   const action = async ({ targetId, targetInstance, props }) => {
-    const targetNodeInfo = getNodeById(props, targetId);
+    // OlxKey → ReduxStateKey (applies caller's idPrefix for DynamicList scoping)
+    const targetNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ ...props, id: targetId }));
     const targetAttributes = targetInstance.attributes;
 
     const inputIds = inferRelatedNodes(
@@ -222,7 +201,8 @@ export function grader({ grader, infer = true, slots, inputType }: {
         return { value: undefined, api: {} };
       }
       const loBlock = map[inst.tag];
-      const inputNodeInfo = getNodeById(props, id);
+      // OlxKey → ReduxStateKey (applies idPrefix for DynamicList scoping)
+      const inputNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ ...props, id }));
 
       // Use the input's own runtime (captured at render time) for correct idPrefix,
       // logEvent context, etc. Falls back to caller's runtime if nodeInfo unavailable.
@@ -360,9 +340,9 @@ export async function executeNodeActions(props: RuntimeProps) {
       continue;
     }
 
-    // Find the action's nodeInfo in the dynamic OLX DOM tree
-    // Actions should already be rendered as part of the tree, so we need to find them
-    const actionNodeInfo = getNodeById(props, targetId);
+    // Find the action's OlxDomNode
+    // OlxKey → ReduxStateKey (applies idPrefix for DynamicList scoping)
+    const actionNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ ...props, id: targetId }));
 
     if (!actionNodeInfo) {
       throw new Error(`Action ${targetId} not found in dynamic DOM tree - this indicates a bug in the rendering system`);
