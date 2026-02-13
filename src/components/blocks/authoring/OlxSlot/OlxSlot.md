@@ -1,17 +1,12 @@
 # OlxSlot
 
-**Experimental / Prototype** -- this block is exploratory and its API will likely change.
+**Experimental** -- we're still exploring how this block should work. The format may change in the future, so avoid using it in production courses for now.
 
-Renders an OLX string as live content. Takes OLX from an LLM, a student editor, or another source and renders it as interactive blocks.
+Displays OLX as live, interactive content. The OLX can come from an AI-generated response, from a student typing in an editor, or from another block.
 
-## Overview
+## Live Editing
 
-Two modes of operation:
-
-1. **Own value** (LLMAction target): LLMAction writes OLX to the slot's `value` field
-2. **Reactive target**: Reads OLX from another component's value with debouncing
-
-## Example: Reactive Target
+Pair with a TextArea or CodeInput. Students type OLX, and it renders below as they type:
 
 ```olx:playground
 <Vertical id="basic_olxslot">
@@ -21,9 +16,9 @@ Two modes of operation:
 </Vertical>
 ```
 
-## Example: LLM-Generated OLX
+## AI-Generated Content
 
-Prototype for LLM-generated interactive content:
+Use with LLMAction to generate interactive content on the fly:
 
 ```olx:playground
 <Vertical id="llm_olxslot">
@@ -41,9 +36,9 @@ Return ONLY the OLX, no markdown fences.
 </Vertical>
 ```
 
-## Example: With IntakeGate
+## With IntakeGate
 
-OlxSlot works with IntakeGate -- the gate watches the slot's `value` field:
+OlxSlot works with IntakeGate to hide the input form once content is generated:
 
 ```olx:playground
 <IntakeGate id="gate_olx" targets="gen_content">
@@ -70,39 +65,32 @@ Content here.
 | Attribute | Required | Default | Description |
 |-----------|----------|---------|-------------|
 | `id` | Yes | | Unique identifier |
-| `target` | No | | ID of component to read OLX from reactively |
-| `debounce` | No | 150 | Debounce delay in ms (only used with `target`) |
-
-## State Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `value` | string | The OLX string to render |
-| `state` | LLM_STATUS | Loading state from LLM |
+| `target` | No | | ID of another block to read OLX from (e.g., a TextArea or CodeInput) |
+| `debounce` | No | 150 | How long to wait (in ms) after the student stops typing before updating the preview. Only used with `target`. |
 
 ## How It Works
 
-OlxSlot uses the existing `RenderOLX` component internally. When the OLX string changes:
+When paired with an editor (`target` mode):
 
-1. The string is debounced (in target mode, default 150ms)
-2. The debounced string is validated with `parseOLX()`
-3. If valid, `RenderOLX` renders it as interactive blocks
-4. If invalid and a previous successful render exists, the last render is kept with an "Editing..." indicator
-5. If invalid and no previous render exists, the error is shown after a 600ms delay
+1. The student types OLX in the editor
+2. After a short pause (the `debounce` delay), the OLX is checked
+3. If valid, the preview updates to show the new content
+4. If there's an error, the last good preview stays visible with an "Editing..." indicator
+5. Error details appear after a longer pause, so brief typos mid-typing don't flash errors
 
-Parse errors mid-typing don't blow away the preview -- only successful parses update it. For LLMAction mode (no target), errors are shown directly since the LLM should produce valid OLX.
+When used with LLMAction (no `target`), the generated content appears directly. Errors are shown immediately since the AI should produce valid OLX.
 
 ## Comparison
 
-| Block | Renders | Use Case |
-|-------|---------|----------|
-| **TextSlot** | Plain text `<span>` | Inline text from LLM |
-| **LLMFeedback** | Markdown/text/code | Styled feedback display |
-| **OlxSlot** | Full interactive OLX | Dynamic block generation |
+| Block | Shows | Best for |
+|-------|-------|----------|
+| **TextSlot** | Plain text | Short text from AI |
+| **LLMFeedback** | Formatted text | Feedback and explanations from AI |
+| **OlxSlot** | Full interactive content | AI-generated quizzes, activities, lessons |
 
 ## Related Blocks
 
 - **TextSlot**: Simpler alternative for plain text
-- **LLMAction**: Writes to OlxSlot via `target` attribute
-- **IntakeGate**: Watches OlxSlot to control content reveal
-- **TextArea**: Source for student-authored OLX (via `target`)
+- **LLMAction**: Generates content for OlxSlot
+- **IntakeGate**: Hides the input form after content is generated
+- **CodeInput**: Editor with syntax highlighting (alternative to TextArea)

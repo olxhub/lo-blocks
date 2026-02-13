@@ -1,12 +1,8 @@
 # CodeInput
 
-**Experimental / Prototype** -- this block is exploratory and its API will likely change.
+**Experimental** -- we're still exploring how this block should work. The format may change in the future, so avoid using it in production courses for now.
 
-A CodeMirror editor as an OLX block. Provides syntax highlighting for OLX, XML, Markdown, and PEG content formats.
-
-## Overview
-
-Wraps the CodeEditor component as an OLX block. Value is stored in Redux so other blocks can read it (e.g., OlxSlot for live preview).
+A code editor with syntax highlighting. Useful for activities where students write or edit OLX, code, or structured text.
 
 ## Basic Usage
 
@@ -14,9 +10,9 @@ Wraps the CodeEditor component as an OLX block. Value is stored in Redux so othe
 <CodeInput id="editor" language="olx" height="150px" />
 ```
 
-## With OlxSlot (Live Preview)
+## Live Preview
 
-Edit OLX with syntax highlighting and see it rendered live:
+Pair with OlxSlot to show a live preview of whatever the student types:
 
 ```olx:playground
 <Vertical id="live_edit">
@@ -25,9 +21,9 @@ Edit OLX with syntax highlighting and see it rendered live:
 </Vertical>
 ```
 
-## Example: Student Authoring
+## Student Authoring
 
-Prototype for a training course where students build learning activities:
+Students can build their own learning activities:
 
 ```olx:playground
 <Vertical id="sba_demo">
@@ -48,27 +44,12 @@ ChoiceInput, Key, and Distractor blocks.
 | Attribute | Required | Default | Description |
 |-----------|----------|---------|-------------|
 | `id` | Yes | | Unique identifier |
-| `language` | No | `olx` | Syntax highlighting: `olx`, `xml`, `md`, `markdown`, plus PEG content formats |
+| `language` | No | `olx` | Syntax highlighting language (`olx`, `xml`, `md`, `markdown`, and others) |
 | `height` | No | `300px` | Editor height (any CSS value) |
 | `theme` | No | `light` | Color theme: `light` or `dark` |
 | (children) | No | | Initial content shown in the editor |
 
-## State Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `value` | string | The current editor content |
-
-## How It Works
-
-CodeInput uses the same CodeEditor component as Studio, which provides:
-- XML/OLX syntax highlighting via CodeMirror
-- Line numbers and code folding
-- Standard editor keybindings
-
-The editor value is synced to Redux on every change via the standard `value` field, making it readable by any block through `componentFieldByName` or `fieldSelector`.
-
 ## Related Blocks
 
-- **OlxSlot**: Renders OLX from CodeInput's value field
+- **OlxSlot**: Renders OLX from CodeInput as live interactive content
 - **TextArea**: Simpler alternative without syntax highlighting
