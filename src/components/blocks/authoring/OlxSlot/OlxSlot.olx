@@ -5,5 +5,7 @@
 Type OLX in the text area below and see it rendered live.
   </Markdown>
   <TextArea id="student_olx" placeholder="<Markdown>Hello World!</Markdown>" />
-  <OlxSlot target="student_olx" debounce="150" id="olx_preview" />
+  <OlxSlot target="student_olx" debounce="150" id="olx_preview">
+    <Markdown>Your preview will appear here. Try editing the OLX above!</Markdown>
+  </OlxSlot>
 </Vertical>
