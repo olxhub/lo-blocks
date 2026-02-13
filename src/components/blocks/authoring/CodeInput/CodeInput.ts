@@ -17,7 +17,7 @@ import _CodeInput from './_CodeInput';
 export const fields = state.fields([commonFields.value]);
 
 const CodeInput = test({
-  ...parsers.text({ postprocess: 'none' }),
+  ...parsers.text.raw(),
   name: 'CodeInput',
   isInput: true,
   description: 'Experimental: CodeMirror editor for in-browser code editing',

@@ -419,6 +419,7 @@ export function propsForNode(callerProps: RuntimeProps, reduxKey: ReduxStateKey,
     ? getAllNodes(callerProps.nodeInfo, { selector: n => n.reduxKey === reduxKey })[0] ?? null
     : null;
 
+  const runtime = domNode?.runtime ?? callerProps.runtime;
   return {
     ...node.attributes,
     id: node.id,
@@ -426,8 +427,9 @@ export function propsForNode(callerProps: RuntimeProps, reduxKey: ReduxStateKey,
     loBlock,
     fields: loBlock.fields,
     locals: loBlock.locals,
-    runtime: domNode?.runtime ?? callerProps.runtime,
+    runtime,
     nodeInfo: domNode ?? callerProps.nodeInfo,
+    idPrefix: runtime.idPrefix,
   };
 }
 

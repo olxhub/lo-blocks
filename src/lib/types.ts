@@ -775,6 +775,7 @@ export interface OlxJson {
   id: OlxKey;
   tag: OLXTag;
   attributes: Record<string, JSONValue>;  // Always present, defaults to {} in parsing
+  kids?: BlueprintKidEntry[];  // Child nodes (text, block refs, HTML elements)
   provenance: Provenance;
 
   // Optional metadata (from YAML frontmatter or parsed attributes)

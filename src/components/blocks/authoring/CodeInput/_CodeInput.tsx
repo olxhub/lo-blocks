@@ -22,15 +22,13 @@ function _CodeInput(props) {
   }, [setValue]);
 
   return (
-    <div className="code-input">
-      <CodeEditor
-        value={value ?? ''}
-        onChange={onChange}
-        language={language}
-        height={height}
-        theme={theme}
-      />
-    </div>
+    <CodeEditor
+      value={value ?? ''}
+      onChange={onChange}
+      language={language}
+      height={height}
+      theme={theme}
+    />
   );
 }
 

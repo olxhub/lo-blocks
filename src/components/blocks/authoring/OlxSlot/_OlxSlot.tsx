@@ -100,7 +100,10 @@ function _OlxSlot(props) {
     }
 
     validate();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      if (errorTimer.current) clearTimeout(errorTimer.current);
+    };
   }, [candidate, setValidOlx, setStale, setParseError]);
 
   const olxString = target ? validOlx : debouncedOlx;
@@ -144,7 +147,7 @@ function _OlxSlot(props) {
 
   // Empty state — show placeholder children if provided
   if (!olxString || !olxString.trim()) {
-    return kids ? <div className="olx-slot olx-slot--placeholder">{kids}</div> : null;
+    return kids.length > 0 ? <div className="olx-slot olx-slot--placeholder">{kids}</div> : null;
   }
 
   // Render OLX (last valid version), with stale indicator or error

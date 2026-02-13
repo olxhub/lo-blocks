@@ -258,7 +258,7 @@ interface CreateGraderConfig {
   createMatch?: boolean;
   /** Custom component to render. Default: _Noop (renders children). Use _Hidden to hide children. */
   component?: React.ComponentType<any>;
-  /** Custom parser for children. Default: parsers.blocks.allowHTML(). Use parsers.text() for code content. */
+  /** Custom parser for children. Default: parsers.blocks.allowHTML(). Use parsers.text.raw() for code content. */
   parser?: { parser: (ctx: any) => Promise<any>; staticKids?: (entry: any) => any[] };
 }
 

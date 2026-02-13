@@ -273,7 +273,6 @@ function useParseContent(
           }
         }
       } catch (err) {
-
         if (!cancelled) {
           setError(err.message || String(err));
           onError?.(err);

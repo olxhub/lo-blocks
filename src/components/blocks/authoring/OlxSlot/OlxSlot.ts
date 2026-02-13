@@ -9,11 +9,12 @@
 import { z } from 'zod';
 import { test } from '@/lib/blocks';
 import * as state from '@/lib/state';
+import { commonFields } from '@/lib/state/commonFields';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _OlxSlot from './_OlxSlot';
 
-export const fields = state.fields(['value', 'state', 'debounced', 'validOlx', 'error', 'stale']);
+export const fields = state.fields([commonFields.value, 'state', 'debounced', 'validOlx', 'error', 'stale']);
 
 const OlxSlot = test({
   ...parsers.blocks.allowHTML(),

@@ -11,9 +11,7 @@ Wraps the CodeEditor component as an OLX block. Value is stored in Redux so othe
 ## Basic Usage
 
 ```olx:playground
-<Vertical id="basic_code">
-  <CodeInput id="editor" language="olx" height="150px" />
-</Vertical>
+<CodeInput id="editor" language="olx" height="150px" />
 ```
 
 ## With OlxSlot (Live Preview)
