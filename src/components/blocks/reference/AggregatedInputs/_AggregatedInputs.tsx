@@ -28,8 +28,8 @@ function resolveTargetIds(props, targetIds) {
   const seen = new Set();
 
   targetIds.forEach((targetId) => {
-    // OlxKey → ReduxStateKey (applies idPrefix for DynamicList scoping)
-    const targetNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ ...props, id: targetId }));
+    // OlxKey → ReduxStateKey (applies runtime.idPrefix for DynamicList scoping)
+    const targetNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix }));
 
     const graderIds = targetNodeInfo
       ? inferRelatedNodes(

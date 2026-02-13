@@ -177,8 +177,8 @@ export function grader({ grader, infer = true, slots, inputType }: {
   // blueprint and nodeInfo. The runtime context is shared from the source props.
 
   const action = async ({ targetId, targetInstance, props }) => {
-    // OlxKey → ReduxStateKey (applies caller's idPrefix for DynamicList scoping)
-    const targetNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ ...props, id: targetId }));
+    // OlxKey → ReduxStateKey (applies runtime.idPrefix for DynamicList scoping)
+    const targetNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix }));
     const targetAttributes = targetInstance.attributes;
 
     const inputIds = inferRelatedNodes(
@@ -201,8 +201,8 @@ export function grader({ grader, infer = true, slots, inputType }: {
         return { value: undefined, api: {} };
       }
       const loBlock = map[inst.tag];
-      // OlxKey → ReduxStateKey (applies idPrefix for DynamicList scoping)
-      const inputNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ ...props, id }));
+      // OlxKey → ReduxStateKey (applies runtime.idPrefix for DynamicList scoping)
+      const inputNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id, idPrefix: props.runtime?.idPrefix }));
 
       // Use the input's own runtime (captured at render time) for correct idPrefix,
       // logEvent context, etc. Falls back to caller's runtime if nodeInfo unavailable.
@@ -292,8 +292,8 @@ export function grader({ grader, infer = true, slots, inputType }: {
       correct === false ? correctness.incorrect :
         correct; // In case it's already a correctness value
 
-    // Use refToReduxKey to get scoped ID (applies idPrefix for list/repeated contexts)
-    const scopedTargetId = refToReduxKey({ ...props, id: targetId });
+    // Use refToReduxKey to get scoped ID (applies runtime.idPrefix for list/repeated contexts)
+    const scopedTargetId = refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix });
 
     // Get current submitCount and increment it for UI flash feedback
     const currentState = state.application_state?.component?.[scopedTargetId] || {};
@@ -341,8 +341,8 @@ export async function executeNodeActions(props: RuntimeProps) {
     }
 
     // Find the action's OlxDomNode
-    // OlxKey → ReduxStateKey (applies idPrefix for DynamicList scoping)
-    const actionNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ ...props, id: targetId }));
+    // OlxKey → ReduxStateKey (applies runtime.idPrefix for DynamicList scoping)
+    const actionNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix }));
 
     if (!actionNodeInfo) {
       throw new Error(`Action ${targetId} not found in dynamic DOM tree - this indicates a bug in the rendering system`);

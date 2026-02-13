@@ -103,8 +103,8 @@ function resolveInputSlot(
   // Get input IDs (same inference logic as grader action)
   let inputIds: OlxKey[] = [];
   try {
-    // Find the grader's OlxDomNode (OlxKey → ReduxStateKey applies idPrefix for scoping)
-    const graderNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ ...props, id: graderId }));
+    // Find the grader's OlxDomNode (OlxKey → ReduxStateKey applies runtime.idPrefix for scoping)
+    const graderNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id: graderId, idPrefix: props.runtime?.idPrefix }));
     if (!graderNodeInfo) return undefined;
 
     // Create props with grader's nodeInfo for proper traversal

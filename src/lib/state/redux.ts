@@ -413,6 +413,11 @@ export function componentFieldByName(props: RuntimeProps, targetId: OlxReference
  * OlxDomNode by ReduxStateKey for correct runtime context (idPrefix, logEvent).
  *
  * Falls back to caller's runtime if the target hasn't been rendered yet.
+ *
+ * Note: This is a minimal reconstruction — it includes id, attributes, kids,
+ * loBlock, fields, locals, and runtime, which is sufficient for getValue.
+ * It does NOT include injected props like extraDebug that the render pipeline
+ * adds. If future callers need fuller props, this should be expanded.
  */
 export function propsForNode(callerProps: RuntimeProps, reduxKey: ReduxStateKey, node: OlxJson, loBlock: LoBlock) {
   const domNode = callerProps.nodeInfo
