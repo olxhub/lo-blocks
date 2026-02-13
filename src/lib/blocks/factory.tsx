@@ -155,7 +155,7 @@ function createBlock(config: BlueprintInput): LoBlock {
     reducers: effectiveConfig.reducers ?? [],
     getValue: effectiveConfig.getValue,
     fields: (effectiveConfig.fields as Fields) ?? state.fields([]),
-    locals: effectiveConfig.locals,
+    locals: effectiveConfig.locals ?? {},
 
     name: rawName,
     OLXName: olxName,

@@ -141,18 +141,19 @@ describe('Demo OLX files render without errors', () => {
 
         // Render the component
         const localeCode = 'en-Latn-US';
+        const runtime = {
+          blockRegistry: BLOCK_REGISTRY,
+          store: reduxStore,
+          logEvent: () => {}, // no-op for tests
+          sideEffectFree: false,
+          olxJsonSources: ['content'],
+          idPrefix: '' as any,
+          locale: { code: localeCode, dir: getTextDirection(localeCode) },
+        };
         const element = render({
           node: { type: 'block', id: root },
-          nodeInfo: makeRootNode(),
-          runtime: {
-            blockRegistry: BLOCK_REGISTRY,
-            store: reduxStore,
-            logEvent: () => {}, // no-op for tests
-            sideEffectFree: false,
-            olxJsonSources: ['content'],
-            idPrefix: '' as any,
-            locale: { code: localeCode, dir: getTextDirection(localeCode) },
-          }
+          nodeInfo: makeRootNode(runtime),
+          runtime,
         });
 
         // Use React Testing Library to actually mount the component

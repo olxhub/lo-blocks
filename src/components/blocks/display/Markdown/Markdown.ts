@@ -5,7 +5,7 @@ import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import { _Markdown } from './_Markdown';
 
 const Markdown = core({
-  ...parsers.text({ postprocess: 'stripIndent' }),
+  ...parsers.text.stripIndent(),
   name: 'Markdown',
   component: _Markdown,
   description: 'Render Markdown formatted text.',

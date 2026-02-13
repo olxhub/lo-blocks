@@ -308,7 +308,7 @@ const CustomGrader = createGrader({
   // Hide the code from rendering (children are code, not content)
   component: _Hidden,
   // Parse children as text (code), not blocks. Supports src= for external files.
-  parser: parsers.text({ postprocess: 'none' }),
+  parser: parsers.text.raw(),
 });
 
 export default CustomGrader;

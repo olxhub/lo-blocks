@@ -4,19 +4,26 @@ import { getKidsBFS, getKidsDFS, getParents, inferRelatedNodes, getAllNodes, __t
 const { normalizeTargetIds, normalizeInfer} = __testables;
 
 // Minimal mock node tree
-// Note: In production, `blueprint` is on nodeInfo, not on nodeInfo.node.
-// The `node` property contains the OLX node (id, tag, attributes, kids).
-// See render.jsx:107 where nodeInfo is created.
+// Note: In production, `blueprint` is on nodeInfo, not on nodeInfo.olxJson.
+// The `olxJson` property contains the parsed OLX (id, tag, attributes, kids).
+const mockRuntime = {} as any;  // Tests don't exercise runtime
+
 const tree = {
-  node: { id: 'A' },
+  olxJson: { id: 'A' },
+  reduxKey: 'A' as any,
+  runtime: mockRuntime,
   loBlock: { isAction: true, isGrader: false, isInput: false, isMatch: false },
   renderedKids: {
     B: {
-      node: { id: 'B' },
+      olxJson: { id: 'B' },
+      reduxKey: 'B' as any,
+      runtime: mockRuntime,
       loBlock: { isAction: false, isGrader: false, isInput: false, isMatch: false },
       renderedKids: {
         D: {
-          node: { id: 'D' },
+          olxJson: { id: 'D' },
+          reduxKey: 'D' as any,
+          runtime: mockRuntime,
           loBlock: { isAction: true, isGrader: false, isInput: false, isMatch: false },
           renderedKids: {},
           // parent assigned below
@@ -25,7 +32,9 @@ const tree = {
       // parent assigned below
     },
     C: {
-      node: { id: 'C' },
+      olxJson: { id: 'C' },
+      reduxKey: 'C' as any,
+      runtime: mockRuntime,
       loBlock: { isAction: true, isGrader: false, isInput: false, isMatch: false },
       renderedKids: {},
       // parent assigned below
@@ -40,46 +49,46 @@ tree.renderedKids.B.renderedKids.D.parent = tree.renderedKids.B;
 
 describe('getKidsBFS', () => {
   it('returns all descendants in BFS order, omitting root by default', () => {
-    expect(getKidsBFS(tree).map(ni => ni.node.id)).toEqual(['B', 'C', 'D']);
+    expect(getKidsBFS(tree).map(ni => ni.olxJson.id)).toEqual(['B', 'C', 'D']);
   });
 
   it('returns all nodes in BFS order, including root when requested', () => {
-    expect(getKidsBFS(tree, { includeRoot: true }).map(ni => ni.node.id)).toEqual(['A', 'B', 'C', 'D']);
+    expect(getKidsBFS(tree, { includeRoot: true }).map(ni => ni.olxJson.id)).toEqual(['A', 'B', 'C', 'D']);
   });
 
   it('can filter nodes', () => {
-    expect(getKidsBFS(tree, { selector: ni => ni.node.id === 'C' }).map(ni => ni.node.id)).toEqual(['C']);
+    expect(getKidsBFS(tree, { selector: ni => ni.olxJson.id === 'C' }).map(ni => ni.olxJson.id)).toEqual(['C']);
   });
 });
 
 describe('getKidsDFS', () => {
   it('returns all descendants in DFS order, omitting root by default', () => {
-    expect(getKidsDFS(tree).map(ni => ni.node.id)).toEqual(['B', 'D', 'C']);
+    expect(getKidsDFS(tree).map(ni => ni.olxJson.id)).toEqual(['B', 'D', 'C']);
   });
 
   it('returns all nodes in DFS order, including root when requested', () => {
-    expect(getKidsDFS(tree, { includeRoot: true }).map(ni => ni.node.id)).toEqual(['A', 'B', 'D', 'C']);
+    expect(getKidsDFS(tree, { includeRoot: true }).map(ni => ni.olxJson.id)).toEqual(['A', 'B', 'D', 'C']);
   });
 
   it('can filter nodes', () => {
-    expect(getKidsDFS(tree, { selector: ni => ni.node.id === 'D' }).map(ni => ni.node.id)).toEqual(['D']);
+    expect(getKidsDFS(tree, { selector: ni => ni.olxJson.id === 'D' }).map(ni => ni.olxJson.id)).toEqual(['D']);
   });
 });
 
 describe('getParents', () => {
   it('returns all parents, omitting self by default', () => {
-    expect(getParents(tree.renderedKids.B.renderedKids.D).map(ni => ni.node.id)).toEqual(['B', 'A']);
+    expect(getParents(tree.renderedKids.B.renderedKids.D).map(ni => ni.olxJson.id)).toEqual(['B', 'A']);
   });
 
   it('returns all parents, including self when requested', () => {
-    expect(getParents(tree.renderedKids.B.renderedKids.D, { includeRoot: true }).map(ni => ni.node.id))
+    expect(getParents(tree.renderedKids.B.renderedKids.D, { includeRoot: true }).map(ni => ni.olxJson.id))
       .toEqual(['D', 'B', 'A']);
   });
 
   it('can filter parents', () => {
     expect(getParents(
       tree.renderedKids.B.renderedKids.D,
-      { selector: ni => ni.node.id === 'A' }).map(ni => ni.node.id))
+      { selector: ni => ni.olxJson.id === 'A' }).map(ni => ni.olxJson.id))
       .toEqual(['A']);
   });
 
@@ -175,12 +184,12 @@ describe('inferRelatedNodes', () => {
 describe('getAllNodes', () => {
   it('returns all nodes from anywhere in the tree', () => {
     // Start from 'D', should still get ['A', 'B', 'D', 'C']
-    expect(getAllNodes(tree.renderedKids.B.renderedKids.D).map(ni => ni.node.id))
+    expect(getAllNodes(tree.renderedKids.B.renderedKids.D).map(ni => ni.olxJson.id))
       .toEqual(['A', 'B', 'D', 'C']);
   });
 
   it('can filter nodes', () => {
-    expect(getAllNodes(tree, { selector: ni => ni.node.id === 'D' }).map(ni => ni.node.id))
+    expect(getAllNodes(tree, { selector: ni => ni.olxJson.id === 'D' }).map(ni => ni.olxJson.id))
       .toEqual(['D']);
   });
 });

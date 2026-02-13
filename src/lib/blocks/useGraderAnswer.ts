@@ -19,9 +19,9 @@
 'use client';
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
-import { getGrader, getAllNodes, inferRelatedNodes } from './olxdom';
+import { getGrader, getDomNodeByReduxKey, getAllNodes, inferRelatedNodes } from './olxdom';
 import { useOlxJson } from './useOlxJson';
-import { refToOlxKey, toOlxReference } from './idResolver';
+import { refToOlxKey, refToReduxKey, toOlxReference } from './idResolver';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { isInput } from './actions';
 import type { OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
@@ -39,18 +39,18 @@ function findTargetingGrader(props: RuntimeProps): OlxKey | null {
   if (!nodeInfo) return null;
 
   const graderNodes = getAllNodes(nodeInfo, {
-    selector: (n) => !!n.loBlock.isGrader && !!n.node.attributes.target
+    selector: (n) => !!n.loBlock.isGrader && !!n.olxJson.attributes.target
   });
 
   const normalizedId = refToOlxKey(id);
 
   for (const graderNodeInfo of graderNodes) {
     // target is a comma-separated list of OlxRefs (guaranteed by selector filter)
-    const targetList = graderNodeInfo.node.attributes.target;
+    const targetList = graderNodeInfo.olxJson.attributes.target;
     if (typeof targetList !== 'string') continue;  // Type guard for TypeScript
     const targets = targetList.split(',').map(t => refToOlxKey(toOlxReference(t.trim())));
     if (targets.includes(normalizedId)) {
-      return graderNodeInfo.node.id;
+      return graderNodeInfo.olxJson.id;
     }
   }
   return null;
@@ -103,12 +103,8 @@ function resolveInputSlot(
   // Get input IDs (same inference logic as grader action)
   let inputIds: OlxKey[] = [];
   try {
-    // Find the grader's actual nodeInfo by traversing from root
-    // We can't just swap id - inferRelatedNodes uses nodeInfo for traversal
-    const graderNodeInfo = getAllNodes(props.nodeInfo, {
-      selector: n => n.node?.id === graderId
-    })[0];
-
+    // Find the grader's OlxDomNode (OlxKey → ReduxStateKey applies runtime.idPrefix for scoping)
+    const graderNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id: graderId, idPrefix: props.runtime?.idPrefix }));
     if (!graderNodeInfo) return undefined;
 
     // Create props with grader's nodeInfo for proper traversal

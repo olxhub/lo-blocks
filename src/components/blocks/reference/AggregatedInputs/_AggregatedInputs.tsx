@@ -2,7 +2,8 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { inferRelatedNodes, getAllNodes } from '@/lib/blocks/olxdom';
+import { inferRelatedNodes, getDomNodeByReduxKey } from '@/lib/blocks/olxdom';
+import { refToReduxKey } from '@/lib/blocks/idResolver';
 import { useAggregate, componentFieldByName } from '@/lib/state';
 
 function normalizeTargets(rawTargets) {
@@ -22,22 +23,13 @@ function normalizeTargets(rawTargets) {
   return [];
 }
 
-function findNodeInfoById(props, targetId) {
-  if (!props.nodeInfo) return null;
-
-  const matches = getAllNodes(props.nodeInfo, {
-    selector: (nodeInfo) => nodeInfo?.node?.id === targetId
-  });
-
-  return matches[0] || null;
-}
-
 function resolveTargetIds(props, targetIds) {
   const results: any[] = [];
   const seen = new Set();
 
   targetIds.forEach((targetId) => {
-    const targetNodeInfo = findNodeInfoById(props, targetId);
+    // OlxKey → ReduxStateKey (applies runtime.idPrefix for DynamicList scoping)
+    const targetNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix }));
 
     const graderIds = targetNodeInfo
       ? inferRelatedNodes(

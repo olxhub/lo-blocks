@@ -26,7 +26,7 @@ function findDemandHints(props) {
     selector: (n) => n.loBlock.name === 'DemandHints'
   });
 
-  return hintsNodes.length > 0 ? hintsNodes[0].node?.id : null;
+  return hintsNodes.length > 0 ? hintsNodes[0].olxJson?.id : null;
 }
 
 export default function _HintButton(props) {
