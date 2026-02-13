@@ -5,7 +5,10 @@ category: psychology
 ---
 -->
 <!-- Psychology SBA: Sleep Refusal Scenario -->
-<SplitPanel id="psych_sba2" title="Psychology Study Group: 2. Operant Conditioning" launchable="true">
+<SplitPanel 
+     id="psych_sba2"
+     sizes="40, 60"
+     title="Psychology Study Group: 2. Operant Conditioning" launchable="true">
 
   <!-- Left Panel: SMS Conversation -->
   <LeftPane>

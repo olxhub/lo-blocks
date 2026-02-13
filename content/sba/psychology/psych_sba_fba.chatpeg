@@ -212,6 +212,10 @@ psych_fba_sidebar -> ai_abc_diagrams
 
 --- wait @abc_ai_response.value ---
 
+psych_fba_sidebar -> competing_behavior_diagram
+
+Annie: placeholder
+
 psych_fba_sidebar -> abc_example
 
 JJ: I remember this from my notes. Let's look at the first box. The Antecedent is the thing that happens before the behavior. The teacher gives a difficult task...
@@ -227,7 +231,7 @@ Lin: Right, or the student continued to put their head down for so long that may
 Apply ABCs
 ----------
 
-Lin: Let's try another one.
+Lin: Let's try applying this reasoning to the problem Annie's roommate is having with the boy she's babysitting. What were the antecedent, the behavior, and the consequence?
 
 psych_fba_sidebar -> abc_johnny_check
 

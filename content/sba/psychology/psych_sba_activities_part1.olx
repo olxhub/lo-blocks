@@ -29,8 +29,9 @@ Let's begin.
   </Vertical>
 
   <!-- Opening screen - problem image -->
-  <Vertical id="bedtime_scenario_image">
-    <Markdown id="bedtime_intro_text">
+  <SplitPanel id="bedtime_scenario_image">
+    <LeftPane>
+      <Markdown id="bedtime_intro_text">
 ## The Bedtime Problem
 
 Annie's roommate is babysitting a 6-year-old who refuses to go to bed. The parents have tried everything:
@@ -39,9 +40,12 @@ Annie's roommate is babysitting a 6-year-old who refuses to go to bed. The paren
 - Various punishments
 
 Nothing seems to work! Let's use psychology principles to help.
-    </Markdown>
-    <Image id="bedtime_problem_img" src="images/sleep-refusal-llm.png" alt="Child refusing bedtime" />
-  </Vertical>
+      </Markdown>
+    </LeftPane>
+    <RightPane>
+        <Image id="bedtime_problem_img" src="images/sleep-refusal-llm.png" alt="Child refusing bedtime" />
+     </RightPane>
+  </SplitPanel>
 
   <!-- Student suggestion activity -->
   <Vertical id="student_suggestion">
@@ -52,17 +56,15 @@ What do YOU think Annie's roommate should do to get the 6-year-old to go to slee
     </Markdown>
     <TextArea id="initial_suggestion"
               placeholder="Share your initial strategy (2-3 sentences)..." />
-    <ActionButton id="submit_suggestion_btn" dependsOn="@initial_suggestion.value" target="psych_chat" action="advance" label="Submit and Continue" />
   </Vertical>
 
   <!-- Group brainstorm sorting activity -->
   <Vertical id="brainstorm_sorting">
     <Markdown id="brainstorm_sorting_prompt">
-## Comparing Ideas
-
-The group has several different suggestions. Rank these ideas from **best** to **worst** based on what you think would work for the 6-year-old:
+       **Comparing Ideas:**
+       The group has several different suggestions. Rank these ideas from 
+       **best** to **worst** based on what you think would work for the 6-year-old:
     </Markdown>
-
     <CapaProblem id="rank_bedtime_strategies" submitLabel="Lock in order">
       <Markdown>Drag to rank from **best** (top) to **worst** (bottom):</Markdown>
       <SortableGrader id="bedtime_strategy_grader" algorithm="survey">
@@ -108,14 +110,15 @@ What prompt should we write for the AI in order to learn about sleep refusal and
    </Markdown>
     <TextArea id="initial_ai_suggestion"
               placeholder="Share your initial idea for a prompt (2-3 sentences)..." />
-    <ActionButton id="submit_ai_suggestion_btn" dependsOn="@initial_ai_suggestion.value" target="psych_chat" action="advance" label="Submit and Continue" />
   </Vertical>
 
   <!-- Group brainstorm sorting activity -->
   <Vertical id="brainstorm_ai_sorting">
     <Markdown id="brainstorm_ai_sorting_prompt">
-## Comparing Ideas
-The group has several different suggestions. Rank these ideas from **best** to **worst** based on what you think would produce the best AI output:
+        **Comparing Ideas:**
+        The group has several different suggestions. Rank these ideas
+        from **best** to **worst** based on what you think would produce
+        the best AI output:
     </Markdown>
   <!-- Student ranking activity -->
     <CapaProblem id="rank_ai_prompts" submitLabel="Lock in order">
@@ -257,7 +260,7 @@ The group has several different suggestions. Rank these ideas from **best** to *
     <TextArea id="email_draft"
               rows="8"
               placeholder="Write your email here..." />
-    <ActionButton id="submit_email_btn" dependsOn="@email_draft.value" target="psych_chat" action="advance" label="Submit and Continue" />
+
   </Vertical>
   <!-- Repeat task with feedback -->
   <Vertical id="revise_email_draft">
@@ -407,7 +410,7 @@ The group has several different suggestions. Rank these ideas from **best** to *
     </Markdown>
     <CheckboxInput id="strategies_for_6_year_olds">
           <Distractor id="Collaborative_Problem_Solving">Collaborative Problem Solving</Distractor>
-          <Distractor id="Empathy_and_Emotional_Support<">Empathy and Emotional Support</Distractor>
+          <Distractor id="Empathy_and_Emotional_Support">Empathy and Emotional Support</Distractor>
           <Distractor id="Environmental_Adjustments">Environmental Adjustments</Distractor>
           <Distractor id="Flexible_Bedtime_Routines">Flexible Bedtime Routines</Distractor>
           <Distractor id="Gradual_Fading">Gradual Fading</Distractor>

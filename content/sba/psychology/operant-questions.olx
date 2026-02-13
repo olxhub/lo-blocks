@@ -1,0 +1,1435 @@
+<!-- Generated from operant-questions.json -->
+<!-- 102 operant conditioning questions -->
+<!--
+Problem IDs for MasteryBank:
+operant_001_positive_reinforcement
+operant_002_negative_reinforcement
+operant_003_negative_punishment
+operant_004_positive_reinforcement
+operant_005_positive_reinforcement
+operant_006_negative_reinforcement
+operant_007_positive_punishment
+operant_008_negative_punishment
+operant_009_positive_reinforcement
+operant_010_positive_reinforcement
+operant_011_negative_reinforcement
+operant_012_positive_punishment
+operant_013_negative_punishment
+operant_014_positive_reinforcement
+operant_015_negative_reinforcement
+operant_016_positive_punishment
+operant_017_negative_punishment
+operant_018_positive_reinforcement
+operant_019_negative_reinforcement
+operant_020_positive_punishment
+operant_021_negative_punishment
+operant_022_positive_reinforcement
+operant_023_negative_reinforcement
+operant_024_positive_punishment
+operant_025_negative_punishment
+operant_026_positive_reinforcement
+operant_027_negative_reinforcement
+operant_028_positive_punishment
+operant_029_negative_punishment
+operant_030_positive_reinforcement
+operant_031_negative_reinforcement
+operant_032_positive_punishment
+operant_033_negative_punishment
+operant_034_positive_reinforcement
+operant_035_negative_reinforcement
+operant_036_positive_punishment
+operant_037_negative_punishment
+operant_038_positive_reinforcement
+operant_039_negative_reinforcement
+operant_040_positive_punishment
+operant_041_negative_punishment
+operant_042_positive_reinforcement
+operant_043_negative_reinforcement
+operant_044_positive_punishment
+operant_045_negative_punishment
+operant_046_positive_reinforcement
+operant_047_negative_reinforcement
+operant_048_positive_punishment
+operant_049_negative_punishment
+operant_050_positive_reinforcement
+operant_051_negative_reinforcement
+operant_052_positive_punishment
+operant_053_negative_punishment
+operant_054_positive_reinforcement
+operant_055_negative_reinforcement
+operant_056_positive_punishment
+operant_057_negative_punishment
+operant_058_positive_reinforcement
+operant_059_negative_reinforcement
+operant_060_positive_punishment
+operant_061_negative_punishment
+operant_062_positive_reinforcement
+operant_063_negative_reinforcement
+operant_064_negative_punishment
+operant_065_positive_punishment
+operant_066_positive_reinforcement
+operant_067_negative_reinforcement
+operant_068_positive_punishment
+operant_069_negative_punishment
+operant_070_positive_reinforcement
+operant_071_negative_reinforcement
+operant_072_negative_punishment
+operant_073_positive_punishment
+operant_074_negative_reinforcement
+operant_075_positive_reinforcement
+operant_076_negative_reinforcement
+operant_077_positive_punishment
+operant_078_negative_punishment
+operant_079_positive_reinforcement
+operant_080_negative_reinforcement
+operant_081_positive_punishment
+operant_082_negative_punishment
+operant_083_positive_reinforcement
+operant_084_negative_reinforcement
+operant_085_negative_punishment
+operant_086_positive_punishment
+operant_087_positive_reinforcement
+operant_088_negative_reinforcement
+operant_089_positive_punishment
+operant_090_negative_punishment
+operant_091_negative_reinforcement
+operant_092_negative_reinforcement
+operant_093_positive_punishment
+operant_094_negative_punishment
+operant_095_positive_reinforcement
+operant_096_negative_reinforcement
+operant_097_positive_punishment
+operant_098_negative_punishment
+operant_099_positive_reinforcement
+operant_100_negative_reinforcement
+operant_101_positive_punishment
+operant_102_negative_punishment
+-->
+
+<Vertical id="operant_conditioning_problems" title="Operant Conditioning Practice" launchable="true">
+  <CapaProblem id="operant_001_positive_reinforcement" title="Classroom Joke Telling">
+    <KeyGrader id="operant_001_positive_reinforcement_grader">
+      <p>Billy tells a joke to his class, and the class laughs. The next day, Billy tells another joke. In this case, laughter serves as...</p>
+      <ChoiceInput id="operant_001_positive_reinforcement_input">
+        <Key id="operant_001_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_001_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_001_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_001_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">The laughter (something added) increases the likelihood of Billy telling jokes in the future. Adding a pleasant stimulus to increase behavior is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_002_negative_reinforcement" title="Whining About Worksheets">
+    <KeyGrader id="operant_002_negative_reinforcement_grader">
+      <p>Jenny whines to her teacher when given a math worksheet because it&apos;s &apos;too hard.&apos; The teacher removes the worksheet. The next day, Jenny whines again when given a new worksheet. In this case, removing the worksheet serves as...</p>
+      <ChoiceInput id="operant_002_negative_reinforcement_input">
+        <Distractor id="operant_002_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_002_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_002_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_002_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing the aversive stimulus (worksheet) increased the whining behavior. This is negative reinforcement—removing something unpleasant to increase a behavior.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_003_negative_punishment" title="Missing Curfew and Phone Privileges">
+    <KeyGrader id="operant_003_negative_punishment_grader">
+      <p>Marcus stays out past curfew. His parents take away his phone for a week. The following weekend, Marcus comes home before curfew. In this case, taking away the phone serves as...</p>
+      <ChoiceInput id="operant_003_negative_punishment_input">
+        <Distractor id="operant_003_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_003_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_003_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_003_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing something desirable (the phone) decreased the unwanted behavior (staying out late). This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_004_positive_reinforcement" title="Sibling Poking and Yelling">
+    <KeyGrader id="operant_004_positive_reinforcement_grader">
+      <p>Sarah&apos;s younger brother keeps poking her while she&apos;s reading. Sarah yells at him loudly. The next day, her brother pokes her again. In this case, yelling serves as...</p>
+      <ChoiceInput id="operant_004_positive_reinforcement_input">
+        <Key id="operant_004_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_004_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_004_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_004_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">This is tricky—since the brother continued poking, the yelling actually reinforced the behavior. The attention (even negative attention) was added and increased the behavior, making it positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_005_positive_reinforcement" title="Rat Lever Press: Food Pellet">
+    <KeyGrader id="operant_005_positive_reinforcement_grader">
+      <p>A rat presses a lever and receives a food pellet. The rat begins pressing the lever more frequently. The food pellet serves as...</p>
+      <ChoiceInput id="operant_005_positive_reinforcement_input">
+        <Key id="operant_005_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_005_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_005_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_005_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding food (a pleasant stimulus) increases lever-pressing behavior. This is the classic example of positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_006_negative_reinforcement" title="Rat Lever Press: Noise Cessation">
+    <KeyGrader id="operant_006_negative_reinforcement_grader">
+      <p>A rat presses a lever and an annoying loud noise stops. The rat begins pressing the lever more frequently. The cessation of noise serves as...</p>
+      <ChoiceInput id="operant_006_negative_reinforcement_input">
+        <Distractor id="operant_006_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_006_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_006_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_006_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing the aversive noise increases lever-pressing. This is negative reinforcement—the behavior increases because something unpleasant is removed.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_007_positive_punishment" title="Dog Jumping: Water Spray">
+    <KeyGrader id="operant_007_positive_punishment_grader">
+      <p>Every time a dog jumps on visitors, the owner sprays water in its face. The dog eventually stops jumping on visitors. The water spray serves as...</p>
+      <ChoiceInput id="operant_007_positive_punishment_input">
+        <Distractor id="operant_007_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_007_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_007_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_007_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding an unpleasant stimulus (water spray) decreases the jumping behavior. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_008_negative_punishment" title="Teen Curfew and Car Privileges">
+    <KeyGrader id="operant_008_negative_punishment_grader">
+      <p>A teenager comes home after curfew and loses car privileges for a month. She never misses curfew again. Removing car privileges serves as...</p>
+      <ChoiceInput id="operant_008_negative_punishment_input">
+        <Distractor id="operant_008_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_008_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_008_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_008_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing something desirable (car privileges) decreased the late behavior. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_009_positive_reinforcement" title="Grocery Store Tantrum">
+    <KeyGrader id="operant_009_positive_reinforcement_grader">
+      <p>A child throws a tantrum in the grocery store. The parent gives the child candy to quiet them down. The child throws more tantrums on future shopping trips. The candy serves as...</p>
+      <ChoiceInput id="operant_009_positive_reinforcement_input">
+        <Key id="operant_009_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_009_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_009_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_009_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding candy (pleasant stimulus) increased tantrum behavior. This is positive reinforcement, even though it was unintentional.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_010_positive_reinforcement" title="Employee Deadline Bonus">
+    <KeyGrader id="operant_010_positive_reinforcement_grader">
+      <p>An employee consistently meets deadlines and receives a bonus. The employee continues to meet deadlines. The bonus serves as...</p>
+      <ChoiceInput id="operant_010_positive_reinforcement_input">
+        <Key id="operant_010_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_010_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_010_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_010_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding money (pleasant stimulus) increases deadline-meeting behavior. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_011_negative_reinforcement" title="Studying and Exam Exemption">
+    <KeyGrader id="operant_011_negative_reinforcement_grader">
+      <p>A student studies hard and the teacher exempts them from the final exam. The student studies hard in other classes hoping for the same result. The exam exemption serves as...</p>
+      <ChoiceInput id="operant_011_negative_reinforcement_input">
+        <Distractor id="operant_011_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_011_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_011_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_011_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing the aversive stimulus (exam) increased studying behavior. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_012_positive_punishment" title="Hot Stove Burn">
+    <KeyGrader id="operant_012_positive_punishment_grader">
+      <p>A child touches a hot stove and gets burned. The child no longer touches the stove. The burn serves as...</p>
+      <ChoiceInput id="operant_012_positive_punishment_input">
+        <Distractor id="operant_012_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_012_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_012_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_012_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">The painful stimulus (burn) was added and decreased the touching behavior. This is positive punishment, even though it was a natural consequence.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_013_negative_punishment" title="Talking Out of Turn: Recess Loss">
+    <KeyGrader id="operant_013_negative_punishment_grader">
+      <p>A student talks out of turn and the teacher takes away 5 minutes of recess. The student stops talking out of turn. Losing recess serves as...</p>
+      <ChoiceInput id="operant_013_negative_punishment_input">
+        <Distractor id="operant_013_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_013_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_013_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_013_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing something desirable (recess time) decreased the talking-out behavior. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_014_positive_reinforcement" title="Dog Sit Command: Treat">
+    <KeyGrader id="operant_014_positive_reinforcement_grader">
+      <p>A dog sits on command and receives a treat. The dog sits more reliably on command. The treat serves as...</p>
+      <ChoiceInput id="operant_014_positive_reinforcement_input">
+        <Key id="operant_014_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_014_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_014_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_014_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding a pleasant stimulus (treat) increases sitting behavior. Classic positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_015_negative_reinforcement" title="Vegetables and Dish Duty">
+    <KeyGrader id="operant_015_negative_reinforcement_grader">
+      <p>When a child finishes their vegetables, they are excused from washing dishes. The child eats vegetables more often. Being excused from dishes serves as...</p>
+      <ChoiceInput id="operant_015_negative_reinforcement_input">
+        <Distractor id="operant_015_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_015_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_015_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_015_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing an aversive task (dishes) increases vegetable-eating. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_016_positive_punishment" title="Inappropriate Joke: Silent Stares">
+    <KeyGrader id="operant_016_positive_punishment_grader">
+      <p>A coworker makes an inappropriate joke and everyone in the room goes silent and stares. The coworker makes fewer inappropriate jokes. The silence and staring serves as...</p>
+      <ChoiceInput id="operant_016_positive_punishment_input">
+        <Distractor id="operant_016_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_016_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_016_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_016_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">The awkward social response was added and decreased the joke-telling. Social disapproval can function as positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_017_negative_punishment" title="Misbehavior and Time-Out">
+    <KeyGrader id="operant_017_negative_punishment_grader">
+      <p>A child misbehaves and is sent to time-out, away from toys and attention. The child misbehaves less. Time-out serves as...</p>
+      <ChoiceInput id="operant_017_negative_punishment_input">
+        <Distractor id="operant_017_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_017_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_017_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_017_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing access to reinforcers (toys, attention) decreased misbehavior. Time-out is a classic example of negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_018_positive_reinforcement" title="Hand Raising in Class">
+    <KeyGrader id="operant_018_positive_reinforcement_grader">
+      <p>A student raises their hand and the teacher calls on them. The student continues raising their hand. Being called on serves as...</p>
+      <ChoiceInput id="operant_018_positive_reinforcement_input">
+        <Key id="operant_018_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_018_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_018_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_018_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding attention and opportunity to speak (pleasant) increases hand-raising. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_019_negative_reinforcement" title="Aspirin for Headache">
+    <KeyGrader id="operant_019_negative_reinforcement_grader">
+      <p>A person takes aspirin for a headache and the pain goes away. They take aspirin more readily for future headaches. Pain relief serves as...</p>
+      <ChoiceInput id="operant_019_negative_reinforcement_input">
+        <Distractor id="operant_019_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_019_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_019_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_019_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing pain (aversive stimulus) increases aspirin-taking behavior. This is a common real-world example of negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_020_positive_punishment" title="Cat Scratching: Water Squirt">
+    <KeyGrader id="operant_020_positive_punishment_grader">
+      <p>A cat scratches the furniture and the owner squirts it with water. The cat stops scratching the furniture. The water serves as...</p>
+      <ChoiceInput id="operant_020_positive_punishment_input">
+        <Distractor id="operant_020_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_020_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_020_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_020_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding an aversive stimulus (water) decreased scratching. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_021_negative_punishment" title="Staying Out Late: Allowance Withheld">
+    <KeyGrader id="operant_021_negative_punishment_grader">
+      <p>A teenager stays out too late and has their allowance withheld. They come home on time afterward. Withholding allowance serves as...</p>
+      <ChoiceInput id="operant_021_negative_punishment_input">
+        <Distractor id="operant_021_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_021_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_021_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_021_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing money (desirable) decreased staying out late. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_022_positive_reinforcement" title="Pigeon Key Peck: Food">
+    <KeyGrader id="operant_022_positive_reinforcement_grader">
+      <p>A pigeon pecks a key and food appears. The pigeon pecks more frequently. The food serves as...</p>
+      <ChoiceInput id="operant_022_positive_reinforcement_input">
+        <Key id="operant_022_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_022_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_022_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_022_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding food increases pecking behavior. This is the standard operant conditioning positive reinforcement paradigm.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_023_negative_reinforcement" title="Seatbelt and Beeping">
+    <KeyGrader id="operant_023_negative_reinforcement_grader">
+      <p>A driver fastens their seatbelt and an annoying beeping stops. They fasten their seatbelt more quickly in the future. The cessation of beeping serves as...</p>
+      <ChoiceInput id="operant_023_negative_reinforcement_input">
+        <Distractor id="operant_023_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_023_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_023_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_023_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing the annoying sound increases seatbelt-fastening behavior. This is negative reinforcement built into car design.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_024_positive_punishment" title="Cursing: Soap in Mouth">
+    <KeyGrader id="operant_024_positive_punishment_grader">
+      <p>A child says a curse word and their parent washes their mouth out with soap. The child stops cursing. The soap serves as...</p>
+      <ChoiceInput id="operant_024_positive_punishment_input">
+        <Distractor id="operant_024_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_024_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_024_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_024_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding an unpleasant taste decreased cursing behavior. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_025_negative_punishment" title="Rudeness: Party Exclusion">
+    <KeyGrader id="operant_025_negative_punishment_grader">
+      <p>A student is rude to classmates and is excluded from the class party. The student is less rude afterward. Exclusion from the party serves as...</p>
+      <ChoiceInput id="operant_025_negative_punishment_input">
+        <Distractor id="operant_025_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_025_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_025_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_025_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing access to a fun event (desirable) decreased rude behavior. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_026_positive_reinforcement" title="Room Cleaning: Screen Time">
+    <KeyGrader id="operant_026_positive_reinforcement_grader">
+      <p>A child cleans their room without being asked and their parent gives them extra screen time. The child cleans their room more often. Extra screen time serves as...</p>
+      <ChoiceInput id="operant_026_positive_reinforcement_input">
+        <Key id="operant_026_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_026_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_026_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_026_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding screen time (pleasant) increases room-cleaning behavior. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_027_negative_reinforcement" title="Competence and Reduced Micromanagement">
+    <KeyGrader id="operant_027_negative_reinforcement_grader">
+      <p>An employee who has been micromanaged earns more autonomy after demonstrating competence. They continue working competently. Gaining autonomy serves as...</p>
+      <ChoiceInput id="operant_027_negative_reinforcement_input">
+        <Distractor id="operant_027_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_027_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_027_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_027_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing micromanagement (aversive) increases competent work behavior. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_028_positive_punishment" title="Cheating: Zero Grade">
+    <KeyGrader id="operant_028_positive_punishment_grader">
+      <p>A student cheats on a test and receives a zero. The student doesn&apos;t cheat again. The zero serves as...</p>
+      <ChoiceInput id="operant_028_positive_punishment_input">
+        <Distractor id="operant_028_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_028_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_028_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_028_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding a bad grade (aversive consequence) decreased cheating. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_029_negative_punishment" title="Homework Refusal: Video Game Loss">
+    <KeyGrader id="operant_029_negative_punishment_grader">
+      <p>A child refuses to do homework and loses video game privileges. The child starts doing homework. Losing video games serves as...</p>
+      <ChoiceInput id="operant_029_negative_punishment_input">
+        <Distractor id="operant_029_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_029_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_029_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_029_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing video games (desirable) decreased homework refusal. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_030_positive_reinforcement" title="Toddler Says Please: Cookie">
+    <KeyGrader id="operant_030_positive_reinforcement_grader">
+      <p>A toddler says &apos;please&apos; and receives a cookie. The toddler says &apos;please&apos; more often. The cookie serves as...</p>
+      <ChoiceInput id="operant_030_positive_reinforcement_input">
+        <Key id="operant_030_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_030_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_030_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_030_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding a treat (pleasant) increases polite behavior. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_031_negative_reinforcement" title="Prisoner: Release from Solitary">
+    <KeyGrader id="operant_031_negative_reinforcement_grader">
+      <p>A prisoner exhibits good behavior and is released from solitary confinement. They continue behaving well. Release from solitary serves as...</p>
+      <ChoiceInput id="operant_031_negative_reinforcement_input">
+        <Distractor id="operant_031_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_031_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_031_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_031_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing isolation (aversive) increases good behavior. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_032_positive_punishment" title="Dog Barking: Shock Collar">
+    <KeyGrader id="operant_032_positive_punishment_grader">
+      <p>A dog barks excessively and receives a mild shock from a bark collar. The dog barks less. The shock serves as...</p>
+      <ChoiceInput id="operant_032_positive_punishment_input">
+        <Distractor id="operant_032_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_032_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_032_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_032_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding a shock (aversive) decreases barking. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_033_negative_punishment" title="Disrespect: Lost Rides">
+    <KeyGrader id="operant_033_negative_punishment_grader">
+      <p>A teenager is disrespectful and their parent stops giving them rides to see friends. The teenager becomes more respectful. Losing rides serves as...</p>
+      <ChoiceInput id="operant_033_negative_punishment_input">
+        <Distractor id="operant_033_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_033_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_033_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_033_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing transportation (desirable privilege) decreased disrespect. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_034_positive_reinforcement" title="Sharing Toys: Praise">
+    <KeyGrader id="operant_034_positive_reinforcement_grader">
+      <p>A child shares toys with a sibling and receives praise from their parent. The child shares more in the future. Praise serves as...</p>
+      <ChoiceInput id="operant_034_positive_reinforcement_input">
+        <Key id="operant_034_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_034_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_034_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_034_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding praise (pleasant social stimulus) increases sharing. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_035_negative_reinforcement" title="Extra Credit: Homework Exemption">
+    <KeyGrader id="operant_035_negative_reinforcement_grader">
+      <p>A student completes extra credit and is excused from a homework assignment. The student does more extra credit. Homework exemption serves as...</p>
+      <ChoiceInput id="operant_035_negative_reinforcement_input">
+        <Distractor id="operant_035_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_035_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_035_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_035_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing homework (aversive task) increases extra credit behavior. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_036_positive_punishment" title="Lying: Apology Letter">
+    <KeyGrader id="operant_036_positive_punishment_grader">
+      <p>A child lies to their parent and has to write an apology letter. The child lies less often. Writing apology letters serves as...</p>
+      <ChoiceInput id="operant_036_positive_punishment_input">
+        <Distractor id="operant_036_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_036_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_036_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_036_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding an aversive task (writing letters) decreased lying. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_037_negative_punishment" title="Bullying: Team Removal">
+    <KeyGrader id="operant_037_negative_punishment_grader">
+      <p>A student bullies others and is removed from the basketball team. The student stops bullying. Removal from the team serves as...</p>
+      <ChoiceInput id="operant_037_negative_punishment_input">
+        <Distractor id="operant_037_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_037_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_037_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_037_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing team membership (desirable) decreased bullying. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_038_positive_reinforcement" title="Monkey Lever: Banana">
+    <KeyGrader id="operant_038_positive_reinforcement_grader">
+      <p>A monkey pulls a lever and receives a banana. The monkey pulls the lever more frequently. The banana serves as...</p>
+      <ChoiceInput id="operant_038_positive_reinforcement_input">
+        <Key id="operant_038_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_038_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_038_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_038_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding food (pleasant) increases lever-pulling. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_039_negative_reinforcement" title="Factory Earplugs">
+    <KeyGrader id="operant_039_negative_reinforcement_grader">
+      <p>A worker wears earplugs and the loud factory noise becomes bearable. They wear earplugs consistently. Noise reduction serves as...</p>
+      <ChoiceInput id="operant_039_negative_reinforcement_input">
+        <Distractor id="operant_039_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_039_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_039_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_039_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Reducing noise (aversive stimulus) increases earplug-wearing. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_040_positive_punishment" title="Bird Pecking: Beak Flick">
+    <KeyGrader id="operant_040_positive_punishment_grader">
+      <p>A bird pecks at a researcher and the researcher flicks the bird&apos;s beak. The bird stops pecking. The flick serves as...</p>
+      <ChoiceInput id="operant_040_positive_punishment_input">
+        <Distractor id="operant_040_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_040_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_040_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_040_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding an aversive stimulus (flick) decreased pecking. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_041_negative_punishment" title="Hitting Sibling: TV Loss">
+    <KeyGrader id="operant_041_negative_punishment_grader">
+      <p>A child hits their sibling and is not allowed to watch their favorite show. The child stops hitting. Losing the show serves as...</p>
+      <ChoiceInput id="operant_041_negative_punishment_input">
+        <Distractor id="operant_041_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_041_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_041_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_041_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing TV access (desirable) decreased hitting. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_042_positive_reinforcement" title="Class Participation: Extra Credit">
+    <KeyGrader id="operant_042_positive_reinforcement_grader">
+      <p>A student participates in class discussion and receives extra credit points. The student participates more. Extra credit serves as...</p>
+      <ChoiceInput id="operant_042_positive_reinforcement_input">
+        <Key id="operant_042_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_042_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_042_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_042_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding points (pleasant) increases participation. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_043_negative_reinforcement" title="Chronic Pain Medication">
+    <KeyGrader id="operant_043_negative_reinforcement_grader">
+      <p>A patient takes medication and their chronic pain decreases. They continue taking the medication. Pain reduction serves as...</p>
+      <ChoiceInput id="operant_043_negative_reinforcement_input">
+        <Distractor id="operant_043_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_043_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_043_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_043_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing pain (aversive) increases medication-taking. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_044_positive_punishment" title="Interrupting: Extra Chores">
+    <KeyGrader id="operant_044_positive_punishment_grader">
+      <p>A child interrupts adults and is given extra chores. The child interrupts less. Extra chores serve as...</p>
+      <ChoiceInput id="operant_044_positive_punishment_input">
+        <Distractor id="operant_044_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_044_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_044_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_044_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding chores (aversive task) decreased interrupting. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_045_negative_punishment" title="Irresponsible Driving: Car Loss">
+    <KeyGrader id="operant_045_negative_punishment_grader">
+      <p>A teenager uses the car irresponsibly and loses car privileges. They drive more responsibly later. Losing car privileges serves as...</p>
+      <ChoiceInput id="operant_045_negative_punishment_input">
+        <Distractor id="operant_045_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_045_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_045_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_045_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing car access (desirable) decreased irresponsible driving. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_046_positive_reinforcement" title="Rat Maze: Cheese">
+    <KeyGrader id="operant_046_positive_reinforcement_grader">
+      <p>A lab rat navigates a maze correctly and finds cheese at the end. The rat learns the maze faster. The cheese serves as...</p>
+      <ChoiceInput id="operant_046_positive_reinforcement_input">
+        <Key id="operant_046_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_046_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_046_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_046_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding food reward (pleasant) increases correct maze navigation. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_047_negative_reinforcement" title="Sunscreen and Sunburn Prevention">
+    <KeyGrader id="operant_047_negative_reinforcement_grader">
+      <p>A person applies sunscreen and avoids getting sunburned. They apply sunscreen more consistently. Avoiding sunburn serves as...</p>
+      <ChoiceInput id="operant_047_negative_reinforcement_input">
+        <Distractor id="operant_047_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_047_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_047_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_047_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Preventing/removing the aversive outcome (sunburn) increases sunscreen use. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_048_positive_punishment" title="Dog Counter Jumping: Yelling">
+    <KeyGrader id="operant_048_positive_punishment_grader">
+      <p>A dog jumps on the counter and the owner yells loudly. The dog stops jumping on the counter. Yelling serves as...</p>
+      <ChoiceInput id="operant_048_positive_punishment_input">
+        <Distractor id="operant_048_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_048_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_048_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_048_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding a loud noise (aversive) decreased counter-jumping. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_049_negative_punishment" title="Unfinished Dinner: No Dessert">
+    <KeyGrader id="operant_049_negative_punishment_grader">
+      <p>A child doesn&apos;t finish dinner and dessert is taken away. The child finishes dinner next time. Losing dessert serves as...</p>
+      <ChoiceInput id="operant_049_negative_punishment_input">
+        <Distractor id="operant_049_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_049_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_049_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_049_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing dessert (desirable) increased dinner-finishing behavior. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_050_positive_reinforcement" title="Athlete Training: Medal">
+    <KeyGrader id="operant_050_positive_reinforcement_grader">
+      <p>An athlete trains hard and wins a medal. The athlete trains even harder. The medal serves as...</p>
+      <ChoiceInput id="operant_050_positive_reinforcement_input">
+        <Key id="operant_050_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_050_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_050_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_050_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding recognition/reward (pleasant) increases training behavior. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_051_negative_reinforcement" title="Early Assignment: Skip Practice Problems">
+    <KeyGrader id="operant_051_negative_reinforcement_grader">
+      <p>A student finishes their assignment early and doesn&apos;t have to do the extra practice problems. They finish assignments early more often. Skipping extra problems serves as...</p>
+      <ChoiceInput id="operant_051_negative_reinforcement_input">
+        <Distractor id="operant_051_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_051_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_051_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_051_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing additional work (aversive) increases early completion behavior. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_052_positive_punishment" title="Puppy Chewing: Nose Tap">
+    <KeyGrader id="operant_052_positive_punishment_grader">
+      <p>A puppy chews on shoes and the owner taps its nose. The puppy chews on shoes less. The nose tap serves as...</p>
+      <ChoiceInput id="operant_052_positive_punishment_input">
+        <Distractor id="operant_052_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_052_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_052_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_052_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding an aversive stimulus (tap) decreased chewing. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_053_negative_punishment" title="Throwing Food: Table Removal">
+    <KeyGrader id="operant_053_negative_punishment_grader">
+      <p>A child throws food and is removed from the dinner table. The child stops throwing food. Removal from table serves as...</p>
+      <ChoiceInput id="operant_053_negative_punishment_input">
+        <Distractor id="operant_053_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_053_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_053_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_053_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing access to dinner/family (desirable) decreased food throwing. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_054_positive_reinforcement" title="Sales Commission">
+    <KeyGrader id="operant_054_positive_reinforcement_grader">
+      <p>A salesperson makes a sale and earns commission. They work harder to make more sales. Commission serves as...</p>
+      <ChoiceInput id="operant_054_positive_reinforcement_input">
+        <Key id="operant_054_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_054_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_054_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_054_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding money (pleasant) increases sales behavior. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_055_negative_reinforcement" title="Swimming on Hot Day">
+    <KeyGrader id="operant_055_negative_reinforcement_grader">
+      <p>A swimmer dives into cool water on a hot day and feels relief. They swim more on hot days. Temperature relief serves as...</p>
+      <ChoiceInput id="operant_055_negative_reinforcement_input">
+        <Distractor id="operant_055_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_055_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_055_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_055_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing discomfort from heat (aversive) increases swimming behavior. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_056_positive_punishment" title="Texting in Class: Detention">
+    <KeyGrader id="operant_056_positive_punishment_grader">
+      <p>A student texts during class and must stay after for detention. The student texts less in class. Detention serves as...</p>
+      <ChoiceInput id="operant_056_positive_punishment_input">
+        <Distractor id="operant_056_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_056_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_056_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_056_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding detention (aversive) decreased texting. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_057_negative_punishment" title="Rule Breaking: Wi-Fi Revoked">
+    <KeyGrader id="operant_057_negative_punishment_grader">
+      <p>A teenager breaks a house rule and Wi-Fi access is revoked. The teenager follows rules better. Losing Wi-Fi serves as...</p>
+      <ChoiceInput id="operant_057_negative_punishment_input">
+        <Distractor id="operant_057_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_057_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_057_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_057_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing internet access (desirable) decreased rule-breaking. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_058_positive_reinforcement" title="Good Test: Gold Star">
+    <KeyGrader id="operant_058_positive_reinforcement_grader">
+      <p>A child does well on a test and gets a gold star sticker. The child tries harder on future tests. The sticker serves as...</p>
+      <ChoiceInput id="operant_058_positive_reinforcement_input">
+        <Key id="operant_058_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_058_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_058_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_058_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding a reward (pleasant) increases studying behavior. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_059_negative_reinforcement" title="Cleaning and Reduced Anxiety">
+    <KeyGrader id="operant_059_negative_reinforcement_grader">
+      <p>A person cleans their house and their anxiety about unexpected visitors decreases. They clean more regularly. Reduced anxiety serves as...</p>
+      <ChoiceInput id="operant_059_negative_reinforcement_input">
+        <Distractor id="operant_059_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_059_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_059_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_059_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing anxiety (aversive internal state) increases cleaning behavior. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_060_positive_punishment" title="Writing on Walls: Scrubbing">
+    <KeyGrader id="operant_060_positive_punishment_grader">
+      <p>A child writes on the walls and must scrub the walls clean. The child stops writing on walls. Having to scrub serves as...</p>
+      <ChoiceInput id="operant_060_positive_punishment_input">
+        <Distractor id="operant_060_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_060_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_060_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_060_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding an aversive task (scrubbing) decreased wall-writing. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_061_negative_punishment" title="Missing Curfew: No Concert">
+    <KeyGrader id="operant_061_negative_punishment_grader">
+      <p>A teenager misses curfew and can&apos;t go to the concert. The teenager doesn&apos;t miss curfew again. Missing the concert serves as...</p>
+      <ChoiceInput id="operant_061_negative_punishment_input">
+        <Distractor id="operant_061_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_061_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_061_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_061_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing access to the event (desirable) decreased missing curfew. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_062_positive_reinforcement" title="Dolphin Trick: Fish">
+    <KeyGrader id="operant_062_positive_reinforcement_grader">
+      <p>A dolphin performs a trick and receives a fish. The dolphin performs more tricks. The fish serves as...</p>
+      <ChoiceInput id="operant_062_positive_reinforcement_input">
+        <Key id="operant_062_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_062_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_062_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_062_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding food (pleasant) increases trick performance. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_063_negative_reinforcement" title="Noise-Canceling Headphones">
+    <KeyGrader id="operant_063_negative_reinforcement_grader">
+      <p>A student wears noise-canceling headphones and can focus better because the distracting sounds are gone. They wear the headphones more often. Blocking noise serves as...</p>
+      <ChoiceInput id="operant_063_negative_reinforcement_input">
+        <Distractor id="operant_063_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_063_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_063_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_063_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing distracting sounds (aversive) increases headphone-wearing. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_064_negative_punishment" title="Biting: Eating Alone">
+    <KeyGrader id="operant_064_negative_punishment_grader">
+      <p>A child bites another child and must sit alone at lunch. The child bites less. Sitting alone serves as...</p>
+      <ChoiceInput id="operant_064_negative_punishment_input">
+        <Distractor id="operant_064_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_064_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_064_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_064_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing social interaction (desirable) decreased biting. This is negative punishment—note that isolation removes something rather than adding something.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_065_positive_punishment" title="Rat Electrified Bar">
+    <KeyGrader id="operant_065_positive_punishment_grader">
+      <p>A rat touches an electrified bar and receives a shock. The rat avoids the bar. The shock serves as...</p>
+      <ChoiceInput id="operant_065_positive_punishment_input">
+        <Distractor id="operant_065_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_065_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_065_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_065_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding pain (aversive) decreased bar-touching. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_066_positive_reinforcement" title="Bedtime Crying: Parent Stays">
+    <KeyGrader id="operant_066_positive_reinforcement_grader">
+      <p>A child cries at bedtime and the parent stays in the room longer. The child cries more at bedtime. The parent staying serves as...</p>
+      <ChoiceInput id="operant_066_positive_reinforcement_input">
+        <Key id="operant_066_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_066_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_066_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_066_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">This is tricky—even though the parent may not intend it, adding their presence (pleasant for child) increased crying behavior. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_067_negative_reinforcement" title="Exercise and Back Pain">
+    <KeyGrader id="operant_067_negative_reinforcement_grader">
+      <p>A person exercises regularly and their back pain diminishes. They continue exercising. Pain reduction serves as...</p>
+      <ChoiceInput id="operant_067_negative_reinforcement_input">
+        <Distractor id="operant_067_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_067_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_067_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_067_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing pain (aversive) increases exercise behavior. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_068_positive_punishment" title="Plagiarism: F Grade">
+    <KeyGrader id="operant_068_positive_punishment_grader">
+      <p>A student plagiarizes and receives an F on the paper. The student doesn&apos;t plagiarize again. The F serves as...</p>
+      <ChoiceInput id="operant_068_positive_punishment_input">
+        <Distractor id="operant_068_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_068_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_068_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_068_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding a bad grade (aversive) decreased plagiarism. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_069_negative_punishment" title="Mean to Pet: Pet Rehomed">
+    <KeyGrader id="operant_069_negative_punishment_grader">
+      <p>A child is mean to their pet and the pet is temporarily rehomed to grandma&apos;s. The child is nicer to animals. Losing the pet serves as...</p>
+      <ChoiceInput id="operant_069_negative_punishment_input">
+        <Distractor id="operant_069_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_069_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_069_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_069_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing the pet (desirable) decreased mean behavior. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_070_positive_reinforcement" title="Blogger: Positive Comments">
+    <KeyGrader id="operant_070_positive_reinforcement_grader">
+      <p>A blogger writes a popular post and receives many positive comments. The blogger writes more posts. Comments serve as...</p>
+      <ChoiceInput id="operant_070_positive_reinforcement_input">
+        <Key id="operant_070_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_070_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_070_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_070_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding positive feedback (pleasant) increases writing behavior. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_071_negative_reinforcement" title="Apologizing: Reduced Tension">
+    <KeyGrader id="operant_071_negative_reinforcement_grader">
+      <p>A person apologizes after an argument and the tension in the room decreases. They apologize more readily in the future. Reduced tension serves as...</p>
+      <ChoiceInput id="operant_071_negative_reinforcement_input">
+        <Distractor id="operant_071_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_071_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_071_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_071_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing social tension (aversive) increases apologizing behavior. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_072_negative_punishment" title="Bad Manners: Eat in Kitchen">
+    <KeyGrader id="operant_072_negative_punishment_grader">
+      <p>A child uses bad manners at the table and must eat alone in the kitchen. The child uses better manners. Eating alone serves as...</p>
+      <ChoiceInput id="operant_072_negative_punishment_input">
+        <Distractor id="operant_072_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_072_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_072_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_072_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing family dinner access (desirable social experience) decreased bad manners. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_073_positive_punishment" title="Horse Kicking: Prod">
+    <KeyGrader id="operant_073_positive_punishment_grader">
+      <p>A horse kicks at the trainer and the trainer pokes it with a prod. The horse kicks less. The prod serves as...</p>
+      <ChoiceInput id="operant_073_positive_punishment_input">
+        <Distractor id="operant_073_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_073_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_073_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_073_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding an aversive stimulus (prod) decreased kicking. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_074_negative_reinforcement" title="Punctuality: Stopped Monitoring">
+    <KeyGrader id="operant_074_negative_reinforcement_grader">
+      <p>An employee comes to work on time consistently and their supervisor stops monitoring their arrival. They continue coming on time. Stopping the monitoring serves as...</p>
+      <ChoiceInput id="operant_074_negative_reinforcement_input">
+        <Distractor id="operant_074_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_074_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_074_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_074_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing oversight (aversive scrutiny) increases punctuality behavior. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_075_positive_reinforcement" title="Gamer Achievement Badges">
+    <KeyGrader id="operant_075_positive_reinforcement_grader">
+      <p>A gamer plays skillfully and earns achievement badges. They play more to earn more badges. Badges serve as...</p>
+      <ChoiceInput id="operant_075_positive_reinforcement_input">
+        <Key id="operant_075_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_075_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_075_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_075_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding virtual rewards (pleasant) increases skilled play. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_076_negative_reinforcement" title="Chores Done: No Trash Duty">
+    <KeyGrader id="operant_076_negative_reinforcement_grader">
+      <p>A child completes their chores and doesn&apos;t have to take out the trash for a week. They complete chores faster. Not taking out trash serves as...</p>
+      <ChoiceInput id="operant_076_negative_reinforcement_input">
+        <Distractor id="operant_076_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_076_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_076_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_076_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing an unpleasant chore (aversive) increases chore completion. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_077_positive_punishment" title="Making Fun: Class Extra Homework">
+    <KeyGrader id="operant_077_positive_punishment_grader">
+      <p>A student makes fun of a classmate and the whole class is given extra homework. The student stops making fun of others. Extra homework serves as...</p>
+      <ChoiceInput id="operant_077_positive_punishment_input">
+        <Distractor id="operant_077_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_077_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_077_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_077_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding an aversive consequence (homework, plus social pressure) decreased teasing behavior. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_078_negative_punishment" title="Not Sharing: Playdate Ends">
+    <KeyGrader id="operant_078_negative_punishment_grader">
+      <p>A child refuses to share and is removed from the playdate. The child shares more in the future. Ending the playdate serves as...</p>
+      <ChoiceInput id="operant_078_negative_punishment_input">
+        <Distractor id="operant_078_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_078_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_078_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_078_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing play opportunity (desirable) increased sharing. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_079_positive_reinforcement" title="Musician: Mastery Feeling">
+    <KeyGrader id="operant_079_positive_reinforcement_grader">
+      <p>A musician practices a difficult piece and finally masters it, feeling proud. They practice more. The feeling of mastery serves as...</p>
+      <ChoiceInput id="operant_079_positive_reinforcement_input">
+        <Key id="operant_079_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_079_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_079_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_079_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding an intrinsic reward (pride, mastery feelings) increases practice. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_080_negative_reinforcement" title="Antacids and Heartburn">
+    <KeyGrader id="operant_080_negative_reinforcement_grader">
+      <p>A person takes antacids and their heartburn goes away. They take antacids whenever they have heartburn. Heartburn relief serves as...</p>
+      <ChoiceInput id="operant_080_negative_reinforcement_input">
+        <Distractor id="operant_080_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_080_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_080_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_080_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing pain (aversive) increases antacid-taking. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_081_positive_punishment" title="Dishes in Sink: Week of Dishes">
+    <KeyGrader id="operant_081_positive_punishment_grader">
+      <p>A teenager leaves dishes in the sink and must wash everyone&apos;s dishes for a week. They put their dishes away after that. Extra dish duty serves as...</p>
+      <ChoiceInput id="operant_081_positive_punishment_input">
+        <Distractor id="operant_081_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_081_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_081_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_081_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding extra work (aversive) decreased leaving dishes out. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_082_negative_punishment" title="Rude to Grandparents: No Present">
+    <KeyGrader id="operant_082_negative_punishment_grader">
+      <p>A child is rude to grandparents and doesn&apos;t get to open their birthday present. The child is polite next visit. Losing the present serves as...</p>
+      <ChoiceInput id="operant_082_negative_punishment_input">
+        <Distractor id="operant_082_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_082_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_082_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_082_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing the gift (desirable) decreased rudeness. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_083_positive_reinforcement" title="Sea Lion Ball Balance: Fish">
+    <KeyGrader id="operant_083_positive_reinforcement_grader">
+      <p>A sea lion balances a ball and receives a fish. It balances the ball more reliably. The fish serves as...</p>
+      <ChoiceInput id="operant_083_positive_reinforcement_input">
+        <Key id="operant_083_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_083_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_083_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_083_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding food (pleasant) increases ball-balancing. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_084_negative_reinforcement" title="Bug Spray and Mosquitoes">
+    <KeyGrader id="operant_084_negative_reinforcement_grader">
+      <p>A hiker applies bug spray and mosquitoes stop biting. They apply bug spray more consistently. Preventing bites serves as...</p>
+      <ChoiceInput id="operant_084_negative_reinforcement_input">
+        <Distractor id="operant_084_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_084_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_084_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_084_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing/preventing bites (aversive) increases bug spray use. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_085_negative_punishment" title="Parrot Biting: Back to Cage">
+    <KeyGrader id="operant_085_negative_punishment_grader">
+      <p>A parrot bites its owner and the owner puts it back in the cage immediately. The parrot bites less. Returning to the cage serves as...</p>
+      <ChoiceInput id="operant_085_negative_punishment_input">
+        <Distractor id="operant_085_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_085_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_085_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_085_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing freedom/attention (desirable) decreased biting. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_086_positive_punishment" title="Running in Hall: Walk Slowly">
+    <KeyGrader id="operant_086_positive_punishment_grader">
+      <p>A child runs in the hallway at school and must walk back and forth slowly 10 times. The child stops running. Walking slowly serves as...</p>
+      <ChoiceInput id="operant_086_positive_punishment_input">
+        <Distractor id="operant_086_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_086_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_086_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_086_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding a tedious task (aversive) decreased running. This is positive punishment (overcorrection).</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_087_positive_reinforcement" title="Dog Begging: Table Scraps">
+    <KeyGrader id="operant_087_positive_reinforcement_grader">
+      <p>A dog begs at the table and occasionally receives scraps. The dog begs more persistently. Scraps serve as...</p>
+      <ChoiceInput id="operant_087_positive_reinforcement_input">
+        <Key id="operant_087_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_087_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_087_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_087_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding food (pleasant) increases begging. This is positive reinforcement on an intermittent schedule, making it especially persistent.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_088_negative_reinforcement" title="Sunglasses and Bright Light">
+    <KeyGrader id="operant_088_negative_reinforcement_grader">
+      <p>A child puts on sunglasses and the bright light no longer hurts their eyes. They wear sunglasses more often in bright light. Reduced glare serves as...</p>
+      <ChoiceInput id="operant_088_negative_reinforcement_input">
+        <Distractor id="operant_088_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_088_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_088_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_088_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing the aversive bright light increases sunglasses-wearing. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_089_positive_punishment" title="Passing Notes: Read Aloud">
+    <KeyGrader id="operant_089_positive_punishment_grader">
+      <p>A student passes notes in class and the teacher reads the note aloud to the class. The student stops passing notes. Public embarrassment serves as...</p>
+      <ChoiceInput id="operant_089_positive_punishment_input">
+        <Distractor id="operant_089_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_089_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_089_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_089_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding embarrassment (aversive) decreased note-passing. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_090_negative_punishment" title="No Homework: No Video Games">
+    <KeyGrader id="operant_090_negative_punishment_grader">
+      <p>A child doesn&apos;t complete homework and can&apos;t play video games. The child completes homework next time. Losing games serves as...</p>
+      <ChoiceInput id="operant_090_negative_punishment_input">
+        <Distractor id="operant_090_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_090_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_090_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_090_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing game access (desirable) increased homework completion. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_091_negative_reinforcement" title="Parent Gives In to Tantrum">
+    <KeyGrader id="operant_091_negative_reinforcement_grader">
+      <p>A child throws a tantrum and the parent eventually gives in and buys the toy. The parent gives in more quickly to future tantrums. For the parent, the end of the tantrum serves as...</p>
+      <ChoiceInput id="operant_091_negative_reinforcement_input">
+        <Distractor id="operant_091_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_091_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_091_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_091_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">This is tricky—from the parent&apos;s perspective, removing the aversive tantrum increased giving-in behavior. The parent is being negatively reinforced to give in.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_092_negative_reinforcement" title="Meditation and Stress">
+    <KeyGrader id="operant_092_negative_reinforcement_grader">
+      <p>A person meditates and their stress level decreases. They meditate more regularly. Stress reduction serves as...</p>
+      <ChoiceInput id="operant_092_negative_reinforcement_input">
+        <Distractor id="operant_092_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_092_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_092_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_092_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing stress (aversive internal state) increases meditation behavior. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_093_positive_punishment" title="Lying: Writing Lines">
+    <KeyGrader id="operant_093_positive_punishment_grader">
+      <p>A child tells a lie and has to write &apos;I will not lie&apos; 100 times. The child lies less. Writing lines serves as...</p>
+      <ChoiceInput id="operant_093_positive_punishment_input">
+        <Distractor id="operant_093_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_093_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_093_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_093_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding a tedious task (aversive) decreased lying. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_094_negative_punishment" title="Speeding: License Suspended">
+    <KeyGrader id="operant_094_negative_punishment_grader">
+      <p>A teenager is caught speeding and their license is suspended. They drive slower afterward. License suspension serves as...</p>
+      <ChoiceInput id="operant_094_negative_punishment_input">
+        <Distractor id="operant_094_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_094_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_094_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_094_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing driving privileges (desirable) decreased speeding. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_095_positive_reinforcement" title="Yard Work: Ice Cream">
+    <KeyGrader id="operant_095_positive_reinforcement_grader">
+      <p>A child helps with yard work and gets ice cream afterward. The child volunteers to help more. Ice cream serves as...</p>
+      <ChoiceInput id="operant_095_positive_reinforcement_input">
+        <Key id="operant_095_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_095_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_095_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_095_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding a treat (pleasant) increases helping behavior. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_096_negative_reinforcement" title="Allergy Medication: Sneezing Stops">
+    <KeyGrader id="operant_096_negative_reinforcement_grader">
+      <p>A patient takes allergy medication and their sneezing stops. They take the medication regularly during allergy season. Stopping sneezing serves as...</p>
+      <ChoiceInput id="operant_096_negative_reinforcement_input">
+        <Distractor id="operant_096_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_096_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_096_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_096_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing sneezing (aversive) increases medication-taking. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_097_positive_punishment" title="Slamming Doors: Oil Hinges">
+    <KeyGrader id="operant_097_positive_punishment_grader">
+      <p>A child slams doors and must oil all the door hinges in the house. The child stops slamming doors. Having to oil hinges serves as...</p>
+      <ChoiceInput id="operant_097_positive_punishment_input">
+        <Distractor id="operant_097_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_097_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_097_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_097_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding a chore (aversive) decreased door slamming. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_098_negative_punishment" title="Forgot Materials: Lost Points">
+    <KeyGrader id="operant_098_negative_punishment_grader">
+      <p>A student forgets to bring materials to class and loses participation points. The student remembers materials next time. Losing points serves as...</p>
+      <ChoiceInput id="operant_098_negative_punishment_input">
+        <Distractor id="operant_098_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_098_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_098_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_098_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing points (desirable) increased remembering materials. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_099_positive_reinforcement" title="Monkey Shape Sorting: Grapes">
+    <KeyGrader id="operant_099_positive_reinforcement_grader">
+      <p>A researcher gives a monkey a grape each time it correctly sorts shapes. The monkey sorts shapes more accurately. Grapes serve as...</p>
+      <ChoiceInput id="operant_099_positive_reinforcement_input">
+        <Key id="operant_099_positive_reinforcement_positive_reinforcement">Positive reinforcement</Key>
+        <Distractor id="operant_099_positive_reinforcement_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_099_positive_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_099_positive_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding food (pleasant) increases correct sorting. This is positive reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_100_negative_reinforcement" title="Early Project: Leave Early">
+    <KeyGrader id="operant_100_negative_reinforcement_grader">
+      <p>A worker completes a project early and gets to leave work early that day. They complete projects early more often. Leaving early serves as...</p>
+      <ChoiceInput id="operant_100_negative_reinforcement_input">
+        <Distractor id="operant_100_negative_reinforcement_positive_reinforcement">Positive reinforcement</Distractor>
+        <Key id="operant_100_negative_reinforcement_negative_reinforcement">Negative reinforcement</Key>
+        <Distractor id="operant_100_negative_reinforcement_positive_punishment">Positive punishment</Distractor>
+        <Distractor id="operant_100_negative_reinforcement_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing work time (aversive obligation) increases early completion. This is negative reinforcement.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_101_positive_punishment" title="Drawing on Desk: Clean All Desks">
+    <KeyGrader id="operant_101_positive_punishment_grader">
+      <p>A student draws on their desk and must clean all the desks in the classroom. The student stops drawing on desks. Cleaning all desks serves as...</p>
+      <ChoiceInput id="operant_101_positive_punishment_input">
+        <Distractor id="operant_101_positive_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_101_positive_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Key id="operant_101_positive_punishment_positive_punishment">Positive punishment</Key>
+        <Distractor id="operant_101_positive_punishment_negative_punishment">Negative punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Adding extensive cleaning (aversive) decreased drawing on desks. This is positive punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="operant_102_negative_punishment" title="Taking Toys: Lose Own Toy">
+    <KeyGrader id="operant_102_negative_punishment_grader">
+      <p>A child uses their sibling&apos;s toys without asking and loses access to their own favorite toy. The child asks permission next time. Losing their toy serves as...</p>
+      <ChoiceInput id="operant_102_negative_punishment_input">
+        <Distractor id="operant_102_negative_punishment_positive_reinforcement">Positive reinforcement</Distractor>
+        <Distractor id="operant_102_negative_punishment_negative_reinforcement">Negative reinforcement</Distractor>
+        <Distractor id="operant_102_negative_punishment_positive_punishment">Positive punishment</Distractor>
+        <Key id="operant_102_negative_punishment_negative_punishment">Negative punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered">Removing their own toy (desirable) decreased taking without asking. This is negative punishment.</Explanation>
+    </KeyGrader>
+  </CapaProblem>
+</Vertical>

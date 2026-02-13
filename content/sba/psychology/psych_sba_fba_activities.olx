@@ -174,7 +174,6 @@ The four main functions of behavior are:
 - **Positive Reinforcement** strengthens responding by presenting a typically pleasurable stimulus immediately after a response
 - **Negative Reinforcement** strengthens a response by reducing or removing something negative
     </Markdown>
-    <ActionButton id="continue_review" target="psych_fba_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- Function + Reinforcement relationship -->
@@ -315,7 +314,6 @@ Functions describe what maintains or increases a behavior - they're about **rein
 
 So while punishment is an important concept in behavior modification, it's not considered a "function" because functions describe what the person is trying to **get** (attention, escape, tangibles, sensory stimulation), not what they're trying to **avoid**.
     </Markdown>
-    <ActionButton id="explain_punishment" target="psych_fba_chat" action="advance" label="Continue to Check" />
   </Vertical>
 
   <!-- Check for understanding - explain no punishment function -->
@@ -344,10 +342,17 @@ In your own words, explain why there is no function for punishment.
           <Distractor id="michelle_d3">Access/Tangible</Distractor>
         </ChoiceInput>
       </KeyGrader>
+      <Explanation>
+          Hiding helps Michelle avoid her math test, so the function is escape.
+      </Explanation>
     </CapaProblem>
   </Vertical>
   <!-- Practice: Function identification drag-and-drop set 1 -->
   <Vertical id="function_practice_1b">
+    <Markdown id="function_practice_header1b">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
     <CapaProblem title="Beth argues with teacher" id="function_beth">
       <KeyGrader>
         <p>Beth does not want to do her science seatwork, so instead she talks back and argues with her teacher, yelling that the teacher is unfair and trying to get other students to agree with her.</p>
@@ -358,10 +363,19 @@ In your own words, explain why there is no function for punishment.
           <Distractor id="beth_d3">Access/Tangible</Distractor>
         </ChoiceInput>
       </KeyGrader>
+      <Explanation>
+          Arguing with the teacher may help Beth avoid her science seatwork, but
+          the yelling and focus on getting other students to agree is more consistent
+          with the function of her behavior being to get attention.
+      </Explanation>
     </CapaProblem>
   </Vertical>
   <!-- Practice: Function identification drag-and-drop set 1 -->
   <Vertical id="function_practice_1c">
+    <Markdown id="function_practice_header1c">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
     <CapaProblem title="Randy hums softly" id="function_randy">
       <KeyGrader>
         <p>Randy hums softly to himself while doing his work because it feels calming, even if no one responds.</p>
@@ -372,10 +386,18 @@ In your own words, explain why there is no function for punishment.
           <Distractor id="randy_d3">Access/Tangible</Distractor>
         </ChoiceInput>
       </KeyGrader>
+      <Explanation>
+          Randy's behavior is motivated by the sensory effect of humming (helping to calm
+          himself), so the function of the behavior is sensory.
+      </Explanation>
     </CapaProblem>
   </Vertical>
   <!-- Practice: Function identification drag-and-drop set 1 -->
   <Vertical id="function_practice_1d">
+    <Markdown id="function_practice_headerd">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
     <CapaProblem title="Ryan rushes through math" id="function_ryan">
       <KeyGrader>
         <p>Ryan wants to play with his iPad but needs to finish his work first. He then rushes through his math work and answers "100" for every question just so he can play with the iPad.</p>
@@ -386,10 +408,18 @@ In your own words, explain why there is no function for punishment.
           <Key id="ryan_key">Access/Tangible</Key>
         </ChoiceInput>
       </KeyGrader>
+      <Explanation>
+          The point of Randy's behavior is to get that iPad into his hand, so the function
+          of his behavior is access.
+      </Explanation>
     </CapaProblem>
   </Vertical>
   <!-- Practice: Function identification drag-and-drop set 1 -->
   <Vertical id="function_practice_1e">
+    <Markdown id="function_practice_header1e">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
     <CapaProblem title="Emily makes silly noises" id="function_emily">
       <KeyGrader>
         <p>Emily makes silly noises during silent reading time because she knows her peers will turn around to giggle and talk to her.</p>
@@ -400,14 +430,18 @@ In your own words, explain why there is no function for punishment.
           <Distractor id="emily_d3">Access/Tangible</Distractor>
         </ChoiceInput>
       </KeyGrader>
+      <Explanation>
+          The result of Emily's behavior is to get her classmates interacting with
+          her, so the function of her behavior is attention.
+      </Explanation>
     </CapaProblem>
   </Vertical>
   <!-- Practice: Function identification set 2 -->
   <Vertical id="function_practice_2">
     <Markdown id="function_practice_header2">
-## Practice: Identify the Function (6-10)
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
     </Markdown>
-
     <CapaProblem title="Sally drops supplies" id="function_sally">
       <KeyGrader>
         <p>Sally drops her writing supplies or goes and spends a long time at the pencil sharpener every time it is time to do writing work.</p>
@@ -418,10 +452,19 @@ In your own words, explain why there is no function for punishment.
           <Distractor id="sally_d3">Access/Tangible</Distractor>
         </ChoiceInput>
       </KeyGrader>
+      <Explanation>
+          Sally's behaviors all have the effect of preventing or delaying her
+          getting started on her writing work, so the function of her behavior
+          is escape.
+      </Explanation>
     </CapaProblem>
   </Vertical>
   <!-- Practice: Function identification set 2 -->
   <Vertical id="function_practice_2b">
+    <Markdown id="function_practice_header2b">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
     <CapaProblem title="Aidan blurts out" id="function_aidan">
       <KeyGrader>
         <p>Aidan repeatedly blurts out answers and makes comments during his teacher's lessons to make the teacher laugh.</p>
@@ -432,10 +475,18 @@ In your own words, explain why there is no function for punishment.
           <Distractor id="aidan_d3">Access/Tangible</Distractor>
         </ChoiceInput>
       </KeyGrader>
+      <Explanation>
+          Aidan's behavior has the affect of forcing the teacher to focus on him,
+          so the function of his behavior is attention.
+      </Explanation>
     </CapaProblem>
   </Vertical>
   <!-- Practice: Function identification set 2 -->
   <Vertical id="function_practice_2c">
+    <Markdown id="function_practice_header2c">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
     <CapaProblem title="Matthew taps foot" id="function_matthew">
       <KeyGrader>
         <p>Matthew taps his foot because the movement feels good, regardless of what others say or do.</p>
@@ -446,10 +497,18 @@ In your own words, explain why there is no function for punishment.
           <Distractor id="matthew_d3">Access/Tangible</Distractor>
         </ChoiceInput>
       </KeyGrader>
+      <Explanation>
+          Matthew's behavior is motivated by the pleasant sensation he gets from
+          foot-tapping, so the function of his behavior is sensory.
+      </Explanation>
     </CapaProblem>
   </Vertical>
   <!-- Practice: Function identification set 2 -->
   <Vertical id="function_practice_2d">
+    <Markdown id="function_practice_header2d">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
     <CapaProblem title="Jasmine tantrums" id="function_jasmine">
       <KeyGrader>
         <p>Jasmine tantrums when she is told that she cannot have the snack she wants at the grocery store.</p>
@@ -460,10 +519,18 @@ In your own words, explain why there is no function for punishment.
           <Key id="jasmine_key">Access/Tangible</Key>
         </ChoiceInput>
       </KeyGrader>
+      <Explanation>
+          Jasmine's goal is to get that snack into her hands, so the function of her
+          behavior is access.
+      </Explanation>
     </CapaProblem>
   </Vertical>
   <!-- Practice: Function identification set 2 -->
   <Vertical id="function_practice_2e">
+    <Markdown id="function_practice_header2e">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
     <CapaProblem title="Simon needs bathroom" id="function_simon">
       <KeyGrader>
         <p>Simon suddenly needs to go to the bathroom every time it is time to transition to math class.</p>
@@ -474,6 +541,11 @@ In your own words, explain why there is no function for punishment.
           <Distractor id="simon_d3">Access/Tangible</Distractor>
         </ChoiceInput>
       </KeyGrader>
+      <Explanation>
+          Simon's need to go to the bathroom has the effect of preventing him from
+          going to math class, at least for a while, so the function of his behavior
+          is escape.
+      </Explanation>
     </CapaProblem>
   </Vertical>
 
@@ -542,6 +614,11 @@ Let's look at an example:
   </Vertical>
 
   <!-- ABC Check: Johnny scenario -->
+  <Vertical id="competing_behavior_diagram">
+    <Image id="abc_competing_behavior" src="images/CompetingBehaviorDiagram.png" height="500px" />
+  </Vertical>
+
+  <!-- ABC Check: Johnny scenario -->
   <Vertical id="abc_johnny_check">
     <Markdown id="abc_johnny_prompt">
 ## Apply ABCs to Johnny's Situation
@@ -578,6 +655,11 @@ Explain the sequence of Antecedent, Behavior, and Consequence from Annie's roomm
           <Distractor id="johnny_d3">Sensory</Distractor>
         </ChoiceInput>
       </KeyGrader>
+      <Explanation>
+          Johnny's behavior consistently works to delay bedtime, which
+          presumably is something he wants to avoid, so the function
+          of his behavior is escape.
+      </Explanation>
     </CapaProblem>
   </Vertical>
 
@@ -599,7 +681,6 @@ This organizer helps us plan interventions by showing:
 |------------|------------------|-------------|----------|
 | Roommate tells Johnny to go to bed | Johnny runs away laughing | Roommate chases, nags; bedtime delayed | Escape |
     </Markdown>
-    <ActionButton id="start_cbp" target="psych_fba_chat" action="advance" label="Fill Out Pathway" />
   </Vertical>
 
   <!-- Competing Behavior Pathway fill-in -->
@@ -616,7 +697,6 @@ Fill in the blanks to create an intervention plan:
     <Markdown id="cbp_label_outcome">**What should the positive outcome be when Johnny shows the desired behavior?**</Markdown>
     <TextArea id="cbp_positive_outcome" placeholder="Example: Johnny goes to sleep, roommate is not frustrated" />
 
-    <ActionButton id="submit_cbp" dependsOn="@cbp_desired_behavior.value" target="psych_fba_chat" action="advance" label="Compare Answers" />
   </Vertical>
 
   <!-- CBP Comparison -->
@@ -637,7 +717,6 @@ Here's what JJ came up with:
 
 Now that we know the function is **escape**, we need to figure out an intervention that addresses this!
     </Markdown>
-    <ActionButton id="continue_cbp" target="psych_fba_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- Textbook excerpt on escape -->
@@ -651,7 +730,6 @@ Now that we know the function is **escape**, we need to figure out an interventi
 
 We focused a lot on consequences in our last project, but we didn't focus much on antecedents. For escape-maintained behavior, antecedent strategies are especially important!
     </Markdown>
-    <ActionButton id="ask_ai_intervention" target="psych_fba_chat" action="advance" label="Ask AI for Strategies" />
   </Vertical>
 
   <!-- AI interface for intervention strategies -->
@@ -670,7 +748,6 @@ You are a helpful psychology teaching assistant. Provide a list of interventions
 Student's prompt: <Ref target="ai_intervention_query" />
       </LLMAction>
     </ActionButton>
-    <ActionButton id="continue_intervention" dependsOn="@intervention_ai_response.value" target="psych_fba_chat" action="advance" label="Review Strategies" />
   </Vertical>
 
   <!-- Strategy selection -->
@@ -711,7 +788,6 @@ Below are some intervention ideas. Select the ones that address **escape** as th
       </KeyGrader>
     </CapaProblem>
 
-    <ActionButton id="continue_strategy" target="psych_fba_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- Revised pathway -->
@@ -728,7 +804,6 @@ Now let's revise our pathway with the strategies we've identified.
     <Markdown id="consequence_strategies_label">**What consequence strategies would you use when Johnny shows the desired behavior?**</Markdown>
     <TextArea id="revised_consequences" placeholder="Example: Praise for getting in bed, bedtime story as reward..." />
 
-    <ActionButton id="submit_revised" dependsOn="@revised_antecedents.value" target="psych_fba_chat" action="advance" label="View Plans" />
   </Vertical>
 
   <!-- Two plans comparison -->
@@ -762,7 +837,6 @@ Plan A correctly fits the function of the behavior, which is **escape**. Plan B 
       </Explanation>
     </CapaProblem>
 
-    <ActionButton id="continue_plans" target="psych_fba_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- Plan discussion -->
@@ -777,8 +851,6 @@ Plan A correctly fits the function of the behavior, which is **escape**. Plan B 
 
     <Markdown id="plan_preference_label">In the box below, type the parts of the plan that you like:</Markdown>
     <TextArea id="plan_preferences" placeholder="What strategies do you think would work best?" />
-
-    <ActionButton id="submit_preferences" dependsOn="@plan_preferences.value" target="psych_fba_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- Final email -->
@@ -795,7 +867,6 @@ Make sure to use these terms:
 - "competing behavior pathway"
     </Markdown>
     <TextArea id="intervention_email" placeholder="Dear Roommate, Based on what we've learned in psychology class..." />
-    <ActionButton id="submit_email" dependsOn="@intervention_email.value" target="psych_fba_chat" action="advance" label="Send Email" />
   </Vertical>
 
   <!-- Time skip - 2 weeks later -->
@@ -813,7 +884,6 @@ Make sure to use these terms:
 
 Something isn't working right...
     </Markdown>
-    <ActionButton id="continue_progress" target="psych_fba_chat" action="advance" label="Talk to Professor" />
   </Vertical>
 
   <!-- Implementation fidelity introduction -->
@@ -837,7 +907,6 @@ The team showed the progress to the professor, explaining that the roommate admi
 | **Participant Responsiveness** | Is the child actually exposed to and engaged with the intervention? |
 | **Program Differentiation** | Are other strategies (not part of the plan) avoided during implementation? |
     </Markdown>
-    <ActionButton id="continue_fidelity" target="psych_fba_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- Fidelity comprehension check -->
@@ -865,8 +934,6 @@ Annie texted her roommate to find out exactly where things went wrong:
 The roommate is struggling with **Adherence** - she's forgetting to follow the steps of the plan as written (forgetting timers, warnings, and rewards; falling into old patterns of negotiating).
       </Explanation>
     </CapaProblem>
-
-    <ActionButton id="continue_fidelity_check" target="psych_fba_chat" action="advance" label="Continue" />
   </Vertical>
 
   <!-- AI help for modifications -->
@@ -885,7 +952,6 @@ You are a helpful psychology teaching assistant. Provide practical strategies fo
 Student's prompt: <Ref target="ai_modifications_query" />
       </LLMAction>
     </ActionButton>
-    <ActionButton id="continue_modifications" dependsOn="@modifications_ai_response.value" target="psych_fba_chat" action="advance" label="View Modifications" />
   </Vertical>
 
   <!-- Modification selection -->
@@ -907,8 +973,6 @@ Of these modifications, which ones should we add to help the roommate follow the
         </CheckboxInput>
       </KeyGrader>
     </CapaProblem>
-
-    <ActionButton id="submit_modifications" target="psych_fba_chat" action="advance" label="Update Plan" />
   </Vertical>
 
   <!-- Another 2 weeks later - conclusion -->
@@ -924,7 +988,6 @@ Of these modifications, which ones should we add to help the roommate follow the
 
 The modified intervention was a success! With better adherence to the plan, Johnny's bedtime behavior improved significantly.
     </Markdown>
-    <ActionButton id="continue_conclusion" target="psych_fba_chat" action="advance" label="Write Reflection" />
   </Vertical>
 
   <!-- Final reflection -->
@@ -941,7 +1004,6 @@ Write a brief reflection of your experience, noting:
 5. Provide at least 2 specific examples of what changes you would have made if Annie's roommate were to continue to babysit Johnny
     </Markdown>
     <TextArea id="reflection_text" placeholder="Write your reflection here..." />
-    <ActionButton id="submit_reflection" dependsOn="@reflection_text.value" target="psych_fba_chat" action="advance" label="Submit Reflection" />
   </Vertical>
 
   <!-- Completion summary -->
