@@ -6,7 +6,11 @@ language: en-US
 ---
 -->
 <!-- Psychology SBA Part 2: 3. Function of Behavior and Intervention Planning -->
-<SplitPanel id="psych_sba_fba" title="Psychology Study Group: 3. Function of Behavior" launchable="true">
+<SplitPanel 
+    id="psych_sba_fba"
+    sizes="40, 60"
+    title="Psychology Study Group: 3. Function of Behavior"
+    launchable="true">
 
   <!-- Left Panel: SMS Conversation -->
   <LeftPane>
