@@ -5,7 +5,7 @@
 
 import * as state from '@/lib/state';
 import { refToOlxKey, toOlxReference } from './idResolver';
-import type { OlxDomNode, OlxDomSelector, OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
+import type { OlxDomNode, OlxDomSelector, OlxKey, OlxReference, ReduxStateKey, RuntimeProps } from '@/lib/types';
 //
 // The OLX DOM is Learning Observer's internal representation of educational content,
 // distinct from both the React virtual DOM and the browser DOM. It represents the
@@ -37,7 +37,7 @@ export function getEventContext(nodeInfo: OlxDomNode | null | undefined): string
   let current = nodeInfo;
   while (current) {
     // Get ID from nodeInfo or its node
-    const id = (current as any).id ?? current.node?.id;
+    const id = (current as any).id ?? current.olxJson?.id;
     if (id) ids.unshift(id);
     current = current.parent;
   }
@@ -182,11 +182,11 @@ function root(nodeInfo: OlxDomNode): OlxDomNode {
  * @param {Object} nodeInfo - The nodeInfo to get ID from
  * @param {string} context - Description of what operation is being performed
  * @returns {string} The node ID
- * @throws {Error} If nodeInfo.node or nodeInfo.node.id is missing
+ * @throws {Error} If nodeInfo.olxJson or nodeInfo.olxJson.id is missing
  */
 function getNodeId(nodeInfo: OlxDomNode, context = 'getNodeId'): OlxKey {
-  if (!nodeInfo.node) {
-    // Root node has sentinel instead of node
+  if (!nodeInfo.olxJson) {
+    // Root node has sentinel instead of olxJson
     if (nodeInfo.sentinel === 'root') {
       throw new Error(
         `${context}: Attempted to get ID from root sentinel node. ` +
@@ -195,20 +195,36 @@ function getNodeId(nodeInfo: OlxDomNode, context = 'getNodeId'): OlxKey {
       );
     }
     throw new Error(
-      `${context}: nodeInfo.node is undefined. nodeInfo keys: [${Object.keys(nodeInfo).join(', ')}]`
+      `${context}: nodeInfo.olxJson is undefined. nodeInfo keys: [${Object.keys(nodeInfo).join(', ')}]`
     );
   }
-  if (nodeInfo.node.id === undefined) {
+  if (nodeInfo.olxJson.id === undefined) {
     throw new Error(
-      `${context}: nodeInfo.node.id is undefined. node keys: [${Object.keys(nodeInfo.node).join(', ')}], ` +
-      `tag: ${nodeInfo.node.tag || 'N/A'}`
+      `${context}: nodeInfo.olxJson.id is undefined. olxJson keys: [${Object.keys(nodeInfo.olxJson).join(', ')}], ` +
+      `tag: ${nodeInfo.olxJson.tag || 'N/A'}`
     );
   }
-  return nodeInfo.node.id;
+  return nodeInfo.olxJson.id;
 }
 
 export function getAllNodes(nodeInfo: OlxDomNode, { selector = (_: OlxDomNode) => true }: { selector?: OlxDomSelector } = {}) {
   return getKidsDFS(root(nodeInfo), { selector, includeRoot: true });
+}
+
+/**
+ * Find a specific OlxDomNode in the rendered tree by ReduxStateKey.
+ *
+ * Callers convert OlxKey → ReduxStateKey (via refToReduxKey) before calling,
+ * which makes the scoping (idPrefix) explicit at the call site.
+ *
+ * @param props - Must include nodeInfo (tree to search)
+ * @param key - The ReduxStateKey identifying the node
+ * @returns The matching OlxDomNode, or null
+ */
+export function getDomNodeByReduxKey(props: RuntimeProps, key: ReduxStateKey): OlxDomNode | null {
+  return getAllNodes(props.nodeInfo, {
+    selector: n => n.reduxKey === key
+  })[0] ?? null;
 }
 
 /**
@@ -374,56 +390,16 @@ export function extractChildText(props, actionNode) {
 }
 
 // =============================================================================
-// DESIGN: Store Runtime Context in NodeInfo for Later Retrieval
+// DESIGN: Runtime Context in NodeInfo (IMPLEMENTED)
 // =============================================================================
 //
-// PROBLEM
-// -------
-// When actions/graders find related blocks (inputs, targets), we currently copy
-// the source's runtime context verbatim. This is incomplete:
+// Each OlxDomNode stores its runtime context (idPrefix, logEvent, etc.)
+// captured at render time. When actions/graders find related blocks, they
+// read runtime from the target's nodeInfo rather than copying the caller's.
 //
-// 1. idPrefix scope: If an input is inside a list at a different nesting level,
-//    it has a different idPrefix (determined by render-time context).
-//
-// 2. Side-effect context: A frozen replay context should affect how the node
-//    renders (no side effects, no event logging).
-//
-// 3. Event logging: The logEvent context path is built from the OLX DOM
-//    hierarchy, which is specific to each node's position.
-//
-// SOLUTION
-// --------
-// Store the complete runtime context on each nodeInfo when it's created.
-// When actions later need props for a target node, read runtime from nodeInfo.
-//
-// Implementation:
-// 1. Uncomment runtime field in OlxDomNode type (src/lib/types.ts line ~397)
-// 2. In render.tsx, store finalRuntime on childNodeInfo:
-//    ```
-//    childNodeInfo.runtime = finalRuntime;
-//    ```
-// 3. In actions.tsx, retrieve it directly:
-//    ```
-//    const inputProps = {
-//      runtime: inputNodeInfo.runtime,  // Use captured runtime from render time
-//      nodeInfo: inputNodeInfo,
-//      ...
-//    };
-//    ```
-//
-// Benefits:
-// - Runtime context is captured at render time when it's correct
-// - No need to reconstruct/compute from walks
-// - Explicit overrides possible if needed (store alternate runtime on nodeInfo)
-// - No behavioral changes needed in components
-//
-// CURRENT STATUS
-// ---------------
-// TODO: Implement this design
-// Marked with TODO comments in:
-// - src/lib/render.tsx line ~198: Store runtime on childNodeInfo
-// - src/lib/blocks/actions.tsx line ~216: Use nodeInfo.runtime for inputs
-// - src/lib/blocks/actions.tsx line ~359: Use nodeInfo.runtime for actions
+// - render.tsx: stores finalRuntime on childNodeInfo during render
+// - actions.tsx: reads nodeInfo.runtime for input and action props
+// - OlxDomNode.runtime: required field on the type (src/lib/types.ts)
 //
 
 export const __testables = {

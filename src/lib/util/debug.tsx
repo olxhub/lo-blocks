@@ -27,7 +27,7 @@ export const Trace = ({
   // If a header isn't provided, try to build one from props
   if (!headerContent && props) {
     // Try to get a displayName or fallback to props.url_name/id
-    const name = props?.nodeInfo?.node?.tag ?? 'N/A';
+    const name = props?.nodeInfo?.olxJson?.tag ?? 'N/A';
     const id = props?.id ?? 'n/a';
     headerContent = `[${name} / (id: ${id})]`;
   }
@@ -76,9 +76,9 @@ export const DebugWrapper = ({ props = {}, loBlock, children }: DebugWrapperProp
   );
   if (!debug) return <>{children}</>;
 
-  const tag = props?.nodeInfo?.node?.tag ?? 'N/A';
-  const id = props?.nodeInfo?.node?.id ?? props.id ?? 'n/a';
-  const provenance = props?.nodeInfo?.node?.provenance ?? [];
+  const tag = props?.nodeInfo?.olxJson?.tag ?? 'N/A';
+  const id = props?.nodeInfo?.olxJson?.id ?? props.id ?? 'n/a';
+  const provenance = props?.nodeInfo?.olxJson?.provenance ?? [];
   const prefix = process.env.NEXT_PUBLIC_DEBUG_LINK_PREFIX ?? '';
 
   /** Extract scheme and path from a provenance URI (e.g., "file:///foo" → ["file", "/foo"]) */

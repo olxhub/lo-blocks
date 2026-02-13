@@ -356,14 +356,25 @@ function extractString(extracted: ReturnType<typeof extractTextFromXmlNodes>): s
 // There should be no nested XML.
 //
 // Supports `src` attribute for loading external text files.
-const textFactory = childParser(async function textParser({ rawParsed, attributes, provider, provenance, postprocess = 'trim' }) {
+//
+// Usage:
+//   ...parsers.text()              - default: trim whitespace
+//   ...parsers.text.raw()          - no processing
+//   ...parsers.text.stripIndent()  - strip common leading indentation (for Markdown)
+//   ...parsers.text({ postprocess: fn })  - custom function
+type TextPostprocess = 'trim' | 'raw' | 'stripIndent' | ((text: string) => string);
+
+const textFactory = childParser(async function textParser({ rawParsed, attributes, provider, provenance, postprocess = 'trim' }: {
+  rawParsed: any; attributes: any; provider: any; provenance: any;
+  postprocess?: TextPostprocess;
+}) {
   let textContent: string;
 
   if (attributes?.src) {
     const loaded = await loadExternalSource({ src: attributes.src, provider, provenance });
     textContent = loaded.text;
   } else {
-    const extracted = extractTextFromXmlNodes(rawParsed, { preserveWhitespace: postprocess === 'stripIndent' || postprocess === 'none' });
+    const extracted = extractTextFromXmlNodes(rawParsed, { preserveWhitespace: postprocess === 'stripIndent' || postprocess === 'raw' });
     textContent = extractString(extracted);
   }
 
@@ -382,16 +393,20 @@ const textFactory = childParser(async function textParser({ rawParsed, attribute
     content = textContent.trim() + '\n';
   } else if (typeof postprocess === 'function') {
     content = postprocess(textContent);
-  } else if (postprocess === 'none') {
+  } else if (postprocess === 'raw') {
     content = textContent;
   } else {
+    // TypeScript exhaustiveness — should never reach here with valid TextPostprocess
     throw new Error(`Unknown postprocess option: ${postprocess}`);
   }
 
   return content;
 });
 textFactory.staticKids = () => [];
-export const text = textFactory;
+export const text = Object.assign(textFactory, {
+  raw: () => textFactory({ postprocess: 'raw' }),
+  stripIndent: () => textFactory({ postprocess: 'stripIndent' }),
+});
 
 // === PEG Support ===
 //

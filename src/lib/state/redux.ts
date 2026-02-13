@@ -47,10 +47,11 @@ import * as idResolver from '../blocks/idResolver';
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
-import { FieldInfo, OlxReference, OlxKey, RuntimeProps, BaselineProps } from '../types';
+import { FieldInfo, OlxReference, OlxKey, ReduxStateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock } from '../types';
 import { assertValidField } from './fields';
 import type { Store } from 'redux';
 import { selectBlock } from './olxjson';
+import { getDomNodeByReduxKey } from '../blocks/olxdom';
 import { getReduxStoreInstance } from './store';
 
 
@@ -192,7 +193,17 @@ export function useFieldState(
 
   const value = useFieldSelector(props, field, { fallback, id, tag });
 
-  const setValue = (newValue) => updateField(props, field, newValue, { id, tag });
+  // Stable setter (like useState): ref holds latest args so the callback
+  // identity never changes, safe to use in useEffect deps.
+  const ref = useRef({ props, field, id, tag });
+  ref.current = { props, field, id, tag };
+  const setValue = useCallback(
+    (newValue) => {
+      const { props, field, id, tag } = ref.current;
+      updateField(props, field, newValue, { id, tag });
+    },
+    []
+  );
 
   return [value, setValue];
 }
@@ -392,6 +403,41 @@ export function componentFieldByName(props: RuntimeProps, targetId: OlxReference
  * @param {Object} options - Options object with fallback and other settings
  * @returns {any} The component's current value
  */
+
+
+/**
+ * Reconstruct a component's RuntimeProps from its OlxJson node and blueprint.
+ *
+ * Used when we need a component's own props outside of its render tree
+ * (e.g., calling getValue from valueSelector). Looks up the component's
+ * OlxDomNode by ReduxStateKey for correct runtime context (idPrefix, logEvent).
+ *
+ * Falls back to caller's runtime if the target hasn't been rendered yet.
+ *
+ * Note: This is a minimal reconstruction — it includes id, attributes, kids,
+ * loBlock, fields, locals, and runtime, which is sufficient for getValue.
+ * It does NOT include injected props like extraDebug that the render pipeline
+ * adds. If future callers need fuller props, this should be expanded.
+ */
+export function propsForNode(callerProps: RuntimeProps, reduxKey: ReduxStateKey, node: OlxJson, loBlock: LoBlock) {
+  const domNode = callerProps.nodeInfo
+    ? getDomNodeByReduxKey(callerProps, reduxKey)
+    : null;
+
+  const runtime = domNode?.runtime ?? callerProps.runtime;
+  return {
+    ...node.attributes,
+    id: node.id,
+    kids: node.kids,
+    loBlock,
+    fields: loBlock.fields,
+    locals: loBlock.locals,
+    runtime,
+    nodeInfo: domNode ?? callerProps.nodeInfo,
+    idPrefix: runtime.idPrefix,
+  };
+}
+
 export function valueSelector(props: RuntimeProps, state: any, id: OlxReference | null | undefined, { fallback } = {} as { fallback?: any }) {
   // If no ID provided, return fallback (supports optional targetRef patterns)
   if (id === undefined || id === null) {
@@ -418,9 +464,10 @@ export function valueSelector(props: RuntimeProps, state: any, id: OlxReference 
     );
   }
 
-  // Try getValue first (for computed values like wordcount)
   if (loBlock.getValue) {
-    return loBlock.getValue(props, state, id);
+    const reduxKey = idResolver.refToReduxKey({ ...props, id });
+    const targetProps = propsForNode(props, reduxKey, targetNode, loBlock);
+    return loBlock.getValue(targetProps, state, id);
   }
 
   // Fall back to direct field access using the common 'value' field

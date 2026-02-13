@@ -60,7 +60,7 @@ import { useDebugSettings } from '@/lib/state/debugSettings';
 import { settings } from '@/lib/state/settings';
 import { useSetting } from '@/lib/state/settingsAccess';
 import { getTextDirection, getBrowserLocale } from '@/lib/i18n/getTextDirection';
-import type { BaselineProps, LoBlockRuntimeContext, UserLocale, ProvenanceURI } from '@/lib/types';
+import type { BaselineProps, IdPrefix, LoBlockRuntimeContext, UserLocale, ProvenanceURI } from '@/lib/types';
 
 // Stable no-op for replay mode - avoids creating new function on each render
 const noopLogEvent = () => { };
@@ -273,7 +273,6 @@ function useParseContent(
           }
         }
       } catch (err) {
-        console.error('RenderOLX parse error:', err);
         if (!cancelled) {
           setError(err.message || String(err));
           onError?.(err);
@@ -399,19 +398,19 @@ export default function RenderOLX({
   }, [renderProps.mergedIdMap, parsed?.root]);
 
   // Build runtime context for rendering
-  const runtime = {
+  const runtime: LoBlockRuntimeContext = {
     blockRegistry: renderProps.blockRegistry,
     store: renderProps.store,
     logEvent: renderProps.logEvent,
     sideEffectFree: renderProps.sideEffectFree,
     olxJsonSources: [source],
-    idPrefix: '',
+    idPrefix: '' as IdPrefix,
     locale: renderProps.locale,
   };
 
   // Build props for useBlock
   const blockProps = {
-    nodeInfo: makeRootNode(eventContext),
+    nodeInfo: makeRootNode(runtime, eventContext),
     runtime,
     // FIXME: These individual fields are deprecated (kept for migration safety, remove after verification)
     blockRegistry: renderProps.blockRegistry,

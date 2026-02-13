@@ -1,0 +1,51 @@
+<!--
+  LLM-generated OLX demo (prototype).
+  The LLM generates a full interactive quiz as OLX, rendered live by OlxSlot.
+-->
+<IntakeGate id="OlxSlotLLMDemo" targets="generated_quiz">
+  <Vertical id="quiz_intake">
+    <Markdown>
+## AI Quiz Generator (Prototype)
+
+Enter a topic and we'll generate an interactive multiple-choice quiz.
+    </Markdown>
+    <TextArea id="quiz_topic" placeholder="e.g., photosynthesis, the French Revolution, linear algebra" />
+    <ActionButton id="gen_quiz_btn" label="Generate Quiz">
+      <LLMAction id="gen_quiz" target="generated_quiz">
+Generate a 2-question multiple choice quiz about: <Ref>quiz_topic</Ref>
+
+Return ONLY valid OLX. Wrap everything in a single Sequential tag.
+Use this exact format:
+<![CDATA[
+<Sequential id="quiz">
+  <CapaProblem id="q1" title="Question 1">
+    <Markdown>Question text here</Markdown>
+    <KeyGrader>
+      <ChoiceInput>
+        <Key>Correct answer</Key>
+        <Distractor>Wrong answer 1</Distractor>
+        <Distractor>Wrong answer 2</Distractor>
+        <Distractor>Wrong answer 3</Distractor>
+      </ChoiceInput>
+    </KeyGrader>
+  </CapaProblem>
+  <CapaProblem id="q2" title="Question 2">
+    <Markdown>Question text here</Markdown>
+    <KeyGrader>
+      <ChoiceInput>
+        <Key>Correct answer</Key>
+        <Distractor>Wrong answer 1</Distractor>
+        <Distractor>Wrong answer 2</Distractor>
+        <Distractor>Wrong answer 3</Distractor>
+      </ChoiceInput>
+    </KeyGrader>
+  </CapaProblem>
+</Sequential>
+]]>
+Return ONLY the OLX. No explanation, no markdown fences.
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <OlxSlot id="generated_quiz" />
+</IntakeGate>

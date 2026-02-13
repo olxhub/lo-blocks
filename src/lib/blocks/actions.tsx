@@ -20,7 +20,7 @@
 // NOTE: Actions receive a Redux store from their caller (typically ActionButton).
 // This enables replay mode where a different store provides historical state.
 //
-import { inferRelatedNodes, getAllNodes } from './olxdom';
+import { inferRelatedNodes, getDomNodeByReduxKey } from './olxdom';
 import * as lo_event from 'lo_event';
 import { correctness } from './correctness';
 import { refToReduxKey } from './idResolver';
@@ -87,18 +87,6 @@ export function isInput(loBlock) {
 
 export function isMatch(loBlock) {
   return typeof loBlock?.locals?.match === 'function';
-}
-
-// This does a full tree search, which is not performant. Probably doesn't matter
-// right now, but in the future, it may.
-//
-// TODO: Make more efficient? Does it matter?
-function getNodeById(props, id) {
-  const nodes = getAllNodes(
-    props.nodeInfo,
-    { selector: (n) => n?.node?.id == id }
-  );
-  return nodes[0]; // TODO: Error handling?
 }
 
 /**
@@ -189,7 +177,8 @@ export function grader({ grader, infer = true, slots, inputType }: {
   // blueprint and nodeInfo. The runtime context is shared from the source props.
 
   const action = async ({ targetId, targetInstance, props }) => {
-    const targetNodeInfo = getNodeById(props, targetId);
+    // OlxKey → ReduxStateKey (applies runtime.idPrefix for DynamicList scoping)
+    const targetNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix }));
     const targetAttributes = targetInstance.attributes;
 
     const inputIds = inferRelatedNodes(
@@ -212,16 +201,13 @@ export function grader({ grader, infer = true, slots, inputType }: {
         return { value: undefined, api: {} };
       }
       const loBlock = map[inst.tag];
-      const inputNodeInfo = getNodeById(props, id);
+      // OlxKey → ReduxStateKey (applies runtime.idPrefix for DynamicList scoping)
+      const inputNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id, idPrefix: props.runtime?.idPrefix }));
 
-      // TODO: Use runtime from nodeInfo (when implemented)
-      // Currently we use the source's runtime context, but the input may have been
-      // rendered with a different context (different idPrefix, frozen state, etc).
-      //
-      // Once OlxDomNode.runtime is uncommented and populated during render(), use:
-      //   const inputRuntime = inputNodeInfo.runtime;
+      // Use the input's own runtime (captured at render time) for correct idPrefix,
+      // logEvent context, etc. Falls back to caller's runtime if nodeInfo unavailable.
       const inputProps = {
-        runtime: props.runtime,
+        runtime: inputNodeInfo?.runtime ?? props.runtime,
         nodeInfo: inputNodeInfo,
         id,
         kids: inst.kids || [],
@@ -306,8 +292,8 @@ export function grader({ grader, infer = true, slots, inputType }: {
       correct === false ? correctness.incorrect :
         correct; // In case it's already a correctness value
 
-    // Use refToReduxKey to get scoped ID (applies idPrefix for list/repeated contexts)
-    const scopedTargetId = refToReduxKey({ ...props, id: targetId });
+    // Use refToReduxKey to get scoped ID (applies runtime.idPrefix for list/repeated contexts)
+    const scopedTargetId = refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix });
 
     // Get current submitCount and increment it for UI flash feedback
     const currentState = state.application_state?.component?.[scopedTargetId] || {};
@@ -354,25 +340,20 @@ export async function executeNodeActions(props: RuntimeProps) {
       continue;
     }
 
-    // Find the action's nodeInfo in the dynamic OLX DOM tree
-    // Actions should already be rendered as part of the tree, so we need to find them
-    const actionNodeInfo = getNodeById(props, targetId);
+    // Find the action's OlxDomNode
+    // OlxKey → ReduxStateKey (applies runtime.idPrefix for DynamicList scoping)
+    const actionNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix }));
 
     if (!actionNodeInfo) {
       throw new Error(`Action ${targetId} not found in dynamic DOM tree - this indicates a bug in the rendering system`);
     }
 
     // Create proper props for the action component
-    // Match the props structure that render.jsx creates for normal components
-    //
-    // TODO: Use runtime from nodeInfo (when implemented)
-    // Currently we use the button's runtime context, but the action may have been
-    // rendered with a different context (different idPrefix, frozen state, etc).
-    //
-    // Once OlxDomNode.runtime is uncommented and populated during render(), use:
-    //   const actionRuntime = actionNodeInfo.runtime;
+    // Match the props structure that render.jsx creates for normal components.
+    // Use the action's own runtime (captured at render time) for correct idPrefix,
+    // logEvent context, etc. Falls back to caller's runtime if unavailable.
     const actionProps = {
-      runtime: props.runtime,
+      runtime: actionNodeInfo.runtime ?? props.runtime,
 
       // Target-specific props (like render.jsx does)
       ...targetInstance.attributes,        // OLX attributes from target action

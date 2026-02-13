@@ -188,7 +188,7 @@ export const refToReduxKey = (input: RefToReduxKeyInput): ReduxStateKey => {
     // Provide a friendly error message when an ID is missing
     const name =
       (input as any)?.loBlock?.OLXName ||
-      (input as any)?.nodeInfo?.node?.tag ||
+      (input as any)?.nodeInfo?.olxJson?.tag ||
       (input as any)?.name ||
       'Component';
     throw new Error(`${name} requires a well-formed ID`);
