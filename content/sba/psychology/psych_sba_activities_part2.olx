@@ -1,15 +1,16 @@
 <!--
 ---
-description: Instructor collection of psychology SBA activities for editing and review
+description: Activities included in Psychology Study Group: 2. Operant Conditioning. This is not a separate activity, but is included to support content editing.
 category: psychology
+language: en-US
 ---
 -->
-<Vertical id="psych_sba_activities_part2" title="Activities for Psychology SBA, part 2" launchable="false">
+<Vertical id="psych_sba_activities_part2" title="Activities for Psychology SBA, part 2" launchable="true">
 
   <!-- Introduction section -->
   <Vertical id="bedtime_problem_introduction2">
     <Markdown id="bedtime_problem_intro_text2">
-## Introduction
+## Introduction 
 
 In this module, you will pick up where you left off in helping Annie's friend, who babysits for a 6-year-old who has been engaging in sleep refusal.
 

@@ -1,20 +1,20 @@
 <!--
 ---
-description: Activities for Psychology SBA Part 2 - Function of Behavior and Intervention Planning
+description: Activities for Psychology SBA Part 3 - Function of Behavior. This is not an independent activity, but is shown to support content editing.
 category: psychology
 language: en-US
 ---
 -->
-<Vertical id="psych_sba_fba_activities" title="Activities for Psychology SBA - FBA" launchable="false">
+<Vertical id="psych_sba_fba_activities" title="Psychology Study Group: 3. Function of Behavior (Activities)" launchable="true">
 
-  <!-- Introduction section -->
+  <!-- Introduction section --> 
   <Vertical id="fba_introduction">
     <Markdown id="fba_intro_text">
-## About This Scenario
+## About This Scenario 
 
 Your class teammates are JJ, Lin, and Annie. Your team is responsible for helping each other identify key concepts, review and learn from readings, and organize information to develop a solution to the problem.
 
-Lianne Park is a graduate student and member of your team. She will provide guidance as necessary to help you with key information.
+Lianne Park is a graduate student and member of your team. She will provide guidance as necessary to help you with key information. 
 
 In this module, you will review and apply several concepts from your coursework on behavior modification. Specifically, you will:
 

@@ -1,10 +1,11 @@
 <!--
 ---
-description: Instructor collection of psychology SBA activities for editing and review
+description: Activities used in Psychology Study Group: 1, Sleep Refusal. This is not a live assessment, but is shown to allow content editing.
 category: psychology
+lang: en-Latn-US
 ---
 -->
-<Vertical id="psych_sba_activities_part1" title="Activities for Psychology SBA, Part 1" launchable="false">
+<Vertical id="psych_sba_activities_part1" title="Activities for Psychology SBA, Part 1" launchable="true">
 
   <!-- Introduction section -->
   <Vertical id="bedtime_problem_introduction">
