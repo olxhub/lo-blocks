@@ -676,11 +676,11 @@ This organizer helps us plan interventions by showing:
 3. What we want to happen instead
 
 **Current Pathway (Problem):**
-
-| Antecedent | Problem Behavior | Consequence | Function |
-|------------|------------------|-------------|----------|
-| Roommate tells Johnny to go to bed | Johnny runs away laughing | Roommate chases, nags; bedtime delayed | Escape |
     </Markdown>
+  </Vertical>
+
+  <Vertical id="cbp_image">
+    <Image src="images/JohnnyBedtimeABCs.png" />    
   </Vertical>
 
   <!-- Competing Behavior Pathway fill-in -->

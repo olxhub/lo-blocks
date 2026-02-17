@@ -131,7 +131,7 @@ Lin: Yeah, I thought punishment could be a function too.
 
 psych_fba_sidebar -> no_punishment_function
 
-Annie: I had that same thought, so I tried writing a prompt to ask AI about it. Here's what I got. Fortunately, this answer matches my class notes!
+JJ: I had that same thought, so I tried writing a prompt to ask AI about it. Here's what I got. Fortunately, this answer matches my class notes!
 
 Check Understanding
 -------------------
