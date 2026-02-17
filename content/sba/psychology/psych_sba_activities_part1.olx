@@ -77,16 +77,15 @@ What do YOU think Annie's roommate should do to get the 6-year-old to go to slee
         </SortableInput>
       </SortableGrader>
     </CapaProblem>
+    <ActionButton id="continue_after_sorting" dependsOn="@bedtime_strategy_grader.submitCount > 0" target="psych_chat" action="advance" label="Continue Discussion" />
+  </Vertical>
 
   <Vertical id="bedtime_problem_clear_screen_2">
     <Markdown>
       &nbsp;
     </Markdown>
   </Vertical>
-
-    <ActionButton id="continue_after_sorting" dependsOn="@bedtime_strategy_grader.submitCount > 0" target="psych_chat" action="advance" label="Continue Discussion" />
-  </Vertical>
-
+  
   <!-- Messages screenshot -->
   <Vertical id="messages_image">
     <Markdown id="messages_text">
@@ -520,13 +519,10 @@ What prompt should we write for the AI in order to learn about sleep refusal and
 |-------------------|------------------------|------------------------|
     </Markdown>
   </Vertical>
+  
+  <!-- PDF article to read -->
   <Vertical id="psych_sba_article_view">
-    <Image src="images/Article.png" height="200px"/>
-    <Markdown id="article1">
-        [What to teach parents to reduce disruptive child behavior --
-         two meta-analyses of parenting program components
-        ](https://www.jaacap.org/action/showPdf?pii=S0890-8567%2818%2931980-4)
-    </Markdown>
+    <PDFViewer src="documents/PIIS0890856718319804.pdf" />
   </Vertical>
   
   <Vertical id="psych_sba_article_excerpt">

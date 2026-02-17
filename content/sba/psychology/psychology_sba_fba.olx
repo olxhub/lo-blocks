@@ -18,7 +18,7 @@ language: en-US
   </LeftPane>
 
   <!-- Right Panel: Activities reference -->
-  <RightPane>
+  <RightPane> 
     <UseHistory id="psych_fba_sidebar" initial="fba_introduction" />
   </RightPane>
 
