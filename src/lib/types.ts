@@ -107,7 +107,7 @@ export type OLXTag = string & { __brand: 'OLXTag' };
  * Every piece of parsed content carries a provenance chain — an array of
  * URIs recording where it came from. For a block in foo.olx that includes
  * quiz.chatpeg, that chain might be:
- *   ["file:///home/.../content/demos/foo.olx", "file:///home/.../content/demos/quiz.chatpeg"]
+ *   ["file:///content/demos/foo.olx", "file:///content/demos/quiz.chatpeg"]
  *
  * This enables:
  * - Precise error messages ("syntax error in demos/foo.olx:42")

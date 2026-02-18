@@ -9,6 +9,7 @@
 //
 import path from 'path';
 import { extensionsWithDots, CATEGORY } from '@/lib/util/fileTypes';
+import { fileProvenancePath } from './types';
 import type { LofsPath, FileSystemPath, OlxRelativePath, SafeRelativePath } from '@/lib/types';
 
 // Base directory for content - resolved once at module load
@@ -84,11 +85,15 @@ export function validateContentPath(lofsPath: string): PathValidation {
 /**
  * Extract the content-relative path from a provenance URI.
  *
+ * With mount-point URIs, the logical path is directly in the URI:
+ * 'file:///content/demos/foo.xml' → logical path 'content/demos/foo.xml'.
+ * Studio expects paths relative to the mount, so we strip the 'content/' prefix.
+ *
  * @param provenance - Array of provenance URIs
  * @returns Validation result with relative path or error message
  *
  * @example
- * getEditPathFromProvenance(['file:///abs/path/content/demos/foo.xml'])
+ * getEditPathFromProvenance(['file:///content/demos/foo.xml'])
  * // => { valid: true, relativePath: 'demos/foo.xml' }
  */
 export function getEditPathFromProvenance(provenance: string[] | undefined): PathValidation {
@@ -101,15 +106,28 @@ export function getEditPathFromProvenance(provenance: string[] | undefined): Pat
     return { valid: false, error: 'No file provenance found (content may be from non-file source)' };
   }
 
-  const absPath = fileProv.slice('file://'.length);
-  const relativePath = path.relative(CONTENT_BASE, absPath);
+  let logicalPath: string;
+  try {
+    logicalPath = fileProvenancePath(fileProv);
+  } catch {
+    return { valid: false, error: 'Malformed file provenance URI' };
+  }
 
-  // Security: reject paths outside content directory
-  if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+  // Only accept files from the content mount
+  const contentPrefix = 'content/';
+  if (!logicalPath.startsWith(contentPrefix)) {
+    return { valid: false, error: 'File is not in the content mount' };
+  }
+  const relativePath = logicalPath.slice(contentPrefix.length);
+
+  const normalized = path.normalize(relativePath);
+
+  // Security: reject paths that escape via traversal
+  if (normalized.startsWith('..') || path.isAbsolute(normalized)) {
     return { valid: false, error: 'File is outside content directory' };
   }
 
-  return { valid: true, relativePath: relativePath as SafeRelativePath };
+  return { valid: true, relativePath: normalized as SafeRelativePath };
 }
 
 /**

@@ -3,7 +3,7 @@
 import { parseOLX } from './parseOLX';
 import type { IdMap, OlxJson, OlxKey, ContentVariant } from '../types';
 
-const PROV = ['file://test.xml'];
+const PROV = ['file:///test/test.xml'];
 
 // Helper: extract the '*' (language-agnostic) variant for a block ID.
 // Accepts string for convenience in tests (cast to branded types internally).

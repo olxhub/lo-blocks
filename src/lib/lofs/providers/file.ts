@@ -22,6 +22,7 @@ import {
   type GrepMatch,
   VersionConflictError,
   toFileProvenanceURI,
+  fileProvenancePath,
 } from '../types';
 import { fileTypes } from '../fileTypes';
 import type { JSONValue } from '../../types';
@@ -332,10 +333,48 @@ async function listFileTree(
 }
 
 export class FileStorageProvider implements StorageProvider {
-  baseDir: string;
+  readonly baseDir: string;
+  readonly mountPoint: string;
 
-  constructor(baseDir = './content') {
+  /**
+   * @param baseDir - Filesystem directory to serve files from (default: './content')
+   * @param mountPoint - Logical mount point in the LOFS namespace (default: basename of baseDir).
+   *   Must be unique across stacked providers — two providers with the same mount point
+   *   produce indistinguishable provenance URIs. Pass explicitly when basename doesn't
+   *   match the desired mount (e.g., OLX_CONTENT_DIR=/data/courses → mountPoint='content').
+   */
+  constructor(baseDir = './content', mountPoint?: string) {
     this.baseDir = path.resolve(baseDir);
+    const mp = mountPoint ?? path.basename(this.baseDir);
+    if (!mp || mp.startsWith('/') || mp.includes('\0') || mp.split('/').some(s => s === '..')) {
+      throw new Error(`Invalid mount point: "${mp}"`);
+    }
+    this.mountPoint = mp;
+  }
+
+  /**
+   * Extract the path within this mount from a file:// provenance URI.
+   *
+   * 'file:///content/sba/foo.olx'       + mountPoint='content'         → 'sba/foo.olx'
+   * 'file:///content/ee/ee101/labs/l.olx' + mountPoint='content/ee/ee101' → 'labs/l.olx'
+   *
+   * Throws on mount-point mismatch, which is how StackedStorageProvider
+   * routes to the correct provider (try/catch fallthrough).
+   */
+  private extractRelativePath(uri: string): string {
+    const logicalPath = fileProvenancePath(uri);
+    const prefix = this.mountPoint + '/';
+    if (!logicalPath.startsWith(prefix)) {
+      throw new Error(
+        `Mount point mismatch: URI '${uri}' doesn't match mount '${this.mountPoint}'`
+      );
+    }
+    const rel = logicalPath.slice(prefix.length);
+    const normalized = path.normalize(rel);
+    if (normalized.startsWith('..') || path.isAbsolute(normalized)) {
+      throw new Error(`Path traversal in provenance URI: ${uri}`);
+    }
+    return normalized;
   }
 
   async loadXmlFilesWithStats(previous: Record<ProvenanceURI, XmlFileInfo> = {}): Promise<XmlScanResult> {
@@ -375,7 +414,7 @@ export class FileStorageProvider implements StorageProvider {
         if (entry.isDirectory()) {
           await walk(fullPath);
         } else if (isContentFile(entry, fullPath)) {
-          const id = toFileProvenanceURI(fullPath);
+          const id = toFileProvenanceURI(this.mountPoint, path.relative(this.baseDir, fullPath));
           const stat = await fs.stat(fullPath);
           const ext = path.extname(fullPath).slice(1);
           const type = (fileTypes as any)[ext] ?? ext;
@@ -420,7 +459,7 @@ export class FileStorageProvider implements StorageProvider {
       return {
         content,
         metadata: { mtime: stat.mtimeMs, size: stat.size },
-        provenance: toFileProvenanceURI(full),
+        provenance: toFileProvenanceURI(this.mountPoint, path.relative(this.baseDir, full)),
       };
     } catch (err: any) {
       if (err.code === 'ENOENT') {
@@ -474,12 +513,7 @@ export class FileStorageProvider implements StorageProvider {
   /** Convert a path or file:// provenance URI to a provider-relative path. */
   toRelativePath(pathOrUri: string): string {
     if (!pathOrUri.startsWith('file://')) return pathOrUri;
-    const absPath = pathOrUri.slice(7);
-    const rel = path.relative(this.baseDir, absPath);
-    if (rel.startsWith('..')) {
-      throw new Error(`Path outside base directory: ${pathOrUri}`);
-    }
-    return rel;
+    return this.extractRelativePath(pathOrUri);
   }
 
   async rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
@@ -500,23 +534,17 @@ export class FileStorageProvider implements StorageProvider {
   }
 
   resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
-    // Extract the file path from provenance URI relative to this provider's baseDir
-    // e.g., "file:///home/user/projects/lo-blocks/content/sba/file.xml" -> "sba/file.xml"
-    //
-    // Runtime scheme check stays as defense-in-depth — TypeScript brands document
-    // intent but don't prevent `as` casts or JS callers from passing wrong schemes.
+    // Runtime scheme check — defense-in-depth beyond TypeScript brands.
     if (!baseProvenance.startsWith('file://')) {
       throw new Error(`Unsupported provenance format: ${baseProvenance}`);
     }
 
-    const filePath = baseProvenance.slice(7); // Remove "file://"
-    const relativeFilePath = path.relative(this.baseDir, filePath);
-
-    if (relativeFilePath.startsWith('..')) {
-      throw new Error(`Provenance file outside base directory: ${baseProvenance}`);
-    }
-
-    const baseDir = path.dirname(relativeFilePath);
+    // extractRelativePath validates the mount point and returns
+    // the path within this mount (e.g., 'sba/file.xml').
+    // Mount mismatch throws, which is how StackedStorageProvider
+    // routes to the correct provider.
+    const baseRelPath = this.extractRelativePath(baseProvenance);
+    const baseDir = path.dirname(baseRelPath);
     const resolved = path.normalize(path.join(baseDir, relativePath));
 
     // Security: validate resolved result stays within base directory.
@@ -529,7 +557,7 @@ export class FileStorageProvider implements StorageProvider {
   }
 
   toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
-    return toFileProvenanceURI(path.resolve(this.baseDir, safePath));
+    return toFileProvenanceURI(this.mountPoint, safePath);
   }
 
   async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {

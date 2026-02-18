@@ -97,15 +97,25 @@ export class NetworkStorageProvider implements StorageProvider {
    */
   resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
     // Extract path from provenance URI
-    // Provenance format varies: "file://...", "network://...", or just a path
+    // Provenance format varies: "file:///content/...", "network://content/...", or just a path
     let basePath: string;
     if (baseProvenance.includes('://')) {
-      // URI format - extract path after protocol
-      const url = new URL(baseProvenance);
-      basePath = url.pathname;
+      basePath = baseProvenance.split('://').slice(1).join('://');
     } else {
-      // Plain path
       basePath = baseProvenance;
+    }
+
+    // file:/// URIs have an absolute path after the authority (file:// + /path),
+    // so the extracted portion starts with /. Strip it to get the logical path.
+    basePath = basePath.replace(/^\/+/, '');
+
+    // Strip namespace prefix if present. Provenance URIs include the mount
+    // point / namespace (e.g., file:///content/sba/foo.olx has 'content/' as
+    // the mount point matching this provider's namespace). The resolved result
+    // must be relative to the namespace root since read() prepends it back.
+    const nsPrefix = this.namespace + '/';
+    if (basePath.startsWith(nsPrefix)) {
+      basePath = basePath.slice(nsPrefix.length);
     }
 
     // Get directory of base file

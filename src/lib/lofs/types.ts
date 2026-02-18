@@ -136,13 +136,33 @@ export function toOlxRelativePath(
 }
 
 /**
- * Brand a file:// provenance URI. Use when constructing provenance from
- * a known filesystem path (e.g., in FileStorageProvider or translate route).
+ * Construct a file:// provenance URI from a mount point and relative path.
  *
- * Runtime scheme checks (startsWith('file://')) remain as defense-in-depth.
+ * @param mountPoint - Logical mount name (e.g., 'content', 'content/ee/ee101')
+ * @param relativePath - Path within the mount (e.g., 'sba/foo.olx')
+ * @returns e.g. 'file:///content/sba/foo.olx'
  */
-export function toFileProvenanceURI(absPath: string): FileProvenanceURI {
-  return `file://${absPath}` as FileProvenanceURI;
+export function toFileProvenanceURI(mountPoint: string, relativePath: string): FileProvenanceURI {
+  if (relativePath.includes('\\')) {
+    throw new Error(`Provenance paths must use forward slashes: "${relativePath}"`);
+  }
+  return `file:///${mountPoint}/${relativePath}` as FileProvenanceURI;
+}
+
+/**
+ * Extract the logical path from a file:// provenance URI.
+ *
+ * Returns the full path after file:/// — e.g. 'content/sba/foo.olx'
+ * from 'file:///content/sba/foo.olx'.
+ *
+ * Mount point resolution is the provider's responsibility — see
+ * FileStorageProvider.extractRelativePath().
+ */
+export function fileProvenancePath(uri: string): string {
+  if (!uri.startsWith('file:///')) {
+    throw new Error(`Not a file provenance URI: ${uri}`);
+  }
+  return uri.slice('file:///'.length);
 }
 
 /**
@@ -222,7 +242,7 @@ export interface StorageProvider {
    *
    * Maps from a canonical name (SafeRelativePath) to this provider's
    * location URI. For example:
-   * - FileStorageProvider:   "sba/foo.olx" → "file:///home/.../content/sba/foo.olx"
+   * - FileStorageProvider:   "sba/foo.olx" → "file:///content/sba/foo.olx"
    * - InMemoryStorageProvider: "sba/foo.olx" → "memory://sba/foo.olx"
    *
    * Used by parsers to extend provenance chains without knowing about

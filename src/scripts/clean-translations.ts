@@ -21,7 +21,7 @@ const contentDir = path.resolve(process.env.OLX_CONTENT_DIR || './content');
 const dryRun = !process.argv.includes('--rm');
 
 async function main() {
-  const provider = new FileStorageProvider(contentDir);
+  const provider = new FileStorageProvider(contentDir, 'content');
   const { idMap } = await syncContentFromStorage(provider);
 
   // Collect provenance URIs of machine-translated files
