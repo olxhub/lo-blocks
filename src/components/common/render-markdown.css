@@ -1,0 +1,98 @@
+/* Shared styles for rendered Markdown content.
+ * Applied automatically by RenderMarkdown — any consumer gets these. */
+
+.rendered-markdown {
+  color: var(--lo-text-primary);
+  line-height: var(--lo-line-height-relaxed);
+}
+
+.rendered-markdown h1 {
+  font-size: var(--lo-font-size-3xl);
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: var(--lo-space-xl);
+  color: var(--lo-text-primary);
+  border-bottom: 2px solid var(--lo-border);
+  padding-bottom: var(--lo-space-md);
+}
+
+.rendered-markdown h2 {
+  font-size: var(--lo-font-size-2xl);
+  font-weight: 600;
+  margin-top: var(--lo-space-2xl);
+  margin-bottom: var(--lo-space-lg);
+  color: var(--lo-text-primary);
+}
+
+.rendered-markdown h3 {
+  font-size: var(--lo-font-size-xl);
+  font-weight: 600;
+  margin-top: var(--lo-space-xl);
+  margin-bottom: var(--lo-space-md);
+  color: var(--lo-text-primary);
+}
+
+.rendered-markdown p {
+  margin-bottom: var(--lo-space-lg);
+  color: var(--lo-text-primary);
+}
+
+.rendered-markdown ul, .rendered-markdown ol {
+  margin-bottom: var(--lo-space-lg);
+  padding-inline-start: var(--lo-space-xl);
+}
+
+.rendered-markdown li {
+  margin-bottom: var(--lo-space-sm);
+  color: var(--lo-text-primary);
+}
+
+.rendered-markdown ul li {
+  list-style-type: disc;
+}
+
+.rendered-markdown ol li {
+  list-style-type: decimal;
+}
+
+.rendered-markdown code {
+  background-color: var(--lo-surface);
+  padding: var(--lo-space-xs) var(--lo-space-sm);
+  border-radius: var(--lo-radius-sm);
+  font-family: var(--lo-font-mono);
+  font-size: 0.9em;
+  color: var(--lo-primary);
+}
+
+.rendered-markdown pre {
+  background-color: var(--lo-surface);
+  padding: var(--lo-space-lg);
+  border-radius: var(--lo-radius-md);
+  overflow-x: auto;
+  margin-bottom: var(--lo-space-lg);
+}
+
+.rendered-markdown pre code {
+  background: none;
+  padding: 0;
+  color: var(--lo-text-primary);
+}
+
+.rendered-markdown blockquote {
+  border-inline-start: 4px solid var(--lo-primary);
+  padding-inline-start: var(--lo-space-lg);
+  margin: var(--lo-space-lg) 0;
+  color: var(--lo-text-secondary);
+  font-style: italic;
+}
+
+.rendered-markdown a {
+  color: var(--lo-primary);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 150ms ease;
+}
+
+.rendered-markdown a:hover {
+  text-decoration-color: var(--lo-primary);
+}

@@ -38,10 +38,6 @@
   white-space: pre-wrap;
 }
 
-/* Markdown render mode */
-.lo-tag-llmfeedback .llm-feedback-markdown {
-}
-
 /* Code render mode */
 .lo-tag-llmfeedback .llm-feedback-code {
   background-color: var(--lo-surface-muted, #f5f5f5);
