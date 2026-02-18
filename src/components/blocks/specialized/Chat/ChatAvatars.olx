@@ -1,0 +1,27 @@
+<Chat id="ChatAvatarsDemo" title="Research Methods Seminar">
+Title: Research Methods Seminar
+Cast:
+  Professor Chen:
+    seed: chen_professor
+    face: calm
+  Maya:
+    seed: maya_grad
+    face: smile
+  Jordan:
+    style: initials
+~~~~
+
+Professor Chen: Welcome to the research methods seminar. Today we're reviewing experimental design.
+
+Maya: I've been reading about between-subjects versus within-subjects designs.
+
+Jordan: Can you explain when you'd choose one over the other?
+
+--- pause ---
+
+Professor Chen: Between-subjects avoids order effects but requires more participants. Within-subjects controls for individual differences but risks carryover. [face=smile]
+
+Maya: So a mixed design could give you the best of both? [face=awe]
+
+Professor Chen: In many cases, yes. The key is matching your design to your research question.
+</Chat>

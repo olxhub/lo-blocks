@@ -1,0 +1,1035 @@
+<!--
+---
+description: Activities for Psychology SBA Part 3 - Function of Behavior. This is not an independent activity, but is shown to support content editing.
+category: psychology
+index: 53
+lang: en-Latn-US
+---
+-->
+<Vertical id="psych_sba_fba_activities" title="Psychology Study Group: 3. Function of Behavior (Activities)" launchable="true">
+
+  <!-- Introduction section -->
+  <Vertical id="fba_introduction">
+    <Markdown id="fba_intro_text">
+## About This Scenario
+
+Your class teammates are JJ, Lin, and Annie. Your team is responsible for helping each other identify key concepts, review and learn from readings, and organize information to develop a solution to the problem.
+
+Lianne Park is a graduate student and member of your team. She will provide guidance as necessary to help you with key information.
+
+In this module, you will review and apply several concepts from your coursework on behavior modification. Specifically, you will:
+
+- Read about behavior modification techniques and think about how they apply to a real-life situation
+- Identify the antecedents and consequences associated with a problem behavior
+- Develop an intervention plan
+- Use an AI Assistant to support learning and problem solving
+    </Markdown>
+  </Vertical>
+
+  <!-- Roommate situation recap -->
+  <Vertical id="roommate_situation">
+    <Markdown id="roommate_situation_text">
+## The Situation So Far
+
+Annie's roommate has been trying positive reinforcement techniques to get Johnny (the 6-year-old she babysits) to go to bed, but they aren't working out like she thought.
+
+**What's happening:**
+- She rewards him for going to his room by letting him play with his favorite toys before bed
+- After a while, she tells him to put away his toys in a box in his room, which he does
+- But when she tells him to get into bed, he runs away from the room laughing whenever "bed" is mentioned
+- She chases after him and keeps nagging him to go to bed
+- He eventually gets tired and goes to bed, but she's left feeling tired and frustrated
+    </Markdown>
+  </Vertical>
+
+  <!-- Function of behavior introduction -->
+  <Vertical id="function_behavior_intro">
+    <Markdown id="function_intro_text">
+## Function of Behavior
+
+One of the things we learned in class was that whenever you need to intervene with a behavior, the intervention must address the **function of the behavior**.
+    </Markdown>
+  </Vertical>
+
+  <!-- AI interface for function definition -->
+  <Vertical id="ai_function_definition">
+    <Markdown id="ai_function_prompt">
+### What is the Function of a Behavior?
+Try to explain what the function of a behavior is, based on what you know or remember from class.
+    </Markdown>
+    <TextArea
+        id="ai_function_query"
+        rows="2"
+        placeholder="Type your explanation of function of behavior here..." />
+    <LLMFeedback
+        id="function_ai_response"
+        render="markdown"
+        placeholder="The AI response will appear here..." />
+    <ActionButton id="ask_ai_function_btn" label="Get AI Feedback" dependsOn="@ai_function_query.value">
+      <LLMAction target="function_ai_response">
+          You are a helpful psychology teaching assistant. One of your students has
+          provided the following attempt to explain what function of behavior is:
+
+          <Ref id="ai_function_query_ref" target="ai_function_query" />
+
+          If their response is not a good-faith effort to explain what function
+          of behavior is, reprimand them about that, and stop without mentioning
+          what the function of a behavior is or what the four main functions are.
+          Otherwise, let them know what
+          they've gotten right and explain anything they've missed or misstated, making
+          your goal to explain the concept of 'function of behavior' in behavioral
+          psychology, including the fact that 'function of behavior' refers to the
+          purpose or reason behind why a behavior occurs -- what the person gains
+          from the behavior -- and mentioning mention the four main functions:
+          attention, escape, access to tangibles/preferred items, and sensory/
+          automatic reinforcement.
+
+          Keep your response accessible for undergraduate students.
+
+          Output your response in Markdown with bolded paragraph and list headers, but
+          keep it short -- no more than a few paragraphs.
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <!-- Lin's notes on 4 functions -->
+  <Vertical id="four_functions_notes">
+    <Markdown id="four_functions_text">
+## The Four Functions of Behavior
+
+Lin's notes from class:
+
+The four main functions of behavior are:
+
+| Function | Description |
+|----------|-------------|
+| **Attention** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Behavior occurs to get attention from others |
+| **Escape** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Behavior occurs to avoid or get away from something |
+| **Access** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Behavior occurs to gain access to a preferred activity or object |
+| **Sensory** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Behavior occurs because it feels good (automatic reinforcement) |
+
+    </Markdown>
+  </Vertical>
+
+  <!-- Review MCQ: Reinforcement concepts -->
+  <Vertical id="review_reinforcement1">
+    <Markdown id="review_header">
+        ## Review: Reinforcement Concepts
+
+        Let's review some examples from Lianne's notes.
+    </Markdown>
+
+    <CapaProblem title="Billy's Joke" id="review_billy_joke">
+      <KeyGrader>
+        <p>Billy tells a joke to his class, and the class laughs. The next day,
+           Billy tells another joke, and the class laughs again. In this case,
+          laughter serves as...</p>
+        <ChoiceInput>
+          <Key id="billy_key">Positive Reinforcement</Key>
+          <Distractor id="billy_d1">Negative Reinforcement</Distractor>
+          <Distractor id="billy_d2">Positive Punishment</Distractor>
+          <Distractor id="billy_d3">Negative Punishment</Distractor>
+        </ChoiceInput>
+      </KeyGrader>
+      <Explanation>
+          <Markdown>
+            - The laughter results in Billy telling jokes **more often**, so this is **reinforcement**.
+            - Something is **added** (laughter), so this is **positive** reinforcement.
+          </Markdown>
+      </Explanation>
+    </CapaProblem>
+  </Vertical>
+
+  <!-- Review MCQ: Reinforcement concepts2 -->
+  <Vertical id="review_reinforcement2">
+    <Markdown id="review_header2">
+        ## Review: Reinforcement Concepts
+
+        Let's review some examples from Lianne's notes.
+    </Markdown>
+    <CapaProblem title="Jenny's Whining" id="review_jenny_whining">
+      <KeyGrader>
+        <p>Jenny whines to her teacher when given a math worksheet. After trying the problems, Jenny whines again that it is "too hard." The teacher then removes the worksheet. The next day, Jenny whines again when given a new worksheet. In this case, whining serves as...</p>
+        <ChoiceInput>
+          <Distractor id="jenny_d1">Positive Reinforcement</Distractor>
+          <Key id="jenny_key">Negative Reinforcement</Key>
+          <Distractor id="jenny_d2">Positive Punishment</Distractor>
+          <Distractor id="jenny_d3">Negative Punishment</Distractor>
+        </ChoiceInput>
+      </KeyGrader>
+      <Explanation>
+          <Markdown>
+              - The teacher's response makes Jenny **more likely** to white, so this is **reinforcement**.
+              - The teacher responded by **taking something away** (the worksheet), so this is **negative** reinforcement.
+          </Markdown>
+      </Explanation>
+    </CapaProblem>
+  </Vertical>
+
+  <Vertical id="four_functions_review_notes">
+    <Markdown id="lecture_notes_reminder">
+**Lecture Notes Reminder:**
+
+- **Reinforcement** is any event that strengthens (increases the frequency of) a preceding response
+- **Punishment** is any consequence that decreases the frequency of a preceding behavior
+- **Positive Reinforcement** strengthens responding by presenting a typically pleasurable stimulus immediately after a response
+- **Negative Reinforcement** strengthens a response by reducing or removing something negative
+    </Markdown>
+  </Vertical>
+
+  <!-- Function + Reinforcement relationship -->
+  <Vertical id="function_reinforcement">
+    <Markdown id="function_reinforcement_text">
+## Functions and Reinforcement Types
+
+Lianne also said during class:
+
+- If the function is for **attention** or **tangibles/access**, it usually involves **positive reinforcement**
+- If the function is **escape**, it typically involves **negative reinforcement**
+- For **sensory**, it can be either one
+    </Markdown>
+  </Vertical>
+
+  <!-- AI interface for chart -->
+  <Vertical id="ai_function_chart">
+    <Markdown id="ai_chart_prompt">
+       **Examples of Positive and Negative Feedback with Each of the Four Functions**
+    </Markdown>
+    <LLMFeedback id="chart_ai_response" placeholder="AI response will appear here..." />
+    <ActionButton id="ask_ai_chart_btn" label="Ask AI">
+      <LLMAction target="chart_ai_response">
+You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement. Use a markdown table format. Include concrete examples for each function. Include a blank columns to set off each column from the ones next to it.
+
+Student's request: <Ref target="ai_chart_query" />
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <SplitPanel id="own_examples_page_attention">
+      <LeftPane>
+          <Markdown>
+              **Examples of Positive Reinforcement**
+
+              1. Attention
+          </Markdown>
+          <TextArea
+              id="positive_reinforcement_for_attention"
+              rows="2" />
+      </LeftPane>
+      <RightPane>
+          <Markdown>
+              **Examples of Negative Reinforcement**
+
+              1. Attention
+          </Markdown>
+          <TextArea
+              id="negative_reinforcement_for_attention"
+              rows="2" />
+      </RightPane>
+  </SplitPanel>
+
+  <SplitPanel id="own_examples_page_escape">
+      <LeftPane>
+          <Markdown>
+              **Examples of Positive Reinforcement**
+
+              2. Escape
+          </Markdown>
+          <TextArea
+              id="positive_reinforcement_for_escape"
+              rows="2" />
+      </LeftPane>
+      <RightPane>
+          <Markdown>
+              **Examples of Negative Reinforcement**
+
+              2. Escape
+          </Markdown>
+          <TextArea
+              id="negative_reinforcement_for_escape"
+              rows="2" />
+      </RightPane>
+  </SplitPanel>
+
+  <SplitPanel id="own_examples_page_access">
+      <LeftPane>
+          <Markdown>
+              **Examples of Positive Reinforcement**
+
+              3. Access
+          </Markdown>
+          <TextArea
+              id="positive_reinforcement_for_access"
+              rows="2" />
+      </LeftPane>
+      <RightPane>
+          <Markdown>
+              **Examples of Negative Reinforcement**
+
+              3. Access
+          </Markdown>
+          <TextArea
+              id="negative_reinforcement_for_access"
+              rows="2" />
+      </RightPane>
+  </SplitPanel>
+
+  <SplitPanel id="own_examples_page_sensory">
+      <LeftPane>
+          <Markdown>
+              **Examples of Positive Reinforcement**
+
+              4. Sensory
+          </Markdown>
+          <TextArea
+              id="positive_reinforcement_for_sensory"
+              rows="2" />
+      </LeftPane>
+      <RightPane>
+          <Markdown>
+              **Examples of Negative Reinforcement**
+
+              4. Sensory
+          </Markdown>
+          <TextArea
+              id="negative_reinforcement_for_sensory"
+              rows="2" />
+      </RightPane>
+  </SplitPanel>
+
+  <!-- Why no punishment function -->
+  <Vertical id="no_punishment_function">
+    <Markdown id="no_punishment_text">
+## Why Is There No Function for Punishment?
+
+You might wonder: what about punishment? Isn't that a function too?
+
+**AI Response:**
+
+When we talk about the "function" of a behavior, we're asking: **"What is this behavior FOR?"** or **"What does the person GAIN from doing this?"**
+
+Functions describe what maintains or increases a behavior - they're about **reinforcement**, not punishment.
+
+- Punishment *decreases* behavior
+- Functions explain why behaviors *persist* or *increase*
+
+So while punishment is an important concept in behavior modification, it's not considered a "function" because functions describe what the person is trying to **get** (attention, escape, tangibles, sensory stimulation), not what they're trying to **avoid**.
+    </Markdown>
+  </Vertical>
+
+  <!-- Check for understanding - explain no punishment function -->
+  <Vertical id="explain_no_punishment">
+    <Markdown id="explain_prompt">
+## Check for Understanding
+
+In your own words, explain why there is no function for punishment.
+    </Markdown>
+    <TextArea id="punishment_explanation" placeholder="Explain in your own words..." />
+  </Vertical>
+
+  <!-- Practice: Function identification drag-and-drop set 1 -->
+  <Vertical id="function_practice_1">
+    <Markdown id="function_practice_header1">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
+    <CapaProblem title="Michelle hides under desks" id="function_michelle">
+      <KeyGrader>
+        <p>Michelle does not want to do her math test, so instead she gets up out of her seat and hides under desks and furniture in her classroom.</p>
+        <ChoiceInput>
+          <Key id="michelle_key">Escape</Key>
+          <Distractor id="michelle_d1">Attention</Distractor>
+          <Distractor id="michelle_d2">Sensory</Distractor>
+          <Distractor id="michelle_d3">Access/Tangible</Distractor>
+        </ChoiceInput>
+      </KeyGrader>
+      <Explanation>
+          Hiding helps Michelle avoid her math test, so the function is escape.
+      </Explanation>
+    </CapaProblem>
+  </Vertical>
+  <!-- Practice: Function identification drag-and-drop set 1 -->
+  <Vertical id="function_practice_1b">
+    <Markdown id="function_practice_header1b">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
+    <CapaProblem title="Beth argues with teacher" id="function_beth">
+      <KeyGrader>
+        <p>Beth does not want to do her science seatwork, so instead she talks back and argues with her teacher, yelling that the teacher is unfair and trying to get other students to agree with her.</p>
+        <ChoiceInput>
+          <Distractor id="beth_d1">Escape</Distractor>
+          <Key id="beth_key">Attention</Key>
+          <Distractor id="beth_d2">Sensory</Distractor>
+          <Distractor id="beth_d3">Access/Tangible</Distractor>
+        </ChoiceInput>
+      </KeyGrader>
+      <Explanation>
+          Arguing with the teacher may help Beth avoid her science seatwork, but
+          the yelling and focus on getting other students to agree is more consistent
+          with the function of her behavior being to get attention.
+      </Explanation>
+    </CapaProblem>
+  </Vertical>
+  <!-- Practice: Function identification drag-and-drop set 1 -->
+  <Vertical id="function_practice_1c">
+    <Markdown id="function_practice_header1c">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
+    <CapaProblem title="Randy hums softly" id="function_randy">
+      <KeyGrader>
+        <p>Randy hums softly to himself while doing his work because it feels calming, even if no one responds.</p>
+        <ChoiceInput>
+          <Distractor id="randy_d1">Escape</Distractor>
+          <Distractor id="randy_d2">Attention</Distractor>
+          <Key id="randy_key">Sensory</Key>
+          <Distractor id="randy_d3">Access/Tangible</Distractor>
+        </ChoiceInput>
+      </KeyGrader>
+      <Explanation>
+          Randy's behavior is motivated by the sensory effect of humming (helping to calm
+          himself), so the function of the behavior is sensory.
+      </Explanation>
+    </CapaProblem>
+  </Vertical>
+  <!-- Practice: Function identification drag-and-drop set 1 -->
+  <Vertical id="function_practice_1d">
+    <Markdown id="function_practice_headerd">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
+    <CapaProblem title="Ryan rushes through math" id="function_ryan">
+      <KeyGrader>
+        <p>Ryan wants to play with his iPad but needs to finish his work first. He then rushes through his math work and answers "100" for every question just so he can play with the iPad.</p>
+        <ChoiceInput>
+          <Distractor id="ryan_d1">Escape</Distractor>
+          <Distractor id="ryan_d2">Attention</Distractor>
+          <Distractor id="ryan_d3">Sensory</Distractor>
+          <Key id="ryan_key">Access/Tangible</Key>
+        </ChoiceInput>
+      </KeyGrader>
+      <Explanation>
+          The point of Randy's behavior is to get that iPad into his hand, so the function
+          of his behavior is access.
+      </Explanation>
+    </CapaProblem>
+  </Vertical>
+  <!-- Practice: Function identification drag-and-drop set 1 -->
+  <Vertical id="function_practice_1e">
+    <Markdown id="function_practice_header1e">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
+    <CapaProblem title="Emily makes silly noises" id="function_emily">
+      <KeyGrader>
+        <p>Emily makes silly noises during silent reading time because she knows her peers will turn around to giggle and talk to her.</p>
+        <ChoiceInput>
+          <Distractor id="emily_d1">Escape</Distractor>
+          <Key id="emily_key">Attention</Key>
+          <Distractor id="emily_d2">Sensory</Distractor>
+          <Distractor id="emily_d3">Access/Tangible</Distractor>
+        </ChoiceInput>
+      </KeyGrader>
+      <Explanation>
+          The result of Emily's behavior is to get her classmates interacting with
+          her, so the function of her behavior is attention.
+      </Explanation>
+    </CapaProblem>
+  </Vertical>
+  <!-- Practice: Function identification set 2 -->
+  <Vertical id="function_practice_2">
+    <Markdown id="function_practice_header2">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
+    <CapaProblem title="Sally drops supplies" id="function_sally">
+      <KeyGrader>
+        <p>Sally drops her writing supplies or goes and spends a long time at the pencil sharpener every time it is time to do writing work.</p>
+        <ChoiceInput>
+          <Key id="sally_key">Escape</Key>
+          <Distractor id="sally_d1">Attention</Distractor>
+          <Distractor id="sally_d2">Sensory</Distractor>
+          <Distractor id="sally_d3">Access/Tangible</Distractor>
+        </ChoiceInput>
+      </KeyGrader>
+      <Explanation>
+          Sally's behaviors all have the effect of preventing or delaying her
+          getting started on her writing work, so the function of her behavior
+          is escape.
+      </Explanation>
+    </CapaProblem>
+  </Vertical>
+  <!-- Practice: Function identification set 2 -->
+  <Vertical id="function_practice_2b">
+    <Markdown id="function_practice_header2b">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
+    <CapaProblem title="Aidan blurts out" id="function_aidan">
+      <KeyGrader>
+        <p>Aidan repeatedly blurts out answers and makes comments during his teacher's lessons to make the teacher laugh.</p>
+        <ChoiceInput>
+          <Distractor id="aidan_d1">Escape</Distractor>
+          <Key id="aidan_key">Attention</Key>
+          <Distractor id="aidan_d2">Sensory</Distractor>
+          <Distractor id="aidan_d3">Access/Tangible</Distractor>
+        </ChoiceInput>
+      </KeyGrader>
+      <Explanation>
+          Aidan's behavior has the affect of forcing the teacher to focus on him,
+          so the function of his behavior is attention.
+      </Explanation>
+    </CapaProblem>
+  </Vertical>
+  <!-- Practice: Function identification set 2 -->
+  <Vertical id="function_practice_2c">
+    <Markdown id="function_practice_header2c">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
+    <CapaProblem title="Matthew taps foot" id="function_matthew">
+      <KeyGrader>
+        <p>Matthew taps his foot because the movement feels good, regardless of what others say or do.</p>
+        <ChoiceInput>
+          <Distractor id="matthew_d1">Escape</Distractor>
+          <Distractor id="matthew_d2">Attention</Distractor>
+          <Key id="matthew_key">Sensory</Key>
+          <Distractor id="matthew_d3">Access/Tangible</Distractor>
+        </ChoiceInput>
+      </KeyGrader>
+      <Explanation>
+          Matthew's behavior is motivated by the pleasant sensation he gets from
+          foot-tapping, so the function of his behavior is sensory.
+      </Explanation>
+    </CapaProblem>
+  </Vertical>
+  <!-- Practice: Function identification set 2 -->
+  <Vertical id="function_practice_2d">
+    <Markdown id="function_practice_header2d">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
+    <CapaProblem title="Jasmine tantrums" id="function_jasmine">
+      <KeyGrader>
+        <p>Jasmine tantrums when she is told that she cannot have the snack she wants at the grocery store.</p>
+        <ChoiceInput>
+          <Distractor id="jasmine_d1">Escape</Distractor>
+          <Distractor id="jasmine_d2">Attention</Distractor>
+          <Distractor id="jasmine_d3">Sensory</Distractor>
+          <Key id="jasmine_key">Access/Tangible</Key>
+        </ChoiceInput>
+      </KeyGrader>
+      <Explanation>
+          Jasmine's goal is to get that snack into her hands, so the function of her
+          behavior is access.
+      </Explanation>
+    </CapaProblem>
+  </Vertical>
+  <!-- Practice: Function identification set 2 -->
+  <Vertical id="function_practice_2e">
+    <Markdown id="function_practice_header2e">
+        ## Practice: Identify the Function
+        Categorize each behavior by its function: Escape, Attention, Sensory, or Access/Tangible.
+    </Markdown>
+    <CapaProblem title="Simon needs bathroom" id="function_simon">
+      <KeyGrader>
+        <p>Simon suddenly needs to go to the bathroom every time it is time to transition to math class.</p>
+        <ChoiceInput>
+          <Key id="simon_key">Escape</Key>
+          <Distractor id="simon_d1">Attention</Distractor>
+          <Distractor id="simon_d2">Sensory</Distractor>
+          <Distractor id="simon_d3">Access/Tangible</Distractor>
+        </ChoiceInput>
+      </KeyGrader>
+      <Explanation>
+          Simon's need to go to the bathroom has the effect of preventing him from
+          going to math class, at least for a while, so the function of his behavior
+          is escape.
+      </Explanation>
+    </CapaProblem>
+  </Vertical>
+
+  <!-- Screen clearer -->
+  <Vertical id="abc_screen_clear">
+    <Markdown id="abc_intro_claear">
+        &nbsp;
+    </Markdown>
+  </Vertical>
+
+  <!-- ABCs Introduction -->
+  <Vertical id="abc_introduction">
+    <Markdown id="abc_intro_text">
+## The ABCs of Behavior
+
+To figure out the function of behavior, we need to look at:
+
+- **A**ntecedent - What came BEFORE the behavior
+- **B**ehavior - The behavior itself
+- **C**onsequence - What came AFTER the behavior
+
+As the professor said: "It's as easy as learning your ABCs!"
+    </Markdown>
+  </Vertical>
+
+  <!-- AI interface for ABC diagrams -->
+  <Vertical id="ai_abc_diagrams">
+    <Markdown id="ai_abc_prompt">
+## Ask AI for ABC Examples
+
+Ask AI to come up with diagrams explaining antecedents, behaviors, and consequences using the 4 functions of behavior.
+    </Markdown>
+    <LLMFeedback
+        id="abc_ai_response"
+        render="markdown"
+        placeholder="AI response will appear here..." />
+    <ActionButton id="ask_ai_abc_btn" label="Ask AI">
+      <LLMAction target="abc_ai_response">
+You are a helpful psychology teaching assistant. Create clear examples of ABC (Antecedent-Behavior-Consequence) sequences for each of the four functions of behavior (escape, attention, access/tangible, sensory). Use a simple format showing: Antecedent -> Behavior -> Consequence -> Function. Include concrete, relatable examples a student would understand.
+
+Format your response in markdown, putting Put a separator line ('-----------------') first, the antecedent on the next line, the behavior on the line after that, the consequence on the line after that, and the the function on the last line in the set, with a right arrow before the behavior, consequence, and function. Reduce "Behavior: Behavior:" to "Behavior:" and "Consequent: Consequent:" to "Consequent:". Bold the words antecedent, behavior, consequent, and function.
+
+Student's request: <Ref target="ai_abc_query" />
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <!-- ABC Example walkthrough -->
+  <Vertical id="abc_example">
+    <Markdown id="abc_example_text">
+## ABC Example: Escape
+
+Let's look at an example:
+
+| Component | Example |
+|-----------|---------|
+| **Antecedent** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Teacher gives a difficult task |
+| **Behavior** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Student puts head down |
+| **Consequence** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Task is removed or delayed |
+| **Function** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**Escape** |
+
+**JJ explains:** The teacher gave a hard task, then the student put their head down instead of working on it. Then the teacher probably got sick of waiting and gave up on making them do it, or just assigned it for homework.
+
+**Lin adds:** Right, the student continued to put their head down for so long that maybe the teacher just delayed the task. Either way, the student successfully escaped the aversive task.
+    </Markdown>
+  </Vertical>
+
+  <!-- ABC Check: Johnny scenario -->
+  <Vertical id="competing_behavior_diagram">
+    <Image id="abc_competing_behavior" src="images/CompetingBehaviorDiagram.png" height="500px" />
+  </Vertical>
+
+  <!-- ABC Check: Johnny scenario -->
+  <Vertical id="abc_johnny_check">
+    <Markdown id="abc_johnny_prompt">
+## Apply ABCs to Johnny's Situation
+
+Explain the sequence of Antecedent, Behavior, and Consequence from Annie's roommate's story:
+
+> *Annie: Then, she tells him to get into bed, but like always, he runs away from the room laughing whenever "bed" is mentioned.*
+>
+> *Lin: Well, does he eventually go to bed?*
+>
+> *Annie: Well, yeah, but not without a fight. After he runs away, my roommate chases after him and keeps nagging on him to go to bed. I think he eventually gets tired and goes to bed, but my roommate is left feeling tired and frustrated, just like before.*
+    </Markdown>
+    <TextArea id="abc_johnny_explanation" placeholder="Describe the A-B-C sequence for Johnny's bedtime behavior..." />
+  </Vertical>
+
+  <!-- ABC Summary and Function MCQ -->
+  <Vertical id="abc_summary_mcq">
+    <Markdown id="abc_summary_text">
+## Johnny's ABC Analysis
+
+**JJ summarizes:**
+- **Antecedent:** Roommate tells Johnny to go to bed
+- **Behavior:** He runs out of his room laughing
+- **Consequence:** Roommate chases after him, nagging. He ultimately doesn't go to bed on time.
+    </Markdown>
+
+    <CapaProblem title="Johnny's Function" id="johnny_function_mcq">
+      <KeyGrader>
+        <p>Based on the ABCs, what is the function of Johnny's running-away behavior?</p>
+        <ChoiceInput>
+          <Distractor id="johnny_d1">Access/Tangible</Distractor>
+          <Distractor id="johnny_d2">Attention</Distractor>
+          <Key id="johnny_key">Escape</Key>
+          <Distractor id="johnny_d3">Sensory</Distractor>
+        </ChoiceInput>
+      </KeyGrader>
+      <Explanation>
+          Johnny's behavior consistently works to delay bedtime, which
+          presumably is something he wants to avoid, so the function
+          of his behavior is escape.
+      </Explanation>
+    </CapaProblem>
+  </Vertical>
+
+  <!-- Competing Behavior Pathway introduction -->
+  <Vertical id="cbp_introduction">
+    <Markdown id="cbp_intro_text">
+## Competing Behavior Pathway
+
+Now let's put it all together using a **Competing Behavior Pathway** - a tool Lianne showed us in class!
+
+This organizer helps us plan interventions by showing:
+1. The problem behavior and its consequences
+2. The desired replacement behavior
+3. What we want to happen instead
+
+**Current Pathway (Problem):**
+
+| Antecedent | Problem Behavior | Consequence | Function |
+|------------|------------------|-------------|----------|
+| Roommate tells Johnny to go to bed | Johnny runs away laughing | Roommate chases, nags; bedtime delayed | Escape |
+    </Markdown>
+  </Vertical>
+
+  <!-- Competing Behavior Pathway fill-in -->
+  <Vertical id="cbp_fill_in">
+    <Markdown id="cbp_fill_prompt">
+## Complete the Competing Behavior Pathway
+
+Fill in the blanks to create an intervention plan:
+    </Markdown>
+
+    <Markdown id="cbp_label_desired">**What is the DESIRED behavior we want instead of running away?**</Markdown>
+    <TextArea id="cbp_desired_behavior" placeholder="Example: Johnny goes to bed appropriately when asked" />
+
+    <Markdown id="cbp_label_outcome">**What should the positive outcome be when Johnny shows the desired behavior?**</Markdown>
+    <TextArea id="cbp_positive_outcome" placeholder="Example: Johnny goes to sleep, roommate is not frustrated" />
+
+  </Vertical>
+
+  <!-- CBP Comparison -->
+  <Vertical id="cbp_comparison">
+    <Markdown id="cbp_comparison_text">
+## JJ's Competing Behavior Pathway
+
+Here's what JJ came up with:
+
+| Component | Value |
+|-----------|-------|
+| **Antecedent** | Roommate tells Johnny to go to bed |
+| **Problem Behavior** | Johnny runs out of the room laughing |
+| **Consequence** | Roommate runs after him, nagging |
+| **Function** | Escape |
+| **Desired Behavior** | Johnny goes to bed appropriately |
+| **Positive Outcome** | Johnny goes to sleep; peaceful bedtime |
+
+Now that we know the function is **escape**, we need to figure out an intervention that addresses this!
+    </Markdown>
+  </Vertical>
+
+  <!-- Textbook excerpt on escape -->
+  <Vertical id="escape_textbook">
+    <Markdown id="escape_textbook_text">
+## Textbook: Intervening with Escape-Maintained Behavior
+
+**From Lin's textbook:**
+
+> "Escape is used to get away from something aversive or not preferred. **Changing antecedent conditions is key to intervening when the function of behavior is escape.**"
+
+We focused a lot on consequences in our last project, but we didn't focus much on antecedents. For escape-maintained behavior, antecedent strategies are especially important!
+    </Markdown>
+  </Vertical>
+
+  <!-- AI interface for intervention strategies -->
+  <Vertical id="ai_intervention">
+    <Markdown id="ai_intervention_prompt">
+## Ask AI for Intervention Strategies
+
+Write a prompt that will help you understand how to change the antecedents and consequences when the function of a behavior is escape.
+    </Markdown>
+    <TextArea id="ai_intervention_query" placeholder="Example: Create a list of interventions using antecedent strategies to prevent the problem behavior of not going to bed on time with escape as the function..." />
+    <LLMFeedback id="intervention_ai_response" placeholder="AI response will appear here..." />
+    <ActionButton id="ask_ai_intervention_btn" label="Ask AI" dependsOn="@ai_intervention_query.value">
+      <LLMAction target="intervention_ai_response">
+You are a helpful psychology teaching assistant. Provide a list of interventions for escape-maintained behavior related to bedtime resistance. Organize into two categories: (1) Antecedent strategies to PREVENT the problem behavior, and (2) Consequence strategies to RESPOND to the behavior. Include concrete, practical strategies like: timers, visual schedules, choice-making, positive reinforcement for compliance, planned ignoring, etc. Make strategies specific to a 6-year-old's bedtime routine.
+
+Student's prompt: <Ref target="ai_intervention_query" />
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <!-- Strategy selection -->
+  <Vertical id="strategy_selection">
+    <Markdown id="strategy_selection_prompt">
+## Select Appropriate Interventions
+
+Below are some intervention ideas. Select the ones that address **escape** as the function of behavior.
+
+**Antecedent Strategies:**
+    </Markdown>
+
+    <CapaProblem id="antecedent_strategies">
+      <Markdown>Select all antecedent strategies that address escape-maintained behavior:</Markdown>
+      <KeyGrader>
+        <CheckboxInput>
+          <Distractor id="ant_d1">Use sensory-friendly relaxation techniques before bed (addresses sensory)</Distractor>
+          <Key id="ant_k1">Create a predictable bedtime routine to make bedtime more manageable and less aversive</Key>
+          <Distractor id="ant_d2">Give high-quality attention before bed (addresses attention)</Distractor>
+          <Key id="ant_k2">Use timers and advance warnings to make bedtime more predictable</Key>
+          <Distractor id="ant_d3">Give the child a stuffed animal before they get into bed (addresses tangible)</Distractor>
+          <Distractor id="ant_d4">Have the child engage in yoga right before bedtime (addresses sensory)</Distractor>
+        </CheckboxInput>
+      </KeyGrader>
+    </CapaProblem>
+
+    <CapaProblem id="consequence_strategies">
+      <Markdown>Select all consequence strategies that address escape-maintained behavior:</Markdown>
+      <KeyGrader>
+        <CheckboxInput>
+          <Distractor id="con_d1">Provide extra attention during bedtime refusal behaviors (addresses attention)</Distractor>
+          <Key id="con_k1">Teach the child to use a "bedtime pass" - allowed to ask to stay up one more minute past bedtime once per week</Key>
+          <Distractor id="con_d2">Talk to the child until they eventually go to sleep (addresses attention)</Distractor>
+          <Distractor id="con_d3">Give the child access to an iPad when they successfully get in bed (addresses tangible)</Distractor>
+          <Key id="con_k2">Ignore behaviors such as whining that serve to delay bedtime</Key>
+          <Distractor id="con_d4">Track sensory triggers that relate to bedtime challenges (addresses sensory)</Distractor>
+        </CheckboxInput>
+      </KeyGrader>
+    </CapaProblem>
+
+  </Vertical>
+
+  <!-- Revised pathway -->
+  <Vertical id="revised_pathway">
+    <Markdown id="revised_pathway_intro">
+## Update the Competing Behavior Pathway
+
+Now let's revise our pathway with the strategies we've identified.
+    </Markdown>
+
+    <Markdown id="antecedent_strategies_label">**What antecedent strategies would you add to make bedtime less aversive?**</Markdown>
+    <TextArea id="revised_antecedents" placeholder="Example: Use a visual schedule, give 10-minute and 5-minute warnings..." />
+
+    <Markdown id="consequence_strategies_label">**What consequence strategies would you use when Johnny shows the desired behavior?**</Markdown>
+    <TextArea id="revised_consequences" placeholder="Example: Praise for getting in bed, bedtime story as reward..." />
+
+  </Vertical>
+
+  <!-- Two plans comparison -->
+  <Vertical id="plans_comparison">
+    <Markdown id="plans_intro">
+## Choose the Best Plan
+
+Here are two different intervention plans. Pick the one that correctly addresses the function of Johnny's behavior.
+    </Markdown>
+
+    <CapaProblem title="Choose the correct plan" id="plan_choice">
+      <KeyGrader>
+        <Markdown>
+**Plan A (Your Plan - Escape-focused):**
+- Antecedent: Create predictable routine with timers and warnings
+- Behavior: Johnny goes to bed when asked
+- Consequence: Praise and calm bedtime story; no chasing if he resists
+
+**Plan B (Annie's Plan - Sensory-focused):**
+- Antecedent: Dim lights and play calming music
+- Behavior: Johnny relaxes and self-soothes
+- Consequence: Weighted blanket and white noise machine
+        </Markdown>
+        <ChoiceInput>
+          <Key id="plan_a">Plan A - Addresses escape function correctly</Key>
+          <Distractor id="plan_b">Plan B - Addresses sensory function (not Johnny's actual function)</Distractor>
+        </ChoiceInput>
+      </KeyGrader>
+      <Explanation showWhen="answered">
+Plan A correctly fits the function of the behavior, which is **escape**. Plan B is centered around the function of behavior as sensory. In our scenario, Johnny's function is escape - he's trying to avoid going to bed, not seeking sensory stimulation.
+      </Explanation>
+    </CapaProblem>
+
+  </Vertical>
+
+  <!-- Plan discussion -->
+  <Vertical id="plan_discussion">
+    <Markdown id="plan_discussion_text">
+## Discussing the Plan
+
+**JJ:** There's a lot in that plan. They don't all make sense, but I do like the idea of using a timer to show when each routine step begins and ends as an antecedent strategy.
+
+**Lin:** Yes, me too. I really like the consequence strategy of ignoring or not providing attention during the escape behavior. That makes a lot of sense to me.
+    </Markdown>
+
+    <Markdown id="plan_preference_label">In the box below, type the parts of the plan that you like:</Markdown>
+    <TextArea id="plan_preferences" placeholder="What strategies do you think would work best?" />
+  </Vertical>
+
+  <!-- Final email -->
+  <Vertical id="final_intervention_email">
+    <Markdown id="final_email_prompt">
+## Write the Intervention Email
+
+Based on everything you have learned, write an email to Annie's roommate describing the intervention plan.
+
+Make sure to use these terms:
+- "function of behavior"
+- "antecedent, behavior, consequence"
+- "positive reinforcement"
+- "competing behavior pathway"
+    </Markdown>
+    <TextArea id="intervention_email" placeholder="Dear Roommate, Based on what we've learned in psychology class..." />
+  </Vertical>
+
+  <!-- Time skip - 2 weeks later -->
+  <Vertical id="two_weeks_later">
+    <Markdown id="two_weeks_text">
+## Two Weeks Later...
+
+**Lin:** So how did the intervention go with your roommate?
+
+**Annie:** Thanks for asking! My roommate read our intervention plan and tracked Johnny's progress in her journal. Over the past 2 weeks, she babysat 5 times.
+
+- He went to bed on time **2 out of 5** occasions
+- On one occasion where he didn't go to bed on time, she noted that she didn't exactly follow our plan
+- The escape behaviors seem to have gotten worse over time!
+
+Something isn't working right...
+    </Markdown>
+  </Vertical>
+
+  <!-- Implementation fidelity introduction -->
+  <Vertical id="fidelity_intro">
+    <Markdown id="fidelity_intro_text">
+## Implementation Fidelity
+
+The team showed the progress to the professor, explaining that the roommate admitted she didn't follow all of the consequence strategies.
+
+**Professor:** "Looks like you need to improve on **implementation fidelity**."
+
+**Implementation fidelity** refers to how accurately and consistently a behavior plan is implemented as it was designed.
+
+### Key Aspects of Fidelity:
+
+| Aspect | Question |
+|--------|----------|
+| **Adherence** | Are all steps of the plan followed as written? |
+| **Dosage** | Is the plan used for the correct amount of time/frequency? |
+| **Quality of Delivery** | Are strategies implemented correctly with intended tone/approach? |
+| **Participant Responsiveness** | Is the child actually exposed to and engaged with the intervention? |
+| **Program Differentiation** | Are other strategies (not part of the plan) avoided during implementation? |
+    </Markdown>
+  </Vertical>
+
+  <!-- Fidelity comprehension check -->
+  <Vertical id="fidelity_check">
+    <Markdown id="fidelity_check_intro">
+## Check for Understanding
+
+Annie texted her roommate to find out exactly where things went wrong:
+
+> *"She said that sometimes she forgets to do the warning countdown and timer, she forgets the small bedtime reward, and often falls into negotiating or arguing when he whines for extended time."*
+    </Markdown>
+
+    <CapaProblem title="Fidelity Issue" id="fidelity_mcq">
+      <KeyGrader>
+        <p>Which is the main area of treatment fidelity that Annie's roommate is struggling with?</p>
+        <ChoiceInput>
+          <Key id="fidelity_key">Adherence</Key>
+          <Distractor id="fidelity_d1">Dosage</Distractor>
+          <Distractor id="fidelity_d2">Quality of Delivery</Distractor>
+          <Distractor id="fidelity_d3">Participant Responsiveness</Distractor>
+          <Distractor id="fidelity_d4">Program Differentiation</Distractor>
+        </ChoiceInput>
+      </KeyGrader>
+      <Explanation showWhen="answered">
+The roommate is struggling with **Adherence** - she's forgetting to follow the steps of the plan as written (forgetting timers, warnings, and rewards; falling into old patterns of negotiating).
+      </Explanation>
+    </CapaProblem>
+  </Vertical>
+
+  <!-- AI help for modifications -->
+  <Vertical id="ai_modifications">
+    <Markdown id="ai_modifications_prompt">
+## Ask AI for Help
+
+Let's have AI help brainstorm how we can improve adherence to the intervention plan.
+    </Markdown>
+    <TextArea id="ai_modifications_query" placeholder="Type a prompt asking how to improve adherence to a behavior intervention plan..." />
+    <LLMFeedback id="modifications_ai_response" placeholder="AI response will appear here..." />
+    <ActionButton id="ask_ai_modifications_btn" label="Ask AI" dependsOn="@ai_modifications_query.value">
+      <LLMAction target="modifications_ai_response">
+You are a helpful psychology teaching assistant. Provide practical strategies for improving adherence to a behavior intervention plan for a babysitter. Include ideas like: simplifying the plan with step-by-step guides, providing training/modeling, using yes/no fidelity checklists, setting phone reminders, visual prompts, coaching and feedback sessions. Keep suggestions practical and easy to implement.
+
+Student's prompt: <Ref target="ai_modifications_query" />
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <!-- Modification selection -->
+  <Vertical id="modification_selection">
+    <Markdown id="modification_selection_prompt">
+## Select Modifications
+
+Of these modifications, which ones should we add to help the roommate follow the plan? (Pick up to 2)
+    </Markdown>
+
+    <CapaProblem id="modification_choices">
+      <KeyGrader algorithm="survey">
+        <CheckboxInput>
+          <Key id="mod_1">Simplify the plan using a step-by-step guide</Key>
+          <Key id="mod_2">Provide direct training using in-person or video modeling</Key>
+          <Key id="mod_3">Use simple yes/no fidelity checklists for key steps</Key>
+          <Key id="mod_4">Provide coaching and feedback after each session</Key>
+          <Key id="mod_5">Set reminders and visual prompts on the roommate's phone</Key>
+        </CheckboxInput>
+      </KeyGrader>
+    </CapaProblem>
+  </Vertical>
+
+  <!-- Another 2 weeks later - conclusion -->
+  <Vertical id="conclusion_progress">
+    <Markdown id="conclusion_progress_text">
+## Another Two Weeks Later...
+
+**JJ:** That looks much better!
+
+**Annie:** I know, right? My roommate is much happier. Johnny is going to bed on time more often, and his parents even asked my roommate for her secrets on how she got him to go to bed on time!
+
+**Lin:** That's amazing! I'm so glad we were able to help this time.
+
+The modified intervention was a success! With better adherence to the plan, Johnny's bedtime behavior improved significantly.
+    </Markdown>
+  </Vertical>
+
+  <!-- Final reflection -->
+  <Vertical id="final_reflection">
+    <Markdown id="final_reflection_prompt">
+## Final Reflection
+
+Write a brief reflection of your experience, noting:
+
+1. Whether the behavior was successfully or unsuccessfully modified
+2. What aspects of the intervention were effective and not effective
+3. Whether your plan was too complicated, simple, or just right
+4. Your personal reflections about the execution of this project, including what could have been done differently
+5. Provide at least 2 specific examples of what changes you would have made if Annie's roommate were to continue to babysit Johnny
+    </Markdown>
+    <TextArea id="reflection_text" placeholder="Write your reflection here..." />
+  </Vertical>
+
+  <!-- Completion summary -->
+  <Vertical id="completion_summary_fba">
+    <Markdown id="completion_text_fba">
+## Module Complete!
+
+### What You've Learned:
+
+1. **Function of Behavior** - The four main functions (attention, escape, access, sensory) and how to identify them
+2. **ABCs** - How to analyze Antecedent-Behavior-Consequence sequences
+3. **Competing Behavior Pathway** - How to plan interventions by mapping problem behaviors to desired behaviors
+4. **Intervention Planning** - How to select strategies that match the function of behavior
+5. **Implementation Fidelity** - Why consistent implementation matters and how to improve adherence
+
+### Your Journey:
+
+You successfully helped Annie's roommate solve Johnny's bedtime problem by:
+- Identifying the function of his running-away behavior (escape)
+- Creating a competing behavior pathway
+- Selecting appropriate antecedent and consequence strategies
+- Recognizing and addressing implementation fidelity issues
+
+**Great work using behavioral psychology to solve a real problem!**
+    </Markdown>
+  </Vertical>
+
+</Vertical>

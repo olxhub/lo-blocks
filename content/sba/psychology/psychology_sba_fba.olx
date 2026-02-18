@@ -1,0 +1,26 @@
+<!--
+---
+description: Review functions of behavior and create intervention plans for sleep refusal (continuation of the psychology study group discussion).
+category: psychology
+index: 3
+lang: en-Latn-US
+---
+-->
+<!-- Psychology SBA Part 2: 3. Function of Behavior and Intervention Planning -->
+<SplitPanel
+    id="psych_sba_fba"
+    sizes="40, 60"
+    title="Psychology Study Group: 3. Function of Behavior"
+    launchable="true">
+
+  <!-- Left Panel: SMS Conversation -->
+  <LeftPane>
+    <Chat id="psych_fba_chat" src="psych_sba_fba.chatpeg" height="400px" />
+  </LeftPane>
+
+  <!-- Right Panel: Activities reference -->
+  <RightPane>
+    <UseHistory id="psych_fba_sidebar" initial="fba_introduction" />
+  </RightPane>
+
+</SplitPanel>

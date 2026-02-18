@@ -31,7 +31,7 @@ import type { ContentTier, ContentVariant } from '@/lib/types';
 
 export async function GET(request: NextRequest) {
   try {
-    const { idMap } = await syncContentFromStorage();
+    const { idMap, errors } = await syncContentFromStorage();
 
     // Filter to launchable entries and transform to activity cards
     const activities = Object.fromEntries(
@@ -73,6 +73,7 @@ export async function GET(request: NextRequest) {
             {
               id,
               category: bestEntry.category || 'other',
+              index: bestEntry.index,
               tag: bestEntry.tag,
               editPath,
               title,
@@ -86,7 +87,8 @@ export async function GET(request: NextRequest) {
 
     return Response.json({
       ok: true,
-      activities
+      activities,
+      errors
     });
   } catch (err: any) {
     console.error('Error loading activities:', err);

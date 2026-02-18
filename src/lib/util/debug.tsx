@@ -91,9 +91,13 @@ export const DebugWrapper = ({ props = {}, loBlock, children }: DebugWrapperProp
   const links = provenance.map((uri, idx) => {
     const { scheme, path: uriPath } = splitProvenance(uri);
     if (scheme === 'file') {
-      // TODO: Move away from absolute file:/// URIs
-      // HACK: Extracts relative from absolute URI
-      const rel = uriPath.split('/content/')[1] ?? uriPath;
+      // Logical path after file:/// e.g. '/content/sba/foo.olx' → 'content/sba/foo.olx'
+      const logicalPath = uriPath.startsWith('/') ? uriPath.slice(1) : uriPath;
+      // Strip mount point prefix (e.g. 'content/') for Studio-relative link
+      const contentPrefix = 'content/';
+      const rel = logicalPath.startsWith(contentPrefix)
+        ? logicalPath.slice(contentPrefix.length)
+        : logicalPath;
       const href = `/studio?file=${encodeURIComponent(rel)}`;
       const fileType = getExtension(uriPath) || 'file';
       return <Link key={idx} href={href} title={rel}>{fileType}</Link>;

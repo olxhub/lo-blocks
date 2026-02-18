@@ -94,14 +94,35 @@ export class VersionConflictError extends Error {
   }
 }
 
+/** Characters forbidden in filenames: URI-unsafe (#?), OS-reserved, control chars, space, !. */
+const FORBIDDEN_SEGMENT_CHARS = /[#?\\:<>"|*!\s\x00-\x1f]/;
+
+/** Global version for stripping forbidden characters from user input (e.g. in Studio). */
+export const FORBIDDEN_FILENAME_CHARS = /[#?\\:<>"|*!\s\x00-\x1f]/g;
+
+/**
+ * Validate a single path segment (filename or directory name).
+ * Returns null if valid, or an error message string if invalid.
+ * Client-safe: no Node.js dependency.
+ */
+export function validatePathSegment(segment: string): string | null {
+  if (!segment) return 'Empty path segment';
+  const match = segment.match(FORBIDDEN_SEGMENT_CHARS);
+  if (match) return `Character "${match[0]}" is not allowed in filenames`;
+  if (segment.startsWith('.')) return 'Hidden files (starting with .) not allowed';
+  return null;
+}
+
 /**
  * Validate and brand a string as OlxRelativePath.
  * Use at system boundaries where user input enters the storage type system.
  *
- * Minimal validation (parallel to toOlxReference for IDs):
- * - Non-empty string
- * - No null bytes (security)
- * - Not absolute (doesn't start with /)
+ * Rejects:
+ * - Empty / non-string input
+ * - Absolute paths (starting with /)
+ * - URI-unsafe characters (#, ?) and OS-reserved characters in segments
+ * - Control characters (including null bytes)
+ * - Leading/trailing whitespace or leading dots in segments
  *
  * Does NOT reject ".." — parent traversal is valid in OLX relative paths
  * (e.g., src="../x.png" in /foo/bar/baz.olx refers to /foo/x.png).
@@ -126,30 +147,71 @@ export function toOlxRelativePath(
   if (!input || typeof input !== 'string') {
     throw new Error(`toOlxRelativePath: expected non-empty string but got "${input}"`);
   }
-  if (input.includes('\0')) {
-    throw new Error(`toOlxRelativePath: path contains null bytes: "${input}"`);
-  }
   if (input.startsWith('/')) {
     throw new Error(`toOlxRelativePath: expected relative path but got absolute "${input}"`);
+  }
+  for (const segment of input.split('/')) {
+    if (segment === '..' || segment === '.') continue;
+    const error = validatePathSegment(segment);
+    if (error) {
+      throw new Error(`toOlxRelativePath: invalid segment "${segment}": ${error}`);
+    }
   }
   return input as OlxRelativePath;
 }
 
 /**
- * Brand a file:// provenance URI. Use when constructing provenance from
- * a known filesystem path (e.g., in FileStorageProvider or translate route).
+ * Construct a file:// provenance URI from a mount point and relative path.
  *
- * Runtime scheme checks (startsWith('file://')) remain as defense-in-depth.
+ * @param mountPoint - Logical mount name (e.g., 'content', 'content/ee/ee101')
+ * @param relativePath - Path within the mount (e.g., 'sba/foo.olx')
+ * @returns e.g. 'file:///content/sba/foo.olx'
  */
-export function toFileProvenanceURI(absPath: string): FileProvenanceURI {
-  return `file://${absPath}` as FileProvenanceURI;
+export function toFileProvenanceURI(mountPoint: string, relativePath: string): FileProvenanceURI {
+  if (relativePath.includes('\\')) {
+    throw new Error(`Provenance paths must use forward slashes: "${relativePath}"`);
+  }
+  return `file:///${mountPoint}/${relativePath}` as FileProvenanceURI;
+}
+
+/**
+ * Extract the logical path from any provenance URI using standard URL parsing.
+ *
+ * Combines hostname and pathname so the result is correct regardless of
+ * whether the namespace sits in the authority (scheme://ns/path) or the
+ * path (scheme:///ns/path).
+ *
+ * Examples:
+ *   'file:///content/sba/foo.olx'    → 'content/sba/foo.olx'
+ *   'network:///content/sba/foo.olx' → 'content/sba/foo.olx'
+ *   'memory:///test.xml'             → 'test.xml'
+ */
+export function provenancePath(uri: string): string {
+  const parsed = new URL(uri);
+  return decodeURIComponent((parsed.hostname + parsed.pathname).replace(/^\/+/, ''));
+}
+
+/**
+ * Extract the logical path from a file:// provenance URI.
+ *
+ * Returns the full path after file:/// — e.g. 'content/sba/foo.olx'
+ * from 'file:///content/sba/foo.olx'.
+ *
+ * Mount point resolution is the provider's responsibility — see
+ * FileStorageProvider.extractRelativePath().
+ */
+export function fileProvenancePath(uri: string): string {
+  if (!uri.startsWith('file:///')) {
+    throw new Error(`Not a file provenance URI: ${uri}`);
+  }
+  return provenancePath(uri);
 }
 
 /**
  * Brand a memory:// provenance URI. Used by InMemoryStorageProvider.
  */
 export function toMemoryProvenanceURI(name: string): MemoryProvenanceURI {
-  return `memory://${name}` as MemoryProvenanceURI;
+  return `memory:///${name}` as MemoryProvenanceURI;
 }
 
 /**
@@ -222,8 +284,8 @@ export interface StorageProvider {
    *
    * Maps from a canonical name (SafeRelativePath) to this provider's
    * location URI. For example:
-   * - FileStorageProvider:   "sba/foo.olx" → "file:///home/.../content/sba/foo.olx"
-   * - InMemoryStorageProvider: "sba/foo.olx" → "memory://sba/foo.olx"
+   * - FileStorageProvider:   "sba/foo.olx" → "file:///content/sba/foo.olx"
+   * - InMemoryStorageProvider: "sba/foo.olx" → "memory:///sba/foo.olx"
    *
    * Used by parsers to extend provenance chains without knowing about
    * storage schemes. See also ReadResult.provenance (set during read).

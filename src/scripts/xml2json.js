@@ -85,7 +85,7 @@ async function addGraphValidationErrors(idMap, parseErrors) {
 
 async function main() {
   try {
-    const provider = new FileStorageProvider(contentDir);
+    const provider = new FileStorageProvider(contentDir, 'content');
     const { idMap, errors: parseErrors } = await syncContentFromStorage(provider);
 
     // Add optional graph validation errors

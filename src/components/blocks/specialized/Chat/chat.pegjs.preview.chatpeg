@@ -1,3 +1,49 @@
-system: You are a helpful assistant.
-user: Hello!
-assistant: Hi there! How can I help you today?
+Title: Expertise Reversal Effect
+Author: Learning Design Team
+Cast:
+  Professor Liu:
+    seed: liu_professor
+    face: calm
+  Amara:
+    seed: amara_student
+    face: smile
+  Jordan:
+    seed: jordan_student
+~~~~
+
+Introduction [id=intro]
+-----------------------
+
+Professor Liu: Today we're discussing how instructional methods that help beginners can actually hinder experts.
+
+Amara: Is this about cognitive load theory?
+
+Professor Liu: Yes, specifically the expertise reversal effect discovered by Kalyuga and colleagues.
+
+--- pause ---
+
+# Transition to worked examples
+
+The Evidence [id=evidence]
+--------------------------
+
+Jordan: Can you give an example?
+
+Professor Liu: Consider worked examples. For novices, step-by-step solutions reduce extraneous cognitive load. But experts already have schemas that make those steps redundant. [face=smile]
+
+Amara: So the extra information becomes noise for experts? [face=awe]
+
+Professor Liu: Exactly. The same instructional support that helps a novice can split an expert's attention between their own knowledge and the redundant guidance.
+
+--- pause ---
+
+Implications [id=implications]
+-------------------------------
+
+Jordan: What does this mean for instructional design?
+
+Professor Liu: It's one of the strongest arguments for adaptive systems that adjust to the learner's level. Fade scaffolding as expertise develops.
+
+Amara: Like gradually removing worked steps until students solve problems independently?
+
+Professor Liu: Precisely. Renkl's fading strategy does exactly that — and it works across domains from math to biology.

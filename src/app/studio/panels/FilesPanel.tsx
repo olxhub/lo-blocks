@@ -4,7 +4,15 @@
 import { useState } from 'react';
 import type { UriNode } from '@/lib/lofs/types';
 import { isEditableFile, isOLXFile } from '@/lib/util/fileTypes';
+import { FORBIDDEN_FILENAME_CHARS } from '@/lib/lofs/types';
 import ExpandIcon from '@/components/common/ExpandIcon';
+
+/** Strip characters that are not allowed in filenames. */
+function sanitizeFileName(input: string): string {
+  return input
+    .replace(FORBIDDEN_FILENAME_CHARS, '')
+    .replace(/(^|\/)\.+/g, '$1');  // strip leading dots per segment
+}
 
 interface FilesPanelProps {
   fileTree: UriNode | null;
@@ -106,7 +114,7 @@ Start writing here.
             className="search-input"
             placeholder="filename.olx"
             value={newFileName}
-            onChange={(e) => setNewFileName(e.target.value)}
+            onChange={(e) => setNewFileName(sanitizeFileName(e.target.value))}
             onKeyDown={(e) => e.key === 'Enter' && handleCreateFile()}
             autoFocus
           />
@@ -135,7 +143,7 @@ Start writing here.
               onDelete={handleDeleteFile}
               onRename={handleRenameFile}
               renameValue={renameValue}
-              onRenameChange={setRenameValue}
+              onRenameChange={(v) => setRenameValue(sanitizeFileName(v))}
             />
           ))
         ) : (

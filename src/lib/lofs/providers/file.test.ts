@@ -49,9 +49,10 @@ describe('FileStorageProvider security', () => {
         .rejects.toThrow(/escapes base directory/);
     });
 
-    test('rejects ..\\..\\etc\\passwd (Windows-style)', async () => {
-      await expect(provider.read(toOlxRelativePath('..\\..\\etc\\passwd')))
-        .rejects.toThrow(/escapes base directory/);
+    test('rejects ..\\..\\etc\\passwd (Windows-style)', () => {
+      // Backslash is now rejected at the type boundary by toOlxRelativePath
+      expect(() => toOlxRelativePath('..\\..\\etc\\passwd'))
+        .toThrow(/not allowed in filenames/);
     });
 
     test('rejects subdir/../../../etc/passwd', async () => {

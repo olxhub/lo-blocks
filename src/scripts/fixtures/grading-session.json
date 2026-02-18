@@ -10,7 +10,7 @@
             "id": "NumericalGraderBasic",
             "tag": "CapaProblem",
             "attributes": { "id": "NumericalGraderBasic", "title": "Squares" },
-            "provenance": ["file://src/components/blocks/grading/NumericalGraderBasic.olx"]
+            "provenance": ["file:///blocks/grading/NumericalGraderBasic.olx"]
           }
         },
         "NumericalGraderBasic.grader": {
@@ -18,7 +18,7 @@
             "id": "NumericalGraderBasic.grader",
             "tag": "NumericalGrader",
             "attributes": { "answer": "144" },
-            "provenance": ["file://src/components/blocks/grading/NumericalGraderBasic.olx"]
+            "provenance": ["file:///blocks/grading/NumericalGraderBasic.olx"]
           }
         },
         "NumericalGraderBasic.input": {
@@ -26,7 +26,7 @@
             "id": "NumericalGraderBasic.input",
             "tag": "ComplexInput",
             "attributes": {},
-            "provenance": ["file://src/components/blocks/grading/NumericalGraderBasic.olx"]
+            "provenance": ["file:///blocks/grading/NumericalGraderBasic.olx"]
           }
         }
       },

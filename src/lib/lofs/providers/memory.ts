@@ -22,7 +22,7 @@ import type {
   GrepMatch,
 } from '../types';
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath } from '../../types';
-import { toMemoryProvenanceURI } from '../types';
+import { toMemoryProvenanceURI, provenancePath } from '../types';
 
 export class InMemoryStorageProvider implements StorageProvider {
   files: Record<string, string>;
@@ -99,8 +99,8 @@ export class InMemoryStorageProvider implements StorageProvider {
     }
 
     // Extract directory from base provenance URI and resolve relative to it.
-    // e.g., memory://subdir/lesson.olx + "notes.md" → "subdir/notes.md"
-    const memoryPath = baseProvenance.slice('memory://'.length);
+    // e.g., memory:///subdir/lesson.olx + "notes.md" → "subdir/notes.md"
+    const memoryPath = provenancePath(baseProvenance);
     const lastSlash = memoryPath.lastIndexOf('/');
     const baseDir = lastSlash >= 0 ? memoryPath.substring(0, lastSlash) : '';
     const joined = baseDir ? `${baseDir}/${relativePath}` : relativePath;

@@ -60,7 +60,7 @@ import { useDebugSettings } from '@/lib/state/debugSettings';
 import { settings } from '@/lib/state/settings';
 import { useSetting } from '@/lib/state/settingsAccess';
 import { getTextDirection, getBrowserLocale } from '@/lib/i18n/getTextDirection';
-import type { BaselineProps, IdPrefix, LoBlockRuntimeContext, UserLocale, ProvenanceURI } from '@/lib/types';
+import type { BaselineProps, IdPrefix, LoBlockRuntimeContext, UserLocale, ProvenanceURI, OLXLoadingError } from '@/lib/types';
 
 // Stable no-op for replay mode - avoids creating new function on each render
 const noopLogEvent = () => { };
@@ -190,7 +190,8 @@ function useParseContent(
   onError?: (err: any) => void
 ) {
   const [parsed, setParsed] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [fatalError, setFatalError] = useState<string | null>(null);     // content can't render
+  const [warnings, setWarnings] = useState<OLXLoadingError[]>([]);       // content renders, but has issues
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -198,13 +199,13 @@ function useParseContent(
     if (!inline && !files) {
       startTransition(() => {
         setParsed(null);
-        setError(null);
+        setFatalError(null);
       });
       return;
     }
 
     if (!effectiveProvider) {
-      setError('RenderOLX: No provider for content resolution');
+      setFatalError('RenderOLX: No provider for content resolution');
       return;
     }
 
@@ -229,7 +230,8 @@ function useParseContent(
             // startTransition prevents Suspense - shows old content while rendering new
             startTransition(() => {
               setParsed(result);
-              setError(null);
+              setFatalError(null);
+              setWarnings(result.errors || []);
             });
           }
           return;
@@ -239,6 +241,7 @@ function useParseContent(
         if (files) {
           let mergedIdMap = {};
           let lastRoot: string | null = null;
+          let allErrors: OLXLoadingError[] = [];
 
           for (const [filename, content] of Object.entries(files)) {
             if (!isOLXFile(filename)) {
@@ -253,6 +256,9 @@ function useParseContent(
 
             mergedIdMap = { ...mergedIdMap, ...result.idMap };
             lastRoot = result.root;
+            if (result.errors?.length) {
+              allErrors = [...allErrors, ...result.errors];
+            }
           }
 
           if (!cancelled) {
@@ -268,13 +274,14 @@ function useParseContent(
                 idMap: mergedIdMap,
                 ids: Object.keys(mergedIdMap)
               });
-              setError(null);
+              setFatalError(null);
+              setWarnings(allErrors);
             });
           }
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err.message || String(err));
+          setFatalError(err.message || String(err));
           onError?.(err);
         }
       }
@@ -284,7 +291,7 @@ function useParseContent(
     return () => { cancelled = true; };
   }, [inline, files, effectiveProvider, provenance, onError, startTransition, source, sideEffectFree, logEvent]);
 
-  return { parsed, error, isPending };
+  return { parsed, fatalError, warnings, isPending };
 }
 
 /**
@@ -375,7 +382,7 @@ export default function RenderOLX({
   const effectiveProvider = useBuildProviderStack(inline, files, provider, providers, resolveProvider);
 
   // Parse inline/files content
-  const { parsed, error: parseError, isPending } = useParseContent(
+  const { parsed, fatalError, warnings, isPending } = useParseContent(
     inline,
     files,
     effectiveProvider,
@@ -445,11 +452,11 @@ export default function RenderOLX({
   }
 
   // Parse error (from inline/files parsing)
-  if (parseError) {
+  if (fatalError) {
     return (
       <div className="text-red-600 p-2 border border-red-300 rounded bg-red-50">
         <div className="font-semibold">Error rendering OLX</div>
-        <pre className="text-sm mt-1 whitespace-pre-wrap">{parseError}</pre>
+        <pre className="text-sm mt-1 whitespace-pre-wrap">{fatalError}</pre>
       </div>
     );
   }
@@ -476,6 +483,19 @@ export default function RenderOLX({
         onError?.(err);
       }}
     >
+      {warnings.length > 0 && (
+        <div className="text-amber-800 p-3 border border-amber-300 rounded bg-amber-50 mb-2 text-sm">
+          <div className="font-semibold mb-1">
+            {warnings.length} content {warnings.length === 1 ? 'warning' : 'warnings'}
+          </div>
+          {warnings.map((err, i) => (
+            <details key={i} className="mb-1">
+              <summary>{err.summary}</summary>
+              <pre className="whitespace-pre-wrap mt-1 text-xs">{err.message}</pre>
+            </details>
+          ))}
+        </div>
+      )}
       {block}
     </ErrorBoundary>
   );

@@ -45,6 +45,7 @@ const languageTagSchema = z.string().refine(
 export const OLXMetadataSchema = z.object({
   description: z.string().optional(),
   category: z.string().optional(),
+  index: z.number().optional(),
   lang: languageTagSchema.optional(),  // BCP 47 language tag (e.g., 'en-Latn-US', 'ar-Arab-SA')
 
   // Content provenance and generation status.

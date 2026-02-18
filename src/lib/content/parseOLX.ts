@@ -180,6 +180,7 @@ function extractMetadataFromComment(
   if (commentText === undefined || commentText === null) {
     const error: OLXLoadingError = {
       type: 'parse_error',
+      summary: `Internal parser error in ${file}`,
       file,
       message: 'Internal parser error: Comment node found but text content is missing. This may indicate a parser configuration issue.',
       technical: { commentText }
@@ -191,6 +192,7 @@ function extractMetadataFromComment(
   if (typeof commentText !== 'string') {
     const error: OLXLoadingError = {
       type: 'parse_error',
+      summary: `Internal parser error in ${file}`,
       file,
       message: `Internal parser error: Comment text has unexpected type '${typeof commentText}' (expected string).`,
       technical: { commentText, type: typeof commentText }
@@ -225,6 +227,7 @@ function extractMetadataFromComment(
 
       const error: OLXLoadingError = {
         type: 'metadata_error',
+        summary: `${file} has an error in its file header`,
         file,
         message: `📝 Metadata Format Error
 
@@ -261,6 +264,7 @@ Common issues:
     // YAML parsing failed
     const error: OLXLoadingError = {
       type: 'metadata_error',
+      summary: `${file} has an error in its file header`,
       file,
       message: `📝 Metadata YAML Syntax Error
 
@@ -470,6 +474,7 @@ export async function parseOLX(
       const zodErrors = result.error.issues.map(i => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
       errors.push({
         type: 'attribute_validation',
+        summary: `Invalid attribute on <${tag}> in ${provenance.join(', ')}`,
         file: provenance.join(', '),
         message: `Invalid attributes for <${tag} id="${id}">:\n${zodErrors}`,
         location: { line: node.line, column: node.column },
@@ -492,6 +497,7 @@ export async function parseOLX(
           const errorList = semanticErrors.map(e => `  - ${e}`).join('\n');
           errors.push({
             type: 'attribute_validation',
+            summary: `Invalid attribute on <${tag}> in ${provenance.join(', ')}`,
             file: provenance.join(', '),
             message: `Invalid attributes for <${tag} id="${id}">:\n${errorList}`,
             location: { line: node.line, column: node.column },
@@ -573,6 +579,7 @@ export async function parseOLX(
 
           errors.push({
             type: 'duplicate_id',
+            summary: `Duplicate ID "${storeId}" in ${provenance.join(', ')}`,
             file: provenance.join(', '),
             message: `Duplicate ID "${storeId}" found in ${provenance.join(', ')}. Each element must have a unique id.
 

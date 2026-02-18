@@ -7,7 +7,10 @@ import _TalkBubble from './_TalkBubble';
 
 const TalkBubbleAttributes = baseAttributes.extend({
   speaker: z.string().optional().describe('Name of the speaker'),
-  avatar: z.string().optional().describe('Path or identifier for avatar image'),
+  avatar: z.string().optional().describe('Image URL for avatar (overrides generated avatar)'),
+  seed: z.string().optional().describe('Override seed for DiceBear avatar generation'),
+  face: z.string().optional().describe('DiceBear face/expression (e.g. smile, serious, angry)'),
+  avatarStyle: z.enum(['illustrated', 'initials']).default('illustrated').describe('Avatar rendering style'),
   position: z.enum(['left', 'right']).default('left').describe('Position of avatar (left or right)'),
 });
 

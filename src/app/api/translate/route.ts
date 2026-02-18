@@ -78,7 +78,7 @@ import { toOlxRelativePath } from '@/lib/lofs/types';
 import yaml from 'js-yaml';
 
 const contentDir = process.env.OLX_CONTENT_DIR || './content';
-const provider = new FileStorageProvider(contentDir);
+const provider = new FileStorageProvider(contentDir, 'content');
 
 // Server-side dedup: concurrent requests for same file+locale await the same promise.
 // Entries are cleaned up in the route handler's finally block. The timeout below

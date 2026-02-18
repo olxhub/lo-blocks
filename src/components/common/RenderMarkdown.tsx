@@ -94,5 +94,6 @@ export default function RenderMarkdown({
     </ReactMarkdown>
   );
 
-  return className ? <div className={className}>{content}</div> : content;
+  const cls = className ? `rendered-markdown ${className}` : 'rendered-markdown';
+  return <div className={cls}>{content}</div>;
 }

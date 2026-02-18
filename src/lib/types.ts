@@ -43,6 +43,8 @@ export type JSONValue =
 // OLX Content Loading Errors
 export interface OLXLoadingError {
   type: 'parse_error' | 'duplicate_id' | 'file_error' | 'peg_error' | 'attribute_validation' | 'metadata_error';
+  /** Human-readable summary for display (e.g. "Error in file header") */
+  summary: string;
   file: string;
   message: string;
   location?: {
@@ -105,7 +107,7 @@ export type OLXTag = string & { __brand: 'OLXTag' };
  * Every piece of parsed content carries a provenance chain — an array of
  * URIs recording where it came from. For a block in foo.olx that includes
  * quiz.chatpeg, that chain might be:
- *   ["file:///home/.../content/demos/foo.olx", "file:///home/.../content/demos/quiz.chatpeg"]
+ *   ["file:///content/demos/foo.olx", "file:///content/demos/quiz.chatpeg"]
  *
  * This enables:
  * - Precise error messages ("syntax error in demos/foo.olx:42")
@@ -783,6 +785,8 @@ export interface OlxJson {
   description?: string;
   /** Content category for filtering/organization (e.g., "psychology", "writing", "demo") */
   category?: string;
+  /** Numeric sort index within a category. Positive = front, negative = end, unset = middle (alphabetical). Fractions allowed. */
+  index?: number;
   /** BCP 47 language tag identifying which language/variant this OlxJson represents (e.g., 'en-Latn-US', 'ar-Arab-SA') */
   lang?: string;
   /** Generation provenance. Absent on human-authored content.

@@ -1,0 +1,263 @@
+Title: Psychology Study Group, Task 1
+Author: Psychology Department
+Course: Intro to Psychology
+~~~~
+
+Introduction
+------------
+psych_sba_sidebar -> bedtime_problem_introduction
+
+Annie: Hey, sorry I'm late. I was talking to my roommate about a problem. [id=start]
+
+JJ: What's going on? Is it something you can tell us?
+
+psych_sba_sidebar -> bedtime_problem_clear_screen_1
+
+Annie: Oh, yeah, it's not a secret. She's got a babysitting gig for some extra cash,
+but the kid is giving her all kinds of trouble, just like his parents warned her.
+He's six, and he doesn't want to go to bed. He just runs around when it's his bedtime.
+
+Lin: What did the parents say about it?
+
+Annie: They've tried pretty much everything. They've taken away his games and toys, they've tried
+to just let him figure it out on his own, but it's almost like nothing will work for them to
+fix this. She's really frustrated and thinks she should just let him do whatever he wants and
+hope he'll grow out of it. I told her I was meeting with you all and we would try to come up
+with something to help her from what we've been learning in our psychology class.
+
+Lin: Hey! I read in our textbook that a good way to learn something is to actually use it to solve
+a problem. We should be able to use what we're learning from psych to come up with a solution
+for your friend, Annie. We'll also be studying while we're helping!
+
+Annie: That sounds like a win-win, to me.
+
+psych_sba_sidebar -> bedtime_scenario_image
+
+Brainstorming
+-------------
+
+JJ: Let's brainstorm some ideas for her. I don't have any kids myself, but I have a younger sister.
+
+Lin: And I've got little cousins.
+
+Annie: Thanks for helping out. She's really stressing about it.
+OK, what do YOU think she should do to get the 6-year-old to go to sleep at bedtime???
+
+# [Results/feedback from group - no activity, just text]
+Lin: Tell him you'll give him 50 cents if he goes to bed on time. Hey, 50 cents is a lot of money to a 6-year-old!
+
+Annie: Say that you won't play any games with him ever again unless he goes to sleep at his bedtime.
+
+JJ: I'm with the "do nothing" crowd. She shouldn't do anything at all.
+If he stays up, he stays up. That's on him. He'll be so tired the next day, he'll probably never do it again!
+
+# [activity: constructed response]
+psych_sba_sidebar -> student_suggestion
+
+--- wait @initial_suggestion.value ---
+
+Annie: Haha, we are all over the place with our ideas!
+
+JJ: We really do have different approaches! Why don't we rank these from best to worst and see what we think?
+
+psych_sba_sidebar -> brainstorm_sorting
+
+--- wait @bedtime_strategy_grader.submitCount > 0 ---
+
+Lin: Interesting rankings! It looks like the choices are between using behavioral techniques, like we're learning about in class, or doing nothing. My suggestion was to do nothing, but now I'm not sure. I'm going to ask the AI
+assistant if there's evidence for that.
+
+psych_sba_sidebar -> bedtime_problem_clear_screen_2
+
+Annie: Hang on, before we jump in and ask AI, we ought to think about the problem a bit first. What do we already know? We may need to use that knowledge to find the right questions to ask.
+
+JJ: My mom’s a Pediatrician, and I have heard her say that not going to bed on time is called "sleep refusal" and the "doing nothing" parenting style is called "no-rules parenting." In Gen Psych, we have been reading about the "permissive" parenting style; "no-rules parenting" seems like an example of that.
+
+Annie: That is definitely NOT how I was raised.
+
+JJ: Same!
+
+Lin: Nope! But we can use "no-rules parenting" and "sleep refusal" in the AI prompt.
+
+JJ: That's a good point. I use AI a lot, and I end up spending a lot of time trying to get my question to it right...otherwise, I get all kinds of weird answers.
+
+Lin: Yeah, I've had that happen too. We should figure out a good way to write the question to get the info we want
+
+JJ: OK, so if we want to find out about sleep refusal...no-rules parenting...and other ways to get a young child to go to bed ... what prompt could we write for the AI?
+
+psych_sba_sidebar -> student_ai_suggestion
+
+--- wait @initial_ai_suggestion.value ---
+
+Annie: Hmmm...yeah, these are pretty good. Let's rank them.
+
+psych_sba_sidebar -> brainstorm_ai_sorting
+
+--- wait @ai_prompt_grader.submitCount > 0 ---
+
+Lin: Ok, we've discussed the different prompts, and it looks like most of us like this one: "What is the evidence for no-rules parenting and any alternatives to address sleep refusal?" So let's see what it gives us.
+
+psych_sba_sidebar -> ai_info
+
+--- wait @ai_feedback.value ---
+
+Lin: Wow, that's a lot.
+
+JJ: Yeah, but also, I asked the question multiple times, and the answer changed.
+
+Annie: That happened to me too! It didn’t change _much_ between searches, but
+it changed enough for me to notice. What worries me more is sometimes it gave sources,
+but sometimes it didn’t. Then when I tried to look up the sources I was provided, I couldn't
+find them all the time!
+
+JJ: One time when I ran it, it gave me evidence AGAINST no-rules parenting,
+but it listed it as evidence FOR no-rules parenting.
+
+Lin: I recently read an article that says these are called 'hallucinations'.
+They happen because the AI doesn't actually understand what it's saying,
+the way a human does. It's more like a parrot than a person. It's just producing
+sequences of words it has been trained to produce, in an order determined by a math
+formula to look like human speech. It can take wrong turns, and those wrong turns
+can spin out of control!
+
+Annie: That means we can't just take the AI summary at face value. We had better
+check what it says against the textbook and other sources we can actually
+find. You know what, I'll look all of this up and verify everything, then
+I'll send you a summary of where I've gotten rid of anything I can't verify.
+Then we can go over it together.
+
+JJ: Thanks, Annie! This sounds like a lot of work, but I guess we need to do it
+if we want to help your friend!
+
+psych_sba_sidebar -> vetted_info_part1
+
+Lin: Good job, Annie! That's a lot of content. I guess we had better each go over it before we discuss it.
+
+JJ: This research is amazing!
+
+psych_sba_sidebar -> vetted_info_part2
+
+Annie: It is a lot. I actually had to ask the question several different ways to get all of the information I found. Sometimes small differences in the way I asked the question got me a very different answer.
+
+psych_sba_sidebar -> vetted_info_part3
+
+JJ: So much for "do nothing" lol. It seems like there's a lot more evidence against no-rules parenting than for it.
+
+Lin: I agree with JJ. Annie, since your friend is about ready to give up, maybe we should put together an email that explains why giving up and going with no-rules parenting (and no bedtime) would be a bad idea.
+
+psych_sba_sidebar -> draft_email
+
+Annie: All right. Once we write that, we can look into what we have learned about effective methods to set a consistent bedtime, and add that to our email.
+--- wait @email_draft.value ---
+
+Annie: To make sure that our email is really good, let's get some feedback from AI. If we need to improve our email, we can go back and change the text, then get more feedback.
+
+Lin: Here's the prompt I wrote for us to try to get feedback from AI. It took a bit of work to make it precise enough to give us targeted feedback:
+
+_Here is an email I wrote to explain to a friend why they need to avoid a no-rules parenting approach and find a good strategy to get a six-year-old child to bed on time._
+
+_Briefly, in no more than two or three sentences, evaluate how well I have used evidence from psychology to support this argument (but restricting that feedback to feedback that is appropriate given the purpose of the email)._
+
+psych_sba_sidebar -> revise_email_draft
+--- wait @ai_email_feedback.value ---
+
+Annie: All right, I think we've covered no-rules parenting. But our email really needs to give my friend a practical solution -- one we know will work, because there's good psychological evidence for it. So I also dug into information about strategies we could suggest to her, so she can solve that bedtime problem!
+
+There’s only one issue. I have seven different ideas for how to address sleep refusal. Which is a lot!
+
+psych_sba_sidebar -> strategy_poll
+
+--- wait @strategy_choice ---
+
+Lin: Well, I know which one I like! Why don't we take a poll and see which of these choices we think we should recommend?
+
+psych_sba_sidebar -> strategy_notes_1
+
+Annie: Well ... since it seems like we can’t agree on what to recommend, maybe we should take a closer look at the notes I put together about each strategy.
+
+JJ: Hey Annie, do you know if your friend's child gets scared or anxious when bedtime approaches? I hadn't even thought about the need for empathy and emotional support.
+
+Annie: I don't know. I'll have to ask her.
+
+psych_sba_sidebar -> strategy_notes_2
+
+JJ: Woah! There’s honestly a lot of good strategies she could try, and we haven’t even covered them all yet.
+
+psych_sba_sidebar -> strategy_notes_3
+
+Annie: Yeah. I think we're going to have to figure out which of these is the best thing for her to try and explain that!
+
+psych_sba_sidebar -> strategy_notes_4
+
+JJ: Well, not all of the strategies will apply to a six-year-old. We should eliminate any that seem unlikely to work with younger children.
+
+Annie: Also, some of the strategies might work better for the parents, because they're around all the time. We need a strategy Annie's friend can use even if it doesn't line up with what the parents are doing.
+
+Lin: There's another thing to think about. Annie's friend needs fast results! We shouldn't advise her to try anything that would take a long time, or only make small changes to the child's behavior.
+
+Annie: That makes sense! So let's take it step by step, and see which of the strategies we can eliminate using one of these criteria.
+
+Let's start by checking whether any of these strategies aren't likely to work on younger children. Even if we only eliminate one of the seven, it'll be a start.
+
+psych_sba_sidebar -> eliminate_age_inappropriate_strategies
+
+--- wait @ai_not_for_6_year_old_feedback.value ---
+
+Lin: So the next thing we agreed to check on was which of these strategies makes sense for the babysitter to try.
+
+It has to be something she can change while she is babysitting, not something that requires changes to the child's or the family's usual habits and practices when the babysitter isn't there.
+
+psych_sba_sidebar -> select_babysitter_feasible_strategies
+
+--- wait @ai_the_babysitter_can_implement_feedback.value ---
+
+Annie: OK, I've put together this table to show what we decided for each strategy based on the majority of our votes.
+
+Incidentally, some of us got a response from the AI that said collaborative problem solving wasn't completely feasible, because it requires intimate knowledge, trust, and an ongoing relationship. But I think my friend has that kind of relationship, so I've marked "collaborative problem solving" as feasible.
+
+psych_sba_sidebar -> chart_image
+
+
+JJ: That means we've narrowed down our choices to three --
+
+    1. Positive Reinforcement
+    2. Empathy and Emotional Support
+    3. Collaborative Problem Solving
+
+Lin: Well, I guess we need to figure out which of these techniques works best. I remember from my psychology course that these strategies are called "parenting techniques", and if you want to know how effective they are, you look into their "effect size".
+
+Annie: Let's take a break then, and each of us do some research. Let's see what we can come up with!
+
+JJ: I asked ChatGPT, "What are the short-term effect sizes for the following parenting techniques: positive reinforcement, empathy and emotional support, and collaborative problem solving?"
+
+When I ran it a few times, it consistently said positive reinforcement has moderate to large  effect sizes, empathy and emotional support have moderate effect sizes, and collaborative problem solving has small to moderate effect sizes.
+
+If we're going with this, we should probably recommend that Annie's friend try positive reinforcement to solve the kid's bedtime problem.
+
+Lin: Well, when I tried to get sources from the AI, they weren't helpful. So I went to Google Scholar instead because that's a great place to look for research articles. At first a lot of the results were irrelevant, but I finally had some luck when I typed in the following search --
+
+What are the effect sizes for parenting techniques?
+
+Look at the article that was at the top of the search!
+
+psych_sba_sidebar -> psych_sba_article_view
+
+Lin: It actually looks at both long-term and short-term effects. When I dug into the details, I found a table that showed a larger absolute effect size for positive reinforcement reducing problem behaviors than for empathy and problem-solving!
+
+Annie: I thought I would go old-school and simply use the subject index at the back of the textbook!
+
+At first, the results were frustrating. The entries for "positive reinforcement" didn't say anything about how effective it was, compared to anything else. Looking up emotion and empathy didn't lead me to anything useful, and I couldn't even find "collaborative problem solving" in the index.
+
+psych_sba_sidebar -> psych_sba_article_excerpt
+
+Annie: But then I looked for "parenting techniques". I found a section labeled, "Parent-child relationship", and under that there was an entry, "operant conditioning, and". The "operant condiopning, and" part really means, "operant conditioning and the parent-child relationship". I remembered from when we were studying operant conditioning that it works through positive (and also negative reinforcement), so I figured it was a good place to look, especially since I couldn't find anything else that was relevant. Here's what the textbook says, on page 243 --
+
+Annie: Since operant conditioning (and hence positive and negative reinforcement) is pretty much the only advice the book gives about childhood misbehavior, I think that confirms it. **Positive reinforcement** is what we should recommend!
+
+Lin: And we are done!
+
+JJ: We learned a lot in this exercise.
+
+psych_sba_sidebar -> psych_sba_part_1_completion_page
+
+Annie: So we did!
