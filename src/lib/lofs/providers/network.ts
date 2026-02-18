@@ -12,6 +12,7 @@
 // configurable endpoints, maintaining the same interface as local file storage.
 //
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, LofsPath } from '../../types';
+import { provenancePath } from '../types';
 import {
   type StorageProvider,
   type XmlFileInfo,
@@ -96,18 +97,13 @@ export class NetworkStorageProvider implements StorageProvider {
    * Works client-side by manipulating path strings.
    */
   resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
-    // Extract path from provenance URI
-    // Provenance format varies: "file:///content/...", "network://content/...", or just a path
+    // Extract logical path from provenance URI using standard URL parsing.
     let basePath: string;
     if (baseProvenance.includes('://')) {
-      basePath = baseProvenance.split('://').slice(1).join('://');
+      basePath = provenancePath(baseProvenance);
     } else {
       basePath = baseProvenance;
     }
-
-    // file:/// URIs have an absolute path after the authority (file:// + /path),
-    // so the extracted portion starts with /. Strip it to get the logical path.
-    basePath = basePath.replace(/^\/+/, '');
 
     // Strip namespace prefix if present. Provenance URIs include the mount
     // point / namespace (e.g., file:///content/sba/foo.olx has 'content/' as
@@ -143,8 +139,8 @@ export class NetworkStorageProvider implements StorageProvider {
   toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
     // NetworkStorageProvider is client-side; provenance is typically constructed
     // server-side during loadXmlFilesWithStats. For client-side use (e.g., editor
-    // tools), return a network:// URI.
-    return `network://${this.namespace}/${safePath}` as ProvenanceURI;
+    // tools), return a network:/// URI (empty authority, namespace in path).
+    return `network:///${this.namespace}/${safePath}` as ProvenanceURI;
   }
 
   /**

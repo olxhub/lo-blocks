@@ -139,7 +139,7 @@ describe('getEditPathFromProvenance security', () => {
   test('rejects provenance with traversal', () => {
     const result = getEditPathFromProvenance(['file:///content/../../etc/passwd']);
     expect(result.valid).toBe(false);
-    expect(result.error).toMatch(/outside content directory/i);
+    expect(result.error).toMatch(/not in the content mount/i);
   });
 
   test('rejects empty provenance', () => {

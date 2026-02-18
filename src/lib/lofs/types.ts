@@ -150,6 +150,23 @@ export function toFileProvenanceURI(mountPoint: string, relativePath: string): F
 }
 
 /**
+ * Extract the logical path from any provenance URI using standard URL parsing.
+ *
+ * Combines hostname and pathname so the result is correct regardless of
+ * whether the namespace sits in the authority (scheme://ns/path) or the
+ * path (scheme:///ns/path).
+ *
+ * Examples:
+ *   'file:///content/sba/foo.olx'    → 'content/sba/foo.olx'
+ *   'network:///content/sba/foo.olx' → 'content/sba/foo.olx'
+ *   'memory:///test.xml'             → 'test.xml'
+ */
+export function provenancePath(uri: string): string {
+  const parsed = new URL(uri);
+  return (parsed.hostname + parsed.pathname).replace(/^\/+/, '');
+}
+
+/**
  * Extract the logical path from a file:// provenance URI.
  *
  * Returns the full path after file:/// — e.g. 'content/sba/foo.olx'
@@ -162,14 +179,14 @@ export function fileProvenancePath(uri: string): string {
   if (!uri.startsWith('file:///')) {
     throw new Error(`Not a file provenance URI: ${uri}`);
   }
-  return uri.slice('file:///'.length);
+  return provenancePath(uri);
 }
 
 /**
  * Brand a memory:// provenance URI. Used by InMemoryStorageProvider.
  */
 export function toMemoryProvenanceURI(name: string): MemoryProvenanceURI {
-  return `memory://${name}` as MemoryProvenanceURI;
+  return `memory:///${name}` as MemoryProvenanceURI;
 }
 
 /**
@@ -243,7 +260,7 @@ export interface StorageProvider {
    * Maps from a canonical name (SafeRelativePath) to this provider's
    * location URI. For example:
    * - FileStorageProvider:   "sba/foo.olx" → "file:///content/sba/foo.olx"
-   * - InMemoryStorageProvider: "sba/foo.olx" → "memory://sba/foo.olx"
+   * - InMemoryStorageProvider: "sba/foo.olx" → "memory:///sba/foo.olx"
    *
    * Used by parsers to extend provenance chains without knowing about
    * storage schemes. See also ReadResult.provenance (set during read).

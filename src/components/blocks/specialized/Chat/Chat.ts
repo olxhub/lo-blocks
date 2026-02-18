@@ -44,9 +44,12 @@ function validateHeader(header: Record<string, unknown>): string[] {
   const warnings: string[] = [];
 
   for (const key of Object.keys(header)) {
-    const canonical = KNOWN_HEADER_KEYS.get(key.toLowerCase());
+    const lower = key.toLowerCase();
+    const canonical = KNOWN_HEADER_KEYS.get(lower);
     if (canonical && canonical !== key) {
       warnings.push(`Header key "${key}" should be "${canonical}" (keys are case-sensitive)`);
+    } else if (!canonical) {
+      warnings.push(`Unknown header key "${key}". Known keys: ${[...KNOWN_HEADER_KEYS.values()].join(', ')}`);
     }
   }
 
@@ -79,9 +82,9 @@ function postprocess({ parsed, ...rest }) {
   if (parsed.header && typeof parsed.header === 'string') {
     try {
       parsed.header = yaml.load(parsed.header) || {};
-    } catch {
-      // If YAML parsing fails, fall back to empty header
+    } catch (e) {
       parsed.header = {};
+      parsed.headerWarnings = [`YAML parse error in header: ${e.message}`];
     }
   }
 
@@ -89,7 +92,7 @@ function postprocess({ parsed, ...rest }) {
   if (parsed.header && typeof parsed.header === 'object') {
     const warnings = validateHeader(parsed.header);
     if (warnings.length > 0) {
-      parsed.headerWarnings = warnings;
+      parsed.headerWarnings = [...(parsed.headerWarnings || []), ...warnings];
     }
   }
 
