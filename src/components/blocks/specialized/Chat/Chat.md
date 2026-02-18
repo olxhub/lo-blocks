@@ -5,15 +5,25 @@ Conversational learning interface with dialogue, activities, and flow control.
 ```olx:playground
 <Chat id="discussion" title="Study Group">
 Title: Study Group
+Participants:
+  Kim:
+    seed: kim_researcher
+    face: smile
+  Alex:
+    seed: alex_student
 ~~~~
 
-Kim: Did you see the Roediger study? Students who took practice tests remembered 50% more after a week.
+Kim: Did you read the Roediger study? Students who took practice tests remembered 50% more after a week.
 
 Alex: That's counterintuitive. You'd think studying more would help more than testing.
 
 --- pause ---
 
-Kim: That's exactly why it's called "desirable difficulty" - it feels harder during practice but produces better long-term retention.
+Kim: That's exactly why it's called "desirable difficulty" — it feels harder during practice but produces better long-term retention.
+
+Alex: So re-reading feels productive but mostly builds familiarity? [face=awe]
+
+Kim: Exactly. Testing forces retrieval, which strengthens the memory trace.
 </Chat>
 ```
 
@@ -25,35 +35,47 @@ Kim: That's exactly why it's called "desirable difficulty" - it feels harder dur
 
 ## Chatpeg Format
 
-```
-Title: Conversation Title
-Author: Optional Author
-~~~~
-
-Scene Name
-----------
-
-Speaker1: Dialogue line here.
-
-Speaker2: Another line.
-
-# Comments start with hash
-
---- pause ---
-
-Speaker1: Continues after user clicks.
-```
+See the Chatpeg Grammar Reference for the full specification. Summary below.
 
 ### Header
 
-Key-value pairs before the `~~~~` divider:
+YAML format before the `~~~~` divider. Supports simple metadata and nested structures like participant definitions:
 
 ```
 Title: Learning Discussion
 Author: Education Team
-Course: PSYCH 101
+Participants:
+  Kim:
+    seed: kim_researcher
+    face: smile
+  Alex:
+    seed: alex_student
 ~~~~
 ```
+
+### Participants &amp; Avatars
+
+Define avatar appearance for each speaker in the header. Not every participant needs options — a bare entry like `Alex:` uses the speaker name as the avatar seed.
+
+```
+Participants:
+  Kim:
+    seed: kim_researcher
+    face: smile
+    skinColor: ["694d3d"]
+  Alex:
+```
+
+Per-line expression overrides use inline metadata:
+
+```
+Kim: That's fascinating! [face=awe]
+Alex: I'm not so sure. [face=serious]
+```
+
+Header keys are **case-sensitive**. The parser warns on casing mistakes (e.g., `Seed` instead of `seed`).
+
+See the Chatpeg Grammar Reference for the full avatar option tables.
 
 ### Sections
 
@@ -71,15 +93,25 @@ Main Discussion
 Alex: Let's dive in.
 ```
 
+### Inline Metadata
+
+Annotate any dialogue line with `[key=value]` pairs:
+
+```
+Kim: This is a key point. [id=key_finding face=smile]
+```
+
+Use `id` for clipping and navigation. Use `face` for per-line expression overrides. Metadata can also appear on a standalone line above dialogue.
+
 ### Commands
 
-**Pause** - Waits for user to click continue:
+**Pause** — Waits for user to click continue:
 
 ```
 --- pause ---
 ```
 
-**Wait** - Blocks until a state language expression is truthy:
+**Wait** — Blocks until a state language expression is truthy:
 
 ```
 --- wait @component_id.value ---
@@ -89,11 +121,13 @@ Alex: Let's dive in.
 
 See [State Language Expressions](../../../lib/stateLanguage/expr.pegjs.md) for full syntax.
 
-**Arrow** - Repoints a dynamic component to show different content:
+**Arrow** — Repoints a dynamic component to show different content:
 
 ```
 sidebar -> student_input
 ```
+
+Place arrow commands **before** the dialogue that references the new content.
 
 ## Activities Pattern
 
@@ -126,7 +160,7 @@ Kim: Interesting! Let's see what the research says...
 
 --- pause ---
 
-Kim: Cepeda et al. found that spacing study sessions produces dramatically better retention - especially when the spacing matches how long you need to remember.
+Kim: Cepeda et al. found that spacing study sessions produces dramatically better retention — especially when the spacing matches how long you need to remember.
 
 sidebar -> summary
       </Chat>
@@ -147,6 +181,7 @@ sidebar -> summary
 | `title` | No | Display title |
 | `clip` | No | Show only specific section(s) |
 | `history` | No | Include earlier sections as context |
+| `height` | No | Container height (e.g., `"400px"` or `"flex-1"`) |
 
 ### Clips
 
@@ -161,19 +196,20 @@ The `history` attribute provides earlier context so the conversation flows natur
 
 ## State Fields
 
-- `value` - Current position in dialogue
-- `isDisabled` - Whether advance is blocked (waiting)
-- `sectionHeader` - Current section title
+- `value` — Current position in dialogue
+- `isDisabled` — Whether advance is blocked (waiting)
+- `sectionHeader` — Current section title
 
 ## Pedagogical Applications
 
 Chat supports scenario-based assessments where students join ongoing discussions, contributing analysis that influences how the conversation unfolds. Characters model different perspectives and reasoning approaches. The format increases engagement through social presence while the wait/activity pattern creates natural reflection points.
 
-The predict-then-explain pattern shown above leverages the finding that making predictions improves subsequent encoding of correct information.
+The predict-then-explain pattern shown above leverages the finding that making predictions improves subsequent encoding of correct information (Roediger &amp; Karpicke, 2006).
 
 ## Related Blocks
 
-- **UseHistory** - Displays timeline of student responses
-- **Hidden** - Contains activity components referenced by chat
-- **SplitPanel** - Common layout with chat and sidebar
-- **TextArea** - Student input that chat can wait for
+- **UseHistory** — Displays timeline of student responses
+- **Hidden** — Contains activity components referenced by chat
+- **SplitPanel** — Common layout with chat and sidebar
+- **TextArea** — Student input that chat can wait for
+- **TalkBubble** — Static speech bubbles (uses the same Avatar component)

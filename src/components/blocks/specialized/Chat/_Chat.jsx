@@ -55,6 +55,9 @@ export function _Chat(props) {
   /* Participant definitions from header YAML (optional). */
   const participants = kids.parsed.header?.Participants || null;
 
+  /* Validation warnings from postprocess (e.g. case-sensitivity typos). */
+  const headerWarnings = kids.parsed.headerWarnings || [];
+
   // Clip student is going through
   const clipRange = useMemo(() => {
     if (!clip) {
@@ -231,15 +234,25 @@ export function _Chat(props) {
   }
 
   return (
-    <ChatComponent
-      id={`${id}_component`}
-      messages={visibleMessages}
-      participants={participants}
-      subtitle={sectionHeader}
-      footer={footer}
-      onAdvance={handleAdvance}
-      height={props.height ?? 'flex-1'}
-    />
+    <>
+      {headerWarnings.length > 0 && (
+        <div className="bg-yellow-50 text-yellow-800 text-sm p-2 rounded border border-yellow-200 mb-2">
+          <strong>Chat header warnings:</strong>
+          <ul className="list-disc ml-4 mt-1">
+            {headerWarnings.map((w, i) => <li key={i}>{w}</li>)}
+          </ul>
+        </div>
+      )}
+      <ChatComponent
+        id={`${id}_component`}
+        messages={visibleMessages}
+        participants={participants}
+        subtitle={sectionHeader}
+        footer={footer}
+        onAdvance={handleAdvance}
+        height={props.height ?? 'flex-1'}
+      />
+    </>
   );
 }
 

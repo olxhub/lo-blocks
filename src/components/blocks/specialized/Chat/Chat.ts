@@ -19,6 +19,57 @@ function advanceChat({ targetId }) {
   callChatAdvanceHandler(targetId);
 }
 
+/* ----------------------------------------------------------------
+ * Header validation
+ * ----------------------------------------------------------------
+ * After YAML parsing we check for case-sensitivity typos so that
+ * content authors get early feedback (e.g. "Seed" instead of "seed").
+ */
+
+const KNOWN_HEADER_KEYS = new Map([
+  ['title', 'Title'],
+  ['author', 'Author'],
+  ['course', 'Course'],
+  ['participants', 'Participants'],
+]);
+
+const KNOWN_PARTICIPANT_KEYS = new Set([
+  'seed', 'style', 'src', 'name',
+  // DiceBear Open Peeps options
+  'face', 'head', 'skinColor', 'clothingColor',
+  'accessories', 'facialHair', 'mask',
+]);
+
+function validateHeader(header: Record<string, unknown>): string[] {
+  const warnings: string[] = [];
+
+  for (const key of Object.keys(header)) {
+    const canonical = KNOWN_HEADER_KEYS.get(key.toLowerCase());
+    if (canonical && canonical !== key) {
+      warnings.push(`Header key "${key}" should be "${canonical}" (keys are case-sensitive)`);
+    }
+  }
+
+  // Find Participants (case-insensitive) and validate property keys
+  const participantsKey = Object.keys(header).find(k => k.toLowerCase() === 'participants');
+  const participants = participantsKey ? header[participantsKey] : null;
+
+  if (participants && typeof participants === 'object' && !Array.isArray(participants)) {
+    for (const [speaker, props] of Object.entries(participants as Record<string, unknown>)) {
+      if (props && typeof props === 'object' && !Array.isArray(props)) {
+        for (const propKey of Object.keys(props as Record<string, unknown>)) {
+          const match = [...KNOWN_PARTICIPANT_KEYS].find(k => k.toLowerCase() === propKey.toLowerCase());
+          if (match && match !== propKey) {
+            warnings.push(`Participant "${speaker}": "${propKey}" should be "${match}" (keys are case-sensitive)`);
+          }
+        }
+      }
+    }
+  }
+
+  return warnings;
+}
+
 /**
  * Post-process PEG output: parse header text as YAML.
  * The grammar returns header as raw text; we parse it here so the header
@@ -33,6 +84,15 @@ function postprocess({ parsed, ...rest }) {
       parsed.header = {};
     }
   }
+
+  // Validate and attach warnings
+  if (parsed.header && typeof parsed.header === 'object') {
+    const warnings = validateHeader(parsed.header);
+    if (warnings.length > 0) {
+      parsed.headerWarnings = warnings;
+    }
+  }
+
   return { type: 'parsed', parsed };
 }
 

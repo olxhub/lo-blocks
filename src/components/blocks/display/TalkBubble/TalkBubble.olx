@@ -1,19 +1,13 @@
-<Vertical id="talk_bubble_examples">
-  <Markdown>## TalkBubble Examples</Markdown>
-
-  <TalkBubble speaker="Chip">
-    <Markdown>This is a default left-aligned speech bubble. Perfect for the main character or interviewer.</Markdown>
+<Vertical id="TalkBubbleDemo">
+  <TalkBubble speaker="Chip" seed="chip_tutor">
+    <Markdown>Have you heard about peer instruction? Students discuss their reasoning with neighbors before answering.</Markdown>
   </TalkBubble>
 
-  <TalkBubble speaker="Clara" position="right">
-    <Markdown>And this is a right-aligned bubble! Use this for responses or alternate speakers.</Markdown>
+  <TalkBubble speaker="Clara" position="right" seed="clara_student" face="smile">
+    <Markdown>The clicker method! Where you vote, discuss, then re-vote?</Markdown>
   </TalkBubble>
 
-  <TalkBubble speaker="Dr. Smith" avatar="/avatars/professor.png">
-    <Markdown>You can also provide custom avatar images using the `avatar` attribute.</Markdown>
-  </TalkBubble>
-
-  <TalkBubble>
-    <Markdown>Speech bubbles work without a speaker name too, though it's less clear who's talking.</Markdown>
+  <TalkBubble speaker="Chip" seed="chip_tutor" face="smile">
+    <Markdown>Exactly. Hake's study of 6,000 students showed interactive engagement nearly doubled learning gains on the Force Concept Inventory.</Markdown>
   </TalkBubble>
 </Vertical>

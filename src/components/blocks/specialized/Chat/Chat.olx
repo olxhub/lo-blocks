@@ -1,18 +1,22 @@
-<Chat id="demo_chat" title="Study Group Discussion">
+<Chat id="ChatDemo" title="Study Group">
 Title: Study Group
+Participants:
+  Kim:
+    seed: kim_researcher
+    face: smile
+    skinColor: ["694d3d"]
+  Alex:
 ~~~~
 
-Alex: Hey! Ready to review for the exam?
+Kim: Did you read the Roediger and Karpicke study on the testing effect?
 
-Sam: Definitely. I'm still confused about photosynthesis.
+Alex: The one where practice tests beat re-studying for long-term retention?
 
-Alex: Let's break it down. Plants take in carbon dioxide and water...
+--- pause ---
 
-Sam: And use sunlight to make glucose, right?
+Kim: Exactly. Students who tested themselves remembered about 50% more after a week, even though they felt less confident during practice.
 
-Alex: Exactly! The light energy converts CO2 and H2O into sugar and oxygen.
+Alex: Wait, really? That's counterintuitive. [face=awe]
 
-Sam: So the oxygen we breathe is basically a byproduct?
-
-Alex: You got it! That's why plants are so important for our atmosphere.
+Kim: Right. Bjork calls it a "desirable difficulty" — testing feels harder during practice but produces more durable learning. [face=smileBig]
 </Chat>
