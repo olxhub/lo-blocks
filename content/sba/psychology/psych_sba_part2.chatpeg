@@ -50,83 +50,83 @@ JJ: Do you remember when the TA gave us that practice page with twenty extra que
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1
 
---- wait @reinforcement_v_punishment_sticker.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1b
 
---- wait @reinforcement_v_punishment_asking.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1b.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1c
 
---- wait @reinforcement_v_punishment_getting_burned.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1c.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1d
 
---- wait @reinforcement_v_punishment_tantrum.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1d.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1e
 
---- wait @reinforcement_v_punishment_glaring.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1e.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1f
 
---- wait @reinforcement_v_punishment_screentime.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1f.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1g
 
---- wait @reinforcement_v_punishment_candy.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1g.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1h
 
---- wait @reinforcement_v_punishment_cheer_on.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1h.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1i
 
---- wait @reinforcement_v_punishment_upset.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1i.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1j
 
---- wait @reinforcement_v_punishment_not_called_on.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1j.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1k
 
---- wait @reinforcement_v_punishment_artist.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1k.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1l
 
---- wait @reinforcement_v_punishment_firm_command.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1l.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1m
 
---- wait @reinforcement_v_punishment_timeout.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1m.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1n
 
---- wait @reinforcement_v_punishment_lose_recess_time.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1n.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1o
 
---- wait @reinforcement_v_punishment_grounded.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1o.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1p
 
---- wait @reinforcement_v_punishment_removing_dessert.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1p.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1q
 
---- wait @reinforcement_v_punishment_being_told.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1q.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1r
 
---- wait @reinforcement_v_punishment_offer_snack.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1r.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1s
 
---- wait @reinforcement_v_punishment_excluded.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1s.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1t
 
---- wait @reinforcement_v_punishment_badge.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1t.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1c
 
@@ -238,83 +238,83 @@ Annie: I am, too. Let's give it a try!
 
 psych_sba_sidebar2 -> four_types_practice_1
 
---- wait @four_types_sticker.submitCount > 0 ---
+--- wait @four_types_practice_1.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1b
 
---- wait @four_types_asking.submitCount > 0 ---
+--- wait @four_types_practice_1b.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1c
 
---- wait @four_types_getting_burned.submitCount > 0 ---
+--- wait @four_types_practice_1c.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1d
 
---- wait @four_types_tantrum.submitCount > 0 ---
+--- wait @four_types_practice_1d.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1e
 
---- wait @four_types_glaring.submitCount > 0 ---
+--- wait @four_types_practice_1e.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1f
 
---- wait @four_types_screentime.submitCount > 0 ---
+--- wait @four_types_practice_1f.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1g
 
---- wait @four_types_candy.submitCount > 0 ---
+--- wait @four_types_practice_1g.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1h
 
---- wait @four_types_cheer_on.submitCount > 0 ---
+--- wait @four_types_practice_1h.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1i
 
---- wait @four_types_upset.submitCount > 0 ---
+--- wait @four_types_practice_1i.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1j
 
---- wait @four_types_not_called_on.submitCount > 0 ---
+--- wait @four_types_practice_1j.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1k
 
---- wait @four_types_artist.submitCount > 0 ---
+--- wait @four_types_practice_1k.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1l
 
---- wait @four_types_firm_command.submitCount > 0 ---
+--- wait @four_types_practice_1l.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1m
 
---- wait @four_types_timeout.submitCount > 0 ---
+--- wait @four_types_practice_1m.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1n
 
---- wait @four_types_lose_recess_time.submitCount > 0 ---
+--- wait @four_types_practice_1n.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1o
 
---- wait @four_types_grounded.submitCount > 0 ---
+--- wait @four_types_practice_1o.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1p
 
---- wait @four_types_removing_dessert.submitCount > 0 ---
+--- wait @four_types_practice_1p.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1q
 
---- wait @four_types_being_told.submitCount > 0 ---
+--- wait @four_types_practice_1q.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1r
 
---- wait @four_types_offer_snack.submitCount > 0 ---
+--- wait @four_types_practice_1r.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1s
 
---- wait @four_types_excluded.submitCount > 0 ---
+--- wait @four_types_practice_1s.submitCount > 0 ---
 
 psych_sba_sidebar2 -> four_types_practice_1t
 
---- wait @four_types_badge.submitCount > 0 ---
+--- wait @four_types_practice_1t.submitCount > 0 ---
 
 psych_sba_sidebar2 -> clear_screen_after_quiz
 
