@@ -785,6 +785,8 @@ export interface OlxJson {
   description?: string;
   /** Content category for filtering/organization (e.g., "psychology", "writing", "demo") */
   category?: string;
+  /** Numeric sort index within a category. Positive = front, negative = end, unset = middle (alphabetical). Fractions allowed. */
+  index?: number;
   /** BCP 47 language tag identifying which language/variant this OlxJson represents (e.g., 'en-Latn-US', 'ar-Arab-SA') */
   lang?: string;
   /** Generation provenance. Absent on human-authored content.

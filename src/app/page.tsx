@@ -62,7 +62,7 @@ const ENDPOINT_LINKS = [
 ];
 
 // TODO: This should not be hardcoded.
-function categorizeActivities(entries) {
+function categorizeActivities(entries, userLocale: string) {
   const categories: Record<string, { title: string; icon: string; color: string; items: any[] }> = {
     demo: { title: 'Demos', icon: '🎯', color: 'blue', items: [] },
     writing: { title: 'Writing', icon: '✍️', color: 'amber', items: [] },
@@ -79,6 +79,27 @@ function categorizeActivities(entries) {
       categories.other.items.push(entry);
     }
   });
+
+  // Sort within each category: positive index → unindexed (alphabetical) → negative index
+  const sortGroup = (a) => {
+    if (a.index == null) return 1;   // middle: unindexed
+    if (a.index >= 0) return 0;      // front: positive index
+    return 2;                        // end: negative index
+  };
+
+  for (const cat of Object.values(categories)) {
+    cat.items.sort((a, b) => {
+      const ga = sortGroup(a);
+      const gb = sortGroup(b);
+      if (ga !== gb) return ga - gb;
+      // Within same group: sort by index if both have one, otherwise alphabetical
+      if (ga !== 1 && a.index !== b.index) return a.index - b.index;
+      // Tiebreak: natural sort by title
+      const titleA = extractLocalizedVariant(a.title, userLocale) || a.id;
+      const titleB = extractLocalizedVariant(b.title, userLocale) || b.id;
+      return titleA.localeCompare(titleB, undefined, { numeric: true });
+    });
+  }
 
   return Object.values(categories).filter(cat => cat.items.length > 0);
 }
@@ -187,7 +208,7 @@ function Activities() {
     );
   }
 
-  const categories = categorizeActivities(entries);
+  const categories = categorizeActivities(entries, userLocale);
 
   return (
     <div className="space-y-8">

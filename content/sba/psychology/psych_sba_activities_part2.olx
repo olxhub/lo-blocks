@@ -2,10 +2,11 @@
 ---
 description: "Activities included in Psychology Study Group: 2. Operant Conditioning. This is not a separate activity, but is included to support content editing."
 category: psychology
+index: 52
 lang: en-Latn-US
 ---
 -->
-<Vertical id="psych_sba_activities_part2" title="Activities for Psychology SBA, part 2" launchable="true">
+<Vertical id="psych_sba_activities_part2" title="Psychology Study Group: 2. Operant Conditioning (Activities)" launchable="true">
 
   <!-- Introduction section -->
   <Vertical id="bedtime_problem_introduction2">

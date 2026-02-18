@@ -217,6 +217,22 @@ test('parses valid metadata and ignores regular comments', async () => {
   expect(getOlxJson(idMap, 'test').category).toBe('psychology');
 });
 
+test('parses index from metadata (positive, negative, fractional)', async () => {
+  const makeXml = (index) => `
+    <!--
+    ---
+    index: ${index}
+    ---
+    -->
+    <Vertical id="test"><TextBlock>Content</TextBlock></Vertical>
+  `;
+  for (const val of [0, 3, -1, 9.5, -2.5]) {
+    const { idMap, errors } = await parseOLX(makeXml(val), PROV);
+    expect(errors.length).toBe(0);
+    expect(getOlxJson(idMap, 'test').index).toBe(val);
+  }
+});
+
 test('reports teacher-friendly error for invalid YAML metadata', async () => {
   const xml = `
     <!--

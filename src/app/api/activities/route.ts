@@ -73,6 +73,7 @@ export async function GET(request: NextRequest) {
             {
               id,
               category: bestEntry.category || 'other',
+              index: bestEntry.index,
               tag: bestEntry.tag,
               editPath,
               title,
