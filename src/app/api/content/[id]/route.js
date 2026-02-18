@@ -44,12 +44,13 @@ export async function GET(request, { params }) {
   const { id } = await params;
 
   try {
-    const { idMap } = await syncContentFromStorage();
+    const { idMap, errors } = await syncContentFromStorage();
 
     if (id === 'all') {
       return Response.json({
         ok: true,
-        idMap
+        idMap,
+        errors
       });
     }
 

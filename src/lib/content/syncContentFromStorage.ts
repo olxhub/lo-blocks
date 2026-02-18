@@ -384,6 +384,7 @@ async function parseAndIndexFiles(
 
       errors.push({
         type: 'file_error',
+        summary: `${fileUri} could not be loaded`,
         file: fileUri,
         message: `Failed to parse file: ${fatalError.message}`,
         technical: fatalError,
@@ -458,6 +459,7 @@ function createDuplicateIdError(
 ): OLXLoadingError {
   return {
     type: 'duplicate_id',
+    summary: `Duplicate ID "${blockId}" in ${sourceFile}`,
     file: sourceFile,
     message: `Duplicate ID "${blockId}" found in ${sourceFile} (conflicts with entry from another file)
 
