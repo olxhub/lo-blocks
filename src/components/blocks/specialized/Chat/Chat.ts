@@ -1,6 +1,7 @@
 // src/components/blocks/Chat/Chat.js
 
 import { z } from 'zod';
+import yaml from 'js-yaml';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
@@ -18,8 +19,25 @@ function advanceChat({ targetId }) {
   callChatAdvanceHandler(targetId);
 }
 
+/**
+ * Post-process PEG output: parse header text as YAML.
+ * The grammar returns header as raw text; we parse it here so the header
+ * supports both simple key-value pairs and nested structures (e.g. participants).
+ */
+function postprocess({ parsed, ...rest }) {
+  if (parsed.header && typeof parsed.header === 'string') {
+    try {
+      parsed.header = yaml.load(parsed.header) || {};
+    } catch {
+      // If YAML parsing fails, fall back to empty header
+      parsed.header = {};
+    }
+  }
+  return { type: 'parsed', parsed };
+}
+
 const Chat = blocks.dev({
-  ...peggyParser(cp),
+  ...peggyParser(cp, { postprocess }),
   ...blocks.action({
     action: advanceChat
   }),

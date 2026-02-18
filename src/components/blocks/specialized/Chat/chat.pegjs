@@ -70,21 +70,13 @@ ConversationBodyOnly
       return { type: "Conversation", header: null, body };
     }
 
-// Conversation header: key-value lines, like "Title: Example"
+// Conversation header: raw text before the ~~~~ divider.
+// Returned as a string to be parsed as YAML by downstream code,
+// which supports both simple key-value pairs and nested structures
+// like participant definitions.
 ConversationHeader
-  = lines:(HeaderLine / CommentLine)* {
-      const header = {};
-      lines.forEach(line => {
-        if (line && line.type === "HeaderField") {
-          header[line.key] = line.value;
-        }
-      });
-      return header;
-    }
-
-HeaderLine
-  = key:Key _ ":" _ value:HeaderValue NewLine {
-      return { type: "HeaderField", key, value };
+  = chars:(!HeaderDivider c:. { return c; })* {
+      return chars.join('');
     }
 
 // Body of the document: could contain dialogues, commands, etc.

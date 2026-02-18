@@ -52,6 +52,9 @@ export function _Chat(props) {
   /*  Full parsed body (dialogue lines + command entries).  */
   const allEntries = kids.parsed.body;
 
+  /* Participant definitions from header YAML (optional). */
+  const participants = kids.parsed.header?.Participants || null;
+
   // Clip student is going through
   const clipRange = useMemo(() => {
     if (!clip) {
@@ -231,6 +234,7 @@ export function _Chat(props) {
     <ChatComponent
       id={`${id}_component`}
       messages={visibleMessages}
+      participants={participants}
       subtitle={sectionHeader}
       footer={footer}
       onAdvance={handleAdvance}
