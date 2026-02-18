@@ -1,6 +1,6 @@
 <Chat id="ChatDemo" title="Study Group">
 Title: Study Group
-Participants:
+Cast:
   Kim:
     seed: kim_researcher
     face: smile

@@ -22,7 +22,7 @@ The header uses YAML format before the `~~~~` divider:
 Title: Cognitive Load Theory
 Author: Learning Design Team
 Course: PSYCH 201
-Participants:
+Cast:
   Professor Liu:
     seed: liu_professor
     face: calm
@@ -38,16 +38,16 @@ Participants:
 | `Title` | Document title (displayed in chat header) |
 | `Author` | Author name |
 | `Course` | Course identifier |
-| `Participants` | Speaker avatar definitions (see below) |
+| `Cast` | Speaker avatar definitions (see below) |
 
-Keys are **case-sensitive** — use `Participants` not `participants`. The parser warns on casing mismatches.
+Keys are **case-sensitive** — use `Cast` not `cast`. The parser warns on casing mismatches.
 
-### Participants
+### Cast
 
-Define avatar appearance for each speaker. Not every participant needs options — a bare entry uses the speaker name as the avatar seed:
+Define avatar appearance for each speaker. Not every cast member needs options — a bare entry uses the speaker name as the avatar seed:
 
 ```yaml
-Participants:
+Cast:
   Professor Chen:
     seed: chen_professor
     style: illustrated
@@ -268,7 +268,7 @@ Clip syntax supports section names, IDs, indices, and ranges:
 ```
 Title: Desirable Difficulties
 Author: Learning Design Team
-Participants:
+Cast:
   Kim:
     seed: kim_researcher
     face: smile
@@ -312,7 +312,7 @@ The parser produces a structure with header and body:
   "type": "Conversation",
   "header": {
     "Title": "...",
-    "Participants": { ... }
+    "Cast": { ... }
   },
   "body": [
     { "type": "SectionHeader", "title": "...", "metadata": {} },

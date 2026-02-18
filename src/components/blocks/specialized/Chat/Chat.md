@@ -5,7 +5,7 @@ Conversational learning interface with dialogue, activities, and flow control.
 ```olx:playground
 <Chat id="discussion" title="Study Group">
 Title: Study Group
-Participants:
+Cast:
   Kim:
     seed: kim_researcher
     face: smile
@@ -44,7 +44,7 @@ YAML format before the `~~~~` divider. Supports simple metadata and nested struc
 ```
 Title: Learning Discussion
 Author: Education Team
-Participants:
+Cast:
   Kim:
     seed: kim_researcher
     face: smile
@@ -53,12 +53,12 @@ Participants:
 ~~~~
 ```
 
-### Participants &amp; Avatars
+### Cast &amp; Avatars
 
-Define avatar appearance for each speaker in the header. Not every participant needs options — a bare entry like `Alex:` uses the speaker name as the avatar seed.
+Define avatar appearance for each speaker in the header. Not every cast member needs options — a bare entry like `Alex:` uses the speaker name as the avatar seed.
 
 ```
-Participants:
+Cast:
   Kim:
     seed: kim_researcher
     face: smile

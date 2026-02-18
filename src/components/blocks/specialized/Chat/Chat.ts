@@ -30,10 +30,10 @@ const KNOWN_HEADER_KEYS = new Map([
   ['title', 'Title'],
   ['author', 'Author'],
   ['course', 'Course'],
-  ['participants', 'Participants'],
+  ['cast', 'Cast'],
 ]);
 
-const KNOWN_PARTICIPANT_KEYS = new Set([
+const KNOWN_CAST_KEYS = new Set([
   'seed', 'style', 'src', 'name',
   // DiceBear Open Peeps options
   'face', 'head', 'skinColor', 'clothingColor',
@@ -50,15 +50,15 @@ function validateHeader(header: Record<string, unknown>): string[] {
     }
   }
 
-  // Find Participants (case-insensitive) and validate property keys
-  const participantsKey = Object.keys(header).find(k => k.toLowerCase() === 'participants');
+  // Find Cast (case-insensitive) and validate property keys
+  const participantsKey = Object.keys(header).find(k => k.toLowerCase() === 'cast');
   const participants = participantsKey ? header[participantsKey] : null;
 
   if (participants && typeof participants === 'object' && !Array.isArray(participants)) {
     for (const [speaker, props] of Object.entries(participants as Record<string, unknown>)) {
       if (props && typeof props === 'object' && !Array.isArray(props)) {
         for (const propKey of Object.keys(props as Record<string, unknown>)) {
-          const match = [...KNOWN_PARTICIPANT_KEYS].find(k => k.toLowerCase() === propKey.toLowerCase());
+          const match = [...KNOWN_CAST_KEYS].find(k => k.toLowerCase() === propKey.toLowerCase());
           if (match && match !== propKey) {
             warnings.push(`Participant "${speaker}": "${propKey}" should be "${match}" (keys are case-sensitive)`);
           }
