@@ -5,6 +5,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import NavArrow from '@/components/common/NavArrow';
 import ExpandIcon from '@/components/common/ExpandIcon';
+import Avatar from '@/components/common/Avatar';
 import { acceptString } from '@/lib/util/fileTypes';
 
 // Theme definitions
@@ -51,42 +52,6 @@ const themes = {
     fileBadge: 'bg-gray-800 text-gray-300',
     errorBadge: 'bg-red-900/30 text-red-400',
   },
-};
-
-// Generate random colors based on name (consistent for same name)
-const getAvatarColor = (name) => {
-  const colors = [
-    'bg-blue-500', 'bg-green-500', 'bg-yellow-500',
-    'bg-purple-500', 'bg-pink-500', 'bg-indigo-500',
-    'bg-red-500', 'bg-teal-500', 'bg-orange-500'
-  ];
-
-  // Simple hash function to get consistent color for same name
-  const hash = Array.from(name).reduce(
-    (acc, ch) => ch.charCodeAt(0) + ((acc << 5) - acc),
-    0
-  );
-
-  const index = Math.abs(hash) % colors.length;
-  return colors[index];
-};
-
-// Avatar component
-const Avatar = ({ name }) => {
-  const initials = name
-    .split(' ')
-    .map(word => word[0])
-    .join('')
-    .toUpperCase()
-    .substring(0, 2);
-
-  const bgColor = getAvatarColor(name);
-
-  return (
-    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold ${bgColor}`}>
-      {initials}
-    </div>
-  );
 };
 
 // Message component for chat lines
