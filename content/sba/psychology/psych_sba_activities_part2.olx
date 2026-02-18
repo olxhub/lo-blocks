@@ -1,6 +1,6 @@
 <!--
 ---
-description: Activities included in Psychology Study Group: 2. Operant Conditioning. This is not a separate activity, but is included to support content editing.
+description: "Activities included in Psychology Study Group: 2. Operant Conditioning. This is not a separate activity, but is included to support content editing."
 category: psychology
 lang: en-Latn-US
 ---
@@ -464,7 +464,7 @@ Let's begin.
   </Vertical>
 
   <Vertical id="operant_conditioning_clear_screen_1">
-    <Markdown>
+    <Markdown id="operant_conditioning_spacer_1">
       &nbsp;
     </Markdown>
   </Vertical>
@@ -1078,7 +1078,7 @@ Remember:
     <Markdown id="email_draft_prompt">
         ## The Opening We Wrote
     </Markdown>
-    <TextArea id="email_draft" />
+    <TextArea id="email_draft_part2" />
   </Vertical>
 
   <Vertical id="outline_of_full_email">
@@ -1156,7 +1156,7 @@ Remember:
             <Markdown>
                  1. _Why Annie's Friend Shouldn't Give Up On Setting Bedtime._
             </Markdown>
-            <Ref id="email_opening_final_tab2"
+            <Ref id="email_opening_final_jj"
                         target="email_draft" />
             <Markdown>
                  2. _What psychological technique we are recommending (positive reinforcement)._
@@ -1201,7 +1201,7 @@ Remember:
             <Markdown>
                  1. _Why Annie's Friend Shouldn't Give Up On Setting Bedtime._
             </Markdown>
-            <Ref id="email_opening_final_tab2"
+            <Ref id="email_opening_final_lin"
                         target="email_draft" />
             <Markdown>
                  2. _What psychological technique we are recommending (positive reinforcement)._
@@ -1249,7 +1249,7 @@ Remember:
             <Markdown>
                  1. _Why Annie's Friend Shouldn't Give Up On Setting Bedtime._
             </Markdown>
-            <Ref id="email_opening_final_tab2"
+            <Ref id="email_opening_final_annie"
                         target="email_draft" />
             <Markdown>
                  2. _What psychological technique we are recommending (positive reinforcement)._
