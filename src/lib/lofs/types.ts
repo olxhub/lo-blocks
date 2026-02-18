@@ -163,7 +163,7 @@ export function toFileProvenanceURI(mountPoint: string, relativePath: string): F
  */
 export function provenancePath(uri: string): string {
   const parsed = new URL(uri);
-  return (parsed.hostname + parsed.pathname).replace(/^\/+/, '');
+  return decodeURIComponent((parsed.hostname + parsed.pathname).replace(/^\/+/, ''));
 }
 
 /**
