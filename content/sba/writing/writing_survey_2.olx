@@ -8,8 +8,7 @@ lang: en-Latn-US
 -->
 <!-- content/sba/writing/writing_process_journal_2.olx -->
 <Sequential id="writing_survey_2" title="Writing Survey 2" launchable="true">
-    <Vertical id="ws2_intro">
-       <Markdown>
+    <Markdown id="ws2_intro">
             # Writing Survey 2
             ## Goals I Set For My Writing
 
@@ -22,8 +21,7 @@ lang: en-Latn-US
             much time on any single statement. When you are done, you will have a chance to
             read a computer-generated summary of your answers.
 
-       </Markdown>
-    </Vertical>
+    </Markdown>
     <Vertical id="ws2_Step_1">
             <Markdown id="ws2_md1">
             # Writing Survey 2

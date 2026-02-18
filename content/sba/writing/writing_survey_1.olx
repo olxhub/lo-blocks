@@ -8,15 +8,13 @@ lang: en-Latn-US
 -->
 <!-- content/sba/writing/writing_process_journal_1.olx -->
 <Sequential id="writing_survey_1" title="Writing Survey 1" launchable="true">
-    <Vertical id="ws1_intro">
-       <Markdown>
+    <Markdown id="ws1_intro">
             # Writing Survey 1
             ## Introduction
 
             In this survey, you will reflect on how you feel about writing and various kinds
             of writing situations. To probe how you feel, you will be presented with a series of statements, and asked to indicate whether you (a) strongly agree, (b) agree, (c) disagree, or (d) strongly disagree with that statement. Work your way through these statements, picking the answer that seems to match your own experience and feelings best. There are quite a few statements to get through, so don't take too much time on any single statement. At the end, we will give you a computer-generated summary of your answers.
-       </Markdown>
-    </Vertical>
+    </Markdown>
     <SplitPanel id="ws1_Step_1" title="Survey Questions 1-5" sizes="80,20">
         <LeftPane>
             <Markdown>

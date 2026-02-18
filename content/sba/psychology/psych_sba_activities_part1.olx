@@ -9,8 +9,7 @@ lang: en-Latn-US
 <Vertical id="psych_sba_activities_part1" title="Psychology Study Group: 1. Sleep Refusal (Activities)" launchable="true">
 
   <!-- Introduction section -->
-  <Vertical id="bedtime_problem_introduction">
-    <Markdown id="bedtime_problem_intro_text">
+  <Markdown id="bedtime_problem_introduction">
 ## Introduction
 
 In this module, you will review and apply several concepts from your coursework on behavioral modification. Specifically, you will:
@@ -23,12 +22,9 @@ To complete these parts, you will imagine that you are working in a breakout gro
 
 Let's begin.
     </Markdown>
-  </Vertical>
-  <Vertical id="bedtime_problem_clear_screen_1">
-    <Markdown>
+  <Markdown id="bedtime_problem_clear_screen_1">
       &nbsp;
     </Markdown>
-  </Vertical>
 
   <!-- Opening screen - problem image -->
   <SplitPanel id="bedtime_scenario_image">
@@ -81,15 +77,12 @@ What do YOU think Annie's roommate should do to get the 6-year-old to go to slee
     <ActionButton id="continue_after_sorting" dependsOn="@bedtime_strategy_grader.submitCount > 0" target="psych_chat" action="advance" label="Continue Discussion" />
   </Vertical>
 
-  <Vertical id="bedtime_problem_clear_screen_2">
-    <Markdown>
+  <Markdown id="bedtime_problem_clear_screen_2">
       &nbsp;
     </Markdown>
-  </Vertical>
 
   <!-- Messages screenshot -->
-  <Vertical id="messages_image">
-    <Markdown id="messages_text">
+  <Markdown id="messages_image">
 ## Text Messages from the Babysitter
 
 **Parent:** He's doing it again. Running around at bedtime.
@@ -100,7 +93,6 @@ What do YOU think Annie's roommate should do to get the 6-year-old to go to slee
 
 **Key observation:** The yelling seems to be making things worse - it might be accidentally *reinforcing* the behavior by giving attention!
     </Markdown>
-  </Vertical>
 
   <!-- Student suggestion activity -->
   <Vertical id="student_ai_suggestion">
@@ -161,8 +153,7 @@ What prompt should we write for the AI in order to learn about sleep refusal and
       </LLMAction>
     </ActionButton>
   </Vertical>
-  <Vertical id="vetted_info_part1">
-     <Markdown>
+  <Markdown id="vetted_info_part1">
 
        # No-Rules Parenting and Sleep Refusal
 
@@ -190,9 +181,7 @@ What prompt should we write for the AI in order to learn about sleep refusal and
         inconsistent schedules can disrupt circadian rhythms, leading to insufficient
         or fragmented sleep.
      </Markdown>
-  </Vertical>
-  <Vertical id="vetted_info_part2">
-     <Markdown>
+  <Markdown id="vetted_info_part2">
 
     2. **Natural Consequences**
 
@@ -220,9 +209,7 @@ What prompt should we write for the AI in order to learn about sleep refusal and
             However, research suggests that structured bedtime routines reduce
             cortisol levels and promote melatonin release, facilitating better sleep.
      </Markdown>
-  </Vertical>
-  <Vertical id="vetted_info_part3">
-     <Markdown>
+  <Markdown id="vetted_info_part3">
         4. **Parental Responsiveness**
 
         **Claim**: Prioritizing connection and meeting the child's needs (e.g.,
@@ -245,7 +232,6 @@ What prompt should we write for the AI in order to learn about sleep refusal and
         **Parental Burnout**: Allowing children to dictate bedtime can result in extended
         negotiations and increased nighttime disruptions.
      </Markdown>
-  </Vertical>
 
   <!-- Student suggestion activity -->
   <Vertical id="draft_email">
@@ -303,8 +289,7 @@ What prompt should we write for the AI in order to learn about sleep refusal and
       </ChoiceInput>
   </Vertical>
 
-  <Vertical id="strategy_notes_1">
-      <Markdown>
+  <Markdown id="strategy_notes_1">
          ## Alternatives to Address Sleep Refusal
 
          Evidence-based strategies balance autonomy with structure, helping
@@ -333,9 +318,7 @@ What prompt should we write for the AI in order to learn about sleep refusal and
         **Evidence**: Behavioral interventions, including reward systems, are shown
         to be effective in managing sleep refusal.
     </Markdown>
-  </Vertical>
-  <Vertical id="strategy_notes_2">
-      <Markdown>
+  <Markdown id="strategy_notes_2">
         3. **Gradual Fading**
 
         **What It Is**: Gradually adjusting bedtime to an earlier time, aligning it
@@ -357,9 +340,7 @@ What prompt should we write for the AI in order to learn about sleep refusal and
         **Evidence**: Emotion-focused approaches, such as validating feelings or using
         comfort objects, improve sleep in children with separation anxiety or fear of the dark.
     </Markdown>
-  </Vertical>
-  <Vertical id="strategy_notes_3">
-      <Markdown>
+  <Markdown id="strategy_notes_3">
         5. **Natural Consequences with Limits**
 
         **What It Is**: Allowing some flexibility in bedtime while enforcing
@@ -380,9 +361,7 @@ What prompt should we write for the AI in order to learn about sleep refusal and
         **Evidence**: Environmental adjustments have been shown to improve sleep quality
         in both children and adults.
     </Markdown>
-  </Vertical>
-  <Vertical id="strategy_notes_4">
-      <Markdown>
+  <Markdown id="strategy_notes_4">
       7. **Collaborative Problem-Solving**
 
         **What It Is**: Working with the child to identify and address barriers
@@ -403,7 +382,6 @@ What prompt should we write for the AI in order to learn about sleep refusal and
         --are more consistently effective at promoting healthy sleep while
         respecting a child's autonomy.
     </Markdown>
-  </Vertical>
 
   <Vertical id="eliminate_age_inappropriate_strategies">
     <Markdown>
@@ -494,8 +472,7 @@ What prompt should we write for the AI in order to learn about sleep refusal and
 
 
   <!-- Reinforcement poster -->
-  <Vertical id="chart_image">
-    <Markdown id="reference_chart1">
+  <Markdown id="chart_image">
 |  Strategy         |    Age Appropriate     |      Feasible          |
 |-------------------|------------------------|------------------------|
 | Flexible          |                        |                        |
@@ -519,15 +496,11 @@ What prompt should we write for the AI in order to learn about sleep refusal and
 | Problem Solving   | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             |
 |-------------------|------------------------|------------------------|
     </Markdown>
-  </Vertical>
 
   <!-- PDF article to read -->
-  <Vertical id="psych_sba_article_view">
-    <PDFViewer src="documents/PIIS0890856718319804.pdf" />
-  </Vertical>
+  <PDFViewer id="psych_sba_article_view" src="documents/PIIS0890856718319804.pdf" />
 
-  <Vertical id="psych_sba_article_excerpt">
-    <Markdown id="article_excerpt">
+  <Markdown id="psych_sba_article_excerpt">
        _As we have seen, parents can learn from operant conditioning practices
        ... parents should remember the basic rule of shaping: **Notice people
        doing something right and affirm them for it.** Give children attention
@@ -536,7 +509,6 @@ What prompt should we write for the AI in order to learn about sleep refusal and
        don't yell at them or hit them. Simply explain the misbehavior and take away
        the screen time, remove a misused toy, or give a brief time-out._
     </Markdown>
-  </Vertical>
   <Vertical id="psych_sba_part_1_completion_page">
     <Markdown>
         **Confirm that you are done with this exercise.**

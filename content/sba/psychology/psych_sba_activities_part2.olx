@@ -9,8 +9,7 @@ lang: en-Latn-US
 <Vertical id="psych_sba_activities_part2" title="Psychology Study Group: 2. Operant Conditioning (Activities)" launchable="true">
 
   <!-- Introduction section -->
-  <Vertical id="bedtime_problem_introduction2">
-    <Markdown id="bedtime_problem_intro_text2">
+  <Markdown id="bedtime_problem_introduction2">
 ## Introduction
 
 In this module, you will pick up where you left off in helping Annie's friend, who babysits for a 6-year-old who has been engaging in sleep refusal.
@@ -28,11 +27,9 @@ During this session, you will continue to work in the breakout group with the ch
 
 Let's begin.
     </Markdown>
-  </Vertical>
 
   <!-- First page of JJ's lecture notes -->
-  <Vertical id="lecture_notes_1">
-    <Markdown id="lecture_notes_text1">
+  <Markdown id="lecture_notes_1">
 ## Lecture Notes:
 
 **Definition of Reinforcement**: Reinforcement is any event that strengthens (increases the frequency of) a preceding response.
@@ -44,11 +41,9 @@ Let's begin.
   - _Benjamin plays nicely with others because he gets extra playtime when he shares._
   - _Daniel whines loudly whenever his caregiver focuses on another child._
     </Markdown>
-  </Vertical>
 
   <!-- Second page of JJ's lecture notes -->
-  <Vertical id="lecture_notes_2">
-    <Markdown id="lecture_notes_text2">
+  <Markdown id="lecture_notes_2">
 ## Lecture Notes:
 
 **Definition of Punishment**: Punishment is any consequence that decreases the frequency of a preceding behavior.
@@ -60,7 +55,6 @@ Let's begin.
   - _Nathan follows classroom rules after being sent to the principal's office for breaking them._
   - _Ella withdraws from group activities because her peers laughed at her during a presentation._
     </Markdown>
-  </Vertical>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, Question 1 -->
   <Vertical id="reinforce_punish_practice_1">
@@ -464,14 +458,11 @@ Let's begin.
     </CapaProblem>
   </Vertical>
 
-  <Vertical id="operant_conditioning_clear_screen_1">
-    <Markdown id="operant_conditioning_spacer_1">
+  <Markdown id="operant_conditioning_clear_screen_1">
       &nbsp;
     </Markdown>
-  </Vertical>
 
-  <Vertical id="operant_conditioning_reinforcement_notes">
-    <Markdown>
+  <Markdown id="operant_conditioning_reinforcement_notes">
        ## Lecture Notes
 
        **Positive reinforcement** strengthens responding by **presenting** a typically
@@ -480,21 +471,16 @@ Let's begin.
        **Negative reinforcement** strengthens a response by **reducing or removing**&nbsp;
        a typically **unpleasant** stimulus immediately after a response.
     </Markdown>
-  </Vertical>
 
-  <Vertical id="operant_conditioning_reinforcement_notes2">
-    <Markdown>
+  <Markdown id="operant_conditioning_reinforcement_notes2">
        ## Lecture Notes
 
        **Positive punishment** refers to weakening responses by **presenting**a **typically aversive** stimulus immediately after a response.
 
        **Negative punishment** weakens a response by **reducing or removing** something typically **pleasurable** immediately after a response.
     </Markdown>
-  </Vertical>
 
-  <Vertical id="operant_conditioning_poster">
-    <Image id="poster_img" src="images/poster.jpg" alt="Chart on types of reinforcement and punishment" />
-  </Vertical>
+  <Image id="operant_conditioning_poster" src="images/poster.jpg" alt="Chart on types of reinforcement and punishment" />
 
   <Vertical id="conditioning_example_chart">
     <Markdown>
@@ -538,8 +524,7 @@ Let's begin.
   </Vertical>
 
   <!-- Reinforcement poster -->
-  <Vertical id="filled_out_poster">
-    <Markdown id="reference_chart">
+  <Markdown id="filled_out_poster">
 ## Quick Reference Chart
 
 |                   | Add Something          | Remove Something       |
@@ -567,7 +552,6 @@ Remember:
 - **Reinforcement** = Increases behavior
 - **Punishment** = Decreases behavior
     </Markdown>
-  </Vertical>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 1 -->
   <Vertical id="four_types_practice_1">
@@ -1068,11 +1052,9 @@ Remember:
   </Vertical>
 
   <!-- Clear screen -->
-  <Vertical id="clear_screen_after_quiz">
-    <Markdown id="csaq">
+  <Markdown id="clear_screen_after_quiz">
         &nbsp;
     </Markdown>
-  </Vertical>
 
   <!-- The opening for the email we wrote in the previous task -->
   <Vertical id="norulesparenting_summary">
@@ -1297,8 +1279,7 @@ Remember:
             </Markdown>
         </Vertical>
     </Tabs>
-    <Vertical id="roommate_response">
-        <Markdown>
+    <Markdown id="roommate_response">
           ## Annie's roommate's email:
 
           Hey!
@@ -1317,9 +1298,8 @@ Remember:
 
           So far, he has gone to bed without a fuss three nights in a row!
 
-          Please tell everyone I really appreciate their ideas! Y’all are lifesavers!
+          Please tell everyone I really appreciate their ideas! Y'all are lifesavers!
       </Markdown>
-    </Vertical>
     <Vertical id="psych_sba_part_2_completion_page">
       <Markdown>
         **Confirm that you are done with this exercise.**

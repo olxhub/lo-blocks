@@ -8,33 +8,31 @@ lang: en-Latn-US
 -->
 <!-- content/sba/writing/writing_process_journal_1.olx -->
 <Sequential id="writing_frequency_demo" title="Writing Process Journal 1" launchable="true">
-    <Vertical id="wpj1_Introduction">
-       <Markdown>
+    <Markdown id="wpj1_Introduction">
             # Writing Process Journal 1
             **Frequency of Past Writing Experiences**
-            
+
             The purpose of this journal assignment is to get you thinking about how often
             you do various kinds of writing. What are your writing habits? What kinds of
             writing do you do often -- or rarely?
-            
+
             Your writing experiences have almost certainly shaped your expectations
             about writing. So it's a good idea to take some time to reflect about
             those experiences and use that as a springboard into developing your
             own identity as a writer.
-            
+
             The next several screens ask you to estimate how often you perform many
             different writing tasks, either for school or outside of school.
-            
+
             You will get a chance to ask the computer to compare your responses to those
             of a typical student in this class.
-            
+
             At the end, the computer will analyze your writing habits. It may be wrong,
             so read the analysis carefully! Then you will have a chance to react to
             what the computer wrote (and your own writing experiences, as reflected
             in the survey questions) by writing two reflective journal entries.
-            
-       </Markdown>
-    </Vertical>
+
+    </Markdown>
     <SplitPanel id="wpj1_Step_1" title="Survey Questions 1-5" sizes="80,20">
         <LeftPane>
             <Markdown>

@@ -9,8 +9,7 @@ lang: en-Latn-US
 <Vertical id="psych_sba_fba_activities" title="Psychology Study Group: 3. Function of Behavior (Activities)" launchable="true">
 
   <!-- Introduction section -->
-  <Vertical id="fba_introduction">
-    <Markdown id="fba_intro_text">
+  <Markdown id="fba_introduction">
 ## About This Scenario
 
 Your class teammates are JJ, Lin, and Annie. Your team is responsible for helping each other identify key concepts, review and learn from readings, and organize information to develop a solution to the problem.
@@ -24,11 +23,9 @@ In this module, you will review and apply several concepts from your coursework 
 - Develop an intervention plan
 - Use an AI Assistant to support learning and problem solving
     </Markdown>
-  </Vertical>
 
   <!-- Roommate situation recap -->
-  <Vertical id="roommate_situation">
-    <Markdown id="roommate_situation_text">
+  <Markdown id="roommate_situation">
 ## The Situation So Far
 
 Annie's roommate has been trying positive reinforcement techniques to get Johnny (the 6-year-old she babysits) to go to bed, but they aren't working out like she thought.
@@ -40,16 +37,13 @@ Annie's roommate has been trying positive reinforcement techniques to get Johnny
 - She chases after him and keeps nagging him to go to bed
 - He eventually gets tired and goes to bed, but she's left feeling tired and frustrated
     </Markdown>
-  </Vertical>
 
   <!-- Function of behavior introduction -->
-  <Vertical id="function_behavior_intro">
-    <Markdown id="function_intro_text">
+  <Markdown id="function_behavior_intro">
 ## Function of Behavior
 
 One of the things we learned in class was that whenever you need to intervene with a behavior, the intervention must address the **function of the behavior**.
     </Markdown>
-  </Vertical>
 
   <!-- AI interface for function definition -->
   <Vertical id="ai_function_definition">
@@ -93,8 +87,7 @@ Try to explain what the function of a behavior is, based on what you know or rem
   </Vertical>
 
   <!-- Lin's notes on 4 functions -->
-  <Vertical id="four_functions_notes">
-    <Markdown id="four_functions_text">
+  <Markdown id="four_functions_notes">
 ## The Four Functions of Behavior
 
 Lin's notes from class:
@@ -109,7 +102,6 @@ The four main functions of behavior are:
 | **Sensory** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Behavior occurs because it feels good (automatic reinforcement) |
 
     </Markdown>
-  </Vertical>
 
   <!-- Review MCQ: Reinforcement concepts -->
   <Vertical id="review_reinforcement1">
@@ -166,8 +158,7 @@ The four main functions of behavior are:
     </CapaProblem>
   </Vertical>
 
-  <Vertical id="four_functions_review_notes">
-    <Markdown id="lecture_notes_reminder">
+  <Markdown id="four_functions_review_notes">
 **Lecture Notes Reminder:**
 
 - **Reinforcement** is any event that strengthens (increases the frequency of) a preceding response
@@ -175,11 +166,9 @@ The four main functions of behavior are:
 - **Positive Reinforcement** strengthens responding by presenting a typically pleasurable stimulus immediately after a response
 - **Negative Reinforcement** strengthens a response by reducing or removing something negative
     </Markdown>
-  </Vertical>
 
   <!-- Function + Reinforcement relationship -->
-  <Vertical id="function_reinforcement">
-    <Markdown id="function_reinforcement_text">
+  <Markdown id="function_reinforcement">
 ## Functions and Reinforcement Types
 
 Lianne also said during class:
@@ -188,7 +177,6 @@ Lianne also said during class:
 - If the function is **escape**, it typically involves **negative reinforcement**
 - For **sensory**, it can be either one
     </Markdown>
-  </Vertical>
 
   <!-- AI interface for chart -->
   <Vertical id="ai_function_chart">
@@ -298,8 +286,7 @@ Student's request: <Ref target="ai_chart_query" />
   </SplitPanel>
 
   <!-- Why no punishment function -->
-  <Vertical id="no_punishment_function">
-    <Markdown id="no_punishment_text">
+  <Markdown id="no_punishment_function">
 ## Why Is There No Function for Punishment?
 
 You might wonder: what about punishment? Isn't that a function too?
@@ -315,7 +302,6 @@ Functions describe what maintains or increases a behavior - they're about **rein
 
 So while punishment is an important concept in behavior modification, it's not considered a "function" because functions describe what the person is trying to **get** (attention, escape, tangibles, sensory stimulation), not what they're trying to **avoid**.
     </Markdown>
-  </Vertical>
 
   <!-- Check for understanding - explain no punishment function -->
   <Vertical id="explain_no_punishment">
@@ -551,15 +537,12 @@ In your own words, explain why there is no function for punishment.
   </Vertical>
 
   <!-- Screen clearer -->
-  <Vertical id="abc_screen_clear">
-    <Markdown id="abc_intro_claear">
+  <Markdown id="abc_screen_clear">
         &nbsp;
     </Markdown>
-  </Vertical>
 
   <!-- ABCs Introduction -->
-  <Vertical id="abc_introduction">
-    <Markdown id="abc_intro_text">
+  <Markdown id="abc_introduction">
 ## The ABCs of Behavior
 
 To figure out the function of behavior, we need to look at:
@@ -570,7 +553,6 @@ To figure out the function of behavior, we need to look at:
 
 As the professor said: "It's as easy as learning your ABCs!"
     </Markdown>
-  </Vertical>
 
   <!-- AI interface for ABC diagrams -->
   <Vertical id="ai_abc_diagrams">
@@ -595,8 +577,7 @@ Student's request: <Ref target="ai_abc_query" />
   </Vertical>
 
   <!-- ABC Example walkthrough -->
-  <Vertical id="abc_example">
-    <Markdown id="abc_example_text">
+  <Markdown id="abc_example">
 ## ABC Example: Escape
 
 Let's look at an example:
@@ -612,12 +593,9 @@ Let's look at an example:
 
 **Lin adds:** Right, the student continued to put their head down for so long that maybe the teacher just delayed the task. Either way, the student successfully escaped the aversive task.
     </Markdown>
-  </Vertical>
 
   <!-- ABC Check: Johnny scenario -->
-  <Vertical id="competing_behavior_diagram">
-    <Image id="abc_competing_behavior" src="images/CompetingBehaviorDiagram.png" height="500px" />
-  </Vertical>
+  <Image id="competing_behavior_diagram" src="images/CompetingBehaviorDiagram.png" height="500px" />
 
   <!-- ABC Check: Johnny scenario -->
   <Vertical id="abc_johnny_check">
@@ -665,8 +643,7 @@ Explain the sequence of Antecedent, Behavior, and Consequence from Annie's roomm
   </Vertical>
 
   <!-- Competing Behavior Pathway introduction -->
-  <Vertical id="cbp_introduction">
-    <Markdown id="cbp_intro_text">
+  <Markdown id="cbp_introduction">
 ## Competing Behavior Pathway
 
 Now let's put it all together using a **Competing Behavior Pathway** - a tool Lianne showed us in class!
@@ -682,7 +659,6 @@ This organizer helps us plan interventions by showing:
 |------------|------------------|-------------|----------|
 | Roommate tells Johnny to go to bed | Johnny runs away laughing | Roommate chases, nags; bedtime delayed | Escape |
     </Markdown>
-  </Vertical>
 
   <!-- Competing Behavior Pathway fill-in -->
   <Vertical id="cbp_fill_in">
@@ -701,8 +677,7 @@ Fill in the blanks to create an intervention plan:
   </Vertical>
 
   <!-- CBP Comparison -->
-  <Vertical id="cbp_comparison">
-    <Markdown id="cbp_comparison_text">
+  <Markdown id="cbp_comparison">
 ## JJ's Competing Behavior Pathway
 
 Here's what JJ came up with:
@@ -718,11 +693,9 @@ Here's what JJ came up with:
 
 Now that we know the function is **escape**, we need to figure out an intervention that addresses this!
     </Markdown>
-  </Vertical>
 
   <!-- Textbook excerpt on escape -->
-  <Vertical id="escape_textbook">
-    <Markdown id="escape_textbook_text">
+  <Markdown id="escape_textbook">
 ## Textbook: Intervening with Escape-Maintained Behavior
 
 **From Lin's textbook:**
@@ -731,7 +704,6 @@ Now that we know the function is **escape**, we need to figure out an interventi
 
 We focused a lot on consequences in our last project, but we didn't focus much on antecedents. For escape-maintained behavior, antecedent strategies are especially important!
     </Markdown>
-  </Vertical>
 
   <!-- AI interface for intervention strategies -->
   <Vertical id="ai_intervention">
@@ -871,8 +843,7 @@ Make sure to use these terms:
   </Vertical>
 
   <!-- Time skip - 2 weeks later -->
-  <Vertical id="two_weeks_later">
-    <Markdown id="two_weeks_text">
+  <Markdown id="two_weeks_later">
 ## Two Weeks Later...
 
 **Lin:** So how did the intervention go with your roommate?
@@ -885,11 +856,9 @@ Make sure to use these terms:
 
 Something isn't working right...
     </Markdown>
-  </Vertical>
 
   <!-- Implementation fidelity introduction -->
-  <Vertical id="fidelity_intro">
-    <Markdown id="fidelity_intro_text">
+  <Markdown id="fidelity_intro">
 ## Implementation Fidelity
 
 The team showed the progress to the professor, explaining that the roommate admitted she didn't follow all of the consequence strategies.
@@ -908,7 +877,6 @@ The team showed the progress to the professor, explaining that the roommate admi
 | **Participant Responsiveness** | Is the child actually exposed to and engaged with the intervention? |
 | **Program Differentiation** | Are other strategies (not part of the plan) avoided during implementation? |
     </Markdown>
-  </Vertical>
 
   <!-- Fidelity comprehension check -->
   <Vertical id="fidelity_check">
@@ -977,8 +945,7 @@ Of these modifications, which ones should we add to help the roommate follow the
   </Vertical>
 
   <!-- Another 2 weeks later - conclusion -->
-  <Vertical id="conclusion_progress">
-    <Markdown id="conclusion_progress_text">
+  <Markdown id="conclusion_progress">
 ## Another Two Weeks Later...
 
 **JJ:** That looks much better!
@@ -989,7 +956,6 @@ Of these modifications, which ones should we add to help the roommate follow the
 
 The modified intervention was a success! With better adherence to the plan, Johnny's bedtime behavior improved significantly.
     </Markdown>
-  </Vertical>
 
   <!-- Final reflection -->
   <Vertical id="final_reflection">
@@ -1008,8 +974,7 @@ Write a brief reflection of your experience, noting:
   </Vertical>
 
   <!-- Completion summary -->
-  <Vertical id="completion_summary_fba">
-    <Markdown id="completion_text_fba">
+  <Markdown id="completion_summary_fba">
 ## Module Complete!
 
 ### What You've Learned:
@@ -1030,6 +995,5 @@ You successfully helped Annie's roommate solve Johnny's bedtime problem by:
 
 **Great work using behavioral psychology to solve a real problem!**
     </Markdown>
-  </Vertical>
 
 </Vertical>
