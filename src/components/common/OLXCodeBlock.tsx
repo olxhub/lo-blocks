@@ -63,7 +63,7 @@ function OLXCodeView({ code }) {
  */
 function OLXRenderView({ code }) {
   const uniqueId = useId();
-  const rootId = `olx-embed-${uniqueId.replace(/:/g, '-')}`;
+  const rootId = `olx_embed_${uniqueId.replace(/:/g, '_')}`;
 
   // Wrap in a root element with known ID
   const wrappedOLX = `<Vertical id="${rootId}">${code}</Vertical>`;
@@ -84,7 +84,7 @@ function OLXRenderView({ code }) {
 function OLXPlaygroundView({ code: initialCode }) {
   const [code, setCode] = useState(initialCode);
   const uniqueId = useId();
-  const rootId = `olx-playground-${uniqueId.replace(/:/g, '-')}`;
+  const rootId = `olx_playground_${uniqueId.replace(/:/g, '_')}`;
 
   const wrappedOLX = `<Vertical id="${rootId}">${code}</Vertical>`;
 
