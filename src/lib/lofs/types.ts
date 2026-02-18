@@ -94,14 +94,35 @@ export class VersionConflictError extends Error {
   }
 }
 
+/** Characters forbidden in filenames: URI-unsafe (#?), OS-reserved, control chars, space, !. */
+const FORBIDDEN_SEGMENT_CHARS = /[#?\\:<>"|*!\s\x00-\x1f]/;
+
+/** Global version for stripping forbidden characters from user input (e.g. in Studio). */
+export const FORBIDDEN_FILENAME_CHARS = /[#?\\:<>"|*!\s\x00-\x1f]/g;
+
+/**
+ * Validate a single path segment (filename or directory name).
+ * Returns null if valid, or an error message string if invalid.
+ * Client-safe: no Node.js dependency.
+ */
+export function validatePathSegment(segment: string): string | null {
+  if (!segment) return 'Empty path segment';
+  const match = segment.match(FORBIDDEN_SEGMENT_CHARS);
+  if (match) return `Character "${match[0]}" is not allowed in filenames`;
+  if (segment.startsWith('.')) return 'Hidden files (starting with .) not allowed';
+  return null;
+}
+
 /**
  * Validate and brand a string as OlxRelativePath.
  * Use at system boundaries where user input enters the storage type system.
  *
- * Minimal validation (parallel to toOlxReference for IDs):
- * - Non-empty string
- * - No null bytes (security)
- * - Not absolute (doesn't start with /)
+ * Rejects:
+ * - Empty / non-string input
+ * - Absolute paths (starting with /)
+ * - URI-unsafe characters (#, ?) and OS-reserved characters in segments
+ * - Control characters (including null bytes)
+ * - Leading/trailing whitespace or leading dots in segments
  *
  * Does NOT reject ".." — parent traversal is valid in OLX relative paths
  * (e.g., src="../x.png" in /foo/bar/baz.olx refers to /foo/x.png).
@@ -126,11 +147,15 @@ export function toOlxRelativePath(
   if (!input || typeof input !== 'string') {
     throw new Error(`toOlxRelativePath: expected non-empty string but got "${input}"`);
   }
-  if (input.includes('\0')) {
-    throw new Error(`toOlxRelativePath: path contains null bytes: "${input}"`);
-  }
   if (input.startsWith('/')) {
     throw new Error(`toOlxRelativePath: expected relative path but got absolute "${input}"`);
+  }
+  for (const segment of input.split('/')) {
+    if (segment === '..' || segment === '.') continue;
+    const error = validatePathSegment(segment);
+    if (error) {
+      throw new Error(`toOlxRelativePath: invalid segment "${segment}": ${error}`);
+    }
   }
   return input as OlxRelativePath;
 }
