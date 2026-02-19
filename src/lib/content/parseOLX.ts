@@ -567,11 +567,20 @@ export async function parseOLX(
           const requiresUnique = shouldBlockRequireUniqueId(Component, tag, storeId, entry, idMap, provenance);
 
           if (!requiresUnique) {
-            // Allow duplicate IDs for this block type - but still store in idMap
-            // We'll overwrite the previous entry to keep the latest one
-            if (!idMap[storeId]) idMap[storeId] = {};
-            idMap[storeId][lang] = entry;
-            return;
+            // Allow duplicate IDs when content and attributes are identical
+            // (e.g. same Markdown repeated in multiple tabs). Flag as error
+            // when they differ — that's a real authoring mistake where one
+            // instance silently overwrites the other.
+            const existing = idMap[storeId][lang];
+            const sameKids = JSON.stringify(existing.kids) === JSON.stringify(entry.kids);
+            const sameAttrs = JSON.stringify(existing.attributes) === JSON.stringify(entry.attributes);
+            if (sameKids && sameAttrs) {
+              // Identical block — no problem.
+              // TODO: Lint suggestion to use <Use id="..."/> instead of
+              // repeating the same block. Requires a linter framework.
+              return;
+            }
+            // Different content/attributes with same ID — fall through to duplicate error
           }
 
           // Get detailed information about both the existing and duplicate entries
