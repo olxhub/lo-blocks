@@ -56,6 +56,7 @@ Nothing seems to work! Let's use psychology principles to help.
 
 What do YOU think Annie's roommate should do to get the 6-year-old to go to sleep at bedtime?
 </Markdown>
+
 <TextArea id="initial_suggestion" placeholder="Share your initial strategy (2-3 sentences)..." />
 </Vertical>
 
@@ -112,6 +113,7 @@ The group has several different suggestions. Rank these ideas from
 
 What prompt should we write for the AI in order to learn about sleep refusal and no-rules parenting and to also learn about other strategies to get a young child to go to bed?
 </Markdown>
+
 <TextArea id="initial_ai_suggestion" placeholder="Share your initial idea for a prompt (2-3 sentences)..." />
 </Vertical>
 
@@ -268,7 +270,7 @@ for her 6-year-old.**
 
 _Put your answer in the box below. You can use the little dots between the forward
 and back arrows on the top right of the screen to go back to review the arguments
-and evidence you have just read.._
+and evidence you have just read._
 </Markdown>
 
 <TextArea id="email_draft" rows="8" placeholder="Write your email here..." />
@@ -287,7 +289,9 @@ feedback. Then, you can revise it again based on the AI feedback.
 </Markdown>
 
 <UseDynamic id="ref_email_draft" target="email_draft" />
+
 <LLMFeedback id="ai_email_feedback" render="markdown" />
+
 <ActionButton id="ai_email_feedback_btn" label="Get AI Feedback">
    <LLMAction id="ai_email_feedback_action" target="ai_email_feedback">
       Here is an email I wrote to explain to a friend why they need to avoid a no-rules parenting approach and find a good strategy to get a six-year-old child to bed on time:
@@ -307,13 +311,13 @@ feedback. Then, you can revise it again based on the AI feedback.
 
 <ChoiceInput id="strategy_poll">
    <Markdown>**Which one of these possible strategies should we recommend to Annie's friend?**</Markdown>
-   <Distractor>Collaborative Problem Solving</Distractor>
-   <Distractor>Empathy and Emotional Support</Distractor>
-   <Distractor>Environmental Adjustments</Distractor>
-   <Distractor>Flexible Bedtime Routines</Distractor>
-   <Distractor>Gradual Fading</Distractor>
-   <Distractor>Natural Consequences with Limits</Distractor>
-   <Key>Positive Reinforcement</Key>
+   <Distractor> Collaborative Problem Solving    </Distractor>
+   <Distractor> Empathy and Emotional Support    </Distractor>
+   <Distractor> Environmental Adjustments        </Distractor>
+   <Distractor> Flexible Bedtime Routines        </Distractor>
+   <Distractor> Gradual Fading                   </Distractor>
+   <Distractor> Natural Consequences with Limits  </Distractor>
+          <Key> Positive Reinforcement           </Key>
 </ChoiceInput>
 
 
@@ -436,13 +440,13 @@ respecting a child's autonomy.
 <Vertical id="eliminate_age_inappropriate_strategies">
 <Markdown>**Which of these strategies might not apply to a six-year-old?**</Markdown>
 <CheckboxInput id="strategies_for_6_year_olds">
-  <Distractor id="Collaborative_Problem_Solving">Collaborative Problem Solving</Distractor>
-  <Distractor id="Empathy_and_Emotional_Support">Empathy and Emotional Support</Distractor>
-  <Distractor id="Environmental_Adjustments">Environmental Adjustments</Distractor>
-  <Distractor id="Flexible_Bedtime_Routines">Flexible Bedtime Routines</Distractor>
-  <Distractor id="Gradual_Fading">Gradual Fading</Distractor>
-  <Key id="Natural_Consequences_with_Limits">Natural Consequences with Limits</Key>
-  <Distractor id="Positive_Reinforcement">Positive Reinforcement</Distractor>
+<Distractor id="Collaborative_Problem_Solving"> Collaborative Problem Solving    </Distractor>
+<Distractor id="Empathy_and_Emotional_Support"> Empathy and Emotional Support    </Distractor>
+     <Distractor id="Environmental_Adjustments"> Environmental Adjustments        </Distractor>
+    <Distractor id="Flexible_Bedtime_Routines"> Flexible Bedtime Routines        </Distractor>
+               <Distractor id="Gradual_Fading"> Gradual Fading                   </Distractor>
+    <Key id="Natural_Consequences_with_Limits"> Natural Consequences with Limits  </Key>
+       <Distractor id="Positive_Reinforcement"> Positive Reinforcement           </Distractor>
 </CheckboxInput>
 
 <Markdown>**Why did you choose the strategy or strategies that you did? Explain.**</Markdown>
@@ -480,13 +484,13 @@ respecting a child's autonomy.
 <Vertical id="select_babysitter_feasible_strategies">
 <Markdown>**Which of these strategies could the babysitter implement effectively?**</Markdown>
 <CheckboxInput id="strategies_the_babysitter_can_implement">
-  <Key id="Collaborative_Problem_Solving_">Collaborative Problem Solving</Key>
-  <Key id="Empathy_and_Emotional_Support_">Empathy and Emotional Support</Key>
-  <Distractor id="Environmental_Adjustments_">Environmental Adjustments</Distractor>
-  <Distractor id="Flexible_Bedtime_Routines_">Flexible Bedtime Routines</Distractor>
-  <Distractor id="Gradual_Fading_">Gradual Fading</Distractor>
-  <Distractor id="Natural_Consequences_with_Limits_">Natural Consequences with Limits</Distractor>
-  <Key id="Positive_Reinforcement_">Positive Reinforcement</Key>
+            <Key id="Collaborative_Problem_Solving_"> Collaborative Problem Solving    </Key>
+            <Key id="Empathy_and_Emotional_Support_"> Empathy and Emotional Support    </Key>
+         <Distractor id="Environmental_Adjustments_"> Environmental Adjustments        </Distractor>
+         <Distractor id="Flexible_Bedtime_Routines_"> Flexible Bedtime Routines        </Distractor>
+                    <Distractor id="Gradual_Fading_"> Gradual Fading                   </Distractor>
+  <Distractor id="Natural_Consequences_with_Limits_"> Natural Consequences with Limits </Distractor>
+                   <Key id="Positive_Reinforcement_"> Positive Reinforcement           </Key>
 </CheckboxInput>
 
 <Markdown>**Why did you choose the strategy or strategies that you chose? Explain.**</Markdown>
@@ -519,6 +523,7 @@ respecting a child's autonomy.
   Output your response in Markdown with bolded headings.
   </LLMAction>
 </ActionButton>
+
 <LLMFeedback id="ai_the_babysitter_can_implement_feedback" render="markdown" />
 </Vertical>
 
