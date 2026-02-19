@@ -71,7 +71,7 @@ The group has several different suggestions. Rank these ideas from
 **best** to **worst** based on what you think would work for the 6-year-old:
 </Markdown>
 
-<CapaProblem id="rank_bedtime_strategies" submitLabel="Lock in order">
+<CapaProblem id="rank_bedtime_strategies" title="Rank Bedtime Strategies" submitLabel="Lock in order">
    <Markdown>Drag to rank from **best** (top) to **worst** (bottom):</Markdown>
    <SortableGrader id="bedtime_strategy_grader" algorithm="survey">
       <SortableInput dragMode="whole">
@@ -121,7 +121,7 @@ What prompt should we write for the AI in order to learn about sleep refusal and
 
 <HH> ============= Screen: AI prompt ranking ================= </HH>
 
-<CapaProblem id="brainstorm_ai_sorting" submitLabel="Lock in order">
+<CapaProblem id="brainstorm_ai_sorting" title="Rank AI Prompts" submitLabel="Lock in order">
   <Markdown>
 **Comparing Ideas:**
 The group has several different suggestions. Rank these ideas
