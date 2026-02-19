@@ -6,17 +6,15 @@ index: 1
 lang: en-Latn-US
 ---
 -->
-<!-- Psychology SBA: Sleep Refusal Scenario -->
+
+<!--
+Psychology SBA: Sleep Refusal Scenario
+
+* SMS Conversation on the first side
+* Activities we pull on the other side
+-->
+
 <SplitPanel id="psych_sba" title="Psychology Study Group: 1. Sleep Refusal" sizes="40, 60" launchable="true">
-
-  <!-- Left Panel: SMS Conversation -->
-  <LeftPane>
-    <Chat id="psych_chat" src="psych_sba_part1.chatpeg" height="400px" />
-  </LeftPane>
-
-  <!-- Right Panel: Activities reference -->
-  <RightPane>
-    <UseHistory id="psych_sba_sidebar" initial="bedtime_problem_introduction" />
-  </RightPane>
-
+  <StartPane> <Chat id="psych_chat" src="psych_sba_part1.chatpeg" height="400px" />        </StartPane>
+  <EndPane>   <UseHistory id="psych_sba_sidebar" initial="bedtime_problem_introduction" /> </EndPane>
 </SplitPanel>
