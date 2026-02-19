@@ -78,6 +78,8 @@ psych_fba_sidebar -> review_reinforcement2
 
 --- wait @review_jenny_whining.submitCount > 0 ---
 
+psych_fba_sidebar -> abc_screen_clear
+
 JJ: Whew, thank you for the refresher. I needed that.
 
 Lin: Me too.
@@ -119,6 +121,8 @@ psych_fba_sidebar -> own_examples_page_sensory
 
 --- wait @positive_reinforcement_for_sensory.value && @negative_reinforcement_for_sensory.value ---
 
+psych_fba_sidebar -> abc_screen_clear
+
 Lin: After this exercise, I think that I've got the relationship between reinforcement and function of behavior down really well!
 
 JJ: Yes, but didn't we learn about punishment too?
@@ -127,7 +131,7 @@ Lin: Yeah, I thought punishment could be a function too.
 
 psych_fba_sidebar -> no_punishment_function
 
-Annie: I had that same thought, so I asked AI. Here's what it told me, and it made a lot of sense.
+Annie: I had that same thought, so I tried asking AI. Here's what it told me. I also checked my class notes, and they said the same thing.
 
 Check Understanding
 -------------------
@@ -140,7 +144,11 @@ Annie: That makes sense! Functions are about what we GAIN, not what we're trying
 
 JJ: This is starting to make sense, but I think I need more practice.
 
-Lin: Me too. I asked AI to come up with some examples about the functions of behaviors for us to use to test our knowledge. Let's try them together.
+Lin: Me too.
+
+Lianne: Hi, guys! Lin just added me to the chat. Here are some examples about the functions of behaviors you can use to test your knowledge. 
+
+Annie: Great, let's try them together.
 
 Practice Functions
 ------------------
@@ -198,33 +206,36 @@ Lin: Right, we had to look at what came before the behavior and then what came a
 
 JJ: Yes, the antecedent, then the behavior, then the consequences.
 
-Annie: Oh, that's right, I remember now. The professor said, "It's as easy as learning your ABCs!"
 
 psych_fba_sidebar -> abc_introduction
 
-Annie: Let's ask AI to help us better understand the ABCs.
+Annie: Oh, that's right, I remember now. The professor said, "It's as easy as learning your ABCs!"
 
-Lin: I wrote the following prompt ...
+JJ: We can use AI to come up with examples for each of the four functions. That's one of the ways we can use it to learn things for ourselves.
 
-Lin: You are a helpful psychology teaching assistant. Create clear examples of ABC (Antecedent-Behavior-Consequence) sequences for each of the four functions of behavior (escape, attention, access/tangible, sensory). Use a simple format showing: Antecedent -> Behavior -> Consequence -> Function. Include concrete, relatable examples a student would understand.
+Lin: Good idea! I wrote the following prompt ...
 
 psych_fba_sidebar -> ai_abc_diagrams
 
+Lin: You are a helpful psychology teaching assistant. Create clear examples of ABC (Antecedent-Behavior-Consequence) sequences for each of the four functions of behavior (escape, attention, access/tangible, sensory). Use a simple format showing: Antecedent -> Behavior -> Consequence -> Function. Include concrete, relatable examples a student would understand.
+
 --- wait @abc_ai_response.value ---
 
-psych_fba_sidebar -> competing_behavior_diagram
+Annie: That was helpful! It reminds me of something Lianne showed us.
 
-Annie: placeholder
+psych_fba_sidebar -> sample_competing_behavior_diagram
 
-psych_fba_sidebar -> abc_example
+JJ: I remember this from my notes. It's called a Competing Behavior Pathway. It has the ABCs in the center, but also some extra boxes to help people think about the different behaviors someone **could** have shown. It helps us analyze why the problem behavior wins out.
 
-JJ: I remember this from my notes. Let's look at the first box. The Antecedent is the thing that happens before the behavior. The teacher gives a difficult task...
+Annie: Let's look at the "Triggering Antecedent" box. The Antecedent is the thing that happens before the behavior. The teacher gives a difficult task...
 
-Lin: Right, which leads to the Behavior. Student puts head down.
+Lin: Right, which leads to the Problem Behavior. Student puts head down.
 
-Annie: So, the Consequence is what happens after? Task is removed or delayed...
+Annie: So, the Maintaining Consequence is what happens after? Task is removed or delayed...
 
 JJ: Exactly. So in that example, the teacher gave a hard task, then the student put their head down instead of working on it, so then the teacher probably got sick of waiting for them to do the task and gave up on making them do it and removed the task.
+
+psych_fba_sidebar -> abc_example
 
 Lin: Right, or the student continued to put their head down for so long that maybe the teacher just assigned it for homework, delaying the task.
 
@@ -239,6 +250,8 @@ psych_fba_sidebar -> abc_johnny_check
 
 psych_fba_sidebar -> abc_summary_mcq
 
+--- wait @johnny_function_mcq.submitCount > 0 ---
+
 JJ: So using the ABCs, we know that the antecedent was your roommate told him to go to bed, the behavior was that he ran out of his room, and the consequence was that your roommate chased after him. His running around ultimately led to him not going to bed on time again.
 
 Competing Behavior Pathway
@@ -252,7 +265,7 @@ JJ: Lianne showed us this in class!
 
 psych_fba_sidebar -> cbp_fill_in
 
---- wait @cbp_desired_behavior.value ---
+--- wait @cbp_desired_behavior.value && @cbp_positive_outcome.value ---
 
 psych_fba_sidebar -> cbp_comparison
 
@@ -261,7 +274,29 @@ JJ: Let's compare! Here's what I came up with.
 Intervention Planning
 ---------------------
 
+Annie: I've been thinking about what happened originally. At first, Johnny was running away before my roommate could even get him up to his bedroom. When she tried positive reinforcement, it worked! She got him up to the bedroom. 
+
+Annie: But when she told him to go to bed, he would laugh and run away, like it was a game. So what happened was that the original problem behavior -- refusing to go up to the bedroom -- was replaced by an alternative behavior -- laughing and running away from the bedroom.
+
+JJ: Right. But both behaviors had the same function: Escape. Putting off bedtime.
+
+Lin: That means even if your roommate finds a way to make sure he gets into bed, if she doesn't do anything different, he'll just come up with another alternative behavior. For example, he could ask for a bedtime story. And when that one's finished, he could ask for another one!
+
+psych_fba_sidebar -> cbp_comparison2
+
+Annie: That's a good point. I've updated the diagram to show that as a possible alternative behavior.
+
+psych_fba_sidebar -> cbp_comparison3
+
+Annie: But it's probably worth mentioning that when all of this happens, my roommate has already given him a bath and gotten him into his pajamas, so he knows bedtime is near! But he doesn't act sleepy. I'll add that to the setting events box.
+
 JJ: Okay, so now we need to figure out an intervention now that we know the function of the behavior of running away from his room at bedtime is escape.
+
+psych_fba_sidebar -> textbook_on_interventions
+
+Lin: Take a look at what my Child Development course's textbook says about generating interventions. 
+
+Annie: There are lots of options here! But we've obviously got to change something about the way we're approaching things, or he'll just keep trying to escape.
 
 psych_fba_sidebar -> escape_textbook
 
@@ -269,15 +304,33 @@ Lin: Right, and here's what my textbook says about escape.
 
 Annie: We sure focused a lot on consequences in our last project, but we did not focus much on antecedents.
 
-Lin: Take a look at what my Child Development course's textbook says about generating interventions. Let's ask AI to help us think of ways to prevent the problem behavior using antecedent strategies and react to the problem behavior using consequence strategies, with escape as the function of behavior.
+JJ: Well, maybe we should consider both antecedents and consequences. I'm still not sure what might work best, and maybe it would be better to try both.
+
+Annie: Maybe we can use AI to help us come up with different ways to prevent the problem behavior.
+
+JJ: It's probably better to break that up a bit or we'll get way too many possibilities. Let's ask about antecedent strategies first.
 
 psych_fba_sidebar -> ai_intervention
 
 --- wait @intervention_ai_response.value ---
 
+Lin: And we can ask about consequent strategies next.
+
+psych_fba_sidebar -> ai_intervention2
+
+--- wait @intervention_ai_response2.value ---
+
+Lin: I think we've missed something important here. Not all of the strategies we're getting are focused on addressing ESCAPE. We need to narrow our attention down to strategies that prevent or discourage escape-oriented behavior.
+
+JJ: OK, then. Let's take a look at the lists of antecedent and consequent strategies I got, and mark which interventions address escape as the function of behavior.
+
 psych_fba_sidebar -> strategy_selection
 
-JJ: Let's mark which interventions address escape as the function of behavior.
+JJ: Here are the consequent strategies I got.
+
+psych_fba_sidebar -> strategy_selection2
+
+JJ: Here are the antecedent strategies I got.
 
 psych_fba_sidebar -> revised_pathway
 

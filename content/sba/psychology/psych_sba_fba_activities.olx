@@ -183,10 +183,8 @@ Lianne also said during class:
     <Markdown id="ai_chart_prompt">
 **Examples of Positive and Negative Feedback with Each of the Four Functions**
     </Markdown>
-    <TextArea id="ai_chart_query" rows="2"
-        placeholder="Type your request for AI examples..." />
-    <LLMFeedback id="chart_ai_response" placeholder="AI response will appear here..." />
-    <ActionButton id="ask_ai_chart_btn" label="Ask AI" dependsOn="@ai_chart_query.value">
+    <LLMFeedback id="chart_ai_response" render="markdown" placeholder="AI response will appear here..." />
+    <ActionButton id="ask_ai_chart_btn" label="Create the Examples">
       <LLMAction target="chart_ai_response">
 You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement. Use a markdown table format. Include concrete examples for each function. Include a blank columns to set off each column from the ones next to it.
 
@@ -559,23 +557,20 @@ As the professor said: "It's as easy as learning your ABCs!"
   <!-- AI interface for ABC diagrams -->
   <Vertical id="ai_abc_diagrams">
     <Markdown id="ai_abc_prompt">
-## Ask AI for ABC Examples
+## Use AI to create ABC Examples
 
-Ask AI to come up with diagrams explaining antecedents, behaviors, and consequences using the 4 functions of behavior.
+Have AI come up with diagrams explaining antecedents, behaviors, and consequences using the 4 functions of behavior.
     </Markdown>
-    <TextArea id="ai_abc_query" rows="2"
-        placeholder="Type your request for ABC examples..." />
     <LLMFeedback
         id="abc_ai_response"
         render="markdown"
         placeholder="AI response will appear here..." />
-    <ActionButton id="ask_ai_abc_btn" label="Ask AI" dependsOn="@ai_abc_query.value">
+    <ActionButton id="ask_ai_abc_btn" label="Create the Diagrams">
       <LLMAction target="abc_ai_response">
 You are a helpful psychology teaching assistant. Create clear examples of ABC (Antecedent-Behavior-Consequence) sequences for each of the four functions of behavior (escape, attention, access/tangible, sensory). Use a simple format showing: Antecedent -> Behavior -> Consequence -> Function. Include concrete, relatable examples a student would understand.
 
 Format your response in markdown, putting Put a separator line ('-----------------') first, the antecedent on the next line, the behavior on the line after that, the consequence on the line after that, and the the function on the last line in the set, with a right arrow before the behavior, consequence, and function. Reduce "Behavior: Behavior:" to "Behavior:" and "Consequent: Consequent:" to "Consequent:". Bold the words antecedent, behavior, consequent, and function.
 
-Student's request: <Ref target="ai_abc_query" />
       </LLMAction>
     </ActionButton>
   </Vertical>
@@ -599,7 +594,22 @@ Let's look at an example:
     </Markdown>
 
   <!-- ABC Check: Johnny scenario -->
-  <Image id="competing_behavior_diagram" src="images/CompetingBehaviorDiagram.png" height="500px" />
+  <Image id="sample_competing_behavior_diagram" src="images/Competing_Behavior_Diagram.png" height="500px" />
+
+  <!-- Competing Behavior Pathway introduction -->
+  <Vertical id="cbp_introduction"><Markdown id="cbp_intro">
+## Competing Behavior Pathway
+
+Now let's put it all together using a **Competing Behavior Pathway** - a tool Lianne showed us in class!
+
+This organizer helps us plan interventions by showing:
+1. The problem behavior and its consequences
+2. The desired replacement behavior
+3. What we want to happen instead
+    </Markdown>
+
+  <!-- ABC Check: Johnny scenario -->
+  <Image id="blank_competing_behavior_diagram" src="images/Johnny_Competing_Behavior_Diagram.png" height="500px" /></Vertical>
 
   <!-- ABC Check: Johnny scenario -->
   <Vertical id="abc_johnny_check">
@@ -646,24 +656,6 @@ Explain the sequence of Antecedent, Behavior, and Consequence from Annie's roomm
     </CapaProblem>
   </Vertical>
 
-  <!-- Competing Behavior Pathway introduction -->
-  <Markdown id="cbp_introduction">
-## Competing Behavior Pathway
-
-Now let's put it all together using a **Competing Behavior Pathway** - a tool Lianne showed us in class!
-
-This organizer helps us plan interventions by showing:
-1. The problem behavior and its consequences
-2. The desired replacement behavior
-3. What we want to happen instead
-
-**Current Pathway (Problem):**
-
-| Antecedent | Problem Behavior | Consequence | Function |
-|------------|------------------|-------------|----------|
-| Roommate tells Johnny to go to bed | Johnny runs away laughing | Roommate chases, nags; bedtime delayed | Escape |
-    </Markdown>
-
   <!-- Competing Behavior Pathway fill-in -->
   <Vertical id="cbp_fill_in">
     <Markdown id="cbp_fill_prompt">
@@ -681,22 +673,25 @@ Fill in the blanks to create an intervention plan:
   </Vertical>
 
   <!-- CBP Comparison -->
-  <Markdown id="cbp_comparison">
+  <Vertical id="cbp_comparison"><Markdown id="cbp_comp">
 ## JJ's Competing Behavior Pathway
 
-Here's what JJ came up with:
-
-| Component | Value |
-|-----------|-------|
-| **Antecedent** | Roommate tells Johnny to go to bed |
-| **Problem Behavior** | Johnny runs out of the room laughing |
-| **Consequence** | Roommate runs after him, nagging |
-| **Function** | Escape |
-| **Desired Behavior** | Johnny goes to bed appropriately |
-| **Positive Outcome** | Johnny goes to sleep; peaceful bedtime |
+Here's what JJ came up with. 
 
 Now that we know the function is **escape**, we need to figure out an intervention that addresses this!
     </Markdown>
+  <Image id="JJs_version" src="images/JJs_Version.png" height="500px" /></Vertical>
+
+  <Vertical id="cbp_comparison2"><Markdown id="cbp_comp2">
+## JJ's Competing Behavior Pathway -- Updated
+    </Markdown>
+  <Image id="JJs_version_updated" src="images/Johnny_Full_Competing_Behavior_Diagram.png" height="500px" /></Vertical>
+
+  <Vertical id="cbp_comparison3"><Markdown id="cbp_comp3">
+## JJ's Competing Behavior Pathway -- Updated
+    </Markdown>
+  <Image id="Johnny_FJs_version_updated" src="images/Johnny_Final_CBP.png" height="500px" /></Vertical>
+
 
   <!-- Textbook excerpt on escape -->
   <Markdown id="escape_textbook">
@@ -705,8 +700,18 @@ Now that we know the function is **escape**, we need to figure out an interventi
 **From Lin's textbook:**
 
 > "Escape is used to get away from something aversive or not preferred. **Changing antecedent conditions is key to intervening when the function of behavior is escape.**"
+    </Markdown>
 
-We focused a lot on consequences in our last project, but we didn't focus much on antecedents. For escape-maintained behavior, antecedent strategies are especially important!
+    <!-- Textbook information on designing interventions -->
+    <Markdown id="textbook_on_interventions">
+## Generate interventions based on the competing behavior model
+**Brainstorm**: _Consider as many strategies and interventions as possible. Defer clinical judgment._
+    
+- Prevent the problem behavior from occurring using antecedent event and predictor strategies.
+- Teach adaptive behaviors that lead to the same outcome as the problem behavior using teaching strategies.
+- React to the problem behavior in an appropriate way by using consequence strategies.
+- React to alternative behaviors by making reinforcement at a higher rate, more immediate, and of higher quality by using consequence strategies.
+- Make desired behaviors take less effort to perform to obtain the same consequence.
     </Markdown>
 
   <!-- AI interface for intervention strategies -->
@@ -714,18 +719,41 @@ We focused a lot on consequences in our last project, but we didn't focus much o
     <Markdown id="ai_intervention_prompt">
 ## Ask AI for Intervention Strategies
 
-Write a prompt that will help you understand how to change the antecedents and consequences when the function of a behavior is escape.
+Write a prompt that will help you understand how to change the antecedents to address sleep refusal.
     </Markdown>
     <TextArea id="ai_intervention_query" placeholder="Example: Create a list of interventions using antecedent strategies to prevent the problem behavior of not going to bed on time with escape as the function..." />
     <LLMFeedback id="intervention_ai_response" placeholder="AI response will appear here..." />
     <ActionButton id="ask_ai_intervention_btn" label="Ask AI" dependsOn="@ai_intervention_query.value">
       <LLMAction target="intervention_ai_response">
-You are a helpful psychology teaching assistant. Provide a list of interventions for escape-maintained behavior related to bedtime resistance. Organize into two categories: (1) Antecedent strategies to PREVENT the problem behavior, and (2) Consequence strategies to RESPOND to the behavior. Include concrete, practical strategies like: timers, visual schedules, choice-making, positive reinforcement for compliance, planned ignoring, etc. Make strategies specific to a 6-year-old's bedtime routine.
+You are a helpful psychology teaching assistant. Here is a prompt that the student wrote for you:
 
 Student's prompt: <Ref target="ai_intervention_query" />
+
+If the student's prompt asks for antecedent strategies to prevent bedtime resistance, follow the directions provided in the prompt, but listing no more than six antecedent strategies; otherwise, warn the student that their prompt needs to be revised, and stop.
       </LLMAction>
     </ActionButton>
   </Vertical>
+
+  <!-- AI interface for intervention strategies -->
+  <Vertical id="ai_intervention2">
+    <Markdown id="ai_intervention_prompt2">
+## Ask AI for Intervention Strategies
+
+Write a prompt that will help you understand how to change the consequences to address sleep refusal.
+    </Markdown>
+    <TextArea id="ai_intervention_query2" placeholder="Example: Create a list of interventions using antecedent strategies to prevent the problem behavior of not going to bed on time with escape as the function..." />
+    <LLMFeedback id="intervention_ai_response2" placeholder="AI response will appear here..." />
+    <ActionButton id="ask_ai_intervention_btn2" label="Ask AI" dependsOn="@ai_intervention_query2.value">
+      <LLMAction target="intervention_ai_response2">
+You are a helpful psychology teaching assistant. Here is a prompt that the student wrote for you:
+
+Student's prompt: <Ref target="ai_intervention_query2" />
+
+If the student's prompt asks for consequent strategies to prevent bedtime resistance, follow the directions provided in the prompt, but listing no more than six consequent strategies; otherwise, warn the student that their prompt needs to be revised, and stop.
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
 
   <!-- Strategy selection -->
   <Vertical id="strategy_selection">
@@ -733,38 +761,43 @@ Student's prompt: <Ref target="ai_intervention_query" />
 ## Select Appropriate Interventions
 
 Below are some intervention ideas. Select the ones that address **escape** as the function of behavior.
-
-**Antecedent Strategies:**
     </Markdown>
 
     <CapaProblem id="antecedent_strategies">
       <Markdown>Select all antecedent strategies that address escape-maintained behavior:</Markdown>
       <KeyGrader>
         <CheckboxInput>
-          <Distractor id="ant_d1">Use sensory-friendly relaxation techniques before bed (addresses sensory)</Distractor>
+          <Distractor id="ant_d1">Use sensory-friendly relaxation techniques before bed</Distractor>
           <Key id="ant_k1">Create a predictable bedtime routine to make bedtime more manageable and less aversive</Key>
-          <Distractor id="ant_d2">Give high-quality attention before bed (addresses attention)</Distractor>
+          <Distractor id="ant_d2">Give high-quality attention before bed</Distractor>
           <Key id="ant_k2">Use timers and advance warnings to make bedtime more predictable</Key>
-          <Distractor id="ant_d3">Give the child a stuffed animal before they get into bed (addresses tangible)</Distractor>
-          <Distractor id="ant_d4">Have the child engage in yoga right before bedtime (addresses sensory)</Distractor>
+          <Distractor id="ant_d3">Give the child a stuffed animal before they get into bed</Distractor>
+          <Distractor id="ant_d4">Have the child engage in yoga right before bedtime</Distractor>
         </CheckboxInput>
       </KeyGrader>
     </CapaProblem>
+  </Vertical>
+  
+  <!-- Strategy selection -->
+  <Vertical id="strategy_selection2">
+    <Markdown id="strategy_selection_prompt2">    
+## Select Appropriate Interventions
 
+Below are some intervention ideas. Select the ones that address **escape** as the function of behavior.
+    </Markdown>
     <CapaProblem id="consequence_strategies">
       <Markdown>Select all consequence strategies that address escape-maintained behavior:</Markdown>
       <KeyGrader>
         <CheckboxInput>
-          <Distractor id="con_d1">Provide extra attention during bedtime refusal behaviors (addresses attention)</Distractor>
+          <Distractor id="con_d1">Provide extra attention during bedtime refusal behaviors</Distractor>
           <Key id="con_k1">Teach the child to use a "bedtime pass" - allowed to ask to stay up one more minute past bedtime once per week</Key>
-          <Distractor id="con_d2">Talk to the child until they eventually go to sleep (addresses attention)</Distractor>
-          <Distractor id="con_d3">Give the child access to an iPad when they successfully get in bed (addresses tangible)</Distractor>
+          <Distractor id="con_d2">Talk to the child until they eventually go to sleep</Distractor>
+          <Distractor id="con_d3">Give the child access to an iPad when they successfully get in bed</Distractor>
           <Key id="con_k2">Ignore behaviors such as whining that serve to delay bedtime</Key>
-          <Distractor id="con_d4">Track sensory triggers that relate to bedtime challenges (addresses sensory)</Distractor>
+          <Distractor id="con_d4">Track sensory triggers that relate to bedtime challenges</Distractor>
         </CheckboxInput>
       </KeyGrader>
     </CapaProblem>
-
   </Vertical>
 
   <!-- Revised pathway -->
