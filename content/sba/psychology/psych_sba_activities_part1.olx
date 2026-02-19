@@ -9,7 +9,9 @@ lang: en-Latn-US
 <Vertical id="psych_sba_activities_part1" title="Psychology Study Group: 1. Sleep Refusal (Activities)" launchable="true">
 
 
-<!-- SCREEN: Introduction section -->
+
+<HH> ============= Screen: Introduction ======================== </HH>
+
 <Markdown id="bedtime_problem_introduction">
 ## Introduction
 
@@ -28,7 +30,9 @@ Let's begin.
 <Markdown id="bedtime_problem_clear_screen_1"> &nbsp; </Markdown>
 
 
-<!-- SCREEN: Opening - problem image -->
+
+<HH> ============= Screen: Opening - problem image ========== </HH>
+
 <SplitPanel id="bedtime_scenario_image"> <LeftPane> <Markdown id="bedtime_intro_text">
 ## The Bedtime Problem
 
@@ -44,7 +48,9 @@ Nothing seems to work! Let's use psychology principles to help.
 </RightPane></SplitPanel>
 
 
-<!-- SCREEN: Student suggestion activity -->
+
+<HH> ============= Screen: Student suggestion ================ </HH>
+
 <Vertical id="student_suggestion"><Markdown id="student_suggestion_prompt">
 ## Your Initial Thoughts
 
@@ -54,7 +60,9 @@ What do YOU think Annie's roommate should do to get the 6-year-old to go to slee
 </Vertical>
 
 
-<!-- SCREEN: Group brainstorm sorting activity -->
+
+<HH> ============= Screen: Group brainstorm sorting ========== </HH>
+
 <Vertical id="brainstorm_sorting">
 <Markdown id="brainstorm_sorting_prompt">
 **Comparing Ideas:**
@@ -80,7 +88,9 @@ The group has several different suggestions. Rank these ideas from
 <Markdown id="bedtime_problem_clear_screen_2">&nbsp;</Markdown>
 
 
-<!-- SCREEN: Messages screenshot -->
+
+<HH> ============= Screen: Messages screenshot =============== </HH>
+
 <Markdown id="messages_image">
 ## Text Messages from the Babysitter
 
@@ -94,7 +104,9 @@ The group has several different suggestions. Rank these ideas from
 </Markdown>
 
 
-<!-- SCREEN: Student suggestion activity -->
+
+<HH> ============= Screen: AI prompt suggestion ============== </HH>
+
 <Vertical id="student_ai_suggestion"> <Markdown id="student_ai_suggestion_prompt">
 ## Your Initial Thoughts
 
@@ -104,7 +116,9 @@ What prompt should we write for the AI in order to learn about sleep refusal and
 </Vertical>
 
 
-<!-- SCREEN: Group brainstorm sorting activity -->
+
+<HH> ============= Screen: AI prompt ranking ================= </HH>
+
 <Vertical id="brainstorm_ai_sorting"> <Markdown id="brainstorm_ai_sorting_prompt">
 **Comparing Ideas:**
 The group has several different suggestions. Rank these ideas
@@ -127,10 +141,12 @@ the best AI output:
 </Vertical>
 
 
-<!-- SCREEN: Ask AI about the problem -->
+
+<HH> ============= Screen: Ask AI about the problem ========= </HH>
+
 <Vertical id="ai_info">
 <Markdown id="ai_info_md">
-From all of your group member’s AI prompt suggestions, your group
+From all of your group member's AI prompt suggestions, your group
 chose this prompt. If you still want to edit the AI prompt before
 you try it, you can.
 </Markdown>
@@ -151,7 +167,9 @@ you try it, you can.
 </Vertical>
 
 
-<!-- SCREEN: -->
+
+<HH> ============= Screen: No-rules parenting (1) =========== </HH>
+
 <Markdown id="vetted_info_part1">
 # No-Rules Parenting and Sleep Refusal
 
@@ -181,7 +199,9 @@ or fragmented sleep.
 </Markdown>
 
 
-<!-- SCREEN: -->
+
+<HH> ============= Screen: No-rules parenting (2) =========== </HH>
+
 <Markdown id="vetted_info_part2">
 2. **Natural Consequences**
 
@@ -211,7 +231,9 @@ cortisol levels and promote melatonin release, facilitating better sleep.
 </Markdown>
 
 
-<!-- SCREEN: -->
+
+<HH> ============= Screen: No-rules parenting (3) =========== </HH>
+
 <Markdown id="vetted_info_part3">
 4. **Parental Responsiveness**
 
@@ -237,7 +259,9 @@ negotiations and increased nighttime disruptions.
 </Markdown>
 
 
-<!-- SCREEN: Student suggestion activity -->
+
+<HH> ============= Screen: Draft email activity ============== </HH>
+
 <Vertical id="draft_email">
 <Markdown id="draft_email_prompt">
 **Draft an email Annie can use to explain to her friend why, since no-rules
@@ -253,7 +277,9 @@ and evidence you have just read.._
 </Vertical>
 
 
-<!-- SCREEN: Repeat task with feedback -->
+
+<HH> ============= Screen: Revise email with AI feedback ===== </HH>
+
 <Vertical id="revise_email_draft">
 <Markdown>
 **An email Annie can use to explain to her friend why GIVING UP IS A BAD IDEA**
@@ -278,7 +304,9 @@ feedback. Then, you can revise it again based on the AI feedback.
 </Vertical>
 
 
-<!-- SCREEN: -->
+
+<HH> ============= Screen: Strategy poll ===================== </HH>
+
 <Vertical id="strategy_poll">
 <Markdown>**Which one of these possible strategies should we recommend to Annie's friend?**</Markdown>
 <ChoiceInput id="strategy_choice">
@@ -293,7 +321,9 @@ feedback. Then, you can revise it again based on the AI feedback.
 </Vertical>
 
 
-<!-- SCREEN: -->
+
+<HH> ============= Screen: Strategy notes (1) =============== </HH>
+
 <Markdown id="strategy_notes_1">
 ## Alternatives to Address Sleep Refusal
 
@@ -326,7 +356,8 @@ to be effective in managing sleep refusal.
 
 
 
-<!-- SCREEN: -->
+<HH> ============= Screen: Strategy notes (2) =============== </HH>
+
 <Markdown id="strategy_notes_2">
 3. **Gradual Fading**
 
@@ -351,7 +382,9 @@ comfort objects, improve sleep in children with separation anxiety or fear of th
 </Markdown>
 
 
-<!-- SCREEN: -->
+
+<HH> ============= Screen: Strategy notes (3) =============== </HH>
+
 <Markdown id="strategy_notes_3">
 5. **Natural Consequences with Limits**
 
@@ -375,7 +408,9 @@ in both children and adults.
 </Markdown>
 
 
-<!-- SCREEN: -->
+
+<HH> ============= Screen: Strategy notes (4) =============== </HH>
+
 <Markdown id="strategy_notes_4">
 7. **Collaborative Problem-Solving**
 
@@ -399,7 +434,9 @@ respecting a child's autonomy.
 </Markdown>
 
 
-<!-- SCREEN: -->
+
+<HH> ============= Screen: Age-appropriate strategies ======== </HH>
+
 <Vertical id="eliminate_age_inappropriate_strategies">
 <Markdown>**Which of these strategies might not apply to a six-year-old?**</Markdown>
 <CheckboxInput id="strategies_for_6_year_olds">
@@ -441,7 +478,9 @@ respecting a child's autonomy.
 </Vertical>
 
 
-<!-- SCREEN: -->
+
+<HH> ============= Screen: Babysitter-feasible strategies ==== </HH>
+
 <Vertical id="select_babysitter_feasible_strategies">
 <Markdown>**Which of these strategies could the babysitter implement effectively?**</Markdown>
 <CheckboxInput id="strategies_the_babysitter_can_implement">
@@ -488,7 +527,9 @@ respecting a child's autonomy.
 </Vertical>
 
 
-<!-- SCREEN:  Reinforcement poster -->
+
+<HH> ============= Screen: Reinforcement poster ============== </HH>
+
 <Markdown id="chart_image">
 |  Strategy         |    Age Appropriate     |      Feasible          |
 |-------------------|------------------------|------------------------|
@@ -515,11 +556,15 @@ respecting a child's autonomy.
 </Markdown>
 
 
-<!-- SCREEN: PDF article to read -->
+
+<HH> ============= Screen: PDF article ======================= </HH>
+
 <PDFViewer id="psych_sba_article_view" src="documents/PIIS0890856718319804.pdf" />
 
 
-<!-- SCREEN: -->
+
+<HH> ============= Screen: Article excerpt =================== </HH>
+
 <Markdown id="psych_sba_article_excerpt">
 _As we have seen, parents can learn from operant conditioning practices
 ... parents should remember the basic rule of shaping: **Notice people
@@ -531,21 +576,23 @@ the screen time, remove a misused toy, or give a brief time-out._
 </Markdown>
 
 
-<!-- SCREEN: -->
+
+<HH> ============= Screen: Completion ======================== </HH>
+
 <Vertical id="psych_sba_part_1_completion_page">
-<Markdown>**Confirm that you are done with this exercise.**</Markdown>
 <CheckboxInput id="pysch_part_1_finished">
-          <Key id="completion_message">I don't need to make any more changes</Key>
+  <Markdown>**Confirm that you are done with this exercise.**</Markdown>
+  <Key id="completion_message">I don't need to make any more changes</Key>
+  <Markdown>
+  - In this activity, you learned about **parenting techniques** and the **strengths
+    and weaknesses of AI**. You also practiced applying information you have learned
+    from the textbook and scientific research to a **real-life scenario**, a child
+    refusing to go to bed on time.
+  - Next time, you will review and apply several other concepts from your coursework
+    in psychology to help Annie's roommate learn to use **operant conditioning** principles
+    to modify the child's behavior.
+  </Markdown>
 </CheckboxInput>
-<Markdown>
-- In this activity, you learned about **parenting techniques** and the **strengths
-  and weaknesses of AI**. You also practiced applying information you have learned
-  from the textbook and scientific research to a **real-life scenario**, a child
-  refusing to go to bed on time.
-- Next time, you will review and apply several other concepts from your coursework
-  in psychology to help Annie's roommate learn to use **operant conditioning** principles
-  to modify the child's behavior.
-</Markdown>
 </Vertical>
 
 </Vertical>
