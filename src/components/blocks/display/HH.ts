@@ -8,7 +8,7 @@
 //   <HH/>
 //
 // The === decoration is stripped at parse time; it's purely for
-// source-file readability. Renders as Markdown: *** + ### heading.
+// source-file readability. Renders as Markdown: *** + # heading.
 
 import { test } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';

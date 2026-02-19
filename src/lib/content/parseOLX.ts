@@ -578,10 +578,18 @@ export async function parseOLX(
             // (e.g. same Markdown repeated in multiple tabs). Flag as error
             // when they differ — that's a real authoring mistake where one
             // instance silently overwrites the other.
+            // Order-independent stringify for object comparison — XML
+            // parsers don't guarantee attribute property order.
+            const stableStringify = (v: unknown): string =>
+              JSON.stringify(v, (_, val) =>
+                val && typeof val === 'object' && !Array.isArray(val)
+                  ? Object.fromEntries(Object.entries(val).sort(([a], [b]) => a.localeCompare(b)))
+                  : val
+              );
             const existing = idMap[storeId][lang];
             const sameTag = (existing.tag || tag) === (entry.tag || tag);
-            const sameKids = JSON.stringify(existing.kids) === JSON.stringify(entry.kids);
-            const sameAttrs = JSON.stringify(existing.attributes) === JSON.stringify(entry.attributes);
+            const sameKids = stableStringify(existing.kids) === stableStringify(entry.kids);
+            const sameAttrs = stableStringify(existing.attributes) === stableStringify(entry.attributes);
             if (sameTag && sameKids && sameAttrs) {
               // Identical block — no problem.
               // TODO: Lint suggestion to use <Use ref="..."/> instead of
