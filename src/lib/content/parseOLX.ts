@@ -441,10 +441,11 @@ export async function parseOLX(
     const metadataLang = metadata?.lang;
     const currentLang = resolveElementLanguage(attributes, parentLang, metadataLang);
 
-    if (attributes.ref) {
-      if (tag !== 'Use') {
+    if (tag === 'Use') {
+      if (!attributes.ref) {
         throw new Error(
-          `Invalid 'ref' attribute on <${tag}> in ${provenance.join(', ')}. Only <use> elements may have 'ref'.`
+          `<Use> in ${provenance.join(', ')} requires a ref attribute, e.g. <Use ref="block_id"/>. ` +
+          (attributes.id ? `Found id="${attributes.id}" — did you mean ref="${attributes.id}"?` : 'No ref attribute found.')
         );
       }
 
@@ -459,6 +460,12 @@ export async function parseOLX(
 
       const { ref, ...overrides } = attributes;
       return { type: 'block', id: ref as OlxReference, overrides };
+    }
+
+    if (attributes.ref) {
+      throw new Error(
+        `Invalid 'ref' attribute on <${tag}> in ${provenance.join(', ')}. Only <Use> elements may have 'ref'.`
+      );
     }
 
     const id: OlxKey = (attributes.id ?? createId(node)) as OlxKey;
