@@ -579,11 +579,12 @@ export async function parseOLX(
             // when they differ — that's a real authoring mistake where one
             // instance silently overwrites the other.
             const existing = idMap[storeId][lang];
+            const sameTag = (existing.tag || tag) === (entry.tag || tag);
             const sameKids = JSON.stringify(existing.kids) === JSON.stringify(entry.kids);
             const sameAttrs = JSON.stringify(existing.attributes) === JSON.stringify(entry.attributes);
-            if (sameKids && sameAttrs) {
+            if (sameTag && sameKids && sameAttrs) {
               // Identical block — no problem.
-              // TODO: Lint suggestion to use <Use id="..."/> instead of
+              // TODO: Lint suggestion to use <Use ref="..."/> instead of
               // repeating the same block. Requires a linter framework.
               return;
             }
