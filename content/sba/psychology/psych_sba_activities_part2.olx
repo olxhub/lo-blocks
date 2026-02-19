@@ -9,8 +9,7 @@ lang: en-Latn-US
 <Vertical id="psych_sba_activities_part2" title="Psychology Study Group: 2. Operant Conditioning (Activities)" launchable="true">
 
   <!-- Introduction section -->
-  <Vertical id="bedtime_problem_introduction2">
-    <Markdown id="bedtime_problem_intro_text2">
+  <Markdown id="bedtime_problem_introduction2">
 ## Introduction
 
 In this module, you will pick up where you left off in helping Annie's friend, who babysits for a 6-year-old who has been engaging in sleep refusal.
@@ -28,11 +27,9 @@ During this session, you will continue to work in the breakout group with the ch
 
 Let's begin.
     </Markdown>
-  </Vertical>
 
   <!-- First page of JJ's lecture notes -->
-  <Vertical id="lecture_notes_1">
-    <Markdown id="lecture_notes_text1">
+  <Markdown id="lecture_notes_1">
 ## Lecture Notes:
 
 **Definition of Reinforcement**: Reinforcement is any event that strengthens (increases the frequency of) a preceding response.
@@ -44,11 +41,9 @@ Let's begin.
   - _Benjamin plays nicely with others because he gets extra playtime when he shares._
   - _Daniel whines loudly whenever his caregiver focuses on another child._
     </Markdown>
-  </Vertical>
 
   <!-- Second page of JJ's lecture notes -->
-  <Vertical id="lecture_notes_2">
-    <Markdown id="lecture_notes_text2">
+  <Markdown id="lecture_notes_2">
 ## Lecture Notes:
 
 **Definition of Punishment**: Punishment is any consequence that decreases the frequency of a preceding behavior.
@@ -60,418 +55,294 @@ Let's begin.
   - _Nathan follows classroom rules after being sent to the principal's office for breaking them._
   - _Ella withdraws from group activities because her peers laughed at her during a presentation._
     </Markdown>
-  </Vertical>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, Question 1 -->
-  <Vertical id="reinforce_punish_practice_1">
-    <Markdown id="pq2_1">
-      ## Practice Quiz: Positive vs. Negative Reinforcement and Punishment
-    </Markdown>
-    <CapaProblem title="Question 1: Sticker" id="reinforcement_v_punishment_sticker">
-      <KeyGrader>
-        <p>Liam reads a book every night because he earns a sticker for each completed book.</p>
-        <ChoiceInput>
-          <Key id="pq1_key">Reinforcement</Key>
-          <Distractor id="pq1_distractor">Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          Getting the sticker increases the likelihood that Liam will read the book, so
-          this is reinforcement.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1" title="Question 1: Sticker"><![CDATA[
+## Practice Quiz: Positive vs. Negative Reinforcement and Punishment
+
+>>Liam reads a book every night because he earns a sticker for each completed book.<<
+
+(x) Reinforcement
+( ) Punishment
+
+[explanation]
+Getting the sticker increases the likelihood that Liam will read the book, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, Question 2 -->
-  <Vertical id="reinforce_punish_practice_1b">
-    <Markdown id="pq1_2">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 2: Asking" id="reinforcement_v_punishment_asking">
-      <KeyGrader>
-        <p>Daniel puts away his toys so his parents will stop asking him to clean up.</p>
-        <ChoiceInput>
-          <Distractor id="pq2_key">Reinforcement</Distractor>
-          <Key id="pq2_distractor">Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          The parent's asking increases the likelihood that Daniel will put his toys away,
-          so this is reinforcement.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1b" title="Question 2: Asking"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Daniel puts away his toys so his parents will stop asking him to clean up.<<
+
+( ) Reinforcement
+(x) Punishment
+
+[explanation]
+The parent's asking increases the likelihood that Daniel will put his toys away, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, Question 3 -->
-  <Vertical id="reinforce_punish_practice_1c">
-    <Markdown id="pq1_3">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 3: Getting Burned" id="reinforcement_v_punishment_getting_burned">
-      <KeyGrader>
-        <p>Lucas stops touching the hot stove after he accidentally burns his hand.</p>
-        <ChoiceInput>
-          <Distractor id="pq3_distractor">Reinforcement</Distractor>
-          <Key id="pq3_key">Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          Getting his hand burned reduces the likelihood that Daniel will continue his previous
-          behavior (touching the hot stove), so this is punishment.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1c" title="Question 3: Getting Burned"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Lucas stops touching the hot stove after he accidentally burns his hand.<<
+
+( ) Reinforcement
+(x) Punishment
+
+[explanation]
+Getting his hand burned reduces the likelihood that Daniel will continue his previous behavior (touching the hot stove), so this is punishment.
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, Question 4 -->
-  <Vertical id="reinforce_punish_practice_1d">
-    <Markdown id="pq1_4">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 4: Tantrum" id="reinforcement_v_punishment_tantrum">
-      <KeyGrader>
-        <p>Victoria throws a tantrum at dinner to get out of eating her vegetables.</p>
-        <ChoiceInput>
-          <Key id="pq4_key">Reinforcement</Key>
-          <Distractor id="pq4_distractor">Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          Getting out of eating her vegetables makes Victoria more likely to throw another tantrum,
-          so this is reinforcement.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1d" title="Question 4: Tantrum"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Victoria throws a tantrum at dinner to get out of eating her vegetables.<<
+
+(x) Reinforcement
+( ) Punishment
+
+[explanation]
+Getting out of eating her vegetables makes Victoria more likely to throw another tantrum, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, Question 5 -->
-  <Vertical id="reinforce_punish_practice_1e">
-    <Markdown id="pq1_5">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 5: Glaring" id="reinforcement_v_punishment_glaring">
-      <KeyGrader>
-        <p>Michael stays seated during meals after his father frowns and glares at him every time he stands up.</p>
-        <ChoiceInput>
-          <Distractor id="pq5_distractor">Reinforcement</Distractor>
-          <Key id="pq5_key">Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          Glaring makes Michael less likely to stand up,
-          so this is punishment.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1e" title="Question 5: Glaring"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Michael stays seated during meals after his father frowns and glares at him every time he stands up.<<
+
+( ) Reinforcement
+(x) Punishment
+
+[explanation]
+Glaring makes Michael less likely to stand up, so this is punishment.
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, Question 6 -->
-  <Vertical id="reinforce_punish_practice_1f">
-    <Markdown id="pq1_6">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 6: Less Screen Time" id="reinforcement_v_punishment_screentime">
-      <KeyGrader>
-        <p>Nicole avoids showing her homework to her parents because they reduce her screen time when it's incomplete.</p>
-        <ChoiceInput>
-          <Distractor id="pq6_distractor">Reinforcement</Distractor>
-          <Key id="pq6_key">Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          Getting less screen time decreases the likelihood that Nicole will show her homework
-          to her parents, so this is punishment.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1f" title="Question 6: Less Screen Time"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Nicole avoids showing her homework to her parents because they reduce her screen time when it's incomplete.<<
+
+( ) Reinforcement
+(x) Punishment
+
+[explanation]
+Getting less screen time decreases the likelihood that Nicole will show her homework to her parents, so this is punishment.
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, Question 7 -->
-  <Vertical id="reinforce_punish_practice_1g">
-    <Markdown id="pq1_7">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 7: Candy" id="reinforcement_v_punishment_candy">
-      <KeyGrader>
-        <p>Mia whines at the store because her parents give her candy to quiet her.</p>
-        <ChoiceInput>
-          <Key id="pq7_key">Reinforcement</Key>
-          <Distractor id="pq7_distractor">Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          The parents giving Mia candy makes her more likely to whine,
-          so this is reinforcement.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1g" title="Question 7: Candy"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Mia whines at the store because her parents give her candy to quiet her.<<
+
+(x) Reinforcement
+( ) Punishment
+
+[explanation]
+The parents giving Mia candy makes her more likely to whine, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, Question 8 -->
-  <Vertical id="reinforce_punish_practice_1h">
-    <Markdown id="pq1_8">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 8: Uncalled-on" id="reinforcement_v_punishment_cheer_on">
-      <KeyGrader>
-        <p>Noah practices the piano daily because his parents cheer him on after each session.</p>
-        <ChoiceInput>
-          <Key id="pq8_key">Reinforcement</Key>
-          <Distractor id="pq8_distractor">Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          Getting cheered on increases the likelihood that Noah will practice daily,
-          so this is reinforcement.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1h" title="Question 8: Uncalled-on"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Noah practices the piano daily because his parents cheer him on after each session.<<
+
+(x) Reinforcement
+( ) Punishment
+
+[explanation]
+Getting cheered on increases the likelihood that Noah will practice daily, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, Question 9 -->
-  <Vertical id="reinforce_punish_practice_1i">
-    <Markdown id="pq1_9">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 9: Getting Upset" id="reinforcement_v_punishment_upset">
-      <KeyGrader>
-        <p>Matthew makes his bed every morning so his mom doesn't get upset.</p>
-        <ChoiceInput>
-          <Key id="pq9_key">Reinforcement</Key>
-          <Distractor id="pq9_distractor">Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          His mom getting upset increases the probability of Matthew making his bed
-          every morning, so this is reinforcement.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1i" title="Question 9: Getting Upset"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Matthew makes his bed every morning so his mom doesn't get upset.<<
+
+(x) Reinforcement
+( ) Punishment
+
+[explanation]
+His mom getting upset increases the probability of Matthew making his bed every morning, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-  <Vertical id="reinforce_punish_practice_1j">
-    <Markdown id="pq1_10">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 10: Not Called On" id="reinforcement_v_punishment_not_called_on">
-      <KeyGrader>
-        <p>Luna stops asking questions in class because her teacher never calls on her to speak.</p>
-        <ChoiceInput>
-          <Distractor id="pq10_distractor">Reinforcement</Distractor>
-          <Key id="pq10_key">Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          Not being called on makes Luna less likely to ask questions in class, so this is punishment.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1j" title="Question 10: Not Called On"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Luna stops asking questions in class because her teacher never calls on her to speak.<<
+
+( ) Reinforcement
+(x) Punishment
+
+[explanation]
+Not being called on makes Luna less likely to ask questions in class, so this is punishment.
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-  <Vertical id="reinforce_punish_practice_1k">
-    <Markdown id="pq1_11">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 11: Artist!" id="reinforcement_v_punishment_artist">
-      <KeyGrader>
-        <p>Layla scribbles on walls because her sibling laughs and calls her "an artist."</p>
-        <ChoiceInput>
-          <Key id="pq11_key">Reinforcement</Key>
-          <Distractor id="pq11_distractor">Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          Being called an artist makes Layla more likely to scribble on walls,
-          so this is reinforcement.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1k" title="Question 11: Artist!"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Layla scribbles on walls because her sibling laughs and calls her "an artist."<<
+
+(x) Reinforcement
+( ) Punishment
+
+[explanation]
+Being called an artist makes Layla more likely to scribble on walls, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
 
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-  <Vertical id="reinforce_punish_practice_1l">
-    <Markdown id="pq1_12">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 12: Firm Command" id="reinforcement_v_punishment_firm_command">
-      <KeyGrader>
-        <p>Benjamin stops throwing toys after being told firmly that it's unacceptable.</p>
-        <ChoiceInput>
-          <Distractor id="pq12_distractor">Reinforcement</Distractor>
-          <Key id="pq12_key">Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          Being firmly told that it's unacceptable decreases the probability of Benjamin throwing toys,
-          so it's punishment.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1l" title="Question 12: Firm Command"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Benjamin stops throwing toys after being told firmly that it's unacceptable.<<
+
+( ) Reinforcement
+(x) Punishment
+
+[explanation]
+Being firmly told that it's unacceptable decreases the probability of Benjamin throwing toys, so it's punishment.
+[/explanation]
+]]></MarkupProblem>
 
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-  <Vertical id="reinforce_punish_practice_1m">
-    <Markdown id="pq1_13">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 13: Timeout" id="reinforcement_v_punishment_timeout">
-      <KeyGrader>
-        <p>Nathan stops interrupting when his teacher starts making him sit in a "quiet corner."</p>
-        <ChoiceInput>
-          <Distractor id="pq13_distractor">Reinforcement</Distractor>
-          <Key id="pq13_key">Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-           Being made to sit in a quiet corner makes Nathan less likely to interrupt,
-           so this is punishment.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1m" title="Question 13: Timeout"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Nathan stops interrupting when his teacher starts making him sit in a "quiet corner."<<
+
+( ) Reinforcement
+(x) Punishment
+
+[explanation]
+Being made to sit in a quiet corner makes Nathan less likely to interrupt, so this is punishment.
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-  <Vertical id="reinforce_punish_practice_1n">
-    <Markdown id="pq1_14">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 14: Lose Recess Time" id="reinforcement_v_punishment_lose_recess_time">
-      <KeyGrader>
-        <p>William follows playground rules so he doesn't lose recess time.</p>
-        <ChoiceInput>
-          <Key id="pq14_key">Reinforcement</Key>
-          <Distractor id="pq14_distractor">Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-           Losing recess time makes William more likely to follow classroom rules,
-           so this is reinforcement.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1n" title="Question 14: Lose Recess Time"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>William follows playground rules so he doesn't lose recess time.<<
+
+(x) Reinforcement
+( ) Punishment
+
+[explanation]
+Losing recess time makes William more likely to follow classroom rules, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-  <Vertical id="reinforce_punish_practice_1o">
-    <Markdown id="pq1_15">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 15: Grounded for Poor Grades" id="reinforcement_v_punishment_grounded">
-      <KeyGrader>
-        <p>Aiden studies for tests to avoid being grounded for poor grades.</p>
-        <ChoiceInput>
-          <Key id="pq15_distractor">Reinforcement</Key>
-          <Distractor id="pq15_key">Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          Getting grounded for poor grades makes Aiden more likely to study,
-          so this is reinforcement.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1o" title="Question 15: Grounded for Poor Grades"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Aiden studies for tests to avoid being grounded for poor grades.<<
+
+(x) Reinforcement
+( ) Punishment
+
+[explanation]
+Getting grounded for poor grades makes Aiden more likely to study, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-  <Vertical id="reinforce_punish_practice_1p">
-    <Markdown id="pq1_16">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 16: Removing dessert" id="reinforcement_v_punishment_removing_dessert">
-      <KeyGrader>
-        <p>Jackson doesn't try new foods because his favorite dessert
-           was once removed for refusing broccoli.</p>
-        <ChoiceInput>
-          <Distractor id="pq16_distractor">Reinforcement</Distractor>
-          <Key id="pq16_key">Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          Removing desserts made Jackson less likely to try new foods,
-          so this is punishment.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1p" title="Question 16: Removing dessert"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Jackson doesn't try new foods because his favorite dessert was once removed for refusing broccoli.<<
+
+( ) Reinforcement
+(x) Punishment
+
+[explanation]
+Removing desserts made Jackson less likely to try new foods, so this is punishment.
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-  <Vertical id="reinforce_punish_practice_1q">
-    <Markdown id="pq1_17">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 17: Being Told" id="reinforcement_v_punishment_being_told">
-      <KeyGrader>
-        <p>Chloe stops playing with scissors after being told by her teacher.</p>
-        <ChoiceInput>
-          <Distractor id="pq17_distractor">Reinforcement</Distractor>
-          <Key id="pq17_key">Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          The teacher telling her to stop made Chloe less likely to play with scissors,
-          so this is punishment.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1q" title="Question 17: Being Told"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Chloe stops playing with scissors after being told by her teacher.<<
+
+( ) Reinforcement
+(x) Punishment
+
+[explanation]
+The teacher telling her to stop made Chloe less likely to play with scissors, so this is punishment.
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-  <Vertical id="reinforce_punish_practice_1r">
-    <Markdown id="pq1_18">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 18: Offer Snack" id="reinforcement_v_punishment_offer_snack">
-      <KeyGrader>
-        <p>Jack refuses to put on his shoes until his parent offers a snack as a bribe.</p>
-        <ChoiceInput>
-          <Key id="pq18_key">Reinforcement</Key>
-          <Distractor id="pq18_distractor">Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-        Offering a snack made Jack more likely to put on his shoes,
-        so this is reinforcement.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1r" title="Question 18: Offer Snack"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Jack refuses to put on his shoes until his parent offers a snack as a bribe.<<
+
+(x) Reinforcement
+( ) Punishment
+
+[explanation]
+Offering a snack made Jack more likely to put on his shoes, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-  <Vertical id="reinforce_punish_practice_1s">
-    <Markdown id="pq1_19">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 19: Excluded" id="reinforcement_v_punishment_excluded">
-      <KeyGrader>
-        <p>Amelia stops participating in group activities after being excluded as punishment in the past.</p>
-        <ChoiceInput>
-          <Distractor id="pq19_distractor">Reinforcement</Distractor>
-          <Key id="pq19_key">Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          Being excluded made Amelia less likely to participate in group activities, so this is punishment.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1s" title="Question 19: Excluded"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Amelia stops participating in group activities after being excluded as punishment in the past.<<
+
+( ) Reinforcement
+(x) Punishment
+
+[explanation]
+Being excluded made Amelia less likely to participate in group activities, so this is punishment.
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-  <Vertical id="reinforce_punish_practice_1t">
-    <Markdown id="pq1_20">
-      ## Practice Quiz: Reinforcement vs. Punishment
-    </Markdown>
-    <CapaProblem title="Question 20: Super-Organized Badge" id="reinforcement_v_punishment_badge">
-      <KeyGrader>
-        <p>Charlotte organizes her desk because she earns a "Super
-           Organized" badge from her teacher for doing so.</p>
-        <ChoiceInput>
-          <Key id="pq20_key">Reinforcement</Key>
-          <Distractor id="pq20_distractor">Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          Getting the badge made Charlotte more likely to organized her desk,
-          so this is reinforcement.
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="reinforce_punish_practice_1t" title="Question 20: Super-Organized Badge"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
 
-  <Vertical id="operant_conditioning_clear_screen_1">
-    <Markdown id="operant_conditioning_spacer_1">
+>>Charlotte organizes her desk because she earns a "Super Organized" badge from her teacher for doing so.<<
+
+(x) Reinforcement
+( ) Punishment
+
+[explanation]
+Getting the badge made Charlotte more likely to organized her desk, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
+
+  <Markdown id="operant_conditioning_clear_screen_1">
       &nbsp;
     </Markdown>
-  </Vertical>
 
-  <Vertical id="operant_conditioning_reinforcement_notes">
-    <Markdown>
+  <Markdown id="operant_conditioning_reinforcement_notes">
        ## Lecture Notes
 
        **Positive reinforcement** strengthens responding by **presenting** a typically
@@ -480,21 +351,16 @@ Let's begin.
        **Negative reinforcement** strengthens a response by **reducing or removing**&nbsp;
        a typically **unpleasant** stimulus immediately after a response.
     </Markdown>
-  </Vertical>
 
-  <Vertical id="operant_conditioning_reinforcement_notes2">
-    <Markdown>
+  <Markdown id="operant_conditioning_reinforcement_notes2">
        ## Lecture Notes
 
-       **Positive punishment** refers to weakening responses by **presenting**a **typically aversive** stimulus immediately after a response.
+       **Positive punishment** refers to weakening responses by **presenting** a **typically aversive** stimulus immediately after a response.
 
        **Negative punishment** weakens a response by **reducing or removing** something typically **pleasurable** immediately after a response.
     </Markdown>
-  </Vertical>
 
-  <Vertical id="operant_conditioning_poster">
-    <Image id="poster_img" src="images/poster.jpg" alt="Chart on types of reinforcement and punishment" />
-  </Vertical>
+  <Image id="operant_conditioning_poster" src="images/poster.jpg" alt="Chart on types of reinforcement and punishment" />
 
   <Vertical id="conditioning_example_chart">
     <Markdown>
@@ -538,8 +404,7 @@ Let's begin.
   </Vertical>
 
   <!-- Reinforcement poster -->
-  <Vertical id="filled_out_poster">
-    <Markdown id="reference_chart">
+  <Markdown id="filled_out_poster">
 ## Quick Reference Chart
 
 |                   | Add Something          | Remove Something       |
@@ -552,7 +417,7 @@ Let's begin.
 |                   | _character when they_      | _when they go to bed_    |
 |                   | _go to bed when asked._    | _when asked_             |
 |-------------------|--------------------------|------------------------|
-| **Decrease Behavior** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**_Negative_**       | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**_Positive_**          |
+| **Decrease Behavior** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**_Positive_**       | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**_Negative_**          |
 |                   | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**_Punishment_**         | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**_Punishment_**       |
 |                   | _Make the child write_   | _Take away  his elec-_   |
 |                   | _"I will go to sleep on_ | _tronics for a week_     |
@@ -567,512 +432,352 @@ Remember:
 - **Reinforcement** = Increases behavior
 - **Punishment** = Decreases behavior
     </Markdown>
-  </Vertical>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 1 -->
-  <Vertical id="four_types_practice_1">
-    <Markdown id="pq1_1">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 1: Sticker" id="four_types_sticker">
-      <KeyGrader>
-        <p>Liam reads a book every night because he earns a sticker for each completed book.</p>
-        <ChoiceInput>
-          <Key id="four_types_q1_key">Positive Reinforcement</Key>
-          <Distractor id="four_types_q1_distractor1">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q1_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q1_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-             - Something desirable is added (stickers) - Positive
-             - Behavior happens more often (reading a book every night) - Reinforcement
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1" title="Question 1: Sticker"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Liam reads a book every night because he earns a sticker for each completed book.<<
+
+(x) Positive Reinforcement
+( ) Negative Reinforcement
+( ) Positive Punishment
+( ) Negative Punishment
+
+[explanation]
+- Something desirable is added (stickers) - Positive
+- Behavior happens more often (reading a book every night) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 2 -->
-  <Vertical id="four_types_practice_1b">
-    <Markdown id="pq2_2">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 2: Asking" id="four_types_asking">
-      <KeyGrader>
-        <p>Daniel puts away his toys so his parents will stop asking him to clean up.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q2_distractor1">Positive Reinforcement</Distractor>
-          <Key id="four_types_q2_key">Negative Reinforcement</Key>
-          <Distractor id="four_types_q2_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q2_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-            - Something undesirable is being taken away (parents asking him to clean up) - Negative
-            - Behavior happens more often (putting toys away) - Reinforcement
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1b" title="Question 2: Asking"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Daniel puts away his toys so his parents will stop asking him to clean up.<<
+
+( ) Positive Reinforcement
+(x) Negative Reinforcement
+( ) Positive Punishment
+( ) Negative Punishment
+
+[explanation]
+- Something undesirable is being taken away (parents asking him to clean up) - Negative
+- Behavior happens more often (putting toys away) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 3 -->
-  <Vertical id="four_types_practice_1c">
-    <Markdown id="pq2_3">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 3: Getting Burned" id="four_types_getting_burned">
-      <KeyGrader>
-        <p>Lucas stops touching the hot stove after he accidentally burns his hand.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q3_distractor1">Positive Reinforcement</Distractor>
-          <Distractor id="four_types_q3_distractor2">Negative Reinforcement</Distractor>
-          <Key id="four_types_q3_key">Positive Punishment</Key>
-          <Distractor id="four_types_q3_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-             - Something undesirable is added (burning his hand) - Positive
-             - Behavior happens less often (touching the stove) - Punishment
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1c" title="Question 3: Getting Burned"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Lucas stops touching the hot stove after he accidentally burns his hand.<<
+
+( ) Positive Reinforcement
+( ) Negative Reinforcement
+(x) Positive Punishment
+( ) Negative Punishment
+
+[explanation]
+- Something undesirable is added (burning his hand) - Positive
+- Behavior happens less often (touching the stove) - Punishment
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 4 -->
-  <Vertical id="four_types_practice_1d">
-    <Markdown id="pq2_4">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 4: Tantrum" id="four_types_tantrum">
-      <KeyGrader>
-        <p>Victoria throws a tantrum at dinner to get out of eating her vegetables.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q4_distractor1">Positive Reinforcement</Distractor>
-          <Key id="four_types_q4_key">Negative Reinforcement</Key>
-          <Distractor id="four_types_q4_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q4_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-            - Something undesirable is taken away (eating her vegetables) - Negative
-            - Behavior happens more often (throwing a tantrum) - Reinforcement
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1d" title="Question 4: Tantrum"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Victoria throws a tantrum at dinner to get out of eating her vegetables.<<
+
+( ) Positive Reinforcement
+(x) Negative Reinforcement
+( ) Positive Punishment
+( ) Negative Punishment
+
+[explanation]
+- Something undesirable is taken away (eating her vegetables) - Negative
+- Behavior happens more often (throwing a tantrum) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 5 -->
-  <Vertical id="four_types_practice_1e">
-    <Markdown id="pq2_5">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 5: Glaring" id="four_types_glaring">
-      <KeyGrader>
-        <p>Michael stays seated during meals after his father frowns and glares at him every time he stands up.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q5_distractor1">Positive Reinforcement</Distractor>
-          <Distractor id="four_types_q5_distractor2">Negative Reinforcement</Distractor>
-          <Key id="four_types_q5_key">Positive Punishment</Key>
-          <Distractor id="four_types_q5_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-            - Something undesirable is added (father frowning and glaring at him) - Positive
-            - Behavior happens less often (standing up) - Punishment
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1e" title="Question 5: Glaring"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Michael stays seated during meals after his father frowns and glares at him every time he stands up.<<
+
+( ) Positive Reinforcement
+( ) Negative Reinforcement
+(x) Positive Punishment
+( ) Negative Punishment
+
+[explanation]
+- Something undesirable is added (father frowning and glaring at him) - Positive
+- Behavior happens less often (standing up) - Punishment
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 6 -->
-  <Vertical id="four_types_practice_1f">
-    <Markdown id="pq2_6">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 6: Less Screen Time" id="four_types_screentime">
-      <KeyGrader>
-        <p>Nicole avoids showing her homework to her parents because they reduce her screen time when it's incomplete.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q6_distractor1">Positive Reinforcement</Distractor>
-          <Distractor id="four_types_q6_distractor2">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q6_distractor3">Positive Punishment</Distractor>
-          <Key id="four_types_q6_key">Negative Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-             - Something desirable is taken away (screen time) - Negative
-             - Behavior happens less often (showing parents homework) - Punishment
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1f" title="Question 6: Less Screen Time"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Nicole avoids showing her homework to her parents because they reduce her screen time when it's incomplete.<<
+
+( ) Positive Reinforcement
+( ) Negative Reinforcement
+( ) Positive Punishment
+(x) Negative Punishment
+
+[explanation]
+- Something desirable is taken away (screen time) - Negative
+- Behavior happens less often (showing parents homework) - Punishment
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 7 -->
-  <Vertical id="four_types_practice_1g">
-    <Markdown id="pq2_7">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 7: Candy" id="four_types_candy">
-      <KeyGrader>
-        <p>Mia whines at the store because her parents give her candy to quiet her.</p>
-        <ChoiceInput>
-          <Key id="four_types_q7_key">Positive Reinforcement</Key>
-          <Distractor id="four_types_q7_distractor1">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q7_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q7_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-             - Something desirable is added
-               (parents give her candy) - Positive
-             - Behavior happens more often
-               (whining at store) - Reinforcement
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1g" title="Question 7: Candy"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Mia whines at the store because her parents give her candy to quiet her.<<
+
+(x) Positive Reinforcement
+( ) Negative Reinforcement
+( ) Positive Punishment
+( ) Negative Punishment
+
+[explanation]
+- Something desirable is added (parents give her candy) - Positive
+- Behavior happens more often (whining at store) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 8 -->
-  <Vertical id="four_types_practice_1h">
-    <Markdown id="pq2_8">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 8: Uncalled-on" id="four_types_cheer_on">
-      <KeyGrader>
-        <p>Noah practices the piano daily because his parents cheer him on after each session.</p>
-        <ChoiceInput>
-          <Key id="four_types_q8_key">Positive Reinforcement</Key>
-          <Distractor id="four_types_q8_distractor1">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q8_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q8_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-            - Something desirable is added (his parents
-              cheer him on after each session) - Positive
-            - Behavior happens more often (practices the
-              piano daily) - Reinforcement
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1h" title="Question 8: Uncalled-on"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Noah practices the piano daily because his parents cheer him on after each session.<<
+
+(x) Positive Reinforcement
+( ) Negative Reinforcement
+( ) Positive Punishment
+( ) Negative Punishment
+
+[explanation]
+- Something desirable is added (his parents cheer him on after each session) - Positive
+- Behavior happens more often (practices the piano daily) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 9 -->
-  <Vertical id="four_types_practice_1i">
-    <Markdown id="pq2_9">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 9: Getting Upset" id="four_types_upset">
-      <KeyGrader>
-        <p>Matthew makes his bed every morning so his mom doesn't get upset.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q9_distractor1">Positive Reinforcement</Distractor>
-          <Key id="four_types_q9_key">Negative Reinforcement</Key>
-          <Distractor id="four_types_q9_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q9_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-            - Something undesirable is taken away (mom being upset) - Negative
-            - Behavior happens more often (making bed every morning) - Reinforcement
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1i" title="Question 9: Getting Upset"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Matthew makes his bed every morning so his mom doesn't get upset.<<
+
+( ) Positive Reinforcement
+(x) Negative Reinforcement
+( ) Positive Punishment
+( ) Negative Punishment
+
+[explanation]
+- Something undesirable is taken away (mom being upset) - Negative
+- Behavior happens more often (making bed every morning) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 10 -->
-  <Vertical id="four_types_practice_1j">
-    <Markdown id="pq2_10">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 10: Not Called On" id="four_types_not_called_on">
-      <KeyGrader>
-        <p>Luna stops asking questions in class because her teacher never calls on her to speak.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q10_distractor1">Positive Reinforcement</Distractor>
-          <Distractor id="four_types_q10_distractor2">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q10_distractor3">Positive Punishment</Distractor>
-          <Key id="four_types_q10_key">Negative Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-            - Something undesirable is taken away (teacher never |
-              calling on her to speak) - Negative
-            - Behavior happens less often (asking questions
-              in class) - Punishment
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1j" title="Question 10: Not Called On"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Luna stops asking questions in class because her teacher never calls on her to speak.<<
+
+( ) Positive Reinforcement
+( ) Negative Reinforcement
+( ) Positive Punishment
+(x) Negative Punishment
+
+[explanation]
+- Something undesirable is taken away (teacher never calling on her to speak) - Negative
+- Behavior happens less often (asking questions in class) - Punishment
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 11 -->
-  <Vertical id="four_types_practice_1k">
-    <Markdown id="pq2_11">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 11: Artist!" id="four_types_artist">
-      <KeyGrader>
-        <p>Layla scribbles on walls because her sibling laughs and calls her "an artist."</p>
-        <ChoiceInput>
-          <Key id="four_types_q11_key">Positive Reinforcement</Key>
-          <Distractor id="four_types_q11_distractor1">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q11_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q11_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-            - Something desirable is added (sibling laughing and calling her "an artist") - Positive
-            - Behavior happens more often (scribbles on walls) - Reinforcement
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1k" title="Question 11: Artist!"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Layla scribbles on walls because her sibling laughs and calls her "an artist."<<
+
+(x) Positive Reinforcement
+( ) Negative Reinforcement
+( ) Positive Punishment
+( ) Negative Punishment
+
+[explanation]
+- Something desirable is added (sibling laughing and calling her "an artist") - Positive
+- Behavior happens more often (scribbles on walls) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
 
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 12 -->
-  <Vertical id="four_types_practice_1l">
-    <Markdown id="pq2_12">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 12: Firm Command" id="four_types_firm_command">
-      <KeyGrader>
-        <p>Benjamin stops throwing toys after being told firmly that it's unacceptable.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q12_distractor1">Positive Reinforcement</Distractor>
-          <Distractor id="four_types_q12_distractor2">Negative Reinforcement</Distractor>
-          <Key id="four_types_q12_key">Positive Punishment</Key>
-          <Distractor id="four_types_q12_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-            - Something undesirable is added (being told firmly that
-              it's unacceptable) - Positive
-            - Behavior happens less often (throwing toys) - Punishment
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1l" title="Question 12: Firm Command"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Benjamin stops throwing toys after being told firmly that it's unacceptable.<<
+
+( ) Positive Reinforcement
+( ) Negative Reinforcement
+(x) Positive Punishment
+( ) Negative Punishment
+
+[explanation]
+- Something undesirable is added (being told firmly that it's unacceptable) - Positive
+- Behavior happens less often (throwing toys) - Punishment
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 13 -->
-  <Vertical id="four_types_practice_1m">
-    <Markdown id="pq2_13">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 13: Timeout" id="four_types_timeout">
-      <KeyGrader>
-        <p>Nathan stops interrupting when his teacher starts making him sit in a "quiet corner."</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q13_distractor1">Positive Reinforcement</Distractor>
-          <Distractor id="four_types_q13_distractor2">Negative Reinforcement</Distractor>
-          <Key id="four_types_q13_key">Positive Punishment</Key>
-          <Distractor id="four_types_q13_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-            - Something undesirable is added - making him sit in
-              a "quiet corner" - Positive
-            - Behavior happens less often (interrupting) - Punishment
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1m" title="Question 13: Timeout"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Nathan stops interrupting when his teacher starts making him sit in a "quiet corner."<<
+
+( ) Positive Reinforcement
+( ) Negative Reinforcement
+(x) Positive Punishment
+( ) Negative Punishment
+
+[explanation]
+- Something undesirable is added - making him sit in a "quiet corner" - Positive
+- Behavior happens less often (interrupting) - Punishment
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 14 -->
-  <Vertical id="four_types_practice_1n">
-    <Markdown id="pq2_14">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 14: Lose Recess Time" id="four_types_lose_recess_time">
-      <KeyGrader>
-        <p>William follows playground rules so he doesn't lose recess time.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q14_distractor1">Positive Reinforcement</Distractor>
-          <Key id="four_types_q14_key">Negative Reinforcement</Key>
-          <Distractor id="four_types_q14_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q14_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-            - Something undesirable is taken away (losing
-              recess time) - Negative
-            - Behavior happens more often (follows
-              playground rules) - Reinforcement
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1n" title="Question 14: Lose Recess Time"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>William follows playground rules so he doesn't lose recess time.<<
+
+( ) Positive Reinforcement
+(x) Negative Reinforcement
+( ) Positive Punishment
+( ) Negative Punishment
+
+[explanation]
+- Something undesirable is taken away (losing recess time) - Negative
+- Behavior happens more often (follows playground rules) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 15 -->
-  <Vertical id="four_types_practice_1o">
-    <Markdown id="pq2_15">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 15: Grounded for Poor Grades" id="four_types_grounded">
-      <KeyGrader>
-        <p>Aiden studies for tests to avoid being grounded for poor grades.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q15_distractor1">Positive Reinforcement</Distractor>
-          <Key id="four_types_q15_key">Negative Reinforcement</Key>
-          <Distractor id="four_types_q15_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q15_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-            - Something undesirable is taken away (being grounded
-              for poor grades) - Negative
-            - Behavior happens more often (studying) - Reinforcement
-          </Markdown>
-        </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1o" title="Question 15: Grounded for Poor Grades"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Aiden studies for tests to avoid being grounded for poor grades.<<
+
+( ) Positive Reinforcement
+(x) Negative Reinforcement
+( ) Positive Punishment
+( ) Negative Punishment
+
+[explanation]
+- Something undesirable is taken away (being grounded for poor grades) - Negative
+- Behavior happens more often (studying) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 16 -->
-  <Vertical id="four_types_practice_1p">
-    <Markdown id="pq2_16">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 16: Removing dessert" id="four_types_removing_dessert">
-      <KeyGrader>
-        <p>Jackson doesn't try new foods because his favorite dessert
-           was once removed for refusing broccoli.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q16_distractor1">Positive Reinforcement</Distractor>
-          <Distractor id="four_types_q16_distractor2">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q16_distractor3">Positive Punishment</Distractor>
-          <Key id="four_types_q16_key">Negative Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-            - Something desirable is taken away (his favorite
-              dessert) - Negative
-            - Behavior happens less often (trying new foods) - Punishment
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1p" title="Question 16: Removing dessert"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Jackson doesn't try new foods because his favorite dessert was once removed for refusing broccoli.<<
+
+( ) Positive Reinforcement
+( ) Negative Reinforcement
+( ) Positive Punishment
+(x) Negative Punishment
+
+[explanation]
+- Something desirable is taken away (his favorite dessert) - Negative
+- Behavior happens less often (trying new foods) - Punishment
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 17 -->
-  <Vertical id="four_types_practice_1q">
-    <Markdown id="pq2_17">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 17: Being Told" id="four_types_being_told">
-      <KeyGrader>
-        <p>Chloe stops playing with scissors after being told by her teacher.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q17_distractor1">Positive Reinforcement</Distractor>
-          <Distractor id="four_types_q17_distractor2">Negative Reinforcement</Distractor>
-          <Key id="four_types_q17_key">Positive Punishment</Key>
-          <Distractor id="four_types_q17_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-            - Something undesirable is added (being told by
-              her teacher) - Positive
-            - Behavior happens less often (playing with
-              scissors) - Punishment
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1q" title="Question 17: Being Told"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Chloe stops playing with scissors after being told by her teacher.<<
+
+( ) Positive Reinforcement
+( ) Negative Reinforcement
+(x) Positive Punishment
+( ) Negative Punishment
+
+[explanation]
+- Something undesirable is added (being told by her teacher) - Positive
+- Behavior happens less often (playing with scissors) - Punishment
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 18 -->
-  <Vertical id="four_types_practice_1r">
-    <Markdown id="pq2_18">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 18: Offer Snack" id="four_types_offer_snack">
-      <KeyGrader>
-        <p>Jack refuses to put on his shoes until his parent offers a snack as a bribe.</p>
-        <ChoiceInput>
-          <Key id="four_types_q18_key">Positive Reinforcement</Key>
-          <Distractor id="four_types_q18_distractor1">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q18_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q18_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-             - Something desirable is added (offering a snack) - Positive
-             - Behavior happens more often (putting on shoes) - Reinforcement
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1r" title="Question 18: Offer Snack"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Jack refuses to put on his shoes until his parent offers a snack as a bribe.<<
+
+(x) Positive Reinforcement
+( ) Negative Reinforcement
+( ) Positive Punishment
+( ) Negative Punishment
+
+[explanation]
+- Something desirable is added (offering a snack) - Positive
+- Behavior happens more often (putting on shoes) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 19 -->
-  <Vertical id="four_types_practice_1s">
-    <Markdown id="pq2_19">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 19: Excluded" id="four_types_excluded">
-      <KeyGrader>
-        <p>Amelia stops participating in group activities after being excluded as punishment in the past.</p>
-        <ChoiceInput>
-          <Distractor id="four_types_q19_distractor1">Positive Reinforcement</Distractor>
-          <Distractor id="four_types_q19_distractor2">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q19_distractor3">Positive Punishment</Distractor>
-          <Key id="four_types_q19_key">Negative Punishment</Key>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-            - Something desirable is being taken away (being included) - Negative
-            - Behavior happens less often (participating) - Punishment
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1s" title="Question 19: Excluded"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Amelia stops participating in group activities after being excluded as punishment in the past.<<
+
+( ) Positive Reinforcement
+( ) Negative Reinforcement
+( ) Positive Punishment
+(x) Negative Punishment
+
+[explanation]
+- Something desirable is being taken away (being included) - Negative
+- Behavior happens less often (participating) - Punishment
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 20 -->
-  <Vertical id="four_types_practice_1t">
-    <Markdown id="pq2_20">
-      ## Practice Quiz: The Four Types of Operant Conditioning
-    </Markdown>
-    <CapaProblem title="Question 20: Super-Organized Badge" id="four_types_badge">
-      <KeyGrader>
-        <p>Charlotte organizes her desk because she earns a "Super
-           Organized" badge from her teacher for doing so.</p>
-        <ChoiceInput>
-          <Key id="four_types_q20_key">Positive Reinforcement</Key>
-          <Distractor id="four_types_q20_distractor1">Negative Reinforcement</Distractor>
-          <Distractor id="four_types_q20_distractor2">Positive Punishment</Distractor>
-          <Distractor id="four_types_q20_distractor3">Negative Punishment</Distractor>
-        </ChoiceInput>
-      </KeyGrader>
-      <Explanation>
-          <Markdown>
-            - Something desirable is added (earns a 'Super Organized'
-              badge) - Positive
-            - Behavior happens more often (organizes her desk) - Reinforcement
-          </Markdown>
-      </Explanation>
-    </CapaProblem>
-  </Vertical>
+  <MarkupProblem id="four_types_practice_1t" title="Question 20: Super-Organized Badge"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Charlotte organizes her desk because she earns a "Super Organized" badge from her teacher for doing so.<<
+
+(x) Positive Reinforcement
+( ) Negative Reinforcement
+( ) Positive Punishment
+( ) Negative Punishment
+
+[explanation]
+- Something desirable is added (earns a 'Super Organized' badge) - Positive
+- Behavior happens more often (organizes her desk) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
 
   <!-- Clear screen -->
-  <Vertical id="clear_screen_after_quiz">
-    <Markdown id="csaq">
+  <Markdown id="clear_screen_after_quiz">
         &nbsp;
     </Markdown>
-  </Vertical>
 
   <!-- The opening for the email we wrote in the previous task -->
   <Vertical id="norulesparenting_summary">
@@ -1297,8 +1002,7 @@ Remember:
             </Markdown>
         </Vertical>
     </Tabs>
-    <Vertical id="roommate_response">
-        <Markdown>
+    <Markdown id="roommate_response">
           ## Annie's roommate's email:
 
           Hey!
@@ -1317,9 +1021,8 @@ Remember:
 
           So far, he has gone to bed without a fuss three nights in a row!
 
-          Please tell everyone I really appreciate their ideas! Y’all are lifesavers!
+          Please tell everyone I really appreciate their ideas! Y'all are lifesavers!
       </Markdown>
-    </Vertical>
     <Vertical id="psych_sba_part_2_completion_page">
       <Markdown>
         **Confirm that you are done with this exercise.**

@@ -441,10 +441,11 @@ export async function parseOLX(
     const metadataLang = metadata?.lang;
     const currentLang = resolveElementLanguage(attributes, parentLang, metadataLang);
 
-    if (attributes.ref) {
-      if (tag !== 'Use') {
+    if (tag === 'Use') {
+      if (!attributes.ref) {
         throw new Error(
-          `Invalid 'ref' attribute on <${tag}> in ${provenance.join(', ')}. Only <use> elements may have 'ref'.`
+          `<Use> in ${provenance.join(', ')} requires a ref attribute, e.g. <Use ref="block_id"/>. ` +
+          (attributes.id ? `Found id="${attributes.id}" — did you mean ref="${attributes.id}"?` : 'No ref attribute found.')
         );
       }
 
@@ -459,6 +460,12 @@ export async function parseOLX(
 
       const { ref, ...overrides } = attributes;
       return { type: 'block', id: ref as OlxReference, overrides };
+    }
+
+    if (attributes.ref) {
+      throw new Error(
+        `Invalid 'ref' attribute on <${tag}> in ${provenance.join(', ')}. Only <Use> elements may have 'ref'.`
+      );
     }
 
     const id: OlxKey = (attributes.id ?? createId(node)) as OlxKey;
@@ -567,11 +574,29 @@ export async function parseOLX(
           const requiresUnique = shouldBlockRequireUniqueId(Component, tag, storeId, entry, idMap, provenance);
 
           if (!requiresUnique) {
-            // Allow duplicate IDs for this block type - but still store in idMap
-            // We'll overwrite the previous entry to keep the latest one
-            if (!idMap[storeId]) idMap[storeId] = {};
-            idMap[storeId][lang] = entry;
-            return;
+            // Allow duplicate IDs when content and attributes are identical
+            // (e.g. same Markdown repeated in multiple tabs). Flag as error
+            // when they differ — that's a real authoring mistake where one
+            // instance silently overwrites the other.
+            // Order-independent stringify for object comparison — XML
+            // parsers don't guarantee attribute property order.
+            const stableStringify = (v: unknown): string =>
+              JSON.stringify(v, (_, val) =>
+                val && typeof val === 'object' && !Array.isArray(val)
+                  ? Object.fromEntries(Object.entries(val).sort(([a], [b]) => a.localeCompare(b)))
+                  : val
+              );
+            const existing = idMap[storeId][lang];
+            const sameTag = (existing.tag || tag) === (entry.tag || tag);
+            const sameKids = stableStringify(existing.kids) === stableStringify(entry.kids);
+            const sameAttrs = stableStringify(existing.attributes) === stableStringify(entry.attributes);
+            if (sameTag && sameKids && sameAttrs) {
+              // Identical block — no problem.
+              // TODO: Lint suggestion to use <Use ref="..."/> instead of
+              // repeating the same block. Requires a linter framework.
+              return;
+            }
+            // Different content/attributes with same ID — fall through to duplicate error
           }
 
           // Get detailed information about both the existing and duplicate entries

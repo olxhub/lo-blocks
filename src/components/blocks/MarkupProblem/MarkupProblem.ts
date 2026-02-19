@@ -15,7 +15,7 @@ import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes, problemMixin } from '@/lib/blocks/attributeSchemas';
 import * as capaParser from '../specialized/peg_prototype/_capaParser';
-import _Noop from '@/components/blocks/layout/_Noop';
+import _CapaProblem from '@/components/blocks/CapaProblem/_CapaProblem';
 import type { BlueprintKidEntry, OlxReference } from '@/lib/types';
 import type { CheckboxGraderAttributes } from '../input/ChoiceInput/CheckboxGrader';
 
@@ -24,10 +24,9 @@ const blockRef = (id: string): BlueprintKidEntry => ({ type: 'block', id: id as 
 
 /**
  * Transform parsed CAPA AST into OLX component structure.
- * Creates CapaProblem with appropriate graders, inputs, and content.
+ * Returns graders, inputs, and content as direct children of MarkupProblem.
  */
 function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
-  const problemId = `${id}_problem`;
   let graderIndex = 0;
   let inputIndex = 0;
   let hintIndex = 0;
@@ -422,21 +421,10 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
     problemKids.push(blockRef(demandHintsId));
   }
 
-  // Store CapaProblem
-  storeEntry(problemId, {
-    id: problemId,
-    tag: 'CapaProblem',
-    attributes: {
-      id: problemId,
-      ...attributes
-    },
-    kids: problemKids
-  });
-
-  return [{ type: 'block', id: problemId }];
+  return problemKids;
 }
 
-export const fields = state.fields([]);
+export const fields = state.fields(['correct', 'message', 'submitCount']);
 
 const MarkupProblem = dev({
   ...peggyParser(capaParser, {
@@ -446,9 +434,17 @@ const MarkupProblem = dev({
   name: 'MarkupProblem',
   category: 'CAPA Problems',
   description: 'Simple markup language for authoring problems - expands to CapaProblem with graders and inputs',
-  component: _Noop,
+  component: _CapaProblem,
   fields,
+  isGrader: true,  // Metagrader: aggregates child grader states (same as CapaProblem)
   attributes: srcAttributes.extend(problemMixin.shape).strict(),
+  // peggyParser sets staticKids: () => [], but MarkupProblem generates child
+  // blocks (graders, inputs, hints) dynamically during PEG parsing.
+  // Without this, the content API's static-kids mode won't include them.
+  staticKids: (entry: any) => {
+    if (!Array.isArray(entry?.kids)) return [];
+    return entry.kids.filter((k: any) => k?.id).map((k: any) => k.id);
+  },
 });
 
 export default MarkupProblem;

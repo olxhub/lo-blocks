@@ -17,6 +17,7 @@ const Key = core({
   name: 'Key',
   description: 'Correct answer option inside ChoiceInput',
   component: _ChoiceItem,
+  requiresUniqueId: false,
   attributes: srcAttributes.extend({
     value: z.string().optional().describe('Value submitted when selected; defaults to element ID'),
   }),

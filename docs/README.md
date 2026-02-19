@@ -399,7 +399,7 @@ For example, a `MasteryBank` will pull in kids from a bank of items. A DynamicLi
 
 ```
 <DynamicList id="list">
-  <Use id="helloblock">
+  <Use ref="helloblock" />
 </DynamicList>
 ```
 

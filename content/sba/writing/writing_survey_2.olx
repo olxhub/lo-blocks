@@ -1,0 +1,240 @@
+<!--
+---
+description: Survey exploring students' writing goals
+index: 2
+category: writing
+lang: en-Latn-US
+---
+-->
+<!-- content/sba/writing/writing_survey_2.olx -->
+<Sequential id="writing_survey_2" title="Writing Survey 2" launchable="true">
+    <Markdown id="ws2_intro">
+            # Writing Survey 2
+            ## Goals I Set For My Writing
+
+            At this point you will reflect on the kinds of goals you usually set for yourself
+            as a writer. To probe your self-understanding, you will be presented with a series
+            of statements and asked to indicate whether you (a) strongly agree, (b) agree,
+            (c) disagree, or (d) strongly disagree with that statement. Work your way through
+            these statements, picking the answer that seems to match your own experience and
+            feelings best. There are quite a few statements to get through, so don't take too
+            much time on any single statement. When you are done, you will have a chance to
+            read a computer-generated summary of your answers.
+
+    </Markdown>
+    <Vertical id="ws2_Step_1">
+            <Markdown id="ws2_md1">
+            # Writing Survey 2
+            ## Questions 1-5
+
+            Indicate how strongly you agree or disagree with the following statements.
+            </Markdown>
+            <TabularMCQ id="ws2_goals_1">
+              cols: Strongly Agree, Agree, Disagree, Strongly Disagree
+              rows: I often write in order to express how I feel.,I work hard to improve my writing skills.,When I write I try to finish as quickly as I can.,When I write I try to find easier ways to complete the task.,When I write I try to get my ideas across clearly.
+            </TabularMCQ>
+            <Markdown id="ws2_directions">
+              Select one option for each row. Your selections are automatically saved.
+            </Markdown>
+    </Vertical>
+    <Vertical id="ws2_Step_2">
+            <Markdown id="ws2_md2">
+                ## Questions 6-10
+                Indicate how strongly you agree or disagree with the following statements.
+            </Markdown>
+            <TabularMCQ id="ws2_goals_2">
+              cols: Strongly Agree, Agree, Disagree, Strongly Disagree
+              rows: When I write I try to keep working and make steady progress.,I am sometimes embarrassed or nervous about my writing.,When I write for school I try hard to please my teacher.,I prefer to write about subjects that I choose for myself.,I try to keep my writing private so I won't feel embarrassed about my mistakes.
+            </TabularMCQ>
+            <Markdown id="ws2_directions">
+              Select one option for each row. Your selections are automatically saved.
+            </Markdown>
+    </Vertical>
+    <Vertical id="ws2_Step_3">
+            <Markdown id="ws2_md3">
+                ## Questions 11-15
+                Indicate how strongly you agree or disagree with the following statements.
+            </Markdown>
+            <TabularMCQ id="ws2_goals_3">
+              cols: Strongly Agree, Agree, Disagree, Strongly Disagree
+              rows: I often write to convince other people to agree with me.,I often try to write things other people will enjoy.,I often write to figure out what I really think.,I write to communicate with other people.,I set high standards for myself when I write.
+            </TabularMCQ>
+            <Markdown id="ws2_directions">
+              Select one option for each row. Your selections are automatically saved.
+            </Markdown>
+    </Vertical>
+    <Vertical id="ws2_Step_4">
+            <Markdown id="ws2_md4">
+                ## Questions 16-20
+                Indicate how strongly you agree or disagree with the following statements.
+            </Markdown>
+            <TabularMCQ id="ws2_goals_4">
+              cols: Strongly Agree, Agree, Disagree, Strongly Disagree
+              rows: When I write I try to get the task done as quickly as possible.,I choose to write about subjects that I find personally meaningful.,I try to write things that other people will want to read.,When I write I keep on working no matter how hard it gets.,When I write for school I do my best to get good grades.
+            </TabularMCQ>
+            <Markdown id="ws2_directions">
+              Select one option for each row. Your selections are automatically saved.
+            </Markdown>
+    </Vertical>
+    <Vertical id="ws2_Step_5">
+            <Markdown id="ws2_md5">
+                ## Questions 21-26
+                Indicate how strongly you agree or disagree with the following statements.
+            </Markdown>
+            <TabularMCQ id="ws2_goals_5">
+              cols: Strongly Agree, Agree, Disagree, Strongly Disagree
+              rows: I use my writing to improve my understanding of the subject I am writing about.,I try to impress people with my writing.,I put a lot of effort into learning how to write better.,When I write for school the most important thing is completing the assignment.,When I write I try to stay focused and maintain my concentration.,I work hard to avoid making mistakes while I am writing.
+            </TabularMCQ>
+            <Markdown id="ws2_directions">
+              Select one option for each row. Your selections are automatically saved.
+            </Markdown>
+    </Vertical>
+    <Vertical id="ws2_Step_6">
+           <ActionButton label="Analyze my writing goals">
+               <LLMAction target="ws2_response_summary_6">
+                  BACKGROUND INFORMATION:
+                   For the survey pages that ask about student feelings about writing,
+                   Our column headers are:
+                         Strongly Agree (corresponding to 0),
+                         Agree (corresponding to 1),
+                         Disagree (corresponding to 2),
+                         Strongly Disagree (corresponding to 3),
+
+                   Our row headers are:
+                   I often write in order to express how I feel.
+                   I work hard to improve my writing skills.
+                   When I write I try to finish as quickly as I can.
+                   When I write I try to find easier ways to complete the task.
+                   When I write I try to get my ideas across clearly.
+                   When I write I try to keep working and make steady progress.
+                   I am sometimes embarrassed or nervous about my writing.
+                   When I write for school I try hard to please my teacher.
+                   I prefer to write about subjects that I choose for myself.
+                   I try to keep my writing private so I won't feel embarrassed about my mistakes.
+                   I often write to convince other people to agree with me.
+                   I often try to write things other people will enjoy.
+                   I often write to figure out what I really think.
+                   I write to communicate with other people.
+                   I set high standards for myself when I write.
+                   When I write I try to get the task done as quickly as possible.
+                   I choose to write about subjects that I find personally meaningful.
+                   I try to write things that other people will want to read.
+                   When I write I keep on working no matter how hard it gets.
+                   When I write for school I do my best to get good grades.
+                   I use my writing to improve my understanding of the subject I am writing about.
+                   I try to impress people with my writing.
+                   I put a lot of effort into learning how to write better.
+                   When I write for school the most important thing is completing the assignment.
+                   When I write I try to stay focused and maintain my concentration.
+                   I work hard to avoid making mistakes while I am writing.
+                   Our data is:
+                   <Ref id="ws2_ref6" target="ws2_goals_1" />
+                   <Ref id="ws2_ref7" target="ws2_goals_2" />
+                   <Ref id="ws2_ref8" target="ws2_goals_3" />
+                   <Ref id="ws2_ref9" target="ws2_goals_4" />
+                   <Ref id="ws2_ref10" target="ws2_goals_5" />
+
+                  This data can be interpreted by mapping each number onto the column header it corresponds
+                  to and using the row headers to indicate the level of agreement the student selected for each statement.
+
+                  These statements can be grouped into the following factors --
+
+                  Factor 1 (achievement/effort):
+                   I work hard to improve my writing skills.
+                   When I write I keep on working no matter how hard it gets.
+                   I put a lot of effort into learning how to write better.
+                   I set high standards for myself when I write.
+
+                  Factor 2 (Efficiency):
+                   When I write I try to get the task done as quickly as possible.
+                   When I write I try to finish as quickly as I can.
+                   When I write I try to find easier ways to complete the task.
+                   When I write for school the most important thing is completing the assignment.
+
+                  Factor 3 (Focus):
+                   When I write I try to stay focused and maintain my concentration.
+                   When I write I try to keep working and make steady progress.
+                   I work hard to avoid making mistakes while I am writing.
+                   I often write to figure out what I really think.
+                   I use my writing to improve my understanding of the subject I am writing about.
+
+                  Factor 4 (Embarrassment):
+                   I am sometimes embarrassed or nervous about my writing.
+                   I try to keep my writing private so I won't feel embarrassed about my mistakes.
+
+                 Factor 5 (Performance):
+                   When I write for school I do my best to get good grades.
+                   I try to impress people with my writing.
+                   When I write for school I try hard to please my teacher.
+
+                Factor 6 (Communication):
+                   I often write in order to express how I feel.
+                   I write to communicate with other people.
+                   When I write I try to get my ideas across clearly.
+                   I often write to convince other people to agree with me.
+
+                Factor 7 (Agency/Engagement):
+                   I choose to write about subjects that I find personally meaningful.
+                   I prefer to write about subjects that I choose for myself.
+                   I try to write things that other people will want to read.
+                   I often try to write things other people will enjoy.
+
+                Remember that typical students have the following profile on each factor --
+
+                   On Factor 1 (achievement/effort), the largest group of students:
+                    agree (or strongly agree) that they work hard to improve their writing skills.
+                    agree that when they write they keep on working no matter how hard it gets,
+                    agree that they put a lot of effort into learning how to write better,
+                    agree (or strongly agree) that they set high standards for themselves when they write.
+
+                   On Factor 2 (Efficiency), the largest group of students:
+                    agree (or strongly agree) that when they write they try to finish as quickly as they can,
+                    agree that when they write they try to get the task done as quickly as possible,
+                    agree (or strongly agree) that when they write they try to find easier ways to complete the task,
+                    agree that when they write for school the most important thing is completing the assignment.
+
+                  On Factor 3 (Focus), the largest group of students:
+                   strongly agree that when they write they try to stay focused and maintain their concentration,
+                   agree that when they write they try to keep working and make steady progress,
+                   agree that they work hard to avoid making mistakes while they are writing,
+                   agree that they often write to figure out what they really think,
+                   agree that they use their writing to improve their understanding of the subject they am writing about.
+
+                 On Factor 4 (Embarrassment), the largest group of students:
+                   agree that they are am sometimes embarrassed or nervous about their writing,
+                   agree that they try to keep their writing private so they won't feel embarrassed about their mistakes.
+
+                 On Factor 5 (Performance), the largest group of students:
+                   strongly agree that when they write for school they do their best to get good grades,
+                   agree that when they write for school they try hard to please their teacher,
+                   agree that they try to impress people with their writing.
+
+                On Factor 6 (Communication), the largest group of students:
+
+                   Agree (or strongly agree) that they often write in order to express how they feel,
+                   agree (or strongly agree) that when they write they try to get their ideas across clearly,
+                   agree that they write to communicate with other people,
+                   disagree that they often write to convince other people to agree with them,
+
+                On Factor 7 (Agency/Engagement), the largest group of students:
+
+                   strongly agree they prefer to write about subjects that they choose for themselves,
+                   agree that they choose to write about subjects that they find personally meaningful,
+                   agree that they often try to write things other people will enjoy,
+                   agree that they try to write things that other people will want to read,
+
+             DIRECTIONS:
+              If any of the student's response data is blank, say so and stop; otherwise,
+              using the information from the data interpretation, and addressing the
+              student as "you", describe the student's attitudes towards writing in terms
+              of these seven factors, highlighting the dimensions where their responses
+              consistently show stronger agreement, or more disagreement, than for typical
+              students. Do not include the phrases "Factor 1", "Factor 2", "Factor 3",
+              "Factor 4", "Factor 5", "Factor 6", or "Factor 7" in your response.
+           </LLMAction>
+          </ActionButton>
+        <LLMFeedback id="ws2_response_summary_6" />
+    </Vertical>
+
+
+</Sequential>

@@ -1,17 +1,17 @@
 <!--
 ---
-description: Survey exploring students' writing habits across different contexts—school, social media, creative, and everyday communication
+description: Survey exploring students' ideas about what makes a good writer, and their self-evaluation as writers
 category: writing
+index: 4
 lang: en-Latn-US
 ---
 -->
 <!-- content/sba/writing/writing_process_journal_2.olx -->
 <Sequential id="writing_self_eval_demo" title="Writing Process Journal 2" launchable="true">
-    <Vertical id="wpj2_Introduction">
-       <Markdown>
+    <Markdown id="wpj2_Introduction">
             # Writing Process Journal 2
             ## Introduction
-            
+
             One of the myths about writing is that people are either born good or bad writers,
             but research tells us that "writing requires practice for everyone, and all writers
             have more to learn" (Wardle and Downs 12). Yet if your teachers thought of writing
@@ -20,20 +20,19 @@ lang: en-Latn-US
             threshold concepts _Writing About Writing_ introduces is, "writing is influenced by
             identities and prior experiences" (Wardle and Downs 12). Our experiences with writing
             start very early, and each time we encounter a new writing task, we come to that task
-            with identities formed by all our prior experiences.            
-            
+            with identities formed by all our prior experiences.
+
             In this assignment, you'll reflect about the experiences that have shaped your
             understanding of what writing is, what makes someone a good writer, and how people
-            learn to write well. 
-            
+            learn to write well.
+
             To complete this assignment, you will:
-            
+
             - **Part 1**: Write about an experience that shaped your identity as a writer.
             - **Part 2**: Complete a survey that will help you reflect on your writing priorities.
             - **Part 3**: Define what you think good writing is, and explain how people can become better writers.
             - **Part 4**: Complete a self-evaluation form. What are your strengths and weaknesses as a writer?
-       </Markdown>
-    </Vertical>
+    </Markdown>
     <Vertical id="wpj2_Step_1" title="What Makes a Good Writer?">
              <Markdown>
                  ## What Makes a Good Writer
@@ -47,17 +46,15 @@ lang: en-Latn-US
              </Markdown>
             <TextArea id="wpj2_define_good_writer" rows="12" placeholder="Enter your response here." />
     </Vertical>
-    <Vertical id="wpj2_Step_2" title="Priorities for Successful Writing">
-             <Markdown>
+    <Markdown id="wpj2_Step_2" title="Priorities for Successful Writing">
                  ## Priorities for Successful Writing
-                 
+
                  In the screens that follow, you will explore which goals you think are important
                  for writing success. Each screen will present four goals that writer might adopt
                  at some point in the writing process. Decide which are more important and which
                  are less important, and indicate your decisions by dragging and dropping the
                  statements into priority order, where (1) is the highest priority and (4) is the lowest priority.
-             </Markdown>
-    </Vertical>
+    </Markdown>
     <Vertical id="wpj2_Step_3" title="Sorting Priorities 1">
         <Markdown>
             ## Priorities for Successful Writing
@@ -334,8 +331,8 @@ lang: en-Latn-US
             <Ref id="wpj2_ref9" target="wpj2_response_summary_1" />
         </LeftPane>
         <RightPane>
-             <Markdown>
-                 ## What You Think of This Summmary
+                <Markdown>
+                 ## What You Think of This Summary
                  
                  Evaluate the computer's summary of your writing priorities. Is it accurate?
                  Was there anything that surprised you or that you disagreed with?
@@ -356,7 +353,7 @@ lang: en-Latn-US
                  learning how to write. As you write, answer the following questions:_
                  
                  - What do you think people need to learn to become better writers?
-                 - What do you think people can to do to become better writers?
+                 - What do you think people can do to become better writers?
              </Markdown>
             <TextArea id="wpj2_how_to_learn_writing" rows="12" placeholder="People need to learn how to ..." />
     </Vertical>
@@ -436,7 +433,7 @@ lang: en-Latn-US
              Select one option for each row. Your selections are automatically saved.
            </Markdown>
     </Vertical>
-    <SplitPanel id="wpj1_Step_17" title="Summary of Writing Strengths and Weaknesses" sizes="50,50">
+    <SplitPanel id="wpj2_Step_17" title="Summary of Writing Strengths and Weaknesses" sizes="50,50">
         <LeftPane>
           <Markdown>
               ## Analysis
@@ -551,4 +548,3 @@ lang: en-Latn-US
         </CheckboxInput>
     </Vertical>
 </Sequential>
-

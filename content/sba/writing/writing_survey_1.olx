@@ -1,28 +1,25 @@
 <!--
 ---
-description: Survey exploring students' writing habits across different contexts—school, social media, creative, and everyday communication
+description: Survey exploring students' feelings about writing
 category: writing
+index: 1
 lang: en-Latn-US
 ---
 -->
-<!-- content/sba/writing/writing_process_journal_1.olx -->
+<!-- content/sba/writing/writing_survey_1.olx -->
 <Sequential id="writing_survey_1" title="Writing Survey 1" launchable="true">
-    <Vertical id="ws1_intro">
-       <Markdown>
+    <Markdown id="ws1_intro">
             # Writing Survey 1
             ## Introduction
 
             In this survey, you will reflect on how you feel about writing and various kinds
             of writing situations. To probe how you feel, you will be presented with a series of statements, and asked to indicate whether you (a) strongly agree, (b) agree, (c) disagree, or (d) strongly disagree with that statement. Work your way through these statements, picking the answer that seems to match your own experience and feelings best. There are quite a few statements to get through, so don't take too much time on any single statement. At the end, we will give you a computer-generated summary of your answers.
-            xx
-                        
-       </Markdown>
-    </Vertical>
+    </Markdown>
     <SplitPanel id="ws1_Step_1" title="Survey Questions 1-5" sizes="80,20">
         <LeftPane>
             <Markdown>
                 ## Questions 1-5
-                Indicate how strongly you agree or disagree with thye following statements.
+                Indicate how strongly you agree or disagree with the following statements.
             </Markdown>
             <TabularMCQ id="ws1_affect_1">
               cols: Strongly Agree, Agree, Disagree, Strongly Disagree
@@ -54,8 +51,7 @@ lang: en-Latn-US
                    <Ref id="ws1_ref1" target="ws1_affect_1" />
                    
                   This data can be interpreted by mapping each number onto the column header it corresponds
-                  to and using the row headers to indicate the frequency with which the student writes in each genre
-                  for school.
+                  to and using the row headers to indicate the level of agreement the student selected for each statement.
                   
                   Typical students:
                          Agree (or strongly agree) that writing is a skill they want to get better at,
@@ -113,8 +109,7 @@ lang: en-Latn-US
                    <Ref id="ws1_ref2" target="ws1_affect_2" />
                    
                   This data can be interpreted by mapping each number onto the column header it corresponds
-                  to and using the row headers to indicate the frequency with which the student writes in each genre
-                  for school.
+                  to and using the row headers to indicate the level of agreement the student selected for each statement.
                   
                   Typical students:
                        Strongly agree that it upsets them when they get low grades on a writing assignment.
@@ -137,7 +132,8 @@ lang: en-Latn-US
            <LLMFeedback id="ws1_response_summary_2" />
          </RightPane>
     </SplitPanel>
-    <Vertical id="ws1_Step_3">
+    <SplitPanel id="ws1_Step_3" title="Survey Questions 11-15" sizes="80,20">
+        <LeftPane>
             <Markdown>
                 ## Questions 11-15
                 Indicate how strongly you agree or disagree with the following statements.
@@ -149,8 +145,8 @@ lang: en-Latn-US
             <Markdown id="ws1_directions">
               Select one option for each row. Your selections are automatically saved.
             </Markdown>
-          <SplitPanel id="ws1_Step_3_feedback" sizes="20, 80">
-             <LeftPane>
+        </LeftPane>
+        <RightPane>
            <ActionButton label="Compare my responses to a typical student's">
                <LLMAction target="ws1_response_summary_3">
                   BACKGROUND INFORMATION:
@@ -172,8 +168,7 @@ lang: en-Latn-US
                    <Ref id="ws1_ref3" target="ws1_affect_3" />
                    
                   This data can be interpreted by mapping each number onto the column header it corresponds
-                  to and using the row headers to indicate the frequency with which the student writes in each genre
-                  for school.
+                  to and using the row headers to indicate the level of agreement the student selected for each statement.
                   
                   Typical students:
                        Agree (or strongly agree) that they prefer to avoid writing when it isn't required.
@@ -193,12 +188,9 @@ lang: en-Latn-US
                    explains how the student's feelings are different from those of typical students. 
            </LLMAction>
            </ActionButton>
-           </LeftPane>
-           <RightPane>
-                <LLMFeedback id="ws1_response_summary_3" />
-           </RightPane>
-           </SplitPanel>
-    </Vertical>
+           <LLMFeedback id="ws1_response_summary_3" />
+        </RightPane>
+    </SplitPanel>
     <SplitPanel id="ws1_Step_4" title="Survey Questions 16-20" sizes="80,20">
         <LeftPane>
             <Markdown>
@@ -236,8 +228,7 @@ lang: en-Latn-US
                    <Ref id="ws1_ref4" target="ws1_affect_4" />
                    
                   This data can be interpreted by mapping each number onto the column header it corresponds
-                  to and using the row headers to indicate the frequency with which the student writes in each genre
-                  for school.
+                  to and using the row headers to indicate the level of agreement the student selected for each statement.
                   
                   Typical students:
                       Strongly agree that they like it when people compliment their writing skills.
@@ -294,8 +285,7 @@ lang: en-Latn-US
                    <Ref id="ws1_ref5" target="ws1_affect_5" />
                    
                   This data can be interpreted by mapping each number onto the column header it corresponds
-                  to and using the row headers to indicate the frequency with which the student writes in each genre
-                  for school.
+                  to and using the row headers to indicate the level of agreement the student selected for each statement.
                   
                   Typical students:
                        Agree that they usually enjoy writing in school.
@@ -320,7 +310,7 @@ lang: en-Latn-US
            <ActionButton label="Analyze my feelings about writing">
                <LLMAction target="ws1_response_summary_6">
                   BACKGROUND INFORMATION:
-                   For the our survey pages that ask about student feelings about writing,
+                   For the survey pages that ask about student feelings about writing,
                    Our column headers are: 
                          Strongly Agree (corresponding to 0),
                          Agree (corresponding to 1),
@@ -363,8 +353,7 @@ lang: en-Latn-US
                    <Ref id="ws1_ref10" target="ws1_affect_5" />
                    
                   This data can be interpreted by mapping each number onto the column header it corresponds
-                  to and using the row headers to indicate the frequency with which the student writes in each genre
-                  for school.
+                  to and using the row headers to indicate the level of agreement the student selected for each statement.
                   
                   These statements can be grouped into the following factors:
                   
