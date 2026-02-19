@@ -383,7 +383,7 @@ JJ: Let's write up a reflection on what we learned from this whole experience.
 
 --- wait @reflection_text.value ---
 
-psych_fba_sidebar -> completion_summary
+psych_fba_sidebar -> completion_summary_fba
 
 Annie: Thanks everyone. This was a great learning experience - we really used what we learned in psychology class to solve a real problem!
 

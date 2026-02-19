@@ -131,7 +131,7 @@ lang: en-Latn-US
                    
                    This data can be interpreted by mapping each number onto the column header it corresponds
                    to and using the row headers to indicate the frequency with which the student writes in each genre
-                   outside of school.
+                   for school.
                  DIRECTIONS:
                    If any of the student's response data is blank, say so and stop; otherwise,
                    in five very short summary statements using the information from the data interpretation,
@@ -191,7 +191,7 @@ lang: en-Latn-US
                    
                    This data can be interpreted by mapping each number onto the column header it corresponds
                    to and using the row headers to indicate the frequency with which the student writes in each genre
-                   outside of school.
+                   for school.
 
                  DIRECTIONS:
                    If any of the student's response data is blank, say so and stop; otherwise,
@@ -252,7 +252,7 @@ lang: en-Latn-US
                    
                    This data can be interpreted by mapping each number onto the column header it corresponds
                    to and using the row headers to indicate the frequency with which the student writes in each genre
-                   outside of school.
+                   for school.
 
                 DIRECTIONS:
                    If any of the student's response data is blank, say so and stop; otherwise,
@@ -410,7 +410,7 @@ lang: en-Latn-US
            <Markdown>
              Select one option for each row. Your selections are automatically saved.
              
-             **Other Kinds of Writing I Do for School.**
+             **Other Kinds of Writing I Do Outside of School.**
            </Markdown>
            <TextArea id="wpj1_other_for_school" rows="1" placeholder="Enter your response here." />
         </LeftPane>
@@ -474,7 +474,7 @@ lang: en-Latn-US
              
              **Other Kinds of Writing I Do for School.**
            </Markdown>
-           <TextArea id="owpj1_ther_outside_school" rows="1" placeholder="Enter your response here." />
+           <TextArea id="wpj1_other_outside_school" rows="1" placeholder="Enter your response here." />
         </LeftPane>
         <RightPane>
            <ActionButton label="Compare my responses to a typical student's">

@@ -6,7 +6,7 @@ category: writing
 lang: en-Latn-US
 ---
 -->
-<!-- content/sba/writing/writing_process_journal_2.olx -->
+<!-- content/sba/writing/writing_survey_2.olx -->
 <Sequential id="writing_survey_2" title="Writing Survey 2" launchable="true">
     <Markdown id="ws2_intro">
             # Writing Survey 2
@@ -93,7 +93,7 @@ lang: en-Latn-US
            <ActionButton label="Analyze my writing goals">
                <LLMAction target="ws2_response_summary_6">
                   BACKGROUND INFORMATION:
-                   For the our survey pages that ask about student feelings about writing,
+                   For the survey pages that ask about student feelings about writing,
                    Our column headers are:
                          Strongly Agree (corresponding to 0),
                          Agree (corresponding to 1),
@@ -135,8 +135,7 @@ lang: en-Latn-US
                    <Ref id="ws2_ref10" target="ws2_goals_5" />
 
                   This data can be interpreted by mapping each number onto the column header it corresponds
-                  to and using the row headers to indicate the frequency with which the student writes in each genre
-                  for school.
+                  to and using the row headers to indicate the level of agreement the student selected for each statement.
 
                   These statements can be grouped into the following factors --
 

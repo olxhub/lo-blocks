@@ -167,7 +167,7 @@ There’s only one issue. I have seven different ideas for how to address sleep 
 
 psych_sba_sidebar -> strategy_poll
 
---- wait @strategy_choice ---
+--- wait @strategy_choice.value ---
 
 Lin: Well, I know which one I like! Why don't we take a poll and see which of these choices we think we should recommend?
 
@@ -250,7 +250,7 @@ At first, the results were frustrating. The entries for "positive reinforcement"
 
 psych_sba_sidebar -> psych_sba_article_excerpt
 
-Annie: But then I looked for "parenting techniques". I found a section labeled, "Parent-child relationship", and under that there was an entry, "operant conditioning, and". The "operant condiopning, and" part really means, "operant conditioning and the parent-child relationship". I remembered from when we were studying operant conditioning that it works through positive (and also negative reinforcement), so I figured it was a good place to look, especially since I couldn't find anything else that was relevant. Here's what the textbook says, on page 243 --
+Annie: But then I looked for "parenting techniques". I found a section labeled, "Parent-child relationship", and under that there was an entry, "operant conditioning, and". The "operant conditioning, and" part really means, "operant conditioning and the parent-child relationship". I remembered from when we were studying operant conditioning that it works through positive (and also negative reinforcement), so I figured it was a good place to look, especially since I couldn't find anything else that was relevant. Here's what the textbook says, on page 243 --
 
 Annie: Since operant conditioning (and hence positive and negative reinforcement) is pretty much the only advice the book gives about childhood misbehavior, I think that confirms it. **Positive reinforcement** is what we should recommend!
 

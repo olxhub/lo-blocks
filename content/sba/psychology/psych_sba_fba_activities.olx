@@ -151,7 +151,7 @@ The four main functions of behavior are:
       </KeyGrader>
       <Explanation>
           <Markdown>
-              - The teacher's response makes Jenny **more likely** to white, so this is **reinforcement**.
+              - The teacher's response makes Jenny **more likely** to whine, so this is **reinforcement**.
               - The teacher responded by **taking something away** (the worksheet), so this is **negative** reinforcement.
           </Markdown>
       </Explanation>
@@ -181,14 +181,16 @@ Lianne also said during class:
   <!-- AI interface for chart -->
   <Vertical id="ai_function_chart">
     <Markdown id="ai_chart_prompt">
-       **Examples of Positive and Negative Feedback with Each of the Four Functions**
+**Examples of Positive and Negative Feedback with Each of the Four Functions**
     </Markdown>
+    <TextArea id="ai_chart_query" rows="2"
+        placeholder="Type your request for AI examples..." />
     <LLMFeedback id="chart_ai_response" placeholder="AI response will appear here..." />
-    <ActionButton id="ask_ai_chart_btn" label="Ask AI">
+    <ActionButton id="ask_ai_chart_btn" label="Ask AI" dependsOn="@ai_chart_query.value">
       <LLMAction target="chart_ai_response">
 You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement. Use a markdown table format. Include concrete examples for each function. Include a blank columns to set off each column from the ones next to it.
 
-Student's request: <Ref target="ai_chart_query" />
+      Student's request: <Ref target="ai_chart_query" />
       </LLMAction>
     </ActionButton>
   </Vertical>
@@ -396,7 +398,7 @@ In your own words, explain why there is no function for punishment.
         </ChoiceInput>
       </KeyGrader>
       <Explanation>
-          The point of Randy's behavior is to get that iPad into his hand, so the function
+          The point of Ryan's behavior is to get that iPad into his hand, so the function
           of his behavior is access.
       </Explanation>
     </CapaProblem>
@@ -561,11 +563,13 @@ As the professor said: "It's as easy as learning your ABCs!"
 
 Ask AI to come up with diagrams explaining antecedents, behaviors, and consequences using the 4 functions of behavior.
     </Markdown>
+    <TextArea id="ai_abc_query" rows="2"
+        placeholder="Type your request for ABC examples..." />
     <LLMFeedback
         id="abc_ai_response"
         render="markdown"
         placeholder="AI response will appear here..." />
-    <ActionButton id="ask_ai_abc_btn" label="Ask AI">
+    <ActionButton id="ask_ai_abc_btn" label="Ask AI" dependsOn="@ai_abc_query.value">
       <LLMAction target="abc_ai_response">
 You are a helpful psychology teaching assistant. Create clear examples of ABC (Antecedent-Behavior-Consequence) sequences for each of the four functions of behavior (escape, attention, access/tangible, sensory). Use a simple format showing: Antecedent -> Behavior -> Consequence -> Function. Include concrete, relatable examples a student would understand.
 
