@@ -13,7 +13,7 @@ export default function SettingsTab() {
     null,
     settings.debug,
     false,
-    { tag: 'debug-panel', id: toOlxKey('debug-panel') }
+    { tag: 'debug_panel', id: toOlxKey('debug_panel') }
   );
 
   return (
