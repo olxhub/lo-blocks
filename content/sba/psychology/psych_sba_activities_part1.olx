@@ -119,16 +119,15 @@ What prompt should we write for the AI in order to learn about sleep refusal and
 
 <HH> ============= Screen: AI prompt ranking ================= </HH>
 
-<Vertical id="brainstorm_ai_sorting"> <Markdown id="brainstorm_ai_sorting_prompt">
+<CapaProblem id="brainstorm_ai_sorting" submitLabel="Lock in order">
+  <Markdown>
 **Comparing Ideas:**
 The group has several different suggestions. Rank these ideas
 from **best** to **worst** based on what you think would produce
 the best AI output:
-</Markdown>
 
-<!-- Student ranking activity -->
-<CapaProblem id="rank_ai_prompts" submitLabel="Lock in order">
-  <Markdown>Drag to rank from **best** (top) to **worst** (bottom):</Markdown>
+Drag to rank from **best** (top) to **worst** (bottom):
+  </Markdown>
   <SortableGrader id="ai_prompt_grader" algorithm="survey">
     <SortableInput dragMode="whole">
       <Ref target="initial_ai_suggestion" id="ref_student_ai_suggestion_in_brainstorm" fallback="[Please make sure you've entered a suggestion on the prior screen]" />
@@ -138,7 +137,6 @@ the best AI output:
     </SortableInput>
   </SortableGrader>
 </CapaProblem>
-</Vertical>
 
 
 
@@ -307,9 +305,8 @@ feedback. Then, you can revise it again based on the AI feedback.
 
 <HH> ============= Screen: Strategy poll ===================== </HH>
 
-<Vertical id="strategy_poll">
-<Markdown>**Which one of these possible strategies should we recommend to Annie's friend?**</Markdown>
-<ChoiceInput id="strategy_choice">
+<ChoiceInput id="strategy_poll">
+   <Markdown>**Which one of these possible strategies should we recommend to Annie's friend?**</Markdown>
    <Distractor>Collaborative Problem Solving</Distractor>
    <Distractor>Empathy and Emotional Support</Distractor>
    <Distractor>Environmental Adjustments</Distractor>
@@ -318,7 +315,6 @@ feedback. Then, you can revise it again based on the AI feedback.
    <Distractor>Natural Consequences with Limits</Distractor>
    <Key>Positive Reinforcement</Key>
 </ChoiceInput>
-</Vertical>
 
 
 
@@ -579,8 +575,7 @@ the screen time, remove a misused toy, or give a brief time-out._
 
 <HH> ============= Screen: Completion ======================== </HH>
 
-<Vertical id="psych_sba_part_1_completion_page">
-<CheckboxInput id="pysch_part_1_finished">
+<CheckboxInput id="psych_sba_part_1_completion_page">
   <Markdown>**Confirm that you are done with this exercise.**</Markdown>
   <Key id="completion_message">I don't need to make any more changes</Key>
   <Markdown>
@@ -593,6 +588,5 @@ the screen time, remove a misused toy, or give a brief time-out._
     to modify the child's behavior.
   </Markdown>
 </CheckboxInput>
-</Vertical>
 
 </Vertical>

@@ -167,7 +167,7 @@ There’s only one issue. I have seven different ideas for how to address sleep 
 
 psych_sba_sidebar -> strategy_poll
 
---- wait @strategy_choice.value ---
+--- wait @strategy_poll.value ---
 
 Lin: Well, I know which one I like! Why don't we take a poll and see which of these choices we think we should recommend?
 
