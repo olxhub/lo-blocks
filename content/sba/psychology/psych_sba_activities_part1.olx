@@ -82,7 +82,6 @@ The group has several different suggestions. Rank these ideas from
       </SortableInput>
     </SortableGrader>
   </CapaProblem>
-<ActionButton id="continue_after_sorting" dependsOn="@bedtime_strategy_grader.submitCount > 0" target="psych_chat" action="advance" label="Continue Discussion" />
 </Vertical>
 
 
