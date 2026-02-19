@@ -235,7 +235,7 @@ What prompt should we write for the AI in order to learn about sleep refusal and
 
   <!-- Student suggestion activity -->
   <Vertical id="draft_email">
-    <Markdown id="student_suggestion_prompt">
+    <Markdown id="draft_email_prompt">
         **Draft an email Annie can use to explain to her friend why, since no-rules
         parenting is a bad idea, she should figure out an effective bedtime strategy
         for her 6-year-old.**
