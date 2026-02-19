@@ -8,8 +8,9 @@ lang: en-Latn-US
 -->
 <Vertical id="psych_sba_activities_part1" title="Psychology Study Group: 1. Sleep Refusal (Activities)" launchable="true">
 
-  <!-- Introduction section -->
-  <Markdown id="bedtime_problem_introduction">
+
+<!-- SCREEN: Introduction section -->
+<Markdown id="bedtime_problem_introduction">
 ## Introduction
 
 In this module, you will review and apply several concepts from your coursework on behavioral modification. Specifically, you will:
@@ -21,15 +22,14 @@ In this module, you will review and apply several concepts from your coursework 
 To complete these parts, you will imagine that you are working in a breakout group with classmates named Annie, JJ, and Lin. But keep in mind that this is not an actual breakout group, and these are not real people. They are characters who will help you as you go along. You will also be able to use an AI assistant that is built into this module.
 
 Let's begin.
-    </Markdown>
-  <Markdown id="bedtime_problem_clear_screen_1">
-      &nbsp;
-    </Markdown>
+</Markdown>
 
-  <!-- Opening screen - problem image -->
-  <SplitPanel id="bedtime_scenario_image">
-    <LeftPane>
-      <Markdown id="bedtime_intro_text">
+
+<Markdown id="bedtime_problem_clear_screen_1"> &nbsp; </Markdown>
+
+
+<!-- SCREEN: Opening - problem image -->
+<SplitPanel id="bedtime_scenario_image"> <LeftPane> <Markdown id="bedtime_intro_text">
 ## The Bedtime Problem
 
 Annie's roommate is babysitting a 6-year-old who refuses to go to bed. The parents have tried everything:
@@ -38,51 +38,50 @@ Annie's roommate is babysitting a 6-year-old who refuses to go to bed. The paren
 - Various punishments
 
 Nothing seems to work! Let's use psychology principles to help.
-      </Markdown>
-    </LeftPane>
-    <RightPane>
-        <Image id="bedtime_problem_img" src="images/sleep-refusal-llm.png" alt="Child refusing bedtime" />
-     </RightPane>
-  </SplitPanel>
+</Markdown> </LeftPane>
+<RightPane>
+  <Image id="bedtime_problem_img" src="images/sleep-refusal-llm.png" alt="Child refusing bedtime" />
+</RightPane></SplitPanel>
 
-  <!-- Student suggestion activity -->
-  <Vertical id="student_suggestion">
-    <Markdown id="student_suggestion_prompt">
+
+<!-- SCREEN: Student suggestion activity -->
+<Vertical id="student_suggestion"><Markdown id="student_suggestion_prompt">
 ## Your Initial Thoughts
 
 What do YOU think Annie's roommate should do to get the 6-year-old to go to sleep at bedtime?
-    </Markdown>
-    <TextArea id="initial_suggestion"
-              placeholder="Share your initial strategy (2-3 sentences)..." />
-  </Vertical>
+</Markdown>
+<TextArea id="initial_suggestion" placeholder="Share your initial strategy (2-3 sentences)..." />
+</Vertical>
 
-  <!-- Group brainstorm sorting activity -->
-  <Vertical id="brainstorm_sorting">
-    <Markdown id="brainstorm_sorting_prompt">
-       **Comparing Ideas:**
-       The group has several different suggestions. Rank these ideas from
-       **best** to **worst** based on what you think would work for the 6-year-old:
-    </Markdown>
-    <CapaProblem id="rank_bedtime_strategies" submitLabel="Lock in order">
-      <Markdown>Drag to rank from **best** (top) to **worst** (bottom):</Markdown>
-      <SortableGrader id="bedtime_strategy_grader" algorithm="survey">
-        <SortableInput dragMode="whole">
-          <Ref target="initial_suggestion" id="ref_student_suggestion_in_brainstorm" fallback="[Please make sure you've entered a suggestion on the prior screen]" />
-          <Markdown>Give him 50 cents if he goes to bed on time (money reward)</Markdown>
-          <Markdown>Say you won't play games with him ever again unless he sleeps at bedtime (threat)</Markdown>
-          <Markdown>Do nothing - let him stay up and be tired the next day (natural consequences)</Markdown>
-        </SortableInput>
-      </SortableGrader>
-    </CapaProblem>
-    <ActionButton id="continue_after_sorting" dependsOn="@bedtime_strategy_grader.submitCount > 0" target="psych_chat" action="advance" label="Continue Discussion" />
-  </Vertical>
 
-  <Markdown id="bedtime_problem_clear_screen_2">
-      &nbsp;
-    </Markdown>
+<!-- SCREEN: Group brainstorm sorting activity -->
+<Vertical id="brainstorm_sorting">
+<Markdown id="brainstorm_sorting_prompt">
+**Comparing Ideas:**
+The group has several different suggestions. Rank these ideas from
+**best** to **worst** based on what you think would work for the 6-year-old:
+</Markdown>
 
-  <!-- Messages screenshot -->
-  <Markdown id="messages_image">
+<CapaProblem id="rank_bedtime_strategies" submitLabel="Lock in order">
+   <Markdown>Drag to rank from **best** (top) to **worst** (bottom):</Markdown>
+   <SortableGrader id="bedtime_strategy_grader" algorithm="survey">
+      <SortableInput dragMode="whole">
+         <Ref target="initial_suggestion" id="ref_student_suggestion_in_brainstorm" fallback="[Please make sure you've entered a suggestion on the prior screen]" />
+         <Markdown>Give him 50 cents if he goes to bed on time (money reward)</Markdown>
+         <Markdown>Say you won't play games with him ever again unless he sleeps at bedtime (threat)</Markdown>
+         <Markdown>Do nothing - let him stay up and be tired the next day (natural consequences)</Markdown>
+      </SortableInput>
+    </SortableGrader>
+  </CapaProblem>
+<ActionButton id="continue_after_sorting" dependsOn="@bedtime_strategy_grader.submitCount > 0" target="psych_chat" action="advance" label="Continue Discussion" />
+</Vertical>
+
+
+<Markdown id="bedtime_problem_clear_screen_2">&nbsp;</Markdown>
+
+
+<!-- SCREEN: Messages screenshot -->
+<Markdown id="messages_image">
 ## Text Messages from the Babysitter
 
 **Parent:** He's doing it again. Running around at bedtime.
@@ -92,387 +91,405 @@ What do YOU think Annie's roommate should do to get the 6-year-old to go to slee
 **Parent:** That's what we usually do but it doesn't seem to help.
 
 **Key observation:** The yelling seems to be making things worse - it might be accidentally *reinforcing* the behavior by giving attention!
-    </Markdown>
+</Markdown>
 
-  <!-- Student suggestion activity -->
-  <Vertical id="student_ai_suggestion">
-    <Markdown id="student_ai_suggestion_prompt">
+
+<!-- SCREEN: Student suggestion activity -->
+<Vertical id="student_ai_suggestion"> <Markdown id="student_ai_suggestion_prompt">
 ## Your Initial Thoughts
 
 What prompt should we write for the AI in order to learn about sleep refusal and no-rules parenting and to also learn about other strategies to get a young child to go to bed?
-   </Markdown>
-    <TextArea id="initial_ai_suggestion"
-              placeholder="Share your initial idea for a prompt (2-3 sentences)..." />
-  </Vertical>
-
-  <!-- Group brainstorm sorting activity -->
-  <Vertical id="brainstorm_ai_sorting">
-    <Markdown id="brainstorm_ai_sorting_prompt">
-        **Comparing Ideas:**
-        The group has several different suggestions. Rank these ideas
-        from **best** to **worst** based on what you think would produce
-        the best AI output:
-    </Markdown>
-  <!-- Student ranking activity -->
-    <CapaProblem id="rank_ai_prompts" submitLabel="Lock in order">
-      <Markdown>Drag to rank from **best** (top) to **worst** (bottom):</Markdown>
-      <SortableGrader id="ai_prompt_grader" algorithm="survey">
-        <SortableInput dragMode="whole">
-          <Ref target="initial_ai_suggestion" id="ref_student_ai_suggestion_in_brainstorm" fallback="[Please make sure you've entered a suggestion on the prior screen]" />
-          <Markdown>Is no-rules parenting any good for sleep refusal,
-                    and if not, what other things could I try?
-          </Markdown>
-          <Markdown>What is the evidence for no-rules parenting and any
-                    alternatives to address sleep refusal?
-          </Markdown>
-          <Markdown>What is the evidence-based way to stop sleep refusal:
-                    no-rules parenting or something else like behavior modification?
-          </Markdown>
-        </SortableInput>
-      </SortableGrader>
-    </CapaProblem>
-  </Vertical>
-
-  <!-- Ask AI about the problem -->
-  <Vertical id="ai_info">
-    <Markdown id="ai_info_md">
-         From all of your group member’s AI prompt suggestions, your group
-         chose this prompt. If you still want to edit the AI prompt before
-         you try it, you can.
-    </Markdown>
-    <TextArea id="ai_response" rows="2" placeholder="Paste or type your prompt here." />
-    <LLMFeedback id="ai_feedback" render="markdown" />
-
-    <ActionButton id="ai_btn" label="Get AI Info on Sleep Refusal">
-      <LLMAction id="ai_action" target="ai_feedback">
-        If the following question is about dealing with sleep refusal in children,
-        answer it; otherwise, point out the the prompt provided is irrelevant to
-        sleep refusal and stop.
-        <Ref id="ai_ref" target="ai_response" />
-        Use Markdown to format your reply with bolded headers.
-      </LLMAction>
-    </ActionButton>
-  </Vertical>
-  <Markdown id="vetted_info_part1">
-
-       # No-Rules Parenting and Sleep Refusal
-
-       "No-rules parenting," or "permissive parenting," is an approach where parents avoid
-       setting firm boundaries and rules, often seeking to be very lenient in their child's
-       behavior, including sleep routines. While this style might seem appealing in some
-       ways, there is limited evidence to support its effectiveness in promoting healthy
-       behaviors like sleep habits. In fact, research generally favors more structured
-       approaches to sleep and behavior management. Below is the evidence regarding
-       no-rules parenting and alternatives for addressing sleep refusal.
-
-       ## Evidence For and Against No-Rules Parenting to Address Sleep Refusal
-
-       1. **Child-Led Autonomy**
-
-        **Claim**: Allowing children to choose when to sleep can foster autonomy, reducing bedtime power struggles and increasing intrinsic motivation to rest.
-
-        **Evidence and Counterevidence**:
-
-        Studies on self-determination theory suggest that giving children choices
-        promotes a sense of control, potentially reducing defiance.
-
-        However, young children often lack the biological and cognitive maturity
-        to make health-conscious decisions about sleep. Sleep research shows that
-        inconsistent schedules can disrupt circadian rhythms, leading to insufficient
-        or fragmented sleep.
-     </Markdown>
-  <Markdown id="vetted_info_part2">
-
-    2. **Natural Consequences**
-
-        **Claim**: Experiencing the effects of insufficient sleep (e.g., feeling tired)
-        could motivate a child to adjust bedtime without external pressure.
-
-        **Evidence and CounterEvidence**:
-
-            Natural consequences are more effective for older children and adolescents
-            who can connect cause and effect.
-
-            However, younger children may not link fatigue with staying up late and could
-            experience negative effects like irritability, reduced focus, and
-            weakened immune function.
-
-    3. **Reduced Stress Around Sleep**
-
-        **Claim**: Removing strict bedtime rules may create a relaxed environment, making
-        it easier for children to fall asleep naturally.
-
-        **Evidence and Counterevidence**:
-
-            Stress and anxiety are known to interfere with sleep onset.
-
-            However, research suggests that structured bedtime routines reduce
-            cortisol levels and promote melatonin release, facilitating better sleep.
-     </Markdown>
-  <Markdown id="vetted_info_part3">
-        4. **Parental Responsiveness**
-
-        **Claim**: Prioritizing connection and meeting the child's needs (e.g.,
-        through co-sleeping or comforting) can improve emotional security,
-        reducing sleep resistance.
-
-        **Evidence and Counterevidence**:
-            Attachment-based approaches can improve sleep quality by addressing underlying anxieties
-            or fears. However, overly permissive approaches without structure may inadvertently
-            reinforce avoidance behaviors.
-
-        ## Challenges of No-Rules Parenting for Sleep Refusal
-
-        **Inconsistent Sleep Patterns**: A lack of structure can lead to irregular sleep, which is
-        associated with behavioral and cognitive challenges.
-
-        **Delayed Sleep Onset**: Without a set bedtime, children may stay awake longer,
-        disrupting their natural sleep-wake cycles.
-
-        **Parental Burnout**: Allowing children to dictate bedtime can result in extended
-        negotiations and increased nighttime disruptions.
-     </Markdown>
-
-  <!-- Student suggestion activity -->
-  <Vertical id="draft_email">
-    <Markdown id="draft_email_prompt">
-        **Draft an email Annie can use to explain to her friend why, since no-rules
-        parenting is a bad idea, she should figure out an effective bedtime strategy
-        for her 6-year-old.**
-
-        _Put your answer in the box below. You can use the little dots between the forward
-        and back arrows on the top right of the screen to go back to review the arguments
-        and evidence you have just read.._
-    </Markdown>
-    <TextArea id="email_draft"
-              rows="8"
-              placeholder="Write your email here..." />
-
-  </Vertical>
-  <!-- Repeat task with feedback -->
-  <Vertical id="revise_email_draft">
-        <Markdown>
-           **An email Annie can use to explain to her friend why GIVING UP IS A BAD IDEA**
-
-           You can edit this email, if you would like to, before you submit it for AI
-           feedback. Then, you can revise it again based on the AI feedback.
-         </Markdown>
-        <UseDynamic id="ref_email_draft" target="email_draft" />
+</Markdown>
+<TextArea id="initial_ai_suggestion" placeholder="Share your initial idea for a prompt (2-3 sentences)..." />
+</Vertical>
 
-        <LLMFeedback id="ai_email_feedback" render="markdown" />
 
-       <ActionButton id="ai_email_feedback_btn" label="Get AI Feedback">
-       <LLMAction id="ai_email_feedback_action" target="ai_email_feedback">
-       Here is an email I wrote to explain to a friend why they need to avoid a no-rules parenting approach and find a good strategy to get a six-year-old child to bed on time:
-        <Ref id="email_ref" target="email_draft" />
-        Briefly, in no more than two or three sentences, evaluate how well I have used
-        evidence from psychology to support this argument (but restricting that feedback
-        to feedback that is appropriate given the purpose of the email).
+<!-- SCREEN: Group brainstorm sorting activity -->
+<Vertical id="brainstorm_ai_sorting"> <Markdown id="brainstorm_ai_sorting_prompt">
+**Comparing Ideas:**
+The group has several different suggestions. Rank these ideas
+from **best** to **worst** based on what you think would produce
+the best AI output:
+</Markdown>
 
-        Use Markdown to format your evaluation with bolded headers.
-      </LLMAction>
-    </ActionButton>
-  </Vertical>
+<!-- Student ranking activity -->
+<CapaProblem id="rank_ai_prompts" submitLabel="Lock in order">
+  <Markdown>Drag to rank from **best** (top) to **worst** (bottom):</Markdown>
+  <SortableGrader id="ai_prompt_grader" algorithm="survey">
+    <SortableInput dragMode="whole">
+      <Ref target="initial_ai_suggestion" id="ref_student_ai_suggestion_in_brainstorm" fallback="[Please make sure you've entered a suggestion on the prior screen]" />
+      <Markdown> Is no-rules parenting any good for sleep refusal, and if not, what other things could I try? </Markdown>
+      <Markdown> What is the evidence for no-rules parenting and any alternatives to address sleep refusal? </Markdown>
+      <Markdown>What is the evidence-based way to stop sleep refusal: no-rules parenting or something else like behavior modification?</Markdown>
+    </SortableInput>
+  </SortableGrader>
+</CapaProblem>
+</Vertical>
 
-  <Vertical id="strategy_poll">
-      <Markdown>
-          **Which one of these possible strategies should we recommend to Annie's friend?**
-      </Markdown>
-      <ChoiceInput id="strategy_choice">
-          <Distractor>Collaborative Problem Solving</Distractor>
-          <Distractor>Empathy and Emotional Support</Distractor>
-          <Distractor>Environmental Adjustments</Distractor>
-          <Distractor>Flexible Bedtime Routines</Distractor>
-          <Distractor>Gradual Fading</Distractor>
-          <Distractor>Natural Consequences with Limits</Distractor>
-          <Key>Positive Reinforcement</Key>
-      </ChoiceInput>
-  </Vertical>
-
-  <Markdown id="strategy_notes_1">
-         ## Alternatives to Address Sleep Refusal
-
-         Evidence-based strategies balance autonomy with structure, helping
-         children feel both empowered and guided:
-
-        1. **Flexible Bedtime Routines**
-
-        **What It Is**: Establish a routine with consistent elements (e.g.,
-        bath, story, lights out) while allowing minor variations, like
-        choosing the story or bedtime music.
-
-        **Why It Works**: Predictable routines help regulate circadian rhythms, and
-        offering small choices fosters autonomy.
-
-        **Evidence**: Research consistently supports bedtime routines as critical
-        for improving sleep duration and quality in children.
-
-        2. **Positive Reinforcement**
-
-        **What It Is**: Rewarding bedtime compliance with incentives like stickers,
-        extra story time, or praise.
-
-        **Why It Works**: Reinforcement encourages desired behaviors
-        while minimizing resistance.
-
-        **Evidence**: Behavioral interventions, including reward systems, are shown
-        to be effective in managing sleep refusal.
-    </Markdown>
-  <Markdown id="strategy_notes_2">
-        3. **Gradual Fading**
-
-        **What It Is**: Gradually adjusting bedtime to an earlier time, aligning it
-        with the child's natural sleep patterns.
-
-        **Why It Works**: This reduces resistance by aligning with the child's
-        internal clock while transitioning to a more structured bedtime.
-
-        **Evidence**: Studies on bedtime fading highlight its effectiveness in
-        addressing sleep resistance and promoting earlier sleep onset.
-
-        4. **Empathy and Emotional Support**
-
-        **What It Is**: Addressing fears, anxieties, or unmet needs that
-        might underlie sleep refusal.
-
-        **Why It Works**: Understanding the root cause helps resolve emotional blocks to sleep.
-
-        **Evidence**: Emotion-focused approaches, such as validating feelings or using
-        comfort objects, improve sleep in children with separation anxiety or fear of the dark.
-    </Markdown>
-  <Markdown id="strategy_notes_3">
-        5. **Natural Consequences with Limits**
-
-        **What It Is**: Allowing some flexibility in bedtime while enforcing
-        non-negotiable wake-up times to teach self-regulation.
-
-        **Why It Works**: Balances autonomy with accountability, helping older
-        children connect choices with outcomes.
-
-        **Evidence**: Works best with children who can understand cause and effect.
-
-        6. **Environmental Adjustments**
-        **What It Is**: Optimizing the sleep environment with dim lighting, white noise,
-        or calming activities like reading.
-
-        **Why It Works**: Creates a sensory atmosphere conducive to sleep without relying
-        on strict enforcement.
-
-        **Evidence**: Environmental adjustments have been shown to improve sleep quality
-        in both children and adults.
-    </Markdown>
-  <Markdown id="strategy_notes_4">
-      7. **Collaborative Problem-Solving**
-
-        **What It Is**: Working with the child to identify and address barriers
-        to sleep (e.g., fears, overstimulation).
-
-        **Why It Works**: Encourages the child to take ownership of the solution
-        while feeling supported.
-
-        **Evidence**: Collaborative approaches reduce resistance and
-        build problem-solving skills.
-
-        ## Conclusion
-
-        While no-rules parenting may appeal to families seeking to avoid power
-        struggles, its effectiveness for addressing sleep refusal is limited,
-        especially in younger children. Structured, evidence-based alternatives
-        --such as flexible routines, positive reinforcement, and gradual fading
-        --are more consistently effective at promoting healthy sleep while
-        respecting a child's autonomy.
-    </Markdown>
-
-  <Vertical id="eliminate_age_inappropriate_strategies">
-    <Markdown>
-         **Which of these strategies might not apply to a six-year-old?**
-    </Markdown>
-    <CheckboxInput id="strategies_for_6_year_olds">
-          <Distractor id="Collaborative_Problem_Solving">Collaborative Problem Solving</Distractor>
-          <Distractor id="Empathy_and_Emotional_Support">Empathy and Emotional Support</Distractor>
-          <Distractor id="Environmental_Adjustments">Environmental Adjustments</Distractor>
-          <Distractor id="Flexible_Bedtime_Routines">Flexible Bedtime Routines</Distractor>
-          <Distractor id="Gradual_Fading">Gradual Fading</Distractor>
-          <Key id="Natural_Consequences_with_Limits">Natural Consequences with Limits</Key>
-          <Distractor id="Positive_Reinforcement">Positive Reinforcement</Distractor>
-    </CheckboxInput>
-
-    <Markdown>
-            **Why did you choose the strategy or strategies that you did? Explain.**
-    </Markdown>
-    <TextArea id="explanation_not_for_6_year_old" rows="2" placeholder="Type your explanation here." />
-
-       <ActionButton id="aai_not_for_6_year_old_feedback_btn" label="Get AI Feedback">
-           <LLMAction id="not_for_6_year_old_feedback_action" target="ai_not_for_6_year_old_feedback">
-                BACKGROUND INFORMATION:
-                  Interpret the following data as providing (in its "value" field, after
-                  replacing underscore with space characters) a list of strategies that
-                  the responding student believes is not feasible for use with six year olds:
-                  <Ref id="test2" target="strategies_for_6_year_olds" />
-
-                  Interpret the following text as providing an explanation for why the
-                  student believes the strategies in the list are not feasible for use
-                  with six year olds:
-                  <Ref id="test3" target="explanation_not_for_6_year_old" />
-               DIRECTIONS:
-                  Briefly (in one or at most two paragraphs)
-                  Evaluate whether the student's answer and explanation are correct
-                  based upon what psychologists know about the listed strategies,
-                  and provide feedback to them explaining this evaluation.
-
-                  Output your response in Markdown with bolded headings.
-         </LLMAction>
-    </ActionButton>
-    <LLMFeedback id="ai_not_for_6_year_old_feedback" render="markdown" />
-  </Vertical>
-
-  <Vertical id="select_babysitter_feasible_strategies">
-    <Markdown>
-         **Which of these strategies could the babysitter implement effectively?**
-    </Markdown>
-    <CheckboxInput id="strategies_the_babysitter_can_implement">
-          <Key id="Collaborative_Problem_Solving_">Collaborative Problem Solving</Key>
-          <Key id="Empathy_and_Emotional_Support_">Empathy and Emotional Support</Key>
-          <Distractor id="Environmental_Adjustments_">Environmental Adjustments</Distractor>
-          <Distractor id="Flexible_Bedtime_Routines_">Flexible Bedtime Routines</Distractor>
-          <Distractor id="Gradual_Fading_">Gradual Fading</Distractor>
-          <Distractor id="Natural_Consequences_with_Limits_">Natural Consequences with Limits</Distractor>
-          <Key id="Positive_Reinforcement_">Positive Reinforcement</Key>
-    </CheckboxInput>
-
-    <Markdown>
-            **Why did you choose the strategy or strategies that you chose? Explain.**
-    </Markdown>
-    <TextArea id="explanation_the_babysitter_can_implement" rows="2" placeholder="Type your explanation here." />
-
-       <ActionButton id="ai_the_babysitter_can_implement_btn" label="Get AI Feedback">
-           <LLMAction id="the_babysitter_can_implement_feedback_action" target="ai_the_babysitter_can_implement_feedback">
-                BACKGROUND INFORMATION:
-                  Interpret the following data as providing (in its "value" field, after
-                  replacing underscore with space characters) a list of strategies that
-                  the responding student believes feasible for the babysitter to implement
-                  during babysitting sessions:
-                  <Ref id="test4" target="strategies_the_babysitter_can_implement" />
-
-                  Interpret the following text as providing an explanation for why the
-                  student believes the strategies in the list are feasible for the
-                  babysitter to implement during babysitting sessions:
-                  <Ref id="test5" target="explanation_the_babysitter_can_implement" />
-               DIRECTIONS:
-                  Briefly (in one or at most two paragraphs)
-                  Evaluate whether the student's answer and explanation are correct
-                  based upon what psychologists know about the listed strategies,
-                  and provide feedback to them explaining this evaluation.
-
-                  Output your response in Markdown with bolded headings.
-         </LLMAction>
-    </ActionButton>
-    <LLMFeedback id="ai_the_babysitter_can_implement_feedback" render="markdown" />
-  </Vertical>
-
-
-  <!-- Reinforcement poster -->
-  <Markdown id="chart_image">
+
+<!-- SCREEN: Ask AI about the problem -->
+<Vertical id="ai_info">
+<Markdown id="ai_info_md">
+From all of your group member’s AI prompt suggestions, your group
+chose this prompt. If you still want to edit the AI prompt before
+you try it, you can.
+</Markdown>
+
+<TextArea id="ai_response" rows="2" placeholder="Paste or type your prompt here." />
+
+<LLMFeedback id="ai_feedback" render="markdown" />
+
+<ActionButton id="ai_btn" label="Get AI Info on Sleep Refusal">
+   <LLMAction id="ai_action" target="ai_feedback">
+      If the following question is about dealing with sleep refusal in children,
+      answer it; otherwise, point out the prompt provided is irrelevant to
+      sleep refusal and stop.
+      <Ref id="ai_ref" target="ai_response" />
+      Use Markdown to format your reply with bolded headers.
+   </LLMAction>
+</ActionButton>
+</Vertical>
+
+
+<!-- SCREEN: -->
+<Markdown id="vetted_info_part1">
+# No-Rules Parenting and Sleep Refusal
+
+"No-rules parenting," or "permissive parenting," is an approach where parents avoid
+setting firm boundaries and rules, often seeking to be very lenient in their child's
+behavior, including sleep routines. While this style might seem appealing in some
+ways, there is limited evidence to support its effectiveness in promoting healthy
+behaviors like sleep habits. In fact, research generally favors more structured
+approaches to sleep and behavior management. Below is the evidence regarding
+no-rules parenting and alternatives for addressing sleep refusal.
+
+## Evidence For and Against No-Rules Parenting to Address Sleep Refusal
+
+1. **Child-Led Autonomy**
+
+**Claim**: Allowing children to choose when to sleep can foster autonomy, reducing bedtime power struggles and increasing intrinsic motivation to rest.
+
+**Evidence and Counterevidence**:
+
+Studies on self-determination theory suggest that giving children choices
+promotes a sense of control, potentially reducing defiance.
+
+However, young children often lack the biological and cognitive maturity
+to make health-conscious decisions about sleep. Sleep research shows that
+inconsistent schedules can disrupt circadian rhythms, leading to insufficient
+or fragmented sleep.
+</Markdown>
+
+
+<!-- SCREEN: -->
+<Markdown id="vetted_info_part2">
+2. **Natural Consequences**
+
+**Claim**: Experiencing the effects of insufficient sleep (e.g., feeling tired)
+could motivate a child to adjust bedtime without external pressure.
+
+**Evidence and Counterevidence**:
+
+Natural consequences are more effective for older children and adolescents
+who can connect cause and effect.
+
+However, younger children may not link fatigue with staying up late and could
+experience negative effects like irritability, reduced focus, and
+weakened immune function.
+
+3. **Reduced Stress Around Sleep**
+
+**Claim**: Removing strict bedtime rules may create a relaxed environment, making
+it easier for children to fall asleep naturally.
+
+**Evidence and Counterevidence**:
+
+Stress and anxiety are known to interfere with sleep onset.
+
+However, research suggests that structured bedtime routines reduce
+cortisol levels and promote melatonin release, facilitating better sleep.
+</Markdown>
+
+
+<!-- SCREEN: -->
+<Markdown id="vetted_info_part3">
+4. **Parental Responsiveness**
+
+**Claim**: Prioritizing connection and meeting the child's needs (e.g.,
+through co-sleeping or comforting) can improve emotional security,
+reducing sleep resistance.
+
+**Evidence and Counterevidence**:
+Attachment-based approaches can improve sleep quality by addressing underlying anxieties
+or fears. However, overly permissive approaches without structure may inadvertently
+reinforce avoidance behaviors.
+
+## Challenges of No-Rules Parenting for Sleep Refusal
+
+**Inconsistent Sleep Patterns**: A lack of structure can lead to irregular sleep, which is
+associated with behavioral and cognitive challenges.
+
+**Delayed Sleep Onset**: Without a set bedtime, children may stay awake longer,
+disrupting their natural sleep-wake cycles.
+
+**Parental Burnout**: Allowing children to dictate bedtime can result in extended
+negotiations and increased nighttime disruptions.
+</Markdown>
+
+
+<!-- SCREEN: Student suggestion activity -->
+<Vertical id="draft_email">
+<Markdown id="draft_email_prompt">
+**Draft an email Annie can use to explain to her friend why, since no-rules
+parenting is a bad idea, she should figure out an effective bedtime strategy
+for her 6-year-old.**
+
+_Put your answer in the box below. You can use the little dots between the forward
+and back arrows on the top right of the screen to go back to review the arguments
+and evidence you have just read.._
+</Markdown>
+
+<TextArea id="email_draft" rows="8" placeholder="Write your email here..." />
+</Vertical>
+
+
+<!-- SCREEN: Repeat task with feedback -->
+<Vertical id="revise_email_draft">
+<Markdown>
+**An email Annie can use to explain to her friend why GIVING UP IS A BAD IDEA**
+
+You can edit this email, if you would like to, before you submit it for AI
+feedback. Then, you can revise it again based on the AI feedback.
+</Markdown>
+
+<UseDynamic id="ref_email_draft" target="email_draft" />
+<LLMFeedback id="ai_email_feedback" render="markdown" />
+<ActionButton id="ai_email_feedback_btn" label="Get AI Feedback">
+   <LLMAction id="ai_email_feedback_action" target="ai_email_feedback">
+      Here is an email I wrote to explain to a friend why they need to avoid a no-rules parenting approach and find a good strategy to get a six-year-old child to bed on time:
+      <Ref id="email_ref" target="email_draft" />
+      Briefly, in no more than two or three sentences, evaluate how well I have used
+      evidence from psychology to support this argument (but restricting that feedback
+      to feedback that is appropriate given the purpose of the email).
+
+      Use Markdown to format your evaluation with bolded headers.
+   </LLMAction>
+</ActionButton>
+</Vertical>
+
+
+<!-- SCREEN: -->
+<Vertical id="strategy_poll">
+<Markdown>**Which one of these possible strategies should we recommend to Annie's friend?**</Markdown>
+<ChoiceInput id="strategy_choice">
+   <Distractor>Collaborative Problem Solving</Distractor>
+   <Distractor>Empathy and Emotional Support</Distractor>
+   <Distractor>Environmental Adjustments</Distractor>
+   <Distractor>Flexible Bedtime Routines</Distractor>
+   <Distractor>Gradual Fading</Distractor>
+   <Distractor>Natural Consequences with Limits</Distractor>
+   <Key>Positive Reinforcement</Key>
+</ChoiceInput>
+</Vertical>
+
+
+<!-- SCREEN: -->
+<Markdown id="strategy_notes_1">
+## Alternatives to Address Sleep Refusal
+
+Evidence-based strategies balance autonomy with structure, helping
+children feel both empowered and guided:
+
+1. **Flexible Bedtime Routines**
+
+**What It Is**: Establish a routine with consistent elements (e.g.,
+bath, story, lights out) while allowing minor variations, like
+choosing the story or bedtime music.
+
+**Why It Works**: Predictable routines help regulate circadian rhythms, and
+offering small choices fosters autonomy.
+
+**Evidence**: Research consistently supports bedtime routines as critical
+for improving sleep duration and quality in children.
+
+2. **Positive Reinforcement**
+
+**What It Is**: Rewarding bedtime compliance with incentives like stickers,
+extra story time, or praise.
+
+**Why It Works**: Reinforcement encourages desired behaviors
+while minimizing resistance.
+
+**Evidence**: Behavioral interventions, including reward systems, are shown
+to be effective in managing sleep refusal.
+</Markdown>
+
+
+
+<!-- SCREEN: -->
+<Markdown id="strategy_notes_2">
+3. **Gradual Fading**
+
+**What It Is**: Gradually adjusting bedtime to an earlier time, aligning it
+with the child's natural sleep patterns.
+
+**Why It Works**: This reduces resistance by aligning with the child's
+internal clock while transitioning to a more structured bedtime.
+
+**Evidence**: Studies on bedtime fading highlight its effectiveness in
+addressing sleep resistance and promoting earlier sleep onset.
+
+4. **Empathy and Emotional Support**
+
+**What It Is**: Addressing fears, anxieties, or unmet needs that
+might underlie sleep refusal.
+
+**Why It Works**: Understanding the root cause helps resolve emotional blocks to sleep.
+
+**Evidence**: Emotion-focused approaches, such as validating feelings or using
+comfort objects, improve sleep in children with separation anxiety or fear of the dark.
+</Markdown>
+
+
+<!-- SCREEN: -->
+<Markdown id="strategy_notes_3">
+5. **Natural Consequences with Limits**
+
+**What It Is**: Allowing some flexibility in bedtime while enforcing
+non-negotiable wake-up times to teach self-regulation.
+
+**Why It Works**: Balances autonomy with accountability, helping older
+children connect choices with outcomes.
+
+**Evidence**: Works best with children who can understand cause and effect.
+
+6. **Environmental Adjustments**
+**What It Is**: Optimizing the sleep environment with dim lighting, white noise,
+or calming activities like reading.
+
+**Why It Works**: Creates a sensory atmosphere conducive to sleep without relying
+on strict enforcement.
+
+**Evidence**: Environmental adjustments have been shown to improve sleep quality
+in both children and adults.
+</Markdown>
+
+
+<!-- SCREEN: -->
+<Markdown id="strategy_notes_4">
+7. **Collaborative Problem-Solving**
+
+**What It Is**: Working with the child to identify and address
+barriers to sleep (e.g., fears, overstimulation).
+
+**Why It Works**: Encourages the child to take ownership of the
+solution while feeling supported.
+
+**Evidence**: Collaborative approaches reduce resistance and build
+problem-solving skills.
+
+## Conclusion
+
+While no-rules parenting may appeal to families seeking to avoid power
+struggles, its effectiveness for addressing sleep refusal is limited,
+especially in younger children. Structured, evidence-based alternatives
+--such as flexible routines, positive reinforcement, and gradual fading
+--are more consistently effective at promoting healthy sleep while
+respecting a child's autonomy.
+</Markdown>
+
+
+<!-- SCREEN: -->
+<Vertical id="eliminate_age_inappropriate_strategies">
+<Markdown>**Which of these strategies might not apply to a six-year-old?**</Markdown>
+<CheckboxInput id="strategies_for_6_year_olds">
+  <Distractor id="Collaborative_Problem_Solving">Collaborative Problem Solving</Distractor>
+  <Distractor id="Empathy_and_Emotional_Support">Empathy and Emotional Support</Distractor>
+  <Distractor id="Environmental_Adjustments">Environmental Adjustments</Distractor>
+  <Distractor id="Flexible_Bedtime_Routines">Flexible Bedtime Routines</Distractor>
+  <Distractor id="Gradual_Fading">Gradual Fading</Distractor>
+  <Key id="Natural_Consequences_with_Limits">Natural Consequences with Limits</Key>
+  <Distractor id="Positive_Reinforcement">Positive Reinforcement</Distractor>
+</CheckboxInput>
+
+<Markdown>**Why did you choose the strategy or strategies that you did? Explain.**</Markdown>
+<TextArea id="explanation_not_for_6_year_old" rows="2" placeholder="Type your explanation here." />
+
+<ActionButton id="aai_not_for_6_year_old_feedback_btn" label="Get AI Feedback">
+  <LLMAction id="not_for_6_year_old_feedback_action" target="ai_not_for_6_year_old_feedback">
+  BACKGROUND INFORMATION:
+
+  Interpret the following data as providing (in its "value" field, after
+  replacing underscore with space characters) a list of strategies that
+  the responding student believes is not feasible for use with six year olds:
+  <Ref id="test2" target="strategies_for_6_year_olds" />
+
+  Interpret the following text as providing an explanation for why the
+  student believes the strategies in the list are not feasible for use
+  with six year olds:
+  <Ref id="test3" target="explanation_not_for_6_year_old" />
+  DIRECTIONS:
+  Briefly (in one or at most two paragraphs)
+  Evaluate whether the student's answer and explanation are correct
+  based upon what psychologists know about the listed strategies,
+  and provide feedback to them explaining this evaluation.
+
+  Output your response in Markdown with bolded headings.
+  </LLMAction>
+</ActionButton>
+<LLMFeedback id="ai_not_for_6_year_old_feedback" render="markdown" />
+</Vertical>
+
+
+<!-- SCREEN: -->
+<Vertical id="select_babysitter_feasible_strategies">
+<Markdown>**Which of these strategies could the babysitter implement effectively?**</Markdown>
+<CheckboxInput id="strategies_the_babysitter_can_implement">
+  <Key id="Collaborative_Problem_Solving_">Collaborative Problem Solving</Key>
+  <Key id="Empathy_and_Emotional_Support_">Empathy and Emotional Support</Key>
+  <Distractor id="Environmental_Adjustments_">Environmental Adjustments</Distractor>
+  <Distractor id="Flexible_Bedtime_Routines_">Flexible Bedtime Routines</Distractor>
+  <Distractor id="Gradual_Fading_">Gradual Fading</Distractor>
+  <Distractor id="Natural_Consequences_with_Limits_">Natural Consequences with Limits</Distractor>
+  <Key id="Positive_Reinforcement_">Positive Reinforcement</Key>
+</CheckboxInput>
+
+<Markdown>**Why did you choose the strategy or strategies that you chose? Explain.**</Markdown>
+<TextArea id="explanation_the_babysitter_can_implement" rows="2" placeholder="Type your explanation here." />
+
+<ActionButton id="ai_the_babysitter_can_implement_btn" label="Get AI Feedback">
+  <LLMAction id="the_babysitter_can_implement_feedback_action" target="ai_the_babysitter_can_implement_feedback">
+  BACKGROUND INFORMATION:
+
+  Interpret the following data as providing (in its "value" field, after
+  replacing underscore with space characters) a list of strategies that
+  the responding student believes feasible for the babysitter to implement
+  during babysitting sessions:
+
+  <Ref id="test4" target="strategies_the_babysitter_can_implement" />
+
+  Interpret the following text as providing an explanation for why the
+  student believes the strategies in the list are feasible for the
+  babysitter to implement during babysitting sessions:
+
+  <Ref id="test5" target="explanation_the_babysitter_can_implement" />
+
+  DIRECTIONS:
+
+  Briefly (in one or at most two paragraphs)
+  Evaluate whether the student's answer and explanation are correct
+  based upon what psychologists know about the listed strategies,
+  and provide feedback to them explaining this evaluation.
+
+  Output your response in Markdown with bolded headings.
+  </LLMAction>
+</ActionButton>
+<LLMFeedback id="ai_the_babysitter_can_implement_feedback" render="markdown" />
+</Vertical>
+
+
+<!-- SCREEN:  Reinforcement poster -->
+<Markdown id="chart_image">
 |  Strategy         |    Age Appropriate     |      Feasible          |
 |-------------------|------------------------|------------------------|
 | Flexible          |                        |                        |
@@ -495,36 +512,40 @@ What prompt should we write for the AI in order to learn about sleep refusal and
 | Collaborative     |                        |                        |
 | Problem Solving   | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             |
 |-------------------|------------------------|------------------------|
-    </Markdown>
+</Markdown>
 
-  <!-- PDF article to read -->
-  <PDFViewer id="psych_sba_article_view" src="documents/PIIS0890856718319804.pdf" />
 
-  <Markdown id="psych_sba_article_excerpt">
-       _As we have seen, parents can learn from operant conditioning practices
-       ... parents should remember the basic rule of shaping: **Notice people
-       doing something right and affirm them for it.** Give children attention
-       and other reinforcers when they are behaving **well** .... Target a
-       specific behavior, reward it, and watch it increase. When children misbehave,
-       don't yell at them or hit them. Simply explain the misbehavior and take away
-       the screen time, remove a misused toy, or give a brief time-out._
-    </Markdown>
-  <Vertical id="psych_sba_part_1_completion_page">
-    <Markdown>
-        **Confirm that you are done with this exercise.**
-    </Markdown>
-    <CheckboxInput id="pysch_part_1_finished">
+<!-- SCREEN: PDF article to read -->
+<PDFViewer id="psych_sba_article_view" src="documents/PIIS0890856718319804.pdf" />
+
+
+<!-- SCREEN: -->
+<Markdown id="psych_sba_article_excerpt">
+_As we have seen, parents can learn from operant conditioning practices
+... parents should remember the basic rule of shaping: **Notice people
+doing something right and affirm them for it.** Give children attention
+and other reinforcers when they are behaving **well** .... Target a
+specific behavior, reward it, and watch it increase. When children misbehave,
+don't yell at them or hit them. Simply explain the misbehavior and take away
+the screen time, remove a misused toy, or give a brief time-out._
+</Markdown>
+
+
+<!-- SCREEN: -->
+<Vertical id="psych_sba_part_1_completion_page">
+<Markdown>**Confirm that you are done with this exercise.**</Markdown>
+<CheckboxInput id="pysch_part_1_finished">
           <Key id="completion_message">I don't need to make any more changes</Key>
-    </CheckboxInput>
-    <Markdown>
-        - In this activity, you learned about **parenting techniques** and the **strengths
-          and weaknesses of AI**. You also practiced applying information you have learned
-          from the textbook and scientific research to a **real-life scenario**, a child
-          refusing to go to bed on time.
-        - Next time, you will review and apply several other concepts from your coursework
-          in psychology to help Annie's roommate learn to use **operant conditioning** principles
-          to modify the child's behavior.
-    </Markdown>
- </Vertical>
+</CheckboxInput>
+<Markdown>
+- In this activity, you learned about **parenting techniques** and the **strengths
+  and weaknesses of AI**. You also practiced applying information you have learned
+  from the textbook and scientific research to a **real-life scenario**, a child
+  refusing to go to bed on time.
+- Next time, you will review and apply several other concepts from your coursework
+  in psychology to help Annie's roommate learn to use **operant conditioning** principles
+  to modify the child's behavior.
+</Markdown>
+</Vertical>
 
 </Vertical>
