@@ -2,7 +2,8 @@
 'use client';
 
 import { useState } from 'react';
-import type { IdMap } from '@/lib/types';
+import type { IdMap, OlxJson } from '@/lib/types';
+import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 
 interface SearchPanelProps {
   idMap: IdMap | null;
@@ -33,11 +34,15 @@ export function SearchPanel({ idMap, content, onFileSelect }: SearchPanelProps) 
   const localIds = extractIds(content);
 
   // Filter idMap by search query
-  const searchResults = idMap && searchQuery.trim()
+  // IdMap is { [id]: { [variant]: OlxJson } } — unwrap to get the OlxJson
+  const searchResults: Array<[string, OlxJson]> = idMap && searchQuery.trim()
     ? Object.entries(idMap)
-        .filter(([id, entry]) => {
+        .map(([id, variantMap]) => [id, extractLocalizedVariant(variantMap, '')] as [string, OlxJson | undefined])
+        .filter((pair): pair is [string, OlxJson] => {
+          const [id, entry] = pair;
+          if (!entry) return false;
           const q = searchQuery.toLowerCase();
-          const title = (entry.attributes?.title as string) || '';
+          const title = (entry.attributes.title as string) || '';
           return id.toLowerCase().includes(q) || title.toLowerCase().includes(q);
         })
         .slice(0, 20)
@@ -66,7 +71,7 @@ export function SearchPanel({ idMap, content, onFileSelect }: SearchPanelProps) 
             ) : (
               searchResults.map(([id, entry]) => {
                 const relPath = getRelPath(entry.provenance);
-                const title = (entry.attributes?.title as string) || id;
+                const title = (entry.attributes.title as string) || id;
                 return (
                   <div
                     key={id}
