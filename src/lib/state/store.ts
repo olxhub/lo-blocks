@@ -49,9 +49,13 @@ export const CHAT_CLEAR = 'CHAT_CLEAR';
 export const CHAT_SET_STATUS = 'CHAT_SET_STATUS';
 const CHAT_EVENT_TYPES = [CHAT_ADD_MESSAGE, CHAT_ADD_MESSAGES, CHAT_CLEAR, CHAT_SET_STATUS];
 
-// Event server URL for capturing events in dev
-// Always enabled - server silently fails if event-server isn't running
-const WEBSOCKET_URL = 'ws://localhost:8888/wsapi/in/';
+// Event server URL for capturing events.
+// In dev (localhost), connect to the local event-server on port 8888.
+// In production, connect back to the same host/port using wss://.
+const WEBSOCKET_URL =
+  typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? {}   // Let lo_event derive from window.location (wss://, same host/port)
+    : 'ws://localhost:8888/wsapi/in/';
 
 // Initial state - includes olxjson alongside component state
 //
