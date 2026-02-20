@@ -79,6 +79,10 @@ export function SearchPanel({ idMap, content, currentPath, onFileSelect, onScrol
                   <div
                     key={id}
                     className="search-result-item clickable"
+                    // BUG: Cross-file scroll-to-id is unreliable. onScrollToId fires
+                    // before CodeMirror has rendered the new file's content, so it
+                    // silently fails. Fixing properly requires deferred scroll-after-load
+                    // logic, which should wait for a studio rearchitecture.
                     onClick={() => {
                       if (!relPath) {
                         onNotify?.('error', `No file provenance for ${id}`);
