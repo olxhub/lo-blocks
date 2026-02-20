@@ -8,7 +8,10 @@ import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 interface SearchPanelProps {
   idMap: IdMap | null;
   content: string;
+  currentPath: string;
   onFileSelect: (path: string) => void;
+  onScrollToId?: (id: string) => void;
+  onNotify?: (type: 'error' | 'info', message: string) => void;
 }
 
 // Extract IDs and their tag names from OLX content
@@ -29,7 +32,7 @@ function getRelPath(prov?: string[]): string | null {
   return idx >= 0 ? prov[0].slice(idx + '/content/'.length) : prov[0];
 }
 
-export function SearchPanel({ idMap, content, onFileSelect }: SearchPanelProps) {
+export function SearchPanel({ idMap, content, currentPath, onFileSelect, onScrollToId, onNotify }: SearchPanelProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const localIds = extractIds(content);
 
@@ -76,7 +79,16 @@ export function SearchPanel({ idMap, content, onFileSelect }: SearchPanelProps) 
                   <div
                     key={id}
                     className="search-result-item clickable"
-                    onClick={() => relPath && onFileSelect(relPath)}
+                    onClick={() => {
+                      if (!relPath) {
+                        onNotify?.('error', `No file provenance for ${id}`);
+                        return;
+                      }
+                      if (relPath !== currentPath) {
+                        onFileSelect(relPath);
+                      }
+                      onScrollToId?.(id);
+                    }}
                   >
                     <div className="search-result-main">
                       <span className="search-id">{id}</span>

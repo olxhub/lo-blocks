@@ -147,6 +147,8 @@ export interface CodeEditorHandle {
   insertAtCursor: (text: string) => void;
   /** Get the underlying EditorView (if available) */
   getView: () => EditorView | undefined;
+  /** Find an id="..." attribute in the document, select it, and scroll into view. Returns true if found. */
+  scrollToId: (id: string) => boolean;
 }
 
 /**
@@ -247,6 +249,23 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
       view.focus();
     },
     getView: () => editorRef.current?.view,
+    scrollToId: (id: string) => {
+      const view = editorRef.current?.view;
+      if (!view) return false;
+      const doc = view.state.doc.toString();
+      // Match id="value" or id='value'
+      const pattern = new RegExp(`\\bid=["']${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`);
+      const match = pattern.exec(doc);
+      if (!match) return false;
+      const from = match.index;
+      const to = from + match[0].length;
+      view.dispatch({
+        selection: { anchor: from, head: to },
+        scrollIntoView: true,
+      });
+      view.focus();
+      return true;
+    },
   }), [value, onChange, path]);
 
   const extensions = useMemo(() => {
