@@ -55,10 +55,6 @@ Try to explain what the function of a behavior is, based on what you know or rem
         id="ai_function_query"
         rows="2"
         placeholder="Type your explanation of function of behavior here..." />
-    <LLMFeedback
-        id="function_ai_response"
-        render="markdown"
-        placeholder="The AI response will appear here..." />
     <ActionButton id="ask_ai_function_btn" label="Get AI Feedback" dependsOn="@ai_function_query.value">
       <LLMAction target="function_ai_response">
           You are a helpful psychology teaching assistant. One of your students has
@@ -84,6 +80,10 @@ Try to explain what the function of a behavior is, based on what you know or rem
           keep it short -- no more than a few paragraphs.
       </LLMAction>
     </ActionButton>
+    <LLMFeedback
+        id="function_ai_response"
+        render="markdown"
+        placeholder="The AI response will appear here..." />
   </Vertical>
 
   <!-- Lin's notes on 4 functions -->
@@ -183,14 +183,14 @@ Lianne also said during class:
     <Markdown id="ai_chart_prompt">
 **Examples of Positive and Negative Feedback with Each of the Four Functions**
     </Markdown>
-    <LLMFeedback id="chart_ai_response" render="markdown" placeholder="AI response will appear here..." />
     <ActionButton id="ask_ai_chart_btn" label="Create the Examples">
       <LLMAction target="chart_ai_response">
-You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement. Use a markdown table format. Include concrete examples for each function. Include a blank columns to set off each column from the ones next to it.
+You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement. Use a markdown table format. Include concrete examples for each function. Include a blank columns to set off each column from the ones next to it. Highlight the function names in the function column.
 
-      Student's request: <Ref target="ai_chart_query" />
+Student's request: <Ref target="ai_chart_query" />
       </LLMAction>
     </ActionButton>
+    <LLMFeedback id="chart_ai_response" render="markdown" placeholder="AI response will appear here..." />
   </Vertical>
 
   <SplitPanel id="own_examples_page_attention">
@@ -561,10 +561,6 @@ As the professor said: "It's as easy as learning your ABCs!"
 
 Have AI come up with diagrams explaining antecedents, behaviors, and consequences using the 4 functions of behavior.
     </Markdown>
-    <LLMFeedback
-        id="abc_ai_response"
-        render="markdown"
-        placeholder="AI response will appear here..." />
     <ActionButton id="ask_ai_abc_btn" label="Create the Diagrams">
       <LLMAction target="abc_ai_response">
 You are a helpful psychology teaching assistant. Create clear examples of ABC (Antecedent-Behavior-Consequence) sequences for each of the four functions of behavior (escape, attention, access/tangible, sensory). Use a simple format showing: Antecedent -> Behavior -> Consequence -> Function. Include concrete, relatable examples a student would understand.
@@ -573,6 +569,10 @@ Format your response in markdown, putting Put a separator line ('---------------
 
       </LLMAction>
     </ActionButton>
+    <LLMFeedback
+        id="abc_ai_response"
+        render="markdown"
+        placeholder="AI response will appear here..." />
   </Vertical>
 
   <!-- ABC Example walkthrough -->
@@ -665,10 +665,10 @@ Fill in the blanks to create an intervention plan:
     </Markdown>
 
     <Markdown id="cbp_label_desired">**What is the DESIRED behavior we want instead of running away?**</Markdown>
-    <TextArea id="cbp_desired_behavior" placeholder="Example: Johnny goes to bed appropriately when asked" />
+    <TextArea id="cbp_desired_behavior" placeholder="Describe the desired behavior here..." />
 
     <Markdown id="cbp_label_outcome">**What should the positive outcome be when Johnny shows the desired behavior?**</Markdown>
-    <TextArea id="cbp_positive_outcome" placeholder="Example: Johnny goes to sleep, roommate is not frustrated" />
+    <TextArea id="cbp_positive_outcome" placeholder="Describe the desired positive outcome here..." />
 
   </Vertical>
 
@@ -710,7 +710,7 @@ Now that we know the function is **escape**, we need to figure out an interventi
 - Prevent the problem behavior from occurring using antecedent event and predictor strategies.
 - Teach adaptive behaviors that lead to the same outcome as the problem behavior using teaching strategies.
 - React to the problem behavior in an appropriate way by using consequence strategies.
-- React to alternative behaviors by making reinforcement at a higher rate, more immediate, and of higher quality by using consequence strategies.
+- React to desired behaviors by making reinforcement at a higher rate, more immediate, and of higher quality by using consequence strategies.
 - Make desired behaviors take less effort to perform to obtain the same consequence.
     </Markdown>
 
@@ -721,17 +721,17 @@ Now that we know the function is **escape**, we need to figure out an interventi
 
 Write a prompt that will help you understand how to change the antecedents to address sleep refusal.
     </Markdown>
-    <TextArea id="ai_intervention_query" placeholder="Example: Create a list of interventions using antecedent strategies to prevent the problem behavior of not going to bed on time with escape as the function..." />
-    <LLMFeedback id="intervention_ai_response" placeholder="AI response will appear here..." />
+    <TextArea id="ai_intervention_query" placeholder="Put your prompt here..." />
     <ActionButton id="ask_ai_intervention_btn" label="Ask AI" dependsOn="@ai_intervention_query.value">
       <LLMAction target="intervention_ai_response">
-You are a helpful psychology teaching assistant. Here is a prompt that the student wrote for you:
+Background: Assume the information avilable to a helpful psychology teaching assistant. 
 
-Student's prompt: <Ref target="ai_intervention_query" />
+Prompt: <Ref target="ai_intervention_query" />
 
-If the student's prompt asks for antecedent strategies to prevent bedtime resistance, follow the directions provided in the prompt, but listing no more than six antecedent strategies; otherwise, warn the student that their prompt needs to be revised, and stop.
+Directions: If the prompt focuses on antecedent strategies to prevent bedtime resistance in a six year old, provide the information specified by the prompt, but listing no more than six antecedent strategies; otherwise, indicate that the prompt needs to be revised, and stop.
       </LLMAction>
     </ActionButton>
+    <LLMFeedback id="intervention_ai_response" placeholder="AI response will appear here..." />
   </Vertical>
 
   <!-- AI interface for intervention strategies -->
@@ -741,17 +741,17 @@ If the student's prompt asks for antecedent strategies to prevent bedtime resist
 
 Write a prompt that will help you understand how to change the consequences to address sleep refusal.
     </Markdown>
-    <TextArea id="ai_intervention_query2" placeholder="Example: Create a list of interventions using antecedent strategies to prevent the problem behavior of not going to bed on time with escape as the function..." />
-    <LLMFeedback id="intervention_ai_response2" placeholder="AI response will appear here..." />
+    <TextArea id="ai_intervention_query2" placeholder="Put your prompt here..." />
     <ActionButton id="ask_ai_intervention_btn2" label="Ask AI" dependsOn="@ai_intervention_query2.value">
       <LLMAction target="intervention_ai_response2">
-You are a helpful psychology teaching assistant. Here is a prompt that the student wrote for you:
+Background for response: Assume the information available to a helpful psychology teaching assistant. 
 
-Student's prompt: <Ref target="ai_intervention_query2" />
+Prompt: <Ref target="ai_intervention_query2" />
 
-If the student's prompt asks for consequent strategies to prevent bedtime resistance, follow the directions provided in the prompt, but listing no more than six consequent strategies; otherwise, warn the student that their prompt needs to be revised, and stop.
+Directions: If the prompt focuses on consequent strategies to prevent bedtime resistance in a six year old, provide the information specified by the prompt, but listing no more than six consequent strategies; otherwise, indicate that the prompt needs to be revised, and stop.
       </LLMAction>
     </ActionButton>
+    <LLMFeedback id="intervention_ai_response2" placeholder="AI response will appear here..." />
   </Vertical>
 
 
@@ -800,6 +800,46 @@ Below are some intervention ideas. Select the ones that address **escape** as th
     </CapaProblem>
   </Vertical>
 
+  <!-- AI interface for intervention strategies -->
+  <Vertical id="ai_intervention3">
+    <Markdown id="ai_intervention_prompt3">
+## Ask AI for Intervention Strategies
+
+Write a prompt that will help you understand how to change the antecedents to address sleep refusal.
+    </Markdown>
+    <TextArea id="ai_intervention_query3" placeholder="Put your prompt here..." />
+    <ActionButton id="ask_ai_intervention_btn3" label="Ask AI" dependsOn="@ai_intervention_query.value">
+      <LLMAction target="intervention_ai_response3">
+Background for response: Assume the information available to a helpful psychology teaching assistant. 
+
+Prompt: <Ref target="ai_intervention_query3" />
+
+Directions: If the prompt focuses on antecedent strategies to prevent bedtime resistance in a six year old with escape as the function, provide the information specified by the prompt, but listing no more than six antecedent strategies; otherwise, indicate that the prompt needs to be revised, and stop.
+      </LLMAction>
+    </ActionButton>
+    <LLMFeedback id="intervention_ai_response3" placeholder="AI response will appear here..." />
+  </Vertical>
+
+  <!-- AI interface for intervention strategies -->
+  <Vertical id="ai_intervention4">
+    <Markdown id="ai_intervention_prompt4">
+## Ask AI for Intervention Strategies
+
+Write a prompt that will help you understand how to change the consequences to address sleep refusal.
+    </Markdown>
+    <TextArea id="ai_intervention_query4" placeholder="Put your prompt here..." />
+    <ActionButton id="ask_ai_intervention_btn4" label="Ask AI" dependsOn="@ai_intervention_query2.value">
+      <LLMAction target="intervention_ai_response4">
+Background for response: Assume the information available to a helpful psychology teaching assistant. 
+
+Prompt: <Ref target="ai_intervention_query4" />
+
+Directions: If the prompt focuses on consequent strategies to prevent bedtime resistance in a six year old with escape as the function, provide the information specified by the prompt, but listing no more than six consequent strategies; otherwise, indicate that the prompt needs to be revised, and stop.
+      </LLMAction>
+    </ActionButton>
+    <LLMFeedback id="intervention_ai_response4" placeholder="AI response will appear here..." />
+  </Vertical>
+
   <!-- Revised pathway -->
   <Vertical id="revised_pathway">
     <Markdown id="revised_pathway_intro">
@@ -809,10 +849,10 @@ Now let's revise our pathway with the strategies we've identified.
     </Markdown>
 
     <Markdown id="antecedent_strategies_label">**What antecedent strategies would you add to make bedtime less aversive?**</Markdown>
-    <TextArea id="revised_antecedents" placeholder="Example: Use a visual schedule, give 10-minute and 5-minute warnings..." />
+    <TextArea id="revised_antecedents" placeholder="Put the antecedent strategies you prefer here..." />
 
     <Markdown id="consequence_strategies_label">**What consequence strategies would you use when Johnny shows the desired behavior?**</Markdown>
-    <TextArea id="revised_consequences" placeholder="Example: Praise for getting in bed, bedtime story as reward..." />
+    <TextArea id="revised_consequences" placeholder="Put the consequent strategies you prefer here..." />
 
   </Vertical>
 
@@ -826,28 +866,63 @@ Here are two different intervention plans. Pick the one that correctly addresses
 
     <CapaProblem title="Choose the correct plan" id="plan_choice">
       <KeyGrader>
+        <ChoiceInput>
+          <Key id="plan_a">Plan A</Key>
+          <Distractor id="plan_b">Plan B</Distractor>
+        </ChoiceInput>
         <Markdown>
-**Plan A (Your Plan - Escape-focused):**
+--------------------------------------------
+
+**Plan A (Lin's Plan):**
 - Antecedent: Create predictable routine with timers and warnings
 - Behavior: Johnny goes to bed when asked
 - Consequence: Praise and calm bedtime story; no chasing if he resists
 
-**Plan B (Annie's Plan - Sensory-focused):**
+--------------------------------------------
+
+**Plan B (Annie's Plan):**
 - Antecedent: Dim lights and play calming music
 - Behavior: Johnny relaxes and self-soothes
 - Consequence: Weighted blanket and white noise machine
+
+--------------------------------------------
         </Markdown>
-        <ChoiceInput>
-          <Key id="plan_a">Plan A - Addresses escape function correctly</Key>
-          <Distractor id="plan_b">Plan B - Addresses sensory function (not Johnny's actual function)</Distractor>
-        </ChoiceInput>
       </KeyGrader>
       <Explanation showWhen="answered">
 Plan A correctly fits the function of the behavior, which is **escape**. Plan B is centered around the function of behavior as sensory. In our scenario, Johnny's function is escape - he's trying to avoid going to bed, not seeking sensory stimulation.
       </Explanation>
     </CapaProblem>
-
   </Vertical>
+
+  <Markdown id="full_plan">
+**Target Behavior**:
+Child refuses to go to bed (whining, stalling, hiding, running away) to escape or delay bedtime routines.
+
+**Function of Behavior**: 
+Escape/avoidance of bedtime (routine, sleep, or separation from caregiver).
+
+---------------------------------------------------------------------------
+**Behavior Goal**:
+Child will follow the bedtime routine at the scheduled time without engaging in escape behaviors.
+
+**Antecedent Strategies** (Prevention):
+- Create a consistent bedtime routine with visual schedule (e.g., bath, pajamas, story, bed)
+- Provide a warning countdown (e.g., '5 minutes until bedtime')
+- Use a timer to show when each routine begins and ends
+- Allow the child limited choice within routine (e.g., choose pajamas or story)
+
+----------------------------------------------------------------------------
+**Replacement Behaviors** (Teach)
+- Teach child to request a "break" or short delay using a visual or verbal prompt
+- Teach child to use a bedtime routine checklist to feel more in control
+
+**Consequence Strategies** (Response)
+- If child complies with routine: Provide praise and a small bedtime reward (e.g., a
+  favorite stuffed animal, extra story next night)
+- If child engages in escape behavior:
+  - Do **not** delay bedtime (no negotiation or extended time)
+  - Use a neutral, consistent response ("It's bedtime now")
+  </Markdown>
 
   <!-- Plan discussion -->
   <Vertical id="plan_discussion">
