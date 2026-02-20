@@ -308,44 +308,68 @@ JJ: Well, maybe we should consider both antecedents and consequences. I'm still 
 
 Annie: Maybe we can use AI to help us come up with different ways to prevent the problem behavior.
 
-JJ: It's probably better to break that up a bit or we'll get way too many possibilities. Let's ask about antecedent strategies first.
-
 psych_fba_sidebar -> ai_intervention
+
+JJ: It's probably better to break that up a bit or we'll get way too many possibilities. Let's ask about antecedent strategies first.
 
 --- wait @intervention_ai_response.value ---
 
-Lin: And we can ask about consequent strategies next.
-
 psych_fba_sidebar -> ai_intervention2
+
+Lin: And we can ask about consequent strategies next.
 
 --- wait @intervention_ai_response2.value ---
 
-Lin: I think we've missed something important here. Not all of the strategies we're getting are focused on addressing ESCAPE. We need to narrow our attention down to strategies that prevent or discourage escape-oriented behavior.
+Annie: I think we've missed something important here. Not all of the strategies we're getting are focused on addressing ESCAPE. We need to narrow our attention down to strategies that prevent or discourage escape-oriented behavior.
 
 JJ: OK, then. Let's take a look at the lists of antecedent and consequent strategies I got, and mark which interventions address escape as the function of behavior.
 
 psych_fba_sidebar -> strategy_selection
 
-JJ: Here are the consequent strategies I got.
+JJ: Here are the antecedent strategies I got.
+
+--- wait @antecedent_strategies.submitCount > 0 ---
 
 psych_fba_sidebar -> strategy_selection2
 
-JJ: Here are the antecedent strategies I got.
+JJ: Here are the consequent strategies I got.
+
+--- wait @consequence_strategies.submitCount > 0 ---
+
+Annie: OK, so we have a couple of strategies each for antecedent and consequence. For completeness, we should try to get AI to focus on strategies that will deal with **escape** specifically, so we'll have more strategies to choose from. 
+
+psych_fba_sidebar -> ai_intervention3
+
+JJ: Once again, let's start with antecedent strategies.
+
+--- wait @intervention_ai_response3.value ---
+
+psych_fba_sidebar -> ai_intervention4
+
+Lin: And consequent strategies come next.
+
+--- wait @intervention_ai_response4.value ---
 
 psych_fba_sidebar -> revised_pathway
 
 Annie: Now let's put those strategies into our updated competing behavior pathway.
 
---- wait @revised_antecedents.value ---
+--- wait @revised_antecedents.value && @revised_consequences.value ---
 
 Choosing a Plan
 ---------------
 
 psych_fba_sidebar -> plans_comparison
 
-Annie: We've got some great ideas here! Here's your plan, and here's mine. Pick the one that you think will work best.
+Annie: We've got some great ideas here! Here's your plan, and here's Lin's. Which one do you think will work best?
 
-psych_fba_sidebar -> plan_discussion
+Lin: Okay – let's put it all together. So we now know that our behavior modification plan should incorporate positive reinforcement for a desired behavior that addresses the function of the problem behavior of escape. We know that manipulating antecedent conditions is the way to go. We also know from last time that, in general, punishment should be avoided as a consequence.
+
+Annie: That sounds hard. We've already gotten some great ideas, but I don't even know where to start.
+
+psych_fba_sidebar -> full_plan
+
+JJ: Let's go back to the Competing Behavior Pathway organizer we started and use go through the strategies we've found that are consistent with Lin's plan. Basically, we plug them in as extra options at key points in the path.
 
 JJ: Wow, there's a lot here. They don't all make sense here, but I do like the idea of using a timer to show when each routine step begins and ends as an antecedent strategy.
 
@@ -353,7 +377,9 @@ Lin: Yes, me too. I really like the consequence strategy of ignoring or not prov
 
 Annie: Me too. What do you think?
 
---- wait @plan_preferences.value ---
+psych_fba_sidebar -> plan_discussion
+
+--- wait @plan_choice.submitCount > 0 ---
 
 Final Email
 -----------
