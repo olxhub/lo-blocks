@@ -841,20 +841,30 @@ Directions: If the prompt focuses on consequent strategies to prevent bedtime re
   </Vertical>
 
   <!-- Revised pathway -->
-  <Vertical id="revised_pathway">
-    <Markdown id="revised_pathway_intro">
+  <Tabs id="revised_pathway">
+    <Vertical id="revised_pathway_left" title="Updates">
+      <Markdown id="revised_pathway_intro">
 ## Update the Competing Behavior Pathway
 
 Now let's revise our pathway with the strategies we've identified.
-    </Markdown>
+      </Markdown>
 
-    <Markdown id="antecedent_strategies_label">**What antecedent strategies would you add to make bedtime less aversive?**</Markdown>
-    <TextArea id="revised_antecedents" placeholder="Put the antecedent strategies you prefer here..." />
-
-    <Markdown id="consequence_strategies_label">**What consequence strategies would you use when Johnny shows the desired behavior?**</Markdown>
-    <TextArea id="revised_consequences" placeholder="Put the consequent strategies you prefer here..." />
-
-  </Vertical>
+      <Markdown id="antecedent_strategies_label">
+**What antecedent strategies would you add to make bedtime less aversive?**
+      </Markdown>
+      <TextArea id="revised_antecedents" placeholder="Put the antecedent strategies you prefer here..." />
+      <Markdown id="consequence_strategies_label">
+**What consequence strategies would you use when Johnny shows the desired behavior?**
+      </Markdown>
+      <TextArea id="revised_consequences" placeholder="Put the consequent strategies you prefer here..." />
+    </Vertical>
+    <Vertical id="revised_pathway_right1" title="Antecedent Strategies">
+        <Use ref="intervention_ai_response3" />
+    </Vertical>    
+    <Vertical id="revised_pathway_right2" title="Consequent Strategies">
+        <Use ref="intervention_ai_response4" />
+    </Vertical>    
+  </Tabs>
 
   <!-- Two plans comparison -->
   <Vertical id="plans_comparison">
@@ -870,9 +880,10 @@ Here are two different intervention plans. Pick the one that correctly addresses
           <Key id="plan_a">Plan A</Key>
           <Distractor id="plan_b">Plan B</Distractor>
         </ChoiceInput>
+        <Markdown>&nbsp;</Markdown>
         <Markdown>
---------------------------------------------
 
+--------------------------------------------
 **Plan A (Lin's Plan):**
 - Antecedent: Create predictable routine with timers and warnings
 - Behavior: Johnny goes to bed when asked
@@ -895,15 +906,23 @@ Plan A correctly fits the function of the behavior, which is **escape**. Plan B 
   </Vertical>
 
   <Markdown id="full_plan">
-**Target Behavior**:
+## Lianne's Notes Based on on the Competing Behavior Pathways Diagram
+  
+**Problem Behavior**:
 Child refuses to go to bed (whining, stalling, hiding, running away) to escape or delay bedtime routines.
 
-**Function of Behavior**: 
+**Maintaining Consequences** (_Function of Behavior_): 
 Escape/avoidance of bedtime (routine, sleep, or separation from caregiver).
 
 ---------------------------------------------------------------------------
-**Behavior Goal**:
+**Desired Behavior**:
 Child will follow the bedtime routine at the scheduled time without engaging in escape behaviors.
+
+**Replacement Behaviors** (to teach desired behavior)
+- Teach child to request a "break" or short delay using a visual or verbal prompt
+- Teach child to use a bedtime routine checklist to feel more in control
+
+----------------------------------------------------------------------------
 
 **Antecedent Strategies** (Prevention):
 - Create a consistent bedtime routine with visual schedule (e.g., bath, pajamas, story, bed)
@@ -912,9 +931,6 @@ Child will follow the bedtime routine at the scheduled time without engaging in 
 - Allow the child limited choice within routine (e.g., choose pajamas or story)
 
 ----------------------------------------------------------------------------
-**Replacement Behaviors** (Teach)
-- Teach child to request a "break" or short delay using a visual or verbal prompt
-- Teach child to use a bedtime routine checklist to feel more in control
 
 **Consequence Strategies** (Response)
 - If child complies with routine: Provide praise and a small bedtime reward (e.g., a
@@ -925,22 +941,30 @@ Child will follow the bedtime routine at the scheduled time without engaging in 
   </Markdown>
 
   <!-- Plan discussion -->
-  <Vertical id="plan_discussion">
-    <Markdown id="plan_discussion_text">
+  <Tabs id="plan_discussion">
+     <Vertical id="plan_discussion_left" title="Record Your Preferences">
+        <Markdown id="plan_discussion_text">
 ## Discussing the Plan
 
 **JJ:** There's a lot in that plan. They don't all make sense, but I do like the idea of using a timer to show when each routine step begins and ends as an antecedent strategy.
 
 **Lin:** Yes, me too. I really like the consequence strategy of ignoring or not providing attention during the escape behavior. That makes a lot of sense to me.
-    </Markdown>
+      </Markdown>
 
-    <Markdown id="plan_preference_label">In the box below, type the parts of the plan that you like:</Markdown>
-    <TextArea id="plan_preferences" placeholder="What strategies do you think would work best?" />
-  </Vertical>
+      <Markdown id="plan_preference_label">
+In the box below, type the parts of the plan that you like, and explain why:
+      </Markdown>
+      <TextArea id="plan_preferences" placeholder="What strategies do you think would work best?" rows="8" />
+   </Vertical>
+   <Vertical id="plan_discussion_right" title="Lianne's Notes">
+       <Use ref="full_plan" />
+   </Vertical>
+  </Tabs>
 
   <!-- Final email -->
-  <Vertical id="final_intervention_email">
-    <Markdown id="final_email_prompt">
+  <Tabs id="final_intervention_email">
+    <Vertical id="final_left" title="Write the Intervention Email">
+      <Markdown id="final_email_prompt">
 ## Write the Intervention Email
 
 Based on everything you have learned, write an email to Annie's roommate describing the intervention plan.
@@ -950,32 +974,49 @@ Make sure to use these terms:
 - "antecedent, behavior, consequence"
 - "positive reinforcement"
 - "competing behavior pathway"
-    </Markdown>
-    <TextArea id="intervention_email" placeholder="Dear Roommate, Based on what we've learned in psychology class..." />
-  </Vertical>
+        </Markdown>
+      <TextArea id="intervention_email" placeholder="Dear Roommate, Based on what we've learned in psychology class..." rows="8" />
+    </Vertical>
+    <Vertical id="final_right1" title="Lianne's Notes">
+       <Use ref="full_plan" />
+    </Vertical>
+    <Vertical id="final_right2" title="What I like">
+        <Use ref="plan_preferences" />
+    </Vertical>
+  </Tabs>
 
   <!-- Time skip - 2 weeks later -->
-  <Markdown id="two_weeks_later">
+  <Vertical id="two_weeks_later">
+     <SplitPanel id="two_wks_ltr">
+         <LeftPane>
+             <Markdown id="two_weeks_later_md">
 ## Two Weeks Later...
 
 **Lin:** So how did the intervention go with your roommate?
 
 **Annie:** Thanks for asking! My roommate read our intervention plan and tracked Johnny's progress in her journal. Over the past 2 weeks, she babysat 5 times.
 
-- He went to bed on time **2 out of 5** occasions
+**When Johnny Went to Bed**
+             </Markdown>
+        </LeftPane>
+        <RightPane>
+            <Markdown id="two_weeks_later_md2">
+- He went to bed on time only on the first **2 out of 5** occasions
 - On one occasion where he didn't go to bed on time, she noted that she didn't exactly follow our plan
+- On closer questioning, she admitted that the didn't implement any of the consequence strategies.
 - The escape behaviors seem to have gotten worse over time!
 
 Something isn't working right...
-    </Markdown>
+         </Markdown>
+      </RightPane>
+  </SplitPanel>
 
+<Image src="images/Bedtimes.png" />
+  </Vertical>
+  
   <!-- Implementation fidelity introduction -->
   <Markdown id="fidelity_intro">
 ## Implementation Fidelity
-
-The team showed the progress to the professor, explaining that the roommate admitted she didn't follow all of the consequence strategies.
-
-**Professor:** "Looks like you need to improve on **implementation fidelity**."
 
 **Implementation fidelity** refers to how accurately and consistently a behavior plan is implemented as it was designed.
 
