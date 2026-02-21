@@ -10,7 +10,10 @@ import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
+import { fetchActivities } from '@/lib/content/fetchContent';
 import type { ContentVariant, Locale } from '@/lib/types';
+
+const IS_STATIC = process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';
 
 const ENDPOINT_LINKS = [
   {
@@ -132,7 +135,7 @@ function ActivityRow({ entry, userLocale }: { entry: any; userLocale: string }) 
           <span className="text-xs text-gray-400 font-mono">
             {type}
           </span>
-          {editPath ? (
+          {!IS_STATIC && (editPath ? (
             <Link
               href={`/studio?file=${encodeURIComponent(editPath)}`}
               className="text-gray-500 hover:text-gray-900 transition-colors"
@@ -141,20 +144,22 @@ function ActivityRow({ entry, userLocale }: { entry: any; userLocale: string }) 
             </Link>
           ) : (
             <span className="text-gray-300 cursor-not-allowed">Edit</span>
-          )}
+          ))}
           <Link
             href={`/graph/${entry.id}`}
             className="text-gray-400 hover:text-gray-700 transition-colors"
           >
             Graph
           </Link>
-          <Link
-            href={`/api/content/${entry.id}`}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-            target="_blank"
-          >
-            API
-          </Link>
+          {!IS_STATIC && (
+            <Link
+              href={`/api/content/${entry.id}`}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+              target="_blank"
+            >
+              API
+            </Link>
+          )}
         </div>
       </div>
     </div>
@@ -162,8 +167,8 @@ function ActivityRow({ entry, userLocale }: { entry: any; userLocale: string }) 
 }
 
 function Activities() {
-  const [activities, setActivities] = useState(null); // TODO: useFieldState
-  const [error, setError] = useState(null); // TODO: useFieldState
+  const [activities, setActivities] = useState<Record<string, any> | null>(null); // TODO: useFieldState
+  const [error, setError] = useState<string | null>(null); // TODO: useFieldState
   const [loading, setLoading] = useState(true); // TODO: useFieldState
 
   // Get user's locale from Redux
@@ -174,13 +179,12 @@ function Activities() {
     // Activities list is locale-independent, fetch once on mount
     setLoading(true);
     setError(null);
-    globalThis.fetch('/api/activities')
-      .then(res => res.json())
+    fetchActivities()
       .then(data => {
         if (!data.ok) {
-          setError(data.error);
+          setError(data.error ?? 'Unknown error');
         } else {
-          setActivities(data.activities);
+          setActivities(data.activities ?? null);
         }
         setLoading(false);
       })
@@ -263,7 +267,7 @@ function Sidebar() {
         </nav>
       </div>
 
-      <div>
+      {!IS_STATIC && <div>
         <button
           onClick={() => setShowEndpoints(!showEndpoints)}
           className="w-full flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
@@ -310,7 +314,7 @@ function Sidebar() {
             ))}
           </div>
         )}
-      </div>
+      </div>}
     </aside>
   );
 }
@@ -324,12 +328,7 @@ export default function Home() {
   useEffect(() => {
     if (!userLocale) return;
 
-    globalThis.fetch('/api/activities', {
-      headers: {
-        'Accept-Language': userLocale,
-      },
-    })
-      .then(res => res.json())
+    fetchActivities({ headers: { 'Accept-Language': userLocale } })
       .then(data => {
         if (data.activities) {
           // Extract available locales from activity titles/descriptions

@@ -41,6 +41,7 @@
   ],
   "exclude": [
     "node_modules",
+    "obsolete",
     "**/*.test.ts",
     "**/*.test.tsx"
   ]
