@@ -363,9 +363,13 @@ psych_fba_sidebar -> plans_comparison
 
 Annie: We've got some great ideas here! Here's your plan, and here's Lin's. Which one do you think will work best?
 
+--- wait @plan_choice.submitCount > 0 ---
+
 Lin: Okay – let's put it all together. So we now know that our behavior modification plan should incorporate positive reinforcement for a desired behavior that addresses the function of the problem behavior of escape. We know that manipulating antecedent conditions is the way to go. We also know from last time that, in general, punishment should be avoided as a consequence.
 
 Annie: That sounds hard. We've already gotten some great ideas, but I don't even know where to start.
+
+Lianne: Let me give you a leg up. I'll put all the things that seem plausible into a super-plan organized in terms of the competing behavior pathway. Then you guys can go over it and see what parts of it make sense to you, so you can decide what to recommend to Annie's roommate.
 
 psych_fba_sidebar -> full_plan
 
@@ -375,11 +379,11 @@ JJ: Wow, there's a lot here. They don't all make sense here, but I do like the i
 
 Lin: Yes, me too. I really like the consequence strategy of ignoring or not providing attention or reinforcement during the escape behavior. That makes a lot of sense to me.
 
-Annie: Me too. What do you think?
-
 psych_fba_sidebar -> plan_discussion
 
---- wait @plan_choice.submitCount > 0 ---
+Annie: Me too. What do you think?
+
+--- wait @plan_preferences.value ---
 
 Final Email
 -----------
@@ -399,13 +403,15 @@ Lin: Great job everyone! Let's check back in a couple weeks to see how it goes.
 Two Weeks Later
 ---------------
 
-psych_fba_sidebar -> two_weeks_later
+psych_fba_sidebar -> abc_screen_clear
 
 Annie: Hey everyone, I have an update about Johnny...
 
 JJ: What happened?
 
-Annie: The intervention didn't go as well as we hoped. She only got him to bed on time 2 out of 5 times. And on one occasion, she admitted she didn't follow our plan exactly.
+Annie: The intervention didn't go as well as we hoped. She only got him to bed on time only on the first two 2 out of 5 times. And on one occasion, she admitted she didn't follow our plan exactly. When I questioned her more closely, she told me she'd focused on the antecedent strategies. She didn't follow any of the consequence strategies.
+
+psych_fba_sidebar -> two_weeks_later
 
 Lin: Let's talk to our professor to find more resources.
 
