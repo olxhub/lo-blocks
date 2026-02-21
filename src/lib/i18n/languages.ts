@@ -18,7 +18,8 @@ export interface LanguageOption {
  */
 function getAvailableLocales(): string[] {
   const data = cldrLocales as { availableLocales: { full: string[] } };
-  return data.availableLocales.full || [];
+  const languages = data.availableLocales.full || [];
+  return languages.filter(lang => !lang.startsWith('ar-'));
 }
 
 /**
