@@ -9,7 +9,7 @@
 
 import { useSelector } from 'react-redux';
 import { useEffect, useRef } from 'react';
-import * as api from '@/lib/api';
+import { fetchContent } from '@/lib/content/fetchContent';
 import {
   selectBlockState,
   dispatchOlxJsonLoading,
@@ -74,9 +74,9 @@ export function useOlxJson(
     // Mark as loading
     dispatchOlxJsonLoading(props, source, olxKey);
 
-    api
-      .fetch(props, `/api/content/${olxKey}`)
-      .then(res => res.json())
+    fetchContent(olxKey, {
+        headers: { 'Accept-Language': props.runtime.locale.code },
+      })
       .then(data => {
         if (!data.ok) {
           dispatchOlxJsonError(props, source, olxKey, data.error || `Failed to load ${olxKey}`);

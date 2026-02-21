@@ -13,6 +13,7 @@
     "build:parser-registry": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) ./node_modules/.bin/tsx src/scripts/generate-parser-registry.ts",
     "build:sync-images": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) ./node_modules/.bin/tsx src/scripts/sync-images.ts",
     "build:prod": "npm run build && npm run build:sync-images && firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) npx next build",
+    "build:static": "npm run build && npx tsx src/scripts/export-static-content.ts && mv src/app/api src/app/_api && (NEXT_PUBLIC_STATIC_EXPORT=true STATIC_EXPORT=true npx next build; s=$?; mv src/app/_api src/app/api; exit $s)",
     "start": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) next start",
     "start:prod": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) npx next start",
     "typecheck": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) npx tsc --noEmit",

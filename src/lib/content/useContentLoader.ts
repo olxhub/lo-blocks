@@ -5,6 +5,7 @@ import { dispatchOlxJson } from '@/lib/state/olxjson';
 import { useDebugSettings } from '@/lib/state/debugSettings';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { useBaselineProps } from '@/components/common/RenderOLX';
+import { fetchContent } from '@/lib/content/fetchContent';
 
 /**
  * Hook to load content from the API by ID
@@ -47,16 +48,10 @@ export function useContentLoader(id: string, source = 'content') {
     setLoading(true);
     setError(null);
 
-    // Use globalThis.fetch with Accept-Language header
-    globalThis.fetch(`/api/content/${id}`, {
-      headers: {
-        'Accept-Language': locale,
-      },
-    })
-      .then(res => res.json())
+    fetchContent(id, { headers: { 'Accept-Language': locale } })
       .then(data => {
         if (!data.ok) {
-          setError(data.error);
+          setError(data.error ?? 'Unknown error');
         } else {
           // Dispatch to Redux for reactive block access
           dispatchOlxJson(baselineProps, source, data.idMap);
