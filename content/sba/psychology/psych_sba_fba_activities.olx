@@ -1163,6 +1163,64 @@ Of these modifications, which ones should we add to help the roommate follow the
     </CapaProblem>
   </Vertical>
 
+  <Markdown id="fidelity_checklist">
+## Bedtime Routine Plan -- Fidelity Checklist
+
+Child's name:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+Completed by: 
+
+|   **Step**   |    **Task**                          | **Completed?** | **Notes**                              |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1        | Used a consistent routine with a | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;            |                                    |
+|          | visual schedule                  |                 |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2        | Provided a warning countdown     | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;            |                                    |
+|          | before routine began (e.g.,      |                  |                                    |
+|          | 5-minute warning)                |                 |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3        | Used a timer to show when each   | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;                 |                                    |
+|          | step began and ended             |                 |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4        | Offered the child a limited      | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;            |                                    |
+|          | choice within the routine (e.g., |                 |                                    |
+|          | pajamas, story)                  |            |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5        | Provided labeled praise for      | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;            |                                    |
+|          | following steps (e.g., "Great    |                 |                                    |
+|          | job brushing your teeth!")       |                 |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6        | Provided a small reward for      | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;            |                                    |
+|          | completing the bedtime routine   |                 |                                    |
+|          | (e.g., stuffed animal, sticker)  |                 |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+  </Markdown>
+
+  <Markdown id="fidelity_checklist2">
+## Response to Escape Behavior -- If It Occurred
+
+|   **Step**   |    **Task**                          | **Completed?** | **Notes**                              |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7        | Did NOT delay bedtime (no | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;            |                                    |
+|          | negotiation or extended |                 |                                    |
+|          | time given              |                 |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;8        | Used a neutral and consistent | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;            |                                    |
+|          | response (no arguing,      |                  |                                    |
+|          | emotional tone, or         |                 |                                    |
+|          | bargaining)                |                 |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;9        | Physically guided the child   | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;                 |                                    |
+|          | through the routine if             |                 |                                    |
+|          | necessary (safely and             |                 |                                    |
+|          | calmly)                           |                 |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;10        | Avoided giving attention or | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;            |                                    |
+|          | access to reinforcement |                 |                                    |
+|          | during escape behavior  |            |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+  </Markdown>
+
   <!-- Another 2 weeks later - conclusion -->
   <Markdown id="conclusion_progress">
 ## Another Two Weeks Later...
