@@ -441,9 +441,35 @@ psych_fba_sidebar -> ai_modifications
 
 --- wait @modifications_ai_response.value ---
 
+JJ: I asked, "How can I improve adherence to the intervention plan", and go a long complicated set of suggestions that wasn't really very helpful, because it was so general.
+
+Lin: Well, that's because you didn't give it any context. We have to give enough background so it's giving advice on the problem we're actually trying to solve. Otherwise, it just fills in the blanks with general stuff that sounds reasonable but isn't really tailored to our needs.
+
+JJ: What sort of context do we need? I'm bringing Lianne into the conversation to get some advice. Lianne, what do we need to tell the AI to get decent suggestions?
+
+Lianne: Well, you might want to make sure it knows that this is a psychology intervention using operant conditioning. And it really needs to know what plan you were following, and what problems Annie's roommate was having.
+
+Annie: In short, we have to make everything explicit! Lay it all out in detail. Why don't we put it all down and see if that helps.
+
+psych_fba_sidebar -> ai_intervention_brainstorming_prompt
+
+JJ: All right, here we go.
+
+Lin: That looks a lot better!
+
+Annie: It does indeed! 
+
+psych_fba_sidebar -> ai_modifications2
+
+Lin: Let's go ahead and find out what kind of response this gives us from the AI.
+
+Annie: This is a lot. We'd better read it carefully to make sure it's all in line with what we've been taught.
+
+JJ: There are a couple of things that might be slightly off, but overall, these are really good suggestions. But they're an awful lot. Should we really do all of them?
+
 psych_fba_sidebar -> modification_selection
 
-Annie: Great! Of these modifications, which ones do you think we should add?
+Annie: Maybe not. I've pulled the suggestions we got from a couple of runs of this prompt into a list. Take a look at them. Which of these modifications do you think we should suggest to Annie's roommate?
 
 JJ: Great choices! I totally agree.
 

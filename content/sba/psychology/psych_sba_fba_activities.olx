@@ -808,7 +808,7 @@ Below are some intervention ideas. Select the ones that address **escape** as th
 Write a prompt that will help you understand how to change the antecedents to address sleep refusal.
     </Markdown>
     <TextArea id="ai_intervention_query3" placeholder="Put your prompt here..." />
-    <ActionButton id="ask_ai_intervention_btn3" label="Ask AI" dependsOn="@ai_intervention_query.value">
+    <ActionButton id="ask_ai_intervention_btn3" label="Ask AI" dependsOn="@ai_intervention_query3.value">
       <LLMAction target="intervention_ai_response3">
 Background for response: Assume the information available to a helpful psychology teaching assistant. 
 
@@ -828,7 +828,7 @@ Directions: If the prompt focuses on antecedent strategies to prevent bedtime re
 Write a prompt that will help you understand how to change the consequences to address sleep refusal.
     </Markdown>
     <TextArea id="ai_intervention_query4" placeholder="Put your prompt here..." />
-    <ActionButton id="ask_ai_intervention_btn4" label="Ask AI" dependsOn="@ai_intervention_query2.value">
+    <ActionButton id="ask_ai_intervention_btn4" label="Ask AI" dependsOn="@ai_intervention_query4.value">
       <LLMAction target="intervention_ai_response4">
 Background for response: Assume the information available to a helpful psychology teaching assistant. 
 
@@ -981,7 +981,7 @@ Make sure to use these terms:
        <Use ref="full_plan" />
     </Vertical>
     <Vertical id="final_right2" title="What I like">
-        <Use ref="plan_preferences" />
+        <Ref target="plan_preferences" />
     </Vertical>
   </Tabs>
 
@@ -1063,18 +1063,84 @@ The roommate is struggling with **Adherence** - she's forgetting to follow the s
     <Markdown id="ai_modifications_prompt">
 ## Ask AI for Help
 
-Let's have AI help brainstorm how we can improve adherence to the intervention plan.
+Let's use AI to brainstorm how we can improve adherence to the intervention plan.
     </Markdown>
     <TextArea id="ai_modifications_query" placeholder="Type a prompt asking how to improve adherence to a behavior intervention plan..." />
     <LLMFeedback id="modifications_ai_response" placeholder="AI response will appear here..." />
     <ActionButton id="ask_ai_modifications_btn" label="Ask AI" dependsOn="@ai_modifications_query.value">
       <LLMAction target="modifications_ai_response">
-You are a helpful psychology teaching assistant. Provide practical strategies for improving adherence to a behavior intervention plan for a babysitter. Include ideas like: simplifying the plan with step-by-step guides, providing training/modeling, using yes/no fidelity checklists, setting phone reminders, visual prompts, coaching and feedback sessions. Keep suggestions practical and easy to implement.
-
-Student's prompt: <Ref target="ai_modifications_query" />
+             <Ref target="ai_modifications_query" />
       </LLMAction>
     </ActionButton>
   </Vertical>
+
+  <Vertical id="ai_intervention_brainstorming_prompt"><Markdown>
+We need advice on a psychological intervention using operant conditioning.
+          
+Annie's roommate is babysitting a six-year-old boy, and has been having
+trouble getting him to go to bed. He keeps running away, laughing, or doing
+other things that delay bedtime. We tried to put together an intervention
+plan that uses positive reinforcement, but it didn't quite work, so we put
+together a more complicated plan that changes the antecedent conditions as
+well as the consequent conditions. Here's our description of that plan:
+      </Markdown>
+      <Use ref="intervention_email" />
+      <Markdown>
+Here is what happened when Annie's roommate tried to implement the plan:
+          
+The boy went to bed on time the first couple of times, but then bedtime
+got later and later. The six-year-old's escape behaviors actually got worse.
+          
+When we checked on what Annie's roommate was actually doing, we learned
+that she was having trouble adhering to the plan. Specifically, we found out
+that sometimes she forgets to do the warning countdown and timer, she often 
+forgets the small bedtime reward, and often falls into negotiating or arguing
+when he whines for extended time.
+
+Given the problems that Annie's roommate is having getting the boy to bed
+on time, what advice should we give her to help her improve her adherence
+to the intervention plan?
+      </Markdown></Vertical>
+
+  <!-- AI help for modifications -->
+  <Vertical id="ai_modifications2">
+    <Markdown id="ai_modifications_prompt2">
+## Ask AI for Help
+
+Let's use AI to brainstorm how we can improve adherence to the intervention plan.
+    </Markdown>
+    <ActionButton id="ask_ai_modifications_btn2" label="Run the prompt the team has just developed">
+      <LLMAction target="modifications_ai_response2">
+We need advice on a psychological intervention using operant conditioning.
+          
+Annie's roommate is babysitting a six-year-old boy, and has been having
+trouble getting him to go to bed. He keeps running away, laughing, or doing
+other things that delay bedtime. We tried to put together an intervention
+plan that uses positive reinforcement, but it didn't quite work, so we put
+together a more complicated plan that changes the antecedent conditions as
+well as the consequent conditions. Here's our description of that plan:
+
+      <Ref target="intervention_email" />
+      
+Here is what happened when Annie's roommate tried to implement the plan:
+          
+The boy went to bed on time the first couple of times, but then bedtime
+got later and later. The six-year-old's escape behaviors actually got worse.
+          
+When we checked on what Annie's roommate was actually doing, we learned
+that she was having trouble adhering to the plan. Specifically, we found out
+that sometimes she forgets to do the warning countdown and timer, she often 
+forgets the small bedtime reward, and often falls into negotiating or arguing
+when he whines for extended time.
+
+Given the problems that Annie's roommate is having getting the boy to bed
+on time, what advice should we give her to help her improve her adherence
+to the intervention plan?
+      </LLMAction>
+    </ActionButton>
+    <LLMFeedback id="modifications_ai_response2" placeholder="AI response will appear here..." />
+  </Vertical>
+
 
   <!-- Modification selection -->
   <Vertical id="modification_selection">
@@ -1123,7 +1189,7 @@ Write a brief reflection of your experience, noting:
 4. Your personal reflections about the execution of this project, including what could have been done differently
 5. Provide at least 2 specific examples of what changes you would have made if Annie's roommate were to continue to babysit Johnny
     </Markdown>
-    <TextArea id="reflection_text" placeholder="Write your reflection here..." />
+    <TextArea id="reflection_text" rows="8" placeholder="Write your reflection here..." />
   </Vertical>
 
   <!-- Completion summary -->
