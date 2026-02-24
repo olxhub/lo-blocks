@@ -17,39 +17,29 @@ Lianne Park is a graduate student and member of your team. She will provide guid
 
 In this module, you will review and apply several concepts from your coursework on behavior modification. Specifically, you will:
 
- - Review fidelity of implementation for a psychology intervention
- - Brainstorm revisions to the intervention plan developed in earlier modules
- - Use an AI Assistant to support learning and problem solving
+ - **Review fidelity of implementation for a psychology intervention**
+ - **Brainstorm revisions to the intervention plan developed in earlier modules**
+ - **Use an AI Assistant to support learning and problem solving**
+  </Markdown>
+
+  <Markdown id="psych_sba_4_clear">
+      &nbsp;
   </Markdown>
 
   <!-- Time skip - 2 weeks later -->
   <Vertical id="two_weeks_later">
-     <SplitPanel id="two_wks_ltr">
-         <LeftPane>
-             <Markdown id="two_weeks_later_md">
-## Two Weeks Later...
-
-**Lin:** So how did the intervention go with your roommate?
-
-**Annie:** Thanks for asking! My roommate read our intervention plan and tracked Johnny's progress in her journal. Over the past 2 weeks, she babysat 5 times.
-
-**When Johnny Went to Bed**
-             </Markdown>
-        </LeftPane>
-        <RightPane>
-            <Markdown id="two_weeks_later_md2">
-- He went to bed on time only on the first **2 out of 5** occasions
+       <Markdown id="two_weeks_later_md">
+## Johnny's Bedtimes
+       </Markdown>
+       <Image id="bedtimes" src="images/Bedtimes.png" />
+       <Markdown id="two_weeks_later_md2">
+- Johnny went to bed on time only on the first **2 out of 5** occasions
 - On one occasion where he didn't go to bed on time, she noted that she didn't exactly follow our plan
 - On closer questioning, she admitted that the didn't implement any of the consequence strategies.
 - The escape behaviors seem to have gotten worse over time!
 
-Something isn't working right...
-         </Markdown>
-      </RightPane>
-  </SplitPanel>
-
-<Image src="images/Bedtimes.png" />
-  </Vertical>
+**Something isn't working right...**
+         </Markdown></Vertical>
   
   <!-- Implementation fidelity introduction -->
   <Markdown id="fidelity_intro">
@@ -89,9 +79,9 @@ Annie texted her roommate to find out exactly where things went wrong:
           <Distractor id="fidelity_d4">Program Differentiation</Distractor>
         </ChoiceInput>
       </KeyGrader>
-      <Explanation showWhen="answered">
-The roommate is struggling with **Adherence** - she's forgetting to follow the steps of the plan as written (forgetting timers, warnings, and rewards; falling into old patterns of negotiating).
-      </Explanation>
+      <Explanation showWhen="answered"><Markdown id="answered_md">
+The roommate is struggling with **adherence** - she's forgetting to follow the steps of the plan as written (forgetting timers, warnings, and rewards; falling into old patterns of negotiating).
+      </Markdown></Explanation>
     </CapaProblem>
   </Vertical>
 
@@ -203,7 +193,7 @@ Of these modifications, which ones should we add to help the roommate follow the
   <Markdown id="fidelity_checklist">
 ## Bedtime Routine Plan -- Fidelity Checklist
 
-Child's name:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Child's name:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date: 
 
 Completed by: 
 
@@ -259,18 +249,18 @@ Completed by:
   </Markdown>
 
   <!-- Another 2 weeks later - conclusion -->
-  <Markdown id="conclusion_progress">
+  <Vertical id="conclusion_progress"><Markdown id="conclusion_progress_md">
 ## Another Two Weeks Later...
 
-**JJ:** That looks much better!
-
-**Annie:** I know, right? My roommate is much happier. Johnny is going to bed on time more often, and his parents even asked my roommate for her secrets on how she got him to go to bed on time!
-
-**Lin:** That's amazing! I'm so glad we were able to help this time.
-
-The modified intervention was a success! With better adherence to the plan, Johnny's bedtime behavior improved significantly.
+**Johnny's Bedtimes**.
     </Markdown>
+    <Image id="bedtimes2" src="images/Bedtimes2.png" />
+    <Markdown id="conclusion_progress_md2">
+**The modified intervention was a success!**
 
+With better adherence to the plan, Johnny's bedtime behavior improved significantly
+    </Markdown>    
+  </Vertical>
   <!-- Final email -->
   <Tabs id="revision_suggestion_email">
     <Vertical id="revision_left" title="One More Suggestion ...">
@@ -301,9 +291,9 @@ possible.
 Write a brief reflection of your experience, noting:
 
 1. Whether the behavior was successfully or unsuccessfully modified
-2. What aspects of the intervention were effective and not effective
+2. What aspects of the intervention were effective **and** not effective
 3. Whether your plan was too complicated, simple, or just right
-4. Your personal reflections about the execution of this project, including what could have been done differently
+4. Your personal reflections about the execution of this project, including what could have been done differentlyThe modified intervention was a success! With better adherence to the plan, Johnny's bedtime behavior improved significantly
 5. Provide at least 2 specific examples of what changes you would have made if Annie's roommate were to continue to babysit Johnny
     </Markdown>
     <TextArea id="reflection_text" rows="8" placeholder="Write your reflection here..." />

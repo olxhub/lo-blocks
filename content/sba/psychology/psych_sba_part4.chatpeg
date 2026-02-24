@@ -15,9 +15,12 @@ Cast:
     seed: lianne
     face: smile
 ~~~~
-
 Introduction
 ------------
+
+Two Weeks Later
+---------------
+psych_sba_sidebar4 -> psych_sba_4_clear
 
 Annie: Hey everyone, I have an update about Johnny...
 
@@ -108,11 +111,11 @@ Annie: I will let you know how it goes in another 2 weeks!
 Conclusion
 ----------
 
-psych_sba_sidebar4 -> conclusion_progress
-
 JJ: So how did it go this time?
 
 Annie: Much better! Johnny is going to bed on time more often. His parents even asked my roommate for her secrets!
+
+psych_sba_sidebar4 -> conclusion_progress
 
 Lin: That's amazing! I'm so glad we were able to help.
 
