@@ -19,9 +19,14 @@ Cast:
 Introduction
 ------------
 
-Annie: Thanks again for your help with my roommate's dilemma with Johnny, the kid she babysits. [id=start]
+psych_sba_part3_sidebar -> fba_introduction
 
-psych_fba_sidebar -> fba_introduction
+Annie: Thanks again for your help with my roommate's dilemma with Johnny, the kid she babysits. 
+
+Two Weeks Later
+------------
+
+psych_sba_part3_sidebar -> psych_sba_part3_clear
 
 JJ: How's that going? Did our suggestions help?
 
