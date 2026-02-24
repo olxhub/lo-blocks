@@ -15,12 +15,12 @@ lang: en-Latn-US
 
   <!-- Left Panel: SMS Conversation -->
   <LeftPane>
-    <Chat id="psych_fba_chat" src="psych_sba_fba.chatpeg" height="400px" />
+    <Chat id="psych_fba_chat" src="psych_sba_part3.chatpeg" height="400px" />
   </LeftPane>
 
   <!-- Right Panel: Activities reference -->
   <RightPane>
-    <UseHistory id="psych_fba_sidebar" initial="fba_introduction" />
+    <UseHistory id="psych_sba_part3_sidebar" initial="fba_introduction" />
   </RightPane>
 
 </SplitPanel>

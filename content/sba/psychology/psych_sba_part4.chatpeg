@@ -1,0 +1,131 @@
+Title: Fidelity of Implementation and Revising an Intervention
+Author: Psychology Department
+Course: Intro to Psychology
+Cast:
+  Annie:
+    seed: annie
+    face: smile
+  JJ:
+    seed: alexander
+    face: smile
+  Lin:
+    seed: lynnette
+    face: smile
+  Lianne:
+    seed: lianne
+    face: smile
+~~~~
+
+Introduction
+------------
+
+Annie: Hey everyone, I have an update about Johnny...
+
+JJ: What happened?
+
+Annie: The intervention didn't go as well as we hoped. She only got him to bed on time only on the first two 2 out of 5 times. And on one occasion, she admitted she didn't follow our plan exactly. When I questioned her more closely, she told me she'd focused on the antecedent strategies. She didn't follow any of the consequence strategies.
+
+psych_sba_sidebar4 -> two_weeks_later
+
+Lin: Let's talk to our professor to find more resources.
+
+Implementation Fidelity
+-----------------------
+
+psych_sba_sidebar4 -> fidelity_intro
+
+Lin: The professor mentioned something called implementation fidelity.
+
+JJ: In other words, was Annie's roommate doing what our plan says they should do?
+
+Annie: Now we're getting somewhere! Let me text my roommate to see exactly where things went wrong...
+
+psych_sba_sidebar4 -> fidelity_check
+
+Annie: My roommate got back to me! She said that sometimes she forgets to do the warning countdown and timer, she forgets the small bedtime reward, and often falls into negotiating or arguing when he whines.
+
+JJ: Looks like she is struggling with adherence, mostly.
+
+Lin: Right. Let's have AI help brainstorm how we can help her.
+
+Modifications
+-------------
+
+psych_sba_sidebar4 -> ai_modifications
+
+--- wait @modifications_ai_response.value ---
+
+JJ: I asked, "How can I improve adherence to the intervention plan", and go a long complicated set of suggestions that wasn't really very helpful, because it was so general.
+
+Lin: Well, that's because you didn't give it any context. We have to give enough background so it's giving advice on the problem we're actually trying to solve. Otherwise, it just fills in the blanks with general stuff that sounds reasonable but isn't really tailored to our needs.
+
+JJ: What sort of context do we need? I'm bringing Lianne into the conversation to get some advice. Lianne, what do we need to tell the AI to get decent suggestions?
+
+Lianne: Well, you might want to make sure it knows that this is a psychology intervention using operant conditioning. And it really needs to know what plan you were following, and what problems Annie's roommate was having.
+
+Annie: In short, we have to make everything explicit! Lay it all out in detail. Why don't we put it all down and see if that helps.
+
+psych_sba_sidebar4 -> ai_intervention_brainstorming_prompt
+
+JJ: All right, here we go.
+
+Lin: That looks a lot better!
+
+Annie: It does indeed! 
+
+psych_sba_sidebar4 -> ai_modifications2
+
+Lin: Let's go ahead and find out what kind of response this gives us from the AI.
+
+Annie: This is a lot. We'd better read it carefully to make sure it's all in line with what we've been taught.
+
+JJ: There are a couple of things that might be slightly off, but overall, these are really good suggestions. But they're an awful lot. Should we really do all of them?
+
+psych_sba_sidebar4 -> modification_selection
+
+Annie: Maybe not. I've pulled the suggestions we got from a couple of runs of this prompt into a list. Take a look at them. Which of these modifications do you think we should suggest to Annie's roommate?
+
+JJ: Great choices! I totally agree.
+
+psych_sba_sidebar4 -> fidelity_checklist
+
+Lin: Me too. Here's a checklist I put together. 
+
+psych_sba_sidebar4 -> fidelity_checklist2
+
+JJ: I added a second part to the checklist for escape behaviors.
+
+psych_sba_sidebar4 -> revision_suggestion_email
+
+Annie: Why don't you guys add one more idea? I think my roommate needs all the help she can get.
+
+--- wait @revision_email.value ---
+
+Lin: Let's send this to her along with the other suggestions, and see how it goes!
+
+Annie: I will let you know how it goes in another 2 weeks!
+
+Conclusion
+----------
+
+psych_sba_sidebar4 -> conclusion_progress
+
+JJ: So how did it go this time?
+
+Annie: Much better! Johnny is going to bed on time more often. His parents even asked my roommate for her secrets!
+
+Lin: That's amazing! I'm so glad we were able to help.
+
+psych_sba_sidebar4 -> final_reflection
+
+JJ: Let's write up a reflection on what we learned from this whole experience.
+
+--- wait @reflection_text.value ---
+
+psych_sba_sidebar4 -> completion_summary_fba
+
+Annie: Thanks everyone. This was a great learning experience - we really used what we learned in psychology class to solve a real problem!
+
+Lin: And we learned about function of behavior, the ABCs, competing behavior pathways, and implementation fidelity along the way.
+
+JJ: Great teamwork!

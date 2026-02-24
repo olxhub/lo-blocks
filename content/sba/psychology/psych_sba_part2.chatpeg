@@ -1,7 +1,21 @@
 Title: Psychology Study Group, Task 2
 Author: Psychology Department
 Course: Intro to Psychology
+Cast:
+  Annie:
+    seed: annie
+    face: smile
+  JJ:
+    seed: alexander
+    face: smile
+  Lin:
+    seed: lynnette
+    face: smile
+  Lianne:
+    seed: lianne
+    face: smile
 ~~~~
+
 psych_sba_sidebar2 -> bedtime_problem_introduction2
 
 Reinforcement vs. Punishment
