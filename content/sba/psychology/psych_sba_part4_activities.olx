@@ -1,0 +1,335 @@
+<!--
+---
+description: Activities for Psychology SBA Part 4 - Implementation Fidelity. This is not an independent activity, but is shown to support content editing.
+category: psychology
+index: 53
+lang: en-Latn-US
+---
+-->
+<Vertical id="psych_sba_part4_activities" title="Psychology Study Group: 4. Implementation Fidelity" launchable="true">
+
+  <Markdown id="psych_sba_part4_intro">
+## About This Scenario
+
+Your class teammates are JJ, Lin, and Annie. Your team is responsible for helping each other identify key concepts, review and learn from readings, and organize information to develop a solution to the problem.
+
+Lianne Park is a graduate student and member of your team. She will provide guidance as necessary to help you with key information.
+
+In this module, you will review and apply several concepts from your coursework on behavior modification. Specifically, you will:
+
+ - Review fidelity of implementation for a psychology intervention
+ - Brainstorm revisions to the intervention plan developed in earlier modules
+ - Use an AI Assistant to support learning and problem solving
+  </Markdown>
+
+  <!-- Time skip - 2 weeks later -->
+  <Vertical id="two_weeks_later">
+     <SplitPanel id="two_wks_ltr">
+         <LeftPane>
+             <Markdown id="two_weeks_later_md">
+## Two Weeks Later...
+
+**Lin:** So how did the intervention go with your roommate?
+
+**Annie:** Thanks for asking! My roommate read our intervention plan and tracked Johnny's progress in her journal. Over the past 2 weeks, she babysat 5 times.
+
+**When Johnny Went to Bed**
+             </Markdown>
+        </LeftPane>
+        <RightPane>
+            <Markdown id="two_weeks_later_md2">
+- He went to bed on time only on the first **2 out of 5** occasions
+- On one occasion where he didn't go to bed on time, she noted that she didn't exactly follow our plan
+- On closer questioning, she admitted that the didn't implement any of the consequence strategies.
+- The escape behaviors seem to have gotten worse over time!
+
+Something isn't working right...
+         </Markdown>
+      </RightPane>
+  </SplitPanel>
+
+<Image src="images/Bedtimes.png" />
+  </Vertical>
+  
+  <!-- Implementation fidelity introduction -->
+  <Markdown id="fidelity_intro">
+## Implementation Fidelity
+
+**Implementation fidelity** refers to how accurately and consistently a behavior plan is implemented as it was designed.
+
+### Key Aspects of Fidelity:
+
+| Aspect | Question |
+|--------|----------|
+| **Adherence** | Are all steps of the plan followed as written? |
+| **Dosage** | Is the plan used for the correct amount of time/frequency? |
+| **Quality of Delivery** | Are strategies implemented correctly with intended tone/approach? |
+| **Participant Responsiveness** | Is the child actually exposed to and engaged with the intervention? |
+| **Program Differentiation** | Are other strategies (not part of the plan) avoided during implementation? |
+    </Markdown>
+
+  <!-- Fidelity comprehension check -->
+  <Vertical id="fidelity_check">
+    <Markdown id="fidelity_check_intro">
+## Check for Understanding
+
+Annie texted her roommate to find out exactly where things went wrong:
+
+> *"She said that sometimes she forgets to do the warning countdown and timer, she forgets the small bedtime reward, and often falls into negotiating or arguing when he whines for extended time."*
+    </Markdown>
+
+    <CapaProblem title="Fidelity Issue" id="fidelity_mcq">
+      <KeyGrader>
+        <p>Which is the main area of treatment fidelity that Annie's roommate is struggling with?</p>
+        <ChoiceInput>
+          <Key id="fidelity_key">Adherence</Key>
+          <Distractor id="fidelity_d1">Dosage</Distractor>
+          <Distractor id="fidelity_d2">Quality of Delivery</Distractor>
+          <Distractor id="fidelity_d3">Participant Responsiveness</Distractor>
+          <Distractor id="fidelity_d4">Program Differentiation</Distractor>
+        </ChoiceInput>
+      </KeyGrader>
+      <Explanation showWhen="answered">
+The roommate is struggling with **Adherence** - she's forgetting to follow the steps of the plan as written (forgetting timers, warnings, and rewards; falling into old patterns of negotiating).
+      </Explanation>
+    </CapaProblem>
+  </Vertical>
+
+  <!-- AI help for modifications -->
+  <Vertical id="ai_modifications">
+    <Markdown id="ai_modifications_prompt">
+## Ask AI for Help
+
+Let's use AI to brainstorm how we can improve adherence to the intervention plan.
+    </Markdown>
+    <TextArea id="ai_modifications_query" placeholder="Type a prompt asking how to improve adherence to a behavior intervention plan..." />
+    <LLMFeedback id="modifications_ai_response" placeholder="AI response will appear here..." />
+    <ActionButton id="ask_ai_modifications_btn" label="Ask AI" dependsOn="@ai_modifications_query.value">
+      <LLMAction target="modifications_ai_response">
+             <Ref target="ai_modifications_query" />
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <Vertical id="ai_intervention_brainstorming_prompt"><Markdown>
+We need advice on a psychological intervention using operant conditioning.
+          
+Annie's roommate is babysitting a six-year-old boy, and has been having
+trouble getting him to go to bed. He keeps running away, laughing, or doing
+other things that delay bedtime. We tried to put together an intervention
+plan that uses positive reinforcement, but it didn't quite work, so we put
+together a more complicated plan that changes the antecedent conditions as
+well as the consequent conditions. Here's our description of that plan:
+      </Markdown>
+      <Use ref="intervention_email" />
+      <Markdown>
+Here is what happened when Annie's roommate tried to implement the plan:
+          
+The boy went to bed on time the first couple of times, but then bedtime
+got later and later. The six-year-old's escape behaviors actually got worse.
+          
+When we checked on what Annie's roommate was actually doing, we learned
+that she was having trouble adhering to the plan. Specifically, we found out
+that sometimes she forgets to do the warning countdown and timer, she often 
+forgets the small bedtime reward, and often falls into negotiating or arguing
+when he whines for extended time.
+
+Given the problems that Annie's roommate is having getting the boy to bed
+on time, what advice should we give her to help her improve her adherence
+to the intervention plan?
+      </Markdown></Vertical>
+
+  <!-- AI help for modifications -->
+  <Vertical id="ai_modifications2">
+    <Markdown id="ai_modifications_prompt2">
+## Ask AI for Help
+
+Let's use AI to brainstorm how we can improve adherence to the intervention plan.
+    </Markdown>
+    <ActionButton id="ask_ai_modifications_btn2" label="Run the prompt the team has just developed">
+      <LLMAction target="modifications_ai_response2">
+We need advice on a psychological intervention using operant conditioning.
+          
+Annie's roommate is babysitting a six-year-old boy, and has been having
+trouble getting him to go to bed. He keeps running away, laughing, or doing
+other things that delay bedtime. We tried to put together an intervention
+plan that uses positive reinforcement, but it didn't quite work, so we put
+together a more complicated plan that changes the antecedent conditions as
+well as the consequent conditions. Here's our description of that plan:
+
+      <Ref target="intervention_email" />
+      
+Here is what happened when Annie's roommate tried to implement the plan:
+          
+The boy went to bed on time the first couple of times, but then bedtime
+got later and later. The six-year-old's escape behaviors actually got worse.
+          
+When we checked on what Annie's roommate was actually doing, we learned
+that she was having trouble adhering to the plan. Specifically, we found out
+that sometimes she forgets to do the warning countdown and timer, she often 
+forgets the small bedtime reward, and often falls into negotiating or arguing
+when he whines for extended time.
+
+Given the problems that Annie's roommate is having getting the boy to bed
+on time, what advice should we give her to help her improve her adherence
+to the intervention plan?
+      </LLMAction>
+    </ActionButton>
+    <LLMFeedback id="modifications_ai_response2" placeholder="AI response will appear here..." />
+  </Vertical>
+
+
+  <!-- Modification selection -->
+  <Vertical id="modification_selection">
+    <Markdown id="modification_selection_prompt">
+## Select Modifications
+
+Of these modifications, which ones should we add to help the roommate follow the plan? (Pick up to 2)
+    </Markdown>
+
+    <CapaProblem id="modification_choices">
+      <KeyGrader algorithm="survey">
+        <CheckboxInput>
+          <Key id="mod_1">Simplify the plan using a step-by-step guide</Key>
+          <Key id="mod_2">Provide direct training using in-person or video modeling</Key>
+          <Key id="mod_3">Use simple yes/no fidelity checklists for key steps</Key>
+          <Key id="mod_4">Provide coaching and feedback after each session</Key>
+          <Key id="mod_5">Set reminders and visual prompts on the roommate's phone</Key>
+        </CheckboxInput>
+      </KeyGrader>
+    </CapaProblem>
+  </Vertical>
+
+  <Markdown id="fidelity_checklist">
+## Bedtime Routine Plan -- Fidelity Checklist
+
+Child's name:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+Completed by: 
+
+|   **Step**   |    **Task**                          | **Completed?** | **Notes**                              |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1        | Used a consistent routine with a | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;            |                                    |
+|          | visual schedule                  |                 |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2        | Provided a warning countdown     | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;            |                                    |
+|          | before routine began (e.g.,      |                  |                                    |
+|          | 5-minute warning)                |                 |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3        | Used a timer to show when each   | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;                 |                                    |
+|          | step began and ended             |                 |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4        | Offered the child a limited      | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;            |                                    |
+|          | choice within the routine (e.g., |                 |                                    |
+|          | pajamas, story)                  |            |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5        | Provided labeled praise for      | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;            |                                    |
+|          | following steps (e.g., "Great    |                 |                                    |
+|          | job brushing your teeth!")       |                 |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6        | Provided a small reward for      | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;            |                                    |
+|          | completing the bedtime routine   |                 |                                    |
+|          | (e.g., stuffed animal, sticker)  |                 |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+  </Markdown>
+
+  <Markdown id="fidelity_checklist2">
+## Response to Escape Behavior -- If It Occurred
+
+|   **Step**   |    **Task**                          | **Completed?** | **Notes**                              |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7        | Did NOT delay bedtime (no | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;            |                                    |
+|          | negotiation or extended |                 |                                    |
+|          | time given              |                 |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;8        | Used a neutral and consistent | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;            |                                    |
+|          | response (no arguing,      |                  |                                    |
+|          | emotional tone, or         |                 |                                    |
+|          | bargaining)                |                 |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;9        | Physically guided the child   | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;                 |                                    |
+|          | through the routine if             |                 |                                    |
+|          | necessary (safely and             |                 |                                    |
+|          | calmly)                           |                 |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;10        | Avoided giving attention or | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2610;            |                                    |
+|          | access to reinforcement |                 |                                    |
+|          | during escape behavior  |            |                                    |
+|----------|----------------------------------|-----------------|------------------------------------|
+  </Markdown>
+
+  <!-- Another 2 weeks later - conclusion -->
+  <Markdown id="conclusion_progress">
+## Another Two Weeks Later...
+
+**JJ:** That looks much better!
+
+**Annie:** I know, right? My roommate is much happier. Johnny is going to bed on time more often, and his parents even asked my roommate for her secrets on how she got him to go to bed on time!
+
+**Lin:** That's amazing! I'm so glad we were able to help this time.
+
+The modified intervention was a success! With better adherence to the plan, Johnny's bedtime behavior improved significantly.
+    </Markdown>
+
+  <!-- Final email -->
+  <Tabs id="revision_suggestion_email">
+    <Vertical id="revision_left" title="One More Suggestion ...">
+      <Markdown id="revision_suggestion_prompt">
+## Provide Just A Little More Support for Amy's Roommate
+
+Based on what you have learned, produce an email in which you tell
+Amy's roommate about **one more way** she can improve her fidelity of 
+implementation, besides using the two checklists.
+
+You can use one of the suggestions provided by the AI, but if you do,
+be sure to tweak it and provide extra details to make it as useful as
+possible.
+        </Markdown>
+      <TextArea id="revision_email" placeholder="Dear Roommate, besides using the checklists, here's something else you can do that will help..." rows="8" />
+    </Vertical>
+    <Vertical id="revision_right" title="The AI's suggestions">
+        <Use ref="modifications_ai_response2" />
+    </Vertical>
+  </Tabs>
+
+
+  <!-- Final reflection -->
+  <Vertical id="final_reflection">
+    <Markdown id="final_reflection_prompt">
+## Final Reflection
+
+Write a brief reflection of your experience, noting:
+
+1. Whether the behavior was successfully or unsuccessfully modified
+2. What aspects of the intervention were effective and not effective
+3. Whether your plan was too complicated, simple, or just right
+4. Your personal reflections about the execution of this project, including what could have been done differently
+5. Provide at least 2 specific examples of what changes you would have made if Annie's roommate were to continue to babysit Johnny
+    </Markdown>
+    <TextArea id="reflection_text" rows="8" placeholder="Write your reflection here..." />
+  </Vertical>
+
+  <!-- Completion summary -->
+  <Markdown id="completion_summary_fba">
+## Module Complete!
+
+### What You've Learned:
+
+1. **Function of Behavior** - The four main functions (attention, escape, access, sensory) and how to identify them
+2. **ABCs** - How to analyze Antecedent-Behavior-Consequence sequences
+3. **Competing Behavior Pathway** - How to plan interventions by mapping problem behaviors to desired behaviors
+4. **Intervention Planning** - How to select strategies that match the function of behavior
+5. **Implementation Fidelity** - Why consistent implementation matters and how to improve adherence
+
+### Your Journey:
+
+You successfully helped Annie's roommate solve Johnny's bedtime problem by:
+- Identifying the function of his running-away behavior (escape)
+- Creating a competing behavior pathway
+- Selecting appropriate antecedent and consequence strategies
+- Recognizing and addressing implementation fidelity issues
+
+**Great work using behavioral psychology to solve a real problem!**
+    </Markdown>
+
+</Vertical>

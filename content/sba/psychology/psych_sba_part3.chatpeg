@@ -1,6 +1,19 @@
 Title: Function of Behavior and Intervention Planning
 Author: Psychology Department
 Course: Intro to Psychology
+Cast:
+  Annie:
+    seed: annie
+    face: smile
+  JJ:
+    seed: alexander
+    face: smile
+  Lin:
+    seed: lynnette
+    face: smile
+  Lianne:
+    seed: lianne
+    face: smile
 ~~~~
 
 Introduction
@@ -28,7 +41,7 @@ Annie: Then, she tells him to get into bed, but like always, he runs away from t
 
 JJ: Well, does he eventually go to bed?
 
-psych_fba_sidebar -> roommate_situation
+psych_sba_part3_sidebar -> roommate_situation
 
 Annie: Well, yeah, but not without a fight. After he runs away, my roommate chases after him and keeps nagging on him to go to bed. I think he eventually gets tired and goes to bed, but my roommate is left feeling tired and frustrated, just like before.
 
@@ -37,7 +50,7 @@ Lin: Yikes. Looks like it's time to go back to the drawing board!
 Function of Behavior
 --------------------
 
-psych_fba_sidebar -> function_behavior_intro
+psych_sba_part3_sidebar -> function_behavior_intro
 
 Lin: One of the things we learned in class was that whenever you need to intervene with a behavior, the intervention must address the function of the behavior.
 
@@ -51,13 +64,13 @@ JJ: Well, it's worth a try if one of you remembers better than I do. But I'll wr
 
 Lin: And I'll dig up my notes from class while you're all doing that. I'm sure I have them around here somewhere ...
 
-psych_fba_sidebar -> ai_function_definition
+psych_sba_part3_sidebar -> ai_function_definition
 
 --- wait @function_ai_response.value ---
 
 Annie: Oh, that's helpful! So we need to figure out WHY Johnny is running away at bedtime.
 
-psych_fba_sidebar -> four_functions_notes
+psych_sba_part3_sidebar -> four_functions_notes
 
 Lin: Here are my notes from class. The four main functions of behavior are attention, escape, access to preferred activity/object, and sensory.
 
@@ -70,21 +83,21 @@ Lin: I took a picture of a couple of examples that our TA Lianne wrote down on t
 Review Concepts
 ---------------
 
-psych_fba_sidebar -> review_reinforcement1
+psych_sba_part3_sidebar -> review_reinforcement1
 
 --- wait @review_billy_joke.submitCount > 0 ---
 
-psych_fba_sidebar -> review_reinforcement2
+psych_sba_part3_sidebar -> review_reinforcement2
 
 --- wait @review_jenny_whining.submitCount > 0 ---
 
-psych_fba_sidebar -> abc_screen_clear
+psych_sba_part3_sidebar -> abc_screen_clear
 
 JJ: Whew, thank you for the refresher. I needed that.
 
 Lin: Me too.
 
-psych_fba_sidebar -> function_reinforcement
+psych_sba_part3_sidebar -> function_reinforcement
 
 Lin: Lianne also said a couple of other things during our last class. She said that if the function is for attention or tangibles, it usually involves positive reinforcement. If the function is escape, it typically involves negative reinforcement. And for sensory, it can be either one.
 
@@ -97,7 +110,7 @@ JJ: You are a helpful psychology teaching assistant. Create a chart showing the 
 AI Chart
 --------
 
-psych_fba_sidebar -> ai_function_chart
+psych_sba_part3_sidebar -> ai_function_chart
 
 --- wait @chart_ai_response.value ---
 
@@ -105,23 +118,23 @@ Lin: That chart makes things so much clearer!
 
 Annie: I agree! But we won't really remember this unless we try to do the same thing ourselves. So let's fill in a blank chart with our own examples.
 
-psych_fba_sidebar -> own_examples_page_attention
+psych_sba_part3_sidebar -> own_examples_page_attention
 
 --- wait @positive_reinforcement_for_attention.value && @negative_reinforcement_for_attention.value ---
 
-psych_fba_sidebar -> own_examples_page_escape
+psych_sba_part3_sidebar -> own_examples_page_escape
 
 --- wait @positive_reinforcement_for_escape.value && @negative_reinforcement_for_escape.value ---
 
-psych_fba_sidebar -> own_examples_page_access
+psych_sba_part3_sidebar -> own_examples_page_access
 
 --- wait @positive_reinforcement_for_access.value && @negative_reinforcement_for_access.value ---
 
-psych_fba_sidebar -> own_examples_page_sensory
+psych_sba_part3_sidebar -> own_examples_page_sensory
 
 --- wait @positive_reinforcement_for_sensory.value && @negative_reinforcement_for_sensory.value ---
 
-psych_fba_sidebar -> abc_screen_clear
+psych_sba_part3_sidebar -> abc_screen_clear
 
 Lin: After this exercise, I think that I've got the relationship between reinforcement and function of behavior down really well!
 
@@ -129,14 +142,14 @@ JJ: Yes, but didn't we learn about punishment too?
 
 Lin: Yeah, I thought punishment could be a function too.
 
-psych_fba_sidebar -> no_punishment_function
+psych_sba_part3_sidebar -> no_punishment_function
 
 Annie: I had that same thought, so I tried asking AI. Here's what it told me. I also checked my class notes, and they said the same thing.
 
 Check Understanding
 -------------------
 
-psych_fba_sidebar -> explain_no_punishment
+psych_sba_part3_sidebar -> explain_no_punishment
 
 --- wait @punishment_explanation.value ---
 
@@ -153,47 +166,47 @@ Annie: Great, let's try them together.
 Practice Functions
 ------------------
 
-psych_fba_sidebar -> function_practice_1
+psych_sba_part3_sidebar -> function_practice_1
 
 --- wait @function_michelle.submitCount > 0 ---
 
-psych_fba_sidebar -> function_practice_1b
+psych_sba_part3_sidebar -> function_practice_1b
 
 --- wait @function_beth.submitCount > 0 ---
 
-psych_fba_sidebar -> function_practice_1c
+psych_sba_part3_sidebar -> function_practice_1c
 
 --- wait @function_randy.submitCount > 0 ---
 
-psych_fba_sidebar -> function_practice_1d
+psych_sba_part3_sidebar -> function_practice_1d
 
 --- wait @function_ryan.submitCount > 0 ---
 
-psych_fba_sidebar -> function_practice_1e
+psych_sba_part3_sidebar -> function_practice_1e
 
 --- wait @function_emily.submitCount > 0 ---
 
-psych_fba_sidebar -> function_practice_2
+psych_sba_part3_sidebar -> function_practice_2
 
 --- wait @function_sally.submitCount > 0 ---
 
-psych_fba_sidebar -> function_practice_2b
+psych_sba_part3_sidebar -> function_practice_2b
 
 --- wait @function_aidan.submitCount > 0 ---
 
-psych_fba_sidebar -> function_practice_2c
+psych_sba_part3_sidebar -> function_practice_2c
 
 --- wait @function_matthew.submitCount > 0 ---
 
-psych_fba_sidebar -> function_practice_2d
+psych_sba_part3_sidebar -> function_practice_2d
 
 --- wait @function_jasmine.submitCount > 0 ---
 
-psych_fba_sidebar -> function_practice_2e
+psych_sba_part3_sidebar -> function_practice_2e
 
 --- wait @function_simon.submitCount > 0 ---
 
-psych_fba_sidebar -> abc_screen_clear
+psych_sba_part3_sidebar -> abc_screen_clear
 
 Lin: Great job! I think we're getting the hang of identifying functions.
 
@@ -207,7 +220,7 @@ Lin: Right, we had to look at what came before the behavior and then what came a
 JJ: Yes, the antecedent, then the behavior, then the consequences.
 
 
-psych_fba_sidebar -> abc_introduction
+psych_sba_part3_sidebar -> abc_introduction
 
 Annie: Oh, that's right, I remember now. The professor said, "It's as easy as learning your ABCs!"
 
@@ -215,7 +228,7 @@ JJ: We can use AI to come up with examples for each of the four functions. That'
 
 Lin: Good idea! I wrote the following prompt ...
 
-psych_fba_sidebar -> ai_abc_diagrams
+psych_sba_part3_sidebar -> ai_abc_diagrams
 
 Lin: You are a helpful psychology teaching assistant. Create clear examples of ABC (Antecedent-Behavior-Consequence) sequences for each of the four functions of behavior (escape, attention, access/tangible, sensory). Use a simple format showing: Antecedent -> Behavior -> Consequence -> Function. Include concrete, relatable examples a student would understand.
 
@@ -223,7 +236,7 @@ Lin: You are a helpful psychology teaching assistant. Create clear examples of A
 
 Annie: That was helpful! It reminds me of something Lianne showed us.
 
-psych_fba_sidebar -> sample_competing_behavior_diagram
+psych_sba_part3_sidebar -> sample_competing_behavior_diagram
 
 JJ: I remember this from my notes. It's called a Competing Behavior Pathway. It has the ABCs in the center, but also some extra boxes to help people think about the different behaviors someone **could** have shown. It helps us analyze why the problem behavior wins out.
 
@@ -235,7 +248,7 @@ Annie: So, the Maintaining Consequence is what happens after? Task is removed or
 
 JJ: Exactly. So in that example, the teacher gave a hard task, then the student put their head down instead of working on it, so then the teacher probably got sick of waiting for them to do the task and gave up on making them do it and removed the task.
 
-psych_fba_sidebar -> abc_example
+psych_sba_part3_sidebar -> abc_example
 
 Lin: Right, or the student continued to put their head down for so long that maybe the teacher just assigned it for homework, delaying the task.
 
@@ -244,11 +257,11 @@ Apply ABCs
 
 Lin: Let's try applying this reasoning to the problem Annie's roommate is having with the boy she's babysitting. What were the antecedent, the behavior, and the consequence?
 
-psych_fba_sidebar -> abc_johnny_check
+psych_sba_part3_sidebar -> abc_johnny_check
 
 --- wait @abc_johnny_explanation.value ---
 
-psych_fba_sidebar -> abc_summary_mcq
+psych_sba_part3_sidebar -> abc_summary_mcq
 
 --- wait @johnny_function_mcq.submitCount > 0 ---
 
@@ -257,17 +270,17 @@ JJ: So using the ABCs, we know that the antecedent was your roommate told him to
 Competing Behavior Pathway
 --------------------------
 
-psych_fba_sidebar -> cbp_introduction
+psych_sba_part3_sidebar -> cbp_introduction
 
 Lin: Okay, let's put it all together. Using everything we know so far about Johnny, let's fill out a Competing Behavior Pathway!
 
 JJ: Lianne showed us this in class!
 
-psych_fba_sidebar -> cbp_fill_in
+psych_sba_part3_sidebar -> cbp_fill_in
 
 --- wait @cbp_desired_behavior.value && @cbp_positive_outcome.value ---
 
-psych_fba_sidebar -> cbp_comparison
+psych_sba_part3_sidebar -> cbp_comparison
 
 JJ: Let's compare! Here's what I came up with.
 
@@ -282,23 +295,23 @@ JJ: Right. But both behaviors had the same function: Escape. Putting off bedtime
 
 Lin: That means even if your roommate finds a way to make sure he gets into bed, if she doesn't do anything different, he'll just come up with another alternative behavior. For example, he could ask for a bedtime story. And when that one's finished, he could ask for another one!
 
-psych_fba_sidebar -> cbp_comparison2
+psych_sba_part3_sidebar -> cbp_comparison2
 
 Annie: That's a good point. I've updated the diagram to show that as a possible alternative behavior.
 
-psych_fba_sidebar -> cbp_comparison3
+psych_sba_part3_sidebar -> cbp_comparison3
 
 Annie: But it's probably worth mentioning that when all of this happens, my roommate has already given him a bath and gotten him into his pajamas, so he knows bedtime is near! But he doesn't act sleepy. I'll add that to the setting events box.
 
 JJ: Okay, so now we need to figure out an intervention now that we know the function of the behavior of running away from his room at bedtime is escape.
 
-psych_fba_sidebar -> textbook_on_interventions
+psych_sba_part3_sidebar -> textbook_on_interventions
 
 Lin: Take a look at what my Child Development course's textbook says about generating interventions. 
 
 Annie: There are lots of options here! But we've obviously got to change something about the way we're approaching things, or he'll just keep trying to escape.
 
-psych_fba_sidebar -> escape_textbook
+psych_sba_part3_sidebar -> escape_textbook
 
 Lin: Right, and here's what my textbook says about escape.
 
@@ -308,13 +321,13 @@ JJ: Well, maybe we should consider both antecedents and consequences. I'm still 
 
 Annie: Maybe we can use AI to help us come up with different ways to prevent the problem behavior.
 
-psych_fba_sidebar -> ai_intervention
+psych_sba_part3_sidebar -> ai_intervention
 
 JJ: It's probably better to break that up a bit or we'll get way too many possibilities. Let's ask about antecedent strategies first.
 
 --- wait @intervention_ai_response.value ---
 
-psych_fba_sidebar -> ai_intervention2
+psych_sba_part3_sidebar -> ai_intervention2
 
 Lin: And we can ask about consequent strategies next.
 
@@ -324,13 +337,13 @@ Annie: I think we've missed something important here. Not all of the strategies 
 
 JJ: OK, then. Let's take a look at the lists of antecedent and consequent strategies I got, and mark which interventions address escape as the function of behavior.
 
-psych_fba_sidebar -> strategy_selection
+psych_sba_part3_sidebar -> strategy_selection
 
 JJ: Here are the antecedent strategies I got.
 
 --- wait @antecedent_strategies.submitCount > 0 ---
 
-psych_fba_sidebar -> strategy_selection2
+psych_sba_part3_sidebar -> strategy_selection2
 
 JJ: Here are the consequent strategies I got.
 
@@ -338,19 +351,19 @@ JJ: Here are the consequent strategies I got.
 
 Annie: OK, so we have a couple of strategies each for antecedent and consequence. For completeness, we should try to get AI to focus on strategies that will deal with **escape** specifically, so we'll have more strategies to choose from. 
 
-psych_fba_sidebar -> ai_intervention3
+psych_sba_part3_sidebar -> ai_intervention3
 
 JJ: Once again, let's start with antecedent strategies.
 
 --- wait @intervention_ai_response3.value ---
 
-psych_fba_sidebar -> ai_intervention4
+psych_sba_part3_sidebar -> ai_intervention4
 
 Lin: And consequent strategies come next.
 
 --- wait @intervention_ai_response4.value ---
 
-psych_fba_sidebar -> revised_pathway
+psych_sba_part3_sidebar -> revised_pathway
 
 Annie: Now let's put those strategies into our updated competing behavior pathway.
 
@@ -359,7 +372,7 @@ Annie: Now let's put those strategies into our updated competing behavior pathwa
 Choosing a Plan
 ---------------
 
-psych_fba_sidebar -> plans_comparison
+psych_sba_part3_sidebar -> plans_comparison
 
 Annie: We've got some great ideas here! Here's your plan, and here's Lin's. Which one do you think will work best?
 
@@ -371,7 +384,7 @@ Annie: That sounds hard. We've already gotten some great ideas, but I don't even
 
 Lianne: Let me give you a leg up. I'll put all the things that seem plausible into a super-plan organized in terms of the competing behavior pathway. Then you guys can go over it and see what parts of it make sense to you, so you can decide what to recommend to Annie's roommate.
 
-psych_fba_sidebar -> full_plan
+psych_sba_part3_sidebar -> full_plan
 
 JJ: Let's go back to the Competing Behavior Pathway organizer we started and use go through the strategies we've found that are consistent with Lin's plan. Basically, we plug them in as extra options at key points in the path.
 
@@ -379,7 +392,7 @@ JJ: Wow, there's a lot here. They don't all make sense here, but I do like the i
 
 Lin: Yes, me too. I really like the consequence strategy of ignoring or not providing attention or reinforcement during the escape behavior. That makes a lot of sense to me.
 
-psych_fba_sidebar -> plan_discussion
+psych_sba_part3_sidebar -> plan_discussion
 
 Annie: Me too. What do you think?
 
@@ -388,7 +401,7 @@ Annie: Me too. What do you think?
 Final Email
 -----------
 
-psych_fba_sidebar -> final_intervention_email
+psych_sba_part3_sidebar -> final_intervention_email
 
 Annie: Great! Let's write up our intervention plan in an email to my roommate.
 
@@ -400,118 +413,3 @@ Annie: Perfect! I'll send this to my roommate right away.
 
 Lin: Great job everyone! Let's check back in a couple weeks to see how it goes.
 
-Two Weeks Later
----------------
-
-psych_fba_sidebar -> abc_screen_clear
-
-Annie: Hey everyone, I have an update about Johnny...
-
-JJ: What happened?
-
-Annie: The intervention didn't go as well as we hoped. She only got him to bed on time only on the first two 2 out of 5 times. And on one occasion, she admitted she didn't follow our plan exactly. When I questioned her more closely, she told me she'd focused on the antecedent strategies. She didn't follow any of the consequence strategies.
-
-psych_fba_sidebar -> two_weeks_later
-
-Lin: Let's talk to our professor to find more resources.
-
-Implementation Fidelity
------------------------
-
-psych_fba_sidebar -> fidelity_intro
-
-Lin: The professor mentioned something called implementation fidelity.
-
-JJ: In other words, was Annie's roommate doing what our plan says they should do?
-
-Annie: Now we're getting somewhere! Let me text my roommate to see exactly where things went wrong...
-
-psych_fba_sidebar -> fidelity_check
-
-Annie: My roommate got back to me! She said that sometimes she forgets to do the warning countdown and timer, she forgets the small bedtime reward, and often falls into negotiating or arguing when he whines.
-
-JJ: Looks like she is struggling with adherence, mostly.
-
-Lin: Right. Let's have AI help brainstorm how we can help her.
-
-Modifications
--------------
-
-psych_fba_sidebar -> ai_modifications
-
---- wait @modifications_ai_response.value ---
-
-JJ: I asked, "How can I improve adherence to the intervention plan", and go a long complicated set of suggestions that wasn't really very helpful, because it was so general.
-
-Lin: Well, that's because you didn't give it any context. We have to give enough background so it's giving advice on the problem we're actually trying to solve. Otherwise, it just fills in the blanks with general stuff that sounds reasonable but isn't really tailored to our needs.
-
-JJ: What sort of context do we need? I'm bringing Lianne into the conversation to get some advice. Lianne, what do we need to tell the AI to get decent suggestions?
-
-Lianne: Well, you might want to make sure it knows that this is a psychology intervention using operant conditioning. And it really needs to know what plan you were following, and what problems Annie's roommate was having.
-
-Annie: In short, we have to make everything explicit! Lay it all out in detail. Why don't we put it all down and see if that helps.
-
-psych_fba_sidebar -> ai_intervention_brainstorming_prompt
-
-JJ: All right, here we go.
-
-Lin: That looks a lot better!
-
-Annie: It does indeed! 
-
-psych_fba_sidebar -> ai_modifications2
-
-Lin: Let's go ahead and find out what kind of response this gives us from the AI.
-
-Annie: This is a lot. We'd better read it carefully to make sure it's all in line with what we've been taught.
-
-JJ: There are a couple of things that might be slightly off, but overall, these are really good suggestions. But they're an awful lot. Should we really do all of them?
-
-psych_fba_sidebar -> modification_selection
-
-Annie: Maybe not. I've pulled the suggestions we got from a couple of runs of this prompt into a list. Take a look at them. Which of these modifications do you think we should suggest to Annie's roommate?
-
-JJ: Great choices! I totally agree.
-
-psych_fba_sidebar -> fidelity_checklist
-
-Lin: Me too. Here's a checklist I put together. 
-
-psych_fba_sidebar -> fidelity_checklist2
-
-JJ: I added a second part to the checklist for escape behaviors.
-
-psych_fba_sidebar -> revision_suggestion_email
-
-Annie: Why don't you guys add one more idea? I think my roommate needs all the help she can get.
-
---- wait @revision_email.value ---
-
-Lin: Let's send this to her along with the other suggestions, and see how it goes!
-
-Annie: I will let you know how it goes in another 2 weeks!
-
-Conclusion
-----------
-
-psych_fba_sidebar -> conclusion_progress
-
-JJ: So how did it go this time?
-
-Annie: Much better! Johnny is going to bed on time more often. His parents even asked my roommate for her secrets!
-
-Lin: That's amazing! I'm so glad we were able to help.
-
-psych_fba_sidebar -> final_reflection
-
-JJ: Let's write up a reflection on what we learned from this whole experience.
-
---- wait @reflection_text.value ---
-
-psych_fba_sidebar -> completion_summary_fba
-
-Annie: Thanks everyone. This was a great learning experience - we really used what we learned in psychology class to solve a real problem!
-
-Lin: And we learned about function of behavior, the ABCs, competing behavior pathways, and implementation fidelity along the way.
-
-JJ: Great teamwork!
