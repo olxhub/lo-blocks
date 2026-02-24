@@ -481,6 +481,12 @@ psych_fba_sidebar -> fidelity_checklist2
 
 JJ: I added a second part to the checklist for escape behaviors.
 
+psych_fba_sidebar -> revision_suggestion_email
+
+Annie: Why don't you guys add one more idea? I think my roommate needs all the help she can get.
+
+--- wait @revision_email.value ---
+
 Lin: Let's send this to her along with the other suggestions, and see how it goes!
 
 Annie: I will let you know how it goes in another 2 weeks!

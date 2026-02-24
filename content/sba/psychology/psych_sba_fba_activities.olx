@@ -1234,6 +1234,28 @@ Completed by:
 The modified intervention was a success! With better adherence to the plan, Johnny's bedtime behavior improved significantly.
     </Markdown>
 
+  <!-- Final email -->
+  <Tabs id="revision_suggestion_email">
+    <Vertical id="revision_left" title="One More Suggestion ...">
+      <Markdown id="revision_suggestion_prompt">
+## Provide Just A Little More Support for Amy's Roommate
+
+Based on what you have learned, produce an email in which you tell
+Amy's roommate about **one more way** she can improve her fidelity of 
+implementation, besides using the two checklists.
+
+You can use one of the suggestions provided by the AI, but if you do,
+be sure to tweak it and provide extra details to make it as useful as
+possible.
+        </Markdown>
+      <TextArea id="revision_email" placeholder="Dear Roommate, besides using the checklists, here's something else you can do that will help..." rows="8" />
+    </Vertical>
+    <Vertical id="revision_right" title="The AI's suggestions">
+        <Use ref="modifications_ai_response2" />
+    </Vertical>
+  </Tabs>
+
+
   <!-- Final reflection -->
   <Vertical id="final_reflection">
     <Markdown id="final_reflection_prompt">
