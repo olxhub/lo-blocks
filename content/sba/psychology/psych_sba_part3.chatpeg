@@ -108,9 +108,19 @@ Lin: Lianne also said a couple of other things during our last class. She said t
 
 Annie: I think it would really help my brain if we put all these concepts together. I think AI could help here.
 
-JJ: OK, I've written a prompt we can use. Here it is --
+JJ: OK, I tried writing a prompt we can use. Here it is --
 
 JJ: You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement.
+
+Lin: Have you tried it?
+
+JJ: I did. The results looked good on the surface, but when I worked through it carefully, I discovered that it had filled in cells that really shouldn't have been filled in, with subtly misleading examples. I had to tweak my prompt several times before the results were correct.
+
+Annie: So what was your final prompt?
+
+JJ: You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement. Include concrete examples for each combination of function with positive or negative reinforcement. Leave a cell blank if the function of the behavior is by definition incompatible with the type of reinforcement, assuming that negative reinforcement is compatible with removal of unwanted attention. 
+
+Lin: Let's see what that gives us!
 
 AI Chart
 --------
@@ -121,7 +131,9 @@ psych_sba_part3_sidebar -> ai_function_chart
 
 Lin: That chart makes things so much clearer!
 
-Annie: I agree! But we won't really remember this unless we try to do the same thing ourselves. So let's fill in a blank chart with our own examples.
+JJ: It does. Especially because it leaves two cells blank. Escape is removal of something, not adding something, so it can't be positive reinforcement. And access to tangibles is getting something, not removing it, so it can't be negative reinforcement.
+
+Annie: Good catch, JJ. That's a useful chart! But we won't really **learn** what the chart is telling us unless we try to do the same thing ourselves. So let's fill in a blank chart with our own examples.
 
 psych_sba_part3_sidebar -> own_examples_page_attention
 
@@ -143,7 +155,9 @@ psych_sba_part3_sidebar -> abc_screen_clear
 
 Lin: After this exercise, I think that I've got the relationship between reinforcement and function of behavior down really well!
 
-JJ: Yes, but didn't we learn about punishment too?
+Annie: It was! I tried several times to provide examples of "negative reinforcement with an escape function" and "positive reinforcement with an access function", and the AI feedback shot me down every time. Those combinations just don't make sense.
+
+JJ: Yes, but there's something I'm wondering about. Didn't we also learn about punishment? What is the function of punishment?
 
 Lin: Yeah, I thought punishment could be a function too.
 
@@ -415,6 +429,8 @@ JJ: Make sure to use the terms we've learned - function of behavior, antecedent,
 --- wait @intervention_email.value ---
 
 Annie: Perfect! I'll send this to my roommate right away.
+
+psych_sba_part3_sidebar -> psych_sba_part3_completion
 
 Lin: Great job everyone! Let's check back in a couple weeks to see how it goes.
 
