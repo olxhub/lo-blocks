@@ -187,7 +187,7 @@ Lianne also said during class:
     </Markdown>
     <ActionButton id="ask_ai_chart_btn" label="Create the Examples">
       <LLMAction target="chart_ai_response">
-You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement. Use a markdown table format. Include concrete examples for each function. Include a blank columns to set off each column from the ones next to it. Highlight the function names in the function column.
+You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement. Use a markdown table format. Include concrete examples for each combination of function with positive or negative reinforcement. Leave a cell blank if the function of the behavior is by definition incompatible with the type of reinforcement, assuming that negative reinforcement is compatible with removal of unwanted attention. Highlight the function names in the function column.
 
 Student's request: <Ref target="ai_chart_query" />
       </LLMAction>
@@ -195,16 +195,27 @@ Student's request: <Ref target="ai_chart_query" />
     <LLMFeedback id="chart_ai_response" render="markdown" placeholder="AI response will appear here..." />
   </Vertical>
 
-  <SplitPanel id="own_examples_page_attention">
-      <LeftPane>
-          <Markdown>
-              **Examples of Positive Reinforcement**
+  <SplitPanel id="own_examples_page_attention"><LeftPane><Markdown>
+**Examples of Positive Reinforcement**
 
-              1. Attention
+1. Attention
           </Markdown>
           <TextArea
               id="positive_reinforcement_for_attention"
-              rows="2" />
+              rows="3" />
+          <ActionButton id="pr_attention_feedback_btn" label="Get AI Feedback" dependsOn="@positive_reinforcement_for_attention.value">
+            <LLMAction target="pr_attention_feedback">
+A student in a psychology class has offered the following situation as an
+example of positive reinforcement whose function is attention --
+                
+Student's example: <Ref target="positive_reinforcement_for_attention" />
+
+Evaluate whether the student's example is a correct example of positive reinforcement
+with attention as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+            </LLMAction>
+          </ActionButton>
+          <LLMFeedback id="pr_attention_feedback" render="markdown" placeholder="AI response will appear here..." />
       </LeftPane>
       <RightPane>
           <Markdown>
@@ -214,7 +225,20 @@ Student's request: <Ref target="ai_chart_query" />
           </Markdown>
           <TextArea
               id="negative_reinforcement_for_attention"
-              rows="2" />
+              rows="3" />
+          <ActionButton id="nr_attention_feedback_btn" label="Get AI Feedback" dependsOn="@negative_reinforcement_for_attention.value">
+            <LLMAction target="nr_attention_feedback">
+A student in a psychology class has offered the following situation as an
+example of negative reinforcement whose function is attention --
+                
+Student's example: <Ref target="negative_reinforcement_for_attention" />
+
+Evaluate whether the student's example is a correct example of negative reinforcement
+with attention as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+            </LLMAction>
+          </ActionButton>
+          <LLMFeedback id="nr_attention_feedback" render="markdown" placeholder="AI response will appear here..." />
       </RightPane>
   </SplitPanel>
 
@@ -228,6 +252,19 @@ Student's request: <Ref target="ai_chart_query" />
           <TextArea
               id="positive_reinforcement_for_escape"
               rows="2" />
+          <ActionButton id="pr_escape_feedback_btn" label="Get AI Feedback" dependsOn="@positive_reinforcement_for_escape.value">
+            <LLMAction target="pr_escape_feedback">
+A student in a psychology class has offered the following situation as an
+example of positive reinforcement whose function is escape --
+                
+Student's example: <Ref target="positive_reinforcement_for_escape" />
+
+Evaluate whether the student's example is a correct example of positive reinforcement
+with escape as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+            </LLMAction>
+          </ActionButton>
+          <LLMFeedback id="pr_escape_feedback" render="markdown" placeholder="AI response will appear here..." />
       </LeftPane>
       <RightPane>
           <Markdown>
@@ -238,6 +275,19 @@ Student's request: <Ref target="ai_chart_query" />
           <TextArea
               id="negative_reinforcement_for_escape"
               rows="2" />
+          <ActionButton id="nr_escape_feedback_btn" label="Get AI Feedback" dependsOn="@negative_reinforcement_for_escape.value">
+            <LLMAction target="nr_escape_feedback">
+A student in a psychology class has offered the following situation as an
+example of negative reinforcement whose function is escape --
+                
+Student's example: <Ref target="negative_reinforcement_for_escape" />
+
+Evaluate whether the student's example is a correct example of negative reinforcement
+with escape as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+            </LLMAction>
+          </ActionButton>
+          <LLMFeedback id="nr_escape_feedback" render="markdown" placeholder="AI response will appear here..." />
       </RightPane>
   </SplitPanel>
 
@@ -251,6 +301,19 @@ Student's request: <Ref target="ai_chart_query" />
           <TextArea
               id="positive_reinforcement_for_access"
               rows="2" />
+          <ActionButton id="pr_access_feedback_btn" label="Get AI Feedback" dependsOn="@positive_reinforcement_for_access.value">
+            <LLMAction target="pr_access_feedback">
+A student in a psychology class has offered the following situation as an
+example of positive reinforcement whose function is access --
+                
+Student's example: <Ref target="positive_reinforcement_for_access" />
+
+Evaluate whether the student's example is a correct example of positive reinforcement
+with access as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+            </LLMAction>
+          </ActionButton>
+          <LLMFeedback id="pr_access_feedback" render="markdown" placeholder="AI response will appear here..." />
       </LeftPane>
       <RightPane>
           <Markdown>
@@ -261,6 +324,19 @@ Student's request: <Ref target="ai_chart_query" />
           <TextArea
               id="negative_reinforcement_for_access"
               rows="2" />
+          <ActionButton id="nr_access_feedback_btn" label="Get AI Feedback" dependsOn="@negative_reinforcement_for_access.value">
+            <LLMAction target="nr_access_feedback">
+A student in a psychology class has offered the following situation as an
+example of negative reinforcement whose function is access --
+                
+Student's example: <Ref target="negative_reinforcement_for_access" />
+
+Evaluate whether the student's example is a correct example of negative reinforcement
+with access as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+            </LLMAction>
+          </ActionButton>
+          <LLMFeedback id="nr_access_feedback" render="markdown" placeholder="AI response will appear here..." />
       </RightPane>
   </SplitPanel>
 
@@ -274,6 +350,19 @@ Student's request: <Ref target="ai_chart_query" />
           <TextArea
               id="positive_reinforcement_for_sensory"
               rows="2" />
+          <ActionButton id="pr_sensory_feedback_btn" label="Get AI Feedback" dependsOn="@positive_reinforcement_for_sensory.value">
+            <LLMAction target="pr_sensory_feedback">
+A student in a psychology class has offered the following situation as an
+example of positive reinforcement whose function is sensory --
+                
+Student's example: <Ref target="positive_reinforcement_for_sensory" />
+
+Evaluate whether the student's example is a correct example of positive reinforcement
+with a sensory function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+            </LLMAction>
+          </ActionButton>
+          <LLMFeedback id="pr_sensory_feedback" render="markdown" placeholder="AI response will appear here..." />
       </LeftPane>
       <RightPane>
           <Markdown>
@@ -284,6 +373,19 @@ Student's request: <Ref target="ai_chart_query" />
           <TextArea
               id="negative_reinforcement_for_sensory"
               rows="2" />
+          <ActionButton id="nr_sensory_feedback_btn" label="Get AI Feedback" dependsOn="@negative_reinforcement_for_sensory.value">
+            <LLMAction target="nr_sensory_feedback">
+A student in a psychology class has offered the following situation as an
+example of negative reinforcement whose function is sensory --
+                
+Student's example: <Ref target="negative_reinforcement_for_sensory" />
+
+Evaluate whether the student's example is a correct example of negative reinforcement
+with a sensory function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+            </LLMAction>
+          </ActionButton>
+          <LLMFeedback id="nr_sensory_feedback" render="markdown" placeholder="AI response will appear here..." />
       </RightPane>
   </SplitPanel>
 
@@ -978,6 +1080,20 @@ Make sure to use these terms:
 - "competing behavior pathway"
         </Markdown>
       <TextArea id="intervention_email" placeholder="Dear Roommate, Based on what we've learned in psychology class..." rows="8" />
+    <ActionButton id="ai_intervention_eval_btn" label="Get AI Feedback" dependsOn="@intervention_email.value">
+      <LLMAction target="ai_intervention_eval">
+Here is an email designed to help a babysitter implement an operant conditioning intervention designed to address sleep refusal by the child she is babysitting.
+
+      <ref target="intervention_email" />
+
+Evaluate the email using the following criteria:
+1. Does it specify changes to antecedent conditions that will make it easier to get the child to bed on time?
+2. Does it specify changes to consequent conditions that will make it easier to get the child to bed on time?
+3. Are the interventions proposed ones that the psychological literature recommends as effective in addressing sleep refusal?
+4. Does the email provide enough detail about the interventions that the babysitter will be able to implement the plan effectively?
+      </LLMAction>
+    </ActionButton>
+    <LLMFeedback id="ai_intervention_eval" placeholder="AI response will appear here..." />
     </Vertical>
     <Vertical id="final_right1" title="Lianne's Notes">
        <Use ref="full_plan" />
@@ -986,5 +1102,21 @@ Make sure to use these terms:
         <Ref target="plan_preferences" />
     </Vertical>
   </Tabs>
+  <Vertical id="psych_sba_part3_completion" >
+  <CheckboxInput id="psych_sba_part_3_completion_page">
+  <Markdown>**Confirm that you are done with this exercise.**</Markdown>
+  <Key id="completion_message3">I don't need to make any more changes</Key>
+  <Markdown>
+  - In this activity, you learned about **the functions of behavior**, how they
+    relate to positive and negative reinforcement, and continued to learn about the **strengths
+    and weaknesses of AI**. You also continued applying information you have learned
+    from the textbook and scientific research to a **real-life scenario**, a child
+    refusing to go to bed on time.
+  - Next time, you will review and apply a few more concepts from your coursework
+    in psychology to help Annie's roommate learn to use **operant conditioning** principles
+    to modify the child's behavior.
+  </Markdown>
+</CheckboxInput>
+  </Vertical>
 
 </Vertical>
