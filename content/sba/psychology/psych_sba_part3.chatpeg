@@ -114,13 +114,17 @@ JJ: You are a helpful psychology teaching assistant. Create a chart showing the 
 
 Lin: Have you tried it?
 
-JJ: I did. The results looked good on the surface, but when I worked through it carefully, I discovered that it had filled in cells that really shouldn't have been filled in, with subtly misleading examples. I had to tweak my prompt several times before the results were correct.
+JJ: I did. The results looked good on the surface, but when I worked through it carefully, I discovered that it would fill in cells that really shouldn't have been filled in, with subtly misleading examples. I had to tweak my prompt several times before the results were consistently correct.
 
 Annie: So what was your final prompt?
 
-JJ: You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement. Include concrete examples for each combination of function with positive or negative reinforcement. Leave a cell blank if the function of the behavior is by definition incompatible with the type of reinforcement, assuming that negative reinforcement is compatible with removal of unwanted attention. 
+JJ: You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement. Include concrete examples for each combination of function with positive or negative reinforcement. Leave a cell blank if the function of the behavior is by definition incompatible with the type of reinforcement, assuming that negative reinforcement is compatible with removal of unwanted attention and but not with access, while escape is not compatible with positive reinforcement. 
 
-Lin: Let's see what that gives us!
+Annie: Wow, you really had to spell everything out.
+
+JJ: It was like the AI was so eager to follow directions that it fudged things to fill in all of the cells, otherwise. But it worked in the end.
+
+Lin: All right. Let's see what your final prompt gives us!
 
 AI Chart
 --------
@@ -131,7 +135,7 @@ psych_sba_part3_sidebar -> ai_function_chart
 
 Lin: That chart makes things so much clearer!
 
-JJ: It does. Especially because it leaves two cells blank. Escape is removal of something, not adding something, so it can't be positive reinforcement. And access to tangibles is getting something, not removing it, so it can't be negative reinforcement.
+JJ: It does. Especially because it leaves two cells blank. Escape is removal of something, not adding something, so it's hard to see how it can go with positive reinforcement. And access to tangibles is getting something, not removing it, so it's hard to see how it can go with negative reinforcement.
 
 Annie: Good catch, JJ. That's a useful chart! But we won't really **learn** what the chart is telling us unless we try to do the same thing ourselves. So let's fill in a blank chart with our own examples.
 
@@ -420,9 +424,15 @@ Annie: Me too. What do you think?
 Final Email
 -----------
 
-psych_sba_part3_sidebar -> final_intervention_email
-
 Annie: Great! Let's write up our intervention plan in an email to my roommate.
+
+psych_sba_part3_sidebar -> intervention_email_rubric
+
+Lianne: Before you get started, I have a suggestion. People usually think of a rubric as something teachers use for grading. But it's really a way to describe your goals, so you can evaluate whether you've met them. Here's a rubric you can use for the email.
+
+Lin: Thanks, Lianne!
+
+psych_sba_part3_sidebar -> final_intervention_email
 
 JJ: Make sure to use the terms we've learned - function of behavior, antecedent, behavior, consequence, and competing behavior pathway!
 

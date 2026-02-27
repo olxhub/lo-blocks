@@ -276,13 +276,50 @@ be sure to tweak it and provide extra details to make it as useful as
 possible.
         </Markdown>
       <TextArea id="revision_email" placeholder="Dear Roommate, besides using the checklists, here's something else you can do that will help..." rows="8" />
+    <ActionButton id="ask_ai_modifications_btn3" dependsOn="@revision_email.value"
+                  label="Get AI Feedback">
+                  <LLMAction target="modifications_ai_response3">
+BACKGROUND:
+Here is a student's email suggesting how her friend's roommate who is babysitting
+a six-year-old with sleep refusal issues should change her intervention plan designed
+to get the child to bed on time regularly, in order to improve adherence:
+
+        <ref target="revision_email" />
+
+The following suggested checklists the babysitter could follow were provided
+by other students:
+
+        <ref target="fidelity_checklist" />
+        <ref target="fidelity_checklist2" />
+
+The following is a list of AI suggestions about how the babysitter could improve her
+adherence to the intervention plan to overcome the six-year-old's sleep refusal issue:
+
+        <ref target="modifications_ai_response2" />
+
+DIRECTIONS:
+First, check whether the student's revision email overlaps in content with the checklists
+provided by other students. If there is such an overlap, say so briefly, in a sentence or so.
+
+Next, check whether the student's revision email overlaps in content with the list of AI suggestions about how the babysitter could improve her adherence to the intervention plan. If there is any overlap, identify it and point out what parts of the response are original --
+that is, present neither in the information provided by other students nor in the AI response.
+
+Finally, evaluate the advice provided in the student email for consistency with what is
+known about using operant conditioning to treat sleep refusal and with what is known about effective ways to improve adherence to an intervention, focusing on whether the proposed plan is sound and effective.
+      </LLMAction></ActionButton>
+      <LLMFeedback id="modifications_ai_response3"
+                   placeholder="AI response will appear here..." />
     </Vertical>
     <Vertical id="revision_right" title="The AI's suggestions">
         <Use ref="modifications_ai_response2" />
     </Vertical>
-  </Tabs>
-
-
+    <Vertical id="revision_fidelity" title="Lin's Checklist">
+        <Use ref="fidelity_checklist" />
+    </Vertical>
+    <Vertical id="revision_fidelity2" title="JJ's Checklist">
+        <Use ref="fidelity_checklist2" />
+    </Vertical>
+</Tabs>
   <!-- Final reflection -->
   <Vertical id="final_reflection">
     <Markdown id="final_reflection_prompt">

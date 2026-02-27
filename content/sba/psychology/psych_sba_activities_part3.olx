@@ -187,7 +187,7 @@ Lianne also said during class:
     </Markdown>
     <ActionButton id="ask_ai_chart_btn" label="Create the Examples">
       <LLMAction target="chart_ai_response">
-You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement. Use a markdown table format. Include concrete examples for each combination of function with positive or negative reinforcement. Leave a cell blank if the function of the behavior is by definition incompatible with the type of reinforcement, assuming that negative reinforcement is compatible with removal of unwanted attention. Highlight the function names in the function column.
+You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement. Use a markdown table format. Include concrete examples for each combination of function with positive or negative reinforcement. Leave a cell blank if the function of the behavior is by definition incompatible with the type of reinforcement, assuming that negative reinforcement is compatible with removal of unwanted attention but not with access, while escape is not compatible with positive reinforcement. Highlight the function names in the function column.
 
 Student's request: <Ref target="ai_chart_query" />
       </LLMAction>
@@ -1064,7 +1064,13 @@ In the box below, type the parts of the plan that you like, and explain why:
        <Use ref="full_plan" />
    </Vertical>
   </Tabs>
-
+  <Markdown id="intervention_email_rubric">
+## Email Rubric
+1. Does it specify changes to antecedent conditions that will make it easier to get the child to bed on time?
+2. Does it specify changes to consequent conditions that will make it easier to get the child to bed on time?
+3. Are the interventions proposed ones that the psychological literature recommends as effective in addressing sleep refusal?
+4. Does the email provide enough detail about the interventions that the babysitter will be able to implement the plan effectively?
+  </Markdown>
   <!-- Final email -->
   <Tabs id="final_intervention_email">
     <Vertical id="final_left" title="Write the Intervention Email">
