@@ -47,6 +47,8 @@ psych_sba_sidebar4 -> fidelity_check
 
 Annie: My roommate got back to me! She said that sometimes she forgets to do the warning countdown and timer, she forgets the small bedtime reward, and often falls into negotiating or arguing when he whines.
 
+--- wait @fidelity_mcq.submitCount > 0 ---
+
 JJ: Looks like she is struggling with adherence, mostly.
 
 Lin: Right. Let's have AI help brainstorm how we can help her.
@@ -80,6 +82,8 @@ psych_sba_sidebar4 -> ai_modifications2
 
 Lin: Let's go ahead and find out what kind of response this gives us from the AI.
 
+--- wait @modifications_ai_response2.value ---
+
 Annie: This is a lot. We'd better read it carefully to make sure it's all in line with what we've been taught.
 
 JJ: There are a couple of things that might be slightly off, but overall, these are really good suggestions. But they're an awful lot. Should we really do all of them?
@@ -87,6 +91,8 @@ JJ: There are a couple of things that might be slightly off, but overall, these 
 psych_sba_sidebar4 -> modification_selection
 
 Annie: Maybe not. I've pulled the suggestions we got from a couple of runs of this prompt into a list. Take a look at them. Which of these modifications do you think we should suggest to Annie's roommate?
+
+--- wait @modification_choices.submitCount > 0 ---
 
 JJ: Great choices! I totally agree.
 
