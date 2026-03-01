@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+/test-results
 
 # next.js
 /.next/
@@ -71,3 +72,8 @@ events/
 
 # Runtime artifacts (ephemeral, machine-local)
 lofs/runtime/
+
+# Various places interim development artifacts might go
+old/
+obsolete/
+local/
