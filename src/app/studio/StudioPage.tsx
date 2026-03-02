@@ -12,6 +12,7 @@ import { DataPanel, DocsPanel, FilesPanel, SearchPanel } from './panels';
 import EditorLLMChat from './EditorLLMChat';
 import { useDocsData } from '@/lib/docs';
 import { NetworkStorageProvider, VersionConflictError } from '@/lib/lofs';
+import { fetchAllOlxJson } from '@/lib/content/fetchOlxJson';
 import { toOlxRelativePath } from '@/lib/lofs/types';
 import type { UriNode } from '@/lib/lofs/types';
 import type { IdMap } from '@/lib/types';
@@ -152,9 +153,7 @@ function StudioPageContent() {
   // Load file tree and idMap on mount
   useEffect(() => {
     refreshFiles();
-    // Use 'all' to get all IDs, not just launchable ones
-    fetch('/api/content/all')
-      .then(res => res.json())
+    fetchAllOlxJson()
       .then(data => setIdMap(data.idMap))
       .catch(console.error);
   }, [refreshFiles]);

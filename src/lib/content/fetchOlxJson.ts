@@ -22,6 +22,20 @@ export async function fetchOlxJson(
 }
 
 /**
+ * Fetch the complete idMap (all blocks, all variants).
+ *
+ * LEGACY: Used by studio for ID search/autocomplete. This dumps the entire
+ * content tree and should eventually be replaced by a lighter endpoint
+ * (e.g. /api/ids or lazy loading in studio).
+ */
+export async function fetchAllOlxJson(
+  options?: RequestInit
+): Promise<{ ok: boolean; idMap: IdMap; error?: string }> {
+  const res = await globalThis.fetch('/api/content/all', options);
+  return res.json();
+}
+
+/**
  * Fetch activities list.
  *
  * Returns the same { ok, activities } shape as /api/activities.
