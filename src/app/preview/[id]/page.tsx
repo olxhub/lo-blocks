@@ -15,16 +15,16 @@ import { ComponentError } from '@/lib/types';
 
 export default function PreviewPage() {
   const params = useParams();
-  const id = params.id as string;
+  const olxKey = toOlxKey(params.id as string);
   // TODO: Pass baselineProps from useBaselineProps() instead of null
   const [debug] = useFieldState(
     null,
     settings.debug,
     false,
-    { id: toOlxKey(id), tag: 'preview' } // HACK: This works around not having proper props. Should be fixed. See below
+    { id: olxKey, tag: 'preview' } // HACK: This works around not having proper props. Should be fixed. See below
   );
 
-  const { idMap, error, loading } = useContentLoader(id);
+  const { idMap, error, loading } = useContentLoader(olxKey);
   const [renderError, setRenderError] = useState<ComponentError>(null);
   const localeAttrs = useLocaleAttributes();
 
@@ -34,11 +34,11 @@ export default function PreviewPage() {
         <AppHeader home user />
         <div className="p-6 flex-1">
           <DisplayError
-            props={{ id: id, tag: 'preview' }}
+            props={{ id: olxKey, tag: 'preview' }}
             name="Content Loading Error"
-            message={`Failed to load content: ${id}`}
+            message={`Failed to load content: ${olxKey}`}
             technical={error}
-            id={`${id}_load_error`}
+            id={`${olxKey}_load_error`}
           />
         </div>
       </div>
@@ -60,10 +60,10 @@ export default function PreviewPage() {
         <AppHeader home user />
         <div className="p-6 flex-1">
           <DisplayError
-            props={{ id: id, tag: 'preview' }}
+            props={{ id: olxKey, tag: 'preview' }}
             name="No Content"
-            message={`No content found for ID: ${id}`}
-            id={`${id}_no_content`}
+            message={`No content found for ID: ${olxKey}`}
+            id={`${olxKey}_no_content`}
           />
         </div>
       </div>
@@ -77,15 +77,15 @@ export default function PreviewPage() {
         <div className="space-y-4">
           {renderError ? (
             <DisplayError
-              props={{ id: id, tag: 'preview' }}
+              props={{ id: olxKey, tag: 'preview' }}
               name="Render Error"
-              message={`Failed to render content: ${id}`}
+              message={`Failed to render content: ${olxKey}`}
               technical={renderError}
-              id={`${id}_render_error`}
+              id={`${olxKey}_render_error`}
             />
           ) : (
             <RenderOLX
-              id={id}
+              id={olxKey}
               baseIdMap={idMap}
               eventContext="preview"
               onError={(err) => setRenderError(err.message)}

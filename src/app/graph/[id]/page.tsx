@@ -3,6 +3,8 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
+import { fetchOlxJson } from '@/lib/content/fetchOlxJson';
+import { toOlxKey } from '@/lib/blocks/idResolver';
 
 import {
   ReactFlow,
@@ -98,8 +100,7 @@ function GraphPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch(`/api/content/${id}`);
-      const json = await res.json();
+      const json = await fetchOlxJson(toOlxKey(id as string));
       const { nodes, edges, issues } = parseIdMap(json.idMap);
       const laidOutNodes = layoutElements(nodes, edges, 'TB');
       setIssues(issues);

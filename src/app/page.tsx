@@ -10,6 +10,7 @@ import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
+import { fetchActivities } from '@/lib/content/fetchOlxJson';
 import type { ContentVariant, Locale } from '@/lib/types';
 
 const ENDPOINT_LINKS = [
@@ -162,8 +163,8 @@ function ActivityRow({ entry, userLocale }: { entry: any; userLocale: string }) 
 }
 
 function Activities() {
-  const [activities, setActivities] = useState(null); // TODO: useFieldState
-  const [error, setError] = useState(null); // TODO: useFieldState
+  const [activities, setActivities] = useState<Record<string, any> | null>(null); // TODO: useFieldState
+  const [error, setError] = useState<string | null>(null); // TODO: useFieldState
   const [loading, setLoading] = useState(true); // TODO: useFieldState
 
   // Get user's locale from Redux
@@ -174,13 +175,12 @@ function Activities() {
     // Activities list is locale-independent, fetch once on mount
     setLoading(true);
     setError(null);
-    globalThis.fetch('/api/activities')
-      .then(res => res.json())
+    fetchActivities()
       .then(data => {
         if (!data.ok) {
-          setError(data.error);
+          setError(data.error ?? 'Unknown error');
         } else {
-          setActivities(data.activities);
+          setActivities(data.activities ?? null);
         }
         setLoading(false);
       })
@@ -324,12 +324,7 @@ export default function Home() {
   useEffect(() => {
     if (!userLocale) return;
 
-    globalThis.fetch('/api/activities', {
-      headers: {
-        'Accept-Language': userLocale,
-      },
-    })
-      .then(res => res.json())
+    fetchActivities({ headers: { 'Accept-Language': userLocale } })
       .then(data => {
         if (data.activities) {
           // Extract available locales from activity titles/descriptions
