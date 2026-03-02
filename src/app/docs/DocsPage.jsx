@@ -1,4 +1,4 @@
-// src/app/docs/page.jsx
+// src/app/docs/DocsPage.jsx
 //
 // Block and Grammar documentation page.
 //
