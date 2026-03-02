@@ -34,7 +34,7 @@
     "test": "npm run typecheck && firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) vitest",
     "test:unit": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) vitest --exclude='**/integration/**'",
     "test:ui": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) vitest --ui",
-    "smoke": "npx playwright test --config playwright.smoke.config.ts"
+    "smoke": "playwright test --config playwright.smoke.config.ts"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.958.0",
