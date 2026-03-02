@@ -1,4 +1,4 @@
-// src/app/preview/[id]/page.tsx
+// src/app/preview/[id]/PreviewPage.tsx
 'use client';
 
 import { useState } from 'react';
