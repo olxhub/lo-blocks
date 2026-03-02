@@ -25,7 +25,8 @@ import * as lo_event from 'lo_event';
 import { correctness } from './correctness';
 import { refToReduxKey } from './idResolver';
 import { getBlockByOLXId } from './getBlockByOLXId';
-import type { RuntimeProps, OlxKey } from '@/lib/types';
+import { valueSelector } from '@/lib/state/redux';
+import type { RuntimeProps, OlxKey, OlxReference } from '@/lib/types';
 import type { Store } from 'redux';
 
 // Grader parameter types - each grader receives exactly one of these
@@ -217,7 +218,8 @@ export function grader({ grader, infer = true, slots, inputType }: {
         ...inst.attributes,  // Spread OLX attributes
       };
 
-      const value = loBlock.selectValue(inputProps, state, id);
+      // Use valueSelector for uniform handling of withStatus / raw selectValue
+      const { value } = valueSelector(inputProps as RuntimeProps, state, id as OlxReference);
 
       // Create bound API from locals - each function gets (props, state, id) pre-bound
       const api = loBlock.locals

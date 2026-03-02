@@ -870,6 +870,37 @@ export interface GraphEdge {
   target: OlxKey;  // Target block ID
 }
 
+/**
+ * ═══════════════════
+ * BLOCK DATA STATUS
+ * ═══════════════════
+ *
+ * Standard result type for block data access. All hooks and selectors that
+ * retrieve block data by ID return this shape (extended with their primary
+ * field: `value`, `block`, `olxJson`, etc.).
+ *
+ * This represents the state machine for block loading:
+ *   unknown → loading → ready | error
+ *                              ↓
+ *                     (future: translanguaging)
+ *
+ * Blocks that don't care about loading states can just destructure the
+ * primary field: `const { value } = useValue(props, id)`. The system
+ * provides a usable fallback while loading.
+ *
+ * Blocks that DO care (like Ref) can check `loading` or `error` to
+ * show spinners or error messages.
+ */
+export type BlockDataStatus = 'ready' | 'loading' | 'error';
+// Future: | 'translanguaging'
+
+export interface BlockDataResult {
+  status: BlockDataStatus; // Low level: prefer the derived booleans below
+  loading: boolean;        // status === 'loading' or not yet in Redux
+  ready: boolean;          // status === 'ready'
+  error: string | null;    // Error message (for DisplayError), null if no error
+}
+
 // Content tier - computed from `generated` field
 // - 'supported': Human-authored or reviewed content (generated absent)
 // - 'bestEffort': Machine-generated content (generated present)

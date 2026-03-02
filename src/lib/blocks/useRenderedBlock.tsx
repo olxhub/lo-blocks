@@ -18,14 +18,13 @@ import { renderOlxJson, renderCompiledKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
 import TranslatingIndicator from '@/lib/i18n/TranslatingIndicator';
-import type { OlxReference } from '@/lib/types';
+import type { OlxReference, BlockDataResult } from '@/lib/types';
+import { blockData } from '@/lib/state/redux';
 import { refToOlxKey } from '@/lib/blocks/idResolver';
 
-export interface RenderedBlockResult {
+export type RenderedBlockResult = BlockDataResult & {
   block: React.ReactNode;
-  ready: boolean;
-  error: string | null;
-}
+};
 
 /**
  * Hook to render a block by OLX ID.
@@ -43,50 +42,49 @@ export function useBlock(
   source: string = 'content'
 ): RenderedBlockResult {
   // Always call hooks unconditionally (React rules of hooks)
-  const { olxJson: reduxOlxJson, loading, error } = useOlxJson(props, id, source);
+  const olxResult = useOlxJson(props, id, source);
+  const { olxJson: reduxOlxJson } = olxResult;
   const translationState = useTranslation(props, reduxOlxJson, source);
 
   if (!id) {
-    return { block: null, ready: true, error: null };
+    return { block: null, ...blockData('ready') };
   }
 
   // Check Redux state
-  if (loading) {
+  if (olxResult.loading) {
     return {
       block: <Spinner>{`Loading ${id}...`}</Spinner>,
-      ready: false,
-      error: null
+      ...blockData('loading')
     };
   }
 
-  if (error) {
+  if (olxResult.error) {
     return {
       block: (
         <DisplayError
           id={`block-error-${id}`}
           name="useBlock"
-          message={error}
+          message={olxResult.error}
           data={{ blockId: id }}
         />
       ),
-      ready: false,
-      error
+      ...blockData('error', olxResult.error)
     };
   }
 
   if (!reduxOlxJson) {
     const olxKey = refToOlxKey(id);
+    const msg = `Block "${id}" not found in Redux`;
     return {
       block: (
         <DisplayError
           id={`block-missing-${id}`}
           name="useBlock"
-          message={`Block "${id}" not found in Redux`}
+          message={msg}
           data={{ blockId: id, olxKey }}
         />
       ),
-      ready: false,
-      error: `Block "${id}" not found`
+      ...blockData('error', msg)
     };
   }
 
@@ -97,7 +95,7 @@ export function useBlock(
       {rendered}
     </TranslatingIndicator>
   );
-  return { block, ready: true, error: null };
+  return { block, ...blockData('ready') };
 }
 
 /**

@@ -1,14 +1,17 @@
 // src/lib/blocks/useOlxJson.ts
 //
-// Hook for accessing OlxJson from Redux with automatic fetch-on-demand.
+// OlxJson content access — fetch-on-demand from Redux.
 //
-// All content lives in Redux. Hooks read from Redux, triggering fetch
-// for missing blocks if needed.
+// Two entry points:
+// - ensureBlock(): Non-hook. Triggers async fetch if block is unknown.
+//   Safe to call from useEffect, event handlers, etc. Internal infrastructure
+//   — block authors should not call this directly.
+// - useOlxJson(): Hook. Reads block from Redux + triggers fetch if missing.
 //
 'use client';
 
 import { useSelector } from 'react-redux';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { fetchOlxJson } from '@/lib/content/fetchOlxJson';
 import {
   selectBlockState,
@@ -18,26 +21,79 @@ import {
 } from '@/lib/state/olxjson';
 import { refToOlxKey } from '@/lib/blocks/idResolver';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
-import type { OlxJson, OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
+import type { OlxJson, OlxKey, OlxReference, RuntimeProps, BlockDataResult } from '@/lib/types';
 import type { LogEventFn } from '@/lib/render';
+import { blockData } from '@/lib/state/redux';
 
-export interface OlxJsonResult {
-  olxJson: OlxJson | null;
-  loading: boolean;
-  error: string | null;
-}
+export type OlxJsonResult = BlockDataResult & { olxJson: OlxJson | null };
 
 // Props type for useOlxJson - extends RuntimeProps for locale and includes sideEffectFree
 interface UseOlxJsonProps extends RuntimeProps {
   runtime: RuntimeProps['runtime'] & { sideEffectFree: boolean };
 }
 
+// =============================================================================
+// ensureBlock — non-hook fetch trigger (internal infrastructure)
+// =============================================================================
+
+/** Dedup: once we've started a fetch for an ID, don't start another. */
+const ensuredIds = new Set<string>();
+
+/**
+ * Ensure a block's OlxJson is being loaded into Redux.
+ *
+ * If the block is unknown (not in Redux at all), dispatches OLXJSON_LOADING
+ * and triggers an async fetch. If it's already known (loading, ready, or
+ * error), this is a no-op.
+ *
+ * NOT a hook — safe to call from useEffect, event handlers, callbacks, etc.
+ * Do NOT call from render functions or Redux selectors.
+ *
+ * Internal infrastructure: called by useOlxJson and useValue. Block authors
+ * should not need to call this directly.
+ */
+export function ensureBlock(
+  props: { runtime: { store: any; sideEffectFree: boolean; logEvent: LogEventFn; locale: { code: string }; olxJsonSources?: string[] } },
+  id: string | OlxReference | null | undefined,
+  source: string = 'content'
+): void {
+  if (!id || props.runtime.sideEffectFree) return;
+
+  const olxKey: OlxKey = refToOlxKey(id as OlxReference);
+  if (ensuredIds.has(olxKey)) return;
+
+  const state = props.runtime.store.getState();
+  const blockState = selectBlockState(state, [source], olxKey);
+  if (blockState) return; // Already known (loading, ready, or error)
+
+  ensuredIds.add(olxKey);
+  dispatchOlxJsonLoading(props, source, olxKey);
+
+  fetchOlxJson(olxKey, {
+      headers: { 'Accept-Language': props.runtime.locale.code },
+    })
+    .then(data => {
+      if (!data.ok) {
+        dispatchOlxJsonError(props, source, olxKey, data.error || `Failed to load ${olxKey}`);
+      } else {
+        dispatchOlxJson(props, source, data.idMap);
+      }
+    })
+    .catch(err => {
+      dispatchOlxJsonError(props, source, olxKey, err.message || `Failed to load ${olxKey}`);
+    });
+}
+
+// =============================================================================
+// useOlxJson — hook for reading + auto-fetching
+// =============================================================================
+
 /**
  * Hook to access OlxJson by ID from Redux.
  *
  * - Reads from Redux state
- * - If not found and not sideEffectFree, triggers a fetch
- * - Returns { olxJson, loading, error }
+ * - If not found and not sideEffectFree, triggers a fetch via ensureBlock
+ * - Returns BlockDataResult & { olxJson }
  *
  * @param props - Component props (must include logEvent, sideEffectFree)
  * @param id - The OLX ID to look up
@@ -56,74 +112,46 @@ export function useOlxJson(
     id ? selectBlockState(state, [source], olxKey) : undefined
   );
 
-  // Track fetch attempts to prevent infinite loops - always call hook
-  const fetchAttempted = useRef<Set<string>>(new Set());
-
-  // Trigger fetch for missing blocks (skip if sideEffectFree) - always call hook
+  // Trigger fetch for missing blocks - always call hook (Rules of Hooks)
   useEffect(() => {
-    // Skip if no id
-    if (!id) return;
-
-    // Skip side effects during replay/analytics
-    if (props.runtime.sideEffectFree) return;
-
-    // Already in Redux or already attempted
-    if (blockState || fetchAttempted.current.has(olxKey)) return;
-    fetchAttempted.current.add(olxKey);
-
-    // Mark as loading
-    dispatchOlxJsonLoading(props, source, olxKey);
-
-    fetchOlxJson(olxKey, {
-        headers: { 'Accept-Language': props.runtime.locale.code },
-      })
-      .then(data => {
-        if (!data.ok) {
-          dispatchOlxJsonError(props, source, olxKey, data.error || `Failed to load ${olxKey}`);
-        } else {
-          dispatchOlxJson(props, source, data.idMap);
-        }
-      })
-      .catch(err => {
-        dispatchOlxJsonError(props, source, olxKey, err.message || `Failed to load ${olxKey}`);
-      });
+    if (id && !blockState) {
+      ensureBlock(props, id, source);
+    }
   }, [id, blockState, olxKey, source, props.runtime.sideEffectFree, props.runtime.logEvent]);
 
   // Handle null/undefined id - return after hooks are called
   if (!id) {
-    return { olxJson: null, loading: false, error: null };
+    return { olxJson: null, ...blockData('ready') };
   }
 
   // Return based on Redux state
   if (!blockState) {
-    return { olxJson: null, loading: true, error: null };
+    return { olxJson: null, ...blockData('loading') };
   }
 
-  const isLoading = blockState.loadingState?.status === 'loading';
-  const hasError = blockState.loadingState?.status === 'error';
+  const status = blockState.loadingState?.status;
 
-  if (isLoading) {
-    return { olxJson: null, loading: true, error: null };
+  if (status === 'loading') {
+    return { olxJson: null, ...blockData('loading') };
   }
 
-  if (hasError) {
+  if (status === 'error') {
     return {
       olxJson: null,
-      loading: false,
-      error: blockState.error?.message || `Error loading "${olxKey}"`
+      ...blockData('error', blockState.error?.message || `Error loading "${olxKey}"`)
     };
   }
 
   // Extract the language variant from nested structure
   const stored = blockState.olxJson;
   if (!stored) {
-    return { olxJson: null, loading: false, error: null };
+    return { olxJson: null, ...blockData('ready') };
   }
 
   const userLocale = props.runtime.locale.code;
   const langVariant = extractLocalizedVariant(stored, userLocale);
 
-  return { olxJson: langVariant || null, loading: false, error: null };
+  return { olxJson: langVariant || null, ...blockData('ready') };
 }
 
 /**
@@ -150,7 +178,7 @@ export function useOlxJsonMultiple(
   const olxJsons = results.map(r => r.olxJson);
   const anyLoading = results.some(r => r.loading);
   const firstError = results.find(r => r.error)?.error || null;
-  const allReady = results.every(r => !r.loading && !r.error && r.olxJson !== null);
+  const allReady = results.every(r => r.ready && r.olxJson !== null);
 
   return { olxJsons, anyLoading, firstError, allReady };
 }

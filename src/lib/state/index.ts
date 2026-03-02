@@ -17,6 +17,7 @@ export * from './scopes';
 export * from './fields';
 export * from './commonFields';
 export * from './settings';
+export * from './blockData';
 export * from './redux';
 export * from './store';
 export * from './olxjson';
