@@ -3,7 +3,7 @@
 // Server component wrapper. Exports generateStaticParams for static builds
 // and renders the client-side PreviewPage component.
 //
-import PreviewPage from './_PreviewPage';
+import PreviewPage from './PreviewPage';
 import { getStaticContentIds } from '@/lib/content/staticParams';
 
 export const generateStaticParams = getStaticContentIds;

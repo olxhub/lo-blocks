@@ -5,7 +5,7 @@
 //
 // Graph pages are a developer tool — not included in static export.
 //
-import GraphPage from './_GraphPage';
+import GraphPage from './GraphPage';
 import { getStaticContentIds } from '@/lib/content/staticParams';
 
 export const generateStaticParams = getStaticContentIds;
