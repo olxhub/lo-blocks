@@ -65,7 +65,7 @@ const ChoiceInput = core({
   description: 'Single-select (radio button) input collecting student selection from Key/Distractor options. Value is a string.',
   component: _Noop,
   fields,
-  getValue: (props: RuntimeProps, state, id) => {
+  selectValue: (props: RuntimeProps, state, id) => {
     return fieldSelector(state, { ...props, id }, fields.value, { fallback: '' });
   },
   attributes: baseAttributes.extend({

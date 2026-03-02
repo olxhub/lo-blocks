@@ -15,8 +15,8 @@ const Tabs = dev({
   description: 'Tabbed interface component with multiple content panels',
   component: _Tabs,
   fields: fields,
-  // as any: See getValue spec in lib/blocks/actions.tsx
-  getValue: ((props, state, id) => {
+  // as any: See selectValue spec in lib/blocks/actions.tsx
+  selectValue: ((props, state, id) => {
     const activeTab = fieldSelector(state, props, fields.activeTab, { fallback: 0, id });
     return { activeTab };
   }) as any,

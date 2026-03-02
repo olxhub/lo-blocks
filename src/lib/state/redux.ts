@@ -395,7 +395,7 @@ export function componentFieldByName(props: RuntimeProps, targetId: OlxReference
 
 /**
  * Selector function to get a component's value by ID.
- * Tries getValue method first, falls back to direct field access.
+ * Tries selectValue method first, falls back to direct field access.
  *
  * @param {Object} props - Component props with blockRegistry and olxJsonSources
  * @param {Object} state - Redux state
@@ -409,13 +409,13 @@ export function componentFieldByName(props: RuntimeProps, targetId: OlxReference
  * Reconstruct a component's RuntimeProps from its OlxJson node and blueprint.
  *
  * Used when we need a component's own props outside of its render tree
- * (e.g., calling getValue from valueSelector). Looks up the component's
+ * (e.g., calling selectValue from valueSelector). Looks up the component's
  * OlxDomNode by ReduxStateKey for correct runtime context (idPrefix, logEvent).
  *
  * Falls back to caller's runtime if the target hasn't been rendered yet.
  *
  * Note: This is a minimal reconstruction — it includes id, attributes, kids,
- * loBlock, fields, locals, and runtime, which is sufficient for getValue.
+ * loBlock, fields, locals, and runtime, which is sufficient for selectValue.
  * It does NOT include injected props like extraDebug that the render pipeline
  * adds. If future callers need fuller props, this should be expanded.
  */
@@ -464,10 +464,10 @@ export function valueSelector(props: RuntimeProps, state: any, id: OlxReference 
     );
   }
 
-  if (loBlock.getValue) {
+  if (loBlock.selectValue) {
     const reduxKey = idResolver.refToReduxKey({ ...props, id });
     const targetProps = propsForNode(props, reduxKey, targetNode, loBlock);
-    return loBlock.getValue(targetProps, state, id);
+    return loBlock.selectValue(targetProps, state, id);
   }
 
   // Fall back to direct field access using the common 'value' field

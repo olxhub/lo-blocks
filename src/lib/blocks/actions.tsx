@@ -48,8 +48,8 @@ export function isAction(loBlock) {
 /**
  * Mix-in to make a block an input (provides a value to graders).
  *
- * getValue Specification (NOT YET IMPLEMENTED)
- * =============================================
+ * selectValue Specification (NOT YET IMPLEMENTED)
+ * ================================================
  * Inputs and graders should declare compatible value types so they can be
  * composed safely. For example:
  * - TextInput exports `string`
@@ -74,15 +74,15 @@ export function isAction(loBlock) {
  * This enables a plug-and-play model where course authors can mix inputs
  * and graders without understanding implementation details.
  */
-export function input({ getValue }) {
-  return { getValue, isInput: true };
+export function input({ selectValue }) {
+  return { selectValue, isInput: true };
 }
 
 // Input blocks should set isInput: true on the blueprint.
 // The blocks.input() mixin does this automatically.
-// For legacy compatibility, we also check for getValue presence.
+// For legacy compatibility, we also check for selectValue presence.
 export function isInput(loBlock) {
-  return loBlock?.isInput || typeof loBlock?.getValue === "function";
+  return loBlock?.isInput || typeof loBlock?.selectValue === "function";
 }
 
 export function isMatch(loBlock) {
@@ -217,7 +217,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
         ...inst.attributes,  // Spread OLX attributes
       };
 
-      const value = loBlock.getValue(inputProps, state, id);
+      const value = loBlock.selectValue(inputProps, state, id);
 
       // Create bound API from locals - each function gets (props, state, id) pre-bound
       const api = loBlock.locals

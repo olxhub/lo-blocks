@@ -446,7 +446,7 @@ export default function RenderOLX({
 
   // Wait for locale to be available before rendering children
   // (setReduxLocale is de facto synchronous, but adding a guard ensures
-  // we never render with undefined locale, which would break all getValue logic)
+  // we never render with undefined locale, which would break all selectValue logic)
   if (!localeReady) {
     return <Spinner>Loading language settings...</Spinner>;
   }

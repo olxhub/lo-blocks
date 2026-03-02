@@ -11,7 +11,7 @@ import type { RuntimeProps, OlxReference } from '@/lib/types';
 
 /**
  * Convert any value to a string representation for display.
- * Used by both getValue (for programmatic access) and _Ref (for rendering).
+ * Used by both selectValue (for programmatic access) and _Ref (for rendering).
  */
 export function formatRefValue(val, fallback = '') {
   if (val === null || val === undefined) {
@@ -58,8 +58,8 @@ const Ref = core({
     fallback: z.string().optional().describe('Fallback value when target is empty'),
     format: z.enum(['code']).optional().describe('Display format for the value'),
   }),
-  getValue: (props: RuntimeProps, state: any, id: OlxReference) => {
-    // TODO: This logic is infrastructure, not component logic. getValue should move to /lib/
+  selectValue: (props: RuntimeProps, state: any, id: OlxReference) => {
+    // TODO: This logic is infrastructure, not component logic. selectValue should move to /lib/
     // so it can access runtime context properly without accessing props directly.
     // Get the Ref block from Redux to access its attributes and content
     const sources = props.runtime.olxJsonSources ?? ['content'];
@@ -109,7 +109,7 @@ const Ref = core({
       }
       rawValue = fieldSelector(state, { ...props, id: absoluteTargetId }, fieldInfo, { fallback });
     } else {
-      // Use valueSelector to get the target's value (calls getValue if available)
+      // Use valueSelector to get the target's value (calls selectValue if available)
       rawValue = valueSelector(props, state, toOlxReference(absoluteTargetId), { fallback });
     }
 

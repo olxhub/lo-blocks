@@ -19,7 +19,7 @@ const TeamDirectory = dev({
   component: _TeamDirectory,
   fields: fields,
   attributes: baseAttributes.strict(),
-  getValue: (props, state, id) => {
+  selectValue: (props, state, id) => {
     const selectedMember = fieldSelector(state, props, fields.selectedMember, { fallback: null, id });
     const viewMode = fieldSelector(state, props, fields.viewMode, { fallback: 'grid', id });
     return { selectedMember, viewMode };

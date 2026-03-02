@@ -24,8 +24,8 @@ const Navigator = dev({
   description: 'Two-pane navigator with configurable preview and detail templates',
   component: _Navigator,
   fields: fields,
-  // as any: See getValue spec in lib/blocks/actions.tsx
-  getValue: ((props, state, id) => {
+  // as any: See selectValue spec in lib/blocks/actions.tsx
+  selectValue: ((props, state, id) => {
     const selectedItem = fieldSelector(state, props, fields.selectedItem, { fallback: null, id });
     const searchQuery = fieldSelector(state, props, fields.searchQuery, { fallback: '', id });
     const viewMode = fieldSelector(state, props, fields.viewMode, { fallback: 'default', id });

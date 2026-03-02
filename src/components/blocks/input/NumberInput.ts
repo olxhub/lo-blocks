@@ -19,7 +19,7 @@ const NumberInput = core({
   fields,
   // TODO: Figure out this signature. In the generic, we'll probably need
   // more than this. It might be dependent on the component spec, etc.
-  getValue: (props: RuntimeProps, state, id) => {
+  selectValue: (props: RuntimeProps, state, id) => {
     const v = fieldSelector(state, { ...props, id }, fields.value);
     return v === undefined ? undefined : parseFloat(v as string);
   },

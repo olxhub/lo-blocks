@@ -360,7 +360,7 @@ export function getValueById(props: RuntimeProps, id: OlxReference | null | unde
  * Extract text from child nodes, resolving block references to their current values.
  *
  * For text nodes, accumulates the text content.
- * For block nodes, calls their getValue() method to get current runtime value.
+ * For block nodes, resolves their current value via getValueById.
  *
  * Originally designed to extract prompt text from LLMAction content.
  *

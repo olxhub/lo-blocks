@@ -30,7 +30,7 @@ const LineInput = core({
   // TODO: The `id` parameter naming is confusing. It's an OlxKey that fieldSelector
   // converts to ReduxStateKey by applying idPrefix. Consider renaming to `olxId`
   // or documenting the conversion. See docs/README.md "IDs" section.
-  getValue: (props: RuntimeProps, state, id) => fieldSelector(state, { ...props, id }, fields.value, { fallback: '' }),
+  selectValue: (props: RuntimeProps, state, id) => fieldSelector(state, { ...props, id }, fields.value, { fallback: '' }),
   attributes: baseAttributes.extend({
     ...placeholder,
     min: z.string().optional().describe('Minimum allowed value (for numeric types)'),

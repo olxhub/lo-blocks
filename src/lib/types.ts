@@ -303,7 +303,7 @@ export const BlockBlueprintSchema = z.object({
   staticKids: z.function().optional(),
   reducers: z.array(z.function()).optional(),
   fields: ReduxFieldsReturn.optional(),
-  getValue: z.function().optional(),
+  selectValue: z.function().optional(),
   /**
    * Block-local API functions that expose the block's logic separately from its UI.
    *
@@ -401,7 +401,7 @@ export interface LoBlock {
   parser?: Function;
   staticKids?: Function;
   reducers: Function[];
-  getValue?: Function;
+  selectValue?: Function;
   locals?: Record<string, any>;
   fields: Fields;
   name?: string;  // Block name for selector matching

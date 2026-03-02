@@ -153,7 +153,7 @@ function createBlock(config: BlueprintInput): LoBlock {
     parser: effectiveConfig.parser,
     staticKids: effectiveConfig.staticKids,
     reducers: effectiveConfig.reducers ?? [],
-    getValue: effectiveConfig.getValue,
+    selectValue: effectiveConfig.selectValue,
     fields: (effectiveConfig.fields as Fields) ?? state.fields([]),
     locals: effectiveConfig.locals ?? {},
 
@@ -161,9 +161,9 @@ function createBlock(config: BlueprintInput): LoBlock {
     OLXName: olxName,
     description: parsed.description,
     namespace: parsed.namespace,
-    // TODO: isInput/isMatch currently derived from getValue/locals.match presence.
+    // TODO: isInput/isMatch currently derived from selectValue/locals.match presence.
     // Should be explicit in blueprint for better semantics.
-    isInput: typeof effectiveConfig.getValue === 'function',
+    isInput: typeof effectiveConfig.selectValue === 'function',
     isMatch: typeof effectiveConfig.locals?.match === 'function',
     isGrader: parsed.isGrader,
     internal: effectiveConfig.internal,

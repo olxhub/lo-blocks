@@ -68,7 +68,7 @@ const LineInput = core({
   description: 'Single-line text input field for student responses',   // For documentation
   component: _LineInput,
   fields,                                                              // Where we store our state in redux
-  getValue: (props, state, id) =>                                      // What data we send to a grader
+  selectValue: (props, state, id) =>                                      // What data we send to a grader
     fieldSelector(state, { ...props, id }, fields.value, { fallback: '' }),
   attributes: baseAttributes.extend({                                  // Validation for our attributes
     ...placeholder,
@@ -214,10 +214,10 @@ If this is impossible, this can be overridden with `target=`. In most cases, bot
 
 ##### Inputs
 
-Blocks can advertise themselves as **inputs** by supplying a `getValue` selector, e.g.:
+Blocks can advertise themselves as **inputs** by supplying a `selectValue` selector, e.g.:
 
 ```
-  getValue: (props, state, id) => fieldSelector(state, { ...props, id }, fields.value, { fallback: '' }),
+  selectValue: (props, state, id) => fieldSelector(state, { ...props, id }, fields.value, { fallback: '' }),
 ```
 
 For standard fields like `value`, use `commonFields.value` in your field definition and `fields.value` in your selectors. This provides type safety and ensures cross-component field access works correctly.
@@ -227,11 +227,11 @@ For standard fields like `value`, use `commonFields.value` in your field definit
 import { fieldSelector, commonFields } from '@/lib/state';
 export const fields = state.fields([commonFields.value]);
 
-// In getValue:
-getValue: (props, state, id) => fieldSelector(state, { ...props, id }, fields.value, { fallback: '' })
+// In selectValue:
+selectValue: (props, state, id) => fieldSelector(state, { ...props, id }, fields.value, { fallback: '' })
 ```
 
-The `useValue` hook will either use the `value` field or call the `getValue` function on any block.
+The `useValue` hook will either use the `value` field or call the `selectValue` function on any block.
 
 We plan to move to be more declarative in the future, along the lines of what we do for graders.
 

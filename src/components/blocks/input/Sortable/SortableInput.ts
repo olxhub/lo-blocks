@@ -22,7 +22,7 @@ const SortableInput = core({
   description: 'Drag-and-drop sortable input for ordering tasks',
   component: _SortableInput,
   fields,
-  getValue: (props: RuntimeProps, state, id) => ({
+  selectValue: (props: RuntimeProps, state, id) => ({
     arrangement: fieldSelector(state, { ...props, id }, fields.arrangement, { fallback: [] })
   }),
   attributes: baseAttributes.extend({

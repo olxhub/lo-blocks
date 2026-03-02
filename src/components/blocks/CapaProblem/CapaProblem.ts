@@ -82,7 +82,7 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
         let defaultId;
         if (blockType.isGrader) {
           defaultId = `${id}_grader_${graderIndex++}`;
-        } else if (blockType.getValue) {
+        } else if (blockType.isInput) {
           defaultId = `${id}_input_${inputIndex++}`;
         } else {
           defaultId = `${id}_${childTag.toLowerCase()}_${nodeIndex++}`;
@@ -97,7 +97,7 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
         mapping = { id: blockId, inputs: [] };
         graders.push(mapping);
       }
-      if (blockType.getValue && currentGrader) {
+      if (blockType.isInput && currentGrader) {
         currentGrader.inputs.push(blockId);
       }
 
