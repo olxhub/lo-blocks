@@ -1,10 +1,11 @@
 // src/lib/content/useContentLoader.ts
 import { useState, useEffect } from 'react';
-import { IdMap, ComponentError } from '@/lib/types';
+import { IdMap, ComponentError, OlxKey } from '@/lib/types';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
 import { useDebugSettings } from '@/lib/state/debugSettings';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { useBaselineProps } from '@/components/common/RenderOLX';
+import { fetchOlxJson } from '@/lib/content/fetchOlxJson';
 
 /**
  * Hook to load content from the API by ID
@@ -18,7 +19,7 @@ import { useBaselineProps } from '@/components/common/RenderOLX';
  * Usage:
  * const { idMap, error, loading } = useContentLoader('my_content_id');
  */
-export function useContentLoader(id: string, source = 'content') {
+export function useContentLoader(id: OlxKey, source = 'content') {
   const [idMap, setIdMap] = useState<IdMap | null>(null);
   const [error, setError] = useState<ComponentError>(null);
   const [loading, setLoading] = useState(true);
@@ -47,16 +48,10 @@ export function useContentLoader(id: string, source = 'content') {
     setLoading(true);
     setError(null);
 
-    // Use globalThis.fetch with Accept-Language header
-    globalThis.fetch(`/api/content/${id}`, {
-      headers: {
-        'Accept-Language': locale,
-      },
-    })
-      .then(res => res.json())
+    fetchOlxJson(id, { headers: { 'Accept-Language': locale } })
       .then(data => {
         if (!data.ok) {
-          setError(data.error);
+          setError(data.error ?? 'Unknown error');
         } else {
           // Dispatch to Redux for reactive block access
           dispatchOlxJson(baselineProps, source, data.idMap);
