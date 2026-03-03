@@ -19,9 +19,9 @@ import {
   dispatchOlxJson,
   dispatchOlxJsonError
 } from '@/lib/state/olxjson';
-import { refToOlxKey } from '@/lib/blocks/idResolver';
+import { refToOlxKey, allOlxKeys } from '@/lib/blocks/idResolver';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
-import type { OlxJson, OlxKey, OlxReference, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
+import type { OlxJson, OlxKey, OlxReference, ReduxStateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
 import type { LogEventFn } from '@/lib/render';
 import { blockData } from '@/lib/state/redux';
 
@@ -33,13 +33,29 @@ export type OlxJsonResult = BlockDataResult & { olxJson: OlxJson | null };
 // =============================================================================
 
 /**
- * Dedup: once we've started a fetch for an ID, don't start another.
+ * Dedup: once we've started a fetch for a given request, don't start another.
  *
- * Module-level, never cleared — same pattern as translationsInFlight in
- * useTranslation.ts. By design: we want blocks cached client-side for the
- * session. The Set is bounded by the number of distinct blocks (text+JSON,
- * not large). Server-side content changes are a cache invalidation concern,
- * not a memory concern.
+ * Keyed by `source:requestProfile:olxKey` so that:
+ * - Different sources can load the same block independently
+ * - A change in user profile triggers re-fetch (the server may negotiate
+ *   a different content variant)
+ *
+ * Three distinct concepts at play:
+ * - **Content variant** (e.g. `ar-Arab-SA:no-audio`): What exists on the
+ *   server — locale + other properties.
+ * - **Content locale** (e.g. `ar-Arab-SA`): The language part of a variant.
+ * - **User profile**: What we send to the server — preferred languages,
+ *   bandwidth context, a11y needs. All dimensions feed into one negotiation
+ *   with different weights (CSS cascade style). Explicit user choices are
+ *   stronger signals in the same cascade, not a bypass.
+ *
+ * The dedup key is based on the request profile (what we send), not the
+ * content variant (what we get back). Currently the only profile dimension
+ * is locale, but this will grow (bandwidth, a11y, explicit overrides).
+ *
+ * On network failure (.catch), the key is removed to allow retry.
+ * On API error (!data.ok — missing content, server error), the key is kept
+ * to prevent retry storms.
  */
 const ensuredIds = new Set<string>();
 
@@ -49,6 +65,10 @@ const ensuredIds = new Set<string>();
  * If the block is unknown (not in Redux at all), dispatches OLXJSON_LOADING
  * and triggers an async fetch. If it's already known (loading, ready, or
  * error), this is a no-op.
+ *
+ * After a successful fetch, scans all loaded blocks for `target=` attributes
+ * and recursively ensures those targets are loaded too. This prevents the
+ * Ref deadlock: Ref loads itself, but nobody loads its target.
  *
  * NOT a hook — safe to call from useEffect, event handlers, callbacks, etc.
  * Do NOT call from render functions or Redux selectors.
@@ -64,28 +84,72 @@ export function ensureBlock(
   if (!id || props.runtime.sideEffectFree) return;
 
   const olxKey: OlxKey = refToOlxKey(id as OlxReference);
-  if (ensuredIds.has(olxKey)) return;
+  const locale = props.runtime.locale.code;
+  // Dedup on request profile — currently just locale, will grow (see comment above)
+  const dedupKey = `${source}:${locale}:${olxKey}`;
+  if (ensuredIds.has(dedupKey)) return;
 
   const state = props.runtime.store.getState();
   const blockState = selectBlockState(state, [source], olxKey);
   if (blockState) return; // Already known (loading, ready, or error)
 
-  ensuredIds.add(olxKey);
+  ensuredIds.add(dedupKey);
   dispatchOlxJsonLoading(props, source, olxKey);
 
   fetchOlxJson(olxKey, {
-      headers: { 'Accept-Language': props.runtime.locale.code },
+      headers: { 'Accept-Language': locale },
     })
     .then(data => {
       if (!data.ok) {
+        // API error (404 missing content, 500 server error) — don't retry.
+        // Key stays in ensuredIds to prevent retry storms.
         dispatchOlxJsonError(props, source, olxKey, data.error || `Failed to load ${olxKey}`);
       } else {
         dispatchOlxJson(props, source, data.idMap);
+        // Recursively ensure blocks referenced by target= attributes
+        ensureTargetBlocks(props, data.idMap, source);
       }
     })
     .catch(err => {
+      // Network failure — allow retry by removing from dedup set.
+      // The Redux error state still prevents immediate re-fetch (selectBlockState
+      // check returns early), but a page reload or explicit retry can re-trigger.
+      ensuredIds.delete(dedupKey);
       dispatchOlxJsonError(props, source, olxKey, err.message || `Failed to load ${olxKey}`);
     });
+}
+
+/**
+ * Scan loaded blocks for target= attributes and ensure those targets.
+ *
+ * Called after a successful fetch. The idMap contains the fetched block plus
+ * its static kids (from collectBlockWithKids). We scan ALL of them — if a
+ * static kid has target=, we ensure that target too.
+ *
+ * Handles comma-separated targets, absolute refs (/foo), and scoped keys
+ * (myList:#0:answer → ensures both myList and answer).
+ *
+ * Recursive: when a target loads, ITS targets get ensured in turn.
+ */
+function ensureTargetBlocks(props: BaselineProps, idMap: IdMap, source: string): void {
+  for (const variantMap of Object.values(idMap)) {
+    // Check any variant — targets don't change across languages
+    const anyVariant = Object.values(variantMap)[0] as OlxJson | undefined;
+    const target = anyVariant?.attributes?.target;
+    if (typeof target !== 'string') continue;
+
+    // Handle comma-separated targets
+    const parts = (target as string).split(',').map(s => s.trim()).filter(Boolean);
+    for (const part of parts) {
+      // Strip /absolute and ./relative prefixes before decomposing
+      const cleaned = part.startsWith('/') ? part.slice(1)
+                    : part.startsWith('./') ? part.slice(2)
+                    : part;
+      for (const key of allOlxKeys(cleaned as ReduxStateKey)) {
+        ensureBlock(props, key, source);
+      }
+    }
+  }
 }
 
 // =============================================================================

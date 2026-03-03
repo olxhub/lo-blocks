@@ -48,10 +48,10 @@ export function formatRefValue(val, fallback = '') {
 }
 
 const Ref = core({
-  ...parsers.text(), // Support text content like Element
+  ...parsers.textToAttribute('target'), // <Ref>id</Ref> compiles to target="id" in attributes
   name: 'Ref',
   component: _Ref,
-  description: 'Reference another component\'s value by ID. Supports both target attribute and text content.',
+  description: 'Reference another component\'s value by ID via target attribute.',
   attributes: srcAttributes.extend({
     target: z.string().optional().describe('ID of component to reference'),
     field: z.string().optional().describe('Specific field to access from target'),
@@ -70,13 +70,12 @@ const Ref = core({
       return { value: '', ...blockData('error', 'Component not found') };
     }
 
-    // Target can come from attribute or text content (kids)
-    const rawTarget = refNode.attributes?.target;
-    const targetId = (typeof rawTarget === 'string' ? rawTarget : '') ||
-                     (typeof refNode.kids === 'string' ? refNode.kids : String(refNode.kids || '')).trim();
+    // Target is always in attributes (parser moves text content → target attribute)
+    const targetId = typeof refNode.attributes?.target === 'string'
+      ? refNode.attributes.target : '';
 
     if (!targetId) {
-      return { value: '', ...blockData('error', 'No target specified. Use target attribute or provide ID as content.') };
+      return { value: '', ...blockData('error', 'No target specified. Use target= attribute or <Ref>targetId</Ref>.') };
     }
 
     // Check if target exists in Redux — distinguish loading from missing
