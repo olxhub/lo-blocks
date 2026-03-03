@@ -180,6 +180,67 @@ export function allOlxKeys(key: ReduxStateKey): OlxKey[] {
 export const VALID_ID_SEGMENT = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 const INVALID_CHARS_DISPLAY = /[^a-zA-Z0-9_\s]/g;  // For error messages
 
+// Valid ReduxStateKey: one or more segments separated by ":", where each segment
+// is either an OlxKey ([a-zA-Z_][a-zA-Z0-9_]*) or a ScopeMarker (#[0-9a-zA-Z_]+).
+// Examples: "foo", "myList:#0:answer", "a:#0:b:#1:c"
+const OLXKEY_SEG = '[a-zA-Z_][a-zA-Z0-9_]*';
+const SCOPE_SEG = '#[0-9a-zA-Z_]+';
+export const VALID_REDUX_STATE_KEY = new RegExp(
+  `^(${OLXKEY_SEG}|${SCOPE_SEG})(:${OLXKEY_SEG}|:${SCOPE_SEG})*$`
+);
+
+/**
+ * Validate and brand a string as a ReduxStateKey.
+ *
+ * A ReduxStateKey is one or more colon-separated segments, each being either
+ * an OlxKey (block ID) or a ScopeMarker (#index). Must contain at least one
+ * OlxKey segment.
+ *
+ * Use this at system boundaries where target= values enter the type system.
+ *
+ * @param input - Raw string from OLX target= attribute
+ * @param context - Description for error messages
+ * @returns Branded ReduxStateKey
+ * @throws Error with human-friendly message if invalid
+ *
+ * @example
+ *   toReduxStateKey('foo')                  // → 'foo'
+ *   toReduxStateKey('myList:#0:answer')     // → 'myList:#0:answer'
+ *   toReduxStateKey('#0')                   // throws — no OlxKey segment
+ *   toReduxStateKey('foo-bar')              // throws — invalid characters
+ */
+export function toReduxStateKey(input: string, context = 'target'): ReduxStateKey {
+  if (!input || typeof input !== 'string') {
+    throw new Error(`${context}: target is required but got "${input}"`);
+  }
+
+  const trimmed = input.trim();
+  if (!trimmed) {
+    throw new Error(`${context}: target cannot be empty or whitespace`);
+  }
+
+  if (!VALID_REDUX_STATE_KEY.test(trimmed)) {
+    const invalidChars = trimmed.match(INVALID_CHARS_DISPLAY);
+    const charList = invalidChars ? [...new Set(invalidChars)].join(' ') : 'special characters';
+    throw new Error(
+      `${context}: "${input}" is not a valid target key (invalid characters: ${charList}). ` +
+      `Target keys use ":" to separate segments. Each segment must be a block ID ` +
+      `(letters/digits/underscores) or a scope marker (#index).`
+    );
+  }
+
+  // Must contain at least one OlxKey (non-ScopeMarker) segment
+  const segments = trimmed.split(REDUX_SCOPE_SEPARATOR);
+  const hasOlxKey = segments.some(seg => !seg.startsWith(SCOPE_MARKER_PREFIX));
+  if (!hasOlxKey) {
+    throw new Error(
+      `${context}: "${input}" contains only scope markers — must include at least one block ID.`
+    );
+  }
+
+  return trimmed as ReduxStateKey;
+}
+
 /**
  * Validate and brand a user-provided ID string as OlxReference.
  * Use this at system boundaries where user input enters the type system.

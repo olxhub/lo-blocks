@@ -4,7 +4,7 @@
 // For multi-select (checkboxes), use CheckboxInput instead.
 //
 import { z } from 'zod';
-import { core, getBlockByOLXId } from '@/lib/blocks';
+import { core, getBlockByOLXId, z_target } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
@@ -69,7 +69,7 @@ const ChoiceInput = core({
     return fieldSelector(state, { ...props, id }, fields.value, { fallback: '' });
   },
   attributes: baseAttributes.extend({
-    target: z.string().optional().describe('Comma-separated IDs of Key/Distractor children if not directly nested'),
+    target: z_target.optional().describe('Comma-separated IDs of Key/Distractor children if not directly nested'),
   }),
   locals: {
     getChoices

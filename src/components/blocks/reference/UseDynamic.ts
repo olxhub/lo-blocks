@@ -4,7 +4,7 @@ import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { _UseDynamic } from './_UseDynamic';
 import { ignore } from '@/lib/content/parsers';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes, z_target, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
 
 export const fields = state.fields(
   ['value']
@@ -17,8 +17,8 @@ const UseDynamic = dev({
   description: 'Include a component block.',
   fields: fields,
   attributes: baseAttributes.extend({
-    target: z.string().optional().describe('Component ID to render dynamically'),
-    targetRef: z.string().optional().describe('ID of component whose value determines the target'),
+    target: z_target.optional().describe('Component ID to render dynamically'),
+    targetRef: z_reduxStateKey.optional().describe('ID of component whose value determines the target'),
   }),
 });
 

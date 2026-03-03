@@ -176,6 +176,52 @@ describe("ID helpers", () => {
     expect(idResolver.allOlxKeys(fullKey)).toEqual(['myList', 'answer']);
   });
 
+  it("toReduxStateKey validates ReduxStateKey format", () => {
+    // Simple key
+    expect(idResolver.toReduxStateKey('foo')).toBe('foo');
+    // Scoped key
+    expect(idResolver.toReduxStateKey('myList:#0:answer')).toBe('myList:#0:answer');
+    // Multiple scopes
+    expect(idResolver.toReduxStateKey('a:#0:b:#1:c')).toBe('a:#0:b:#1:c');
+    // Underscore-prefixed
+    expect(idResolver.toReduxStateKey('_hash123')).toBe('_hash123');
+    // Leading underscore with scope
+    expect(idResolver.toReduxStateKey('_list:#0:_child')).toBe('_list:#0:_child');
+
+    // Invalid: empty
+    expect(() => idResolver.toReduxStateKey('')).toThrow();
+    // Invalid: bad characters (hyphen)
+    expect(() => idResolver.toReduxStateKey('foo-bar')).toThrow();
+    // Invalid: scope-only, no OlxKey
+    expect(() => idResolver.toReduxStateKey('#0')).toThrow(/scope markers/);
+    expect(() => idResolver.toReduxStateKey('#0:#1')).toThrow(/scope markers/);
+    // Invalid: leading digit
+    expect(() => idResolver.toReduxStateKey('0abc')).toThrow();
+    // Invalid: spaces
+    expect(() => idResolver.toReduxStateKey('foo bar')).toThrow();
+    // Invalid: dots
+    expect(() => idResolver.toReduxStateKey('foo.bar')).toThrow();
+  });
+
+  it("VALID_REDUX_STATE_KEY regex", () => {
+    const re = idResolver.VALID_REDUX_STATE_KEY;
+    // Valid patterns
+    expect(re.test('foo')).toBe(true);
+    expect(re.test('myList:#0:answer')).toBe(true);
+    expect(re.test('a:#0:b:#1:c')).toBe(true);
+    expect(re.test('#0:foo')).toBe(true);       // scope-first is valid syntax
+    expect(re.test('_hash')).toBe(true);
+    expect(re.test('A1')).toBe(true);
+
+    // Invalid patterns
+    expect(re.test('foo-bar')).toBe(false);      // hyphen
+    expect(re.test('')).toBe(false);             // empty
+    expect(re.test('foo::')).toBe(false);        // trailing colon
+    expect(re.test(':foo')).toBe(false);         // leading colon
+    expect(re.test('foo bar')).toBe(false);      // space
+    expect(re.test('0foo')).toBe(false);         // leading digit (not a scope marker)
+  });
+
   it("VALID_ID_SEGMENT matches expected patterns", () => {
     const re = idResolver.VALID_ID_SEGMENT;
     // Valid

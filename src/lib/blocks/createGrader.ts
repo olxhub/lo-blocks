@@ -34,7 +34,7 @@ import { z } from 'zod';
 import { core } from './namespaces';
 import * as parsers from '@/lib/content/parsers';
 import { grader, type GraderParams, type SingleParam, type ListParam, type DictParam } from './actions';
-import { graderAttributes, baseAttributes } from './attributeSchemas';
+import { graderAttributes, baseAttributes, z_reduxStateKey } from './attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import { registerDSLFunction } from '@/lib/stateLanguage/functions';
 import { correctness } from './correctness';
@@ -48,7 +48,7 @@ export const MATCH_BLOCKS: Record<string, any> = {};
 const RULE_ATTRIBUTES = {
   score: z.coerce.number().min(0).max(1).optional(),
   feedback: z.string().optional(),
-  feedbackBlock: z.string().optional(),
+  feedbackBlock: z_reduxStateKey.optional(),
 };
 
 /**

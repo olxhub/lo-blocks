@@ -12,7 +12,7 @@ import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import { getBlockByOLXId } from '@/lib/blocks';
 import { getInputs } from '@/lib/blocks/olxdom';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes, z_target } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 import { correctness } from '@/lib/blocks/correctness';
@@ -109,7 +109,7 @@ function getCheckboxDisplayAnswer(props) {
 }
 
 export const checkboxGraderAttributes = baseAttributes.extend({
-  target: z.string().optional().describe('ID of the CheckboxInput to grade; infers from children if omitted'),
+  target: z_target.optional().describe('ID of the CheckboxInput to grade; infers from children if omitted'),
   partialCredit: z.enum(['true', 'false']).optional().describe('Enable partial credit scoring (n/m formula)'),
   // TODO: Does answer work? This is a list. We should figure this out, and if it is available, update the
   // documentation / zod
