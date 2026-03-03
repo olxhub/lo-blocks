@@ -18,6 +18,7 @@ export async function fetchOlxJson(
   options?: RequestInit
 ): Promise<{ ok: boolean; idMap: IdMap; error?: string }> {
   const res = await globalThis.fetch(`/api/olxjson/${id}`, options);
+  if (!res.ok) return { ok: false, idMap: {}, error: `HTTP ${res.status}` };
   return res.json();
 }
 

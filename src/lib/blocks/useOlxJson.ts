@@ -111,9 +111,10 @@ export function ensureBlock(
       }
     })
     .catch(err => {
-      // Network failure — allow retry by removing from dedup set.
-      // The Redux error state still prevents immediate re-fetch (selectBlockState
-      // check returns early), but a page reload or explicit retry can re-trigger.
+      // Network failure — remove from dedup set so ensuredIds won't block.
+      // However, the Redux error state (set below) is a second gate: selectBlockState
+      // returns truthy, so ensureBlock returns early at line 94. In practice, retry
+      // requires clearing both gates — currently only a page reload does that.
       ensuredIds.delete(dedupKey);
       dispatchOlxJsonError(props, source, olxKey, err.message || `Failed to load ${olxKey}`);
     });
@@ -139,7 +140,7 @@ function ensureTargetBlocks(props: BaselineProps, idMap: IdMap, source: string):
     if (typeof target !== 'string') continue;
 
     // Handle comma-separated targets
-    const parts = (target as string).split(',').map(s => s.trim()).filter(Boolean);
+    const parts = target.split(',').map(s => s.trim()).filter(Boolean);
     for (const part of parts) {
       // Strip /absolute and ./relative prefixes before decomposing
       const cleaned = part.startsWith('/') ? part.slice(1)
