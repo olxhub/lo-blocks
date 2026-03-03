@@ -20,7 +20,7 @@ import type { BaselineProps } from '@/lib/types';
  *
  * Usage:
  *   import * as api from '@/lib/api';
- *   const response = await api.fetch(props, '/api/content/123');
+ *   const response = await api.fetch(props, '/api/olxjson/123');
  *   const data = await response.json();
  */
 export async function fetch(
@@ -49,7 +49,7 @@ export async function fetch(
  *
  * Usage (server-side):
  *   import * as api from '@/lib/api';
- *   const response = await api.apiFetch('/api/content/123', 'en-Latn-US');
+ *   const response = await api.apiFetch('/api/olxjson/123', 'en-Latn-US');
  *   const data = await response.json();
  */
 export async function apiFetch(

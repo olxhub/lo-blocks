@@ -1,4 +1,4 @@
-// src/app/api/content/[id]/route.ts
+// src/app/api/olxjson/[id]/route.ts
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { getBestVariantServer } from '@/lib/i18n/getBestVariant';
 import { allOlxKeys } from '@/lib/blocks/idResolver';
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       });
     }
 
-    // TODO: Break out into /api/content/by-id/[id]/
+    // TODO: Break out into /api/olxjson/by-id/[id]/
     if (!id || !idMap[id]) {
       return Response.json(
         {
