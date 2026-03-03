@@ -61,41 +61,88 @@ export interface OLXLoadingError {
  * ID TYPES
  * ════════
  *
+ * The ID system has four layers, from authored content to runtime state.
+ * Branded types enforce correct usage at compile time.
+ *
+ * ┌──────────────────────────────────────────────────────────────────────┐
+ * │                        CONVERSION PATHWAYS                           │
+ * │                                                                      │
+ * │  OlxReference ──refToOlxKey()──────> OlxKey                          │
+ * │      │                                  │                            │
+ * │      │   refToReduxKey(props)           │  Content lookup in Redux   │
+ * │      │   (combines with IdPrefix)       │  (selectBlock, ensureBlock)│
+ * │      v                                  │                            │
+ * │  ReduxStateKey ─reduxKeyToOlxKey()──> OlxKey  (leaf block)           │
+ * │      │              ↑                                                │
+ * │      │              │ Last non-ScopeMarker segment                   │
+ * │      │              │ (OlxKeys cannot contain ':' or start with '#') │
+ * │      │                                                               │
+ * │  ReduxStateKey ─allOlxKeys()──> OlxKey[]  (all blocks in scope)      │
+ * │                                                                      │
+ * │  IdPrefix + OlxKey ──refToReduxKey()──> ReduxStateKey                │
+ * │                                                                      │
+ * │  extendIdPrefix(props, [id, scopeMarker(index)]) → IdPrefix          │
+ * │    Blocks like DynamicList create scoped prefixes                    │
+ * └──────────────────────────────────────────────────────────────────────┘
+ *
+ * SCOPE MARKERS
+ * -------------
+ * Segments in a ReduxStateKey that start with '#' are ScopeMarkers —
+ * instance indices, attempt numbers, etc. They are NOT loadable block IDs.
+ * All other segments are valid OlxKeys.
+ *
+ * Constructed via scopeMarker(label): e.g. scopeMarker(0) → '#0'
+ * Format: #[0-9a-zA-Z_]+
+ *
+ * Examples:
+ *   OlxReference:  "resistorProblem", "/mit.edu/6002x/resistorProblem"
+ *   OlxKey:        "resistorProblem" (canonical, for content lookup)
+ *   ScopeMarker:   "#0", "#attempt_2" (instance scoping, not a block ID)
+ *   IdPrefix:      "myList:#0" (DynamicList "myList", instance 0)
+ *   ReduxStateKey: "myList:#0:resistorProblem" (scoped state key)
+ *
+ * The ':' delimiter (REDUX_SCOPE_SEPARATOR) is reserved — forbidden in
+ * user-authored IDs. This makes decomposition deterministic:
+ *   reduxKeyToOlxKey("myList:#0:resistorProblem") → "resistorProblem"
+ *   allOlxKeys("myList:#0:resistorProblem")       → ["myList", "resistorProblem"]
+ *
+ * See docs/redux-key-decomposition.md for full design documentation.
  */
 
-// We start with an OLX Reference
-//   e.g. `/mit.edu/6002x/resistorProblem`, `resistorProblem`, `../6002x/resistorProblem`,
-// as found in source OLX. We import these with `toOlxReference`. It takes a context, since
-// eventually we might want namespacing.
-//
 // Valid ID segments: [a-zA-Z_][a-zA-Z0-9_]* (no hyphens, dots, colons, slashes, commas).
 // Auto-generated IDs are "_" + SHA1 hex hash.
 // See idResolver.ts VALID_ID_SEGMENT for the canonical regex and delimiter conventions.
+
+// User-authored reference as found in source OLX.
+// Created via toOlxReference(string, context).
 export type OlxReference = string & { __brand: 'OlxReference' };
-//                    |
-//                    | refToOlxKey(ref)
-//                    v
-// Which is converted to a canonical ID, e.g. `/mit.edu/6002x/resistorProblem`, which can be
-// used as a key into the static OLX
+
+// Canonical content key — used for content lookup in Redux (selectBlock, ensureBlock).
+// Created via refToOlxKey(ref) — strips path prefixes and scope prefixes.
 export type OlxKey = OlxReference & { __resolved: true };
-// However, when we render, this is many:many. For example, <Use> allows us to use the same block
-// from the static OLX DOM in the dunamic rendered DOM. Conversely, something like a <DynamicList>
-// might repeat the same OLX DOM under different keys. We combine this with an optional scoping
-// prefix:
-//                    |
+
+// Scoping prefix for blocks rendered in repeating contexts (DynamicList, MasteryBank, etc.).
+// Created via extendIdPrefix(props, [id, scopeMarker(index)]).
+// Format: colon-delimited segments, e.g. "mylist:#0" or "bank:#attempt_2".
 export type IdPrefix = string & { __brand: 'IdPrefix' };
-//                    |     |
-//                    |     |   `refToReduxKey(props)`
-//                    v     v
-// To make a key used to maintain redux state:
+
+// Scoped state key — used for Redux state access (field values, correctness, etc.).
+// Created via refToReduxKey(props) — combines IdPrefix + OlxKey.
+// Format: "prefix:baseId" or just "baseId" if no prefix.
+// The target= attribute in OLX always contains a ReduxStateKey.
 export type ReduxStateKey = string & { __brand: 'ReduxStateKey' };
 
-// This is all well and good, but React Keys and HTML IDs have
-// different uniqueness constraints:
+// A non-OlxKey scope segment in a ReduxStateKey. Format: #[0-9a-zA-Z_]+
+// Marks instance indices, attempt numbers, etc. — NOT loadable block IDs.
+// Created via scopeMarker(label) in idResolver.ts.
+// Examples: "#0" (list instance), "#attempt_2" (mastery bank attempt)
+export type ScopeMarker = string & { __brand: 'ScopeMarker' };
+
+// React Keys and HTML IDs have different uniqueness constraints:
 export type ReactKey = string & { __brand: 'ReactKey' };          // React reconciliation
 export type HtmlId = string & { __brand: 'HtmlId' };              // DOM element ID
 
-// And a final type of ID: OLX element tag name (e.g., "Vertical", "Sequential", "ChoiceInput")
+// OLX element tag name (e.g., "Vertical", "Sequential", "ChoiceInput")
 export type OLXTag = string & { __brand: 'OLXTag' };
 
 
@@ -303,7 +350,7 @@ export const BlockBlueprintSchema = z.object({
   staticKids: z.function().optional(),
   reducers: z.array(z.function()).optional(),
   fields: ReduxFieldsReturn.optional(),
-  getValue: z.function().optional(),
+  selectValue: z.function().optional(),
   /**
    * Block-local API functions that expose the block's logic separately from its UI.
    *
@@ -394,6 +441,19 @@ export type BlockBlueprint = z.infer<typeof BlockBlueprintSchema>;
  * The block lifecycle:
  *   BlockBlueprint (what devs write) → LoBlock (processed) → OlxJson (instance) → OlxDomNode (rendered)
  */
+
+/**
+ * Selector that extracts a block's "value" from Redux state.
+ *
+ * Called by valueSelector/useValue to read what an input block exports
+ * (e.g., a string for LineInput, a number for NumberInput, an object for
+ * MatchingInput). Also used by non-input blocks (Ref, Tabs, Navigator)
+ * for programmatic value access.
+ *
+ * For blocks using withStatus, the return type is BlockDataResult & { value }.
+ */
+export type ValueSelectorFn = (props: RuntimeProps, state: any, id: OlxReference) => any;
+
 export interface LoBlock {
   component: React.ComponentType<any>;
   _isBlock: true;
@@ -401,8 +461,8 @@ export interface LoBlock {
   parser?: Function;
   staticKids?: Function;
   reducers: Function[];
-  getValue?: Function;
-  locals?: Record<string, any>;
+  selectValue?: ValueSelectorFn;
+  locals: Record<string, any>;
   fields: Fields;
   name?: string;  // Block name for selector matching
   OLXName: OLXTag;
@@ -868,6 +928,37 @@ export interface GraphEdge {
   id: string;  // Edge ID (graph-specific, not a block ID)
   source: OlxKey;  // Source block ID
   target: OlxKey;  // Target block ID
+}
+
+/**
+ * ═══════════════════
+ * BLOCK DATA STATUS
+ * ═══════════════════
+ *
+ * Standard result type for block data access. All hooks and selectors that
+ * retrieve block data by ID return this shape (extended with their primary
+ * field: `value`, `block`, `olxJson`, etc.).
+ *
+ * This represents the state machine for block loading:
+ *   unknown → loading → ready | error
+ *                              ↓
+ *                     (future: translanguaging)
+ *
+ * Blocks that don't care about loading states can just destructure the
+ * primary field: `const { value } = useValue(props, id)`. The system
+ * provides a usable fallback while loading.
+ *
+ * Blocks that DO care (like Ref) can check `loading` or `error` to
+ * show spinners or error messages.
+ */
+export type BlockDataStatus = 'ready' | 'loading' | 'error';
+// Future: | 'translanguaging'
+
+export interface BlockDataResult {
+  status: BlockDataStatus; // Low level: prefer the derived booleans below
+  loading: boolean;        // status === 'loading' or not yet in Redux
+  ready: boolean;          // status === 'ready'
+  error: string | null;    // Error message (for DisplayError), null if no error
 }
 
 // Content tier - computed from `generated` field

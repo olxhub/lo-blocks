@@ -22,7 +22,7 @@ describe("ID helpers", () => {
     expect(idResolver.extendIdPrefix({}, 'child')).toEqual({ idPrefix: 'child' });
 
     // Without parent prefix - array form (recommended for multi-level)
-    expect(idResolver.extendIdPrefix({ id: 'foo' }, ['foo', 0])).toEqual({ idPrefix: 'foo:0' });
+    expect(idResolver.extendIdPrefix({ id: 'foo' }, ['foo', idResolver.scopeMarker(0)])).toEqual({ idPrefix: 'foo:#0' });
 
     // With parent prefix - string form
     expect(idResolver.extendIdPrefix({ idPrefix: 'parent' }, 'child')).toEqual({ idPrefix: 'parent:child' });
@@ -48,28 +48,35 @@ describe("ID helpers", () => {
     expect(idResolver.refToReduxKey({ id: './foo' })).toBe('foo');
   });
 
-  it("refToOlxKey extracts base ID (last segment) for idMap lookup", () => {
+  it("refToOlxKey extracts base ID from OlxReference", () => {
     // Plain IDs pass through
     expect(idResolver.refToOlxKey('foo')).toBe('foo');
     expect(idResolver.refToOlxKey('child_input')).toBe('child_input');
+    expect(idResolver.refToOlxKey('_hash123')).toBe('_hash123');
 
-    // Absolute prefix stripped, then last segment extracted
+    // Absolute prefix stripped
     expect(idResolver.refToOlxKey('/foo')).toBe('foo');
-    expect(idResolver.refToOlxKey('/list:0:child')).toBe('child');
 
     // Explicit relative prefix stripped
     expect(idResolver.refToOlxKey('./foo')).toBe('foo');
-    expect(idResolver.refToOlxKey('./list:0:child')).toBe('child');
+  });
 
-    // Non-strings pass through unchanged
-    expect(idResolver.refToOlxKey(null)).toBe(null);
-    expect(idResolver.refToOlxKey(undefined)).toBe(undefined);
+  it("refToOlxKey rejects ReduxStateKeys and other invalid input", () => {
+    // ReduxStateKeys contain ":" — must use reduxKeyToOlxKey() instead
+    expect(() => idResolver.refToOlxKey('list:#0:child')).toThrow(/not a valid OlxReference/);
+    expect(() => idResolver.refToOlxKey('scope:foo')).toThrow(/not a valid OlxReference/);
+    expect(() => idResolver.refToOlxKey('/list:#0:child')).toThrow(/not a valid OlxReference/);
 
-    // Redux scope prefixes stripped - always takes last segment
-    expect(idResolver.refToOlxKey('list:0:child')).toBe('child');
-    expect(idResolver.refToOlxKey('mastery:attempt_0:q1')).toBe('q1');
-    expect(idResolver.refToOlxKey('a:b:c:d')).toBe('d');
-    expect(idResolver.refToOlxKey('sortable:sortitem:0:ref_id')).toBe('ref_id');
+    // ScopeMarker-prefixed strings are not OlxReferences
+    expect(() => idResolver.refToOlxKey('#0')).toThrow(/not a valid OlxReference/);
+
+    // Other reserved characters
+    expect(() => idResolver.refToOlxKey('foo-bar')).toThrow(/not a valid OlxReference/);
+    expect(() => idResolver.refToOlxKey('foo.bar')).toThrow(/not a valid OlxReference/);
+
+    // Empty after prefix stripping
+    expect(() => idResolver.refToOlxKey('/')).toThrow(/not a valid OlxReference/);
+    expect(() => idResolver.refToOlxKey('./')).toThrow(/not a valid OlxReference/);
   });
 
   it("toOlxReference rejects hyphens and leading digits", () => {
@@ -100,6 +107,119 @@ describe("ID helpers", () => {
     expect(() => idResolver.toOlxKey('0abc')).toThrow(/not a valid OlxKey/);
     expect(idResolver.toOlxKey('_foo')).toBe('_foo');
     expect(idResolver.toOlxKey('foo_bar')).toBe('foo_bar');
+  });
+
+  it("scopeMarker creates branded ScopeMarker strings", () => {
+    expect(idResolver.scopeMarker(0)).toBe('#0');
+    expect(idResolver.scopeMarker(42)).toBe('#42');
+    expect(idResolver.scopeMarker('attempt_2')).toBe('#attempt_2');
+    expect(idResolver.scopeMarker('foo')).toBe('#foo');
+    expect(idResolver.scopeMarker('A1')).toBe('#A1');
+  });
+
+  it("scopeMarker rejects invalid labels", () => {
+    // Reserved delimiters
+    expect(() => idResolver.scopeMarker('foo:bar')).toThrow(/invalid/);
+    expect(() => idResolver.scopeMarker('foo#bar')).toThrow(/invalid/);
+    expect(() => idResolver.scopeMarker('foo.bar')).toThrow(/invalid/);
+    expect(() => idResolver.scopeMarker('foo-bar')).toThrow(/invalid/);
+
+    // Empty
+    expect(() => idResolver.scopeMarker('')).toThrow(/invalid/);
+  });
+
+  it("reduxKeyToOlxKey extracts the leaf block ID", () => {
+    // Simple key — no scope
+    expect(idResolver.reduxKeyToOlxKey('answer')).toBe('answer');
+
+    // Scoped key — last non-ScopeMarker segment
+    expect(idResolver.reduxKeyToOlxKey('myList:#0:answer')).toBe('answer');
+    expect(idResolver.reduxKeyToOlxKey('bank:#attempt_2:child')).toBe('child');
+
+    // Nested scoping
+    expect(idResolver.reduxKeyToOlxKey('outer:#0:inner:#1:leaf')).toBe('leaf');
+
+    // Multiple OlxKeys in chain — returns the last one
+    expect(idResolver.reduxKeyToOlxKey('a:#0:b:#1:c')).toBe('c');
+  });
+
+  it("allOlxKeys extracts all loadable block IDs", () => {
+    // Simple key
+    expect(idResolver.allOlxKeys('answer')).toEqual(['answer']);
+
+    // Scoped key
+    expect(idResolver.allOlxKeys('myList:#0:answer')).toEqual(['myList', 'answer']);
+    expect(idResolver.allOlxKeys('bank:#attempt_2:child')).toEqual(['bank', 'child']);
+
+    // Nested scoping
+    expect(idResolver.allOlxKeys('outer:#0:inner:#1:leaf')).toEqual(['outer', 'inner', 'leaf']);
+
+    // Multiple ScopeMarkers in a row
+    expect(idResolver.allOlxKeys('a:#0:#1:b')).toEqual(['a', 'b']);
+  });
+
+  it("extendIdPrefix works with scopeMarker", () => {
+    // DynamicList pattern
+    expect(idResolver.extendIdPrefix({}, ['myList', idResolver.scopeMarker(0)])).toEqual({ idPrefix: 'myList:#0' });
+    expect(idResolver.extendIdPrefix({}, ['myList', idResolver.scopeMarker(3)])).toEqual({ idPrefix: 'myList:#3' });
+
+    // MasteryBank pattern
+    expect(idResolver.extendIdPrefix({}, ['bank', idResolver.scopeMarker('attempt_2')])).toEqual({ idPrefix: 'bank:#attempt_2' });
+
+    // With parent prefix
+    expect(idResolver.extendIdPrefix({ idPrefix: 'parent' }, ['child', idResolver.scopeMarker(0)])).toEqual({ idPrefix: 'parent:child:#0' });
+
+    // Round-trip: extendIdPrefix + reduxKeyToOlxKey
+    const { idPrefix } = idResolver.extendIdPrefix({}, ['myList', idResolver.scopeMarker(0)]);
+    const fullKey = `${idPrefix}:answer`;
+    expect(idResolver.reduxKeyToOlxKey(fullKey)).toBe('answer');
+    expect(idResolver.allOlxKeys(fullKey)).toEqual(['myList', 'answer']);
+  });
+
+  it("toReduxStateKey validates ReduxStateKey format", () => {
+    // Simple key
+    expect(idResolver.toReduxStateKey('foo')).toBe('foo');
+    // Scoped key
+    expect(idResolver.toReduxStateKey('myList:#0:answer')).toBe('myList:#0:answer');
+    // Multiple scopes
+    expect(idResolver.toReduxStateKey('a:#0:b:#1:c')).toBe('a:#0:b:#1:c');
+    // Underscore-prefixed
+    expect(idResolver.toReduxStateKey('_hash123')).toBe('_hash123');
+    // Leading underscore with scope
+    expect(idResolver.toReduxStateKey('_list:#0:_child')).toBe('_list:#0:_child');
+
+    // Invalid: empty
+    expect(() => idResolver.toReduxStateKey('')).toThrow();
+    // Invalid: bad characters (hyphen)
+    expect(() => idResolver.toReduxStateKey('foo-bar')).toThrow();
+    // Invalid: scope-only, no OlxKey
+    expect(() => idResolver.toReduxStateKey('#0')).toThrow(/scope markers/);
+    expect(() => idResolver.toReduxStateKey('#0:#1')).toThrow(/scope markers/);
+    // Invalid: leading digit
+    expect(() => idResolver.toReduxStateKey('0abc')).toThrow();
+    // Invalid: spaces
+    expect(() => idResolver.toReduxStateKey('foo bar')).toThrow();
+    // Invalid: dots
+    expect(() => idResolver.toReduxStateKey('foo.bar')).toThrow();
+  });
+
+  it("VALID_REDUX_STATE_KEY regex", () => {
+    const re = idResolver.VALID_REDUX_STATE_KEY;
+    // Valid patterns
+    expect(re.test('foo')).toBe(true);
+    expect(re.test('myList:#0:answer')).toBe(true);
+    expect(re.test('a:#0:b:#1:c')).toBe(true);
+    expect(re.test('#0:foo')).toBe(true);       // scope-first is valid syntax
+    expect(re.test('_hash')).toBe(true);
+    expect(re.test('A1')).toBe(true);
+
+    // Invalid patterns
+    expect(re.test('foo-bar')).toBe(false);      // hyphen
+    expect(re.test('')).toBe(false);             // empty
+    expect(re.test('foo::')).toBe(false);        // trailing colon
+    expect(re.test(':foo')).toBe(false);         // leading colon
+    expect(re.test('foo bar')).toBe(false);      // space
+    expect(re.test('0foo')).toBe(false);         // leading digit (not a scope marker)
   });
 
   it("VALID_ID_SEGMENT matches expected patterns", () => {

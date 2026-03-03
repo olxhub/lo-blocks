@@ -9,7 +9,7 @@ import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import { srcAttributes } from '@/lib/blocks/attributeSchemas';
+import { srcAttributes, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
 import _Navigator from './_Navigator';
 
 export const fields = state.fields([
@@ -24,16 +24,16 @@ const Navigator = dev({
   description: 'Two-pane navigator with configurable preview and detail templates',
   component: _Navigator,
   fields: fields,
-  // as any: See getValue spec in lib/blocks/actions.tsx
-  getValue: ((props, state, id) => {
+  // as any: See selectValue spec in lib/blocks/actions.tsx
+  selectValue: ((props, state, id) => {
     const selectedItem = fieldSelector(state, props, fields.selectedItem, { fallback: null, id });
     const searchQuery = fieldSelector(state, props, fields.searchQuery, { fallback: '', id });
     const viewMode = fieldSelector(state, props, fields.viewMode, { fallback: 'default', id });
     return { selectedItem, searchQuery, viewMode };
   }) as any,
   attributes: srcAttributes.extend({
-    preview: z.string().optional().describe('ID of block to use as preview template'),
-    detail: z.string().optional().describe('ID of block to use as detail template'),
+    preview: z_reduxStateKey.optional().describe('ID of block to use as preview template'),
+    detail: z_reduxStateKey.optional().describe('ID of block to use as detail template'),
     searchable: z.enum(['true', 'false']).optional().describe('Enable search/filter functionality'),
   }),
 });

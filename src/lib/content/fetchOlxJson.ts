@@ -10,14 +10,15 @@ import type { OlxKey, IdMap } from '@/lib/types';
 /**
  * Fetch content by ID.
  *
- * Returns the same { ok, idMap, error? } shape as /api/content/[id].
+ * Returns the same { ok, idMap, error? } shape as /api/olxjson/[id].
  * Options (e.g. headers) are passed through to fetch.
  */
 export async function fetchOlxJson(
   id: OlxKey,
   options?: RequestInit
 ): Promise<{ ok: boolean; idMap: IdMap; error?: string }> {
-  const res = await globalThis.fetch(`/api/content/${id}`, options);
+  const res = await globalThis.fetch(`/api/olxjson/${id}`, options);
+  if (!res.ok) return { ok: false, idMap: {}, error: `HTTP ${res.status}` };
   return res.json();
 }
 
@@ -31,7 +32,7 @@ export async function fetchOlxJson(
 export async function fetchAllOlxJson(
   options?: RequestInit
 ): Promise<{ ok: boolean; idMap: IdMap; error?: string }> {
-  const res = await globalThis.fetch('/api/content/all', options);
+  const res = await globalThis.fetch('/api/olxjson/all', options);
   return res.json();
 }
 

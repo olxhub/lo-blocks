@@ -13,12 +13,12 @@
 export { blocks } from './factory';
 export { core, dev, test } from './namespaces';
 export { getAllNodes, getDomNodeByReduxKey, getKidsBFS, getKidsDFS, getParents, inferRelatedNodes, getGrader, getInputs, getValueById, extractChildText } from './olxdom';
-export { refToOlxKey, refToReduxKey } from './idResolver';
+export { refToOlxKey, refToReduxKey, reduxKeyToOlxKey, allOlxKeys, scopeMarker } from './idResolver';
 export { action, executeNodeActions, grader, input, isAction, isInput, isMatch } from './actions';
 export { correctness, correctnessPriority, visibilityHandlers, computeVisibility, isValidCorrectness, validateCorrectness, getAllCorrectnessStates, completion, completionPriority, isValidCompletion, validateCompletion, getAllCompletionStates } from './correctness';
 export { worstCaseCorrectness, proportionalCorrectness, computeScore, formatScore, countCorrectness } from '@/lib/grading';
 export { isInputReadOnly } from './inputInteraction';
-export { baseAttributes, inputMixin, graderMixin, placeholder, src } from './attributeSchemas';
+export { baseAttributes, inputMixin, graderMixin, placeholder, src, z_olxKey, z_reduxStateKey, z_target } from './attributeSchemas';
 export { useGraderAnswer, useGraderSummary, findGrader } from './useGraderAnswer';
 export { createGrader } from './createGrader';
 export { getBlockByOLXId, getBlocksByOLXIds } from './getBlockByOLXId';

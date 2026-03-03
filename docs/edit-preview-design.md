@@ -6,7 +6,7 @@ editing OLX and auxiliary files (e.g. `.chatpeg`) with a live preview.
 ## Current state
 
 The preview pane parses the edited file with `parseOLX` and merges the
-result with the global `idMap` fetched from `/api/content/all`.
+result with the global `idMap` fetched from `/api/olxjson/all`.
 `parseOLX` now supports an optional storage provider and asynchronous
 operations, but the edit page still calls it without a provider:
 

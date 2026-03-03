@@ -12,7 +12,7 @@
 // This allows a block to be input+grader+src without combinatorial explosion.
 //
 import { z } from 'zod';
-import { VALID_ID_SEGMENT } from './idResolver';
+import { VALID_ID_SEGMENT, VALID_REDUX_STATE_KEY } from './idResolver';
 
 /**
  * Zod refinement for validating OLX IDs.
@@ -26,6 +26,29 @@ const validateOlxId = (id) => {
   }
   return undefined;
 };
+
+// =============================================================================
+// Reusable ID Schemas
+// =============================================================================
+
+/** Single OlxKey — bare block ID, no path prefix, no scope. */
+export const z_olxKey = z.string().refine(
+  id => VALID_ID_SEGMENT.test(id),
+  id => ({ message: `"${id}" is not a valid block ID (must start with letter or underscore, then letters/digits/underscores)` })
+);
+
+/** Single ReduxStateKey — may include scope markers (e.g. "myList:#0:answer"). */
+export const z_reduxStateKey = z.string().refine(
+  key => VALID_REDUX_STATE_KEY.test(key),
+  key => ({ message: `"${key}" is not a valid target key` })
+);
+
+/** Comma-separated ReduxStateKeys — the common target= format. */
+export const z_target = z.string().refine(
+  val => val.split(',').map(s => s.trim()).filter(Boolean)
+    .every(part => VALID_REDUX_STATE_KEY.test(part)),
+  val => ({ message: `target "${val}" contains invalid key(s)` })
+);
 
 // =============================================================================
 // Base Attributes (all blocks)
@@ -66,7 +89,7 @@ export const inputMixin = z.object({
 export const graderMixin = z.object({
   answer: z.string().optional().describe('Expected answer for grading'),
   displayAnswer: z.string().optional().describe('Answer shown to student (may differ from grading answer)'),
-  target: z.string().optional().describe('ID of input to grade (inferred if omitted)'),
+  target: z_target.optional().describe('Target input ID(s) to grade (inferred if omitted)'),
 });
 
 // =============================================================================

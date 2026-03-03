@@ -153,7 +153,7 @@ function createBlock(config: BlueprintInput): LoBlock {
     parser: effectiveConfig.parser,
     staticKids: effectiveConfig.staticKids,
     reducers: effectiveConfig.reducers ?? [],
-    getValue: effectiveConfig.getValue,
+    selectValue: effectiveConfig.selectValue,
     fields: (effectiveConfig.fields as Fields) ?? state.fields([]),
     locals: effectiveConfig.locals ?? {},
 
@@ -161,9 +161,7 @@ function createBlock(config: BlueprintInput): LoBlock {
     OLXName: olxName,
     description: parsed.description,
     namespace: parsed.namespace,
-    // TODO: isInput/isMatch currently derived from getValue/locals.match presence.
-    // Should be explicit in blueprint for better semantics.
-    isInput: typeof effectiveConfig.getValue === 'function',
+    isInput: parsed.isInput,
     isMatch: typeof effectiveConfig.locals?.match === 'function',
     isGrader: parsed.isGrader,
     internal: effectiveConfig.internal,
@@ -178,6 +176,12 @@ function createBlock(config: BlueprintInput): LoBlock {
     getDisplayAnswers: effectiveConfig.getDisplayAnswers as LoBlock['getDisplayAnswers'],
   }
   assertUnimplemented(parsed.reducers, 'reducers');
+
+  // Default selectValue for input blocks: read commonFields.value
+  if (block.isInput && !block.selectValue) {
+    block.selectValue = (props, reduxState, id) =>
+      state.fieldSelector(reduxState, { ...props, id }, state.commonFields.value, { fallback: '' });
+  }
 
   return block;
 }

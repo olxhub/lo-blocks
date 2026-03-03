@@ -23,7 +23,7 @@ export const fields = state.fields([commonFields.value]);
 const TabularMCQ = core({
   ...peggyParser(parser),
   ...blocks.input({
-    getValue: (props, reduxState, id) => {
+    selectValue: (props, reduxState, id) => {
       const value = fieldSelector(reduxState, { ...props, id }, fields.value, { fallback: {} });
       return value;  // { rowId: colIndex } for radio, { rowId: [colIndex, ...] } for checkbox
     }

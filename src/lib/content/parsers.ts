@@ -408,6 +408,61 @@ export const text = Object.assign(textFactory, {
   stripIndent: () => textFactory({ postprocess: 'stripIndent' }),
 });
 
+// Text content → attribute parser.
+//
+// Moves text content into a named attribute instead of kids. Useful for blocks
+// like Ref where <Ref>targetId</Ref> should compile to {target: 'targetId'}.
+//
+// If both the attribute and non-empty text content are present, throws a parse error.
+// Whitespace-only text content is ignored (not a conflict).
+//
+// Usage:
+//   ...parsers.textToAttribute('target')
+//
+export function textToAttribute(attrName: string) {
+  async function textToAttributeParser(ctx) {
+    const { id, tag, attributes, provenance, rawParsed, storeEntry, metadata, provider } = ctx;
+    const tagParsed = rawParsed[tag];
+
+    // Extract text content (same mechanism as text parser)
+    let textContent: string;
+    if (attributes?.src) {
+      const loaded = await loadExternalSource({ src: attributes.src, provider, provenance });
+      textContent = loaded.text.trim();
+    } else {
+      const extracted = extractTextFromXmlNodes(tagParsed, { preserveWhitespace: false });
+      textContent = extractString(extracted).trim();
+    }
+
+    // Conflict: both attribute and non-empty text content
+    if (attributes?.[attrName] && textContent) {
+      throw new Error(
+        `<${tag}>: Both ${attrName}="${attributes[attrName]}" attribute and ` +
+        `text content "${textContent}" specified. Use one or the other.`
+      );
+    }
+
+    // Text content becomes the named attribute (if not already set)
+    const finalAttributes = { ...attributes };
+    if (!finalAttributes[attrName] && textContent) {
+      finalAttributes[attrName] = textContent;
+    }
+
+    const entry = {
+      id,
+      tag,
+      attributes: finalAttributes,
+      provenance,
+      kids: [],
+      ...(metadata || {})
+    };
+    storeEntry(id, entry);
+    return id;
+  }
+
+  return { parser: textToAttributeParser, staticKids: () => [] };
+}
+
 // === PEG Support ===
 //
 // PEG is similar to context-free grammars, and is used to support simplified formats,

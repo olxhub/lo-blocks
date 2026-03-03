@@ -30,7 +30,7 @@ if (typeof Element !== 'undefined' && !Element.prototype.scrollTo) {
 const originalFetch = global.fetch;
 global.fetch = async (url: string | URL | Request, options?: RequestInit) => {
   const urlStr = typeof url === 'string' ? url : url.toString();
-  if (urlStr.includes('/api/content/')) {
+  if (urlStr.includes('/api/olxjson/')) {
     // Return a 404 response for any content API requests
     return new Response(JSON.stringify({ ok: false, error: `Block not found (test environment)` }), {
       status: 404,

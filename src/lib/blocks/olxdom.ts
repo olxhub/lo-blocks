@@ -352,15 +352,17 @@ export function getValueById(props: RuntimeProps, id: OlxReference | null | unde
   const reduxState = props.runtime.store.getState();
 
   // valueSelector handles all ID resolution (refToOlxKey for lookup, proper
-  // prefix handling for state access) - blocks don't need to know about IDs
-  return state.valueSelector(props, reduxState, id);
+  // prefix handling for state access) - blocks don't need to know about IDs.
+  // Unwrap .value — non-hook callers get the raw value (by the time actions
+  // run, content should be loaded; if not, they get the fallback).
+  return state.valueSelector(props, reduxState, id).value;
 }
 
 /**
  * Extract text from child nodes, resolving block references to their current values.
  *
  * For text nodes, accumulates the text content.
- * For block nodes, calls their getValue() method to get current runtime value.
+ * For block nodes, resolves their current value via getValueById.
  *
  * Originally designed to extract prompt text from LLMAction content.
  *

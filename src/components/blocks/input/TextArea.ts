@@ -15,12 +15,14 @@ const TextArea = core({
   description: 'Multi-line text input field for longer student responses',
   component: _TextArea,
   fields: fields,
-  // as any: See getValue spec in lib/blocks/actions.tsx
-  getValue: ((props, state, id) => fieldSelector(state, props, fields.value, { fallback: '', id })) as any,
+  // as any: See selectValue spec in lib/blocks/actions.tsx
+  selectValue: ((props, state, id) => fieldSelector(state, props, fields.value, { fallback: '', id })) as any,
   attributes: baseAttributes.extend({
     ...placeholder,
     rows: z.string().default('4').describe('Number of visible text rows'),
-    readonly: z.enum(['true', 'false']).optional().describe('Make textarea read-only'),
+    readonly: z.union([z.enum(['true', 'false']), z.boolean()]).optional()
+      .transform(v => v === 'true' || v === true)
+      .describe('Make textarea read-only'),
   }),
 });
 

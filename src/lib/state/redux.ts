@@ -47,11 +47,12 @@ import * as idResolver from '../blocks/idResolver';
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
-import { FieldInfo, OlxReference, OlxKey, ReduxStateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock } from '../types';
+import { FieldInfo, OlxReference, OlxKey, ReduxStateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus } from '../types';
 import { assertValidField } from './fields';
 import type { Store } from 'redux';
-import { selectBlock } from './olxjson';
+import { selectBlock, selectBlockState } from './olxjson';
 import { getDomNodeByReduxKey } from '../blocks/olxdom';
+import { ensureBlock } from '../blocks/useOlxJson';
 import { getReduxStoreInstance } from './store';
 
 
@@ -395,7 +396,7 @@ export function componentFieldByName(props: RuntimeProps, targetId: OlxReference
 
 /**
  * Selector function to get a component's value by ID.
- * Tries getValue method first, falls back to direct field access.
+ * Tries selectValue method first, falls back to direct field access.
  *
  * @param {Object} props - Component props with blockRegistry and olxJsonSources
  * @param {Object} state - Redux state
@@ -409,13 +410,13 @@ export function componentFieldByName(props: RuntimeProps, targetId: OlxReference
  * Reconstruct a component's RuntimeProps from its OlxJson node and blueprint.
  *
  * Used when we need a component's own props outside of its render tree
- * (e.g., calling getValue from valueSelector). Looks up the component's
+ * (e.g., calling selectValue from valueSelector). Looks up the component's
  * OlxDomNode by ReduxStateKey for correct runtime context (idPrefix, logEvent).
  *
  * Falls back to caller's runtime if the target hasn't been rendered yet.
  *
  * Note: This is a minimal reconstruction — it includes id, attributes, kids,
- * loBlock, fields, locals, and runtime, which is sufficient for getValue.
+ * loBlock, fields, locals, and runtime, which is sufficient for selectValue.
  * It does NOT include injected props like extraDebug that the render pipeline
  * adds. If future callers need fuller props, this should be expanded.
  */
@@ -428,7 +429,7 @@ export function propsForNode(callerProps: RuntimeProps, reduxKey: ReduxStateKey,
   return {
     ...node.attributes,
     id: node.id,
-    kids: node.kids,
+    kids: node.kids ?? [],
     loBlock,
     fields: loBlock.fields,
     locals: loBlock.locals,
@@ -438,52 +439,113 @@ export function propsForNode(callerProps: RuntimeProps, reduxKey: ReduxStateKey,
   };
 }
 
-export function valueSelector(props: RuntimeProps, state: any, id: OlxReference | null | undefined, { fallback } = {} as { fallback?: any }) {
+// =============================================================================
+// Block data helpers (re-exported from blockData.ts for shared server/client use)
+// =============================================================================
+
+import { blockData, RETURNS_BLOCK_DATA } from './blockData';
+export { blockData, withStatus, RETURNS_BLOCK_DATA } from './blockData';
+
+// =============================================================================
+// Value selector / hook / getter
+// =============================================================================
+
+/**
+ * Select a component's value by ID from Redux state.
+ *
+ * Returns BlockDataResult & { value } — never throws.
+ *
+ * - If the block is in Redux and ready, calls its selectValue (or falls back
+ *   to the common 'value' field).
+ * - If the block is loading or unknown, returns { value: fallback, loading: true }.
+ * - If the block errored, returns { value: fallback, error: message }.
+ *
+ * Blocks with `withStatus(selectValue)` return their own BlockDataResult;
+ * all others get their raw return value wrapped automatically.
+ */
+export function valueSelector(
+  props: RuntimeProps,
+  state: any,
+  id: OlxReference | null | undefined,
+  { fallback = '' } = {} as { fallback?: any }
+): BlockDataResult & { value: any } {
   // If no ID provided, return fallback (supports optional targetRef patterns)
   if (id === undefined || id === null) {
-    return fallback;
+    return { value: fallback, ...blockData('ready') };
   }
 
   // Use refToOlxKey to strip prefixes for Redux lookup
   const mapKey = idResolver.refToOlxKey(id);
   const sources = props.runtime.olxJsonSources ?? ['content'];
   const locale = props.runtime.locale.code;
-  const targetNode = selectBlock(props.runtime.store.getState(), sources, mapKey, locale);
+  const targetNode = selectBlock(state, sources, mapKey, locale);
   const loBlock = targetNode ? props.runtime.blockRegistry[targetNode.tag] : null;
 
   if (!targetNode || !loBlock) {
-    const missing: string[] = [];
-    if (!targetNode) missing.push('targetNode');
-    if (!loBlock) missing.push('loBlock');
-
-    throw new Error(
-      `valueSelector: Missing ${missing.join(' and ')} for component id "${id}"` +
-      (id !== mapKey ? ` (olxKey: "${mapKey}")` : '') + `\n` +
-      `  targetNode: ${!!targetNode}\n` +
-      `  loBlock: ${!!loBlock}`
-    );
+    // Block not in Redux — check if it's loading vs errored vs unknown
+    const bs = selectBlockState(state, sources, mapKey);
+    if (bs?.loadingState?.status === 'error') {
+      return { value: fallback, ...blockData('error', bs.error?.message ?? `Block "${id}" not found`) };
+    }
+    // Unknown or loading — useValue will trigger a fetch
+    return { value: fallback, ...blockData('loading') };
   }
 
-  if (loBlock.getValue) {
+  if (loBlock.selectValue) {
     const reduxKey = idResolver.refToReduxKey({ ...props, id });
     const targetProps = propsForNode(props, reduxKey, targetNode, loBlock);
-    return loBlock.getValue(targetProps, state, id);
+
+    if ((loBlock.selectValue as any)[RETURNS_BLOCK_DATA]) {
+      // Block signals its own status (e.g. Ref propagating target loading)
+      return loBlock.selectValue(targetProps, state, id);
+    }
+
+    return { value: loBlock.selectValue(targetProps, state, id), ...blockData('ready') };
   }
 
   // Fall back to direct field access using the common 'value' field
-  return fieldSelector(state, props, commonFields.value, { id, fallback });
+  return { value: fieldSelector(state, props, commonFields.value, { id, fallback }), ...blockData('ready') };
 }
 
 /**
  * React hook to get a component's value by ID with automatic re-rendering.
  *
- * @param {Object} props - Component props with blockRegistry and olxJsonSources
- * @param {string} id - ID of the component to get value from
- * @param {Object} options - Options object with fallback and other settings
- * @returns {any} The component's current value
+ * Returns BlockDataResult & { value }:
+ * - `value` is guaranteed usable (fallback while loading, real value when ready)
+ * - `loading`, `ready`, `error`, `status` report the block's data state
+ *
+ * Triggers async loading for blocks not yet in Redux.
+ *
+ * 95% of blocks just destructure `{ value }` and ignore the rest.
  */
-export function useValue(props, id, options = {}) {
-  return useSelector((state) => valueSelector(props, state, id, options));
+export function useValue(
+  props: RuntimeProps,
+  id: OlxReference | null | undefined,
+  options: { fallback?: any } = {}
+): BlockDataResult & { value: any } {
+  const result = useSelector(
+    (state) => valueSelector(props, state, id, options),
+    // Shallow compare to avoid unnecessary re-renders from object allocation
+    (a, b) => a.value === b.value && a.status === b.status && a.error === b.error
+  );
+
+  // Trigger async load if block is unknown in Redux.
+  // Source must match what valueSelector uses for lookup, otherwise the fetch
+  // writes to 'content' but the selector reads from a different source.
+  // eslint-disable-next-line react-hooks/exhaustive-deps — props is intentionally
+  // omitted: ensureBlock deduplicates via module-level Set, so stale props cannot
+  // cause duplicate fetches. Including props would cause spurious effect re-runs.
+  // sideEffectFree IS included: when exiting replay mode (true→false), ensureBlock
+  // needs to re-run to trigger the fetch it previously skipped.
+  const source = props.runtime.olxJsonSources?.[0] ?? 'content';
+  const sideEffectFree = props.runtime.sideEffectFree;
+  useEffect(() => {
+    if (id && result.loading) {
+      ensureBlock(props, id, source);
+    }
+  }, [id, result.status, source, sideEffectFree]);
+
+  return result;
 }
 
 /**

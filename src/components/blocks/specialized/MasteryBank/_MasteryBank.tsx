@@ -4,7 +4,7 @@
 import React, { useMemo, useEffect, useRef } from 'react';
 import { useBlock } from '@/lib/render';
 import { useFieldState, useFieldSelector, commonFields } from '@/lib/state';
-import { extendIdPrefix, toOlxReference } from '@/lib/blocks/idResolver';
+import { extendIdPrefix, scopeMarker, toOlxReference } from '@/lib/blocks/idResolver';
 import { correctness } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
 
@@ -81,7 +81,7 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   const { problemIds, correctStreak, goalNum, firstSubmissionResult, modeState, orderMode } = masteryState;
   const { setCorrectStreak, setModeState, setCompleted, setCorrect, setFirstSubmissionResult, setAttemptNumber } = handlers;
 
-  const { idPrefix: scopedIdPrefix } = extendIdPrefix(props, `${id}.attempt_${attemptNumber}`);
+  const { idPrefix: scopedIdPrefix } = extendIdPrefix(props, [id, scopeMarker('attempt_' + attemptNumber)]);
 
   // FIXME: Should not spread runtime like this - need proper scoped runtime factory
   // Components should treat runtime as black box. Only idPrefix changes at boundaries.

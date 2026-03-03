@@ -14,7 +14,7 @@ function _CodeInput(props) {
   const { id, fields, language = 'olx', height = '300px', theme = 'light' } = props;
 
   const [, setValue] = useFieldState(props, fields.value, null);
-  const value = useValue(props, id, { fallback: null });
+  const { value } = useValue(props, id, { fallback: null });
 
   // CodeEditor's onChange passes the string directly (not a DOM event)
   const onChange = useCallback((newValue: string) => {

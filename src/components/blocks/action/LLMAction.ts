@@ -18,12 +18,14 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
   }
 
   // Get target component's fields dynamically
+  // 'state' field is optional — TextSlot has it, TextArea doesn't
   const valueField = state.componentFieldByName(props, targetElementId, 'value');
-  const stateField = state.componentFieldByName(props, targetElementId, 'state');
+  let stateField;
+  try { stateField = state.componentFieldByName(props, targetElementId, 'state'); } catch {}
 
   try {
     state.updateField(props, valueField, '', { id: targetElementId });
-    state.updateField(props, stateField, reduxClient.LLM_STATUS.RUNNING, { id: targetElementId });
+    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RUNNING, { id: targetElementId });
 
     const promptText = blocks.extractChildText(props, props.nodeInfo.olxJson);
     if (!promptText.trim()) {
@@ -32,12 +34,12 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
 
     const content = await reduxClient.callLLMSimple(promptText);
     state.updateField(props, valueField, content, { id: targetElementId });
-    state.updateField(props, stateField, reduxClient.LLM_STATUS.RESPONSE_READY, { id: targetElementId });
+    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RESPONSE_READY, { id: targetElementId });
 
   } catch (error) {
     console.error('LLM generation failed:', error);
     state.updateField(props, valueField, `Error: ${error.message}`, { id: targetElementId });
-    state.updateField(props, stateField, reduxClient.LLM_STATUS.ERROR, { id: targetElementId });
+    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.ERROR, { id: targetElementId });
   }
 }
 

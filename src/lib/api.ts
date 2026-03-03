@@ -8,23 +8,23 @@
  * Both add Accept-Language header for content negotiation.
  */
 
-import type { RuntimeProps } from '@/lib/types';
+import type { BaselineProps } from '@/lib/types';
 
 /**
  * Client-side fetch: automatically injects locale from props
  *
- * @param props - RuntimeProps with runtime.locale.code
+ * @param props - BaselineProps with runtime.locale.code
  * @param path - URL path to fetch
  * @param options - Fetch options (headers will be merged)
  * @returns Promise<Response>
  *
  * Usage:
  *   import * as api from '@/lib/api';
- *   const response = await api.fetch(props, '/api/content/123');
+ *   const response = await api.fetch(props, '/api/olxjson/123');
  *   const data = await response.json();
  */
 export async function fetch(
-  props: RuntimeProps,
+  props: BaselineProps,
   path: string,
   options: RequestInit = {}
 ): Promise<Response> {
@@ -49,7 +49,7 @@ export async function fetch(
  *
  * Usage (server-side):
  *   import * as api from '@/lib/api';
- *   const response = await api.apiFetch('/api/content/123', 'en-Latn-US');
+ *   const response = await api.apiFetch('/api/olxjson/123', 'en-Latn-US');
  *   const data = await response.json();
  */
 export async function apiFetch(

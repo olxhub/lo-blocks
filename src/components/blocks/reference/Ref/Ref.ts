@@ -3,15 +3,16 @@ import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { valueSelector, fieldByName, fieldSelector } from '@/lib/state';
+import { blockData, withStatus } from '@/lib/state/blockData';
 import { refToOlxKey, toOlxReference } from '@/lib/blocks/idResolver';
-import { srcAttributes } from '@/lib/blocks/attributeSchemas';
-import { selectBlock } from '@/lib/state/olxjson';
+import { srcAttributes, z_target } from '@/lib/blocks/attributeSchemas';
+import { selectBlock, selectBlockState } from '@/lib/state/olxjson';
 import _Ref from './_Ref';
-import type { RuntimeProps, OlxReference } from '@/lib/types';
+import type { RuntimeProps, OlxReference, BlockDataResult } from '@/lib/types';
 
 /**
  * Convert any value to a string representation for display.
- * Used by both getValue (for programmatic access) and _Ref (for rendering).
+ * Used by both selectValue (for programmatic access) and _Ref (for rendering).
  */
 export function formatRefValue(val, fallback = '') {
   if (val === null || val === undefined) {
@@ -47,40 +48,45 @@ export function formatRefValue(val, fallback = '') {
 }
 
 const Ref = core({
-  ...parsers.text(), // Support text content like Element
+  ...parsers.textToAttribute('target'), // <Ref>id</Ref> compiles to target="id" in attributes
   name: 'Ref',
   component: _Ref,
-  description: 'Reference another component\'s value by ID. Supports both target attribute and text content.',
+  description: 'Reference another component\'s value by ID via target attribute.',
   attributes: srcAttributes.extend({
-    target: z.string().optional().describe('ID of component to reference'),
+    target: z_target.optional().describe('ID of component to reference'),
     field: z.string().optional().describe('Specific field to access from target'),
     visible: z.enum(['true', 'false']).optional().describe('Set to "false" to hide the reference display'),
     fallback: z.string().optional().describe('Fallback value when target is empty'),
     format: z.enum(['code']).optional().describe('Display format for the value'),
   }),
-  getValue: (props: RuntimeProps, state: any, id: OlxReference) => {
-    // TODO: This logic is infrastructure, not component logic. getValue should move to /lib/
+  selectValue: withStatus((props: RuntimeProps, state: any, id: OlxReference): BlockDataResult & { value: any } => {
+    // TODO: This logic is infrastructure, not component logic. selectValue should move to /lib/
     // so it can access runtime context properly without accessing props directly.
     // Get the Ref block from Redux to access its attributes and content
     const sources = props.runtime.olxJsonSources ?? ['content'];
     const locale = props.runtime.locale.code;
     const refNode = selectBlock(state, sources, refToOlxKey(id), locale);
     if (!refNode) {
-      return { error: true, message: 'Component not found' };
+      return { value: '', ...blockData('error', 'Component not found') };
     }
 
-    // Target can come from attribute or text content (kids)
-    const rawTarget = refNode.attributes?.target;
-    const targetId = (typeof rawTarget === 'string' ? rawTarget : '') ||
-                     (typeof refNode.kids === 'string' ? refNode.kids : String(refNode.kids || '')).trim();
+    // Target is always in attributes (parser moves text content → target attribute)
+    const targetId = typeof refNode.attributes?.target === 'string'
+      ? refNode.attributes.target : '';
 
     if (!targetId) {
-      return { error: true, message: 'No target specified. Use target attribute or provide ID as content.' };
+      return { value: '', ...blockData('error', 'No target specified. Use target= attribute or <Ref>targetId</Ref>.') };
     }
 
-    // Check if target exists in Redux
-    if (!selectBlock(state, sources, refToOlxKey(toOlxReference(targetId)), locale)) {
-      return { error: true, message: `Target "${targetId}" not found` };
+    // Check if target exists in Redux — distinguish loading from missing
+    const targetKey = refToOlxKey(toOlxReference(targetId));
+    if (!selectBlock(state, sources, targetKey, locale)) {
+      const bs = selectBlockState(state, sources, targetKey);
+      if (bs?.loadingState?.status === 'error') {
+        return { value: '', ...blockData('error', `Target "${targetId}" not found`) };
+      }
+      // Target is loading or unknown — propagate loading state
+      return { value: '', ...blockData('loading') };
     }
 
     // Check if a specific field is requested
@@ -100,22 +106,20 @@ const Ref = core({
     // Proper fix: Unify ID resolution so cross-block refs work without this hack.
     const absoluteTargetId = targetId.startsWith('/') ? targetId : `/${targetId}`;
 
-    let rawValue;
     if (field) {
       // Access specific field using fieldSelector
       const fieldInfo = fieldByName(field);
       if (!fieldInfo) {
-        return { error: true, message: `Unknown field "${field}"` };
+        return { value: '', ...blockData('error', `Unknown field "${field}"`) };
       }
-      rawValue = fieldSelector(state, { ...props, id: absoluteTargetId }, fieldInfo, { fallback });
-    } else {
-      // Use valueSelector to get the target's value (calls getValue if available)
-      rawValue = valueSelector(props, state, toOlxReference(absoluteTargetId), { fallback });
+      const rawValue = fieldSelector(state, { ...props, id: absoluteTargetId }, fieldInfo, { fallback });
+      return { value: formatRefValue(rawValue, fallback), ...blockData('ready') };
     }
 
-    // Always return a string for valid values
-    return formatRefValue(rawValue, fallback);
-  }
+    // Use valueSelector to get the target's value — propagate its status
+    const { value: rawValue, ...status } = valueSelector(props, state, toOlxReference(absoluteTargetId), { fallback });
+    return { value: formatRefValue(rawValue, fallback), ...status };
+  })
 });
 
 export default Ref;

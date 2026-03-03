@@ -16,7 +16,7 @@
 //   - All registered match functions (stringMatch, numericalMatch, etc.)
 //
 import { z } from 'zod';
-import { core, baseAttributes } from '@/lib/blocks';
+import { core, baseAttributes, z_reduxStateKey } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import _Noop from '@/components/blocks/layout/_Noop';
 import { parse, tryParse } from '@/lib/stateLanguage/parser';
@@ -96,7 +96,7 @@ const Rule = core({
     when: z.string().optional().describe('DSL expression to evaluate (e.g., stringMatch(input, "Paris"))'),
     score: z.coerce.number().min(0).max(1).optional().describe('Score for this rule (0-1)'),
     feedback: z.string().optional().describe('Feedback message when this rule matches'),
-    feedbackBlock: z.string().optional().describe('ID of a block to display as feedback'),
+    feedbackBlock: z_reduxStateKey.optional().describe('ID of a block to display as feedback'),
   }).strict(),
   validateAttributes: validateRuleAttributes,
   locals: {

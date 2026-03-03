@@ -25,7 +25,8 @@ import * as lo_event from 'lo_event';
 import { correctness } from './correctness';
 import { refToReduxKey } from './idResolver';
 import { getBlockByOLXId } from './getBlockByOLXId';
-import type { RuntimeProps, OlxKey } from '@/lib/types';
+import { valueSelector } from '@/lib/state/redux';
+import type { RuntimeProps, OlxKey, OlxReference, LoBlock, ValueSelectorFn } from '@/lib/types';
 import type { Store } from 'redux';
 
 // Grader parameter types - each grader receives exactly one of these
@@ -48,8 +49,8 @@ export function isAction(loBlock) {
 /**
  * Mix-in to make a block an input (provides a value to graders).
  *
- * getValue Specification (NOT YET IMPLEMENTED)
- * =============================================
+ * selectValue Specification (NOT YET IMPLEMENTED)
+ * ================================================
  * Inputs and graders should declare compatible value types so they can be
  * composed safely. For example:
  * - TextInput exports `string`
@@ -74,15 +75,11 @@ export function isAction(loBlock) {
  * This enables a plug-and-play model where course authors can mix inputs
  * and graders without understanding implementation details.
  */
-export function input({ getValue }) {
-  return { getValue, isInput: true };
+export function input(opts: { selectValue?: ValueSelectorFn } = {}) {
+  return { ...opts, isInput: true as const };
 }
-
-// Input blocks should set isInput: true on the blueprint.
-// The blocks.input() mixin does this automatically.
-// For legacy compatibility, we also check for getValue presence.
-export function isInput(loBlock) {
-  return loBlock?.isInput || typeof loBlock?.getValue === "function";
+export function isInput(loBlock: LoBlock) {
+  return loBlock.isInput;
 }
 
 export function isMatch(loBlock) {
@@ -217,7 +214,8 @@ export function grader({ grader, infer = true, slots, inputType }: {
         ...inst.attributes,  // Spread OLX attributes
       };
 
-      const value = loBlock.getValue(inputProps, state, id);
+      // Use valueSelector for uniform handling of withStatus / raw selectValue
+      const { value } = valueSelector(inputProps as RuntimeProps, state, id as OlxReference);
 
       // Create bound API from locals - each function gets (props, state, id) pre-bound
       const api = loBlock.locals

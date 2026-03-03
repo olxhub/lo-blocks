@@ -1,5 +1,5 @@
 // src/lib/blocks/idResolver.ts
-import type { OlxReference, OlxKey, ReduxStateKey, IdPrefix } from '../types';
+import type { OlxReference, OlxKey, ReduxStateKey, IdPrefix, ScopeMarker } from '../types';
 //
 // ID Resolution System
 // ====================
@@ -84,7 +84,8 @@ import type { OlxReference, OlxKey, ReduxStateKey, IdPrefix } from '../types';
 // -------------------------------------------------
 // | Char | Purpose                                          |
 // |------|--------------------------------------------------|
-// | :    | Redux scope separator (list:0:child)              |
+// | :    | Redux scope separator (list:#0:child)             |
+// | #    | ScopeMarker prefix (#0, #attempt_2)               |
 // | /    | OLX reference path prefix (/absolute, ./relative) |
 // | .    | Reserved for future namespace hierarchy            |
 // | -    | Reserved for future use                            |
@@ -98,11 +99,147 @@ import type { OlxReference, OlxKey, ReduxStateKey, IdPrefix } from '../types';
 // This is distinct from "/" used in OLX paths for content namespaces.
 export const REDUX_SCOPE_SEPARATOR = ':';
 
+// ScopeMarker prefix — segments starting with '#' are instance markers, not block IDs.
+export const SCOPE_MARKER_PREFIX = '#';
+
+/**
+ * Create a ScopeMarker for use in extendIdPrefix.
+ *
+ * ScopeMarkers are non-OlxKey segments in ReduxStateKeys that represent
+ * instance indices, attempt numbers, etc. They start with '#' so they
+ * can be distinguished from OlxKeys during decomposition.
+ *
+ * @param label - Instance identifier (number or string). Must match [0-9a-zA-Z_]+
+ * @returns Branded ScopeMarker string (e.g., '#0', '#attempt_2')
+ * @throws Error if label contains invalid characters
+ *
+ * @example
+ *   scopeMarker(0)            // → '#0'
+ *   scopeMarker('attempt_2')  // → '#attempt_2'
+ */
+const VALID_SCOPE_LABEL = /^[0-9a-zA-Z_]+$/;
+
+export function scopeMarker(label: string | number): ScopeMarker {
+  const str = String(label);
+  if (!VALID_SCOPE_LABEL.test(str)) {
+    throw new Error(
+      `scopeMarker: label "${label}" is invalid — must match [0-9a-zA-Z_]+`
+    );
+  }
+  return `${SCOPE_MARKER_PREFIX}${str}` as ScopeMarker;
+}
+
+/**
+ * Extract the target (leaf) OlxKey from a ReduxStateKey.
+ *
+ * Returns the last non-ScopeMarker segment — the specific block this key
+ * points to. This is the correct way to get the content key for a scoped
+ * ReduxStateKey; it handles ScopeMarkers properly unlike refToOlxKey which
+ * blindly takes the last ':'-delimited segment.
+ *
+ * @example
+ *   reduxKeyToOlxKey('myList:#0:answer')       // → 'answer'
+ *   reduxKeyToOlxKey('answer')                  // → 'answer'
+ *   reduxKeyToOlxKey('bank:#attempt_2:child')   // → 'child'
+ */
+export function reduxKeyToOlxKey(key: ReduxStateKey): OlxKey {
+  const segments = key.split(REDUX_SCOPE_SEPARATOR);
+  for (let i = segments.length - 1; i >= 0; i--) {
+    if (!segments[i].startsWith(SCOPE_MARKER_PREFIX)) {
+      return segments[i] as OlxKey;
+    }
+  }
+  // Shouldn't happen — a ReduxStateKey must contain at least one OlxKey.
+  // Fall back to last segment to avoid throwing in production.
+  return segments[segments.length - 1] as OlxKey;
+}
+
+/**
+ * Extract ALL OlxKeys from a ReduxStateKey.
+ *
+ * Returns every non-ScopeMarker segment — all the loadable block IDs
+ * in the scope chain. Used for content loading: when a target= attribute
+ * references a scoped key, we need to ensure all blocks in the chain
+ * are fetched.
+ *
+ * @example
+ *   allOlxKeys('myList:#0:answer')       // → ['myList', 'answer']
+ *   allOlxKeys('answer')                  // → ['answer']
+ *   allOlxKeys('bank:#attempt_2:child')   // → ['bank', 'child']
+ *   allOlxKeys('a:#0:b:#1:c')             // → ['a', 'b', 'c']
+ */
+export function allOlxKeys(key: ReduxStateKey): OlxKey[] {
+  return key
+    .split(REDUX_SCOPE_SEPARATOR)
+    .filter(seg => !seg.startsWith(SCOPE_MARKER_PREFIX)) as OlxKey[];
+}
+
 // Valid ID segment: must start with letter or underscore, then letters/digits/underscores.
 // No hyphens, dots, colons, slashes, or commas — those are reserved as delimiters.
 // Path prefixes (/, ./, ../) are stripped before validation.
 export const VALID_ID_SEGMENT = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 const INVALID_CHARS_DISPLAY = /[^a-zA-Z0-9_\s]/g;  // For error messages
+
+// Valid ReduxStateKey: one or more segments separated by ":", where each segment
+// is either an OlxKey ([a-zA-Z_][a-zA-Z0-9_]*) or a ScopeMarker (#[0-9a-zA-Z_]+).
+// Examples: "foo", "myList:#0:answer", "a:#0:b:#1:c"
+const OLXKEY_SEG = '[a-zA-Z_][a-zA-Z0-9_]*';
+const SCOPE_SEG = '#[0-9a-zA-Z_]+';
+export const VALID_REDUX_STATE_KEY = new RegExp(
+  `^(${OLXKEY_SEG}|${SCOPE_SEG})(:${OLXKEY_SEG}|:${SCOPE_SEG})*$`
+);
+
+/**
+ * Validate and brand a string as a ReduxStateKey.
+ *
+ * A ReduxStateKey is one or more colon-separated segments, each being either
+ * an OlxKey (block ID) or a ScopeMarker (#index). Must contain at least one
+ * OlxKey segment.
+ *
+ * Use this at system boundaries where target= values enter the type system.
+ *
+ * @param input - Raw string from OLX target= attribute
+ * @param context - Description for error messages
+ * @returns Branded ReduxStateKey
+ * @throws Error with human-friendly message if invalid
+ *
+ * @example
+ *   toReduxStateKey('foo')                  // → 'foo'
+ *   toReduxStateKey('myList:#0:answer')     // → 'myList:#0:answer'
+ *   toReduxStateKey('#0')                   // throws — no OlxKey segment
+ *   toReduxStateKey('foo-bar')              // throws — invalid characters
+ */
+export function toReduxStateKey(input: string, context = 'target'): ReduxStateKey {
+  if (!input || typeof input !== 'string') {
+    throw new Error(`${context}: target is required but got "${input}"`);
+  }
+
+  const trimmed = input.trim();
+  if (!trimmed) {
+    throw new Error(`${context}: target cannot be empty or whitespace`);
+  }
+
+  if (!VALID_REDUX_STATE_KEY.test(trimmed)) {
+    const invalidChars = trimmed.match(INVALID_CHARS_DISPLAY);
+    const charList = invalidChars ? [...new Set(invalidChars)].join(' ') : 'special characters';
+    throw new Error(
+      `${context}: "${input}" is not a valid target key (invalid characters: ${charList}). ` +
+      `Target keys use ":" to separate segments. Each segment must be a block ID ` +
+      `(letters/digits/underscores) or a scope marker (#index).`
+    );
+  }
+
+  // Must contain at least one OlxKey (non-ScopeMarker) segment
+  const segments = trimmed.split(REDUX_SCOPE_SEPARATOR);
+  const hasOlxKey = segments.some(seg => !seg.startsWith(SCOPE_MARKER_PREFIX));
+  if (!hasOlxKey) {
+    throw new Error(
+      `${context}: "${input}" contains only scope markers — must include at least one block ID.`
+    );
+  }
+
+  return trimmed as ReduxStateKey;
+}
 
 /**
  * Validate and brand a user-provided ID string as OlxReference.
@@ -209,40 +346,37 @@ export const refToReduxKey = (input: RefToReduxKeyInput): ReduxStateKey => {
 /**
  * Convert an OLX reference to an OlxKey for idMap lookup.
  *
- * The idMap uses plain IDs (the base ID without namespace prefixes).
- * This function:
- * - Strips "/" prefix for absolute references
- * - Strips "./" prefix for explicit relative
- * - Extracts the last dot-separated segment (the base ID)
+ * Strips path prefixes (/, ./) and returns the bare ID.
+ * Validates that the result is a valid OlxKey — throws on reserved
+ * characters like ":" (ReduxStateKey) or "#" (ScopeMarker).
  *
- * Note: OLX IDs should not contain ".", "/", ":", or whitespace.
- * These are reserved as namespace/path delimiters.
+ * For ReduxStateKeys, use reduxKeyToOlxKey() instead.
  *
- * @param {string} ref - OLX reference which may have prefixes
- * @returns {string} OlxKey for idMap lookup
+ * @param ref - OLX reference string (e.g., "foo", "/foo", "./foo")
+ * @returns OlxKey for idMap lookup
+ * @throws Error if ref contains reserved delimiters (likely a type boundary violation)
  *
  * @example
- * refToOlxKey('/foo')                    // => 'foo'
- * refToOlxKey('./foo')                   // => 'foo'
- * refToOlxKey('foo')                     // => 'foo'
- * refToOlxKey('list:0:child')            // => 'child'
- * refToOlxKey('mastery:attempt_0:q1')    // => 'q1'
- * refToOlxKey('/list:0:child')           // => 'child'
+ * refToOlxKey('/foo')    // => 'foo'
+ * refToOlxKey('./foo')   // => 'foo'
+ * refToOlxKey('foo')     // => 'foo'
  */
 export const refToOlxKey = (ref: OlxReference): OlxKey => {
   if (typeof ref !== 'string') return ref as unknown as OlxKey;
 
-  // Strip path prefixes first
-  // (slice returns plain string — OK, we rebrand at the end)
+  // Strip path prefixes (/, ./)
   let result: string = ref;
   if (result.startsWith('/')) result = result.slice(1);
   else if (result.startsWith('./')) result = result.slice(2);
 
-  // Extract last segment (the base ID) - scope prefixes come before it
-  // Use ":" as the Redux scope separator
-  const lastSeparator = result.lastIndexOf(REDUX_SCOPE_SEPARATOR);
-  if (lastSeparator !== -1) {
-    result = result.slice(lastSeparator + 1);
+  // Validate: result must be a valid ID segment (no reserved delimiters)
+  if (!VALID_ID_SEGMENT.test(result)) {
+    const hint = (result.includes(':') || result.includes('#'))
+      ? ` This looks like a ReduxStateKey — use reduxKeyToOlxKey() instead.`
+      : '';
+    throw new Error(
+      `refToOlxKey: "${ref}" is not a valid OlxReference.${hint}`
+    );
   }
 
   return result as OlxKey;
@@ -285,18 +419,18 @@ export function toOlxKey(input: string): OlxKey {
  * @returns {{ idPrefix: string }} Object to spread into child props
  *
  * @example
- * // In a list component (array form keeps separator logic centralized):
- * renderCompiledKids({ ...props, ...extendIdPrefix(props, [id, index]) })
+ * // In a list component — scopeMarker() marks non-OlxKey segments:
+ * extendIdPrefix(props, [id, scopeMarker(index)])
  *
  * // In MasteryBank:
- * render({ ...props, node: problemNode, ...extendIdPrefix(props, [id, 'attempt', n]) })
+ * extendIdPrefix(props, [id, scopeMarker('attempt_' + n)])
  *
  * // Simple string form still works:
  * extendIdPrefix(props, 'child')
  */
 export function extendIdPrefix(
   props: { idPrefix?: IdPrefix; [key: string]: unknown },
-  scope: string | (string | number)[]
+  scope: string | (string | number | ScopeMarker)[]
 ): { idPrefix: IdPrefix } {
   const scopeStr = Array.isArray(scope)
     ? scope.join(REDUX_SCOPE_SEPARATOR)
