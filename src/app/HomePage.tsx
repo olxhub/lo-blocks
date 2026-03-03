@@ -13,6 +13,8 @@ import { localeFromVariant } from '@/lib/i18n/localeUtils';
 import { fetchActivities } from '@/lib/content/fetchOlxJson';
 import type { ContentVariant, Locale } from '@/lib/types';
 
+const IS_STATIC = process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';
+
 const ENDPOINT_LINKS = [
   {
     href: '/api/activities',
@@ -133,7 +135,7 @@ function ActivityRow({ entry, userLocale }: { entry: any; userLocale: string }) 
           <span className="text-xs text-gray-400 font-mono">
             {type}
           </span>
-          {editPath ? (
+          {!IS_STATIC && (editPath ? (
             <Link
               href={`/studio?file=${encodeURIComponent(editPath)}`}
               className="text-gray-500 hover:text-gray-900 transition-colors"
@@ -142,20 +144,22 @@ function ActivityRow({ entry, userLocale }: { entry: any; userLocale: string }) 
             </Link>
           ) : (
             <span className="text-gray-300 cursor-not-allowed">Edit</span>
-          )}
+          ))}
           <Link
             href={`/graph/${entry.id}`}
             className="text-gray-400 hover:text-gray-700 transition-colors"
           >
             Graph
           </Link>
-          <Link
-            href={`/api/olxjson/${entry.id}`}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-            target="_blank"
-          >
-            API
-          </Link>
+          {!IS_STATIC && (
+            <Link
+              href={`/api/content/${entry.id}`}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+              target="_blank"
+            >
+              API
+            </Link>
+          )}
         </div>
       </div>
     </div>
@@ -263,54 +267,56 @@ function Sidebar() {
         </nav>
       </div>
 
-      <div>
-        <button
-          onClick={() => setShowEndpoints(!showEndpoints)}
-          className="w-full flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
-        >
-          <span>Developer Tools</span>
-          <ExpandIcon expanded={showEndpoints} className="text-gray-400" />
-        </button>
+      {!IS_STATIC && (
+        <div>
+          <button
+            onClick={() => setShowEndpoints(!showEndpoints)}
+            className="w-full flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
+          >
+            <span>Developer Tools</span>
+            <ExpandIcon expanded={showEndpoints} className="text-gray-400" />
+          </button>
 
-        {showEndpoints && (
-          <div className="mt-2 ps-3 space-y-3 text-xs">
-            {ENDPOINT_LINKS.map(endpoint => (
-              <div key={endpoint.key || endpoint.label}>
-                {endpoint.hrefTemplate ? (
-                  <div className="space-y-1">
-                    <code className="text-gray-600">{endpoint.label}</code>
-                    <div className="flex gap-1">
-                      <input
-                        type="text"
-                        placeholder={endpoint.placeholder}
-                        value={params[endpoint.key] || ''}
-                        onChange={e => setParams({ ...params, [endpoint.key]: e.target.value })}
-                        className="flex-1 text-xs border border-gray-300 px-2 py-1 rounded"
-                      />
-                      <a
-                        href={params[endpoint.key] ? endpoint.hrefTemplate(params[endpoint.key]) : '#'}
-                        className={`px-2 py-1 text-xs rounded ${params[endpoint.key] ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-200 text-gray-400'}`}
-                        target="_blank"
-                        onClick={e => !params[endpoint.key] && e.preventDefault()}
-                      >
-                        Go
-                      </a>
+          {showEndpoints && (
+            <div className="mt-2 ps-3 space-y-3 text-xs">
+              {ENDPOINT_LINKS.map(endpoint => (
+                <div key={endpoint.key || endpoint.label}>
+                  {endpoint.hrefTemplate ? (
+                    <div className="space-y-1">
+                      <code className="text-gray-600">{endpoint.label}</code>
+                      <div className="flex gap-1">
+                        <input
+                          type="text"
+                          placeholder={endpoint.placeholder}
+                          value={params[endpoint.key] || ''}
+                          onChange={e => setParams({ ...params, [endpoint.key]: e.target.value })}
+                          className="flex-1 text-xs border border-gray-300 px-2 py-1 rounded"
+                        />
+                        <a
+                          href={params[endpoint.key] ? endpoint.hrefTemplate(params[endpoint.key]) : '#'}
+                          className={`px-2 py-1 text-xs rounded ${params[endpoint.key] ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-200 text-gray-400'}`}
+                          target="_blank"
+                          onClick={e => !params[endpoint.key] && e.preventDefault()}
+                        >
+                          Go
+                        </a>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <Link
-                    href={endpoint.href}
-                    className="block text-blue-600 hover:underline"
-                    target="_blank"
-                  >
-                    {endpoint.label}
-                  </Link>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                  ) : (
+                    <Link
+                      href={endpoint.href}
+                      className="block text-blue-600 hover:underline"
+                      target="_blank"
+                    >
+                      {endpoint.label}
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </aside>
   );
 }
