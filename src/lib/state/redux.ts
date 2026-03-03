@@ -526,7 +526,7 @@ export function useValue(
   const result = useSelector(
     (state) => valueSelector(props, state, id, options),
     // Shallow compare to avoid unnecessary re-renders from object allocation
-    (a, b) => a.value === b.value && a.status === b.status
+    (a, b) => a.value === b.value && a.status === b.status && a.error === b.error
   );
 
   // Trigger async load if block is unknown in Redux.
