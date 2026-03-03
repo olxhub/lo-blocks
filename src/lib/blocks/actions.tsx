@@ -26,7 +26,7 @@ import { correctness } from './correctness';
 import { refToReduxKey } from './idResolver';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { valueSelector } from '@/lib/state/redux';
-import type { RuntimeProps, OlxKey, OlxReference } from '@/lib/types';
+import type { RuntimeProps, OlxKey, OlxReference, LoBlock, ValueSelectorFn } from '@/lib/types';
 import type { Store } from 'redux';
 
 // Grader parameter types - each grader receives exactly one of these
@@ -75,15 +75,11 @@ export function isAction(loBlock) {
  * This enables a plug-and-play model where course authors can mix inputs
  * and graders without understanding implementation details.
  */
-export function input({ selectValue }) {
-  return { selectValue, isInput: true };
+export function input(opts: { selectValue?: ValueSelectorFn } = {}) {
+  return { ...opts, isInput: true as const };
 }
-
-// Input blocks should set isInput: true on the blueprint.
-// The blocks.input() mixin does this automatically.
-// For legacy compatibility, we also check for selectValue presence.
-export function isInput(loBlock) {
-  return loBlock?.isInput || typeof loBlock?.selectValue === "function";
+export function isInput(loBlock: LoBlock) {
+  return loBlock.isInput;
 }
 
 export function isMatch(loBlock) {

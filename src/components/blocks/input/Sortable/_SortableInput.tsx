@@ -135,6 +135,11 @@ export default function _SortableInput(props) {
           const isDragOver = dragOverIndex === displayIndex;
           // Correct position is kidIndex + 1 (1-indexed)
           const correctPosition = kidIndex + 1;
+          // TODO: This extendIdPrefix call is likely a bug. Sortable children are unique
+          // blocks — not repeated like DynamicList instances — so they shouldn't need
+          // scoping. Removing requires verifying no grader/action code depends on
+          // the prefixed keys, and testing state management still works.
+          // See docs/redux-key-decomposition.md for context.
           const itemIdPrefix = extendIdPrefix(props, ['sortitem', displayIndex]).idPrefix;
 
           const itemContent = (

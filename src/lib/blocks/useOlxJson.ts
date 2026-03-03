@@ -21,22 +21,26 @@ import {
 } from '@/lib/state/olxjson';
 import { refToOlxKey } from '@/lib/blocks/idResolver';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
-import type { OlxJson, OlxKey, OlxReference, RuntimeProps, BlockDataResult } from '@/lib/types';
+import type { OlxJson, OlxKey, OlxReference, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
 import type { LogEventFn } from '@/lib/render';
 import { blockData } from '@/lib/state/redux';
 
 export type OlxJsonResult = BlockDataResult & { olxJson: OlxJson | null };
 
-// Props type for useOlxJson - extends RuntimeProps for locale and includes sideEffectFree
-interface UseOlxJsonProps extends RuntimeProps {
-  runtime: RuntimeProps['runtime'] & { sideEffectFree: boolean };
-}
 
 // =============================================================================
 // ensureBlock — non-hook fetch trigger (internal infrastructure)
 // =============================================================================
 
-/** Dedup: once we've started a fetch for an ID, don't start another. */
+/**
+ * Dedup: once we've started a fetch for an ID, don't start another.
+ *
+ * Module-level, never cleared — same pattern as translationsInFlight in
+ * useTranslation.ts. By design: we want blocks cached client-side for the
+ * session. The Set is bounded by the number of distinct blocks (text+JSON,
+ * not large). Server-side content changes are a cache invalidation concern,
+ * not a memory concern.
+ */
 const ensuredIds = new Set<string>();
 
 /**
@@ -53,7 +57,7 @@ const ensuredIds = new Set<string>();
  * should not need to call this directly.
  */
 export function ensureBlock(
-  props: { runtime: { store: any; sideEffectFree: boolean; logEvent: LogEventFn; locale: { code: string }; olxJsonSources?: string[] } },
+  props: BaselineProps,
   id: string | OlxReference | null | undefined,
   source: string = 'content'
 ): void {
@@ -100,7 +104,7 @@ export function ensureBlock(
  * @param source - Content source (default: 'content')
  */
 export function useOlxJson(
-  props: UseOlxJsonProps,
+  props: RuntimeProps,
   id: OlxReference | null,
   source: string = 'content'
 ): OlxJsonResult {
@@ -162,7 +166,7 @@ export function useOlxJson(
  * @param source - Content source (default: 'content')
  */
 export function useOlxJsonMultiple(
-  props: UseOlxJsonProps,
+  props: RuntimeProps,
   ids: OlxReference[],
   source: string = 'content'
 ): {

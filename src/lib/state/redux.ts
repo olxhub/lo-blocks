@@ -429,7 +429,7 @@ export function propsForNode(callerProps: RuntimeProps, reduxKey: ReduxStateKey,
   return {
     ...node.attributes,
     id: node.id,
-    kids: node.kids,
+    kids: node.kids ?? [],
     loBlock,
     fields: loBlock.fields,
     locals: loBlock.locals,
@@ -478,12 +478,12 @@ export function valueSelector(
   const mapKey = idResolver.refToOlxKey(id);
   const sources = props.runtime.olxJsonSources ?? ['content'];
   const locale = props.runtime.locale.code;
-  const targetNode = selectBlock(props.runtime.store.getState(), sources, mapKey, locale);
+  const targetNode = selectBlock(state, sources, mapKey, locale);
   const loBlock = targetNode ? props.runtime.blockRegistry[targetNode.tag] : null;
 
   if (!targetNode || !loBlock) {
     // Block not in Redux — check if it's loading vs errored vs unknown
-    const bs = selectBlockState(props.runtime.store.getState(), sources, mapKey);
+    const bs = selectBlockState(state, sources, mapKey);
     if (bs?.loadingState?.status === 'error') {
       return { value: fallback, ...blockData('error', bs.error?.message ?? `Block "${id}" not found`) };
     }
@@ -529,12 +529,21 @@ export function useValue(
     (a, b) => a.value === b.value && a.status === b.status
   );
 
-  // Trigger async load if block is unknown in Redux
+  // Trigger async load if block is unknown in Redux.
+  // Source must match what valueSelector uses for lookup, otherwise the fetch
+  // writes to 'content' but the selector reads from a different source.
+  // eslint-disable-next-line react-hooks/exhaustive-deps — props is intentionally
+  // omitted: ensureBlock deduplicates via module-level Set, so stale props cannot
+  // cause duplicate fetches. Including props would cause spurious effect re-runs.
+  // sideEffectFree IS included: when exiting replay mode (true→false), ensureBlock
+  // needs to re-run to trigger the fetch it previously skipped.
+  const source = props.runtime.olxJsonSources?.[0] ?? 'content';
+  const sideEffectFree = props.runtime.sideEffectFree;
   useEffect(() => {
     if (id && result.loading) {
-      ensureBlock(props, id);
+      ensureBlock(props, id, source);
     }
-  }, [id, result.status]);
+  }, [id, result.status, source, sideEffectFree]);
 
   return result;
 }

@@ -67,8 +67,9 @@ const LineInput = core({
   name: 'LineInput',
   description: 'Single-line text input field for student responses',   // For documentation
   component: _LineInput,
+  isInput: true,                                                       // Advertise as input for graders
   fields,                                                              // Where we store our state in redux
-  selectValue: (props, state, id) =>                                      // What data we send to a grader
+  selectValue: (props, state, id) =>                                   // What data we send to a grader
     fieldSelector(state, { ...props, id }, fields.value, { fallback: '' }),
   attributes: baseAttributes.extend({                                  // Validation for our attributes
     ...placeholder,
@@ -214,24 +215,50 @@ If this is impossible, this can be overridden with `target=`. In most cases, bot
 
 ##### Inputs
 
-Blocks can advertise themselves as **inputs** by supplying a `selectValue` selector, e.g.:
+Blocks advertise themselves as **inputs** using the `blocks.input()` mixin:
 
 ```
-  selectValue: (props, state, id) => fieldSelector(state, { ...props, id }, fields.value, { fallback: '' }),
+const MyInput = core({
+  ...input(),
+  // ... rest of block definition
+});
 ```
 
-For standard fields like `value`, use `commonFields.value` in your field definition and `fields.value` in your selectors. This provides type safety and ensures cross-component field access works correctly.
+This sets `isInput: true`. The factory provides a default `selectValue` that reads `commonFields.value` with an empty-string fallback — sufficient for most simple inputs.
+
+For custom value logic (parsing, multi-field values, etc.), pass `selectValue` to the mixin:
 
 ```
-// In block definition:
-import { fieldSelector, commonFields } from '@/lib/state';
-export const fields = state.fields([commonFields.value]);
-
-// In selectValue:
-selectValue: (props, state, id) => fieldSelector(state, { ...props, id }, fields.value, { fallback: '' })
+const MyInput = core({
+  ...input({
+    selectValue: (props, state, id) => {
+      const raw = fieldSelector(state, { ...props, id }, fields.value);
+      return parseFloat(raw) || 0;
+    },
+  }),
+  // ... rest of block definition
+});
 ```
 
-The `useValue` hook will either use the `value` field or call the `selectValue` function on any block.
+Note: `selectValue` without `isInput: true` does NOT make a block an input. Non-input blocks (e.g. Ref, Tabs, Navigator) can have `selectValue` for programmatic value access without participating in grading.
+
+The `useValue` hook returns `{ value, loading, ready, error }`. It calls `selectValue` if defined, otherwise reads the common `value` field. Most blocks just destructure `value`:
+
+```
+const { value } = useValue(props, id, { fallback: '' });
+```
+
+Blocks that need to signal loading/error from `selectValue` (e.g. Ref, which must resolve its target) use the `withStatus` wrapper:
+
+```
+import { withStatus, blockData } from '@/lib/state';
+
+selectValue: withStatus((props, state, id) => {
+  // ... resolve target ...
+  if (targetLoading) return { value: '', ...blockData('loading') };
+  return { value: resolvedValue, ...blockData('ready') };
+})
+```
 
 We plan to move to be more declarative in the future, along the lines of what we do for graders.
 

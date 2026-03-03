@@ -8,12 +8,12 @@
  * Both add Accept-Language header for content negotiation.
  */
 
-import type { RuntimeProps } from '@/lib/types';
+import type { BaselineProps } from '@/lib/types';
 
 /**
  * Client-side fetch: automatically injects locale from props
  *
- * @param props - RuntimeProps with runtime.locale.code
+ * @param props - BaselineProps with runtime.locale.code
  * @param path - URL path to fetch
  * @param options - Fetch options (headers will be merged)
  * @returns Promise<Response>
@@ -24,7 +24,7 @@ import type { RuntimeProps } from '@/lib/types';
  *   const data = await response.json();
  */
 export async function fetch(
-  props: RuntimeProps,
+  props: BaselineProps,
   path: string,
   options: RequestInit = {}
 ): Promise<Response> {

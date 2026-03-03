@@ -479,6 +479,9 @@ export default function _MatchingInput(props) {
               >
                 <div className="flex items-center">
                   <div className="flex-1">
+                    {/* TODO: This extendIdPrefix call is likely a bug. Matching children
+                        are unique blocks — not repeated like DynamicList instances — so
+                        they shouldn't need scoping. See docs/redux-key-decomposition.md */}
                     <MatchingItemContent
                       props={props}
                       kid={pair.leftKid}
@@ -541,6 +544,7 @@ export default function _MatchingInput(props) {
               >
                 <div className="flex items-center">
                   <div className="flex-1">
+                    {/* TODO: Same bug as left side — see docs/redux-key-decomposition.md */}
                     <MatchingItemContent
                       props={props}
                       kid={pair.rightKid}

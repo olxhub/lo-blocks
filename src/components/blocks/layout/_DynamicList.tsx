@@ -3,13 +3,13 @@
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
-import { extendIdPrefix } from '@/lib/blocks/idResolver';
+import { extendIdPrefix, scopeMarker } from '@/lib/blocks/idResolver';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 
 // Each entry renders independently - avoids Promise.all suspense issues
 function DynamicListEntry({ props, template, index, id }) {
-  const { idPrefix: itemIdPrefix } = extendIdPrefix(props, [id, index]);
+  const { idPrefix: itemIdPrefix } = extendIdPrefix(props, [id, scopeMarker(index)]);
 
   // FIXME: Should not spread runtime like this - need proper scoped runtime factory
   // Components should treat runtime as black box. Only idPrefix changes at boundaries.
