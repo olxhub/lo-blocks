@@ -20,7 +20,9 @@ const TextArea = core({
   attributes: baseAttributes.extend({
     ...placeholder,
     rows: z.string().default('4').describe('Number of visible text rows'),
-    readonly: z.enum(['true', 'false']).optional().describe('Make textarea read-only'),
+    readonly: z.union([z.enum(['true', 'false']), z.boolean()]).optional()
+      .transform(v => v === 'true' || v === true)
+      .describe('Make textarea read-only'),
   }),
 });
 
