@@ -225,7 +225,7 @@ let eventCaptureLogger: ReturnType<typeof createArrayLogger> | null = null;
 // Module-level store reference for getReduxState
 let reduxStoreInstance: any = null;
 
-function configureStore({ extraFields = [] }: { extraFields?: ExtraFieldsParam } = {}) {
+function configureStore({ extraFields = [], websocket = true }: { extraFields?: ExtraFieldsParam; websocket?: boolean } = {}) {
   const allEventTypes = collectEventTypes(extraFields);
   reduxLogger.registerReducer(
     allEventTypes,
@@ -237,12 +237,13 @@ function configureStore({ extraFields = [] }: { extraFields?: ExtraFieldsParam }
 
   const debugEvents = false; // Toggle here to log events to the console
   const isTest = process.env.VITEST === 'true';
+  const useWebsocket = websocket && !isTest;
 
   const loggers = [
     reduxLogger.reduxLogger([], {}),
     eventCaptureLogger,
     ...(debugEvents ? [consoleLogger()] : []),
-    ...(!isTest ? [websocketLogger(WEBSOCKET_URL)] : []),
+    ...(useWebsocket ? [websocketLogger(WEBSOCKET_URL)] : []),
   ];
 
   lo_event.init(

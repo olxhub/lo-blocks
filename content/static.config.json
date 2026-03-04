@@ -1,0 +1,9 @@
+{
+  "title": "Learning Observer Demos",
+  "routes": {
+    "/": "intro_course",
+    "/demos/ref": "ref_demo",
+    "/demos/rewrite": "rewrite_lesson",
+    "/demos/dialogue": "discourse_community_dialogue"
+  }
+}
