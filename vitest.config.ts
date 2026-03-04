@@ -8,12 +8,13 @@ export default defineConfig({
     environment: 'jsdom', // for React/component tests
     globals: true,
     include: [
-      'src/**/*.test.{js,ts,jsx,tsx}'
+      'packages/shared/**/*.test.{js,ts,jsx,tsx}',
+      'apps/web/**/*.test.{js,ts,jsx,tsx}'
     ],
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, './packages/shared'),
     },
   },
   css: {
