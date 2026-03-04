@@ -1,0 +1,45 @@
+/* src/app/globals.css */
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import "@fontsource/geist-sans/100.css";
+@import "@fontsource/geist-sans/200.css";
+@import "@fontsource/geist-sans/300.css";
+@import "@fontsource/geist-sans/400.css";
+@import "@fontsource/geist-sans/500.css";
+@import "@fontsource/geist-sans/600.css";
+@import "@fontsource/geist-sans/700.css";
+@import "@fontsource/geist-sans/800.css";
+@import "@fontsource/geist-mono/900.css";
+
+/* Learning Observer Theme System */
+@import "../../../packages/shared/styles/theme.css";
+@import "../../../packages/shared/styles/components.css";
+@import "../../../packages/shared/components/common/render-markdown.css";
+
+/* KaTeX for math rendering in Markdown */
+@import "katex/dist/katex.min.css";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family:"Geist Sans",  Arial, Helvetica, sans-serif;
+}
