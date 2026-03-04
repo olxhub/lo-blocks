@@ -13,14 +13,17 @@ import { rmSync } from 'fs';
 import { join } from 'path';
 import getPort from 'get-port';
 
-// Use separate build directory so tests don't conflict with dev server
+// Use separate build directory so tests don't conflict with dev server.
+// Next.js resolves distDir relative to the app directory (apps/web),
+// so the actual build artifacts land in apps/web/.next-test.
 const TEST_DIST_DIR = '.next-test';
+const APP_DIR = join('apps', 'web');
 
 /**
  * Clean up test build directory before/after test.
  */
 function cleanupTestDir() {
-  const testDir = join(process.cwd(), TEST_DIST_DIR);
+  const testDir = join(process.cwd(), APP_DIR, TEST_DIST_DIR);
   try {
     rmSync(testDir, { recursive: true, force: true });
   } catch {
