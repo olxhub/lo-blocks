@@ -1,0 +1,14 @@
+<ObservablePlot id="ObservablePlotDemo" title="Observable Plot Example">
+marks:
+  - type: barY
+    data:
+      - {category: "Retrieval Practice", score: 85}
+      - {category: "Rereading", score: 55}
+      - {category: "Highlighting", score: 45}
+      - {category: "Summarizing", score: 60}
+    x: category
+    y: score
+    fill: category
+y:
+  label: "Retention Score (%)"
+</ObservablePlot>

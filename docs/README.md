@@ -43,7 +43,7 @@ export default Spinner;
 
 This should **not** include `JSX`, as we would like blueprints usable in both server-side and client-side code. By convention, the blueprint is in `BLOCKNAME.[js/ts]`, and the React component in `_BLOCKNAME.[jsx/tsx]`
 
-Running `npm run build` (or, more narrowly, `npm run-script build:gen-block-registry`) collects all block blueprints into `src/components/blockRegistry.js`. At this point, we can use the blocks in courseware.
+Running `npm run build` (or, more narrowly, `npm run-script build:gen-block-registry`) collects all block blueprints into `packages/shared/components/blockRegistry.ts`. At this point, we can use the blocks in courseware.
 
 NOTE: Once we're more dynamic, we will want to do this dynamically. The static build is bridge code.
 
@@ -79,7 +79,7 @@ const LineInput = core({
 ```
 As well as associated documentation files
 
-**Note**: `core` / `dev` / `test` are defined in `src/lib/blocks/namespaces.js` as `lib.blocks.factory.blocks('org.mitros.core')`. We expect institutions to create their own blocks, namespaces, and to avoid conflicts, to eventually implement the possibility to use fully-referenced names (`<edu.mit.Video>` versus `<edu.cmu.Video>`, with `<Video>` defaulting to the local one, and even `xmlns` support). But that's overkill for now.
+**Note**: `core` / `dev` / `test` are defined in `packages/shared/lib/blocks/namespaces.ts` as `lib.blocks.factory.blocks('org.mitros.core')`. We expect institutions to create their own blocks, namespaces, and to avoid conflicts, to eventually implement the possibility to use fully-referenced names (`<edu.mit.Video>` versus `<edu.cmu.Video>`, with `<Video>` defaulting to the local one, and even `xmlns` support). But that's overkill for now.
 
 We'll walk through this piece-by-piece.
 
@@ -332,7 +332,7 @@ In most cases, graders are inferred from `match` and `validateInputs`. However, 
 
 Which one is based on the zod signature `inputSchema`. In contrast to a match function, they also receive `options`, consisting of: `{ props, attributes, inputApi | inputApis /* Bound locals from input or inputs, based on zod signature*/ }
 
-Correctness states are defined in `src/lib/blocks/correctness.js` and currently include:  UNSUBMITTED, SUBMITTED, CORRECT, PARTIALLY_CORRECT, INCORRECT, INCOMPLETE, and INVALID. This is inspired by Open edX, but may extend in the future.
+Correctness states are defined in `packages/shared/lib/blocks/correctness.ts` and currently include:  UNSUBMITTED, SUBMITTED, CORRECT, PARTIALLY_CORRECT, INCORRECT, INCOMPLETE, and INVALID. This is inspired by Open edX, but may extend in the future.
 
 When actions execute, they inherit the `idPrefix` from the triggering component. This ensures that graders in scoped contexts (like a problem inside a MasteryBank) update the correct scoped state rather than global state. See "ID Prefixes for Scoped State" below.
 
@@ -483,7 +483,7 @@ IDs are hard. We have internal ID types (static OLX, dynamic OLX, etc.). We inte
 * HTML `name` (HTML/DOM Attribute): Names an element (typically form controls for form data submission)
 * `displayName` (React-Specific): Human-readable name for a React component, useful for debugging
 
-We are mixing React concepts, OLX concepts, and others. This leads to a rather complex system. It took a while to figure out, and we're moving detailed documentation from here to `lib/types.ts` now that it appears to be mostly figured-out.
+We are mixing React concepts, OLX concepts, and others. This leads to a rather complex system. It took a while to figure out, and we're moving detailed documentation from here to `packages/shared/lib/types.ts` now that it appears to be mostly figured-out.
 
 A few rules:
 
