@@ -118,7 +118,9 @@ export function concatFields(...lists: Fields[]): Fields {
   return result;
 }
 
-type FieldSpec = string | FieldInfo | { name: string; event?: string; scope?: Scope };
+/** What block authors write: a string, an object with optional defaults, or a fully-baked FieldInfo.
+ *  The fields() function normalizes these into FieldInfo with all defaults filled in. */
+type FieldSpec = string | FieldInfo | { name: string; event?: string; scope?: Scope; schema?: FieldInfo['schema'] };
 
 /**
  * Declare fields for a block. Returns an object where field names map to FieldInfo.
@@ -150,7 +152,9 @@ export function fields(fieldList: FieldSpec[]): Fields {
     const name = item.name;
     const event = item.event ?? fieldNameToDefaultEventName(name);
     const scope = item.scope ?? scopes.component;
-    return { type: 'field', name, event, scope };
+    const info: FieldInfo = { type: 'field', name, event, scope };
+    if ('schema' in item && item.schema) info.schema = item.schema;
+    return info;
   });
 
   // Build the result object: { fieldName: FieldInfo, ... }

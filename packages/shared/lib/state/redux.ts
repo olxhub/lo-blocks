@@ -163,6 +163,14 @@ export function updateField(
   { id, tag }: { id?: OlxKey | boolean; tag?: string | boolean } = {}
 ) {
   assertValidField(field);
+  // Validate/coerce value against field schema if defined.
+  // TODO: For authored content (SetFieldAction etc.), this throws a ZodError on invalid values
+  // (e.g. value="banana" for a boolean field). Fine for coding errors (fail fast), but for
+  // content authoring we should validate earlier with user-friendly errors rather than crashing
+  // action execution at runtime. Revisit when moving beyond pilot.
+  if (field.schema) {
+    newValue = field.schema.parse(newValue);
+  }
   const scope = field.scope;
   const fieldName = field.name;
   // For component/storage scope, resolve the ID for Redux state key.

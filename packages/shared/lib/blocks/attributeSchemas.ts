@@ -28,6 +28,25 @@ const validateOlxId = (id) => {
 };
 
 // =============================================================================
+// Reusable Value Schemas
+// =============================================================================
+
+/**
+ * OLX boolean - coerces string "true"/"false" and native booleans to boolean.
+ * OLX attributes arrive as strings, so "true" and "false" need coercion.
+ * Used in both attribute schemas and field schemas.
+ */
+export const z_olx_boolean = z.union([z.enum(['true', 'false']), z.boolean()])
+  .transform(v => v === 'true' || v === true);
+
+/**
+ * OLX number - coerces numeric strings and native numbers to number.
+ * OLX attributes and SetFieldAction values arrive as strings.
+ */
+export const z_olx_number = z.union([z.string(), z.number()])
+  .pipe(z.coerce.number());
+
+// =============================================================================
 // Reusable ID Schemas
 // =============================================================================
 

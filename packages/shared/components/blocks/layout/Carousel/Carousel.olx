@@ -1,0 +1,12 @@
+<Vertical id="CarouselDemo" title="Carousel">
+  <Markdown id="carousel_item_a" title="Option A">
+This is the first option. It could contain any content.
+  </Markdown>
+  <Markdown id="carousel_item_b" title="Option B">
+This is the second option. Browse with the arrows.
+  </Markdown>
+  <Markdown id="carousel_item_c" title="Option C">
+This is the third option.
+  </Markdown>
+  <Carousel id="carousel_demo" wrap="true">carousel_item_a, carousel_item_b, carousel_item_c</Carousel>
+</Vertical>

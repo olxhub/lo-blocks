@@ -1,0 +1,283 @@
+<!--
+---
+description: Postcard writing activity with carousel selection, LLM feedback, and revision
+category: demo
+lang: en-Latn-US
+---
+-->
+
+<Vertical id="postcard_demo" title="Postcard from History">
+
+<!-- === Locations === -->
+
+<Markdown id="loc_great_wall" title="Great Wall of China">
+### Great Wall of China
+
+![The Great Wall of China at Jinshanling](https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/The_Great_Wall_of_China_at_Jinshanling-edit.jpg/330px-The_Great_Wall_of_China_at_Jinshanling-edit.jpg)
+
+The Great Wall stretches over 13,000 miles across northern China. Built over many centuries starting in the 7th century BC, it served as a defense against invasions from the north. Today it is one of the most visited landmarks in the world.
+
+[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Great_Wall_of_China)
+</Markdown>
+
+<Markdown id="loc_machu_picchu" title="Machu Picchu">
+### Machu Picchu
+
+![Machu Picchu](https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Machu_Picchu%2C_2023_%28012%29.jpg/330px-Machu_Picchu%2C_2023_%28012%29.jpg)
+
+This 15th-century Incan citadel sits high in the Andes Mountains of Peru, above the Sacred Valley. Built around 1450 AD, it was abandoned during the Spanish conquest and remained largely unknown to the outside world until 1911.
+
+[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Machu_Picchu)
+</Markdown>
+
+<Markdown id="loc_pyramids" title="Pyramids of Giza">
+### Pyramids of Giza
+
+![Pyramids of the Giza Necropolis](https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Pyramids_of_the_Giza_Necropolis.jpg/330px-Pyramids_of_the_Giza_Necropolis.jpg)
+
+Built around 2570 BC near Cairo, Egypt, the Great Pyramid is the oldest of the Seven Wonders of the Ancient World and the only one largely intact. The complex includes three pyramids and the Great Sphinx.
+
+[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Giza_pyramid_complex)
+</Markdown>
+
+<Markdown id="loc_colosseum" title="Colosseum">
+### The Colosseum
+
+![The Colosseum in Rome](https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/330px-Colosseo_2020.jpg)
+
+The Colosseum in Rome, Italy, is the largest ancient amphitheatre ever built. Completed in 80 AD, it could hold between 50,000 and 80,000 spectators for gladiatorial contests, animal hunts, and public spectacles.
+
+[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Colosseum)
+</Markdown>
+
+<Markdown id="loc_taj_mahal" title="Taj Mahal">
+### Taj Mahal
+
+![The Taj Mahal](https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Taj_Mahal_%28Edited%29.jpeg/330px-Taj_Mahal_%28Edited%29.jpeg)
+
+The Taj Mahal in Agra, India, is a white marble mausoleum built between 1632 and 1653 by Mughal Emperor Shah Jahan in memory of his wife Mumtaz Mahal. It is considered one of the finest examples of Mughal architecture.
+
+[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Taj_Mahal)
+</Markdown>
+
+<!-- === Personas === -->
+
+<Markdown id="persona_tourist" title="Tourist">
+### Tourist
+
+You are visiting this landmark for the very first time. Everything is new and exciting. You want to share what you see, hear, smell, and feel with a friend back home.
+</Markdown>
+
+<Markdown id="persona_local_child" title="Local Child">
+### Local Child
+
+You grew up near this landmark. It is part of your everyday life -- you see it on the way to school, your family tells stories about it, and tourists are always around. Write about what it means to you.
+</Markdown>
+
+<Markdown id="persona_archaeologist" title="Archaeologist">
+### Archaeologist
+
+You are a researcher who has spent years studying this site. You notice historical details, construction techniques, and cultural significance that most visitors overlook.
+</Markdown>
+
+<Markdown id="persona_merchant" title="Merchant">
+### Merchant (Historical)
+
+You are a trader from centuries ago, passing through this landmark on a trade route. You see the site as it was in its prime, bustling with activity.
+</Markdown>
+
+<!-- === The Activity === -->
+
+<Sequential id="postcard_activity" title="Postcard from History" launchable="true">
+
+  <!-- Step 1: Choose location -->
+  <Vertical id="postcard_step_1" title="Choose Your Location">
+    <Markdown id="postcard_intro">
+## Postcard from History
+
+You will write a short postcard from the perspective of someone at a famous landmark. First, choose your location.
+    </Markdown>
+    <Carousel id="postcard_location" wrap="true">
+      loc_great_wall, loc_machu_picchu, loc_pyramids, loc_colosseum, loc_taj_mahal
+    </Carousel>
+  </Vertical>
+
+  <!-- Step 2: Research your location -->
+  <Vertical id="postcard_step_2" title="Research Notes">
+    <Markdown id="postcard_research_intro">
+## Research Your Location
+
+You chose the **{{@postcard_location.value}}**. Look it up online and jot down notes below. Try to find:
+- A surprising historical fact most people don't know
+- What it looks, sounds, or smells like up close
+- Something that changed over time
+    </Markdown>
+    <Collapsible id="postcard_research_example" title="See an example (Eiffel Tower)">
+      <Markdown id="postcard_research_example_text">
+**The Eiffel Tower -- research notes**
+
+* Centrepiece of the 1889 World's Fair, built to celebrate 100 years since the French Revolution
+* Tallest structure in the world from 1889 to 1930, at 300 meters
+* Needs 60 tons of paint every 7 years to prevent rust
+* The iron gets hot in summer -- the tower actually grows about 15 cm on warm days
+* At night, 20,000 light bulbs sparkle for 5 minutes every hour
+* Gustave Eiffel had a private apartment at the top where he entertained guests
+* Many Parisians hated it at first -- they called it an eyesore and a "metal asparagus"
+      </Markdown>
+    </Collapsible>
+    <TextArea id="postcard_research_notes" rows="6" placeholder="Interesting facts, details, things I noticed..." />
+  </Vertical>
+
+  <!-- Step 3: Choose persona -->
+  <Vertical id="postcard_step_3" title="Choose Your Persona">
+    <Markdown id="postcard_persona_header">
+## Choose a Persona
+
+Who will you be writing as at the **{{@postcard_location.value}}**?
+    </Markdown>
+    <Carousel id="postcard_persona" wrap="true">
+      persona_tourist, persona_local_child, persona_archaeologist, persona_merchant
+    </Carousel>
+  </Vertical>
+
+  <!-- Step 4: Develop your persona -->
+  <Vertical id="postcard_step_4" title="Develop Your Persona">
+    <Markdown id="postcard_persona_dev_intro">
+## Develop Your Persona
+
+You are a **{{@postcard_persona.value}}** at the **{{@postcard_location.value}}**. Invent a real human being. Give them a backstory:
+- What's their name? Where are they from?
+- What do they do day-to-day?
+- What would they notice or experience that others might miss?
+    </Markdown>
+    <Collapsible id="postcard_persona_example" title="See an example (Eiffel Tower peddler)">
+      <Markdown id="postcard_persona_example_text">
+**Peddler on the corner near the Eiffel Tower**
+
+* Sells cheap replicas of the tower, keychains, and little flags
+* Periodically chased away by police -- has to grab everything and run
+* Spent a few months in jail over the years for pickpocketing and selling without a permit
+* Two kids who sometimes beg on the street nearby
+* Other parent's whereabouts unknown
+* Sometimes harassed by locals who think peddlers make the area look bad
+* Knows every shortcut and hiding spot within three blocks of the tower
+* Has watched the tower light up thousands of times -- still thinks it's beautiful
+* Speaks bits of five languages, just enough to make a sale
+      </Markdown>
+    </Collapsible>
+    <TextArea id="postcard_persona_notes" rows="6" placeholder="Who is this person? What's their life like? What do they care about?" />
+  </Vertical>
+
+  <!-- Step 5: Write the postcard -->
+  <Vertical id="postcard_step_5" title="Write Your Postcard">
+    <Markdown id="postcard_write_instructions">
+## Write Your Postcard
+
+You are a **{{@postcard_persona.value}}** at the **{{@postcard_location.value}}**.
+
+Write a short postcard (4-8 sentences) from this person's perspective. Use your research and persona notes to make it feel real. Include:
+- What you see around you
+- How you feel about being here
+- A detail that only someone in your role would notice
+    </Markdown>
+    <TextArea id="postcard_draft" rows="8" placeholder="Dear friend, ..." />
+    <ActionButton id="postcard_submit" label="Submit for Feedback">
+      <LLMAction id="postcard_llm" target="postcard_feedback">
+        You are giving feedback to a middle school student on a short postcard. Be warm, specific, and brief.
+
+        The student is writing as a **<Ref target="postcard_persona" />** at the **<Ref target="postcard_location" />**.
+
+        Their research notes about the location:
+        <Ref target="postcard_research_notes" />
+
+        Their persona development notes:
+        <Ref target="postcard_persona_notes" />
+
+        Give feedback in two short sections:
+
+        **Creative Spark** (2-3 bullets max)
+        Ask specific questions that only THIS person at THIS place would think about. Not generic advice like "use more descriptive language" or "make it longer." Instead, ask questions that get the student thinking deeper: "What did the stone feel like when you touched it?" or "Did any tourists try to haggle with you today?" or "What story does your grandmother tell about this place?" Draw on their research and persona notes to make the questions personal and interesting.
+
+        **Quick Fixes** (only if needed)
+        Briefly note any grammar or spelling issues. Skip this section entirely if the writing is clean.
+
+        Student's postcard:
+        <Ref target="postcard_draft" />
+      </LLMAction>
+      <SetFieldAction target="postcard_draft" field="readonly" value="true" />
+      <SetFieldAction target="postcard_location" field="readonly" value="true" />
+      <SetFieldAction target="postcard_persona" field="readonly" value="true" />
+    </ActionButton>
+    <LLMFeedback id="postcard_feedback" />
+  </Vertical>
+
+  <!-- Step 6: Revise -->
+  <Vertical id="postcard_step_6" title="Revise Your Postcard">
+    <Markdown id="postcard_revise_instructions">
+## Revise Your Postcard
+
+Review the feedback below and write your final version.
+
+### Your Original Draft
+    </Markdown>
+    <Use ref="postcard_draft" />
+    <Markdown id="postcard_feedback_header">
+### Feedback
+    </Markdown>
+    <Use ref="postcard_feedback" />
+    <Markdown id="postcard_final_header">
+### Your Revised Postcard
+    </Markdown>
+    <TextArea id="postcard_final" rows="8" placeholder="Dear friend, ..." />
+    <ActionButton id="postcard_final_submit" label="Submit Final Draft">
+      <SetFieldAction target="postcard_final" field="readonly" value="true" />
+      <LLMAction id="llm_formal" target="voice_formal">
+        Rewrite the following postcard for a formal audience -- as if it were official correspondence or a letter to a dignitary. Preserve the content and meaning, but adjust register, vocabulary, and sentence structure to suit the recipient.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_academic" target="voice_academic">
+        Rewrite the following postcard for an academic audience -- as if it were being submitted to a scholarly journal or shared with researchers. Use precise, analytical language appropriate for readers with expertise in history or cultural studies.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_child" target="voice_child">
+        Rewrite the following postcard for a young child (age 6-7) as the audience. Use simple words, short sentences, and explain things in a way a small child would understand and find exciting.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_literary" target="voice_literary">
+        Rewrite the following postcard for readers who appreciate literary prose -- as if it were a passage from a travel novel or personal essay. Use vivid imagery, sensory detail, and varied sentence rhythm to draw the reader in.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_business" target="voice_business">
+        Rewrite the following postcard for business colleagues -- as a concise travel update or professional memo. Focus on key observations, practical takeaways, and a tone appropriate for a workplace audience.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <!-- Step 7: Explore different voices -->
+  <Vertical id="postcard_step_7" title="Your Postcard in Different Voices">
+    <Markdown id="postcard_voices_intro">
+## Writing for Different Audiences
+
+Earlier, you chose *who* was writing -- a tourist, a child, an archaeologist. That was about the sender's perspective.
+
+Now let's think about the *recipient*. The same message changes depending on who you are writing *for*. Compare how your postcard reads when adapted for a young child, for academic readers, or for business colleagues. The content stays the same, but the vocabulary, sentence structure, and tone shift to meet the audience where they are.
+    </Markdown>
+    <Use ref="postcard_final" />
+    <Tabs id="postcard_voices">
+      <LLMFeedback id="voice_formal" title="Formal" />
+      <LLMFeedback id="voice_academic" title="Academic" />
+      <LLMFeedback id="voice_child" title="Child" />
+      <LLMFeedback id="voice_literary" title="Literary" />
+      <LLMFeedback id="voice_business" title="Business" />
+    </Tabs>
+  </Vertical>
+
+</Sequential>
+
+</Vertical>

@@ -28,6 +28,7 @@ import { useBaselineProps } from '@/components/common/RenderOLX';
 import { baseAttributes, inputMixin, graderMixin } from '@/lib/blocks/attributeSchemas';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import ExpandIcon from '@/components/common/ExpandIcon';
+import { CATEGORY_ORDER, getCategory, groupBlocksByCategory } from '@/lib/docs/categoryUtils';
 
 // Shared attribute sets for documentation display.
 // Derives attribute names from the actual mixin definitions (DRY).
@@ -52,37 +53,6 @@ function useDocsExampleState(blockName, exampleFilename, originalContent) {
 // =============================================================================
 // Utilities
 // =============================================================================
-
-const CATEGORY_MAP = {
-  'display': 'Display',
-  'input': 'Input',
-  'grading': 'Grading',
-  'layout': 'Layout',
-  'action': 'Action',
-  'authoring': 'Authoring',
-  'reference': 'Reference',
-  'specialized': 'Specialized',
-  'utility': 'Utility',
-  'CapaProblem': 'CAPA Problems',
-  '_test': 'Test Blocks',
-  'grammar': 'Grammars'
-};
-
-const CATEGORY_ORDER = [
-  'Layout', 'Display', 'Input', 'Grading', 'Action',
-  'Reference', 'Specialized', 'Utility', 'CAPA Problems', 'Test Blocks', 'Grammars', 'Other'
-];
-
-function getCategory(block) {
-  // Explicit category takes precedence
-  if (block.category) {
-    return CATEGORY_MAP[block.category] || block.category;
-  }
-  // Fall back to directory-based categorization
-  if (!block.source) return 'Other';
-  const match = block.source.match(/src\/components\/blocks\/([^/]+)\//);
-  return match ? (CATEGORY_MAP[match[1]] || match[1]) : 'Other';
-}
 
 function buildTabs(blockDetails, isGrammar = false) {
   const tabs = [{ id: 'overview', label: 'Overview' }];
@@ -109,25 +79,6 @@ function buildTabs(blockDetails, isGrammar = false) {
   });
 
   return tabs;
-}
-
-function groupBlocksByCategory(blocks) {
-  const grouped = {};
-  blocks.forEach(block => {
-    const category = getCategory(block);
-    if (!grouped[category]) grouped[category] = [];
-    grouped[category].push(block);
-  });
-
-  // Sort by defined order
-  const sorted = {};
-  CATEGORY_ORDER.forEach(cat => {
-    if (grouped[cat]) sorted[cat] = grouped[cat];
-  });
-  Object.keys(grouped).forEach(cat => {
-    if (!sorted[cat]) sorted[cat] = grouped[cat];
-  });
-  return sorted;
 }
 
 // =============================================================================

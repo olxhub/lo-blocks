@@ -12,9 +12,11 @@ Multi-line text input for longer student responses. Supports essays, explanation
 ## Properties
 - `placeholder` (optional): Hint text displayed when empty
 - `rows` (optional): Number of visible text rows
+- `readonly` (optional): Make the textarea read-only. Can be set statically in OLX or toggled dynamically at runtime via SetFieldAction.
 
 ## State
 - `value`: The current text content
+- `readonly`: Whether the textarea is currently read-only (defaults to the OLX attribute value)
 
 ## getValue
 Returns the text string entered by the student.
@@ -97,4 +99,27 @@ TextArea integrates with LLM-based feedback for formative assessment:
     </LLMAction>
   </ActionButton>
 </Vertical>
+```
+
+### Draft, Lock, and Revise
+
+Use SetFieldAction to make a draft read-only after submission, then carry
+it forward for revision:
+
+```olx:playground
+<Sequential id="draft_revise_demo" title="Draft and Revise">
+  <Vertical id="draft_step" title="Draft">
+    <Markdown>Write a short paragraph explaining your understanding (use 3rd person):</Markdown>
+    <TextArea id="draft" rows="4" placeholder="My understanding is..." />
+    <ActionButton label="Submit Draft">
+      <SetFieldAction target="draft" field="readonly" value="true" />
+    </ActionButton>
+  </Vertical>
+  <Vertical id="revise_step" title="Revise">
+    <Markdown>Your original draft:</Markdown>
+    <Use ref="draft" />
+    <Markdown>Now revise for a first-person narrative voice:</Markdown>
+    <TextArea id="revision" rows="4" />
+  </Vertical>
+</Sequential>
 ```

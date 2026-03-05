@@ -1,0 +1,14 @@
+<Vertical id="SetFieldActionDemo" title="SetFieldAction">
+  <Markdown id="sfa_intro">
+## Dynamic Field Setting
+
+Type something, then click "Make Read-Only" to lock the textarea.
+  </Markdown>
+  <TextArea id="sfa_input" rows="3" placeholder="Type something here..." />
+  <ActionButton id="sfa_lock" label="Make Read-Only">
+    <SetFieldAction target="sfa_input" field="readonly" value="true" />
+  </ActionButton>
+  <ActionButton id="sfa_unlock" label="Make Editable">
+    <SetFieldAction target="sfa_input" field="readonly" value="false" />
+  </ActionButton>
+</Vertical>

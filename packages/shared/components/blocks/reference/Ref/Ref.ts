@@ -50,6 +50,7 @@ export function formatRefValue(val, fallback = '') {
 const Ref = core({
   ...parsers.textToAttribute('target'), // <Ref>id</Ref> compiles to target="id" in attributes
   name: 'Ref',
+  requiresUniqueId: false,
   component: _Ref,
   description: 'Reference another component\'s value by ID via target attribute.',
   attributes: srcAttributes.extend({

@@ -279,6 +279,8 @@ export interface FieldInfo {
   name: string;
   event: string;
   scope: import('./state/scopes').Scope;
+  /** Optional zod schema for value validation/coercion. Fields without schemas accept any value. */
+  schema?: z.ZodType;
 }
 
 export interface FieldInfoByEvent { [event: string]: FieldInfo; }
@@ -311,7 +313,8 @@ const ReduxFieldInfo = z.object({
   name: z.string(),
   event: z.string(),
   scope: z.enum(scopeNames),
-}).strict();
+  schema: z.custom<z.ZodType>().optional(),
+});
 
 // Fields schema: { fieldName: FieldInfo, ..., extend?: fn }
 // Uses record for dynamic field names. The extend method is validated separately
