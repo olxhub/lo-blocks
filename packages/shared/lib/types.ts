@@ -1,4 +1,4 @@
-// src/lib/types.ts
+// packages/shared/lib/types.ts
 //
 // Type definitions - central TypeScript types for Learning Observer architecture.
 //

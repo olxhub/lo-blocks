@@ -5,6 +5,8 @@ import { useMemo, useRef, useImperativeHandle, forwardRef } from 'react';
 import dynamic from 'next/dynamic';
 import { xml } from '@codemirror/lang-xml';
 import { markdown } from '@codemirror/lang-markdown';
+import { yaml } from '@codemirror/lang-yaml';
+import { javascript } from '@codemirror/lang-javascript';
 import { linter, lintGutter, Diagnostic } from '@codemirror/lint';
 import { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
@@ -18,7 +20,7 @@ const CodeMirror = dynamic(
   { ssr: false }
 );
 
-export type CodeLanguage = 'xml' | 'olx' | 'md' | 'markdown' | PEGContentExtension;
+export type CodeLanguage = 'xml' | 'olx' | 'md' | 'markdown' | 'yaml' | 'json' | 'js' | 'mermaid' | PEGContentExtension;
 
 // PEG parse error type
 interface PEGParseError extends Error {
@@ -171,16 +173,25 @@ function getLanguageExtension(language?: CodeLanguage): Extension | undefined {
     case 'md':
     case 'markdown':
       return markdown();
+    case 'yaml':
+    case 'json':
+      return yaml();
+    case 'js':
+      return javascript();
     default:
-      // PEG content files don't have specific syntax highlighting
+      // PEG content files and mermaid don't have CodeMirror syntax highlighting
       return undefined;
   }
 }
 
 /** Detect syntax highlighting language from file path */
-function detectLanguageFromPath(path?: string): 'xml' | 'md' | undefined {
-  if (isOLXFile(path)) return 'xml';
-  if (isMarkdownFile(path)) return 'md';
+function detectLanguageFromPath(filePath?: string): CodeLanguage | undefined {
+  if (isOLXFile(filePath)) return 'xml';
+  if (isMarkdownFile(filePath)) return 'md';
+  const ext = getExtension(filePath);
+  if (ext === 'yaml' || ext === 'yml' || ext === 'json') return 'yaml';
+  if (ext === 'js') return 'js';
+  if (ext === 'mmd' || ext === 'mermaid') return 'mermaid';
   return undefined;
 }
 

@@ -1,0 +1,8 @@
+<Mermaid id="MermaidDemo" title="Mermaid Example">
+graph TD
+    A[Student reads material] --> B{Understands?}
+    B -->|Yes| C[Practice problems]
+    B -->|No| D[Review with hints]
+    D --> A
+    C --> E[Assessment]
+</Mermaid>

@@ -18,6 +18,10 @@ export const EXT = {
   markdown: ['md'] as const,
   peg: PEG_CONTENT_EXTENSIONS,
 
+  // Data / config formats (loadable as content via src=)
+  mermaid: ['mmd', 'mermaid'] as const,
+  data: ['yaml', 'yml', 'json'] as const,
+
   // Code (for upload, syntax highlighting)
   code: ['js', 'jsx', 'ts', 'tsx', 'css', 'html', 'py', 'json', 'yaml', 'yml', 'pegjs'] as const,
   plainText: ['txt'] as const,
@@ -34,10 +38,10 @@ export const EXT = {
 
 export const CATEGORY = {
   // What can be loaded as authored content
-  content: [...EXT.olx, ...EXT.markdown, ...EXT.peg] as const,
+  content: [...EXT.olx, ...EXT.markdown, ...EXT.peg, ...EXT.mermaid, ...EXT.data] as const,
 
   // What the editor can open (content + sidecar files in future)
-  editable: [...EXT.olx, ...EXT.markdown, ...EXT.peg] as const,
+  editable: [...EXT.olx, ...EXT.markdown, ...EXT.peg, ...EXT.mermaid, ...EXT.data] as const,
 
   // What can be uploaded/attached to chat
   uploadable: [...EXT.olx, ...EXT.markdown, ...EXT.peg, ...EXT.code, ...EXT.plainText] as const,
@@ -86,7 +90,7 @@ export function isExtensionIn(ext: string, extensions: readonly string[]): boole
 // TYPE DETECTION (for dispatch: editors[getContentType(path)])
 // ============================================================
 
-export type ContentType = 'olx' | 'markdown' | 'peg' | 'code' | 'text' | 'image' | 'video' | 'document' | 'unknown';
+export type ContentType = 'olx' | 'markdown' | 'peg' | 'mermaid' | 'data' | 'code' | 'text' | 'image' | 'video' | 'document' | 'unknown';
 
 /**
  * Get the content type for dispatch.
@@ -106,6 +110,8 @@ export function getContentType(path: string | undefined | null): ContentType {
   if (extInList(ext, EXT.olx)) return 'olx';
   if (extInList(ext, EXT.markdown)) return 'markdown';
   if (extInList(ext, EXT.peg)) return 'peg';
+  if (extInList(ext, EXT.mermaid)) return 'mermaid';
+  if (extInList(ext, EXT.data)) return 'data';
   if (extInList(ext, EXT.code)) return 'code';
   if (extInList(ext, EXT.plainText)) return 'text';
   if (extInList(ext, EXT.image)) return 'image';
