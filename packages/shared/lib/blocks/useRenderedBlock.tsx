@@ -50,7 +50,7 @@ export function useBlock(
   const translationState = useTranslation(props, reduxOlxJson, source);
 
   if (!id) {
-    return { block: null, olxJson: null, ...blockData('ready') };
+    return { block: null, olxJson: undefined, ...blockData('ready') };
   }
 
   // Check Redux state
