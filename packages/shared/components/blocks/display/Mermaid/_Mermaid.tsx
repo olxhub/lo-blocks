@@ -8,7 +8,11 @@ mermaid.initialize({ startOnLoad: false, theme: 'default' });
 export default function _Mermaid(props) {
   const { kids } = props;
   const containerRef = useRef<HTMLDivElement>(null);
-  const uniqueId = useId().replace(/:/g, '_');
+  // mermaid.render() needs a unique DOM ID for its internal temp element.
+  // We can't use props.id — OLX is a DAG, so multiple <Use ref="..."/>
+  // instances share the same block ID by design. useId() is unique per
+  // React component instance, which is what we need here.
+  const rendererId = useId().replace(/:/g, '_');
 
   useEffect(() => {
     if (!kids || !kids.trim() || !containerRef.current) return;
@@ -19,7 +23,7 @@ export default function _Mermaid(props) {
       try {
         // parse() is async in mermaid v11
         await mermaid.parse(kids.trim());
-        const { svg } = await mermaid.render(`mermaid${uniqueId}`, kids.trim());
+        const { svg } = await mermaid.render(`mermaid${rendererId}`, kids.trim());
         if (!cancelled) {
           container.innerHTML = svg;
         }
@@ -39,7 +43,7 @@ export default function _Mermaid(props) {
     })();
 
     return () => { cancelled = true; };
-  }, [kids, uniqueId]);
+  }, [kids, rendererId]);
 
   if (!kids || !kids.trim()) {
     return <DisplayError props={props} name="Mermaid" message="Empty diagram" />;
