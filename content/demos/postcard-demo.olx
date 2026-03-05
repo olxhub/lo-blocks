@@ -183,7 +183,7 @@ Write a short postcard (4-8 sentences) from this person's perspective. Use your 
 - A detail that only someone in your role would notice
     </Markdown>
     <TextArea id="postcard_draft" rows="8" placeholder="Dear friend, ..." />
-    <ActionButton id="postcard_submit" label="Submit for Feedback">
+    <ActionButton id="postcard_submit" label="Submit for Feedback" dependsOn="wordcount(@postcard_draft.value) >= 20 &amp;&amp; !@postcard_draft.readonly">
       <LLMAction id="postcard_llm" target="postcard_feedback">
         You are giving feedback to a middle school student on a short postcard. Be warm, specific, and brief. Do NOT rewrite their text or suggest specific sentences. Only ask questions.
 
@@ -231,7 +231,7 @@ Review the feedback below and write your final version.
 ### Your Revised Postcard
     </Markdown>
     <TextArea id="postcard_final" rows="8" placeholder="Dear friend, ..." />
-    <ActionButton id="postcard_final_submit" label="Submit Final Draft">
+    <ActionButton id="postcard_final_submit" label="Submit Final Draft" dependsOn="wordcount(@postcard_final.value) >= 20 &amp;&amp; !@postcard_final.readonly">
       <SetFieldAction target="postcard_final" field="readonly" value="true" />
       <LLMAction id="llm_formal" target="voice_formal">
         A middle school student wrote the postcard below as a class exercise. We are showing them what their postcard would look like if adapted for a different audience. Rewrite it for a formal audience -- as if it were official correspondence or a letter to a dignitary. Change the greeting, sign-off, vocabulary, and sentence structure to suit the new recipient.
