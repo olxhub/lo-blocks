@@ -57,7 +57,6 @@ export function useBlock(
   if (olxResult.loading) {
     return {
       block: <Spinner>{`Loading ${id}...`}</Spinner>,
-
       ...blockData('loading')
     };
   }
@@ -72,7 +71,6 @@ export function useBlock(
           data={{ blockId: id }}
         />
       ),
-
       ...blockData('error', olxResult.error)
     };
   }
@@ -89,7 +87,6 @@ export function useBlock(
           data={{ blockId: id, olxKey }}
         />
       ),
-
       ...blockData('error', msg)
     };
   }

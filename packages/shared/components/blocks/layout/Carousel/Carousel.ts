@@ -17,11 +17,11 @@ import { core } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { commonFields } from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
-import { srcAttributes, z_olx_boolean } from '@/lib/blocks/attributeSchemas';
+import { srcAttributes, z_olx_boolean, z_olx_number } from '@/lib/blocks/attributeSchemas';
 import * as idListParser from '@/components/blocks/specialized/MasteryBank/_idlistParser';
 import _Carousel from './_Carousel';
 
-export const fields = state.fields([commonFields.value, 'index', { name: 'readonly', schema: z_olx_boolean }]);
+export const fields = state.fields([commonFields.value, { name: 'index', schema: z_olx_number }, { name: 'readonly', schema: z_olx_boolean }]);
 
 const Carousel = core({
   ...peggyParser(idListParser, {

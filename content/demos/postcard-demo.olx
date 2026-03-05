@@ -102,8 +102,34 @@ You will write a short postcard from the perspective of someone at a famous land
     </Carousel>
   </Vertical>
 
-  <!-- Step 2: Choose persona -->
-  <Vertical id="postcard_step_2" title="Choose Your Persona">
+  <!-- Step 2: Research your location -->
+  <Vertical id="postcard_step_2" title="Research Notes">
+    <Markdown id="postcard_research_intro">
+## Research Your Location
+
+You chose the **{{@postcard_location.value}}**. Look it up online and jot down notes below. Try to find:
+- A surprising historical fact most people don't know
+- What it looks, sounds, or smells like up close
+- Something that changed over time
+    </Markdown>
+    <Collapsible id="postcard_research_example" title="See an example (Eiffel Tower)">
+      <Markdown id="postcard_research_example_text">
+**The Eiffel Tower -- research notes**
+
+* Centrepiece of the 1889 World's Fair, built to celebrate 100 years since the French Revolution
+* Tallest structure in the world from 1889 to 1930, at 300 meters
+* Needs 60 tons of paint every 7 years to prevent rust
+* The iron gets hot in summer -- the tower actually grows about 15 cm on warm days
+* At night, 20,000 light bulbs sparkle for 5 minutes every hour
+* Gustave Eiffel had a private apartment at the top where he entertained guests
+* Many Parisians hated it at first -- they called it an eyesore and a "metal asparagus"
+      </Markdown>
+    </Collapsible>
+    <TextArea id="postcard_research_notes" rows="6" placeholder="Interesting facts, details, things I noticed..." />
+  </Vertical>
+
+  <!-- Step 3: Choose persona -->
+  <Vertical id="postcard_step_3" title="Choose Your Persona">
     <Markdown id="postcard_persona_header">
 ## Choose a Persona
 
@@ -114,14 +140,42 @@ Who will you be writing as at the **{{@postcard_location.value}}**?
     </Carousel>
   </Vertical>
 
-  <!-- Step 3: Write the postcard -->
-  <Vertical id="postcard_step_3" title="Write Your Postcard">
+  <!-- Step 4: Develop your persona -->
+  <Vertical id="postcard_step_4" title="Develop Your Persona">
+    <Markdown id="postcard_persona_dev_intro">
+## Develop Your Persona
+
+You are a **{{@postcard_persona.value}}** at the **{{@postcard_location.value}}**. Invent a real human being. Give them a backstory:
+- What's their name? Where are they from?
+- What do they do day-to-day?
+- What would they notice or experience that others might miss?
+    </Markdown>
+    <Collapsible id="postcard_persona_example" title="See an example (Eiffel Tower peddler)">
+      <Markdown id="postcard_persona_example_text">
+**Peddler on the corner near the Eiffel Tower**
+
+* Sells cheap replicas of the tower, keychains, and little flags
+* Periodically chased away by police -- has to grab everything and run
+* Spent a few months in jail over the years for pickpocketing and selling without a permit
+* Two kids who sometimes beg on the street nearby
+* Other parent's whereabouts unknown
+* Sometimes harassed by locals who think peddlers make the area look bad
+* Knows every shortcut and hiding spot within three blocks of the tower
+* Has watched the tower light up thousands of times -- still thinks it's beautiful
+* Speaks bits of five languages, just enough to make a sale
+      </Markdown>
+    </Collapsible>
+    <TextArea id="postcard_persona_notes" rows="6" placeholder="Who is this person? What's their life like? What do they care about?" />
+  </Vertical>
+
+  <!-- Step 5: Write the postcard -->
+  <Vertical id="postcard_step_5" title="Write Your Postcard">
     <Markdown id="postcard_write_instructions">
 ## Write Your Postcard
 
 You are a **{{@postcard_persona.value}}** at the **{{@postcard_location.value}}**.
 
-Write a short postcard (4-8 sentences) from this person's perspective. Include:
+Write a short postcard (4-8 sentences) from this person's perspective. Use your research and persona notes to make it feel real. Include:
 - What you see around you
 - How you feel about being here
 - A detail that only someone in your role would notice
@@ -129,13 +183,23 @@ Write a short postcard (4-8 sentences) from this person's perspective. Include:
     <TextArea id="postcard_draft" rows="8" placeholder="Dear friend, ..." />
     <ActionButton id="postcard_submit" label="Submit for Feedback">
       <LLMAction id="postcard_llm" target="postcard_feedback">
-        A student is writing a postcard as a **<Ref target="postcard_persona" />** at the **<Ref target="postcard_location" />**.
+        You are giving feedback to a middle school student on a short postcard. Be warm, specific, and brief.
 
-        Please provide 3-5 bullets of specific, encouraging feedback on their postcard:
-        - Does the writing capture the persona's unique perspective?
-        - Are there sensory details specific to the location?
-        - What could make it more vivid, authentic, or historically grounded?
-        - Is the tone appropriate for a postcard?
+        The student is writing as a **<Ref target="postcard_persona" />** at the **<Ref target="postcard_location" />**.
+
+        Their research notes about the location:
+        <Ref target="postcard_research_notes" />
+
+        Their persona development notes:
+        <Ref target="postcard_persona_notes" />
+
+        Give feedback in two short sections:
+
+        **Creative Spark** (2-3 bullets max)
+        Ask specific questions that only THIS person at THIS place would think about. Not generic advice like "use more descriptive language" or "make it longer." Instead, ask questions that get the student thinking deeper: "What did the stone feel like when you touched it?" or "Did any tourists try to haggle with you today?" or "What story does your grandmother tell about this place?" Draw on their research and persona notes to make the questions personal and interesting.
+
+        **Quick Fixes** (only if needed)
+        Briefly note any grammar or spelling issues. Skip this section entirely if the writing is clean.
 
         Student's postcard:
         <Ref target="postcard_draft" />
@@ -147,8 +211,8 @@ Write a short postcard (4-8 sentences) from this person's perspective. Include:
     <LLMFeedback id="postcard_feedback" />
   </Vertical>
 
-  <!-- Step 4: Revise -->
-  <Vertical id="postcard_step_4" title="Revise Your Postcard">
+  <!-- Step 6: Revise -->
+  <Vertical id="postcard_step_6" title="Revise Your Postcard">
     <Markdown id="postcard_revise_instructions">
 ## Revise Your Postcard
 
@@ -195,8 +259,8 @@ Review the feedback below and write your final version.
     </ActionButton>
   </Vertical>
 
-  <!-- Step 5: Explore different voices -->
-  <Vertical id="postcard_step_5" title="Your Postcard in Different Voices">
+  <!-- Step 7: Explore different voices -->
+  <Vertical id="postcard_step_7" title="Your Postcard in Different Voices">
     <Markdown id="postcard_voices_intro">
 ## Writing for Different Audiences
 
