@@ -147,6 +147,7 @@ Who will you be writing as at the **{{@postcard_location.value}}**?
 
 You are a **{{@postcard_persona.value}}** at the **{{@postcard_location.value}}**. Invent a real human being. Give them a backstory:
 - What's their name? Where are they from?
+- Who are their friends and family? Who are they writing this postcard to?
 - What do they do day-to-day?
 - What would they notice or experience that others might miss?
     </Markdown>
@@ -163,6 +164,7 @@ You are a **{{@postcard_persona.value}}** at the **{{@postcard_location.value}}*
 * Knows every shortcut and hiding spot within three blocks of the tower
 * Has watched the tower light up thousands of times -- still thinks it's beautiful
 * Speaks bits of five languages, just enough to make a sale
+* Writing to a cousin back home who dreams of coming to Paris someday
       </Markdown>
     </Collapsible>
     <TextArea id="postcard_persona_notes" rows="6" placeholder="Who is this person? What's their life like? What do they care about?" />
@@ -183,7 +185,7 @@ Write a short postcard (4-8 sentences) from this person's perspective. Use your 
     <TextArea id="postcard_draft" rows="8" placeholder="Dear friend, ..." />
     <ActionButton id="postcard_submit" label="Submit for Feedback">
       <LLMAction id="postcard_llm" target="postcard_feedback">
-        You are giving feedback to a middle school student on a short postcard. Be warm, specific, and brief.
+        You are giving feedback to a middle school student on a short postcard. Be warm, specific, and brief. Do NOT rewrite their text or suggest specific sentences. Only ask questions.
 
         The student is writing as a **<Ref target="postcard_persona" />** at the **<Ref target="postcard_location" />**.
 
@@ -195,8 +197,8 @@ Write a short postcard (4-8 sentences) from this person's perspective. Use your 
 
         Give feedback in two short sections:
 
-        **Creative Spark** (2-3 bullets max)
-        Ask specific questions that only THIS person at THIS place would think about. Not generic advice like "use more descriptive language" or "make it longer." Instead, ask questions that get the student thinking deeper: "What did the stone feel like when you touched it?" or "Did any tourists try to haggle with you today?" or "What story does your grandmother tell about this place?" Draw on their research and persona notes to make the questions personal and interesting.
+        **Questions to think about** (2-3 bullets max)
+        Ask short questions that help the student add detail to THEIR draft. The questions should be things only THIS person at THIS place would think about. Use their research notes and persona notes to make the questions specific. For example: "What did the stone feel like?" or "What would your grandmother say about this place?" Do NOT write example sentences. Do NOT suggest specific words or phrases. Just ask questions the student can answer by adding a sentence or two to their postcard.
 
         **Quick Fixes** (only if needed)
         Briefly note any grammar or spelling issues. Skip this section entirely if the writing is clean.
@@ -232,27 +234,27 @@ Review the feedback below and write your final version.
     <ActionButton id="postcard_final_submit" label="Submit Final Draft">
       <SetFieldAction target="postcard_final" field="readonly" value="true" />
       <LLMAction id="llm_formal" target="voice_formal">
-        Rewrite the following postcard for a formal audience -- as if it were official correspondence or a letter to a dignitary. Preserve the content and meaning, but adjust register, vocabulary, and sentence structure to suit the recipient.
+        A middle school student wrote the postcard below as a class exercise. We are showing them what their postcard would look like if adapted for a different audience. Rewrite it for a formal audience -- as if it were official correspondence or a letter to a dignitary. Change the greeting, sign-off, vocabulary, and sentence structure to suit the new recipient.
 
         <Ref target="postcard_final" />
       </LLMAction>
       <LLMAction id="llm_academic" target="voice_academic">
-        Rewrite the following postcard for an academic audience -- as if it were being submitted to a scholarly journal or shared with researchers. Use precise, analytical language appropriate for readers with expertise in history or cultural studies.
+        A middle school student wrote the postcard below as a class exercise. We are showing them what their postcard would look like if adapted for a different audience. Rewrite it for an academic audience -- as if it were being shared with researchers. Use precise, analytical language appropriate for readers with expertise in history or cultural studies.
 
         <Ref target="postcard_final" />
       </LLMAction>
       <LLMAction id="llm_child" target="voice_child">
-        Rewrite the following postcard for a young child (age 6-7) as the audience. Use simple words, short sentences, and explain things in a way a small child would understand and find exciting.
+        A middle school student wrote the postcard below as a class exercise. We are showing them what their postcard would look like if adapted for a different audience. Rewrite it as it would be if it were being sent to a young child (age 6-7), so they could understand and enjoy reading it. Keep the same sender, but they're now writing to a young relative. Use simple words, short sentences, and explain any big ideas in a way a small child would find exciting.
 
         <Ref target="postcard_final" />
       </LLMAction>
       <LLMAction id="llm_literary" target="voice_literary">
-        Rewrite the following postcard for readers who appreciate literary prose -- as if it were a passage from a travel novel or personal essay. Use vivid imagery, sensory detail, and varied sentence rhythm to draw the reader in.
+        A middle school student wrote the postcard below as a class exercise. We are showing them what their postcard would look like if adapted for a different audience. Rewrite it as it would sound if being placed by an author on their travel blog, for readers who appreciate literary prose. Use vivid imagery, sensory detail, and varied sentence rhythm.
 
         <Ref target="postcard_final" />
       </LLMAction>
       <LLMAction id="llm_business" target="voice_business">
-        Rewrite the following postcard for business colleagues -- as a concise travel update or professional memo. Focus on key observations, practical takeaways, and a tone appropriate for a workplace audience.
+        A middle school student wrote the postcard below as a class exercise. We are showing them what their postcard would look like if adapted for a different audience. Rewrite it as if it were being sent to a business colleagues -- as a concise travel update or professional trip memorandum. Focus on key observations, practical takeaways, and a professional tone.
 
         <Ref target="postcard_final" />
       </LLMAction>
