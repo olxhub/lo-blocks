@@ -34,6 +34,11 @@ function buildMark(spec) {
  * The spec can include any Plot.plot() option. The `marks` array
  * contains declarative mark objects with a `type` field.
  */
+// TODO: Validate YAML specs more thoroughly. Currently, a typo like "maarks"
+// instead of "marks" silently renders an empty chart. We should:
+// - Warn on unrecognized top-level keys (typo detection)
+// - Show a visible placeholder (gray box with border) when Plot produces empty output
+// - Consider validating against known Plot.plot() options
 function parseYamlSpec(text: string) {
   const spec = YAML.parse(text);
   if (!spec || typeof spec !== 'object') {
