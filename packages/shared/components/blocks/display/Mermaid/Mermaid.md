@@ -37,7 +37,9 @@ sequenceDiagram
 
 ## Supported Diagram Types
 
-See the [Mermaid documentation](https://mermaid.js.org/intro/) for the full list, including:
+The [Mermaid Live Editor](https://mermaid.ai/live/edit) is useful for prototyping diagrams before embedding them.
+
+See the [Mermaid documentation](https://mermaid.js.org/intro/) for the full list of diagram types, including:
 
 - Flowcharts (`graph TD`, `graph LR`)
 - Sequence diagrams

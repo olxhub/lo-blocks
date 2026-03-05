@@ -41,7 +41,7 @@ export const CATEGORY = {
   content: [...EXT.olx, ...EXT.markdown, ...EXT.peg, ...EXT.mermaid, ...EXT.data] as const,
 
   // What the editor can open (content + sidecar files in future)
-  editable: [...EXT.olx, ...EXT.markdown, ...EXT.peg] as const,
+  editable: [...EXT.olx, ...EXT.markdown, ...EXT.peg, ...EXT.mermaid, ...EXT.data] as const,
 
   // What can be uploaded/attached to chat
   uploadable: [...EXT.olx, ...EXT.markdown, ...EXT.peg, ...EXT.code, ...EXT.plainText] as const,

@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import * as Plot from '@observablehq/plot';
 import YAML from 'yaml';
 import { DisplayError } from '@/lib/util/debug';
@@ -71,41 +71,44 @@ export default function _ObservablePlot(props) {
 
   const effectiveFormat = format || 'yaml';
 
-  useEffect(() => {
-    if (!kids || !kids.trim() || !containerRef.current) return;
-    const container = containerRef.current;
+  // All Plot operations are synchronous — compute during render
+  const { plotNode, error } = useMemo(() => {
+    if (!kids || !kids.trim()) return { plotNode: null, error: null };
 
     try {
-      let plotNode;
+      let node;
 
       if (effectiveFormat === 'js') {
         const result = evaluateJsSpec(kids, Plot);
         if (!(result instanceof Node)) {
           throw new Error('JS spec must return a DOM node (e.g. return Plot.plot({...}))');
         }
-        plotNode = result;
+        node = result;
       } else {
         const opts = parseYamlSpec(kids);
         if (width) opts.width = width;
         if (height) opts.height = height;
-        plotNode = Plot.plot(opts);
+        node = Plot.plot(opts);
       }
 
-      container.replaceChildren(plotNode);
+      return { plotNode: node, error: null };
     } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      container.innerHTML = '';
-      const wrapper = document.createElement('div');
-      wrapper.className = 'lo-display-error bg-yellow-50 text-yellow-800 text-sm p-3 rounded border border-yellow-200 whitespace-pre-wrap overflow-auto';
-      wrapper.innerHTML = `<div><strong>ObservablePlot</strong>: Invalid plot spec</div>` +
-        `<details style="margin-top:0.5rem;font-size:0.8rem"><summary>Technical Details</summary>` +
-        `<pre class="overflow-auto mt-2">${msg}</pre></details>`;
-      container.appendChild(wrapper);
+      return { plotNode: null, error: e instanceof Error ? e.message : String(e) };
     }
   }, [kids, effectiveFormat, width, height]);
 
+  // Mount the Plot-generated DOM node
+  useEffect(() => {
+    if (!plotNode || !containerRef.current) return;
+    containerRef.current.replaceChildren(plotNode);
+  }, [plotNode]);
+
   if (!kids || !kids.trim()) {
     return <DisplayError props={props} name="ObservablePlot" message="Empty plot spec" />;
+  }
+
+  if (error) {
+    return <DisplayError props={props} name="ObservablePlot" message="Invalid plot spec" technical={error} />;
   }
 
   return <div ref={containerRef} />;
