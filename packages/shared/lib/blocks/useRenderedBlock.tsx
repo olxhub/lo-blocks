@@ -18,12 +18,15 @@ import { renderOlxJson, renderCompiledKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
 import TranslatingIndicator from '@/lib/i18n/TranslatingIndicator';
-import type { OlxReference, BlockDataResult } from '@/lib/types';
+import type { OlxReference, BlockDataResult, OlxJson } from '@/lib/types';
 import { blockData } from '@/lib/state/redux';
 import { refToOlxKey } from '@/lib/blocks/idResolver';
 
 export type RenderedBlockResult = BlockDataResult & {
   block: React.ReactNode;
+  // TODO: Always return an OlxJson (e.g. { tag: 'Spinner', ... } or { tag: 'DisplayError', ... })
+  // so callers never need null checks. For now, absent during loading/error.
+  olxJson?: OlxJson;
 };
 
 /**
@@ -47,13 +50,14 @@ export function useBlock(
   const translationState = useTranslation(props, reduxOlxJson, source);
 
   if (!id) {
-    return { block: null, ...blockData('ready') };
+    return { block: null, olxJson: null, ...blockData('ready') };
   }
 
   // Check Redux state
   if (olxResult.loading) {
     return {
       block: <Spinner>{`Loading ${id}...`}</Spinner>,
+
       ...blockData('loading')
     };
   }
@@ -68,6 +72,7 @@ export function useBlock(
           data={{ blockId: id }}
         />
       ),
+
       ...blockData('error', olxResult.error)
     };
   }
@@ -84,6 +89,7 @@ export function useBlock(
           data={{ blockId: id, olxKey }}
         />
       ),
+
       ...blockData('error', msg)
     };
   }
@@ -95,7 +101,7 @@ export function useBlock(
       {rendered}
     </TranslatingIndicator>
   );
-  return { block, ...blockData('ready') };
+  return { block, olxJson: reduxOlxJson, ...blockData('ready') };
 }
 
 /**

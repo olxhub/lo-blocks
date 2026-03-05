@@ -11,6 +11,7 @@ export const CATEGORY_MAP: Record<string, string> = {
   'grading': 'Grading',
   'layout': 'Layout',
   'action': 'Action',
+  'authoring': 'Authoring',
   'reference': 'Reference',
   'specialized': 'Specialized',
   'utility': 'Utility',
@@ -26,6 +27,7 @@ export const CATEGORY_ORDER = [
   'Input',
   'Grading',
   'Action',
+  'Authoring',
   'Reference',
   'Specialized',
   'Utility',
@@ -52,7 +54,7 @@ export function getCategory(block: BlockLike): string {
   }
   // Fall back to directory-based categorization
   if (!block.source) return 'Other';
-  const match = block.source.match(/src\/components\/blocks\/([^/]+)\//);
+  const match = block.source.match(/components\/blocks\/([^/]+)\//);
   return match ? (CATEGORY_MAP[match[1]] || match[1]) : 'Other';
 }
 

@@ -2,12 +2,12 @@
 'use client';
 
 import React from 'react';
-import { useReduxInput } from '@/lib/state';
+import { useReduxInput, useFieldSelector } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 
 // OLX attributes → React DOM props (rename where conventions differ)
-const attrMap: Record<string, string> = { placeholder: 'placeholder', rows: 'rows', readonly: 'readOnly' };
+const attrMap: Record<string, string> = { placeholder: 'placeholder', rows: 'rows' };
 
 function _TextArea( props ) {
   // Note: updateValidator is a function, and so can't come from OLX or JSON.
@@ -16,6 +16,8 @@ function _TextArea( props ) {
     props, fields.value, '',
     { updateValidator }
   );
+
+  const isReadonly = useFieldSelector(props, fields.readonly, { fallback: props.readonly });
 
   const { kids } = useKids(props);
 
@@ -31,6 +33,7 @@ function _TextArea( props ) {
       <textarea
         {...inputProps}
         {...passthrough}
+        readOnly={isReadonly}
         className={className}
       />
       <DisplayAnswer props={props} />

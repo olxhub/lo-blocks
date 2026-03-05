@@ -2,12 +2,12 @@
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, commonFields } from '@/lib/state';
+import { commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes, placeholder } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes, placeholder, z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import _TextArea from './_TextArea';
 
-export const fields = state.fields([commonFields.value]);
+export const fields = state.fields([commonFields.value, { name: 'readonly', schema: z_olx_boolean }]);
 const TextArea = core({
   ...parsers.blocks(),
   name: 'TextArea',
@@ -15,14 +15,10 @@ const TextArea = core({
   description: 'Multi-line text input field for longer student responses',
   component: _TextArea,
   fields: fields,
-  // as any: See selectValue spec in lib/blocks/actions.tsx
-  selectValue: ((props, state, id) => fieldSelector(state, props, fields.value, { fallback: '', id })) as any,
   attributes: baseAttributes.extend({
     ...placeholder,
     rows: z.string().default('4').describe('Number of visible text rows'),
-    readonly: z.union([z.enum(['true', 'false']), z.boolean()]).optional()
-      .transform(v => v === 'true' || v === true)
-      .describe('Make textarea read-only'),
+    readonly: z_olx_boolean.optional().describe('Make textarea read-only'),
   }),
 });
 

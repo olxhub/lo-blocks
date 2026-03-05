@@ -1,5 +1,6 @@
 /* src/app/globals.css */
 @import "tailwindcss";
+@source "../../../packages/shared";
 @plugin "@tailwindcss/typography";
 @import "@fontsource/geist-sans/100.css";
 @import "@fontsource/geist-sans/200.css";

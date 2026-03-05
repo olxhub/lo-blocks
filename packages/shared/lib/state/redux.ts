@@ -163,6 +163,10 @@ export function updateField(
   { id, tag }: { id?: OlxKey | boolean; tag?: string | boolean } = {}
 ) {
   assertValidField(field);
+  // Validate/coerce value against field schema if defined
+  if (field.schema) {
+    newValue = field.schema.parse(newValue);
+  }
   const scope = field.scope;
   const fieldName = field.name;
   // For component/storage scope, resolve the ID for Redux state key.

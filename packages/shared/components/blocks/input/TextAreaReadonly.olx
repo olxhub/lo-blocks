@@ -1,0 +1,15 @@
+<Sequential id="TextAreaReadonlyDemo" title="Draft and Revise">
+  <Vertical id="ta_readonly_draft" title="Draft">
+    <Markdown id="ta_readonly_prompt">Write a short paragraph explaining your understanding (use 3rd person):</Markdown>
+    <TextArea id="ta_readonly_example" rows="4" placeholder="My understanding is..." />
+    <ActionButton id="ta_readonly_submit" label="Submit Draft">
+      <SetFieldAction target="ta_readonly_example" field="readonly" value="true" />
+    </ActionButton>
+  </Vertical>
+  <Vertical id="ta_readonly_revise" title="Revise">
+    <Markdown id="ta_readonly_revise_prompt">Your original draft:</Markdown>
+    <Use ref="ta_readonly_example" />
+    <Markdown id="ta_readonly_revise_instructions">Now revise for a first-person narrative voice:</Markdown>
+    <TextArea id="ta_readonly_revision" rows="4" />
+  </Vertical>
+</Sequential>
