@@ -1,18 +1,8 @@
 'use client';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import * as Plot from '@observablehq/plot';
 import YAML from 'yaml';
-
-function extractText(kids) {
-  if (typeof kids === 'string') return kids;
-  if (Array.isArray(kids)) {
-    return kids.map((kid) => {
-      if (typeof kid === 'object' && kid.type === 'text') return kid.text;
-      return typeof kid === 'string' ? kid : '';
-    }).join('');
-  }
-  return '';
-}
+import { DisplayError } from '@/lib/util/debug';
 
 /**
  * Translate a declarative mark spec into a Plot mark.
@@ -75,49 +65,47 @@ function evaluateJsSpec(code: string, plotLib: typeof Plot) {
   return fn(plotLib);
 }
 
-function renderError(container: HTMLDivElement, message: string, source: string) {
-  container.innerHTML = '';
-  const wrapper = document.createElement('div');
-  wrapper.className = 'text-red-600 border border-red-300 bg-red-50 p-3 rounded';
-  wrapper.innerHTML = `<strong>Plot error:</strong> ${message}` +
-    `<pre class="mt-2 text-sm text-gray-600 whitespace-pre-wrap">${source}</pre>`;
-  container.appendChild(wrapper);
-}
-
 export default function _ObservablePlot(props) {
   const { kids, format, width, height } = props;
-  const content = extractText(kids);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const effectiveFormat = format || 'yaml';
 
-  useEffect(() => {
-    if (!content.trim() || !containerRef.current) return;
+  // Parse and build the plot node synchronously — errors are derived
+  const { plotNode, error } = useMemo(() => {
+    if (!kids || !kids.trim()) return { plotNode: null, error: null };
 
     try {
-      let plotNode;
-
       if (effectiveFormat === 'js') {
-        const result = evaluateJsSpec(content, Plot);
+        const result = evaluateJsSpec(kids, Plot);
         if (!(result instanceof Node)) {
           throw new Error('JS spec must return a DOM node (e.g. return Plot.plot({...}))');
         }
-        plotNode = result;
-      } else {
-        const opts = parseYamlSpec(content);
-        if (width) opts.width = width;
-        if (height) opts.height = height;
-        plotNode = Plot.plot(opts);
+        return { plotNode: result, error: null };
       }
 
-      containerRef.current.replaceChildren(plotNode);
+      // YAML/JSON mode
+      const opts = parseYamlSpec(kids);
+      if (width) opts.width = width;
+      if (height) opts.height = height;
+      return { plotNode: Plot.plot(opts), error: null };
     } catch (e) {
-      renderError(containerRef.current, e instanceof Error ? e.message : String(e), content);
+      return { plotNode: null, error: e instanceof Error ? e.message : String(e) };
     }
-  }, [content, effectiveFormat, width, height]);
+  }, [kids, effectiveFormat, width, height]);
 
-  if (!content.trim()) {
-    return <div className="text-gray-400 italic">Empty Observable Plot</div>;
+  // Mount the Plot-generated DOM node
+  useEffect(() => {
+    if (!plotNode || !containerRef.current) return;
+    containerRef.current.replaceChildren(plotNode);
+  }, [plotNode]);
+
+  if (!kids || !kids.trim()) {
+    return <DisplayError props={props} name="ObservablePlot" message="Empty plot spec" />;
+  }
+
+  if (error) {
+    return <DisplayError props={props} name="ObservablePlot" message="Invalid plot spec" technical={error} />;
   }
 
   return <div ref={containerRef} />;

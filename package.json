@@ -44,6 +44,7 @@
     "@aws-sdk/client-bedrock-runtime": "^3.958.0",
     "@codemirror/lang-markdown": "^6.3.3",
     "@codemirror/lang-xml": "^6.1.0",
+    "@codemirror/lang-yaml": "^6.1.2",
     "@dicebear/core": "^9.3.1",
     "@dicebear/open-peeps": "^9.3.1",
     "@fontsource/geist-mono": "^5.2.6",
