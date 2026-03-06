@@ -1,0 +1,53 @@
+<!--
+---
+description: Compare sentence variety across writing styles
+category: language-arts
+lang: en-Latn-US
+---
+-->
+
+<Vertical id="style_comparison" title="Writing Style Comparison" launchable="true">
+  <Markdown id="comparison_intro">
+## Comparing Writing Styles
+
+The same passage appears below in three different styles. Look at the sentence variety plots — how does the visual structure differ? What do short, uniform bars tell you versus tall, varied ones?
+  </Markdown>
+
+  <Tabs id="style_tabs">
+    <Vertical id="style_journalistic" title="Journalistic">
+      <Markdown id="journalistic_label">
+### Journalistic (Amanda Ripley, *The Smartest Kids in the World*)
+      </Markdown>
+      <TextArea id="text_journalistic" rows="8" readonly="true">As the semester went on, Tom noticed differences between his math class in Poland and his math class in Pennsylvania. Back in America, Tom and all his classmates had used calculators. In his Polish math class, calculators were not allowed. Tom could tell the kids were doing a lot of the math in their minds. They had learned tricks that had become automatic, so their brains were freed up to do the harder work. It was the difference between being fluent in a language and not.
+
+After the first test, the teacher announced the scores in front of the class, so everyone could hear. As a new exchange student, Tom had been exempt from the test himself. But listening to the grade announcements, he felt intensely uncomfortable. Like Eric in Korea, he couldn't imagine such a public reckoning in his American classroom.
+
+Kids in Poland were used to failing, it seemed. The logic made sense. If the work was hard, routine failure was the only way to learn. "Success," as Winston Churchill once said, "is going from failure to failure without losing your enthusiasm."</TextArea>
+      <SentenceVarietyPlot id="plot_journalistic" target="text_journalistic" xrange="20" yrange="250" />
+    </Vertical>
+
+    <Vertical id="style_simple" title="Simple">
+      <Markdown id="simple_label">
+### Simplified for Young Readers
+      </Markdown>
+      <TextArea id="text_simple" rows="8" readonly="true">Tom went to school in Poland. His math class was different from back home. In America, kids used calculators. In Poland, they were not allowed. The kids did math in their heads. They knew tricks. Their brains could focus on hard problems.
+
+After a test, the teacher read the grades out loud. Tom felt weird about this. No one would do that back home. The grades were low. No one got the top score. But no one seemed upset. They just went to the next class.
+
+Kids in Poland were used to not doing well on tests. They kept trying. They did not give up.</TextArea>
+      <SentenceVarietyPlot id="plot_simple" target="text_simple" xrange="20" yrange="250" />
+    </Vertical>
+
+    <Vertical id="style_academic" title="Academic">
+      <Markdown id="academic_label">
+### Academic Style
+      </Markdown>
+      <TextArea id="text_academic" rows="8" readonly="true">Throughout the semester, the American exchange student observed significant pedagogical differences between his mathematics instruction in Poland and his prior experience in Pennsylvania. Whereas American students relied extensively on calculators, Polish students were required to perform computations mentally, having internalized arithmetic procedures to the point of automaticity, thereby freeing cognitive resources for higher-order mathematical reasoning.
+
+The assessment practices proved equally distinctive. Following examinations, instructors publicly announced individual scores, a practice that produced considerable discomfort in the exchange student, who could not reconcile this transparency with American norms of private evaluation. The consistently low scores, measured on Poland's one-to-five scale, appeared to produce neither surprise nor demoralization among Polish students.
+
+This observation suggests a fundamentally different relationship to academic failure. In the Polish educational context, routine failure functioned as an expected component of rigorous learning rather than as a source of stigma or discouragement.</TextArea>
+      <SentenceVarietyPlot id="plot_academic" target="text_academic" xrange="20" yrange="250" />
+    </Vertical>
+  </Tabs>
+</Vertical>

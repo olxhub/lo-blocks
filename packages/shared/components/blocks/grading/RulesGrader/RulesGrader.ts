@@ -28,7 +28,7 @@ import type { RuntimeProps } from '@/lib/types';
  * @returns {{ correct: correctness, message: string, score?: number }}
  */
 function gradeRules(props: RuntimeProps, context) {
-  const { blockRegistry } = props;
+  const blockRegistry = props.runtime.blockRegistry;
 
   // TODO: Handle other correctness states (unsubmitted, incomplete, etc.)
   // Currently delegated to Match rules, but may need RulesGrader-level logic
@@ -93,6 +93,7 @@ const RulesGrader = core({
     if (props.displayAnswer) return props.displayAnswer;
 
     const { kids = [], blockRegistry } = props;
+    if (!Array.isArray(kids)) return undefined;
     for (const kid of kids) {
       if (kid.type !== 'block') continue;
       const childEntry = getBlockByOLXId(props, kid.id);

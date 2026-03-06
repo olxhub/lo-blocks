@@ -806,7 +806,7 @@ export interface BaselineProps {
 export interface RuntimeProps extends BaselineProps {
   // This block's identity and content
   id: OlxKey;
-  kids: BlueprintKidEntry[];
+  kids: BlueprintKidEntry[] | string;
 
   // Opaque context - thread through
   nodeInfo: OlxDomNode;
@@ -840,7 +840,7 @@ export interface OlxJson {
   id: OlxKey;
   tag: OLXTag;
   attributes: Record<string, JSONValue>;  // Always present, defaults to {} in parsing
-  kids?: BlueprintKidEntry[];  // Child nodes (text, block refs, HTML elements)
+  kids?: BlueprintKidEntry[] | string;  // Child nodes, or a string from text parsers
   provenance: Provenance;
 
   // Optional metadata (from YAML frontmatter or parsed attributes)
