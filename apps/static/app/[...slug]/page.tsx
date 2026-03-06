@@ -3,17 +3,11 @@
 // Catch-all route for non-root pages. Reads the manifest and resolves
 // the slug to an OlxKey. generateStaticParams enumerates all routes.
 //
-import fs from 'fs';
-import path from 'path';
+import { readManifest, resolveSlug } from '../../lib/manifest';
 import StaticPage from './StaticPage';
 
-function getManifest() {
-  const manifestPath = path.join(process.cwd(), 'apps', 'static', 'public', 'static-content', 'manifest.json');
-  return JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-}
-
 export async function generateStaticParams() {
-  const manifest = getManifest();
+  const manifest = readManifest();
   return Object.keys(manifest.routes)
     .filter((urlPath: string) => urlPath !== '/')
     .map((urlPath: string) => ({
@@ -22,12 +16,12 @@ export async function generateStaticParams() {
 }
 
 export default async function Page({ params }: { params: Promise<{ slug: string[] }> }) {
-  const manifest = getManifest();
+  const manifest = readManifest();
   const { slug } = await params;
-  const urlPath = '/' + slug.join('/');
-  const olxKey = manifest.routes[urlPath] || null;
+  const olxKey = resolveSlug(manifest, slug);
 
   if (!olxKey) {
+    const urlPath = '/' + slug.join('/');
     return (
       <div style={{ padding: '2rem' }}>
         <h1>Not Found</h1>

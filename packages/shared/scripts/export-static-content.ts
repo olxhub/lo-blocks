@@ -36,7 +36,8 @@ function writeJson(filePath: string, data: any) {
 }
 
 /**
- * Build activity cards from the idMap, mirroring /api/activities logic.
+ * Build activity cards from the idMap.
+ * NOTE: mirrors logic in apps/web/app/api/activities/route.ts — keep in sync.
  */
 function buildActivities(idMap: Record<string, any>) {
   return Object.fromEntries(

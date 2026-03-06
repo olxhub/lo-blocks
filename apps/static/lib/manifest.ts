@@ -38,20 +38,6 @@ export function readManifest(): StaticManifest {
 }
 
 /**
- * Convert manifest routes to generateStaticParams format.
- * Each route becomes a slug array: "/" → [], "/foo/bar" → ["foo", "bar"]
- */
-export function manifestToStaticParams(manifest: StaticManifest): { slug?: string[] }[] {
-  return Object.keys(manifest.routes).map(urlPath => {
-    if (urlPath === '/') {
-      return {};  // Optional catch-all: no slug = root
-    }
-    const slug = urlPath.split('/').filter(Boolean);
-    return { slug };
-  });
-}
-
-/**
  * Resolve a slug array to an OlxKey using the manifest.
  */
 export function resolveSlug(manifest: StaticManifest, slug?: string[]): string | null {

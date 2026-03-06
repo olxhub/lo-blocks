@@ -1,4 +1,4 @@
-// apps/static/app/[[...slug]]/StaticPage.tsx
+// apps/static/app/[...slug]/StaticPage.tsx
 //
 // Client component: renders OLX content for a given key.
 // Gets the idMap from StaticContentProvider context (loaded once for the whole app).

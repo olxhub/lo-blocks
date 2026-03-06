@@ -2,18 +2,12 @@
 //
 // Root page (/). Reads the manifest's "/" route and renders it.
 //
-import fs from 'fs';
-import path from 'path';
+import { readManifest, resolveSlug } from '../lib/manifest';
 import StaticPage from './[...slug]/StaticPage';
 
-function getManifest() {
-  const manifestPath = path.join(process.cwd(), 'apps', 'static', 'public', 'static-content', 'manifest.json');
-  return JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-}
-
 export default async function Page() {
-  const manifest = getManifest();
-  const olxKey = manifest.routes['/'];
+  const manifest = readManifest();
+  const olxKey = resolveSlug(manifest);
 
   if (!olxKey) {
     return (
