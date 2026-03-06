@@ -44,16 +44,16 @@ Route keys are URL paths. Values are OlxKeys (the `id=` attribute on your root b
 By default, the build script reads from `./content/`. Override with:
 
 ```bash
-npx tsx packages/shared/scripts/export-static-content.ts --content /path/to/my-workshop/content
+npx tsx packages/shared/scripts/xml2json.ts --static-dir apps/static/public/static-content --content /path/to/my-workshop/content
 ```
 
-The `--manifest` and `--out` flags are also available:
+The `--manifest` flag selects the source manifest to validate:
 
 ```bash
-npx tsx packages/shared/scripts/export-static-content.ts \
+npx tsx packages/shared/scripts/xml2json.ts \
+  --static-dir apps/static/public/static-content \
   --content ./my-workshop/content \
-  --manifest ./my-workshop/static.config.json \
-  --out apps/static/public/static-content
+  --manifest ./my-workshop/static.config.json
 ```
 
 ## Architecture
@@ -71,7 +71,7 @@ No `IS_STATIC` environment variables. No conditionals in shared code. The static
 
 ### How it works
 
-1. **Build step** (`export-static-content.ts`): Parses all OLX via the same `syncContentFromStorage` pipeline used by the API routes. Writes `all.json` (full idMap), `activities.json`, and `manifest.json` to `apps/static/public/static-content/`.
+1. **Build step** (`xml2json.ts --static-dir`): Parses all OLX via the same `syncContentFromStorage` pipeline used by the API routes. Writes `all.json` (full idMap), `activities.json`, and `manifest.json` to `apps/static/public/static-content/`.
 
 2. **`StaticContentProvider`**: Client-side React context that fetches `/static-content/all.json` once on page load and dispatches to Redux. All blocks then access content from the Redux store, same as in the dynamic app.
 

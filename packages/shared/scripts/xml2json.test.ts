@@ -14,7 +14,7 @@ afterEach(async () => {
 
 test('xml2json script outputs valid JSON', async () => {
   // Run the script with --out flag
-  const proc = spawn('npx', ['tsx', 'packages/shared/scripts/xml2json.js', '--out', OUTPUT_FILE], {
+  const proc = spawn('npx', ['tsx', 'packages/shared/scripts/xml2json.ts', '--out', OUTPUT_FILE], {
     stdio: ['ignore', 'pipe', 'pipe']
   });
 
@@ -62,7 +62,7 @@ test('xml2json error accumulation with PEG errors', async () => {
     );
 
     // Run xml2json with test content directory
-    const proc = spawn('npx', ['tsx', 'packages/shared/scripts/xml2json.js', '--out', OUTPUT_FILE], {
+    const proc = spawn('npx', ['tsx', 'packages/shared/scripts/xml2json.ts', '--out', OUTPUT_FILE], {
       env: { ...process.env, OLX_CONTENT_DIR: testContentDir },
       stdio: ['ignore', 'pipe', 'pipe']
     });
