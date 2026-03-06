@@ -1,0 +1,11 @@
+<Vertical id="print_example" title="Print Example">
+  <Markdown id="print_content">
+## Print Demo
+
+This content will appear in the printed PDF. Buttons and navigation
+are automatically hidden.
+  </Markdown>
+  <ActionButton id="print_btn" label="Export as PDF">
+    <PrintAction id="print_action" />
+  </ActionButton>
+</Vertical>

@@ -1,0 +1,120 @@
+/*
+ * Print stylesheet for PDF export.
+ *
+ * Works with PrintAction: teachers compose a Markdown submission view using
+ * {{@block_id.value}} interpolation, then trigger print via:
+ *   <ActionButton label="Export as PDF"><PrintAction /></ActionButton>
+ *
+ * Targeting uses lo-tag-* wrapper classes applied by render.tsx to every block.
+ */
+
+@media print {
+  /* ===== Hide interactive chrome ===== */
+
+  /* App header (Home, language switcher, user icon) */
+  header {
+    display: none !important;
+  }
+
+  /* Docs page sidebar navigation */
+  aside {
+    display: none !important;
+  }
+
+  /* Sequential navigation: top history bar and bottom prev/next.
+     Fragile: targets Tailwind border utility classes. If Sequential
+     gets semantic class names, update these selectors. */
+  .lo-tag-sequential > .w-full > .border-b,
+  .lo-tag-sequential > .w-full > .border-t {
+    display: none !important;
+  }
+
+  /* Buttons: action, hint, show-answer */
+  .lo-tag-actionbutton,
+  .lo-tag-hintbutton,
+  .lo-tag-showanswerbutton {
+    display: none !important;
+  }
+
+  /* Generic utility class for ad-hoc use */
+  .print-hide {
+    display: none !important;
+  }
+
+  /* ===== Clean up content elements ===== */
+
+  /* Textarea: show as plain text */
+  .lo-tag-textarea textarea {
+    border: none !important;
+    resize: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* LLM feedback: simplify container */
+  .lo-tag-llmfeedback {
+    box-shadow: none !important;
+  }
+
+  /* ===== Layout: undo viewport constraints ===== */
+
+  /* Viewport-height and scroll constraints must be removed for print.
+     These are global overrides — any element constrained to viewport
+     height or clipping overflow will break multi-page print output. */
+  .h-screen {
+    height: auto !important;
+  }
+
+  .overflow-auto {
+    overflow: visible !important;
+  }
+
+  .min-h-96 {
+    min-height: 0 !important;
+  }
+
+  /* ===== Typography ===== */
+
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+    color: #000;
+    background: #fff;
+  }
+
+  .rendered-markdown {
+    max-width: 100% !important;
+  }
+
+  /* Show URLs after external links */
+  .rendered-markdown a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  /* ===== Page break control ===== */
+
+  .rendered-markdown h1,
+  .rendered-markdown h2,
+  .rendered-markdown h3 {
+    break-after: avoid;
+  }
+
+  .rendered-markdown blockquote,
+  .rendered-markdown pre {
+    break-inside: avoid;
+  }
+
+  /* SVG charts should not split across pages */
+  svg {
+    break-inside: avoid;
+  }
+
+  /* Utility: force a page break before this element */
+  .print-page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+}

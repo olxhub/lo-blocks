@@ -16,6 +16,7 @@
 @import "../../../packages/shared/styles/theme.css";
 @import "../../../packages/shared/styles/components.css";
 @import "../../../packages/shared/components/common/render-markdown.css";
+@import "../../../packages/shared/styles/print.css";
 
 /* KaTeX for math rendering in Markdown */
 @import "katex/dist/katex.min.css";
