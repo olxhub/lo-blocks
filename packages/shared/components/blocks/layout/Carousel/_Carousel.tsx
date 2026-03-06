@@ -8,10 +8,17 @@ import { DisplayError } from '@/lib/util/debug';
 import NavArrow from '@/components/common/NavArrow';
 import { fisherYatesShuffleInPlace } from '@/lib/utils/shuffle';
 
-function shuffledIndices(length: number): number[] {
-  const order = Array.from({ length }, (_, i) => i);
+function shuffledIds(ids: string[]): string[] {
+  const order = [...ids];
   fisherYatesShuffleInPlace(order);
   return order;
+}
+
+/** Check that stored order matches the current item list (same IDs, same length). */
+function isOrderValid(order: string[] | null, itemIds: string[]): boolean {
+  if (!order || order.length !== itemIds.length) return false;
+  const expected = new Set(itemIds);
+  return order.every(id => expected.has(id));
 }
 
 export default function _Carousel(props) {
@@ -19,19 +26,29 @@ export default function _Carousel(props) {
   const itemIds = kids.itemIds;
 
   // 1. Hooks (called unconditionally per React rules)
-  let [index, setIndex] = useFieldState(props, fields.index, 0);
+  // index stores the current item ID (not a number); order stores the display sequence
+  const [currentId, setCurrentId] = useFieldState(props, fields.index, null);
   const [order, setOrder] = useFieldState(props, fields.order, null);
   const [value, setValue] = useFieldState(props, fields.value, '');
   const isReadonly = useFieldSelector(props, fields.readonly, { fallback: props.readonly });
 
-  // Initialize or validate shuffled order
-  if (randomize && (!order || order.length !== itemIds.length)) {
-    setOrder(shuffledIndices(itemIds.length));
+  // Keep order in sync: shuffled when randomize is active, authored order otherwise
+  if (randomize && !isOrderValid(order, itemIds)) {
+    setOrder(shuffledIds(itemIds));
+  } else if (!randomize && (!order || !itemIds.every((id, i) => order[i] === id))) {
+    setOrder([...itemIds]);
   }
 
-  // Map display index through shuffled order, falling back to sequential
-  const effectiveIndex = (order && order.length === itemIds.length) ? order[index] : index;
-  const { block: renderedItem, olxJson } = useBlock(props, itemIds[effectiveIndex]);
+  const displayOrder = isOrderValid(order, itemIds) ? order : itemIds;
+  let position = currentId ? displayOrder.indexOf(currentId) : 0;
+  if (position < 0) position = 0;
+
+  // Sync index field if unset or stale
+  if (displayOrder[position] !== currentId) {
+    setCurrentId(displayOrder[position]);
+  }
+
+  const { block: renderedItem, olxJson } = useBlock(props, displayOrder[position]);
 
   // 2. No items — early exit
   if (itemIds.length === 0) {
@@ -44,21 +61,19 @@ export default function _Carousel(props) {
     );
   }
 
-  // 2.5. Edit corner case — if item list changes, index may be out-of-bounds
-  if (index < 0 || index >= itemIds.length) { setIndex(0); index = 0; }
-
   // 3. Navigation
+  const numItems = displayOrder.length;
   const handlePrev = () => {
-    if (index > 0) setIndex(index - 1);
-    else if (wrap) setIndex(itemIds.length - 1);
+    const prev = position > 0 ? position - 1 : (wrap ? numItems - 1 : position);
+    setCurrentId(displayOrder[prev]);
   };
   const handleNext = () => {
-    if (index < itemIds.length - 1) setIndex(index + 1);
-    else if (wrap) setIndex(0);
+    const next = position < numItems - 1 ? position + 1 : (wrap ? 0 : position);
+    setCurrentId(displayOrder[next]);
   };
 
   // 4. Title — sync to Redux for Ref/expression access
-  const title = olxJson?.attributes?.title || itemIds[effectiveIndex];
+  const title = olxJson?.attributes?.title || displayOrder[position];
   if (title !== value) setValue(title);
 
   // 5. Render
@@ -66,17 +81,17 @@ export default function _Carousel(props) {
     <div className="lo-carousel">
       <div className="lo-carousel__header">
         {!isReadonly && (
-          <button onClick={handlePrev} disabled={!wrap && index === 0}
+          <button onClick={handlePrev} disabled={!wrap && position === 0}
             className="lo-carousel__nav lo-carousel__nav--prev" aria-label="Previous">
             <NavArrow direction="back" />
           </button>
         )}
         <div className="lo-carousel__indicator">
           <span className="lo-carousel__title">{title}</span>
-          <span className="lo-carousel__count">{index + 1} of {itemIds.length}</span>
+          <span className="lo-carousel__count">{position + 1} of {numItems}</span>
         </div>
         {!isReadonly && (
-          <button onClick={handleNext} disabled={!wrap && index === itemIds.length - 1}
+          <button onClick={handleNext} disabled={!wrap && position === numItems - 1}
             className="lo-carousel__nav lo-carousel__nav--next" aria-label="Next">
             <NavArrow direction="forward" />
           </button>

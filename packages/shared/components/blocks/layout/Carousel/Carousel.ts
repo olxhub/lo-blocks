@@ -21,7 +21,7 @@ import { srcAttributes, z_olx_boolean, z_olx_number } from '@/lib/blocks/attribu
 import * as idListParser from '@/components/blocks/specialized/MasteryBank/_idlistParser';
 import _Carousel from './_Carousel';
 
-export const fields = state.fields([commonFields.value, { name: 'index', schema: z_olx_number }, { name: 'readonly', schema: z_olx_boolean }, { name: 'order' }]);
+export const fields = state.fields([commonFields.value, { name: 'index' }, { name: 'readonly', schema: z_olx_boolean }, { name: 'order' }]);
 
 const Carousel = core({
   ...peggyParser(idListParser, {
