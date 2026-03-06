@@ -8,6 +8,7 @@ import { baseAttributes, placeholder, z_olx_boolean } from '@/lib/blocks/attribu
 import { selectBlock } from '@/lib/state/olxjson';
 import { refToOlxKey } from '@/lib/blocks/idResolver';
 import _TextArea from './_TextArea';
+import type { RuntimeProps, OlxReference } from '@/lib/types';
 
 export const fields = state.fields([commonFields.value, { name: 'readonly', schema: z_olx_boolean }]);
 const TextArea = core({
@@ -23,17 +24,14 @@ const TextArea = core({
     readonly: z_olx_boolean.optional().describe('Make textarea read-only'),
   }),
   // Read Redux value, falling back to initial text from OLX children
-  selectValue: (props, reduxState, id) => {
+  selectValue: (props: RuntimeProps, reduxState: any, id: OlxReference) => {
     const reduxValue = state.fieldSelector(reduxState, { ...props, id }, commonFields.value, { fallback: undefined });
     if (reduxValue !== undefined) return reduxValue;
 
     // No Redux state yet — fall back to parsed children text
     const sources = props.runtime.olxJsonSources ?? ['content'];
     const locale = props.runtime.locale.code;
-    const node = selectBlock(reduxState, sources, refToOlxKey(id), locale);
-    if (typeof node?.kids === 'string' && node.kids.trim()) return node.kids.trim();
-
-    return '';
+    return (selectBlock(reduxState, sources, refToOlxKey(id), locale)!.kids as string).trim();
   },
 });
 

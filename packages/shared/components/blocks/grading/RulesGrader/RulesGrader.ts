@@ -93,6 +93,7 @@ const RulesGrader = core({
     if (props.displayAnswer) return props.displayAnswer;
 
     const { kids = [], blockRegistry } = props;
+    if (!Array.isArray(kids)) return undefined;
     for (const kid of kids) {
       if (kid.type !== 'block') continue;
       const childEntry = getBlockByOLXId(props, kid.id);
