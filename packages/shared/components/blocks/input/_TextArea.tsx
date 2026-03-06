@@ -3,7 +3,6 @@
 
 import React from 'react';
 import { useReduxInput, useFieldSelector } from '@/lib/state';
-import { useKids } from '@/lib/render';
 import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 
 // OLX attributes → React DOM props (rename where conventions differ)
@@ -11,15 +10,17 @@ const attrMap: Record<string, string> = { placeholder: 'placeholder', rows: 'row
 
 function _TextArea( props ) {
   // Note: updateValidator is a function, and so can't come from OLX or JSON.
-  const { className, fields, updateValidator, ...rest } = props;
+  const { className, fields, kids, updateValidator, ...rest } = props;
+
+  // If children text is provided, use it as the initial value
+  const initialValue = (typeof kids === 'string' && kids.trim()) ? kids.trim() : '';
+
   const [value, inputProps] = useReduxInput(
-    props, fields.value, '',
+    props, fields.value, initialValue,
     { updateValidator }
   );
 
   const isReadonly = useFieldSelector(props, fields.readonly, { fallback: props.readonly });
-
-  const { kids } = useKids(props);
 
   const passthrough = Object.fromEntries(
     Object.entries(attrMap)
@@ -29,7 +30,6 @@ function _TextArea( props ) {
 
   return (
     <>
-      {kids}
       <textarea
         {...inputProps}
         {...passthrough}

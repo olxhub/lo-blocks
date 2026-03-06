@@ -28,7 +28,7 @@ import type { RuntimeProps } from '@/lib/types';
  * @returns {{ correct: correctness, message: string, score?: number }}
  */
 function gradeRules(props: RuntimeProps, context) {
-  const { blockRegistry } = props;
+  const blockRegistry = props.runtime.blockRegistry;
 
   // TODO: Handle other correctness states (unsubmitted, incomplete, etc.)
   // Currently delegated to Match rules, but may need RulesGrader-level logic
