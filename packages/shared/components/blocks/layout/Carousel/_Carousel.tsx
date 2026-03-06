@@ -26,10 +26,10 @@ export default function _Carousel(props) {
   const itemIds = kids.itemIds;
 
   // 1. Hooks (called unconditionally per React rules)
-  // index stores the current item ID (not a number); order stores the display sequence
-  const [currentId, setCurrentId] = useFieldState(props, fields.index, null);
+  // value stores the current item ID; title stores the display name; order stores the display sequence
+  const [currentId, setCurrentId] = useFieldState(props, fields.value, null);
   const [order, setOrder] = useFieldState(props, fields.order, null);
-  const [value, setValue] = useFieldState(props, fields.value, '');
+  const [title, setTitle] = useFieldState(props, fields.title, '');
   const isReadonly = useFieldSelector(props, fields.readonly, { fallback: props.readonly });
 
   // Keep order in sync: shuffled when randomize is active, authored order otherwise
@@ -43,7 +43,7 @@ export default function _Carousel(props) {
   let position = currentId ? displayOrder.indexOf(currentId) : 0;
   if (position < 0) position = 0;
 
-  // Sync index field if unset or stale
+  // Sync value field if unset or stale
   if (displayOrder[position] !== currentId) {
     setCurrentId(displayOrder[position]);
   }
@@ -73,8 +73,8 @@ export default function _Carousel(props) {
   };
 
   // 4. Title — sync to Redux for Ref/expression access
-  const title = olxJson?.attributes?.title || displayOrder[position];
-  if (title !== value) setValue(title);
+  const displayTitle = olxJson?.attributes?.title || displayOrder[position];
+  if (displayTitle !== title) setTitle(displayTitle);
 
   // 5. Render
   return (
@@ -87,7 +87,7 @@ export default function _Carousel(props) {
           </button>
         )}
         <div className="lo-carousel__indicator">
-          <span className="lo-carousel__title">{title}</span>
+          <span className="lo-carousel__title">{displayTitle}</span>
           <span className="lo-carousel__count">{position + 1} of {numItems}</span>
         </div>
         {!isReadonly && (
