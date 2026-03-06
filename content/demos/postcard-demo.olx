@@ -193,7 +193,7 @@ You will write a short postcard from the perspective of someone at a famous land
     <Markdown id="postcard_research_intro">
 ## Research Your Location
 
-You chose the **{{@postcard_location.value}}**. Look it up online and jot down notes below. Try to find:
+You chose the **{{@postcard_location.title}}**. Look it up online and jot down notes below. Try to find:
 - A surprising historical fact most people don't know
 - What it looks, sounds, or smells like up close
 - Something that changed over time
@@ -219,7 +219,7 @@ You chose the **{{@postcard_location.value}}**. Look it up online and jot down n
     <Markdown id="postcard_persona_header">
 ## Choose a Persona
 
-Who will you be writing as at the **{{@postcard_location.value}}**?
+Who will you be writing as at the **{{@postcard_location.title}}**?
     </Markdown>
     <Carousel id="postcard_persona" wrap="true" randomize="true">
       persona_tourist, persona_local_child, persona_archaeologist, persona_merchant, persona_restorer, persona_guard, persona_soldier, persona_pilgrim, persona_spy, persona_artist
@@ -231,7 +231,7 @@ Who will you be writing as at the **{{@postcard_location.value}}**?
     <Markdown id="postcard_persona_dev_intro">
 ## Develop Your Persona
 
-You are a **{{@postcard_persona.value}}** at the **{{@postcard_location.value}}**. Invent a real human being. Give them a backstory:
+You are a **{{@postcard_persona.title}}** at the **{{@postcard_location.title}}**. Invent a real human being. Give them a backstory:
 - What's their name? Where are they from?
 - Who are their friends and family? Who are they writing this postcard to?
 - What do they do day-to-day?
@@ -261,7 +261,7 @@ You are a **{{@postcard_persona.value}}** at the **{{@postcard_location.value}}*
     <Markdown id="postcard_write_instructions">
 ## Write Your Postcard
 
-You are a **{{@postcard_persona.value}}** at the **{{@postcard_location.value}}**.
+You are a **{{@postcard_persona.title}}** at the **{{@postcard_location.title}}**.
 
 Write a short postcard (4-8 sentences) from this person's perspective. Use your research and persona notes to make it feel real. Include:
 - What you see around you
@@ -274,7 +274,7 @@ Write a short postcard (4-8 sentences) from this person's perspective. Use your 
       <LLMAction id="postcard_llm" target="postcard_feedback">
         You are giving feedback to a middle school student on a short postcard. Be warm, specific, and brief. Do NOT rewrite their text or suggest specific sentences. Only ask questions.
 
-        The student is writing as a **<Ref target="postcard_persona" />** at the **<Ref target="postcard_location" />**.
+        The student is writing as a **<Ref target="postcard_persona" field="title" />** at the **<Ref target="postcard_location" field="title" />**.
 
         Their research notes about the location:
         <Ref target="postcard_research_notes" />
@@ -382,9 +382,9 @@ Review your work below, then export it as a PDF.
     <Markdown id="export_page1">
 ### Where and Who
 
-**Location:** {{@postcard_location.value}}
+**Location:** {{@postcard_location.title}}
 
-**Persona:** {{@postcard_persona.value}}
+**Persona:** {{@postcard_persona.title}}
 
 ---
 

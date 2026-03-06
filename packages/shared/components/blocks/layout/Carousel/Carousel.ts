@@ -9,19 +9,18 @@
 //   <Carousel id="location" src="locations.idlistpeg" />
 //
 // Items are defined elsewhere as blocks with `title` attributes.
-// The Carousel's value is the title of the currently-displayed item,
-// accessible via <Ref target="location" />.
+// The Carousel's value is the ID of the currently-displayed item.
+// The title is available via <Ref target="location" field="title" />.
 
-import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { commonFields } from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
-import { srcAttributes, z_olx_boolean, z_olx_number } from '@/lib/blocks/attributeSchemas';
+import { srcAttributes, z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import * as idListParser from '@/components/blocks/specialized/MasteryBank/_idlistParser';
 import _Carousel from './_Carousel';
 
-export const fields = state.fields([commonFields.value, { name: 'index', schema: z_olx_number }, { name: 'readonly', schema: z_olx_boolean }, { name: 'order' }]);
+export const fields = state.fields([commonFields.value, { name: 'title' }, { name: 'readonly', schema: z_olx_boolean }, { name: 'order' }]);
 
 const Carousel = core({
   ...peggyParser(idListParser, {

@@ -1,12 +1,18 @@
 <Vertical id="CarouselDemo" title="Carousel">
-  <Markdown id="carousel_item_a" title="Option A">
-This is the first option. It could contain any content.
+  <Markdown id="ctt" title="Classical Test Theory">
+### Classical Test Theory (CTT)
+
+Evaluates tests by number correct (true score) and random measurement error.
   </Markdown>
-  <Markdown id="carousel_item_b" title="Option B">
-This is the second option. Browse with the arrows.
+  <Markdown id="irt" title="Item Response Theory">
+### Item Response Theory (IRT)
+
+Models the probability of a correct response as a function of student ability and item parameters, to estimate ability levels.
   </Markdown>
-  <Markdown id="carousel_item_c" title="Option C">
-This is the third option.
+  <Markdown id="rasch" title="Rasch Measurement">
+### Rasch Measurement Theory
+
+Like IRT with only one parameter, requiring special items which fit the model, but giving more meaningful measurement units.
   </Markdown>
-  <Carousel id="carousel_demo" wrap="true">carousel_item_a, carousel_item_b, carousel_item_c</Carousel>
+  <Carousel id="carousel_demo" wrap="true">ctt, irt, rasch</Carousel>
 </Vertical>

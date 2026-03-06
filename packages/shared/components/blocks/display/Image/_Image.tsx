@@ -36,11 +36,10 @@
 
 'use client';
 import React from 'react';
-import NextImage from 'next/image';
 import { resolveContentPath } from '@/lib/util';
 
 function _Image(props) {
-  const { src, alt, width, height, nodeInfo } = props;
+  const { src, alt, width, height } = props;
 
   if (!src) {
     return <div className="text-red-500 border border-red-300 p-2 rounded">
@@ -51,14 +50,17 @@ function _Image(props) {
   try {
     const finalSrc = resolveContentPath(src)!;
 
-    // Only pass explicitly defined image-related props
+    // Build style: natural size capped at container width by default.
+    // If only one dimension is given, the other stays auto to preserve aspect ratio.
+    const style: React.CSSProperties = { maxWidth: '100%', height: 'auto' };
+    if (width) style.width = /^\d+$/.test(width) ? `${width}px` : width;
+    if (height) style.height = /^\d+$/.test(height) ? `${height}px` : height;
+
     return (
-      <NextImage
+      <img
         src={finalSrc}
         alt={alt || 'Content image'}
-        width={width ? parseInt(width) : 400}
-        height={height ? parseInt(height) : 300}
-        className="max-w-full h-auto"
+        style={style}
       />
     );
   } catch (error) {
