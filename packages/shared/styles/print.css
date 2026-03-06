@@ -16,6 +16,11 @@
     display: none !important;
   }
 
+  /* Docs page sidebar navigation */
+  aside {
+    display: none !important;
+  }
+
   /* Sequential navigation: top history bar and bottom prev/next.
      Fragile: targets Tailwind border utility classes. If Sequential
      gets semantic class names, update these selectors. */
