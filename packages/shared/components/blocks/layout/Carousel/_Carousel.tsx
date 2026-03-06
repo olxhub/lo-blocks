@@ -6,16 +6,32 @@ import { useFieldState, useFieldSelector } from '@/lib/state';
 import { useBlock } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import NavArrow from '@/components/common/NavArrow';
+import { fisherYatesShuffleInPlace } from '@/lib/utils/shuffle';
+
+function shuffledIndices(length: number): number[] {
+  const order = Array.from({ length }, (_, i) => i);
+  fisherYatesShuffleInPlace(order);
+  return order;
+}
 
 export default function _Carousel(props) {
-  const { id, fields, kids, wrap = false } = props;
+  const { id, fields, kids, wrap = false, randomize = false } = props;
   const itemIds = kids.itemIds;
 
   // 1. Hooks (called unconditionally per React rules)
   let [index, setIndex] = useFieldState(props, fields.index, 0);
+  const [order, setOrder] = useFieldState(props, fields.order, null);
   const [value, setValue] = useFieldState(props, fields.value, '');
   const isReadonly = useFieldSelector(props, fields.readonly, { fallback: props.readonly });
-  const { block: renderedItem, olxJson } = useBlock(props, itemIds[index]);
+
+  // Initialize or validate shuffled order
+  if (randomize && (!order || order.length !== itemIds.length)) {
+    setOrder(shuffledIndices(itemIds.length));
+  }
+
+  // Map display index through shuffled order, falling back to sequential
+  const effectiveIndex = (order && order.length === itemIds.length) ? order[index] : index;
+  const { block: renderedItem, olxJson } = useBlock(props, itemIds[effectiveIndex]);
 
   // 2. No items — early exit
   if (itemIds.length === 0) {
@@ -42,7 +58,7 @@ export default function _Carousel(props) {
   };
 
   // 4. Title — sync to Redux for Ref/expression access
-  const title = olxJson?.attributes?.title || itemIds[index];
+  const title = olxJson?.attributes?.title || itemIds[effectiveIndex];
   if (title !== value) setValue(title);
 
   // 5. Render

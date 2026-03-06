@@ -60,30 +60,116 @@ The Taj Mahal in Agra, India, is a white marble mausoleum built between 1632 and
 [Learn more on Wikipedia](https://en.wikipedia.org/wiki/Taj_Mahal)
 </Markdown>
 
+<Markdown id="loc_altamira" title="Cave of Altamira">
+### Cave of Altamira
+
+![Bison painting in the Cave of Altamira](https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/9_Bisonte_Magdaleniense_pol%C3%ADcromo.jpg/330px-9_Bisonte_Magdaleniense_pol%C3%ADcromo.jpg)
+
+The Cave of Altamira near Santander in northern Spain contains some of the finest prehistoric art in the world, dating back roughly 15,000 years. The vivid paintings of bison, horses, and handprints on the cave ceiling were so remarkable that when first discovered in 1879, scholars refused to believe ancient humans could have created them.
+
+[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Cave_of_Altamira)
+</Markdown>
+
+<Markdown id="loc_italica" title="Italica">
+### Italica
+
+![Amphitheatre at Italica](https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Amphitheatre_Italica%2C_Spain.jpg/330px-Amphitheatre_Italica%2C_Spain.jpg)
+
+Italica, just outside modern Seville, was founded in 206 BC by the Roman general Scipio Africanus to settle his veterans after defeating Hannibal's brother Hasdrubal at the Battle of Ilipa. It grew into one of the great cities of Roman Hispania and was the birthplace of emperors Trajan and Hadrian. Its massive amphitheatre, one of the largest in the Roman Empire, still stands today.
+
+[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Italica)
+</Markdown>
+
+<Markdown id="loc_mezquita" title="Mosque-Cathedral of Córdoba">
+### Mosque-Cathedral of Córdoba
+
+![Interior arches of the Mezquita](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Mezquita_de_C%C3%B3rdoba_desde_el_aire_%28C%C3%B3rdoba%2C_Espa%C3%B1a%29.jpg/330px-Mezquita_de_C%C3%B3rdoba_desde_el_aire_%28C%C3%B3rdoba%2C_Espa%C3%B1a%29.jpg)
+
+The Mezquita of Córdoba began as a mosque in 784 AD and became the grandest in all of western Islam. Its forest of over 850 columns with red-and-white striped arches creates one of the most iconic interiors in architecture. After the Christian reconquest in 1236, a cathedral was built inside it -- creating a building unlike any other in the world.
+
+[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Mosque%E2%80%93Cathedral_of_C%C3%B3rdoba)
+</Markdown>
+
+<Markdown id="loc_alhambra" title="Alhambra">
+### The Alhambra
+
+![The Alhambra from the Albaicín, Granada](https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Dawn_Charles_V_Palace_Alhambra_Granada_Andalusia_Spain.jpg/330px-Dawn_Charles_V_Palace_Alhambra_Granada_Andalusia_Spain.jpg)
+
+The Alhambra is a palace and fortress complex in Granada, built mainly between the 13th and 14th centuries by the Nasrid dynasty -- the last Muslim rulers in Spain. Its intricate carved stucco, tile mosaics, and tranquil courtyards represent the height of Islamic art in Europe. In 1492, it was surrendered to Ferdinand and Isabella, ending nearly 800 years of Muslim rule in the Iberian Peninsula.
+
+[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Alhambra)
+</Markdown>
+
+<Markdown id="loc_seville_cathedral" title="Seville Cathedral">
+### Seville Cathedral
+
+![Seville Cathedral and Giralda tower](https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Sevilla_Cathedral_-_Southeast.jpg/330px-Sevilla_Cathedral_-_Southeast.jpg)
+
+Seville Cathedral is the largest Gothic cathedral in the world, built between 1402 and 1506 on the site of a former Almohad mosque. Its builders reportedly declared, "Let us build a church so beautiful and so grand that those who see it will think we are mad." It houses the tomb of Christopher Columbus and stands beside the Giralda, a bell tower converted from the mosque's original minaret. During Spain's Age of Empire, Seville controlled all trade with the Americas.
+
+[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Seville_Cathedral)
+</Markdown>
+
 <!-- === Personas === -->
 
 <Markdown id="persona_tourist" title="Tourist">
 ### Tourist
 
-You are visiting this landmark for the very first time. Everything is new and exciting. You want to share what you see, hear, smell, and feel with a friend back home.
+Visiting this landmark for the very first time. Everything is new and exciting. Wants to share what they see, hear, smell, and feel with a friend back home.
 </Markdown>
 
 <Markdown id="persona_local_child" title="Local Child">
 ### Local Child
 
-You grew up near this landmark. It is part of your everyday life -- you see it on the way to school, your family tells stories about it, and tourists are always around. Write about what it means to you.
+Grew up near this landmark. It is part of everyday life -- visible on the way to school, woven into family stories, surrounded by tourists. It means something different when it is just *there*.
 </Markdown>
 
 <Markdown id="persona_archaeologist" title="Archaeologist">
 ### Archaeologist
 
-You are a researcher who has spent years studying this site. You notice historical details, construction techniques, and cultural significance that most visitors overlook.
+A researcher who has spent years studying this site. Notices historical details, construction techniques, and cultural significance that most visitors walk right past.
 </Markdown>
 
 <Markdown id="persona_merchant" title="Merchant">
 ### Merchant (Historical)
 
-You are a trader from centuries ago, passing through this landmark on a trade route. You see the site as it was in its prime, bustling with activity.
+A trader from centuries ago, passing through on a trade route. Sees the site as it was in its prime, bustling with activity, full of people buying and selling.
+</Markdown>
+
+<Markdown id="persona_restorer" title="Restorer">
+### Restorer
+
+Works on the conservation team that keeps this site from falling apart. Knows every crack, every patch, every spot where the rain gets in. Spends the day up on scaffolding or in storage rooms with tools most people have never seen. Sees this place from the inside -- literally.
+</Markdown>
+
+<Markdown id="persona_guard" title="Night Guard">
+### Night Guard
+
+Works the overnight shift. After the last visitors leave and the lights go down, this place belongs to them. The sounds are different at night. The shadows move. They know the building by feel as much as by sight.
+</Markdown>
+
+<Markdown id="persona_soldier" title="Soldier">
+### Soldier (Historical)
+
+Stationed here -- guarding a wall, a gate, or a border. This grand place is a workplace, and most days it is boring. Thinks about home, about the food, about the people left behind. A wonder of the world is just where they go to work.
+</Markdown>
+
+<Markdown id="persona_pilgrim" title="Pilgrim">
+### Pilgrim (Historical)
+
+Has traveled for weeks or months on foot to reach this place. It is not a tourist destination -- it is the purpose of the journey. May be seeking healing, forgiveness, knowledge, or trade. Has just arrived after a long road.
+</Markdown>
+
+<Markdown id="persona_spy" title="Spy">
+### Spy (Historical)
+
+Not who they say they are. Passing through this place gathering information -- about troop movements, trade routes, political alliances, or building techniques. Everything has a double meaning. The postcard should sound innocent but hint at what they are really paying attention to.
+</Markdown>
+
+<Markdown id="persona_artist" title="Artist">
+### Artist
+
+Has come here to sketch or paint. Sees this place in terms of light, shadow, line, and color. Notices things other visitors walk right past -- the way the stone catches the afternoon sun, the geometry of an archway, the texture of a worn step.
 </Markdown>
 
 <!-- === The Activity === -->
@@ -97,8 +183,8 @@ You are a trader from centuries ago, passing through this landmark on a trade ro
 
 You will write a short postcard from the perspective of someone at a famous landmark. First, choose your location.
     </Markdown>
-    <Carousel id="postcard_location" wrap="true">
-      loc_great_wall, loc_machu_picchu, loc_pyramids, loc_colosseum, loc_taj_mahal
+    <Carousel id="postcard_location" wrap="true" randomize="true">
+      loc_great_wall, loc_machu_picchu, loc_pyramids, loc_colosseum, loc_taj_mahal, loc_altamira, loc_italica, loc_mezquita, loc_alhambra, loc_seville_cathedral
     </Carousel>
   </Vertical>
 
@@ -135,8 +221,8 @@ You chose the **{{@postcard_location.value}}**. Look it up online and jot down n
 
 Who will you be writing as at the **{{@postcard_location.value}}**?
     </Markdown>
-    <Carousel id="postcard_persona" wrap="true">
-      persona_tourist, persona_local_child, persona_archaeologist, persona_merchant
+    <Carousel id="postcard_persona" wrap="true" randomize="true">
+      persona_tourist, persona_local_child, persona_archaeologist, persona_merchant, persona_restorer, persona_guard, persona_soldier, persona_pilgrim, persona_spy, persona_artist
     </Carousel>
   </Vertical>
 
@@ -183,6 +269,7 @@ Write a short postcard (4-8 sentences) from this person's perspective. Use your 
 - A detail that only someone in your role would notice
     </Markdown>
     <TextArea id="postcard_draft" rows="8" placeholder="Dear friend, ..." />
+    <Markdown id="postcard_draft_wordcount">{{wordcount(@postcard_draft.value) &lt; 20 ? "The submit button will become available once you have written enough to get feedback on." : "Keep going..."}}</Markdown>
     <ActionButton id="postcard_submit" label="Submit for Feedback" dependsOn="wordcount(@postcard_draft.value) >= 20 &amp;&amp; !@postcard_draft.readonly">
       <LLMAction id="postcard_llm" target="postcard_feedback">
         You are giving feedback to a middle school student on a short postcard. Be warm, specific, and brief. Do NOT rewrite their text or suggest specific sentences. Only ask questions.
@@ -278,6 +365,60 @@ Now let's think about the *recipient*. The same message changes depending on who
       <LLMFeedback id="voice_literary" title="Literary" />
       <LLMFeedback id="voice_business" title="Business" />
     </Tabs>
+  </Vertical>
+
+  <!-- Step 8: Export -->
+  <Vertical id="postcard_step_8" title="Export Your Work">
+    <Markdown id="postcard_export_intro">
+## Export Your Postcard
+
+Review your work below, then export it as a PDF.
+    </Markdown>
+    <ActionButton id="postcard_export" label="Export as PDF">
+      <PrintAction id="postcard_print" />
+    </ActionButton>
+
+    <!-- Page 1: Choices + final draft -->
+    <Markdown id="export_page1">
+### Where and Who
+
+**Location:** {{@postcard_location.value}}
+
+**Persona:** {{@postcard_persona.value}}
+
+---
+
+### Final Postcard
+
+{{@postcard_final.value}}
+    </Markdown>
+
+    <!-- Page 2: Research + persona development -->
+    <Markdown id="export_page2" class="print-page-break">
+### Research Notes
+
+{{@postcard_research_notes.value}}
+
+---
+
+### Persona Notes
+
+{{@postcard_persona_notes.value}}
+    </Markdown>
+
+    <!-- Page 3: Draft + feedback -->
+    <Markdown id="export_page3" class="print-page-break">
+### Original Draft
+
+{{@postcard_draft.value}}
+
+---
+
+### Feedback
+
+{{@postcard_feedback.value}}
+    </Markdown>
+
   </Vertical>
 
 </Sequential>

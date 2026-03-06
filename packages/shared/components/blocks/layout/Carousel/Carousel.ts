@@ -21,7 +21,7 @@ import { srcAttributes, z_olx_boolean, z_olx_number } from '@/lib/blocks/attribu
 import * as idListParser from '@/components/blocks/specialized/MasteryBank/_idlistParser';
 import _Carousel from './_Carousel';
 
-export const fields = state.fields([commonFields.value, { name: 'index', schema: z_olx_number }, { name: 'readonly', schema: z_olx_boolean }]);
+export const fields = state.fields([commonFields.value, { name: 'index', schema: z_olx_number }, { name: 'readonly', schema: z_olx_boolean }, { name: 'order' }]);
 
 const Carousel = core({
   ...peggyParser(idListParser, {
@@ -36,6 +36,7 @@ const Carousel = core({
   attributes: srcAttributes.extend({
     wrap: z_olx_boolean.optional().describe('Enable circular navigation (wrap around at ends)'),
     readonly: z_olx_boolean.optional().describe('Hide navigation arrows (view-only mode)'),
+    randomize: z_olx_boolean.optional().describe('Shuffle item order (stored in Redux so it stays consistent)'),
   }),
 });
 
