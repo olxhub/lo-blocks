@@ -28,11 +28,66 @@ In this module, you will review and apply several concepts from your coursework 
 
   <!-- Time skip - 2 weeks later -->
   <Vertical id="two_weeks_later">
-       <Markdown id="two_weeks_later_md">
+ <Markdown id="two_weeks_later_md">
 ## Johnny's Bedtimes
        </Markdown>
-       <Image id="bedtimes" src="images/Bedtimes.png" />
-       <Markdown id="two_weeks_later_md2">
+  <ObservablePlot id="bedtimes_chart_observable" title="Johnny's Bedtimes (first 5 evenings)" format="js"><![CDATA[
+const bedtimeLabels = ["8:00 PM", "8:30 PM", "9:00 PM"];
+const data = [
+  { date: "9/5", bedtimeIndex: 0 },
+  { date: "9/6", bedtimeIndex: 0 },
+  { date: "9/7", bedtimeIndex: 1 },
+  { date: "9/8", bedtimeIndex: 2 },
+  { date: "9/9", bedtimeIndex: 2 }
+];
+
+function formatBedtimeLabel(index) {
+  const labels = {
+    "-0.25": "7:45 PM",
+    0: "8:00 PM",
+    1: "8:30 PM",
+    2: "9:00 PM",
+    "2.25": "9:15 PM"
+  };
+  return labels[index] ?? `${index}`;
+}
+
+return Plot.plot({
+  width: 680,
+  height: 300,
+  marginLeft: 72,
+  marginBottom: 48,
+  marks: [
+    Plot.lineY(data, {
+      x: "date",
+      y: "bedtimeIndex",
+      stroke: "#111827",
+      curve: "linear",
+      strokeWidth: 3,
+      clip: false
+    }),
+    Plot.dot(data, {
+      x: "date",
+      y: "bedtimeIndex",
+      stroke: "#111827",
+      fill: "#111827",
+      r: 4,
+      clip: false
+    })
+  ],
+  x: {
+    label: "Date",
+    ticks: data.map((d) => d.date)
+  },
+  y: {
+    label: "Bedtime (hour of day)",
+    domain: [-0.25, 2.25],
+    ticks: [0, 1, 2],
+    tickFormat: formatBedtimeLabel
+  }
+});
+]]></ObservablePlot>
+  <Markdown id="two_weeks_later_md2">
 - Johnny went to bed on time only on the first **2 out of 5** occasions
 - On one occasion where he didn't go to bed on time, she noted that she didn't exactly follow our plan
 - On closer questioning, she admitted that she didn't implement any of the consequence strategies.
@@ -40,6 +95,23 @@ In this module, you will review and apply several concepts from your coursework 
 
 **Something isn't working right...**
          </Markdown></Vertical>
+
+  <Vertical id="unused_bedtime_plots">
+    <Markdown id="bedtimes_chart_mermaid_unused_note">
+## Unused plot (Mermaid beta)
+
+Kept for comparison while Mermaid transitions out of beta.
+    </Markdown>
+  
+  <Mermaid id="UNUSED_alternative_bedtime_plot" title="Johnny's Bedtimes (first 5 evenings) (unused)">
+%%{init: {"theme":"base","themeVariables":{"xyChart":{"backgroundColor":"#ffffff","plotColorPalette":"#111827,#111827,#111827"}}}}%%
+xychart-beta
+  title "Johnny's Bedtime Progress"
+  x-axis "Date" ["9/5", "9/6", "9/7", "9/8", "9/9"]
+  y-axis "Bedtime (PM)" 20 --> 21
+  line [20, 20, 20.5, 21, 21]
+</Mermaid>
+  </Vertical>
   
   <!-- Implementation fidelity introduction -->
   <Markdown id="fidelity_intro">
@@ -254,7 +326,77 @@ Completed by:
 
 **Johnny's Bedtimes**.
     </Markdown>
-    <Image id="bedtimes2" src="images/Bedtimes2.png" />
+    <ObservablePlot id="bedtimes_chart_observable_two_weeks_later" title="Johnny's Bedtimes (next 5 evenings)" format="js"><![CDATA[
+const bedtimeLabels = ["8:00 PM", "8:30 PM", "9:00 PM"];
+const data = [
+  { date: new Date(2025, 8, 19), bedtimeIndex: 0 },
+  { date: new Date(2025, 8, 20), bedtimeIndex: 1 },
+  { date: new Date(2025, 8, 24), bedtimeIndex: 0 },
+  { date: new Date(2025, 8, 25), bedtimeIndex: 0 },
+  { date: new Date(2025, 8, 26), bedtimeIndex: 0 }
+];
+const xTicks = [
+  new Date(2025, 8, 19),
+  new Date(2025, 8, 20),
+  new Date(2025, 8, 21),
+  new Date(2025, 8, 22),
+  new Date(2025, 8, 23),
+  new Date(2025, 8, 24),
+  new Date(2025, 8, 25),
+  new Date(2025, 8, 26)
+];
+
+function formatBedtimeLabel(index) {
+  const labels = {
+    "-0.25": "7:45 PM",
+    0: "8:00 PM",
+    1: "8:30 PM",
+    2: "9:00 PM",
+    "2.25": "9:15 PM"
+  };
+  return labels[index] ?? `${index}`;
+}
+
+function formatDateAxis(date) {
+  return `${date.getMonth() + 1}/${date.getDate()}`;
+}
+
+return Plot.plot({
+  width: 680,
+  height: 300,
+  marginLeft: 72,
+  marginBottom: 48,
+  marks: [
+    Plot.lineY(data, {
+      x: "date",
+      y: "bedtimeIndex",
+      stroke: "#111827",
+      curve: "linear",
+      strokeWidth: 3,
+      clip: false
+    }),
+    Plot.dot(data, {
+      x: "date",
+      y: "bedtimeIndex",
+      stroke: "#111827",
+      fill: "#111827",
+      r: 4,
+      clip: false
+    })
+  ],
+  x: {
+    label: "Date",
+    ticks: xTicks,
+    tickFormat: formatDateAxis
+  },
+  y: {
+    label: "Bedtime (hour of day)",
+    domain: [-0.25, 2.25],
+    ticks: [0, 1, 2],
+    tickFormat: formatBedtimeLabel
+  }
+});
+]]></ObservablePlot>
     <Markdown id="conclusion_progress_md2">
 **The modified intervention was a success!**
 
