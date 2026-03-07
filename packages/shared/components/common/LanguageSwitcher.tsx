@@ -21,7 +21,9 @@ import type { Locale } from '@/lib/types';
 interface LanguageSwitcherProps {
   className?: string;
   sources?: string[];  // Which sources to scan for available variants (defaults to all)
-  availableLocales?: Locale[];  // Optional: explicit list of available variants (e.g., from activities)
+  availableLocales?: Locale[];  // Optional: explicit list of curated/supported variants
+  bestEffortLocales?: Locale[];  // Optional: explicit list of auto-translated variants
+  translanguaging?: boolean;  // Show translanguaging search (default: true). Disable for static builds.
 }
 
 /**
@@ -41,7 +43,7 @@ interface LanguageSwitcherProps {
  * This would allow all OLX on a page to interact via the dynamic OLX DOM!
  */
 
-export default function LanguageSwitcher({ className = '', sources, availableLocales }: LanguageSwitcherProps) {
+export default function LanguageSwitcher({ className = '', sources, availableLocales, bestEffortLocales, translanguaging = true }: LanguageSwitcherProps) {
   const [showDropdown, setShowDropdown] = useState(false); // TODO: useFieldState
   const [searchTerm, setSearchTerm] = useState(''); // TODO: useFieldState
 
@@ -65,7 +67,7 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
   }, [olxjson]);
 
   const tiers = availableLocales
-    ? { curated: availableLocales, bestEffort: [], all: availableLocales }
+    ? { curated: availableLocales, bestEffort: bestEffortLocales || [], all: [...availableLocales, ...(bestEffortLocales || [])] }
     : reduxTiers;
 
   const browserLanguage = getBrowserLocale();
@@ -195,42 +197,44 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
             )}
 
             {/* Translanguaging - Search All Languages */}
-            <div className={`border-t`}>
-              <div className="px-3 py-2 text-xs font-semibold text-gray-700 uppercase">
-                🌍 Translanguaging
+            {translanguaging && (
+              <div className={`border-t`}>
+                <div className="px-3 py-2 text-xs font-semibold text-gray-700 uppercase">
+                  🌍 Translanguaging
+                </div>
+                <div className="px-3 py-2">
+                  <input
+                    type="text"
+                    placeholder="Search or enter code..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={handleCustomInput}
+                    className="w-full px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400"
+                    autoFocus
+                  />
+                </div>
+                <div className="max-h-40 overflow-y-auto px-3">
+                  {filteredTransLanguages.slice(0, 15).map((lang) => {
+                    const parts = lang.label.split(' - ');
+                    const displayName = parts[1] || lang.label;
+                    return (
+                      <button
+                        key={lang.code}
+                        onClick={() => handleSelectLocale(lang.code)}
+                        className={`w-full text-left px-2 py-1.5 rounded hover:bg-gray-50 flex justify-between items-center ${localeCode === lang.code ? 'bg-gray-100 font-semibold' : ''
+                          }`}
+                      >
+                        <span className="font-sans">{displayName}</span>
+                        <span className="text-xs text-gray-500 font-mono ms-4 flex-shrink-0">({lang.code})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="text-xs text-gray-500 px-3 py-2 border-t">
+                  Type language code or name, press Enter
+                </div>
               </div>
-              <div className="px-3 py-2">
-                <input
-                  type="text"
-                  placeholder="Search or enter code..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyDown={handleCustomInput}
-                  className="w-full px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400"
-                  autoFocus
-                />
-              </div>
-              <div className="max-h-40 overflow-y-auto px-3">
-                {filteredTransLanguages.slice(0, 15).map((lang) => {
-                  const parts = lang.label.split(' - ');
-                  const displayName = parts[1] || lang.label;
-                  return (
-                    <button
-                      key={lang.code}
-                      onClick={() => handleSelectLocale(lang.code)}
-                      className={`w-full text-left px-2 py-1.5 rounded hover:bg-gray-50 flex justify-between items-center ${localeCode === lang.code ? 'bg-gray-100 font-semibold' : ''
-                        }`}
-                    >
-                      <span className="font-sans">{displayName}</span>
-                      <span className="text-xs text-gray-500 font-mono ms-4 flex-shrink-0">({lang.code})</span>
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="text-xs text-gray-500 px-3 py-2 border-t">
-                Type language code or name, press Enter
-              </div>
-            </div>
+            )}
           </div>
         </div>
       )}
