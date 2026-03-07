@@ -698,38 +698,7 @@ Let's look at an example:
     </Markdown>
 
   <!-- ABC Check: Johnny scenario -->
-<Mermaid id="sample_competing_behavior_diagram" title="Sample Competing Behavior Pathway"><![CDATA[
-flowchart LR
-settingEvent["<h1>Setting Event</h1><br/>Student arrives at school feeling anxious."]
-triggeringAntecedent["<h1>Triggering Antecedent</h1><br/>Task is too long or too difficult."]
-problemBehavior["<h1>Problem Behavior</h1><br/>Student puts head down and hopes the teacher won’t notice."]
-maintainingConsequence["<h1>Maintaining Consequence</h1><br/>Student avoids the task and/or the adult placing the demand on him. (Escape)"]
-desiredBehavior["<h1>Desired Behavior</h1><br/>Student asks their teacher for help."]
-desiredConsequence["<h1>Desired Consequence</h1><br/>Student teacher helps them for help."]
-alternativeBehavior["<h1>Alternative Behavior</h1><br/>Student starts arguing with the teacher or even leaves the classroom."]
-problemStatement["<h1>Problem Statement</h1><br/>When a student is presented with a work demand that is too difficult or too long, they may put their head down and stop working, or even worse, refuse, argue, or leave the classroom in order to escape the task and/or the adult placing the demand on him."]
-
-settingEvent --> triggeringAntecedent
-desiredBehavior --> desiredConsequence
-alternativeBehavior --> maintainingConsequence
-triggeringAntecedent --> desiredBehavior
-triggeringAntecedent --> problemBehavior
-triggeringAntecedent --> alternativeBehavior
-problemBehavior --> maintainingConsequence
-
-class settingEvent,triggeringAntecedent context
-class desiredBehavior,desiredConsequence desired
-class problemBehavior problem
-class maintainingConsequence consequence
-class alternativeBehavior alternative
-class problemStatement statement
-classDef context fill:#ffe6cc,stroke:#cc7a00,stroke-width:2px,color:#000;
-classDef desired fill:#d9edf7,stroke:#31708f,stroke-width:2px,color:#000;
-classDef problem fill:#f8d7da,stroke:#a94442,stroke-width:2px,color:#000;
-classDef consequence fill:#e2e3e5,stroke:#6c757d,stroke-width:2px,color:#000;
-classDef alternative fill:#e8dff5,stroke:#7a5ea6,stroke-width:2px,color:#000;
-classDef statement fill:#f5f5f5,stroke:#888,stroke-dasharray:5 5,color:#000;
-]]></Mermaid>
+<Mermaid id="sample_competing_behavior_diagram" title="Sample Competing Behavior Pathway" src="diagrams/sample_cbp.mmd" />
 
   <!-- Competing Behavior Pathway introduction -->
   <Vertical id="cbp_introduction"><Markdown id="cbp_intro">
@@ -744,38 +713,7 @@ This organizer helps us plan interventions by showing:
     </Markdown>
 
   <!-- ABC Check: Johnny scenario -->
-<Mermaid id="blank_competing_behavior_diagram" title="Johnny's Competing Behavior Pathway (blank template)"><![CDATA[
-flowchart LR
-settingEvent["<h1>Setting Event</h1><br/>[ ]"]
-triggeringAntecedent["<h1>Triggering Antecedent</h1><br/>Roommate tells Johnny to go to bed."]
-problemBehavior["<h1>Problem Behavior</h1><br/>Johnny runs away laughing."]
-maintainingConsequence["<h1>Maintaining Consequence</h1><br/>Roommate chases, nags; bedtime delayed. (Escape)"]
-desiredBehavior["<h1>Desired Behavior</h1><br/>[ ]"]
-desiredConsequence["<h1>Desired Consequence</h1><br/>[ ]"]
-alternativeBehavior["<h1>Alternative Behavior</h1><br/>[ ]"]
-problemStatement["<h1>Problem Statement</h1><br/>When Johnny is told to go to bed, he runs away laughing, forcing Annie's roommate to chase or nag him. The end result is that it takes forever to get Johnny to bed."]
-
-settingEvent --> triggeringAntecedent
-desiredBehavior --> desiredConsequence
-triggeringAntecedent --> desiredBehavior
-triggeringAntecedent --> problemBehavior
-triggeringAntecedent --> alternativeBehavior
-problemBehavior --> maintainingConsequence
-alternativeBehavior --> maintainingConsequence
-
-class settingEvent,triggeringAntecedent context
-class desiredBehavior,desiredConsequence desired
-class problemBehavior problem
-class maintainingConsequence consequence
-class alternativeBehavior alternative
-class problemStatement statement
-classDef context fill:#ffe6cc,stroke:#cc7a00,stroke-width:2px,color:#000;
-classDef desired fill:#d9edf7,stroke:#31708f,stroke-width:2px,color:#000;
-classDef problem fill:#f8d7da,stroke:#a94442,stroke-width:2px,color:#000;
-classDef consequence fill:#e2e3e5,stroke:#6c757d,stroke-width:2px,color:#000;
-classDef alternative fill:#e8dff5,stroke:#7a5ea6,stroke-width:2px,color:#000;
-classDef statement fill:#f5f5f5,stroke:#888,stroke-dasharray:5 5,color:#000;
-]]></Mermaid></Vertical>
+<Mermaid id="blank_competing_behavior_diagram" title="Johnny's Competing Behavior Pathway (blank template)" src="diagrams/johnny_cbp_blank.mmd" /></Vertical>
 
   <!-- ABC Check: Johnny scenario -->
   <Vertical id="abc_johnny_check">
@@ -846,108 +784,17 @@ Here's what JJ came up with.
 
 Now that we know the function is **escape**, we need to figure out an intervention that addresses this!
     </Markdown>
-<Mermaid id="JJs_version" title="JJ's Competing Behavior Pathway"><![CDATA[
-flowchart LR
-settingEvent["<h1>Setting Event</h1><br/>[ ]"]
-triggeringAntecedent["<h1>Triggering Antecedent</h1><br/>Roommate tells Johnny to go to bed."]
-problemBehavior["<h1>Problem Behavior</h1><br/>Johnny runs away laughing"]
-maintainingConsequence["<h1>Maintaining Consequence</h1><br/>Roommate chases, nags; bedtime delayed"]
-desiredBehavior["<h1>Desired Behavior</h1><br/>Johnny goes to bed appropriately"]
-desiredConsequence["<h1>Desired Consequence</h1><br/>Johnny goes to sleep"]
-replacementBehavior["<h1>Alternative Behavior</h1><br/>[ ]"]
-problemStatement["<h1>Problem Statement</h1><br/>When Johnny is told to go to bed, he runs away laughing, forcing Annie’s roommate to chase or nag him. The end result is that it takes forever to get Johnny to bed."]
-
-settingEvent --> triggeringAntecedent
-desiredBehavior --> desiredConsequence
-triggeringAntecedent --> desiredBehavior
-triggeringAntecedent --> problemBehavior
-triggeringAntecedent --> replacementBehavior
-problemBehavior --> maintainingConsequence
-replacementBehavior --> maintainingConsequence
-
-class settingEvent,triggeringAntecedent context
-class desiredBehavior,desiredConsequence,replacementBehavior desired
-class problemBehavior problem
-class maintainingConsequence consequence
-class replacementBehavior alternative
-classDef context fill:#ffe6cc,stroke:#cc7a00,stroke-width:2px,color:#000;
-classDef desired fill:#d9edf7,stroke:#31708f,stroke-width:2px,color:#000;
-classDef problem fill:#f8d7da,stroke:#a94442,stroke-width:2px,color:#000;
-classDef consequence fill:#e2e3e5,stroke:#6c757d,stroke-width:2px,color:#000;
-classDef alternative fill:#e8dff5,stroke:#7a5ea6,stroke-width:2px,color:#000;
-]]></Mermaid></Vertical>
+<Mermaid id="JJs_version" title="JJ's Competing Behavior Pathway" src="diagrams/johnny_cbp_jj.mmd" /></Vertical>
 
   <Vertical id="cbp_comparison2"><Markdown id="cbp_comp2">
 ## JJ's Competing Behavior Pathway -- Updated
     </Markdown>
-<Mermaid id="JJs_version_updated" title="JJ's Competing Behavior Pathway -- Updated"><![CDATA[
-flowchart LR
-settingEvent["<h1>Setting Event</h1><br/>[ ]"]
-triggeringAntecedent["<h1>Triggering Antecedent</h1><br/>Roommate tells Johnny to go to bed."]
-problemBehavior["<h1>Problem Behavior</h1><br/>Johnny runs away laughing."]
-maintainingConsequence["<h1>Maintaining Consequence</h1><br/>Bedtime delayed. (Function)"]
-desiredBehavior["<h1>Desired Behavior</h1><br/>Johnny goes to bed appropriately."]
-desiredConsequence["<h1>Desired Consequence</h1><br/>Johnny goes to sleep."]
-replacementBehavior["<h1>Alternative Behavior</h1><br/>Johnny asks for (another) bedtime story."]
-problemStatement["<h1>Problem Statement</h1><br/>When Johnny is told to go to bed, he runs away laughing, forcing Annie's roommate to chase or nag him. The end result is that it takes forever to get Johnny to bed."]
-
-settingEvent --> triggeringAntecedent
-desiredBehavior --> desiredConsequence
-triggeringAntecedent --> desiredBehavior
-triggeringAntecedent --> problemBehavior
-triggeringAntecedent --> replacementBehavior
-problemBehavior --> maintainingConsequence
-replacementBehavior --> maintainingConsequence
-
-class settingEvent,triggeringAntecedent context
-class desiredBehavior,desiredConsequence,replacementBehavior desired
-class problemBehavior problem
-class maintainingConsequence consequence
-class replacementBehavior alternative
-class problemStatement statement
-classDef context fill:#ffe6cc,stroke:#cc7a00,stroke-width:2px,color:#000;
-classDef desired fill:#d9edf7,stroke:#31708f,stroke-width:2px,color:#000;
-classDef problem fill:#f8d7da,stroke:#a94442,stroke-width:2px,color:#000;
-classDef consequence fill:#e2e3e5,stroke:#6c757d,stroke-width:2px,color:#000;
-classDef alternative fill:#e8dff5,stroke:#7a5ea6,stroke-width:2px,color:#000;
-classDef statement fill:#f5f5f5,stroke:#888,stroke-dasharray:5 5,color:#000;
-]]></Mermaid></Vertical>
+<Mermaid id="JJs_version_updated" title="JJ's Competing Behavior Pathway -- Updated" src="diagrams/johnny_cbp_jj_updated.mmd" /></Vertical>
 
   <Vertical id="cbp_comparison3"><Markdown id="cbp_comp3">
 ## JJ's Competing Behavior Pathway -- Updated
     </Markdown>
-<Mermaid id="Johnny_FJs_version_updated" title="Johnny's Final Competing Behavior Pathway"><![CDATA[
-flowchart LR
-settingEvent["<h1>Setting Event</h1><br/>It is getting late. Johnny has already had a bath and changed into his pajamas, so he knows bedtime is near. But he doesn't act sleepy."]
-triggeringAntecedent["<h1>Triggering Antecedent</h1><br/>Roommate tells Johnny to go to bed."]
-problemBehavior["<h1>Problem Behavior</h1><br/>Johnny runs away laughing."]
-maintainingConsequence["<h1>Maintaining Consequence</h1><br/>Bedtime delayed. (Function)"]
-desiredBehavior["<h1>Desired Behavior</h1><br/>Johnny goes to bed appropriately."]
-desiredConsequence["<h1>Desired Consequence</h1><br/>Johnny goes to sleep."]
-replacementBehavior["<h1>Alternative Behavior</h1><br/>Johnny asks for (another) bedtime story."]
-problemStatement["<h1>Problem Statement</h1><br/>When Johnny is told to go to bed, he runs away laughing, forcing Annie's roommate to chase or nag him. The end result is that it takes forever to get Johnny to bed."]
-
-settingEvent --> triggeringAntecedent
-desiredBehavior --> desiredConsequence
-triggeringAntecedent --> desiredBehavior
-triggeringAntecedent --> problemBehavior
-triggeringAntecedent --> replacementBehavior
-problemBehavior --> maintainingConsequence
-replacementBehavior --> maintainingConsequence
-
-class settingEvent,triggeringAntecedent context
-class desiredBehavior,desiredConsequence,replacementBehavior desired
-class problemBehavior problem
-class maintainingConsequence consequence
-class replacementBehavior alternative
-class problemStatement statement
-classDef context fill:#ffe6cc,stroke:#cc7a00,stroke-width:2px,color:#000;
-classDef desired fill:#d9edf7,stroke:#31708f,stroke-width:2px,color:#000;
-classDef problem fill:#f8d7da,stroke:#a94442,stroke-width:2px,color:#000;
-classDef consequence fill:#e2e3e5,stroke:#6c757d,stroke-width:2px,color:#000;
-classDef alternative fill:#e8dff5,stroke:#7a5ea6,stroke-width:2px,color:#000;
-classDef statement fill:#f5f5f5,stroke:#888,stroke-dasharray:5 5,color:#000;
-]]></Mermaid></Vertical>
+<Mermaid id="Johnny_FJs_version_updated" title="Johnny's Final Competing Behavior Pathway" src="diagrams/johnny_cbp_final.mmd" /></Vertical>
 
 
   <!-- Textbook excerpt on escape -->
