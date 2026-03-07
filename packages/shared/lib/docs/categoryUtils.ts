@@ -17,6 +17,7 @@ export const CATEGORY_MAP: Record<string, string> = {
   'utility': 'Utility',
   'CapaProblem': 'CAPA Problems',
   '_test': 'Test Blocks',
+  'language-arts': 'Language Arts',
   'grammar': 'Grammars',
 };
 
@@ -29,6 +30,7 @@ export const CATEGORY_ORDER = [
   'Action',
   'Authoring',
   'Reference',
+  'Language Arts',
   'Specialized',
   'Utility',
   'CAPA Problems',
