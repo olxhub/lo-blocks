@@ -1,0 +1,10 @@
+<CapaProblem id="CorrectGraderDemo" title="Survey">
+  Which topics interest you most? (Select all that apply)
+  <CorrectGrader>
+    <CheckboxInput>
+      <Key id="a">History</Key>
+      <Key id="b">Science</Key>
+      <Key id="c">Literature</Key>
+    </CheckboxInput>
+  </CorrectGrader>
+</CapaProblem>

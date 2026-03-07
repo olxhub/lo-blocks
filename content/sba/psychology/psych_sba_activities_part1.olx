@@ -82,7 +82,6 @@ The group has several different suggestions. Rank these ideas from
       </SortableInput>
     </SortableGrader>
   </CapaProblem>
-<ActionButton id="continue_after_sorting" dependsOn="@bedtime_strategy_grader.submitCount > 0" target="psych_chat" action="advance" label="Continue Discussion" />
 </Vertical>
 
 
@@ -458,12 +457,12 @@ respecting a child's autonomy.
 
   Interpret the following data as providing (in its "value" field, after
   replacing underscore with space characters) a list of strategies that
-  the responding student believes is not feasible for use with six year olds:
+  the responding student believes is not feasible for use with six-year-olds:
   <Ref id="test2" target="strategies_for_6_year_olds" />
 
   Interpret the following text as providing an explanation for why the
   student believes the strategies in the list are not feasible for use
-  with six year olds:
+  with six-year-olds:
   <Ref id="test3" target="explanation_not_for_6_year_old" />
   DIRECTIONS:
   Briefly (in one or at most two paragraphs)

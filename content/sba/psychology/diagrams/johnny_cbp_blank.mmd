@@ -1,0 +1,30 @@
+flowchart LR
+settingEvent["<h1>Setting Event</h1><br/>[ ]"]
+triggeringAntecedent["<h1>Triggering Antecedent</h1><br/>Roommate tells Johnny to go to bed."]
+problemBehavior["<h1>Problem Behavior</h1><br/>Johnny runs away laughing."]
+maintainingConsequence["<h1>Maintaining Consequence</h1><br/>Roommate chases, nags; bedtime delayed. (Escape)"]
+desiredBehavior["<h1>Desired Behavior</h1><br/>[ ]"]
+desiredConsequence["<h1>Desired Consequence</h1><br/>[ ]"]
+alternativeBehavior["<h1>Alternative Behavior</h1><br/>[ ]"]
+problemStatement["<h1>Problem Statement</h1><br/>When Johnny is told to go to bed, he runs away laughing, forcing Annie's roommate to chase or nag him. The end result is that it takes forever to get Johnny to bed."]
+
+settingEvent --> triggeringAntecedent
+desiredBehavior --> desiredConsequence
+triggeringAntecedent --> desiredBehavior
+triggeringAntecedent --> problemBehavior
+triggeringAntecedent --> alternativeBehavior
+problemBehavior --> maintainingConsequence
+alternativeBehavior --> maintainingConsequence
+
+class settingEvent,triggeringAntecedent context
+class desiredBehavior,desiredConsequence desired
+class problemBehavior problem
+class maintainingConsequence consequence
+class alternativeBehavior alternative
+class problemStatement statement
+classDef context fill:#ffe6cc,stroke:#cc7a00,stroke-width:2px,color:#000;
+classDef desired fill:#d9edf7,stroke:#31708f,stroke-width:2px,color:#000;
+classDef problem fill:#f8d7da,stroke:#a94442,stroke-width:2px,color:#000;
+classDef consequence fill:#e2e3e5,stroke:#6c757d,stroke-width:2px,color:#000;
+classDef alternative fill:#e8dff5,stroke:#7a5ea6,stroke-width:2px,color:#000;
+classDef statement fill:#f5f5f5,stroke:#888,stroke-dasharray:5 5,color:#000;
