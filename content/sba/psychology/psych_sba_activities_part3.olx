@@ -1090,7 +1090,7 @@ Make sure to use these terms:
       <LLMAction target="ai_intervention_eval">
 Here is an email designed to help a babysitter implement an operant conditioning intervention designed to address sleep refusal by the child she is babysitting.
 
-      <ref target="intervention_email" />
+      <Ref id="part3_ai_intervention_ref" target="intervention_email" />
 
 Evaluate the email using the following criteria:
 1. Does it specify changes to antecedent conditions that will make it easier to get the child to bed on time?
@@ -1110,7 +1110,7 @@ Evaluate the email using the following criteria:
   </Tabs>
   <Vertical id="psych_sba_part3_completion" >
   <CheckboxInput id="psych_sba_part_3_completion_page">
-  <Markdown>**Confirm that you are done with this exercise.**</Markdown>
+  <Markdown id="psych_sba_part3_confirmation">**Confirm that you are done with this exercise.**</Markdown>
   <Key id="completion_message3">I don't need to make any more changes</Key>
   <Markdown>
   - In this activity, you learned about **the functions of behavior**, how they

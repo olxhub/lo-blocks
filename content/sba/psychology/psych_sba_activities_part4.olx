@@ -147,7 +147,7 @@ plan that uses positive reinforcement, but it didn't quite work, so we put
 together a more complicated plan that changes the antecedent conditions as
 well as the consequent conditions. Here's our description of that plan:
 
-      <Ref target="intervention_email" />
+      <Ref id="part4_ai_intervention_eval_ref" target="intervention_email" />
       
 Here is what happened when Annie's roommate tried to implement the plan:
           
@@ -284,18 +284,18 @@ Here is a student's email suggesting how her friend's roommate who is babysittin
 a six-year-old with sleep refusal issues should change her intervention plan designed
 to get the child to bed on time regularly, in order to improve adherence:
 
-        <ref target="revision_email" />
+        <Ref target="revision_email" />
 
 The following suggested checklists the babysitter could follow were provided
 by other students:
 
-        <ref target="fidelity_checklist" />
-        <ref target="fidelity_checklist2" />
+        <Ref target="fidelity_checklist" />
+        <Ref target="fidelity_checklist2" />
 
 The following is a list of AI suggestions about how the babysitter could improve her
 adherence to the intervention plan to overcome the six-year-old's sleep refusal issue:
 
-        <ref target="modifications_ai_response2" />
+        <Ref target="modifications_ai_response2" />
 
 DIRECTIONS:
 First, check whether the student's revision email overlaps in content with the checklists
