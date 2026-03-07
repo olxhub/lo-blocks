@@ -21,7 +21,9 @@ import type { Locale } from '@/lib/types';
 interface LanguageSwitcherProps {
   className?: string;
   sources?: string[];  // Which sources to scan for available variants (defaults to all)
-  availableLocales?: Locale[];  // Optional: explicit list of available variants (e.g., from activities)
+  availableLocales?: Locale[];  // Optional: explicit list of curated/supported variants
+  bestEffortLocales?: Locale[];  // Optional: explicit list of auto-translated variants
+  translanguaging?: boolean;  // Show translanguaging search (default: true). Disable for static builds.
 }
 
 /**
@@ -41,7 +43,7 @@ interface LanguageSwitcherProps {
  * This would allow all OLX on a page to interact via the dynamic OLX DOM!
  */
 
-export default function LanguageSwitcher({ className = '', sources, availableLocales }: LanguageSwitcherProps) {
+export default function LanguageSwitcher({ className = '', sources, availableLocales, bestEffortLocales, translanguaging = true }: LanguageSwitcherProps) {
   const [showDropdown, setShowDropdown] = useState(false); // TODO: useFieldState
   const [searchTerm, setSearchTerm] = useState(''); // TODO: useFieldState
 
@@ -65,7 +67,7 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
   }, [olxjson]);
 
   const tiers = availableLocales
-    ? { curated: availableLocales, bestEffort: [], all: availableLocales }
+    ? { curated: availableLocales, bestEffort: bestEffortLocales || [], all: [...availableLocales, ...(bestEffortLocales || [])] }
     : reduxTiers;
 
   const browserLanguage = getBrowserLocale();
@@ -195,6 +197,7 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
             )}
 
             {/* Translanguaging - Search All Languages */}
+            {translanguaging && (
             <div className={`border-t`}>
               <div className="px-3 py-2 text-xs font-semibold text-gray-700 uppercase">
                 🌍 Translanguaging
@@ -231,6 +234,7 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
                 Type language code or name, press Enter
               </div>
             </div>
+            )}
           </div>
         </div>
       )}

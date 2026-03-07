@@ -8,11 +8,16 @@ import StaticPage from './StaticPage';
 
 export async function generateStaticParams() {
   const manifest = readManifest();
-  return Object.keys(manifest.routes)
+  const params = Object.keys(manifest.routes)
     .filter((urlPath: string) => urlPath !== '/')
     .map((urlPath: string) => ({
       slug: urlPath.split('/').filter(Boolean)
     }));
+  // Next.js output: 'export' requires at least one entry for dynamic routes
+  if (params.length === 0) {
+    return [{ slug: ['_not-found'] }];
+  }
+  return params;
 }
 
 export default async function Page({ params }: { params: Promise<{ slug: string[] }> }) {

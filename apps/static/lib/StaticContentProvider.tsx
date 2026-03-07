@@ -30,7 +30,7 @@ export function useStaticContent(): StaticContentContextValue {
 }
 
 /**
- * Loads /static-content/all.json once and dispatches to Redux.
+ * Loads static-content/all.json (respecting basePath) once and dispatches to Redux.
  * Children render only after content is loaded.
  */
 export default function StaticContentProvider({ children }: { children: React.ReactNode }) {
@@ -39,7 +39,8 @@ export default function StaticContentProvider({ children }: { children: React.Re
   const baselineProps = useBaselineProps();
 
   useEffect(() => {
-    globalThis.fetch('/static-content/all.json')
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+    globalThis.fetch(`${basePath}/static-content/all.json`)
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
