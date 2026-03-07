@@ -193,22 +193,27 @@ You will write a short postcard from the perspective of someone at a famous land
     <Markdown id="postcard_research_intro">
 ## Research Your Location
 
-You chose the **{{@postcard_location.title}}**. Look it up online and jot down notes below. Try to find:
-- A surprising historical fact most people don't know
-- What it looks, sounds, or smells like up close
-- Something that changed over time
+You chose the **{{@postcard_location.title}}**. Your job is to figure out what it would *feel like* to actually be there. Try searching for travel blogs, photo galleries, or videos -- not just Wikipedia.
+
+Jot down notes about:
+- What you would **see** -- the landscape, the colors, the light, the crowds or emptiness
+- What you would **hear, smell, or feel** -- wind, heat, dust, echoes, silence
+- What the **place looks like up close** -- crumbling stone, steep steps, narrow paths, wide-open views
+- Anything that **surprised you** -- something you wouldn't have guessed without looking it up
     </Markdown>
     <Collapsible id="postcard_research_example" title="See an example (Eiffel Tower)">
       <Markdown id="postcard_research_example_text">
 **The Eiffel Tower -- research notes**
 
-* Centrepiece of the 1889 World's Fair, built to celebrate 100 years since the French Revolution
-* Tallest structure in the world from 1889 to 1930, at 300 meters
-* Needs 60 tons of paint every 7 years to prevent rust
-* The iron gets hot in summer -- the tower actually grows about 15 cm on warm days
-* At night, 20,000 light bulbs sparkle for 5 minutes every hour
-* Gustave Eiffel had a private apartment at the top where he entertained guests
-* Many Parisians hated it at first -- they called it an eyesore and a "metal asparagus"
+*From travel blogs and photos:*
+* The base is HUGE up close -- the iron legs tower over you and you can see the rivets
+* Long queues in the sun, people fanning themselves, vendors selling cold water
+* The stairs are metal grating -- you can see straight down through them, which is terrifying
+* Wind picks up as you climb; the whole structure hums and vibrates slightly
+* At the top, Paris looks tiny and flat -- you can see for miles
+* At night, 20,000 light bulbs sparkle for 5 minutes every hour -- people on the grass below cheer every time
+* The park below smells like crepes and cigarette smoke
+* Graffiti scratched into the iron railings -- names and dates from decades ago
       </Markdown>
     </Collapsible>
     <TextArea id="postcard_research_notes" rows="6" placeholder="Interesting facts, details, things I noticed..." />
@@ -282,10 +287,27 @@ Write a short postcard (4-8 sentences) from this person's perspective. Use your 
         Their persona development notes:
         <Ref target="postcard_persona_notes" />
 
-        Give feedback in two short sections:
+        Read the student's draft carefully, along with their research and persona notes. Then ask 2-3 questions that would most help THIS student improve THIS postcard. Pick whatever matters most for their draft -- that might be:
+
+        - Sensory detail (What did the stone feel like under your hands?)
+        - Emotion or reaction (How did you feel when you first saw it?)
+        - Narrative (Where did you run when the guard spotted you?)
+        - Voice and persona (What would your character notice that a tourist wouldn't?)
+        - Audience (Who is reading this postcard -- what would they want to hear about?)
+        - Structure (You've got a great opening -- how do you want to end it?)
+        - Using their research (Their notes mention steep terrain -- could the character react to that?)
+        - Style (Could you slow down this moment and let the reader see it?)
+        - Vocabulary (You wrote "went" -- is there a more vivid word for how your character moved?)
+        - Length and focus (Is there a detail here worth expanding into two sentences?)
+
+        The list above is just to show the range. Don't cover all of these -- pick the 2-3 short questions that would make the biggest difference for this particular student's draft. Keep each question brief -- one sentence is ideal. Make each question specific to what they wrote and what they researched. Do NOT write example sentences or suggest specific words. Just ask questions the student can answer by adding or reworking a sentence or two.
+
+        Give feedback in up to three short sections:
+
+        **Research** (only if needed)
+        If the student's research notes are thin, empty, or mostly encyclopedic facts, briefly suggest what else to look for and where. Be specific to their location -- for example, for the Great Wall, you might suggest looking at photos of the hike up, close-ups of the crumbling stone, or travel blog descriptions of the terrain. For the Colosseum, you might suggest searching for what the tunnels underneath look like. Point them toward the kind of sensory, experiential details that would make their postcard more vivid. Keep this to 1-2 sentences. Skip this section entirely if their research notes already include good sensory and experiential detail.
 
         **Questions to think about** (2-3 bullets max)
-        Ask short questions that help the student add detail to THEIR draft. The questions should be things only THIS person at THIS place would think about. Use their research notes and persona notes to make the questions specific. For example: "What did the stone feel like?" or "What would your grandmother say about this place?" Do NOT write example sentences. Do NOT suggest specific words or phrases. Just ask questions the student can answer by adding a sentence or two to their postcard.
 
         **Quick Fixes** (only if needed)
         Briefly note any grammar or spelling issues. Skip this section entirely if the writing is clean.
