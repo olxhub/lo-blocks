@@ -249,8 +249,8 @@ to the intervention plan?
 Of these modifications, which ones should we add to help the roommate follow the plan? (Pick up to 2)
     </Markdown>
 
-    <CapaProblem id="modification_choices">
-      <KeyGrader algorithm="survey">
+    <CapaProblem id="modification_choices" title="Select Modifications">
+      <CorrectGrader>
         <CheckboxInput>
           <Key id="mod_1">Simplify the plan using a step-by-step guide</Key>
           <Key id="mod_2">Provide direct training using in-person or video modeling</Key>
@@ -258,7 +258,7 @@ Of these modifications, which ones should we add to help the roommate follow the
           <Key id="mod_4">Provide coaching and feedback after each session</Key>
           <Key id="mod_5">Set reminders and visual prompts on the roommate's phone</Key>
         </CheckboxInput>
-      </KeyGrader>
+      </CorrectGrader>
     </CapaProblem>
   </Vertical>
 
