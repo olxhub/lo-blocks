@@ -2,51 +2,58 @@
 
 .lo-carousel {
   border: 1px solid var(--lo-border);
-  border-radius: var(--lo-radius-lg);
+  border-radius: var(--lo-radius-xl);
   overflow: hidden;
 }
 
-.lo-carousel__header {
+/* Body: colored nav panels flanking the center column */
+.lo-carousel__body {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--lo-space-sm) var(--lo-space-md);
-  background-color: var(--lo-surface);
-  border-bottom: 1px solid var(--lo-border);
+  align-items: stretch;
 }
 
 .lo-carousel__nav {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--lo-border);
-  border-radius: var(--lo-radius-sm);
-  background: var(--lo-surface);
-  cursor: pointer;
-  color: var(--lo-text-primary);
+  width: 48px;
   flex-shrink: 0;
+  border: none;
+  background: var(--lo-primary-light);
+  color: var(--lo-primary);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
 .lo-carousel__nav:hover:not(:disabled) {
-  background-color: var(--lo-surface-hover, #f3f4f6);
+  background-color: var(--lo-primary);
+  color: var(--lo-text-inverse);
 }
 
 .lo-carousel__nav:disabled {
-  opacity: 0.3;
+  background: var(--lo-surface);
+  color: var(--lo-text-muted);
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-.lo-carousel__indicator {
+/* Center column: header + content stacked vertically */
+.lo-carousel__center {
   flex: 1;
-  text-align: center;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Title — clean text, no background bar */
+.lo-carousel__header {
+  text-align: center;
+  padding: var(--lo-space-md) var(--lo-space-lg) 0;
 }
 
 .lo-carousel__title {
-  display: block;
   font-weight: 600;
+  font-size: var(--lo-font-size-lg);
   color: var(--lo-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -54,12 +61,13 @@
 }
 
 .lo-carousel__count {
-  display: block;
-  font-size: var(--lo-font-size-sm);
-  color: var(--lo-text-secondary);
+  font-size: var(--lo-font-size-xs);
+  color: var(--lo-text-muted);
+  letter-spacing: 0.05em;
 }
 
 .lo-carousel__content {
+  flex: 1;
   min-height: 4rem;
-  padding: var(--lo-space-md);
+  padding: var(--lo-space-lg) var(--lo-space-2xl);
 }

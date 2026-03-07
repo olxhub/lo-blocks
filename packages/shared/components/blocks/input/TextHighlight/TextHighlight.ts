@@ -37,6 +37,7 @@ const TextHighlight = core({
     inputType: 'single',
   }),
   name: 'TextHighlight',
+  category: 'language-arts',
   description: 'Interactive text highlighting exercise with feedback',
   component: _TextHighlight,
   fields,

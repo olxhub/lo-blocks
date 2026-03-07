@@ -32,14 +32,19 @@ export default function _Carousel(props) {
   const [title, setTitle] = useFieldState(props, fields.title, '');
   const isReadonly = useFieldSelector(props, fields.readonly, { fallback: props.readonly });
 
-  // Keep order in sync: shuffled when randomize is active, authored order otherwise
+  // Keep order in sync: shuffled when randomize is active, authored order otherwise.
+  // Use effectiveOrder so the freshly-computed array is available in this render
+  // (Redux won't reflect setOrder until the next render).
+  let effectiveOrder = order;
   if (randomize && !isOrderValid(order, itemIds)) {
-    setOrder(shuffledIds(itemIds));
+    effectiveOrder = shuffledIds(itemIds);
+    setOrder(effectiveOrder);
   } else if (!randomize && (!order || !itemIds.every((id, i) => order[i] === id))) {
-    setOrder([...itemIds]);
+    effectiveOrder = [...itemIds];
+    setOrder(effectiveOrder);
   }
 
-  const displayOrder = isOrderValid(order, itemIds) ? order : itemIds;
+  const displayOrder = isOrderValid(effectiveOrder, itemIds) ? effectiveOrder : itemIds;
   let position = currentId ? displayOrder.indexOf(currentId) : 0;
   if (position < 0) position = 0;
 
@@ -79,26 +84,28 @@ export default function _Carousel(props) {
   // 5. Render
   return (
     <div className="lo-carousel">
-      <div className="lo-carousel__header">
+      <div className="lo-carousel__body">
         {!isReadonly && (
           <button onClick={handlePrev} disabled={!wrap && position === 0}
             className="lo-carousel__nav lo-carousel__nav--prev" aria-label="Previous">
-            <NavArrow direction="back" />
+            <NavArrow direction="back" className="w-6 h-6" />
           </button>
         )}
-        <div className="lo-carousel__indicator">
-          <span className="lo-carousel__title">{displayTitle}</span>
-          <span className="lo-carousel__count">{position + 1} of {numItems}</span>
+        <div className="lo-carousel__center">
+          <div className="lo-carousel__header">
+            <div className="lo-carousel__title">{displayTitle}</div>
+            <div className="lo-carousel__count">{position + 1} of {numItems}</div>
+          </div>
+          <div className="lo-carousel__content">
+            {renderedItem}
+          </div>
         </div>
         {!isReadonly && (
           <button onClick={handleNext} disabled={!wrap && position === numItems - 1}
             className="lo-carousel__nav lo-carousel__nav--next" aria-label="Next">
-            <NavArrow direction="forward" />
+            <NavArrow direction="forward" className="w-6 h-6" />
           </button>
         )}
-      </div>
-      <div className="lo-carousel__content">
-        {renderedItem}
       </div>
     </div>
   );

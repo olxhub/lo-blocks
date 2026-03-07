@@ -470,7 +470,7 @@ export async function parseOLX(
 
     const id: OlxKey = (attributes.id ?? createId(node)) as OlxKey;
 
-    const Component = BLOCK_REGISTRY[tag] || BLOCK_REGISTRY[tag.charAt(0).toUpperCase() + tag.slice(1)];
+    const Component = BLOCK_REGISTRY[tag];
 
     // Validate and transform attributes - use component schema if defined, else base with passthrough
     // Passthrough preserves unknown attrs; strict() rejects unknown (catching typos like scr= vs src=)

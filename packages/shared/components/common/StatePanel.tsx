@@ -80,6 +80,32 @@ function StateRow({ id, idMap }: { id: OlxKey; idMap: IdMap }) {
 }
 
 /**
+ * Wrapper that sorts StateRows by amount of state (most state first).
+ */
+function SortedStateRows({ ids, idMap }: { ids: OlxKey[]; idMap: IdMap }) {
+  const componentStates = useSelector(
+    (state: any) => state?.application_state?.component,
+    shallowEqual
+  );
+
+  const sorted = useMemo(() => {
+    return [...ids].sort((a, b) => {
+      const sizeA = JSON.stringify(componentStates?.[a] ?? null).length;
+      const sizeB = JSON.stringify(componentStates?.[b] ?? null).length;
+      return sizeB - sizeA;
+    });
+  }, [ids, componentStates]);
+
+  return (
+    <div className="p-3 bg-white max-h-64 overflow-y-auto">
+      {sorted.map(id => (
+        <StateRow key={id} id={id} idMap={idMap} />
+      ))}
+    </div>
+  );
+}
+
+/**
  * Collapsible panel showing state for all stateful components.
  */
 export default function StatePanel({ idMap, blockRegistry = BLOCK_REGISTRY }: { idMap: IdMap; blockRegistry?: typeof BLOCK_REGISTRY }) {
@@ -115,11 +141,7 @@ export default function StatePanel({ idMap, blockRegistry = BLOCK_REGISTRY }: { 
       </button>
 
       {expanded && (
-        <div className="p-3 bg-white max-h-64 overflow-y-auto">
-          {statefulIds.map(id => (
-            <StateRow key={id} id={id} idMap={idMap} />
-          ))}
-        </div>
+        <SortedStateRows ids={statefulIds} idMap={idMap} />
       )}
     </div>
   );
