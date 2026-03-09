@@ -17,7 +17,6 @@ export const fields = state.fields([
   'expired',
   'startTime',
   'remaining',
-  'settled', // true once the "Time's up!" banner has finished its red flash
 ]);
 
 const TimedContainer = dev({

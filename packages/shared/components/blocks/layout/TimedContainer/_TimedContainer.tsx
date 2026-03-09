@@ -147,16 +147,6 @@ function _TimedContainer(props) {
   // useKids must be called unconditionally (when= filtering happens here)
   const { kids: renderedKids } = useKids(props);
 
-  // "Time's up!" banner: red flash that settles to gray.
-  // Persisted in Redux so page reload shows calm gray, not a re-flash.
-  const [settled, setSettled] = useFieldState(props, fields.settled, false);
-  useEffect(() => {
-    if (expired && !settled) {
-      const timer = setTimeout(() => setSettled(true), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [expired, settled, setSettled]);
-
   // Auto-start on mount if start="render"
   useEffect(() => {
     if (start !== 'render' || started || props.runtime.sideEffectFree) return;
@@ -253,12 +243,11 @@ function _TimedContainer(props) {
         </div>
       )}
 
-      {/* Expired: banner (flashes red, settles to gray) + after text */}
+      {/* Expired: banner (flashes red, settles to gray via CSS animation) */}
       {expired && (
         <div className="text-center py-3">
-          <div className={`font-semibold transition-colors duration-1000 ${
-            settled ? 'text-gray-500' : 'text-red-700'
-          }`}>
+          <style>{`@keyframes timed-settle { from { color: #b91c1c } to { color: #6b7280 }}`}</style>
+          <div className="font-semibold" style={{ animation: 'timed-settle 4s ease-out forwards' }}>
             Time's up!
           </div>
           {after && (
