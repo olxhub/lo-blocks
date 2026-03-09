@@ -13,7 +13,7 @@ const Image = core({
   attributes: baseAttributes.extend({
     src: z.string({ required_error: 'src is required' }).describe('Image source path (relative, content-absolute, platform //, or external URL)'),
     alt: z.string().optional().describe('Alternative text for accessibility'),
-    width: z.string().optional().describe('Image width in pixels (not available in some contexts)'), // TODO: Figure out why this didn't work...
+    width: z.string().optional().describe('Image width in pixels or CSS value'),
     height: z.string().optional().describe('Image height in pixels (not available in some contexts)'),
   }),
 });

@@ -28,7 +28,7 @@ export default function _Sequential(props) {
   const kidsJson = useKidsJson(props);
   const numItems = kidsJson.length;
 
-  // TODO: Clamp index if when= filtering shrinks the list.
+  // Basic clamping (done): index clamped below if when= filtering shrinks the list.
   //
   // Known limitation: we track position, not identity. If when= filtering
   // removes an item *before* the current position, the view jumps. E.g.
