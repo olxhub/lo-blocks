@@ -420,7 +420,7 @@ export async function parseOLX(
   let rootId = '';
   const errors: OLXLoadingError[] = [];
 
-  async function parseNode(node, siblings: any[] | null = null, nodeIndex = -1, parentLang: string | undefined = undefined) {
+  async function parseNode(node, siblings: any[] | null = null, nodeIndex = -1, parentLang: string | undefined = undefined, parentGenerated: OLXMetadata['generated'] | undefined = undefined) {
     const tag = Object.keys(node).find(k => ![':@', '#text', '#comment'].includes(k));
     if (!tag) return null;
 
@@ -436,6 +436,10 @@ export async function parseOLX(
     // 4. Default '*'
     const metadataLang = metadata?.lang;
     const currentLang = resolveElementLanguage(attributes, parentLang, metadataLang);
+
+    // Resolve generated status: element's own metadata, or inherited from parent.
+    // File-level generated (e.g., machineTranslated) cascades to all children.
+    const currentGenerated = metadata?.generated || parentGenerated;
 
     if (tag === 'Use') {
       if (!attributes.ref) {
@@ -517,10 +521,10 @@ export async function parseOLX(
 
     const parser = Component?.parser || defaultParser;
 
-    // Create a wrapper around parseNode that passes currentLang as parentLang for child elements.
-    // This ensures language inheritance works correctly throughout the tree.
+    // Create a wrapper around parseNode that passes currentLang and currentGenerated
+    // to child elements. This ensures language and provenance inheritance works correctly.
     const parseNodeWithLang = (childNode, childSiblings, childIndex) =>
-      parseNode(childNode, childSiblings, childIndex, currentLang);
+      parseNode(childNode, childSiblings, childIndex, currentLang, currentGenerated);
 
     // Parse the node using the component's parser. The parser is responsible
     // for calling `storeEntry` for every piece of data that should be tracked
@@ -557,6 +561,12 @@ export async function parseOLX(
         // map key AND needed on the entry for translation mismatch detection.
         if (entry && typeof entry === 'object' && !('lang' in entry)) {
           entry.lang = lang;
+        }
+
+        // Propagate generated status so extractLocalizedVariant can prefer
+        // human-authored content over machine translations in its fallback.
+        if (entry && typeof entry === 'object' && !('generated' in entry) && currentGenerated) {
+          entry.generated = currentGenerated;
         }
 
         // If this is an update to an existing entry, just update it
