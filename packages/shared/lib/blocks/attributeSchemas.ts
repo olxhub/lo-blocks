@@ -102,6 +102,54 @@ export const z_target = z.string().refine(
 );
 
 // =============================================================================
+// Block Reference Detection
+// =============================================================================
+//
+// Schemas that represent references to other blocks. Used by ensureTargetBlocks
+// (in useOlxJson.ts) to discover which attributes need preloading — instead of
+// hardcoding attribute names like ['target', 'source'].
+//
+// When you create a new schema type for block references, add it here.
+
+const BLOCK_REF_SCHEMAS = new Set<z.ZodType>([z_olxKey, z_reduxStateKey, z_target]);
+
+/** Unwrap zod wrappers (optional, nullable, default) to find the inner schema. */
+function unwrapSchema(schema: z.ZodType): z.ZodType {
+  const def = (schema as any)._def;
+  if (def?.typeName === 'ZodOptional' || def?.typeName === 'ZodNullable') {
+    return unwrapSchema(def.innerType);
+  }
+  if (def?.typeName === 'ZodDefault') {
+    return unwrapSchema(def.innerType);
+  }
+  return schema;
+}
+
+/**
+ * Returns the attribute names in a zod object schema whose types are
+ * block references (z_olxKey, z_reduxStateKey, z_target).
+ *
+ * Used by ensureTargetBlocks to discover which attributes to scan for
+ * preloading, rather than hardcoding attribute names.
+ */
+export function getRefAttributes(attributeSchema: z.ZodType): string[] {
+  const def = (attributeSchema as any)._def;
+  // Handle .strict() / .passthrough() — they wrap the inner ZodObject
+  if (def?.typeName === 'ZodEffects' || def?.typeName === 'ZodPipeline') {
+    return getRefAttributes(def.schema ?? def.in);
+  }
+  if (def?.typeName !== 'ZodObject') return [];
+  const shape = (attributeSchema as z.ZodObject<any>).shape;
+  const refs: string[] = [];
+  for (const [name, schema] of Object.entries(shape)) {
+    if (BLOCK_REF_SCHEMAS.has(unwrapSchema(schema as z.ZodType))) {
+      refs.push(name);
+    }
+  }
+  return refs;
+}
+
+// =============================================================================
 // Base Attributes (all blocks)
 // =============================================================================
 

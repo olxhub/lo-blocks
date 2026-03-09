@@ -20,6 +20,7 @@ import {
   dispatchOlxJsonError
 } from '@/lib/state/olxjson';
 import { refToOlxKey, allOlxKeys } from '@/lib/blocks/idResolver';
+import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, OlxKey, OlxReference, ReduxStateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
 import type { LogEventFn } from '@/lib/render';
@@ -66,9 +67,10 @@ const ensuredIds = new Set<string>();
  * and triggers an async fetch. If it's already known (loading, ready, or
  * error), this is a no-op.
  *
- * After a successful fetch, scans all loaded blocks for `target=` attributes
- * and recursively ensures those targets are loaded too. This prevents the
- * Ref deadlock: Ref loads itself, but nobody loads its target.
+ * After a successful fetch, scans all loaded blocks for attributes that
+ * reference other blocks (discovered from the zod schema via getRefAttributes)
+ * and recursively ensures those are loaded too. This prevents the Ref
+ * deadlock: Ref loads itself, but nobody loads its target.
  *
  * NOT a hook — safe to call from useEffect, event handlers, callbacks, etc.
  * Do NOT call from render functions or Redux selectors.
@@ -121,25 +123,34 @@ export function ensureBlock(
 }
 
 /**
- * Scan loaded blocks for target= and source= attributes and ensure those blocks.
+ * Scan loaded blocks for attributes that reference other blocks and ensure
+ * those blocks are loaded.
+ *
+ * Which attributes to scan is determined by the block's zod schema — any
+ * attribute typed as z_olxKey, z_reduxStateKey, or z_target is automatically
+ * discovered via getRefAttributes(). No hardcoded attribute names.
  *
  * Called after a successful fetch. The idMap contains the fetched block plus
- * its static kids (from collectBlockWithKids). We scan ALL of them — if a
- * static kid has target= or source=, we ensure that block too.
+ * its static kids (from collectBlockWithKids). We scan ALL of them.
  *
  * Handles comma-separated targets, absolute refs (/foo), and scoped keys
  * (myList:#0:answer → ensures both myList and answer).
  *
  * Recursive: when a target loads, ITS targets get ensured in turn.
  */
+
 function ensureTargetBlocks(props: BaselineProps, idMap: IdMap, source: string): void {
+  const blockRegistry = props.runtime.blockRegistry ?? {};
   for (const variantMap of Object.values(idMap)) {
     // Check any variant — targets don't change across languages
     const anyVariant = Object.values(variantMap)[0] as OlxJson | undefined;
+    if (!anyVariant?.tag) continue;
 
-    // Scan both target= and source= attributes for block references
-    for (const attr of ['target', 'source'] as const) {
-      const refValue = anyVariant?.attributes?.[attr];
+    const block = blockRegistry[anyVariant.tag];
+    const refAttrs = block?.attributes ? getRefAttributes(block.attributes) : [];
+
+    for (const attr of refAttrs) {
+      const refValue = anyVariant.attributes?.[attr];
       if (typeof refValue !== 'string') continue;
 
       // Handle comma-separated references
