@@ -11,7 +11,7 @@
 // - Automatically by createGrader for match functions
 //
 
-import { wordcount } from './evaluate';
+import { wordcount, text2markdown } from './evaluate';
 
 /**
  * Registry of functions available in DSL expressions.
@@ -23,6 +23,7 @@ import { wordcount } from './evaluate';
 export const dslFunctions: Record<string, Function> = {
   // Built-in helpers
   wordcount,
+  text2markdown,
 };
 
 /**

@@ -258,6 +258,16 @@ export function wordcount(str: string | null | undefined): number {
 }
 
 /**
+ * Convert plain text to markdown by doubling newlines,
+ * so that single line breaks become paragraph breaks.
+ */
+export function text2markdown(str: string | null | undefined): string {
+  if (str == null) return '';
+  if (typeof str !== 'string') throw new TypeError(`text2markdown expects a string, got ${typeof str}`);
+  return str.replace(/\n/g, '\n\n');
+}
+
+/**
  * Create a context with built-in helpers pre-populated.
  * Caller should spread their data on top of this.
  */
