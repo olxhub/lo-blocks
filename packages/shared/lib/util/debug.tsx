@@ -18,9 +18,7 @@ export const Trace = ({
   props = {},
   header
 }: TraceProps) => {
-  const [debug] = useFieldState(props, settings.debug, false,
-    { tag: true, id: true } // HACK
-  );
+  const [debug] = useFieldState(props, settings.debug, false);
   if (!debug) return null;
 
   let headerContent = header;
@@ -71,9 +69,7 @@ const ClickableText = ({ onClick, children, style = {}, title }: {
 );
 
 export const DebugWrapper = ({ props = {}, loBlock, children }: DebugWrapperProps) => {
-  const [debug] = useFieldState(props, settings.debug, false,
-    { tag: true, id: true } // HACK
-  );
+  const [debug] = useFieldState(props, settings.debug, false);
   if (!debug) return <>{children}</>;
 
   const tag = props?.nodeInfo?.olxJson?.tag ?? 'N/A';

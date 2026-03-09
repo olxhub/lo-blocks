@@ -419,13 +419,6 @@ export default function RenderOLX({
   const blockProps = {
     nodeInfo: makeRootNode(runtime, eventContext),
     runtime,
-    // FIXME: These individual fields are deprecated (kept for migration safety, remove after verification)
-    blockRegistry: renderProps.blockRegistry,
-    idPrefix: '',
-    olxJsonSources: [source],
-    store: renderProps.store,
-    logEvent: renderProps.logEvent,
-    sideEffectFree: renderProps.sideEffectFree,
   };
 
   // Determine which ID to render - use parsed root if available, else requested id
