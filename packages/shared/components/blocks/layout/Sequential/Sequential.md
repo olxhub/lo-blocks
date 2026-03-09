@@ -4,7 +4,7 @@ Step-by-step learning experiences where learners navigate through content in seq
 
 ```olx:playground
 <Sequential id="worked_example">
-  <Vertical label="Problem">
+  <Vertical title="Problem">
     <Markdown>
 **Worked Example: Calculating Effect Size**
 
@@ -13,7 +13,7 @@ A study compares two teaching methods. The treatment group (n=30) scores M=78, S
 Calculate Cohen's d.
     </Markdown>
   </Vertical>
-  <Vertical label="Step 1">
+  <Vertical title="Step 1">
     <Markdown>
 **Step 1: Calculate the pooled standard deviation**
 
@@ -22,7 +22,7 @@ Formula: SD_pooled = √[(SD₁² + SD₂²) / 2]
 SD_pooled = √[(12² + 10²) / 2] = √[(144 + 100) / 2] = √122 ≈ 11.05
     </Markdown>
   </Vertical>
-  <Vertical label="Step 2">
+  <Vertical title="Step 2">
     <Markdown>
 **Step 2: Calculate Cohen's d**
 
@@ -59,7 +59,7 @@ Research shows transitioning from worked examples to practice is more effective 
 
 ```olx:playground
 <Sequential id="fading">
-  <Vertical label="Full Example">
+  <Vertical title="Full Example">
     <Markdown>
 **Peer Instruction Effect Size**
 
@@ -70,7 +70,7 @@ Normalized gain increase: 0.48 - 0.23 = 0.25
 This represents a **109% improvement** in learning gains.
     </Markdown>
   </Vertical>
-  <Vertical label="Guided Practice">
+  <Vertical title="Guided Practice">
     <Markdown>
 **Your Turn (with scaffolding)**
 
@@ -82,7 +82,7 @@ Freeman's meta-analysis found active learning reduced failure rates from 34% to 
       <Markdown>Relative reduction = (34 - 22) / 34 × 100</Markdown>
     </Collapsible>
   </Vertical>
-  <Vertical label="Independent Practice">
+  <Vertical title="Independent Practice">
     <Markdown>
 **Now on your own**
 
@@ -99,7 +99,7 @@ Insert retrieval practice between content sections:
 
 ```olx:playground
 <Sequential id="spaced">
-  <Vertical label="Content">
+  <Vertical title="Content">
     <Markdown>
 **The Testing Effect**
 
@@ -108,7 +108,7 @@ Roediger &amp; Karpicke (2006) found that students who took a practice test reta
 The key mechanism is that retrieval strengthens memory traces more than passive exposure.
     </Markdown>
   </Vertical>
-  <Vertical label="Check Understanding">
+  <Vertical title="Check Understanding">
     <Markdown>Without looking back, answer:</Markdown>
     <CapaProblem id="check" title="Testing Effect">
       <KeyGrader>
@@ -122,7 +122,7 @@ The key mechanism is that retrieval strengthens memory traces more than passive 
       </KeyGrader>
     </CapaProblem>
   </Vertical>
-  <Vertical label="Application">
+  <Vertical title="Application">
     <Markdown>How could you apply this finding to your own studying?</Markdown>
     <TextArea id="application" rows="3" />
   </Vertical>
@@ -135,7 +135,7 @@ This sequence leverages the finding that making predictions improves subsequent 
 
 ```olx:playground
 <Sequential id="poe">
-  <Vertical label="Predict">
+  <Vertical title="Predict">
     <Markdown>
 A ball is thrown straight up. At the very top of its path, what is its acceleration?
     </Markdown>
@@ -145,14 +145,14 @@ A ball is thrown straight up. At the very top of its path, what is its accelerat
       <Key id="down">Downward (gravity)</Key>
     </ChoiceInput>
   </Vertical>
-  <Vertical label="Observe">
+  <Vertical title="Observe">
     <Markdown>
 Watch the motion sensor data as we throw the ball...
 
 **Result**: The acceleration is constant at 9.8 m/s² downward throughout the motion - even at the top.
     </Markdown>
   </Vertical>
-  <Vertical label="Explain">
+  <Vertical title="Explain">
     <Markdown>If you predicted incorrectly, explain why the correct answer makes sense:</Markdown>
     <TextArea id="explain" rows="3" placeholder="The acceleration is constant because..." />
   </Vertical>
