@@ -10,6 +10,9 @@ import path from 'path';
 import { glob as globLib } from 'glob';
 import pegExts from '../../../generated/pegExtensions.json' assert { type: 'json' };
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, FileSystemPath } from '../../types';
+
+/** Content file extensions recognized by the storage provider. */
+const CONTENT_EXTENSIONS = ['.xml', '.olx', '.md', ...pegExts.map(e => `.${e}`)];
 import {
   type StorageProvider,
   type XmlFileInfo,
@@ -315,8 +318,7 @@ async function listFileTree(
       if (entry.isDirectory()) {
         children.push(await walk(relPath));
       } else if (entry.isFile()) {
-        const allowed = ['.xml', '.olx', '.md', ...pegExts.map(e => `.${e}`)];
-        if (allowed.some(ext => entry.name.endsWith(ext))) {
+        if (CONTENT_EXTENSIONS.some(ext => entry.name.endsWith(ext))) {
           children.push({ uri: relPath });
         }
       }
@@ -382,11 +384,9 @@ export class FileStorageProvider implements StorageProvider {
 
     function isContentFile(entry: any, fullPath: string) {
       const fileName = entry.name || fullPath.split('/').pop();
-      // TODO: Do this in fileTypes.ts
-      const allowed = ['.xml', '.olx', '.md', ...pegExts.map(e => `.${e}`)];
       return (
         entry.isFile() &&
-        allowed.some(ext => fullPath.endsWith(ext)) &&
+        CONTENT_EXTENSIONS.some(ext => fullPath.endsWith(ext)) &&
         !fileName.includes('~') &&
         !fileName.includes('#') &&
         !fileName.startsWith('.')
@@ -610,8 +610,8 @@ export class FileStorageProvider implements StorageProvider {
     const filePattern = include || '**/*';
     const files = await this.glob(filePattern, basePath);
 
-    // Content file extensions we should search
-    const searchableExts = ['.xml', '.olx', '.md', '.ts', '.tsx', '.js', '.jsx', '.json', ...pegExts.map(e => `.${e}`)];
+    // Content + code extensions for search
+    const searchableExts = [...CONTENT_EXTENSIONS, '.ts', '.tsx', '.js', '.jsx', '.json'];
 
     const regex = new RegExp(pattern);
     const matches: GrepMatch[] = [];

@@ -22,67 +22,57 @@ const props = {
   runtime: { logEvent: lo_event.logEvent },
 };
 
-// TODO: These should probably be streamlined into one `it` statement which
-// tests all three end-to-end. This is a little bit verbose and hard-to-read.
+// Test helpers — reduce boilerplate for Redux hook tests
+function createWrapper(extraFields?) {
+  const reduxStore = store.init(extraFields ? { extraFields } : undefined);
+  const wrapper = ({ children }: any) => (
+    <Provider store={reduxStore}>{children}</Provider>
+  );
+  return { reduxStore, wrapper };
+}
+
+async function flushAsync() {
+  await act(async () => { await new Promise(r => setTimeout(r, 0)); });
+}
+
 describe('useFieldState integration', () => {
-  it('reads, writes, and re-reads the same Redux slice', async () => {
-    const reduxStore = store.init();
-    const wrapper = ({ children }: any) => (
-      <Provider store={reduxStore}>{children}</Provider>
-    );
+  it('reads, writes, and re-reads component-scoped field', async () => {
+    const { reduxStore, wrapper } = createWrapper();
 
     const { result } = renderHook(
       () => useFieldState({ ...props, id: 'test' }, testFields.input, 'bob'),
       { wrapper }
     );
 
-    expect(result.current[0]).toBe('bob'); // current[0] is input
-
-    act(() => {
-      result.current[1]('bar');  // current[1] is setInput
-    });
-
-    await act(async () => {
-      await new Promise(r => setTimeout(r, 0));
-    });
+    expect(result.current[0]).toBe('bob');
+    act(() => result.current[1]('bar'));
+    await flushAsync();
 
     expect(result.current[0]).toBe('bar');
-    const state = reduxStore.getState();
-    expect(state.application_state.component['test'].input).toBe('bar');
+    expect(reduxStore.getState().application_state.component['test'].input).toBe('bar');
   });
 
-
   it('handles componentSetting scoped fields', async () => {
-    const reduxStore = store.init({ extraFields: settingFields });
-    const wrapper = ({ children }: any) => (
-      <Provider store={reduxStore}>{children}</Provider>
-    );
+    const { reduxStore, wrapper } = createWrapper(settingFields);
 
     const { result } = renderHook(
-      () =>
-        useFieldState(
-          { id: 'vid1', loBlock: { OLXName: 'video' }, runtime: { logEvent: lo_event.logEvent } },
-          settingFields.speed,
-          1
-        ),
+      () => useFieldState(
+        { id: 'vid1', loBlock: { OLXName: 'video' }, runtime: { logEvent: lo_event.logEvent } },
+        settingFields.speed, 1
+      ),
       { wrapper }
     );
 
     expect(result.current[0]).toBe(1);
     act(() => result.current[1](2));
-    await act(async () => {
-      await new Promise(r => setTimeout(r, 0));
-    });
+    await flushAsync();
+
     expect(result.current[0]).toBe(2);
-    const state = reduxStore.getState();
-    expect(state.application_state.componentSetting.video.speed).toBe(2);
+    expect(reduxStore.getState().application_state.componentSetting.video.speed).toBe(2);
   });
 
   it('handles system scoped fields', async () => {
-    const reduxStore = store.init({ extraFields: systemFields });
-    const wrapper = ({ children }: any) => (
-      <Provider store={reduxStore}>{children}</Provider>
-    );
+    const { reduxStore, wrapper } = createWrapper(systemFields);
 
     const { result } = renderHook(
       () => useFieldState(props, systemFields.lang, 'en'),
@@ -91,19 +81,14 @@ describe('useFieldState integration', () => {
 
     expect(result.current[0]).toBe('en');
     act(() => result.current[1]('fr'));
-    await act(async () => {
-      await new Promise(r => setTimeout(r, 0));
-    });
+    await flushAsync();
+
     expect(result.current[0]).toBe('fr');
-    const state = reduxStore.getState();
-    expect(state.application_state.system.lang).toBe('fr');
+    expect(reduxStore.getState().application_state.system.lang).toBe('fr');
   });
 
   it('handles storage scoped fields', async () => {
-    const reduxStore = store.init({ extraFields: storageFields });
-    const wrapper = ({ children }: any) => (
-      <Provider store={reduxStore}>{children}</Provider>
-    );
+    const { reduxStore, wrapper } = createWrapper(storageFields);
 
     const { result } = renderHook(
       () => useFieldState(null, storageFields.content, '', { id: 'file1' }),
@@ -112,31 +97,25 @@ describe('useFieldState integration', () => {
 
     expect(result.current[0]).toBe('');
     act(() => result.current[1]('abc'));
-    await act(async () => {
-      await new Promise(r => setTimeout(r, 0));
-    });
+    await flushAsync();
+
     expect(result.current[0]).toBe('abc');
-    const state = reduxStore.getState();
-    expect(state.application_state.storage.file1.content).toBe('abc');
+    expect(reduxStore.getState().application_state.storage.file1.content).toBe('abc');
   });
 });
 
 describe('useAggregate aggregate hook', () => {
   it('returns values for multiple component IDs', async () => {
-    const reduxStore = store.init();
-    const wrapper = ({ children }: any) => (
-      <Provider store={reduxStore}>{children}</Provider>
-    );
+    const { wrapper } = createWrapper();
 
     await act(async () => {
       updateField(props, testFields.input, 'alpha', { id: 'first' });
       updateField(props, testFields.input, 'beta', { id: 'second' });
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise(r => setTimeout(r, 0));
     });
 
-    const ids = ['first', 'second'];
     const { result } = renderHook(
-      () => useAggregate(props, testFields.input, ids, { fallback: '' }),
+      () => useAggregate(props, testFields.input, ['first', 'second'], { fallback: '' }),
       { wrapper }
     );
 
@@ -144,19 +123,15 @@ describe('useAggregate aggregate hook', () => {
   });
 
   it('can return an object keyed by ID when requested', async () => {
-    const reduxStore = store.init();
-    const wrapper = ({ children }: any) => (
-      <Provider store={reduxStore}>{children}</Provider>
-    );
+    const { wrapper } = createWrapper();
 
     await act(async () => {
       updateField(props, testFields.input, 'alpha', { id: 'first' });
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise(r => setTimeout(r, 0));
     });
 
-    const ids = ['first', 'missing'];
     const { result } = renderHook(
-      () => useAggregate(props, testFields.input, ids, { fallback: 'fallback', aggregate: 'object' }),
+      () => useAggregate(props, testFields.input, ['first', 'missing'], { fallback: 'fallback', aggregate: 'object' }),
       { wrapper }
     );
 
@@ -164,24 +139,19 @@ describe('useAggregate aggregate hook', () => {
   });
 
   it('supports custom aggregate functions', async () => {
-    const reduxStore = store.init();
-    const wrapper = ({ children }: any) => (
-      <Provider store={reduxStore}>{children}</Provider>
-    );
+    const { wrapper } = createWrapper();
 
     await act(async () => {
       updateField(props, testFields.input, 'hello', { id: 'first' });
       updateField(props, testFields.input, 'world', { id: 'second' });
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise(r => setTimeout(r, 0));
     });
 
-    const ids = ['first', 'second'];
     const { result } = renderHook(
-      () =>
-        useAggregate(props, testFields.input, ids, {
-          fallback: '',
-          aggregate: (values) => values.join('-'),
-        }),
+      () => useAggregate(props, testFields.input, ['first', 'second'], {
+        fallback: '',
+        aggregate: (values) => values.join('-'),
+      }),
       { wrapper }
     );
 
