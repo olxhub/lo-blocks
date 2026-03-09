@@ -276,6 +276,7 @@ Write a short postcard (4-8 sentences) from this person's perspective. Use your 
     <TextArea id="postcard_draft" rows="8" placeholder="Dear friend, ..." />
     <Markdown id="postcard_draft_wordcount">{{wordcount(@postcard_draft.value) &lt; 20 ? "The submit button will become available once you have written enough to get feedback on." : "Keep going..."}}</Markdown>
     <ActionButton id="postcard_submit" label="Submit for Feedback" dependsOn="wordcount(@postcard_draft.value) >= 20 &amp;&amp; !@postcard_draft.readonly">
+      <CopyFieldAction target="postcard_draft" output="postcard_final" />
       <LLMAction id="postcard_llm" target="postcard_feedback">
         You are giving feedback to a middle school student on a short postcard. Be warm, specific, and brief. Do NOT rewrite their text or suggest specific sentences. Only ask questions.
 

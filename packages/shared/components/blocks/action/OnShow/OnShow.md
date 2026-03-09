@@ -48,22 +48,6 @@ When the student advances to "Revise", the OnShow copies their draft into a new 
 </Sequential>
 ```
 
-### Unlock a tab after the student reads something
-
-```xml
-<Tabs id="gated">
-  <Vertical title="Read First">
-    <Markdown>Read this passage carefully before continuing.</Markdown>
-    <OnShow>
-      <SetFieldAction target="respond" field="enabled" value="true" />
-    </OnShow>
-  </Vertical>
-  <Vertical id="respond" title="Respond" enabled="false">
-    <TextArea id="response" rows="3" placeholder="Now write your response..." />
-  </Vertical>
-</Tabs>
-```
-
 ## Related
 - **ActionButton** — same idea, but the student clicks a button
 - **CopyFieldAction** — copies a value from one block to another

@@ -28,7 +28,7 @@ it('wires inputs and graders with explicit targeting', async () => {
   expect(getOlxJson(idMap, 'den')).toBeDefined();
 
   // Grader should have target wired to the two inputs
-  expect(getOlxJson(idMap, graderId).attributes.target).toBe('num,den');
+  expect(getOlxJson(idMap, graderId).attributes.target).toEqual(['num', 'den']);
 
   // Render-time controls should NOT be injected into idMap by the parser
   expect(Object.keys(idMap)).not.toContain('CapaProblemTargeting_button');

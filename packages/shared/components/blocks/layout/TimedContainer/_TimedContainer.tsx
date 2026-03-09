@@ -153,6 +153,7 @@ function _TimedContainer(props) {
     const now = Date.now();
     setStarted(true);
     setStartTime(now);
+    setRemaining(duration);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

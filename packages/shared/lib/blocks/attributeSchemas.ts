@@ -79,6 +79,15 @@ export const z_olx_duration = z.union([z.string(), z.number()])
   .transform(parseDuration)
   .refine(v => !isNaN(v) && v > 0, 'Must be a positive duration (e.g. "5 minutes", "1 hour 30 minutes", "300")');
 
+/**
+ * Pre-parsed expression: string → { expr, ast }. Idempotent (accepts already-parsed objects).
+ * Used for visibility conditions (when=) and grading expressions (Rule match=).
+ */
+export const z_expression = z.union([
+  z.string().transform(expr => ({ expr, ast: parseExpr(expr) })),
+  z.object({ expr: z.string(), ast: z.any() }),
+]);
+
 // =============================================================================
 // Reusable ID Schemas
 // =============================================================================
@@ -117,14 +126,17 @@ export const z_reduxStateKey = tagRefSchema(
   v => [v],
 );
 
-/** Comma-separated ReduxStateKeys — for blocks that accept multiple targets. */
+/** Comma-separated ReduxStateKeys → string[]. Idempotent (accepts already-split arrays). */
 export const z_reduxStateKeyList = tagRefSchema(
-  z.string().refine(
-    val => val.split(',').map(s => s.trim()).filter(Boolean)
-      .every(part => VALID_REDUX_STATE_KEY.test(part)),
-    val => ({ message: `target "${val}" contains invalid key(s)` })
-  ),
-  v => typeof v === 'string' ? v.split(',').map(s => s.trim()).filter(Boolean) : [],
+  z.union([
+    z.string().transform(val => val.split(',').map(s => s.trim()).filter(Boolean))
+      .refine(
+        parts => parts.every(part => VALID_REDUX_STATE_KEY.test(part)),
+        parts => ({ message: `target contains invalid key(s): ${parts.filter(p => !VALID_REDUX_STATE_KEY.test(p)).join(', ')}` })
+      ),
+    z.array(z.string()),
+  ]),
+  v => typeof v === 'string' ? v.split(',').map(s => s.trim()).filter(Boolean) : Array.isArray(v) ? v : [],
 );
 
 // -----------------------------------------------------------------------------
@@ -160,7 +172,7 @@ export const z_blockFieldRef = tagRefSchema(
     z.string().transform(splitFieldRef),
     z.object({ ref: z.custom<ReduxStateKey>(), field: z.string() }),
   ]),
-  v => typeof v === 'object' && v?.ref ? [String(v.ref)] : [],
+  v => typeof v === 'string' ? [splitFieldRef(v).ref] : (v?.ref ? [String(v.ref)] : []),
 );
 
 /** Comma-separated block.field references. Transforms to BlockFieldRef[]. */
@@ -171,7 +183,9 @@ export const z_blockFieldRefList = tagRefSchema(
     ),
     z.array(z.object({ ref: z.custom<ReduxStateKey>(), field: z.string() })),
   ]),
-  v => Array.isArray(v) ? v.map(item => String(item.ref)).filter(Boolean) : [],
+  v => typeof v === 'string'
+    ? v.split(',').map(s => s.trim()).filter(Boolean).map(s => splitFieldRef(s).ref)
+    : Array.isArray(v) ? v.map(item => String(item.ref)).filter(Boolean) : [],
 );
 
 // =============================================================================
@@ -241,10 +255,7 @@ export const baseAttributes = z.object({
   launchable: z.string().optional().describe('Set to "true" to show in activity indexes'),
   initialPosition: z.coerce.number().optional().describe('Initial position for sortable items (1-indexed)'),
   lang: z.string().optional().describe('BCP 47 language tag (e.g., en-Latn-US, ar-Arab-SA). Overrides parent and file-level language.'),
-  when: z.union([
-    z.string().transform(expr => ({ expr, ast: parseExpr(expr) })),
-    z.object({ expr: z.string(), ast: z.any() }),
-  ]).optional()
+  when: z_expression.optional()
     .describe('State-language expression controlling visibility (e.g. "@quiz.correct === correctness.correct")'),
 }).strict();
 

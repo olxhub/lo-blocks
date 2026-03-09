@@ -16,19 +16,12 @@
 //   - All registered match functions (stringMatch, numericalMatch, etc.)
 //
 import { z } from 'zod';
-import { core, baseAttributes, z_reduxStateKey } from '@/lib/blocks';
+import { core, baseAttributes, z_reduxStateKey, z_expression } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import _Noop from '@/components/blocks/layout/_Noop';
-import { parse as parseExpr } from '@/lib/stateLanguage';
 import { evaluate, createContext } from '@/lib/stateLanguage/evaluate';
 import { correctness } from '@/lib/blocks/correctness';
 import type { RuntimeProps } from '@/lib/types';
-
-/** Pre-parsed expression: { expr, ast }. Idempotent (accepts already-parsed objects). */
-const z_expression = z.union([
-  z.string().transform(expr => ({ expr, ast: parseExpr(expr) })),
-  z.object({ expr: z.string(), ast: z.any() }),
-]);
 
 /**
  * Evaluate the `match` expression and return a grading result.

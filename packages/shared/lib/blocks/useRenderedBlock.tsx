@@ -123,7 +123,7 @@ function getWhen(kid, props) {
     const state = props.runtime.store.getState();
     const sources = props.runtime.olxJsonSources ?? ['content'];
     const block = selectBlock(state, sources, olxKey, props.runtime.locale.code);
-    if (!block) throw new Error(`[when] Block "${kid.id}" not found in content store`);
+    if (!block) return undefined;  // not yet loaded — show by default
     return block.attributes.when;
   }
   if (kid.tag) {
