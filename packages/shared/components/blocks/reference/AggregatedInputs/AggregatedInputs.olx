@@ -8,7 +8,7 @@
   <NumberInput id="score_q3">Question 3 score</NumberInput>
   <AggregatedInputs id="three_score_progress" target="score_q1, score_q2, score_q3" />
 
-  <Markdown id="intro">
+  <Markdown id="intro2">
     This demo includes 2 CapaProblems and an Aggregate that updates as you submit answers.
   </Markdown>
 

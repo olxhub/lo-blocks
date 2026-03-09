@@ -18,7 +18,7 @@ export { action, executeNodeActions, grader, input, isAction, isInput, isMatch }
 export { correctness, correctnessPriority, visibilityHandlers, computeVisibility, isValidCorrectness, validateCorrectness, getAllCorrectnessStates, completion, completionPriority, isValidCompletion, validateCompletion, getAllCompletionStates } from './correctness';
 export { worstCaseCorrectness, proportionalCorrectness, computeScore, formatScore, countCorrectness } from '@/lib/grading';
 export { isInputReadOnly } from './inputInteraction';
-export { baseAttributes, inputMixin, graderMixin, placeholder, src, z_olxKey, z_reduxStateKey, z_target } from './attributeSchemas';
+export { baseAttributes, inputMixin, graderMixin, placeholder, src, z_olxKey, z_reduxStateKey, z_target, z_blockFieldRef } from './attributeSchemas';
 export { useGraderAnswer, useGraderSummary, findGrader } from './useGraderAnswer';
 export { createGrader } from './createGrader';
 export { getBlockByOLXId, getBlocksByOLXIds } from './getBlockByOLXId';

@@ -27,8 +27,15 @@ import { useKids } from '@/lib/render';
 // But this works for now.
 const ERROR_DEBOUNCE_MS = 600;
 
+const CHROME_STYLE: React.CSSProperties = {
+  border: '1px dashed #ccc',
+  borderRadius: '4px',
+  padding: '8px',
+  minHeight: '2em',
+};
+
 function _OlxSlot(props) {
-  const { id, fields, target, debounce: debounceMs = 150 } = props;
+  const { id, fields, target, debounce: debounceMs = 150, chrome = false } = props;
 
   // Mode 1: Read from own value field (LLMAction writes here)
   const ownValue = useFieldSelector(props, fields.value, { fallback: '', id });

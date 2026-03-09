@@ -94,11 +94,27 @@ export const z_reduxStateKey = z.string().refine(
   key => ({ message: `"${key}" is not a valid target key` })
 );
 
-/** Comma-separated ReduxStateKeys — the common target= format. */
+/** Comma-separated ReduxStateKeys — for blocks that accept multiple targets. */
 export const z_target = z.string().refine(
   val => val.split(',').map(s => s.trim()).filter(Boolean)
     .every(part => VALID_REDUX_STATE_KEY.test(part)),
   val => ({ message: `target "${val}" contains invalid key(s)` })
+);
+
+/**
+ * Single ReduxStateKey with optional .field suffix.
+ * If no .field, defaults to `value` at runtime.
+ * E.g. "myBlock", "myBlock.correct", "list:#0:item.answer"
+ */
+export const z_blockFieldRef = z.string().refine(
+  val => {
+    const dot = val.lastIndexOf('.');
+    if (dot < 0) return VALID_REDUX_STATE_KEY.test(val);
+    const base = val.substring(0, dot);
+    const field = val.substring(dot + 1);
+    return VALID_REDUX_STATE_KEY.test(base) && VALID_ID_SEGMENT.test(field);
+  },
+  val => ({ message: `"${val}" is not a valid block.field reference` })
 );
 
 // =============================================================================
@@ -111,7 +127,7 @@ export const z_target = z.string().refine(
 //
 // When you create a new schema type for block references, add it here.
 
-const BLOCK_REF_SCHEMAS = new Set<z.ZodType>([z_olxKey, z_reduxStateKey, z_target]);
+const BLOCK_REF_SCHEMAS = new Set<z.ZodType>([z_olxKey, z_reduxStateKey, z_target, z_blockFieldRef]);
 
 /** Unwrap zod wrappers (optional, nullable, default) to find the inner schema. */
 function unwrapSchema(schema: z.ZodType): z.ZodType {
@@ -193,7 +209,7 @@ export const inputMixin = z.object({
 export const graderMixin = z.object({
   answer: z.string().optional().describe('Expected answer for grading'),
   displayAnswer: z.string().optional().describe('Answer shown to student (may differ from grading answer)'),
-  target: z_target.optional().describe('Target input ID(s) to grade (inferred if omitted)'),
+  target: z_target.optional().describe('Target input ID(s) to grade, comma-separated for multi-input graders (inferred if omitted)'),
 });
 
 // =============================================================================
