@@ -65,6 +65,10 @@ export default function _Tabs(props) {
       </div>
 
       {/* Tab Content - show only active tab */}
+      {/* TODO: display:none keeps all tabs mounted, so OnShow trigger="each_view"
+         only fires once (on first mount), not on each tab switch. Either unmount
+         inactive tabs (like Sequential does) or add a visibility callback so
+         OnShow can detect tab switches. */}
       <div className="p-4">
         {renderedContent.map((content, index) => (
           <div key={index} style={{ display: index === currentTab ? 'block' : 'none' }}>
