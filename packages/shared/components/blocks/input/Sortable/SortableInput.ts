@@ -22,8 +22,8 @@ const SortableInput = core({
   description: 'Drag-and-drop sortable input for ordering tasks',
   component: _SortableInput,
   fields,
-  selectValue: (props: RuntimeProps, state, id) => ({
-    arrangement: fieldSelector(state, { ...props, id }, fields.arrangement, { fallback: [] })
+  selectValue: (props: RuntimeProps, state, _reduxKey) => ({
+    arrangement: fieldSelector(state, props, fields.arrangement, { fallback: [] })
   }),
   attributes: baseAttributes.extend({
     dragMode: z.enum(['whole', 'handle']).optional().describe('Drag mode: "whole" (entire item) or "handle" (handle only)'),

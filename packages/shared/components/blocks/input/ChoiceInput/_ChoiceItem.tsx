@@ -39,6 +39,14 @@ export default function _ChoiceItem(props) {
     );
   }
 
+  // Resolve parent's ReduxStateKey once for all state access
+  const parentReduxId = useMemo(
+    () => refToReduxKey({ ...props, id: parentId }),
+    // parentId is stable (from structural inference in mount-time useMemo)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [parentId]
+  );
+
   // Get the parent input's value field dynamically
   const valueField = state.componentFieldByName(props, parentId, 'value');
   // For checkboxes, fallback to empty array; for radio, fallback to empty string
@@ -67,15 +75,15 @@ export default function _ChoiceItem(props) {
       const newSelection = currentSelection.includes(itemValue)
         ? currentSelection.filter(v => v !== itemValue)
         : [...currentSelection, itemValue];
-      state.updateField(props, valueField, newSelection, { id: parentId });
+      state.updateField(props, valueField, newSelection, { id: parentReduxId });
     } else {
       // Radio: set single value
-      state.updateField(props, valueField, itemValue, { id: parentId });
+      state.updateField(props, valueField, itemValue, { id: parentReduxId });
     }
   };
 
   // Radio button name needs the scoped ID for proper grouping
-  const scopedParentId = refToReduxKey({ ...props, id: parentId });
+  const scopedParentId = parentReduxId;
 
   // TODO: Key/Distractor currently use parsers.text() which only supports string content.
   // To support images or rich content in choices, they should use parsers.blocks() or

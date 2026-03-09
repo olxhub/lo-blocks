@@ -455,7 +455,7 @@ export type BlockBlueprint = z.infer<typeof BlockBlueprintSchema>;
  *
  * For blocks using withStatus, the return type is BlockDataResult & { value }.
  */
-export type ValueSelectorFn = (props: RuntimeProps, state: any, id: OlxReference) => any;
+export type ValueSelectorFn = (props: RuntimeProps, state: any, reduxKey: ReduxStateKey) => any;
 
 export interface LoBlock {
   component: React.ComponentType<any>;

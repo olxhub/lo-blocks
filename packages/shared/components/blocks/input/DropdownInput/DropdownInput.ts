@@ -18,8 +18,8 @@ const DropdownInput = core({
   description: 'Dropdown select input for choosing from a list of options',
   component: _DropdownSelect,
   fields,
-  selectValue: (props: RuntimeProps, state, id) => {
-    return fieldSelector(state, { ...props, id }, fields.value, { fallback: '' });
+  selectValue: (props: RuntimeProps, state, _reduxKey) => {
+    return fieldSelector(state, props, fields.value, { fallback: '' });
   },
   attributes: srcAttributes.extend({
     placeholder: z.string().optional().describe('Placeholder text for empty selection'),

@@ -102,7 +102,7 @@ export default function _SentenceVarietyPlot(props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Reactively read target TextArea value
-  const { value: text } = useValue(props, target, { fallback: '' });
+  const { value: text } = useValue(props, { target, fallback: '' });
 
   // Build plot node (Plot.plot() is synchronous)
   const plotNode = useMemo(() => {

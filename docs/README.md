@@ -245,7 +245,7 @@ Note: `selectValue` without `isInput: true` does NOT make a block an input. Non-
 The `useValue` hook returns `{ value, loading, ready, error }`. It calls `selectValue` if defined, otherwise reads the common `value` field. Most blocks just destructure `value`:
 
 ```
-const { value } = useValue(props, id, { fallback: '' });
+const { value } = useValue(props, { fallback: '' });
 ```
 
 Blocks that need to signal loading/error from `selectValue` (e.g. Ref, which must resolve its target) use the `withStatus` wrapper:

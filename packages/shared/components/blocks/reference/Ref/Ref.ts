@@ -4,11 +4,11 @@ import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { valueSelector, fieldByName, fieldSelector } from '@/lib/state';
 import { blockData, withStatus } from '@/lib/state/blockData';
-import { refToOlxKey, toOlxReference } from '@/lib/blocks/idResolver';
+import { refToOlxKey, toOlxReference, reduxKeyToOlxKey, refToReduxKey } from '@/lib/blocks/idResolver';
 import { srcAttributes, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
 import { selectBlock, selectBlockState } from '@/lib/state/olxjson';
 import _Ref from './_Ref';
-import type { RuntimeProps, OlxReference, BlockDataResult } from '@/lib/types';
+import type { RuntimeProps, ReduxStateKey, BlockDataResult } from '@/lib/types';
 
 /**
  * Convert any value to a string representation for display.
@@ -60,13 +60,13 @@ const Ref = core({
     fallback: z.string().optional().describe('Fallback value when target is empty'),
     format: z.enum(['code']).optional().describe('Display format for the value'),
   }),
-  selectValue: withStatus((props: RuntimeProps, state: any, id: OlxReference): BlockDataResult & { value: any } => {
+  selectValue: withStatus((props: RuntimeProps, state: any, reduxKey: ReduxStateKey): BlockDataResult & { value: any } => {
     // TODO: This logic is infrastructure, not component logic. selectValue should move to /lib/
     // so it can access runtime context properly without accessing props directly.
     // Get the Ref block from Redux to access its attributes and content
     const sources = props.runtime.olxJsonSources ?? ['content'];
     const locale = props.runtime.locale.code;
-    const refNode = selectBlock(state, sources, refToOlxKey(id), locale);
+    const refNode = selectBlock(state, sources, reduxKeyToOlxKey(reduxKey), locale);
     if (!refNode) {
       return { value: '', ...blockData('error', 'Component not found') };
     }
@@ -86,11 +86,9 @@ const Ref = core({
       if (bs?.loadingState?.status === 'error') {
         return { value: '', ...blockData('error', `Target "${targetId}" not found`) };
       }
-      // Target is loading or unknown — propagate loading state
       return { value: '', ...blockData('loading') };
     }
 
-    // Check if a specific field is requested
     const rawField = refNode.attributes?.field;
     const field = typeof rawField === 'string' ? rawField : undefined;
 
@@ -98,27 +96,22 @@ const Ref = core({
     const fallback = typeof rawFallback === 'string' ? rawFallback : '';
 
     // HACK: Force absolute path for cross-block references.
-    //
-    // TODO: This is a workaround for idPrefix context differences.
-    // When Ref is rendered in one context (e.g., inside a SortableInput) but
-    // references a component rendered elsewhere (e.g., a TextArea), the idPrefix
-    // contexts differ. Absolute paths ("/id") bypass idPrefix in refToReduxKey.
-    //
-    // Proper fix: Unify ID resolution so cross-block refs work without this hack.
+    // Absolute paths ("/id") bypass idPrefix in refToReduxKey.
+    // TODO: Unify ID resolution so cross-block refs work without this hack.
     const absoluteTargetId = targetId.startsWith('/') ? targetId : `/${targetId}`;
+    const targetReduxKey = refToReduxKey(toOlxReference(absoluteTargetId));
 
     if (field) {
-      // Access specific field using fieldSelector
       const fieldInfo = fieldByName(field);
       if (!fieldInfo) {
         return { value: '', ...blockData('error', `Unknown field "${field}"`) };
       }
-      const rawValue = fieldSelector(state, { ...props, id: absoluteTargetId }, fieldInfo, { fallback });
+      const rawValue = fieldSelector(state, props, fieldInfo, { id: targetReduxKey, fallback });
       return { value: formatRefValue(rawValue, fallback), ...blockData('ready') };
     }
 
     // Use valueSelector to get the target's value — propagate its status
-    const { value: rawValue, ...status } = valueSelector(props, state, toOlxReference(absoluteTargetId), { fallback });
+    const { value: rawValue, ...status } = valueSelector(props, state, targetReduxKey, { fallback });
     return { value: formatRefValue(rawValue, fallback), ...status };
   })
 });

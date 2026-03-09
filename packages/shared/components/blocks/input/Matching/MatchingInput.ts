@@ -59,8 +59,8 @@ const MatchingInput = dev({
   component: _MatchingInput,
   isInput: true,
   fields,
-  selectValue: (props: RuntimeProps, reduxState, id) => ({
-    arrangement: fieldSelector(reduxState, { ...props, id }, fields.arrangement, { fallback: {} })
+  selectValue: (props: RuntimeProps, reduxState, _reduxKey) => ({
+    arrangement: fieldSelector(reduxState, props, fields.arrangement, { fallback: {} })
   }),
   attributes: baseAttributes.extend({
     shuffle: z.coerce.boolean().optional().describe('Whether to shuffle right side items initially (default: true)'),

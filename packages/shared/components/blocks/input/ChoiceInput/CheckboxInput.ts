@@ -43,8 +43,8 @@ const CheckboxInput = core({
   description: 'Multi-select checkbox input collecting student selections from Key/Distractor options. Value is an array.',
   component: _Noop,
   fields,
-  selectValue: (props: RuntimeProps, state, id) => {
-    const value = fieldSelector(state, { ...props, id }, fields.value, { fallback: [] });
+  selectValue: (props: RuntimeProps, state, _reduxKey) => {
+    const value = fieldSelector(state, props, fields.value, { fallback: [] });
     // Ensure array even if stored value was a string (migration case)
     if (!Array.isArray(value)) {
       return value ? [value] : [];

@@ -16,7 +16,7 @@ export function _UseHistory(props) {
 
   // If targetRef is provided, get the target from another component's value
   // Fall back to target if refValue is null/undefined (e.g., before selection)
-  const { value: refValue } = useValue(props, targetRef, { fallback: null });
+  const { value: refValue } = useValue(props, { target: targetRef, fallback: null });
   const effectiveTarget = refValue ?? target;
 
   const defaultHistory = initial ? [initial] : (effectiveTarget ? [effectiveTarget] : []);

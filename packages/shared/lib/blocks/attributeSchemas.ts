@@ -12,8 +12,8 @@
 // This allows a block to be input+grader+src without combinatorial explosion.
 //
 import { z } from 'zod';
-import { VALID_ID_SEGMENT, VALID_REDUX_STATE_KEY, toOlxReference } from './idResolver';
-import type { OlxReference } from '@/lib/types';
+import { VALID_ID_SEGMENT, VALID_REDUX_STATE_KEY, toOlxReference, toReduxStateKey } from './idResolver';
+import type { OlxReference, ReduxStateKey } from '@/lib/types';
 import { parse as parseExpr } from '@/lib/stateLanguage';
 
 /**
@@ -128,14 +128,17 @@ export const z_reduxStateKeyList = tagRefSchema(
 );
 
 // -----------------------------------------------------------------------------
-// Block.field references — transform to { ref: OlxReference, field: string }
+// Block.field references — transform to { ref: ReduxStateKey, field: string }
 // -----------------------------------------------------------------------------
 
-export type BlockFieldRef = { ref: OlxReference; field: string };
+export type BlockFieldRef = { ref: ReduxStateKey; field: string };
 
 /**
- * Split "blockId.fieldName" into { ref: OlxReference, field }.
+ * Split "blockId.fieldName" into { ref: ReduxStateKey, field }.
  * If no .field suffix, defaults field to 'value'.
+ *
+ * The ref is a ReduxStateKey (e.g. "foo", "list:#0:item") — used directly
+ * for Redux state access without re-scoping.
  */
 function splitFieldRef(val: string): BlockFieldRef {
   const dot = val.lastIndexOf('.');
@@ -143,21 +146,19 @@ function splitFieldRef(val: string): BlockFieldRef {
     const fieldPart = val.substring(dot + 1);
     if (VALID_ID_SEGMENT.test(fieldPart)) {
       const base = val.substring(0, dot);
-      try {
-        return { ref: toOlxReference(base), field: fieldPart };
-      } catch {
-        // base isn't a valid ref — treat whole string as ref
+      if (VALID_REDUX_STATE_KEY.test(base)) {
+        return { ref: toReduxStateKey(base), field: fieldPart };
       }
     }
   }
-  return { ref: toOlxReference(val), field: 'value' };
+  return { ref: toReduxStateKey(val), field: 'value' };
 }
 
-/** Single block.field reference. Transforms to { ref: OlxReference, field: string }. */
+/** Single block.field reference. Transforms to { ref: ReduxStateKey, field: string }. */
 export const z_blockFieldRef = tagRefSchema(
   z.union([
     z.string().transform(splitFieldRef),
-    z.object({ ref: z.custom<OlxReference>(), field: z.string() }),
+    z.object({ ref: z.custom<ReduxStateKey>(), field: z.string() }),
   ]),
   v => typeof v === 'object' && v?.ref ? [String(v.ref)] : [],
 );
@@ -168,7 +169,7 @@ export const z_blockFieldRefList = tagRefSchema(
     z.string().transform((val): BlockFieldRef[] =>
       val.split(',').map(s => s.trim()).filter(Boolean).map(splitFieldRef)
     ),
-    z.array(z.object({ ref: z.custom<OlxReference>(), field: z.string() })),
+    z.array(z.object({ ref: z.custom<ReduxStateKey>(), field: z.string() })),
   ]),
   v => Array.isArray(v) ? v.map(item => String(item.ref)).filter(Boolean) : [],
 );

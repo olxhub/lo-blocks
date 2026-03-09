@@ -65,8 +65,8 @@ const ChoiceInput = core({
   description: 'Single-select (radio button) input collecting student selection from Key/Distractor options. Value is a string.',
   component: _Noop,
   fields,
-  selectValue: (props: RuntimeProps, state, id) => {
-    return fieldSelector(state, { ...props, id }, fields.value, { fallback: '' });
+  selectValue: (props: RuntimeProps, state, _reduxKey) => {
+    return fieldSelector(state, props, fields.value, { fallback: '' });
   },
   attributes: baseAttributes.extend({
     target: z_reduxStateKeyList.optional().describe('Comma-separated IDs of Key/Distractor children if not directly nested'),

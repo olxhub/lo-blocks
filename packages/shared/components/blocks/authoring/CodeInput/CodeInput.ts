@@ -23,8 +23,8 @@ const CodeInput = test({
   description: 'Experimental: CodeMirror editor for in-browser code editing',
   component: _CodeInput,
   fields,
-  selectValue: ((props, reduxState, id) => {
-    const fieldValue = fieldSelector(reduxState, props, fields.value, { fallback: null, id });
+  selectValue: ((props, reduxState, _reduxKey) => {
+    const fieldValue = fieldSelector(reduxState, props, fields.value, { fallback: null });
     return fieldValue ?? props.kids ?? null;
   }) as any,
   attributes: baseAttributes.extend({

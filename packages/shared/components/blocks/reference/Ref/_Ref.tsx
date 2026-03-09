@@ -13,7 +13,7 @@ export default function _Ref(props) {
 
   // Call Ref's own selectValue via useValue - this is the single source of truth
   // for value formatting, field access, and validation
-  const { value, loading, error } = useValue(props, props.id, { fallback });
+  const { value, loading, error } = useValue(props, { fallback });
 
   if (String(visible) === 'false') {
     // Still subscribe to value but render nothing

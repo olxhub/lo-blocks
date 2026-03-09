@@ -20,10 +20,10 @@ export const fields = state.fields([
 const TextHighlight = core({
   ...peggyParser(parser),
   ...blocks.input({
-    selectValue: (props, state, id) => {
-      const selections = fieldSelector(state, props, fields.value, { fallback: [], id });
-      const attempts = fieldSelector(state, props, fields.attempts, { fallback: 0, id });
-      const score = fieldSelector(state, props, fields.score, { fallback: 0, id });
+    selectValue: (props, state, _reduxKey) => {
+      const selections = fieldSelector(state, props, fields.value, { fallback: [] });
+      const attempts = fieldSelector(state, props, fields.attempts, { fallback: 0 });
+      const score = fieldSelector(state, props, fields.score, { fallback: 0 });
       return { selections, attempts, score };
     }
   }),
