@@ -35,11 +35,7 @@ const xmlParser = new XMLParser({
   attributeNamePrefix: '',
   preserveOrder: true,
   commentPropName: '#comment',
-  // TODO what is this used for? We get an error when building
-  // that `preseverTextNodeWhiteSpaces is not a known property
-  // of XMLParser.
-  // preserveTextNodeWhiteSpaces: true,
-  trimValues: false,
+  trimValues: false,              // Preserve whitespace in text nodes
 
   // CRITICAL: Prevent automatic type conversion - see parseOLX.test.js for details
   parseTagValue: false,       // Keep tag text content as strings (not numbers/booleans)

@@ -394,27 +394,24 @@ export function useReduxCheckbox(
  * @throws {Error} If component or field not found
  */
 export function componentFieldByName(props: RuntimeProps, targetId: OlxKey | ReduxStateKey, fieldName: string) {
-  // TODO: More human-friendly errors. This is for programmers, but teachers might see these editing.
-  // Possible TODO: Move to OLXDom or similar. I'm not sure this is the best place for this.
-
   // Normalize to OlxKey: handles both bare OlxKey (unchanged) and scoped ReduxStateKey (extracts leaf)
   const normalizedId = idResolver.reduxKeyToOlxKey(targetId as ReduxStateKey);
   const sources = props.runtime.olxJsonSources ?? ['content'];
   const locale = props.runtime.locale.code;
   const targetNode = selectBlock(props.runtime.store.getState(), sources, normalizedId, locale);
   if (!targetNode) {
-    throw new Error(`componentFieldByName: Component "${targetId}" not found in content`);
+    throw new Error(`Could not find component "${targetId}". Check that the id exists in your OLX and is spelled correctly.`);
   }
 
   const targetLoBlock = props.runtime.blockRegistry[targetNode.tag];
   if (!targetLoBlock) {
-    throw new Error(`componentFieldByName: No LoBlock found for component type "${targetNode.tag}"`);
+    throw new Error(`Unknown component type <${targetNode.tag}>. This tag is not registered as a block.`);
   }
 
   const field = targetLoBlock.fields?.[fieldName];
   if (!field) {
     const availableFields = Object.keys(targetLoBlock.fields || {});
-    throw new Error(`componentFieldByName: Field "${fieldName}" not found in component "${targetId}" (${targetNode.tag}). Available fields: ${availableFields.join(', ')}`);
+    throw new Error(`<${targetNode.tag} id="${targetId}"> has no "${fieldName}" field. Available fields: ${availableFields.join(', ') || 'none'}`);
   }
 
   return field;
