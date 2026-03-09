@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
-import { useKids } from '@/lib/render';
+import { useKids, useKidsJson } from '@/lib/render';
 import HistoryBar from '@/components/common/HistoryBar';
 import NavArrow from '@/components/common/NavArrow';
 
@@ -23,9 +23,9 @@ export default function _Sequential(props) {
     0
   );
 
-  // Get the child components to display as sequence items
-  // Only render the active child for performance
-  const allKids = props.kids || [];
+  // Get kids with when= filtering applied (OlxJson, not rendered)
+  // Only the active child is rendered for performance
+  const allKids = useKidsJson(props);
   const numItems = allKids.length;
   const currentChild = index >= 0 && index < numItems ? allKids[index] : null;
 

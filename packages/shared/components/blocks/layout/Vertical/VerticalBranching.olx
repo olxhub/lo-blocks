@@ -1,0 +1,35 @@
+<Vertical id="VerticalBranchingDemo" title="Adaptive Content">
+  <Markdown id="branching_intro">
+## Adaptive Content with `when=`
+
+Answer the question. Additional content appears based on your answer.
+  </Markdown>
+
+  <CapaProblem id="branch_problem" title="Concept Check">
+    What is the capital of France?
+    <KeyGrader id="branch_grader">
+      <ChoiceInput id="branch_input">
+        <Key>Paris</Key>
+        <Distractor>London</Distractor>
+        <Distractor>Berlin</Distractor>
+        <Distractor>Madrid</Distractor>
+      </ChoiceInput>
+    </KeyGrader>
+  </CapaProblem>
+
+  <CapaProblem id="practice_problem" title="Extra Practice" when="@branch_problem.correct === correctness.incorrect">
+    Let's try a related question. What country is Paris in?
+    <KeyGrader id="practice_grader">
+      <ChoiceInput id="practice_input">
+        <Key>France</Key>
+        <Distractor>Germany</Distractor>
+        <Distractor>Spain</Distractor>
+      </ChoiceInput>
+    </KeyGrader>
+  </CapaProblem>
+
+  <Markdown id="followup_block" when="@branch_problem.correct === correctness.correct">
+**Bonus:** Paris has been the capital since the late 10th century under Hugh Capet.
+The Seine runs through the city, dividing it into the Left Bank and Right Bank.
+  </Markdown>
+</Vertical>

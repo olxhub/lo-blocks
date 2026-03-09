@@ -46,6 +46,37 @@ export const z_olx_boolean = z.union([z.enum(['true', 'false']), z.boolean()])
 export const z_olx_number = z.union([z.string(), z.number()])
   .pipe(z.coerce.number());
 
+/**
+ * OLX duration - parses human-readable duration strings into seconds.
+ * Accepts: "5 minutes", "3 hours", "1 hour 30 minutes", "2 days", or bare numbers.
+ */
+const DURATION_UNITS = {
+  s: 1, sec: 1, secs: 1, second: 1, seconds: 1,
+  m: 60, min: 60, mins: 60, minute: 60, minutes: 60,
+  h: 3600, hr: 3600, hrs: 3600, hour: 3600, hours: 3600,
+  d: 86400, day: 86400, days: 86400,
+};
+
+function parseDuration(input) {
+  const s = String(input).trim();
+  if (/^\d+(\.\d+)?$/.test(s)) return parseFloat(s);
+  const pattern = /(\d+(?:\.\d+)?)\s*(seconds?|secs?|sec|minutes?|mins?|min|hours?|hrs?|hr|days?|[smhd])\b/gi;
+  let total = 0;
+  let matched = false;
+  for (const m of s.matchAll(pattern)) {
+    const value = parseFloat(m[1]);
+    const unit = m[2].toLowerCase();
+    if (!(unit in DURATION_UNITS)) return NaN;
+    total += value * DURATION_UNITS[unit];
+    matched = true;
+  }
+  return matched ? total : NaN;
+}
+
+export const z_olx_duration = z.union([z.string(), z.number()])
+  .transform(parseDuration)
+  .refine(v => !isNaN(v) && v > 0, 'Must be a positive duration (e.g. "5 minutes", "1 hour 30 minutes", "300")');
+
 // =============================================================================
 // Reusable ID Schemas
 // =============================================================================
@@ -87,6 +118,7 @@ export const baseAttributes = z.object({
   launchable: z.string().optional().describe('Set to "true" to show in activity indexes'),
   initialPosition: z.coerce.number().optional().describe('Initial position for sortable items (1-indexed)'),
   lang: z.string().optional().describe('BCP 47 language tag (e.g., en-Latn-US, ar-Arab-SA). Overrides parent and file-level language.'),
+  when: z.string().optional().describe('State-language expression controlling visibility (e.g. "@quiz.correct === correctness.correct")'),
 }).strict();
 
 // =============================================================================

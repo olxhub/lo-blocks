@@ -121,11 +121,11 @@ export function ensureBlock(
 }
 
 /**
- * Scan loaded blocks for target= attributes and ensure those targets.
+ * Scan loaded blocks for target= and source= attributes and ensure those blocks.
  *
  * Called after a successful fetch. The idMap contains the fetched block plus
  * its static kids (from collectBlockWithKids). We scan ALL of them — if a
- * static kid has target=, we ensure that target too.
+ * static kid has target= or source=, we ensure that block too.
  *
  * Handles comma-separated targets, absolute refs (/foo), and scoped keys
  * (myList:#0:answer → ensures both myList and answer).
@@ -136,18 +136,22 @@ function ensureTargetBlocks(props: BaselineProps, idMap: IdMap, source: string):
   for (const variantMap of Object.values(idMap)) {
     // Check any variant — targets don't change across languages
     const anyVariant = Object.values(variantMap)[0] as OlxJson | undefined;
-    const target = anyVariant?.attributes?.target;
-    if (typeof target !== 'string') continue;
 
-    // Handle comma-separated targets
-    const parts = target.split(',').map(s => s.trim()).filter(Boolean);
-    for (const part of parts) {
-      // Strip /absolute and ./relative prefixes before decomposing
-      const cleaned = part.startsWith('/') ? part.slice(1)
-                    : part.startsWith('./') ? part.slice(2)
-                    : part;
-      for (const key of allOlxKeys(cleaned as ReduxStateKey)) {
-        ensureBlock(props, key, source);
+    // Scan both target= and source= attributes for block references
+    for (const attr of ['target', 'source'] as const) {
+      const refValue = anyVariant?.attributes?.[attr];
+      if (typeof refValue !== 'string') continue;
+
+      // Handle comma-separated references
+      const parts = refValue.split(',').map(s => s.trim()).filter(Boolean);
+      for (const part of parts) {
+        // Strip /absolute and ./relative prefixes before decomposing
+        const cleaned = part.startsWith('/') ? part.slice(1)
+                      : part.startsWith('./') ? part.slice(2)
+                      : part;
+        for (const key of allOlxKeys(cleaned as ReduxStateKey)) {
+          ensureBlock(props, key, source);
+        }
       }
     }
   }
