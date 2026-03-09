@@ -140,6 +140,15 @@ export function getReferences(
  * Hook count is stable regardless of whether expression is provided,
  * so it's safe to call unconditionally.
  *
+ * TODO: Surface errors to course authors. Currently, parse errors and
+ * references to nonexistent component IDs silently fall back, which can
+ * leave authors debugging invisible typos. Options:
+ * - Return { value, error } so callers can render DisplayError
+ * - Accept an onError callback
+ * - Validate extracted refs against the store (check that referenced
+ *   component IDs actually exist) and warn on unresolved references
+ * IntakeGate has a local fix for parse errors; this should generalize.
+ *
  * @param props - Component props (needed for ID resolution)
  * @param expression - DSL expression string, or undefined to skip
  * @param fallback - Value to return when expression is undefined or on error

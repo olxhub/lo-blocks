@@ -12,9 +12,9 @@
 //
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useKids } from '@/lib/render';
-import { useDSLExpression } from '@/lib/stateLanguage';
+import { parse, useDSLExpression } from '@/lib/stateLanguage';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
 
@@ -63,16 +63,50 @@ function _IntakeGate(props) {
   }
 
   // Resolve expressions: explicit props take precedence over targets-generated ones
-  const { readyExpr, loadingExpr } = useMemo(() => {
-    if (readyProp) {
-      return { readyExpr: readyProp, loadingExpr: loadingProp };
-    }
+  let readyExpr: string;
+  let loadingExpr: string | undefined;
+  if (readyProp) {
+    readyExpr = readyProp;
+    loadingExpr = loadingProp;
+  } else {
     const generated = targetsToExpressions(targets);
-    return {
-      readyExpr: generated.ready,
-      loadingExpr: loadingProp ?? generated.loading,
-    };
-  }, [targets, readyProp, loadingProp]);
+    readyExpr = generated.ready;
+    loadingExpr = loadingProp ?? generated.loading;
+  }
+
+  // Validate: targets must resolve to at least one ID
+  if (!readyExpr) {
+    return (
+      <DisplayError
+        id={id}
+        name="IntakeGate"
+        message='"targets" attribute is empty or contains only whitespace'
+        technical={{ targets }}
+      />
+    );
+  }
+
+  // Validate: authored expressions must be valid syntax
+  for (const [name, expr] of [['ready', readyProp], ['loading', loadingProp]] as const) {
+    if (expr) {
+      try { parse(expr); } catch (e: any) {
+        return (
+          <DisplayError
+            id={id}
+            name="IntakeGate"
+            message={`Invalid "${name}" expression: ${e.message}`}
+            technical={{ expression: expr }}
+          />
+        );
+      }
+    }
+  }
+
+  // TODO: Validate that IDs referenced in ready/loading/targets expressions
+  // actually exist as components. A typo like targets="outpt" (instead of
+  // "output") silently resolves to undefined, leaving the gate permanently
+  // locked with no visible error. See componentFieldByName() for a pattern
+  // that validates component existence and gives helpful error messages.
 
   // Evaluate phase expressions
   const isReady = useDSLExpression(props, readyExpr, false);
