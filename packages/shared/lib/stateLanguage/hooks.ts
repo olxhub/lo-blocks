@@ -9,6 +9,10 @@ import { useMemo } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import * as idResolver from '../blocks/idResolver';
 import type { References } from './references';
+import { EMPTY_REFS } from './references';
+import { parse } from './parser';
+import { extractStructuredRefs } from './references';
+import { evaluate, createContext } from './evaluate';
 import type { ContextData } from './evaluate';
 
 // Two-level shallow equality for ContextData: shallowEqual on each namespace
@@ -127,4 +131,49 @@ export function getReferences(
   refs: References
 ): ContextData {
   return selectReferences(store.getState(), props, refs);
+}
+
+/**
+ * Evaluate a DSL expression reactively against Redux state.
+ *
+ * Handles the full parse → extract refs → subscribe → evaluate pipeline.
+ * Hook count is stable regardless of whether expression is provided,
+ * so it's safe to call unconditionally.
+ *
+ * TODO: Surface errors to course authors. Currently, parse errors and
+ * references to nonexistent component IDs silently fall back, which can
+ * leave authors debugging invisible typos. Options:
+ * - Return { value, error } so callers can render DisplayError
+ * - Accept an onError callback
+ * - Validate extracted refs against the store (check that referenced
+ *   component IDs actually exist) and warn on unresolved references
+ * IntakeGate has a local fix for parse errors; this should generalize.
+ *
+ * @param props - Component props (needed for ID resolution)
+ * @param expression - DSL expression string, or undefined to skip
+ * @param fallback - Value to return when expression is undefined or on error
+ * @returns The evaluated result, or fallback
+ */
+export function useDSLExpression(props: any, expression: string | undefined, fallback: any = null): any {
+  const { ast, refs } = useMemo(() => {
+    if (!expression) return { ast: null, refs: EMPTY_REFS };
+    try {
+      return { ast: parse(expression), refs: extractStructuredRefs(expression) };
+    } catch (e) {
+      console.warn('[useDSLExpression] Failed to parse:', expression, e);
+      return { ast: null, refs: EMPTY_REFS };
+    }
+  }, [expression]);
+
+  const resolved = useReferences(props, refs);
+
+  return useMemo(() => {
+    if (!ast) return fallback;
+    try {
+      return evaluate(ast, createContext(resolved));
+    } catch (e) {
+      console.warn('[useDSLExpression] Failed to evaluate:', expression, e);
+      return fallback;
+    }
+  }, [ast, resolved, expression, fallback]);
 }

@@ -5,16 +5,7 @@
 //
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
-import type { IdMap, OlxJson, OlxKey, ContentVariant } from '@/lib/types';
-
-// Helper: extract first available variant from idMap for a given block ID.
-// Accepts string for convenience in tests (cast to OlxKey internally).
-const getOlxJson = (idMap: IdMap, id: string): OlxJson | undefined => {
-  const variantMap = idMap[id as OlxKey];
-  if (!variantMap) return undefined;
-  const variants = Object.keys(variantMap) as ContentVariant[];
-  return variants.length > 0 ? variantMap[variants[0]] : undefined;
-};
+import { getOlxJson } from '@/lib/test-utils';
 
 it('wires inputs and graders with explicit targeting', async () => {
   const { idMap } = await syncContentFromStorage(new FileStorageProvider('packages/shared/components/blocks/CapaProblem'));

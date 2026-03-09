@@ -6,16 +6,7 @@ import path from 'path';
 import { fileTypes } from '../lofs';
 import { FileStorageProvider } from '../lofs/providers/file';
 import { syncContentFromStorage } from './syncContentFromStorage';
-import type { IdMap, OlxJson, OlxKey, ContentVariant } from '../types';
-
-// Helper: extract first available variant from idMap for a given block ID.
-// Accepts string for convenience in tests (cast to OlxKey internally).
-const getOlxJson = (idMap: IdMap, id: string): OlxJson | undefined => {
-  const variantMap = idMap[id as OlxKey];
-  if (!variantMap) return undefined;
-  const variants = Object.keys(variantMap) as ContentVariant[];
-  return variants.length > 0 ? variantMap[variants[0]] : undefined;
-};
+import { getOlxJson } from '../test-utils';
 
 it('handles added, unchanged, changed, and deleted files via filesystem mutation', async () => {
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'content-test-'));

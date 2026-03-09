@@ -127,12 +127,8 @@ function evaluateIdentifier(name: string, context: ContextData): any {
 
   // Built-in objects
   if (name === 'Math') return Math;
-  // HACK: Object.keys() works but is instructor-unfriendly for wait conditions.
-  // TODO: Replace with instructor-friendly alternatives, then remove Object:
-  //   - isFilled(@value) - generic helper for objects, arrays, strings
-  //   - .numberFilled field on TabularMCQ
-  //   - tmcqFilled(@tabularMCQ.value) helper function
-  // Once we have better options, remove Object to keep the DSL simple.
+  // Object.keys() is still used in some existing expressions.
+  // Prefer isFilled(@value) in new content — it handles objects, arrays, and strings.
   if (name === 'Object') return Object;
 
   // DSL functions from registry (stringMatch, numericalMatch, etc.)
@@ -255,6 +251,37 @@ function evaluateCall(
 export function wordcount(str: string | null | undefined): number {
   if (!str || typeof str !== 'string') return 0;
   return str.split(/\s+/).filter(Boolean).length;
+}
+
+/**
+ * Convert plain text to markdown by doubling newlines,
+ * so that single line breaks become paragraph breaks.
+ */
+export function text2markdown(str: string | null | undefined): string {
+  if (str == null) return '';
+  if (typeof str !== 'string') throw new TypeError(`text2markdown expects a string, got ${typeof str}`);
+  return str.replace(/\n/g, '\n\n');
+}
+
+/**
+ * Check if a value is "filled" — a non-empty response has been provided.
+ *
+ * Works for any type:
+ *   - strings: non-empty after trimming
+ *   - arrays: length > 0
+ *   - objects: has at least one key
+ *   - null/undefined: false
+ *   - numbers/booleans: true (a value exists)
+ *
+ * Intended as an instructor-friendly alternative to Object.keys() checks
+ * in DSL expressions like: isFilled(@tabularMCQ.value)
+ */
+export function isFilled(value: any): boolean {
+  if (value == null) return false;
+  if (typeof value === 'string') return value.trim().length > 0;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === 'object') return Object.keys(value).length > 0;
+  return true;  // numbers, booleans — a value exists
 }
 
 /**

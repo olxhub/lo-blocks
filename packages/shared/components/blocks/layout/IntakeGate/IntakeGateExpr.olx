@@ -1,0 +1,89 @@
+<!--
+  Expression-driven IntakeGate demo (no LLM).
+
+  Uses `ready` with a DSL expression instead of the `targets` shorthand.
+  The gate forces students to commit to a prediction before revealing
+  research findings — a structure grounded in the preconception-surfacing
+  strategy from How People Learn (NRC, 2000), Chapter 1.
+
+  Syntax reference:
+    ready="wordcount(@id.value) >= 5 &amp;&amp; @other_id.value"
+    loading="@id.state == 'LLM_RUNNING'"     (optional, omitted here)
+-->
+<Vertical id="spacing_effect_demo" title="The Spacing Effect">
+
+<IntakeGate ready="wordcount(@spacing_prediction.value) >= 5 &amp;&amp; @spacing_confidence.value">
+
+  <!-- Gate phase: surface the student's preconception -->
+  <Vertical>
+    <Markdown>
+## Make a Prediction
+
+Two students are preparing for the same history exam in two weeks.
+
+- **Student A** studies for **4 hours the night before** the exam.
+- **Student B** studies for **1 hour on four different days** spread across the two weeks.
+
+Both students study the same material for the same total time (4 hours).
+
+**Who do you think will remember more on the exam, and why?** Draw on your own experience if it helps. You need to commit to a prediction before seeing what the research says.
+    </Markdown>
+    <TextArea id="spacing_prediction" rows="4" placeholder="I think Student _ will score higher because..." />
+    <Markdown>*({{wordcount(@spacing_prediction.value)}} words, 5 required)*</Markdown>
+    <Markdown>
+**How confident are you?**
+    </Markdown>
+    <ChoiceInput id="spacing_confidence">
+      <Key value="very">Very confident — I'm sure about this</Key>
+      <Key value="somewhat">Somewhat confident — I think so but I'm not sure</Key>
+      <Key value="guess">Just guessing</Key>
+    </ChoiceInput>
+  </Vertical>
+
+  <!-- Content phase: reveal the research -->
+  <Vertical>
+    <Markdown>
+## What the Research Says
+
+You said you were {{@spacing_confidence.value == 'very' ? "**very confident**" : @spacing_confidence.value == 'somewhat' ? "**somewhat confident**" : "**just guessing**"}}. Your prediction:
+
+> {{text2markdown(@spacing_prediction.value)}}
+
+The research is clear: **Student B will almost certainly score higher** — often by a wide margin.
+
+This is called the **spacing effect**, one of the most reliable findings in all of learning science. Spreading study sessions out over time produces dramatically better long-term retention than cramming the same total hours into one session, even though cramming often *feels* more effective in the moment.
+
+### Why does this happen?
+
+Each time Student B returns to the material after a gap, their brain has to work harder to retrieve it. That effort — the slight struggle of "wait, what was that again?" — is exactly what strengthens the memory. Psychologists call this a **desirable difficulty**: it feels harder in the moment but produces stronger learning.
+
+Student A, by contrast, gets a false sense of fluency. After four continuous hours, the material feels familiar — but that familiarity fades fast. By exam day, much of it is gone.
+
+### How robust is this finding?
+
+The spacing effect has been replicated hundreds of times across ages, subjects, and task types. It appears in Hattie's *Visible Learning* synthesis (effect size **d = 0.60**, well above the average intervention) and is a central theme in *How People Learn* (National Research Council, 2000). Cepeda et al. (2006) reviewed 254 studies spanning over a century of research and found spacing advantages in nearly every case.
+
+### The uncomfortable implication
+
+Most students — and many teachers — default to massed practice. Textbook chapters are assigned in blocks. Test review happens the night before. This is not because anyone examined the evidence and chose cramming. It is because massed practice *feels* productive and *scheduling* spaced practice requires planning.
+
+The spacing effect suggests that *how you schedule* study time matters as much as *how much* you study.
+
+---
+
+*Cepeda, N. J., Pashler, H., Vul, E., Wixted, J. T., &amp; Rohrer, D. (2006). Distributed practice in verbal recall tasks: A review and quantitative synthesis. Psychological Bulletin, 132(3), 354–380.*
+    </Markdown>
+
+    <Collapsible title="Reflect on your prediction">
+      <Markdown>
+- Did the answer surprise you? Why or why not?
+- Think about how you actually study. Does your approach look more like Student A or Student B?
+- What is one specific thing you could change about how you study based on this?
+      </Markdown>
+      <TextArea id="spacing_reflection" rows="4" placeholder="Looking back at my prediction..." />
+    </Collapsible>
+  </Vertical>
+
+</IntakeGate>
+
+</Vertical>

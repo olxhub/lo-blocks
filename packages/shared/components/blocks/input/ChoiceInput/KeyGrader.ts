@@ -17,10 +17,11 @@ export const fields = state.fields(['correct', 'message']);
 
 function gradeKeySelected(props, { input, inputApi }) {
   const selected = input ?? '';
+  if (!selected) return { correct: correctness.unsubmitted, message: '' };
   const choices = inputApi.getChoices();
   const choice = choices.find(c => c.value === selected);
-  // TODO: Handle the situation where nothing is selected (and possible invalid inputs; e.g. if there's a bug)
-  const correct = choice?.tag === 'Key'
+  if (!choice) return { correct: correctness.invalid, message: '' };
+  const correct = choice.tag === 'Key'
     ? correctness.correct
     : correctness.incorrect;
   return { correct, message: '' };

@@ -30,8 +30,14 @@ import type { RuntimeProps } from '@/lib/types';
 function gradeRules(props: RuntimeProps, context) {
   const blockRegistry = props.runtime.blockRegistry;
 
-  // TODO: Handle other correctness states (unsubmitted, incomplete, etc.)
-  // Currently delegated to Match rules, but may need RulesGrader-level logic
+  // Check for empty input → unsubmitted
+  // The grader() action factory doesn't handle this automatically (unlike
+  // graderFromMatch), so we check here before iterating match rules.
+  const { input } = context;
+  if (input === undefined || input === null ||
+      (typeof input === 'string' && input.trim() === '')) {
+    return { correct: correctness.unsubmitted, message: '', score: 0 };
+  }
 
   // Evaluate child Match rules in order
   const matchIds = inferRelatedNodes(props, {

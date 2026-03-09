@@ -10,6 +10,12 @@ const PROV = ['file:///test/test.xml'];
 const getOlxJson = (idMap: IdMap, id: string): OlxJson | undefined =>
   idMap[id as OlxKey]?.['*' as ContentVariant];
 
+// Helper: get all blocks with a given tag (across all IDs, language-agnostic variant).
+const getBlocksByTag = (idMap: IdMap, tag: string): OlxJson[] =>
+  Object.values(idMap)
+    .map(variantMap => variantMap['*' as ContentVariant])
+    .filter(node => node?.tag === tag);
+
 test('returns root id of single element', async () => {
   const xml = '<Vertical id="root"><TextBlock id="child"/></Vertical>';
   const { root, idMap } = await parseOLX(xml, PROV);
@@ -52,10 +58,7 @@ test('CRITICAL: Parser must preserve numeric text as strings (prevents "text.tri
   const result = await parseOLX(xml, PROV);
 
   // Find TextBlock nodes in the parsed result
-  // FIXME: idMap is now nested { id: { lang: OlxJson } }, so flatten it
-  const textBlocks = Object.entries(result.idMap)
-    .map(([_, variantMap]) => variantMap['*' as ContentVariant])
-    .filter(node => node?.tag === 'TextBlock');
+  const textBlocks = getBlocksByTag(result.idMap, 'TextBlock');
 
   expect(textBlocks.length).toBeGreaterThan(0);
 
@@ -128,10 +131,7 @@ test('TextBlock elements with same content should allow duplicates', async () =>
   expect(errors.length).toBe(0);
 
   // Both should be stored in idMap (latest overwrites)
-  // FIXME: idMap is now nested { id: { lang: OlxJson } }, so flatten it
-  const textBlocks = Object.entries(idMap)
-    .map(([_, variantMap]) => variantMap['*' as ContentVariant])
-    .filter(node => node?.tag === 'TextBlock');
+  const textBlocks = getBlocksByTag(idMap, 'TextBlock');
   expect(textBlocks.length).toBeGreaterThan(0);
 });
 
@@ -140,10 +140,7 @@ test('Markdown elements with same content should allow duplicates', async () => 
   const { errors, idMap } = await parseOLX(xml, PROV);
   expect(errors.length).toBe(0);
 
-  // FIXME: idMap is now nested { id: { lang: OlxJson } }, so flatten it
-  const markdownBlocks = Object.entries(idMap)
-    .map(([_, variantMap]) => variantMap['*' as ContentVariant])
-    .filter(node => node?.tag === 'Markdown');
+  const markdownBlocks = getBlocksByTag(idMap, 'Markdown');
   expect(markdownBlocks.length).toBeGreaterThan(0);
 });
 

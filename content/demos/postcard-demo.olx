@@ -110,6 +110,76 @@ Seville Cathedral is the largest Gothic cathedral in the world, built between 14
 [Learn more on Wikipedia](https://en.wikipedia.org/wiki/Seville_Cathedral)
 </Markdown>
 
+<Markdown id="loc_hagia_sophia" title="Hagia Sophia">
+### Hagia Sophia
+
+![Hagia Sophia](https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Hagia_Sophia_%28228968325%29.jpeg/330px-Hagia_Sophia_%28228968325%29.jpeg)
+
+Built in 537 AD by the Byzantine Emperor Justinian I, Hagia Sophia in Istanbul was the largest cathedral in the world for nearly a thousand years. After the Ottoman conquest in 1453, it was converted into a mosque, its Christian mosaics plastered over and minarets added to the skyline. Its massive dome -- 55 meters high and seemingly floating on a ring of windows -- was an engineering marvel that influenced architecture for centuries.
+
+[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Hagia_Sophia)
+</Markdown>
+
+<Markdown id="loc_petra" title="Petra">
+### Petra
+
+![Ad Deir, Petra](https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Al_Deir_Petra.JPG/330px-Al_Deir_Petra.JPG)
+
+Petra is an ancient Nabataean city carved into the red sandstone cliffs of southern Jordan. A major hub on the incense trade routes, it flourished from the 4th century BC until the Romans took control in 106 AD. The approach through the Siq -- a narrow canyon over a kilometer long -- opens to reveal the Treasury (Al-Khazneh), one of the most dramatic reveals in all of travel. Lost to the Western world for centuries, the city was rediscovered by a Swiss explorer in 1812.
+
+[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Petra)
+</Markdown>
+
+<Markdown id="loc_ziggurat_ur" title="Ziggurat of Ur">
+### Ziggurat of Ur
+
+![The Ziggurat of Ur](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Ziggarat_of_Ur_001.jpg/330px-Ziggarat_of_Ur_001.jpg)
+
+The Ziggurat of Ur rises from the flat desert of southern Iraq, built around 2100 BC by King Ur-Nammu as a temple to the Sumerian moon god Nanna. It is one of the best-preserved structures from ancient Mesopotamia -- the cradle of civilization where writing, law codes, and cities first emerged. Partially reconstructed in the 1980s, it stands near the ruins of Ur, which was one of the largest and wealthiest cities in the world four thousand years ago.
+
+[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Ziggurat_of_Ur)
+</Markdown>
+
+<Markdown id="loc_lake_turkana" title="Lake Turkana">
+### Lake Turkana
+
+![Lake Turkana](https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Lake_turkana.jpg/330px-Lake_turkana.jpg)
+
+Lake Turkana in northern Kenya is the largest permanent desert lake in the world, known as the Jade Sea for its striking blue-green color. The landscape is volcanic and wind-blasted -- lava fields, cracked earth, and water that seems to belong on another planet. The lake's eastern shore at Koobi Fora is one of the richest hominid fossil sites ever found, where discoveries like Turkana Boy have reshaped our understanding of human evolution.
+
+[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Lake_Turkana)
+</Markdown>
+
+<Markdown id="loc_qin_shi_huang" title="Tomb of Qin Shi Huang">
+### Tomb of Qin Shi Huang
+
+![The Terracotta Army](https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/51714-Terracota-Army.jpg/330px-51714-Terracota-Army.jpg)
+
+Qin Shi Huang unified China in 221 BC, standardized its writing, weights, and currency -- and ordered the burning of books from the hundred schools of thought that came before him. His mausoleum near Xi'an took 700,000 workers to build. Over 8,000 individually sculpted terracotta warriors guard the outer pits, but the central tomb has never been opened. Ancient texts describe rivers of mercury flowing through a model of his empire inside.
+
+[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Mausoleum_of_the_First_Qin_Emperor)
+</Markdown>
+
+<Markdown id="loc_forbidden_city" title="Forbidden City">
+### The Forbidden City
+
+![The Forbidden City viewed from Coal Hill](https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/The_Forbidden_City_-_View_from_Coal_Hill.jpg/330px-The_Forbidden_City_-_View_from_Coal_Hill.jpg)
+
+The Forbidden City in Beijing served as the imperial palace for almost 500 years, from 1420 to 1912. Behind its 26-foot walls and 170-foot-wide moat, 24 emperors of the Ming and Qing dynasties lived, governed, and held court in a complex of 980 buildings and nearly 9,000 rooms. Ordinary people were forbidden to enter -- hence the name. Today it is a museum that receives millions of visitors each year.
+
+[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Forbidden_City)
+</Markdown>
+
+<Markdown id="loc_west_lake" title="West Lake">
+### West Lake
+
+![West Lake, Hangzhou](https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/West_Lake%2C_Hangzhou_2025.jpg/330px-West_Lake%2C_Hangzhou_2025.jpg)
+
+West Lake in Hangzhou has inspired Chinese poets, painters, and garden designers for over a thousand years. Surrounded by misty hills, pagodas, and willow-lined causeways, it has been celebrated as a model of harmony between humanity and nature. The lake's beauty shaped garden design across East Asia -- the gardens of Suzhou, Kyoto, and Seoul all trace influence back to this spot.
+
+[Learn more on Wikipedia](https://en.wikipedia.org/wiki/West_Lake)
+</Markdown>
+
 <!-- === Personas === -->
 
 <Markdown id="persona_tourist" title="Tourist">
@@ -184,7 +254,7 @@ Has come here to sketch or paint. Sees this place in terms of light, shadow, lin
 You will write a short postcard from the perspective of someone at a famous landmark. First, choose your location.
     </Markdown>
     <Carousel id="postcard_location" wrap="true" randomize="true">
-      loc_great_wall, loc_machu_picchu, loc_pyramids, loc_colosseum, loc_taj_mahal, loc_altamira, loc_italica, loc_mezquita, loc_alhambra, loc_seville_cathedral
+      loc_great_wall, loc_machu_picchu, loc_pyramids, loc_colosseum, loc_taj_mahal, loc_altamira, loc_italica, loc_mezquita, loc_alhambra, loc_seville_cathedral, loc_hagia_sophia, loc_petra, loc_ziggurat_ur, loc_lake_turkana, loc_qin_shi_huang, loc_forbidden_city, loc_west_lake
     </Carousel>
   </Vertical>
 
@@ -273,6 +343,19 @@ Write a short postcard (4-8 sentences) from this person's perspective. Use your 
 - How you feel about being here
 - A detail that only someone in your role would notice
     </Markdown>
+    <Collapsible id="postcard_my_notes" title="My notes">
+      <Markdown id="postcard_my_notes_research">
+### Research Notes
+
+{{text2markdown(@postcard_research_notes.value)}}
+
+---
+
+### Persona Notes
+
+{{text2markdown(@postcard_persona_notes.value)}}
+      </Markdown>
+    </Collapsible>
     <TextArea id="postcard_draft" rows="8" placeholder="Dear friend, ..." />
     <Markdown id="postcard_draft_wordcount">{{wordcount(@postcard_draft.value) &lt; 20 ? "The submit button will become available once you have written enough to get feedback on." : "Keep going..."}}</Markdown>
     <ActionButton id="postcard_submit" label="Submit for Feedback" dependsOn="wordcount(@postcard_draft.value) >= 20 &amp;&amp; !@postcard_draft.readonly">
@@ -420,20 +503,20 @@ Review your work below, then export it as a PDF.
     <Markdown id="export_page2" class="print-page-break">
 ### Research Notes
 
-{{@postcard_research_notes.value}}
+{{text2markdown(@postcard_research_notes.value)}}
 
 ---
 
 ### Persona Notes
 
-{{@postcard_persona_notes.value}}
+{{text2markdown(@postcard_persona_notes.value)}}
     </Markdown>
 
     <!-- Page 3: Draft + feedback -->
     <Markdown id="export_page3" class="print-page-break">
 ### Original Draft
 
-{{@postcard_draft.value}}
+{{text2markdown(@postcard_draft.value)}}
 
 ---
 

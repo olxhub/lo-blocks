@@ -346,20 +346,15 @@ export const src = {
 // Legacy Exports (deprecated - use baseAttributes + mixins)
 // =============================================================================
 
-// TODO: Remove these after updating all block files
-// These pre-composed schemas don't handle composition well
+// Legacy pre-composed schemas — still widely used; migrate incrementally.
+// srcAttributes: ~20 block files import this
+// graderAttributes: used by createGrader.ts
 
 /** @deprecated Use baseAttributes.extend({...src}) instead */
 export const srcAttributes = baseAttributes.extend(src);
 
-/** @deprecated Factory now handles input attrs via isInput flag */
-export const inputAttributes = baseAttributes.extend(inputMixin.shape);
-
 /** @deprecated Factory now handles grader attrs via isGrader flag */
 export const graderAttributes = baseAttributes.extend(graderMixin.shape);
-
-/** @deprecated Use inputMixin.shape instead */
-export const slot = inputMixin.shape;
 
 /** Inferred type for grader attributes */
 export type GraderAttributes = z.infer<typeof graderMixin>;

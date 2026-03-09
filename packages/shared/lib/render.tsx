@@ -257,13 +257,10 @@ export function render({ node, nodeInfo, runtime }: {
   // for when actions/graders/valueSelector later need to reconstruct props.
   childNodeInfo.runtime = finalRuntime;
 
-  // TODO: We probably want more than just data-block-type. Having IDs, etc. will be
-  // very nice for debugging and introspection.
-
   // TODO: Should the wrapper be a <div> or a <span>?
   return (
     <DebugWrapper props={wrapperProps} loBlock={blockType}>
-      <div className={combinedClassName} data-block-type={tag}>
+      <div className={combinedClassName} data-block-type={tag} data-block-id={node.id}>
         <Component
           {...attributes}
           id={node.id}
