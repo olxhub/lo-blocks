@@ -21,48 +21,31 @@ describe('FileStorageProvider security', () => {
   let tempDir: string;
 
   beforeAll(async () => {
-    // Create a temp directory for tests
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'lo-blocks-test-'));
-    // Set OLX_CONTENT_DIR so our temp dir is in the allowed list
     process.env.OLX_CONTENT_DIR = tempDir;
     provider = new FileStorageProvider(tempDir);
-
-    // Create a test file
     await fs.writeFile(path.join(tempDir, 'test.olx'), '<Test>content</Test>');
   });
 
   afterAll(async () => {
-    // Cleanup
     delete process.env.OLX_CONTENT_DIR;
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
   describe('path traversal attacks', () => {
-    // toOlxRelativePath allows ".." — traversal security is the provider's job
-    test('rejects ../../../etc/passwd', async () => {
-      await expect(provider.read(toOlxRelativePath('../../../etc/passwd')))
+    test.each([
+      '../../../etc/passwd',
+      '../../etc/passwd',
+      'subdir/../../../etc/passwd',
+      'foo/bar/../../../etc/passwd',
+    ])('rejects read of %s', async (attackPath) => {
+      await expect(provider.read(toOlxRelativePath(attackPath)))
         .rejects.toThrow(/escapes base directory/);
     });
 
-    test('rejects ../../etc/passwd', async () => {
-      await expect(provider.read(toOlxRelativePath('../../etc/passwd')))
-        .rejects.toThrow(/escapes base directory/);
-    });
-
-    test('rejects ..\\..\\etc\\passwd (Windows-style)', () => {
-      // Backslash is now rejected at the type boundary by toOlxRelativePath
+    test('rejects Windows-style backslash traversal at type boundary', () => {
       expect(() => toOlxRelativePath('..\\..\\etc\\passwd'))
         .toThrow(/not allowed in filenames/);
-    });
-
-    test('rejects subdir/../../../etc/passwd', async () => {
-      await expect(provider.read(toOlxRelativePath('subdir/../../../etc/passwd')))
-        .rejects.toThrow(/escapes base directory/);
-    });
-
-    test('rejects foo/bar/../../../etc/passwd', async () => {
-      await expect(provider.read(toOlxRelativePath('foo/bar/../../../etc/passwd')))
-        .rejects.toThrow(/escapes base directory/);
     });
 
     test('rejects write with path traversal', async () => {
@@ -73,32 +56,28 @@ describe('FileStorageProvider security', () => {
 
   describe('null byte injection', () => {
     // Null bytes are rejected by toOlxRelativePath, so we use `as OlxRelativePath`
-    // to test the provider's own defense-in-depth null byte checks.
-    test('rejects path with null byte', async () => {
-      await expect(provider.read('file.olx\0.jpg' as OlxRelativePath))
-        .rejects.toThrow(/null bytes not allowed/);
-    });
-
-    test('rejects path with embedded null byte', async () => {
-      await expect(provider.read('path/to\0/file.olx' as OlxRelativePath))
-        .rejects.toThrow(/null bytes not allowed/);
-    });
-
-    test('rejects write with null byte', async () => {
-      await expect(provider.write('file\0.olx' as OlxRelativePath, 'content'))
-        .rejects.toThrow(/null bytes not allowed/);
+    // to test the provider's own defense-in-depth checks.
+    test.each([
+      ['read', 'file.olx\0.jpg'],
+      ['read', 'path/to\0/file.olx'],
+      ['write', 'file\0.olx'],
+    ])('rejects %s with null byte in: %s', async (op, attackPath) => {
+      if (op === 'read') {
+        await expect(provider.read(attackPath as OlxRelativePath))
+          .rejects.toThrow(/null bytes not allowed/);
+      } else {
+        await expect(provider.write(attackPath as OlxRelativePath, 'content'))
+          .rejects.toThrow(/null bytes not allowed/);
+      }
     });
   });
 
   describe('absolute path attempts', () => {
     // Absolute paths are rejected by toOlxRelativePath, so we use `as OlxRelativePath`
-    // to test the provider's own defense-in-depth absolute path checks.
-    test('rejects /etc/passwd', async () => {
+    // to test provider defense-in-depth.
+    test('rejects absolute path read and write', async () => {
       await expect(provider.read('/etc/passwd' as OlxRelativePath))
         .rejects.toThrow(/escapes base directory|outside allowed/);
-    });
-
-    test('rejects /tmp/evil.txt write', async () => {
       await expect(provider.write('/tmp/evil.txt' as OlxRelativePath, 'malicious'))
         .rejects.toThrow(/escapes base directory|outside allowed/);
     });
@@ -126,29 +105,18 @@ describe('FileStorageProvider security', () => {
     test('allows .. that stays within base directory', async () => {
       await fs.mkdir(path.join(tempDir, 'a', 'b'), { recursive: true });
       await provider.write(toOlxRelativePath('a/b/file.olx'), '<AB/>');
-      // a/b/../b/file.olx should resolve to a/b/file.olx
       const result = await provider.read(toOlxRelativePath('a/b/../b/file.olx'));
       expect(result.content).toBe('<AB/>');
     });
   });
 
   describe('edge cases', () => {
-    // Empty path is rejected by toOlxRelativePath, so use `as OlxRelativePath`
-    // to test provider defense-in-depth.
-    test('rejects empty path', async () => {
-      await expect(provider.read('' as OlxRelativePath))
-        .rejects.toThrow();
-    });
-
-    test('rejects path with only dots', async () => {
-      await expect(provider.read(toOlxRelativePath('..')))
-        .rejects.toThrow(/escapes base directory/);
-    });
-
-    test('rejects path starting with ./', async () => {
-      // ./../../etc/passwd
-      await expect(provider.read(toOlxRelativePath('./../../etc/passwd')))
-        .rejects.toThrow(/escapes base directory/);
+    test.each([
+      ['empty path', '' as OlxRelativePath],
+      ['only dots', toOlxRelativePath('..')],
+      ['dot-slash traversal', toOlxRelativePath('./../../etc/passwd')],
+    ])('rejects %s', async (_label, attackPath) => {
+      await expect(provider.read(attackPath)).rejects.toThrow();
     });
   });
 });
