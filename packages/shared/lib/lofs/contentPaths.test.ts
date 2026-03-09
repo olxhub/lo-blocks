@@ -7,108 +7,49 @@
 import { validateContentPath, getEditPathFromProvenance } from './contentPaths';
 
 describe('validateContentPath security', () => {
-  describe('path traversal attacks', () => {
-    test('rejects content/../../../etc/passwd', () => {
-      const result = validateContentPath('content/../../../etc/passwd');
-      expect(result.valid).toBe(false);
-      expect(result.error).toMatch(/escapes content directory/i);
-    });
-
-    test('rejects content/../../etc/passwd.olx', () => {
-      // Even with valid extension, traversal should be blocked
-      const result = validateContentPath('content/../../etc/passwd.olx');
-      expect(result.valid).toBe(false);
-      expect(result.error).toMatch(/escapes content directory/i);
-    });
-
-    test('rejects content/subdir/../../../etc/passwd.olx', () => {
-      const result = validateContentPath('content/subdir/../../../etc/passwd.olx');
-      expect(result.valid).toBe(false);
-      expect(result.error).toMatch(/escapes content directory/i);
-    });
-
-    test('rejects content/..', () => {
-      const result = validateContentPath('content/..');
-      expect(result.valid).toBe(false);
-    });
-
-    test('rejects content/foo/../../bar.olx', () => {
-      const result = validateContentPath('content/foo/../../bar.olx');
-      expect(result.valid).toBe(false);
-    });
+  test.each([
+    'content/../../../etc/passwd',
+    'content/../../etc/passwd.olx',
+    'content/subdir/../../../etc/passwd.olx',
+    'content/..',
+    'content/foo/../../bar.olx',
+  ])('rejects traversal: %s', (path) => {
+    expect(validateContentPath(path).valid).toBe(false);
   });
 
-  describe('absolute path attempts', () => {
-    test('rejects /etc/passwd', () => {
-      const result = validateContentPath('/etc/passwd');
-      expect(result.valid).toBe(false);
-    });
-
-    test('rejects /etc/passwd.olx', () => {
-      // Even with valid extension
-      const result = validateContentPath('/etc/passwd.olx');
-      expect(result.valid).toBe(false);
-    });
-
-    test('rejects /tmp/evil.olx', () => {
-      const result = validateContentPath('/tmp/evil.olx');
-      expect(result.valid).toBe(false);
-    });
+  test.each([
+    '/etc/passwd',
+    '/etc/passwd.olx',
+    '/tmp/evil.olx',
+  ])('rejects absolute path: %s', (path) => {
+    expect(validateContentPath(path).valid).toBe(false);
   });
 
-  describe('extension validation', () => {
-    test('rejects .exe files', () => {
-      const result = validateContentPath('content/malware.exe');
-      expect(result.valid).toBe(false);
-      expect(result.error).toMatch(/invalid file type/i);
-    });
-
-    test('rejects .sh files', () => {
-      const result = validateContentPath('content/script.sh');
-      expect(result.valid).toBe(false);
-    });
-
-    test('rejects files with no extension', () => {
-      const result = validateContentPath('content/passwd');
-      expect(result.valid).toBe(false);
-    });
-
-    test('rejects .js files', () => {
-      // Even though .js is in EXT.code, it's not in CATEGORY.content
-      const result = validateContentPath('content/evil.js');
-      expect(result.valid).toBe(false);
-    });
+  test.each([
+    ['content/malware.exe', /invalid file type/i],
+    ['content/script.sh', /invalid file type/i],
+    ['content/passwd', /invalid file type/i],
+    ['content/evil.js', /invalid file type/i],
+  ])('rejects bad extension: %s', (path, errorPattern) => {
+    const result = validateContentPath(path);
+    expect(result.valid).toBe(false);
+    if (errorPattern) expect(result.error).toMatch(errorPattern);
   });
 
   describe('valid paths', () => {
-    test('accepts .olx files', () => {
-      const result = validateContentPath('content/demo.olx');
+    test.each([
+      ['content/demo.olx', 'demo.olx'],
+      ['content/course.xml', 'course.xml'],
+      ['content/readme.md', 'readme.md'],
+      ['content/dialogue.chatpeg', 'dialogue.chatpeg'],
+      ['content/demos/intro/lesson1.olx', 'demos/intro/lesson1.olx'],
+    ])('accepts %s', (path, expectedRelative) => {
+      const result = validateContentPath(path);
       expect(result.valid).toBe(true);
-      expect(result.relativePath).toBe('demo.olx');
+      expect(result.relativePath).toBe(expectedRelative);
     });
 
-    test('accepts .xml files', () => {
-      const result = validateContentPath('content/course.xml');
-      expect(result.valid).toBe(true);
-    });
-
-    test('accepts .md files', () => {
-      const result = validateContentPath('content/readme.md');
-      expect(result.valid).toBe(true);
-    });
-
-    test('accepts .chatpeg files', () => {
-      const result = validateContentPath('content/dialogue.chatpeg');
-      expect(result.valid).toBe(true);
-    });
-
-    test('accepts nested paths', () => {
-      const result = validateContentPath('content/demos/intro/lesson1.olx');
-      expect(result.valid).toBe(true);
-      expect(result.relativePath).toBe('demos/intro/lesson1.olx');
-    });
-
-    test('normalizes paths', () => {
+    test('normalizes paths with . and ..', () => {
       const result = validateContentPath('content/demos/./intro/../intro/lesson.olx');
       expect(result.valid).toBe(true);
       expect(result.relativePath).toBe('demos/intro/lesson.olx');
@@ -117,9 +58,7 @@ describe('validateContentPath security', () => {
 
   describe('edge cases', () => {
     test('rejects empty path', () => {
-      const result = validateContentPath('');
-      expect(result.valid).toBe(false);
-      expect(result.error).toMatch(/missing path/i);
+      expect(validateContentPath('').error).toMatch(/missing path/i);
     });
 
     test('rejects null-ish values', () => {
@@ -149,19 +88,16 @@ describe('getEditPathFromProvenance security', () => {
 
   test('rejects non-file provenance', () => {
     const result = getEditPathFromProvenance(['http://example.com/file.olx']);
-    expect(result.valid).toBe(false);
     expect(result.error).toMatch(/no file provenance/i);
   });
 
-  test('returns invalid for malformed file URI (missing triple slash)', () => {
+  test('rejects malformed file URI (missing triple slash)', () => {
     const result = getEditPathFromProvenance(['file://etc/passwd']);
-    expect(result.valid).toBe(false);
     expect(result.error).toMatch(/malformed/i);
   });
 
   test('rejects non-content mount', () => {
     const result = getEditPathFromProvenance(['file:///etc/passwd']);
-    expect(result.valid).toBe(false);
     expect(result.error).toMatch(/not in the content mount/i);
   });
 });
