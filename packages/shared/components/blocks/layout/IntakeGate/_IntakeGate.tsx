@@ -1,20 +1,42 @@
-// src/components/blocks/layout/IntakeGate/_IntakeGate.jsx
+// src/components/blocks/layout/IntakeGate/_IntakeGate.tsx
 //
-// IntakeGate layout - gates content behind an intake process.
+// IntakeGate layout - gates content behind a readiness condition.
 //
-// Uses explicit targets attribute to know what to watch.
+// Phase logic is driven by DSL expressions:
+//   ready  → when truthy, show content (second child)
+//   loading → when truthy and not ready, show loading spinner
+//
+// The `targets` attribute is syntactic sugar for LLM flows:
+// it generates equivalent ready/loading expressions that watch
+// TextSlot value/state fields.
 //
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useKids } from '@/lib/render';
-import * as state from '@/lib/state';
-import { LLM_STATUS } from '@/lib/llm/reduxClient';
+import { useDSLExpression } from '@/lib/stateLanguage';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
 
+/**
+ * Convert a `targets` attribute into equivalent DSL expressions.
+ *
+ * targets="ctx_1,ctx_2" generates:
+ *   ready:   @ctx_1.value && @ctx_2.value
+ *   loading: @ctx_1.state == 'LLM_RUNNING' || @ctx_2.state == 'LLM_RUNNING' || @ctx_1.value || @ctx_2.value
+ */
+function targetsToExpressions(targets: string): { ready: string; loading: string } {
+  const ids = targets.split(',').map(s => s.trim()).filter(Boolean);
+  const ready = ids.map(id => `@${id}.value`).join(' && ');
+  const loading = [
+    ...ids.map(id => `@${id}.state == 'LLM_RUNNING'`),
+    ...ids.map(id => `@${id}.value`),
+  ].join(' || ');
+  return { ready, loading };
+}
+
 function _IntakeGate(props) {
-  const { kids = [], targets, id } = props;
+  const { kids = [], targets, ready: readyProp, loading: loadingProp, id } = props;
 
   // Validate: exactly 2 children required
   if (kids.length !== 2) {
@@ -28,44 +50,39 @@ function _IntakeGate(props) {
     );
   }
 
-  // Validate: targets required
-  if (!targets) {
+  // Validate: must have targets or ready
+  if (!targets && !readyProp) {
     return (
       <DisplayError
         id={id}
         name="IntakeGate"
-        message="IntakeGate requires a targets attribute listing TextSlot IDs to watch"
-        technical={{ example: '<IntakeGate targets="context_1,context_2">' }}
+        message='IntakeGate requires either a "targets" or "ready" attribute'
+        technical={{ example: '<IntakeGate ready="@output.value">' }}
       />
     );
   }
 
-  // Parse targets from comma-separated string
-  const targetIds = targets.split(',').map(s => s.trim()).filter(Boolean);
+  // Resolve expressions: explicit props take precedence over targets-generated ones
+  const { readyExpr, loadingExpr } = useMemo(() => {
+    if (readyProp) {
+      return { readyExpr: readyProp, loadingExpr: loadingProp };
+    }
+    const generated = targetsToExpressions(targets);
+    return {
+      readyExpr: generated.ready,
+      loadingExpr: loadingProp ?? generated.loading,
+    };
+  }, [targets, readyProp, loadingProp]);
+
+  // Evaluate phase expressions
+  const isReady = useDSLExpression(props, readyExpr, false);
+  const isLoading = useDSLExpression(props, loadingExpr, false);
+
+  const phase = isReady ? 'content' : isLoading ? 'loading' : 'gate';
 
   // Children
   const gateKids = kids.slice(0, 1);
   const contentKids = kids.slice(1);
-
-  // Get field from first target to use for aggregation
-  // (all targets should be same type with same fields)
-  const sampleTargetId = targetIds[0];
-  const valueField = state.componentFieldByName(props, sampleTargetId, 'value');
-  const stateField = state.componentFieldByName(props, sampleTargetId, 'state');
-
-  // Aggregate values from all targets
-  const targetValues = state.useAggregate(props, valueField, targetIds, { fallback: '' });
-  const targetStates = state.useAggregate(props, stateField, targetIds, { fallback: null });
-
-  // Compute phase from aggregated values
-  // TODO: This should check a general "Doneness" state, not LLM_STATUS specifically.
-  // Gated should be able to gate on anything - problem correctness, form completion,
-  // LLM responses, etc. LLM blocks should implement Doneness (they don't yet).
-  // For now, we check LLM_STATUS.RUNNING as a proxy for "in progress".
-  const allReady = targetValues.every(v => v != null && v !== '');
-  const anyStarted = targetStates.some(s => s === LLM_STATUS.RUNNING) || targetValues.some(v => v);
-
-  const phase = allReady ? 'content' : anyStarted ? 'loading' : 'gate';
 
   // Always render both children to build the OLX DOM tree
   // Only include the appropriate one in React output based on phase

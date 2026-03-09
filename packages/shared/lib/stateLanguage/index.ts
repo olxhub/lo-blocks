@@ -44,4 +44,4 @@ export {
 } from './functions';
 
 // React hooks (require Redux)
-export { useReferences, selectReferences, getReferences } from './hooks';
+export { useReferences, selectReferences, getReferences, useDSLExpression } from './hooks';

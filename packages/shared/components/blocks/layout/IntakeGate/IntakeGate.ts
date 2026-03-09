@@ -1,9 +1,13 @@
 // src/components/blocks/layout/IntakeGate/IntakeGate.js
 //
-// IntakeGate block - gates content behind an intake process.
+// IntakeGate block - gates content behind a readiness condition.
 //
-// Shows first child (intake form) until LLMActions populate PersonalizedText targets,
-// then reveals second child (generated content). Used for personalized content generation flows.
+// Shows first child (gate phase) until a `ready` expression is satisfied,
+// then reveals second child (content phase). Optionally shows a loading
+// spinner when a `loading` expression is satisfied.
+//
+// The `targets` attribute is shorthand for the common LLM pattern:
+// it auto-generates ready/loading expressions that watch TextSlot fields.
 //
 import { z } from 'zod';
 import { test } from '@/lib/blocks';
@@ -14,11 +18,16 @@ import _IntakeGate from './_IntakeGate';
 const IntakeGate = test({
   ...parsers.blocks(),
   name: 'IntakeGate',
-  description: 'Gates content behind an intake process - collects input, shows loading while LLM generates, then reveals content',
+  description: 'Gates content behind a readiness condition - shows first child until ready, then reveals second child',
   component: _IntakeGate,
   attributes: baseAttributes.extend({
-    targets: z.string({ required_error: 'targets is required' }).describe('Comma-separated TextSlot IDs to watch for completion'),
-  }),
+    targets: z.string().optional().describe('Comma-separated TextSlot IDs to watch (shorthand for LLM flows)'),
+    ready: z.string().optional().describe('DSL expression — when truthy, show content (second child)'),
+    loading: z.string().optional().describe('DSL expression — when truthy and not ready, show loading spinner'),
+  }).refine(
+    (attrs) => attrs.targets || attrs.ready,
+    { message: 'IntakeGate requires either a "targets" or "ready" attribute' }
+  ),
 });
 
 export default IntakeGate;
