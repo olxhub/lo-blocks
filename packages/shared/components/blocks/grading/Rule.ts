@@ -4,13 +4,13 @@
 //
 // Usage inside RulesGrader:
 //   <RulesGrader>
-//     <Rule when="stringMatch(input, 'Paris')" score="1" feedback="Correct!" />
-//     <Rule when="stringMatch(input, 'paris', { ignoreCase: true })" score="0.5" feedback="Check capitalization" />
-//     <Rule when="true" score="0" feedback="Try again" />
+//     <Rule match="stringMatch(input, 'Paris')" score="1" feedback="Correct!" />
+//     <Rule match="stringMatch(input, 'paris', { ignoreCase: true })" score="0.5" feedback="Check capitalization" />
+//     <Rule match="true" score="0" feedback="Try again" />
 //     <LineInput />
 //   </RulesGrader>
 //
-// The `when` attribute is a DSL expression that has access to:
+// The `match` attribute is a DSL expression that has access to:
 //   - input: The student's answer (single input)
 //   - inputs: Array of answers (multi-input graders)
 //   - All registered match functions (stringMatch, numericalMatch, etc.)
@@ -19,39 +19,38 @@ import { z } from 'zod';
 import { core, baseAttributes, z_reduxStateKey } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import _Noop from '@/components/blocks/layout/_Noop';
-import { parse, tryParse } from '@/lib/stateLanguage/parser';
+import { parse as parseExpr } from '@/lib/stateLanguage';
 import { evaluate, createContext } from '@/lib/stateLanguage/evaluate';
 import { correctness } from '@/lib/blocks/correctness';
 import type { RuntimeProps } from '@/lib/types';
 
+/** Pre-parsed expression: { expr, ast }. Idempotent (accepts already-parsed objects). */
+const z_expression = z.union([
+  z.string().transform(expr => ({ expr, ast: parseExpr(expr) })),
+  z.object({ expr: z.string(), ast: z.any() }),
+]);
+
 /**
- * Evaluate the `when` expression and return a grading result.
+ * Evaluate the `match` expression and return a grading result.
  *
- * This is called by RulesGrader's gradeRules function, which passes
+ * Called by RulesGrader's gradeRules function, which passes
  * the student input(s) in the context parameter.
  */
 function matchRule(props: RuntimeProps, context: { input?: any; inputs?: any[] }) {
-  const whenExpr = props.when;
+  const match = props.match;
 
-  if (!whenExpr) {
+  if (!match) {
     // No condition means always match (like DefaultMatch)
     return { correct: correctness.correct, message: '' };
   }
 
   try {
-    // Parse the expression
-    const ast = parse(whenExpr);
-
-    // Create evaluation context with input available
     const evalContext = createContext({
       input: context.input,
       inputs: context.inputs ?? [],
     });
 
-    // Evaluate the expression
-    const result = evaluate(ast, evalContext);
-
-    // Convert result to boolean
+    const result = evaluate(match.ast, evalContext);
     const matched = Boolean(result);
 
     return {
@@ -59,29 +58,12 @@ function matchRule(props: RuntimeProps, context: { input?: any; inputs?: any[] }
       message: '',
     };
   } catch (e) {
-    // Expression evaluation failed
-    console.error(`[Rule] Failed to evaluate when="${whenExpr}":`, e);
+    console.error(`[Rule] Failed to evaluate match="${match.expr}":`, e);
     return {
       correct: correctness.incorrect,
       message: `Expression error: ${e instanceof Error ? e.message : String(e)}`,
     };
   }
-}
-
-/**
- * Validate the `when` attribute is a valid DSL expression.
- */
-function validateRuleAttributes(attrs: Record<string, any>): string[] | undefined {
-  const errors: string[] = [];
-
-  if (attrs.when !== undefined && attrs.when !== '') {
-    const ast = tryParse(attrs.when);
-    if (ast === null) {
-      errors.push(`when: Invalid expression "${attrs.when}". Check syntax.`);
-    }
-  }
-
-  return errors.length > 0 ? errors : undefined;
 }
 
 const Rule = core({
@@ -90,15 +72,14 @@ const Rule = core({
   description: 'Matching rule that evaluates a DSL expression, used inside RulesGrader',
   category: 'grading',
   component: _Noop,
-  internal: true,  // Hide from main docs - used inside RulesGrader
-  isMatch: true,   // Mark as a Match block (used by RulesGrader)
+  internal: true,
+  isMatch: true,
   attributes: baseAttributes.extend({
-    when: z.string().optional().describe('DSL expression to evaluate (e.g., stringMatch(input, "Paris"))'),
+    match: z_expression.optional().describe('DSL expression to evaluate (e.g., stringMatch(input, "Paris"))'),
     score: z.coerce.number().min(0).max(1).optional().describe('Score for this rule (0-1)'),
     feedback: z.string().optional().describe('Feedback message when this rule matches'),
     feedbackBlock: z_reduxStateKey.optional().describe('ID of a block to display as feedback'),
   }).strict(),
-  validateAttributes: validateRuleAttributes,
   locals: {
     match: matchRule,
   },

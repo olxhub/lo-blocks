@@ -12,7 +12,8 @@
 // This allows a block to be input+grader+src without combinatorial explosion.
 //
 import { z } from 'zod';
-import { VALID_ID_SEGMENT, VALID_REDUX_STATE_KEY } from './idResolver';
+import { VALID_ID_SEGMENT, VALID_REDUX_STATE_KEY, toOlxReference } from './idResolver';
+import type { OlxReference } from '@/lib/types';
 import { parse as parseExpr } from '@/lib/stateLanguage';
 
 /**
@@ -82,52 +83,107 @@ export const z_olx_duration = z.union([z.string(), z.number()])
 // Reusable ID Schemas
 // =============================================================================
 
+/**
+ * Ref extractor: given a (possibly transformed) attribute value,
+ * returns the block ID strings needed for preloading.
+ */
+export type RefExtractor = (value: any) => string[];
+
+/**
+ * Tag a ref schema's _def with its extractor function.
+ * The tag survives .describe() because zod spreads _def when creating copies.
+ */
+const REF_EXTRACTOR = Symbol('refExtractor');
+function tagRefSchema<T extends z.ZodType>(schema: T, extractor: RefExtractor): T {
+  (schema as any)._def[REF_EXTRACTOR] = extractor;
+  return schema;
+}
+
 /** Single OlxKey — bare block ID, no path prefix, no scope. */
-export const z_olxKey = z.string().refine(
-  id => VALID_ID_SEGMENT.test(id),
-  id => ({ message: `"${id}" is not a valid block ID (must start with letter or underscore, then letters/digits/underscores)` })
+export const z_olxKey = tagRefSchema(
+  z.string().refine(
+    id => VALID_ID_SEGMENT.test(id),
+    id => ({ message: `"${id}" is not a valid block ID (must start with letter or underscore, then letters/digits/underscores)` })
+  ),
+  v => [v],
 );
 
 /** Single ReduxStateKey — may include scope markers (e.g. "myList:#0:answer"). */
-export const z_reduxStateKey = z.string().refine(
-  key => VALID_REDUX_STATE_KEY.test(key),
-  key => ({ message: `"${key}" is not a valid target key` })
+export const z_reduxStateKey = tagRefSchema(
+  z.string().refine(
+    key => VALID_REDUX_STATE_KEY.test(key),
+    key => ({ message: `"${key}" is not a valid target key` })
+  ),
+  v => [v],
 );
 
 /** Comma-separated ReduxStateKeys — for blocks that accept multiple targets. */
-export const z_target = z.string().refine(
-  val => val.split(',').map(s => s.trim()).filter(Boolean)
-    .every(part => VALID_REDUX_STATE_KEY.test(part)),
-  val => ({ message: `target "${val}" contains invalid key(s)` })
+export const z_reduxStateKeyList = tagRefSchema(
+  z.string().refine(
+    val => val.split(',').map(s => s.trim()).filter(Boolean)
+      .every(part => VALID_REDUX_STATE_KEY.test(part)),
+    val => ({ message: `target "${val}" contains invalid key(s)` })
+  ),
+  v => typeof v === 'string' ? v.split(',').map(s => s.trim()).filter(Boolean) : [],
 );
 
+// -----------------------------------------------------------------------------
+// Block.field references — transform to { ref: OlxReference, field: string }
+// -----------------------------------------------------------------------------
+
+export type BlockFieldRef = { ref: OlxReference; field: string };
+
 /**
- * Single ReduxStateKey with optional .field suffix.
- * If no .field, defaults to `value` at runtime.
- * E.g. "myBlock", "myBlock.correct", "list:#0:item.answer"
+ * Split "blockId.fieldName" into { ref: OlxReference, field }.
+ * If no .field suffix, defaults field to 'value'.
  */
-export const z_blockFieldRef = z.string().refine(
-  val => {
-    const dot = val.lastIndexOf('.');
-    if (dot < 0) return VALID_REDUX_STATE_KEY.test(val);
-    const base = val.substring(0, dot);
-    const field = val.substring(dot + 1);
-    return VALID_REDUX_STATE_KEY.test(base) && VALID_ID_SEGMENT.test(field);
-  },
-  val => ({ message: `"${val}" is not a valid block.field reference` })
+function splitFieldRef(val: string): BlockFieldRef {
+  const dot = val.lastIndexOf('.');
+  if (dot >= 0) {
+    const fieldPart = val.substring(dot + 1);
+    if (VALID_ID_SEGMENT.test(fieldPart)) {
+      const base = val.substring(0, dot);
+      try {
+        return { ref: toOlxReference(base), field: fieldPart };
+      } catch {
+        // base isn't a valid ref — treat whole string as ref
+      }
+    }
+  }
+  return { ref: toOlxReference(val), field: 'value' };
+}
+
+/** Single block.field reference. Transforms to { ref: OlxReference, field: string }. */
+export const z_blockFieldRef = tagRefSchema(
+  z.union([
+    z.string().transform(splitFieldRef),
+    z.object({ ref: z.custom<OlxReference>(), field: z.string() }),
+  ]),
+  v => typeof v === 'object' && v?.ref ? [String(v.ref)] : [],
+);
+
+/** Comma-separated block.field references. Transforms to BlockFieldRef[]. */
+export const z_blockFieldRefList = tagRefSchema(
+  z.union([
+    z.string().transform((val): BlockFieldRef[] =>
+      val.split(',').map(s => s.trim()).filter(Boolean).map(splitFieldRef)
+    ),
+    z.array(z.object({ ref: z.custom<OlxReference>(), field: z.string() })),
+  ]),
+  v => Array.isArray(v) ? v.map(item => String(item.ref)).filter(Boolean) : [],
 );
 
 // =============================================================================
 // Block Reference Detection
 // =============================================================================
 //
-// Schemas that represent references to other blocks. Used by ensureTargetBlocks
-// (in useOlxJson.ts) to discover which attributes need preloading — instead of
-// hardcoding attribute names like ['target', 'source'].
+// Each ref schema is tagged (via _def) with an extractor function that knows
+// how to pull block IDs from the (possibly transformed) attribute value.
+// ensureReferencedBlocks (in useOlxJson.ts) uses these to discover which
+// attributes need preloading — instead of hardcoding attribute names.
 //
-// When you create a new schema type for block references, add it here.
-
-const BLOCK_REF_SCHEMAS = new Set<z.ZodType>([z_olxKey, z_reduxStateKey, z_target, z_blockFieldRef]);
+// The tag lives on _def so it survives .describe() (which spreads _def).
+// unwrapSchema strips .optional()/.nullable()/.default() to reach the tag.
 
 /** Unwrap zod wrappers (optional, nullable, default) to find the inner schema. */
 function unwrapSchema(schema: z.ZodType): z.ZodType {
@@ -142,13 +198,13 @@ function unwrapSchema(schema: z.ZodType): z.ZodType {
 }
 
 /**
- * Returns the attribute names in a zod object schema whose types are
- * block references (z_olxKey, z_reduxStateKey, z_target).
+ * Returns the attribute names in a zod object schema that contain
+ * block references, along with extractor functions for each.
  *
- * Used by ensureTargetBlocks to discover which attributes to scan for
- * preloading, rather than hardcoding attribute names.
+ * Used by ensureReferencedBlocks to discover which attributes to scan
+ * for preloading.
  */
-export function getRefAttributes(attributeSchema: z.ZodType): string[] {
+export function getRefAttributes(attributeSchema: z.ZodType): Array<{ name: string, extractRefs: RefExtractor }> {
   const def = (attributeSchema as any)._def;
   // Handle .strict() / .passthrough() — they wrap the inner ZodObject
   if (def?.typeName === 'ZodEffects' || def?.typeName === 'ZodPipeline') {
@@ -156,10 +212,11 @@ export function getRefAttributes(attributeSchema: z.ZodType): string[] {
   }
   if (def?.typeName !== 'ZodObject') return [];
   const shape = (attributeSchema as z.ZodObject<any>).shape;
-  const refs: string[] = [];
+  const refs: Array<{ name: string, extractRefs: RefExtractor }> = [];
   for (const [name, schema] of Object.entries(shape)) {
-    if (BLOCK_REF_SCHEMAS.has(unwrapSchema(schema as z.ZodType))) {
-      refs.push(name);
+    const extractor = (unwrapSchema(schema as z.ZodType) as any)._def?.[REF_EXTRACTOR];
+    if (extractor) {
+      refs.push({ name, extractRefs: extractor });
     }
   }
   return refs;
@@ -209,7 +266,7 @@ export const inputMixin = z.object({
 export const graderMixin = z.object({
   answer: z.string().optional().describe('Expected answer for grading'),
   displayAnswer: z.string().optional().describe('Answer shown to student (may differ from grading answer)'),
-  target: z_target.optional().describe('Target input ID(s) to grade, comma-separated for multi-input graders (inferred if omitted)'),
+  target: z_reduxStateKeyList.optional().describe('Target input ID(s) to grade, comma-separated for multi-input graders (inferred if omitted)'),
 });
 
 // =============================================================================
