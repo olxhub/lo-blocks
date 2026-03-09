@@ -13,6 +13,7 @@
 //
 import { z } from 'zod';
 import { VALID_ID_SEGMENT, VALID_REDUX_STATE_KEY } from './idResolver';
+import { parse as parseExpr } from '@/lib/stateLanguage';
 
 /**
  * Zod refinement for validating OLX IDs.
@@ -118,7 +119,11 @@ export const baseAttributes = z.object({
   launchable: z.string().optional().describe('Set to "true" to show in activity indexes'),
   initialPosition: z.coerce.number().optional().describe('Initial position for sortable items (1-indexed)'),
   lang: z.string().optional().describe('BCP 47 language tag (e.g., en-Latn-US, ar-Arab-SA). Overrides parent and file-level language.'),
-  when: z.string().optional().describe('State-language expression controlling visibility (e.g. "@quiz.correct === correctness.correct")'),
+  when: z.union([
+    z.string().transform(expr => ({ expr, ast: parseExpr(expr) })),
+    z.object({ expr: z.string(), ast: z.any() }),
+  ]).optional()
+    .describe('State-language expression controlling visibility (e.g. "@quiz.correct === correctness.correct")'),
 }).strict();
 
 // =============================================================================

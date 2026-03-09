@@ -26,7 +26,7 @@ import { blockData } from '@/lib/state/redux';
 import { refToOlxKey } from '@/lib/blocks/idResolver';
 import { selectBlock } from '@/lib/state/olxjson';
 import {
-  parse, evaluate, createContext,
+  evaluate, createContext,
   extractStructuredRefs, mergeReferences, EMPTY_REFS,
   useReferences,
 } from '@/lib/stateLanguage';
@@ -116,34 +116,28 @@ export function useBlock(
 // dependencies via useReferences (one hook call with merged refs),
 // evaluates each, and filters out kids whose condition is false.
 
-function getWhenAttr(kid, storeState, sources, locale) {
-  if (kid?.type === 'block' && kid.id) {
+// Returns the pre-parsed { expr, ast } from the when= attribute, or undefined.
+function getWhen(kid, props) {
+  if (kid.type === 'block') {
     const olxKey = refToOlxKey(kid.id);
-    const block = selectBlock(storeState, sources, olxKey, locale);
-    return block?.attributes?.when;
+    const state = props.runtime.store.getState();
+    const sources = props.runtime.olxJsonSources ?? ['content'];
+    const block = selectBlock(state, sources, olxKey, props.runtime.locale.code);
+    if (!block) throw new Error(`[when] Block "${kid.id}" not found in content store`);
+    return block.attributes.when;
   }
-  if (kid?.tag && kid?.attributes?.when) {
+  if (kid.tag) {
     return kid.attributes.when;
   }
-  return null;
+  return undefined;
 }
 
-function collectWhenExprs(rawKids, runtime) {
-  if (!Array.isArray(rawKids) || !runtime?.store) return {};
-  const storeState = runtime.store.getState();
-  const sources = runtime.olxJsonSources ?? ['content'];
-  const locale = runtime.locale?.code;
+function collectWhens(kids, props) {
   const map = {};
-
-  for (const kid of rawKids) {
-    const expr = getWhenAttr(kid, storeState, sources, locale);
-    if (!expr) continue;
-    const key = kid.id || kid.key;
-    try {
-      map[key] = { expr, ast: parse(expr) };
-    } catch (e) {
-      console.warn(`[useKids] Failed to parse when="${expr}":`, e);
-    }
+  for (const kid of kids) {
+    const when = getWhen(kid, props);
+    if (!when) continue;
+    map[kid.id] = when;
   }
   return map;
 }
@@ -156,12 +150,10 @@ function collectWhenExprs(rawKids, runtime) {
  * just render all children should use useKids() instead.
  */
 export function useKidsJson(props) {
-  const { kids: rawKids = [], runtime } = props;
+  const rawKids = props.kids || [];
 
-  const whenMap = useMemo(
-    () => collectWhenExprs(rawKids, runtime),
-    [rawKids, runtime]
-  );
+  // rawKids is the real dependency; runtime.store and locale are stable across renders
+  const whenMap = useMemo(() => collectWhens(rawKids, props), [rawKids]);
 
   const allRefs = useMemo(() => {
     const entries = Object.values(whenMap) as { expr: string }[];
@@ -173,18 +165,12 @@ export function useKidsJson(props) {
   const resolved = useReferences(props, allRefs);
 
   return useMemo(() => {
-    if (!Array.isArray(rawKids) || Object.keys(whenMap).length === 0) return rawKids;
+    if (Object.keys(whenMap).length === 0) return rawKids;
     const ctx = createContext(resolved);
     return rawKids.filter(kid => {
-      const key = kid.id || kid.key;
-      const entry = (whenMap as any)[key];
-      if (!entry) return true;
-      try {
-        return Boolean(evaluate(entry.ast, ctx));
-      } catch (e) {
-        console.warn(`[useKids] Failed to evaluate when="${entry.expr}":`, e);
-        return true;
-      }
+      const when = whenMap[kid.id];
+      if (!when) return true;
+      return Boolean(evaluate(when.ast, ctx));
     });
   }, [rawKids, whenMap, resolved]);
 }

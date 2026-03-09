@@ -23,11 +23,47 @@ export default function _Sequential(props) {
     0
   );
 
-  // Get kids with when= filtering applied (OlxJson, not rendered)
-  // Only the active child is rendered for performance
-  const allKids = useKidsJson(props);
-  const numItems = allKids.length;
-  const currentChild = index >= 0 && index < numItems ? allKids[index] : null;
+  // Get kids with when= filtering applied (OlxJson, not rendered).
+  // Only the active child is rendered for performance.
+  const kidsJson = useKidsJson(props);
+  const numItems = kidsJson.length;
+
+  // TODO: Clamp index if when= filtering shrinks the list.
+  //
+  // Known limitation: we track position, not identity. If when= filtering
+  // removes an item *before* the current position, the view jumps. E.g.
+  // viewing item 3 of [a,b,c,d], b disappears → now at position 3 of
+  // [a,c,d] = d, not c.
+  //
+  // The right fix is a shared useKidCursor hook that:
+  //   1. Computes instance-counted IDs from the *unfiltered* props.kids
+  //      (stable structure), e.g. foo.0, bar.0, foo.1
+  //   2. Stores the stable identity (not position) in Redux
+  //   3. Resolves into the filtered list: exact match → base ID match →
+  //      clamped position
+  //   4. Maintains the key list in an independent structure on the parent
+  //      node (not on the OlxJson nodes themselves, since keys are a
+  //      sibling-list property, not a node property — <Use> means the
+  //      same node appears in multiple positions with different keys)
+  //
+  // Candidate signature:
+  //   const { kid, index, count, next, prev, goto } =
+  //     useKidCursor(props, filteredKids, fields.index);
+  //
+  // - kid: current OlxJson node (or null)
+  // - index: position in filtered list
+  // - count: filteredKids.length
+  // - next(n=1), prev(n=1): relative navigation, clamps to bounds
+  // - goto(i): jump to filtered index, stores stable identity
+  // - Redux value is the reduxId of the current item, so expressions
+  //   like `@sequential.value === 'myquestion'` work for gating/events
+  //
+  // Generalizes to Navigator, SideBarPanel, lazy loading, etc.
+  // Deferred until when= + Sequential + mid-session filtering is common.
+  const clampedIndex = Math.min(index, numItems - 1);
+  if (clampedIndex !== index && numItems > 0) setIndex(clampedIndex);
+
+  const currentChild = clampedIndex >= 0 && clampedIndex < numItems ? kidsJson[clampedIndex] : null;
 
   // Navigation handlers
   const handlePrev = () => {
@@ -57,7 +93,7 @@ export default function _Sequential(props) {
       <div className="flex justify-center mb-6 p-4 border-b">
         <HistoryBar
           history={history}
-          index={index}
+          index={clampedIndex}
           showDots={true}
           onPrev={handlePrev}
           onNext={handleNext}
@@ -68,7 +104,7 @@ export default function _Sequential(props) {
       {/* Current sequence item */}
       <div className="flex-1">
         {currentChild && (
-          <div key={index} className="min-h-96">
+          <div key={`${currentChild.id}.${clampedIndex}`} className="min-h-96">
             <SequentialItem props={props} node={currentChild} />
           </div>
         )}
@@ -87,7 +123,7 @@ export default function _Sequential(props) {
         ) : <div />}
 
         <div className="text-sm text-gray-500">
-          {index + 1} of {numItems}
+          {clampedIndex + 1} of {numItems}
         </div>
 
         {numItems > 1 ? (
