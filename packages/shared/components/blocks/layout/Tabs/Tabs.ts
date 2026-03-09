@@ -16,8 +16,8 @@ const Tabs = dev({
   component: _Tabs,
   fields: fields,
   // as any: See selectValue spec in lib/blocks/actions.tsx
-  selectValue: ((props, state, id) => {
-    const activeTab = fieldSelector(state, props, fields.activeTab, { fallback: 0, id });
+  selectValue: ((props, state, _reduxKey) => {
+    const activeTab = fieldSelector(state, props, fields.activeTab, { fallback: 0 });
     return { activeTab };
   }) as any,
   attributes: baseAttributes.strict(),

@@ -1,0 +1,12 @@
+<Vertical id="CopyFieldActionDemo" title="CopyFieldAction">
+  <Markdown id="copy_intro">
+## Copy Field Demo
+
+Type in the first text area, then click "Copy" to duplicate the text into the second area.
+  </Markdown>
+  <TextArea id="copy_source" rows="2" placeholder="Type something here..." />
+  <TextArea id="copy_target" rows="2" placeholder="Copied text will appear here" />
+  <ActionButton id="copy_btn" label="Copy Text">
+    <CopyFieldAction target="copy_source" output="copy_target" />
+  </ActionButton>
+</Vertical>

@@ -25,10 +25,10 @@ const Navigator = dev({
   component: _Navigator,
   fields: fields,
   // as any: See selectValue spec in lib/blocks/actions.tsx
-  selectValue: ((props, state, id) => {
-    const selectedItem = fieldSelector(state, props, fields.selectedItem, { fallback: null, id });
-    const searchQuery = fieldSelector(state, props, fields.searchQuery, { fallback: '', id });
-    const viewMode = fieldSelector(state, props, fields.viewMode, { fallback: 'default', id });
+  selectValue: ((props, state, _reduxKey) => {
+    const selectedItem = fieldSelector(state, props, fields.selectedItem, { fallback: null });
+    const searchQuery = fieldSelector(state, props, fields.searchQuery, { fallback: '' });
+    const viewMode = fieldSelector(state, props, fields.viewMode, { fallback: 'default' });
     return { selectedItem, searchQuery, viewMode };
   }) as any,
   attributes: srcAttributes.extend({

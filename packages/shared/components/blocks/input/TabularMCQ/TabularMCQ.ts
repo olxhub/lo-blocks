@@ -23,8 +23,8 @@ export const fields = state.fields([commonFields.value]);
 const TabularMCQ = core({
   ...peggyParser(parser),
   ...blocks.input({
-    selectValue: (props, reduxState, id) => {
-      const value = fieldSelector(reduxState, { ...props, id }, fields.value, { fallback: {} });
+    selectValue: (props, reduxState, _reduxKey) => {
+      const value = fieldSelector(reduxState, props, fields.value, { fallback: {} });
       return value;  // { rowId: colIndex } for radio, { rowId: [colIndex, ...] } for checkbox
     }
   }),
@@ -105,8 +105,8 @@ const TabularMCQ = core({
     },
 
     // Calculate total score based on selections and column values
-    getScore: (props, reduxState, id) => {
-      const value = fieldSelector(reduxState, { ...props, id }, fields.value, { fallback: {} });
+    getScore: (props, reduxState) => {
+      const value = fieldSelector(reduxState, props, fields.value, { fallback: {} });
       const cols = props.kids.parsed.cols;
       let total = 0;
       Object.values(value).forEach(colIdx => {

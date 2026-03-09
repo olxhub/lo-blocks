@@ -266,15 +266,19 @@ export const xml = {
 };
 
 // Assumes we have a list of OLX-style Blocks. E.g. for a learning sequence.
-// Options:
+// Options (on createBlocksParser):
 //   allowHTML: true - include HTML tags and text as mixed content for rendering
 //                     Returns: [{ type: 'block', id }, { type: 'html', tag, ... }, { type: 'text', text }, ...]
 //   allowHTML: false (default) - only process block tags, filter out HTML/text
 //                     Returns: [{ id }, { id }, ...]
+// Options (on factory call, e.g. blocks({ requiredChildren: 2 })):
+//   requiredChildren: N - enforce exactly N block children at parse time.
+//                     Children cannot use when= (filtering would break the
+//                     fixed structure). E.g. SplitPanel requires exactly 2.
 function createBlocksParser(options: { allowHTML?: boolean } = {}) {
   const { allowHTML = false } = options;
 
-  async function blocksParser({ rawKids, parseNode }) {
+  async function blocksParser({ rawKids, parseNode, tag: parentTag = undefined, requiredChildren = undefined }) {
     const results: any[] = [];
 
     for (let index = 0; index < rawKids.length; index++) {
@@ -298,6 +302,15 @@ function createBlocksParser(options: { allowHTML?: boolean } = {}) {
       const isBlock = tag[0] === tag[0].toUpperCase();
 
       if (isBlock) {
+        // when= is incompatible with requiredChildren — filtering would
+        // break the fixed child structure the parent depends on.
+        if (requiredChildren && child[':@']?.when) {
+          throw new Error(
+            `<${tag}> inside <${parentTag}> cannot use when= ` +
+            `(${parentTag} requires exactly ${requiredChildren} children)`
+          );
+        }
+
         const result = await parseNode(child, rawKids, index);
         if (result?.id) {
           results.push(allowHTML ? { type: 'block', id: result.id } : result);
@@ -316,6 +329,12 @@ function createBlocksParser(options: { allowHTML?: boolean } = {}) {
           kids: childResults
         });
       }
+    }
+
+    if (requiredChildren && results.length !== requiredChildren) {
+      throw new Error(
+        `<${parentTag}> requires exactly ${requiredChildren} block children, got ${results.length}`
+      );
     }
 
     return results;

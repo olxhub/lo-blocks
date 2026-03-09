@@ -27,15 +27,38 @@ import { useKids } from '@/lib/render';
 // But this works for now.
 const ERROR_DEBOUNCE_MS = 600;
 
+const CHROME_STYLE: React.CSSProperties = {
+  border: '1px dashed #ccc',
+  borderRadius: '4px',
+  padding: '8px',
+  minHeight: '2em',
+  position: 'relative',
+};
+
+const CHROME_LABEL_STYLE: React.CSSProperties = {
+  position: 'absolute',
+  top: '-0.6em',
+  left: '8px',
+  background: 'white',
+  padding: '0 4px',
+  fontSize: '0.75em',
+  color: '#999',
+};
+
+function ChromeLabel({ title }: { title?: string }) {
+  if (!title) return null;
+  return <span style={CHROME_LABEL_STYLE}>{title}</span>;
+}
+
 function _OlxSlot(props) {
-  const { id, fields, target, debounce: debounceMs = 150 } = props;
+  const { id, fields, target, title, debounce: debounceMs = 150, chrome = false } = props;
 
   // Mode 1: Read from own value field (LLMAction writes here)
   const ownValue = useFieldSelector(props, fields.value, { fallback: '', id });
   const status = useFieldSelector(props, fields.state, { fallback: LLM_STATUS.INIT, id });
 
   // Mode 2: Read from target component's selectValue (respects initial content, etc.)
-  const { value: targetValue } = useValue(props, target, { fallback: '' });
+  const { value: targetValue } = useValue(props, { target, fallback: '' });
 
   // Use target value if target is set, otherwise own value
   const rawOlx = target ? targetValue : ownValue;
@@ -111,10 +134,14 @@ function _OlxSlot(props) {
   // Children are placeholder content (text or blocks) shown when empty
   const { kids } = useKids(props);
 
+  const chromeStyle = chrome ? CHROME_STYLE : undefined;
+  const label = chrome ? <ChromeLabel title={title} /> : null;
+
   // Loading state (from LLMAction)
   if (!target && status === LLM_STATUS.RUNNING) {
     return (
-      <div className="olx-slot olx-slot--loading">
+      <div className="olx-slot olx-slot--loading" style={chromeStyle}>
+        {label}
         <Spinner>Generating content...</Spinner>
       </div>
     );
@@ -123,7 +150,8 @@ function _OlxSlot(props) {
   // Error state (from LLMAction)
   if (!target && status === LLM_STATUS.ERROR) {
     return (
-      <div className="olx-slot olx-slot--error">
+      <div className="olx-slot olx-slot--error" style={chromeStyle}>
+        {label}
         <DisplayError name="OlxSlot" message={ownValue || 'Content generation failed'} />
       </div>
     );
@@ -133,7 +161,8 @@ function _OlxSlot(props) {
   // parseError holds the bad OLX string; RenderOLX will show its nice error display
   if (target && parseError && !olxString) {
     return (
-      <div className="olx-slot olx-slot--error">
+      <div className="olx-slot olx-slot--error" style={chromeStyle}>
+        {label}
         <RenderOLX
           id={id}
           inline={parseError}
@@ -145,14 +174,18 @@ function _OlxSlot(props) {
     );
   }
 
-  // Empty state — show placeholder children if provided
+  // Empty state — show placeholder children if provided, or chrome container
   if (!olxString || !olxString.trim()) {
-    return kids.length > 0 ? <div className="olx-slot olx-slot--placeholder">{kids}</div> : null;
+    if (kids.length > 0) {
+      return <div className="olx-slot olx-slot--placeholder" style={chromeStyle}>{label}{kids}</div>;
+    }
+    return chrome ? <div className="olx-slot olx-slot--empty" style={chromeStyle}>{label}</div> : null;
   }
 
   // Render OLX (last valid version), with stale indicator or error
   return (
-    <div className={`olx-slot olx-slot--rendered${stale ? ' olx-slot--stale' : ''}`}>
+    <div className={`olx-slot olx-slot--rendered${stale ? ' olx-slot--stale' : ''}`} style={chromeStyle}>
+      {label}
       {stale && !parseError && (
         <div className="olx-slot-stale-indicator">
           Editing...

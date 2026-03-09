@@ -199,7 +199,8 @@ export function grader({ grader, infer = true, slots, inputType }: {
       }
       const loBlock = map[inst.tag];
       // OlxKey → ReduxStateKey (applies runtime.idPrefix for DynamicList scoping)
-      const inputNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id, idPrefix: props.runtime?.idPrefix }));
+      const inputReduxKey = refToReduxKey({ id, idPrefix: props.runtime?.idPrefix });
+      const inputNodeInfo = getDomNodeByReduxKey(props, inputReduxKey);
 
       // Use the input's own runtime (captured at render time) for correct idPrefix,
       // logEvent context, etc. Falls back to caller's runtime if nodeInfo unavailable.
@@ -215,7 +216,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
       };
 
       // Use valueSelector for uniform handling of withStatus / raw selectValue
-      const { value } = valueSelector(inputProps as RuntimeProps, state, id as OlxReference);
+      const { value } = valueSelector(inputProps as RuntimeProps, state, inputReduxKey);
 
       // Create bound API from locals - each function gets (props, state, id) pre-bound
       const api = loBlock.locals

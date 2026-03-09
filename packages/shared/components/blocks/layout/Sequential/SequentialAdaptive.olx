@@ -1,0 +1,27 @@
+<Sequential id="SequentialAdaptiveDemo" title="Adaptive Sequence">
+  <CapaProblem id="seq_check" title="Concept Check">
+    How many sides does a hexagon have?
+    <NumericalGrader id="seq_grader" answer="6" tolerance="0">
+      <NumberInput id="seq_answer" placeholder="Enter a number" />
+    </NumericalGrader>
+  </CapaProblem>
+
+  <Markdown id="scaffold_review" title="Review" when="@seq_check.correct === correctness.incorrect">
+### Let's review
+
+The prefix *hex-* means six. Think of other hex- words:
+- **Hexadecimal** — base-16 (but the prefix still means six!)
+- **Hexapod** — six-legged creature (insects)
+  </Markdown>
+
+  <CapaProblem id="seq_retry" title="Try Again" when="@seq_check.correct === correctness.incorrect">
+    Now that you've reviewed: how many sides does a hexagon have?
+    <NumericalGrader id="seq_retry_grader" answer="6" tolerance="0">
+      <NumberInput id="seq_retry_answer" placeholder="Enter a number" />
+    </NumericalGrader>
+  </CapaProblem>
+
+  <Markdown id="seq_summary" title="Summary">
+A hexagon has **6 sides**. The prefix *hex-* is from Greek, meaning six.
+  </Markdown>
+</Sequential>

@@ -20,6 +20,7 @@ import {
   dispatchOlxJsonError
 } from '@/lib/state/olxjson';
 import { refToOlxKey, allOlxKeys } from '@/lib/blocks/idResolver';
+import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, OlxKey, OlxReference, ReduxStateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
 import type { LogEventFn } from '@/lib/render';
@@ -66,9 +67,10 @@ const ensuredIds = new Set<string>();
  * and triggers an async fetch. If it's already known (loading, ready, or
  * error), this is a no-op.
  *
- * After a successful fetch, scans all loaded blocks for `target=` attributes
- * and recursively ensures those targets are loaded too. This prevents the
- * Ref deadlock: Ref loads itself, but nobody loads its target.
+ * After a successful fetch, scans all loaded blocks for attributes that
+ * reference other blocks (discovered from the zod schema via getRefAttributes)
+ * and recursively ensures those are loaded too. This prevents the Ref
+ * deadlock: Ref loads itself, but nobody loads its target.
  *
  * NOT a hook — safe to call from useEffect, event handlers, callbacks, etc.
  * Do NOT call from render functions or Redux selectors.
@@ -106,8 +108,8 @@ export function ensureBlock(
         dispatchOlxJsonError(props, source, olxKey, data.error || `Failed to load ${olxKey}`);
       } else {
         dispatchOlxJson(props, source, data.idMap);
-        // Recursively ensure blocks referenced by target= attributes
-        ensureTargetBlocks(props, data.idMap, source);
+        // Recursively ensure blocks referenced by ref-typed attributes
+        ensureReferencedBlocks(props, data.idMap, source);
       }
     })
     .catch(err => {
@@ -121,33 +123,47 @@ export function ensureBlock(
 }
 
 /**
- * Scan loaded blocks for target= attributes and ensure those targets.
+ * Scan loaded blocks for attributes that reference other blocks and ensure
+ * those blocks are loaded.
+ *
+ * Which attributes to scan is determined by the block's zod schema — any
+ * attribute tagged with a ref extractor (z_olxKey, z_reduxStateKey, z_reduxStateKeyList,
+ * z_blockFieldRef, z_blockFieldRefList) is automatically discovered via
+ * getRefAttributes(). Each schema knows how to extract block IDs from its
+ * (possibly transformed) value.
  *
  * Called after a successful fetch. The idMap contains the fetched block plus
- * its static kids (from collectBlockWithKids). We scan ALL of them — if a
- * static kid has target=, we ensure that target too.
+ * its static kids (from collectBlockWithKids). We scan ALL of them.
  *
- * Handles comma-separated targets, absolute refs (/foo), and scoped keys
+ * Handles absolute refs (/foo) and scoped keys
  * (myList:#0:answer → ensures both myList and answer).
  *
- * Recursive: when a target loads, ITS targets get ensured in turn.
+ * Recursive: when a referenced block loads, ITS references get ensured in turn.
  */
-function ensureTargetBlocks(props: BaselineProps, idMap: IdMap, source: string): void {
-  for (const variantMap of Object.values(idMap)) {
-    // Check any variant — targets don't change across languages
-    const anyVariant = Object.values(variantMap)[0] as OlxJson | undefined;
-    const target = anyVariant?.attributes?.target;
-    if (typeof target !== 'string') continue;
 
-    // Handle comma-separated targets
-    const parts = target.split(',').map(s => s.trim()).filter(Boolean);
-    for (const part of parts) {
-      // Strip /absolute and ./relative prefixes before decomposing
-      const cleaned = part.startsWith('/') ? part.slice(1)
-                    : part.startsWith('./') ? part.slice(2)
-                    : part;
-      for (const key of allOlxKeys(cleaned as ReduxStateKey)) {
-        ensureBlock(props, key, source);
+function ensureReferencedBlocks(props: BaselineProps, idMap: IdMap, source: string): void {
+  const blockRegistry = props.runtime.blockRegistry ?? {};
+  for (const variantMap of Object.values(idMap)) {
+    // Check any variant — refs don't change across languages
+    const anyVariant = Object.values(variantMap)[0] as OlxJson | undefined;
+    if (!anyVariant?.tag) continue;
+
+    const block = blockRegistry[anyVariant.tag];
+    const refAttrs = block?.attributes ? getRefAttributes(block.attributes) : [];
+
+    for (const { name, extractRefs } of refAttrs) {
+      const refValue = anyVariant.attributes?.[name];
+      if (refValue == null) continue;
+
+      const refs = extractRefs(refValue);
+      for (const ref of refs) {
+        // Strip /absolute and ./relative prefixes before decomposing
+        const cleaned = ref.startsWith('/') ? ref.slice(1)
+                      : ref.startsWith('./') ? ref.slice(2)
+                      : ref;
+        for (const key of allOlxKeys(cleaned as ReduxStateKey)) {
+          ensureBlock(props, key, source);
+        }
       }
     }
   }

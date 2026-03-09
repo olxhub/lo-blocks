@@ -4,7 +4,7 @@
 // For single-select (radio buttons), use ChoiceInput instead.
 //
 import { z } from 'zod';
-import { core, getBlockByOLXId, z_target } from '@/lib/blocks';
+import { core, getBlockByOLXId, z_reduxStateKeyList } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
@@ -43,8 +43,8 @@ const CheckboxInput = core({
   description: 'Multi-select checkbox input collecting student selections from Key/Distractor options. Value is an array.',
   component: _Noop,
   fields,
-  selectValue: (props: RuntimeProps, state, id) => {
-    const value = fieldSelector(state, { ...props, id }, fields.value, { fallback: [] });
+  selectValue: (props: RuntimeProps, state, _reduxKey) => {
+    const value = fieldSelector(state, props, fields.value, { fallback: [] });
     // Ensure array even if stored value was a string (migration case)
     if (!Array.isArray(value)) {
       return value ? [value] : [];
@@ -52,7 +52,7 @@ const CheckboxInput = core({
     return value;
   },
   attributes: baseAttributes.extend({
-    target: z_target.optional().describe('Comma-separated IDs of Key/Distractor children if not directly nested'),
+    target: z_reduxStateKeyList.optional().describe('Comma-separated IDs of Key/Distractor children if not directly nested'),
   }),
   locals: {
     getChoices

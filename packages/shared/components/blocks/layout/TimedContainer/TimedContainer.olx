@@ -1,0 +1,6 @@
+<TimedContainer id="timed_exercise" title="Timed Quick-Write" duration="30 seconds"
+  before="Don't worry about grammar or spelling — just get your ideas out."
+  after="Nice work! Review what you wrote above.">
+  <Markdown>Write everything you know about the water cycle:</Markdown>
+  <TextArea id="timed_response" rows="5" placeholder="Start writing..." />
+</TimedContainer>

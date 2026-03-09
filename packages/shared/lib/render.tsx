@@ -390,8 +390,9 @@ export function renderCompiledKids(props): React.ReactNode[] {
 // - useBlock(props, id) - Render a single block with loading/error handling
 // - useKids(props) - Render children from props.kids
 // - useKidsWithState(props) - Like useKids but exposes ready/error state
+// - useKidsJson(props) - Raw kids with when= filtering (for structural access)
 //
-export { useBlock, useKids, useKidsWithState } from '@/lib/blocks/useRenderedBlock';
+export { useBlock, useKids, useKidsWithState, useKidsJson } from '@/lib/blocks/useRenderedBlock';
 
 /**
  * Render an OlxJson node directly (no idMap lookup needed).

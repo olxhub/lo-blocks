@@ -4,6 +4,7 @@
 // dynamic content DAG.
 
 import * as state from '@/lib/state';
+import * as idResolver from './idResolver';
 import { refToOlxKey, toOlxReference } from './idResolver';
 import type { OlxDomNode, OlxDomSelector, OlxKey, OlxReference, ReduxStateKey, RuntimeProps } from '@/lib/types';
 //
@@ -350,12 +351,12 @@ export function getInputs(props, { infer }: { infer? } = {}) {
  */
 export function getValueById(props: RuntimeProps, id: OlxReference | null | undefined) {
   const reduxState = props.runtime.store.getState();
+  const reduxKey = id ? idResolver.refToReduxKey({ ...props, id }) : null;
 
-  // valueSelector handles all ID resolution (refToOlxKey for lookup, proper
-  // prefix handling for state access) - blocks don't need to know about IDs.
+  // valueSelector handles content lookup and selectValue dispatch.
   // Unwrap .value — non-hook callers get the raw value (by the time actions
   // run, content should be loaded; if not, they get the fallback).
-  return state.valueSelector(props, reduxState, id).value;
+  return state.valueSelector(props, reduxState, reduxKey).value;
 }
 
 /**

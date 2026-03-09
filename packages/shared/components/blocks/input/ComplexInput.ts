@@ -23,7 +23,7 @@ const ComplexInput = core({
   description: 'Text input for complex numbers with validation (supports i/j notation)',
   component: _ComplexInput,
   fields,
-  selectValue: (props: RuntimeProps, state, id) => fieldSelector(state, { ...props, id }, fields.value, { fallback: '' }),
+  selectValue: (props: RuntimeProps, state, _reduxKey) => fieldSelector(state, props, fields.value, { fallback: '' }),
   attributes: baseAttributes.extend({
     placeholder: z.string().optional().describe('Placeholder text shown when empty'),
   }),

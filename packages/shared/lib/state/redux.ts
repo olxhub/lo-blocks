@@ -60,12 +60,24 @@ const UPDATE_INPUT = 'UPDATE_INPUT'; // TODO: Import
 const INVALIDATED_INPUT = 'INVALIDATED_INPUT'; // informational
 
 
+// Internal: resolved options for fieldSelector (id is already a ReduxStateKey)
 export interface SelectorOptions<T> {
-  id?: string | boolean;
+  id?: ReduxStateKey | boolean;
   tag?: string | boolean;
   selector?: (state) => T;
   fallback?: T;
   equalityFn?: (a: T, b: T) => boolean;
+}
+
+/**
+ * Convert OlxReference/OlxKey → ReduxStateKey at hook/public-API boundary.
+ * Boolean and undefined pass through unchanged.
+ */
+function resolveOlxId(props: any, id?: OlxReference | boolean): ReduxStateKey | boolean | undefined {
+  if (typeof id === 'string') {
+    return idResolver.refToReduxKey({ ...props, id });
+  }
+  return id;
 }
 
 /**
@@ -101,10 +113,10 @@ export const fieldSelector = <T>(
         return selector(scopedState);
       case scopes.storage:
       case scopes.component: {
-        // If optId is provided, apply prefix via refToReduxKey (supports /absolute syntax)
-        // Otherwise, use the component's own ID from props
-        const id = optId !== undefined
-          ? idResolver.refToReduxKey({ ...props, id: optId })
+        // If optId is a ReduxStateKey, use it directly (cross-component access).
+        // Otherwise, resolve the component's own ID from props.
+        const id = typeof optId === 'string'
+          ? optId
           : idResolver.refToReduxKey(props);
         return selector(scopedState?.[id]);
       }
@@ -132,25 +144,30 @@ export const getReduxState = (
   props: any,
   field: FieldInfo,
   fallback: any,
-  { id, tag }: { id?: OlxKey | boolean; tag?: string | boolean } = {}
+  { id, tag }: { id?: OlxReference | boolean; tag?: string | boolean } = {}
 ): any => {
   assertValidField(field);
 
   const store = getReduxStoreInstance();
   const state = store.getState();
-  return fieldSelector(state, props, field, { fallback, id, tag });
+  return fieldSelector(state, props, field, { fallback, id: resolveOlxId(props, id), tag });
 };
 
-/** React-friendly wrapper that forwards any equalityFn from options. */
+/** React-friendly wrapper that forwards any equalityFn from options.
+ *  Accepts OlxKey for id and resolves to ReduxStateKey internally.
+ */
 export const useFieldSelector = <T>(
   props: any,               // TODO: narrow when convenient
   field: FieldInfo,
-  options: SelectorOptions<T> = {}
-): T =>
-  useSelector(
-    (state) => fieldSelector(state, props, field, options),
+  options: Omit<SelectorOptions<T>, 'id'> & { id?: OlxReference | boolean } = {} as any
+): T => {
+  const { id, ...rest } = options;
+  const resolved: SelectorOptions<T> = { ...rest, id: resolveOlxId(props, id) };
+  return useSelector(
+    (state) => fieldSelector(state, props, field, resolved),
     options.equalityFn
   );
+};
 
 
 // Accepts BaselineProps (system scope) or RuntimeProps (component/storage scope).
@@ -160,7 +177,7 @@ export function updateField(
   props: BaselineProps | null,
   field: FieldInfo,
   newValue,
-  { id, tag }: { id?: OlxKey | boolean; tag?: string | boolean } = {}
+  { id, tag }: { id?: ReduxStateKey | boolean; tag?: string | boolean } = {}
 ) {
   assertValidField(field);
   // Validate/coerce value against field schema if defined.
@@ -173,11 +190,11 @@ export function updateField(
   }
   const scope = field.scope;
   const fieldName = field.name;
-  // For component/storage scope, resolve the ID for Redux state key.
-  // These scopes require RuntimeProps (with id/idPrefix) for resolution.
+  // If id is a ReduxStateKey, use it directly (cross-component access).
+  // Otherwise, resolve the component's own ID from props.
   const resolvedId = (scope === scopes.component || scope === scopes.storage)
     ? (typeof id === 'string'
-      ? idResolver.refToReduxKey({ ...(props as RuntimeProps), id })
+      ? id
       : idResolver.refToReduxKey(props as RuntimeProps))
     : undefined;
   const resolvedTag = tag ?? (props as RuntimeProps)?.loBlock?.OLXName;
@@ -196,16 +213,17 @@ export function useFieldState(
   props: BaselineProps | null,
   field: FieldInfo,
   fallback?,
-  { id, tag }: { id?: OlxKey | boolean; tag?: string | boolean } = {}
+  { id, tag }: { id?: OlxReference | boolean; tag?: string | boolean } = {}
 ) {
   assertValidField(field);
 
+  // useFieldSelector handles OlxKey → ReduxStateKey conversion for reading
   const value = useFieldSelector(props, field, { fallback, id, tag });
 
-  // Stable setter (like useState): ref holds latest args so the callback
-  // identity never changes, safe to use in useEffect deps.
-  const ref = useRef({ props, field, id, tag });
-  ref.current = { props, field, id, tag };
+  // For writing, resolve the ReduxStateKey once
+  const reduxId = resolveOlxId(props, id);
+  const ref = useRef({ props, field, id: reduxId, tag });
+  ref.current = { props, field, id: reduxId, tag };
   const setValue = useCallback(
     (newValue) => {
       const { props, field, id, tag } = ref.current;
@@ -239,8 +257,8 @@ export function useAggregate<T = any, R = any>(
 
   return useSelector(
     (state) => {
-      const values = ids.map((id) =>
-        fieldSelector(state, props, field, { fallback, id, tag }),
+      const values = ids.map((rawId) =>
+        fieldSelector(state, props, field, { fallback, id: resolveOlxId(props, rawId as OlxKey), tag }),
       );
 
       if (typeof aggregate === 'function') {
@@ -375,12 +393,12 @@ export function useReduxCheckbox(
  * @returns {FieldInfo} The field info
  * @throws {Error} If component or field not found
  */
-export function componentFieldByName(props: RuntimeProps, targetId: OlxReference, fieldName: string) {
+export function componentFieldByName(props: RuntimeProps, targetId: OlxKey | ReduxStateKey, fieldName: string) {
   // TODO: More human-friendly errors. This is for programmers, but teachers might see these editing.
   // Possible TODO: Move to OLXDom or similar. I'm not sure this is the best place for this.
 
-  // Use refToOlxKey to normalize the ID for Redux lookup
-  const normalizedId = idResolver.refToOlxKey(targetId);
+  // Normalize to OlxKey: handles both bare OlxKey (unchanged) and scoped ReduxStateKey (extracts leaf)
+  const normalizedId = idResolver.reduxKeyToOlxKey(targetId as ReduxStateKey);
   const sources = props.runtime.olxJsonSources ?? ['content'];
   const locale = props.runtime.locale.code;
   const targetNode = selectBlock(props.runtime.store.getState(), sources, normalizedId, locale);
@@ -474,45 +492,40 @@ export { blockData, withStatus, RETURNS_BLOCK_DATA } from './blockData';
 export function valueSelector(
   props: RuntimeProps,
   state: any,
-  id: OlxReference | null | undefined,
+  reduxKey: ReduxStateKey | null | undefined,
   { fallback = '' } = {} as { fallback?: any }
 ): BlockDataResult & { value: any } {
-  // If no ID provided, return fallback (supports optional targetRef patterns)
-  if (id === undefined || id === null) {
+  if (reduxKey === undefined || reduxKey === null) {
     return { value: fallback, ...blockData('ready') };
   }
 
-  // Use refToOlxKey to strip prefixes for Redux lookup
-  const mapKey = idResolver.refToOlxKey(id);
+  // ReduxStateKey → OlxKey for content store lookup
+  const mapKey = idResolver.reduxKeyToOlxKey(reduxKey);
   const sources = props.runtime.olxJsonSources ?? ['content'];
   const locale = props.runtime.locale.code;
   const targetNode = selectBlock(state, sources, mapKey, locale);
   const loBlock = targetNode ? props.runtime.blockRegistry[targetNode.tag] : null;
 
   if (!targetNode || !loBlock) {
-    // Block not in Redux — check if it's loading vs errored vs unknown
     const bs = selectBlockState(state, sources, mapKey);
     if (bs?.loadingState?.status === 'error') {
-      return { value: fallback, ...blockData('error', bs.error?.message ?? `Block "${id}" not found`) };
+      return { value: fallback, ...blockData('error', bs.error?.message ?? `Block "${reduxKey}" not found`) };
     }
-    // Unknown or loading — useValue will trigger a fetch
     return { value: fallback, ...blockData('loading') };
   }
 
   if (loBlock.selectValue) {
-    const reduxKey = idResolver.refToReduxKey({ ...props, id });
     const targetProps = propsForNode(props, reduxKey, targetNode, loBlock);
 
     if ((loBlock.selectValue as any)[RETURNS_BLOCK_DATA]) {
-      // Block signals its own status (e.g. Ref propagating target loading)
-      return loBlock.selectValue(targetProps, state, id);
+      return loBlock.selectValue(targetProps, state, reduxKey);
     }
 
-    return { value: loBlock.selectValue(targetProps, state, id), ...blockData('ready') };
+    return { value: loBlock.selectValue(targetProps, state, reduxKey), ...blockData('ready') };
   }
 
   // Fall back to direct field access using the common 'value' field
-  return { value: fieldSelector(state, props, commonFields.value, { id, fallback }), ...blockData('ready') };
+  return { value: fieldSelector(state, props, commonFields.value, { id: reduxKey, fallback }), ...blockData('ready') };
 }
 
 /**
@@ -528,30 +541,38 @@ export function valueSelector(
  */
 export function useValue(
   props: RuntimeProps,
-  id: OlxReference | null | undefined,
-  options: { fallback?: any } = {}
+  {
+    reduxKey,
+    target,
+    fallback,
+  }: {
+    reduxKey?: ReduxStateKey | null;
+    target?: OlxReference | null;
+    fallback?: any;
+  } = {}
 ): BlockDataResult & { value: any } {
+  // Priority: explicit reduxKey > target (resolved) > own component
+  const resolvedKey: ReduxStateKey | null =
+    reduxKey !== undefined ? reduxKey
+    : target !== undefined ? (target ? idResolver.refToReduxKey({ ...props, id: target }) as ReduxStateKey : null)
+    : idResolver.refToReduxKey(props);
+
   const result = useSelector(
-    (state) => valueSelector(props, state, id, options),
-    // Shallow compare to avoid unnecessary re-renders from object allocation
+    (state) => valueSelector(props, state, resolvedKey, { fallback }),
     (a, b) => a.value === b.value && a.status === b.status && a.error === b.error
   );
 
   // Trigger async load if block is unknown in Redux.
-  // Source must match what valueSelector uses for lookup, otherwise the fetch
-  // writes to 'content' but the selector reads from a different source.
   // eslint-disable-next-line react-hooks/exhaustive-deps — props is intentionally
   // omitted: ensureBlock deduplicates via module-level Set, so stale props cannot
   // cause duplicate fetches. Including props would cause spurious effect re-runs.
-  // sideEffectFree IS included: when exiting replay mode (true→false), ensureBlock
-  // needs to re-run to trigger the fetch it previously skipped.
   const source = props.runtime.olxJsonSources?.[0] ?? 'content';
   const sideEffectFree = props.runtime.sideEffectFree;
   useEffect(() => {
-    if (id && result.loading) {
-      ensureBlock(props, id, source);
+    if (resolvedKey && result.loading) {
+      ensureBlock(props, idResolver.reduxKeyToOlxKey(resolvedKey), source);
     }
-  }, [id, result.status, source, sideEffectFree]);
+  }, [resolvedKey, result.status, source, sideEffectFree]);
 
   return result;
 }
@@ -570,13 +591,11 @@ export function useValue(
  */
 export function useComponentState(
   props,
-  targetId: OlxReference,
+  reduxKey: ReduxStateKey,
   { scope = scopes.component }: { scope?: string } = {}
 ) {
-  const resolvedId = idResolver.refToReduxKey({ ...props, id: targetId });
-
   return useSelector(
-    (state: any) => state?.application_state?.[scope]?.[resolvedId] || null,
+    (state: any) => state?.application_state?.[scope]?.[reduxKey] || null,
     shallowEqual
   );
 }

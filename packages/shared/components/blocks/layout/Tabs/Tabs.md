@@ -4,7 +4,7 @@ Creates a tabbed interface where each child block becomes a separate panel. Only
 
 ```olx:playground
 <Tabs id="learning_theories">
-  <Vertical label="Behaviorism">
+  <Vertical title="Behaviorism">
     <Markdown>
 **Behaviorism** focuses on observable behaviors and external stimuli.
 
@@ -13,7 +13,7 @@ Key figures: B.F. Skinner, Ivan Pavlov, Edward Thorndike
 Core idea: Learning is a change in behavior resulting from stimulus-response associations.
     </Markdown>
   </Vertical>
-  <Vertical label="Cognitivism">
+  <Vertical title="Cognitivism">
     <Markdown>
 **Cognitivism** focuses on internal mental processes.
 
@@ -22,7 +22,7 @@ Key figures: Jean Piaget, Jerome Bruner, David Ausubel
 Core idea: Learning involves organizing information into mental schemas.
     </Markdown>
   </Vertical>
-  <Vertical label="Constructivism">
+  <Vertical title="Constructivism">
     <Markdown>
 **Constructivism** focuses on active knowledge construction.
 
@@ -38,7 +38,7 @@ Core idea: Learners build understanding through experience and social interactio
 - `id` (required): Unique identifier for the tabs container
 
 ## Child Properties
-Each child block's `label` or `title` attribute becomes the tab header text.
+Each child block's `title` attribute becomes the tab header text.
 
 ## State
 - `activeTab`: Index of currently selected tab, persisted across sessions
@@ -50,13 +50,13 @@ Present the same topic from different angles:
 
 ```olx:playground
 <Tabs id="views">
-  <Vertical label="Overview">
+  <Vertical title="Overview">
     <Markdown>The testing effect (retrieval practice) shows that actively recalling information strengthens memory more than passive review.</Markdown>
   </Vertical>
-  <Vertical label="Research">
+  <Vertical title="Research">
     <Markdown>Roediger &amp; Karpicke (2006) found students who took practice tests retained 50% more material after one week than those who restudied.</Markdown>
   </Vertical>
-  <Vertical label="Application">
+  <Vertical title="Application">
     <Markdown>Use low-stakes quizzes, flashcards, and self-testing to leverage the testing effect in your classroom.</Markdown>
   </Vertical>
 </Tabs>
@@ -67,11 +67,11 @@ Structure complex activities with dedicated areas:
 
 ```olx:playground
 <Tabs id="workspace">
-  <Vertical label="Task">
+  <Vertical title="Task">
     <Markdown>Design a 10-minute active learning activity for teaching photosynthesis.</Markdown>
     <TextArea id="plan" rows="4" placeholder="My activity will..." />
   </Vertical>
-  <Vertical label="Resources">
+  <Vertical title="Resources">
     <Markdown>
 **Active Learning Strategies:**
 - Think-Pair-Share
@@ -80,7 +80,7 @@ Structure complex activities with dedicated areas:
 - Case studies
     </Markdown>
   </Vertical>
-  <Vertical label="Rubric">
+  <Vertical title="Rubric">
     <Markdown>
 Your activity will be evaluated on:
 - Student engagement level (ICAP framework)
@@ -96,7 +96,7 @@ Compare options without side-by-side layout:
 
 ```olx:playground
 <Tabs id="compare">
-  <Vertical label="Traditional">
+  <Vertical title="Traditional">
     <Markdown>
 **Traditional Lecture**
 - Teacher talks, students listen
@@ -104,7 +104,7 @@ Compare options without side-by-side layout:
 - Hake's study: ~0.23 normalized gain
     </Markdown>
   </Vertical>
-  <Vertical label="Interactive">
+  <Vertical title="Interactive">
     <Markdown>
 **Interactive Engagement**
 - Students actively participate
@@ -112,7 +112,7 @@ Compare options without side-by-side layout:
 - Hake's study: ~0.48 normalized gain
     </Markdown>
   </Vertical>
-  <Vertical label="Your Analysis">
+  <Vertical title="Your Analysis">
     <Markdown>Which approach would you use for teaching Newton's Laws? Why?</Markdown>
     <TextArea id="analysis" rows="3" />
   </Vertical>

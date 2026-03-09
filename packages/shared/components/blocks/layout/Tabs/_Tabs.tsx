@@ -3,15 +3,18 @@
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
-import { useKids } from '@/lib/render';
+import { useKids, useKidsJson } from '@/lib/render';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
 
 export default function _Tabs(props) {
-  const { fields, kids = [] } = props;
+  const { fields } = props;
   const [activeTab, setActiveTab] = useFieldState(props, fields.activeTab, 0);
 
+  // Filtered kids (when= applied) — used for headers and content indexing
+  const filteredKids = useKidsJson(props);
+
   // Extract kid IDs for batch lookup (for tab labels)
-  const kidIds = kids.filter(k => k?.type === 'block' && k?.id).map(k => k.id);
+  const kidIds = filteredKids.filter(k => k?.type === 'block' && k?.id).map(k => k.id);
   const { olxJsons: kidBlocks } = useOlxJsonMultiple(props, kidIds);
 
   // Create a map for easy lookup by ID
@@ -20,12 +23,13 @@ export default function _Tabs(props) {
   // Render all tab content upfront (useKids must be called unconditionally)
   const { kids: renderedContent } = useKids(props);
 
-  if (kids.length === 0) {
+  if (filteredKids.length === 0) {
     return <div className="p-4 text-gray-500">No tabs defined</div>;
   }
 
   // Ensure activeTab is within bounds
-  const currentTab = activeTab >= 0 && activeTab < kids.length ? activeTab : 0;
+  const numTabs = filteredKids.length;
+  const currentTab = activeTab >= 0 && activeTab < numTabs ? activeTab : 0;
   if (currentTab !== activeTab) {
     setActiveTab(currentTab);
   }
@@ -34,7 +38,7 @@ export default function _Tabs(props) {
     <div className="tabs-component border rounded-lg bg-white overflow-hidden">
       {/* Tab Headers */}
       <div className="flex border-b bg-gray-50">
-        {kids.map((kid, index) => {
+        {filteredKids.map((kid, index) => {
           const isActive = index === currentTab;
 
           // Extract title from the child block's attributes (using pre-fetched blocks)
@@ -65,6 +69,10 @@ export default function _Tabs(props) {
       </div>
 
       {/* Tab Content - show only active tab */}
+      {/* TODO: display:none keeps all tabs mounted, so OnShow trigger="each_view"
+         only fires once (on first mount), not on each tab switch. Either unmount
+         inactive tabs (like Sequential does) or add a visibility callback so
+         OnShow can detect tab switches. */}
       <div className="p-4">
         {renderedContent.map((content, index) => (
           <div key={index} style={{ display: index === currentTab ? 'block' : 'none' }}>
