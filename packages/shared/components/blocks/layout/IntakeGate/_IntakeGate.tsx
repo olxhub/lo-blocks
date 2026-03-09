@@ -23,13 +23,13 @@ import Spinner from '@/components/common/Spinner';
  *
  * targets="ctx_1,ctx_2" generates:
  *   ready:   @ctx_1.value && @ctx_2.value
- *   loading: @ctx_1.state == 'LLM_RUNNING' || @ctx_2.state == 'LLM_RUNNING' || @ctx_1.value || @ctx_2.value
+ *   loading: @ctx_1.state === 'LLM_RUNNING' || @ctx_2.state === 'LLM_RUNNING' || @ctx_1.value || @ctx_2.value
  */
 function targetsToExpressions(targets: string): { ready: string; loading: string } {
   const ids = targets.split(',').map(s => s.trim()).filter(Boolean);
   const ready = ids.map(id => `@${id}.value`).join(' && ');
   const loading = [
-    ...ids.map(id => `@${id}.state == 'LLM_RUNNING'`),
+    ...ids.map(id => `@${id}.state === 'LLM_RUNNING'`),
     ...ids.map(id => `@${id}.value`),
   ].join(' || ');
   return { ready, loading };
