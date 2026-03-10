@@ -13,12 +13,12 @@ export type LLMProfileConfig = {
   // Future: model, provider, temperature, rateLimits, ...
 };
 
-const PROFILES: Record<string, LLMProfileConfig> = {
+const PROFILES = {
   translation: { maxTokens: 16384 },
   interactive:  { maxTokens: 4096 },
-};
+} satisfies Record<string, LLMProfileConfig>;
 
-export type LLMProfile = string;
+export type LLMProfile = keyof typeof PROFILES;
 
 /**
  * Resolve a named profile to its configuration.

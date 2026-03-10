@@ -28,6 +28,8 @@ export type TranslateOptions = {
   sourceCategory?: string;     // from content store or source frontmatter
   grammar?: string;            // PEG grammar text for PEG-based formats
   logsDir?: string;            // where to write rejected translations
+  provider?: import('@/lib/lofs/types').StorageProvider;  // for resolving src= in OLX validation
+  sourceProvenance?: import('@/lib/types').Provenance;   // provenance of source file, for src= resolution
 };
 
 export type TranslateResult = {
@@ -51,7 +53,7 @@ const MAX_RETRIES = 1;
 export async function translateContent(options: TranslateOptions): Promise<TranslateResult> {
   const {
     sourceContent, fileType, sourceLocale, targetLocale,
-    sourceFileName, sourceCategory, grammar, logsDir,
+    sourceFileName, sourceCategory, grammar, logsDir, provider, sourceProvenance,
   } = options;
 
   let lastError = '';
@@ -71,7 +73,7 @@ export async function translateContent(options: TranslateOptions): Promise<Trans
     );
 
     // Validate
-    const validationError = await validateTranslation(fileContent, sourceContent, fileType, `${targetLocale}:${sourceFileName}`);
+    const validationError = await validateTranslation(fileContent, sourceContent, fileType, `${targetLocale}:${sourceFileName}`, provider, sourceProvenance);
     if (validationError) {
       lastError = validationError;
       console.warn(`[translate] Validation failed (attempt ${attempt + 1}/${MAX_RETRIES + 1}): ${validationError}`);

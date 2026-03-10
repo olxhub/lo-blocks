@@ -104,6 +104,8 @@ async function doTranslation(
     sourceFileName: path.basename(effectiveRelPath),
     sourceCategory: originalVariant?.category,
     logsDir,
+    provider,
+    sourceProvenance: [effectiveFileUri],
   });
 
   if (!result.ok) {
