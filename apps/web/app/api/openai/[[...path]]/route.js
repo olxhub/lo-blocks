@@ -2,6 +2,10 @@
 //
 // Proxy for chat completions. Client sends OpenAI format, server routes to configured provider.
 // See docs/llm-setup.md for configuration.
+//
+// Clients may send a `profile` field (e.g., 'interactive') instead of raw `max_tokens`.
+// The server resolves the profile to concrete parameters. If neither is provided,
+// defaults to the 'interactive' profile.
 
 import { NextResponse } from 'next/server';
 import {
@@ -16,6 +20,7 @@ import {
   OPENAI_MODEL,
   OPENAI_BASE_URL,
 } from '@/lib/llm/provider';
+import { resolveProfile } from '@/lib/llm/profiles';
 
 const { provider: PROVIDER, error: PROVIDER_ERROR } = getProvider();
 
@@ -28,6 +33,21 @@ export async function POST(request) {
   }
 
   const body = await request.json();
+
+  // Resolve profile to max_tokens if not explicitly set.
+  // Client can send { profile: 'interactive' } instead of { max_tokens: 4096 }.
+  if (!body.max_tokens && !body.profile) {
+    body.profile = 'interactive';
+  }
+  if (body.profile) {
+    try {
+      const config = resolveProfile(body.profile);
+      body.max_tokens = body.max_tokens || config.maxTokens;
+    } catch (err) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    }
+    delete body.profile; // Don't forward to upstream provider
+  }
 
   switch (PROVIDER) {
     case 'stub':

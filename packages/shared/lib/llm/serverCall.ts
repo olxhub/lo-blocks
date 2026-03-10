@@ -1,8 +1,8 @@
 // src/lib/llm/serverCall.ts
 //
-// Server-side LLM call: messages → text string.
+// Server-side LLM call: (profile, messages) → text string.
 //
-// Shared by translate/route.ts and any future server-side LLM callers.
+// Shared by translate module and any future server-side LLM callers.
 // The openai proxy route (api/openai) has different needs (streaming,
 // tool calls, NextResponse passthrough) so it doesn't use this.
 
@@ -18,21 +18,22 @@ import {
   OPENAI_MODEL,
   OPENAI_BASE_URL,
 } from '@/lib/llm/provider';
+import { resolveProfile, type LLMProfile, type LLMProfileConfig } from '@/lib/llm/profiles';
 
 type Message = { role: string; content: string };
-type LLMResult = { text: string; truncated: boolean };
+export type LLMResult = { text: string; truncated: boolean };
 
 /**
- * Call the configured LLM provider with a messages array, return the text
- * response and whether the output was truncated (hit max_tokens).
+ * Call the configured LLM provider with a named profile and messages array.
  *
- * Throws on stub mode (callers should check getProvider().provider === 'stub'
- * first if they want to handle stub gracefully).
+ * The profile selects parameters (maxTokens, etc.) — callers express intent,
+ * not raw configuration.
  *
- * Throws on API errors or empty responses.
+ * Throws on stub mode, unknown profiles, API errors, or empty responses.
  */
-export async function callLLM(messages: Message[]): Promise<LLMResult> {
+export async function callLLM(profile: LLMProfile, messages: Message[]): Promise<LLMResult> {
   const { provider, error } = getProvider();
+  const config = resolveProfile(profile);
 
   if (error) {
     throw new Error(`LLM configuration error: ${error}`);
@@ -40,19 +41,19 @@ export async function callLLM(messages: Message[]): Promise<LLMResult> {
 
   switch (provider) {
     case 'stub':
-      throw new Error('LLM is in stub mode — no real translation available');
+      throw new Error('LLM is in stub mode — no real provider available');
     case 'bedrock':
-      return bedrockCall(messages);
+      return bedrockCall(config, messages);
     case 'openai':
-      return openaiCall(messages);
+      return openaiCall(config, messages);
     case 'azure':
-      return azureCall(messages);
+      return azureCall(config, messages);
     default:
       throw new Error(`Unknown LLM provider: ${provider}`);
   }
 }
 
-async function bedrockCall(messages: Message[]): Promise<LLMResult> {
+async function bedrockCall(config: LLMProfileConfig, messages: Message[]): Promise<LLMResult> {
   const { BedrockRuntimeClient, InvokeModelCommand } = await import('@aws-sdk/client-bedrock-runtime');
   const client = new BedrockRuntimeClient({ region: AWS_REGION });
 
@@ -63,7 +64,7 @@ async function bedrockCall(messages: Message[]): Promise<LLMResult> {
 
   const body = {
     anthropic_version: 'bedrock-2023-05-31',
-    max_tokens: 16384,
+    max_tokens: config.maxTokens,
     messages: anthropicMessages,
     ...(system && { system }),
   };
@@ -82,7 +83,7 @@ async function bedrockCall(messages: Message[]): Promise<LLMResult> {
   return { text: textParts.map((t: any) => t.text).join(''), truncated };
 }
 
-async function openaiCall(messages: Message[]): Promise<LLMResult> {
+async function openaiCall(config: LLMProfileConfig, messages: Message[]): Promise<LLMResult> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (OPENAI_API_KEY) {
     headers['Authorization'] = `Bearer ${OPENAI_API_KEY}`;
@@ -91,7 +92,7 @@ async function openaiCall(messages: Message[]): Promise<LLMResult> {
   const response = await fetch(`${OPENAI_BASE_URL}chat/completions`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ model: OPENAI_MODEL, messages, max_tokens: 16384 }),
+    body: JSON.stringify({ model: OPENAI_MODEL, messages, max_tokens: config.maxTokens }),
   });
 
   if (!response.ok) {
@@ -104,7 +105,7 @@ async function openaiCall(messages: Message[]): Promise<LLMResult> {
   return { text: data.choices?.[0]?.message?.content || '', truncated };
 }
 
-async function azureCall(messages: Message[]): Promise<LLMResult> {
+async function azureCall(config: LLMProfileConfig, messages: Message[]): Promise<LLMResult> {
   const url = `${AZURE_BASE_URL}deployments/${AZURE_DEPLOYMENT_ID}/chat/completions?api-version=${AZURE_API_VERSION}`;
 
   const response = await fetch(url, {
@@ -113,7 +114,7 @@ async function azureCall(messages: Message[]): Promise<LLMResult> {
       'api-key': AZURE_API_KEY!,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ messages, max_tokens: 16384 }),
+    body: JSON.stringify({ messages, max_tokens: config.maxTokens }),
   });
 
   if (!response.ok) {
