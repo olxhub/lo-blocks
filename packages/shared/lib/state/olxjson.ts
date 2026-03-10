@@ -27,9 +27,18 @@ import type { LogEventFn } from '../render';
 
 export type LoadingStatus = 'ready' | 'loading' | 'error';
 
+export type VariantStatus = 'translanguaging' | 'error';
+
+export interface VariantStatusEntry {
+  status: VariantStatus;
+  error?: string;
+}
+
 export interface BlockEntry {
   olxJson: VariantMap | null;
   loadingState: { status: LoadingStatus };
+  /** Per-variant status for in-flight translations and variant-level errors. */
+  variantStatus?: Record<string, VariantStatusEntry>;
   error?: { message: string };
 }
 
@@ -56,6 +65,7 @@ interface RootState {
 
 export const LOAD_OLXJSON = 'LOAD_OLXJSON';
 export const OLXJSON_LOADING = 'OLXJSON_LOADING';
+export const OLXJSON_TRANSLATING = 'OLXJSON_TRANSLATING';
 export const OLXJSON_ERROR = 'OLXJSON_ERROR';
 export const CLEAR_OLXJSON = 'CLEAR_OLXJSON';
 
@@ -142,21 +152,43 @@ export function dispatchOlxJsonLoading(
 }
 
 /**
- * Mark a block as failed in Redux.
+ * Mark a variant as translating (translation in flight).
+ *
+ * @param props - Component props (must include logEvent)
+ * @param source - Source identifier
+ * @param id - Block ID being translated
+ * @param variant - Target locale variant being translated to
+ */
+export function dispatchOlxJsonTranslating(
+  props: { runtime: { logEvent: LogEventFn } },
+  source: string,
+  id: string,
+  variant: string
+): void {
+  props.runtime.logEvent(OLXJSON_TRANSLATING, { source, id, variant });
+}
+
+/**
+ * Mark a block (or specific variant) as failed in Redux.
+ *
+ * Without `variant`: block-level error (initial fetch failed).
+ * With `variant`: variant-level error (e.g., translation failed).
  *
  * @param props - Component props (must include logEvent)
  * @param source - Source identifier
  * @param id - Block ID that failed
  * @param error - Error information
+ * @param variant - Optional: specific variant that failed
  */
 export function dispatchOlxJsonError(
   props: { runtime: { logEvent: LogEventFn } },
   source: string,
   id: string,
-  error: string | Error
+  error: string | Error,
+  variant?: string
 ): void {
   const message = typeof error === 'string' ? error : error.message;
-  props.runtime.logEvent(OLXJSON_ERROR, { source, id, error: { message } });
+  props.runtime.logEvent(OLXJSON_ERROR, { source, id, error: { message }, ...(variant && { variant }) });
 }
 
 /**
@@ -197,10 +229,22 @@ export function olxjsonReducer(
       for (const [id, variantMap] of Object.entries(blocks)) {
         // Merge with existing variants so a partial update (e.g., a new
         // translation) doesn't discard variants already in Redux.
-        const existing = state[source]?.[id]?.olxJson;
+        const existingEntry = state[source]?.[id];
+        const existing = existingEntry?.olxJson;
+        // Clear variantStatus for variants that just arrived (they're ready now)
+        const oldVS = existingEntry?.variantStatus;
+        let newVS: Record<string, VariantStatusEntry> | undefined;
+        if (oldVS) {
+          newVS = { ...oldVS };
+          for (const key of Object.keys(variantMap as object)) {
+            delete newVS[key];
+          }
+          if (Object.keys(newVS).length === 0) newVS = undefined;
+        }
         entries[id] = {
           olxJson: { ...existing, ...variantMap as VariantMap },
           loadingState: { status: 'ready' },
+          ...(newVS && { variantStatus: newVS }),
         };
       }
 
@@ -230,17 +274,62 @@ export function olxjsonReducer(
       };
     }
 
-    case OLXJSON_ERROR: {
-      // Mark block as failed: { source, id, error }
-      const { source, id, error } = action;
-      if (!source || !id) return state;
+    case OLXJSON_TRANSLATING: {
+      // Mark a variant as translating: { source, id, variant }
+      const { source, id, variant } = action;
+      if (!source || !id || !variant) return state;
 
+      const existing = state[source]?.[id];
       return {
         ...state,
         [source]: {
           ...state[source],
           [id]: {
-            olxJson: state[source]?.[id]?.olxJson ?? null,
+            ...existing,
+            olxJson: existing?.olxJson ?? null,
+            loadingState: existing?.loadingState ?? { status: 'ready' },
+            variantStatus: {
+              ...existing?.variantStatus,
+              [variant]: { status: 'translanguaging' },
+            },
+          },
+        },
+      };
+    }
+
+    case OLXJSON_ERROR: {
+      // Mark block or variant as failed: { source, id, error, variant? }
+      const { source, id, error, variant } = action;
+      if (!source || !id) return state;
+
+      const existing = state[source]?.[id];
+
+      // Variant-level error (e.g., translation failed)
+      if (variant) {
+        return {
+          ...state,
+          [source]: {
+            ...state[source],
+            [id]: {
+              ...existing,
+              olxJson: existing?.olxJson ?? null,
+              loadingState: existing?.loadingState ?? { status: 'ready' },
+              variantStatus: {
+                ...existing?.variantStatus,
+                [variant]: { status: 'error', error: error?.message || String(error) },
+              },
+            },
+          },
+        };
+      }
+
+      // Block-level error (initial fetch failed)
+      return {
+        ...state,
+        [source]: {
+          ...state[source],
+          [id]: {
+            olxJson: existing?.olxJson ?? null,
             loadingState: { status: 'error' },
             error: { message: error?.message || String(error) },
           },

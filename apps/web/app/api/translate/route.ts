@@ -56,6 +56,19 @@ function resolveOriginalSource(
   return { fileUri: provider.toProvenanceURI(originalRelPath as SafeRelativePath), locale: effectiveLocale };
 }
 
+function buildIdMapResult(sourceFileUri: ProvenanceURI, targetRelPath: OlxRelativePath): TranslationResult {
+  const targetFileUri = provider.toProvenanceURI(targetRelPath as SafeRelativePath);
+  // Check that the target file was actually indexed — getBlocksForFiles
+  // returns source blocks too, so a non-empty result doesn't guarantee
+  // the translation was parsed successfully.
+  const targetOnly = getBlocksForFiles(targetFileUri);
+  if (!targetOnly || Object.keys(targetOnly).length === 0) {
+    return { ok: false, error: `Translation was written but failed to index (${targetRelPath})` };
+  }
+  const idMap = getBlocksForFiles(sourceFileUri, targetFileUri);
+  return { ok: true, idMap };
+}
+
 async function checkExistingTranslation(
   targetRelPath: OlxRelativePath,
   sourceFileUri: ProvenanceURI
@@ -66,7 +79,7 @@ async function checkExistingTranslation(
     return null;
   }
   await syncContentFromStorage(provider);
-  return { ok: true, idMap: getBlocksForFiles(sourceFileUri, provider.toProvenanceURI(targetRelPath as SafeRelativePath)) };
+  return buildIdMapResult(sourceFileUri, targetRelPath);
 }
 
 // =============================================================================
@@ -122,7 +135,7 @@ async function doTranslation(
   }
 
   await syncContentFromStorage(provider);
-  return { ok: true, idMap: getBlocksForFiles(sourceFileUri, provider.toProvenanceURI(targetRelPath as SafeRelativePath)) };
+  return buildIdMapResult(sourceFileUri, targetRelPath);
 }
 
 // =============================================================================

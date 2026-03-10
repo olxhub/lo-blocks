@@ -6,23 +6,36 @@
 // triggers server-side LLM translation, and dispatches results to Redux
 // for reactive UI updates.
 //
+// Translation state lives in olxjson's per-variant status (variantStatus),
+// not in a separate Redux slice. A translation is just loading a new variant.
+//
 // Null olxJson: During loading, olxJson is null. Hooks must be called
 // unconditionally (React rules), so we guard at the top and return
 // NO_TRANSLATION. This is not an error — it's the normal loading state.
 //
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { useEffect, useRef } from 'react';
 import { scoreBCP47Match } from '@/lib/i18n/getBestVariant';
-import { dispatchOlxJson } from '@/lib/state/olxjson';
+import {
+  selectBlockState,
+  dispatchOlxJson,
+  dispatchOlxJsonTranslating,
+  dispatchOlxJsonError,
+} from '@/lib/state/olxjson';
 import type { OlxJson, UserLocale, ContentVariant } from '@/lib/types';
 import type { LogEventFn } from '@/lib/render';
 
 export interface TranslationState {
   /** True when showing content in a different language than the user requested */
   isFallback: boolean;
+  /** True if a translation is currently in flight */
+  translating: boolean;
   /** True if translation was attempted and failed */
   translationFailed: boolean;
+  /** Error message from failed translation, or null */
+  translationError: string | null;
   /** The locale of the content being shown as fallback, or null if exact match */
   fallbackLocale: ContentVariant | null;
   /** The locale being translated to, or null if no translation needed */
@@ -31,15 +44,16 @@ export interface TranslationState {
 
 const NO_TRANSLATION: TranslationState = {
   isFallback: false,
+  translating: false,
   translationFailed: false,
+  translationError: null,
   fallbackLocale: null,
   targetLocale: null,
 };
 
-// Module-level dedup: tracks in-flight translation requests across all components.
-// Keyed by blockId::targetLocale so multiple blocks from the same file
-// don't trigger duplicate translations.
-const translationsInFlight = new Set<string>();
+// Server-side translation timeout is 600s. Client should be generous — LLM
+// translation of large files can legitimately take minutes.
+const TRANSLATION_FETCH_TIMEOUT_MS = 660_000;
 
 /**
  * Is this a language mismatch that needs translation?
@@ -53,88 +67,159 @@ function needsTranslation(userLocale: UserLocale, contentLang: ContentVariant | 
   return scoreBCP47Match(userLocale, contentLang) < 1;
 }
 
-/**
- * Hook to detect language mismatch and trigger on-the-fly translation.
- *
- * Called after useOlxJson returns a valid olxJson. Compares the content's
- * language against the user's requested locale. If there's a mismatch,
- * kicks off a server-side LLM translation via POST /api/translate.
- *
- * When the translation completes, the new variant is dispatched to Redux,
- * and React reactivity automatically re-renders the block.
- */
-interface UseTranslationProps {
+// =============================================================================
+// ensureTranslation — non-hook fetch trigger
+// =============================================================================
+
+interface EnsureTranslationProps {
   runtime: {
+    store: any;
     locale: { code: UserLocale };
     sideEffectFree: boolean;
     logEvent: LogEventFn;
   };
 }
 
+/**
+ * Ensure a translation is in flight for the given block + locale.
+ *
+ * Dedup via olxjson's variantStatus in Redux: if the target variant is
+ * already 'translanguaging' or 'error', this is a no-op.
+ *
+ * NOT a hook — safe to call from useEffect.
+ */
+function ensureTranslation(
+  props: EnsureTranslationProps,
+  blockId: string,
+  contentLang: ContentVariant,
+  targetLocale: UserLocale,
+  source: string
+): void {
+  if (props.runtime.sideEffectFree) return;
+
+  const state = props.runtime.store.getState();
+  const blockState = selectBlockState(state, [source], blockId as any);
+  const vs = blockState?.variantStatus?.[targetLocale];
+  if (vs) return; // Already translating or failed
+
+  dispatchOlxJsonTranslating(props, source, blockId, targetLocale);
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => {
+    controller.abort(new Error('Translation request timed out'));
+  }, TRANSLATION_FETCH_TIMEOUT_MS);
+
+  fetch('/api/translate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    signal: controller.signal,
+    body: JSON.stringify({
+      blockId,
+      targetLocale,
+      sourceLocale: contentLang,
+    }),
+  })
+    .then(async res => {
+      let data: any;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error(`Server returned non-JSON response (${res.status})`);
+      }
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || `Translation failed (${res.status})`);
+      }
+      return data;
+    })
+    .then(data => {
+      // LOAD_OLXJSON clears variantStatus for arriving variants
+      dispatchOlxJson(props, source, data.idMap);
+    })
+    .catch(err => {
+      const reason =
+        err instanceof DOMException && err.name === 'AbortError'
+          ? 'Translation request timed out'
+          : (err.message || String(err));
+      console.warn(`[useTranslation] Translation failed for ${blockId}:`, reason);
+      dispatchOlxJsonError(props, source, blockId, reason, targetLocale);
+    })
+    .finally(() => {
+      clearTimeout(timeout);
+    });
+}
+
+// =============================================================================
+// useTranslation — hook
+// =============================================================================
+
+interface UseTranslationProps {
+  runtime: {
+    store: any;
+    locale: { code: UserLocale };
+    sideEffectFree: boolean;
+    logEvent: LogEventFn;
+  };
+}
+
+/**
+ * Hook to detect language mismatch and trigger on-the-fly translation.
+ *
+ * Reads variant status from olxjson's BlockEntry.variantStatus via useSelector.
+ * If a mismatch is detected and no translation is in progress, kicks off
+ * ensureTranslation in a useEffect.
+ *
+ * In sideEffectFree mode, never triggers a fetch. Returns translating: false
+ * so the UI shows the fallback content without a spinner.
+ */
 export function useTranslation(
   props: UseTranslationProps,
   olxJson: OlxJson | null,
   source: string = 'content'
 ): TranslationState {
-  const translationAttempted = useRef(new Set<string>());
-  const [failedKeys, setFailedKeys] = useState(new Set<string>());
   const propsRef = useRef(props);
   propsRef.current = props;
 
   const userLocale: UserLocale = props.runtime.locale.code;
-  const blockId = olxJson?.id;  // OlxKey | undefined
+  const blockId = olxJson?.id;
   const contentLang = olxJson?.lang as ContentVariant | undefined;
 
   const isFallback = userLocale && blockId
     ? needsTranslation(userLocale, contentLang)
     : false;
 
-  const dedupeKey = blockId && userLocale ? `${blockId}::${userLocale}` : null;
-  const translationFailed = dedupeKey ? failedKeys.has(dedupeKey) : false;
+  // Read variant status from olxjson state — always call hook (React rules)
+  const variantEntry = useSelector((state: any) => {
+    if (!blockId || !userLocale) return undefined;
+    const bs = selectBlockState(state, [source], blockId as any);
+    return bs?.variantStatus?.[userLocale];
+  });
 
+  // Trigger translation for mismatches — always call hook (React rules)
   useEffect(() => {
-    if (!blockId || !isFallback || !dedupeKey || !contentLang) return;
-    if (propsRef.current.runtime.sideEffectFree) return;
-    if (translationAttempted.current.has(dedupeKey) || translationsInFlight.has(dedupeKey)) return;
-
-    translationAttempted.current.add(dedupeKey);
-    translationsInFlight.add(dedupeKey);
-
-    fetch('/api/translate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        blockId,
-        targetLocale: userLocale,
-        sourceLocale: contentLang,
-      }),
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.ok && data.idMap) {
-          dispatchOlxJson(propsRef.current, source, data.idMap);
-        } else {
-          console.warn(`[useTranslation] Translation failed for ${blockId}:`, data.error);
-          setFailedKeys(prev => new Set(prev).add(dedupeKey));
-        }
-      })
-      .catch(err => {
-        console.warn(`[useTranslation] Translation request failed for ${blockId}:`, err);
-        setFailedKeys(prev => new Set(prev).add(dedupeKey));
-      })
-      .finally(() => {
-        translationsInFlight.delete(dedupeKey);
-      });
-  }, [blockId, userLocale, isFallback, contentLang, dedupeKey, source]);
+    if (!blockId || !isFallback || !contentLang) return;
+    ensureTranslation(propsRef.current, blockId, contentLang, userLocale, source);
+  }, [blockId, userLocale, isFallback, contentLang, source]);
 
   if (!olxJson || !userLocale) {
     return NO_TRANSLATION;
   }
 
+  if (!isFallback) {
+    return NO_TRANSLATION;
+  }
+
+  const translating = variantEntry?.status === 'translanguaging'
+    // No entry yet but we need translation and we're not sideEffectFree:
+    // return translating: true to avoid flash of untranslated content
+    || (!variantEntry && !props.runtime.sideEffectFree);
+  const translationFailed = variantEntry?.status === 'error';
+
   return {
-    isFallback,
+    isFallback: true,
+    translating,
     translationFailed,
-    fallbackLocale: isFallback ? (contentLang || null) : null,
-    targetLocale: isFallback ? userLocale : null,
+    translationError: variantEntry?.error ?? null,
+    fallbackLocale: contentLang || null,
+    targetLocale: userLocale,
   };
 }
