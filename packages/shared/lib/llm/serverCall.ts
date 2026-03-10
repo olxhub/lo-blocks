@@ -20,16 +20,18 @@ import {
 } from '@/lib/llm/provider';
 
 type Message = { role: string; content: string };
+type LLMResult = { text: string; truncated: boolean };
 
 /**
- * Call the configured LLM provider with a messages array, return the text response.
+ * Call the configured LLM provider with a messages array, return the text
+ * response and whether the output was truncated (hit max_tokens).
  *
- * Throws on stub mode (callers should check getProvider().provider === 'stub' first
- * if they want to handle stub gracefully).
+ * Throws on stub mode (callers should check getProvider().provider === 'stub'
+ * first if they want to handle stub gracefully).
  *
  * Throws on API errors or empty responses.
  */
-export async function callLLM(messages: Message[]): Promise<string> {
+export async function callLLM(messages: Message[]): Promise<LLMResult> {
   const { provider, error } = getProvider();
 
   if (error) {
@@ -50,7 +52,7 @@ export async function callLLM(messages: Message[]): Promise<string> {
   }
 }
 
-async function bedrockCall(messages: Message[]): Promise<string> {
+async function bedrockCall(messages: Message[]): Promise<LLMResult> {
   const { BedrockRuntimeClient, InvokeModelCommand } = await import('@aws-sdk/client-bedrock-runtime');
   const client = new BedrockRuntimeClient({ region: AWS_REGION });
 
@@ -61,7 +63,7 @@ async function bedrockCall(messages: Message[]): Promise<string> {
 
   const body = {
     anthropic_version: 'bedrock-2023-05-31',
-    max_tokens: 8192,
+    max_tokens: 16384,
     messages: anthropicMessages,
     ...(system && { system }),
   };
@@ -75,11 +77,12 @@ async function bedrockCall(messages: Message[]): Promise<string> {
 
   const response = await client.send(command);
   const result = JSON.parse(new TextDecoder().decode(response.body));
+  const truncated = result.stop_reason === 'max_tokens';
   const textParts = result.content?.filter((c: any) => c.type === 'text') || [];
-  return textParts.map((t: any) => t.text).join('');
+  return { text: textParts.map((t: any) => t.text).join(''), truncated };
 }
 
-async function openaiCall(messages: Message[]): Promise<string> {
+async function openaiCall(messages: Message[]): Promise<LLMResult> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (OPENAI_API_KEY) {
     headers['Authorization'] = `Bearer ${OPENAI_API_KEY}`;
@@ -88,7 +91,7 @@ async function openaiCall(messages: Message[]): Promise<string> {
   const response = await fetch(`${OPENAI_BASE_URL}chat/completions`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ model: OPENAI_MODEL, messages, max_tokens: 8192 }),
+    body: JSON.stringify({ model: OPENAI_MODEL, messages, max_tokens: 16384 }),
   });
 
   if (!response.ok) {
@@ -97,10 +100,11 @@ async function openaiCall(messages: Message[]): Promise<string> {
   }
 
   const data = await response.json();
-  return data.choices?.[0]?.message?.content || '';
+  const truncated = data.choices?.[0]?.finish_reason === 'length';
+  return { text: data.choices?.[0]?.message?.content || '', truncated };
 }
 
-async function azureCall(messages: Message[]): Promise<string> {
+async function azureCall(messages: Message[]): Promise<LLMResult> {
   const url = `${AZURE_BASE_URL}deployments/${AZURE_DEPLOYMENT_ID}/chat/completions?api-version=${AZURE_API_VERSION}`;
 
   const response = await fetch(url, {
@@ -109,7 +113,7 @@ async function azureCall(messages: Message[]): Promise<string> {
       'api-key': AZURE_API_KEY!,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ messages, max_tokens: 8192 }),
+    body: JSON.stringify({ messages, max_tokens: 16384 }),
   });
 
   if (!response.ok) {
@@ -118,5 +122,6 @@ async function azureCall(messages: Message[]): Promise<string> {
   }
 
   const data = await response.json();
-  return data.choices?.[0]?.message?.content || '';
+  const truncated = data.choices?.[0]?.finish_reason === 'length';
+  return { text: data.choices?.[0]?.message?.content || '', truncated };
 }

@@ -13,12 +13,10 @@
 //
 // Known gaps and missing functionality:
 //
-// 1. NO QUALITY CONTROL
-//    - LLM output is saved directly with no validation
-//    - Missing: parse translated XML and compare IDs/structure against source
-//    - Missing: detect dropped elements, renamed IDs, broken nesting
-//    - Missing: validate that the output is well-formed XML at all
-//    - Bad translations are silently saved and served to users
+// 1. QUALITY CONTROL (partial)
+//    - Translated OLX is parsed and validated before saving (XML, structure, IDs)
+//    - On validation failure, one retry is attempted before returning an error
+//    - Still missing: semantic comparison (e.g., text coverage, no hallucinated tags)
 //
 // 2. INCOMPLETE ASSET HANDLING
 //    - Translated files live in subdirectories (e.g., demos/foo/ar.olx)
@@ -68,11 +66,12 @@ import path from 'path';
 import fs from 'fs/promises';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
 import { syncContentFromStorage, getSourceFile, getBlocksForFiles, getBlockVariant, getOriginalVariant } from '@/lib/content/syncContentFromStorage';
+import { parseOLX } from '@/lib/content/parseOLX';
 import { callLLM } from '@/lib/llm/serverCall';
 import { getProvider } from '@/lib/llm/provider';
 import { getLanguageLabel } from '@/lib/i18n/languages';
 import { hashContent } from '@/lib/util';
-import type { OlxKey, ContentVariant, ProvenanceURI, OlxRelativePath, SafeRelativePath } from '@/lib/types';
+import type { OlxKey, ContentVariant, ProvenanceURI, OlxRelativePath, SafeRelativePath, Provenance } from '@/lib/types';
 import { toOlxKey } from '@/lib/blocks/idResolver';
 import { toOlxRelativePath } from '@/lib/lofs/types';
 import yaml from 'js-yaml';
@@ -241,7 +240,9 @@ Output ONLY the translated content — no explanations, no markdown fencing, no 
   return [{ role: 'system', content: systemPrompt }];
 }
 
-/** Call the LLM to translate OLX content. */
+/** Call the LLM to translate OLX content.
+ *  If the output is truncated (hits max_tokens), automatically continues
+ *  the conversation to get the remaining content. */
 async function translateWithLLM(
   sourceContent: string,
   sourceLocale: ContentVariant,
@@ -249,12 +250,30 @@ async function translateWithLLM(
 ): Promise<string> {
   const sourceLanguageName = getLanguageLabel(sourceLocale, 'en', 'name');
   const targetLanguageName = getLanguageLabel(targetLocale, 'en', 'name');
-  const messages = [
+  const messages: { role: string; content: string }[] = [
     ...buildTranslationPrompt(sourceLocale, targetLocale),
     { role: 'user', content: `Translate the following OLX content from ${sourceLanguageName} to ${targetLanguageName}:\n\n${sourceContent}` },
   ];
-  const raw = await callLLM(messages);
-  const cleaned = stripCodeFences(raw);
+
+  const MAX_CONTINUATIONS = 3;
+  let accumulated = '';
+
+  for (let i = 0; i <= MAX_CONTINUATIONS; i++) {
+    const { text, truncated } = await callLLM(messages);
+    accumulated += text;
+
+    if (!truncated) break;
+
+    if (i === MAX_CONTINUATIONS) {
+      throw new Error('Translation too long: exceeded maximum continuation attempts');
+    }
+
+    // Feed the partial output back and ask the LLM to continue
+    messages.push({ role: 'assistant', content: text });
+    messages.push({ role: 'user', content: 'Continue exactly where you left off. Do not repeat any content already produced.' });
+  }
+
+  const cleaned = stripCodeFences(accumulated);
   if (!cleaned.trim()) {
     throw new Error('LLM returned empty translation');
   }
@@ -285,6 +304,46 @@ async function buildTranslatedFile(
   };
 
   return `${buildFrontmatter(translatedMeta)}\n${body}`;
+}
+
+/** Validate translated OLX: parse it and check that all source IDs are present.
+ *  Returns null on success, or an error message on failure. */
+async function validateTranslatedOLX(
+  fileContent: string,
+  sourceContent: string,
+  targetRelPath: OlxRelativePath
+): Promise<string | null> {
+  // Parse the translated output
+  let translatedResult;
+  try {
+    translatedResult = await parseOLX(fileContent, [`translation:${targetRelPath}`] as Provenance);
+  } catch (err: any) {
+    return `Translated OLX failed to parse: ${err.message}`;
+  }
+
+  if (translatedResult.errors.length > 0) {
+    const summaries = translatedResult.errors.map(e => e.summary || e.message).join('; ');
+    return `Translated OLX has errors: ${summaries}`;
+  }
+
+  // Compare IDs: every explicit id in the source must appear in the translation.
+  // Parse source to get its IDs.
+  let sourceResult;
+  try {
+    sourceResult = await parseOLX(sourceContent, ['source'] as Provenance);
+  } catch {
+    // If the source itself doesn't parse, skip the ID comparison —
+    // that's a pre-existing problem, not a translation problem.
+    return null;
+  }
+
+  const translatedIds = new Set(translatedResult.ids);
+  const missingIds = sourceResult.ids.filter(id => !translatedIds.has(id));
+  if (missingIds.length > 0) {
+    return `Translation is missing ${missingIds.length} block(s): ${missingIds.join(', ')}`;
+  }
+
+  return null;
 }
 
 /** Write a translated file to storage, creating parent directories as needed. */
@@ -322,25 +381,55 @@ async function doTranslation(
   const existing = await checkExistingTranslation(targetRelPath, sourceFileUri);
   if (existing) return existing;
 
-  // Translate via LLM
-  let llmOutput: string;
-  try {
-    llmOutput = await translateWithLLM(sourceContent, effectiveSourceLocale, targetLocale);
-  } catch (err: any) {
-    return { ok: false, error: `LLM translation failed: ${err.message}` };
+  // Translate via LLM, with one retry on validation failure
+  const MAX_RETRIES = 1;
+  let lastValidationError = '';
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    // Translate via LLM
+    let llmOutput: string;
+    try {
+      llmOutput = await translateWithLLM(sourceContent, effectiveSourceLocale, targetLocale);
+    } catch (err: any) {
+      return { ok: false, error: `LLM translation failed: ${err.message}` };
+    }
+
+    // Build translated file
+    const fileContent = await buildTranslatedFile(llmOutput, sourceContent, effectiveRelPath, targetLocale, blockId);
+
+    // Validate before writing
+    const validationError = await validateTranslatedOLX(fileContent, sourceContent, targetRelPath);
+    if (validationError) {
+      lastValidationError = validationError;
+      console.warn(`[/api/translate] Validation failed (attempt ${attempt + 1}/${MAX_RETRIES + 1}): ${validationError}`);
+
+      // Dump bad translation to logs/ for debugging
+      try {
+        const logsDir = path.resolve(contentDir, '..', 'logs');
+        await fs.mkdir(logsDir, { recursive: true });
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const logName = `${path.basename(targetRelPath, '.auto.olx')}-${timestamp}.rejected.olx`;
+        await fs.writeFile(path.join(logsDir, logName), `<!-- REJECTED: ${validationError} -->\n${fileContent}`);
+      } catch { /* best-effort */ }
+
+      if (attempt < MAX_RETRIES) continue;
+      return { ok: false, error: `Translation produced invalid OLX after ${MAX_RETRIES + 1} attempts. Last error: ${lastValidationError}` };
+    }
+
+    // Validation passed — write the file
+    try {
+      await writeTranslatedFile(targetRelPath, fileContent);
+    } catch (err: any) {
+      return { ok: false, error: `Failed to write translation: ${err.message}` };
+    }
+
+    // Re-sync and return blocks from both source and translated files
+    await syncContentFromStorage(provider);
+    return { ok: true, idMap: getBlocksForFiles(sourceFileUri, provider.toProvenanceURI(targetRelPath as SafeRelativePath)) };
   }
 
-  // Build and write translated file
-  const fileContent = await buildTranslatedFile(llmOutput, sourceContent, effectiveRelPath, targetLocale, blockId);
-  try {
-    await writeTranslatedFile(targetRelPath, fileContent);
-  } catch (err: any) {
-    return { ok: false, error: `Failed to write translation: ${err.message}` };
-  }
-
-  // Re-sync and return blocks from both source and translated files
-  await syncContentFromStorage(provider);
-  return { ok: true, idMap: getBlocksForFiles(sourceFileUri, provider.toProvenanceURI(targetRelPath as SafeRelativePath)) };
+  // Unreachable, but TypeScript needs it
+  return { ok: false, error: `Translation failed: ${lastValidationError}` };
 }
 
 // =============================================================================
