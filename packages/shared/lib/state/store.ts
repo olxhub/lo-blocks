@@ -38,6 +38,7 @@ import {
   initialOlxJsonState,
   LOAD_OLXJSON,
   OLXJSON_LOADING,
+  OLXJSON_TRANSLATING,
   OLXJSON_ERROR,
   CLEAR_OLXJSON,
 } from './olxjson';
@@ -80,7 +81,7 @@ const initialState = {
 };
 
 // Event types for olxjson state
-const OLXJSON_EVENT_TYPES = [LOAD_OLXJSON, OLXJSON_LOADING, OLXJSON_ERROR, CLEAR_OLXJSON];
+const OLXJSON_EVENT_TYPES = [LOAD_OLXJSON, OLXJSON_LOADING, OLXJSON_TRANSLATING, OLXJSON_ERROR, CLEAR_OLXJSON];
 
 // Combined reducer handling both component state and olxjson
 export const updateResponseReducer = (state = initialState, action) => {
