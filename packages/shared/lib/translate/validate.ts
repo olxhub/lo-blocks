@@ -71,7 +71,9 @@ function validatePeg(
   label: string
 ): string | null {
   // Strip frontmatter (<!-- --- ... --- -->) before parsing — PEG grammars don't understand it
-  const { body } = extractLeadingComments(translatedContent);
+  let { body } = extractLeadingComments(translatedContent);
+  // PEG grammars typically require every line to end with a newline
+  if (body.length > 0 && !body.endsWith('\n')) body += '\n';
 
   try {
     parser.parse(body);

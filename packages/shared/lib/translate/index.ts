@@ -154,7 +154,8 @@ async function assembleTranslatedFile(
     },
   };
 
-  return `${buildFrontmatter(translatedMeta)}\n${body}`;
+  const content = `${buildFrontmatter(translatedMeta)}\n${body}`;
+  return content.endsWith('\n') ? content : content + '\n';
 }
 
 /** Detect file type from extension. */
