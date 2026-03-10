@@ -1,0 +1,5 @@
+{
+  "prev_label": "Wstecz",
+  "next_label": "Dalej",
+  "step_progress": "{{current}} z {{total}}"
+}

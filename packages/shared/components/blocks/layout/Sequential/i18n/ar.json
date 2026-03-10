@@ -1,0 +1,5 @@
+{
+  "prev_label": "السابق",
+  "next_label": "التالي",
+  "step_progress": "{{current}} من {{total}}"
+}
