@@ -83,15 +83,29 @@ interface EnsureTranslationProps {
 /**
  * Ensure a translation is in flight for the given block + locale.
  *
+ * The client only specifies blockId and targetLocale. The server owns
+ * source language selection — it finds the original human-authored
+ * content and translates from that, avoiding translation-of-translations.
+ *
  * Dedup via olxjson's variantStatus in Redux: if the target variant is
- * already 'translanguaging' or 'error', this is a no-op.
+ * already 'translanguaging', this is a no-op. Failed translations are
+ * allowed to retry (one attempt per mount — the useEffect deps don't
+ * change on failure, so it won't loop).
+ *
+ * NOTE on theoretical race condition: Between reading store.getState()
+ * and the async OLXJSON_TRANSLATING event landing in Redux, another
+ * component could also read vs === undefined and fire a duplicate fetch.
+ * This has been analyzed and is acceptable: the server deduplicates
+ * in-flight translations, so the worst case is one extra HTTP request.
+ * Closing this race would require a module-level Set outside Redux,
+ * which breaks the "Redux is the single source of truth" invariant
+ * for no meaningful benefit.
  *
  * NOT a hook — safe to call from useEffect.
  */
 function ensureTranslation(
   props: EnsureTranslationProps,
   blockId: string,
-  contentLang: ContentVariant,
   targetLocale: UserLocale,
   source: string
 ): void {
@@ -100,7 +114,7 @@ function ensureTranslation(
   const state = props.runtime.store.getState();
   const blockState = selectBlockState(state, [source], blockId as any);
   const vs = blockState?.variantStatus?.[targetLocale];
-  if (vs) return; // Already translating or failed
+  if (vs?.status === 'translanguaging') return; // Already in flight
 
   dispatchOlxJsonTranslating(props, source, blockId, targetLocale);
 
@@ -116,7 +130,6 @@ function ensureTranslation(
     body: JSON.stringify({
       blockId,
       targetLocale,
-      sourceLocale: contentLang,
     }),
   })
     .then(async res => {
@@ -196,9 +209,9 @@ export function useTranslation(
 
   // Trigger translation for mismatches — always call hook (React rules)
   useEffect(() => {
-    if (!blockId || !isFallback || !contentLang) return;
-    ensureTranslation(propsRef.current, blockId, contentLang, userLocale, source);
-  }, [blockId, userLocale, isFallback, contentLang, source]);
+    if (!blockId || !isFallback) return;
+    ensureTranslation(propsRef.current, blockId, userLocale, source);
+  }, [blockId, userLocale, isFallback, source]);
 
   if (!olxJson || !userLocale) {
     return NO_TRANSLATION;

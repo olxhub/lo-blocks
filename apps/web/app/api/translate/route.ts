@@ -146,15 +146,15 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    if (!body.blockId || !body.targetLocale || !body.sourceLocale) {
+    if (!body.blockId || !body.targetLocale) {
       return NextResponse.json(
-        { ok: false, error: 'Missing required fields: blockId, targetLocale, sourceLocale' },
+        { ok: false, error: 'Missing required fields: blockId, targetLocale' },
         { status: 400 }
       );
     }
 
     const bcp47Re = /^[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*$/;
-    if (!bcp47Re.test(body.targetLocale) || !bcp47Re.test(body.sourceLocale)) {
+    if (!bcp47Re.test(body.targetLocale)) {
       return NextResponse.json(
         { ok: false, error: 'Invalid locale format' },
         { status: 400 }
@@ -163,7 +163,6 @@ export async function POST(request: Request) {
 
     const blockId = toOlxKey(body.blockId);
     const targetLocale = body.targetLocale as ContentVariant;
-    const sourceLocale = body.sourceLocale as ContentVariant;
 
     if (getProvider().provider === 'stub') {
       return NextResponse.json(
@@ -173,10 +172,22 @@ export async function POST(request: Request) {
 
     await syncContentFromStorage(provider);
 
+    // Server determines source: find the human-authored original variant.
+    // The client just says "I want block X in language Y" — the server
+    // finds what to translate from, avoiding translation-of-translations.
+    const originalVariant = getOriginalVariant(blockId);
+    if (!originalVariant) {
+      return NextResponse.json(
+        { ok: false, error: `Block "${blockId}" not found` },
+        { status: 404 }
+      );
+    }
+
+    const sourceLocale = (originalVariant.lang || 'en') as ContentVariant;
     const sourceFileUri = getSourceFile(blockId, sourceLocale);
     if (!sourceFileUri) {
       return NextResponse.json(
-        { ok: false, error: `Block "${blockId}" not found for locale "${sourceLocale}"` },
+        { ok: false, error: `Source file not found for block "${blockId}" locale "${sourceLocale}"` },
         { status: 404 }
       );
     }
