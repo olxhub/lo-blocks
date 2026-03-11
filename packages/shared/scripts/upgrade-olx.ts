@@ -27,12 +27,21 @@ import { XMLParser } from 'fast-xml-parser';
 // Types
 // ============================================================================
 
-interface EdxNode {
+interface OlxV1Node {
   tag: string;
   attributes: Record<string, string>;
-  children: EdxNode[];
+  children: OlxV1Node[];
   text: string;         // Text content (for leaf nodes / mixed content)
   htmlContent?: string; // For <html> blocks: the loaded .html file content
+}
+
+interface OlxV2Node {
+  tag: string;
+  attributes: Record<string, string>;
+  children: OlxV2Node[];
+  text: string;        // For text content (Markdown, Explanation, etc.)
+  selfClosing?: boolean;
+  comment?: string;     // XML comment to place before this node
 }
 
 interface ConversionStats {
@@ -80,11 +89,11 @@ function parseXmlFile(filePath: string): any[] {
 }
 
 /**
- * Convert fast-xml-parser's preserveOrder format into our EdxNode tree.
+ * Convert fast-xml-parser's preserveOrder format into our OlxV1Node tree.
  * preserveOrder gives us: [{ tagName: [...children], ':@': { attrs } }, ...]
  */
-function fxpToEdxNode(fxpNodes: any[]): EdxNode[] {
-  const results: EdxNode[] = [];
+function fxpToOlxV1Node(fxpNodes: any[]): OlxV1Node[] {
+  const results: OlxV1Node[] = [];
 
   for (const node of fxpNodes) {
     // Text node
@@ -103,7 +112,7 @@ function fxpToEdxNode(fxpNodes: any[]): EdxNode[] {
     if (!tag) continue;
 
     const childFxp = node[tag] || [];
-    const edxNode: EdxNode = {
+    const v1Node: OlxV1Node = {
       tag,
       attributes: { ...attrs },
       children: [],
@@ -114,24 +123,19 @@ function fxpToEdxNode(fxpNodes: any[]): EdxNode[] {
     const textParts: string[] = [];
     const childElements: any[] = [];
 
+    // With our parser config (no cdataPropName), CDATA is folded into #text.
     for (const child of childFxp) {
       if ('#text' in child) {
         textParts.push(child['#text']);
-      } else if ('cdata' in child) {
-        // fast-xml-parser may emit CDATA as separate nodes
-        const cdataContent = Array.isArray(child.cdata)
-          ? child.cdata.map((c: any) => c['#text'] ?? '').join('')
-          : String(child.cdata);
-        textParts.push(cdataContent);
       } else {
         childElements.push(child);
       }
     }
 
-    edxNode.text = textParts.join('');
-    edxNode.children = fxpToEdxNode(childElements);
+    v1Node.text = textParts.join('');
+    v1Node.children = fxpToOlxV1Node(childElements);
 
-    results.push(edxNode);
+    results.push(v1Node);
   }
 
   return results;
@@ -141,7 +145,7 @@ function fxpToEdxNode(fxpNodes: any[]): EdxNode[] {
  * Recursively load the OLX 1.0 course tree, inlining all url_name references.
  * This mirrors edxml-tools/helpers.py:load_subtree().
  */
-function loadEdxTree(baseDir: string): EdxNode {
+function loadOlx1Tree(baseDir: string): OlxV1Node {
   // Find the root course.xml - it might be at baseDir/course.xml or baseDir/course/course.xml
   let courseXmlPath = path.join(baseDir, 'course.xml');
   if (!fs.existsSync(courseXmlPath)) {
@@ -155,7 +159,7 @@ function loadEdxTree(baseDir: string): EdxNode {
 
   // The course.xml may point to another file via url_name
   const parsed = parseXmlFile(courseXmlPath);
-  const nodes = fxpToEdxNode(parsed);
+  const nodes = fxpToOlxV1Node(parsed);
   if (nodes.length === 0) throw new Error('Empty course.xml');
 
   const root = nodes[0];
@@ -167,7 +171,7 @@ function loadEdxTree(baseDir: string): EdxNode {
       const subFile = path.join(baseDir, root.tag, urlName + '.xml');
       if (fs.existsSync(subFile)) {
         const subParsed = parseXmlFile(subFile);
-        const subNodes = fxpToEdxNode(subParsed);
+        const subNodes = fxpToOlxV1Node(subParsed);
         if (subNodes.length > 0) {
           const subRoot = subNodes[0];
           // Merge: sub-file attributes + children replace the stub
@@ -184,8 +188,8 @@ function loadEdxTree(baseDir: string): EdxNode {
   return root;
 }
 
-function expandChildren(baseDir: string, node: EdxNode): void {
-  const expandedChildren: EdxNode[] = [];
+function expandChildren(baseDir: string, node: OlxV1Node): void {
+  const expandedChildren: OlxV1Node[] = [];
 
   for (const child of node.children) {
     const expanded = expandNode(baseDir, child);
@@ -195,7 +199,7 @@ function expandChildren(baseDir: string, node: EdxNode): void {
   node.children = expandedChildren;
 }
 
-function expandNode(baseDir: string, node: EdxNode): EdxNode {
+function expandNode(baseDir: string, node: OlxV1Node): OlxV1Node {
   const urlName = node.attributes.url_name;
 
   // If this node has a url_name and there's a corresponding file, inline it
@@ -205,7 +209,7 @@ function expandNode(baseDir: string, node: EdxNode): EdxNode {
 
     if (fs.existsSync(subFile)) {
       const subParsed = parseXmlFile(subFile);
-      const subNodes = fxpToEdxNode(subParsed);
+      const subNodes = fxpToOlxV1Node(subParsed);
 
       if (subNodes.length > 0) {
         const subRoot = subNodes[0];
@@ -229,7 +233,9 @@ function expandNode(baseDir: string, node: EdxNode): EdxNode {
   if (node.tag === 'html') {
     const filename = node.attributes.filename || node.attributes.url_name;
     if (filename) {
-      const htmlFile = path.join(baseDir, 'html', filename + '.html');
+      // Strip .html extension if already present to avoid double-extension
+      const base = filename.replace(/\.html$/i, '');
+      const htmlFile = path.join(baseDir, 'html', base + '.html');
       if (fs.existsSync(htmlFile)) {
         node.htmlContent = fs.readFileSync(htmlFile, 'utf-8');
       }
@@ -239,6 +245,48 @@ function expandNode(baseDir: string, node: EdxNode): EdxNode {
   // Recursively expand children
   expandChildren(baseDir, node);
   return node;
+}
+
+// ============================================================================
+// Step 1b: Load user_partitions from policy.json (for split_test group names)
+// ============================================================================
+
+interface PartitionGroup {
+  id: number;
+  name: string;
+}
+
+interface UserPartition {
+  id: number;
+  name: string;
+  description: string;
+  groups: PartitionGroup[];
+}
+
+/** Map from group numeric ID → group name, across all partitions. */
+const groupIdToName: Map<number, string> = new Map();
+/** Map from partition ID → partition info. */
+const partitionMap: Map<number, UserPartition> = new Map();
+
+function loadUserPartitions(baseDir: string): void {
+  const policyPath = path.join(baseDir, 'policies', 'course', 'policy.json');
+  if (!fs.existsSync(policyPath)) return;
+
+  try {
+    const raw = JSON.parse(fs.readFileSync(policyPath, 'utf-8'));
+    // Policy JSON may be nested under "course/course" or at top level
+    const coursePolicy = raw['course/course'] || raw;
+    const partitions: UserPartition[] = coursePolicy.user_partitions || [];
+
+    for (const partition of partitions) {
+      partitionMap.set(partition.id, partition);
+      for (const group of partition.groups) {
+        groupIdToName.set(group.id, group.name);
+      }
+    }
+  } catch (e) {
+    warn(`Failed to parse policy.json for user_partitions: ${e}`);
+  }
 }
 
 // ============================================================================
@@ -281,12 +329,24 @@ function makeUniqueId(base: string): string {
 }
 
 /**
+ * Minimal sanitization for OLX 2.0 IDs — replace invalid characters with
+ * underscores but preserve case and structure. For human-authored url_names
+ * that are already meaningful (e.g. "eigen_pset", "hw2-problem3").
+ */
+function sanitizeId(s: string): string {
+  let id = s.replace(/[^a-zA-Z0-9_]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+  if (id && /^[0-9]/.test(id)) id = 'n_' + id;
+  return id || 'unnamed';
+}
+
+/**
  * Assign semantic IDs throughout the tree.
- * - Replace Studio hashes with slugified display_names
- * - Propagate display_name from parent to child
+ * - Replace Studio hashes (32-char hex) with slugified display_names
+ * - Preserve human-authored url_names (only sanitize for OLX 2.0 validity)
+ * - Propagate display_name from parent to child where missing
  * - Ensure uniqueness
  */
-function assignSemanticIds(node: EdxNode, parentName?: string): void {
+function assignSemanticIds(node: OlxV1Node, parentName?: string): void {
   const displayName = node.attributes.display_name;
   const urlName = node.attributes.url_name;
 
@@ -295,13 +355,13 @@ function assignSemanticIds(node: EdxNode, parentName?: string): void {
     node.attributes.display_name = parentName;
   }
 
-  // Generate semantic ID
-  const nameSource = node.attributes.display_name || parentName || node.tag;
   if (!urlName || isStudioHash(urlName)) {
+    // Studio hash or missing: generate a semantic ID from display_name
+    const nameSource = node.attributes.display_name || parentName || node.tag;
     node.attributes.url_name = makeUniqueId(slugify(nameSource));
   } else {
-    // Existing non-hash ID: keep it but ensure uniqueness
-    node.attributes.url_name = makeUniqueId(slugify(urlName));
+    // Human-authored url_name: preserve it, only sanitize invalid chars
+    node.attributes.url_name = makeUniqueId(sanitizeId(urlName));
   }
 
   // Recurse
@@ -349,7 +409,7 @@ const TAG_MAP: Record<string, string> = {
  * <Vertical><Markdown/></Vertical> → <Markdown/>
  * Carries forward id/title from the Vertical if the child lacks them.
  */
-function unwrapSingleChildVerticals(node: OlxNode): OlxNode {
+function unwrapSingleChildVerticals(node: OlxV2Node): OlxV2Node {
   // First, recurse into children
   node.children = node.children.map(unwrapSingleChildVerticals);
 
@@ -370,16 +430,7 @@ function unwrapSingleChildVerticals(node: OlxNode): OlxNode {
   return node;
 }
 
-interface OlxNode {
-  tag: string;
-  attributes: Record<string, string>;
-  children: OlxNode[];
-  text: string;        // For text content (Markdown, Explanation, etc.)
-  selfClosing?: boolean;
-  comment?: string;     // XML comment to place before this node
-}
-
-function transformNode(node: EdxNode): OlxNode | OlxNode[] | null {
+function transformNode(node: OlxV1Node): OlxV2Node | OlxV2Node[] | null {
   // Structural tags
   if (TAG_MAP[node.tag]) {
     return transformStructural(node);
@@ -405,7 +456,7 @@ function transformNode(node: EdxNode): OlxNode | OlxNode[] | null {
   }
 }
 
-function transformStructural(node: EdxNode): OlxNode {
+function transformStructural(node: OlxV1Node): OlxV2Node {
   const tag = TAG_MAP[node.tag];
   const id = node.attributes.url_name;
   const title = cleanDisplayName(node.attributes.display_name || '');
@@ -414,7 +465,7 @@ function transformStructural(node: EdxNode): OlxNode {
 
   countConverted(node.tag);
 
-  const children: OlxNode[] = [];
+  const children: OlxV2Node[] = [];
   for (const child of node.children) {
     const transformed = transformNode(child);
     if (transformed) {
@@ -434,7 +485,7 @@ function cleanDisplayName(name: string): string {
   return name.replace(/^["']|["']$/g, '').trim();
 }
 
-function transformHtml(node: EdxNode): OlxNode {
+function transformHtml(node: OlxV1Node): OlxV2Node {
   const id = node.attributes.url_name;
   const title = cleanDisplayName(node.attributes.display_name || '');
 
@@ -461,7 +512,7 @@ function transformHtml(node: EdxNode): OlxNode {
   };
 }
 
-function transformVideo(node: EdxNode): OlxNode {
+function transformVideo(node: OlxV1Node): OlxV2Node {
   const id = node.attributes.url_name;
   const title = cleanDisplayName(node.attributes.display_name || 'Video');
   const youtubeId = node.attributes.youtube_id_1_0 || '';
@@ -503,7 +554,7 @@ function transformVideo(node: EdxNode): OlxNode {
   };
 }
 
-function transformProblem(node: EdxNode): OlxNode | OlxNode[] {
+function transformProblem(node: OlxV1Node): OlxV2Node | OlxV2Node[] {
   const id = node.attributes.url_name;
   const title = cleanDisplayName(node.attributes.display_name || 'Problem');
 
@@ -524,7 +575,7 @@ function transformProblem(node: EdxNode): OlxNode | OlxNode[] {
   }
 }
 
-function findResponseType(node: EdxNode): string | null {
+function findResponseType(node: OlxV1Node): string | null {
   for (const child of node.children) {
     if (child.tag.endsWith('response')) return child.tag;
     const found = findResponseType(child);
@@ -533,7 +584,7 @@ function findResponseType(node: EdxNode): string | null {
   return null;
 }
 
-function findNodeByTag(node: EdxNode, tag: string): EdxNode | null {
+function findNodeByTag(node: OlxV1Node, tag: string): OlxV1Node | null {
   if (node.tag === tag) return node;
   for (const child of node.children) {
     const found = findNodeByTag(child, tag);
@@ -542,8 +593,8 @@ function findNodeByTag(node: EdxNode, tag: string): EdxNode | null {
   return null;
 }
 
-function findAllNodesByTag(node: EdxNode, tag: string): EdxNode[] {
-  const results: EdxNode[] = [];
+function findAllNodesByTag(node: OlxV1Node, tag: string): OlxV1Node[] {
+  const results: OlxV1Node[] = [];
   if (node.tag === tag) results.push(node);
   for (const child of node.children) {
     results.push(...findAllNodesByTag(child, tag));
@@ -555,9 +606,9 @@ function findAllNodesByTag(node: EdxNode, tag: string): EdxNode[] {
  * Extract the prompt text from a problem node.
  * The prompt is everything before the response element: <p>, <img>, etc.
  */
-function extractPromptAndImages(node: EdxNode): { promptHtml: string; images: OlxNode[] } {
+function extractPromptAndImages(node: OlxV1Node): { promptHtml: string; images: OlxV2Node[] } {
   const promptParts: string[] = [];
-  const images: OlxNode[] = [];
+  const images: OlxV2Node[] = [];
 
   for (const child of node.children) {
     // Stop at response elements
@@ -595,9 +646,9 @@ function fixStaticPath(src: string): string {
 }
 
 /**
- * Reconstruct HTML from an EdxNode (for prompt text within problems).
+ * Reconstruct HTML from an OlxV1Node (for prompt text within problems).
  */
-function edxNodeToHtml(node: EdxNode): string {
+function edxNodeToHtml(node: OlxV1Node): string {
   if (node.tag === '#text') return node.text;
 
   const attrs = Object.entries(node.attributes)
@@ -629,7 +680,7 @@ function edxNodeToHtml(node: EdxNode): string {
 /**
  * Extract explanation text from a <solution> element.
  */
-function extractExplanation(node: EdxNode): string | null {
+function extractExplanation(node: OlxV1Node): string | null {
   const solution = findNodeByTag(node, 'solution');
   if (!solution) return null;
 
@@ -642,7 +693,7 @@ function extractExplanation(node: EdxNode): string | null {
   return text || null;
 }
 
-function collectText(node: EdxNode): string[] {
+function collectText(node: OlxV1Node): string[] {
   const parts: string[] = [];
   if (node.text.trim()) {
     parts.push(node.text.trim());
@@ -659,14 +710,14 @@ function collectText(node: EdxNode): string[] {
   return parts;
 }
 
-function transformMCQ(node: EdxNode, id: string, title: string): OlxNode {
+function transformMCQ(node: OlxV1Node, id: string, title: string): OlxV2Node {
   countConverted('multiplechoiceresponse');
 
   const { promptHtml, images } = extractPromptAndImages(node);
   const choicegroup = findNodeByTag(node, 'choicegroup');
   const explanation = extractExplanation(node);
 
-  const children: OlxNode[] = [];
+  const children: OlxV2Node[] = [];
 
   // Prompt
   if (promptHtml) {
@@ -683,7 +734,7 @@ function transformMCQ(node: EdxNode, id: string, title: string): OlxNode {
 
   // ChoiceInput inside KeyGrader
   if (choicegroup) {
-    const choiceNodes: OlxNode[] = [];
+    const choiceNodes: OlxV2Node[] = [];
     for (const choice of choicegroup.children) {
       if (choice.tag !== 'choice') continue;
       const correct = choice.attributes.correct === 'true';
@@ -727,14 +778,14 @@ function transformMCQ(node: EdxNode, id: string, title: string): OlxNode {
   };
 }
 
-function transformCheckbox(node: EdxNode, id: string, title: string): OlxNode {
+function transformCheckbox(node: OlxV1Node, id: string, title: string): OlxV2Node {
   countConverted('choiceresponse');
 
   const { promptHtml, images } = extractPromptAndImages(node);
   const checkboxgroup = findNodeByTag(node, 'checkboxgroup');
   const explanation = extractExplanation(node);
 
-  const children: OlxNode[] = [];
+  const children: OlxV2Node[] = [];
 
   if (promptHtml) {
     children.push({
@@ -748,7 +799,7 @@ function transformCheckbox(node: EdxNode, id: string, title: string): OlxNode {
   children.push(...images);
 
   if (checkboxgroup) {
-    const choiceNodes: OlxNode[] = [];
+    const choiceNodes: OlxV2Node[] = [];
     for (const choice of checkboxgroup.children) {
       if (choice.tag !== 'choice') continue;
       const correct = choice.attributes.correct === 'true';
@@ -791,7 +842,7 @@ function transformCheckbox(node: EdxNode, id: string, title: string): OlxNode {
   };
 }
 
-function transformCustomResponse(node: EdxNode, id: string, title: string): OlxNode {
+function transformCustomResponse(node: OlxV1Node, id: string, title: string): OlxV2Node {
   // Assumes customresponse is survey/reflection with trivial grading (accept anything).
   // This is true for DartmouthX-EngX but may not hold for other courses.
   // TODO: Detect non-trivial custom graders and emit a warning or different conversion.
@@ -801,7 +852,7 @@ function transformCustomResponse(node: EdxNode, id: string, title: string): OlxN
   const { promptHtml, images } = extractPromptAndImages(node);
   const explanation = extractExplanation(node);
 
-  const children: OlxNode[] = [];
+  const children: OlxV2Node[] = [];
 
   if (promptHtml) {
     children.push({
@@ -840,7 +891,7 @@ function transformCustomResponse(node: EdxNode, id: string, title: string): OlxN
   };
 }
 
-function transformDiscussion(node: EdxNode): OlxNode {
+function transformDiscussion(node: OlxV1Node): OlxV2Node {
   const id = node.attributes.url_name;
   const title = cleanDisplayName(node.attributes.display_name || 'Discussion');
   const target = node.attributes.discussion_target || '';
@@ -861,9 +912,23 @@ function transformDiscussion(node: EdxNode): OlxNode {
   };
 }
 
-function transformSplitTest(node: EdxNode): OlxNode | null {
-  // A/B test: flatten to first child (Group A, the inquiry-based group)
+/**
+ * Convert a human-readable name to a CamelCase analytics ID.
+ * "Group A" → "GroupA", "Group ID 602361593" → "GroupID602361593"
+ * Non-alphanumeric characters (other than spaces, which are removed) become underscores.
+ */
+function toCamelId(s: string): string {
+  // Strip apostrophes/quotes (Owl's → Owls, not Owl_s)
+  const stripped = s.replace(/['']/g, '');
+  // CamelCase: capitalize first letter of each word, remove spaces
+  const camel = stripped.replace(/(?:^|\s+)(\S)/g, (_, c) => c.toUpperCase());
+  // Replace remaining non-alphanumeric with underscore
+  return camel.replace(/[^0-9a-zA-Z]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+}
+
+function transformSplitTest(node: OlxV1Node): OlxV2Node | null {
   const title = cleanDisplayName(node.attributes.display_name || 'Content Experiment');
+  const id = node.attributes.url_name;
 
   countConverted('split_test');
 
@@ -872,23 +937,76 @@ function transformSplitTest(node: EdxNode): OlxNode | null {
     return null;
   }
 
-  if (node.children.length > 1) {
-    warn(`split_test "${title}": discarding ${node.children.length - 1} groups, keeping first child only`);
+  // Parse the group_id_to_child mapping to get group IDs in order.
+  // The mapping is JSON like {"602361593": "i4x://path/to/vertical", ...}
+  // where keys are numeric group IDs from user_partitions.
+  let groupIdOrder: number[] = [];
+  try {
+    const mapping = JSON.parse(node.attributes.group_id_to_child || '{}');
+    groupIdOrder = Object.keys(mapping).map(Number);
+  } catch { /* ignore parse errors */ }
+
+  // Transform each child group (typically verticals).
+  // Tree is already fully expanded by loadOlx1Tree, no need to re-expand.
+  const children: OlxV2Node[] = [];
+  // Each group gets: { camelId, humanName, description? }
+  const groupInfo: { camelId: string; humanName: string }[] = [];
+  for (let i = 0; i < node.children.length; i++) {
+    const child = node.children[i];
+    const transformed = transformNode(child);
+    const result = Array.isArray(transformed) ? transformed[0] : transformed;
+    if (!result) continue;
+
+    children.push(result);
+
+    // Resolve group name: policy.json partition names > display_name > fallback
+    const numericId = groupIdOrder[i];
+    const partitionName = numericId !== undefined ? groupIdToName.get(numericId) : undefined;
+    const displayName = cleanDisplayName(child.attributes.display_name || '');
+    const humanName = partitionName || displayName || `Group ${children.length}`;
+    const camelId = toCamelId(humanName);
+    groupInfo.push({ camelId, humanName });
+
+    // Override the child's title with the resolved group name when the
+    // original was just a numeric group ID (e.g. "Group ID 602361593")
+    if (partitionName && result.attributes.title && /^Group ID \d+/.test(result.attributes.title)) {
+      result.attributes.title = partitionName;
+    }
   }
 
-  // Take the first child (Group A) and transform it.
-  // Tree is already fully expanded by loadEdxTree, no need to re-expand.
-  const firstChild = node.children[0];
-  const transformed = transformNode(firstChild);
-
-  if (transformed && !Array.isArray(transformed)) {
-    transformed.comment = `Flattened from split_test "${title}" (Group A selected)`;
+  if (children.length === 0) {
+    warn(`split_test "${title}": all children empty`);
+    return null;
   }
 
-  return Array.isArray(transformed) ? transformed[0] : transformed;
+  // groups= uses CamelCase IDs for analytics: Test5.GroupA, Test5.GroupB
+  const attrs: Record<string, string> = { id };
+  if (title) attrs.title = title;
+  attrs.groups = groupInfo.map(g => g.camelId).join(',');
+
+  // Build descriptive comment as a legend mapping CamelCase IDs to human names
+  const splitTestId = toCamelId(title);
+  const partitionId = parseInt(node.attributes.user_partition_id, 10);
+  const partition = !isNaN(partitionId) ? partitionMap.get(partitionId) : undefined;
+  const commentLines: string[] = [];
+  if (partition && partition.description.trim()) {
+    commentLines.push(partition.description.trim());
+  }
+  for (const g of groupInfo) {
+    commentLines.push(`${splitTestId}.${g.camelId}:`);
+    commentLines.push(`  name: ${g.humanName}`);
+  }
+
+  return {
+    tag: 'SplitTest',
+    attributes: attrs,
+    children,
+    text: '',
+    comment: commentLines.join('\n     '),
+  };
 }
 
-function transformUnknown(node: EdxNode): OlxNode {
+function transformUnknown(node: OlxV1Node): OlxV2Node {
   const id = node.attributes.url_name || slugify(node.tag);
 
   return {
@@ -900,7 +1018,7 @@ function transformUnknown(node: EdxNode): OlxNode {
   };
 }
 
-function transformUnknownProblem(node: EdxNode, id: string, title: string): OlxNode {
+function transformUnknownProblem(node: OlxV1Node, id: string, title: string): OlxV2Node {
   const { promptHtml } = extractPromptAndImages(node);
 
   return {
@@ -927,7 +1045,8 @@ function escapeAttr(s: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
 }
 
 /** Does this text contain HTML tags that would confuse an XML parser? */
@@ -950,9 +1069,9 @@ function wrapTextContent(s: string): string {
 }
 
 /**
- * Serialize an OlxNode tree to clean, indented XML.
+ * Serialize an OlxV2Node tree to clean, indented XML.
  */
-function serializeOlx(node: OlxNode, indent: number = 0): string {
+function serializeOlx(node: OlxV2Node, indent: number = 0): string {
   const pad = '  '.repeat(indent);
   const lines: string[] = [];
 
@@ -1019,7 +1138,7 @@ function generateFrontmatter(description: string, category: string): string {
   ].join('\n');
 }
 
-function emitFiles(courseNode: EdxNode): void {
+function emitFiles(courseNode: OlxV1Node): void {
   fs.mkdirSync(outputDir, { recursive: true });
 
   const courseId = courseNode.attributes.url_name;
@@ -1029,7 +1148,7 @@ function emitFiles(courseNode: EdxNode): void {
   // Emit one file per sequential. Course.olx gets the Chapter structure
   // with Use refs pointing to each sequential file.
   // Chapter is a pseudo-element consumed by the Course parser, not a block.
-  const chapterNodes: OlxNode[] = [];
+  const chapterNodes: OlxV2Node[] = [];
 
   for (const chapter of courseNode.children) {
     if (chapter.tag !== 'chapter') continue;
@@ -1040,7 +1159,7 @@ function emitFiles(courseNode: EdxNode): void {
     const chapterTitle = transformed.attributes.title || transformed.attributes.id;
 
     // Each child of the chapter (Sequential) becomes its own file
-    const useRefs: OlxNode[] = [];
+    const useRefs: OlxV2Node[] = [];
     for (const child of transformed.children) {
       // Unwrap single-child Verticals throughout the subtree
       const cleaned = unwrapSingleChildVerticals(child);
@@ -1075,14 +1194,14 @@ function emitFiles(courseNode: EdxNode): void {
 
   // Emit course file
   const courseFrontmatter = generateFrontmatter(courseTitle, category);
-  const courseOlxNode: OlxNode = {
+  const courseOlxV2Node: OlxV2Node = {
     tag: 'Course',
     attributes: { id: courseId, title: courseTitle, launchable: 'true' },
     children: chapterNodes,
     text: '',
   };
 
-  const courseXml = serializeOlx(courseOlxNode);
+  const courseXml = serializeOlx(courseOlxV2Node);
   fs.writeFileSync(path.join(outputDir, 'course.olx'), courseFrontmatter + '\n' + courseXml + '\n');
   console.log('  course.olx');
 }
@@ -1130,8 +1249,11 @@ function main(): void {
   console.log(`Loading OLX 1.0 from: ${inputDir}`);
 
   // Step 1: Load
-  const tree = loadEdxTree(inputDir);
+  const tree = loadOlx1Tree(inputDir);
   console.log(`Loaded course: ${tree.attributes.display_name || '(unnamed)'}`);
+
+  // Step 1b: Load partition config for split_test group names
+  loadUserPartitions(inputDir);
 
   // Step 2: Semantic IDs
   assignSemanticIds(tree);
