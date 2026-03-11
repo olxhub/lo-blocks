@@ -22,6 +22,7 @@
     "typecheck": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) npx tsc --noEmit",
     "lint": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) next lint apps/web",
     "xml2json": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) ./node_modules/.bin/tsx packages/shared/scripts/xml2json.ts",
+    "upgrade-olx": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) ./node_modules/.bin/tsx packages/shared/scripts/upgrade-olx.ts",
     "xml2graph": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) ./node_modules/.bin/tsx packages/shared/scripts/xml2graph.js",
     "build:grammars": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) ./node_modules/.bin/tsx packages/shared/scripts/compile-grammars.ts",
     "build:gen-block-registry": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) node packages/shared/scripts/generateBlockRegistry.js",
