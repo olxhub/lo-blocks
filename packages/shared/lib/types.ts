@@ -467,8 +467,7 @@ export interface LoBlock {
   selectValue?: ValueSelectorFn;
   locals: Record<string, any>;
   fields: Fields;
-  name?: string;  // Block name for selector matching
-  OLXName: OLXTag;
+  name: OLXTag;  // Block name — always set by factory (inferred from component name if not in blueprint)
   description?: string;
   namespace: string;
   isInput: boolean;

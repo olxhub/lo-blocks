@@ -14,7 +14,7 @@
 
 /* Learning Observer Theme System */
 @import "./theme.css";
-@import "./components.css";
+@import "./componentsAutogen.css";
 @import "../components/common/render-markdown.css";
 @import "./print.css";
 

@@ -324,7 +324,7 @@ export const refToReduxKey = (input: RefToReduxKeyInput): ReduxStateKey => {
   } else {
     // Provide a friendly error message when an ID is missing
     const name =
-      (input as any)?.loBlock?.OLXName ||
+      (input as any)?.loBlock?.name ||
       (input as any)?.nodeInfo?.olxJson?.tag ||
       (input as any)?.name ||
       'Component';
