@@ -12,11 +12,11 @@ export async function GET(request, { params }) {
   const { block: blockName } = await params;
 
   try {
-    // Find block by export name (key in BLOCK_REGISTRY) or OLXName
+    // Find block by export name (key in BLOCK_REGISTRY) or block name
     let block = BLOCK_REGISTRY[blockName];
     if (!block || !block._isBlock) {
       block = Object.values(BLOCK_REGISTRY).find(
-        b => b._isBlock && b.OLXName === blockName
+        b => b._isBlock && b.name === blockName
       );
     }
 
@@ -28,7 +28,7 @@ export async function GET(request, { params }) {
     }
 
     const blockDocs = {
-      name: block.OLXName,
+      name: block.name,
       description: block.description || null,
       namespace: block.namespace,
       source: block.source || null,

@@ -18,7 +18,7 @@ const storageFields = fields([{ name: 'content', event: 'SET_CONTENT', scope: sc
 // Includes runtime.logEvent (required by updateField) and block identity fields.
 const props = {
   id: 'sentinelId',
-  loBlock: { OLXName: 'sentinelTag' },
+  loBlock: { name: 'sentinelTag' },
   runtime: { logEvent: lo_event.logEvent },
 };
 
@@ -57,7 +57,7 @@ describe('useFieldState integration', () => {
 
     const { result } = renderHook(
       () => useFieldState(
-        { id: 'vid1', loBlock: { OLXName: 'video' }, runtime: { logEvent: lo_event.logEvent } },
+        { id: 'vid1', loBlock: { name: 'video' }, runtime: { logEvent: lo_event.logEvent } },
         settingFields.speed, 1
       ),
       { wrapper }

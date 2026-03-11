@@ -157,8 +157,7 @@ function createBlock(config: BlueprintInput): LoBlock {
     fields: (effectiveConfig.fields as Fields) ?? state.fields([]),
     locals: effectiveConfig.locals ?? {},
 
-    name: rawName,
-    OLXName: olxName,
+    name: olxName,
     description: parsed.description,
     namespace: parsed.namespace,
     isInput: parsed.isInput,

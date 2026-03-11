@@ -17,7 +17,7 @@ function generateDocumentation() {
     if (!block._isBlock) continue;
 
     blocks.push({
-      name: block.OLXName || exportName,
+      name: block.name || exportName,
       exportName,
       description: block.description || null,
       namespace: block.namespace,

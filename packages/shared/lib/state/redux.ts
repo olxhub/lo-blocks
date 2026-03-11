@@ -106,7 +106,7 @@ export const fieldSelector = <T>(
   const value: T | undefined = (() => {
     switch (scope) {
       case scopes.componentSetting: {
-        const tag = optTag ?? props?.loBlock?.OLXName;
+        const tag = optTag ?? props?.loBlock?.name;
         return selector(scopedState?.[tag]);
       }
       case scopes.system:
@@ -197,7 +197,10 @@ export function updateField(
       ? id
       : idResolver.refToReduxKey(props as RuntimeProps))
     : undefined;
-  const resolvedTag = tag ?? (props as RuntimeProps)?.loBlock?.OLXName;
+  // Cast: resolvedTag is only used for componentSetting scope (which has
+  // RuntimeProps), but resolvedTag is computed unconditionally. The ?.
+  // avoids throwing when called from a non-componentSetting code path.
+  const resolvedTag = tag ?? (props as RuntimeProps)?.loBlock?.name;
 
   const logEvent = props ? props.runtime.logEvent : lo_event.logEvent;
   logEvent(field.event, {
@@ -313,7 +316,7 @@ export function useReduxInput(
   );
 
   const id = idResolver.refToReduxKey(props);
-  const tag = props.loBlock.OLXName;
+  const tag = props.loBlock.name;
   const logEvent = props.runtime.logEvent;
 
   const onChange = useCallback((event) => {
