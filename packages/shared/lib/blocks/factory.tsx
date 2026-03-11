@@ -174,6 +174,13 @@ function createBlock(config: BlueprintInput): LoBlock {
     answerDisplayMode: effectiveConfig.answerDisplayMode,
     getDisplayAnswers: effectiveConfig.getDisplayAnswers as LoBlock['getDisplayAnswers'],
   }
+  // Validate requiresUniqueId at block registration time so block authors
+  // get an early error, not course authors hitting it at content parse time.
+  const ruid = effectiveConfig.requiresUniqueId;
+  if (ruid !== undefined && typeof ruid !== 'boolean') {
+    throw new Error(`createBlock(${olxName}): requiresUniqueId must be boolean, got ${JSON.stringify(ruid)}`);
+  }
+
   assertUnimplemented(parsed.reducers, 'reducers');
 
   // Default selectValue for input blocks: read commonFields.value

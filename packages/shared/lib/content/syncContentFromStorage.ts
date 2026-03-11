@@ -16,8 +16,9 @@
 import { StorageProvider, fileTypes } from '@/lib/lofs';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
 import type { ProvenanceURI, OLXLoadingError, OlxJson, IdMap, OlxKey, ContentVariant, VariantMap } from '@/lib/types';
-import { parseOLX } from '@/lib/content/parseOLX';
+import { parseOLX, blockRequiresUniqueId } from '@/lib/content/parseOLX';
 import { copyAssetsToPublic } from '@/lib/content/staticAssetSync';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 
 // =============================================================================
 // Types
@@ -438,8 +439,30 @@ function indexParsedBlocks(
     // Block exists - merge language variants
     for (const [lang, newOlxJson] of entriesVariantMap(newVariantMap)) {
       if (existingBlock[lang]) {
-        // Same ID + same language in different files = real duplicate error
+        // Same ID + same language in different files.
+        // Auto-generated hash IDs (prefix "_") from blocks with
+        // requiresUniqueId: false will collide when content is identical
+        // across files. The within-file parser already allowed the
+        // duplicate; we should do the same here — but only for blocks
+        // that don't require unique IDs (stateless blocks like Markdown,
+        // Explanation). Stateful blocks (e.g. TextArea) must always
+        // have unique IDs, even if their content is identical.
         const existingOlxJson = existingBlock[lang];
+        const requiresUnique = blockRequiresUniqueId(BLOCK_REGISTRY[newOlxJson.tag]);
+        if (!requiresUnique) {
+          const stableStringify = (v: unknown): string =>
+            JSON.stringify(v, (_, val) =>
+              val && typeof val === 'object' && !Array.isArray(val)
+                ? Object.fromEntries(Object.entries(val).sort(([a], [b]) => a.localeCompare(b)))
+                : val
+            );
+          const sameTag = existingOlxJson.tag === newOlxJson.tag;
+          const sameKids = stableStringify(existingOlxJson.kids) === stableStringify(newOlxJson.kids);
+          const sameAttrs = stableStringify(existingOlxJson.attributes) === stableStringify(newOlxJson.attributes);
+          if (sameTag && sameKids && sameAttrs) {
+            continue;  // Identical stateless block across files — not an error
+          }
+        }
         errors.push(createDuplicateIdError(blockId, existingOlxJson, newOlxJson, sourceFile));
         continue;  // Skip this language variant, keep the first one
       }

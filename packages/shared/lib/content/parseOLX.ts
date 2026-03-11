@@ -45,60 +45,24 @@ const xmlParser = new XMLParser({
 });
 
 /**
- * Determines if a block type requires unique IDs based on its configuration.
+ * Check if a block type requires unique IDs based on its Component definition.
+ * Returns true (require unique) or false (duplicates OK).
  *
- * @param Component - The block component (may be undefined for unknown components)
- * @param tag - The XML tag name
- * @param storeId - The ID being checked
- * @param entry - The entry being stored
- * @param idMap - The current ID map
- * @param provenance - File/location information
- * @returns boolean indicating if unique IDs are required
+ * The factory validates requiresUniqueId at block registration time, so by the
+ * time this runs, the value is guaranteed to be boolean or undefined.
+ *
+ * TODO: Future modes like 'children' (inherit from child blocks) or function
+ * (dynamic per-instance check) could be added in the factory and here.
  */
-function shouldBlockRequireUniqueId(Component, tag, storeId, entry, idMap, provenance) {
-  if (!Component) {
-    // Default behavior for unknown components: require unique IDs
-    return true;
-  }
-
-  const requiresUniqueId = Component.requiresUniqueId;
-
-  if (requiresUniqueId === undefined) {
-    // Default behavior: require unique IDs (backward compatibility)
-    return true;
-  } else if (typeof requiresUniqueId === 'boolean') {
-    return requiresUniqueId;
-  } else if (requiresUniqueId === 'children') {
-    // TODO: Implement 'children' mode
-    //
-    // This mode should recursively check if ANY child blocks require unique IDs.
-    // Implementation would:
-    // 1. Parse/examine the child nodes of this block
-    // 2. For each child, get its Component and check its requiresUniqueId setting
-    // 3. If ANY child requires unique IDs, return true for this block too
-    // 4. Otherwise return false
-    //
-    // Use case example: A Markdown block with embedded interactive elements
-    // - Basic Markdown blocks can have duplicate IDs
-    // - But if Markdown contains interactive widgets, those need unique IDs
-    // - So the container Markdown would inherit the uniqueness requirement
-    //
-    // This enables context-sensitive ID validation based on actual content.
-    throw new Error(`requiresUniqueId: 'children' mode is not yet implemented for component ${tag}`);
-  } else if (typeof requiresUniqueId === 'function') {
-    return requiresUniqueId({
-      id: storeId,
-      attributes: entry.attributes,
-      tag: entry.tag,
-      idMap,
-      provenance,
-      entry,
-      children: entry.kids
-    });
-  } else {
-    throw new Error(`Invalid requiresUniqueId value for component ${tag}: expected boolean, 'children', or function but got ${typeof requiresUniqueId}`);
-  }
+export function blockRequiresUniqueId(Component): boolean {
+  if (!Component) return true;
+  return Component.requiresUniqueId ?? true;
 }
+
+// TODO: Future requiresUniqueId modes to consider:
+// - 'children': inherit uniqueness requirement from child blocks (e.g. Markdown
+//   with embedded interactive widgets would need unique IDs, plain Markdown wouldn't)
+// - function: dynamic per-instance check based on content/attributes
 
 /**
  * Resolves the language for an element using the cascade:
@@ -577,7 +541,7 @@ export async function parseOLX(
         }
 
         if (idMap[storeId]?.[lang]) {
-          const requiresUnique = shouldBlockRequireUniqueId(Component, tag, storeId, entry, idMap, provenance);
+          const requiresUnique = blockRequiresUniqueId(Component);
 
           if (!requiresUnique) {
             // Allow duplicate IDs when content and attributes are identical
