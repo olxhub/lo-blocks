@@ -176,6 +176,8 @@ function createBlock(config: BlueprintInput): LoBlock {
   }
   // Validate requiresUniqueId at block registration time so block authors
   // get an early error, not course authors hitting it at content parse time.
+  // (Defense-in-depth: the Zod schema also constrains this, but runtime
+  // validation catches cases where the schema isn't the gatekeeper.)
   const ruid = effectiveConfig.requiresUniqueId;
   if (ruid !== undefined && typeof ruid !== 'boolean') {
     throw new Error(`createBlock(${olxName}): requiresUniqueId must be boolean, got ${JSON.stringify(ruid)}`);

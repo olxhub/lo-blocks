@@ -48,8 +48,8 @@ interface ConversionStats {
 
 const args = process.argv.slice(2);
 if (args.length < 1) {
-  console.error('Usage: npx tsx packages/shared/scripts/import-edx.ts <input-dir> [output-dir]');
-  console.error('Example: npx tsx packages/shared/scripts/import-edx.ts DartmouthX-EngX/course content/DartmouthX-EngX');
+  console.error('Usage: npm run upgrade-olx -- <input-dir> [output-dir]');
+  console.error('Example: npm run upgrade-olx -- DartmouthX-EngX/course content/DartmouthX-EngX');
   process.exit(1);
 }
 
@@ -117,6 +117,12 @@ function fxpToEdxNode(fxpNodes: any[]): EdxNode[] {
     for (const child of childFxp) {
       if ('#text' in child) {
         textParts.push(child['#text']);
+      } else if ('cdata' in child) {
+        // fast-xml-parser may emit CDATA as separate nodes
+        const cdataContent = Array.isArray(child.cdata)
+          ? child.cdata.map((c: any) => c['#text'] ?? '').join('')
+          : String(child.cdata);
+        textParts.push(cdataContent);
       } else {
         childElements.push(child);
       }
@@ -786,8 +792,10 @@ function transformCheckbox(node: EdxNode, id: string, title: string): OlxNode {
 }
 
 function transformCustomResponse(node: EdxNode, id: string, title: string): OlxNode {
-  // These are all survey/reflection with trivial grading (accept anything).
-  // Convert to Vertical with TextArea.
+  // Assumes customresponse is survey/reflection with trivial grading (accept anything).
+  // This is true for DartmouthX-EngX but may not hold for other courses.
+  // TODO: Detect non-trivial custom graders and emit a warning or different conversion.
+  warn(`customresponse "${title}": assumed to be survey/reflection — verify manually`);
   countConverted('customresponse');
 
   const { promptHtml, images } = extractPromptAndImages(node);
@@ -864,10 +872,14 @@ function transformSplitTest(node: EdxNode): OlxNode | null {
     return null;
   }
 
-  // Take the first child (Group A) and transform it
+  if (node.children.length > 1) {
+    warn(`split_test "${title}": discarding ${node.children.length - 1} groups, keeping first child only`);
+  }
+
+  // Take the first child (Group A) and transform it.
+  // Tree is already fully expanded by loadEdxTree, no need to re-expand.
   const firstChild = node.children[0];
-  const expanded = expandNode(inputDir, firstChild);
-  const transformed = transformNode(expanded);
+  const transformed = transformNode(firstChild);
 
   if (transformed && !Array.isArray(transformed)) {
     transformed.comment = `Flattened from split_test "${title}" (Group A selected)`;
@@ -994,10 +1006,12 @@ function serializeOlx(node: OlxNode, indent: number = 0): string {
 }
 
 function generateFrontmatter(description: string, category: string): string {
+  // Escape quotes for YAML string value
+  const escaped = description.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
   return [
     '<!--',
     '---',
-    `description: "${description}"`,
+    `description: "${escaped}"`,
     `category: ${category}`,
     'lang: en-Latn-US',
     '---',

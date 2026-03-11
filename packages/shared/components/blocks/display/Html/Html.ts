@@ -1,4 +1,4 @@
-// src/components/blocks/display/Html/Html.ts
+// packages/shared/components/blocks/display/Html/Html.ts
 //
 // Html block - renders raw HTML content.
 //

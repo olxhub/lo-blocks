@@ -27,6 +27,7 @@ import { Provenance, IdMap, OLXLoadingError, OlxReference, OlxKey, JSONValue } f
 
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { OLXMetadataSchema, type OLXMetadata } from '@/lib/content/metadata';
+import { stableStringify } from '@/lib/util';
 
 const defaultParser = parsers.blocks().parser;
 
@@ -548,14 +549,6 @@ export async function parseOLX(
             // (e.g. same Markdown repeated in multiple tabs). Flag as error
             // when they differ — that's a real authoring mistake where one
             // instance silently overwrites the other.
-            // Order-independent stringify for object comparison — XML
-            // parsers don't guarantee attribute property order.
-            const stableStringify = (v: unknown): string =>
-              JSON.stringify(v, (_, val) =>
-                val && typeof val === 'object' && !Array.isArray(val)
-                  ? Object.fromEntries(Object.entries(val).sort(([a], [b]) => a.localeCompare(b)))
-                  : val
-              );
             const existing = idMap[storeId][lang];
             const sameTag = (existing.tag || tag) === (entry.tag || tag);
             const sameKids = stableStringify(existing.kids) === stableStringify(entry.kids);

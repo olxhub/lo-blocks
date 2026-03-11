@@ -19,6 +19,7 @@ import type { ProvenanceURI, OLXLoadingError, OlxJson, IdMap, OlxKey, ContentVar
 import { parseOLX, blockRequiresUniqueId } from '@/lib/content/parseOLX';
 import { copyAssetsToPublic } from '@/lib/content/staticAssetSync';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import { stableStringify } from '@/lib/util';
 
 // =============================================================================
 // Types
@@ -450,12 +451,6 @@ function indexParsedBlocks(
         const existingOlxJson = existingBlock[lang];
         const requiresUnique = blockRequiresUniqueId(BLOCK_REGISTRY[newOlxJson.tag]);
         if (!requiresUnique) {
-          const stableStringify = (v: unknown): string =>
-            JSON.stringify(v, (_, val) =>
-              val && typeof val === 'object' && !Array.isArray(val)
-                ? Object.fromEntries(Object.entries(val).sort(([a], [b]) => a.localeCompare(b)))
-                : val
-            );
           const sameTag = existingOlxJson.tag === newOlxJson.tag;
           const sameKids = stableStringify(existingOlxJson.kids) === stableStringify(newOlxJson.kids);
           const sameAttrs = stableStringify(existingOlxJson.attributes) === stableStringify(newOlxJson.attributes);

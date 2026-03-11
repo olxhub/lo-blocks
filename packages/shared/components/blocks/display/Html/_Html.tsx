@@ -1,10 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
+import DOMPurify from 'dompurify';
 
-export function _Html(props) {
-  const { kids } = props;
-
+export function _Html({ kids }: { kids: any }) {
   let content = kids;
   if (Array.isArray(kids) && kids.length > 0) {
     content = kids.map((kid) => {
@@ -15,9 +14,12 @@ export function _Html(props) {
     }).join('');
   }
 
-  if (typeof content !== 'string' || !content.trim()) {
-    return null;
-  }
+  const sanitized = useMemo(() => {
+    if (typeof content !== 'string' || !content.trim()) return '';
+    return DOMPurify.sanitize(content);
+  }, [content]);
 
-  return <div dangerouslySetInnerHTML={{ __html: content }} />;
+  if (!sanitized) return null;
+
+  return <div dangerouslySetInnerHTML={{ __html: sanitized }} />;
 }
