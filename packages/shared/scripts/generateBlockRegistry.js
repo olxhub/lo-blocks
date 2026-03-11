@@ -372,6 +372,25 @@ function generateI18nModule(allBlockMetadata = {}) {
   const imports = [];
   const registrations = [];
 
+  // Common namespace — scan lib/i18n/common/*.json
+  const commonDir = path.resolve(path.dirname(I18N_REGISTRY_FILE), 'common');
+  if (fs.existsSync(commonDir) && fs.statSync(commonDir).isDirectory()) {
+    const localeFiles = fs.readdirSync(commonDir)
+      .filter(f => f.endsWith('.json'))
+      .sort();
+    for (const file of localeFiles) {
+      const locale = path.basename(file, '.json');
+      const importPath = relativeImportPath(
+        I18N_REGISTRY_FILE,
+        path.resolve(commonDir, file)
+      );
+      const importName = `I18N_common_${locale.replace(/[^A-Za-z0-9_]/g, '_')}`;
+      imports.push(`import ${importName} from '${importPath}';`);
+      registrations.push(`  i18n.addResourceBundle('${locale}', 'common', ${importName}, true, true);`);
+    }
+  }
+
+  // Per-block namespaces — from block metadata
   for (const [blockName, meta] of entries) {
     const namespace = `blocks/${blockName}`;
     const locales = Object.entries(meta.i18n).sort(([a], [b]) => a.localeCompare(b));
@@ -442,6 +461,13 @@ export function generateAllRegistryContents() {
     }
   }
 
+  // Include i18n module so the staleness test covers it
+  const i18nContent = generateI18nModule(result.blocks?.metadata);
+  result.i18n = {
+    content: i18nContent,
+    outputFile: I18N_REGISTRY_FILE,
+  };
+
   return result;
 }
 
@@ -472,14 +498,9 @@ function main() {
 
   const all = generateAllRegistryContents();
 
-  for (const registryType of Object.keys(registryTypes)) {
+  for (const registryType of Object.keys(all)) {
     writeRegistry(registryType, all);
   }
-
-  // Write the i18n registration module (uses block metadata discovered above)
-  const i18nContent = generateI18nModule(all.blocks?.metadata);
-  fs.writeFileSync(I18N_REGISTRY_FILE, i18nContent);
-  console.log(`Generated i18n registration module at ${I18N_REGISTRY_FILE}.`);
 
   console.log('All registries generated successfully.');
 }

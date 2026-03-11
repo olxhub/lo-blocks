@@ -1,0 +1,5 @@
+{
+  "next": "Dalej",
+  "previous": "Wstecz",
+  "progress": "{{current}} z {{total}}"
+}

@@ -1,5 +1,0 @@
-{
-  "prev_label": "上一步",
-  "next_label": "下一步",
-  "step_progress": "{{current}} 步，共 {{total}} 步"
-}

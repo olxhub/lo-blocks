@@ -120,12 +120,12 @@ export default function _Sequential(props) {
             disabled={index <= 0}
             className="px-4 py-2 bg-gray-200 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 inline-flex items-center gap-1"
           >
-            <NavArrow direction="back" /> {t('prev_label')}
+            <NavArrow direction="back" /> {t('previous')}
           </button>
         ) : <div />}
 
         <div className="text-sm text-gray-500">
-          {t('step_progress', { current: clampedIndex + 1, total: numItems })}
+          {t('progress', { current: clampedIndex + 1, total: numItems })}
         </div>
 
         {numItems > 1 ? (
@@ -134,7 +134,7 @@ export default function _Sequential(props) {
             disabled={index >= numItems - 1}
             className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 inline-flex items-center gap-1"
           >
-            {t('next_label')} <NavArrow direction="forward" />
+            {t('next')} <NavArrow direction="forward" />
           </button>
         ) : <div />}
       </div>

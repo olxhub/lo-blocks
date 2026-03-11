@@ -7,6 +7,11 @@
 // This handles the block chrome: button labels, status text, accessibility
 // strings — the stuff that's the same regardless of what course you're teaching.
 //
+// TODO: Naming is ambiguous. useTranslation (react-i18next), useTranslation
+// (our content translanguaging), and useBlockTranslation (this file) are easy
+// to confuse. Likely rename to useContentTranslation / useUiTranslation or
+// similar once the naming shakes out. Not this PR.
+//
 // Each block gets an i18next namespace derived from its name (e.g. "blocks/Sequential").
 // Translation JSON files live alongside the block (e.g. Sequential/i18n/en.json)
 // and are collected into blockI18nAutogen.ts by the build system.
@@ -18,7 +23,7 @@
 'use client';
 
 import i18n from 'i18next';
-import type { TFunction } from 'i18next';
+
 import { initReactI18next, useTranslation } from 'react-i18next';
 import type { BaselineProps, RuntimeProps } from '@/lib/types';
 import { registerGeneratedBlockI18n } from './blockI18nAutogen';
@@ -29,10 +34,17 @@ const DEFAULT_LANGUAGE = 'en';
  * Initialize i18next lazily on first use. Idempotent — safe to call repeatedly.
  *
  * This is scaffolding. registerGeneratedBlockI18n() bulk-loads all bundled
- * translations at init time. Once blocks load dynamically (from git repos,
- * LLM-generated, etc.), each block should register its own translations
- * on demand — same pattern as ensureBlock for content. addResourceBundle
- * is already idempotent, so the transition is straightforward.
+ * translations at init time. Two directions this should evolve:
+ *
+ * 1. Dynamic blocks (from git repos, LLM-generated, etc.) should register
+ *    their own translations on demand — same pattern as ensureBlock for
+ *    content. addResourceBundle is already idempotent, so the transition
+ *    is straightforward.
+ *
+ * 2. Dynamic UI translanguaging: a student requests Swahili, and the UI
+ *    chrome translanguages just like content does. This would be a
+ *    fetch() + addResourceBundle() at runtime, likely triggered from the
+ *    same locale-change path that drives content translation.
  *
  * escapeValue: false because React already escapes. initImmediate: false
  * because we bundle all translations (no async loading yet).
@@ -42,6 +54,7 @@ export function initBlockI18n() {
 
   i18n.use(initReactI18next).init({
     fallbackLng: DEFAULT_LANGUAGE,
+    fallbackNS: 'common',
     interpolation: { escapeValue: false },
     initImmediate: false,
   });
@@ -58,11 +71,14 @@ function blockNamespace(props: RuntimeProps): string {
  * Translation hook for block UI strings.
  *
  *   const { t } = useBlockTranslation(props);
- *   t('next_label')        // "Next" or "التالي" depending on locale
- *   t('step_progress', { current: 3, total: 5 })  // "Step 3 of 5"
+ *   t('next')              // "Next" or "التالي" depending on locale
+ *   t('progress', { current: 3, total: 5 })  // "3 of 5"
  *
  * Namespace is auto-derived from the block name (e.g. "blocks/Sequential")
- * unless overridden. Falls back to "common" namespace for shared strings.
+ * unless overridden.
+ *
+ * Falls back to the "common" namespace for shared strings ("Next",
+ * "Previous", "{current} of {total}"). Block-specific keys override common.
  */
 export function useBlockTranslation(
   props: BaselineProps,

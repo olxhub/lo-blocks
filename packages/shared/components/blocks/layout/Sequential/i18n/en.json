@@ -1,5 +1,0 @@
-{
-  "prev_label": "Previous",
-  "next_label": "Next",
-  "step_progress": "{{current}} of {{total}}"
-}
