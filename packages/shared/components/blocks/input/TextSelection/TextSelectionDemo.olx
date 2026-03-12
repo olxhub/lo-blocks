@@ -1,9 +1,9 @@
-<Vertical id="TextHighlightDemo" title="TextHighlight Block Demo">
+<Vertical id="TextSelectionDemo" title="TextSelection Block Demo">
 
   <Markdown>
-# TextHighlight Block Demo
+# TextSelection Block Demo
 
-The TextHighlight block allows students to interactively highlight text segments.
+The TextSelection block allows students to interactively highlight text segments.
 This demo shows all three modes and features.
   </Markdown>
 
@@ -14,11 +14,11 @@ This demo shows all three modes and features.
 Click on words to highlight them. Feedback appears immediately:
   </Markdown>
 
-  <TextHighlight id="demo_immediate" mode="immediate">
+  <TextSelection id="demo_immediate" mode="immediate">
 Highlight all the nouns:
 ---
 {The} [student] went to {the} [park] with {their} [friends].
-  </TextHighlight>
+  </TextSelection>
 
   <!-- Graded Mode with Scoring -->
   <Markdown>
@@ -27,7 +27,7 @@ Highlight all the nouns:
 Make your selections, then click "Check Answer" for feedback:
   </Markdown>
 
-  <TextHighlight id="demo_graded" mode="graded">
+  <TextSelection id="demo_graded" mode="graded">
 Identify examples of positive reinforcement:
 ---
 The parents tried [giving extra screen time|screen] when the child behaved well.
@@ -37,7 +37,7 @@ to track progress. Sometimes they would &lt;&lt;take away toys|toys>> as punishm
 all: Perfect! You found both positive reinforcement examples! (2/2)
 >1: Good start! There's one more example. (1/2)
 : Review positive reinforcement - it means adding something pleasant. (0/2)
-  </TextHighlight>
+  </TextSelection>
 
   <!-- Self-Check Mode -->
   <Markdown>
@@ -46,12 +46,12 @@ all: Perfect! You found both positive reinforcement examples! (2/2)
 Make your selections, then reveal the answer to compare:
   </Markdown>
 
-  <TextHighlight id="demo_self_check" mode="selfcheck">
+  <TextSelection id="demo_self_check" mode="selfcheck">
 Compare your highlighting with ours:
 ---
 [Reinforcement] increases behavior while [punishment] decreases it.
 {Positive and negative} refer to [adding or removing], not good or bad.
-  </TextHighlight>
+  </TextSelection>
 
   <!-- Advanced Example -->
   <Markdown>
@@ -60,7 +60,7 @@ Compare your highlighting with ours:
 This example shows targeted feedback for specific selections:
   </Markdown>
 
-  <TextHighlight id="demo_advanced" mode="immediate">
+  <TextSelection id="demo_advanced" mode="immediate">
 Identify the behavioral techniques:
 ---
 They used [positive reinforcement|pos_reinf] by giving rewards. They tried
@@ -76,12 +76,12 @@ pos_reinf: That's right! Adding something pleasant.
 neg_punish: Correct! Removing something the child wants.
 accident: Tricky one - the yelling reinforced bad behavior!
 yelling: Careful - what effect did the yelling actually have?
-  </TextHighlight>
+  </TextSelection>
 
   <Markdown>
 ## Summary
 
-The TextHighlight block provides flexible, interactive text highlighting with three interaction modes, rich feedback systems, and teacher-friendly authoring.
+The TextSelection block provides flexible, interactive text highlighting with three interaction modes, rich feedback systems, and teacher-friendly authoring.
 
 Perfect for language arts, psychology, science, and any subject where identifying key concepts in text is important!
   </Markdown>

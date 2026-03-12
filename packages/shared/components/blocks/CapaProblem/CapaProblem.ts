@@ -27,7 +27,7 @@
 
 import { z } from 'zod';
 import { dev, refToReduxKey } from '@/lib/blocks';
-import { isBlockTag } from '@/lib/util';
+import { isPascalCase } from '@/lib/util';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import * as state from '@/lib/state';
 import { baseAttributes, problemMixin } from '@/lib/blocks/attributeSchemas';
@@ -75,7 +75,7 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
 
     // TODO: Handle Open edX OLX cases: Label, Description, ResponseParam
 
-    if (isBlockTag(childTag)) {
+    if (isPascalCase(childTag)) {
       const blockType = BLOCK_REGISTRY[childTag];
 
       if (!childAttrs.id) {
@@ -142,7 +142,7 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
   // Call parseNode on immediate block children to trigger their parsers
   for (const n of rawKids) {
     const childTag = Object.keys(n).find(k => ![':@', '#text', '#comment'].includes(k));
-    if (childTag && isBlockTag(childTag)) {
+    if (childTag && isPascalCase(childTag)) {
       const kids = n[childTag];
       const kidsArray = Array.isArray(kids) ? kids : (kids ? [kids] : []);
       await parseNode(n, kidsArray, 0);

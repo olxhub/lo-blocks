@@ -1,0 +1,34 @@
+<Vertical id="freewriteDemo" title="Freewrite Demo" launchable="true">
+<Markdown>
+
+Reflect on this passage from _Writing Without Teachers_ by Peter Elbow:
+
+> THE most effective way I know to improve your writing is to
+> do freewriting exercises regularly. At least three times a week.
+> They are sometimes called “automatic writing,” “babbling,”
+> or “jabbering” exercises. The idea is simply to write for ten
+> minutes (later on, perhaps fifteen or twenty). Don’t stop for
+> anything. Go quickly without rushing. Never stop to look
+> back, to cross something out, to wonder how to spell some-
+> thing, to wonder what word or thought to use, or to think
+> about what you are doing. If you can’t think of a word or a
+> spelling, just use a squiggle or else write, “I can’t think of it.”
+> Just put down something. The easiest thing is just to put
+> down whatever is in your mind. If you get stuck it’s fine to
+> write “I can’t think what to say, I can’t think what to say” as
+> many times as you want; or repeat the last word you wrote
+> over and over again; or anything else. The only requirement
+> is that you never stop.
+> 
+> What happens to a freewriting exercise is important. It
+> must be a piece of writing which, even if someone reads it,
+> doesn’t send any ripples back to you. It is like writing some-
+> thing and putting it in a bottle in the sea. The teacherless
+> class helps your writing by providing maximum feedback.
+</Markdown>
+
+You can write as long as you like, but if you stop, the exercise ends. See how long you can go!
+
+<Freewrite id="fwElbow" nodelete="true" pace="true" wordcount="true" />
+
+</Vertical>

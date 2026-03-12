@@ -31,5 +31,5 @@ Use this block as a template:
 ## Related Blocks
 
 - **Chat** - Uses `.chatpeg` format
-- **TextHighlight** - Uses `.textHighlight` format
+- **TextSelection** - Uses `.textSelection` format
 - **SimpleSortable** - Uses `.sortpeg` format

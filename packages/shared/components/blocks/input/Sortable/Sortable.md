@@ -194,6 +194,6 @@ npm run xml2json -- --out debug.json
 ## Related Components
 
 - **ChoiceInput**: For multiple choice questions
-- **TextHighlight**: For text selection exercises
+- **TextSelection**: For text selection exercises
 - **CapaProblem**: Problem container with automatic grading buttons
 

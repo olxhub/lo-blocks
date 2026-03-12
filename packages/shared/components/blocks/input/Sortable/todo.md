@@ -41,7 +41,7 @@ And no numbers (for shuffle, assumes single line).
 
 Realtime display of correctness
 ============
-Depending on use, students might want to see how close they are in realtime. This might be more of a CapaProblem architectural issue and feature than strictly a sortable one; we have something similar in TextHighlight
+Depending on use, students might want to see how close they are in realtime. This might be more of a CapaProblem architectural issue and feature than strictly a sortable one; we have something similar in TextSelection
 
 DragHandles
 ============

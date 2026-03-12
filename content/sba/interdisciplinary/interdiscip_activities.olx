@@ -69,7 +69,7 @@ Working with supervisor Lianne Park and your intern teammates, you'll investigat
     <!-- Focus group transcript part 1 -->
     <Vertical id="focus_group_transcript_pt1">
       <Markdown>**Focus Group Transcript (Part 1)**</Markdown>
-      <TextHighlight id="focus_group_pt1" mode="selfcheck">
+      <TextSelection id="focus_group_pt1" mode="selfcheck">
 Highlight reasons participants gave for dropping out:
 ---
 **Moderator:** Thank you all for being here. We want to understand why young people leave high school before graduating. Let's start with what you've seen in your community.
@@ -81,13 +81,13 @@ Highlight reasons participants gave for dropping out:
 **Community Member:** There's also the [gang activity in some neighborhoods]. Kids get pulled in, and school becomes secondary to survival.
 
 **Parent 2:** [Depression and anxiety] are huge issues. My neighbor's son stopped going because he [couldn't face the social environment]. Nobody helped him.
-      </TextHighlight>
+      </TextSelection>
     </Vertical>
 
     <!-- Focus group transcript part 2 -->
     <Vertical id="focus_group_transcript_pt2">
       <Markdown>**Focus Group Transcript (Part 2)**</Markdown>
-      <TextHighlight id="focus_group_pt2" mode="selfcheck">
+      <TextSelection id="focus_group_pt2" mode="selfcheck">
 Continue highlighting reasons for dropping out:
 ---
 **Counselor:** I see students who feel [disconnected from the curriculum]. They don't see how algebra helps them get a job. [Relevance] is a major factor.
@@ -99,7 +99,7 @@ Continue highlighting reasons for dropping out:
 **Community Leader:** We need to talk about [school funding]. Underfunded schools can't provide the resources - tutoring, counseling, special ed services - that keep struggling students in school.
 
 **Parent 1:** And some families prioritize [cultural or religious responsibilities] over American-style education. That's their choice, but it affects graduation rates.
-      </TextHighlight>
+      </TextSelection>
     </Vertical>
 
     <!-- Display of focus group highlights -->
@@ -239,7 +239,7 @@ These terms indicate this study comes from **Psychology**, specifically educatio
     <!-- Employment study text with highlighting -->
     <Vertical id="employment_study_text">
       <Markdown>**Research Study: Employment and High School Dropout**</Markdown>
-      <TextHighlight id="source_2_highlights" mode="selfcheck">
+      <TextSelection id="source_2_highlights" mode="selfcheck">
 Highlight clues that indicate which disciplines are represented:
 ---
 **Staff, J., et al. (2019). Adolescent work intensity and high school dropout.**
@@ -253,7 +253,7 @@ Key findings:
 - [Labor market conditions] in the local economy affected student choices
 
 The study draws on [sociological theories] of status attainment and [economic models] of human capital investment to explain why some students choose work over school.
-      </TextHighlight>
+      </TextSelection>
     </Vertical>
 
     <!-- Employment study explanation input -->
@@ -265,7 +265,7 @@ The study draws on [sociological theories] of status attainment and [economic mo
     <!-- Rural/Urban study text -->
     <Vertical id="rural_urban_study_text">
       <Markdown>**Research Study: Rural vs. Urban Dropout Rates**</Markdown>
-      <TextHighlight id="source_3_highlights" mode="selfcheck">
+      <TextSelection id="source_3_highlights" mode="selfcheck">
 Highlight clues that indicate which disciplines are represented:
 ---
 **Jordan, W., et al. (2012). Geographic differences in high school dropout rates.**
@@ -279,7 +279,7 @@ Key findings:
 - [Policy interventions] varied significantly by state, affecting local outcomes
 
 The authors argue for [policy reforms] that account for geographic differences and address [structural inequalities] in school funding across different types of communities.
-      </TextHighlight>
+      </TextSelection>
     </Vertical>
 
     <!-- Rural/Urban study explanation input -->
@@ -291,7 +291,7 @@ The authors argue for [policy reforms] that account for geographic differences a
     <!-- School funding study text -->
     <Vertical id="funding_study_text">
       <Markdown>**Research Study: School Funding and Dropout Rates**</Markdown>
-      <TextHighlight id="source_4_highlights" mode="selfcheck">
+      <TextSelection id="source_4_highlights" mode="selfcheck">
 Highlight clues that indicate which disciplines are represented:
 ---
 **Baker, B., et al. (2018). School funding and educational outcomes.**
@@ -305,7 +305,7 @@ Key findings:
 - [Budget allocation decisions] by school boards directly affected at-risk student services
 
 The study uses [economic analysis] of [resource allocation] and examines how [political decisions] at state and local levels shape educational funding priorities. The authors recommend [policy changes] to create more [equitable funding] formulas.
-      </TextHighlight>
+      </TextSelection>
     </Vertical>
 
     <!-- Funding study explanation input -->
@@ -325,7 +325,7 @@ The study uses [economic analysis] of [resource allocation] and examines how [po
       <Markdown>**National Center for Education Statistics: Dropout Trends**</Markdown>
 
       <Markdown>**Part 1: Highlight text that shows why this problem is IMPORTANT:**</Markdown>
-      <TextHighlight id="source_5_importance_highlights" mode="selfcheck">
+      <TextSelection id="source_5_importance_highlights" mode="selfcheck">
 Highlight evidence about the significance of the dropout problem:
 ---
 **NCES (2023). Status and Trends in Education: High School Dropout Rates**
@@ -337,10 +337,10 @@ The national dropout rate has declined from 12% in 1990 to about 5% in 2022. How
 For communities, [each dropout costs approximately $260,000] in lost tax revenue and increased social services over their lifetime. [Collective costs to society] run into billions annually.
 
 Despite progress, [6 out of 10 dropouts] cite reasons that could have been addressed with appropriate interventions. [Achievement gaps] persist across [racial and socioeconomic lines], with [Hispanic and Black students] dropping out at higher rates.
-      </TextHighlight>
+      </TextSelection>
 
       <Markdown>**Part 2: Highlight text that shows why this problem is UNRESOLVED:**</Markdown>
-      <TextHighlight id="source_5_unresolved_highlights" mode="selfcheck">
+      <TextSelection id="source_5_unresolved_highlights" mode="selfcheck">
 Highlight evidence that the problem has not been adequately solved:
 ---
 Despite [decades of reform efforts], the dropout problem persists. While overall rates have declined, [disparities remain stubbornly high] for certain populations.
@@ -350,7 +350,7 @@ The problem [remains unresolved] because interventions are [inconsistent and und
 [Existing programs reach only a fraction] of at-risk students. [Funding gaps] between wealthy and poor districts continue. [Prevention efforts start too late] for many students who show warning signs in middle school.
 
 Researchers note that [root causes are complex] and require [coordinated, multi-sector responses] that few communities have achieved.
-      </TextHighlight>
+      </TextSelection>
     </Vertical>
 
     <!-- Display importance highlights -->

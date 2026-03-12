@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
-import { baseAttributes, z_olx_duration } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes, z_olx_boolean, z_olx_duration } from '@/lib/blocks/attributeSchemas';
 import _TimedContainer from './_TimedContainer';
 
 export const fields = state.fields([
@@ -35,6 +35,8 @@ const TimedContainer = dev({
       .describe('Text shown on the start screen (above duration and button)'),
     after: z.string().optional()
       .describe('Text shown after time runs out'),
+    hideuntilstart: z_olx_boolean.default(false)
+      .describe('Hide content until the timer starts'),
   }),
 });
 

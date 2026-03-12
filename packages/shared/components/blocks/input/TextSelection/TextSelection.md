@@ -1,10 +1,10 @@
-# TextHighlight
+# TextSelection
 
 Interactive text highlighting exercise where students select words or phrases.
 
 ## Overview
 
-TextHighlight presents text where students click or drag to highlight words. Supports three interaction modes:
+TextSelection presents text where students click or drag to highlight words. Supports three interaction modes:
 
 - **immediate**: Real-time feedback as students select
 - **graded**: Students submit, then see results
@@ -13,14 +13,14 @@ TextHighlight presents text where students click or drag to highlight words. Sup
 ## Basic Usage
 
 ```olx:code
-<TextHighlight id="concepts" mode="immediate" src="cooperative_learning.textHighlight" />
+<TextSelection id="concepts" mode="immediate" src="cooperative_learning.textSelection" />
 ```
 
-The `src` attribute points to a `.textHighlight` file containing the exercise content.
+The `src` attribute points to a `.textSelection` file containing the exercise content.
 
 ## Content Format
 
-TextHighlight uses a simple markup syntax in `.textHighlight` files:
+TextSelection uses a simple markup syntax in `.textSelection` files:
 
 ```
 Prompt text goes here
@@ -52,7 +52,7 @@ In [Jigsaw], students become [experts] on different [subtopics] and then [teach]
 Feedback updates as students select. Good for practice and exploration.
 
 ```olx:code
-<TextHighlight id="practice" mode="immediate" src="exercise.textHighlight" />
+<TextSelection id="practice" mode="immediate" src="exercise.textSelection" />
 ```
 
 ### Graded Mode
@@ -60,7 +60,7 @@ Feedback updates as students select. Good for practice and exploration.
 Students make selections, then click "Check" to see results. Supports multiple attempts.
 
 ```olx:code
-<TextHighlight id="quiz" mode="graded" src="exercise.textHighlight" />
+<TextSelection id="quiz" mode="graded" src="exercise.textSelection" />
 ```
 
 ### Self-Check Mode
@@ -68,7 +68,7 @@ Students make selections, then click "Check" to see results. Supports multiple a
 Students make selections, then click "Compare" to see the instructor's answer overlaid.
 
 ```olx:code
-<TextHighlight id="review" mode="selfcheck" src="exercise.textHighlight" />
+<TextSelection id="review" mode="selfcheck" src="exercise.textSelection" />
 ```
 
 ## Advanced Features
@@ -113,7 +113,7 @@ Scoring conditions:
 | Attribute | Required | Default | Description |
 |-----------|----------|---------|-------------|
 | `id` | Yes | - | Unique identifier |
-| `src` | Yes | - | Path to .textHighlight file |
+| `src` | Yes | - | Path to .textSelection file |
 | `mode` | No | `immediate` | One of: `immediate`, `graded`, `selfcheck` |
 | `showRealtimeFeedback` | No | `false` | Show correct/incorrect colors during selection |
 

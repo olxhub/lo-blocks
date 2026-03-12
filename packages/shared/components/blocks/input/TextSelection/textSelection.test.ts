@@ -1,14 +1,14 @@
 // @vitest-environment node
-// src/components/blocks/TextHighlight/textHighlight.test.js
+// src/components/blocks/TextSelection/textSelection.test.ts
 import { test, expect } from 'vitest';
-import { parseTextHighlight } from './textHighlightUtils';
+import { parseTextSelection } from './textSelectionUtils';
 
 test('parses simple required highlights', () => {
   const input = `Highlight the nouns:
 ---
 The [cat] sat on the [mat].`;
 
-  const result = parseTextHighlight(input);
+  const result = parseTextSelection(input);
 
   expect(result.prompt).toBe('Highlight the nouns:');
   expect(result.segments).toHaveLength(5);
@@ -24,7 +24,7 @@ test('parses optional highlights', () => {
 ---
 {The} [cat] sat on {the} [mat].`;
 
-  const result = parseTextHighlight(input);
+  const result = parseTextSelection(input);
 
   expect(result.segments).toHaveLength(8);
   expect(result.segments[0]).toEqual({ type: 'optional', content: 'The', id: null });
@@ -37,7 +37,7 @@ test('parses feedback triggers', () => {
 ---
 They used [rewards] but also tried <<punishment>>.`;
 
-  const result = parseTextHighlight(input);
+  const result = parseTextSelection(input);
 
   expect(result.segments).toContainEqual({
     type: 'feedback_trigger',
@@ -51,7 +51,7 @@ test('parses labeled segments', () => {
 ---
 They used [positive reinforcement|pos] and [negative punishment|neg].`;
 
-  const result = parseTextHighlight(input);
+  const result = parseTextSelection(input);
 
   expect(result.segments).toContainEqual({
     type: 'required',
@@ -74,7 +74,7 @@ all: Perfect! (2/2)
 >1: Good start! (1/2)
 : Keep trying. (0/2)`;
 
-  const result = parseTextHighlight(input);
+  const result = parseTextSelection(input);
 
   expect(result.scoring).toHaveLength(3);
   expect(result.scoring[0]).toEqual({
@@ -101,7 +101,7 @@ all: Great job!
 cat_id: That's right, cat is a noun!
 chair: Close, but we're looking for what the cat sat ON.`;
 
-  const result = parseTextHighlight(input);
+  const result = parseTextSelection(input);
 
   expect(result.targetedFeedback).toHaveProperty('cat_id');
   expect(result.targetedFeedback.cat_id).toBe("That's right, cat is a noun!");
@@ -113,7 +113,7 @@ test('handles nested brackets correctly', () => {
 ---
 {The big} [cat] and [{the small} dog].`;
 
-  const result = parseTextHighlight(input);
+  const result = parseTextSelection(input);
 
   // Should parse as separate segments, not nested
   expect(result.segments).toContainEqual({ type: 'optional', content: 'The big', id: null });
@@ -130,7 +130,7 @@ test('handles content without mode directives', () => {
 ---
 The [cat] sat.`;
 
-  const result = parseTextHighlight(input);
+  const result = parseTextSelection(input);
 
   expect(result.prompt).toBe('Find the nouns:');
   expect(result.segments).toContainEqual({
@@ -149,7 +149,7 @@ Then they used [praise|para2] consistently.
 
 Finally, [sticker charts|para3] worked best.`;
 
-  const result = parseTextHighlight(input);
+  const result = parseTextSelection(input);
 
   const requiredSegments = result.segments.filter(s => s.type === 'required');
   expect(requiredSegments).toHaveLength(3);
@@ -168,7 +168,7 @@ all: Perfect! All 3 found.
 found>1,incorrect<2: Keep going.
 : Try again.`;
 
-  const result = parseTextHighlight(input);
+  const result = parseTextSelection(input);
 
   expect(result.scoring).toContainEqual({
     condition: '>2,errors<1',
@@ -185,7 +185,7 @@ test('escapes special characters', () => {
 ---
 The function returns \\[array\\] not [real array].`;
 
-  const result = parseTextHighlight(input);
+  const result = parseTextSelection(input);
 
   // Escaped brackets should be plain text
   expect(result.segments).toContainEqual({

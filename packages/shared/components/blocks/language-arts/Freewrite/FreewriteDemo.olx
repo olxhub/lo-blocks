@@ -1,0 +1,54 @@
+<Vertical id="FreewriteDemo" title="Freewrite Block Demo">
+
+  <Markdown id="intro">
+## Freewriting Exercises
+
+Freewriting is a technique where you write continuously without stopping,
+editing, or worrying about quality. These demos show different constraint
+combinations.
+
+### 1. Full freewrite
+
+You can't see what you're writing and you can't go back. Just write.
+  </Markdown>
+
+  <TimedContainer id="t1" duration="2 minutes" hideuntilstart="true"
+                  before="Write whatever comes to mind. Don't stop.">
+    <Freewrite id="fw1" invisible="true" nodelete="true"
+               wordcount="true" pace="true" />
+  </TimedContainer>
+
+  <Markdown id="desc2">
+### 2. No-delete mode
+
+You can see your text, but you can't edit it.
+  </Markdown>
+
+  <TimedContainer id="t2" duration="1 minute" hideuntilstart="true"
+                  before="Write continuously for one minute.">
+    <Freewrite id="fw2" nodelete="true" wordcount="true" />
+  </TimedContainer>
+
+  <Markdown id="desc3">
+### 3. Invisible mode
+
+You can't see what you're writing, but backspace works if you need it.
+  </Markdown>
+
+  <TimedContainer id="t3" duration="90 seconds" hideuntilstart="true"
+                  before="Write without seeing your words.">
+    <Freewrite id="fw3" invisible="true" wordcount="true" pace="true" />
+  </TimedContainer>
+
+  <Markdown id="desc4">
+### 4. Timed writing
+
+Just a timed writing session with word count.
+  </Markdown>
+
+  <TimedContainer id="t4" duration="3 minutes" hideuntilstart="true"
+                  before="Free writing time.">
+    <Freewrite id="fw4" wordcount="true" rows="12" />
+  </TimedContainer>
+
+</Vertical>

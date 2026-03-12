@@ -74,7 +74,7 @@ export function getExtension(filePath: string | undefined | null): string {
  */
 export function fileHasExtension(path: string | undefined | null, extensions: readonly string[]): boolean {
   const ext = getExtension(path);  // Already lowercased
-  // Case-insensitive comparison (extensions may have mixed case like textHighlightpeg)
+  // Case-insensitive comparison (extensions may have mixed case like textSelectionpeg)
   return ext !== '' && extensions.some(e => e.toLowerCase() === ext);
 }
 

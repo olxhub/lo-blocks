@@ -8,7 +8,7 @@ import { isInputReadOnly, useGraderAnswer, refToOlxKey } from '@/lib/blocks';
 import { extendIdPrefix } from '@/lib/blocks/idResolver';
 import { HandleCommon } from '@/components/common/DragHandle';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
-import { buildArrangementWithPositions } from '@/lib/utils/shuffle';
+import { buildArrangementWithPositions } from '@/lib/util/shuffle';
 import { fields } from './MatchingInput';
 import type { MatchingArrangement, ItemPosition } from './types';
 

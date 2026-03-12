@@ -5,7 +5,7 @@
 
 'use client';
 import React from 'react';
-import { resolveContentPath } from '@/lib/util';
+import { resolveContentPath } from '@/lib/content/contentPaths';
 
 function _PDFViewer(props) {
   const { src, width, height } = props;
