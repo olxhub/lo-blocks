@@ -12,7 +12,8 @@ const DevQuestion = test({
   ...parsers.ignore(),
   name: 'DevQuestion',
   component: _DevQuestion,
-  fields: fields
+  fields: fields,
+  internal: true,
 });
 
 export default DevQuestion;

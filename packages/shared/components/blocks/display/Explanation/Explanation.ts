@@ -23,6 +23,7 @@ const Explanation = dev({
   name: 'Explanation',
   description: 'Displays explanation content conditionally based on grader state (e.g., after correct answer)',
   component: _Explanation,
+  requiresUniqueId: false,
   requiresGrader: true,
   attributes: baseAttributes.extend({
     showWhen: z.enum(validShowWhen).default('correct'),

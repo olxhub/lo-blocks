@@ -219,7 +219,7 @@ export function render({ node, nodeInfo, runtime }: {
           id={`grader-required-${node.id}`}
           name={tag}
           message={e.message}
-          technical={{ blockId: node.id, requiresGrader: true }}
+          technical={{ tag, blockId: node.id }}
         />
       );
     }

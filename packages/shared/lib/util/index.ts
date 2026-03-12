@@ -76,6 +76,18 @@ export function resolveContentPath(src: string | null | undefined): string | nul
 }
 
 /**
+ * Order-independent JSON.stringify for comparing objects where property order
+ * may vary (e.g. XML parser output). Sorts object keys before serializing.
+ */
+export function stableStringify(v: unknown): string {
+  return JSON.stringify(v, (_, val) =>
+    val && typeof val === 'object' && !Array.isArray(val)
+      ? Object.fromEntries(Object.entries(val).sort(([a], [b]) => a.localeCompare(b)))
+      : val
+  );
+}
+
+/**
  * Hash content (file body) for replicability in learning analytics.
  * Used to identify files across sessions and enable download restoration.
  * Returns 8-char hex string (first 64 bits of SHA256).

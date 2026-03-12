@@ -7,6 +7,7 @@ const DevProblem = test({
   ...parsers.blocks(),
   name: 'DevProblem',
   component: _DevProblem,
+  internal: true,
 });
 
 export default DevProblem;
