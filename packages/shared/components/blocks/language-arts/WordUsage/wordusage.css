@@ -1,0 +1,72 @@
+/* TextHighlight block styles */
+
+.lo-text-highlight {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+/* Placeholder state (loading / empty) */
+.lo-text-highlight--placeholder {
+  min-height: 100px;
+  border-style: dashed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+}
+
+/* Highlighted text area */
+.lo-text-highlight__text {
+  padding: 1rem;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Highlight mark — inline style sets backgroundColor, this adds shape */
+.lo-text-highlight__mark {
+  border-radius: 2px;
+  padding: 1px 0;
+}
+
+/* Summary strip */
+.lo-text-highlight__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.lo-text-highlight__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  color: #374151;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+}
+
+.lo-text-highlight__chip-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.lo-text-highlight__chip-label {
+  font-weight: 500;
+}
+
+.lo-text-highlight__chip-count {
+  color: #6b7280;
+  font-weight: normal;
+}

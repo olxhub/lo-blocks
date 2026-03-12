@@ -1,0 +1,9 @@
+<Vertical id="word_usage_example" title="Word Usage">
+  <Markdown id="highlight_intro">
+## Writing Pattern Highlighter
+
+Type or edit the text below and watch how repeated words are highlighted.
+  </Markdown>
+  <TextArea id="highlight_text" rows="8" />
+  <WordUsage id="highlight_view" target="highlight_text" mode="repeated_words" />
+</Vertical>

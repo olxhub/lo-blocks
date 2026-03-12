@@ -1,0 +1,31 @@
+<Vertical id="word_usage_demo" title="Word Usage Demo">
+
+  <Markdown id="demo_intro">
+## Writing Pattern Analysis
+
+Type some text and explore different analysis modes below.
+  </Markdown>
+
+  <TextArea id="demo_text" rows="10" />
+
+  <Markdown id="repeated_label">
+### Repeated Words
+  </Markdown>
+  <WordUsage id="demo_repeated" target="demo_text" mode="repeated_words" />
+
+  <Markdown id="starters_label">
+### Sentence Starters
+  </Markdown>
+  <WordUsage id="demo_starters" target="demo_text" mode="sentence_starters" />
+
+  <Markdown id="allit_label">
+### Alliteration
+  </Markdown>
+  <WordUsage id="demo_allit" target="demo_text" mode="alliteration" />
+
+  <Markdown id="trans_label">
+### Transition Words
+  </Markdown>
+  <WordUsage id="demo_trans" target="demo_text" mode="transition_words">however, therefore, furthermore, moreover, nevertheless, consequently, meanwhile, additionally, similarly, in contrast, on the other hand, for example, in conclusion</WordUsage>
+
+</Vertical>
