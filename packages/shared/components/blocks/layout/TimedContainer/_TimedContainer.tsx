@@ -22,6 +22,7 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { z_olx_duration } from '@/lib/blocks/attributeSchemas';
+import RenderMarkdown from '@/components/common/RenderMarkdown';
 
 // ─── Rough clock ────────────────────────────────────────────────────────────
 //
@@ -219,7 +220,9 @@ function _TimedContainer(props) {
       {!started && start === 'go' && (
         <div className="text-center py-8 px-4">
           {before && (
-            <p className="text-gray-600 mb-4 max-w-prose mx-auto">{before}</p>
+            <div className="text-gray-600 mb-4 max-w-prose mx-auto">
+              <RenderMarkdown>{before}</RenderMarkdown>
+            </div>
           )}
           <div className="text-3xl font-light text-gray-500 mb-6">
             {formatDuration(duration)}
@@ -252,7 +255,9 @@ function _TimedContainer(props) {
             Time's up!
           </div>
           {after && (
-            <div className="text-gray-500 text-sm mt-1">{after}</div>
+            <div className="text-gray-500 text-sm mt-1">
+              <RenderMarkdown>{after}</RenderMarkdown>
+            </div>
           )}
         </div>
       )}
