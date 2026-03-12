@@ -1,4 +1,4 @@
-// src/components/blocks/TextHighlight/_TextHighlight.jsx
+// src/components/blocks/TextSelection/_TextSelection.tsx
 'use client';
 
 import React, { useEffect, useMemo, useRef } from 'react';
@@ -30,7 +30,7 @@ type SelectionGroup = {
 // Groups array with byToken lookup map
 type GroupsWithLookup = SelectionGroup[] & { byToken: Map<number, SelectionGroup> };
 
-export default function _TextHighlight(props) {
+export default function _TextSelection(props) {
   const { kids = {}, mode = 'immediate', showRealtimeFeedback = false, fields = {} } = props;
 
   // Validate mode
@@ -39,7 +39,7 @@ export default function _TextHighlight(props) {
     return (
       <DisplayError
         props={props}
-        name="TextHighlight Mode Error"
+        name="TextSelection Mode Error"
         message={`Mode must be one of: ${validModes.join(', ')}`}
         technical={`Received mode: "${mode}"`}
       />
@@ -52,7 +52,7 @@ export default function _TextHighlight(props) {
     if (kids.prompt && kids.segments) return kids;
 
     return {
-      prompt: 'Content Error: Unable to parse TextHighlight content',
+      prompt: 'Content Error: Unable to parse TextSelection content',
       segments: [],
       scoring: [],
       targetedFeedback: {},
@@ -470,8 +470,8 @@ export default function _TextHighlight(props) {
     return (
       <DisplayError
         props={props}
-        name="TextHighlight Parsing Error"
-        message="Unable to parse TextHighlight content"
+        name="TextSelection Parsing Error"
+        message="Unable to parse TextSelection content"
         technical={parsed.prompt}
       />
     );

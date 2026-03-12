@@ -1,4 +1,4 @@
-// Pure analysis functions for TextHighlight modes.
+// Pure analysis functions for WordUsage modes.
 //
 // Each function takes segmented text tokens and returns HighlightEntry[].
 // No React, no Redux — pure computation.

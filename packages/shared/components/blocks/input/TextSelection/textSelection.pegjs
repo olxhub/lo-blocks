@@ -1,8 +1,8 @@
 /*---
 description: Text highlighting exercises where students select words or phrases
 ---*/
-// TextHighlight PEG Grammar
-// Parses text highlighting exercises with required, optional, and feedback-trigger segments
+// TextSelection PEG Grammar
+// Parses text selection exercises with required, optional, and feedback-trigger segments
 
 Document
   = prompt:Prompt "---" nl segments:Segments scoring:ScoringSection? feedback:FeedbackSection? {

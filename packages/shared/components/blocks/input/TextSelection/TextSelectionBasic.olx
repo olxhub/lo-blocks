@@ -1,5 +1,5 @@
-<TextHighlight id="basic_nouns" mode="immediate">
+<TextSelection id="basic_nouns" mode="immediate">
 Highlight all the nouns in this sentence:
 ---
 The [cat] sat on the [mat] near the [window].
-</TextHighlight>
+</TextSelection>

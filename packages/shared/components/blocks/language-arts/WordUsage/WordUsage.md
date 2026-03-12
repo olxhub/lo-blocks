@@ -4,8 +4,8 @@ Visualizes writing patterns by highlighting text from a target block (TextArea,
 Freewrite, etc.). Supports four analysis modes, each illuminating different
 aspects of writing. Updates live as the target text changes.
 
-TODO: Rename to WritingAnalysis once the existing TextHighlight block
-(input/TextHighlight — student text selection) is renamed to TextSelector.
+TODO: Rename to WritingAnalysis (the existing TextHighlight block has been
+renamed to TextSelection).
 
 ## Usage
 

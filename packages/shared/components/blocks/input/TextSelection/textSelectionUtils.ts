@@ -1,12 +1,12 @@
-// src/components/blocks/TextHighlight/textHighlightUtils.js
-import * as parserModule from './_textHighlightParser';
+// src/components/blocks/TextSelection/textSelectionUtils.ts
+import * as parserModule from './_textSelectionParser';
 const parser = (parserModule as any).default || parserModule;
 
-export function parseTextHighlight(input) {
+export function parseTextSelection(input) {
   try {
     return parser.parse(input);
   } catch (error) {
-    console.error('TextHighlight parse error:', error);
+    console.error('TextSelection parse error:', error);
     return {
       prompt: 'Parse error - check format',
       segments: [{ type: 'text', content: input }],
