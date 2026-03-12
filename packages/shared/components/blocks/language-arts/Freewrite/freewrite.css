@@ -48,7 +48,7 @@
 /* Invisible mode: text hidden, cursor visible */
 .lo-freewrite__textarea--invisible {
   color: transparent;
-  caret-color: currentColor;
+  caret-color: black;
 }
 
 /* Prevent text selection in invisible mode (no peeking via select-all) */

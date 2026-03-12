@@ -262,7 +262,11 @@ function analyzeTransitionWords(
   for (const phrase of multiPhrases) {
     const phraseKey = phrase.join(' ');
     for (let i = 0; i <= tokens.length - phrase.length; i++) {
-      if (used.has(i)) continue;
+      let anyUsed = false;
+      for (let j = 0; j < phrase.length; j++) {
+        if (used.has(i + j)) { anyUsed = true; break; }
+      }
+      if (anyUsed) continue;
       let match = true;
       const sentenceNum = tokens[i].sentence;
       for (let j = 0; j < phrase.length; j++) {
