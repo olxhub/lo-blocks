@@ -133,7 +133,7 @@ function _TimedContainer(props) {
   const {
     fields, duration,
     start = 'go', label = 'Start',
-    before, after,
+    before, after, hideuntilstart,
   } = props;
 
   const [started, setStarted] = useFieldState(props, fields.started, false);
@@ -258,13 +258,15 @@ function _TimedContainer(props) {
       )}
 
       {/* Content — inert when not active, dimmed when expired */}
-      <div
-        ref={containerRef}
-        inert={inactive || undefined}
-        className={`p-4 ${expired ? 'opacity-60 bg-gray-50' : ''}`}
-      >
-        {renderedKids}
-      </div>
+      {!(hideuntilstart && !started) && (
+        <div
+          ref={containerRef}
+          inert={inactive || undefined}
+          className={`p-4 ${expired ? 'opacity-60 bg-gray-50' : ''}`}
+        >
+          {renderedKids}
+        </div>
+      )}
     </div>
   );
 }
