@@ -53,7 +53,7 @@ export default function _ChoiceItem(props) {
   const selected = state.useFieldSelector(
     props,
     valueField,
-    { id: parentId, fallback: isCheckbox ? [] : '' }
+    { reduxKey: parentReduxId, fallback: isCheckbox ? [] : '' }
   );
 
   // Check if grader is showing the answer
@@ -75,10 +75,10 @@ export default function _ChoiceItem(props) {
       const newSelection = currentSelection.includes(itemValue)
         ? currentSelection.filter(v => v !== itemValue)
         : [...currentSelection, itemValue];
-      state.updateField(props, valueField, newSelection, { id: parentReduxId });
+      state.updateField(props, valueField, newSelection, { reduxKey: parentReduxId });
     } else {
       // Radio: set single value
-      state.updateField(props, valueField, itemValue, { id: parentReduxId });
+      state.updateField(props, valueField, itemValue, { reduxKey: parentReduxId });
     }
   };
 

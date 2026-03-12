@@ -29,14 +29,14 @@ function _ShowAnswerButton(props) {
   // Read showAnswer from first grader (or use props.id as fallback for hook stability)
   const primaryGraderId = graderIds[0] ?? props.id;
   const showAnswerField = state.componentFieldByName(props, primaryGraderId, 'showAnswer');
-  const [showAnswer] = state.useFieldState(props, showAnswerField, false, { id: primaryGraderId });
+  const [showAnswer] = state.useFieldState(props, showAnswerField, false, { reduxKey: primaryGraderId });
 
   const handleClick = useCallback(() => {
     const newValue = !showAnswer;
     // Toggle all targeted graders
     for (const graderId of graderIds) {
       const field = state.componentFieldByName(props, graderId, 'showAnswer');
-      state.updateField(props, field, newValue, { id: graderId });
+      state.updateField(props, field, newValue, { reduxKey: graderId });
     }
   }, [showAnswer, graderIds, props]);
 

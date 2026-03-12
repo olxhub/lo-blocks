@@ -22,7 +22,7 @@ async function setFieldAction({ targetInstance, props }) {
   if (!fieldName) { console.warn('SetFieldAction: No field specified'); return; }
 
   const field = state.componentFieldByName(props, target, fieldName);
-  state.updateField(props, field, value, { id: target });
+  state.updateField(props, field, value, { reduxKey: target });
 }
 
 const SetFieldAction = blocks.core({

@@ -106,7 +106,7 @@ const Ref = core({
       if (!fieldInfo) {
         return { value: '', ...blockData('error', `Unknown field "${field}"`) };
       }
-      const rawValue = fieldSelector(state, props, fieldInfo, { id: targetReduxKey, fallback });
+      const rawValue = fieldSelector(state, props, fieldInfo, { reduxKey: targetReduxKey, fallback });
       return { value: formatRefValue(rawValue, fallback), ...blockData('ready') };
     }
 

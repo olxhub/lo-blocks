@@ -91,7 +91,7 @@ describe('useFieldState integration', () => {
     const { reduxStore, wrapper } = createWrapper(storageFields);
 
     const { result } = renderHook(
-      () => useFieldState(null, storageFields.content, '', { id: 'file1' }),
+      () => useFieldState(null, storageFields.content, '', { reduxKey: 'file1' as any }),
       { wrapper }
     );
 
@@ -109,8 +109,8 @@ describe('useAggregate aggregate hook', () => {
     const { wrapper } = createWrapper();
 
     await act(async () => {
-      updateField(props, testFields.input, 'alpha', { id: 'first' });
-      updateField(props, testFields.input, 'beta', { id: 'second' });
+      updateField(props, testFields.input, 'alpha', { reduxKey: 'first' as any });
+      updateField(props, testFields.input, 'beta', { reduxKey: 'second' as any });
       await new Promise(r => setTimeout(r, 0));
     });
 
@@ -126,7 +126,7 @@ describe('useAggregate aggregate hook', () => {
     const { wrapper } = createWrapper();
 
     await act(async () => {
-      updateField(props, testFields.input, 'alpha', { id: 'first' });
+      updateField(props, testFields.input, 'alpha', { reduxKey: 'first' as any });
       await new Promise(r => setTimeout(r, 0));
     });
 
@@ -142,8 +142,8 @@ describe('useAggregate aggregate hook', () => {
     const { wrapper } = createWrapper();
 
     await act(async () => {
-      updateField(props, testFields.input, 'hello', { id: 'first' });
-      updateField(props, testFields.input, 'world', { id: 'second' });
+      updateField(props, testFields.input, 'hello', { reduxKey: 'first' as any });
+      updateField(props, testFields.input, 'world', { reduxKey: 'second' as any });
       await new Promise(r => setTimeout(r, 0));
     });
 

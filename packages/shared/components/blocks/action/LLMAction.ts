@@ -24,8 +24,8 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
   try { stateField = state.componentFieldByName(props, targetElementId, 'state'); } catch {}
 
   try {
-    state.updateField(props, valueField, '', { id: targetElementId });
-    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RUNNING, { id: targetElementId });
+    state.updateField(props, valueField, '', { reduxKey: targetElementId });
+    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RUNNING, { reduxKey: targetElementId });
 
     const promptText = blocks.extractChildText(props, props.nodeInfo.olxJson);
     if (!promptText.trim()) {
@@ -33,13 +33,13 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
     }
 
     const content = await reduxClient.callLLMSimple(promptText);
-    state.updateField(props, valueField, content, { id: targetElementId });
-    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RESPONSE_READY, { id: targetElementId });
+    state.updateField(props, valueField, content, { reduxKey: targetElementId });
+    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RESPONSE_READY, { reduxKey: targetElementId });
 
   } catch (error) {
     console.error('LLM generation failed:', error);
-    state.updateField(props, valueField, `Error: ${error.message}`, { id: targetElementId });
-    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.ERROR, { id: targetElementId });
+    state.updateField(props, valueField, `Error: ${error.message}`, { reduxKey: targetElementId });
+    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.ERROR, { reduxKey: targetElementId });
   }
 }
 

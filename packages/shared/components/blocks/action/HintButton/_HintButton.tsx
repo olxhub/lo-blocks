@@ -3,6 +3,7 @@
 
 import React, { useMemo, useCallback } from 'react';
 import * as state from '@/lib/state';
+import { refToReduxKey } from '@/lib/blocks/idResolver';
 import { getAllNodes } from '@/lib/blocks/olxdom';
 import { DisplayError } from '@/lib/util/debug';
 import * as DemandHints from '@/components/blocks/display/DemandHints/DemandHints';
@@ -57,11 +58,12 @@ export default function _HintButton(props) {
 
   // Read/write hintsRevealed field on the DemandHints component
   // Use the field definition from DemandHints directly (avoids null field issue)
+  const targetReduxKey = refToReduxKey({ ...props, id: hintsId || id });
   const [hintsRevealed, setHintsRevealed] = state.useFieldState(
     props,
     DemandHints.fields.hintsRevealed,
     0,
-    { id: hintsId || id }
+    { reduxKey: targetReduxKey }
   );
 
   const handleClick = useCallback(() => {

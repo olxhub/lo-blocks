@@ -7,9 +7,11 @@
 import React from 'react';
 import { correctness } from '@/lib/blocks';
 import { useFieldSelector } from '@/lib/state';
+import { refToReduxKey } from '@/lib/blocks/idResolver';
 
 function _Correctness(props) {
   const { fields, graderId } = props;
+  const graderReduxKey = refToReduxKey({ ...props, id: graderId });
 
   const correctnessValue = useFieldSelector(
     props,
@@ -17,7 +19,7 @@ function _Correctness(props) {
     {
       selector: s => s?.correct ?? correctness.unsubmitted,
       fallback: correctness.unsubmitted,
-      id: graderId
+      reduxKey: graderReduxKey
     }
   );
 
@@ -29,7 +31,7 @@ function _Correctness(props) {
     {
       selector: s => s?.submitCount ?? 0,
       fallback: 0,
-      id: graderId
+      reduxKey: graderReduxKey
     }
   );
 

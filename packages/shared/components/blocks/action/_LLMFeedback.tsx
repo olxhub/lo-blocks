@@ -13,8 +13,8 @@ import Spinner from '@/components/blocks/utility/_Spinner';
 function _LLMFeedback(props) {
   const { id, fields, render } = props;
 
-  const feedback = useFieldSelector(props, fields.value, { fallback: '', id });
-  const llmState = useFieldSelector(props, fields.state, { fallback: LLM_STATUS.INIT, id });
+  const feedback = useFieldSelector(props, fields.value, { fallback: '' });
+  const llmState = useFieldSelector(props, fields.state, { fallback: LLM_STATUS.INIT });
 
   const isEmpty = llmState === LLM_STATUS.INIT && !feedback;
   const isError = llmState === LLM_STATUS.ERROR;

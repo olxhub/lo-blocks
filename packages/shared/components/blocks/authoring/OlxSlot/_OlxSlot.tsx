@@ -54,8 +54,8 @@ function _OlxSlot(props) {
   const { id, fields, target, title, debounce: debounceMs = 150, chrome = false } = props;
 
   // Mode 1: Read from own value field (LLMAction writes here)
-  const ownValue = useFieldSelector(props, fields.value, { fallback: '', id });
-  const status = useFieldSelector(props, fields.state, { fallback: LLM_STATUS.INIT, id });
+  const ownValue = useFieldSelector(props, fields.value, { fallback: '' });
+  const status = useFieldSelector(props, fields.state, { fallback: LLM_STATUS.INIT });
 
   // Mode 2: Read from target component's selectValue (respects initial content, etc.)
   const { value: targetValue } = useValue(props, { target, fallback: '' });

@@ -7,6 +7,7 @@
 import React from 'react';
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
+import { refToReduxKey } from '@/lib/blocks/idResolver';
 
 function _StatusText(props) {
   const { field = 'message', graderId } = props;
@@ -17,7 +18,7 @@ function _StatusText(props) {
   const text = useFieldSelector(
     props,
     targetField,
-    { selector: s => s?.[field] ?? '', fallback: '', id: graderId }
+    { selector: s => s?.[field] ?? '', fallback: '', reduxKey: refToReduxKey({ ...props, id: graderId }) }
   );
   return <span>{text}</span>;
 }

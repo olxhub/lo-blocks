@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
+import { refToReduxKey } from '@/lib/blocks/idResolver';
 import { useKids, useKidsJson } from '@/lib/render';
 
 function SplitTestChild({ props, node }) {
@@ -78,16 +79,16 @@ export default function _SplitTest(props) {
 
   // Symmetric: master reads/writes its own id, follower reads from master's id.
   // target defaults to self.
-  const targetId = props.target || id;
+  const targetReduxKey = props.target || refToReduxKey(props);
   // TODO: When we have hash-based assignment (userId + experimentId), use that
   // instead of random for deterministic reproducibility.
-  const [groupValue, setGroupValue] = useFieldState(props, fields.value, null, { id: targetId });
+  const [groupValue, setGroupValue] = useFieldState(props, fields.value, null, { reduxKey: targetReduxKey });
 
   let groupIndex = parseGroupIndex(groupValue, numGroups);
 
   // If no valid assignment, pick one and persist.
   // Only the master (target === self) should assign; followers wait.
-  if (groupIndex === null && targetId === id && numGroups > 0) {
+  if (groupIndex === null && !props.target && numGroups > 0) {
     const newIndex = pickGroup(numGroups, weights);
     setGroupValue(makeGroupId(id, newIndex, groupNames));
     groupIndex = newIndex;

@@ -4,7 +4,7 @@
 import React, { useMemo, useEffect, useRef } from 'react';
 import { useBlock } from '@/lib/render';
 import { useFieldState, useFieldSelector, commonFields } from '@/lib/state';
-import { extendIdPrefix, scopeMarker, toOlxReference } from '@/lib/blocks/idResolver';
+import { extendIdPrefix, scopeMarker, toOlxReference, refToReduxKey } from '@/lib/blocks/idResolver';
 import { correctness } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
 
@@ -100,10 +100,11 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   // Common fields are pre-registered so they're available even if the grader isn't loaded yet.
   const graderField = commonFields.correct;
 
+  const scopedGraderReduxKey = refToReduxKey({ ...scopedProps, id: scopedGraderRef });
   const currentCorrectness = useFieldSelector(
     scopedProps,
     graderField,
-    { id: scopedGraderRef, fallback: correctness.unsubmitted, selector: s => s?.correct }
+    { reduxKey: scopedGraderReduxKey, fallback: correctness.unsubmitted, selector: s => s?.correct }
   );
 
   const prevCorrectnessRef = useRef(currentCorrectness);
