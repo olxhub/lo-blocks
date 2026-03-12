@@ -36,7 +36,7 @@
 
 'use client';
 import React from 'react';
-import { resolveContentPath } from '@/lib/util';
+import { resolveContentPath } from '@/lib/content/contentPaths';
 
 function _Image(props) {
   const { src, alt, width, height } = props;

@@ -6,7 +6,7 @@ import { useFieldState, useFieldSelector } from '@/lib/state';
 import { useBlock } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import NavArrow from '@/components/common/NavArrow';
-import { fisherYatesShuffleInPlace } from '@/lib/utils/shuffle';
+import { fisherYatesShuffleInPlace } from '@/lib/util/shuffle';
 
 function shuffledIds(ids: string[]): string[] {
   const order = [...ids];

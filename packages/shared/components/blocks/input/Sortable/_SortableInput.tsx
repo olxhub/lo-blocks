@@ -8,7 +8,7 @@ import { DisplayError } from '@/lib/util/debug';
 import { isInputReadOnly, useGraderAnswer, refToOlxKey } from '@/lib/blocks';
 import { extendIdPrefix } from '@/lib/blocks/idResolver';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
-import { buildArrangementWithPositions } from '@/lib/utils/shuffle';
+import { buildArrangementWithPositions } from '@/lib/util/shuffle';
 
 // Component to render a single sortable item's content
 function SortableItemContent({ props, kid, itemIdPrefix }) {

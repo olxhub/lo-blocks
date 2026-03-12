@@ -3,7 +3,7 @@
 
 import React from 'react';
 import NextImage from 'next/image';
-import { resolveContentPath } from '@/lib/util';
+import { resolveContentPath } from '@/lib/content/contentPaths';
 
 export default function _NavigatorTeamDetail(props) {
   const { name, role, photo, bio, experience, skills } = props;
