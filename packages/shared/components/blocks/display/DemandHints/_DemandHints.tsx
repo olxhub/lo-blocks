@@ -1,23 +1,24 @@
 // src/components/blocks/display/DemandHints/_DemandHints.jsx
 'use client';
+import type { RuntimeProps, BlueprintKidEntry } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
+import { isKidArray } from '@/lib/util/kids';
 
-export default function _DemandHints(props) {
+export default function _DemandHints(props: RuntimeProps) {
   const { fields, kids } = props;
 
   // Track how many hints have been revealed (0 = none shown)
   const [hintsRevealed] = useFieldState(props, fields.hintsRevealed, 0);
 
   // Extract block kids (each is a Hint)
-  const hintBlocks = React.useMemo(() => {
+  type BlockEntry = Extract<BlueprintKidEntry, { type: 'block' }>;
+  const hintBlocks = React.useMemo((): BlockEntry[] => {
     if (!kids) return [];
-    if (Array.isArray(kids)) {
-      return kids.filter(k => k.type === 'block');
-    }
-    return kids.type === 'block' ? [kids] : [];
+    const entries = isKidArray(kids) ? kids : [kids as BlueprintKidEntry];
+    return entries.filter((k): k is BlockEntry => k.type === 'block');
   }, [kids]);
 
   const totalHints = hintBlocks.length;

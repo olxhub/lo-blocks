@@ -4,14 +4,16 @@
 // Renders as radio button under ChoiceInput, checkbox under CheckboxInput.
 //
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo } from 'react';
 import * as state from '@/lib/state';
+import { assertString } from '@/lib/util/kids';
 import { inferRelatedNodes, useGraderAnswer } from '@/lib/blocks';
 import { refToReduxKey } from '@/lib/blocks/idResolver';
 import { DisplayError } from '@/lib/util/debug';
 
-export default function _ChoiceItem(props) {
+export default function _ChoiceItem(props: RuntimeProps) {
   // Find parent input - could be ChoiceInput (radio) or CheckboxInput (checkbox)
   const { parentId, isCheckbox } = useMemo(() => {
     // First try CheckboxInput
@@ -89,6 +91,7 @@ export default function _ChoiceItem(props) {
   // To support images or rich content in choices, they should use parsers.blocks() or
   // a mixed content parser, and this component should use renderCompiledKids instead.
   const { kids } = props;
+  assertString(kids);
 
   const labelClasses = [
     'block',

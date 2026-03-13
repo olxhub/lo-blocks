@@ -1,8 +1,10 @@
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect, useMemo, useRef } from 'react';
 import * as Plot from '@observablehq/plot';
 import YAML from 'yaml';
 import { DisplayError } from '@/lib/util/debug';
+import { assertString } from '@/lib/util/kids';
 
 /**
  * Translate a declarative mark spec into a Plot mark.
@@ -68,8 +70,9 @@ function evaluateJsSpec(code: string, plotLib: typeof Plot) {
   return fn(plotLib);
 }
 
-export default function _ObservablePlot(props) {
+export default function _ObservablePlot(props: RuntimeProps) {
   const { kids, format, width, height } = props;
+  assertString(kids);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const effectiveFormat = format || 'yaml';

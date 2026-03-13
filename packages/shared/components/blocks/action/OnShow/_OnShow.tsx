@@ -1,13 +1,14 @@
 // _OnShow - triggers child action blocks on first view (default) or every view.
 
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useEffect, useRef } from 'react';
 import { executeNodeActions } from '@/lib/blocks';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 
-function _OnShow(props) {
+function _OnShow(props: RuntimeProps) {
   const { trigger = 'first_view' } = props;
 
   // Always call useKids unconditionally to build the OLX DOM tree

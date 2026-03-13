@@ -1,9 +1,11 @@
 // src/components/blocks/SideBarPanel/_SideBarPanel.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
+import { assertNamedObject } from '@/lib/util/kids';
 
 function MainContent({ props, main }) {
   const { kids } = useKids({ ...props, kids: main });
@@ -15,19 +17,9 @@ function SidebarItem({ props, node }) {
   return <>{kids}</>;
 }
 
-function _SideBarPanel( props ) {
-  const { kids = {}, idMap, parents } = props;
-  if (!kids || typeof kids !== 'object') {
-    return (
-      <DisplayError
-        props = { props }
-        name="SideBarPanel"
-        message="This part of the page didn't receive any content to show. Please check if the lesson structure includes both a MainPane and a Sidebar."
-        technical="Expected 'kids' prop to be an object"
-        data={{ kids }}
-      />
-    );
-  }
+function _SideBarPanel( props: RuntimeProps ) {
+  const { kids, idMap, parents } = props;
+  assertNamedObject(kids, ['main', 'sidebar']);
 
   const { main, sidebar } = kids;
 

@@ -1,8 +1,10 @@
 // src/components/blocks/CapaProblem/_CapaProblem.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect } from 'react';
 import { correctness, worstCaseCorrectness } from '@/lib/blocks';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
+import { refToReduxKey } from '@/lib/blocks/idResolver';
 import * as state from '@/lib/state';
 import { useKids, renderBlock } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
@@ -73,12 +75,15 @@ function useGraderAggregation(props, childGraderIds) {
   const hasChildGraders = childGraderIds.length > 0;
   const sampleGraderId = childGraderIds[0] || id;
 
+  // inferRelatedNodes returns OlxKeys — convert to ReduxStateKeys for useAggregate
+  const childGraderReduxKeys = childGraderIds.map(gid => refToReduxKey({ ...props, id: gid }));
+
   // Subscribe to child grader correctness values
   const correctField = state.componentFieldByName(props, sampleGraderId, 'correct');
   const childCorrectnessValues = state.useAggregate(
     props,
     correctField,
-    hasChildGraders ? childGraderIds : [],
+    hasChildGraders ? childGraderReduxKeys : [],
     {
       fallback: correctness.unsubmitted,
       aggregate: (values) => values.map(v => v ?? correctness.unsubmitted)
@@ -94,7 +99,7 @@ function useGraderAggregation(props, childGraderIds) {
   const childMessages = state.useAggregate(
     props,
     messageField,
-    hasChildGraders ? childGraderIds : [],
+    hasChildGraders ? childGraderReduxKeys : [],
     {
       fallback: '',
       aggregate: (values) => values.map(v => v ?? '')
@@ -108,7 +113,7 @@ function useGraderAggregation(props, childGraderIds) {
   const childSubmitCounts = state.useAggregate(
     props,
     submitCountField,
-    hasChildGraders ? childGraderIds : [],
+    hasChildGraders ? childGraderReduxKeys : [],
     {
       fallback: 0,
       aggregate: (values) => values.map(v => v ?? 0)
@@ -171,7 +176,7 @@ function FooterWrapper({ children }) {
 
 // --- Main Component ---
 
-export default function _CapaProblem(props) {
+export default function _CapaProblem(props: RuntimeProps) {
   const { id } = props;
 
   // Render content first to populate dynamic OLX DOM

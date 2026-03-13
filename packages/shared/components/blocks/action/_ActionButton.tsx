@@ -1,5 +1,6 @@
 // src/components/blocks/_ActionButton.tsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo } from 'react';
 import { executeNodeActions } from '@/lib/blocks';
@@ -13,7 +14,7 @@ import {
   EMPTY_REFS
 } from '@/lib/stateLanguage';
 
-function _ActionButton(props) {
+function _ActionButton(props: RuntimeProps) {
   const { label, dependsOn, disabled: disabledAttr } = props;
 
   // Parse expression and extract refs once

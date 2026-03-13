@@ -11,6 +11,7 @@
 // - Last successful render stays visible while typing, with "Editing..." indicator
 //
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useEffect, useRef } from 'react';
 import { useFieldSelector, useFieldState, useValue } from '@/lib/state';
@@ -50,7 +51,7 @@ function ChromeLabel({ title }: { title?: string }) {
   return <span style={CHROME_LABEL_STYLE}>{title}</span>;
 }
 
-function _OlxSlot(props) {
+function _OlxSlot(props: RuntimeProps) {
   const { id, fields, target, title, debounce: debounceMs = 150, chrome = false } = props;
 
   // Mode 1: Read from own value field (LLMAction writes here)

@@ -1,13 +1,16 @@
 // src/components/blocks/TabularMCQ/_TabularMCQ.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
 import { useGraderAnswer } from '@/lib/blocks/useGraderAnswer';
+import { assertNamedObject } from '@/lib/util/kids';
 
-export default function _TabularMCQ(props) {
+export default function _TabularMCQ(props: RuntimeProps) {
   const { fields, kids } = props;
+  assertNamedObject(kids, ['type', 'parsed', 'message', 'technical']);
 
   // State: { rowId: colIndex } for radio, { rowId: [colIndex, ...] } for checkbox
   const [value, setValue] = useFieldState(props, fields.value, {});
@@ -21,7 +24,7 @@ export default function _TabularMCQ(props) {
       <DisplayError
         props={props}
         name="TabularMCQ Parse Error"
-        message={kids.message || "Failed to parse TabularMCQ content"}
+        message={String(kids.message || "Failed to parse TabularMCQ content")}
         technical={kids.technical ? JSON.stringify(kids.technical, null, 2) : undefined}
       />
     );
@@ -39,7 +42,7 @@ export default function _TabularMCQ(props) {
     );
   }
 
-  const parsed = kids.parsed;
+  const parsed = kids.parsed as any;
   const mode = parsed.mode || 'radio';
   const rows = parsed.rows;
   const cols = parsed.cols;

@@ -1,9 +1,11 @@
 // src/components/blocks/TextSelection/_TextSelection.tsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useFieldState } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
+import { assertNamedObject } from '@/lib/util/kids';
 
 // Token types for text highlighting (discriminated union on isSpace)
 type WordToken = {
@@ -30,8 +32,9 @@ type SelectionGroup = {
 // Groups array with byToken lookup map
 type GroupsWithLookup = SelectionGroup[] & { byToken: Map<number, SelectionGroup> };
 
-export default function _TextSelection(props) {
-  const { kids = {}, mode = 'immediate', showRealtimeFeedback = false, fields = {} } = props;
+export default function _TextSelection(props: RuntimeProps) {
+  const { kids, mode = 'immediate', showRealtimeFeedback = false, fields } = props;
+  assertNamedObject(kids, ['parsed', 'prompt', 'segments']);
 
   // Validate mode
   const validModes = ['immediate', 'graded', 'selfcheck'];
@@ -47,7 +50,7 @@ export default function _TextSelection(props) {
   }
 
   // Parse the content from kids
-  const parsed = useMemo(() => {
+  const parsed: any = useMemo(() => {
     if (kids.parsed) return kids.parsed;
     if (kids.prompt && kids.segments) return kids;
 

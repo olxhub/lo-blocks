@@ -1,10 +1,12 @@
 // src/components/blocks/input/DropdownInput/_DropdownSelect.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useCallback, useMemo } from 'react';
 import { useFieldSelector, updateField } from '@/lib/state';
 import { useGraderAnswer } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
+import { assertNamedObject } from '@/lib/util/kids';
 
 /**
  * Parse comma-separated options string into options array.
@@ -25,10 +27,11 @@ function parseOptionsAttribute(optionsStr) {
   }).filter(opt => opt.text);
 }
 
-export default function _DropdownSelect(props) {
+export default function _DropdownSelect(props: RuntimeProps) {
   const { placeholder, kids, options: optionsAttr, fields } = props;
+  assertNamedObject(kids, ['parsed']);
 
-  const parsedOptions = kids?.parsed?.options || [];
+  const parsedOptions = (kids.parsed as any)?.options || [];
   const attrOptions = useMemo(() => parseOptionsAttribute(optionsAttr), [optionsAttr]);
 
   // Check for conflicting sources

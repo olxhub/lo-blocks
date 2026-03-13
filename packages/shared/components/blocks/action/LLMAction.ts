@@ -4,7 +4,7 @@ import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as reduxClient from '@/lib/llm/reduxClient';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
 import _Hidden from '@/components/blocks/layout/_Hidden';
 
 export const fields = state.fields([]);
@@ -90,7 +90,7 @@ const LLMAction = blocks.test({
   component: _Hidden,
   fields,
   attributes: baseAttributes.extend({
-    target: z.string({ required_error: 'target is required' }).describe('ID of the TextSlot or LLMFeedback to write output to'),
+    target: z_reduxStateKey.describe('ID of the TextSlot or LLMFeedback to write output to'),
   }),
 });
 

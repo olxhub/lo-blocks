@@ -1,12 +1,13 @@
 // src/components/blocks/layout/Collapsible/_Collapsible.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import ExpandIcon from '@/components/common/ExpandIcon';
 
-export default function _Collapsible(props) {
+export default function _Collapsible(props: RuntimeProps) {
   const { fields, title, label } = props;
   const [expanded, setExpanded] = useFieldState(props, fields.expanded, false);
 

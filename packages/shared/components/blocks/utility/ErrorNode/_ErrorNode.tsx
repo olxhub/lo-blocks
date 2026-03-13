@@ -1,23 +1,24 @@
-// src/components/blocks/ErrorNode/ErrorNode.jsx
+// src/components/blocks/ErrorNode/_ErrorNode.tsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
+import type { AppError } from '@/lib/errors';
 
 import React from 'react';
 import { DisplayError } from '@/lib/util/debug';
 
-export function _ErrorNode(props) {
+/**
+ * Block component for rendering errors.
+ *
+ * Receives an AppError (or subtype like OLXLoadingError) as kids.
+ * Formats location and technical details, then delegates to DisplayError.
+ *
+ * Producers (parsers.ts, useOlxJson.ts, etc.) are responsible for
+ * constructing the AppError — this component does not detect formats.
+ */
+export function _ErrorNode(props: RuntimeProps) {
   const { id, kids } = props;
 
-  // TODO: Standardize error format across all parsers and error sources.
-  // Currently we handle multiple formats which is fragile:
-  // 1. Direct error object from PEG parser: kids = { type: 'peg_error', message, location, technical }
-  // 2. Wrapped format: kids = { parsed: { error: true, ... } }
-  // Should unify on a single OLXLoadingError structure passed consistently.
-  const errorInfo = kids?.type === 'peg_error' ? kids
-    : kids?.parsed?.error ? kids.parsed
-    : null;
-  const parseError = props.parseError;
-
-  if (!errorInfo && !parseError) {
+  if (typeof kids !== 'object' || kids === null || Array.isArray(kids) || !('message' in kids)) {
     return (
       <DisplayError
         props={props}
@@ -28,54 +29,34 @@ export function _ErrorNode(props) {
     );
   }
 
-  if (errorInfo) {
-    // PEG parsing error with detailed information
-    const { message, location, technical } = errorInfo;
-    // Support both direct fields and nested technical object
-    const expected = errorInfo.expected || technical?.expected;
-    const found = errorInfo.found || technical?.found;
-    const name = errorInfo.name || technical?.name || errorInfo.type;
+  // After the guard above, kids is { [key: string]: JSONValue } with 'message' present.
+  // Cast through unknown: JSONValue values are structurally compatible with AppError
+  // at runtime, but TypeScript can't see it (index signature vs named properties).
+  const error = kids as unknown as AppError;
 
-    let technicalDetails = `Error Type: ${name}\n`;
+  // Format technical details: location + structured/string technical data
+  let technicalStr = '';
 
-    if (location && (location.line || location.column)) {
-      technicalDetails += `Location: Line ${location.line || '?'}, Column ${location.column || '?'}\n`;
-    }
-
-    if (found !== null && found !== undefined) {
-      technicalDetails += `Found: "${found}"\n`;
-    }
-
-    if (expected && expected.length > 0) {
-      const formatExpected = (e) => {
-        if (typeof e === 'string') return e;
-        if (e?.description) return e.description;
-        if (e?.text) return e.text;
-        if (e?.type) return e.type;
-        return JSON.stringify(e);
-      };
-      technicalDetails += `Expected: ${expected.map(e => `"${formatExpected(e)}"`).join(', ')}\n`;
-    }
-
-    return (
-      <DisplayError
-        props={props}
-        name="Content Parsing Error"
-        message={message || 'Failed to parse content'}
-        technical={technicalDetails.trim()}
-        id={`${id}_parse_error`}
-      />
-    );
+  if (error.location) {
+    const { line, column, file } = error.location;
+    if (file) technicalStr += `File: ${file}\n`;
+    if (line || column) technicalStr += `Location: Line ${line ?? '?'}, Column ${column ?? '?'}\n`;
   }
 
-  // Fallback for other error types
+  if (error.technical != null) {
+    if (technicalStr) technicalStr += '\n';
+    technicalStr += typeof error.technical === 'string'
+      ? error.technical
+      : JSON.stringify(error.technical, null, 2);
+  }
+
   return (
     <DisplayError
       props={props}
       name="Content Error"
-      message="An error occurred while processing this content"
-      technical="Check console for more details"
-      id={`${id}_content_error`}
+      message={error.message}
+      technical={technicalStr.trim() || undefined}
+      id={`${id}_error`}
     />
   );
 }

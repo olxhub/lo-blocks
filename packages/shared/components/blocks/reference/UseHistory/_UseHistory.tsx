@@ -1,5 +1,6 @@
 // src/components/blocks/_UseHistory.tsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useEffect } from 'react';
 import { useBlock } from '@/lib/render';
@@ -11,7 +12,7 @@ function HistoryContent({ props, current }) {
   return <>{block}</>;
 }
 
-export function _UseHistory(props) {
+export function _UseHistory(props: RuntimeProps) {
   const { target, targetRef, fields, initial } = props;
 
   // If targetRef is provided, get the target from another component's value

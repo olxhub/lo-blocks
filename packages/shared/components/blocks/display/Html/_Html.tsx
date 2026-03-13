@@ -1,17 +1,19 @@
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo } from 'react';
 import DOMPurify from 'dompurify';
+import { isKidArray } from '@/lib/util/kids';
 
-export function _Html({ kids }: { kids: any }) {
+export function _Html({ kids }: RuntimeProps) {
   const sanitized = useMemo(() => {
     let content = kids;
-    if (Array.isArray(kids) && kids.length > 0) {
+    if (isKidArray(kids) && kids.length > 0) {
       content = kids.map((kid) => {
-        if (typeof kid === 'object' && kid.type === 'text') {
+        if (kid.type === 'text') {
           return kid.text;
         }
-        return typeof kid === 'string' ? kid : '';
+        return '';
       }).join('');
     }
 

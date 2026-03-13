@@ -1,11 +1,13 @@
 // src/components/blocks/_DynamicList.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { extendIdPrefix, scopeMarker } from '@/lib/blocks/idResolver';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
+import { assertKidArray } from '@/lib/util/kids';
 
 // Each entry renders independently - avoids Promise.all suspense issues
 function DynamicListEntry({ props, template, index, id }) {
@@ -23,7 +25,8 @@ function DynamicListEntry({ props, template, index, id }) {
   return <div className="mb-2">{kids}</div>;
 }
 
-export default function _DynamicList(props) {
+export default function _DynamicList(props: RuntimeProps) {
+  assertKidArray(props.kids);
   const {
     fields,
     id,

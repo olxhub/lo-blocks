@@ -1,5 +1,6 @@
 // src/components/blocks/reference/AggregatedInputs/_AggregatedInputs.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo } from 'react';
 import { inferRelatedNodes, getDomNodeByReduxKey } from '@/lib/blocks/olxdom';
@@ -61,7 +62,7 @@ function resolveTargetIds(props, targetIds) {
  * hook reads the same field across each target and renders the results in a
  * list for quick inspection.
  */
-export function _AggregatedInputs(props) {
+export function _AggregatedInputs(props: RuntimeProps) {
   const {
     target,
     field = 'value',
@@ -94,8 +95,11 @@ export function _AggregatedInputs(props) {
   const fieldInfo = componentFieldByName(props, resolvedTargetIds[0], field);
   resolvedTargetIds.slice(1).forEach((id) => componentFieldByName(props, id, field));
 
+  // resolvedTargetIds may contain OlxKeys (from inferRelatedNodes) — convert to ReduxStateKeys
+  const resolvedReduxKeys = resolvedTargetIds.map(id => refToReduxKey({ ...props, id }));
+
   const aggregateMode = aggregate ?? (asObject ? 'object' : 'list');
-  const values = useAggregate(props, fieldInfo, resolvedTargetIds, { fallback, aggregate: aggregateMode });
+  const values = useAggregate(props, fieldInfo, resolvedReduxKeys, { fallback, aggregate: aggregateMode });
 
   const entries = Array.isArray(values)
     ? resolvedTargetIds.map((id, index) => [id, values[index]])

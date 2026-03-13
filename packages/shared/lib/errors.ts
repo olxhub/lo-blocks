@@ -2,15 +2,31 @@
 //
 // Unified error handling for the codebase.
 //
-// This module provides a consistent error shape (AppError) that can be:
+// AppError is the canonical error value type. It can be:
 // - Returned from functions as { ..., error?: AppError }
 // - Spread directly into DisplayError: <DisplayError {...error} />
 // - Used in hooks as { data, loading, error?: AppError }
+// - Passed as ErrorNode kids (the block reads AppError fields)
 //
 // Design principles:
 // - Flat returns, not layered (no { ok, data } wrappers)
 // - Error objects preferred, but exceptions are fine for unexpected failures
 // - message is always user-friendly; technical details go in technical/stack
+// - Subtypes extend AppError (e.g. OLXLoadingError adds type/summary/file)
+//
+// Type hierarchy:
+//   AppError                — base, works everywhere
+//     └─ OLXLoadingError    — content pipeline errors (types.ts)
+//
+// Future directions:
+// - All error producers should create AppError (or subtypes). No ad-hoc
+//   error shapes — if you need extra fields, extend AppError.
+// - DisplayError should gain location awareness (render line/column/file
+//   from AppError.location) so callers don't need to format it.
+// - The error panel (OLXLoadingError[]) could accept AppError[] and use
+//   type narrowing for subtype-specific columns.
+// - Consider whether AppError.technical should be typed more narrowly
+//   (e.g. string | Record<string, unknown>) rather than `any`.
 //
 
 /**

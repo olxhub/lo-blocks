@@ -1,11 +1,13 @@
 // src/components/blocks/SplitPanel/_SplitPanel.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import Split from 'react-split';
 import { useKids } from '@/lib/render';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { DisplayError } from '@/lib/util/debug';
+import { assertNamedObject } from '@/lib/util/kids';
 
 function PaneContent({ props, paneKids }) {
   const { kids } = useKids({ ...props, kids: paneKids });
@@ -53,8 +55,9 @@ function MissingPane({ paneType }) {
   );
 }
 
-export default function _SplitPanel(props) {
-  const { kids = {}, sizes = '50,50' } = props;
+export default function _SplitPanel(props: RuntimeProps) {
+  const { kids, sizes = '50,50' } = props;
+  assertNamedObject(kids, ['start', 'end', 'left', 'right']);
   const { dir } = useLocaleAttributes();
   const isRtl = dir === 'rtl';
 

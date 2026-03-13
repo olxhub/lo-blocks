@@ -99,6 +99,7 @@
 //
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
+import { z_reduxStateKeyList } from '@/lib/blocks/attributeSchemas';
 import { correctness } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
 import _Hidden from '@/components/blocks/layout/_Hidden';
@@ -295,7 +296,7 @@ const CustomGrader = createGrader({
   inputType: 'list',  // Can handle any number of inputs
   attributes: {
     // target is required since we can't infer inputs from children
-    target: z.string({ required_error: 'target is required - specify the input block(s) to grade' }),
+    target: z_reduxStateKeyList.describe('Input block ID(s) to grade, comma-separated'),
     // Optional: load code from external file
     src: z.string().optional(),
   },

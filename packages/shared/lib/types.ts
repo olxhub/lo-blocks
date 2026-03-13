@@ -37,23 +37,38 @@ export type JSONValue =
  * ERROR TYPES
  * ═══════════
  *
- * Aspirational goal: Consolidate error handling here.
+ * Error type hierarchy:
+ *
+ *   AppError                  — Base error value type (lib/errors.ts)
+ *     └─ OLXLoadingError      — Content loading/parsing errors (adds type, summary, file)
+ *
+ * AppError is the canonical error shape. It aligns with DisplayError props
+ * so you can spread one into the other: <DisplayError {...error} />.
+ *
+ * OLXLoadingError extends AppError with content-pipeline-specific fields
+ * (error type tag, human summary, source file). Any code that accepts
+ * AppError also accepts OLXLoadingError.
+ *
+ * ErrorNode (the block) receives AppError as kids and passes through to
+ * DisplayError. It doesn't need to know which subtype it has.
+ *
+ * Future directions:
+ * - Other error subtypes (e.g. NetworkError, ValidationError) can extend
+ *   AppError the same way OLXLoadingError does.
+ * - DisplayError could gain location awareness (render line/column info)
+ *   so ErrorNode doesn't need to format it.
+ * - Consider whether the error panel (which uses OLXLoadingError[]) should
+ *   accept AppError[] and use type narrowing for subtype-specific rendering.
  */
 
+import type { AppError } from '@/lib/errors';
+
 // OLX Content Loading Errors
-export interface OLXLoadingError {
+export interface OLXLoadingError extends AppError {
   type: 'parse_error' | 'duplicate_id' | 'file_error' | 'peg_error' | 'attribute_validation' | 'metadata_error';
   /** Human-readable summary for display (e.g. "Error in file header") */
   summary: string;
   file: string;
-  message: string;
-  location?: {
-    line?: number;
-    column?: number;
-    offset?: number;
-  };
-  technical?: any;
-  stack?: any;
 }
 
 /**
@@ -792,7 +807,7 @@ export interface BaselineProps {
 export interface RuntimeProps extends BaselineProps {
   // This block's identity and content
   id: OlxKey;
-  kids: BlueprintKidEntry[] | string;
+  kids: JSONValue;
 
   // Opaque context - thread through
   nodeInfo: OlxDomNode;
@@ -826,7 +841,7 @@ export interface OlxJson {
   id: OlxKey;
   tag: OLXTag;
   attributes: Record<string, JSONValue>;  // Always present, defaults to {} in parsing
-  kids?: BlueprintKidEntry[] | string;  // Child nodes, or a string from text parsers
+  kids?: JSONValue;  // Child nodes, or a string from text parsers
   provenance: Provenance;
 
   // Optional metadata (from YAML frontmatter or parsed attributes)

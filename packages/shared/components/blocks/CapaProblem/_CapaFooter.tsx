@@ -9,6 +9,7 @@
 // - Disabling submit when attempts exhausted
 //
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { renderBlock } from '@/lib/render';
 import {
@@ -31,7 +32,7 @@ function buildProblemState(props): ProblemState {
   };
 }
 
-export default function _CapaFooter(props) {
+export default function _CapaFooter(props: RuntimeProps) {
   const { id, target, hintsTarget, label, showanswer } = props;
 
   // Build state for problemModes utilities

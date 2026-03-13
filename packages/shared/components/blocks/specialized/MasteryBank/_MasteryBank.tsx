@@ -1,5 +1,6 @@
 // src/components/blocks/specialized/MasteryBank/_MasteryBank.tsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo, useEffect, useRef } from 'react';
 import { useBlock } from '@/lib/render';
@@ -7,6 +8,7 @@ import { useFieldState, useFieldSelector, commonFields } from '@/lib/state';
 import { extendIdPrefix, scopeMarker, toOlxReference, refToReduxKey } from '@/lib/blocks/idResolver';
 import { correctness } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
+import { assertNamedObject } from '@/lib/util/kids';
 
 /**
  * Fisher-Yates shuffle - returns array of indices [0, length) in random order.
@@ -182,13 +184,14 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   );
 }
 
-export default function _MasteryBank(props) {
+export default function _MasteryBank(props: RuntimeProps) {
   const { id, fields, kids, goal = 6, mode = 'linear' } = props;
 
   const orderMode = ORDER_MODES[mode] || ORDER_MODES.linear;
 
+  assertNamedObject(kids, ['problemIds']);
   const problemIds = useMemo(() => {
-    return kids?.problemIds && Array.isArray(kids.problemIds) ? kids.problemIds : [];
+    return kids.problemIds && Array.isArray(kids.problemIds) ? kids.problemIds : [];
   }, [kids]);
 
   const goalNum = typeof goal === 'string' ? parseInt(goal, 10) : goal;

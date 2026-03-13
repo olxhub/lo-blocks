@@ -1,14 +1,17 @@
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect, useId, useRef } from 'react';
 import mermaid from 'mermaid';
 import { useFieldState } from '@/lib/state/redux';
 import { DisplayError } from '@/lib/util/debug';
+import { assertString } from '@/lib/util/kids';
 import { fields } from './Mermaid';
 
 mermaid.initialize({ startOnLoad: false, theme: 'default' });
 
-export default function _Mermaid(props) {
+export default function _Mermaid(props: RuntimeProps) {
   const { kids } = props;
+  assertString(kids);
   const containerRef = useRef<HTMLDivElement>(null);
   // mermaid.render() needs a unique DOM ID for its internal temp element.
   // We can't use props.id — OLX is a DAG, so multiple <Use ref="..."/>

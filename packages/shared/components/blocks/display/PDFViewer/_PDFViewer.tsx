@@ -4,10 +4,11 @@
 // Path resolution follows the same conventions as Image (see Image block docs).
 
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { resolveContentPath } from '@/lib/content/contentPaths';
 
-function _PDFViewer(props) {
+function _PDFViewer(props: RuntimeProps) {
   const { src, width, height } = props;
 
   if (!src) {

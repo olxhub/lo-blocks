@@ -1,5 +1,6 @@
 // src/components/blocks/display/Explanation/_Explanation.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
@@ -20,7 +21,7 @@ import { useKids } from '@/lib/render';
  * Note: requiresGrader=true in block definition means graderId is injected by render.
  * showWhen is validated by attributes schema at parse time.
  */
-function _Explanation(props) {
+function _Explanation(props: RuntimeProps) {
   // graderId injected by render (requiresGrader: true)
   // showWhen validated by attributes schema
   const { showWhen = 'correct', title, graderId } = props;

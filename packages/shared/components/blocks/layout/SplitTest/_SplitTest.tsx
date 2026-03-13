@@ -1,4 +1,5 @@
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
@@ -69,7 +70,7 @@ function parseGroupIndex(value: unknown, numGroups: number): number | null {
   return parsed;
 }
 
-export default function _SplitTest(props) {
+export default function _SplitTest(props: RuntimeProps) {
   const { fields, id } = props;
   const groupNames = parseGroups(props.groups);
   const weights = parseWeights(props.weights);

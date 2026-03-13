@@ -1,11 +1,12 @@
 // src/components/blocks/layout/Navigator/_NavigatorTeamDetail.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import NextImage from 'next/image';
 import { resolveContentPath } from '@/lib/content/contentPaths';
 
-export default function _NavigatorTeamDetail(props) {
+export default function _NavigatorTeamDetail(props: RuntimeProps) {
   const { name, role, photo, bio, experience, skills } = props;
 
   if (!name || !role) {

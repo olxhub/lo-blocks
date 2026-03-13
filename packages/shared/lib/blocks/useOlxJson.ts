@@ -239,8 +239,35 @@ export function useOlxJson(
   return { olxJson: langVariant || null, ...blockData('ready') };
 }
 
+// TODO: Build these from actual OLX parsing rather than hardcoding the data structure.
+/** Construct an OlxJson for a Spinner placeholder. */
+function spinnerOlxJson(id: string): OlxJson {
+  return {
+    id: `_spinner_${id}` as OlxKey,
+    tag: 'Spinner' as any,
+    attributes: {},
+    provenance: [],
+  };
+}
+
+/** Construct an OlxJson for an ErrorNode placeholder. */
+function errorOlxJson(id: string, message: string): OlxJson {
+  return {
+    id: `_error_${id}` as OlxKey,
+    tag: 'ErrorNode' as any,
+    attributes: {},
+    kids: { message },
+    provenance: [],
+  };
+}
+
 /**
  * Hook to access multiple OlxJson blocks by IDs.
+ *
+ * Returns an OlxJson[] that is always the same length as `ids`.
+ * Each entry is the real block, a Spinner (if loading), or an ErrorNode
+ * (if errored or missing). Callers never see nulls — every entry is
+ * renderable through the normal block pipeline.
  *
  * @param props - Component props (must include logEvent, sideEffectFree)
  * @param ids - Array of OLX IDs to look up
@@ -251,19 +278,21 @@ export function useOlxJsonMultiple(
   ids: OlxReference[],
   source: string = 'content'
 ): {
-  olxJsons: (OlxJson | null)[];
-  anyLoading: boolean;
-  firstError: string | null;
+  olxJsons: OlxJson[];
   allReady: boolean;
 } {
   // Call useOlxJson for each ID
   // Note: Array length must be stable across renders (React rules of hooks)
   const results = ids.map(id => useOlxJson(props, id, source));
 
-  const olxJsons = results.map(r => r.olxJson);
-  const anyLoading = results.some(r => r.loading);
-  const firstError = results.find(r => r.error)?.error || null;
+  const olxJsons = results.map((r, i) => {
+    if (r.olxJson) return r.olxJson;
+    if (r.loading) return spinnerOlxJson(ids[i]);
+    if (r.error) return errorOlxJson(ids[i], r.error);
+    return errorOlxJson(ids[i], `Block "${ids[i]}" not found`);
+  });
+
   const allReady = results.every(r => r.ready && r.olxJson !== null);
 
-  return { olxJsons, anyLoading, firstError, allReady };
+  return { olxJsons, allReady };
 }

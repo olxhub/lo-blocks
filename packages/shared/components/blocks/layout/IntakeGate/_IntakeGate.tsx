@@ -11,8 +11,10 @@
 // TextSlot value/state fields.
 //
 'use client';
+import type { RuntimeProps, ReduxStateKey } from '@/lib/types';
 
 import React from 'react';
+import { assertKidArray } from '@/lib/util/kids';
 import { useKids } from '@/lib/render';
 import { parse, useDSLExpression } from '@/lib/stateLanguage';
 import { DisplayError } from '@/lib/util/debug';
@@ -24,9 +26,11 @@ import Spinner from '@/components/common/Spinner';
  * targets="ctx_1,ctx_2" generates:
  *   ready:   @ctx_1.value && @ctx_2.value
  *   loading: @ctx_1.state === 'LLM_RUNNING' || @ctx_2.state === 'LLM_RUNNING' || @ctx_1.value || @ctx_2.value
+ *
+ * Note: `ids` is already a string[] — the zod schema (z_reduxStateKeyList)
+ * splits the comma-separated OLX attribute at parse time.
  */
-function targetsToExpressions(targets: string): { ready: string; loading: string } {
-  const ids = targets.split(',').map(s => s.trim()).filter(Boolean);
+function targetsToExpressions(ids: ReduxStateKey[]): { ready: string; loading: string } {
   const ready = ids.map(id => `@${id}.value`).join(' && ');
   const loading = [
     ...ids.map(id => `@${id}.state === 'LLM_RUNNING'`),
@@ -35,8 +39,9 @@ function targetsToExpressions(targets: string): { ready: string; loading: string
   return { ready, loading };
 }
 
-function _IntakeGate(props) {
+function _IntakeGate(props: RuntimeProps) {
   const { kids = [], targets, ready: readyProp, loading: loadingProp, id } = props;
+  assertKidArray(kids);
 
   // Validate: exactly 2 children required
   if (kids.length !== 2) {
@@ -51,7 +56,8 @@ function _IntakeGate(props) {
   }
 
   // Validate: must have targets or ready
-  if (!targets && !readyProp) {
+  // targets is string[] (from z_reduxStateKeyList), so check length not truthiness
+  if ((!targets || (Array.isArray(targets) && targets.length === 0)) && !readyProp) {
     return (
       <DisplayError
         id={id}
@@ -69,7 +75,7 @@ function _IntakeGate(props) {
     readyExpr = readyProp;
     loadingExpr = loadingProp;
   } else {
-    const generated = targetsToExpressions(targets);
+    const generated = targetsToExpressions(targets as ReduxStateKey[]);
     readyExpr = generated.ready;
     loadingExpr = loadingProp ?? generated.loading;
   }

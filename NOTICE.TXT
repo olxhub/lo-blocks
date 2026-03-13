@@ -1,0 +1,57 @@
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, version 3.
+
+Additional Terms pursuant to AGPLv3 Section 7, applicable to
+contributions authored by Piotr Mitros.
+
+1. Preservation of Attribution (Section 7(b))
+
+Redistributors and modifiers of this software must preserve all
+copyright notices and author attributions identifying Piotr Mitros as
+the original author of this software.
+
+Such notices must be preserved in the source code and in any
+Appropriate Legal Notices displayed by the software, including any
+links to mitros.org, his project page, or his original project
+repository (currently, https://github.com/olxhub/lo-blocks/) included
+in those notices.
+
+If portions of the software containing such notices are replaced,
+equivalent attribution must be provided in a substantially similar
+location within the modified software.
+
+If any new Appropriate Legal Notices, footers, about pages, or similar
+attribution displays are added to the software or any modified
+version, such notices must include attribution to Piotr Mitros as the
+original author, including a link to mitros.org and the original
+project repository, at least in substantially the same way as in the
+original software.
+
+2. No Misrepresentation of Origin (Section 7(c))
+
+Redistributors and modifiers of this software may not misrepresent the
+origin of the software.
+
+Modified versions must be clearly marked as modified, must identify
+the original author as specified in Section 1, and must not be
+represented as the original software.
+
+3. Modification of These Additional Terms
+
+Piotr Mitros reserves the right to publish revised or updated
+Additional Terms. In such a case, you may comply with:
+
+- Either the Additional Terms as they existed when you received the
+  software; or
+- Any later version published at: http://mitros.org/p/lo/notice.html
+
+Notes:
+
+The location of the original project repository can be confirmed from:
+  http://mitros.org/p/lo/
+
+As of this writing, it is at:
+  https://github.com/olxhub/lo-blocks/
+
+

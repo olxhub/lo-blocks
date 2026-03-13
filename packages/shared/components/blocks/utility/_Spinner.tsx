@@ -1,19 +1,14 @@
 // src/components/blocks/_Spinner.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
+import { CssSpinner } from '@/components/common/Spinner';
 
-if (typeof window !== 'undefined') {
-  import('./Spinner.css');
-}
-
-function _Spinner() {
-  return (
-    <div className="spinner">
-      <div></div>
-      <div></div>
-      <div></div>
-    </div>
-  );
+/**
+ * Block wrapper around CssSpinner for use as a fallback while blocks load.
+ */
+function _Spinner(_props?: Partial<RuntimeProps>) {
+  return <CssSpinner />;
 }
 
 export default _Spinner;

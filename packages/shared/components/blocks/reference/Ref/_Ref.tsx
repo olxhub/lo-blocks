@@ -1,4 +1,5 @@
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 // src/components/blocks/_Ref.tsx
 import React from 'react';
@@ -8,7 +9,7 @@ import Spinner from '@/components/common/Spinner';
 
 const VALID_FORMATS = ['code'];
 
-export default function _Ref(props) {
+export default function _Ref(props: RuntimeProps) {
   const { visible = true, fallback = '', format } = props;
 
   // Call Ref's own selectValue via useValue - this is the single source of truth

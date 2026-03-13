@@ -1,4 +1,5 @@
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 import React, { useRef, useMemo, useEffect } from 'react';
 import * as Plot from '@observablehq/plot';
 import { useValue } from '@/lib/state';
@@ -97,7 +98,7 @@ export function analyzeText(text: string, mode: string) {
   return data;
 }
 
-export default function _SentenceVarietyPlot(props) {
+export default function _SentenceVarietyPlot(props: RuntimeProps) {
   const { target, width, height, xrange, yrange, mode = 'characters' } = props;
   const containerRef = useRef<HTMLDivElement>(null);
 

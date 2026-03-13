@@ -1,5 +1,6 @@
 // src/components/blocks/action/HintButton/_HintButton.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo, useCallback } from 'react';
 import * as state from '@/lib/state';
@@ -30,7 +31,7 @@ function findDemandHints(props) {
   return hintsNodes.length > 0 ? hintsNodes[0].olxJson?.id : null;
 }
 
-export default function _HintButton(props) {
+export default function _HintButton(props: RuntimeProps) {
   const { id } = props;
 
   // Find target DemandHints component

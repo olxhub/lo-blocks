@@ -5,12 +5,13 @@
 // CodeMirror editor wired to Redux. API will likely change.
 //
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useCallback } from 'react';
 import { useFieldState, useValue } from '@/lib/state';
 import CodeEditor from '@/components/common/CodeEditor';
 
-function _CodeInput(props) {
+function _CodeInput(props: RuntimeProps) {
   const { id, fields, language = 'olx', height = '300px', theme = 'light' } = props;
 
   const [, setValue] = useFieldState(props, fields.value, null);
