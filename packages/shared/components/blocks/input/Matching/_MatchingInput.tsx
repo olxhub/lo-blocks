@@ -1,4 +1,5 @@
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useFieldState } from '@/lib/state';
@@ -9,6 +10,7 @@ import { extendIdPrefix } from '@/lib/blocks/idResolver';
 import { HandleCommon } from '@/components/common/DragHandle';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
 import { buildArrangementWithPositions } from '@/lib/util/shuffle';
+import { assertKidArray } from '@/lib/util/kids';
 import { fields } from './MatchingInput';
 import type { MatchingArrangement, ItemPosition } from './types';
 
@@ -248,8 +250,9 @@ function ConnectionLines({
 /**
  * Main MatchingInput component
  */
-export default function _MatchingInput(props) {
+export default function _MatchingInput(props: RuntimeProps) {
   const { kids = [], shuffle = true, idPrefix, idMap = {} } = props;
+  assertKidArray(kids);
 
   // Parse pairs
   const pairs = parseMatchingPairs(kids);
@@ -277,11 +280,11 @@ export default function _MatchingInput(props) {
 
   // Compute endOrder with positioned items if not already set
   if ((!endOrder || endOrder.length === 0)) {
-    const rightKidBlocks = pairs.map((p) => rightKidBlockMap[p.rightKid.id]).filter((block) => block);
+    const rightKidBlocks = pairs.map((p) => rightKidBlockMap[p.rightKid.id]);
 
     const result = buildArrangementWithPositions(rightKidBlocks, {
       idSelector: (block) => block.id,
-      positionSelector: (block) => block.attributes?.initialPosition,
+      positionSelector: (block) => block.attributes?.initialPosition as number | undefined,
       shouldShuffleUnpositioned: shuffle,
     });
 

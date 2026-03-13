@@ -52,19 +52,19 @@ describe('Event Replay', () => {
 
     // Query final values
     const inputValue = fieldSelector(state, {}, commonFields.value, {
-      id: 'NumericalGraderBasic.input',
+      reduxKey: 'NumericalGraderBasic.input' as any,
       fallback: ''
     });
     expect(inputValue).toBe('144');
 
     const correct = fieldSelector(state, {}, commonFields.correct, {
-      id: 'NumericalGraderBasic.grader',
+      reduxKey: 'NumericalGraderBasic.grader' as any,
       fallback: ''
     });
     expect(correct).toBe('correct');
 
     const submitCount = fieldSelector(state, {}, commonFields.submitCount, {
-      id: 'NumericalGraderBasic.grader',
+      reduxKey: 'NumericalGraderBasic.grader' as any,
       fallback: 0
     });
     expect(submitCount).toBe(2);
@@ -78,19 +78,19 @@ describe('Event Replay', () => {
 
     // At this point, student has submitted wrong answer
     const inputValue = fieldSelector(state, {}, commonFields.value, {
-      id: 'NumericalGraderBasic.input',
+      reduxKey: 'NumericalGraderBasic.input' as any,
       fallback: ''
     });
     expect(inputValue).toBe('100'); // Wrong answer
 
     const correct = fieldSelector(state, {}, commonFields.correct, {
-      id: 'NumericalGraderBasic.grader',
+      reduxKey: 'NumericalGraderBasic.grader' as any,
       fallback: ''
     });
     expect(correct).toBe('incorrect');
 
     const submitCount = fieldSelector(state, {}, commonFields.submitCount, {
-      id: 'NumericalGraderBasic.grader',
+      reduxKey: 'NumericalGraderBasic.grader' as any,
       fallback: 0
     });
     expect(submitCount).toBe(1);

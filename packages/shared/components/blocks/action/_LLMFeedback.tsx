@@ -1,5 +1,6 @@
 // src/components/blocks/_LLMFeedback.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import RenderMarkdown from '@/components/common/RenderMarkdown';
@@ -8,13 +9,13 @@ import { useFieldSelector } from '@/lib/state';
 import { LLM_STATUS } from '@/lib/llm/reduxClient';
 import { DisplayError } from '@/lib/util/debug';
 
-import Spinner from '@/components/blocks/utility/_Spinner';
+import Spinner from '@/components/common/Spinner';
 
-function _LLMFeedback(props) {
+function _LLMFeedback(props: RuntimeProps) {
   const { id, fields, render } = props;
 
-  const feedback = useFieldSelector(props, fields.value, { fallback: '', id });
-  const llmState = useFieldSelector(props, fields.state, { fallback: LLM_STATUS.INIT, id });
+  const feedback = useFieldSelector(props, fields.value, { fallback: '' });
+  const llmState = useFieldSelector(props, fields.state, { fallback: LLM_STATUS.INIT });
 
   const isEmpty = llmState === LLM_STATUS.INIT && !feedback;
   const isError = llmState === LLM_STATUS.ERROR;

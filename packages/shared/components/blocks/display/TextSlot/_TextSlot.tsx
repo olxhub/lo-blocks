@@ -4,15 +4,16 @@
 // Minimal display - just a span.
 //
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import { useFieldSelector } from '@/lib/state';
 import { LLM_STATUS } from '@/lib/llm/reduxClient';
 
-function _TextSlot(props) {
+function _TextSlot(props: RuntimeProps) {
   const { id, fields } = props;
 
-  const text = useFieldSelector(props, fields.value, { fallback: '', id });
-  const status = useFieldSelector(props, fields.state, { fallback: LLM_STATUS.INIT, id });
+  const text = useFieldSelector(props, fields.value, { fallback: '' });
+  const status = useFieldSelector(props, fields.state, { fallback: LLM_STATUS.INIT });
 
   // Show nothing while waiting for initial population
   if (status === LLM_STATUS.INIT && !text) {

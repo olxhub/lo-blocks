@@ -1,5 +1,6 @@
 // src/components/blocks/_Sequential.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
@@ -15,7 +16,7 @@ function SequentialItem({ props, node }) {
   return <>{kids}</>;
 }
 
-export default function _Sequential(props) {
+export default function _Sequential(props: RuntimeProps) {
   const { fields } = props;
   const { t } = useBlockTranslation(props);
   // Get current index from Redux state

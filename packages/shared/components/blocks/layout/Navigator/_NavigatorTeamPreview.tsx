@@ -1,11 +1,12 @@
 // src/components/blocks/layout/Navigator/_NavigatorTeamPreview.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import NextImage from 'next/image';
 import { resolveContentPath } from '@/lib/content/contentPaths';
 
-export default function _NavigatorTeamPreview(props) {
+export default function _NavigatorTeamPreview(props: RuntimeProps) {
   const { name, role, photo } = props;
 
   if (!name || !role) {

@@ -1,10 +1,13 @@
 // src/components/blocks/layout/Navigator/_Navigator.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo } from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { useOlxJson } from '@/lib/blocks/useOlxJson';
+
+type NavItem = Record<string, any> & { id: string };
 
 // Component to render a template with item data
 function TemplateContent({ props, node }) {
@@ -12,7 +15,7 @@ function TemplateContent({ props, node }) {
   return <>{kids}</>;
 }
 
-function _Navigator(props) {
+function _Navigator(props: RuntimeProps) {
   const {
     fields,
     kids,
@@ -30,7 +33,7 @@ function _Navigator(props) {
   const [searchQuery, setSearchQuery] = useFieldState(props, fields.searchQuery, '');
 
   // Parse YAML data from text content
-  const items = useMemo(() => {
+  const items: NavItem[] = useMemo(() => {
     if (!kids) return [];
 
     try {
@@ -38,11 +41,11 @@ function _Navigator(props) {
       let yamlText = '';
       if (typeof kids === 'string') {
         yamlText = kids;
-      } else if (kids.text) {
-        yamlText = kids.text;
+      } else if (typeof kids === 'object' && kids !== null && !Array.isArray(kids) && 'text' in kids) {
+        yamlText = String(kids.text);
       } else if (typeof kids === 'object' && kids !== null) {
         // If it's an object with no text property, it might be parsed content
-        return Array.isArray(kids) ? kids : [];
+        return Array.isArray(kids) ? kids as NavItem[] : [];
       }
 
       if (!yamlText || typeof yamlText !== 'string') return [];

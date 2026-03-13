@@ -1,12 +1,13 @@
 // src/components/blocks/test/_DevQuestion.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 // DebugWrapper handles debug output
 
 import { useFieldState } from '@/lib/state';
 
-export function _DevQuestion( props ) {
+export function _DevQuestion( props: RuntimeProps ) {
   const { prompt, options = [], fields } = props;
   const optionList = typeof options === 'string' ? options.split(',') : options;
   const [activeIndex, setActiveIndex] = useFieldState(

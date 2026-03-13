@@ -1,12 +1,13 @@
 // src/components/blocks/layout/Tabs/_Tabs.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids, useKidsJson } from '@/lib/render';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
 
-export default function _Tabs(props) {
+export default function _Tabs(props: RuntimeProps) {
   const { fields } = props;
   const [activeTab, setActiveTab] = useFieldState(props, fields.activeTab, 0);
 

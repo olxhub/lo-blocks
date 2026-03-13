@@ -153,11 +153,12 @@ export function useGraderAnswer(props: RuntimeProps) {
   // Subscribe to field (hook must always be called, but selector handles null field)
   // When no grader exists and component has no fields, create a dummy field for hook compliance
   const fallbackField = props.fields?.value ?? { scope: 'component', name: 'showAnswer' };
+  const graderReduxKey = refToReduxKey({ ...props, id: graderId || props.id });
   const showAnswer = useFieldSelector(
     props,
     showAnswerField || fallbackField,
     {
-      id: graderId || props.id,
+      reduxKey: graderReduxKey,
       fallback: false,
       // When no grader, selector always returns false
       selector: showAnswerField ? (s => s?.showAnswer ?? false) : (() => false)
@@ -222,11 +223,12 @@ export function useGraderSummary(props: RuntimeProps, graderId: OlxKey | null) {
     : null;
 
   const fallbackField = props.fields?.value ?? { scope: 'component', name: 'showAnswer' };
+  const summaryGraderReduxKey = refToReduxKey({ ...props, id: graderId || props.id });
   const showAnswer = useFieldSelector(
     props,
     showAnswerField || fallbackField,
     {
-      id: graderId || props.id,
+      reduxKey: summaryGraderReduxKey,
       fallback: false,
       selector: showAnswerField ? (s => s?.showAnswer ?? false) : (() => false)
     }

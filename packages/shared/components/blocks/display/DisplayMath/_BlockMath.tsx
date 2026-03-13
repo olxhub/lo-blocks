@@ -1,13 +1,16 @@
 // src/components/blocks/DisplayMath/_BlockMath.jsx
 import React from 'react';
 import katex from 'katex';
+import type { RuntimeProps } from '@/lib/types';
+import { assertString } from '@/lib/util/kids';
 if (typeof window !== 'undefined') {
   import('katex/dist/katex.min.css');
 }
 // DebugWrapper now handles debug info globally
 
-export function _BlockMath( props ) {
+export function _BlockMath( props: RuntimeProps ) {
   const { kids } = props;
+  assertString(kids);
   let html = '';
   try {
     html = katex.renderToString(kids, {

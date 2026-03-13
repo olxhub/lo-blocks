@@ -1,7 +1,8 @@
 // src/components/blocks/layout/Navigator/_NavigatorDefaultDetail.jsx
 import React from 'react';
+import type { RuntimeProps } from '@/lib/types';
 
-export default function _NavigatorDefaultDetail(props) {
+export default function _NavigatorDefaultDetail(props: RuntimeProps) {
   const { id, title, name, subtitle, description, details } = props;
   const displayTitle = title || name || id || 'Untitled';
 

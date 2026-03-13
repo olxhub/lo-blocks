@@ -1,7 +1,8 @@
 // src/components/blocks/layout/Navigator/_NavigatorDefaultPreview.jsx
 import React from 'react';
+import type { RuntimeProps } from '@/lib/types';
 
-export default function _NavigatorDefaultPreview(props) {
+export default function _NavigatorDefaultPreview(props: RuntimeProps) {
   const { id, title, name, subtitle, description } = props;
   const displayTitle = title || name || id || 'Untitled';
 

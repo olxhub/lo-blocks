@@ -19,6 +19,7 @@ import { correctness } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
 import _Noop from '@/components/blocks/layout/_Noop';
 import type { RuntimeProps } from '@/lib/types';
+import { isKidArray } from '@/lib/util/kids';
 
 /**
  * Grade by evaluating child Match rules top-to-bottom, returning first match.
@@ -99,7 +100,7 @@ const RulesGrader = core({
     if (props.displayAnswer) return props.displayAnswer;
 
     const { kids = [], blockRegistry } = props;
-    if (!Array.isArray(kids)) return undefined;
+    if (!isKidArray(kids)) return undefined;
     for (const kid of kids) {
       if (kid.type !== 'block') continue;
       const childEntry = getBlockByOLXId(props, kid.id);

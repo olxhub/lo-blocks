@@ -1,20 +1,23 @@
 // src/components/blocks/Course/_Course.tsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { useBlock } from '@/lib/render';
 import { getBlockByOLXId } from '@/lib/blocks';
 import ExpandIcon from '@/components/common/ExpandIcon';
+import { assertNamedObject } from '@/lib/util/kids';
 
 function CourseContent({ props, selectedChild }) {
   const { block } = useBlock(props, selectedChild);
   return <>{block}</>;
 }
 
-function _Course(props) {
-  const { kids = {}, fields, title = 'Course' } = props;
-  const { chapters = [] } = kids;
+function _Course(props: RuntimeProps) {
+  const { kids, fields, title = 'Course' } = props;
+  assertNamedObject(kids, ['chapters']);
+  const chapters = (kids.chapters || []) as any[];
 
   // children are { type: 'block', id } objects from parseNode
   const [selectedChild, setSelectedChild] = useFieldState(props, fields.selectedChild,

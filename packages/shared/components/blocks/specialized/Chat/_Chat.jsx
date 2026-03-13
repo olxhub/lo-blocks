@@ -4,6 +4,7 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
 
 import { useFieldState, updateField } from '@/lib/state';
+import { refToReduxKey } from '@/lib/blocks/idResolver';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
 import { useWaitConditions } from './waitConditions';
@@ -155,7 +156,7 @@ export function _Chat(props) {
       const block = allEntries[nextIndex + 1];
       if (!block) break;
       if (block.type === 'ArrowCommand') {
-        updateField(props, fields.value, block.target, { id: block.source });
+        updateField(props, fields.value, block.target, { reduxKey: refToReduxKey({ ...props, id: block.source }) });
         nextIndex += 1;
         continue;
       }

@@ -2,13 +2,14 @@
 import React from 'react';
 import { useBlock } from '@/lib/render';
 import { useFieldState, useValue } from '@/lib/state';
+import type { RuntimeProps } from '@/lib/types';
 
 function DynamicContent({ props, value }) {
   const { block } = useBlock(props, value);
   return <>{block}</>;
 }
 
-export function _UseDynamic( props ) {
+export function _UseDynamic( props: RuntimeProps ) {
   const { fields, target, targetRef } = props;
 
   // If targetRef is provided, get the target from another component's value

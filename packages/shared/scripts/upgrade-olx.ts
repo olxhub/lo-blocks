@@ -350,6 +350,10 @@ function assignSemanticIds(node: OlxV1Node, parentName?: string): void {
   const displayName = node.attributes.display_name;
   const urlName = node.attributes.url_name;
 
+  // Preserve the original url_name before mutation so that later stages
+  // (e.g. split_test group_id_to_child lookup) can match against it.
+  if (urlName) node.attributes._original_url_name = urlName;
+
   // Propagate display_name from parent if missing
   if (!displayName && parentName) {
     node.attributes.display_name = parentName;
@@ -937,19 +941,23 @@ function transformSplitTest(node: OlxV1Node): OlxV2Node | null {
     return null;
   }
 
-  // Parse the group_id_to_child mapping to get group IDs in order.
-  // The mapping is JSON like {"602361593": "i4x://path/to/vertical", ...}
-  // where keys are numeric group IDs from user_partitions.
-  let groupIdOrder: number[] = [];
+  // Build reverse map from child url_name → numeric group ID.
+  // The group_id_to_child mapping is JSON like:
+  //   {"602361593": "i4x://DartmouthX/.../vertical/498b1b0c90d04131b032681e466f04bf", ...}
+  // We extract the url_name (last path segment) to match against child nodes,
+  // rather than assuming JSON key order matches XML child order.
+  const childUrlNameToGroupId = new Map<string, number>();
   try {
     const mapping = JSON.parse(node.attributes.group_id_to_child || '{}');
-    groupIdOrder = Object.keys(mapping).map(Number);
+    for (const [gid, childPath] of Object.entries(mapping)) {
+      const urlName = String(childPath).split('/').pop();
+      if (urlName) childUrlNameToGroupId.set(urlName, Number(gid));
+    }
   } catch { /* ignore parse errors */ }
 
   // Transform each child group (typically verticals).
-  // Tree is already fully expanded by loadOlx1Tree, no need to re-expand.
+  // Tree is already fully expanded by loadV1Tree, no need to re-expand.
   const children: OlxV2Node[] = [];
-  // Each group gets: { camelId, humanName, description? }
   const groupInfo: { camelId: string; humanName: string }[] = [];
   for (let i = 0; i < node.children.length; i++) {
     const child = node.children[i];
@@ -960,7 +968,9 @@ function transformSplitTest(node: OlxV1Node): OlxV2Node | null {
     children.push(result);
 
     // Resolve group name: policy.json partition names > display_name > fallback
-    const numericId = groupIdOrder[i];
+    // Use _original_url_name (pre-semantic-ID) since group_id_to_child contains original hashes
+    const originalUrlName = child.attributes._original_url_name || child.attributes.url_name;
+    const numericId = childUrlNameToGroupId.get(originalUrlName);
     const partitionName = numericId !== undefined ? groupIdToName.get(numericId) : undefined;
     const displayName = cleanDisplayName(child.attributes.display_name || '');
     const humanName = partitionName || displayName || `Group ${children.length}`;

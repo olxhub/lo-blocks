@@ -1,12 +1,13 @@
 // src/components/blocks/DigitSpanTask/_DigitSpanTask.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useEffect } from 'react';
 import { useFieldState } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
 
 
-export function _DigitSpanTask( props ) {
+export function _DigitSpanTask( props: RuntimeProps ) {
   const { id, kids = [], attributes = {}, fields } = props;
   const mode = attributes.mode ?? 'forward'; // 'forward' | 'backward' | 'ascending'
 

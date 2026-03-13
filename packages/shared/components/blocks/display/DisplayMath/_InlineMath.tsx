@@ -1,12 +1,13 @@
 // src/components/blocks/DisplayMath/_InlineMath.jsx
 import React from 'react';
 import katex from 'katex';
+import type { RuntimeProps } from '@/lib/types';
 if (typeof window !== 'undefined') {
   import('katex/dist/katex.min.css');
 }
 import { DisplayError } from '@/lib/util/debug';
 
-export function _InlineMath( props ) {
+export function _InlineMath( props: RuntimeProps ) {
   const { kids } = props;
   const latex = typeof kids === 'string' ? kids.trim() : '';
 

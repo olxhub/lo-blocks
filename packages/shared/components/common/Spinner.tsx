@@ -1,7 +1,12 @@
 // src/components/common/Spinner.tsx
 'use client';
 import React, { useState, useEffect } from 'react';
-import _Spinner from '@/components/blocks/utility/_Spinner';
+
+// TODO: Spinner.css is duplicated here and in blocks/utility/Spinner.css
+// (also referenced by styles/componentsAutogen.css). Consolidate to one copy.
+if (typeof window !== 'undefined') {
+  import('./Spinner.css');
+}
 
 // Usage:
 // <Spinner>Loading...</Spinner>
@@ -15,8 +20,21 @@ interface SpinnerProps {
 }
 
 /**
- * Loading spinner component
- * Can show a single message or cycle through multiple messages
+ * Raw CSS spinner animation (three bouncing bars).
+ * This is the primary spinner — block _Spinner wraps this.
+ */
+export function CssSpinner() {
+  return (
+    <div className="spinner">
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+  );
+}
+
+/**
+ * Loading spinner component with optional cycling text messages.
  */
 export default function Spinner({ children, texts, interval = 3000 }: SpinnerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -35,7 +53,7 @@ export default function Spinner({ children, texts, interval = 3000 }: SpinnerPro
 
   return (
     <div className="flex flex-col items-center justify-center p-8 space-y-4">
-      <_Spinner />
+      <CssSpinner />
       {message && <p className="text-gray-600 text-sm">{message}</p>}
     </div>
   );

@@ -35,10 +35,11 @@
  */
 
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { resolveContentPath } from '@/lib/content/contentPaths';
 
-function _Image(props) {
+function _Image(props: RuntimeProps) {
   const { src, alt, width, height } = props;
 
   if (!src) {

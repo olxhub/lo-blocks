@@ -1,4 +1,5 @@
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 // src/components/blocks/reference/StateViewer/_StateViewer.jsx
 import React from 'react';
@@ -7,7 +8,7 @@ import { useComponentState } from '@/lib/state';
 import { refToReduxKey } from '@/lib/blocks/idResolver';
 import { useOlxJson } from '@/lib/blocks/useOlxJson';
 
-export default function _StateViewer(props) {
+export default function _StateViewer(props: RuntimeProps) {
   const { target, scope, kids = '' } = props;
 
   // Target can come from attribute or children text (like Ref)

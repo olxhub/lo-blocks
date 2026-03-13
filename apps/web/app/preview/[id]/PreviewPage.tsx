@@ -21,7 +21,7 @@ export default function PreviewPage() {
     null,
     settings.debug,
     false,
-    { id: olxKey, tag: 'preview' } // HACK: This works around not having proper props. Should be fixed. See below
+    { tag: 'preview' } // HACK: This works around not having proper props. Should be fixed. See below
   );
 
   const { idMap, error, loading } = useContentLoader(olxKey);

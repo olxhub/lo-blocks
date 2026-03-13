@@ -17,6 +17,7 @@
 //   when="@timer.expired"                     → after content
 
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useFieldState } from '@/lib/state';
@@ -130,7 +131,7 @@ function urgencyColor(fraction) {
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
-function _TimedContainer(props) {
+function _TimedContainer(props: RuntimeProps) {
   const {
     fields, duration,
     start = 'go', label = 'Start',

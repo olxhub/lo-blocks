@@ -18,14 +18,14 @@ async function copyFieldAction({ targetInstance, props }) {
   const srcField = state.componentFieldByName(props, target.ref, target.field);
   const reduxState = props.runtime.store.getState();
   const value = state.fieldSelector(reduxState, props, srcField, {
-    id: target.ref,
+    reduxKey: target.ref,
     fallback: '',
   });
 
   // Write to each output
   for (const dest of output) {
     const destField = state.componentFieldByName(props, dest.ref, dest.field);
-    state.updateField(props, destField, value, { id: dest.ref });
+    state.updateField(props, destField, value, { reduxKey: dest.ref });
   }
 }
 

@@ -1,5 +1,6 @@
 // _Carousel.tsx - Browse and select from a list of referenced items.
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState, useFieldSelector } from '@/lib/state';
@@ -7,6 +8,7 @@ import { useBlock } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import NavArrow from '@/components/common/NavArrow';
 import { fisherYatesShuffleInPlace } from '@/lib/util/shuffle';
+import { assertNamedObject } from '@/lib/util/kids';
 
 function shuffledIds(ids: string[]): string[] {
   const order = [...ids];
@@ -21,9 +23,10 @@ function isOrderValid(order: string[] | null, itemIds: string[]): boolean {
   return order.every(id => expected.has(id));
 }
 
-export default function _Carousel(props) {
+export default function _Carousel(props: RuntimeProps) {
   const { id, fields, kids, wrap = false, randomize = false } = props;
-  const itemIds = kids.itemIds;
+  assertNamedObject(kids, ['itemIds']);
+  const itemIds = kids.itemIds as string[];
 
   // 1. Hooks (called unconditionally per React rules)
   // value stores the current item ID; title stores the display name; order stores the display sequence

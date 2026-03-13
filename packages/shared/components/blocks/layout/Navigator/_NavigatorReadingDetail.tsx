@@ -1,5 +1,6 @@
 // src/components/blocks/layout/Navigator/_NavigatorReadingDetail.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useBlock } from '@/lib/render';
@@ -9,7 +10,7 @@ function ReadingContent({ props, blockId }) {
   return <>{block}</>;
 }
 
-export default function _NavigatorReadingDetail(props) {
+export default function _NavigatorReadingDetail(props: RuntimeProps) {
   const { ref, name, title, subtitle } = props;
 
   if (!ref) {

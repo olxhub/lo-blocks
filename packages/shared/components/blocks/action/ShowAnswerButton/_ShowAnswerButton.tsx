@@ -1,47 +1,51 @@
 // src/components/blocks/action/ShowAnswerButton/_ShowAnswerButton.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo, useCallback } from 'react';
 import * as state from '@/lib/state';
 import { getGrader } from '@/lib/blocks';
+import { refToReduxKey } from '@/lib/blocks/idResolver';
 import { DisplayError } from '@/lib/util/debug';
 
 /**
  * Button that toggles the showAnswer field on grader(s).
  * Supports explicit target attribute or parent grader inference.
  */
-function _ShowAnswerButton(props) {
+function _ShowAnswerButton(props: RuntimeProps) {
   const { label = 'Show Answer', target } = props;
 
-  // Resolve target grader IDs - explicit target or parent inference
-  const graderIds = useMemo(() => {
+  // Resolve target grader ReduxStateKeys - explicit target or parent inference
+  const graderReduxKeys = useMemo(() => {
     if (target) {
-      return target.split(',').map(id => id.trim()).filter(Boolean);
+      // target is z_reduxStateKeyList — already an array of ReduxStateKeys
+      return Array.isArray(target) ? target : [target];
     }
     try {
-      return [getGrader(props)];
+      // getGrader returns OlxKey — convert to ReduxStateKey
+      return [refToReduxKey({ ...props, id: getGrader(props) })];
     } catch (e) {
       return [];
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target]);
 
-  // Read showAnswer from first grader (or use props.id as fallback for hook stability)
-  const primaryGraderId = graderIds[0] ?? props.id;
-  const showAnswerField = state.componentFieldByName(props, primaryGraderId, 'showAnswer');
-  const [showAnswer] = state.useFieldState(props, showAnswerField, false, { id: primaryGraderId });
+  // Read showAnswer from first grader (or use own key as fallback for hook stability)
+  const primaryGraderKey = graderReduxKeys[0] ?? refToReduxKey(props);
+  const showAnswerField = state.componentFieldByName(props, primaryGraderKey, 'showAnswer');
+  const [showAnswer] = state.useFieldState(props, showAnswerField, false, { reduxKey: primaryGraderKey });
 
   const handleClick = useCallback(() => {
     const newValue = !showAnswer;
     // Toggle all targeted graders
-    for (const graderId of graderIds) {
-      const field = state.componentFieldByName(props, graderId, 'showAnswer');
-      state.updateField(props, field, newValue, { id: graderId });
+    for (const graderKey of graderReduxKeys) {
+      const field = state.componentFieldByName(props, graderKey, 'showAnswer');
+      state.updateField(props, field, newValue, { reduxKey: graderKey });
     }
-  }, [showAnswer, graderIds, props]);
+  }, [showAnswer, graderReduxKeys, props]);
 
   // No graders found - show error (after all hooks)
-  if (graderIds.length === 0) {
+  if (graderReduxKeys.length === 0) {
     return (
       <DisplayError
         name="ShowAnswerButton"

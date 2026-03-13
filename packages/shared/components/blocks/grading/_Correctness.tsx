@@ -4,12 +4,15 @@
 // Note: requiresGrader=true in block definition means graderId is injected by render.
 //
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { correctness } from '@/lib/blocks';
 import { useFieldSelector } from '@/lib/state';
+import { refToReduxKey } from '@/lib/blocks/idResolver';
 
-function _Correctness(props) {
+function _Correctness(props: RuntimeProps) {
   const { fields, graderId } = props;
+  const graderReduxKey = refToReduxKey({ ...props, id: graderId });
 
   const correctnessValue = useFieldSelector(
     props,
@@ -17,7 +20,7 @@ function _Correctness(props) {
     {
       selector: s => s?.correct ?? correctness.unsubmitted,
       fallback: correctness.unsubmitted,
-      id: graderId
+      reduxKey: graderReduxKey
     }
   );
 
@@ -29,7 +32,7 @@ function _Correctness(props) {
     {
       selector: s => s?.submitCount ?? 0,
       fallback: 0,
-      id: graderId
+      reduxKey: graderReduxKey
     }
   );
 

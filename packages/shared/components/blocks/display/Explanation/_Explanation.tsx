@@ -1,8 +1,10 @@
 // src/components/blocks/display/Explanation/_Explanation.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
+import { refToReduxKey } from '@/lib/blocks/idResolver';
 import { correctness, computeVisibility } from '@/lib/blocks';
 import { useKids } from '@/lib/render';
 
@@ -19,16 +21,17 @@ import { useKids } from '@/lib/render';
  * Note: requiresGrader=true in block definition means graderId is injected by render.
  * showWhen is validated by attributes schema at parse time.
  */
-function _Explanation(props) {
+function _Explanation(props: RuntimeProps) {
   // graderId injected by render (requiresGrader: true)
   // showWhen validated by attributes schema
   const { showWhen = 'correct', title, graderId } = props;
 
   const correctField = state.componentFieldByName(props, graderId, 'correct');
+  const graderReduxKey = refToReduxKey({ ...props, id: graderId });
   const correctnessValue = useFieldSelector(
     props,
     correctField,
-    { id: graderId, fallback: correctness.unsubmitted, selector: s => s?.correct }
+    { reduxKey: graderReduxKey, fallback: correctness.unsubmitted, selector: s => s?.correct }
   ) ?? correctness.unsubmitted;
 
   // useKids must be called unconditionally

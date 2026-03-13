@@ -60,24 +60,15 @@ const UPDATE_INPUT = 'UPDATE_INPUT'; // TODO: Import
 const INVALIDATED_INPUT = 'INVALIDATED_INPUT'; // informational
 
 
-// Internal: resolved options for fieldSelector (id is already a ReduxStateKey)
+// Options for fieldSelector and friends.
+// reduxKey overrides which component's state to access (cross-component access).
+// If omitted, the component's own key is resolved from props.
 export interface SelectorOptions<T> {
-  id?: ReduxStateKey | boolean;
-  tag?: string | boolean;
+  reduxKey?: ReduxStateKey;
+  tag?: string;
   selector?: (state) => T;
   fallback?: T;
   equalityFn?: (a: T, b: T) => boolean;
-}
-
-/**
- * Convert OlxReference/OlxKey → ReduxStateKey at hook/public-API boundary.
- * Boolean and undefined pass through unchanged.
- */
-function resolveOlxId(props: any, id?: OlxReference | boolean): ReduxStateKey | boolean | undefined {
-  if (typeof id === 'string') {
-    return idResolver.refToReduxKey({ ...props, id });
-  }
-  return id;
 }
 
 /**
@@ -94,7 +85,7 @@ export const fieldSelector = <T>(
   options: SelectorOptions<T> = {}
 ): T => {
   const {
-    id: optId,
+    reduxKey,
     tag: optTag,
     // TODO: This should run over the field. We do this for when we need multiple fields (ReduxInput),
     // but really, field should be a list
@@ -113,12 +104,9 @@ export const fieldSelector = <T>(
         return selector(scopedState);
       case scopes.storage:
       case scopes.component: {
-        // If optId is a ReduxStateKey, use it directly (cross-component access).
-        // Otherwise, resolve the component's own ID from props.
-        const id = typeof optId === 'string'
-          ? optId
-          : idResolver.refToReduxKey(props);
-        return selector(scopedState?.[id]);
+        // Use explicit reduxKey (cross-component access) or resolve from props.
+        const key = reduxKey ?? idResolver.refToReduxKey(props);
+        return selector(scopedState?.[key]);
       }
       default:
         throw new Error('Unrecognized scope');
@@ -137,34 +125,29 @@ export const selectFromStore = <T>(
   return fieldSelector(state, undefined, field, options);
 };
 
-// Synchronous getter for Redux state - mirrors useFieldState but without re-renders
-// Same signature as useFieldState: (props, field, fallback, { id, tag })
-// Gets store from singleton internally (initialized in storeWrapper.tsx)
+// Synchronous getter for Redux state - mirrors useFieldState but without re-renders.
+// Gets store from singleton internally (initialized in storeWrapper.tsx).
 export const getReduxState = (
   props: any,
   field: FieldInfo,
   fallback: any,
-  { id, tag }: { id?: OlxReference | boolean; tag?: string | boolean } = {}
+  { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
 ): any => {
   assertValidField(field);
 
   const store = getReduxStoreInstance();
   const state = store.getState();
-  return fieldSelector(state, props, field, { fallback, id: resolveOlxId(props, id), tag });
+  return fieldSelector(state, props, field, { fallback, reduxKey, tag });
 };
 
-/** React-friendly wrapper that forwards any equalityFn from options.
- *  Accepts OlxKey for id and resolves to ReduxStateKey internally.
- */
+/** React hook wrapper around fieldSelector with automatic re-rendering. */
 export const useFieldSelector = <T>(
   props: any,               // TODO: narrow when convenient
   field: FieldInfo,
-  options: Omit<SelectorOptions<T>, 'id'> & { id?: OlxReference | boolean } = {} as any
+  options: SelectorOptions<T> = {}
 ): T => {
-  const { id, ...rest } = options;
-  const resolved: SelectorOptions<T> = { ...rest, id: resolveOlxId(props, id) };
   return useSelector(
-    (state) => fieldSelector(state, props, field, resolved),
+    (state) => fieldSelector(state, props, field, options),
     options.equalityFn
   );
 };
@@ -177,7 +160,7 @@ export function updateField(
   props: BaselineProps | null,
   field: FieldInfo,
   newValue,
-  { id, tag }: { id?: ReduxStateKey | boolean; tag?: string | boolean } = {}
+  { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
 ) {
   assertValidField(field);
   // Validate/coerce value against field schema if defined.
@@ -190,23 +173,17 @@ export function updateField(
   }
   const scope = field.scope;
   const fieldName = field.name;
-  // If id is a ReduxStateKey, use it directly (cross-component access).
-  // Otherwise, resolve the component's own ID from props.
-  const resolvedId = (scope === scopes.component || scope === scopes.storage)
-    ? (typeof id === 'string'
-      ? id
-      : idResolver.refToReduxKey(props as RuntimeProps))
+  // Use explicit reduxKey (cross-component access) or resolve from props.
+  const resolvedKey = (scope === scopes.component || scope === scopes.storage)
+    ? (reduxKey ?? idResolver.refToReduxKey(props as RuntimeProps))
     : undefined;
-  // Cast: resolvedTag is only used for componentSetting scope (which has
-  // RuntimeProps), but resolvedTag is computed unconditionally. The ?.
-  // avoids throwing when called from a non-componentSetting code path.
   const resolvedTag = tag ?? (props as RuntimeProps)?.loBlock?.name;
 
   const logEvent = props ? props.runtime.logEvent : lo_event.logEvent;
   logEvent(field.event, {
     scope,
     [fieldName]: newValue,
-    ...(scope === scopes.component || scope === scopes.storage ? { id: resolvedId } : {}),
+    ...(scope === scopes.component || scope === scopes.storage ? { id: resolvedKey } : {}),
     ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {})
   });
 }
@@ -216,21 +193,18 @@ export function useFieldState(
   props: BaselineProps | null,
   field: FieldInfo,
   fallback?,
-  { id, tag }: { id?: OlxReference | boolean; tag?: string | boolean } = {}
+  { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
 ) {
   assertValidField(field);
 
-  // useFieldSelector handles OlxKey → ReduxStateKey conversion for reading
-  const value = useFieldSelector(props, field, { fallback, id, tag });
+  const value = useFieldSelector(props, field, { fallback, reduxKey, tag });
 
-  // For writing, resolve the ReduxStateKey once
-  const reduxId = resolveOlxId(props, id);
-  const ref = useRef({ props, field, id: reduxId, tag });
-  ref.current = { props, field, id: reduxId, tag };
+  const ref = useRef({ props, field, reduxKey, tag });
+  ref.current = { props, field, reduxKey, tag };
   const setValue = useCallback(
     (newValue) => {
-      const { props, field, id, tag } = ref.current;
-      updateField(props, field, newValue, { id, tag });
+      const { props, field, reduxKey, tag } = ref.current;
+      updateField(props, field, newValue, { reduxKey, tag });
     },
     []
   );
@@ -253,23 +227,23 @@ type ReduxAggregateOptions<T, R = any> = {
 export function useAggregate<T = any, R = any>(
   props,
   field: FieldInfo,
-  ids: string[],
+  reduxKeys: ReduxStateKey[],
   { fallback, tag, aggregate = 'list' }: ReduxAggregateOptions<T, R> = {}
 ) {
   assertValidField(field);
 
   return useSelector(
     (state) => {
-      const values = ids.map((rawId) =>
-        fieldSelector(state, props, field, { fallback, id: resolveOlxId(props, rawId as OlxKey), tag }),
+      const values = reduxKeys.map((reduxKey) =>
+        fieldSelector(state, props, field, { fallback, reduxKey, tag }),
       );
 
       if (typeof aggregate === 'function') {
-        return aggregate(values, ids);
+        return aggregate(values, reduxKeys as unknown as string[]);
       }
 
       if (aggregate === 'object') {
-        return Object.fromEntries(ids.map((id, index) => [id, values[index]]));
+        return Object.fromEntries(reduxKeys.map((key, index) => [key, values[index]]));
       }
 
       return values;
@@ -373,7 +347,7 @@ export function useReduxCheckbox(
   props,
   field: FieldInfo,
   fallback = false,
-  opts: { id?: OlxKey; tag?: string } = {}
+  opts: { reduxKey?: ReduxStateKey; tag?: string } = {}
 ) {
   assertValidField(field);
   const [checked, setChecked] = useFieldState(props, field, fallback, opts);
@@ -525,7 +499,7 @@ export function valueSelector(
   }
 
   // Fall back to direct field access using the common 'value' field
-  return { value: fieldSelector(state, props, commonFields.value, { id: reduxKey, fallback }), ...blockData('ready') };
+  return { value: fieldSelector(state, props, commonFields.value, { reduxKey, fallback }), ...blockData('ready') };
 }
 
 /**

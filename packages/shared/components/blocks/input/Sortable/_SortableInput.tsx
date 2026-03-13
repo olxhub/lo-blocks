@@ -1,5 +1,6 @@
 // src/components/blocks/Sortable/_SortableInput.jsx
 'use client';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useRef } from 'react';
 import { useFieldState } from '@/lib/state';
@@ -9,6 +10,7 @@ import { isInputReadOnly, useGraderAnswer, refToOlxKey } from '@/lib/blocks';
 import { extendIdPrefix } from '@/lib/blocks/idResolver';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
 import { buildArrangementWithPositions } from '@/lib/util/shuffle';
+import { isKidArray } from '@/lib/util/kids';
 
 // Component to render a single sortable item's content
 function SortableItemContent({ props, kid, itemIdPrefix }) {
@@ -24,11 +26,11 @@ function SortableItemContent({ props, kid, itemIdPrefix }) {
   return <>{kids}</>;
 }
 
-export default function _SortableInput(props) {
-  const { kids = [], dragMode = 'whole', fields = {}, shuffle = true } = props;
+export default function _SortableInput(props: RuntimeProps) {
+  const { kids = [], dragMode = 'whole', fields, shuffle = true } = props;
 
   // Validation
-  if (!Array.isArray(kids) || kids.length === 0) {
+  if (!isKidArray(kids) || kids.length === 0) {
     return (
       <DisplayError
         props={props}
@@ -39,7 +41,9 @@ export default function _SortableInput(props) {
   }
 
   // Fetch block definitions to get attributes
-  const kidIds = kids.filter((k) => k?.id).map((k) => k.id);
+  type BlockKid = Extract<import('@/lib/types').BlueprintKidEntry, { type: 'block' }>;
+  const blockKids = kids.filter((k): k is BlockKid => k.type === 'block');
+  const kidIds = blockKids.map((k) => k.id);
   const { olxJsons: kidBlocks } = useOlxJsonMultiple(props, kidIds);
   const kidBlockMap = Object.fromEntries(kidIds.map((id, i) => [id, kidBlocks[i]]));
 
@@ -52,12 +56,12 @@ export default function _SortableInput(props) {
 
   // Initialize arrangement if empty
   let currentArrangement = arrangement;
-  if (arrangement.length === 0 && kids.length > 0) {
-    const blockDefinitions = kids.map((kid) => kidBlockMap[kid.id]).filter((block) => block);
+  if (arrangement.length === 0 && blockKids.length > 0) {
+    const blockDefinitions = blockKids.map((kid) => kidBlockMap[kid.id]);
 
     const result = buildArrangementWithPositions(blockDefinitions, {
       idSelector: (block) => block.id,
-      positionSelector: (block) => block.attributes?.initialPosition,
+      positionSelector: (block) => block.attributes?.initialPosition as number | undefined,
       shouldShuffleUnpositioned: shuffle,
     });
 
@@ -66,7 +70,7 @@ export default function _SortableInput(props) {
     }
 
     // Convert arranged blocks back to indices based on original kids array
-    const kidIdToIndex = new Map(kids.map((kid, i) => [kid.id, i]));
+    const kidIdToIndex = new Map(blockKids.map((kid, i) => [kid.id, i]));
     const indicesArrangement = result.arrangement.map(
       (block) => kidIdToIndex.get(block.id)
     );
