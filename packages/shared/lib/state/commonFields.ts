@@ -12,8 +12,24 @@
 //   import { fields } from './MyBlock';
 //   fields.myCustomField  // Preferred over fieldByName('myCustomField')
 //
-import { FieldInfo } from '../types';
+// NOTE: These are plain (identity-read) fields. If a block needs a different
+// storage type for the same field name (e.g., TextArea stores 'value' as an
+// RgaDoc), it should use a field type constructor like docField('value')
+// instead of commonFields.value.
+//
+import { FieldInfo, FieldName, FieldEvent } from '../types';
 import { scopes } from './scopes';
+
+/** Helper to construct a common field with both `events` and deprecated `event`. */
+function common(name: string, event: string): FieldInfo {
+  return {
+    type: 'field',
+    name: name as FieldName,
+    events: [event as FieldEvent],
+    event,
+    scope: scopes.component,
+  };
+}
 
 /**
  * Common field definitions used across multiple block types.
@@ -21,44 +37,19 @@ import { scopes } from './scopes';
  */
 export const commonFields = {
   /** Standard value field - used by most input components */
-  value: {
-    type: 'field',
-    name: 'value',
-    event: 'UPDATE_VALUE',
-    scope: scopes.component
-  } as FieldInfo,
+  value: common('value', 'UPDATE_VALUE'),
 
   /** Correctness field - used by graders, checked by orchestrators like MasteryBank */
-  correct: {
-    type: 'field',
-    name: 'correct',
-    event: 'UPDATE_CORRECT',
-    scope: scopes.component
-  } as FieldInfo,
+  correct: common('correct', 'UPDATE_CORRECT'),
 
   /** Feedback message field - used by graders */
-  message: {
-    type: 'field',
-    name: 'message',
-    event: 'UPDATE_MESSAGE',
-    scope: scopes.component
-  } as FieldInfo,
+  message: common('message', 'UPDATE_MESSAGE'),
 
   /** Submit count field - tracks number of submissions */
-  submitCount: {
-    type: 'field',
-    name: 'submitCount',
-    event: 'UPDATE_SUBMIT_COUNT',
-    scope: scopes.component
-  } as FieldInfo,
+  submitCount: common('submitCount', 'UPDATE_SUBMIT_COUNT'),
 
   /** Show answer toggle - controls answer display */
-  showAnswer: {
-    type: 'field',
-    name: 'showAnswer',
-    event: 'UPDATE_SHOW_ANSWER',
-    scope: scopes.component
-  } as FieldInfo,
+  showAnswer: common('showAnswer', 'UPDATE_SHOW_ANSWER'),
 } as const;
 
 // Named exports for convenient destructuring

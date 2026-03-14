@@ -3,7 +3,7 @@
 import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
-import { useReduxInput, useFieldSelector } from '@/lib/state';
+import { useDocField, useFieldSelector } from '@/lib/state';
 import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 
 // OLX attributes → React DOM props (rename where conventions differ)
@@ -16,7 +16,7 @@ function _TextArea( props: RuntimeProps ) {
   // If children text is provided, use it as the initial value
   const initialValue = (typeof kids === 'string' && kids.trim()) ? kids.trim() : '';
 
-  const [value, inputProps] = useReduxInput(
+  const [value, inputProps] = useDocField(
     props, fields.value, initialValue,
     { updateValidator }
   );

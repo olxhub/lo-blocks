@@ -42,6 +42,7 @@ import {
   OLXJSON_ERROR,
   CLEAR_OLXJSON,
 } from './olxjson';
+import { rgaCreate, rgaInsert, rgaSplice, rgaCompact, rgaVersionVector } from '../crdt/rga';
 
 // Chat event types
 export const CHAT_ADD_MESSAGE = 'CHAT_ADD_MESSAGE';
@@ -49,6 +50,9 @@ export const CHAT_ADD_MESSAGES = 'CHAT_ADD_MESSAGES';
 export const CHAT_CLEAR = 'CHAT_CLEAR';
 export const CHAT_SET_STATUS = 'CHAT_SET_STATUS';
 const CHAT_EVENT_TYPES = [CHAT_ADD_MESSAGE, CHAT_ADD_MESSAGES, CHAT_CLEAR, CHAT_SET_STATUS];
+
+// CRDT event types
+export const SPLICE_INPUT = 'SPLICE_INPUT';
 
 // Event server URL for capturing events.
 // In dev (localhost/127.0.0.1), point to the local event-server on port 8888.
@@ -138,6 +142,37 @@ export const updateResponseReducer = (state = initialState, action) => {
     }
   }
 
+  // Handle CRDT splice events — apply rgaSplice to the stored RgaDoc
+  if (eventType === SPLICE_INPUT) {
+    const { id, field: fieldName = 'value', index, deleteCount, inserted,
+            selectionStart, selectionEnd, initText, actor } = action;
+    const componentState = state.component?.[id] ?? {};
+    let doc = componentState[fieldName];
+
+    // Auto-init on first splice: create RgaDoc from existing value or initText
+    if (!doc || typeof doc !== 'object' || !doc.ops) {
+      const text = typeof doc === 'string' ? doc : (initText ?? '');
+      doc = rgaCreate(actor ?? 'default');
+      if (text) doc = rgaInsert(doc, 0, text);
+    }
+
+    doc = rgaSplice(doc, index, deleteCount, inserted);
+    doc = rgaCompact(doc, rgaVersionVector(doc));  // Single-user: all ops are seen
+
+    return {
+      ...state,
+      component: {
+        ...state.component,
+        [id]: {
+          ...componentState,
+          [fieldName]: doc,
+          [`${fieldName}.selectionStart`]: selectionStart,
+          [`${fieldName}.selectionEnd`]: selectionEnd,
+        }
+      }
+    };
+  }
+
   // Destructure out metadata fields that shouldn't go into state:
   // - context: event hierarchy for filtering (e.g., 'preview.quiz.input')
   // - event: the event type (already extracted above as eventType)
@@ -200,16 +235,17 @@ function collectEventTypes(extraFields: ExtraFieldsParam = []) {
       entry.fields
         ? Object.values(entry.fields)
             .filter((v): v is FieldInfo => v && typeof v === 'object' && v.type === 'field')
-            .map(info => info.event)
+            .flatMap(info => info.events ?? (info.event ? [info.event] : []))
         : []
     );
   const commonEventTypes = [
     'LOAD_DATA_EVENT', 'LOAD_STATE', 'NAVIGATE', 'SHOW_SECTION',
     'STEPTHROUGH_NEXT', 'STEPTHROUGH_PREV', 'STORE_SETTING',
-    'STORE_VARIABLE', 'UPDATE_INPUT', 'UPDATE_LLM_RESPONSE', 'VIDEO_TIME_EVENT'
+    'STORE_VARIABLE', 'UPDATE_INPUT', 'UPDATE_LLM_RESPONSE', 'VIDEO_TIME_EVENT',
+    SPLICE_INPUT
   ];
-  const extraEventTypes = fieldList.map(f =>
-    typeof f === 'string' ? f : f.event
+  const extraEventTypes = fieldList.flatMap(f =>
+    typeof f === 'string' ? [f] : (f.events ?? (f.event ? [f.event] : []))
   );
   return Array.from(new Set([
     ...commonEventTypes,

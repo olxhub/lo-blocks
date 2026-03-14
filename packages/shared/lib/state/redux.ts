@@ -58,6 +58,11 @@ import { getReduxStoreInstance } from './store';
 
 const UPDATE_INPUT = 'UPDATE_INPUT'; // TODO: Import
 const INVALIDATED_INPUT = 'INVALIDATED_INPUT'; // informational
+const SPLICE_INPUT = 'SPLICE_INPUT';
+
+import { rgaCreate, rgaInsert, rgaText, type RgaDoc } from '../crdt/rga';
+import { computeSplice } from '../crdt/computeSplice';
+import { getActorId } from '../crdt/actorId';
 
 
 // Options for fieldSelector and friends.
@@ -140,16 +145,37 @@ export const getReduxState = (
   return fieldSelector(state, props, field, { fallback, reduxKey, tag });
 };
 
-/** React hook wrapper around fieldSelector with automatic re-rendering. */
+/**
+ * Apply field.read to a raw value. No-op if the field has no read transform.
+ * Use this for non-hook callers that need materialized values from fieldSelector.
+ */
+export function readField(field: FieldInfo, raw: any): any {
+  return field.read ? field.read(raw) : raw;
+}
+
+/**
+ * React hook wrapper around fieldSelector with automatic re-rendering.
+ *
+ * When `field.read` is set and no custom `selector` is provided, the raw value
+ * is selected inside useSelector (equality check on raw), then materialized
+ * via field.read AFTER the equality check. This prevents unnecessary re-renders:
+ * read() may produce new objects each call, but the raw value is reference-stable.
+ */
 export const useFieldSelector = <T>(
   props: any,               // TODO: narrow when convenient
   field: FieldInfo,
   options: SelectorOptions<T> = {}
 ): T => {
-  return useSelector(
+  const raw = useSelector(
     (state) => fieldSelector(state, props, field, options),
-    options.equalityFn
+    field.equality ?? options.equalityFn
   );
+  // Apply field.read only when using the default selector (reading the field's own value).
+  // Custom selectors (e.g., reading selection sibling fields) handle their own transformation.
+  if (!options.selector && field.read) {
+    return field.read(raw) as T;
+  }
+  return raw;
 };
 
 
@@ -340,6 +366,113 @@ export function useReduxInput(
       ref
     }
   ];
+}
+
+
+/**
+ * CRDT-backed text field hook. Same interface as useReduxInput but dispatches
+ * small splice deltas (SPLICE_INPUT) instead of full text (UPDATE_INPUT).
+ * Stores an RgaDoc in Redux; materializes text via rgaText() for rendering.
+ */
+export function useDocField(
+  props: RuntimeProps,
+  field: FieldInfo,
+  fallback = '',
+  options: ReduxInputOptions = {}
+) {
+  const scope = field.scope ?? scopes.component;
+  const fieldName = field.name;
+  const { updateValidator } = options;
+
+  const id = idResolver.refToReduxKey(props);
+  const logEvent = props.runtime.logEvent;
+
+  // Read the raw value from Redux. If it's an RgaDoc, materialize text.
+  const value = useSelector(
+    (state: any) => {
+      const doc = state?.application_state?.[scope]?.[id]?.[fieldName];
+      if (!doc) return fallback;
+      if (typeof doc === 'string') return doc;
+      if (doc.ops) return rgaText(doc);
+      return fallback;
+    }
+  );
+
+  // Selection state (same pattern as useReduxInput)
+  const selection = useSelector(
+    (state: any) => {
+      const s = state?.application_state?.[scope]?.[id];
+      return {
+        selectionStart: s?.[`${fieldName}.selectionStart`] ?? 0,
+        selectionEnd: s?.[`${fieldName}.selectionEnd`] ?? 0,
+      };
+    },
+    shallowEqual
+  );
+
+  const onChange = useCallback((event: any) => {
+    const newValue = event.target.value;
+    const selStart = event.target.selectionStart;
+    const selEnd = event.target.selectionEnd;
+
+    if (updateValidator && !updateValidator(newValue)) {
+      logEvent(INVALIDATED_INPUT, {
+        scope, id,
+        [fieldName]: newValue,
+        [`${fieldName}.selectionStart`]: selStart,
+        [`${fieldName}.selectionEnd`]: selEnd,
+      });
+      return;
+    }
+
+    // Read current doc from store to compute splice
+    const store = getReduxStoreInstance();
+    const raw = store.getState()?.application_state?.[scope]?.[id]?.[fieldName];
+    const oldText = (raw && typeof raw === 'object' && raw.ops) ? rgaText(raw) : (raw ?? fallback);
+    if (newValue === oldText) return;
+
+    const splice = computeSplice(oldText, newValue);
+    if (splice.deleteCount === 0 && splice.inserted.length === 0) return;
+
+    // On first edit (no RgaDoc yet), include initText + actor for auto-init in reducer
+    const needsInit = !raw || typeof raw !== 'object' || !raw.ops;
+    logEvent(SPLICE_INPUT, {
+      scope, id,
+      field: fieldName,
+      index: splice.index,
+      deleteCount: splice.deleteCount,
+      inserted: splice.inserted,
+      selectionStart: selStart,
+      selectionEnd: selEnd,
+      ...(needsInit ? { initText: oldText, actor: getActorId() } : {}),
+    });
+  }, [id, fieldName, updateValidator, scope, logEvent, fallback]);
+
+  // Restore cursor position after re-render
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const input = ref.current;
+    if (
+      input &&
+      document.activeElement === input &&
+      selection.selectionStart != null &&
+      selection.selectionEnd != null
+    ) {
+      try {
+        input.setSelectionRange(selection.selectionStart, selection.selectionEnd);
+      } catch (e) { /* ignore */ }
+    }
+  }, [value, selection.selectionStart, selection.selectionEnd]);
+
+  return [
+    value,
+    {
+      name: fieldName,
+      value,
+      onChange,
+      ref,
+    }
+  ] as const;
 }
 
 

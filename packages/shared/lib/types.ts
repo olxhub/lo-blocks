@@ -288,14 +288,84 @@ export type FileSystemPath = string & { __brand: 'FileSystemPath', __safe: true 
 
 
 
+// =============================================================================
 // Fields API
+// =============================================================================
+//
+// A FieldInfo is the complete behavioral specification for a piece of block state.
+// It declares how the value is stored (events, scope), validated (schema),
+// materialized (read), compared (equality), and — eventually — how it's
+// reduced and merged across peers.
+//
+// Fields belong to blocks, not to a global registry. Two blocks can have a
+// "value" field with different storage types (plain string vs RgaDoc).
+//
+// Design direction: each field type (plain, doc, set, counter, ...) will
+// carry its own reducer and merge function, enabling:
+//   - Offline editing with automatic reconciliation (CRDT merge)
+//   - Collaborative editing across peers
+//   - Server-side reducers that replay events to reconstruct state
+//   - Field-level conflict resolution (last-writer-wins, CRDT, etc.)
+//
+// See fieldTypes.ts for constructors: plainField(), docField(), etc.
+// =============================================================================
+
+/** Branded type for field names within a block's state. */
+export type FieldName = string & { __brand: 'FieldName' };
+
+/** Branded type for event type strings dispatched via logEvent. */
+export type FieldEvent = string & { __brand: 'FieldEvent' };
+
 export interface FieldInfo {
   type: 'field';
-  name: string;
-  event: string;
+  name: FieldName;
+
+  /** Event types this field dispatches. A plain field has one (e.g. UPDATE_VALUE).
+   *  A CRDT field may have several (e.g. SPLICE_INPUT for insert/delete). Future
+   *  field types may add more (SET_ADD, SET_REMOVE, COUNTER_INCREMENT, etc.). */
+  events: FieldEvent[];
+
   scope: import('./state/scopes').Scope;
-  /** Optional zod schema for value validation/coercion. Fields without schemas accept any value. */
+
+  /** Zod schema for value validation/coercion. Fields without schemas accept any value. */
   schema?: z.ZodType;
+
+  /** Materialize raw Redux value → consumer-facing value. Default: identity.
+   *  Examples: RgaDoc → string, SetDoc → Set, CounterDoc → number.
+   *  Must be a pure function. Called AFTER useSelector equality check, never inside it. */
+  read?: (raw: any) => any;
+
+  /** Equality check for useSelector on the RAW (pre-read) value.
+   *  Default: Object.is (referential equality).
+   *  CRDTs use referential equality since each mutation produces a new object. */
+  equality?: (a: any, b: any) => boolean;
+
+  // ---------------------------------------------------------------------------
+  // Future: write, reduce, merge
+  // ---------------------------------------------------------------------------
+  // write?: (oldRaw: any, newConsumerValue: any, ctx: WriteContext) => EventPayload | EventPayload[];
+  //   Transform a consumer-facing write into event payload(s).
+  //   Plain field: (_, val) => { value: val }
+  //   Doc field: (doc, text) => computeSplice(rgaText(doc), text) → SPLICE_INPUT payload
+  //   Set field: depends on operation (add/remove), so write may not be a single fn.
+  //
+  // reduce?: (state: any, action: any) => any;
+  //   Field-level reducer. Replaces the current pattern of special-casing event types
+  //   (SPLICE_INPUT, SET_ADD, etc.) in updateResponseReducer. The main reducer routes
+  //   to field.reduce based on the event type.
+  //
+  // merge?: (local: any, remote: any) => any;
+  //   CRDT merge function for reconciling divergent state.
+  //   Used when: syncing offline edits, collaborative editing, server-side replay.
+  //   Plain (LWW): (local, remote) => remote.ts > local.ts ? remote : local
+  //   Doc (RGA): (local, remote) => rgaMerge(local, remote)
+  //   Set (OR-Set): (local, remote) => orSetMerge(local, remote)
+  //   Counter (G-Counter): (local, remote) => gCounterMerge(local, remote)
+  // ---------------------------------------------------------------------------
+
+  /** @deprecated Use `events[0]` for single-event fields. Kept for backward compatibility
+   *  during migration — will be removed once all callers use `events`. */
+  event?: string;
 }
 
 export interface FieldInfoByEvent { [event: string]: FieldInfo; }
@@ -326,9 +396,12 @@ export type LocalsAPI = Record<JavaScriptId, any>;
 const ReduxFieldInfo = z.object({
   type: z.literal('field'),
   name: z.string(),
-  event: z.string(),
+  events: z.array(z.string()),
+  event: z.string().optional(),  // deprecated compat
   scope: z.enum(scopeNames),
   schema: z.custom<z.ZodType>().optional(),
+  read: z.function().optional(),
+  equality: z.function().optional(),
 });
 
 // Fields schema: { fieldName: FieldInfo, ..., extend?: fn }
