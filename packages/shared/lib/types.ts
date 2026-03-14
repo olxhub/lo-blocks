@@ -316,6 +316,12 @@ export type FieldName = string & { __brand: 'FieldName' };
 /** Branded type for event type strings dispatched via logEvent. */
 export type FieldEvent = string & { __brand: 'FieldEvent' };
 
+/** Result of a field.write() call — event type + payload to dispatch. */
+export interface WriteResult {
+  event: FieldEvent;
+  payload: Record<string, any>;
+}
+
 export interface FieldInfo {
   type: 'field';
   name: FieldName;
@@ -340,19 +346,50 @@ export interface FieldInfo {
    *  CRDTs use referential equality since each mutation produces a new object. */
   equality?: (a: any, b: any) => boolean;
 
+  /** Transform a consumer-facing value into event payload(s) for this field's storage type.
+   *  Called by updateField to dispatch the right events.
+   *
+   *  Examples:
+   *  - Plain field: (_, val) => [{ event: 'UPDATE_VALUE', payload: { value: val } }]
+   *  - Doc field: (doc, text) => [{ event: 'SPLICE_INPUT', payload: { index, deleteCount, inserted } }]
+   *  - Set field: not a single write fn — needs add/remove/clear operations
+   *    (will be exposed through useField API, not write)
+   *
+   *  Returns an array of WriteResult — usually one event, but some operations
+   *  may produce multiple (e.g., clear + insert). Empty array = no-op. */
+  write?: (oldRaw: any, newValue: any) => WriteResult[];
+
   // ---------------------------------------------------------------------------
-  // Future: write, reduce, merge
+  // Future: display, reduce, merge, batching
   // ---------------------------------------------------------------------------
-  // write?: (oldRaw: any, newConsumerValue: any, ctx: WriteContext) => EventPayload | EventPayload[];
-  //   Transform a consumer-facing write into event payload(s).
-  //   Plain field: (_, val) => { value: val }
-  //   Doc field: (doc, text) => computeSplice(rgaText(doc), text) → SPLICE_INPUT payload
-  //   Set field: depends on operation (add/remove), so write may not be a single fn.
+  //
+  // display?: (raw: any) => string;
+  //   Human/LLM-readable string representation. Distinct from `read`:
+  //   - read: programmatic value (Set, number, structured object)
+  //   - display: always a string, for rendering in prompts, summaries, logs
+  //   Plain field: JSON.stringify or String(value)
+  //   Doc field: same as read (already a string)
+  //   Set field: "apple, banana, cherry"
+  //   Counter field: "42"
+  //   Complex objects: JSON.stringify(value, null, 2) or a custom format
   //
   // reduce?: (state: any, action: any) => any;
   //   Field-level reducer. Replaces the current pattern of special-casing event types
   //   (SPLICE_INPUT, SET_ADD, etc.) in updateResponseReducer. The main reducer routes
   //   to field.reduce based on the event type.
+  //
+  //   Client-side vs server-side reducers:
+  //   Both client and server run reducers, but they serve different purposes:
+  //   - Client reducer: local UX (e.g., gray checkbox on submit)
+  //   - Server reducer: social, aggregation, cross-student concerns
+  //     (e.g., blue checkbox once server confirms; class-wide analytics;
+  //     "3 of your peers also chose B"; teacher dashboards)
+  //   These aren't "optimistic vs authoritative" — they do fundamentally
+  //   different things. The field carries both:
+  //     reduce: (state, action) => any           // client-side (default)
+  //     serverReduce?: (state, action) => any    // server-side (defaults to reduce)
+  //   Server reducers enable: grade computation, social features, aggregation,
+  //   deadline enforcement, per-student overrides, anti-cheat validation.
   //
   // merge?: (local: any, remote: any) => any;
   //   CRDT merge function for reconciling divergent state.
@@ -361,6 +398,19 @@ export interface FieldInfo {
   //   Doc (RGA): (local, remote) => rgaMerge(local, remote)
   //   Set (OR-Set): (local, remote) => orSetMerge(local, remote)
   //   Counter (G-Counter): (local, remote) => gCounterMerge(local, remote)
+  //
+  // batching?: { strategy: 'immediate' | 'debounce' | 'aggregate'; interval?: number };
+  //   Event batching strategy for analytics and network efficiency.
+  //   - 'immediate': each state change → one event (default, current behavior)
+  //   - 'debounce': wait `interval` ms of inactivity, then send latest value
+  //     Good for: text input where we want the final value, not every keystroke
+  //   - 'aggregate': collect events over `interval` ms, send as batch
+  //     Good for: mouse moves, video scrub, slider drag — need ms-latency UX
+  //     but don't want thousands of independent events on the wire.
+  //     Batch format: [(ts, data), (ts, data), ...] or [ts, latest_data]
+  //   Batching is an analytics/network concern, NOT a state concern — the local
+  //   reducer still runs on every event immediately. Batching only affects what
+  //   gets sent to lo_event loggers (websocket, server).
   // ---------------------------------------------------------------------------
 
   /** @deprecated Use `events[0]` for single-event fields. Kept for backward compatibility
@@ -401,6 +451,7 @@ const ReduxFieldInfo = z.object({
   scope: z.enum(scopeNames),
   schema: z.custom<z.ZodType>().optional(),
   read: z.function().optional(),
+  write: z.function().optional(),
   equality: z.function().optional(),
 });
 

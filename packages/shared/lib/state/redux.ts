@@ -189,14 +189,6 @@ export function updateField(
   { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
 ) {
   assertValidField(field);
-  // Validate/coerce value against field schema if defined.
-  // TODO: For authored content (SetFieldAction etc.), this throws a ZodError on invalid values
-  // (e.g. value="banana" for a boolean field). Fine for coding errors (fail fast), but for
-  // content authoring we should validate earlier with user-friendly errors rather than crashing
-  // action execution at runtime. Revisit when moving beyond pilot.
-  if (field.schema) {
-    newValue = field.schema.parse(newValue);
-  }
   const scope = field.scope;
   const fieldName = field.name;
   // Use explicit reduxKey (cross-component access) or resolve from props.
@@ -204,14 +196,31 @@ export function updateField(
     ? (reduxKey ?? idResolver.refToReduxKey(props as RuntimeProps))
     : undefined;
   const resolvedTag = tag ?? (props as RuntimeProps)?.loBlock?.name;
-
   const logEvent = props ? props.runtime.logEvent : lo_event.logEvent;
-  logEvent(field.event, {
+
+  // Infrastructure fields added to every event payload
+  const infra = {
     scope,
-    [fieldName]: newValue,
     ...(scope === scopes.component || scope === scopes.storage ? { id: resolvedKey } : {}),
-    ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {})
-  });
+    ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {}),
+  };
+
+  if (field.write) {
+    // Field knows how to produce its own events (e.g., docField computes splices)
+    const store = props?.runtime?.store ?? getReduxStoreInstance();
+    const oldRaw = fieldSelector(store.getState(), props, field, { reduxKey, tag });
+    const results = field.write(oldRaw, newValue);
+    for (const { event, payload } of results) {
+      logEvent(event, { ...infra, ...payload });
+    }
+  } else {
+    // Default: single event with { [fieldName]: newValue }
+    // Validate/coerce value against field schema if defined.
+    if (field.schema) {
+      newValue = field.schema.parse(newValue);
+    }
+    logEvent(field.event, { ...infra, [fieldName]: newValue });
+  }
 }
 
 

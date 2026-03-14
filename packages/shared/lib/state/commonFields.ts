@@ -20,8 +20,9 @@
 import { FieldInfo, FieldName, FieldEvent } from '../types';
 import { scopes } from './scopes';
 
-/** Helper to construct a common field with both `events` and deprecated `event`. */
-function common(name: string, event: string): FieldInfo {
+/** Helper to construct a common field. Event name derived from field name by convention. */
+function common(name: string): FieldInfo {
+  const event = ('UPDATE_' + name.replace(/([a-z\d])([A-Z])/g, '$1_$2').toUpperCase());
   return {
     type: 'field',
     name: name as FieldName,
@@ -37,19 +38,19 @@ function common(name: string, event: string): FieldInfo {
  */
 export const commonFields = {
   /** Standard value field - used by most input components */
-  value: common('value', 'UPDATE_VALUE'),
+  value: common('value'),
 
   /** Correctness field - used by graders, checked by orchestrators like MasteryBank */
-  correct: common('correct', 'UPDATE_CORRECT'),
+  correct: common('correct'),
 
   /** Feedback message field - used by graders */
-  message: common('message', 'UPDATE_MESSAGE'),
+  message: common('message'),
 
   /** Submit count field - tracks number of submissions */
-  submitCount: common('submitCount', 'UPDATE_SUBMIT_COUNT'),
+  submitCount: common('submitCount'),
 
   /** Show answer toggle - controls answer display */
-  showAnswer: common('showAnswer', 'UPDATE_SHOW_ANSWER'),
+  showAnswer: common('showAnswer'),
 } as const;
 
 // Named exports for convenient destructuring
