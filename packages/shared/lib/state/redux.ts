@@ -146,12 +146,28 @@ export const getReduxState = (
 };
 
 /**
- * Apply field.read to a raw value. No-op if the field has no read transform.
+ * Decode a raw Redux value into its consumer-facing form via field.read.
+ * No-op if the field has no read transform (stateFields store values bare).
+ *
+ * Example: docField stores an RgaDoc in Redux; decodeField produces a string.
+ *
  * Use this for non-hook callers that need materialized values from fieldSelector.
+ * Hook callers get decoding automatically via useFieldSelector.
+ *
+ * Naming: "decode" because it transforms raw storage → consumer value.
+ * The inverse (consumer → storage events) is field.write, conceptually "encode."
+ *
+ * // Future: branded types to prevent raw/decoded confusion at compile time
+ * // type RawFieldValue<T> = T & { readonly __raw: 'RawFieldValue' };
+ * // type DecodedFieldValue<T> = T & { readonly __decoded: 'DecodedFieldValue' };
+ * // fieldSelector would return RawFieldValue, decodeField would return DecodedFieldValue
  */
-export function readField(field: FieldInfo, raw: any): any {
+export function decodeField(field: FieldInfo, raw: any): any {
   return field.read ? field.read(raw) : raw;
 }
+
+/** @deprecated Use decodeField instead. */
+export const readField = decodeField;
 
 /**
  * Get a human/LLM-readable string from a raw field value.
@@ -159,7 +175,7 @@ export function readField(field: FieldInfo, raw: any): any {
  */
 export function displayField(field: FieldInfo, raw: any): string {
   if (field.display) return field.display(raw);
-  const value = readField(field, raw);
+  const value = decodeField(field, raw);
   if (value === undefined || value === null) return '';
   if (typeof value === 'string') return value;
   if (typeof value === 'object') return JSON.stringify(value);
@@ -169,10 +185,15 @@ export function displayField(field: FieldInfo, raw: any): string {
 /**
  * React hook wrapper around fieldSelector with automatic re-rendering.
  *
- * When `field.read` is set and no custom `selector` is provided, the raw value
- * is selected inside useSelector (equality check on raw), then materialized
- * via field.read AFTER the equality check. This prevents unnecessary re-renders:
- * read() may produce new objects each call, but the raw value is reference-stable.
+ * INVARIANT: field.read (decode) is applied AFTER the useSelector equality gate,
+ * never inside it. useSelector compares raw Redux values; materialization happens
+ * after. This prevents unnecessary re-renders: decode() may produce new objects
+ * each call (e.g., new Set from an OR-Set CRDT), but the raw value is
+ * reference-stable between dispatches.
+ *
+ * Currently works for docField (rgaText returns strings, which are referentially
+ * stable for equal content). Will be critical for future field types (sets,
+ * counters) that would produce new objects on every decode() call.
  */
 export const useFieldSelector = <T>(
   props: any,               // TODO: narrow when convenient

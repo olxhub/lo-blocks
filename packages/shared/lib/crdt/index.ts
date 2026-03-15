@@ -6,3 +6,4 @@ export {
 export type { RgaDoc, Op, DeleteOp, OpId, VersionVector, SpliceParams } from './rga';
 export { computeSplice } from './computeSplice';
 export { getActorId } from './actorId';
+export { lwwWrite, lwwReduce, defaultDisplay } from './lww';

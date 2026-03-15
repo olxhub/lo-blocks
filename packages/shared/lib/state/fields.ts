@@ -22,7 +22,7 @@
 import { Scope, scopes } from '../state/scopes';
 import { Fields, FieldInfoByEvent, FieldInfo, FieldName, FieldEvent } from '../types';
 import { commonFields } from './commonFields';
-import { plainField, fieldNameToDefaultEventName } from './fieldTypes';
+import { stateField, fieldNameToDefaultEventName } from './fieldTypes';
 
 const _fieldInfoByField: Record<string, FieldInfo> = {};
 const _fieldInfoByEvent: FieldInfoByEvent = {};
@@ -94,7 +94,7 @@ type FieldSpec = string | FieldInfo | { name: string; event?: string; events?: s
  *
  * @example
  * // Using field type constructors
- * import { docField } from '@/lib/state/fieldTypes';
+ * import { docField } from '@/lib/state/fieldTypes/docField';
  * export const fields = state.fields([docField('value')]);
  *
  * @example
@@ -112,10 +112,10 @@ export function fields(fieldList: FieldSpec[]): Fields {
       return item as FieldInfo;
     }
     if (typeof item === 'string') {
-      return plainField(item);
+      return stateField(item);
     }
-    // Object with name - build on top of plainField defaults
-    const base = plainField(item.name, {
+    // Object with name - build on top of stateField defaults
+    const base = stateField(item.name, {
       ...('events' in item && item.events ? { events: item.events as FieldEvent[] } : {}),
       ...('event' in item && item.event ? { events: [item.event as FieldEvent], event: item.event } : {}),
       ...('scope' in item && item.scope ? { scope: item.scope } : {}),

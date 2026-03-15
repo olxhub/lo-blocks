@@ -307,7 +307,9 @@ export type FileSystemPath = string & { __brand: 'FileSystemPath', __safe: true 
 //   - Server-side reducers that replay events to reconstruct state
 //   - Field-level conflict resolution (last-writer-wins, CRDT, etc.)
 //
-// See fieldTypes.ts for constructors: plainField(), docField(), etc.
+// See fieldTypes/ for constructors: stateField(), docField(), etc.
+// FieldInfo.read = decode: raw Redux → consumer value (see decodeField in redux.ts)
+// FieldInfo.write = encode: consumer value → event payload(s) (see updateField in redux.ts)
 // =============================================================================
 
 /** Branded type for field names within a block's state. */

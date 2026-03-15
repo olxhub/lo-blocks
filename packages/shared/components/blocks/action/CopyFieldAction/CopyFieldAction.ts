@@ -21,7 +21,7 @@ async function copyFieldAction({ targetInstance, props }) {
     reduxKey: target.ref,
     fallback: '',
   });
-  const value = state.readField(srcField, raw);
+  const value = state.decodeField(srcField, raw);
 
   // Write to each output — field.write handles storage-specific dispatch
   // (e.g., docField computes splice deltas, plain field sets value directly)

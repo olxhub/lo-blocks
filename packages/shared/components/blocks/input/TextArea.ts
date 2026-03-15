@@ -6,7 +6,7 @@ import { docField } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes, placeholder, z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import { selectBlock } from '@/lib/state/olxjson';
-import { readField } from '@/lib/state';
+import { decodeField } from '@/lib/state';
 import _TextArea from './_TextArea';
 import type { RuntimeProps, ReduxStateKey } from '@/lib/types';
 
@@ -28,7 +28,7 @@ const TextArea = core({
     const raw = state.fieldSelector(reduxState, props, fields.value, { fallback: undefined });
     if (raw !== undefined) {
       // field.read handles RgaDoc → string materialization
-      return readField(fields.value, raw);
+      return decodeField(fields.value, raw);
     }
 
     // No Redux state yet — fall back to parsed children text

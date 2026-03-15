@@ -16,7 +16,7 @@
 // type for the same field name (e.g., TextArea stores 'value' as an RgaDoc),
 // it should use a field type constructor like docField('value') instead.
 //
-import { plainField } from './fieldTypes';
+import { stateField } from './fieldTypes';
 
 /**
  * Common field definitions used across multiple block types.
@@ -26,19 +26,19 @@ import { plainField } from './fieldTypes';
  */
 export const commonFields = {
   /** Standard value field - used by most input components */
-  value: plainField('value'),
+  value: stateField('value'),
 
   /** Correctness field - used by graders, checked by orchestrators like MasteryBank */
-  correct: plainField('correct'),
+  correct: stateField('correct'),
 
   /** Feedback message field - used by graders */
-  message: plainField('message'),
+  message: stateField('message'),
 
   /** Submit count field - tracks number of submissions */
-  submitCount: plainField('submitCount'),
+  submitCount: stateField('submitCount'),
 
   /** Show answer toggle - controls answer display */
-  showAnswer: plainField('showAnswer'),
+  showAnswer: stateField('showAnswer'),
 } as const;
 
 // Named exports for convenient destructuring
