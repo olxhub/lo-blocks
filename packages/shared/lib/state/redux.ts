@@ -154,6 +154,19 @@ export function readField(field: FieldInfo, raw: any): any {
 }
 
 /**
+ * Get a human/LLM-readable string from a raw field value.
+ * Uses field.display if defined, otherwise falls back to stringifying the read value.
+ */
+export function displayField(field: FieldInfo, raw: any): string {
+  if (field.display) return field.display(raw);
+  const value = readField(field, raw);
+  if (value === undefined || value === null) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
+/**
  * React hook wrapper around fieldSelector with automatic re-rendering.
  *
  * When `field.read` is set and no custom `selector` is provided, the raw value

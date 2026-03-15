@@ -42,8 +42,6 @@ import {
   OLXJSON_ERROR,
   CLEAR_OLXJSON,
 } from './olxjson';
-import { rgaCreate, rgaInsert, rgaSplice, rgaCompact, rgaVersionVector } from '../crdt/rga';
-
 // Chat event types
 export const CHAT_ADD_MESSAGE = 'CHAT_ADD_MESSAGE';
 export const CHAT_ADD_MESSAGES = 'CHAT_ADD_MESSAGES';
@@ -51,8 +49,13 @@ export const CHAT_CLEAR = 'CHAT_CLEAR';
 export const CHAT_SET_STATUS = 'CHAT_SET_STATUS';
 const CHAT_EVENT_TYPES = [CHAT_ADD_MESSAGE, CHAT_ADD_MESSAGES, CHAT_CLEAR, CHAT_SET_STATUS];
 
-// CRDT event types
-export const SPLICE_INPUT = 'SPLICE_INPUT';
+// Field-level reducer registry — maps event type → { reduce, fieldName }.
+// Populated during configureStore from block registry fields.
+// When an event comes in, the main reducer checks this map before falling
+// through to the default spread behavior.
+type FieldReduceFn = (componentState: Record<string, any>, action: any, fieldName: string) => Record<string, any>;
+type FieldReducerEntry = { reduce: FieldReduceFn; fieldName: string };
+const _fieldReducers = new Map<string, FieldReducerEntry>();
 
 // Event server URL for capturing events.
 // In dev (localhost/127.0.0.1), point to the local event-server on port 8888.
@@ -142,33 +145,21 @@ export const updateResponseReducer = (state = initialState, action) => {
     }
   }
 
-  // Handle CRDT splice events — apply rgaSplice to the stored RgaDoc
-  if (eventType === SPLICE_INPUT) {
-    const { id, field: fieldName = 'value', index, deleteCount, inserted,
-            selectionStart, selectionEnd, initText, actor } = action;
+  // Field-level reducers — route events to field.reduce when registered.
+  // Fields register their reducers during configureStore (see collectEventTypes).
+  const fieldReducerEntry = _fieldReducers.get(eventType);
+  if (fieldReducerEntry) {
+    const { id } = action;
+    // Use action.field if present (new-style events), otherwise fall back
+    // to the registered field name (so UPDATE_CORRECT → 'correct', not 'value')
+    const fieldName = action.field ?? fieldReducerEntry.fieldName;
     const componentState = state.component?.[id] ?? {};
-    let doc = componentState[fieldName];
-
-    // Auto-init on first splice: create RgaDoc from existing value or initText
-    if (!doc || typeof doc !== 'object' || !doc.ops) {
-      const text = typeof doc === 'string' ? doc : (initText ?? '');
-      doc = rgaCreate(actor ?? 'default');
-      if (text) doc = rgaInsert(doc, 0, text);
-    }
-
-    doc = rgaSplice(doc, index, deleteCount, inserted);
-    doc = rgaCompact(doc, rgaVersionVector(doc));  // Single-user: all ops are seen
-
+    const patch = fieldReducerEntry.reduce(componentState, action, fieldName);
     return {
       ...state,
       component: {
         ...state.component,
-        [id]: {
-          ...componentState,
-          [fieldName]: doc,
-          [`${fieldName}.selectionStart`]: selectionStart,
-          [`${fieldName}.selectionEnd`]: selectionEnd,
-        }
+        [id]: { ...componentState, ...patch }
       }
     };
   }
@@ -229,20 +220,30 @@ function collectEventTypes(extraFields: ExtraFieldsParam = []) {
         v && typeof v === 'object' && v.type === 'field'
       );
 
-  // Fields are now directly { fieldName: FieldInfo } on both blueprints and registry
-  const componentEventTypes = Object.values(BLOCK_REGISTRY)
-    .flatMap(entry =>
-      entry.fields
-        ? Object.values(entry.fields)
-            .filter((v): v is FieldInfo => v && typeof v === 'object' && v.type === 'field')
-            .flatMap(info => info.events ?? (info.event ? [info.event] : []))
-        : []
-    );
+  // Fields are now directly { fieldName: FieldInfo } on both blueprints and registry.
+  // Also register field-level reducers for event routing.
+  const componentEventTypes: string[] = [];
+  for (const entry of Object.values(BLOCK_REGISTRY)) {
+    if (!entry.fields) continue;
+    for (const finfo of Object.values(entry.fields)) {
+      if (!finfo || typeof finfo !== 'object' || finfo.type !== 'field') continue;
+      const fi = finfo as FieldInfo;
+      const events = fi.events ?? (fi.event ? [fi.event] : []);
+      componentEventTypes.push(...events);
+      // Register field reducer for each event type
+      if (fi.reduce) {
+        for (const event of events) {
+          _fieldReducers.set(event, { reduce: fi.reduce, fieldName: fi.name });
+        }
+      }
+    }
+  }
+
   const commonEventTypes = [
     'LOAD_DATA_EVENT', 'LOAD_STATE', 'NAVIGATE', 'SHOW_SECTION',
     'STEPTHROUGH_NEXT', 'STEPTHROUGH_PREV', 'STORE_SETTING',
     'STORE_VARIABLE', 'UPDATE_INPUT', 'UPDATE_LLM_RESPONSE', 'VIDEO_TIME_EVENT',
-    SPLICE_INPUT
+    'SPLICE_INPUT',
   ];
   const extraEventTypes = fieldList.flatMap(f =>
     typeof f === 'string' ? [f] : (f.events ?? (f.event ? [f.event] : []))

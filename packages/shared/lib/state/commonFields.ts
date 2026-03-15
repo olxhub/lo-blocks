@@ -12,45 +12,33 @@
 //   import { fields } from './MyBlock';
 //   fields.myCustomField  // Preferred over fieldByName('myCustomField')
 //
-// NOTE: These are plain (identity-read) fields. If a block needs a different
-// storage type for the same field name (e.g., TextArea stores 'value' as an
-// RgaDoc), it should use a field type constructor like docField('value')
-// instead of commonFields.value.
+// NOTE: These are plain (LWW) fields. If a block needs a different storage
+// type for the same field name (e.g., TextArea stores 'value' as an RgaDoc),
+// it should use a field type constructor like docField('value') instead.
 //
-import { FieldInfo, FieldName, FieldEvent } from '../types';
-import { scopes } from './scopes';
-
-/** Helper to construct a common field. Event name derived from field name by convention. */
-function common(name: string): FieldInfo {
-  const event = ('UPDATE_' + name.replace(/([a-z\d])([A-Z])/g, '$1_$2').toUpperCase());
-  return {
-    type: 'field',
-    name: name as FieldName,
-    events: [event as FieldEvent],
-    event,
-    scope: scopes.component,
-  };
-}
+import { plainField } from './fieldTypes';
 
 /**
  * Common field definitions used across multiple block types.
  * Pre-registered at module load time for cross-component access.
+ *
+ * Each is a full LWW field with read, write, reduce, display.
  */
 export const commonFields = {
   /** Standard value field - used by most input components */
-  value: common('value'),
+  value: plainField('value'),
 
   /** Correctness field - used by graders, checked by orchestrators like MasteryBank */
-  correct: common('correct'),
+  correct: plainField('correct'),
 
   /** Feedback message field - used by graders */
-  message: common('message'),
+  message: plainField('message'),
 
   /** Submit count field - tracks number of submissions */
-  submitCount: common('submitCount'),
+  submitCount: plainField('submitCount'),
 
   /** Show answer toggle - controls answer display */
-  showAnswer: common('showAnswer'),
+  showAnswer: plainField('showAnswer'),
 } as const;
 
 // Named exports for convenient destructuring

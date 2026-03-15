@@ -359,35 +359,40 @@ export interface FieldInfo {
    *  may produce multiple (e.g., clear + insert). Empty array = no-op. */
   write?: (oldRaw: any, newValue: any) => WriteResult[];
 
+  /** Field-level reducer. Receives the component's state object and returns a
+   *  patch to merge back. The main reducer routes events to field.reduce based
+   *  on event type, handles scope/id routing, and merges the result.
+   *
+   *  Signature: (componentState, action, fieldName) => patch
+   *  - componentState: the current state for this component (e.g., state.component[id])
+   *  - action: the full event action
+   *  - fieldName: which field within the component state
+   *  - returns: object to spread into componentState (only changed keys)
+   *
+   *  Fields without reduce use the default behavior: spread action payload
+   *  directly into componentState (plain key-value merge). */
+  reduce?: (componentState: Record<string, any>, action: any, fieldName: string) => Record<string, any>;
+
+  /** Human/LLM-readable string representation. Distinct from `read`:
+   *  - read: programmatic value (Set, number, structured object)
+   *  - display: always a string, for rendering in prompts, summaries, logs
+   *
+   *  Default (no display fn): String(read(raw)) for primitives, JSON.stringify for objects.
+   *  Examples: Set → "apple, banana, cherry". Counter → "42". Doc → same as read. */
+  display?: (raw: any) => string;
+
   // ---------------------------------------------------------------------------
-  // Future: display, reduce, merge, batching
+  // Future: serverReduce, merge, batching
   // ---------------------------------------------------------------------------
   //
-  // display?: (raw: any) => string;
-  //   Human/LLM-readable string representation. Distinct from `read`:
-  //   - read: programmatic value (Set, number, structured object)
-  //   - display: always a string, for rendering in prompts, summaries, logs
-  //   Plain field: JSON.stringify or String(value)
-  //   Doc field: same as read (already a string)
-  //   Set field: "apple, banana, cherry"
-  //   Counter field: "42"
-  //   Complex objects: JSON.stringify(value, null, 2) or a custom format
-  //
-  // reduce?: (state: any, action: any) => any;
-  //   Field-level reducer. Replaces the current pattern of special-casing event types
-  //   (SPLICE_INPUT, SET_ADD, etc.) in updateResponseReducer. The main reducer routes
-  //   to field.reduce based on the event type.
-  //
-  //   Client-side vs server-side reducers:
-  //   Both client and server run reducers, but they serve different purposes:
-  //   - Client reducer: local UX (e.g., gray checkbox on submit)
-  //   - Server reducer: social, aggregation, cross-student concerns
+  // serverReduce?: (componentState, action, fieldName) => patch;
+  //   Server-side reducer. Same signature as reduce, but serves different purposes:
+  //   - Client reduce: local UX (e.g., gray checkbox on submit)
+  //   - Server reduce: social, aggregation, cross-student concerns
   //     (e.g., blue checkbox once server confirms; class-wide analytics;
   //     "3 of your peers also chose B"; teacher dashboards)
   //   These aren't "optimistic vs authoritative" — they do fundamentally
-  //   different things. The field carries both:
-  //     reduce: (state, action) => any           // client-side (default)
-  //     serverReduce?: (state, action) => any    // server-side (defaults to reduce)
+  //   different things. Defaults to reduce if not specified.
   //   Server reducers enable: grade computation, social features, aggregation,
   //   deadline enforcement, per-student overrides, anti-cheat validation.
   //
@@ -452,6 +457,8 @@ const ReduxFieldInfo = z.object({
   schema: z.custom<z.ZodType>().optional(),
   read: z.function().optional(),
   write: z.function().optional(),
+  reduce: z.function().optional(),
+  display: z.function().optional(),
   equality: z.function().optional(),
 });
 

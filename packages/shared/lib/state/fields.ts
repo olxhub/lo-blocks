@@ -22,6 +22,7 @@
 import { Scope, scopes } from '../state/scopes';
 import { Fields, FieldInfoByEvent, FieldInfo, FieldName, FieldEvent } from '../types';
 import { commonFields } from './commonFields';
+import { plainField, fieldNameToDefaultEventName } from './fieldTypes';
 
 const _fieldInfoByField: Record<string, FieldInfo> = {};
 const _fieldInfoByEvent: FieldInfoByEvent = {};
@@ -42,26 +43,6 @@ for (const field of Object.values(commonFields)) {
   for (const ev of field.events) {
     _fieldInfoByEvent[ev] = field;
   }
-}
-
-/**
- * Converts a camelCase or PascalCase field name into a default event name string.
- *
- * Note this is only a default. We may handle some things differently
- * (mostly in the case of complex, adjecent acronyms; if we e.g. had
- * JSONSQLXMLTransmogifier for whatever reason)
- *
- * Example:
- *   fieldNameToDefaultEventName('fieldName')      // returns 'UPDATE_FIELD_NAME'
- */
-export function fieldNameToDefaultEventName(name: string): FieldEvent {
-  return (
-    'UPDATE_' +
-    name
-      .replace(/([a-z\d])([A-Z])/g, '$1_$2')
-
-      .toUpperCase()
-  ) as FieldEvent;
 }
 
 /*
@@ -131,20 +112,18 @@ export function fields(fieldList: FieldSpec[]): Fields {
       return item as FieldInfo;
     }
     if (typeof item === 'string') {
-      const ev = fieldNameToDefaultEventName(item);
-      return { type: 'field', name: item as FieldName, events: [ev], event: ev as string, scope: scopes.component };
+      return plainField(item);
     }
-    // Object with name - fill in any missing defaults
-    const name = item.name as FieldName;
-    const evts: FieldEvent[] = 'events' in item && item.events
-      ? item.events as FieldEvent[]
-      : [('event' in item && item.event ? item.event : fieldNameToDefaultEventName(name as string)) as FieldEvent];
-    const scope = item.scope ?? scopes.component;
-    const info: FieldInfo = { type: 'field', name, events: evts, event: evts[0] as string, scope };
-    if ('schema' in item && item.schema) info.schema = item.schema;
-    if ('read' in item && item.read) info.read = item.read;
-    if ('equality' in item && item.equality) info.equality = item.equality;
-    return info;
+    // Object with name - build on top of plainField defaults
+    const base = plainField(item.name, {
+      ...('events' in item && item.events ? { events: item.events as FieldEvent[] } : {}),
+      ...('event' in item && item.event ? { events: [item.event as FieldEvent], event: item.event } : {}),
+      ...('scope' in item && item.scope ? { scope: item.scope } : {}),
+      ...('schema' in item && item.schema ? { schema: item.schema } : {}),
+      ...('read' in item && item.read ? { read: item.read } : {}),
+      ...('equality' in item && item.equality ? { equality: item.equality } : {}),
+    });
+    return base;
   });
 
   // Build the result object: { fieldName: FieldInfo, ... }
