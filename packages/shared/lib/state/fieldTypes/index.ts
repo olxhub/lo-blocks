@@ -18,6 +18,8 @@
 export { stateField, stateField as plainField } from './stateField';
 export { docField } from './docField';
 export { fieldNameToDefaultEventName } from './shared';
+export { immediate, debounce, throttle, aggregate, custom } from './batching';
+export type { BatchingStrategy } from './batching';
 
 // ---------------------------------------------------------------------------
 // Future field type constructors (breadcrumbs)

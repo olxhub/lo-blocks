@@ -383,8 +383,21 @@ export interface FieldInfo {
    *  Examples: Set → "apple, banana, cherry". Counter → "42". Doc → same as read. */
   display?: (raw: any) => string;
 
+  /** Event batching strategy for analytics and network efficiency.
+   *  Controls how loggers (websocket, server) buffer and flush events.
+   *
+   *  NOT a state concern — the client-side Redux reducer always runs
+   *  immediately on every event. Batching only affects what goes over the wire.
+   *
+   *  Built-in factories: immediate(), debounce(ms), throttle(ms), aggregate(ms).
+   *  Custom strategies via custom(asyncGeneratorFn).
+   *  Default (no batching specified): immediate — every event sent as-is.
+   *
+   *  See fieldTypes/batching.ts for strategy constructors and documentation. */
+  batching?: import('./state/fieldTypes/batching').BatchingStrategy;
+
   // ---------------------------------------------------------------------------
-  // Future: serverReduce, merge, batching
+  // Future: serverReduce, merge
   // ---------------------------------------------------------------------------
   //
   // serverReduce?: (componentState, action, fieldName) => patch;
@@ -405,19 +418,6 @@ export interface FieldInfo {
   //   Doc (RGA): (local, remote) => rgaMerge(local, remote)
   //   Set (OR-Set): (local, remote) => orSetMerge(local, remote)
   //   Counter (G-Counter): (local, remote) => gCounterMerge(local, remote)
-  //
-  // batching?: { strategy: 'immediate' | 'debounce' | 'aggregate'; interval?: number };
-  //   Event batching strategy for analytics and network efficiency.
-  //   - 'immediate': each state change → one event (default, current behavior)
-  //   - 'debounce': wait `interval` ms of inactivity, then send latest value
-  //     Good for: text input where we want the final value, not every keystroke
-  //   - 'aggregate': collect events over `interval` ms, send as batch
-  //     Good for: mouse moves, video scrub, slider drag — need ms-latency UX
-  //     but don't want thousands of independent events on the wire.
-  //     Batch format: [(ts, data), (ts, data), ...] or [ts, latest_data]
-  //   Batching is an analytics/network concern, NOT a state concern — the local
-  //   reducer still runs on every event immediately. Batching only affects what
-  //   gets sent to lo_event loggers (websocket, server).
   // ---------------------------------------------------------------------------
 
   /** @deprecated Use `events[0]` for single-event fields. Kept for backward compatibility

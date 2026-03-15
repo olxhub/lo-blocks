@@ -61,5 +61,6 @@ export function stateField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
     ...(opts?.schema ? { schema: opts.schema } : {}),
     ...(opts?.read ? { read: opts.read } : {}),
     ...(opts?.equality ? { equality: opts.equality } : {}),
+    ...(opts?.batching ? { batching: opts.batching } : {}),
   };
 }

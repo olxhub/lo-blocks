@@ -82,7 +82,7 @@ export function concatFields(...lists: Fields[]): Fields {
 
 /** What block authors write: a string, an object with optional defaults, or a fully-baked FieldInfo.
  *  The fields() function normalizes these into FieldInfo with all defaults filled in. */
-type FieldSpec = string | FieldInfo | { name: string; event?: string; events?: string[]; scope?: Scope; schema?: FieldInfo['schema']; read?: FieldInfo['read']; equality?: FieldInfo['equality'] };
+type FieldSpec = string | FieldInfo | { name: string; event?: string; events?: string[]; scope?: Scope; schema?: FieldInfo['schema']; read?: FieldInfo['read']; equality?: FieldInfo['equality']; batching?: FieldInfo['batching'] };
 
 /**
  * Declare fields for a block. Returns an object where field names map to FieldInfo.
@@ -122,6 +122,7 @@ export function fields(fieldList: FieldSpec[]): Fields {
       ...('schema' in item && item.schema ? { schema: item.schema } : {}),
       ...('read' in item && item.read ? { read: item.read } : {}),
       ...('equality' in item && item.equality ? { equality: item.equality } : {}),
+      ...('batching' in item && item.batching ? { batching: item.batching } : {}),
     });
     return base;
   });
