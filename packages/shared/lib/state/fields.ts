@@ -11,17 +11,18 @@
 // This same shape flows through the system:
 //   - Block definition: fields.value works
 //   - Component props: props.fields.value works
-//   - Both are FieldInfo objects with {name, event, scope}
+//   - Both are FieldInfo objects with {name, events, scope}
 //
-// Usage in components: `useReduxInput(props, props.fields.value, fallback)`
+// Usage in components: `useField(props, props.fields.value)`
 //
-// Internally, fields are also registered globally for:
-//   - `fieldByName()` lookups (for dynamic OLX references like target="foo.value")
-//   - Collision detection (same field name can't have different events)
+// Fields belong to blocks — two blocks can have a "value" field with different
+// storage types (plain string vs RgaDoc). The global registry is for convenience
+// lookups only (fieldByName), not for enforcement.
 //
 import { Scope, scopes } from '../state/scopes';
-import { Fields, FieldInfoByEvent, FieldInfo } from '../types';
+import { Fields, FieldInfoByEvent, FieldInfo, FieldName, FieldEvent } from '../types';
 import { commonFields } from './commonFields';
+import { stateField, fieldNameToDefaultEventName } from './fieldTypes';
 
 const _fieldInfoByField: Record<string, FieldInfo> = {};
 const _fieldInfoByEvent: FieldInfoByEvent = {};
@@ -39,27 +40,9 @@ const _fieldInfoByEvent: FieldInfoByEvent = {};
 // Register common fields immediately
 for (const field of Object.values(commonFields)) {
   _fieldInfoByField[field.name] = field;
-  _fieldInfoByEvent[field.event] = field;
-}
-
-/**
- * Converts a camelCase or PascalCase field name into a default event name string.
- *
- * Note this is only a default. We may handle some things differently
- * (mostly in the case of complex, adjecent acronyms; if we e.g. had
- * JSONSQLXMLTransmogifier for whatever reason)
- *
- * Example:
- *   fieldNameToDefaultEventName('fieldName')      // returns 'UPDATE_FIELD_NAME'
- */
-function fieldNameToDefaultEventName(name) {
-  return (
-    'UPDATE_' +
-    name
-      .replace(/([a-z\d])([A-Z])/g, '$1_$2')
-
-      .toUpperCase()
-  );
+  for (const ev of field.events) {
+    _fieldInfoByEvent[ev] = field;
+  }
 }
 
 /*
@@ -67,34 +50,13 @@ function fieldNameToDefaultEventName(name) {
  * something like:
  *    target="id.field"
  * And we would like to look up that field.
- */
-export function fieldByName(fieldname) {
-  return _fieldInfoByField[fieldname];
-}
-
-/**
- * Checks for conflicts between two field<->event mapping objects.
- * Throws if a key maps to a different value in each map.
  *
- * @param {Object} globalMap - The persistent global mapping.
- * @param {Object} newMap - The new mapping to check.
- * @param {string} type - A string label for error clarity ("field" or "event").
+ * TODO: Migrate to looking up the field from the block's registry entry
+ * instead of this global map. With block-scoped fields, the same field name
+ * can have different types across blocks.
  */
-function checkConflicts(globalMap: Record<string, FieldInfo>, newMap: Record<string, FieldInfo>, type = "field") {
-  for (const [key, value] of Object.entries(newMap)) {
-    if (globalMap.hasOwnProperty(key)) {
-      const existing = globalMap[key];
-      if (
-        existing.name !== value.name ||
-        existing.event !== value.event ||
-        existing.scope !== value.scope
-      ) {
-        throw new Error(
-          `[fields] Conflicting ${type} registration: "${key}" was previously mapped to "${JSON.stringify(existing)}", but attempted to map to "${JSON.stringify(value)}".`
-        );
-      }
-    }
-  }
+export function fieldByName(fieldname: string) {
+  return _fieldInfoByField[fieldname];
 }
 
 /**
@@ -120,7 +82,7 @@ export function concatFields(...lists: Fields[]): Fields {
 
 /** What block authors write: a string, an object with optional defaults, or a fully-baked FieldInfo.
  *  The fields() function normalizes these into FieldInfo with all defaults filled in. */
-type FieldSpec = string | FieldInfo | { name: string; event?: string; scope?: Scope; schema?: FieldInfo['schema'] };
+type FieldSpec = string | FieldInfo | { name: string; event?: string; events?: string[]; scope?: Scope; schema?: FieldInfo['schema']; read?: FieldInfo['read']; equality?: FieldInfo['equality']; batching?: FieldInfo['batching'] };
 
 /**
  * Declare fields for a block. Returns an object where field names map to FieldInfo.
@@ -128,12 +90,12 @@ type FieldSpec = string | FieldInfo | { name: string; event?: string; scope?: Sc
  * @example
  * // Simple field names (default event and scope)
  * export const fields = state.fields(['value', 'loading']);
- * // fields.value is FieldInfo { name: 'value', event: 'UPDATE_VALUE', scope: 'component' }
+ * // fields.value is FieldInfo { name: 'value', events: ['UPDATE_VALUE'], scope: 'component' }
  *
  * @example
- * // Using common fields (preferred for value, correct, etc.)
- * export const fields = state.fields([commonFields.value]);
- * // Reuses the pre-registered field definition
+ * // Using field type constructors
+ * import { docField } from '@/lib/state/fieldTypes/docField';
+ * export const fields = state.fields([docField('value')]);
  *
  * @example
  * // Custom event or scope
@@ -145,16 +107,24 @@ type FieldSpec = string | FieldInfo | { name: string; event?: string; scope?: Sc
  */
 export function fields(fieldList: FieldSpec[]): Fields {
   const infos: FieldInfo[] = fieldList.map(item => {
-    if (typeof item === 'string') {
-      return { type: 'field', name: item, event: fieldNameToDefaultEventName(item), scope: scopes.component };
+    // Already a fully-baked FieldInfo (e.g., from docField() or commonFields)
+    if (typeof item === 'object' && 'type' in item && item.type === 'field' && 'events' in item && item.events) {
+      return item as FieldInfo;
     }
-    // Object with name - fill in any missing defaults
-    const name = item.name;
-    const event = item.event ?? fieldNameToDefaultEventName(name);
-    const scope = item.scope ?? scopes.component;
-    const info: FieldInfo = { type: 'field', name, event, scope };
-    if ('schema' in item && item.schema) info.schema = item.schema;
-    return info;
+    if (typeof item === 'string') {
+      return stateField(item);
+    }
+    // Object with name - build on top of stateField defaults
+    const base = stateField(item.name, {
+      ...('events' in item && item.events ? { events: item.events as FieldEvent[] } : {}),
+      ...('event' in item && item.event ? { events: [item.event as FieldEvent], event: item.event } : {}),
+      ...('scope' in item && item.scope ? { scope: item.scope } : {}),
+      ...('schema' in item && item.schema ? { schema: item.schema } : {}),
+      ...('read' in item && item.read ? { read: item.read } : {}),
+      ...('equality' in item && item.equality ? { equality: item.equality } : {}),
+      ...('batching' in item && item.batching ? { batching: item.batching } : {}),
+    });
+    return base;
   });
 
   // Build the result object: { fieldName: FieldInfo, ... }
@@ -163,14 +133,13 @@ export function fields(fieldList: FieldSpec[]): Fields {
 
   for (const info of infos) {
     fieldsByName[info.name] = info;
-    fieldsByEvent[info.event] = info;
+    for (const ev of info.events) {
+      fieldsByEvent[ev] = info;
+    }
   }
 
-  // Check for conflicts with globally registered fields
-  checkConflicts(_fieldInfoByField, fieldsByName, "field");
-  checkConflicts(_fieldInfoByEvent, fieldsByEvent, "event");
-
-  // Register globally for fieldByName() and collision detection
+  // Register globally for fieldByName() lookups (last-writer-wins).
+  // No collision detection — fields belong to blocks, not to a global registry.
   Object.assign(_fieldInfoByField, fieldsByName);
   Object.assign(_fieldInfoByEvent, fieldsByEvent);
 

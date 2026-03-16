@@ -8,6 +8,8 @@
 import { useMemo } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import * as idResolver from '../blocks/idResolver';
+import { selectBlock } from '../state/olxjson';
+import type { FieldInfo } from '../types';
 import type { References } from './references';
 import { EMPTY_REFS } from './references';
 import { parse } from './parser';
@@ -29,14 +31,80 @@ const EMPTY_CONTEXT: ContextData = {
   globalVar: {}
 };
 
+// ---------------------------------------------------------------------------
+// Field materialization cache
+// ---------------------------------------------------------------------------
+// WeakMap keyed on raw Redux state objects. When a component's state object
+// has fields with `read` transforms (e.g., RgaDoc → string), we cache the
+// materialized version. Same raw input → same materialized output (referential
+// stability for useSelector equality checks). Entries are GC'd when the raw
+// state object is replaced (Redux immutability ensures old objects become
+// unreachable after state changes).
+// ---------------------------------------------------------------------------
+const _materializeCache = new WeakMap<object, object>();
+
+/**
+ * Materialize a component's raw Redux state using the block's field definitions.
+ * Returns the raw state unchanged if no fields have `read` transforms.
+ * Caches results for referential stability (same raw input → same output).
+ */
+function materializeComponentState(
+  rawState: any,
+  state: any,
+  props: any,
+  reduxKey: string
+): any {
+  if (!rawState || typeof rawState !== 'object') return rawState;
+
+  // Check cache first
+  const cached = _materializeCache.get(rawState);
+  if (cached) return cached;
+
+  // Look up block type → field definitions
+  const olxKey = idResolver.reduxKeyToOlxKey(reduxKey as any);
+  const sources = props.runtime?.olxJsonSources ?? ['content'];
+  const locale = props.runtime?.locale?.code;
+  const blockNode = selectBlock(state, sources, olxKey, locale);
+  // Use props.runtime.blockRegistry — no static import of BLOCK_REGISTRY to
+  // avoid circular dependency (hooks → blockRegistry → blocks → factory → state → hooks).
+  const registry = props.runtime?.blockRegistry;
+  if (!registry) return rawState;
+  const blockDef = blockNode ? registry[blockNode.tag] : null;
+
+  if (!blockDef?.fields) return rawState;
+
+  // Check if any field has a read transform
+  let hasReaders = false;
+  for (const [fname, finfo] of Object.entries(blockDef.fields)) {
+    const fi = finfo as FieldInfo;
+    if (fi.type === 'field' && fi.read && rawState[fname] !== undefined) {
+      hasReaders = true;
+      break;
+    }
+  }
+  if (!hasReaders) return rawState;
+
+  // Apply reads
+  const materialized = { ...rawState };
+  for (const [fname, finfo] of Object.entries(blockDef.fields)) {
+    const fi = finfo as FieldInfo;
+    if (fi.type === 'field' && fi.read && materialized[fname] !== undefined) {
+      materialized[fname] = fi.read(materialized[fname]);
+    }
+  }
+  _materializeCache.set(rawState, materialized);
+  return materialized;
+}
+
 /**
  * Hook that subscribes to all referenced values from Redux.
  *
  * Returns a ContextData object suitable for passing to evaluate().
+ * Field values are materialized via field.read (e.g., RgaDoc → string).
  *
  * @param props - Component props (needed for ID resolution)
  * @param refs - Structured references to subscribe to
- * @returns ContextData with resolved values
+ * @returns ContextData with resolved and materialized values
  */
 export function useReferences(props: any, refs: References): ContextData {
   // Build selector that fetches all referenced values
@@ -50,6 +118,10 @@ export function useReferences(props: any, refs: References): ContextData {
 /**
  * Pure selector that resolves references from Redux state.
  * Can be used outside of React hooks.
+ *
+ * Field values are materialized via field.read when the block's field definition
+ * has a read transform (e.g., docField stores RgaDoc, materializes to string).
+ * Materialization is cached per raw state object for referential stability.
  *
  * @param state - Redux state
  * @param props - Component props (needed for ID resolution)
@@ -78,8 +150,11 @@ export function selectReferences(
   for (const { key } of refs.componentState) {
     // Resolve the key to a Redux key (handles relative vs absolute paths)
     const reduxKey = resolveToReduxKey(props, key);
-    const value = state?.application_state?.component?.[reduxKey];
-    componentState[key] = value;
+    const rawState = state?.application_state?.component?.[reduxKey];
+    // Materialize field values (e.g., RgaDoc → string) using block's field definitions.
+    // Returns rawState unchanged if no fields have read transforms.
+    // Cached per raw state object for referential stability.
+    componentState[key] = materializeComponentState(rawState, state, props, reduxKey);
   }
 
   // Resolve OLX content references (#)

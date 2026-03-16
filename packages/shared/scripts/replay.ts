@@ -1,26 +1,40 @@
 #!/usr/bin/env npx tsx
 // src/scripts/replay.ts
 //
-// Replay event logs through Redux reducers.
+// Replay event logs through Redux reducers — pure, no side effects.
+//
+// Reads a JSON event log captured from the browser (via __events.download()),
+// replays it through updateResponseReducer, and outputs the resulting state.
+// Useful for debugging, analytics, and test case generation.
 //
 // Usage:
-//   npx tsx src/scripts/replay.ts src/scripts/fixtures/grading-session.json
-//   npx tsx src/scripts/replay.ts --verbose src/scripts/fixtures/grading-session.json
+//   npx tsx scripts/replay.ts events.json                 # Pretty-print final state
+//   npx tsx scripts/replay.ts events.json --json          # Raw JSON (pipe to jq)
+//   npx tsx scripts/replay.ts events.json --json | jq '.storage'
+//   npx tsx scripts/replay.ts events.json --step          # Show each event's effect
+//   npx tsx scripts/replay.ts events.json --query storage # Show one scope
+//   npx tsx scripts/replay.ts events.json --query 'component["id"].value'
+//   npx tsx scripts/replay.ts events.json -v              # Verbose event list
+//   cat events.json | npx tsx scripts/replay.ts --json    # Read from stdin
 //
-// This script:
-// 1. Loads an event log (JSON file with { events: [...] })
-// 2. Replays events through the Redux reducer (pure, no side effects)
-// 3. Outputs final state and can query specific values
-//
-// Uses the pure replay module from src/lib/replay.ts - no lo_event required.
+// Event log format: { "description": "...", "events": [ { "event": "...", ... }, ... ] }
+// Captured in browser: __events.download() or JSON.parse(JSON.stringify(__events.getEvents()))
 //
 
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Use the pure replay module - no side effects, no lo_event
-import { replayToEvent, replayWithSnapshots, AppState, LoggedEvent } from '../lib/replay';
-import { commonFields } from '../lib/state/commonFields';
+import {
+  replayToEvent,
+  replayWithSnapshots,
+  diffStates,
+  AppState,
+  LoggedEvent,
+} from '../lib/replay';
+
+// =============================================================================
+// Event log loading
+// =============================================================================
 
 interface EventLog {
   description?: string;
@@ -30,113 +44,276 @@ interface EventLog {
 function loadEventLog(filePath: string): EventLog {
   const absolutePath = path.resolve(filePath);
   const content = fs.readFileSync(absolutePath, 'utf-8');
-  return JSON.parse(content);
+  return parseEventLog(content);
 }
 
-let verbose = false;
+function loadFromStdin(): Promise<EventLog> {
+  return new Promise((resolve, reject) => {
+    let data = '';
+    process.stdin.setEncoding('utf-8');
+    process.stdin.on('data', chunk => { data += chunk; });
+    process.stdin.on('end', () => {
+      try { resolve(parseEventLog(data)); }
+      catch (e) { reject(e); }
+    });
+    process.stdin.on('error', reject);
+  });
+}
 
-function replayEvents(events: LoggedEvent[]): AppState {
-  console.log(`Replaying ${events.length} events...`);
+function parseEventLog(content: string): EventLog {
+  const parsed = JSON.parse(content);
+  // Accept both { events: [...] } and bare [...]
+  if (Array.isArray(parsed)) return { events: parsed };
+  if (parsed.events) return parsed;
+  throw new Error('Expected { events: [...] } or a bare event array');
+}
 
-  if (verbose) {
-    for (let i = 0; i < events.length; i++) {
-      const event = events[i];
-      console.log(`[${i + 1}/${events.length}] ${event.event}`,
-        event.id ? `id=${event.id}` : '',
-        event.source ? `source=${event.source}` : ''
-      );
+// =============================================================================
+// State display
+// =============================================================================
+
+/** Print a scope's contents. Skips empty scopes unless forced. */
+function printScope(label: string, data: Record<string, any>, indent = '  ') {
+  if (!data || Object.keys(data).length === 0) return;
+  console.log(`${label}:`);
+  for (const [key, value] of Object.entries(data)) {
+    const val = typeof value === 'object' ? JSON.stringify(value) : String(value);
+    // Truncate long values for readability
+    const display = val.length > 200 ? val.slice(0, 197) + '...' : val;
+    console.log(`${indent}${key}: ${display}`);
+  }
+  console.log();
+}
+
+function printOlxSummary(olxjson: Record<string, any>) {
+  if (!olxjson || Object.keys(olxjson).length === 0) return;
+  console.log('olxjson:');
+  for (const [source, blocks] of Object.entries(olxjson)) {
+    const blockIds = Object.keys(blocks as object);
+    console.log(`  ${source}: ${blockIds.length} blocks`);
+    for (const id of blockIds) {
+      const entry = (blocks as any)[id];
+      console.log(`    - ${id} (${entry.olxJson?.tag || entry.tag || '?'})`);
     }
   }
-
-  // Use pure replay - no side effects
-  return replayToEvent(events);
+  console.log();
 }
 
 function printState(state: AppState) {
   console.log('\n=== Final State ===\n');
+  printOlxSummary(state.olxjson);
+  printScope('component', state.component);
+  printScope('storage', state.storage);
+  printScope('componentSetting', state.componentSetting);
+  printScope('system', state.system);
+  printScope('chat', state.chat);
 
-  // Print olxjson content summary
-  if (state.olxjson && Object.keys(state.olxjson).length > 0) {
-    console.log('OLX Content:');
-    for (const [source, blocks] of Object.entries(state.olxjson)) {
-      const blockIds = Object.keys(blocks as object);
-      console.log(`  ${source}: ${blockIds.length} blocks`);
-      for (const id of blockIds) {
-        const entry = (blocks as any)[id];
-        console.log(`    - ${id} (${entry.olxJson?.tag || 'unknown'})`);
+  // Summary line
+  const counts = {
+    olxSources: Object.keys(state.olxjson ?? {}).length,
+    components: Object.keys(state.component ?? {}).length,
+    storage: Object.keys(state.storage ?? {}).length,
+    settings: Object.keys(state.componentSetting ?? {}).length,
+  };
+  const parts = Object.entries(counts).filter(([, n]) => n > 0).map(([k, n]) => `${n} ${k}`);
+  if (parts.length > 0) console.log(`Totals: ${parts.join(', ')}`);
+}
+
+/** Print event summary — count of each event type. */
+function printEventSummary(events: LoggedEvent[]) {
+  const counts: Record<string, number> = {};
+  for (const e of events) {
+    counts[e.event] = (counts[e.event] ?? 0) + 1;
+  }
+  console.log('Event types:');
+  for (const [type, count] of Object.entries(counts).sort((a, b) => b[1] - a[1])) {
+    console.log(`  ${type}: ${count}`);
+  }
+  console.log();
+}
+
+// =============================================================================
+// Step-by-step replay
+// =============================================================================
+
+function replayStep(events: LoggedEvent[]) {
+  const snapshots = replayWithSnapshots(events);
+
+  for (let i = 1; i < snapshots.length; i++) {
+    const { event, state } = snapshots[i];
+    const prev = snapshots[i - 1].state;
+    const diff = diffStates(prev, state);
+
+    const parts: string[] = [];
+    if (event!.id) parts.push(`id=${event!.id}`);
+    if (event!.scope && event!.scope !== 'component') parts.push(`scope=${event!.scope}`);
+    const extra = parts.length > 0 ? ` (${parts.join(', ')})` : '';
+
+    console.log(`[${i}/${events.length}] ${event!.event}${extra}`);
+
+    // Show what changed — diffStates covers all scopes
+    const changes: string[] = [];
+    for (const scope of ['component', 'storage', 'componentSetting'] as const) {
+      const scopeDiff = diff[scope];
+      const scopeState = state[scope] ?? {};
+      for (const id of scopeDiff.added) changes.push(`  + ${scope}.${id}: ${JSON.stringify(scopeState[id])}`);
+      for (const id of scopeDiff.changed) changes.push(`  ~ ${scope}.${id}: ${JSON.stringify(scopeState[id])}`);
+      for (const id of scopeDiff.removed) changes.push(`  - ${scope}.${id}`);
+    }
+    for (const key of diff.system.changed) changes.push(`  ~ system.${key}: ${JSON.stringify(state.system[key])}`);
+
+    if (changes.length > 0) {
+      for (const c of changes) console.log(c);
+    }
+  }
+}
+
+// =============================================================================
+// Query
+// =============================================================================
+
+/**
+ * Resolve a simple dot/bracket path against state.
+ * Supports: "storage", "component", "storage.foo", 'component["id.with.dots"].field'
+ */
+function resolvePath(state: any, query: string): any {
+  // Parse bracket and dot notation: component["foo.bar"].value → ['component', 'foo.bar', 'value']
+  const segments: string[] = [];
+  let i = 0;
+  while (i < query.length) {
+    if (query[i] === '[') {
+      // Bracket notation — find closing bracket
+      const quote = query[i + 1];
+      if (quote === '"' || quote === "'") {
+        const end = query.indexOf(quote + ']', i + 2);
+        if (end === -1) throw new Error(`Unclosed bracket at position ${i}`);
+        segments.push(query.slice(i + 2, end));
+        i = end + 2;
+      } else {
+        const end = query.indexOf(']', i + 1);
+        if (end === -1) throw new Error(`Unclosed bracket at position ${i}`);
+        segments.push(query.slice(i + 1, end));
+        i = end + 1;
       }
+      if (query[i] === '.') i++; // skip trailing dot
+    } else {
+      // Dot notation — read until next dot or bracket
+      const nextDot = query.indexOf('.', i);
+      const nextBracket = query.indexOf('[', i);
+      let end: number;
+      if (nextDot === -1 && nextBracket === -1) end = query.length;
+      else if (nextDot === -1) end = nextBracket;
+      else if (nextBracket === -1) end = nextDot;
+      else end = Math.min(nextDot, nextBracket);
+      segments.push(query.slice(i, end));
+      i = end;
+      if (query[i] === '.') i++;
     }
-    console.log();
   }
 
-  // Print component state
-  if (state.component && Object.keys(state.component).length > 0) {
-    console.log('Component State:');
-    for (const [id, fields] of Object.entries(state.component)) {
-      console.log(`  ${id}:`, JSON.stringify(fields));
-    }
-    console.log();
+  let result = state;
+  for (const seg of segments) {
+    if (result == null) return undefined;
+    result = result[seg];
   }
-
-  // Print system state
-  if (state.system && Object.keys(state.system).length > 0) {
-    console.log('System State:', JSON.stringify(state.system));
-    console.log();
-  }
+  return result;
 }
 
-function queryValues(state: AppState, queries: string[]) {
-  console.log('=== Queries ===\n');
-
-  for (const query of queries) {
-    // Simple query format: field:id (e.g., "value:input1" or "correct:grader1")
-    const [fieldName, id] = query.split(':');
-
-    const field = (commonFields as any)[fieldName];
-    if (!field) {
-      console.log(`  ${query}: unknown field "${fieldName}"`);
-      continue;
-    }
-
-    // Direct lookup in component state
-    const value = state.component[id]?.[fieldName];
-    console.log(`  ${query}: ${JSON.stringify(value)}`);
-  }
-}
-
+// =============================================================================
 // Main
-const args = process.argv.slice(2);
-verbose = args.includes('--verbose') || args.includes('-v');
-const fileArg = args.find(a => !a.startsWith('-'));
+// =============================================================================
 
-if (!fileArg) {
-  console.log('Usage: npx tsx src/scripts/replay.ts [--verbose] <event-log.json>');
-  console.log('\nExample:');
-  console.log('  npx tsx src/scripts/replay.ts src/scripts/fixtures/grading-session.json');
-  process.exit(1);
-}
+async function main() {
+  const args = process.argv.slice(2);
 
-try {
-  const eventLog = loadEventLog(fileArg);
+  const verbose = args.includes('--verbose') || args.includes('-v');
+  const json = args.includes('--json');
+  const step = args.includes('--step');
+  const queryIdx = args.indexOf('--query');
+  const queryArg = queryIdx !== -1 ? args[queryIdx + 1] : null;
+
+  // Non-flag args (skip the value after --query)
+  const positionalArgs = args.filter((a, i) =>
+    !a.startsWith('-') && (queryIdx === -1 || i !== queryIdx + 1)
+  );
+  const fileArg = positionalArgs[0];
+
+  // Load events
+  let eventLog: EventLog;
+  if (fileArg) {
+    eventLog = loadEventLog(fileArg);
+  } else if (!process.stdin.isTTY) {
+    eventLog = await loadFromStdin();
+  } else {
+    console.log(`Usage: npx tsx scripts/replay.ts [options] <event-log.json>
+
+Options:
+  --json       Output raw JSON state (pipe to jq for queries)
+  --step       Show each event and its state changes
+  --query PATH Show a specific path (e.g., "storage", 'component["id"]')
+  -v           List each event during replay
+
+Examples:
+  npx tsx scripts/replay.ts events.json
+  npx tsx scripts/replay.ts events.json --json | jq '.storage'
+  npx tsx scripts/replay.ts events.json --step
+  npx tsx scripts/replay.ts events.json --query storage
+  cat events.json | npx tsx scripts/replay.ts --json
+
+Capture events in browser:
+  __events.download()           // saves events.json
+  __events.json()               // copy from console
+`);
+    process.exit(1);
+  }
 
   if (eventLog.description) {
-    console.log(`\n${eventLog.description}\n`);
+    console.error(`${eventLog.description}`);
+  }
+  console.error(`Replaying ${eventLog.events.length} events...`);
+
+  // Step mode: show event-by-event changes
+  if (step) {
+    replayStep(eventLog.events);
+    return;
   }
 
-  // Pure replay - no side effects, no lo_event
-  const finalState = replayEvents(eventLog.events);
-  printState(finalState);
+  // Verbose: list events
+  if (verbose) {
+    for (let i = 0; i < eventLog.events.length; i++) {
+      const e = eventLog.events[i];
+      const parts = [e.id && `id=${e.id}`, e.scope && `scope=${e.scope}`].filter(Boolean).join(' ');
+      console.error(`  [${i + 1}] ${e.event} ${parts}`);
+    }
+  }
 
-  // Query common grading values
-  queryValues(finalState, [
-    'value:NumericalGraderBasic.input',
-    'correct:NumericalGraderBasic.grader',
-    'submitCount:NumericalGraderBasic.grader'
-  ]);
+  // Replay
+  const state = replayToEvent(eventLog.events);
 
-  // No explicit exit needed - pure replay has no async operations
+  // JSON mode
+  if (json) {
+    const output = queryArg ? resolvePath(state, queryArg) : state;
+    console.log(JSON.stringify(output, null, 2));
+    return;
+  }
 
-} catch (error) {
-  console.error('Error:', error);
-  process.exit(1);
+  // Query mode
+  if (queryArg) {
+    const result = resolvePath(state, queryArg);
+    if (result === undefined) {
+      console.log(`${queryArg}: undefined`);
+    } else {
+      console.log(JSON.stringify(result, null, 2));
+    }
+    return;
+  }
+
+  // Default: pretty print
+  printEventSummary(eventLog.events);
+  printState(state);
 }
+
+main().then(
+  () => process.exit(0),
+  err => { console.error('Error:', err.message ?? err); process.exit(1); },
+);

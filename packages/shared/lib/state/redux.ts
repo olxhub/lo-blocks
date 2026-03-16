@@ -60,6 +60,10 @@ const UPDATE_INPUT = 'UPDATE_INPUT'; // TODO: Import
 const INVALIDATED_INPUT = 'INVALIDATED_INPUT'; // informational
 
 
+// =============================================================================
+// Selectors
+// =============================================================================
+
 // Options for fieldSelector and friends.
 // reduxKey overrides which component's state to access (cross-component access).
 // If omitted, the component's own key is resolved from props.
@@ -140,18 +144,124 @@ export const getReduxState = (
   return fieldSelector(state, props, field, { fallback, reduxKey, tag });
 };
 
-/** React hook wrapper around fieldSelector with automatic re-rendering. */
+/**
+ * Synchronous getter for a decoded field value.
+ * Keeps field materialization in state layer for non-hook callers.
+ */
+export const getField = <T>(
+  props: any,
+  field: FieldInfo,
+  options: SelectorOptions<any> = {}
+): T => {
+  assertValidField(field);
+  const store = getReduxStoreInstance();
+  const state = store.getState();
+  const raw = fieldSelector(state, props, field, options);
+  return decodeField(field, raw);
+};
+
+/**
+ * Decode a raw Redux value into its consumer-facing form via field.read.
+ * No-op if the field has no read transform (stateFields store values bare).
+ *
+ * Example: docField stores an RgaDoc in Redux; decodeField produces a string.
+ *
+ * Use this for non-hook callers that need materialized values from fieldSelector.
+ * Hook callers get decoding automatically via useFieldSelector.
+ *
+ * Naming: "decode" because it transforms raw storage → consumer value.
+ * The inverse (consumer → storage events) is field.write, conceptually "encode."
+ *
+ * // Future: branded types to prevent raw/decoded confusion at compile time
+ * // type RawFieldValue<T> = T & { readonly __raw: 'RawFieldValue' };
+ * // type DecodedFieldValue<T> = T & { readonly __decoded: 'DecodedFieldValue' };
+ * // fieldSelector would return RawFieldValue, decodeField would return DecodedFieldValue
+ */
+export function decodeField(field: FieldInfo, raw: any): any {
+  return field.read ? field.read(raw) : raw;
+}
+
+/** @deprecated Use decodeField instead. */
+export const readField = decodeField;
+
+/**
+ * Get a human/LLM-readable string from a raw field value.
+ * Uses field.display if defined, otherwise falls back to stringifying the read value.
+ */
+export function displayField(field: FieldInfo, raw: any): string {
+  if (field.display) return field.display(raw);
+  const value = decodeField(field, raw);
+  if (value === undefined || value === null) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
+/**
+ * React hook wrapper around fieldSelector with automatic re-rendering.
+ *
+ * INVARIANT: field.read (decode) is applied AFTER the useSelector equality gate,
+ * never inside it. useSelector compares raw Redux values; materialization happens
+ * after. This prevents unnecessary re-renders: decode() may produce new objects
+ * each call (e.g., new Set from an OR-Set CRDT), but the raw value is
+ * reference-stable between dispatches.
+ *
+ * Critical for field types whose decode() produces new objects on every call
+ * (e.g., setField decoding a SetDoc to a new Set). The raw value is
+ * reference-stable between dispatches; decode runs only when raw changes.
+ */
 export const useFieldSelector = <T>(
   props: any,               // TODO: narrow when convenient
   field: FieldInfo,
   options: SelectorOptions<T> = {}
 ): T => {
-  return useSelector(
+  const raw = useSelector(
     (state) => fieldSelector(state, props, field, options),
-    options.equalityFn
+    field.equality ?? options.equalityFn
   );
+  // Apply field.read only when using the default selector (reading the field's own value).
+  // Custom selectors (e.g., reading selection sibling fields) handle their own transformation.
+  if (!options.selector && field.read) {
+    return field.read(raw) as T;
+  }
+  return raw;
 };
 
+
+// =============================================================================
+// Dispatch infrastructure
+// =============================================================================
+
+/**
+ * Dispatch a single event with infrastructure fields (scope, id, tag) resolved.
+ *
+ * Shared by updateField (which may produce multiple events via field.write)
+ * and vertical-slice hooks like useSet (which dispatch individual events).
+ *
+ * Eliminates the duplicated scope/id/tag/logEvent resolution that was in
+ * both updateField and useSet.
+ */
+export function dispatchFieldEvent(
+  props: BaselineProps | null,
+  field: FieldInfo,
+  eventType: string,
+  payload: Record<string, any>,
+  { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
+) {
+  const scope = field.scope;
+  const resolvedKey = (scope === scopes.component || scope === scopes.storage)
+    ? (reduxKey ?? idResolver.refToReduxKey(props as RuntimeProps))
+    : undefined;
+  const resolvedTag = tag ?? (props as RuntimeProps)?.loBlock?.name;
+  const logEvent = props ? props.runtime.logEvent : lo_event.logEvent;
+
+  logEvent(eventType, {
+    scope,
+    ...(scope === scopes.component || scope === scopes.storage ? { id: resolvedKey } : {}),
+    ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {}),
+    ...payload,
+  });
+}
 
 // Accepts BaselineProps (system scope) or RuntimeProps (component/storage scope).
 // Polymorphic: branches on field.scope to access different properties.
@@ -160,32 +270,31 @@ export function updateField(
   props: BaselineProps | null,
   field: FieldInfo,
   newValue,
-  { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
+  { reduxKey, tag, extraPayload }: { reduxKey?: ReduxStateKey; tag?: string; extraPayload?: Record<string, any> } = {}
 ) {
   assertValidField(field);
-  // Validate/coerce value against field schema if defined.
-  // TODO: For authored content (SetFieldAction etc.), this throws a ZodError on invalid values
-  // (e.g. value="banana" for a boolean field). Fine for coding errors (fail fast), but for
-  // content authoring we should validate earlier with user-friendly errors rather than crashing
-  // action execution at runtime. Revisit when moving beyond pilot.
+
+  // Schema validation runs before write — coerce/validate regardless of field type.
   if (field.schema) {
     newValue = field.schema.parse(newValue);
   }
-  const scope = field.scope;
-  const fieldName = field.name;
-  // Use explicit reduxKey (cross-component access) or resolve from props.
-  const resolvedKey = (scope === scopes.component || scope === scopes.storage)
-    ? (reduxKey ?? idResolver.refToReduxKey(props as RuntimeProps))
-    : undefined;
-  const resolvedTag = tag ?? (props as RuntimeProps)?.loBlock?.name;
 
-  const logEvent = props ? props.runtime.logEvent : lo_event.logEvent;
-  logEvent(field.event, {
-    scope,
-    [fieldName]: newValue,
-    ...(scope === scopes.component || scope === scopes.storage ? { id: resolvedKey } : {}),
-    ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {})
-  });
+  if (field.write) {
+    // Field knows how to produce its own events (e.g., docField computes splices)
+    const store = props?.runtime?.store ?? getReduxStoreInstance();
+    const oldRaw = fieldSelector(store.getState(), props, field, { reduxKey, tag });
+    const results = field.write(oldRaw, newValue);
+    // Extra payload (e.g., selection state from useInputField) is appended only
+    // to the last event — it represents final cursor position, not per-event state.
+    for (let i = 0; i < results.length; i++) {
+      const { event, payload } = results[i];
+      const extra = (i === results.length - 1) ? extraPayload : undefined;
+      dispatchFieldEvent(props, field, event, { ...payload, ...extra }, { reduxKey, tag });
+    }
+  } else {
+    // Default: single event with { [fieldName]: newValue }
+    dispatchFieldEvent(props, field, field.event!, { [field.name]: newValue, ...extraPayload }, { reduxKey, tag });
+  }
 }
 
 
@@ -202,7 +311,7 @@ export function useFieldState(
   const ref = useRef({ props, field, reduxKey, tag });
   ref.current = { props, field, reduxKey, tag };
   const setValue = useCallback(
-    (newValue) => {
+    (newValue: any) => {
       const { props, field, reduxKey, tag } = ref.current;
       updateField(props, field, newValue, { reduxKey, tag });
     },
@@ -211,6 +320,11 @@ export function useFieldState(
 
   return [value, setValue];
 }
+
+
+// =============================================================================
+// Aggregation hooks
+// =============================================================================
 
 type ReduxAggregateOptions<T, R = any> = {
   fallback?: T;
@@ -253,9 +367,9 @@ export function useAggregate<T = any, R = any>(
 }
 
 
-/*
- * Helpers for component types.
- */
+// =============================================================================
+// UI binding hooks (future: migrate to bindings/)
+// =============================================================================
 
 type ReduxInputOptions = {
   updateValidator?: (val: string) => boolean;
@@ -341,6 +455,8 @@ export function useReduxInput(
     }
   ];
 }
+
+
 
 
 export function useReduxCheckbox(

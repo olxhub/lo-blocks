@@ -14,15 +14,15 @@ import type { BlockFieldRef } from '@/lib/blocks/attributeSchemas';
 async function copyFieldAction({ targetInstance, props }) {
   const { target, output }: { target: BlockFieldRef, output: BlockFieldRef[] } = targetInstance.attributes;
 
-  // Read from source (ref is a ReduxStateKey — use directly for state access)
+  // Read from source — materialize via field.read (e.g., RgaDoc → string)
   const srcField = state.componentFieldByName(props, target.ref, target.field);
-  const reduxState = props.runtime.store.getState();
-  const value = state.fieldSelector(reduxState, props, srcField, {
+  const value = state.getField(props, srcField, {
     reduxKey: target.ref,
     fallback: '',
   });
 
-  // Write to each output
+  // Write to each output — field.write handles storage-specific dispatch
+  // (e.g., docField computes splice deltas, plain field sets value directly)
   for (const dest of output) {
     const destField = state.componentFieldByName(props, dest.ref, dest.field);
     state.updateField(props, destField, value, { reduxKey: dest.ref });

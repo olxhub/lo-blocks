@@ -1,12 +1,52 @@
 'use client';
-import type { RuntimeProps } from '@/lib/types';
+import type { RuntimeProps, FieldInfo } from '@/lib/types';
 
-// src/components/blocks/reference/StateViewer/_StateViewer.jsx
 import React from 'react';
 import { DisplayError } from '@/lib/util/debug';
-import { useComponentState } from '@/lib/state';
+import { useComponentState, displayField } from '@/lib/state';
 import { refToReduxKey } from '@/lib/blocks/idResolver';
 import { useOlxJson } from '@/lib/blocks/useOlxJson';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+
+/**
+ * Decode raw component state through field display functions.
+ *
+ * Returns { decoded: { fieldName: displayString }, meta: { key: value } }
+ * where meta contains CRDT metadata keys (timestamps, actors, etc.)
+ * that aren't user-visible fields.
+ */
+function decodeState(
+  rawState: Record<string, any>,
+  fields: Record<string, FieldInfo> | undefined,
+): { decoded: Record<string, string>; meta: Record<string, any> } {
+  const decoded: Record<string, string> = {};
+  const meta: Record<string, any> = {};
+
+  if (!fields) {
+    // No field definitions — just show everything as-is
+    for (const [key, value] of Object.entries(rawState)) {
+      decoded[key] = typeof value === 'object' ? JSON.stringify(value) : String(value ?? '');
+    }
+    return { decoded, meta };
+  }
+
+  const fieldNames = new Set<string>();
+  for (const field of Object.values(fields)) {
+    if (field && typeof field === 'object' && field.type === 'field') {
+      fieldNames.add(field.name);
+      decoded[field.name] = displayField(field, rawState[field.name]);
+    }
+  }
+
+  // Remaining keys are metadata (timestamps, actors, selection state, etc.)
+  for (const key of Object.keys(rawState)) {
+    if (!fieldNames.has(key)) {
+      meta[key] = rawState[key];
+    }
+  }
+
+  return { decoded, meta };
+}
 
 export default function _StateViewer(props: RuntimeProps) {
   const { target, scope, kids = '' } = props;
@@ -27,17 +67,57 @@ export default function _StateViewer(props: RuntimeProps) {
     return <DisplayError name="StateViewer" message={`Target block "${targetId}" not found`} />;
   }
 
+  // Look up field definitions from the block registry
+  const blockTag = targetBlock.tag;
+  const registryEntry = blockTag ? BLOCK_REGISTRY[blockTag] : undefined;
+  const fields = registryEntry?.fields as Record<string, FieldInfo> | undefined;
+
+  // Decode state through field display functions
+  const { decoded, meta } = componentState
+    ? decodeState(componentState, fields)
+    : { decoded: {}, meta: {} };
+  const hasDecoded = Object.keys(decoded).length > 0;
+  const hasMeta = Object.keys(meta).length > 0;
+
   return (
     <div style={{ fontFamily: 'monospace', fontSize: '12px', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' }}>
       <div style={{ background: '#f5f5f5', padding: '4px 8px', borderBottom: '1px solid #ddd' }}>
         <code style={{ fontWeight: 'bold' }}>{targetId}</code>
+        {blockTag && <span style={{ color: '#888', marginLeft: '8px' }}>{blockTag}</span>}
       </div>
-      <pre style={{ margin: 0, padding: '8px', background: '#fafafa', overflowX: 'auto' }}>
-        {componentState === null
-          ? <span style={{ color: '#999', fontStyle: 'italic' }}>(no state)</span>
-          : JSON.stringify(componentState, null, 2)
-        }
-      </pre>
+      {componentState === null ? (
+        <pre style={{ margin: 0, padding: '8px', background: '#fafafa' }}>
+          <span style={{ color: '#999', fontStyle: 'italic' }}>(no state)</span>
+        </pre>
+      ) : (
+        <div style={{ padding: '8px', background: '#fafafa' }}>
+          {hasDecoded && (
+            <div>
+              {Object.entries(decoded).map(([name, display]) => (
+                <div key={name} style={{ marginBottom: '2px' }}>
+                  <span style={{ color: '#555' }}>{name}: </span>
+                  <span>{display || <span style={{ color: '#999', fontStyle: 'italic' }}>(empty)</span>}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {hasMeta && (
+            <details style={{ marginTop: hasDecoded ? '4px' : 0 }}>
+              <summary style={{ cursor: 'pointer', color: '#888', fontSize: '11px' }}>
+                raw ({Object.keys(meta).length} metadata keys)
+              </summary>
+              <pre style={{ margin: '4px 0 0', fontSize: '11px', color: '#666', overflowX: 'auto' }}>
+                {JSON.stringify(meta, null, 2)}
+              </pre>
+            </details>
+          )}
+          {!hasDecoded && !hasMeta && (
+            <pre style={{ margin: 0, overflowX: 'auto' }}>
+              {JSON.stringify(componentState, null, 2)}
+            </pre>
+          )}
+        </div>
+      )}
     </div>
   );
 }

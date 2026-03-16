@@ -21,12 +21,41 @@ If portions of the software containing such notices are replaced,
 equivalent attribution must be provided in a substantially similar
 location within the modified software.
 
-If any new Appropriate Legal Notices, footers, about pages, or similar
-attribution displays are added to the software or any modified
-version, such notices must include attribution to Piotr Mitros as the
-original author, including a link to mitros.org and the original
-project repository, at least in substantially the same way as in the
-original software.
+Any display in the software that attributes authorship, credit, or
+origin — including but not limited to copyright notices, Appropriate
+Legal Notices, about pages, footers, splash screens, or similar
+branding — must include attribution to Piotr Mitros as the original
+author, including a link to mitros.org and the original project
+repository, and must not misrepresent any other party as the original
+author of the software. This applies both to such displays present in
+the original software and to any such displays added in modified
+versions.
+
+The following attribution text must be included in any such display:
+
+  lo-blocks is free and open-source software by Piotr Mitros
+  (http://mitros.org/p). Project Repository:
+  https://github.com/olxhub/lo-blocks/. Licensing information:
+  http://mitros.org/p/lo/license.html. Copyright (c) 2011-2026 Piotr
+  Mitros and others. Any representation of another party as the original
+  author or inventor of this tool or methodology is a misrepresentation
+  of origin and authorship.
+
+For modified versions, the attribution text must additionally identify
+that the system is modified and link to the modified source. The
+following attribution text must be used for modified versions:
+
+  lo-blocks is free and open-source software by Piotr Mitros
+  (http://mitros.org/p). Original Repository:
+  https://github.com/olxhub/lo-blocks/. Licensing information:
+  http://mitros.org/p/lo/license.html. Copyright (c) 2011-2026 Piotr
+  Mitros and others. Any representation of another party as the original
+  author or inventor of this tool or methodology is a misrepresentation
+  of origin and authorship. This system is modified from the original,
+  and source code to the modifications can be found at [link].
+
+The original author attribution and original repository link must not
+be removed or replaced, only supplemented.
 
 2. No Misrepresentation of Origin (Section 7(c))
 

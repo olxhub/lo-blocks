@@ -42,13 +42,55 @@ import {
   OLXJSON_ERROR,
   CLEAR_OLXJSON,
 } from './olxjson';
-
 // Chat event types
 export const CHAT_ADD_MESSAGE = 'CHAT_ADD_MESSAGE';
 export const CHAT_ADD_MESSAGES = 'CHAT_ADD_MESSAGES';
 export const CHAT_CLEAR = 'CHAT_CLEAR';
 export const CHAT_SET_STATUS = 'CHAT_SET_STATUS';
 const CHAT_EVENT_TYPES = [CHAT_ADD_MESSAGE, CHAT_ADD_MESSAGES, CHAT_CLEAR, CHAT_SET_STATUS];
+
+// ---------------------------------------------------------------------------
+// Reducer strategy toggle
+// ---------------------------------------------------------------------------
+//
+// Controls whether registered field-level reducers are used (new path) or
+// bypassed in favor of the legacy spread behavior (old path).
+//
+// Both paths produce identical results for simple state fields:
+//   - 'field-level': field.reduce(componentState, action, fieldName) → patch
+//   - 'legacy-spread': spread action payload into componentState (minus metadata)
+//
+// The toggle validates that the field.reduce abstraction is truly swappable.
+// If both paths produce the same state, the abstraction is correct and we can
+// confidently use it for field types where spread won't work (sets, counters,
+// collaborative text).
+//
+// Future direction: this naturally extends to client-side vs server-side
+// reducer selection. The server would use field.serverReduce (when it exists)
+// while the client uses field.reduce. The toggle mechanism is the same.
+//
+type ReducerStrategy = 'field-level' | 'legacy-spread';
+let _reducerStrategy: ReducerStrategy = 'field-level';
+
+export function setReducerStrategy(strategy: ReducerStrategy) {
+  _reducerStrategy = strategy;
+}
+
+export function getReducerStrategy(): ReducerStrategy {
+  return _reducerStrategy;
+}
+
+// Field-level reducer registry — maps event key → { reduce, fieldName }.
+// Populated during configureStore from block registry fields.
+// When an event comes in and strategy is 'field-level', the main reducer
+// uses this map. When 'legacy-spread', it falls through to the default spread.
+//
+// Two-level lookup: first tries "eventType:fieldName" (disambiguates when
+// multiple fields share an event type, e.g. two docFields both using
+// SPLICE_INPUT). Falls back to bare "eventType" for unique event names.
+type FieldReduceFn = (componentState: Record<string, any>, action: any, fieldName: string) => Record<string, any>;
+type FieldReducerEntry = { reduce: FieldReduceFn; fieldName: string };
+const _fieldReducers = new Map<string, FieldReducerEntry>();
 
 // Event server URL for capturing events.
 // In dev (localhost/127.0.0.1), point to the local event-server on port 8888.
@@ -138,6 +180,67 @@ export const updateResponseReducer = (state = initialState, action) => {
     }
   }
 
+  // Field-level reducers — route events to field.reduce when registered.
+  // Fields register their reducers during configureStore (see collectEventTypes).
+  // Only active when strategy is 'field-level'; 'legacy-spread' falls through.
+  //
+  // Two-level lookup: prefer specific "eventType:fieldName" key (disambiguates
+  // shared event types like SPLICE_INPUT across multiple docFields), fall back
+  // to bare "eventType" for unique event names or legacy events without action.field.
+  const fieldReducerEntry = (action.field && _fieldReducers.get(`${eventType}:${action.field}`))
+    || _fieldReducers.get(eventType);
+  if (fieldReducerEntry && _reducerStrategy === 'field-level') {
+    const { scope = scopes.component, id, tag } = action;
+    const fieldName = action.field ?? fieldReducerEntry.fieldName;
+
+    // Scope-aware: read from and write to the correct state bucket,
+    // mirroring the legacy-spread switch below.
+    switch (scope) {
+      case scopes.componentSetting: {
+        const bucket = state.componentSetting?.[tag] ?? {};
+        const patch = fieldReducerEntry.reduce(bucket, action, fieldName);
+        return {
+          ...state,
+          componentSetting: {
+            ...state.componentSetting,
+            [tag]: { ...bucket, ...patch }
+          }
+        };
+      }
+      case scopes.system: {
+        const bucket = state.system ?? {};
+        const patch = fieldReducerEntry.reduce(bucket, action, fieldName);
+        return {
+          ...state,
+          system: { ...bucket, ...patch }
+        };
+      }
+      case scopes.storage: {
+        const bucket = state.storage?.[id] ?? {};
+        const patch = fieldReducerEntry.reduce(bucket, action, fieldName);
+        return {
+          ...state,
+          storage: {
+            ...state.storage,
+            [id]: { ...bucket, ...patch }
+          }
+        };
+      }
+      case scopes.component:
+      default: {
+        const bucket = state.component?.[id] ?? {};
+        const patch = fieldReducerEntry.reduce(bucket, action, fieldName);
+        return {
+          ...state,
+          component: {
+            ...state.component,
+            [id]: { ...bucket, ...patch }
+          }
+        };
+      }
+    }
+  }
+
   // Destructure out metadata fields that shouldn't go into state:
   // - context: event hierarchy for filtering (e.g., 'preview.quiz.input')
   // - event: the event type (already extracted above as eventType)
@@ -187,6 +290,9 @@ export const updateResponseReducer = (state = initialState, action) => {
 type ExtraFieldsParam = Fields | (FieldInfo | string)[];
 
 function collectEventTypes(extraFields: ExtraFieldsParam = []) {
+  // Clear stale entries from previous init (tests, HMR)
+  _fieldReducers.clear();
+
   // Extract FieldInfo objects from either array or object form
   const fieldList = Array.isArray(extraFields)
     ? extraFields
@@ -194,22 +300,38 @@ function collectEventTypes(extraFields: ExtraFieldsParam = []) {
         v && typeof v === 'object' && v.type === 'field'
       );
 
-  // Fields are now directly { fieldName: FieldInfo } on both blueprints and registry
-  const componentEventTypes = Object.values(BLOCK_REGISTRY)
-    .flatMap(entry =>
-      entry.fields
-        ? Object.values(entry.fields)
-            .filter((v): v is FieldInfo => v && typeof v === 'object' && v.type === 'field')
-            .map(info => info.event)
-        : []
-    );
+  // Fields are now directly { fieldName: FieldInfo } on both blueprints and registry.
+  // Also register field-level reducers for event routing.
+  const componentEventTypes: string[] = [];
+  for (const entry of Object.values(BLOCK_REGISTRY)) {
+    if (!entry.fields) continue;
+    for (const finfo of Object.values(entry.fields)) {
+      if (!finfo || typeof finfo !== 'object' || finfo.type !== 'field') continue;
+      const fi = finfo as FieldInfo;
+      const events = fi.events ?? (fi.event ? [fi.event] : []);
+      componentEventTypes.push(...events);
+      // Register field reducer: specific key (event:field) + fallback (event).
+      // Specific key wins at lookup time, so two docFields ('draft', 'notes')
+      // both using SPLICE_INPUT get separate entries via SPLICE_INPUT:draft
+      // and SPLICE_INPUT:notes. The bare SPLICE_INPUT entry is overwritten
+      // but only used when action.field is absent (legacy events).
+      if (fi.reduce) {
+        for (const event of events) {
+          _fieldReducers.set(`${event}:${fi.name}`, { reduce: fi.reduce, fieldName: fi.name });
+          _fieldReducers.set(event, { reduce: fi.reduce, fieldName: fi.name });
+        }
+      }
+    }
+  }
+
   const commonEventTypes = [
     'LOAD_DATA_EVENT', 'LOAD_STATE', 'NAVIGATE', 'SHOW_SECTION',
     'STEPTHROUGH_NEXT', 'STEPTHROUGH_PREV', 'STORE_SETTING',
-    'STORE_VARIABLE', 'UPDATE_INPUT', 'UPDATE_LLM_RESPONSE', 'VIDEO_TIME_EVENT'
+    'STORE_VARIABLE', 'UPDATE_INPUT', 'UPDATE_LLM_RESPONSE', 'VIDEO_TIME_EVENT',
+    'SPLICE_INPUT',
   ];
-  const extraEventTypes = fieldList.map(f =>
-    typeof f === 'string' ? f : f.event
+  const extraEventTypes = fieldList.flatMap(f =>
+    typeof f === 'string' ? [f] : (f.events ?? (f.event ? [f.event] : []))
   );
   return Array.from(new Set([
     ...commonEventTypes,
@@ -286,6 +408,10 @@ export const getReduxStoreInstance = () => {
 //   __events.download()   // Download as file
 if (typeof window !== 'undefined') {
   (window as any).__lo = lo_event;
+  // Strategy toggle on a separate object (lo_event may be frozen)
+  (window as any).__loBlocks = {
+    reducerStrategy: { get: getReducerStrategy, set: setReducerStrategy },
+  };
   (window as any).__events = {
     getEvents: () => eventCaptureLogger?.getEvents() ?? [],
     clear: () => eventCaptureLogger?.clear(),

@@ -15,9 +15,33 @@
 // A major goal is to make redux simple.
 export * from './scopes';
 export * from './fields';
+export * from './fieldTypes';
 export * from './commonFields';
 export * from './settings';
 export * from './blockData';
 export * from './redux';
 export * from './store';
 export * from './olxjson';
+
+// ---------------------------------------------------------------------------
+// Data structure hooks (loaded after redux to break circular dependency)
+// ---------------------------------------------------------------------------
+// These import from redux.ts, so they can't be in the fieldTypes barrel
+// (fieldTypes → redux → fields → fieldTypes cycle). Listed here after
+// redux.ts is fully loaded.
+//
+// Reads NEXT_PUBLIC_LO_FIELD_STRATEGY from fieldTypes/index.ts — same env var that
+// controls the constructors, so one toggle switches everything.
+import { NEXT_PUBLIC_LO_FIELD_STRATEGY } from './fieldTypes';
+import { useSet as classicUseSet } from './fieldTypes/classic/useSet';
+import { useSet as crdtUseSet } from './fieldTypes/crdt/set';
+import { useDocField as classicUseDocField } from './fieldTypes/classic/useDocField';
+// import { useDocField as crdtUseDocField } from './fieldTypes/crdt/useDocField';
+
+export const useSet = NEXT_PUBLIC_LO_FIELD_STRATEGY === 'crdt' ? crdtUseSet : classicUseSet;
+export const useDocField = classicUseDocField; // CRDT useDocField not yet implemented
+
+// ---------------------------------------------------------------------------
+// UI bindings (wire data structures to DOM elements)
+// ---------------------------------------------------------------------------
+export * from './bindings';

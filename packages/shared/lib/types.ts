@@ -288,14 +288,149 @@ export type FileSystemPath = string & { __brand: 'FileSystemPath', __safe: true 
 
 
 
+// =============================================================================
 // Fields API
+// =============================================================================
+//
+// A FieldInfo is the complete behavioral specification for a piece of block state.
+// It declares how the value is stored (events, scope), validated (schema),
+// materialized (read), compared (equality), and — eventually — how it's
+// reduced and merged across peers.
+//
+// Fields belong to blocks, not to a global registry. Two blocks can have a
+// "value" field with different storage types (plain string vs RgaDoc).
+//
+// Design direction: each field type (plain, doc, set, counter, ...) will
+// carry its own reducer and merge function, enabling:
+//   - Offline editing with automatic reconciliation (CRDT merge)
+//   - Collaborative editing across peers
+//   - Server-side reducers that replay events to reconstruct state
+//   - Field-level conflict resolution (last-writer-wins, CRDT, etc.)
+//
+// See fieldTypes/ for constructors: stateField(), docField(), etc.
+// FieldInfo.read = decode: raw Redux → consumer value (see decodeField in redux.ts)
+// FieldInfo.write = encode: consumer value → event payload(s) (see updateField in redux.ts)
+// =============================================================================
+
+/** Branded type for field names within a block's state. */
+export type FieldName = string & { __brand: 'FieldName' };
+
+/** Branded type for event type strings dispatched via logEvent. */
+export type FieldEvent = string & { __brand: 'FieldEvent' };
+
+/** Result of a field.write() call — event type + payload to dispatch. */
+export interface WriteResult {
+  event: FieldEvent;
+  payload: Record<string, any>;
+}
+
 export interface FieldInfo {
   type: 'field';
-  name: string;
-  event: string;
+  name: FieldName;
+
+  /** Field type discriminator — determines which hook is the primary accessor.
+   *  'state' → useFieldState, 'set' → useSet, 'doc' → useDoc (future).
+   *  Type-specific hooks validate this and throw on mismatch.
+   *  Absent for classic fields (no validation — classic stateField omits kind).
+   *  Present on CRDT fields (crdt/state.ts sets 'state', crdt/doc.ts sets 'doc',
+   *  crdt/set.ts sets 'set'). */
+  kind?: 'state' | 'set' | 'doc';
+
+  /** Event types this field dispatches. A plain field has one (e.g. UPDATE_VALUE).
+   *  A CRDT field may have several (e.g. SPLICE_INPUT for insert/delete). Future
+   *  field types may add more (SET_ADD, SET_REMOVE, COUNTER_INCREMENT, etc.). */
+  events: FieldEvent[];
+
   scope: import('./state/scopes').Scope;
-  /** Optional zod schema for value validation/coercion. Fields without schemas accept any value. */
+
+  /** Zod schema for value validation/coercion. Fields without schemas accept any value. */
   schema?: z.ZodType;
+
+  /** Materialize raw Redux value → consumer-facing value. Default: identity.
+   *  Examples: RgaDoc → string, SetDoc → Set, CounterDoc → number.
+   *  Must be a pure function. Called AFTER useSelector equality check, never inside it. */
+  read?: (raw: any) => any;
+
+  /** Equality check for useSelector on the RAW (pre-read) value.
+   *  Default: Object.is (referential equality).
+   *  CRDTs use referential equality since each mutation produces a new object. */
+  equality?: (a: any, b: any) => boolean;
+
+  /** Transform a consumer-facing value into event payload(s) for this field's storage type.
+   *  Called by updateField to dispatch the right events.
+   *
+   *  Examples:
+   *  - Plain field: (_, val) => [{ event: 'UPDATE_VALUE', payload: { value: val } }]
+   *  - Doc field: (doc, text) => [{ event: 'SPLICE_INPUT', payload: { index, deleteCount, inserted } }]
+   *  - Set field: not a single write fn — needs add/remove/clear operations
+   *    (will be exposed through useField API, not write)
+   *
+   *  Returns an array of WriteResult — usually one event, but some operations
+   *  may produce multiple (e.g., clear + insert). Empty array = no-op. */
+  write?: (oldRaw: any, newValue: any) => WriteResult[];
+
+  /** Field-level reducer. Receives the component's state object and returns a
+   *  patch to merge back. The main reducer routes events to field.reduce based
+   *  on event type, handles scope/id routing, and merges the result.
+   *
+   *  Signature: (componentState, action, fieldName) => patch
+   *  - componentState: the current state for this component (e.g., state.component[id])
+   *  - action: the full event action
+   *  - fieldName: which field within the component state
+   *  - returns: object to spread into componentState (only changed keys)
+   *
+   *  Fields without reduce use the default behavior: spread action payload
+   *  directly into componentState (plain key-value merge). */
+  reduce?: (componentState: Record<string, any>, action: any, fieldName: string) => Record<string, any>;
+
+  /** Human/LLM-readable string representation. Distinct from `read`:
+   *  - read: programmatic value (Set, number, structured object)
+   *  - display: always a string, for rendering in prompts, summaries, logs
+   *
+   *  Default (no display fn): String(read(raw)) for primitives, JSON.stringify for objects.
+   *  Examples: Set → "apple, banana, cherry". Counter → "42". Doc → same as read. */
+  display?: (raw: any) => string;
+
+  /** Event batching strategy for analytics and network efficiency.
+   *  Controls how loggers (websocket, server) buffer and flush events.
+   *
+   *  NOT a state concern — the client-side Redux reducer always runs
+   *  immediately on every event. Batching only affects what goes over the wire.
+   *
+   *  Built-in factories: immediate(), debounce(ms), throttle(ms), aggregate(ms).
+   *  Custom strategies via custom(asyncGeneratorFn).
+   *  Default (no batching specified): immediate — every event sent as-is.
+   *
+   *  See fieldTypes/batching.ts for strategy constructors and documentation. */
+  batching?: import('./state/fieldTypes/batching').BatchingStrategy;
+
+  // ---------------------------------------------------------------------------
+  // Future: serverReduce, merge
+  // ---------------------------------------------------------------------------
+  //
+  // serverReduce?: (componentState, action, fieldName) => patch;
+  //   Server-side reducer. Same signature as reduce, but serves different purposes:
+  //   - Client reduce: local UX (e.g., gray checkbox on submit)
+  //   - Server reduce: social, aggregation, cross-student concerns
+  //     (e.g., blue checkbox once server confirms; class-wide analytics;
+  //     "3 of your peers also chose B"; teacher dashboards)
+  //   These aren't "optimistic vs authoritative" — they do fundamentally
+  //   different things. Defaults to reduce if not specified.
+  //   Server reducers enable: grade computation, social features, aggregation,
+  //   deadline enforcement, per-student overrides, anti-cheat validation.
+  //
+  // merge?: (local: any, remote: any) => any;
+  //   CRDT merge function for reconciling divergent state.
+  //   Used when: syncing offline edits, collaborative editing, server-side replay.
+  //   Plain (LWW): (local, remote) => remote.ts > local.ts ? remote : local
+  //   Doc (RGA): (local, remote) => rgaMerge(local, remote)
+  //   Set (OR-Set): (local, remote) => orSetMerge(local, remote)
+  //   Counter (G-Counter): (local, remote) => gCounterMerge(local, remote)
+  // ---------------------------------------------------------------------------
+
+  /** @deprecated Use `events[0]` for single-event fields. Kept for backward compatibility
+   *  during migration — will be removed once all callers use `events`. */
+  event?: string;
 }
 
 export interface FieldInfoByEvent { [event: string]: FieldInfo; }
@@ -326,9 +461,15 @@ export type LocalsAPI = Record<JavaScriptId, any>;
 const ReduxFieldInfo = z.object({
   type: z.literal('field'),
   name: z.string(),
-  event: z.string(),
+  events: z.array(z.string()),
+  event: z.string().optional(),  // deprecated compat
   scope: z.enum(scopeNames),
   schema: z.custom<z.ZodType>().optional(),
+  read: z.function().optional(),
+  write: z.function().optional(),
+  reduce: z.function().optional(),
+  display: z.function().optional(),
+  equality: z.function().optional(),
 });
 
 // Fields schema: { fieldName: FieldInfo, ..., extend?: fn }

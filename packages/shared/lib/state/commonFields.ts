@@ -12,53 +12,33 @@
 //   import { fields } from './MyBlock';
 //   fields.myCustomField  // Preferred over fieldByName('myCustomField')
 //
-import { FieldInfo } from '../types';
-import { scopes } from './scopes';
+// NOTE: These are plain (LWW) fields. If a block needs a different storage
+// type for the same field name (e.g., TextArea stores 'value' as an RgaDoc),
+// it should use a field type constructor like docField('value') instead.
+//
+import { stateField } from './fieldTypes';
 
 /**
  * Common field definitions used across multiple block types.
  * Pre-registered at module load time for cross-component access.
+ *
+ * Each is a full LWW field with read, write, reduce, display.
  */
 export const commonFields = {
   /** Standard value field - used by most input components */
-  value: {
-    type: 'field',
-    name: 'value',
-    event: 'UPDATE_VALUE',
-    scope: scopes.component
-  } as FieldInfo,
+  value: stateField('value'),
 
   /** Correctness field - used by graders, checked by orchestrators like MasteryBank */
-  correct: {
-    type: 'field',
-    name: 'correct',
-    event: 'UPDATE_CORRECT',
-    scope: scopes.component
-  } as FieldInfo,
+  correct: stateField('correct'),
 
   /** Feedback message field - used by graders */
-  message: {
-    type: 'field',
-    name: 'message',
-    event: 'UPDATE_MESSAGE',
-    scope: scopes.component
-  } as FieldInfo,
+  message: stateField('message'),
 
   /** Submit count field - tracks number of submissions */
-  submitCount: {
-    type: 'field',
-    name: 'submitCount',
-    event: 'UPDATE_SUBMIT_COUNT',
-    scope: scopes.component
-  } as FieldInfo,
+  submitCount: stateField('submitCount'),
 
   /** Show answer toggle - controls answer display */
-  showAnswer: {
-    type: 'field',
-    name: 'showAnswer',
-    event: 'UPDATE_SHOW_ANSWER',
-    scope: scopes.component
-  } as FieldInfo,
+  showAnswer: stateField('showAnswer'),
 } as const;
 
 // Named exports for convenient destructuring

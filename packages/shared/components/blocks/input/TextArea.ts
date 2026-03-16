@@ -2,14 +2,14 @@
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { commonFields } from '@/lib/state';
+import { docField } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes, placeholder, z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import { selectBlock } from '@/lib/state/olxjson';
 import _TextArea from './_TextArea';
 import type { RuntimeProps, ReduxStateKey } from '@/lib/types';
 
-export const fields = state.fields([commonFields.value, { name: 'readonly', schema: z_olx_boolean }]);
+export const fields = state.fields([docField('value'), { name: 'readonly', schema: z_olx_boolean }]);
 const TextArea = core({
   ...parsers.text.stripIndent(),
   name: 'TextArea',
@@ -24,8 +24,10 @@ const TextArea = core({
   }),
   // Read Redux value, falling back to initial text from OLX children
   selectValue: (props: RuntimeProps, reduxState: any, _reduxKey: ReduxStateKey) => {
-    const reduxValue = state.fieldSelector(reduxState, props, commonFields.value, { fallback: undefined });
-    if (reduxValue !== undefined) return reduxValue;
+    const value = state.getField(props, fields.value, { fallback: undefined });
+    if (value !== undefined) {
+      return value;
+    }
 
     // No Redux state yet — fall back to parsed children text
     const sources = props.runtime.olxJsonSources ?? ['content'];
