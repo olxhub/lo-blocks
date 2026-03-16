@@ -11,12 +11,18 @@
 // The field's write/reduce handle storage differences; this binding only
 // handles the DOM integration.
 //
+// Why selection tracking matters:
+// Redux-controlled inputs (not React-controlled) lose cursor position on
+// every re-render. Without explicit tracking, the cursor jumps to the end
+// after each keystroke. We store selectionStart/selectionEnd as sibling
+// keys in Redux alongside the value, and restore them after re-render.
+//
 
 'use client';
 
 import { useRef, useEffect, useCallback } from 'react';
-import { useSelector, shallowEqual } from 'react-redux';
-import { useFieldState, fieldSelector } from '../redux';
+import { useFieldState, useFieldSelector } from '../redux';
+import { shallowEqual } from 'react-redux';
 import type { FieldInfo, RuntimeProps, ReduxStateKey } from '../../types';
 
 type InputFieldOptions = {
@@ -39,20 +45,19 @@ export function useInputField(
 ) {
   const [value, setValue] = useFieldState(props, field, fallback, { reduxKey, tag });
 
-  // Selection state — stored as sibling keys in Redux
-  const selection = useSelector(
-    (state: any) => {
-      const s = fieldSelector(state, props, field, {
-        reduxKey,
-        tag,
-        selector: (cs) => ({
-          selectionStart: cs?.[`${field.name}.selectionStart`] ?? 0,
-          selectionEnd: cs?.[`${field.name}.selectionEnd`] ?? 0,
-        }),
-      });
-      return s;
-    },
-    shallowEqual
+  // Selection state — stored as sibling keys in Redux alongside the value
+  const selection = useFieldSelector(
+    props,
+    field,
+    {
+      selector: (cs: any) => ({
+        selectionStart: cs?.[`${field.name}.selectionStart`] ?? 0,
+        selectionEnd: cs?.[`${field.name}.selectionEnd`] ?? 0,
+      }),
+      equalityFn: shallowEqual,
+      reduxKey,
+      tag,
+    }
   );
 
   const ref = useRef<any>(null);
@@ -60,8 +65,12 @@ export function useInputField(
   const onChange = useCallback((event: any) => {
     const val = event.target.value;
     if (updateValidator && !updateValidator(val)) return;
-    setValue(val);
-  }, [setValue, updateValidator]);
+
+    setValue(val, {
+      [`${field.name}.selectionStart`]: event.target.selectionStart,
+      [`${field.name}.selectionEnd`]: event.target.selectionEnd,
+    });
+  }, [field.name, setValue, updateValidator]);
 
   // Restore cursor position after Redux-driven re-render
   useEffect(() => {

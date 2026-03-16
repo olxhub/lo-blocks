@@ -259,7 +259,7 @@ export function updateField(
   props: BaselineProps | null,
   field: FieldInfo,
   newValue,
-  { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
+  { reduxKey, tag, extraPayload }: { reduxKey?: ReduxStateKey; tag?: string; extraPayload?: Record<string, any> } = {}
 ) {
   assertValidField(field);
 
@@ -269,7 +269,7 @@ export function updateField(
     const oldRaw = fieldSelector(store.getState(), props, field, { reduxKey, tag });
     const results = field.write(oldRaw, newValue);
     for (const { event, payload } of results) {
-      dispatchFieldEvent(props, field, event, payload, { reduxKey, tag });
+      dispatchFieldEvent(props, field, event, { ...payload, ...extraPayload }, { reduxKey, tag });
     }
   } else {
     // Default: single event with { [fieldName]: newValue }
@@ -277,7 +277,7 @@ export function updateField(
     if (field.schema) {
       newValue = field.schema.parse(newValue);
     }
-    dispatchFieldEvent(props, field, field.event!, { [field.name]: newValue }, { reduxKey, tag });
+    dispatchFieldEvent(props, field, field.event!, { [field.name]: newValue, ...extraPayload }, { reduxKey, tag });
   }
 }
 
@@ -295,9 +295,9 @@ export function useFieldState(
   const ref = useRef({ props, field, reduxKey, tag });
   ref.current = { props, field, reduxKey, tag };
   const setValue = useCallback(
-    (newValue) => {
+    (newValue, extraPayload?: Record<string, any>) => {
       const { props, field, reduxKey, tag } = ref.current;
-      updateField(props, field, newValue, { reduxKey, tag });
+      updateField(props, field, newValue, { reduxKey, tag, extraPayload });
     },
     []
   );
