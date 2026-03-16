@@ -257,42 +257,44 @@ export function getFieldHistory<T>(
  * @param after - State after
  * @returns Object describing changes in each scope
  */
+type ScopeDiff = { added: string[]; removed: string[]; changed: string[] };
+
+function diffScope(
+  before: Record<string, any> | undefined,
+  after: Record<string, any> | undefined,
+): ScopeDiff {
+  const b = before ?? {};
+  const a = after ?? {};
+  const diff: ScopeDiff = { added: [], removed: [], changed: [] };
+
+  const beforeKeys = new Set(Object.keys(b));
+  for (const key of Object.keys(a)) {
+    if (!beforeKeys.has(key)) diff.added.push(key);
+    else if (JSON.stringify(b[key]) !== JSON.stringify(a[key])) diff.changed.push(key);
+  }
+  for (const key of beforeKeys) {
+    if (!(key in a)) diff.removed.push(key);
+  }
+  return diff;
+}
+
 export function diffStates(before: AppState, after: AppState): {
-  component: { added: string[]; removed: string[]; changed: string[] };
+  component: ScopeDiff;
+  storage: ScopeDiff;
+  componentSetting: ScopeDiff;
   system: { changed: string[] };
 } {
-  const componentDiff = {
-    added: [] as string[],
-    removed: [] as string[],
-    changed: [] as string[],
-  };
-
-  const beforeKeys = new Set(Object.keys(before.component));
-  const afterKeys = new Set(Object.keys(after.component));
-
-  for (const key of afterKeys) {
-    if (!beforeKeys.has(key)) {
-      componentDiff.added.push(key);
-    } else if (JSON.stringify(before.component[key]) !== JSON.stringify(after.component[key])) {
-      componentDiff.changed.push(key);
-    }
-  }
-
-  for (const key of beforeKeys) {
-    if (!afterKeys.has(key)) {
-      componentDiff.removed.push(key);
-    }
-  }
-
-  const systemDiff = {
-    changed: [] as string[],
-  };
-
-  for (const key of Object.keys(after.system)) {
-    if (JSON.stringify(before.system[key]) !== JSON.stringify(after.system[key])) {
+  const systemDiff = { changed: [] as string[] };
+  for (const key of Object.keys(after.system ?? {})) {
+    if (JSON.stringify((before.system ?? {})[key]) !== JSON.stringify(after.system[key])) {
       systemDiff.changed.push(key);
     }
   }
 
-  return { component: componentDiff, system: systemDiff };
+  return {
+    component: diffScope(before.component, after.component),
+    storage: diffScope(before.storage, after.storage),
+    componentSetting: diffScope(before.componentSetting, after.componentSetting),
+    system: systemDiff,
+  };
 }

@@ -294,9 +294,9 @@ export function useFieldState(
   const ref = useRef({ props, field, reduxKey, tag });
   ref.current = { props, field, reduxKey, tag };
   const setValue = useCallback(
-    (newValue, extraPayload?: Record<string, any>) => {
+    (newValue: any) => {
       const { props, field, reduxKey, tag } = ref.current;
-      updateField(props, field, newValue, { reduxKey, tag, extraPayload });
+      updateField(props, field, newValue, { reduxKey, tag });
     },
     []
   );

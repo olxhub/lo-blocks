@@ -507,7 +507,7 @@ function StudioPageContent() {
             <CodeEditor
               ref={editorRef}
               value={content}
-              onChange={setContent}
+              onChange={(value) => setContent(value)}
               path={filePath}
               height="100%"
               theme="light"

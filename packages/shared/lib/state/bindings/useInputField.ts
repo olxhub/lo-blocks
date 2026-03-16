@@ -21,7 +21,7 @@
 'use client';
 
 import { useRef, useEffect, useCallback } from 'react';
-import { useFieldState, useFieldSelector } from '../redux';
+import { useFieldState, useFieldSelector, updateField } from '../redux';
 import { shallowEqual } from 'react-redux';
 import type { FieldInfo, RuntimeProps, ReduxStateKey } from '../../types';
 
@@ -62,15 +62,26 @@ export function useInputField(
 
   const ref = useRef<any>(null);
 
+  // Call updateField directly (not setValue) so we can pass extraPayload
+  // for cursor position. setValue doesn't accept extraPayload because
+  // callers like CodeMirror pass unrelated second args (ViewUpdate) that
+  // would get spread into the event payload and break serialization.
+  const fieldRef = useRef({ props, field, reduxKey, tag });
+  fieldRef.current = { props, field, reduxKey, tag };
+
   const onChange = useCallback((event: any) => {
     const val = event.target.value;
     if (updateValidator && !updateValidator(val)) return;
 
-    setValue(val, {
-      [`${field.name}.selectionStart`]: event.target.selectionStart,
-      [`${field.name}.selectionEnd`]: event.target.selectionEnd,
+    const { props, field, reduxKey, tag } = fieldRef.current;
+    updateField(props, field, val, {
+      reduxKey, tag,
+      extraPayload: {
+        [`${field.name}.selectionStart`]: event.target.selectionStart,
+        [`${field.name}.selectionEnd`]: event.target.selectionEnd,
+      },
     });
-  }, [field.name, setValue, updateValidator]);
+  }, [updateValidator]);
 
   // Restore cursor position after Redux-driven re-render
   useEffect(() => {
