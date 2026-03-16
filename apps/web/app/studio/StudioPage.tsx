@@ -18,6 +18,7 @@ import type { UriNode } from '@/lib/lofs/types';
 import type { IdMap } from '@/lib/types';
 import { useNotifications, ToastNotifications } from '@/lib/util/debug';
 import { useFieldState, getReduxState, settings } from '@/lib/state';
+import Notice from '@/components/common/Notice';
 
 import { editorFields } from '@/lib/state/editorFields';
 import './studio.css';
@@ -554,6 +555,7 @@ function StudioPageContent() {
       <footer className="studio-footer">
         <kbd>⌘K</kbd> Command palette
         <kbd>⌘`</kbd> Debug panel
+        <Notice />
         <span
           role="button"
           tabIndex={0}

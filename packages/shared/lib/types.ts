@@ -331,7 +331,9 @@ export interface FieldInfo {
   /** Field type discriminator — determines which hook is the primary accessor.
    *  'state' → useFieldState, 'set' → useSet, 'doc' → useDoc (future).
    *  Type-specific hooks validate this and throw on mismatch.
-   *  Absent for legacy/custom fields (no validation). */
+   *  Absent for classic fields (no validation — classic stateField omits kind).
+   *  Present on CRDT fields (crdt/state.ts sets 'state', crdt/doc.ts sets 'doc',
+   *  crdt/set.ts sets 'set'). */
   kind?: 'state' | 'set' | 'doc';
 
   /** Event types this field dispatches. A plain field has one (e.g. UPDATE_VALUE).

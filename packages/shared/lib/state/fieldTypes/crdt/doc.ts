@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/docField.ts
+// lib/state/fieldTypes/crdt/doc.ts
 //
 // Document field — collaborative text via RGA CRDT.
 //
@@ -10,8 +10,8 @@
 // editing should use docField('value') instead of a plain state field.
 //
 // Behavior summary:
-//   - read:     RgaDoc → string via rgaText() (handles plain string for pre-init)
-//   - write:    computes splice delta from old text → new text via computeSplice()
+//   - read:     RgaDoc -> string via rgaText() (handles plain string for pre-init)
+//   - write:    computes splice delta from old text -> new text via computeSplice()
 //   - reduce:   applies rgaSplice + compaction, auto-inits RgaDoc on first edit
 //   - display:  same as read (both produce a string)
 //   - equality: referential (each rgaSplice produces a new object; no-ops don't)
@@ -26,11 +26,11 @@
 // all ops are local, so the version vector shows everything is seen and
 // tombstones can be garbage-collected right away.
 //
-import { scopes } from '../scopes';
-import { rgaCreate, rgaInsert, rgaSplice, rgaText, rgaCompact, rgaVersionVector } from '../../crdt/rga';
-import { computeSplice } from '../../crdt/computeSplice';
-import { getActorId } from '../../crdt/actorId';
-import type { FieldInfo, FieldName, FieldEvent, WriteResult } from '../../types';
+import { scopes } from '../../scopes';
+import { rgaCreate, rgaInsert, rgaSplice, rgaText, rgaCompact, rgaVersionVector } from '../../../crdt/rga';
+import { computeSplice } from '../../../crdt/computeSplice';
+import { getActorId } from '../../../crdt/actorId';
+import type { FieldInfo, FieldName, FieldEvent, WriteResult } from '../../../types';
 
 /**
  * CRDT document field — stores an RgaDoc in Redux, materializes to string.
@@ -38,6 +38,7 @@ import type { FieldInfo, FieldName, FieldEvent, WriteResult } from '../../types'
 export function docField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
   return {
     type: 'field',
+    kind: 'doc',
     name: name as FieldName,
     events: ['SPLICE_INPUT' as FieldEvent],
     event: 'SPLICE_INPUT',

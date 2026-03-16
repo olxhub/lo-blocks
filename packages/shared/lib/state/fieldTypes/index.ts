@@ -1,24 +1,37 @@
 // lib/state/fieldTypes/index.ts
 //
-// Field type constructors — create FieldInfo objects with type-specific behavior.
+// Switch between classic (main-branch) and CRDT field implementations.
 //
-// Every field is a complete behavioral bundle: read, write, reduce, display,
-// equality, events. Block authors write the minimal form:
-//   fields: [docField('value'), 'readonly']
-// and the constructors fill in all behaviors. Bare strings like 'readonly'
-// produce state fields (LWW register) automatically via stateField().
+// Classic: values stored bare, spread-based reducer, no timestamps.
+//   Only stateField — docField and setField don't exist on main.
 //
-// Available field types:
-//   stateField — LWW register. The default. See stateField.ts.
-//   docField   — RGA CRDT for collaborative text. See docField.ts.
-//   setField   — LWW-element set. See setField.ts.
+// CRDT: LWW/RGA conflict resolution, delta encoding, field-level reducers.
+//   stateField (LWW), docField (RGA), setField (LWW-element set).
 //
-// Future types: counterField (PN-Counter).
-// To add a new type, see stateField.ts for the pattern.
+// Default: classic (battle-tested production behavior from main).
+// To enable CRDTs: change to `export * from './crdt'`
 //
-export { stateField, stateField as plainField } from './stateField';
-export { docField } from './docField';
-export { setField } from './setField';
+// How it works:
+//   - fields.ts imports stateField from here — gets whichever is active
+//   - updateField checks field.write — CRDT fields produce delta events,
+//     classic fields fall through to simple { [fieldName]: newValue } dispatch
+//   - useFieldSelector checks field.read — CRDT fields decode, classic returns raw
+//   - store.ts reducer: field.reduce when present, legacy-spread when absent
+//
+// Classic fields (no write/reduce/read) work correctly with the current
+// infrastructure because every code path has a fallback for when those
+// properties are absent.
+//
+
+// ---------------------------------------------------------------------------
+// Active field type strategy (change this one line to switch)
+// ---------------------------------------------------------------------------
+export * from './classic';
+// export * from './crdt';
+
+// ---------------------------------------------------------------------------
+// Always available regardless of strategy
+// ---------------------------------------------------------------------------
 export { fieldNameToDefaultEventName } from './shared';
 export { immediate, debounce, throttle, aggregate, custom } from './batching';
 export type { BatchingStrategy } from './batching';

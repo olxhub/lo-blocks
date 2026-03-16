@@ -1,6 +1,6 @@
 // @vitest-environment node
-// lib/state/fieldTypes/setField.test.ts
-import { setField } from './setField';
+// lib/state/fieldTypes/crdt/set.test.ts
+import { setField } from './set';
 
 describe('setField', () => {
   describe('constructor', () => {

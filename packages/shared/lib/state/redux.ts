@@ -65,6 +65,10 @@ import { computeSplice } from '../crdt/computeSplice';
 import { getActorId } from '../crdt/actorId';
 
 
+// =============================================================================
+// Selectors
+// =============================================================================
+
 // Options for fieldSelector and friends.
 // reduxKey overrides which component's state to access (cross-component access).
 // If omitted, the component's own key is resolved from props.
@@ -213,6 +217,41 @@ export const useFieldSelector = <T>(
 };
 
 
+// =============================================================================
+// Dispatch infrastructure
+// =============================================================================
+
+/**
+ * Dispatch a single event with infrastructure fields (scope, id, tag) resolved.
+ *
+ * Shared by updateField (which may produce multiple events via field.write)
+ * and vertical-slice hooks like useSet (which dispatch individual events).
+ *
+ * Eliminates the duplicated scope/id/tag/logEvent resolution that was in
+ * both updateField and useSet.
+ */
+export function dispatchFieldEvent(
+  props: BaselineProps | null,
+  field: FieldInfo,
+  eventType: string,
+  payload: Record<string, any>,
+  { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
+) {
+  const scope = field.scope;
+  const resolvedKey = (scope === scopes.component || scope === scopes.storage)
+    ? (reduxKey ?? idResolver.refToReduxKey(props as RuntimeProps))
+    : undefined;
+  const resolvedTag = tag ?? (props as RuntimeProps)?.loBlock?.name;
+  const logEvent = props ? props.runtime.logEvent : lo_event.logEvent;
+
+  logEvent(eventType, {
+    scope,
+    ...(scope === scopes.component || scope === scopes.storage ? { id: resolvedKey } : {}),
+    ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {}),
+    ...payload,
+  });
+}
+
 // Accepts BaselineProps (system scope) or RuntimeProps (component/storage scope).
 // Polymorphic: branches on field.scope to access different properties.
 // TODO: Consider splitting into updateSystemField / updateComponentField for type safety.
@@ -223,21 +262,6 @@ export function updateField(
   { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
 ) {
   assertValidField(field);
-  const scope = field.scope;
-  const fieldName = field.name;
-  // Use explicit reduxKey (cross-component access) or resolve from props.
-  const resolvedKey = (scope === scopes.component || scope === scopes.storage)
-    ? (reduxKey ?? idResolver.refToReduxKey(props as RuntimeProps))
-    : undefined;
-  const resolvedTag = tag ?? (props as RuntimeProps)?.loBlock?.name;
-  const logEvent = props ? props.runtime.logEvent : lo_event.logEvent;
-
-  // Infrastructure fields added to every event payload
-  const infra = {
-    scope,
-    ...(scope === scopes.component || scope === scopes.storage ? { id: resolvedKey } : {}),
-    ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {}),
-  };
 
   if (field.write) {
     // Field knows how to produce its own events (e.g., docField computes splices)
@@ -245,7 +269,7 @@ export function updateField(
     const oldRaw = fieldSelector(store.getState(), props, field, { reduxKey, tag });
     const results = field.write(oldRaw, newValue);
     for (const { event, payload } of results) {
-      logEvent(event, { ...infra, ...payload });
+      dispatchFieldEvent(props, field, event, payload, { reduxKey, tag });
     }
   } else {
     // Default: single event with { [fieldName]: newValue }
@@ -253,7 +277,7 @@ export function updateField(
     if (field.schema) {
       newValue = field.schema.parse(newValue);
     }
-    logEvent(field.event, { ...infra, [fieldName]: newValue });
+    dispatchFieldEvent(props, field, field.event!, { [field.name]: newValue }, { reduxKey, tag });
   }
 }
 
@@ -282,95 +306,9 @@ export function useFieldState(
 }
 
 
-/**
- * CS-level hook for set fields. Returns an object with the natural Set API:
- * has, add, del, plus the materialized values.
- *
- * This is the primary accessor for setField. It dispatches single SET_ADD /
- * SET_REMOVE events directly — no full-set diff. For bulk set/reset (e.g.,
- * CopyFieldAction), use updateField programmatically.
- *
- * Architecture: inner useFieldSelector drives re-renders on raw state change.
- * The transform (decode + function binding) runs only after the equality gate.
- * Dispatch functions are stable (useRef + useCallback) — they don't cause
- * re-renders in children that receive them as props.
- *
- * @example
- *   const visited = useSet(props, fields.visited);
- *   visited.add('SVD');
- *   visited.del('PCA');
- *   if (visited.has('SVD')) { /* show glossary tab *\/ }
- *   for (const page of visited.values) { ... }
- */
-export function useSet(
-  props: RuntimeProps,
-  field: FieldInfo,
-  { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
-) {
-  if (field.kind && field.kind !== 'set') {
-    throw new Error(
-      `[useSet] Field '${field.name}' has kind '${field.kind}', expected 'set'. ` +
-      `Use the accessor matching the field type.`
-    );
-  }
-  assertValidField(field);
-
-  // Inner hook: raw state → decoded Set<string>. Drives re-renders.
-  const values: Set<string> = useFieldSelector(props, field, { reduxKey, tag, fallback: new Set() });
-
-  // Stable dispatch: resolve infrastructure once per render, bind via ref.
-  const ref = useRef({ props, field, reduxKey, tag });
-  ref.current = { props, field, reduxKey, tag };
-
-  const add = useCallback((element: string) => {
-    const { props, field, reduxKey, tag } = ref.current;
-    const scope = field.scope;
-    const fieldName = field.name;
-    const resolvedKey = (scope === scopes.component || scope === scopes.storage)
-      ? (reduxKey ?? idResolver.refToReduxKey(props))
-      : undefined;
-    const resolvedTag = tag ?? props?.loBlock?.name;
-    const logEvent = props.runtime.logEvent;
-    logEvent('SET_ADD', {
-      scope,
-      ...(resolvedKey ? { id: resolvedKey } : {}),
-      ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {}),
-      field: fieldName,
-      element,
-      ts: Date.now(),
-      actor: getActorId(),
-    });
-  }, []);
-
-  const del = useCallback((element: string) => {
-    const { props, field, reduxKey, tag } = ref.current;
-    const scope = field.scope;
-    const fieldName = field.name;
-    const resolvedKey = (scope === scopes.component || scope === scopes.storage)
-      ? (reduxKey ?? idResolver.refToReduxKey(props))
-      : undefined;
-    const resolvedTag = tag ?? props?.loBlock?.name;
-    const logEvent = props.runtime.logEvent;
-    logEvent('SET_REMOVE', {
-      scope,
-      ...(resolvedKey ? { id: resolvedKey } : {}),
-      ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {}),
-      field: fieldName,
-      element,
-      ts: Date.now(),
-      actor: getActorId(),
-    });
-  }, []);
-
-  return {
-    values,
-    size: values.size,
-    has: (element: string) => values.has(element),
-    add,
-    del,
-  };
-}
-
+// =============================================================================
+// Aggregation hooks
+// =============================================================================
 
 type ReduxAggregateOptions<T, R = any> = {
   fallback?: T;
@@ -413,9 +351,9 @@ export function useAggregate<T = any, R = any>(
 }
 
 
-/*
- * Helpers for component types.
- */
+// =============================================================================
+// UI binding hooks (future: migrate to bindings/)
+// =============================================================================
 
 type ReduxInputOptions = {
   updateValidator?: (val: string) => boolean;
@@ -504,11 +442,15 @@ export function useReduxInput(
 
 
 /**
- * CRDT-backed text field hook. Same interface as useReduxInput but dispatches
+ * CRDT-backed text field binding. Same interface as useReduxInput but dispatches
  * small splice deltas (SPLICE_INPUT) instead of full text (UPDATE_INPUT).
  * Stores an RgaDoc in Redux; materializes text via rgaText() for rendering.
+ *
+ * @deprecated Use useInputField (from bindings/) with a docField instead.
+ * This is the legacy CRDT binding that bypasses the field's write/reduce.
+ * Kept during migration — will be removed once all callers use useInputField.
  */
-export function useDocField(
+export function useDocFieldLegacy(
   props: RuntimeProps,
   field: FieldInfo,
   fallback = '',

@@ -8,6 +8,7 @@ import { DisplayError } from '@/lib/util/debug';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import ExpandIcon from '@/components/common/ExpandIcon';
+import Notice from '@/components/common/Notice';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
 import { fetchActivities } from '@/lib/content/fetchOlxJson';
@@ -310,6 +311,9 @@ function Sidebar() {
             ))}
           </div>
         )}
+      </div>
+      <div className="mt-auto p-3 border-t border-gray-200 text-[10px] text-gray-400 leading-tight">
+        <Notice />
       </div>
     </aside>
   );

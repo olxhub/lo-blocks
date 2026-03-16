@@ -1,6 +1,6 @@
-// lib/state/fieldTypes/stateField.ts
+// lib/state/fieldTypes/crdt/state.ts
 //
-// State field — the default field type for block state.
+// State field — the default field type for block state, with LWW conflict resolution.
 //
 // This file is an advertisement for how to create new field types. A field
 // type is a thin wrapper around a CRDT algorithm: it assembles a FieldInfo
@@ -18,11 +18,12 @@
 //
 // To create a new field type:
 //   1. Implement the CRDT in lib/crdt/ (write, reduce, display, merge)
-//   2. Create a new file in this directory (fieldTypes/)
+//   2. Create a new file in this directory (fieldTypes/crdt/)
 //   3. Export a constructor that assembles FieldInfo from the CRDT primitives
-//   4. Add the export to fieldTypes/index.ts
+//   4. Add the export to crdt/index.ts
 //
-// See also: docField.ts (collaborative text via RGA CRDT)
+// See also: doc.ts (collaborative text via RGA CRDT)
+//           set.ts (add/remove set via LWW-element CRDT)
 //
 // Behavior summary:
 //   - read:     identity (value stored bare, no unwrapping needed)
@@ -32,16 +33,17 @@
 //   - equality: referential (Object.is)
 //   - events:   UPDATE_{NAME} (single event, derived from field name)
 //
-import { scopes } from '../scopes';
-import { lwwWrite, lwwReduce, defaultDisplay } from '../../crdt/lww';
-import { fieldNameToDefaultEventName } from './shared';
-import type { FieldInfo, FieldName, FieldEvent } from '../../types';
+import { scopes } from '../../scopes';
+import { lwwWrite, lwwReduce, defaultDisplay } from '../../../crdt/lww';
+import { fieldNameToDefaultEventName } from '../shared';
+import type { FieldInfo, FieldName, FieldEvent } from '../../../types';
 
 /**
- * State field — the default field type.
+ * State field — the default CRDT field type.
  *
  * Creates a last-writer-wins register: value + timestamp + actor.
- * This is what `fields(['value'])` and `commonFields.value` produce.
+ * This is what `fields(['value'])` and `commonFields.value` produce
+ * when the CRDT barrel is active.
  * For collaborative text, use docField() instead.
  */
 export function stateField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
@@ -51,6 +53,7 @@ export function stateField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
   const event = events[0];
   return {
     type: 'field',
+    kind: 'state',
     name: name as FieldName,
     events,
     event: event as string,

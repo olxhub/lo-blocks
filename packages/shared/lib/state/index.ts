@@ -22,3 +22,22 @@ export * from './blockData';
 export * from './redux';
 export * from './store';
 export * from './olxjson';
+
+// ---------------------------------------------------------------------------
+// Data structure hooks (loaded after redux to break circular dependency)
+// ---------------------------------------------------------------------------
+// These import from redux.ts, so they can't be in the fieldTypes barrel
+// (fieldTypes → redux → fields → fieldTypes cycle). Listed here after
+// redux.ts is fully loaded.
+//
+// Switch: classic/ (thin wrappers around useFieldState)
+//         crdt/ (per-element events, CRDT-aware)
+export { useSet } from './fieldTypes/classic/useSet';
+// export { useSet } from './fieldTypes/crdt/set';
+export { useDocField } from './fieldTypes/classic/useDocField';
+// export { useDocField } from './fieldTypes/crdt/useDocField';
+
+// ---------------------------------------------------------------------------
+// UI bindings (wire data structures to DOM elements)
+// ---------------------------------------------------------------------------
+export * from './bindings';

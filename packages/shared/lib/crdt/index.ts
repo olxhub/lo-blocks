@@ -7,3 +7,5 @@ export type { RgaDoc, Op, DeleteOp, OpId, VersionVector, SpliceParams } from './
 export { computeSplice } from './computeSplice';
 export { getActorId } from './actorId';
 export { lwwWrite, lwwReduce, defaultDisplay } from './lww';
+export { setRead, setDisplay, setWrite, setReduce } from './set';
+export type { ElementMeta, SetDoc } from './set';

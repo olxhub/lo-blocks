@@ -28,6 +28,7 @@ import { useBaselineProps } from '@/components/common/RenderOLX';
 import { baseAttributes, inputMixin, graderMixin } from '@/lib/blocks/attributeSchemas';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import ExpandIcon from '@/components/common/ExpandIcon';
+import Notice from '@/components/common/Notice';
 import { CATEGORY_ORDER, getCategory, groupBlocksByCategory } from '@/lib/docs/categoryUtils';
 
 // Shared attribute sets for documentation display.
@@ -1060,6 +1061,9 @@ export default function DocsPage() {
                   loading={loadingDetails}
                   isGrammar={selectedIsGrammar}
                 />
+                <div className="mt-8 pt-4 border-t border-gray-200 text-[10px] text-gray-400 leading-tight">
+                  <Notice />
+                </div>
               </div>
             </>
           ) : (

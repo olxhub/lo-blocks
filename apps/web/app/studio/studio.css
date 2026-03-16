@@ -609,6 +609,9 @@
 
 /* Footer */
 .studio-footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   padding: 8px 16px;
   background: #161b22;
   border-top: 1px solid #30363d;
@@ -626,8 +629,15 @@
   margin-inline-end: 4px;
 }
 
+.studio-footer .lo-notice {
+  margin-inline-start: auto;
+}
+
+.studio-footer .lo-notice a {
+  color: #a0aec0;
+}
+
 .studio-debug-toggle {
-  float: inline-end;
   cursor: pointer;
   color: #6e7681;
   font-size: 11px;

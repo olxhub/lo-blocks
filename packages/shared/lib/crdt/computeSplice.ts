@@ -1,3 +1,17 @@
+// lib/crdt/computeSplice.ts
+//
+// Minimal splice computation — diff two strings into a single splice operation.
+//
+// Used by docField to convert textarea onChange (full text replacement) into
+// a precise (index, deleteCount, inserted) delta for the RGA CRDT. This
+// keeps the event payload small and enables character-level collaborative editing.
+//
+// Algorithm: common-prefix + common-suffix diffing. O(n) in string length.
+// Sufficient for single-user edits where changes are localized. For multi-cursor
+// or paste-over-selection scenarios, a more sophisticated diff (Myers, patience)
+// could produce better results, but this handles all practical cases.
+//
+
 /**
  * Computes the minimal splice from oldStr to newStr using
  * common-prefix + common-suffix diffing. O(n) in string length.

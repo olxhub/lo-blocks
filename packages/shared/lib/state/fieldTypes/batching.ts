@@ -1,5 +1,12 @@
 // lib/state/fieldTypes/batching.ts
 //
+// STATUS: Prototype — API is a first attempt, implementations are
+// placeholders.  The built-in factories (immediate, debounce,
+// throttle, aggregate) define the correct types and interfaces, but
+// their logAggregator implementations are simplified. Real
+// timer-based batching requires integration with the logger's event
+// loop, which hasn't been built yet.
+//
 // Batching strategies for field events.
 //
 // Batching controls how events are delivered to lo_event loggers (websocket,
