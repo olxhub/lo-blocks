@@ -311,7 +311,11 @@ export function grader({ grader, infer = true, slots, inputType }: {
                              correctnessValue !== correctness.invalid;
     const submitCount = (currentState.submitCount || 0) + (isRealSubmission ? 1 : 0);
 
-    // Log the result (respects replay mode where logEvent is a no-op)
+    // HACK: This sends a compound event with multiple data properties, but only
+    // `correct` is a declared CRDT field. The extras (submitCount, score, message,
+    // answers) are spread as plain values in the reducer, gated by `correct`'s LWW
+    // timestamp for consistency. This should be replaced with a CRDT dictionary
+    // (or per-field events) so all properties get proper conflict resolution.
     const logEvent = props.runtime.logEvent;
     logEvent('UPDATE_CORRECT', {
       id: scopedTargetId,
