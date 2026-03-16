@@ -64,7 +64,7 @@ async function bedrockCall(config: LLMProfileConfig, messages: Message[]): Promi
 
   const body = {
     anthropic_version: 'bedrock-2023-05-31',
-    max_tokens: config.maxTokens,
+    max_completion_tokens: config.maxTokens,
     messages: anthropicMessages,
     ...(system && { system }),
   };
@@ -78,7 +78,7 @@ async function bedrockCall(config: LLMProfileConfig, messages: Message[]): Promi
 
   const response = await client.send(command);
   const result = JSON.parse(new TextDecoder().decode(response.body));
-  const truncated = result.stop_reason === 'max_tokens';
+  const truncated = result.stop_reason === 'max_completion_tokens';
   const textParts = result.content?.filter((c: any) => c.type === 'text') || [];
   return { text: textParts.map((t: any) => t.text).join(''), truncated };
 }
@@ -92,7 +92,7 @@ async function openaiCall(config: LLMProfileConfig, messages: Message[]): Promis
   const response = await fetch(`${OPENAI_BASE_URL}chat/completions`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ model: OPENAI_MODEL, messages, max_tokens: config.maxTokens }),
+    body: JSON.stringify({ model: OPENAI_MODEL, messages, max_completion_tokens: config.maxTokens }),
   });
 
   if (!response.ok) {
@@ -114,7 +114,7 @@ async function azureCall(config: LLMProfileConfig, messages: Message[]): Promise
       'api-key': AZURE_API_KEY!,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ messages, max_tokens: config.maxTokens }),
+    body: JSON.stringify({ messages, max_completion_tokens: config.maxTokens }),
   });
 
   if (!response.ok) {

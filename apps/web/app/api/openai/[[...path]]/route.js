@@ -3,7 +3,7 @@
 // Proxy for chat completions. Client sends OpenAI format, server routes to configured provider.
 // See docs/llm-setup.md for configuration.
 //
-// Clients may send a `profile` field (e.g., 'interactive') instead of raw `max_tokens`.
+// Clients may send a `profile` field (e.g., 'interactive') instead of raw `max_completion_tokens`.
 // The server resolves the profile to concrete parameters. If neither is provided,
 // defaults to the 'interactive' profile.
 
@@ -34,15 +34,15 @@ export async function POST(request) {
 
   const body = await request.json();
 
-  // Resolve profile to max_tokens if not explicitly set.
-  // Client can send { profile: 'interactive' } instead of { max_tokens: 4096 }.
-  if (!body.max_tokens && !body.profile) {
+  // Resolve profile to max_completion_tokens if not explicitly set.
+  // Client can send { profile: 'interactive' } instead of { max_completion_tokens: 4096 }.
+  if (!body.max_completion_tokens && !body.profile) {
     body.profile = 'interactive';
   }
   if (body.profile) {
     try {
       const config = resolveProfile(body.profile);
-      body.max_tokens = body.max_tokens || config.maxTokens;
+      body.max_completion_tokens = body.max_completion_tokens || config.maxTokens;
     } catch (err) {
       return NextResponse.json({ error: err.message }, { status: 400 });
     }
@@ -74,7 +74,7 @@ async function bedrockResponse(body) {
 
   const bedrockBody = {
     anthropic_version: 'bedrock-2023-05-31',
-    max_tokens: body.max_tokens || 4096,
+    max_completion_tokens: body.max_completion_tokens || 4096,
     messages,
     ...(system && { system }),
   };
