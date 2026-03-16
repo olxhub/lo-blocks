@@ -2,9 +2,13 @@
 //
 // Classic useSet — thin wrapper around useFieldState.
 //
-// Whole-set replacement: add('X') constructs a new Set and replaces
+// Whole-set replacement: add('X') constructs a new array and replaces
 // the entire value. No per-element events, no timestamps. Concurrent
 // edits clobber each other (last writer wins on the whole set).
+//
+// Storage: plain JSON array in Redux (e.g., ['SVD', 'PCA']).
+// Consumer API: Set<string> for convenience.
+// The hook converts between the two at the boundary.
 //
 // Separated from set.ts to break the circular dependency:
 // fieldTypes/index → redux → fields → fieldTypes.
@@ -18,8 +22,16 @@ import { useFieldState } from '../../redux';
 import { assertValidField } from '../../fields';
 import type { FieldInfo, RuntimeProps, ReduxStateKey } from '../../../types';
 
+/** Convert whatever is in Redux to a Set<string>. */
+function toSet(raw: any): Set<string> {
+  if (Array.isArray(raw)) return new Set(raw);
+  return new Set();
+}
+
 /**
  * Classic useSet — thin wrapper around useFieldState.
+ *
+ * Stores an array in Redux, exposes a Set API to consumers.
  */
 export function useSet(
   props: RuntimeProps,
@@ -34,8 +46,8 @@ export function useSet(
   }
   assertValidField(field);
 
-  const [value, setValue] = useFieldState(props, field, new Set(), { reduxKey, tag });
-  const values: Set<string> = value instanceof Set ? value : new Set();
+  const [raw, setRaw] = useFieldState(props, field, [], { reduxKey, tag });
+  const values = toSet(raw);
 
   const ref = useRef(values);
   ref.current = values;
@@ -43,18 +55,16 @@ export function useSet(
   const add = useCallback((element: string) => {
     const current = ref.current;
     if (!current.has(element)) {
-      setValue(new Set([...current, element]));
+      setRaw([...current, element]);
     }
-  }, [setValue]);
+  }, [setRaw]);
 
   const del = useCallback((element: string) => {
     const current = ref.current;
     if (current.has(element)) {
-      const next = new Set(current);
-      next.delete(element);
-      setValue(next);
+      setRaw([...current].filter(e => e !== element));
     }
-  }, [setValue]);
+  }, [setRaw]);
 
   return {
     values,
