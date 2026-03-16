@@ -290,6 +290,9 @@ export const updateResponseReducer = (state = initialState, action) => {
 type ExtraFieldsParam = Fields | (FieldInfo | string)[];
 
 function collectEventTypes(extraFields: ExtraFieldsParam = []) {
+  // Clear stale entries from previous init (tests, HMR)
+  _fieldReducers.clear();
+
   // Extract FieldInfo objects from either array or object form
   const fieldList = Array.isArray(extraFields)
     ? extraFields

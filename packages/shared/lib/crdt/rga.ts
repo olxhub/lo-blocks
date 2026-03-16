@@ -241,11 +241,11 @@ export function rgaApplyRemoteOps(doc: RgaDoc, remoteOps: Op[]): RgaDoc {
 
   for (const remoteOp of remoteOps) {
     // Idempotent: skip if already present
-    if (findOpIndex(ops, remoteOp.id) !== -1) {
+    const existingIdx = findOpIndex(ops, remoteOp.id);
+    if (existingIdx !== -1) {
       // But update deleted status (delete wins)
       if (remoteOp.deleted) {
-        const idx = findOpIndex(ops, remoteOp.id);
-        ops[idx] = { ...ops[idx], deleted: true };
+        ops[existingIdx] = { ...ops[existingIdx], deleted: true };
       }
       continue;
     }
@@ -257,8 +257,9 @@ export function rgaApplyRemoteOps(doc: RgaDoc, remoteOps: Op[]): RgaDoc {
     } else {
       const afterIdx = findOpIndex(ops, remoteOp.after);
       if (afterIdx === -1) {
-        // Missing dependency — in a full implementation we'd buffer this.
-        // For the PoC, append at end (ops will be reordered on next merge).
+        // Missing dependency — append at end. This only happens in multi-peer
+        // scenarios with out-of-order delivery, which we don't support yet.
+        // TODO: Buffer out-of-order ops and retry after their dependencies arrive.
         insertAt = ops.length;
       } else {
         insertAt = afterIdx + 1;

@@ -91,7 +91,8 @@ export function docField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
       if (selectionEnd !== undefined) patch[`${fieldName}.selectionEnd`] = selectionEnd;
       return patch;
     },
-    equality: Object.is,
-    ...opts,
+    equality: opts?.equality ?? Object.is,
+    ...(opts?.schema ? { schema: opts.schema } : {}),
+    ...(opts?.batching ? { batching: opts.batching } : {}),
   };
 }

@@ -1,7 +1,7 @@
 Learning Observer Blocks
 ========================
 
-**Learning Blocks** is a modular, extensible runtime for delivering rich, interactive learning and assessment experiences. It’s part of the [Learning Observer](https://github.com/ETS-Next-Gen/writing_observer) project — a flexible, open, and inspectable platform for learning analytics, course delivery, and authoring.
+**Learning Blocks** is a modular, extensible runtime for delivering rich, interactive learning and assessment experiences. It’s part of the [Learning Observer](https://github.com/ArgLab/writing_observer) project — a flexible, open, and inspectable platform for learning analytics, course delivery, assessment and authoring.
 
 This repository implements the **delivery and runtime system**: rendering block-based content, managing learner state, and integrating with powerful analytics and feedback pipelines.
 
@@ -104,12 +104,12 @@ We support much more than above -- we can add other types metadata too which, if
 
 ## 📊 Event Architecture
 
-All interaction flows through [`lo_event`](https://github.com/ETS-Next-Gen/writing_observer/tree/master/modules/lo_event):
+All interaction flows through [`lo_event`](https://github.com/ArgLab/writing_observer/tree/master/modules/lo_event):
 
 - Unified Redux + event dispatcher
 - Time-aware and replayable
 - Supports real-time dashboards, logs, and analytics
-- Hooks into analytics modules such as [`writing_observer`](https://github.com/ETS-Next-Gen/writing_observer)
+- Hooks into analytics modules such as [`writing_observer`](https://github.com/ArgLab/writing_observer)
 
 Because state is managed explicitly through redux, we guarantee the event stream allows a full reconstruction and replay of learner state. It also allows for full introspection and inspection of the system state while debugging.
 
@@ -163,8 +163,6 @@ For testing:
 
 ```bash
 npm run test       # Run all tests
-npm run test:unit  # Unit tests only
-npm run test:ui    # Interactive test UI
 ```
 
 ### Sandboxed Development
@@ -187,7 +185,7 @@ Contributors have also mentioned this does not work on some operating systems; i
 ### Technologies Used
 
 - **Runtime**: [Next.js 15](https://nextjs.org) (React 19)
-- **State management**: [Redux](https://redux.js.org) via [`lo_event`](https://github.com/ETS-Next-Gen/writing_observer/tree/master/modules/lo_event)
+- **State management**: [Redux](https://redux.js.org) via [`lo_event`](https://github.com/ArgLab/writing_observer/tree/master/modules/lo_event)
 - **Styling**: [Tailwind CSS 4](https://tailwindcss.com)
 - **XML parsing**: [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser)
 - **Testing**: [Vitest](https://vitest.dev)

@@ -22,6 +22,8 @@ import type { FieldInfo, RuntimeProps, ReduxStateKey } from '../../../types';
 // Re-export constructor from cycle-safe module
 export { setField } from './setConstructor';
 
+const EMPTY_SET: Set<string> = new Set();
+
 /**
  * CRDT useSet — dispatches individual SET_ADD / SET_REMOVE events.
  *
@@ -47,7 +49,7 @@ export function useSet(
   }
   assertValidField(field);
 
-  const values: Set<string> = useFieldSelector(props, field, { reduxKey, tag, fallback: new Set() });
+  const values: Set<string> = useFieldSelector(props, field, { reduxKey, tag, fallback: EMPTY_SET });
 
   const ref = useRef({ props, field, reduxKey, tag });
   ref.current = { props, field, reduxKey, tag };

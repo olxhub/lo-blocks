@@ -151,26 +151,16 @@ function replayStep(events: LoggedEvent[]) {
 
     console.log(`[${i}/${events.length}] ${event!.event}${extra}`);
 
-    // Show what changed
+    // Show what changed — diffStates covers all scopes
     const changes: string[] = [];
-    for (const id of diff.component.added) changes.push(`  + component.${id}: ${JSON.stringify(state.component[id])}`);
-    for (const id of diff.component.changed) changes.push(`  ~ component.${id}: ${JSON.stringify(state.component[id])}`);
-    for (const id of diff.component.removed) changes.push(`  - component.${id}`);
+    for (const scope of ['component', 'storage', 'componentSetting'] as const) {
+      const scopeDiff = diff[scope];
+      const scopeState = state[scope] ?? {};
+      for (const id of scopeDiff.added) changes.push(`  + ${scope}.${id}: ${JSON.stringify(scopeState[id])}`);
+      for (const id of scopeDiff.changed) changes.push(`  ~ ${scope}.${id}: ${JSON.stringify(scopeState[id])}`);
+      for (const id of scopeDiff.removed) changes.push(`  - ${scope}.${id}`);
+    }
     for (const key of diff.system.changed) changes.push(`  ~ system.${key}: ${JSON.stringify(state.system[key])}`);
-
-    // diffStates doesn't cover storage/componentSetting — add those
-    const prevStorage = prev.storage ?? {};
-    const curStorage = state.storage ?? {};
-    for (const id of Object.keys(curStorage)) {
-      if (!prevStorage[id]) {
-        changes.push(`  + storage.${id}: ${JSON.stringify(curStorage[id])}`);
-      } else if (JSON.stringify(prevStorage[id]) !== JSON.stringify(curStorage[id])) {
-        changes.push(`  ~ storage.${id}: ${JSON.stringify(curStorage[id])}`);
-      }
-    }
-    for (const id of Object.keys(prevStorage)) {
-      if (!curStorage[id]) changes.push(`  - storage.${id}`);
-    }
 
     if (changes.length > 0) {
       for (const c of changes) console.log(c);

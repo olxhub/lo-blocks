@@ -2,14 +2,12 @@
 //
 // Switch between classic (main-branch) and CRDT field implementations.
 //
-// Classic: values stored bare, spread-based reducer, no timestamps.
-//   Only stateField — docField and setField don't exist on main.
+// Controlled by the LO_FIELD_STRATEGY environment variable:
+//   LO_FIELD_STRATEGY=crdt    → LWW/RGA conflict resolution, delta encoding
+//   LO_FIELD_STRATEGY=classic → bare values, spread-based reducer (default)
 //
-// CRDT: LWW/RGA conflict resolution, delta encoding, field-level reducers.
-//   stateField (LWW), docField (RGA), setField (LWW-element set).
-//
-// Default: classic (battle-tested production behavior from main).
-// To enable CRDTs: change to `export * from './crdt'`
+// This is the single source of truth for the field strategy. The hook
+// switch in state/index.ts reads the same variable.
 //
 // How it works:
 //   - fields.ts imports stateField from here — gets whichever is active
@@ -23,11 +21,24 @@
 // properties are absent.
 //
 
+import * as classic from './classic';
+import * as crdt from './crdt';
+
 // ---------------------------------------------------------------------------
-// Active field type strategy (change this one line to switch)
+// Active field type strategy
 // ---------------------------------------------------------------------------
-export * from './classic';
-// export * from './crdt';
+// Env var checked at module load time. Default: classic.
+// Set LO_FIELD_STRATEGY=crdt to enable CRDT field types.
+export const LO_FIELD_STRATEGY: 'classic' | 'crdt' = (
+  (typeof process !== 'undefined' ? process.env?.LO_FIELD_STRATEGY : undefined) as any
+) ?? 'classic';
+
+const active = LO_FIELD_STRATEGY === 'crdt' ? crdt : classic;
+
+export const stateField = active.stateField;
+export const plainField = active.plainField;
+export const docField = active.docField;
+export const setField = active.setField;
 
 // ---------------------------------------------------------------------------
 // Always available regardless of strategy

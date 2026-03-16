@@ -258,6 +258,11 @@ export function updateField(
 ) {
   assertValidField(field);
 
+  // Schema validation runs before write — coerce/validate regardless of field type.
+  if (field.schema) {
+    newValue = field.schema.parse(newValue);
+  }
+
   if (field.write) {
     // Field knows how to produce its own events (e.g., docField computes splices)
     const store = props?.runtime?.store ?? getReduxStoreInstance();
@@ -272,10 +277,6 @@ export function updateField(
     }
   } else {
     // Default: single event with { [fieldName]: newValue }
-    // Validate/coerce value against field schema if defined.
-    if (field.schema) {
-      newValue = field.schema.parse(newValue);
-    }
     dispatchFieldEvent(props, field, field.event!, { [field.name]: newValue, ...extraPayload }, { reduxKey, tag });
   }
 }
