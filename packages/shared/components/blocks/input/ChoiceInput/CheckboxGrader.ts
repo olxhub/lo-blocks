@@ -72,6 +72,12 @@ function gradeCheckboxes(selected, choices, options: { partialCredit?: boolean }
 }
 
 function gradeCheckboxSelected(props, { input, inputApi }) {
+  if (typeof input === 'string') {
+    return {
+      correct: correctness.invalid,
+      message: 'CheckboxGrader is for multi-select (CheckboxInput). For single-select, use KeyGrader instead.',
+    };
+  }
   const selected = input ?? [];
   const choices = inputApi.getChoices();
   const partialCredit = props.partialCredit === true || props.partialCredit === 'true';
@@ -129,6 +135,16 @@ const CheckboxGrader = blocks.test({
   fields,
   getDisplayAnswer: getCheckboxDisplayAnswer,
   attributes: checkboxGraderAttributes,
+  validateChildren: (kids, idMap) => {
+    if (!Array.isArray(kids)) return;
+    for (const kid of kids) {
+      if (kid.type !== 'block') continue;
+      const entry = idMap[kid.id]?.[Object.keys(idMap[kid.id] || {})[0]];
+      if (entry?.tag === 'ChoiceInput') {
+        return ['CheckboxGrader is for multi-select (CheckboxInput), but found ChoiceInput. Use KeyGrader instead.'];
+      }
+    }
+  },
 });
 
 export default CheckboxGrader;

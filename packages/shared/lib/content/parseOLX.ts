@@ -599,6 +599,24 @@ export async function parseOLX(
       errors
     });
 
+    // Structural validation: check children after they are parsed
+    if (Component?.validateChildren) {
+      const entry = idMap[id]?.[currentLang] ?? idMap[id]?.[Object.keys(idMap[id] || {})[0]];
+      const kids = entry?.kids;
+      const childErrors = Component.validateChildren(kids, idMap);
+      if (childErrors && childErrors.length > 0) {
+        const errorList = childErrors.map(e => `  - ${e}`).join('\n');
+        errors.push({
+          type: 'attribute_validation',
+          summary: `Invalid children in <${tag}> in ${provenance.join(', ')}`,
+          file: provenance.join(', '),
+          message: `Invalid children for <${tag} id="${id}">:\n${errorList}`,
+          location: { line: node.line, column: node.column },
+          technical: { tag, id, childErrors }
+        });
+      }
+    }
+
     parsedIds.push(id);
     return { type: 'block', id };
   }

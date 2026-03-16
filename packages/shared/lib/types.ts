@@ -575,6 +575,22 @@ export const BlockBlueprintSchema = z.object({
     .returns(z.array(z.string()).optional())
     .optional(),
   /**
+   * Structural validation for children, called after children are parsed.
+   * Receives the raw kids value (string, array, etc.) and the idMap for
+   * looking up any block by ID (tag, attributes, nested kids, etc.).
+   *
+   * Use for checking grader/input compatibility, required children,
+   * ordering constraints, etc.
+   *
+   * @param kids - The parsed kids value (same shape stored in idMap)
+   * @param idMap - The full parsed content map for resolving block references
+   * @returns Array of error messages, or empty/undefined if valid
+   */
+  validateChildren: z.function()
+    .args(z.any(), z.any())
+    .returns(z.array(z.string()).optional())
+    .optional(),
+  /**
    * Declares that this block requires a parent grader in the hierarchy.
    * When true, render will inject `graderId` into props or show DisplayError if not found.
    */
@@ -655,6 +671,11 @@ export interface LoBlock {
    * Returns array of error messages or undefined if valid.
    */
   validateAttributes?: (attrs: Record<string, any>) => string[] | undefined;
+  /**
+   * Structural validation for children, called after children are parsed.
+   * Receives the raw kids value and a function to look up a block's tag by ID.
+   */
+  validateChildren?: (kids: any, idMap: IdMap) => string[] | undefined;
   /**
    * Declares that this block requires a parent grader in the hierarchy.
    */
