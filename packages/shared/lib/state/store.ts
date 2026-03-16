@@ -80,10 +80,14 @@ export function getReducerStrategy(): ReducerStrategy {
   return _reducerStrategy;
 }
 
-// Field-level reducer registry — maps event type → { reduce, fieldName }.
+// Field-level reducer registry — maps event key → { reduce, fieldName }.
 // Populated during configureStore from block registry fields.
 // When an event comes in and strategy is 'field-level', the main reducer
 // uses this map. When 'legacy-spread', it falls through to the default spread.
+//
+// Two-level lookup: first tries "eventType:fieldName" (disambiguates when
+// multiple fields share an event type, e.g. two docFields both using
+// SPLICE_INPUT). Falls back to bare "eventType" for unique event names.
 type FieldReduceFn = (componentState: Record<string, any>, action: any, fieldName: string) => Record<string, any>;
 type FieldReducerEntry = { reduce: FieldReduceFn; fieldName: string };
 const _fieldReducers = new Map<string, FieldReducerEntry>();
@@ -179,11 +183,14 @@ export const updateResponseReducer = (state = initialState, action) => {
   // Field-level reducers — route events to field.reduce when registered.
   // Fields register their reducers during configureStore (see collectEventTypes).
   // Only active when strategy is 'field-level'; 'legacy-spread' falls through.
-  const fieldReducerEntry = _fieldReducers.get(eventType);
+  //
+  // Two-level lookup: prefer specific "eventType:fieldName" key (disambiguates
+  // shared event types like SPLICE_INPUT across multiple docFields), fall back
+  // to bare "eventType" for unique event names or legacy events without action.field.
+  const fieldReducerEntry = (action.field && _fieldReducers.get(`${eventType}:${action.field}`))
+    || _fieldReducers.get(eventType);
   if (fieldReducerEntry && _reducerStrategy === 'field-level') {
     const { scope = scopes.component, id, tag } = action;
-    // Use action.field if present (new-style events), otherwise fall back
-    // to the registered field name (so UPDATE_CORRECT → 'correct', not 'value')
     const fieldName = action.field ?? fieldReducerEntry.fieldName;
 
     // Scope-aware: read from and write to the correct state bucket,
@@ -300,9 +307,14 @@ function collectEventTypes(extraFields: ExtraFieldsParam = []) {
       const fi = finfo as FieldInfo;
       const events = fi.events ?? (fi.event ? [fi.event] : []);
       componentEventTypes.push(...events);
-      // Register field reducer for each event type
+      // Register field reducer: specific key (event:field) + fallback (event).
+      // Specific key wins at lookup time, so two docFields ('draft', 'notes')
+      // both using SPLICE_INPUT get separate entries via SPLICE_INPUT:draft
+      // and SPLICE_INPUT:notes. The bare SPLICE_INPUT entry is overwritten
+      // but only used when action.field is absent (legacy events).
       if (fi.reduce) {
         for (const event of events) {
+          _fieldReducers.set(`${event}:${fi.name}`, { reduce: fi.reduce, fieldName: fi.name });
           _fieldReducers.set(event, { reduce: fi.reduce, fieldName: fi.name });
         }
       }

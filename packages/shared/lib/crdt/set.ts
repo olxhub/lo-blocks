@@ -121,9 +121,11 @@ export function setReduce(
     : {};
 
   const existing = doc[element];
-  if (existing && existing.ts > ts) return {};  // stale, reject
+  // Reject stale: newer timestamp wins. On tie, higher actor wins.
+  if (existing && existing.ts > ts) return {};
+  if (existing && existing.ts === ts && existing.actor > actor) return {};
 
-  const isAdd = action.type === 'SET_ADD';
+  const isAdd = (action.type || action.event) === 'SET_ADD';
   doc[element] = isAdd
     ? { ts, actor }
     : { ts, actor, removed: true };

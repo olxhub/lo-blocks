@@ -53,9 +53,14 @@ export function lwwReduce(componentState: Record<string, any>, action: any, fiel
   const ts = action.ts ?? Date.now();
   const actor = action.actor ?? getActorId();
 
-  // Reject stale writes (keep newer timestamp)
+  // Reject stale writes: newer timestamp wins.
+  // On tie, higher actor ID wins (deterministic across all peers).
   const existingTs = componentState[`${fieldName}.ts`] ?? 0;
   if (existingTs > ts) return {};
+  if (existingTs === ts) {
+    const existingActor = componentState[`${fieldName}.actor`] ?? '';
+    if (existingActor > actor) return {};
+  }
 
   return {
     [fieldName]: newValue,

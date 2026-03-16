@@ -86,11 +86,10 @@ export function docField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
       doc = rgaSplice(doc, index, deleteCount, inserted);
       doc = rgaCompact(doc, rgaVersionVector(doc));  // Single-user: all ops are seen
 
-      return {
-        [fieldName]: doc,
-        [`${fieldName}.selectionStart`]: selectionStart,
-        [`${fieldName}.selectionEnd`]: selectionEnd,
-      };
+      const patch: Record<string, any> = { [fieldName]: doc };
+      if (selectionStart !== undefined) patch[`${fieldName}.selectionStart`] = selectionStart;
+      if (selectionEnd !== undefined) patch[`${fieldName}.selectionEnd`] = selectionEnd;
+      return patch;
     },
     equality: Object.is,
     ...opts,
