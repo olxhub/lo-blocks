@@ -169,6 +169,8 @@ function createBlock(config: BlueprintInput): LoBlock {
     attributes: effectiveConfig.attributes,
     validateAttributes: effectiveConfig.validateAttributes,
     validateChildren: effectiveConfig.validateChildren,
+    valueSchema: effectiveConfig.valueSchema,
+    inputSchema: effectiveConfig.inputSchema,
     requiresGrader: effectiveConfig.requiresGrader,
     getDisplayAnswer: effectiveConfig.getDisplayAnswer,
     slots: effectiveConfig.slots,

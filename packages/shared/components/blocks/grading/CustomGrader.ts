@@ -293,6 +293,7 @@ const CustomGrader = createGrader({
   base: 'Custom',
   description: 'Grades answers using custom JavaScript code for complex grading logic',
   grader: gradeCode,
+  inputSchema: z.any(),
   inputType: 'list',  // Can handle any number of inputs
   attributes: {
     // target is required since we can't infer inputs from children

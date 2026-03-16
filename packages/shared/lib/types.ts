@@ -591,6 +591,18 @@ export const BlockBlueprintSchema = z.object({
     .returns(z.array(z.string()).optional())
     .optional(),
   /**
+   * Zod schema describing the type of value this input produces.
+   * Used for automatic compatibility checking with graders.
+   * Example: z.string() for ChoiceInput, z.array(z.string()) for CheckboxInput.
+   */
+  valueSchema: z.custom<z.ZodType>().optional(),
+  /**
+   * Zod schema describing the type of input value this grader accepts.
+   * Used for automatic compatibility checking with inputs.
+   * Example: z.string() for KeyGrader, z.array(z.string()) for CheckboxGrader.
+   */
+  inputSchema: z.custom<z.ZodType>().optional(),
+  /**
    * Declares that this block requires a parent grader in the hierarchy.
    * When true, render will inject `graderId` into props or show DisplayError if not found.
    */
@@ -676,6 +688,14 @@ export interface LoBlock {
    * Receives the raw kids value and a function to look up a block's tag by ID.
    */
   validateChildren?: (kids: any, idMap: IdMap) => string[] | undefined;
+  /**
+   * Zod schema describing the type of value this input produces.
+   */
+  valueSchema?: z.ZodType;
+  /**
+   * Zod schema describing the type of input value this grader accepts.
+   */
+  inputSchema?: z.ZodType;
   /**
    * Declares that this block requires a parent grader in the hierarchy.
    */

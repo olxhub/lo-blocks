@@ -4,7 +4,7 @@
 // For single-select (radio buttons), use ChoiceInput instead.
 //
 import { z } from 'zod';
-import { core, getBlockByOLXId, z_reduxStateKeyList } from '@/lib/blocks';
+import { core, input, getBlockByOLXId, z_reduxStateKeyList } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
@@ -39,7 +39,7 @@ function getChoices(props: RuntimeProps, state, id) {
 const CheckboxInput = core({
   ...parsers.blocks(),
   name: 'CheckboxInput',
-  isInput: true,
+  ...input({ valueSchema: z.array(z.string()) }),
   description: 'Multi-select checkbox input collecting student selections from Key/Distractor options. Value is an array.',
   component: _Noop,
   fields,

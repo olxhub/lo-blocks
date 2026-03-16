@@ -16,12 +16,6 @@ import { correctness } from '@/lib/blocks/correctness';
 export const fields = state.fields(['correct', 'message']);
 
 function gradeKeySelected(props, { input, inputApi }) {
-  if (Array.isArray(input)) {
-    return {
-      correct: correctness.invalid,
-      message: 'KeyGrader is for single-select (ChoiceInput). For checkboxes, use CheckboxGrader instead.',
-    };
-  }
   const selected = input ?? '';
   if (!selected) return { correct: correctness.unsubmitted, message: '' };
   const choices = inputApi.getChoices();
@@ -76,21 +70,12 @@ const KeyGrader = blocks.test({
   component: _Noop,
   fields,
   getDisplayAnswer: getKeyDisplayAnswer,
+  inputSchema: z.string(),
   attributes: baseAttributes.extend({
     target: z_reduxStateKey.optional().describe('ID of the ChoiceInput to grade; infers from children if omitted'),
     answer: z.string().optional().describe('Correct answer value (alternative to using Key/Distractor)'),
     displayAnswer: z.string().optional().describe('Answer text to display when showing answers'),
   }),
-  validateChildren: (kids, idMap) => {
-    if (!Array.isArray(kids)) return;
-    for (const kid of kids) {
-      if (kid.type !== 'block') continue;
-      const entry = idMap[kid.id]?.[Object.keys(idMap[kid.id] || {})[0]];
-      if (entry?.tag === 'CheckboxInput') {
-        return ['KeyGrader is for single-select (ChoiceInput), but found CheckboxInput. Use CheckboxGrader instead.'];
-      }
-    }
-  },
 });
 
 export default KeyGrader;

@@ -869,7 +869,7 @@ Below are some intervention ideas. Select the ones that address **escape** as th
 
     <CapaProblem id="antecedent_strategies" title="Antecedent Strategies">
       <Markdown>Select all antecedent strategies that address escape-maintained behavior:</Markdown>
-      <KeyGrader>
+      <CheckboxGrader>
         <CheckboxInput>
           <Distractor id="ant_d1">Use sensory-friendly relaxation techniques before bed</Distractor>
           <Key id="ant_k1">Create a predictable bedtime routine to make bedtime more manageable and less aversive</Key>
@@ -878,7 +878,7 @@ Below are some intervention ideas. Select the ones that address **escape** as th
           <Distractor id="ant_d3">Give the child a stuffed animal before they get into bed</Distractor>
           <Distractor id="ant_d4">Have the child engage in yoga right before bedtime</Distractor>
         </CheckboxInput>
-      </KeyGrader>
+      </CheckboxGrader>
     </CapaProblem>
   </Vertical>
   
@@ -891,7 +891,7 @@ Below are some intervention ideas. Select the ones that address **escape** as th
     </Markdown>
     <CapaProblem id="consequence_strategies" title="Consequence Strategies">
       <Markdown>Select all consequence strategies that address escape-maintained behavior:</Markdown>
-      <KeyGrader>
+      <CheckboxGrader>
         <CheckboxInput>
           <Distractor id="con_d1">Provide extra attention during bedtime refusal behaviors</Distractor>
           <Key id="con_k1">Teach the child to use a "bedtime pass" - allowed to ask to stay up one more minute past bedtime once per week</Key>
@@ -900,7 +900,7 @@ Below are some intervention ideas. Select the ones that address **escape** as th
           <Key id="con_k2">Ignore behaviors such as whining that serve to delay bedtime</Key>
           <Distractor id="con_d4">Track sensory triggers that relate to bedtime challenges</Distractor>
         </CheckboxInput>
-      </KeyGrader>
+      </CheckboxGrader>
     </CapaProblem>
   </Vertical>
 
