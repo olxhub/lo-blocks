@@ -328,6 +328,12 @@ export interface FieldInfo {
   type: 'field';
   name: FieldName;
 
+  /** Field type discriminator — determines which hook is the primary accessor.
+   *  'state' → useFieldState, 'set' → useSet, 'doc' → useDoc (future).
+   *  Type-specific hooks validate this and throw on mismatch.
+   *  Absent for legacy/custom fields (no validation). */
+  kind?: 'state' | 'set' | 'doc';
+
   /** Event types this field dispatches. A plain field has one (e.g. UPDATE_VALUE).
    *  A CRDT field may have several (e.g. SPLICE_INPUT for insert/delete). Future
    *  field types may add more (SET_ADD, SET_REMOVE, COUNTER_INCREMENT, etc.). */

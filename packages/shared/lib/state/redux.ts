@@ -281,6 +281,97 @@ export function useFieldState(
   return [value, setValue];
 }
 
+
+/**
+ * CS-level hook for set fields. Returns an object with the natural Set API:
+ * has, add, del, plus the materialized values.
+ *
+ * This is the primary accessor for setField. It dispatches single SET_ADD /
+ * SET_REMOVE events directly — no full-set diff. For bulk set/reset (e.g.,
+ * CopyFieldAction), use updateField programmatically.
+ *
+ * Architecture: inner useFieldSelector drives re-renders on raw state change.
+ * The transform (decode + function binding) runs only after the equality gate.
+ * Dispatch functions are stable (useRef + useCallback) — they don't cause
+ * re-renders in children that receive them as props.
+ *
+ * @example
+ *   const visited = useSet(props, fields.visited);
+ *   visited.add('SVD');
+ *   visited.del('PCA');
+ *   if (visited.has('SVD')) { /* show glossary tab *\/ }
+ *   for (const page of visited.values) { ... }
+ */
+export function useSet(
+  props: RuntimeProps,
+  field: FieldInfo,
+  { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
+) {
+  if (field.kind && field.kind !== 'set') {
+    throw new Error(
+      `[useSet] Field '${field.name}' has kind '${field.kind}', expected 'set'. ` +
+      `Use the accessor matching the field type.`
+    );
+  }
+  assertValidField(field);
+
+  // Inner hook: raw state → decoded Set<string>. Drives re-renders.
+  const values: Set<string> = useFieldSelector(props, field, { reduxKey, tag, fallback: new Set() });
+
+  // Stable dispatch: resolve infrastructure once per render, bind via ref.
+  const ref = useRef({ props, field, reduxKey, tag });
+  ref.current = { props, field, reduxKey, tag };
+
+  const add = useCallback((element: string) => {
+    const { props, field, reduxKey, tag } = ref.current;
+    const scope = field.scope;
+    const fieldName = field.name;
+    const resolvedKey = (scope === scopes.component || scope === scopes.storage)
+      ? (reduxKey ?? idResolver.refToReduxKey(props))
+      : undefined;
+    const resolvedTag = tag ?? props?.loBlock?.name;
+    const logEvent = props.runtime.logEvent;
+    logEvent('SET_ADD', {
+      scope,
+      ...(resolvedKey ? { id: resolvedKey } : {}),
+      ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {}),
+      field: fieldName,
+      element,
+      ts: Date.now(),
+      actor: getActorId(),
+    });
+  }, []);
+
+  const del = useCallback((element: string) => {
+    const { props, field, reduxKey, tag } = ref.current;
+    const scope = field.scope;
+    const fieldName = field.name;
+    const resolvedKey = (scope === scopes.component || scope === scopes.storage)
+      ? (reduxKey ?? idResolver.refToReduxKey(props))
+      : undefined;
+    const resolvedTag = tag ?? props?.loBlock?.name;
+    const logEvent = props.runtime.logEvent;
+    logEvent('SET_REMOVE', {
+      scope,
+      ...(resolvedKey ? { id: resolvedKey } : {}),
+      ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {}),
+      field: fieldName,
+      element,
+      ts: Date.now(),
+      actor: getActorId(),
+    });
+  }, []);
+
+  return {
+    values,
+    size: values.size,
+    has: (element: string) => values.has(element),
+    add,
+    del,
+  };
+}
+
+
 type ReduxAggregateOptions<T, R = any> = {
   fallback?: T;
   tag?: string;
