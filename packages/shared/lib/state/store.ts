@@ -181,19 +181,57 @@ export const updateResponseReducer = (state = initialState, action) => {
   // Only active when strategy is 'field-level'; 'legacy-spread' falls through.
   const fieldReducerEntry = _fieldReducers.get(eventType);
   if (fieldReducerEntry && _reducerStrategy === 'field-level') {
-    const { id } = action;
+    const { scope = scopes.component, id, tag } = action;
     // Use action.field if present (new-style events), otherwise fall back
     // to the registered field name (so UPDATE_CORRECT → 'correct', not 'value')
     const fieldName = action.field ?? fieldReducerEntry.fieldName;
-    const componentState = state.component?.[id] ?? {};
-    const patch = fieldReducerEntry.reduce(componentState, action, fieldName);
-    return {
-      ...state,
-      component: {
-        ...state.component,
-        [id]: { ...componentState, ...patch }
+
+    // Scope-aware: read from and write to the correct state bucket,
+    // mirroring the legacy-spread switch below.
+    switch (scope) {
+      case scopes.componentSetting: {
+        const bucket = state.componentSetting?.[tag] ?? {};
+        const patch = fieldReducerEntry.reduce(bucket, action, fieldName);
+        return {
+          ...state,
+          componentSetting: {
+            ...state.componentSetting,
+            [tag]: { ...bucket, ...patch }
+          }
+        };
       }
-    };
+      case scopes.system: {
+        const bucket = state.system ?? {};
+        const patch = fieldReducerEntry.reduce(bucket, action, fieldName);
+        return {
+          ...state,
+          system: { ...bucket, ...patch }
+        };
+      }
+      case scopes.storage: {
+        const bucket = state.storage?.[id] ?? {};
+        const patch = fieldReducerEntry.reduce(bucket, action, fieldName);
+        return {
+          ...state,
+          storage: {
+            ...state.storage,
+            [id]: { ...bucket, ...patch }
+          }
+        };
+      }
+      case scopes.component:
+      default: {
+        const bucket = state.component?.[id] ?? {};
+        const patch = fieldReducerEntry.reduce(bucket, action, fieldName);
+        return {
+          ...state,
+          component: {
+            ...state.component,
+            [id]: { ...bucket, ...patch }
+          }
+        };
+      }
+    }
   }
 
   // Destructure out metadata fields that shouldn't go into state:
