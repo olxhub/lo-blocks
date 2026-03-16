@@ -29,9 +29,13 @@ import * as crdt from './crdt';
 // ---------------------------------------------------------------------------
 // Env var checked at module load time. Default: classic.
 // Set NEXT_PUBLIC_LO_FIELD_STRATEGY=crdt to enable CRDT field types.
-export const NEXT_PUBLIC_LO_FIELD_STRATEGY: 'classic' | 'crdt' = (
-  (typeof process !== 'undefined' ? process.env?.NEXT_PUBLIC_LO_FIELD_STRATEGY : undefined) as any
-) ?? 'classic';
+//
+// IMPORTANT: Use `process.env.NEXT_PUBLIC_*` (direct access, no optional chaining).
+// Next.js/Turbopack replaces this exact pattern with a literal string at compile time.
+// Optional chaining (`process.env?.`) breaks the pattern match and the value
+// becomes undefined on the client, silently falling back to 'classic'.
+export const NEXT_PUBLIC_LO_FIELD_STRATEGY: 'classic' | 'crdt' =
+  (process.env.NEXT_PUBLIC_LO_FIELD_STRATEGY as 'classic' | 'crdt' | undefined) ?? 'classic';
 
 const active = NEXT_PUBLIC_LO_FIELD_STRATEGY === 'crdt' ? crdt : classic;
 

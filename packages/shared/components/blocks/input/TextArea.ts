@@ -6,7 +6,6 @@ import { docField } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes, placeholder, z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import { selectBlock } from '@/lib/state/olxjson';
-import { decodeField } from '@/lib/state';
 import _TextArea from './_TextArea';
 import type { RuntimeProps, ReduxStateKey } from '@/lib/types';
 
@@ -25,10 +24,9 @@ const TextArea = core({
   }),
   // Read Redux value, falling back to initial text from OLX children
   selectValue: (props: RuntimeProps, reduxState: any, _reduxKey: ReduxStateKey) => {
-    const raw = state.fieldSelector(reduxState, props, fields.value, { fallback: undefined });
-    if (raw !== undefined) {
-      // field.read handles RgaDoc → string materialization
-      return decodeField(fields.value, raw);
+    const value = state.getField(props, fields.value, { fallback: undefined });
+    if (value !== undefined) {
+      return value;
     }
 
     // No Redux state yet — fall back to parsed children text

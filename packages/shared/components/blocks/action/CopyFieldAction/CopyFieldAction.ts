@@ -16,12 +16,10 @@ async function copyFieldAction({ targetInstance, props }) {
 
   // Read from source — materialize via field.read (e.g., RgaDoc → string)
   const srcField = state.componentFieldByName(props, target.ref, target.field);
-  const reduxState = props.runtime.store.getState();
-  const raw = state.fieldSelector(reduxState, props, srcField, {
+  const value = state.getField(props, srcField, {
     reduxKey: target.ref,
     fallback: '',
   });
-  const value = state.decodeField(srcField, raw);
 
   // Write to each output — field.write handles storage-specific dispatch
   // (e.g., docField computes splice deltas, plain field sets value directly)

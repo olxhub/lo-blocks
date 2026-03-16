@@ -145,6 +145,22 @@ export const getReduxState = (
 };
 
 /**
+ * Synchronous getter for a decoded field value.
+ * Keeps field materialization in state layer for non-hook callers.
+ */
+export const getField = <T>(
+  props: any,
+  field: FieldInfo,
+  options: SelectorOptions<any> = {}
+): T => {
+  assertValidField(field);
+  const store = getReduxStoreInstance();
+  const state = store.getState();
+  const raw = fieldSelector(state, props, field, options);
+  return decodeField(field, raw);
+};
+
+/**
  * Decode a raw Redux value into its consumer-facing form via field.read.
  * No-op if the field has no read transform (stateFields store values bare).
  *
