@@ -70,6 +70,7 @@ const KeyGrader = blocks.test({
   component: _Noop,
   fields,
   getDisplayAnswer: getKeyDisplayAnswer,
+  inputSchema: z.string(),
   attributes: baseAttributes.extend({
     target: z_reduxStateKey.optional().describe('ID of the ChoiceInput to grade; infers from children if omitted'),
     answer: z.string().optional().describe('Correct answer value (alternative to using Key/Distractor)'),

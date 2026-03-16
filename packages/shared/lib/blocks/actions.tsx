@@ -20,12 +20,14 @@
 // NOTE: Actions receive a Redux store from their caller (typically ActionButton).
 // This enables replay mode where a different store provides historical state.
 //
+import { z } from 'zod';
 import { inferRelatedNodes, getDomNodeByReduxKey } from './olxdom';
 import * as lo_event from 'lo_event';
 import { correctness } from './correctness';
 import { refToReduxKey } from './idResolver';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { valueSelector } from '@/lib/state/redux';
+import { isZodCompatible, describeZodType } from './zodCompat';
 import type { RuntimeProps, OlxKey, OlxReference, LoBlock, ValueSelectorFn } from '@/lib/types';
 import type { Store } from 'redux';
 
@@ -49,33 +51,23 @@ export function isAction(loBlock) {
 /**
  * Mix-in to make a block an input (provides a value to graders).
  *
- * selectValue Specification (NOT YET IMPLEMENTED)
- * ================================================
- * Inputs and graders should declare compatible value types so they can be
- * composed safely. For example:
- * - TextInput exports `string`
- * - NumericInput exports `number`
- * - ChoiceInput exports `string` (the selected choice value)
- * - CheckboxInput exports `string[]` (array of selected values)
+ * Value type declarations (valueSchema)
+ * ======================================
+ * Inputs declare what type they produce via `valueSchema` (a Zod schema).
+ * Graders declare what they accept via `inputSchema`. The system checks
+ * structural compatibility at parse time and runtime using base-type
+ * comparison — refinements like .positive() or .min(5) are ignored since
+ * they narrow values without changing the wire type.
  *
- * Beyond primitive types, values often carry pedagogical semantics:
- * - A string input might be specific to e.g. student name or a biology report
- * - A numeric input might only support integers
- * - A grader might expect a narrower type than 'string'
+ * Examples:
+ * - ChoiceInput: valueSchema: z.string()
+ * - CheckboxInput: valueSchema: z.array(z.string())
+ * - NumberInput: valueSchema: z.number()
  *
- * So we want a full type system, either that we invent or better that
- * we bring in. This is a design project.
- *
- * Future design should allow:
- * 1. Blocks to declare their value type in the blueprint
- * 2. Graders to declare which input types they accept
- * 3. Parse-time or render-time validation that inputs/graders are compatible
- * 4. Editor tooling to suggest compatible graders for a given input
- *
- * This enables a plug-and-play model where course authors can mix inputs
- * and graders without understanding implementation details.
+ * This enables plug-and-play composition: course authors can pair any
+ * compatible input with any compatible grader.
  */
-export function input(opts: { selectValue?: ValueSelectorFn } = {}) {
+export function input(opts: { selectValue?: ValueSelectorFn; valueSchema?: z.ZodType } = {}) {
   return { ...opts, isInput: true as const };
 }
 export function isInput(loBlock: LoBlock) {
@@ -234,6 +226,25 @@ export function grader({ grader, infer = true, slots, inputType }: {
     const values = inputData.map(d => d.value);
     const apis = inputData.map(d => d.api);
 
+    // Check input/grader type compatibility via Zod schemas
+    const graderInputSchema = props.loBlock?.inputSchema;
+    if (graderInputSchema) {
+      for (const id of inputIds) {
+        const inst = getBlockByOLXId(props, id);
+        if (!inst) continue;
+        const inputBlock = map[inst.tag];
+        if (!inputBlock?.valueSchema) continue;
+        if (!isZodCompatible(inputBlock.valueSchema, graderInputSchema)) {
+          const graderName = props.loBlock?.name || 'Grader';
+          const inputName = inputBlock.name || inst.tag;
+          return {
+            correct: correctness.invalid,
+            message: `${graderName} expects ${describeZodType(graderInputSchema)} input, but ${inputName} provides ${describeZodType(inputBlock.valueSchema)}.`,
+          };
+        }
+      }
+    }
+
     // Build grader parameters based on declared input type
     let param: GraderParams;
 
@@ -294,11 +305,17 @@ export function grader({ grader, infer = true, slots, inputType }: {
     // Use refToReduxKey to get scoped ID (applies runtime.idPrefix for list/repeated contexts)
     const scopedTargetId = refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix });
 
-    // Get current submitCount and increment it for UI flash feedback
+    // Get current submitCount — only increment for real submissions (not blank/invalid)
     const currentState = state.application_state?.component?.[scopedTargetId] || {};
-    const submitCount = (currentState.submitCount || 0) + 1;
+    const isRealSubmission = correctnessValue !== correctness.unsubmitted &&
+                             correctnessValue !== correctness.invalid;
+    const submitCount = (currentState.submitCount || 0) + (isRealSubmission ? 1 : 0);
 
-    // Log the result (respects replay mode where logEvent is a no-op)
+    // HACK: This sends a compound event with multiple data properties, but only
+    // `correct` is a declared CRDT field. The extras (submitCount, score, message,
+    // answers) are spread as plain values in the reducer, gated by `correct`'s LWW
+    // timestamp for consistency. This should be replaced with a CRDT dictionary
+    // (or per-field events) so all properties get proper conflict resolution.
     const logEvent = props.runtime.logEvent;
     logEvent('UPDATE_CORRECT', {
       id: scopedTargetId,

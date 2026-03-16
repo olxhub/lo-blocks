@@ -94,7 +94,9 @@ export default function _ChoiceItem(props: RuntimeProps) {
   assertString(kids);
 
   const labelClasses = [
-    'block',
+    'lo-choice-item',
+    checked && 'lo-choice-item--selected',
+    isCheckbox ? 'lo-choice-item--checkbox' : 'lo-choice-item--radio',
     showCorrectHighlight && 'lo-choiceinput-show-answer',
   ].filter(Boolean).join(' ');
 
@@ -105,8 +107,10 @@ export default function _ChoiceItem(props: RuntimeProps) {
         name={scopedParentId}
         checked={checked}
         onChange={handleChange}
-       />
-      {kids}
+        className="lo-choice-item__input"
+      />
+      <span className="lo-choice-item__indicator" aria-hidden="true" />
+      <span className="lo-choice-item__text">{kids}</span>
     </label>
   );
 }

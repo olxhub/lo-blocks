@@ -128,6 +128,7 @@ const CheckboxGrader = blocks.test({
   component: _Noop,
   fields,
   getDisplayAnswer: getCheckboxDisplayAnswer,
+  inputSchema: z.array(z.string()),
   attributes: checkboxGraderAttributes,
 });
 

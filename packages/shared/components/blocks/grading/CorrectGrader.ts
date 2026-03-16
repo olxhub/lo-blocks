@@ -13,6 +13,7 @@
 //     </CorrectGrader>
 //   </CapaProblem>
 //
+import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
 import { correctness } from '@/lib/blocks/correctness';
 
@@ -24,6 +25,7 @@ const CorrectGrader = createGrader({
   base: 'Correct',
   description: 'Always-correct grader for surveys and ungraded activities',
   grader: gradeAlwaysCorrect,
+  inputSchema: z.any(),
   createMatch: false,
   getDisplayAnswer: () => undefined,
 });

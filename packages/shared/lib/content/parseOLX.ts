@@ -26,6 +26,7 @@ import * as parsers from '@/lib/content/parsers';
 import { Provenance, IdMap, OLXLoadingError, OlxReference, OlxKey, JSONValue } from '@/lib/types';
 
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
+import { isZodCompatible, describeZodType } from '@/lib/blocks/zodCompat';
 import { OLXMetadataSchema, type OLXMetadata } from '@/lib/content/metadata';
 import { stableStringify } from '@/lib/util';
 
@@ -599,6 +600,24 @@ export async function parseOLX(
       errors
     });
 
+    // Structural validation: check children after they are parsed
+    if (Component?.validateChildren) {
+      const entry = idMap[id]?.[currentLang] ?? idMap[id]?.[Object.keys(idMap[id] || {})[0]];
+      const kids = entry?.kids;
+      const childErrors = Component.validateChildren(kids, idMap);
+      if (childErrors && childErrors.length > 0) {
+        const errorList = childErrors.map(e => `  - ${e}`).join('\n');
+        errors.push({
+          type: 'attribute_validation',
+          summary: `Invalid children in <${tag}> in ${provenance.join(', ')}`,
+          file: provenance.join(', '),
+          message: `Invalid children for <${tag} id="${id}">:\n${errorList}`,
+          location: { line: node.line, column: node.column },
+          technical: { tag, id, childErrors }
+        });
+      }
+    }
+
     parsedIds.push(id);
     return { type: 'block', id };
   }
@@ -641,6 +660,60 @@ export async function parseOLX(
   }
 
   if (!rootId && parsedIds.length) rootId = parsedIds[0];
+
+  // Post-parse: check input/grader type compatibility via Zod schemas.
+  // Best-effort — only checks same-file targets and direct children.
+  // The runtime check in actions.tsx is the authoritative fallback.
+  for (const blockId of parsedIds) {
+    const variants = idMap[blockId];
+    if (!variants) continue;
+    const entry = variants[Object.keys(variants)[0]];
+    if (!entry?.tag) continue;
+    const graderBlock = BLOCK_REGISTRY[entry.tag];
+    if (!graderBlock?.isGrader || !graderBlock.inputSchema) continue;
+
+    // Find input IDs: explicit target attribute, or child blocks with isInput
+    let inputIds: string[] = [];
+    const target = entry.attributes?.target;
+    if (target) {
+      inputIds = typeof target === 'string' ? target.split(',').map(s => s.trim()) : [];
+    } else if (Array.isArray(entry.kids)) {
+      inputIds = entry.kids
+        .filter(k => k.type === 'block')
+        .map(k => k.id)
+        .filter(id => {
+          const v = idMap[id];
+          if (!v) return false;
+          const e = v[Object.keys(v)[0]];
+          return e?.tag && BLOCK_REGISTRY[e.tag]?.isInput;
+        });
+    }
+
+    for (const inputId of inputIds) {
+      const inputVariants = idMap[inputId];
+      if (!inputVariants) continue; // Cross-file or unresolvable — skip
+      const inputEntry = inputVariants[Object.keys(inputVariants)[0]];
+      if (!inputEntry?.tag) continue;
+      const inputBlock = BLOCK_REGISTRY[inputEntry.tag];
+      if (!inputBlock?.valueSchema) continue;
+
+      if (!isZodCompatible(inputBlock.valueSchema, graderBlock.inputSchema)) {
+        errors.push({
+          type: 'attribute_validation',
+          summary: `Type mismatch: <${entry.tag}> with <${inputEntry.tag}> in ${provenance.join(', ')}`,
+          file: provenance.join(', '),
+          message: `<${entry.tag}> expects ${describeZodType(graderBlock.inputSchema)} input, but <${inputEntry.tag}> provides ${describeZodType(inputBlock.valueSchema)}.`,
+          location: { line: entry.line, column: entry.column },
+          technical: {
+            graderId: blockId,
+            graderTag: entry.tag,
+            inputId,
+            inputTag: inputEntry.tag,
+          }
+        });
+      }
+    }
+  }
 
   return { ids: parsedIds, idMap, root: rootId, errors };
 }

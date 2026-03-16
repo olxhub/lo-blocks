@@ -1,6 +1,6 @@
 // src/components/blocks/LineInput.js
 import { z } from 'zod';
-import { core } from '@/lib/blocks';
+import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
@@ -23,7 +23,7 @@ const INPUT_TYPES = ['text', 'number', 'email', 'tel', 'url', 'password', 'searc
 const LineInput = core({
   ...parsers.blocks(),
   name: 'LineInput',
-  isInput: true,
+  ...input({ valueSchema: z.string() }),
   description: 'Single-line text input field for student responses',
   component: _LineInput,
   fields,

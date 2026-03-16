@@ -1,6 +1,6 @@
 // src/components/blocks/TextArea.js
 import { z } from 'zod';
-import { core } from '@/lib/blocks';
+import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { docField } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
@@ -13,7 +13,7 @@ export const fields = state.fields([docField('value'), { name: 'readonly', schem
 const TextArea = core({
   ...parsers.text.stripIndent(),
   name: 'TextArea',
-  isInput: true,
+  ...input({ valueSchema: z.string() }),
   description: 'Multi-line text input field for longer student responses',
   component: _TextArea,
   fields: fields,

@@ -10,9 +10,7 @@ import path from 'path';
 import { glob as globLib } from 'glob';
 import pegExts from '../../../generated/pegExtensions.json' assert { type: 'json' };
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, FileSystemPath } from '../../types';
-
-/** Content file extensions recognized by the storage provider. */
-const CONTENT_EXTENSIONS = ['.xml', '.olx', '.md', ...pegExts.map(e => `.${e}`)];
+import { EXT } from '@/lib/util/fileTypes';
 import {
   type StorageProvider,
   type XmlFileInfo,
@@ -29,6 +27,9 @@ import {
 } from '../types';
 import { fileTypes } from '../fileTypes';
 import type { JSONValue } from '../../types';
+
+/** Content file extensions recognized by the storage provider. */
+const CONTENT_EXTENSIONS = ['.xml', '.olx', '.md', ...pegExts.map(e => `.${e}`), ...EXT.mermaid.map(ext => `.${ext}`)];
 
 /**
  * FileStorageProvider-specific metadata structure.

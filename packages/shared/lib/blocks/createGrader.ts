@@ -317,6 +317,7 @@ export function createGrader({
     category: 'grading',
     component,
     attributes: graderAttributes.extend(attributes),
+    inputSchema,
     validateAttributes,
     answerDisplayMode: effectiveAnswerDisplayMode,
     getDisplayAnswer: getDisplayAnswer ?? ((props: RuntimeProps) => props.displayAnswer ?? props.answer),

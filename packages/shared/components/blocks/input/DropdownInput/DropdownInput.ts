@@ -1,6 +1,6 @@
 // src/components/blocks/input/DropdownInput/DropdownInput.js
 import { z } from 'zod';
-import { core } from '@/lib/blocks';
+import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
@@ -14,7 +14,7 @@ export const fields = state.fields([commonFields.value]);
 const DropdownInput = core({
   ...peggyParser(parser),
   name: 'DropdownInput',
-  isInput: true,
+  ...input({ valueSchema: z.string() }),
   description: 'Dropdown select input for choosing from a list of options',
   component: _DropdownSelect,
   fields,

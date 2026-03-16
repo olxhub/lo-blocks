@@ -89,6 +89,7 @@ const RulesGrader = core({
   ...parsers.blocks.allowHTML(),
   ...grader({ grader: gradeRules }),
   name: 'RulesGrader',
+  inputSchema: z.any(),
   description: 'Grader that evaluates Match rules top-to-bottom with partial credit and feedback',
   category: 'grading',
   component: _Noop,

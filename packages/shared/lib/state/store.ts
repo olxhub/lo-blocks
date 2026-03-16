@@ -187,11 +187,26 @@ export const updateResponseReducer = (state = initialState, action) => {
   // Two-level lookup: prefer specific "eventType:fieldName" key (disambiguates
   // shared event types like SPLICE_INPUT across multiple docFields), fall back
   // to bare "eventType" for unique event names or legacy events without action.field.
+  //
+  // HACK: Compound events (e.g. UPDATE_CORRECT from graders) carry multiple
+  // data properties beyond the registered CRDT field. The field reducer handles
+  // the registered field with proper LWW; remaining properties (submitCount,
+  // score, etc.) are legacy-spread alongside it, gated by the LWW result so
+  // stale events are rejected atomically. This means the extras don't get their
+  // own CRDT metadata — they should be stored in a CRDT dictionary or dispatched
+  // as separate per-field events with proper conflict resolution.
   const fieldReducerEntry = (action.field && _fieldReducers.get(`${eventType}:${action.field}`))
     || _fieldReducers.get(eventType);
   if (fieldReducerEntry && _reducerStrategy === 'field-level') {
     const { scope = scopes.component, id, tag } = action;
     const fieldName = action.field ?? fieldReducerEntry.fieldName;
+
+    // Strip metadata, keeping only data properties. The field reducer's
+    // patch handles the registered field; remaining properties (e.g.
+    // submitCount, score from a grader event) are spread alongside it.
+    const { scope: _s, id: _id, tag: _t, context: _ctx, event: _ev,
+            type: _type, metadata: _m, field: _f, ts: _ts, actor: _a,
+            [fieldName]: _fv, ...extra } = action;
 
     // Scope-aware: read from and write to the correct state bucket,
     // mirroring the legacy-spread switch below.
@@ -199,30 +214,33 @@ export const updateResponseReducer = (state = initialState, action) => {
       case scopes.componentSetting: {
         const bucket = state.componentSetting?.[tag] ?? {};
         const patch = fieldReducerEntry.reduce(bucket, action, fieldName);
+        if (Object.keys(patch).length === 0) return state;
         return {
           ...state,
           componentSetting: {
             ...state.componentSetting,
-            [tag]: { ...bucket, ...patch }
+            [tag]: { ...bucket, ...extra, ...patch }
           }
         };
       }
       case scopes.system: {
         const bucket = state.system ?? {};
         const patch = fieldReducerEntry.reduce(bucket, action, fieldName);
+        if (Object.keys(patch).length === 0) return state;
         return {
           ...state,
-          system: { ...bucket, ...patch }
+          system: { ...bucket, ...extra, ...patch }
         };
       }
       case scopes.storage: {
         const bucket = state.storage?.[id] ?? {};
         const patch = fieldReducerEntry.reduce(bucket, action, fieldName);
+        if (Object.keys(patch).length === 0) return state;
         return {
           ...state,
           storage: {
             ...state.storage,
-            [id]: { ...bucket, ...patch }
+            [id]: { ...bucket, ...extra, ...patch }
           }
         };
       }
@@ -230,11 +248,12 @@ export const updateResponseReducer = (state = initialState, action) => {
       default: {
         const bucket = state.component?.[id] ?? {};
         const patch = fieldReducerEntry.reduce(bucket, action, fieldName);
+        if (Object.keys(patch).length === 0) return state;
         return {
           ...state,
           component: {
             ...state.component,
-            [id]: { ...bucket, ...patch }
+            [id]: { ...bucket, ...extra, ...patch }
           }
         };
       }
