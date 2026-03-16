@@ -305,9 +305,11 @@ export function grader({ grader, infer = true, slots, inputType }: {
     // Use refToReduxKey to get scoped ID (applies runtime.idPrefix for list/repeated contexts)
     const scopedTargetId = refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix });
 
-    // Get current submitCount and increment it for UI flash feedback
+    // Get current submitCount — only increment for real submissions (not blank/invalid)
     const currentState = state.application_state?.component?.[scopedTargetId] || {};
-    const submitCount = (currentState.submitCount || 0) + 1;
+    const isRealSubmission = correctnessValue !== correctness.unsubmitted &&
+                             correctnessValue !== correctness.invalid;
+    const submitCount = (currentState.submitCount || 0) + (isRealSubmission ? 1 : 0);
 
     // Log the result (respects replay mode where logEvent is a no-op)
     const logEvent = props.runtime.logEvent;
