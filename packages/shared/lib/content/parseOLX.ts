@@ -676,7 +676,8 @@ export async function parseOLX(
     let inputIds: string[] = [];
     const target = entry.attributes?.target;
     if (target) {
-      inputIds = typeof target === 'string' ? target.split(',').map(s => s.trim()) : [];
+      inputIds = Array.isArray(target) ? target
+        : typeof target === 'string' ? target.split(',').map(s => s.trim()) : [];
     } else if (Array.isArray(entry.kids)) {
       inputIds = entry.kids
         .filter(k => k.type === 'block')

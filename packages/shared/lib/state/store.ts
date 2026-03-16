@@ -201,12 +201,18 @@ export const updateResponseReducer = (state = initialState, action) => {
     const { scope = scopes.component, id, tag } = action;
     const fieldName = action.field ?? fieldReducerEntry.fieldName;
 
-    // Strip metadata, keeping only data properties. The field reducer's
-    // patch handles the registered field; remaining properties (e.g.
-    // submitCount, score from a grader event) are spread alongside it.
-    const { scope: _s, id: _id, tag: _t, context: _ctx, event: _ev,
-            type: _type, metadata: _m, field: _f, ts: _ts, actor: _a,
-            [fieldName]: _fv, ...extra } = action;
+    // For compound events (no action.field, e.g. UPDATE_CORRECT from graders),
+    // strip metadata and spread remaining data properties alongside the field
+    // patch. For field-specific events (with action.field, e.g. SPLICE_INPUT),
+    // DON'T spread — their extra keys (index, deleteCount, inserted) are
+    // operation parameters, not state properties.
+    let extra: Record<string, any> = {};
+    if (!action.field) {
+      const { scope: _s, id: _id, tag: _t, context: _ctx, event: _ev,
+              type: _type, metadata: _m, field: _f, ts: _ts, actor: _a,
+              [fieldName]: _fv, ...rest } = action;
+      extra = rest;
+    }
 
     // Scope-aware: read from and write to the correct state bucket,
     // mirroring the legacy-spread switch below.
