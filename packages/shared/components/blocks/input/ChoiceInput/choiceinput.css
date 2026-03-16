@@ -1,16 +1,135 @@
 /* src/components/blocks/input/ChoiceInput/choiceinput.css */
 
-/* Show Answer styling - scoped to Key items within ChoiceInput */
-.lo-tag-key .lo-choiceinput-show-answer {
-  background-color: #d4edda;
-  border-inline-start: 3px solid #28a745;
-  padding-inline-start: 0.5rem;
-  margin-inline-start: -0.5rem;
+/* ── Choice Item (shared by Key & Distractor) ── */
+
+.lo-choice-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--lo-space-md);
+  padding: var(--lo-space-xs) var(--lo-space-sm);
+  border-radius: var(--lo-radius-md);
+  cursor: pointer;
+  transition: background-color 150ms ease;
 }
 
-.lo-tag-key .lo-choiceinput-show-answer::after {
-  content: ' \2713';  /* checkmark */
-  color: #28a745;
+/* Spacing between items — they're wrapped in .lo-tag-key / .lo-tag-distractor divs */
+.lo-tag-key + .lo-tag-key,
+.lo-tag-key + .lo-tag-distractor,
+.lo-tag-distractor + .lo-tag-key,
+.lo-tag-distractor + .lo-tag-distractor {
+  margin-top: var(--lo-space-xs);
+}
+
+.lo-choice-item:hover {
+  background-color: var(--lo-surface-hover);
+}
+
+.lo-choice-item--selected {
+  background-color: var(--lo-primary-light);
+}
+
+.lo-choice-item--selected:hover {
+  background-color: var(--lo-primary-light);
+}
+
+/* Hide native input, keep it accessible */
+.lo-choice-item__input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* ── Custom indicator ── */
+
+.lo-choice-item__indicator {
+  flex-shrink: 0;
+  display: inline-block;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 2px solid var(--lo-secondary);
+  background: var(--lo-background);
+  transition: border-color 150ms ease, background-color 150ms ease,
+              box-shadow 150ms ease;
+  position: relative;
+  /* Vertically center with the first line of text (half line-height minus half indicator) */
+  margin-top: calc((1.5em - 1.125rem) / 2);
+}
+
+/* Radio: circle */
+.lo-choice-item--radio .lo-choice-item__indicator {
+  border-radius: 50%;
+}
+
+/* Checkbox: rounded square */
+.lo-choice-item--checkbox .lo-choice-item__indicator {
+  border-radius: var(--lo-radius-sm);
+}
+
+/* Hover indicator */
+.lo-choice-item:hover .lo-choice-item__indicator {
+  border-color: var(--lo-primary);
+}
+
+/* Focus-visible indicator */
+.lo-choice-item__input:focus-visible ~ .lo-choice-item__indicator {
+  border-color: var(--lo-primary);
+  box-shadow: var(--lo-shadow-focus);
+}
+
+/* Selected indicator */
+.lo-choice-item--selected .lo-choice-item__indicator {
+  border-color: var(--lo-primary);
+  background-color: var(--lo-primary);
+}
+
+/* Radio dot (inner circle via radial gradient) */
+.lo-choice-item--radio.lo-choice-item--selected .lo-choice-item__indicator {
+  background: radial-gradient(
+    circle,
+    var(--lo-background) 30%,
+    var(--lo-primary) 30%
+  );
+  border-color: var(--lo-primary);
+}
+
+/* Checkbox checkmark */
+.lo-choice-item--checkbox.lo-choice-item--selected .lo-choice-item__indicator::after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0.0625rem;
+  left: 0.3125rem;
+  width: 0.3125rem;
+  height: 0.5625rem;
+  border: solid var(--lo-background);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* ── Text ── */
+
+.lo-choice-item__text {
+  flex: 1;
+  line-height: var(--lo-line-height-normal);
+  color: var(--lo-text-primary);
+}
+
+/* ── Show-answer highlight (correct answer reveal) ── */
+
+.lo-tag-key .lo-choiceinput-show-answer {
+  background-color: var(--lo-success-light);
+}
+
+.lo-tag-key .lo-choiceinput-show-answer .lo-choice-item__indicator {
+  border-color: var(--lo-success);
+  background-color: var(--lo-success);
+}
+
+.lo-tag-key .lo-choiceinput-show-answer .lo-choice-item__text::after {
+  content: ' \2713';
+  color: var(--lo-success);
   font-weight: bold;
-  margin-inline-start: 0.5rem;
+  margin-inline-start: var(--lo-space-sm);
 }
