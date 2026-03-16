@@ -30,15 +30,15 @@ export * from './olxjson';
 // (fieldTypes → redux → fields → fieldTypes cycle). Listed here after
 // redux.ts is fully loaded.
 //
-// Reads LO_FIELD_STRATEGY from fieldTypes/index.ts — same env var that
+// Reads NEXT_PUBLIC_LO_FIELD_STRATEGY from fieldTypes/index.ts — same env var that
 // controls the constructors, so one toggle switches everything.
-import { LO_FIELD_STRATEGY } from './fieldTypes';
+import { NEXT_PUBLIC_LO_FIELD_STRATEGY } from './fieldTypes';
 import { useSet as classicUseSet } from './fieldTypes/classic/useSet';
 import { useSet as crdtUseSet } from './fieldTypes/crdt/set';
 import { useDocField as classicUseDocField } from './fieldTypes/classic/useDocField';
 // import { useDocField as crdtUseDocField } from './fieldTypes/crdt/useDocField';
 
-export const useSet = LO_FIELD_STRATEGY === 'crdt' ? crdtUseSet : classicUseSet;
+export const useSet = NEXT_PUBLIC_LO_FIELD_STRATEGY === 'crdt' ? crdtUseSet : classicUseSet;
 export const useDocField = classicUseDocField; // CRDT useDocField not yet implemented
 
 // ---------------------------------------------------------------------------

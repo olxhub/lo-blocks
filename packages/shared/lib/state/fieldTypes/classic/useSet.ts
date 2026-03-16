@@ -55,14 +55,16 @@ export function useSet(
   const add = useCallback((element: string) => {
     const current = ref.current;
     if (!current.has(element)) {
-      setRaw([...current, element]);
+      ref.current = new Set([...current, element]);
+      setRaw([...ref.current]);
     }
   }, [setRaw]);
 
   const del = useCallback((element: string) => {
     const current = ref.current;
     if (current.has(element)) {
-      setRaw([...current].filter(e => e !== element));
+      ref.current = new Set([...current].filter(e => e !== element));
+      setRaw([...ref.current]);
     }
   }, [setRaw]);
 

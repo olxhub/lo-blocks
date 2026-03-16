@@ -73,7 +73,10 @@ export function docField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
       }];
     },
     reduce: (componentState: Record<string, any>, action: any, fieldName: string) => {
-      const { index, deleteCount, inserted, selectionStart, selectionEnd, initText, actor } = action;
+      const { index, deleteCount, inserted, initText, actor } = action;
+      // Selection keys are prefixed by useInputField: "value.selectionStart"
+      const selectionStart = action[`${fieldName}.selectionStart`];
+      const selectionEnd = action[`${fieldName}.selectionEnd`];
       let doc = componentState[fieldName];
 
       // Auto-init on first splice: create RgaDoc from existing value or initText

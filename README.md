@@ -127,9 +127,11 @@ The system is designed to support human–AI co-authoring, fine-grained pedagogy
 
 ---
 
-## ⚖️ License
+## ⚖️ License and Legal
 
-This project is licensed under the **GNU Affero General Public License (AGPL)**. See `LICENSE` for details.
+lo-blocks is free and open-source software by [Piotr Mitros](http://mitros.org/p). [Project Repository](https://github.com/olxhub/lo-blocks/). [Licensing information](http://mitros.org/p/lo/license.html). Copyright (c) 2011-2026 Piotr Mitros and others. Any representation of another party as the original author or inventor of this tool or methodology is a misrepresentation of origin and authorship.
+
+TLDR: AGPL. See `LICENSE.TXT` and `NOTICE.TXT` for details.
 
 ---
 
@@ -194,6 +196,3 @@ Contributors have also mentioned this does not work on some operating systems; i
 ### Documentation
 
 - [`docs/README.md`](docs/README.md) — An overview of the system architecture
-- [`docs/backlog.md`](docs/backlog.md) — Development roadmap and known issues
-
----

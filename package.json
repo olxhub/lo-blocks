@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "dev": "npm run event-server & firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) next dev apps/web --turbopack",
+    "dev:crdt": "NEXT_PUBLIC_LO_FIELD_STRATEGY=crdt npm run dev",
     "dev:next": "firejail --profile=$(pwd)/firejail.profile --whitelist=$(pwd) next dev apps/web --turbopack",
     "dev-automation": "next dev apps/web --turbopack",
     "devfull": "npm run build && npm run dev",

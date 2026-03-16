@@ -2,9 +2,9 @@
 //
 // Switch between classic (main-branch) and CRDT field implementations.
 //
-// Controlled by the LO_FIELD_STRATEGY environment variable:
-//   LO_FIELD_STRATEGY=crdt    → LWW/RGA conflict resolution, delta encoding
-//   LO_FIELD_STRATEGY=classic → bare values, spread-based reducer (default)
+// Controlled by the NEXT_PUBLIC_LO_FIELD_STRATEGY environment variable:
+//   NEXT_PUBLIC_LO_FIELD_STRATEGY=crdt    → LWW/RGA conflict resolution, delta encoding
+//   NEXT_PUBLIC_LO_FIELD_STRATEGY=classic → bare values, spread-based reducer (default)
 //
 // This is the single source of truth for the field strategy. The hook
 // switch in state/index.ts reads the same variable.
@@ -28,12 +28,12 @@ import * as crdt from './crdt';
 // Active field type strategy
 // ---------------------------------------------------------------------------
 // Env var checked at module load time. Default: classic.
-// Set LO_FIELD_STRATEGY=crdt to enable CRDT field types.
-export const LO_FIELD_STRATEGY: 'classic' | 'crdt' = (
-  (typeof process !== 'undefined' ? process.env?.LO_FIELD_STRATEGY : undefined) as any
+// Set NEXT_PUBLIC_LO_FIELD_STRATEGY=crdt to enable CRDT field types.
+export const NEXT_PUBLIC_LO_FIELD_STRATEGY: 'classic' | 'crdt' = (
+  (typeof process !== 'undefined' ? process.env?.NEXT_PUBLIC_LO_FIELD_STRATEGY : undefined) as any
 ) ?? 'classic';
 
-const active = LO_FIELD_STRATEGY === 'crdt' ? crdt : classic;
+const active = NEXT_PUBLIC_LO_FIELD_STRATEGY === 'crdt' ? crdt : classic;
 
 export const stateField = active.stateField;
 export const plainField = active.plainField;
