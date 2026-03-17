@@ -65,6 +65,45 @@ describe('fields mapping', () => {
     expect(typeof extended.extend).toBe('function');
   });
 
+  it('accepts arrays of specs (flattened into result)', () => {
+    const result = fields.fields([
+      'foo',
+      ['bar', 'baz'],
+      'qux',
+    ]);
+
+    expect(result.foo).toMatchObject({ type: 'field', name: 'foo' });
+    expect(result.bar).toMatchObject({ type: 'field', name: 'bar' });
+    expect(result.baz).toMatchObject({ type: 'field', name: 'baz' });
+    expect(result.qux).toMatchObject({ type: 'field', name: 'qux' });
+  });
+
+  it('accepts single-element arrays', () => {
+    const result = fields.fields(['foo', ['bar']]);
+
+    expect(result.foo).toMatchObject({ type: 'field', name: 'foo' });
+    expect(result.bar).toMatchObject({ type: 'field', name: 'bar' });
+  });
+
+  it('flattens nested arrays recursively', () => {
+    const result = fields.fields([
+      'foo',
+      [['bar', 'baz'], 'qux'],
+    ]);
+
+    expect(result.foo).toMatchObject({ type: 'field', name: 'foo' });
+    expect(result.bar).toMatchObject({ type: 'field', name: 'bar' });
+    expect(result.baz).toMatchObject({ type: 'field', name: 'baz' });
+    expect(result.qux).toMatchObject({ type: 'field', name: 'qux' });
+  });
+
+  it('accepts empty arrays (no-op)', () => {
+    const result = fields.fields(['foo', [], 'bar']);
+
+    expect(result.foo).toMatchObject({ type: 'field', name: 'foo' });
+    expect(result.bar).toMatchObject({ type: 'field', name: 'bar' });
+  });
+
   it('preserves read and equality from field type constructors', () => {
     const readFn = (raw: any) => String(raw);
     const eqFn = (a: any, b: any) => a === b;

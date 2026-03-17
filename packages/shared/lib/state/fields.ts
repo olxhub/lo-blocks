@@ -84,48 +84,75 @@ export function concatFields(...lists: Fields[]): Fields {
  *  The fields() function normalizes these into FieldInfo with all defaults filled in. */
 type FieldSpec = string | FieldInfo | { name: string; event?: string; events?: string[]; scope?: Scope; schema?: FieldInfo['schema']; read?: FieldInfo['read']; equality?: FieldInfo['equality']; batching?: FieldInfo['batching'] };
 
+/** A FieldSpec or arbitrarily nested arrays of them. Arrays group related fields. */
+type FieldGroup = FieldSpec | FieldGroup[];
+
+/** Normalize a single FieldSpec into a FieldInfo. */
+function normalizeFieldSpec(item: FieldSpec): FieldInfo {
+  // Already a fully-baked FieldInfo (e.g., from docField() or commonFields)
+  if (typeof item === 'object' && 'type' in item && item.type === 'field' && 'events' in item && item.events) {
+    return item as FieldInfo;
+  }
+  if (typeof item === 'string') {
+    return stateField(item);
+  }
+  // Object with name - build on top of stateField defaults
+  return stateField(item.name, {
+    ...('events' in item && item.events ? { events: item.events as FieldEvent[] } : {}),
+    ...('event' in item && item.event ? { events: [item.event as FieldEvent], event: item.event } : {}),
+    ...('scope' in item && item.scope ? { scope: item.scope } : {}),
+    ...('schema' in item && item.schema ? { schema: item.schema } : {}),
+    ...('read' in item && item.read ? { read: item.read } : {}),
+    ...('equality' in item && item.equality ? { equality: item.equality } : {}),
+    ...('batching' in item && item.batching ? { batching: item.batching } : {}),
+  });
+}
+
+/** Recursively flatten nested FieldSpec arrays into a flat list of FieldInfos. */
+function flattenSpecs(list: FieldGroup[]): FieldInfo[] {
+  const result: FieldInfo[] = [];
+  for (const item of list) {
+    if (Array.isArray(item)) {
+      result.push(...flattenSpecs(item));
+    } else {
+      result.push(normalizeFieldSpec(item));
+    }
+  }
+  return result;
+}
+
 /**
  * Declare fields for a block. Returns an object where field names map to FieldInfo.
+ *
+ * Each element can be a FieldSpec or an array of FieldSpecs. Arrays group
+ * fields that are conceptually related (future: bundle semantics). For now
+ * they are flattened — the grouping is structural only.
  *
  * @example
  * // Simple field names (default event and scope)
  * export const fields = state.fields(['value', 'loading']);
- * // fields.value is FieldInfo { name: 'value', events: ['UPDATE_VALUE'], scope: 'component' }
  *
  * @example
- * // Using field type constructors
- * import { docField } from '@/lib/state/fieldTypes/docField';
- * export const fields = state.fields([docField('value')]);
+ * // Using field type constructors (array of one — independent field)
+ * export const fields = state.fields(['foo', [docField('value')], 'baz']);
  *
  * @example
- * // Custom event or scope
+ * // Grouped fields (future: bundle — for now, equivalent to flat)
  * export const fields = state.fields([
- *   'value',
- *   { name: 'history', event: 'HISTORY_CHANGED' },
- *   { name: 'setting', scope: scopes.componentSetting }
+ *   [stateField('correct'), stateField('message'), stateField('score')],
+ *   'otherField',
+ * ]);
+ *
+ * @example
+ * // Nested arrays flatten recursively — graderFields() returns an array,
+ * // and can be placed inside a group with extra fields:
+ * export const fields = state.fields([
+ *   [graderFields(), stateField('customFeedback')],
+ *   'otherField',
  * ]);
  */
-export function fields(fieldList: FieldSpec[]): Fields {
-  const infos: FieldInfo[] = fieldList.map(item => {
-    // Already a fully-baked FieldInfo (e.g., from docField() or commonFields)
-    if (typeof item === 'object' && 'type' in item && item.type === 'field' && 'events' in item && item.events) {
-      return item as FieldInfo;
-    }
-    if (typeof item === 'string') {
-      return stateField(item);
-    }
-    // Object with name - build on top of stateField defaults
-    const base = stateField(item.name, {
-      ...('events' in item && item.events ? { events: item.events as FieldEvent[] } : {}),
-      ...('event' in item && item.event ? { events: [item.event as FieldEvent], event: item.event } : {}),
-      ...('scope' in item && item.scope ? { scope: item.scope } : {}),
-      ...('schema' in item && item.schema ? { schema: item.schema } : {}),
-      ...('read' in item && item.read ? { read: item.read } : {}),
-      ...('equality' in item && item.equality ? { equality: item.equality } : {}),
-      ...('batching' in item && item.batching ? { batching: item.batching } : {}),
-    });
-    return base;
-  });
+export function fields(fieldList: FieldGroup[]): Fields {
+  const infos = flattenSpecs(fieldList);
 
   // Build the result object: { fieldName: FieldInfo, ... }
   const fieldsByName: Record<string, FieldInfo> = {};
