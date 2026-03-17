@@ -28,7 +28,7 @@ Learning Blocks allows you to:
 - Real-time or offline-compatible delivery
 - Declarative XML authoring or simplified markup authoring (with explicit PEG grammars)
 - Clean introspection metadata for every block
-- Seamless integration with [`lo_event`](https://github.com/ETS-Next-Gen/lo_event)
+- Seamless integration with [`lo_event`](https://github.com/ArgLab/lo_event)
 - Easy things are easy to author. Hard things are possible too. Long, but smooth learning curve for teachers, faculty, and instructional designers.
 
 ## 🧠 Design Philosophy
