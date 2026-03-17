@@ -17,7 +17,7 @@ import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 
-export const fields = state.fields(['correct', 'message', 'score']);
+export const fields = state.fields([state.graderFields()]);
 
 /**
  * Get display answer for TabularMCQ - returns { rowId: colIndex } map of correct answers.

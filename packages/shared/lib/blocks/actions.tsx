@@ -333,7 +333,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
       message,
       score,
       submitCount,
-      answers: values
+      lastSubmission: values
     });
     return correct;
   };

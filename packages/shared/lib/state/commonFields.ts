@@ -34,6 +34,15 @@ export const commonFields = {
   /** Feedback message field - used by graders */
   message: stateField('message'),
 
+  /** Numeric score - used by graders (0-100 or similar) */
+  score: stateField('score'),
+
+  /** Captured input values at submission time. Distinct from the live input
+   *  value — lets the UI show what was actually graded (e.g., visual indicator
+   *  when the input has changed since submission, reset-to-submitted, or
+   *  submission history). */
+  lastSubmission: stateField('lastSubmission'),
+
   /** Submit count field - tracks number of submissions */
   submitCount: stateField('submitCount'),
 
@@ -42,4 +51,25 @@ export const commonFields = {
 } as const;
 
 // Named exports for convenient destructuring
-export const { value, correct, message, submitCount, showAnswer } = commonFields;
+export const { value, correct, message, score, lastSubmission, submitCount, showAnswer } = commonFields;
+
+/**
+ * Standard grading fields as an array, for use in fields() group syntax:
+ *
+ *   state.fields([graderFields(), 'customHint'])
+ *
+ * Returns [correct, message, score, lastSubmission, submitCount, showAnswer] —
+ * every field the grader action dispatches plus showAnswer.
+ * Using this explicitly is preferred over relying on applyGraderExtensions
+ * auto-add, since it makes field declarations honest.
+ */
+export function graderFields() {
+  return [
+    commonFields.correct,
+    commonFields.message,
+    commonFields.score,
+    commonFields.lastSubmission,
+    commonFields.submitCount,
+    commonFields.showAnswer,
+  ];
+}
