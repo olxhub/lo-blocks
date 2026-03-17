@@ -159,6 +159,12 @@ export function fields(fieldList: FieldGroup[]): Fields {
   const fieldsByEvent: FieldInfoByEvent = {};
 
   for (const info of infos) {
+    if (fieldsByName[info.name]) {
+      throw new Error(
+        `[fields] Duplicate field name "${info.name}". ` +
+        `Each field must have a unique name within a block.`
+      );
+    }
     fieldsByName[info.name] = info;
     for (const ev of info.events) {
       fieldsByEvent[ev] = info;

@@ -104,6 +104,14 @@ describe('fields mapping', () => {
     expect(result.bar).toMatchObject({ type: 'field', name: 'bar' });
   });
 
+  it('throws on duplicate field names', () => {
+    expect(() => fields.fields(['foo', 'foo'])).toThrow('Duplicate field name "foo"');
+  });
+
+  it('throws on duplicate field names across groups', () => {
+    expect(() => fields.fields(['foo', ['bar', 'foo']])).toThrow('Duplicate field name "foo"');
+  });
+
   it('preserves read and equality from field type constructors', () => {
     const readFn = (raw: any) => String(raw);
     const eqFn = (a: any, b: any) => a === b;
