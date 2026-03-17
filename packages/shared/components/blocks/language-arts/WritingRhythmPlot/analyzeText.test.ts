@@ -12,7 +12,7 @@
  *     color: string }     — HSL color from golden-ratio rotation
  */
 import { describe, it, expect } from 'vitest';
-import { analyzeText, type WordRow } from './_SentenceVarietyPlot';
+import { analyzeText, type WordRow } from './_WritingRhythmPlot';
 
 // Helper: just sentence numbers and words, ignoring colors
 const summary = (rows: WordRow[]) => rows.map(r => [r.sentence, r.word, r.height]);
