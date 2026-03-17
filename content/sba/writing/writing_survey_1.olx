@@ -190,4 +190,42 @@ lang: en-Latn-US
           </ActionButton>
         <LLMFeedback id="ws1_response_summary_6" />
     </Vertical>
+    <Vertical id="print_ws1" title="Print Writing Survey 1">
+        <ActionButton id="print_btn_ws1" label="Export as PDF">
+          <PrintAction id="print_action_ws1" />
+        </ActionButton>
+        <Markdown>
+# My answers
+
+--------------------------------
+## Questions 1-5
+        </Markdown>      
+        <Use id="affect_1_print" ref="ws1_affect_1" />
+        <Markdown>
+--------------------------------
+## Questions 6-10
+        </Markdown>
+        <Use id="affect_2_print" ref="ws1_affect_2" />
+        <Markdown>
+--------------------------------
+## Questions 11-15
+        </Markdown>
+        <Use id="affect_3_print" ref="ws1_affect_3" />
+        <Markdown>
+--------------------------------
+## Questions 16-20
+        </Markdown>
+        <Use id="affect_4_print" ref="ws1_affect_4" />
+        <Markdown>
+--------------------------------
+## Questions 21-25
+        </Markdown>
+        <Use id="affect_5_print" ref="ws1_affect_5" />
+        <Markdown>
+--------------------------------
+## AI Analysis
+        </Markdown>
+        <Use id="ws1_response_summary_print" ref="ws1_response_summary_6" />      
+</Vertical>
+   
 </Sequential>

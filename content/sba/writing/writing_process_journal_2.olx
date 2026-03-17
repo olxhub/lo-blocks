@@ -541,10 +541,83 @@ lang: en-Latn-US
     </SplitPanel>
     <Vertical id="wpj2_last_screen">
         <Markdown id="wpj2_done_markdown">
-            **If you are done, please click on the checkbox below.**
+            **If you are done, please click on the checkbox below, use the 'print to PDF'
+              button to save your responses, then submit them.**
         </Markdown>
         <CheckboxInput id="wpj2_complete">
             <Key id="wpj2_key1">I have finished this assignment</Key>
         </CheckboxInput>
+        <ActionButton id="print_btn_wj2" label="Export as PDF">
+          <PrintAction id="print_action_wj2" />
+        </ActionButton>   
+        <Markdown>
+## My Thoughts on What Makes Someone a Good Writer
+        </Markdown>
+        <Use id="wpj2_ref14" ref="wpj2_define_good_writer" />
+        <Markdown>
+## Writing Priorities Part 1
+        </Markdown>
+        <Use id="wpj2_ref15" ref="wpj2_sortable1" />
+        <Markdown>
+## Writing Priorities Part 2
+        </Markdown>
+        <Use id="wpj2_ref16" ref="wpj2_sortable2" />
+        <Markdown>
+## Writing Priorities Part 3
+        </Markdown>
+        <Use id="wpj2_ref17" ref="wpj2_sortable3" />
+        <Markdown>
+## Writing Priorities Part 4
+        </Markdown>
+        <Use id="wpj2_ref18" ref="wpj2_sortable4" />
+        <Markdown>
+## Writing Priorities Part 5
+        </Markdown>
+        <Use id="wpj2_ref19" ref="wpj2_sortable5" />
+        <Markdown>
+## Writing Priorities Part 6
+        </Markdown>
+        <Use id="wpj2_ref20" ref="wpj2_sortable6" />
+        <Markdown>
+## Writing Priorities Part 7
+        </Markdown>
+        <Use id="wpj2_ref21" ref="wpj2_sortable7" />
+        <Markdown> 
+## AI Summary of Writing Priorities 
+        </Markdown>
+        <Use id="wpj2_ref22" ref="wpj2_response_summary_1" />
+        <Markdown>
+## Response to AI Summary of Writing Priorities 
+        </Markdown>
+        <Use id="wpj2_ref23" ref="wpj2_response_to_feedback_1" />
+        <Markdown>
+## My Thoughts on How to Learn to Write 
+        </Markdown>
+        <Use id="wpj2_ref24" ref="wpj2_how_to_learn_writing" />
+        <Markdown>
+## Writing Self-Evaluation Part 1 
+        </Markdown>
+        <Use id="wpj2_ref25" ref="wpj2_self_evaluation_1" />
+        <Markdown>
+## Writing Self-Evaluation Part 2 
+        </Markdown>
+        <Use id="wpj2_ref26" ref="wpj2_self_evaluation_2" />
+        <Markdown>
+## Writing Self-Evaluation Part 3 
+        </Markdown>
+        <Use id="wpj2_ref27" ref="wpj2_self_evaluation_3" />
+        <Markdown>
+## Writing Self-Evaluation Part 4 
+        </Markdown>
+        <Use id="wpj2_ref28" ref="wpj2_self_evaluation_4" />
+        <Markdown>
+## AI Analysis of Writing Self-Evaluation 
+        </Markdown>
+        <Use id="wpj2_ref29" ref="wpj2_self_eval_analysis" />
+        <Markdown>
+## Response to AI Evaluation of Strengths and Weaknesses 
+        </Markdown>
+        <Use id="wpj2_ref30" ref="wpj2_response_to_strengths_weaknesses" />
+        <Use id="wpj2_ref31" ref="wpj2_complete" />  
     </Vertical>
 </Sequential>
