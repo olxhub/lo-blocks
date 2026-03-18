@@ -7,7 +7,7 @@ import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 import { gradeArrangement } from './gradingUtils';
 
-export const fields = state.fields([state.graderFields()]);
+export const fields = state.fields(state.graderFields());
 
 const SortableGrader = blocks.test({
   ...parsers.blocks.allowHTML(),

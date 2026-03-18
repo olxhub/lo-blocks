@@ -40,7 +40,7 @@ type GraderMapping = { id: ReduxStateKey; inputs: ReduxStateKey[] };
 // CapaProblem acts as a "metagrader" - it aggregates correctness from child graders.
 // This allows Correctness/StatusText inside CapaProblem to find CapaProblem itself
 // as their grader and display aggregate state.
-export const fields = state.fields(['correct', 'message', 'submitCount']);
+export const fields = state.fields(state.graderFields());
 
 // CapaProblem parser:
 // 1. Assigns scoped IDs to descendant inputs and graders

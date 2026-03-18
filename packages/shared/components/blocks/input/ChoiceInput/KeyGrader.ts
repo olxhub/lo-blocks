@@ -13,7 +13,7 @@ import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 import { correctness } from '@/lib/blocks/correctness';
 
-export const fields = state.fields([state.graderFields()]);
+export const fields = state.fields(state.graderFields());
 
 function gradeKeySelected(props, { input, inputApi }) {
   const selected = input ?? '';

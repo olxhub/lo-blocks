@@ -80,79 +80,54 @@ export function concatFields(...lists: Fields[]): Fields {
   return result;
 }
 
-/** What block authors write: a string, an object with optional defaults, or a fully-baked FieldInfo.
- *  The fields() function normalizes these into FieldInfo with all defaults filled in. */
-type FieldSpec = string | FieldInfo | { name: string; event?: string; events?: string[]; scope?: Scope; schema?: FieldInfo['schema']; read?: FieldInfo['read']; equality?: FieldInfo['equality']; batching?: FieldInfo['batching'] };
+/**
+ * A field declaration: a string name, a FieldInfo object, or a nested array.
+ * Strings become stateFields with default events. Objects with a `name`
+ * property get missing defaults filled in. Arrays are flattened recursively.
+ */
+type FieldDecl = string | FieldInfo
+  | { name: string; event?: string; events?: string[]; scope?: Scope; schema?: FieldInfo['schema']; read?: FieldInfo['read']; equality?: FieldInfo['equality']; batching?: FieldInfo['batching'] }
+  | FieldDecl[];
 
-/** A FieldSpec or arbitrarily nested arrays of them. Arrays group related fields. */
-type FieldGroup = FieldSpec | FieldGroup[];
-
-/** Normalize a single FieldSpec into a FieldInfo. */
-function normalizeFieldSpec(item: FieldSpec): FieldInfo {
+/** Recursively normalize field declarations into a flat list of FieldInfos. */
+function normalize(decl: FieldDecl): FieldInfo[] {
+  if (Array.isArray(decl)) {
+    return decl.flatMap(normalize);
+  }
+  if (typeof decl === 'string') {
+    return [stateField(decl)];
+  }
   // Already a fully-baked FieldInfo (e.g., from docField() or commonFields)
-  if (typeof item === 'object' && 'type' in item && item.type === 'field' && 'events' in item && item.events) {
-    return item as FieldInfo;
+  if ('type' in decl && decl.type === 'field' && 'events' in decl && decl.events) {
+    return [decl as FieldInfo];
   }
-  if (typeof item === 'string') {
-    return stateField(item);
-  }
-  // Object with name - build on top of stateField defaults
-  return stateField(item.name, {
-    ...('events' in item && item.events ? { events: item.events as FieldEvent[] } : {}),
-    ...('event' in item && item.event ? { events: [item.event as FieldEvent], event: item.event } : {}),
-    ...('scope' in item && item.scope ? { scope: item.scope } : {}),
-    ...('schema' in item && item.schema ? { schema: item.schema } : {}),
-    ...('read' in item && item.read ? { read: item.read } : {}),
-    ...('equality' in item && item.equality ? { equality: item.equality } : {}),
-    ...('batching' in item && item.batching ? { batching: item.batching } : {}),
-  });
-}
-
-/** Recursively flatten nested FieldSpec arrays into a flat list of FieldInfos. */
-function flattenSpecs(list: FieldGroup[]): FieldInfo[] {
-  const result: FieldInfo[] = [];
-  for (const item of list) {
-    if (Array.isArray(item)) {
-      result.push(...flattenSpecs(item));
-    } else {
-      result.push(normalizeFieldSpec(item));
-    }
-  }
-  return result;
+  // Object with name — fill in defaults via stateField
+  return [stateField(decl.name, {
+    ...('events' in decl && decl.events ? { events: decl.events as FieldEvent[] } : {}),
+    ...('event' in decl && decl.event ? { events: [decl.event as FieldEvent], event: decl.event } : {}),
+    ...('scope' in decl && decl.scope ? { scope: decl.scope } : {}),
+    ...('schema' in decl && decl.schema ? { schema: decl.schema } : {}),
+    ...('read' in decl && decl.read ? { read: decl.read } : {}),
+    ...('equality' in decl && decl.equality ? { equality: decl.equality } : {}),
+    ...('batching' in decl && decl.batching ? { batching: decl.batching } : {}),
+  })];
 }
 
 /**
  * Declare fields for a block. Returns an object where field names map to FieldInfo.
  *
- * Each element can be a FieldSpec or an array of FieldSpecs. Arrays group
- * fields that are conceptually related (future: bundle semantics). For now
- * they are flattened — the grouping is structural only.
+ * Accepts strings, FieldInfo objects, and arbitrarily nested arrays — all
+ * flattened into a single set of fields. This lets helper functions like
+ * graderFields() return arrays that compose naturally:
  *
  * @example
- * // Simple field names (default event and scope)
- * export const fields = state.fields(['value', 'loading']);
- *
- * @example
- * // Using field type constructors (array of one — independent field)
- * export const fields = state.fields(['foo', [docField('value')], 'baz']);
- *
- * @example
- * // Grouped fields (future: bundle — for now, equivalent to flat)
- * export const fields = state.fields([
- *   [stateField('correct'), stateField('message'), stateField('score')],
- *   'otherField',
- * ]);
- *
- * @example
- * // Nested arrays flatten recursively — graderFields() returns an array,
- * // and can be placed inside a group with extra fields:
- * export const fields = state.fields([
- *   [graderFields(), stateField('customFeedback')],
- *   'otherField',
- * ]);
+ * state.fields(['value', 'loading'])
+ * state.fields(graderFields())
+ * state.fields([graderFields(), 'customHint'])
+ * state.fields([docField('value'), { name: 'setting', scope: scopes.componentSetting }])
  */
-export function fields(fieldList: FieldGroup[]): Fields {
-  const infos = flattenSpecs(fieldList);
+export function fields(fieldList: FieldDecl[]): Fields {
+  const infos = fieldList.flatMap(normalize);
 
   // Build the result object: { fieldName: FieldInfo, ... }
   const fieldsByName: Record<string, FieldInfo> = {};
