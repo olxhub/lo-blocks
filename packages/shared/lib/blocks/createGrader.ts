@@ -38,6 +38,7 @@ import { graderAttributes, baseAttributes, z_reduxStateKey } from './attributeSc
 import _Noop from '@/components/blocks/layout/_Noop';
 import { registerDSLFunction } from '@/lib/stateLanguage/functions';
 import { correctness } from './correctness';
+import * as state from '@/lib/state';
 import type { RuntimeProps, LocalsAPI } from '@/lib/types';
 
 // Registry of Match blocks created by createGrader
@@ -316,6 +317,7 @@ export function createGrader({
     description,
     category: 'grading',
     component,
+    fields: state.fields(state.graderFields()),
     attributes: graderAttributes.extend(attributes),
     inputSchema,
     validateAttributes,

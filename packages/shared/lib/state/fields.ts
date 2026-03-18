@@ -59,25 +59,11 @@ export function fieldByName(fieldname: string) {
   return _fieldInfoByField[fieldname];
 }
 
-/**
- * Concatenate multiple field definitions into one.
- * Used by extend() and for combining field sets.
- */
-export function concatFields(...lists: Fields[]): Fields {
-  const merged: Record<string, FieldInfo> = {};
-  for (const list of lists) {
-    // Copy all FieldInfo entries (skip the extend method)
-    for (const [key, value] of Object.entries(list)) {
-      if (key !== 'extend' && value && typeof value === 'object' && value.type === 'field') {
-        merged[key] = value;
-      }
-    }
-  }
-  const result = {
-    ...merged,
-    extend: (...more: Fields[]) => concatFields(result as Fields, ...more),
-  } as Fields;
-  return result;
+/** Extract FieldInfo values from a Fields object (skipping the extend method). */
+function fieldInfosFrom(f: Fields): FieldInfo[] {
+  return Object.values(f).filter((v): v is FieldInfo =>
+    v && typeof v === 'object' && v.type === 'field'
+  );
 }
 
 /**
@@ -116,18 +102,18 @@ function normalize(decl: FieldDecl): FieldInfo[] {
 /**
  * Declare fields for a block. Returns an object where field names map to FieldInfo.
  *
- * Accepts strings, FieldInfo objects, and arbitrarily nested arrays — all
- * flattened into a single set of fields. This lets helper functions like
- * graderFields() return arrays that compose naturally:
+ * Accepts a string, a FieldInfo, or arbitrarily nested arrays — all
+ * normalized and flattened into a single set of fields.
  *
  * @example
+ * state.fields('value')
  * state.fields(['value', 'loading'])
  * state.fields(graderFields())
  * state.fields([graderFields(), 'customHint'])
  * state.fields([docField('value'), { name: 'setting', scope: scopes.componentSetting }])
  */
-export function fields(fieldList: FieldDecl[]): Fields {
-  const infos = fieldList.flatMap(normalize);
+export function fields(decl: FieldDecl): Fields {
+  const infos = normalize(decl);
 
   // Build the result object: { fieldName: FieldInfo, ... }
   const fieldsByName: Record<string, FieldInfo> = {};
@@ -153,7 +139,7 @@ export function fields(fieldList: FieldDecl[]): Fields {
 
   const result = {
     ...fieldsByName,
-    extend: (...more: Fields[]) => concatFields(result as Fields, ...more),
+    extend: (...more: Fields[]) => fields([fieldInfosFrom(result as Fields), ...more.map(fieldInfosFrom)]),
   } as Fields;
 
   return result;
