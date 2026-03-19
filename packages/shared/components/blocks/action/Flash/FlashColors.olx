@@ -1,0 +1,11 @@
+<Vertical id="FlashColorsDemo" title="Flash: Colors and Durations">
+  <Markdown>Flash different blocks with different colors and durations.</Markdown>
+  <Markdown id="flash_red">This block flashes red.</Markdown>
+  <Markdown id="flash_green">This block flashes green (slow).</Markdown>
+  <Markdown id="flash_blue">This block flashes blue (fast).</Markdown>
+  <ActionButton label="Flash All">
+    <Flash target="flash_red" color="tomato"/>
+    <Flash target="flash_green" color="lightgreen" duration="1500ms"/>
+    <Flash target="flash_blue" color="cornflowerblue" duration="200ms"/>
+  </ActionButton>
+</Vertical>
