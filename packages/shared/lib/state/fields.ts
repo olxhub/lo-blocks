@@ -59,79 +59,73 @@ export function fieldByName(fieldname: string) {
   return _fieldInfoByField[fieldname];
 }
 
-/**
- * Concatenate multiple field definitions into one.
- * Used by extend() and for combining field sets.
- */
-export function concatFields(...lists: Fields[]): Fields {
-  const merged: Record<string, FieldInfo> = {};
-  for (const list of lists) {
-    // Copy all FieldInfo entries (skip the extend method)
-    for (const [key, value] of Object.entries(list)) {
-      if (key !== 'extend' && value && typeof value === 'object' && value.type === 'field') {
-        merged[key] = value;
-      }
-    }
-  }
-  const result = {
-    ...merged,
-    extend: (...more: Fields[]) => concatFields(result as Fields, ...more),
-  } as Fields;
-  return result;
+/** Extract FieldInfo values from a Fields object (skipping the extend method). */
+function fieldInfosFrom(f: Fields): FieldInfo[] {
+  return Object.values(f).filter((v): v is FieldInfo =>
+    v && typeof v === 'object' && v.type === 'field'
+  );
 }
 
-/** What block authors write: a string, an object with optional defaults, or a fully-baked FieldInfo.
- *  The fields() function normalizes these into FieldInfo with all defaults filled in. */
-type FieldSpec = string | FieldInfo | { name: string; event?: string; events?: string[]; scope?: Scope; schema?: FieldInfo['schema']; read?: FieldInfo['read']; equality?: FieldInfo['equality']; batching?: FieldInfo['batching'] };
+/**
+ * A field declaration: a string name, a FieldInfo object, or a nested array.
+ * Strings become stateFields with default events. Objects with a `name`
+ * property get missing defaults filled in. Arrays are flattened recursively.
+ */
+type FieldDecl = string | FieldInfo
+  | { name: string; event?: string; events?: string[]; scope?: Scope; schema?: FieldInfo['schema']; read?: FieldInfo['read']; equality?: FieldInfo['equality']; batching?: FieldInfo['batching'] }
+  | FieldDecl[];
+
+/** Recursively normalize field declarations into a flat list of FieldInfos. */
+function normalize(decl: FieldDecl): FieldInfo[] {
+  if (Array.isArray(decl)) {
+    return decl.flatMap(normalize);
+  }
+  if (typeof decl === 'string') {
+    return [stateField(decl)];
+  }
+  // Already a fully-baked FieldInfo (e.g., from docField() or commonFields)
+  if ('type' in decl && decl.type === 'field' && 'events' in decl && decl.events) {
+    return [decl as FieldInfo];
+  }
+  // Object with name — fill in defaults via stateField
+  return [stateField(decl.name, {
+    ...('events' in decl && decl.events ? { events: decl.events as FieldEvent[] } : {}),
+    ...('event' in decl && decl.event ? { events: [decl.event as FieldEvent], event: decl.event } : {}),
+    ...('scope' in decl && decl.scope ? { scope: decl.scope } : {}),
+    ...('schema' in decl && decl.schema ? { schema: decl.schema } : {}),
+    ...('read' in decl && decl.read ? { read: decl.read } : {}),
+    ...('equality' in decl && decl.equality ? { equality: decl.equality } : {}),
+    ...('batching' in decl && decl.batching ? { batching: decl.batching } : {}),
+  })];
+}
 
 /**
  * Declare fields for a block. Returns an object where field names map to FieldInfo.
  *
- * @example
- * // Simple field names (default event and scope)
- * export const fields = state.fields(['value', 'loading']);
- * // fields.value is FieldInfo { name: 'value', events: ['UPDATE_VALUE'], scope: 'component' }
+ * Accepts a string, a FieldInfo, or arbitrarily nested arrays — all
+ * normalized and flattened into a single set of fields.
  *
  * @example
- * // Using field type constructors
- * import { docField } from '@/lib/state/fieldTypes/docField';
- * export const fields = state.fields([docField('value')]);
- *
- * @example
- * // Custom event or scope
- * export const fields = state.fields([
- *   'value',
- *   { name: 'history', event: 'HISTORY_CHANGED' },
- *   { name: 'setting', scope: scopes.componentSetting }
- * ]);
+ * state.fields('value')
+ * state.fields(['value', 'loading'])
+ * state.fields(graderFields())
+ * state.fields([graderFields(), 'customHint'])
+ * state.fields([docField('value'), { name: 'setting', scope: scopes.componentSetting }])
  */
-export function fields(fieldList: FieldSpec[]): Fields {
-  const infos: FieldInfo[] = fieldList.map(item => {
-    // Already a fully-baked FieldInfo (e.g., from docField() or commonFields)
-    if (typeof item === 'object' && 'type' in item && item.type === 'field' && 'events' in item && item.events) {
-      return item as FieldInfo;
-    }
-    if (typeof item === 'string') {
-      return stateField(item);
-    }
-    // Object with name - build on top of stateField defaults
-    const base = stateField(item.name, {
-      ...('events' in item && item.events ? { events: item.events as FieldEvent[] } : {}),
-      ...('event' in item && item.event ? { events: [item.event as FieldEvent], event: item.event } : {}),
-      ...('scope' in item && item.scope ? { scope: item.scope } : {}),
-      ...('schema' in item && item.schema ? { schema: item.schema } : {}),
-      ...('read' in item && item.read ? { read: item.read } : {}),
-      ...('equality' in item && item.equality ? { equality: item.equality } : {}),
-      ...('batching' in item && item.batching ? { batching: item.batching } : {}),
-    });
-    return base;
-  });
+export function fields(decl: FieldDecl): Fields {
+  const infos = normalize(decl);
 
   // Build the result object: { fieldName: FieldInfo, ... }
   const fieldsByName: Record<string, FieldInfo> = {};
   const fieldsByEvent: FieldInfoByEvent = {};
 
   for (const info of infos) {
+    if (fieldsByName[info.name]) {
+      throw new Error(
+        `[fields] Duplicate field name "${info.name}". ` +
+        `Each field must have a unique name within a block.`
+      );
+    }
     fieldsByName[info.name] = info;
     for (const ev of info.events) {
       fieldsByEvent[ev] = info;
@@ -145,7 +139,7 @@ export function fields(fieldList: FieldSpec[]): Fields {
 
   const result = {
     ...fieldsByName,
-    extend: (...more: Fields[]) => concatFields(result as Fields, ...more),
+    extend: (...more: Fields[]) => fields([fieldInfosFrom(result as Fields), ...more.map(fieldInfosFrom)]),
   } as Fields;
 
   return result;

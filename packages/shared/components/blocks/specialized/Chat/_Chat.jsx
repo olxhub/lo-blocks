@@ -54,7 +54,7 @@ export function _Chat(props) {
   const allEntries = kids.parsed.body;
 
   /* Cast definitions from header YAML (optional). */
-  const participants = kids.parsed.header?.Cast || null;
+  const participants = kids.parsed.header?.cast || null;
 
   /* Validation warnings from postprocess (e.g. case-sensitivity typos). */
   const headerWarnings = kids.parsed.headerWarnings || [];

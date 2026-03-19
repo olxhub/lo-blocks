@@ -1,10 +1,9 @@
 // OnShow - triggers child actions the first time this block is shown (or each time, if opted in).
 
-import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes, z_triggerMode } from '@/lib/blocks/attributeSchemas';
 import _OnShow from './_OnShow';
 
 export const fields = state.fields([
@@ -18,8 +17,8 @@ const OnShow = dev({
   component: _OnShow,
   fields,
   attributes: baseAttributes.extend({
-    trigger: z.enum(['first_view', 'each_view']).default('first_view')
-      .describe('When to trigger: "first_view" (first time only, persists across remounts) or "each_view" (each time this block is shown)'),
+    mode: z_triggerMode
+      .describe('"once" fires the first time only (persists across remounts), "each" fires each time this block is shown'),
   }),
 });
 

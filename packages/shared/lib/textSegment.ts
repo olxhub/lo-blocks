@@ -1,6 +1,6 @@
 // Text segmentation utility — splits text into tokens with character offsets.
 //
-// Extracted from SentenceVarietyPlot's analyzeText for cross-block reuse.
+// Extracted from WritingRhythmPlot's analyzeText for cross-block reuse.
 // Handles CJK character-by-character splitting, multilingual sentence splitting,
 // and punctuation stripping while preserving apostrophes and Unicode letters.
 //

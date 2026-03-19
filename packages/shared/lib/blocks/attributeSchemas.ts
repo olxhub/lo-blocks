@@ -88,6 +88,12 @@ export const z_expression = z.union([
   z.object({ expr: z.string(), ast: z.any() }),
 ]);
 
+/**
+ * Trigger mode: "once" fires the first time only, "each" fires every transition.
+ * Shared by OnShow, Trigger, and future trigger-like blocks.
+ */
+export const z_triggerMode = z.enum(['once', 'each']).default('once');
+
 // =============================================================================
 // Reusable ID Schemas
 // =============================================================================

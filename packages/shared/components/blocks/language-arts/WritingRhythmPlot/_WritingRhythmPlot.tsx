@@ -98,7 +98,7 @@ export function analyzeText(text: string, mode: string) {
   return data;
 }
 
-export default function _SentenceVarietyPlot(props: RuntimeProps) {
+export default function _WritingRhythmPlot(props: RuntimeProps) {
   const { target, width, height, xrange, yrange, mode = 'characters' } = props;
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -145,7 +145,7 @@ export default function _SentenceVarietyPlot(props: RuntimeProps) {
   }, [plotNode]);
 
   if (!target) {
-    return <DisplayError props={props} name="SentenceVarietyPlot" message="No target specified" />;
+    return <DisplayError props={props} name="WritingRhythmPlot" message="No target specified" />;
   }
 
   const minHeight = height || 200;
@@ -161,7 +161,7 @@ export default function _SentenceVarietyPlot(props: RuntimeProps) {
         justifyContent: 'center',
         color: '#999',
       }}>
-        Sentence variety plot
+        Writing rhythm plot
       </div>
     );
   }

@@ -10,11 +10,10 @@ import _TextSelection from './_TextSelection';
 
 export const fields = state.fields([
   commonFields.value,      // Set of selected word indices
+  state.graderFields(),    // correct, message, score, lastSubmission, submitCount, showAnswer
   'attempts',              // Number of check attempts
   'feedback',              // Current feedback message
-  commonFields.showAnswer, // Whether answer is revealed (self_check mode)
   'checked',               // Whether graded mode has been checked
-  'score'                  // Current score
 ]);
 
 const TextSelection = core({

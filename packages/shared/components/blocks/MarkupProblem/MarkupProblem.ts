@@ -424,7 +424,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
   return problemKids;
 }
 
-export const fields = state.fields(['correct', 'message', 'submitCount']);
+export const fields = state.fields(state.graderFields());
 
 const MarkupProblem = dev({
   ...peggyParser(capaParser, {

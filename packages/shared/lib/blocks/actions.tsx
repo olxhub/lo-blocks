@@ -226,7 +226,11 @@ export function grader({ grader, infer = true, slots, inputType }: {
     const values = inputData.map(d => d.value);
     const apis = inputData.map(d => d.api);
 
-    // Check input/grader type compatibility via Zod schemas
+    // Check input/grader type compatibility via Zod schemas.
+    // On mismatch, set result directly instead of returning early — we still
+    // need to dispatch UPDATE_CORRECT so the UI updates (executeNodeActions
+    // ignores return values).
+    let zodMismatchResult: { correct: string; message: string; score?: number } | null = null;
     const graderInputSchema = props.loBlock?.inputSchema;
     if (graderInputSchema) {
       for (const id of inputIds) {
@@ -237,65 +241,71 @@ export function grader({ grader, infer = true, slots, inputType }: {
         if (!isZodCompatible(inputBlock.valueSchema, graderInputSchema)) {
           const graderName = props.loBlock?.name || 'Grader';
           const inputName = inputBlock.name || inst.tag;
-          return {
+          zodMismatchResult = {
             correct: correctness.invalid,
             message: `${graderName} expects ${describeZodType(graderInputSchema)} input, but ${inputName} provides ${describeZodType(inputBlock.valueSchema)}.`,
           };
+          break;
         }
       }
     }
 
-    // Build grader parameters based on declared input type
-    let param: GraderParams;
-
-    if (slots && slots.length > 0) {
-      // Dict mode: resolve inputs to named slots
-      const getInputSlot = (id: OlxKey) => {
-        const inst = getBlockByOLXId(props, id);
-        return inst?.attributes?.slot as string | undefined;
-      };
-
-      const { slotMap, errors } = resolveInputSlots(slots, inputIds, getInputSlot);
-
-      if (errors.length > 0) {
-        // Slot resolution failed - return invalid with error message
-        return {
-          correct: correctness.invalid,
-          message: errors[0],
-        };
-      }
-
-      // Build slot→value and slot→api maps
-      const inputDict: Record<string, unknown> = {};
-      const inputApiDict: Record<string, object> = {};
-
-      for (const [slot, inputId] of Object.entries(slotMap)) {
-        const idx = (inputIds as string[]).indexOf(inputId);
-        if (idx >= 0) {
-          inputDict[slot] = values[idx];
-          inputApiDict[slot] = apis[idx];
-        }
-      }
-
-      param = { inputDict, inputApiDict };
-    } else if (inputType === 'list') {
-      // List mode - explicitly requested
-      param = { inputList: values, inputApis: apis };
+    // Build grader parameters and run grader (skip if Zod already caught a mismatch)
+    let correct: any, message: any, score: any;
+    if (zodMismatchResult) {
+      ({ correct, message, score } = zodMismatchResult);
     } else {
-      // Single input mode (default when no slots specified)
-      // Most graders expect a single input
-      if (values.length === 0) {
-        return {
-          correct: correctness.invalid,
-          message: 'No input found',
+      let param: GraderParams | undefined;
+
+      if (slots && slots.length > 0) {
+        // Dict mode: resolve inputs to named slots
+        const getInputSlot = (id: OlxKey) => {
+          const inst = getBlockByOLXId(props, id);
+          return inst?.attributes?.slot as string | undefined;
         };
+
+        const { slotMap, errors } = resolveInputSlots(slots, inputIds, getInputSlot);
+
+        if (errors.length > 0) {
+          // Slot resolution failed — fall through to dispatch so UI updates
+          correct = correctness.invalid;
+          message = errors[0];
+        } else {
+          // Build slot→value and slot→api maps
+          const inputDict: Record<string, unknown> = {};
+          const inputApiDict: Record<string, object> = {};
+
+          for (const [slot, inputId] of Object.entries(slotMap)) {
+            const idx = (inputIds as string[]).indexOf(inputId);
+            if (idx >= 0) {
+              inputDict[slot] = values[idx];
+              inputApiDict[slot] = apis[idx];
+            }
+          }
+
+          param = { inputDict, inputApiDict };
+        }
+      } else if (inputType === 'list') {
+        // List mode - explicitly requested
+        param = { inputList: values, inputApis: apis };
+      } else {
+        // Single input mode (default when no slots specified)
+        // Most graders expect a single input
+        if (values.length === 0) {
+          // No input — fall through to dispatch so UI updates
+          correct = correctness.invalid;
+          message = 'No input found';
+        } else {
+          param = { input: values[0], inputApi: apis[0] };
+        }
       }
-      param = { input: values[0], inputApi: apis[0] };
+      if (param) {
+        ({ correct, message, score } = grader(
+          { ...props, ...targetAttributes },
+          param
+        ));
+      }
     }
-    const { correct, message, score } = grader(
-      { ...props, ...targetAttributes },
-      param
-    );
 
     // Convert boolean correct to correctness enum for display
     const correctnessValue = correct === true ? correctness.correct :
@@ -323,7 +333,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
       message,
       score,
       submitCount,
-      answers: values
+      lastSubmission: values
     });
     return correct;
   };

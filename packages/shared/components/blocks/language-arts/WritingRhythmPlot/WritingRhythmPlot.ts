@@ -2,13 +2,13 @@ import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
-import _SentenceVarietyPlot from './_SentenceVarietyPlot';
+import _WritingRhythmPlot from './_WritingRhythmPlot';
 
-const SentenceVarietyPlot = core({
+const WritingRhythmPlot = core({
   ...parsers.ignore(),
-  name: 'SentenceVarietyPlot',
+  name: 'WritingRhythmPlot',
   requiresUniqueId: false,
-  component: _SentenceVarietyPlot,
+  component: _WritingRhythmPlot,
   description: 'Bar chart of sentence lengths with word-length stacking, reading from a target TextArea.',
   attributes: baseAttributes.extend({
     target: z_reduxStateKey.describe('ID of TextArea to analyze'),
@@ -21,4 +21,4 @@ const SentenceVarietyPlot = core({
   }),
 });
 
-export default SentenceVarietyPlot;
+export default WritingRhythmPlot;

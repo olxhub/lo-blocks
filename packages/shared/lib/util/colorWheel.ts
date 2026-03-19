@@ -1,6 +1,6 @@
 // Golden ratio color wheel — deterministic, visually-spaced hue assignment.
 //
-// Used by SentenceVarietyPlot, WordUsage, and any component needing
+// Used by WritingRhythmPlot, WordUsage, and any component needing
 // a sequence of perceptually distinct colors.
 
 const PHI = 1.618033988749895;

@@ -1,9 +1,9 @@
-<Vertical id="sentence_variety_example" title="Sentence Variety Plot">
+<Vertical id="writing_rhythm_example" title="Writing Rhythm Plot">
   <Markdown id="variety_intro">
-## Sentence Variety
+## Writing Rhythm
 
 Type or edit the text below and watch how the chart changes. Each bar is a sentence. Each colored segment is a word — taller segments are longer words.
   </Markdown>
   <TextArea id="variety_text" rows="8" />
-  <SentenceVarietyPlot id="variety_plot" target="variety_text" />
+  <WritingRhythmPlot id="variety_plot" target="variety_text" />
 </Vertical>

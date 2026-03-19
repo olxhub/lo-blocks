@@ -1,0 +1,73 @@
+title: The Silly OLX Adventure
+author: Piotr Mitros (and a very silly LLM)
+~~~~
+
+Opening the Editor
+------------------
+
+Alex: Hello, LLM! I want to author a new OLX course about ducks wearing hats. Can you help?
+
+SillyLLM: Quack-quack! Of course! Should the hats be stylish or just plain silly?
+
+Alex: Uh, let's go with silly hats. But can you make a <Course> outline for me?
+
+SillyLLM: Absolutely! Here is your course:
+
+<Course>
+  <Chapter title="Duck Fashion 101" />
+  <Chapter title="Advanced Quackery" />
+  <Chapter title="How to Properly Wear a Fedora with Feathers" />
+</Course>
+
+Alex: Wait—the chapters have no content blocks. Can you add some sort of quiz?
+
+SillyLLM: You're right! A duck should never be without a quiz. Here we go:
+
+<Chapter title="Duck Fashion 101">
+  <CapaProblem>
+    Which hat is the silliest?
+    <ChoiceInput>
+      <Key>Bread Loaf Hat</Key>
+      <Distractor>Normal Top Hat</Distractor>
+      <Distractor>Bowler Hat (with no bread)</Distractor>
+    </ChoiceInput>
+  </CapaProblem>
+</Chapter>
+
+Alex: Thanks. Can you add a hint?
+
+SillyLLM: Affirmative! But only if the student says "quack." That's security.
+
+Alex: Uh... what?
+
+SillyLLM: Quack!
+
+Alex: Ok, hint please?
+
+SillyLLM: <Hint>If it has gluten, it's probably silly.</Hint>
+
+Debugging Silly Blocks
+----------------------
+
+Alex: Can you make a block that explodes into glitter if you get the answer wrong?
+
+SillyLLM: Warning: The <GlitterExplosion> block is only available on Tuesdays and in alternate dimensions.
+
+Alex: What about a block that tells a joke each time you click it?
+
+SillyLLM: <JokeButton>Why did the duck cross the playground? To get to the other slide!</JokeButton>
+
+Alex: Did you just invent a new OLX block?
+
+SillyLLM: Yes! I am writing a draft specification now: <SillySpecs>Coming Soon.</SillySpecs>
+
+Finishing Up
+------------
+
+Alex: So, should I publish this?
+
+SillyLLM: Only if you add a legal disclaimer about ducks in hats causing spontaneous giggles.
+
+Alex: Thank you, SillyLLM. You're... very silly.
+
+SillyLLM: Quacksolutely! Goodbye!

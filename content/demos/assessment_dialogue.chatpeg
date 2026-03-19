@@ -1,0 +1,161 @@
+title: "Assessment: Done Right"
+author: Piotr Mitros
+~~~~
+
+Finding the Company
+-------------------
+
+Jay: Dad, what are you doing?
+
+Piotr: Job hunting. We just moved to Poland, remember? I can't take my old job with me.
+
+Jay: What kind of job?
+
+Piotr: Something in education technology. I found this company called "2 Hour Learning." They're doing AI-powered personalized learning with mastery-based progression.
+
+Jay: That sounds like what you've been working on forever.
+
+Piotr: Exactly. They have two roles that fit: Director of Academics and SVP of Technical Product Management. Either would be interesting.
+
+--- pause ---
+
+Jay: So... did you apply?
+
+Piotr: I did. And their application process is fascinating. They use AI-powered assessments to screen candidates.
+
+Jay: That's kind of cool, right? You always say assessment should come first.
+
+assessment_sidebar -> testing_first_context
+
+Piotr: It *is* cool. Assessment-driven selection is a strong approach. Let me show you what happened though.
+
+The Academics Track
+-------------------
+
+Jay: What went wrong?
+
+Piotr: Well, for the Director of Academics role, their LLM evaluates whether you have the right background. I have five years as Chief Scientist of edX—that's the MIT/Harvard online learning initiative. Then many years managing research at ETS.
+
+Jay: ETS... the testing company?
+
+Piotr: Educational Testing Service. They make the SAT, GRE, TOEFL. They're *the* organization for educational assessment research. I led teams developing next-generation assessments.
+
+Jay: So you know assessment.
+
+Piotr: Intimately. But my Ph.D. is in electrical engineering, not education. The LLM apparently decided that a half-decade running education research at MIT/Harvard, plus years at the world's leading assessment organization, doesn't count as "equivalent to a Ph.D. in education."
+
+--- pause ---
+
+Jay: That seems... wrong?
+
+assessment_sidebar -> validity_construct
+
+Piotr: It's a construct validity problem. The system is measuring "has credential X" rather than "can do job Y." Those correlate, but they're not the same thing.
+
+Jay: What about the other job?
+
+The Technical Track
+-------------------
+
+Piotr: The SVP of Technical Product Management role had a different screening—a coding assessment.
+
+Jay: That should be easy for you.
+
+Piotr: The assessment itself was well-designed. Good problems, reasonable time limits. But I hit a bug in their test harness. My code was correct, but their validation had an issue.
+
+Jay: What did you do?
+
+Piotr: There's no way to contact anyone. It's fully automated. No human in the loop.
+
+assessment_sidebar -> human_fallback
+
+--- pause ---
+
+Jay: So you're stuck?
+
+Piotr: For that assessment, yes. But here's the thing—I kept going. The assessments are genuinely interesting. Well-designed questions. Good use of AI for feedback. Real thought went into them.
+
+Jay: So... good tests, but bad process?
+
+Piotr: Exactly. This is what I want to talk about. Let's dig into what makes assessment work—and what goes wrong when it's deployed without the right safeguards.
+
+The Standards Gap
+-----------------
+
+assessment_sidebar -> standards_overview
+
+Piotr: There are professional standards for educational and psychological testing. The AERA/APA/NCME Joint Standards. They represent decades of research on how to do assessment ethically and validly.
+
+Jay: What do they say?
+
+Piotr: A few key principles apply here. First: **high-stakes decisions require multiple sources of information**. One automated screen shouldn't determine everything.
+
+Jay: Their system uses just the AI.
+
+Piotr: Right. Second: **there must be mechanisms for review and appeal**. When the test has an error—or the algorithm does—there needs to be a human who can look at it.
+
+Jay: And there's no one to contact.
+
+--- pause ---
+
+Piotr: Third: **fairness requires transparency**. Test-takers should understand how they'll be evaluated. "An LLM will decide if your background counts" isn't transparent.
+
+assessment_sidebar -> campbell_activity
+
+Jay: So they're violating the standards?
+
+Piotr: They're building something that could be great, but deploying it before it's ready. The individual assessments are clever. The system architecture ignores hard-won knowledge about how assessment can go wrong.
+
+The Irony
+---------
+
+Jay: Wait—they have a Spiky POV about this, don't they?
+
+Piotr: "In a fully automated system, automating quality control is 90% of the work and 90% of the value."
+
+Jay: But their own hiring system doesn't have quality control.
+
+Piotr: That's the irony. They understand the principle.
+
+--- pause ---
+
+assessment_sidebar -> decision_theory
+
+Piotr: Cronbach—one of the founders of modern testing—said we should ask: "Valid for what decision?" A test might be valid for screening out clearly unqualified candidates but invalid for distinguishing between highly qualified candidates.
+
+Jay: And you're highly qualified.
+
+Piotr: That's not for me to say. But the point is: **assessment works when it's done right**. The testing effect is real. Backward design is powerful. Data-driven instruction helps students.
+
+Jay: So you agree with them?
+
+Piotr: On the core insight? Absolutely. Assessment should drive learning. But the details matter. Validity, reliability, fairness—these aren't bureaucratic box-checking. They're what separates assessment that helps from assessment that harms.
+
+Stealth Assessment
+------------------
+
+assessment_sidebar -> stealth_context
+
+Jay: You've worked on this stuff, right?
+
+Piotr: For years. At edX, we pioneered using the "exhaust" of learning for assessment. Every interaction a student has—every problem attempt, every video pause, every forum post—contains information about what they understand.
+
+Jay: So you don't need separate tests?
+
+Piotr: You still need calibration. But you can reduce the need for artificial test situations. Assessment woven into learning feels less threatening and captures richer data.
+
+--- pause ---
+
+Jay: That sounds like what they're trying to do.
+
+Piotr: It is! That's why I find them interesting despite the friction. The vision is right. I just want them to debug it before it screens out people who could help them build it right.
+
+assessment_sidebar -> reflection_activity
+
+Jay: So what now?
+
+Piotr: Now? I'm going to build a course that shows what I know. Not just tell them I have experience—demonstrate it. Using their own tools, ironically.
+
+Jay: Is that what this is?
+
+Piotr: That's exactly what this is.

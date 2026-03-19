@@ -10,7 +10,7 @@ lang: en-Latn-US
   <Markdown id="comparison_intro">
 ## Comparing Writing Styles
 
-The same passage appears below in three different styles. Look at the sentence variety plots — how does the visual structure differ? What do short, uniform bars tell you versus tall, varied ones?
+The same passage appears below in three different styles. Look at the writing rhythm plots — how does the visual structure differ? What do short, uniform bars tell you versus tall, varied ones?
   </Markdown>
 
   <Tabs id="style_tabs">
@@ -23,7 +23,7 @@ The same passage appears below in three different styles. Look at the sentence v
 After the first test, the teacher announced the scores in front of the class, so everyone could hear. As a new exchange student, Tom had been exempt from the test himself. But listening to the grade announcements, he felt intensely uncomfortable. Like Eric in Korea, he couldn't imagine such a public reckoning in his American classroom.
 
 Kids in Poland were used to failing, it seemed. The logic made sense. If the work was hard, routine failure was the only way to learn. "Success," as Winston Churchill once said, "is going from failure to failure without losing your enthusiasm."</TextArea>
-      <SentenceVarietyPlot id="plot_journalistic" target="text_journalistic" xrange="20" yrange="250" />
+      <WritingRhythmPlot id="plot_journalistic" target="text_journalistic" xrange="20" yrange="250" />
     </Vertical>
 
     <Vertical id="style_simple" title="Simple">
@@ -35,7 +35,7 @@ Kids in Poland were used to failing, it seemed. The logic made sense. If the wor
 After a test, the teacher read the grades out loud. Tom felt weird about this. No one would do that back home. The grades were low. No one got the top score. But no one seemed upset. They just went to the next class.
 
 Kids in Poland were used to not doing well on tests. They kept trying. They did not give up.</TextArea>
-      <SentenceVarietyPlot id="plot_simple" target="text_simple" xrange="20" yrange="250" />
+      <WritingRhythmPlot id="plot_simple" target="text_simple" xrange="20" yrange="250" />
     </Vertical>
 
     <Vertical id="style_academic" title="Academic">
@@ -47,7 +47,7 @@ Kids in Poland were used to not doing well on tests. They kept trying. They did 
 The assessment practices proved equally distinctive. Following examinations, instructors publicly announced individual scores, a practice that produced considerable discomfort in the exchange student, who could not reconcile this transparency with American norms of private evaluation. The consistently low scores, measured on Poland's one-to-five scale, appeared to produce neither surprise nor demoralization among Polish students.
 
 This observation suggests a fundamentally different relationship to academic failure. In the Polish educational context, routine failure functioned as an expected component of rigorous learning rather than as a source of stigma or discouragement.</TextArea>
-      <SentenceVarietyPlot id="plot_academic" target="text_academic" xrange="20" yrange="250" />
+      <WritingRhythmPlot id="plot_academic" target="text_academic" xrange="20" yrange="250" />
     </Vertical>
   </Tabs>
 </Vertical>

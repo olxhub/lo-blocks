@@ -1,0 +1,6 @@
+<Vertical id="FlashDemo" title="Flash">
+  <Markdown id="flash_target">Click the button to flash this text.</Markdown>
+  <ActionButton label="Flash!">
+    <Flash target="flash_target"/>
+  </ActionButton>
+</Vertical>

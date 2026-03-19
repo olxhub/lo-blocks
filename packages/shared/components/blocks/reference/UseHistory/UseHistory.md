@@ -38,7 +38,7 @@ Select different panels, then use the navigation dots to browse your history.
 <SplitPanel sizes="65,35">
   <LeftPane>
     <Chat id="discussion">
-Title: Discussion
+title: Discussion
 ~~~~
 
 Alex: Let's think about this topic.
