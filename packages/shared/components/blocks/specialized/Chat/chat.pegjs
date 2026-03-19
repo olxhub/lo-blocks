@@ -10,7 +10,7 @@ description: Format for dialogue-driven scenarios, simulations, and training mod
  * or assessments — used in learning applications.
  *
  * The format supports:
- * - An optional document header with key-value metadata (e.g. Title, Author)
+ * - An optional document header with key-value metadata (e.g. title, author)
  * - A section divider (e.g. '---', '----') separating header and body
  * - Dialogue lines marked by speaker (e.g. "Bob: Hello there!")
  * - Inline and prefix metadata using [key=value] syntax, allowing annotations
@@ -28,8 +28,8 @@ description: Format for dialogue-driven scenarios, simulations, and training mod
  *
  * Example:
  *
- *   Title: Clean Room Training
- *   Author: Dr. Z
+ *   title: Clean Room Training
+ *   author: Dr. Z
  *   ~~~~~~
  *   --- waitFor: studentReady ---
  *   [id=start mood=excited]

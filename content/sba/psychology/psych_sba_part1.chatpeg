@@ -1,7 +1,6 @@
-Title: Psychology Study Group, Task 1
-Author: Psychology Department
-Course: Intro to Psychology
-Cast:
+title: Psychology Study Group, Task 1
+author: "TODO -- fill this in"
+cast:
   Annie:
     seed: annie
     face: smile

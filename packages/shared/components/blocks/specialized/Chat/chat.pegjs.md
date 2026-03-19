@@ -19,10 +19,10 @@ The header is optional. If omitted, the document starts directly with body conte
 The header uses YAML format before the `~~~~` divider:
 
 ```yaml
-Title: Cognitive Load Theory
-Author: Learning Design Team
-Course: PSYCH 201
-Cast:
+title: Cognitive Load Theory
+author: Learning Design Team
+description: An introduction to cognitive load theory
+cast:
   Professor Liu:
     seed: liu_professor
     face: calm
@@ -33,21 +33,24 @@ Cast:
 
 ### Standard Header Keys
 
+Uses the same metadata keys as OLX frontmatter (defined in `lib/content/metadata.ts`), plus `cast`:
+
 | Key | Description |
 |-----|-------------|
-| `Title` | Document title (displayed in chat header) |
-| `Author` | Author name |
-| `Course` | Course identifier |
-| `Cast` | Speaker avatar definitions (see below) |
+| `title` | Document title |
+| `author` | Author name |
+| `description` | Brief description of the content |
+| `category` | Content category |
+| `cast` | Speaker avatar definitions (see below) |
 
-Keys are **case-sensitive** — use `Cast` not `cast`. The parser warns on casing mismatches.
+Keys are **lowercase**. The parser warns on unknown keys.
 
 ### Cast
 
 Define avatar appearance for each speaker. Not every cast member needs options — a bare entry uses the speaker name as the avatar seed:
 
 ```yaml
-Cast:
+cast:
   Professor Chen:
     seed: chen_professor
     style: illustrated
@@ -266,9 +269,9 @@ Clip syntax supports section names, IDs, indices, and ranges:
 ## Complete Example
 
 ```
-Title: Desirable Difficulties
-Author: Learning Design Team
-Cast:
+title: Desirable Difficulties
+author: Learning Design Team
+cast:
   Kim:
     seed: kim_researcher
     face: smile
@@ -311,8 +314,8 @@ The parser produces a structure with header and body:
 {
   "type": "Conversation",
   "header": {
-    "Title": "...",
-    "Cast": { ... }
+    "title": "...",
+    "cast": { ... }
   },
   "body": [
     { "type": "SectionHeader", "title": "...", "metadata": {} },

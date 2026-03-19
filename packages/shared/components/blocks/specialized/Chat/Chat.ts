@@ -6,6 +6,7 @@ import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
+import { CHAT_METADATA_KEYS } from '@/lib/content/metadata';
 import * as cp  from './_chatParser';
 import { _Chat, callChatAdvanceHandler } from './_Chat';
 
@@ -22,16 +23,9 @@ function advanceChat({ targetId }) {
 /* ----------------------------------------------------------------
  * Header validation
  * ----------------------------------------------------------------
- * After YAML parsing we check for case-sensitivity typos so that
- * content authors get early feedback (e.g. "Seed" instead of "seed").
+ * After YAML parsing we check for unknown keys and validate cast
+ * properties so content authors get early feedback.
  */
-
-const KNOWN_HEADER_KEYS = new Map([
-  ['title', 'Title'],
-  ['author', 'Author'],
-  ['course', 'Course'],
-  ['cast', 'Cast'],
-]);
 
 const KNOWN_CAST_KEYS = new Set([
   'seed', 'style', 'src', 'name',
@@ -44,26 +38,20 @@ function validateHeader(header: Record<string, unknown>): string[] {
   const warnings: string[] = [];
 
   for (const key of Object.keys(header)) {
-    const lower = key.toLowerCase();
-    const canonical = KNOWN_HEADER_KEYS.get(lower);
-    if (canonical && canonical !== key) {
-      warnings.push(`Header key "${key}" should be "${canonical}" (keys are case-sensitive)`);
-    } else if (!canonical) {
-      warnings.push(`Unknown header key "${key}". Known keys: ${[...KNOWN_HEADER_KEYS.values()].join(', ')}`);
+    if (!CHAT_METADATA_KEYS.has(key)) {
+      warnings.push(`Unknown header key "${key}". Known keys: ${[...CHAT_METADATA_KEYS].join(', ')}`);
     }
   }
 
-  // Find Cast (case-insensitive) and validate property keys
-  const participantsKey = Object.keys(header).find(k => k.toLowerCase() === 'cast');
-  const participants = participantsKey ? header[participantsKey] : null;
-
-  if (participants && typeof participants === 'object' && !Array.isArray(participants)) {
-    for (const [speaker, props] of Object.entries(participants as Record<string, unknown>)) {
+  // Validate cast property keys
+  const cast = header.cast;
+  if (cast && typeof cast === 'object' && !Array.isArray(cast)) {
+    for (const [speaker, props] of Object.entries(cast as Record<string, unknown>)) {
       if (props && typeof props === 'object' && !Array.isArray(props)) {
         for (const propKey of Object.keys(props as Record<string, unknown>)) {
           const match = [...KNOWN_CAST_KEYS].find(k => k.toLowerCase() === propKey.toLowerCase());
           if (match && match !== propKey) {
-            warnings.push(`Participant "${speaker}": "${propKey}" should be "${match}" (keys are case-sensitive)`);
+            warnings.push(`Cast "${speaker}": "${propKey}" should be "${match}" (keys are case-sensitive)`);
           }
         }
       }
