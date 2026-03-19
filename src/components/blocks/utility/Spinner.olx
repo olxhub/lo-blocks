@@ -1,0 +1,15 @@
+<Vertical id="SpinnerDemo" title="Spinner Block Demo">
+
+  <Markdown id="intro">
+## Spinner
+
+Spinner shows a loading indicator. It's typically used internally by other components during async operations.
+  </Markdown>
+
+  <Spinner />
+
+  <Markdown id="note">
+The spinner above shows a continuous loading animation. In practice, Spinner is usually displayed conditionally during loading states.
+  </Markdown>
+
+</Vertical>

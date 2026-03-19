@@ -1,0 +1,127 @@
+/* Learning Observer Global Theme Variables */
+
+:root {
+  /* Color Palette */
+  --lo-primary: #2563eb;
+  --lo-primary-hover: #1d4ed8;
+  --lo-primary-light: #dbeafe;
+  --lo-secondary: #64748b;
+  --lo-secondary-hover: #475569;
+  
+  /* Semantic Colors */
+  --lo-background: #ffffff;
+  --lo-surface: #f8fafc;
+  --lo-surface-hover: #f1f5f9;
+  --lo-border: #e2e8f0;
+  --lo-border-focus: #3b82f6;
+  
+  /* Text Colors */
+  --lo-text-primary: #1e293b;
+  --lo-text-secondary: #64748b;
+  --lo-text-muted: #94a3b8;
+  --lo-text-inverse: #ffffff;
+  
+  /* Status Colors */
+  --lo-success: #059669;
+  --lo-success-light: #d1fae5;
+  --lo-warning: #d97706;
+  --lo-warning-light: #fef3c7;
+  --lo-error: #dc2626;
+  --lo-error-light: #fee2e2;
+  --lo-info: #0284c7;
+  --lo-info-light: #e0f2fe;
+  
+  /* Typography */
+  --lo-font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --lo-font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+  
+  --lo-font-size-xs: 0.75rem;   /* 12px */
+  --lo-font-size-sm: 0.875rem;  /* 14px */
+  --lo-font-size-base: 1rem;    /* 16px */
+  --lo-font-size-lg: 1.125rem;  /* 18px */
+  --lo-font-size-xl: 1.25rem;   /* 20px */
+  --lo-font-size-2xl: 1.5rem;   /* 24px */
+  --lo-font-size-3xl: 1.875rem; /* 30px */
+  
+  --lo-line-height-tight: 1.25;
+  --lo-line-height-normal: 1.5;
+  --lo-line-height-relaxed: 1.75;
+  
+  /* Spacing Scale */
+  --lo-space-xs: 0.25rem;  /* 4px */
+  --lo-space-sm: 0.5rem;   /* 8px */
+  --lo-space-md: 0.75rem;  /* 12px */
+  --lo-space-lg: 1rem;     /* 16px */
+  --lo-space-xl: 1.5rem;   /* 24px */
+  --lo-space-2xl: 2rem;    /* 32px */
+  --lo-space-3xl: 3rem;    /* 48px */
+  
+  /* Border Radius */
+  --lo-radius-sm: 0.125rem;  /* 2px */
+  --lo-radius-md: 0.375rem;  /* 6px */
+  --lo-radius-lg: 0.5rem;    /* 8px */
+  --lo-radius-xl: 0.75rem;   /* 12px */
+  
+  /* Shadows */
+  --lo-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --lo-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --lo-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --lo-shadow-focus: 0 0 0 3px rgb(59 130 246 / 0.15);
+  
+  /* Layout */
+  --lo-container-max-width: 1200px;
+  --lo-sidebar-width: 320px;
+  --lo-header-height: 64px;
+}
+
+/* Base Typography */
+body {
+  font-family: var(--lo-font-family);
+  font-size: var(--lo-font-size-base);
+  line-height: var(--lo-line-height-normal);
+  color: var(--lo-text-primary);
+  background-color: var(--lo-background);
+}
+
+/* Focus Styles */
+*:focus-visible {
+  outline: 2px solid var(--lo-primary);
+  outline-offset: 2px;
+}
+
+/* Smooth Transitions */
+* {
+  transition: colors 150ms ease, border-color 150ms ease, background-color 150ms ease;
+}
+
+/* Show Answer Label - used across input components */
+.lo-show-answer-label {
+  display: inline-block;
+  margin-inline-start: var(--lo-space-sm);
+  padding: var(--lo-space-xs) var(--lo-space-sm);
+  background-color: var(--lo-success-light);
+  color: var(--lo-success);
+  font-size: var(--lo-font-size-sm);
+  font-weight: 500;
+  border-radius: var(--lo-radius-md);
+}
+
+/* Sortable position label - overlay showing correct position number */
+.lo-sortable-position-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: rgba(5, 150, 105, 0.75); /* --lo-success with alpha */
+  color: var(--lo-text-inverse);
+  font-size: var(--lo-font-size-xl);
+  font-weight: 700;
+  border-radius: 50%;
+  pointer-events: none; /* Allow clicking through to drag */
+  z-index: 10;
+}

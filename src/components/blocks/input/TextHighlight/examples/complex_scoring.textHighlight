@@ -1,0 +1,12 @@
+Find all behavioral modification techniques:
+---
+They used [positive reinforcement] and [negative reinforcement] to increase behaviors.
+They also tried [positive punishment] and [negative punishment] to decrease them.
+Some parents use <<bribery>>, but that's different from reinforcement.
+---
+all: Perfect! All 4 techniques found with no errors!
+>3,errors<1: Great work! You found most techniques.
+found>2,incorrect<2: Good progress - watch for false positives.
+found>2: You found some techniques but made some errors too.
+errors>3: Too many incorrect selections.
+: Review the four types of behavioral modification.

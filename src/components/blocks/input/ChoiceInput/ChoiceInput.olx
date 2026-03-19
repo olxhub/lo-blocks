@@ -1,0 +1,5 @@
+<ChoiceInput id="ChoiceInputDemo">
+  <Distractor>LON-CAPA</Distractor>
+  <Distractor>Open edX</Distractor>
+  <Key>Learning Observer</Key>
+</ChoiceInput>

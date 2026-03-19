@@ -1,0 +1,21 @@
+<CapaProblem id="HistoricalEventsMatching" title="World History Timeline">
+  Match historical events with their dates:
+  <MatchingGrader id="history_grader">
+    <MatchingInput id="history_events">
+      <Markdown id="event_1066">1066</Markdown>
+      <Markdown id="year_1066">Battle of Hastings - Norman conquest of England</Markdown>
+
+      <Markdown id="event_1492">1492</Markdown>
+      <Markdown id="year_1492">Columbus reaches the Americas</Markdown>
+
+      <Markdown id="event_1789">1789</Markdown>
+      <Markdown id="year_1789">French Revolution begins</Markdown>
+
+      <Markdown id="event_1945">1945</Markdown>
+      <Markdown id="year_1945">End of World War II</Markdown>
+
+      <Markdown id="event_1969">1969</Markdown>
+      <Markdown id="year_1969">Apollo 11 moon landing</Markdown>
+    </MatchingInput>
+  </MatchingGrader>
+</CapaProblem>

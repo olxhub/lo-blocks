@@ -1,0 +1,24 @@
+<Vertical id="RefComplexDemo" title="Ref with Complex Values">
+
+  <Markdown>
+## Complex Value Display
+
+Ref automatically formats complex values (objects, arrays) as readable JSON.
+This is useful for debugging, displaying structured data, or passing to LLMs.
+
+### Survey Response (Dictionary)
+
+Make some selections below:
+  </Markdown>
+
+  <TabularMCQ id="mood_survey">
+cols: Great, OK, Poor
+rows: Energy, Focus, Mood
+  </TabularMCQ>
+
+  <Markdown>
+**Your selections as JSON:**
+  </Markdown>
+  <Ref target="mood_survey" format="code" />
+
+</Vertical>

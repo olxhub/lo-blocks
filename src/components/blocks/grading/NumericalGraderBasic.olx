@@ -1,0 +1,6 @@
+<CapaProblem id="NumericalGraderBasic" title="Squares">
+  What is 12 × 12?
+  <NumericalGrader answer="144">
+    <ComplexInput />
+  </NumericalGrader>
+</CapaProblem>

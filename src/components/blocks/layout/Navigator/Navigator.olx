@@ -1,0 +1,23 @@
+<Vertical id="NavigatorDemo" title="Navigator">
+  <Navigator id="nav" title="Project Tasks" preview="preview" detail="detail">
+- id: task1
+  title: Research Phase
+  subtitle: Week 1-2
+  description: Gather background information and review existing literature.
+
+- id: task2
+  title: Data Collection
+  subtitle: Week 3-4
+  description: Design surveys, conduct interviews, and collect data.
+
+- id: task3
+  title: Analysis
+  subtitle: Week 5-6
+  description: Process collected data and identify patterns.
+  </Navigator>
+
+  <Hidden>
+    <NavigatorDefaultPreview id="preview" />
+    <NavigatorDefaultDetail id="detail" />
+  </Hidden>
+</Vertical>

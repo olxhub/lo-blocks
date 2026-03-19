@@ -1,0 +1,6 @@
+<Vertical>
+  <DropdownInput id="sizePicker" placeholder="Choose a size..." options="Small|s, Medium|m, Large|l" />
+
+  <Markdown>You selected:</Markdown>
+  <Ref target="sizePicker" />
+</Vertical>

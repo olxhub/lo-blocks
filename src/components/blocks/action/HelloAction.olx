@@ -1,0 +1,3 @@
+<ActionButton id="HelloActionDemo" title="HelloAction Demo" label="Click me!">
+  <HelloAction/>
+</ActionButton>

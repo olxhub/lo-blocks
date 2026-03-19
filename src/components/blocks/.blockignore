@@ -1,0 +1,24 @@
+# src/components/blocks/.blockignore
+# This is a list of glob expressions to ignore in the
+# generateBlockRegistry script / npm build:gen-block-registry
+
+# It is also possible to ignore files by including the text
+# @block-registry-ignore somewhere in the file
+
+# Exclude all StubBlocks
+**/StubBlock.* 
+
+# Client files, e.g. ChatClient.js
+**/*Client.*
+
+# Underscore files, e.g. _Chat.js
+**/_*
+
+# Dot files
+**/.*
+
+# Hash emacs-style backups
+**/#*
+
+**/*~
+**/*.test.*

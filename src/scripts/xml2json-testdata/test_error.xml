@@ -1,0 +1,3 @@
+<Vertical id="TestError" launchable="true">
+  <Chat id="broken_chat" src="broken.chatpeg" />
+</Vertical>

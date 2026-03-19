@@ -1,0 +1,46 @@
+Comprehensive CAPA Test
+===
+
+This example tests all supported syntax features.
+
+>>Question 1: What is the capital of Japan?<<
+
+( ) Beijing {{That's the capital of China.}}
+( ) Seoul {{That's the capital of South Korea.}}
+(x) Tokyo {{Correct!}}
+( ) Bangkok {{That's the capital of Thailand.}}
+
+||Think about the island nation in East Asia.||
+
+---
+
+>>Question 2: Select all even numbers.<<
+
+[x] 2
+[ ] 3
+[x] 4
+[ ] 5
+[x] 6
+
+---
+
+>>Question 3: What is the chemical formula for table salt?<<
+
+=NaCl
+or=nacl
+or=Sodium Chloride
+
+---
+
+>>Question 4: What is the speed of light in m/s?<<
+
+=299792458 +- 1000
+
+---
+
+>>Question 5: The Earth is [[round, flat, (spherical), cubic]].<<
+
+[explanation]
+The Earth is an oblate spheroid - slightly flattened at the poles
+and bulging at the equator due to its rotation.
+[/explanation]

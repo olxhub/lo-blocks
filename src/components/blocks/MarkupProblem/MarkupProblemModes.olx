@@ -1,0 +1,57 @@
+<Vertical>
+  <!-- Test 1: Limited attempts with 'finished' mode (default) -->
+  <MarkupProblem id="markup_attempts" title="Limited Attempts (3 max)" maxAttempts="3"><![CDATA[
+>>What is 2 + 2?<<
+
+( ) 3
+(x) 4
+( ) 5
+]]></MarkupProblem>
+
+  <!-- Test 2: showanswer="never" -->
+  <MarkupProblem id="markup_never" title="Show Answer Never" maxAttempts="2" showanswer="never"><![CDATA[
+>>What is the capital of France?<<
+
+( ) London
+(x) Paris
+( ) Berlin
+]]></MarkupProblem>
+
+  <!-- Test 3: showanswer="always" -->
+  <MarkupProblem id="markup_always" title="Show Answer Always" showanswer="always"><![CDATA[
+>>What is 5 x 5?<<
+
+= 25
+]]></MarkupProblem>
+
+  <!-- Test 4: showanswer="attempted" -->
+  <MarkupProblem id="markup_attempted" title="Show Answer After Attempted" maxAttempts="3" showanswer="attempted"><![CDATA[
+>>Select all prime numbers:<<
+
+[x] 2
+[ ] 4
+[x] 7
+[ ] 9
+]]></MarkupProblem>
+
+  <!-- Test 5: showanswer="answered" (only after correct) -->
+  <MarkupProblem id="markup_answered" title="Show Answer After Correct" showanswer="answered"><![CDATA[
+>>What is 100 divided by 10?<<
+
+= 10
+]]></MarkupProblem>
+
+  <!-- Test 6: Single attempt -->
+  <MarkupProblem id="markup_single" title="Single Attempt" maxAttempts="1"><![CDATA[
+>>What color is the sky on a clear day?<<
+
+( ) Red
+(x) Blue
+( ) Green
+]]></MarkupProblem>
+
+  <!-- Test 7: showanswer="closed" (only after attempts exhausted) -->
+  <MarkupProblem id="markup_closed" title="Show Answer When Closed (2 attempts)" maxAttempts="2" showanswer="closed"><![CDATA[
+>>Complete the sentence: The quick brown [[(fox), dog, cat]] jumps over the lazy dog.<<
+]]></MarkupProblem>
+</Vertical>

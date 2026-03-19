@@ -1,0 +1,45 @@
+/* ActionButton Component Styles */
+
+.lo-tag-actionbutton button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--lo-space-md) var(--lo-space-xl);
+  margin: var(--lo-space-xs);
+  border: 1px solid transparent;
+  border-radius: var(--lo-radius-md);
+  font-family: var(--lo-font-family);
+  font-size: var(--lo-font-size-base);
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--lo-text-inverse);
+  background-color: var(--lo-primary);
+  cursor: pointer;
+  transition: all 150ms ease;
+  text-decoration: none;
+  min-height: 44px; /* Touch target */
+  box-shadow: var(--lo-shadow-sm);
+}
+
+.lo-tag-actionbutton button:hover:not(:disabled) {
+  background-color: var(--lo-primary-hover);
+  box-shadow: var(--lo-shadow-md);
+  transform: translateY(-1px);
+}
+
+.lo-tag-actionbutton button:focus {
+  box-shadow: var(--lo-shadow-focus);
+}
+
+.lo-tag-actionbutton button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--lo-shadow-sm);
+}
+
+.lo-tag-actionbutton button:disabled {
+  background-color: var(--lo-text-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}

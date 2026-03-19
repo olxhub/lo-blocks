@@ -1,0 +1,10 @@
+<CapaProblem id="RulesGraderCaseInsensitive" title="State Capital">
+  What is the capital of Michigan?
+  <RulesGrader>
+    <StringMatch answer="Lansing" ignoreCase="true" score="1" feedback="Correct!"/>
+    <StringMatch answer="Detroit" ignoreCase="true" score="0" feedback="Detroit is the largest city, but not the capital."/>
+    <StringMatch answer="Ann Arbor" ignoreCase="true" score="0" feedback="Ann Arbor is home to U of M, but not the capital."/>
+    <DefaultMatch score="0" feedback="The capital of Michigan is Lansing."/>
+    <LineInput/>
+  </RulesGrader>
+</CapaProblem>

@@ -1,0 +1,6 @@
+<CapaProblem id="DefaultGraderPartial" title="Partial Credit Example">
+  Write anything you'd like:
+  <DefaultGrader score="0.5" feedback="Thanks for participating! Partial credit awarded.">
+    <LineInput/>
+  </DefaultGrader>
+</CapaProblem>

@@ -1,0 +1,59 @@
+/* LLMFeedback Component Styles */
+
+.lo-tag-llmfeedback .llm-feedback-container {
+  background-color: var(--lo-surface);
+  border: 1px solid var(--lo-border);
+  border-radius: var(--lo-radius-md);
+  padding: var(--lo-space-lg);
+  font-size: var(--lo-font-size-sm);
+  margin: var(--lo-space-lg) 0;
+}
+
+/* Empty state - subtle dotted border */
+.lo-tag-llmfeedback .llm-feedback-container.llm-feedback-empty {
+  border-style: dashed;
+  border-color: var(--lo-border);
+  background-color: var(--lo-surface-muted, #fafafa);
+}
+
+.lo-tag-llmfeedback .llm-feedback-icon {
+  text-align: center;
+  font-size: var(--lo-font-size-xl);
+  margin-bottom: var(--lo-space-md);
+}
+
+/* Dimmed icon when empty */
+.lo-tag-llmfeedback .llm-feedback-empty .llm-feedback-icon {
+  opacity: 0.5;
+}
+
+.lo-tag-llmfeedback .llm-feedback-content {
+  color: var(--lo-text-primary);
+  line-height: var(--lo-line-height-normal);
+  word-wrap: break-word;
+}
+
+/* Text render mode */
+.lo-tag-llmfeedback .llm-feedback-text {
+  white-space: pre-wrap;
+}
+
+/* Markdown render mode */
+.lo-tag-llmfeedback .llm-feedback-markdown {
+}
+
+/* Code render mode */
+.lo-tag-llmfeedback .llm-feedback-code {
+  background-color: var(--lo-surface-muted, #f5f5f5);
+  padding: var(--lo-space-md);
+  border-radius: var(--lo-radius-sm);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  font-family: var(--lo-font-mono);
+  font-size: var(--lo-font-size-sm);
+}
+
+.lo-tag-llmfeedback .llm-feedback-placeholder {
+  color: var(--lo-text-muted);
+  font-style: italic;
+}

@@ -1,0 +1,15 @@
+/* TextBlock Component Styles */
+
+.lo-tag-textblock {
+  color: var(--lo-text-primary);
+  line-height: var(--lo-line-height-relaxed);
+  margin-bottom: var(--lo-space-lg);
+}
+
+.lo-tag-textblock > div > *:first-child {
+  margin-top: 0;
+}
+
+.lo-tag-textblock > div > *:last-child {
+  margin-bottom: 0;
+}

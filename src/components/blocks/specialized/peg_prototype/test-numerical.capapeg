@@ -1,0 +1,14 @@
+Numerical Input Example
+===
+
+>>What is the value of pi to two decimal places?<<
+
+=3.14 +- 0.01
+
+>>What is 2 + 2?<<
+
+=4
+
+>>Enter a number between 1 and 10.<<
+
+=[1, 10]

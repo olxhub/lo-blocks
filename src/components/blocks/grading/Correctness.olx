@@ -1,0 +1,7 @@
+<CapaProblem id="CorrectnessDemo" title="Multiplication">
+  <NumericalGrader answer="56">
+    Bonus indicator: <Correctness />
+    What is 7 × 8?
+    <NumberInput />
+  </NumericalGrader>
+</CapaProblem>

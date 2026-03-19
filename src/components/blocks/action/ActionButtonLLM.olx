@@ -1,0 +1,13 @@
+<Vertical id="ActionButtonDemo" title="ActionButton">
+  <Markdown>Describe your understanding of the zone of proximal development and how it applies to classroom instruction:</Markdown>
+  <TextArea id="essay" rows="4" placeholder="The zone of proximal development (ZPD) is..." />
+  <LLMFeedback id="feedback" />
+  <ActionButton label="Get Feedback">
+    <LLMAction target="feedback">
+      This student is learning about Vygotsky's zone of proximal development. The major misconception students have is that teaching should be in the zone, which is precisely what Vygotsky was debuking. ZPD is a measurement methodology, and the goal of instruction is to enlarge the ZPD. Activities in the zone of mastery have no benefit, but critically, students MUST be exposed to content outside of their ZPD.
+
+      Provide encouraging, specific feedback on their understanding. Note any misconceptions gently and suggest how they might deepen their explanation:
+      <Ref target="essay" />
+    </LLMAction>
+  </ActionButton>
+</Vertical>

@@ -1,0 +1,25 @@
+<MarkupProblem id="MarkupProblemDemo" title="Authoring problems with simple markup"><![CDATA[
+Checkbox Example
+===
+
+>>What kinds of problems can MarkupProblem author?<<
+
+[x] Multiple choice: ( ) and (x)
+[ ] Equation entry
+[x] Checkbox: [ ] and [x]
+[ ] Code execution
+[x] Text input: = answer, or= alternative, not= wrong
+[x] Numerical: = 42 +- 5 or = [min, max]
+
+||MarkupProblem handles selected-response and simple constructed-response items.||
+
+{{
+Progressive hints appear one at a time.
+====
+Use ==== to separate multiple hints.
+}}
+
+[explanation]
+MarkupProblem provides quick authoring using simple text syntax. For complex interactions, use full XML with specialized blocks.
+[/explanation]
+]]></MarkupProblem>

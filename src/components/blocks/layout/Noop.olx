@@ -1,0 +1,4 @@
+<Noop id="NoopDemo" title="Noop">
+  <Markdown>This content is in a Noop group.</Markdown>
+  <Markdown>No extra styling is added.</Markdown>
+</Noop>

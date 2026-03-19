@@ -1,0 +1,15 @@
+<CapaProblem id="CapaProblemTargeting" title="Ratio with Explicit Targeting">
+  <Markdown>
+When inputs can't be nested inside the grader, use `target=` to connect them.
+  </Markdown>
+  Enter a fraction equal to one half:
+  <NumberInput id="num" /> / <NumberInput id="den" />
+  <RatioGrader answer="0.5" target="num,den" />
+  <DemandHints>
+    <Hint>The numerator should be half the denominator.</Hint>
+    <Hint>Try 1/2, 2/4, 3/6, etc.</Hint>
+  </DemandHints>
+  <Explanation>
+Any fraction where the numerator is half the denominator works: 1/2, 2/4, 3/6, 50/100, etc.
+  </Explanation>
+</CapaProblem>

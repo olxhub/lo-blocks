@@ -1,0 +1,54 @@
+/* src/components/blocks/specialized/MasteryBank/masterybank.css */
+
+.lo-mastery-bank {
+  padding: var(--lo-space-lg);
+}
+
+.lo-mastery-bank__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--lo-space-lg);
+  padding: var(--lo-space-md) var(--lo-space-lg);
+  background-color: var(--lo-surface);
+  border-radius: var(--lo-radius-md);
+  border: 1px solid var(--lo-border);
+}
+
+.lo-mastery-bank__progress {
+  font-weight: 600;
+  color: var(--lo-text-primary);
+}
+
+.lo-mastery-bank__count {
+  color: var(--lo-text-secondary);
+  font-size: var(--lo-font-size-sm);
+}
+
+.lo-mastery-bank__problem {
+  margin-bottom: var(--lo-space-lg);
+}
+
+/* Completion state */
+.lo-mastery-bank--complete {
+  padding: var(--lo-space-2xl);
+}
+
+.lo-mastery-bank__success {
+  text-align: center;
+  padding: var(--lo-space-2xl);
+  background-color: var(--lo-success-light);
+  border-radius: var(--lo-radius-lg);
+  border: 1px solid var(--lo-success);
+}
+
+.lo-mastery-bank__success h3 {
+  margin: 0 0 var(--lo-space-sm) 0;
+  color: var(--lo-success);
+  font-size: var(--lo-font-size-xl);
+}
+
+.lo-mastery-bank__success p {
+  margin: 0;
+  color: var(--lo-text-primary);
+}

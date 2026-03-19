@@ -1,0 +1,18 @@
+<CapaProblem id="CheckboxInputDemo" title="Gas Giants">
+  <CheckboxGrader>
+    Select all the gas giants in our solar system:
+    <CheckboxInput>
+      <Key>Jupiter</Key>
+      <Key>Saturn</Key>
+      <Key>Uranus</Key>
+      <Key>Neptune</Key>
+      <Distractor>Earth</Distractor>
+      <Distractor>Mars</Distractor>
+      <Distractor>Mercury</Distractor>
+    </CheckboxInput>
+    <Hint>Gas giants are the four outer planets, beyond the asteroid belt.</Hint>
+    <Explanation>
+      The gas giants are Jupiter, Saturn, Uranus, and Neptune. They're characterized by their large size, lack of solid surface, and atmospheres dominated by hydrogen and helium. The inner planets (Mercury, Earth, Mars, and Venus) are rocky terrestrial planets.
+    </Explanation>
+  </CheckboxGrader>
+</CapaProblem>

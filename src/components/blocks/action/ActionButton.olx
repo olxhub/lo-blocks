@@ -1,0 +1,5 @@
+<Vertical id="ActionButtonDemo" title="ActionButton">
+  <ActionButton label="Say Hello">
+    <HelloAction />
+  </ActionButton>
+</Vertical>

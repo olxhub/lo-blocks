@@ -1,0 +1,6 @@
+<CapaProblem id="StringGraderCaseInsensitive" title="Largest Planet">
+  What is the largest planet? (any capitalization)
+  <StringGrader answer="Jupiter" ignoreCase="true">
+    <LineInput />
+  </StringGrader>
+</CapaProblem>

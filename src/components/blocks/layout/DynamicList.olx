@@ -1,0 +1,6 @@
+<Vertical id="DynamicListDemo" title="DynamicList">
+  <Markdown>What factors might explain why interactive engagement is more effective than traditional lecture? List as many as you can:</Markdown>
+  <DynamicList id="factors">
+    <LineInput placeholder="One factor is..." />
+  </DynamicList>
+</Vertical>

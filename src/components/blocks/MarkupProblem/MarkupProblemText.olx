@@ -1,0 +1,22 @@
+<MarkupProblem id="MarkupProblemText" title="Text Input"><![CDATA[
+Educational Psychology
+===
+
+>>What term describes the phenomenon where testing improves long-term retention more than additional study time?<<
+
+= testing effect
+or= retrieval practice effect
+or= test-enhanced learning
+not= spacing effect {{The spacing effect is about distributed practice over time, not testing}}
+not= elaboration {{Elaboration is about connecting new information to prior knowledge}}
+
+{{
+This effect explains why practice tests are so effective for learning.
+====
+The key insight is that the act of retrieving information strengthens memory more than passive review.
+}}
+
+[explanation]
+The testing effect (also called the retrieval practice effect) demonstrates that actively recalling information from memory strengthens retention more effectively than passive restudying. This is why practice tests, flashcards, and self-quizzing are such powerful learning strategies.
+[/explanation]
+]]></MarkupProblem>

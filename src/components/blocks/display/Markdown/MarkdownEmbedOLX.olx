@@ -1,0 +1,12 @@
+<Markdown><![CDATA[
+# Embedded OLX Demo
+
+```olx:render
+<MarkupProblem title="Quick Check">
+What is 2+2?
+
+(x) 4
+( ) 5
+</MarkupProblem>
+```
+]]></Markdown>

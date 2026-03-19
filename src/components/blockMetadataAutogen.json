@@ -1,0 +1,1272 @@
+{
+  "meta": {
+    "timestamp": "2026-02-27T16:26:43.210Z",
+    "gitHash": "db1bf06c470cccedf72839b0ebb3f0bf6ccb470d",
+    "gitBranch": "pdeane/psych-content-2-26",
+    "dirty": true
+  },
+  "blocks": {
+    "CapaFooter": {
+      "source": "src/components/blocks/CapaProblem/CapaFooter.ts",
+      "gitStatus": "committed"
+    },
+    "CapaProblem": {
+      "source": "src/components/blocks/CapaProblem/CapaProblem.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/CapaProblem/CapaProblem.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/CapaProblem/CapaProblem.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/CapaProblem/CapaProblemCheckbox.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/CapaProblem/CapaProblemChoice.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/CapaProblem/CapaProblemModes.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/CapaProblem/CapaProblemMultipart.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/CapaProblem/CapaProblemNumerical.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/CapaProblem/CapaProblemTargeting.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/CapaProblem/CapaProblemText.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "MarkupProblem": {
+      "source": "src/components/blocks/MarkupProblem/MarkupProblem.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/MarkupProblem/MarkupProblem.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/MarkupProblem/MarkupProblem.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/MarkupProblem/MarkupProblemCheckbox.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/MarkupProblem/MarkupProblemMCQ.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/MarkupProblem/MarkupProblemModes.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/MarkupProblem/MarkupProblemMultipart.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/MarkupProblem/MarkupProblemNumeric.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/MarkupProblem/MarkupProblemText.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "DevProblem": {
+      "source": "src/components/blocks/_test/DevProblem.ts",
+      "gitStatus": "committed"
+    },
+    "DevQuestion": {
+      "source": "src/components/blocks/_test/DevQuestion.ts",
+      "gitStatus": "committed"
+    },
+    "ActionButton": {
+      "source": "src/components/blocks/action/ActionButton.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/action/ActionButton.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/action/ActionButton.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/action/ActionButtonGrading.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/action/ActionButtonLLM.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/action/ActionButtonMultiple.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/action/ActionButtonStandalone.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "HelloAction": {
+      "source": "src/components/blocks/action/HelloAction.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/action/HelloAction.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/action/HelloAction.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "HintButton": {
+      "source": "src/components/blocks/action/HintButton/HintButton.ts",
+      "gitStatus": "committed"
+    },
+    "LLMAction": {
+      "source": "src/components/blocks/action/LLMAction.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/action/LLMAction.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/action/LLMAction.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "LLMFeedback": {
+      "source": "src/components/blocks/action/LLMFeedback.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/action/LLMFeedback.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/action/LLMFeedback.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "ShowAnswerButton": {
+      "source": "src/components/blocks/action/ShowAnswerButton/ShowAnswerButton.ts",
+      "gitStatus": "committed"
+    },
+    "CodeInput": {
+      "source": "src/components/blocks/authoring/CodeInput/CodeInput.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/authoring/CodeInput/CodeInput.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/authoring/CodeInput/CodeInput.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/authoring/CodeInput/CodeInputWithSlot.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "OlxSlot": {
+      "source": "src/components/blocks/authoring/OlxSlot/OlxSlot.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/authoring/OlxSlot/OlxSlot.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/authoring/OlxSlot/OlxSlot.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/authoring/OlxSlot/OlxSlotLLM.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "DemandHints": {
+      "source": "src/components/blocks/display/DemandHints/DemandHints.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/display/DemandHints/DemandHints.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/display/DemandHints/DemandHints.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Hint": {
+      "source": "src/components/blocks/display/DemandHints/Hint.ts",
+      "gitStatus": "committed"
+    },
+    "BlockMath": {
+      "source": "src/components/blocks/display/DisplayMath/BlockMath.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/display/DisplayMath/BlockMath.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/display/DisplayMath/BlockMath.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/display/DisplayMath/BlockMathExamples.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "InlineMath": {
+      "source": "src/components/blocks/display/DisplayMath/InlineMath.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/display/DisplayMath/InlineMath.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/display/DisplayMath/InlineMath.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/display/DisplayMath/InlineMathExamples.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Explanation": {
+      "source": "src/components/blocks/display/Explanation/Explanation.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/display/Explanation/Explanation.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/display/Explanation/Explanation.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/display/Explanation/ExplanationExamples.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "HH": {
+      "source": "src/components/blocks/display/HH.ts",
+      "gitStatus": "committed"
+    },
+    "Image": {
+      "source": "src/components/blocks/display/Image/Image.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/display/Image/Image.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/display/Image/Image.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Markdown": {
+      "source": "src/components/blocks/display/Markdown/Markdown.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/display/Markdown/Markdown.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/display/Markdown/Markdown.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/display/Markdown/MarkdownEmbedOLX.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/display/Markdown/MarkdownMadLibs.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/display/Markdown/MarkdownSyntaxExample.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "PDFViewer": {
+      "source": "src/components/blocks/display/PDFViewer/PDFViewer.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/display/PDFViewer/PDFViewer.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/display/PDFViewer/PDFViewer.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "StatusText": {
+      "source": "src/components/blocks/display/StatusText.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/display/StatusText.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/display/StatusText.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "TalkBubble": {
+      "source": "src/components/blocks/display/TalkBubble/TalkBubble.js",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/display/TalkBubble/TalkBubble.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/display/TalkBubble/TalkBubble.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "TextBlock": {
+      "source": "src/components/blocks/display/TextBlock.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/display/TextBlock.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/display/TextBlock.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "TextSlot": {
+      "source": "src/components/blocks/display/TextSlot/TextSlot.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/display/TextSlot/TextSlot.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/display/TextSlot/TextSlot.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Correctness": {
+      "source": "src/components/blocks/grading/Correctness.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/grading/Correctness.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/grading/Correctness.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/grading/CorrectnessStandalone.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "CustomGrader": {
+      "source": "src/components/blocks/grading/CustomGrader.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/grading/CustomGrader.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/grading/CustomGrader.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "DefaultGrader": {
+      "source": "src/components/blocks/grading/DefaultGrader.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/grading/DefaultGrader.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/grading/DefaultGrader.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/grading/DefaultGraderAsMatch.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/grading/DefaultGraderPartial.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "NumericalGrader": {
+      "source": "src/components/blocks/grading/NumericalGrader.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/grading/NumericalGrader.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/grading/NumericalGrader.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/grading/NumericalGraderBasic.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/grading/NumericalGraderExample.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/grading/NumericalGraderPercentage.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/grading/NumericalGraderStandalone.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "RatioGrader": {
+      "source": "src/components/blocks/grading/RatioGrader.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/grading/RatioGrader.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/grading/RatioGrader.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/grading/RatioGraderEquivalent.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/grading/RatioGraderExample.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/grading/RatioGraderSlots.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Rule": {
+      "source": "src/components/blocks/grading/Rule.ts",
+      "gitStatus": "committed"
+    },
+    "RulesGrader": {
+      "source": "src/components/blocks/grading/RulesGrader/RulesGrader.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/grading/RulesGrader/RulesGrader.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/grading/RulesGrader/RulesGrader.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/grading/RulesGrader/RulesGraderCaseInsensitive.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/grading/RulesGrader/RulesGraderExample.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/grading/RulesGrader/RulesGraderWithRule.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "StringGrader": {
+      "source": "src/components/blocks/grading/StringGrader.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/grading/StringGrader.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/grading/StringGrader.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/grading/StringGraderCaseInsensitive.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/grading/StringGraderRegExp.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/grading/StringGraderRules.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "CheckboxGrader": {
+      "source": "src/components/blocks/input/ChoiceInput/CheckboxGrader.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/ChoiceInput/CheckboxGrader.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/ChoiceInput/CheckboxGrader.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "CheckboxInput": {
+      "source": "src/components/blocks/input/ChoiceInput/CheckboxInput.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/ChoiceInput/CheckboxInput.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/ChoiceInput/CheckboxInput.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/ChoiceInput/CheckboxInputExample.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/ChoiceInput/CheckboxInputGraded.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/ChoiceInput/CheckboxInputPartial.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "ChoiceInput": {
+      "source": "src/components/blocks/input/ChoiceInput/ChoiceInput.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/ChoiceInput/ChoiceInput.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/ChoiceInput/ChoiceInput.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/ChoiceInput/ChoiceInputExample.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/ChoiceInput/ChoiceInputGraded.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/ChoiceInput/ChoiceInputMCQ.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/ChoiceInput/ChoiceInputTrueFalse.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Distractor": {
+      "source": "src/components/blocks/input/ChoiceInput/Distractor.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/ChoiceInput/Distractor.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/ChoiceInput/Distractor.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Key": {
+      "source": "src/components/blocks/input/ChoiceInput/Key.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/ChoiceInput/Key.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/ChoiceInput/Key.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/ChoiceInput/KeyGrader.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "KeyGrader": {
+      "source": "src/components/blocks/input/ChoiceInput/KeyGrader.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/ChoiceInput/KeyGrader.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/ChoiceInput/KeyGrader.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "ComplexInput": {
+      "source": "src/components/blocks/input/ComplexInput.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/ComplexInput.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/ComplexInput.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/ComplexInputExamples.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "DropdownInput": {
+      "source": "src/components/blocks/input/DropdownInput/DropdownInput.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/DropdownInput/DropdownInput.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/DropdownInput/DropdownInput.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/DropdownInput/DropdownInputAttr.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/DropdownInput/DropdownInputGraded.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "LineInput": {
+      "source": "src/components/blocks/input/LineInput.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/LineInput.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/LineInput.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/LineInputGraded.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "MatchingGrader": {
+      "source": "src/components/blocks/input/Matching/MatchingGrader.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/Matching/MatchingGrader.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/Matching/MatchingGrader.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "MatchingInput": {
+      "source": "src/components/blocks/input/Matching/MatchingInput.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/Matching/MatchingInput.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/Matching/MatchingInput.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/Matching/MatchingInputGraded.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/Matching/MatchingInputHistorical.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/Matching/MatchingInputInitialPosition.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/Matching/MatchingInputLanguage.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "SimpleMatching": {
+      "source": "src/components/blocks/input/Matching/SimpleMatching.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/Matching/SimpleMatching.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/Matching/SimpleMatching.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/Matching/SimpleMatchingNoTitle.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "NumberInput": {
+      "source": "src/components/blocks/input/NumberInput.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/NumberInput.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/NumberInput.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/NumberInputGraded.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "SimpleSortable": {
+      "source": "src/components/blocks/input/Sortable/SimpleSortable.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/Sortable/SimpleSortable.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/Sortable/SimpleSortable.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/Sortable/SimpleSortableBloom.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/Sortable/SimpleSortableKolb.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/Sortable/SimpleSortableNumbers.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/Sortable/SimpleSortablePlanets.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/Sortable/SimpleSortableWWII.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "SortableGrader": {
+      "source": "src/components/blocks/input/Sortable/SortableGrader.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/Sortable/SortableGrader.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/Sortable/SortableGrader.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "SortableInput": {
+      "source": "src/components/blocks/input/Sortable/SortableInput.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/Sortable/SortableInput.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/Sortable/SortableInput.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/Sortable/SortableInputBasic.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/Sortable/SortableInputChronological.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/Sortable/SortableInputGraded.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/Sortable/SortableInputHandleMode.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/Sortable/SortableInputMultiline.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/Sortable/SortableInputPrepositioned.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "TabularMCQ": {
+      "source": "src/components/blocks/input/TabularMCQ/TabularMCQ.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/TabularMCQ/TabularMCQ.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/TabularMCQ/TabularMCQ.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/TabularMCQ/TabularMCQCheckbox.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/TabularMCQ/TabularMCQGrader.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/TabularMCQ/TabularMCQScored.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "TabularMCQGrader": {
+      "source": "src/components/blocks/input/TabularMCQ/TabularMCQGrader.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/TabularMCQ/TabularMCQGrader.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/TabularMCQ/TabularMCQGrader.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "TextArea": {
+      "source": "src/components/blocks/input/TextArea.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/TextArea.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/TextArea.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "TextHighlight": {
+      "source": "src/components/blocks/input/TextHighlight/TextHighlight.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/input/TextHighlight/TextHighlight.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/input/TextHighlight/TextHighlightBasic.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/TextHighlight/TextHighlightDemo.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/TextHighlight/TextHighlightFeedback.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/TextHighlight/TextHighlightGraded.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/input/TextHighlight/TextHighlightSelfCheck.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Collapsible": {
+      "source": "src/components/blocks/layout/Collapsible/Collapsible.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/layout/Collapsible/Collapsible.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/layout/Collapsible/Collapsible.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/layout/Collapsible/CollapsibleNested.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Course": {
+      "source": "src/components/blocks/layout/Course/Course.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/layout/Course/Course.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/layout/Course/Course.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "DynamicList": {
+      "source": "src/components/blocks/layout/DynamicList.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/layout/DynamicList.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/layout/DynamicList.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/layout/DynamicListStructured.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Hidden": {
+      "source": "src/components/blocks/layout/Hidden.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/layout/Hidden.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/layout/Hidden.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "IntakeGate": {
+      "source": "src/components/blocks/layout/IntakeGate/IntakeGate.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/layout/IntakeGate/IntakeGate.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/layout/IntakeGate/IntakeGate.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/layout/IntakeGate/IntakeGateMath.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Navigator": {
+      "source": "src/components/blocks/layout/Navigator/Navigator.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/layout/Navigator/Navigator.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/layout/Navigator/Navigator.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/layout/Navigator/NavigatorExamples.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/layout/Navigator/NavigatorReadings.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "NavigatorDefaultDetail": {
+      "source": "src/components/blocks/layout/Navigator/NavigatorDefaultDetail.ts",
+      "gitStatus": "committed"
+    },
+    "NavigatorDefaultPreview": {
+      "source": "src/components/blocks/layout/Navigator/NavigatorDefaultPreview.ts",
+      "gitStatus": "committed"
+    },
+    "NavigatorReadingDetail": {
+      "source": "src/components/blocks/layout/Navigator/NavigatorReadingDetail.ts",
+      "gitStatus": "committed"
+    },
+    "NavigatorTeamDetail": {
+      "source": "src/components/blocks/layout/Navigator/NavigatorTeamDetail.ts",
+      "gitStatus": "committed"
+    },
+    "NavigatorTeamPreview": {
+      "source": "src/components/blocks/layout/Navigator/NavigatorTeamPreview.ts",
+      "gitStatus": "committed"
+    },
+    "NextReveal": {
+      "source": "src/components/blocks/layout/NextReveal/NextReveal.js",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/layout/NextReveal/NextReveal.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/layout/NextReveal/NextReveal.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Noop": {
+      "source": "src/components/blocks/layout/Noop.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/layout/Noop.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/layout/Noop.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Sequential": {
+      "source": "src/components/blocks/layout/Sequential/Sequential.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/layout/Sequential/Sequential.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/layout/Sequential/Sequential.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/layout/Sequential/SequentialLearning.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "SideBarPanel": {
+      "source": "src/components/blocks/layout/SideBarPanel/SideBarPanel.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/layout/SideBarPanel/SideBarPanel.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/layout/SideBarPanel/SideBarPanel.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "SplitPanel": {
+      "source": "src/components/blocks/layout/SplitPanel/SplitPanel.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/layout/SplitPanel/SplitPanel.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/layout/SplitPanel/SplitPanel.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Tabs": {
+      "source": "src/components/blocks/layout/Tabs/Tabs.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/layout/Tabs/Tabs.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/layout/Tabs/Tabs.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Vertical": {
+      "source": "src/components/blocks/layout/Vertical/Vertical.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/layout/Vertical/Vertical.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/layout/Vertical/Vertical.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "AggregatedInputs": {
+      "source": "src/components/blocks/reference/AggregatedInputs/AggregatedInputs.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/reference/AggregatedInputs/AggregatedInputs.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/reference/AggregatedInputs/AggregatedInputs.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Ref": {
+      "source": "src/components/blocks/reference/Ref/Ref.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/reference/Ref/Ref.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/reference/Ref/Ref.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/reference/Ref/RefComplex.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/reference/Ref/RefExamples.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/reference/Ref/RefField.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/reference/Ref/RefMadLibs.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "StateViewer": {
+      "source": "src/components/blocks/reference/StateViewer/StateViewer.ts",
+      "gitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/reference/StateViewer/StateViewer.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "UseDynamic": {
+      "source": "src/components/blocks/reference/UseDynamic.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/reference/UseDynamic.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/reference/UseDynamic.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "UseHistory": {
+      "source": "src/components/blocks/reference/UseHistory/UseHistory.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/reference/UseHistory/UseHistory.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/reference/UseHistory/UseHistory.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/reference/UseHistory/UseHistoryChat.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Chat": {
+      "source": "src/components/blocks/specialized/Chat/Chat.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/specialized/Chat/Chat.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/specialized/Chat/Chat.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/specialized/Chat/ChatAvatars.olx",
+          "gitStatus": "committed"
+        },
+        {
+          "path": "src/components/blocks/specialized/Chat/ChatWithSidebar.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "DigitSpanTask": {
+      "source": "src/components/blocks/specialized/DigitSpanTask/DigitSpanTask.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/specialized/DigitSpanTask/DigitSpanTask.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/specialized/DigitSpanTask/DigitSpanTask.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "MasteryBank": {
+      "source": "src/components/blocks/specialized/MasteryBank/MasteryBank.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/specialized/MasteryBank/MasteryBank.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/specialized/MasteryBank/MasteryBank.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "PEGDevBlock": {
+      "source": "src/components/blocks/specialized/PEGDevBlock/PEGDevBlock.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/specialized/PEGDevBlock/PEGDevBlock.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/specialized/PEGDevBlock/PEGDevBlock.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "TeamDirectory": {
+      "source": "src/components/blocks/specialized/TeamDirectory/TeamDirectory.js",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/specialized/TeamDirectory/TeamDirectory.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/specialized/TeamDirectory/TeamDirectory.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "ErrorNode": {
+      "source": "src/components/blocks/utility/ErrorNode/ErrorNode.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/utility/ErrorNode/ErrorNode.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/utility/ErrorNode/ErrorNode.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    },
+    "Spinner": {
+      "source": "src/components/blocks/utility/Spinner.ts",
+      "gitStatus": "committed",
+      "readme": "src/components/blocks/utility/Spinner.md",
+      "readmeGitStatus": "committed",
+      "examples": [
+        {
+          "path": "src/components/blocks/utility/Spinner.olx",
+          "gitStatus": "committed"
+        }
+      ]
+    }
+  }
+}

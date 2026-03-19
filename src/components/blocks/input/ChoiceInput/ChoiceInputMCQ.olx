@@ -1,0 +1,9 @@
+<CapaProblem id="CapaMCQDemo" title="Basic Multiple Choice">
+  <Markdown>What is the proper greeting?</Markdown>
+  <KeyGrader>
+    <ChoiceInput>
+      <Key>Hello!</Key>
+      <Distractor>Goodbye</Distractor>
+    </ChoiceInput>
+  </KeyGrader>
+</CapaProblem>

@@ -1,0 +1,36 @@
+<Vertical id="MarkdownMadLibsDemo" title="Mad Libs (Markdown)" launchable="true">
+
+  <Markdown id="intro">
+## Mad Libs - Markdown Edition
+
+Fill in the blanks below, then read your silly story!
+
+This demo uses `{{@id.value}}` interpolation in Markdown.
+
+**Noun (thing):**
+  </Markdown>
+  <LineInput id="noun" />
+
+  <Markdown>**Verb (action):**</Markdown>
+  <LineInput id="verb" />
+
+  <Markdown>**Adjective (description):**</Markdown>
+  <LineInput id="adjective" />
+
+  <Markdown>**Place:**</Markdown>
+  <LineInput id="place" />
+
+  <Markdown>**Number:**</Markdown>
+  <LineInput id="number" />
+
+  <Markdown id="story">
+### Your Story
+
+Once upon a time, a very **{{@adjective.value}}** **{{@noun.value}}** decided to
+**{{@verb.value}}** all the way to **{{@place.value}}**. It took exactly
+**{{@number.value}}** days, but the **{{@adjective.value}}** journey was worth it.
+The **{{@noun.value}}** learned that you should always **{{@verb.value}}** when
+you get the chance!
+  </Markdown>
+
+</Vertical>

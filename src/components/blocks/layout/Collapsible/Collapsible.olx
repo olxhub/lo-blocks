@@ -1,0 +1,5 @@
+<Collapsible id="CollapsibleDemo" title="Research Background">
+  <Markdown>
+Hake's 1998 study of 6,000 physics students found that interactive engagement methods produced normalized learning gains of ~0.48, compared to ~0.23 for traditional lecture - roughly doubling student learning.
+  </Markdown>
+</Collapsible>

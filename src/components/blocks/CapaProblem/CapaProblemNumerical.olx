@@ -1,0 +1,13 @@
+<CapaProblem id="CapaProblemNumerical" title="Gravitational Acceleration">
+  <NumericalGrader answer="9.8" tolerance="0.1">
+    What is the acceleration due to gravity on Earth's surface (in m/s²)?
+    <NumberInput />
+  </NumericalGrader>
+  <DemandHints>
+    <Hint>This is approximately 10 m/s².</Hint>
+    <Hint>The precise value is 9.8 m/s² (we accept ±0.1).</Hint>
+  </DemandHints>
+  <Explanation>
+The acceleration due to gravity at Earth's surface is approximately 9.8 m/s². This value varies slightly with latitude and altitude.
+  </Explanation>
+</CapaProblem>

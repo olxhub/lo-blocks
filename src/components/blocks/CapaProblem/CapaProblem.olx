@@ -1,0 +1,6 @@
+<CapaProblem id="CapaProblemDemo" title="Very Basic Example">
+  <NumericalGrader answer="8">
+    What is 2³?
+    <NumberInput />
+  </NumericalGrader>
+</CapaProblem>

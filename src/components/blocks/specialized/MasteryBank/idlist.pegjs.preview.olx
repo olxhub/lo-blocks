@@ -1,0 +1,38 @@
+<Vertical>
+  <MasteryBank id="preview" goal="2"><![CDATA[{{CONTENT}}]]></MasteryBank>
+
+  <Hidden>
+    <CapaProblem id="preview_q1" title="Sample Question 1">
+      <p>What is 1 + 1?</p>
+      <KeyGrader id="preview_q1_grader">
+        <ChoiceInput id="preview_q1_input">
+          <Distractor id="preview_q1_a">1</Distractor>
+          <Key id="preview_q1_b">2</Key>
+          <Distractor id="preview_q1_c">3</Distractor>
+        </ChoiceInput>
+      </KeyGrader>
+    </CapaProblem>
+
+    <CapaProblem id="preview_q2" title="Sample Question 2">
+      <p>What is 2 + 2?</p>
+      <KeyGrader id="preview_q2_grader">
+        <ChoiceInput id="preview_q2_input">
+          <Distractor id="preview_q2_a">3</Distractor>
+          <Key id="preview_q2_b">4</Key>
+          <Distractor id="preview_q2_c">5</Distractor>
+        </ChoiceInput>
+      </KeyGrader>
+    </CapaProblem>
+
+    <CapaProblem id="preview_q3" title="Sample Question 3">
+      <p>What is 3 + 3?</p>
+      <KeyGrader id="preview_q3_grader">
+        <ChoiceInput id="preview_q3_input">
+          <Distractor id="preview_q3_a">5</Distractor>
+          <Key id="preview_q3_b">6</Key>
+          <Distractor id="preview_q3_c">7</Distractor>
+        </ChoiceInput>
+      </KeyGrader>
+    </CapaProblem>
+  </Hidden>
+</Vertical>

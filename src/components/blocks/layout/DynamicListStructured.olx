@@ -1,0 +1,16 @@
+<Vertical id="DynamicListStructured" title="Structured DynamicList">
+
+  <Markdown>You're designing an active learning intervention. Provide at least 2 pieces of evidence to support your approach:</Markdown>
+  <DynamicList id="evidence_list" min="2">
+    <TextArea placeholder="One research finding that supports this approach is..." rows="3" />
+  </DynamicList>
+
+  <Markdown>Compare traditional and interactive instruction approaches:</Markdown>
+  <DynamicList id="comparisons">
+    <Vertical>
+      <Markdown>**Comparison point:**</Markdown>
+      <TextArea placeholder="Traditional instruction tends to... while interactive engagement..." rows="2" />
+    </Vertical>
+  </DynamicList>
+
+</Vertical>

@@ -1,0 +1,17 @@
+<CapaProblem id="CapaProblemText" title="Photosynthesis">
+  <RulesGrader>
+    What gas do plants absorb from the atmosphere during photosynthesis?
+    <StringMatch answer="carbon dioxide" score="1" feedback="Correct!" />
+    <StringMatch answer="co2" score="1" feedback="Correct! CO₂ is the chemical formula." />
+    <StringMatch answer="oxygen" score="0" feedback="Plants release oxygen; they absorb a different gas." />
+    <DefaultMatch score="0" feedback="Think about what plants need to make glucose." />
+    <LineInput />
+  </RulesGrader>
+  <DemandHints>
+    <Hint>Plants combine this gas with water to make glucose.</Hint>
+    <Hint>This gas is also what we exhale when we breathe.</Hint>
+  </DemandHints>
+  <Explanation>
+Plants absorb carbon dioxide (CO₂) and combine it with water using light energy to produce glucose and oxygen through photosynthesis.
+  </Explanation>
+</CapaProblem>

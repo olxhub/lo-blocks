@@ -1,0 +1,23 @@
+<Vertical id="ErrorNodeDemo" title="ErrorNode Block Demo">
+
+  <Markdown id="intro">
+## ErrorNode
+
+ErrorNode displays errors when content fails to load or parse. It's created automatically by the system - you wouldn't normally include it directly in content.
+
+Below is a demonstration that intentionally triggers an error:
+  </Markdown>
+
+  <!-- This unknown block will generate an ErrorNode -->
+  <ThisBlockDoesNotExist />
+
+  <Markdown id="explanation">
+The ErrorNode above was created because `ThisBlockDoesNotExist` is not a registered block type. In practice, ErrorNodes appear when:
+
+- A referenced file doesn't exist
+- XML/OLX has syntax errors
+- A block has invalid attributes
+- PEG grammar parsing fails
+  </Markdown>
+
+</Vertical>

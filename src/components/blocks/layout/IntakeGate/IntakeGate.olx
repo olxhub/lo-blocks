@@ -1,0 +1,17 @@
+<IntakeGate targets="output">
+  <!-- Intake phase: collect input and trigger generation -->
+  <Vertical>
+    <Markdown>Enter your input:</Markdown>
+    <TextArea id="user_input" />
+    <ActionButton label="Generate">
+      <LLMAction target="output">
+        Please provide three bullet points on the topic(s) in this text: <Ref>user_input</Ref>
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <!-- Content phase: display generated result -->
+  <Vertical>
+    <TextSlot id="output" />
+  </Vertical>
+</IntakeGate>

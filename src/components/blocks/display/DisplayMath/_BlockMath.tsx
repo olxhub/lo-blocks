@@ -1,0 +1,25 @@
+// src/components/blocks/DisplayMath/_BlockMath.jsx
+import React from 'react';
+import katex from 'katex';
+if (typeof window !== 'undefined') {
+  import('katex/dist/katex.min.css');
+}
+// DebugWrapper now handles debug info globally
+
+export function _BlockMath( props ) {
+  const { kids } = props;
+  let html = '';
+  try {
+    html = katex.renderToString(kids, {
+      displayMode: true
+    });
+  } catch (err) {
+    console.error('KaTeX render error', err);
+  }
+
+  return (
+    <>
+      <div className="p-4 rounded bg-green-50 text-green-900 text-center" dangerouslySetInnerHTML={{ __html: html }} />
+    </>
+  );
+}
