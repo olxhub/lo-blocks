@@ -255,7 +255,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
     if (zodMismatchResult) {
       ({ correct, message, score } = zodMismatchResult);
     } else {
-      let param: GraderParams;
+      let param: GraderParams | undefined;
 
       if (slots && slots.length > 0) {
         // Dict mode: resolve inputs to named slots
@@ -267,26 +267,24 @@ export function grader({ grader, infer = true, slots, inputType }: {
         const { slotMap, errors } = resolveInputSlots(slots, inputIds, getInputSlot);
 
         if (errors.length > 0) {
-          // Slot resolution failed - return invalid with error message
-          return {
-            correct: correctness.invalid,
-            message: errors[0],
-          };
-        }
+          // Slot resolution failed — fall through to dispatch so UI updates
+          correct = correctness.invalid;
+          message = errors[0];
+        } else {
+          // Build slot→value and slot→api maps
+          const inputDict: Record<string, unknown> = {};
+          const inputApiDict: Record<string, object> = {};
 
-        // Build slot→value and slot→api maps
-        const inputDict: Record<string, unknown> = {};
-        const inputApiDict: Record<string, object> = {};
-
-        for (const [slot, inputId] of Object.entries(slotMap)) {
-          const idx = (inputIds as string[]).indexOf(inputId);
-          if (idx >= 0) {
-            inputDict[slot] = values[idx];
-            inputApiDict[slot] = apis[idx];
+          for (const [slot, inputId] of Object.entries(slotMap)) {
+            const idx = (inputIds as string[]).indexOf(inputId);
+            if (idx >= 0) {
+              inputDict[slot] = values[idx];
+              inputApiDict[slot] = apis[idx];
+            }
           }
-        }
 
-        param = { inputDict, inputApiDict };
+          param = { inputDict, inputApiDict };
+        }
       } else if (inputType === 'list') {
         // List mode - explicitly requested
         param = { inputList: values, inputApis: apis };
@@ -294,17 +292,19 @@ export function grader({ grader, infer = true, slots, inputType }: {
         // Single input mode (default when no slots specified)
         // Most graders expect a single input
         if (values.length === 0) {
-          return {
-            correct: correctness.invalid,
-            message: 'No input found',
-          };
+          // No input — fall through to dispatch so UI updates
+          correct = correctness.invalid;
+          message = 'No input found';
+        } else {
+          param = { input: values[0], inputApi: apis[0] };
         }
-        param = { input: values[0], inputApi: apis[0] };
       }
-      ({ correct, message, score } = grader(
-        { ...props, ...targetAttributes },
-        param
-      ));
+      if (param) {
+        ({ correct, message, score } = grader(
+          { ...props, ...targetAttributes },
+          param
+        ));
+      }
     }
 
     // Convert boolean correct to correctness enum for display

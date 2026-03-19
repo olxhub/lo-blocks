@@ -23,7 +23,7 @@ function flashAction({ targetInstance }) {
     return;
   }
 
-  const el = document.querySelector(`[data-block-id="${target}"]`);
+  const el = document.querySelector(`[data-block-id="${CSS.escape(target)}"]`);
   if (!el) {
     console.warn(`[Flash] Target "${target}" not found in DOM`);
     return;
