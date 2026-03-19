@@ -1,4 +1,4 @@
-// _Trigger - fires child actions when a DSL expression becomes true.
+// _Trigger - fires related actions when a DSL expression becomes true.
 //
 // Edge-triggered: fires on false→true transitions, not while true.
 // mode="once" (default): fires once, persists across remounts.

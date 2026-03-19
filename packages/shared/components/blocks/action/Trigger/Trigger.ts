@@ -1,4 +1,4 @@
-// Trigger - fires child actions when a DSL expression becomes true.
+// Trigger - fires related actions when a DSL expression becomes true.
 //
 // Usage:
 //   <Trigger watch="@grader.correct === correctness.correct">
@@ -28,7 +28,7 @@ export const fields = state.fields([
 const Trigger = dev({
   ...parsers.blocks(),
   name: 'Trigger',
-  description: 'Fires child actions when a DSL expression becomes true (edge-triggered)',
+  description: 'Fires related actions when a DSL expression becomes true (edge-triggered)',
   component: _Trigger,
   fields,
   attributes: baseAttributes.extend({
