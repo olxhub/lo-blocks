@@ -1,10 +1,10 @@
 // src/components/blocks/ChoiceInput/Key.js
 //
-// TODO: MAJOR BUG - Child blocks inside Key (e.g., <Key><InlineMath>x^2</InlineMath></Key>)
-// do not render correctly. They appear as raw XML/JSON like:
-//   {"InlineMath":[{"#text":"SE = \\frac{\\sigma}{\\sqrt{n}}"}],":@":{"id":"..."}}
-// This MUST be fixed to support math in answer choices. Key needs to use parsers.blocks()
-// instead of parsers.text(), and _ChoiceItem needs to render children properly.
+// Correct answer option inside ChoiceInput.
+//
+// Uses blocks parser so hand-authored OLX can include nested blocks
+// (e.g., <Key><InlineMath>x^2</InlineMath></Key>). MarkupProblem wraps
+// choice text in Markdown blocks, so both paths produce block kids.
 //
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
@@ -13,7 +13,7 @@ import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import _ChoiceItem from './_ChoiceItem';
 
 const Key = core({
-  ...parsers.text(),
+  ...parsers.blocks(),
   name: 'Key',
   description: 'Correct answer option inside ChoiceInput',
   component: _ChoiceItem,

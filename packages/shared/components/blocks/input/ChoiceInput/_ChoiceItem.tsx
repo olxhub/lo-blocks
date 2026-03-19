@@ -3,15 +3,18 @@
 // Shared UI component for Key and Distractor elements.
 // Renders as radio button under ChoiceInput, checkbox under CheckboxInput.
 //
+// Kids are block references (from blocks() parser or MarkupProblem's generated
+// Markdown blocks). Rendered via renderCompiledKids.
+//
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo } from 'react';
 import * as state from '@/lib/state';
-import { assertString } from '@/lib/util/kids';
 import { inferRelatedNodes, useGraderAnswer } from '@/lib/blocks';
 import { refToReduxKey } from '@/lib/blocks/idResolver';
 import { DisplayError } from '@/lib/util/debug';
+import { useKids } from '@/lib/render';
 
 export default function _ChoiceItem(props: RuntimeProps) {
   // Find parent input - could be ChoiceInput (radio) or CheckboxInput (checkbox)
@@ -87,11 +90,7 @@ export default function _ChoiceItem(props: RuntimeProps) {
   // Radio button name needs the scoped ID for proper grouping
   const scopedParentId = parentReduxId;
 
-  // TODO: Key/Distractor currently use parsers.text() which only supports string content.
-  // To support images or rich content in choices, they should use parsers.blocks() or
-  // a mixed content parser, and this component should use renderCompiledKids instead.
-  const { kids } = props;
-  assertString(kids);
+  const { kids: renderedKids } = useKids(props);
 
   const labelClasses = [
     'lo-choice-item',
@@ -110,7 +109,7 @@ export default function _ChoiceItem(props: RuntimeProps) {
         className="lo-choice-item__input"
       />
       <span className="lo-choice-item__indicator" aria-hidden="true" />
-      <span className="lo-choice-item__text">{kids}</span>
+      <span className="lo-choice-item__text">{renderedKids}</span>
     </label>
   );
 }

@@ -116,6 +116,20 @@
   color: var(--lo-text-primary);
 }
 
+/* Collapse block wrappers inside choice items so Markdown renders inline */
+.lo-choice-item__text .lo-tag-markdown {
+  display: inline;
+}
+
+.lo-choice-item__text .rendered-markdown {
+  display: inline;
+}
+
+.lo-choice-item__text .rendered-markdown p {
+  display: inline;
+  margin: 0;
+}
+
 /* ── Show-answer highlight (correct answer reveal) ── */
 
 .lo-tag-key .lo-choiceinput-show-answer {

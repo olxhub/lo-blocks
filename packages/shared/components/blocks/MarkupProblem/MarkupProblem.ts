@@ -148,11 +148,18 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
 
         const choiceKids = block.options.map((opt, i) => {
           const choiceId = `${id}_choice_${inputIndex - 1}_${i}`;
+          const choiceMdId = `${choiceId}_md`;
+          storeEntry(choiceMdId, {
+            id: choiceMdId,
+            tag: 'Markdown',
+            attributes: { id: choiceMdId },
+            kids: opt.text
+          });
           storeEntry(choiceId, {
             id: choiceId,
             tag: opt.tag,
             attributes: { id: choiceId },
-            kids: opt.text
+            kids: [{ type: 'block', id: choiceMdId }]
           });
           return { type: 'block', id: choiceId };
         });
@@ -185,11 +192,18 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
 
         const choiceKids = block.options.map((opt, i) => {
           const choiceId = `${id}_checkbox_${inputIndex - 1}_${i}`;
+          const choiceMdId = `${choiceId}_md`;
+          storeEntry(choiceMdId, {
+            id: choiceMdId,
+            tag: 'Markdown',
+            attributes: { id: choiceMdId },
+            kids: opt.text
+          });
           storeEntry(choiceId, {
             id: choiceId,
             tag: opt.tag,
             attributes: { id: choiceId },
-            kids: opt.text
+            kids: [{ type: 'block', id: choiceMdId }]
           });
           return { type: 'block', id: choiceId };
         });
