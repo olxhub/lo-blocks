@@ -191,6 +191,20 @@ lang: en-Latn-US
         <LLMFeedback id="ws1_response_summary_6" />
     </Vertical>
     <Vertical id="print_ws1" title="Print Writing Survey 1">
+        <Markdown>
+## Review and Submit
+
+Review your answers. When you are done, click the **'Submit'** button, then
+use the **'Export as PDF'** button to save a copy to submit to your teacher.
+        </Markdown>
+        <ActionButton id="submit_ws1" label="Submit">
+          <SetFieldAction target="ws1_affect_1" field="readonly" value="true" />
+          <SetFieldAction target="ws1_affect_2" field="readonly" value="true" />
+          <SetFieldAction target="ws1_affect_3" field="readonly" value="true" />
+          <SetFieldAction target="ws1_affect_4" field="readonly" value="true" />
+          <SetFieldAction target="ws1_affect_5" field="readonly" value="true" />
+          <SetFieldAction target="ws1_response_summary_6" field="readonly" value="true" />
+        </ActionButton>
         <ActionButton id="print_btn_ws1" label="Export as PDF">
           <PrintAction id="print_action_ws1" />
         </ActionButton>
