@@ -18,6 +18,12 @@ import * as capaParser from '../specialized/peg_prototype/_capaParser';
 import _CapaProblem from '@/components/blocks/CapaProblem/_CapaProblem';
 import type { BlueprintKidEntry, OlxReference } from '@/lib/types';
 import type { CheckboxGraderAttributes } from '../input/ChoiceInput/CheckboxGrader';
+import { parse as parseExpr } from '@/lib/stateLanguage';
+
+// Pre-parse a when= expression into the { expr, ast } shape that useKidsJson expects.
+// storeEntry stores raw attributes, bypassing the z_expression Zod transform,
+// so we must do the transform ourselves.
+const whenExpr = (expr: string) => ({ expr, ast: parseExpr(expr) });
 
 // Helper: create a block reference with properly typed OlxReference
 const blockRef = (id: string): BlueprintKidEntry => ({ type: 'block', id: id as OlxReference });
@@ -158,7 +164,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
           storeEntry(choiceId, {
             id: choiceId,
             tag: opt.tag,
-            attributes: { id: choiceId },
+            attributes: { id: choiceId, value: opt.text },
             kids: [{ type: 'block', id: choiceMdId }]
           });
           return { type: 'block', id: choiceId };
@@ -181,6 +187,20 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
         });
 
         problemKids.push(blockRef(graderId));
+
+        // Per-choice feedback: {{ hint text }} shows based on submitted answer
+        for (const opt of block.options) {
+          if (!opt.feedback) continue;
+          const fbId = `${id}_fb_${inputIndex - 1}_${block.options.indexOf(opt)}`;
+          storeEntry(fbId, {
+            id: fbId,
+            tag: 'Markdown',
+            attributes: { id: fbId, when: whenExpr(`@${graderId}.lastSubmission ? (@${graderId}.lastSubmission).includes('${opt.text.replace(/'/g, "\\'")}') : false`) },
+            kids: opt.feedback
+          });
+          problemKids.push(blockRef(fbId));
+        }
+
         break;
       }
 
@@ -202,7 +222,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
           storeEntry(choiceId, {
             id: choiceId,
             tag: opt.tag,
-            attributes: { id: choiceId },
+            attributes: { id: choiceId, value: opt.text },
             kids: [{ type: 'block', id: choiceMdId }]
           });
           return { type: 'block', id: choiceId };
@@ -229,6 +249,20 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
         });
 
         problemKids.push(blockRef(graderId));
+
+        // Per-choice feedback for checkboxes: shows based on submitted answer
+        for (const opt of block.options) {
+          if (!opt.feedback) continue;
+          const fbId = `${id}_fb_${inputIndex - 1}_${block.options.indexOf(opt)}`;
+          storeEntry(fbId, {
+            id: fbId,
+            tag: 'Markdown',
+            attributes: { id: fbId, when: whenExpr(`@${graderId}.lastSubmission ? (@${graderId}.lastSubmission).flat().includes('${opt.text.replace(/'/g, "\\'")}') : false`) },
+            kids: opt.feedback
+          });
+          problemKids.push(blockRef(fbId));
+        }
+
         break;
       }
 

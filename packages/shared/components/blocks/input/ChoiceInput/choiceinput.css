@@ -130,6 +130,33 @@
   margin: 0;
 }
 
+/* ── Per-choice feedback ({{ hint }} after choices in MarkupProblem) ── */
+
+@keyframes lo-choice-feedback-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+[data-block-id*="_fb_"].lo-tag-markdown {
+  background-color: var(--lo-info-light);
+  border-left: 3px solid var(--lo-info);
+  border-radius: var(--lo-radius-md);
+  padding: var(--lo-space-sm) var(--lo-space-md);
+  margin-top: var(--lo-space-xs);
+  animation: lo-choice-feedback-enter 300ms ease-out;
+}
+
+[data-block-id*="_fb_"].lo-tag-markdown .rendered-markdown p {
+  margin: 0;
+  color: var(--lo-text-primary);
+}
+
 /* ── Show-answer highlight (correct answer reveal) ── */
 
 .lo-tag-key .lo-choiceinput-show-answer {
