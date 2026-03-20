@@ -1,0 +1,60 @@
+<!--
+---
+description: Student tutorial for interactive content authoring
+category: demo
+lang: en-Latn-US
+---
+-->
+
+<!--
+  A course teaching students to create interactive learning content.
+
+  Chapter 1: Interactive Communication
+    Part 1 — Why interactive? ICAP framework, research, inspiration
+    Part 2 — Design a sequence in plain text, LLM converts to OLX
+    Part 3 — Learn OLX hands-on with live editing and LLM help
+
+  Future chapters: Mastery Learning, Standards-Based Assessment, etc.
+-->
+
+<Course id="authoring_course" title="Interactive Communication" launchable="true">
+
+<!-- ================================================================
+     CHAPTER 1: INTERACTIVE COMMUNICATION
+     ================================================================ -->
+
+<Chapter title="Interactive Communication" id="ch_interactive">
+<Use ref="interactive_comm"/>
+
+
+<!-- ================================================================
+     Section 1.2: SCENERIO-BASED ASSESSMENT (placeholder)
+     ================================================================ -->
+
+<Sequential id="sba_placeholder" title="Scenerio-Based Assessment">
+  <Markdown>
+## Coming Soon: Scenerio-Based Assessment
+
+  </Markdown>
+</Sequential>
+
+
+
+<!-- ================================================================
+     Section 1.3: MASTERY LEARNING (placeholder)
+     ================================================================ -->
+
+<Sequential id="mastery_placeholder" title="Mastery Learning">
+  <Markdown>
+## Coming Soon: Mastery Learning
+
+How do you ensure every student actually *learns* the material, not just passes through it? Benjamin Bloom showed that mastery-based approaches can close the gap between average and exceptional students (the "2-sigma problem" from Chapter 1).
+
+This chapter will cover:
+* Bloom's mastery learning framework
+* Designing for mastery vs. designing for completion
+* Support for mastery learning in this platform
+  </Markdown>
+</Sequential>
+</Chapter>
+</Course>
