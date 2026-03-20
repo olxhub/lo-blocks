@@ -166,7 +166,12 @@ function analyzeAlliteration(tokens: TextToken[]): HighlightEntry[] {
   let currentLetter = '';
 
   function flushRun() {
-    // Pending stop words are NOT included — they trail the run
+    // Trailing stop words that share the run's letter are included
+    // (they alliterate); stop at the first non-matching one to avoid gaps.
+    for (const s of pendingStops) {
+      if (s.text[0]?.toLowerCase() !== currentLetter) break;
+      currentRun.push(s);
+    }
     if (currentRun.length >= 2) {
       runs.push({ letter: currentLetter, tokens: [...currentRun] });
     }
