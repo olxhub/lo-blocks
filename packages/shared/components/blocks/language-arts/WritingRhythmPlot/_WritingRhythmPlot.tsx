@@ -4,29 +4,13 @@ import React, { useRef, useMemo, useEffect } from 'react';
 import * as Plot from '@observablehq/plot';
 import { useValue } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
+import { segmentText } from '@/lib/textSegment';
+import { groupHue, hslColor } from '@/lib/util/colorWheel';
 
-const GOLDEN_RATIO = 0.618033988749895;
-
-function wordColor(index: number): string {
-  // Standard algorithm is (index * GOLDEN_RATIO * 360) % 360;
-  // Gives optimal color assignment.
-  //
-  // However, this was visually super-noisy, so we scaled it back for now.
-  const hue = (index * GOLDEN_RATIO * 360 / 15) % 360;
-  return `hsl(${hue}, 55%, 55%)`;
-}
+// Subtle rotation factor (default 1/φ was visually noisy for stacked bars)
+const COLOR_FACTOR = 0.618033988749895 / 15;
 
 export type WordRow = { sentence: number; word: string; height: number; color: string };
-
-// CJK Unified Ideographs, Extension A, Compatibility Ideographs,
-// Hiragana, Katakana, Katakana Phonetic Extensions
-const CJK = /[\u3040-\u30ff\u31f0-\u31ff\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/;
-
-// Sentence-ending punctuation:
-//   ASCII: .!?    CJK: 。！？    Arabic: ؟
-// CJK punctuation splits without requiring trailing whitespace (Chinese has no spaces).
-// ASCII punctuation requires trailing whitespace to avoid splitting on "Dr." or "U.S.A."
-const SENTENCE_SPLIT = /(?<=[。！？؟])\s*|(?<=[.!?])\s+/;
 
 /**
  * Parse text into one row per word, stacked within sentences.
@@ -34,65 +18,29 @@ const SENTENCE_SPLIT = /(?<=[。！？؟])\s*|(?<=[.!?])\s+/;
  * - Each word is a bar segment; height is character count (mode=characters) or 1 (mode=words)
  * - Words stack into sentence bars
  * - Sentences in the same paragraph are adjacent bars
- * - Newlines insert a spacer (empty bar) to visually separate paragraphs
+ * - Paragraph gaps (jumps in sentence numbers) insert a spacer (empty bar)
  * - CJK text: each character is treated as a word (no space-based word boundaries)
  */
 export function analyzeText(text: string, mode: string) {
-  const lines = text.split(/\n/);
+  const tokens = segmentText('en', text);
   const data: WordRow[] = [];
-  let sentenceNum = 0;
-  let wordIndex = 0;
-  let lastWasEmpty = false;
+  let lastSentence = 0;
 
-  function pushWord(word: string) {
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i];
+
+    // Detect paragraph gaps (sentence number jumps by 2+) and insert spacer
+    if (t.sentence > lastSentence + 1 && lastSentence > 0) {
+      data.push({ sentence: lastSentence + 1, word: '', height: 0, color: 'transparent' });
+    }
+    lastSentence = t.sentence;
+
     data.push({
-      sentence: sentenceNum,
-      word,
-      height: mode === 'words' ? 1 : word.length,
-      color: wordColor(wordIndex++),
+      sentence: t.sentence,
+      word: t.text,
+      height: mode === 'words' ? 1 : t.text.length,
+      color: hslColor(groupHue(i, COLOR_FACTOR), 0.55, 0.55),
     });
-  }
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-
-    // Empty line = paragraph break → insert spacer
-    if (!trimmed) {
-      if (!lastWasEmpty && sentenceNum > 0) {
-        sentenceNum++;
-        data.push({ sentence: sentenceNum, word: '', height: 0, color: 'transparent' });
-      }
-      lastWasEmpty = true;
-      continue;
-    }
-    lastWasEmpty = false;
-
-    const sentences = trimmed.split(SENTENCE_SPLIT).filter(s => s.trim());
-
-    for (const sentence of sentences) {
-      sentenceNum++;
-      const tokens = sentence.split(/\s+/).filter(Boolean);
-
-      for (const raw of tokens) {
-        if (CJK.test(raw)) {
-          // Split into individual CJK characters and non-CJK runs
-          // e.g. "我喜欢Unicode" → ["我", "喜", "欢", "Unicode"]
-          let run = '';
-          for (const char of raw) {
-            if (CJK.test(char)) {
-              if (run) { const c = run.replace(/[^\p{L}']/gu, ''); if (c) pushWord(c); run = ''; }
-              pushWord(char);
-            } else {
-              run += char;
-            }
-          }
-          if (run) { const c = run.replace(/[^\p{L}']/gu, ''); if (c) pushWord(c); }
-        } else {
-          const cleaned = raw.replace(/[^\p{L}']/gu, '');
-          if (cleaned) pushWord(cleaned);
-        }
-      }
-    }
   }
 
   return data;
