@@ -203,7 +203,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
           storeEntry(fbId, {
             id: fbId,
             tag: 'Markdown',
-            attributes: { id: fbId, when: whenExpr(`@${graderId}.lastSubmission ? @${graderId}.lastSubmission === '${escaped}' : false`) },
+            attributes: { id: fbId, when: whenExpr(`@${graderId}.lastSubmission ? (@${graderId}.lastSubmission).includes('${escaped}') : false`) },
             kids: opt.feedback
           });
           problemKids.push(blockRef(fbId));
