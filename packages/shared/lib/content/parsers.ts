@@ -285,10 +285,18 @@ function createBlocksParser(options: { allowHTML?: boolean } = {}) {
       const child = rawKids[index];
 
       if (child['#text'] !== undefined) {
-        if (allowHTML) {
-          const text = child['#text'];
-          if (text.trim() !== '') {
+        const text = child['#text'];
+        if (text.trim() !== '') {
+          if (allowHTML) {
             results.push({ type: 'text', text });
+          } else {
+            const preview = text.trim().slice(0, 40);
+            const context = parentTag ? ` inside <${parentTag}>` : '';
+            throw new Error(
+              `Unexpected text "${preview}"${context} — ` +
+              `expected OLX block tags (e.g. <Markdown>). ` +
+              `Wrap text content in a block element.`
+            );
           }
         }
         continue;
@@ -328,6 +336,14 @@ function createBlocksParser(options: { allowHTML?: boolean } = {}) {
           id: attributes.id as OlxKey | undefined,
           kids: childResults
         });
+      } else {
+        // Lowercase tag in blocks-only mode — HTML is not allowed here
+        const context = parentTag ? ` inside <${parentTag}>` : '';
+        throw new Error(
+          `Unexpected HTML tag <${tag}>${context} — ` +
+          `expected OLX block tags (uppercase, e.g. <Markdown>). ` +
+          `Use parsers.blocks.allowHTML() to allow HTML content.`
+        );
       }
     }
 
