@@ -8,15 +8,47 @@ lang: en-Latn-US
 <Vertical id="interdisciplinary_activities" launchable="true">
 
   <!-- ORIENTATION -->
-  <Markdown id="interdisciplinary_orientation">
-## Welcome to the Interdisciplinary Studies Module
+  <SplitPanel id="interdisciplinary_orientation" title="Introduction" sizes="65,35">
+      <LeftPane>
+          <Markdown id="interdisciplinary_orientation_md">
+## Introduction
 
-In this simulated internship at Community 360, you'll apply interdisciplinary analysis to understand the complex issue of high school dropout rates in the community.
+Imagine that as part of your degree requirements, you are completing an internship at a local
+nonprofit called **Community 360**, or **Comm360** for short.
 
-Working with supervisor Lianne Park and your intern teammates, you'll investigate causes, review research from multiple disciplines, and develop evidence-based recommendations.
+The mission of Comm360 is to address community-based needs and issues through responsive
+programming in multiple areas such as:
+ - Education and Training
+ - Health and Welfare
+ - Family and Youth Services
+ - Community Building and Advocacy
+ 
+A community needs survey conducted by Comm360 identified the high rate of students dropping out
+of high school in the area as a serious issue. You have been asked to work with other interns
+to investigate the causes of high school dropout to better understand the problem so that
+Comm360's services can be developed to address the problem.
+          </Markdown>
+      </LeftPane>
+      <RightPane>
+          <Image id="interdisciplinary_image" src="/sba/interdisciplinary/images/nonprofit.png" alt="Nonprofit" />
+          <Image id="interdisciplinary_image2" src="/sba/interdisciplinary/images/wordcloud.png" alt="Helping, volunteer, community, donations ..." />
+      </RightPane>
+  </SplitPanel>
+
+  <Image id="interdisciplinary_gsu_plaza_image" src="/sba/interdisciplinary/images/GSU_Library_Plaza.jpg" alt="GSU Library Plaza" />
+  
+  <Markdown id="interdisciplinary_task_list">
+## Task Outline
+
+In the next 45-60 minutes you will work with your teammates to complete the following tasks:
+ 1. _Brainstorm causes for high school dropout._
+ 2. _Review community focus group data._
+ 3. _Reflect: Is this an interdisciplinary problem?_
+ 4. _Review the literature._
+ 5. _Map disciplinary insights._
+ 5. _Develop a problem statement that synthesizes results and justifies an interdisciplinary approach
+     tailored to the Comm360 goals._
   </Markdown>
-
-  <Image id="interdisciplinary_gsu_prof_image" src="/sba/interdisciplinary/images/GSU_prof.png" alt="Professor at Georgia State University" />
 
   <!-- TEAM AND LIBRARY - resolved from interdisciplinary_sba.olx -->
 

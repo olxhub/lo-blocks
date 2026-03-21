@@ -1,18 +1,32 @@
 Title: Interdisciplinary Studies SBA - High School Dropout Analysis
 Author: EDUC 3100 Assessment Module
-Description: A simulated project applying interdisciplinary analysis to understand high school dropout causes
 Course: EDUC 3100
-Due Date: Sunday, April 13, 2025
-~~~~~~~
+Cast:
+  Omer:
+    seed: omer
+    face: smile
+  Ty:
+    seed: ty
+    face: smile
+  Lacy:
+    seed: lacy
+    face: smile
+  Peggie:
+    seed: peggie
+    face: smile
+  Lianne:
+    seed: lianne
+    face: smile
+~~~~
 
 Orientation [id=orientation]
 -----------
 
-interdisciplinary_sba_sidebar -> interdisciplinary_gsu_prof_image
-
 Omer: Hi. This is the module on interdisciplinary reasoning for EDUC 3100 that I spoke about during one of our classes.
 
 Omer: It should take you about an hour to complete, and you can break it up over several days if you'd like. However, please make sure you finish it by end of Sunday, April 13, 2025.
+
+interdisciplinary_sba_sidebar -> interdisciplinary_orientation
 
 Omer: In this module, you'll complete a simulated project in which you'll apply what you've learned in class about interdisciplinary analysis and the broad model of interdisciplinary research. The module contains everything you need to complete the project.
 
@@ -59,20 +73,21 @@ Teammate: Now that we know the team, let's see what Lianne has for us to work on
 Task Overview [id=task_list]
 -------------
 
-Lianne: Welcome to the team, everyone. Over the next 45 to 60 minutes, you'll work together to complete these tasks.
+interdisciplinary_sba_sidebar -> interdisciplinary_task_list
 
-Lianne: First, you'll brainstorm causes for high school dropout. Then you'll review community focus group data we've collected.
+Lianne: Welcome to the team, everyone. We're glad you're here at Comm360 to help us work on this problem. Take a look at the handout. Over the next 45 to 60 minutes, you'll work together to complete these tasks.
 
-Lianne: After that, you'll reflect on whether this is truly an interdisciplinary problem, and review relevant literature from different fields.
 
-Lianne: Finally, you'll develop a problem statement that justifies an interdisciplinary approach, and synthesize your results into a presentation for the committee.
+Lianne: By the way, you can call me Lianne. We're pretty informal here.
+
+Lacy: Thanks, Lianne.
 
 --- pause ---
 
 Task Set 1: Brainstorm [id=brainstorm_start]
 -----------------------
 
-Lianne: Hey, team. We're glad you're here at Comm360 to help us work on this problem.
+Lianne: Let's get started with the brainstorming task.
 
 Lianne: When someone drops out of high school and never gets a diploma or a GED, it has negative consequences, as you know.
 
@@ -81,8 +96,6 @@ Lianne: Why don't each of you start by reviewing what you know about the causes 
 Lianne: It may be from personal experiences of people you know or know of.
 
 Lianne: When you're done, we'll put all the ideas together as a way to start looking into research about the causes of dropping out.
-
-Lianne: By the way, you can call me Lianne. We're pretty informal here.
 
 --- pause ---
 
@@ -100,7 +113,7 @@ Peggy: She fell so far behind that by the time she got back, she just couldn't f
 
 --- pause ---
 
-Brainstorming Method [id=brainstorm_method]
+Brainstorming [id=brainstorm_method]
 --------------------
 
 Ty: How could we put that into one sentence?
@@ -135,25 +148,28 @@ Peggy: So let's see if we can each write two causes.
 
 interdisciplinary_sba_sidebar -> cause_inputs
 
+--- wait @cause_internal.value && @cause_structural.value ---
+
 [id=causes_review]
-Lacy: Here are all of our reasons, Lianne. What do you think?
+You: I'm done.
 
 interdisciplinary_sba_sidebar -> causes_list
 
---- wait @cause_internal.value && @cause_structural.value ---
+Lacy: Here are all of our reasons, Lianne. What do you think?
 
 Lianne: This is a good list. It reflects a lot of what we heard in a focus group we conducted after we got the results of our community needs survey. We spoke to various stakeholders - students and their families, teachers, and other community members.
 
-Lianne: Now let's move on to the next task. I'd like you to take a look at part of the transcript from that focus group to extract additional reasons because this is an extremely complex problem, as you've already identified, with many causes.
 
 --- pause ---
 
 Task Set 2: Review Focus Group Data [id=focus_group_start]
 ---------------------------------------
 
-Lianne: Read this part of the transcript before you go on.
+Lianne: Now let's move on to the next task. I'd like you to take a look at part of the transcript from that focus group to extract additional reasons because this is an extremely complex problem, as you've already identified, with many causes.
 
 interdisciplinary_sba_sidebar -> focus_group_transcript_pt1
+
+Lianne: Read this part of the transcript before you go on.
 
 Lianne: Highlight any reasons that our participants gave for students dropping out of high school.
 

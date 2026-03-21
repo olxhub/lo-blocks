@@ -21,7 +21,7 @@ lang: en-Latn-US
     <Tabs id="interdisciplinary_sba_tabs">
       <!-- Tab 1: Current Activity -->
       <Vertical id="interdisciplinary_current_activity" title="Current Activity">
-        <UseHistory id="interdisciplinary_sba_sidebar" initial="interdisciplinary_orientation" />
+        <UseHistory id="interdisciplinary_sba_sidebar" initial="interdisciplinary_gsu_plaza_image" />
       </Vertical>
 
       <!-- Tab 2: Student Artifact -->
