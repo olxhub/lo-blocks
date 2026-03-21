@@ -2,10 +2,9 @@
 //
 // Incorrect answer option inside ChoiceInput.
 //
-// Uses blocks parser so hand-authored OLX can include nested blocks
-// (e.g., <Distractor><InlineMath>x^2</InlineMath></Distractor>).
-// MarkupProblem wraps choice text in Markdown blocks, so both paths
-// produce block kids.
+// Uses blocks.wrapText('Markdown') so both bare text and nested blocks work:
+//   <Distractor>False</Distractor>              → text auto-wrapped in Markdown
+//   <Distractor><InlineMath>x^2</InlineMath></Distractor>  → block passed through
 //
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
@@ -14,7 +13,7 @@ import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import _ChoiceItem from './_ChoiceItem';
 
 const Distractor = core({
-  ...parsers.blocks(),
+  ...parsers.blocks.wrapText('Markdown'),
   name: 'Distractor',
   description: 'Incorrect answer option inside ChoiceInput',
   component: _ChoiceItem,

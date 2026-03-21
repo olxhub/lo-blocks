@@ -7,6 +7,7 @@
 //
 // - `childParser()`: Decorator for simple parser functions (handles the 95% case of just transforming children)
 // - `blocks`: Processes lists of block elements (filters out text/comments)
+// - `blocks.wrapText(tag)`: Same as blocks but auto-wraps bare text in the given block (e.g. Markdown)
 // - `blocks.allowHTML()`: Same as blocks but includes HTML tags and text as mixed content
 // - `text`: Extracts plain text content with whitespace handling options
 // - `peggyParser()`: Integrates PEG grammars for domain-specific formats
@@ -267,16 +268,24 @@ export const xml = {
 
 // Assumes we have a list of OLX-style Blocks. E.g. for a learning sequence.
 // Options (on createBlocksParser):
-//   allowHTML: true - include HTML tags and text as mixed content for rendering
-//                     Returns: [{ type: 'block', id }, { type: 'html', tag, ... }, { type: 'text', text }, ...]
-//   allowHTML: false (default) - only process block tags, filter out HTML/text
-//                     Returns: [{ id }, { id }, ...]
+//   text: 'error' (default)    - throw on non-whitespace text or HTML tags
+//   text: 'passthrough'        - include HTML tags and text as mixed content (legacy allowHTML)
+//                                 Returns: [{ type: 'block', id }, { type: 'html', tag, ... }, { type: 'text', text }, ...]
+//   text: 'wrap', wrapTag: tag - auto-wrap bare text segments in the given block (e.g. 'Markdown')
+//                                 Returns: [{ id }, { id }, ...] (text wrapped in synthetic blocks)
 // Options (on factory call, e.g. blocks({ requiredChildren: 2 })):
 //   requiredChildren: N - enforce exactly N block children at parse time.
 //                     Children cannot use when= (filtering would break the
 //                     fixed structure). E.g. SplitPanel requires exactly 2.
-function createBlocksParser(options: { allowHTML?: boolean } = {}) {
-  const { allowHTML = false } = options;
+// Text handling modes for blocks parser:
+//   'error'       — throw on non-whitespace text (default; prevents silent data loss)
+//   'passthrough' — include text/HTML as mixed content (legacy allowHTML behavior)
+//   'wrap'        — auto-wrap text segments in a block tag (requires wrapTag)
+type BlocksTextMode = 'error' | 'passthrough' | 'wrap';
+
+function createBlocksParser(options: { text?: BlocksTextMode; wrapTag?: string } = {}) {
+  const { text: textMode = 'error', wrapTag = null } = options;
+  const allowHTML = textMode === 'passthrough';
 
   async function blocksParser({ rawKids, parseNode, tag: parentTag = undefined, requiredChildren = undefined }) {
     const results: any[] = [];
@@ -289,6 +298,13 @@ function createBlocksParser(options: { allowHTML?: boolean } = {}) {
         if (text.trim() !== '') {
           if (allowHTML) {
             results.push({ type: 'text', text });
+          } else if (textMode === 'wrap' && wrapTag) {
+            // Auto-wrap text in a synthetic block (e.g. Markdown)
+            const syntheticNode = { [wrapTag]: [{ '#text': text }] };
+            const result = await parseNode(syntheticNode, null, -1);
+            if (result?.id) {
+              results.push(result);
+            }
           } else {
             const preview = text.trim().slice(0, 40);
             const context = parentTag ? ` inside <${parentTag}>` : '';
@@ -373,7 +389,9 @@ blocksFactory.staticKids = (entry) =>
   (Array.isArray(entry.kids) ? entry.kids : []).filter(k => k && k.id).map(k => k.id);
 export const blocks = Object.assign(blocksFactory, {
   // blocks.allowHTML() returns parser that includes HTML/text as mixed content
-  allowHTML: () => createBlocksParser({ allowHTML: true })()
+  allowHTML: () => createBlocksParser({ text: 'passthrough' })(),
+  // blocks.wrapText('Markdown') auto-wraps bare text segments in the given block tag
+  wrapText: (tag: string) => createBlocksParser({ text: 'wrap', wrapTag: tag })(),
 });
 
 function extractString(extracted: ReturnType<typeof extractTextFromXmlNodes>): string {

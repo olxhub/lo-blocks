@@ -2,9 +2,9 @@
 //
 // Correct answer option inside ChoiceInput.
 //
-// Uses blocks parser so hand-authored OLX can include nested blocks
-// (e.g., <Key><InlineMath>x^2</InlineMath></Key>). MarkupProblem wraps
-// choice text in Markdown blocks, so both paths produce block kids.
+// Uses blocks.wrapText('Markdown') so both bare text and nested blocks work:
+//   <Key>True</Key>              → text auto-wrapped in Markdown
+//   <Key><InlineMath>x^2</InlineMath></Key>  → block passed through
 //
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
@@ -13,7 +13,7 @@ import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import _ChoiceItem from './_ChoiceItem';
 
 const Key = core({
-  ...parsers.blocks(),
+  ...parsers.blocks.wrapText('Markdown'),
   name: 'Key',
   description: 'Correct answer option inside ChoiceInput',
   component: _ChoiceItem,
