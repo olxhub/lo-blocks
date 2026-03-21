@@ -308,7 +308,7 @@ export function useOlxJsonMultiple(
     for (const id of ids) {
       if (id) ensureBlock(props, id, source);
     }
-  }, [ids.join(','), source, props.runtime.sideEffectFree, props.runtime.logEvent]);
+  }, [JSON.stringify(ids), source, props.runtime.sideEffectFree, props.runtime.logEvent]);
 
   const olxJsons = results.map((r, i) => {
     if (r.olxJson) return r.olxJson;

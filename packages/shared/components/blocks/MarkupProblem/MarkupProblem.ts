@@ -25,6 +25,12 @@ import { parse as parseExpr } from '@/lib/stateLanguage';
 // so we must do the transform ourselves.
 const whenExpr = (expr: string) => ({ expr, ast: parseExpr(expr) });
 
+// Escape a string for interpolation into a single-quoted expression string.
+// Must handle backslashes first (so we don't double-escape), then single quotes,
+// then newlines/carriage returns (which would break the expression parser).
+const escapeExprString = (s: string) =>
+  s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+
 // Helper: create a block reference with properly typed OlxReference
 const blockRef = (id: string): BlueprintKidEntry => ({ type: 'block', id: id as OlxReference });
 
@@ -189,13 +195,15 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
         problemKids.push(blockRef(graderId));
 
         // Per-choice feedback: {{ hint text }} shows based on submitted answer
-        for (const opt of block.options) {
+        for (let oi = 0; oi < block.options.length; oi++) {
+          const opt = block.options[oi];
           if (!opt.feedback) continue;
-          const fbId = `${id}_fb_${inputIndex - 1}_${block.options.indexOf(opt)}`;
+          const escaped = escapeExprString(opt.text);
+          const fbId = `${id}_fb_${inputIndex - 1}_${oi}`;
           storeEntry(fbId, {
             id: fbId,
             tag: 'Markdown',
-            attributes: { id: fbId, when: whenExpr(`@${graderId}.lastSubmission ? (@${graderId}.lastSubmission).includes('${opt.text.replace(/'/g, "\\'")}') : false`) },
+            attributes: { id: fbId, when: whenExpr(`@${graderId}.lastSubmission ? @${graderId}.lastSubmission === '${escaped}' : false`) },
             kids: opt.feedback
           });
           problemKids.push(blockRef(fbId));
@@ -251,13 +259,15 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
         problemKids.push(blockRef(graderId));
 
         // Per-choice feedback for checkboxes: shows based on submitted answer
-        for (const opt of block.options) {
+        for (let oi = 0; oi < block.options.length; oi++) {
+          const opt = block.options[oi];
           if (!opt.feedback) continue;
-          const fbId = `${id}_fb_${inputIndex - 1}_${block.options.indexOf(opt)}`;
+          const escaped = escapeExprString(opt.text);
+          const fbId = `${id}_fb_${inputIndex - 1}_${oi}`;
           storeEntry(fbId, {
             id: fbId,
             tag: 'Markdown',
-            attributes: { id: fbId, when: whenExpr(`@${graderId}.lastSubmission ? (@${graderId}.lastSubmission).flat().includes('${opt.text.replace(/'/g, "\\'")}') : false`) },
+            attributes: { id: fbId, when: whenExpr(`@${graderId}.lastSubmission ? (@${graderId}.lastSubmission).flat().includes('${escaped}') : false`) },
             kids: opt.feedback
           });
           problemKids.push(blockRef(fbId));

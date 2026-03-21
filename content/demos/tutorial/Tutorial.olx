@@ -28,12 +28,12 @@ lang: en-Latn-US
 
 
 <!-- ================================================================
-     Section 1.2: SCENERIO-BASED ASSESSMENT (placeholder)
+     Section 1.2: SCENARIO-BASED ASSESSMENT (placeholder)
      ================================================================ -->
 
-<Sequential id="sba_placeholder" title="Scenerio-Based Assessment">
+<Sequential id="sba_placeholder" title="Scenario-Based Assessment">
   <Markdown>
-## Coming Soon: Scenerio-Based Assessment
+## Coming Soon: Scenario-Based Assessment
 
   </Markdown>
 </Sequential>
