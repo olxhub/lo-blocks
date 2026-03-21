@@ -1,10 +1,10 @@
 // src/components/blocks/ChoiceInput/Distractor.js
 //
-// TODO: MAJOR BUG - Child blocks inside Distractor (e.g., <Distractor><InlineMath>x^2</InlineMath></Distractor>)
-// do not render correctly. They appear as raw XML/JSON like:
-//   {"InlineMath":[{"#text":"SE = \\frac{\\sigma}{\\sqrt{n}}"}],":@":{"id":"..."}}
-// This MUST be fixed to support math in answer choices. Distractor needs to use parsers.blocks()
-// instead of parsers.text(), and _ChoiceItem needs to render children properly.
+// Incorrect answer option inside ChoiceInput.
+//
+// Uses blocks.wrapText('Markdown') so both bare text and nested blocks work:
+//   <Distractor>False</Distractor>              → text auto-wrapped in Markdown
+//   <Distractor><InlineMath>x^2</InlineMath></Distractor>  → block passed through
 //
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
@@ -13,7 +13,7 @@ import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import _ChoiceItem from './_ChoiceItem';
 
 const Distractor = core({
-  ...parsers.text(),
+  ...parsers.blocks.wrapText('Markdown'),
   name: 'Distractor',
   description: 'Incorrect answer option inside ChoiceInput',
   component: _ChoiceItem,

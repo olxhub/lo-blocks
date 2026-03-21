@@ -1,0 +1,550 @@
+<Sequential id="interactive_comm" title="Interactive Communication">
+
+  <!-- ============================================================
+       PART 1: WHY INTERACTIVE?
+       ============================================================ -->
+
+
+
+<Markdown  id="olx_tutorial_welcome" title="Welcome"><![CDATA[
+# Welcome!
+
+Your course staff and I are running an experiment. This tutorial will help you understand what it is and why we're doing it — and by the end, you'll be creating interactive content yourself.
+
+Your first job:
+* Find the **Next** button and hit it.
+* Follow the instructions on the next page.
+]]></Markdown>
+
+
+<Vertical id="icap_intro_section" title="Active Learning">
+<MarkupProblem id="icap_intro" title="How People Learn">
+Great! Welcome to the next page. Quick question:
+
+When well-structured, what's most effective for learning?
+
+( ) **Passive**: Reading a textbook or watching a lecture
+( ) **Active**: Answering a question (like this one)
+( ) **Constructive**: Writing an essay or explanation
+(x) **Interactive**: Discussing, debating, or teaching someone
+
+[explanation]
+Researchers Michelene Chi and Ruth Wylie proposed the **ICAP framework** (2014), which ranks learning activities:
+
+**I**nteractive ≥ **C**onstructive > **A**ctive > **P**assive
+
+Each level involves deeper cognitive engagement. As defined by Chi:
+
+* Passive means receiving -- reading text, watching a video, or listening to a lecture.
+* Active means doing something with the material.
+* Constructive means producing something new.
+* Interactive means doing so *with others* — building on each other's ideas.
+
+The key prediction: **I ≥ C > A > P** for learning outcomes. The sharpest boundary is between Passive and Active — the mere act of engaging with material rather than passively receiving it produces the largest gains. This has been validated across countless studies.                                                                                                  
+
+Richard Hake studied 6,000 physics students across 62 courses (1998) and found that classes using **interactive engagement** produced learning gains roughly **twice** those of traditional lectures. A massive meta-analysis of 225 studies (Freeman et al., 2014, published in *PNAS*) confirmed: students in traditional lectures are **1.5 times more likely to fail** than students in active learning environments.
+
+The pattern holds across disciplines, age groups, and cultures. Interactive beats passive.
+[/explanation]
+</MarkupProblem>
+<Collapsible id="icap_detail" title="Citations">
+<Markdown><![CDATA[
+### Hake (1998)
+
+- Hake, R. R. (1998). *Interactive-engagement versus traditional methods: A six-thousand-student survey of mechanics test data for introductory physics courses*. American Journal of Physics, 66(1), 64–74. https://stemteachersnyc.org/wp-content/uploads/2015/03/HAKE-INTERACTIVE-ENGAGEMENT-VS-TRADITIONAL-1.pdf
+
+**Summary:**
+- Large-scale study (6,000+ students) comparing traditional lectures vs. interactive engagement (IE).
+- IE methods produced significantly higher conceptual learning gains (~0.48 vs. ~0.23).
+- Demonstrates strong benefits of active, student-centered instruction.
+
+---
+
+### Freeman et al. (2014)
+
+- Freeman, S., Eddy, S. L., McDonough, M., Smith, M. K., Okoroafor, N., Jordt, H., &amp; Wenderoth, M. P. (2014). *Active learning increases student performance in science, engineering, and mathematics*. Proceedings of the National Academy of Sciences, 111(23), 8410–8415. https://www.pnas.org/doi/10.1073/pnas.1319030111
+
+**Summary:**
+- Meta-analysis of 225 STEM studies comparing active learning vs. lecturing.
+- Active learning improved exam scores (~6%) and reduced failure rates.
+- Students in traditional lectures were about 1.5× more likely to fail.
+- Concludes active learning is consistently more effective across contexts.
+
+---
+
+### Chi &amp; Wylie (2014)
+
+- Chi, M. T. H., &amp; Wylie, R. (2014). *The ICAP framework: Linking cognitive engagement to active learning outcomes*. Educational Psychologist, 49(4), 219–243. https://files.eric.ed.gov/fulltext/EJ1044018.pdf
+
+**Summary:**
+- Introduces the ICAP framework (Interactive, Constructive, Active, Passive).
+- Learning effectiveness increases with deeper cognitive engagement.
+- Interactive and constructive activities lead to better outcomes than passive ones.
+- Provides a theoretical explanation for why active learning works.
+]]></Markdown>
+</Collapsible>
+</Vertical>
+
+
+
+
+<MarkupProblem id="writing_comm" title="How Does This Class Teach Communication?">
+So: interactive learning works. But how do most writing classes teach you to communicate?
+
+(x) For passive readers :(
+( ) Interactively, for the 21st century!
+
+[explanation]
+We'll break that, right here, right now.
+
+Notice what we've been doing? We've been replacing a *lecture* or *reading* with a series of *leading questions*. Each question has an obvious answer, but answering it forces you to *think* rather than just *read*.
+
+That's not rocket science. It's one of the oldest teaching techniques (Socrates was doing it 2,400 years ago). But digital technology lets us do it at scale — and it lets *you* do it too.
+
+By the end of this tutorial, you'll be authoring interactive content like this yourself.
+
+Footnote: While writing generates output which is (usually) consumed **passively**, the act of writing is **constructive**. Writing-to-learn can work **incredibly** well.
+[/explanation]
+</MarkupProblem>
+
+
+
+<!-- Inspiration gallery — moved before authoring per plan -->
+<Vertical id="inspiration" title="Inspiration">
+<Markdown><![CDATA[
+## Interactive Communication in the Wild
+
+Before you start authoring, let's look at what's possible. These examples all communicate ideas *interactively* — not through passive text, but through experiences:
+
+* [**Parable of the Polygons**](https://ncase.me/polygons/) — How small individual biases create large-scale segregation. You move the shapes yourself and watch the pattern emerge. (Nicky Case &amp; Vi Hart)
+* [**How to Remember Everything Forever-ish**](https://ncase.me/remember/) — Spaced repetition explained through a playable comic. (Nicky Case)
+* [**Brilliant**](https://brilliant.org/courses/nutshell/) — Interactive math and science courses that teach by asking, not telling. (Free introductions available)
+* [**DragonBox**](https://en.wikipedia.org/wiki/DragonBox) — A game that teaches algebra without ever showing an equation (until you've already mastered the concepts)
+* [**This War of Mine**](https://en.wikipedia.org/wiki/This_War_of_Mine) — A game that communicates the civilian experience of war more powerfully than most textbooks
+* [**New York Times Graphics**](https://www.nytimes.com/spotlight/graphics) — Data journalism that lets readers explore and discover patterns themselves
+
+Notice how these all sit higher on the ICAP scale than a textbook. You're being told a story by *doing* something, not just *reading*.
+]]></Markdown>
+</Vertical>
+
+<MarkupProblem id="inspiration_reflect" title="What Makes Them Work?">
+Think about the examples above (or others you've seen). What is the primary reason interactive content is more effective for learning than a traditional essay or article?
+
+( ) It's more entertaining {{ It often is, but some forms aren't. It's an answer, but it's not the best answer. }}
+( ) It uses technology {{ Believe it or not, interactive content predates technology! Technology just makes it easier. }}
+(x) It requires the audience to think, not just read
+( ) It has better graphics {{ Interactive content can have no graphics, and a beautiful video is passive }}
+
+[explanation]
+Entertainment and graphics can help, but they're not the core. **The key is cognitive engagement.** When you have to answer a question, move a slider, make a choice, or write something — your brain is processing the material at a deeper level than when you're passively reading.
+
+That's the ICAP principle at work. And it's what you're about to learn to create.
+[/explanation]
+  </MarkupProblem>
+
+  <Vertical id="inspiration_share" title="Your Favorites">
+    <Markdown><![CDATA[
+Do you know of other examples? Things that communicated a point or told a story interactively? What made them effective?
+    ]]></Markdown>
+    <TextArea id="others" rows="4" placeholder="Share any interactive experiences you've found effective..." />
+    <Markdown><![CDATA[
+This isn't required — we'd genuinely love to know (so we can make sure our platform can do it too :) )!
+    ]]></Markdown>
+  </Vertical>
+
+  <Vertical id="choose_topic" title="Your Topic">
+    <Markdown><![CDATA[
+## What Do You Want to Communicate?
+
+Pick something you'd like to teach someone or convince someone of. Or something you'd like someone to learn. It could be:
+
+* A concept from another class
+* An opinion you feel strongly about
+* Something you recently learned and found surprising
+* A skill you know how to do
+
+It doesn't matter much — but we'll keep referring back to this, so be genuine.
+    ]]></Markdown>
+    <TextArea id="comm" rows="3" placeholder="I want to communicate..." />
+  </Vertical>
+
+  <!-- ============================================================
+       PART 2: DESIGN YOUR SEQUENCE
+       ============================================================ -->
+
+  <Vertical id="design_intro" title="Design Your Sequence">
+    <Markdown><![CDATA[
+## Part 2: Design Your Sequence
+
+You want to communicate:
+> {{ @comm.value }}
+
+Now you'll design an interactive sequence to teach this. An interactive sequence is just a series of steps — text, questions, reflections — that guide someone through your idea.
+
+Think about the examples you saw. Instead of writing an essay *about* your topic, you'll create an *experience* that helps someone understand it. Ask leading questions. Let the reader discover the answer.
+
+**Describe your sequence step by step in plain English.** What does the reader see first? What questions do you ask them? What do you want them to realize at each step?
+    ]]></Markdown>
+    <TextArea id="sequence_design" rows="10" placeholder="Step 1: Start with a surprising fact about...
+Step 2: Ask the reader what they think causes...
+Step 3: Show them the evidence...
+Step 4: Ask them to apply the concept to...
+Step 5: Have them reflect on..." />
+  </Vertical>
+
+  <Vertical id="llm_convert" title="Convert to OLX">
+    <Markdown><![CDATA[
+### See It Come to Life
+
+When you're ready, click the button below. An AI will convert your plain-text design into OLX — the markup language this platform uses. You'll see the code *and* a live preview.
+
+Don't worry about the code yet — we'll learn OLX in the next section. For now, just see what your design looks like as interactive content. Your plan:
+> {{ @sequence_design.value }}
+
+Convert this to **concrete and specific text and multiple choice questions**. There are richer forms of interaction, but this is an easy place to start. Please be specific!
+    ]]></Markdown>
+    <TextArea id="sequence_details" rows="10" />
+    <Markdown>{{ wordcount(@sequence_details.value) }} / 20 words</Markdown>
+    <ActionButton id="convert_btn" label="Convert My Design to OLX" dependsOn="wordcount(@sequence_details.value) >= 20">
+      <LLMAction id="convert_action" target="student_olx"><![CDATA[You are converting a student's plain-text interactive sequence design into OLX markup. The student wants to communicate the following topic:
+
+TOPIC: <Ref target="comm" />
+
+THEIR DESIGN:
+<Ref target="sequence_design" />
+
+THEIR PLAN:
+<Ref target="sequence_details" />
+
+
+Convert this into valid OLX using ONLY these blocks:
+- <Sequential> for multi-step sequences (with unique id and title attributes)
+- <Markdown> for text content
+- <MarkupProblem id="..." title="..."> for multiple choice questions. Use ( ) for wrong answers and (x) for correct. Include [explanation]...[/explanation] blocks.
+- <TextArea id="..." rows="N" placeholder="..."/> for open-ended responses
+- <Vertical> to group related content on one page
+
+RULES:
+- Every block that needs an id must have a UNIQUE id attribute (use descriptive names like "q_cause", "reflect_1", etc.)
+- Keep the student's voice and intent. Don't add content they didn't describe.
+- Make questions have obvious/leading answers when the student intended that.
+- If the student's design is vague, make reasonable choices but keep it simple.
+- Wrap everything in a single <Sequential> with id="student_sequence" and a descriptive title.
+- Output ONLY valid OLX. No explanation, no markdown fences, no commentary.]]></LLMAction>
+    </ActionButton>
+
+    <CodeInput id="student_olx" language="olx" height="250px"><![CDATA[<Sequential id="student_sequence" title="My Interactive Sequence">
+  <Markdown>
+  Your converted OLX will appear here after you click "Convert My Design to OLX" above.
+
+  Or you can start editing directly!
+  </Markdown>
+</Sequential>]]></CodeInput>
+
+    <OlxSlot target="student_olx" debounce="200" id="olx_preview" chrome="true" title="Your Sequence">
+      <Markdown>*Your live preview will appear here.*</Markdown>
+    </OlxSlot>
+  </Vertical>
+
+  <Vertical id="design_feedback" title="Get Design Feedback">
+    <Markdown>
+### How Interactive Is Your Design?
+
+Remember the ICAP framework? Let's see where your sequence falls. Click the button for feedback on how to make it more interactive.
+    </Markdown>
+
+    <ActionButton id="feedback_btn" label="Get Feedback on My Design" dependsOn="len(@student_olx.value) >= 30">
+      <LLMAction id="feedback_action" target="design_feedback_display"><![CDATA[You are a learning design coach helping a student improve their interactive sequence. Evaluate their OLX content using the ICAP framework (Chi & Wylie, 2014):
+
+- **Passive**: Reader just receives information (reading text)
+- **Active**: Reader does something with the material (answering MCQs, highlighting)
+- **Constructive**: Reader produces new output (writing explanations, drawing connections)
+- **Interactive**: Reader builds on others' contributions or engages in dialogue
+
+The student's topic: <Ref target="comm" />
+Their original design: <Ref target="sequence_design" />
+Their OLX: <Ref target="student_olx" />
+
+Provide feedback in this format:
+
+**ICAP Analysis**
+For each step/block in their sequence, identify which ICAP level it represents (P/A/C/I). Use a simple list.
+
+**What's Working**
+1-2 specific things they did well (be encouraging and concrete).
+
+**Level Up** (pick ONE concrete suggestion)
+Suggest ONE specific change that would move an element up the ICAP scale. For example:
+- A Passive text block → add a question to make it Active
+- An Active MCQ → add a "explain your reasoning" TextArea to make it Constructive
+- A solo activity → suggest how a peer could engage with it to make it Interactive
+
+Keep it concise (under 200 words total). Use a warm, coaching tone. Do NOT rewrite their OLX — just describe the change.]]></LLMAction>
+    </ActionButton>
+
+    <LLMFeedback id="design_feedback_display" />
+  </Vertical>
+
+  <!-- ============================================================
+       PART 3: LEARN OLX
+       ============================================================ -->
+
+<Markdown  id="olx_intro" title="Learning OLX"><![CDATA[
+## Part 3: Learn OLX
+
+You've already seen OLX in action — the AI generated some for you. Now let's understand how it works so you can edit and create it yourself.
+
+OLX (Open Learning XML) is a markup language for interactive content. If you've ever seen HTML, it will look familiar. If not, don't worry — it's simpler than HTML.
+
+The basic idea: everything is a **block** wrapped in **tags**, like `Markdown` below. Markdown is a syntax commonly used on wikis. You can read about it [on Daring Fireball](https://daringfireball.net/projects/markdown/basics). It's very easy-to-use.
+
+```olx:playground
+<Markdown>
+Markdown is a **text** block, with some simple _formatting_.
+</Markdown>
+```
+
+Blocks can have **attributes** — settings that change how they behave. For example, try changing the placeholder text or number of rows on this text area element:
+
+```olx:playground
+<TextArea id="response" rows="4" placeholder="Type here..." />
+```
+
+And blocks can be **nested** inside other blocks. The most common ones are `Vertical` (which has elements above each other) and `Sequential` (which is, like this page, a series students walk through with next / previous buttons). Try changing the `Vertical` to a `Sequential` and see what happens:
+
+```olx:playground
+<Vertical>
+  <Markdown>A question:</Markdown>
+  <TextArea id="answer" rows="2" />
+</Vertical>
+```
+
+And one major annoyance. We often want to use characters like &amp; or &lt; in our Markdown. Unfortunately, a computer can't tell if you're starting to write `5 M 7` or the start of `</Markdown>`. You have three choices:
+1. You can write `&amp;` for `&`, `&lt;` for `<`, and `&gt;` for `>`;
+2. You can enclose your text in `<![CDATA[` followed by `​]]]]><![CDATA[>`; or
+3. You can religiously avoid using those three characters in your text.
+
+Starting out, we recommend #3, but this way, you'll at least know what `CDATA` and escape sequences are.
+
+]]></Markdown>
+
+  <Vertical id="olx_questions" title="Adding Questions">
+    <Markdown><![CDATA[
+### Adding Questions
+
+A `<MarkupProblem>` lets you create multiple-choice questions with a compact syntax:
+
+```olx:playground
+<MarkupProblem id="my_question" title="My Question">
+What color is the sky on a clear day?
+
+( ) Green
+(x) Blue
+( ) Red
+
+[explanation]
+The sky appears blue due to Rayleigh scattering.
+[/explanation]
+</MarkupProblem>
+```
+
+- `( )` marks a wrong answer
+- `(x)` marks the correct answer
+- `[explanation]...[/explanation]` shows feedback after answering
+
+On the ICAP scale, a question moves the reader from **Passive** (just reading) to **Active** (engaging with the material). Try editing the question below.
+]]></Markdown>
+
+    <CodeInput id="olx_question_practice" language="olx" height="200px"><![CDATA[<MarkupProblem id="practice_q" title="Practice Question">
+Which ICAP level involves producing new output (not just selecting an answer)?
+
+( ) Passive
+( ) Active
+(x) Constructive
+( ) Interactive
+
+[explanation]
+Constructive learning means generating something new — an explanation, a diagram, a piece of writing. It goes beyond Active (selecting/manipulating) because the learner creates output that wasn't in the original material.
+[/explanation]
+</MarkupProblem>]]></CodeInput>
+
+    <OlxSlot target="olx_question_practice" debounce="150" id="olx_question_preview">
+      <Markdown>*Preview will appear here.*</Markdown>
+    </OlxSlot>
+  </Vertical>
+
+  <Vertical id="olx_sequences" title="Sequences and Structure">
+    <Markdown><![CDATA[
+### Sequences and Structure
+
+To create a multi-step experience (like this tutorial), wrap blocks in a `<Sequential>`:
+
+```
+<Sequential id="my_seq" title="My Sequence">
+  <Markdown>Welcome! Click Next.</Markdown>
+
+  <MarkupProblem id="q1" title="Question 1">
+  What are we learning?
+  ( ) Nothing
+  (x) OLX authoring
+  </MarkupProblem>
+
+  <Markdown>Great job! You've finished.</Markdown>
+</Sequential>
+```
+
+Each direct child of `<Sequential>` becomes a separate page with **Next** / **Back** buttons.
+
+Use `<Vertical>` to group multiple blocks on the *same* page:
+
+```
+<Sequential id="my_seq" title="My Sequence">
+  <Vertical>
+    <Markdown>Here's a question and a text box on the same page:</Markdown>
+    <TextArea id="response" rows="3" />
+  </Vertical>
+</Sequential>
+```
+
+Try building a short sequence in the editor below!
+]]></Markdown>
+
+    <CodeInput id="olx_seq_practice" language="olx" height="250px"><![CDATA[<Sequential id="mini_seq" title="My Mini Sequence">
+  <Markdown>
+  ## Welcome
+  This is page 1. Click Next to continue.
+  </Markdown>
+
+  <MarkupProblem id="seq_q1" title="A Question">
+  Is this page 2?
+
+  (x) Yes!
+  ( ) No
+
+  [explanation]
+  Each child of Sequential is a separate page.
+  [/explanation]
+  </MarkupProblem>
+
+  <Vertical>
+    <Markdown>## Page 3: Your Turn</Markdown>
+    <TextArea id="seq_response" rows="3" placeholder="Write something here..." />
+  </Vertical>
+</Sequential>]]></CodeInput>
+
+    <OlxSlot target="olx_seq_practice" debounce="200" id="olx_seq_preview">
+      <Markdown>*Preview will appear here.*</Markdown>
+    </OlxSlot>
+  </Vertical>
+
+  <Vertical id="olx_text_input" title="Text Input and References">
+    <Markdown><![CDATA[
+### Text Input and References
+
+A `<TextArea>` lets readers write open-ended responses — moving from **Active** to **Constructive** on the ICAP scale:
+
+```
+<TextArea id="my_input" rows="4" placeholder="Write here..." />
+```
+
+The powerful part: you can **reference** what someone wrote using `{{ @id.value }}` in a Markdown block:
+
+```
+<Markdown>
+You wrote: {{ @my_input.value }}
+</Markdown>
+```
+
+This lets you create sequences where the reader's own words appear later — reflections, callbacks, building on their thinking. Try it in the editor below. Type something in the TextArea, then see it reflected.
+]]></Markdown>
+
+    <CodeInput id="olx_ref_practice" language="olx" height="220px"><![CDATA[<Sequential id="ref_demo" title="Reference Demo">
+  <Vertical>
+    <Markdown>## What's your favorite food?</Markdown>
+    <TextArea id="fav_food" rows="2" placeholder="I love..." />
+  </Vertical>
+
+  <Markdown>
+  You said your favorite food is:
+
+  > {{ @fav_food.value }}
+
+  Great choice!
+  </Markdown>
+</Sequential>]]></CodeInput>
+
+    <OlxSlot target="olx_ref_practice" debounce="200" id="olx_ref_preview">
+      <Markdown>*Preview will appear here.*</Markdown>
+    </OlxSlot>
+  </Vertical>
+
+  <!-- Bring back the student's OLX from Part 2 for direct editing -->
+  <Vertical id="olx_edit_own" title="Edit Your Sequence">
+    <Markdown>
+### Edit Your Own Sequence
+
+Now that you understand OLX, here's the sequence from earlier. You can edit it directly — change the text, add questions, fix anything the AI got wrong.
+
+Your original design was:
+
+> {{ @sequence_design.value }}
+    </Markdown>
+
+    <Use ref="student_olx" />
+    <Use ref="olx_preview" />
+  </Vertical>
+
+  <Vertical id="olx_help" title="Get Help">
+    <Markdown>
+### Stuck? Ask for Help
+
+If your OLX isn't working as expected, click the button below. The AI will look at your code and help you debug it.
+    </Markdown>
+
+    <ActionButton id="help_btn" label="Help Me Fix My OLX" dependsOn="len(@student_olx.value) >= 10">
+      <LLMAction id="help_action" target="help_display"><![CDATA[You are a patient, encouraging OLX tutor helping a student debug their interactive content. The student is learning OLX for the first time.
+
+Their current OLX code:
+<Ref target="student_olx" />
+
+Their original design intent:
+<Ref target="sequence_design" />
+
+Analyze their OLX and provide help:
+
+1. **If there are syntax errors**: Explain what's wrong in simple terms. Show the specific line and what it should look like. Don't rewrite the whole thing — just fix the broken part.
+
+2. **If it's valid but doesn't match their intent**: Point out the gap between what they described and what their OLX does. Suggest specific edits.
+
+3. **If it looks good**: Tell them it looks good! Suggest one small enhancement they could try.
+
+RULES:
+- Be encouraging. They're learning.
+- Show small, specific code snippets (not full rewrites).
+- Explain *why* each fix works.
+- Use the block types they've learned: Markdown, MarkupProblem, TextArea, Sequential, Vertical.
+- Keep it under 200 words.]]></LLMAction>
+    </ActionButton>
+
+    <LLMFeedback id="help_display" />
+  </Vertical>
+
+  <!-- Reflection -->
+  <Vertical id="reflection" title="Reflection">
+    <Markdown>
+## What Did You Learn?
+
+You've gone from reading about interactive learning to *creating* it. That's a jump from Passive all the way to Constructive (or even Interactive, if you share what you made with a classmate).
+
+A few things to take away:
+
+* **Leading questions** are powerful. A series of obvious questions can teach more effectively than a well-written paragraph.
+* **The ICAP framework** gives you a vocabulary for thinking about engagement: Passive &lt; Active &lt; Constructive &lt; Interactive.
+* **OLX** is a tool, not the point. The skill is *designing* an interactive experience. The markup is just how you express it.
+
+We'll keep building on these ideas throughout the course.
+    </Markdown>
+    <TextArea id="reflection_response" rows="4" placeholder="How did creating interactive content change the way you think about communication?" />
+  </Vertical>
+
+</Sequential>
