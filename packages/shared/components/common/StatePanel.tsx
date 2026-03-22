@@ -145,7 +145,7 @@ export default function StatePanel({
     (a: string[], b: string[]) => a.length === b.length && a.every((v, i) => v === b[i])
   );
 
-  if (componentKeys.length === 0) {
+  if (componentKeys.length === 0 && treeEntries.length === 0) {
     return null;
   }
 
