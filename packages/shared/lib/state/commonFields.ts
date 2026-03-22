@@ -48,6 +48,9 @@ export const commonFields = {
 
   /** Show answer toggle - controls answer display */
   showAnswer: stateField('showAnswer'),
+
+  /** Popout expanded state - tracks whether a block's popout overlay is open */
+  popoutExpanded: stateField('popoutExpanded'),
 } as const;
 
 // Named exports for convenient destructuring

@@ -353,7 +353,7 @@ function collectEventTypes(extraFields: ExtraFieldsParam = []) {
     'LOAD_DATA_EVENT', 'LOAD_STATE', 'NAVIGATE', 'SHOW_SECTION',
     'STEPTHROUGH_NEXT', 'STEPTHROUGH_PREV', 'STORE_SETTING',
     'STORE_VARIABLE', 'UPDATE_INPUT', 'UPDATE_LLM_RESPONSE', 'VIDEO_TIME_EVENT',
-    'SPLICE_INPUT',
+    'SPLICE_INPUT', 'UPDATE_POPOUT_EXPANDED',
   ];
   const extraEventTypes = fieldList.flatMap(f =>
     typeof f === 'string' ? [f] : (f.events ?? (f.event ? [f.event] : []))
