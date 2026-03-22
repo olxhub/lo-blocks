@@ -58,7 +58,7 @@ export default function PopoutWrapper({ popout, reduxKey, runtime, children }: P
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const collapse = useCallback(() => {
-    if (document.fullscreenElement) {
+    if (document.fullscreenElement === overlayRef.current) {
       document.exitFullscreen().catch(() => {});
     }
     setExpanded(false);
@@ -116,6 +116,7 @@ export default function PopoutWrapper({ popout, reduxKey, runtime, children }: P
       <div style={{ position: 'relative' }}>
         {children}
         <button
+          type="button"
           onClick={expand}
           aria-label="Expand block"
           style={{
@@ -165,6 +166,7 @@ export default function PopoutWrapper({ popout, reduxKey, runtime, children }: P
         flexShrink: 0,
       }}>
         <button
+          type="button"
           ref={closeButtonRef}
           onClick={collapse}
           aria-label="Close expanded view"
