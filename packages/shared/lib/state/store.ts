@@ -23,8 +23,8 @@ import { consoleLogger } from 'lo_event/lo_event/consoleLogger.js';
 function createArrayLogger() {
   const events: any[] = [];
   function logEvent(jsonEvent: string) { events.push(JSON.parse(jsonEvent)); }
-  logEvent.init = async () => {};
-  logEvent.setField = () => {};
+  logEvent.init = async () => { };
+  logEvent.setField = () => { };
   logEvent.getEvents = () => [...events];
   logEvent.clear = () => { events.length = 0; };
   logEvent.lo_name = 'Array Logger';
@@ -32,6 +32,7 @@ function createArrayLogger() {
 }
 import { websocketLogger } from 'lo_event/lo_event/websocketLogger.js';
 import { scopes, Scope } from './scopes';
+import { commonFields } from './commonFields';
 import type { FieldInfo, Fields } from '../types';
 import {
   olxjsonReducer,
@@ -209,8 +210,8 @@ export const updateResponseReducer = (state = initialState, action) => {
     let extra: Record<string, any> = {};
     if (!action.field) {
       const { scope: _s, id: _id, tag: _t, context: _ctx, event: _ev,
-              type: _type, metadata: _m, field: _f, ts: _ts, actor: _a,
-              [fieldName]: _fv, ...rest } = action;
+        type: _type, metadata: _m, field: _f, ts: _ts, actor: _a,
+        [fieldName]: _fv, ...rest } = action;
       extra = rest;
     }
 
@@ -322,11 +323,29 @@ function collectEventTypes(extraFields: ExtraFieldsParam = []) {
   const fieldList = Array.isArray(extraFields)
     ? extraFields
     : Object.values(extraFields).filter((v): v is FieldInfo =>
-        v && typeof v === 'object' && v.type === 'field'
-      );
+      v && typeof v === 'object' && v.type === 'field'
+    );
+
+  // Register common field reducers FIRST so block-specific fields (e.g.,
+  // docField('value') overriding stateField('value')) take precedence.
+  //
+  // TODO: The whole commonEventTypes is legacy scaffolding.
+  const commonFieldEventTypes: string[] = [];
+  for (const fi of Object.values(commonFields)) {
+    if (!fi || typeof fi !== 'object' || fi.type !== 'field') continue;
+    const events = fi.events ?? (fi.event ? [fi.event] : []);
+    commonFieldEventTypes.push(...events);
+    if (fi.reduce) {
+      for (const event of events) {
+        _fieldReducers.set(`${event}:${fi.name}`, { reduce: fi.reduce, fieldName: fi.name });
+        _fieldReducers.set(event, { reduce: fi.reduce, fieldName: fi.name });
+      }
+    }
+  }
 
   // Fields are now directly { fieldName: FieldInfo } on both blueprints and registry.
   // Also register field-level reducers for event routing.
+  // Registered AFTER commonFields so block-specific reducers take precedence.
   const componentEventTypes: string[] = [];
   for (const entry of Object.values(BLOCK_REGISTRY)) {
     if (!entry.fields) continue;
@@ -360,6 +379,7 @@ function collectEventTypes(extraFields: ExtraFieldsParam = []) {
   );
   return Array.from(new Set([
     ...commonEventTypes,
+    ...commonFieldEventTypes,
     ...componentEventTypes,
     ...extraEventTypes,
     ...OLXJSON_EVENT_TYPES,

@@ -21,6 +21,7 @@
 import htmlTags from 'html-tags';
 import React from 'react';
 import { DisplayError, DebugWrapper } from '@/lib/util/debug';
+import PopoutWrapper from '@/components/common/PopoutWrapper';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { OlxKey, IdPrefix, ReduxStateKey, LoBlockRuntimeContext, OlxJson } from '@/lib/types';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
@@ -258,22 +259,30 @@ export function render({ node, nodeInfo, runtime }: {
   childNodeInfo.runtime = finalRuntime;
 
   // TODO: Should the wrapper be a <div> or a <span>?
+  const blockContent = (
+    <div className={combinedClassName} data-block-type={tag} data-block-id={node.id}>
+      <Component
+        {...attributes}
+        id={node.id}
+        kids={kids}
+        loBlock={blockType}
+        locals={blockType.locals}
+        fields={blockType.fields}
+        nodeInfo={childNodeInfo}
+        runtime={finalRuntime}
+        idPrefix={actualIdPrefix}
+        {...(graderId && { graderId })}
+      />
+    </div>
+  );
+
   return (
     <DebugWrapper props={wrapperProps} loBlock={blockType}>
-      <div className={combinedClassName} data-block-type={tag} data-block-id={node.id}>
-        <Component
-          {...attributes}
-          id={node.id}
-          kids={kids}
-          loBlock={blockType}
-          locals={blockType.locals}
-          fields={blockType.fields}
-          nodeInfo={childNodeInfo}
-          runtime={finalRuntime}
-          idPrefix={actualIdPrefix}
-          {...(graderId && { graderId })}
-        />
-      </div>
+      {attributes.popout ? (
+        <PopoutWrapper popout={attributes.popout} reduxKey={reduxKey} runtime={finalRuntime}>
+          {blockContent}
+        </PopoutWrapper>
+      ) : blockContent}
     </DebugWrapper>
   );
 }
