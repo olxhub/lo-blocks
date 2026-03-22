@@ -98,6 +98,7 @@ function SelectionPopup({
 
   return (
     <div
+      onClick={(e) => e.stopPropagation()}
       style={{
         position: 'absolute',
         top: top - 44,
@@ -174,6 +175,10 @@ function DefaultEditor({
 
   // View mode: render saved text (markdown if non-empty)
   if (!value) return null;
+  // TODO: The --lo-space-lg override is a hack to zero the <p> margin-bottom
+  // from .rendered-markdown. The right fix is to change rendered-markdown's
+  // CSS to use margin-top only (not margin-bottom) for paragraph spacing —
+  // adjacent margins collapse naturally, and trailing margins disappear.
   return (
     <div className="text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none" style={{ '--lo-space-lg': '0px' } as React.CSSProperties}>
       <RenderMarkdown>{value}</RenderMarkdown>
@@ -237,7 +242,7 @@ function EditorSlot({
   if (!hasContent) return null;
 
   return (
-    <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+    <div className="mt-2" onClick={isActive ? (e) => e.stopPropagation() : undefined}>
       {isCustom ? (
         <CustomEditor props={props} noteId={noteId} editorId={editorMode} />
       ) : (
@@ -272,7 +277,7 @@ function NoteCard({
 
   return (
     <div
-      onClick={onActivate}
+      onClick={(e) => { e.stopPropagation(); onActivate(); }}
       className="relative border rounded-lg p-3.5 cursor-pointer transition-all"
       style={{
         background: isActive ? colors.accentLight : 'white',
@@ -404,6 +409,7 @@ export default function _Annotate(props: RuntimeProps) {
 
     const match = findAnnotationAtOffset(annotationRanges, offset);
     if (match) {
+      e.stopPropagation(); // don't let the container's deactivation handler fire
       setActiveNote(match.noteId === activeNote ? '' : match.noteId);
     }
   }, [annotationRanges, activeNote, setActiveNote]);
@@ -457,7 +463,7 @@ export default function _Annotate(props: RuntimeProps) {
   })();
 
   return (
-    <div className="annotate-container">
+    <div className="annotate-container" onClick={() => setActiveNote('')}>
       <style>{highlightStyles}</style>
 
       <div className="flex gap-6" style={{ alignItems: 'flex-start' }}>
