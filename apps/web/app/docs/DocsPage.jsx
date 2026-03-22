@@ -14,7 +14,7 @@
 //
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import RenderMarkdown from '@/components/common/RenderMarkdown';
 import PreviewPane from '@/components/common/PreviewPane';
@@ -601,16 +601,12 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
     example.filename,
     example.content
   );
-  const [parsedIdMap, setParsedIdMap] = useState(null);
+  const nodeInfoRef = useRef(null);
   const isModified = editedContent !== example.content;
 
   const handleReset = useCallback(() => {
     setEditedContent(example.content);
   }, [example.content, setEditedContent]);
-
-  const handleParsed = useCallback(({ idMap }) => {
-    setParsedIdMap(idMap);
-  }, []);
 
   return (
     <section className="bg-white rounded-lg border p-6">
@@ -621,7 +617,7 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
           Live Preview
         </div>
         <div className="p-4 bg-white">
-          <PreviewPane path={example.path || 'example.olx'} content={editedContent} onParsed={handleParsed} />
+          <PreviewPane path={example.path || 'example.olx'} content={editedContent} nodeInfoRef={nodeInfoRef} />
         </div>
       </div>
 
@@ -656,7 +652,7 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
         </div>
       </div>
 
-      <StatePanel idMap={parsedIdMap} />
+      <StatePanel nodeInfoRef={nodeInfoRef} />
 
       {showMoreCount > 0 && (
         <p className="mt-4 text-sm text-gray-500">
@@ -701,16 +697,12 @@ function ExampleTab({ example, blockName }) {
     example.filename,
     example.content
   );
-  const [parsedIdMap, setParsedIdMap] = useState(null);
+  const nodeInfoRef = useRef(null);
   const isModified = editedContent !== example.content;
 
   const handleReset = useCallback(() => {
     setEditedContent(example.content);
   }, [example.content, setEditedContent]);
-
-  const handleParsed = useCallback(({ idMap }) => {
-    setParsedIdMap(idMap);
-  }, []);
 
   return (
     <div className="space-y-6">
@@ -720,9 +712,9 @@ function ExampleTab({ example, blockName }) {
           <code className="text-xs text-gray-500">{example.path || example.filename}</code>
         </div>
         <div className="p-6">
-          <PreviewPane path={example.path || example.filename} content={editedContent} onParsed={handleParsed} />
+          <PreviewPane path={example.path || example.filename} content={editedContent} nodeInfoRef={nodeInfoRef} />
         </div>
-        <StatePanel idMap={parsedIdMap} />
+        <StatePanel nodeInfoRef={nodeInfoRef} />
       </section>
 
       <section className="bg-white rounded-lg border overflow-hidden">

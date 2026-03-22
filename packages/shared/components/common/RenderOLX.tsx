@@ -44,7 +44,7 @@
 //
 'use client';
 
-import React, { useState, useEffect, useMemo, useTransition } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useTransition } from 'react';
 import { useStore } from 'react-redux';
 import * as lo_event from 'lo_event';
 import { parseOLX } from '@/lib/content/parseOLX';
@@ -60,7 +60,7 @@ import { useDebugSettings } from '@/lib/state/debugSettings';
 import { settings } from '@/lib/state/settings';
 import { useSetting } from '@/lib/state/settingsAccess';
 import { getTextDirection, getBrowserLocale } from '@/lib/i18n/getTextDirection';
-import type { BaselineProps, IdPrefix, LoBlockRuntimeContext, UserLocale, ProvenanceURI, OLXLoadingError } from '@/lib/types';
+import type { BaselineProps, IdPrefix, LoBlockRuntimeContext, OlxDomNode, UserLocale, ProvenanceURI, OLXLoadingError } from '@/lib/types';
 
 // Stable no-op for replay mode - avoids creating new function on each render
 const noopLogEvent = () => { };
@@ -353,6 +353,21 @@ interface RenderOLXProps {
   source?: string;
   /** Event context root (e.g., 'preview', 'studio'). Sets the root nodeInfo ID for event context hierarchy. */
   eventContext?: string;
+  /** Ref to expose the root OlxDomNode for external tree inspection.
+   *
+   *  TIMING CAVEAT: The ref is populated during render, but the tree (renderedKids)
+   *  is built lazily as child components render. External consumers reading this
+   *  ref in the same render cycle may see an incomplete tree. In practice this
+   *  works because consumers (StatePanel) re-render from Redux state changes,
+   *  by which time the tree is populated. But this assumption may break in:
+   *  - First render (no Redux state yet → StatePanel returns null anyway)
+   *  - Replay mode (state exists without rendering → tree may be stale)
+   *  - Concurrent React features (siblings may render out of order)
+   *
+   *  If these become real problems, consider switching to a useEffect callback
+   *  or React context that fires after the full subtree has committed.
+   */
+  nodeInfoRef?: React.MutableRefObject<OlxDomNode | null>;
 }
 
 export default function RenderOLX({
@@ -369,6 +384,7 @@ export default function RenderOLX({
   blockRegistry = BLOCK_REGISTRY,
   source = 'content',
   eventContext,
+  nodeInfoRef,
 }: RenderOLXProps) {
   // Build baseline runtime context - use bare runtime, not wrapped BaselineProps
   let runtimeContext = useBaselineRuntime();
@@ -415,9 +431,27 @@ export default function RenderOLX({
     locale: renderProps.locale,
   };
 
+  // Stabilize root nodeInfo across renders so renderedKids accumulates
+  // (render.tsx reuses existing entries via `if (!childNodeInfo)` check).
+  // Previously makeRootNode was called fresh every render, causing the
+  // entire nodeInfo tree to be rebuilt from scratch each time.
+  const stableRootRef = useRef<OlxDomNode | null>(null);
+  if (!stableRootRef.current) {
+    // Root node uses a minimal sentinel loBlock (not a full LoBlock),
+    // so we need the double assertion. This is consistent with makeRootNode's design.
+    stableRootRef.current = makeRootNode(runtime, eventContext) as unknown as OlxDomNode;
+  }
+  // Keep runtime current (locale, logEvent, etc. can change between renders)
+  stableRootRef.current.runtime = runtime;
+
+  // Expose root nodeInfo to callers (see timing caveat on nodeInfoRef prop)
+  if (nodeInfoRef) {
+    nodeInfoRef.current = stableRootRef.current;
+  }
+
   // Build props for useBlock
   const blockProps = {
-    nodeInfo: makeRootNode(runtime, eventContext),
+    nodeInfo: stableRootRef.current,
     runtime,
   };
 

@@ -43,6 +43,7 @@ export const stateField = active.stateField;
 export const plainField = active.plainField;
 export const docField = active.docField;
 export const setField = active.setField;
+export const idField = active.idField;
 
 // ---------------------------------------------------------------------------
 // Always available regardless of strategy
@@ -51,11 +52,3 @@ export { fieldNameToDefaultEventName } from './shared';
 export { immediate, debounce, throttle, aggregate, custom } from './batching';
 export type { BatchingStrategy } from './batching';
 
-// ---------------------------------------------------------------------------
-// Future field type constructors (breadcrumbs)
-// ---------------------------------------------------------------------------
-//
-// export { counterField } from './counterField';
-//   Stores a G-Counter (or PN-Counter) CRDT. Materializes to number.
-//   events: ['COUNTER_INCREMENT', 'COUNTER_DECREMENT']
-//   Consumer API via useField: { value, increment(n?), decrement(n?) }

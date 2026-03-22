@@ -14,3 +14,4 @@
 export { stateField, stateField as plainField } from './state';
 export { docField } from './doc';
 export { setField } from './setConstructor';
+export { idField } from './id';
