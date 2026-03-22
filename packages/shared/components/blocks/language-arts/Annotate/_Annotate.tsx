@@ -59,14 +59,17 @@ function scopedNoteProps(props: RuntimeProps, noteId: string): RuntimeProps {
 // Colors: golden ratio hue assignment per annotation
 // ---------------------------------------------------------------------------
 
-/** Color set for one annotation — highlight background, accent, and active. */
+/** Color set for one annotation — all derived from a single hue. */
 function noteColors(noteId: string) {
   const hue = groupHue(parseInt(noteId, 10) || 0);
   return {
-    highlight: hslColor(hue, 0.2, 0.92),       // very light tint for passage
-    highlightActive: hslColor(hue, 0.35, 0.85), // brighter when active
-    accent: hslColor(hue, 0.45, 0.55),          // card left border
-    accentLight: hslColor(hue, 0.25, 0.9),      // card background when active
+    highlight: hslColor(hue, 0.2, 0.92),        // very light tint for passage
+    highlightActive: hslColor(hue, 0.35, 0.85),  // brighter when active
+    accent: hslColor(hue, 0.45, 0.55),           // card left border, quote border
+    accentLight: hslColor(hue, 0.25, 0.9),       // card background when active
+    cardBorder: hslColor(hue, 0.15, 0.82),       // subtle tinted border
+    cardShadow: hslColor(hue, 0.12, 0.7),        // subtle tinted shadow
+    quoteBg: hslColor(hue, 0.1, 0.96),           // very faint quote background
   };
 }
 
@@ -172,7 +175,7 @@ function DefaultEditor({
   // View mode: render saved text (markdown if non-empty)
   if (!value) return null;
   return (
-    <div className="text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none">
+    <div className="text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none" style={{ '--lo-space-lg': '0px' } as React.CSSProperties}>
       <RenderMarkdown>{value}</RenderMarkdown>
     </div>
   );
@@ -205,6 +208,46 @@ function CustomEditor({
 }
 
 // ---------------------------------------------------------------------------
+// EditorSlot: renders editor with spacing, or nothing if editor is empty
+// ---------------------------------------------------------------------------
+
+/**
+ * Wrapper that adds spacing between quote and editor only when the editor
+ * has content. DefaultEditor returns null when inactive with no saved text,
+ * so this avoids an empty div with margin creating whitespace.
+ */
+function EditorSlot({
+  props,
+  noteId,
+  isActive,
+  editorMode,
+}: {
+  props: RuntimeProps;
+  noteId: string;
+  isActive: boolean;
+  editorMode: string;
+}) {
+  const isCustom = editorMode !== 'textarea' && editorMode;
+  // Custom editors always render (they manage their own empty state).
+  // Default editor: check if it would render anything.
+  const scoped = scopedNoteProps(props, noteId);
+  const [value] = useFieldState(scoped, annotateFields.value, '');
+  const hasContent = isActive || !!value || !!isCustom;
+
+  if (!hasContent) return null;
+
+  return (
+    <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+      {isCustom ? (
+        <CustomEditor props={props} noteId={noteId} editorId={editorMode} />
+      ) : (
+        <DefaultEditor props={props} noteId={noteId} isActive={isActive} />
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // NoteCard: single annotation in the sidebar
 // ---------------------------------------------------------------------------
 
@@ -230,20 +273,19 @@ function NoteCard({
   return (
     <div
       onClick={onActivate}
-      className={`
-        relative border rounded-lg p-3.5 cursor-pointer transition-all
-        ${isActive ? 'shadow-md' : 'shadow-sm hover:shadow'}
-      `}
+      className="relative border rounded-lg p-3.5 cursor-pointer transition-all"
       style={{
         background: isActive ? colors.accentLight : 'white',
-        borderColor: isActive ? colors.accent : '#e5e7eb',
+        borderColor: isActive ? colors.accent : colors.cardBorder,
+        boxShadow: `0 1px 3px ${colors.cardShadow}20`,
       }}
     >
-      {/* Quoted text with colored left border */}
+      {/* Quoted text with colored left border and faint tinted background */}
       <div
-        className="italic text-sm text-gray-500 pl-2.5 mb-2.5 overflow-hidden"
+        className="italic text-sm text-gray-500 pl-2.5 pr-2 py-1.5 rounded overflow-hidden"
         style={{
           borderLeft: `3px solid ${colors.accent}`,
+          background: colors.quoteBg,
           maxHeight: '3.5em',
           textOverflow: 'ellipsis',
         }}
@@ -252,15 +294,10 @@ function NoteCard({
       </div>
 
       {/* Editor section — stopPropagation prevents clicks inside the editor
-          from toggling the card's active state via onActivate */}
+          from toggling the card's active state via onActivate.
+          mt-2 creates spacing between quote and editor only when editor renders. */}
       {editorMode !== 'false' && (
-        <div className="mt-1" onClick={(e) => e.stopPropagation()}>
-          {editorMode === 'textarea' || !editorMode ? (
-            <DefaultEditor props={props} noteId={noteId} isActive={isActive} />
-          ) : (
-            <CustomEditor props={props} noteId={noteId} editorId={editorMode} />
-          )}
-        </div>
+        <EditorSlot props={props} noteId={noteId} isActive={isActive} editorMode={editorMode} />
       )}
 
       {/* Delete button */}
