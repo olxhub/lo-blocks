@@ -8,6 +8,19 @@
 // student notes — by default a TextArea, but configurable via the `editor`
 // attribute to reference any block by ID.
 //
+// TODO: THIS IS VERY MUCH A PROTOTYPE BLOCK. Key issues remaining
+// include:
+//
+// - Aggregation of child nodes. This will be best done when we have
+//   getters / setters beyond the value selector
+// - Properly supporting child blocks, beyond TextArea (editor
+//  attribute; untested)
+// - Documentation
+// - Nicer CSS.
+// - Etc.
+//
+// We'll get back to this once we have a little bit more infrastructure
+//
 // Fields:
 //   noteIds      (idField)    — counter for generating unique annotation IDs
 //   notes        (setField)   — active annotation IDs
@@ -29,7 +42,7 @@
 //            or "false" to disable comments (annotation-only mode).
 //
 import { z } from 'zod';
-import { core } from '@/lib/blocks';
+import { test } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
@@ -52,7 +65,7 @@ export const fields = state.fields([
   'value',
 ]);
 
-const Annotate = core({
+const Annotate = test({
   ...parsers.blocks(),
   name: 'Annotate',
   category: 'language-arts',
