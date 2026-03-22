@@ -656,7 +656,7 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
         </div>
       </div>
 
-      <StatePanel idMap={parsedIdMap} />
+      <StatePanel />
 
       {showMoreCount > 0 && (
         <p className="mt-4 text-sm text-gray-500">
@@ -722,7 +722,7 @@ function ExampleTab({ example, blockName }) {
         <div className="p-6">
           <PreviewPane path={example.path || example.filename} content={editedContent} onParsed={handleParsed} />
         </div>
-        <StatePanel idMap={parsedIdMap} />
+        <StatePanel />
       </section>
 
       <section className="bg-white rounded-lg border overflow-hidden">
