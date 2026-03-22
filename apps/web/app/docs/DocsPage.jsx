@@ -14,7 +14,7 @@
 //
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import RenderMarkdown from '@/components/common/RenderMarkdown';
 import PreviewPane from '@/components/common/PreviewPane';
@@ -602,6 +602,7 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
     example.content
   );
   const [parsedIdMap, setParsedIdMap] = useState(null);
+  const nodeInfoRef = useRef(null);
   const isModified = editedContent !== example.content;
 
   const handleReset = useCallback(() => {
@@ -621,7 +622,7 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
           Live Preview
         </div>
         <div className="p-4 bg-white">
-          <PreviewPane path={example.path || 'example.olx'} content={editedContent} onParsed={handleParsed} />
+          <PreviewPane path={example.path || 'example.olx'} content={editedContent} onParsed={handleParsed} nodeInfoRef={nodeInfoRef} />
         </div>
       </div>
 
@@ -656,7 +657,7 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
         </div>
       </div>
 
-      <StatePanel />
+      <StatePanel nodeInfoRef={nodeInfoRef} />
 
       {showMoreCount > 0 && (
         <p className="mt-4 text-sm text-gray-500">
@@ -702,6 +703,7 @@ function ExampleTab({ example, blockName }) {
     example.content
   );
   const [parsedIdMap, setParsedIdMap] = useState(null);
+  const nodeInfoRef = useRef(null);
   const isModified = editedContent !== example.content;
 
   const handleReset = useCallback(() => {
@@ -720,9 +722,9 @@ function ExampleTab({ example, blockName }) {
           <code className="text-xs text-gray-500">{example.path || example.filename}</code>
         </div>
         <div className="p-6">
-          <PreviewPane path={example.path || example.filename} content={editedContent} onParsed={handleParsed} />
+          <PreviewPane path={example.path || example.filename} content={editedContent} onParsed={handleParsed} nodeInfoRef={nodeInfoRef} />
         </div>
-        <StatePanel />
+        <StatePanel nodeInfoRef={nodeInfoRef} />
       </section>
 
       <section className="bg-white rounded-lg border overflow-hidden">
