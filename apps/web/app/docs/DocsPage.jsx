@@ -601,17 +601,12 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
     example.filename,
     example.content
   );
-  const [parsedIdMap, setParsedIdMap] = useState(null);
   const nodeInfoRef = useRef(null);
   const isModified = editedContent !== example.content;
 
   const handleReset = useCallback(() => {
     setEditedContent(example.content);
   }, [example.content, setEditedContent]);
-
-  const handleParsed = useCallback(({ idMap }) => {
-    setParsedIdMap(idMap);
-  }, []);
 
   return (
     <section className="bg-white rounded-lg border p-6">
@@ -622,7 +617,7 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
           Live Preview
         </div>
         <div className="p-4 bg-white">
-          <PreviewPane path={example.path || 'example.olx'} content={editedContent} onParsed={handleParsed} nodeInfoRef={nodeInfoRef} />
+          <PreviewPane path={example.path || 'example.olx'} content={editedContent} nodeInfoRef={nodeInfoRef} />
         </div>
       </div>
 
@@ -702,17 +697,12 @@ function ExampleTab({ example, blockName }) {
     example.filename,
     example.content
   );
-  const [parsedIdMap, setParsedIdMap] = useState(null);
   const nodeInfoRef = useRef(null);
   const isModified = editedContent !== example.content;
 
   const handleReset = useCallback(() => {
     setEditedContent(example.content);
   }, [example.content, setEditedContent]);
-
-  const handleParsed = useCallback(({ idMap }) => {
-    setParsedIdMap(idMap);
-  }, []);
 
   return (
     <div className="space-y-6">
@@ -722,7 +712,7 @@ function ExampleTab({ example, blockName }) {
           <code className="text-xs text-gray-500">{example.path || example.filename}</code>
         </div>
         <div className="p-6">
-          <PreviewPane path={example.path || example.filename} content={editedContent} onParsed={handleParsed} nodeInfoRef={nodeInfoRef} />
+          <PreviewPane path={example.path || example.filename} content={editedContent} nodeInfoRef={nodeInfoRef} />
         </div>
         <StatePanel nodeInfoRef={nodeInfoRef} />
       </section>

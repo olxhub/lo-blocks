@@ -135,24 +135,41 @@ export default function StatePanel({
   const treeEntries = rootNodeInfo ? collectTreeEntries(rootNodeInfo) : [];
   const treeKeySet = new Set(treeEntries.map(e => e.reduxKey));
 
-  // Subscribe to Redux state, filtering to keys in the nodeInfo tree
+  // Subscribe to Redux state keys
   const componentKeys = useSelector(
-    (state: any) => {
-      const allKeys = Object.keys(state?.application_state?.component ?? {});
-      if (treeKeySet.size === 0) return allKeys;
-      return allKeys.filter(k => treeKeySet.has(k as ReduxStateKey));
-    },
+    (state: any) => Object.keys(state?.application_state?.component ?? {}),
     (a: string[], b: string[]) => a.length === b.length && a.every((v, i) => v === b[i])
   );
 
-  if (componentKeys.length === 0 && treeEntries.length === 0) {
+  // Filter to keys belonging to this preview: direct tree matches plus
+  // scoped children (e.g., "annotate_demo:#2:annotate_demo" is scoped
+  // under tree key "annotate_demo"). The ":" is the Redux scope separator.
+  const matchingKeys = treeKeySet.size === 0
+    ? componentKeys
+    : componentKeys.filter(k =>
+        treeKeySet.has(k as ReduxStateKey) ||
+        [...treeKeySet].some(tk => k.startsWith(tk + ':'))
+      );
+
+  // Hide only when there's no state AND no tree (i.e., nothing to show).
+  // When the tree has entries but no state yet, we still render the panel
+  // so it appears once state arrives (first interaction).
+  if (matchingKeys.length === 0 && treeEntries.length === 0) {
     return null;
   }
 
-  // Filter tree entries to only those with actual Redux state
-  const activeEntries = treeEntries.filter(e =>
-    componentKeys.includes(e.reduxKey)
-  );
+  // Build entries for all matching keys. Tree entries match directly;
+  // scoped keys inherit tag and fields from their parent tree entry.
+  const activeEntries: TreeEntry[] = matchingKeys.map(k => {
+    const direct = treeEntries.find(e => e.reduxKey === k);
+    if (direct) return direct;
+    const parent = treeEntries.find(e => k.startsWith(e.reduxKey + ':'));
+    return {
+      reduxKey: k as ReduxStateKey,
+      tag: parent ? parent.tag + ' (scoped)' : '?',
+      fields: parent?.fields,
+    };
+  });
 
   return (
     <div className="border rounded-lg overflow-hidden mt-4">

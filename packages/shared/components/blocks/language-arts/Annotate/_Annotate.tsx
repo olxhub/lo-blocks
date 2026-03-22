@@ -22,6 +22,7 @@
 import type { RuntimeProps, OlxReference } from '@/lib/types';
 
 import React, { useCallback, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { useFieldState, useSet, useNextId, updateField } from '@/lib/state';
 import { extendIdPrefix, scopeMarker, toOlxReference, refToReduxKey } from '@/lib/blocks/idResolver';
 import { useKids, useBlock } from '@/lib/render';
@@ -543,29 +544,41 @@ export default function _Annotate(props: RuntimeProps) {
 // ---------------------------------------------------------------------------
 
 /**
- * Read annotation ranges from Redux state (non-hook, for parent-level access).
+ * Subscribe to annotation ranges via useSelector.
  *
  * We need the offsets at the parent level for two reasons:
  * 1. useHighlights needs all ranges to register CSS highlights
  * 2. Click detection needs all ranges to find which annotation was clicked
  *
- * This reads from the Redux store directly (via getReduxState pattern)
- * rather than calling useFieldState per annotation (which would violate
- * the rules of hooks — count can't change between renders).
+ * Uses a single useSelector call (not one per annotation) to avoid
+ * violating rules of hooks with a dynamic count. The selector extracts
+ * start/end from each annotation's scoped Redux key. Custom equality
+ * prevents re-renders when the actual offset values haven't changed.
  */
 function useAnnotationRanges(props: RuntimeProps, noteIds: string[]): AnnotationRange[] {
-  const store = props.runtime.store;
-  const state = store.getState();
+  // Precompute the Redux keys outside the selector — they depend on props
+  // and noteIds, not on Redux state.
+  const reduxKeys = noteIds.map((noteId) => ({
+    noteId,
+    key: refToReduxKey(scopedNoteProps(props, noteId)),
+  }));
 
-  return noteIds.map((noteId) => {
-    const scoped = scopedNoteProps(props, noteId);
-    const key = refToReduxKey(scoped);
-    const componentState = state?.application_state?.component?.[key] ?? {};
-    return {
-      noteId,
-      start: parseInt(componentState.start, 10) || 0,
-      end: parseInt(componentState.end, 10) || 0,
-    };
-  }).filter((r) => r.end > r.start);
+  return useSelector(
+    (state: any) => {
+      const component = state?.application_state?.component ?? {};
+      return reduxKeys.map(({ noteId, key }) => {
+        const s = component[key] ?? {};
+        return {
+          noteId,
+          start: parseInt(s.start, 10) || 0,
+          end: parseInt(s.end, 10) || 0,
+        };
+      }).filter((r) => r.end > r.start);
+    },
+    // Custom equality: same ranges by value (avoids new-array re-renders)
+    (a: AnnotationRange[], b: AnnotationRange[]) =>
+      a.length === b.length &&
+      a.every((r, i) => r.noteId === b[i].noteId && r.start === b[i].start && r.end === b[i].end),
+  );
 }
 
