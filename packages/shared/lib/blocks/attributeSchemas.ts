@@ -354,6 +354,18 @@ export const src = {
   src: z.string().optional().describe('Path to external file containing content'),
 };
 
+/**
+ * Cast attribute - for blocks that support cast-of-characters.
+ * At parse time, withCastSupport() loads the file and replaces the
+ * string with a parsed Cast object; hence the union type.
+ * Usage: baseAttributes.extend({ ...cast, myAttr: z.string() })
+ */
+import { CastSchema } from '@/lib/cast';
+export const cast = {
+  cast: z.union([z.string(), CastSchema]).optional()
+    .describe('Path to .cast YAML file, or inline cast object'),
+};
+
 // =============================================================================
 // Legacy Exports (deprecated - use baseAttributes + mixins)
 // =============================================================================

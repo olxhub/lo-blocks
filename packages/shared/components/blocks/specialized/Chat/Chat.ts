@@ -5,8 +5,9 @@ import yaml from 'js-yaml';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
-import { srcAttributes } from '@/lib/blocks/attributeSchemas';
+import { srcAttributes, cast } from '@/lib/blocks/attributeSchemas';
 import { CHAT_METADATA_KEYS } from '@/lib/content/metadata';
+import { CastSchema, withCastSupport } from '@/lib/cast';
 import * as cp  from './_chatParser';
 import { _Chat, callChatAdvanceHandler } from './_Chat';
 
@@ -23,16 +24,10 @@ function advanceChat({ targetId }) {
 /* ----------------------------------------------------------------
  * Header validation
  * ----------------------------------------------------------------
- * After YAML parsing we check for unknown keys and validate cast
- * properties so content authors get early feedback.
+ * After YAML parsing we validate the header structure. Cast members
+ * are validated via CastSchema from cast.ts; other header keys are
+ * checked against the known set.
  */
-
-const KNOWN_CAST_KEYS = new Set([
-  'seed', 'style', 'src', 'name',
-  // DiceBear Open Peeps options
-  'face', 'head', 'skinColor', 'clothingColor',
-  'accessories', 'facialHair', 'mask',
-]);
 
 function validateHeader(header: Record<string, unknown>): string[] {
   const warnings: string[] = [];
@@ -43,17 +38,12 @@ function validateHeader(header: Record<string, unknown>): string[] {
     }
   }
 
-  // Validate cast property keys
-  const cast = header.cast;
-  if (cast && typeof cast === 'object' && !Array.isArray(cast)) {
-    for (const [speaker, props] of Object.entries(cast as Record<string, unknown>)) {
-      if (props && typeof props === 'object' && !Array.isArray(props)) {
-        for (const propKey of Object.keys(props as Record<string, unknown>)) {
-          const match = [...KNOWN_CAST_KEYS].find(k => k.toLowerCase() === propKey.toLowerCase());
-          if (match && match !== propKey) {
-            warnings.push(`Cast "${speaker}": "${propKey}" should be "${match}" (keys are case-sensitive)`);
-          }
-        }
+  // Validate cast via CastSchema
+  if (header.cast) {
+    const result = CastSchema.safeParse(header.cast);
+    if (!result.success) {
+      for (const issue of result.error.issues) {
+        warnings.push(`Cast: ${issue.path.join('.')}: ${issue.message}`);
       }
     }
   }
@@ -88,7 +78,7 @@ function postprocess({ parsed, ...rest }) {
 }
 
 const Chat = blocks.dev({
-  ...peggyParser(cp, { postprocess }),
+  ...withCastSupport(peggyParser(cp, { postprocess })),
   ...blocks.action({
     action: advanceChat
   }),
@@ -97,6 +87,7 @@ const Chat = blocks.dev({
   description: 'Example block that parses an SBA dialogue format using PEG.',
   fields,
   attributes: srcAttributes.extend({
+    ...cast,
     clip: z.string().optional().describe('Clip range for dialogue section'),
     history: z.string().optional().describe('History clip range to show before current clip'),
     height: z.string().optional().describe('Container height (e.g., "400px" or "flex-1")'),

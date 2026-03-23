@@ -1,7 +1,6 @@
 <!-- Interdisciplinary Studies SBA: High School Dropout Analysis -->
 <Vertical id="interdisciplinary_sba_root">
 
-<!-- Main SBA Interface -->
 <!--
 ---
 description: Analyze high school dropout rates using interdisciplinary research methods and statistical reasoning
@@ -9,7 +8,9 @@ category: interdisciplinary
 lang: en-Latn-US
 ---
 -->
-<SplitPanel id="interdisciplinary_sba_demo" title="Interdisciplinary Studies SBA - High School Dropout Analysis" launchable="true">
+<Cast id="interdisciplinary_sba_demo" cast="characters.cast" launchable="true" title="Interdisciplinary Studies SBA - High School Dropout Analysis">
+
+<SplitPanel id="interdisciplinary_sba_splitpanel">
 
   <!-- Left Panel: Dialogue Conversation -->
   <LeftPane>
@@ -43,13 +44,14 @@ lang: en-Latn-US
 
 </SplitPanel>
 
+</Cast>
+
 <!-- ============================================================
      REFERENCED CONTENT BLOCKS
      ============================================================ -->
 
-
 <!-- Team Directory -->
-<TeamDirectory id="interdisciplinary_team_members" title="Comm360 Team"/>
+<TeamDirectory id="interdisciplinary_team_members" title="Comm360 Team" group="comm360"/>
 
 <!-- Reading Library Navigator -->
 <Navigator id="interdisciplinary_library"

@@ -15,6 +15,7 @@
 import React, { useMemo } from 'react';
 import { createAvatar } from '@dicebear/core';
 import * as openPeeps from '@dicebear/open-peeps';
+import { resolveContentPath } from '@/lib/content/contentPaths';
 
 const INITIALS_COLORS = [
   'bg-blue-500', 'bg-green-500', 'bg-yellow-500',
@@ -72,9 +73,10 @@ export default function Avatar({ name, src, seed, style = 'illustrated', options
 
   // Explicit image URL — highest priority
   if (src) {
+    const resolvedSrc = resolveContentPath(src);
     return (
       <img
-        src={src}
+        src={resolvedSrc}
         alt={name || 'Speaker'}
         className="rounded-full object-cover"
         style={{ width: size, height: size }}

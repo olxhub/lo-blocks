@@ -4,62 +4,23 @@
 import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
-
-// Default team data for the Comm360 SBA
-// TODO: Make this configurable via OLX children or data attribute
-const DEFAULT_TEAM = [
-  {
-    id: 'ty',
-    name: 'Ty',
-    role: 'Intern Teammate',
-    photo: 'sba/interdisciplinary/images/ty.png',
-    bio: 'Intern at Comm360 focusing on program evaluation and data analysis.',
-    experience: '6 months at Comm360',
-    skills: ['Data Analysis', 'Research', 'Program Evaluation']
-  },
-  {
-    id: 'peggy',
-    name: 'Peggy',
-    role: 'Intern Teammate',
-    photo: 'sba/interdisciplinary/images/peggy.png',
-    bio: 'Intern specializing in community outreach and stakeholder engagement.',
-    experience: '4 months at Comm360',
-    skills: ['Community Outreach', 'Communication', 'Project Management']
-  },
-  {
-    id: 'lacy',
-    name: 'Lacy',
-    role: 'Intern Teammate',
-    photo: 'sba/interdisciplinary/images/lacy.png',
-    bio: 'Intern with focus on program development and implementation strategies.',
-    experience: '5 months at Comm360',
-    skills: ['Program Development', 'Strategic Planning', 'Implementation']
-  },
-  {
-    id: 'lianne',
-    name: 'Lianne Park',
-    role: 'Supervisor/Mentor',
-    photo: 'sba/interdisciplinary/images/lianne.png',
-    bio: 'Director of multiple programs at Comm360 with extensive experience in program evaluation and development. Presents findings to the PDE committee.',
-    experience: '5 years at Comm360',
-    skills: ['Program Management', 'Leadership', 'Strategic Planning', 'Evaluation']
-  },
-  {
-    id: 'anne',
-    name: 'Anne Hastings',
-    role: 'Chief Executive Officer',
-    photo: 'sba/interdisciplinary/images/anne.png',
-    bio: 'CEO of Comm360, making ultimate decisions about programs and resources. Reports to the board of directors.',
-    experience: '8 years at Comm360, 15+ years leadership experience',
-    skills: ['Executive Leadership', 'Strategic Decision Making', 'Resource Management', 'Organizational Development']
-  }
-];
+import Avatar from '@/components/common/Avatar';
+import { useCast, castMemberToAvatarProps } from '@/lib/cast';
 
 function _TeamDirectory(props) {
-  const { fields, teamData = DEFAULT_TEAM, title = "Team Directory" } = props;
+  const { fields, group, title = 'Team Directory' } = props;
+  const cast = useCast(props);
 
   const [selectedMember, setSelectedMember] = useFieldState(props, fields.selectedMember, null);
   const [viewMode, setViewMode] = useFieldState(props, fields.viewMode, 'grid');
+
+  // Build team from cast, optionally filtered by group
+  const teamData = Object.entries(cast)
+    .filter(([, member]) => {
+      if (!group) return true;
+      return member.groups?.includes(group);
+    })
+    .map(([id, member]) => ({ id, ...member }));
 
   const handleMemberClick = (memberId) => {
     if (selectedMember === memberId) {
@@ -73,18 +34,19 @@ function _TeamDirectory(props) {
 
   const selectedMemberData = teamData.find(member => member.id === selectedMember);
 
-  // Resolve photo path to content URL
-  const getPhotoUrl = (photo) => {
-    if (!photo) return null;
-    if (photo.startsWith('http://') || photo.startsWith('https://')) return photo;
-    return `/content/${photo}`;
-  };
-
   const { kids: renderedKids } = useKids(props);
+
+  if (teamData.length === 0) {
+    return (
+      <div className="team-directory p-4 border rounded-lg bg-white">
+        {renderedKids}
+        <p className="text-gray-500 text-sm">No team members found{group ? ` in group "${group}"` : ''}. Wrap in a &lt;Cast&gt; block to provide cast data.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="team-directory p-4 border rounded-lg bg-white">
-      {/* Render any child content */}
       {renderedKids}
 
       <div className="flex justify-between items-center mb-4">
@@ -112,103 +74,38 @@ function _TeamDirectory(props) {
 
       {viewMode === 'grid' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {teamData.map((member) => (
-            <div
-              key={member.id}
-              onClick={() => handleMemberClick(member.id)}
-              className={`team-member-card p-4 border rounded-lg cursor-pointer transition-all hover:shadow-lg ${
-                selectedMember === member.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
-                  {member.photo ? (
-                    <img
-                      src={getPhotoUrl(member.photo)}
-                      alt={member.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
-                      }}
-                    />
-                  ) : null}
-                  <span className="text-gray-600 font-medium" style={{display: member.photo ? 'none' : 'flex'}}>
-                    {member.name.split(' ').map(n => n[0]).join('')}
-                  </span>
+          {teamData.map((member) => {
+            const avatarProps = castMemberToAvatarProps(member.id, member);
+            return (
+              <div
+                key={member.id}
+                onClick={() => handleMemberClick(member.id)}
+                className={`team-member-card p-4 border rounded-lg cursor-pointer transition-all hover:shadow-lg ${
+                  selectedMember === member.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="flex-shrink-0">
+                    <Avatar {...avatarProps} size={48} />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900">{member.name ?? member.id}</h4>
+                    {member.profile?.role && (
+                      <p className="text-sm text-gray-600">{String(member.profile.role)}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h4 className="font-medium text-gray-900">{member.name}</h4>
-                  <p className="text-sm text-gray-600">{member.role}</p>
-                </div>
+                {member.profile?.bio && (
+                  <p className="mt-2 text-sm text-gray-700 line-clamp-2">{String(member.profile.bio)}</p>
+                )}
               </div>
-              <p className="mt-2 text-sm text-gray-700 line-clamp-2">{member.bio}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       {viewMode === 'detail' && selectedMemberData && (
-        <div className="team-member-detail bg-gray-50 p-6 rounded-lg">
-          <div className="flex items-start space-x-6">
-            <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-              {selectedMemberData.photo ? (
-                <img
-                  src={getPhotoUrl(selectedMemberData.photo)}
-                  alt={selectedMemberData.name}
-                  className="w-24 h-24 rounded-full object-cover"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
-                  }}
-                />
-              ) : null}
-              <span className="text-gray-600 font-medium text-xl" style={{display: selectedMemberData.photo ? 'none' : 'flex'}}>
-                {selectedMemberData.name.split(' ').map(n => n[0]).join('')}
-              </span>
-            </div>
-
-            <div className="flex-1">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h4 className="text-xl font-semibold text-gray-900">{selectedMemberData.name}</h4>
-                  <p className="text-lg text-blue-600 font-medium">{selectedMemberData.role}</p>
-                  <p className="text-sm text-gray-600 mt-1">{selectedMemberData.experience}</p>
-                </div>
-                <button
-                  onClick={() => {
-                    setSelectedMember(null);
-                    setViewMode('grid');
-                  }}
-                  className="text-gray-400 hover:text-gray-600 text-xl"
-                >
-                  ×
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <h5 className="font-medium text-gray-900 mb-2">Background</h5>
-                  <p className="text-gray-700">{selectedMemberData.bio}</p>
-                </div>
-
-                <div>
-                  <h5 className="font-medium text-gray-900 mb-2">Key Skills</h5>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedMemberData.skills.map((skill, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <MemberDetail member={selectedMemberData} onClose={() => { setSelectedMember(null); setViewMode('grid'); }} />
       )}
 
       {viewMode === 'detail' && !selectedMemberData && (
@@ -216,6 +113,66 @@ function _TeamDirectory(props) {
           Select a team member to view their details
         </div>
       )}
+    </div>
+  );
+}
+
+function MemberDetail({ member, onClose }) {
+  const avatarProps = castMemberToAvatarProps(member.id, member);
+  const skills = Array.isArray(member.profile?.skills) ? member.profile.skills : [];
+
+  return (
+    <div className="team-member-detail bg-gray-50 p-6 rounded-lg">
+      <div className="flex items-start space-x-6">
+        <div className="flex-shrink-0">
+          <Avatar {...avatarProps} size={96} />
+        </div>
+
+        <div className="flex-1">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h4 className="text-xl font-semibold text-gray-900">{member.name ?? member.id}</h4>
+              {member.profile?.role && (
+                <p className="text-lg text-blue-600 font-medium">{String(member.profile.role)}</p>
+              )}
+              {member.profile?.experience && (
+                <p className="text-sm text-gray-600 mt-1">{String(member.profile.experience)}</p>
+              )}
+            </div>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 text-xl"
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {member.profile?.bio && (
+              <div>
+                <h5 className="font-medium text-gray-900 mb-2">Background</h5>
+                <p className="text-gray-700">{String(member.profile.bio)}</p>
+              </div>
+            )}
+
+            {skills.length > 0 && (
+              <div>
+                <h5 className="font-medium text-gray-900 mb-2">Key Skills</h5>
+                <div className="flex flex-wrap gap-2">
+                  {skills.map((skill, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                    >
+                      {String(skill)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

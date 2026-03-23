@@ -1,0 +1,102 @@
+# Comm360 Interdisciplinary SBA Cast
+#
+# Characters for the high school dropout analysis simulation.
+# Used by Chat, TeamDirectory, and TalkBubble blocks.
+#
+# For avatar customization options, see:
+#   https://www.dicebear.com/playground/?style=open-peeps
+#   https://www.dicebear.com/styles/open-peeps/#options
+
+Omer:
+  name: Omer
+  src: images/GSU_prof.png
+  profile:
+    role: Professor
+    bio: Professor at Georgia State University teaching EDUC 3100.
+
+You:
+  name: You
+  openPeeps:
+    face: smile
+    head: medium1
+
+Teammate:
+  name: Teammate
+  openPeeps:
+    face: driven
+    head: short3
+
+Ty:
+  name: Ty
+  src: images/ty.png
+  profile:
+    role: Intern - Data Analysis
+    bio: Intern at Comm360 with a focus on data analysis and statistical reasoning.
+    experience: First year at Comm360
+    skills:
+      - Data Analysis
+      - Research
+      - Program Evaluation
+  groups:
+    - comm360
+    - interns
+
+Peggy:
+  name: Peggy
+  src: images/peggy.png
+  profile:
+    role: Intern - Community Outreach
+    bio: Intern at Comm360 specializing in community engagement and outreach.
+    experience: First year at Comm360
+    skills:
+      - Community Engagement
+      - Communication
+      - Event Planning
+  groups:
+    - comm360
+    - interns
+
+Lacy:
+  name: Lacy
+  src: images/lacy.png
+  profile:
+    role: Intern - Program Development
+    bio: Intern at Comm360 working on program development and implementation.
+    experience: First year at Comm360
+    skills:
+      - Program Development
+      - Project Management
+      - Research
+  groups:
+    - comm360
+    - interns
+
+Lianne:
+  name: Lianne Park
+  src: images/lianne.png
+  profile:
+    role: Supervisor / Director
+    bio: Five years at Comm360, directs multiple programs. Will present findings to the Program Development and Evaluation committee.
+    experience: 5 years at Comm360
+    skills:
+      - Program Management
+      - Leadership
+      - Community Development
+  groups:
+    - comm360
+    - supervisors
+
+Anne Hastings:
+  name: Anne Hastings
+  src: images/anne.png
+  profile:
+    role: CEO
+    bio: Chief Executive Officer of Comm360. Makes ultimate decisions about programs and resources.
+    experience: Founder and CEO
+    skills:
+      - Executive Leadership
+      - Strategic Planning
+      - Organizational Development
+  groups:
+    - comm360
+    - leadership

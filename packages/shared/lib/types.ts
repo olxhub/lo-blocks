@@ -949,6 +949,7 @@ export interface LoBlockRuntimeContext {
   olxJsonSources?: string[];  // Redux source names in priority order for OlxJson lookup
   idPrefix?: IdPrefix;  // Scope prefix for Redux state (changes at list boundaries)
   locale: LocaleContext;  // Language and text direction
+  cast?: Record<string, any>;  // Cast of characters - propthreaded like locale
 }
 
 /**
