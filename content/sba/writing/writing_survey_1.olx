@@ -118,21 +118,21 @@ lang: en-Latn-US
                    I understand things better when I write about them.\
                    There are some kinds of writing that I really like.
                    I like it when I can focus and my writing flows.                    
-                   
+
                    Our data is: 
                    <Ref id="ws1_ref6" target="ws1_affect_1" />
                    <Ref id="ws1_ref7" target="ws1_affect_2" />
                    <Ref id="ws1_ref8" target="ws1_affect_3" />
                    <Ref id="ws1_ref9" target="ws1_affect_4" />
                    <Ref id="ws1_ref10" target="ws1_affect_5" />
-                   
+
                   This data can be interpreted by mapping each number onto the column header it corresponds
                   to and using the row headers to indicate the level of agreement the student selected for each statement.
-                  
+
                   These statements can be grouped into the following factors:
-                  
+
                   Factor 1 (Difficulty/Interest). 
-                  
+
                   Agreement with the following statements indicates the student feels that
                   writing is boring and difficult:
                   I dislike writing.
@@ -141,12 +141,12 @@ lang: en-Latn-US
                   I find it difficult to communicate my ideas through writing.
                   I prefer to avoid writing when it isn't required.
                   Writing feels really hard.
-                  
+
                   Disagreement with the following statements indicates the student feels
                   that writing is boring and difficult:
                   I find writing interesting.
                   I understand things better when I write about them.
-                  
+
                   Factor 2 (Agency)
                   Agreement with the following statements indicates the student feels
                   a sense of control and agency in the writing process:
@@ -157,7 +157,7 @@ lang: en-Latn-US
                   I like it when people compliment my writing skills.
                   It's important that I get a good grade on a writing assignment.
                   It upsets me when I get low grades on a writing assignment.
-                
+
                   Factor 3 (Self-efficacy)
                   Agreement with the following statements indicates that the student
                   has a high degree of confidence in his/her writing skills:
@@ -167,11 +167,11 @@ lang: en-Latn-US
                   I usually enjoy writing in school.
                   When I write, I create content that I can be proud of.
                   I like to write outside of school.
-                  
+
                   Disagreement with the following statement also suggests a high
                   degree of writing self-confidence:
                   I am too impatient to spend a lot of time writing.
-                  
+
                   Factor 4 (Intrinsic value)
                   Agreement with the following statements indicates that the student believes
                   that writing has high intrinsic value as a skill he/she needs to learn:
@@ -179,7 +179,7 @@ lang: en-Latn-US
                   I feel it is important to know how to write well.
                   Writing is a skill I want to get better at.
                   I worry that other people will criticize my writing.
- 
+
                   DIRECTIONS: 
                    If any of the student's response data is blank, say so and stop; otherwise,
                    using the information from the data interpretation, and addressing the 
@@ -194,17 +194,9 @@ lang: en-Latn-US
         <Markdown>
 ## Review and Submit
 
-Review your answers. When you are done, click the **'Submit'** button, then
+Review your answers. When you are done,
 use the **'Export as PDF'** button to save a copy to submit to your teacher.
         </Markdown>
-        <ActionButton id="submit_ws1" label="Submit">
-          <SetFieldAction target="ws1_affect_1" field="readonly" value="true" />
-          <SetFieldAction target="ws1_affect_2" field="readonly" value="true" />
-          <SetFieldAction target="ws1_affect_3" field="readonly" value="true" />
-          <SetFieldAction target="ws1_affect_4" field="readonly" value="true" />
-          <SetFieldAction target="ws1_affect_5" field="readonly" value="true" />
-          <SetFieldAction target="ws1_response_summary_6" field="readonly" value="true" />
-        </ActionButton>
         <ActionButton id="print_btn_ws1" label="Export as PDF">
           <PrintAction id="print_action_ws1" />
         </ActionButton>
@@ -241,5 +233,5 @@ use the **'Export as PDF'** button to save a copy to submit to your teacher.
         </Markdown>
         <Use id="ws1_response_summary_print" ref="ws1_response_summary_6" />      
 </Vertical>
-   
+
 </Sequential>

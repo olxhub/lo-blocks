@@ -36,9 +36,9 @@ lang: en-Latn-US
     <Vertical id="wpj2_Step_1" title="What Makes a Good Writer?">
              <Markdown>
                  ## What Makes a Good Writer
-        
+
                  ### Question 1
-                 
+
                  _Think about a moment, experience, or even a piece of feedback about writing
                  that made you feel like you were a good or bad writer. Tell us the story about
                  this experience. How did it shape the way you felt about yourself as a writer?
@@ -58,9 +58,9 @@ lang: en-Latn-US
     <Vertical id="wpj2_Step_3" title="Sorting Priorities 1">
         <Markdown>
             ## Priorities for Successful Writing
-        
+
             ### Question 2
-        
+
             What do you think makes a good writer? Sort these writing skills from most important (top)
             to least important (bottom):
         </Markdown>
@@ -74,9 +74,9 @@ lang: en-Latn-US
     <Vertical id="wpj2_Step_4" title="Sorting Priorities 2">
         <Markdown>
             ## Priorities for Successful Writing
-        
+
             ### Question 3
-        
+
             What do you think makes a good writer? Sort these writing skills from most important (top)
             to least important (bottom):
         </Markdown>
@@ -90,9 +90,9 @@ lang: en-Latn-US
     <Vertical id="wpj2_Step_5" title="Sorting Priorities 3">
         <Markdown>
             ## Priorities for Successful Writing
-        
+
             ### Question 4
-        
+
             What do you think makes a good writer? Sort these writing skills from most important (top)
             to least important (bottom):
         </Markdown>
@@ -106,9 +106,9 @@ lang: en-Latn-US
     <Vertical id="wpj2_Step_6" title="Sorting Priorities 4">
         <Markdown>
             ## Priorities for Successful Writing
-        
+
             ### Question 5
-        
+
             What do you think makes a good writer? Sort these writing skills from most important (top)
             to least important (bottom):
         </Markdown>
@@ -122,9 +122,9 @@ lang: en-Latn-US
     <Vertical id="wpj2_Step_7" title="Sorting Priorities 5">
         <Markdown>
             ## Priorities for Successful Writing
-        
+
             ### Question 6
-        
+
             What do you think makes a good writer? Sort these writing skills from most important (top)
             to least important (bottom):
         </Markdown>
@@ -138,9 +138,9 @@ lang: en-Latn-US
     <Vertical id="wpj2_Step_8" title="Sorting Priorities 6">
         <Markdown>
             ## Priorities for Successful Writing
-        
+
             ### Question 7
-        
+
             What do you think makes a good writer? Sort these writing skills from most important (top)
             to least important (bottom):
         </Markdown>
@@ -154,9 +154,9 @@ lang: en-Latn-US
     <Vertical id="wpj2_Step_9" title="Sorting Priorities 7">
         <Markdown>
             ## Priorities for Successful Writing
-        
+
             ### Question 8
-        
+
             What do you think makes a good writer? Sort these writing skills from most important (top)
             to least important (bottom):
         </Markdown>
@@ -186,17 +186,17 @@ lang: en-Latn-US
              <ActionButton label="Analyze">
                  <LLMAction target="wpj2_response_summary_1">
                      BACKGROUND INFORMATION:
-                     
+
                          Question 1. The question was: "Think about a moment, experience,
                          or even a piece of feedback about writing that made you feel like
                          you were a good or bad writer. Tell us the story about this experience.
                          How did it shape the way you felt about yourself as a writer? Do you
                          think that people are naturally good or bad writers? Can everyone
                          learn to write well?"
-                         
+
                          The student's answer was:
                          <Ref id="wpj2_ref1" target="wpj2_define_good_writer" />
-                     
+
                          Question 2.
                          The following statements are coded as follows --
                          - Using sophisticated words and well-developed sentences: 0
@@ -206,7 +206,7 @@ lang: en-Latn-US
                          The following data shows the arrangement, or order, that the student put
                          these statements in --
                          <Ref id="wpj2_ref2" target="wpj2_sortable1" />
-                         
+
                          Question 3.
                          The following statements are coded as follows --
                          - Making sure to write something that is long enough for the task: 0
@@ -269,7 +269,7 @@ lang: en-Latn-US
 
                          The statements in questions 2 through 8 can be grouped into the
                          following general categories:
-                         
+
                          1. Exploration during Prewriting --
                          - Being open to explore the subject and learn new things
                          - Taking the time to research a topic before writing about it
@@ -283,7 +283,7 @@ lang: en-Latn-US
                          - Focusing on the main idea and not going off topic
                          - Providing details about the most important ideas
                          - Using well-chosen words and expressions that make writing interesting
-                         
+
                          3. Grammar, Usage, Mechanics, and Style --
                          - Using a wide variety of word and sentence patterns
                          - Writing in standard English, avoiding slang and informal language
@@ -333,7 +333,7 @@ lang: en-Latn-US
         <RightPane>
                 <Markdown>
                  ## What You Think of This Summary
-                 
+
                  Evaluate the computer's summary of your writing priorities. Is it accurate?
                  Was there anything that surprised you or that you disagreed with?
              </Markdown>
@@ -343,15 +343,15 @@ lang: en-Latn-US
     <Vertical id="wpj2_Step_12" title="How do People Learn to Write Well?">
              <Markdown>
                  ## How do People Learn to Write Well?
-        
+
                  ### Question 9
-                 
+
                  Chapter one of Writing about Writing introduces a number of threshold concepts.
                  One is, "Writing is a process and all writers have more to learn." 
-                 
+
                  _In this task, write about your reaction to this concept and your beliefs about
                  learning how to write. As you write, answer the following questions:_
-                 
+
                  - What do you think people need to learn to become better writers?
                  - What do you think people can do to become better writers?
              </Markdown>
@@ -361,7 +361,7 @@ lang: en-Latn-US
            <Markdown>
                ## Self-Evaluation
                ### Question 10
-               
+
                For each writing behavior described below, click on a radio button to show
                how well you think you can do it. If it is something you really struggle
                with, click under "Weakest" in the leftmost column. If you can do it very
@@ -380,7 +380,7 @@ lang: en-Latn-US
            <Markdown>
                ## Self-Evaluation
                ### Question 11
-               
+
                For each writing behavior described below, click on a radio button to show
                how well you think you can do it. If it is something you really struggle
                with, click under "Weakest" in the leftmost column. If you can do it very
@@ -399,7 +399,7 @@ lang: en-Latn-US
            <Markdown>
                ## Self-Evaluation
                ### Question 12
-               
+
                For each writing behavior described below, click on a radio button to show
                how well you think you can do it. If it is something you really struggle
                with, click under "Weakest" in the leftmost column. If you can do it very
@@ -418,7 +418,7 @@ lang: en-Latn-US
            <Markdown>
                ## Self-Evaluation
                ### Question 13
-               
+
                For each writing behavior described below, click on a radio button to show
                how well you think you can do it. If it is something you really struggle
                with, click under "Weakest" in the leftmost column. If you can do it very
@@ -437,7 +437,7 @@ lang: en-Latn-US
         <LeftPane>
           <Markdown>
               ## Analysis
-          
+
               Before you go on, click on the button that says "Analyze My Strengths
               and Weaknesses and read how the computer describes you as a writer.
           </Markdown>
@@ -445,7 +445,7 @@ lang: en-Latn-US
               <LLMAction target="wpj2_self_eval_analysis">
                   BACKGROUND INFORMATION:
                    For the survey pages that ask the students to evaluate their own writing skills --
-                   
+
                    Our column headers are: 
                     - Weakest (corresponding to 0),
                     - Weaker (corresponding to 1),
@@ -473,19 +473,19 @@ lang: en-Latn-US
                    - Typing quickly without looking at the keys when writing on the computer
                    - Providing good feedback to help other writers improve their work
                    - Making good use of feedback I get from others
-                   
+
                    Our data that addresses writing for school includes: 
                    <Ref id="wpj2_ref10" target="wpj2_self_evaluation_1" />                 
                    <Ref id="wpj2_ref11" target="wpj2_self_evaluation_2" />
                    <Ref id="wpj2_ref12" target="wpj2_self_evaluation_3" />
                    <Ref id="wpj2_ref13" target="wpj2_self_evaluation_4" />
- 
+
                   All of the data can be interpreted by mapping each number onto the column header it corresponds
                   to and using the corresponding row headers to indicate how the student evaluates their
                   skill at this particular writing task.
-                  
+
                   The student's writing skills can be analyzed along the following dimensions:
-          
+
                   Planning/Prewriting:
                    - Understanding the writing assignments the teacher gives me
                    - Planning my time to get the work done by the deadline                  
@@ -508,7 +508,7 @@ lang: en-Latn-US
                    - Changing how sentences are worded to make the meaning clearer
                    - Providing good feedback to help other writers improve their work
                    - Making good use of feedback I get from others          
-                   
+
                 Typing/Proofreading:
                    - Typing quickly without looking at the keys when writing on the computer
                    - Avoiding errors in grammar/spelling/mechanics/usage/style
@@ -530,7 +530,7 @@ lang: en-Latn-US
         <RightPane>
             <Markdown>
                 ## Your Response
-                
+
                 What do you think of what the computer said. Did it describe your strengths
                 and weaknesses accurately? What do you think of its suggestions about ways
                 to improve your writing? If there are any other strategies you think would
@@ -541,6 +541,7 @@ lang: en-Latn-US
     </SplitPanel>
     <Vertical id="wpj2_last_screen">
         <Markdown id="wpj2_done_markdown">
+            **If you are done, please click on the checkbox below.**
             **If you are done, please click on the checkbox below, use the 'print to PDF'
               button to save your responses, then submit them.**
         </Markdown>

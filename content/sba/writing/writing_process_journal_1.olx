@@ -33,7 +33,7 @@ lang: en-Latn-US
             in the survey questions) by writing two reflective journal entries.
 
     </Markdown>
-    <Vertical id="wpj1_Step_1" title="Survey Questions 1-5">
+        <Vertical id="wpj1_Step_1" title="Survey Questions 1-5">
         <Markdown>
             ## Questions 1-5: Writing For School
             Indicate how often you have engaged in each of the following activities **for school**.
@@ -138,8 +138,7 @@ lang: en-Latn-US
          </TabularMCQ>
          <Markdown>
            Select one option for each row. Your selections are automatically saved.
-             
-           **Other Kinds of Writing I Do for School.**
+            **Other Kinds of Writing I Do for School.**
          </Markdown>
          <TextArea id="wpj1_other_outside_school" rows="1" placeholder="Enter your response here." />
     </Vertical>
@@ -187,7 +186,7 @@ lang: en-Latn-US
                    <Ref id="wpj_ref10" target="wpj1_writing_frequency_3" />
                    <Ref id="wpj_ref11" target="wpj1_writing_frequency_5" />
                    <Ref id="wpj_ref12" target="wpj1_writing_frequency_7" />
-                   
+
                    For the survey pages that ask about writing outside of school,
                    Our column headers are: 
                          Daily (corresponding to 0),
@@ -217,17 +216,17 @@ lang: en-Latn-US
                          A report,
                          A comment or response on social media,
                          Other writing activities not listed here or on previous screens                          
-                         
+
                    Our data that addresses writing outside of school includes: 
                    <Ref id="wpj_ref13" target="wpj1_writing_frequency_2" />                 
                    <Ref id="wpj_ref14" target="wpj1_writing_frequency_4" />
                    <Ref id="wpj_ref15" target="wpj1_writing_frequency_6" />
                    <Ref id="wpj_ref16" target="wpj1_writing_frequency_8" />
- 
+
                   All of the data can be interpreted by mapping each number onto the column header it corresponds
                   to and using the corresponding row headers to indicate the frequency with which 
                   the student writes in each genre.
-                  
+
                   The student's writing can be analyzed along the following dimensions:
                   1. Academic writing tasks for school purposes, including essays, reports,
                       summaries, notes on a lecture or passage, Powerpoints or other multimedia
@@ -245,10 +244,10 @@ lang: en-Latn-US
                   5. Social media activities done for school purposes, including posts and comments to
                       social media sites when not required for school, and text messages/direct messages,
                       blogs, podcasts, and/or vlogs when not required for school.
-                  
+
                   DIRECTIONS: 
                     If the student's response data is missing, note that and say nothing more;
-                    otherwise, using the student's response data and addressing the student
+                      otherwise, using the student's response data and addressing the student
                     as you, describe succinctly in single-level bullet point form with bolded headings using Markdown
                     how often the student undertakes writing tasks
                     along each of the major dimensions (academic writing for school, academic
@@ -258,6 +257,7 @@ lang: en-Latn-US
                     student's likely overall writing identity.
                </LLMAction>
            </ActionButton>
+           <LLMFeedback id="wpj1_writing_habits_analysis" />
            <LLMFeedback id="wpj1_writing_habits_analysis" render="markdown" />
     </Vertical>
     <SplitPanel id="wpj1_Step_10" title="What I Agree with and Why" sizes="50,50">
@@ -265,12 +265,12 @@ lang: en-Latn-US
              <Markdown>
                  ## What the Computer Said
              </Markdown>
-             <Use id="wpj1_ref17" ref="wpj1_writing_habits_analysis" />
+            <Use id="wpj1_ref17" ref="wpj1_writing_habits_analysis" />
          </LeftPane>
          <RightPane>
              <Markdown>
                  ## What I Agree With and Why
-                 
+
                  Reread the computer's analysis of your writing habits based on your
                  responses. Choose one thing the computer says that you agree with
                  and provide an example from your writing experience to explain why you agree.
@@ -283,12 +283,12 @@ lang: en-Latn-US
              <Markdown>
                  ## What the Computer Said            
              </Markdown>
-             <Use id="wpj_ref18" ref="wpj1_writing_habits_analysis" />
+               <Use id="wpj_ref18" ref="wpj1_writing_habits_analysis" />
         </LeftPane>
         <RightPane>
             <Markdown>
                  ## What I Disagree With (Or was Surprised By) and Why
-                
+
                  Now choose one item from the list that surprises you or that you disagree with
                  and provide an explanation from your writing experiences to explain why the
                  statement surprises you or why you disagree with it.
@@ -298,7 +298,7 @@ lang: en-Latn-US
     </SplitPanel>
     <Vertical id="wpj1_last_screen">
         <Markdown>
-            **If you are done, please click on the checkbox below. Then export your answers to PDF and submit them.**
+              **If you are done, please click on the checkbox below. Then export your answers to PDF and submit them.**
         </Markdown>
         <CheckboxInput id="wpj1_complete">
             <Key>I have finished this assignment</Key>
