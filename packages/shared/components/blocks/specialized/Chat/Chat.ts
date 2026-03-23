@@ -7,7 +7,7 @@ import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes, cast } from '@/lib/blocks/attributeSchemas';
 import { CHAT_METADATA_KEYS } from '@/lib/content/metadata';
-import { CastSchema, withCastSupport } from '@/lib/cast';
+import { validateCast, withCastSupport } from '@/lib/cast';
 import * as cp  from './_chatParser';
 import { _Chat, callChatAdvanceHandler } from './_Chat';
 
@@ -38,13 +38,13 @@ function validateHeader(header: Record<string, unknown>): string[] {
     }
   }
 
-  // Validate cast via CastSchema
+  // Validate cast via CastSchema (with case-sensitivity hints)
   if (header.cast) {
-    const result = CastSchema.safeParse(header.cast);
-    if (!result.success) {
-      for (const issue of result.error.issues) {
-        warnings.push(`Cast: ${issue.path.join('.')}: ${issue.message}`);
-      }
+    try {
+      const { warnings: castWarnings } = validateCast(header.cast);
+      warnings.push(...castWarnings);
+    } catch (e: any) {
+      warnings.push(`Cast: ${e.message}`);
     }
   }
 

@@ -7,7 +7,7 @@ import Avatar from '@/components/common/Avatar';
 import { useCast, castMemberToAvatarProps } from '@/lib/cast';
 
 export default function _TalkBubble(props) {
-  const { speaker, avatar, seed, face, avatarStyle = 'illustrated', position = 'left' } = props.attributes || {};
+  const { speaker, avatar, seed, face, avatarStyle, position = 'left' } = props;
   const { kids } = useKids(props);
   const cast = useCast(props);
 
@@ -20,9 +20,9 @@ export default function _TalkBubble(props) {
   if (castMember) {
     const base = castMemberToAvatarProps(speaker, castMember);
     avatarProps = {
-      name: speaker,
+      name: base.name,
       seed: seed ?? base.seed,
-      style: avatarStyle !== 'illustrated' ? avatarStyle : base.style,
+      style: avatarStyle ?? base.style,
       src: avatar ?? base.src,
       options: face
         ? { ...(base.options || {}), face }
@@ -31,8 +31,8 @@ export default function _TalkBubble(props) {
   } else {
     avatarProps = {
       name: speaker,
-      seed: seed,
-      style: avatarStyle,
+      seed: seed ?? speaker,
+      style: avatarStyle ?? 'illustrated',
       src: avatar,
       options: face ? { face } : undefined,
     };

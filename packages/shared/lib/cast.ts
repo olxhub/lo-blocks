@@ -53,7 +53,10 @@
 //
 import { z } from 'zod';
 import yaml from 'js-yaml';
-import type { LoBlockRuntimeContext } from '@/lib/types';
+import type { LoBlockRuntimeContext, Cast, CastMember } from '@/lib/types';
+
+// Re-export types from types.ts for convenience
+export type { Cast, CastMember } from '@/lib/types';
 
 // =============================================================================
 // Zod Schemas
@@ -141,8 +144,6 @@ export const CastMemberSchema = z.object({
   groups: z.array(z.string()).optional(),
 }).strict();
 
-export type CastMember = z.infer<typeof CastMemberSchema>;
-
 /**
  * Full cast: maps character IDs to their definitions.
  *
@@ -150,8 +151,6 @@ export type CastMember = z.infer<typeof CastMemberSchema>;
  * In YAML, they appear as top-level keys.
  */
 export const CastSchema = z.record(z.string(), CastMemberSchema);
-
-export type Cast = z.infer<typeof CastSchema>;
 
 // =============================================================================
 // Internal utilities
@@ -187,15 +186,83 @@ function deepMerge(
 // Core functions
 // =============================================================================
 
+// Known field names for case-sensitivity suggestions
+const CAST_MEMBER_KEYS = Object.keys(CastMemberSchema.shape);
+const OPEN_PEEPS_KEYS = Object.keys(OpenPeepsSchema.shape);
+
+/**
+ * Find a case-insensitive match in a list of valid keys.
+ * Returns the correct key if there's a case mismatch, undefined otherwise.
+ */
+function findCaseMismatch(key: string, validKeys: string[]): string | undefined {
+  const lower = key.toLowerCase();
+  return validKeys.find(k => k.toLowerCase() === lower && k !== key);
+}
+
+/**
+ * Scan raw cast data for case mismatches and return helpful warnings.
+ * Called before or after Zod validation to provide "did you mean..." hints.
+ */
+function scanCaseMismatches(raw: unknown): string[] {
+  const warnings: string[] = [];
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return warnings;
+
+  for (const [memberId, memberDef] of Object.entries(raw as Record<string, any>)) {
+    if (!memberDef || typeof memberDef !== 'object' || Array.isArray(memberDef)) continue;
+    for (const key of Object.keys(memberDef)) {
+      const match = findCaseMismatch(key, CAST_MEMBER_KEYS);
+      if (match) {
+        warnings.push(`"${memberId}": "${key}" should be "${match}" (keys are case-sensitive)`);
+      }
+    }
+    // Check nested openPeeps keys too (handle any casing of the key itself)
+    const peepsKey = Object.keys(memberDef).find(k => k.toLowerCase() === 'openpeeps');
+    const peeps = peepsKey ? memberDef[peepsKey] : undefined;
+    if (peeps && typeof peeps === 'object' && !Array.isArray(peeps)) {
+      for (const key of Object.keys(peeps)) {
+        const match = findCaseMismatch(key, OPEN_PEEPS_KEYS);
+        if (match) {
+          warnings.push(`"${memberId}".openPeeps: "${key}" should be "${match}" (keys are case-sensitive)`);
+        }
+      }
+    }
+  }
+  return warnings;
+}
+
+/**
+ * Validate raw cast data with Zod and return case-sensitivity warnings.
+ *
+ * On success, returns { cast, warnings }. Warnings are non-fatal (e.g.
+ * fields that are valid but unusually cased).
+ *
+ * On failure, throws with enhanced error messages including "did you mean..."
+ * hints for case mismatches.
+ */
+export function validateCast(raw: unknown): { cast: Cast; warnings: string[] } {
+  const caseWarnings = scanCaseMismatches(raw);
+
+  try {
+    const cast = CastSchema.parse(raw);
+    return { cast, warnings: caseWarnings };
+  } catch (e: any) {
+    if (caseWarnings.length > 0) {
+      throw new Error(`Cast validation failed:\n${caseWarnings.join('\n')}\n\nOriginal error: ${e.message}`);
+    }
+    throw e;
+  }
+}
+
 /**
  * Parse a YAML string as a Cast, validating against CastSchema.
  *
- * @throws on invalid YAML or schema violations
+ * @throws on invalid YAML or schema violations (with case-sensitivity hints)
  */
 export function parseCastYaml(text: string): Cast {
   const raw = yaml.load(text);
   if (!raw || typeof raw !== 'object') return {};
-  return CastSchema.parse(raw);
+  const { cast } = validateCast(raw);
+  return cast;
 }
 
 /**
@@ -328,19 +395,25 @@ export function withCastSupport(
         if (!ctx.provider) {
           throw new Error('withCastSupport: no storage provider for resolving cast file');
         }
+        const castPath = ctx.attributes.cast;
         const lastProv = ctx.provenance?.[ctx.provenance.length - 1];
-        const resolved = ctx.provider.resolveRelativePath(lastProv, ctx.attributes.cast);
-        const castProvenance = ctx.provider.toProvenanceURI(resolved);
-        const { content } = await ctx.provider.read(resolved);
+        let resolved, castProvenance, content;
+        try {
+          resolved = ctx.provider.resolveRelativePath(lastProv, castPath);
+          castProvenance = ctx.provider.toProvenanceURI(resolved);
+          ({ content } = await ctx.provider.read(resolved));
+        } catch (e: any) {
+          throw new Error(`Cast file not found: "${castPath}" (resolved from ${lastProv})\n${e.message}`);
+        }
         const parsedCast = parseCastYaml(content);
 
         // Resolve member src paths relative to the cast file's location,
         // so images like "images/anne.png" become content-relative paths
         // (e.g. "sba/interdisciplinary/images/anne.png") that resolveContentPath
         // can map to a serveable URL at render time.
-        for (const member of Object.values(parsedCast)) {
+        for (const [id, member] of Object.entries(parsedCast)) {
           if (member.src && !member.src.startsWith('http://') && !member.src.startsWith('https://') && !member.src.startsWith('//') && !member.src.startsWith('/')) {
-            member.src = ctx.provider.resolveRelativePath(castProvenance, member.src);
+            parsedCast[id] = { ...member, src: ctx.provider.resolveRelativePath(castProvenance, member.src) };
           }
         }
 

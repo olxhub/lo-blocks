@@ -17,7 +17,7 @@ const TalkBubble = core({
     avatar: z.string().optional().describe('Image URL for avatar (overrides cast)'),
     seed: z.string().optional().describe('Override seed for DiceBear avatar generation'),
     face: Face.optional().describe('DiceBear face/expression (e.g. smile, serious, angry)'),
-    avatarStyle: z.enum(['illustrated', 'initials']).default('illustrated').describe('Avatar rendering style'),
+    avatarStyle: z.enum(['illustrated', 'initials']).optional().describe('Avatar rendering style (defaults to cast style or illustrated)'),
     position: z.enum(['left', 'right']).default('left').describe('Position of avatar (left or right)'),
   }),
   category: 'display'

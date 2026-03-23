@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { VALID_ID_SEGMENT, VALID_REDUX_STATE_KEY, toOlxReference, toReduxStateKey } from './idResolver';
 import type { OlxReference, ReduxStateKey } from '@/lib/types';
 import { parse as parseExpr } from '@/lib/stateLanguage';
+import { CastSchema } from '@/lib/cast';
 
 /**
  * Zod refinement for validating OLX IDs.
@@ -360,7 +361,6 @@ export const src = {
  * string with a parsed Cast object; hence the union type.
  * Usage: baseAttributes.extend({ ...cast, myAttr: z.string() })
  */
-import { CastSchema } from '@/lib/cast';
 export const cast = {
   cast: z.union([z.string(), CastSchema]).optional()
     .describe('Path to .cast YAML file, or inline cast object'),

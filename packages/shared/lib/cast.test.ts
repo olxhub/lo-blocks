@@ -11,6 +11,7 @@
 
 import {
   parseCastYaml,
+  validateCast,
   mergeCasts,
   castMemberToAvatarProps,
   useCast,
@@ -376,6 +377,45 @@ describe('OpenPeepsSchema validation', () => {
 
   test('rejects unknown openPeeps fields', () => {
     expect(() => OpenPeepsSchema.parse({ hat: 'fedora' })).toThrow();
+  });
+});
+
+// =============================================================================
+// validateCast — case-sensitivity warnings ("did you mean...")
+// =============================================================================
+//
+// Content authors frequently use wrong case (e.g. "Face" instead of "face").
+// validateCast returns helpful warnings before Zod's strict() rejects the key.
+
+describe('validateCast', () => {
+  test('valid cast produces no warnings', () => {
+    const { cast, warnings } = validateCast({
+      bob: { name: 'Bob', openPeeps: { face: 'smile' } },
+    });
+    expect(warnings).toEqual([]);
+    expect(cast.bob.name).toBe('Bob');
+  });
+
+  test('wrong case on member key gives "did you mean" warning', () => {
+    // "Name" should be "name", "OpenPeeps" should be "openPeeps"
+    expect(() => validateCast({
+      bob: { Name: 'Bob' },
+    })).toThrow(/should be "name"/);
+  });
+
+  test('wrong case on openPeeps key gives "did you mean" warning', () => {
+    expect(() => validateCast({
+      bob: { openPeeps: { Face: 'smile' } },
+    })).toThrow(/should be "face"/);
+  });
+
+  test('parseCastYaml includes case hint in error', () => {
+    const yaml = `
+bob:
+  Name: Bob
+  Seed: bob123
+`;
+    expect(() => parseCastYaml(yaml)).toThrow(/should be "name"/);
   });
 });
 
