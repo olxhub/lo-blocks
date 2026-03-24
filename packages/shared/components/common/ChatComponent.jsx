@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import NavArrow from '@/components/common/NavArrow';
 import ExpandIcon from '@/components/common/ExpandIcon';
-import { useAvatar } from '@/components/common/useAvatar';
+import * as cast from '@/lib/avatar/cast';
 import { acceptString } from '@/lib/util/fileTypes';
 
 // Theme definitions
@@ -58,7 +58,7 @@ const themes = {
 const ChatMessage = ({ message, isSequential, theme, participants }) => {
   const t = themes[theme] || themes.light;
 
-  const { avatar, name } = useAvatar({}, {
+  const { avatar, name } = cast.avatar({}, {
     who: message.speaker,
     cast: participants ?? {},
     face: message.metadata?.face,

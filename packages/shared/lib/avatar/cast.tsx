@@ -20,19 +20,24 @@
 //
 // API:
 //   Runtime:   parseCastYaml, validateCast, mergeCasts, castMemberToAvatarProps
-//   Blocks:    useCast, updateCast, withCastSupport
+//   Blocks:    useCast, updateCast, avatar, withCastSupport
 //
+import React from 'react';
 import yaml from 'js-yaml';
 import type { LoBlockRuntimeContext } from '@/lib/types';
+// Avatar.jsx lacks type declarations; typed alias lets JSX work from .tsx context.
+import _Avatar from '@/components/common/Avatar';
+const Avatar: React.FC<any> = _Avatar;
 import {
   CastSchema, CastMemberSchema, OpenPeepsSchema,
-  type Cast, type CastMember,
+  type Cast, type CastMember, type FaceExpression, type AvatarStyleValue,
 } from '@/lib/avatar/openpeeps';
 
 // Re-export schemas and types so existing imports from '@/lib/cast' still work.
 export {
   Face, AvatarStyle,
   OpenPeepsSchema, CastMemberSchema, CastSchema,
+  type FaceExpression, type AvatarStyleValue,
   type OpenPeeps, type CastMember, type Cast,
 } from '@/lib/avatar/openpeeps';
 
@@ -249,7 +254,7 @@ export function castMemberToAvatarProps(
  *
  * Usage in components:
  *   const cast = useCast(props);
- *   // Then use useAvatar(props) or look up members directly.
+ *   // Then use avatar(props) or look up members directly.
  */
 export function useCast(props: any): Cast {
   return mergeCasts(props.runtime?.cast, props.cast);
@@ -268,6 +273,70 @@ export function updateCast(props: any): any {
     runtime: updateRuntimeCast(props.runtime, cast),
   };
 }
+
+// =============================================================================
+// Avatar rendering
+// =============================================================================
+
+export interface AvatarOptions {
+  who?: string;
+  cast?: Cast;
+  face?: FaceExpression;
+  seed?: string;
+  src?: string;
+  style?: AvatarStyleValue;
+  size?: number;
+}
+
+export interface AvatarResult {
+  avatar: React.ReactNode;
+  name: string;
+}
+
+/**
+ * Resolve a character from the cast and return a rendered avatar.
+ *
+ * Reads `who`, `face`, `seed`, `avatar`, `avatarStyle` from props
+ * (the `character` mixin fields), with explicit overrides taking precedence.
+ * Falls back gracefully when no cast or character is defined.
+ *
+ * Usage:
+ *   import * as cast from '@/lib/avatar/cast';
+ *   const { avatar, name } = cast.avatar(props, { size: 48 });
+ */
+export function avatar(props: any, options?: AvatarOptions): AvatarResult {
+  const resolvedCast = options?.cast ?? useCast(props);
+  const who = options?.who ?? props.who;
+  const face = options?.face ?? props.face;
+  const seed = options?.seed ?? props.seed;
+  const src = options?.src ?? props.avatar;
+  const style = options?.style ?? props.avatarStyle;
+  const size = options?.size ?? 32;
+
+  // Defaults from cast member (if found), then overrides from props/options
+  const base = who && resolvedCast[who]
+    ? castMemberToAvatarProps(who, resolvedCast[who])
+    : { name: who ?? '', seed: who, style: 'illustrated' as const };
+
+  const avatarProps = {
+    name: base.name,
+    seed: seed ?? base.seed,
+    style: style ?? base.style,
+    src: src ?? (base as any).src,
+    options: face
+      ? { ...((base as any).options || {}), face }
+      : (base as any).options,
+  };
+
+  return {
+    avatar: <Avatar {...avatarProps} size={size} />,
+    name: base.name,
+  };
+}
+
+// =============================================================================
+// Parser support
+// =============================================================================
 
 /**
  * Parser decorator: loads `cast=""` files at parse time.

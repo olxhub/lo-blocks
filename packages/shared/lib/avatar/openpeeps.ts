@@ -134,6 +134,8 @@ export const CastSchema = z.record(z.string(), CastMemberSchema);
 // Single source of truth from the Zod schemas above.
 // Re-exported via types.ts for the rest of the codebase.
 
+export type FaceExpression = z.infer<typeof Face>;
+export type AvatarStyleValue = z.infer<typeof AvatarStyle>;
 export type OpenPeeps = z.infer<typeof OpenPeepsSchema>;
 export type CastMember = z.infer<typeof CastMemberSchema>;
 export type Cast = z.infer<typeof CastSchema>;

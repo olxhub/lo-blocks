@@ -3,12 +3,12 @@
 
 import React from 'react';
 import { useKids } from '@/lib/render';
-import { useAvatar } from '@/components/common/useAvatar';
+import * as cast from '@/lib/avatar/cast';
 
 export default function _TalkBubble(props) {
   const { side } = props;
   const { kids } = useKids(props);
-  const { avatar, name } = useAvatar(props, { size: 48 });
+  const { avatar, name } = cast.avatar(props, { size: 48 });
 
   const isPrimary = side === 'primary';
 
