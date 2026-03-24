@@ -22,8 +22,8 @@ interface AvatarProps {
   name?: string;
   src?: string;
   seed?: string;
-  style?: AvatarStyleValue;
-  options?: Partial<OpenPeeps>;
+  style?: 'illustrated' | 'initials';
+  options?: OpenPeeps;
   size?: number;
 }
 

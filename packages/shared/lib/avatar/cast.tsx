@@ -224,7 +224,7 @@ export function castMemberToAvatarProps(
   seed: string;
   style?: 'illustrated' | 'initials';
   src?: string;
-  options?: Record<string, any>;
+  options?: OpenPeeps;
 } {
   const name = member.name ?? id;
   const seed = member.seed ?? id;
