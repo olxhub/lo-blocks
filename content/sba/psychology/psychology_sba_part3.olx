@@ -15,7 +15,7 @@ lang: en-Latn-US
 
   <!-- Left Panel: SMS Conversation -->
   <LeftPane>
-    <Chat id="psych_fba_chat" src="psych_sba_part3.chatpeg" height="400px" />
+    <Chat id="psych_fba_chat" src="psych_sba_part3.chatpeg" cast="characters.cast" height="400px" />
   </LeftPane>
 
   <!-- Right Panel: Activities reference -->

@@ -2,13 +2,12 @@ title: Expertise Reversal Effect
 author: Learning Design Team
 cast:
   Professor Liu:
-    seed: liu_professor
-    face: calm
+    openPeeps:
+      face: calm
   Amara:
-    seed: amara_student
-    face: smile
-  Jordan:
-    seed: jordan_student
+    openPeeps:
+      face: smile
+  Jordan: {}
 ~~~~
 
 Introduction [id=intro]

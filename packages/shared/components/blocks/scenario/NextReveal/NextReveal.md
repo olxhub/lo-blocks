@@ -13,7 +13,7 @@ Progressive reveal container that shows children one at a time with Next buttons
 
 ```olx:code
 <NextReveal id="peer_instruction">
-  <TalkBubble speaker="Instructor">
+  <TalkBubble who="Instructor">
     <Markdown>Here's a conceptual physics question. Think about it individually first.</Markdown>
   </TalkBubble>
 
@@ -28,7 +28,7 @@ Progressive reveal container that shows children one at a time with Next buttons
     </KeyGrader>
   </CapaProblem>
 
-  <TalkBubble speaker="Instructor" position="right">
+  <TalkBubble who="Instructor" side="secondary">
     <Markdown>Now discuss with your neighbor. Convince them of your answer!</Markdown>
   </TalkBubble>
 
@@ -65,4 +65,3 @@ NextReveal provides a more conventional SBA interface than the Chat block. It:
 - Mix content types (text, activities, images) for engagement
 - Keep individual steps focused and concise
 - Use for scenarios where pacing matters
-

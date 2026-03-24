@@ -7,6 +7,7 @@ import { useFieldState, updateField } from '@/lib/state';
 import { refToReduxKey } from '@/lib/blocks/idResolver';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
+import { useCast, mergeCasts } from '@/lib/avatar/cast';
 import { useWaitConditions } from './waitConditions';
 
 import * as chatUtils from './chatUtils';
@@ -53,8 +54,11 @@ export function _Chat(props) {
   /*  Full parsed body (dialogue lines + command entries).  */
   const allEntries = kids.parsed.body;
 
-  /* Cast definitions from header YAML (optional). */
-  const participants = kids.parsed.header?.cast || null;
+  /* Cast: merge runtime cast → cast= attribute → chatpeg header cast.
+   * Most specific (header) wins. */
+  const baseCast = useCast(props);
+  const headerCast = kids.parsed.header?.cast || null;
+  const participants = mergeCasts(baseCast, headerCast);
 
   /* Validation warnings from postprocess (e.g. case-sensitivity typos). */
   const headerWarnings = kids.parsed.headerWarnings || [];

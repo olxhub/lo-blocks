@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import NavArrow from '@/components/common/NavArrow';
 import ExpandIcon from '@/components/common/ExpandIcon';
-import Avatar from '@/components/common/Avatar';
+import * as cast from '@/lib/avatar/cast';
 import { acceptString } from '@/lib/util/fileTypes';
 
 // Theme definitions
@@ -55,35 +55,27 @@ const themes = {
 };
 
 // Message component for chat lines
-const ChatMessage = ({ message, isSequential, theme, participantDef }) => {
+const ChatMessage = ({ message, isSequential, theme, participants }) => {
   const t = themes[theme] || themes.light;
-  // Merge participant defaults with per-line metadata overrides.
-  // Per-line [face=smileBig] overrides the participant's default face.
-  const avatarOptions = {
-    ...(participantDef || {}),
-    ...(message.metadata?.face ? { face: message.metadata.face } : {}),
-  };
-  // Extract Avatar-specific props from merged options
-  const { seed, style, src, name: displayName, ...dicebearOptions } = avatarOptions;
-  const hasOptions = Object.keys(dicebearOptions).length > 0;
+
+  const { avatar, name } = cast.avatar({}, {
+    who: message.speaker,
+    cast: participants ?? {},
+    face: message.metadata?.face,
+  });
+
   return (
     <div className={`flex ${isSequential ? 'mt-1' : 'mt-4'}`}>
       {!isSequential ? (
         <div className="me-2 flex-shrink-0">
-          <Avatar
-            name={message.speaker}
-            seed={seed}
-            style={style}
-            src={src}
-            options={hasOptions ? dicebearOptions : undefined}
-          />
+          {avatar}
         </div>
       ) : (
         <div className="w-10 flex-shrink-0"></div>
       )}
       <div className="flex flex-col">
         {!isSequential && (
-          <span className={`text-sm font-semibold mb-1 ${t.headerText}`}>{message.speaker}</span>
+          <span className={`text-sm font-semibold mb-1 ${t.headerText}`}>{name}</span>
         )}
         <div className={`${t.message} ${t.messageText} p-2 px-3 rounded-lg max-w-md`}>
           <ReactMarkdown>{message.text || ''}</ReactMarkdown>
@@ -357,15 +349,12 @@ export function ChatComponent({
       messages[index - 1].speaker === message.speaker;
 
     switch (message.type) {
-      case 'Line': {
-        // Look up participant definition by speaker name
-        const participantDef = participants?.[message.speaker] || null;
+      case 'Line':
         return (
           <div key={index} className="message-item">
-            <ChatMessage message={message} isSequential={isSequential} theme={theme} participantDef={participantDef} />
+            <ChatMessage message={message} isSequential={isSequential} theme={theme} participants={participants} />
           </div>
         );
-      }
       case 'SystemMessage':
         return (
           <div key={index} className="message-item">

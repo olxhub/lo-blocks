@@ -3,33 +3,33 @@
 Displays dialogue with an avatar and speech bubble, perfect for conversation-based SBAs.
 
 ```olx:playground
-<TalkBubble speaker="Kim" seed="kim_researcher">
+<TalkBubble who="Kim" seed="kim_researcher">
   <Markdown>Have you heard about Mazur's peer instruction? Students discuss with neighbors to improve conceptual understanding.</Markdown>
 </TalkBubble>
 
-<TalkBubble speaker="Alex" position="right" seed="alex_student">
+<TalkBubble who="Alex" side="secondary" seed="alex_student">
   <Markdown>The clicker method? Where students explain their reasoning to peers?</Markdown>
 </TalkBubble>
 
-<TalkBubble speaker="Kim" seed="kim_researcher" face="smile">
+<TalkBubble who="Kim" seed="kim_researcher" face="smile">
   <Markdown>Exactly! It nearly doubles learning gains on conceptual inventories like the FCI.</Markdown>
 </TalkBubble>
 ```
 
 ## Attributes
 
-- `speaker` (optional): Name of the person speaking
+- `who` (optional): Character ID (looked up in cast)
   - Appears above the speech bubble
   - Used as default seed for avatar generation
 
-- `position` (optional): `"left"` (default) or `"right"`
+- `side` (optional): `"primary"` (default) or `"secondary"`
   - Controls which side the avatar appears
-  - Left bubbles have gray background
-  - Right bubbles have blue background
+  - Primary bubbles have gray background
+  - Secondary bubbles have blue background
 
 - `seed` (optional): Override seed for DiceBear avatar generation
   - Same seed always produces the same face
-  - Defaults to speaker name if not provided
+  - Defaults to character ID if not provided
   - Use consistent seeds across TalkBubbles for the same character
 
 - `face` (optional): DiceBear expression override
@@ -43,6 +43,10 @@ Displays dialogue with an avatar and speech bubble, perfect for conversation-bas
   - Bypasses DiceBear generation entirely
   - Recommended size: 48x48 pixels
 
+- `cast` (optional): Path to a `.cast` YAML file or inline cast object
+  - Provides character definitions for avatar rendering
+  - Can also be inherited from a parent `<Cast>` block
+
 ## Avatar Styles
 
 ### Illustrated (default)
@@ -50,11 +54,11 @@ Displays dialogue with an avatar and speech bubble, perfect for conversation-bas
 DiceBear Open Peeps generates a unique illustrated face from the seed:
 
 ```olx:playground
-<TalkBubble speaker="Dr. Aronson" seed="aronson_prof" face="calm">
+<TalkBubble who="Dr. Aronson" seed="aronson_prof" face="calm">
   <Markdown>The Jigsaw classroom uses structured interdependence to reduce prejudice.</Markdown>
 </TalkBubble>
 
-<TalkBubble speaker="Student" position="right" seed="eager_student" face="smile">
+<TalkBubble who="Student" side="secondary" seed="eager_student" face="smile">
   <Markdown>Each student becomes an expert on one piece and teaches the group?</Markdown>
 </TalkBubble>
 ```
@@ -64,7 +68,7 @@ DiceBear Open Peeps generates a unique illustrated face from the seed:
 Colored circles with speaker initials — useful for narrators or system messages:
 
 ```olx:playground
-<TalkBubble speaker="System" avatarStyle="initials">
+<TalkBubble who="System" avatarStyle="initials">
   <Markdown>The following conversation is based on Hake's 1998 study of 6,000 students.</Markdown>
 </TalkBubble>
 ```
@@ -76,10 +80,10 @@ Colored circles with speaker initials — useful for narrators or system message
 Use the same `seed` across TalkBubbles to maintain a character's appearance:
 
 ```olx:code
-<TalkBubble speaker="Kim" seed="kim_01">
+<TalkBubble who="Kim" seed="kim_01">
   <Markdown>First message.</Markdown>
 </TalkBubble>
-<TalkBubble speaker="Kim" seed="kim_01" face="smile">
+<TalkBubble who="Kim" seed="kim_01" face="smile">
   <Markdown>Same face, different expression.</Markdown>
 </TalkBubble>
 ```
@@ -87,7 +91,7 @@ Use the same `seed` across TalkBubbles to maintain a character's appearance:
 ### Multi-block Content
 
 ```olx:code
-<TalkBubble speaker="Researcher" seed="researcher_01">
+<TalkBubble who="Researcher" seed="researcher_01">
   <Markdown>Look at the results from Hake's study:</Markdown>
   <Image src="/images/hake-gains.png" />
   <Markdown>Interactive engagement nearly doubled learning gains.</Markdown>
@@ -107,7 +111,7 @@ The visual design mimics messaging apps, making it familiar and approachable. Fo
 ## Tips
 
 - Use consistent `seed` values for consistent character appearance
-- Alternate `position` between speakers for visual distinction
+- Alternate `side` between speakers for visual distinction
 - Combine with NextReveal for progressive dialogue
 - Keep individual messages concise (like real conversation)
 - Use Chat instead of TalkBubble for dialogues with pauses, waits, or sidebar activities
@@ -116,4 +120,3 @@ The visual design mimics messaging apps, making it familiar and approachable. Fo
 
 - **Chat** — Interactive dialogue with flow control (chatpeg format)
 - **NextReveal** — Progressive reveal for TalkBubble sequences
-- **Avatar** — Shared avatar component (used internally)

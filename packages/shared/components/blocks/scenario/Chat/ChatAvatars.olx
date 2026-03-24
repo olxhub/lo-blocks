@@ -3,10 +3,12 @@ title: Research Methods Seminar
 cast:
   Professor Chen:
     seed: chen_professor
-    face: calm
+    openPeeps:
+      face: calm
   Maya:
     seed: maya_grad
-    face: smile
+    openPeeps:
+      face: smile
   Jordan:
     style: initials
 ~~~~

@@ -1,0 +1,29 @@
+<TeamDirectory id="TeamDirectoryDemo" title="Comm360 Team">
+Ty:
+  name: Ty
+  seed: ty_intern
+  openPeeps:
+    face: smile
+  profile:
+    role: Data Analysis Intern
+    bio: Focuses on quantitative research and data visualization.
+  groups: [interns]
+Peggy:
+  name: Peggy
+  seed: peggy_intern
+  openPeeps:
+    face: calm
+  profile:
+    role: Community Outreach Intern
+    bio: Specializes in community engagement and partnership development.
+  groups: [interns]
+Lacy:
+  name: Lacy
+  seed: lacy_intern
+  openPeeps:
+    face: cheeky
+  profile:
+    role: Program Development Intern
+    bio: Focused on designing and evaluating new program initiatives.
+  groups: [interns]
+</TeamDirectory>

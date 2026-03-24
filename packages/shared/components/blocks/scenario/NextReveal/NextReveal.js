@@ -15,7 +15,7 @@ const NextReveal = core({
   description: 'Progressive reveal container that shows children one at a time with Next buttons, scrolling to bottom on Next but allowing up-scrolling',
   component: _NextReveal,
   fields,
-  category: 'layout',
+
   attributes: baseAttributes.strict(),
 });
 

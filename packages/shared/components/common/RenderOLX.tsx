@@ -92,7 +92,8 @@ export function useBaselineRuntime(): LoBlockRuntimeContext {
     store,
     logEvent,
     sideEffectFree,
-    locale: { code: 'eo' as UserLocale, dir: 'ltr' }  // Esperanto placeholder - overwritten from Redux/browser below
+    locale: { code: 'eo' as UserLocale, dir: 'ltr' },  // Esperanto placeholder - overwritten from Redux/browser below
+    cast: {},
   };
 
   // Wrap in BaselineProps structure for useSetting
@@ -120,7 +121,8 @@ export function useBaselineRuntime(): LoBlockRuntimeContext {
     store,
     logEvent,
     sideEffectFree,
-    locale
+    locale,
+    cast: {},
   };
 }
 
@@ -429,6 +431,7 @@ export default function RenderOLX({
     olxJsonSources: [source],
     idPrefix: '' as IdPrefix,
     locale: renderProps.locale,
+    cast: {},
   };
 
   // Stabilize root nodeInfo across renders so renderedKids accumulates
