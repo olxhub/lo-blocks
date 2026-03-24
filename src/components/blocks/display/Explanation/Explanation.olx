@@ -1,7 +1,0 @@
-<CapaProblem id="ExplanationDemo" title="Basic Explanation">
-  What is 2 + 2?
-  <NumericalGrader answer="4">
-    <NumberInput />
-    <Explanation><Markdown>Addition: 2 + 2 = 4</Markdown></Explanation>
-  </NumericalGrader>
-</CapaProblem>

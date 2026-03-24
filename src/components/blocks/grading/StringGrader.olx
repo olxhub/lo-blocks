@@ -1,6 +1,0 @@
-<CapaProblem id="StringGraderDemo" title="Assessment Terminology">
-  What is the term for a wrong answer option in a multiple choice question?
-  <StringGrader answer="distractor" ignoreCase="true">
-    <LineInput />
-  </StringGrader>
-</CapaProblem>

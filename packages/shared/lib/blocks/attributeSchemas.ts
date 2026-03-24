@@ -88,6 +88,12 @@ export const z_expression = z.union([
   z.object({ expr: z.string(), ast: z.any() }),
 ]);
 
+/**
+ * Trigger mode: "once" fires the first time only, "each" fires every transition.
+ * Shared by OnShow, Trigger, and future trigger-like blocks.
+ */
+export const z_triggerMode = z.enum(['once', 'each']).default('once');
+
 // =============================================================================
 // Reusable ID Schemas
 // =============================================================================
@@ -257,6 +263,12 @@ export const baseAttributes = z.object({
   lang: z.string().optional().describe('BCP 47 language tag (e.g., en-Latn-US, ar-Arab-SA). Overrides parent and file-level language.'),
   when: z_expression.optional()
     .describe('State-language expression controlling visibility (e.g. "@quiz.correct === correctness.correct")'),
+  popout: z.string().optional()
+    .refine(val => {
+      if (!val) return true;
+      return /^(window|fullscreen)(:(tl|tr|bl|br))?$/.test(val);
+    }, 'popout must be "window" or "fullscreen", optionally with position (:tl, :tr, :bl, :br)')
+    .describe('Pop-out mode: "window" or "fullscreen", with optional button position (:tl, :tr, :bl, :br)'),
 }).strict();
 
 // =============================================================================

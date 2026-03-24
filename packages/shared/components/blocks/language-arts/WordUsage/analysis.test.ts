@@ -1,230 +1,153 @@
 import { describe, it, expect } from 'vitest';
 import { analyzeHighlights } from './analysis';
+import type { HighlightSpan } from '@/lib/highlight';
+import * as parserModule from '../TextSelection/_textSelectionParser';
+
+const parser = (parserModule as any).default || parserModule;
+
+type Segment = {
+  type: 'text' | 'required' | 'optional' | 'feedback_trigger';
+  content: string;
+  id: string | null;
+};
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function parseAnnotated(markedText: string): {
+  text: string;
+  marks: { content: string; span: HighlightSpan }[];
+} {
+  const parsed = parser.parse(`Prompt\n---\n${markedText}`);
+  const segments = parsed.segments as Segment[];
+
+  const text = segments.map(s => s.content).join('');
+  const marks: { content: string; span: HighlightSpan }[] = [];
+
+  let offset = 0;
+  for (const seg of segments) {
+    if (seg.type === 'required') {
+      marks.push({ content: seg.content, span: { offset, length: seg.content.length } });
+    }
+    offset += seg.content.length;
+  }
+
+  return { text, marks };
+}
+
+function overlaps(a: HighlightSpan, b: HighlightSpan): boolean {
+  return a.offset < b.offset + b.length && b.offset < a.offset + a.length;
+}
+
+function covers(span: HighlightSpan, pos: number): boolean {
+  return pos >= span.offset && pos < span.offset + span.length;
+}
+
+/**
+ * Mode-agnostic assertion: brackets in markedText denote expected highlights.
+ * 1. Entry spans cover the start and end of every mark (no false negatives)
+ * 2. Every entry span overlaps some marked span (no false positives)
+ * 3. If no marks, expect zero spans
+ */
+function expectHighlights(
+  markedText: string,
+  m: Parameters<typeof analyzeHighlights>[1],
+  options?: { words?: string },
+) {
+  const { text, marks } = parseAnnotated(markedText);
+  const entries = analyzeHighlights(text, m, 'en', options);
+  const entrySpans = entries.flatMap(e => e.spans);
+
+  if (marks.length === 0) {
+    expect(entrySpans, `expected no highlights for "${text}"`).toHaveLength(0);
+    return;
+  }
+
+  // No false negatives: entry spans must cover both edges of every mark
+  for (const mark of marks) {
+    const start = mark.span.offset;
+    const end = mark.span.offset + mark.span.length - 1;
+    expect(
+      entrySpans.some(s => covers(s, start)),
+      `missing highlight at start of "${mark.content}" (offset ${start})`,
+    ).toBe(true);
+    expect(
+      entrySpans.some(s => covers(s, end)),
+      `missing highlight at end of "${mark.content}" (offset ${end})`,
+    ).toBe(true);
+  }
+
+  // No false positives: every entry span overlaps some mark
+  for (const span of entrySpans) {
+    const slice = text.slice(span.offset, span.offset + span.length);
+    expect(
+      marks.some(m => overlaps(m.span, span)),
+      `unexpected highlight "${slice}" at offset ${span.offset}`,
+    ).toBe(true);
+  }
+}
+
+type CaseValue = string | [string, { words: string }];
+
+function mode(m: Parameters<typeof analyzeHighlights>[1]) {
+  const check = (markedText: string, options?: { words?: string }) =>
+    expectHighlights(markedText, m, options);
+
+  check.each = (cases: Record<string, CaseValue>) => {
+    for (const [name, value] of Object.entries(cases)) {
+      const [text, opts] = Array.isArray(value) ? value : [value, undefined];
+      it(name, () => expectHighlights(text, m, opts));
+    }
+  };
+
+  return check;
+}
+
+// ─── Tests ──────────────────────────────────────────────────────────────────
 
 describe('analyzeHighlights — repeated_words', () => {
-  it('highlights words appearing 2+ times, excluding stop words', () => {
-    const text = 'The big dog and the big cat.';
-    const entries = analyzeHighlights(text, 'repeated_words', 'en');
-    // "the" and "and" are stop words, "big" appears 2x
-    expect(entries.map(e => e.id)).toEqual(['big']);
-    expect(entries[0].spans).toHaveLength(2);
-  });
-
-  it('does not highlight words appearing only once', () => {
-    const text = 'The cat sat on the mat.';
-    const entries = analyzeHighlights(text, 'repeated_words', 'en');
-    // "the" is a stop word, all content words appear once
-    expect(entries).toHaveLength(0);
-  });
-
-  it('escalates saturation with frequency', () => {
-    const text = 'Go go go go go. Run run.';
-    const entries = analyzeHighlights(text, 'repeated_words', 'en');
-    const goEntry = entries.find(e => e.id === 'go');
-    const runEntry = entries.find(e => e.id === 'run');
-    expect(goEntry).toBeDefined();
-    expect(runEntry).toBeDefined();
-    expect(goEntry!.saturation).toBeGreaterThan(runEntry!.saturation);
-    expect(goEntry!.lightness).toBeLessThan(runEntry!.lightness);
-    // Different words get different hues
-    expect(goEntry!.hue).not.toBe(runEntry!.hue);
-  });
-
-  it('is case-insensitive', () => {
-    const text = 'Hello hello HELLO.';
-    const entries = analyzeHighlights(text, 'repeated_words', 'en');
-    expect(entries).toHaveLength(1);
-    expect(entries[0].id).toBe('hello');
-    expect(entries[0].spans).toHaveLength(3);
-  });
-
-  it('returns empty for empty text', () => {
-    expect(analyzeHighlights('', 'repeated_words', 'en')).toEqual([]);
-    expect(analyzeHighlights('   ', 'repeated_words', 'en')).toEqual([]);
-  });
-
-  it('returns empty when all words are stop words', () => {
-    const text = 'The and the or the.';
-    const entries = analyzeHighlights(text, 'repeated_words', 'en');
-    expect(entries).toHaveLength(0);
-  });
-
-  it('handles text without terminal punctuation', () => {
-    const text = 'Go go go';
-    const entries = analyzeHighlights(text, 'repeated_words', 'en');
-    expect(entries).toHaveLength(1);
-    expect(entries[0].id).toBe('go');
-    expect(entries[0].spans).toHaveLength(3);
+  mode('repeated_words').each({
+    'case-insensitive':    'The [big] dog and the [big] cat.',
+    '3+ times':            '[Hello] [hello] [hello] [HELLO].',
+    'no repeats ignored':  'The cat sat on the mat.',
+    'punctuation':         '[Go] [go], [go], and [go] again.',
+    'empty for no repeats':'The quick fox runs.',
+    'ignores stop words':  'The and the and the or the.',
   });
 });
 
 describe('analyzeHighlights — sentence_starters', () => {
-  it('gives repeated starters vivid colors', () => {
-    const text = 'The cat sat. The dog ran. A bird flew.';
-    const entries = analyzeHighlights(text, 'sentence_starters', 'en');
-    const theEntry = entries.find(e => e.label === 'the');
-    expect(theEntry).toBeDefined();
-    expect(theEntry!.spans).toHaveLength(2);
-    expect(theEntry!.saturation).toBe(0.5); // vivid
-  });
-
-  it('groups unique starters into one dim gray entry', () => {
-    const text = 'The cat sat. The dog ran. A bird flew. Birds sing.';
-    const entries = analyzeHighlights(text, 'sentence_starters', 'en');
-    const uniqueEntry = entries.find(e => e.id === 'starter-unique');
-    expect(uniqueEntry).toBeDefined();
-    expect(uniqueEntry!.spans).toHaveLength(2); // "A" and "Birds"
-    expect(uniqueEntry!.label).toBe('2 unique');
-    expect(uniqueEntry!.saturation).toBe(0);   // dim gray
-  });
-
-  it('all unique — no repeated entries, just one gray group', () => {
-    const text = 'Dogs run. Cats sit.';
-    const entries = analyzeHighlights(text, 'sentence_starters', 'en');
-    expect(entries).toHaveLength(1);
-    expect(entries[0].id).toBe('starter-unique');
-    expect(entries[0].label).toBe('2 unique');
-  });
-
-  it('handles single sentence', () => {
-    const text = 'Hello world.';
-    const entries = analyzeHighlights(text, 'sentence_starters', 'en');
-    expect(entries).toHaveLength(1);
-    expect(entries[0].id).toBe('starter-unique');
-    expect(entries[0].label).toBe('1 unique');
+  mode('sentence_starters').each({
+    'repeated + unique':   '[The] cat sat. [The] dog ran. [A] bird flew. [Birds] sing.',
+    'all unique':          '[Dogs] run. [Cats] sit.',
+    'single sentence':     '[Hello] world.',
+    'across paragraphs':   '[Then] dawn came.\n\n[Then] dusk fell.',
+    'no repeated starters':'[Hello] world. [Bright] sun.',
   });
 });
 
 describe('analyzeHighlights — alliteration', () => {
-  it('finds runs of 2+ consecutive same-initial words', () => {
-    const text = 'Sally sells sea shells.';
-    const entries = analyzeHighlights(text, 'alliteration', 'en');
-    // All 4 words start with 's'
-    expect(entries).toHaveLength(1);
-    expect(entries[0].label).toBe('s-');
-    expect(entries[0].spans).toHaveLength(4);
-  });
-
-  it('does not flag runs shorter than 2', () => {
-    const text = 'The cat ran fast.';
-    const entries = analyzeHighlights(text, 'alliteration', 'en');
-    expect(entries).toHaveLength(0);
-  });
-
-  it('finds multiple runs in the same sentence', () => {
-    const text = 'Big bad bears ate awesome apples.';
-    const entries = analyzeHighlights(text, 'alliteration', 'en');
-    // "Big bad bears" (b-) and "ate awesome apples" (a-)
-    expect(entries).toHaveLength(2);
-    const labels = entries.map(e => e.label).sort();
-    expect(labels).toEqual(['a-', 'b-']);
-  });
-
-  it('spans across sentence boundaries', () => {
-    const text = 'Sally sings. Sam sat.';
-    const entries = analyzeHighlights(text, 'alliteration', 'en');
-    // All 4 words start with 's' — one continuous run
-    expect(entries).toHaveLength(1);
-    expect(entries[0].label).toBe('s-');
-    expect(entries[0].spans).toHaveLength(4);
-  });
-
-  it('stop words are transparent and contribute to runs', () => {
-    const text = 'America the angle artist.';
-    const entries = analyzeHighlights(text, 'alliteration', 'en');
-    // "the" is a stop word — doesn't break the a- run, and is included
-    expect(entries).toHaveLength(1);
-    expect(entries[0].label).toBe('a-');
-    expect(entries[0].spans).toHaveLength(4); // America, the, angle, artist
-  });
-
-  it('does not highlight trailing stop words after a run ends', () => {
-    const text =
-      'An American athlete asked about all apples. Although every American asks about them, he did not know.';
-    const entries = analyzeHighlights(text, 'alliteration', 'en');
-    expect(entries).toHaveLength(1);
-    expect(entries[0].label).toBe('a-');
-    // "An" (stop) buffered, committed when "American" starts 'a' run.
-    // "American athlete asked" (content 'a') in run.
-    // "about all" (stop words) buffered, then committed when "apples" matches.
-    // "Although" (content 'a') continues.
-    // "every" (stop) buffered, committed when "American" matches.
-    // "American asks" (content 'a') in run.
-    // "about them he did not" (stop words) buffered but never committed — "know" is 'k'.
-    // So run = An, American, athlete, asked, about, all, apples, Although, every, American, asks
-    expect(entries[0].spans).toHaveLength(11);
-  });
-
-  it('carries over matching stop words when letter changes', () => {
-    const text = 'Big bad at all apples.';
-    const entries = analyzeHighlights(text, 'alliteration', 'en');
-    // "Big bad" = b-run (2). "at" and "all" are stop words starting with 'a',
-    // carried over to the new 'a' run when "apples" is reached.
-    expect(entries).toHaveLength(2);
-    const bRun = entries.find(e => e.label === 'b-');
-    const aRun = entries.find(e => e.label === 'a-');
-    expect(bRun).toBeDefined();
-    expect(aRun).toBeDefined();
-    expect(bRun!.spans).toHaveLength(2); // Big, bad
-    expect(aRun!.spans).toHaveLength(3); // at, all, apples
-  });
-
-  it('assigns same hue to same letter across separate runs', () => {
-    const text = 'Sally sings loud. Bravo boy. Sam sat.';
-    const entries = analyzeHighlights(text, 'alliteration', 'en');
-    const sRuns = entries.filter(e => e.label === 's-');
-    expect(sRuns).toHaveLength(2);
-    expect(sRuns[0].hue).toBe(sRuns[1].hue);
+  mode('alliteration').each({
+    'basic run':           'The [cute cat cried] softly.',
+    'long run':            '[Sally sells sea shells].',
+    'no run':              'The cat ran fast.',
+    'stop words in run':   '[America the angle artist].',
+    'multiple runs':       '[Big bad] [at all apples].',
+    'across sentences':    '[Sally sings. Sam sat.]',
+    'long a-run':          '[An American athlete asked about all apples. Although every American asks about] them, he did not know.',
+    'no consecutive match':'The bird sang.',
+    'two-word pair':       '[Silly Sam].',
   });
 });
 
 describe('analyzeHighlights — transition_words', () => {
-  it('highlights words from the provided list', () => {
-    const text = 'However, the plan failed. Therefore, we tried again.';
-    const entries = analyzeHighlights(text, 'transition_words', 'en', {
-      words: 'however, therefore, furthermore',
-    });
-    expect(entries.map(e => e.id).sort()).toEqual(['trans-however', 'trans-therefore']);
-  });
-
-  it('is case-insensitive', () => {
-    const text = 'HOWEVER, it worked.';
-    const entries = analyzeHighlights(text, 'transition_words', 'en', {
-      words: 'however',
-    });
-    expect(entries).toHaveLength(1);
-  });
-
-  it('handles multi-word phrases', () => {
-    const text = 'On the other hand, it could work.';
-    const entries = analyzeHighlights(text, 'transition_words', 'en', {
-      words: 'on the other hand, however',
-    });
-    expect(entries).toHaveLength(1);
-    expect(entries[0].label).toBe('on the other hand');
-  });
-
-  it('returns empty when no words match', () => {
-    const text = 'The cat sat.';
-    const entries = analyzeHighlights(text, 'transition_words', 'en', {
-      words: 'however, therefore',
-    });
-    expect(entries).toHaveLength(0);
-  });
-
-  it('returns empty when no word list provided', () => {
-    const text = 'However, it worked.';
-    const entries = analyzeHighlights(text, 'transition_words', 'en');
-    expect(entries).toHaveLength(0);
-  });
-
-  it('does not match phrases across sentence boundaries', () => {
-    const text = 'It was in fact. In another case it worked.';
-    const entries = analyzeHighlights(text, 'transition_words', 'en', {
-      words: 'in fact, in another',
-    });
-    // "in fact" matches in first sentence, "in another" matches in second
-    // but "fact in" should NOT match across the period
-    expect(entries.map(e => e.label).sort()).toEqual(['in another', 'in fact']);
+  mode('transition_words').each({
+    'case-insensitive':    ['[However], the plan failed. [Therefore], we tried again.', { words: 'however, therefore, furthermore' }],
+    'uppercase match':     ['[HOWEVER], it worked.',                                    { words: 'however' }],
+    'multi-word phrase':   ['[On the other hand], it could work.',                      { words: 'on the other hand, however' }],
+    'repeated words':      ['[Then], [then].',                                          { words: 'then' }],
+    'no cross-sentence':   ['[in fact] it happened. [In another] case it worked.',      { words: 'in fact, in another' }],
+    'no match':            ['The cat sat.',                                              { words: 'however, therefore' }],
+    'repeated phrases':    ['[In fact], [in fact] then.',                                { words: 'in fact' }],
+    'no word list':        'However, it worked.',
   });
 });

@@ -1,7 +1,0 @@
-<CheckboxInput id="CheckboxInputDemo">
-  <Key>LON-CAPA</Key>
-  <Key>Open edX</Key>
-  <Key>Learning Observer</Key>
-  <Distractor>Blackboard</Distractor>
-  <Distractor>Canvas</Distractor>
-</CheckboxInput>

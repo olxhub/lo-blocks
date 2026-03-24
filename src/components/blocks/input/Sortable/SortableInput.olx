@@ -1,5 +1,0 @@
-<SortableInput id="SortableInputDemo">
-  <TextBlock>First item</TextBlock>
-  <TextBlock>Second item</TextBlock>
-  <TextBlock>Third item</TextBlock>
-</SortableInput>

@@ -1,6 +1,0 @@
-<CapaProblem id="DefaultGraderDemo" title="Open-Ended Reflection">
-  What did you learn from this lesson?
-  <DefaultGrader score="1" feedback="Thank you for your reflection!">
-    <LineInput/>
-  </DefaultGrader>
-</CapaProblem>

@@ -43,15 +43,21 @@ Comm360's services can be developed to address the problem.
 In the next 45-60 minutes you will work with your teammates to complete the following tasks:
  1. _Brainstorm causes for high school dropout._
  2. _Review community focus group data._
- 3. _Reflect: Is this an interdisciplinary problem?_
- 4. _Review the literature._
- 5. _Map disciplinary insights._
- 5. _Develop a problem statement that synthesizes results and justifies an interdisciplinary approach
+ 3. _Select Focus Areas._
+ 4. _Reflect: Is this an interdisciplinary problem?_
+ 5. _Review the literature._
+ 6. _Map disciplinary insights._
+ 7. _Develop a problem statement that synthesizes results and justifies an interdisciplinary approach
      tailored to the Comm360 goals._
   </Markdown>
 
+  <Markdown id="cause_brainstorming">
+## Brainstorming causes for high school dropout
+  </Markdown>
+
   <Markdown id="internal_and_structural_causes">
-## Internal and Structural Causes
+## Brainstorming causes for high school dropout
+### Internal and Structural Causes
 
  - **Internal Causes** arise from **inside** the student; 
      for instance, they may get sick and be unable to keep up with the work.
@@ -64,6 +70,13 @@ In the next 45-60 minutes you will work with your teammates to complete the foll
 
   <!-- TEAM AND LIBRARY - resolved from interdisciplinary_sba.olx -->
 
+  <Vertical id="interdisciplinary_team_intro">
+      <Markdown>
+## Introduction to the Team
+      </Markdown>
+      <Use ref="interdisciplinary_team_members" />
+  </Vertical>
+
   <!-- ============================================================
        TASKSET 1: BRAINSTORM CAUSES
        ============================================================ -->
@@ -71,7 +84,8 @@ In the next 45-60 minutes you will work with your teammates to complete the foll
 
     <!-- Input for student's causes -->
     <Vertical id="cause_inputs">
-      <Markdown>**Think of two causes for high school dropout:**</Markdown>
+<Markdown>## Brainstorming causes for high school dropout</Markdown>
+<Markdown>**Think of two causes for high school dropout:**</Markdown>
       <Markdown>**Your individual cause (internal):** Type a cause that focuses on an individual's choice or situation:</Markdown>
       <TextArea id="cause_internal" placeholder="e.g., Students who struggle with learning disabilities..." />
       <Markdown>**Your structural cause:** Type a cause that focuses on external factors beyond the individual:</Markdown>
@@ -80,6 +94,7 @@ In the next 45-60 minutes you will work with your teammates to complete the foll
 
     <!-- Combined list of causes from team + student -->
     <Vertical id="causes_list">
+<Markdown>## Brainstorming causes for high school dropout</Markdown>
       <Markdown>
 **Combined Causes from Team Discussion:**
 
@@ -112,44 +127,174 @@ In the next 45-60 minutes you will work with your teammates to complete the foll
 
     <!-- Focus group transcript part 1 -->
     <Vertical id="focus_group_transcript_pt1">
-      <Markdown>**Focus Group Transcript (Part 1)**</Markdown>
-      <TextSelection id="focus_group_pt1" mode="selfcheck">
-Highlight reasons participants gave for dropping out:
----
-**Moderator:** Thank you all for being here. We want to understand why young people leave high school before graduating. Let's start with what you've seen in your community.
+      <Markdown>**Focus Group Transcript (Part 1)**
+**Highlight places in the text where a participant mentions a cause of high school dropout,
+and add an annotation that says why this statement identifies a dropout cause. You'll be able
+to use these notes later.** 
 
-**Parent 1:** I've seen kids who just [couldn't keep up academically]. They fell behind and gave up. Some had [learning problems] that were never addressed.
+_You can expand the text to a full window by clicking on the square double arrow icon below to the
+right of "Annotations"._
+</Markdown>
+      <Annotate id="focus_group_pt1" title="Focus Group Transcript (Part 1)" popout="window">
+          <Markdown id="transcript_md1">
+## Reviewing community focus group data
+### Focus Group Transcript
 
-**Teacher:** In my experience, many students [need to work to help their families]. They take jobs and can't balance both. The [economic pressure] is real.
+**Interviewer:** 
+Thank you for participating in this focus group and thank you for providing your consent to have this meeting recorded. Let's begin. Our community needs survey identified high school dropout rates as an issue of concern. The purpose of this focus group is to discuss causes of dropping out of high school. Why do you think students in our community dropout of high school? 
 
-**Community Member:** There's also the [gang activity in some neighborhoods]. Kids get pulled in, and school becomes secondary to survival.
+**Participant 1:**
+I'll start. My kids all graduated from high school. Whenever they complained or they felt like quitting, we kept on them to keep at it. Luckily, so did their friends. Everybody around them just wouldn't let them quit. While they did not get along with all their teachers, they had some FANTASTIC teachers who supported them. So, we all helped them to stick it out. 
 
-**Parent 2:** [Depression and anxiety] are huge issues. My neighbor's son stopped going because he [couldn't face the social environment]. Nobody helped him.
-      </TextSelection>
-    </Vertical>
+**Participant 2:**
+Those are some good friends to have! I'm not always sure what influence my daughter's friends are having on her - good or bad. 
 
-    <!-- Focus group transcript part 2 -->
-    <Vertical id="focus_group_transcript_pt2">
-      <Markdown>**Focus Group Transcript (Part 2)**</Markdown>
-      <TextSelection id="focus_group_pt2" mode="selfcheck">
-Continue highlighting reasons for dropping out:
----
-**Counselor:** I see students who feel [disconnected from the curriculum]. They don't see how algebra helps them get a job. [Relevance] is a major factor.
+**Interviewer 1:**
+Thank you for sharing your experiences. But for now, I'd like us to focus on the causes leading to students dropping out. Later, we can discuss the kinds of actions and support that can help them to persist to graduation. 
 
-**Former Student:** I dropped out because I had a [baby and no childcare]. The school didn't have any support for teen parents. I wanted to graduate but saw no path forward.
+**Participant 3:**
+I have an experience to share. My daughter's best friend has dyslexia and was falling behind in all her classes. Her grades were awful. And she wasn't getting the help that she needed from the school to catch up. When my daughter was a sophomore, her friend dropped out because she couldn't cope. 
 
-**Teacher 2:** Some students have [unstable home lives]. They move frequently, change schools, and never build connections. [Lack of support networks] makes it hard.
+**Participant 1:**
+That probably wasn't easy for your daughter or her friend. 
 
-**Community Leader:** We need to talk about [school funding]. Underfunded schools can't provide the resources - tutoring, counseling, special ed services - that keep struggling students in school.
+**Participant 3:**
+Yes, my daughter was really upset. She knew her friend since elementary school. Thankfully, her friend was able to get tutoring at a community center that helped her improve her reading and she eventually got her GED. 
 
-**Parent 1:** And some families prioritize [cultural or religious responsibilities] over American-style education. That's their choice, but it affects graduation rates.
-      </TextSelection>
+**Participant 2:**
+If our schools had more tutoring or mentorship programs, we might be able to help our kids before they drop out, instead of after it is too late. 
+
+**Interviewer:**
+Thanks for that suggestion, but if you don't mind holding off on those kinds of ideas until we get to that part of the focus group, I'll bring that up again for more discussion. 
+
+**Participant 2:**
+Oh, sure. No problem. 
+
+**Participant 4:**
+Here's something - kind of big picture, but I know   some parents who still believe that graduating from high school isn't as important or as high a priority as supporting the family. 
+
+**Interviewer:**
+Can you tell us more about that? 
+
+**Participant 4:**
+Well, I know this because of some of my neighbors. One of my son's friend's parents had steady, good paying jobs for years working in their family's restaurant. Another family has a small business and expect their kids to take it over. These parents did not have or need high school degrees to get those jobs. They want their children to follow in their footsteps. 
+
+So, whether it is to work in the family business or just to take care of an elder family member instead of going to school, they tell me that's more important for their children to help out than getting a high school diploma. 
+
+**Interviewer:**
+Thank you. The values and beliefs of families can be complicated influences on their children. 
+
+**Participant 5:**
+I don't know if this is appropriate, but I do know that   behavioral and especially legal issues can lead to dropping out. 
+
+**Interviewer:**
+Can you tell us more about that? 
+
+**Participant 5:**
+I work in a community legal office. And, well, sometimes I am called in to represent young people who get in trouble with the law or arrested. It could be getting caught shoplifting or something more serious like ...well, you can imagine. Whether they are eventually found guilty or innocent, it can have an impact on completing school to graduation. The entire experience with the legal system can take time and resources, creating stress on the youth and families. Then, the youth faces the social pressures in school from friends, classmates, and teachers, even when they are trying to be supportive. 
+
+And in some schools with no-tolerance policies, once school administrators find out about the allegations, the student may be expelled. 
+
+A young adult may feel trapped and dropping out may seem like the best option. 
+
+**Participant 3:**
+Mmmmm, yeah, I can see that. 
+
+**Interviewer:**
+Are there any other comments on the causes? [interviewer pause] OK, let's move on to the next part of the focus group.
+       </Markdown>
+    </Annotate>
     </Vertical>
 
     <!-- Display of focus group highlights -->
     <Vertical id="focus_group_highlights_shown">
-      <Markdown>**Your Focus Group Highlights:**</Markdown>
-      <Markdown>The text you highlighted identifies key causes mentioned by community members. These will be combined with the team's brainstormed causes.</Markdown>
+          <Markdown id="transcript_md2">
+## Reviewing community focus group data
+### Focus Group Transcript
+`The Parts of the Passage Ty Annotated`
+
+**Interviewer:** 
+Thank you for participating in this focus group and thank you for providing your consent to have this meeting recorded. Let's begin. Our community needs survey identified high school dropout rates as an issue of concern. The purpose of this focus group is to discuss causes of dropping out of high school. Why do you think students in our community dropout of high school? 
+
+**Participant 1:**
+I'll start. My kids all graduated from high school. Whenever they complained or they felt like quitting, we kept on them to keep at it. Luckily, so did their friends. `Everybody around them just wouldn't let them quit.` While they did not get along with all their teachers, they had some FANTASTIC teachers who supported them. So, we all helped them to stick it out. 
+
+**Participant 2:**
+Those are some good friends to have! `I'm not always sure what influence my daughter's friends are having on her - good or bad.` 
+
+**Interviewer 1:**
+Thank you for sharing your experiences. But for now, I'd like us to focus on the causes leading to students dropping out. Later, we can discuss the kinds of actions and support that can help them to persist to graduation. 
+
+**Participant 3:**
+I have an experience to share. `My daughter's best friend has dyslexia and was falling behind in all her classes. Her grades were awful. And she wasn't getting the help that she needed from the school to catch up.` When my daughter was a sophomore, her friend dropped out because she couldn't cope. 
+
+**Participant 1:**
+That probably wasn't easy for your daughter or her friend. 
+
+**Participant 3:**
+Yes, my daughter was really upset. She knew her friend since elementary school. Thankfully, her friend was able to get tutoring at a community center that helped her improve her reading and she eventually got her GED. 
+
+**Participant 2:**
+If our schools had more tutoring or mentorship programs, we might be able to help our kids before they drop out, instead of after it is too late. 
+
+**Interviewer:**
+Thanks for that suggestion, but if you don't mind holding off on those kinds of ideas until we get to that part of the focus group, I'll bring that up again for more discussion. 
+
+**Participant 2:**
+Oh, sure. No problem. 
+
+**Participant 4:**
+Here's something - kind of big picture, but I know   some parents who still believe that graduating from high school isn't as important or as high a priority as supporting the family. 
+
+**Interviewer:**
+Can you tell us more about that? 
+
+**Participant 4:**
+Well, I know this because of some of my neighbors. One of my son's friend's parents had steady, good paying jobs for years working in their family's restaurant. Another family has a small business and expect their kids to take it over. `These parents did not have or need high school degrees to get those jobs.` They want their children to follow in their footsteps. 
+
+So, whether it is to work in the family business or just to take care of an elder family member instead of going to school, they tell me that's more important for their children to help out than getting a high school diploma. 
+
+**Interviewer:**
+Thank you. `The values and beliefs of families can be complicated influences on their children. `
+
+**Participant 5:**
+I don't know if this is appropriate, but I do know that   behavioral and especially legal issues can lead to dropping out. 
+
+**Interviewer:**
+Can you tell us more about that? 
+
+**Participant 5:**
+I work in a community legal office. And, well, sometimes I am called in to represent young people who get in trouble with the law or arrested. It could be getting caught shoplifting or something more serious like ...well, you can imagine. Whether they are eventually found guilty or innocent, it can have an impact on completing school to graduation. The entire experience with the legal system can take time and resources, creating stress on the youth and families. Then, the youth faces the social pressures in school from friends, classmates, and teachers, even when they are trying to be supportive. 
+
+`And in some schools with no-tolerance policies, once school administrators find out about the allegations, the student may be expelled. `
+
+A young adult may feel trapped and dropping out may seem like the best option. 
+
+**Participant 3:**
+Mmmmm, yeah, I can see that. 
+
+**Interviewer:**
+Are there any other comments on the causes? [interviewer pause] OK, let's move on to the next part of the focus group.
+       </Markdown>
+    </Vertical>
+
+    <Vertical id="reasons_list">
+    <Markdown>
+## Reviewing community focus group data
+### List of causes of high school dropout
+ - Some school systems can't accommodate students with physical or other disabilities
+ - Students need to earn money right away to help their family
+ - Schools use curricula that students don't see as relevant
+ - Student's environment with gang activity, neighborhood instability
+ - Conditions like depression, anxiety, or ADHD interfere with engagement
+ - Students lack family, friends, or teacher support
+ - Negative peer influences encourage dropping out
+ - Cultural responsibilities more important than high school
+ - Legal trouble makes it difficult to continue school
+ - Lack of school funding for support services
+ - Teen pregnancy with no school support
+ - Substance abuse issues
+      </Markdown>
     </Vertical>
 
     <!-- Checklist of reasons to research -->
@@ -169,6 +314,7 @@ Continue highlighting reasons for dropping out:
         <Key id="reason_pregnancy" value="Teen pregnancy without support">Teen pregnancy with no school support</Key>
         <Key id="reason_substance" value="Substance abuse">Substance abuse issues</Key>
       </CheckboxInput>
+      <StateViewer target="reasons" />
     </Vertical>
 
     <!-- Display selected reasons -->
@@ -179,6 +325,7 @@ Continue highlighting reasons for dropping out:
 
     <!-- Explanation input -->
     <Vertical id="reason_explanation_input">
+      <Use id="reasons_shown2" ref="reasons_shown" />
       <Markdown>**Explain why you selected these causes:**</Markdown>
       <TextArea id="reason_explanation" placeholder="I selected these causes because..." />
     </Vertical>
@@ -189,10 +336,15 @@ Continue highlighting reasons for dropping out:
        ============================================================ -->
   <Vertical id="interdisciplinary_taskset3">
 
+    <Markdown id="task_set_3_intro">
+## Reflecting: Is this an interdisciplinary problem?
+    </Markdown>
+
     <!-- Repko's Broad Model -->
     <Vertical id="broad_model_display">
       <Markdown>
-## Repko's Broad Model of Interdisciplinary Research
+## Reflecting: Is this an interdisciplinary problem?
+### Repko's Broad Model of Interdisciplinary Research
 
 According to Repko and colleagues (2019), a problem qualifies for interdisciplinary research when:
 
@@ -247,19 +399,50 @@ This confirms that the high school dropout problem spans multiple disciplines, m
     <!-- ADHD Study text -->
     <Vertical id="adhd_study_text">
       <Markdown>
-## Research Study: ADHD and High School Dropout
+## Literature Review
 
-**Fried, R., et al. (2016). ADHD and high school dropout: A comparison study.**
+**Title:**
+Is  ADHD  a  Risk  Factor  for  High  School  Dropout? A  Controlled  Study 
 
-This longitudinal study examined 250 adolescents diagnosed with ADHD and 100 control participants over 10 years. The researchers found that students with ADHD were **2.7 times more likely** to drop out than their peers.
+**Authors**:
+Ronna  Fried,  Carter  Petty,  Stephen  V. Faraone,  Laran  L. Hyder,  Helen  Day,  and  Joseph  Biederman 
 
-Key findings:
-- **Learning disorders** co-occurring with ADHD increased dropout risk
-- Lower **IQ scores** and **academic underachievement** were mediating factors
-- Early **intervention** and **educational support** reduced dropout likelihood
-- **Psychological risk factors** including low self-efficacy played a role
+**Journal**:
+Journal  of  Attention  Disorders 
 
-The authors conclude that early identification of ADHD symptoms and appropriate educational accommodations are critical for keeping at-risk students in school.
+**Publication Year**:
+2016   
+
+**Volume**:
+ 20   
+
+**Issue**:
+ 5 
+
+**Pages**:
+ 383-389 
+ 
+**Abstract**:
+This  study  examines  whether  ADHD  increases  the  likelihood  of  grade  retention  and  high  school  dropout,  even  when  accounting  for  IQ,  learning  disorders,  and  social  class. The  study  involved  404  individuals  with  ADHD  and  349  controls. Results  showed  that  28%  of  those  with  ADHD  repeated  a  grade  compared  to  7%  of  controls. Social  class  and  IQ  were  significant  predictors  of  dropout  or  grade  retention,  with  females  with  ADHD  at  higher  risk  than  males. Early  identification  and  intervention  for  ADHD  are  crucial  to  prevent  these  negative  educational  outcomes.  
+
+**Introduction**:
+Each  year,  many  students  in  the  U. S. fail  to  graduate  high  school  on  time,  leading  to  negative  life  outcomes. Grade  retention  is  also  a  significant  predictor  of  high  school  dropout. Identifying  psychological  risk  factors,  such  as  ADHD,  is  important  for  intervention  efforts.  
+
+**Background**:
+ADHD  is  consistently  linked  to  educational  deficits,  including  school  failure,  poor  grades,  and  grade  retention. Previous  studies  have  shown  that  ADHD  increases  the  risk  of  dropping  out  of  high  school.  
+
+**Method**:
+The  study  used  data  from  three  large  case-control  studies  at  Massachusetts  General  Hospital. Participants  included  boys  and  girls  with  and  without  ADHD,  as  well  as  adults. Psychiatric  interviews,  socioeconomic  status  measures,  and  IQ  tests  were  conducted.  
+
+**Results**:
+Participants  with  ADHD  were  significantly  more  likely  to  repeat  a  grade  or  drop  out  of  high  school  compared  to  controls. Females  with  ADHD  had  a  higher  risk  of  grade  retention/dropout  than  males. Social  class  and  IQ  were  also  significant  predictors.  
+
+**Discussion**:
+ADHD  is  a  significant  risk  factor  for  grade  retention  and  high  school  dropout,  independent  of  other  factors  like  IQ  and  social  class. Early  identification  and  intervention  are  critical  to  mitigate  these  risks. The  study  highlights  the  importance  of  addressing  ADHD  to  improve  educational  outcomes.  
+
+**Conclusion**:
+ADHD  significantly  contributes  to  grade  retention  and  high  school  dropout. Early  screening  and  intervention  can  help  prevent  these  negative  outcomes,  benefiting  individuals,  families,  and  society.  
+
       </Markdown>
     </Vertical>
 

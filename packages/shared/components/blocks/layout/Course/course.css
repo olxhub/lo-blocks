@@ -119,8 +119,8 @@
   margin: 0 auto;
 }
 
-/* Empty state */
-.lo-tag-course .course-content p {
+/* Empty state — only the direct placeholder paragraph, not content inside blocks */
+.lo-tag-course .course-content > div > p {
   color: var(--lo-text-muted);
   text-align: center;
   font-size: var(--lo-font-size-lg);

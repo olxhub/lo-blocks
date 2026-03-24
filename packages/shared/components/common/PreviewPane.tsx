@@ -11,7 +11,7 @@ import PEGPreviewPane from './PEGPreviewPane';
 import RenderMarkdown from './RenderMarkdown';
 import { isPEGFile, isMarkdownFile } from '@/lib/util/fileTypes';
 import { NetworkStorageProvider } from '@/lib/lofs';
-import type { IdMap } from '@/lib/types';
+import type { IdMap, OlxDomNode } from '@/lib/types';
 import type { StorageProvider } from '@/lib/lofs/types';
 
 export interface PreviewPaneProps {
@@ -27,6 +27,8 @@ export interface PreviewPaneProps {
   onError?: (err: any) => void;
   /** Called after parsing completes with merged idMap (OLX only) */
   onParsed?: (result: { idMap: Record<string, any>; root: string | null }) => void;
+  /** Ref to expose the root OlxDomNode for external tree inspection (OLX only) */
+  nodeInfoRef?: React.MutableRefObject<OlxDomNode | null>;
 }
 
 /**
@@ -43,6 +45,7 @@ export default function PreviewPane({
   resolveProvider,
   onError,
   onParsed,
+  nodeInfoRef,
 }: PreviewPaneProps) {
   // Create default provider if none supplied (for src="" resolution)
   const defaultProvider = useMemo(() => new NetworkStorageProvider(), []);
@@ -73,6 +76,7 @@ export default function PreviewPane({
       provenance={provenance}
       onError={onError}
       onParsed={onParsed}
+      nodeInfoRef={nodeInfoRef}
     />
   );
 }

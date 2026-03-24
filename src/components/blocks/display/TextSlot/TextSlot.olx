@@ -1,9 +1,0 @@
-<Vertical id="TextSlotDemo" title="TextSlot Demo">
-  <TextArea id="user_input" placeholder="Enter some text..." />
-  <TextSlot id="output" />
-  <ActionButton label="Reverse">
-    <LLMAction target="output">
-      Reverse this text (write it backwards, character by character): <Ref>user_input</Ref>
-    </LLMAction>
-  </ActionButton>
-</Vertical>

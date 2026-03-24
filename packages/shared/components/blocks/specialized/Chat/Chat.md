@@ -4,8 +4,8 @@ Conversational learning interface with dialogue, activities, and flow control.
 
 ```olx:playground
 <Chat id="discussion" title="Study Group">
-Title: Study Group
-Cast:
+title: Study Group
+cast:
   Kim:
     seed: kim_researcher
     face: smile
@@ -39,12 +39,12 @@ See the Chatpeg Grammar Reference for the full specification. Summary below.
 
 ### Header
 
-YAML format before the `~~~~` divider. Supports simple metadata and nested structures like participant definitions:
+YAML format before the `~~~~` divider. Uses the same lowercase metadata keys as OLX frontmatter:
 
 ```
-Title: Learning Discussion
-Author: Education Team
-Cast:
+title: Learning Discussion
+author: Education Team
+cast:
   Kim:
     seed: kim_researcher
     face: smile
@@ -53,12 +53,12 @@ Cast:
 ~~~~
 ```
 
-### Cast &amp; Avatars
+### cast
 
 Define avatar appearance for each speaker in the header. Not every cast member needs options — a bare entry like `Alex:` uses the speaker name as the avatar seed.
 
 ```
-Cast:
+cast:
   Kim:
     seed: kim_researcher
     face: smile
@@ -73,7 +73,7 @@ Kim: That's fascinating! [face=awe]
 Alex: I'm not so sure. [face=serious]
 ```
 
-Header keys are **case-sensitive**. The parser warns on casing mistakes (e.g., `Seed` instead of `seed`).
+The parser warns on unknown keys and casing mistakes (e.g., `Seed` instead of `seed`).
 
 See the Chatpeg Grammar Reference for the full avatar option tables.
 
@@ -149,7 +149,7 @@ Integrate student activities into conversation flow:
   <SplitPanel sizes="65,35">
     <LeftPane>
       <Chat id="chat" title="Peer Discussion">
-Title: Peer Discussion
+title: Peer Discussion
 ~~~~
 
 Alex: Before we look at the research, what do you think: is it better to study in one long session or multiple shorter sessions?

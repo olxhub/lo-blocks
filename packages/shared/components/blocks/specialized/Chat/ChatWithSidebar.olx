@@ -29,7 +29,7 @@
   <SplitPanel sizes="65,35">
     <LeftPane>
       <Chat id="interactive_chat" title="Study Session">
-Title: Study Session
+title: Study Session
 ~~~~
 
 Alex: Welcome! Before we dive in - what do you already know about study techniques?

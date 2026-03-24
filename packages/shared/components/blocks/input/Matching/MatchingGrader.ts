@@ -22,7 +22,7 @@ import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 import { gradeMatching } from './gradingUtils';
 
-export const fields = state.fields(['correct', 'message']);
+export const fields = state.fields(state.graderFields());
 
 const MatchingGrader = blocks.test({
   ...parsers.blocks.allowHTML(),

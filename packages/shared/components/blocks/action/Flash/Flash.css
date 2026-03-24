@@ -1,0 +1,8 @@
+@keyframes lo-flash {
+  0% { background-color: var(--lo-flash-color, gold); }
+  100% { background-color: transparent; }
+}
+
+.lo-flash-active {
+  animation: lo-flash var(--lo-flash-duration, 500ms) ease-out;
+}

@@ -1,6 +1,6 @@
 // src/lib/content/metadata.ts
 //
-// OLX Metadata Schema - defines and validates metadata from YAML frontmatter comments
+// Content Metadata Schemas - shared base + format-specific extensions (OLX, chatpeg)
 //
 // Metadata is specified in the first comment before the root element using YAML frontmatter:
 //
@@ -42,9 +42,25 @@ const languageTagSchema = z.string().refine(
   { message: "Invalid BCP 47 language tag" }
 );
 
-export const OLXMetadataSchema = z.object({
+/**
+ * Base metadata fields shared across all content formats (OLX, chatpeg, etc.).
+ * Format-specific schemas extend this with additional fields.
+ */
+const baseMetadataFields = {
+  title: z.string().optional(),
+  author: z.string().optional(),
   description: z.string().optional(),
   category: z.string().optional(),
+};
+
+export const BaseMetadataSchema = z.object(baseMetadataFields);
+export type BaseMetadata = z.infer<typeof BaseMetadataSchema>;
+
+/** Known base metadata key names, for validation/warnings in parsers. */
+export const BASE_METADATA_KEYS = new Set<string>(Object.keys(baseMetadataFields));
+
+export const OLXMetadataSchema = z.object({
+  ...baseMetadataFields,
   index: z.number().optional(),
   lang: languageTagSchema.optional(),  // BCP 47 language tag (e.g., 'en-Latn-US', 'ar-Arab-SA')
 
@@ -90,3 +106,19 @@ export const OLXMetadataSchema = z.object({
 })
 
 export type OLXMetadata = z.infer<typeof OLXMetadataSchema>;
+
+/**
+ * Chat (chatpeg) header metadata schema.
+ * Base fields + cast (speaker avatar definitions).
+ */
+export const ChatMetadataSchema = z.object({
+  ...baseMetadataFields,
+  cast: z.record(z.unknown()).optional(),
+});
+export type ChatMetadata = z.infer<typeof ChatMetadataSchema>;
+
+/** Known chat metadata key names (base + chat-specific). */
+export const CHAT_METADATA_KEYS = new Set<string>([
+  ...BASE_METADATA_KEYS,
+  'cast',
+]);

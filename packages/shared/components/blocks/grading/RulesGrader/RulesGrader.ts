@@ -18,6 +18,7 @@ import { core, grader, baseAttributes, z_reduxStateKey, isMatch, inferRelatedNod
 import { correctness } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
 import _Noop from '@/components/blocks/layout/_Noop';
+import * as state from '@/lib/state';
 import type { RuntimeProps } from '@/lib/types';
 import { isKidArray } from '@/lib/util/kids';
 
@@ -89,6 +90,7 @@ const RulesGrader = core({
   ...parsers.blocks.allowHTML(),
   ...grader({ grader: gradeRules }),
   name: 'RulesGrader',
+  fields: state.fields(state.graderFields()),
   inputSchema: z.any(),
   description: 'Grader that evaluates Match rules top-to-bottom with partial credit and feedback',
   category: 'grading',

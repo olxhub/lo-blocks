@@ -1,5 +1,0 @@
-<DropdownInput id="colorPicker" placeholder="Choose a color...">
-  Red
-  Green
-  Blue
-</DropdownInput>

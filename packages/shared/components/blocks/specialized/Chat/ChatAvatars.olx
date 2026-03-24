@@ -1,6 +1,6 @@
 <Chat id="ChatAvatarsDemo" title="Research Methods Seminar">
-Title: Research Methods Seminar
-Cast:
+title: Research Methods Seminar
+cast:
   Professor Chen:
     seed: chen_professor
     face: calm

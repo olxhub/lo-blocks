@@ -17,6 +17,7 @@ const HintButton = core({
   name: 'HintButton',
   description: 'Reveals the next hint in a DemandHints component',
   category: 'action',
+  internal: true,
   component: _HintButton,
   attributes: baseAttributes.extend({
     target: z_reduxStateKey.optional().describe('ID of DemandHints component; infers from parent/siblings if omitted'),

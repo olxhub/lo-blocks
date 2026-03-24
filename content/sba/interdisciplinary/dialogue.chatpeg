@@ -1,7 +1,6 @@
-Title: Interdisciplinary Studies SBA - High School Dropout Analysis
-Author: EDUC 3100 Assessment Module
-Course: EDUC 3100
-Cast:
+title: Interdisciplinary Studies SBA - High School Dropout Analysis
+author: EDUC 3100 Assessment Module
+cast:
   Omer:
     seed: omer
     face: smile
@@ -26,15 +25,13 @@ Omer: Hi. This is the module on interdisciplinary reasoning for EDUC 3100 that I
 
 Omer: It should take you about an hour to complete, and you can break it up over several days if you'd like. However, please make sure you finish it by end of Sunday, April 13, 2025.
 
-interdisciplinary_sba_sidebar -> interdisciplinary_orientation
-
 Omer: In this module, you'll complete a simulated project in which you'll apply what you've learned in class about interdisciplinary analysis and the broad model of interdisciplinary research. The module contains everything you need to complete the project.
 
 Omer: There are instructions on each screen to help you navigate and give your answers. There are also a few links embedded in the text. You can click them for additional information, but that's optional.
 
 Omer: Remember that I will be seeing these results, so please take it seriously and do your best work. I think you'll enjoy it.
 
---- pause ---
+interdisciplinary_sba_sidebar -> interdisciplinary_orientation
 
 Introduction to Comm360 [id=introduction]
 ------------------------
@@ -53,7 +50,7 @@ Teammate: Before we dive in, we should probably figure out who's on our team. Th
 
 --- pause ---
 
-interdisciplinary_sba_sidebar -> interdisciplinary_team_members
+interdisciplinary_sba_sidebar -> interdisciplinary_team_intro
 
 Meet the Team [id=team_intro]
 -------------
@@ -84,8 +81,10 @@ Lacy: Thanks, Lianne.
 
 --- pause ---
 
-Task Set 1: Brainstorm [id=brainstorm_start]
+Task 1: Brainstorm [id=brainstorm_start]
 -----------------------
+
+interdisciplinary_sba_sidebar -> cause_brainstorming
 
 Lianne: Let's get started with the brainstorming task.
 
@@ -112,9 +111,6 @@ Peggy: I have an idea for that. Let's write single sentences for each cause. I'l
 Peggy: She fell so far behind that by the time she got back, she just couldn't figure out how to catch up.
 
 --- pause ---
-
-Brainstorming [id=brainstorm_method]
---------------------
 
 Ty: How could we put that into one sentence?
 
@@ -164,50 +160,41 @@ Lianne: This is a good list. It reflects a lot of what we heard in a focus group
 
 --- pause ---
 
-Task Set 2: Review Focus Group Data [id=focus_group_start]
+Task 2: Review Focus Group Data [id=focus_group_start]
 ---------------------------------------
 
 Lianne: Now let's move on to the next task. I'd like you to take a look at part of the transcript from that focus group to extract additional reasons because this is an extremely complex problem, as you've already identified, with many causes.
 
+interdisciplinary_sba_sidebar -> transcript_md1
+
+Lianne: Read the transcript before you go on. 
+
 interdisciplinary_sba_sidebar -> focus_group_transcript_pt1
 
-Lianne: Read this part of the transcript before you go on.
-
-Lianne: Highlight any reasons that our participants gave for students dropping out of high school.
-
---- wait @focus_group_pt1.value ---
-
-Lianne: Now let's look at the second part of the focus group transcript.
-
-interdisciplinary_sba_sidebar -> focus_group_transcript_pt2
-
-Lianne: Again, highlight any reasons that our participants gave for students dropping out of high school.
-
---- wait @focus_group_pt2.value ---
-
-Ty: I hope we get to work on focus groups here because that was really interesting. Here's what I highlighted.
+Lianne: Highlight any reasons that our participants gave for students dropping out of high school, and add a note explaining why it describes a cause of high school dropout. You'll be able to use these notes later.
 
 interdisciplinary_sba_sidebar -> focus_group_highlights_shown
 
+Ty: I hope we get to work on focus groups here because that was really interesting. Here's what I highlighted.
+
 --- pause ---
 
-Selecting Focus Areas [id=focus_selection]
+Task 3: Select Focus Areas [id=focus_selection]
 ---------------------
+
+interdisciplinary_sba_sidebar -> reasons_list
 
 Lacy: I studied focus groups in my research methods class last year. We analyzed lots of transcripts. Ty, I'm taking your highlights and combining them with the reasons we already came up with. I re-worded some of them, but I think I've captured everything.
 
-Lacy: Here are all the reasons either we or the participants gave for dropping out of high school.
-
-Lacy: Good work. This list reflects what we've heard in the community about this issue.
-
-Lacy: Now we need to turn our attention to the research. I think we should focus on a subset of these reasons.
-
-Lacy: Which ones would you select to research?
+Lianne: Good work. This list reflects what we've heard in the community about this issue. Now we need to turn our attention to the research. I think we should focus on a subset of these reasons.
 
 interdisciplinary_sba_sidebar -> reasons_checklist
 
+Lacy: Which ones would you select to research?
+
 // TODO: Figure out how to handle doneness for a list (empty array [] is truthy)
---- wait @reasons.value ---
+--- wait reasons.value ---
+
 
 Lianne: I agree with you on some of your choices. Why did you select that set?
 
@@ -215,10 +202,7 @@ interdisciplinary_sba_sidebar -> reasons_shown
 
 interdisciplinary_sba_sidebar -> reason_explanation_input
 
---- wait @reason_explanation.value ---
-
-Task Set 3: Is This Interdisciplinary? [id=interdisciplinary_check]
---------------------------------------
+--- wait reason_explanation.value ---
 
 Lianne: I appreciate the thoughtfulness you've shown on this issue, both as individuals and as a team.
 
@@ -226,7 +210,10 @@ Lianne: I reviewed the reasons you put together with Ms. Hastings. We agree that
 
 Lianne: The causes we'll focus on are: students needing to earn money right away to help their family, conditions like depression, anxiety, or ADHD interfering with schoolwork, environmental factors in areas affected by gang activity and limited support systems, and lack of school funding affecting resources for underserved students.
 
---- pause ---
+Task 4: Reflect -- Is This Interdisciplinary? [id=interdisciplinary_check]
+--------------------------------------
+
+interdisciplinary_sba_sidebar -> task_set_3_intro
 
 Ty: This list cuts across a lot of different subjects. I'm looking forward to seeing what kind of research we'll find for each of them.
 
@@ -248,9 +235,6 @@ Ty: Let's do it.
 
 interdisciplinary_sba_sidebar -> broad_model_display
 
-Disciplinary Classification [id=discipline_classification]
----------------------------
-
 Peggy: Let's figure out which disciplines are likely to give us the most insights into the problem and possible solutions. How about each of us select all the disciplines in a row that we think apply for each of the causes listed? I think it is ok if we check as many boxes in a row as we think apply. Then, we can sum up our responses to see if they align and if we think this is an interdisciplinary problem.
 
 interdisciplinary_sba_sidebar -> causes_by_disciplines
@@ -263,9 +247,6 @@ Peggy: Ok, I summed up our responses and this shows any category that got more t
 interdisciplinary_sba_sidebar -> causes_by_disciplines_answers
 
 --- pause ---
-
-Confirming Interdisciplinary Approach [id=interdisciplinary_confirm]
--------------------------------------
 
 Lacy: I agree. Our analysis supports what you were saying, Ty. These causes cut across a lot of subjects.
 
@@ -281,7 +262,7 @@ Ty: I'm already on it. I took a few key words from one of the causes and did a s
 
 --- pause ---
 
-Task Set 4: Review Literature - ADHD Study [id=literature_adhd]
+Task 5: Review Literature - ADHD Study [id=literature_adhd]
 ----------------------------------------------
 
 Ty: Here it is.
@@ -298,17 +279,17 @@ Ty: Can you show us?
 
 --- pause ---
 
+interdisciplinary_sba_sidebar -> adhd_study_highlighted
+
 Peggy: So I highlighted the clues and jargon that makes me think this study is in the Psychology field. Attention, learning disorders, and IQ are all concepts that psychologists typically study.
 
 Peggy: Plus there's a heavy focus on early identification and intervention, especially by educational psychologists.
 
 Peggy: A big clue was also psychological risk factors.
 
-interdisciplinary_sba_sidebar -> adhd_study_highlighted
-
 --- pause ---
 
-Employment Study [id=literature_employment]
+Task 5: Employment Study [id=literature_employment]
 ----------------
 
 Lacy: I used the search term method and found another study. This one is on employment. Take a look.
@@ -335,7 +316,7 @@ interdisciplinary_sba_sidebar -> source_2_explanation_input
 
 --- wait @source_2_classification_explanation.value ---
 
-Rural and Urban Study [id=literature_rural_urban]
+Task 5: Rural and Urban Study [id=literature_rural_urban]
 ---------------------
 
 Lacy: I think it makes sense to use this highlighting method for other studies we find. Like this one.
@@ -373,7 +354,7 @@ interdisciplinary_sba_sidebar -> source_4_explanation_input
 
 --- wait @source_4_classification_explanation.value ---
 
-Task Set 5: Develop Problem Statement [id=problem_statement_start]
+Task 6: Develop Problem Statement [id=problem_statement_start]
 --------------------------------------
 
 Lianne: You've done good work so far. Let's recap where we are. We've found studies that address different parts of the high school dropout problem, including Psychology, Sociology, Economics and Political science.
@@ -424,7 +405,7 @@ interdisciplinary_sba_sidebar -> unresolved_explanation_input
 
 --- wait @source_5_unresolved_explanation.value ---
 
-Avoiding Disciplinary Bias [id=avoiding_bias]
+Task 7: Avoiding Disciplinary Bias [id=avoiding_bias]
 --------------------------
 
 Peggy: I've put together a sentence that explains why dropping out of high school is an important and unresolved problem. Maybe we can polish it up and use it as a part of our problem statement.

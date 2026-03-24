@@ -1,0 +1,12 @@
+<Vertical id="TriggerDemo" title="Trigger">
+  <Markdown>Type "hello" and submit to trigger a flash.</Markdown>
+  <CapaProblem title="Trigger Demo">
+    <StringGrader id="trigger_grader" answer="hello" ignoreCase="true">
+      <LineInput/>
+    </StringGrader>
+  </CapaProblem>
+  <Markdown id="trigger_result">This block flashes when you answer correctly.</Markdown>
+  <Trigger watch="@trigger_grader.correct === correctness.correct">
+    <Flash target="trigger_result" color="lightgreen"/>
+  </Trigger>
+</Vertical>

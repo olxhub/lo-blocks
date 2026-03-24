@@ -34,33 +34,19 @@ function assertUnimplemented<T>(field: T | undefined, fieldName: string) {
 // === Mixin extensions ===
 // These functions extend config based on mixin flags (isGrader, isInput, etc.)
 
-// Standard fields for graders
-const GRADER_FIELDS = ['correct', 'message', 'showAnswer', 'submitCount'];
-
 // Standard attributes for graders - uses graderMixin from attributeSchemas
 // passthrough preserves additional attrs (like src for PEG parsers)
 const GRADER_ATTRIBUTES = baseAttributes.extend(graderMixin.shape).passthrough();
 
 /**
  * Extend config for grader blocks.
- * Adds standard fields (correct, message, showAnswer) and attributes (answer, displayAnswer, target).
+ * Adds standard attributes (answer, displayAnswer, target).
+ *
+ * Fields are NOT auto-added — graders should declare them explicitly
+ * via graderFields() in their field definitions.
  */
 function applyGraderExtensions(config: BlueprintInput): BlueprintInput {
   if (!config.isGrader) return config;
-
-  // Extend fields - only add grader fields not already defined
-  const existingFieldNames = config.fields
-    ? Object.keys(config.fields).filter(k => k !== 'extend')
-    : [];
-  const fieldsToAdd = GRADER_FIELDS.filter(f => !existingFieldNames.includes(f));
-
-  let extendedFields = config.fields as Fields | undefined;
-  if (fieldsToAdd.length > 0) {
-    const newFields = state.fields(fieldsToAdd);
-    extendedFields = extendedFields
-      ? extendedFields.extend(newFields)
-      : newFields;
-  }
 
   // Extend attributes - merge grader attributes by combining shapes
   // Note: We can't use .and() because it fails when schemas contain transforms
@@ -77,7 +63,6 @@ function applyGraderExtensions(config: BlueprintInput): BlueprintInput {
 
   return {
     ...config,
-    fields: extendedFields,
     attributes: extendedSchema,
   };
 }
