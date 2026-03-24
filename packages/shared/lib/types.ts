@@ -933,8 +933,8 @@ export interface LocaleContext {
 // so the rest of the codebase can import from types.ts as usual.
 // =============================================================================
 
-import type { Cast as _Cast } from '@/lib/avatar/openpeeps';
-export type { OpenPeeps, CastMember, Cast } from '@/lib/avatar/openpeeps';
+import type { Cast, OpenPeeps, CastMember } from '@/lib/avatar/openpeeps';
+export type { OpenPeeps, CastMember, Cast };
 
 /**
  * LoBlockRuntimeContext - runtime configuration that flows through the component tree.
@@ -958,7 +958,7 @@ export interface LoBlockRuntimeContext {
   olxJsonSources?: string[];  // Redux source names in priority order for OlxJson lookup
   idPrefix?: IdPrefix;  // Scope prefix for Redux state (changes at list boundaries)
   locale: LocaleContext;  // Language and text direction
-  cast: _Cast;  // Cast of characters - propthreaded like locale
+  cast: Cast;  // Cast of characters
 }
 
 /**
