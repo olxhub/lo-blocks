@@ -6,7 +6,7 @@ import { useKids } from '@/lib/render';
 import { useAvatar } from '@/components/common/useAvatar';
 
 export default function _TalkBubble(props) {
-  const { side = 'primary' } = props;
+  const { side } = props;
   const { kids } = useKids(props);
   const { avatar, name } = useAvatar(props, { size: 48 });
 

@@ -24,7 +24,7 @@ import _Cast from './_Cast';
 const Cast = core({
   ...withCastSupport(parsers.blocks()),
   name: 'Cast',
-  description: 'Defines a cast of characters and propthreads it to child components',
+  description: 'Defines a cast of characters available to child components',
   component: _Cast,
   attributes: baseAttributes.extend(cast),
 
