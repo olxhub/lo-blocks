@@ -16,10 +16,13 @@ import {
   castMemberToAvatarProps,
   useCast,
   updateCast,
+} from './cast';
+
+import {
   CastSchema,
   CastMemberSchema,
   OpenPeepsSchema,
-} from './cast';
+} from './openpeeps';
 
 import { parseOLX } from './content/parseOLX';
 

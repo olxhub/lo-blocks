@@ -1,38 +1,15 @@
 // src/lib/cast.ts
 //
-// Cast-of-characters library — unified character definitions for avatars,
-// team directories, and dialogue systems.
+// Cast-of-characters runtime library — parsing, validation, merging,
+// and propthreading for the cast system.
 //
-// A "cast" is a YAML record mapping character IDs to their definitions.
-// Casts propagate through the component tree via runtime.cast (like locale).
-// The same character shows a consistent avatar in Chat, TalkBubble,
-// TeamDirectory, or any future block that calls useCast().
-//
-// Example .cast file (YAML):
-//
-//   ty:
-//     name: Ty Johnson
-//     seed: ty_intern
-//     openPeeps:
-//       face: smile
-//       head: short1
-//       skinColor: d08b5b
-//     profile:
-//       role: Intern
-//       bio: Data analysis enthusiast
-//     groups: [interns, comm360]
-//
-//   lianne:
-//     name: Lianne Park
-//     src: images/lianne.png
-//     profile:
-//       role: Supervisor
-//     groups: [supervisors, comm360]
+// Schemas and types live in openpeeps.ts (pure data model, no runtime code).
+// This file provides the functions that operate on those types.
 //
 // Usage in OLX:
 //
-//   <Cast cast="characters.cast">         ← propthreads cast to children
-//     <TalkBubble speaker="ty">...</TalkBubble>
+//   <Cast cast="characters.cast">
+//     <TalkBubble who="ty">...</TalkBubble>
 //     <TeamDirectory group="interns"/>
 //   </Cast>
 //
@@ -42,118 +19,22 @@
 //       ← block-specific sources (e.g. Chat YAML header)
 //
 // API:
-//   Schemas:   CastSchema, CastMemberSchema, OpenPeepsSchema, Face
-//   Internal:  parseCastYaml, mergeCasts, castMemberToAvatarProps
+//   Runtime:   parseCastYaml, validateCast, mergeCasts, castMemberToAvatarProps
 //   Blocks:    useCast, updateCast, withCastSupport
 //
-// Avatar generation uses DiceBear's Open Peeps style:
-//   Playground:   https://www.dicebear.com/playground/?style=open-peeps
-//   Options ref:  https://www.dicebear.com/styles/open-peeps/#options
-//   Open Peeps:   https://www.openpeeps.com/
-//
-import { z } from 'zod';
 import yaml from 'js-yaml';
 import type { LoBlockRuntimeContext } from '@/lib/types';
+import {
+  CastSchema, CastMemberSchema, OpenPeepsSchema,
+  type Cast, type CastMember,
+} from '@/lib/openpeeps';
 
-// =============================================================================
-// Zod Schemas
-// =============================================================================
-
-// DiceBear Open Peeps enum values.
-// Source: @dicebear/open-peeps schema.ts
-// Preview: https://www.dicebear.com/playground/?style=open-peeps
-// Full options reference: https://www.dicebear.com/styles/open-peeps/#options
-
-export const Face = z.enum([
-  'angryWithFang', 'awe', 'blank', 'calm', 'cheeky',
-  'concerned', 'concernedFear', 'contempt', 'cute', 'cyclops',
-  'driven', 'eatingHappy', 'explaining', 'eyesClosed', 'fear',
-  'hectic', 'lovingGrin1', 'lovingGrin2', 'monster', 'old',
-  'rage', 'serious', 'smile', 'smileBig', 'smileLOL',
-  'smileTeethGap', 'solemn', 'suspicious', 'tired', 'veryAngry',
-]);
-
-const Head = z.enum([
-  'afro', 'bangs', 'bangs2', 'bantuKnots', 'bear',
-  'bun', 'bun2', 'buns', 'cornrows', 'cornrows2',
-  'dreads1', 'dreads2', 'flatTop', 'flatTopLong', 'grayBun',
-  'grayMedium', 'grayShort', 'hatBeanie', 'hatHip', 'hijab',
-  'long', 'longAfro', 'longBangs', 'longCurly', 'medium1',
-  'medium2', 'medium3', 'mediumBangs', 'mediumBangs2', 'mediumBangs3',
-  'mediumStraight', 'mohawk', 'mohawk2', 'noHair1', 'noHair2',
-  'noHair3', 'pomp', 'shaved1', 'shaved2', 'shaved3',
-  'short1', 'short2', 'short3', 'short4', 'short5',
-  'turban', 'twists', 'twists2',
-]);
-
-const Accessories = z.enum([
-  'eyepatch', 'glasses', 'glasses2', 'glasses3', 'glasses4',
-  'glasses5', 'sunglasses', 'sunglasses2',
-]);
-
-const FacialHair = z.enum([
-  'chin', 'full', 'full2', 'full3', 'full4',
-  'goatee1', 'goatee2', 'moustache1', 'moustache2', 'moustache3',
-  'moustache4', 'moustache5', 'moustache6', 'moustache7', 'moustache8',
-  'moustache9',
-]);
-
-const Mask = z.enum(['medicalMask', 'respirator']);
-
-// Hex color: 6 hex digits (no #), matching DiceBear's pattern
-const HexColor = z.string().regex(/^[a-fA-F0-9]{6}$/);
-
-/**
- * DiceBear Open Peeps avatar options.
- * Nested under `openPeeps` in the cast member definition.
- *
- * Enum fields (face, head, etc.) accept a single value or an array
- * (DiceBear picks randomly from arrays). Color fields are 6-digit hex strings.
- */
-export const OpenPeepsSchema = z.object({
-  face: z.union([Face, z.array(Face)]).optional(),
-  head: z.union([Head, z.array(Head)]).optional(),
-  accessories: z.union([Accessories, z.array(Accessories)]).optional(),
-  facialHair: z.union([FacialHair, z.array(FacialHair)]).optional(),
-  mask: z.union([Mask, z.array(Mask)]).optional(),
-  skinColor: z.union([HexColor, z.array(HexColor)]).optional(),
-  clothingColor: z.union([HexColor, z.array(HexColor)]).optional(),
-}).strict();
-
-/**
- * A single cast member definition.
- *
- * Common fields (name, seed, style, src) are strongly validated.
- * openPeeps holds DiceBear options. profile holds ad-hoc course-specific
- * fields (bio, role, skills, etc.). groups controls filtering.
- *
- * All fields are optional because partial overrides (e.g. just changing
- * openPeeps.head for a scene) are valid. Defaults are applied when
- * materializing avatar props via castMemberToAvatarProps().
- */
-export const CastMemberSchema = z.object({
-  name: z.string().optional(),
-  seed: z.string().optional(),
-  style: z.enum(['illustrated', 'initials', 'image']).optional(),
-  src: z.string().optional(),
-  openPeeps: OpenPeepsSchema.optional(),
-  profile: z.record(z.unknown()).optional(),
-  groups: z.array(z.string()).optional(),
-}).strict();
-
-/**
- * Full cast: maps character IDs to their definitions.
- *
- * IDs are free-form strings (e.g. "bob", "Professor Chen").
- * In YAML, they appear as top-level keys.
- */
-export const CastSchema = z.record(z.string(), CastMemberSchema);
-
-// Inferred types — single source of truth from Zod schemas above.
-// Re-exported via types.ts for the rest of the codebase.
-export type OpenPeeps = z.infer<typeof OpenPeepsSchema>;
-export type CastMember = z.infer<typeof CastMemberSchema>;
-export type Cast = z.infer<typeof CastSchema>;
+// Re-export schemas and types so existing imports from '@/lib/cast' still work.
+export {
+  Face, AvatarStyle,
+  OpenPeepsSchema, CastMemberSchema, CastSchema,
+  type OpenPeeps, type CastMember, type Cast,
+} from '@/lib/openpeeps';
 
 // =============================================================================
 // Internal utilities
@@ -294,7 +175,7 @@ export function mergeCasts(
 /**
  * Create a new runtime context with an updated cast.
  */
-export function updateRuntimeCast(
+function updateRuntimeCast(
   runtime: LoBlockRuntimeContext,
   newCast: Cast
 ): LoBlockRuntimeContext {
@@ -348,18 +229,17 @@ export function castMemberToAvatarProps(
  *
  * Usage in components:
  *   const cast = useCast(props);
- *   const avatarProps = castMemberToAvatarProps('bob', cast['bob']);
+ *   // Then use useAvatar(props) or look up members directly.
  */
 export function useCast(props: any): Cast {
   return mergeCasts(props.runtime?.cast, props.cast);
 }
 
 /**
- * Merge cast and propthread it into the runtime for children.
+ * Return new props with the merged cast available to children.
  *
- * Used by wrapper blocks (like <Cast>) that pass cast to children:
- *   const castProps = updateCast(props);
- *   const { kids } = useKids(castProps);
+ * Used by wrapper blocks (like <Cast>):
+ *   const { kids } = useKids(updateCast(props));
  */
 export function updateCast(props: any): any {
   const cast = mergeCasts(props.runtime?.cast, props.cast);

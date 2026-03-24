@@ -58,7 +58,7 @@ const themes = {
 const ChatMessage = ({ message, isSequential, theme, participants }) => {
   const t = themes[theme] || themes.light;
 
-  const { avatar, displayName } = useAvatar({}, {
+  const { avatar, name } = useAvatar({}, {
     who: message.speaker,
     cast: participants ?? {},
     face: message.metadata?.face,
@@ -75,7 +75,7 @@ const ChatMessage = ({ message, isSequential, theme, participants }) => {
       )}
       <div className="flex flex-col">
         {!isSequential && (
-          <span className={`text-sm font-semibold mb-1 ${t.headerText}`}>{displayName}</span>
+          <span className={`text-sm font-semibold mb-1 ${t.headerText}`}>{name}</span>
         )}
         <div className={`${t.message} ${t.messageText} p-2 px-3 rounded-lg max-w-md`}>
           <ReactMarkdown>{message.text || ''}</ReactMarkdown>

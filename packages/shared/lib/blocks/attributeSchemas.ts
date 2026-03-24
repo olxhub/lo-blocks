@@ -15,7 +15,7 @@ import { z } from 'zod';
 import { VALID_ID_SEGMENT, VALID_REDUX_STATE_KEY, toOlxReference, toReduxStateKey } from './idResolver';
 import type { OlxReference, ReduxStateKey } from '@/lib/types';
 import { parse as parseExpr } from '@/lib/stateLanguage';
-import { CastSchema, Face } from '@/lib/cast';
+import { CastSchema, Face, AvatarStyle } from '@/lib/openpeeps';
 
 /**
  * Zod refinement for validating OLX IDs.
@@ -376,7 +376,7 @@ export const character = {
   face: Face.optional().describe('DiceBear face/expression override (e.g. smile, serious)'),
   seed: z.string().optional().describe('Override seed for avatar generation'),
   avatar: z.string().optional().describe('Image URL (overrides cast)'),
-  avatarStyle: z.enum(['illustrated', 'initials']).optional()
+  avatarStyle: AvatarStyle.optional()
     .describe('Avatar style override'),
 };
 

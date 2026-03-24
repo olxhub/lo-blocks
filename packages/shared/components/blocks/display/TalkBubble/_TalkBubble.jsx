@@ -8,7 +8,7 @@ import { useAvatar } from '@/components/common/useAvatar';
 export default function _TalkBubble(props) {
   const { position = 'left' } = props;
   const { kids } = useKids(props);
-  const { avatar, displayName } = useAvatar(props, { size: 48 });
+  const { avatar, name } = useAvatar(props, { size: 48 });
 
   const isLeft = position === 'left';
 
@@ -21,9 +21,9 @@ export default function _TalkBubble(props) {
 
       {/* Speech bubble */}
       <div className="flex-1 max-w-2xl">
-        {displayName && (
+        {name && (
           <div className={`text-sm font-semibold text-gray-700 mb-1 ${isLeft ? 'text-start' : 'text-end'}`}>
-            {displayName}
+            {name}
           </div>
         )}
         <div className={`px-4 py-3 rounded-lg ${isLeft ? 'bg-gray-100' : 'bg-blue-100'}`}>

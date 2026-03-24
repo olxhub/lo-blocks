@@ -5,29 +5,31 @@
 // TalkBubble, ChatComponent, and any future character-aware block.
 //
 // Usage (block component — reads who/face/etc. from props):
-//   const { avatar, displayName } = useAvatar(props, { size: 48 });
+//   const { avatar, name } = useAvatar(props, { size: 48 });
 //
 // Usage (non-block component — pass character info explicitly):
-//   const { avatar, displayName } = useAvatar({}, { who: speaker, cast, face });
+//   const { avatar, name } = useAvatar({}, { who: speaker, cast, face });
 //
 import React from 'react';
+import { z } from 'zod';
 import Avatar from '@/components/common/Avatar';
 import { useCast, castMemberToAvatarProps } from '@/lib/cast';
-import type { Cast } from '@/lib/types';
+import { Face, AvatarStyle } from '@/lib/openpeeps';
+import type { Cast } from '@/lib/openpeeps';
 
 export interface UseAvatarOptions {
   /** Character ID override (defaults to props.who). */
   who?: string;
   /** Cast override (defaults to useCast(props)). */
   cast?: Cast;
-  /** DiceBear face expression override. */
-  face?: string;
+  /** DiceBear face expression override (e.g. 'smile', 'serious'). */
+  face?: z.infer<typeof Face>;
   /** Avatar seed override. */
   seed?: string;
   /** Image URL override. */
   src?: string;
   /** Avatar style override. */
-  style?: 'illustrated' | 'initials';
+  style?: z.infer<typeof AvatarStyle>;
   /** Avatar size in pixels (default 32). */
   size?: number;
 }
@@ -35,8 +37,8 @@ export interface UseAvatarOptions {
 export interface UseAvatarResult {
   /** Rendered <Avatar> element, ready to drop into JSX. */
   avatar: React.ReactNode;
-  /** Display name (from cast member name, or character ID). */
-  displayName: string;
+  /** Character name (from cast member, or falls back to character ID). */
+  name: string;
 }
 
 /**
@@ -59,7 +61,7 @@ export function useAvatar(props: any, options?: UseAvatarOptions): UseAvatarResu
   const castMember = who ? cast[who] : undefined;
 
   let avatarProps;
-  let displayName: string;
+  let name: string;
 
   if (castMember) {
     const base = castMemberToAvatarProps(who, castMember);
@@ -72,7 +74,7 @@ export function useAvatar(props: any, options?: UseAvatarOptions): UseAvatarResu
         ? { ...(base.options || {}), face }
         : base.options,
     };
-    displayName = base.name;
+    name = base.name;
   } else {
     avatarProps = {
       name: who,
@@ -81,11 +83,11 @@ export function useAvatar(props: any, options?: UseAvatarOptions): UseAvatarResu
       src,
       options: face ? { face } : undefined,
     };
-    displayName = who ?? '';
+    name = who ?? '';
   }
 
   return {
     avatar: <Avatar {...avatarProps} size={size} />,
-    displayName,
+    name,
   };
 }
