@@ -27,7 +27,7 @@ const Cast = core({
   description: 'Defines a cast of characters and propthreads it to child components',
   component: _Cast,
   attributes: baseAttributes.extend(cast),
-  category: 'layout',
+
 });
 
 export default Cast;

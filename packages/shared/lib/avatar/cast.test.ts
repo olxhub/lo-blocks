@@ -42,6 +42,19 @@ alice: {}
     });
   });
 
+  test('bare YAML keys (null values) are treated as empty members', () => {
+    const yaml = `
+Jordan:
+Alice:
+Bob: {}
+`;
+    expect(parseCastYaml(yaml)).toEqual({
+      Jordan: {},
+      Alice: {},
+      Bob: {},
+    });
+  });
+
   test('typical cast file with names, avatars, and profiles', () => {
     const yaml = `
 ty:

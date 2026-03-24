@@ -16,7 +16,7 @@ const TalkBubble = core({
     ...character,
     position: z.enum(['left', 'right']).default('left').describe('Position of avatar (left or right)'),
   }),
-  category: 'display'
+
 });
 
 export default TalkBubble;

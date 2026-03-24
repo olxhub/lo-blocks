@@ -145,7 +145,12 @@ export function validateCast(raw: unknown): { cast: Cast; warnings: string[] } {
 export function parseCastYaml(text: string): Cast {
   const raw = yaml.load(text);
   if (!raw || typeof raw !== 'object') return {};
-  const { cast } = validateCast(raw);
+  // Coerce null members to {} so bare YAML keys (e.g. "Jordan:") work.
+  const coerced: Record<string, any> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, any>)) {
+    coerced[key] = value ?? {};
+  }
+  const { cast } = validateCast(coerced);
   return cast;
 }
 
