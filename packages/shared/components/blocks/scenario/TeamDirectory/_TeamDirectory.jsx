@@ -3,7 +3,6 @@
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
-import { useKids } from '@/lib/render';
 import Avatar from '@/components/common/Avatar';
 import { useCast, castMemberToAvatarProps } from '@/lib/avatar/cast';
 
@@ -34,21 +33,16 @@ function _TeamDirectory(props) {
 
   const selectedMemberData = teamData.find(member => member.id === selectedMember);
 
-  const { kids: renderedKids } = useKids(props);
-
   if (teamData.length === 0) {
     return (
       <div className="team-directory p-4 border rounded-lg bg-white">
-        {renderedKids}
-        <p className="text-gray-500 text-sm">No team members found{group ? ` in group "${group}"` : ''}. Wrap in a &lt;Cast&gt; block to provide cast data.</p>
+        <p className="text-gray-500 text-sm">No team members found{group ? ` in group "${group}"` : ''}. Add cast members as YAML body or via cast= attribute.</p>
       </div>
     );
   }
 
   return (
     <div className="team-directory p-4 border rounded-lg bg-white">
-      {renderedKids}
-
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold">{title}</h3>
         <div className="flex gap-2">

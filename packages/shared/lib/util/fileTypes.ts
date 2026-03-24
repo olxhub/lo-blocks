@@ -45,7 +45,7 @@ export const CATEGORY = {
   editable: [...EXT.olx, ...EXT.markdown, ...EXT.peg, ...EXT.mermaid, ...EXT.data, ...EXT.cast] as const,
 
   // What can be uploaded/attached to chat
-  uploadable: [...EXT.olx, ...EXT.markdown, ...EXT.peg, ...EXT.code, ...EXT.plainText] as const,
+  uploadable: [...EXT.olx, ...EXT.markdown, ...EXT.peg, ...EXT.cast, ...EXT.code, ...EXT.plainText] as const,
 
   // Media files
   media: [...EXT.image, ...EXT.video, ...EXT.document] as const,

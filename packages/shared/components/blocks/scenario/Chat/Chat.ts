@@ -38,14 +38,12 @@ function validateHeader(header: Record<string, unknown>): string[] {
     }
   }
 
-  // Validate cast via CastSchema (with case-sensitivity hints)
+  // Validate cast via CastSchema — throws on invalid data (fail fast).
+  // Case-sensitivity hints are returned as non-fatal warnings.
   if (header.cast) {
-    try {
-      const { warnings: castWarnings } = validateCast(header.cast);
-      warnings.push(...castWarnings);
-    } catch (e: any) {
-      warnings.push(`Cast: ${e.message}`);
-    }
+    const { cast, warnings: castWarnings } = validateCast(header.cast);
+    header.cast = cast;
+    warnings.push(...castWarnings);
   }
 
   return warnings;

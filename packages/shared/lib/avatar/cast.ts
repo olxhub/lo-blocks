@@ -124,10 +124,30 @@ function scanCaseMismatches(raw: unknown): string[] {
  * hints for case mismatches.
  */
 export function validateCast(raw: unknown): { cast: Cast; warnings: string[] } {
+  // Coerce null members to {} so bare YAML keys (e.g. "Jordan:") work.
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    const coerced: Record<string, any> = {};
+    for (const [key, value] of Object.entries(raw as Record<string, any>)) {
+      coerced[key] = value ?? {};
+    }
+    raw = coerced;
+  }
+
   const caseWarnings = scanCaseMismatches(raw);
 
   try {
     const cast = CastSchema.parse(raw);
+
+    // Cross-field validation: style:'image' requires src, src requires style:'image'
+    for (const [id, member] of Object.entries(cast)) {
+      if (member.style === 'image' && !member.src) {
+        throw new Error(`"${id}": style is 'image' but no src provided`);
+      }
+      if (member.src && member.style && member.style !== 'image') {
+        throw new Error(`"${id}": has src but style is '${member.style}' (should be 'image' or omitted)`);
+      }
+    }
+
     return { cast, warnings: caseWarnings };
   } catch (e: any) {
     if (caseWarnings.length > 0) {
@@ -145,12 +165,7 @@ export function validateCast(raw: unknown): { cast: Cast; warnings: string[] } {
 export function parseCastYaml(text: string): Cast {
   const raw = yaml.load(text);
   if (!raw || typeof raw !== 'object') return {};
-  // Coerce null members to {} so bare YAML keys (e.g. "Jordan:") work.
-  const coerced: Record<string, any> = {};
-  for (const [key, value] of Object.entries(raw as Record<string, any>)) {
-    coerced[key] = value ?? {};
-  }
-  const { cast } = validateCast(coerced);
+  const { cast } = validateCast(raw);
   return cast;
 }
 
@@ -211,9 +226,9 @@ export function castMemberToAvatarProps(
   const name = member.name ?? id;
   const seed = member.seed ?? id;
 
-  // When src is provided, Avatar renders it directly (style is irrelevant)
+  // Image style: src is provided, render directly
   if (member.src) {
-    return { name, seed, src: member.src, options: member.openPeeps || undefined };
+    return { name, seed, src: member.src };
   }
 
   const style = member.style === 'initials' ? 'initials' : 'illustrated';

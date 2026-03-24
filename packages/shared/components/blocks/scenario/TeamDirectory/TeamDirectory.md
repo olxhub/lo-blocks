@@ -1,57 +1,79 @@
-# TeamDirectory Block
+# TeamDirectory
 
-## Overview
+Interactive team directory showing team members with grid and detail views. Members are defined via the cast system — inline YAML body, `cast=` file, or inherited from a parent `<Cast>` block.
 
-TeamDirectory displays an interactive roster of team members with grid and detail views. Users can browse the team in a card grid, then click to see full profiles. Designed for scenario-based assessments where learners interact with simulated team members.
-
-**Note**: This is currently a prototype block. The team data is hardcoded for the Comm360 interdisciplinary SBA. Future versions will support custom team definitions via OLX children.
-
-## Technical Usage
-
-### Basic Syntax
-```xml
-<TeamDirectory id="team" title="Our Team"/>
+```olx:playground
+<TeamDirectory id="team_demo" title="Research Lab">
+Dr. Chen:
+  seed: chen_professor
+  openPeeps:
+    face: calm
+  profile:
+    role: Principal Investigator
+    bio: Leads the cognitive science research group.
+Maya:
+  seed: maya_grad
+  openPeeps:
+    face: smile
+  profile:
+    role: Graduate Student
+    bio: Studying learning transfer in STEM education.
+    skills: [experimental design, statistics, Python]
+</TeamDirectory>
 ```
 
-### Properties
+## Attributes
+
 - `id` (required): Unique identifier
-- `title` (optional): Header text, defaults to "Team Directory"
+- `title` (optional): Directory heading (defaults to "Team Directory")
+- `group` (optional): Filter to cast members belonging to this group
+- `cast` (optional): Path to a `.cast` YAML file or inline cast object
 
-### State
-- `selectedMember`: ID of currently selected team member (null for none)
-- `viewMode`: Either "grid" (card overview) or "detail" (full profile)
+## Cast Sources
 
-## Current Team Data
+Members can come from any combination of sources (later wins):
 
-The block currently displays the Comm360 intern team:
-- **Ty** - Intern focusing on data analysis
-- **Peggy** - Intern specializing in community outreach
-- **Lacy** - Intern focused on program development
-- **Lianne Park** - Supervisor/Mentor, Director
-- **Anne Hastings** - CEO
+1. **Parent `<Cast>` block** — inherited via runtime
+2. **`cast=` attribute** — file reference or inline object
+3. **Body YAML** — inline cast definitions (most specific)
 
-Each member includes photo, role, bio, experience, and skills.
+```olx:code
+<!-- From a .cast file -->
+<TeamDirectory id="team" cast="team.cast" group="interns" />
 
-## Common Use Cases
+<!-- Inline body YAML -->
+<TeamDirectory id="team" title="Our Team">
+Kim:
+  seed: kim_01
+  profile:
+    role: Researcher
+</TeamDirectory>
 
-### 1. SBA Team Introduction
-Introduce learners to simulated colleagues they'll work with:
-```xml
-<TeamDirectory id="comm360_team" title="Meet Your Team"/>
+<!-- Inherited from parent Cast -->
+<Cast cast="characters.cast">
+  <TeamDirectory id="team" group="staff" />
+</Cast>
 ```
 
-### 2. Role-Play Scenarios
-Help learners understand who to consult for different questions.
+## Cast Member Fields
 
-### 3. Organizational Context
-Provide background on the simulated organization's structure.
+Each member supports:
 
-## Future Enhancements
+- `name` — Display name (defaults to the member ID)
+- `seed` — Avatar generation seed
+- `style` — `illustrated` (default), `initials`, or `image`
+- `src` — Image path (when style is `image`)
+- `openPeeps` — DiceBear avatar options (`face`, `head`, `skinColor`, etc.)
+- `profile` — Ad-hoc fields (`role`, `bio`, `skills`, `experience`, etc.)
+- `groups` — Array of group tags for filtering with `group=`
 
-Planned improvements:
-- Custom team data via child `<TeamMember>` blocks
-- Configurable photo paths
-- Integration with Navigator for team-based navigation
+## State
 
-## Example File
-See `TeamDirectory.olx` for the basic demo.
+- `selectedMember`: Currently selected team member ID
+- `viewMode`: `grid` (card overview) or `detail` (full profile)
+
+## Tips
+
+- Use `groups` and `group=` to show subsets of a larger cast
+- Profile fields (`role`, `bio`, `skills`) are rendered automatically in detail view
+- Combine with `<Cast>` to share characters across TeamDirectory, TalkBubble, and Chat

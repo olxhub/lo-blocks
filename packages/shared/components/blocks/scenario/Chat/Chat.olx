@@ -3,8 +3,9 @@ title: Study Group
 cast:
   Kim:
     seed: kim_researcher
-    face: smile
-    skinColor: ["694d3d"]
+    openPeeps:
+      face: smile
+      skinColor: ["694d3d"]
   Alex:
 ~~~~
 
