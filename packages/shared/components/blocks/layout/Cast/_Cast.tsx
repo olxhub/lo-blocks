@@ -11,12 +11,10 @@
 
 import React from 'react';
 import { useKids } from '@/lib/render';
-import { useCast, updateCast } from '@/lib/cast';
+import { updateCast } from '@/lib/cast';
 import type { RuntimeProps } from '@/lib/types';
 
 export default function _Cast(props: RuntimeProps) {
-  const cast = useCast(props);
-  const castProps = updateCast(props, cast);
-  const { kids } = useKids(castProps);
+  const { kids } = useKids(updateCast(props));
   return <>{kids}</>;
 }

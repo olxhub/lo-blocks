@@ -308,20 +308,27 @@ describe('useCast', () => {
 });
 
 // =============================================================================
-// updateCast — propthread cast into runtime for children
+// updateCast — merge cast and propthread into runtime for children
 // =============================================================================
 //
-// Used by wrapper blocks (like <Cast>) to pass updated cast to children:
-//   const castProps = updateCast(props, mergedCast);
+// Used by wrapper blocks (like <Cast>) to pass merged cast to children:
+//   const castProps = updateCast(props);
 //   const { kids } = useKids(castProps);
 
 describe('updateCast', () => {
-  test('returns new props with cast in runtime', () => {
-    const props = { runtime: { locale: 'en' }, id: 'block1' };
-    const cast = { bob: { name: 'Bob' } };
-    const result = updateCast(props, cast);
+  test('merges cast and propthreads into runtime', () => {
+    const props = {
+      runtime: { locale: 'en', cast: { alice: { name: 'Alice' } } },
+      cast: { bob: { name: 'Bob' } },
+      id: 'block1',
+    };
+    const result = updateCast(props);
 
-    expect(result.runtime.cast).toEqual({ bob: { name: 'Bob' } });
+    // Merged cast in runtime
+    expect(result.runtime.cast).toEqual({
+      alice: { name: 'Alice' },
+      bob: { name: 'Bob' },
+    });
     // Preserves other runtime fields
     expect(result.runtime.locale).toBe('en');
     // Preserves other props

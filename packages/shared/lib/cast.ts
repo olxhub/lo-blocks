@@ -355,16 +355,14 @@ export function useCast(props: any): Cast {
 }
 
 /**
- * Return new props with the cast propthreaded into the runtime.
+ * Merge cast and propthread it into the runtime for children.
  *
- * Used by wrapper blocks (like <Cast>) to pass updated cast to children:
- *   const castProps = updateCast(props, mergedCast);
+ * Used by wrapper blocks (like <Cast>) that pass cast to children:
+ *   const castProps = updateCast(props);
  *   const { kids } = useKids(castProps);
  */
-export function updateCast(
-  props: any,
-  cast: Cast
-): any {
+export function updateCast(props: any): any {
+  const cast = mergeCasts(props.runtime?.cast, props.cast);
   return {
     ...props,
     runtime: updateRuntimeCast(props.runtime, cast),
