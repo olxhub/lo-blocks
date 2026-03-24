@@ -15,7 +15,7 @@ import { z } from 'zod';
 import { VALID_ID_SEGMENT, VALID_REDUX_STATE_KEY, toOlxReference, toReduxStateKey } from './idResolver';
 import type { OlxReference, ReduxStateKey } from '@/lib/types';
 import { parse as parseExpr } from '@/lib/stateLanguage';
-import { CastSchema } from '@/lib/cast';
+import { CastSchema, Face } from '@/lib/cast';
 
 /**
  * Zod refinement for validating OLX IDs.
@@ -364,6 +364,20 @@ export const src = {
 export const cast = {
   cast: z.union([z.string(), CastSchema]).optional()
     .describe('Path to .cast YAML file, or inline cast object'),
+};
+
+/**
+ * Character attribute - for blocks that refer to a single character from the cast.
+ * Provides per-instance overrides for avatar rendering.
+ * Usage: baseAttributes.extend({ ...cast, ...character, position: ... })
+ */
+export const character = {
+  who: z.string().optional().describe('Character ID (looked up in cast)'),
+  face: Face.optional().describe('DiceBear face/expression override (e.g. smile, serious)'),
+  seed: z.string().optional().describe('Override seed for avatar generation'),
+  avatar: z.string().optional().describe('Image URL (overrides cast)'),
+  avatarStyle: z.enum(['illustrated', 'initials']).optional()
+    .describe('Avatar style override'),
 };
 
 // =============================================================================

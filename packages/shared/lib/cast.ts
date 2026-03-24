@@ -53,10 +53,7 @@
 //
 import { z } from 'zod';
 import yaml from 'js-yaml';
-import type { LoBlockRuntimeContext, Cast, CastMember } from '@/lib/types';
-
-// Re-export types from types.ts for convenience
-export type { Cast, CastMember } from '@/lib/types';
+import type { LoBlockRuntimeContext } from '@/lib/types';
 
 // =============================================================================
 // Zod Schemas
@@ -151,6 +148,12 @@ export const CastMemberSchema = z.object({
  * In YAML, they appear as top-level keys.
  */
 export const CastSchema = z.record(z.string(), CastMemberSchema);
+
+// Inferred types — single source of truth from Zod schemas above.
+// Re-exported via types.ts for the rest of the codebase.
+export type OpenPeeps = z.infer<typeof OpenPeepsSchema>;
+export type CastMember = z.infer<typeof CastMemberSchema>;
+export type Cast = z.infer<typeof CastSchema>;
 
 // =============================================================================
 // Internal utilities

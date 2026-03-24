@@ -928,34 +928,13 @@ export interface LocaleContext {
 }
 
 // =============================================================================
-// Cast of characters — types for the character system propthreaded via runtime.
-// Schemas and logic live in cast.ts; only plain types live here.
+// Cast of characters — types derived from Zod schemas in cast.ts.
+// Schemas are the single source of truth; types are re-exported here
+// so the rest of the codebase can import from types.ts as usual.
 // =============================================================================
 
-/** DiceBear Open Peeps avatar options (face, head, accessories, etc.) */
-export interface OpenPeeps {
-  face?: string | string[];
-  head?: string | string[];
-  accessories?: string | string[];
-  facialHair?: string | string[];
-  mask?: string | string[];
-  skinColor?: string | string[];
-  clothingColor?: string | string[];
-}
-
-/** A single cast member definition. */
-export interface CastMember {
-  name?: string;
-  seed?: string;
-  style?: 'illustrated' | 'initials' | 'image';
-  src?: string;
-  openPeeps?: OpenPeeps;
-  profile?: Record<string, unknown>;
-  groups?: string[];
-}
-
-/** Full cast: maps character IDs to their definitions. */
-export type Cast = Record<string, CastMember>;
+import type { Cast as _Cast } from '@/lib/cast';
+export type { OpenPeeps, CastMember, Cast } from '@/lib/cast';
 
 /**
  * LoBlockRuntimeContext - runtime configuration that flows through the component tree.
@@ -979,7 +958,7 @@ export interface LoBlockRuntimeContext {
   olxJsonSources?: string[];  // Redux source names in priority order for OlxJson lookup
   idPrefix?: IdPrefix;  // Scope prefix for Redux state (changes at list boundaries)
   locale: LocaleContext;  // Language and text direction
-  cast?: Cast;  // Cast of characters - propthreaded like locale
+  cast?: _Cast;  // Cast of characters - propthreaded like locale
 }
 
 /**

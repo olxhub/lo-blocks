@@ -8,26 +8,22 @@
 #   https://www.dicebear.com/styles/open-peeps/#options
 
 Omer:
-  name: Omer
   src: images/GSU_prof.png
   profile:
     role: Professor
     bio: Professor at Georgia State University teaching EDUC 3100.
 
 You:
-  name: You
   openPeeps:
     face: smile
     head: medium1
 
 Teammate:
-  name: Teammate
   openPeeps:
     face: driven
     head: short3
 
 Ty:
-  name: Ty
   src: images/ty.png
   profile:
     role: Intern - Data Analysis
@@ -42,7 +38,6 @@ Ty:
     - interns
 
 Peggy:
-  name: Peggy
   src: images/peggy.png
   profile:
     role: Intern - Community Outreach
@@ -57,7 +52,6 @@ Peggy:
     - interns
 
 Lacy:
-  name: Lacy
   src: images/lacy.png
   profile:
     role: Intern - Program Development
@@ -87,7 +81,6 @@ Lianne:
     - supervisors
 
 Anne Hastings:
-  name: Anne Hastings
   src: images/anne.png
   profile:
     role: CEO
