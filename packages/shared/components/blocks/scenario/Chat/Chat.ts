@@ -7,7 +7,7 @@ import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes, cast } from '@/lib/blocks/attributeSchemas';
 import { CHAT_METADATA_KEYS } from '@/lib/content/metadata';
-import { validateCast, withCastSupport } from '@/lib/cast';
+import { validateCast, withCastSupport } from '@/lib/avatar/cast';
 import * as cp  from './_chatParser';
 import { _Chat, callChatAdvanceHandler } from './_Chat';
 

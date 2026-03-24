@@ -24,7 +24,7 @@ import {
   OpenPeepsSchema,
 } from './openpeeps';
 
-import { parseOLX } from './content/parseOLX';
+import { parseOLX } from '@/lib/content/parseOLX';
 
 // =============================================================================
 // parseCastYaml — parse YAML text into a validated Cast object

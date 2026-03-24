@@ -27,14 +27,14 @@ import type { LoBlockRuntimeContext } from '@/lib/types';
 import {
   CastSchema, CastMemberSchema, OpenPeepsSchema,
   type Cast, type CastMember,
-} from '@/lib/openpeeps';
+} from '@/lib/avatar/openpeeps';
 
 // Re-export schemas and types so existing imports from '@/lib/cast' still work.
 export {
   Face, AvatarStyle,
   OpenPeepsSchema, CastMemberSchema, CastSchema,
   type OpenPeeps, type CastMember, type Cast,
-} from '@/lib/openpeeps';
+} from '@/lib/avatar/openpeeps';
 
 // =============================================================================
 // Internal utilities

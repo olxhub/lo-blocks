@@ -11,8 +11,8 @@
 //
 
 import { describe, test, expect, afterEach } from 'vitest';
-import { parseOLX } from './content/parseOLX';
-import { render, makeRootNode } from './render';
+import { parseOLX } from '@/lib/content/parseOLX';
+import { render, makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { store } from '@/lib/state/store';
 import { dispatchOlxJsonSync } from '@/lib/state/olxjson';

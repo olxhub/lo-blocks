@@ -18,7 +18,7 @@
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes, cast } from '@/lib/blocks/attributeSchemas';
-import { withCastSupport } from '@/lib/cast';
+import { withCastSupport } from '@/lib/avatar/cast';
 import _Cast from './_Cast';
 
 const Cast = core({

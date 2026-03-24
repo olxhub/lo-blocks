@@ -6,7 +6,7 @@ import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes, cast } from '@/lib/blocks/attributeSchemas';
 import { z } from 'zod';
-import { withCastSupport } from '@/lib/cast';
+import { withCastSupport } from '@/lib/avatar/cast';
 import _TeamDirectory from './_TeamDirectory';
 
 export const fields = state.fields([

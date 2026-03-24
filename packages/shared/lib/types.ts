@@ -933,8 +933,8 @@ export interface LocaleContext {
 // so the rest of the codebase can import from types.ts as usual.
 // =============================================================================
 
-import type { Cast as _Cast } from '@/lib/openpeeps';
-export type { OpenPeeps, CastMember, Cast } from '@/lib/openpeeps';
+import type { Cast as _Cast } from '@/lib/avatar/openpeeps';
+export type { OpenPeeps, CastMember, Cast } from '@/lib/avatar/openpeeps';
 
 /**
  * LoBlockRuntimeContext - runtime configuration that flows through the component tree.

@@ -5,7 +5,7 @@ import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import Avatar from '@/components/common/Avatar';
-import { useCast, castMemberToAvatarProps } from '@/lib/cast';
+import { useCast, castMemberToAvatarProps } from '@/lib/avatar/cast';
 
 function _TeamDirectory(props) {
   const { fields, group, title = 'Team Directory' } = props;

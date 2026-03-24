@@ -3,7 +3,7 @@ import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { baseAttributes, cast, character } from '@/lib/blocks/attributeSchemas';
 import { z } from 'zod';
-import { withCastSupport } from '@/lib/cast';
+import { withCastSupport } from '@/lib/avatar/cast';
 import _TalkBubble from './_TalkBubble';
 
 const TalkBubble = core({

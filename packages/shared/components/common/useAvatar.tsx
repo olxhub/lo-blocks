@@ -13,9 +13,9 @@
 import React from 'react';
 import { z } from 'zod';
 import Avatar from '@/components/common/Avatar';
-import { useCast, castMemberToAvatarProps } from '@/lib/cast';
-import { Face, AvatarStyle } from '@/lib/openpeeps';
-import type { Cast } from '@/lib/openpeeps';
+import { useCast, castMemberToAvatarProps } from '@/lib/avatar/cast';
+import { Face, AvatarStyle } from '@/lib/avatar/openpeeps';
+import type { Cast } from '@/lib/avatar/openpeeps';
 
 export interface UseAvatarOptions {
   /** Character ID override (defaults to props.who). */

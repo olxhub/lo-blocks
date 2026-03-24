@@ -7,7 +7,7 @@ import { useFieldState, updateField } from '@/lib/state';
 import { refToReduxKey } from '@/lib/blocks/idResolver';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
-import { useCast, mergeCasts } from '@/lib/cast';
+import { useCast, mergeCasts } from '@/lib/avatar/cast';
 import { useWaitConditions } from './waitConditions';
 
 import * as chatUtils from './chatUtils';
