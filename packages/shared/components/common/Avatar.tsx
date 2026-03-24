@@ -1,4 +1,4 @@
-// src/components/common/Avatar.jsx
+// src/components/common/Avatar.tsx
 //
 // Shared avatar component used by ChatComponent, TalkBubble, and
 // any future component that needs to display a speaker/participant.
@@ -16,6 +16,16 @@ import React, { useMemo } from 'react';
 import { createAvatar } from '@dicebear/core';
 import * as openPeeps from '@dicebear/open-peeps';
 import { resolveContentPath } from '@/lib/content/contentPaths';
+import type { OpenPeeps, AvatarStyleValue } from '@/lib/avatar/openpeeps';
+
+interface AvatarProps {
+  name?: string;
+  src?: string;
+  seed?: string;
+  style?: AvatarStyleValue;
+  options?: Partial<OpenPeeps>;
+  size?: number;
+}
 
 const INITIALS_COLORS = [
   'bg-blue-500', 'bg-green-500', 'bg-yellow-500',
@@ -23,7 +33,7 @@ const INITIALS_COLORS = [
   'bg-red-500', 'bg-teal-500', 'bg-orange-500'
 ];
 
-function getInitialsColor(name) {
+function getInitialsColor(name: string | undefined) {
   const hash = Array.from(name || '').reduce(
     (acc, ch) => ch.charCodeAt(0) + ((acc << 5) - acc),
     0
@@ -31,7 +41,7 @@ function getInitialsColor(name) {
   return INITIALS_COLORS[Math.abs(hash) % INITIALS_COLORS.length];
 }
 
-function getInitials(name) {
+function getInitials(name: string | undefined) {
   if (!name) return '?';
   return name
     .split(' ')
@@ -41,27 +51,16 @@ function getInitials(name) {
     .slice(0, 2);
 }
 
-/**
- * Render an avatar for a speaker.
- *
- * @param {string} name - Speaker name (used as default seed and for initials fallback)
- * @param {string} [src] - Explicit image URL (bypasses generation entirely)
- * @param {string} [seed] - Override seed for DiceBear (defaults to name)
- * @param {'illustrated'|'initials'} [style='illustrated'] - Avatar style
- * @param {object} [options] - DiceBear Open Peeps options pass-through
- *   (face, head, skinColor, clothingColor, accessories, facialHair, etc.)
- * @param {number} [size=32] - Avatar size in pixels
- */
-export default function Avatar({ name, src, seed, style = 'illustrated', options, size = 32 }) {
+export default function Avatar({ name, src, seed, style = 'illustrated', options, size = 32 }: AvatarProps) {
   const generatedSvg = useMemo(() => {
-    if (src || style === 'initials') return null;
-    const dicebearOptions = {
+    if (src || style === 'initials') return undefined;
+    // DiceBear expects array values for enumerated options like face, head, etc.
+    // Our schema allows singles; coerce to arrays before passing through.
+    const dicebearOptions: Record<string, any> = {
       seed: seed || name || 'unknown',
       size,
       ...options,
     };
-    // DiceBear expects array values for enumerated options like face, head, etc.
-    // If the caller passes a single string, wrap it.
     for (const key of ['face', 'head', 'accessories', 'facialHair', 'mask']) {
       if (typeof dicebearOptions[key] === 'string') {
         dicebearOptions[key] = [dicebearOptions[key]];
@@ -73,7 +72,7 @@ export default function Avatar({ name, src, seed, style = 'illustrated', options
 
   // Explicit image URL — highest priority
   if (src) {
-    const resolvedSrc = resolveContentPath(src);
+    const resolvedSrc = resolveContentPath(src) ?? src;
     return (
       <img
         src={resolvedSrc}

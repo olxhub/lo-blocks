@@ -25,9 +25,7 @@
 import React from 'react';
 import yaml from 'js-yaml';
 import type { LoBlockRuntimeContext } from '@/lib/types';
-// Avatar.jsx lacks type declarations; typed alias lets JSX work from .tsx context.
-import _Avatar from '@/components/common/Avatar';
-const Avatar: React.FC<any> = _Avatar;
+import Avatar from '@/components/common/Avatar';
 import {
   CastSchema, CastMemberSchema, OpenPeepsSchema,
   type Cast, type CastMember, type FaceExpression, type AvatarStyleValue,

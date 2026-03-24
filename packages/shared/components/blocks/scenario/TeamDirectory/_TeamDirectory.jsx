@@ -4,11 +4,12 @@
 import React from 'react';
 import { useFieldState } from '@/lib/state';
 import Avatar from '@/components/common/Avatar';
-import { useCast, castMemberToAvatarProps } from '@/lib/avatar/cast';
+import { useCast, mergeCasts, castMemberToAvatarProps } from '@/lib/avatar/cast';
 
 function _TeamDirectory(props) {
-  const { fields, group, title = 'Team Directory' } = props;
-  const cast = useCast(props);
+  const { fields, group, title = 'Team Directory', kids } = props;
+  // Merge: runtime.cast ← cast= attribute ← body YAML (kids)
+  const cast = mergeCasts(useCast(props), kids);
 
   const [selectedMember, setSelectedMember] = useFieldState(props, fields.selectedMember, null);
   const [viewMode, setViewMode] = useFieldState(props, fields.viewMode, 'grid');
