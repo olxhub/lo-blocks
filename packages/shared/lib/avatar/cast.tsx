@@ -28,7 +28,7 @@ import type { LoBlockRuntimeContext } from '@/lib/types';
 import Avatar from '@/components/common/Avatar';
 import {
   CastSchema, CastMemberSchema, OpenPeepsSchema,
-  type Cast, type CastMember, type FaceExpression, type AvatarStyleValue,
+  type Cast, type CastMember, type OpenPeeps, type FaceExpression, type AvatarStyleValue,
 } from '@/lib/avatar/openpeeps';
 
 // Re-export schemas and types so existing imports from '@/lib/cast' still work.
