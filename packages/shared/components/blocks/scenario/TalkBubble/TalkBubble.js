@@ -14,7 +14,7 @@ const TalkBubble = core({
   attributes: baseAttributes.extend({
     ...cast,
     ...character,
-    position: z.enum(['left', 'right']).default('left').describe('Position of avatar (left or right)'),
+    side: z.enum(['primary', 'secondary']).default('primary').describe('Conversation side (primary=default side, secondary=opposite)'),
   }),
 
 });

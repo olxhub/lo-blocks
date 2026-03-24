@@ -6,14 +6,14 @@ import { useKids } from '@/lib/render';
 import { useAvatar } from '@/components/common/useAvatar';
 
 export default function _TalkBubble(props) {
-  const { position = 'left' } = props;
+  const { side = 'primary' } = props;
   const { kids } = useKids(props);
   const { avatar, name } = useAvatar(props, { size: 48 });
 
-  const isLeft = position === 'left';
+  const isPrimary = side === 'primary';
 
   return (
-    <div className={`flex gap-3 mb-4 ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}>
+    <div className={`flex gap-3 mb-4 ${isPrimary ? 'flex-row' : 'flex-row-reverse'}`}>
       {/* Avatar */}
       <div className="flex-shrink-0 pt-1">
         {avatar}
@@ -22,11 +22,11 @@ export default function _TalkBubble(props) {
       {/* Speech bubble */}
       <div className="flex-1 max-w-2xl">
         {name && (
-          <div className={`text-sm font-semibold text-gray-700 mb-1 ${isLeft ? 'text-start' : 'text-end'}`}>
+          <div className={`text-sm font-semibold text-gray-700 mb-1 ${isPrimary ? 'text-start' : 'text-end'}`}>
             {name}
           </div>
         )}
-        <div className={`px-4 py-3 rounded-lg ${isLeft ? 'bg-gray-100' : 'bg-blue-100'}`}>
+        <div className={`px-4 py-3 rounded-lg ${isPrimary ? 'bg-gray-100' : 'bg-blue-100'}`}>
           {kids}
         </div>
       </div>

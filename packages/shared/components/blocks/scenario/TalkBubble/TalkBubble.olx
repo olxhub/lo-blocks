@@ -3,7 +3,7 @@
     <Markdown>Have you heard about peer instruction? Students discuss their reasoning with neighbors before answering.</Markdown>
   </TalkBubble>
 
-  <TalkBubble who="Clara" position="right" seed="clara_student" face="smile">
+  <TalkBubble who="Clara" side="secondary" seed="clara_student" face="smile">
     <Markdown>The clicker method! Where you vote, discuss, then re-vote?</Markdown>
   </TalkBubble>
 
