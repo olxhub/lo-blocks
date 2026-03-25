@@ -61,7 +61,7 @@ export default function Avatar({ name, src, seed, style = 'illustrated', options
       size,
       ...options,
     };
-    for (const key of ['face', 'head', 'accessories', 'facialHair', 'mask']) {
+    for (const key of ['face', 'head', 'accessories', 'facialHair', 'mask', 'skinColor', 'clothingColor', 'headContrastColor']) {
       if (typeof dicebearOptions[key] === 'string') {
         dicebearOptions[key] = [dicebearOptions[key]];
       }

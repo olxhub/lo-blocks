@@ -39,7 +39,7 @@ export const Face = z.enum([
   'smileTeethGap', 'solemn', 'suspicious', 'tired', 'veryAngry',
 ]);
 
-const Head = z.enum([
+export const Head = z.enum([
   'afro', 'bangs', 'bangs2', 'bantuKnots', 'bear',
   'bun', 'bun2', 'buns', 'cornrows', 'cornrows2',
   'dreads1', 'dreads2', 'flatTop', 'flatTopLong', 'grayBun',
@@ -52,19 +52,19 @@ const Head = z.enum([
   'turban', 'twists', 'twists2',
 ]);
 
-const Accessories = z.enum([
+export const Accessories = z.enum([
   'eyepatch', 'glasses', 'glasses2', 'glasses3', 'glasses4',
   'glasses5', 'sunglasses', 'sunglasses2',
 ]);
 
-const FacialHair = z.enum([
+export const FacialHair = z.enum([
   'chin', 'full', 'full2', 'full3', 'full4',
   'goatee1', 'goatee2', 'moustache1', 'moustache2', 'moustache3',
   'moustache4', 'moustache5', 'moustache6', 'moustache7', 'moustache8',
   'moustache9',
 ]);
 
-const Mask = z.enum(['medicalMask', 'respirator']);
+export const Mask = z.enum(['medicalMask', 'respirator']);
 
 // Hex color: 6 hex digits (no #), matching DiceBear's pattern.
 const HexColor = z.string().regex(/^[a-fA-F0-9]{6}$/);
@@ -84,6 +84,7 @@ export const OpenPeepsSchema = z.object({
   mask: z.union([Mask, z.array(Mask)]).optional(),
   skinColor: z.union([HexColor, z.array(HexColor)]).optional(),
   clothingColor: z.union([HexColor, z.array(HexColor)]).optional(),
+  headContrastColor: z.union([HexColor, z.array(HexColor)]).optional(),
 }).strict();
 
 // =============================================================================
