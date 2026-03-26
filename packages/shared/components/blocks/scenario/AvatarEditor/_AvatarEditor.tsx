@@ -25,7 +25,6 @@ type CategoryKey = keyof typeof CATEGORIES;
 const TABS = [
   ...Object.entries(CATEGORIES).map(([key, { label }]) => ({ key, label })),
   { key: 'colors', label: 'Colors' },
-  { key: 'yaml', label: 'YAML' },
 ];
 
 // Skin tone presets — broad range across ethnicities
@@ -123,11 +122,44 @@ function ColorField(props: { label: string; presets: string[]; field: any; props
 }
 
 // ---------------------------------------------------------------------------
+// YAML output with copy button
+// ---------------------------------------------------------------------------
+
+function YamlOutput({ yaml, props: blockProps }: { yaml: string; props: any }) {
+  const { fields } = blockProps;
+  const [copied, setCopied] = useFieldState(blockProps, fields.copied, false);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(yaml).then(
+      () => { setCopied(true); setTimeout(() => setCopied(false), 2000); },
+      () => { /* clipboard unavailable */ },
+    );
+  }, [yaml, setCopied]);
+
+  return (
+    <div className="relative">
+      <button
+        onClick={handleCopy}
+        className="absolute top-2 right-2 p-1 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-700"
+        title="Copy to clipboard"
+      >
+        {copied ? <Check size={16} /> : <Copy size={16} />}
+      </button>
+      <pre className="bg-gray-50 border rounded p-3 text-sm font-mono whitespace-pre overflow-x-auto">
+        {yaml}
+      </pre>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
 function _AvatarEditor(props: any) {
   const { fields, locals } = props;
+  const compact = props.compact;
+
   const [characterId, characterIdInputProps] = useInputField(
     props, fields.characterId, '', { updateValidator: locals.isValidCastIdInput },
   );
@@ -192,9 +224,10 @@ function _AvatarEditor(props: any) {
   }, [props, fields]);
 
   return (
-    <div className="avatar-editor border rounded-lg bg-white p-4">
+    <div className="avatar-editor border rounded-lg bg-white p-4 space-y-4">
+      {/* --- Avatar picker: preview + tabs --- */}
       <div className="flex gap-6 flex-col sm:flex-row">
-        {/* --- Left: preview + inputs --- */}
+        {/* Left: preview + ID/seed */}
         <div className="flex-shrink-0 flex flex-col items-center gap-3">
           <img
             src={mainPreview}
@@ -207,13 +240,6 @@ function _AvatarEditor(props: any) {
             type="text"
             placeholder="ID (e.g. robert)"
             className="w-40 border rounded px-2 py-1 text-sm font-mono"
-          />
-          <input
-            type="text"
-            placeholder="Display name (optional)"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            className="w-40 border rounded px-2 py-1 text-sm"
           />
           <input
             type="text"
@@ -230,9 +256,8 @@ function _AvatarEditor(props: any) {
           </button>
         </div>
 
-        {/* --- Right: tabbed picker --- */}
+        {/* Right: tabbed picker */}
         <div className="flex-1 min-w-0">
-          {/* Tab bar */}
           <div className="flex gap-1 mb-3 flex-wrap">
             {TABS.map(tab => (
               <button
@@ -250,7 +275,7 @@ function _AvatarEditor(props: any) {
           </div>
 
           {/* Enum thumbnail grid */}
-          {activeTab !== 'colors' && activeTab !== 'yaml' && (
+          {activeTab !== 'colors' && (
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
               {thumbnails.map(({ value, dataUri }) => {
                 const selected = fieldValues[activeTab] === value;
@@ -282,31 +307,33 @@ function _AvatarEditor(props: any) {
           {/* Color swatches + hex input */}
           {activeTab === 'colors' && (
             <div className="space-y-4">
-              <ColorField
-                label="Skin Color"
-                presets={SKIN_COLORS}
-                field={fields.skinColor}
-                props={props}
-              />
-              <ColorField
-                label="Clothing Color"
-                presets={CLOTHING_COLORS}
-                field={fields.clothingColor}
-                props={props}
-              />
-              <ColorField
-                label="Hair Color"
-                presets={HAIR_COLORS}
-                field={fields.headContrastColor}
-                props={props}
-              />
+              <ColorField label="Skin Color" presets={SKIN_COLORS} field={fields.skinColor} props={props} />
+              <ColorField label="Clothing Color" presets={CLOTHING_COLORS} field={fields.clothingColor} props={props} />
+              <ColorField label="Hair Color" presets={HAIR_COLORS} field={fields.headContrastColor} props={props} />
             </div>
           )}
+        </div>
+      </div>
 
-          {/* YAML output + profile fields */}
-          {activeTab === 'yaml' && (
-            <div className="space-y-3">
+      {/* --- Metadata + YAML (hidden in compact mode) --- */}
+      {!compact && (
+        <>
+          <details className="border rounded">
+            <summary className="px-3 py-2 text-sm font-medium text-gray-700 cursor-pointer bg-gray-50 hover:bg-gray-100">
+              Metadata
+            </summary>
+            <div className="p-3 space-y-3">
               <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-gray-500">Name</label>
+                  <input
+                    type="text"
+                    placeholder="Display name (if different from ID)"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    className="w-full border rounded px-2 py-1 text-sm"
+                  />
+                </div>
                 <div>
                   <label className="text-xs text-gray-500">Role</label>
                   <input
@@ -315,15 +342,6 @@ function _AvatarEditor(props: any) {
                     value={role}
                     onChange={e => setRole(e.target.value)}
                     className="w-full border rounded px-2 py-1 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500">Groups</label>
-                  <input
-                    {...groupsInputProps}
-                    type="text"
-                    placeholder="e.g. interns,team_a"
-                    className="w-full border rounded px-2 py-1 text-sm font-mono"
                   />
                 </div>
               </div>
@@ -337,42 +355,21 @@ function _AvatarEditor(props: any) {
                   className="w-full border rounded px-2 py-1 text-sm"
                 />
               </div>
-              <YamlOutput yaml={yamlOutput} props={props} />
+              <div>
+                <label className="text-xs text-gray-500">Groups</label>
+                <input
+                  {...groupsInputProps}
+                  type="text"
+                  placeholder="e.g. interns,team_a"
+                  className="w-full border rounded px-2 py-1 text-sm font-mono"
+                />
+              </div>
             </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+          </details>
 
-// ---------------------------------------------------------------------------
-// YAML output with copy button
-// ---------------------------------------------------------------------------
-
-function YamlOutput({ yaml, props: blockProps }: { yaml: string; props: any }) {
-  const { fields } = blockProps;
-  const [copied, setCopied] = useFieldState(blockProps, fields.copied, false);
-
-  const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(yaml).then(
-      () => { setCopied(true); setTimeout(() => setCopied(false), 2000); },
-      () => { /* clipboard unavailable */ },
-    );
-  }, [yaml, setCopied]);
-
-  return (
-    <div className="relative">
-      <button
-        onClick={handleCopy}
-        className="absolute top-2 right-2 p-1 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-700"
-        title="Copy to clipboard"
-      >
-        {copied ? <Check size={16} /> : <Copy size={16} />}
-      </button>
-      <pre className="bg-gray-50 border rounded p-3 text-sm font-mono whitespace-pre overflow-x-auto">
-        {yaml}
-      </pre>
+          <YamlOutput yaml={yamlOutput} props={props} />
+        </>
+      )}
     </div>
   );
 }
