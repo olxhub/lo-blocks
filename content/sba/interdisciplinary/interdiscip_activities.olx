@@ -35,7 +35,7 @@ Comm360's services can be developed to address the problem.
       </RightPane>
   </SplitPanel>
 
-  <Image id="interdisciplinary_gsu_plaza_image" src="/sba/interdisciplinary/images/GSU_Library_Plaza.jpg" alt="GSU Library Plaza" />
+  <Image id="interdisciplinary_gsu_plaza_image" src="/sba/interdisciplinary/images/GSU_Library_Plaza.jpg" alt="GSU Library Plaza. Photograph by Hwi Padam, CC by SA 4.0" />
   
   <Markdown id="interdisciplinary_task_list">
 ## Task Outline
@@ -51,9 +51,7 @@ This is Part One. In Parts Two and Three you will complete the rest of the inter
 research process.
   </Markdown>
 
-  <Markdown id="cause_brainstorming">
-&nbsp;
-  </Markdown>
+  <Image id="cause_brainstorming" src="/sba/interdisciplinary/images/team_workshop.jpg" alt="Talking about processes at a team brainstorming session. Source: UCT MOOC, CC by SA 4.0 International License" />
 
   <Markdown id="internal_and_structural_causes">
 ## Internal and Structural Causes
@@ -201,7 +199,6 @@ Mmmmm, yeah, I can see that.
 Are there any other comments on the causes? [interviewer pause] OK, let's move on to the next part of the focus group.
        </Markdown>
     </Annotate>
-    <Ref target="focus_group" />
     </Vertical>
 
     <!-- Display of focus group highlights -->
@@ -337,9 +334,7 @@ _Select the causes you think are most important to research._
        ============================================================ -->
   <Vertical id="interdisciplinary_taskset3">
 
-    <Markdown id="task_set_3_intro">
-    &nbsp;
-    </Markdown>
+    <Image id="task_set_3_intro" src="/sba/interdisciplinary/images/the_thinker.jpg" alt="Photograph of the Rodin sculpture, 'The Thinker' by Tammy Lo. CC by SS 2.0 Generic." />
 
     <!-- Repko's Broad Model -->
     <Vertical id="broad_model_display">
@@ -370,7 +365,6 @@ The causes of high school dropout involve individual psychology, family sociolog
         cols: Psychology, Sociology, Economics, Political Science, Health Sciences
         rows: Students need money to help family, Depression/anxiety/ADHD interferes, Gang activity / neighborhood instability, Lack of school funding
       </TabularMCQ>
-      <StateViewer target="discipline_mapping" />
     </Vertical>
 
     <!-- Display discipline mapping results -->

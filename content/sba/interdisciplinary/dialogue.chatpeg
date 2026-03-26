@@ -48,8 +48,6 @@ You: Right. We've been asked to investigate the causes of high school dropout so
 
 Teammate: Before we dive in, we should probably figure out who's on our team. There should be a team directory around here somewhere. Want to explore it and see who we'll be working with?
 
---- pause ---
-
 interdisciplinary_sba_sidebar -> interdisciplinary_team_intro
 
 Meet the Team [id=team_intro]
@@ -65,8 +63,6 @@ You: And she reports to Anne Hastings, the CEO, who makes the ultimate decisions
 
 Teammate: Now that we know the team, let's see what Lianne has for us to work on.
 
---- pause ---
-
 Task Overview [id=task_list]
 -------------
 
@@ -78,8 +74,6 @@ Lianne: Welcome to the team, everyone. We're glad you're here at Comm360 to help
 Lianne: By the way, you can call me Lianne. We're pretty informal here.
 
 Lacy: Thanks, Lianne.
-
---- pause ---
 
 Task 1: Brainstorm [id=brainstorm_start]
 -----------------------
@@ -96,8 +90,6 @@ Lianne: It may be from personal experiences of people you know or know of.
 
 Lianne: When you're done, we'll put all the ideas together as a way to start looking into research about the causes of dropping out.
 
---- pause ---
-
 Lacy: Thanks, Lianne. I know some old classmates who left high school before graduating, but I didn't exactly think it was my place to ask them why they dropped out.
 
 Ty: Me too. Maybe we should each take a few minutes to think of different reasons or causes of dropping out of high school.
@@ -110,8 +102,6 @@ Peggy: I have an idea for that. Let's write single sentences for each cause. I'l
 
 Peggy: She fell so far behind that by the time she got back, she just couldn't figure out how to catch up.
 
---- pause ---
-
 Ty: How could we put that into one sentence?
 
 Lacy: How about... Students who have illnesses that make it hard for them to keep up with schoolwork.
@@ -119,8 +109,6 @@ Lacy: How about... Students who have illnesses that make it hard for them to kee
 Peggy: That works for me. Let's see if each of us can come up with at least two different causes for dropping out of high school.
 
 Peggy: Lianne, what do you think?
-
---- pause ---
 
 Lianne: That's a good plan, but keep in mind, not all causes start with students or their families.
 
@@ -134,15 +122,11 @@ interdisciplinary_sba_sidebar -> internal_and_structural_causes
 
 Lianne: Keep an open mind about possible causes because our programs can work with multiple stakeholders, like schools and community groups as well as families and students.
 
---- pause ---
-
 Ty: Ah, I get it. So, why don't we each write one reason that is more like a structural cause and one that is focused more on the individual?
 
 Peggy: That's a good idea. I'll try it even though I'm not quite sure I get the difference yet.
 
 Peggy: So let's see if we can each write two causes.
-
---- pause ---
 
 interdisciplinary_sba_sidebar -> cause_inputs
 
@@ -156,9 +140,6 @@ interdisciplinary_sba_sidebar -> causes_list
 Lacy: Here are all of our reasons, Lianne. What do you think?
 
 Lianne: This is a good list. It reflects a lot of what we heard in a focus group we conducted after we got the results of our community needs survey. We spoke to various stakeholders - students and their families, teachers, and other community members.
-
-
---- pause ---
 
 Task 2: Review Focus Group Data [id=focus_group_start]
 ---------------------------------------
@@ -176,8 +157,6 @@ Lianne: Highlight any reasons that our participants gave for students dropping o
 interdisciplinary_sba_sidebar -> focus_group_highlights_shown
 
 Ty: I hope we get to work on focus groups here because that was really interesting. Here's what I highlighted.
-
---- pause ---
 
 Task 3: Select Focus Areas [id=focus_selection]
 ---------------------
@@ -219,8 +198,6 @@ Lianne: Yes, and we'll move into the research phase of this work shortly, but fi
 
 Lianne: So we'll need to determine if the problem of people dropping out of high school is the kind of problem that is appropriate for interdisciplinary research.
 
---- pause ---
-
 interdisciplinary_sba_sidebar -> broad_model_display
 
 Peggy: Ah, I think all of us are familiar with Broad Model from Repko from Professor Ari.
@@ -231,20 +208,16 @@ Ty: And we should identify the disciplines we think would give us the most insig
 
 Ty: Let's do it.
 
---- pause ---
-
 Peggy: Let's figure out which disciplines are likely to give us the most insights into the problem and possible solutions. How about each of us select all the disciplines in a row that we think apply for each of the causes listed? I think it is ok if we check as many boxes in a row as we think apply. Then, we can sum up our responses to see if they align and if we think this is an interdisciplinary problem.
 
 interdisciplinary_sba_sidebar -> causes_by_disciplines
 
 // HACK: Object.keys().length is instructor-unfriendly. TODO: Add isFilled() or .numberFilled field
-// wait Object.keys(@discipline_mapping.value).length > 3 ---
+--- wait Object.keys(@discipline_mapping.value).length > 3 ---
 
 Peggy: Ok, I summed up our responses and this shows any category that got more than one vote. We didn't always agree on each discipline, but overall we all seem to see how different disciplines might investigate the problem.
 
 interdisciplinary_sba_sidebar -> causes_by_disciplines_answers
-
---- pause ---
 
 Lacy: I agree. Our analysis supports what you were saying, Ty. These causes cut across a lot of subjects.
 
@@ -258,8 +231,6 @@ Lianne: Let's dig in a bit now and get more information about some of the causes
 
 Ty: I'm already on it. I took a few key words from one of the causes and did a search. One study looks promising.
 
---- pause ---
-
 Task 5: Review Literature - ADHD Study [id=literature_adhd]
 ----------------------------------------------
 
@@ -267,15 +238,11 @@ interdisciplinary_sba_sidebar -> adhd_study_text
 
 Ty: Here it is.
 
---- pause ---
-
 Lacy: This does look promising. Which discipline, or maybe disciplines, are represented in this study? I mean, which ones are the most relevant, if we have these to choose from? Health sciences, biology, psychology, sociology, economics, or political science?
 
 Peggy: I think it's Psychology. There are some clues and jargon in the summary.
 
 Ty: Can you show us?
-
---- pause ---
 
 interdisciplinary_sba_sidebar -> adhd_study_highlighted
 
@@ -328,8 +295,6 @@ Task 5: Literature Review -- Employment Study [id=literature_employment]
 interdisciplinary_sba_sidebar -> employment_study_text
 
 Lacy: I used the search term method and found another study. This one is on employment. Take a look.
-
---- pause ---
 
 Lianne: See if you can find the clue words that indicate which disciplines are relevant in this study.
 
