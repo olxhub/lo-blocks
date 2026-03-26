@@ -6,10 +6,13 @@ import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector } from '@/lib/state';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
+import {
+  isValidCastIdInput, isValidGroupInput, isValidHexInput, isCompleteHex,
+} from '@/lib/avatar/types';
 import _AvatarEditor from './_AvatarEditor';
 
 export const fields = state.fields([
-  'characterId',     // Cast key / slug (e.g. "robert", "ty")
+  'characterId',     // Cast key (e.g. "robert", "Łukasz")
   'name',            // Display name override (e.g. "Robert Dole")
   'seed',            // Avatar generation seed
   'activeTab',       // Currently visible picker tab
@@ -27,11 +30,7 @@ export const fields = state.fields([
   'copied',             // Transient: copy-to-clipboard feedback
 ]);
 
-/** Valid characters for character IDs: Unicode letters, digits, underscores. */
-const isIdChars = (val: string) => /^[\p{L}\p{N}_]*$/u.test(val);
-
-/** Valid characters for comma-separated group lists: Unicode letters, digits, underscores, commas. */
-const isGroupChars = (val: string) => /^[\p{L}\p{N}_,]*$/u.test(val);
+const COLOR_KEYS = ['skinColor', 'clothingColor', 'headContrastColor'];
 
 /** Build a cast member object and dump it as YAML. */
 function buildYaml(
@@ -46,12 +45,14 @@ function buildYaml(
   if (name && name !== id) member.name = name;
   if (seed) member.seed = seed;
 
-  // openPeeps — only include fields that have values
-  const peepsKeys = ['face', 'head', 'accessories', 'facialHair', 'mask', 'skinColor', 'clothingColor', 'headContrastColor'];
+  // openPeeps — only include fields with values; colors must be complete hex
+  const peepsKeys = ['face', 'head', 'accessories', 'facialHair', 'mask', ...COLOR_KEYS];
   const openPeeps: Record<string, string> = {};
   for (const key of peepsKeys) {
     const val = fieldValues[key];
-    if (val) openPeeps[key] = val;
+    if (!val) continue;
+    if (COLOR_KEYS.includes(key) && !isCompleteHex(val)) continue;
+    openPeeps[key] = val;
   }
   if (Object.keys(openPeeps).length > 0) member.openPeeps = openPeeps;
 
@@ -61,8 +62,8 @@ function buildYaml(
   if (profile.bio) profileObj.bio = profile.bio;
   if (Object.keys(profileObj).length > 0) member.profile = profileObj;
 
-  // groups — split on commas, already validated to slug chars
-  const groupList = profile.groups.split(',').map(g => g.trim()).filter(Boolean);
+  // groups — split on commas
+  const groupList = profile.groups.split(',').filter(Boolean);
   if (groupList.length > 0) member.groups = groupList;
 
   return yaml.dump({ [id]: member }, { lineWidth: -1, noCompatMode: true }).trimEnd();
@@ -75,7 +76,7 @@ const AvatarEditor = dev({
   component: _AvatarEditor,
   fields,
   attributes: baseAttributes,
-  locals: { buildYaml, isIdChars, isGroupChars },
+  locals: { buildYaml, isValidCastIdInput, isValidGroupInput, isValidHexInput },
 
   selectValue: (props: any, reduxState: any, _reduxKey: any) => {
     const characterId = fieldSelector(reduxState, props, fields.characterId, { fallback: '' });

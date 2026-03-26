@@ -6,7 +6,7 @@ import { createAvatar } from '@dicebear/core';
 import * as openPeepsStyle from '@dicebear/open-peeps';
 import { Copy, Check } from 'lucide-react';
 import { useFieldState, useInputField, updateField } from '@/lib/state';
-import { Face, Head, Accessories, FacialHair, Mask } from '@/lib/avatar/openpeeps';
+import { Face, Head, Accessories, FacialHair, Mask } from '@/lib/avatar/types';
 
 // ---------------------------------------------------------------------------
 // Option categories — derived from Zod enum schemas
@@ -49,8 +49,6 @@ const HAIR_COLORS = [
   '1a1a1a', '4b4b4b', '808080',                         // black/gray
 ];
 
-const isHex = (val: string) => /^[a-fA-F0-9]{0,6}$/.test(val);
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -83,7 +81,9 @@ function renderAvatar(seed: string, opts: Record<string, string>, size: number):
 
 function ColorField(props: { label: string; presets: string[]; field: any; props: any }) {
   const { label, presets, field, props: blockProps } = props;
-  const [value, inputProps] = useInputField(blockProps, field, '', { updateValidator: isHex });
+  const [value, inputProps] = useInputField(
+    blockProps, field, '', { updateValidator: blockProps.locals.isValidHexInput },
+  );
 
   return (
     <div>
@@ -128,7 +128,9 @@ function ColorField(props: { label: string; presets: string[]; field: any; props
 
 function _AvatarEditor(props: any) {
   const { fields, locals } = props;
-  const [characterId, characterIdInputProps] = useInputField(props, fields.characterId, '', { updateValidator: locals.isIdChars });
+  const [characterId, characterIdInputProps] = useInputField(
+    props, fields.characterId, '', { updateValidator: locals.isValidCastIdInput },
+  );
   const [name, setName] = useFieldState(props, fields.name, '');
   const [seed, setSeed] = useFieldState(props, fields.seed, '');
   const [activeTab, setActiveTab] = useFieldState(props, fields.activeTab, 'face');
@@ -142,7 +144,9 @@ function _AvatarEditor(props: any) {
   const [headContrastColor] = useFieldState(props, fields.headContrastColor, '');
   const [role, setRole] = useFieldState(props, fields.role, '');
   const [bio, setBio] = useFieldState(props, fields.bio, '');
-  const [groups, groupsInputProps] = useInputField(props, fields.groups, '', { updateValidator: locals.isGroupChars });
+  const [groups, groupsInputProps] = useInputField(
+    props, fields.groups, '', { updateValidator: locals.isValidGroupInput },
+  );
 
   const fieldSetters: Record<CategoryKey, (v: string) => void> = {
     face: setFace, head: setHead, accessories: setAccessories,
@@ -155,7 +159,7 @@ function _AvatarEditor(props: any) {
 
   const effectiveSeed = seed || characterId || 'avatar';
 
-  const yamlOutput = props.locals.buildYaml(characterId, name, seed, fieldValues, { role, bio, groups });
+  const yamlOutput = locals.buildYaml(characterId, name, seed, fieldValues, { role, bio, groups });
 
   // Main preview
   const mainPreview = useMemo(
@@ -171,7 +175,7 @@ function _AvatarEditor(props: any) {
       value,
       dataUri: renderAvatar(effectiveSeed, { ...fieldValues, [activeTab]: value }, 64),
     }));
-  }, [activeTab, effectiveSeed, face, head, accessories, facialHair, mask, skinColor, clothingColor]);
+  }, [activeTab, effectiveSeed, face, head, accessories, facialHair, mask, skinColor, clothingColor, headContrastColor]);
 
   const handleSelect = useCallback((category: CategoryKey, value: string) => {
     const setter = fieldSetters[category];
@@ -179,7 +183,7 @@ function _AvatarEditor(props: any) {
     setter(current === value ? '' : value);
   }, [face, head, accessories, facialHair, mask]);
 
-  const handleClear = useCallback(() => {
+  const handleClearAppearance = useCallback(() => {
     setFace(''); setHead(''); setAccessories('');
     setFacialHair(''); setMask('');
     updateField(props, fields.skinColor, '');
@@ -219,10 +223,10 @@ function _AvatarEditor(props: any) {
             className="w-40 border rounded px-2 py-1 text-sm"
           />
           <button
-            onClick={handleClear}
+            onClick={handleClearAppearance}
             className="text-xs text-gray-500 hover:text-gray-700 underline"
           >
-            Clear all
+            Clear appearance
           </button>
         </div>
 
@@ -318,7 +322,7 @@ function _AvatarEditor(props: any) {
                   <input
                     {...groupsInputProps}
                     type="text"
-                    placeholder="e.g. interns,team-a"
+                    placeholder="e.g. interns,team_a"
                     className="w-full border rounded px-2 py-1 text-sm font-mono"
                   />
                 </div>
@@ -351,10 +355,10 @@ function YamlOutput({ yaml, props: blockProps }: { yaml: string; props: any }) {
   const [copied, setCopied] = useFieldState(blockProps, fields.copied, false);
 
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(yaml).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    navigator.clipboard.writeText(yaml).then(
+      () => { setCopied(true); setTimeout(() => setCopied(false), 2000); },
+      () => { /* clipboard unavailable */ },
+    );
   }, [yaml, setCopied]);
 
   return (

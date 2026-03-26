@@ -29,7 +29,7 @@ import Avatar from '@/components/common/Avatar';
 import {
   CastSchema, CastMemberSchema, OpenPeepsSchema,
   type Cast, type CastMember, type OpenPeeps, type FaceExpression, type AvatarStyleValue,
-} from '@/lib/avatar/openpeeps';
+} from '@/lib/avatar/types';
 
 // Re-export schemas and types so existing imports from '@/lib/cast' still work.
 export {
@@ -37,7 +37,7 @@ export {
   OpenPeepsSchema, CastMemberSchema, CastSchema,
   type FaceExpression, type AvatarStyleValue,
   type OpenPeeps, type CastMember, type Cast,
-} from '@/lib/avatar/openpeeps';
+} from '@/lib/avatar/types';
 
 // =============================================================================
 // Internal utilities

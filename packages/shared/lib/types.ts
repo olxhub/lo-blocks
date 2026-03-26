@@ -933,7 +933,7 @@ export interface LocaleContext {
 // so the rest of the codebase can import from types.ts as usual.
 // =============================================================================
 
-import type { Cast, OpenPeeps, CastMember, FaceExpression, AvatarStyleValue } from '@/lib/avatar/openpeeps';
+import type { Cast, OpenPeeps, CastMember, FaceExpression, AvatarStyleValue } from '@/lib/avatar/types';
 export type { OpenPeeps, CastMember, Cast, FaceExpression, AvatarStyleValue };
 
 /**

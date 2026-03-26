@@ -1,4 +1,4 @@
-// src/lib/openpeeps.ts
+// src/lib/avatar/types.ts
 //
 // Zod schemas and TypeScript types for the cast-of-characters system.
 //
@@ -67,7 +67,10 @@ export const FacialHair = z.enum([
 export const Mask = z.enum(['medicalMask', 'respirator']);
 
 // Hex color: 6 hex digits (no #), matching DiceBear's pattern.
-const HexColor = z.string().regex(/^[a-fA-F0-9]{6}$/);
+export const HexColor = z.string().regex(/^[a-fA-F0-9]{6}$/);
+
+/** A group identifier: Unicode letters, digits, underscores. */
+export const GroupSlug = z.string().regex(/^[\p{L}\p{N}_]+$/u);
 
 /**
  * DiceBear Open Peeps avatar options.
@@ -113,7 +116,7 @@ export const CastMemberSchema = z.object({
   src: z.string().optional(),
   openPeeps: OpenPeepsSchema.optional(),
   profile: z.record(z.unknown()).optional(),
-  groups: z.array(z.string()).optional(),
+  groups: z.array(GroupSlug).optional(),
 }).strict();
 
 // =============================================================================
@@ -127,6 +130,25 @@ export const CastMemberSchema = z.object({
  * In YAML, they appear as top-level keys.
  */
 export const CastSchema = z.record(z.string(), CastMemberSchema);
+
+// =============================================================================
+// Input validators
+// =============================================================================
+//
+// Keystroke-level validators for UI components. Allow partial/empty input
+// during typing. For complete validation, use the Zod schemas above.
+
+/** Keystroke validator for cast IDs: Unicode letters, digits, underscores, spaces. */
+export const isValidCastIdInput = (val: string) => /^[\p{L}\p{N}_ ]*$/u.test(val);
+
+/** Keystroke validator for comma-separated group slugs. */
+export const isValidGroupInput = (val: string) => /^[\p{L}\p{N}_,]*$/u.test(val);
+
+/** Keystroke validator for hex color input (0-6 hex digits). */
+export const isValidHexInput = (val: string) => /^[a-fA-F0-9]{0,6}$/.test(val);
+
+/** Check if a string is a complete 6-digit hex color. */
+export const isCompleteHex = (val: string) => /^[a-fA-F0-9]{6}$/.test(val);
 
 // =============================================================================
 // Inferred types

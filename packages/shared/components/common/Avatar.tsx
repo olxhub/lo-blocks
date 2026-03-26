@@ -16,7 +16,7 @@ import React, { useMemo } from 'react';
 import { createAvatar } from '@dicebear/core';
 import * as openPeeps from '@dicebear/open-peeps';
 import { resolveContentPath } from '@/lib/content/contentPaths';
-import type { OpenPeeps, AvatarStyleValue } from '@/lib/avatar/openpeeps';
+import type { OpenPeeps, AvatarStyleValue } from '@/lib/avatar/types';
 
 interface AvatarProps {
   name?: string;
