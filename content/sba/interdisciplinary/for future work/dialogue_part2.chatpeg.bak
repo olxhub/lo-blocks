@@ -503,11 +503,7 @@ Lianne: Good work. Here are the sentences you all suggested. Which one should we
 
 --- wait @source4_insight_selection.value ---
 
-interdisciplinary_sba_sidebar -> source_4_insight_explanation_input
-
-Lianne: Why did you choose this sentence? Explain.
-
---- wait @source_4_insight_sentence_explanation.value ---
+interdisciplinary_sba_sidebar -> source_4_insight_sentence_explanation_input
 
 Lianne: Thank you all. We should go with the following sentence --
 
@@ -521,3 +517,200 @@ Lianne: We brainstormed and learned causes of high school dropout. That helped u
 that this is a complex problem with multiple parts, which makes it suitable for interdisciplinary
 study. We then located sources from different disciplines shedding light and insight on those causes.
 
+Task 6: Develop Problem Statement [id=problem_statement_start]
+--------------------------------------
+
+Lianne: You've done good work so far. Let's recap where we are. We've found studies that address different parts of the high school dropout problem, including Psychology, Sociology, Economics and Political science.
+
+Lianne: This confirms that this is a complex problem with parts studied by different disciplines.
+
+--- pause ---
+
+Lacy: And if I'm remembering Repko correctly, now we need to see if this is an important and as yet unresolved issue. That's also an important criterion for a problem to qualify for interdisciplinary study.
+
+Ty: Then let's see if we can find any sources that address that criterion.
+
+--- pause ---
+
+Importance of the Problem [id=importance_criterion]
+-------------------------
+
+Peggy: I think this source will help us.
+
+interdisciplinary_sba_sidebar -> nces_trends_text
+
+Lianne: This would be a good time to use the highlighting method to look for information in the text that speaks to the importance of this problem.
+
+--- wait @source_5_importance_highlights.value ---
+
+Lianne: Here is the text you highlighted.
+
+interdisciplinary_sba_sidebar -> nces_importance_highlights_shown
+
+interdisciplinary_sba_sidebar -> importance_explanation_input
+
+--- wait @source_5_importance_explanation.value ---
+
+Unresolved Nature of Problem [id=unresolved_criterion]
+----------------------------
+
+Lianne: Now we should focus on whether the text source helps us know if the problem is not yet resolved. Let's use the highlighting method.
+
+interdisciplinary_sba_sidebar -> nces_trends_text
+
+--- wait @source_5_unresolved_highlights.value ---
+
+Lianne: Here is the text you highlighted.
+
+interdisciplinary_sba_sidebar -> nces_unresolved_highlights_shown
+
+interdisciplinary_sba_sidebar -> unresolved_explanation_input
+
+--- wait @source_5_unresolved_explanation.value ---
+
+Task 7: Avoiding Disciplinary Bias [id=avoiding_bias]
+--------------------------
+
+Peggy: I've put together a sentence that explains why dropping out of high school is an important and unresolved problem. Maybe we can polish it up and use it as a part of our problem statement.
+
+interdisciplinary_sba_sidebar -> problematic_significance_text
+
+Lacy: That doesn't sound right. It focuses too much on crime and vocational education. We should rewrite it so that it more accurately reflects what we've learned so far.
+
+Lianne: Good catch, Lacy. We need to avoid disciplinary or personal bias so that we can develop a comprehensive understanding of the causes of this problem without privileging any personal or disciplinary views over others. According to Repko and colleagues in 2019, this is one of the criteria for doing interdisciplinary research.
+
+Lianne: Can you correct and revise this sentence based on the source texts we reviewed?
+
+--- pause ---
+
+Revising the Statement [id=revision_task]
+----------------------
+
+interdisciplinary_sba_sidebar -> revision_instructions
+
+--- wait @problem_statement_revised.value ---
+
+Peggy: I can see that my sentence needed to be fixed. Thanks for the suggested revision. I'll take it into account!
+
+interdisciplinary_sba_sidebar -> revised_statement_shown
+
+Lianne: OK, as we move closer to developing a problem statement, let's pull together all of the information we've gathered. Take some time to review everything, and then we'll start figuring out how to write the problem statement.
+
+--- pause ---
+
+Problem Statement Criteria [id=statement_criteria]
+---------------------------
+
+Lianne: At this point in our interdisciplinary process, we need to develop a problem statement on the causes of high school dropout. We will use Repko and colleagues' 2019 criteria for writing an effective problem statement.
+
+interdisciplinary_sba_sidebar -> criteria_list
+
+Peggy: We have already described why high school dropout is an important problem, that's criterion one, and talked about its complexity, criterion two. We also talked about importance of avoiding personal or disciplinary biases in the interdisciplinary research process, criterion three.
+
+Lianne: That is right. As for criteria four and five, we need to tie the focus and scope criteria to what our nonprofit can do considering our priorities and capacity.
+
+Ty: That makes sense. Can you remind us what the nonprofit's priorities are?
+
+--- pause ---
+
+Comm360 Priority Areas [id=priority_areas]
+----------------------
+
+Lianne: Sure. The mission of Comm360 is to address community-based needs and issues through responsive programming in four priority areas.
+
+Lianne: Education and Training includes programs designed to equip individuals with knowledge and skills for academic and career success, like after-school tutoring, GED prep, and workforce readiness.
+
+Lianne: Health and Wellness focuses on initiatives for physical and mental well-being, providing accessible healthcare and wellness support. Examples include community health screenings, mental health counseling, and nutrition programs.
+
+Lianne: Family and Youth Services provides support aimed at strengthening families and empowering youth through mentorship and essential resources, like parenting workshops, youth leadership, and conflict resolution training.
+
+Lianne: Community Building and Advocacy involves efforts to foster civic engagement, policy awareness, and community development through inclusive initiatives. Examples include voter education, neighborhood revitalization, diversity workshops, advocating for changes in school curriculum and instruction, and equitable school funding.
+
+Lianne: Now we can review how the causes we identified earlier map onto these priority areas of our nonprofit.
+
+--- pause ---
+
+Mapping Causes to Priority Areas [id=mapping_priorities]
+---------------------------------
+
+Peggy: Please make your choices in the table below.
+
+Peggy: You may find that all or none of the choices apply to a specific cause. Feel free to check all that apply but be ready to explain how you see the cause can be the basis for your choices. I'll need those explanations to bring to the Committee.
+
+interdisciplinary_sba_sidebar -> causes_by_priorities_table
+
+// HACK: Object.keys().length is instructor-unfriendly. TODO: Add isFilled() or .numberFilled field
+--- wait Object.keys(@priority_mapping.value).length > 0 ---
+
+Lianne: Can you explain why you think these causes are aligned with Comm360's priority areas?
+
+interdisciplinary_sba_sidebar -> causes_by_priorities_shown
+
+interdisciplinary_sba_sidebar -> priority_explanation_input
+
+--- wait @priority_explanation.value ---
+
+Lianne: These look great! Looks like the causes fall in with three of our priority areas: Family and Youth Services, Health and Wellness, and Community Building and Advocacy.
+
+interdisciplinary_sba_sidebar -> causes_by_priorities_answers
+
+Lianne: However, I talked to Ms. Hastings and we agreed that we have capacity only to address the Health and Wellness priority by providing programming and services around depression, anxiety, or ADHD so they don't interfere with students' ability to get good grades and remain in school.
+
+--- pause ---
+
+Focus Selection [id=focus_selection_final]
+---------------
+
+Lianne: Great! We're going to focus on the Health and Wellness area, specifically on conditions like depression, anxiety, or ADHD that can interfere with a student's ability to get good grades and remain engaged in school.
+
+interdisciplinary_sba_sidebar -> health_wellness_focus_shown
+
+Lianne: We know that Psychology offers relevant insights on this cause and we can consult Psychology in building Health and Wellness programming and services to address this cause. What other disciplines do you think would offer useful insights that we should consult?
+
+interdisciplinary_sba_sidebar -> additional_disciplines_checkboxes
+
+--- wait @additional_disciplines.value ---
+
+interdisciplinary_sba_sidebar -> additional_disciplines_explanation_input
+
+--- wait @additional_disciplines_explanation.value ---
+
+Writing the Final Problem Statement [id=final_statement]
+---------------------------------------
+
+Lianne: Ok, now we are ready to write our problem statement. Let's first review the information we have covered.
+
+interdisciplinary_sba_sidebar -> full_notes_display
+
+Lianne: Use your notes to help you write your problem statement. You can copy and paste from your notes. You don't have to use all of your notes; you can choose which notes to use or add additional information. When you are done, click next.
+
+interdisciplinary_sba_sidebar -> full_problem_statement_input
+
+--- wait @full_problem_statement.value ---
+
+Conclusion [id=conclusion]
+----------
+
+Anne Hastings: I just wanted to stop by to thank you all personally for your work on this issue for us.
+
+Anne Hastings: The Committee has agreed that we should go forward and resource a Health and Wellness program to help stem some of the causes of students dropping out of school.
+
+Anne Hastings: Thank you all very much!
+
+--- pause ---
+
+Lianne: I want to thank you as well.
+
+Lianne: You make a great team. And I hope you've learned something as part of this internship.
+
+Lianne: When you graduate, please consider applying for a position here. Or we'll be happy to provide a recommendation.
+
+--- pause ---
+
+Lacy: Thank you. I know that I learned a great deal.
+
+Ty: Me too. It was a challenge applying what we learned in class to a real problem, but rewarding to know we could be of help.
+
+Peggy: I also want to thank you for giving us this opportunity.
+
+Peggy: Lianne, you were a great mentor and I'd recommend this internship to any of my fellow students.
