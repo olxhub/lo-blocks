@@ -36,6 +36,9 @@ import {
   DIMENSIONS, DIMENSIONS_BY_KEY, DIMENSION_CATEGORIES,
   STAT_PRESETS, STAT_PRESETS_BY_KEY,
 } from '@/lib/avatar/traits';
+import { isValidHexInput, isCompleteHex } from '@/lib/avatar/types';
+import { EMOJI_AVATARS, EMOJI_CATEGORIES, SKIN_TONES, applySkinTone } from '@/lib/avatar/emoji';
+import { fields as avatarEditorFields } from '../AvatarEditor/AvatarEditor';
 import type { RuntimeProps } from '@/lib/types';
 import * as parsers from '@/lib/content/parsers';
 import _CharacterBuilder from './_CharacterBuilder';
@@ -57,6 +60,12 @@ export const fields = state.fields([
   'statPreset',
   'statValues',
   'statUnits',        // JSON: {"height":"cm","weight":"kg"} — selected unit per stat
+  // Avatar (character-level, not per-card):
+  'avatarMode',       // 'illustrated' | 'image' | 'emoji' — which mode is displayed
+  'avatarSrc',        // image URL (image mode)
+  'avatarEmoji',      // unicode character (emoji mode)
+  'emojiSkinTone',    // active skin tone modifier (emoji mode)
+  // Open Peeps fields live under scopeMarker('peeps') using avatarEditorFields
 ]);
 
 // ---------------------------------------------------------------------------
@@ -72,12 +81,41 @@ interface CardData {
   statValues: string;
 }
 
-/** Build a character YAML from the card stack. */
-function buildYaml(characterName: string, cards: CardData[]): string {
-  if (!characterName && cards.length === 0) return '';
+interface AvatarData {
+  mode: string;
+  src: string;
+  emoji: string;
+  seed: string;
+  openPeeps: Record<string, string>;
+}
+
+const PEEPS_KEYS = ['face', 'head', 'accessories', 'facialHair', 'mask', 'skinColor', 'clothingColor', 'headContrastColor'];
+const COLOR_KEYS = ['skinColor', 'clothingColor', 'headContrastColor'];
+
+/** Build a character YAML from the card stack + avatar data. */
+function buildYaml(characterName: string, cards: CardData[], avatar?: AvatarData): string {
+  if (!characterName && cards.length === 0 && !avatar?.mode) return '';
 
   const name = characterName || 'character';
   const member: Record<string, any> = {};
+
+  // Avatar
+  if (avatar) {
+    if (avatar.mode === 'image' && avatar.src) {
+      member.avatar = avatar.src;
+    } else if (avatar.mode === 'emoji' && avatar.emoji) {
+      member.avatar = avatar.emoji;
+    } else if (avatar.mode === 'illustrated' || !avatar.mode) {
+      if (avatar.seed) member.seed = avatar.seed;
+      const peeps: Record<string, string> = {};
+      for (const [k, v] of Object.entries(avatar.openPeeps)) {
+        if (!v) continue;
+        if (COLOR_KEYS.includes(k) && !isCompleteHex(v)) continue;
+        peeps[k] = v;
+      }
+      if (Object.keys(peeps).length > 0) member.openPeeps = peeps;
+    }
+  }
 
   for (const card of cards) {
     if (card.cardType === 'dimension' && card.value) {
@@ -133,17 +171,32 @@ const CharacterBuilder = dev({
   fields,
   attributes: baseAttributes,
   locals: {
-    buildYaml,
+    buildYaml, avatarEditorFields, isValidHexInput,
     DIMENSIONS, DIMENSIONS_BY_KEY, DIMENSION_CATEGORIES,
     STAT_PRESETS, STAT_PRESETS_BY_KEY,
+    EMOJI_AVATARS, EMOJI_CATEGORIES, SKIN_TONES, applySkinTone,
   },
 
   selectValue: (props: RuntimeProps, reduxState: any, _reduxKey: any) => {
     const characterName = fieldSelector(reduxState, props, fields.characterName, { fallback: '' });
     const arrangement: string[] = fieldSelector(reduxState, props, fields.arrangement, { fallback: [] });
 
+    // Read avatar data from scoped Open Peeps fields
+    const avatarMode = fieldSelector(reduxState, props, fields.avatarMode, { fallback: '' });
+    const avatarSrc = fieldSelector(reduxState, props, fields.avatarSrc, { fallback: '' });
+    const avatarEmoji = fieldSelector(reduxState, props, fields.avatarEmoji, { fallback: '' });
+    const { idPrefix: peepsPrefix } = extendIdPrefix(props, [props.id, scopeMarker('peeps')]);
+    const peepsScoped = { ...props, idPrefix: peepsPrefix };
+    const seed = fieldSelector(reduxState, peepsScoped, avatarEditorFields.seed, { fallback: '' });
+    const openPeeps: Record<string, string> = {};
+    for (const k of PEEPS_KEYS) {
+      openPeeps[k] = fieldSelector(reduxState, peepsScoped, (avatarEditorFields as any)[k], { fallback: '' });
+    }
+
     const cardDataList = arrangement.map(cardId => readCardData(reduxState, props, cardId));
-    return buildYaml(characterName, cardDataList);
+    return buildYaml(characterName, cardDataList, {
+      mode: avatarMode, src: avatarSrc, emoji: avatarEmoji, seed, openPeeps,
+    });
   },
 });
 

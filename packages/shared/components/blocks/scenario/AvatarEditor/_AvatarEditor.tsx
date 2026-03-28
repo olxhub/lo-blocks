@@ -12,7 +12,7 @@ import { Face, Head, Accessories, FacialHair, Mask } from '@/lib/avatar/types';
 // Option categories — derived from Zod enum schemas
 // ---------------------------------------------------------------------------
 
-const CATEGORIES = {
+export const CATEGORIES = {
   face:       { label: 'Face',         options: Face.options },
   head:       { label: 'Head',         options: Head.options },
   accessories:{ label: 'Accessories',  options: Accessories.options },
@@ -22,27 +22,27 @@ const CATEGORIES = {
 
 type CategoryKey = keyof typeof CATEGORIES;
 
-const TABS = [
+export const TABS = [
   ...Object.entries(CATEGORIES).map(([key, { label }]) => ({ key, label })),
   { key: 'colors', label: 'Colors' },
 ];
 
 // Skin tone presets — broad range across ethnicities
-const SKIN_COLORS = [
+export const SKIN_COLORS = [
   'ffe0bd', 'ffd5b2', 'f8d5c2', 'e8b697', 'deb08a',  // light
   'd4a574', 'c99a6b', 'b8865a', 'ae7242', 'a0602e',   // medium
   '8d5524', '7a4b2e', '6a3d1f', '523020', '3b1f13',   // dark
 ];
 
 // Clothing color palette
-const CLOTHING_COLORS = [
+export const CLOTHING_COLORS = [
   '264653', '2a9d8f', '457b9d', '1d3557', '023047',   // cool
   'e9c46a', 'f4a261', 'e76f51', 'ff006e', 'e63946',   // warm
   '606c38', '8338ec', 'bc6c25', 'ffb703', '6c757d',   // accent
 ];
 
 // Hair/hat color presets (from DiceBear defaults + extras)
-const HAIR_COLORS = [
+export const HAIR_COLORS = [
   '2c1b18', '4a312c', '724133', 'a55728', 'b58143',   // browns
   'd6b370', 'ecdcbf', 'e8e1e1', 'f59797', 'c93305',   // blond/red/gray
   '1a1a1a', '4b4b4b', '808080',                         // black/gray
@@ -53,7 +53,7 @@ const HAIR_COLORS = [
 // ---------------------------------------------------------------------------
 
 /** Build DiceBear options from individual field values. */
-function toDiceBear(opts: Record<string, string>): Record<string, any> {
+export function toDiceBear(opts: Record<string, string>): Record<string, any> {
   const result: Record<string, any> = {};
   for (const [key, value] of Object.entries(opts)) {
     if (!value) continue;
@@ -66,7 +66,7 @@ function toDiceBear(opts: Record<string, string>): Record<string, any> {
 }
 
 /** Generate a data URI for an avatar with the given options. */
-function renderAvatar(seed: string, opts: Record<string, string>, size: number): string {
+export function renderAvatar(seed: string, opts: Record<string, string>, size: number): string {
   return createAvatar(openPeepsStyle, {
     seed,
     size,
@@ -78,7 +78,7 @@ function renderAvatar(seed: string, opts: Record<string, string>, size: number):
 // Color field: swatches + hex input via useInputField
 // ---------------------------------------------------------------------------
 
-function ColorField(props: { label: string; presets: string[]; field: any; props: any }) {
+export function ColorField(props: { label: string; presets: string[]; field: any; props: any }) {
   const { label, presets, field, props: blockProps } = props;
   const [value, inputProps] = useInputField(
     blockProps, field, '', { updateValidator: blockProps.locals.isValidHexInput },
