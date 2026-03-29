@@ -12,15 +12,13 @@
 @import "@fontsource/geist-sans/800.css";
 @import "@fontsource/geist-mono/900.css";
 
-/* ── Token system (order matters: foundation → semantic → dark → debug) ── */
+/* ── Token system (order matters: foundation → semantic → debug) ── */
 @import "./tokens/foundation.css";
 @import "./tokens/semantic.css";
-@import "./tokens/semantic-dark.css";
 @import "./tokens/debug.css";
 
 /* ── Theme packs (variable overrides scoped to data attributes) ── */
 @import "./themes/literary.css";
-@import "./themes/literary-dark.css";
 @import "./themes/hightech.css";
 @import "./themes/mit.css";
 

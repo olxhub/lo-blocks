@@ -51,7 +51,7 @@
   /* ── Typography (monospace UI, clean reading) ── */
   --lo-font-body:    'Inter', system-ui, sans-serif;
   --lo-font-heading: 'Inter', system-ui, sans-serif;
-  --lo-font-ui:      'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+  --lo-font-ui:      var(--lo-font-mono);
 
   /* ── Radius (sharp) ── */
   --lo-radius-sm: 2px;

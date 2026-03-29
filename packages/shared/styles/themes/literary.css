@@ -5,8 +5,11 @@
  * Classical serif reading font, sepia accents, gentle shadows.
  * Evokes an 1850s letterpress, aged paper, scholastic contemplation.
  *
- * Activate: <html data-theme="literary" data-color-mode="auto">
+ * Activate: <html data-theme="literary">
  * Palette sourced from css-refactor/annotate-mockup.jsx
+ *
+ * Light/dark values use light-dark(), driven by color-scheme
+ * (mapped from data-color-mode in semantic.css).
  */
 
 /* ── Fonts (variable — single file per style, all weights) ──
@@ -25,25 +28,26 @@
 
 [data-theme="literary"] {
   /* ── Surfaces ── */
-  --lo-bg:          var(--lo-color-paper-200);  /* Warm linen background */
-  --lo-bg-surface:  var(--lo-color-paper-100);  /* Cream cards */
-  --lo-bg-elevated: var(--lo-color-paper-50);   /* Bright paper for popovers */
-  --lo-bg-muted:    var(--lo-color-paper-300);  /* Subtle tinted area */
+  --lo-bg:          light-dark(var(--lo-color-paper-200), var(--lo-color-paper-900));
+  --lo-bg-surface:  light-dark(var(--lo-color-paper-100), var(--lo-color-paper-800));
+  --lo-bg-elevated: light-dark(var(--lo-color-paper-50),  var(--lo-color-paper-700));
+  --lo-bg-muted:    light-dark(var(--lo-color-paper-300), var(--lo-color-paper-800));
 
   /* ── Text ── */
-  --lo-text:           var(--lo-color-paper-800);
-  --lo-text-secondary: var(--lo-color-paper-500);
-  --lo-text-muted:     var(--lo-color-paper-400);
+  --lo-text:           light-dark(var(--lo-color-paper-800), #e8dfd3);
+  --lo-text-secondary: light-dark(var(--lo-color-paper-500), var(--lo-color-paper-400));
+  --lo-text-muted:     light-dark(var(--lo-color-paper-400), var(--lo-color-paper-500));
+  --lo-text-inverse:   light-dark(var(--lo-color-white),     var(--lo-color-paper-900));
 
   /* ── Borders ── */
-  --lo-border:        var(--lo-color-paper-300);
-  --lo-border-subtle: var(--lo-color-paper-200);
-  --lo-border-strong: var(--lo-color-paper-400);
+  --lo-border:        light-dark(var(--lo-color-paper-300), var(--lo-color-paper-700));
+  --lo-border-subtle: light-dark(var(--lo-color-paper-200), var(--lo-color-paper-800));
+  --lo-border-strong: light-dark(var(--lo-color-paper-400), var(--lo-color-paper-600));
 
   /* ── Primary (sepia/terracotta accent) ── */
-  --lo-primary:        var(--lo-color-sepia-600);
-  --lo-primary-hover:  var(--lo-color-sepia-700);
-  --lo-primary-subtle: rgba(192, 94, 60, 0.08);
+  --lo-primary:        light-dark(var(--lo-color-sepia-600), var(--lo-color-sepia-400));
+  --lo-primary-hover:  light-dark(var(--lo-color-sepia-700), var(--lo-color-sepia-500));
+  --lo-primary-subtle: light-dark(rgba(192, 94, 60, 0.08),  rgba(212, 132, 90, 0.15));
 
   /* ── Secondary ── */
   --lo-secondary:       var(--lo-color-paper-500);
@@ -67,24 +71,24 @@
   --lo-radius-md: 0.5rem;   /* 8px */
   --lo-radius-lg: 0.75rem;  /* 12px */
 
-  /* ── Shadows (warmer) ── */
-  --lo-shadow-sm: 0 1px 3px rgba(44, 37, 32, 0.06);
-  --lo-shadow-md: 0 4px 16px rgba(44, 37, 32, 0.10);
-  --lo-shadow-lg: 0 8px 32px rgba(44, 37, 32, 0.14);
+  /* ── Shadows (warm tint in light, pure black in dark) ── */
+  --lo-shadow-sm: 0 1px 3px light-dark(rgba(44, 37, 32, 0.06), rgba(0, 0, 0, 0.2));
+  --lo-shadow-md: 0 4px 16px light-dark(rgba(44, 37, 32, 0.10), rgba(0, 0, 0, 0.3));
+  --lo-shadow-lg: 0 8px 32px light-dark(rgba(44, 37, 32, 0.14), rgba(0, 0, 0, 0.4));
 
   /* ── Focus (sepia-tinted) ── */
-  --lo-focus-ring:        var(--lo-color-sepia-600);
-  --lo-focus-ring-shadow: 0 0 0 3px rgba(192, 94, 60, 0.12);
+  --lo-focus-ring:        light-dark(var(--lo-color-sepia-600), var(--lo-color-sepia-400));
+  --lo-focus-ring-shadow: 0 0 0 3px light-dark(rgba(192, 94, 60, 0.12), rgba(212, 132, 90, 0.20));
 
   /* ── Chrome (warm wood instead of cool slate) ── */
-  --lo-chrome:                var(--lo-color-paper-700);
-  --lo-chrome-surface:        var(--lo-color-paper-600);
-  --lo-chrome-text:           var(--lo-color-paper-50);
-  --lo-chrome-text-secondary: var(--lo-color-paper-300);
-  --lo-chrome-text-muted:     var(--lo-color-paper-400);
-  --lo-chrome-border:         var(--lo-color-paper-600);
-  --lo-chrome-hover:          var(--lo-color-paper-600);
-  --lo-chrome-active:         var(--lo-color-paper-500);
+  --lo-chrome:                light-dark(var(--lo-color-paper-700), var(--lo-color-paper-900));
+  --lo-chrome-surface:        light-dark(var(--lo-color-paper-600), var(--lo-color-paper-800));
+  --lo-chrome-text:           light-dark(var(--lo-color-paper-50),  var(--lo-color-paper-200));
+  --lo-chrome-text-secondary: light-dark(var(--lo-color-paper-300), var(--lo-color-paper-400));
+  --lo-chrome-text-muted:     light-dark(var(--lo-color-paper-400), var(--lo-color-paper-500));
+  --lo-chrome-border:         light-dark(var(--lo-color-paper-600), var(--lo-color-paper-800));
+  --lo-chrome-hover:          light-dark(var(--lo-color-paper-600), var(--lo-color-paper-800));
+  --lo-chrome-active:         light-dark(var(--lo-color-paper-500), var(--lo-color-paper-700));
 }
 
 
@@ -113,9 +117,9 @@
   letter-spacing: -0.01em;
 }
 
-/* Warm sepia selection highlight */
+/* Warm sepia selection highlight (brighter alpha on dark backgrounds) */
 [data-theme="literary"] ::selection {
-  background: rgba(192, 94, 60, 0.25);
+  background: light-dark(rgba(192, 94, 60, 0.25), rgba(212, 132, 90, 0.35));
 }
 
 

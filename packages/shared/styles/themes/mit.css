@@ -9,31 +9,10 @@
  */
 
 [data-brand="mit"] {
-  --lo-primary:        var(--lo-color-burgundy-700);
-  --lo-primary-hover:  var(--lo-color-burgundy-800);
-  --lo-primary-subtle: rgba(155, 27, 48, 0.08);
+  --lo-primary:        light-dark(var(--lo-color-burgundy-700), var(--lo-color-burgundy-500));
+  --lo-primary-hover:  light-dark(var(--lo-color-burgundy-800), var(--lo-color-burgundy-600));
+  --lo-primary-subtle: light-dark(rgba(155, 27, 48, 0.08),     rgba(192, 32, 64, 0.15));
 
-  --lo-focus-ring:        var(--lo-color-burgundy-700);
-  --lo-focus-ring-shadow: 0 0 0 3px rgba(155, 27, 48, 0.15);
-}
-
-/* Dark mode: lighter burgundy for contrast */
-[data-brand="mit"][data-color-mode="dark"] {
-  --lo-primary:        var(--lo-color-burgundy-500);
-  --lo-primary-hover:  var(--lo-color-burgundy-600);
-  --lo-primary-subtle: rgba(192, 32, 64, 0.15);
-
-  --lo-focus-ring:        var(--lo-color-burgundy-500);
-  --lo-focus-ring-shadow: 0 0 0 3px rgba(192, 32, 64, 0.25);
-}
-
-@media (prefers-color-scheme: dark) {
-  [data-brand="mit"][data-color-mode="auto"] {
-    --lo-primary:        var(--lo-color-burgundy-500);
-    --lo-primary-hover:  var(--lo-color-burgundy-600);
-    --lo-primary-subtle: rgba(192, 32, 64, 0.15);
-
-    --lo-focus-ring:        var(--lo-color-burgundy-500);
-    --lo-focus-ring-shadow: 0 0 0 3px rgba(192, 32, 64, 0.25);
-  }
+  --lo-focus-ring:        light-dark(var(--lo-color-burgundy-700), var(--lo-color-burgundy-500));
+  --lo-focus-ring-shadow: light-dark(0 0 0 3px rgba(155, 27, 48, 0.15), 0 0 0 3px rgba(192, 32, 64, 0.25));
 }
