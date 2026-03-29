@@ -141,13 +141,16 @@ export function validateCast(raw: unknown): { cast: Cast; warnings: string[] } {
   try {
     const cast = CastSchema.parse(raw);
 
-    // Cross-field validation: style:'image' requires src, src requires style:'image'
+    // Cross-field validation
     for (const [id, member] of Object.entries(cast)) {
       if (member.style === 'image' && !member.src) {
         throw new Error(`"${id}": style is 'image' but no src provided`);
       }
       if (member.src && member.style && member.style !== 'image') {
         throw new Error(`"${id}": has src but style is '${member.style}' (should be 'image' or omitted)`);
+      }
+      if (member.style === 'emoji' && !member.emoji) {
+        throw new Error(`"${id}": style is 'emoji' but no emoji provided`);
       }
     }
 
@@ -222,12 +225,18 @@ export function castMemberToAvatarProps(
 ): {
   name: string;
   seed: string;
-  style?: 'illustrated' | 'initials';
+  style?: 'illustrated' | 'initials' | 'emoji';
   src?: string;
+  emoji?: string;
   options?: OpenPeeps;
 } {
   const name = member.name ?? id;
   const seed = member.seed ?? id;
+
+  // Emoji style
+  if (member.style === 'emoji' || (member.emoji && !member.style)) {
+    return { name, seed, style: 'emoji', emoji: member.emoji };
+  }
 
   // Image style: src is provided, render directly
   if (member.src) {
@@ -321,6 +330,7 @@ export function avatar(props: any, options?: AvatarOptions): AvatarResult {
     seed: seed ?? base.seed,
     style: style ?? base.style,
     src: src ?? (base as any).src,
+    emoji: (base as any).emoji,
     options: face
       ? { ...((base as any).options || {}), face }
       : (base as any).options,

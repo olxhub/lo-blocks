@@ -95,7 +95,7 @@ export const OpenPeepsSchema = z.object({
 // =============================================================================
 
 /** Avatar rendering style. */
-export const AvatarStyle = z.enum(['illustrated', 'initials', 'image']);
+export const AvatarStyle = z.enum(['illustrated', 'initials', 'image', 'emoji']);
 
 /**
  * A single cast member definition.
@@ -114,6 +114,7 @@ export const CastMemberSchema = z.object({
   seed: z.string().optional(),
   style: AvatarStyle.optional(),
   src: z.string().optional(),
+  emoji: z.string().optional(),
   openPeeps: OpenPeepsSchema.optional(),
   profile: z.record(z.unknown()).optional(),
   groups: z.array(GroupSlug).optional(),

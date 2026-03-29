@@ -154,11 +154,13 @@ function DimensionSection({
         dimension.prompt ? `Prompt: ${dimension.prompt}` : '',
         dimension.guidance ? `Guidance: ${dimension.guidance}` : '',
         examplesText ? `Examples:\n${examplesText}` : '',
-        otherTraits ? `\nExisting traits for this character:\n${otherTraits}` : '',
+        otherTraits ? `\nExisting traits (for context — DO NOT restate these):\n${otherTraits}` : '',
         '',
         value ? `Current value (generate something different): ${value}` : '',
         '',
-        'Write 1-3 sentences. Be specific and vivid, not generic. Be consistent with the existing traits. Output only the description, no labels or quotes.',
+        'Write 1-3 sentences. Be specific and vivid, not generic.',
+        'Add a FRESH detail or angle for this dimension. The existing traits provide context — be consistent with them, but do not repeat, rephrase, or center on what they already say. Every dimension should reveal something new about the character.',
+        'Output only the description, no labels or quotes.',
       ].filter(Boolean).join('\n');
 
       const result = await callLLMSimple(prompt);
@@ -566,7 +568,10 @@ function Section({
       <div
         className="flex-1 min-w-0"
         onBlur={isActive ? (e => {
-          if (!e.currentTarget.contains(e.relatedTarget as Node) && !busyRef.current) onDone();
+          const container = e.currentTarget;
+          requestAnimationFrame(() => {
+            if (!container.contains(document.activeElement) && !busyRef.current) onDone();
+          });
         }) : undefined}
       >
         {isActive ? (
@@ -1243,7 +1248,7 @@ function useYamlOutput(props: RuntimeProps, characterName: string, arrangement: 
 
   return useSelector(
     (reduxState: any) => {
-      // Avatar data
+      // Avatar data — always read all modes
       const avatarMode = fieldSelector(reduxState, props, fields.avatarMode, { fallback: '' });
       const avatarSrc = fieldSelector(reduxState, props, fields.avatarSrc, { fallback: '' });
       const avatarEmoji = fieldSelector(reduxState, props, fields.avatarEmoji, { fallback: '' });
@@ -1260,23 +1265,22 @@ function useYamlOutput(props: RuntimeProps, characterName: string, arrangement: 
       const name = characterName || 'character';
       const member: Record<string, any> = {};
 
-      // Avatar → YAML
-      if (avatarMode === 'image' && avatarSrc) {
-        member.avatar = avatarSrc;
-      } else if (avatarMode === 'emoji' && avatarEmoji) {
-        member.avatar = avatarEmoji;
-      } else if (avatarMode === 'illustrated' || !avatarMode) {
-        if (seed) member.seed = seed;
-        const peeps: Record<string, string> = {};
-        for (const [k, v] of Object.entries(openPeeps)) {
-          if (!v) continue;
-          if (COLOR_KEYS.includes(k) && !isCompleteHex(v)) continue;
-          peeps[k] = v;
-        }
-        if (Object.keys(peeps).length > 0) member.openPeeps = peeps;
+      // Avatar → YAML (persist all modes; `style` picks which is active)
+      const mode = avatarMode || 'illustrated';
+      if (mode !== 'illustrated') member.style = mode;
+      if (avatarSrc) member.src = avatarSrc;
+      if (avatarEmoji) member.emoji = avatarEmoji;
+      if (seed) member.seed = seed;
+      const peeps: Record<string, string> = {};
+      for (const [k, v] of Object.entries(openPeeps)) {
+        if (!v) continue;
+        if (COLOR_KEYS.includes(k) && !isCompleteHex(v)) continue;
+        peeps[k] = v;
       }
+      if (Object.keys(peeps).length > 0) member.openPeeps = peeps;
 
-      // Cards
+      // Cards → profile
+      const profile: Record<string, any> = {};
       for (const { scoped } of scopedList) {
         const cardType = fieldSelector(reduxState, scoped, fields.cardType, { fallback: '' });
         const val = fieldSelector(reduxState, scoped, fields.value, { fallback: '' });
@@ -1286,19 +1290,20 @@ function useYamlOutput(props: RuntimeProps, characterName: string, arrangement: 
         const svJson = fieldSelector(reduxState, scoped, fields.statValues, { fallback: '{}' });
 
         if (cardType === 'dimension' && val && dimKey) {
-          member[dimKey] = val;
+          profile[dimKey] = val;
         } else if (cardType === 'bio' && val) {
           const bioKey = customPrompt
             ? customPrompt.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '_').replace(/^_|_$/g, '')
             : 'bio';
-          member[bioKey] = val;
+          profile[bioKey] = val;
         } else if (cardType === 'stats' && svJson !== '{}') {
           try {
             const vals = JSON.parse(svJson);
-            if (Object.keys(vals).length > 0) member[statPreset || 'stats'] = vals;
+            if (Object.keys(vals).length > 0) profile[statPreset || 'stats'] = vals;
           } catch { /* skip */ }
         }
       }
+      if (Object.keys(profile).length > 0) member.profile = profile;
 
       if (Object.keys(member).length === 0) return `${name}:\n`;
       return yaml.dump({ [name]: member }, { lineWidth: -1, noCompatMode: true }).trimEnd();

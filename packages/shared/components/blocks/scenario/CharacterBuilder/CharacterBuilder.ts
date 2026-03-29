@@ -92,49 +92,52 @@ interface AvatarData {
 const PEEPS_KEYS = ['face', 'head', 'accessories', 'facialHair', 'mask', 'skinColor', 'clothingColor', 'headContrastColor'];
 const COLOR_KEYS = ['skinColor', 'clothingColor', 'headContrastColor'];
 
-/** Build a character YAML from the card stack + avatar data. */
+/** Build a character YAML from the card stack + avatar data.
+ *  Output follows the CastMemberSchema: avatar fields at top level,
+ *  character traits nested under `profile`. */
 function buildYaml(characterName: string, cards: CardData[], avatar?: AvatarData): string {
   if (!characterName && cards.length === 0 && !avatar?.mode) return '';
 
   const name = characterName || 'character';
   const member: Record<string, any> = {};
 
-  // Avatar
+  // Avatar — persist all modes; `style` indicates which is active
   if (avatar) {
-    if (avatar.mode === 'image' && avatar.src) {
-      member.avatar = avatar.src;
-    } else if (avatar.mode === 'emoji' && avatar.emoji) {
-      member.avatar = avatar.emoji;
-    } else if (avatar.mode === 'illustrated' || !avatar.mode) {
-      if (avatar.seed) member.seed = avatar.seed;
-      const peeps: Record<string, string> = {};
-      for (const [k, v] of Object.entries(avatar.openPeeps)) {
-        if (!v) continue;
-        if (COLOR_KEYS.includes(k) && !isCompleteHex(v)) continue;
-        peeps[k] = v;
-      }
-      if (Object.keys(peeps).length > 0) member.openPeeps = peeps;
+    const mode = avatar.mode || 'illustrated';
+    if (mode !== 'illustrated') member.style = mode;
+    if (avatar.src) member.src = avatar.src;
+    if (avatar.emoji) member.emoji = avatar.emoji;
+    if (avatar.seed) member.seed = avatar.seed;
+    const peeps: Record<string, string> = {};
+    for (const [k, v] of Object.entries(avatar.openPeeps)) {
+      if (!v) continue;
+      if (COLOR_KEYS.includes(k) && !isCompleteHex(v)) continue;
+      peeps[k] = v;
     }
+    if (Object.keys(peeps).length > 0) member.openPeeps = peeps;
   }
 
+  // Cards → profile
+  const profile: Record<string, any> = {};
   for (const card of cards) {
     if (card.cardType === 'dimension' && card.value) {
-      member[card.dimensionKey] = card.value;
+      profile[card.dimensionKey] = card.value;
     } else if (card.cardType === 'bio' && card.value) {
       const key = card.customPrompt
         ? card.customPrompt.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '_').replace(/^_|_$/g, '')
         : 'bio';
-      member[key] = card.value;
+      profile[key] = card.value;
     } else if (card.cardType === 'stats' && card.statValues) {
       try {
         const vals = JSON.parse(card.statValues);
         if (Object.keys(vals).length > 0) {
           const presetKey = card.statPreset || 'stats';
-          member[presetKey] = vals;
+          profile[presetKey] = vals;
         }
       } catch { /* invalid JSON — skip */ }
     }
   }
+  if (Object.keys(profile).length > 0) member.profile = profile;
 
   if (Object.keys(member).length === 0) return `${name}:\n`;
   return yaml.dump({ [name]: member }, { lineWidth: -1, noCompatMode: true }).trimEnd();
