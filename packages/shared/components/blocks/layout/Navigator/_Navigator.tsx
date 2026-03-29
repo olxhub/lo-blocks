@@ -119,7 +119,7 @@ function _Navigator(props: RuntimeProps) {
     // Use the pre-fetched block based on which template we're rendering
     const block = blockId === preview ? previewBlock : detailBlock;
     if (!blockId || !block) {
-      return <div className="p-4 text-red-500">Template block &quot;{blockId}&quot; not found</div>;
+      return <div className="p-4 text-error">Template block &quot;{blockId}&quot; not found</div>;
     }
 
     // Create a modified node with item data merged into attributes
@@ -138,19 +138,19 @@ function _Navigator(props: RuntimeProps) {
   };
 
   return (
-    <div className="navigator-component border rounded-lg bg-white overflow-hidden">
+    <div className="navigator-component border rounded-lg bg-background overflow-hidden">
       <div className="flex h-96">
         {/* Left Panel - Item List */}
-        <div className="w-1/3 border-r bg-gray-50 flex flex-col">
-          <div className="p-4 border-b bg-white">
-            <h3 className="font-semibold text-gray-900 mb-3">{title}</h3>
+        <div className="w-1/3 border-r bg-surface flex flex-col">
+          <div className="p-4 border-b bg-background">
+            <h3 className="font-semibold text-foreground mb-3">{title}</h3>
             {searchable && (
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                className="w-full px-3 py-2 border border-border rounded-md text-sm"
               />
             )}
           </div>
@@ -164,11 +164,11 @@ function _Navigator(props: RuntimeProps) {
                     key={item.id}
                     onClick={() => handleItemClick(item.id)}
                     className={`cursor-pointer ${
-                      isSelected ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                      isSelected ? 'bg-accent-subtle border-l-4 border-l-accent' : ''
                     }`}
                   >
                     {preview ? renderTemplate(preview, item, { isSelected }) : (
-                      <div className="p-3 border-b hover:bg-gray-50">
+                      <div className="p-3 border-b hover:bg-surface">
                         <div className="font-medium">{item.title || item.name || item.id}</div>
                       </div>
                     )}
@@ -176,7 +176,7 @@ function _Navigator(props: RuntimeProps) {
                 );
               })
             ) : (
-              <div className="p-4 text-center text-gray-500 text-sm">
+              <div className="p-4 text-center text-dimmed text-sm">
                 {searchQuery ? 'No items match your search' : 'No items available'}
               </div>
             )}
@@ -184,13 +184,13 @@ function _Navigator(props: RuntimeProps) {
         </div>
 
         {/* Right Panel - Detail View */}
-        <div className="flex-1 bg-white overflow-y-auto">
+        <div className="flex-1 bg-background overflow-y-auto">
           {selectedItemData ? (
             detail ? (
               <div className="relative">
                 <button
                   onClick={handleCloseDetail}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl z-10"
+                  className="absolute top-4 right-4 text-dimmed hover:text-secondary text-xl z-10"
                 >
                   ×
                 </button>
@@ -200,13 +200,13 @@ function _Navigator(props: RuntimeProps) {
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <h2 className="text-xl font-semibold">{selectedItemData.title || selectedItemData.name}</h2>
-                  <button onClick={handleCloseDetail} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
+                  <button onClick={handleCloseDetail} className="text-dimmed hover:text-secondary text-xl">×</button>
                 </div>
                 <pre className="text-xs">{JSON.stringify(selectedItemData, null, 2)}</pre>
               </div>
             )
           ) : (
-            <div className="flex items-center justify-center h-48 text-gray-500">
+            <div className="flex items-center justify-center h-48 text-dimmed">
               Select an item to view details
             </div>
           )}

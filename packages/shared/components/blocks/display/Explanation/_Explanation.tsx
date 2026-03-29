@@ -44,11 +44,11 @@ function _Explanation(props: RuntimeProps) {
   const heading = title || 'Explanation';
 
   return (
-    <div className="lo-explanation border-l-4 border-blue-500 bg-blue-50 p-4 my-4 rounded-r">
-      <div className="lo-explanation__header font-semibold text-blue-800 mb-2">
+    <div className="lo-explanation border-l-4 border-accent bg-accent-subtle p-4 my-4 rounded-r">
+      <div className="lo-explanation__header font-semibold text-accent mb-2">
         {heading}
       </div>
-      <div className="lo-explanation__content text-gray-700">
+      <div className="lo-explanation__content text-secondary">
         {kids}
       </div>
     </div>

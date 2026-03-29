@@ -50,7 +50,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
   render() {
     if (this.state.error) {
       return this.props.fallback || (
-        <pre className="text-red-600">Error: {this.state.error.message}</pre>
+        <pre className="text-error">Error: {this.state.error.message}</pre>
       );
     }
 

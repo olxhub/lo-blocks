@@ -29,9 +29,9 @@ interface AvatarProps {
 }
 
 const INITIALS_COLORS = [
-  'bg-blue-500', 'bg-green-500', 'bg-yellow-500',
+  'bg-accent', 'bg-success', 'bg-warning',
   'bg-purple-500', 'bg-pink-500', 'bg-indigo-500',
-  'bg-red-500', 'bg-teal-500', 'bg-orange-500'
+  'bg-error', 'bg-teal-500', 'bg-orange-500'
 ];
 
 function getInitialsColor(name: string | undefined) {
@@ -103,7 +103,7 @@ export default function Avatar({ name, src, emoji, seed, style = 'illustrated', 
     const fontSize = Math.max(10, Math.round(size * 0.4));
     return (
       <div
-        className={`rounded-full flex items-center justify-center text-white font-semibold ${bgColor}`}
+        className={`rounded-full flex items-center justify-center text-inverse font-semibold ${bgColor}`}
         style={{ width: size, height: size, fontSize }}
       >
         {getInitials(name)}

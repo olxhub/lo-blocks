@@ -66,26 +66,26 @@ function StateRow({ entry }: { entry: TreeEntry }) {
 
   return (
     <div className="border-b last:border-b-0 py-2">
-      <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
-        <code className="font-semibold text-gray-700">{entry.reduxKey}</code>
-        <span className="text-gray-400">{entry.tag}</span>
+      <div className="flex items-center gap-2 text-xs text-dimmed mb-1">
+        <code className="font-semibold text-secondary">{entry.reduxKey}</code>
+        <span className="text-dimmed">{entry.tag}</span>
       </div>
       {hasDecoded && (
-        <div className="text-xs bg-gray-50 p-2 rounded">
+        <div className="text-xs bg-surface p-2 rounded">
           {Object.entries(decoded).map(([name, display]) => (
             <div key={name}>
-              <span className="text-gray-500">{name}: </span>
-              <span>{display || <span className="text-gray-400 italic">(empty)</span>}</span>
+              <span className="text-dimmed">{name}: </span>
+              <span>{display || <span className="text-dimmed italic">(empty)</span>}</span>
             </div>
           ))}
         </div>
       )}
       {hasMeta && (
         <details className="mt-1">
-          <summary className="text-xs text-gray-400 cursor-pointer">
+          <summary className="text-xs text-dimmed cursor-pointer">
             raw ({Object.keys(meta).length} metadata keys)
           </summary>
-          <pre className="text-xs bg-gray-50 p-2 rounded overflow-x-auto text-gray-500">
+          <pre className="text-xs bg-surface p-2 rounded overflow-x-auto text-dimmed">
             {JSON.stringify(meta, null, 2)}
           </pre>
         </details>
@@ -107,7 +107,7 @@ function StateRows({ entries }: { entries: TreeEntry[] }) {
   });
 
   return (
-    <div className="p-3 bg-white max-h-64 overflow-y-auto">
+    <div className="p-3 bg-background max-h-64 overflow-y-auto">
       {sorted.map(entry => (
         <StateRow key={entry.reduxKey} entry={entry} />
       ))}
@@ -175,13 +175,13 @@ export default function StatePanel({
     <div className="border rounded-lg overflow-hidden mt-4">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full px-3 py-2 bg-gray-100 border-b text-left text-sm flex items-center justify-between hover:bg-gray-200 transition-colors"
+        className="w-full px-3 py-2 bg-muted border-b text-left text-sm flex items-center justify-between hover:bg-muted transition-colors"
       >
-        <span className="font-medium text-gray-700">
+        <span className="font-medium text-secondary">
           State ({activeEntries.length})
         </span>
         <svg
-          className={`w-4 h-4 text-gray-500 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 text-dimmed transition-transform ${expanded ? 'rotate-180' : ''}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

@@ -111,12 +111,12 @@ function SelectionPopup({
           so that the click handler fires while the popup is still mounted.
           stopPropagation on mouseUp prevents the passage's handleMouseUp from
           re-running (which would re-derive the selection). */}
-      <div className="bg-gray-800 rounded-md px-2 py-1 shadow-lg flex items-center gap-1">
+      <div className="bg-background rounded-md px-2 py-1 shadow-lg flex items-center gap-1">
         <button
           onClick={onAnnotate}
           onMouseDown={(e) => e.preventDefault()}
           onMouseUp={(e) => e.stopPropagation()}
-          className="text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-gray-700 flex items-center gap-1.5 transition-colors"
+          className="text-inverse text-xs font-semibold px-3 py-1.5 rounded hover:bg-muted flex items-center gap-1.5 transition-colors"
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
@@ -165,7 +165,7 @@ function DefaultEditor({
   if (isActive) {
     return (
       <textarea
-        className="w-full border border-gray-200 rounded p-2 text-sm resize-y min-h-[3rem] bg-gray-50 focus:border-blue-400 focus:outline-none"
+        className="w-full border border-border rounded p-2 text-sm resize-y min-h-[3rem] bg-surface focus:border-accent focus:outline-none"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Write your note..."
@@ -181,7 +181,7 @@ function DefaultEditor({
   // CSS to use margin-top only (not margin-bottom) for paragraph spacing —
   // adjacent margins collapse naturally, and trailing margins disappear.
   return (
-    <div className="text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none" style={{ '--lo-space-lg': '0px' } as React.CSSProperties}>
+    <div className="text-sm text-secondary leading-relaxed prose prose-sm max-w-none" style={{ '--lo-space-lg': '0px' } as React.CSSProperties}>
       <RenderMarkdown>{value}</RenderMarkdown>
     </div>
   );
@@ -288,7 +288,7 @@ function NoteCard({
     >
       {/* Quoted text with colored left border and faint tinted background */}
       <div
-        className="italic text-sm text-gray-500 pl-2.5 pr-2 py-1.5 rounded overflow-hidden"
+        className="italic text-sm text-dimmed pl-2.5 pr-2 py-1.5 rounded overflow-hidden"
         style={{
           borderLeft: `3px solid ${colors.accent}`,
           background: colors.quoteBg,
@@ -312,7 +312,7 @@ function NoteCard({
           e.stopPropagation();
           onDelete();
         }}
-        className="absolute top-2.5 right-2.5 text-gray-300 hover:text-red-400 p-0.5 transition-colors"
+        className="absolute top-2.5 right-2.5 text-dimmed hover:text-error p-0.5 transition-colors"
         aria-label="Remove annotation"
         title="Remove annotation"
       >
@@ -472,7 +472,7 @@ export default function _Annotate(props: RuntimeProps) {
         <div className="flex-1 min-w-0">
           <div
             ref={passageRef}
-            className="passage p-6 border rounded-lg bg-gray-50 relative"
+            className="passage p-6 border rounded-lg bg-surface relative"
             onMouseUp={handleMouseUp}
             onClick={handlePassageClick}
             style={{ userSelect: 'text', cursor: 'text' }}
@@ -497,23 +497,23 @@ export default function _Annotate(props: RuntimeProps) {
           <div className="sticky top-4">
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-semibold text-gray-700">
+              <h4 className="text-sm font-semibold text-secondary">
                 Annotations
               </h4>
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-dimmed">
                 {sortedByPosition.length} {sortedByPosition.length === 1 ? 'note' : 'notes'}
               </span>
             </div>
 
             {/* Note cards or empty state */}
             {sortedByPosition.length === 0 ? (
-              <div className="border border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+              <div className="border border-dashed border-border rounded-lg p-8 text-center">
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-dimmed">
                     <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
                   </svg>
                 </div>
-                <p className="text-sm text-gray-500 leading-relaxed">
+                <p className="text-sm text-dimmed leading-relaxed">
                   Select text in the passage to create your first annotation.
                 </p>
               </div>

@@ -8,16 +8,16 @@ export default function _NavigatorDefaultDetail(props: RuntimeProps) {
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">{displayTitle}</h2>
+      <h2 className="text-xl font-semibold text-foreground mb-4">{displayTitle}</h2>
 
       {subtitle && (
-        <p className="text-lg text-blue-600 font-medium mb-3">{subtitle}</p>
+        <p className="text-lg text-accent font-medium mb-3">{subtitle}</p>
       )}
 
       {description && (
         <div className="mb-4">
-          <h3 className="font-medium text-gray-900 mb-2">Description</h3>
-          <p className="text-gray-700">{description}</p>
+          <h3 className="font-medium text-foreground mb-2">Description</h3>
+          <p className="text-secondary">{description}</p>
         </div>
       )}
 
@@ -25,19 +25,19 @@ export default function _NavigatorDefaultDetail(props: RuntimeProps) {
         <div className="space-y-3">
           {Object.entries(details).map(([key, value]) => (
             <div key={key}>
-              <h4 className="font-medium text-gray-900 capitalize">
+              <h4 className="font-medium text-foreground capitalize">
                 {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
               </h4>
               {Array.isArray(value) ? (
                 <div className="flex flex-wrap gap-2 mt-1">
                   {value.map((item, index) => (
-                    <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
+                    <span key={index} className="px-2 py-1 bg-accent-subtle text-accent rounded text-sm">
                       {item}
                     </span>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-700 mt-1">{value as React.ReactNode}</p>
+                <p className="text-secondary mt-1">{value as React.ReactNode}</p>
               )}
             </div>
           ))}

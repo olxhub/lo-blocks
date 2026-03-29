@@ -51,7 +51,7 @@ export default function Spinner({ children, texts, interval = 3000 }: SpinnerPro
   return (
     <div className="flex flex-col items-center justify-center p-8 space-y-4">
       <CssSpinner />
-      {message && <p className="text-gray-600 text-sm">{message}</p>}
+      {message && <p className="text-secondary text-sm">{message}</p>}
     </div>
   );
 }

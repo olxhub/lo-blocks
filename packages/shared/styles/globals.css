@@ -75,6 +75,16 @@
   --color-border: var(--lo-border);
   --color-border-subtle: var(--lo-border-subtle);
 
+  /* Status */
+  --color-success: var(--lo-success);
+  --color-success-subtle: var(--lo-success-subtle);
+  --color-error: var(--lo-error);
+  --color-error-subtle: var(--lo-error-subtle);
+  --color-warning: var(--lo-warning);
+  --color-warning-subtle: var(--lo-warning-subtle);
+  --color-info: var(--lo-info);
+  --color-info-subtle: var(--lo-info-subtle);
+
   /* Fonts */
   --font-sans: var(--lo-font-ui);
   --font-mono: var(--lo-font-mono);

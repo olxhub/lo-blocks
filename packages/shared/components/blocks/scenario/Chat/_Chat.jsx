@@ -241,7 +241,7 @@ export function _Chat(props) {
   return (
     <>
       {headerWarnings.length > 0 && (
-        <div className="bg-yellow-50 text-yellow-800 text-sm p-2 rounded border border-yellow-200 mb-2">
+        <div className="bg-warning-subtle text-warning text-sm p-2 rounded border border-warning mb-2">
           <strong>Chat header warnings:</strong>
           <ul className="list-disc ml-4 mt-1">
             {headerWarnings.map((w, i) => <li key={i}>{w}</li>)}

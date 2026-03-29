@@ -124,10 +124,10 @@ export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
           disabled={!hasPreview}
           className={`px-4 py-2 text-sm font-medium ${
             activeTab === 'preview'
-              ? 'border-b-2 border-blue-500 text-blue-600'
+              ? 'border-b-2 border-accent text-accent'
               : hasPreview
-                ? 'text-gray-500 hover:text-gray-700'
-                : 'text-gray-300 cursor-not-allowed'
+                ? 'text-dimmed hover:text-secondary'
+                : 'text-dimmed cursor-not-allowed'
           }`}
           title={hasPreview ? undefined : `No preview available for ${ext}`}
         >
@@ -137,8 +137,8 @@ export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
           onClick={() => setActiveTab('parse')}
           className={`px-4 py-2 text-sm font-medium ${
             activeTab === 'parse'
-              ? 'border-b-2 border-blue-500 text-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'border-b-2 border-accent text-accent'
+              : 'text-dimmed hover:text-secondary'
           }`}
         >
           Parse Result
@@ -150,33 +150,33 @@ export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
         {activeTab === 'parse' && (
           <div className="p-4 h-full flex flex-col">
             {!parseResult ? (
-              <div className="text-gray-500">Enter content to see parse result</div>
+              <div className="text-dimmed">Enter content to see parse result</div>
             ) : (
               <>
                 <div className="font-semibold mb-2 flex items-center gap-2">
                   {parseResult.success ? (
-                    <span className="text-green-600">✓</span>
+                    <span className="text-success">✓</span>
                   ) : (
-                    <span className="text-red-600">✗</span>
+                    <span className="text-error">✗</span>
                   )}
                   Parse Result
                 </div>
 
                 {parseResult.success ? (
-                  <pre className="flex-1 overflow-auto bg-gray-900 text-green-400 p-4 rounded text-xs font-mono whitespace-pre-wrap">
+                  <pre className="flex-1 overflow-auto bg-background text-green-400 p-4 rounded text-xs font-mono whitespace-pre-wrap">
                     {JSON.stringify(parseResult.data, null, 2)}
                   </pre>
                 ) : (
-                  <div className="bg-red-50 border border-red-200 rounded p-4">
-                    <div className="text-red-700 font-medium mb-2">
+                  <div className="bg-error-subtle border border-error rounded p-4">
+                    <div className="text-error font-medium mb-2">
                       {parseResult.error?.location && (
-                        <span className="text-red-500 text-sm mr-2">
+                        <span className="text-error text-sm mr-2">
                           Line {parseResult.error.location.line}, Column {parseResult.error.location.column}
                         </span>
                       )}
                       Error
                     </div>
-                    <pre className="text-red-600 text-sm whitespace-pre-wrap font-mono">
+                    <pre className="text-error text-sm whitespace-pre-wrap font-mono">
                       {parseResult.error?.message}
                     </pre>
                   </div>
@@ -200,7 +200,7 @@ export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
                 inline={previewWithContent.olx}
               />
             ) : (
-              <div className="text-gray-500">No preview available for this grammar</div>
+              <div className="text-dimmed">No preview available for this grammar</div>
             )}
           </div>
         )}

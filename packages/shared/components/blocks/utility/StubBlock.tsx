@@ -37,23 +37,23 @@ export default function createStubBlock(name, options: { description?: string; i
 
       const summaryLines = Object.entries(props).map(([key, value]) => (
         <div key={key} className="ml-2">
-          <span className="text-gray-500">{key}:</span> {summarizeValue(value)}
+          <span className="text-dimmed">{key}:</span> {summarizeValue(value)}
         </div>
       ));
 
       return (
         <div
-          className="border border-gray-300 bg-gray-50 rounded-md p-2 my-2 shadow-sm text-xs text-gray-700 font-mono whitespace-pre-wrap"
+          className="border border-border bg-surface rounded-md p-2 my-2 shadow-sm text-xs text-secondary font-mono whitespace-pre-wrap"
           data-stub={name}
         >
-          <div className="border-b border-gray-200 mb-1 pb-1 flex items-center gap-2">
-            <span className="text-sm font-bold text-blue-600">🛠️ Stub: {name}</span>
-            <span className="text-gray-400">(ID: {id ?? 'n/a'})</span>
+          <div className="border-b border-border mb-1 pb-1 flex items-center gap-2">
+            <span className="text-sm font-bold text-accent">🛠️ Stub: {name}</span>
+            <span className="text-dimmed">(ID: {id ?? 'n/a'})</span>
           </div>
 
           {Object.keys(props).length > 0 && (
             <details>
-              <summary className="cursor-pointer text-gray-500 hover:text-gray-700">
+              <summary className="cursor-pointer text-dimmed hover:text-secondary">
                 Show props ({Object.keys(props).length})
               </summary>
               <div className="mt-1">{summaryLines}</div>

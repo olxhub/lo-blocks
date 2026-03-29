@@ -8,50 +8,34 @@ import ExpandIcon from '@/components/common/ExpandIcon';
 import * as cast from '@/lib/avatar/cast';
 import { acceptString } from '@/lib/util/fileTypes';
 
-// Theme definitions
+// Theme definitions — token-mapped classes handle dark mode via CSS custom properties.
+// The dark theme is no longer needed; both 'light' and 'dark' keys resolve to the same
+// token set so that existing theme={} props keep working without breaking callers.
+const tokenTheme = {
+  container: 'border-border bg-background',
+  header: 'bg-background border-border',
+  headerText: 'text-secondary',
+  headerSubtle: 'text-dimmed',
+  content: 'bg-background',
+  message: 'bg-muted',
+  messageText: '',
+  systemBg: 'bg-muted',
+  systemText: 'text-dimmed',
+  toolBg: 'bg-surface border-border hover:bg-muted',
+  toolText: 'text-secondary',
+  toolIcon: 'text-dimmed',
+  inputBg: 'bg-surface border-border',
+  inputField: 'bg-background border-border text-foreground',
+  inputPlaceholder: 'placeholder:text-dimmed',
+  button: 'bg-accent hover:bg-accent-hover text-inverse',
+  buttonDisabled: 'bg-muted text-dimmed',
+  fileBadge: 'bg-muted text-secondary',
+  errorBadge: 'bg-error-subtle text-error',
+};
+
 const themes = {
-  light: {
-    container: 'border-gray-200 bg-white',
-    header: 'bg-white border-gray-200',
-    headerText: 'text-gray-700',
-    headerSubtle: 'text-gray-500',
-    content: 'bg-white',
-    message: 'bg-gray-100',
-    messageText: '',
-    systemBg: 'bg-gray-100',
-    systemText: 'text-gray-500',
-    toolBg: 'bg-gray-50 border-gray-200 hover:bg-gray-100',
-    toolText: 'text-gray-600',
-    toolIcon: 'text-gray-500',
-    inputBg: 'bg-gray-50 border-gray-200',
-    inputField: 'bg-white border-gray-300 text-gray-900',
-    inputPlaceholder: 'placeholder-gray-400',
-    button: 'bg-blue-500 hover:bg-blue-600 text-white',
-    buttonDisabled: 'bg-gray-300 text-gray-500',
-    fileBadge: 'bg-gray-100 text-gray-600',
-    errorBadge: 'bg-red-50 text-red-600',
-  },
-  dark: {
-    container: 'border-gray-700 bg-gray-900',
-    header: 'bg-gray-800 border-gray-700',
-    headerText: 'text-gray-200',
-    headerSubtle: 'text-gray-400',
-    content: 'bg-gray-900',
-    message: 'bg-gray-800',
-    messageText: 'text-gray-200',
-    systemBg: 'bg-gray-800',
-    systemText: 'text-gray-400',
-    toolBg: 'bg-gray-800 border-gray-700 hover:bg-gray-700',
-    toolText: 'text-gray-300',
-    toolIcon: 'text-gray-400',
-    inputBg: 'bg-gray-800 border-gray-700',
-    inputField: 'bg-gray-900 border-gray-600 text-gray-100',
-    inputPlaceholder: 'placeholder-gray-500',
-    button: 'bg-blue-600 hover:bg-blue-500 text-white',
-    buttonDisabled: 'bg-gray-700 text-gray-500',
-    fileBadge: 'bg-gray-800 text-gray-300',
-    errorBadge: 'bg-red-900/30 text-red-400',
-  },
+  light: tokenTheme,
+  dark: tokenTheme,
 };
 
 // Message component for chat lines
@@ -127,7 +111,7 @@ const ToolCallMessage = ({ message, theme }) => {
         onClick={() => setExpanded(!expanded)}
       >
         <span className={t.toolIcon}>🔧</span>
-        <span className="font-mono ms-1 text-blue-500">{message.name}</span>
+        <span className="font-mono ms-1 text-accent">{message.name}</span>
         <span className={`${t.toolText} ms-2`}>{truncatedSynopsis}</span>
         <ExpandIcon expanded={expanded} className={`${t.headerSubtle} ms-2`} />
       </div>
@@ -196,7 +180,7 @@ export const InputFooter = ({
           <span className="me-2">📎</span>
           <span className="flex-1 truncate">{attachedFile.name}</span>
           <button
-            className={`ms-2 ${t.headerSubtle} hover:text-red-500`}
+            className={`ms-2 ${t.headerSubtle} hover:text-error`}
             onClick={() => setAttachedFile(null)}
           >
             ✕
@@ -208,7 +192,7 @@ export const InputFooter = ({
         <div className={`mb-2 flex items-center text-sm ${t.errorBadge} rounded px-2 py-1`}>
           <span className="flex-1">{fileError}</span>
           <button
-            className="ms-2 hover:text-red-600"
+            className="ms-2 hover:text-error"
             onClick={() => setFileError(null)}
           >
             ✕
@@ -240,7 +224,7 @@ export const InputFooter = ({
         )}
         <input
           type="text"
-          className={`flex-1 border rounded-full py-2 px-4 focus:outline-none ${t.inputField} ${t.inputPlaceholder} ${disabled ? 'opacity-50' : 'focus:ring-2 focus:ring-blue-500'}`}
+          className={`flex-1 border rounded-full py-2 px-4 focus:outline-none ${t.inputField} ${t.inputPlaceholder} ${disabled ? 'opacity-50' : 'focus:ring-2 focus:ring-accent'}`}
           placeholder={disabled ? 'Observation mode' : placeholder}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -248,7 +232,7 @@ export const InputFooter = ({
           disabled={disabled}
         />
         <button
-          className={`ms-2 rounded-full p-2 ${disabled ? t.buttonDisabled + ' cursor-not-allowed' : t.button + ' focus:outline-none focus:ring-2 focus:ring-blue-500'}`}
+          className={`ms-2 rounded-full p-2 ${disabled ? t.buttonDisabled + ' cursor-not-allowed' : t.button + ' focus:outline-none focus:ring-2 focus:ring-accent'}`}
           onClick={handleSend}
           disabled={disabled}
         >
@@ -266,25 +250,25 @@ export const AdvanceFooter = ({ onAdvance, currentMessageIndex, totalMessages, d
   // No global key listeners — advancing is handled by the focused chat region.
 
   return (
-    <div className="bg-gray-50 p-3 border-t border-gray-200">
+    <div className="bg-surface p-3 border-t border-border">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-dimmed">
           {currentMessageIndex} of {totalMessages}
         </span>
         <button
           onClick={onAdvance}
           disabled={disabled}
           className="
-            bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center
-            hover:bg-blue-600
-            focus:outline-none focus:ring-2 focus:ring-blue-500
-            disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed
-            disabled:hover:bg-gray-300 disabled:focus:ring-0
+            bg-accent text-inverse px-4 py-2 rounded-lg flex items-center
+            hover:bg-accent-hover
+            focus:outline-none focus:ring-2 focus:ring-accent
+            disabled:bg-muted disabled:text-dimmed disabled:cursor-not-allowed
+            disabled:hover:bg-muted disabled:focus:ring-0
           "
         >
           Continue <NavArrow direction="forward" className="ms-1 w-4 h-4" />
         </button>
-        <span className="text-xs text-gray-400">or focus chat and press [space]</span>
+        <span className="text-xs text-dimmed">or focus chat and press [space]</span>
       </div>
     </div>
   );
@@ -393,7 +377,7 @@ export function ChatComponent({
       </div>
       <div
         ref={chatContainerRef}
-        className={`overflow-y-auto p-4 ${t.content} focus:outline-none focus:ring-2 focus:ring-blue-500 ${height === 'flex-1' ? 'flex-1' : ''}`}
+        className={`overflow-y-auto p-4 ${t.content} focus:outline-none focus:ring-2 focus:ring-accent ${height === 'flex-1' ? 'flex-1' : ''}`}
         style={height !== 'flex-1' ? { height } : undefined}
         tabIndex={0}
         role="region"

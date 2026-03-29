@@ -484,7 +484,7 @@ export default function RenderOLX({
   // Parse error (from inline/files parsing)
   if (fatalError) {
     return (
-      <div className="text-red-600 p-2 border border-red-300 rounded bg-red-50">
+      <div className="text-error p-2 border border-error rounded bg-error-subtle">
         <div className="font-semibold">Error rendering OLX</div>
         <pre className="text-sm mt-1 whitespace-pre-wrap">{fatalError}</pre>
       </div>
@@ -494,7 +494,7 @@ export default function RenderOLX({
   // No content source provided
   if (!inline && !files && !baseIdMap && !ready) {
     return (
-      <div className="text-red-600">
+      <div className="text-error">
         RenderOLX: No content source provided
       </div>
     );
@@ -514,7 +514,7 @@ export default function RenderOLX({
       }}
     >
       {warnings.length > 0 && (
-        <div className="text-amber-800 p-3 border border-amber-300 rounded bg-amber-50 mb-2 text-sm">
+        <div className="text-warning p-3 border border-warning rounded bg-warning-subtle mb-2 text-sm">
           <div className="font-semibold mb-1">
             {warnings.length} content {warnings.length === 1 ? 'warning' : 'warnings'}
           </div>
