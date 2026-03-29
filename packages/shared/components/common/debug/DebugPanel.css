@@ -532,3 +532,38 @@
 .debug-tree-node.highlighted > .debug-tree-key {
   color: var(--lo-debug-warning);
 }
+
+/* Theme toggle button group */
+.debug-toggle-group {
+  display: flex;
+  margin-top: 6px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--lo-debug-border);
+}
+
+.debug-toggle-btn {
+  flex: 1;
+  padding: 4px 8px;
+  background: var(--lo-debug-bg);
+  border: none;
+  color: var(--lo-debug-muted);
+  font-size: 11px;
+  cursor: pointer;
+  text-transform: capitalize;
+  transition: background var(--lo-motion-fast), color var(--lo-motion-fast);
+}
+
+.debug-toggle-btn:not(:last-child) {
+  border-right: 1px solid var(--lo-debug-border);
+}
+
+.debug-toggle-btn:hover {
+  background: var(--lo-debug-elevated);
+  color: var(--lo-debug-text);
+}
+
+.debug-toggle-btn.active {
+  background: var(--lo-debug-accent);
+  color: var(--lo-debug-bg);
+}

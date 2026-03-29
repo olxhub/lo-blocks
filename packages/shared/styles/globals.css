@@ -55,10 +55,27 @@
  * like bg-background, text-foreground track the active theme.
  */
 @theme inline {
+  /* Surfaces */
   --color-background: var(--lo-bg);
-  --color-foreground: var(--lo-text);
   --color-surface: var(--lo-bg-surface);
+  --color-muted: var(--lo-bg-muted);
+
+  /* Text */
+  --color-foreground: var(--lo-text);
+  --color-secondary: var(--lo-text-secondary);
+  --color-dimmed: var(--lo-text-muted);
+  --color-inverse: var(--lo-text-inverse);
+
+  /* Brand / interactive */
   --color-accent: var(--lo-primary);
+  --color-accent-hover: var(--lo-primary-hover);
+  --color-accent-subtle: var(--lo-primary-subtle);
+
+  /* Border */
+  --color-border: var(--lo-border);
+  --color-border-subtle: var(--lo-border-subtle);
+
+  /* Fonts */
   --font-sans: var(--lo-font-ui);
   --font-mono: var(--lo-font-mono);
 }

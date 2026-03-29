@@ -117,42 +117,42 @@ function ActivityRow({ entry, userLocale }: { entry: any; userLocale: string }) 
   const editPath = entry.editPath;
 
   return (
-    <div className="group py-4 border-b border-gray-200/50 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-transparent transition-all">
+    <div className="group py-4 border-b border-border/50 hover:bg-gradient-to-r hover:from-accent-subtle/50 hover:to-transparent transition-all">
       <div className="flex items-start gap-4">
         <div className="flex-1 min-w-0">
           <Link
             href={`/preview/${entry.id}`}
-            className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors inline-block"
+            className="text-lg font-medium text-foreground hover:text-accent transition-colors inline-block"
           >
             {title}
           </Link>
           {description && (
-            <p className="text-sm text-gray-600 mt-1 leading-relaxed">{description}</p>
+            <p className="text-sm text-secondary mt-1 leading-relaxed">{description}</p>
           )}
         </div>
         <div className="flex items-center gap-5 text-sm shrink-0 opacity-70 group-hover:opacity-100 transition-opacity">
-          <span className="text-xs text-gray-400 font-mono">
+          <span className="text-xs text-dimmed font-mono">
             {type}
           </span>
           {editPath ? (
             <Link
               href={`/studio?file=${encodeURIComponent(editPath)}`}
-              className="text-gray-500 hover:text-gray-900 transition-colors"
+              className="text-secondary hover:text-foreground transition-colors"
             >
               Edit
             </Link>
           ) : (
-            <span className="text-gray-300 cursor-not-allowed">Edit</span>
+            <span className="text-dimmed cursor-not-allowed">Edit</span>
           )}
           <Link
             href={`/graph/${entry.id}`}
-            className="text-gray-400 hover:text-gray-700 transition-colors"
+            className="text-dimmed hover:text-foreground transition-colors"
           >
             Graph
           </Link>
           <Link
             href={`/api/olxjson/${entry.id}`}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-dimmed hover:text-secondary transition-colors"
             target="_blank"
           >
             API
@@ -215,11 +215,11 @@ function Activities() {
     <div className="space-y-8">
       {categories.map(category => (
         <section key={category.title}>
-          <h2 className="flex items-center gap-2 text-base font-semibold text-gray-700 mb-3 pb-2 border-b-2 border-gray-200">
+          <h2 className="flex items-center gap-2 text-base font-semibold text-foreground mb-3 pb-2 border-b-2 border-border">
             <span className="text-xl">{category.icon}</span>
             {category.title}
           </h2>
-          <div className="bg-white rounded-lg">
+          <div className="bg-background rounded-lg">
             {category.items.map(entry => (
               <ActivityRow key={entry.id} entry={entry} userLocale={userLocale} />
             ))}
@@ -235,13 +235,13 @@ function Sidebar() {
   const [params, setParams] = useState({});
 
   return (
-    <aside className="w-64 bg-gray-50 border-r border-gray-200 p-6 flex flex-col gap-6">
+    <aside className="w-64 bg-surface border-r border-border p-6 flex flex-col gap-6">
       <div>
-        <h1 className="text-lg font-semibold text-gray-900 mb-4">Learning Observer</h1>
+        <h1 className="text-lg font-semibold text-foreground mb-4">Learning Observer</h1>
         <nav className="space-y-2">
           <Link
             href="/docs"
-            className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
+            className="block px-3 py-2 text-sm text-foreground hover:bg-muted rounded transition-colors"
           >
             📖 Documentation
           </Link>
@@ -249,7 +249,7 @@ function Sidebar() {
             href="https://github.com/OlxHub/lo-blocks"
             target="_blank"
             rel="noopener noreferrer"
-            className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
+            className="block px-3 py-2 text-sm text-foreground hover:bg-muted rounded transition-colors"
           >
             🔗 GitHub
           </a>
@@ -257,7 +257,7 @@ function Sidebar() {
             href="https://learning-observer.org"
             target="_blank"
             rel="noopener noreferrer"
-            className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
+            className="block px-3 py-2 text-sm text-foreground hover:bg-muted rounded transition-colors"
           >
             🌐 Learning Observer
           </a>
@@ -267,10 +267,10 @@ function Sidebar() {
       <div>
         <button
           onClick={() => setShowEndpoints(!showEndpoints)}
-          className="w-full flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
+          className="w-full flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-muted rounded transition-colors"
         >
           <span>Developer Tools</span>
-          <ExpandIcon expanded={showEndpoints} className="text-gray-400" />
+          <ExpandIcon expanded={showEndpoints} className="text-dimmed" />
         </button>
 
         {showEndpoints && (
@@ -279,18 +279,18 @@ function Sidebar() {
               <div key={endpoint.key || endpoint.label}>
                 {endpoint.hrefTemplate ? (
                   <div className="space-y-1">
-                    <code className="text-gray-600">{endpoint.label}</code>
+                    <code className="text-secondary">{endpoint.label}</code>
                     <div className="flex gap-1">
                       <input
                         type="text"
                         placeholder={endpoint.placeholder}
                         value={params[endpoint.key] || ''}
                         onChange={e => setParams({ ...params, [endpoint.key]: e.target.value })}
-                        className="flex-1 text-xs border border-gray-300 px-2 py-1 rounded"
+                        className="flex-1 text-xs border border-border px-2 py-1 rounded bg-background text-foreground"
                       />
                       <a
                         href={params[endpoint.key] ? endpoint.hrefTemplate(params[endpoint.key]) : '#'}
-                        className={`px-2 py-1 text-xs rounded ${params[endpoint.key] ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-200 text-gray-400'}`}
+                        className={`px-2 py-1 text-xs rounded ${params[endpoint.key] ? 'bg-accent text-inverse hover:bg-accent-hover' : 'bg-muted text-dimmed'}`}
                         target="_blank"
                         onClick={e => !params[endpoint.key] && e.preventDefault()}
                       >
@@ -301,7 +301,7 @@ function Sidebar() {
                 ) : (
                   <Link
                     href={endpoint.href}
-                    className="block text-blue-600 hover:underline"
+                    className="block text-accent hover:underline"
                     target="_blank"
                   >
                     {endpoint.label}
@@ -312,7 +312,7 @@ function Sidebar() {
           </div>
         )}
       </div>
-      <div className="mt-auto p-3 border-t border-gray-200 text-[10px] text-gray-400 leading-tight">
+      <div className="mt-auto p-3 border-t border-border text-[10px] text-dimmed leading-tight">
         <Notice />
       </div>
     </aside>
@@ -357,15 +357,15 @@ export default function Home() {
   return (
     <div {...localeAttrs} className="flex h-screen">
       <Sidebar />
-      <main className="flex-1 overflow-auto bg-gray-50/30 flex flex-col">
-        <div className="flex justify-end p-4 border-b border-gray-200">
+      <main className="flex-1 overflow-auto bg-surface/30 flex flex-col">
+        <div className="flex justify-end p-4 border-b border-border">
           <LanguageSwitcher availableLocales={availableLocales} />
         </div>
         <div className="flex-1 overflow-auto">
           <div className="max-w-4xl mx-auto p-8">
             <header className="mb-8">
-              <h1 className="text-3xl font-semibold text-gray-900">Activities</h1>
-              <p className="text-gray-600 mt-2">Choose an activity to begin</p>
+              <h1 className="text-3xl font-semibold text-foreground">Activities</h1>
+              <p className="text-secondary mt-2">Choose an activity to begin</p>
             </header>
             <Activities />
           </div>

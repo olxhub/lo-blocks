@@ -32,6 +32,7 @@ import { replayToEvent, filterByContext, LoggedEvent, AppState } from '@/lib/rep
 import { DebugSettingsContext, type DebugSettings } from '@/lib/state/debugSettings';
 import GlobalDebugPanel from '@/components/common/debug/GlobalDebugPanel';
 import ReplayModeIndicator from '@/components/common/debug/ReplayModeIndicator';
+import ThemeSync from '@/components/common/debug/ThemeSync';
 import type { BaselineProps } from '@/lib/types';
 
 // Re-export for backward compatibility
@@ -191,6 +192,7 @@ function StoreWrapperInner({ children, reduxID }: StoreWrapperInnerProps) {
         {children}
       </ReplayProvider>
       <GlobalDebugPanel />
+      <ThemeSync />
     </DebugSettingsContext.Provider>
   );
 }
