@@ -150,7 +150,7 @@ export function buildYaml(characterName: string, cards: CardData[], avatar?: Ava
       profile[card.dimensionKey] = card.value;
     } else if (card.cardType === 'bio' && card.value) {
       const key = card.customPrompt
-        ? card.customPrompt.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '_').replace(/^_|_$/g, '')
+        ? card.customPrompt.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '_').replace(/^_|_$/g, '') || 'bio'
         : 'bio';
       profile[key] = card.value;
     } else if (card.cardType === 'stats' && card.statValues) {

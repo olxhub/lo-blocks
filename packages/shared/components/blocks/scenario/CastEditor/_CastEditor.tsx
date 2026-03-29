@@ -249,7 +249,7 @@ function useCastYaml(props: RuntimeProps, arrangement: string[]): string {
             profile[dimKey] = val;
           } else if (cardType === 'bio' && val) {
             const bioKey = customPrompt
-              ? customPrompt.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '_').replace(/^_|_$/g, '')
+              ? customPrompt.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '_').replace(/^_|_$/g, '') || 'bio'
               : 'bio';
             profile[bioKey] = val;
           } else if (cardType === 'stats' && svJson !== '{}') {
