@@ -34,7 +34,6 @@ export const EMOJI_CATEGORIES = [
   { key: 'activity', name: 'Activities' },
   { key: 'gesture', name: 'Gestures & Poses' },
   { key: 'face', name: 'Classic Smiley Emoji' },
-  // { key: 'hand', name: 'Hand Signs' },
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -492,54 +491,6 @@ export const EMOJI_AVATARS: EmojiOption[] = [
   { emoji: '🙀', name: 'weary cat',                                 category: 'face' },
   { emoji: '😿', name: 'crying cat',                                category: 'face' },
   { emoji: '😾', name: 'pouting cat',                               category: 'face' },
-
-  // -----------------------------------------------------------------------
-  // Hand Signs — finger/hand emoji, most support skin tone
-  // -----------------------------------------------------------------------
-  { emoji: '👋', name: 'waving hand',                              category: 'hand', skinTone: true },
-  { emoji: '🤚', name: 'raised back of hand',                      category: 'hand', skinTone: true },
-  { emoji: '🖐\uFE0F', name: 'hand with fingers splayed',         category: 'hand', skinTone: true },
-  { emoji: '✋', name: 'raised hand',                              category: 'hand', skinTone: true },
-  { emoji: '🖖', name: 'vulcan salute',                            category: 'hand', skinTone: true },
-  { emoji: '👌', name: 'OK hand',                                  category: 'hand', skinTone: true },
-  { emoji: '🤌', name: 'pinched fingers',                          category: 'hand', skinTone: true },
-  { emoji: '🤏', name: 'pinching hand',                            category: 'hand', skinTone: true },
-  { emoji: '✌\uFE0F', name: 'victory hand',                       category: 'hand', skinTone: true },
-  { emoji: '🤞', name: 'crossed fingers',                          category: 'hand', skinTone: true },
-  { emoji: '🫰', name: 'hand with index finger and thumb crossed', category: 'hand', skinTone: true },
-  { emoji: '🤟', name: 'love-you gesture',                         category: 'hand', skinTone: true },
-  { emoji: '🤘', name: 'sign of the horns',                        category: 'hand', skinTone: true },
-  { emoji: '🤙', name: 'call me hand',                             category: 'hand', skinTone: true },
-  { emoji: '👈', name: 'backhand index pointing left',             category: 'hand', skinTone: true },
-  { emoji: '👉', name: 'backhand index pointing right',            category: 'hand', skinTone: true },
-  { emoji: '👆', name: 'backhand index pointing up',               category: 'hand', skinTone: true },
-  { emoji: '👇', name: 'backhand index pointing down',             category: 'hand', skinTone: true },
-  { emoji: '☝\uFE0F', name: 'index pointing up',                  category: 'hand', skinTone: true },
-  { emoji: '🫵', name: 'index pointing at the viewer',             category: 'hand', skinTone: true },
-  { emoji: '👍', name: 'thumbs up',                                category: 'hand', skinTone: true },
-  { emoji: '👎', name: 'thumbs down',                              category: 'hand', skinTone: true },
-  { emoji: '✊', name: 'raised fist',                              category: 'hand', skinTone: true },
-  { emoji: '👊', name: 'oncoming fist',                            category: 'hand', skinTone: true },
-  { emoji: '🤛', name: 'left-facing fist',                         category: 'hand', skinTone: true },
-  { emoji: '🤜', name: 'right-facing fist',                        category: 'hand', skinTone: true },
-  { emoji: '👏', name: 'clapping hands',                           category: 'hand', skinTone: true },
-  { emoji: '🙌', name: 'raising hands',                            category: 'hand', skinTone: true },
-  { emoji: '🫶', name: 'heart hands',                              category: 'hand', skinTone: true },
-  { emoji: '👐', name: 'open hands',                               category: 'hand', skinTone: true },
-  { emoji: '🤲', name: 'palms up together',                        category: 'hand', skinTone: true },
-  { emoji: '🙏', name: 'folded hands',                             category: 'hand', skinTone: true },
-  { emoji: '💪', name: 'flexed biceps',                            category: 'hand', skinTone: true },
-  { emoji: '✍\uFE0F', name: 'writing hand',                       category: 'hand', skinTone: true },
-  { emoji: '💅', name: 'nail polish',                              category: 'hand', skinTone: true },
-  { emoji: '🤳', name: 'selfie',                                   category: 'hand', skinTone: true },
-  { emoji: '🤝', name: 'handshake',                                category: 'hand' },
-  { emoji: '🫷', name: 'leftwards pushing hand',                   category: 'hand', skinTone: true },
-  { emoji: '🫸', name: 'rightwards pushing hand',                  category: 'hand', skinTone: true },
-  { emoji: '🫱', name: 'rightwards hand',                          category: 'hand', skinTone: true },
-  { emoji: '🫲', name: 'leftwards hand',                           category: 'hand', skinTone: true },
-  { emoji: '🫳', name: 'palm down hand',                           category: 'hand', skinTone: true },
-  { emoji: '🫴', name: 'palm up hand',                             category: 'hand', skinTone: true },
-  { emoji: '🖕', name: 'middle finger',                            category: 'hand', skinTone: true },
 ];
 
 /** Apply a skin tone modifier to an emoji (only works on human emoji). */

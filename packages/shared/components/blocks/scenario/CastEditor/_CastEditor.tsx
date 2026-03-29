@@ -12,7 +12,7 @@
 // component resolves all its state from props.idPrefix.
 'use client';
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import yaml from 'js-yaml';
 import { Plus, X } from 'lucide-react';
@@ -53,10 +53,8 @@ function MemberTab({
   const [characterName] = useFieldState(mProps, characterBuilderFields.characterName, '');
 
   // Scoped props for the member's Open Peeps fields
-  const peepsProps = useMemo(() => {
-    const { idPrefix } = extendIdPrefix(mProps, [mProps.id, scopeMarker('peeps')]);
-    return { ...mProps, idPrefix, runtime: { ...mProps.runtime, idPrefix } };
-  }, [mProps]);
+  const { idPrefix: peepsPrefix } = extendIdPrefix(mProps, [mProps.id, scopeMarker('peeps')]);
+  const peepsProps = { ...mProps, idPrefix: peepsPrefix, runtime: { ...mProps.runtime, idPrefix: peepsPrefix } };
 
   const displayName = characterName || `Character ${memberId}`;
 
@@ -129,10 +127,7 @@ export default function _CastEditor(props: RuntimeProps) {
   const yamlString = useCastYaml(props, arrangement);
 
   // Active member's scoped props
-  const activeMemberProps = useMemo(() => {
-    if (!activeMember) return null;
-    return memberScopedProps(props, activeMember);
-  }, [props, activeMember]);
+  const activeMemberProps = activeMember ? memberScopedProps(props, activeMember) : null;
 
   return (
     <div className="cast-editor max-w-2xl">
@@ -185,13 +180,10 @@ export default function _CastEditor(props: RuntimeProps) {
 function useCastYaml(props: RuntimeProps, arrangement: string[]): string {
   const aeFields = props.locals.avatarEditorFields;
 
-  const memberScopes = useMemo(() =>
-    arrangement.map(memberId => {
-      const { idPrefix } = extendIdPrefix(props, [props.id, scopeMarker(memberId)]);
-      return { memberId, mProps: { ...props, idPrefix } as RuntimeProps };
-    }),
-    [arrangement, props],
-  );
+  const memberScopes = arrangement.map(memberId => {
+    const { idPrefix } = extendIdPrefix(props, [props.id, scopeMarker(memberId)]);
+    return { memberId, mProps: { ...props, idPrefix } as RuntimeProps };
+  });
 
   return useSelector(
     (reduxState: any) => {

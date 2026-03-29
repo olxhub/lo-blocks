@@ -3,7 +3,7 @@
 // Cast-of-characters runtime library — parsing, validation, merging,
 // and propthreading for the cast system.
 //
-// Schemas and types live in openpeeps.ts (pure data model, no runtime code).
+// Schemas and types live in types.ts (pure data model, no runtime code).
 // This file provides the functions that operate on those types.
 //
 // Usage in OLX:
@@ -220,17 +220,19 @@ function updateRuntimeCast(
  * @param member - The cast member definition
  * @returns Props suitable for <Avatar name= seed= style= src= options= />
  */
-export function castMemberToAvatarProps(
-  id: string,
-  member: CastMember
-): {
+export interface AvatarBaseProps {
   name: string;
   seed: string;
-  style?: 'illustrated' | 'initials' | 'emoji';
+  style?: 'illustrated' | 'initials' | 'emoji' | 'image';
   src?: string;
   emoji?: string;
   options?: OpenPeeps;
-} {
+}
+
+export function castMemberToAvatarProps(
+  id: string,
+  member: CastMember
+): AvatarBaseProps {
   const name = member.name ?? id;
   const seed = member.seed ?? id;
 
@@ -330,7 +332,7 @@ export function avatar(props: any, options?: AvatarOptions): AvatarResult {
   const size = options?.size ?? 32;
 
   // Defaults from cast member (if found), then overrides from props/options
-  const base = who && resolvedCast[who]
+  const base: AvatarBaseProps = who && resolvedCast[who]
     ? castMemberToAvatarProps(who, resolvedCast[who])
     : { name: who ?? '', seed: who, style: 'illustrated' as const };
 
@@ -338,11 +340,11 @@ export function avatar(props: any, options?: AvatarOptions): AvatarResult {
     name: base.name,
     seed: seed ?? base.seed,
     style: style ?? base.style,
-    src: src ?? (base as any).src,
-    emoji: (base as any).emoji,
+    src: src ?? base.src,
+    emoji: base.emoji,
     options: face
-      ? { ...((base as any).options || {}), face }
-      : (base as any).options,
+      ? { ...(base.options || {}), face }
+      : base.options,
   };
 
   return {

@@ -94,11 +94,11 @@ export default function Section({
         .filter(s => vals[s.key] != null)
         .map(s => {
           const activeUnit = units[s.key] || s.unit;
-          return fmtStat(vals[s.key], { ...s, unit: activeUnit });
+          return fmtStat(vals[s.key], { ...s, unit: activeUnit }, props.runtime?.locale?.code);
         })
         .join('  ');
     } catch { return ''; }
-  }, [cardType, statValuesJson, statUnitsJson, preset]);
+  }, [cardType, statValuesJson, statUnitsJson, preset, props.runtime?.locale?.code]);
 
   return (
     <div

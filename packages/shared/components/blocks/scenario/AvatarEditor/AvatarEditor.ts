@@ -63,7 +63,7 @@ function buildYaml(
   if (Object.keys(profileObj).length > 0) member.profile = profileObj;
 
   // groups — split on commas
-  const groupList = profile.groups.split(',').filter(Boolean);
+  const groupList = profile.groups.split(',').map(t => t.trim()).filter(Boolean);
   if (groupList.length > 0) member.groups = groupList;
 
   return yaml.dump({ [id]: member }, { lineWidth: -1, noCompatMode: true }).trimEnd();

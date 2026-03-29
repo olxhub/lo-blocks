@@ -44,10 +44,10 @@ export function inchesToFeetInches(inches: number): string {
 }
 
 /** Format a stat value for collapsed display. */
-export function fmtStat(value: number, stat: StatDef): string {
+export function fmtStat(value: number, stat: StatDef, locale = 'en'): string {
   if (stat.currency) {
     try {
-      const formatted = new Intl.NumberFormat('en', {
+      const formatted = new Intl.NumberFormat(locale, {
         style: 'currency', currency: stat.unit, maximumFractionDigits: 0,
       }).format(value);
       return `${stat.key}\u00a0${formatted}`;
