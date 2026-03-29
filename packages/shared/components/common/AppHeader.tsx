@@ -29,7 +29,7 @@ function UserIcon() {
 
 export default function AppHeader({ home = true, user = true }: AppHeaderProps) {
   return (
-    <header className={`flex items-center justify-between px-4 py-2 sticky top-0 z-10 ${HEADER_STYLE}`}>
+    <header className={`lo-app-header flex items-center justify-between px-4 py-2 sticky top-0 z-10 ${HEADER_STYLE}`}>
       <div className="flex items-center space-x-4">
         {home && <HomeLink />}
       </div>

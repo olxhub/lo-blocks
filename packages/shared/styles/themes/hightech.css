@@ -12,6 +12,9 @@
  */
 
 [data-theme="hightech"] {
+  /* Force dark native controls regardless of data-color-mode */
+  color-scheme: dark;
+
   /* ── Surfaces (dark by default) ── */
   --lo-bg:          #0a0e17;
   --lo-bg-surface:  #111827;

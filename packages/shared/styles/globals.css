@@ -2,15 +2,14 @@
 @import "tailwindcss";
 @source "..";
 @plugin "@tailwindcss/typography";
-@import "@fontsource/geist-sans/100.css";
-@import "@fontsource/geist-sans/200.css";
-@import "@fontsource/geist-sans/300.css";
+/* Fonts: only weights used in UI (400 normal, 500 medium, 600 semi, 700 bold).
+ * Next.js apps also load via localFont() in fonts.ts — these @fontsource
+ * imports provide @font-face fallback for non-Next contexts. */
 @import "@fontsource/geist-sans/400.css";
 @import "@fontsource/geist-sans/500.css";
 @import "@fontsource/geist-sans/600.css";
 @import "@fontsource/geist-sans/700.css";
-@import "@fontsource/geist-sans/800.css";
-@import "@fontsource/geist-mono/900.css";
+@import "@fontsource/geist-mono/400.css";
 
 /* ── Token system (order matters: foundation → semantic → debug) ── */
 @import "./tokens/foundation.css";
@@ -87,6 +86,3 @@
   --font-mono: var(--lo-font-mono);
 }
 
-body {
-  font-family: "Geist Sans", Arial, Helvetica, sans-serif;
-}

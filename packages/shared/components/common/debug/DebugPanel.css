@@ -15,7 +15,7 @@
   font-family: var(--lo-font-ui);
   font-size: 13px;
   color: var(--lo-debug-text);
-  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.3);
+  box-shadow: -4px 0 16px var(--lo-debug-scrim-heavy);
 }
 
 /* Header with tabs */
@@ -211,7 +211,7 @@
   font-family: var(--lo-font-mono);
   font-size: 11px;
   color: var(--lo-debug-accent);
-  background: rgba(88, 166, 255, 0.1);
+  background: var(--lo-debug-accent-subtle);
   padding: 1px 6px;
   border-radius: 3px;
 }
@@ -451,7 +451,7 @@
 
 /* Time-travel: selected event */
 .debug-event.selected {
-  background: rgba(88, 166, 255, 0.15);
+  background: var(--lo-debug-accent-medium);
   border-inline-start: 3px solid var(--lo-debug-accent);
   padding-inline-start: 5px;
 }
@@ -473,7 +473,7 @@
 .debug-event-selected-badge {
   font-size: 9px;
   color: var(--lo-debug-accent);
-  background: rgba(88, 166, 255, 0.2);
+  background: var(--lo-debug-accent-medium);
   padding: 1px 5px;
   border-radius: 3px;
   text-transform: uppercase;
@@ -487,8 +487,8 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: rgba(88, 166, 255, 0.1);
-  border: 1px solid rgba(88, 166, 255, 0.3);
+  background: var(--lo-debug-accent-subtle);
+  border: 1px solid var(--lo-debug-accent-strong);
   border-radius: 4px;
   margin-bottom: 8px;
   font-size: 12px;
@@ -525,7 +525,7 @@
 
 /* Highlighted tree nodes */
 .debug-tree-node.highlighted {
-  background: rgba(210, 153, 34, 0.15);
+  background: var(--lo-debug-warning-subtle);
   border-radius: 3px;
 }
 

@@ -69,13 +69,13 @@ function renderHighlightedText(
       // modes where overlaps are rare, but worth revisiting if modes with
       // frequent overlaps are added.
       const winner = active.reduce((a, b) => a.saturation > b.saturation ? a : b);
-      const bg = hslColor(winner.hue, winner.saturation, winner.lightness);
+      const bg = winner.bg ?? hslColor(winner.hue, winner.saturation, winner.lightness);
 
       elements.push(
         <mark
           key={`hl-${start}`}
           className="lo-text-highlight__mark"
-          style={{ backgroundColor: bg }}
+          style={{ backgroundColor: bg, color: 'inherit' }}
           title={winner.label}
         >
           {renderNewlines(slice)}
@@ -124,7 +124,7 @@ function SummaryStrip({ highlights }: { highlights: HighlightEntry[] }) {
         <span key={entry.id} className="lo-text-highlight__chip">
           <span
             className="lo-text-highlight__chip-dot"
-            style={{ backgroundColor: hslColor(entry.hue, entry.saturation, entry.lightness) }}
+            style={{ backgroundColor: entry.bg ?? hslColor(entry.hue, entry.saturation, entry.lightness) }}
           />
           <span className="lo-text-highlight__chip-label">{entry.label}</span>
           <span className="lo-text-highlight__chip-count">{entry.spans.length}</span>

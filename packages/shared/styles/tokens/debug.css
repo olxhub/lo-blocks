@@ -20,4 +20,17 @@
   --lo-debug-success:  #7ee787;
   --lo-debug-error:    #f85149;
   --lo-debug-warning:  #d29922;
+
+  /* ── Overlays / alpha ── */
+  --lo-debug-overlay-faint:   rgba(255, 255, 255, 0.02);
+  --lo-debug-overlay-subtle:  rgba(255, 255, 255, 0.05);
+  --lo-debug-overlay-medium:  rgba(255, 255, 255, 0.1);
+  --lo-debug-scrim:           rgba(0, 0, 0, 0.15);
+  --lo-debug-scrim-heavy:     rgba(0, 0, 0, 0.3);
+  --lo-debug-accent-subtle:   rgba(88, 166, 255, 0.1);
+  --lo-debug-accent-medium:   rgba(88, 166, 255, 0.15);
+  --lo-debug-accent-strong:   rgba(88, 166, 255, 0.3);
+  --lo-debug-warning-subtle:  rgba(210, 153, 34, 0.15);
+  --lo-debug-warning-tint:    rgba(251, 191, 36, 0.1);
+  --lo-debug-purple:          #8b5cf6;
 }
