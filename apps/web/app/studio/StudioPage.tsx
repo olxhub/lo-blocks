@@ -461,7 +461,7 @@ function StudioPageContent() {
                       getContent={() => getEditComponentState(editorFields.content, filePath, DEMO_CONTENT)}
                       onApplyEdit={setContent}
                       onOpenFile={handleFileSelect}
-                      theme="dark"
+                      theme="auto"
                     />
                   </div>
                 )}
@@ -510,7 +510,7 @@ function StudioPageContent() {
               onChange={(value) => setContent(value)}
               path={filePath}
               height="100%"
-              theme="light"
+              theme="auto"
             />
           </div>
           {showPreview && (

@@ -1,13 +1,13 @@
 /* src/app/studio/studio.css */
-/* Studio editor styles — always-dark chrome, uses --lo-debug-* tokens */
+/* Studio editor styles — theme-aware, uses --lo-* semantic tokens */
 
 .studio {
   /* Layout */
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: var(--lo-debug-bg);
-  color: var(--lo-debug-text);
+  background: var(--lo-bg);
+  color: var(--lo-text);
   font-family: var(--lo-font-ui);
 }
 
@@ -18,8 +18,8 @@
   justify-content: space-between;
   padding: 0 16px;
   height: 48px;
-  background: var(--lo-debug-surface);
-  border-bottom: 1px solid var(--lo-debug-border);
+  background: var(--lo-bg-surface);
+  border-bottom: 1px solid var(--lo-border);
   flex-shrink: 0;
 }
 
@@ -37,7 +37,7 @@
 
 .studio-title {
   font-weight: 600;
-  color: var(--lo-debug-accent);
+  color: var(--lo-primary);
   text-decoration: none;
 }
 
@@ -46,46 +46,46 @@
 }
 
 .studio-filepath {
-  color: var(--lo-debug-muted);
+  color: var(--lo-text-muted);
   font-size: 14px;
   font-family: var(--lo-font-mono);
 }
 
 .studio-dirty-indicator {
-  color: var(--lo-debug-warning);
+  color: var(--lo-warning);
   font-weight: bold;
 }
 
 /* Buttons */
 .studio-btn {
   padding: 6px 12px;
-  border: 1px solid var(--lo-debug-border);
+  border: 1px solid var(--lo-border);
   border-radius: 6px;
-  background: var(--lo-debug-elevated);
-  color: var(--lo-debug-text);
+  background: var(--lo-bg-muted);
+  color: var(--lo-text);
   cursor: pointer;
   font-size: 14px;
   transition: background var(--lo-motion-fast);
 }
 
 .studio-btn:hover {
-  background: var(--lo-debug-border);
+  background: var(--lo-border);
 }
 
 .studio-btn.primary {
-  background: #238636;
-  border-color: #238636;
-  color: #fff;
+  background: var(--lo-primary);
+  border-color: var(--lo-primary);
+  color: var(--lo-text-inverse);
 }
 
 .studio-btn.primary:hover {
-  background: #2ea043;
+  background: var(--lo-primary-hover);
 }
 
 .studio-btn.active {
-  background: var(--lo-debug-accent);
-  border-color: var(--lo-debug-accent);
-  color: #fff;
+  background: var(--lo-primary);
+  border-color: var(--lo-primary);
+  color: var(--lo-text-inverse);
 }
 
 .studio-btn.icon {
@@ -102,8 +102,8 @@
 
 /* Sidebar */
 .studio-sidebar {
-  background: var(--lo-debug-surface);
-  border-inline-end: 1px solid var(--lo-debug-border);
+  background: var(--lo-bg-surface);
+  border-inline-end: 1px solid var(--lo-border);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -119,7 +119,7 @@
 }
 
 .studio-resizer:hover {
-  background: var(--lo-debug-accent);
+  background: var(--lo-primary);
 }
 
 /* Pane Resizer (editor/preview) */
@@ -140,12 +140,12 @@
 }
 
 .studio-pane-resizer:hover {
-  background: var(--lo-debug-accent);
+  background: var(--lo-primary);
 }
 
 .studio-sidebar-tabs {
   display: flex;
-  border-bottom: 1px solid var(--lo-debug-border);
+  border-bottom: 1px solid var(--lo-border);
 }
 
 .studio-sidebar-tab {
@@ -153,7 +153,7 @@
   padding: 10px 8px;
   background: none;
   border: none;
-  color: var(--lo-debug-muted);
+  color: var(--lo-text-muted);
   cursor: pointer;
   font-size: 12px;
   text-transform: uppercase;
@@ -162,13 +162,13 @@
 }
 
 .studio-sidebar-tab:hover {
-  color: var(--lo-debug-text);
-  background: var(--lo-debug-elevated);
+  color: var(--lo-text);
+  background: var(--lo-bg-muted);
 }
 
 .studio-sidebar-tab.active {
-  color: var(--lo-debug-accent);
-  border-bottom: 2px solid var(--lo-debug-accent);
+  color: var(--lo-primary);
+  border-bottom: 2px solid var(--lo-primary);
 }
 
 .studio-sidebar-content {
@@ -190,7 +190,7 @@
 .sidebar-panel-header {
   font-weight: 600;
   margin-bottom: 12px;
-  color: var(--lo-debug-text);
+  color: var(--lo-text);
 }
 
 /* File tree */
@@ -205,7 +205,7 @@
 }
 
 .file-item:hover {
-  background: var(--lo-debug-elevated);
+  background: var(--lo-bg-muted);
 }
 
 .file-item.indent {
@@ -225,28 +225,28 @@
 }
 
 .file-item.active {
-  background: var(--lo-debug-elevated);
+  background: var(--lo-bg-muted);
   font-weight: 500;
 }
 
 .file-item.active .file-name {
-  color: var(--lo-debug-accent);
+  color: var(--lo-primary);
 }
 
 .file-item.dirty .file-name {
   font-style: italic;
-  color: var(--lo-debug-warning);
+  color: var(--lo-warning);
 }
 
 .file-item.active.dirty .file-name {
-  color: var(--lo-debug-warning);
+  color: var(--lo-warning);
 }
 
 .file-menu-btn {
   opacity: 0;
   background: none;
   border: none;
-  color: var(--lo-debug-muted);
+  color: var(--lo-text-muted);
   cursor: pointer;
   padding: 2px 6px;
   font-size: 14px;
@@ -258,25 +258,25 @@
 }
 
 .file-menu-btn:hover {
-  background: var(--lo-debug-border);
-  color: var(--lo-debug-text);
+  background: var(--lo-border);
+  color: var(--lo-text);
 }
 
 .file-actions {
   padding: 8px;
   margin: 4px 0;
-  background: var(--lo-debug-bg);
-  border: 1px solid var(--lo-debug-border);
+  background: var(--lo-bg);
+  border: 1px solid var(--lo-border);
   border-radius: 6px;
 }
 
 .file-rename-input {
   width: 100%;
   padding: 6px 8px;
-  background: var(--lo-debug-surface);
-  border: 1px solid var(--lo-debug-border);
+  background: var(--lo-bg-surface);
+  border: 1px solid var(--lo-border);
   border-radius: 4px;
-  color: var(--lo-debug-text);
+  color: var(--lo-text);
   font-size: 12px;
   font-family: var(--lo-font-mono);
   margin-bottom: 8px;
@@ -284,7 +284,7 @@
 
 .file-rename-input:focus {
   outline: none;
-  border-color: var(--lo-debug-accent);
+  border-color: var(--lo-primary);
 }
 
 .file-action-buttons {
@@ -295,25 +295,25 @@
 .file-action-buttons button {
   flex: 1;
   padding: 4px 8px;
-  border: 1px solid var(--lo-debug-border);
+  border: 1px solid var(--lo-border);
   border-radius: 4px;
-  background: var(--lo-debug-elevated);
-  color: var(--lo-debug-text);
+  background: var(--lo-bg-muted);
+  color: var(--lo-text);
   cursor: pointer;
   font-size: 12px;
 }
 
 .file-action-buttons button:hover {
-  background: var(--lo-debug-border);
+  background: var(--lo-border);
 }
 
 .file-action-buttons button.danger {
-  border-color: var(--lo-debug-error);
-  color: var(--lo-debug-error);
+  border-color: var(--lo-error);
+  color: var(--lo-error);
 }
 
 .file-action-buttons button.danger:hover {
-  background: rgba(248, 81, 73, 0.13);
+  background: color-mix(in srgb, var(--lo-error) 13%, transparent);
 }
 
 /* File action button in header */
@@ -325,9 +325,9 @@
 
 .file-action-btn {
   background: none;
-  border: 1px solid var(--lo-debug-border);
+  border: 1px solid var(--lo-border);
   border-radius: 4px;
-  color: var(--lo-debug-muted);
+  color: var(--lo-text-muted);
   cursor: pointer;
   padding: 2px 8px;
   font-size: 16px;
@@ -335,16 +335,16 @@
 }
 
 .file-action-btn:hover {
-  background: var(--lo-debug-elevated);
-  color: var(--lo-debug-text);
+  background: var(--lo-bg-muted);
+  color: var(--lo-text);
 }
 
 /* New file dialog */
 .file-dialog {
   padding: 8px;
   margin-bottom: 8px;
-  background: var(--lo-debug-bg);
-  border: 1px solid var(--lo-debug-border);
+  background: var(--lo-bg);
+  border: 1px solid var(--lo-border);
   border-radius: 6px;
 }
 
@@ -359,48 +359,48 @@
   padding: 6px 12px;
   border: none;
   border-radius: 4px;
-  background: #238636;
-  color: #fff;
+  background: var(--lo-primary);
+  color: var(--lo-text-inverse);
   cursor: pointer;
   font-size: 12px;
 }
 
 .file-dialog-btn:hover {
-  background: #2ea043;
+  background: var(--lo-primary-hover);
 }
 
 .file-dialog-btn.cancel {
-  background: var(--lo-debug-elevated);
-  border: 1px solid var(--lo-debug-border);
-  color: var(--lo-debug-text);
+  background: var(--lo-bg-muted);
+  border: 1px solid var(--lo-border);
+  color: var(--lo-text);
 }
 
 .file-dialog-btn.cancel:hover {
-  background: var(--lo-debug-border);
+  background: var(--lo-border);
 }
 
 /* Search */
 .search-input {
   width: 100%;
   padding: 8px 12px;
-  background: var(--lo-debug-bg);
-  border: 1px solid var(--lo-debug-border);
+  background: var(--lo-bg);
+  border: 1px solid var(--lo-border);
   border-radius: 6px;
-  color: var(--lo-debug-text);
+  color: var(--lo-text);
   font-size: 14px;
   margin-bottom: 12px;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: var(--lo-debug-accent);
+  border-color: var(--lo-primary);
 }
 
 .search-section {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--lo-debug-muted);
+  color: var(--lo-text-muted);
   margin: 12px 0 8px;
 }
 
@@ -418,7 +418,7 @@
 }
 
 .search-result-item:hover {
-  background: var(--lo-debug-elevated);
+  background: var(--lo-bg-muted);
 }
 
 .search-result-item.clickable {
@@ -433,7 +433,7 @@
 
 .search-result-title {
   font-size: 12px;
-  color: var(--lo-debug-text);
+  color: var(--lo-text);
   margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
@@ -442,7 +442,7 @@
 
 .search-result-file {
   font-size: 11px;
-  color: var(--lo-debug-muted);
+  color: var(--lo-text-muted);
   margin-top: 2px;
   font-family: var(--lo-font-mono);
   white-space: nowrap;
@@ -452,19 +452,19 @@
 
 .search-id {
   font-family: var(--lo-font-mono);
-  color: var(--lo-debug-accent);
+  color: var(--lo-primary);
 }
 
 .search-type {
   font-size: 11px;
   padding: 2px 6px;
-  background: var(--lo-debug-elevated);
+  background: var(--lo-bg-muted);
   border-radius: 4px;
-  color: var(--lo-debug-muted);
+  color: var(--lo-text-muted);
 }
 
 .search-hint {
-  color: var(--lo-debug-muted);
+  color: var(--lo-text-muted);
   font-size: 13px;
   font-style: italic;
 }
@@ -472,7 +472,7 @@
 /* Chat & Data placeholders */
 .chat-placeholder,
 .data-placeholder {
-  color: var(--lo-debug-muted);
+  color: var(--lo-text-muted);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -485,16 +485,16 @@
 .docs-link {
   display: block;
   padding: 8px 12px;
-  background: #238636;
+  background: var(--lo-primary);
   border-radius: 6px;
-  color: #fff;
+  color: var(--lo-text-inverse);
   text-decoration: none;
   text-align: center;
   margin-bottom: 16px;
 }
 
 .docs-link:hover {
-  background: #2ea043;
+  background: var(--lo-primary-hover);
 }
 
 /* Docs panel specific styles */
@@ -511,13 +511,13 @@
   padding: 4px 8px;
   border-radius: 4px;
   text-decoration: none;
-  color: var(--lo-debug-text);
+  color: var(--lo-text);
   font-size: 13px;
 }
 
 .docs-item:hover {
-  background: var(--lo-debug-elevated);
-  color: var(--lo-debug-accent);
+  background: var(--lo-bg-muted);
+  color: var(--lo-primary);
 }
 
 /* Main editor */
@@ -537,7 +537,7 @@
 
 .studio-main.split.vertical .studio-preview-pane {
   border-inline-start: none;
-  border-top: 1px solid var(--lo-debug-border);
+  border-top: 1px solid var(--lo-border);
 }
 
 .studio-editor-pane {
@@ -568,11 +568,11 @@
   overflow: auto !important;
 }
 
-/* Preview pane — uses regular (light) semantic tokens, not debug tokens */
+/* Preview pane */
 .studio-preview-pane {
   flex: 1;
   min-width: 0;
-  border-inline-start: 1px solid var(--lo-debug-border);
+  border-inline-start: 1px solid var(--lo-border);
   display: flex;
   flex-direction: column;
   background: var(--lo-bg);
@@ -602,17 +602,17 @@
   align-items: center;
   gap: 16px;
   padding: 8px 16px;
-  background: var(--lo-debug-surface);
-  border-top: 1px solid var(--lo-debug-border);
+  background: var(--lo-bg-surface);
+  border-top: 1px solid var(--lo-border);
   font-size: 12px;
-  color: var(--lo-debug-muted);
+  color: var(--lo-text-muted);
   flex-shrink: 0;
 }
 
 .studio-footer kbd {
   padding: 2px 6px;
-  background: var(--lo-debug-elevated);
-  border: 1px solid var(--lo-debug-border);
+  background: var(--lo-bg-muted);
+  border: 1px solid var(--lo-border);
   border-radius: 4px;
   font-family: inherit;
   margin-inline-end: 4px;
@@ -623,17 +623,17 @@
 }
 
 .studio-footer .lo-notice a {
-  color: var(--lo-debug-text);
+  color: var(--lo-text);
 }
 
 .studio-debug-toggle {
   cursor: pointer;
-  color: var(--lo-debug-muted);
+  color: var(--lo-text-muted);
   font-size: 11px;
 }
 
 .studio-debug-toggle:hover {
-  color: var(--lo-debug-text);
+  color: var(--lo-text);
 }
 
 /* Command Palette */
@@ -650,8 +650,8 @@
 .command-palette {
   width: 500px;
   max-height: 400px;
-  background: var(--lo-debug-surface);
-  border: 1px solid var(--lo-debug-border);
+  background: var(--lo-bg-surface);
+  border: 1px solid var(--lo-border);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
@@ -662,8 +662,8 @@
   padding: 16px;
   background: none;
   border: none;
-  border-bottom: 1px solid var(--lo-debug-border);
-  color: var(--lo-debug-text);
+  border-bottom: 1px solid var(--lo-border);
+  color: var(--lo-text);
   font-size: 16px;
 }
 
@@ -687,16 +687,16 @@
 
 .command-palette-item:hover,
 .command-palette-item.selected {
-  background: var(--lo-debug-elevated);
+  background: var(--lo-bg-muted);
 }
 
 .command-palette-item kbd {
   padding: 2px 8px;
-  background: var(--lo-debug-elevated);
-  border: 1px solid var(--lo-debug-border);
+  background: var(--lo-bg-muted);
+  border: 1px solid var(--lo-border);
   border-radius: 4px;
   font-size: 12px;
-  color: var(--lo-debug-muted);
+  color: var(--lo-text-muted);
 }
 
 /* Button spinner */
@@ -704,8 +704,8 @@
   display: inline-block;
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #fff;
+  border: 2px solid color-mix(in srgb, var(--lo-text-inverse) 30%, transparent);
+  border-top-color: var(--lo-text-inverse);
   border-radius: 50%;
   animation: btn-spin 0.8s linear infinite;
   margin-inline-end: 6px;
@@ -722,7 +722,7 @@
 }
 
 .studio-btn.primary:disabled {
-  background: #238636;
+  background: var(--lo-primary);
 }
 
 /* Notifications / Toasts - Dark theme overrides for Studio */
@@ -731,47 +731,47 @@
 }
 
 .studio-notifications .lo-toast {
-  background: var(--lo-debug-surface) !important;
-  border-color: var(--lo-debug-border) !important;
+  background: var(--lo-bg-surface) !important;
+  border-color: var(--lo-border) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
 }
 
 .studio-notifications .lo-toast > div > div:first-child {
-  color: var(--lo-debug-text) !important;
+  color: var(--lo-text) !important;
 }
 
 .studio-notifications .lo-toast > div > div:last-child {
-  color: var(--lo-debug-muted) !important;
+  color: var(--lo-text-muted) !important;
 }
 
 .studio-notifications .lo-toast > button {
-  color: var(--lo-debug-muted) !important;
+  color: var(--lo-text-muted) !important;
 }
 
 .studio-notifications .lo-toast > button:hover {
-  color: var(--lo-debug-text) !important;
+  color: var(--lo-text) !important;
 }
 
 .studio-notifications .lo-toast-success {
-  background: linear-gradient(135deg, var(--lo-debug-surface) 0%, #0d1f0d 100%) !important;
-  border-color: #238636 !important;
+  background: linear-gradient(135deg, var(--lo-bg-surface) 0%, color-mix(in srgb, var(--lo-success) 15%, var(--lo-bg-surface)) 100%) !important;
+  border-color: var(--lo-success) !important;
 }
 
 .studio-notifications .lo-toast-error {
-  background: linear-gradient(135deg, var(--lo-debug-surface) 0%, #2d1216 100%) !important;
-  border-color: var(--lo-debug-error) !important;
+  background: linear-gradient(135deg, var(--lo-bg-surface) 0%, color-mix(in srgb, var(--lo-error) 15%, var(--lo-bg-surface)) 100%) !important;
+  border-color: var(--lo-error) !important;
 }
 
 .studio-notifications .lo-toast-info {
-  background: linear-gradient(135deg, var(--lo-debug-surface) 0%, #0d1525 100%) !important;
-  border-color: var(--lo-debug-accent) !important;
+  background: linear-gradient(135deg, var(--lo-bg-surface) 0%, color-mix(in srgb, var(--lo-info) 15%, var(--lo-bg-surface)) 100%) !important;
+  border-color: var(--lo-info) !important;
 }
 
 /* Loading overlay for editor */
 .studio-editor-loading {
   position: absolute;
   inset: 0;
-  background: rgba(13, 17, 23, 0.8);
+  background: color-mix(in srgb, var(--lo-bg) 80%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -781,8 +781,8 @@
 .studio-editor-loading-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid var(--lo-debug-border);
-  border-top-color: var(--lo-debug-accent);
+  border: 3px solid var(--lo-border);
+  border-top-color: var(--lo-primary);
   border-radius: 50%;
   animation: btn-spin 0.8s linear infinite;
 }

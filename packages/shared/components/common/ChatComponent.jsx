@@ -36,6 +36,7 @@ const tokenTheme = {
 const themes = {
   light: tokenTheme,
   dark: tokenTheme,
+  auto: tokenTheme,
 };
 
 // Message component for chat lines
