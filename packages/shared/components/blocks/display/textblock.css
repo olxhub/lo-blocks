@@ -1,7 +1,7 @@
 /* TextBlock Component Styles */
 
 .lo-tag-textblock {
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
   line-height: var(--lo-line-height-relaxed);
   margin-bottom: var(--lo-space-lg);
 }

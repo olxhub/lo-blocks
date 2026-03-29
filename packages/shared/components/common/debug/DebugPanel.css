@@ -1,5 +1,5 @@
 /* src/components/common/debug/DebugPanel.css */
-/* Debug panel styles - dark theme matching studio */
+/* Debug panel styles — always-dark, uses --lo-debug-* tokens */
 
 .debug-panel {
   position: fixed;
@@ -7,14 +7,14 @@
   inset-inline-end: 0;
   width: 420px;
   max-height: calc(100vh - 96px); /* Leave room for header and footer */
-  background: #161b22;
-  border-inline-start: 1px solid #30363d;
+  background: var(--lo-debug-surface);
+  border-inline-start: 1px solid var(--lo-debug-border);
   display: flex;
   flex-direction: column;
   z-index: 50;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--lo-font-ui);
   font-size: 13px;
-  color: #c9d1d9;
+  color: var(--lo-debug-text);
   box-shadow: -4px 0 16px rgba(0, 0, 0, 0.3);
 }
 
@@ -23,8 +23,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #0d1117;
-  border-bottom: 1px solid #30363d;
+  background: var(--lo-debug-bg);
+  border-bottom: 1px solid var(--lo-debug-border);
   flex-shrink: 0;
 }
 
@@ -36,28 +36,28 @@
   padding: 10px 16px;
   background: none;
   border: none;
-  color: #8b949e;
+  color: var(--lo-debug-muted);
   cursor: pointer;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  transition: color 0.15s, background 0.15s;
+  transition: color var(--lo-motion-fast), background var(--lo-motion-fast);
 }
 
 .debug-panel-tab:hover {
-  color: #c9d1d9;
-  background: #21262d;
+  color: var(--lo-debug-text);
+  background: var(--lo-debug-elevated);
 }
 
 .debug-panel-tab.active {
-  color: #58a6ff;
-  border-bottom: 2px solid #58a6ff;
+  color: var(--lo-debug-accent);
+  border-bottom: 2px solid var(--lo-debug-accent);
 }
 
 .debug-panel-close {
   background: none;
   border: none;
-  color: #8b949e;
+  color: var(--lo-debug-muted);
   font-size: 20px;
   padding: 8px 12px;
   cursor: pointer;
@@ -65,8 +65,8 @@
 }
 
 .debug-panel-close:hover {
-  color: #c9d1d9;
-  background: #21262d;
+  color: var(--lo-debug-text);
+  background: var(--lo-debug-elevated);
 }
 
 /* Body */
@@ -81,10 +81,10 @@
 /* Footer */
 .debug-panel-footer {
   padding: 8px 12px;
-  background: #0d1117;
-  border-top: 1px solid #30363d;
+  background: var(--lo-debug-bg);
+  border-top: 1px solid var(--lo-debug-border);
   font-size: 11px;
-  color: #6e7681;
+  color: var(--lo-debug-muted);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -93,8 +93,8 @@
 
 .debug-panel-footer kbd {
   padding: 2px 6px;
-  background: #21262d;
-  border: 1px solid #30363d;
+  background: var(--lo-debug-elevated);
+  border: 1px solid var(--lo-debug-border);
   border-radius: 4px;
   font-family: inherit;
 }
@@ -116,8 +116,8 @@
   display: flex;
   gap: 8px;
   padding: 8px;
-  background: #0d1117;
-  border-top: 1px solid #30363d;
+  background: var(--lo-debug-bg);
+  border-top: 1px solid var(--lo-debug-border);
   flex-wrap: wrap;
   align-items: center;
   flex-shrink: 0;
@@ -128,17 +128,18 @@
   flex: 1;
   min-width: 120px;
   padding: 6px 10px;
-  background: #161b22;
-  border: 1px solid #30363d;
+  background: var(--lo-debug-surface);
+  border: 1px solid var(--lo-debug-border);
   border-radius: 4px;
-  color: #c9d1d9;
+  color: var(--lo-debug-text);
   font-size: 12px;
-  font-family: 'SF Mono', Consolas, monospace;
+  font-family: var(--lo-font-mono);
 }
 
-.debug-filter-input:focus {
-  outline: none;
-  border-color: #58a6ff;
+.debug-filter-input:focus-visible {
+  outline: var(--lo-focus-ring-width) solid var(--lo-focus-ring);
+  outline-offset: var(--lo-focus-ring-offset);
+  border-color: var(--lo-debug-accent);
 }
 
 .debug-checkbox {
@@ -146,7 +147,7 @@
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #8b949e;
+  color: var(--lo-debug-muted);
   cursor: pointer;
 }
 
@@ -156,17 +157,17 @@
 
 .debug-btn {
   padding: 4px 10px;
-  background: #21262d;
-  border: 1px solid #30363d;
+  background: var(--lo-debug-elevated);
+  border: 1px solid var(--lo-debug-border);
   border-radius: 4px;
-  color: #c9d1d9;
+  color: var(--lo-debug-text);
   font-size: 12px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--lo-motion-fast);
 }
 
 .debug-btn:hover {
-  background: #30363d;
+  background: var(--lo-debug-border);
 }
 
 .debug-events-list {
@@ -181,16 +182,16 @@
   padding: 6px 8px;
   border-radius: 4px;
   cursor: pointer;
-  transition: background 0.1s;
+  transition: background var(--lo-motion-fast);
   margin-bottom: 2px;
 }
 
 .debug-event:hover {
-  background: #21262d;
+  background: var(--lo-debug-elevated);
 }
 
 .debug-event.expanded {
-  background: #1c2128;
+  background: var(--lo-debug-surface);
 }
 
 .debug-event-header {
@@ -200,16 +201,16 @@
 }
 
 .debug-event-type {
-  font-family: 'SF Mono', Consolas, monospace;
+  font-family: var(--lo-font-mono);
   font-size: 12px;
-  color: #7ee787;
+  color: var(--lo-debug-success);
   font-weight: 500;
 }
 
 .debug-event-id {
-  font-family: 'SF Mono', Consolas, monospace;
+  font-family: var(--lo-font-mono);
   font-size: 11px;
-  color: #58a6ff;
+  color: var(--lo-debug-accent);
   background: rgba(88, 166, 255, 0.1);
   padding: 1px 6px;
   border-radius: 3px;
@@ -218,17 +219,17 @@
 .debug-event-time {
   margin-inline-start: auto;
   font-size: 10px;
-  color: #6e7681;
+  color: var(--lo-debug-muted);
 }
 
 .debug-event-detail {
   margin-top: 8px;
   padding: 8px;
-  background: #0d1117;
+  background: var(--lo-debug-bg);
   border-radius: 4px;
-  font-family: 'SF Mono', Consolas, monospace;
+  font-family: var(--lo-font-mono);
   font-size: 11px;
-  color: #8b949e;
+  color: var(--lo-debug-muted);
   overflow-x: auto;
   white-space: pre-wrap;
   word-break: break-word;
@@ -244,7 +245,7 @@
 
 /* State tree */
 .debug-tree {
-  font-family: 'SF Mono', Consolas, monospace;
+  font-family: var(--lo-font-mono);
   font-size: 12px;
 }
 
@@ -265,22 +266,23 @@
 }
 
 .debug-tree-key.expandable:hover {
-  background: #21262d;
+  background: var(--lo-debug-elevated);
 }
 
 .debug-tree-arrow {
   font-size: 10px;
-  color: #6e7681;
+  color: var(--lo-debug-muted);
   width: 12px;
   flex-shrink: 0;
 }
 
+/* Syntax highlighting — intentionally specific colors for readability */
 .debug-key-name {
-  color: #d2a8ff;
+  color: #d2a8ff; /* purple — property names */
 }
 
 .debug-tree-preview {
-  color: #8b949e;
+  color: var(--lo-debug-muted);
   margin-inline-start: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -290,12 +292,12 @@
 
 .debug-tree-children {
   margin-inline-start: 16px;
-  border-inline-start: 1px solid #30363d;
+  border-inline-start: 1px solid var(--lo-debug-border);
   padding-inline-start: 8px;
 }
 
 .debug-count {
-  color: #6e7681;
+  color: var(--lo-debug-muted);
   font-size: 11px;
   margin-inline-start: 4px;
 }
@@ -304,11 +306,11 @@
   margin: 4px 0 4px;
   margin-inline-start: 16px;
   padding: 8px;
-  background: #0d1117;
+  background: var(--lo-debug-bg);
   border-radius: 4px;
-  font-family: 'SF Mono', Consolas, monospace;
+  font-family: var(--lo-font-mono);
   font-size: 11px;
-  color: #8b949e;
+  color: var(--lo-debug-muted);
   overflow-x: auto;
   white-space: pre-wrap;
   word-break: break-word;
@@ -316,32 +318,32 @@
   overflow-y: auto;
 }
 
-/* Values */
+/* Values — syntax highlighting colors kept explicit for readability */
 .debug-value {
-  font-family: 'SF Mono', Consolas, monospace;
+  font-family: var(--lo-font-mono);
 }
 
 .debug-value.null,
 .debug-value.undefined {
-  color: #6e7681;
+  color: var(--lo-debug-muted);
   font-style: italic;
 }
 
 .debug-value.boolean {
-  color: #ff7b72;
+  color: var(--lo-debug-error);
 }
 
 .debug-value.number {
-  color: #79c0ff;
+  color: #79c0ff; /* light blue — numeric literals */
 }
 
 .debug-value.string {
-  color: #a5d6ff;
+  color: #a5d6ff; /* pale blue — string literals */
 }
 
 .debug-value.array,
 .debug-value.object {
-  color: #8b949e;
+  color: var(--lo-debug-muted);
 }
 
 /* Content tab */
@@ -353,7 +355,7 @@
 }
 
 .debug-content-tree {
-  font-family: 'SF Mono', Consolas, monospace;
+  font-family: var(--lo-font-mono);
   font-size: 12px;
 }
 
@@ -361,10 +363,10 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #8b949e;
+  color: var(--lo-debug-muted);
   margin-bottom: 8px;
   padding-bottom: 4px;
-  border-bottom: 1px solid #30363d;
+  border-bottom: 1px solid var(--lo-debug-border);
 }
 
 .debug-content-entry {
@@ -376,11 +378,11 @@
 }
 
 .debug-content-entry:hover {
-  background: #21262d;
+  background: var(--lo-debug-elevated);
 }
 
 .debug-content-key {
-  color: #58a6ff;
+  color: var(--lo-debug-accent);
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -389,8 +391,8 @@
 
 .debug-content-tag {
   font-size: 11px;
-  color: #8b949e;
-  background: #21262d;
+  color: var(--lo-debug-muted);
+  background: var(--lo-debug-elevated);
   padding: 1px 6px;
   border-radius: 3px;
 }
@@ -405,7 +407,7 @@
 
 .debug-setting-item {
   padding: 8px 0;
-  border-bottom: 1px solid #30363d;
+  border-bottom: 1px solid var(--lo-debug-border);
 }
 
 .debug-setting-item:last-child {
@@ -431,33 +433,33 @@
 }
 
 .debug-setting-text strong {
-  color: #c9d1d9;
+  color: var(--lo-debug-text);
 }
 
 .debug-setting-description {
   font-size: 12px;
-  color: #8b949e;
+  color: var(--lo-debug-muted);
 }
 
 /* Empty state */
 .debug-empty {
   padding: 24px;
   text-align: center;
-  color: #6e7681;
+  color: var(--lo-debug-muted);
   font-style: italic;
 }
 
 /* Time-travel: selected event */
 .debug-event.selected {
   background: rgba(88, 166, 255, 0.15);
-  border-inline-start: 3px solid #58a6ff;
+  border-inline-start: 3px solid var(--lo-debug-accent);
   padding-inline-start: 5px;
 }
 
 .debug-event-expand {
   background: none;
   border: none;
-  color: #6e7681;
+  color: var(--lo-debug-muted);
   font-size: 10px;
   padding: 2px 4px;
   cursor: pointer;
@@ -465,12 +467,12 @@
 }
 
 .debug-event-expand:hover {
-  color: #c9d1d9;
+  color: var(--lo-debug-text);
 }
 
 .debug-event-selected-badge {
   font-size: 9px;
-  color: #58a6ff;
+  color: var(--lo-debug-accent);
   background: rgba(88, 166, 255, 0.2);
   padding: 1px 5px;
   border-radius: 3px;
@@ -490,7 +492,7 @@
   border-radius: 4px;
   margin-bottom: 8px;
   font-size: 12px;
-  color: #58a6ff;
+  color: var(--lo-debug-accent);
 }
 
 .debug-time-travel-icon {
@@ -509,16 +511,16 @@
   gap: 8px;
   padding: 4px 8px;
   margin-bottom: 8px;
-  font-family: 'SF Mono', Consolas, monospace;
+  font-family: var(--lo-font-mono);
   font-size: 11px;
 }
 
 .debug-diff-added {
-  color: #7ee787;
+  color: var(--lo-debug-success);
 }
 
 .debug-diff-changed {
-  color: #d29922;
+  color: var(--lo-debug-warning);
 }
 
 /* Highlighted tree nodes */
@@ -528,5 +530,5 @@
 }
 
 .debug-tree-node.highlighted > .debug-tree-key {
-  color: #d29922;
+  color: var(--lo-debug-warning);
 }

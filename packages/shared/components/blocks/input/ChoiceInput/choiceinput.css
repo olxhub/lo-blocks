@@ -21,15 +21,15 @@
 }
 
 .lo-choice-item:hover {
-  background-color: var(--lo-surface-hover);
+  background-color: var(--lo-bg-muted);
 }
 
 .lo-choice-item--selected {
-  background-color: var(--lo-primary-light);
+  background-color: var(--lo-primary-subtle);
 }
 
 .lo-choice-item--selected:hover {
-  background-color: var(--lo-primary-light);
+  background-color: var(--lo-primary-subtle);
 }
 
 /* Hide native input, keep it accessible */
@@ -49,7 +49,7 @@
   width: 1.125rem;
   height: 1.125rem;
   border: 2px solid var(--lo-secondary);
-  background: var(--lo-background);
+  background: var(--lo-bg);
   transition: border-color 150ms ease, background-color 150ms ease,
               box-shadow 150ms ease;
   position: relative;
@@ -75,7 +75,7 @@
 /* Focus-visible indicator */
 .lo-choice-item__input:focus-visible ~ .lo-choice-item__indicator {
   border-color: var(--lo-primary);
-  box-shadow: var(--lo-shadow-focus);
+  box-shadow: var(--lo-focus-ring-shadow);
 }
 
 /* Selected indicator */
@@ -88,7 +88,7 @@
 .lo-choice-item--radio.lo-choice-item--selected .lo-choice-item__indicator {
   background: radial-gradient(
     circle,
-    var(--lo-background) 30%,
+    var(--lo-bg) 30%,
     var(--lo-primary) 30%
   );
   border-color: var(--lo-primary);
@@ -103,7 +103,7 @@
   left: 0.3125rem;
   width: 0.3125rem;
   height: 0.5625rem;
-  border: solid var(--lo-background);
+  border: solid var(--lo-bg);
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
@@ -113,7 +113,7 @@
 .lo-choice-item__text {
   flex: 1;
   line-height: var(--lo-line-height-normal);
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
 }
 
 /* Collapse block wrappers inside choice items so Markdown renders inline */
@@ -144,7 +144,7 @@
 }
 
 [data-block-id*="_fb_"].lo-tag-markdown {
-  background-color: var(--lo-info-light);
+  background-color: var(--lo-info-subtle);
   border-left: 3px solid var(--lo-info);
   border-radius: var(--lo-radius-md);
   padding: var(--lo-space-sm) var(--lo-space-md);
@@ -154,13 +154,13 @@
 
 [data-block-id*="_fb_"].lo-tag-markdown .rendered-markdown p {
   margin: 0;
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
 }
 
 /* ── Show-answer highlight (correct answer reveal) ── */
 
 .lo-tag-key .lo-choiceinput-show-answer {
-  background-color: var(--lo-success-light);
+  background-color: var(--lo-success-subtle);
 }
 
 .lo-tag-key .lo-choiceinput-show-answer .lo-choice-item__indicator {

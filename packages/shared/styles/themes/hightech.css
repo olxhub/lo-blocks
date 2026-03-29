@@ -1,0 +1,113 @@
+/*
+ * Hightech Theme
+ * ---------------
+ * Neon/dark-first aesthetic for game design, CS, and tech courses.
+ * Dark surfaces by default, glowing cyan/fuchsia accents, monospace UI font.
+ * Think terminal meets cyberpunk.
+ *
+ * Activate: <html data-theme="hightech">
+ *
+ * NOTE: This theme is dark-first — the light variant below provides the
+ * "light mode" override. In dark mode (or no color-mode set), the base
+ * styles here are already dark.
+ */
+
+[data-theme="hightech"] {
+  /* ── Surfaces (dark by default) ── */
+  --lo-bg:          #0a0e17;
+  --lo-bg-surface:  #111827;
+  --lo-bg-elevated: #1f2937;
+  --lo-bg-muted:    #111827;
+
+  /* ── Text ── */
+  --lo-text:           #e2e8f0;
+  --lo-text-secondary: #94a3b8;
+  --lo-text-muted:     #64748b;
+  --lo-text-inverse:   #0a0e17;
+
+  /* ── Borders ── */
+  --lo-border:        #1e293b;
+  --lo-border-subtle: #111827;
+  --lo-border-strong: #334155;
+
+  /* ── Primary (cyan neon) ── */
+  --lo-primary:        var(--lo-color-cyan-400);
+  --lo-primary-hover:  var(--lo-color-cyan-300);
+  --lo-primary-subtle: rgba(34, 211, 238, 0.10);
+
+  /* ── Secondary (fuchsia neon) ── */
+  --lo-secondary:       var(--lo-color-fuchsia-400);
+  --lo-secondary-hover: var(--lo-color-fuchsia-300);
+
+  /* ── Status (neon-bright) ── */
+  --lo-success:        #4ade80;
+  --lo-success-subtle: rgba(74, 222, 128, 0.12);
+  --lo-warning:        #fbbf24;
+  --lo-warning-subtle: rgba(251, 191, 36, 0.12);
+  --lo-error:          #f87171;
+  --lo-error-subtle:   rgba(248, 113, 113, 0.12);
+  --lo-info:           var(--lo-color-cyan-400);
+  --lo-info-subtle:    rgba(34, 211, 238, 0.10);
+
+  /* ── Typography (monospace UI, clean reading) ── */
+  --lo-font-body:    'Inter', system-ui, sans-serif;
+  --lo-font-heading: 'Inter', system-ui, sans-serif;
+  --lo-font-ui:      'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+
+  /* ── Radius (sharp) ── */
+  --lo-radius-sm: 2px;
+  --lo-radius-md: 4px;
+  --lo-radius-lg: 6px;
+  --lo-radius-xl: 8px;
+
+  /* ── Shadows (glow effects) ── */
+  --lo-shadow-sm: 0 0 4px rgba(34, 211, 238, 0.06);
+  --lo-shadow-md: 0 0 12px rgba(34, 211, 238, 0.08), 0 4px 8px rgba(0, 0, 0, 0.3);
+  --lo-shadow-lg: 0 0 24px rgba(34, 211, 238, 0.12), 0 8px 16px rgba(0, 0, 0, 0.4);
+
+  /* ── Focus (cyan glow) ── */
+  --lo-focus-ring:        var(--lo-color-cyan-400);
+  --lo-focus-ring-shadow: 0 0 0 3px rgba(34, 211, 238, 0.25);
+}
+
+/*
+ * Hightech light mode override.
+ * When user explicitly chooses light mode with hightech theme,
+ * we brighten up but keep the sharp, neon personality.
+ */
+[data-theme="hightech"][data-color-mode="light"] {
+  --lo-bg:          #f0f4f8;
+  --lo-bg-surface:  #ffffff;
+  --lo-bg-elevated: #ffffff;
+  --lo-bg-muted:    #e2e8f0;
+
+  --lo-text:           #0f172a;
+  --lo-text-secondary: #475569;
+  --lo-text-muted:     #94a3b8;
+  --lo-text-inverse:   #ffffff;
+
+  --lo-border:        #cbd5e1;
+  --lo-border-subtle: #e2e8f0;
+  --lo-border-strong: #94a3b8;
+
+  --lo-primary:        var(--lo-color-cyan-600);
+  --lo-primary-hover:  var(--lo-color-cyan-500);
+  --lo-primary-subtle: rgba(6, 182, 212, 0.08);
+
+  --lo-secondary:       var(--lo-color-fuchsia-600);
+  --lo-secondary-hover: var(--lo-color-fuchsia-500);
+
+  --lo-success:        #059669;
+  --lo-success-subtle: #d1fae5;
+  --lo-warning:        #d97706;
+  --lo-warning-subtle: #fef3c7;
+  --lo-error:          #dc2626;
+  --lo-error-subtle:   #fee2e2;
+
+  --lo-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+  --lo-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08);
+  --lo-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.10);
+
+  --lo-focus-ring:        var(--lo-color-cyan-500);
+  --lo-focus-ring-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+}

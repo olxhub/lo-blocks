@@ -1,0 +1,57 @@
+/*
+ * Literary Theme
+ * --------------
+ * Warm, paper-like aesthetic for writing and humanities courses.
+ * Serif reading font, sepia accents, gentle shadows.
+ *
+ * Activate: <html data-theme="literary">
+ * Palette sourced from css-refactor/annotate-mockup.jsx
+ */
+
+[data-theme="literary"] {
+  /* ── Surfaces ── */
+  --lo-bg:          var(--lo-color-paper-200);  /* Warm linen background */
+  --lo-bg-surface:  var(--lo-color-paper-100);  /* Cream cards */
+  --lo-bg-elevated: var(--lo-color-paper-50);   /* Bright paper for popovers */
+  --lo-bg-muted:    var(--lo-color-paper-300);  /* Subtle tinted area */
+
+  /* ── Text ── */
+  --lo-text:           var(--lo-color-paper-800);
+  --lo-text-secondary: var(--lo-color-paper-500);
+  --lo-text-muted:     var(--lo-color-paper-400);
+
+  /* ── Borders ── */
+  --lo-border:        var(--lo-color-paper-300);
+  --lo-border-subtle: var(--lo-color-paper-200);
+  --lo-border-strong: var(--lo-color-paper-400);
+
+  /* ── Primary (sepia/terracotta accent) ── */
+  --lo-primary:        var(--lo-color-sepia-600);
+  --lo-primary-hover:  var(--lo-color-sepia-700);
+  --lo-primary-subtle: rgba(192, 94, 60, 0.08);
+
+  /* ── Secondary ── */
+  --lo-secondary:       var(--lo-color-paper-500);
+  --lo-secondary-hover: var(--lo-color-paper-600);
+
+  /* ── Typography ── */
+  --lo-font-body:    'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --lo-font-heading: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --lo-font-ui:      'DM Sans', system-ui, sans-serif;
+
+  --lo-line-height-normal:  1.75;   /* More generous for reading */
+  --lo-line-height-relaxed: 1.85;
+
+  /* ── Radius (softer) ── */
+  --lo-radius-md: 0.5rem;   /* 8px */
+  --lo-radius-lg: 0.75rem;  /* 12px */
+
+  /* ── Shadows (warmer) ── */
+  --lo-shadow-sm: 0 1px 3px rgba(44, 37, 32, 0.06);
+  --lo-shadow-md: 0 4px 16px rgba(44, 37, 32, 0.10);
+  --lo-shadow-lg: 0 8px 32px rgba(44, 37, 32, 0.14);
+
+  /* ── Focus (sepia-tinted) ── */
+  --lo-focus-ring:        var(--lo-color-sepia-600);
+  --lo-focus-ring-shadow: 0 0 0 3px rgba(192, 94, 60, 0.12);
+}

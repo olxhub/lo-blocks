@@ -3,7 +3,7 @@
  */
 
 .matching-input {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--lo-font-ui);
 }
 
 .matching-content {
@@ -21,7 +21,7 @@
   display: flex;
   align-items: center;
   min-height: 3rem;
-  transition: all 150ms ease;
+  transition: all var(--lo-motion-fast) var(--lo-ease-default);
 }
 
 .matching-left-item {
@@ -35,7 +35,7 @@
 .matching-point {
   display: inline-block;
   border: 2px solid currentColor;
-  transition: all 150ms ease;
+  transition: all var(--lo-motion-fast) var(--lo-ease-default);
   user-select: none;
   -webkit-user-select: none;
 }
@@ -49,7 +49,7 @@
 }
 
 .matching-line {
-  transition: opacity 150ms ease;
+  transition: opacity var(--lo-motion-fast) var(--lo-ease-default);
   pointer-events: none;
 }
 

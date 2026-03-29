@@ -1,0 +1,99 @@
+/*
+ * Semantic Tokens — Dark Mode Overrides
+ * --------------------------------------
+ * Overrides semantic.css values when [data-color-mode="dark"] is set on <html>,
+ * or when [data-color-mode="auto"] and the user's OS prefers dark.
+ *
+ * Only color and shadow tokens change. Typography, spacing, radius, and layout
+ * stay the same across light/dark modes.
+ */
+
+/* Explicit dark mode */
+[data-color-mode="dark"] {
+  /* ── Surfaces ── */
+  --lo-bg:          var(--lo-color-slate-900);
+  --lo-bg-surface:  var(--lo-color-slate-800);
+  --lo-bg-elevated: var(--lo-color-slate-700);
+  --lo-bg-muted:    var(--lo-color-slate-800);
+
+  /* ── Text ── */
+  --lo-text:           var(--lo-color-slate-100);
+  --lo-text-secondary: var(--lo-color-slate-400);
+  --lo-text-muted:     var(--lo-color-slate-500);
+  --lo-text-inverse:   var(--lo-color-slate-900);
+
+  /* ── Borders ── */
+  --lo-border:        var(--lo-color-slate-700);
+  --lo-border-subtle: var(--lo-color-slate-800);
+  --lo-border-strong: var(--lo-color-slate-600);
+
+  /* ── Primary (lighter on dark backgrounds for contrast) ── */
+  --lo-primary:        var(--lo-color-blue-400);
+  --lo-primary-hover:  var(--lo-color-blue-300);
+  --lo-primary-subtle: rgba(96, 165, 250, 0.15);
+
+  /* ── Secondary ── */
+  --lo-secondary:       var(--lo-color-slate-400);
+  --lo-secondary-hover: var(--lo-color-slate-300);
+
+  /* ── Status (lighter shades for dark bg; subtle uses low-opacity) ── */
+  --lo-success:        var(--lo-color-emerald-400);
+  --lo-success-subtle: rgba(52, 211, 153, 0.15);
+  --lo-warning:        var(--lo-color-amber-400);
+  --lo-warning-subtle: rgba(251, 191, 36, 0.15);
+  --lo-error:          var(--lo-color-red-400);
+  --lo-error-subtle:   rgba(248, 113, 113, 0.15);
+  --lo-info:           var(--lo-color-sky-400);
+  --lo-info-subtle:    rgba(56, 189, 248, 0.15);
+
+  /* ── Focus ── */
+  --lo-focus-ring:        var(--lo-color-blue-400);
+  --lo-focus-ring-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+
+  /* ── Shadows (heavier on dark to remain visible) ── */
+  --lo-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --lo-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --lo-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+}
+
+/* Auto dark mode: follows OS preference */
+@media (prefers-color-scheme: dark) {
+  [data-color-mode="auto"] {
+    --lo-bg:          var(--lo-color-slate-900);
+    --lo-bg-surface:  var(--lo-color-slate-800);
+    --lo-bg-elevated: var(--lo-color-slate-700);
+    --lo-bg-muted:    var(--lo-color-slate-800);
+
+    --lo-text:           var(--lo-color-slate-100);
+    --lo-text-secondary: var(--lo-color-slate-400);
+    --lo-text-muted:     var(--lo-color-slate-500);
+    --lo-text-inverse:   var(--lo-color-slate-900);
+
+    --lo-border:        var(--lo-color-slate-700);
+    --lo-border-subtle: var(--lo-color-slate-800);
+    --lo-border-strong: var(--lo-color-slate-600);
+
+    --lo-primary:        var(--lo-color-blue-400);
+    --lo-primary-hover:  var(--lo-color-blue-300);
+    --lo-primary-subtle: rgba(96, 165, 250, 0.15);
+
+    --lo-secondary:       var(--lo-color-slate-400);
+    --lo-secondary-hover: var(--lo-color-slate-300);
+
+    --lo-success:        var(--lo-color-emerald-400);
+    --lo-success-subtle: rgba(52, 211, 153, 0.15);
+    --lo-warning:        var(--lo-color-amber-400);
+    --lo-warning-subtle: rgba(251, 191, 36, 0.15);
+    --lo-error:          var(--lo-color-red-400);
+    --lo-error-subtle:   rgba(248, 113, 113, 0.15);
+    --lo-info:           var(--lo-color-sky-400);
+    --lo-info-subtle:    rgba(56, 189, 248, 0.15);
+
+    --lo-focus-ring:        var(--lo-color-blue-400);
+    --lo-focus-ring-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+
+    --lo-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --lo-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --lo-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  }
+}

@@ -14,17 +14,17 @@
 
 /* Header row */
 .tabular-mcq thead th {
-  background-color: var(--lo-surface);
+  background-color: var(--lo-bg-surface);
   border: 1px solid var(--lo-border);
   padding: var(--lo-space-md) var(--lo-space-lg);
   font-weight: 600;
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
   text-align: center;
 }
 
 /* First column header (empty corner) */
 .tabular-mcq thead th:first-child {
-  background-color: var(--lo-surface);
+  background-color: var(--lo-bg-surface);
 }
 
 /* Body rows */
@@ -34,12 +34,12 @@
 
 /* Zebra striping */
 .tabular-mcq tbody tr:nth-child(even) {
-  background-color: var(--lo-surface);
+  background-color: var(--lo-bg-surface);
 }
 
 /* Row hover */
 .tabular-mcq tbody tr:hover {
-  background-color: var(--lo-surface-hover);
+  background-color: var(--lo-bg-muted);
 }
 
 /* Row label cell (first column) */
@@ -47,7 +47,7 @@
   border: 1px solid var(--lo-border);
   padding: var(--lo-space-md) var(--lo-space-lg);
   font-weight: 500;
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
   white-space: nowrap;
 }
 
@@ -73,7 +73,7 @@
 
 /* Cell hover (more specific than row hover) */
 .tabular-mcq tbody td label:hover {
-  background-color: var(--lo-primary-light);
+  background-color: var(--lo-primary-subtle);
 }
 
 /* Scale up checkbox/radio inputs */
@@ -94,17 +94,17 @@
 
 /* Selected cell background */
 .tabular-mcq tbody td label:has(input:checked) {
-  background-color: var(--lo-primary-light);
+  background-color: var(--lo-primary-subtle);
 }
 
 /* Show answer - correct cell highlight */
 .tabular-mcq tbody td.tabular-mcq-correct {
-  background-color: var(--lo-success-light);
+  background-color: var(--lo-success-subtle);
   border-color: var(--lo-success);
 }
 
 .tabular-mcq tbody td.tabular-mcq-correct label {
-  background-color: var(--lo-success-light);
+  background-color: var(--lo-success-subtle);
 }
 
 /* Disabled state (for future use) */

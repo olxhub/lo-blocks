@@ -10,14 +10,14 @@
   align-items: center;
   margin-bottom: var(--lo-space-lg);
   padding: var(--lo-space-md) var(--lo-space-lg);
-  background-color: var(--lo-surface);
+  background-color: var(--lo-bg-surface);
   border-radius: var(--lo-radius-md);
   border: 1px solid var(--lo-border);
 }
 
 .lo-mastery-bank__progress {
   font-weight: 600;
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
 }
 
 .lo-mastery-bank__count {
@@ -37,7 +37,7 @@
 .lo-mastery-bank__success {
   text-align: center;
   padding: var(--lo-space-2xl);
-  background-color: var(--lo-success-light);
+  background-color: var(--lo-success-subtle);
   border-radius: var(--lo-radius-lg);
   border: 1px solid var(--lo-success);
 }
@@ -50,5 +50,5 @@
 
 .lo-mastery-bank__success p {
   margin: 0;
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
 }

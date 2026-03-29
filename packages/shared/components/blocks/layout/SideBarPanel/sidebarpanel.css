@@ -16,7 +16,7 @@
 .lo-tag-sidebarpanel .sidebar {
   flex: 0 0 var(--lo-sidebar-width);
   padding: var(--lo-space-lg);
-  background-color: var(--lo-surface);
+  background-color: var(--lo-bg-surface);
   border-radius: var(--lo-radius-lg);
   border: 1px solid var(--lo-border);
   overflow-y: auto;
