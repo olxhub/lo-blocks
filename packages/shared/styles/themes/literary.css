@@ -2,11 +2,26 @@
  * Literary Theme
  * --------------
  * Warm, paper-like aesthetic for writing and humanities courses.
- * Serif reading font, sepia accents, gentle shadows.
+ * Classical serif reading font, sepia accents, gentle shadows.
+ * Evokes an 1850s letterpress, aged paper, scholastic contemplation.
  *
  * Activate: <html data-theme="literary">
  * Palette sourced from css-refactor/annotate-mockup.jsx
  */
+
+/* ── Fonts (variable — single file per style, all weights) ──
+ * @font-face rules register here; actual .woff2 files download
+ * only when an element computes to this font-family.  No cost
+ * for non-literary pages. */
+@import "@fontsource-variable/eb-garamond";
+@import "@fontsource-variable/eb-garamond/wght-italic.css";
+@import "@fontsource-variable/playfair-display";
+@import "@fontsource-variable/playfair-display/wght-italic.css";
+
+
+/* ═══════════════════════════════════════════════════════════════
+ * Token overrides
+ * ═══════════════════════════════════════════════════════════════ */
 
 [data-theme="literary"] {
   /* ── Surfaces ── */
@@ -34,10 +49,16 @@
   --lo-secondary:       var(--lo-color-paper-500);
   --lo-secondary-hover: var(--lo-color-paper-600);
 
-  /* ── Typography ── */
-  --lo-font-body:    'Source Serif 4', Georgia, 'Times New Roman', serif;
-  --lo-font-heading: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-  --lo-font-ui:      'DM Sans', system-ui, sans-serif;
+  /* ── Typography ──
+   * The entire experience is immersive serif — Oxford library, not Silicon Valley.
+   * EB Garamond: classical old-style humanist serif for body text AND UI chrome.
+   * Playfair Display: high-contrast didone for headings — dramatic letterpress feel.
+   * Even --lo-font-ui is serif so buttons, nav, controls all feel unified. */
+  --lo-font-body:    'EB Garamond Variable', 'EB Garamond', Georgia, 'Times New Roman', serif;
+  --lo-font-heading: 'Playfair Display Variable', 'Playfair Display', Georgia, serif;
+  --lo-font-ui:      'EB Garamond Variable', 'EB Garamond', Georgia, 'Times New Roman', serif;
+
+  --lo-font-size-base: 1.0625rem;  /* 17px — slightly larger for book feel */
 
   --lo-line-height-normal:  1.75;   /* More generous for reading */
   --lo-line-height-relaxed: 1.85;
@@ -54,4 +75,70 @@
   /* ── Focus (sepia-tinted) ── */
   --lo-focus-ring:        var(--lo-color-sepia-600);
   --lo-focus-ring-shadow: 0 0 0 3px rgba(192, 94, 60, 0.12);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+ * Typographic treatment
+ * ═══════════════════════════════════════════════════════════════
+ *
+ * Immersive serif everywhere — the whole page should feel like
+ * the library at Oxford, not a tech dashboard.  Body override
+ * catches everything; --lo-font-ui override catches components
+ * that explicitly set font-family.
+ */
+
+/* Body — EB Garamond across the entire page.
+ * Compound selector (not descendant) because data-theme is on <body> itself. */
+body[data-theme="literary"] {
+  font-family: var(--lo-font-body);
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "liga" 1, "onum" 1, "kern" 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Headings — dramatic Playfair Display */
+[data-theme="literary"] :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--lo-font-heading);
+  letter-spacing: -0.01em;
+}
+
+/* Warm sepia selection highlight */
+[data-theme="literary"] ::selection {
+  background: rgba(192, 94, 60, 0.25);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+ * Decorative flourishes
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* Ornamental section divider — hedera (❧), the traditional fleuron
+ * used as paragraph/section mark in medieval manuscripts. */
+[data-theme="literary"] .rendered-markdown hr {
+  border: none;
+  text-align: center;
+  height: auto;
+  margin: var(--lo-space-2xl) 0;
+}
+[data-theme="literary"] .rendered-markdown hr::before {
+  content: "❧";
+  font-size: 1.5em;
+  color: var(--lo-text-muted);
+}
+
+/* Blockquote — italic with sepia accent border */
+[data-theme="literary"] .rendered-markdown blockquote {
+  font-style: italic;
+  border-left-width: 3px;
+  border-left-color: var(--lo-primary);
+  padding-left: var(--lo-space-xl);
+}
+
+/* Links — sepia underline, warmer on hover */
+[data-theme="literary"] .rendered-markdown a {
+  text-decoration-color: rgba(192, 94, 60, 0.3);
+}
+[data-theme="literary"] .rendered-markdown a:hover {
+  text-decoration-color: var(--lo-primary);
 }

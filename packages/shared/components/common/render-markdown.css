@@ -2,8 +2,15 @@
  * Applied automatically by RenderMarkdown — any consumer gets these. */
 
 .rendered-markdown {
+  font-family: var(--lo-font-body);
   color: var(--lo-text);
   line-height: var(--lo-line-height-relaxed);
+}
+
+.rendered-markdown h1,
+.rendered-markdown h2,
+.rendered-markdown h3 {
+  font-family: var(--lo-font-heading);
 }
 
 .rendered-markdown h1 {

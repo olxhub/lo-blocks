@@ -2,6 +2,8 @@
  * Literary Theme — Dark Mode
  * --------------------------
  * Dark variant of the literary theme. Warm dark tones instead of cool slate.
+ * Typographic treatment (fonts, drop caps, ornamental hr) is inherited from
+ * literary.css — those rules are not color-mode-scoped.
  *
  * Activate: <html data-theme="literary" data-color-mode="dark">
  */
@@ -33,6 +35,11 @@
   --lo-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
+/* Selection — warmer and brighter alpha on dark backgrounds */
+[data-theme="literary"][data-color-mode="dark"] ::selection {
+  background: rgba(212, 132, 90, 0.35);
+}
+
 @media (prefers-color-scheme: dark) {
   [data-theme="literary"][data-color-mode="auto"] {
     --lo-bg:          var(--lo-color-paper-900);
@@ -59,5 +66,9 @@
     --lo-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
     --lo-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
     --lo-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  [data-theme="literary"][data-color-mode="auto"] ::selection {
+    background: rgba(212, 132, 90, 0.35);
   }
 }
