@@ -32,8 +32,6 @@ const CodeInput = test({
       .describe('Syntax highlighting language (includes all PEG content formats)'),
     height: z.string().default('300px')
       .describe('Editor height (CSS value)'),
-    theme: z.enum(['light', 'dark']).default('light')
-      .describe('Editor color theme'),
   }),
 });
 
