@@ -26,8 +26,8 @@ export function _DevQuestion( props: RuntimeProps ) {
             <li key={i} className="mb-1">
               <button
                 onClick={() => setActiveIndex(i)}
-                className={`px-3 py-1 rounded hover:bg-gray-300 ${
-                  isActive ? 'bg-blue-500 text-white' : 'bg-gray-200'
+                className={`px-3 py-1 rounded hover:bg-muted ${
+                  isActive ? 'bg-accent text-inverse' : 'bg-muted'
                 }`}
               >
                 {opt.trim()}

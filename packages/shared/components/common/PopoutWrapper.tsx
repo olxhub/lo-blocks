@@ -124,7 +124,7 @@ export default function PopoutWrapper({ popout, reduxKey, runtime, children }: P
             ...POSITION_STYLES[position],
             zIndex: 10,
             background: 'rgba(0, 0, 0, 0.4)',
-            color: 'white',
+            color: 'var(--lo-text-inverse)',
             border: 'none',
             borderRadius: 4,
             padding: 4,
@@ -152,7 +152,7 @@ export default function PopoutWrapper({ popout, reduxKey, runtime, children }: P
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        background: 'white',
+        background: 'var(--lo-bg)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'auto',
@@ -162,7 +162,7 @@ export default function PopoutWrapper({ popout, reduxKey, runtime, children }: P
         display: 'flex',
         justifyContent: 'flex-end',
         padding: '8px 12px',
-        borderBottom: '1px solid #e0e0e0',
+        borderBottom: '1px solid var(--lo-border)',
         flexShrink: 0,
       }}>
         <button
@@ -172,7 +172,7 @@ export default function PopoutWrapper({ popout, reduxKey, runtime, children }: P
           aria-label="Close expanded view"
           style={{
             background: 'none',
-            border: '1px solid #ccc',
+            border: '1px solid var(--lo-border)',
             borderRadius: 4,
             padding: '4px 8px',
             cursor: 'pointer',
@@ -180,7 +180,7 @@ export default function PopoutWrapper({ popout, reduxKey, runtime, children }: P
             alignItems: 'center',
             gap: 4,
             fontSize: 14,
-            color: '#333',
+            color: 'var(--lo-text)',
           }}
         >
           <X size={16} /> Close
@@ -203,9 +203,9 @@ export default function PopoutWrapper({ popout, reduxKey, runtime, children }: P
         style={{
           padding: 16,
           textAlign: 'center',
-          color: '#666',
-          background: '#f5f5f5',
-          border: '1px dashed #ccc',
+          color: 'var(--lo-text-muted)',
+          background: 'var(--lo-bg-surface)',
+          border: '1px dashed var(--lo-border)',
           borderRadius: 4,
           cursor: 'pointer',
           fontSize: 14,

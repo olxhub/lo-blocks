@@ -92,7 +92,7 @@ export function _DigitSpanTask( props: RuntimeProps ) {
     <div className="p-6 max-w-md mx-auto space-y-4">
 
       {step === 'waiting' && (
-        <button onClick={startNewRound} className="p-2 bg-blue-600 text-white rounded">Start</button>
+        <button onClick={startNewRound} className="p-2 bg-accent text-inverse rounded">Start</button>
       )}
 
       {step === 'answering' && (
@@ -104,14 +104,14 @@ export function _DigitSpanTask( props: RuntimeProps ) {
             onChange={e => setUserInput(e.target.value)}
             className="border p-2 w-full"
           />
-          <button onClick={evaluateAnswer} className="p-2 bg-green-600 text-white rounded mt-2">Submit</button>
+          <button onClick={evaluateAnswer} className="p-2 bg-success text-inverse rounded mt-2">Submit</button>
         </div>
       )}
 
       {step === 'feedback' && (
         <div>
           <p>Answer recorded. Press Start for next round.</p>
-          <button onClick={startNewRound} className="p-2 bg-blue-600 text-white rounded">Next</button>
+          <button onClick={startNewRound} className="p-2 bg-accent text-inverse rounded">Next</button>
         </div>
       )}
     </div>

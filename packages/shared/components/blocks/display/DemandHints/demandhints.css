@@ -3,7 +3,7 @@
 .lo-demand-hints {
   margin: var(--lo-space-md) 0;
   padding: var(--lo-space-md);
-  background-color: var(--lo-warning-light);
+  background-color: var(--lo-warning-subtle);
   border-inline-start: 3px solid var(--lo-warning);
   border-radius: var(--lo-radius-md);
 }
@@ -28,13 +28,13 @@
 
 .lo-demand-hints__number {
   font-weight: 600;
-  color: var(--lo-warning-dark);
+  color: var(--lo-warning);
   min-width: 1.5rem;
 }
 
 .lo-demand-hints__content {
   flex: 1;
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
 }
 
 /* Reduce margins on child content */

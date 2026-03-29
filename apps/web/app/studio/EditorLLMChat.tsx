@@ -10,14 +10,16 @@ import { createEditorTools } from './tools';
 /**
  * LLM chat for the editor pane.
  *
+ * Color adaptation is handled by the CSS token system — place this inside a
+ * container with `data-color-mode="dark"` for dark-surface rendering.
+ *
  * @param {object} props
  * @param {string} props.path - Current file path
  * @param {function} props.getContent - Function that returns current file content
  * @param {function} props.onApplyEdit - Called when LLM applies an edit
  * @param {function} props.onOpenFile - Called when LLM wants to open a file
- * @param {'light' | 'dark'} [props.theme='light'] - Color theme
  */
-export default function EditorLLMChat({ path, getContent, onApplyEdit, onOpenFile, theme = 'light' }) {
+export default function EditorLLMChat({ path, getContent, onApplyEdit, onOpenFile }) {
   const initialMessage = path
     ? `Editing: ${path}. Ask me to help with this content.`
     : 'Select a file to edit, then ask me for help.';
@@ -41,7 +43,7 @@ export default function EditorLLMChat({ path, getContent, onApplyEdit, onOpenFil
     sendMessage(text, { attachments, tools, systemPrompt });
   }, [path, getContent, onApplyEdit, onOpenFile, sendMessage]);
 
-  const footer = <InputFooter onSendMessage={handleSendMessage} allowFileUpload theme={theme} />;
+  const footer = <InputFooter onSendMessage={handleSendMessage} allowFileUpload />;
 
   return (
     <ChatComponent
@@ -49,7 +51,6 @@ export default function EditorLLMChat({ path, getContent, onApplyEdit, onOpenFil
       messages={messages}
       footer={footer}
       height="flex-1"
-      theme={theme}
     />
   );
 }

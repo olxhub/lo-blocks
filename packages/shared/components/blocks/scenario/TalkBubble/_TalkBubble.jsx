@@ -22,11 +22,11 @@ export default function _TalkBubble(props) {
       {/* Speech bubble */}
       <div className="flex-1 max-w-2xl">
         {name && (
-          <div className={`text-sm font-semibold text-gray-700 mb-1 ${isPrimary ? 'text-start' : 'text-end'}`}>
+          <div className={`text-sm font-semibold text-secondary mb-1 ${isPrimary ? 'text-start' : 'text-end'}`}>
             {name}
           </div>
         )}
-        <div className={`px-4 py-3 rounded-lg ${isPrimary ? 'bg-gray-100' : 'bg-blue-100'}`}>
+        <div className={`px-4 py-3 rounded-lg ${isPrimary ? 'bg-muted' : 'bg-accent-subtle'}`}>
           {kids}
         </div>
       </div>

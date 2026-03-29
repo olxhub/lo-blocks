@@ -57,7 +57,7 @@ export function _UseHistory(props: RuntimeProps) {
   const handleSelect = (i) => setIndex(i);
 
   if (!current) {
-    return <pre className="text-red-500">[Missing &lt;Use&gt; resolution]</pre>;
+    return <pre className="text-error">[Missing &lt;Use&gt; resolution]</pre>;
   }
 
   return (

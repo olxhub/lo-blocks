@@ -135,10 +135,10 @@ export function HandleCommon({
       data-item-id={dataMatchingPointId}
       className={`
         handle-common flex flex-col justify-center items-center
-        bg-gray-100 hover:bg-gray-200
-        text-gray-400 hover:text-gray-600
+        bg-muted hover:bg-muted
+        text-dimmed hover:text-secondary
         select-none transition-colors
-        rounded-sm border border-gray-200
+        rounded-sm border border-border
         ${cursorClass}
         ${className}
       `}

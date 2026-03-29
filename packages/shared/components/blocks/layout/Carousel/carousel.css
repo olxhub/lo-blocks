@@ -19,7 +19,7 @@
   width: 48px;
   flex-shrink: 0;
   border: none;
-  background: var(--lo-primary-light);
+  background: var(--lo-primary-subtle);
   color: var(--lo-primary);
   cursor: pointer;
   transition: background-color 150ms ease, color 150ms ease;
@@ -31,7 +31,7 @@
 }
 
 .lo-carousel__nav:disabled {
-  background: var(--lo-surface);
+  background: var(--lo-bg-surface);
   color: var(--lo-text-muted);
   opacity: 0.4;
   cursor: not-allowed;
@@ -54,7 +54,7 @@
 .lo-carousel__title {
   font-weight: 600;
   font-size: var(--lo-font-size-lg);
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

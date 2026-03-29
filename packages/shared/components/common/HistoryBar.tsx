@@ -27,7 +27,7 @@ export default function HistoryBar({
             <button
               key={i}
               onClick={() => onSelect(i)}
-              className={`w-2 h-2 rounded-full ${i === index ? 'bg-blue-600' : 'bg-gray-300'}`}
+              className={`w-2 h-2 rounded-full ${i === index ? 'bg-accent' : 'bg-muted'}`}
             />
           ))}
         </div>

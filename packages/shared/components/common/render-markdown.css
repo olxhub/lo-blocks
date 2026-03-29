@@ -2,8 +2,15 @@
  * Applied automatically by RenderMarkdown — any consumer gets these. */
 
 .rendered-markdown {
-  color: var(--lo-text-primary);
+  font-family: var(--lo-font-body);
+  color: var(--lo-text);
   line-height: var(--lo-line-height-relaxed);
+}
+
+.rendered-markdown h1,
+.rendered-markdown h2,
+.rendered-markdown h3 {
+  font-family: var(--lo-font-heading);
 }
 
 .rendered-markdown h1 {
@@ -11,7 +18,7 @@
   font-weight: 700;
   margin-top: 0;
   margin-bottom: var(--lo-space-xl);
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
   border-bottom: 2px solid var(--lo-border);
   padding-bottom: var(--lo-space-md);
 }
@@ -21,7 +28,7 @@
   font-weight: 600;
   margin-top: var(--lo-space-2xl);
   margin-bottom: var(--lo-space-lg);
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
 }
 
 .rendered-markdown h3 {
@@ -29,12 +36,12 @@
   font-weight: 600;
   margin-top: var(--lo-space-xl);
   margin-bottom: var(--lo-space-md);
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
 }
 
 .rendered-markdown p {
   margin-bottom: var(--lo-space-lg);
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
 }
 
 .rendered-markdown ul, .rendered-markdown ol {
@@ -44,7 +51,7 @@
 
 .rendered-markdown li {
   margin-bottom: var(--lo-space-sm);
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
 }
 
 .rendered-markdown ul li {
@@ -56,7 +63,7 @@
 }
 
 .rendered-markdown code {
-  background-color: var(--lo-surface);
+  background-color: var(--lo-bg-surface);
   padding: var(--lo-space-xs) var(--lo-space-sm);
   border-radius: var(--lo-radius-sm);
   font-family: var(--lo-font-mono);
@@ -65,7 +72,7 @@
 }
 
 .rendered-markdown pre {
-  background-color: var(--lo-surface);
+  background-color: var(--lo-bg-surface);
   padding: var(--lo-space-lg);
   border-radius: var(--lo-radius-md);
   overflow-x: auto;
@@ -75,7 +82,7 @@
 .rendered-markdown pre code {
   background: none;
   padding: 0;
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
 }
 
 .rendered-markdown blockquote {

@@ -451,7 +451,7 @@ export default function _MatchingInput(props: RuntimeProps) {
   return (
     <div
       ref={containerRef}
-      className="matching-input relative p-4 border rounded-lg bg-gray-50"
+      className="matching-input relative p-4 border rounded-lg bg-surface"
       style={{ minHeight: '400px' }}
     >
       <ConnectionLines
@@ -477,7 +477,7 @@ export default function _MatchingInput(props: RuntimeProps) {
               <div
                 key={pair.leftId}
                 className={`matching-item matching-left-item relative p-3 border-2 rounded-md transition-all pe-12
-                  ${readOnly ? 'bg-gray-100 border-gray-300' : isSelected ? 'border-blue-500 bg-blue-50' : isMatched ? 'bg-green-50 border-green-300' : 'bg-white border-gray-300'}
+                  ${readOnly ? 'bg-muted border-border' : isSelected ? 'border-accent bg-accent-subtle' : isMatched ? 'bg-success-subtle border-success' : 'bg-background border-border'}
                 `}
               >
                 <div className="flex items-center">
@@ -502,7 +502,7 @@ export default function _MatchingInput(props: RuntimeProps) {
                   className={`
                     absolute end-0 top-0 bottom-0 w-8
                     border-e-2 transition-all
-                    ${isSelected ? 'bg-blue-200 border-blue-400' : isMatched ? 'bg-green-100 border-green-300' : 'border-gray-200'}
+                    ${isSelected ? 'bg-accent-subtle border-accent' : isMatched ? 'bg-success-subtle border-success' : 'border-border'}
                   `}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -517,7 +517,7 @@ export default function _MatchingInput(props: RuntimeProps) {
                       e.stopPropagation();
                       handleDisconnect(pair.leftId);
                     }}
-                    className="absolute top-1 end-2 px-1 py-0 text-xs bg-gray-200 hover:bg-gray-300 text-gray-600 rounded transition-all"
+                    className="absolute top-1 end-2 px-1 py-0 text-xs bg-muted hover:bg-muted text-secondary rounded transition-all"
                     title="Remove connection"
                   >
                     ✕
@@ -542,8 +542,8 @@ export default function _MatchingInput(props: RuntimeProps) {
               <div
                 key={rightId}
                 className={`matching-item matching-right-item relative p-3 border-2 rounded-md transition-all ps-12
-                  ${readOnly ? 'bg-gray-100 border-gray-300' : isSelected ? 'border-blue-500 bg-blue-50' : isMatchedByStudent ? 'bg-green-50 border-green-300' : 'bg-white border-gray-300'}
-                  ${canConnect && !isMatchedByStudent ? 'hover:border-blue-400 hover:bg-blue-50' : ''}
+                  ${readOnly ? 'bg-muted border-border' : isSelected ? 'border-accent bg-accent-subtle' : isMatchedByStudent ? 'bg-success-subtle border-success' : 'bg-background border-border'}
+                  ${canConnect && !isMatchedByStudent ? 'hover:border-accent hover:bg-accent-subtle' : ''}
                 `}
               >
                 <div className="flex items-center">
@@ -565,7 +565,7 @@ export default function _MatchingInput(props: RuntimeProps) {
                   className={`
                     absolute start-0 top-0 bottom-0 w-8
                     border-s-2 transition-all
-                    ${isSelected ? 'bg-blue-200 border-blue-400' : isMatchedByStudent ? 'bg-green-100 border-green-300' : 'border-gray-200'}
+                    ${isSelected ? 'bg-accent-subtle border-accent' : isMatchedByStudent ? 'bg-success-subtle border-success' : 'border-border'}
                   `}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -579,7 +579,7 @@ export default function _MatchingInput(props: RuntimeProps) {
       </div>
 
       {/* Status message */}
-      <div className="mt-4 text-sm text-gray-600">
+      <div className="mt-4 text-sm text-secondary">
         {readOnly
           ? 'Submitted'
           : selectedId && selectedSide

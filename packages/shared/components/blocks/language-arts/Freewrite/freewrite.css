@@ -1,54 +1,56 @@
 /* Freewrite block styles */
 
 .lo-freewrite {
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
+  border: 1px solid var(--lo-border);
+  border-radius: var(--lo-radius-lg);
   overflow: hidden;
 }
 
 /* Mode indicators (badges at top) */
 .lo-freewrite__modes {
   display: flex;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: #f3f4f6;
-  border-bottom: 1px solid #e5e7eb;
+  gap: var(--lo-space-sm);
+  padding: var(--lo-space-sm) var(--lo-space-md);
+  background: var(--lo-bg-muted);
+  border-bottom: 1px solid var(--lo-border);
 }
 
 .lo-freewrite__mode-badge {
   display: inline-block;
   padding: 0.125rem 0.5rem;
-  font-size: 0.75rem;
+  font-size: var(--lo-font-size-xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #6b7280;
-  background: #e5e7eb;
-  border-radius: 0.25rem;
+  color: var(--lo-text-secondary);
+  background: var(--lo-border);
+  border-radius: var(--lo-radius-md);
 }
 
 /* Textarea */
 .lo-freewrite__textarea {
   display: block;
   width: 100%;
-  padding: 1rem;
+  padding: var(--lo-space-lg);
   border: none;
   resize: vertical;
   font-family: inherit;
-  font-size: 1rem;
+  font-size: var(--lo-font-size-base);
   line-height: 1.6;
-  outline: none;
+  color: var(--lo-text);
+  background: var(--lo-bg);
   box-sizing: border-box;
 }
 
-.lo-freewrite__textarea:focus {
-  outline: none;
+.lo-freewrite__textarea:focus-visible {
+  outline: var(--lo-focus-ring-width) solid var(--lo-focus-ring);
+  outline-offset: var(--lo-focus-ring-offset);
 }
 
 /* Invisible mode: text hidden, cursor visible */
 .lo-freewrite__textarea--invisible {
   color: transparent;
-  caret-color: black;
+  caret-color: var(--lo-text);
 }
 
 /* Prevent text selection in invisible mode (no peeking via select-all) */
@@ -67,54 +69,54 @@
 
 /* Reveal button */
 .lo-freewrite__reveal {
-  padding: 0.5rem 1rem;
-  border-top: 1px solid #e5e7eb;
+  padding: var(--lo-space-sm) var(--lo-space-lg);
+  border-top: 1px solid var(--lo-border);
   text-align: center;
 }
 
 .lo-freewrite__reveal-button {
   padding: 0.375rem 1.25rem;
-  background: #f3f4f6;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
+  background: var(--lo-bg-muted);
+  border: 1px solid var(--lo-border-strong);
+  border-radius: var(--lo-radius-md);
+  font-size: var(--lo-font-size-sm);
   font-weight: 500;
-  color: #374151;
+  color: var(--lo-text);
   cursor: pointer;
-  transition: background-color 0.15s;
+  transition: background-color var(--lo-motion-fast) var(--lo-ease-default);
 }
 
 .lo-freewrite__reveal-button:hover {
-  background: #e5e7eb;
+  background: var(--lo-border);
 }
 
 /* Status bar (word count + pace) */
 .lo-freewrite__status {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.5rem 1rem;
-  border-top: 1px solid #e5e7eb;
-  background: #f9fafb;
+  gap: var(--lo-space-lg);
+  padding: var(--lo-space-sm) var(--lo-space-lg);
+  border-top: 1px solid var(--lo-border);
+  background: var(--lo-bg-surface);
 }
 
 /* Prominent status bar when text is hidden (word count is the main feedback) */
 .lo-freewrite__status--prominent {
-  padding: 0.75rem 1rem;
+  padding: var(--lo-space-md) var(--lo-space-lg);
 }
 
 .lo-freewrite__status--prominent .lo-freewrite__wordcount {
-  font-size: 1.25rem;
+  font-size: var(--lo-font-size-xl);
   font-weight: 600;
-  color: #374151;
+  color: var(--lo-text);
 }
 
 /* Pace indicator */
 .lo-freewrite__pace {
   flex: 1;
   height: 0.375rem;
-  background: #e5e7eb;
-  border-radius: 0.25rem;
+  background: var(--lo-border);
+  border-radius: var(--lo-radius-sm);
   overflow: hidden;
 }
 
@@ -123,19 +125,20 @@
    restarting the animation. Duration set via inline style. */
 .lo-freewrite__pace-bar {
   height: 100%;
-  border-radius: 0.25rem;
+  border-radius: var(--lo-radius-sm);
   animation: freewrite-pace-decay linear forwards;
 }
 
+/* Pace colors use status tokens so they adapt to themes */
 @keyframes freewrite-pace-decay {
-  0%   { width: 100%; background-color: #22c55e; }
-  50%  { background-color: #eab308; }
-  100% { width: 3%;   background-color: #ef4444; }
+  0%   { width: 100%; background-color: var(--lo-success); }
+  50%  { background-color: var(--lo-warning); }
+  100% { width: 3%;   background-color: var(--lo-error); }
 }
 
 /* Word count */
 .lo-freewrite__wordcount {
-  font-size: 0.875rem;
-  color: #6b7280;
+  font-size: var(--lo-font-size-sm);
+  color: var(--lo-text-secondary);
   white-space: nowrap;
 }

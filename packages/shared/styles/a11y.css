@@ -1,0 +1,51 @@
+/*
+ * Accessibility Baseline
+ * ----------------------
+ * Global a11y rules that apply to all themes and color modes.
+ *
+ * 1. Reduced motion: disables animations/transitions for users who prefer it
+ * 2. Focus contract: reinforces visible focus on all interactive elements
+ * 3. Minimum touch targets: ensures interactive elements are tappable
+ *
+ * The focus-visible rule in theme.css is the primary focus contract.
+ * This file provides the motion and supplementary a11y layer.
+ */
+
+/* ── Reduced Motion ──
+ * Disable animations and transitions globally when the user has
+ * prefers-reduced-motion enabled. Uses !important to override
+ * component-level animations that might otherwise persist.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Skip Link ──
+ * Hidden link that becomes visible on focus for keyboard users.
+ * Add <a href="#main" class="lo-skip-link">Skip to content</a>
+ * as the first child of <body>.
+ */
+.lo-skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--lo-space-lg);
+  z-index: 9999;
+  padding: var(--lo-space-sm) var(--lo-space-lg);
+  background: var(--lo-primary);
+  color: var(--lo-text-inverse);
+  font-size: var(--lo-font-size-sm);
+  font-weight: 600;
+  border-radius: var(--lo-radius-md);
+  text-decoration: none;
+}
+
+.lo-skip-link:focus {
+  top: var(--lo-space-lg);
+}

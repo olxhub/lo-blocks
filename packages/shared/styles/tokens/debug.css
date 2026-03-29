@@ -1,0 +1,23 @@
+/*
+ * Debug / Studio Tokens
+ * ---------------------
+ * Always-dark tokens for developer-facing surfaces (studio editor,
+ * debug panels, replay indicators). These do NOT respond to the
+ * user's color-mode preference — developer tooling stays dark.
+ *
+ * Components in studio.css, DebugPanel.css, ReplayModeIndicator.css,
+ * and BlockList.css should use these instead of hardcoded hex values.
+ */
+
+:root {
+  --lo-debug-bg:       #0d1117;
+  --lo-debug-surface:  #161b22;
+  --lo-debug-elevated: #21262d;
+  --lo-debug-border:   #30363d;
+  --lo-debug-text:     #c9d1d9;
+  --lo-debug-muted:    #8b949e;
+  --lo-debug-accent:   #58a6ff;
+  --lo-debug-success:  #7ee787;
+  --lo-debug-error:    #f85149;
+  --lo-debug-warning:  #d29922;
+}

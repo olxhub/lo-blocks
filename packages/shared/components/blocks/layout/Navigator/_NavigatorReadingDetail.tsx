@@ -15,7 +15,7 @@ export default function _NavigatorReadingDetail(props: RuntimeProps) {
 
   if (!ref) {
     return (
-      <div className="p-6 text-red-500">
+      <div className="p-6 text-error">
         No block reference specified. Use ref attribute.
       </div>
     );
@@ -25,9 +25,9 @@ export default function _NavigatorReadingDetail(props: RuntimeProps) {
 
   return (
     <div className="reading-detail-pane">
-      <div className="sticky top-0 bg-white border-b p-4 z-10">
-        <h2 className="text-xl font-semibold text-gray-900">{displayTitle}</h2>
-        {subtitle && <p className="text-sm text-gray-600 mt-1">{subtitle}</p>}
+      <div className="sticky top-0 bg-background border-b p-4 z-10">
+        <h2 className="text-xl font-semibold text-foreground">{displayTitle}</h2>
+        {subtitle && <p className="text-sm text-secondary mt-1">{subtitle}</p>}
       </div>
       <div className="p-6 prose prose-sm max-w-none">
         <ReadingContent props={props} blockId={ref} />

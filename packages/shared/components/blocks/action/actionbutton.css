@@ -8,7 +8,7 @@
   margin: var(--lo-space-xs);
   border: 1px solid transparent;
   border-radius: var(--lo-radius-md);
-  font-family: var(--lo-font-family);
+  font-family: var(--lo-font-ui);
   font-size: var(--lo-font-size-base);
   font-weight: 500;
   line-height: 1.2;
@@ -28,7 +28,7 @@
 }
 
 .lo-tag-actionbutton button:focus {
-  box-shadow: var(--lo-shadow-focus);
+  box-shadow: var(--lo-focus-ring-shadow);
 }
 
 .lo-tag-actionbutton button:active:not(:disabled) {

@@ -49,7 +49,7 @@ export default function _NextReveal(props) {
         <div className="flex justify-center my-4">
           <button
             onClick={handleNext}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            className="px-6 py-2 bg-accent text-inverse rounded hover:bg-accent-hover transition-colors"
           >
             Next
           </button>

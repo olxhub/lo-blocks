@@ -430,7 +430,7 @@ function StudioPageContent() {
         {/* Sidebar */}
         {sidebarOpen && (
           <>
-            <aside className="studio-sidebar" style={{ width: sidebarWidth }}>
+            <aside className="studio-sidebar lo-chrome" style={{ width: sidebarWidth }}>
               <nav className="studio-sidebar-tabs">
                 {(['chat', 'docs', 'search', 'files', 'data'] as SidebarTab[]).map(tab => (
                   <button
@@ -461,7 +461,6 @@ function StudioPageContent() {
                       getContent={() => getEditComponentState(editorFields.content, filePath, DEMO_CONTENT)}
                       onApplyEdit={setContent}
                       onOpenFile={handleFileSelect}
-                      theme="dark"
                     />
                   </div>
                 )}
@@ -510,7 +509,7 @@ function StudioPageContent() {
               onChange={(value) => setContent(value)}
               path={filePath}
               height="100%"
-              theme="light"
+
             />
           </div>
           {showPreview && (

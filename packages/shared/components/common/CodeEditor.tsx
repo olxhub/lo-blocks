@@ -1,7 +1,7 @@
 // src/components/common/CodeEditor.tsx
 'use client';
 
-import { useMemo, useRef, useImperativeHandle, forwardRef } from 'react';
+import { useMemo, useRef, useImperativeHandle, forwardRef, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { xml } from '@codemirror/lang-xml';
 import { markdown } from '@codemirror/lang-markdown';
@@ -120,6 +120,40 @@ function createPEGContentLinter(extension: string): Extension {
   });
 }
 
+/** Resolves 'auto' theme to 'light' or 'dark' based on data-color-mode and prefers-color-scheme. */
+function useResolvedTheme(theme: 'light' | 'dark' | 'auto'): 'light' | 'dark' {
+  const [resolved, setResolved] = useState<'light' | 'dark'>(() => {
+    if (theme !== 'auto') return theme;
+    if (typeof document === 'undefined') return 'light';
+    const attr = document.documentElement.dataset.colorMode;
+    if (attr === 'light' || attr === 'dark') return attr;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    if (theme !== 'auto') { setResolved(theme); return; }
+
+    const resolve = () => {
+      const attr = document.documentElement.dataset.colorMode;
+      if (attr === 'light' || attr === 'dark') { setResolved(attr); return; }
+      setResolved(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    };
+    resolve();
+
+    // Watch data-color-mode attribute changes
+    const observer = new MutationObserver(resolve);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-color-mode'] });
+
+    // Watch prefers-color-scheme changes
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    mql.addEventListener('change', resolve);
+
+    return () => { observer.disconnect(); mql.removeEventListener('change', resolve); };
+  }, [theme]);
+
+  return resolved;
+}
+
 interface CodeEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -127,8 +161,8 @@ interface CodeEditorProps {
   path?: string;
   /** Explicit language override (takes precedence over path) */
   language?: CodeLanguage;
-  /** Theme - 'light' or 'dark'. Defaults to 'light'. */
-  theme?: 'light' | 'dark';
+  /** Theme - 'light', 'dark', or 'auto' (follows data-color-mode / prefers-color-scheme). Defaults to 'auto'. */
+  theme?: 'light' | 'dark' | 'auto';
   /** Height constraint - defaults to "100%" */
   height?: string;
   /** Max height constraint */
@@ -212,7 +246,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
   onChange,
   path,
   language,
-  theme = 'dark',
+  theme = 'auto',
   height = '100%',
   maxHeight,
   lineWrapping = true,
@@ -220,6 +254,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
   extensions: additionalExtensions = [],
 }, ref) {
   const editorRef = useRef<ReactCodeMirrorRef>(null);
+  const resolvedTheme = useResolvedTheme(theme);
   const effectiveLanguage = language ?? detectLanguageFromPath(path);
   const ext = getExtension(path);
   const isPegContent = isPEGFile(path);
@@ -310,7 +345,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
       ref={editorRef}
       value={value}
       onChange={onChange}
-      theme={theme}
+      theme={resolvedTheme}
       extensions={extensions}
       height={height}
       maxHeight={maxHeight}

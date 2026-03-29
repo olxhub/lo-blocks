@@ -46,7 +46,6 @@ ChoiceInput, Key, and Distractor blocks.
 | `id` | Yes | | Unique identifier |
 | `language` | No | `olx` | Syntax highlighting language (`olx`, `xml`, `md`, `markdown`, and others) |
 | `height` | No | `300px` | Editor height (any CSS value) |
-| `theme` | No | `light` | Color theme: `light` or `dark` |
 | (children) | No | | Initial content shown in the editor |
 
 ## Related Blocks

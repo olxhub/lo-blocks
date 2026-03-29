@@ -524,25 +524,25 @@ export default function _TextSelection(props: RuntimeProps) {
       </div>
 
       {feedback && (
-        <div className={`feedback mb-4 p-3 rounded ${stats.isComplete ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
+        <div className={`feedback mb-4 p-3 rounded ${stats.isComplete ? 'bg-success-subtle text-success' : 'bg-accent-subtle text-accent'}`}>
           {feedback}
         </div>
       )}
 
       <div className="controls flex gap-2">
         {mode === 'graded' && !checked && (
-          <button onClick={checkAnswers} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Check</button>
+          <button onClick={checkAnswers} className="px-4 py-2 bg-accent text-inverse rounded hover:bg-accent-hover">Check</button>
         )}
         {mode === 'graded' && checked && (
-          <button onClick={resetGraded} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">Try Again</button>
+          <button onClick={resetGraded} className="px-4 py-2 bg-muted text-foreground rounded hover:bg-muted">Try Again</button>
         )}
         {mode === 'selfcheck' && !showAnswer && (
-          <button onClick={revealAnswer} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">Compare</button>
+          <button onClick={revealAnswer} className="px-4 py-2 bg-muted text-foreground rounded hover:bg-muted">Compare</button>
         )}
       </div>
 
       {mode === 'immediate' && !showRealtimeFeedback && (
-        <div className="status mt-2 text-sm text-gray-600">
+        <div className="status mt-2 text-sm text-secondary">
           {stats.correctSegments}/{stats.totalSegments} correct
           {stats.incorrectSegments > 0 && ` • ${stats.incorrectSegments} errors`}
         </div>

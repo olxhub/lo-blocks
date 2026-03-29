@@ -13,7 +13,7 @@
 
 /* Code-only view */
 .olx-code-block {
-  background: var(--lo-surface);
+  background: var(--lo-bg-surface);
   padding: var(--lo-space-lg);
   border-radius: var(--lo-radius-md);
   overflow-x: auto;
@@ -26,7 +26,7 @@
 .olx-code-block code {
   background: none;
   padding: 0;
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
 }
 
 /* TODO: Add proper syntax highlighting via highlight.js or CodeMirror */
@@ -57,8 +57,9 @@
   min-height: 0;
 }
 
+/* Code editor — always-dark surface, uses debug tokens */
 .olx-playground-editor {
-  background: #1e1e1e;
+  background: var(--lo-debug-bg);
 }
 
 .olx-playground-preview {
@@ -83,13 +84,13 @@
 }
 
 .olx-playground-editor .olx-playground-header {
-  background: #2d2d2d;
-  color: #cccccc;
-  border-color: #404040;
+  background: var(--lo-debug-surface);
+  color: var(--lo-debug-text);
+  border-color: var(--lo-debug-border);
 }
 
 .olx-playground-preview .olx-playground-header {
-  background: var(--lo-surface);
+  background: var(--lo-bg-surface);
   color: var(--lo-text-secondary);
 }
 
@@ -98,8 +99,8 @@
   flex: 1;
   width: 100%;
   padding: var(--lo-space-md);
-  background: #1e1e1e;
-  color: #d4d4d4;
+  background: var(--lo-debug-bg);
+  color: var(--lo-debug-text);
   border: none;
   font-family: var(--lo-font-mono);
   font-size: 0.875rem;
@@ -107,8 +108,10 @@
   resize: none;
 }
 
-.olx-playground-textarea:focus {
-  outline: none;
+.olx-playground-textarea:focus-visible {
+  border-color: var(--lo-focus-ring);
+  outline: var(--lo-focus-ring-width) solid var(--lo-focus-ring);
+  outline-offset: var(--lo-focus-ring-offset);
 }
 
 .olx-playground-content {

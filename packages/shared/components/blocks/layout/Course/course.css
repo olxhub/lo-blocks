@@ -4,13 +4,13 @@
   height: 100vh;
   display: flex;
   overflow: hidden;
-  font-family: var(--lo-font-family);
+  font-family: var(--lo-font-ui);
 }
 
 .lo-tag-course .course-navigation {
   width: var(--lo-sidebar-width);
   border-inline-end: 1px solid var(--lo-border);
-  background-color: var(--lo-surface);
+  background-color: var(--lo-bg-surface);
   overflow-y: auto;
   flex-shrink: 0;
 }
@@ -19,14 +19,14 @@
   /* Course header */
   padding: var(--lo-space-xl) var(--lo-space-lg);
   border-bottom: 1px solid var(--lo-border);
-  background-color: var(--lo-background);
+  background-color: var(--lo-bg);
 }
 
 .lo-tag-course .course-navigation h1 {
   margin: 0;
   font-size: var(--lo-font-size-xl);
   font-weight: 600;
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
 }
 
 .lo-tag-course .course-navigation > div:last-child {
@@ -42,18 +42,18 @@
   border-radius: var(--lo-radius-md);
   background: transparent;
   transition: all 150ms ease;
-  font-family: var(--lo-font-family);
+  font-family: var(--lo-font-ui);
   cursor: pointer;
   margin-bottom: var(--lo-space-sm);
 }
 
 .lo-tag-course .course-navigation > div:last-child > div > button:hover {
-  background-color: var(--lo-surface-hover);
+  background-color: var(--lo-bg-muted);
 }
 
 .lo-tag-course .course-navigation > div:last-child > div > button:focus {
-  background-color: var(--lo-surface-hover);
-  box-shadow: var(--lo-shadow-focus);
+  background-color: var(--lo-bg-muted);
+  box-shadow: var(--lo-focus-ring-shadow);
 }
 
 /* Chapter header styles */
@@ -65,7 +65,7 @@
 
 .lo-tag-course .course-navigation > div:last-child > div > button > div > span:first-child {
   font-weight: 500;
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
   font-size: var(--lo-font-size-base);
 }
 
@@ -93,16 +93,16 @@
   background: transparent;
   cursor: pointer;
   transition: all 150ms ease;
-  font-family: var(--lo-font-family);
+  font-family: var(--lo-font-ui);
 }
 
 .lo-tag-course .course-navigation > div:last-child > div > div > button:hover {
-  background-color: var(--lo-primary-light);
+  background-color: var(--lo-primary-subtle);
   color: var(--lo-primary);
 }
 
 .lo-tag-course .course-navigation > div:last-child > div > div > button.selected {
-  background-color: var(--lo-primary-light);
+  background-color: var(--lo-primary-subtle);
   color: var(--lo-primary);
   font-weight: 500;
 }
@@ -110,7 +110,7 @@
 .lo-tag-course .course-content {
   flex: 1;
   overflow-y: auto;
-  background-color: var(--lo-background);
+  background-color: var(--lo-bg);
 }
 
 .lo-tag-course .course-content > div {

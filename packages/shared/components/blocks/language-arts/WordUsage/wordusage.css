@@ -1,8 +1,8 @@
 /* WordUsage block styles */
 
 .lo-text-highlight {
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
+  border: 1px solid var(--lo-border);
+  border-radius: var(--lo-radius-lg);
   overflow: hidden;
 }
 
@@ -13,22 +13,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #999;
+  color: var(--lo-text-muted);
 }
 
 /* Highlighted text area */
 .lo-text-highlight__text {
-  padding: 1rem;
+  padding: var(--lo-space-lg);
   font-family: inherit;
-  font-size: 1rem;
-  line-height: 1.8;
+  font-size: var(--lo-font-size-base);
+  line-height: var(--lo-line-height-relaxed);
   white-space: pre-wrap;
   word-wrap: break-word;
 }
 
 /* Highlight mark — inline style sets backgroundColor, this adds shape */
 .lo-text-highlight__mark {
-  border-radius: 2px;
+  border-radius: var(--lo-radius-sm);
   padding: 1px 0;
 }
 
@@ -36,21 +36,21 @@
 .lo-text-highlight__summary {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-top: 1px solid #e5e7eb;
-  background: #f9fafb;
+  gap: var(--lo-space-sm);
+  padding: var(--lo-space-sm) var(--lo-space-lg);
+  border-top: 1px solid var(--lo-border);
+  background: var(--lo-bg-surface);
 }
 
 .lo-text-highlight__chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--lo-space-xs);
   padding: 0.125rem 0.5rem;
-  font-size: 0.75rem;
-  color: #374151;
-  background: white;
-  border: 1px solid #e5e7eb;
+  font-size: var(--lo-font-size-xs);
+  color: var(--lo-text);
+  background: var(--lo-bg);
+  border: 1px solid var(--lo-border);
   border-radius: 1rem;
 }
 
@@ -67,6 +67,6 @@
 }
 
 .lo-text-highlight__chip-count {
-  color: #6b7280;
+  color: var(--lo-text-secondary);
   font-weight: normal;
 }

@@ -22,7 +22,7 @@ export function _BlockMath( props: RuntimeProps ) {
 
   return (
     <>
-      <div className="p-4 rounded bg-green-50 text-green-900 text-center" dangerouslySetInnerHTML={{ __html: html }} />
+      <div className="p-4 rounded bg-success-subtle text-success text-center" dangerouslySetInnerHTML={{ __html: html }} />
     </>
   );
 }

@@ -25,7 +25,7 @@ export default function _Tabs(props: RuntimeProps) {
   const { kids: renderedContent } = useKids(props);
 
   if (filteredKids.length === 0) {
-    return <div className="p-4 text-gray-500">No tabs defined</div>;
+    return <div className="p-4 text-dimmed">No tabs defined</div>;
   }
 
   // Ensure activeTab is within bounds
@@ -36,9 +36,9 @@ export default function _Tabs(props: RuntimeProps) {
   }
 
   return (
-    <div className="tabs-component border rounded-lg bg-white overflow-hidden">
+    <div className="tabs-component border rounded-lg bg-background overflow-hidden">
       {/* Tab Headers */}
-      <div className="flex border-b bg-gray-50">
+      <div className="flex border-b bg-surface">
         {filteredKids.map((kid, index) => {
           const isActive = index === currentTab;
 
@@ -58,8 +58,8 @@ export default function _Tabs(props: RuntimeProps) {
               className={`
                 px-4 py-3 font-medium text-sm transition-all
                 ${isActive
-                  ? 'bg-white text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  ? 'bg-background text-accent border-b-2 border-accent'
+                  : 'text-secondary hover:text-foreground hover:bg-muted'
                 }
               `}
             >

@@ -1,0 +1,39 @@
+/*
+ * Meta / Utility Primitives
+ * -------------------------
+ * Small reusable text and badge styles.
+ *
+ * Classes:
+ *   .lo-mono        — monospace text
+ *   .lo-meta-label  — small uppercase label (like "STATUS", "TYPE")
+ *   .lo-chip        — pill-shaped badge/tag
+ *   .lo-muted       — de-emphasized text
+ */
+
+.lo-mono {
+  font-family: var(--lo-font-mono);
+}
+
+.lo-meta-label {
+  font-size: var(--lo-font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--lo-text-muted);
+}
+
+.lo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lo-space-xs);
+  padding: var(--lo-space-xs) var(--lo-space-sm);
+  font-size: var(--lo-font-size-xs);
+  font-weight: 500;
+  border-radius: 999px;
+  background-color: var(--lo-bg-muted);
+  color: var(--lo-text-secondary);
+}
+
+.lo-muted {
+  color: var(--lo-text-muted);
+}

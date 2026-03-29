@@ -36,21 +36,21 @@ function _TeamDirectory(props) {
 
   if (teamData.length === 0) {
     return (
-      <div className="team-directory p-4 border rounded-lg bg-white">
-        <p className="text-gray-500 text-sm">No team members found{group ? ` in group "${group}"` : ''}. Add cast members as YAML body or via cast= attribute.</p>
+      <div className="team-directory p-4 border rounded-lg bg-background">
+        <p className="text-dimmed text-sm">No team members found{group ? ` in group "${group}"` : ''}. Add cast members as YAML body or via cast= attribute.</p>
       </div>
     );
   }
 
   return (
-    <div className="team-directory p-4 border rounded-lg bg-white">
+    <div className="team-directory p-4 border rounded-lg bg-background">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold">{title}</h3>
         <div className="flex gap-2">
           <button
             onClick={() => setViewMode('grid')}
             className={`px-3 py-1 rounded text-sm ${
-              viewMode === 'grid' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
+              viewMode === 'grid' ? 'bg-accent text-inverse' : 'bg-muted text-secondary'
             }`}
           >
             Grid View
@@ -58,7 +58,7 @@ function _TeamDirectory(props) {
           <button
             onClick={() => setViewMode('detail')}
             className={`px-3 py-1 rounded text-sm ${
-              viewMode === 'detail' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
+              viewMode === 'detail' ? 'bg-accent text-inverse' : 'bg-muted text-secondary'
             }`}
             disabled={!selectedMember}
           >
@@ -76,7 +76,7 @@ function _TeamDirectory(props) {
                 key={member.id}
                 onClick={() => handleMemberClick(member.id)}
                 className={`team-member-card p-4 border rounded-lg cursor-pointer transition-all hover:shadow-lg ${
-                  selectedMember === member.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                  selectedMember === member.id ? 'border-accent bg-accent-subtle' : 'border-border hover:border-border'
                 }`}
               >
                 <div className="flex items-center space-x-3">
@@ -84,14 +84,14 @@ function _TeamDirectory(props) {
                     <Avatar {...avatarProps} size={48} />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">{member.name ?? member.id}</h4>
+                    <h4 className="font-medium text-foreground">{member.name ?? member.id}</h4>
                     {member.profile?.role && (
-                      <p className="text-sm text-gray-600">{String(member.profile.role)}</p>
+                      <p className="text-sm text-secondary">{String(member.profile.role)}</p>
                     )}
                   </div>
                 </div>
                 {member.profile?.bio && (
-                  <p className="mt-2 text-sm text-gray-700 line-clamp-2">{String(member.profile.bio)}</p>
+                  <p className="mt-2 text-sm text-secondary line-clamp-2">{String(member.profile.bio)}</p>
                 )}
               </div>
             );
@@ -104,7 +104,7 @@ function _TeamDirectory(props) {
       )}
 
       {viewMode === 'detail' && !selectedMemberData && (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-dimmed">
           Select a team member to view their details
         </div>
       )}
@@ -117,7 +117,7 @@ function MemberDetail({ member, onClose }) {
   const skills = Array.isArray(member.profile?.skills) ? member.profile.skills : [];
 
   return (
-    <div className="team-member-detail bg-gray-50 p-6 rounded-lg">
+    <div className="team-member-detail bg-surface p-6 rounded-lg">
       <div className="flex items-start space-x-6">
         <div className="flex-shrink-0">
           <Avatar {...avatarProps} size={96} />
@@ -126,17 +126,17 @@ function MemberDetail({ member, onClose }) {
         <div className="flex-1">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h4 className="text-xl font-semibold text-gray-900">{member.name ?? member.id}</h4>
+              <h4 className="text-xl font-semibold text-foreground">{member.name ?? member.id}</h4>
               {member.profile?.role && (
-                <p className="text-lg text-blue-600 font-medium">{String(member.profile.role)}</p>
+                <p className="text-lg text-accent font-medium">{String(member.profile.role)}</p>
               )}
               {member.profile?.experience && (
-                <p className="text-sm text-gray-600 mt-1">{String(member.profile.experience)}</p>
+                <p className="text-sm text-secondary mt-1">{String(member.profile.experience)}</p>
               )}
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 text-xl"
+              className="text-dimmed hover:text-secondary text-xl"
             >
               ×
             </button>
@@ -145,19 +145,19 @@ function MemberDetail({ member, onClose }) {
           <div className="space-y-4">
             {member.profile?.bio && (
               <div>
-                <h5 className="font-medium text-gray-900 mb-2">Background</h5>
-                <p className="text-gray-700">{String(member.profile.bio)}</p>
+                <h5 className="font-medium text-foreground mb-2">Background</h5>
+                <p className="text-secondary">{String(member.profile.bio)}</p>
               </div>
             )}
 
             {skills.length > 0 && (
               <div>
-                <h5 className="font-medium text-gray-900 mb-2">Key Skills</h5>
+                <h5 className="font-medium text-foreground mb-2">Key Skills</h5>
                 <div className="flex flex-wrap gap-2">
                   {skills.map((skill, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                      className="px-3 py-1 bg-accent-subtle text-accent rounded-full text-sm"
                     >
                       {String(skill)}
                     </span>
