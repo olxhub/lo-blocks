@@ -219,7 +219,7 @@ function Activities() {
             <span className="text-xl">{category.icon}</span>
             {category.title}
           </h2>
-          <div className="bg-background rounded-lg">
+          <div>
             {category.items.map(entry => (
               <ActivityRow key={entry.id} entry={entry} userLocale={userLocale} />
             ))}
