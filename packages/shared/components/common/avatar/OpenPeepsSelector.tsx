@@ -13,18 +13,13 @@ import {
   type CategoryKey,
 } from '@/lib/avatar/render';
 import ColorField from './ColorField';
+import type { RuntimeProps, Fields } from '@/lib/types';
 
 interface OpenPeepsSelectorProps {
-  /** Pre-scoped block props (idPrefix points to where peeps fields live). */
-  props: any;
-  /** Field definitions — must include seed, activeTab, face, head,
-   *  accessories, facialHair, mask, skinColor, clothingColor, headContrastColor. */
-  fields: Record<string, any>;
-  /** Used as default seed when no explicit seed is set. */
+  props: RuntimeProps;
+  fields: Fields;
   characterName?: string;
-  /** Preview image size in px (default 120). */
   previewSize?: number;
-  /** Compact mode: smaller thumbnails and text. */
   compact?: boolean;
 }
 
@@ -113,10 +108,12 @@ export default function OpenPeepsSelector({
 
       {/* Right: tabbed picker */}
       <div className="flex-1 min-w-0">
-        <div className="flex gap-1 mb-2 flex-wrap">
+        <div className="flex gap-1 mb-2 flex-wrap" role="tablist" aria-label="Avatar feature">
           {TABS.map(tab => (
             <button
               key={tab.key}
+              role="tab"
+              aria-selected={activeTab === tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={`${tabPx} rounded ${tabText} ${
                 activeTab === tab.key
@@ -131,7 +128,7 @@ export default function OpenPeepsSelector({
 
         {/* Enum thumbnail grid */}
         {activeTab !== 'colors' && (
-          <div className={`grid gap-1.5 ${compact ? 'grid-cols-4 sm:grid-cols-6' : 'grid-cols-4 sm:grid-cols-6'}`}>
+          <div className={'grid gap-1.5 grid-cols-4 sm:grid-cols-6'}>
             {thumbnails.map(({ value, dataUri }) => {
               const selected = fieldVals[activeTab] === value;
               return (

@@ -54,6 +54,7 @@ import {
   STAT_PRESETS, STAT_PRESETS_BY_KEY,
 } from '@/lib/avatar/traits';
 import { isCompleteHex } from '@/lib/avatar/types';
+import { OPEN_PEEPS_KEYS, COLOR_PEEPS_KEYS } from '@/lib/avatar/cast';
 import { fields as avatarEditorFields } from '../AvatarEditor/AvatarEditor';
 import type { RuntimeProps } from '@/lib/types';
 import * as parsers from '@/lib/content/parsers';
@@ -111,8 +112,6 @@ export interface CharacterState {
   avatar: AvatarData;
 }
 
-const PEEPS_KEYS = ['face', 'head', 'accessories', 'facialHair', 'mask', 'skinColor', 'clothingColor', 'headContrastColor'];
-const COLOR_KEYS = ['skinColor', 'clothingColor', 'headContrastColor'];
 
 // ---------------------------------------------------------------------------
 // YAML builder
@@ -121,10 +120,13 @@ const COLOR_KEYS = ['skinColor', 'clothingColor', 'headContrastColor'];
 /** Build a character YAML from the card stack + avatar data.
  *  Output follows the CastMemberSchema: avatar fields at top level,
  *  character traits nested under `profile`. */
-export function buildYaml(characterName: string, cards: CardData[], avatar?: AvatarData): string {
+export function buildYaml(
+  characterName: string, cards: CardData[], avatar?: AvatarData,
+  fallbackName = 'character',
+): string {
   if (!characterName && cards.length === 0 && !avatar?.mode) return '';
 
-  const name = characterName || 'character';
+  const name = characterName || fallbackName;
   const member: Record<string, any> = {};
 
   // Avatar — persist all modes; `style` indicates which is active
@@ -137,7 +139,7 @@ export function buildYaml(characterName: string, cards: CardData[], avatar?: Ava
     const peeps: Record<string, string> = {};
     for (const [k, v] of Object.entries(avatar.openPeeps)) {
       if (!v) continue;
-      if (COLOR_KEYS.includes(k) && !isCompleteHex(v)) continue;
+      if (COLOR_PEEPS_KEYS.includes(k) && !isCompleteHex(v)) continue;
       peeps[k] = v;
     }
     if (Object.keys(peeps).length > 0) member.openPeeps = peeps;
@@ -165,8 +167,8 @@ export function buildYaml(characterName: string, cards: CardData[], avatar?: Ava
   }
   if (Object.keys(profile).length > 0) member.profile = profile;
 
-  if (Object.keys(member).length === 0) return `${name}:\n`;
-  return yaml.dump({ [name]: member }, { lineWidth: -1, noCompatMode: true }).trimEnd();
+  return yaml.dump({ [name]: Object.keys(member).length > 0 ? member : null },
+    { lineWidth: -1, noCompatMode: true }).trimEnd();
 }
 
 // ---------------------------------------------------------------------------
@@ -204,7 +206,7 @@ export function readCharacterState(
   const peepsScoped = { ...props, idPrefix: peepsPrefix };
   const seed = fieldSelector(reduxState, peepsScoped, aeFields.seed, { fallback: '' });
   const openPeeps: Record<string, string> = {};
-  for (const k of PEEPS_KEYS) {
+  for (const k of OPEN_PEEPS_KEYS) {
     openPeeps[k] = fieldSelector(reduxState, peepsScoped, (aeFields as any)[k], { fallback: '' });
   }
 

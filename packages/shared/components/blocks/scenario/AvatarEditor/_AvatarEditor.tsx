@@ -12,26 +12,12 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { useFieldState, useInputField, fieldSelector } from '@/lib/state';
 import { isValidCastIdInput, isValidGroupInput } from '@/lib/avatar/types';
+import { OPEN_PEEPS_KEYS } from '@/lib/avatar/cast';
 import OpenPeepsSelector from '@/components/common/avatar/OpenPeepsSelector';
 import CopyableYaml from '@/components/common/avatar/CopyableYaml';
+import type { RuntimeProps } from '@/lib/types';
 
-// Re-export from lib/avatar/render for backward compatibility.
-// CharacterBuilder and other consumers import these from here.
-export {
-  renderAvatar, toDiceBear,
-  CATEGORIES, TABS,
-  SKIN_COLORS, CLOTHING_COLORS, HAIR_COLORS,
-  type CategoryKey,
-} from '@/lib/avatar/render';
-export { default as ColorField } from '@/components/common/avatar/ColorField';
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
-
-const PEEPS_KEYS = ['face', 'head', 'accessories', 'facialHair', 'mask', 'skinColor', 'clothingColor', 'headContrastColor'];
-
-function _AvatarEditor(props: any) {
+function _AvatarEditor(props: RuntimeProps) {
   const { fields, locals } = props;
   const compact = props.compact;
 
@@ -54,7 +40,7 @@ function _AvatarEditor(props: any) {
     const nm = fieldSelector(reduxState, props, fields.name, { fallback: '' });
     const sd = fieldSelector(reduxState, props, fields.seed, { fallback: '' });
     const fv: Record<string, string> = {};
-    for (const k of PEEPS_KEYS) {
+    for (const k of OPEN_PEEPS_KEYS) {
       fv[k] = fieldSelector(reduxState, props, fields[k], { fallback: '' });
     }
     const rl = fieldSelector(reduxState, props, fields.role, { fallback: '' });

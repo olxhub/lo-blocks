@@ -8,26 +8,18 @@ import React, { useMemo } from 'react';
 import { User } from 'lucide-react';
 import { useFieldState } from '@/lib/state';
 import { renderAvatar } from '@/lib/avatar/render';
+import type { RuntimeProps, FieldInfo, Fields } from '@/lib/types';
 
 interface AvatarPreviewProps {
-  /** Block props — for mode, src, emoji fields. */
-  props: any;
-  /** Field definitions at props scope: avatarMode, avatarSrc, avatarEmoji. */
-  modeField: any;
-  srcField: any;
-  emojiField: any;
-  /** Pre-scoped props for Open Peeps fields. */
-  peepsProps: any;
-  /** Peeps field definitions: seed, face, head, accessories, facialHair, mask,
-   *  skinColor, clothingColor, headContrastColor. */
-  peepsFields: Record<string, any>;
-  /** Character name — used as default seed. */
+  props: RuntimeProps;
+  modeField: FieldInfo;
+  srcField: FieldInfo;
+  emojiField: FieldInfo;
+  peepsProps: RuntimeProps;
+  peepsFields: Fields;
   characterName?: string;
-  /** Visual active state (ring highlight). */
   isActive?: boolean;
-  /** Click handler. */
   onClick?: () => void;
-  /** Size in px (default 40). */
   size?: number;
 }
 

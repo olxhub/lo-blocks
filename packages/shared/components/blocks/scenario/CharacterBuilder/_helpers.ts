@@ -35,8 +35,9 @@ export const ALL_CURRENCIES: string[] = (() => {
 
 /** Format inches as feet'inches" (e.g., 65 → 5'5"). */
 export function inchesToFeetInches(inches: number): string {
-  const ft = Math.floor(inches / 12);
-  const rem = Math.round(inches % 12);
+  const totalInches = Math.round(inches);
+  const ft = Math.floor(totalInches / 12);
+  const rem = totalInches % 12;
   if (ft === 0) return `${rem}"`;
   if (rem === 0) return `${ft}'`;
   return `${ft}'${rem}"`;

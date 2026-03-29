@@ -16,13 +16,15 @@ import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import yaml from 'js-yaml';
 import { Plus, X } from 'lucide-react';
-import { useFieldState, useSet, useNextId, updateField, fieldSelector } from '@/lib/state';
+import { useFieldState, useSet, useNextId } from '@/lib/state';
 import { extendIdPrefix, scopeMarker } from '@/lib/blocks/idResolver';
-import { isCompleteHex } from '@/lib/avatar/types';
 import AvatarPreview from '@/components/common/avatar/AvatarPreview';
 import CopyableYaml from '@/components/common/avatar/CopyableYaml';
 import _CharacterBuilder from '../CharacterBuilder/_CharacterBuilder';
-import { fields as characterBuilderFields } from '../CharacterBuilder/CharacterBuilder';
+import {
+  fields as characterBuilderFields,
+  readCharacterState, buildYaml as buildCharacterYaml,
+} from '../CharacterBuilder/CharacterBuilder';
 import { fields } from './CastEditor';
 import type { RuntimeProps } from '@/lib/types';
 
@@ -180,18 +182,13 @@ export default function _CastEditor(props: RuntimeProps) {
 // useCastYaml — reads all member data from Redux
 // ---------------------------------------------------------------------------
 
-const PEEPS_KEYS = ['face', 'head', 'accessories', 'facialHair', 'mask', 'skinColor', 'clothingColor', 'headContrastColor'];
-const COLOR_KEYS = ['skinColor', 'clothingColor', 'headContrastColor'];
-
 function useCastYaml(props: RuntimeProps, arrangement: string[]): string {
   const aeFields = props.locals.avatarEditorFields;
 
   const memberScopes = useMemo(() =>
     arrangement.map(memberId => {
       const { idPrefix } = extendIdPrefix(props, [props.id, scopeMarker(memberId)]);
-      const mProps = { ...props, idPrefix } as RuntimeProps;
-      const { idPrefix: peepsPrefix } = extendIdPrefix(mProps, [mProps.id, scopeMarker('peeps')]);
-      return { memberId, mProps, peepsProps: { ...mProps, idPrefix: peepsPrefix } as RuntimeProps };
+      return { memberId, mProps: { ...props, idPrefix } as RuntimeProps };
     }),
     [arrangement, props],
   );
@@ -202,68 +199,18 @@ function useCastYaml(props: RuntimeProps, arrangement: string[]): string {
 
       const cast: Record<string, any> = {};
 
-      for (const { mProps, peepsProps } of memberScopes) {
-        const characterName = fieldSelector(reduxState, mProps, characterBuilderFields.characterName, { fallback: '' });
-        const memberArrangement: string[] = fieldSelector(reduxState, mProps, characterBuilderFields.arrangement, { fallback: [] });
+      for (let i = 0; i < memberScopes.length; i++) {
+        const { mProps } = memberScopes[i];
+        const { characterName, cards, avatar } = readCharacterState(reduxState, mProps, aeFields);
+        const memberYaml = buildCharacterYaml(characterName, cards, avatar, `character_${i + 1}`);
+        if (!memberYaml) continue;
 
-        // Avatar
-        const avatarMode = fieldSelector(reduxState, mProps, characterBuilderFields.avatarMode, { fallback: '' });
-        const avatarSrc = fieldSelector(reduxState, mProps, characterBuilderFields.avatarSrc, { fallback: '' });
-        const avatarEmoji = fieldSelector(reduxState, mProps, characterBuilderFields.avatarEmoji, { fallback: '' });
-        const seed = fieldSelector(reduxState, peepsProps, aeFields.seed, { fallback: '' });
-        const openPeeps: Record<string, string> = {};
-        for (const k of PEEPS_KEYS) {
-          openPeeps[k] = fieldSelector(reduxState, peepsProps, (aeFields as any)[k], { fallback: '' });
-        }
-
-        const name = characterName || 'character';
-        const member: Record<string, any> = {};
-
-        // Avatar → YAML
-        const mode = avatarMode || 'illustrated';
-        if (mode !== 'illustrated') member.style = mode;
-        if (avatarSrc) member.src = avatarSrc;
-        if (avatarEmoji) member.emoji = avatarEmoji;
-        if (seed) member.seed = seed;
-        const peeps: Record<string, string> = {};
-        for (const [k, v] of Object.entries(openPeeps)) {
-          if (!v) continue;
-          if (COLOR_KEYS.includes(k) && !isCompleteHex(v)) continue;
-          peeps[k] = v;
-        }
-        if (Object.keys(peeps).length > 0) member.openPeeps = peeps;
-
-        // Cards → profile
-        const profile: Record<string, any> = {};
-        for (const cardId of memberArrangement) {
-          const { idPrefix: cardPrefix } = extendIdPrefix(mProps, [mProps.id, scopeMarker(cardId)]);
-          const scoped = { ...mProps, idPrefix: cardPrefix };
-          const cardType = fieldSelector(reduxState, scoped, characterBuilderFields.cardType, { fallback: '' });
-          const val = fieldSelector(reduxState, scoped, characterBuilderFields.value, { fallback: '' });
-          const dimKey = fieldSelector(reduxState, scoped, characterBuilderFields.dimensionKey, { fallback: '' });
-          const customPrompt = fieldSelector(reduxState, scoped, characterBuilderFields.customPrompt, { fallback: '' });
-          const statPreset = fieldSelector(reduxState, scoped, characterBuilderFields.statPreset, { fallback: '' });
-          const svJson = fieldSelector(reduxState, scoped, characterBuilderFields.statValues, { fallback: '{}' });
-
-          if (cardType === 'dimension' && val && dimKey) {
-            profile[dimKey] = val;
-          } else if (cardType === 'bio' && val) {
-            const bioKey = customPrompt
-              ? customPrompt.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '_').replace(/^_|_$/g, '') || 'bio'
-              : 'bio';
-            profile[bioKey] = val;
-          } else if (cardType === 'stats' && svJson !== '{}') {
-            try {
-              const vals = JSON.parse(svJson);
-              if (Object.keys(vals).length > 0) profile[statPreset || 'stats'] = vals;
-            } catch { /* skip */ }
+        try {
+          const parsed = yaml.load(memberYaml) as Record<string, any>;
+          if (parsed && typeof parsed === 'object') {
+            Object.assign(cast, parsed);
           }
-        }
-        if (Object.keys(profile).length > 0) member.profile = profile;
-
-        if (Object.keys(member).length > 0 || characterName) {
-          cast[name] = member;
-        }
+        } catch (err) { console.warn('CastEditor: malformed member YAML:', err); }
       }
 
       if (Object.keys(cast).length === 0) return '';

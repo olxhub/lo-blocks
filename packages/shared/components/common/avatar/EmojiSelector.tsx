@@ -8,13 +8,14 @@ import React from 'react';
 import { useFieldState } from '@/lib/state';
 import type { EmojiOption } from '@/lib/avatar/emoji';
 import { EMOJI_AVATARS, EMOJI_CATEGORIES, SKIN_TONES, applySkinTone } from '@/lib/avatar/emoji';
+import type { RuntimeProps, FieldInfo } from '@/lib/types';
 
 interface EmojiSelectorProps {
-  props: any;                 // block props (for skin tone state)
-  skinToneField: any;         // field definition for emojiSkinTone
-  value: string;              // current emoji
+  props: RuntimeProps;
+  skinToneField: FieldInfo;
+  value: string;
   onChange: (emoji: string) => void;
-  inputProps?: any;           // spread props from useInputField (for text input)
+  inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
 }
 
 export default function EmojiSelector({

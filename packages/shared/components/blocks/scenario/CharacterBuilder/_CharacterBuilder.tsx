@@ -18,27 +18,17 @@
 //   CopyableYaml      — YAML display with copy button
 'use client';
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import yaml from 'js-yaml';
-import { useFieldState, useInputField, useSet, useNextId, updateField, fieldSelector } from '@/lib/state';
-import { extendIdPrefix, scopeMarker } from '@/lib/blocks/idResolver';
-import { isCompleteHex } from '@/lib/avatar/types';
+import { useFieldState, useInputField, useSet, useNextId, updateField } from '@/lib/state';
 import AvatarBuilder from '@/components/common/avatar/AvatarBuilder';
 import AvatarPreview from '@/components/common/avatar/AvatarPreview';
 import CopyableYaml from '@/components/common/avatar/CopyableYaml';
 import { scopedCardProps, peepsScopedProps } from './_helpers';
-import { fields } from './CharacterBuilder';
+import { fields, readCharacterState, buildYaml } from './CharacterBuilder';
 import Section from './_cardShell';
 import AddMenu from './_addMenu';
 import type { RuntimeProps } from '@/lib/types';
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-const PEEPS_KEYS = ['face', 'head', 'accessories', 'facialHair', 'mask', 'skinColor', 'clothingColor', 'headContrastColor'];
-const COLOR_KEYS = ['skinColor', 'clothingColor', 'headContrastColor'];
 
 // ---------------------------------------------------------------------------
 // Main component
@@ -58,7 +48,7 @@ export default function _CharacterBuilder(props: RuntimeProps) {
   const pProps = peepsScopedProps(props);
   const aeFields = locals.avatarEditorFields;
 
-  const yamlString = useYamlOutput(props, characterName, arrangement, aeFields);
+  const yamlString = useYamlOutput(props);
 
   // ── Card CRUD ──
   const addCard = useCallback((cardType: string, extra: Record<string, string> = {}) => {
@@ -190,84 +180,12 @@ export default function _CharacterBuilder(props: RuntimeProps) {
 // useYamlOutput — reads all character state from Redux in one selector
 // ---------------------------------------------------------------------------
 
-function useYamlOutput(
-  props: RuntimeProps, characterName: string,
-  arrangement: string[], aeFields: Record<string, any>,
-): string {
-  const scopedList = useMemo(() =>
-    arrangement.map(cardId => {
-      const { idPrefix } = extendIdPrefix(props, [props.id, scopeMarker(cardId)]);
-      return { cardId, scoped: { ...props, idPrefix } as RuntimeProps };
-    }),
-    [arrangement, props],
-  );
-
-  const peepsMemo = useMemo(() => {
-    const { idPrefix } = extendIdPrefix(props, [props.id, scopeMarker('peeps')]);
-    return { ...props, idPrefix } as RuntimeProps;
-  }, [props]);
-
+function useYamlOutput(props: RuntimeProps): string {
+  const aeFields = props.locals.avatarEditorFields;
   return useSelector(
     (reduxState: any) => {
-      // Avatar data — always read all modes
-      const avatarMode = fieldSelector(reduxState, props, fields.avatarMode, { fallback: '' });
-      const avatarSrc = fieldSelector(reduxState, props, fields.avatarSrc, { fallback: '' });
-      const avatarEmoji = fieldSelector(reduxState, props, fields.avatarEmoji, { fallback: '' });
-      const seed = fieldSelector(reduxState, peepsMemo, aeFields.seed, { fallback: '' });
-      const openPeeps: Record<string, string> = {};
-      for (const k of PEEPS_KEYS) {
-        openPeeps[k] = fieldSelector(reduxState, peepsMemo, (aeFields as any)[k], { fallback: '' });
-      }
-
-      const hasAvatar = avatarMode || avatarSrc || avatarEmoji || seed ||
-        Object.values(openPeeps).some(v => !!v);
-      if (!characterName && arrangement.length === 0 && !hasAvatar) return '';
-
-      const name = characterName || 'character';
-      const member: Record<string, any> = {};
-
-      // Avatar → YAML (persist all modes; `style` picks which is active)
-      const mode = avatarMode || 'illustrated';
-      if (mode !== 'illustrated') member.style = mode;
-      if (avatarSrc) member.src = avatarSrc;
-      if (avatarEmoji) member.emoji = avatarEmoji;
-      if (seed) member.seed = seed;
-      const peeps: Record<string, string> = {};
-      for (const [k, v] of Object.entries(openPeeps)) {
-        if (!v) continue;
-        if (COLOR_KEYS.includes(k) && !isCompleteHex(v)) continue;
-        peeps[k] = v;
-      }
-      if (Object.keys(peeps).length > 0) member.openPeeps = peeps;
-
-      // Cards → profile
-      const profile: Record<string, any> = {};
-      for (const { scoped } of scopedList) {
-        const cardType = fieldSelector(reduxState, scoped, fields.cardType, { fallback: '' });
-        const val = fieldSelector(reduxState, scoped, fields.value, { fallback: '' });
-        const dimKey = fieldSelector(reduxState, scoped, fields.dimensionKey, { fallback: '' });
-        const customPrompt = fieldSelector(reduxState, scoped, fields.customPrompt, { fallback: '' });
-        const statPreset = fieldSelector(reduxState, scoped, fields.statPreset, { fallback: '' });
-        const svJson = fieldSelector(reduxState, scoped, fields.statValues, { fallback: '{}' });
-
-        if (cardType === 'dimension' && val && dimKey) {
-          profile[dimKey] = val;
-        } else if (cardType === 'bio' && val) {
-          const bioKey = customPrompt
-            ? customPrompt.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '_').replace(/^_|_$/g, '') || 'bio'
-            : 'bio';
-          profile[bioKey] = val;
-        } else if (cardType === 'stats' && svJson !== '{}') {
-          try {
-            const vals = JSON.parse(svJson);
-            if (Object.keys(vals).length > 0) profile[statPreset || 'stats'] = vals;
-          } catch { /* skip */ }
-        }
-      }
-      if (Object.keys(profile).length > 0) member.profile = profile;
-
-      if (Object.keys(member).length === 0) return `${name}:\n`;
-      return yaml.dump({ [name]: member }, { lineWidth: -1, noCompatMode: true }).trimEnd();
+      const { characterName, cards, avatar } = readCharacterState(reduxState, props, aeFields);
+      return buildYaml(characterName, cards, avatar);
     },
     (a: string, b: string) => a === b,
   );

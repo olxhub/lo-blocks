@@ -9,7 +9,7 @@ import { Dices } from 'lucide-react';
 import { useFieldState } from '@/lib/state';
 import { scopedCardProps, resolveUnit, convertUnit, ALL_CURRENCIES } from './_helpers';
 import { fields } from './CharacterBuilder';
-import { SectionFooter } from './_traitsSection';
+import SectionFooter from './_sectionFooter';
 import type { RuntimeProps } from '@/lib/types';
 import type { StatPreset, StatDef } from '@/lib/avatar/traits';
 

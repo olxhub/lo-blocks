@@ -7,7 +7,7 @@ import React from 'react';
 import { useInputField } from '@/lib/state';
 import { scopedCardProps } from './_helpers';
 import { fields } from './CharacterBuilder';
-import { SectionFooter } from './_traitsSection';
+import SectionFooter from './_sectionFooter';
 import type { RuntimeProps } from '@/lib/types';
 
 export default function FreeformSection({

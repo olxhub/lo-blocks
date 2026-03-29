@@ -4,24 +4,32 @@
 // Used by AvatarEditor, CharacterBuilder, and CastEditor.
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { useFieldState } from '@/lib/state';
+import type { RuntimeProps, FieldInfo } from '@/lib/types';
 
 interface CopyableYamlProps {
   yaml: string;
-  props: any;          // block props (for useFieldState)
-  copiedField: any;    // field definition for the `copied` flag
+  props: RuntimeProps;
+  copiedField: FieldInfo;
   compact?: boolean;
 }
 
 export default function CopyableYaml({ yaml, props, copiedField, compact }: CopyableYamlProps) {
   const [copied, setCopied] = useFieldState(props, copiedField, false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(yaml).then(
-      () => { setCopied(true); setTimeout(() => setCopied(false), 2000); },
-    ).catch(() => {});
+      () => {
+        setCopied(true);
+        if (timerRef.current) clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(() => setCopied(false), 2000);
+      },
+    ).catch(err => console.warn('Clipboard write failed:', err));
   }, [yaml, setCopied]);
 
   if (!yaml) return null;

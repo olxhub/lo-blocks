@@ -13,22 +13,17 @@ import React from 'react';
 import { useFieldState, useInputField, updateField } from '@/lib/state';
 import OpenPeepsSelector from './OpenPeepsSelector';
 import EmojiSelector from './EmojiSelector';
+import type { RuntimeProps, FieldInfo, Fields } from '@/lib/types';
 
 interface AvatarBuilderProps {
-  /** Block props — for mode, src, emoji fields. */
-  props: any;
-  /** Field definitions at props scope: avatarMode, avatarSrc, avatarEmoji, emojiSkinTone. */
-  modeField: any;
-  srcField: any;
-  emojiField: any;
-  emojiSkinToneField: any;
-  /** Pre-scoped props for Open Peeps fields (may differ from props). */
-  peepsProps: any;
-  /** Peeps field definitions: seed, activeTab, face, head, etc. */
-  peepsFields: Record<string, any>;
-  /** Character name — used as default seed and in placeholder. */
+  props: RuntimeProps;
+  modeField: FieldInfo;
+  srcField: FieldInfo;
+  emojiField: FieldInfo;
+  emojiSkinToneField: FieldInfo;
+  peepsProps: RuntimeProps;
+  peepsFields: Fields;
   characterName?: string;
-  /** Called when user clicks "Done". */
   onDone?: () => void;
 }
 
@@ -45,10 +40,12 @@ export default function AvatarBuilder({
   return (
     <div className="border rounded-lg bg-white p-3 mb-2 space-y-3">
       {/* Mode tabs */}
-      <div className="flex gap-1">
+      <div className="flex gap-1" role="tablist" aria-label="Avatar mode">
         {(['illustrated', 'image', 'emoji'] as const).map(m => (
           <button
             key={m}
+            role="tab"
+            aria-selected={mode === m}
             onClick={() => setAvatarMode(m)}
             className={`px-3 py-1 rounded text-sm ${
               mode === m ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -75,6 +72,7 @@ export default function AvatarBuilder({
         <div className="flex items-center gap-3">
           {avatarSrc && (
             <img
+              key={avatarSrc}
               src={avatarSrc}
               alt="Avatar"
               className="w-20 h-20 rounded-full object-cover border border-gray-200"

@@ -75,7 +75,8 @@ function deepMerge(
 
 // Known field names for case-sensitivity suggestions
 const CAST_MEMBER_KEYS = Object.keys(CastMemberSchema.shape);
-const OPEN_PEEPS_KEYS = Object.keys(OpenPeepsSchema.shape);
+export const OPEN_PEEPS_KEYS = Object.keys(OpenPeepsSchema.shape);
+export const COLOR_PEEPS_KEYS = ['skinColor', 'clothingColor', 'headContrastColor'];
 
 /**
  * Find a case-insensitive match in a list of valid keys.
@@ -233,21 +234,29 @@ export function castMemberToAvatarProps(
   const name = member.name ?? id;
   const seed = member.seed ?? id;
 
-  // Emoji style
-  if (member.style === 'emoji' || (member.emoji && !member.style)) {
+  // Explicit style takes precedence when present
+  if (member.style === 'emoji') {
     return { name, seed, style: 'emoji', emoji: member.emoji };
   }
+  if (member.style === 'image') {
+    return { name, seed, src: member.src };
+  }
+  if (member.style === 'initials') {
+    return { name, seed, style: 'initials' };
+  }
 
-  // Image style: src is provided, render directly
+  // No explicit style — infer from available data
   if (member.src) {
     return { name, seed, src: member.src };
   }
+  if (member.emoji) {
+    return { name, seed, style: 'emoji', emoji: member.emoji };
+  }
 
-  const style = member.style === 'initials' ? 'initials' : 'illustrated';
   return {
     name,
     seed,
-    style,
+    style: 'illustrated',
     options: member.openPeeps || undefined,
   };
 }

@@ -7,12 +7,13 @@
 import React from 'react';
 import { useInputField, updateField } from '@/lib/state';
 import { isValidHexInput } from '@/lib/avatar/types';
+import type { RuntimeProps, FieldInfo } from '@/lib/types';
 
 interface ColorFieldProps {
   label: string;
   presets: string[];
-  field: any;       // field definition
-  props: any;       // block props (pre-scoped)
+  field: FieldInfo;
+  props: RuntimeProps;
 }
 
 export default function ColorField({ label, presets, field, props }: ColorFieldProps) {
@@ -28,6 +29,7 @@ export default function ColorField({ label, presets, field, props }: ColorFieldP
           <button
             key={color}
             onClick={() => updateField(props, field, value === color ? '' : color)}
+            aria-label={`Color #${color}${value === color ? ' (selected)' : ''}`}
             className={`rounded-full border-2 transition-all ${
               value === color
                 ? 'border-blue-500 ring-2 ring-blue-300'

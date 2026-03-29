@@ -65,7 +65,8 @@ const CastEditor = dev({
 
     const cast: Record<string, any> = {};
 
-    for (const memberId of arrangement) {
+    for (let i = 0; i < arrangement.length; i++) {
+      const memberId = arrangement[i];
       const { idPrefix } = extendIdPrefix(props, [props.id, scopeMarker(memberId)]);
       const memberProps = { ...props, idPrefix } as RuntimeProps;
 
@@ -73,9 +74,7 @@ const CastEditor = dev({
         reduxState, memberProps, avatarEditorFields,
       );
 
-      // Build the member's data (reuse CharacterBuilder's YAML builder
-      // but extract the object, not the YAML string)
-      const memberYaml = buildCharacterYaml(characterName, cards, avatar);
+      const memberYaml = buildCharacterYaml(characterName, cards, avatar, `character_${i + 1}`);
       if (!memberYaml) continue;
 
       try {
@@ -83,7 +82,7 @@ const CastEditor = dev({
         if (parsed && typeof parsed === 'object') {
           Object.assign(cast, parsed);
         }
-      } catch { /* skip malformed */ }
+      } catch (err) { console.warn('CastEditor: malformed member YAML:', err); }
     }
 
     if (Object.keys(cast).length === 0) return '';
