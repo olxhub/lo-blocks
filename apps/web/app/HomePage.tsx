@@ -357,7 +357,7 @@ export default function Home() {
   return (
     <div {...localeAttrs} className="flex h-screen">
       <Sidebar />
-      <main className="flex-1 overflow-auto bg-surface/30 flex flex-col">
+      <main className="flex-1 overflow-auto flex flex-col">
         <div className="flex justify-end p-4 border-b border-border">
           <LanguageSwitcher availableLocales={availableLocales} />
         </div>

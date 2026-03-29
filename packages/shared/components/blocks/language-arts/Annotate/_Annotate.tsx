@@ -60,17 +60,29 @@ function scopedNoteProps(props: RuntimeProps, noteId: string): RuntimeProps {
 // Colors: golden ratio hue assignment per annotation
 // ---------------------------------------------------------------------------
 
-/** Color set for one annotation — all derived from a single hue. */
+/**
+ * Color set for one annotation — hue from golden ratio, saturation/lightness
+ * adapted to the current theme via color-mix().
+ *
+ * Uses sRGB mixing (not OKLCH) because OKLCH perceptual blending rotates hues
+ * when mixing small amounts into tinted backgrounds, making different
+ * annotations look the same color. sRGB preserves hue identity.
+ *
+ * Each background/border color blends the annotation's hue into a semantic
+ * token (--lo-bg, --lo-bg-surface, --lo-border). Light bg → light tint,
+ * dark bg → dark tint, warm bg → warm tint. Automatic.
+ */
 function noteColors(noteId: string) {
   const hue = groupHue(parseInt(noteId, 10) || 0);
+  const base = `hsl(${hue} 80% 60%)`;
   return {
-    highlight: hslColor(hue, 0.2, 0.92),        // very light tint for passage
-    highlightActive: hslColor(hue, 0.35, 0.85),  // brighter when active
-    accent: hslColor(hue, 0.45, 0.55),           // card left border, quote border
-    accentLight: hslColor(hue, 0.25, 0.9),       // card background when active
-    cardBorder: hslColor(hue, 0.15, 0.82),       // subtle tinted border
-    cardShadow: hslColor(hue, 0.12, 0.7),        // subtle tinted shadow
-    quoteBg: hslColor(hue, 0.1, 0.96),           // very faint quote background
+    highlight:       `color-mix(in srgb, ${base} 20%, var(--lo-bg))`,
+    highlightActive: `color-mix(in srgb, ${base} 35%, var(--lo-bg))`,
+    accent:          hslColor(hue, 0.55, 0.50),
+    accentLight:     `color-mix(in srgb, ${base} 18%, var(--lo-bg-surface))`,
+    cardBorder:      `color-mix(in srgb, ${base} 30%, var(--lo-border))`,
+    cardShadow:      `hsl(${hue} 15% 50% / 0.15)`,
+    quoteBg:         `color-mix(in srgb, ${base} 12%, var(--lo-bg-surface))`,
   };
 }
 
@@ -281,9 +293,9 @@ function NoteCard({
       onClick={(e) => { e.stopPropagation(); onActivate(); }}
       className="relative border rounded-lg p-3.5 cursor-pointer transition-all"
       style={{
-        background: isActive ? colors.accentLight : 'white',
+        background: isActive ? colors.accentLight : 'var(--lo-bg-surface)',
         borderColor: isActive ? colors.accent : colors.cardBorder,
-        boxShadow: `0 1px 3px ${colors.cardShadow}20`,
+        boxShadow: `0 1px 3px ${colors.cardShadow}`,
       }}
     >
       {/* Quoted text with colored left border and faint tinted background */}
