@@ -35,3 +35,30 @@
     width: 100%;
   }
 }
+
+/*
+ * Chrome surface bridge
+ * ---------------------
+ * Remaps --lo-* semantic tokens to --lo-chrome-* values so that any
+ * token-consuming component (ChatComponent, inputs, etc.) placed inside
+ * a chrome container automatically inherits the contrasting palette.
+ *
+ * Usage: add class="lo-chrome" to a container element.
+ * Theme-aware: literary gets warm wood, default gets cool slate, etc.
+ */
+.lo-chrome {
+  --lo-bg:             var(--lo-chrome);
+  --lo-bg-surface:     var(--lo-chrome-surface);
+  --lo-bg-elevated:    var(--lo-chrome-surface);
+  --lo-bg-muted:       var(--lo-chrome-hover);
+  --lo-text:           var(--lo-chrome-text);
+  --lo-text-secondary: var(--lo-chrome-text-secondary);
+  --lo-text-muted:     var(--lo-chrome-text-muted);
+  --lo-text-inverse:   var(--lo-bg);
+  --lo-border:         var(--lo-chrome-border);
+  --lo-border-subtle:  var(--lo-chrome-border);
+  --lo-border-strong:  var(--lo-chrome-active);
+
+  color: var(--lo-chrome-text);
+  background: var(--lo-chrome);
+}

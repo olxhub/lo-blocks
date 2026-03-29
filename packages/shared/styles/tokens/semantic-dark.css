@@ -54,6 +54,16 @@
   --lo-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
   --lo-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
   --lo-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+
+  /* ── Chrome (near-black so it still layers against dark content) ── */
+  --lo-chrome:                var(--lo-color-slate-950);
+  --lo-chrome-surface:        var(--lo-color-slate-900);
+  --lo-chrome-text:           var(--lo-color-slate-200);
+  --lo-chrome-text-secondary: var(--lo-color-slate-400);
+  --lo-chrome-text-muted:     var(--lo-color-slate-500);
+  --lo-chrome-border:         var(--lo-color-slate-800);
+  --lo-chrome-hover:          var(--lo-color-slate-800);
+  --lo-chrome-active:         var(--lo-color-slate-700);
 }
 
 /* Auto dark mode: follows OS preference */
@@ -95,5 +105,15 @@
     --lo-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
     --lo-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
     --lo-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+
+    /* ── Chrome ── */
+    --lo-chrome:                var(--lo-color-slate-950);
+    --lo-chrome-surface:        var(--lo-color-slate-900);
+    --lo-chrome-text:           var(--lo-color-slate-200);
+    --lo-chrome-text-secondary: var(--lo-color-slate-400);
+    --lo-chrome-text-muted:     var(--lo-color-slate-500);
+    --lo-chrome-border:         var(--lo-color-slate-800);
+    --lo-chrome-hover:          var(--lo-color-slate-800);
+    --lo-chrome-active:         var(--lo-color-slate-700);
   }
 }

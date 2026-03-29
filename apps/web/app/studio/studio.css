@@ -1,24 +1,16 @@
 /* src/app/studio/studio.css */
 /* Studio editor — dark chrome frames bright content for visual hierarchy.
  *
- * Light mode: slate-800 chrome + white content (high contrast, professional)
- * Dark mode: slate-950 chrome + slate-900 content (subtle layering)
+ * Chrome colors come from --lo-chrome-* semantic tokens (defined in
+ * semantic.css, overridden by themes and dark mode).  No hardcoded
+ * palette references here — literary theme gets warm wood, default
+ * gets cool slate, etc.
  *
  * Chrome elements: header, sidebar, footer
  * Content elements: editor pane, preview pane (use --lo-* semantic tokens)
  */
 
-/* ── Chrome variable definitions ── */
 .studio {
-  --studio-chrome:                var(--lo-color-slate-800);
-  --studio-chrome-surface:        var(--lo-color-slate-700);
-  --studio-chrome-text:           var(--lo-color-slate-50);
-  --studio-chrome-text-secondary: var(--lo-color-slate-300);
-  --studio-chrome-text-muted:     var(--lo-color-slate-400);
-  --studio-chrome-border:         var(--lo-color-slate-600);
-  --studio-chrome-hover:          var(--lo-color-slate-700);
-  --studio-chrome-active:         var(--lo-color-slate-600);
-
   /* Layout */
   display: flex;
   flex-direction: column;
@@ -26,31 +18,6 @@
   background: var(--lo-bg);
   color: var(--lo-text);
   font-family: var(--lo-font-ui);
-}
-
-/* Dark-mode: chrome goes near-black so it still layers against dark content */
-[data-color-mode="dark"] .studio {
-  --studio-chrome:                var(--lo-color-slate-950);
-  --studio-chrome-surface:        var(--lo-color-slate-900);
-  --studio-chrome-text:           var(--lo-color-slate-200);
-  --studio-chrome-text-secondary: var(--lo-color-slate-400);
-  --studio-chrome-text-muted:     var(--lo-color-slate-500);
-  --studio-chrome-border:         var(--lo-color-slate-800);
-  --studio-chrome-hover:          var(--lo-color-slate-800);
-  --studio-chrome-active:         var(--lo-color-slate-700);
-}
-
-@media (prefers-color-scheme: dark) {
-  [data-color-mode="auto"] .studio {
-    --studio-chrome:                var(--lo-color-slate-950);
-    --studio-chrome-surface:        var(--lo-color-slate-900);
-    --studio-chrome-text:           var(--lo-color-slate-200);
-    --studio-chrome-text-secondary: var(--lo-color-slate-400);
-    --studio-chrome-text-muted:     var(--lo-color-slate-500);
-    --studio-chrome-border:         var(--lo-color-slate-800);
-    --studio-chrome-hover:          var(--lo-color-slate-800);
-    --studio-chrome-active:         var(--lo-color-slate-700);
-  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -64,8 +31,8 @@
   justify-content: space-between;
   padding: 0 16px;
   height: 48px;
-  background: var(--studio-chrome);
-  border-bottom: 1px solid var(--studio-chrome-border);
+  background: var(--lo-chrome);
+  border-bottom: 1px solid var(--lo-chrome-border);
   flex-shrink: 0;
 }
 
@@ -92,7 +59,7 @@
 }
 
 .studio-filepath {
-  color: var(--studio-chrome-text-muted);
+  color: var(--lo-chrome-text-muted);
   font-size: 14px;
   font-family: var(--lo-font-mono);
 }
@@ -105,17 +72,17 @@
 /* Buttons (live in chrome areas — header, sidebar, footer) */
 .studio-btn {
   padding: 6px 12px;
-  border: 1px solid var(--studio-chrome-border);
+  border: 1px solid var(--lo-chrome-border);
   border-radius: 6px;
-  background: var(--studio-chrome-surface);
-  color: var(--studio-chrome-text);
+  background: var(--lo-chrome-surface);
+  color: var(--lo-chrome-text);
   cursor: pointer;
   font-size: 14px;
   transition: background var(--lo-motion-fast);
 }
 
 .studio-btn:hover {
-  background: var(--studio-chrome-active);
+  background: var(--lo-chrome-active);
 }
 
 .studio-btn.primary {
@@ -167,8 +134,8 @@
 
 /* ── Sidebar ── */
 .studio-sidebar {
-  background: var(--studio-chrome);
-  border-inline-end: 1px solid var(--studio-chrome-border);
+  background: var(--lo-chrome);
+  border-inline-end: 1px solid var(--lo-chrome-border);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -176,7 +143,7 @@
 
 .studio-sidebar-tabs {
   display: flex;
-  border-bottom: 1px solid var(--studio-chrome-border);
+  border-bottom: 1px solid var(--lo-chrome-border);
 }
 
 .studio-sidebar-tab {
@@ -184,7 +151,7 @@
   padding: 10px 8px;
   background: none;
   border: none;
-  color: var(--studio-chrome-text-muted);
+  color: var(--lo-chrome-text-muted);
   cursor: pointer;
   font-size: 12px;
   text-transform: uppercase;
@@ -193,8 +160,8 @@
 }
 
 .studio-sidebar-tab:hover {
-  color: var(--studio-chrome-text);
-  background: var(--studio-chrome-hover);
+  color: var(--lo-chrome-text);
+  background: var(--lo-chrome-hover);
 }
 
 .studio-sidebar-tab.active {
@@ -224,7 +191,7 @@
   align-items: center;
   font-weight: 600;
   margin-bottom: 12px;
-  color: var(--studio-chrome-text);
+  color: var(--lo-chrome-text);
 }
 
 /* File tree */
@@ -241,7 +208,7 @@
 }
 
 .file-item:hover {
-  background: var(--studio-chrome-hover);
+  background: var(--lo-chrome-hover);
 }
 
 .file-item.indent {
@@ -253,11 +220,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--studio-chrome-text-secondary);
+  color: var(--lo-chrome-text-secondary);
 }
 
 .file-item.active {
-  background: var(--studio-chrome-active);
+  background: var(--lo-chrome-active);
   font-weight: 500;
 }
 
@@ -278,7 +245,7 @@
   opacity: 0;
   background: none;
   border: none;
-  color: var(--studio-chrome-text-muted);
+  color: var(--lo-chrome-text-muted);
   cursor: pointer;
   padding: 2px 6px;
   font-size: 14px;
@@ -290,25 +257,25 @@
 }
 
 .file-menu-btn:hover {
-  background: var(--studio-chrome-active);
-  color: var(--studio-chrome-text);
+  background: var(--lo-chrome-active);
+  color: var(--lo-chrome-text);
 }
 
 .file-actions {
   padding: 8px;
   margin: 4px 0;
-  background: var(--studio-chrome-surface);
-  border: 1px solid var(--studio-chrome-border);
+  background: var(--lo-chrome-surface);
+  border: 1px solid var(--lo-chrome-border);
   border-radius: 6px;
 }
 
 .file-rename-input {
   width: 100%;
   padding: 6px 8px;
-  background: var(--studio-chrome);
-  border: 1px solid var(--studio-chrome-border);
+  background: var(--lo-chrome);
+  border: 1px solid var(--lo-chrome-border);
   border-radius: 4px;
-  color: var(--studio-chrome-text);
+  color: var(--lo-chrome-text);
   font-size: 12px;
   font-family: var(--lo-font-mono);
   margin-bottom: 8px;
@@ -327,16 +294,16 @@
 .file-action-buttons button {
   flex: 1;
   padding: 4px 8px;
-  border: 1px solid var(--studio-chrome-border);
+  border: 1px solid var(--lo-chrome-border);
   border-radius: 4px;
-  background: var(--studio-chrome-surface);
-  color: var(--studio-chrome-text);
+  background: var(--lo-chrome-surface);
+  color: var(--lo-chrome-text);
   cursor: pointer;
   font-size: 12px;
 }
 
 .file-action-buttons button:hover {
-  background: var(--studio-chrome-active);
+  background: var(--lo-chrome-active);
 }
 
 .file-action-buttons button.danger {
@@ -351,9 +318,9 @@
 /* File action button in header */
 .file-action-btn {
   background: none;
-  border: 1px solid var(--studio-chrome-border);
+  border: 1px solid var(--lo-chrome-border);
   border-radius: 4px;
-  color: var(--studio-chrome-text-muted);
+  color: var(--lo-chrome-text-muted);
   cursor: pointer;
   padding: 2px 8px;
   font-size: 16px;
@@ -361,16 +328,16 @@
 }
 
 .file-action-btn:hover {
-  background: var(--studio-chrome-hover);
-  color: var(--studio-chrome-text);
+  background: var(--lo-chrome-hover);
+  color: var(--lo-chrome-text);
 }
 
 /* New file dialog */
 .file-dialog {
   padding: 8px;
   margin-bottom: 8px;
-  background: var(--studio-chrome-surface);
-  border: 1px solid var(--studio-chrome-border);
+  background: var(--lo-chrome-surface);
+  border: 1px solid var(--lo-chrome-border);
   border-radius: 6px;
 }
 
@@ -396,23 +363,23 @@
 }
 
 .file-dialog-btn.cancel {
-  background: var(--studio-chrome-hover);
-  border: 1px solid var(--studio-chrome-border);
-  color: var(--studio-chrome-text);
+  background: var(--lo-chrome-hover);
+  border: 1px solid var(--lo-chrome-border);
+  color: var(--lo-chrome-text);
 }
 
 .file-dialog-btn.cancel:hover {
-  background: var(--studio-chrome-active);
+  background: var(--lo-chrome-active);
 }
 
 /* Search (in sidebar) */
 .search-input {
   width: 100%;
   padding: 8px 12px;
-  background: var(--studio-chrome-surface);
-  border: 1px solid var(--studio-chrome-border);
+  background: var(--lo-chrome-surface);
+  border: 1px solid var(--lo-chrome-border);
   border-radius: 6px;
-  color: var(--studio-chrome-text);
+  color: var(--lo-chrome-text);
   font-size: 14px;
   margin-bottom: 12px;
 }
@@ -426,7 +393,7 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--studio-chrome-text-muted);
+  color: var(--lo-chrome-text-muted);
   margin: 12px 0 8px;
 }
 
@@ -444,7 +411,7 @@
 }
 
 .search-result-item:hover {
-  background: var(--studio-chrome-hover);
+  background: var(--lo-chrome-hover);
 }
 
 .search-result-item.clickable {
@@ -459,7 +426,7 @@
 
 .search-result-title {
   font-size: 12px;
-  color: var(--studio-chrome-text);
+  color: var(--lo-chrome-text);
   margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
@@ -468,7 +435,7 @@
 
 .search-result-file {
   font-size: 11px;
-  color: var(--studio-chrome-text-muted);
+  color: var(--lo-chrome-text-muted);
   margin-top: 2px;
   font-family: var(--lo-font-mono);
   white-space: nowrap;
@@ -484,13 +451,13 @@
 .search-type {
   font-size: 11px;
   padding: 2px 6px;
-  background: var(--studio-chrome-active);
+  background: var(--lo-chrome-active);
   border-radius: 4px;
-  color: var(--studio-chrome-text-muted);
+  color: var(--lo-chrome-text-muted);
 }
 
 .search-hint {
-  color: var(--studio-chrome-text-muted);
+  color: var(--lo-chrome-text-muted);
   font-size: 13px;
   font-style: italic;
 }
@@ -498,7 +465,7 @@
 /* Chat & Data placeholders */
 .chat-placeholder,
 .data-placeholder {
-  color: var(--studio-chrome-text-muted);
+  color: var(--lo-chrome-text-muted);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -536,12 +503,12 @@
   padding: 4px 8px;
   border-radius: 4px;
   text-decoration: none;
-  color: var(--studio-chrome-text-secondary);
+  color: var(--lo-chrome-text-secondary);
   font-size: 13px;
 }
 
 .docs-item:hover {
-  background: var(--studio-chrome-hover);
+  background: var(--lo-chrome-hover);
   color: var(--lo-primary);
 }
 
@@ -551,17 +518,17 @@
   align-items: center;
   gap: 16px;
   padding: 8px 16px;
-  background: var(--studio-chrome);
-  border-top: 1px solid var(--studio-chrome-border);
+  background: var(--lo-chrome);
+  border-top: 1px solid var(--lo-chrome-border);
   font-size: 12px;
-  color: var(--studio-chrome-text-muted);
+  color: var(--lo-chrome-text-muted);
   flex-shrink: 0;
 }
 
 .studio-footer kbd {
   padding: 2px 6px;
-  background: var(--studio-chrome-surface);
-  border: 1px solid var(--studio-chrome-border);
+  background: var(--lo-chrome-surface);
+  border: 1px solid var(--lo-chrome-border);
   border-radius: 4px;
   font-family: inherit;
   margin-inline-end: 4px;
@@ -572,17 +539,17 @@
 }
 
 .studio-footer .lo-notice a {
-  color: var(--studio-chrome-text);
+  color: var(--lo-chrome-text);
 }
 
 .studio-debug-toggle {
   cursor: pointer;
-  color: var(--studio-chrome-text-muted);
+  color: var(--lo-chrome-text-muted);
   font-size: 11px;
 }
 
 .studio-debug-toggle:hover {
-  color: var(--studio-chrome-text);
+  color: var(--lo-chrome-text);
 }
 
 /* ═══════════════════════════════════════════════════════════════

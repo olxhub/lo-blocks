@@ -33,6 +33,16 @@
   --lo-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
   --lo-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
   --lo-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+  /* ── Chrome (darker warm wood) ── */
+  --lo-chrome:                var(--lo-color-paper-900);
+  --lo-chrome-surface:        var(--lo-color-paper-800);
+  --lo-chrome-text:           var(--lo-color-paper-200);
+  --lo-chrome-text-secondary: var(--lo-color-paper-400);
+  --lo-chrome-text-muted:     var(--lo-color-paper-500);
+  --lo-chrome-border:         var(--lo-color-paper-800);
+  --lo-chrome-hover:          var(--lo-color-paper-800);
+  --lo-chrome-active:         var(--lo-color-paper-700);
 }
 
 /* Selection — warmer and brighter alpha on dark backgrounds */
@@ -66,6 +76,16 @@
     --lo-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
     --lo-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
     --lo-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+    /* ── Chrome ── */
+    --lo-chrome:                var(--lo-color-paper-900);
+    --lo-chrome-surface:        var(--lo-color-paper-800);
+    --lo-chrome-text:           var(--lo-color-paper-200);
+    --lo-chrome-text-secondary: var(--lo-color-paper-400);
+    --lo-chrome-text-muted:     var(--lo-color-paper-500);
+    --lo-chrome-border:         var(--lo-color-paper-800);
+    --lo-chrome-hover:          var(--lo-color-paper-800);
+    --lo-chrome-active:         var(--lo-color-paper-700);
   }
 
   [data-theme="literary"][data-color-mode="auto"] ::selection {

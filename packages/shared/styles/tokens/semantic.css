@@ -105,6 +105,16 @@
   --lo-motion-slow:   400ms;
   --lo-ease-default:  cubic-bezier(0.4, 0, 0.2, 1);
 
+  /* ── Chrome (contrasting app frame — dark on light, near-black on dark) ── */
+  --lo-chrome:                var(--lo-color-slate-800);
+  --lo-chrome-surface:        var(--lo-color-slate-700);
+  --lo-chrome-text:           var(--lo-color-slate-50);
+  --lo-chrome-text-secondary: var(--lo-color-slate-300);
+  --lo-chrome-text-muted:     var(--lo-color-slate-400);
+  --lo-chrome-border:         var(--lo-color-slate-600);
+  --lo-chrome-hover:          var(--lo-color-slate-700);
+  --lo-chrome-active:         var(--lo-color-slate-600);
+
   /* ── Layout ── */
   --lo-container-max-width: 1200px;
   --lo-sidebar-width: 320px;

@@ -75,6 +75,16 @@
   /* ── Focus (sepia-tinted) ── */
   --lo-focus-ring:        var(--lo-color-sepia-600);
   --lo-focus-ring-shadow: 0 0 0 3px rgba(192, 94, 60, 0.12);
+
+  /* ── Chrome (warm wood instead of cool slate) ── */
+  --lo-chrome:                var(--lo-color-paper-700);
+  --lo-chrome-surface:        var(--lo-color-paper-600);
+  --lo-chrome-text:           var(--lo-color-paper-50);
+  --lo-chrome-text-secondary: var(--lo-color-paper-300);
+  --lo-chrome-text-muted:     var(--lo-color-paper-400);
+  --lo-chrome-border:         var(--lo-color-paper-600);
+  --lo-chrome-hover:          var(--lo-color-paper-600);
+  --lo-chrome-active:         var(--lo-color-paper-500);
 }
 
 

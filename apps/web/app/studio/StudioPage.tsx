@@ -430,11 +430,7 @@ function StudioPageContent() {
         {/* Sidebar */}
         {sidebarOpen && (
           <>
-            {/* TODO: Replace data-color-mode="dark" with a contrast-surface mechanism
-                that works across themes (e.g. data-surface="contrast"). Currently this
-                forces standard dark tokens; a literary-themed page would get slate dark
-                in the sidebar instead of paper dark. See docs/theme-authoring-guide.md */}
-            <aside className="studio-sidebar" data-color-mode="dark" style={{ width: sidebarWidth }}>
+            <aside className="studio-sidebar lo-chrome" style={{ width: sidebarWidth }}>
               <nav className="studio-sidebar-tabs">
                 {(['chat', 'docs', 'search', 'files', 'data'] as SidebarTab[]).map(tab => (
                   <button
