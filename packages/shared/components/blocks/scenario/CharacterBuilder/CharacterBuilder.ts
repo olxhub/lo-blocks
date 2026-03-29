@@ -8,6 +8,23 @@
 // per-card scoped fields via scopeMarker, and an arrangement array for
 // drag-and-drop ordering.
 //
+// TODO: State model refactor
+//
+// The current approach scatters character data across ~20 individual
+// stateFields (plus per-card scoped fields). This makes YAML round-tripping
+// hard — export works, but import requires decomposing YAML back into
+// dozens of field updates.
+//
+// Better approach: a dictionary/map field type in the state system that
+// does LWW per key (so collaboration still works). On top of that, a
+// CastMember wrapper with Zod validation so you can't accidentally write
+// malformed data. The card UI becomes a view over this structured object,
+// and YAML import/export is trivial (yaml.load → set, get → yaml.dump).
+//
+// This requires extending lib/state/fieldTypes/ with a new dictField or
+// jsonField type. See also: the broader authoring architecture notes in
+// docs/character-development.md.
+//
 // Fields:
 //   cardIds       (idField)    — counter for unique card IDs
 //   cards         (setField)   — active card IDs
@@ -31,13 +48,12 @@ import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector } from '@/lib/state';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
-import { extendIdPrefix, scopeMarker, refToReduxKey } from '@/lib/blocks/idResolver';
+import { extendIdPrefix, scopeMarker } from '@/lib/blocks/idResolver';
 import {
   DIMENSIONS, DIMENSIONS_BY_KEY, DIMENSION_CATEGORIES,
   STAT_PRESETS, STAT_PRESETS_BY_KEY,
 } from '@/lib/avatar/traits';
-import { isValidHexInput, isCompleteHex } from '@/lib/avatar/types';
-import { EMOJI_AVATARS, EMOJI_CATEGORIES, SKIN_TONES, applySkinTone } from '@/lib/avatar/emoji';
+import { isCompleteHex } from '@/lib/avatar/types';
 import { fields as avatarEditorFields } from '../AvatarEditor/AvatarEditor';
 import type { RuntimeProps } from '@/lib/types';
 import * as parsers from '@/lib/content/parsers';
@@ -69,10 +85,10 @@ export const fields = state.fields([
 ]);
 
 // ---------------------------------------------------------------------------
-// YAML builder
+// Data types for character state
 // ---------------------------------------------------------------------------
 
-interface CardData {
+export interface CardData {
   cardType: string;
   dimensionKey: string;
   value: string;
@@ -81,7 +97,7 @@ interface CardData {
   statValues: string;
 }
 
-interface AvatarData {
+export interface AvatarData {
   mode: string;
   src: string;
   emoji: string;
@@ -89,13 +105,23 @@ interface AvatarData {
   openPeeps: Record<string, string>;
 }
 
+export interface CharacterState {
+  characterName: string;
+  cards: CardData[];
+  avatar: AvatarData;
+}
+
 const PEEPS_KEYS = ['face', 'head', 'accessories', 'facialHair', 'mask', 'skinColor', 'clothingColor', 'headContrastColor'];
 const COLOR_KEYS = ['skinColor', 'clothingColor', 'headContrastColor'];
+
+// ---------------------------------------------------------------------------
+// YAML builder
+// ---------------------------------------------------------------------------
 
 /** Build a character YAML from the card stack + avatar data.
  *  Output follows the CastMemberSchema: avatar fields at top level,
  *  character traits nested under `profile`. */
-function buildYaml(characterName: string, cards: CardData[], avatar?: AvatarData): string {
+export function buildYaml(characterName: string, cards: CardData[], avatar?: AvatarData): string {
   if (!characterName && cards.length === 0 && !avatar?.mode) return '';
 
   const name = characterName || 'character';
@@ -144,7 +170,7 @@ function buildYaml(characterName: string, cards: CardData[], avatar?: AvatarData
 }
 
 // ---------------------------------------------------------------------------
-// selectValue helper: read all card data from Redux
+// Read character state from Redux (used by selectValue and CastEditor)
 // ---------------------------------------------------------------------------
 
 function readCardData(
@@ -162,6 +188,35 @@ function readCardData(
   };
 }
 
+/** Read all character data from Redux for the given props scope.
+ *  Used by CharacterBuilder.selectValue and CastEditor.selectValue. */
+export function readCharacterState(
+  reduxState: any, props: RuntimeProps, aeFields: Record<string, any>,
+): CharacterState {
+  const characterName = fieldSelector(reduxState, props, fields.characterName, { fallback: '' });
+  const arrangement: string[] = fieldSelector(reduxState, props, fields.arrangement, { fallback: [] });
+
+  // Avatar data from scoped Open Peeps fields
+  const avatarMode = fieldSelector(reduxState, props, fields.avatarMode, { fallback: '' });
+  const avatarSrc = fieldSelector(reduxState, props, fields.avatarSrc, { fallback: '' });
+  const avatarEmoji = fieldSelector(reduxState, props, fields.avatarEmoji, { fallback: '' });
+  const { idPrefix: peepsPrefix } = extendIdPrefix(props, [props.id, scopeMarker('peeps')]);
+  const peepsScoped = { ...props, idPrefix: peepsPrefix };
+  const seed = fieldSelector(reduxState, peepsScoped, aeFields.seed, { fallback: '' });
+  const openPeeps: Record<string, string> = {};
+  for (const k of PEEPS_KEYS) {
+    openPeeps[k] = fieldSelector(reduxState, peepsScoped, (aeFields as any)[k], { fallback: '' });
+  }
+
+  const cards = arrangement.map(cardId => readCardData(reduxState, props, cardId));
+
+  return {
+    characterName,
+    cards,
+    avatar: { mode: avatarMode, src: avatarSrc, emoji: avatarEmoji, seed, openPeeps },
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Block definition
 // ---------------------------------------------------------------------------
@@ -174,32 +229,14 @@ const CharacterBuilder = dev({
   fields,
   attributes: baseAttributes,
   locals: {
-    buildYaml, avatarEditorFields, isValidHexInput,
+    avatarEditorFields,
     DIMENSIONS, DIMENSIONS_BY_KEY, DIMENSION_CATEGORIES,
     STAT_PRESETS, STAT_PRESETS_BY_KEY,
-    EMOJI_AVATARS, EMOJI_CATEGORIES, SKIN_TONES, applySkinTone,
   },
 
   selectValue: (props: RuntimeProps, reduxState: any, _reduxKey: any) => {
-    const characterName = fieldSelector(reduxState, props, fields.characterName, { fallback: '' });
-    const arrangement: string[] = fieldSelector(reduxState, props, fields.arrangement, { fallback: [] });
-
-    // Read avatar data from scoped Open Peeps fields
-    const avatarMode = fieldSelector(reduxState, props, fields.avatarMode, { fallback: '' });
-    const avatarSrc = fieldSelector(reduxState, props, fields.avatarSrc, { fallback: '' });
-    const avatarEmoji = fieldSelector(reduxState, props, fields.avatarEmoji, { fallback: '' });
-    const { idPrefix: peepsPrefix } = extendIdPrefix(props, [props.id, scopeMarker('peeps')]);
-    const peepsScoped = { ...props, idPrefix: peepsPrefix };
-    const seed = fieldSelector(reduxState, peepsScoped, avatarEditorFields.seed, { fallback: '' });
-    const openPeeps: Record<string, string> = {};
-    for (const k of PEEPS_KEYS) {
-      openPeeps[k] = fieldSelector(reduxState, peepsScoped, (avatarEditorFields as any)[k], { fallback: '' });
-    }
-
-    const cardDataList = arrangement.map(cardId => readCardData(reduxState, props, cardId));
-    return buildYaml(characterName, cardDataList, {
-      mode: avatarMode, src: avatarSrc, emoji: avatarEmoji, seed, openPeeps,
-    });
+    const { characterName, cards, avatar } = readCharacterState(reduxState, props, avatarEditorFields);
+    return buildYaml(characterName, cards, avatar);
   },
 });
 
