@@ -3,7 +3,7 @@
 // Cast-of-characters runtime library — parsing, validation, merging,
 // and propthreading for the cast system.
 //
-// Schemas and types live in openpeeps.ts (pure data model, no runtime code).
+// Schemas and types live in types.ts (pure data model, no runtime code).
 // This file provides the functions that operate on those types.
 //
 // Usage in OLX:
@@ -29,7 +29,7 @@ import Avatar from '@/components/common/Avatar';
 import {
   CastSchema, CastMemberSchema, OpenPeepsSchema,
   type Cast, type CastMember, type OpenPeeps, type FaceExpression, type AvatarStyleValue,
-} from '@/lib/avatar/openpeeps';
+} from '@/lib/avatar/types';
 
 // Re-export schemas and types so existing imports from '@/lib/cast' still work.
 export {
@@ -37,7 +37,7 @@ export {
   OpenPeepsSchema, CastMemberSchema, CastSchema,
   type FaceExpression, type AvatarStyleValue,
   type OpenPeeps, type CastMember, type Cast,
-} from '@/lib/avatar/openpeeps';
+} from '@/lib/avatar/types';
 
 // =============================================================================
 // Internal utilities
@@ -75,7 +75,8 @@ function deepMerge(
 
 // Known field names for case-sensitivity suggestions
 const CAST_MEMBER_KEYS = Object.keys(CastMemberSchema.shape);
-const OPEN_PEEPS_KEYS = Object.keys(OpenPeepsSchema.shape);
+export const OPEN_PEEPS_KEYS = Object.keys(OpenPeepsSchema.shape);
+export const COLOR_PEEPS_KEYS = ['skinColor', 'clothingColor', 'headContrastColor'];
 
 /**
  * Find a case-insensitive match in a list of valid keys.
@@ -141,13 +142,16 @@ export function validateCast(raw: unknown): { cast: Cast; warnings: string[] } {
   try {
     const cast = CastSchema.parse(raw);
 
-    // Cross-field validation: style:'image' requires src, src requires style:'image'
+    // Cross-field validation
     for (const [id, member] of Object.entries(cast)) {
       if (member.style === 'image' && !member.src) {
         throw new Error(`"${id}": style is 'image' but no src provided`);
       }
       if (member.src && member.style && member.style !== 'image') {
         throw new Error(`"${id}": has src but style is '${member.style}' (should be 'image' or omitted)`);
+      }
+      if (member.style === 'emoji' && !member.emoji) {
+        throw new Error(`"${id}": style is 'emoji' but no emoji provided`);
       }
     }
 
@@ -216,29 +220,45 @@ function updateRuntimeCast(
  * @param member - The cast member definition
  * @returns Props suitable for <Avatar name= seed= style= src= options= />
  */
+export interface AvatarBaseProps {
+  name: string;
+  seed: string;
+  style?: 'illustrated' | 'initials' | 'emoji' | 'image';
+  src?: string;
+  emoji?: string;
+  options?: OpenPeeps;
+}
+
 export function castMemberToAvatarProps(
   id: string,
   member: CastMember
-): {
-  name: string;
-  seed: string;
-  style?: 'illustrated' | 'initials';
-  src?: string;
-  options?: OpenPeeps;
-} {
+): AvatarBaseProps {
   const name = member.name ?? id;
   const seed = member.seed ?? id;
 
-  // Image style: src is provided, render directly
+  // Explicit style takes precedence when present
+  if (member.style === 'emoji') {
+    return { name, seed, style: 'emoji', emoji: member.emoji };
+  }
+  if (member.style === 'image') {
+    return { name, seed, src: member.src };
+  }
+  if (member.style === 'initials') {
+    return { name, seed, style: 'initials' };
+  }
+
+  // No explicit style — infer from available data
   if (member.src) {
     return { name, seed, src: member.src };
   }
+  if (member.emoji) {
+    return { name, seed, style: 'emoji', emoji: member.emoji };
+  }
 
-  const style = member.style === 'initials' ? 'initials' : 'illustrated';
   return {
     name,
     seed,
-    style,
+    style: 'illustrated',
     options: member.openPeeps || undefined,
   };
 }
@@ -312,7 +332,7 @@ export function avatar(props: any, options?: AvatarOptions): AvatarResult {
   const size = options?.size ?? 32;
 
   // Defaults from cast member (if found), then overrides from props/options
-  const base = who && resolvedCast[who]
+  const base: AvatarBaseProps = who && resolvedCast[who]
     ? castMemberToAvatarProps(who, resolvedCast[who])
     : { name: who ?? '', seed: who, style: 'illustrated' as const };
 
@@ -320,10 +340,11 @@ export function avatar(props: any, options?: AvatarOptions): AvatarResult {
     name: base.name,
     seed: seed ?? base.seed,
     style: style ?? base.style,
-    src: src ?? (base as any).src,
+    src: src ?? base.src,
+    emoji: base.emoji,
     options: face
-      ? { ...((base as any).options || {}), face }
-      : (base as any).options,
+      ? { ...(base.options || {}), face }
+      : base.options,
   };
 
   return {

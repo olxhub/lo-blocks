@@ -1,4 +1,4 @@
-// src/lib/openpeeps.ts
+// src/lib/avatar/types.ts
 //
 // Zod schemas and TypeScript types for the cast-of-characters system.
 //
@@ -39,7 +39,7 @@ export const Face = z.enum([
   'smileTeethGap', 'solemn', 'suspicious', 'tired', 'veryAngry',
 ]);
 
-const Head = z.enum([
+export const Head = z.enum([
   'afro', 'bangs', 'bangs2', 'bantuKnots', 'bear',
   'bun', 'bun2', 'buns', 'cornrows', 'cornrows2',
   'dreads1', 'dreads2', 'flatTop', 'flatTopLong', 'grayBun',
@@ -52,22 +52,25 @@ const Head = z.enum([
   'turban', 'twists', 'twists2',
 ]);
 
-const Accessories = z.enum([
+export const Accessories = z.enum([
   'eyepatch', 'glasses', 'glasses2', 'glasses3', 'glasses4',
   'glasses5', 'sunglasses', 'sunglasses2',
 ]);
 
-const FacialHair = z.enum([
+export const FacialHair = z.enum([
   'chin', 'full', 'full2', 'full3', 'full4',
   'goatee1', 'goatee2', 'moustache1', 'moustache2', 'moustache3',
   'moustache4', 'moustache5', 'moustache6', 'moustache7', 'moustache8',
   'moustache9',
 ]);
 
-const Mask = z.enum(['medicalMask', 'respirator']);
+export const Mask = z.enum(['medicalMask', 'respirator']);
 
 // Hex color: 6 hex digits (no #), matching DiceBear's pattern.
-const HexColor = z.string().regex(/^[a-fA-F0-9]{6}$/);
+export const HexColor = z.string().regex(/^[a-fA-F0-9]{6}$/);
+
+/** A group identifier: Unicode letters, digits, underscores. */
+export const GroupSlug = z.string().regex(/^[\p{L}\p{N}_]+$/u);
 
 /**
  * DiceBear Open Peeps avatar options.
@@ -84,6 +87,7 @@ export const OpenPeepsSchema = z.object({
   mask: z.union([Mask, z.array(Mask)]).optional(),
   skinColor: z.union([HexColor, z.array(HexColor)]).optional(),
   clothingColor: z.union([HexColor, z.array(HexColor)]).optional(),
+  headContrastColor: z.union([HexColor, z.array(HexColor)]).optional(),
 }).strict();
 
 // =============================================================================
@@ -91,7 +95,7 @@ export const OpenPeepsSchema = z.object({
 // =============================================================================
 
 /** Avatar rendering style. */
-export const AvatarStyle = z.enum(['illustrated', 'initials', 'image']);
+export const AvatarStyle = z.enum(['illustrated', 'initials', 'image', 'emoji']);
 
 /**
  * A single cast member definition.
@@ -110,9 +114,10 @@ export const CastMemberSchema = z.object({
   seed: z.string().optional(),
   style: AvatarStyle.optional(),
   src: z.string().optional(),
+  emoji: z.string().optional(),
   openPeeps: OpenPeepsSchema.optional(),
   profile: z.record(z.unknown()).optional(),
-  groups: z.array(z.string()).optional(),
+  groups: z.array(GroupSlug).optional(),
 }).strict();
 
 // =============================================================================
@@ -126,6 +131,25 @@ export const CastMemberSchema = z.object({
  * In YAML, they appear as top-level keys.
  */
 export const CastSchema = z.record(z.string(), CastMemberSchema);
+
+// =============================================================================
+// Input validators
+// =============================================================================
+//
+// Keystroke-level validators for UI components. Allow partial/empty input
+// during typing. For complete validation, use the Zod schemas above.
+
+/** Keystroke validator for cast IDs: Unicode letters, digits, underscores, spaces. */
+export const isValidCastIdInput = (val: string) => /^[\p{L}\p{N}_ ]*$/u.test(val);
+
+/** Keystroke validator for comma-separated group slugs. */
+export const isValidGroupInput = (val: string) => /^[\p{L}\p{N}_,]*$/u.test(val);
+
+/** Keystroke validator for hex color input (0-6 hex digits). */
+export const isValidHexInput = (val: string) => /^[a-fA-F0-9]{0,6}$/.test(val);
+
+/** Check if a string is a complete 6-digit hex color. */
+export const isCompleteHex = (val: string) => /^[a-fA-F0-9]{6}$/.test(val);
 
 // =============================================================================
 // Inferred types

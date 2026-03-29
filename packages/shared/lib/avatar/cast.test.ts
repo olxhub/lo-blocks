@@ -22,7 +22,7 @@ import {
   CastSchema,
   CastMemberSchema,
   OpenPeepsSchema,
-} from './openpeeps';
+} from './types';
 
 import { parseOLX } from '@/lib/content/parseOLX';
 
@@ -197,11 +197,11 @@ describe('mergeCasts', () => {
   });
 
   test('arrays overwrite (not concatenate)', () => {
-    const base = { bob: { groups: ['team-a', 'interns'] } };
-    const override = { bob: { groups: ['team-b'] } };
+    const base = { bob: { groups: ['team_a', 'interns'] } };
+    const override = { bob: { groups: ['team_b'] } };
 
     expect(mergeCasts(base, override)).toEqual({
-      bob: { groups: ['team-b'] },
+      bob: { groups: ['team_b'] },
     });
   });
 
@@ -462,7 +462,7 @@ bob:
     role: Engineer
     bio: Builds things
   groups:
-    - team-a
+    - team_a
     - engineering
 
 alice:
@@ -474,7 +474,7 @@ alice:
     role: Designer
     bio: Designs things
   groups:
-    - team-a
+    - team_a
     - design
 
 carol:
@@ -482,7 +482,7 @@ carol:
   profile:
     role: Manager
   groups:
-    - team-b
+    - team_b
 `;
 
 function makeMockProvider(files: Record<string, string>) {
@@ -517,7 +517,7 @@ describe('Integration: withCastSupport parse-time loading', () => {
   test('loads .cast file and stores parsed Cast object in idMap attributes', async () => {
     const olx = `
       <Cast id="test_cast" cast="test.cast">
-        <TeamDirectory id="test_dir" group="team-a"/>
+        <TeamDirectory id="test_dir" group="team_a"/>
       </Cast>
     `;
     const provider = makeMockProvider({ 'test.cast': CAST_YAML });
@@ -531,7 +531,7 @@ describe('Integration: withCastSupport parse-time loading', () => {
     expect(typeof castEntryData.attributes.cast).toBe('object');
     expect(castEntryData.attributes.cast.bob).toBeDefined();
     expect(castEntryData.attributes.cast.bob.name).toBe('Bob Builder');
-    expect(castEntryData.attributes.cast.alice.groups).toEqual(['team-a', 'design']);
+    expect(castEntryData.attributes.cast.alice.groups).toEqual(['team_a', 'design']);
 
     // TeamDirectory should also be in the idMap
     const dirEntry = idMap['test_dir'];

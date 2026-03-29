@@ -139,6 +139,8 @@ interface CodeEditorProps {
     foldGutter?: boolean;
     [key: string]: unknown;
   };
+  /** Enable line wrapping. Defaults to true. */
+  lineWrapping?: boolean;
   /** Additional CodeMirror extensions */
   extensions?: Extension[];
 }
@@ -213,6 +215,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
   theme = 'dark',
   height = '100%',
   maxHeight,
+  lineWrapping = true,
   basicSetup = { lineNumbers: true, foldGutter: false },
   extensions: additionalExtensions = [],
 }, ref) {
@@ -282,6 +285,9 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
   const extensions = useMemo(() => {
     const exts: Extension[] = [];
 
+    // Line wrapping
+    if (lineWrapping) exts.push(EditorView.lineWrapping);
+
     // Language extension (syntax highlighting)
     const langExt = getLanguageExtension(effectiveLanguage);
     if (langExt) exts.push(langExt);
@@ -297,7 +303,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
     exts.push(...additionalExtensions);
 
     return exts;
-  }, [effectiveLanguage, isPegContent, ext, additionalExtensions]);
+  }, [lineWrapping, effectiveLanguage, isPegContent, ext, additionalExtensions]);
 
   return (
     <CodeMirror

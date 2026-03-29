@@ -16,13 +16,14 @@ import React, { useMemo } from 'react';
 import { createAvatar } from '@dicebear/core';
 import * as openPeeps from '@dicebear/open-peeps';
 import { resolveContentPath } from '@/lib/content/contentPaths';
-import type { OpenPeeps, AvatarStyleValue } from '@/lib/avatar/openpeeps';
+import type { OpenPeeps, AvatarStyleValue } from '@/lib/avatar/types';
 
 interface AvatarProps {
   name?: string;
   src?: string;
+  emoji?: string;
   seed?: string;
-  style?: 'illustrated' | 'initials';
+  style?: 'illustrated' | 'initials' | 'emoji';
   options?: OpenPeeps;
   size?: number;
 }
@@ -51,9 +52,9 @@ function getInitials(name: string | undefined) {
     .slice(0, 2);
 }
 
-export default function Avatar({ name, src, seed, style = 'illustrated', options, size = 32 }: AvatarProps) {
+export default function Avatar({ name, src, emoji, seed, style = 'illustrated', options, size = 32 }: AvatarProps) {
   const generatedSvg = useMemo(() => {
-    if (src || style === 'initials') return undefined;
+    if (src || emoji || style === 'initials' || style === 'emoji') return undefined;
     // DiceBear expects array values for enumerated options like face, head, etc.
     // Our schema allows singles; coerce to arrays before passing through.
     const dicebearOptions: Record<string, any> = {
@@ -61,7 +62,7 @@ export default function Avatar({ name, src, seed, style = 'illustrated', options
       size,
       ...options,
     };
-    for (const key of ['face', 'head', 'accessories', 'facialHair', 'mask']) {
+    for (const key of ['face', 'head', 'accessories', 'facialHair', 'mask', 'skinColor', 'clothingColor', 'headContrastColor']) {
       if (typeof dicebearOptions[key] === 'string') {
         dicebearOptions[key] = [dicebearOptions[key]];
       }
@@ -69,6 +70,19 @@ export default function Avatar({ name, src, seed, style = 'illustrated', options
     const avatar = createAvatar(openPeeps, dicebearOptions);
     return avatar.toDataUri();
   }, [name, src, seed, style, options, size]);
+
+  // Emoji avatar
+  if (emoji || style === 'emoji') {
+    const fontSize = Math.max(10, Math.round(size * 0.6));
+    return (
+      <div
+        className="rounded-full bg-gray-100 flex items-center justify-center"
+        style={{ width: size, height: size, fontSize }}
+      >
+        {emoji || '?'}
+      </div>
+    );
+  }
 
   // Explicit image URL — highest priority
   if (src) {

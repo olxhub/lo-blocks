@@ -15,7 +15,7 @@ import { z } from 'zod';
 import { VALID_ID_SEGMENT, VALID_REDUX_STATE_KEY, toOlxReference, toReduxStateKey } from './idResolver';
 import type { OlxReference, ReduxStateKey } from '@/lib/types';
 import { parse as parseExpr } from '@/lib/stateLanguage';
-import { CastSchema, Face, AvatarStyle } from '@/lib/avatar/openpeeps';
+import { CastSchema, Face, AvatarStyle } from '@/lib/avatar/types';
 
 /**
  * Zod refinement for validating OLX IDs.

@@ -40,7 +40,7 @@ bob:
     role: Engineer
     bio: Builds things
   groups:
-    - team-a
+    - team_a
     - engineering
 
 alice:
@@ -52,7 +52,7 @@ alice:
     role: Designer
     bio: Designs things
   groups:
-    - team-a
+    - team_a
     - design
 
 carol:
@@ -60,7 +60,7 @@ carol:
   profile:
     role: Manager
   groups:
-    - team-b
+    - team_b
 `;
 
 function makeMockProvider(files: Record<string, string>) {
@@ -129,10 +129,10 @@ async function parseAndRender(olx: string, providerFiles?: Record<string, string
 //
 // Input:
 //   <Cast cast="test.cast">                   ← loads YAML, stores in attributes
-//     <TeamDirectory group="team-a"/>          ← reads from runtime.cast
+//     <TeamDirectory group="team_a"/>          ← reads from runtime.cast
 //   </Cast>
 //
-// Expected: TeamDirectory shows bob and alice (team-a), not carol (team-b).
+// Expected: TeamDirectory shows bob and alice (team_a), not carol (team_b).
 
 describe('Cast → TeamDirectory propthreading', () => {
   afterEach(() => cleanup());
@@ -140,17 +140,17 @@ describe('Cast → TeamDirectory propthreading', () => {
   test('TeamDirectory shows members from the cast, filtered by group', async () => {
     const olx = `
       <Cast id="cast_render_test" cast="test.cast">
-        <TeamDirectory id="dir_render_test" group="team-a" title="Team A"/>
+        <TeamDirectory id="dir_render_test" group="team_a" title="Team A"/>
       </Cast>
     `;
 
     const { container } = await parseAndRender(olx, { 'test.cast': CAST_YAML });
 
-    // team-a members should appear
+    // team_a members should appear
     expect(container.textContent).toContain('Bob Builder');
     expect(container.textContent).toContain('Alice Wonderland');
 
-    // team-b members should NOT appear
+    // team_b members should NOT appear
     expect(container.textContent).not.toContain('Carol Singer');
 
     // Should NOT show the empty-state message
@@ -173,7 +173,7 @@ describe('Cast → TeamDirectory propthreading', () => {
 
   test('TeamDirectory without Cast wrapper shows empty state', async () => {
     const olx = `
-      <TeamDirectory id="dir_no_cast_test" group="team-a" title="No Cast"/>
+      <TeamDirectory id="dir_no_cast_test" group="team_a" title="No Cast"/>
     `;
 
     const { container } = await parseAndRender(olx);
@@ -186,7 +186,7 @@ describe('Cast → TeamDirectory propthreading', () => {
     const olx = `
       <Cast id="cast_nested_test" cast="test.cast">
         <Vertical id="wrapper">
-          <TeamDirectory id="dir_nested_test" group="team-a" title="Nested"/>
+          <TeamDirectory id="dir_nested_test" group="team_a" title="Nested"/>
         </Vertical>
       </Cast>
     `;
@@ -220,7 +220,7 @@ describe('Launchable block: rendering from non-root ID', () => {
     const olx = `
       <Cast id="cast_above" cast="test.cast">
         <Vertical id="vert_above">
-          <TeamDirectory id="dir_above" group="team-a" title="Above"/>
+          <TeamDirectory id="dir_above" group="team_a" title="Above"/>
         </Vertical>
       </Cast>
     `;
@@ -237,7 +237,7 @@ describe('Launchable block: rendering from non-root ID', () => {
     // The fix: TeamDirectory loads its own cast file at parse time.
     const olx = `
       <Vertical id="vert_direct">
-        <TeamDirectory id="dir_direct" group="team-a" title="Direct" cast="test.cast"/>
+        <TeamDirectory id="dir_direct" group="team_a" title="Direct" cast="test.cast"/>
       </Vertical>
     `;
 
@@ -255,7 +255,7 @@ describe('Launchable block: rendering from non-root ID', () => {
     const olx = `
       <Cast id="cast_outer" cast="test.cast">
         <Vertical id="vert_launch">
-          <TeamDirectory id="dir_launch" group="team-a" title="Launch" cast="test.cast"/>
+          <TeamDirectory id="dir_launch" group="team_a" title="Launch" cast="test.cast"/>
         </Vertical>
       </Cast>
     `;
