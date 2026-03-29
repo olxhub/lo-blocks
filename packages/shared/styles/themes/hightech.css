@@ -5,7 +5,7 @@
  * Dark surfaces by default, glowing cyan/fuchsia accents, monospace UI font.
  * Think terminal meets cyberpunk.
  *
- * Activate: <html data-theme="hightech">
+ * Activate: <html data-theme="hightech" data-color-mode="auto">
  *
  * NOTE: This theme is dark-first — the light variant below provides the
  * "light mode" override. In dark mode (or no color-mode set), the base

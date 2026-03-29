@@ -111,12 +111,12 @@ function SelectionPopup({
           so that the click handler fires while the popup is still mounted.
           stopPropagation on mouseUp prevents the passage's handleMouseUp from
           re-running (which would re-derive the selection). */}
-      <div className="bg-background rounded-md px-2 py-1 shadow-lg flex items-center gap-1">
+      <div className="rounded-md px-2 py-1 shadow-lg flex items-center gap-1" style={{ background: 'var(--lo-chrome)', color: 'var(--lo-chrome-text)' }}>
         <button
           onClick={onAnnotate}
           onMouseDown={(e) => e.preventDefault()}
           onMouseUp={(e) => e.stopPropagation()}
-          className="text-inverse text-xs font-semibold px-3 py-1.5 rounded hover:bg-muted flex items-center gap-1.5 transition-colors"
+          className="text-xs font-semibold px-3 py-1.5 rounded hover:opacity-80 flex items-center gap-1.5 transition-colors"
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
@@ -132,7 +132,7 @@ function SelectionPopup({
           height: 0,
           borderLeft: '6px solid transparent',
           borderRight: '6px solid transparent',
-          borderTop: '6px solid rgb(31, 41, 55)',
+          borderTop: '6px solid var(--lo-chrome)',
         }}
       />
     </div>

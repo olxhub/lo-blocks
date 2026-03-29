@@ -5,7 +5,8 @@
  * Typographic treatment (fonts, drop caps, ornamental hr) is inherited from
  * literary.css — those rules are not color-mode-scoped.
  *
- * Activate: <html data-theme="literary" data-color-mode="dark">
+ * All theme attributes are on <html>:
+ * <html data-theme="literary" data-color-mode="dark">
  */
 
 [data-theme="literary"][data-color-mode="dark"] {

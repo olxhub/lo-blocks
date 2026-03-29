@@ -11,10 +11,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" data-color-mode="auto">
+    <html lang="en" data-color-mode="auto" data-theme="default" data-brand="default">
       <body
-        data-theme="default"
-        data-brand="default"
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <StoreWrapper>

@@ -5,7 +5,7 @@
  * Classical serif reading font, sepia accents, gentle shadows.
  * Evokes an 1850s letterpress, aged paper, scholastic contemplation.
  *
- * Activate: <html data-theme="literary">
+ * Activate: <html data-theme="literary" data-color-mode="auto">
  * Palette sourced from css-refactor/annotate-mockup.jsx
  */
 
@@ -99,8 +99,8 @@
  */
 
 /* Body — EB Garamond across the entire page.
- * Compound selector (not descendant) because data-theme is on <body> itself. */
-body[data-theme="literary"] {
+ * Descendant selector: data-theme is on <html>, body inherits. */
+[data-theme="literary"] body {
   font-family: var(--lo-font-body);
   text-rendering: optimizeLegibility;
   font-feature-settings: "liga" 1, "onum" 1, "kern" 1;

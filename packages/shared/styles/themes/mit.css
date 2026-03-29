@@ -5,7 +5,7 @@
  * to MIT's burgundy. Works with any theme (default, literary, hightech)
  * and any color mode (light, dark, auto).
  *
- * Activate: <body data-brand="mit">
+ * Activate: <html data-brand="mit">
  */
 
 [data-brand="mit"] {
@@ -18,8 +18,7 @@
 }
 
 /* Dark mode: lighter burgundy for contrast */
-[data-brand="mit"][data-color-mode="dark"],
-[data-brand="mit"] [data-color-mode="dark"] {
+[data-brand="mit"][data-color-mode="dark"] {
   --lo-primary:        var(--lo-color-burgundy-500);
   --lo-primary-hover:  var(--lo-color-burgundy-600);
   --lo-primary-subtle: rgba(192, 32, 64, 0.15);
@@ -29,8 +28,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  [data-brand="mit"][data-color-mode="auto"],
-  [data-brand="mit"] [data-color-mode="auto"] {
+  [data-brand="mit"][data-color-mode="auto"] {
     --lo-primary:        var(--lo-color-burgundy-500);
     --lo-primary-hover:  var(--lo-color-burgundy-600);
     --lo-primary-subtle: rgba(192, 32, 64, 0.15);

@@ -60,10 +60,10 @@ export default function SettingsTab() {
     ? document.documentElement.getAttribute('data-color-mode') || 'auto'
     : 'auto';
   const domTheme = typeof document !== 'undefined'
-    ? document.body?.getAttribute('data-theme') || 'default'
+    ? document.documentElement.getAttribute('data-theme') || 'default'
     : 'default';
   const domBrand = typeof document !== 'undefined'
-    ? document.body?.getAttribute('data-brand') || 'default'
+    ? document.documentElement.getAttribute('data-brand') || 'default'
     : 'default';
 
   const [colorMode, setColorMode] = useFieldState(
@@ -106,7 +106,7 @@ export default function SettingsTab() {
 
       <ToggleGroup
         label="Theme"
-        description="Controls data-theme on <body>"
+        description="Controls data-theme on <html>"
         options={THEMES}
         value={theme}
         onChange={setTheme}
@@ -114,7 +114,7 @@ export default function SettingsTab() {
 
       <ToggleGroup
         label="Brand"
-        description="Controls data-brand on <body>"
+        description="Controls data-brand on <html>"
         options={BRANDS}
         value={brand}
         onChange={setBrand}

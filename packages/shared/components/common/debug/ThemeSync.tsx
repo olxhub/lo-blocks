@@ -21,13 +21,13 @@ export default function ThemeSync() {
 
   useEffect(() => {
     if (theme) {
-      document.body.setAttribute('data-theme', theme);
+      document.documentElement.setAttribute('data-theme', theme);
     }
   }, [theme]);
 
   useEffect(() => {
     if (brand) {
-      document.body.setAttribute('data-brand', brand);
+      document.documentElement.setAttribute('data-brand', brand);
     }
   }, [brand]);
 
