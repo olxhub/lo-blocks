@@ -501,7 +501,6 @@ function GrammarExamplePreview({ example, grammarName, extension }) {
               onChange={setEditedContent}
               path={`example.${extension}`}
               maxHeight="200px"
-              theme="light"
             />
           </div>
         </div>
@@ -531,7 +530,7 @@ function GrammarSourceTab({ grammar }) {
           onChange={() => {}} // Read-only
           path={`${grammar.name}.pegjs`}
           maxHeight="600px"
-          theme="light"
+
         />
       </div>
     </div>
@@ -579,7 +578,7 @@ function GrammarExampleTab({ example, grammarName, extension }) {
             onChange={setEditedContent}
             path={`example.${extension}`}
             maxHeight="300px"
-            theme="light"
+  
           />
         </div>
       </section>
@@ -647,7 +646,7 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
             onChange={setEditedContent}
             language="xml"
             maxHeight="256px"
-            theme="light"
+  
           />
         </div>
       </div>
@@ -742,7 +741,7 @@ function ExampleTab({ example, blockName }) {
             value={editedContent}
             onChange={setEditedContent}
             language="xml"
-            theme="light"
+  
           />
         </div>
       </section>

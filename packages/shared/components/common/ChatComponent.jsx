@@ -8,10 +8,11 @@ import ExpandIcon from '@/components/common/ExpandIcon';
 import * as cast from '@/lib/avatar/cast';
 import { acceptString } from '@/lib/util/fileTypes';
 
-// Theme definitions — token-mapped classes handle dark mode via CSS custom properties.
-// The dark theme is no longer needed; both 'light' and 'dark' keys resolve to the same
-// token set so that existing theme={} props keep working without breaking callers.
-const tokenTheme = {
+// Token-mapped CSS classes — dark mode handled automatically via CSS custom
+// properties (--lo-* tokens).  To render this component on a dark/contrasting
+// surface, scope `data-color-mode="dark"` on a parent container so that
+// semantic tokens resolve to their dark-mode values.
+const t = {
   container: 'border-border bg-background',
   header: 'bg-background border-border',
   headerText: 'text-secondary',
@@ -33,16 +34,8 @@ const tokenTheme = {
   errorBadge: 'bg-error-subtle text-error',
 };
 
-const themes = {
-  light: tokenTheme,
-  dark: tokenTheme,
-  auto: tokenTheme,
-};
-
 // Message component for chat lines
-const ChatMessage = ({ message, isSequential, theme, participants }) => {
-  const t = themes[theme] || themes.light;
-
+const ChatMessage = ({ message, isSequential, participants }) => {
   const { avatar, name } = cast.avatar({}, {
     who: message.speaker,
     cast: participants ?? {},
@@ -71,8 +64,7 @@ const ChatMessage = ({ message, isSequential, theme, participants }) => {
 };
 
 // System message component
-const SystemMessage = ({ message, theme }) => {
-  const t = themes[theme] || themes.light;
+const SystemMessage = ({ message }) => {
   return (
     <div className="flex justify-center my-2">
       <span className={`text-xs ${t.systemText} ${t.systemBg} py-1 px-3 rounded-full`}>
@@ -83,8 +75,7 @@ const SystemMessage = ({ message, theme }) => {
 };
 
 // Date separator component
-const DateSeparator = ({ message, theme }) => {
-  const t = themes[theme] || themes.light;
+const DateSeparator = ({ message }) => {
   return (
     <div className="flex justify-center my-4">
       <span className={`text-xs ${t.systemText} ${t.systemBg} py-1 px-3 rounded-full`}>
@@ -95,9 +86,8 @@ const DateSeparator = ({ message, theme }) => {
 };
 
 // Tool call component - shows what tool the LLM called
-const ToolCallMessage = ({ message, theme }) => {
+const ToolCallMessage = ({ message }) => {
   const [expanded, setExpanded] = useState(false);
-  const t = themes[theme] || themes.light;
 
   // Truncate result for synopsis display
   const synopsis = message.result || '(no result)';
@@ -133,9 +123,7 @@ export const InputFooter = ({
   disabled = false,
   placeholder = 'Type a message...',
   allowFileUpload = false,
-  theme = 'light',
 }) => {
-  const t = themes[theme];
   const [message, setMessage] = useState('');
   const [attachedFile, setAttachedFile] = useState(null); // { name, content }
   const [fileError, setFileError] = useState(null);
@@ -285,9 +273,7 @@ export function ChatComponent({
   footer,
   height = 'h-96',
   onAdvance = null,
-  theme = 'light',
 }) {
-  const t = themes[theme];
   const chatContainerRef = useRef(null);
 
   useEffect(() => {
@@ -337,25 +323,25 @@ export function ChatComponent({
       case 'Line':
         return (
           <div key={index} className="message-item">
-            <ChatMessage message={message} isSequential={isSequential} theme={theme} participants={participants} />
+            <ChatMessage message={message} isSequential={isSequential} participants={participants} />
           </div>
         );
       case 'SystemMessage':
         return (
           <div key={index} className="message-item">
-            <SystemMessage message={message} theme={theme} />
+            <SystemMessage message={message} />
           </div>
         );
       case 'DateSeparator':
         return (
           <div key={index} className="message-item">
-            <DateSeparator message={message} theme={theme} />
+            <DateSeparator message={message} />
           </div>
         );
       case 'ToolCall':
         return (
           <div key={index} className="message-item">
-            <ToolCallMessage message={message} theme={theme} />
+            <ToolCallMessage message={message} />
           </div>
         );
       default:

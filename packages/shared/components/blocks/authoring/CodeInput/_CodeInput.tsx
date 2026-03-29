@@ -12,7 +12,7 @@ import { useFieldState, useValue } from '@/lib/state';
 import CodeEditor from '@/components/common/CodeEditor';
 
 function _CodeInput(props: RuntimeProps) {
-  const { id, fields, language = 'olx', height = '300px', theme = 'light' } = props;
+  const { id, fields, language = 'olx', height = '300px' } = props;
 
   const [, setValue] = useFieldState(props, fields.value, null);
   const { value } = useValue(props, { fallback: null });
@@ -28,7 +28,6 @@ function _CodeInput(props: RuntimeProps) {
       onChange={onChange}
       language={language}
       height={height}
-      theme={theme}
     />
   );
 }
