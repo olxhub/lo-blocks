@@ -138,8 +138,8 @@ function _Navigator(props: RuntimeProps) {
   };
 
   return (
-    <div className="navigator-component border rounded-lg bg-background overflow-hidden">
-      <div className="flex h-96">
+    <div className="navigator-component border rounded-lg bg-background overflow-hidden flex flex-col h-full min-h-96">
+      <div className="flex flex-1 min-h-0">
         {/* Left Panel - Item List */}
         <div className="w-1/3 border-r bg-surface flex flex-col">
           <div className="p-4 border-b bg-background">

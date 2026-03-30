@@ -1,6 +1,7 @@
 <!-- Interdisciplinary Studies SBA: High School Dropout Analysis -->
 <Vertical id="interdisciplinary_sba_root">
 
+<!-- Main SBA Interface -->
 <!--
 ---
 description: Analyze high school dropout rates using interdisciplinary research methods and statistical reasoning
@@ -8,9 +9,8 @@ category: interdisciplinary
 lang: en-Latn-US
 ---
 -->
-<Cast id="interdisciplinary_sba_demo" cast="characters.cast" launchable="true" title="Interdisciplinary Studies SBA - High School Dropout Analysis">
-
-<SplitPanel id="interdisciplinary_sba_splitpanel">
+<Cast cast="characters.cast" id="interdisciplinary_sba_demo" title="Interdisciplinary Studies SBA - High School Dropout Analysis" launchable="true">
+<SplitPanel>
 
   <!-- Left Panel: Dialogue Conversation -->
   <LeftPane>
@@ -22,7 +22,7 @@ lang: en-Latn-US
     <Tabs id="interdisciplinary_sba_tabs">
       <!-- Tab 1: Current Activity -->
       <Vertical id="interdisciplinary_current_activity" title="Current Activity">
-        <UseHistory id="interdisciplinary_sba_sidebar" initial="interdisciplinary_orientation" />
+        <UseHistory id="interdisciplinary_sba_sidebar" initial="interdisciplinary_gsu_plaza_image" />
       </Vertical>
 
       <!-- Tab 2: Student Artifact -->
@@ -43,15 +43,15 @@ lang: en-Latn-US
   </RightPane>
 
 </SplitPanel>
-
 </Cast>
 
 <!-- ============================================================
      REFERENCED CONTENT BLOCKS
      ============================================================ -->
 
+
 <!-- Team Directory -->
-<TeamDirectory id="interdisciplinary_team_members" title="Comm360 Team" group="comm360"/>
+<TeamDirectory id="interdisciplinary_team_members" title="Comm360 Team"/>
 
 <!-- Reading Library Navigator -->
 <Navigator id="interdisciplinary_library"

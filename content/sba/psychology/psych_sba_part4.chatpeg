@@ -1,5 +1,18 @@
-title: Fidelity of Implementation and Revising an Intervention
-author: "TODO -- fill this in"
+Title: Fidelity of Implementation and Revising an Intervention
+Author: "TODO -- fill this in"
+Cast:
+  Annie:
+    seed: annie
+    face: smile
+  JJ:
+    seed: alexander
+    face: smile
+  Lin:
+    seed: lynnette
+    face: smile
+  Lianne:
+    seed: lianne
+    face: smile
 ~~~~
 Introduction
 ------------
@@ -12,7 +25,7 @@ Annie: Hey everyone, I have an update about Johnny...
 
 JJ: What happened?
 
-Annie: The intervention didn't go as well as we hoped. She only got him to bed on time only on the first two 2 out of 5 times. And on one occasion, she admitted she didn't follow our plan exactly. When I questioned her more closely, she told me she'd focused on the antecedent strategies. She didn't follow any of the consequence strategies.
+Annie: The intervention didn't go as well as we hoped. She only got him to bed on time 2 out of the first 5 times. And on one occasion, she admitted she didn't follow our plan exactly. When I questioned her more closely, she told me she'd focused on the antecedent strategies. She didn't follow any of the consequence strategies.
 
 psych_sba_sidebar4 -> two_weeks_later
 
@@ -62,7 +75,7 @@ JJ: All right, here we go.
 
 Lin: That looks a lot better!
 
-Annie: It does indeed! 
+Annie: It does indeed!
 
 psych_sba_sidebar4 -> ai_modifications2
 
@@ -84,7 +97,7 @@ JJ: Great choices! I totally agree.
 
 psych_sba_sidebar4 -> fidelity_checklist
 
-Lin: Me too. Here's a checklist I put together. 
+Lin: Me too. Here's a checklist I put together.
 
 psych_sba_sidebar4 -> fidelity_checklist2
 

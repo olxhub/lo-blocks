@@ -1,5 +1,18 @@
-title: Psychology Study Group, Task 1
-author: "TODO -- fill this in"
+Title: Psychology Study Group, Task 1
+Author: "TODO -- fill this in"
+Cast:
+  Annie:
+    seed: annie
+    face: smile
+  JJ:
+    seed: alexander
+    face: smile
+  Lin:
+    seed: lynnette
+    face: smile
+  Lianne:
+    seed: lianne
+    face: smile
 ~~~~
 
 Introduction

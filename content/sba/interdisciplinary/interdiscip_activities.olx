@@ -5,20 +5,75 @@ category: interdisciplinary
 lang: en-Latn-US
 ---
 -->
-<Vertical id="interdisciplinary_activities" launchable="true">
+<Cast cast="characters.cast" id="interdisciplinary_activities" launchable="true">
+<Vertical>
 
   <!-- ORIENTATION -->
-  <Markdown id="interdisciplinary_orientation">
-## Welcome to the Interdisciplinary Studies Module
+  <SplitPanel id="interdisciplinary_orientation" title="Introduction" sizes="65,35">
+      <LeftPane>
+          <Markdown id="interdisciplinary_orientation_md">
+## Introduction
 
-In this simulated internship at Community 360, you'll apply interdisciplinary analysis to understand the complex issue of high school dropout rates in the community.
+Imagine that as part of your degree requirements, you are completing an internship at a local
+nonprofit called **Community 360**, or **Comm360** for short.
 
-Working with supervisor Lianne Park and your intern teammates, you'll investigate causes, review research from multiple disciplines, and develop evidence-based recommendations.
+The mission of Comm360 is to address community-based needs and issues through responsive
+programming in multiple areas such as:
+ - Education and Training
+ - Health and Welfare
+ - Family and Youth Services
+ - Community Building and Advocacy
+
+A community needs survey conducted by Comm360 identified the high rate of students dropping out
+of high school in the area as a serious issue. You have been asked to work with other interns
+to investigate the causes of high school dropout to better understand the problem so that
+Comm360's services can be developed to address the problem.
+          </Markdown>
+      </LeftPane>
+      <RightPane>
+          <Image id="interdisciplinary_image" src="/sba/interdisciplinary/images/nonprofit.png" alt="Nonprofit" />
+          <Image id="interdisciplinary_image2" src="/sba/interdisciplinary/images/wordcloud.png" alt="Helping, volunteer, community, donations ..." />
+      </RightPane>
+  </SplitPanel>
+
+  <Image id="interdisciplinary_gsu_plaza_image" src="/sba/interdisciplinary/images/GSU_Library_Plaza.jpg" alt="GSU Library Plaza. Photograph by Hwi Padam, CC by SA 4.0" />
+
+  <Markdown id="interdisciplinary_task_list">
+## Task Outline
+
+In the next 45-60 minutes you will work with your teammates to complete the following tasks:
+ 1. _Brainstorm causes for high school dropout._
+ 2. _Review community focus group data._
+ 3. _Select Focus Areas._
+ 4. _Reflect: Is this an interdisciplinary problem?_
+ 5. _Review the literature._
+
+This is Part One. In Parts Two and Three you will complete the rest of the interdisciplinary
+research process.
   </Markdown>
 
-  <Image id="interdisciplinary_gsu_prof_image" src="/sba/interdisciplinary/images/GSU_prof.png" alt="Professor at Georgia State University" />
+  <Image id="cause_brainstorming" src="/sba/interdisciplinary/images/team_workshop.jpg" alt="Talking about processes at a team brainstorming session. Source: UCT MOOC, CC by SA 4.0 International License" />
+
+  <Markdown id="internal_and_structural_causes">
+## Internal and Structural Causes
+
+ - **Internal Causes** arise from **inside** the student;
+     for instance, they may get sick and be unable to keep up with the work.
+ - **Structural Causes** arise from **outside the student**, from the way
+     their family, community and school are structured and organized;
+     for instance, the school may not provide any support for sick
+     students that would enable them to continue their classes by
+     independent study.
+  </Markdown>
 
   <!-- TEAM AND LIBRARY - resolved from interdisciplinary_sba.olx -->
+
+  <Vertical id="interdisciplinary_team_intro">
+      <Markdown>
+## Introduction to the Team
+      </Markdown>
+      <Use ref="interdisciplinary_team_members" />
+  </Vertical>
 
   <!-- ============================================================
        TASKSET 1: BRAINSTORM CAUSES
@@ -27,7 +82,9 @@ Working with supervisor Lianne Park and your intern teammates, you'll investigat
 
     <!-- Input for student's causes -->
     <Vertical id="cause_inputs">
-      <Markdown>**Think of two causes for high school dropout:**</Markdown>
+      <Markdown>
+**Think of two causes for high school dropout:**
+      </Markdown>
       <Markdown>**Your individual cause (internal):** Type a cause that focuses on an individual's choice or situation:</Markdown>
       <TextArea id="cause_internal" placeholder="e.g., Students who struggle with learning disabilities..." />
       <Markdown>**Your structural cause:** Type a cause that focuses on external factors beyond the individual:</Markdown>
@@ -35,7 +92,7 @@ Working with supervisor Lianne Park and your intern teammates, you'll investigat
     </Vertical>
 
     <!-- Combined list of causes from team + student -->
-    <Vertical id="causes_list">
+    <Vertical id="causes_list" popout="window">
       <Markdown>
 **Combined Causes from Team Discussion:**
 
@@ -68,49 +125,179 @@ Working with supervisor Lianne Park and your intern teammates, you'll investigat
 
     <!-- Focus group transcript part 1 -->
     <Vertical id="focus_group_transcript_pt1">
-      <Markdown>**Focus Group Transcript (Part 1)**</Markdown>
-      <TextSelection id="focus_group_pt1" mode="selfcheck">
-Highlight reasons participants gave for dropping out:
----
-**Moderator:** Thank you all for being here. We want to understand why young people leave high school before graduating. Let's start with what you've seen in your community.
+      <Markdown>
+**Highlight places in the text where a participant mentions a cause of high school dropout,
+and add an annotation that says why this statement identifies a dropout cause. You'll be able
+to use these notes later.**
 
-**Parent 1:** I've seen kids who just [couldn't keep up academically]. They fell behind and gave up. Some had [learning problems] that were never addressed.
+_You can expand the text to a full window by clicking on the square double arrow icon below to the
+right of "Annotations"._
+</Markdown>
+      <Annotate id="focus_group" title="Focus Group Transcript (Part 1)" popout="window">
+          <Markdown id="transcript_md1">
+## Focus Group Transcript
+**Interviewer:**
+Thank you for participating in this focus group and thank you for providing your consent to have this meeting recorded. Let's begin. Our community needs survey identified high school dropout rates as an issue of concern. The purpose of this focus group is to discuss causes of dropping out of high school. Why do you think students in our community dropout of high school?
 
-**Teacher:** In my experience, many students [need to work to help their families]. They take jobs and can't balance both. The [economic pressure] is real.
+**Participant 1:**
+I'll start. My kids all graduated from high school. Whenever they complained or they felt like quitting, we kept on them to keep at it. Luckily, so did their friends. Everybody around them just wouldn't let them quit. While they did not get along with all their teachers, they had some FANTASTIC teachers who supported them. So, we all helped them to stick it out.
 
-**Community Member:** There's also the [gang activity in some neighborhoods]. Kids get pulled in, and school becomes secondary to survival.
+**Participant 2:**
+Those are some good friends to have! I'm not always sure what influence my daughter's friends are having on her - good or bad.
 
-**Parent 2:** [Depression and anxiety] are huge issues. My neighbor's son stopped going because he [couldn't face the social environment]. Nobody helped him.
-      </TextSelection>
-    </Vertical>
+**Interviewer 1:**
+Thank you for sharing your experiences. But for now, I'd like us to focus on the causes leading to students dropping out. Later, we can discuss the kinds of actions and support that can help them to persist to graduation.
 
-    <!-- Focus group transcript part 2 -->
-    <Vertical id="focus_group_transcript_pt2">
-      <Markdown>**Focus Group Transcript (Part 2)**</Markdown>
-      <TextSelection id="focus_group_pt2" mode="selfcheck">
-Continue highlighting reasons for dropping out:
----
-**Counselor:** I see students who feel [disconnected from the curriculum]. They don't see how algebra helps them get a job. [Relevance] is a major factor.
+**Participant 3:**
+I have an experience to share. My daughter's best friend has dyslexia and was falling behind in all her classes. Her grades were awful. And she wasn't getting the help that she needed from the school to catch up. When my daughter was a sophomore, her friend dropped out because she couldn't cope.
 
-**Former Student:** I dropped out because I had a [baby and no childcare]. The school didn't have any support for teen parents. I wanted to graduate but saw no path forward.
+**Participant 1:**
+That probably wasn't easy for your daughter or her friend.
 
-**Teacher 2:** Some students have [unstable home lives]. They move frequently, change schools, and never build connections. [Lack of support networks] makes it hard.
+**Participant 3:**
+Yes, my daughter was really upset. She knew her friend since elementary school. Thankfully, her friend was able to get tutoring at a community center that helped her improve her reading and she eventually got her GED.
 
-**Community Leader:** We need to talk about [school funding]. Underfunded schools can't provide the resources - tutoring, counseling, special ed services - that keep struggling students in school.
+**Participant 2:**
+If our schools had more tutoring or mentorship programs, we might be able to help our kids before they drop out, instead of after it is too late.
 
-**Parent 1:** And some families prioritize [cultural or religious responsibilities] over American-style education. That's their choice, but it affects graduation rates.
-      </TextSelection>
+**Interviewer:**
+Thanks for that suggestion, but if you don't mind holding off on those kinds of ideas until we get to that part of the focus group, I'll bring that up again for more discussion.
+
+**Participant 2:**
+Oh, sure. No problem.
+
+**Participant 4:**
+Here's something - kind of big picture, but I know   some parents who still believe that graduating from high school isn't as important or as high a priority as supporting the family.
+
+**Interviewer:**
+Can you tell us more about that?
+
+**Participant 4:**
+Well, I know this because of some of my neighbors. One of my son's friend's parents had steady, good paying jobs for years working in their family's restaurant. Another family has a small business and expect their kids to take it over. These parents did not have or need high school degrees to get those jobs. They want their children to follow in their footsteps.
+
+So, whether it is to work in the family business or just to take care of an elder family member instead of going to school, they tell me that's more important for their children to help out than getting a high school diploma.
+
+**Interviewer:**
+Thank you. The values and beliefs of families can be complicated influences on their children.
+
+**Participant 5:**
+I don't know if this is appropriate, but I do know that   behavioral and especially legal issues can lead to dropping out.
+
+**Interviewer:**
+Can you tell us more about that?
+
+**Participant 5:**
+I work in a community legal office. And, well, sometimes I am called in to represent young people who get in trouble with the law or arrested. It could be getting caught shoplifting or something more serious like ...well, you can imagine. Whether they are eventually found guilty or innocent, it can have an impact on completing school to graduation. The entire experience with the legal system can take time and resources, creating stress on the youth and families. Then, the youth faces the social pressures in school from friends, classmates, and teachers, even when they are trying to be supportive.
+
+And in some schools with no-tolerance policies, once school administrators find out about the allegations, the student may be expelled.
+
+A young adult may feel trapped and dropping out may seem like the best option.
+
+**Participant 3:**
+Mmmmm, yeah, I can see that.
+
+**Interviewer:**
+Are there any other comments on the causes? [interviewer pause] OK, let's move on to the next part of the focus group.
+       </Markdown>
+    </Annotate>
     </Vertical>
 
     <!-- Display of focus group highlights -->
     <Vertical id="focus_group_highlights_shown">
-      <Markdown>**Your Focus Group Highlights:**</Markdown>
-      <Markdown>The text you highlighted identifies key causes mentioned by community members. These will be combined with the team's brainstormed causes.</Markdown>
+          <Markdown id="transcript_md2">
+## Focus Group Transcript
+`The Parts of the Passage Ty Annotated`
+
+**Interviewer:**
+Thank you for participating in this focus group and thank you for providing your consent to have this meeting recorded. Let's begin. Our community needs survey identified high school dropout rates as an issue of concern. The purpose of this focus group is to discuss causes of dropping out of high school. Why do you think students in our community dropout of high school?
+
+**Participant 1:**
+I'll start. My kids all graduated from high school. Whenever they complained or they felt like quitting, we kept on them to keep at it. Luckily, so did their friends. `Everybody around them just wouldn't let them quit.` While they did not get along with all their teachers, they had some FANTASTIC teachers who supported them. So, we all helped them to stick it out.
+
+**Participant 2:**
+Those are some good friends to have! `I'm not always sure what influence my daughter's friends are having on her - good or bad.`
+
+**Interviewer 1:**
+Thank you for sharing your experiences. But for now, I'd like us to focus on the causes leading to students dropping out. Later, we can discuss the kinds of actions and support that can help them to persist to graduation.
+
+**Participant 3:**
+I have an experience to share. `My daughter's best friend has dyslexia and was falling behind in all her classes. Her grades were awful. And she wasn't getting the help that she needed from the school to catch up.` When my daughter was a sophomore, her friend dropped out because she couldn't cope.
+
+**Participant 1:**
+That probably wasn't easy for your daughter or her friend.
+
+**Participant 3:**
+Yes, my daughter was really upset. She knew her friend since elementary school. Thankfully, her friend was able to get tutoring at a community center that helped her improve her reading and she eventually got her GED.
+
+**Participant 2:**
+If our schools had more tutoring or mentorship programs, we might be able to help our kids before they drop out, instead of after it is too late.
+
+**Interviewer:**
+Thanks for that suggestion, but if you don't mind holding off on those kinds of ideas until we get to that part of the focus group, I'll bring that up again for more discussion.
+
+**Participant 2:**
+Oh, sure. No problem.
+
+**Participant 4:**
+Here's something - kind of big picture, but I know   some parents who still believe that graduating from high school isn't as important or as high a priority as supporting the family.
+
+**Interviewer:**
+Can you tell us more about that?
+
+**Participant 4:**
+Well, I know this because of some of my neighbors. One of my son's friend's parents had steady, good paying jobs for years working in their family's restaurant. Another family has a small business and expect their kids to take it over. `These parents did not have or need high school degrees to get those jobs.` They want their children to follow in their footsteps.
+
+So, whether it is to work in the family business or just to take care of an elder family member instead of going to school, they tell me that's more important for their children to help out than getting a high school diploma.
+
+**Interviewer:**
+Thank you. `The values and beliefs of families can be complicated influences on their children. `
+
+**Participant 5:**
+I don't know if this is appropriate, but I do know that   behavioral and especially legal issues can lead to dropping out.
+
+**Interviewer:**
+Can you tell us more about that?
+
+**Participant 5:**
+I work in a community legal office. And, well, sometimes I am called in to represent young people who get in trouble with the law or arrested. It could be getting caught shoplifting or something more serious like ...well, you can imagine. Whether they are eventually found guilty or innocent, it can have an impact on completing school to graduation. The entire experience with the legal system can take time and resources, creating stress on the youth and families. Then, the youth faces the social pressures in school from friends, classmates, and teachers, even when they are trying to be supportive.
+
+`And in some schools with no-tolerance policies, once school administrators find out about the allegations, the student may be expelled. `
+
+A young adult may feel trapped and dropping out may seem like the best option.
+
+**Participant 3:**
+Mmmmm, yeah, I can see that.
+
+**Interviewer:**
+Are there any other comments on the causes? [interviewer pause] OK, let's move on to the next part of the focus group.
+       </Markdown>
+    </Vertical>
+
+    <Vertical id="reasons_list">
+    <Markdown>
+## List of causes of high school dropout
+ - Some school systems can't accommodate students with physical or other disabilities
+ - Students need to earn money right away to help their family
+ - Schools use curricula that students don't see as relevant
+ - Student's environment with gang activity, neighborhood instability
+ - Conditions like depression, anxiety, or ADHD interfere with engagement
+ - Students lack family, friends, or teacher support
+ - Negative peer influences encourage dropping out
+ - Cultural responsibilities more important than high school
+ - Legal trouble makes it difficult to continue school
+ - Lack of school funding for support services
+ - Teen pregnancy with no school support
+ - Substance abuse issues
+      </Markdown>
     </Vertical>
 
     <!-- Checklist of reasons to research -->
     <Vertical id="reasons_checklist">
-      <Markdown>**Select the causes you think are most important to research:**</Markdown>
+      <Markdown>
+_Select the causes you think are most important to research._
+
+**Choose at least three but no more than five.**
+      </Markdown>
       <CheckboxInput id="reasons">
         <Key id="reason_disability" value="School systems can't accommodate disabilities">Some school systems can't accommodate students with physical or other disabilities</Key>
         <Key id="reason_money" value="Students need to earn money for family">Students need to earn money right away to help their family</Key>
@@ -129,12 +316,15 @@ Continue highlighting reasons for dropping out:
 
     <!-- Display selected reasons -->
     <Vertical id="reasons_shown">
-      <Markdown>**You selected these causes to focus on:**</Markdown>
+      <Markdown>
+**You selected these causes to focus on:**
+      </Markdown>
       <Ref target="reasons" />
     </Vertical>
 
     <!-- Explanation input -->
     <Vertical id="reason_explanation_input">
+      <Use id="reasons_shown2" ref="reasons_shown" />
       <Markdown>**Explain why you selected these causes:**</Markdown>
       <TextArea id="reason_explanation" placeholder="I selected these causes because..." />
     </Vertical>
@@ -144,6 +334,8 @@ Continue highlighting reasons for dropping out:
        TASKSET 3: INTERDISCIPLINARY ANALYSIS
        ============================================================ -->
   <Vertical id="interdisciplinary_taskset3">
+
+    <Image id="task_set_3_intro" src="/sba/interdisciplinary/images/the_thinker.jpg" alt="Photograph of the Rodin sculpture, 'The Thinker' by Tammy Lo. CC by SS 2.0 Generic." />
 
     <!-- Repko's Broad Model -->
     <Vertical id="broad_model_display">
@@ -165,9 +357,9 @@ The causes of high school dropout involve individual psychology, family sociolog
     <!-- Causes by disciplines mapping -->
     <Vertical id="causes_by_disciplines">
       <Markdown>
-**Map Each Cause to Relevant Disciplines**
+##Map Each Cause to Relevant Disciplines
 
-For each cause, select all disciplines that might study it:
+**For each cause, select all disciplines that might study it.**
       </Markdown>
       <TabularMCQ id="discipline_mapping">
         mode: checkbox
@@ -179,17 +371,35 @@ For each cause, select all disciplines that might study it:
     <!-- Display discipline mapping results -->
     <Vertical id="causes_by_disciplines_answers">
       <Markdown>
-**Discipline Mapping Summary:**
+## Discipline Mapping Summary
 
 Based on the team's analysis, here's how the causes map to disciplines:
+      </Markdown>
+      <Mermaid><![CDATA[
+graph LR
+    C1[Students need money<br/>to help family] --> D1[Economics]
+    C1 --> D2[Sociology]
 
-| Cause | Relevant Disciplines |
-|-------|---------------------|
-| Students need money to help family | Economics, Sociology |
-| Depression/anxiety/ADHD interferes | Psychology, Health Sciences |
-| Gang activity / neighborhood instability | Sociology, Political Science |
-| Lack of school funding | Economics, Political Science |
+    C2[Depression/anxiety/ADHD<br/>interferes] --> D3[Psychology]
+    C2 --> D4[Health Sciences]
 
+    C3[Gang activity /<br/>neighborhood instability] --> D2
+    C3 --> D5[Political Science]
+
+    C4[Lack of school<br/>funding] --> D1
+    C4 --> D5
+
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+    style C3 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+    style D1 fill:#fff4e1
+    style D2 fill:#fff4e1
+    style D3 fill:#fff4e1
+    style D4 fill:#fff4e1
+    style D5 fill:#fff4e1
+]]></Mermaid>
+      <Markdown>
 This confirms that the high school dropout problem spans multiple disciplines, making it appropriate for interdisciplinary research.
       </Markdown>
     </Vertical>
@@ -201,28 +411,44 @@ This confirms that the high school dropout problem spans multiple disciplines, m
   <Vertical id="interdisciplinary_taskset4">
 
     <!-- ADHD Study text -->
-    <Vertical id="adhd_study_text">
+    <Vertical id="adhd_study_text" popout="window">
       <Markdown>
-## Research Study: ADHD and High School Dropout
 
-**Fried, R., et al. (2016). ADHD and high school dropout: A comparison study.**
+**Title:** Is  ADHD  a  Risk  Factor  for  High  School  Dropout? A  Controlled  Study
 
-This longitudinal study examined 250 adolescents diagnosed with ADHD and 100 control participants over 10 years. The researchers found that students with ADHD were **2.7 times more likely** to drop out than their peers.
+**Authors**: Ronna  Fried,  Carter  Petty,  Stephen  V. Faraone,  Laran  L. Hyder,  Helen  Day,  and  Joseph  Biederman
 
-Key findings:
-- **Learning disorders** co-occurring with ADHD increased dropout risk
-- Lower **IQ scores** and **academic underachievement** were mediating factors
-- Early **intervention** and **educational support** reduced dropout likelihood
-- **Psychological risk factors** including low self-efficacy played a role
+**Journal**: Journal  of  Attention  Disorders **Publication Year**: 2016 **Volume**: 20 **Issue**: 5 **Pages**: 383-389
 
-The authors conclude that early identification of ADHD symptoms and appropriate educational accommodations are critical for keeping at-risk students in school.
+**Abstract**:
+This  study  examines  whether  ADHD  increases  the  likelihood  of  grade  retention  and  high  school  dropout,  even  when  accounting  for  IQ,  learning  disorders,  and  social  class. The  study  involved  404  individuals  with  ADHD  and  349  controls. Results  showed  that  28%  of  those  with  ADHD  repeated  a  grade  compared  to  7%  of  controls. Social  class  and  IQ  were  significant  predictors  of  dropout  or  grade  retention,  with  females  with  ADHD  at  higher  risk  than  males. Early  identification  and  intervention  for  ADHD  are  crucial  to  prevent  these  negative  educational  outcomes.
+
+**Introduction**:
+Each  year,  many  students  in  the  U. S. fail  to  graduate  high  school  on  time,  leading  to  negative  life  outcomes. Grade  retention  is  also  a  significant  predictor  of  high  school  dropout. Identifying  psychological  risk  factors,  such  as  ADHD,  is  important  for  intervention  efforts.
+
+**Background**:
+ADHD  is  consistently  linked  to  educational  deficits,  including  school  failure,  poor  grades,  and  grade  retention. Previous  studies  have  shown  that  ADHD  increases  the  risk  of  dropping  out  of  high  school.
+
+**Method**:
+The  study  used  data  from  three  large  case-control  studies  at  Massachusetts  General  Hospital. Participants  included  boys  and  girls  with  and  without  ADHD,  as  well  as  adults. Psychiatric  interviews,  socioeconomic  status  measures,  and  IQ  tests  were  conducted.
+
+**Results**:
+Participants  with  ADHD  were  significantly  more  likely  to  repeat  a  grade  or  drop  out  of  high  school  compared  to  controls. Females  with  ADHD  had  a  higher  risk  of  grade  retention/dropout  than  males. Social  class  and  IQ  were  also  significant  predictors.
+
+**Discussion**:
+ADHD  is  a  significant  risk  factor  for  grade  retention  and  high  school  dropout,  independent  of  other  factors  like  IQ  and  social  class. Early  identification  and  intervention  are  critical  to  mitigate  these  risks. The  study  highlights  the  importance  of  addressing  ADHD  to  improve  educational  outcomes.
+
+**Conclusion**:
+ADHD  significantly  contributes  to  grade  retention  and  high  school  dropout. Early  screening  and  intervention  can  help  prevent  these  negative  outcomes,  benefiting  individuals,  families,  and  society.
+
       </Markdown>
     </Vertical>
 
     <!-- ADHD study with highlights shown -->
-    <Vertical id="adhd_study_highlighted">
-      <Markdown>
-## Research Study: ADHD and High School Dropout (Highlighted)
+    <Tabs id="adhd_study_highlighted">
+      <Vertical id="adhd_study_highlights_T1" title="Peggy's Discipline Clues">
+        <Markdown>
+## Peggy's Discipline Clues
 
 The discipline clues Peggy identified:
 
@@ -233,340 +459,380 @@ The discipline clues Peggy identified:
 - **"intervention"** - Educational psychology focus
 
 These terms indicate this study comes from **Psychology**, specifically educational and clinical psychology.
+        </Markdown>
+      </Vertical>
+
+      <Vertical id="adhd_study_highlights_t2" title="Peggy's Highlights" popout="window">
+      <Markdown>
+**Title:** Is  `ADHD`  a  `Risk  Factor`  for  High  School  Dropout? A  Controlled  Study
+
+**Authors**: Ronna  Fried,  Carter  Petty,  Stephen  V. Faraone,  Laran  L. Hyder,  Helen  Day,  and  Joseph  Biederman
+
+**Journal**: Journal  of  `Attention  Disorders` **Publication Year**: 2016 **Volume**: 20 **Issue**: 5 **Pages**: 383-389
+
+**Abstract**:
+This  study  examines  whether  `ADHD`  increases  the  likelihood  of  grade  retention  and  high  school  dropout,  even  when  accounting  for  `IQ`,  `learning  disorders`,  and  social  class. The  study  involved  404  individuals  with  `ADHD`  and  349  controls. Results  showed  that  28%  of  those  with  `ADHD`  repeated  a  grade  compared  to  7%  of  controls. Social  class  and  `IQ`  were  significant  predictors  of  dropout  or  grade  retention,  with  females  with  `ADHD`  at  higher  risk  than  males. Early  identification  and  intervention  for  `ADHD`  are  crucial  to  prevent  these  negative  educational  outcomes.
+
+**Introduction**:
+Each  year,  many  students  in  the  U. S. fail  to  graduate  high  school  on  time,  leading  to  negative  life  outcomes. Grade  retention  is  also  a  significant  predictor  of  high  school  dropout. Identifying  `psychological  risk  factors`,  such  as  `ADHD`,  is  important  for  `intervention`  efforts.
+
+**Background**:
+`ADHD`  is  consistently  linked  to  educational  `deficits`,  including  school  failure,  poor  grades,  and  grade  retention. Previous  studies  have  shown  that  `ADHD`  increases  the  risk  of  dropping  out  of  high  school.
+
+**Method**:
+The  study  used  data  from  three  large  case-control  studies  at  Massachusetts  General  Hospital. Participants  included  boys  and  girls  with  and  without  `ADHD`,  as  well  as  adults. `Psychiatric  interviews`,  socioeconomic  status  measures,  and  `IQ`  tests  were  conducted.
+
+**Results**:
+Participants  with  `ADHD`  were  significantly  more  likely  to  repeat  a  grade  or  drop  out  of  high  school  compared  to  controls. Females  with  `ADHD`  had  a  higher  risk  of  grade  retention/dropout  than  males. Social  class  and  `IQ`  were  also  significant  predictors.
+
+**Discussion**:
+`ADHD` is a significant `risk factor` for grade retention and high school dropout, independent of other factors  like `IQ` and social class. Early identification and `intervention` are critical to mitigate these risks. The  study highlights the importance of addressing `ADHD` to improve educational outcomes.
+
+**Conclusion**:
+`ADHD` significantly contributes to grade retention and high school dropout. Early `screening` and `intervention` can help prevent these negative outcomes, benefiting individuals, families, and society.
       </Markdown>
-    </Vertical>
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="adhd_insight_sentence_tabs">
+        <Vertical id="adhd_insight_screen" title="My Insight Sentence">
+            <Markdown>
+**Write your sentence for the insight of this source**
+            </Markdown>
+            <TextArea id="adhd_insight_sentence" />
+        </Vertical>
+        <Vertical id="adhd_article_screen" title="ADHD and High School Dropout">
+           <Use ref="adhd_study_text"/>
+        </Vertical>
+    </Tabs>
+
+    <Tabs id="adhd_insight_sentence_choice">
+      <Vertical id="adhd_insight_sentence_choice_screen" title="Choose the Best Insight Sentence">
+        <Markdown>
+**Indicate which of these sentences best expresses the insight for this passage.**
+        </Markdown>
+        <ChoiceInput id="adhd_insight_sentence_choice_input">
+           <Distractor>Students with ADHD are more likely to repeat a grade or drop out.</Distractor>
+           <Distractor>ADHD status, along with social class and IQ, predict high school group and grade retention</Distractor>
+           <Key>ADHD is a key risk factor for dropout, and early intervention can reduce this risk</Key>
+           <Distractor><Ref target="adhd_insight_sentence" /></Distractor>
+         </ChoiceInput>
+       </Vertical>
+       <Vertical id="adhd_article_screen2" title="ADHD and High School Dropout">
+          <Use ref="adhd_study_text"/>
+       </Vertical>
+    </Tabs>
 
     <!-- Employment study text with highlighting -->
-    <Vertical id="employment_study_text">
-      <Markdown>**Research Study: Employment and High School Dropout**</Markdown>
-      <TextSelection id="source_2_highlights" mode="selfcheck">
-Highlight clues that indicate which disciplines are represented:
----
-**Staff, J., et al. (2019). Adolescent work intensity and high school dropout.**
+    <Vertical id="employment_study_annotation_screen">
+     <Markdown>
+_Highlight the clue words or phrases that show what discipline or disciplines are relevant to this article. Then
+click on the "Annotate" button and explain what discipline this clue suggests, and why._
+     </Markdown>
+     <Annotate id="employment_study_annotation" popout="window">
+      <Markdown id="employment_study_text">
+**Title:** Is  Adolescent  Employment  Still  a  Risk  Factor  for  High  School  Dropout?
 
-This study examined [employment patterns] among 12,000 high school students. Researchers analyzed how [intensive work schedules] (over 20 hours/week) affect educational outcomes.
+**Authors:** Jeremy  Staff,  Alyssa  M. Yetter,  Kelsey  Cundiff,  Nayan  Ramirez,  Mike  Vuolo,  Jeylan  T. Mortimer
 
-Key findings:
-- Students working intensively were more likely to drop out, but [economic necessity] often drove the decision
-- [Family income levels] and [parental education] were strong predictors
-- [Social capital] and peer networks influenced whether work led to dropout
-- [Labor market conditions] in the local economy affected student choices
+**Journal:** Journal  of  Research  on  Adolescence **Publication Year:** 2019   **Volume:** 30 **Issue:** 2 **Pages:**  406-422
 
-The study draws on [sociological theories] of status attainment and [economic models] of human capital investment to explain why some students choose work over school.
-      </TextSelection>
+**Abstract:**
+This  study  examines  whether  working  long  hours  during  high  school  is  still  a  risk  factor  for  dropping  out. Using  data  from  the  High  School  Longitudinal  Study  of  2009,  the  authors  found  that  intensive  work  (more  than  20  hours  per  week)  is  still  linked  to  higher  dropout  rates  and  lower  grades. Despite  fewer  teens  working  long  hours  today,  disadvantaged  youth  are  still  overrepresented  among  those  who  work  intensively  and  drop  out.
+
+**Introduction:**
+Understanding  why  students  choose  to  drop  out  is  critical  for  finding  ways  to  support  students'  decision  to  stay  in  school. There  has  been  some  speculation  that  students  feel  economic  pressures  that  lead  them  to  decide  to  drop  out  of  school. In  fact,  past  research  has  shown  that  working  long  hours  during  high  school  increases  the  risk  of  dropping  out. This  study  revisits  this  issue  using  recent  data,  considering  changes  in  the  labor  market  and  educational  landscape.
+
+**Method:**
+The  study  uses  data  from  the  High  School  Longitudinal  Study  of  2009,  which  surveyed  ninth  graders  in  2009  and  followed  them  through  high  school. The  sample  includes  25,210  students,  with  data  on  their  employment,  academic  performance,  and  family  background.
+
+**Results:**
+- _Employment Trends_:  Only  11%  of  students  worked  more  than  20  hours  per  week  during  the  school  year.
+- _Dropout Rates_:   Intensive  workers  had  a  44%  higher  chance  of  dropping  out  compared  to  non-workers,  even  after  controlling  for  other  factors.
+- _Grades_:  Intensive  workers  had  significantly  lower  GPAs  compared  to  non-workers  and  moderate  workers.
+
+**Discussion**:
+Intensive  work  during  high  school  remains  a  risk  factor  for  poor  academic  outcomes  and  dropout. This  strongly  suggests  that  there  is  an  economic  cause  of  dropping  out. This  clearly  suggests  students  drop  out  for  economic  reasons. However,  it  also  implies  broad  societal  impact. There  are  students  who  decide  to  drop  out  in  order  to  support  their  and  their  families'  financial  well-being. The  study  suggests  that  schools  should  provide  more  support  and  flexibility  for  students  who  need  to  work  long  hours.
+
+**Conclusion**:
+Despite  changes  in  the  labor  market,  working  long  hours  during  high  school  is  still  associated  with  higher  dropout  rates  and  lower  academic  performance. Policies  should  address  the  needs  of  working  students  to  help  them  stay  in  school  and  succeed  academically.
+      </Markdown>
+     </Annotate>
     </Vertical>
+
+    <!-- Employment Study (Source 2) - identify disciplines -->
+    <Tabs id="employment_discipline_checkboxes">
+      <Vertical id="employment_discipline_t1" title="Identify Relevant Disciplines">
+         <Markdown>
+**Select all disciplines represented in this study:**
+         </Markdown>
+         <CheckboxInput id="source_2_classification">
+           <Distractor id="s2_health">Health Sciences</Distractor>
+           <Distractor id="s2_bio">Biology</Distractor>
+           <Key id="s2_psych">Psychology</Key>
+           <Key id="s2_soc">Sociology</Key>
+           <Key id="s2_econ">Economics</Key>
+           <Distractor id="s2_polisci">Political Science</Distractor>
+         </CheckboxInput>
+      </Vertical>
+      <Vertical id="employment_discipline_t2" title="Employment Study">
+          <Use ref="employment_study_text" />
+      </Vertical>
+    </Tabs>
 
     <!-- Employment study explanation input -->
-    <Vertical id="source_2_explanation_input">
-      <Markdown>**Explain how the clues you highlighted indicate the disciplines you selected:**</Markdown>
-      <TextArea id="source_2_classification_explanation" placeholder="The terms I highlighted indicate these disciplines because..." />
-    </Vertical>
+    <Tabs id="source_2_explanation_input">
+      <Vertical id="source_2_explanation_t1" title="Explanation of Discipline Cues">
+        <Markdown>
+**You chose the following disciplines**:
+        </Markdown>
+        <Use ref="source_2_classification" />
+        <Markdown>
+**Explain how the clues you highlighted indicate the disciplines you selected:**
+        </Markdown>
+        <TextArea id="source_2_classification_explanation" placeholder="The terms I highlighted indicate these disciplines because..." />
+      </Vertical>
+      <Vertical id="source_2_explanation_t2" title="Employment Study">
+          <Use ref="employment_study_text" />
+      </Vertical>
+    </Tabs>
+
+    <!-- Employment study insight sentence input -->
+    <Tabs id="source_2_insight_input">
+      <Vertical id="source_2_insight_t1" title="Insight Sentence">
+        <Markdown>
+**Write your sentence for the insight of this passage:**
+        </Markdown>
+        <TextArea id="source_2_insight_sentence" placeholder="The main disciplinary insight of this passage is ..." />
+      </Vertical>
+      <Vertical id="source_2_insight_t2" title="Employment Study">
+          <Use ref="employment_study_text" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="employment_insight_sentence_choice">
+      <Vertical id="employment_insight_sentence_choice_screen" title="Choose the Best Insight Sentence">
+        <Markdown>
+**Indicate which of these sentences best expresses the insight for this passage.**
+        </Markdown>
+        <ChoiceInput id="employment_insight_sentence_choice_input">
+           <Distractor>Students who work more than 20 hours per week have lower grades and higher dropout rates than their peers.</Distractor>
+           <Distractor><Ref target="source_2_insight_sentence" /></Distractor>
+           <Distractor>Only 11% of students in the study worked more than 20 hours per week during the school year.</Distractor>
+           <Key>Intensive work during high school remains a risk factor for dropout, and schools should provide support and flexibility for students who must work long hours.</Key>
+           <Distractor>Disadvantaged youth are overrepresented among students who work intensively and are more likely to drop out.</Distractor>
+         </ChoiceInput>
+       </Vertical>
+       <Vertical id="employment_article_screen2" title="Employment Study">
+          <Use ref="employment_study_text"/>
+       </Vertical>
+    </Tabs>
+
+    <!-- Employment study insight sentence input -->
+    <Tabs id="source_2_insight_explanation_screen">
+      <Vertical id="source_2_insight_explanation_t1" title="Insight Sentence">
+        <Markdown>
+**You selected the following sentence**:
+        </Markdown>
+        <Use ref="employment_insight_sentence_choice_input" />
+        <Markdown>
+**Why did you select it? Write your answer below:**
+        </Markdown>
+        <TextArea id="source_2_insight_explanation" placeholder="The main disciplinary insight of this passage is ..." />
+      </Vertical>
+      <Vertical id="source_2_insight_explanation_t2" title="Employment Study">
+          <Use ref="employment_study_text" />
+      </Vertical>
+    </Tabs>
+
 
     <!-- Rural/Urban study text -->
     <Vertical id="rural_urban_study_text">
-      <Markdown>**Research Study: Rural vs. Urban Dropout Rates**</Markdown>
-      <TextSelection id="source_3_highlights" mode="selfcheck">
-Highlight clues that indicate which disciplines are represented:
----
-**Jordan, W., et al. (2012). Geographic differences in high school dropout rates.**
+     <Markdown>
+_Highlight the clue words or phrases that show what discipline or disciplines are relevant to this article. Then
+click on the "Annotate" button and explain what discipline this clue suggests, and why._
+     </Markdown>
+     <Annotate id="source_3_highlights_annotation" popout="window">
+        <Markdown id="rural_urban_study_text_md">
+**Title:** Rural  and  Urban  High  School  Dropout  Rates: Are  They  Different?
 
-This study compared dropout rates across [rural and urban communities] in 15 states. The researchers examined how [geographic context] shapes educational outcomes.
+**Authors:** Jeffrey  L. Jordan,  Genti  Kostandini,  Elton  Mykerezi
 
-Key findings:
-- Rural schools had fewer resources due to [lower tax bases] and [state funding formulas]
-- [School consolidation policies] in rural areas increased transportation barriers
-- Urban schools faced challenges with [concentrated poverty] and [neighborhood effects]
-- [Policy interventions] varied significantly by state, affecting local outcomes
+**Journal:** Journal  of  Research  in  Rural  Education
+**Publication Year:** 2012;  **Volume:** 27;  **Issue:** 12;  **Pages:** 1-21
 
-The authors argue for [policy reforms] that account for geographic differences and address [structural inequalities] in school funding across different types of communities.
-      </TextSelection>
+**Abstract:**
+This  study  examines  high  school  dropout  rates  in  rural  and  urban  areas,  using  data  from  the  National  Longitudinal  Survey  of  Youth  (NLSY)  from  1979  and  1997. The  findings  suggest  that  high  school  graduation  rates  are  similar  across  rural  and  urban  areas,  with  a  slight  decline  in  graduation  rates  over  time. Key  determinants  of  graduation  include  gender,  family  assets,  presence  of  biological  parents,  and  maternal  attributes,  which  influence  graduation  similarly  across  both  rural  and  urban  areas.
+
+**Introduction:**
+A  prevalent  perception  is  that  school  dropout  is  an  urban  problem. However,  it  is  unclear  whether  or  not  school  dropout  rates  are  different  in  urban  and  rural  environments. The  study  explores  the  importance  of  high  school  graduation  for  economic  and  social  outcomes. It  investigates  whether  rural  and  urban  areas  differ  in  high  school  dropout  rates  and  the  factors  influencing  these  rates,  considering  recent  changes  in  rural-urban  boundaries  and  socioeconomic  conditions.
+
+**Method:**
+The  study  uses  geocoded  data  from  the  NLSY79  and  NLSY97,  applying  a  methodology  that  corrects  for  biases  in  graduation  rates. It  defines  graduates  according  to  Heckman  and  LaFontaine  (2010),  excluding  GED  recipients  and  including  military  and  prison  populations. The  analysis  includes  probit  models  to  estimate  dropout  risks  and  examines  changes  over  time.
+
+**Results:**
+1)  Dropout  Rates: Graduation  rates  are  similar  across  rural  and  urban  areas,  with  a  3  percentage  point  decline  from  the  1980s  to  the  2000s. Rural  areas  experienced  a  smaller  increase  in  dropout  rates  compared  to  urban  areas.
+
+2)  Determinants: Key  factors  influencing  graduation  include  gender,  family  assets,  presence  of  biological  parents,  and  maternal  education. These  factors  have  similar  effects  across  rural  and  urban  areas. Peer  characteristics,  such  as  gang  involvement  and  drug  use,  also  influence  dropout  rates,  with  some  differences  between  urban  and  rural  areas.
+
+**Discussion:**
+The  study  highlights  that  family  characteristics  are  more  predictive  of  graduation  than  geographic  attributes. Differences  in  dropout  rates  between  rural  and  urban  areas  are  small  and  narrowing. The  findings  suggest  that  policies  should  focus  on  family  support  and  peer  influences  to  reduce  dropout  rates.
+
+**Conclusion:**
+High  school  dropout  rates  are  similar  across  rural  and  urban  areas,  with  family  characteristics  being  the  main  determinants  of  graduation. The  study  emphasizes  the  importance  of  addressing  family  and  peer  influences  to  improve  graduation  rates  and  reduce  dropouts.
+        </Markdown>
+      </Annotate>
     </Vertical>
+
+  <!-- Rural/Urban Study (Source 3) - identify disciplines -->
+  <Tabs id="rural_discipline_checkboxes">
+    <Vertical id="rural_discipline_checkboxes_t1" title="Identify Relevant Disciplines">
+      <Markdown>
+**Select all disciplines represented in this study:**
+      </Markdown>
+      <CheckboxInput id="source_3_classification">
+        <Distractor id="s3_health">Health Sciences</Distractor>
+        <Distractor id="s3_bio">Biology</Distractor>
+        <Distractor id="s3_psych">Psychology</Distractor>
+        <Key id="s3_soc">Sociology</Key>
+        <Distractor id="s3_econ">Economics</Distractor>
+        <Key id="s3_polisci">Political Science</Key>
+      </CheckboxInput>
+    </Vertical>
+    <Vertical id="rural_discipline_checkboxes_t2" title="Rural/Urban Study">
+      <Use ref="rural_urban_study_text_md" />
+    </Vertical>
+  </Tabs>
 
     <!-- Rural/Urban study explanation input -->
-    <Vertical id="source_3_explanation_input">
-      <Markdown>**Explain how the clues you highlighted indicate the disciplines you selected:**</Markdown>
-      <TextArea id="source_3_classification_explanation" placeholder="The terms I highlighted indicate these disciplines because..." />
+    <Tabs id="source_3_explanation_input">
+      <Vertical id="source_3_explanation_t1" title="Explanation of Selection">
+        <Markdown>
+**You selected the following disciplines**:
+        </Markdown>
+        <Use ref="source_3_classification" />
+        <Markdown>
+**Explain how the clues you highlighted indicate the disciplines you selected:**
+        </Markdown>
+        <TextArea id="source_3_classification_explanation" placeholder="The terms I highlighted indicate these disciplines because..." />
+      </Vertical>
+      <Vertical id="source_3_explanation_t2" title="Rural/Urban Study">
+        <Use ref="rural_urban_study_text_md" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="source_3_insight">
+      <Vertical id="source_3_insight_t1" title="Insight Sentence">
+        <Markdown>
+**Write your sentence for the insight of this source:**
+        </Markdown>
+        <TextArea id="source_3_insight_sentence" placeholder="..." />
+      </Vertical>
+      <Vertical id="source_3_insight_t2" title="Rural/Urban Study">
+        <Use ref="rural_urban_study_text_md" />
+      </Vertical>
+   </Tabs>
+
+  <!-- Rural/Urban Study (Source 3) - Select insight statement -->
+  <Tabs id="rural_insight_checkboxes">
+    <Vertical id="rural_insight_checkboxes_t1" title="Select Best Insight Sentence">
+      <Markdown>
+**Select the best insight statement for this study:**
+      </Markdown>
+      <ChoiceInput id="source_3_insight_selection">
+        <Distractor>
+Dropout rates are lower and they are largely similar between rural and urban areas.
+        </Distractor>
+        <Distractor>
+Family characteristics and peer influences are more important to high school dropout rates than geography.
+        </Distractor>
+        <Key>
+High school dropout rates are similar in rural and urban areas, with family and peer factors
+being more important than geography in predicting graduation, underscoring the need for policies that
+address these influences.
+        </Key>
+        <Distractor><Ref target="source_3_insight_sentence" /></Distractor>
+        <Distractor>
+Policy reforms should address key determinants, gang involvement, and drug use.
+        </Distractor>
+      </ChoiceInput>
     </Vertical>
+    <Vertical id="rural_insight_checkboxes_t2" title="Rural/Urban Study">
+      <Use ref="rural_urban_study_text_md" />
+    </Vertical>
+  </Tabs>
+
+    <Tabs id="source_3_insight_explanation">
+      <Vertical id="source_3_insight_explanation_t1" title="Insight Sentence Explanation">
+        <Markdown>
+**You chose the following sentence.**
+        </Markdown>
+        <Use ref="source_3_insight_selection" />
+        <Markdown>
+ **Why did you select it? Explain.**
+        </Markdown>
+        <TextArea id="source_3_insight_sentence_explanation" placeholder="..." />
+      </Vertical>
+      <Vertical id="source_3_insight_explanation_t2" title="Rural/Urban Study">
+        <Use ref="rural_urban_study_text_md" />
+      </Vertical>
+   </Tabs>
 
     <!-- School funding study text -->
     <Vertical id="funding_study_text">
-      <Markdown>**Research Study: School Funding and Dropout Rates**</Markdown>
-      <TextSelection id="source_4_highlights" mode="selfcheck">
-Highlight clues that indicate which disciplines are represented:
----
-**Baker, B., et al. (2018). School funding and educational outcomes.**
-
-This comprehensive analysis examined [per-pupil expenditures] across 500 school districts and their relationship to dropout rates.
-
-Key findings:
-- Districts with higher [spending on support services] had lower dropout rates
-- [State education policy] created disparities between wealthy and poor districts
-- [Cost-effectiveness analysis] showed that [early intervention programs] yielded the best returns
-- [Budget allocation decisions] by school boards directly affected at-risk student services
-
-The study uses [economic analysis] of [resource allocation] and examines how [political decisions] at state and local levels shape educational funding priorities. The authors recommend [policy changes] to create more [equitable funding] formulas.
-      </TextSelection>
-    </Vertical>
-
-    <!-- Funding study explanation input -->
-    <Vertical id="source_4_explanation_input">
-      <Markdown>**Explain how the clues you highlighted indicate the disciplines you selected:**</Markdown>
-      <TextArea id="source_4_classification_explanation" placeholder="The terms I highlighted indicate these disciplines because..." />
-    </Vertical>
-  </Vertical>
-
-  <!-- ============================================================
-       TASKSET 5: PROBLEM STATEMENT
-       ============================================================ -->
-  <Vertical id="interdisciplinary_taskset5">
-
-    <!-- NCES trends text for importance/unresolved highlighting -->
-    <Vertical id="nces_trends_text">
-      <Markdown>**National Center for Education Statistics: Dropout Trends**</Markdown>
-
-      <Markdown>**Part 1: Highlight text that shows why this problem is IMPORTANT:**</Markdown>
-      <TextSelection id="source_5_importance_highlights" mode="selfcheck">
-Highlight evidence about the significance of the dropout problem:
----
-**NCES (2023). Status and Trends in Education: High School Dropout Rates**
-
-The national dropout rate has declined from 12% in 1990 to about 5% in 2022. However, this progress masks significant disparities.
-
-[Economic consequences] of dropping out are severe: dropouts earn [47% less] than high school graduates over their lifetime. They are [3.5 times more likely] to be incarcerated and [more likely to rely on public assistance].
-
-For communities, [each dropout costs approximately $260,000] in lost tax revenue and increased social services over their lifetime. [Collective costs to society] run into billions annually.
-
-Despite progress, [6 out of 10 dropouts] cite reasons that could have been addressed with appropriate interventions. [Achievement gaps] persist across [racial and socioeconomic lines], with [Hispanic and Black students] dropping out at higher rates.
-      </TextSelection>
-
-      <Markdown>**Part 2: Highlight text that shows why this problem is UNRESOLVED:**</Markdown>
-      <TextSelection id="source_5_unresolved_highlights" mode="selfcheck">
-Highlight evidence that the problem has not been adequately solved:
----
-Despite [decades of reform efforts], the dropout problem persists. While overall rates have declined, [disparities remain stubbornly high] for certain populations.
-
-The problem [remains unresolved] because interventions are [inconsistent and underfunded]. [No single approach] has proven universally effective, suggesting the need for [comprehensive, interdisciplinary solutions].
-
-[Existing programs reach only a fraction] of at-risk students. [Funding gaps] between wealthy and poor districts continue. [Prevention efforts start too late] for many students who show warning signs in middle school.
-
-Researchers note that [root causes are complex] and require [coordinated, multi-sector responses] that few communities have achieved.
-      </TextSelection>
-    </Vertical>
-
-    <!-- Display importance highlights -->
-    <Vertical id="nces_importance_highlights_shown">
-      <Markdown>**Your highlights showing why the problem is important:**</Markdown>
-      <Markdown>Review your highlighted text above. You should have identified evidence about the significance and consequences of the dropout problem.</Markdown>
-    </Vertical>
-
-    <!-- Importance explanation input -->
-    <Vertical id="importance_explanation_input">
-      <Markdown>**Explain how the evidence you highlighted shows this is an important problem:**</Markdown>
-      <TextArea id="source_5_importance_explanation" placeholder="This problem is important because..." />
-    </Vertical>
-
-    <!-- Unresolved highlights display -->
-    <Vertical id="nces_unresolved_highlights_shown">
-      <Markdown>**Your highlights showing the problem is unresolved:**</Markdown>
-      <Markdown>Review your highlighted text. You should have identified evidence that this problem has not been adequately solved.</Markdown>
-    </Vertical>
-
-    <!-- Unresolved explanation input -->
-    <Vertical id="unresolved_explanation_input">
-      <Markdown>**Explain how the evidence you highlighted shows this problem remains unresolved:**</Markdown>
-      <TextArea id="source_5_unresolved_explanation" placeholder="This problem remains unresolved because..." />
-    </Vertical>
-
-    <!-- Problematic significance statement to revise -->
-    <Vertical id="problematic_significance_text">
       <Markdown>
-**Draft Significance Statement (needs revision):**
-
-"Dropping out of high school is a serious problem mainly because it leads to crime. Students who don't finish school often end up in jail, which costs taxpayers money. The solution is vocational training programs that teach practical job skills instead of useless academic subjects."
+_Highlight the clue words or phrases that show what discipline or disciplines are relevant to this article. Then
+click on the "Annotate" button and explain what discipline this clue suggests, and why._
       </Markdown>
+      <Annotate id="source_4_highlights" popout="window">
+        <Markdown id="funding_study_text_md">
+**Title**: Examining  School  Funding  Inequity  and  Impact  on  African  American  High  School  Dropouts
+
+**Author**: Michelle  Janette  Williams
+
+**Dissertation Institution**: Walden  University **Publication Year**: 2023
+
+**Abstract**:
+This  quantitative  study  examines  the  association  between  school  funding  inequity  and  the  dropout  rates  of  African  American  students. While  previous  research  has  explored  factors  such  as  peer  pressure  and  socioeconomic  status,  this  study  specifically  focuses  on  how  inadequate  school  funding  impacts  dropout  rates. Using  equity  theory  as  the  theoretical  framework,  the  study  analyzes  publicly  available  archival  data  from  2015-2020  from  the  State  of  Delaware's  Department  of  Education. A  Pearson  correlation  analysis  conducted  through  SPSS  identified  a  relationship  between  lower  school  funding  and  higher  dropout  rates  among  African  American  students  in  the  Red  Clay  School  District. The  findings  suggest  that  inadequate  school  funding  contributes  to  dropout  rates,  reinforcing  the  need  for  policy  reforms  to  improve  resource  allocation  in  high-poverty  schools.
+
+**Introduction**:
+Educational  inequity  remains  a  persistent  issue,  disproportionately  affecting  low-income  and  minority  students. While  policies  such  as  Title  I  and  the  Every  Student  Succeeds  Act  (ESSA)  have  attempted  to  close  funding  gaps,  disparities  continue  to  exist. African  American  students  are  particularly  vulnerable  to  resource  inequities,  leading  to  higher  dropout  rates  and  long-term  socioeconomic  disadvantages.
+
+**Background**:
+School  funding  in  the  U. S. is  primarily  determined  by  local  property  taxes,  leading  to  significant  disparities  in  educational  resources. Research  suggests  that  African  American  students  in  underfunded  schools  face  increased  dropout  risks  due  to  fewer  academic  and  support  services. The  study  explores  whether  the  timing  of  dropout  (9th-12th  grade)  correlates  with  school  funding  levels  in  the  Red  Clay  School  District  in  Delaware.
+
+**Method**:
+_Study  Design_: Quantitative  correlational  analysis
+
+_Data  Source_: Publicly  available  archival  data  from  2015-2020  (Delaware  Department  of  Education)
+
+_Variables_:
+
+_Independent  Variable_: Per-pupil  school  funding
+
+_Dependent  Variable_: Grade  level  at  which  African  American  students  dropped  out  (9th-12th  grade)
+
+_Statistical  Analysis_: Pearson  correlation  in  SPSS  to  measure  the  association  between  school  funding  levels  and  dropout  rates
+
+**Results**:
+The  study  identified  a  significant  correlation  between  lower  school  funding  and  higher  dropout  rates. African  American  students  in  lower-funded  schools  were  more  likely  to  drop  out  earlier  (9th-10th  grade)  compared  to  students  in  better-funded  schools.
+
+The  equity  theory  framework  suggests  that  students  in  underfunded  schools  experience  resource  inequities  that  discourage  persistence  in  education.
+
+**Discussion**:
+The  findings  reinforce  existing  research  on  educational  inequity  and  suggest  that  higher  per-pupil  funding  is  associated  with  improved  student  retention. The  study  highlights  the  need  for  funding  reforms,  such  as  weighted  student  funding  models,  to  better  allocate  resources  to  high-need  schools.
+
+**Conclusion**:
+School  funding  inequities  contribute  to  higher  dropout  rates  among  African  American  students. Addressing  these  disparities  through  policy  changes  and  increased  investment  in  low-income  schools  could  improve  educational  outcomes  and  reduce  dropout  rates. The  study  provides  empirical  evidence  to  support  advocacy  efforts  for  school  finance  reform.
+        </Markdown>
+      </Annotate>
     </Vertical>
-
-    <!-- Revision instructions and input -->
-    <Vertical id="revision_instructions">
-      <Markdown>
-**Revise the Statement**
-
-The draft above shows disciplinary bias (focusing only on crime/vocational training). Rewrite it to:
-- Reflect multiple consequences (economic, social, personal)
-- Avoid privileging any single perspective
-- Be supported by evidence from the sources you reviewed
-      </Markdown>
-      <TextArea id="problem_statement_revised" placeholder="Rewrite the significance statement here..." />
-    </Vertical>
-
-    <!-- Show revised statement -->
-    <Vertical id="revised_statement_shown">
-      <Markdown>**Your Revised Statement:**</Markdown>
-      <Ref id="ref_revised_statement_inline" target="problem_statement_revised" />
-    </Vertical>
-
-    <!-- Repko criteria list -->
-    <Vertical id="criteria_list">
-      <Markdown>
-## Criteria for an Effective Problem Statement (Repko, 2019)
-
-An interdisciplinary problem statement should:
-
-1. **State why the problem is important** - What are the consequences? Who is affected?
-2. **Acknowledge complexity** - Show that multiple disciplines are needed
-3. **Avoid personal/disciplinary bias** - Don't privilege one perspective
-4. **Define appropriate focus** - Narrow enough to be actionable
-5. **Match organizational scope** - Align with what Comm360 can actually address
-      </Markdown>
-    </Vertical>
-
-    <!-- Causes by priorities table -->
-    <Vertical id="causes_by_priorities_table">
-      <Markdown>
-**Map Causes to Comm360's Priority Areas**
-
-Select which priority areas could address each cause:
-      </Markdown>
-      <TabularMCQ id="priority_mapping">
-        mode: checkbox
-        cols: Education &amp; Training, Health &amp; Wellness, Family &amp; Youth Services, Community Building
-        rows: Students need money, Depression/ADHD, Gang activity, School funding
-      </TabularMCQ>
-    </Vertical>
-
-    <!-- Show priorities mapping -->
-    <Vertical id="causes_by_priorities_shown">
-      <Markdown>**Your Priority Area Mappings:**</Markdown>
-      <Ref target="priority_mapping" />
-    </Vertical>
-
-    <!-- Priority explanation input -->
-    <Vertical id="priority_explanation_input">
-      <Markdown>**Explain how these causes align with Comm360's priorities:**</Markdown>
-      <TextArea id="priority_explanation" placeholder="I mapped these causes to these priority areas because..." />
-    </Vertical>
-
-    <!-- Priority answers display -->
-    <Vertical id="causes_by_priorities_answers">
-      <Markdown>
-**Recommended Priority Area Mappings:**
-
-| Cause | Best-Fit Priority Areas |
-|-------|------------------------|
-| Students need money | Family &amp; Youth Services, Education &amp; Training |
-| Depression/anxiety/ADHD | Health &amp; Wellness |
-| Gang activity/instability | Community Building, Family &amp; Youth Services |
-| School funding | Community Building &amp; Advocacy |
-
-Based on Comm360's capacity, the **Health &amp; Wellness** area addressing depression, anxiety, and ADHD is the recommended focus.
-      </Markdown>
-    </Vertical>
-
-    <!-- Health and wellness focus display -->
-    <Vertical id="health_wellness_focus_shown">
-      <Markdown>
-## Selected Focus: Health &amp; Wellness
-
-Comm360 will focus on:
-
-**Cause:** Conditions like depression, anxiety, or ADHD that interfere with students' ability to succeed in school.
-
-**Priority Area:** Health &amp; Wellness - providing mental health support, ADHD interventions, and counseling services.
-
-**Primary Discipline:** Psychology
-
-We know Psychology offers relevant insights. What other disciplines might help us design effective programming?
-      </Markdown>
-    </Vertical>
-
-    <!-- Additional disciplines explanation input -->
-    <Vertical id="additional_disciplines_explanation_input">
-      <Markdown>**Explain why these additional disciplines would be helpful:**</Markdown>
-      <TextArea id="additional_disciplines_explanation" placeholder="These disciplines would help because..." />
-    </Vertical>
-
-    <!-- Full notes display -->
-    <Vertical id="full_notes_display">
-      <Markdown>
-## Your Research Notes
-
-**Problem:** High school dropout in our community
-
-**Why Important:**
-      </Markdown>
-      <Ref target="source_5_importance_explanation" />
-      <Markdown>**Why Unresolved:**</Markdown>
-      <Ref target="source_5_unresolved_explanation" />
-      <Markdown>
-**Disciplines Consulted:** Psychology, Sociology, Economics, Political Science
-
-**Comm360 Focus:** Health &amp; Wellness programming for depression, anxiety, and ADHD
-
-**Your Revised Significance Statement:**
-      </Markdown>
-      <Ref id="ref_revised_statement_notes" target="problem_statement_revised" />
-    </Vertical>
-
-    <!-- Final problem statement input -->
-    <Vertical id="full_problem_statement_input">
-      <Markdown>
-**Write Your Final Problem Statement**
-
-Using your notes and the Repko criteria, write a comprehensive problem statement that:
-- Explains why high school dropout is important
-- Acknowledges its complexity and interdisciplinary nature
-- Defines Comm360's focus on Health &amp; Wellness interventions
-- Avoids bias toward any single discipline
-      </Markdown>
-      <TextArea id="full_problem_statement" placeholder="Write your complete problem statement here..." />
-    </Vertical>
-  </Vertical>
-
-  <!-- DISCIPLINE SELECTION CHECKBOXES -->
-  <!-- Used by dialogue.chatpeg for literature review discipline classification -->
-
-  <!-- Employment Study (Source 2) - identify disciplines -->
-  <Vertical id="employment_discipline_checkboxes">
-    <Markdown>**Select all disciplines represented in this study:**</Markdown>
-    <CheckboxInput id="source_2_classification">
-      <Distractor id="s2_health">Health Sciences</Distractor>
-      <Distractor id="s2_bio">Biology</Distractor>
-      <Key id="s2_psych">Psychology</Key>
-      <Key id="s2_soc">Sociology</Key>
-      <Key id="s2_econ">Economics</Key>
-      <Distractor id="s2_polisci">Political Science</Distractor>
-    </CheckboxInput>
-  </Vertical>
-
-  <!-- Rural/Urban Study (Source 3) - identify disciplines -->
-  <Vertical id="rural_discipline_checkboxes">
-    <Markdown>**Select all disciplines represented in this study:**</Markdown>
-    <CheckboxInput id="source_3_classification">
-      <Distractor id="s3_health">Health Sciences</Distractor>
-      <Distractor id="s3_bio">Biology</Distractor>
-      <Distractor id="s3_psych">Psychology</Distractor>
-      <Key id="s3_soc">Sociology</Key>
-      <Distractor id="s3_econ">Economics</Distractor>
-      <Key id="s3_polisci">Political Science</Key>
-    </CheckboxInput>
-  </Vertical>
-
-  <!-- School Funding Study (Source 4) - identify disciplines -->
-  <Vertical id="funding_discipline_checkboxes">
-    <Markdown>**Select all disciplines represented in this study:**</Markdown>
-    <CheckboxInput id="source_4_classification">
-      <Distractor id="s4_health">Health Sciences</Distractor>
-      <Distractor id="s4_bio">Biology</Distractor>
-      <Distractor id="s4_psych">Psychology</Distractor>
-      <Distractor id="s4_soc">Sociology</Distractor>
-      <Key id="s4_econ">Economics</Key>
-      <Key id="s4_polisci">Political Science</Key>
-    </CheckboxInput>
-  </Vertical>
 
   <!-- Additional Disciplines Selection -->
   <Vertical id="additional_disciplines_checkboxes">
-    <Markdown>**Select additional disciplines that might offer useful insights:**</Markdown>
+    <Markdown>
+**Which discipline(s) do you think are represented in this study?**
+    </Markdown>
     <CheckboxInput id="additional_disciplines">
       <Key id="add_health">Health Sciences</Key>
       <Key id="add_bio">Biology</Key>
@@ -577,4 +843,47 @@ Using your notes and the Repko criteria, write a comprehensive problem statement
     </CheckboxInput>
   </Vertical>
 
+    <!-- Funding study explanation input -->
+    <Vertical id="source_4_explanation_input">
+      <Markdown>
+**How are the clues you picked representative of the disciplines you selected. Can you explain?**
+      </Markdown>
+      <TextArea id="source_4_classification_explanation" placeholder="The terms I highlighted indicate these disciplines because..." />
+    </Vertical>
+
+    <!-- Funding study explanation input -->
+    <Vertical id="source_4_insight_input">
+      <Markdown>
+**Write your sentence for the insight of this source.**
+      </Markdown>
+      <TextArea id="source_4_insight_sentence" placeholder="..." />
+    </Vertical>
+
+
+  <!-- Additional Disciplines Selection -->
+  <Vertical id="source_4_insight_selection_input">
+    <Markdown>
+**Which of these sentences best describes the insight of this article?**
+    </Markdown>
+    <ChoiceInput id="source4_insight_selection">
+      <Distractor>African American students attending high-need schools are at greatest risk.</Distractor>
+      <Distractor><Ref target="source_4_insight_sentence" /></Distractor>
+      <Key>Inadequate school funding is linked to higher dropout rates among African American students, underscoring the need for funding reforms to improve resources in high-poverty schools.</Key>
+      <Distractor>Students in underfunded schools face increased risks due to fewer academic and support services.</Distractor>
+    </ChoiceInput>
+  </Vertical>
+
+    <!-- Funding study explanation input -->
+    <Vertical id="source_4_insight_explanation_input">
+      <Markdown>
+**You chose the following sentence:**
+      </Markdown>
+      <Use ref="source4_insight_selection" />
+      <Markdown>
+**Why did you select this choice? Type your answer below.**
+      </Markdown>
+      <TextArea id="source_4_insight_sentence_explanation" placeholder="..." />
+    </Vertical>
+  </Vertical>
 </Vertical>
+</Cast>

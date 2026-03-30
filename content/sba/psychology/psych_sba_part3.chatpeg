@@ -1,5 +1,18 @@
-title: Function of Behavior and Intervention Planning
-author: "TODO -- fill this in"
+Title: Function of Behavior and Intervention Planning
+Author: "TODO -- fill this in"
+Cast:
+  Annie:
+    seed: annie
+    face: smile
+  JJ:
+    seed: alexander
+    face: smile
+  Lin:
+    seed: lynnette
+    face: smile
+  Lianne:
+    seed: lianne
+    face: smile
 ~~~~
 
 Introduction
@@ -7,7 +20,7 @@ Introduction
 
 psych_sba_part3_sidebar -> fba_introduction
 
-Annie: Thanks again for your help with my roommate's dilemma with Johnny, the kid she babysits. 
+Annie: Thanks again for your help with my roommate's dilemma with Johnny, the kid she babysits.
 
 Two Weeks Later
 ------------
@@ -104,7 +117,7 @@ JJ: I did. The results looked good on the surface, but when I worked through it 
 
 Annie: So what was your final prompt?
 
-JJ: You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement. Include concrete examples for each combination of function with positive or negative reinforcement. Leave a cell blank if the function of the behavior is by definition incompatible with the type of reinforcement, assuming that negative reinforcement is compatible with removal of unwanted attention and but not with access, while escape is not compatible with positive reinforcement. 
+JJ: You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior (attention, escape, access to tangibles, sensory) with examples of how each relates to positive and negative reinforcement. Include concrete examples for each combination of function with positive or negative reinforcement. Leave a cell blank if the function of the behavior is by definition incompatible with the type of reinforcement, assuming that negative reinforcement is compatible with removal of unwanted attention and but not with access, while escape is not compatible with positive reinforcement.
 
 Annie: Wow, you really had to spell everything out.
 
@@ -168,7 +181,7 @@ JJ: This is starting to make sense, but I think I need more practice.
 
 Lin: Me too.
 
-Lianne: Hi, guys! Lin just added me to the chat. Here are some examples about the functions of behaviors you can use to test your knowledge. 
+Lianne: Hi, guys! Lin just added me to the chat. Here are some examples about the functions of behaviors you can use to test your knowledge.
 
 Annie: Great, let's try them together.
 
@@ -296,7 +309,7 @@ JJ: Let's compare! Here's what I came up with.
 Intervention Planning
 ---------------------
 
-Annie: I've been thinking about what happened originally. At first, Johnny was running away before my roommate could even get him up to his bedroom. When she tried positive reinforcement, it worked! She got him up to the bedroom. 
+Annie: I've been thinking about what happened originally. At first, Johnny was running away before my roommate could even get him up to his bedroom. When she tried positive reinforcement, it worked! She got him up to the bedroom.
 
 Annie: But when she told him to go to bed, he would laugh and run away, like it was a game. So what happened was that the original problem behavior -- refusing to go up to the bedroom -- was replaced by an alternative behavior -- laughing and running away from the bedroom.
 
@@ -316,7 +329,7 @@ JJ: Okay, so now we need to figure out an intervention now that we know the func
 
 psych_sba_part3_sidebar -> textbook_on_interventions
 
-Lin: Take a look at what my Child Development course's textbook says about generating interventions. 
+Lin: Take a look at what my Child Development course's textbook says about generating interventions.
 
 Annie: There are lots of options here! But we've obviously got to change something about the way we're approaching things, or he'll just keep trying to escape.
 
@@ -358,7 +371,7 @@ JJ: Here are the consequent strategies I got.
 
 --- wait @consequence_strategies.submitCount > 0 ---
 
-Annie: OK, so we have a couple of strategies each for antecedent and consequence. For completeness, we should try to get AI to focus on strategies that will deal with **escape** specifically, so we'll have more strategies to choose from. 
+Annie: OK, so we have a couple of strategies each for antecedent and consequence. For completeness, we should try to get AI to focus on strategies that will deal with **escape** specifically, so we'll have more strategies to choose from.
 
 psych_sba_part3_sidebar -> ai_intervention3
 

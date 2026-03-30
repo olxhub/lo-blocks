@@ -235,6 +235,42 @@ lang: en-Latn-US
           </ActionButton>
         <LLMFeedback id="ws2_response_summary_6" />
     </Vertical>
+    <Vertical id="print_ws2" title="Print Writing Survey 2">
+        <ActionButton id="print_btn_ws2" label="Export as PDF">
+          <PrintAction id="print_action_ws2" />
+        </ActionButton>
+        <Markdown>
+# My answers
 
 
+--------------------------------
+## Questions 1-5
+        </Markdown>
+        <Use id="goals_1_print" ref="ws2_goals_1" />
+        <Markdown>
+--------------------------------
+## Questions 6-10
+        </Markdown>
+        <Use id="goals_2_print" ref="ws2_goals_2" />
+        <Markdown>
+--------------------------------
+## Questions 11-15
+        </Markdown>
+        <Use id="goals_3_print" ref="ws2_goals_3" />
+        <Markdown>
+--------------------------------
+## Questions 16-20
+        </Markdown>
+        <Use id="goals_4_print" ref="ws2_goals_4" />
+        <Markdown>
+--------------------------------
+## Questions 21-25
+        </Markdown>
+        <Use id="goals_5_print" ref="ws2_goals_5" />
+        <Markdown>
+--------------------------------
+## AI Analysis
+        </Markdown>
+        <Use id="ws2_response_summary_print" ref="ws2_response_summary_6" />
+</Vertical>
 </Sequential>
