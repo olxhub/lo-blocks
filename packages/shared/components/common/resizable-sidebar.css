@@ -138,8 +138,21 @@
   }
 
   .lo-resizer--horizontal,
-  .lo-sidebar-edge,
-  .lo-sidebar-rail {
+  .lo-sidebar-edge {
     display: none;
+  }
+
+  /* Rail becomes a horizontal expand strip at mobile */
+  .lo-sidebar-rail {
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    border-inline-end: none;
+    border-bottom: 1px solid var(--lo-border);
+  }
+  .lo-sidebar-rail[data-side="end"] {
+    border-inline-start: none;
+    border-bottom: none;
+    border-top: 1px solid var(--lo-border);
   }
 }

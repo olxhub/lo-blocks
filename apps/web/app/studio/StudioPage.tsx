@@ -122,6 +122,7 @@ function StudioPageContent() {
   // Main area ref for pane resize percentage calculation
   const mainRef = useRef<HTMLElement>(null);
   const startEditorRatioRef = useRef(50);
+  const startContainerSizeRef = useRef(1000);
 
   // Track per-file saved state for dirty detection and conflict detection
   // Maps filePath -> { content, metadata } for files we've loaded
@@ -522,13 +523,15 @@ function StudioPageContent() {
             <>
               <Resizer
                 direction={previewLayout === 'horizontal' ? 'horizontal' : 'vertical'}
-                onResizeStart={() => { startEditorRatioRef.current = editorRatio; }}
-                onResize={(totalDelta) => {
+                onResizeStart={() => {
+                  startEditorRatioRef.current = editorRatio;
                   const el = mainRef.current;
-                  const containerSize = el
+                  startContainerSizeRef.current = el
                     ? (previewLayout === 'horizontal' ? el.clientWidth : el.clientHeight)
                     : 1000;
-                  const deltaPct = (totalDelta / containerSize) * 100;
+                }}
+                onResize={(totalDelta) => {
+                  const deltaPct = (totalDelta / startContainerSizeRef.current) * 100;
                   setEditorRatio(Math.max(20, Math.min(80, startEditorRatioRef.current + deltaPct)));
                 }}
                 className={`studio-pane-resizer ${previewLayout}`}

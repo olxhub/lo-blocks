@@ -556,8 +556,7 @@
   overflow: hidden;
 }
 
-/* Resizers: structural styles from .lo-resizer in resizable-sidebar.css.
- * PaneResizer retains studio-pane-resizer class for direction-specific overrides. */
+/* Resizers: structural styles from .lo-resizer in resizable-sidebar.css. */
 
 /* Main editor area */
 .studio-main {

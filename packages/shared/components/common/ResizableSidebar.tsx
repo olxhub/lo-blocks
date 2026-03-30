@@ -1,8 +1,9 @@
 // ResizableSidebar — shared sidebar wrapper with drag-to-resize and collapse.
 //
-// Width is managed by the DOM, not React state. On drag start we snapshot
-// the current width; on each mousemove we set width = snapshot + totalDelta.
-// No accumulated deltas, no reading back animated values, no drift.
+// Width is managed outside React's render cycle. A ref tracks the current
+// width (initialized from defaultWidth). During drag, both the ref and
+// el.style.width are updated directly. The ref ensures React re-renders
+// (from any cause) preserve the drag-resized width.
 //
 // Collapse is always controlled — parent owns the state.
 //
@@ -60,6 +61,7 @@ export default function ResizableSidebar({
   resizable = true,
 }: ResizableSidebarProps) {
   const sidebarRef = useRef<HTMLElement>(null);
+  const widthRef = useRef(defaultWidth);
   const startWidthRef = useRef(0);
 
   const toggleCollapse = useCallback(() => {
@@ -79,6 +81,7 @@ export default function ResizableSidebar({
     if (!el) return;
     const adjusted = side === 'end' ? -totalDelta : totalDelta;
     const clamped = Math.max(minWidth, Math.min(maxWidth, startWidthRef.current + adjusted));
+    widthRef.current = clamped;
     el.style.width = `${clamped}px`;
   }, [side, minWidth, maxWidth]);
 
@@ -114,7 +117,7 @@ export default function ResizableSidebar({
     <Tag
       ref={sidebarRef as React.Ref<any>}
       className={`lo-sidebar ${chrome ? 'lo-chrome' : ''} ${className}`}
-      style={{ width: defaultWidth }}
+      style={{ width: widthRef.current }}
       data-side={side}
     >
       {children}

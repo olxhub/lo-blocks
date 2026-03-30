@@ -4,6 +4,7 @@
 // Consumer captures starting state in onResizeStart, then applies the
 // total displacement directly — no accumulated deltas, no drift.
 //
+// Keyboard: arrow keys emit single-step resize sequences (start → resize → end).
 // Supports horizontal (col-resize) and vertical (row-resize) directions.
 
 'use client';
@@ -67,10 +68,30 @@ export default function Resizer({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  // Keyboard: each keypress is a complete resize sequence (start → resize → end)
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    const step = e.shiftKey ? 50 : 10;
+    let delta = 0;
+    if (direction === 'horizontal') {
+      if (e.key === 'ArrowRight') delta = step;
+      else if (e.key === 'ArrowLeft') delta = -step;
+      else return;
+    } else {
+      if (e.key === 'ArrowDown') delta = step;
+      else if (e.key === 'ArrowUp') delta = -step;
+      else return;
+    }
+    e.preventDefault();
+    onResizeStart?.();
+    onResize(delta);
+    onResizeEnd?.();
+  };
+
   return (
     <div
       className={`lo-resizer lo-resizer--${direction} ${className}`}
       onMouseDown={handleMouseDown}
+      onKeyDown={handleKeyDown}
       role="separator"
       aria-orientation={direction === 'horizontal' ? 'vertical' : 'horizontal'}
       tabIndex={0}
