@@ -1,4 +1,4 @@
 {
-  "answerRecorded": "Answer recorded. Press Start for next round.",
+  "answerRecorded": "Answer recorded. Press {{buttonLabel}} to continue.",
   "typeDigits": "Type the digits:"
 }

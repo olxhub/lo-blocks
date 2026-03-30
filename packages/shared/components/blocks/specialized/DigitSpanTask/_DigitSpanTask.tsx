@@ -112,7 +112,7 @@ export function _DigitSpanTask( props: RuntimeProps ) {
 
       {step === 'feedback' && (
         <div>
-          <p>{t('answerRecorded')}</p>
+          <p>{t('answerRecorded', { buttonLabel: t('next') })}</p>
           <button onClick={startNewRound} className="p-2 bg-accent text-inverse rounded">{t('next')}</button>
         </div>
       )}
