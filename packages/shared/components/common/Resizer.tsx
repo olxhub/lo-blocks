@@ -20,6 +20,8 @@ export interface ResizerProps {
   onResize: (totalDelta: number) => void;
   /** Called once when drag ends. */
   onResizeEnd?: () => void;
+  /** Accessible label for the resize handle. */
+  ariaLabel?: string;
   /** Additional CSS class name. */
   className?: string;
 }
@@ -29,6 +31,7 @@ export default function Resizer({
   onResize,
   onResizeStart,
   onResizeEnd,
+  ariaLabel,
   className = '',
 }: ResizerProps) {
   const originPos = useRef(0);
@@ -94,6 +97,7 @@ export default function Resizer({
       onKeyDown={handleKeyDown}
       role="separator"
       aria-orientation={direction === 'horizontal' ? 'vertical' : 'horizontal'}
+      aria-label={ariaLabel || 'Resize'}
       tabIndex={0}
     />
   );

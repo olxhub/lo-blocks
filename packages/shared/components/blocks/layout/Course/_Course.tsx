@@ -54,6 +54,7 @@ function _Course(props: RuntimeProps) {
         maxWidth={500}
         collapsed={navCollapsed}
         onCollapsedChange={setNavCollapsed}
+        label="Course navigation"
         className="course-navigation"
       >
         <div>

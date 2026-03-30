@@ -38,6 +38,7 @@
 @import "./componentsAutogen.css";
 
 /* ── Shared component styles ── */
+@import "../components/common/resizable-sidebar.css";
 @import "../components/common/render-markdown.css";
 
 /* ── KaTeX for math rendering ── */

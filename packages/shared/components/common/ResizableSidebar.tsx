@@ -12,10 +12,9 @@
 
 'use client';
 
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useId, useRef } from 'react';
 import Resizer from './Resizer';
 import NavArrow from './NavArrow';
-import './resizable-sidebar.css';
 
 export interface ResizableSidebarProps {
   children: React.ReactNode;
@@ -45,6 +44,8 @@ export interface ResizableSidebarProps {
   as?: 'aside' | 'div' | 'nav';
   /** Show resize handle. Default: true. */
   resizable?: boolean;
+  /** Accessible label for the sidebar and its controls. Default: 'Sidebar'. */
+  label?: string;
 }
 
 export default function ResizableSidebar({
@@ -59,10 +60,12 @@ export default function ResizableSidebar({
   className = '',
   as: Tag = 'aside',
   resizable = true,
+  label = 'Sidebar',
 }: ResizableSidebarProps) {
   const sidebarRef = useRef<HTMLElement>(null);
   const widthRef = useRef(defaultWidth);
   const startWidthRef = useRef(0);
+  const sidebarId = useId();
 
   const toggleCollapse = useCallback(() => {
     onCollapsedChange(!collapsed);
@@ -103,8 +106,9 @@ export default function ResizableSidebar({
         <button
           className="lo-sidebar-rail__toggle"
           onClick={toggleCollapse}
-          title="Expand sidebar"
-          aria-label="Expand sidebar"
+          aria-controls={sidebarId}
+          aria-expanded={false}
+          aria-label={`Expand ${label}`}
         >
           <NavArrow direction={expandDirection} className="w-3 h-3" />
         </button>
@@ -115,10 +119,12 @@ export default function ResizableSidebar({
   // ── Expanded sidebar ──
   const sidebar = (
     <Tag
+      id={sidebarId}
       ref={sidebarRef as React.Ref<any>}
       className={`lo-sidebar ${chrome ? 'lo-chrome' : ''} ${className}`}
       style={{ width: widthRef.current }}
       data-side={side}
+      aria-label={label}
     >
       {children}
     </Tag>
@@ -129,8 +135,9 @@ export default function ResizableSidebar({
       <button
         className="lo-sidebar-edge__toggle"
         onClick={toggleCollapse}
-        title="Collapse sidebar"
-        aria-label="Collapse sidebar"
+        aria-controls={sidebarId}
+        aria-expanded={true}
+        aria-label={`Collapse ${label}`}
       >
         <NavArrow direction={collapseDirection} className="w-2.5 h-2.5" />
       </button>
@@ -139,6 +146,7 @@ export default function ResizableSidebar({
         onResizeStart={handleResizeStart}
         onResize={handleResize}
         onResizeEnd={handleResizeEnd}
+        ariaLabel={`Resize ${label}`}
       />
     </div>
   ) : null;

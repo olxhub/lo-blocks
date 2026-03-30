@@ -439,6 +439,7 @@ function StudioPageContent() {
           minWidth={200}
           maxWidth={600}
           chrome
+          label="Studio sidebar"
           className="studio-sidebar"
         >
           <nav className="studio-sidebar-tabs">

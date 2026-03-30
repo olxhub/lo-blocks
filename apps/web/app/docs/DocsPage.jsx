@@ -104,7 +104,8 @@ function BlockSidebar({
 
   return (
     <ResizableSidebar defaultWidth={256} minWidth={180} maxWidth={400}
-      collapsed={sidebarCollapsed} onCollapsedChange={onSidebarCollapsedChange}>
+      collapsed={sidebarCollapsed} onCollapsedChange={onSidebarCollapsedChange}
+      label="Docs sidebar">
       <div className="p-3 border-b border-border">
         <input
           type="text"

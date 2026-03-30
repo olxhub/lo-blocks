@@ -119,6 +119,15 @@
   background: var(--lo-bg-muted);
 }
 
+/* ── Focus-visible for keyboard navigation ── */
+
+.lo-resizer:focus-visible,
+.lo-sidebar-edge__toggle:focus-visible,
+.lo-sidebar-rail__toggle:focus-visible {
+  outline: var(--lo-focus-ring-width) solid var(--lo-focus-ring);
+  outline-offset: var(--lo-focus-ring-offset);
+}
+
 /* ── Responsive: stack at mobile breakpoint ── */
 
 @media (max-width: 1024px) {

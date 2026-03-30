@@ -238,7 +238,8 @@ function Sidebar() {
 
   return (
     <ResizableSidebar defaultWidth={256} minWidth={180} maxWidth={400}
-      collapsed={collapsed} onCollapsedChange={setCollapsed}>
+      collapsed={collapsed} onCollapsedChange={setCollapsed}
+      label="Home sidebar">
       <div className="p-6 flex flex-col gap-6 h-full">
         <div>
           <h1 className="text-lg font-semibold text-foreground mb-4">Learning Observer</h1>
