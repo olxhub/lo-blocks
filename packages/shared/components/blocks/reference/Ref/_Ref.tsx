@@ -6,11 +6,13 @@ import React from 'react';
 import { useValue } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
+import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 const VALID_FORMATS = ['code'];
 
 export default function _Ref(props: RuntimeProps) {
   const { visible = true, fallback = '', format } = props;
+  const { t } = useBlockTranslation(props);
 
   // Call Ref's own selectValue via useValue - this is the single source of truth
   // for value formatting, field access, and validation
@@ -22,7 +24,7 @@ export default function _Ref(props: RuntimeProps) {
   }
 
   if (loading) {
-    return <Spinner>Loading reference...</Spinner>;
+    return <Spinner>{t('loadingReference')}</Spinner>;
   }
 
   if (error) {
