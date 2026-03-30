@@ -5,7 +5,8 @@ category: interdisciplinary
 lang: en-Latn-US
 ---
 -->
-<Vertical id="interdisciplinary_activities" launchable="true">
+<Cast cast="characters.cast" id="interdisciplinary_activities" launchable="true">
+<Vertical>
 
   <!-- ORIENTATION -->
   <SplitPanel id="interdisciplinary_orientation" title="Introduction" sizes="65,35">
@@ -868,3 +869,4 @@ School  funding  inequities  contribute  to  higher  dropout  rates  among  Afri
     </Vertical>
   </Vertical>
 </Vertical>
+</Cast>

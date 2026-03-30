@@ -9,7 +9,8 @@ category: interdisciplinary
 lang: en-Latn-US
 ---
 -->
-<SplitPanel id="interdisciplinary_sba_demo" title="Interdisciplinary Studies SBA - High School Dropout Analysis" launchable="true">
+<Cast cast="characters.cast" id="interdisciplinary_sba_demo" title="Interdisciplinary Studies SBA - High School Dropout Analysis" launchable="true">
+<SplitPanel>
 
   <!-- Left Panel: Dialogue Conversation -->
   <LeftPane>
@@ -42,6 +43,7 @@ lang: en-Latn-US
   </RightPane>
 
 </SplitPanel>
+</Cast>
 
 <!-- ============================================================
      REFERENCED CONTENT BLOCKS

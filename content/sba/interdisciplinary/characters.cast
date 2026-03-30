@@ -9,6 +9,9 @@
 
 Omer:
   src: images/GSU_prof.png
+  openPeeps:
+    face: smile
+    head: short4
   profile:
     role: Professor
     bio: Professor at Georgia State University teaching EDUC 3100.
@@ -25,6 +28,9 @@ Teammate:
 
 Ty:
   src: images/ty.png
+  openPeeps:
+    face: smile
+    head: short1
   profile:
     role: Intern - Data Analysis
     bio: Intern at Comm360 with a focus on data analysis and statistical reasoning.
@@ -37,8 +43,11 @@ Ty:
     - comm360
     - interns
 
-Peggy:
+Peggie:
   src: images/peggy.png
+  openPeeps:
+    face: smile
+    head: medium2
   profile:
     role: Intern - Community Outreach
     bio: Intern at Comm360 specializing in community engagement and outreach.
@@ -53,6 +62,9 @@ Peggy:
 
 Lacy:
   src: images/lacy.png
+  openPeeps:
+    face: smile
+    head: long1
   profile:
     role: Intern - Program Development
     bio: Intern at Comm360 working on program development and implementation.
@@ -68,6 +80,9 @@ Lacy:
 Lianne:
   name: Lianne Park
   src: images/lianne.png
+  openPeeps:
+    face: smile
+    head: long2
   profile:
     role: Supervisor / Director
     bio: Five years at Comm360, directs multiple programs. Will present findings to the Program Development and Evaluation committee.

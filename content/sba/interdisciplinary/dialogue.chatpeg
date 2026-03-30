@@ -1,21 +1,6 @@
 title: Interdisciplinary Studies SBA - High School Dropout Analysis
 author: EDUC 3100 Assessment Module
-cast:
-  Omer:
-    seed: omer
-    face: smile
-  Ty:
-    seed: ty
-    face: smile
-  Lacy:
-    seed: lacy
-    face: smile
-  Peggie:
-    seed: peggie
-    face: smile
-  Lianne:
-    seed: lianne
-    face: smile
+cast: characters.cast
 ~~~~
 
 Orientation [id=orientation]
