@@ -120,15 +120,3 @@
   font-size: var(--lo-font-size-lg);
   margin-top: var(--lo-space-3xl);
 }
-
-/* Responsive — sidebar stacking handled by .lo-sidebar */
-@media (max-width: 1024px) {
-  .lo-tag-course .course-container {
-    flex-direction: column;
-    height: auto;
-  }
-
-  .lo-tag-course .course-content > div {
-    padding: var(--lo-space-xl);
-  }
-}

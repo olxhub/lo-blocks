@@ -16,11 +16,10 @@
     display: none !important;
   }
 
-  /* Sidebar navigation — scoped to bare <aside> for now.
-   * TODO: Add .lo-app-sidebar class when sidebars are extracted
-   * to shared components, then scope this selector. Safe for now:
-   * preview pages (the print target) have no <aside>. */
-  aside {
+  /* Sidebar navigation and its resize/collapse chrome */
+  .lo-sidebar,
+  .lo-sidebar-rail,
+  .lo-sidebar-edge {
     display: none !important;
   }
 
