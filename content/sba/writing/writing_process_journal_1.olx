@@ -257,7 +257,6 @@ lang: en-Latn-US
                     student's likely overall writing identity.
                </LLMAction>
            </ActionButton>
-           <LLMFeedback id="wpj1_writing_habits_analysis" />
            <LLMFeedback id="wpj1_writing_habits_analysis" render="markdown" />
     </Vertical>
     <SplitPanel id="wpj1_Step_10" title="What I Agree with and Why" sizes="50,50">

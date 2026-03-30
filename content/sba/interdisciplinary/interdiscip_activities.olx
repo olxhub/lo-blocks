@@ -134,7 +134,7 @@ _You can expand the text to a full window by clicking on the square double arrow
 right of "Annotations"._
 </Markdown>
       <Annotate id="focus_group" title="Focus Group Transcript (Part 1)" popout="window">
-          <Markdown id="transcript_md1" popout="window">
+          <Markdown id="transcript_md1">
 ## Focus Group Transcript
 **Interviewer:**
 Thank you for participating in this focus group and thank you for providing your consent to have this meeting recorded. Let's begin. Our community needs survey identified high school dropout rates as an issue of concern. The purpose of this focus group is to discuss causes of dropping out of high school. Why do you think students in our community dropout of high school?
@@ -204,7 +204,7 @@ Are there any other comments on the causes? [interviewer pause] OK, let's move o
 
     <!-- Display of focus group highlights -->
     <Vertical id="focus_group_highlights_shown">
-          <Markdown id="transcript_md2" popout="window">
+          <Markdown id="transcript_md2">
 ## Focus Group Transcript
 `The Parts of the Passage Ty Annotated`
 
@@ -513,7 +513,7 @@ _Highlight the clue words or phrases that show what discipline or disciplines ar
 click on the "Annotate" button and explain what discipline this clue suggests, and why._
      </Markdown>
      <Annotate id="employment_study_annotation" popout="window">
-      <Markdown id="employment_study_text" popout="window">
+      <Markdown id="employment_study_text">
 **Title:** Is  Adolescent  Employment  Still  a  Risk  Factor  for  High  School  Dropout?
 
 **Authors:** Jeremy  Staff,  Alyssa  M. Yetter,  Kelsey  Cundiff,  Nayan  Ramirez,  Mike  Vuolo,  Jeylan  T. Mortimer
@@ -636,7 +636,7 @@ _Highlight the clue words or phrases that show what discipline or disciplines ar
 click on the "Annotate" button and explain what discipline this clue suggests, and why._
      </Markdown>
      <Annotate id="source_3_highlights_annotation" popout="window">
-        <Markdown id="rural_urban_study_text_md" popout="window">
+        <Markdown id="rural_urban_study_text_md">
 **Title:** Rural  and  Urban  High  School  Dropout  Rates: Are  They  Different?
 
 **Authors:** Jeffrey  L. Jordan,  Genti  Kostandini,  Elton  Mykerezi
@@ -711,7 +711,7 @@ High  school  dropout  rates  are  similar  across  rural  and  urban  areas,  w
         </Markdown>
         <TextArea id="source_3_insight_sentence" placeholder="..." />
       </Vertical>
-      <Vertical id="source_3_explanation_t2" title="Rural/Urban Study">
+      <Vertical id="source_3_insight_t2" title="Rural/Urban Study">
         <Use ref="rural_urban_study_text_md" />
       </Vertical>
    </Tabs>
@@ -768,7 +768,7 @@ _Highlight the clue words or phrases that show what discipline or disciplines ar
 click on the "Annotate" button and explain what discipline this clue suggests, and why._
       </Markdown>
       <Annotate id="source_4_highlights" popout="window">
-        <Markdown id="funding_study_text_md" popout="window">
+        <Markdown id="funding_study_text_md">
 **Title**: Examining  School  Funding  Inequity  and  Impact  on  African  American  High  School  Dropouts
 
 **Author**: Michelle  Janette  Williams

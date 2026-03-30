@@ -43,7 +43,7 @@ Ty:
     - comm360
     - interns
 
-Peggie:
+Peggy:
   src: images/peggy.png
   openPeeps:
     face: smile
@@ -64,7 +64,7 @@ Lacy:
   src: images/lacy.png
   openPeeps:
     face: smile
-    head: long1
+    head: long
   profile:
     role: Intern - Program Development
     bio: Intern at Comm360 working on program development and implementation.
@@ -82,7 +82,7 @@ Lianne:
   src: images/lianne.png
   openPeeps:
     face: smile
-    head: long2
+    head: longBangs
   profile:
     role: Supervisor / Director
     bio: Five years at Comm360, directs multiple programs. Will present findings to the Program Development and Evaluation committee.
