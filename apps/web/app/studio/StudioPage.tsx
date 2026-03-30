@@ -8,6 +8,8 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import PreviewPane from '@/components/common/PreviewPane';
 import Spinner from '@/components/common/Spinner';
+import Resizer from '@/components/common/Resizer';
+import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { DataPanel, DocsPanel, FilesPanel, SearchPanel } from './panels';
 import EditorLLMChat from './EditorLLMChat';
 import { useDocsData } from '@/lib/docs';
@@ -106,7 +108,6 @@ function StudioPageContent() {
   // TODO: Consider moving layout preferences to redux (persist across sessions)
   const [showPreview, setShowPreview] = useState(true);
   const [previewLayout, setPreviewLayout] = useState<PreviewLayout>('horizontal');
-  const [sidebarWidth, setSidebarWidth] = useState(320);
   const [editorRatio, setEditorRatio] = useState(50); // percentage for editor pane
   // TODO: Move fileTree to redux (shared across components)
   const [fileTree, setFileTree] = useState<UriNode | null>(null);
@@ -118,6 +119,9 @@ function StudioPageContent() {
 
   // Editor ref for insert operations (DOM ref - keep as useRef)
   const editorRef = useRef<CodeEditorHandle>(null);
+  // Main area ref for pane resize percentage calculation
+  const mainRef = useRef<HTMLElement>(null);
+  const startEditorRatioRef = useRef(50);
 
   // Track per-file saved state for dirty detection and conflict detection
   // Maps filePath -> { content, metadata } for files we've loaded
@@ -428,69 +432,71 @@ function StudioPageContent() {
 
       <div className="studio-body">
         {/* Sidebar */}
-        {sidebarOpen && (
-          <>
-            <aside className="studio-sidebar lo-chrome" style={{ width: sidebarWidth }}>
-              <nav className="studio-sidebar-tabs">
-                {(['chat', 'docs', 'search', 'files', 'data'] as SidebarTab[]).map(tab => (
-                  <button
-                    key={tab}
-                    className={`studio-sidebar-tab ${sidebarTab === tab ? 'active' : ''}`}
-                    onClick={() => setSidebarTab(tab)}
-                  >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  </button>
-                ))}
-              </nav>
-              <div className="studio-sidebar-content">
-                {sidebarTab === 'files' && (
-                  <FilesPanel
-                    fileTree={fileTree}
-                    currentPath={filePath}
-                    dirtyFiles={getDirtyFiles()}
-                    onFileSelect={handleFileSelect}
-                    onFileCreate={handleFileCreate}
-                    onFileDelete={handleFileDelete}
-                    onFileRename={handleFileRename}
-                  />
-                )}
-                {sidebarTab === 'chat' && (
-                  <div className="sidebar-panel chat-panel">
-                    <EditorLLMChat
-                      path={filePath}
-                      getContent={() => getEditComponentState(editorFields.content, filePath, DEMO_CONTENT)}
-                      onApplyEdit={setContent}
-                      onOpenFile={handleFileSelect}
-                    />
-                  </div>
-                )}
-                {sidebarTab === 'search' && (
-                  <SearchPanel
-                    idMap={idMap}
-                    content={content}
-                    currentPath={filePath}
-                    onFileSelect={handleFileSelect}
-                    onScrollToId={(id) => editorRef.current?.scrollToId(id)}
-                    onNotify={(type, msg) => notify(type, msg)}
-                  />
-                )}
-                {sidebarTab === 'data' && <DataPanel />}
-                {sidebarTab === 'docs' && (
-                  <DocsPanel
-                    filePath={filePath}
-                    content={content}
-                    docsData={docsData}
-                    onInsert={(olx) => editorRef.current?.insertAtCursor(olx)}
-                  />
-                )}
+        <ResizableSidebar
+          collapsed={!sidebarOpen}
+          onCollapsedChange={c => setSidebarOpen(!c)}
+          minWidth={200}
+          maxWidth={600}
+          chrome
+          className="studio-sidebar"
+        >
+          <nav className="studio-sidebar-tabs">
+            {(['chat', 'docs', 'search', 'files', 'data'] as SidebarTab[]).map(tab => (
+              <button
+                key={tab}
+                className={`studio-sidebar-tab ${sidebarTab === tab ? 'active' : ''}`}
+                onClick={() => setSidebarTab(tab)}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
+          </nav>
+          <div className="studio-sidebar-content">
+            {sidebarTab === 'files' && (
+              <FilesPanel
+                fileTree={fileTree}
+                currentPath={filePath}
+                dirtyFiles={getDirtyFiles()}
+                onFileSelect={handleFileSelect}
+                onFileCreate={handleFileCreate}
+                onFileDelete={handleFileDelete}
+                onFileRename={handleFileRename}
+              />
+            )}
+            {sidebarTab === 'chat' && (
+              <div className="sidebar-panel chat-panel">
+                <EditorLLMChat
+                  path={filePath}
+                  getContent={() => getEditComponentState(editorFields.content, filePath, DEMO_CONTENT)}
+                  onApplyEdit={setContent}
+                  onOpenFile={handleFileSelect}
+                />
               </div>
-            </aside>
-            <Resizer onResize={(delta) => setSidebarWidth(w => Math.max(200, Math.min(600, w + delta)))} />
-          </>
-        )}
+            )}
+            {sidebarTab === 'search' && (
+              <SearchPanel
+                idMap={idMap}
+                content={content}
+                currentPath={filePath}
+                onFileSelect={handleFileSelect}
+                onScrollToId={(id) => editorRef.current?.scrollToId(id)}
+                onNotify={(type, msg) => notify(type, msg)}
+              />
+            )}
+            {sidebarTab === 'data' && <DataPanel />}
+            {sidebarTab === 'docs' && (
+              <DocsPanel
+                filePath={filePath}
+                content={content}
+                docsData={docsData}
+                onInsert={(olx) => editorRef.current?.insertAtCursor(olx)}
+              />
+            )}
+          </div>
+        </ResizableSidebar>
 
         {/* Main Editor Area */}
-        <main className={`studio-main ${showPreview ? `split ${previewLayout}` : ''}`}>
+        <main ref={mainRef} className={`studio-main ${showPreview ? `split ${previewLayout}` : ''}`}>
           <div
             className="studio-editor-pane"
             style={showPreview ? {
@@ -514,12 +520,18 @@ function StudioPageContent() {
           </div>
           {showPreview && (
             <>
-              <PaneResizer
+              <Resizer
                 direction={previewLayout === 'horizontal' ? 'horizontal' : 'vertical'}
-                onResize={(delta, containerSize) => {
-                  const deltaPct = (delta / containerSize) * 100;
-                  setEditorRatio(r => Math.max(20, Math.min(80, r + deltaPct)));
+                onResizeStart={() => { startEditorRatioRef.current = editorRatio; }}
+                onResize={(totalDelta) => {
+                  const el = mainRef.current;
+                  const containerSize = el
+                    ? (previewLayout === 'horizontal' ? el.clientWidth : el.clientHeight)
+                    : 1000;
+                  const deltaPct = (totalDelta / containerSize) * 100;
+                  setEditorRatio(Math.max(20, Math.min(80, startEditorRatioRef.current + deltaPct)));
                 }}
+                className={`studio-pane-resizer ${previewLayout}`}
               />
               <div className="studio-preview-pane">
                 <div className="studio-preview-header">Preview</div>
@@ -567,114 +579,6 @@ function StudioPageContent() {
         </span>
       </footer>
     </div>
-  );
-}
-
-// Draggable resizer for sidebar
-function Resizer({ onResize }: { onResize: (delta: number) => void }) {
-  const startX = useRef(0);
-  const cleanupRef = useRef<(() => void) | null>(null);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (cleanupRef.current) {
-        cleanupRef.current();
-      }
-    };
-  }, []);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    startX.current = e.clientX;
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const delta = e.clientX - startX.current;
-      startX.current = e.clientX;
-      onResize(delta);
-    };
-
-    const cleanup = () => {
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      cleanupRef.current = null;
-    };
-
-    const handleMouseUp = () => cleanup();
-
-    cleanupRef.current = cleanup;
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  };
-
-  return <div className="studio-resizer" onMouseDown={handleMouseDown} />;
-}
-
-// Draggable resizer for editor/preview panes (supports both directions)
-function PaneResizer({
-  direction,
-  onResize
-}: {
-  direction: 'horizontal' | 'vertical';
-  onResize: (delta: number, containerSize: number) => void;
-}) {
-  const startPos = useRef(0);
-  const resizerRef = useRef<HTMLDivElement>(null);
-  const cleanupRef = useRef<(() => void) | null>(null);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (cleanupRef.current) {
-        cleanupRef.current();
-      }
-    };
-  }, []);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    startPos.current = direction === 'horizontal' ? e.clientX : e.clientY;
-    document.body.style.cursor = direction === 'horizontal' ? 'col-resize' : 'row-resize';
-    document.body.style.userSelect = 'none';
-
-    // Get container size for percentage calculation
-    const container = resizerRef.current?.parentElement;
-    const containerSize = container
-      ? (direction === 'horizontal' ? container.clientWidth : container.clientHeight)
-      : 1000;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const currentPos = direction === 'horizontal' ? e.clientX : e.clientY;
-      const delta = currentPos - startPos.current;
-      startPos.current = currentPos;
-      onResize(delta, containerSize);
-    };
-
-    const cleanup = () => {
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      cleanupRef.current = null;
-    };
-
-    const handleMouseUp = () => cleanup();
-
-    cleanupRef.current = cleanup;
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  };
-
-  return (
-    <div
-      ref={resizerRef}
-      className={`studio-pane-resizer ${direction}`}
-      onMouseDown={handleMouseDown}
-    />
   );
 }
 

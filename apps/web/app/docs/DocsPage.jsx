@@ -29,6 +29,7 @@ import { baseAttributes, inputMixin, graderMixin } from '@/lib/blocks/attributeS
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import Notice from '@/components/common/Notice';
+import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { CATEGORY_ORDER, getCategory, groupBlocksByCategory } from '@/lib/docs/categoryUtils';
 
 // Shared attribute sets for documentation display.
@@ -96,12 +97,15 @@ function BlockSidebar({
   onToggleCategory,
   showInternal,
   onToggleInternal,
+  sidebarCollapsed,
+  onSidebarCollapsedChange,
 }) {
   const [hoveredBlock, setHoveredBlock] = useState(null);
 
   return (
-    <aside className="w-64 bg-background border-e flex flex-col overflow-hidden">
-      <div className="p-3 border-b">
+    <ResizableSidebar defaultWidth={256} minWidth={180} maxWidth={400}
+      collapsed={sidebarCollapsed} onCollapsedChange={onSidebarCollapsedChange}>
+      <div className="p-3 border-b border-border">
         <input
           type="text"
           placeholder="Search blocks & grammars..."
@@ -217,7 +221,7 @@ function BlockSidebar({
         ))}
       </nav>
 
-      <div className="p-2 border-t">
+      <div className="p-2 border-t border-border">
         <label className="flex items-center gap-2 px-2 py-1 text-xs text-dimmed cursor-pointer hover:text-secondary">
           <input
             type="checkbox"
@@ -228,7 +232,7 @@ function BlockSidebar({
           Show internal blocks
         </label>
       </div>
-    </aside>
+    </ResizableSidebar>
   );
 }
 
@@ -855,6 +859,7 @@ export default function DocsPage() {
     return collapsed;
   });
   const [showInternal, setShowInternal] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Fetch block and grammar lists on mount
   useEffect(() => {
@@ -1037,6 +1042,8 @@ export default function DocsPage() {
           onToggleCategory={handleToggleCategory}
           showInternal={showInternal}
           onToggleInternal={setShowInternal}
+          sidebarCollapsed={sidebarCollapsed}
+          onSidebarCollapsedChange={setSidebarCollapsed}
         />
 
         <main className="flex-1 overflow-hidden flex flex-col">

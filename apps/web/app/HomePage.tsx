@@ -9,6 +9,7 @@ import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import Notice from '@/components/common/Notice';
+import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
 import { fetchActivities } from '@/lib/content/fetchOlxJson';
@@ -233,89 +234,93 @@ function Activities() {
 function Sidebar() {
   const [showEndpoints, setShowEndpoints] = useState(false);
   const [params, setParams] = useState({});
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <aside className="w-64 bg-surface border-r border-border p-6 flex flex-col gap-6">
-      <div>
-        <h1 className="text-lg font-semibold text-foreground mb-4">Learning Observer</h1>
-        <nav className="space-y-2">
-          <Link
-            href="/docs"
-            className="block px-3 py-2 text-sm text-foreground hover:bg-muted rounded transition-colors"
-          >
-            📖 Documentation
-          </Link>
-          <a
-            href="https://github.com/OlxHub/lo-blocks"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block px-3 py-2 text-sm text-foreground hover:bg-muted rounded transition-colors"
-          >
-            🔗 GitHub
-          </a>
-          <a
-            href="https://learning-observer.org"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block px-3 py-2 text-sm text-foreground hover:bg-muted rounded transition-colors"
-          >
-            🌐 Learning Observer
-          </a>
-        </nav>
-      </div>
+    <ResizableSidebar defaultWidth={256} minWidth={180} maxWidth={400}
+      collapsed={collapsed} onCollapsedChange={setCollapsed}>
+      <div className="p-6 flex flex-col gap-6 h-full">
+        <div>
+          <h1 className="text-lg font-semibold text-foreground mb-4">Learning Observer</h1>
+          <nav className="space-y-2">
+            <Link
+              href="/docs"
+              className="block px-3 py-2 text-sm text-foreground hover:bg-muted rounded transition-colors"
+            >
+              📖 Documentation
+            </Link>
+            <a
+              href="https://github.com/OlxHub/lo-blocks"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block px-3 py-2 text-sm text-foreground hover:bg-muted rounded transition-colors"
+            >
+              🔗 GitHub
+            </a>
+            <a
+              href="https://learning-observer.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block px-3 py-2 text-sm text-foreground hover:bg-muted rounded transition-colors"
+            >
+              🌐 Learning Observer
+            </a>
+          </nav>
+        </div>
 
-      <div>
-        <button
-          onClick={() => setShowEndpoints(!showEndpoints)}
-          className="w-full flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-muted rounded transition-colors"
-        >
-          <span>Developer Tools</span>
-          <ExpandIcon expanded={showEndpoints} className="text-dimmed" />
-        </button>
+        <div>
+          <button
+            onClick={() => setShowEndpoints(!showEndpoints)}
+            className="w-full flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-muted rounded transition-colors"
+          >
+            <span>Developer Tools</span>
+            <ExpandIcon expanded={showEndpoints} className="text-dimmed" />
+          </button>
 
-        {showEndpoints && (
-          <div className="mt-2 ps-3 space-y-3 text-xs">
-            {ENDPOINT_LINKS.map(endpoint => (
-              <div key={endpoint.key || endpoint.label}>
-                {endpoint.hrefTemplate ? (
-                  <div className="space-y-1">
-                    <code className="text-secondary">{endpoint.label}</code>
-                    <div className="flex gap-1">
-                      <input
-                        type="text"
-                        placeholder={endpoint.placeholder}
-                        value={params[endpoint.key] || ''}
-                        onChange={e => setParams({ ...params, [endpoint.key]: e.target.value })}
-                        className="flex-1 text-xs border border-border px-2 py-1 rounded bg-background text-foreground"
-                      />
-                      <a
-                        href={params[endpoint.key] ? endpoint.hrefTemplate(params[endpoint.key]) : '#'}
-                        className={`px-2 py-1 text-xs rounded ${params[endpoint.key] ? 'bg-accent text-inverse hover:bg-accent-hover' : 'bg-muted text-dimmed'}`}
-                        target="_blank"
-                        onClick={e => !params[endpoint.key] && e.preventDefault()}
-                      >
-                        Go
-                      </a>
+          {showEndpoints && (
+            <div className="mt-2 ps-3 space-y-3 text-xs">
+              {ENDPOINT_LINKS.map(endpoint => (
+                <div key={endpoint.key || endpoint.label}>
+                  {endpoint.hrefTemplate ? (
+                    <div className="space-y-1">
+                      <code className="text-secondary">{endpoint.label}</code>
+                      <div className="flex gap-1">
+                        <input
+                          type="text"
+                          placeholder={endpoint.placeholder}
+                          value={params[endpoint.key] || ''}
+                          onChange={e => setParams({ ...params, [endpoint.key]: e.target.value })}
+                          className="flex-1 text-xs border border-border px-2 py-1 rounded bg-background text-foreground"
+                        />
+                        <a
+                          href={params[endpoint.key] ? endpoint.hrefTemplate(params[endpoint.key]) : '#'}
+                          className={`px-2 py-1 text-xs rounded ${params[endpoint.key] ? 'bg-accent text-inverse hover:bg-accent-hover' : 'bg-muted text-dimmed'}`}
+                          target="_blank"
+                          onClick={e => !params[endpoint.key] && e.preventDefault()}
+                        >
+                          Go
+                        </a>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <Link
-                    href={endpoint.href}
-                    className="block text-accent hover:underline"
-                    target="_blank"
-                  >
-                    {endpoint.label}
-                  </Link>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+                  ) : (
+                    <Link
+                      href={endpoint.href}
+                      className="block text-accent hover:underline"
+                      target="_blank"
+                    >
+                      {endpoint.label}
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="mt-auto p-3 border-t border-border text-[10px] text-dimmed leading-tight">
+          <Notice />
+        </div>
       </div>
-      <div className="mt-auto p-3 border-t border-border text-[10px] text-dimmed leading-tight">
-        <Notice />
-      </div>
-    </aside>
+    </ResizableSidebar>
   );
 }
 

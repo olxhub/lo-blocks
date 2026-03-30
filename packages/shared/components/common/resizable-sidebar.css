@@ -1,0 +1,145 @@
+/*
+ * ResizableSidebar + Resizer
+ * --------------------------
+ * BEM naming: .lo-sidebar, .lo-sidebar-*, .lo-resizer
+ * Uses --lo-* semantic tokens (or --lo-chrome-* via .lo-chrome bridge).
+ */
+
+/* ── Sidebar ── */
+
+.lo-sidebar {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: var(--lo-bg-surface);
+  border-inline-end: 1px solid var(--lo-border);
+  transition: width 150ms ease;
+}
+
+.lo-sidebar[data-side="end"] {
+  border-inline-end: none;
+  border-inline-start: 1px solid var(--lo-border);
+}
+
+/* Suppress transition during drag so width tracks the mouse exactly */
+.lo-sidebar--resizing {
+  transition: none;
+}
+
+/* ── Collapsed rail ── */
+
+.lo-sidebar-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  background: var(--lo-bg-surface);
+  border-inline-end: 1px solid var(--lo-border);
+}
+
+.lo-sidebar-rail[data-side="end"] {
+  border-inline-end: none;
+  border-inline-start: 1px solid var(--lo-border);
+}
+
+.lo-sidebar-rail__toggle {
+  padding: 8px;
+  margin-top: 8px;
+  background: none;
+  border: none;
+  color: var(--lo-text-muted);
+  cursor: pointer;
+  line-height: 1;
+  font-size: 14px;
+  transition: color var(--lo-motion-fast);
+}
+
+.lo-sidebar-rail__toggle:hover {
+  color: var(--lo-text);
+}
+
+/* ── Resize handle ── */
+
+.lo-resizer {
+  flex-shrink: 0;
+  background: transparent;
+  transition: background var(--lo-motion-fast);
+  touch-action: none;
+}
+
+.lo-resizer--horizontal {
+  width: 4px;
+  cursor: col-resize;
+}
+
+.lo-resizer--vertical {
+  height: 4px;
+  cursor: row-resize;
+}
+
+.lo-resizer:hover {
+  background: var(--lo-primary);
+}
+
+/* ── Edge strip (resize handle + collapse chevron) ── */
+
+.lo-sidebar-edge {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.lo-sidebar-edge > .lo-resizer {
+  flex: 1;
+}
+
+.lo-sidebar-edge__toggle {
+  position: absolute;
+  top: 8px;
+  z-index: 1;
+  padding: 4px;
+  background: var(--lo-bg-surface);
+  border: 1px solid var(--lo-border);
+  border-radius: var(--lo-radius-sm);
+  color: var(--lo-text-muted);
+  cursor: pointer;
+  font-size: 10px;
+  line-height: 1;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: color var(--lo-motion-fast), background var(--lo-motion-fast);
+}
+
+.lo-sidebar-edge__toggle:hover {
+  color: var(--lo-text);
+  background: var(--lo-bg-muted);
+}
+
+/* ── Responsive: stack at mobile breakpoint ── */
+
+@media (max-width: 1024px) {
+  .lo-sidebar {
+    flex: none;
+    width: 100% !important; /* Override inline style */
+    border-inline-end: none;
+    border-bottom: 1px solid var(--lo-border);
+    max-height: 40vh;
+    transition: none;
+  }
+
+  .lo-sidebar[data-side="end"] {
+    border-inline-start: none;
+    border-top: 1px solid var(--lo-border);
+    border-bottom: none;
+  }
+
+  .lo-resizer--horizontal,
+  .lo-sidebar-edge,
+  .lo-sidebar-rail {
+    display: none;
+  }
+}
