@@ -48,7 +48,7 @@ body {
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
-  background-color: rgba(5, 150, 105, 0.75); /* --lo-success with alpha */
+  background-color: color-mix(in srgb, var(--lo-success) 75%, transparent);
   color: var(--lo-text-inverse);
   font-size: var(--lo-font-size-xl);
   font-weight: 700;

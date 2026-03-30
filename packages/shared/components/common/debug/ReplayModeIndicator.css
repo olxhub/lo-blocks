@@ -11,7 +11,7 @@
   color: var(--lo-debug-text);
   font-family: var(--lo-font-ui);
   font-size: 13px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px var(--lo-debug-scrim-heavy);
 }
 
 .replay-mode-row {
@@ -169,7 +169,8 @@
   top: 0;
   left: 0;
   height: 100%;
-  background: linear-gradient(90deg, rgba(88, 166, 255, 0.3) 0%, rgba(121, 192, 255, 0.3) 100%);
+  /* Gradient from debug accent at 30% → lighter blue at 30% */
+  background: linear-gradient(90deg, var(--lo-debug-accent-strong) 0%, rgba(121, 192, 255, 0.3) 100%);
   border-radius: 6px;
   pointer-events: none;
   z-index: 0;
@@ -184,7 +185,7 @@
   border: 2px solid var(--lo-debug-bg);
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 4px var(--lo-debug-scrim-heavy);
   pointer-events: none;
   z-index: 2;
 }
@@ -195,6 +196,7 @@
 
 .replay-mode-scrubber:active .replay-mode-scrubber-thumb {
   transform: translate(-50%, -50%) scale(1.2);
+  /* Active glow — slightly stronger than --lo-debug-accent-strong */
   box-shadow: 0 2px 8px rgba(88, 166, 255, 0.4);
 }
 

@@ -66,10 +66,10 @@
   --lo-info-subtle:    light-dark(var(--lo-color-sky-100),     rgba(56, 189, 248, 0.15));
 
   /* ── Typography ── */
-  --lo-font-body:    system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --lo-font-heading: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --lo-font-ui:      system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --lo-font-mono:    'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+  --lo-font-body:    'Geist Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --lo-font-heading: 'Geist Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --lo-font-ui:      'Geist Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --lo-font-mono:    'Geist Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
 
   --lo-font-size-xs:   0.75rem;   /* 12px */
   --lo-font-size-sm:   0.875rem;  /* 14px */

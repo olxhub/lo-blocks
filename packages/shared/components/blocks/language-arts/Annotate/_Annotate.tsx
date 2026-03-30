@@ -27,7 +27,7 @@ import { useFieldState, useSet, useNextId, updateField } from '@/lib/state';
 import { extendIdPrefix, scopeMarker, toOlxReference, refToReduxKey } from '@/lib/blocks/idResolver';
 import { useKids, useBlock } from '@/lib/render';
 import { assertKidArray } from '@/lib/util/kids';
-import { groupHue, hslColor } from '@/lib/util/colorWheel';
+import { groupHue, themeColors } from '@/lib/util/colorWheel';
 import RenderMarkdown from '@/components/common/RenderMarkdown';
 import { fields as annotateFields } from './Annotate';
 import {
@@ -74,15 +74,15 @@ function scopedNoteProps(props: RuntimeProps, noteId: string): RuntimeProps {
  */
 function noteColors(noteId: string) {
   const hue = groupHue(parseInt(noteId, 10) || 0);
-  const base = `hsl(${hue} 80% 60%)`;
+  const tc = themeColors(hue);
   return {
-    highlight:       `color-mix(in srgb, ${base} 20%, var(--lo-bg))`,
-    highlightActive: `color-mix(in srgb, ${base} 35%, var(--lo-bg))`,
-    accent:          hslColor(hue, 0.55, 0.50),
-    accentLight:     `color-mix(in srgb, ${base} 18%, var(--lo-bg-surface))`,
-    cardBorder:      `color-mix(in srgb, ${base} 30%, var(--lo-border))`,
-    cardShadow:      `hsl(${hue} 15% 50% / 0.15)`,
-    quoteBg:         `color-mix(in srgb, ${base} 12%, var(--lo-bg-surface))`,
+    highlight:       tc.tint,
+    highlightActive: tc.tintStrong,
+    accent:          tc.accent,
+    accentLight:     `color-mix(in srgb, hsl(${hue} 80% 60%) 18%, var(--lo-bg-surface))`,
+    cardBorder:      tc.border,
+    cardShadow:      tc.shadow,
+    quoteBg:         tc.surface,
   };
 }
 

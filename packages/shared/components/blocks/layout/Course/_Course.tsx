@@ -7,6 +7,7 @@ import { useFieldState } from '@/lib/state';
 import { useBlock } from '@/lib/render';
 import { getBlockByOLXId } from '@/lib/blocks';
 import ExpandIcon from '@/components/common/ExpandIcon';
+import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { assertNamedObject } from '@/lib/util/kids';
 
 function CourseContent({ props, selectedChild }) {
@@ -24,6 +25,7 @@ function _Course(props: RuntimeProps) {
     chapters[0]?.children[0]?.id || null);
   const [expandedChapter, setExpandedChapter] = useFieldState(props, fields.expandedChapter,
     chapters[0]?.id || null);
+  const [navCollapsed, setNavCollapsed] = useFieldState(props, fields.navCollapsed, false);
 
   const handleChapterClick = (chapterId) => {
     setExpandedChapter(expandedChapter === chapterId ? null : chapterId);
@@ -45,7 +47,16 @@ function _Course(props: RuntimeProps) {
   return (
     <div className="course-container">
       {/* Left Navigation Accordion */}
-      <div className="course-navigation">
+      <ResizableSidebar
+        as="div"
+        defaultWidth={320}
+        minWidth={200}
+        maxWidth={500}
+        collapsed={navCollapsed}
+        onCollapsedChange={setNavCollapsed}
+        label="Course navigation"
+        className="course-navigation"
+      >
         <div>
           <h1>{title}</h1>
         </div>
@@ -86,7 +97,7 @@ function _Course(props: RuntimeProps) {
             </div>
           ))}
         </div>
-      </div>
+      </ResizableSidebar>
 
       {/* Right Content Area */}
       <div className="course-content">

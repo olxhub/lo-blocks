@@ -4,7 +4,7 @@
 // No React, no Redux — pure computation.
 
 import { segmentText, type TextToken } from '@/lib/textSegment';
-import { groupHue } from '@/lib/util/colorWheel';
+import { groupHue, themeColors, themeColorMix } from '@/lib/util/colorWheel';
 import type { HighlightEntry, HighlightSpan } from '@/lib/highlight';
 
 export type { HighlightEntry, HighlightSpan } from '@/lib/highlight';
@@ -87,6 +87,7 @@ function analyzeRepeatedWords(tokens: TextToken[]): HighlightEntry[] {
       hue: groupHue(i),
       saturation: 0.3 + norm * 0.6,     // 0.3 → 0.9
       lightness: 0.9 - norm * 0.2,      // 0.9 → 0.7
+      bg: themeColorMix(groupHue(i), 15 + norm * 30),  // 15%–45% by frequency
     };
   });
 }
@@ -118,14 +119,16 @@ function analyzeSentenceStarters(tokens: TextToken[]): HighlightEntry[] {
   for (const [word, toks] of groups) {
     if (toks.length >= 2) {
       // Repeated starter — vivid color
+      const starterHue = groupHue(groupIndex++);
       entries.push({
         id: `starter-${word}`,
         spans: toks.map(t => ({ offset: t.offset, length: t.length })),
         label: word,
         group: 'sentence_starters',
-        hue: groupHue(groupIndex++),
+        hue: starterHue,
         saturation: 0.5,
         lightness: 0.85,
+        bg: themeColors(starterHue).tint,
       });
     } else {
       // Unique starter — collect for dim gray group
@@ -143,6 +146,7 @@ function analyzeSentenceStarters(tokens: TextToken[]): HighlightEntry[] {
       hue: 0,
       saturation: 0,
       lightness: 0.9,
+      bg: themeColorMix(0, 5),  // very faint gray
     });
   }
 
@@ -234,6 +238,7 @@ function analyzeAlliteration(tokens: TextToken[]): HighlightEntry[] {
       hue,
       saturation: 0.5,
       lightness: 0.85,
+      bg: themeColors(hue).tint,
     };
   });
 }
@@ -316,5 +321,6 @@ function analyzeTransitionWords(
     hue: 200,
     saturation: 0.4,
     lightness: 0.88,
+    bg: themeColors(200).tint,
   }));
 }

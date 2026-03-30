@@ -132,14 +132,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── Sidebar ── */
-.studio-sidebar {
-  background: var(--lo-chrome);
-  border-inline-end: 1px solid var(--lo-chrome-border);
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-}
+/* ── Sidebar (structural layout provided by .lo-sidebar) ── */
 
 .studio-sidebar-tabs {
   display: flex;
@@ -563,38 +556,7 @@
   overflow: hidden;
 }
 
-/* Resizers */
-.studio-resizer {
-  width: 4px;
-  cursor: col-resize;
-  background: transparent;
-  flex-shrink: 0;
-  transition: background var(--lo-motion-fast);
-}
-
-.studio-resizer:hover {
-  background: var(--lo-primary);
-}
-
-.studio-pane-resizer {
-  flex-shrink: 0;
-  background: transparent;
-  transition: background var(--lo-motion-fast);
-}
-
-.studio-pane-resizer.horizontal {
-  width: 4px;
-  cursor: col-resize;
-}
-
-.studio-pane-resizer.vertical {
-  height: 4px;
-  cursor: row-resize;
-}
-
-.studio-pane-resizer:hover {
-  background: var(--lo-primary);
-}
+/* Resizers: structural styles from .lo-resizer in resizable-sidebar.css. */
 
 /* Main editor area */
 .studio-main {

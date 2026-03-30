@@ -19,7 +19,7 @@
   letter-spacing: 0.5px;
   color: var(--lo-debug-muted);
   padding: 4px 8px;
-  background: rgba(255,255,255,0.02);
+  background: var(--lo-debug-overlay-faint);
 }
 
 .elements-in-file__list {
@@ -31,7 +31,7 @@
  * ============================================================================= */
 
 .expandable-block-item {
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid var(--lo-debug-overlay-subtle);
 }
 
 .expandable-block-item:last-child {
@@ -52,7 +52,7 @@
 }
 
 .expandable-block-item__header:hover {
-  background: rgba(255,255,255,0.05);
+  background: var(--lo-debug-overlay-subtle);
 }
 
 .expandable-block-item__toggle {
@@ -89,8 +89,8 @@
 /* Expanded content - full width, subtle background */
 .expandable-block-item__content {
   padding: 8px;
-  background: rgba(0,0,0,0.15);
-  border-top: 1px solid rgba(255,255,255,0.05);
+  background: var(--lo-debug-scrim);
+  border-top: 1px solid var(--lo-debug-overlay-subtle);
   font-size: 11px;
 }
 
@@ -190,7 +190,7 @@
   color: var(--lo-debug-text);
   margin: 0;
   padding: 6px;
-  background: rgba(0,0,0,0.3);
+  background: var(--lo-debug-scrim-heavy);
   border-radius: 4px;
   white-space: pre-wrap;
   overflow-x: auto;
@@ -233,7 +233,7 @@
   width: 100%;
   padding: 8px;
   gap: 6px;
-  background: rgba(255,255,255,0.02);
+  background: var(--lo-debug-overlay-faint);
   border: none;
   cursor: pointer;
   text-align: start;
@@ -241,7 +241,7 @@
 }
 
 .block-list__category-header:hover {
-  background: rgba(255,255,255,0.05);
+  background: var(--lo-debug-overlay-subtle);
 }
 
 .block-list__category-toggle {
@@ -262,7 +262,7 @@
 .block-list__category-count {
   font-size: 10px;
   color: var(--lo-debug-muted);
-  background: rgba(255,255,255,0.1);
+  background: var(--lo-debug-overlay-medium);
   padding: 1px 6px;
   border-radius: 10px;
 }
@@ -296,16 +296,16 @@
 }
 
 .block-list__item:hover {
-  background: rgba(255,255,255,0.05);
+  background: var(--lo-debug-overlay-subtle);
 }
 
 .block-list__item--selected {
-  background: rgba(88,166,255,0.15);
+  background: var(--lo-debug-accent-medium);
   color: var(--lo-debug-accent);
 }
 
 .block-list__item--uncommitted {
-  background: rgba(251,191,36,0.1);
+  background: var(--lo-debug-warning-tint);
 }
 
 .block-list__item-name {
@@ -343,7 +343,7 @@
 }
 
 .block-list__indicator--examples {
-  background: #8b5cf6; /* purple — no token equivalent, unique to this UI */
+  background: var(--lo-debug-purple);
 }
 
 .block-list__indicator--preview {
@@ -367,14 +367,14 @@
   font-size: 11px;
   line-height: 1.4;
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px var(--lo-debug-scrim-heavy);
   pointer-events: none;
 }
 
 .block-list__tooltip-status {
   margin-top: 6px;
   padding-top: 6px;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid var(--lo-debug-overlay-medium);
   color: var(--lo-debug-warning);
   font-size: 10px;
 }
