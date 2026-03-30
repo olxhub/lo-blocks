@@ -5,10 +5,12 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect } from 'react';
 import { useFieldState } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
+import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 
 export function _DigitSpanTask( props: RuntimeProps ) {
   const { id, kids = [], attributes = {}, fields } = props;
+  const { t } = useBlockTranslation(props);
   const mode = attributes.mode ?? 'forward'; // 'forward' | 'backward' | 'ascending'
 
   const [sequence, setSequence] = useFieldState(props, fields.sequence, []);
@@ -92,26 +94,26 @@ export function _DigitSpanTask( props: RuntimeProps ) {
     <div className="p-6 max-w-md mx-auto space-y-4">
 
       {step === 'waiting' && (
-        <button onClick={startNewRound} className="p-2 bg-accent text-inverse rounded">Start</button>
+        <button onClick={startNewRound} className="p-2 bg-accent text-inverse rounded">{t('start')}</button>
       )}
 
       {step === 'answering' && (
         <div>
-          <p>Type the digits:</p>
+          <p>{t('typeDigits')}</p>
           <input
             type="text"
             value={userInput}
             onChange={e => setUserInput(e.target.value)}
             className="border p-2 w-full"
           />
-          <button onClick={evaluateAnswer} className="p-2 bg-success text-inverse rounded mt-2">Submit</button>
+          <button onClick={evaluateAnswer} className="p-2 bg-success text-inverse rounded mt-2">{t('submit')}</button>
         </div>
       )}
 
       {step === 'feedback' && (
         <div>
-          <p>Answer recorded. Press Start for next round.</p>
-          <button onClick={startNewRound} className="p-2 bg-accent text-inverse rounded">Next</button>
+          <p>{t('answerRecorded')}</p>
+          <button onClick={startNewRound} className="p-2 bg-accent text-inverse rounded">{t('next')}</button>
         </div>
       )}
     </div>

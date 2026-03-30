@@ -9,6 +9,7 @@ import { DisplayError } from '@/lib/util/debug';
 import NavArrow from '@/components/common/NavArrow';
 import { fisherYatesShuffleInPlace } from '@/lib/util/shuffle';
 import { assertNamedObject } from '@/lib/util/kids';
+import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 function shuffledIds(ids: string[]): string[] {
   const order = [...ids];
@@ -25,6 +26,7 @@ function isOrderValid(order: string[] | null, itemIds: string[]): boolean {
 
 export default function _Carousel(props: RuntimeProps) {
   const { id, fields, kids, wrap = false, randomize = false } = props;
+  const { t } = useBlockTranslation(props);
   assertNamedObject(kids, ['itemIds']);
   const itemIds = kids.itemIds as string[];
 
@@ -90,14 +92,14 @@ export default function _Carousel(props: RuntimeProps) {
       <div className="lo-carousel__body">
         {!isReadonly && (
           <button onClick={handlePrev} disabled={!wrap && position === 0}
-            className="lo-carousel__nav lo-carousel__nav--prev" aria-label="Previous">
+            className="lo-carousel__nav lo-carousel__nav--prev" aria-label={t('previous')}>
             <NavArrow direction="back" className="w-6 h-6" />
           </button>
         )}
         <div className="lo-carousel__center">
           <div className="lo-carousel__header">
             <div className="lo-carousel__title">{displayTitle}</div>
-            <div className="lo-carousel__count">{position + 1} of {numItems}</div>
+            <div className="lo-carousel__count">{t('progress', { current: position + 1, total: numItems })}</div>
           </div>
           <div className="lo-carousel__content">
             {renderedItem}
@@ -105,7 +107,7 @@ export default function _Carousel(props: RuntimeProps) {
         </div>
         {!isReadonly && (
           <button onClick={handleNext} disabled={!wrap && position === numItems - 1}
-            className="lo-carousel__nav lo-carousel__nav--next" aria-label="Next">
+            className="lo-carousel__nav lo-carousel__nav--next" aria-label={t('next')}>
             <NavArrow direction="forward" className="w-6 h-6" />
           </button>
         )}

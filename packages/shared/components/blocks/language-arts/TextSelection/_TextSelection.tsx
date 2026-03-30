@@ -6,6 +6,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { useFieldState } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
 import { assertNamedObject } from '@/lib/util/kids';
+import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 // Token types for text highlighting (discriminated union on isSpace)
 type WordToken = {
@@ -34,6 +35,7 @@ type GroupsWithLookup = SelectionGroup[] & { byToken: Map<number, SelectionGroup
 
 export default function _TextSelection(props: RuntimeProps) {
   const { kids, mode = 'immediate', showRealtimeFeedback = false, fields } = props;
+  const { t } = useBlockTranslation(props);
   assertNamedObject(kids, ['parsed', 'prompt', 'segments']);
 
   // Validate mode
@@ -531,13 +533,13 @@ export default function _TextSelection(props: RuntimeProps) {
 
       <div className="controls flex gap-2">
         {mode === 'graded' && !checked && (
-          <button onClick={checkAnswers} className="px-4 py-2 bg-accent text-inverse rounded hover:bg-accent-hover">Check</button>
+          <button onClick={checkAnswers} className="px-4 py-2 bg-accent text-inverse rounded hover:bg-accent-hover">{t('check')}</button>
         )}
         {mode === 'graded' && checked && (
-          <button onClick={resetGraded} className="px-4 py-2 bg-muted text-foreground rounded hover:bg-muted">Try Again</button>
+          <button onClick={resetGraded} className="px-4 py-2 bg-muted text-foreground rounded hover:bg-muted">{t('tryAgain')}</button>
         )}
         {mode === 'selfcheck' && !showAnswer && (
-          <button onClick={revealAnswer} className="px-4 py-2 bg-muted text-foreground rounded hover:bg-muted">Compare</button>
+          <button onClick={revealAnswer} className="px-4 py-2 bg-muted text-foreground rounded hover:bg-muted">{t('compare')}</button>
         )}
       </div>
 
