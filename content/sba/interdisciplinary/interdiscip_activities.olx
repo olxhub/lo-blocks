@@ -373,15 +373,32 @@ The causes of high school dropout involve individual psychology, family sociolog
       <Markdown>
 ## Discipline Mapping Summary
 
-   Based on the team's analysis, here's how the causes map to disciplines:
-
-| Cause | Relevant Disciplines |
-|-------|---------------------|
-| Students need money to help family | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Economics, Sociology |
-| Depression/anxiety/ADHD interferes | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Psychology, Health Sciences |
-| Gang activity / neighborhood instability | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sociology, Political Science |
-| Lack of school funding | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Economics, Political Science |
+Based on the team's analysis, here's how the causes map to disciplines:
       </Markdown>
+      <Mermaid><![CDATA[
+graph LR
+    C1[Students need money<br/>to help family] --> D1[Economics]
+    C1 --> D2[Sociology]
+
+    C2[Depression/anxiety/ADHD<br/>interferes] --> D3[Psychology]
+    C2 --> D4[Health Sciences]
+
+    C3[Gang activity /<br/>neighborhood instability] --> D2
+    C3 --> D5[Political Science]
+
+    C4[Lack of school<br/>funding] --> D1
+    C4 --> D5
+
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+    style C3 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+    style D1 fill:#fff4e1
+    style D2 fill:#fff4e1
+    style D3 fill:#fff4e1
+    style D4 fill:#fff4e1
+    style D5 fill:#fff4e1
+]]></Mermaid>
       <Markdown>
 This confirms that the high school dropout problem spans multiple disciplines, making it appropriate for interdisciplinary research.
       </Markdown>
