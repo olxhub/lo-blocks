@@ -1,12 +1,25 @@
 title: Interdisciplinary Studies SBA - High School Dropout Analysis
-author: "TODO -- fill this in"
-description: A simulated project applying interdisciplinary analysis to understand high school dropout causes
-~~~~~~~
+author: EDUC 3100 Assessment Module
+cast:
+  Omer:
+    seed: omer
+    face: smile
+  Ty:
+    seed: ty
+    face: smile
+  Lacy:
+    seed: lacy
+    face: smile
+  Peggie:
+    seed: peggie
+    face: smile
+  Lianne:
+    seed: lianne
+    face: smile
+~~~~
 
 Orientation [id=orientation]
 -----------
-
-interdisciplinary_sba_sidebar -> interdisciplinary_gsu_prof_image
 
 Omer: Hi. This is the module on interdisciplinary reasoning for EDUC 3100 that I spoke about during one of our classes.
 
@@ -18,7 +31,7 @@ Omer: There are instructions on each screen to help you navigate and give your a
 
 Omer: Remember that I will be seeing these results, so please take it seriously and do your best work. I think you'll enjoy it.
 
---- pause ---
+interdisciplinary_sba_sidebar -> interdisciplinary_orientation
 
 Introduction to Comm360 [id=introduction]
 ------------------------
@@ -35,9 +48,7 @@ You: Right. We've been asked to investigate the causes of high school dropout so
 
 Teammate: Before we dive in, we should probably figure out who's on our team. There should be a team directory around here somewhere. Want to explore it and see who we'll be working with?
 
---- pause ---
-
-interdisciplinary_sba_sidebar -> interdisciplinary_team_members
+interdisciplinary_sba_sidebar -> interdisciplinary_team_intro
 
 Meet the Team [id=team_intro]
 -------------
@@ -52,25 +63,24 @@ You: And she reports to Anne Hastings, the CEO, who makes the ultimate decisions
 
 Teammate: Now that we know the team, let's see what Lianne has for us to work on.
 
---- pause ---
-
 Task Overview [id=task_list]
 -------------
 
-Lianne: Welcome to the team, everyone. Over the next 45 to 60 minutes, you'll work together to complete these tasks.
+interdisciplinary_sba_sidebar -> interdisciplinary_task_list
 
-Lianne: First, you'll brainstorm causes for high school dropout. Then you'll review community focus group data we've collected.
+Lianne: Welcome to the team, everyone. We're glad you're here at Comm360 to help us work on this problem. Take a look at the handout. Over the next 45 to 60 minutes, you'll work together to complete these tasks.
 
-Lianne: After that, you'll reflect on whether this is truly an interdisciplinary problem, and review relevant literature from different fields.
 
-Lianne: Finally, you'll develop a problem statement that justifies an interdisciplinary approach, and synthesize your results into a presentation for the committee.
+Lianne: By the way, you can call me Lianne. We're pretty informal here.
 
---- pause ---
+Lacy: Thanks, Lianne.
 
-Task Set 1: Brainstorm [id=brainstorm_start]
+Task 1: Brainstorm [id=brainstorm_start]
 -----------------------
 
-Lianne: Hey, team. We're glad you're here at Comm360 to help us work on this problem.
+interdisciplinary_sba_sidebar -> cause_brainstorming
+
+Lianne: Let's get started with the brainstorming task.
 
 Lianne: When someone drops out of high school and never gets a diploma or a GED, it has negative consequences, as you know.
 
@@ -79,10 +89,6 @@ Lianne: Why don't each of you start by reviewing what you know about the causes 
 Lianne: It may be from personal experiences of people you know or know of.
 
 Lianne: When you're done, we'll put all the ideas together as a way to start looking into research about the causes of dropping out.
-
-Lianne: By the way, you can call me Lianne. We're pretty informal here.
-
---- pause ---
 
 Lacy: Thanks, Lianne. I know some old classmates who left high school before graduating, but I didn't exactly think it was my place to ask them why they dropped out.
 
@@ -96,11 +102,6 @@ Peggy: I have an idea for that. Let's write single sentences for each cause. I'l
 
 Peggy: She fell so far behind that by the time she got back, she just couldn't figure out how to catch up.
 
---- pause ---
-
-Brainstorming Method [id=brainstorm_method]
---------------------
-
 Ty: How could we put that into one sentence?
 
 Lacy: How about... Students who have illnesses that make it hard for them to keep up with schoolwork.
@@ -108,8 +109,6 @@ Lacy: How about... Students who have illnesses that make it hard for them to kee
 Peggy: That works for me. Let's see if each of us can come up with at least two different causes for dropping out of high school.
 
 Peggy: Lianne, what do you think?
-
---- pause ---
 
 Lianne: That's a good plan, but keep in mind, not all causes start with students or their families.
 
@@ -119,9 +118,9 @@ Lianne: Well, for example, there are cases where schools, like in rural communit
 
 Lianne: This is an example of a structural cause, not one situated in the individual.
 
-Lianne: Keep an open mind about possible causes because our programs can work with multiple stakeholders, like schools and community groups as well as families and students.
+interdisciplinary_sba_sidebar -> internal_and_structural_causes
 
---- pause ---
+Lianne: Keep an open mind about possible causes because our programs can work with multiple stakeholders, like schools and community groups as well as families and students.
 
 Ty: Ah, I get it. So, why don't we each write one reason that is more like a structural cause and one that is focused more on the individual?
 
@@ -129,65 +128,50 @@ Peggy: That's a good idea. I'll try it even though I'm not quite sure I get the 
 
 Peggy: So let's see if we can each write two causes.
 
---- pause ---
-
 interdisciplinary_sba_sidebar -> cause_inputs
-
-[id=causes_review]
-Lacy: Here are all of our reasons, Lianne. What do you think?
-
-interdisciplinary_sba_sidebar -> causes_list
 
 --- wait @cause_internal.value && @cause_structural.value ---
 
+[id=causes_review]
+You: I'm done.
+
+interdisciplinary_sba_sidebar -> causes_list
+
+Lacy: Here are all of our reasons, Lianne. What do you think?
+
 Lianne: This is a good list. It reflects a lot of what we heard in a focus group we conducted after we got the results of our community needs survey. We spoke to various stakeholders - students and their families, teachers, and other community members.
+
+Task 2: Review Focus Group Data [id=focus_group_start]
+---------------------------------------
 
 Lianne: Now let's move on to the next task. I'd like you to take a look at part of the transcript from that focus group to extract additional reasons because this is an extremely complex problem, as you've already identified, with many causes.
 
---- pause ---
+interdisciplinary_sba_sidebar -> transcript_md1
 
-Task Set 2: Review Focus Group Data [id=focus_group_start]
----------------------------------------
-
-Lianne: Read this part of the transcript before you go on.
+Lianne: Read the transcript before you go on.
 
 interdisciplinary_sba_sidebar -> focus_group_transcript_pt1
 
-Lianne: Highlight any reasons that our participants gave for students dropping out of high school.
-
---- wait @focus_group_pt1.value ---
-
-Lianne: Now let's look at the second part of the focus group transcript.
-
-interdisciplinary_sba_sidebar -> focus_group_transcript_pt2
-
-Lianne: Again, highlight any reasons that our participants gave for students dropping out of high school.
-
---- wait @focus_group_pt2.value ---
-
-Ty: I hope we get to work on focus groups here because that was really interesting. Here's what I highlighted.
+Lianne: Highlight any reasons that our participants gave for students dropping out of high school, and add a note explaining why it describes a cause of high school dropout. You'll be able to use these notes later.
 
 interdisciplinary_sba_sidebar -> focus_group_highlights_shown
 
---- pause ---
+Ty: I hope we get to work on focus groups here because that was really interesting. Here's what I highlighted.
 
-Selecting Focus Areas [id=focus_selection]
+Task 3: Select Focus Areas [id=focus_selection]
 ---------------------
+
+interdisciplinary_sba_sidebar -> reasons_list
 
 Lacy: I studied focus groups in my research methods class last year. We analyzed lots of transcripts. Ty, I'm taking your highlights and combining them with the reasons we already came up with. I re-worded some of them, but I think I've captured everything.
 
-Lacy: Here are all the reasons either we or the participants gave for dropping out of high school.
-
-Lacy: Good work. This list reflects what we've heard in the community about this issue.
-
-Lacy: Now we need to turn our attention to the research. I think we should focus on a subset of these reasons.
-
-Lacy: Which ones would you select to research?
+Lianne: Good work. This list reflects what we've heard in the community about this issue. Now we need to turn our attention to the research. I think we should focus on a subset of these reasons.
 
 interdisciplinary_sba_sidebar -> reasons_checklist
 
-// TODO: Figure out how to handle doneness for a list (empty array [] is truthy)
---- wait @reasons.value ---
+Lacy: Which ones would you select to research? Pick at least three to start with.
+
+--- wait @reasons.value.length > 2 && @reasons.value.length < 6 ---
 
 Lianne: I agree with you on some of your choices. Why did you select that set?
 
@@ -197,16 +181,16 @@ interdisciplinary_sba_sidebar -> reason_explanation_input
 
 --- wait @reason_explanation.value ---
 
-Task Set 3: Is This Interdisciplinary? [id=interdisciplinary_check]
---------------------------------------
-
 Lianne: I appreciate the thoughtfulness you've shown on this issue, both as individuals and as a team.
 
 Lianne: I reviewed the reasons you put together with Ms. Hastings. We agree that this subset of causes are appropriate for us to consider as an organization to build programmatic outreach and solutions.
 
 Lianne: The causes we'll focus on are: students needing to earn money right away to help their family, conditions like depression, anxiety, or ADHD interfering with schoolwork, environmental factors in areas affected by gang activity and limited support systems, and lack of school funding affecting resources for underserved students.
 
---- pause ---
+Task 4: Reflect -- Is This Interdisciplinary? [id=interdisciplinary_check]
+--------------------------------------
+
+interdisciplinary_sba_sidebar -> task_set_3_intro
 
 Ty: This list cuts across a lot of different subjects. I'm looking forward to seeing what kind of research we'll find for each of them.
 
@@ -214,7 +198,7 @@ Lianne: Yes, and we'll move into the research phase of this work shortly, but fi
 
 Lianne: So we'll need to determine if the problem of people dropping out of high school is the kind of problem that is appropriate for interdisciplinary research.
 
---- pause ---
+interdisciplinary_sba_sidebar -> broad_model_display
 
 Peggy: Ah, I think all of us are familiar with Broad Model from Repko from Professor Ari.
 
@@ -224,28 +208,16 @@ Ty: And we should identify the disciplines we think would give us the most insig
 
 Ty: Let's do it.
 
---- pause ---
-
-interdisciplinary_sba_sidebar -> broad_model_display
-
-Disciplinary Classification [id=discipline_classification]
----------------------------
-
 Peggy: Let's figure out which disciplines are likely to give us the most insights into the problem and possible solutions. How about each of us select all the disciplines in a row that we think apply for each of the causes listed? I think it is ok if we check as many boxes in a row as we think apply. Then, we can sum up our responses to see if they align and if we think this is an interdisciplinary problem.
 
 interdisciplinary_sba_sidebar -> causes_by_disciplines
 
 // HACK: Object.keys().length is instructor-unfriendly. TODO: Add isFilled() or .numberFilled field
---- wait Object.keys(@discipline_mapping.value).length > 0 ---
+--- wait Object.keys(@discipline_mapping.value).length > 3 ---
 
 Peggy: Ok, I summed up our responses and this shows any category that got more than one vote. We didn't always agree on each discipline, but overall we all seem to see how different disciplines might investigate the problem.
 
 interdisciplinary_sba_sidebar -> causes_by_disciplines_answers
-
---- pause ---
-
-Confirming Interdisciplinary Approach [id=interdisciplinary_confirm]
--------------------------------------
 
 Lacy: I agree. Our analysis supports what you were saying, Ty. These causes cut across a lot of subjects.
 
@@ -257,18 +229,14 @@ Lianne: We all agree that taking an interdisciplinary approach will work to stud
 
 Lianne: Let's dig in a bit now and get more information about some of the causes. We should be able to locate studies from some of the disciplines we have identified that address different parts of the problem.
 
-Ty: I'm already on it. I took a few key words from one of the causes and did a search. This study looks promising. Take a look.
+Ty: I'm already on it. I took a few key words from one of the causes and did a search. One study looks promising.
 
---- pause ---
-
-Task Set 4: Review Literature - ADHD Study [id=literature_adhd]
+Task 5: Review Literature - ADHD Study [id=literature_adhd]
 ----------------------------------------------
-
-Ty: Here it is.
 
 interdisciplinary_sba_sidebar -> adhd_study_text
 
---- pause ---
+Ty: Here it is.
 
 Lacy: This does look promising. Which discipline, or maybe disciplines, are represented in this study? I mean, which ones are the most relevant, if we have these to choose from? Health sciences, biology, psychology, sociology, economics, or political science?
 
@@ -276,7 +244,7 @@ Peggy: I think it's Psychology. There are some clues and jargon in the summary.
 
 Ty: Can you show us?
 
---- pause ---
+interdisciplinary_sba_sidebar -> adhd_study_highlighted
 
 Peggy: So I highlighted the clues and jargon that makes me think this study is in the Psychology field. Attention, learning disorders, and IQ are all concepts that psychologists typically study.
 
@@ -284,269 +252,237 @@ Peggy: Plus there's a heavy focus on early identification and intervention, espe
 
 Peggy: A big clue was also psychological risk factors.
 
-interdisciplinary_sba_sidebar -> adhd_study_highlighted
+interdisciplinary_sba_sidebar -> adhd_study_text
 
---- pause ---
+Lianne: Great! Thanks for that, Peggie. Now let's look at the article again.
 
-Employment Study [id=literature_employment]
+Lianne: As you recall, when interdisciplinarians locate a disciplinary source, they identify
+the "insight" of that source. This "insight" is often a recommendation, main finding, or
+conclusion offered by the authors of the disciplinary source and reflects the perspective
+of the discipline. What do you think is the main insight of this source?
+
+Lacy: It is clearly about ADHD and that students with ADHD are more likely to drop out of high school.
+
+Peggy: That is true, but the source also lists social class and IQ as predictors of dropping out.
+Shouldn't we add that to the sentence you started?
+
+Ty: Yeah, but ADHD status continues to predict high school dropout even after controlling for
+social class and IQ. So I am not sure about adding them. Instead, we should add something about
+early intervention; the source repeatedly mentions the importance of early intervention.
+
+interdisciplinary_sba_sidebar -> adhd_insight_sentence_tabs
+
+Lianne: Great discussion, everyone! Let's try to capture the insight more clearly than
+we have so far. Why don't we all write a sentence?
+
+--- wait @adhd_insight_sentence.value ---
+
+interdisciplinary_sba_sidebar -> adhd_insight_sentence_choice
+
+Lianne: Good work. Here are the sentences we suggested. Which one should we go with?
+
+--- wait @adhd_insight_sentence_choice_input.value ---
+
+Lianne: I agree with you all that ADHD status is the main predictor of high school dropout according to this study. I also think early intervention is strongly recommended.
+
+Lianne: Therefore we should go with this sentence for insight of this source:
+
+Lianne: **ADHD is a key risk factor for dropout, and early intervention can reduce this risk.**
+
+Task 5: Literature Review -- Employment Study [id=literature_employment]
 ----------------
-
-Lacy: I used the search term method and found another study. This one is on employment. Take a look.
 
 interdisciplinary_sba_sidebar -> employment_study_text
 
---- pause ---
+Lacy: I used the search term method and found another study. This one is on employment. Take a look.
 
 Lianne: See if you can find the clue words that indicate which disciplines are relevant in this study.
 
-Lianne: Click on words to highlight them; make sure you scroll down to the bottom to read the whole summary.
+interdisciplinary_sba_sidebar -> employment_study_annotation_screen
 
---- wait @source_2_highlights.value ---
-
-Lianne: So which disciplines do you think are represented in this study?
+Lianne: So which disciplines do you think are represented in this study? Highlight clue words or phrases in the text. Then click on "Annotate", go to the right, and add a note saying what discipline the clue suggests, and why.
 
 interdisciplinary_sba_sidebar -> employment_discipline_checkboxes
 
---- wait @source_2_classification.value ---
+Lianne: Based on your answers, check the disciplines represented in this study.
 
-Lianne: How are the clues you picked representative of the disciplines you picked? Can you explain?
+--- wait @source_2_classification.value ---
 
 interdisciplinary_sba_sidebar -> source_2_explanation_input
 
+Lianne: How are the clues you picked representative of the disciplines you picked? Can you explain?
+
 --- wait @source_2_classification_explanation.value ---
 
-Rural and Urban Study [id=literature_rural_urban]
----------------------
+interdisciplinary_sba_sidebar -> employment_study_text
 
-Lacy: I think it makes sense to use this highlighting method for other studies we find. Like this one.
+Lianne: As we did with the ADHD study, we need to identify the "insight of this source".
+
+Lianne: Recall that disciplinary insight is often a recommendation, main finding,
+or conclusion offered by the authors of the disciplinary source and it reflects
+the perspective of the discipline.
+
+Ty: It says there are significant risks to students who work more than 20 hours.
+
+Lacy: Yeah, but only 11% of students worked more than 20 hours in the study during the school year.
+
+Peggy: It also cites overrepresentation of disadvantaged youth in the high risk group.
+
+interdisciplinary_sba_sidebar -> source_2_insight_input
+
+Lianne: Why don't we each write our own sentence like we did for the other study?
+
+--- wait @source_2_insight_sentence.value ---
+
+interdisciplinary_sba_sidebar -> employment_insight_sentence_choice
+
+Lianne: Great work. Here are the sentences you all suggested. Which one should we go with?
+
+--- wait @employment_insight_sentence_choice_input.value ---
+
+interdisciplinary_sba_sidebar -> source_2_insight_explanation_screen
+
+Lianne: Could you explain why you chose the sentence you picked?
+
+--- wait @source_2_insight_explanation.value ---
+
+Lianne: Great discussion. Unlike the other sentences, the following sentence not only
+establishes intensive work as a risk factor, but also calls on schools to support
+students who have to work long hours. Thus it captures the entirety of the insight
+offered by the study --
+
+Lianne: **Intensive work during high school remains a risk factor for dropout, and
+schools should provide support and flexibility for students who must work long hours.**
+
+Task 5: Literature Review -- Rural and Urban Study [id=literature_rural_urban]
+---------------------
 
 interdisciplinary_sba_sidebar -> rural_urban_study_text
 
---- wait @source_3_highlights.value ---
-
-Lianne: So which disciplines do you think are represented in this study?
+Lacy: I think it makes sense to use this highlighting method for other studies we find. Like this one.
 
 interdisciplinary_sba_sidebar -> rural_discipline_checkboxes
 
+Lianne: So which disciplines do you think are represented in this study?
+
 --- wait @source_3_classification.value ---
+
+Lianne: How are the clues you picked representative of the study you picked. Can you explain?
 
 interdisciplinary_sba_sidebar -> source_3_explanation_input
 
 --- wait @source_3_classification_explanation.value ---
 
-School Funding Study [id=literature_funding]
+interdisciplinary_sba_sidebar -> rural_urban_study_text_md
+
+Lianne: What do you think is the disciplinary insight of this source?
+
+Lianne: Remember that disciplinary "insight" is often a recommendation, main finding,
+or conclusion offered by the authors of the disciplinary source and it reflects the
+perspective of the discipline.
+
+Ty: It says that dropout rates have gotten lower but that they are largely similar
+between rural and urban areas.
+
+Lacy: That means that geography does not matter that much, at least according to this study.
+
+Peggy: Correct. The summary notes that other factors are more important such as family characteristics
+and peer influences.
+
+Ty: Exactly! For key determinants, it lists things like gender, family assets, presence of
+biological parents, and maternal education.
+
+Lacy: And for peer influences it lists gang involvement and drug use.
+
+Peggy: These should be included in the study insight, which should also include
+policy implications of addressing family and peer influences to improve graduation rates.
+
+interdisciplinary_sba_sidebar -> source_3_insight
+
+Lianne: These are all great points. How about we each write our own sentence and pick
+the one that captures these points the best?
+
+interdisciplinary_sba_sidebar -> rural_insight_checkboxes
+
+--- wait @source_3_insight_selection.value ---
+
+Lianne: Great work. Here are the sentences you suggested. Which one should we go with?
+
+interdisciplinary_sba_sidebar -> source_3_insight_explanation
+
+Lianne: You chose the following sentence. Why did you select that one?
+
+--- wait @source_3_insight_sentence_explanation.value ---
+
+Lianne: Thank you, everyone. The following sentence includes the main points about family
+and peer factors and policy reforms that are needed to address them.
+
+Liane: **High school dropout rates are similar in rural and urban areas, with family and peer factors
+being more important than geography in predicting graduation, underscoring the need for policies that
+address these influences.**
+
+Task 5: Literature Review -- School Funding Study [id=literature_funding]
 --------------------
 
 Ty: I'm going to add this study to the ones we should review.
 
 interdisciplinary_sba_sidebar -> funding_study_text
 
---- wait @source_4_highlights.value ---
-
 Lianne: So which disciplines do you think are represented in this study?
-
-interdisciplinary_sba_sidebar -> funding_discipline_checkboxes
-
---- wait @source_4_classification.value ---
-
-interdisciplinary_sba_sidebar -> source_4_explanation_input
-
---- wait @source_4_classification_explanation.value ---
-
-Task Set 5: Develop Problem Statement [id=problem_statement_start]
---------------------------------------
-
-Lianne: You've done good work so far. Let's recap where we are. We've found studies that address different parts of the high school dropout problem, including Psychology, Sociology, Economics and Political science.
-
-Lianne: This confirms that this is a complex problem with parts studied by different disciplines.
-
---- pause ---
-
-Lacy: And if I'm remembering Repko correctly, now we need to see if this is an important and as yet unresolved issue. That's also an important criterion for a problem to qualify for interdisciplinary study.
-
-Ty: Then let's see if we can find any sources that address that criterion.
-
---- pause ---
-
-Importance of the Problem [id=importance_criterion]
--------------------------
-
-Peggy: I think this source will help us.
-
-interdisciplinary_sba_sidebar -> nces_trends_text
-
-Lianne: This would be a good time to use the highlighting method to look for information in the text that speaks to the importance of this problem.
-
---- wait @source_5_importance_highlights.value ---
-
-Lianne: Here is the text you highlighted.
-
-interdisciplinary_sba_sidebar -> nces_importance_highlights_shown
-
-interdisciplinary_sba_sidebar -> importance_explanation_input
-
---- wait @source_5_importance_explanation.value ---
-
-Unresolved Nature of Problem [id=unresolved_criterion]
-----------------------------
-
-Lianne: Now we should focus on whether the text source helps us know if the problem is not yet resolved. Let's use the highlighting method.
-
-interdisciplinary_sba_sidebar -> nces_trends_text
-
---- wait @source_5_unresolved_highlights.value ---
-
-Lianne: Here is the text you highlighted.
-
-interdisciplinary_sba_sidebar -> nces_unresolved_highlights_shown
-
-interdisciplinary_sba_sidebar -> unresolved_explanation_input
-
---- wait @source_5_unresolved_explanation.value ---
-
-Avoiding Disciplinary Bias [id=avoiding_bias]
---------------------------
-
-Peggy: I've put together a sentence that explains why dropping out of high school is an important and unresolved problem. Maybe we can polish it up and use it as a part of our problem statement.
-
-interdisciplinary_sba_sidebar -> problematic_significance_text
-
-Lacy: That doesn't sound right. It focuses too much on crime and vocational education. We should rewrite it so that it more accurately reflects what we've learned so far.
-
-Lianne: Good catch, Lacy. We need to avoid disciplinary or personal bias so that we can develop a comprehensive understanding of the causes of this problem without privileging any personal or disciplinary views over others. According to Repko and colleagues in 2019, this is one of the criteria for doing interdisciplinary research.
-
-Lianne: Can you correct and revise this sentence based on the source texts we reviewed?
-
---- pause ---
-
-Revising the Statement [id=revision_task]
-----------------------
-
-interdisciplinary_sba_sidebar -> revision_instructions
-
---- wait @problem_statement_revised.value ---
-
-Peggy: I can see that my sentence needed to be fixed. Thanks for the suggested revision. I'll take it into account!
-
-interdisciplinary_sba_sidebar -> revised_statement_shown
-
-Lianne: OK, as we move closer to developing a problem statement, let's pull together all of the information we've gathered. Take some time to review everything, and then we'll start figuring out how to write the problem statement.
-
---- pause ---
-
-Problem Statement Criteria [id=statement_criteria]
----------------------------
-
-Lianne: At this point in our interdisciplinary process, we need to develop a problem statement on the causes of high school dropout. We will use Repko and colleagues' 2019 criteria for writing an effective problem statement.
-
-interdisciplinary_sba_sidebar -> criteria_list
-
-Peggy: We have already described why high school dropout is an important problem, that's criterion one, and talked about its complexity, criterion two. We also talked about importance of avoiding personal or disciplinary biases in the interdisciplinary research process, criterion three.
-
-Lianne: That is right. As for criteria four and five, we need to tie the focus and scope criteria to what our nonprofit can do considering our priorities and capacity.
-
-Ty: That makes sense. Can you remind us what the nonprofit's priorities are?
-
---- pause ---
-
-Comm360 Priority Areas [id=priority_areas]
-----------------------
-
-Lianne: Sure. The mission of Comm360 is to address community-based needs and issues through responsive programming in four priority areas.
-
-Lianne: Education and Training includes programs designed to equip individuals with knowledge and skills for academic and career success, like after-school tutoring, GED prep, and workforce readiness.
-
-Lianne: Health and Wellness focuses on initiatives for physical and mental well-being, providing accessible healthcare and wellness support. Examples include community health screenings, mental health counseling, and nutrition programs.
-
-Lianne: Family and Youth Services provides support aimed at strengthening families and empowering youth through mentorship and essential resources, like parenting workshops, youth leadership, and conflict resolution training.
-
-Lianne: Community Building and Advocacy involves efforts to foster civic engagement, policy awareness, and community development through inclusive initiatives. Examples include voter education, neighborhood revitalization, diversity workshops, advocating for changes in school curriculum and instruction, and equitable school funding.
-
-Lianne: Now we can review how the causes we identified earlier map onto these priority areas of our nonprofit.
-
---- pause ---
-
-Mapping Causes to Priority Areas [id=mapping_priorities]
----------------------------------
-
-Peggy: Please make your choices in the table below.
-
-Peggy: You may find that all or none of the choices apply to a specific cause. Feel free to check all that apply but be ready to explain how you see the cause can be the basis for your choices. I'll need those explanations to bring to the Committee.
-
-interdisciplinary_sba_sidebar -> causes_by_priorities_table
-
-// HACK: Object.keys().length is instructor-unfriendly. TODO: Add isFilled() or .numberFilled field
---- wait Object.keys(@priority_mapping.value).length > 0 ---
-
-Lianne: Can you explain why you think these causes are aligned with Comm360's priority areas?
-
-interdisciplinary_sba_sidebar -> causes_by_priorities_shown
-
-interdisciplinary_sba_sidebar -> priority_explanation_input
-
---- wait @priority_explanation.value ---
-
-Lianne: These look great! Looks like the causes fall in with three of our priority areas: Family and Youth Services, Health and Wellness, and Community Building and Advocacy.
-
-interdisciplinary_sba_sidebar -> causes_by_priorities_answers
-
-Lianne: However, I talked to Ms. Hastings and we agreed that we have capacity only to address the Health and Wellness priority by providing programming and services around depression, anxiety, or ADHD so they don't interfere with students' ability to get good grades and remain in school.
-
---- pause ---
-
-Focus Selection [id=focus_selection_final]
----------------
-
-Lianne: Great! We're going to focus on the Health and Wellness area, specifically on conditions like depression, anxiety, or ADHD that can interfere with a student's ability to get good grades and remain engaged in school.
-
-interdisciplinary_sba_sidebar -> health_wellness_focus_shown
-
-Lianne: We know that Psychology offers relevant insights on this cause and we can consult Psychology in building Health and Wellness programming and services to address this cause. What other disciplines do you think would offer useful insights that we should consult?
 
 interdisciplinary_sba_sidebar -> additional_disciplines_checkboxes
 
 --- wait @additional_disciplines.value ---
 
-interdisciplinary_sba_sidebar -> additional_disciplines_explanation_input
+Lianne: How are the clues you picked representative of the disciplines you selected? Can you explain?
 
---- wait @additional_disciplines_explanation.value ---
+interdisciplinary_sba_sidebar -> source_4_explanation_input
 
-Writing the Final Problem Statement [id=final_statement]
----------------------------------------
+--- wait @source_4_classification_explanation.value ---
 
-Lianne: Ok, now we are ready to write our problem statement. Let's first review the information we have covered.
+interdisciplinary_sba_sidebar -> funding_study_text_md
 
-interdisciplinary_sba_sidebar -> full_notes_display
+Lianne: How about the disciplinary insight of this source?
 
-Lianne: Use your notes to help you write your problem statement. You can copy and paste from your notes. You don't have to use all of your notes; you can choose which notes to use or add additional information. When you are done, click next.
+Ty: This study is about an underfunded school district in Delaware.
 
-interdisciplinary_sba_sidebar -> full_problem_statement_input
+Lacy: And it is focused on African-American students, highlighting low-income and minority status
+as risk factors.
 
---- wait @full_problem_statement.value ---
+Peggy: True. These factors are important but the main focus is on school funding.
+As the summary states, "students in underfunded schools face increased risks due to
+fewer academic and support services."
 
-Conclusion [id=conclusion]
-----------
+Lianne: Yes, and the author argues for school finance reform included weighted student
+funding models to more equitably allocate funding to high-need schools.
 
-Anne Hastings: I just wanted to stop by to thank you all personally for your work on this issue for us.
+interdisciplinary_sba_sidebar -> source_4_insight_input
 
-Anne Hastings: The Committee has agreed that we should go forward and resource a Health and Wellness program to help stem some of the causes of students dropping out of school.
+Lianne: Let's write a sentence for the insight of this fourth source.
 
-Anne Hastings: Thank you all very much!
+--- wait @source_4_classification_explanation.value ---
 
---- pause ---
+interdisciplinary_sba_sidebar -> source_4_insight_selection_input
 
-Lianne: I want to thank you as well.
+Lianne: Good work. Here are the sentences you all suggested. Which one should we go with?
 
-Lianne: You make a great team. And I hope you've learned something as part of this internship.
+--- wait @source4_insight_selection.value ---
 
-Lianne: When you graduate, please consider applying for a position here. Or we'll be happy to provide a recommendation.
+interdisciplinary_sba_sidebar -> source_4_insight_explanation_input
 
---- pause ---
+Lianne: Why did you choose this sentence? Explain.
 
-Lacy: Thank you. I know that I learned a great deal.
+--- wait @source_4_insight_sentence_explanation.value ---
 
-Ty: Me too. It was a challenge applying what we learned in class to a real problem, but rewarding to know we could be of help.
+Lianne: Thank you all. We should go with the following sentence --
 
-Peggy: I also want to thank you for giving us this opportunity.
+Lianne: **Inadequate school funding is linked to higher dropout rates among African American students, underscoring the need for funding reforms to improve resources in high-poverty schools.**
 
-Peggy: Lianne, you were a great mentor and I'd recommend this internship to any of my fellow students.
+Lianne: It conveys both the central finding of the study and its broader implication. It identifies the key result—that inadequate school funding is linked to higher dropout rates among African American students—while also emphasizing why this matters by pointing to the need for funding reforms in high-poverty schools.
+
+Lianne: Good work! This ends Part 1 of the SBA. Let's recap what we have done so far.
+
+Lianne: We brainstormed and learned causes of high school dropout. That helped us understand
+that this is a complex problem with multiple parts, which makes it suitable for interdisciplinary
+study. We then located sources from different disciplines shedding light and insight on those causes.
+
