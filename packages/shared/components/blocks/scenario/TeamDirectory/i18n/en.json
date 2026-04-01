@@ -1,10 +1,8 @@
 {
-  "teamDirectoryDefaultTitle": "Team Directory",
-  "teamDirectoryGridView": "Grid View",
-  "teamDirectoryDetailView": "Detail View",
-  "teamDirectorySelectMemberPrompt": "Select a team member to view their details",
-  "teamDirectoryBackgroundHeading": "Background",
-  "teamDirectoryKeySkillsHeading": "Key Skills",
-  "teamDirectoryNoTeamMembersFound": "No team members found. Add cast members as YAML body or via cast= attribute.",
-  "teamDirectoryNoTeamMembersFoundInGroup": "No team members found in group \"{{group}}\". Add cast members as YAML body or via cast= attribute."
+  "teamDirectoryTitle": "Team Directory",
+  "selectMemberToViewDetails": "Select a team member to view their details",
+  "profileBackground": "Background",
+  "keySkills": "Key Skills",
+  "noTeamMembersFound": "No team members found. Add cast members as YAML body or via cast= attribute.",
+  "noTeamMembersFoundInGroup": "No team members found in group \"{{group}}\". Add cast members as YAML body or via cast= attribute."
 }

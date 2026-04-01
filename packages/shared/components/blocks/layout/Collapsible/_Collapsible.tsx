@@ -20,7 +20,7 @@ export default function _Collapsible(props: RuntimeProps) {
     setExpanded(!expanded);
   };
 
-  const heading = title || label || t('collapsibleClickToExpand');
+  const heading = title || label || t('clickToExpand');
 
   return (
     <div className="collapsible-section border border-border rounded-md mb-2">

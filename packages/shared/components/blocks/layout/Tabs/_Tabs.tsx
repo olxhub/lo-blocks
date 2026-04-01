@@ -27,7 +27,7 @@ export default function _Tabs(props: RuntimeProps) {
   const { kids: renderedContent } = useKids(props);
 
   if (filteredKids.length === 0) {
-    return <div className="p-4 text-dimmed">{t('tabsNoTabsDefined')}</div>;
+    return <div className="p-4 text-dimmed">{t('noTabsDefined')}</div>;
   }
 
   // Ensure activeTab is within bounds
@@ -45,7 +45,7 @@ export default function _Tabs(props: RuntimeProps) {
           const isActive = index === currentTab;
 
           // Extract title from the child block's attributes (using pre-fetched blocks)
-          let tabLabel = t('tabsDefaultTabLabel', { number: index + 1 });
+          let tabLabel = t('defaultTabLabel', { number: index + 1 });
           if (kid.type === 'block' && kid.id) {
             const childBlock = kidBlockMap[kid.id];
             if (childBlock) {

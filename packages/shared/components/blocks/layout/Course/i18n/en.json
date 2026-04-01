@@ -1,5 +1,5 @@
 {
-  "courseDefaultTitle": "Course",
-  "courseNavigationLabel": "Course navigation",
-  "courseSelectSectionPrompt": "Select a section from the navigation to begin."
+  "defaultCourseTitle": "Course",
+  "courseNavigation": "Course navigation",
+  "selectSectionToBegin": "Select a section from the navigation to begin."
 }

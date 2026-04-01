@@ -10,7 +10,7 @@ import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 function _TeamDirectory(props) {
   const { fields, group, title, kids } = props;
   const { t } = useBlockTranslation(props);
-  const resolvedTitle = title || t('teamDirectoryDefaultTitle');
+  const resolvedTitle = title || t('teamDirectoryTitle');
   // Merge: runtime.cast ← cast= attribute ← body YAML (kids)
   const cast = mergeCasts(useCast(props), kids);
 
@@ -42,8 +42,8 @@ function _TeamDirectory(props) {
       <div className="team-directory p-4 border rounded-lg bg-background">
         <p className="text-dimmed text-sm">
             {group
-            ? t('teamDirectoryNoTeamMembersFoundInGroup', { group })
-            : t('teamDirectoryNoTeamMembersFound')}
+            ? t('noTeamMembersFoundInGroup', { group })
+            : t('noTeamMembersFound')}
         </p>
       </div>
     );
@@ -60,7 +60,7 @@ function _TeamDirectory(props) {
               viewMode === 'grid' ? 'bg-accent text-inverse' : 'bg-muted text-secondary'
             }`}
           >
-            {t('teamDirectoryGridView')}
+            {t('gridView')}
           </button>
           <button
             onClick={() => setViewMode('detail')}
@@ -69,7 +69,7 @@ function _TeamDirectory(props) {
             }`}
             disabled={!selectedMember}
           >
-            {t('teamDirectoryDetailView')}
+            {t('detailView')}
           </button>
         </div>
       </div>
@@ -116,7 +116,7 @@ function _TeamDirectory(props) {
 
       {viewMode === 'detail' && !selectedMemberData && (
         <div className="text-center py-8 text-dimmed">
-          {t('teamDirectorySelectMemberPrompt')}
+          {t('selectMemberToViewDetails')}
         </div>
       )}
     </div>
@@ -156,14 +156,14 @@ function MemberDetail({ member, onClose, t }) {
           <div className="space-y-4">
             {member.profile?.bio && (
               <div>
-                <h5 className="font-medium text-foreground mb-2">{t('teamDirectoryBackgroundHeading')}</h5>
+                <h5 className="font-medium text-foreground mb-2">{t('profileBackground')}</h5>
                 <p className="text-secondary">{String(member.profile.bio)}</p>
               </div>
             )}
 
             {skills.length > 0 && (
               <div>
-                <h5 className="font-medium text-foreground mb-2">{t('teamDirectoryKeySkillsHeading')}</h5>
+                <h5 className="font-medium text-foreground mb-2">{t('keySkills')}</h5>
                 <div className="flex flex-wrap gap-2">
                   {skills.map((skill, index) => (
                     <span

@@ -19,7 +19,7 @@ function CourseContent({ props, selectedChild }) {
 function _Course(props: RuntimeProps) {
   const { kids, fields, title } = props;
   const { t } = useBlockTranslation(props);
-  const resolvedTitle = title || t('courseDefaultTitle');
+  const resolvedTitle = title || t('defaultCourseTitle');
   assertNamedObject(kids, ['chapters']);
   const chapters = (kids.chapters || []) as any[];
 
@@ -57,7 +57,7 @@ function _Course(props: RuntimeProps) {
         maxWidth={500}
         collapsed={navCollapsed}
         onCollapsedChange={setNavCollapsed}
-        label={t('courseNavigationLabel')}
+        label={t('courseNavigation')}
         className="course-navigation"
       >
         <div>
@@ -108,7 +108,7 @@ function _Course(props: RuntimeProps) {
           <CourseContent props={props} selectedChild={selectedChild} />
         ) : (
           <div>
-            <p>{t('courseSelectSectionPrompt')}</p>
+            <p>{t('selectSectionToBegin')}</p>
           </div>
         )}
       </div>

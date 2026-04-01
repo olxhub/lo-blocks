@@ -1,4 +1,4 @@
 {
-  "tabsNoTabsDefined": "No tabs defined",
-  "tabsDefaultTabLabel": "Tab {{number}}"
+  "noTabsDefined": "No tabs defined",
+  "defaultTabLabel": "Tab {{number}}"
 }

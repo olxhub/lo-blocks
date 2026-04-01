@@ -850,6 +850,53 @@ lang: es-Latn-MX
 <Vertical id="lesson1"> ... </Vertical>
 ```
 
+## Translation Strings
+
+Our translation layer (i18next, see `lib/i18n/blockI18n.ts`) has
+block-level and system-level translations. Block-level are scoped to
+an individual block (`Block/i18n/en.json`); system-level live in
+`lib/i18n/common/en.json` and are shared across all blocks.
+
+Translation strings start within blocks, and if used several places,
+bubble up to the platform. "Do a 5-minute quickwrite" belongs in the
+block. "Next" in the system. We're still figuring out the lines
+between there.
+
+We might have more scopes in the future; blocks often come in groups
+(two inputs + an associated grader, or a set of blocks around a
+specific pedagogy). But as of this writing, we're nowhere close to
+ready for that.
+
+### Key naming conventions
+
+Keys describe the **semantic meaning** of the string, not its
+location. A key should make sense both in a block-local namespace and
+in the common namespace, because keys may be promoted from local to
+common without renaming as usage spreads across blocks.
+
+Good keys:
+
+- `clickToExpand` — clear action, unambiguous
+- `compareWithAnswer` — tells a translator the verb's object
+- `noTeamMembersFound` — specific situation
+
+Bad keys:
+
+- `collapsibleClickToExpand`, `textSelectionCompare` — block prefix
+  bakes in location; forces rename on promotion
+- `compare`, `navigation` — too vague; verb form varies by language
+  and context. "compare" could be perfective/imperfective (Polish
+  *porównaj* vs *porównywać*) or gendered (Arabic قارن vs قارني).
+
+The rule: be specific enough to be globally unambiguous. A translator
+seeing only the key (not your component) should understand the
+context.
+
+### Interpolation
+
+Uses i18next double-brace syntax: `"Tab {{number}}"`, called as
+`t('defaultTabLabel', { number: index + 1 })`.
+
 Field Conventions
 -----------------
 
