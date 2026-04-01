@@ -1,9 +1,6 @@
 {
   "check": "Sprawdź",
   "clickToExpand": "Kliknij, aby rozwinąć",
-  "clickToExpandLabel": "Kliknij, aby rozwinąć: {{label}}",
-  "detailView": "Widok szczegółowy",
-  "gridView": "Widok siatki",
   "next": "Dalej",
   "previous": "Wstecz",
   "progress": "{{current}} z {{total}}",

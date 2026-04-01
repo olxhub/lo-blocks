@@ -1,4 +1,6 @@
 {
+  "detailView": "详细视图",
+  "gridView": "网格视图",
   "keySkills": "核心技能",
   "noTeamMembersFound": "未找到团队成员。请在 YAML 正文中添加角色成员，或通过 cast= 属性指定。",
   "noTeamMembersFoundInGroup": "在分组\u201C{{group}}\u201D中未找到团队成员。请在 YAML 正文中添加角色成员，或通过 cast= 属性指定。",

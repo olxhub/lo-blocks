@@ -1,9 +1,6 @@
 {
   "check": "检查",
   "clickToExpand": "点击展开",
-  "clickToExpandLabel": "点击展开{{label}}",
-  "detailView": "详细视图",
-  "gridView": "网格视图",
   "next": "下一步",
   "previous": "上一步",
   "progress": "{{current}} 步，共 {{total}} 步",

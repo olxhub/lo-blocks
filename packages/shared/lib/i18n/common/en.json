@@ -1,9 +1,6 @@
 {
   "check": "Check",
   "clickToExpand": "Click to expand",
-  "clickToExpandLabel": "Click to expand {{label}}",
-  "detailView": "Detail View",
-  "gridView": "Grid View",
   "next": "Next",
   "previous": "Previous",
   "progress": "{{current}} of {{total}}",

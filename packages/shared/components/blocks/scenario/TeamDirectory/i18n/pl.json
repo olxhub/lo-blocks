@@ -1,4 +1,6 @@
 {
+  "detailView": "Widok szczegółowy",
+  "gridView": "Widok siatki",
   "keySkills": "Kluczowe umiejętności",
   "noTeamMembersFound": "Nie znaleziono członków zespołu. Dodaj członków obsady w treści YAML lub za pomocą atrybutu cast=.",
   "noTeamMembersFoundInGroup": "Nie znaleziono członków zespołu w grupie \u201E{{group}}\u201D. Dodaj członków obsady w treści YAML lub za pomocą atrybutu cast=.",
