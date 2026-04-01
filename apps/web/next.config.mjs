@@ -1,7 +1,7 @@
 // next.config.mjs
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['@lo-blocks/shared'],
+  transpilePackages: ['@lo-blocks/shared', 'pmss'],
   // Standalone output for containerized deployments (AWS Amplify, Docker, etc.)
   // This bundles all dependencies into .next/standalone for a self-contained server
   // output: 'standalone',
@@ -14,6 +14,8 @@ const nextConfig = {
   // Allow tests to use a separate build directory to avoid lock file conflicts
   // with user's dev server. Usage: NEXT_DIST_DIR=.next-test npx next dev
   ...(process.env.NEXT_DIST_DIR && { distDir: process.env.NEXT_DIST_DIR }),
+
+  env: { NEXT_PUBLIC_APP_PROFILE: 'web' },
 };
 
 export default nextConfig;

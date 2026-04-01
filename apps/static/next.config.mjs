@@ -8,9 +8,9 @@ const basePath = process.env.STATIC_BASE_PATH || '';
 const nextConfig = {
   output: 'export',
   images: { unoptimized: true },  // next/image optimization requires a server
-  transpilePackages: ['@lo-blocks/shared'],
+  transpilePackages: ['@lo-blocks/shared', 'pmss'],
   ...(basePath && { basePath }),
-  env: { NEXT_PUBLIC_BASE_PATH: basePath },
+  env: { NEXT_PUBLIC_BASE_PATH: basePath, NEXT_PUBLIC_APP_PROFILE: 'static' },
 };
 
 export default nextConfig;

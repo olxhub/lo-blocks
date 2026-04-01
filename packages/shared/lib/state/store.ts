@@ -18,6 +18,7 @@ import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 import * as lo_event from 'lo_event';
 import * as debug from 'lo_event/lo_event/debugLog.js';
 import { consoleLogger } from 'lo_event/lo_event/consoleLogger.js';
+import { getConfigBool } from '../config';
 
 // Simple array logger for event capture - could move to lo_event
 function createArrayLogger() {
@@ -393,7 +394,7 @@ let eventCaptureLogger: ReturnType<typeof createArrayLogger> | null = null;
 // Module-level store reference for getReduxState
 let reduxStoreInstance: any = null;
 
-function configureStore({ extraFields = [], websocket = true }: { extraFields?: ExtraFieldsParam; websocket?: boolean } = {}) {
+function configureStore({ extraFields = [], websocket }: { extraFields?: ExtraFieldsParam; websocket?: boolean } = {}) {
   const allEventTypes = collectEventTypes(extraFields);
   reduxLogger.registerReducer(
     allEventTypes,
@@ -405,7 +406,9 @@ function configureStore({ extraFields = [], websocket = true }: { extraFields?: 
 
   const debugEvents = false; // Toggle here to log events to the console
   const isTest = process.env.VITEST === 'true';
-  const useWebsocket = websocket && !isTest;
+  // PMSS provides the default; explicit websocket param overrides if provided
+  const wsEnabled = websocket ?? getConfigBool('websocket');
+  const useWebsocket = wsEnabled && !isTest;
 
   const loggers = [
     reduxLogger.reduxLogger([], {}),
