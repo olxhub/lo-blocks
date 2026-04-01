@@ -1,0 +1,8 @@
+{
+  "keySkills": "المهارات الأساسية",
+  "noTeamMembersFound": "لم يتم العثور على أعضاء فريق. أضف أعضاء الفريق في متن YAML أو عبر السمة cast=.",
+  "noTeamMembersFoundInGroup": "لم يتم العثور على أعضاء فريق في المجموعة \"{{group}}\". أضف أعضاء الفريق في متن YAML أو عبر السمة cast=.",
+  "profileBackground": "الخلفية",
+  "selectMemberToViewDetails": "اختر عضوًا من الفريق لعرض تفاصيله",
+  "teamDirectoryTitle": "دليل الفريق"
+}

@@ -1,0 +1,13 @@
+{
+  "check": "Comprobar",
+  "clickToExpand": "Haz clic para expandir",
+  "clickToExpandLabel": "Haz clic para expandir {{label}}",
+  "detailView": "Vista de detalle",
+  "gridView": "Vista de cuadrícula",
+  "next": "Siguiente",
+  "previous": "Anterior",
+  "progress": "{{current}} de {{total}}",
+  "start": "Comenzar",
+  "submit": "Enviar",
+  "tryAgain": "Intentar de nuevo"
+}

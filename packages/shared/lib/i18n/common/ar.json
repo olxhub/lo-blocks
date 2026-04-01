@@ -1,5 +1,9 @@
 {
   "check": "تحقّق",
+  "clickToExpand": "انقر للتوسيع",
+  "clickToExpandLabel": "انقر لتوسيع {{label}}",
+  "detailView": "عرض تفصيلي",
+  "gridView": "عرض شبكي",
   "next": "التالي",
   "previous": "السابق",
   "progress": "{{current}} من {{total}}",
