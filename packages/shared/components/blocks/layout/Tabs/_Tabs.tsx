@@ -6,9 +6,11 @@ import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids, useKidsJson } from '@/lib/render';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
+import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 export default function _Tabs(props: RuntimeProps) {
   const { fields } = props;
+  const { t } = useBlockTranslation(props);
   const [activeTab, setActiveTab] = useFieldState(props, fields.activeTab, 0);
 
   // Filtered kids (when= applied) — used for headers and content indexing
@@ -25,7 +27,7 @@ export default function _Tabs(props: RuntimeProps) {
   const { kids: renderedContent } = useKids(props);
 
   if (filteredKids.length === 0) {
-    return <div className="p-4 text-dimmed">No tabs defined</div>;
+    return <div className="p-4 text-dimmed">{t('tabsNoTabsDefined')}</div>;
   }
 
   // Ensure activeTab is within bounds
@@ -43,7 +45,7 @@ export default function _Tabs(props: RuntimeProps) {
           const isActive = index === currentTab;
 
           // Extract title from the child block's attributes (using pre-fetched blocks)
-          let tabLabel = `Tab ${index + 1}`;
+          let tabLabel = t('tabsDefaultTabLabel', { number: index + 1 });
           if (kid.type === 'block' && kid.id) {
             const childBlock = kidBlockMap[kid.id];
             if (childBlock) {

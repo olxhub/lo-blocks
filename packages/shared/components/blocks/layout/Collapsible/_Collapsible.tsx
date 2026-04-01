@@ -6,9 +6,11 @@ import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import ExpandIcon from '@/components/common/ExpandIcon';
+import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 export default function _Collapsible(props: RuntimeProps) {
   const { fields, title, label } = props;
+  const { t } = useBlockTranslation(props);
   const [expanded, setExpanded] = useFieldState(props, fields.expanded, false);
 
   // useKids must be called unconditionally, even if we don't display when collapsed
@@ -18,7 +20,7 @@ export default function _Collapsible(props: RuntimeProps) {
     setExpanded(!expanded);
   };
 
-  const heading = title || label || 'Click to expand';
+  const heading = title || label || t('collapsibleClickToExpand');
 
   return (
     <div className="collapsible-section border border-border rounded-md mb-2">
