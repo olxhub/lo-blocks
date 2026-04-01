@@ -539,7 +539,7 @@ export default function _TextSelection(props: RuntimeProps) {
           <button onClick={resetGraded} className="px-4 py-2 bg-muted text-foreground rounded hover:bg-muted">{t('tryAgain')}</button>
         )}
         {mode === 'selfcheck' && !showAnswer && (
-          <button onClick={revealAnswer} className="px-4 py-2 bg-muted text-foreground rounded hover:bg-muted">{t('compare')}</button>
+          <button onClick={revealAnswer} className="px-4 py-2 bg-muted text-foreground rounded hover:bg-muted">{t('compareWithAnswer')}</button>
         )}
       </div>
 

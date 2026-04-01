@@ -9,6 +9,7 @@ import { getBlockByOLXId } from '@/lib/blocks';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { assertNamedObject } from '@/lib/util/kids';
+import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 function CourseContent({ props, selectedChild }) {
   const { block } = useBlock(props, selectedChild);
@@ -16,7 +17,9 @@ function CourseContent({ props, selectedChild }) {
 }
 
 function _Course(props: RuntimeProps) {
-  const { kids, fields, title = 'Course' } = props;
+  const { kids, fields, title } = props;
+  const { t } = useBlockTranslation(props);
+  const resolvedTitle = title || t('defaultCourseTitle');
   assertNamedObject(kids, ['chapters']);
   const chapters = (kids.chapters || []) as any[];
 
@@ -54,11 +57,11 @@ function _Course(props: RuntimeProps) {
         maxWidth={500}
         collapsed={navCollapsed}
         onCollapsedChange={setNavCollapsed}
-        label="Course navigation"
+        label={t('courseNavigation')}
         className="course-navigation"
       >
         <div>
-          <h1>{title}</h1>
+          <h1>{resolvedTitle}</h1>
         </div>
 
         <div>
@@ -105,7 +108,7 @@ function _Course(props: RuntimeProps) {
           <CourseContent props={props} selectedChild={selectedChild} />
         ) : (
           <div>
-            <p>Select a section from the navigation to begin.</p>
+            <p>{t('selectSectionToBegin')}</p>
           </div>
         )}
       </div>

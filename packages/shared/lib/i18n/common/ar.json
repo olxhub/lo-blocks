@@ -1,5 +1,6 @@
 {
   "check": "تحقّق",
+  "clickToExpand": "انقر للتوسيع",
   "next": "التالي",
   "previous": "السابق",
   "progress": "{{current}} من {{total}}",

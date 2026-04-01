@@ -1,5 +1,6 @@
 {
   "check": "Sprawdź",
+  "clickToExpand": "Kliknij, aby rozwinąć",
   "next": "Dalej",
   "previous": "Wstecz",
   "progress": "{{current}} z {{total}}",

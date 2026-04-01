@@ -1,5 +1,6 @@
 {
   "check": "Check",
+  "clickToExpand": "Click to expand",
   "next": "Next",
   "previous": "Previous",
   "progress": "{{current}} of {{total}}",

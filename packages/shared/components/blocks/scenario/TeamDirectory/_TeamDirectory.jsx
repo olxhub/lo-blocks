@@ -5,9 +5,12 @@ import React from 'react';
 import { useFieldState } from '@/lib/state';
 import Avatar from '@/components/common/Avatar';
 import { useCast, mergeCasts, castMemberToAvatarProps } from '@/lib/avatar/cast';
+import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 function _TeamDirectory(props) {
-  const { fields, group, title = 'Team Directory', kids } = props;
+  const { fields, group, title, kids } = props;
+  const { t } = useBlockTranslation(props);
+  const resolvedTitle = title || t('teamDirectoryTitle');
   // Merge: runtime.cast ← cast= attribute ← body YAML (kids)
   const cast = mergeCasts(useCast(props), kids);
 
@@ -37,7 +40,11 @@ function _TeamDirectory(props) {
   if (teamData.length === 0) {
     return (
       <div className="team-directory p-4 border rounded-lg bg-background">
-        <p className="text-dimmed text-sm">No team members found{group ? ` in group "${group}"` : ''}. Add cast members as YAML body or via cast= attribute.</p>
+        <p className="text-dimmed text-sm">
+            {group
+            ? t('noTeamMembersFoundInGroup', { group })
+            : t('noTeamMembersFound')}
+        </p>
       </div>
     );
   }
@@ -45,7 +52,7 @@ function _TeamDirectory(props) {
   return (
     <div className="team-directory p-4 border rounded-lg bg-background">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">{title}</h3>
+        <h3 className="text-lg font-semibold">{resolvedTitle}</h3>
         <div className="flex gap-2">
           <button
             onClick={() => setViewMode('grid')}
@@ -53,7 +60,7 @@ function _TeamDirectory(props) {
               viewMode === 'grid' ? 'bg-accent text-inverse' : 'bg-muted text-secondary'
             }`}
           >
-            Grid View
+            {t('gridView')}
           </button>
           <button
             onClick={() => setViewMode('detail')}
@@ -62,7 +69,7 @@ function _TeamDirectory(props) {
             }`}
             disabled={!selectedMember}
           >
-            Detail View
+            {t('detailView')}
           </button>
         </div>
       </div>
@@ -100,19 +107,23 @@ function _TeamDirectory(props) {
       )}
 
       {viewMode === 'detail' && selectedMemberData && (
-        <MemberDetail member={selectedMemberData} onClose={() => { setSelectedMember(null); setViewMode('grid'); }} />
+        <MemberDetail
+          member={selectedMemberData}
+          onClose={() => { setSelectedMember(null); setViewMode('grid'); }}
+          t={t}
+        />
       )}
 
       {viewMode === 'detail' && !selectedMemberData && (
         <div className="text-center py-8 text-dimmed">
-          Select a team member to view their details
+          {t('selectMemberToViewDetails')}
         </div>
       )}
     </div>
   );
 }
 
-function MemberDetail({ member, onClose }) {
+function MemberDetail({ member, onClose, t }) {
   const avatarProps = castMemberToAvatarProps(member.id, member);
   const skills = Array.isArray(member.profile?.skills) ? member.profile.skills : [];
 
@@ -145,14 +156,14 @@ function MemberDetail({ member, onClose }) {
           <div className="space-y-4">
             {member.profile?.bio && (
               <div>
-                <h5 className="font-medium text-foreground mb-2">Background</h5>
+                <h5 className="font-medium text-foreground mb-2">{t('profileBackground')}</h5>
                 <p className="text-secondary">{String(member.profile.bio)}</p>
               </div>
             )}
 
             {skills.length > 0 && (
               <div>
-                <h5 className="font-medium text-foreground mb-2">Key Skills</h5>
+                <h5 className="font-medium text-foreground mb-2">{t('keySkills')}</h5>
                 <div className="flex flex-wrap gap-2">
                   {skills.map((skill, index) => (
                     <span

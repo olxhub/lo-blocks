@@ -20,6 +20,8 @@
 // global i18next state. This matters because different blocks can render with
 // different locale overrides (e.g. a zh-Hans problem inside an en-US course).
 //
+// Key naming conventions: see docs/README.md § "Translation Strings"
+//
 'use client';
 
 import i18n from 'i18next';

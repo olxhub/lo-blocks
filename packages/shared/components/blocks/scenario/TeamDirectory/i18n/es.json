@@ -1,0 +1,10 @@
+{
+  "detailView": "Vista de detalle",
+  "gridView": "Vista de cuadrícula",
+  "keySkills": "Habilidades clave",
+  "noTeamMembersFound": "No se encontraron miembros del equipo. Agrega miembros del elenco como cuerpo YAML o mediante el atributo cast=.",
+  "noTeamMembersFoundInGroup": "No se encontraron miembros del equipo en el grupo \"{{group}}\". Agrega miembros del elenco como cuerpo YAML o mediante el atributo cast=.",
+  "profileBackground": "Trayectoria",
+  "selectMemberToViewDetails": "Selecciona un miembro del equipo para ver sus detalles",
+  "teamDirectoryTitle": "Directorio del equipo"
+}
