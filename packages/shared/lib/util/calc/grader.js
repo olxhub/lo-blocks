@@ -25,6 +25,79 @@ export function parseSamples(spec) {
 }
 
 /**
+ * Validate a samples spec with detailed, teacher-friendly error messages.
+ * Returns { parsed, errors } where parsed is the result (or null) and
+ * errors is an array of specific messages.
+ *
+ * Use this at parse time for good diagnostics. At grading time, use parseSamples().
+ */
+export function validateSamplesSpec(spec) {
+  const errors = [];
+
+  if (!spec.includes('@')) {
+    errors.push('samples: Missing "@" separator. Format is "variables@mins:maxs#count", e.g. "x@-5:5#10"');
+    return { parsed: null, errors };
+  }
+
+  const [varPart, rest] = spec.split('@');
+  const variables = varPart.split(',').map(s => s.trim()).filter(Boolean);
+
+  if (variables.length === 0) {
+    errors.push('samples: No variables found before "@". List variable names separated by commas, e.g. "x,y@..."');
+    return { parsed: null, errors };
+  }
+
+  if (!rest || !rest.includes('#')) {
+    errors.push('samples: Missing "#" separator for sample count. Format is "...@mins:maxs#count", e.g. "x@-5:5#10"');
+    return { parsed: null, errors };
+  }
+
+  const [rangePart, countPart] = rest.split('#');
+  const count = parseInt(countPart, 10);
+  if (!Number.isInteger(count) || count <= 0) {
+    errors.push(`samples: Sample count must be a positive integer, got "${countPart}".`);
+  }
+
+  if (!rangePart.includes(':')) {
+    errors.push('samples: Missing ":" separator between min and max values. Format is "...@mins:maxs#count", e.g. "x@-5:5#10"');
+    return { parsed: null, errors };
+  }
+
+  const [minsStr, maxsStr] = rangePart.split(':');
+  const minStrs = minsStr.split(',');
+  const maxStrs = maxsStr.split(',');
+
+  if (minStrs.length !== variables.length) {
+    errors.push(`samples: Found ${variables.length} variable(s) (${variables.join(', ')}) but ${minStrs.length} min value(s). Each variable needs its own min and max.`);
+  }
+  if (maxStrs.length !== variables.length) {
+    errors.push(`samples: Found ${variables.length} variable(s) (${variables.join(', ')}) but ${maxStrs.length} max value(s). Each variable needs its own min and max.`);
+  }
+
+  if (errors.length > 0) return { parsed: null, errors };
+
+  const mins = minStrs.map(Number);
+  const maxs = maxStrs.map(Number);
+  const ranges = {};
+
+  for (let i = 0; i < variables.length; i++) {
+    if (isNaN(mins[i])) {
+      errors.push(`samples: "${minStrs[i].trim()}" is not a valid number in the min values.`);
+    }
+    if (isNaN(maxs[i])) {
+      errors.push(`samples: "${maxStrs[i].trim()}" is not a valid number in the max values.`);
+    }
+    if (!isNaN(mins[i]) && !isNaN(maxs[i]) && mins[i] >= maxs[i]) {
+      errors.push(`samples: Range for ${variables[i]} has min (${mins[i]}) >= max (${maxs[i]}). Did you swap them?`);
+    }
+    ranges[variables[i]] = [mins[i], maxs[i]];
+  }
+
+  if (errors.length > 0) return { parsed: null, errors };
+  return { parsed: { variables, ranges, numSamples: count }, errors: [] };
+}
+
+/**
  * Generate random sample points.
  * Returns an array of { varName: value } dicts.
  */

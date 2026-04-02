@@ -8,8 +8,8 @@
 //
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
-import { checkFormula, parseSamples } from '@/lib/util/calc/grader.js';
-import { evaluator } from '@/lib/util/calc/index.js';
+import { checkFormula, validateSamplesSpec } from '@/lib/util/calc/grader.js';
+import { evaluator, parse, collectIdentifiers, DEFAULT_VARIABLES, DEFAULT_FUNCTIONS } from '@/lib/util/calc/index.js';
 
 /**
  * Pure formula matching function (boolean predicate).
@@ -39,24 +39,124 @@ export function formulaMatch(
   return result.correct;
 }
 
+/** Names that are built-in and don't need to appear in a samples spec. */
+const BUILTIN_NAMES = new Set([
+  ...Object.keys(DEFAULT_VARIABLES),
+  ...Object.keys(DEFAULT_FUNCTIONS),
+]);
+
 /**
  * Validate FormulaGrader attributes at parse time.
+ *
+ * Provides detailed, teacher-friendly error messages including:
+ * - Answer formula syntax checking
+ * - Concrete samples suggestions when samples is missing
+ * - Structural validation of samples format
+ * - Cross-validation of answer variables vs sample variables
+ * - Test evaluation of the answer at a sample point
  */
 function validateFormulaAttributes(attrs: Record<string, any>): string[] | undefined {
   const errors: string[] = [];
 
-  if (attrs.samples) {
-    try {
-      parseSamples(String(attrs.samples));
-    } catch (e: any) {
-      errors.push(`samples: Invalid format "${attrs.samples}". Expected format like "x@-5:5#10" or "x,y@-5,-5:5,5#10".`);
-    }
-  }
-
+  // --- Validate tolerance ---
   if (attrs.tolerance !== undefined && attrs.tolerance !== '') {
     const tol = parseFloat(String(attrs.tolerance));
     if (isNaN(tol) || tol < 0) {
       errors.push(`tolerance: "${attrs.tolerance}" is not a valid non-negative number.`);
+    }
+  }
+
+  // --- Validate answer formula parses ---
+  let answerAST: any = null;
+  let answerVars: Set<string> = new Set();
+  if (attrs.answer) {
+    try {
+      answerAST = parse(String(attrs.answer));
+      const ids = collectIdentifiers(answerAST);
+      // User variables = identifiers that aren't built-in constants/functions
+      answerVars = new Set([...ids.variables].filter(v => !BUILTIN_NAMES.has(v.toLowerCase())));
+    } catch (e: any) {
+      errors.push(`answer: Could not parse "${attrs.answer}" as a math expression. Check for missing operands or unmatched parentheses.`);
+      return errors;  // Can't do further checks without a valid answer
+    }
+  }
+
+  // --- Validate samples ---
+  if (!attrs.samples) {
+    // samples is declared optional in Zod so that this validator runs instead
+    // of Zod's generic required_error. This lets us inspect the answer formula
+    // and generate a concrete, copy-pasteable example.
+    if (answerVars.size > 0) {
+      const varList = [...answerVars];
+      const varNames = varList.join(',');
+      const mins = varList.map(() => '0').join(',');
+      const maxs = varList.map(() => '1').join(',');
+      const example = `${varNames}@${mins}:${maxs}#10`;
+      const breakdown = varList.map(v => `  - Sample ${v} from 0 to 1`).join('\n');
+
+      errors.push(
+        `samples is required. Your answer uses variables: ${varList.join(', ')}\n\n` +
+        `The samples attribute tells the grader what values to test. For example:\n\n` +
+        `  samples="${example}"\n\n` +
+        `This means:\n` +
+        `${breakdown}\n` +
+        `  - Test 10 random points\n\n` +
+        `Choose ranges where your formula produces finite values.`
+      );
+    } else {
+      errors.push('samples is required (e.g. "x@-5:5#10").');
+    }
+    return errors;
+  }
+
+  // --- Validate samples format ---
+  const { parsed: sampleSpec, errors: sampleErrors } = validateSamplesSpec(String(attrs.samples));
+  if (sampleErrors.length > 0) {
+    errors.push(...sampleErrors);
+    return errors;  // Can't cross-validate without valid samples
+  }
+
+  // --- Cross-validate answer variables vs sample variables ---
+  if (sampleSpec && answerVars.size > 0) {
+    const sampleVarSet = new Set(sampleSpec.variables);
+
+    for (const v of answerVars) {
+      if (!sampleVarSet.has(v)) {
+        errors.push(
+          `samples: Your answer uses variable "${v}" but it is not listed in the samples spec. ` +
+          `The grader won't know what values to test for it.`
+        );
+      }
+    }
+
+    for (const v of sampleSpec.variables) {
+      if (!answerVars.has(v) && !BUILTIN_NAMES.has(v.toLowerCase())) {
+        errors.push(
+          `samples: Variable "${v}" is listed in samples but does not appear in the answer formula. ` +
+          `This is allowed but may indicate a typo.`
+        );
+      }
+    }
+  }
+
+  // --- Test-evaluate the answer at a sample midpoint ---
+  if (sampleSpec && answerAST && errors.length === 0) {
+    const testVars: Record<string, number> = {};
+    const parts: string[] = [];
+    for (const v of sampleSpec.variables) {
+      const [lo, hi] = sampleSpec.ranges[v];
+      const mid = (lo + hi) / 2;
+      testVars[v] = mid;
+      parts.push(`${v}=${mid}`);
+    }
+    try {
+      const caseSensitive = attrs.caseSensitive === 'true' || attrs.caseSensitive === true;
+      evaluator(testVars, {}, String(attrs.answer), { caseSensitive });
+    } catch (e: any) {
+      errors.push(
+        `answer: Formula evaluation failed with sample values {${parts.join(', ')}}: ${e.message}\n` +
+        `Check that your formula is valid in the sampled range.`
+      );
     }
   }
 
@@ -92,7 +192,10 @@ const FormulaGrader = createGrader({
   inputSchema: z.string(),
   attributes: {
     answer: z.string({ required_error: 'answer is required' }),
-    samples: z.string({ required_error: 'samples is required (e.g. "x@-5:5#10")' }),
+    // Optional in Zod so our validateFormulaAttributes runs instead of Zod's
+    // generic required_error. This lets us inspect the answer formula and
+    // generate a concrete, copy-pasteable samples example.
+    samples: z.string().optional(),
     tolerance: z.string().optional(),
     caseSensitive: z.string().optional(),
   },

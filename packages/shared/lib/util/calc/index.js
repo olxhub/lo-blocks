@@ -212,5 +212,5 @@ export function renderMath(mathExpr, options = {}) {
   return katex.renderToString(latex, { throwOnError: false, ...options.katexOptions });
 }
 
-export { parse, Complex, LatexRendered, ZeroDivisionError, ValueError };
+export { parse, Complex, LatexRendered, ZeroDivisionError, ValueError, collectIdentifiers };
 export { DEFAULT_FUNCTIONS, DEFAULT_VARIABLES, SUFFIXES };
