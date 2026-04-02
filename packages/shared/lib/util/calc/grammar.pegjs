@@ -2,7 +2,7 @@
 //
 // Operator precedence (lowest to highest):
 //   1. Sum:      + -     (with leading unary sign)
-//   2. Product:  * /
+//   2. Product:  * /     (includes implicit multiplication: 2x, (1+x)(1-x))
 //   3. Parallel: ||      (resistor formula)
 //   4. Power:    ^       (right-associative)
 //   5. Atom:     number, function call, variable, parenthesized expr
@@ -33,11 +33,17 @@ SignedProduct
     }
 
 // ============================================================
-// Product: multiplication / division
+// Product: multiplication / division (explicit and implicit)
 // ============================================================
+// Implicit multiplication: 2x, (1+x)(1-x), 2sin(x)
+// Same precedence as explicit * and /, evaluated left-to-right.
+// 1/2x = (1/2)*x, just like 1/2*x.
 
 Product
-  = head:Parallel tail:(_ op:("*" / "/") _ right:Parallel { return { op, right }; })* {
+  = head:Parallel tail:(
+      _ op:("*" / "/") _ right:Parallel { return { op, right }; }
+    / _ !("+" / "-" / "*" / "/" / "||" / ")" / "]" / "}" / !.) right:Parallel { return { op: '*', right }; }
+    )* {
       if (tail.length === 0) return head;
       return { type: 'product', head, tail };
     }

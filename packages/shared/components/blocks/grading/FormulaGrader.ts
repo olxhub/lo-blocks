@@ -25,18 +25,29 @@ import { evaluator, parse, collectIdentifiers, DEFAULT_VARIABLES, DEFAULT_FUNCTI
 export function formulaMatch(
   input: string,
   answer: string,
-  options?: { samples?: string; tolerance?: string; caseSensitive?: string | boolean },
+  options?: { samples?: string; tolerance?: string; caseSensitive?: string | boolean; additionalAnswers?: string },
 ): boolean {
   const samples = options?.samples;
   if (!samples) {
     throw new Error('FormulaGrader requires a "samples" attribute (e.g. "x@-5:5#10")');
   }
-  const result = checkFormula(answer, input, samples, {
+  const evalOpts = {
     tolerance: options?.tolerance ? parseFloat(options.tolerance) : undefined,
     caseSensitive: options?.caseSensitive === true || options?.caseSensitive === 'true',
-  });
-  if (result.error) throw new Error(result.error);
-  return result.correct;
+  };
+
+  // Collect all accepted answers (primary + additional)
+  const answers = [answer];
+  if (options?.additionalAnswers) {
+    answers.push(...options.additionalAnswers.split(';').map(s => s.trim()).filter(Boolean));
+  }
+
+  for (const ans of answers) {
+    const result = checkFormula(ans, input, samples, evalOpts);
+    if (result.correct) return true;
+    // If this answer errored (e.g. bad formula), skip and try next
+  }
+  return false;
 }
 
 /** Names that are built-in and don't need to appear in a samples spec. */
@@ -149,14 +160,34 @@ function validateFormulaAttributes(attrs: Record<string, any>): string[] | undef
       testVars[v] = mid;
       parts.push(`${v}=${mid}`);
     }
+    const caseSensitive = attrs.caseSensitive === 'true' || attrs.caseSensitive === true;
     try {
-      const caseSensitive = attrs.caseSensitive === 'true' || attrs.caseSensitive === true;
       evaluator(testVars, {}, String(attrs.answer), { caseSensitive });
     } catch (e: any) {
       errors.push(
         `answer: Formula evaluation failed with sample values {${parts.join(', ')}}: ${e.message}\n` +
         `Check that your formula is valid in the sampled range.`
       );
+    }
+
+    // --- Validate additional answers ---
+    if (attrs.additionalAnswers) {
+      const extras = String(attrs.additionalAnswers).split(';').map(s => s.trim()).filter(Boolean);
+      for (const extra of extras) {
+        try {
+          parse(extra);
+        } catch {
+          errors.push(`additionalAnswers: Could not parse "${extra}" as a math expression.`);
+          continue;
+        }
+        try {
+          evaluator(testVars, {}, extra, { caseSensitive });
+        } catch (e: any) {
+          errors.push(
+            `additionalAnswers: "${extra}" failed with sample values {${parts.join(', ')}}: ${e.message}`
+          );
+        }
+      }
     }
   }
 
@@ -165,21 +196,47 @@ function validateFormulaAttributes(attrs: Record<string, any>): string[] | undef
 
 /**
  * Validate that the student's input is a parseable math expression.
+ *
+ * When the grader has a samples spec, also checks that the student only uses
+ * variables from the samples spec (plus built-ins). This catches typos like
+ * "X" when only "x" is allowed, before grading runs.
+ *
+ * Variable checking can be disabled with checkVariables="false" on the grader.
  */
-function validateFormulaInput(input: any): string[] | undefined {
+function validateFormulaInput(input: any, attrs: Record<string, any>): string[] | undefined {
   if (typeof input !== 'string') return ['Expected a string'];
+
+  // Build the allowed variable set from the samples spec
+  const shouldCheckVars = attrs.checkVariables !== 'false' && attrs.samples;
+  let allowedVars: Record<string, number> = {};
+  if (shouldCheckVars) {
+    const { parsed } = validateSamplesSpec(String(attrs.samples));
+    if (parsed) {
+      for (const v of parsed.variables) {
+        allowedVars[v] = 0; // value doesn't matter, just need the key
+      }
+    }
+  }
+
+  const caseSensitive = attrs.caseSensitive === 'true' || attrs.caseSensitive === true;
+
   try {
-    // Try to parse the expression (with no variables — just syntax check)
-    // We use evaluator with empty vars; if it throws UndefinedVariable that's fine
-    // (means it parsed OK but has variables, which is expected).
-    // Only syntax errors should fail.
-    evaluator({}, {}, input);
+    evaluator(allowedVars, {}, input, { caseSensitive });
   } catch (e: any) {
-    if (e.name === 'UndefinedVariable') return undefined; // parsed OK, just has variables
+    if (e.name === 'UndefinedVariable') {
+      // If we're checking variables, this is a real error — the student used
+      // a variable not in the samples spec.
+      if (shouldCheckVars) {
+        return [e.message];
+      }
+      // Not checking variables — just means it parsed OK with unknown vars
+      return undefined;
+    }
     if (e.name === 'UnmatchedParenthesis') return [e.message];
-    if (e.name === 'SyntaxError') return ['Invalid expression syntax'];
+    if (e.name === 'SyntaxError') return [e.message]; // now has friendly message
     // Other errors (like ZeroDivisionError from e.g. "1/0") mean it parsed fine
     if (e.name === 'ZeroDivisionError') return undefined;
+    if (e.name === 'ValueError') return undefined;
     return [e.message || 'Invalid expression'];
   }
   return undefined;
@@ -198,6 +255,8 @@ const FormulaGrader = createGrader({
     samples: z.string().optional(),
     tolerance: z.string().optional(),
     caseSensitive: z.string().optional(),
+    additionalAnswers: z.string().optional().describe('Semicolon-separated alternative correct formulas'),
+    checkVariables: z.string().optional().describe('Set to "false" to allow any variable names in student input'),
   },
   validateAttributes: validateFormulaAttributes,
   validateInputs: validateFormulaInput,

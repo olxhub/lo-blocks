@@ -80,6 +80,31 @@ function collectIdentifiers(ast) {
   return { variables, functions };
 }
 
+/**
+ * Translate a raw PEG SyntaxError into a human-friendly message.
+ */
+function friendlyParseError(expr, pegError) {
+  const loc = pegError.location?.start;
+  const col = loc ? loc.column - 1 : 0; // PEG columns are 1-based
+  const found = pegError.found;
+
+  if (!found) {
+    // Unexpected end of input — usually a trailing operator
+    const trimmed = expr.trimEnd();
+    const lastChar = trimmed[trimmed.length - 1];
+    if ('+-*/^'.includes(lastChar)) {
+      return `Your expression is incomplete — it ends with "${lastChar}" which needs something after it.`;
+    }
+    return 'Your expression appears incomplete.';
+  }
+
+  // Show a short window around the error location
+  const start = Math.max(0, col - 4);
+  const end = Math.min(expr.length, col + 6);
+  const nearby = expr.substring(start, end).trim();
+  return `Could not understand your expression near "${nearby}" (position ${col + 1}).`;
+}
+
 function checkVariables(ast, allVariables, allFunctions, caseSensitive) {
   const casify = caseSensitive ? (x => x) : (x => x.toLowerCase());
   const { variables, functions } = collectIdentifiers(ast);
@@ -88,7 +113,11 @@ function checkVariables(ast, allVariables, allFunctions, caseSensitive) {
   if (badVars.length > 0) {
     let message = `Invalid Input: ${badVars.sort().join(', ')} not permitted in answer as a variable`;
 
-    if (caseSensitive) {
+    // If a "variable" is actually a function name, suggest parentheses
+    const funcLike = badVars.filter(v => casify(v) in allFunctions);
+    if (funcLike.length > 0) {
+      message += ` (functions require parentheses, e.g., ${funcLike[0]}(x) not ${funcLike[0]} x)`;
+    } else if (caseSensitive) {
       const caselist = new Set();
       for (const bv of badVars) {
         for (const v of Object.keys(allVariables)) {
@@ -140,7 +169,18 @@ export function evaluator(variables, functions, mathExpr, { caseSensitive = fals
 
   checkParens(mathExpr);
 
-  const ast = parse(mathExpr);
+  let ast;
+  try {
+    ast = parse(mathExpr);
+  } catch (e) {
+    if (e.name === 'SyntaxError' && e.location) {
+      const msg = friendlyParseError(mathExpr, e);
+      const err = new Error(msg);
+      err.name = 'SyntaxError';
+      throw err;
+    }
+    throw e;
+  }
 
   let allVariables = { ...DEFAULT_VARIABLES, ...variables };
   let allFunctions = { ...DEFAULT_FUNCTIONS, ...functions };
@@ -171,7 +211,18 @@ export function evaluator(variables, functions, mathExpr, { caseSensitive = fals
 export function latexPreview(mathExpr, { variables = [], functions = [], caseSensitive = false } = {}) {
   if (mathExpr.trim() === '') return '';
 
-  const ast = parse(mathExpr);
+  let ast;
+  try {
+    ast = parse(mathExpr);
+  } catch (e) {
+    if (e.name === 'SyntaxError' && e.location) {
+      const msg = friendlyParseError(mathExpr, e);
+      const err = new Error(msg);
+      err.name = 'SyntaxError';
+      throw err;
+    }
+    throw e;
+  }
 
   const varSet = new Set([...Object.keys(DEFAULT_VARIABLES), ...variables]);
   const funcSet = new Set([...Object.keys(DEFAULT_FUNCTIONS), ...functions]);

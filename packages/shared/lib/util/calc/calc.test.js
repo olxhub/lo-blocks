@@ -381,12 +381,67 @@ describe('EvaluatorTest', () => {
       expect(() => evaluator({ R1: 2.0, R3: 4.0 }, {}, 'R1(R3 + 1)'))
         .toThrow(/did you forget to use \*/);
     });
+
+    it('should suggest parentheses when variable matches a function name', () => {
+      expect(() => evaluator({ x: 1 }, {}, 'sin x')).toThrow(/parentheses/);
+    });
+  });
+
+  describe('friendly syntax errors', () => {
+    it('should give friendly message for trailing operator', () => {
+      expect(() => easyEval('2+')).toThrow(/incomplete/);
+      expect(() => easyEval('3*')).toThrow(/incomplete/);
+    });
+
+    it('should give friendly message for bad syntax', () => {
+      expect(() => easyEval('3|4')).toThrow(/Could not understand/);
+    });
   });
 
   describe('mismatched parentheses', () => {
     it('should catch unmatched parentheses', () => {
       expect(() => easyEval('(1+2')).toThrow(/opened but never closed/);
       expect(() => easyEval('(1+2))')).toThrow(/no matching opening parenthesis/);
+    });
+  });
+
+  describe('implicit multiplication', () => {
+    it('should handle number * variable', () => {
+      expect(evaluator({ x: 3 }, {}, '2x')).toBe(6);
+      expect(evaluator({ x: 5 }, {}, '3x')).toBe(15);
+    });
+
+    it('should handle number * parenthesized expression', () => {
+      expect(evaluator({ x: 4 }, {}, '2(x+1)')).toBe(10);
+    });
+
+    it('should handle paren * paren', () => {
+      expect(evaluator({ x: 2 }, {}, '(1+x)(1-x)')).toBe(-3);
+      expect(evaluator({ x: 3 }, {}, '(x)(x)')).toBe(9);
+    });
+
+    it('should handle number * function call', () => {
+      assertClose(evaluator({}, {}, '2sin(pi/6)'), 1.0);
+    });
+
+    it('should handle function * function', () => {
+      assertClose(evaluator({}, {}, 'sin(pi/6)cos(pi/6)'), 0.433);
+    });
+
+    it('should have same precedence as explicit * (left-to-right)', () => {
+      // 1/2x = (1/2)*x, same as 1/2*x
+      expect(evaluator({ x: 4 }, {}, '1/2x')).toBe(2);
+      expect(evaluator({ x: 4 }, {}, '1/2*x')).toBe(2);
+    });
+
+    it('should respect power precedence', () => {
+      // 2x^3 = 2*(x^3), not (2x)^3
+      expect(evaluator({ x: 2 }, {}, '2x^3')).toBe(16);
+    });
+
+    it('should work with existing explicit operators', () => {
+      expect(evaluator({ x: 3, y: 2 }, {}, '2x + 3y')).toBe(12);
+      expect(evaluator({ x: 3, y: 2 }, {}, '2x * 3y')).toBe(36);
     });
   });
 });
@@ -544,7 +599,8 @@ describe('latexPreview', () => {
   });
 
   it('should reject bad syntax', () => {
-    const badMath = ['11+', '11*', 'f((x)', 'sqrt(x^)', '3f(x)', '3|4', '3|||4'];
+    // Note: '3f(x)' is valid now (implicit multiplication: 3 * f(x))
+    const badMath = ['11+', '11*', 'f((x)', 'sqrt(x^)', '3|4', '3|||4'];
     for (const math of badMath) {
       expect(() => latexPreview(math), `Expected '${math}' to throw`).toThrow();
     }
