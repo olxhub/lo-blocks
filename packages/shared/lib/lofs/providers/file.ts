@@ -107,6 +107,7 @@ function getAllowedReadDirs(): string[] {
     path.join(PROJECT_ROOT, 'packages/shared/components/blocks'),
     path.join(PROJECT_ROOT, 'packages/shared/lib/template'),  // For template grammar
     path.join(PROJECT_ROOT, 'packages/shared/lib/stateLanguage'),  // For expression grammar
+    path.join(PROJECT_ROOT, 'packages/shared/lib/util/calc'),  // For calc grammar
     path.join(PROJECT_ROOT, 'content'),
   ];
   // Support custom content directory via environment variable
