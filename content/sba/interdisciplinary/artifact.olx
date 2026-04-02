@@ -21,43 +21,31 @@ Your comprehensive problem statement that addresses:
 - Focus and scope aligned with Comm360's capacity
     </Markdown>
 
-    <Markdown id="artifact_tb_1">**Final Problem Statement:**</Markdown>
-    <TextArea id="interdisciplinary_sba_full_problem_statement" placeholder="Your final problem statement will appear here once completed..." />
-
-    <Markdown id="artifact_tb_2">**Revised Significance Statement:**</Markdown>
-    <TextArea id="interdisciplinary_sba_problem_statement_revised" placeholder="Your significance statement will appear here..." />
+    <Tabs id="repko_step_1">
+      <Vertical id="initial_ps" title="Initial Problem Statement">
+        <Markdown id="initial_ps_md1">
+We've been asked to investigate the causes of high school dropout so Comm360 can develop services to address the problem.
+        </Markdown>
+      </Vertical>
+      <Vertical id="artifact_tb_2" title="Significance Statement">
+        <TextArea id="interdisciplinary_sba_problem_statement_revised" placeholder="Your significance statement will appear here..." />
+      </Vertical>
+      <Vertical id="artifact_tb_1" title="Final Problem Statement">
+        <TextArea id="interdisciplinary_sba_full_problem_statement" placeholder="Your final problem statement will appear here once completed..." />
+      </Vertical>
+    </Tabs>
   </Collapsible>
 
   <!-- Step 2: Justification -->
   <Collapsible id="artifact_step2" title="Step 2: Justify using an interdisciplinary approach">
-    <Markdown>
-Evidence supporting the use of an interdisciplinary approach for this complex problem.
-    </Markdown>
-
-    <Markdown id="artifact_tb_3">**Why You Selected These Reasons:**</Markdown>
-    <TextArea id="interdisciplinary_sba_reason_explanation" placeholder="Your explanation will appear here..." />
-
-    <Markdown id="artifact_tb_4">**Selected Causes to Research:**</Markdown>
-    <Markdown id="interdisciplinary_sba_reasons">
-- [ ] Some school systems can't accommodate students with physical or other kinds of disabilities
-- [ ] Students need to earn money right away to help their family
-- [ ] Individual cause (from student input)
-- [ ] Schools use curricula that students don't see as relevant
-- [ ] Student's environment with gang activity, neighborhood instability
-- [ ] Structural cause (from student input)
-- [ ] Conditions like depression, anxiety, or ADHD interfere with engagement
-- [ ] School systems can't accommodate disabilities (duplicate)
-- [ ] Students lack family, friends, or teacher support
-- [ ] Negative peer influences encourage dropping out
-- [ ] Cultural responsibilities more important than high school
-- [ ] Legal trouble makes it difficult to continue school
-    </Markdown>
-
-    <Markdown id="artifact_tb_5">**Importance Evidence:**</Markdown>
-    <TextArea id="interdisciplinary_sba_source_5_importance_explanation" placeholder="Your explanation will appear here..." />
-
-    <Markdown id="artifact_tb_6">**Unresolved Problem Evidence:**</Markdown>
-    <TextArea id="interdisciplinary_sba_source_5_unresolved_explanation" placeholder="Your explanation will appear here..." />
+    <Tabs id="bm_step2">
+      <Vertical id="bm_step2_criteria" title="Criteria">
+        <Use id="broad_model_display3" ref="broad_model_display" />
+      </Vertical>
+      <Vertical id="bm_step2_eval" title="My Initial Evaluation">
+        <Use id="initial_repko_evaluation2" ref="initial_repko_evaluation" />
+      </Vertical>
+    </Tabs>
   </Collapsible>
 
   <!-- Step 3: Relevant Disciplines -->
@@ -65,23 +53,60 @@ Evidence supporting the use of an interdisciplinary approach for this complex pr
     <Markdown>
 The disciplines you've identified as relevant to understanding high school dropout.
     </Markdown>
-
-    <Markdown id="artifact_tb_7">**Causes Mapped to Disciplines (Table):**</Markdown>
-    <Markdown id="artifact_tb_8">[Table component for interdisciplinary_sba_reasons discipline mapping - to be implemented]</Markdown>
-
-    <Markdown id="artifact_tb_9">**Priority Area Alignment:**</Markdown>
-    <Markdown id="artifact_tb_10">[Table component for interdisciplinary_sba_problem_areas - to be implemented]</Markdown>
-    <TextArea id="interdisciplinary_sba_priority_explanation" placeholder="Your explanation will appear here..." />
-
-    <Markdown id="artifact_tb_11">**Additional Relevant Disciplines:**</Markdown>
-    <Markdown id="interdisciplinary_sba_additional_disciplines">
-- [ ] Health Sciences
-- [ ] Biology
-- [ ] Sociology
-- [ ] Economics
-- [ ] Political Science
-    </Markdown>
-    <TextArea id="interdisciplinary_sba_additional_disciplines_explanation" placeholder="Your explanation will appear here..." />
+    <Tabs>
+        <Vertical id="initial_discipline_list" title="Initial Brainstorming">
+          <IntakeGate ready="@reason_explanation.value">
+            <Markdown>
+When you have finished brainstorming disciplines that might be relevant to studying
+the causes of high school dropout, this page will display a list of causes of high
+school dropout and your personal list of potentially relevant disciplines.
+            </Markdown>
+            <Vertical id="brainstorming_responses">
+              <Use id="brainstorming_disciplines2" ref="brainstorming_disciplines" />
+              <Markdown>
+-----------------------------------
+&nbsp;
+              </Markdown>
+              <Use id="reasons_shown3" ref="reasons_shown" />
+              <Markdown>
+-----------------------------------
+**Why you selected these causes:**
+              </Markdown>
+              <Use id="reason_explanation2" ref="reason_explanation" />
+              <Markdown>
+-----------------------------------
+**The causes you suggested yourself:**
+              </Markdown>
+              <Use id="cause_internal2" ref="cause_internal" />
+              <Use id="cause_structural2" ref="cause_structural" />             
+              <Markdown>
+------------------------------------
+**My Notes on the Focus Group Transcript** 
+              </Markdown>
+              <Use id="" ref="focus_group" />
+            </Vertical>
+          </IntakeGate>
+        </Vertical>
+        <Vertical id="identifying_disciplines" title="Identifying Relevant Disciplines">
+            <IntakeGate ready="Object.keys(@discipline_mapping.value).length > 3">
+              <Markdown>
+When you have have finished thinking about which causes of high school dropout
+Comm360 should focus on, this page will display your judgments about which disciplines provide information
+about each cause.
+              </Markdown>
+              <Use id="causes_by_disciplines_final" ref="causes_by_disciplines" />
+            </IntakeGate>
+        </Vertical>
+        <Vertical id="mapping_of_causes" title="Final Mapping">
+            <IntakeGate ready="Object.keys(@discipline_mapping.value).length > 3">
+              <Markdown>
+When you have finished analyzing which disciplines study which causes of high school dropout,
+this page will display a diagram showing your group's final analysis.
+              </Markdown>
+              <Use id="causes_by_disciplines_final" ref="causes_by_disciplines_answers" />
+            </IntakeGate>
+        </Vertical>
+    </Tabs>
   </Collapsible>
 
   <!-- Step 4: Literature Review -->
@@ -178,3 +203,4 @@ How the interdisciplinary process has enlarged your understanding of high school
     <TextArea id="interdisciplinary_sba_reflection_new_insights" placeholder="What you learned that you didn't know before..." />
   </Collapsible>
 </Vertical>
+

@@ -10,7 +10,7 @@ lang: en-Latn-US
 ---
 -->
 <Cast cast="characters.cast" id="interdisciplinary_sba_demo" title="Interdisciplinary Studies SBA - High School Dropout Analysis" launchable="true">
-<SplitPanel>
+<SplitPanel sizes="40, 60">
 
   <!-- Left Panel: Dialogue Conversation -->
   <LeftPane>
@@ -58,6 +58,12 @@ lang: en-Latn-US
            title="Research Library"
            preview="library_preview"
            detail="library_detail">
+- id: focus_group_annotation_info
+  title: Focus Group Transcript
+  subtitle: 
+  description: Transcript of a focus group on high school dropout
+  ref: transcript_md1
+  
 - id: adhd_study
   title: ADHD and High School Dropout
   subtitle: Psychology - Fried et al. (2016)
@@ -103,6 +109,7 @@ lang: en-Latn-US
 
 <!-- Reading content blocks -->
 <Hidden>
+  <Use id="focus_group_annotation" ref="focus_group" />
   <Markdown id="reading_adhd" src="readings/research_study_adhd_dropout.md"/>
   <Markdown id="reading_employment" src="readings/research_study_employment_dropout.md"/>
   <Markdown id="reading_marijuana" src="readings/research_study_marijuana_dropout.md"/>

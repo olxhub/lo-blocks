@@ -123,7 +123,7 @@ interdisciplinary_sba_sidebar -> causes_list
 
 Lacy: Here are all of our reasons, Lianne. What do you think?
 
-Lianne: This is a good list. It reflects a lot of what we heard in a focus group we conducted after we got the results of our community needs survey. We spoke to various stakeholders - students and their families, teachers, and other community members.
+Lianne: This is a good list. It reflects a lot of what we heard in a focus group we conducted after we got the results of our community needs survey. We spoke to various stakeholders - students and their families, teachers, and other community members. 
 
 Task 2: Review Focus Group Data [id=focus_group_start]
 ---------------------------------------
@@ -149,15 +149,20 @@ interdisciplinary_sba_sidebar -> reasons_list
 
 Lacy: I studied focus groups in my research methods class last year. We analyzed lots of transcripts. Ty, I'm taking your highlights and combining them with the reasons we already came up with. I re-worded some of them, but I think I've captured everything.
 
-Lianne: Good work. This list reflects what we've heard in the community about this issue. Now we need to turn our attention to the research. I think we should focus on a subset of these reasons.
+Lianne: Good work. This list reflects what we've heard in the community about this issue. Now we need to turn our attention to the research. To do that, we need to have an idea what disciplines might be relevant to our problem. Why don't you all look over the list again, and come up with a list of disciplines that might have something to say about one or more of the causes we listed?
+
+interdisciplinary_sba_sidebar -> brainstorming_disciplines
+
+
+Lianne: Great work! However, I think we should focus on a subset of these reasons -- ones that Comm360 might actually be able to address.
 
 interdisciplinary_sba_sidebar -> reasons_checklist
 
-Lacy: Which ones would you select to research? Pick at least three to start with.
+Lacy: Which ones would you select to research? Pick at least three to start with, and no more than five.
 
 --- wait @reasons.value.length > 2 && @reasons.value.length < 6 ---
 
-Lianne: I agree with you on some of your choices. Why did you select that set?
+Lianne: I agree with you on some of your choices. Why did you select that set? Why do you think Comm360 would be able to address them?
 
 interdisciplinary_sba_sidebar -> reasons_shown
 
@@ -186,7 +191,17 @@ interdisciplinary_sba_sidebar -> broad_model_display
 
 Peggy: Ah, I think all of us are familiar with Broad Model from Repko from Professor Ari.
 
-Peggy: Based on the Broad Model, we need to look at the causes on the list and see if they map to different disciplines.
+interdisciplinary_sba_sidebar -> first_pass_on_criteria
+
+Lianne: Of course. Which means you should be able to see how the high school dropout model fits the model! Why don't you all take a moment and see how well it fits Repko's criteria.
+
+Peggy: I'm looking at our answers, and it looks like we've got some common themes. For starters, there are a lot of causes of high school dropout, and it's obviously important unresolved!
+
+Ty: Yes, and the fact that there are so many causes means it's a complex problem. There won't be any one simple solution for it.
+
+Lacy: Plus there are a lot of different kinds of causes, which means there's a good chance you'll need information from several different disciplines to solve it.
+
+Peggy: OK then. Based on the Broad Model, it looks like next, we need to look at the causes on the list and see if they map to different disciplines.
 
 Ty: And we should identify the disciplines we think would give us the most insights into the problem and possible solutions.
 

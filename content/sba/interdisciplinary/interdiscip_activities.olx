@@ -274,7 +274,7 @@ Are there any other comments on the causes? [interviewer pause] OK, let's move o
     </Vertical>
 
     <Vertical id="reasons_list">
-    <Markdown>
+    <Markdown id="full_cause_list">
 ## List of causes of high school dropout
  - Some school systems can't accommodate students with physical or other disabilities
  - Students need to earn money right away to help their family
@@ -290,6 +290,21 @@ Are there any other comments on the causes? [interviewer pause] OK, let's move o
  - Substance abuse issues
       </Markdown>
     </Vertical>
+
+
+    <SplitPanel id="brainstorming_disciplines">
+      <LeftPane>
+        <Use ref="full_cause_list" />
+      </LeftPane>
+      <RightPane>
+        <Markdown>
+## Disciplines that might be relevant to these causes
+        </Markdown>
+        <DynamicList id="disciplines">
+          <LineInput id="discipline_name" placeholder="Enter a discipline..." />
+        </DynamicList>
+      </RightPane>
+    </SplitPanel>
 
     <!-- Checklist of reasons to research -->
     <Vertical id="reasons_checklist">
@@ -348,16 +363,27 @@ According to Repko and colleagues (2019), a problem qualifies for interdisciplin
 2. **Multiple Disciplines** - Different disciplines offer distinct insights into the problem
 3. **Important** - The problem is significant and worth investigating
 4. **Unresolved** - The problem has not been adequately solved
-5. **Avoid Bias** - The researcher must avoid privileging any single disciplinary perspective
 
-The causes of high school dropout involve individual psychology, family sociology, economic factors, educational policy, and more - suggesting this is a good candidate for interdisciplinary study.
+**IMPORTANT: Avoid Bias** - The researcher must avoid privileging any single disciplinary perspective
       </Markdown>
     </Vertical>
+
+    <Tabs id="first_pass_on_criteria">
+      <Vertical id="first_pass_t1" title="My Evaluation">
+        <Markdown>
+**How well do you think the problem of high school dropout fit's Repko's criteria?**
+        </Markdown>
+        <TextArea id="initial_repko_evaluation" placeholder="Your initial evaluation of how well this problem fits Repko's criteria for an interdisciplinary study will go here ..." />
+      </Vertical>
+      <Vertical id="first_pass_t2" title="Repko's Criteria">
+        <Use id="broad_model_display2" ref="broad_model_display" />
+      </Vertical>
+    </Tabs>
 
     <!-- Causes by disciplines mapping -->
     <Vertical id="causes_by_disciplines">
       <Markdown>
-##Map Each Cause to Relevant Disciplines
+## Map Each Cause to Relevant Disciplines
 
 **For each cause, select all disciplines that might study it.**
       </Markdown>
@@ -366,6 +392,7 @@ The causes of high school dropout involve individual psychology, family sociolog
         cols: Psychology, Sociology, Economics, Political Science, Health Sciences
         rows: Students need money to help family, Depression/anxiety/ADHD interferes, Gang activity / neighborhood instability, Lack of school funding
       </TabularMCQ>
+  
     </Vertical>
 
     <!-- Display discipline mapping results -->
