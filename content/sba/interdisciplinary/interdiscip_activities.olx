@@ -134,143 +134,13 @@ _You can expand the text to a full window by clicking on the square double arrow
 right of "Annotations"._
 </Markdown>
       <Annotate id="focus_group" title="Focus Group Transcript (Part 1)" popout="window">
-          <Markdown id="transcript_md1">
-## Focus Group Transcript
-**Interviewer:**
-Thank you for participating in this focus group and thank you for providing your consent to have this meeting recorded. Let's begin. Our community needs survey identified high school dropout rates as an issue of concern. The purpose of this focus group is to discuss causes of dropping out of high school. Why do you think students in our community dropout of high school?
-
-**Participant 1:**
-I'll start. My kids all graduated from high school. Whenever they complained or they felt like quitting, we kept on them to keep at it. Luckily, so did their friends. Everybody around them just wouldn't let them quit. While they did not get along with all their teachers, they had some FANTASTIC teachers who supported them. So, we all helped them to stick it out.
-
-**Participant 2:**
-Those are some good friends to have! I'm not always sure what influence my daughter's friends are having on her - good or bad.
-
-**Interviewer 1:**
-Thank you for sharing your experiences. But for now, I'd like us to focus on the causes leading to students dropping out. Later, we can discuss the kinds of actions and support that can help them to persist to graduation.
-
-**Participant 3:**
-I have an experience to share. My daughter's best friend has dyslexia and was falling behind in all her classes. Her grades were awful. And she wasn't getting the help that she needed from the school to catch up. When my daughter was a sophomore, her friend dropped out because she couldn't cope.
-
-**Participant 1:**
-That probably wasn't easy for your daughter or her friend.
-
-**Participant 3:**
-Yes, my daughter was really upset. She knew her friend since elementary school. Thankfully, her friend was able to get tutoring at a community center that helped her improve her reading and she eventually got her GED.
-
-**Participant 2:**
-If our schools had more tutoring or mentorship programs, we might be able to help our kids before they drop out, instead of after it is too late.
-
-**Interviewer:**
-Thanks for that suggestion, but if you don't mind holding off on those kinds of ideas until we get to that part of the focus group, I'll bring that up again for more discussion.
-
-**Participant 2:**
-Oh, sure. No problem.
-
-**Participant 4:**
-Here's something - kind of big picture, but I know   some parents who still believe that graduating from high school isn't as important or as high a priority as supporting the family.
-
-**Interviewer:**
-Can you tell us more about that?
-
-**Participant 4:**
-Well, I know this because of some of my neighbors. One of my son's friend's parents had steady, good paying jobs for years working in their family's restaurant. Another family has a small business and expect their kids to take it over. These parents did not have or need high school degrees to get those jobs. They want their children to follow in their footsteps.
-
-So, whether it is to work in the family business or just to take care of an elder family member instead of going to school, they tell me that's more important for their children to help out than getting a high school diploma.
-
-**Interviewer:**
-Thank you. The values and beliefs of families can be complicated influences on their children.
-
-**Participant 5:**
-I don't know if this is appropriate, but I do know that   behavioral and especially legal issues can lead to dropping out.
-
-**Interviewer:**
-Can you tell us more about that?
-
-**Participant 5:**
-I work in a community legal office. And, well, sometimes I am called in to represent young people who get in trouble with the law or arrested. It could be getting caught shoplifting or something more serious like ...well, you can imagine. Whether they are eventually found guilty or innocent, it can have an impact on completing school to graduation. The entire experience with the legal system can take time and resources, creating stress on the youth and families. Then, the youth faces the social pressures in school from friends, classmates, and teachers, even when they are trying to be supportive.
-
-And in some schools with no-tolerance policies, once school administrators find out about the allegations, the student may be expelled.
-
-A young adult may feel trapped and dropping out may seem like the best option.
-
-**Participant 3:**
-Mmmmm, yeah, I can see that.
-
-**Interviewer:**
-Are there any other comments on the causes? [interviewer pause] OK, let's move on to the next part of the focus group.
-       </Markdown>
+        <Markdown id="transcript_md1" src="readings/focus_group_transcript.md"/>
     </Annotate>
     </Vertical>
 
     <!-- Display of focus group highlights -->
     <Vertical id="focus_group_highlights_shown">
-          <Markdown id="transcript_md2">
-## Focus Group Transcript
-`The Parts of the Passage Ty Annotated`
-
-**Interviewer:**
-Thank you for participating in this focus group and thank you for providing your consent to have this meeting recorded. Let's begin. Our community needs survey identified high school dropout rates as an issue of concern. The purpose of this focus group is to discuss causes of dropping out of high school. Why do you think students in our community dropout of high school?
-
-**Participant 1:**
-I'll start. My kids all graduated from high school. Whenever they complained or they felt like quitting, we kept on them to keep at it. Luckily, so did their friends. `Everybody around them just wouldn't let them quit.` While they did not get along with all their teachers, they had some FANTASTIC teachers who supported them. So, we all helped them to stick it out.
-
-**Participant 2:**
-Those are some good friends to have! `I'm not always sure what influence my daughter's friends are having on her - good or bad.`
-
-**Interviewer 1:**
-Thank you for sharing your experiences. But for now, I'd like us to focus on the causes leading to students dropping out. Later, we can discuss the kinds of actions and support that can help them to persist to graduation.
-
-**Participant 3:**
-I have an experience to share. `My daughter's best friend has dyslexia and was falling behind in all her classes. Her grades were awful. And she wasn't getting the help that she needed from the school to catch up.` When my daughter was a sophomore, her friend dropped out because she couldn't cope.
-
-**Participant 1:**
-That probably wasn't easy for your daughter or her friend.
-
-**Participant 3:**
-Yes, my daughter was really upset. She knew her friend since elementary school. Thankfully, her friend was able to get tutoring at a community center that helped her improve her reading and she eventually got her GED.
-
-**Participant 2:**
-If our schools had more tutoring or mentorship programs, we might be able to help our kids before they drop out, instead of after it is too late.
-
-**Interviewer:**
-Thanks for that suggestion, but if you don't mind holding off on those kinds of ideas until we get to that part of the focus group, I'll bring that up again for more discussion.
-
-**Participant 2:**
-Oh, sure. No problem.
-
-**Participant 4:**
-Here's something - kind of big picture, but I know   some parents who still believe that graduating from high school isn't as important or as high a priority as supporting the family.
-
-**Interviewer:**
-Can you tell us more about that?
-
-**Participant 4:**
-Well, I know this because of some of my neighbors. One of my son's friend's parents had steady, good paying jobs for years working in their family's restaurant. Another family has a small business and expect their kids to take it over. `These parents did not have or need high school degrees to get those jobs.` They want their children to follow in their footsteps.
-
-So, whether it is to work in the family business or just to take care of an elder family member instead of going to school, they tell me that's more important for their children to help out than getting a high school diploma.
-
-**Interviewer:**
-Thank you. `The values and beliefs of families can be complicated influences on their children. `
-
-**Participant 5:**
-I don't know if this is appropriate, but I do know that   behavioral and especially legal issues can lead to dropping out.
-
-**Interviewer:**
-Can you tell us more about that?
-
-**Participant 5:**
-I work in a community legal office. And, well, sometimes I am called in to represent young people who get in trouble with the law or arrested. It could be getting caught shoplifting or something more serious like ...well, you can imagine. Whether they are eventually found guilty or innocent, it can have an impact on completing school to graduation. The entire experience with the legal system can take time and resources, creating stress on the youth and families. Then, the youth faces the social pressures in school from friends, classmates, and teachers, even when they are trying to be supportive.
-
-`And in some schools with no-tolerance policies, once school administrators find out about the allegations, the student may be expelled. `
-
-A young adult may feel trapped and dropping out may seem like the best option.
-
-**Participant 3:**
-Mmmmm, yeah, I can see that.
-
-**Interviewer:**
-Are there any other comments on the causes? [interviewer pause] OK, let's move on to the next part of the focus group.
-       </Markdown>
+        <Markdown id="transcript_md2" src="readings/focus_group_transcript_highlighted.md"/>
     </Vertical>
 
     <Vertical id="reasons_list">
@@ -354,18 +224,7 @@ _Select the causes you think are most important to research._
 
     <!-- Repko's Broad Model -->
     <Vertical id="broad_model_display">
-      <Markdown>
-## Repko's Broad Model of Interdisciplinary Research
-
-According to Repko and colleagues (2019), a problem qualifies for interdisciplinary research when:
-
-1. **Complexity** - The problem is too complex to be addressed by a single discipline
-2. **Multiple Disciplines** - Different disciplines offer distinct insights into the problem
-3. **Important** - The problem is significant and worth investigating
-4. **Unresolved** - The problem has not been adequately solved
-
-**IMPORTANT: Avoid Bias** - The researcher must avoid privileging any single disciplinary perspective
-      </Markdown>
+      <Markdown id="repko_criteria" src="readings/repko_criteria.md" />
     </Vertical>
 
     <Tabs id="first_pass_on_criteria">
@@ -376,7 +235,7 @@ According to Repko and colleagues (2019), a problem qualifies for interdisciplin
         <TextArea id="initial_repko_evaluation" placeholder="Your initial evaluation of how well this problem fits Repko's criteria for an interdisciplinary study will go here ..." />
       </Vertical>
       <Vertical id="first_pass_t2" title="Repko's Criteria">
-        <Use id="broad_model_display2" ref="broad_model_display" />
+        <Use id="broad_model_display2" ref="repko_criteria" />
       </Vertical>
     </Tabs>
 
@@ -439,36 +298,7 @@ This confirms that the high school dropout problem spans multiple disciplines, m
 
     <!-- ADHD Study text -->
     <Vertical id="adhd_study_text" popout="window">
-      <Markdown>
-
-**Title:** Is  ADHD  a  Risk  Factor  for  High  School  Dropout? A  Controlled  Study
-
-**Authors**: Ronna  Fried,  Carter  Petty,  Stephen  V. Faraone,  Laran  L. Hyder,  Helen  Day,  and  Joseph  Biederman
-
-**Journal**: Journal  of  Attention  Disorders **Publication Year**: 2016 **Volume**: 20 **Issue**: 5 **Pages**: 383-389
-
-**Abstract**:
-This  study  examines  whether  ADHD  increases  the  likelihood  of  grade  retention  and  high  school  dropout,  even  when  accounting  for  IQ,  learning  disorders,  and  social  class. The  study  involved  404  individuals  with  ADHD  and  349  controls. Results  showed  that  28%  of  those  with  ADHD  repeated  a  grade  compared  to  7%  of  controls. Social  class  and  IQ  were  significant  predictors  of  dropout  or  grade  retention,  with  females  with  ADHD  at  higher  risk  than  males. Early  identification  and  intervention  for  ADHD  are  crucial  to  prevent  these  negative  educational  outcomes.
-
-**Introduction**:
-Each  year,  many  students  in  the  U. S. fail  to  graduate  high  school  on  time,  leading  to  negative  life  outcomes. Grade  retention  is  also  a  significant  predictor  of  high  school  dropout. Identifying  psychological  risk  factors,  such  as  ADHD,  is  important  for  intervention  efforts.
-
-**Background**:
-ADHD  is  consistently  linked  to  educational  deficits,  including  school  failure,  poor  grades,  and  grade  retention. Previous  studies  have  shown  that  ADHD  increases  the  risk  of  dropping  out  of  high  school.
-
-**Method**:
-The  study  used  data  from  three  large  case-control  studies  at  Massachusetts  General  Hospital. Participants  included  boys  and  girls  with  and  without  ADHD,  as  well  as  adults. Psychiatric  interviews,  socioeconomic  status  measures,  and  IQ  tests  were  conducted.
-
-**Results**:
-Participants  with  ADHD  were  significantly  more  likely  to  repeat  a  grade  or  drop  out  of  high  school  compared  to  controls. Females  with  ADHD  had  a  higher  risk  of  grade  retention/dropout  than  males. Social  class  and  IQ  were  also  significant  predictors.
-
-**Discussion**:
-ADHD  is  a  significant  risk  factor  for  grade  retention  and  high  school  dropout,  independent  of  other  factors  like  IQ  and  social  class. Early  identification  and  intervention  are  critical  to  mitigate  these  risks. The  study  highlights  the  importance  of  addressing  ADHD  to  improve  educational  outcomes.
-
-**Conclusion**:
-ADHD  significantly  contributes  to  grade  retention  and  high  school  dropout. Early  screening  and  intervention  can  help  prevent  these  negative  outcomes,  benefiting  individuals,  families,  and  society.
-
-      </Markdown>
+      <Markdown id="adhd_study_text_md" src="readings/research_study_adhd_dropout.md" />
     </Vertical>
 
     <!-- ADHD study with highlights shown -->
@@ -490,34 +320,7 @@ These terms indicate this study comes from **Psychology**, specifically educatio
       </Vertical>
 
       <Vertical id="adhd_study_highlights_t2" title="Peggy's Highlights" popout="window">
-      <Markdown>
-**Title:** Is  `ADHD`  a  `Risk  Factor`  for  High  School  Dropout? A  Controlled  Study
-
-**Authors**: Ronna  Fried,  Carter  Petty,  Stephen  V. Faraone,  Laran  L. Hyder,  Helen  Day,  and  Joseph  Biederman
-
-**Journal**: Journal  of  `Attention  Disorders` **Publication Year**: 2016 **Volume**: 20 **Issue**: 5 **Pages**: 383-389
-
-**Abstract**:
-This  study  examines  whether  `ADHD`  increases  the  likelihood  of  grade  retention  and  high  school  dropout,  even  when  accounting  for  `IQ`,  `learning  disorders`,  and  social  class. The  study  involved  404  individuals  with  `ADHD`  and  349  controls. Results  showed  that  28%  of  those  with  `ADHD`  repeated  a  grade  compared  to  7%  of  controls. Social  class  and  `IQ`  were  significant  predictors  of  dropout  or  grade  retention,  with  females  with  `ADHD`  at  higher  risk  than  males. Early  identification  and  intervention  for  `ADHD`  are  crucial  to  prevent  these  negative  educational  outcomes.
-
-**Introduction**:
-Each  year,  many  students  in  the  U. S. fail  to  graduate  high  school  on  time,  leading  to  negative  life  outcomes. Grade  retention  is  also  a  significant  predictor  of  high  school  dropout. Identifying  `psychological  risk  factors`,  such  as  `ADHD`,  is  important  for  `intervention`  efforts.
-
-**Background**:
-`ADHD`  is  consistently  linked  to  educational  `deficits`,  including  school  failure,  poor  grades,  and  grade  retention. Previous  studies  have  shown  that  `ADHD`  increases  the  risk  of  dropping  out  of  high  school.
-
-**Method**:
-The  study  used  data  from  three  large  case-control  studies  at  Massachusetts  General  Hospital. Participants  included  boys  and  girls  with  and  without  `ADHD`,  as  well  as  adults. `Psychiatric  interviews`,  socioeconomic  status  measures,  and  `IQ`  tests  were  conducted.
-
-**Results**:
-Participants  with  `ADHD`  were  significantly  more  likely  to  repeat  a  grade  or  drop  out  of  high  school  compared  to  controls. Females  with  `ADHD`  had  a  higher  risk  of  grade  retention/dropout  than  males. Social  class  and  `IQ`  were  also  significant  predictors.
-
-**Discussion**:
-`ADHD` is a significant `risk factor` for grade retention and high school dropout, independent of other factors  like `IQ` and social class. Early identification and `intervention` are critical to mitigate these risks. The  study highlights the importance of addressing `ADHD` to improve educational outcomes.
-
-**Conclusion**:
-`ADHD` significantly contributes to grade retention and high school dropout. Early `screening` and `intervention` can help prevent these negative outcomes, benefiting individuals, families, and society.
-      </Markdown>
+        <Markdown id="adhd_study_text_highlights_md" src="readings/research_study_adhd_dropout_highlights.md" />
       </Vertical>
     </Tabs>
 
@@ -557,33 +360,7 @@ _Highlight the clue words or phrases that show what discipline or disciplines ar
 click on the "Annotate" button and explain what discipline this clue suggests, and why._
      </Markdown>
      <Annotate id="employment_study_annotation" popout="window">
-      <Markdown id="employment_study_text">
-**Title:** Is  Adolescent  Employment  Still  a  Risk  Factor  for  High  School  Dropout?
-
-**Authors:** Jeremy  Staff,  Alyssa  M. Yetter,  Kelsey  Cundiff,  Nayan  Ramirez,  Mike  Vuolo,  Jeylan  T. Mortimer
-
-**Journal:** Journal  of  Research  on  Adolescence **Publication Year:** 2019   **Volume:** 30 **Issue:** 2 **Pages:**  406-422
-
-**Abstract:**
-This  study  examines  whether  working  long  hours  during  high  school  is  still  a  risk  factor  for  dropping  out. Using  data  from  the  High  School  Longitudinal  Study  of  2009,  the  authors  found  that  intensive  work  (more  than  20  hours  per  week)  is  still  linked  to  higher  dropout  rates  and  lower  grades. Despite  fewer  teens  working  long  hours  today,  disadvantaged  youth  are  still  overrepresented  among  those  who  work  intensively  and  drop  out.
-
-**Introduction:**
-Understanding  why  students  choose  to  drop  out  is  critical  for  finding  ways  to  support  students'  decision  to  stay  in  school. There  has  been  some  speculation  that  students  feel  economic  pressures  that  lead  them  to  decide  to  drop  out  of  school. In  fact,  past  research  has  shown  that  working  long  hours  during  high  school  increases  the  risk  of  dropping  out. This  study  revisits  this  issue  using  recent  data,  considering  changes  in  the  labor  market  and  educational  landscape.
-
-**Method:**
-The  study  uses  data  from  the  High  School  Longitudinal  Study  of  2009,  which  surveyed  ninth  graders  in  2009  and  followed  them  through  high  school. The  sample  includes  25,210  students,  with  data  on  their  employment,  academic  performance,  and  family  background.
-
-**Results:**
-- _Employment Trends_:  Only  11%  of  students  worked  more  than  20  hours  per  week  during  the  school  year.
-- _Dropout Rates_:   Intensive  workers  had  a  44%  higher  chance  of  dropping  out  compared  to  non-workers,  even  after  controlling  for  other  factors.
-- _Grades_:  Intensive  workers  had  significantly  lower  GPAs  compared  to  non-workers  and  moderate  workers.
-
-**Discussion**:
-Intensive  work  during  high  school  remains  a  risk  factor  for  poor  academic  outcomes  and  dropout. This  strongly  suggests  that  there  is  an  economic  cause  of  dropping  out. This  clearly  suggests  students  drop  out  for  economic  reasons. However,  it  also  implies  broad  societal  impact. There  are  students  who  decide  to  drop  out  in  order  to  support  their  and  their  families'  financial  well-being. The  study  suggests  that  schools  should  provide  more  support  and  flexibility  for  students  who  need  to  work  long  hours.
-
-**Conclusion**:
-Despite  changes  in  the  labor  market,  working  long  hours  during  high  school  is  still  associated  with  higher  dropout  rates  and  lower  academic  performance. Policies  should  address  the  needs  of  working  students  to  help  them  stay  in  school  and  succeed  academically.
-      </Markdown>
+       <Markdown id="employment_study_text" src="readings/research_study_employment_dropout.md"/>
      </Annotate>
     </Vertical>
 
@@ -679,35 +456,8 @@ Despite  changes  in  the  labor  market,  working  long  hours  during  high  s
 _Highlight the clue words or phrases that show what discipline or disciplines are relevant to this article. Then
 click on the "Annotate" button and explain what discipline this clue suggests, and why._
      </Markdown>
-     <Annotate id="source_3_highlights_annotation" popout="window">
-        <Markdown id="rural_urban_study_text_md">
-**Title:** Rural  and  Urban  High  School  Dropout  Rates: Are  They  Different?
-
-**Authors:** Jeffrey  L. Jordan,  Genti  Kostandini,  Elton  Mykerezi
-
-**Journal:** Journal  of  Research  in  Rural  Education
-**Publication Year:** 2012;  **Volume:** 27;  **Issue:** 12;  **Pages:** 1-21
-
-**Abstract:**
-This  study  examines  high  school  dropout  rates  in  rural  and  urban  areas,  using  data  from  the  National  Longitudinal  Survey  of  Youth  (NLSY)  from  1979  and  1997. The  findings  suggest  that  high  school  graduation  rates  are  similar  across  rural  and  urban  areas,  with  a  slight  decline  in  graduation  rates  over  time. Key  determinants  of  graduation  include  gender,  family  assets,  presence  of  biological  parents,  and  maternal  attributes,  which  influence  graduation  similarly  across  both  rural  and  urban  areas.
-
-**Introduction:**
-A  prevalent  perception  is  that  school  dropout  is  an  urban  problem. However,  it  is  unclear  whether  or  not  school  dropout  rates  are  different  in  urban  and  rural  environments. The  study  explores  the  importance  of  high  school  graduation  for  economic  and  social  outcomes. It  investigates  whether  rural  and  urban  areas  differ  in  high  school  dropout  rates  and  the  factors  influencing  these  rates,  considering  recent  changes  in  rural-urban  boundaries  and  socioeconomic  conditions.
-
-**Method:**
-The  study  uses  geocoded  data  from  the  NLSY79  and  NLSY97,  applying  a  methodology  that  corrects  for  biases  in  graduation  rates. It  defines  graduates  according  to  Heckman  and  LaFontaine  (2010),  excluding  GED  recipients  and  including  military  and  prison  populations. The  analysis  includes  probit  models  to  estimate  dropout  risks  and  examines  changes  over  time.
-
-**Results:**
-1)  Dropout  Rates: Graduation  rates  are  similar  across  rural  and  urban  areas,  with  a  3  percentage  point  decline  from  the  1980s  to  the  2000s. Rural  areas  experienced  a  smaller  increase  in  dropout  rates  compared  to  urban  areas.
-
-2)  Determinants: Key  factors  influencing  graduation  include  gender,  family  assets,  presence  of  biological  parents,  and  maternal  education. These  factors  have  similar  effects  across  rural  and  urban  areas. Peer  characteristics,  such  as  gang  involvement  and  drug  use,  also  influence  dropout  rates,  with  some  differences  between  urban  and  rural  areas.
-
-**Discussion:**
-The  study  highlights  that  family  characteristics  are  more  predictive  of  graduation  than  geographic  attributes. Differences  in  dropout  rates  between  rural  and  urban  areas  are  small  and  narrowing. The  findings  suggest  that  policies  should  focus  on  family  support  and  peer  influences  to  reduce  dropout  rates.
-
-**Conclusion:**
-High  school  dropout  rates  are  similar  across  rural  and  urban  areas,  with  family  characteristics  being  the  main  determinants  of  graduation. The  study  emphasizes  the  importance  of  addressing  family  and  peer  influences  to  improve  graduation  rates  and  reduce  dropouts.
-        </Markdown>
+     <Annotate id="reading_rural_urban_annotation" popout="window">
+        <Markdown id="reading_rural_urban" src="readings/research_study_rural_urban_dropout.md"/>
       </Annotate>
     </Vertical>
 
@@ -727,7 +477,7 @@ High  school  dropout  rates  are  similar  across  rural  and  urban  areas,  w
       </CheckboxInput>
     </Vertical>
     <Vertical id="rural_discipline_checkboxes_t2" title="Rural/Urban Study">
-      <Use ref="rural_urban_study_text_md" />
+      <Use ref="reading_rural_urban" />
     </Vertical>
   </Tabs>
 
@@ -744,7 +494,7 @@ High  school  dropout  rates  are  similar  across  rural  and  urban  areas,  w
         <TextArea id="source_3_classification_explanation" placeholder="The terms I highlighted indicate these disciplines because..." />
       </Vertical>
       <Vertical id="source_3_explanation_t2" title="Rural/Urban Study">
-        <Use ref="rural_urban_study_text_md" />
+        <Use ref="reading_rural_urban" />
       </Vertical>
     </Tabs>
 
@@ -756,7 +506,7 @@ High  school  dropout  rates  are  similar  across  rural  and  urban  areas,  w
         <TextArea id="source_3_insight_sentence" placeholder="..." />
       </Vertical>
       <Vertical id="source_3_insight_t2" title="Rural/Urban Study">
-        <Use ref="rural_urban_study_text_md" />
+        <Use ref="reading_rural_urban" />
       </Vertical>
    </Tabs>
 
@@ -785,7 +535,7 @@ Policy reforms should address key determinants, gang involvement, and drug use.
       </ChoiceInput>
     </Vertical>
     <Vertical id="rural_insight_checkboxes_t2" title="Rural/Urban Study">
-      <Use ref="rural_urban_study_text_md" />
+      <Use ref="reading_rural_urban" />
     </Vertical>
   </Tabs>
 
@@ -801,7 +551,7 @@ Policy reforms should address key determinants, gang involvement, and drug use.
         <TextArea id="source_3_insight_sentence_explanation" placeholder="..." />
       </Vertical>
       <Vertical id="source_3_insight_explanation_t2" title="Rural/Urban Study">
-        <Use ref="rural_urban_study_text_md" />
+        <Use ref="reading_rural_urban" />
       </Vertical>
    </Tabs>
 
@@ -812,96 +562,78 @@ _Highlight the clue words or phrases that show what discipline or disciplines ar
 click on the "Annotate" button and explain what discipline this clue suggests, and why._
       </Markdown>
       <Annotate id="source_4_highlights" popout="window">
-        <Markdown id="funding_study_text_md">
-**Title**: Examining  School  Funding  Inequity  and  Impact  on  African  American  High  School  Dropouts
-
-**Author**: Michelle  Janette  Williams
-
-**Dissertation Institution**: Walden  University **Publication Year**: 2023
-
-**Abstract**:
-This  quantitative  study  examines  the  association  between  school  funding  inequity  and  the  dropout  rates  of  African  American  students. While  previous  research  has  explored  factors  such  as  peer  pressure  and  socioeconomic  status,  this  study  specifically  focuses  on  how  inadequate  school  funding  impacts  dropout  rates. Using  equity  theory  as  the  theoretical  framework,  the  study  analyzes  publicly  available  archival  data  from  2015-2020  from  the  State  of  Delaware's  Department  of  Education. A  Pearson  correlation  analysis  conducted  through  SPSS  identified  a  relationship  between  lower  school  funding  and  higher  dropout  rates  among  African  American  students  in  the  Red  Clay  School  District. The  findings  suggest  that  inadequate  school  funding  contributes  to  dropout  rates,  reinforcing  the  need  for  policy  reforms  to  improve  resource  allocation  in  high-poverty  schools.
-
-**Introduction**:
-Educational  inequity  remains  a  persistent  issue,  disproportionately  affecting  low-income  and  minority  students. While  policies  such  as  Title  I  and  the  Every  Student  Succeeds  Act  (ESSA)  have  attempted  to  close  funding  gaps,  disparities  continue  to  exist. African  American  students  are  particularly  vulnerable  to  resource  inequities,  leading  to  higher  dropout  rates  and  long-term  socioeconomic  disadvantages.
-
-**Background**:
-School  funding  in  the  U. S. is  primarily  determined  by  local  property  taxes,  leading  to  significant  disparities  in  educational  resources. Research  suggests  that  African  American  students  in  underfunded  schools  face  increased  dropout  risks  due  to  fewer  academic  and  support  services. The  study  explores  whether  the  timing  of  dropout  (9th-12th  grade)  correlates  with  school  funding  levels  in  the  Red  Clay  School  District  in  Delaware.
-
-**Method**:
-_Study  Design_: Quantitative  correlational  analysis
-
-_Data  Source_: Publicly  available  archival  data  from  2015-2020  (Delaware  Department  of  Education)
-
-_Variables_:
-
-_Independent  Variable_: Per-pupil  school  funding
-
-_Dependent  Variable_: Grade  level  at  which  African  American  students  dropped  out  (9th-12th  grade)
-
-_Statistical  Analysis_: Pearson  correlation  in  SPSS  to  measure  the  association  between  school  funding  levels  and  dropout  rates
-
-**Results**:
-The  study  identified  a  significant  correlation  between  lower  school  funding  and  higher  dropout  rates. African  American  students  in  lower-funded  schools  were  more  likely  to  drop  out  earlier  (9th-10th  grade)  compared  to  students  in  better-funded  schools.
-
-The  equity  theory  framework  suggests  that  students  in  underfunded  schools  experience  resource  inequities  that  discourage  persistence  in  education.
-
-**Discussion**:
-The  findings  reinforce  existing  research  on  educational  inequity  and  suggest  that  higher  per-pupil  funding  is  associated  with  improved  student  retention. The  study  highlights  the  need  for  funding  reforms,  such  as  weighted  student  funding  models,  to  better  allocate  resources  to  high-need  schools.
-
-**Conclusion**:
-School  funding  inequities  contribute  to  higher  dropout  rates  among  African  American  students. Addressing  these  disparities  through  policy  changes  and  increased  investment  in  low-income  schools  could  improve  educational  outcomes  and  reduce  dropout  rates. The  study  provides  empirical  evidence  to  support  advocacy  efforts  for  school  finance  reform.
-        </Markdown>
+        <Markdown id="funding_study_text_md" src="readings/research_study_funding_equity.md" />
       </Annotate>
     </Vertical>
 
   <!-- Additional Disciplines Selection -->
-  <Vertical id="additional_disciplines_checkboxes">
-    <Markdown>
+  <Tabs id="additional_disciplines_checkboxes">
+    <Vertical id="additional_disciplines_checkboxes_t1" title="Selection of Relevant Disciplines">
+      <Markdown>
 **Which discipline(s) do you think are represented in this study?**
-    </Markdown>
-    <CheckboxInput id="additional_disciplines">
-      <Key id="add_health">Health Sciences</Key>
-      <Key id="add_bio">Biology</Key>
-      <Distractor id="add_psych">Psychology</Distractor>
-      <Key id="add_soc">Sociology</Key>
-      <Key id="add_econ">Economics</Key>
-      <Key id="add_polisci">Political Science</Key>
-    </CheckboxInput>
-  </Vertical>
+      </Markdown>
+      <CheckboxInput id="additional_disciplines">
+        <Key id="add_health">Health Sciences</Key>
+        <Key id="add_bio">Biology</Key>
+        <Distractor id="add_psych">Psychology</Distractor>
+        <Key id="add_soc">Sociology</Key>
+        <Key id="add_econ">Economics</Key>
+        <Key id="add_polisci">Political Science</Key>
+      </CheckboxInput>
+    </Vertical>
+    <Vertical id="funding_discipline_t2" title="Funding Study">
+      <Use id="funding_study_text_md2" ref="funding_study_text_md" />
+    </Vertical>
+  </Tabs>
 
     <!-- Funding study explanation input -->
-    <Vertical id="source_4_explanation_input">
-      <Markdown>
+    <Tabs id="source_4_explanation_input">
+      <Vertical id="source_4_explanation_input_t1" title="Explanation of Discipline Clues">
+        <Markdown>
 **How are the clues you picked representative of the disciplines you selected. Can you explain?**
-      </Markdown>
-      <TextArea id="source_4_classification_explanation" placeholder="The terms I highlighted indicate these disciplines because..." />
-    </Vertical>
+        </Markdown>
+        <TextArea id="source_4_classification_explanation" placeholder="The terms I highlighted indicate these disciplines because..." />
+      </Vertical>
+      <Vertical id="funding_study_t2" title="Funding Study">
+        <Use id="funding_study_text_md3" ref="funding_study_text_md" />
+      </Vertical>
+    </Tabs>
 
     <!-- Funding study explanation input -->
-    <Vertical id="source_4_insight_input">
-      <Markdown>
+    <Tabs id="source_4_insight_input">
+      <Vertical id="source_4_insight_input_t1" title="Write Insight Sentence">
+        <Markdown>
 **Write your sentence for the insight of this source.**
-      </Markdown>
-      <TextArea id="source_4_insight_sentence" placeholder="..." />
-    </Vertical>
+        </Markdown>
+        <TextArea id="source_4_insight_sentence" placeholder="..." />
+      </Vertical>
+      <Vertical id="funding_study_insight_t2" title="Funding Study">
+        <Use id="funding_study_text_md4" ref="funding_study_text_md" />
+      </Vertical>
+    </Tabs>
 
 
   <!-- Additional Disciplines Selection -->
-  <Vertical id="source_4_insight_selection_input">
-    <Markdown>
+  <Tabs id="source_4_insight_selection_input">
+    <Vertical id="source_4_insight_selection_input_t1" title="Select Best Insight Sentence">
+      <Markdown>
 **Which of these sentences best describes the insight of this article?**
-    </Markdown>
-    <ChoiceInput id="source4_insight_selection">
-      <Distractor>African American students attending high-need schools are at greatest risk.</Distractor>
-      <Distractor><Ref target="source_4_insight_sentence" /></Distractor>
-      <Key>Inadequate school funding is linked to higher dropout rates among African American students, underscoring the need for funding reforms to improve resources in high-poverty schools.</Key>
-      <Distractor>Students in underfunded schools face increased risks due to fewer academic and support services.</Distractor>
-    </ChoiceInput>
-  </Vertical>
+      </Markdown>
+      <ChoiceInput id="source4_insight_selection">
+        <Distractor>African American students attending high-need schools are at greatest risk.</Distractor>
+        <Distractor><Ref target="source_4_insight_sentence" /></Distractor>
+        <Key>Inadequate school funding is linked to higher dropout rates among African American students, underscoring the need for funding reforms to improve resources in high-poverty schools.</Key>
+        <Distractor>Students in underfunded schools face increased risks due to fewer academic and support services.</Distractor>
+      </ChoiceInput>
+    </Vertical>
+    <Vertical id="funding_study_insight_selection_t2" title="Funding Study">
+      <Use id="funding_study_text_md5" ref="funding_study_text_md" />
+    </Vertical>
+  </Tabs>
 
     <!-- Funding study explanation input -->
-    <Vertical id="source_4_insight_explanation_input">
+  <Tabs id="source_4_insight_explanation_input">
+    <Vertical id="source_4_insight_explanation_input_t1" title="Explain Your Choice">
       <Markdown>
 **You chose the following sentence:**
       </Markdown>
@@ -911,6 +643,10 @@ School  funding  inequities  contribute  to  higher  dropout  rates  among  Afri
       </Markdown>
       <TextArea id="source_4_insight_sentence_explanation" placeholder="..." />
     </Vertical>
-  </Vertical>
+    <Vertical id="funding_study_insight_selection_explanation_t2" title="Funding Study">
+      <Use id="funding_study_text_md6" ref="funding_study_text_md" />
+    </Vertical>
+  </Tabs>
+ </Vertical>
 </Vertical>
 </Cast>

@@ -40,7 +40,7 @@ We've been asked to investigate the causes of high school dropout so Comm360 can
   <Collapsible id="artifact_step2" title="Step 2: Justify using an interdisciplinary approach">
     <Tabs id="bm_step2">
       <Vertical id="bm_step2_criteria" title="Criteria">
-        <Use id="broad_model_display3" ref="broad_model_display" />
+        <Use id="broad_model_display3" ref="repko_criteria" />
       </Vertical>
       <Vertical id="bm_step2_eval" title="My Initial Evaluation">
         <Use id="initial_repko_evaluation2" ref="initial_repko_evaluation" />

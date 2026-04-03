@@ -10,7 +10,7 @@ lang: en-Latn-US
 ---
 -->
 <Cast cast="characters.cast" id="interdisciplinary_sba_demo" title="Interdisciplinary Studies SBA - High School Dropout Analysis" launchable="true">
-<SplitPanel sizes="40, 60">
+<SplitPanel sizes="30, 70">
 
   <!-- Left Panel: Dialogue Conversation -->
   <LeftPane>
@@ -57,12 +57,13 @@ lang: en-Latn-US
 <Navigator id="interdisciplinary_library"
            title="Research Library"
            preview="library_preview"
-           detail="library_detail">
+           detail="library_detail"
+           popout="window">
 - id: focus_group_annotation_info
   title: Focus Group Transcript
   subtitle: 
   description: Transcript of a focus group on high school dropout
-  ref: transcript_md1
+  ref: focus_group
   
 - id: adhd_study
   title: ADHD and High School Dropout
@@ -74,19 +75,25 @@ lang: en-Latn-US
   title: Adolescent Employment and Dropout
   subtitle: Sociology - Staff et al. (2019)
   description: Whether intensive work during high school increases dropout risk
-  ref: reading_employment
+  ref: employment_study_annotation
+
+- id: rural_urban_study
+  title: Rural vs Urban Dropout Rates
+  subtitle: Education - Jordan et al. (2012)
+  description: Comparing dropout rates across geographic settings
+  ref: reading_rural_urban_annotation
+
+- id: funding_study
+  title: School  Funding  Inequity
+  subtitle: Walden University Dissertation - Williams (2023)
+  description: Relationship between funding inequality and african american dropout rates
+  ref: source_4_highlights
 
 - id: marijuana_study
   title: Marijuana Use and Dropout
   subtitle: Health Economics - McCaffrey et al. (2010)
   description: Relationship between substance use and educational outcomes
   ref: reading_marijuana
-
-- id: rural_urban_study
-  title: Rural vs Urban Dropout Rates
-  subtitle: Education - Jordan et al. (2012)
-  description: Comparing dropout rates across geographic settings
-  ref: reading_rural_urban
 
 - id: policy_brief
   title: The Dropout Crisis
@@ -109,11 +116,10 @@ lang: en-Latn-US
 
 <!-- Reading content blocks -->
 <Hidden>
-  <Use id="focus_group_annotation" ref="focus_group" />
-  <Markdown id="reading_adhd" src="readings/research_study_adhd_dropout.md"/>
-  <Markdown id="reading_employment" src="readings/research_study_employment_dropout.md"/>
+  <Annotate id="reading_adhd">
+    <Markdown id="adhd_study_text_md2" src="readings/research_study_adhd_dropout.md" />
+  </Annotate>
   <Markdown id="reading_marijuana" src="readings/research_study_marijuana_dropout.md"/>
-  <Markdown id="reading_rural_urban" src="readings/research_study_rural_urban_dropout.md"/>
   <Markdown id="reading_policy" src="readings/policy_brief_dropout_crisis.md"/>
   <Markdown id="reading_focus_group" src="readings/focus_group_silent_epidemic_excerpts.md"/>
 </Hidden>
