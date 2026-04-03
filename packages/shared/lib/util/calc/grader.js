@@ -123,11 +123,11 @@ function compareWithTolerance(student, instructor, tolerance = DEFAULT_TOLERANCE
   const sAbs = Complex.isComplex(student) ? student.abs() : Math.abs(student);
   const iAbs = Complex.isComplex(instructor) ? instructor.abs() : Math.abs(instructor);
 
+  if (isNaN(sAbs) || isNaN(iAbs)) return false;
+  if (!isFinite(sAbs) || !isFinite(iAbs)) return sAbs === iAbs;
+
   // Relative tolerance: scale by the larger magnitude
   const tol = tolerance * Math.max(sAbs, iAbs);
-
-  if (!isFinite(sAbs) || !isFinite(iAbs)) return sAbs === iAbs;
-  if (isNaN(sAbs) || isNaN(iAbs)) return false;
 
   if (Complex.isComplex(student) || Complex.isComplex(instructor)) {
     const s = Complex.coerce(student);

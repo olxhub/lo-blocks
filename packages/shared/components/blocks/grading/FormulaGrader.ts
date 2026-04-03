@@ -129,10 +129,12 @@ function validateFormulaAttributes(attrs: Record<string, any>): string[] | undef
 
   // --- Cross-validate answer variables vs sample variables ---
   if (sampleSpec && answerVars.size > 0) {
-    const sampleVarSet = new Set(sampleSpec.variables);
+    const caseSensitive = attrs.caseSensitive === 'true' || attrs.caseSensitive === true;
+    const casify = caseSensitive ? (x: string) => x : (x: string) => x.toLowerCase();
+    const sampleVarSet = new Set(sampleSpec.variables.map(casify));
 
     for (const v of answerVars) {
-      if (!sampleVarSet.has(v)) {
+      if (!sampleVarSet.has(casify(v))) {
         errors.push(
           `samples: Your answer uses variable "${v}" but it is not listed in the samples spec. ` +
           `The grader won't know what values to test for it.`
@@ -140,8 +142,9 @@ function validateFormulaAttributes(attrs: Record<string, any>): string[] | undef
       }
     }
 
+    const answerVarsCasified = new Set([...answerVars].map(casify));
     for (const v of sampleSpec.variables) {
-      if (!answerVars.has(v) && !BUILTIN_NAMES.has(v.toLowerCase())) {
+      if (!answerVarsCasified.has(casify(v)) && !BUILTIN_NAMES.has(v.toLowerCase())) {
         errors.push(
           `samples: Variable "${v}" is listed in samples but does not appear in the answer formula. ` +
           `This is allowed but may indicate a typo.`

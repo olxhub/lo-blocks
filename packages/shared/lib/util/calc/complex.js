@@ -61,6 +61,7 @@ export class Complex {
     // 0^anything: handle special cases
     if (this.re === 0 && this.im === 0) {
       if (b.re > 0) return 0;
+      if (b.re === 0 && b.im === 0) return 1;
       return NaN;
     }
     // Use the identity: a^b = exp(b * ln(a))

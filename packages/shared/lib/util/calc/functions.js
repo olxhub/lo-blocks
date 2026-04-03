@@ -134,6 +134,7 @@ function factorial(x) {
   if (Complex.isComplex(x)) throw new TypeError("factorial() only accepts integral values");
   if (!Number.isInteger(x)) throw new TypeError("factorial() only accepts integral values");
   if (x < 0) throw new ValueError("factorial() not defined for negative values");
+  if (x > 170) return Infinity;
   let result = 1;
   for (let i = 2; i <= x; i++) result *= i;
   return result;
