@@ -196,14 +196,17 @@ export default function _MasteryBank(props: RuntimeProps) {
   const problemIds: string[] = (kids as any).problemIds;
   // goal is a positive integer, guaranteed by z.coerce.number().int().positive() in schema
   const goalNum = goal;
-  const initialModeState = problemIds.length > 0 ? orderMode.initial(problemIds.length) : 0;
-
   const [correctStreak, setCorrectStreak] = useFieldState(props, fields.correctStreak, 0);
   const [completed, setCompleted] = useFieldState(props, fields.completed, false);
   const [, setCorrect] = useFieldState(props, fields.correct, null);
-  const [modeState, setModeState] = useFieldState(props, fields.modeState, initialModeState);
+  let [modeState, setModeState] = useFieldState(props, fields.modeState, null);
   const [firstSubmissionResult, setFirstSubmissionResult] = useFieldState(props, fields.firstSubmissionResult, null);
   const [attemptNumber, setAttemptNumber] = useFieldState(props, fields.attemptNumber, 0);
+
+  if (modeState === null) {
+    modeState = problemIds.length > 0 ? orderMode.initial(problemIds.length) : 0;
+    setModeState(modeState);
+  }
 
   // Empty content — content author error, not a parser bug
   if (problemIds.length === 0) {
