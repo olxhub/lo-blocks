@@ -1,0 +1,536 @@
+<!--
+---
+description: Kartpostal yazma etkinliği, döner seçim, LLM geri bildirimi ve düzeltme ile
+category: demo
+lang: tr
+generated:
+  method: machineTranslated
+  source_file: postcard-demo.olx
+  source_version: f3f5ecf
+---
+-->
+
+<Vertical id="postcard_demo" title="Tarihten Kartpostal">
+
+<!-- === Mekanlar === -->
+
+<Markdown id="loc_great_wall" title="Çin Seddi">
+### Çin Seddi
+
+![The Great Wall of China at Jinshanling](https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/The_Great_Wall_of_China_at_Jinshanling-edit.jpg/330px-The_Great_Wall_of_China_at_Jinshanling-edit.jpg)
+
+Çin Seddi, kuzey Çin boyunca 13.000 milden fazla uzanır. MÖ 7. yüzyıldan başlayarak yüzyıllar boyunca inşa edilmiş olup kuzeyden gelen istilaları önlemek amacıyla bir savunma hattı olarak kullanılmıştır. Bugün dünyanın en çok ziyaret edilen tarihi yapılarından biridir.
+
+[Vikipedi'de daha fazla bilgi](https://tr.wikipedia.org/wiki/%C3%87in_Seddi)
+</Markdown>
+
+<Markdown id="loc_machu_picchu" title="Machu Picchu">
+### Machu Picchu
+
+![Machu Picchu](https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Machu_Picchu%2C_2023_%28012%29.jpg/330px-Machu_Picchu%2C_2023_%28012%29.jpg)
+
+Bu 15. yüzyıl İnka kalesi, Peru'daki And Dağları'nda, Kutsal Vadi'nin üzerinde yükselen bir noktada bulunur. MS 1450 civarında inşa edilmiş, İspanyol fethi sırasında terk edilmiş ve 1911 yılına kadar dış dünya tarafından büyük ölçüde bilinmeden kalmıştır.
+
+[Vikipedi'de daha fazla bilgi](https://tr.wikipedia.org/wiki/Machu_Picchu)
+</Markdown>
+
+<Markdown id="loc_pyramids" title="Giza Piramitleri">
+### Giza Piramitleri
+
+![Pyramids of the Giza Necropolis](https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Pyramids_of_the_Giza_Necropolis.jpg/330px-Pyramids_of_the_Giza_Necropolis.jpg)
+
+MÖ 2570 civarında Mısır'ın Kahire yakınlarında inşa edilen Büyük Piramit, Antik Dünyanın Yedi Harikası'nın en eskisi ve büyük ölçüde ayakta kalan tek yapısıdır. Kompleks, üç piramit ve Büyük Sfenks'i içerir.
+
+[Vikipedi'de daha fazla bilgi](https://tr.wikipedia.org/wiki/Giza_piramitleri)
+</Markdown>
+
+<Markdown id="loc_colosseum" title="Kolezyum">
+### Kolezyum
+
+![The Colosseum in Rome](https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/330px-Colosseo_2020.jpg)
+
+Roma, İtalya'daki Kolezyum, şimdiye kadar inşa edilmiş en büyük antik amfitiyatrodur. MS 80 yılında tamamlanmış olup gladyatör dövüşleri, hayvan avları ve halka açık gösteriler için 50.000 ile 80.000 arasında seyirci alabiliyordu.
+
+[Vikipedi'de daha fazla bilgi](https://tr.wikipedia.org/wiki/Kolezyum)
+</Markdown>
+
+<Markdown id="loc_taj_mahal" title="Tac Mahal">
+### Tac Mahal
+
+![The Taj Mahal](https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Taj_Mahal_%28Edited%29.jpeg/330px-Taj_Mahal_%28Edited%29.jpeg)
+
+Hindistan'ın Agra şehrindeki Tac Mahal, Babür İmparatoru Şah Cihan tarafından eşi Mümtaz Mahal'ın anısına 1632-1653 yılları arasında yaptırılan beyaz mermer bir türbedir. Babür mimarisinin en güzel örneklerinden biri olarak kabul edilir.
+
+[Vikipedi'de daha fazla bilgi](https://tr.wikipedia.org/wiki/Tac_Mahal)
+</Markdown>
+
+<Markdown id="loc_altamira" title="Altamira Mağarası">
+### Altamira Mağarası
+
+![Bison painting in the Cave of Altamira](https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/9_Bisonte_Magdaleniense_pol%C3%ADcromo.jpg/330px-9_Bisonte_Magdaleniense_pol%C3%ADcromo.jpg)
+
+Kuzey İspanya'da Santander yakınlarındaki Altamira Mağarası, yaklaşık 15.000 yıl öncesine tarihlenen dünyanın en güzel tarih öncesi sanat eserlerinden bazılarını barındırır. Mağara tavanındaki bizon, at ve el izlerinin canlı resimleri o kadar dikkat çekiciydi ki, 1879'da ilk keşfedildiğinde bilim insanları eski insanların bunları yaratmış olabileceğine inanmayı reddettiler.
+
+[Vikipedi'de daha fazla bilgi](https://tr.wikipedia.org/wiki/Altamira_ma%C4%9Faras%C4%B1)
+</Markdown>
+
+<Markdown id="loc_italica" title="Italica">
+### Italica
+
+![Amphitheatre at Italica](https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Amphitheatre_Italica%2C_Spain.jpg/330px-Amphitheatre_Italica%2C_Spain.jpg)
+
+Modern Sevilla'nın hemen dışındaki Italica, MÖ 206 yılında Romalı general Scipio Africanus tarafından İlipa Muharebesi'nde Hannibal'ın kardeşi Hasdrubal'ı yenmesinin ardından gazilerini yerleştirmek amacıyla kurulmuştur. Roma Hispanyası'nın büyük şehirlerinden biri haline gelmiş ve İmparator Traianus ile Hadrianus'un doğum yeri olmuştur. Roma İmparatorluğu'nun en büyük amfitiyatrolarından biri olan devasa amfitiyatrosu bugün hâlâ ayaktadır.
+
+[Vikipedi'de daha fazla bilgi](https://tr.wikipedia.org/wiki/Italica)
+</Markdown>
+
+<Markdown id="loc_mezquita" title="Kurtuba Cami-Katedrali">
+### Kurtuba Cami-Katedrali
+
+![Interior arches of the Mezquita](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Mezquita_de_C%C3%B3rdoba_desde_el_aire_%28C%C3%B3rdoba%2C_Espa%C3%B1a%29.jpg/330px-Mezquita_de_C%C3%B3rdoba_desde_el_aire_%28C%C3%B3rdoba%2C_Espa%C3%B1a%29.jpg)
+
+Kurtuba Mezquita'sı MS 784 yılında bir cami olarak başlamış ve batı İslam dünyasının en görkemli camisi haline gelmiştir. 850'den fazla sütundan oluşan ormanı ve kırmızı-beyaz çizgili kemerleri, mimarideki en ikonik iç mekanlardan birini oluşturur. 1236'daki Hristiyan Reconquista'nın ardından içine bir katedral inşa edilmiş ve dünyada eşi benzeri olmayan bir yapı ortaya çıkmıştır.
+
+[Vikipedi'de daha fazla bilgi](https://tr.wikipedia.org/wiki/Kurtuba_Camii)
+</Markdown>
+
+<Markdown id="loc_alhambra" title="Elhamra">
+### Elhamra
+
+![The Alhambra from the Albaicín, Granada](https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Dawn_Charles_V_Palace_Alhambra_Granada_Andalusia_Spain.jpg/330px-Dawn_Charles_V_Palace_Alhambra_Granada_Andalusia_Spain.jpg)
+
+Elhamra, Granada'daki bir saray ve kale kompleksidir; ağırlıklı olarak 13. ve 14. yüzyıllar arasında Nasri Hanedanı tarafından inşa edilmiştir -- İspanya'daki son Müslüman hükümdarlar. Karmaşık oyma alçı süslemeleri, çini mozaikleri ve huzurlu avluları, Avrupa'daki İslam sanatının zirvesini temsil eder. 1492'de Ferdinand ve İsabella'ya teslim edilerek İber Yarımadası'ndaki yaklaşık 800 yıllık Müslüman egemenliği sona ermiştir.
+
+[Vikipedi'de daha fazla bilgi](https://tr.wikipedia.org/wiki/Elhamra)
+</Markdown>
+
+<Markdown id="loc_seville_cathedral" title="Sevilla Katedrali">
+### Sevilla Katedrali
+
+![Seville Cathedral and Giralda tower](https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Sevilla_Cathedral_-_Southeast.jpg/330px-Sevilla_Cathedral_-_Southeast.jpg)
+
+Sevilla Katedrali, 1402-1506 yılları arasında eski bir Muvahhid camisinin yerine inşa edilmiş, dünyanın en büyük Gotik katedralidir. İnşaatçıların "Öyle güzel ve öyle büyük bir kilise yapalım ki, onu görenler deli olduğumuzu düşünsün" dedikleri rivayet edilir. Kristof Kolomb'un mezarını barındırır ve caminin orijinal minaresinden dönüştürülmüş çan kulesi Giralda'nın yanında yer alır. İspanya'nın İmparatorluk Çağı'nda Sevilla, Amerika kıtasıyla yapılan tüm ticareti kontrol ediyordu.
+
+[Vikipedi'de daha fazla bilgi](https://tr.wikipedia.org/wiki/Sevilla_Katedrali)
+</Markdown>
+
+<Markdown id="loc_hagia_sophia" title="Ayasofya">
+### Ayasofya
+
+![Hagia Sophia](https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Hagia_Sophia_%28228968325%29.jpeg/330px-Hagia_Sophia_%28228968325%29.jpeg)
+
+MS 537 yılında Bizans İmparatoru I. Justinianus tarafından yaptırılan İstanbul'daki Ayasofya, yaklaşık bin yıl boyunca dünyanın en büyük katedrali olmuştur. 1453'teki Osmanlı fethinden sonra camiye dönüştürülmüş, Hristiyan mozaikleri sıvayla kapatılmış ve siluetine minareler eklenmiştir. 55 metre yüksekliğindeki ve bir pencere halkası üzerinde süzülüyor gibi görünen devasa kubbesi, yüzyıllar boyunca mimariyi etkileyen bir mühendislik harikasıydı.
+
+[Vikipedi'de daha fazla bilgi](https://tr.wikipedia.org/wiki/Ayasofya)
+</Markdown>
+
+<Markdown id="loc_petra" title="Petra">
+### Petra
+
+![Ad Deir, Petra](https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Al_Deir_Petra.JPG/330px-Al_Deir_Petra.JPG)
+
+Petra, güney Ürdün'deki kırmızı kumtaşı kayalıklarına oyulmuş antik bir Nebati şehridir. Tütsü ticaret yolları üzerinde önemli bir merkez olan şehir, MÖ 4. yüzyıldan Romalıların MS 106'da kontrolü ele geçirmesine kadar gelişmiştir. Bir kilometreden uzun dar bir kanyon olan Sık'tan geçen yaklaşım, Hazine (El-Hazne) binasını ortaya çıkarır -- tüm seyahat dünyasının en dramatik anlarından biri. Yüzyıllarca Batı dünyası tarafından kaybedilmiş olan şehir, 1812'de İsviçreli bir kaşif tarafından yeniden keşfedilmiştir.
+
+[Vikipedi'de daha fazla bilgi](https://tr.wikipedia.org/wiki/Petra)
+</Markdown>
+
+<Markdown id="loc_ziggurat_ur" title="Ur Zigguratı">
+### Ur Zigguratı
+
+![The Ziggurat of Ur](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Ziggarat_of_Ur_001.jpg/330px-Ziggarat_of_Ur_001.jpg)
+
+Ur Zigguratı, güney Irak'ın düz çölünden yükselir; MÖ 2100 civarında Kral Ur-Nammu tarafından Sümer ay tanrısı Nanna'ya adanmış bir tapınak olarak inşa edilmiştir. Antik Mezopotamya'dan -- yazının, hukuk kurallarının ve şehirlerin ilk ortaya çıktığı uygarlığın beşiği -- günümüze ulaşan en iyi korunmuş yapılardan biridir. 1980'lerde kısmen restore edilmiş olup, dört bin yıl önce dünyanın en büyük ve en zengin şehirlerinden biri olan Ur harabelerinin yakınında yer alır.
+
+[Vikipedi'de daha fazla bilgi](https://tr.wikipedia.org/wiki/Ur_Zigurat%C4%B1)
+</Markdown>
+
+<Markdown id="loc_lake_turkana" title="Turkana Gölü">
+### Turkana Gölü
+
+![Lake Turkana](https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Lake_turkana.jpg/330px-Lake_turkana.jpg)
+
+Kuzey Kenya'daki Turkana Gölü, çarpıcı mavi-yeşil rengiyle Yeşim Denizi olarak bilinen, dünyanın en büyük kalıcı çöl gölüdür. Manzara volkanik ve rüzgarla yıpranmıştır -- lav tarlaları, çatlamış toprak ve başka bir gezegene aitmiş gibi görünen sular. Gölün Koobi Fora'daki doğu kıyısı, keşfedilen en zengin insanımsı fosil alanlarından biridir; buradaki Turkana Çocuğu gibi keşifler, insanlık evrimini anlayışımızı yeniden şekillendirmiştir.
+
+[Vikipedi'de daha fazla bilgi](https://tr.wikipedia.org/wiki/Turkana_G%C3%B6l%C3%BC)
+</Markdown>
+
+<Markdown id="loc_qin_shi_huang" title="Çin Şi Huang'ın Mezarı">
+### Çin Şi Huang'ın Mezarı
+
+![The Terracotta Army](https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/51714-Terracota-Army.jpg/330px-51714-Terracota-Army.jpg)
+
+Çin Şi Huang, MÖ 221'de Çin'i birleştirmiş, yazıyı, ağırlıkları ve para birimini standartlaştırmış -- ve kendinden önceki yüz düşünce okulunun kitaplarının yakılmasını emretmiştir. Xi'an yakınlarındaki türbesi 700.000 işçi tarafından inşa edilmiştir. 8.000'den fazla tek tek oyulmuş pişmiş toprak savaşçı dış çukurları korumaktadır, ancak merkezi mezar hiçbir zaman açılmamıştır. Antik metinler, içeride imparatorluğunun bir maketi boyunca akan cıva nehirlerini tarif eder.
+
+[Vikipedi'de daha fazla bilgi](https://tr.wikipedia.org/wiki/%C3%87in_%C5%9Ei_Huang)
+</Markdown>
+
+<Markdown id="loc_forbidden_city" title="Yasak Şehir">
+### Yasak Şehir
+
+![The Forbidden City viewed from Coal Hill](https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/The_Forbidden_City_-_View_from_Coal_Hill.jpg/330px-The_Forbidden_City_-_View_from_Coal_Hill.jpg)
+
+Pekin'deki Yasak Şehir, 1420'den 1912'ye kadar yaklaşık 500 yıl boyunca imparatorluk sarayı olarak hizmet vermiştir. 8 metrelik surlarının ve 52 metrelik hendeğinin arkasında, Ming ve Çing hanedanlarından 24 imparator yaşamış, yönetmiş ve 980 bina ile yaklaşık 9.000 odadan oluşan bir komplekste hüküm sürmüştür. Sıradan insanların girmesi yasaktı -- adı da buradan gelir. Bugün her yıl milyonlarca ziyaretçi ağırlayan bir müzedir.
+
+[Vikipedi'de daha fazla bilgi](https://tr.wikipedia.org/wiki/Yasak_%C5%9Eehir)
+</Markdown>
+
+<Markdown id="loc_west_lake" title="Batı Gölü">
+### Batı Gölü
+
+![West Lake, Hangzhou](https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/West_Lake%2C_Hangzhou_2025.jpg/330px-West_Lake%2C_Hangzhou_2025.jpg)
+
+Hangzhou'daki Batı Gölü, bin yılı aşkın süredir Çinli şairlere, ressamlara ve bahçe tasarımcılarına ilham kaynağı olmuştur. Sisli tepeler, pagodalar ve söğüt ağaçlı kaldırımlarla çevrili olan göl, insanlık ile doğa arasındaki uyumun bir örneği olarak kutlanmıştır. Gölün güzelliği, Doğu Asya genelinde bahçe tasarımını şekillendirmiştir -- Suzhou, Kyoto ve Seul bahçeleri hep bu noktadaki etkiye dayanır.
+
+[Vikipedi'de daha fazla bilgi](https://tr.wikipedia.org/wiki/Bat%C4%B1_G%C3%B6l%C3%BC_(Hangzhou))
+</Markdown>
+
+<!-- === Karakterler === -->
+
+<Markdown id="persona_tourist" title="Turist">
+### Turist
+
+Bu tarihi yeri ilk kez ziyaret ediyor. Her şey yeni ve heyecan verici. Gördüklerini, duyduklarını, kokladıklarını ve hissettiklerini evdeki bir arkadaşıyla paylaşmak istiyor.
+</Markdown>
+
+<Markdown id="persona_local_child" title="Yöre Çocuğu">
+### Yöre Çocuğu
+
+Bu tarihi yapının yakınında büyümüş. Günlük hayatın bir parçası -- okul yolunda görünen, aile hikayelerine işlenmiş, etrafı turistlerle çevrili. Bir yer sadece orada *olduğunda* farklı bir anlam taşır.
+</Markdown>
+
+<Markdown id="persona_archaeologist" title="Arkeolog">
+### Arkeolog
+
+Bu alanı yıllardır inceleyen bir araştırmacı. Çoğu ziyaretçinin fark etmeden geçtiği tarihi ayrıntıları, yapım tekniklerini ve kültürel önemi fark eder.
+</Markdown>
+
+<Markdown id="persona_merchant" title="Tüccar">
+### Tüccar (Tarihi)
+
+Yüzyıllar öncesinden bir ticaret yolundan geçen bir tüccar. Alanı en parlak döneminde, hareketli, insanların alıp sattığı canlı haliyle görüyor.
+</Markdown>
+
+<Markdown id="persona_restorer" title="Restoratör">
+### Restoratör
+
+Bu alanın yıkılmasını önleyen restorasyon ekibinde çalışıyor. Her çatlağı, her yamayı, yağmurun sızdığı her noktayı biliyor. Gününü iskelede ya da çoğu insanın hiç görmediği aletlerle depo odalarında geçiriyor. Bu yeri kelimenin tam anlamıyla içeriden görüyor.
+</Markdown>
+
+<Markdown id="persona_guard" title="Gece Bekçisi">
+### Gece Bekçisi
+
+Gece vardiyasında çalışıyor. Son ziyaretçiler ayrıldıktan ve ışıklar söndükten sonra bu yer ona ait oluyor. Sesler geceleri farklı. Gölgeler hareket ediyor. Binayı görme kadar dokunarak da tanıyor.
+</Markdown>
+
+<Markdown id="persona_soldier" title="Asker">
+### Asker (Tarihi)
+
+Burada görevlendirilmiş -- bir duvarı, bir kapıyı veya bir sınırı koruyor. Bu görkemli yer bir iş yeri ve çoğu gün sıkıcı. Evi, yemeği, geride kalan insanları düşünüyor. Dünyanın bir harikası sadece işe gittiği yer.
+</Markdown>
+
+<Markdown id="persona_pilgrim" title="Hacı">
+### Hacı (Tarihi)
+
+Buraya ulaşmak için haftalarca ya da aylarca yürümüş. Burası bir turistik yer değil -- yolculuğun amacı. Şifa, bağışlanma, bilgi veya ticaret arıyor olabilir. Uzun bir yolculuğun ardından yeni gelmiş.
+</Markdown>
+
+<Markdown id="persona_spy" title="Casus">
+### Casus (Tarihi)
+
+Söylediği kişi değil. Bu yerden bilgi toplayarak geçiyor -- asker hareketleri, ticaret yolları, siyasi ittifaklar veya yapım teknikleri hakkında. Her şeyin çifte anlamı var. Kartpostal masum görünmeli ama gerçekte neye dikkat ettiğine dair ipuçları vermeli.
+</Markdown>
+
+<Markdown id="persona_artist" title="Sanatçı">
+### Sanatçı
+
+Buraya eskiz yapmaya veya resim yapmaya gelmiş. Bu yeri ışık, gölge, çizgi ve renk açısından görüyor. Diğer ziyaretçilerin fark etmeden geçtiği şeyleri fark ediyor -- taşın öğleden sonra güneşini yakalayış biçimini, bir kemerin geometrisini, aşınmış bir basamağın dokusunu.
+</Markdown>
+
+<!-- === Etkinlik === -->
+
+<Sequential id="postcard_activity" title="Tarihten Kartpostal" launchable="true">
+
+  <!-- Adım 1: Mekan seçimi -->
+  <Vertical id="postcard_step_1" title="Mekanınızı Seçin">
+    <Markdown id="postcard_intro">
+## Tarihten Kartpostal
+
+Ünlü bir tarihi yapıda bulunan birinin bakış açısından kısa bir kartpostal yazacaksınız. İlk olarak mekanınızı seçin.
+    </Markdown>
+    <Carousel id="postcard_location" wrap="true" randomize="true">
+      loc_great_wall, loc_machu_picchu, loc_pyramids, loc_colosseum, loc_taj_mahal, loc_altamira, loc_italica, loc_mezquita, loc_alhambra, loc_seville_cathedral, loc_hagia_sophia, loc_petra, loc_ziggurat_ur, loc_lake_turkana, loc_qin_shi_huang, loc_forbidden_city, loc_west_lake
+    </Carousel>
+  </Vertical>
+
+  <!-- Adım 2: Mekanınızı araştırın -->
+  <Vertical id="postcard_step_2" title="Araştırma Notları">
+    <Markdown id="postcard_research_intro">
+## Mekanınızı Araştırın
+
+**{{@postcard_location.title}}** seçtiniz. Göreviniz, orada gerçekten *olmanın* nasıl bir his olacağını anlamak. Sadece Vikipedi değil, seyahat blogları, fotoğraf galerileri veya videolar aramayı deneyin.
+
+Şunlar hakkında notlar alın:
+- Neler **göreceğiniz** -- manzara, renkler, ışık, kalabalıklar veya boşluk
+- Neler **duyacağınız, koklayacağınız veya hissedeceğiniz** -- rüzgar, sıcak, toz, yankılar, sessizlik
+- **Yakından nasıl göründüğü** -- ufalanan taş, dik basamaklar, dar patikalar, geniş manzaralar
+- **Sizi şaşırtan** herhangi bir şey -- araştırmadan tahmin edemeyeceğiniz bir şey
+    </Markdown>
+    <Collapsible id="postcard_research_example" title="Bir örnek görün (Eyfel Kulesi)">
+      <Markdown id="postcard_research_example_text">
+**Eyfel Kulesi -- araştırma notları**
+
+*Seyahat bloglarından ve fotoğraflardan:*
+* Tabanı yakından KOCAMAN -- demir ayaklar üzerinizde yükseliyor ve perçinleri görebiliyorsunuz
+* Güneşte uzun kuyruklar, insanlar kendilerini serinletiyor, satıcılar soğuk su satıyor
+* Merdivenler metal ızgaradan -- aşağıyı dümdüz görebiliyorsunuz, bu korkutucu
+* Çıktıkça rüzgar artıyor; tüm yapı hafifçe uğulduyor ve titreşiyor
+* Tepede Paris küçücük ve düz görünüyor -- kilometrelerce ötesini görebiliyorsunuz
+* Geceleri 20.000 ampul her saat 5 dakika boyunca ışıl ışıl yanıp sönüyor -- aşağıdaki çimlerde oturanlar her seferinde alkışlıyor
+* Aşağıdaki park krep ve sigara dumanı kokuyor
+* Demir korkuluklara kazınmış grafitiler -- onlarca yıl öncesinden isimler ve tarihler
+      </Markdown>
+    </Collapsible>
+    <TextArea id="postcard_research_notes" rows="6" placeholder="İlginç bilgiler, ayrıntılar, dikkatimi çeken şeyler..." />
+  </Vertical>
+
+  <!-- Adım 3: Karakter seçimi -->
+  <Vertical id="postcard_step_3" title="Karakterinizi Seçin">
+    <Markdown id="postcard_persona_header">
+## Bir Karakter Seçin
+
+**{{@postcard_location.title}}**'da kim olarak yazacaksınız?
+    </Markdown>
+    <Carousel id="postcard_persona" wrap="true" randomize="true">
+      persona_tourist, persona_local_child, persona_archaeologist, persona_merchant, persona_restorer, persona_guard, persona_soldier, persona_pilgrim, persona_spy, persona_artist
+    </Carousel>
+  </Vertical>
+
+  <!-- Adım 4: Karakterinizi geliştirin -->
+  <Vertical id="postcard_step_4" title="Karakterinizi Geliştirin">
+    <Markdown id="postcard_persona_dev_intro">
+## Karakterinizi Geliştirin
+
+**{{@postcard_location.title}}**'da bir **{{@postcard_persona.title}}** olarak yazıyorsunuz. Gerçek bir insan yaratın. Ona bir geçmiş hikayesi verin:
+- Adı ne? Nereden geliyor?
+- Arkadaşları ve ailesi kimler? Bu kartpostalı kime yazıyor?
+- Günlük hayatında neler yapıyor?
+- Başkalarının gözünden kaçabilecek neleri fark eder veya deneyimler?
+    </Markdown>
+    <Collapsible id="postcard_persona_example" title="Bir örnek görün (Eyfel Kulesi seyyar satıcısı)">
+      <Markdown id="postcard_persona_example_text">
+**Eyfel Kulesi yakınındaki köşede seyyar satıcı**
+
+* Kulenin ucuz replikalarını, anahtarlıkları ve küçük bayrakları satıyor
+* Zaman zaman polis tarafından kovalanıyor -- her şeyi toplayıp kaçmak zorunda
+* Yıllar içinde yankesicilik ve izinsiz satış nedeniyle birkaç ay hapis yattı
+* Bazen yakınlardaki sokakta dilenen iki çocuğu var
+* Diğer ebeveynin nerede olduğu bilinmiyor
+* Bazen satıcıların bölgenin görünümünü bozduğunu düşünen yerel halk tarafından taciz ediliyor
+* Kulenin üç blok çevresindeki her kestirme yolu ve saklanma noktasını biliyor
+* Kulenin binlerce kez aydınlanmasını izlemiş -- hâlâ güzel olduğunu düşünüyor
+* Beş dilden sadece satış yapacak kadar konuşabiliyor
+* Bir gün Paris'e gelmeyi hayal eden memleketteki kuzenine yazıyor
+      </Markdown>
+    </Collapsible>
+    <TextArea id="postcard_persona_notes" rows="6" placeholder="Bu kişi kim? Hayatı nasıl? Neyi önemsiyor?" />
+  </Vertical>
+
+  <!-- Adım 5: Kartpostalı yazın -->
+  <Vertical id="postcard_step_5" title="Kartpostalınızı Yazın">
+    <Markdown id="postcard_write_instructions">
+## Kartpostalınızı Yazın
+
+**{{@postcard_location.title}}**'da bir **{{@postcard_persona.title}}** olarak yazıyorsunuz.
+
+Bu kişinin bakış açısından kısa bir kartpostal (4-8 cümle) yazın. Gerçekçi hissettirmek için araştırma ve karakter notlarınızı kullanın. Şunları ekleyin:
+- Etrafınızda gördükleriniz
+- Burada olmakla ilgili hisleriniz
+- Sadece sizin rolünüzdeki birinin fark edeceği bir ayrıntı
+    </Markdown>
+    <Collapsible id="postcard_my_notes" title="Notlarım">
+      <Markdown id="postcard_my_notes_research">
+### Araştırma Notları
+
+{{text2markdown(@postcard_research_notes.value)}}
+
+---
+
+### Karakter Notları
+
+{{text2markdown(@postcard_persona_notes.value)}}
+      </Markdown>
+    </Collapsible>
+    <TextArea id="postcard_draft" rows="8" placeholder="Sevgili arkadaşım, ..." />
+    <Markdown id="postcard_draft_wordcount">{{wordcount(@postcard_draft.value) &lt; 20 ? "Geri bildirim alabilmek için yeterince yazdığınızda gönder düğmesi aktif olacaktır." : "Yazmaya devam edin..."}}</Markdown>
+    <ActionButton id="postcard_submit" label="Geri Bildirim İçin Gönder" dependsOn="wordcount(@postcard_draft.value) >= 20 &amp;&amp; !@postcard_draft.readonly">
+      <CopyFieldAction target="postcard_draft" output="postcard_final" />
+      <LLMAction id="postcard_llm" target="postcard_feedback">
+        Bir ortaokul öğrencisine kısa bir kartpostal hakkında geri bildirim veriyorsunuz. Sıcak, somut ve kısa olun. Metnini yeniden YAZMAYIN ve belirli cümleler önermeyin. Sadece sorular sorun.
+
+        Öğrenci **<Ref target="postcard_location" field="title" />**'da bir **<Ref target="postcard_persona" field="title" />** olarak yazıyor.
+
+        Mekan hakkındaki araştırma notları:
+        <Ref target="postcard_research_notes" />
+
+        Karakter geliştirme notları:
+        <Ref target="postcard_persona_notes" />
+
+        Öğrencinin taslağını, araştırma ve karakter notlarıyla birlikte dikkatlice okuyun. Ardından BU öğrencinin BU kartpostalı iyileştirmesine en çok yardımcı olacak 2-3 soru sorun. Taslağı için en önemli olan ne varsa onu seçin -- bu şunlar olabilir:
+
+        - Duyusal ayrıntı (Taşın ellerinizin altındaki hissi nasıldı?)
+        - Duygu veya tepki (İlk gördüğünüzde ne hissettiniz?)
+        - Anlatı (Bekçi sizi fark ettiğinde nereye koştunuz?)
+        - Ses ve karakter (Karakteriniz bir turistin fark etmeyeceği neyi fark ederdi?)
+        - Okuyucu (Bu kartpostalı kim okuyor -- ne hakkında duymak isterlerdi?)
+        - Yapı (Harika bir girişiniz var -- nasıl bitirmek istersiniz?)
+        - Araştırmanın kullanımı (Notlarında dik arazi geçiyor -- karakter buna nasıl tepki verebilir?)
+        - Üslup (Bu anı yavaşlatıp okuyucunun görmesini sağlayabilir misiniz?)
+        - Kelime hazinesi ("gitti" yazmışsınız -- karakterinizin nasıl hareket ettiğini anlatan daha canlı bir kelime var mı?)
+        - Uzunluk ve odak (Burada iki cümleye genişletmeye değer bir ayrıntı var mı?)
+
+        Yukarıdaki liste sadece kapsamı göstermek içindir. Hepsini ele almayın -- bu öğrencinin taslağında en büyük farkı yaratacak 2-3 kısa soruyu seçin. Her soruyu kısa tutun -- tek cümle ideal. Her soruyu yazdıklarına ve araştırdıklarına özel yapın. Örnek cümleler YAZMAYIN veya belirli kelimeler önermeyin. Sadece öğrencinin bir veya iki cümle ekleyerek ya da yeniden düzenleyerek cevaplayabileceği sorular sorun.
+
+        Geri bildirimi en fazla üç kısa bölüm halinde verin:
+
+        **Araştırma** (sadece gerekirse)
+        Öğrencinin araştırma notları yetersiz, boş veya çoğunlukla ansiklopedik bilgiyse, başka neler arayacağını ve nerede arayacağını kısaca önerin. Mekanlarına özel olun -- örneğin Çin Seddi için yürüyüş fotoğraflarına, ufalanan taşın yakın çekimlerine veya seyahat blogu arazi tariflerine bakmalarını önerebilirsiniz. Kolezyum için alttaki tünellerin nasıl göründüğünü aramalarını önerebilirsiniz. Onları kartpostallarını daha canlı kılacak duyusal, deneyimsel ayrıntılara yönlendirin. Bunu 1-2 cümle ile sınırlı tutun. Araştırma notları zaten iyi duyusal ve deneyimsel ayrıntılar içeriyorsa bu bölümü tamamen atlayın.
+
+        **Düşünülecek sorular** (en fazla 2-3 madde)
+
+        **Hızlı Düzeltmeler** (sadece gerekirse)
+        Dilbilgisi veya yazım sorunlarını kısaca belirtin. Yazım temizse bu bölümü tamamen atlayın.
+
+        Öğrencinin kartpostalı:
+        <Ref target="postcard_draft" />
+      </LLMAction>
+      <SetFieldAction target="postcard_draft" field="readonly" value="true" />
+      <SetFieldAction target="postcard_location" field="readonly" value="true" />
+      <SetFieldAction target="postcard_persona" field="readonly" value="true" />
+    </ActionButton>
+    <LLMFeedback id="postcard_feedback" />
+  </Vertical>
+
+  <!-- Adım 6: Gözden geçirme -->
+  <Vertical id="postcard_step_6" title="Kartpostalınızı Gözden Geçirin">
+    <Markdown id="postcard_revise_instructions">
+## Kartpostalınızı Gözden Geçirin
+
+Aşağıdaki geri bildirimi inceleyin ve son halini yazın.
+
+### İlk Taslağınız
+    </Markdown>
+    <Use ref="postcard_draft" />
+    <Markdown id="postcard_feedback_header">
+### Geri Bildirim
+    </Markdown>
+    <Use ref="postcard_feedback" />
+    <Markdown id="postcard_final_header">
+### Gözden Geçirilmiş Kartpostalınız
+    </Markdown>
+    <TextArea id="postcard_final" rows="8" placeholder="Sevgili arkadaşım, ..." />
+    <ActionButton id="postcard_final_submit" label="Son Taslağı Gönder" dependsOn="wordcount(@postcard_final.value) >= 20 &amp;&amp; !@postcard_final.readonly">
+      <SetFieldAction target="postcard_final" field="readonly" value="true" />
+      <LLMAction id="llm_formal" target="voice_formal">
+        Bir ortaokul öğrencisi aşağıdaki kartpostalı sınıf etkinliği olarak yazmıştır. Kartpostallarının farklı bir okuyucu kitlesine uyarlanmış halini gösteriyoruz. Resmi bir okuyucu kitlesi için yeniden yazın -- sanki resmi bir yazışma veya bir devlet büyüğüne mektupmış gibi. Selamlamayı, kapanışı, kelime hazinesini ve cümle yapısını yeni okuyucuya uygun şekilde değiştirin.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_academic" target="voice_academic">
+        Bir ortaokul öğrencisi aşağıdaki kartpostalı sınıf etkinliği olarak yazmıştır. Kartpostallarının farklı bir okuyucu kitlesine uyarlanmış halini gösteriyoruz. Akademik bir okuyucu kitlesi için yeniden yazın -- sanki araştırmacılarla paylaşılıyormuş gibi. Tarih veya kültürel çalışmalar alanında uzmanlığa sahip okuyuculara uygun, kesin ve analitik bir dil kullanın.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_child" target="voice_child">
+        Bir ortaokul öğrencisi aşağıdaki kartpostalı sınıf etkinliği olarak yazmıştır. Kartpostallarının farklı bir okuyucu kitlesine uyarlanmış halini gösteriyoruz. Küçük bir çocuğa (6-7 yaş) gönderiliyormuş gibi yeniden yazın, böylece anlayıp okumaktan keyif alsın. Gönderen aynı kişi olsun, ama artık küçük bir akrabasına yazıyor. Basit kelimeler, kısa cümleler kullanın ve büyük fikirleri küçük bir çocuğun heyecanlı bulacağı şekilde açıklayın.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_literary" target="voice_literary">
+        Bir ortaokul öğrencisi aşağıdaki kartpostalı sınıf etkinliği olarak yazmıştır. Kartpostallarının farklı bir okuyucu kitlesine uyarlanmış halini gösteriyoruz. Edebi düzyazıyı takdir eden okuyucular için bir yazarın seyahat bloguna koyacağı gibi yeniden yazın. Canlı imgeler, duyusal ayrıntılar ve çeşitli cümle ritimleri kullanın.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_business" target="voice_business">
+        Bir ortaokul öğrencisi aşağıdaki kartpostalı sınıf etkinliği olarak yazmıştır. Kartpostallarının farklı bir okuyucu kitlesine uyarlanmış halini gösteriyoruz. İş arkadaşlarına gönderiliyormuş gibi yeniden yazın -- kısa bir seyahat güncellemesi veya profesyonel gezi notu olarak. Temel gözlemlere, pratik çıkarımlara ve profesyonel bir tona odaklanın.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <!-- Adım 7: Farklı sesleri keşfedin -->
+  <Vertical id="postcard_step_7" title="Kartpostalınız Farklı Üsluplarda">
+    <Markdown id="postcard_voices_intro">
+## Farklı Okuyucu Kitleleri İçin Yazmak
+
+Daha önce *kimin* yazdığını seçtiniz -- bir turist, bir çocuk, bir arkeolog. Bu gönderenin bakış açısıyla ilgiliydi.
+
+Şimdi *alıcıyı* düşünelim. Aynı mesaj, *kime* yazdığınıza göre değişir. Kartpostalınızın küçük bir çocuk, akademik okuyucular veya iş arkadaşları için uyarlandığında nasıl okunduğunu karşılaştırın. İçerik aynı kalır, ancak kelime hazinesi, cümle yapısı ve ton, okuyucuya ulaşmak için değişir.
+    </Markdown>
+    <Use ref="postcard_final" />
+    <Tabs id="postcard_voices">
+      <LLMFeedback id="voice_formal" title="Resmi" />
+      <LLMFeedback id="voice_academic" title="Akademik" />
+      <LLMFeedback id="voice_child" title="Çocuk" />
+      <LLMFeedback id="voice_literary" title="Edebi" />
+      <LLMFeedback id="voice_business" title="İş" />
+    </Tabs>
+  </Vertical>
+
+  <!-- Adım 8: Dışa aktarma -->
+  <Vertical id="postcard_step_8" title="Çalışmanızı Dışa Aktarın">
+    <Markdown id="postcard_export_intro">
+## Kartpostalınızı Dışa Aktarın
+
+Aşağıdaki çalışmanızı gözden geçirin, ardından PDF olarak dışa aktarın.
+    </Markdown>
+    <ActionButton id="postcard_export" label="PDF Olarak Dışa Aktar">
+      <PrintAction id="postcard_print" />
+    </ActionButton>
+
+    <!-- Sayfa 1: Seçimler + son taslak -->
+    <Markdown id="export_page1">
+### Nerede ve Kim
+
+**Mekan:** {{@postcard_location.title}}
+
+**Karakter:** {{@postcard_persona.title}}
+
+---
+
+### Son Kartpostal
+
+{{@postcard_final.value}}
+    </Markdown>
+
+    <!-- Sayfa 2: Araştırma + karakter geliştirme -->
+    <Markdown id="export_page2" class="print-page-break">
+### Araştırma Notları
+
+{{text2markdown(@postcard_research_notes.value)}}
+
+---
+
+### Karakter Notları
+
+{{text2markdown(@postcard_persona_notes.value)}}
+    </Markdown>
+
+    <!-- Sayfa 3: Taslak + geri bildirim -->
+    <Markdown id="export_page3" class="print-page-break">
+### İlk Taslak
+
+{{text2markdown(@postcard_draft.value)}}
+
+---
+
+### Geri Bildirim
+
+{{@postcard_feedback.value}}
+    </Markdown>
+
+  </Vertical>
+
+</Sequential>
+
+</Vertical>
