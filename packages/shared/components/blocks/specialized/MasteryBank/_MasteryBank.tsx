@@ -2,29 +2,30 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React, { useMemo, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useBlock } from '@/lib/render';
 import { useFieldState, useFieldSelector, commonFields } from '@/lib/state';
 import { extendIdPrefix, scopeMarker, toOlxReference, refToReduxKey } from '@/lib/blocks/idResolver';
 import { correctness } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
-import { assertNamedObject } from '@/lib/util/kids';
+import { fisherYatesShuffleInPlace } from '@/lib/util/shuffle';
+import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 /**
- * Fisher-Yates shuffle - returns array of indices [0, length) in random order.
- * Uses Math.random() for true randomness so each student sees a different order.
+ * Returns array of indices [0, length) in random order.
  */
-function shuffleIndices(length) {
+function shuffledIndices(length: number): number[] {
   const result = Array.from({ length }, (_, i) => i);
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
+  fisherYatesShuffleInPlace(result);
   return result;
 }
 
 /**
  * Order modes for problem selection.
+ *
+ * TODO: Replace ad-hoc navigation with useKidCursor hook (see Sequential's spec).
+ * MasteryBank adds shuffle mode, attempt scoping, and cycle detection on top of
+ * basic cursor navigation. A shared hook would benefit both Sequential and MasteryBank.
  *
  * Each mode provides:
  *   - initial(itemCount): Returns initial state
@@ -51,11 +52,11 @@ const ORDER_MODES = {
   },
   // Shuffle: randomize order, reshuffle when we loop back
   shuffle: {
-    initial: (itemCount) => ({ order: shuffleIndices(itemCount), index: 0 }),
+    initial: (itemCount) => ({ order: shuffledIndices(itemCount), index: 0 }),
     nextItem: (itemCount, state) => {
       const nextIndex = state.index + 1;
       if (nextIndex >= itemCount) {
-        const newOrder = shuffleIndices(itemCount);
+        const newOrder = shuffledIndices(itemCount);
         return { nextItem: newOrder[0], newState: { order: newOrder, index: 0 }, completedFullCycle: true };
       }
       return { nextItem: state.order[nextIndex], newState: { ...state, index: nextIndex }, completedFullCycle: false };
@@ -98,11 +99,12 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   // Render problem - useBlock handles loading state with Spinner
   const { block: renderedProblem, error } = useBlock(scopedProps, problemId);
 
-  // Use commonFields.correct for cross-component field access.
-  // Common fields are pre-registered so they're available even if the grader isn't loaded yet.
+  // TODO: Replace this 7-line pattern with a useCorrectness(props, graderRef) one-liner.
+  // The hook would encapsulate commonFields.correct, refToReduxKey, and useFieldSelector.
+  // Needs design work: scoped idPrefix, grader naming convention, and field selector
+  // options all need to compose correctly. Would benefit all grader-aware components.
   const graderField = commonFields.correct;
-
-  const scopedGraderReduxKey = refToReduxKey({ ...scopedProps, id: scopedGraderRef });
+  const scopedGraderReduxKey = refToReduxKey({ id: scopedGraderRef, idPrefix: scopedIdPrefix });
   const currentCorrectness = useFieldSelector(
     scopedProps,
     graderField,
@@ -179,26 +181,22 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   // useBlock returns Spinner when loading - just render the block
   return (
     <div className="lo-mastery-bank__problem">
-      {renderedProblem as React.ReactNode}
+      {renderedProblem}
     </div>
   );
 }
 
 export default function _MasteryBank(props: RuntimeProps) {
-  const { id, fields, kids, goal = 6, mode = 'linear' } = props;
+  const { id, fields, kids, goal, mode } = props;
 
+  const { t } = useBlockTranslation(props);
   const orderMode = ORDER_MODES[mode] || ORDER_MODES.linear;
 
-  assertNamedObject(kids, ['problemIds']);
-  const problemIds = useMemo(() => {
-    return kids.problemIds && Array.isArray(kids.problemIds) ? kids.problemIds : [];
-  }, [kids]);
-
-  const goalNum = typeof goal === 'string' ? parseInt(goal, 10) : goal;
-
-  const initialModeState = useMemo(() => {
-    return problemIds.length > 0 ? orderMode.initial(problemIds.length) : 0;
-  }, [problemIds.length, orderMode]);
+  // kids.problemIds is guaranteed by the parser (see MasteryBank.ts postprocess)
+  const problemIds: string[] = (kids as any).problemIds;
+  // goal is a positive integer, guaranteed by z.coerce.number().int().positive() in schema
+  const goalNum = goal;
+  const initialModeState = problemIds.length > 0 ? orderMode.initial(problemIds.length) : 0;
 
   const [correctStreak, setCorrectStreak] = useFieldState(props, fields.correctStreak, 0);
   const [completed, setCompleted] = useFieldState(props, fields.completed, false);
@@ -207,7 +205,7 @@ export default function _MasteryBank(props: RuntimeProps) {
   const [firstSubmissionResult, setFirstSubmissionResult] = useFieldState(props, fields.firstSubmissionResult, null);
   const [attemptNumber, setAttemptNumber] = useFieldState(props, fields.attemptNumber, 0);
 
-  // Error: no problems
+  // Empty content — content author error, not a parser bug
   if (problemIds.length === 0) {
     return (
       <DisplayError
@@ -249,8 +247,8 @@ export default function _MasteryBank(props: RuntimeProps) {
     return (
       <div className="lo-mastery-bank lo-mastery-bank--complete">
         <div className="lo-mastery-bank__success">
-          <h3>Mastery Achieved!</h3>
-          <p>You answered {goalNum} questions correctly in a row.</p>
+          <h3>{t('masteryAchieved')}</h3>
+          <p>{t('masteryDescription', { goal: goalNum })}</p>
         </div>
       </div>
     );
@@ -262,10 +260,10 @@ export default function _MasteryBank(props: RuntimeProps) {
     <div className="lo-mastery-bank">
       <div className="lo-mastery-bank__header">
         <div className="lo-mastery-bank__progress">
-          Streak: {correctStreak} / {goalNum}
+          {t('streak', { current: correctStreak, goal: goalNum })}
         </div>
         <div className="lo-mastery-bank__count">
-          Problem {displayPosition} of {problemIds.length}
+          {t('progress', { current: displayPosition, total: problemIds.length })}
         </div>
       </div>
 

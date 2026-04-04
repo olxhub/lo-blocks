@@ -127,10 +127,10 @@ export function render({ node, nodeInfo, runtime }: {
     if (!entry) {
       return (
         <DisplayError
-          id={`missing-id-${node.id}`}
+          id={`block-missing-${node.id}`}
           name="render"
           message={`Block "${node.id}" not found in content`}
-          data={{ nodeId: node.id, olxKey }}
+          technical={{ blockId: node.id, olxKey, locale, sources }}
         />
       );
     }

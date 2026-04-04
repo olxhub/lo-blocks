@@ -44,8 +44,8 @@ const MasteryBank = dev({
   component: _MasteryBank,
   fields,
   attributes: srcAttributes.extend({
-    goal: z.coerce.number().optional().describe('Number of correct answers in a row to achieve mastery (default: 6)'),
-    mode: z.enum(['linear', 'shuffle']).optional().describe('Problem selection mode (default: linear)'),
+    goal: z.coerce.number().int().positive().default(6).describe('Number of correct answers in a row to achieve mastery'),
+    mode: z.enum(['linear', 'shuffle']).default('linear').describe('Problem selection mode'),
   }),
 });
 

@@ -162,6 +162,11 @@ function ensureReferencedBlocks(props: BaselineProps, idMap: IdMap, source: stri
                       : ref.startsWith('./') ? ref.slice(2)
                       : ref;
         for (const key of allOlxKeys(cleaned as ReduxStateKey)) {
+          // Skip blocks already in this idMap — they were just dispatched
+          // in the same LOAD_OLXJSON event. Calling ensureBlock here would
+          // race: OLXJSON_LOADING enqueued AFTER LOAD_OLXJSON overwrites
+          // the block's 'ready' status back to 'loading'.
+          if (idMap[key]) continue;
           ensureBlock(props, key, source);
         }
       }
