@@ -2,7 +2,7 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React, { useMemo, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useBlock } from '@/lib/render';
 import { useFieldState, useFieldSelector, commonFields } from '@/lib/state';
 import { extendIdPrefix, scopeMarker, toOlxReference, refToReduxKey } from '@/lib/blocks/idResolver';
@@ -187,21 +187,16 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
 }
 
 export default function _MasteryBank(props: RuntimeProps) {
-  const { id, fields, kids, goal = 6, mode = 'linear' } = props;
+  const { id, fields, kids, goal, mode } = props;
 
   const { t } = useBlockTranslation(props);
   const orderMode = ORDER_MODES[mode] || ORDER_MODES.linear;
 
-  const kidsValid = typeof kids === 'object' && kids !== null && !Array.isArray(kids);
-  const problemIds = useMemo(() => {
-    return kidsValid && kids.problemIds && Array.isArray(kids.problemIds) ? kids.problemIds : [];
-  }, [kids, kidsValid]);
-
-  const goalNum = typeof goal === 'string' ? parseInt(goal, 10) : goal;
-
-  const initialModeState = useMemo(() => {
-    return problemIds.length > 0 ? orderMode.initial(problemIds.length) : 0;
-  }, [problemIds.length, orderMode]);
+  // kids.problemIds is guaranteed by the parser (see MasteryBank.ts postprocess)
+  const problemIds: string[] = (kids as any).problemIds;
+  // goal is a positive integer, guaranteed by z.coerce.number().int().positive() in schema
+  const goalNum = goal;
+  const initialModeState = problemIds.length > 0 ? orderMode.initial(problemIds.length) : 0;
 
   const [correctStreak, setCorrectStreak] = useFieldState(props, fields.correctStreak, 0);
   const [completed, setCompleted] = useFieldState(props, fields.completed, false);
@@ -210,23 +205,7 @@ export default function _MasteryBank(props: RuntimeProps) {
   const [firstSubmissionResult, setFirstSubmissionResult] = useFieldState(props, fields.firstSubmissionResult, null);
   const [attemptNumber, setAttemptNumber] = useFieldState(props, fields.attemptNumber, 0);
 
-  // Validate kids shape — DisplayError instead of throwing so content authors see a helpful message
-  if (!kidsValid) {
-    return (
-      <DisplayError
-        props={props}
-        name="MasteryBank"
-        message={`MasteryBank expects named kids with problemIds, got ${Array.isArray(kids) ? 'array' : typeof kids}`}
-        technical={{
-          hint: 'The MasteryBank parser should produce { problemIds: [...] }. Check your content format.',
-          blockId: id
-        }}
-        id={`${id}_invalid_kids`}
-      />
-    );
-  }
-
-  // Error: no problems
+  // Empty content — content author error, not a parser bug
   if (problemIds.length === 0) {
     return (
       <DisplayError
