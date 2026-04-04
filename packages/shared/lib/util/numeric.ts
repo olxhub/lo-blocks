@@ -1,19 +1,26 @@
-// src/lib/util/numeric.ts
-//
-// Numerical utilities - mathematical operations for Learning Observer assessment.
-//
-// Provides numerical grading functions for STEM education, supporting:
-// - Complex number parsing and arithmetic
-// - Tolerance-based comparison (absolute and percentage)
-// - Range checking with inclusive/exclusive bounds
-// - Ratio/fraction grading
-//
-// These utilities enable sophisticated mathematical assessment comparable to
-// systems like LON-CAPA and edX, supporting both exact and approximate answers
-// with flexible tolerance specifications.
-//
-import Complex from 'complex.js';
+// Numerical grading utilities: parsing, tolerance, range checking, ratio matching.
+import { evaluator } from '@/lib/util/calc/index.js';
+import { Complex } from '@/lib/util/calc/complex.js';
 import { validateTolerance } from '@/lib/util/calc/types';
+
+export interface NumericRange {
+  lowerInclusive: boolean;
+  upperInclusive: boolean;
+  lower: Complex;
+  upper: Complex;
+}
+
+/** Attributes passed to NumericalGrader validation. */
+interface NumericalGraderAttributes {
+  answer?: string;
+  tolerance?: string;
+}
+
+/** Student input for ratio grading (two named fields). */
+interface RatioInput {
+  numerator: unknown;
+  denominator: unknown;
+}
 
 // TODO: We probably want to treat int as int, float as float,
 // etc. instead of making everything complex
@@ -21,21 +28,23 @@ import { validateTolerance } from '@/lib/util/calc/types';
 // TODO: Probably, we'd rather raise an exception on NaN, and handle
 // that as an invalid input
 
-export function parseComplex(value) {
+export function parseComplex(value: unknown): Complex {
   if (value instanceof Complex) return value;
-  if (typeof value === 'number') return new Complex(value, 0);
+  if (typeof value === 'number') {
+    return isNaN(value) ? new Complex(NaN, NaN) : new Complex(value, 0);
+  }
   if (typeof value !== 'string') return new Complex(NaN, NaN);
-  let str = value.trim();
+  const str = value.trim();
   if (str === '') return new Complex(NaN, NaN);
-  str = str.replace(/j/gi, 'i');
   try {
-    return new Complex(str);
-  } catch (e) {
+    const result = evaluator({}, {}, str);
+    return Complex.isComplex(result) ? result : new Complex(result, 0);
+  } catch {
     return new Complex(NaN, NaN);
   }
 }
 
-export function parseTolerance(tol, base=0) {
+export function parseTolerance(tol: string | number | null | undefined, base: number = 0): number {
   if (tol === undefined || tol === null || tol === '') return 0;
   if (typeof tol === 'number') return Math.abs(tol);
   let s = String(tol).trim();
@@ -49,7 +58,7 @@ export function parseTolerance(tol, base=0) {
   return isNaN(n) ? NaN : Math.abs(n);
 }
 
-export function parseRange(str) {
+export function parseRange(str: string): NumericRange | null {
   const m = String(str).trim().match(/^([\[(])\s*([^,]+)\s*,\s*([^\])]*)\s*([\])])$/);
   if (!m) return null;
   return {
@@ -64,7 +73,7 @@ export function parseRange(str) {
  * Validate NumericalGrader attributes at parse time.
  * Returns array of error messages or undefined if valid.
  */
-export function validateNumericalAttributes(attrs: Record<string, any>): string[] | undefined {
+export function validateNumericalAttributes(attrs: NumericalGraderAttributes): string[] | undefined {
   const errors: string[] = [];
 
   // Validate answer
@@ -100,7 +109,7 @@ export function validateNumericalAttributes(attrs: Record<string, any>): string[
   return errors.length > 0 ? errors : undefined;
 }
 
-export function inRange(value, range, tol=0) {
+export function inRange(value: unknown, range: NumericRange, tol: number = 0): boolean {
   const v = parseComplex(value);
   const lo = range.lower;
   const hi = range.upper;
@@ -113,11 +122,12 @@ export function inRange(value, range, tol=0) {
   return true;
 }
 
-export function compareWithTolerance(student, instructor, tol=0) {
+export function compareWithTolerance(student: unknown, instructor: unknown, tol: number = 0): boolean {
   const s = parseComplex(student);
   const i = parseComplex(instructor);
   if (isNaN(s.re) || isNaN(s.im) || isNaN(i.re) || isNaN(i.im)) return false;
-  const diff = s.sub(i).abs();
+  const subResult = s.sub(i);
+  const diff = Complex.isComplex(subResult) ? subResult.abs() : Math.abs(subResult);
   return diff <= tol;
 }
 
@@ -136,7 +146,7 @@ export interface NumericalMatchOptions {
  * @param input - The student's answer
  * @returns Array of error messages, or undefined if valid
  */
-export function validateNumericalInput(input: any): string[] | undefined {
+export function validateNumericalInput(input: unknown): string[] | undefined {
   const student = parseComplex(input);
   if (isNaN(student.re) || isNaN(student.im)) {
     return ['Invalid number'];
@@ -201,7 +211,7 @@ export function numericalMatch(
  * @param inputDict - { numerator, denominator } object from grader framework
  * @returns Array of error messages, or undefined if valid
  */
-export function validateRatioInputs(inputDict: { numerator: any; denominator: any }): string[] | undefined {
+export function validateRatioInputs(inputDict: RatioInput): string[] | undefined {
   const { numerator, denominator } = inputDict;
 
   if (numerator === undefined || denominator === undefined) {
@@ -247,7 +257,7 @@ export function validateRatioInputs(inputDict: { numerator: any; denominator: an
  * ratioMatch({ numerator: 4, denominator: 8 }, "0.5")  // true
  */
 export function ratioMatch(
-  inputDict: { numerator: any; denominator: any },
+  inputDict: RatioInput,
   answer: string,
   options?: { tolerance?: string }
 ): boolean {

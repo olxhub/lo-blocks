@@ -14,8 +14,12 @@ import {
 } from './numeric';
 
 it('parses complex numbers and compares', () => {
-  expect(parseComplex('3+4i').toString()).toBe('3 + 4i');
-  expect(parseComplex('5j').toString()).toBe('5i');
+  const c1 = parseComplex('3+4i');
+  expect(c1.re).toBe(3);
+  expect(c1.im).toBe(4);
+  const c2 = parseComplex('5j');
+  expect(c2.re).toBeCloseTo(0);
+  expect(c2.im).toBe(5);
   expect(compareWithTolerance('5', '5', 0)).toBe(true);
   expect(compareWithTolerance('5', '6', 1)).toBe(true);
 });
