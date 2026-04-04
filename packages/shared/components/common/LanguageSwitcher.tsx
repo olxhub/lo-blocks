@@ -210,7 +210,6 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyDown={handleCustomInput}
                     className="w-full px-2 py-1 text-sm border border-border rounded focus:outline-none focus:ring-1 focus:ring-accent"
-                    autoFocus
                   />
                 </div>
                 <div className="max-h-40 overflow-y-auto px-3">

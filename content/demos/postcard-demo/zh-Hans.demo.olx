@@ -1,0 +1,536 @@
+<!--
+---
+description: 明信片写作活动，含轮播选择、LLM反馈和修改
+category: demo
+lang: zh-Hans
+generated:
+  method: machineTranslated
+  source_file: postcard-demo.olx
+  source_version: f3f5ecf
+---
+-->
+
+<Vertical id="postcard_demo" title="来自历史的明信片">
+
+<!-- === 地标 === -->
+
+<Markdown id="loc_great_wall" title="中国长城">
+### 中国长城
+
+![The Great Wall of China at Jinshanling](https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/The_Great_Wall_of_China_at_Jinshanling-edit.jpg/330px-The_Great_Wall_of_China_at_Jinshanling-edit.jpg)
+
+长城绵延两万一千多公里，横贯中国北方。从公元前七世纪开始，历经数百年修建，用以抵御来自北方的入侵。如今，它是世界上游客最多的地标之一。
+
+[在维基百科上了解更多](https://zh.wikipedia.org/wiki/长城)
+</Markdown>
+
+<Markdown id="loc_machu_picchu" title="马丘比丘">
+### 马丘比丘
+
+![Machu Picchu](https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Machu_Picchu%2C_2023_%28012%29.jpg/330px-Machu_Picchu%2C_2023_%28012%29.jpg)
+
+这座十五世纪的印加城堡坐落在秘鲁安第斯山脉的高处，俯瞰着圣谷。它大约建于公元1450年，在西班牙征服时期被废弃，此后数百年几乎不为外界所知，直到1911年才被重新发现。
+
+[在维基百科上了解更多](https://zh.wikipedia.org/wiki/马丘比丘)
+</Markdown>
+
+<Markdown id="loc_pyramids" title="吉萨金字塔">
+### 吉萨金字塔
+
+![Pyramids of the Giza Necropolis](https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Pyramids_of_the_Giza_Necropolis.jpg/330px-Pyramids_of_the_Giza_Necropolis.jpg)
+
+大金字塔建于约公元前2570年，位于埃及开罗附近，是古代世界七大奇迹中最古老的一座，也是唯一基本保存完好的一座。整个建筑群包括三座金字塔和大狮身人面像。
+
+[在维基百科上了解更多](https://zh.wikipedia.org/wiki/吉薩金字塔群)
+</Markdown>
+
+<Markdown id="loc_colosseum" title="罗马斗兽场">
+### 罗马斗兽场
+
+![The Colosseum in Rome](https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/330px-Colosseo_2020.jpg)
+
+罗马斗兽场位于意大利罗马，是有史以来最大的古代圆形竞技场。它建成于公元80年，可容纳五万到八万名观众，用于观看角斗士比赛、猎兽表演和各种公共演出。
+
+[在维基百科上了解更多](https://zh.wikipedia.org/wiki/罗马斗兽场)
+</Markdown>
+
+<Markdown id="loc_taj_mahal" title="泰姬陵">
+### 泰姬陵
+
+![The Taj Mahal](https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Taj_Mahal_%28Edited%29.jpeg/330px-Taj_Mahal_%28Edited%29.jpeg)
+
+泰姬陵位于印度阿格拉，是一座白色大理石陵墓，由莫卧儿皇帝沙贾汗于1632年至1653年间为纪念亡妻穆塔兹·玛哈尔而建。它被誉为莫卧儿建筑艺术的巅峰之作。
+
+[在维基百科上了解更多](https://zh.wikipedia.org/wiki/泰姬陵)
+</Markdown>
+
+<Markdown id="loc_altamira" title="阿尔塔米拉洞窟">
+### 阿尔塔米拉洞窟
+
+![Bison painting in the Cave of Altamira](https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/9_Bisonte_Magdaleniense_pol%C3%ADcromo.jpg/330px-9_Bisonte_Magdaleniense_pol%C3%ADcromo.jpg)
+
+阿尔塔米拉洞窟位于西班牙北部桑坦德附近，保存着世界上最精美的史前艺术，距今约一万五千年。洞顶上栩栩如生的野牛、马匹和手印画作精美绝伦。1879年首次被发现时，学者们甚至不相信古代人类能够创作出如此杰作。
+
+[在维基百科上了解更多](https://zh.wikipedia.org/wiki/阿尔塔米拉洞)
+</Markdown>
+
+<Markdown id="loc_italica" title="伊塔利卡">
+### 伊塔利卡
+
+![Amphitheatre at Italica](https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Amphitheatre_Italica%2C_Spain.jpg/330px-Amphitheatre_Italica%2C_Spain.jpg)
+
+伊塔利卡位于今天塞维利亚城外不远处，由罗马将军大西庇阿于公元前206年创建，最初是为了安置在伊利帕战役中击败汉尼拔之弟哈斯德鲁巴后退役的老兵。这座城市后来发展为罗马西班牙行省最重要的城市之一，也是图拉真和哈德良两位皇帝的故乡。它的巨型圆形竞技场是罗马帝国最大的竞技场之一，至今仍屹立不倒。
+
+[在维基百科上了解更多](https://en.wikipedia.org/wiki/Italica)
+</Markdown>
+
+<Markdown id="loc_mezquita" title="科尔多瓦清真寺-大教堂">
+### 科尔多瓦清真寺-大教堂
+
+![Interior arches of the Mezquita](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Mezquita_de_C%C3%B3rdoba_desde_el_aire_%28C%C3%B3rdoba%2C_Espa%C3%B1a%29.jpg/330px-Mezquita_de_C%C3%B3rdoba_desde_el_aire_%28C%C3%B3rdoba%2C_Espa%C3%B1a%29.jpg)
+
+科尔多瓦大清真寺始建于公元784年，曾是整个西方伊斯兰世界最宏伟的清真寺。八百五十多根立柱撑起红白相间的条纹拱门，构成了建筑史上最具标志性的室内空间之一。1236年基督教收复失地后，人们在清真寺内部建造了一座大教堂——由此诞生了一座举世无双的建筑。
+
+[在维基百科上了解更多](https://en.wikipedia.org/wiki/Mosque%E2%80%93Cathedral_of_C%C3%B3rdoba)
+</Markdown>
+
+<Markdown id="loc_alhambra" title="阿尔罕布拉宫">
+### 阿尔罕布拉宫
+
+![The Alhambra from the Albaicín, Granada](https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Dawn_Charles_V_Palace_Alhambra_Granada_Andalusia_Spain.jpg/330px-Dawn_Charles_V_Palace_Alhambra_Granada_Andalusia_Spain.jpg)
+
+阿尔罕布拉宫是格拉纳达的一座宫殿和城堡建筑群，主要建于十三至十四世纪，由奈斯尔王朝——西班牙最后的穆斯林统治者——修建而成。精美的灰泥雕刻、瓷砖镶嵌和宁静的庭院代表了欧洲伊斯兰艺术的最高成就。1492年，它被交给费迪南和伊莎贝拉，穆斯林在伊比利亚半岛近八百年的统治就此终结。
+
+[在维基百科上了解更多](https://zh.wikipedia.org/wiki/阿尔罕布拉宫)
+</Markdown>
+
+<Markdown id="loc_seville_cathedral" title="塞维利亚大教堂">
+### 塞维利亚大教堂
+
+![Seville Cathedral and Giralda tower](https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Sevilla_Cathedral_-_Southeast.jpg/330px-Sevilla_Cathedral_-_Southeast.jpg)
+
+塞维利亚大教堂是世界上最大的哥特式教堂，建于1402年至1506年间，坐落在一座穆瓦希德王朝清真寺的旧址之上。据说建造者曾宣称："让我们建一座如此美丽、如此宏伟的教堂，看到它的人都会以为我们疯了。"教堂内安放着哥伦布的墓，旁边矗立着吉拉尔达塔——由清真寺原来的宣礼塔改建而成的钟楼。在西班牙的大航海时代，塞维利亚掌控着与美洲的全部贸易。
+
+[在维基百科上了解更多](https://zh.wikipedia.org/wiki/塞维利亚主教座堂)
+</Markdown>
+
+<Markdown id="loc_hagia_sophia" title="圣索菲亚大教堂">
+### 圣索菲亚大教堂
+
+![Hagia Sophia](https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Hagia_Sophia_%28228968325%29.jpeg/330px-Hagia_Sophia_%28228968325%29.jpeg)
+
+圣索菲亚大教堂位于伊斯坦布尔，由拜占庭皇帝查士丁尼一世于公元537年建成，在近一千年里一直是世界上最大的教堂。1453年奥斯曼帝国征服后，它被改建为清真寺，基督教镶嵌画被涂上灰泥，天际线上增添了宣礼塔。它那55米高的巨大穹顶仿佛悬浮在一圈窗户之上，是一项影响了后世数百年建筑的工程奇迹。
+
+[在维基百科上了解更多](https://zh.wikipedia.org/wiki/圣索菲亚大教堂)
+</Markdown>
+
+<Markdown id="loc_petra" title="佩特拉">
+### 佩特拉
+
+![Ad Deir, Petra](https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Al_Deir_Petra.JPG/330px-Al_Deir_Petra.JPG)
+
+佩特拉是一座古代纳巴泰人城市，凿刻在约旦南部的红色砂岩悬崖之中。作为乳香贸易路线上的重要枢纽，它从公元前四世纪起繁盛一时，直到公元106年被罗马人控制。通往城中的蛇道——一条长达一公里的狭窄峡谷——尽头豁然开朗，卡兹尼神殿赫然出现在眼前，堪称旅行中最震撼的景象之一。这座城市曾被西方世界遗忘数百年，直到1812年才被一位瑞士探险家重新发现。
+
+[在维基百科上了解更多](https://zh.wikipedia.org/wiki/佩特拉)
+</Markdown>
+
+<Markdown id="loc_ziggurat_ur" title="乌尔大金字塔">
+### 乌尔大金字塔
+
+![The Ziggurat of Ur](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Ziggarat_of_Ur_001.jpg/330px-Ziggarat_of_Ur_001.jpg)
+
+乌尔大金字塔矗立在伊拉克南部平坦的沙漠上，约建于公元前2100年，由乌尔纳姆国王修建，作为苏美尔月神南纳的神庙。它是古代美索不达米亚保存最完好的建筑之一——美索不达米亚正是文明的摇篮，文字、法典和城市都从这里萌生。大金字塔在1980年代进行了部分修复，矗立在乌尔古城遗址附近。四千年前，乌尔曾是世界上最大、最富裕的城市之一。
+
+[在维基百科上了解更多](https://en.wikipedia.org/wiki/Ziggurat_of_Ur)
+</Markdown>
+
+<Markdown id="loc_lake_turkana" title="图尔卡纳湖">
+### 图尔卡纳湖
+
+![Lake Turkana](https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Lake_turkana.jpg/330px-Lake_turkana.jpg)
+
+图尔卡纳湖位于肯尼亚北部，是世界上最大的永久性沙漠湖泊，因其醒目的蓝绿色而被称为"翡翠海"。这里的地貌充满火山气息，狂风呼啸——熔岩地带、干裂的大地，以及仿佛来自另一个星球的湖水。湖东岸的库比福拉是迄今发现的最丰富的人类化石遗址之一，"图尔卡纳少年"等重大发现深刻改变了我们对人类进化的认识。
+
+[在维基百科上了解更多](https://zh.wikipedia.org/wiki/图尔卡纳湖)
+</Markdown>
+
+<Markdown id="loc_qin_shi_huang" title="秦始皇陵">
+### 秦始皇陵
+
+![The Terracotta Army](https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/51714-Terracota-Army.jpg/330px-51714-Terracota-Army.jpg)
+
+秦始皇于公元前221年统一中国，统一了文字、度量衡和货币——同时下令焚烧百家争鸣时期的典籍。他的陵墓位于西安附近，动用了七十万人修建。外围坑中排列着八千多尊造型各异的兵马俑，而中心墓室至今从未被打开。古籍记载，墓室内用水银模拟出了他帝国的山川河流。
+
+[在维基百科上了解更多](https://zh.wikipedia.org/wiki/秦始皇陵)
+</Markdown>
+
+<Markdown id="loc_forbidden_city" title="紫禁城">
+### 紫禁城
+
+![The Forbidden City viewed from Coal Hill](https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/The_Forbidden_City_-_View_from_Coal_Hill.jpg/330px-The_Forbidden_City_-_View_from_Coal_Hill.jpg)
+
+紫禁城位于北京，从1420年到1912年间一直是中国的皇宫，近五百年来，明清两朝共有24位皇帝在此生活、理政、上朝。8米高的城墙和52米宽的护城河之内，是一座由980栋建筑、近9000个房间组成的庞大建筑群。普通人不得入内——"紫禁城"之名由此而来。今天，它已成为一座博物馆，每年接待数百万游客。
+
+[在维基百科上了解更多](https://zh.wikipedia.org/wiki/故宫)
+</Markdown>
+
+<Markdown id="loc_west_lake" title="西湖">
+### 西湖
+
+![West Lake, Hangzhou](https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/West_Lake%2C_Hangzhou_2025.jpg/330px-West_Lake%2C_Hangzhou_2025.jpg)
+
+杭州西湖一千多年来一直是中国诗人、画家和园林设计师的灵感源泉。烟雨朦胧的青山环绕湖畔，塔影婆娑，堤岸杨柳依依，被誉为人与自然和谐共处的典范。西湖的美深刻影响了整个东亚的园林设计——苏州的园林、京都的庭园、首尔的花园，都可以追溯到这里。
+
+[在维基百科上了解更多](https://zh.wikipedia.org/wiki/西湖)
+</Markdown>
+
+<!-- === 人物角色 === -->
+
+<Markdown id="persona_tourist" title="游客">
+### 游客
+
+第一次来到这个地标。一切都新鲜又兴奋。迫不及待想和家乡的朋友分享自己看到、听到、闻到和感受到的一切。
+</Markdown>
+
+<Markdown id="persona_local_child" title="当地小孩">
+### 当地小孩
+
+从小在这个地标附近长大。它是日常生活的一部分——上学路上就能看到，家里人讲的故事里少不了它，周围总是挤满了游客。当它只是"一直都在那儿"的时候，感觉和别人完全不同。
+</Markdown>
+
+<Markdown id="persona_archaeologist" title="考古学家">
+### 考古学家
+
+一位在这个遗址研究多年的学者。能注意到大多数游客走过都不会留意的历史细节、建筑工艺和文化意义。
+</Markdown>
+
+<Markdown id="persona_merchant" title="商人">
+### 商人（历史人物）
+
+一个来自几百年前的行商，途经此地的贸易路线。他看到的是这个地方鼎盛时期的模样——人来人往，热闹非凡，到处都是买卖的人。
+</Markdown>
+
+<Markdown id="persona_restorer" title="修复师">
+### 修复师
+
+在负责维护这个遗址的保护团队工作。熟悉这里每一道裂缝、每一块补丁、每一个漏雨的角落。每天在脚手架上或库房里和大多数人从未见过的工具打交道。从内部——真正意义上的内部——了解这个地方。
+</Markdown>
+
+<Markdown id="persona_guard" title="夜间保安">
+### 夜间保安
+
+上夜班。最后一批游客离开、灯光熄灭之后，这个地方就属于他了。夜晚的声音不一样。影子在移动。他对这栋建筑的了解，靠的是触觉和听觉，和视觉一样多。
+</Markdown>
+
+<Markdown id="persona_soldier" title="士兵">
+### 士兵（历史人物）
+
+驻扎在此——守卫一面城墙、一道城门或一处边境。这座宏伟的建筑不过是个工作的地方，大多数日子枯燥无味。想着家乡、想着吃的、想着远方的亲人。一个举世闻名的奇迹，对他来说只是每天上班的地方。
+</Markdown>
+
+<Markdown id="persona_pilgrim" title="朝圣者">
+### 朝圣者（历史人物）
+
+徒步跋涉了数周甚至数月才来到这里。这里不是旅游景点——这里是整趟旅程的目的。也许是为了治病、求得宽恕、追寻知识或做生意。长途跋涉之后，终于到了。
+</Markdown>
+
+<Markdown id="persona_spy" title="间谍">
+### 间谍（历史人物）
+
+他并非表面上的身份。途经此地，暗中搜集情报——关于军队调动、贸易路线、政治联盟或建筑技术。一切都有双重含义。明信片应该听起来人畜无害，但字里行间暗示着他真正关注的东西。
+</Markdown>
+
+<Markdown id="persona_artist" title="画家">
+### 画家
+
+来这里写生或画画。用光影、线条和色彩来观察这个地方。能注意到其他游客直接走过去的东西——午后阳光洒在石头上的样子、拱门的几何形状、被踩磨光滑的台阶纹理。
+</Markdown>
+
+<!-- === 活动主体 === -->
+
+<Sequential id="postcard_activity" title="来自历史的明信片" launchable="true">
+
+  <!-- 第一步：选择地标 -->
+  <Vertical id="postcard_step_1" title="选择你的地标">
+    <Markdown id="postcard_intro">
+## 来自历史的明信片
+
+你将以一个身处著名地标的人物的视角，写一张简短的明信片。首先，选择你的地标。
+    </Markdown>
+    <Carousel id="postcard_location" wrap="true" randomize="true">
+      loc_great_wall, loc_machu_picchu, loc_pyramids, loc_colosseum, loc_taj_mahal, loc_altamira, loc_italica, loc_mezquita, loc_alhambra, loc_seville_cathedral, loc_hagia_sophia, loc_petra, loc_ziggurat_ur, loc_lake_turkana, loc_qin_shi_huang, loc_forbidden_city, loc_west_lake
+    </Carousel>
+  </Vertical>
+
+  <!-- 第二步：研究你的地标 -->
+  <Vertical id="postcard_step_2" title="研究笔记">
+    <Markdown id="postcard_research_intro">
+## 研究你的地标
+
+你选择了**{{@postcard_location.title}}**。你的任务是弄清楚，如果你真的身临其境，*感觉*会是怎样的。试着搜索旅行博客、照片集或视频——不要只看维基百科。
+
+记下关于以下方面的笔记：
+- 你会**看到**什么——风景、色彩、光线、人群的热闹或空旷的寂静
+- 你会**听到、闻到或感受到**什么——风、炎热、尘土、回声、静谧
+- **近距离观察**这个地方是什么样的——斑驳的石头、陡峭的台阶、狭窄的小路、开阔的视野
+- 任何**让你惊讶**的事情——不查资料你绝对想不到的东西
+    </Markdown>
+    <Collapsible id="postcard_research_example" title="看一个示例（埃菲尔铁塔）">
+      <Markdown id="postcard_research_example_text">
+**埃菲尔铁塔——研究笔记**
+
+*来自旅行博客和照片：*
+* 走近了才发现底座好大——铁柱高耸在你头顶，连铆钉都看得一清二楚
+* 阳光下排着长队，人们摇着扇子，小贩在卖冰水
+* 楼梯是金属网格的——透过脚下能直接看到地面，吓人得很
+* 越往上风越大；整个铁塔轻轻地嗡嗡作响，微微颤动
+* 到了塔顶，巴黎变得又小又平——目之所及绵延数英里
+* 夜幕降临后，两万盏灯泡每个整点闪烁五分钟——草地上的人每次都会欢呼
+* 塔下的公园弥漫着可丽饼和香烟的味道
+* 铁栏杆上刻着涂鸦——几十年前人们留下的名字和日期
+      </Markdown>
+    </Collapsible>
+    <TextArea id="postcard_research_notes" rows="6" placeholder="有趣的事实、细节、我注意到的东西……" />
+  </Vertical>
+
+  <!-- 第三步：选择人物角色 -->
+  <Vertical id="postcard_step_3" title="选择你的角色">
+    <Markdown id="postcard_persona_header">
+## 选择一个角色
+
+在**{{@postcard_location.title}}**，你将以谁的身份来写这张明信片？
+    </Markdown>
+    <Carousel id="postcard_persona" wrap="true" randomize="true">
+      persona_tourist, persona_local_child, persona_archaeologist, persona_merchant, persona_restorer, persona_guard, persona_soldier, persona_pilgrim, persona_spy, persona_artist
+    </Carousel>
+  </Vertical>
+
+  <!-- 第四步：发展你的角色 -->
+  <Vertical id="postcard_step_4" title="发展你的角色">
+    <Markdown id="postcard_persona_dev_intro">
+## 发展你的角色
+
+你是**{{@postcard_location.title}}**的一位**{{@postcard_persona.title}}**。请塑造一个有血有肉的人。为他编一个背景故事：
+- 他叫什么名字？来自哪里？
+- 他的朋友和家人有谁？这张明信片是写给谁的？
+- 他每天都做些什么？
+- 他会注意到或经历到哪些别人可能忽略的事情？
+    </Markdown>
+    <Collapsible id="postcard_persona_example" title="看一个示例（埃菲尔铁塔旁的小贩）">
+      <Markdown id="postcard_persona_example_text">
+**埃菲尔铁塔旁街角的小贩**
+
+* 卖便宜的铁塔模型、钥匙扣和小旗子
+* 时不时被警察赶——得赶紧抓起东西就跑
+* 这些年因为扒窃和无证经营蹲过几次牢
+* 两个孩子，有时在附近的街上乞讨
+* 孩子的另一位家长下落不明
+* 有时被当地人骚扰，觉得小贩影响市容
+* 铁塔周围三个街区的每条捷径和藏身处都了如指掌
+* 看过铁塔亮灯无数次——依然觉得它很美
+* 会说五种语言的零星几句话，刚好够做成一笔生意
+* 这张明信片是写给家乡的表弟的，表弟一直梦想着来巴黎
+      </Markdown>
+    </Collapsible>
+    <TextArea id="postcard_persona_notes" rows="6" placeholder="这个人是谁？他的生活是什么样的？他在乎什么？" />
+  </Vertical>
+
+  <!-- 第五步：写明信片 -->
+  <Vertical id="postcard_step_5" title="写你的明信片">
+    <Markdown id="postcard_write_instructions">
+## 写你的明信片
+
+你是**{{@postcard_location.title}}**的一位**{{@postcard_persona.title}}**。
+
+以这个人物的视角写一张简短的明信片（4-8句话）。利用你的研究和角色笔记，让它读起来真实可感。记得写出：
+- 你周围看到了什么
+- 身处这里的感受
+- 一个只有你这个角色才会注意到的细节
+    </Markdown>
+    <Collapsible id="postcard_my_notes" title="我的笔记">
+      <Markdown id="postcard_my_notes_research">
+### 研究笔记
+
+{{text2markdown(@postcard_research_notes.value)}}
+
+---
+
+### 角色笔记
+
+{{text2markdown(@postcard_persona_notes.value)}}
+      </Markdown>
+    </Collapsible>
+    <TextArea id="postcard_draft" rows="8" placeholder="亲爱的朋友，……" />
+    <Markdown id="postcard_draft_wordcount">{{wordcount(@postcard_draft.value) &lt; 20 ? "写够一定字数后，提交按钮才会出现。" : "继续写吧……"}}</Markdown>
+    <ActionButton id="postcard_submit" label="提交以获取反馈" dependsOn="wordcount(@postcard_draft.value) >= 20 &amp;&amp; !@postcard_draft.readonly">
+      <CopyFieldAction target="postcard_draft" output="postcard_final" />
+      <LLMAction id="postcard_llm" target="postcard_feedback">
+        你正在为一名中学生的短篇明信片作业提供反馈。请温暖、具体、简洁。不要帮他重写文本，也不要提供具体的例句。只问问题。
+
+        这位学生正在以**<Ref target="postcard_persona" field="title" />**的身份，在**<Ref target="postcard_location" field="title" />**写作。
+
+        他们关于这个地标的研究笔记：
+        <Ref target="postcard_research_notes" />
+
+        他们的角色发展笔记：
+        <Ref target="postcard_persona_notes" />
+
+        请仔细阅读学生的草稿，以及他们的研究和角色笔记。然后提出2-3个最能帮助这位学生改进这张明信片的问题。选择对他们的草稿来说最重要的方面——可能是：
+
+        - 感官细节（你的手触碰石头时是什么感觉？）
+        - 情感或反应（第一次看到它时你有什么感受？）
+        - 叙事（卫兵发现你时，你往哪里跑了？）
+        - 声音与角色（你的角色会注意到什么游客不会注意到的东西？）
+        - 读者意识（谁在读这张明信片——他们想听到什么？）
+        - 结构（你的开头很棒——打算怎么结尾？）
+        - 运用研究成果（你的笔记提到了陡峭的地形——角色可以对此有什么反应？）
+        - 风格（能不能在这个瞬间慢下来，让读者看到它？）
+        - 词汇（你写了"去了"——有没有更生动的词来形容你的角色是怎么移动的？）
+        - 篇幅与重点（这里有没有一个细节值得展开成两句话？）
+
+        上面这个列表只是为了说明范围。不要面面俱到——只挑2-3个对这位学生的草稿最有帮助的简短问题。每个问题尽量简短——一句话最理想。每个问题都要针对他们写的内容和研究的材料。不要写示例句子，也不要建议具体的措辞。只问学生可以通过增加或修改一两句话来回答的问题。
+
+        请用以下格式给出反馈（最多三个小节）：
+
+        **研究**（仅在需要时）
+        如果学生的研究笔记比较单薄、空洞或大多是百科全书式的事实，简要建议他们可以去哪里找什么样的资料。要针对他们的具体地标——比如，对于长城，可以建议他们看看攀登长城的照片、风化石砖的特写，或者旅行博客对地形的描写。对于罗马斗兽场，可以建议他们搜索地下通道是什么样的。引导他们去找那种能让明信片更生动的感官和体验细节。这部分写1-2句就好。如果他们的研究笔记已经包含了丰富的感官和体验细节，就完全跳过这一部分。
+
+        **思考这些问题**（最多2-3个要点）
+
+        **快速修正**（仅在需要时）
+        简要指出任何语法或拼写问题。如果写作没有问题，就完全跳过这一部分。
+
+        学生的明信片：
+        <Ref target="postcard_draft" />
+      </LLMAction>
+      <SetFieldAction target="postcard_draft" field="readonly" value="true" />
+      <SetFieldAction target="postcard_location" field="readonly" value="true" />
+      <SetFieldAction target="postcard_persona" field="readonly" value="true" />
+    </ActionButton>
+    <LLMFeedback id="postcard_feedback" />
+  </Vertical>
+
+  <!-- 第六步：修改 -->
+  <Vertical id="postcard_step_6" title="修改你的明信片">
+    <Markdown id="postcard_revise_instructions">
+## 修改你的明信片
+
+看看下面的反馈，然后写出你的最终版本。
+
+### 你的初稿
+    </Markdown>
+    <Use ref="postcard_draft" />
+    <Markdown id="postcard_feedback_header">
+### 反馈
+    </Markdown>
+    <Use ref="postcard_feedback" />
+    <Markdown id="postcard_final_header">
+### 你的修改版明信片
+    </Markdown>
+    <TextArea id="postcard_final" rows="8" placeholder="亲爱的朋友，……" />
+    <ActionButton id="postcard_final_submit" label="提交最终版" dependsOn="wordcount(@postcard_final.value) >= 20 &amp;&amp; !@postcard_final.readonly">
+      <SetFieldAction target="postcard_final" field="readonly" value="true" />
+      <LLMAction id="llm_formal" target="voice_formal">
+        一位中学生在课堂练习中写了下面这张明信片。我们想让他看看，如果改写成面向不同读者的版本，效果会有什么不同。请将它改写为正式风格——就像是一封官方信函或写给要人的信。调整称呼、落款、用词和句式，使其适合正式场合。
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_academic" target="voice_academic">
+        一位中学生在课堂练习中写了下面这张明信片。我们想让他看看，如果改写成面向不同读者的版本，效果会有什么不同。请将它改写为学术风格——就像是与研究人员分享的文字。使用精准、分析性的语言，适合具有历史或文化研究专业背景的读者。
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_child" target="voice_child">
+        一位中学生在课堂练习中写了下面这张明信片。我们想让他看看，如果改写成面向不同读者的版本，效果会有什么不同。请将它改写为写给小朋友（6-7岁）的版本，让他们能读懂并觉得有趣。发信人不变，但现在是写给一个小亲戚。用简单的词语、短句子，把大道理讲成小朋友会觉得好玩的样子。
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_literary" target="voice_literary">
+        一位中学生在课堂练习中写了下面这张明信片。我们想让他看看，如果改写成面向不同读者的版本，效果会有什么不同。请将它改写为文学风格——就像一位作家在旅行博客上发表的散文，面向喜爱文学作品的读者。运用丰富的意象、感官细节和富有变化的句式节奏。
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_business" target="voice_business">
+        一位中学生在课堂练习中写了下面这张明信片。我们想让他看看，如果改写成面向不同读者的版本，效果会有什么不同。请将它改写为商务风格——就像写给商业同事的差旅简报或出差备忘录。重点突出关键观察、实用要点，语气专业。
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <!-- 第七步：探索不同风格 -->
+  <Vertical id="postcard_step_7" title="不同风格的明信片">
+    <Markdown id="postcard_voices_intro">
+## 为不同读者而写
+
+之前，你选择了*谁*在写——游客、小孩还是考古学家。那是从写信人的视角出发的。
+
+现在，让我们想想*收信人*。同样的内容，写给不同的人，读起来会很不一样。比较一下你的明信片改写成面向小朋友、学术读者或商务同事的版本，会有什么变化。内容没变，但词汇、句式和语气都会随着读者的不同而调整。
+    </Markdown>
+    <Use ref="postcard_final" />
+    <Tabs id="postcard_voices">
+      <LLMFeedback id="voice_formal" title="正式" />
+      <LLMFeedback id="voice_academic" title="学术" />
+      <LLMFeedback id="voice_child" title="儿童" />
+      <LLMFeedback id="voice_literary" title="文学" />
+      <LLMFeedback id="voice_business" title="商务" />
+    </Tabs>
+  </Vertical>
+
+  <!-- 第八步：导出 -->
+  <Vertical id="postcard_step_8" title="导出你的作品">
+    <Markdown id="postcard_export_intro">
+## 导出你的明信片
+
+查看下面的作品，然后将其导出为PDF。
+    </Markdown>
+    <ActionButton id="postcard_export" label="导出为PDF">
+      <PrintAction id="postcard_print" />
+    </ActionButton>
+
+    <!-- 第一页：选择 + 最终版 -->
+    <Markdown id="export_page1">
+### 地点与角色
+
+**地标：** {{@postcard_location.title}}
+
+**角色：** {{@postcard_persona.title}}
+
+---
+
+### 最终版明信片
+
+{{@postcard_final.value}}
+    </Markdown>
+
+    <!-- 第二页：研究 + 角色发展 -->
+    <Markdown id="export_page2" class="print-page-break">
+### 研究笔记
+
+{{text2markdown(@postcard_research_notes.value)}}
+
+---
+
+### 角色笔记
+
+{{text2markdown(@postcard_persona_notes.value)}}
+    </Markdown>
+
+    <!-- 第三页：初稿 + 反馈 -->
+    <Markdown id="export_page3" class="print-page-break">
+### 初稿
+
+{{text2markdown(@postcard_draft.value)}}
+
+---
+
+### 反馈
+
+{{@postcard_feedback.value}}
+    </Markdown>
+
+  </Vertical>
+
+</Sequential>
+
+</Vertical>

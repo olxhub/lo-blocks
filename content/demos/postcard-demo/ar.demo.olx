@@ -1,0 +1,535 @@
+<!--
+---
+description: نشاط كتابة بطاقة بريدية مع اختيار دوّار وتعليقات الذكاء الاصطناعي والمراجعة
+category: demo
+lang: ar
+generated:
+  method: machineTranslated
+  source_file: postcard-demo.olx
+  source_version: f3f5ecf
+---
+-->
+<Vertical id="postcard_demo" title="بطاقة بريدية من التاريخ">
+
+<!-- === Locations === -->
+
+<Markdown id="loc_great_wall" title="سور الصين العظيم">
+### سور الصين العظيم
+
+![The Great Wall of China at Jinshanling](https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/The_Great_Wall_of_China_at_Jinshanling-edit.jpg/330px-The_Great_Wall_of_China_at_Jinshanling-edit.jpg)
+
+يمتد سور الصين العظيم لأكثر من 21,000 كيلومتر عبر شمال الصين. بُني على مدى قرون عديدة بدءًا من القرن السابع قبل الميلاد، وكان يُستخدم للدفاع ضد الغزوات من الشمال. واليوم هو أحد أكثر المعالم زيارةً في العالم.
+
+[اقرأ المزيد على ويكيبيديا](https://ar.wikipedia.org/wiki/%D8%B3%D9%88%D8%B1_%D8%A7%D9%84%D8%B5%D9%8A%D9%86_%D8%A7%D9%84%D8%B9%D8%B8%D9%8A%D9%85)
+</Markdown>
+
+<Markdown id="loc_machu_picchu" title="ماتشو بيتشو">
+### ماتشو بيتشو
+
+![Machu Picchu](https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Machu_Picchu%2C_2023_%28012%29.jpg/330px-Machu_Picchu%2C_2023_%28012%29.jpg)
+
+هذه القلعة الإنكية التي تعود إلى القرن الخامس عشر تقع عالياً في جبال الأنديز في بيرو، فوق الوادي المقدس. بُنيت حوالي عام 1450 ميلادي، ثم هُجرت أثناء الغزو الإسباني وظلت مجهولة للعالم الخارجي حتى عام 1911.
+
+[اقرأ المزيد على ويكيبيديا](https://ar.wikipedia.org/wiki/%D9%85%D8%A7%D8%AA%D8%B4%D9%88_%D8%A8%D9%8A%D8%AA%D8%B4%D9%88)
+</Markdown>
+
+<Markdown id="loc_pyramids" title="أهرامات الجيزة">
+### أهرامات الجيزة
+
+![Pyramids of the Giza Necropolis](https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Pyramids_of_the_Giza_Necropolis.jpg/330px-Pyramids_of_the_Giza_Necropolis.jpg)
+
+بُنيت حوالي عام 2570 قبل الميلاد بالقرب من القاهرة في مصر. الهرم الأكبر هو أقدم عجائب الدنيا السبع في العالم القديم والوحيد الذي لا يزال قائمًا إلى حدٍّ كبير. يضم المُجمّع ثلاثة أهرامات وتمثال أبو الهول العظيم.
+
+[اقرأ المزيد على ويكيبيديا](https://ar.wikipedia.org/wiki/%D8%A3%D9%87%D8%B1%D8%A7%D9%85%D8%A7%D8%AA_%D8%A7%D9%84%D8%AC%D9%8A%D8%B2%D8%A9)
+</Markdown>
+
+<Markdown id="loc_colosseum" title="الكولوسيوم">
+### الكولوسيوم
+
+![The Colosseum in Rome](https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/330px-Colosseo_2020.jpg)
+
+الكولوسيوم في روما بإيطاليا هو أكبر مدرج قديم بُني على الإطلاق. اكتمل بناؤه عام 80 ميلادي، وكان يتسع لما بين 50,000 و80,000 متفرج لمشاهدة مبارزات المصارعين وصيد الحيوانات والعروض العامة.
+
+[اقرأ المزيد على ويكيبيديا](https://ar.wikipedia.org/wiki/%D9%83%D9%88%D9%84%D9%88%D8%B3%D9%8A%D9%88%D9%85)
+</Markdown>
+
+<Markdown id="loc_taj_mahal" title="تاج محل">
+### تاج محل
+
+![The Taj Mahal](https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Taj_Mahal_%28Edited%29.jpeg/330px-Taj_Mahal_%28Edited%29.jpeg)
+
+تاج محل في أغرا بالهند هو ضريح من الرخام الأبيض بُني بين عامَي 1632 و1653 بأمر من الإمبراطور المغولي شاه جهان تخليدًا لذكرى زوجته ممتاز محل. يُعدّ من أروع نماذج العمارة المغولية.
+
+[اقرأ المزيد على ويكيبيديا](https://ar.wikipedia.org/wiki/%D8%AA%D8%A7%D8%AC_%D9%85%D8%AD%D9%84)
+</Markdown>
+
+<Markdown id="loc_altamira" title="كهف ألتاميرا">
+### كهف ألتاميرا
+
+![Bison painting in the Cave of Altamira](https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/9_Bisonte_Magdaleniense_pol%C3%ADcromo.jpg/330px-9_Bisonte_Magdaleniense_pol%C3%ADcromo.jpg)
+
+يقع كهف ألتاميرا بالقرب من سانتاندير في شمال إسبانيا، ويحتوي على بعض أروع الفنون ما قبل التاريخ في العالم، يعود تاريخها إلى نحو 15,000 سنة. الرسومات الحية للبيسون والخيول وبصمات الأيدي على سقف الكهف كانت مذهلة لدرجة أن العلماء عند اكتشافها عام 1879 رفضوا تصديق أن البشر القدماء كانوا قادرين على رسمها.
+
+[اقرأ المزيد على ويكيبيديا](https://ar.wikipedia.org/wiki/%D9%83%D9%87%D9%81_%D8%A3%D9%84%D8%AA%D8%A7%D9%85%D9%8A%D8%B1%D8%A7)
+</Markdown>
+
+<Markdown id="loc_italica" title="إيتاليكا">
+### إيتاليكا
+
+![Amphitheatre at Italica](https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Amphitheatre_Italica%2C_Spain.jpg/330px-Amphitheatre_Italica%2C_Spain.jpg)
+
+تقع إيتاليكا خارج مدينة إشبيلية الحديثة مباشرة، وقد أسسها القائد الروماني سكيبيو الأفريقي عام 206 قبل الميلاد لتوطين جنوده بعد هزيمة حسدروبعل، أخي حنبعل، في معركة إيليبا. نمت لتصبح واحدة من كبرى مدن هسبانيا الرومانية، وكانت مسقط رأس الإمبراطورَين تراجان وهادريان. مدرجها الضخم، أحد أكبر المدرجات في الإمبراطورية الرومانية، لا يزال قائمًا حتى اليوم.
+
+[اقرأ المزيد على ويكيبيديا](https://en.wikipedia.org/wiki/Italica)
+</Markdown>
+
+<Markdown id="loc_mezquita" title="مسجد-كاتدرائية قرطبة">
+### مسجد-كاتدرائية قرطبة
+
+![Interior arches of the Mezquita](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Mezquita_de_C%C3%B3rdoba_desde_el_aire_%28C%C3%B3rdoba%2C_Espa%C3%B1a%29.jpg/330px-Mezquita_de_C%C3%B3rdoba_desde_el_aire_%28C%C3%B3rdoba%2C_Espa%C3%B1a%29.jpg)
+
+بدأ جامع قرطبة كمسجد عام 784 ميلادي وأصبح أعظم مسجد في غرب العالم الإسلامي. غابته التي تضم أكثر من 850 عمودًا بأقواسها المخططة بالأحمر والأبيض تُشكّل واحدة من أكثر الفضاءات الداخلية شهرة في تاريخ العمارة. بعد الاسترداد المسيحي عام 1236، بُنيت كاتدرائية في داخله -- مما خلق مبنى لا نظير له في العالم.
+
+[اقرأ المزيد على ويكيبيديا](https://ar.wikipedia.org/wiki/%D8%AC%D8%A7%D9%85%D8%B9_%D9%82%D8%B1%D8%B7%D8%A8%D8%A9)
+</Markdown>
+
+<Markdown id="loc_alhambra" title="قصر الحمراء">
+### قصر الحمراء
+
+![The Alhambra from the Albaicín, Granada](https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Dawn_Charles_V_Palace_Alhambra_Granada_Andalusia_Spain.jpg/330px-Dawn_Charles_V_Palace_Alhambra_Granada_Andalusia_Spain.jpg)
+
+قصر الحمراء هو مجمع قصور وقلعة في غرناطة، بُني بشكل رئيسي بين القرنين الثالث عشر والرابع عشر على يد بني نصر -- آخر الحكام المسلمين في إسبانيا. نقوشه الجصية المعقدة وفسيفساء البلاط وأفنيته الهادئة تمثل ذروة الفن الإسلامي في أوروبا. في عام 1492، سُلّم إلى فرديناند وإيزابيلا، منهيًا ما يقارب 800 عام من الحكم الإسلامي في شبه الجزيرة الأيبيرية.
+
+[اقرأ المزيد على ويكيبيديا](https://ar.wikipedia.org/wiki/%D9%82%D8%B5%D8%B1_%D8%A7%D9%84%D8%AD%D9%85%D8%B1%D8%A7%D8%A1)
+</Markdown>
+
+<Markdown id="loc_seville_cathedral" title="كاتدرائية إشبيلية">
+### كاتدرائية إشبيلية
+
+![Seville Cathedral and Giralda tower](https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Sevilla_Cathedral_-_Southeast.jpg/330px-Sevilla_Cathedral_-_Southeast.jpg)
+
+كاتدرائية إشبيلية هي أكبر كاتدرائية قوطية في العالم، بُنيت بين عامَي 1402 و1506 على موقع مسجد موحّدي سابق. يُقال إن بُناتها أعلنوا: "فلنبنِ كنيسة بالغة الجمال والعظمة بحيث يظن من يراها أننا مجانين." تضم ضريح كريستوفر كولومبوس وتقف بجوار الخيرالدة، وهي برج جرس حُوِّل من المئذنة الأصلية للمسجد. خلال عصر الإمبراطورية الإسبانية، كانت إشبيلية تتحكم في كل التجارة مع الأمريكتين.
+
+[اقرأ المزيد على ويكيبيديا](https://ar.wikipedia.org/wiki/%D9%83%D8%A7%D8%AA%D8%AF%D8%B1%D8%A7%D8%A6%D9%8A%D8%A9_%D8%A5%D8%B4%D8%A8%D9%8A%D9%84%D9%8A%D8%A9)
+</Markdown>
+
+<Markdown id="loc_hagia_sophia" title="آيا صوفيا">
+### آيا صوفيا
+
+![Hagia Sophia](https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Hagia_Sophia_%28228968325%29.jpeg/330px-Hagia_Sophia_%28228968325%29.jpeg)
+
+بُنيت عام 537 ميلادي بأمر من الإمبراطور البيزنطي جستنيان الأول، وكانت آيا صوفيا في إسطنبول أكبر كاتدرائية في العالم لما يقارب ألف عام. بعد الفتح العثماني عام 1453، حُوِّلت إلى مسجد، وطُليت فسيفساؤها المسيحية بالجص وأُضيفت المآذن إلى أفق المدينة. قبتها الضخمة -- بارتفاع 55 مترًا والتي تبدو كأنها تطفو على حلقة من النوافذ -- كانت إعجازًا هندسيًا أثّر في العمارة لقرون.
+
+[اقرأ المزيد على ويكيبيديا](https://ar.wikipedia.org/wiki/%D8%A2%D9%8A%D8%A7_%D8%B5%D9%88%D9%81%D9%8A%D8%A7)
+</Markdown>
+
+<Markdown id="loc_petra" title="البتراء">
+### البتراء
+
+![Ad Deir, Petra](https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Al_Deir_Petra.JPG/330px-Al_Deir_Petra.JPG)
+
+البتراء مدينة نبطية قديمة منحوتة في صخور الحجر الرملي الأحمر في جنوب الأردن. كانت محورًا رئيسيًا على طرق تجارة البخور، وازدهرت من القرن الرابع قبل الميلاد حتى سيطر عليها الرومان عام 106 ميلادي. الدخول عبر السيق -- ممر ضيق يزيد طوله عن كيلومتر -- ينتهي بالكشف عن الخزنة، أحد أكثر المشاهد إثارة في عالم السفر. ظلت المدينة مجهولة للعالم الغربي لقرون، حتى أعاد اكتشافها مستكشف سويسري عام 1812.
+
+[اقرأ المزيد على ويكيبيديا](https://ar.wikipedia.org/wiki/%D8%A7%D9%84%D8%A8%D8%AA%D8%B1%D8%A7%D8%A1)
+</Markdown>
+
+<Markdown id="loc_ziggurat_ur" title="زقورة أور">
+### زقورة أور
+
+![The Ziggurat of Ur](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Ziggarat_of_Ur_001.jpg/330px-Ziggarat_of_Ur_001.jpg)
+
+تنهض زقورة أور من صحراء جنوب العراق المنبسطة، بناها الملك أور-نمو حوالي عام 2100 قبل الميلاد معبدًا لإله القمر السومري نانا. وهي من أفضل المباني المحفوظة من بلاد ما بين النهرين القديمة -- مهد الحضارة حيث نشأت الكتابة والقوانين والمدن لأول مرة. أُعيد ترميمها جزئيًا في الثمانينيات، وتقف بالقرب من أطلال أور التي كانت واحدة من أكبر مدن العالم وأغناها قبل أربعة آلاف سنة.
+
+[اقرأ المزيد على ويكيبيديا](https://ar.wikipedia.org/wiki/%D8%B2%D9%82%D9%88%D8%B1%D8%A9_%D8%A3%D9%88%D8%B1)
+</Markdown>
+
+<Markdown id="loc_lake_turkana" title="بحيرة توركانا">
+### بحيرة توركانا
+
+![Lake Turkana](https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Lake_turkana.jpg/330px-Lake_turkana.jpg)
+
+بحيرة توركانا في شمال كينيا هي أكبر بحيرة صحراوية دائمة في العالم، تُعرف بـ"بحر اليشم" بسبب لونها الأخضر المُزرقّ اللافت. المشهد الطبيعي بركاني تعصف به الرياح -- حقول حمم بركانية وأرض متشققة ومياه تبدو وكأنها تنتمي لكوكب آخر. الساحل الشرقي للبحيرة عند كوبي فورا هو أحد أغنى مواقع الحفريات البشرية على الإطلاق، حيث أعادت اكتشافات مثل "فتى توركانا" تشكيل فهمنا لتطور الإنسان.
+
+[اقرأ المزيد على ويكيبيديا](https://ar.wikipedia.org/wiki/%D8%A8%D8%AD%D9%8A%D8%B1%D8%A9_%D8%AA%D9%88%D8%B1%D9%83%D8%A7%D9%86%D8%A7)
+</Markdown>
+
+<Markdown id="loc_qin_shi_huang" title="ضريح تشين شي هوانغ">
+### ضريح تشين شي هوانغ
+
+![The Terracotta Army](https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/51714-Terracota-Army.jpg/330px-51714-Terracota-Army.jpg)
+
+وحّد تشين شي هوانغ الصين عام 221 قبل الميلاد، ووحّد كتابتها وأوزانها وعملتها -- وأمر بحرق كتب مئات المدارس الفكرية التي سبقته. استغرق بناء ضريحه قرب مدينة شيآن 700,000 عامل. أكثر من 8,000 محارب من الطين المحروق، كل منهم منحوت على حدة، يحرسون الحفر الخارجية، لكن القبر المركزي لم يُفتح قط. تصف النصوص القديمة أنهارًا من الزئبق تتدفق عبر نموذج مصغّر لإمبراطوريته في الداخل.
+
+[اقرأ المزيد على ويكيبيديا](https://en.wikipedia.org/wiki/Mausoleum_of_the_First_Qin_Emperor)
+</Markdown>
+
+<Markdown id="loc_forbidden_city" title="المدينة المحرّمة">
+### المدينة المحرّمة
+
+![The Forbidden City viewed from Coal Hill](https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/The_Forbidden_City_-_View_from_Coal_Hill.jpg/330px-The_Forbidden_City_-_View_from_Coal_Hill.jpg)
+
+كانت المدينة المحرّمة في بكين القصر الإمبراطوري لما يقارب 500 عام، من 1420 إلى 1912. خلف أسوارها التي يبلغ ارتفاعها 8 أمتار وخندقها الذي يبلغ عرضه 52 مترًا، عاش 24 إمبراطورًا من سلالتَي مينغ وتشينغ وحكموا وعقدوا مجالسهم في مجمّع يضم 980 مبنى وما يقارب 9,000 غرفة. كان دخول عامة الناس محظورًا -- ومن هنا جاء الاسم. واليوم هي متحف يستقبل ملايين الزوار كل عام.
+
+[اقرأ المزيد على ويكيبيديا](https://ar.wikipedia.org/wiki/%D8%A7%D9%84%D9%85%D8%AF%D9%8A%D9%86%D8%A9_%D8%A7%D9%84%D9%85%D8%AD%D8%B1%D9%85%D8%A9)
+</Markdown>
+
+<Markdown id="loc_west_lake" title="البحيرة الغربية">
+### البحيرة الغربية
+
+![West Lake, Hangzhou](https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/West_Lake%2C_Hangzhou_2025.jpg/330px-West_Lake%2C_Hangzhou_2025.jpg)
+
+ألهمت البحيرة الغربية في هانغتشو الشعراء والرسامين ومصممي الحدائق الصينيين لأكثر من ألف عام. محاطة بتلال ضبابية ومعابد وممرات تصطف عليها أشجار الصفصاف، احتُفي بها نموذجًا للانسجام بين الإنسان والطبيعة. أثّر جمال البحيرة في تصميم الحدائق في شرق آسيا بأكمله -- فحدائق سوتشو وكيوتو وسيول جميعها تعود بتأثرها إلى هذا المكان.
+
+[اقرأ المزيد على ويكيبيديا](https://en.wikipedia.org/wiki/West_Lake)
+</Markdown>
+
+<!-- === Personas === -->
+
+<Markdown id="persona_tourist" title="سائح">
+### سائح
+
+تزور هذا المَعلم للمرة الأولى. كل شيء جديد ومثير. تريد أن تشارك صديقًا في الوطن ما تراه وتسمعه وتشمّه وتشعر به.
+</Markdown>
+
+<Markdown id="persona_local_child" title="طفل من المنطقة">
+### طفل من المنطقة
+
+كبرتَ بالقرب من هذا المَعلم. إنه جزء من حياتك اليومية -- تراه في طريقك إلى المدرسة، ومنسوج في حكايات العائلة، ومحاط بالسياح. له معنى مختلف حين يكون ببساطة *هناك*.
+</Markdown>
+
+<Markdown id="persona_archaeologist" title="عالم آثار">
+### عالم آثار
+
+باحث أمضى سنوات في دراسة هذا الموقع. يلاحظ تفاصيل تاريخية وتقنيات بناء ودلالات ثقافية يمرّ بها معظم الزوار دون أن ينتبهوا.
+</Markdown>
+
+<Markdown id="persona_merchant" title="تاجر">
+### تاجر (تاريخي)
+
+تاجر من قرون مضت، يمر عبر طريق تجاري. يرى الموقع في أوج ازدهاره، يعجّ بالحركة والناس الذين يبيعون ويشترون.
+</Markdown>
+
+<Markdown id="persona_restorer" title="مرمّم">
+### مرمّم
+
+يعمل في فريق الترميم الذي يحافظ على هذا الموقع من الانهيار. يعرف كل شقّ وكل رقعة وكل بقعة يتسرب منها المطر. يقضي يومه على السقالات أو في غرف التخزين مع أدوات لم يرها معظم الناس من قبل. يرى هذا المكان من الداخل -- حرفيًا.
+</Markdown>
+
+<Markdown id="persona_guard" title="حارس ليلي">
+### حارس ليلي
+
+يعمل في المناوبة الليلية. بعد أن يغادر آخر الزوار وتُطفأ الأضواء، يصبح هذا المكان ملكه. الأصوات مختلفة في الليل. الظلال تتحرك. يعرف المبنى بحاسة اللمس بقدر ما يعرفه بالبصر.
+</Markdown>
+
+<Markdown id="persona_soldier" title="جندي">
+### جندي (تاريخي)
+
+متمركز هنا -- يحرس سورًا أو بوابة أو حدودًا. هذا المكان العظيم مجرد مكان عمل، ومعظم الأيام مملة. يفكر في الوطن، وفي الطعام، وفي من تركهم خلفه. إحدى عجائب الدنيا ليست سوى المكان الذي يذهب إليه للعمل.
+</Markdown>
+
+<Markdown id="persona_pilgrim" title="حاج">
+### حاج (تاريخي)
+
+سافر لأسابيع أو أشهر سيرًا على الأقدام ليصل إلى هذا المكان. إنه ليس وجهة سياحية -- بل هو غاية الرحلة. قد يبحث عن الشفاء أو المغفرة أو المعرفة أو التجارة. وقد وصل للتوّ بعد طريق طويل.
+</Markdown>
+
+<Markdown id="persona_spy" title="جاسوس">
+### جاسوس (تاريخي)
+
+ليس كما يبدو. يمر بهذا المكان لجمع معلومات -- عن تحركات الجيوش أو طرق التجارة أو التحالفات السياسية أو تقنيات البناء. لكل شيء معنى مزدوج. يجب أن تبدو البطاقة البريدية بريئة لكنها تلمّح إلى ما يراقبه حقًا.
+</Markdown>
+
+<Markdown id="persona_artist" title="فنان">
+### فنان
+
+جاء إلى هنا ليرسم. يرى هذا المكان من خلال الضوء والظل والخطوط والألوان. يلاحظ أشياء يمرّ بها الزوار الآخرون دون انتباه -- الطريقة التي يلتقط بها الحجر ضوء العصر، أو هندسة قوس، أو ملمس درجة بالية.
+</Markdown>
+
+<!-- === The Activity === -->
+
+<Sequential id="postcard_activity" title="بطاقة بريدية من التاريخ" launchable="true">
+
+  <!-- Step 1: Choose location -->
+  <Vertical id="postcard_step_1" title="اختر موقعك">
+    <Markdown id="postcard_intro">
+## بطاقة بريدية من التاريخ
+
+ستكتب بطاقة بريدية قصيرة من منظور شخص يتواجد عند مَعلم تاريخي شهير. أولًا، اختر موقعك.
+    </Markdown>
+    <Carousel id="postcard_location" wrap="true" randomize="true">
+      loc_great_wall, loc_machu_picchu, loc_pyramids, loc_colosseum, loc_taj_mahal, loc_altamira, loc_italica, loc_mezquita, loc_alhambra, loc_seville_cathedral, loc_hagia_sophia, loc_petra, loc_ziggurat_ur, loc_lake_turkana, loc_qin_shi_huang, loc_forbidden_city, loc_west_lake
+    </Carousel>
+  </Vertical>
+
+  <!-- Step 2: Research your location -->
+  <Vertical id="postcard_step_2" title="ملاحظات البحث">
+    <Markdown id="postcard_research_intro">
+## ابحث عن موقعك
+
+اخترتَ **{{@postcard_location.title}}**. مهمتك أن تكتشف كيف سيكون الشعور بالتواجد هناك فعلًا. حاول البحث عن مدوّنات سفر أو معارض صور أو مقاطع فيديو -- وليس فقط ويكيبيديا.
+
+دوِّن ملاحظات حول:
+- ما **تراه** -- المشهد الطبيعي، والألوان، والضوء، والحشود أو الفراغ
+- ما **تسمعه أو تشمّه أو تشعر به** -- الرياح، والحرارة، والغبار، والأصداء، والصمت
+- كيف يبدو **المكان عن قرب** -- حجارة متآكلة، أو درجات شديدة الانحدار، أو ممرات ضيقة، أو مناظر مفتوحة واسعة
+- أي شيء **فاجأك** -- شيء لم تكن لتعرفه دون البحث عنه
+    </Markdown>
+    <Collapsible id="postcard_research_example" title="شاهد مثالًا (برج إيفل)">
+      <Markdown id="postcard_research_example_text">
+**برج إيفل -- ملاحظات بحث**
+
+*من مدوّنات السفر والصور:*
+* القاعدة ضخمة جدًا عن قرب -- الأرجل الحديدية تعلو فوقك ويمكنك رؤية المسامير
+* طوابير طويلة تحت الشمس، الناس يُروّحون عن أنفسهم، والباعة يبيعون الماء البارد
+* الدرج من شبك معدني -- يمكنك رؤية الأسفل مباشرة من خلاله، وهذا مخيف
+* الرياح تشتد كلما صعدت؛ والهيكل كله يطنّ ويهتزّ قليلًا
+* من القمة، تبدو باريس صغيرة ومنبسطة -- يمكنك رؤية أميال
+* في الليل، 20,000 مصباح تتلألأ لمدة 5 دقائق كل ساعة -- الناس على العشب أدناه يهللون في كل مرة
+* الحديقة أسفل البرج تفوح منها رائحة الكريب ودخان السجائر
+* رسومات محفورة على الدرابزين الحديدي -- أسماء وتواريخ من عقود مضت
+      </Markdown>
+    </Collapsible>
+    <TextArea id="postcard_research_notes" rows="6" placeholder="حقائق مثيرة، تفاصيل، أشياء لاحظتها..." />
+  </Vertical>
+
+  <!-- Step 3: Choose persona -->
+  <Vertical id="postcard_step_3" title="اختر شخصيتك">
+    <Markdown id="postcard_persona_header">
+## اختر شخصية
+
+بصفة مَن ستكتب عند **{{@postcard_location.title}}**؟
+    </Markdown>
+    <Carousel id="postcard_persona" wrap="true" randomize="true">
+      persona_tourist, persona_local_child, persona_archaeologist, persona_merchant, persona_restorer, persona_guard, persona_soldier, persona_pilgrim, persona_spy, persona_artist
+    </Carousel>
+  </Vertical>
+
+  <!-- Step 4: Develop your persona -->
+  <Vertical id="postcard_step_4" title="طوِّر شخصيتك">
+    <Markdown id="postcard_persona_dev_intro">
+## طوِّر شخصيتك
+
+أنت **{{@postcard_persona.title}}** عند **{{@postcard_location.title}}**. اخترع شخصًا حقيقيًا. أعطِه قصة حياة:
+- ما اسمه؟ من أين هو؟
+- من هم أصدقاؤه وعائلته؟ لمن يكتب هذه البطاقة البريدية؟
+- ماذا يفعل يومًا بيوم؟
+- ما الذي قد يلاحظه أو يعيشه ولا ينتبه إليه الآخرون؟
+    </Markdown>
+    <Collapsible id="postcard_persona_example" title="شاهد مثالًا (بائع متجول عند برج إيفل)">
+      <Markdown id="postcard_persona_example_text">
+**بائع متجول على الزاوية قرب برج إيفل**
+
+* يبيع نسخًا رخيصة مقلّدة من البرج، وسلاسل مفاتيح، وأعلامًا صغيرة
+* تطارده الشرطة بين الحين والآخر -- عليه أن يجمع كل شيء ويركض
+* أمضى بضعة أشهر في السجن على مر السنين بسبب النشل والبيع بلا ترخيص
+* لديه طفلان يتسوّلان أحيانًا في الشارع القريب
+* لا يُعرف مكان الوالد/الوالدة الآخر/الأخرى
+* أحيانًا يضايقه السكان المحليون الذين يرون أن الباعة المتجولين يسيئون لمظهر المنطقة
+* يعرف كل اختصار ومخبأ في نطاق ثلاثة شوارع من البرج
+* شاهد البرج يتلألأ آلاف المرات -- ولا يزال يراه جميلًا
+* يتكلم بضع كلمات بخمس لغات، بما يكفي لإتمام عملية بيع
+* يكتب لابن عمه في الوطن الذي يحلم بالمجيء إلى باريس يومًا ما
+      </Markdown>
+    </Collapsible>
+    <TextArea id="postcard_persona_notes" rows="6" placeholder="من هذا الشخص؟ كيف تبدو حياته؟ ما الذي يهمّه؟" />
+  </Vertical>
+
+  <!-- Step 5: Write the postcard -->
+  <Vertical id="postcard_step_5" title="اكتب بطاقتك البريدية">
+    <Markdown id="postcard_write_instructions">
+## اكتب بطاقتك البريدية
+
+أنت **{{@postcard_persona.title}}** عند **{{@postcard_location.title}}**.
+
+اكتب بطاقة بريدية قصيرة (4-8 جمل) من منظور هذا الشخص. استخدم ملاحظات بحثك وشخصيتك لتجعلها تبدو حقيقية. تأكد من تضمين:
+- ما تراه حولك
+- كيف تشعر بوجودك هنا
+- تفصيل لا يلاحظه إلا شخص في دورك
+    </Markdown>
+    <Collapsible id="postcard_my_notes" title="ملاحظاتي">
+      <Markdown id="postcard_my_notes_research">
+### ملاحظات البحث
+
+{{text2markdown(@postcard_research_notes.value)}}
+
+---
+
+### ملاحظات الشخصية
+
+{{text2markdown(@postcard_persona_notes.value)}}
+      </Markdown>
+    </Collapsible>
+    <TextArea id="postcard_draft" rows="8" placeholder="صديقي العزيز، ..." />
+    <Markdown id="postcard_draft_wordcount">{{wordcount(@postcard_draft.value) &lt; 20 ? "سيظهر زر الإرسال عندما تكتب ما يكفي للحصول على تعليقات." : "أكمل الكتابة..."}}</Markdown>
+    <ActionButton id="postcard_submit" label="أرسل للحصول على تعليقات" dependsOn="wordcount(@postcard_draft.value) >= 20 &amp;&amp; !@postcard_draft.readonly">
+      <CopyFieldAction target="postcard_draft" output="postcard_final" />
+      <LLMAction id="postcard_llm" target="postcard_feedback">
+        أنت تقدم تعليقات لطالب في المرحلة المتوسطة على بطاقة بريدية قصيرة. كن ودودًا ومحددًا وموجزًا. لا تُعِد كتابة نصه ولا تقترح جملًا بعينها. اكتفِ بطرح الأسئلة.
+
+        الطالب يكتب بصفته **<Ref target="postcard_persona" field="title" />** عند **<Ref target="postcard_location" field="title" />**.
+
+        ملاحظات بحثه عن الموقع:
+        <Ref target="postcard_research_notes" />
+
+        ملاحظاته عن تطوير الشخصية:
+        <Ref target="postcard_persona_notes" />
+
+        اقرأ مسودة الطالب بعناية، إلى جانب ملاحظات بحثه وشخصيته. ثم اطرح 2-3 أسئلة من شأنها أن تساعد هذا الطالب بالذات على تحسين هذه البطاقة البريدية بالذات. اختر ما هو الأهم لمسودته -- وقد يكون:
+
+        - التفاصيل الحسية (كيف كان ملمس الحجر تحت يديك؟)
+        - المشاعر أو ردود الفعل (كيف شعرت حين رأيته لأول مرة؟)
+        - السرد (إلى أين ركضت حين اكتشفك الحارس؟)
+        - الصوت والشخصية (ما الذي قد تلاحظه شخصيتك ولا يلاحظه سائح عادي؟)
+        - الجمهور (من يقرأ هذه البطاقة البريدية -- ما الذي يريد أن يسمع عنه؟)
+        - البنية (لديك بداية رائعة -- كيف تريد أن تنهيها؟)
+        - توظيف البحث (ملاحظاتك تذكر تضاريس شديدة الانحدار -- هل يمكن لشخصيتك أن تتفاعل مع ذلك؟)
+        - الأسلوب (هل يمكنك إبطاء هذه اللحظة ليراها القارئ بوضوح؟)
+        - المفردات (كتبت "ذهبت" -- هل هناك كلمة أدق تصف طريقة تنقل شخصيتك؟)
+        - الطول والتركيز (هل هناك تفصيل يستحق أن يتوسع ليصبح جملتين؟)
+
+        القائمة أعلاه فقط لإظهار النطاق. لا تغطِّ كل هذه النقاط -- اختر 2-3 أسئلة قصيرة ستُحدث الفرق الأكبر في مسودة هذا الطالب بالذات. اجعل كل سؤال موجزًا -- جملة واحدة مثالية. اجعل كل سؤال محددًا لما كتبه وما بحث عنه. لا تكتب جملًا نموذجية ولا تقترح كلمات بعينها. فقط اطرح أسئلة يستطيع الطالب الإجابة عنها بإضافة جملة أو اثنتين أو إعادة صياغتهما.
+
+        قدم تعليقاتك في ثلاثة أقسام قصيرة كحد أقصى:
+
+        **البحث** (فقط إذا لزم الأمر)
+        إذا كانت ملاحظات بحث الطالب ضعيفة أو فارغة أو تقتصر على حقائق موسوعية، اقترح بإيجاز ما يمكنه البحث عنه وأين. كن محددًا بالنسبة لموقعه -- مثلًا، بالنسبة لسور الصين العظيم، قد تقترح النظر إلى صور رحلة التسلق أو لقطات مقربة للحجارة المتآكلة أو وصف مدوّنات السفر للتضاريس. بالنسبة للكولوسيوم، قد تقترح البحث عن شكل الأنفاق تحته. وجّهه نحو نوع التفاصيل الحسية والتجريبية التي ستجعل بطاقته البريدية أكثر حيوية. اجعل هذا في جملة أو اثنتين. تجاوز هذا القسم كليًا إذا كانت ملاحظات بحثه تتضمن بالفعل تفاصيل حسية وتجريبية جيدة.
+
+        **أسئلة للتفكير** (2-3 نقاط كحد أقصى)
+
+        **إصلاحات سريعة** (فقط إذا لزم الأمر)
+        أشِر بإيجاز إلى أي أخطاء نحوية أو إملائية. تجاوز هذا القسم كليًا إذا كانت الكتابة سليمة.
+
+        بطاقة الطالب البريدية:
+        <Ref target="postcard_draft" />
+      </LLMAction>
+      <SetFieldAction target="postcard_draft" field="readonly" value="true" />
+      <SetFieldAction target="postcard_location" field="readonly" value="true" />
+      <SetFieldAction target="postcard_persona" field="readonly" value="true" />
+    </ActionButton>
+    <LLMFeedback id="postcard_feedback" />
+  </Vertical>
+
+  <!-- Step 6: Revise -->
+  <Vertical id="postcard_step_6" title="راجع بطاقتك البريدية">
+    <Markdown id="postcard_revise_instructions">
+## راجع بطاقتك البريدية
+
+اطّلع على التعليقات أدناه واكتب نسختك النهائية.
+
+### مسودتك الأصلية
+    </Markdown>
+    <Use ref="postcard_draft" />
+    <Markdown id="postcard_feedback_header">
+### التعليقات
+    </Markdown>
+    <Use ref="postcard_feedback" />
+    <Markdown id="postcard_final_header">
+### بطاقتك البريدية المُنقّحة
+    </Markdown>
+    <TextArea id="postcard_final" rows="8" placeholder="صديقي العزيز، ..." />
+    <ActionButton id="postcard_final_submit" label="أرسل النسخة النهائية" dependsOn="wordcount(@postcard_final.value) >= 20 &amp;&amp; !@postcard_final.readonly">
+      <SetFieldAction target="postcard_final" field="readonly" value="true" />
+      <LLMAction id="llm_formal" target="voice_formal">
+        كتب طالب في المرحلة المتوسطة البطاقة البريدية أدناه كتمرين صفّي. نحن نريه كيف ستبدو بطاقته إذا كُيّفت لجمهور مختلف. أعِد كتابتها لجمهور رسمي -- كأنها مراسلة رسمية أو رسالة موجهة إلى شخصية بارزة. غيّر التحية والتوقيع والمفردات وبنية الجمل لتناسب المُستلِم الجديد.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_academic" target="voice_academic">
+        كتب طالب في المرحلة المتوسطة البطاقة البريدية أدناه كتمرين صفّي. نحن نريه كيف ستبدو بطاقته إذا كُيّفت لجمهور مختلف. أعِد كتابتها لجمهور أكاديمي -- كأنها تُشارَك مع باحثين. استخدم لغة دقيقة وتحليلية تناسب قرّاء متخصصين في التاريخ أو الدراسات الثقافية.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_child" target="voice_child">
+        كتب طالب في المرحلة المتوسطة البطاقة البريدية أدناه كتمرين صفّي. نحن نريه كيف ستبدو بطاقته إذا كُيّفت لجمهور مختلف. أعِد كتابتها كما لو كانت مُرسَلة إلى طفل صغير (6-7 سنوات) ليستطيع فهمها والاستمتاع بقراءتها. أبقِ على نفس المُرسِل، لكنه الآن يكتب لقريب صغير. استخدم كلمات بسيطة وجملًا قصيرة واشرح أي فكرة كبيرة بطريقة يجدها طفل صغير مشوّقة.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_literary" target="voice_literary">
+        كتب طالب في المرحلة المتوسطة البطاقة البريدية أدناه كتمرين صفّي. نحن نريه كيف ستبدو بطاقته إذا كُيّفت لجمهور مختلف. أعِد كتابتها كما لو كان كاتب ينشرها على مدوّنة سفره الأدبية، لقرّاء يقدّرون النثر الأدبي. استخدم صورًا حية وتفاصيل حسية وإيقاعًا متنوعًا في الجمل.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_business" target="voice_business">
+        كتب طالب في المرحلة المتوسطة البطاقة البريدية أدناه كتمرين صفّي. نحن نريه كيف ستبدو بطاقته إذا كُيّفت لجمهور مختلف. أعِد كتابتها كما لو كانت مُرسَلة إلى زملاء عمل -- كتحديث سفر موجز أو مذكرة رحلة مهنية. ركّز على الملاحظات الأساسية والاستنتاجات العملية والنبرة المهنية.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <!-- Step 7: Explore different voices -->
+  <Vertical id="postcard_step_7" title="بطاقتك البريدية بأصوات مختلفة">
+    <Markdown id="postcard_voices_intro">
+## الكتابة لجماهير مختلفة
+
+في وقت سابق، اخترتَ *مَن* يكتب -- سائح، طفل، عالم آثار. كان ذلك يتعلق بمنظور المُرسِل.
+
+الآن لنفكر في *المُستلِم*. الرسالة نفسها تتغير بحسب مَن تكتب *له*. قارن كيف تبدو بطاقتك البريدية حين تُكيَّف لطفل صغير أو لقرّاء أكاديميين أو لزملاء عمل. المحتوى يبقى كما هو، لكن المفردات وبنية الجمل والنبرة تتغير لتناسب الجمهور.
+    </Markdown>
+    <Use ref="postcard_final" />
+    <Tabs id="postcard_voices">
+      <LLMFeedback id="voice_formal" title="رسمي" />
+      <LLMFeedback id="voice_academic" title="أكاديمي" />
+      <LLMFeedback id="voice_child" title="للأطفال" />
+      <LLMFeedback id="voice_literary" title="أدبي" />
+      <LLMFeedback id="voice_business" title="مهني" />
+    </Tabs>
+  </Vertical>
+
+  <!-- Step 8: Export -->
+  <Vertical id="postcard_step_8" title="صدِّر عملك">
+    <Markdown id="postcard_export_intro">
+## صدِّر بطاقتك البريدية
+
+راجع عملك أدناه، ثم صدِّره كملف PDF.
+    </Markdown>
+    <ActionButton id="postcard_export" label="تصدير كملف PDF">
+      <PrintAction id="postcard_print" />
+    </ActionButton>
+
+    <!-- Page 1: Choices + final draft -->
+    <Markdown id="export_page1">
+### أين ومَن
+
+**الموقع:** {{@postcard_location.title}}
+
+**الشخصية:** {{@postcard_persona.title}}
+
+---
+
+### البطاقة البريدية النهائية
+
+{{@postcard_final.value}}
+    </Markdown>
+
+    <!-- Page 2: Research + persona development -->
+    <Markdown id="export_page2" class="print-page-break">
+### ملاحظات البحث
+
+{{text2markdown(@postcard_research_notes.value)}}
+
+---
+
+### ملاحظات الشخصية
+
+{{text2markdown(@postcard_persona_notes.value)}}
+    </Markdown>
+
+    <!-- Page 3: Draft + feedback -->
+    <Markdown id="export_page3" class="print-page-break">
+### المسودة الأصلية
+
+{{text2markdown(@postcard_draft.value)}}
+
+---
+
+### التعليقات
+
+{{@postcard_feedback.value}}
+    </Markdown>
+
+  </Vertical>
+
+</Sequential>
+
+</Vertical>
