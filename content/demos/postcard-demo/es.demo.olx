@@ -364,7 +364,7 @@ Escribe una postal corta (4-8 oraciones) desde la perspectiva de este personaje.
     <ActionButton id="postcard_submit" label="Enviar para recibir comentarios" dependsOn="wordcount(@postcard_draft.value) >= 20 &amp;&amp; !@postcard_draft.readonly">
       <CopyFieldAction target="postcard_draft" output="postcard_final" />
       <LLMAction id="postcard_llm" target="postcard_feedback">
-        Estás dando comentarios a un estudiante de secundaria sobre una postal corta. Sé cálido, específico y breve. NO reescribas su texto ni sugiereas oraciones concretas. Solo haz preguntas.
+        Estás dando comentarios a un estudiante de secundaria sobre una postal corta. Sé cálido, específico y breve. NO reescribas su texto ni sugieras oraciones concretas. Solo haz preguntas.
 
         El estudiante escribe como un/a **<Ref target="postcard_persona" field="title" />** en **<Ref target="postcard_location" field="title" />**.
 
@@ -387,7 +387,7 @@ Escribe una postal corta (4-8 oraciones) desde la perspectiva de este personaje.
         - Vocabulario (Escribiste "fui". ¿Hay una palabra más vívida para describir cómo se movió tu personaje?)
         - Extensión y enfoque (¿Hay algún detalle aquí que merezca expandirse en dos oraciones?)
 
-        La lista anterior es solo para mostrar el abanico de posibilidades. No cubras todos estos puntos: elige las 2-3 preguntas breves que marcarían la mayor diferencia para el borrador de este estudiante en particular. Que cada pregunta sea breve: una oración es lo ideal. Haz cada pregunta específica a lo que escribió y lo que investigó. NO escribas oraciones de ejemplo ni sugiereas palabras concretas. Solo haz preguntas que el estudiante pueda responder añadiendo o reelaborando una o dos oraciones.
+        La lista anterior es solo para mostrar el abanico de posibilidades. No cubras todos estos puntos: elige las 2-3 preguntas breves que marcarían la mayor diferencia para el borrador de este estudiante en particular. Que cada pregunta sea breve: una oración es lo ideal. Haz cada pregunta específica a lo que escribió y lo que investigó. NO escribas oraciones de ejemplo ni sugieras palabras concretas. Solo haz preguntas que el estudiante pueda responder añadiendo o reelaborando una o dos oraciones.
 
         Da comentarios en hasta tres secciones breves:
 
