@@ -1,14 +1,14 @@
-// packages/shared/lib/util/formula.ts
+// lib/grading/formula.ts — Thin glue: maps grader framework ↔ calc/ for formula grading.
 //
-// Formula grading utilities — match function, attribute validation, and input validation.
-// Extracted from FormulaGrader.ts so the block file is a thin wrapper.
-//
-// Attribute validation is decomposed into focused sub-validators that are
-// individually testable and reusable.
+// Match function is a pure predicate. Validators compose calc/ primitives.
 
-import { checkFormula, validateSamplesSpec } from '@/lib/util/calc/grader.js';
-import { evaluator, parse, collectIdentifiers, DEFAULT_VARIABLES, DEFAULT_FUNCTIONS } from '@/lib/util/calc/index.js';
-import { validateTolerance } from '@/lib/util/calc/types';
+import {
+  checkFormula,
+  validateSamplesSpec,
+  validateTolerance,
+  evaluator,
+} from '@/lib/util/calc/index.js';
+import { parse, collectIdentifiers, DEFAULT_VARIABLES, DEFAULT_FUNCTIONS } from '@/lib/util/calc/index.js';
 import type { SamplesSpec } from '@/lib/util/calc/types';
 
 /** Names that are built-in and don't need to appear in a samples spec. */
@@ -16,10 +16,6 @@ const BUILTIN_NAMES = new Set([
   ...Object.keys(DEFAULT_VARIABLES),
   ...Object.keys(DEFAULT_FUNCTIONS),
 ]);
-
-// ═══════════════════════════════════════════════════════════════════════
-// Match Function
-// ═══════════════════════════════════════════════════════════════════════
 
 export interface FormulaMatchOptions {
   samples?: string;
@@ -33,8 +29,6 @@ export interface FormulaMatchOptions {
  *
  * Compares a student formula against an expected formula by evaluating
  * both at random sample points and checking equality within tolerance.
- *
- * Registered in the DSL as `formulaMatch(@answer.value, "x^2", { samples: "x@-5:5#10" })`.
  */
 export function formulaMatch(
   input: string,
@@ -65,14 +59,7 @@ export function formulaMatch(
 // ═══════════════════════════════════════════════════════════════════════
 // Attribute Validation (parse-time, teacher-facing)
 // ═══════════════════════════════════════════════════════════════════════
-//
-// Decomposed into focused sub-validators. Each returns error(s) or undefined.
-// The top-level validateFormulaAttributes collects them into a pipeline.
 
-/**
- * Parse an answer formula and extract its user-defined variables.
- * Returns the parsed AST and variable set, or an error message.
- */
 function validateAnswerFormula(answer: string): { ast: any; vars: Set<string> } | string {
   try {
     const ast = parse(answer);
@@ -84,9 +71,6 @@ function validateAnswerFormula(answer: string): { ast: any; vars: Set<string> } 
   }
 }
 
-/**
- * Generate a concrete, copy-pasteable samples suggestion when samples is missing.
- */
 function suggestSamplesSpec(answerVars: Set<string>): string {
   if (answerVars.size === 0) {
     return 'samples is required (e.g. "x@-5:5#10").';
@@ -108,10 +92,6 @@ function suggestSamplesSpec(answerVars: Set<string>): string {
   );
 }
 
-/**
- * Cross-validate answer variables against sample variables.
- * Respects the caseSensitive setting.
- */
 function crossValidateVariablesAndSamples(
   answerVars: Set<string>,
   sampleSpec: SamplesSpec,
@@ -143,9 +123,6 @@ function crossValidateVariablesAndSamples(
   return errors;
 }
 
-/**
- * Build test variable values at the midpoint of each range.
- */
 function midpointVars(sampleSpec: SamplesSpec): { vars: Record<string, number>; description: string } {
   const vars: Record<string, number> = {};
   const parts: string[] = [];
@@ -158,9 +135,6 @@ function midpointVars(sampleSpec: SamplesSpec): { vars: Record<string, number>; 
   return { vars, description: parts.join(', ') };
 }
 
-/**
- * Test-evaluate the answer formula at sample midpoint values.
- */
 function testEvaluateAnswer(
   answer: string,
   testVars: Record<string, number>,
@@ -178,9 +152,6 @@ function testEvaluateAnswer(
   }
 }
 
-/**
- * Validate semicolon-separated additional answers.
- */
 function validateAdditionalAnswers(
   additionalAnswers: string,
   testVars: Record<string, number>,
@@ -209,20 +180,14 @@ function validateAdditionalAnswers(
 
 /**
  * Validate FormulaGrader attributes at parse time.
- *
- * Provides detailed, teacher-friendly error messages by running a pipeline of
- * focused sub-validators: tolerance, answer formula syntax, samples format,
- * variable cross-validation, and test evaluation.
  */
 export function validateFormulaAttributes(attrs: Record<string, any>): string[] | undefined {
   const errors: string[] = [];
   const caseSensitive = attrs.caseSensitive === 'true' || attrs.caseSensitive === true;
 
-  // Tolerance
   const tolError = validateTolerance(attrs.tolerance);
   if (tolError) errors.push(tolError);
 
-  // Answer formula
   let answerVars: Set<string> = new Set();
   let answerValid = false;
   if (attrs.answer) {
@@ -235,7 +200,6 @@ export function validateFormulaAttributes(attrs: Record<string, any>): string[] 
     answerValid = true;
   }
 
-  // Samples (required, but declared optional in Zod so we give a better error)
   if (!attrs.samples) {
     errors.push(suggestSamplesSpec(answerVars));
     return errors;
@@ -247,12 +211,10 @@ export function validateFormulaAttributes(attrs: Record<string, any>): string[] 
     return errors;
   }
 
-  // Cross-validate variables vs samples
   if (sampleSpec && answerVars.size > 0) {
     errors.push(...crossValidateVariablesAndSamples(answerVars, sampleSpec, caseSensitive));
   }
 
-  // Test-evaluate at midpoint
   if (sampleSpec && answerValid && errors.length === 0) {
     const { vars: testVars, description } = midpointVars(sampleSpec);
 
@@ -273,10 +235,6 @@ export function validateFormulaAttributes(attrs: Record<string, any>): string[] 
 
 /**
  * Validate that the student's input is a parseable math expression.
- *
- * When the grader has a samples spec, also checks that the student only uses
- * variables from the samples spec (plus built-ins). This catches typos like
- * "X" when only "x" is allowed, before grading runs.
  */
 export function validateFormulaInput(input: any, attrs: Record<string, any>): string[] | undefined {
   if (typeof input !== 'string') return ['Expected a string'];

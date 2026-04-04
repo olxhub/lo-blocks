@@ -1,25 +1,28 @@
 /**
  * Default math functions and constants for openedx-calc.
  * Port of calc/functions.py and the DEFAULT_* dicts from calc/calc.py.
+ *
+ * Branch cut convention: matches numpy.lib.scimath / C99. For arcsin of
+ * real x > 1, the imaginary part is positive (unlike math.js's convention).
  */
 
-import { Complex, divide, subtract, multiply, add } from './complex.js';
+import { Complex, isComplex, coerce, maybeReal, divide, subtract } from './complex.js';
 
 // --- Trig functions (with complex support) ---
 
 function sin(x) {
   if (typeof x === 'number') return Math.sin(x);
-  return Complex.sin(x);
+  return maybeReal(x.sin());
 }
 
 function cos(x) {
   if (typeof x === 'number') return Math.cos(x);
-  return Complex.cos(x);
+  return maybeReal(x.cos());
 }
 
 function tan(x) {
   if (typeof x === 'number') return Math.tan(x);
-  return Complex.tan(x);
+  return maybeReal(x.tan());
 }
 
 function sec(x) { return divide(1, cos(x)); }
@@ -27,27 +30,35 @@ function csc(x) { return divide(1, sin(x)); }
 function cot(x) { return divide(1, tan(x)); }
 
 // --- Inverse trig ---
+// Custom branch cut handling for real inputs outside domain to match
+// numpy/C99 convention (positive imaginary for arcsin(x > 1)).
 
 function arcsin(x) {
-  if (typeof x === 'number' && x >= -1 && x <= 1) return Math.asin(x);
-  return Complex.arcsin(x);
+  if (typeof x === 'number') {
+    if (x >= -1 && x <= 1) return Math.asin(x);
+    // numpy/C99: positive imaginary part for out-of-domain reals
+    if (x > 1) return new Complex(Math.PI / 2, Math.acosh(x));
+    return new Complex(-Math.PI / 2, Math.acosh(-x));
+  }
+  return maybeReal(x.asin());
 }
 
 function arccos(x) {
   if (typeof x === 'number' && x >= -1 && x <= 1) return Math.acos(x);
-  return Complex.arccos(x);
+  // Derived from arcsin to preserve branch cut convention
+  return subtract(Math.PI / 2, arcsin(x));
 }
 
 function arctan(x) {
   if (typeof x === 'number') return Math.atan(x);
-  return Complex.arctan(x);
+  return maybeReal(x.atan());
 }
 
 function arcsec(x) { return arccos(divide(1, x)); }
 function arccsc(x) { return arcsin(divide(1, x)); }
 
 function arccot(x) {
-  const re = Complex.isComplex(x) ? x.re : x;
+  const re = isComplex(x) ? x.re : x;
   if (re < 0) {
     return subtract(-Math.PI / 2, arctan(x));
   }
@@ -58,17 +69,17 @@ function arccot(x) {
 
 function sinh(x) {
   if (typeof x === 'number') return Math.sinh(x);
-  return Complex.sinh(x);
+  return maybeReal(x.sinh());
 }
 
 function cosh(x) {
   if (typeof x === 'number') return Math.cosh(x);
-  return Complex.cosh(x);
+  return maybeReal(x.cosh());
 }
 
 function tanh(x) {
   if (typeof x === 'number') return Math.tanh(x);
-  return Complex.tanh(x);
+  return maybeReal(x.tanh());
 }
 
 function sech(x) { return divide(1, cosh(x)); }
@@ -79,17 +90,17 @@ function coth(x) { return divide(1, tanh(x)); }
 
 function arcsinh(x) {
   if (typeof x === 'number') return Math.asinh(x);
-  return Complex.arcsinh(x);
+  return maybeReal(x.asinh());
 }
 
 function arccosh(x) {
   if (typeof x === 'number' && x >= 1) return Math.acosh(x);
-  return Complex.arccosh(x);
+  return maybeReal(coerce(x).acosh());
 }
 
 function arctanh(x) {
   if (typeof x === 'number' && x > -1 && x < 1) return Math.atanh(x);
-  return Complex.arctanh(x);
+  return maybeReal(coerce(x).atanh());
 }
 
 function arcsech(x) { return arccosh(divide(1, x)); }
@@ -100,38 +111,38 @@ function arccoth(x) { return arctanh(divide(1, x)); }
 
 function ln(x) {
   if (typeof x === 'number' && x > 0) return Math.log(x);
-  return Complex.log(x);
+  return maybeReal(coerce(x).log());
 }
 
 function log10(x) {
   if (typeof x === 'number' && x > 0) return Math.log10(x);
-  return Complex.log10(x);
+  return maybeReal(coerce(x).log().div(Math.LN10));
 }
 
 function log2(x) {
   if (typeof x === 'number' && x > 0) return Math.log2(x);
-  return Complex.log2(x);
+  return maybeReal(coerce(x).log().div(Math.LN2));
 }
 
 function exp(x) {
   if (typeof x === 'number') return Math.exp(x);
-  return Complex.exp(x);
+  return maybeReal(x.exp());
 }
 
 function sqrt(x) {
   if (typeof x === 'number' && x >= 0) return Math.sqrt(x);
-  return Complex.sqrt(x);
+  return maybeReal(coerce(x).sqrt());
 }
 
 // --- Other ---
 
 function abs(x) {
-  if (Complex.isComplex(x)) return x.abs();
+  if (isComplex(x)) return x.abs();
   return Math.abs(x);
 }
 
 function factorial(x) {
-  if (Complex.isComplex(x)) throw new TypeError("factorial() only accepts integral values");
+  if (isComplex(x)) throw new TypeError("factorial() only accepts integral values");
   if (!Number.isInteger(x)) throw new TypeError("factorial() only accepts integral values");
   if (x < 0) throw new ValueError("factorial() not defined for negative values");
   if (x > 170) return Infinity;

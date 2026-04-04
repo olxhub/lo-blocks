@@ -3,7 +3,7 @@
  * Port of the evaluation logic from calc/calc.py.
  */
 
-import { Complex, add, subtract, multiply, divide, negate, power } from './complex.js';
+import { isComplex, add, subtract, multiply, divide, negate, power } from './complex.js';
 import { SUFFIXES } from './functions.js';
 
 /**
@@ -69,7 +69,7 @@ function evalParallel(node, context) {
   const values = node.operands.map(op => evaluate(op, context));
   // Return NaN if any value is 0
   for (const v of values) {
-    if (v === 0 || (Complex.isComplex(v) && v.re === 0 && v.im === 0)) {
+    if (v === 0 || (isComplex(v) && v.re === 0 && v.im === 0)) {
       return NaN;
     }
   }
@@ -91,7 +91,7 @@ function evalProduct(node, context) {
       if (typeof rval === 'number' && rval === 0) {
         throw new ZeroDivisionError('division by zero');
       }
-      if (Complex.isComplex(rval) && rval.re === 0 && rval.im === 0) {
+      if (isComplex(rval) && rval.re === 0 && rval.im === 0) {
         throw new ZeroDivisionError('division by zero');
       }
       result = divide(result, rval);

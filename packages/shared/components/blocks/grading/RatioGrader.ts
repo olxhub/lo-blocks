@@ -19,10 +19,10 @@
 //
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
-import { ratioMatch, validateRatioInputs, validateNumericalAttributes } from '@/lib/util/numeric';
+import { ratioMatch, validateRatioInputs, validateNumericalAttributes } from '@/lib/grading';
 
 // Re-export for convenience
-export { ratioMatch } from '@/lib/util/numeric';
+export { ratioMatch } from '@/lib/grading';
 
 const RatioGrader = createGrader({
   base: 'Ratio',

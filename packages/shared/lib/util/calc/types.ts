@@ -4,7 +4,6 @@
 //
 // AST node types match what grammar.pegjs produces.
 // SamplesSpec describes the variable sampling hypercube for formula grading.
-// validateTolerance is shared across graders (formula, numerical, ratio).
 
 // ═══════════════════════════════════════════════════════════════════════
 // AST Node Types
@@ -90,26 +89,4 @@ export interface SamplesSpec {
   numSamples: number;
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// Shared Validators
-// ═══════════════════════════════════════════════════════════════════════
-
-/**
- * Validate a tolerance attribute string.
- * Accepts absolute numbers ("0.01"), percentages ("5%"), and empty/undefined.
- * Returns an error message or undefined if valid.
- *
- * Used by both FormulaGrader and NumericalGrader attribute validation.
- */
-export function validateTolerance(tolerance: any): string | undefined {
-  if (tolerance === undefined || tolerance === '') return undefined;
-  const s = String(tolerance).trim();
-  if (s.endsWith('%')) {
-    const p = parseFloat(s.slice(0, -1));
-    if (isNaN(p)) return `tolerance: "${tolerance}" is not a valid percentage.`;
-    return undefined;
-  }
-  const n = parseFloat(s);
-  if (isNaN(n) || n < 0) return `tolerance: "${tolerance}" is not a valid non-negative number.`;
-  return undefined;
-}
+// Validators moved to ./validators.ts

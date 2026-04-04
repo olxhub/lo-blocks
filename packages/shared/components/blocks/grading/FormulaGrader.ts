@@ -7,7 +7,7 @@
 //
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
-import { formulaMatch, validateFormulaAttributes, validateFormulaInput } from '@/lib/util/formula';
+import { formulaMatch, validateFormulaAttributes, validateFormulaInput } from '@/lib/grading';
 
 const FormulaGrader = createGrader({
   base: 'Formula',

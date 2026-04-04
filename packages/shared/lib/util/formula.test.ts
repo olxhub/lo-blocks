@@ -3,8 +3,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { formulaMatch, validateFormulaAttributes, validateFormulaInput } from './formula';
-import { validateTolerance } from './calc/types';
+import { formulaMatch, validateFormulaAttributes, validateFormulaInput } from '@/lib/grading';
+import { validateTolerance } from '@/lib/util/calc/index.js';
 
 // Seeded RNG for deterministic tests
 function seededRng(seed = 42) {

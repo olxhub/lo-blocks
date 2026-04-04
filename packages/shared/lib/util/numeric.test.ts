@@ -1,17 +1,19 @@
 // @vitest-environment node
-// src/lib/util/numeric.test.ts
+// Tests for numerical grading: calc/ parsers + lib/grading/ match functions.
 import {
   parseComplex,
   parseTolerance,
   parseRange,
   inRange,
-  compareWithTolerance,
+  compareAbsolute,
+} from '@/lib/util/calc/index.js';
+import {
   numericalMatch,
   validateNumericalInput,
   ratioMatch,
   validateRatioInputs,
   validateNumericalAttributes,
-} from './numeric';
+} from '@/lib/grading';
 
 it('parses complex numbers and compares', () => {
   const c1 = parseComplex('3+4i');
@@ -20,8 +22,8 @@ it('parses complex numbers and compares', () => {
   const c2 = parseComplex('5j');
   expect(c2.re).toBeCloseTo(0);
   expect(c2.im).toBe(5);
-  expect(compareWithTolerance('5', '5', 0)).toBe(true);
-  expect(compareWithTolerance('5', '6', 1)).toBe(true);
+  expect(compareAbsolute('5', '5', 0)).toBe(true);
+  expect(compareAbsolute('5', '6', 1)).toBe(true);
 });
 
 it('handles ranges', () => {

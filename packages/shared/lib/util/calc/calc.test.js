@@ -6,9 +6,9 @@
 import { describe, it, expect } from 'vitest';
 import {
   evaluator, latexPreview, LatexRendered,
-  UndefinedVariable, UnmatchedParenthesis, Complex,
+  UndefinedVariable, UnmatchedParenthesis, Complex, isComplex,
 } from './index.js';
-import { checkFormula, parseSamples } from './grader.js';
+import { checkFormula, parseSamples } from './formula';
 
 // ============================================================
 // Helpers
@@ -19,11 +19,11 @@ function easyEval(expr) {
 }
 
 function assertClose(actual, expected, delta = 1e-3) {
-  if (Complex.isComplex(expected)) {
-    const a = Complex.isComplex(actual) ? actual : new Complex(actual, 0);
+  if (isComplex(expected)) {
+    const a = isComplex(actual) ? actual : new Complex(actual, 0);
     expect(Math.abs(a.re - expected.re)).toBeLessThan(delta);
     expect(Math.abs(a.im - expected.im)).toBeLessThan(delta);
-  } else if (Complex.isComplex(actual)) {
+  } else if (isComplex(actual)) {
     expect(Math.abs(actual.re - expected)).toBeLessThan(delta);
     expect(Math.abs(actual.im)).toBeLessThan(delta);
   } else {
@@ -196,7 +196,7 @@ describe('EvaluatorTest', () => {
     it('should compute sinh/cosh/tanh/sech', () => {
       const inputs = ['0', '0.5', '1', '2', '1+j'];
       const negInputs = ['0', '-0.5', '-1', '-2', '-1-j'];
-      const neg = vals => vals.map(v => Complex.isComplex(v) ? v.neg() : -v);
+      const neg = vals => vals.map(v => isComplex(v) ? v.neg() : -v);
 
       const sinhVals = [0, 0.521, 1.175, 3.627, new Complex(0.635, 1.298)];
       assertFunctionValues('sinh', inputs, sinhVals);
@@ -218,7 +218,7 @@ describe('EvaluatorTest', () => {
     it('should compute csch/coth', () => {
       const inputs = ['0.5', '1', '2', '1+j'];
       const negInputs = ['-0.5', '-1', '-2', '-1-j'];
-      const neg = vals => vals.map(v => Complex.isComplex(v) ? v.neg() : -v);
+      const neg = vals => vals.map(v => isComplex(v) ? v.neg() : -v);
 
       const cschVals = [1.919, 0.851, 0.276, new Complex(0.304, -0.622)];
       assertFunctionValues('csch', inputs, cschVals);
@@ -284,12 +284,12 @@ describe('EvaluatorTest', () => {
   describe('constants', () => {
     it('should have correct default constants', () => {
       const i = easyEval('i');
-      expect(Complex.isComplex(i)).toBe(true);
+      expect(isComplex(i)).toBe(true);
       expect(i.re).toBe(0);
       expect(i.im).toBe(1);
 
       const j = easyEval('j');
-      expect(Complex.isComplex(j)).toBe(true);
+      expect(isComplex(j)).toBe(true);
       expect(j.re).toBe(0);
       expect(j.im).toBe(1);
 

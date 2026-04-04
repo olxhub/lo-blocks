@@ -9,7 +9,7 @@ import { parse } from './_grammarParser.js';
 import { evaluate, ZeroDivisionError } from './evaluator.js';
 import { renderLatex, LatexRendered } from './latex.js';
 import { DEFAULT_FUNCTIONS, DEFAULT_VARIABLES, SUFFIXES, ValueError } from './functions.js';
-import { Complex } from './complex.js';
+import { Complex, isComplex, coerce } from './complex.js';
 
 export class UndefinedVariable extends Error {
   constructor(message) {
@@ -263,5 +263,11 @@ export function renderMath(mathExpr, options = {}) {
   return katex.renderToString(latex, { throwOnError: false, ...options.katexOptions });
 }
 
-export { parse, Complex, LatexRendered, ZeroDivisionError, ValueError, collectIdentifiers };
+export { parse, Complex, isComplex, coerce, LatexRendered, ZeroDivisionError, ValueError, collectIdentifiers };
 export { DEFAULT_FUNCTIONS, DEFAULT_VARIABLES, SUFFIXES };
+
+// Re-export from new typed modules
+export { parseComplex, parseTolerance, parseRange } from './parse';
+export { compareAbsolute, compareRelative, inRange } from './tolerance';
+export { validateTolerance, validateNumber, validateRange, validateFormula, validateSamplesSpec } from './validators';
+export { checkFormula, parseSamples } from './formula';

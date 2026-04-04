@@ -7,7 +7,7 @@
 //
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
-import { numericalMatch, validateNumericalInput, validateNumericalAttributes } from '@/lib/util/numeric';
+import { numericalMatch, validateNumericalInput, validateNumericalAttributes } from '@/lib/grading';
 
 const NumericalGrader = createGrader({
   base: 'Numerical',
