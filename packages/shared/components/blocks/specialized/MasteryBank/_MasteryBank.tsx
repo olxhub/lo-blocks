@@ -102,7 +102,8 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   // Common fields are pre-registered so they're available even if the grader isn't loaded yet.
   const graderField = commonFields.correct;
 
-  const scopedGraderReduxKey = refToReduxKey({ ...scopedProps, id: scopedGraderRef });
+  const scopedGraderReduxKey = refToReduxKey({ id: scopedGraderRef, idPrefix: scopedIdPrefix });
+
   const currentCorrectness = useFieldSelector(
     scopedProps,
     graderField,
