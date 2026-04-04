@@ -1,0 +1,5 @@
+{
+  "masteryAchieved": "Mastery Achieved!",
+  "masteryDescription": "You answered {{goal}} questions correctly in a row.",
+  "streak": "Streak: {{current}} / {{goal}}"
+}
