@@ -1,6 +1,14 @@
 /**
  * Sampling-based formula grader.
- * Port of FormulaResponse.check_formula from responsetypes.py.
+ *
+ * Evaluates student and instructor formulas at random sample points within
+ * a variable hypercube and checks that results agree within tolerance.
+ *
+ * Tolerance here is RELATIVE: a ratio multiplied by the larger magnitude.
+ * Default 0.00001 = 0.001%. This matches Open edX's compare_with_tolerance.
+ * (Contrast with numeric.ts which uses absolute tolerance after parseTolerance.)
+ *
+ * @see {import('./types').SamplesSpec} for the parsed samples type
  */
 
 import { evaluator, Complex } from './index.js';
@@ -8,8 +16,13 @@ import { evaluator, Complex } from './index.js';
 const DEFAULT_TOLERANCE = 0.00001; // 0.001% as a ratio
 
 /**
- * Parse a samples spec like "x,y@-5,-10:5,10#11".
- * Returns { variables: ['x','y'], ranges: {x:[-5,5], y:[-10,10]}, numSamples: 11 }
+ * Parse a samples spec string into a structured object.
+ *
+ * Assumes valid input — use validateSamplesSpec() at parse time for
+ * teacher-friendly diagnostics.
+ *
+ * @param {string} spec - e.g. "x,y@-5,-10:5,10#11"
+ * @returns {import('./types').SamplesSpec}
  */
 export function parseSamples(spec) {
   const [varPart, rest] = spec.split('@');
@@ -26,10 +39,9 @@ export function parseSamples(spec) {
 
 /**
  * Validate a samples spec with detailed, teacher-friendly error messages.
- * Returns { parsed, errors } where parsed is the result (or null) and
- * errors is an array of specific messages.
  *
- * Use this at parse time for good diagnostics. At grading time, use parseSamples().
+ * @param {string} spec
+ * @returns {{ parsed: import('./types').SamplesSpec | null, errors: string[] }}
  */
 export function validateSamplesSpec(spec) {
   const errors = [];
@@ -77,7 +89,7 @@ export function validateSamplesSpec(spec) {
   if (errors.length > 0) return { parsed: null, errors };
 
   const mins = minStrs.map(Number);
-  const maxs = maxStrs.map(Number);
+  const maxs = maxsStr.split(',').map(Number);
   const ranges = {};
 
   for (let i = 0; i < variables.length; i++) {
@@ -98,8 +110,11 @@ export function validateSamplesSpec(spec) {
 }
 
 /**
- * Generate random sample points.
- * Returns an array of { varName: value } dicts.
+ * Generate random sample points within the variable hypercube.
+ *
+ * @param {import('./types').SamplesSpec} spec
+ * @param {function} [rng] - random number generator (default: Math.random)
+ * @returns {Record<string, number>[]}
  */
 function randomizeVariables({ ranges, numSamples }, rng = Math.random) {
   const vars = Object.keys(ranges);
@@ -116,8 +131,15 @@ function randomizeVariables({ ranges, numSamples }, rng = Math.random) {
 }
 
 /**
- * Compare two values with tolerance (port of compare_with_tolerance).
- * Default tolerance is relative: 0.001% of max(|student|, |instructor|).
+ * Compare two values with relative tolerance.
+ *
+ * Tolerance is a ratio (default 0.00001 = 0.001%) multiplied by the larger
+ * of the two magnitudes. This matches Open edX's compare_with_tolerance.
+ *
+ * @param {number|import('./complex').Complex} student
+ * @param {number|import('./complex').Complex} instructor
+ * @param {number} [tolerance] - relative tolerance ratio
+ * @returns {boolean}
  */
 function compareWithTolerance(student, instructor, tolerance = DEFAULT_TOLERANCE) {
   const sAbs = Complex.isComplex(student) ? student.abs() : Math.abs(student);
@@ -126,7 +148,6 @@ function compareWithTolerance(student, instructor, tolerance = DEFAULT_TOLERANCE
   if (isNaN(sAbs) || isNaN(iAbs)) return false;
   if (!isFinite(sAbs) || !isFinite(iAbs)) return sAbs === iAbs;
 
-  // Relative tolerance: scale by the larger magnitude
   const tol = tolerance * Math.max(sAbs, iAbs);
 
   if (Complex.isComplex(student) || Complex.isComplex(instructor)) {
@@ -142,13 +163,13 @@ function compareWithTolerance(student, instructor, tolerance = DEFAULT_TOLERANCE
  * Check if a student formula is equivalent to an expected formula
  * by evaluating both at random sample points.
  *
- * @param {string} expected  - correct formula (e.g. "x^2 - 1")
- * @param {string} given     - student formula (e.g. "(x-1)*(x+1)")
- * @param {string} samples   - sample spec (e.g. "x@-5:5#10")
+ * @param {string} expected - correct formula (e.g. "x^2 - 1")
+ * @param {string} given - student formula (e.g. "(x-1)*(x+1)")
+ * @param {string} samples - sample spec (e.g. "x@-5:5#10")
  * @param {Object} [options]
- * @param {number} [options.tolerance]      - relative tolerance ratio (default 0.001%)
- * @param {boolean} [options.caseSensitive] - case sensitivity for evaluator
- * @param {Function} [options.rng]          - random number generator (for determinism)
+ * @param {number} [options.tolerance] - relative tolerance ratio (default 0.001%)
+ * @param {boolean} [options.caseSensitive]
+ * @param {function} [options.rng] - random number generator (for determinism)
  * @returns {{ correct: boolean, error: string|null }}
  */
 export function checkFormula(expected, given, samples, {

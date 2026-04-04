@@ -92,6 +92,10 @@ function renderNumber(node) {
   return new LatexRendered(raw + suffix);
 }
 
+// TODO: ctx.variables and ctx.functions are threaded through but never checked.
+// Unknown identifiers render as valid-looking LaTeX instead of being visually
+// distinguished (e.g. red highlight). Validation catches these at grading time,
+// but the preview could give earlier feedback.
 function renderVariable(node, ctx) {
   let varname = node.name;
 

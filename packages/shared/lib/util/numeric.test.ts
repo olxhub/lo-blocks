@@ -141,7 +141,7 @@ describe('validateNumericalAttributes', () => {
   it('rejects invalid tolerances', () => {
     const errors = validateNumericalAttributes({ answer: '42', tolerance: 'abc' });
     expect(errors).toBeDefined();
-    expect(errors![0]).toContain('not a valid tolerance');
+    expect(errors![0]).toContain('not a valid non-negative number');
   });
 
   it('rejects invalid ranges', () => {

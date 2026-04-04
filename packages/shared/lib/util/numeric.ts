@@ -13,6 +13,7 @@
 // with flexible tolerance specifications.
 //
 import Complex from 'complex.js';
+import { validateTolerance } from '@/lib/util/calc/types';
 
 // TODO: We probably want to treat int as int, float as float,
 // etc. instead of making everything complex
@@ -93,12 +94,8 @@ export function validateNumericalAttributes(attrs: Record<string, any>): string[
   }
 
   // Validate tolerance
-  if (attrs.tolerance !== undefined && attrs.tolerance !== '') {
-    const tol = parseTolerance(attrs.tolerance, 1); // Use 1 as base for percentage check
-    if (isNaN(tol)) {
-      errors.push(`tolerance: "${attrs.tolerance}" is not a valid tolerance. Use a number or percentage like "5%".`);
-    }
-  }
+  const tolError = validateTolerance(attrs.tolerance);
+  if (tolError) errors.push(tolError);
 
   return errors.length > 0 ? errors : undefined;
 }
