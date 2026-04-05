@@ -7,11 +7,11 @@ A few notes, based on seeing your prior runs:
 
 If you run `grep -R`, so it over src. If you accidentally include node_modules, you'll cap out your line limit.
 
-The normal tests run in a sandbox, which you don't have. To run tests, you'll need:
+To run tests, you'll need:
 
-   npm run test-automation
+   npm run test:ci
 
-This requires an `npm install` and an `npm build-automation`.
+This requires an `npm install` and an `npm run build`.
 
 Sometimes, LLM providers are flakey, and these commands might fail for reasons outside of your control (e.g. no network access). If so, signal that to the user; agents have been surprisingly resilient trying to work around this. Of course, if it's just a bug, please try to fix it.
 
