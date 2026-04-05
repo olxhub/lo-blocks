@@ -656,8 +656,8 @@ Most of the other typescript is to prevent errors. We don't proactively tag type
 
 # Tools
 
-* The system runs in firejail, a lightweight sandbox. This helps mitigate the risk from e.g. a compromised `npm` package. Developers on some systems find they need to disable this. If you're in a defective operating system, just remove the `firejail` from `package.json`.
-* We also have automation versions of scripts (github CI/CD, online LLMs, etc. don't have Firejail installed). You can use those, but those are designed for machines and not humans. The system uses `next.js`. We like `next.js`, but the rather unusual dynamic development requirements (e.g. ability to dynamically edit and reload blocks) may make this type of framework a poor fit. At some point, we should evaluate `vite`, other frameworks, or rolling our own.
+* All npm scripts automatically use firejail sandboxing when available (see `sandbox.sh`). On Ubuntu, `sudo apt-get install firejail` is recommended but not required. On macOS or other systems, everything works without it.
+* The system uses `next.js`. We like `next.js`, but the rather unusual dynamic development requirements (e.g. ability to dynamically edit and reload blocks) may make this type of framework a poor fit. At some point, we should evaluate `vite`, other frameworks, or rolling our own.
 * Data streams into the [Learning Observer](https://github.com/ETS-Next-Gen/writing_observer), which allows for rather rich, real-time dashboard.
 
 Redux
