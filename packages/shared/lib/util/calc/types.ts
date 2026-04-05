@@ -118,4 +118,3 @@ declare module 'mathjs' {
   }
 }
 
-// Validators moved to ./validators.ts

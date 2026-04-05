@@ -266,8 +266,7 @@ export function renderMath(mathExpr, options = {}) {
 export { parse, Complex, isComplex, coerce, LatexRendered, ZeroDivisionError, ValueError, collectIdentifiers };
 export { DEFAULT_FUNCTIONS, DEFAULT_VARIABLES, SUFFIXES };
 
-// Re-export from new typed modules
-export { parseComplex, parseTolerance, parseRange } from './parse';
-export { compareAbsolute, compareRelative, inRange } from './tolerance';
-export { validateTolerance, validateNumber, validateRange, validateFormula, validateSamplesSpec } from './validators';
-export { checkFormula, parseSamples } from './formula';
+// Re-export from typed modules
+export { parseComplex, parseRange, validateNumber, validateRange, validateFormula, inRange } from './parse';
+export { parseTolerance, validateTolerance, compareAbsolute, compareRelative, ToleranceSchema } from './tolerance';
+export { checkFormula, parseSamples, validateSamplesSpec, SamplesSpecSchema } from './formula';

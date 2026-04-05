@@ -8,6 +8,7 @@
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
 import { formulaMatch, validateFormulaAttributes, validateFormulaInput } from '@/lib/grading';
+import { ToleranceSchema, SamplesSpecSchema } from '@/lib/util/calc/index.js';
 
 const FormulaGrader = createGrader({
   base: 'Formula',
@@ -17,9 +18,9 @@ const FormulaGrader = createGrader({
   attributes: {
     answer: z.string({ required_error: 'answer is required' }),
     // Optional in Zod so validateFormulaAttributes can inspect the answer formula
-    // and generate a concrete, copy-pasteable samples example.
-    samples: z.string().optional(),
-    tolerance: z.string().optional(),
+    // and generate a concrete, copy-pasteable samples example when samples is missing.
+    samples: SamplesSpecSchema.optional(),
+    tolerance: ToleranceSchema.optional(),
     caseSensitive: z.string().optional(),
     additionalAnswers: z.string().optional().describe('Semicolon-separated alternative correct formulas'),
     checkVariables: z.string().optional().describe('Set to "false" to allow any variable names in student input'),

@@ -59,13 +59,13 @@ export function numericalMatch(
       throw new Error('Invalid range specification');
     }
     const base = Math.abs(range.upper.re - range.lower.re);
-    const tolerance = parseTolerance(options?.tolerance, base);
+    const tolerance = options?.tolerance != null ? parseTolerance(options.tolerance, base) : 0;
     return inRange(student, range, tolerance);
   }
 
   // Handle single value with tolerance
   const base = parseComplex(answer).abs();
-  const tolerance = parseTolerance(options?.tolerance, base);
+  const tolerance = options?.tolerance != null ? parseTolerance(options.tolerance, base) : 0;
   return compareAbsolute(student, answer, tolerance);
 }
 
@@ -142,6 +142,6 @@ export function ratioMatch(
   const denC = parseComplex(inputDict.denominator);
   const studentRatio = numC.div(denC);
   const base = parseComplex(answer).abs();
-  const tolerance = parseTolerance(options?.tolerance, base);
+  const tolerance = options?.tolerance != null ? parseTolerance(options.tolerance, base) : 0;
   return compareAbsolute(studentRatio, answer, tolerance);
 }

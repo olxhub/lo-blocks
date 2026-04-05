@@ -1,7 +1,10 @@
-// calc/parse.ts — General-purpose parsers for numeric values, ranges, and tolerances.
+// calc/parse.ts — General-purpose parsers and validators for numeric values,
+// ranges, and expressions.
 //
-// These are pure parsing utilities: string → typed value.
-// No grading logic, no framework coupling.
+// Grouped by concept:
+// - Complex numbers: parseComplex, validateNumber
+// - Ranges: parseRange, validateRange, inRange
+// - Expressions: validateFormula
 
 import { evaluator, isComplex } from './index.js';
 import { complex, type Complex } from 'mathjs';
@@ -12,6 +15,10 @@ export interface NumericRange {
   lower: Complex;
   upper: Complex;
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// Complex numbers
+// ═══════════════════════════════════════════════════════════════════════
 
 // TODO: We probably want to treat int as int, float as float,
 // etc. instead of making everything complex
@@ -35,19 +42,18 @@ export function parseComplex(value: unknown): Complex {
   }
 }
 
-export function parseTolerance(tol: string | number | null | undefined, base: number = 0): number {
-  if (tol === undefined || tol === null || tol === '') return 0;
-  if (typeof tol === 'number') return Math.abs(tol);
-  const s = String(tol).trim();
-  if (s.endsWith('%')) {
-    const p = parseFloat(s.slice(0, -1));
-    if (isNaN(p)) return NaN;
-    if (isNaN(base)) base = 0;
-    return Math.abs(p/100 * base);
+/** Validate that a value is a parseable number or complex. */
+export function validateNumber(value: unknown): string | undefined {
+  const parsed = parseComplex(value);
+  if (isNaN(parsed.re) || isNaN(parsed.im)) {
+    return `"${value}" is not a valid number.`;
   }
-  const n = parseFloat(s);
-  return isNaN(n) ? NaN : Math.abs(n);
+  return undefined;
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// Ranges
+// ═══════════════════════════════════════════════════════════════════════
 
 export function parseRange(str: string): NumericRange | null {
   const m = String(str).trim().match(/^([\[(])\s*([^,]+)\s*,\s*([^\])]*)\s*([\])])$/);
@@ -58,4 +64,67 @@ export function parseRange(str: string): NumericRange | null {
     lower: parseComplex(m[2]),
     upper: parseComplex(m[3])
   };
+}
+
+/** Validate a range string like "[0, 10]" or "(0, 10)". */
+export function validateRange(str: string): string[] | undefined {
+  const range = parseRange(str);
+  if (!range) {
+    return [`Invalid range format "${str}". Expected format like "[0, 10]" or "(0, 10)".`];
+  }
+  const errors: string[] = [];
+  if (isNaN(range.lower.re) || isNaN(range.lower.im)) {
+    errors.push(`Invalid lower bound in range "${str}".`);
+  }
+  if (isNaN(range.upper.re) || isNaN(range.upper.im)) {
+    errors.push(`Invalid upper bound in range "${str}".`);
+  }
+  return errors.length > 0 ? errors : undefined;
+}
+
+/**
+ * Check if a value falls within a numeric range, with optional tolerance
+ * that widens the bounds.
+ */
+export function inRange(value: unknown, range: NumericRange, tol: number = 0): boolean {
+  const v = parseComplex(value);
+  const lo = range.lower;
+  const hi = range.upper;
+  if (v.im !== 0 || lo.im !== 0 || hi.im !== 0) return false;
+  const x = v.re;
+  const lower = lo.re;
+  const upper = hi.re;
+  if (range.lowerInclusive ? x < lower - tol : x <= lower - tol) return false;
+  if (range.upperInclusive ? x > upper + tol : x >= upper + tol) return false;
+  return true;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// Expressions
+// ═══════════════════════════════════════════════════════════════════════
+
+/**
+ * Validate that a string is a parseable math expression.
+ * Optionally restricts to allowed variables (e.g. from a samples spec).
+ */
+export function validateFormula(
+  expr: string,
+  options?: {
+    allowedVariables?: Record<string, number>;
+    caseSensitive?: boolean;
+  },
+): string | undefined {
+  if (typeof expr !== 'string') return 'Expected a string';
+  try {
+    evaluator(options?.allowedVariables ?? {}, {}, expr, {
+      caseSensitive: options?.caseSensitive ?? false,
+    });
+    return undefined;
+  } catch (e: any) {
+    // UndefinedVariable is only an error if we're checking variables
+    if (e.name === 'UndefinedVariable' && !options?.allowedVariables) return undefined;
+    // ZeroDivisionError / ValueError aren't syntax errors — the formula is valid
+    if (e.name === 'ZeroDivisionError' || e.name === 'ValueError') return undefined;
+    return e.message || 'Invalid expression';
+  }
 }

@@ -6,10 +6,12 @@ import {
   checkFormula,
   validateSamplesSpec,
   validateTolerance,
+  parseTolerance,
   evaluator,
 } from '@/lib/util/calc/index.js';
 import { parse, collectIdentifiers, DEFAULT_VARIABLES, DEFAULT_FUNCTIONS } from '@/lib/util/calc/index.js';
 import type { SamplesSpec, CalcASTNode } from '@/lib/util/calc/types';
+import type { Tolerance } from '@/lib/util/calc/tolerance';
 
 /** Names that are built-in and don't need to appear in a samples spec. */
 const BUILTIN_NAMES = new Set([
@@ -18,8 +20,8 @@ const BUILTIN_NAMES = new Set([
 ]);
 
 export interface FormulaMatchOptions {
-  samples?: string;
-  tolerance?: string;
+  samples?: string | SamplesSpec;
+  tolerance?: string | Tolerance;
   caseSensitive?: string | boolean;
   additionalAnswers?: string;
 }
@@ -39,15 +41,8 @@ export function formulaMatch(
   if (!samples) {
     throw new Error('FormulaGrader requires a "samples" attribute (e.g. "x@-5:5#10")');
   }
-  let tolerance: number | undefined;
-  if (options?.tolerance) {
-    const s = String(options.tolerance).trim();
-    if (s.endsWith('%')) {
-      tolerance = parseFloat(s.slice(0, -1)) / 100;
-    } else {
-      tolerance = parseFloat(s);
-    }
-  }
+  // parseTolerance with base=1: "5%" → 0.05 (ratio for compareRelative)
+  const tolerance = options?.tolerance ? parseTolerance(options.tolerance, 1) : undefined;
   const evalOpts = {
     tolerance,
     caseSensitive: options?.caseSensitive === true || options?.caseSensitive === 'true',
@@ -214,17 +209,24 @@ export function validateFormulaAttributes(attrs: Record<string, any>): string[] 
     return errors;
   }
 
-  const { parsed: sampleSpec, errors: sampleErrors } = validateSamplesSpec(String(attrs.samples));
-  if (sampleErrors.length > 0) {
-    errors.push(...sampleErrors);
-    return errors;
+  // attrs.samples may be a pre-parsed SamplesSpec (via zod) or a raw string
+  let sampleSpec: SamplesSpec;
+  if (typeof attrs.samples === 'string') {
+    const { parsed, errors: sampleErrors } = validateSamplesSpec(attrs.samples);
+    if (sampleErrors.length > 0) {
+      errors.push(...sampleErrors);
+      return errors;
+    }
+    sampleSpec = parsed!;
+  } else {
+    sampleSpec = attrs.samples;
   }
 
-  if (sampleSpec && answerVars.size > 0) {
+  if (answerVars.size > 0) {
     errors.push(...crossValidateVariablesAndSamples(answerVars, sampleSpec, caseSensitive));
   }
 
-  if (sampleSpec && answerValid && errors.length === 0) {
+  if (answerValid && errors.length === 0) {
     const { vars: testVars, description } = midpointVars(sampleSpec);
 
     const evalError = testEvaluateAnswer(String(attrs.answer), testVars, description, caseSensitive);
@@ -251,9 +253,12 @@ export function validateFormulaInput(input: unknown, attrs: Record<string, any>)
   const shouldCheckVars = attrs.checkVariables !== 'false' && attrs.samples;
   let allowedVars: Record<string, number> = {};
   if (shouldCheckVars) {
-    const { parsed } = validateSamplesSpec(String(attrs.samples));
-    if (parsed) {
-      for (const v of parsed.variables) {
+    // attrs.samples may be a pre-parsed SamplesSpec (via zod) or a raw string
+    const spec: SamplesSpec | null = typeof attrs.samples === 'string'
+      ? validateSamplesSpec(attrs.samples).parsed
+      : attrs.samples;
+    if (spec) {
+      for (const v of spec.variables) {
         allowedVars[v] = 0;
       }
     }
