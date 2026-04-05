@@ -11,6 +11,18 @@ Grades symbolic math formulas by evaluating the student's expression and the exp
 </CapaProblem>
 ```
 
+## Warning: Prototype
+
+This is a **prototype**. It is a translation of the Open edX format, for compatibility with Open edX courses. The format may change, so be mindful when authoring content. The most likely evolution:
+
+- Consolidated types with NumericalGrader (e.g. tolerance, etc.)
+- Switch to `math.js` (Khan Academy), which is probably a better base than a translation of Open edX
+- Keep a shim for Open edX-style inputs, both for compatibility and for engineering courses
+- As with Open edX, integrate with NumericalInput to handle answers like 1/3 or 2*sqrt(2) in numeric answers
+- Add one or more built-in calculators
+
+As we do this, **formats may change**.
+
 ## Properties
 
 - `answer` (required): The expected formula as a math expression

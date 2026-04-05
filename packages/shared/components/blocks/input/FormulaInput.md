@@ -9,6 +9,10 @@ Text input for math expressions with a live LaTeX-rendered preview. As the stude
 </Vertical>
 ```
 
+## Prototype
+
+This is a prototype. Format may change. See the formula grader documentation for more details.
+
 ## Properties
 
 - `variables` (optional): Comma-separated variable names allowed in expressions (e.g. `"x,y,z"`)
