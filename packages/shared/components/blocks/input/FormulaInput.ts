@@ -1,4 +1,4 @@
-// src/components/blocks/input/FormulaInput.ts
+// packages/shared/components/blocks/input/FormulaInput.ts
 //
 // Text input with live KaTeX-rendered preview for math expressions.
 // Supports variable/function whitelisting and case sensitivity.

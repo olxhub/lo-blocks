@@ -8,6 +8,9 @@ import { parseComplex, parseRange } from './parse';
 import { evaluator, DEFAULT_VARIABLES, DEFAULT_FUNCTIONS } from './index.js';
 import type { SamplesSpec } from './types';
 
+const DEFAULT_NUM_SAMPLES = 10;
+const MAX_NUM_SAMPLES = 200;
+
 /**
  * Validate a tolerance string.
  * Accepts absolute numbers ("0.01"), percentages ("5%"), and empty/undefined.
@@ -101,15 +104,38 @@ export function validateSamplesSpec(spec: string): { parsed: SamplesSpec | null;
     return { parsed: null, errors };
   }
 
-  if (!rest || !rest.includes('#')) {
-    errors.push('samples: Missing "#" separator for sample count. Format is "...@mins:maxs#count", e.g. "x@-5:5#10"');
-    return { parsed: null, errors };
+  // Check for built-in variable shadowing
+  const builtinVarNames = new Set(Object.keys(DEFAULT_VARIABLES).map(k => k.toLowerCase()));
+  const builtinFuncNames = new Set(Object.keys(DEFAULT_FUNCTIONS).map(k => k.toLowerCase()));
+  for (const v of variables) {
+    if (builtinVarNames.has(v.toLowerCase())) {
+      errors.push(
+        `samples: Variable "${v}" shadows the built-in constant "${v.toLowerCase()}". ` +
+        `This would override its value during evaluation. Please rename this variable.`
+      );
+    }
+    if (builtinFuncNames.has(v.toLowerCase())) {
+      errors.push(
+        `samples: Variable "${v}" conflicts with the built-in function "${v.toLowerCase()}". ` +
+        `Please rename this variable.`
+      );
+    }
   }
 
-  const [rangePart, countPart] = rest.split('#');
-  const count = parseInt(countPart, 10);
-  if (!Number.isInteger(count) || count <= 0) {
-    errors.push(`samples: Sample count must be a positive integer, got "${countPart}".`);
+  let rangePart: string;
+  let count: number;
+  if (rest.includes('#')) {
+    const [rp, countPart] = rest.split('#');
+    rangePart = rp;
+    count = parseInt(countPart, 10);
+    if (!Number.isInteger(count) || count <= 0) {
+      errors.push(`samples: Sample count must be a positive integer, got "${countPart}".`);
+    } else if (count > MAX_NUM_SAMPLES) {
+      errors.push(`samples: Sample count ${count} exceeds maximum of ${MAX_NUM_SAMPLES}.`);
+    }
+  } else {
+    rangePart = rest;
+    count = DEFAULT_NUM_SAMPLES;
   }
 
   if (!rangePart.includes(':')) {
@@ -131,7 +157,7 @@ export function validateSamplesSpec(spec: string): { parsed: SamplesSpec | null;
   if (errors.length > 0) return { parsed: null, errors };
 
   const mins = minStrs.map(Number);
-  const maxs = maxsStr.split(',').map(Number);
+  const maxs = maxStrs.map(Number);
   const ranges: Record<string, [number, number]> = {};
 
   for (let i = 0; i < variables.length; i++) {

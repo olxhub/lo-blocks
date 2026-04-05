@@ -4,7 +4,7 @@
 // No grading logic, no framework coupling.
 
 import { evaluator, isComplex } from './index.js';
-import { Complex } from 'complex.js';
+import { complex, type Complex } from 'mathjs';
 
 export interface NumericRange {
   lowerInclusive: boolean;
@@ -20,18 +20,18 @@ export interface NumericRange {
 // that as an invalid input
 
 export function parseComplex(value: unknown): Complex {
-  if (value instanceof Complex) return value;
+  if (isComplex(value)) return value as Complex;
   if (typeof value === 'number') {
-    return isNaN(value) ? new Complex(NaN, NaN) : new Complex(value, 0);
+    return isNaN(value) ? complex(NaN, NaN) : complex(value, 0);
   }
-  if (typeof value !== 'string') return new Complex(NaN, NaN);
+  if (typeof value !== 'string') return complex(NaN, NaN);
   const str = value.trim();
-  if (str === '') return new Complex(NaN, NaN);
+  if (str === '') return complex(NaN, NaN);
   try {
     const result = evaluator({}, {}, str);
-    return isComplex(result) ? result as Complex : new Complex(result, 0);
+    return isComplex(result) ? result as Complex : complex(result, 0);
   } catch {
-    return new Complex(NaN, NaN);
+    return complex(NaN, NaN);
   }
 }
 

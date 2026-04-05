@@ -9,7 +9,7 @@ import {
   evaluator,
 } from '@/lib/util/calc/index.js';
 import { parse, collectIdentifiers, DEFAULT_VARIABLES, DEFAULT_FUNCTIONS } from '@/lib/util/calc/index.js';
-import type { SamplesSpec } from '@/lib/util/calc/types';
+import type { SamplesSpec, CalcASTNode } from '@/lib/util/calc/types';
 
 /** Names that are built-in and don't need to appear in a samples spec. */
 const BUILTIN_NAMES = new Set([
@@ -39,8 +39,17 @@ export function formulaMatch(
   if (!samples) {
     throw new Error('FormulaGrader requires a "samples" attribute (e.g. "x@-5:5#10")');
   }
+  let tolerance: number | undefined;
+  if (options?.tolerance) {
+    const s = String(options.tolerance).trim();
+    if (s.endsWith('%')) {
+      tolerance = parseFloat(s.slice(0, -1)) / 100;
+    } else {
+      tolerance = parseFloat(s);
+    }
+  }
   const evalOpts = {
-    tolerance: options?.tolerance ? parseFloat(options.tolerance) : undefined,
+    tolerance,
     caseSensitive: options?.caseSensitive === true || options?.caseSensitive === 'true',
   };
 
@@ -60,7 +69,7 @@ export function formulaMatch(
 // Attribute Validation (parse-time, teacher-facing)
 // ═══════════════════════════════════════════════════════════════════════
 
-function validateAnswerFormula(answer: string): { ast: any; vars: Set<string> } | string {
+function validateAnswerFormula(answer: string): { ast: CalcASTNode; vars: Set<string> } | string {
   try {
     const ast = parse(answer);
     const ids = collectIdentifiers(ast);
@@ -236,7 +245,7 @@ export function validateFormulaAttributes(attrs: Record<string, any>): string[] 
 /**
  * Validate that the student's input is a parseable math expression.
  */
-export function validateFormulaInput(input: any, attrs: Record<string, any>): string[] | undefined {
+export function validateFormulaInput(input: unknown, attrs: Record<string, any>): string[] | undefined {
   if (typeof input !== 'string') return ['Expected a string'];
 
   const shouldCheckVars = attrs.checkVariables !== 'false' && attrs.samples;

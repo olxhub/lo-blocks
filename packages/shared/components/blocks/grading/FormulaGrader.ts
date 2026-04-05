@@ -1,4 +1,4 @@
-// src/components/blocks/grading/FormulaGrader.ts
+// packages/shared/components/blocks/grading/FormulaGrader.ts
 //
 // Sampling-based formula equivalence grader.
 //

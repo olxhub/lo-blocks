@@ -7,9 +7,11 @@
 
 import { evaluator } from './index.js';
 import { compareRelative } from './tolerance';
+import type { Complex } from 'mathjs';
 import type { SamplesSpec } from './types';
 
 const DEFAULT_TOLERANCE = 0.00001; // 0.001% as a ratio
+const DEFAULT_NUM_SAMPLES = 10;
 
 /**
  * Parse a samples spec string into a structured object.
@@ -20,8 +22,16 @@ const DEFAULT_TOLERANCE = 0.00001; // 0.001% as a ratio
 export function parseSamples(spec: string): SamplesSpec {
   const [varPart, rest] = spec.split('@');
   const variables = varPart.split(',').map(s => s.trim());
-  const [rangePart, countPart] = rest.split('#');
-  const numSamples = parseInt(countPart, 10);
+  let rangePart: string;
+  let numSamples: number;
+  if (rest.includes('#')) {
+    const [rp, countPart] = rest.split('#');
+    rangePart = rp;
+    numSamples = parseInt(countPart, 10) || DEFAULT_NUM_SAMPLES;
+  } else {
+    rangePart = rest;
+    numSamples = DEFAULT_NUM_SAMPLES;
+  }
   const [minsStr, maxsStr] = rangePart.split(':');
   const mins = minsStr.split(',').map(Number);
   const maxs = maxsStr.split(',').map(Number);
@@ -65,12 +75,20 @@ export function checkFormula(
   } = {},
 ): { correct: boolean; error: string | null } {
   const { tolerance = DEFAULT_TOLERANCE, caseSensitive = false, rng = Math.random } = options;
-  const spec = parseSamples(samples);
+  let spec: SamplesSpec;
+  try {
+    spec = parseSamples(samples);
+  } catch {
+    return { correct: false, error: 'Invalid samples specification' };
+  }
+  if (!Number.isInteger(spec.numSamples) || spec.numSamples <= 0) {
+    return { correct: false, error: 'Sample count must be a positive integer' };
+  }
   const varDicts = randomizeVariables(spec, rng);
   const evalOpts = { caseSensitive };
 
-  let studentResults: any[];
-  let instructorResults: any[];
+  let studentResults: (number | Complex)[];
+  let instructorResults: (number | Complex)[];
   try {
     instructorResults = varDicts.map(v => evaluator(v, {}, expected, evalOpts));
   } catch (e: any) {

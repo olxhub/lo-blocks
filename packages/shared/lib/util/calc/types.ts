@@ -89,4 +89,33 @@ export interface SamplesSpec {
   numSamples: number;
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// Complex Number — Module augmentation
+// ═══════════════════════════════════════════════════════════════════════
+//
+// HACK: mathjs's TypeScript declarations export Complex as a minimal
+// interface (re, im, clone, equals). At runtime it's the full complex.js
+// class with arithmetic methods. We augment the interface here.
+//
+// Remove this when either:
+// - mathjs ships complete Complex typings, or
+// - we migrate to math.add/math.subtract/etc. functional API (preferred)
+
+declare module 'mathjs' {
+  interface Complex {
+    abs(): number;
+    neg(): Complex;
+    add(other: Complex | number): Complex;
+    sub(other: Complex | number): Complex;
+    mul(other: Complex | number): Complex;
+    div(other: Complex | number): Complex;
+    pow(other: Complex | number): Complex;
+    sin(): Complex;
+    cos(): Complex;
+    asin(): Complex;
+    acos(): Complex;
+    log(): Complex;
+  }
+}
+
 // Validators moved to ./validators.ts
