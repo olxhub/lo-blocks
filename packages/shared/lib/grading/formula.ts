@@ -21,7 +21,7 @@ const BUILTIN_NAMES = new Set([
 
 export interface FormulaMatchOptions {
   samples?: string | SamplesSpec;
-  tolerance?: string | Tolerance;
+  tolerance?: Tolerance;
   caseSensitive?: string | boolean;
   additionalAnswers?: string;
 }

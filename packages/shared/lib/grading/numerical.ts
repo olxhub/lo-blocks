@@ -14,6 +14,7 @@ import {
   validateNumber,
   validateRange,
 } from '@/lib/util/calc/index.js';
+import type { Tolerance } from '@/lib/util/calc/tolerance';
 
 /** Attributes passed to NumericalGrader validation. */
 interface NumericalGraderAttributes {
@@ -32,7 +33,7 @@ interface RatioInput {
  */
 export interface NumericalMatchOptions {
   /** Tolerance for comparison. Can be absolute (e.g., 0.1) or percentage (e.g., "5%"). */
-  tolerance?: number | string;
+  tolerance?: Tolerance;
 }
 
 /**
@@ -136,7 +137,7 @@ export function validateRatioInputs(inputDict: RatioInput): string[] | undefined
 export function ratioMatch(
   inputDict: RatioInput,
   answer: string,
-  options?: { tolerance?: string }
+  options?: { tolerance?: Tolerance }
 ): boolean {
   const numC = parseComplex(inputDict.numerator);
   const denC = parseComplex(inputDict.denominator);

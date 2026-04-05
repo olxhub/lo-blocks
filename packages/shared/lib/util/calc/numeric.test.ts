@@ -1,5 +1,6 @@
 // @vitest-environment node
 // Tests for numerical grading: calc/ parsers + lib/grading/ match functions.
+import type { Tolerance } from '@/lib/util/calc/tolerance';
 import {
   parseComplex,
   parseTolerance,
@@ -44,8 +45,8 @@ describe('numericalMatch', () => {
   });
 
   it('matches with tolerance', () => {
-    expect(numericalMatch('5.5', '5', { tolerance: '1' })).toBe(true);
-    expect(numericalMatch('5.5', '5', { tolerance: '0.1' })).toBe(false);
+    expect(numericalMatch('5.5', '5', { tolerance: '1' as Tolerance })).toBe(true);
+    expect(numericalMatch('5.5', '5', { tolerance: '0.1' as Tolerance })).toBe(false);
   });
 
   it('matches ranges', () => {
@@ -85,8 +86,8 @@ describe('ratioMatch', () => {
   });
 
   it('matches with tolerance', () => {
-    expect(ratioMatch({ numerator: '2', denominator: '5' }, '0.5', { tolerance: '0.1' })).toBe(true);
-    expect(ratioMatch({ numerator: '2', denominator: '5' }, '0.5', { tolerance: '0.01' })).toBe(false);
+    expect(ratioMatch({ numerator: '2', denominator: '5' }, '0.5', { tolerance: '0.1' as Tolerance })).toBe(true);
+    expect(ratioMatch({ numerator: '2', denominator: '5' }, '0.5', { tolerance: '0.01' as Tolerance })).toBe(false);
   });
 });
 

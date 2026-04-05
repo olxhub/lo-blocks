@@ -117,4 +117,3 @@ declare module 'mathjs' {
     log(): Complex;
   }
 }
-
