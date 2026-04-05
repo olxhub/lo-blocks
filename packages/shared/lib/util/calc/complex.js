@@ -4,7 +4,10 @@
 // part is negligible (< EPSILON). This matches numpy.lib.scimath behavior
 // where sqrt(4) = 2 (number) but sqrt(-1) = Complex(0, 1).
 //
-// As we adopt more of math.js (fractions, units, bigints), the adapter shrinks.
+// TODO: This is unnecessary onion code. It should go away.
+// - We started with our own complex class and moved to math.js
+// - As we adopt more of math.js (fractions, units, bigints), the adapter shrinks.
+// - We should make a pass to get rid of it entirely.
 import { Complex, isComplex as mathjsIsComplex } from 'mathjs';
 
 const EPSILON = 1e-15;
