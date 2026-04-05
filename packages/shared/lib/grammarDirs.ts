@@ -11,4 +11,5 @@ export const GRAMMAR_DIRS = [
   'packages/shared/components/blocks',
   'packages/shared/lib/template',
   'packages/shared/lib/stateLanguage',
+  'packages/shared/lib/util/calc',
 ];

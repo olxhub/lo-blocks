@@ -15,3 +15,21 @@ export {
   computeScore,
   formatScore,
 } from './aggregators';
+
+// Numerical grading
+export {
+  numericalMatch,
+  validateNumericalInput,
+  validateNumericalAttributes,
+  ratioMatch,
+  validateRatioInputs,
+} from './numerical';
+export type { NumericalMatchOptions } from './numerical';
+
+// Formula grading
+export {
+  formulaMatch,
+  validateFormulaAttributes,
+  validateFormulaInput,
+} from './formula';
+export type { FormulaMatchOptions } from './formula';

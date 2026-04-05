@@ -19,10 +19,11 @@
 //
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
-import { ratioMatch, validateRatioInputs, validateNumericalAttributes } from '@/lib/util/numeric';
+import { ratioMatch, validateRatioInputs, validateNumericalAttributes } from '@/lib/grading';
+import { ToleranceSchema } from '@/lib/util/calc/index.js';
 
 // Re-export for convenience
-export { ratioMatch } from '@/lib/util/numeric';
+export { ratioMatch } from '@/lib/grading';
 
 const RatioGrader = createGrader({
   base: 'Ratio',
@@ -31,7 +32,7 @@ const RatioGrader = createGrader({
   slots: ['numerator', 'denominator'],  // Named input slots
   attributes: {
     answer: z.string({ required_error: 'answer is required' }),
-    tolerance: z.string().optional(),
+    tolerance: ToleranceSchema.optional(),
     displayAnswer: z.string().optional(),  // e.g., "2:1" for display
   },
   validateAttributes: validateNumericalAttributes,
