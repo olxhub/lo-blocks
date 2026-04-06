@@ -473,6 +473,7 @@ export async function parseOLX(
       };
       if (!idMap[id]) idMap[id] = {};
       idMap[id][lang] = entry;
+      parsedIds.push(id);
       return { type: 'block', id };
     } else {
       // Use transformed attributes (e.g., "true" -> true for booleans)
