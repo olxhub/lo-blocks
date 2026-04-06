@@ -1,0 +1,23 @@
+<Chat id="ChatDemo" title="Study Group">
+title: Study Group
+cast:
+  Kim:
+    seed: kim_researcher
+    openPeeps:
+      face: smile
+      skinColor: ["694d3d"]
+  Alex:
+~~~~
+
+Kim: Did you read the Roediger and Karpicke study on the testing effect?
+
+Alex: The one where practice tests beat re-studying for long-term retention?
+
+--- pause ---
+
+Kim: Exactly. Students who tested themselves remembered about 50% more after a week, even though they felt less confident during practice.
+
+Alex: Wait, really? That's counterintuitive. [face=awe]
+
+Kim: Right. Bjork calls it a "desirable difficulty" — testing feels harder during practice but produces more durable learning. [face=smileBig]
+</Chat>

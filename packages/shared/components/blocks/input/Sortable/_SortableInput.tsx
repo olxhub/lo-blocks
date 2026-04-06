@@ -125,7 +125,7 @@ export default function _SortableInput(props: RuntimeProps) {
   };
 
   return (
-    <div className="sortable-input p-4 border rounded-lg bg-gray-50">
+    <div className="sortable-input p-4 border rounded-lg bg-surface">
       <div className="prompt mb-4 font-semibold text-lg">
         Drag to sort the items:
       </div>
@@ -159,10 +159,10 @@ export default function _SortableInput(props: RuntimeProps) {
               onDrop={(e) => handleDrop(e, displayIndex)}
               onDragEnd={dragMode === 'whole' ? handleDragEnd : undefined}
               className={`
-                sortable-item relative bg-white border-2 rounded-md transition-all overflow-hidden
+                sortable-item relative bg-background border-2 rounded-md transition-all overflow-hidden
                 ${isDragging ? 'opacity-50' : ''}
-                ${isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
-                ${readOnly ? 'cursor-default bg-gray-100' : 'hover:border-gray-300'}
+                ${isDragOver ? 'border-accent bg-accent-subtle' : 'border-border'}
+                ${readOnly ? 'cursor-default bg-muted' : 'hover:border-border'}
                 ${dragMode === 'whole' && !readOnly ? 'cursor-move' : ''}
                 ${dragMode === 'handle' ? 'p-0' : 'p-3'}
               `}
@@ -173,7 +173,7 @@ export default function _SortableInput(props: RuntimeProps) {
               {dragMode === 'handle' && !readOnly ? (
                 <div className="flex items-stretch min-h-[3rem]">
                   <div
-                    className="drag-handle flex flex-col justify-center w-10 bg-gray-100 hover:bg-gray-200 cursor-move text-gray-400 hover:text-gray-600 select-none border-r border-gray-200 px-2"
+                    className="drag-handle flex flex-col justify-center w-10 bg-muted hover:bg-muted cursor-move text-dimmed hover:text-secondary select-none border-r border-border px-2"
                     draggable
                     onDragStart={(e) => handleDragStart(e, displayIndex)}
                     onDragEnd={handleDragEnd}
@@ -204,7 +204,7 @@ export default function _SortableInput(props: RuntimeProps) {
         })}
       </div>
 
-      <div className="mt-4 text-sm text-gray-600">
+      <div className="mt-4 text-sm text-secondary">
         {showAnswer
           ? 'Numbers show the correct position for each item'
           : readOnly

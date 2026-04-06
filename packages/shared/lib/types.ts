@@ -334,7 +334,7 @@ export interface FieldInfo {
    *  Absent for classic fields (no validation — classic stateField omits kind).
    *  Present on CRDT fields (crdt/state.ts sets 'state', crdt/doc.ts sets 'doc',
    *  crdt/set.ts sets 'set'). */
-  kind?: 'state' | 'set' | 'doc';
+  kind?: 'state' | 'set' | 'doc' | 'id';
 
   /** Event types this field dispatches. A plain field has one (e.g. UPDATE_VALUE).
    *  A CRDT field may have several (e.g. SPLICE_INPUT for insert/delete). Future
@@ -927,6 +927,15 @@ export interface LocaleContext {
   dir: 'ltr' | 'rtl';  // Text direction from Redux settings
 }
 
+// =============================================================================
+// Cast of characters — types derived from Zod schemas in cast.ts.
+// Schemas are the single source of truth; types are re-exported here
+// so the rest of the codebase can import from types.ts as usual.
+// =============================================================================
+
+import type { Cast, OpenPeeps, CastMember, FaceExpression, AvatarStyleValue } from '@/lib/avatar/types';
+export type { OpenPeeps, CastMember, Cast, FaceExpression, AvatarStyleValue };
+
 /**
  * LoBlockRuntimeContext - runtime configuration that flows through the component tree.
  *
@@ -949,6 +958,7 @@ export interface LoBlockRuntimeContext {
   olxJsonSources?: string[];  // Redux source names in priority order for OlxJson lookup
   idPrefix?: IdPrefix;  // Scope prefix for Redux state (changes at list boundaries)
   locale: LocaleContext;  // Language and text direction
+  cast: Cast;  // Cast of characters
 }
 
 /**

@@ -1,0 +1,10 @@
+{
+  "detailView": "Detail View",
+  "gridView": "Grid View",
+  "keySkills": "Key Skills",
+  "noTeamMembersFound": "No team members found. Add cast members as YAML body or via cast= attribute.",
+  "noTeamMembersFoundInGroup": "No team members found in group \"{{group}}\". Add cast members as YAML body or via cast= attribute.",
+  "profileBackground": "Background",
+  "selectMemberToViewDetails": "Select a team member to view their details",
+  "teamDirectoryTitle": "Team Directory"
+}

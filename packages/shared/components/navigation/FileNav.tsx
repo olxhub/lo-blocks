@@ -20,7 +20,7 @@ export default function FileNav() {
       const href = `/studio?file=${encodeURIComponent(node.uri)}`;
       return (
         <li key={node.uri} className="ms-4 list-disc">
-          <Link href={href} className="text-blue-600 hover:underline">
+          <Link href={href} className="text-accent hover:underline">
             {node.uri.split('/').pop()}
           </Link>
         </li>

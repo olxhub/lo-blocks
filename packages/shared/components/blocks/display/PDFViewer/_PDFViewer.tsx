@@ -12,7 +12,7 @@ function _PDFViewer(props: RuntimeProps) {
   const { src, width, height } = props;
 
   if (!src) {
-    return <div className="text-red-500 border border-red-300 p-2 rounded">
+    return <div className="text-error border border-error p-2 rounded">
       PDF error: src attribute required
     </div>;
   }
@@ -30,7 +30,7 @@ function _PDFViewer(props: RuntimeProps) {
       />
     );
   } catch (error) {
-    return <div className="text-red-500 border border-red-300 p-2 rounded">
+    return <div className="text-error border border-error p-2 rounded">
       PDF error: {error.message}
     </div>;
   }

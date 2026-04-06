@@ -1,13 +1,13 @@
 // src/lib/content/metadata.ts
 //
-// OLX Metadata Schema - defines and validates metadata from YAML frontmatter comments
+// Content Metadata Schemas - shared base + format-specific extensions (OLX, chatpeg)
 //
 // Metadata is specified in the first comment before the root element using YAML frontmatter:
 //
 // <!--
 // ---
 // description: A brief description of this activity
-// author: Content Creator Name
+// authors: Content Creator Name
 // tags:
 //   - psychology
 //   - assessment
@@ -22,6 +22,7 @@
 //
 
 import { z } from 'zod';
+import { licensed } from '@/lib/blocks/attributeSchemas';
 
 /**
  * Schema for OLX file metadata
@@ -42,9 +43,25 @@ const languageTagSchema = z.string().refine(
   { message: "Invalid BCP 47 language tag" }
 );
 
-export const OLXMetadataSchema = z.object({
+/**
+ * Base metadata fields shared across all content formats (OLX, chatpeg, etc.).
+ * Format-specific schemas extend this with additional fields.
+ */
+const baseMetadataFields = {
+  title: z.string().optional(),
   description: z.string().optional(),
   category: z.string().optional(),
+  ...licensed,
+};
+
+export const BaseMetadataSchema = z.object(baseMetadataFields);
+export type BaseMetadata = z.infer<typeof BaseMetadataSchema>;
+
+/** Known base metadata key names, for validation/warnings in parsers. */
+export const BASE_METADATA_KEYS = new Set<string>(Object.keys(baseMetadataFields));
+
+export const OLXMetadataSchema = z.object({
+  ...baseMetadataFields,
   index: z.number().optional(),
   lang: languageTagSchema.optional(),  // BCP 47 language tag (e.g., 'en-Latn-US', 'ar-Arab-SA')
 
@@ -73,10 +90,16 @@ export const OLXMetadataSchema = z.object({
 
   // Potential future fields - uncomment and implement as needed:
 
-  // commitAuthor[s]: z.string().optional(),
+  // Authorship tracking beyond the `authors` field in `licensed`:
+  // For large projects, author lists can be in the thousands. The long-term
+  // direction is git-style provenance tracking (who created, forked, modified)
+  // rather than flat author lists. Much of our content lives in git proper,
+  // so the commit history is the canonical source. These fields are
+  // breadcrumbs toward that:
+  //
   // contributors: z.array(z.object({
   //   name: z.string(),
-  //   role: z.string().optional()
+  //   role: z.string().optional()   // e.g. 'author', 'editor', 'translator'
   // })).optional(),
 
   // tags: z.array(z.string()).optional(),
@@ -90,3 +113,19 @@ export const OLXMetadataSchema = z.object({
 })
 
 export type OLXMetadata = z.infer<typeof OLXMetadataSchema>;
+
+/**
+ * Chat (chatpeg) header metadata schema.
+ * Base fields + cast (speaker avatar definitions).
+ */
+export const ChatMetadataSchema = z.object({
+  ...baseMetadataFields,
+  cast: z.record(z.unknown()).optional(),
+});
+export type ChatMetadata = z.infer<typeof ChatMetadataSchema>;
+
+/** Known chat metadata key names (base + chat-specific). */
+export const CHAT_METADATA_KEYS = new Set<string>([
+  ...BASE_METADATA_KEYS,
+  'cast',
+]);

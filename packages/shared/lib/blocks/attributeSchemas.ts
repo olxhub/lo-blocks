@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { VALID_ID_SEGMENT, VALID_REDUX_STATE_KEY, toOlxReference, toReduxStateKey } from './idResolver';
 import type { OlxReference, ReduxStateKey } from '@/lib/types';
 import { parse as parseExpr } from '@/lib/stateLanguage';
+import { CastSchema, Face, AvatarStyle } from '@/lib/avatar/types';
 
 /**
  * Zod refinement for validating OLX IDs.
@@ -87,6 +88,12 @@ export const z_expression = z.union([
   z.string().transform(expr => ({ expr, ast: parseExpr(expr) })),
   z.object({ expr: z.string(), ast: z.any() }),
 ]);
+
+/**
+ * Trigger mode: "once" fires the first time only, "each" fires every transition.
+ * Shared by OnShow, Trigger, and future trigger-like blocks.
+ */
+export const z_triggerMode = z.enum(['once', 'each']).default('once');
 
 // =============================================================================
 // Reusable ID Schemas
@@ -257,6 +264,12 @@ export const baseAttributes = z.object({
   lang: z.string().optional().describe('BCP 47 language tag (e.g., en-Latn-US, ar-Arab-SA). Overrides parent and file-level language.'),
   when: z_expression.optional()
     .describe('State-language expression controlling visibility (e.g. "@quiz.correct === correctness.correct")'),
+  popout: z.string().optional()
+    .refine(val => {
+      if (!val) return true;
+      return /^(window|fullscreen)(:(tl|tr|bl|br))?$/.test(val);
+    }, 'popout must be "window" or "fullscreen", optionally with position (:tl, :tr, :bl, :br)')
+    .describe('Pop-out mode: "window" or "fullscreen", with optional button position (:tl, :tr, :bl, :br)'),
 }).strict();
 
 // =============================================================================
@@ -323,6 +336,29 @@ export const problemMixin = z.object({
 });
 
 // =============================================================================
+// Shared Value Lists
+// =============================================================================
+
+/** License identifiers — single source of truth for Image attrs and YAML metadata. */
+export const licenseValues = [
+  'CC0', 'CC BY', 'CC BY-SA', 'CC BY-NC', 'CC BY-NC-SA', 'CC BY-ND', 'CC BY-NC-ND',
+  'Public domain', 'Fair use', 'AGPL', 'GPL',
+] as const;
+
+export type License = typeof licenseValues[number];
+
+/**
+ * Normalize a string-or-list to a list. Idempotent.
+ * Useful when an attribute may be a single value or an array (e.g. YAML list vs XML string).
+ */
+export const z_stringOrList = z.union([z.string(), z.array(z.string())])
+  .transform(v => Array.isArray(v) ? v : [v]);
+
+/** URL-validated variant of z_stringOrList. */
+export const z_urlOrList = z.union([z.string().url(), z.array(z.string().url())])
+  .transform(v => Array.isArray(v) ? v : [v]);
+
+// =============================================================================
 // Optional Spreads (blocks include manually if needed)
 // =============================================================================
 
@@ -340,6 +376,44 @@ export const placeholder = {
  */
 export const src = {
   src: z.string().optional().describe('Path to external file containing content'),
+};
+
+/**
+ * Licensed content attribution — author(s), hyperlink(s), and license.
+ * Usage: baseAttributes.extend({ ...licensed, myAttr: z.string() })
+ */
+export const licensed = {
+  authors: z_stringOrList.optional().describe('Creator name(s)'),
+  hyperlink: z_urlOrList.optional().describe('URL(s) to the original work (per CC/GPL license terms)'),
+  license: z.enum(licenseValues).optional().describe('License identifier'),
+};
+
+/** Parsed output type of the `licensed` fields. */
+export type LicensedAttrs = z.output<z.ZodObject<typeof licensed>>;
+
+/**
+ * Cast attribute - for blocks that support cast-of-characters.
+ * At parse time, withCastSupport() loads the file and replaces the
+ * string with a parsed Cast object; hence the union type.
+ * Usage: baseAttributes.extend({ ...cast, myAttr: z.string() })
+ */
+export const cast = {
+  cast: z.union([z.string(), CastSchema]).optional()
+    .describe('Path to .cast YAML file, or inline cast object'),
+};
+
+/**
+ * Character attribute - for blocks that refer to a single character from the cast.
+ * Provides per-instance overrides for avatar rendering.
+ * Usage: baseAttributes.extend({ ...cast, ...character, position: ... })
+ */
+export const character = {
+  who: z.string().optional().describe('Character ID (looked up in cast)'),
+  face: Face.optional().describe('DiceBear face/expression override (e.g. smile, serious)'),
+  seed: z.string().optional().describe('Override seed for avatar generation'),
+  avatar: z.string().optional().describe('Image URL (overrides cast)'),
+  avatarStyle: AvatarStyle.optional()
+    .describe('Avatar style override'),
 };
 
 // =============================================================================

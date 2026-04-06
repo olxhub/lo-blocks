@@ -2,46 +2,88 @@
 @import "tailwindcss";
 @source "..";
 @plugin "@tailwindcss/typography";
-@import "@fontsource/geist-sans/100.css";
-@import "@fontsource/geist-sans/200.css";
-@import "@fontsource/geist-sans/300.css";
+/* Fonts: only weights used in UI (400 normal, 500 medium, 600 semi, 700 bold).
+ * Next.js apps also load via localFont() in fonts.ts — these @fontsource
+ * imports provide @font-face fallback for non-Next contexts. */
 @import "@fontsource/geist-sans/400.css";
 @import "@fontsource/geist-sans/500.css";
 @import "@fontsource/geist-sans/600.css";
 @import "@fontsource/geist-sans/700.css";
-@import "@fontsource/geist-sans/800.css";
-@import "@fontsource/geist-mono/900.css";
+@import "@fontsource/geist-mono/400.css";
 
-/* Learning Observer Theme System */
+/* ── Token system (order matters: foundation → semantic → debug) ── */
+@import "./tokens/foundation.css";
+@import "./tokens/semantic.css";
+@import "./tokens/debug.css";
+
+/* ── Theme packs (variable overrides scoped to data attributes) ── */
+@import "./themes/literary.css";
+@import "./themes/hightech.css";
+@import "./themes/mit.css";
+
+/* ── Base rules (consumes tokens) ── */
 @import "./theme.css";
-@import "./componentsAutogen.css";
-@import "../components/common/render-markdown.css";
-@import "./print.css";
 
-/* KaTeX for math rendering in Markdown */
+/* ── Accessibility baseline ── */
+@import "./a11y.css";
+
+/* ── Shared primitives ── */
+@import "./primitives/buttons.css";
+@import "./primitives/controls.css";
+@import "./primitives/panels.css";
+@import "./primitives/meta.css";
+@import "./primitives/spinner.css";
+
+/* ── Auto-generated block CSS ── */
+@import "./componentsAutogen.css";
+
+/* ── Shared component styles ── */
+@import "../components/common/resizable-sidebar.css";
+@import "../components/common/render-markdown.css";
+
+/* ── KaTeX for math rendering ── */
 @import "katex/dist/katex.min.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ── Print ── */
+@import "./print.css";
 
+/* ── Tailwind ↔ token bridge ──
+ * Maps --lo-* tokens to Tailwind theme values so utility classes
+ * like bg-background, text-foreground track the active theme.
+ */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Surfaces */
+  --color-background: var(--lo-bg);
+  --color-surface: var(--lo-bg-surface);
+  --color-muted: var(--lo-bg-muted);
+
+  /* Text */
+  --color-foreground: var(--lo-text);
+  --color-secondary: var(--lo-text-secondary);
+  --color-dimmed: var(--lo-text-muted);
+  --color-inverse: var(--lo-text-inverse);
+
+  /* Brand / interactive */
+  --color-accent: var(--lo-primary);
+  --color-accent-hover: var(--lo-primary-hover);
+  --color-accent-subtle: var(--lo-primary-subtle);
+
+  /* Border */
+  --color-border: var(--lo-border);
+  --color-border-subtle: var(--lo-border-subtle);
+
+  /* Status */
+  --color-success: var(--lo-success);
+  --color-success-subtle: var(--lo-success-subtle);
+  --color-error: var(--lo-error);
+  --color-error-subtle: var(--lo-error-subtle);
+  --color-warning: var(--lo-warning);
+  --color-warning-subtle: var(--lo-warning-subtle);
+  --color-info: var(--lo-info);
+  --color-info-subtle: var(--lo-info-subtle);
+
+  /* Fonts */
+  --font-sans: var(--lo-font-ui);
+  --font-mono: var(--lo-font-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family:"Geist Sans",  Arial, Helvetica, sans-serif;
-}

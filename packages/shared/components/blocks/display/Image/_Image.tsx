@@ -38,12 +38,13 @@
 import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { resolveContentPath } from '@/lib/content/contentPaths';
+import { licenseDataAttrs } from '@/lib/attribution';
 
 function _Image(props: RuntimeProps) {
-  const { src, alt, width, height } = props;
+  const { src, alt, width, height, authors, hyperlink, license } = props;
 
   if (!src) {
-    return <div className="text-red-500 border border-red-300 p-2 rounded">
+    return <div className="text-error border border-error p-2 rounded">
       Image error: src attribute required
     </div>;
   }
@@ -62,10 +63,13 @@ function _Image(props: RuntimeProps) {
         src={finalSrc}
         alt={alt || 'Content image'}
         style={style}
+        // Stopgap: embed attribution as data-* attributes (visible in page source).
+        // A full-fledged attribution tracking and display system is in the works.
+        {...licenseDataAttrs({ authors, hyperlink, license })}
       />
     );
   } catch (error) {
-    return <div className="text-red-500 border border-red-300 p-2 rounded">
+    return <div className="text-error border border-error p-2 rounded">
       Image error: {error.message}
     </div>;
   }

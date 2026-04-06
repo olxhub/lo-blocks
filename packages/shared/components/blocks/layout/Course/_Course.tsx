@@ -7,7 +7,9 @@ import { useFieldState } from '@/lib/state';
 import { useBlock } from '@/lib/render';
 import { getBlockByOLXId } from '@/lib/blocks';
 import ExpandIcon from '@/components/common/ExpandIcon';
+import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { assertNamedObject } from '@/lib/util/kids';
+import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 function CourseContent({ props, selectedChild }) {
   const { block } = useBlock(props, selectedChild);
@@ -15,7 +17,9 @@ function CourseContent({ props, selectedChild }) {
 }
 
 function _Course(props: RuntimeProps) {
-  const { kids, fields, title = 'Course' } = props;
+  const { kids, fields, title } = props;
+  const { t } = useBlockTranslation(props);
+  const resolvedTitle = title || t('defaultCourseTitle');
   assertNamedObject(kids, ['chapters']);
   const chapters = (kids.chapters || []) as any[];
 
@@ -24,6 +28,7 @@ function _Course(props: RuntimeProps) {
     chapters[0]?.children[0]?.id || null);
   const [expandedChapter, setExpandedChapter] = useFieldState(props, fields.expandedChapter,
     chapters[0]?.id || null);
+  const [navCollapsed, setNavCollapsed] = useFieldState(props, fields.navCollapsed, false);
 
   const handleChapterClick = (chapterId) => {
     setExpandedChapter(expandedChapter === chapterId ? null : chapterId);
@@ -45,9 +50,18 @@ function _Course(props: RuntimeProps) {
   return (
     <div className="course-container">
       {/* Left Navigation Accordion */}
-      <div className="course-navigation">
+      <ResizableSidebar
+        as="div"
+        defaultWidth={320}
+        minWidth={200}
+        maxWidth={500}
+        collapsed={navCollapsed}
+        onCollapsedChange={setNavCollapsed}
+        label={t('courseNavigation')}
+        className="course-navigation"
+      >
         <div>
-          <h1>{title}</h1>
+          <h1>{resolvedTitle}</h1>
         </div>
 
         <div>
@@ -86,7 +100,7 @@ function _Course(props: RuntimeProps) {
             </div>
           ))}
         </div>
-      </div>
+      </ResizableSidebar>
 
       {/* Right Content Area */}
       <div className="course-content">
@@ -94,7 +108,7 @@ function _Course(props: RuntimeProps) {
           <CourseContent props={props} selectedChild={selectedChild} />
         ) : (
           <div>
-            <p>Select a section from the navigation to begin.</p>
+            <p>{t('selectSectionToBegin')}</p>
           </div>
         )}
       </div>

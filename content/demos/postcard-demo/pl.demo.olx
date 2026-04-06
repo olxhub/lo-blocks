@@ -1,0 +1,536 @@
+<!--
+---
+description: Ćwiczenie z pisania pocztówek z wyborem karuzeli, opinią LLM i poprawkami
+category: demo
+lang: pl
+generated:
+  method: machineTranslated
+  source_file: postcard-demo.olx
+  source_version: f3f5ecf
+---
+-->
+
+<Vertical id="postcard_demo" title="Pocztówka z przeszłości">
+
+<!-- === Lokalizacje === -->
+
+<Markdown id="loc_great_wall" title="Wielki Mur Chiński">
+### Wielki Mur Chiński
+
+![The Great Wall of China at Jinshanling](https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/The_Great_Wall_of_China_at_Jinshanling-edit.jpg/330px-The_Great_Wall_of_China_at_Jinshanling-edit.jpg)
+
+Wielki Mur rozciąga się na ponad 21 000 kilometrów przez północne Chiny. Budowany przez wiele stuleci, począwszy od VII wieku p.n.e., służył jako obrona przed najazdami z północy. Dziś jest jednym z najczęściej odwiedzanych zabytków na świecie.
+
+[Dowiedz się więcej na Wikipedii](https://pl.wikipedia.org/wiki/Wielki_Mur_Chi%C5%84ski)
+</Markdown>
+
+<Markdown id="loc_machu_picchu" title="Machu Picchu">
+### Machu Picchu
+
+![Machu Picchu](https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Machu_Picchu%2C_2023_%28012%29.jpg/330px-Machu_Picchu%2C_2023_%28012%29.jpg)
+
+Ta piętnastowieczna cytadela Inków leży wysoko w Andach w Peru, nad Świętą Doliną. Zbudowana około 1450 roku n.e., została opuszczona podczas podboju hiszpańskiego i pozostawała niemal nieznana światu zewnętrznemu aż do 1911 roku.
+
+[Dowiedz się więcej na Wikipedii](https://pl.wikipedia.org/wiki/Machu_Picchu)
+</Markdown>
+
+<Markdown id="loc_pyramids" title="Piramidy w Gizie">
+### Piramidy w Gizie
+
+![Pyramids of the Giza Necropolis](https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Pyramids_of_the_Giza_Necropolis.jpg/330px-Pyramids_of_the_Giza_Necropolis.jpg)
+
+Wielka Piramida, wzniesiona około 2570 roku p.n.e. w pobliżu Kairu w Egipcie, jest najstarszym z siedmiu cudów świata starożytnego i jedynym, który w dużej mierze przetrwał do naszych czasów. Kompleks obejmuje trzy piramidy oraz Wielkiego Sfinksa.
+
+[Dowiedz się więcej na Wikipedii](https://pl.wikipedia.org/wiki/Piramidy_w_Gizie)
+</Markdown>
+
+<Markdown id="loc_colosseum" title="Koloseum">
+### Koloseum
+
+![The Colosseum in Rome](https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/330px-Colosseo_2020.jpg)
+
+Koloseum w Rzymie we Włoszech to największy starożytny amfiteatr, jaki kiedykolwiek zbudowano. Ukończone w 80 roku n.e., mogło pomieścić od 50 000 do 80 000 widzów oglądających walki gladiatorów, polowania na zwierzęta i widowiska publiczne.
+
+[Dowiedz się więcej na Wikipedii](https://pl.wikipedia.org/wiki/Koloseum)
+</Markdown>
+
+<Markdown id="loc_taj_mahal" title="Tadż Mahal">
+### Tadż Mahal
+
+![The Taj Mahal](https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Taj_Mahal_%28Edited%29.jpeg/330px-Taj_Mahal_%28Edited%29.jpeg)
+
+Tadż Mahal w Agrze w Indiach to mauzoleum z białego marmuru, zbudowane w latach 1632-1653 przez cesarza mogolskiego Szahdżahana ku pamięci jego żony Mumtaz Mahal. Uważane jest za jeden z najwspanialszych przykładów architektury mogolskiej.
+
+[Dowiedz się więcej na Wikipedii](https://pl.wikipedia.org/wiki/Tad%C5%BC_Mahal)
+</Markdown>
+
+<Markdown id="loc_altamira" title="Jaskinia Altamira">
+### Jaskinia Altamira
+
+![Bison painting in the Cave of Altamira](https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/9_Bisonte_Magdaleniense_pol%C3%ADcromo.jpg/330px-9_Bisonte_Magdaleniense_pol%C3%ADcromo.jpg)
+
+Jaskinia Altamira w pobliżu Santander w północnej Hiszpanii kryje jedne z najpiękniejszych przykładów sztuki prehistorycznej na świecie, datowane na około 15 000 lat wstecz. Barwne malowidła przedstawiające bizony, konie i odciski dłoni na sklepieniu jaskini były tak niezwykłe, że kiedy odkryto je w 1879 roku, uczeni nie chcieli uwierzyć, że mogli je stworzyć ludzie żyjący w tak odległych czasach.
+
+[Dowiedz się więcej na Wikipedii](https://en.wikipedia.org/wiki/Cave_of_Altamira)
+</Markdown>
+
+<Markdown id="loc_italica" title="Italica">
+### Italica
+
+![Amphitheatre at Italica](https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Amphitheatre_Italica%2C_Spain.jpg/330px-Amphitheatre_Italica%2C_Spain.jpg)
+
+Italica, tuż za współczesną Sewillą, została założona w 206 roku p.n.e. przez rzymskiego generała Scypiona Afrykańskiego, aby osiedlić weteranów po pokonaniu brata Hannibala, Hazdrubala, w bitwie pod Ilipą. Wyrosła na jedno z wielkich miast rzymskiej Hiszpanii i była miejscem narodzin cesarzy Trajana i Hadriana. Jej potężny amfiteatr, jeden z największych w Imperium Rzymskim, stoi do dziś.
+
+[Dowiedz się więcej na Wikipedii](https://en.wikipedia.org/wiki/Italica)
+</Markdown>
+
+<Markdown id="loc_mezquita" title="Meczet-katedra w Kordobie">
+### Meczet-katedra w Kordobie
+
+![Interior arches of the Mezquita](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Mezquita_de_C%C3%B3rdoba_desde_el_aire_%28C%C3%B3rdoba%2C_Espa%C3%B1a%29.jpg/330px-Mezquita_de_C%C3%B3rdoba_desde_el_aire_%28C%C3%B3rdoba%2C_Espa%C3%B1a%29.jpg)
+
+Mezquita w Kordobie powstała jako meczet w 784 roku n.e. i stała się największym meczetem w całym zachodnim islamie. Las ponad 850 kolumn z czerwono-białymi łukami w paski tworzy jedno z najbardziej rozpoznawalnych wnętrz w historii architektury. Po chrześcijańskiej rekonkwiście w 1236 roku w jej wnętrzu wzniesiono katedrę -- tworząc budowlę jedyną w swoim rodzaju na całym świecie.
+
+[Dowiedz się więcej na Wikipedii](https://en.wikipedia.org/wiki/Mosque%E2%80%93Cathedral_of_C%C3%B3rdoba)
+</Markdown>
+
+<Markdown id="loc_alhambra" title="Alhambra">
+### Alhambra
+
+![The Alhambra from the Albaicín, Granada](https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Dawn_Charles_V_Palace_Alhambra_Granada_Andalusia_Spain.jpg/330px-Dawn_Charles_V_Palace_Alhambra_Granada_Andalusia_Spain.jpg)
+
+Alhambra to zespół pałacowo-forteczny w Granadzie, zbudowany głównie w XIII i XIV wieku przez dynastię Nasrydów -- ostatnich muzułmańskich władców Hiszpanii. Misterne rzeźbione stiuki, mozaiki z płytek i spokojne dziedzińce reprezentują szczyt sztuki islamskiej w Europie. W 1492 roku Alhambra została oddana Ferdynandowi i Izabeli, co zakończyło blisko 800 lat panowania muzułmanów na Półwyspie Iberyjskim.
+
+[Dowiedz się więcej na Wikipedii](https://en.wikipedia.org/wiki/Alhambra)
+</Markdown>
+
+<Markdown id="loc_seville_cathedral" title="Katedra w Sewilli">
+### Katedra w Sewilli
+
+![Seville Cathedral and Giralda tower](https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Sevilla_Cathedral_-_Southeast.jpg/330px-Sevilla_Cathedral_-_Southeast.jpg)
+
+Katedra w Sewilli to największa katedra gotycka na świecie, budowana w latach 1402-1506 na miejscu dawnego meczetu Almohadów. Jej budowniczowie podobno oświadczyli: "Zbudujmy kościół tak piękny i tak wielki, by ci, którzy go zobaczą, pomyśleli, że jesteśmy szaleni." Znajduje się w niej grobowiec Krzysztofa Kolumba, a obok stoi Giralda -- dzwonnica przebudowana z dawnego minaretu meczetu. W epoce hiszpańskiego imperium Sewilla kontrolowała cały handel z Amerykami.
+
+[Dowiedz się więcej na Wikipedii](https://en.wikipedia.org/wiki/Seville_Cathedral)
+</Markdown>
+
+<Markdown id="loc_hagia_sophia" title="Hagia Sophia">
+### Hagia Sophia
+
+![Hagia Sophia](https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Hagia_Sophia_%28228968325%29.jpeg/330px-Hagia_Sophia_%28228968325%29.jpeg)
+
+Zbudowana w 537 roku n.e. przez cesarza bizantyjskiego Justyniana I, Hagia Sophia w Stambule była największą katedrą na świecie przez blisko tysiąc lat. Po zdobyciu Konstantynopola przez Osmanów w 1453 roku została przekształcona w meczet -- chrześcijańskie mozaiki pokryto tynkiem, a na horyzoncie pojawiły się minarety. Jej potężna kopuła -- 55 metrów wysokości, pozornie unosząca się na pierścieniu okien -- była cudem inżynierii, który inspirował budowniczych przez wieki.
+
+[Dowiedz się więcej na Wikipedii](https://pl.wikipedia.org/wiki/Hagia_Sophia)
+</Markdown>
+
+<Markdown id="loc_petra" title="Petra">
+### Petra
+
+![Ad Deir, Petra](https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Al_Deir_Petra.JPG/330px-Al_Deir_Petra.JPG)
+
+Petra to starożytne miasto Nabatejczyków wykute w czerwonych piaskowcowych klifach południowej Jordanii. Jako ważny węzeł na szlakach kadzidlanych przeżywała rozkwit od IV wieku p.n.e. aż do przejęcia kontroli przez Rzymian w 106 roku n.e. Droga przez Sik -- wąski kanion długości ponad kilometra -- otwiera się, ukazując Skarbiec (Al-Chazna), jeden z najbardziej spektakularnych widoków w historii podróży. Zapomniane przez zachodni świat na całe stulecia, miasto zostało na nowo odkryte przez szwajcarskiego podróżnika w 1812 roku.
+
+[Dowiedz się więcej na Wikipedii](https://pl.wikipedia.org/wiki/Petra)
+</Markdown>
+
+<Markdown id="loc_ziggurat_ur" title="Ziggurat w Ur">
+### Ziggurat w Ur
+
+![The Ziggurat of Ur](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Ziggarat_of_Ur_001.jpg/330px-Ziggarat_of_Ur_001.jpg)
+
+Ziggurat w Ur wyrasta z płaskiej pustyni południowego Iraku. Zbudowany około 2100 roku p.n.e. przez króla Ur-Nammu jako świątynia sumeryjskiego boga księżyca Nanny, jest jedną z najlepiej zachowanych budowli starożytnej Mezopotamii -- kolebki cywilizacji, gdzie po raz pierwszy pojawiło się pismo, kodeksy prawne i miasta. Częściowo zrekonstruowany w latach 80. XX wieku, stoi w pobliżu ruin Ur, które cztery tysiące lat temu były jednym z największych i najbogatszych miast na świecie.
+
+[Dowiedz się więcej na Wikipedii](https://pl.wikipedia.org/wiki/Ziggurat_w_Ur)
+</Markdown>
+
+<Markdown id="loc_lake_turkana" title="Jezioro Turkana">
+### Jezioro Turkana
+
+![Lake Turkana](https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Lake_turkana.jpg/330px-Lake_turkana.jpg)
+
+Jezioro Turkana w północnej Kenii to największe stałe jezioro pustynne na świecie, zwane Jadeitowym Morzem ze względu na uderzający niebiesko-zielony kolor wody. Krajobraz jest wulkaniczny i wystawiony na wiatr -- pola lawy, spękana ziemia i woda, która wygląda jak z innej planety. Wschodnie wybrzeże jeziora w Koobi Fora to jedno z najbogatszych na świecie stanowisk z fosylami hominidów, gdzie odkrycia takie jak Chłopiec z Turkany zmieniły nasze rozumienie ewolucji człowieka.
+
+[Dowiedz się więcej na Wikipedii](https://pl.wikipedia.org/wiki/Jezioro_Turkana)
+</Markdown>
+
+<Markdown id="loc_qin_shi_huang" title="Grobowiec Qin Shi Huanga">
+### Grobowiec Qin Shi Huanga
+
+![The Terracotta Army](https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/51714-Terracota-Army.jpg/330px-51714-Terracota-Army.jpg)
+
+Qin Shi Huang zjednoczył Chiny w 221 roku p.n.e., ujednolicił pismo, miary i walutę -- i nakazał spalenie ksiąg ze stu szkół myśli, które istniały przed nim. Jego mauzoleum w pobliżu Xi'an budowało 700 000 robotników. Ponad 8000 indywidualnie wyrzeźbionych terakotowych wojowników strzeże zewnętrznych wykopów, ale centralny grobowiec nigdy nie został otwarty. Starożytne teksty opisują rzeki rtęci płynące przez model jego imperium w środku.
+
+[Dowiedz się więcej na Wikipedii](https://en.wikipedia.org/wiki/Mausoleum_of_the_First_Qin_Emperor)
+</Markdown>
+
+<Markdown id="loc_forbidden_city" title="Zakazane Miasto">
+### Zakazane Miasto
+
+![The Forbidden City viewed from Coal Hill](https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/The_Forbidden_City_-_View_from_Coal_Hill.jpg/330px-The_Forbidden_City_-_View_from_Coal_Hill.jpg)
+
+Zakazane Miasto w Pekinie służyło jako pałac cesarski przez blisko 500 lat, od 1420 do 1912 roku. Za jego 8-metrowymi murami i 52-metrową fosą żyło, rządziło i sprawowało władzę 24 cesarzy dynastii Ming i Qing -- w kompleksie liczącym 980 budynków i blisko 9000 pomieszczeń. Zwykłym ludziom wstęp był wzbroniony -- stąd nazwa. Dziś jest muzeum, które co roku odwiedza wiele milionów turystów.
+
+[Dowiedz się więcej na Wikipedii](https://pl.wikipedia.org/wiki/Zakazane_Miasto)
+</Markdown>
+
+<Markdown id="loc_west_lake" title="Jezioro Zachodnie">
+### Jezioro Zachodnie
+
+![West Lake, Hangzhou](https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/West_Lake%2C_Hangzhou_2025.jpg/330px-West_Lake%2C_Hangzhou_2025.jpg)
+
+Jezioro Zachodnie w Hangzhou inspirowało chińskich poetów, malarzy i projektantów ogrodów przez ponad tysiąc lat. Otoczone mglistymi wzgórzami, pagodami i groblami obsadzonymi wierzbami, od wieków uchodzi za wzór harmonii między człowiekiem a naturą. Piękno jeziora ukształtowało sztukę ogrodową w całej Azji Wschodniej -- ogrody Suzhou, Kioto i Seulu czerpią inspirację właśnie z tego miejsca.
+
+[Dowiedz się więcej na Wikipedii](https://pl.wikipedia.org/wiki/Jezioro_Zachodnie)
+</Markdown>
+
+<!-- === Postaci === -->
+
+<Markdown id="persona_tourist" title="Turysta">
+### Turysta
+
+Odwiedza ten zabytek po raz pierwszy w życiu. Wszystko jest nowe i ekscytujące. Chce opowiedzieć przyjacielowi w domu o tym, co widzi, słyszy, czuje nosem, dotykiem i sercem.
+</Markdown>
+
+<Markdown id="persona_local_child" title="Miejscowe dziecko">
+### Miejscowe dziecko
+
+Wyrosło w pobliżu tego zabytku. Jest częścią codziennego życia -- widoczny w drodze do szkoły, wpleciony w rodzinne opowieści, otoczony turystami. Znaczy coś zupełnie innego, kiedy po prostu *jest*.
+</Markdown>
+
+<Markdown id="persona_archaeologist" title="Archeolog">
+### Archeolog
+
+Badacz, który spędził lata na studiowaniu tego miejsca. Zauważa szczegóły historyczne, techniki budowlane i znaczenie kulturowe, obok których większość zwiedzających przechodzi obojętnie.
+</Markdown>
+
+<Markdown id="persona_merchant" title="Kupiec">
+### Kupiec (postać historyczna)
+
+Handlarz sprzed wieków, przejeżdżający tędy szlakiem handlowym. Widzi to miejsce u szczytu jego świetności, tętniące życiem, pełne ludzi kupujących i sprzedających.
+</Markdown>
+
+<Markdown id="persona_restorer" title="Konserwator">
+### Konserwator
+
+Pracuje w zespole konserwatorskim, który chroni to miejsce przed zniszczeniem. Zna każdą szczelinę, każdą łatę, każde miejsce, gdzie wdziera się deszcz. Cały dzień spędza na rusztowaniach albo w magazynach z narzędziami, których większość ludzi nigdy nie widziała. Widzi to miejsce od środka -- dosłownie.
+</Markdown>
+
+<Markdown id="persona_guard" title="Nocny stróż">
+### Nocny stróż
+
+Pracuje na nocnej zmianie. Kiedy ostatni zwiedzający wychodzą i gasną światła, to miejsce należy do niego. W nocy dźwięki są inne. Cienie się poruszają. Zna budynek po omacku równie dobrze jak na oko.
+</Markdown>
+
+<Markdown id="persona_soldier" title="Żołnierz">
+### Żołnierz (postać historyczna)
+
+Stacjonuje tutaj -- pilnuje muru, bramy albo granicy. To wspaniałe miejsce jest jego stanowiskiem pracy, a większość dni jest nudna. Myśli o domu, o jedzeniu, o ludziach, których zostawił. Cud świata to po prostu miejsce, do którego codziennie chodzi do roboty.
+</Markdown>
+
+<Markdown id="persona_pilgrim" title="Pielgrzym">
+### Pielgrzym (postać historyczna)
+
+Wędrował tygodniami lub miesiącami pieszo, żeby dotrzeć do tego miejsca. To nie atrakcja turystyczna -- to cel podróży. Być może szuka uzdrowienia, przebaczenia, wiedzy albo towaru. Właśnie dotarł po długiej drodze.
+</Markdown>
+
+<Markdown id="persona_spy" title="Szpieg">
+### Szpieg (postać historyczna)
+
+Nie jest tym, za kogo się podaje. Przejeżdża przez to miejsce, zbierając informacje -- o ruchach wojsk, szlakach handlowych, sojuszach politycznych czy technikach budowlanych. Wszystko ma podwójne znaczenie. Pocztówka powinna brzmieć niewinnie, ale zdradzać, na co naprawdę zwraca uwagę.
+</Markdown>
+
+<Markdown id="persona_artist" title="Artysta">
+### Artysta
+
+Przybył tu, żeby szkicować lub malować. Postrzega to miejsce w kategoriach światła, cienia, linii i koloru. Zauważa rzeczy, obok których inni zwiedzający przechodzą obojętnie -- sposób, w jaki kamień łapie popołudniowe słońce, geometrię łuku, fakturę wytartego stopnia.
+</Markdown>
+
+<!-- === Ćwiczenie === -->
+
+<Sequential id="postcard_activity" title="Pocztówka z przeszłości" launchable="true">
+
+  <!-- Krok 1: Wybierz lokalizację -->
+  <Vertical id="postcard_step_1" title="Wybierz lokalizację">
+    <Markdown id="postcard_intro">
+## Pocztówka z przeszłości
+
+Napiszesz krótką pocztówkę z perspektywy kogoś, kto przebywa w słynnym miejscu historycznym. Najpierw wybierz lokalizację.
+    </Markdown>
+    <Carousel id="postcard_location" wrap="true" randomize="true">
+      loc_great_wall, loc_machu_picchu, loc_pyramids, loc_colosseum, loc_taj_mahal, loc_altamira, loc_italica, loc_mezquita, loc_alhambra, loc_seville_cathedral, loc_hagia_sophia, loc_petra, loc_ziggurat_ur, loc_lake_turkana, loc_qin_shi_huang, loc_forbidden_city, loc_west_lake
+    </Carousel>
+  </Vertical>
+
+  <!-- Krok 2: Zbadaj swoją lokalizację -->
+  <Vertical id="postcard_step_2" title="Notatki z poszukiwań">
+    <Markdown id="postcard_research_intro">
+## Zbadaj swoją lokalizację
+
+Wybrałeś/aś: **{{@postcard_location.title}}**. Twoim zadaniem jest dowiedzieć się, jak to jest *naprawdę tam być*. Poszukaj blogów podróżniczych, galerii zdjęć lub filmów -- nie tylko Wikipedii.
+
+Zanotuj:
+- Co byś **zobaczył/a** -- krajobraz, kolory, światło, tłumy lub pustkę
+- Co byś **usłyszał/a, poczuł/a nosem lub dotykiem** -- wiatr, upał, kurz, echo, ciszę
+- Jak to miejsce wygląda **z bliska** -- kruszący się kamień, strome schody, wąskie ścieżki, rozległe widoki
+- Cokolwiek, co Cię **zaskoczyło** -- coś, czego nie zgadłbyś/abyś bez sprawdzenia
+    </Markdown>
+    <Collapsible id="postcard_research_example" title="Zobacz przykład (Wieża Eiffla)">
+      <Markdown id="postcard_research_example_text">
+**Wieża Eiffla -- notatki z poszukiwań**
+
+*Z blogów podróżniczych i zdjęć:*
+* Podstawa z bliska jest OGROMNA -- żelazne nogi górują nad tobą, widać nity
+* Długie kolejki w słońcu, ludzie wachlujący się, sprzedawcy oferujący zimną wodę
+* Schody to metalowe kratownice -- widać przez nie prosto w dół, co jest przerażające
+* Wiatr nasila się w miarę wspinania; cała konstrukcja lekko buczy i wibruje
+* Na szczycie Paryż wygląda na maleńki i płaski -- widać na wiele kilometrów
+* Nocą 20 000 żarówek migocze przez 5 minut co godzinę -- ludzie na trawie pod spodem za każdym razem wiwatują
+* W parku pod spodem pachnie naleśnikami i dymem papierosowym
+* Graffiti wydrapane na żelaznych barierkach -- imiona i daty sprzed dziesięcioleci
+      </Markdown>
+    </Collapsible>
+    <TextArea id="postcard_research_notes" rows="6" placeholder="Ciekawe fakty, szczegóły, rzeczy, które zauważyłem/am..." />
+  </Vertical>
+
+  <!-- Krok 3: Wybierz postać -->
+  <Vertical id="postcard_step_3" title="Wybierz swoją postać">
+    <Markdown id="postcard_persona_header">
+## Wybierz postać
+
+Kim będziesz, pisząc z **{{@postcard_location.title}}**?
+    </Markdown>
+    <Carousel id="postcard_persona" wrap="true" randomize="true">
+      persona_tourist, persona_local_child, persona_archaeologist, persona_merchant, persona_restorer, persona_guard, persona_soldier, persona_pilgrim, persona_spy, persona_artist
+    </Carousel>
+  </Vertical>
+
+  <!-- Krok 4: Rozwiń swoją postać -->
+  <Vertical id="postcard_step_4" title="Rozwiń swoją postać">
+    <Markdown id="postcard_persona_dev_intro">
+## Rozwiń swoją postać
+
+Jesteś **{{@postcard_persona.title}}** w **{{@postcard_location.title}}**. Wymyśl prawdziwą osobę. Daj jej historię:
+- Jak ma na imię? Skąd pochodzi?
+- Kim są jej bliscy i przyjaciele? Do kogo pisze tę pocztówkę?
+- Jak wygląda jej codzienne życie?
+- Co zauważyłaby lub przeżyła takiego, co mogłoby umknąć innym?
+    </Markdown>
+    <Collapsible id="postcard_persona_example" title="Zobacz przykład (sprzedawca pod Wieżą Eiffla)">
+      <Markdown id="postcard_persona_example_text">
+**Sprzedawca na rogu przy Wieży Eiffla**
+
+* Sprzedaje tanie repliki wieży, breloczki i małe flagi
+* Od czasu do czasu przepędzany przez policję -- musi wszystko chwycić i uciekać
+* Spędził kilka miesięcy w więzieniu za kradzieże kieszonkowe i handel bez pozwolenia
+* Dwoje dzieci, które czasem żebrzą na pobliskiej ulicy
+* Nie wiadomo, gdzie jest drugi rodzic
+* Bywa nękany przez miejscowych, którzy uważają, że sprzedawcy psują wygląd okolicy
+* Zna każdy skrót i kryjówkę w promieniu trzech przecznic od wieży
+* Widział iluminację wieży tysiące razy -- wciąż uważa, że jest piękna
+* Mówi po trochu w pięciu językach, akurat tyle, żeby domknąć sprzedaż
+* Pisze do kuzyna w kraju, który marzy o przyjeździe do Paryża
+      </Markdown>
+    </Collapsible>
+    <TextArea id="postcard_persona_notes" rows="6" placeholder="Kim jest ta osoba? Jak wygląda jej życie? Na czym jej zależy?" />
+  </Vertical>
+
+  <!-- Krok 5: Napisz pocztówkę -->
+  <Vertical id="postcard_step_5" title="Napisz pocztówkę">
+    <Markdown id="postcard_write_instructions">
+## Napisz pocztówkę
+
+Jesteś **{{@postcard_persona.title}}** w **{{@postcard_location.title}}**.
+
+Napisz krótką pocztówkę (4-8 zdań) z perspektywy tej osoby. Wykorzystaj notatki z poszukiwań i notatki o postaci, żeby pocztówka brzmiała prawdziwie. Uwzględnij:
+- Co widzisz wokół siebie
+- Jak się czujesz, będąc tutaj
+- Szczegół, który zauważyłby tylko ktoś w Twojej roli
+    </Markdown>
+    <Collapsible id="postcard_my_notes" title="Moje notatki">
+      <Markdown id="postcard_my_notes_research">
+### Notatki z poszukiwań
+
+{{text2markdown(@postcard_research_notes.value)}}
+
+---
+
+### Notatki o postaci
+
+{{text2markdown(@postcard_persona_notes.value)}}
+      </Markdown>
+    </Collapsible>
+    <TextArea id="postcard_draft" rows="8" placeholder="Drogi przyjacielu, ..." />
+    <Markdown id="postcard_draft_wordcount">{{wordcount(@postcard_draft.value) &lt; 20 ? "Przycisk wysyłania pojawi się, gdy napiszesz wystarczająco dużo tekstu, by uzyskać opinię." : "Pisz dalej..."}}</Markdown>
+    <ActionButton id="postcard_submit" label="Wyślij do oceny" dependsOn="wordcount(@postcard_draft.value) >= 20 &amp;&amp; !@postcard_draft.readonly">
+      <CopyFieldAction target="postcard_draft" output="postcard_final" />
+      <LLMAction id="postcard_llm" target="postcard_feedback">
+        Dajesz opinię uczniowi szkoły podstawowej (klasy 6-8) na temat krótkiej pocztówki. Bądź ciepły/a, konkretny/a i zwięzły/a. NIE przepisuj tekstu ucznia ani nie sugeruj konkretnych zdań. Tylko zadawaj pytania.
+
+        Uczeń pisze jako **<Ref target="postcard_persona" field="title" />** w **<Ref target="postcard_location" field="title" />**.
+
+        Notatki ucznia z poszukiwań o lokalizacji:
+        <Ref target="postcard_research_notes" />
+
+        Notatki ucznia o rozwoju postaci:
+        <Ref target="postcard_persona_notes" />
+
+        Przeczytaj uważnie szkic ucznia wraz z jego notatkami z poszukiwań i notatkami o postaci. Następnie zadaj 2-3 pytania, które najbardziej pomogą TEMU uczniowi ulepszyć TĘ pocztówkę. Wybierz to, co jest najważniejsze dla tego szkicu -- mogą to być:
+
+        - Szczegóły zmysłowe (Jak kamień czuł się pod Twoimi dłońmi?)
+        - Emocje lub reakcje (Co poczułeś/aś, kiedy po raz pierwszy to zobaczyłeś/aś?)
+        - Narracja (Gdzie pobiegłeś/aś, kiedy strażnik Cię zauważył?)
+        - Głos i postać (Co Twoja postać zauważyłaby, czego turysta by nie dostrzegł?)
+        - Odbiorca (Kto czyta tę pocztówkę -- co chciałby usłyszeć?)
+        - Struktura (Masz świetny początek -- jak chcesz to zakończyć?)
+        - Wykorzystanie notatek (Twoje notatki wspominają o stromym terenie -- czy postać mogłaby na to zareagować?)
+        - Styl (Czy mógłbyś/mogłabyś zwolnić w tym momencie i pozwolić czytelnikowi to zobaczyć?)
+        - Słownictwo (Napisałeś/aś "poszedłem" -- czy jest bardziej obrazowe słowo na to, jak Twoja postać się poruszała?)
+        - Długość i fokus (Czy jest tu szczegół wart rozwinięcia w dwa zdania?)
+
+        Powyższa lista służy tylko pokazaniu zakresu. Nie omawiaj wszystkiego -- wybierz 2-3 krótkie pytania, które zrobią największą różnicę dla szkicu tego konkretnego ucznia. Każde pytanie powinno być krótkie -- najlepiej jedno zdanie. Pytania powinny nawiązywać do tego, co uczeń napisał i co zbadał. NIE pisz przykładowych zdań ani nie sugeruj konkretnych słów. Po prostu zadawaj pytania, na które uczeń odpowie, dodając lub przerabiając jedno czy dwa zdania.
+
+        Daj opinię w maksymalnie trzech krótkich sekcjach:
+
+        **Poszukiwania** (tylko w razie potrzeby)
+        Jeśli notatki ucznia z poszukiwań są skąpe, puste lub zawierają głównie encyklopedyczne fakty, krótko zasugeruj, czego jeszcze szukać i gdzie. Bądź konkretny/a dla danej lokalizacji -- na przykład w przypadku Wielkiego Muru Chińskiego możesz zasugerować obejrzenie zdjęć z wędrówki w górę, zbliżeń kruszącego się kamienia lub opisów terenu z blogów podróżniczych. W przypadku Koloseum możesz zasugerować poszukanie informacji o tunelach pod spodem. Wskaż rodzaj zmysłowych, doświadczalnych szczegółów, które uczynią pocztówkę bardziej żywą. Ogranicz to do 1-2 zdań. Pomiń tę sekcję całkowicie, jeśli notatki z poszukiwań już zawierają dobre szczegóły zmysłowe i doświadczalne.
+
+        **Pytania do przemyślenia** (maks. 2-3 punkty)
+
+        **Drobne poprawki** (tylko w razie potrzeby)
+        Krótko zaznacz ewentualne błędy gramatyczne lub ortograficzne. Pomiń tę sekcję całkowicie, jeśli tekst jest poprawny.
+
+        Pocztówka ucznia:
+        <Ref target="postcard_draft" />
+      </LLMAction>
+      <SetFieldAction target="postcard_draft" field="readonly" value="true" />
+      <SetFieldAction target="postcard_location" field="readonly" value="true" />
+      <SetFieldAction target="postcard_persona" field="readonly" value="true" />
+    </ActionButton>
+    <LLMFeedback id="postcard_feedback" />
+  </Vertical>
+
+  <!-- Krok 6: Popraw -->
+  <Vertical id="postcard_step_6" title="Popraw swoją pocztówkę">
+    <Markdown id="postcard_revise_instructions">
+## Popraw swoją pocztówkę
+
+Przeczytaj poniższą opinię i napisz ostateczną wersję.
+
+### Twój pierwotny szkic
+    </Markdown>
+    <Use ref="postcard_draft" />
+    <Markdown id="postcard_feedback_header">
+### Opinia
+    </Markdown>
+    <Use ref="postcard_feedback" />
+    <Markdown id="postcard_final_header">
+### Twoja poprawiona pocztówka
+    </Markdown>
+    <TextArea id="postcard_final" rows="8" placeholder="Drogi przyjacielu, ..." />
+    <ActionButton id="postcard_final_submit" label="Wyślij ostateczną wersję" dependsOn="wordcount(@postcard_final.value) >= 20 &amp;&amp; !@postcard_final.readonly">
+      <SetFieldAction target="postcard_final" field="readonly" value="true" />
+      <LLMAction id="llm_formal" target="voice_formal">
+        Uczeń szkoły podstawowej (klasy 6-8) napisał poniższą pocztówkę jako ćwiczenie na lekcji. Pokazujemy mu, jak wyglądałaby jego pocztówka w wersji dostosowanej do innego odbiorcy. Przepisz ją w stylu formalnym -- tak, jakby to była oficjalna korespondencja lub list do dostojnika. Zmień powitanie, zakończenie, słownictwo i budowę zdań, aby pasowały do nowego adresata.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_academic" target="voice_academic">
+        Uczeń szkoły podstawowej (klasy 6-8) napisał poniższą pocztówkę jako ćwiczenie na lekcji. Pokazujemy mu, jak wyglądałaby jego pocztówka w wersji dostosowanej do innego odbiorcy. Przepisz ją w stylu akademickim -- tak, jakby była kierowana do badaczy. Użyj precyzyjnego, analitycznego języka odpowiedniego dla czytelników ze specjalizacją w historii lub kulturoznawstwie.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_child" target="voice_child">
+        Uczeń szkoły podstawowej (klasy 6-8) napisał poniższą pocztówkę jako ćwiczenie na lekcji. Pokazujemy mu, jak wyglądałaby jego pocztówka w wersji dostosowanej do innego odbiorcy. Przepisz ją tak, jakby była wysyłana do małego dziecka (6-7 lat), żeby mogło ją zrozumieć i z przyjemnością przeczytać. Nadawca pozostaje ten sam, ale teraz pisze do młodszego krewnego. Użyj prostych słów, krótkich zdań i wytłumacz trudniejsze pojęcia w sposób, który małe dziecko uzna za ekscytujący.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_literary" target="voice_literary">
+        Uczeń szkoły podstawowej (klasy 6-8) napisał poniższą pocztówkę jako ćwiczenie na lekcji. Pokazujemy mu, jak wyglądałaby jego pocztówka w wersji dostosowanej do innego odbiorcy. Przepisz ją tak, jakby miała trafić na blog podróżniczy autora piszącego prozą literacką, dla czytelników ceniących piękno języka. Użyj bogatych obrazów, szczegółów zmysłowych i zróżnicowanego rytmu zdań.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+      <LLMAction id="llm_business" target="voice_business">
+        Uczeń szkoły podstawowej (klasy 6-8) napisał poniższą pocztówkę jako ćwiczenie na lekcji. Pokazujemy mu, jak wyglądałaby jego pocztówka w wersji dostosowanej do innego odbiorcy. Przepisz ją tak, jakby była wysyłana do współpracowników biznesowych -- jako zwięzła relacja z podróży lub służbowa notatka z wyjazdu. Skup się na kluczowych obserwacjach, praktycznych wnioskach i profesjonalnym tonie.
+
+        <Ref target="postcard_final" />
+      </LLMAction>
+    </ActionButton>
+  </Vertical>
+
+  <!-- Krok 7: Poznaj różne style -->
+  <Vertical id="postcard_step_7" title="Twoja pocztówka w różnych stylach">
+    <Markdown id="postcard_voices_intro">
+## Pisanie dla różnych odbiorców
+
+Wcześniej wybrałeś/aś, *kto* pisze -- turysta, dziecko, archeolog. Chodziło o perspektywę nadawcy.
+
+Teraz pomyślmy o *odbiorcy*. Ta sama wiadomość zmienia się w zależności od tego, do kogo piszesz. Porównaj, jak Twoja pocztówka brzmi w wersji dla małego dziecka, dla naukowców czy dla współpracowników biznesowych. Treść pozostaje ta sama, ale słownictwo, budowa zdań i ton dostosowują się do odbiorcy.
+    </Markdown>
+    <Use ref="postcard_final" />
+    <Tabs id="postcard_voices">
+      <LLMFeedback id="voice_formal" title="Formalny" />
+      <LLMFeedback id="voice_academic" title="Akademicki" />
+      <LLMFeedback id="voice_child" title="Dla dziecka" />
+      <LLMFeedback id="voice_literary" title="Literacki" />
+      <LLMFeedback id="voice_business" title="Biznesowy" />
+    </Tabs>
+  </Vertical>
+
+  <!-- Krok 8: Eksport -->
+  <Vertical id="postcard_step_8" title="Eksportuj swoją pracę">
+    <Markdown id="postcard_export_intro">
+## Eksportuj pocztówkę
+
+Przejrzyj swoją pracę poniżej, a następnie wyeksportuj ją jako PDF.
+    </Markdown>
+    <ActionButton id="postcard_export" label="Eksportuj jako PDF">
+      <PrintAction id="postcard_print" />
+    </ActionButton>
+
+    <!-- Strona 1: Wybory + ostateczna wersja -->
+    <Markdown id="export_page1">
+### Gdzie i kto
+
+**Lokalizacja:** {{@postcard_location.title}}
+
+**Postać:** {{@postcard_persona.title}}
+
+---
+
+### Ostateczna pocztówka
+
+{{@postcard_final.value}}
+    </Markdown>
+
+    <!-- Strona 2: Poszukiwania + rozwój postaci -->
+    <Markdown id="export_page2" class="print-page-break">
+### Notatki z poszukiwań
+
+{{text2markdown(@postcard_research_notes.value)}}
+
+---
+
+### Notatki o postaci
+
+{{text2markdown(@postcard_persona_notes.value)}}
+    </Markdown>
+
+    <!-- Strona 3: Szkic + opinia -->
+    <Markdown id="export_page3" class="print-page-break">
+### Pierwotny szkic
+
+{{text2markdown(@postcard_draft.value)}}
+
+---
+
+### Opinia
+
+{{@postcard_feedback.value}}
+    </Markdown>
+
+  </Vertical>
+
+</Sequential>
+
+</Vertical>

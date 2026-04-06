@@ -1,0 +1,18 @@
+<Annotate id="annotate_demo" title="Annotate Demo">
+  <Markdown>
+The history of mathematics is a story of both discovery and invention.
+Ancient civilizations developed number systems independently: the Babylonians
+used base-60, the Maya used base-20, and the Egyptians used base-10.
+Each system reflected the practical needs of its culture.
+
+The concept of zero, often attributed to Indian mathematicians around the
+5th century CE, was revolutionary. It transformed mathematics from a tool
+for counting and measuring into an abstract discipline capable of describing
+the infinite and the infinitesimal.
+
+By the 17th century, Newton and Leibniz independently developed calculus,
+providing the mathematical framework for understanding change and motion.
+This parallel invention illustrates how mathematical ideas often emerge
+when a civilization is ready for them.
+  </Markdown>
+</Annotate>

@@ -20,7 +20,7 @@ export function _UseDynamic( props: RuntimeProps ) {
   const [value] = useFieldState(props, fields.value, effectiveTarget);
 
   if (!value) {
-    return <pre className="text-red-500">[Missing &lt;Use&gt; resolution]</pre>;
+    return <pre className="text-error">[Missing &lt;Use&gt; resolution]</pre>;
   }
 
   return <DynamicContent props={props} value={value} />;

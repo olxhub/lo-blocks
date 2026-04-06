@@ -234,7 +234,7 @@ it('stale nodes array does not overwrite fresh IDs after auxiliary file change',
     // But this still exercises the code path where fileInfo might have old nodes
     const olxV2 = `<vertical>
   <Chat id="chat1" src="convo.chatpeg" />
-  <Text id="text_new">New text block</Text>
+  <Markdown id="text_new">New text block</Markdown>
 </vertical>`;
     const chatpegV2 = `Title: V2\n~~~~\nAlice: Goodbye [id=msg2]\n`;
 

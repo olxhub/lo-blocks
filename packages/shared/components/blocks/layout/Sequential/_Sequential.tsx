@@ -119,13 +119,13 @@ export default function _Sequential(props: RuntimeProps) {
           <button
             onClick={handlePrev}
             disabled={index <= 0}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 inline-flex items-center gap-1"
+            className="px-4 py-2 bg-muted text-secondary rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted inline-flex items-center gap-1"
           >
             <NavArrow direction="back" /> {t('previous')}
           </button>
         ) : <div />}
 
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-dimmed">
           {t('progress', { current: clampedIndex + 1, total: numItems })}
         </div>
 
@@ -133,7 +133,7 @@ export default function _Sequential(props: RuntimeProps) {
           <button
             onClick={handleNext}
             disabled={index >= numItems - 1}
-            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 inline-flex items-center gap-1"
+            className="px-4 py-2 bg-accent text-inverse rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent-hover inline-flex items-center gap-1"
           >
             {t('next')} <NavArrow direction="forward" />
           </button>

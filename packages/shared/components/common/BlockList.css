@@ -1,5 +1,6 @@
 /* src/components/common/BlockList.css */
 /* Shared styles for BlockList and ElementsInFile components */
+/* Always-dark studio chrome — uses --lo-debug-* tokens */
 /* Accordion-style layout - full width, no nested indentation */
 
 /* =============================================================================
@@ -8,7 +9,7 @@
 
 .elements-in-file {
   margin-bottom: 12px;
-  border-bottom: 1px solid var(--block-list-border, #30363d);
+  border-bottom: 1px solid var(--lo-debug-border);
   padding-bottom: 8px;
 }
 
@@ -16,9 +17,9 @@
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--block-list-muted, #8b949e);
+  color: var(--lo-debug-muted);
   padding: 4px 8px;
-  background: var(--block-list-section-bg, rgba(255,255,255,0.02));
+  background: var(--lo-debug-overlay-faint);
 }
 
 .elements-in-file__list {
@@ -30,7 +31,7 @@
  * ============================================================================= */
 
 .expandable-block-item {
-  border-bottom: 1px solid var(--block-list-border-subtle, rgba(255,255,255,0.05));
+  border-bottom: 1px solid var(--lo-debug-overlay-subtle);
 }
 
 .expandable-block-item:last-child {
@@ -51,33 +52,33 @@
 }
 
 .expandable-block-item__header:hover {
-  background: var(--block-list-hover, rgba(255,255,255,0.05));
+  background: var(--lo-debug-overlay-subtle);
 }
 
 .expandable-block-item__toggle {
   font-size: 10px;
-  color: var(--block-list-muted, #8b949e);
+  color: var(--lo-debug-muted);
   flex-shrink: 0;
   margin-inline-start: auto;
 }
 
 .expandable-block-item__name {
-  font-family: 'SF Mono', Consolas, monospace;
+  font-family: var(--lo-font-mono);
   font-size: 12px;
   font-weight: 500;
-  color: var(--block-list-accent, #58a6ff);
+  color: var(--lo-debug-accent);
   flex-shrink: 0;
 }
 
 .expandable-block-item__ext {
-  color: var(--block-list-muted, #8b949e);
+  color: var(--lo-debug-muted);
   font-size: 10px;
   font-weight: normal;
 }
 
 .expandable-block-item__desc {
   font-size: 10px;
-  color: var(--block-list-muted, #8b949e);
+  color: var(--lo-debug-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -88,19 +89,19 @@
 /* Expanded content - full width, subtle background */
 .expandable-block-item__content {
   padding: 8px;
-  background: var(--block-list-panel, rgba(0,0,0,0.15));
-  border-top: 1px solid var(--block-list-border-subtle, rgba(255,255,255,0.05));
+  background: var(--lo-debug-scrim);
+  border-top: 1px solid var(--lo-debug-overlay-subtle);
   font-size: 11px;
 }
 
 .expandable-block-item__loading {
-  color: var(--block-list-muted, #8b949e);
+  color: var(--lo-debug-muted);
   font-style: italic;
   padding: 4px 0;
 }
 
 .expandable-block-item__desc-full {
-  color: var(--block-list-text, #c9d1d9);
+  color: var(--lo-debug-text);
   line-height: 1.4;
   margin-bottom: 8px;
 }
@@ -114,7 +115,7 @@
   font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--block-list-muted, #8b949e);
+  color: var(--lo-debug-muted);
   margin-bottom: 4px;
 }
 
@@ -130,21 +131,21 @@
 }
 
 .expandable-block-item__attr-name {
-  color: var(--block-list-accent, #58a6ff);
-  font-family: 'SF Mono', Consolas, monospace;
+  color: var(--lo-debug-accent);
+  font-family: var(--lo-font-mono);
   font-size: 10px;
 }
 
 .expandable-block-item__attr-type {
-  color: var(--block-list-success, #7ee787);
-  font-family: 'SF Mono', Consolas, monospace;
+  color: var(--lo-debug-success);
+  font-family: var(--lo-font-mono);
   font-size: 9px;
   margin-inline-start: 4px;
 }
 
 .expandable-block-item__attr-desc {
   display: block;
-  color: var(--block-list-muted, #8b949e);
+  color: var(--lo-debug-muted);
   font-size: 9px;
   margin-top: 1px;
 }
@@ -161,14 +162,14 @@
   font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--block-list-muted, #8b949e);
+  color: var(--lo-debug-muted);
   margin-bottom: 4px;
 }
 
 .expandable-block-item__insert-btn {
   font-size: 9px;
   padding: 2px 8px;
-  background: var(--block-list-accent, #58a6ff);
+  background: var(--lo-debug-accent);
   color: #fff;
   border: none;
   border-radius: 3px;
@@ -179,17 +180,17 @@
 }
 
 .expandable-block-item__insert-btn:hover {
-  background: var(--block-list-accent-hover, #79b8ff);
+  filter: brightness(1.15);
 }
 
 .expandable-block-item__example {
-  font-family: 'SF Mono', Consolas, monospace;
+  font-family: var(--lo-font-mono);
   font-size: 9px;
   line-height: 1.4;
-  color: var(--block-list-text, #c9d1d9);
+  color: var(--lo-debug-text);
   margin: 0;
   padding: 6px;
-  background: var(--block-list-code-bg, rgba(0,0,0,0.3));
+  background: var(--lo-debug-scrim-heavy);
   border-radius: 4px;
   white-space: pre-wrap;
   overflow-x: auto;
@@ -199,7 +200,7 @@
 
 .expandable-block-item__link {
   font-size: 10px;
-  color: var(--block-list-accent, #58a6ff);
+  color: var(--lo-debug-accent);
   text-decoration: none;
   display: inline-block;
   margin-top: 4px;
@@ -219,7 +220,7 @@
 
 /* Category as accordion section */
 .block-list__category {
-  border-bottom: 1px solid var(--block-list-border, #30363d);
+  border-bottom: 1px solid var(--lo-debug-border);
 }
 
 .block-list__category:last-child {
@@ -232,7 +233,7 @@
   width: 100%;
   padding: 8px;
   gap: 6px;
-  background: var(--block-list-section-bg, rgba(255,255,255,0.02));
+  background: var(--lo-debug-overlay-faint);
   border: none;
   cursor: pointer;
   text-align: start;
@@ -240,12 +241,12 @@
 }
 
 .block-list__category-header:hover {
-  background: var(--block-list-hover, rgba(255,255,255,0.05));
+  background: var(--lo-debug-overlay-subtle);
 }
 
 .block-list__category-toggle {
   font-size: 10px;
-  color: var(--block-list-muted, #8b949e);
+  color: var(--lo-debug-muted);
   flex-shrink: 0;
 }
 
@@ -254,14 +255,14 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  color: var(--block-list-text, #c9d1d9);
+  color: var(--lo-debug-text);
   flex: 1;
 }
 
 .block-list__category-count {
   font-size: 10px;
-  color: var(--block-list-muted, #8b949e);
-  background: var(--block-list-badge-bg, rgba(255,255,255,0.1));
+  color: var(--lo-debug-muted);
+  background: var(--lo-debug-overlay-medium);
   padding: 1px 6px;
   border-radius: 10px;
 }
@@ -295,21 +296,21 @@
 }
 
 .block-list__item:hover {
-  background: var(--block-list-hover, rgba(255,255,255,0.05));
+  background: var(--lo-debug-overlay-subtle);
 }
 
 .block-list__item--selected {
-  background: var(--block-list-selected, rgba(88,166,255,0.15));
-  color: var(--block-list-accent, #58a6ff);
+  background: var(--lo-debug-accent-medium);
+  color: var(--lo-debug-accent);
 }
 
 .block-list__item--uncommitted {
-  background: rgba(251,191,36,0.1);
+  background: var(--lo-debug-warning-tint);
 }
 
 .block-list__item-name {
-  font-family: 'SF Mono', Consolas, monospace;
-  color: var(--block-list-accent, #58a6ff);
+  font-family: var(--lo-font-mono);
+  color: var(--lo-debug-accent);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -320,7 +321,7 @@
 }
 
 .block-list__item-ext {
-  color: var(--block-list-muted, #8b949e);
+  color: var(--lo-debug-muted);
   font-size: 11px;
 }
 
@@ -336,20 +337,21 @@
   border-radius: 50%;
 }
 
+/* Indicator dots — semantic status colors */
 .block-list__indicator--readme {
-  background: #3b82f6;
+  background: var(--lo-debug-accent);
 }
 
 .block-list__indicator--examples {
-  background: #8b5cf6;
+  background: var(--lo-debug-purple);
 }
 
 .block-list__indicator--preview {
-  background: #22c55e;
+  background: var(--lo-debug-success);
 }
 
 .block-list__indicator--uncommitted {
-  background: #fbbf24;
+  background: var(--lo-debug-warning);
 }
 
 .block-list__tooltip {
@@ -360,19 +362,19 @@
   z-index: 50;
   width: 220px;
   padding: 8px 10px;
-  background: var(--block-list-tooltip-bg, #1f2937);
-  color: var(--block-list-tooltip-text, #fff);
+  background: var(--lo-debug-elevated);
+  color: #fff;
   font-size: 11px;
   line-height: 1.4;
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px var(--lo-debug-scrim-heavy);
   pointer-events: none;
 }
 
 .block-list__tooltip-status {
   margin-top: 6px;
   padding-top: 6px;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  color: #fbbf24;
+  border-top: 1px solid var(--lo-debug-overlay-medium);
+  color: var(--lo-debug-warning);
   font-size: 10px;
 }

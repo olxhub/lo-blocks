@@ -25,7 +25,7 @@ import * as state from '@/lib/state';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Course from './_Course';
 
-export const fields = state.fields(['selectedChild', 'expandedChapter']);
+export const fields = state.fields(['selectedChild', 'expandedChapter', 'navCollapsed']);
 
 // === Custom parser to build chapter structure ===
 const courseParser = childParser(async function courseBlockParser({ rawKids, parseNode }) {

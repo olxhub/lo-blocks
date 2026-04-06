@@ -6,9 +6,11 @@ import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids, useKidsJson } from '@/lib/render';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
+import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 export default function _Tabs(props: RuntimeProps) {
   const { fields } = props;
+  const { t } = useBlockTranslation(props);
   const [activeTab, setActiveTab] = useFieldState(props, fields.activeTab, 0);
 
   // Filtered kids (when= applied) — used for headers and content indexing
@@ -25,7 +27,7 @@ export default function _Tabs(props: RuntimeProps) {
   const { kids: renderedContent } = useKids(props);
 
   if (filteredKids.length === 0) {
-    return <div className="p-4 text-gray-500">No tabs defined</div>;
+    return <div className="p-4 text-dimmed">{t('noTabsDefined')}</div>;
   }
 
   // Ensure activeTab is within bounds
@@ -36,14 +38,14 @@ export default function _Tabs(props: RuntimeProps) {
   }
 
   return (
-    <div className="tabs-component border rounded-lg bg-white overflow-hidden">
+    <div className="tabs-component border rounded-lg bg-background overflow-hidden">
       {/* Tab Headers */}
-      <div className="flex border-b bg-gray-50">
+      <div className="flex border-b bg-surface">
         {filteredKids.map((kid, index) => {
           const isActive = index === currentTab;
 
           // Extract title from the child block's attributes (using pre-fetched blocks)
-          let tabLabel = `Tab ${index + 1}`;
+          let tabLabel = t('defaultTabLabel', { number: index + 1 });
           if (kid.type === 'block' && kid.id) {
             const childBlock = kidBlockMap[kid.id];
             if (childBlock) {
@@ -58,8 +60,8 @@ export default function _Tabs(props: RuntimeProps) {
               className={`
                 px-4 py-3 font-medium text-sm transition-all
                 ${isActive
-                  ? 'bg-white text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  ? 'bg-background text-accent border-b-2 border-accent'
+                  : 'text-secondary hover:text-foreground hover:bg-muted'
                 }
               `}
             >

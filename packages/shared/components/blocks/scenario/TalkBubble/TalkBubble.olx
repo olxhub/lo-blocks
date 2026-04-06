@@ -1,0 +1,13 @@
+<Vertical id="TalkBubbleDemo">
+  <TalkBubble who="Chip" seed="chip_tutor">
+    <Markdown>Have you heard about peer instruction? Students discuss their reasoning with neighbors before answering.</Markdown>
+  </TalkBubble>
+
+  <TalkBubble who="Clara" side="secondary" seed="clara_student" face="smile">
+    <Markdown>The clicker method! Where you vote, discuss, then re-vote?</Markdown>
+  </TalkBubble>
+
+  <TalkBubble who="Chip" seed="chip_tutor" face="smile">
+    <Markdown>Exactly. Hake's study of 6,000 students showed interactive engagement nearly doubled learning gains on the Force Concept Inventory.</Markdown>
+  </TalkBubble>
+</Vertical>

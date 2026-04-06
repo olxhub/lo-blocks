@@ -20,9 +20,34 @@ import path from 'path';
 import { injectPreviewContent } from '@/lib/template/previewTemplate';
 import { getTextDirection } from '@/lib/i18n/getTextDirection';
 
+if (typeof window !== 'undefined' && !window.matchMedia) {
+  // NOTE: Temporary compatibility shim for jsdom in CI.
+  // This test previously passed.
+  //
+  // It still passes locally, but breaks on github with:
+  //    "TypeError: window.matchMedia is not a function"
+  // This is probably a temporary environment issue, so will be good
+  // to remove at some point.
+  //
+  // (added March 2026)
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: () => ({
+      matches: false,
+      media: '(prefers-color-scheme: dark)',
+      onchange: null,
+      addListener: () => { },
+      removeListener: () => { },
+      addEventListener: () => { },
+      removeEventListener: () => { },
+      dispatchEvent: () => false,
+    }),
+  });
+}
+
 // Mock scrollTo for jsdom (Chat components use this)
 if (typeof Element !== 'undefined' && !Element.prototype.scrollTo) {
-  Element.prototype.scrollTo = function() {};
+  Element.prototype.scrollTo = function() { };
 }
 
 // Mock fetch for content API requests - blocks not in Redux will trigger fetch
@@ -144,7 +169,7 @@ describe('Demo OLX files render without errors', () => {
         const runtime = {
           blockRegistry: BLOCK_REGISTRY,
           store: reduxStore,
-          logEvent: () => {}, // no-op for tests
+          logEvent: () => { }, // no-op for tests
           sideEffectFree: false,
           olxJsonSources: ['content'],
           idPrefix: '' as any,

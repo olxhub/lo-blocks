@@ -16,11 +16,10 @@ import { store, extendSettings } from '@/lib/state';
 // with reduxLogger. Without this, locale never gets set and the page hangs
 // on "Loading language settings..."
 //
-// websocket: false — no event server in static builds. Without this, lo_event
-// queues events waiting for a websocket ACK that never comes.
+// Websocket and other per-profile settings are resolved via PMSS
+// (NEXT_PUBLIC_APP_PROFILE=static in next.config.mjs).
 const reduxStore = store.init({
   extraFields: extendSettings([]),
-  websocket: false,
 });
 
 export default function StoreWrapper({ children }: { children: React.ReactNode }) {

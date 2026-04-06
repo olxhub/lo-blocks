@@ -1,0 +1,64 @@
+/*
+ * Panel Primitives
+ * ----------------
+ * Shared panel/card/sidebar surface styles.
+ *
+ * Classes:
+ *   .lo-panel            — card-like surface with border and radius
+ *   .lo-panel--sidebar   — fixed-width sidebar variant
+ *   .lo-panel--flush     — no padding (for panels that manage their own spacing)
+ *
+ * TODO (backlog): Once sidebar consolidation is done, Course, SideBarPanel,
+ * DocsPage sidebar, and Studio sidebar should share .lo-panel--sidebar.
+ */
+
+.lo-panel {
+  background-color: var(--lo-bg-surface);
+  border: 1px solid var(--lo-border);
+  border-radius: var(--lo-radius-lg);
+  padding: var(--lo-space-lg);
+}
+
+.lo-panel--sidebar {
+  flex: 0 0 var(--lo-sidebar-width);
+  overflow-y: auto;
+  border-radius: 0; /* Sidebars are typically flush against an edge */
+}
+
+.lo-panel--flush {
+  padding: 0;
+}
+
+@media (max-width: 1024px) {
+  .lo-panel--sidebar {
+    flex: none;
+    width: 100%;
+  }
+}
+
+/*
+ * Chrome surface bridge
+ * ---------------------
+ * Remaps --lo-* semantic tokens to --lo-chrome-* values so that any
+ * token-consuming component (ChatComponent, inputs, etc.) placed inside
+ * a chrome container automatically inherits the contrasting palette.
+ *
+ * Usage: add class="lo-chrome" to a container element.
+ * Theme-aware: literary gets warm wood, default gets cool slate, etc.
+ */
+.lo-chrome {
+  --lo-bg:             var(--lo-chrome);
+  --lo-bg-surface:     var(--lo-chrome-surface);
+  --lo-bg-elevated:    var(--lo-chrome-surface);
+  --lo-bg-muted:       var(--lo-chrome-hover);
+  --lo-text:           var(--lo-chrome-text);
+  --lo-text-secondary: var(--lo-chrome-text-secondary);
+  --lo-text-muted:     var(--lo-chrome-text-muted);
+  --lo-text-inverse:   var(--lo-bg);
+  --lo-border:         var(--lo-chrome-border);
+  --lo-border-subtle:  var(--lo-chrome-border);
+  --lo-border-strong:  var(--lo-chrome-active);
+
+  color: var(--lo-chrome-text);
+  background: var(--lo-chrome);
+}

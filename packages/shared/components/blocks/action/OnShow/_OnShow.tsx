@@ -9,9 +9,9 @@ import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 
 function _OnShow(props: RuntimeProps) {
-  const { trigger = 'first_view' } = props;
+  const { mode = 'once' } = props;
 
-  // Always call useKids unconditionally to build the OLX DOM tree
+  // Side-effect: registers child nodes in OLX DOM for executeNodeActions
   const { kids: _kids } = useKids(props);
   const [hasRun, setHasRun] = useFieldState(props, props.fields.hasRun, false);
 
@@ -19,22 +19,22 @@ function _OnShow(props: RuntimeProps) {
   const propsRef = useRef(props);
   propsRef.current = props;
 
-  // Each-view effect: runs when the block is rendered in a mounted view
+  // Each mode: runs when the block is rendered in a mounted view
   useEffect(() => {
-    if (trigger !== 'each_view') return;
+    if (mode !== 'each') return;
     if (propsRef.current.runtime.sideEffectFree) return;
     executeNodeActions(propsRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // First-view effect: runs once for the component ID across remounts
+  // Once mode: runs once for the component ID across remounts
   useEffect(() => {
-    if (trigger !== 'first_view') return;
+    if (mode !== 'once') return;
     if (hasRun || propsRef.current.runtime.sideEffectFree) return;
     executeNodeActions(propsRef.current);
     setHasRun(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasRun, trigger]);
+  }, [hasRun, mode]);
 
   return null;
 }

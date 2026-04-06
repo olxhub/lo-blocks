@@ -1,137 +1,187 @@
 'use client';
 
-// src/components/common/StatePanel.jsx
+// src/components/common/StatePanel.tsx
 //
-// Collapsible panel showing Redux state for all stateful components in an idMap.
+// Collapsible panel showing Redux component state for the current preview.
 // Used in docs page to help developers see component state during demos.
 //
-// Warning: This is prototype code. May contain bugs, hacks, LLM slops, abstraction violations...
+// Scopes state to the current preview by walking the dynamic OLX DOM tree
+// (nodeInfo) to discover which ReduxStateKeys belong to this render tree.
+// Each OlxDomNode carries its reduxKey and loBlock.fields, so we can both
+// filter and decode state without BLOCK_REGISTRY lookups.
 //
-// If you run into issues with it, please do a cleanup. We need to merge a PR and we'll fix later.
+// TIMING: This component reads nodeInfoRef (a React ref) populated by
+// RenderOLX during rendering. It relies on Redux state changes (via
+// useSelector) to trigger re-renders, at which point the ref is read.
+// This piggybacking avoids extra render cycles but has edge cases:
+//   - First render: nodeInfo tree may be empty (no state to show anyway)
+//   - Replay mode: state exists without live rendering (tree may be stale)
+//   - Concurrent React: sibling render order not guaranteed
+// See RenderOLX.tsx nodeInfoRef prop for full discussion.
+// If these become real problems, switch to useEffect callback or context.
 
-import React, { useState, useMemo } from 'react';
-import { useSelector, shallowEqual } from 'react-redux';
-import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
-import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import type { OlxKey, OlxJson, IdMap, RuntimeProps, UserLocale } from '@/lib/types';
+import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
+import { getKidsBFS } from '@/lib/blocks/olxdom';
+import { decodeState } from '@/lib/state/stateDisplay';
+import type { OlxDomNode, ReduxStateKey, FieldInfo } from '@/lib/types';
 
-/** Typed iteration over IdMap entries (Object.entries loses branded key types in TS 5.8) */
-function* entriesIdMap(idMap: IdMap): Generator<[OlxKey, IdMap[OlxKey]]> {
-  for (const [id, variants] of Object.entries(idMap)) {
-    yield [id as OlxKey, variants];
-  }
+/** Info about a block in the nodeInfo tree, for state display. */
+interface TreeEntry {
+  reduxKey: ReduxStateKey;
+  tag: string;
+  fields: Record<string, FieldInfo> | undefined;
 }
 
 /**
- * Find all component IDs in idMap that have stateful fields.
+ * Walk the nodeInfo tree and collect display info for each rendered block.
+ * Excludes the sentinel root node (it has no real block state).
  */
-function findStatefulIds(idMap: IdMap, blockRegistry = BLOCK_REGISTRY, locale?: UserLocale) {
-  if (!idMap) return [];
+function collectTreeEntries(root: OlxDomNode): TreeEntry[] {
+  const nodes = getKidsBFS(root, {
+    includeRoot: false,
+    selector: (n: OlxDomNode) => n.sentinel !== 'root',
+  });
 
-  const result: OlxKey[] = [];
-  for (const [id, variantMap] of entriesIdMap(idMap)) {
-    // variantMap is nested structure { 'en-Latn-US': OlxJson, ... }
-    const node = extractLocalizedVariant(variantMap, locale || '');
-    if (!node) continue;
-
-    const blockType = blockRegistry[node.tag];
-    const hasFields = blockType?.fields && Object.keys(blockType.fields).length > 0;
-    if (hasFields) result.push(id);
-  }
-  return result;
+  return nodes.map(n => ({
+    reduxKey: n.reduxKey,
+    tag: n.olxJson?.tag || '?',
+    fields: n.loBlock?.fields as Record<string, FieldInfo> | undefined,
+  }));
 }
 
 /**
- * Single state viewer row - shows component ID and its state.
+ * Single state viewer row — shows decoded field state for one block.
  */
-function StateRow({ id, idMap }: { id: OlxKey; idMap: IdMap }) {
+function StateRow({ entry }: { entry: TreeEntry }) {
   const componentState = useSelector(
-    (state: any) => state?.application_state?.component?.[id] || null,
-    shallowEqual
+    (state: any) => state?.application_state?.component?.[entry.reduxKey] || null,
   );
 
-  // Get current locale for variant selection
-  const locale = useSelector((state: any) => state?.application_state?.settings?.locale?.code);
+  if (componentState === null) return null;
 
-  // Extract the OlxJson from nested structure { variant: OlxJson, ... }
-  const variantMap = idMap[id];
-  const olxJson = extractLocalizedVariant(variantMap, locale || '');
-
-  if (!olxJson) {
-    return null;
-  }
-
-  const tag = olxJson.tag;
+  const { decoded, meta } = decodeState(componentState, entry.fields);
+  const hasDecoded = Object.keys(decoded).length > 0;
+  const hasMeta = Object.keys(meta).length > 0;
 
   return (
     <div className="border-b last:border-b-0 py-2">
-      <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
-        <code className="font-semibold text-gray-700">{id}</code>
-        <span className="text-gray-400">({tag})</span>
+      <div className="flex items-center gap-2 text-xs text-dimmed mb-1">
+        <code className="font-semibold text-secondary">{entry.reduxKey}</code>
+        <span className="text-dimmed">{entry.tag}</span>
       </div>
-      <pre className="text-xs bg-gray-50 p-2 rounded overflow-x-auto">
-        {componentState === null
-          ? <span className="text-gray-400 italic">no state</span>
-          : JSON.stringify(componentState, null, 2)
-        }
-      </pre>
+      {hasDecoded && (
+        <div className="text-xs bg-surface p-2 rounded">
+          {Object.entries(decoded).map(([name, display]) => (
+            <div key={name}>
+              <span className="text-dimmed">{name}: </span>
+              <span>{display || <span className="text-dimmed italic">(empty)</span>}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {hasMeta && (
+        <details className="mt-1">
+          <summary className="text-xs text-dimmed cursor-pointer">
+            raw ({Object.keys(meta).length} metadata keys)
+          </summary>
+          <pre className="text-xs bg-surface p-2 rounded overflow-x-auto text-dimmed">
+            {JSON.stringify(meta, null, 2)}
+          </pre>
+        </details>
+      )}
     </div>
   );
 }
 
-/**
- * Wrapper that sorts StateRows by amount of state (most state first).
- */
-function SortedStateRows({ ids, idMap }: { ids: OlxKey[]; idMap: IdMap }) {
+function StateRows({ entries }: { entries: TreeEntry[] }) {
   const componentStates = useSelector(
     (state: any) => state?.application_state?.component,
-    shallowEqual
   );
 
-  const sorted = useMemo(() => {
-    return [...ids].sort((a, b) => {
-      const sizeA = JSON.stringify(componentStates?.[a] ?? null).length;
-      const sizeB = JSON.stringify(componentStates?.[b] ?? null).length;
-      return sizeB - sizeA;
-    });
-  }, [ids, componentStates]);
+  // Sort by state size (largest first) — stateless blocks like Markdown sink to bottom
+  const sorted = [...entries].sort((a, b) => {
+    const sizeA = JSON.stringify(componentStates?.[a.reduxKey] ?? null).length;
+    const sizeB = JSON.stringify(componentStates?.[b.reduxKey] ?? null).length;
+    return sizeB - sizeA;
+  });
 
   return (
-    <div className="p-3 bg-white max-h-64 overflow-y-auto">
-      {sorted.map(id => (
-        <StateRow key={id} id={id} idMap={idMap} />
+    <div className="p-3 bg-background max-h-64 overflow-y-auto">
+      {sorted.map(entry => (
+        <StateRow key={entry.reduxKey} entry={entry} />
       ))}
     </div>
   );
 }
 
 /**
- * Collapsible panel showing state for all stateful components.
+ * Collapsible panel showing Redux component state scoped to the current preview.
+ *
+ * Reads the nodeInfo tree from a ref populated by RenderOLX. Walks the tree
+ * to discover which ReduxStateKeys belong to this preview, then shows decoded
+ * field state for each block that has state.
  */
-export default function StatePanel({ idMap, blockRegistry = BLOCK_REGISTRY }: { idMap: IdMap; blockRegistry?: typeof BLOCK_REGISTRY }) {
+export default function StatePanel({
+  nodeInfoRef,
+}: {
+  nodeInfoRef?: React.RefObject<OlxDomNode | null>;
+}) {
   const [expanded, setExpanded] = useState(false);
-  const locale = useSelector((state: any) => state?.application_state?.settings?.locale?.code);
 
-  const statefulIds = useMemo(
-    () => findStatefulIds(idMap, blockRegistry, locale),
-    [idMap, blockRegistry, locale]
+  // Walk the nodeInfo tree to find blocks in this preview.
+  // The ref is populated by RenderOLX during rendering — see timing caveat above.
+  const rootNodeInfo = nodeInfoRef?.current;
+  const treeEntries = rootNodeInfo ? collectTreeEntries(rootNodeInfo) : [];
+  const treeKeySet = new Set(treeEntries.map(e => e.reduxKey));
+
+  // Subscribe to Redux state keys
+  const componentKeys = useSelector(
+    (state: any) => Object.keys(state?.application_state?.component ?? {}),
+    (a: string[], b: string[]) => a.length === b.length && a.every((v, i) => v === b[i])
   );
 
-  if (statefulIds.length === 0) {
+  // Filter to keys belonging to this preview: direct tree matches plus
+  // scoped children (e.g., "annotate_demo:#2:annotate_demo" is scoped
+  // under tree key "annotate_demo"). The ":" is the Redux scope separator.
+  const matchingKeys = treeKeySet.size === 0
+    ? componentKeys
+    : componentKeys.filter(k =>
+        treeKeySet.has(k as ReduxStateKey) ||
+        [...treeKeySet].some(tk => k.startsWith(tk + ':'))
+      );
+
+  // Hide only when there's no state AND no tree (i.e., nothing to show).
+  // When the tree has entries but no state yet, we still render the panel
+  // so it appears once state arrives (first interaction).
+  if (matchingKeys.length === 0 && treeEntries.length === 0) {
     return null;
   }
+
+  // Build entries for all matching keys. Tree entries match directly;
+  // scoped keys inherit tag and fields from their parent tree entry.
+  const activeEntries: TreeEntry[] = matchingKeys.map(k => {
+    const direct = treeEntries.find(e => e.reduxKey === k);
+    if (direct) return direct;
+    const parent = treeEntries.find(e => k.startsWith(e.reduxKey + ':'));
+    return {
+      reduxKey: k as ReduxStateKey,
+      tag: parent ? parent.tag + ' (scoped)' : '?',
+      fields: parent?.fields,
+    };
+  });
 
   return (
     <div className="border rounded-lg overflow-hidden mt-4">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full px-3 py-2 bg-gray-100 border-b text-left text-sm flex items-center justify-between hover:bg-gray-200 transition-colors"
+        className="w-full px-3 py-2 bg-muted border-b text-left text-sm flex items-center justify-between hover:bg-muted transition-colors"
       >
-        <span className="font-medium text-gray-700">
-          State ({statefulIds.length})
+        <span className="font-medium text-secondary">
+          State ({activeEntries.length})
         </span>
         <svg
-          className={`w-4 h-4 text-gray-500 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 text-dimmed transition-transform ${expanded ? 'rotate-180' : ''}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -141,7 +191,7 @@ export default function StatePanel({ idMap, blockRegistry = BLOCK_REGISTRY }: { 
       </button>
 
       {expanded && (
-        <SortedStateRows ids={statefulIds} idMap={idMap} />
+        <StateRows entries={activeEntries} />
       )}
     </div>
   );

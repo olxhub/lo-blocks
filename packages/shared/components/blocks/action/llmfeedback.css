@@ -1,7 +1,7 @@
 /* LLMFeedback Component Styles */
 
 .lo-tag-llmfeedback .llm-feedback-container {
-  background-color: var(--lo-surface);
+  background-color: var(--lo-bg-surface);
   border: 1px solid var(--lo-border);
   border-radius: var(--lo-radius-md);
   padding: var(--lo-space-lg);
@@ -13,7 +13,7 @@
 .lo-tag-llmfeedback .llm-feedback-container.llm-feedback-empty {
   border-style: dashed;
   border-color: var(--lo-border);
-  background-color: var(--lo-surface-muted, #fafafa);
+  background-color: var(--lo-bg-muted);
 }
 
 .lo-tag-llmfeedback .llm-feedback-icon {
@@ -28,7 +28,7 @@
 }
 
 .lo-tag-llmfeedback .llm-feedback-content {
-  color: var(--lo-text-primary);
+  color: var(--lo-text);
   line-height: var(--lo-line-height-normal);
   word-wrap: break-word;
 }
@@ -40,7 +40,7 @@
 
 /* Code render mode */
 .lo-tag-llmfeedback .llm-feedback-code {
-  background-color: var(--lo-surface-muted, #f5f5f5);
+  background-color: var(--lo-bg-muted);
   padding: var(--lo-space-md);
   border-radius: var(--lo-radius-sm);
   overflow-x: auto;

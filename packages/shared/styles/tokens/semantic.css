@@ -1,0 +1,134 @@
+/*
+ * Semantic Tokens (Tier 2)
+ * -------------------------
+ * These are the tokens that component CSS actually uses.
+ * They express intent (what it's for) not appearance (what color it is).
+ *
+ * Naming: --lo-{category}[-{variant}]
+ *   Bare name (--lo-bg, --lo-text, --lo-border) is always the default.
+ *
+ * Light/dark values use the CSS light-dark() function, which resolves based
+ * on the computed color-scheme of the element. The color-scheme property is
+ * mapped from our data-color-mode attribute below.
+ *
+ * Overridden by:
+ *   - themes/literary.css     → literary theme
+ *   - themes/hightech.css     → hightech theme
+ *   - themes/mit.css          → MIT brand
+ *
+ * For theme authors: override any of these in your theme file.
+ * For block authors: use ONLY these tokens in your CSS — never foundation values.
+ */
+
+/* ── Map data-color-mode to CSS color-scheme ──
+ * This drives light-dark() resolution and also affects native browser UI
+ * (scrollbars, form controls) to match the chosen mode. */
+[data-color-mode="light"] { color-scheme: light; }
+[data-color-mode="dark"]  { color-scheme: dark; }
+[data-color-mode="auto"]  { color-scheme: light dark; }
+
+:root {
+
+  /* ── Surfaces ── */
+  --lo-bg:          light-dark(var(--lo-color-white),      var(--lo-color-slate-900));
+  --lo-bg-surface:  light-dark(var(--lo-color-slate-50),   var(--lo-color-slate-800));
+  --lo-bg-elevated: light-dark(var(--lo-color-white),      var(--lo-color-slate-700));
+  --lo-bg-muted:    light-dark(var(--lo-color-slate-100),  var(--lo-color-slate-800));
+
+  /* ── Text ── */
+  --lo-text:           light-dark(var(--lo-color-slate-800), var(--lo-color-slate-100));
+  --lo-text-secondary: light-dark(var(--lo-color-slate-500), var(--lo-color-slate-400));
+  --lo-text-muted:     light-dark(var(--lo-color-slate-400), var(--lo-color-slate-500));
+  --lo-text-inverse:   light-dark(var(--lo-color-white),     var(--lo-color-slate-900));
+
+  /* ── Borders ── */
+  --lo-border:        light-dark(var(--lo-color-slate-200), var(--lo-color-slate-700));
+  --lo-border-subtle: light-dark(var(--lo-color-slate-100), var(--lo-color-slate-800));
+  --lo-border-strong: light-dark(var(--lo-color-slate-300), var(--lo-color-slate-600));
+
+  /* ── Primary (brand / interactive accent) ── */
+  --lo-primary:        light-dark(var(--lo-color-blue-600), var(--lo-color-blue-400));
+  --lo-primary-hover:  light-dark(var(--lo-color-blue-700), var(--lo-color-blue-300));
+  --lo-primary-subtle: light-dark(var(--lo-color-blue-100), rgba(96, 165, 250, 0.15));
+
+  /* ── Secondary ── */
+  --lo-secondary:       light-dark(var(--lo-color-slate-500), var(--lo-color-slate-400));
+  --lo-secondary-hover: light-dark(var(--lo-color-slate-600), var(--lo-color-slate-300));
+
+  /* ── Status ── */
+  --lo-success:        light-dark(var(--lo-color-emerald-600), var(--lo-color-emerald-400));
+  --lo-success-subtle: light-dark(var(--lo-color-emerald-100), rgba(52, 211, 153, 0.15));
+  --lo-warning:        light-dark(var(--lo-color-amber-600),   var(--lo-color-amber-400));
+  --lo-warning-subtle: light-dark(var(--lo-color-amber-100),   rgba(251, 191, 36, 0.15));
+  --lo-error:          light-dark(var(--lo-color-red-600),     var(--lo-color-red-400));
+  --lo-error-subtle:   light-dark(var(--lo-color-red-100),     rgba(248, 113, 113, 0.15));
+  --lo-info:           light-dark(var(--lo-color-sky-600),     var(--lo-color-sky-400));
+  --lo-info-subtle:    light-dark(var(--lo-color-sky-100),     rgba(56, 189, 248, 0.15));
+
+  /* ── Typography ── */
+  --lo-font-body:    'Geist Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --lo-font-heading: 'Geist Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --lo-font-ui:      'Geist Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --lo-font-mono:    'Geist Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+
+  --lo-font-size-xs:   0.75rem;   /* 12px */
+  --lo-font-size-sm:   0.875rem;  /* 14px */
+  --lo-font-size-base: 1rem;      /* 16px */
+  --lo-font-size-lg:   1.125rem;  /* 18px */
+  --lo-font-size-xl:   1.25rem;   /* 20px */
+  --lo-font-size-2xl:  1.5rem;    /* 24px */
+  --lo-font-size-3xl:  1.875rem;  /* 30px */
+
+  --lo-line-height-tight:   1.25;
+  --lo-line-height-normal:  1.5;
+  --lo-line-height-relaxed: 1.75;
+
+  /* ── Spacing scale ── */
+  --lo-space-xs:  0.25rem;  /* 4px */
+  --lo-space-sm:  0.5rem;   /* 8px */
+  --lo-space-md:  0.75rem;  /* 12px */
+  --lo-space-lg:  1rem;     /* 16px */
+  --lo-space-xl:  1.5rem;   /* 24px */
+  --lo-space-2xl: 2rem;     /* 32px */
+  --lo-space-3xl: 3rem;     /* 48px */
+
+  /* ── Border radius ── */
+  --lo-radius-sm: 0.125rem;  /* 2px */
+  --lo-radius-md: 0.375rem;  /* 6px */
+  --lo-radius-lg: 0.5rem;    /* 8px */
+  --lo-radius-xl: 0.75rem;   /* 12px */
+
+  /* ── Shadows (light-dark inline for shadow color opacity) ── */
+  --lo-shadow-sm: 0 1px 2px 0 light-dark(rgb(0 0 0 / 0.05), rgb(0 0 0 / 0.3));
+  --lo-shadow-md: 0 4px 6px -1px light-dark(rgb(0 0 0 / 0.1), rgb(0 0 0 / 0.4)),
+                  0 2px 4px -2px light-dark(rgb(0 0 0 / 0.1), rgb(0 0 0 / 0.3));
+  --lo-shadow-lg: 0 10px 15px -3px light-dark(rgb(0 0 0 / 0.1), rgb(0 0 0 / 0.4)),
+                  0 4px 6px -4px light-dark(rgb(0 0 0 / 0.1), rgb(0 0 0 / 0.3));
+
+  /* ── Focus ── */
+  --lo-focus-ring:        light-dark(var(--lo-color-blue-500), var(--lo-color-blue-400));
+  --lo-focus-ring-width:  2px;
+  --lo-focus-ring-offset: 2px;
+  --lo-focus-ring-shadow: 0 0 0 3px light-dark(rgb(59 130 246 / 0.15), rgba(96, 165, 250, 0.25));
+
+  /* ── Motion ── */
+  --lo-motion-fast:   150ms;
+  --lo-motion-normal: 250ms;
+  --lo-motion-slow:   400ms;
+  --lo-ease-default:  cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Chrome (contrasting app frame — dark on light, near-black on dark) ── */
+  --lo-chrome:                light-dark(var(--lo-color-slate-800), var(--lo-color-slate-950));
+  --lo-chrome-surface:        light-dark(var(--lo-color-slate-700), var(--lo-color-slate-900));
+  --lo-chrome-text:           light-dark(var(--lo-color-slate-50),  var(--lo-color-slate-200));
+  --lo-chrome-text-secondary: light-dark(var(--lo-color-slate-300), var(--lo-color-slate-400));
+  --lo-chrome-text-muted:     light-dark(var(--lo-color-slate-400), var(--lo-color-slate-500));
+  --lo-chrome-border:         light-dark(var(--lo-color-slate-600), var(--lo-color-slate-800));
+  --lo-chrome-hover:          light-dark(var(--lo-color-slate-700), var(--lo-color-slate-800));
+  --lo-chrome-active:         light-dark(var(--lo-color-slate-600), var(--lo-color-slate-700));
+
+  /* ── Layout ── */
+  --lo-container-max-width: 1200px;
+  --lo-sidebar-width: 320px;
+  --lo-header-height: 64px;
+}

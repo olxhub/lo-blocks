@@ -212,8 +212,8 @@ function _TimedContainer(props: RuntimeProps) {
   const fraction = duration > 0 ? remaining / duration : 0;
 
   const borderClass = started && !expired
-    ? 'border-blue-200'
-    : 'border-gray-200';
+    ? 'border-accent'
+    : 'border-border';
 
   return (
     <div className={`border rounded-lg overflow-hidden ${borderClass}`}>
@@ -221,15 +221,15 @@ function _TimedContainer(props: RuntimeProps) {
       {!started && start === 'go' && (
         <div className="text-center py-8 px-4">
           {before && (
-            <div className="text-gray-600 mb-4 max-w-prose mx-auto">
+            <div className="text-secondary mb-4 max-w-prose mx-auto">
               <RenderMarkdown>{before}</RenderMarkdown>
             </div>
           )}
-          <div className="text-3xl font-light text-gray-500 mb-6">
+          <div className="text-3xl font-light text-dimmed mb-6">
             {formatDuration(duration)}
           </div>
           <button
-            className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-lg transition-colors"
+            className="px-8 py-3 bg-accent text-inverse rounded-lg hover:bg-accent-hover font-medium text-lg transition-colors"
             onClick={handleStart}
           >
             {label}
@@ -256,7 +256,7 @@ function _TimedContainer(props: RuntimeProps) {
             Time's up!
           </div>
           {after && (
-            <div className="text-gray-500 text-sm mt-1">
+            <div className="text-dimmed text-sm mt-1">
               <RenderMarkdown>{after}</RenderMarkdown>
             </div>
           )}
@@ -268,7 +268,7 @@ function _TimedContainer(props: RuntimeProps) {
         <div
           ref={containerRef}
           inert={inactive || undefined}
-          className={`p-4 ${expired ? 'opacity-60 bg-gray-50' : ''}`}
+          className={`p-4 ${expired ? 'opacity-60 bg-surface' : ''}`}
         >
           {renderedKids}
         </div>

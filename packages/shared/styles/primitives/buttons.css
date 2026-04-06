@@ -1,0 +1,100 @@
+/*
+ * Button Primitives
+ * -----------------
+ * Shared button styles for use across blocks. Individual blocks can
+ * extend these with their own classes or use them directly.
+ *
+ * Classes:
+ *   .lo-btn              — base button reset + layout
+ *   .lo-btn--primary     — filled primary action
+ *   .lo-btn--subtle      — outlined/muted secondary action
+ *   .lo-btn--ghost       — transparent, text-only
+ *   .lo-btn--sm          — smaller sizing
+ *   .lo-btn--icon        — square icon-only button
+ */
+
+.lo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--lo-space-sm);
+  padding: var(--lo-space-md) var(--lo-space-xl);
+  border: 1px solid transparent;
+  border-radius: var(--lo-radius-md);
+  font-family: var(--lo-font-ui);
+  font-size: var(--lo-font-size-base);
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  text-decoration: none;
+  min-height: 44px; /* WCAG 2.5.8 touch target minimum */
+  transition: background-color var(--lo-motion-fast) var(--lo-ease-default),
+              border-color var(--lo-motion-fast) var(--lo-ease-default),
+              color var(--lo-motion-fast) var(--lo-ease-default),
+              box-shadow var(--lo-motion-fast) var(--lo-ease-default);
+}
+
+.lo-btn:focus-visible {
+  outline: var(--lo-focus-ring-width) solid var(--lo-focus-ring);
+  outline-offset: var(--lo-focus-ring-offset);
+}
+
+.lo-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ── Primary: filled brand color ── */
+.lo-btn--primary {
+  background-color: var(--lo-primary);
+  color: var(--lo-text-inverse);
+  box-shadow: var(--lo-shadow-sm);
+}
+
+.lo-btn--primary:hover:not(:disabled) {
+  background-color: var(--lo-primary-hover);
+  box-shadow: var(--lo-shadow-md);
+}
+
+/* ── Subtle: outlined / muted ── */
+.lo-btn--subtle {
+  background-color: var(--lo-bg-surface);
+  border-color: var(--lo-border);
+  color: var(--lo-text);
+}
+
+.lo-btn--subtle:hover:not(:disabled) {
+  background-color: var(--lo-bg-muted);
+  border-color: var(--lo-border-strong);
+}
+
+/* ── Ghost: transparent, text-only ── */
+.lo-btn--ghost {
+  background-color: transparent;
+  color: var(--lo-text-secondary);
+}
+
+.lo-btn--ghost:hover:not(:disabled) {
+  background-color: var(--lo-bg-muted);
+  color: var(--lo-text);
+}
+
+/* ── Size: small ── */
+.lo-btn--sm {
+  padding: var(--lo-space-xs) var(--lo-space-md);
+  font-size: var(--lo-font-size-sm);
+  min-height: 32px;
+}
+
+/* ── Shape: icon-only (square) ── */
+.lo-btn--icon {
+  padding: var(--lo-space-sm);
+  min-width: 44px;
+}
+
+.lo-btn--icon.lo-btn--sm {
+  padding: var(--lo-space-xs);
+  min-width: 32px;
+  min-height: 32px;
+}

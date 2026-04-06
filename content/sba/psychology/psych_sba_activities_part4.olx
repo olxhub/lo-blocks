@@ -102,7 +102,7 @@ return Plot.plot({
 
 Kept for comparison while Mermaid transitions out of beta.
     </Markdown>
-  
+
   <Mermaid id="UNUSED_alternative_bedtime_plot" title="Johnny's Bedtimes (first 5 evenings) (unused)">
 %%{init: {"theme":"base","themeVariables":{"xyChart":{"backgroundColor":"#ffffff","plotColorPalette":"#111827,#111827,#111827"}}}}%%
 xychart-beta
@@ -112,7 +112,7 @@ xychart-beta
   line [20, 20, 20.5, 21, 21]
 </Mermaid>
   </Vertical>
-  
+
   <!-- Implementation fidelity introduction -->
   <Markdown id="fidelity_intro">
 ## Implementation Fidelity
@@ -175,7 +175,7 @@ Let's use AI to brainstorm how we can improve adherence to the intervention plan
 
   <Vertical id="ai_intervention_brainstorming_prompt"><Markdown>
 We need advice on a psychological intervention using operant conditioning.
-          
+
 Annie's roommate is babysitting a six-year-old boy, and has been having
 trouble getting him to go to bed. He keeps running away, laughing, or doing
 other things that delay bedtime. We tried to put together an intervention
@@ -186,10 +186,10 @@ well as the consequence conditions. Here's our description of that plan:
       <Use ref="intervention_email" />
       <Markdown>
 Here is what happened when Annie's roommate tried to implement the plan:
-          
+
 The boy went to bed on time the first couple of times, but then bedtime
 got later and later. The six-year-old's escape behaviors actually got worse.
-          
+
 When we checked on what Annie's roommate was actually doing, we learned
 that she was having trouble adhering to the plan. Specifically, we found out
 that she sometimes forgets to do the warning countdown and timer, forgets the
@@ -211,7 +211,7 @@ Let's use AI to brainstorm how we can improve adherence to the intervention plan
     <ActionButton id="ask_ai_modifications_btn2" label="Run the prompt the team has just developed">
       <LLMAction target="modifications_ai_response2">
 We need advice on a psychological intervention using operant conditioning.
-          
+
 Annie's roommate is babysitting a six-year-old boy, and has been having
 trouble getting him to go to bed. He keeps running away, laughing, or doing
 other things that delay bedtime. We tried to put together an intervention
@@ -220,12 +220,12 @@ together a more complicated plan that changes the antecedent conditions as
 well as the consequence conditions. Here's our description of that plan:
 
       <Ref id="part4_ai_intervention_eval_ref" target="intervention_email" />
-      
+
 Here is what happened when Annie's roommate tried to implement the plan:
-          
+
 The boy went to bed on time the first couple of times, but then bedtime
 got later and later. The six-year-old's escape behaviors actually got worse.
-          
+
 When we checked on what Annie's roommate was actually doing, we learned
 that she was having trouble adhering to the plan. Specifically, we found out
 that she sometimes forgets to do the warning countdown and timer, often
@@ -265,9 +265,9 @@ Of these modifications, which ones should we add to help the roommate follow the
   <Markdown id="fidelity_checklist">
 ## Bedtime Routine Plan -- Fidelity Checklist
 
-Child's name:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date: 
+Child's name:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date:
 
-Completed by: 
+Completed by:
 
 |   **Step**   |    **Task**                          | **Completed?** | **Notes**                              |
 |----------|----------------------------------|-----------------|------------------------------------|
@@ -401,7 +401,7 @@ return Plot.plot({
 **The modified intervention was a success!**
 
 With better adherence to the plan, Johnny's bedtime behavior improved significantly
-    </Markdown>    
+    </Markdown>
   </Vertical>
   <!-- Final email -->
   <Tabs id="revision_suggestion_email">
@@ -410,7 +410,7 @@ With better adherence to the plan, Johnny's bedtime behavior improved significan
 ## Provide Just A Little More Support for Amy's Roommate
 
 Based on what you have learned, produce an email in which you tell
-Amy's roommate about **one more way** she can improve her fidelity of 
+Amy's roommate about **one more way** she can improve her fidelity of
 implementation, besides using the two checklists.
 
 You can use one of the suggestions provided by the AI, but if you do,

@@ -37,9 +37,10 @@ The following attribution text must be included in any such display:
   (http://mitros.org/p). Project Repository:
   https://github.com/olxhub/lo-blocks/. Licensing information:
   http://mitros.org/p/lo/license.html. Copyright (c) 2011-2026 Piotr
-  Mitros and others. Any representation of another party as the original
-  author or inventor of this tool or methodology is a misrepresentation
-  of origin and authorship.
+  Mitros and others (http://mitros.org/p/lo/contributors.html). Any
+  representation of another party as the original author or inventor
+  of this tool or methodology is a misrepresentation of origin and
+  authorship.
 
 For modified versions, the attribution text must additionally identify
 that the system is modified and link to the modified source. The
@@ -49,10 +50,11 @@ following attribution text must be used for modified versions:
   (http://mitros.org/p). Original Repository:
   https://github.com/olxhub/lo-blocks/. Licensing information:
   http://mitros.org/p/lo/license.html. Copyright (c) 2011-2026 Piotr
-  Mitros and others. Any representation of another party as the original
-  author or inventor of this tool or methodology is a misrepresentation
-  of origin and authorship. This system is modified from the original,
-  and source code to the modifications can be found at [link].
+  Mitros and others (http://mitros.org/p/lo/contributors.html). Any
+  representation of another party as the original author or inventor
+  of this tool or methodology is a misrepresentation of origin and
+  authorship. This system is modified from the original, and source
+  code to the modifications can be found at [link].
 
 The original author attribution and original repository link must not
 be removed or replaced, only supplemented.

@@ -113,18 +113,18 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
     <div className={`relative inline-block ${className}`}>
       <button
         onClick={() => setShowDropdown(!showDropdown)}
-        className="px-2 py-1 text-sm bg-white border border-gray-300 rounded hover:border-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="px-2 py-1 text-sm bg-background border border-border rounded hover:border-border focus:outline-none focus:ring-1 focus:ring-accent"
       >
         {localeCode ? getLanguageLabel(localeCode, 'en', 'short') : '…'}
       </button>
 
       {showDropdown && (
-        <div className="absolute top-full end-0 mt-1 w-96 bg-white border border-gray-300 rounded shadow-lg z-50">
+        <div className="absolute top-full end-0 mt-1 w-96 bg-background border border-border rounded shadow-lg z-50">
           <div className="max-h-96 overflow-y-auto font-mono text-sm">
             {/* Browser Language - Always show */}
             {browserLanguage && (
               <div className="border-b">
-                <div className="px-3 py-2 text-xs font-semibold text-blue-600 uppercase bg-blue-50">
+                <div className="px-3 py-2 text-xs font-semibold text-accent uppercase bg-accent-subtle">
                   🌐 Browser Language
                 </div>
                 {(() => {
@@ -134,11 +134,11 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
                   return (
                     <button
                       onClick={() => handleSelectLocale(browserLanguage)}
-                      className={`w-full text-left px-3 py-1.5 hover:bg-blue-50 flex justify-between items-center ${localeCode === browserLanguage ? 'bg-blue-100 font-semibold' : ''
+                      className={`w-full text-left px-3 py-1.5 hover:bg-accent-subtle flex justify-between items-center ${localeCode === browserLanguage ? 'bg-accent-subtle font-semibold' : ''
                         }`}
                     >
                       <span className="font-sans">{displayName}</span>
-                      <span className="text-xs text-gray-500 font-mono ms-4 flex-shrink-0">({browserLanguage})</span>
+                      <span className="text-xs text-dimmed font-mono ms-4 flex-shrink-0">({browserLanguage})</span>
                     </button>
                   );
                 })()}
@@ -148,7 +148,7 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
             {/* Supported Languages (Curated) */}
             {tiers.curated.length > 0 && (
               <div className={browserLanguage ? 'border-t' : ''}>
-                <div className="px-3 py-2 text-xs font-semibold text-green-700 uppercase bg-green-50">
+                <div className="px-3 py-2 text-xs font-semibold text-success uppercase bg-success-subtle">
                   ✓ Available for This Content
                 </div>
                 {tiers.curated.map((code) => {
@@ -160,11 +160,11 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
                     <button
                       key={code}
                       onClick={() => handleSelectLocale(code)}
-                      className={`w-full text-left px-3 py-1.5 hover:bg-green-50 flex justify-between items-center ${localeCode === code ? 'bg-green-100 font-semibold' : ''
+                      className={`w-full text-left px-3 py-1.5 hover:bg-success-subtle flex justify-between items-center ${localeCode === code ? 'bg-success-subtle font-semibold' : ''
                         }`}
                     >
                       <span className="font-sans">{displayName}</span>
-                      <span className="text-xs text-gray-500 font-mono ms-4 flex-shrink-0">({code})</span>
+                      <span className="text-xs text-dimmed font-mono ms-4 flex-shrink-0">({code})</span>
                     </button>
                   );
                 })}
@@ -174,7 +174,7 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
             {/* Best-Effort Languages (Autotranslated) */}
             {tiers.bestEffort.length > 0 && (
               <div className={tiers.curated.length > 0 || browserLanguage ? 'border-t' : ''}>
-                <div className="px-3 py-2 text-xs font-semibold text-amber-700 uppercase bg-amber-50">
+                <div className="px-3 py-2 text-xs font-semibold text-warning uppercase bg-warning-subtle">
                   ⚠ Auto-translated
                 </div>
                 {tiers.bestEffort.map((code) => {
@@ -185,11 +185,11 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
                     <button
                       key={code}
                       onClick={() => handleSelectLocale(code)}
-                      className={`w-full text-left px-3 py-1.5 hover:bg-amber-50 flex justify-between items-center ${localeCode === code ? 'bg-amber-100 font-semibold' : ''
+                      className={`w-full text-left px-3 py-1.5 hover:bg-warning-subtle flex justify-between items-center ${localeCode === code ? 'bg-warning-subtle font-semibold' : ''
                         }`}
                     >
                       <span className="font-sans">{displayName}</span>
-                      <span className="text-xs text-gray-500 font-mono ms-4 flex-shrink-0">({code})</span>
+                      <span className="text-xs text-dimmed font-mono ms-4 flex-shrink-0">({code})</span>
                     </button>
                   );
                 })}
@@ -199,7 +199,7 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
             {/* Translanguaging - Search All Languages */}
             {translanguaging && (
               <div className={`border-t`}>
-                <div className="px-3 py-2 text-xs font-semibold text-gray-700 uppercase">
+                <div className="px-3 py-2 text-xs font-semibold text-secondary uppercase">
                   🌍 Translanguaging
                 </div>
                 <div className="px-3 py-2">
@@ -209,8 +209,7 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyDown={handleCustomInput}
-                    className="w-full px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400"
-                    autoFocus
+                    className="w-full px-2 py-1 text-sm border border-border rounded focus:outline-none focus:ring-1 focus:ring-accent"
                   />
                 </div>
                 <div className="max-h-40 overflow-y-auto px-3">
@@ -221,16 +220,16 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
                       <button
                         key={lang.code}
                         onClick={() => handleSelectLocale(lang.code)}
-                        className={`w-full text-left px-2 py-1.5 rounded hover:bg-gray-50 flex justify-between items-center ${localeCode === lang.code ? 'bg-gray-100 font-semibold' : ''
+                        className={`w-full text-left px-2 py-1.5 rounded hover:bg-surface flex justify-between items-center ${localeCode === lang.code ? 'bg-muted font-semibold' : ''
                           }`}
                       >
                         <span className="font-sans">{displayName}</span>
-                        <span className="text-xs text-gray-500 font-mono ms-4 flex-shrink-0">({lang.code})</span>
+                        <span className="text-xs text-dimmed font-mono ms-4 flex-shrink-0">({lang.code})</span>
                       </button>
                     );
                   })}
                 </div>
-                <div className="text-xs text-gray-500 px-3 py-2 border-t">
+                <div className="text-xs text-dimmed px-3 py-2 border-t">
                   Type language code or name, press Enter
                 </div>
               </div>

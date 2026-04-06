@@ -1,0 +1,116 @@
+/*
+ * Foundation Tokens (Tier 1)
+ * --------------------------
+ * Raw color palettes. These are never used directly in component CSS.
+ * Components use semantic tokens (semantic.css) which reference these.
+ *
+ * Scales follow Tailwind convention: 50 (lightest) to 950 (darkest).
+ * Add new palettes here when creating themes or brand variants.
+ */
+
+:root {
+  /* ── Slate (neutral surfaces and text) ── */
+  --lo-color-slate-50:  #f8fafc;
+  --lo-color-slate-100: #f1f5f9;
+  --lo-color-slate-200: #e2e8f0;
+  --lo-color-slate-300: #cbd5e1;
+  --lo-color-slate-400: #94a3b8;
+  --lo-color-slate-500: #64748b;
+  --lo-color-slate-600: #475569;
+  --lo-color-slate-700: #334155;
+  --lo-color-slate-800: #1e293b;
+  --lo-color-slate-900: #0f172a;
+  --lo-color-slate-950: #020617;
+
+  /* ── Blue (default primary/accent) ── */
+  --lo-color-blue-50:  #eff6ff;
+  --lo-color-blue-100: #dbeafe;
+  --lo-color-blue-200: #bfdbfe;
+  --lo-color-blue-300: #93c5fd;
+  --lo-color-blue-400: #60a5fa;
+  --lo-color-blue-500: #3b82f6;
+  --lo-color-blue-600: #2563eb;
+  --lo-color-blue-700: #1d4ed8;
+  --lo-color-blue-800: #1e40af;
+  --lo-color-blue-900: #1e3a8a;
+
+  /* ── Emerald (success) ── */
+  --lo-color-emerald-50:  #ecfdf5;
+  --lo-color-emerald-100: #d1fae5;
+  --lo-color-emerald-400: #34d399;
+  --lo-color-emerald-500: #10b981;
+  --lo-color-emerald-600: #059669;
+  --lo-color-emerald-700: #047857;
+
+  /* ── Amber (warning) ── */
+  --lo-color-amber-50:  #fffbeb;
+  --lo-color-amber-100: #fef3c7;
+  --lo-color-amber-400: #fbbf24;
+  --lo-color-amber-500: #f59e0b;
+  --lo-color-amber-600: #d97706;
+  --lo-color-amber-700: #b45309;
+
+  /* ── Red (error) ── */
+  --lo-color-red-50:  #fef2f2;
+  --lo-color-red-100: #fee2e2;
+  --lo-color-red-400: #f87171;
+  --lo-color-red-500: #ef4444;
+  --lo-color-red-600: #dc2626;
+  --lo-color-red-700: #b91c1c;
+
+  /* ── Sky (info) ── */
+  --lo-color-sky-50:  #f0f9ff;
+  --lo-color-sky-100: #e0f2fe;
+  --lo-color-sky-400: #38bdf8;
+  --lo-color-sky-500: #0ea5e9;
+  --lo-color-sky-600: #0284c7;
+  --lo-color-sky-700: #0369a1;
+
+  /* ── Paper (literary theme warm tones) ── */
+  --lo-color-paper-50:  #fffdf8;
+  --lo-color-paper-100: #fffcf7;
+  --lo-color-paper-200: #f6f3ee;
+  --lo-color-paper-300: #e4ddd3;
+  --lo-color-paper-400: #b0a494;
+  --lo-color-paper-500: #7a6e63;
+  --lo-color-paper-600: #5c5248;
+  --lo-color-paper-700: #3d352e;
+  --lo-color-paper-800: #2c2520;
+  --lo-color-paper-900: #1a1510;
+
+  /* ── Sepia (literary theme accents) ── */
+  --lo-color-sepia-400: #d4845a;
+  --lo-color-sepia-500: #c87040;
+  --lo-color-sepia-600: #c05e3c;
+  --lo-color-sepia-700: #a84e30;
+  --lo-color-sepia-800: #8a3f27;
+
+  /* ── Burgundy (MIT brand) ── */
+  --lo-color-burgundy-500: #c02040;
+  --lo-color-burgundy-600: #a31b36;
+  --lo-color-burgundy-700: #9b1b30;
+  --lo-color-burgundy-800: #7a1526;
+  --lo-color-burgundy-900: #5a1020;
+
+  /* ── Indigo (hightech accent) ── */
+  --lo-color-indigo-400: #818cf8;
+  --lo-color-indigo-500: #6366f1;
+  --lo-color-indigo-600: #4f46e5;
+
+  /* ── Cyan (hightech neon) ── */
+  --lo-color-cyan-300: #67e8f9;
+  --lo-color-cyan-400: #22d3ee;
+  --lo-color-cyan-500: #06b6d4;
+  --lo-color-cyan-600: #0891b2;
+  --lo-color-cyan-900: #0c4a6e;
+
+  /* ── Fuchsia (hightech secondary neon) ── */
+  --lo-color-fuchsia-300: #f0abfc;
+  --lo-color-fuchsia-400: #e879f9;
+  --lo-color-fuchsia-500: #d946ef;
+  --lo-color-fuchsia-600: #c026d3;
+
+  /* ── Static values ── */
+  --lo-color-white: #ffffff;
+  --lo-color-black: #000000;
+}

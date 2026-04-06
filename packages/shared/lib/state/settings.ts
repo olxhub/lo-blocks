@@ -31,6 +31,11 @@ const settingsFields = fields([
   { name: 'debugReplayEventIndex', event: 'SET_DEBUG_REPLAY_EVENT_INDEX', scope: scopes.system },
   // Locale: { code: 'en-Latn-US', dir: 'ltr' } - null means use browser default
   { name: 'locale', event: 'SET_LOCALE', scope: scopes.system },
+  // Theme settings: color mode, theme pack, and brand
+  // These control data attributes on <html> and <body> for CSS theming.
+  { name: 'themeColorMode', event: 'SET_THEME_COLOR_MODE', scope: scopes.system },
+  { name: 'themeTheme', event: 'SET_THEME_THEME', scope: scopes.system },
+  { name: 'themeBrand', event: 'SET_THEME_BRAND', scope: scopes.system },
 ]);
 
 // Fields are now directly { fieldName: FieldInfo }

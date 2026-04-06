@@ -5,85 +5,55 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import NavArrow from '@/components/common/NavArrow';
 import ExpandIcon from '@/components/common/ExpandIcon';
-import Avatar from '@/components/common/Avatar';
+import * as cast from '@/lib/avatar/cast';
 import { acceptString } from '@/lib/util/fileTypes';
 
-// Theme definitions
-const themes = {
-  light: {
-    container: 'border-gray-200 bg-white',
-    header: 'bg-white border-gray-200',
-    headerText: 'text-gray-700',
-    headerSubtle: 'text-gray-500',
-    content: 'bg-white',
-    message: 'bg-gray-100',
-    messageText: '',
-    systemBg: 'bg-gray-100',
-    systemText: 'text-gray-500',
-    toolBg: 'bg-gray-50 border-gray-200 hover:bg-gray-100',
-    toolText: 'text-gray-600',
-    toolIcon: 'text-gray-500',
-    inputBg: 'bg-gray-50 border-gray-200',
-    inputField: 'bg-white border-gray-300 text-gray-900',
-    inputPlaceholder: 'placeholder-gray-400',
-    button: 'bg-blue-500 hover:bg-blue-600 text-white',
-    buttonDisabled: 'bg-gray-300 text-gray-500',
-    fileBadge: 'bg-gray-100 text-gray-600',
-    errorBadge: 'bg-red-50 text-red-600',
-  },
-  dark: {
-    container: 'border-gray-700 bg-gray-900',
-    header: 'bg-gray-800 border-gray-700',
-    headerText: 'text-gray-200',
-    headerSubtle: 'text-gray-400',
-    content: 'bg-gray-900',
-    message: 'bg-gray-800',
-    messageText: 'text-gray-200',
-    systemBg: 'bg-gray-800',
-    systemText: 'text-gray-400',
-    toolBg: 'bg-gray-800 border-gray-700 hover:bg-gray-700',
-    toolText: 'text-gray-300',
-    toolIcon: 'text-gray-400',
-    inputBg: 'bg-gray-800 border-gray-700',
-    inputField: 'bg-gray-900 border-gray-600 text-gray-100',
-    inputPlaceholder: 'placeholder-gray-500',
-    button: 'bg-blue-600 hover:bg-blue-500 text-white',
-    buttonDisabled: 'bg-gray-700 text-gray-500',
-    fileBadge: 'bg-gray-800 text-gray-300',
-    errorBadge: 'bg-red-900/30 text-red-400',
-  },
+// Token-mapped CSS classes — dark mode handled automatically via CSS custom
+// properties (--lo-* tokens).  To render this component on a dark/contrasting
+// surface, scope `data-color-mode="dark"` on a parent container so that
+// semantic tokens resolve to their dark-mode values.
+const t = {
+  container: 'border-border bg-background',
+  header: 'bg-background border-border',
+  headerText: 'text-secondary',
+  headerSubtle: 'text-dimmed',
+  content: 'bg-background',
+  message: 'bg-muted',
+  messageText: '',
+  systemBg: 'bg-muted',
+  systemText: 'text-dimmed',
+  toolBg: 'bg-surface border-border hover:bg-muted',
+  toolText: 'text-secondary',
+  toolIcon: 'text-dimmed',
+  inputBg: 'bg-surface border-border',
+  inputField: 'bg-background border-border text-foreground',
+  inputPlaceholder: 'placeholder:text-dimmed',
+  button: 'bg-accent hover:bg-accent-hover text-inverse',
+  buttonDisabled: 'bg-muted text-dimmed',
+  fileBadge: 'bg-muted text-secondary',
+  errorBadge: 'bg-error-subtle text-error',
 };
 
 // Message component for chat lines
-const ChatMessage = ({ message, isSequential, theme, participantDef }) => {
-  const t = themes[theme] || themes.light;
-  // Merge participant defaults with per-line metadata overrides.
-  // Per-line [face=smileBig] overrides the participant's default face.
-  const avatarOptions = {
-    ...(participantDef || {}),
-    ...(message.metadata?.face ? { face: message.metadata.face } : {}),
-  };
-  // Extract Avatar-specific props from merged options
-  const { seed, style, src, name: displayName, ...dicebearOptions } = avatarOptions;
-  const hasOptions = Object.keys(dicebearOptions).length > 0;
+const ChatMessage = ({ message, isSequential, participants }) => {
+  const { avatar, name } = cast.avatar({}, {
+    who: message.speaker,
+    cast: participants ?? {},
+    face: message.metadata?.face,
+  });
+
   return (
     <div className={`flex ${isSequential ? 'mt-1' : 'mt-4'}`}>
       {!isSequential ? (
         <div className="me-2 flex-shrink-0">
-          <Avatar
-            name={message.speaker}
-            seed={seed}
-            style={style}
-            src={src}
-            options={hasOptions ? dicebearOptions : undefined}
-          />
+          {avatar}
         </div>
       ) : (
         <div className="w-10 flex-shrink-0"></div>
       )}
       <div className="flex flex-col">
         {!isSequential && (
-          <span className={`text-sm font-semibold mb-1 ${t.headerText}`}>{message.speaker}</span>
+          <span className={`text-sm font-semibold mb-1 ${t.headerText}`}>{name}</span>
         )}
         <div className={`${t.message} ${t.messageText} p-2 px-3 rounded-lg max-w-md`}>
           <ReactMarkdown>{message.text || ''}</ReactMarkdown>
@@ -94,8 +64,7 @@ const ChatMessage = ({ message, isSequential, theme, participantDef }) => {
 };
 
 // System message component
-const SystemMessage = ({ message, theme }) => {
-  const t = themes[theme] || themes.light;
+const SystemMessage = ({ message }) => {
   return (
     <div className="flex justify-center my-2">
       <span className={`text-xs ${t.systemText} ${t.systemBg} py-1 px-3 rounded-full`}>
@@ -106,8 +75,7 @@ const SystemMessage = ({ message, theme }) => {
 };
 
 // Date separator component
-const DateSeparator = ({ message, theme }) => {
-  const t = themes[theme] || themes.light;
+const DateSeparator = ({ message }) => {
   return (
     <div className="flex justify-center my-4">
       <span className={`text-xs ${t.systemText} ${t.systemBg} py-1 px-3 rounded-full`}>
@@ -118,9 +86,8 @@ const DateSeparator = ({ message, theme }) => {
 };
 
 // Tool call component - shows what tool the LLM called
-const ToolCallMessage = ({ message, theme }) => {
+const ToolCallMessage = ({ message }) => {
   const [expanded, setExpanded] = useState(false);
-  const t = themes[theme] || themes.light;
 
   // Truncate result for synopsis display
   const synopsis = message.result || '(no result)';
@@ -135,7 +102,7 @@ const ToolCallMessage = ({ message, theme }) => {
         onClick={() => setExpanded(!expanded)}
       >
         <span className={t.toolIcon}>🔧</span>
-        <span className="font-mono ms-1 text-blue-500">{message.name}</span>
+        <span className="font-mono ms-1 text-accent">{message.name}</span>
         <span className={`${t.toolText} ms-2`}>{truncatedSynopsis}</span>
         <ExpandIcon expanded={expanded} className={`${t.headerSubtle} ms-2`} />
       </div>
@@ -156,9 +123,7 @@ export const InputFooter = ({
   disabled = false,
   placeholder = 'Type a message...',
   allowFileUpload = false,
-  theme = 'light',
 }) => {
-  const t = themes[theme];
   const [message, setMessage] = useState('');
   const [attachedFile, setAttachedFile] = useState(null); // { name, content }
   const [fileError, setFileError] = useState(null);
@@ -204,7 +169,7 @@ export const InputFooter = ({
           <span className="me-2">📎</span>
           <span className="flex-1 truncate">{attachedFile.name}</span>
           <button
-            className={`ms-2 ${t.headerSubtle} hover:text-red-500`}
+            className={`ms-2 ${t.headerSubtle} hover:text-error`}
             onClick={() => setAttachedFile(null)}
           >
             ✕
@@ -216,7 +181,7 @@ export const InputFooter = ({
         <div className={`mb-2 flex items-center text-sm ${t.errorBadge} rounded px-2 py-1`}>
           <span className="flex-1">{fileError}</span>
           <button
-            className="ms-2 hover:text-red-600"
+            className="ms-2 hover:text-error"
             onClick={() => setFileError(null)}
           >
             ✕
@@ -248,7 +213,7 @@ export const InputFooter = ({
         )}
         <input
           type="text"
-          className={`flex-1 border rounded-full py-2 px-4 focus:outline-none ${t.inputField} ${t.inputPlaceholder} ${disabled ? 'opacity-50' : 'focus:ring-2 focus:ring-blue-500'}`}
+          className={`flex-1 border rounded-full py-2 px-4 focus:outline-none ${t.inputField} ${t.inputPlaceholder} ${disabled ? 'opacity-50' : 'focus:ring-2 focus:ring-accent'}`}
           placeholder={disabled ? 'Observation mode' : placeholder}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -256,7 +221,7 @@ export const InputFooter = ({
           disabled={disabled}
         />
         <button
-          className={`ms-2 rounded-full p-2 ${disabled ? t.buttonDisabled + ' cursor-not-allowed' : t.button + ' focus:outline-none focus:ring-2 focus:ring-blue-500'}`}
+          className={`ms-2 rounded-full p-2 ${disabled ? t.buttonDisabled + ' cursor-not-allowed' : t.button + ' focus:outline-none focus:ring-2 focus:ring-accent'}`}
           onClick={handleSend}
           disabled={disabled}
         >
@@ -274,25 +239,25 @@ export const AdvanceFooter = ({ onAdvance, currentMessageIndex, totalMessages, d
   // No global key listeners — advancing is handled by the focused chat region.
 
   return (
-    <div className="bg-gray-50 p-3 border-t border-gray-200">
+    <div className="bg-surface p-3 border-t border-border">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-dimmed">
           {currentMessageIndex} of {totalMessages}
         </span>
         <button
           onClick={onAdvance}
           disabled={disabled}
           className="
-            bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center
-            hover:bg-blue-600
-            focus:outline-none focus:ring-2 focus:ring-blue-500
-            disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed
-            disabled:hover:bg-gray-300 disabled:focus:ring-0
+            bg-accent text-inverse px-4 py-2 rounded-lg flex items-center
+            hover:bg-accent-hover
+            focus:outline-none focus:ring-2 focus:ring-accent
+            disabled:bg-muted disabled:text-dimmed disabled:cursor-not-allowed
+            disabled:hover:bg-muted disabled:focus:ring-0
           "
         >
           Continue <NavArrow direction="forward" className="ms-1 w-4 h-4" />
         </button>
-        <span className="text-xs text-gray-400">or focus chat and press [space]</span>
+        <span className="text-xs text-dimmed">or focus chat and press [space]</span>
       </div>
     </div>
   );
@@ -308,9 +273,7 @@ export function ChatComponent({
   footer,
   height = 'h-96',
   onAdvance = null,
-  theme = 'light',
 }) {
-  const t = themes[theme];
   const chatContainerRef = useRef(null);
 
   useEffect(() => {
@@ -357,31 +320,28 @@ export function ChatComponent({
       messages[index - 1].speaker === message.speaker;
 
     switch (message.type) {
-      case 'Line': {
-        // Look up participant definition by speaker name
-        const participantDef = participants?.[message.speaker] || null;
+      case 'Line':
         return (
           <div key={index} className="message-item">
-            <ChatMessage message={message} isSequential={isSequential} theme={theme} participantDef={participantDef} />
+            <ChatMessage message={message} isSequential={isSequential} participants={participants} />
           </div>
         );
-      }
       case 'SystemMessage':
         return (
           <div key={index} className="message-item">
-            <SystemMessage message={message} theme={theme} />
+            <SystemMessage message={message} />
           </div>
         );
       case 'DateSeparator':
         return (
           <div key={index} className="message-item">
-            <DateSeparator message={message} theme={theme} />
+            <DateSeparator message={message} />
           </div>
         );
       case 'ToolCall':
         return (
           <div key={index} className="message-item">
-            <ToolCallMessage message={message} theme={theme} />
+            <ToolCallMessage message={message} />
           </div>
         );
       default:
@@ -404,7 +364,7 @@ export function ChatComponent({
       </div>
       <div
         ref={chatContainerRef}
-        className={`overflow-y-auto p-4 ${t.content} focus:outline-none focus:ring-2 focus:ring-blue-500 ${height === 'flex-1' ? 'flex-1' : ''}`}
+        className={`overflow-y-auto p-4 ${t.content} focus:outline-none focus:ring-2 focus:ring-accent ${height === 'flex-1' ? 'flex-1' : ''}`}
         style={height !== 'flex-1' ? { height } : undefined}
         tabIndex={0}
         role="region"

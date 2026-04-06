@@ -5,22 +5,23 @@
   padding: var(--lo-space-lg);
   border: 1px solid var(--lo-border);
   border-radius: var(--lo-radius-md);
-  font-family: var(--lo-font-family);
+  font-family: var(--lo-font-ui);
   font-size: var(--lo-font-size-base);
   line-height: var(--lo-line-height-normal);
-  color: var(--lo-text-primary);
-  background-color: var(--lo-background);
+  color: var(--lo-text);
+  background-color: var(--lo-bg);
   resize: vertical;
 }
 
-.lo-tag-textarea textarea:focus {
-  border-color: var(--lo-border-focus);
-  box-shadow: var(--lo-shadow-focus);
-  outline: none;
+.lo-tag-textarea textarea:focus-visible {
+  border-color: var(--lo-focus-ring);
+  box-shadow: var(--lo-focus-ring-shadow);
+  outline: var(--lo-focus-ring-width) solid var(--lo-focus-ring);
+  outline-offset: var(--lo-focus-ring-offset);
 }
 
 .lo-tag-textarea textarea[readonly] {
-  background-color: var(--lo-surface);
+  background-color: var(--lo-bg-surface);
   color: var(--lo-text-secondary);
   cursor: not-allowed;
 }

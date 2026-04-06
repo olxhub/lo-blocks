@@ -14,4 +14,8 @@ export interface HighlightEntry {
   hue: number;
   saturation: number;
   lightness: number;
+  /** Pre-computed CSS background color. When present, takes precedence
+   *  over hue/saturation/lightness. Supports any CSS color value
+   *  including color-mix() for automatic theme adaptation. */
+  bg?: string;
 }

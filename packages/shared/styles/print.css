@@ -12,12 +12,14 @@
   /* ===== Hide interactive chrome ===== */
 
   /* App header (Home, language switcher, user icon) */
-  header {
+  .lo-app-header {
     display: none !important;
   }
 
-  /* Docs page sidebar navigation */
-  aside {
+  /* Sidebar navigation and its resize/collapse chrome */
+  .lo-sidebar,
+  .lo-sidebar-rail,
+  .lo-sidebar-edge {
     display: none !important;
   }
 

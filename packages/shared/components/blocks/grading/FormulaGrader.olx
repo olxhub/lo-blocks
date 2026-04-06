@@ -1,0 +1,17 @@
+<CapaProblem id="FormulaGraderDemo" title="Normalized Learning Gain">
+
+<Markdown>
+Variables:
+* Let $S_i$ be the initial (pre-test) score on a scale from 0-1
+* Let $S_j$ be the final (post-test) score
+
+Hake (1998) used the *normalized learning gain* as the ratio of actual gain ($S_j-S_i$) to maximum possible gain ($1-S_i$) -- in other words, of the material the student didn't know going in, how much did they learn?
+
+Write the formula for normalized gain.
+</Markdown>
+
+<FormulaGrader answer="(S_j - S_i) / (1 - S_i)" samples="S_i,S_j@0.1,0.2:0.8,0.95#10">
+  <FormulaInput variables="S_i,S_j" placeholder="e.g. (S_j - S_i) / ..." />
+</FormulaGrader>
+
+</CapaProblem>

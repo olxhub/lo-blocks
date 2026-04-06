@@ -207,7 +207,7 @@ Student's request: <Ref target="ai_chart_query" />
             <LLMAction target="pr_attention_feedback">
 A student in a psychology class has offered the following situation as an
 example of positive reinforcement whose function is attention --
-                
+
 Student's example: <Ref target="positive_reinforcement_for_attention" />
 
 Evaluate whether the student's example is a correct example of positive reinforcement
@@ -230,7 +230,7 @@ why it is not. Do not offer examples of your own.
             <LLMAction target="nr_attention_feedback">
 A student in a psychology class has offered the following situation as an
 example of negative reinforcement whose function is attention --
-                
+
 Student's example: <Ref target="negative_reinforcement_for_attention" />
 
 Evaluate whether the student's example is a correct example of negative reinforcement
@@ -256,7 +256,7 @@ why it is not. Do not offer examples of your own.
             <LLMAction target="pr_escape_feedback">
 A student in a psychology class has offered the following situation as an
 example of positive reinforcement whose function is escape --
-                
+
 Student's example: <Ref target="positive_reinforcement_for_escape" />
 
 Evaluate whether the student's example is a correct example of positive reinforcement
@@ -279,7 +279,7 @@ why it is not. Do not offer examples of your own.
             <LLMAction target="nr_escape_feedback">
 A student in a psychology class has offered the following situation as an
 example of negative reinforcement whose function is escape --
-                
+
 Student's example: <Ref target="negative_reinforcement_for_escape" />
 
 Evaluate whether the student's example is a correct example of negative reinforcement
@@ -305,7 +305,7 @@ why it is not. Do not offer examples of your own.
             <LLMAction target="pr_access_feedback">
 A student in a psychology class has offered the following situation as an
 example of positive reinforcement whose function is access --
-                
+
 Student's example: <Ref target="positive_reinforcement_for_access" />
 
 Evaluate whether the student's example is a correct example of positive reinforcement
@@ -328,7 +328,7 @@ why it is not. Do not offer examples of your own.
             <LLMAction target="nr_access_feedback">
 A student in a psychology class has offered the following situation as an
 example of negative reinforcement whose function is access --
-                
+
 Student's example: <Ref target="negative_reinforcement_for_access" />
 
 Evaluate whether the student's example is a correct example of negative reinforcement
@@ -354,7 +354,7 @@ why it is not. Do not offer examples of your own.
             <LLMAction target="pr_sensory_feedback">
 A student in a psychology class has offered the following situation as an
 example of positive reinforcement whose function is sensory --
-                
+
 Student's example: <Ref target="positive_reinforcement_for_sensory" />
 
 Evaluate whether the student's example is a correct example of positive reinforcement
@@ -377,7 +377,7 @@ why it is not. Do not offer examples of your own.
             <LLMAction target="nr_sensory_feedback">
 A student in a psychology class has offered the following situation as an
 example of negative reinforcement whose function is sensory --
-                
+
 Student's example: <Ref target="negative_reinforcement_for_sensory" />
 
 Evaluate whether the student's example is a correct example of negative reinforcement
@@ -780,7 +780,7 @@ Fill in the blanks to create an intervention plan:
   <Vertical id="cbp_comparison"><Markdown id="cbp_comp">
 ## JJ's Competing Behavior Pathway
 
-Here's what JJ came up with. 
+Here's what JJ came up with.
 
 Now that we know the function is **escape**, we need to figure out an intervention that addresses this!
     </Markdown>
@@ -810,7 +810,7 @@ Now that we know the function is **escape**, we need to figure out an interventi
     <Markdown id="textbook_on_interventions">
 ## Generate interventions based on the competing behavior model
 **Brainstorm**: _Consider as many strategies and interventions as possible. Defer clinical judgment._
-    
+
 - Prevent the problem behavior from occurring using antecedent event and predictor strategies.
 - Teach adaptive behaviors that lead to the same outcome as the problem behavior using teaching strategies.
 - React to the problem behavior in an appropriate way by using consequence strategies.
@@ -828,7 +828,7 @@ Write a prompt that will help you understand how to change the antecedents to ad
     <TextArea id="ai_intervention_query" placeholder="Put your prompt here..." />
     <ActionButton id="ask_ai_intervention_btn" label="Ask AI" dependsOn="@ai_intervention_query.value">
       <LLMAction target="intervention_ai_response">
-Background: Assume the information available to a helpful psychology teaching assistant. 
+Background: Assume the information available to a helpful psychology teaching assistant.
 
 Prompt: <Ref target="ai_intervention_query" />
 
@@ -848,7 +848,7 @@ Write a prompt that will help you understand how to change the consequences to a
     <TextArea id="ai_intervention_query2" placeholder="Put your prompt here..." />
     <ActionButton id="ask_ai_intervention_btn2" label="Ask AI" dependsOn="@ai_intervention_query2.value">
       <LLMAction target="intervention_ai_response2">
-Background for response: Assume the information available to a helpful psychology teaching assistant. 
+Background for response: Assume the information available to a helpful psychology teaching assistant.
 
 Prompt: <Ref target="ai_intervention_query2" />
 
@@ -881,10 +881,10 @@ Below are some intervention ideas. Select the ones that address **escape** as th
       </CheckboxGrader>
     </CapaProblem>
   </Vertical>
-  
+
   <!-- Strategy selection -->
   <Vertical id="strategy_selection2">
-    <Markdown id="strategy_selection_prompt2">    
+    <Markdown id="strategy_selection_prompt2">
 ## Select Appropriate Interventions
 
 Below are some intervention ideas. Select the ones that address **escape** as the function of behavior.
@@ -914,7 +914,7 @@ Write a prompt that will help you understand how to change the antecedents to ad
     <TextArea id="ai_intervention_query3" placeholder="Put your prompt here..." />
     <ActionButton id="ask_ai_intervention_btn3" label="Ask AI" dependsOn="@ai_intervention_query3.value">
       <LLMAction target="intervention_ai_response3">
-Background for response: Assume the information available to a helpful psychology teaching assistant. 
+Background for response: Assume the information available to a helpful psychology teaching assistant.
 
 Prompt: <Ref target="ai_intervention_query3" />
 
@@ -934,7 +934,7 @@ Write a prompt that will help you understand how to change the consequences to a
     <TextArea id="ai_intervention_query4" placeholder="Put your prompt here..." />
     <ActionButton id="ask_ai_intervention_btn4" label="Ask AI" dependsOn="@ai_intervention_query4.value">
       <LLMAction target="intervention_ai_response4">
-Background for response: Assume the information available to a helpful psychology teaching assistant. 
+Background for response: Assume the information available to a helpful psychology teaching assistant.
 
 Prompt: <Ref target="ai_intervention_query4" />
 
@@ -964,10 +964,10 @@ Now let's revise our pathway with the strategies we've identified.
     </Vertical>
     <Vertical id="revised_pathway_right1" title="Antecedent Strategies">
         <Use ref="intervention_ai_response3" />
-    </Vertical>    
+    </Vertical>
     <Vertical id="revised_pathway_right2" title="Consequence Strategies">
         <Use ref="intervention_ai_response4" />
-    </Vertical>    
+    </Vertical>
   </Tabs>
 
   <!-- Two plans comparison -->
@@ -1011,11 +1011,11 @@ Plan A correctly fits the function of the behavior, which is **escape**. Plan B 
 
   <Markdown id="full_plan">
 ## Lianne's Notes Based on the Competing Behavior Pathways Diagram
-  
+
 **Problem Behavior**:
 Child refuses to go to bed (whining, stalling, hiding, running away) to escape or delay bedtime routines.
 
-**Maintaining Consequences** (_Function of Behavior_): 
+**Maintaining Consequences** (_Function of Behavior_):
 Escape/avoidance of bedtime (routine, sleep, or separation from caregiver).
 
 ---------------------------------------------------------------------------

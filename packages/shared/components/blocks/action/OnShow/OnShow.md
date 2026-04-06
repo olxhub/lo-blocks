@@ -27,7 +27,7 @@ When the student advances to "Revise", the OnShow copies their draft into a new 
 
 | Attribute | Type   | Default | Description |
 |-----------|--------|---------|-------------|
-| `trigger` | `"first_view"` \| `"each_view"` | `"first_view"` | `"first_view"` runs actions once (even if the student navigates back and forth). `"each_view"` runs them every time. |
+| `mode` | `"once"` \| `"each"` | `"once"` | `"once"` runs actions once (even if the student navigates back and forth). `"each"` runs them every time. |
 
 ## Examples
 

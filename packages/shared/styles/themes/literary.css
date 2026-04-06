@@ -1,0 +1,158 @@
+/*
+ * Literary Theme
+ * --------------
+ * Warm, paper-like aesthetic for writing and humanities courses.
+ * Classical serif reading font, sepia accents, gentle shadows.
+ * Evokes an 1850s letterpress, aged paper, scholastic contemplation.
+ *
+ * Activate: <html data-theme="literary">
+ * Palette sourced from css-refactor/annotate-mockup.jsx
+ *
+ * Light/dark values use light-dark(), driven by color-scheme
+ * (mapped from data-color-mode in semantic.css).
+ */
+
+/* ── Fonts (variable — single file per style, all weights) ──
+ * @font-face rules register here; actual .woff2 files download
+ * only when an element computes to this font-family.  No cost
+ * for non-literary pages. */
+@import "@fontsource-variable/eb-garamond";
+@import "@fontsource-variable/eb-garamond/wght-italic.css";
+@import "@fontsource-variable/playfair-display";
+@import "@fontsource-variable/playfair-display/wght-italic.css";
+
+
+/* ═══════════════════════════════════════════════════════════════
+ * Token overrides
+ * ═══════════════════════════════════════════════════════════════ */
+
+[data-theme="literary"] {
+  /* ── Surfaces ── */
+  --lo-bg:          light-dark(var(--lo-color-paper-200), var(--lo-color-paper-900));
+  --lo-bg-surface:  light-dark(var(--lo-color-paper-100), var(--lo-color-paper-800));
+  --lo-bg-elevated: light-dark(var(--lo-color-paper-50),  var(--lo-color-paper-700));
+  --lo-bg-muted:    light-dark(var(--lo-color-paper-300), var(--lo-color-paper-800));
+
+  /* ── Text ── */
+  --lo-text:           light-dark(var(--lo-color-paper-800), #e8dfd3);
+  --lo-text-secondary: light-dark(var(--lo-color-paper-500), var(--lo-color-paper-400));
+  --lo-text-muted:     light-dark(var(--lo-color-paper-400), var(--lo-color-paper-500));
+  --lo-text-inverse:   light-dark(var(--lo-color-white),     var(--lo-color-paper-900));
+
+  /* ── Borders ── */
+  --lo-border:        light-dark(var(--lo-color-paper-300), var(--lo-color-paper-700));
+  --lo-border-subtle: light-dark(var(--lo-color-paper-200), var(--lo-color-paper-800));
+  --lo-border-strong: light-dark(var(--lo-color-paper-400), var(--lo-color-paper-600));
+
+  /* ── Primary (sepia/terracotta accent) ── */
+  --lo-primary:        light-dark(var(--lo-color-sepia-600), var(--lo-color-sepia-400));
+  --lo-primary-hover:  light-dark(var(--lo-color-sepia-700), var(--lo-color-sepia-500));
+  --lo-primary-subtle: light-dark(rgba(192, 94, 60, 0.08),  rgba(212, 132, 90, 0.15));
+
+  /* ── Secondary ── */
+  --lo-secondary:       var(--lo-color-paper-500);
+  --lo-secondary-hover: var(--lo-color-paper-600);
+
+  /* ── Typography ──
+   * The entire experience is immersive serif — Oxford library, not Silicon Valley.
+   * EB Garamond: classical old-style humanist serif for body text AND UI chrome.
+   * Playfair Display: high-contrast didone for headings — dramatic letterpress feel.
+   * Even --lo-font-ui is serif so buttons, nav, controls all feel unified. */
+  --lo-font-body:    'EB Garamond Variable', 'EB Garamond', Georgia, 'Times New Roman', serif;
+  --lo-font-heading: 'Playfair Display Variable', 'Playfair Display', Georgia, serif;
+  --lo-font-ui:      'EB Garamond Variable', 'EB Garamond', Georgia, 'Times New Roman', serif;
+
+  --lo-font-size-base: 1.0625rem;  /* 17px — slightly larger for book feel */
+
+  --lo-line-height-normal:  1.75;   /* More generous for reading */
+  --lo-line-height-relaxed: 1.85;
+
+  /* ── Radius (softer) ── */
+  --lo-radius-md: 0.5rem;   /* 8px */
+  --lo-radius-lg: 0.75rem;  /* 12px */
+
+  /* ── Shadows (warm tint in light, pure black in dark) ── */
+  --lo-shadow-sm: 0 1px 3px light-dark(rgba(44, 37, 32, 0.06), rgba(0, 0, 0, 0.2));
+  --lo-shadow-md: 0 4px 16px light-dark(rgba(44, 37, 32, 0.10), rgba(0, 0, 0, 0.3));
+  --lo-shadow-lg: 0 8px 32px light-dark(rgba(44, 37, 32, 0.14), rgba(0, 0, 0, 0.4));
+
+  /* ── Focus (sepia-tinted) ── */
+  --lo-focus-ring:        light-dark(var(--lo-color-sepia-600), var(--lo-color-sepia-400));
+  --lo-focus-ring-shadow: 0 0 0 3px light-dark(rgba(192, 94, 60, 0.12), rgba(212, 132, 90, 0.20));
+
+  /* ── Chrome (warm wood instead of cool slate) ── */
+  --lo-chrome:                light-dark(var(--lo-color-paper-700), var(--lo-color-paper-900));
+  --lo-chrome-surface:        light-dark(var(--lo-color-paper-600), var(--lo-color-paper-800));
+  --lo-chrome-text:           light-dark(var(--lo-color-paper-50),  var(--lo-color-paper-200));
+  --lo-chrome-text-secondary: light-dark(var(--lo-color-paper-300), var(--lo-color-paper-400));
+  --lo-chrome-text-muted:     light-dark(var(--lo-color-paper-400), var(--lo-color-paper-500));
+  --lo-chrome-border:         light-dark(var(--lo-color-paper-600), var(--lo-color-paper-800));
+  --lo-chrome-hover:          light-dark(var(--lo-color-paper-600), var(--lo-color-paper-800));
+  --lo-chrome-active:         light-dark(var(--lo-color-paper-500), var(--lo-color-paper-700));
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+ * Typographic treatment
+ * ═══════════════════════════════════════════════════════════════
+ *
+ * Immersive serif everywhere — the whole page should feel like
+ * the library at Oxford, not a tech dashboard.  Body override
+ * catches everything; --lo-font-ui override catches components
+ * that explicitly set font-family.
+ */
+
+/* Body — EB Garamond across the entire page.
+ * Descendant selector: data-theme is on <html>, body inherits. */
+[data-theme="literary"] body {
+  font-family: var(--lo-font-body);
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "liga" 1, "onum" 1, "kern" 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Headings — dramatic Playfair Display */
+[data-theme="literary"] :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--lo-font-heading);
+  letter-spacing: -0.01em;
+}
+
+/* Warm sepia selection highlight (brighter alpha on dark backgrounds) */
+[data-theme="literary"] ::selection {
+  background: light-dark(rgba(192, 94, 60, 0.25), rgba(212, 132, 90, 0.35));
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+ * Decorative flourishes
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* Ornamental section divider — hedera (❧), the traditional fleuron
+ * used as paragraph/section mark in medieval manuscripts. */
+[data-theme="literary"] .rendered-markdown hr {
+  border: none;
+  text-align: center;
+  height: auto;
+  margin: var(--lo-space-2xl) 0;
+}
+[data-theme="literary"] .rendered-markdown hr::before {
+  content: "❧";
+  font-size: 1.5em;
+  color: var(--lo-text-muted);
+}
+
+/* Blockquote — italic with sepia accent border */
+[data-theme="literary"] .rendered-markdown blockquote {
+  font-style: italic;
+  border-left-width: 3px;
+  border-left-color: var(--lo-primary);
+  padding-left: var(--lo-space-xl);
+}
+
+/* Links — sepia underline, warmer on hover */
+[data-theme="literary"] .rendered-markdown a {
+  text-decoration-color: rgba(192, 94, 60, 0.3);
+}
+[data-theme="literary"] .rendered-markdown a:hover {
+  text-decoration-color: var(--lo-primary);
+}

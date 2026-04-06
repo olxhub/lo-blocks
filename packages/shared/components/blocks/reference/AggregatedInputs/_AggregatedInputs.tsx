@@ -84,7 +84,7 @@ export function _AggregatedInputs(props: RuntimeProps) {
 
   if (resolvedTargetIds.length === 0) {
     return (
-      <pre className="text-red-500">
+      <pre className="text-error">
         [useAggregate requires at least one target id]
       </pre>
     );

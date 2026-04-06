@@ -656,8 +656,8 @@ Most of the other typescript is to prevent errors. We don't proactively tag type
 
 # Tools
 
-* The system runs in firejail, a lightweight sandbox. This helps mitigate the risk from e.g. a compromised `npm` package. Developers on some systems find they need to disable this. If you're in a defective operating system, just remove the `firejail` from `package.json`.
-* We also have automation versions of scripts (github CI/CD, online LLMs, etc. don't have Firejail installed). You can use those, but those are designed for machines and not humans. The system uses `next.js`. We like `next.js`, but the rather unusual dynamic development requirements (e.g. ability to dynamically edit and reload blocks) may make this type of framework a poor fit. At some point, we should evaluate `vite`, other frameworks, or rolling our own.
+* All npm scripts automatically use firejail sandboxing when available (see `sandbox.sh`). On Ubuntu, `sudo apt-get install firejail` is recommended but not required. On macOS or other systems, everything works without it.
+* The system uses `next.js`. We like `next.js`, but the rather unusual dynamic development requirements (e.g. ability to dynamically edit and reload blocks) may make this type of framework a poor fit. At some point, we should evaluate `vite`, other frameworks, or rolling our own.
 * Data streams into the [Learning Observer](https://github.com/ArgLab/writing_observer), which allows for rather rich, real-time dashboard.
 
 Redux
@@ -849,6 +849,53 @@ lang: es-Latn-MX
 -->
 <Vertical id="lesson1"> ... </Vertical>
 ```
+
+## Translation Strings
+
+Our translation layer (i18next, see `lib/i18n/blockI18n.ts`) has
+block-level and system-level translations. Block-level are scoped to
+an individual block (`Block/i18n/en.json`); system-level live in
+`lib/i18n/common/en.json` and are shared across all blocks.
+
+Translation strings start within blocks, and if used several places,
+bubble up to the platform. "Do a 5-minute quickwrite" belongs in the
+block. "Next" in the system. We're still figuring out the lines
+between there.
+
+We might have more scopes in the future; blocks often come in groups
+(two inputs + an associated grader, or a set of blocks around a
+specific pedagogy). But as of this writing, we're nowhere close to
+ready for that.
+
+### Key naming conventions
+
+Keys describe the **semantic meaning** of the string, not its
+location. A key should make sense both in a block-local namespace and
+in the common namespace, because keys may be promoted from local to
+common without renaming as usage spreads across blocks.
+
+Good keys:
+
+- `clickToExpand` — clear action, unambiguous
+- `compareWithAnswer` — tells a translator the verb's object
+- `noTeamMembersFound` — specific situation
+
+Bad keys:
+
+- `collapsibleClickToExpand`, `textSelectionCompare` — block prefix
+  bakes in location; forces rename on promotion
+- `compare`, `navigation` — too vague; verb form varies by language
+  and context. "compare" could be perfective/imperfective (Polish
+  *porównaj* vs *porównywać*) or gendered (Arabic قارن vs قارني).
+
+The rule: be specific enough to be globally unambiguous. A translator
+seeing only the key (not your component) should understand the
+context.
+
+### Interpolation
+
+Uses i18next double-brace syntax: `"Tab {{number}}"`, called as
+`t('defaultTabLabel', { number: index + 1 })`.
 
 Field Conventions
 -----------------

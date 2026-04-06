@@ -18,13 +18,14 @@ import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 import * as lo_event from 'lo_event';
 import * as debug from 'lo_event/lo_event/debugLog.js';
 import { consoleLogger } from 'lo_event/lo_event/consoleLogger.js';
+import { getConfigBool } from '../config';
 
 // Simple array logger for event capture - could move to lo_event
 function createArrayLogger() {
   const events: any[] = [];
   function logEvent(jsonEvent: string) { events.push(JSON.parse(jsonEvent)); }
-  logEvent.init = async () => {};
-  logEvent.setField = () => {};
+  logEvent.init = async () => { };
+  logEvent.setField = () => { };
   logEvent.getEvents = () => [...events];
   logEvent.clear = () => { events.length = 0; };
   logEvent.lo_name = 'Array Logger';
@@ -32,6 +33,7 @@ function createArrayLogger() {
 }
 import { websocketLogger } from 'lo_event/lo_event/websocketLogger.js';
 import { scopes, Scope } from './scopes';
+import { commonFields } from './commonFields';
 import type { FieldInfo, Fields } from '../types';
 import {
   olxjsonReducer,
@@ -201,12 +203,18 @@ export const updateResponseReducer = (state = initialState, action) => {
     const { scope = scopes.component, id, tag } = action;
     const fieldName = action.field ?? fieldReducerEntry.fieldName;
 
-    // Strip metadata, keeping only data properties. The field reducer's
-    // patch handles the registered field; remaining properties (e.g.
-    // submitCount, score from a grader event) are spread alongside it.
-    const { scope: _s, id: _id, tag: _t, context: _ctx, event: _ev,
-            type: _type, metadata: _m, field: _f, ts: _ts, actor: _a,
-            [fieldName]: _fv, ...extra } = action;
+    // For compound events (no action.field, e.g. UPDATE_CORRECT from graders),
+    // strip metadata and spread remaining data properties alongside the field
+    // patch. For field-specific events (with action.field, e.g. SPLICE_INPUT),
+    // DON'T spread — their extra keys (index, deleteCount, inserted) are
+    // operation parameters, not state properties.
+    let extra: Record<string, any> = {};
+    if (!action.field) {
+      const { scope: _s, id: _id, tag: _t, context: _ctx, event: _ev,
+        type: _type, metadata: _m, field: _f, ts: _ts, actor: _a,
+        [fieldName]: _fv, ...rest } = action;
+      extra = rest;
+    }
 
     // Scope-aware: read from and write to the correct state bucket,
     // mirroring the legacy-spread switch below.
@@ -316,11 +324,29 @@ function collectEventTypes(extraFields: ExtraFieldsParam = []) {
   const fieldList = Array.isArray(extraFields)
     ? extraFields
     : Object.values(extraFields).filter((v): v is FieldInfo =>
-        v && typeof v === 'object' && v.type === 'field'
-      );
+      v && typeof v === 'object' && v.type === 'field'
+    );
+
+  // Register common field reducers FIRST so block-specific fields (e.g.,
+  // docField('value') overriding stateField('value')) take precedence.
+  //
+  // TODO: The whole commonEventTypes is legacy scaffolding.
+  const commonFieldEventTypes: string[] = [];
+  for (const fi of Object.values(commonFields)) {
+    if (!fi || typeof fi !== 'object' || fi.type !== 'field') continue;
+    const events = fi.events ?? (fi.event ? [fi.event] : []);
+    commonFieldEventTypes.push(...events);
+    if (fi.reduce) {
+      for (const event of events) {
+        _fieldReducers.set(`${event}:${fi.name}`, { reduce: fi.reduce, fieldName: fi.name });
+        _fieldReducers.set(event, { reduce: fi.reduce, fieldName: fi.name });
+      }
+    }
+  }
 
   // Fields are now directly { fieldName: FieldInfo } on both blueprints and registry.
   // Also register field-level reducers for event routing.
+  // Registered AFTER commonFields so block-specific reducers take precedence.
   const componentEventTypes: string[] = [];
   for (const entry of Object.values(BLOCK_REGISTRY)) {
     if (!entry.fields) continue;
@@ -354,6 +380,7 @@ function collectEventTypes(extraFields: ExtraFieldsParam = []) {
   );
   return Array.from(new Set([
     ...commonEventTypes,
+    ...commonFieldEventTypes,
     ...componentEventTypes,
     ...extraEventTypes,
     ...OLXJSON_EVENT_TYPES,
@@ -367,7 +394,7 @@ let eventCaptureLogger: ReturnType<typeof createArrayLogger> | null = null;
 // Module-level store reference for getReduxState
 let reduxStoreInstance: any = null;
 
-function configureStore({ extraFields = [], websocket = true }: { extraFields?: ExtraFieldsParam; websocket?: boolean } = {}) {
+function configureStore({ extraFields = [], websocket }: { extraFields?: ExtraFieldsParam; websocket?: boolean } = {}) {
   const allEventTypes = collectEventTypes(extraFields);
   reduxLogger.registerReducer(
     allEventTypes,
@@ -379,7 +406,9 @@ function configureStore({ extraFields = [], websocket = true }: { extraFields?: 
 
   const debugEvents = false; // Toggle here to log events to the console
   const isTest = process.env.VITEST === 'true';
-  const useWebsocket = websocket && !isTest;
+  // PMSS provides the default; explicit websocket param overrides if provided
+  const wsEnabled = websocket ?? getConfigBool('websocket');
+  const useWebsocket = wsEnabled && !isTest;
 
   const loggers = [
     reduxLogger.reduxLogger([], {}),

@@ -2,11 +2,8 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 
-// TODO: Spinner.css is duplicated here and in blocks/utility/Spinner.css
-// (also referenced by styles/componentsAutogen.css). Consolidate to one copy.
-if (typeof window !== 'undefined') {
-  import('./Spinner.css');
-}
+// Spinner styles live in primitives/spinner.css, loaded globally via globals.css.
+// The block wrapper (blocks/utility/_Spinner.tsx) imports CssSpinner from here.
 
 // Usage:
 // <Spinner>Loading...</Spinner>
@@ -54,7 +51,7 @@ export default function Spinner({ children, texts, interval = 3000 }: SpinnerPro
   return (
     <div className="flex flex-col items-center justify-center p-8 space-y-4">
       <CssSpinner />
-      {message && <p className="text-gray-600 text-sm">{message}</p>}
+      {message && <p className="text-secondary text-sm">{message}</p>}
     </div>
   );
 }

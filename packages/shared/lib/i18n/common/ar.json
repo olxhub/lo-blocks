@@ -1,5 +1,10 @@
 {
+  "check": "تحقّق",
+  "clickToExpand": "انقر للتوسيع",
   "next": "التالي",
   "previous": "السابق",
-  "progress": "{{current}} من {{total}}"
+  "progress": "{{current}} من {{total}}",
+  "start": "ابدأ",
+  "submit": "إرسال",
+  "tryAgain": "حاول مرة أخرى"
 }
