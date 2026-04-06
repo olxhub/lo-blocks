@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes, licensed } from '@/lib/blocks/attributeSchemas';
 import _Image from './_Image';
 
 const Image = core({
@@ -15,6 +15,7 @@ const Image = core({
     alt: z.string().optional().describe('Alternative text for accessibility'),
     width: z.string().optional().describe('Image width in pixels or CSS value'),
     height: z.string().optional().describe('Image height in pixels (not available in some contexts)'),
+    ...licensed,
   }),
 });
 

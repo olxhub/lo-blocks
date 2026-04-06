@@ -445,8 +445,8 @@ export async function parseOLX(
     let parsedAttributes = attributes;
     if (!result.success) {
       const zodErrors = result.error.issues.map(i => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
-      errors.push({
-        type: 'attribute_validation',
+      const errorObj = {
+        type: 'attribute_validation' as const,
         summary: `Invalid attribute on <${tag}> in ${provenance.join(', ')}`,
         file: provenance.join(', '),
         message: `Invalid attributes for <${tag} id="${id}">:\n${zodErrors}`,
@@ -457,7 +457,24 @@ export async function parseOLX(
           attributes,
           zodError: result.error
         }
-      });
+      };
+      errors.push(errorObj);
+
+      // Replace block with ErrorNode instead of rendering with raw attributes.
+      // Raw attributes bypass Zod transforms (e.g. sanitization, type coercion),
+      // which could cause runtime crashes or security issues downstream.
+      // Matches the PEG error pattern in parsers.ts.
+      const lang = resolveElementLanguage(attributes, currentLang, metadataLang);
+      const entry = {
+        id, tag: 'ErrorNode', attributes, provenance,
+        rawParsed: node, kids: errorObj, parseError: true,
+        lang,
+        ...(metadata || {})
+      };
+      if (!idMap[id]) idMap[id] = {};
+      idMap[id][lang] = entry;
+      parsedIds.push(id);
+      return { type: 'block', id };
     } else {
       // Use transformed attributes (e.g., "true" -> true for booleans)
       parsedAttributes = result.data;
