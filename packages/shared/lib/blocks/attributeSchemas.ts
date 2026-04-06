@@ -336,6 +336,29 @@ export const problemMixin = z.object({
 });
 
 // =============================================================================
+// Shared Value Lists
+// =============================================================================
+
+/** License identifiers — single source of truth for Image attrs and YAML metadata. */
+export const licenseValues = [
+  'CC0', 'CC BY', 'CC BY-SA', 'CC BY-NC', 'CC BY-NC-SA', 'CC BY-ND', 'CC BY-NC-ND',
+  'Public domain', 'Fair use', 'AGPL', 'GPL',
+] as const;
+
+export type License = typeof licenseValues[number];
+
+/**
+ * Normalize a string-or-list to a list. Idempotent.
+ * Useful when an attribute may be a single value or an array (e.g. YAML list vs XML string).
+ */
+export const z_stringOrList = z.union([z.string(), z.array(z.string())])
+  .transform(v => Array.isArray(v) ? v : [v]);
+
+/** URL-validated variant of z_stringOrList. */
+export const z_urlOrList = z.union([z.string().url(), z.array(z.string().url())])
+  .transform(v => Array.isArray(v) ? v : [v]);
+
+// =============================================================================
 // Optional Spreads (blocks include manually if needed)
 // =============================================================================
 
@@ -354,6 +377,19 @@ export const placeholder = {
 export const src = {
   src: z.string().optional().describe('Path to external file containing content'),
 };
+
+/**
+ * Licensed content attribution — author(s), hyperlink(s), and license.
+ * Usage: baseAttributes.extend({ ...licensed, myAttr: z.string() })
+ */
+export const licensed = {
+  authors: z_stringOrList.optional().describe('Creator name(s)'),
+  hyperlink: z_urlOrList.optional().describe('URL(s) to the original work (per CC/GPL license terms)'),
+  license: z.enum(licenseValues).optional().describe('License identifier'),
+};
+
+/** Parsed output type of the `licensed` fields. */
+export type LicensedAttrs = z.output<z.ZodObject<typeof licensed>>;
 
 /**
  * Cast attribute - for blocks that support cast-of-characters.
