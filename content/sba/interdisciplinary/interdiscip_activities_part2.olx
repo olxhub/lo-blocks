@@ -1,0 +1,48 @@
+<!--
+---
+description: Activity file for the Interdisciplinary SBA, part 2, with all activities organized for easy editing
+category: interdisciplinary
+index: 76
+lang: en-Latn-US
+---
+-->
+<Cast cast="characters.cast" id="interdisciplinary_activities_part2" title="Activities for Part 2 of Interdisciplinary Studies SBA on High School Dropout Rates" launchable="true">
+<Vertical>
+
+  <Markdown id="interdisciplinary_orientation2">
+## Orientation
+
+In this module, you'll apply what you’ve learned in class about interdisciplinary research process and the Broad Model of Interdisciplinary Research Process. The module contains everything you need to complete the project.
+
+There are instructions on the screen to help you navigate and give your answers. Please follow them carefully.
+
+The purpose of this task is to help you practice doing the interdisciplinary research process yourself. Therefore, please do not use an AI tool like ChatGPT, Copilot, Grok, or Claude to answer these questions. Also, please compose your answers by yourself directly in this interface. Please don't write your answers elsewhere and paste them into this window. It's safe to write in the interface; your work is saved as you type.
+
+Please keep in mind that this is a learning opportunity, not a test. You will often be given a chance to answer a question, and then review the correct answer on a following screen. You are allowed to revise your answers, but be aware that the system will record both your initial answers and your revisions, and report both of them to me when I review your work.
+  </Markdown>
+
+  <Markdown id="interdisciplinary_recap">
+## What We Have Done So Far
+We've found studies that address different parts of the high school dropout problem, including **Psychology**, **Sociology**, **Economics** and **Political Science**. That confirmed that high school dropout problem is a **complex problem with multiple parts studied by different disciplines**.
+
+We read summaries of studies from these disciplines and derived their **disciplinary insights**.
+  </Markdown>
+
+    <!-- Causes by disciplines mapping -->
+    <Vertical id="insights_by_disciplines">
+      <Markdown>
+## Map Each Insight to Relevant Disciplines
+
+**Select each discipline that applies.**
+      </Markdown>
+      <TabularMCQ id="insight_to_discipline_mapping">
+        mode: checkbox
+        cols: Psychology, Sociology, Economics, Political Science, Health Sciences
+        rows: If a student feels they need to earn money right away to help their family⸴ they might drop out to get a full-time job,Conditions like depression⸴ anxiety⸴ or ADHD can interfere with a student's ability to get good grades and remain engaged in school.,A student's environment may increase their likelihood of dropping out if they live in an area affected by gang activity⸴ neighborhood instability⸴ and limited support systems⸴ as seen in some urban communities.,Lack of school funding means fewer resources and support for students, making historically underserved students more likely to drop out.
+      </TabularMCQ>
+  
+    </Vertical>
+
+</Vertical>
+</Cast>
+
