@@ -1,7 +1,7 @@
 // src/components/blocks/ComplexInput.js
 
 import { z } from 'zod';
-import { core } from '@/lib/blocks';
+import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
@@ -18,8 +18,8 @@ const _ComplexInput = (props) =>
 
 const ComplexInput = core({
   ...parsers.blocks(),
+  ...input(),
   name: 'ComplexInput',
-  isInput: true,
   description: 'Text input for complex numbers with validation (supports i/j notation)',
   component: _ComplexInput,
   fields,

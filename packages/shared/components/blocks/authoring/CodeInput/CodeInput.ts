@@ -6,7 +6,7 @@
 // in-browser code/OLX editing. API will likely change.
 //
 import { z } from 'zod';
-import { test } from '@/lib/blocks';
+import { test, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
@@ -18,8 +18,8 @@ export const fields = state.fields([commonFields.value]);
 
 const CodeInput = test({
   ...parsers.text.raw(),
+  ...input(),
   name: 'CodeInput',
-  isInput: true,
   description: 'Experimental: CodeMirror editor for in-browser code editing',
   component: _CodeInput,
   fields,

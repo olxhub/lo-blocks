@@ -1,7 +1,7 @@
 // src/components/blocks/Sortable/SortableInput.js
 
 import { z } from 'zod';
-import { core } from '@/lib/blocks';
+import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
@@ -17,8 +17,8 @@ export const fields = state.fields([
 
 const SortableInput = core({
   ...parsers.blocks(), // Handle child blocks
+  ...input(),
   name: 'SortableInput',
-  isInput: true,
   description: 'Drag-and-drop sortable input for ordering tasks',
   component: _SortableInput,
   fields,

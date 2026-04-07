@@ -17,7 +17,7 @@
  */
 
 import { z } from 'zod';
-import { dev } from '@/lib/blocks';
+import { dev, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
@@ -54,10 +54,10 @@ function getCorrectArrangement(props: RuntimeProps) {
 
 const MatchingInput = dev({
   ...parsers.blocks(), // Handle child blocks
+  ...input(),
   name: 'MatchingInput',
   description: 'Match items from left column to right column',
   component: _MatchingInput,
-  isInput: true,
   fields,
   selectValue: (props: RuntimeProps, reduxState, _reduxKey) => ({
     arrangement: fieldSelector(reduxState, props, fields.arrangement, { fallback: {} })

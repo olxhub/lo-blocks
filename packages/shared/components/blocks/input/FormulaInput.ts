@@ -4,7 +4,7 @@
 // Supports variable/function whitelisting and case sensitivity.
 
 import { z } from 'zod';
-import { core } from '@/lib/blocks';
+import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
@@ -16,8 +16,8 @@ export const fields = state.fields([commonFields.value]);
 
 const FormulaInput = core({
   ...parsers.blocks(),
+  ...input(),
   name: 'FormulaInput',
-  isInput: true,
   description: 'Math expression input with live LaTeX preview (supports variables, functions, operators)',
   component: _FormulaInput,
   fields,

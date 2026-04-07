@@ -102,4 +102,56 @@ describe('factory mixin composition', () => {
     });
     expect(block.description).toBe('from blueprint');
   });
+
+  // === allowOverrides ===
+
+  it('allowOverrides on the blueprint silently replaces a colliding attribute from a mixin', () => {
+    const block = testBlocks({
+      graderMixin: {
+        attributes: z.object({ target: z.string().optional() }).strict(),
+      },
+      name: 'AllowAttrOverrideBlock',
+      allowOverrides: ['target'],
+      attributes: z.object({ target: z.string() }).strict(),
+    });
+    const shape = (block.attributes as z.ZodObject<any>).shape;
+    // Blueprint's required `target` wins over the mixin's optional one.
+    expect(shape.target.isOptional()).toBe(false);
+  });
+
+  it('allowOverrides on the blueprint silently replaces a colliding field from a mixin', () => {
+    const block = testBlocks({
+      inputMixin: { fields: state.fields(['shared']) },
+      name: 'AllowFieldOverrideBlock',
+      allowOverrides: ['shared'],
+      fields: state.fields(['shared', 'other']),
+    });
+    expect(block.fields.shared).toBeDefined();
+    expect(block.fields.other).toBeDefined();
+  });
+
+  it('allowOverrides naming a different key still raises on the actual collision', () => {
+    expect(() =>
+      testBlocks({
+        graderMixin: {
+          attributes: z.object({ target: z.string().optional() }).strict(),
+        },
+        name: 'AllowWrongKeyBlock',
+        allowOverrides: ['something-else'],
+        attributes: z.object({ target: z.string() }).strict(),
+      })
+    ).toThrow(/AllowWrongKeyBlock.*Attribute `target`.*graderMixin.*blueprint/s);
+  });
+
+  it('allowOverrides on a blueprint with no mixins is stripped before schema validation', () => {
+    // No mixins → no compose path → we still need allowOverrides stripped
+    // so strict Zod validation does not reject it as an unknown key.
+    const block = testBlocks({
+      name: 'AllowOverridesNoMixinBlock',
+      allowOverrides: ['unused'],
+      description: 'still works',
+    });
+    expect(block.name).toBe('AllowOverridesNoMixinBlock');
+    expect(block.description).toBe('still works');
+  });
 });
