@@ -658,7 +658,7 @@ Most of the other typescript is to prevent errors. We don't proactively tag type
 
 * All npm scripts automatically use firejail sandboxing when available (see `sandbox.sh`). On Ubuntu, `sudo apt-get install firejail` is recommended but not required. On macOS or other systems, everything works without it.
 * The system uses `next.js`. We like `next.js`, but the rather unusual dynamic development requirements (e.g. ability to dynamically edit and reload blocks) may make this type of framework a poor fit. At some point, we should evaluate `vite`, other frameworks, or rolling our own.
-* Data streams into the [Learning Observer](https://github.com/ETS-Next-Gen/writing_observer), which allows for rather rich, real-time dashboard.
+* Data streams into the [Learning Observer](https://github.com/ArgLab/writing_observer), which allows for rather rich, real-time dashboard.
 
 Redux
 -----

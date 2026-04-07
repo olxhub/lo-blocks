@@ -16,7 +16,7 @@ Before connecting LO Blocks to Learning Observer, you'll need to:
 
 ## Connecting LO Blocks to Learning Observer
 
-LO Blocks uses [LO Event](https://github.com/ETS-Next-Gen/writing_observer/tree/master/modules/lo_event), a specialized logging module designed for the Learning Observer environment.
+LO Blocks uses [LO Event](https://github.com/ArgLab/lo_event), a specialized logging module designed for the Learning Observer environment.
 
 ### Configuration
 
