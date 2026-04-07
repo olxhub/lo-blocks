@@ -1,20 +1,21 @@
-<!-- Interdisciplinary Studies SBA: High School Dropout Analysis -->
+<!-- Interdisciplinary Studies SBA, Part 1: High School Dropout Analysis -->
 <Vertical id="interdisciplinary_sba_root">
 
 <!-- Main SBA Interface -->
 <!--
 ---
-description: Analyze high school dropout rates using interdisciplinary research methods and statistical reasoning
+description: Analyze high school dropout rates using interdisciplinary research methods and statistical reasoning (part 1)
 category: interdisciplinary
+index: 70
 lang: en-Latn-US
 ---
 -->
-<Cast cast="characters.cast" id="interdisciplinary_sba_demo" title="Interdisciplinary Studies SBA - High School Dropout Analysis" launchable="true">
+<Cast cast="characters.cast" id="interdisciplinary_sba_demo_part1" title="Interdisciplinary Studies SBA, Part 1 - High School Dropout Analysis" launchable="true">
 <SplitPanel sizes="30, 70">
 
   <!-- Left Panel: Dialogue Conversation -->
   <LeftPane>
-    <Chat id="interdisciplinary_chat" src="dialogue.chatpeg" height="600px" />
+    <Chat id="interdisciplinary_chat" src="interdisciplinary_dialogue_part1.chatpeg" height="600px" />
   </LeftPane>
 
   <!-- Right Panel: Tabbed interface -->

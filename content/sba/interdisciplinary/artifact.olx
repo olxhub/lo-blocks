@@ -114,48 +114,50 @@ this page will display a diagram showing your group's final analysis.
     <Markdown>
 Research studies you've reviewed from different disciplines.
     </Markdown>
-
-    <Markdown id="artifact_tb_12">**Study 1: ADHD Research (Psychology)**</Markdown>
-    <Markdown id="artifact_tb_13">[Highlight component for interdisciplinary_sba_source.1 - to be implemented]</Markdown>
-
-    <Markdown id="artifact_tb_14">**Study 2: Employment Research**</Markdown>
-    <Markdown id="artifact_tb_15">[Highlight component for interdisciplinary_sba_source.2 - to be implemented]</Markdown>
-    <Markdown id="artifact_tb_16">**Disciplines Identified:**</Markdown>
-    <Markdown id="interdisciplinary_sba_source_2_classification">
-- [ ] Health Sciences
-- [ ] Biology
-- [ ] Psychology
-- [ ] Sociology
-- [ ] Economics
-- [ ] Political Science
-    </Markdown>
-    <TextArea id="interdisciplinary_sba_source_2_classification_explanation" placeholder="Your explanation will appear here..." />
-
-    <Markdown id="artifact_tb_17">**Study 3: Rural/Urban Research**</Markdown>
-    <Markdown id="artifact_tb_18">[Highlight component for interdisciplinary_sba_source.3 - to be implemented]</Markdown>
-    <Markdown id="artifact_tb_19">**Disciplines Identified:**</Markdown>
-    <Markdown id="interdisciplinary_sba_source_3_classification">
-- [ ] Health Sciences
-- [ ] Biology
-- [ ] Psychology
-- [ ] Sociology
-- [ ] Economics
-- [ ] Political Science
-    </Markdown>
-    <TextArea id="interdisciplinary_sba_source_3_classification_explanation" placeholder="Your explanation will appear here..." />
-
-    <Markdown id="artifact_tb_20">**Study 4: School Funding Research**</Markdown>
-    <Markdown id="artifact_tb_21">[Highlight component for interdisciplinary_sba_source.4 - to be implemented]</Markdown>
-    <Markdown id="artifact_tb_22">**Disciplines Identified:**</Markdown>
-    <Markdown id="interdisciplinary_sba_source_4_classification">
-- [ ] Health Sciences
-- [ ] Biology
-- [ ] Psychology
-- [ ] Sociology
-- [ ] Economics
-- [ ] Political Science
-    </Markdown>
-    <TextArea id="interdisciplinary_sba_source_4_classification_explanation" placeholder="Your explanation will appear here..." />
+    <Tabs id="artifact_lit_tabs">
+        <Vertical id="artifact_lit_tab1" title="Study 1: ADHD Research (Psychology)">
+          <Markdown>**The insight sentence you drafted:**</Markdown>
+          <Use ref="adhd_insight_sentence" />
+          <Markdown>**The insight sentence you selected:**</Markdown>         
+          <Use ref="adhd_insight_sentence_choice_input" />
+        </Vertical>
+        <Vertical id="artifact_lit_tab2" title="Study 2: Employment Research">
+          <Markdown>**The insight sentence you drafted:**</Markdown>
+          <Use ref="source_2_insight_sentence" />
+          <Markdown>**The insight sentence you selected:**</Markdown>         
+          <Use ref="employment_insight_sentence_choice_input" />
+          <Markdown>**Your explanation of your choice:**</Markdown>
+          <Use ref="source_2_insight_explanation" />
+          <Markdown>**The disciplines you chose for this source:**</Markdown>
+          <Use ref="source_2_classification" />
+          <Markdown>**Why you chose this discipline:**</Markdown>
+          <Use ref="source_2_classification_explanation" />
+        </Vertical>
+        <Vertical id="artifact_lit_tab3" title="Study 3: Rural/Urban Research">
+          <Markdown>**The insight sentence you drafted:**</Markdown>
+          <Use ref="source_3_insight_sentence" />
+          <Markdown>**The insight sentence you selected:**</Markdown>         
+          <Use ref="employment_insight_sentence_choice_input" />
+          <Markdown>**Your explanation of your choice:**</Markdown>
+          <Use ref="source_3_insight_sentence_explanation" />
+          <Markdown>**The disciplines you chose for this source:**</Markdown>
+          <Use ref="source_3_classification" />
+          <Markdown>**Why you chose this discipline:**</Markdown>
+          <Use ref="source_3_classification_explanation" />
+        </Vertical>
+        <Vertical id="artifact_lit_tab4" title="Study 4: School Funding Research">
+          <Markdown>**The insight sentence you drafted:**</Markdown>
+          <Use ref="source_4_insight_sentence" />
+          <Markdown>**The insight sentence you selected:**</Markdown>         
+          <Use ref="source4_insight_selection" />
+          <Markdown>**Your explanation of your choice:**</Markdown>
+          <Use ref="source_4_insight_sentence_explanation" />
+          <Markdown>**The disciplines you chose for this source:**</Markdown>
+          <Use ref="funding_study_additional_disciplines" />
+          <Markdown>**Why you chose this discipline:**</Markdown>
+          <Use ref="source_4_classification_explanation" />
+        </Vertical>
+    </Tabs>
   </Collapsible>
 
   <!-- Step 5: Critical Analysis -->

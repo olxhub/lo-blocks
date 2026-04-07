@@ -1,0 +1,49 @@
+<!-- Interdisciplinary Studies SBA, Part 2: Developing a Problem Statement -->
+<Vertical id="interdisciplinary_sba2_root">
+
+<!-- Main SBA Interface -->
+<!--
+---
+description: Analyze high school dropout rates using interdisciplinary research methods and statistical reasoning (part 2)
+category: interdisciplinary
+index: 71
+lang: en-Latn-US
+---
+-->
+<Cast cast="characters.cast" id="interdisciplinary_sba_demo_part2" title="Interdisciplinary Studies SBA, Part 2 - Developing a Problem Statement" launchable="true">
+<SplitPanel sizes="30, 70">
+
+  <!-- Left Panel: Dialogue Conversation -->
+  <LeftPane>
+    <Chat id="interdisciplinary2_chat" src="interdisciplinary_dialogue_part2.chatpeg" height="600px" />
+  </LeftPane>
+
+  <!-- Right Panel: Tabbed interface -->
+  <RightPane>
+    <Tabs id="interdisciplinary_sba2_tabs">
+      <!-- Tab 1: Current Activity -->
+      <Vertical id="interdisciplinary2_current_activity" title="Current Activity">
+        <UseHistory id="interdisciplinary2_sba_sidebar" initial="interdisciplinary_gsu_plaza_image" />
+      </Vertical>
+
+      <!-- Tab 2: Student Artifact -->
+      <Vertical id="interdisciplinary2_artifact_tab" title="Artifact">
+        <Use ref="interdisciplinary_artifact" />
+      </Vertical>
+
+      <!-- Tab 3: Library of Readings -->
+      <Vertical id="interdisciplinary2_library_tab" title="Library">
+        <Use ref="interdisciplinary_library" />
+      </Vertical>
+
+      <!-- Tab 4: Team Directory -->
+      <Vertical id="interdisciplinary2_directory" title="Team">
+        <Use ref="interdisciplinary_team_members" />
+      </Vertical>
+    </Tabs>
+  </RightPane>
+
+</SplitPanel>
+</Cast>
+
+</Vertical>

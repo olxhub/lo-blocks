@@ -2,10 +2,11 @@
 ---
 description: Activity file for the Interdisciplinary SBA with all activities organized for easy editing
 category: interdisciplinary
+index: 75
 lang: en-Latn-US
 ---
 -->
-<Cast cast="characters.cast" id="interdisciplinary_activities" launchable="true">
+<Cast cast="characters.cast" id="interdisciplinary_activities_part1" title="Activities for Part 1 of Interdisciplinary Studies SBA on High School Dropout Rates" launchable="true">
 <Vertical>
 
   <!-- ORIENTATION -->
@@ -567,12 +568,12 @@ click on the "Annotate" button and explain what discipline this clue suggests, a
     </Vertical>
 
   <!-- Additional Disciplines Selection -->
-  <Tabs id="additional_disciplines_checkboxes">
-    <Vertical id="additional_disciplines_checkboxes_t1" title="Selection of Relevant Disciplines">
+  <Tabs id="funding_study_additional_disciplines_checkboxes">
+    <Vertical id="funding_study_additional_disciplines_checkboxes_t1" title="Selection of Relevant Disciplines">
       <Markdown>
 **Which discipline(s) do you think are represented in this study?**
       </Markdown>
-      <CheckboxInput id="additional_disciplines">
+      <CheckboxInput id="funding_study_additional_disciplines">
         <Key id="add_health">Health Sciences</Key>
         <Key id="add_bio">Biology</Key>
         <Distractor id="add_psych">Psychology</Distractor>

@@ -1,4 +1,4 @@
-title: Interdisciplinary Studies SBA - High School Dropout Analysis
+title: Interdisciplinary Studies SBA, Part 1 - High School Dropout Analysis
 author: EDUC 3100 Assessment Module
 ~~~~
 
@@ -429,9 +429,9 @@ interdisciplinary_sba_sidebar -> funding_study_text
 
 Lianne: So which disciplines do you think are represented in this study?
 
-interdisciplinary_sba_sidebar -> additional_disciplines_checkboxes
+interdisciplinary_sba_sidebar -> funding_study_additional_disciplines_checkboxes
 
---- wait @additional_disciplines.value ---
+--- wait @funding_study_additional_disciplines.value ---
 
 Lianne: How are the clues you picked representative of the disciplines you selected? Can you explain?
 
