@@ -35,6 +35,8 @@ import { core } from './namespaces';
 import * as parsers from '@/lib/content/parsers';
 import { grader, type GraderParams, type SingleParam, type ListParam, type DictParam } from './actions';
 import { graderAttributes, baseAttributes, z_reduxStateKey } from './attributeSchemas';
+// Pre-composed attribute schema for full grader blocks (base + grader-specific).
+const graderFullAttributes = baseAttributes.extend(graderAttributes.shape);
 import _Noop from '@/components/blocks/layout/_Noop';
 import { registerDSLFunction } from '@/lib/stateLanguage/functions';
 import { correctness } from './correctness';
@@ -318,7 +320,7 @@ export function createGrader({
     category: 'grading',
     component,
     fields: state.fields(state.graderFields()),
-    attributes: graderAttributes.extend(attributes),
+    attributes: graderFullAttributes.extend(attributes),
     inputSchema,
     validateAttributes,
     answerDisplayMode: effectiveAnswerDisplayMode,

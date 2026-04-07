@@ -15,13 +15,14 @@ import { fieldSelector } from '../lib/state/redux';
 import { commonFields } from '../lib/state/commonFields';
 import { selectBlock } from '../lib/state/olxjson';
 import type { OlxKey, UserLocale } from '../lib/types';
+import { BLOCK_REGISTRY } from '../components/blockRegistry';
 
 // Load fixture
 const fixturePath = path.join(__dirname, 'fixtures/grading-session.json');
 const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf-8'));
 
 function replayEvents(events: any[]) {
-  const reduxStore = store.init();
+  const reduxStore = store.init({ blockRegistry: BLOCK_REGISTRY });
 
   for (const event of events) {
     reduxStore.dispatch({

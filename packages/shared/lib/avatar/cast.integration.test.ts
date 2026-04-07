@@ -94,7 +94,7 @@ async function parseAndRender(olx: string, providerFiles?: Record<string, string
   if (!root) throw new Error('No root element found after parsing');
   const renderId = renderRoot ?? root;
 
-  const reduxStore = store.init();
+  const reduxStore = store.init({ blockRegistry: BLOCK_REGISTRY });
   dispatchOlxJsonSync(reduxStore, 'content', idMap);
 
   const localeCode = 'en-Latn-US';

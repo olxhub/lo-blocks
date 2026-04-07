@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import * as blocks from '@/lib/blocks';
 import { ignore } from '@/lib/content/parsers';
-import { baseAttributes, problemMixin, z_reduxStateKeyList, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes, problemAttributes, z_reduxStateKeyList, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
 import _CapaFooter from './_CapaFooter';
 
 const CapaFooter = blocks.dev({
@@ -12,7 +12,7 @@ const CapaFooter = blocks.dev({
   component: _CapaFooter,
   internal: true,
   // Note: Receives runtime attributes from _CapaProblem
-  attributes: baseAttributes.extend(problemMixin.shape).extend({
+  attributes: baseAttributes.extend(problemAttributes.shape).extend({
     target: z_reduxStateKeyList.optional().describe('Comma-separated grader IDs to trigger'),
     hintsTarget: z_reduxStateKey.nullish().describe('DemandHints ID for hint button'),
     label: z.string().optional().describe('Override check button label'),

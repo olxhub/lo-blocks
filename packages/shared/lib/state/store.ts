@@ -13,7 +13,11 @@
 // and comprehensive learning analytics.
 //
 'use client';
-import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+// Note: BLOCK_REGISTRY is intentionally NOT imported here. It is passed in
+// by callers via `store.init({ blockRegistry })`. This inverts the dependency
+// (state no longer reaches into the components layer), breaks the
+// factory → state → store → blockRegistry → blocks → factory load cycle, and
+// fits the future direction where blocks may be loaded dynamically at runtime.
 import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
 import * as lo_event from 'lo_event';
 import * as debug from 'lo_event/lo_event/debugLog.js';
@@ -315,8 +319,12 @@ export const updateResponseReducer = (state = initialState, action) => {
 };
 
 type ExtraFieldsParam = Fields | (FieldInfo | string)[];
+type BlockRegistryParam = Record<string, { fields?: Record<string, any> } | undefined>;
 
-function collectEventTypes(extraFields: ExtraFieldsParam = []) {
+function collectEventTypes(
+  extraFields: ExtraFieldsParam = [],
+  blockRegistry: BlockRegistryParam = {},
+) {
   // Clear stale entries from previous init (tests, HMR)
   _fieldReducers.clear();
 
@@ -348,8 +356,8 @@ function collectEventTypes(extraFields: ExtraFieldsParam = []) {
   // Also register field-level reducers for event routing.
   // Registered AFTER commonFields so block-specific reducers take precedence.
   const componentEventTypes: string[] = [];
-  for (const entry of Object.values(BLOCK_REGISTRY)) {
-    if (!entry.fields) continue;
+  for (const entry of Object.values(blockRegistry)) {
+    if (!entry || !entry.fields) continue;
     for (const finfo of Object.values(entry.fields)) {
       if (!finfo || typeof finfo !== 'object' || finfo.type !== 'field') continue;
       const fi = finfo as FieldInfo;
@@ -394,8 +402,16 @@ let eventCaptureLogger: ReturnType<typeof createArrayLogger> | null = null;
 // Module-level store reference for getReduxState
 let reduxStoreInstance: any = null;
 
-function configureStore({ extraFields = [], websocket }: { extraFields?: ExtraFieldsParam; websocket?: boolean } = {}) {
-  const allEventTypes = collectEventTypes(extraFields);
+function configureStore({
+  extraFields = [],
+  websocket,
+  blockRegistry = {},
+}: {
+  extraFields?: ExtraFieldsParam;
+  websocket?: boolean;
+  blockRegistry?: BlockRegistryParam;
+} = {}) {
+  const allEventTypes = collectEventTypes(extraFields, blockRegistry);
   reduxLogger.registerReducer(
     allEventTypes,
     updateResponseReducer

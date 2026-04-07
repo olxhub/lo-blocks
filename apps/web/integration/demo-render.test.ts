@@ -161,7 +161,7 @@ describe('Demo OLX files render without errors', () => {
         }
 
         // Create Redux store and populate with parsed content synchronously
-        const reduxStore = store.init();
+        const reduxStore = store.init({ blockRegistry: BLOCK_REGISTRY });
         dispatchOlxJsonSync(reduxStore, 'content', idMap);
 
         // Render the component

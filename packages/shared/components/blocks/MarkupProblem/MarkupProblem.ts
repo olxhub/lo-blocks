@@ -13,7 +13,7 @@
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
-import { srcAttributes, problemMixin } from '@/lib/blocks/attributeSchemas';
+import { srcAttributes, problemAttributes } from '@/lib/blocks/attributeSchemas';
 import * as capaParser from '../specialized/peg_prototype/_capaParser';
 import _CapaProblem from '@/components/blocks/CapaProblem/_CapaProblem';
 import type { BlueprintKidEntry, OlxReference } from '@/lib/types';
@@ -495,7 +495,7 @@ const MarkupProblem = dev({
   component: _CapaProblem,
   fields,
   isGrader: true,  // Metagrader: aggregates child grader states (same as CapaProblem)
-  attributes: srcAttributes.extend(problemMixin.shape).strict(),
+  attributes: srcAttributes.extend(problemAttributes.shape).strict(),
   // peggyParser sets staticKids: () => [], but MarkupProblem generates child
   // blocks (graders, inputs, hints) dynamically during PEG parsing.
   // Without this, the content API's static-kids mode won't include them.

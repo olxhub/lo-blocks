@@ -11,6 +11,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 
 import { store, extendSettings } from '@/lib/state';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 
 // Must pass settings so SET_LOCALE (and other settings events) are registered
 // with reduxLogger. Without this, locale never gets set and the page hangs
@@ -20,6 +21,7 @@ import { store, extendSettings } from '@/lib/state';
 // (NEXT_PUBLIC_APP_PROFILE=static in next.config.mjs).
 const reduxStore = store.init({
   extraFields: extendSettings([]),
+  blockRegistry: BLOCK_REGISTRY,
 });
 
 export default function StoreWrapper({ children }: { children: React.ReactNode }) {
