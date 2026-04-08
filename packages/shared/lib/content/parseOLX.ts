@@ -75,6 +75,34 @@ const xmlParser = new XMLParser({
 const XML_META = XMLParser.getMetaDataSymbol() as unknown as symbol;
 
 /**
+ * Convert a byte offset within an XML source string to a 1-based line/column
+ * pair. Returns the bits in the shape AppError.location accepts, so callers
+ * can spread directly:
+ *
+ *   location: { provenance, ...offsetToLineCol(xml, sourceOffset) }
+ *
+ * If `offset` is undefined (e.g. a synthetic node that never had a
+ * captureMetaData symbol attached) the result is empty and nothing extra
+ * gets spread into location.
+ */
+function offsetToLineCol(
+  src: string,
+  offset: number | undefined
+): { line?: number; column?: number; offset?: number } {
+  if (offset === undefined || offset < 0) return {};
+  let line = 1;
+  let lastNl = -1;
+  const stop = Math.min(offset, src.length);
+  for (let i = 0; i < stop; i++) {
+    if (src.charCodeAt(i) === 10 /* \n */) {
+      line++;
+      lastNl = i;
+    }
+  }
+  return { line, column: offset - lastNl, offset };
+}
+
+/**
  * Check if a block type requires unique IDs based on its Component definition.
  * Returns true (require unique) or false (duplicates OK).
  *
@@ -485,7 +513,7 @@ export async function parseOLX(
         type: 'attribute_validation' as const,
         summary: `Invalid attribute on <${tag}> in ${provenance.join(', ')}`,
         message: `Invalid attributes for <${tag} id="${id}">:\n${zodErrors}`,
-        location: { provenance, line: node.line, column: node.column },
+        location: { provenance, ...offsetToLineCol(xml, sourceOffset) },
         technical: {
           tag,
           id,
@@ -525,7 +553,7 @@ export async function parseOLX(
             type: 'attribute_validation',
             summary: `Invalid attribute on <${tag}> in ${provenance.join(', ')}`,
             message: `Invalid attributes for <${tag} id="${id}">:\n${errorList}`,
-            location: { provenance, line: node.line, column: node.column },
+            location: { provenance, ...offsetToLineCol(xml, sourceOffset) },
             technical: {
               tag,
               id,
@@ -633,24 +661,26 @@ export async function parseOLX(
 
           // Get detailed information about both the existing and duplicate entries
           const existingEntry = idMap[storeId][lang];
+          const existingLoc = offsetToLineCol(xml, existingEntry._sourceOffset);
+          const dupLoc = offsetToLineCol(xml, entry._sourceOffset);
 
           errors.push({
             type: 'duplicate_id',
             summary: `Duplicate ID "${storeId}" in ${provenance.join(', ')}`,
             message: `Duplicate ID "${storeId}" found in ${provenance.join(', ')}. Each element must have a unique id.
 
-🔍 EXISTING ENTRY (Line ${existingEntry.line || '?'}, Column ${existingEntry.column || '?'}):
+🔍 EXISTING ENTRY (Line ${existingLoc.line ?? '?'}, Column ${existingLoc.column ?? '?'}):
    Tag: <${existingEntry.tag || 'unknown'}>
    Attributes: ${JSON.stringify(existingEntry.attributes || {}, null, 2)}
    Content: ${existingEntry.text || existingEntry.kids || 'N/A'}
 
-🔍 DUPLICATE ENTRY (Line ${entry.line || '?'}, Column ${entry.column || '?'}):
+🔍 DUPLICATE ENTRY (Line ${dupLoc.line ?? '?'}, Column ${dupLoc.column ?? '?'}):
    Tag: <${entry.tag || tag || 'unknown'}>
    Attributes: ${JSON.stringify(entry.attributes || attributes || {}, null, 2)}
    Content: ${entry.text || entry.kids || node.text || 'N/A'}
 
 💡 TIP: If these appear to be different elements, they likely have the same text content and are generating the same hash ID. Add explicit id="unique_name" attributes to distinguish them.`,
-            location: { provenance, line: entry.line, column: entry.column },
+            location: { provenance, ...dupLoc },
             technical: {
               duplicateId: storeId,
               existingEntry: existingEntry,
@@ -678,7 +708,7 @@ export async function parseOLX(
           type: 'attribute_validation',
           summary: `Invalid children in <${tag}> in ${provenance.join(', ')}`,
           message: `Invalid children for <${tag} id="${id}">:\n${errorList}`,
-          location: { provenance, line: node.line, column: node.column },
+          location: { provenance, ...offsetToLineCol(xml, sourceOffset) },
           technical: { tag, id, childErrors }
         });
       }
@@ -769,7 +799,7 @@ export async function parseOLX(
           type: 'attribute_validation',
           summary: `Type mismatch: <${entry.tag}> with <${inputEntry.tag}> in ${provenance.join(', ')}`,
           message: `<${entry.tag}> expects ${describeZodType(graderBlock.inputSchema)} input, but <${inputEntry.tag}> provides ${describeZodType(inputBlock.valueSchema)}.`,
-          location: { provenance, line: entry.line, column: entry.column },
+          location: { provenance, ...offsetToLineCol(xml, entry._sourceOffset) },
           technical: {
             graderId: blockId,
             graderTag: entry.tag,

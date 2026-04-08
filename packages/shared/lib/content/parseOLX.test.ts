@@ -39,6 +39,17 @@ test('CRITICAL: _sourceOffset is the byte offset of `<` from fast-xml-parser cap
   expect(getOlxJson(idMap, 'foo')?._sourceOffset).toBe(12); // position of `<` in `<Vertical>`
 });
 
+test('error location populates line/column/offset from _sourceOffset', async () => {
+  // Exercises offsetToLineCol via the duplicate-id producer site. The
+  // duplicate `<TextArea>` is on line 3, indented 2 spaces, so its `<`
+  // sits at column 3. Catches regressions in either the helper or the
+  // entry._sourceOffset plumbing.
+  const xml = '<Vertical>\n  <TextArea id="dup"/>\n  <TextArea id="dup"/>\n</Vertical>';
+  const { errors } = await parseOLX(xml, PROV);
+  expect(errors[0]?.type).toBe('duplicate_id');
+  expect(errors[0]?.location).toMatchObject({ line: 3, column: 3, offset: 36 });
+});
+
 test('parses <Use> with attribute overrides', async () => {
   const xml = '<Vertical id="L"><Chat id="C" clip="[1,2]"/><Use ref="C" clip="[3,4]"/></Vertical>';
   const { idMap, root } = await parseOLX(xml, PROV);

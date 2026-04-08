@@ -1056,19 +1056,33 @@ export interface OlxJson {
   };
 
   /**
-   * INTERIM: byte offset of this element's tag name within its source XML
-   * (i.e. the character right after `<`). Populated from fast-xml-parser's
-   * `captureMetaData` option in parseOLX.ts.
+   * INTERIM: byte offset of this element's opening `<` within its source
+   * XML, captured from fast-xml-parser's `captureMetaData` option in
+   * parseOLX.ts. The `_` prefix flags this as a temporary placement.
    *
-   * The `_` prefix and the type-level documentation flag this as a temporary
-   * placement. The right home for it is inside the provenance URI itself —
-   * something like `file:///foo.olx#offset=91` or RFC 5147 `#char=91,107` —
-   * so a single `provenance` value carries both the source identity and the
-   * span. When that lands, this field goes away.
+   * Eventual home: folded into the provenance URI itself, e.g.
+   * `file:///foo.olx#L3:3` or `file:///foo.olx#char=36,55` (RFC 5147), so
+   * one provenance value carries source identity AND span. When that
+   * lands, this field goes away.
    *
-   * Until then, consumers (DisplayError, duplicate-id reporting, the build
-   * pipeline) read `_sourceOffset` directly. It is offset-only, not line/col;
-   * callers that want line/col convert against the original XML string.
+   * OPEN QUESTION (decide when authoring tooling forces it):
+   * The shape of this field is wrong for any consumer outside parseOLX.
+   * Byte offset is only convertible to line/col with the original XML
+   * string in scope, and the source string only exists during parse.
+   * Right now the only consumer is parseOLX itself (the duplicate-id
+   * message), where xml IS in scope, so it works — but as soon as
+   * something downstream (an authoring UI badge, an editor jump-to,
+   * the warning panel) wants line/col, it can't get there from here.
+   *
+   * Three options when we revisit:
+   *   A) Keep just `_sourceOffset` (status quo). Cheapest, but downstream
+   *      consumers are blocked.
+   *   B) Replace with `_sourceLine` / `_sourceColumn` computed at parse
+   *      time. Matches the eventual `#L3:3` URI fragment shape and is
+   *      what humans actually read. Drops the byte offset (which is an
+   *      FXP implementation detail).
+   *   C) Store all three. "More complete" but the offset is only useful
+   *      to a hypothetical IDE-jump consumer.
    */
   _sourceOffset?: number;
 
