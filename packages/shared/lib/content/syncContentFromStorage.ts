@@ -471,10 +471,19 @@ function indexParsedBlocks(
 /** Creates a detailed error message for duplicate block IDs */
 function createDuplicateIdError(
   blockId: OlxKey,
-  existingBlock: any,
-  duplicateBlock: any,
+  existingBlock: OlxJson,
+  duplicateBlock: OlxJson,
   sourceFile: ProvenanceURI
 ): OLXLoadingError {
+  // TODO: We'd love to print line/column for both entries, but OlxJson only
+  // carries `_sourceOffset` (a byte offset into the leaf source file), and
+  // converting that to line/col requires the original XML text in scope —
+  // which we don't have here. See the "OPEN QUESTION" comment on
+  // `_sourceOffset` in lib/types.ts. For now we print the byte offset and
+  // the leaf provenance URI; that's enough to grep for.
+  const existingFile = existingBlock.provenance?.at(-1) ?? 'unknown';
+  const existingOffset = existingBlock._sourceOffset ?? '?';
+  const duplicateOffset = duplicateBlock._sourceOffset ?? '?';
   return {
     type: 'duplicate_id',
     summary: `Duplicate ID "${blockId}" in ${sourceFile}`,
@@ -482,17 +491,17 @@ function createDuplicateIdError(
     message: `Duplicate ID "${blockId}" found in ${sourceFile} (conflicts with entry from another file)
 
 🔍 EXISTING ENTRY (from different file):
-   File: ${existingBlock.file || 'unknown'}
-   Line: ${existingBlock.line || '?'}, Column: ${existingBlock.column || '?'}
+   File: ${existingFile}
+   Byte offset: ${existingOffset}
    Tag: <${existingBlock.tag || 'unknown'}>
    Attributes: ${JSON.stringify(existingBlock.attributes || {}, null, 2)}
-   Content: ${existingBlock.text || existingBlock.kids || 'N/A'}
+   Content: ${existingBlock.kids ?? 'N/A'}
 
 🔍 DUPLICATE ENTRY (in current file ${sourceFile}):
-   Line: ${duplicateBlock.line || '?'}, Column: ${duplicateBlock.column || '?'}
+   Byte offset: ${duplicateOffset}
    Tag: <${duplicateBlock.tag || 'unknown'}>
    Attributes: ${JSON.stringify(duplicateBlock.attributes || {}, null, 2)}
-   Content: ${duplicateBlock.text || duplicateBlock.kids || 'N/A'}
+   Content: ${duplicateBlock.kids ?? 'N/A'}
 
 💡 TIP: IDs must be unique across ALL files in the project. Use different id attributes or prefixes for each file.`,
     technical: {
