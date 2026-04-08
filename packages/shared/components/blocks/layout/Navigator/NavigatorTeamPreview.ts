@@ -9,7 +9,9 @@ const NavigatorTeamPreview = dev({
   name: 'NavigatorTeamPreview',
   description: 'Team member preview component for Navigator',
   component: _NavigatorTeamPreview,
-  requiresUniqueId: false
+  requiresUniqueId: false,
+  // Navigator injects per-item data fields as attributes at render time.
+  acceptsUnknownAttributes: true,
 });
 
 export default NavigatorTeamPreview;

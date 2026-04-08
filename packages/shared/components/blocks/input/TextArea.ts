@@ -4,7 +4,7 @@ import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { docField } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes, placeholder, z_olx_boolean } from '@/lib/blocks/attributeSchemas';
+import { placeholder, z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import { selectBlock } from '@/lib/state/olxjson';
 import _TextArea from './_TextArea';
 import type { RuntimeProps, ReduxStateKey } from '@/lib/types';
@@ -17,11 +17,11 @@ const TextArea = core({
   description: 'Multi-line text input field for longer student responses',
   component: _TextArea,
   fields: fields,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     ...placeholder,
     rows: z.string().default('4').describe('Number of visible text rows'),
     readonly: z_olx_boolean.optional().describe('Make textarea read-only'),
-  }),
+  }).strict(),
   // Read Redux value, falling back to initial text from OLX children
   selectValue: (props: RuntimeProps, reduxState: any, _reduxKey: ReduxStateKey) => {
     const value = state.getField(props, fields.value, { fallback: undefined });

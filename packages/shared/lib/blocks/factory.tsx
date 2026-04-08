@@ -18,6 +18,7 @@ import React from 'react';
 import { z } from 'zod';
 
 import { BlockBlueprintSchema, LoBlock, Fields, OLXTag } from '../types';
+import { baseAttributes } from './attributeSchemas';
 
 // Factory-local type aliases derived from the schema
 type BlueprintInput = z.input<typeof BlockBlueprintSchema>;
@@ -34,9 +35,14 @@ function assertUnimplemented<T>(field: T | undefined, fieldName: string) {
 //
 // A block config may carry `parserMixin`, `inputMixin`, or `graderMixin`
 // keys, each of which is itself a partial BlueprintInput. Layers compose
-// in a fixed order:
+// in a fixed order, with `baseAttributes` always silently prepended:
 //
-//   parser → input → grader → blueprint
+//   baseAttributes → parser → input → grader → blueprint
+//
+// `baseAttributes` is implicit so individual blocks no longer need to
+// write `baseAttributes.extend({...})`. Just declare your own attribute
+// shape (`z.object({...}).strict()`) and the factory merges in the
+// common base keys (id, title, class, when, popout, …) for you.
 //
 // For most keys, the later layer wins. For `fields` and `attributes`,
 // layers accumulate and duplicates raise. For `locals`, layers merge
@@ -66,6 +72,29 @@ type BlueprintInputWithMixins = BlueprintInput & {
   inputMixin?: MixinLayer;
   graderMixin?: MixinLayer;
   allowOverrides?: string[];
+  /**
+   * Escape hatch for template blocks that receive attributes whose names
+   * are determined by user content at runtime. Navigator's preview/detail
+   * templates are the canonical case: their parent injects per-item data
+   * fields (from user-authored YAML) as attributes, so the set of allowed
+   * attribute names isn't knowable at block-definition time.
+   *
+   * When true:
+   *   - the implicit baseAttributes layer is NOT prepended
+   *   - the block's effective attribute schema is `z.object({}).passthrough()`
+   *
+   * This bypasses strict validation entirely, so reach for it only when
+   * the block's *purpose* is to accept attributes whose names cannot be
+   * declared up front.
+   *
+   * TODO (tech debt): ErrorNode currently uses this flag because it
+   * inherits arbitrary attributes from failed source nodes. That is a
+   * legacy accommodation — ErrorNode should declare a real, strict schema
+   * for what it actually needs to render an error (name, message,
+   * technicalDetails, source, etc.) and discard the rest. Migrate when
+   * the error-rendering path gets its next pass.
+   */
+  acceptsUnknownAttributes?: boolean;
 };
 
 /**
@@ -95,16 +124,7 @@ function mixinConflictMessage(
  * The merged schema is always `.strict()`. Any block that genuinely needs
  * to accept extra attributes must declare them explicitly in its own
  * attribute shape — there is no longer a `.passthrough()` escape hatch
- * surviving composition. This was previously "stricter-wins" as a
- * transitional policy; the codebase is now uniformly strict so we
- * collapse to always-strict and remove the last `_def` poke.
- *
- * TODO: Make `baseAttributes` an implicit first composition layer so
- * individual blocks no longer need to write `baseAttributes.extend({...})`.
- * Today virtually every block boilerplates that wrapper; once the factory
- * prepends baseAttributes itself, blocks can just write
- * `attributes: z.object({ myAttr: ... }).strict()` (or even a bare shape
- * object) and the merge does the rest. Will simplify ~all block files.
+ * surviving composition.
  */
 function mergeAttributes(
   a: z.ZodTypeAny | undefined,
@@ -255,26 +275,38 @@ function composeBlueprint(
 
 // === Main factory ===
 function createBlock(config: BlueprintInputWithMixins): LoBlock {
-  // Step 1: Strip mixin keys and compose them if any are present.
-  // The three mixin keys are peeled off first because BlockBlueprintSchema
-  // doesn't know about them (the plan keeps the schema clean).
-  const { parserMixin, inputMixin, graderMixin, ...blueprintLayer } = config;
-  const hasMixins = parserMixin || inputMixin || graderMixin;
+  // Step 1: Strip mixin keys and compose. The three mixin keys are peeled
+  // off first because BlockBlueprintSchema doesn't know about them.
+  // baseAttributes is silently prepended as an implicit first layer so
+  // every block automatically validates against the common base keys —
+  // individual blocks no longer write `baseAttributes.extend({...})`.
+  const {
+    parserMixin,
+    inputMixin,
+    graderMixin,
+    acceptsUnknownAttributes,
+    ...blueprintLayer
+  } = config;
+  const blockName = (blueprintLayer as BlueprintInput).name ?? '(unknown)';
 
-  let effectiveConfig: BlueprintInput;
-  if (hasMixins) {
-    const blockName = (blueprintLayer as BlueprintInput).name ?? '(unknown)';
-    effectiveConfig = composeBlueprint(
-      [parserMixin, inputMixin, graderMixin, blueprintLayer as MixinLayer],
-      ['parserMixin', 'inputMixin', 'graderMixin', 'blueprint'],
-      blockName,
-    );
-  } else {
-    // Even with no mixins, strip allowOverrides so strict Zod validation
-    // doesn't complain about an unknown top-level key. (A blueprint with
-    // no mixins has nothing to override, so allowOverrides is a no-op here.)
-    const { allowOverrides: _drop, ...cleaned } = blueprintLayer as MixinLayer;
-    effectiveConfig = cleaned as BlueprintInput;
+  // Fallback blocks (ErrorNode) opt out of the implicit baseAttributes
+  // layer and end up with a wide-open passthrough schema.
+  const layers: (MixinLayer | undefined)[] = acceptsUnknownAttributes
+    ? [parserMixin, inputMixin, graderMixin, blueprintLayer as MixinLayer]
+    : [
+        { attributes: baseAttributes },
+        parserMixin,
+        inputMixin,
+        graderMixin,
+        blueprintLayer as MixinLayer,
+      ];
+  const layerNames = acceptsUnknownAttributes
+    ? ['parserMixin', 'inputMixin', 'graderMixin', 'blueprint']
+    : ['baseAttributes', 'parserMixin', 'inputMixin', 'graderMixin', 'blueprint'];
+
+  const effectiveConfig: BlueprintInput = composeBlueprint(layers, layerNames, blockName);
+  if (acceptsUnknownAttributes) {
+    effectiveConfig.attributes = z.object({}).passthrough();
   }
 
   // We are using zod primarily for **validation** rather than parsing.
@@ -357,6 +389,7 @@ type BlueprintRegWithMixins = BlueprintReg & {
   inputMixin?: MixinLayer;
   graderMixin?: MixinLayer;
   allowOverrides?: string[];
+  acceptsUnknownAttributes?: boolean;
 };
 
 export const blocks = (namespace: string) =>

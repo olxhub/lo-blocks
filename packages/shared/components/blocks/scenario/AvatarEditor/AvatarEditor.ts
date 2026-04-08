@@ -1,11 +1,12 @@
 // src/components/blocks/scenario/AvatarEditor/AvatarEditor.ts
 
 import yaml from 'js-yaml';
+import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector } from '@/lib/state';
-import { baseAttributes, z_olx_boolean } from '@/lib/blocks/attributeSchemas';
+import { z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import {
   isValidCastIdInput, isValidGroupInput, isValidHexInput, isCompleteHex,
 } from '@/lib/avatar/types';
@@ -75,9 +76,9 @@ const AvatarEditor = dev({
   description: 'Toy/prototype: Visual avatar editor for picking Open Peeps features',
   component: _AvatarEditor,
   fields,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     compact: z_olx_boolean.optional(),
-  }),
+  }).strict(),
   locals: { buildYaml, isValidCastIdInput, isValidGroupInput, isValidHexInput },
 
   selectValue: (props: any, reduxState: any, _reduxKey: any) => {

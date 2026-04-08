@@ -10,7 +10,6 @@ import { test, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { PEG_CONTENT_EXTENSIONS } from '@/generated/parserRegistry';
 import _CodeInput from './_CodeInput';
 
@@ -27,12 +26,12 @@ const CodeInput = test({
     const fieldValue = fieldSelector(reduxState, props, fields.value, { fallback: null });
     return fieldValue ?? props.kids ?? null;
   }) as any,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     language: z.enum(['olx', 'xml', 'md', 'markdown', ...PEG_CONTENT_EXTENSIONS]).default('olx')
       .describe('Syntax highlighting language (includes all PEG content formats)'),
     height: z.string().default('300px')
       .describe('Editor height (CSS value)'),
-  }),
+  }).strict(),
 });
 
 export default CodeInput;

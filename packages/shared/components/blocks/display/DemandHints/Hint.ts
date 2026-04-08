@@ -11,7 +11,6 @@
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Hint from './_Hint';
 
 export const fields = state.fields([]);
@@ -23,7 +22,6 @@ const Hint = core({
   category: 'display',
   component: _Hint,
   fields,
-  attributes: baseAttributes.strict(),
 });
 
 export default Hint;

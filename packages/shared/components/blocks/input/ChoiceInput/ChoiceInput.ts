@@ -9,7 +9,6 @@ import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { isKidArray } from '@/lib/util/kids';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import type { RuntimeProps, OlxKey, BlueprintKidEntry } from '@/lib/types';
 import _Noop from '@/components/blocks/layout/_Noop';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
@@ -69,9 +68,9 @@ const ChoiceInput = core({
   selectValue: (props: RuntimeProps, state, _reduxKey) => {
     return fieldSelector(state, props, fields.value, { fallback: '' });
   },
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     target: z_reduxStateKeyList.optional().describe('Comma-separated IDs of Key/Distractor children if not directly nested'),
-  }),
+  }).strict(),
   locals: {
     getChoices
   }

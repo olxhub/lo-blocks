@@ -47,7 +47,6 @@ import yaml from 'js-yaml';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector } from '@/lib/state';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { extendIdPrefix, scopeMarker } from '@/lib/blocks/idResolver';
 import {
   DIMENSIONS, DIMENSIONS_BY_KEY, DIMENSION_CATEGORIES,
@@ -229,7 +228,6 @@ const CharacterBuilder = dev({
   description: 'Toy/prototype: Character sheet builder with dimension cards, bio, and RPG stats',
   component: _CharacterBuilder,
   fields,
-  attributes: baseAttributes,
   locals: {
     avatarEditorFields,
     DIMENSIONS, DIMENSIONS_BY_KEY, DIMENSION_CATEGORIES,

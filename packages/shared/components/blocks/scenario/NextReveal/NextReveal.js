@@ -2,7 +2,6 @@
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _NextReveal from './_NextReveal';
 
 export const fields = state.fields([
@@ -15,8 +14,6 @@ const NextReveal = core({
   description: 'Progressive reveal container that shows children one at a time with Next buttons, scrolling to bottom on Next but allowing up-scrolling',
   component: _NextReveal,
   fields,
-
-  attributes: baseAttributes.strict(),
 });
 
 export default NextReveal;

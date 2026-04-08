@@ -12,7 +12,6 @@ import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import { getBlockByOLXId } from '@/lib/blocks';
 import { getInputs } from '@/lib/blocks/olxdom';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 import { correctness } from '@/lib/blocks/correctness';
@@ -110,9 +109,9 @@ function getCheckboxDisplayAnswer(props) {
 
 // CheckboxGrader-specific attributes (merged with base + graderMixin at factory time).
 // Keep this exported so MarkupProblem can construct typed attribute literals.
-export const checkboxGraderAttributes = baseAttributes.extend({
+export const checkboxGraderAttributes = z.object({
   partialCredit: z.enum(['true', 'false']).optional().describe('Enable partial credit scoring (n/m formula)'),
-});
+}).strict();
 
 const CheckboxGrader = blocks.test({
   ...parsers.blocks.allowHTML(),

@@ -4,7 +4,7 @@ import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes, placeholder } from '@/lib/blocks/attributeSchemas';
+import { placeholder } from '@/lib/blocks/attributeSchemas';
 import _LineInput from './_LineInput';
 import type { RuntimeProps } from '@/lib/types';
 
@@ -28,13 +28,13 @@ const LineInput = core({
   component: _LineInput,
   fields,
   selectValue: (props: RuntimeProps, state, _reduxKey) => fieldSelector(state, props, fields.value, { fallback: '' }),
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     ...placeholder,
     min: z.string().optional().describe('Minimum allowed value (for numeric types)'),
     max: z.string().optional().describe('Maximum allowed value (for numeric types)'),
     step: z.string().optional().describe('Step increment (for numeric types)'),
     type: z.enum(INPUT_TYPES).optional().describe('HTML input type'),
-  }),
+  }).strict(),
 });
 
 export default LineInput;

@@ -21,7 +21,6 @@ import { dev, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _MatchingInput from './_MatchingInput';
 import type { RuntimeProps } from '@/lib/types';
 import type { MatchingArrangement } from './types';
@@ -62,9 +61,9 @@ const MatchingInput = dev({
   selectValue: (props: RuntimeProps, reduxState, _reduxKey) => ({
     arrangement: fieldSelector(reduxState, props, fields.arrangement, { fallback: {} })
   }),
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     shuffle: z.coerce.boolean().optional().describe('Whether to shuffle right side items initially (default: true)'),
-  }),
+  }).strict(),
   locals: {
     getCorrectArrangement
   }

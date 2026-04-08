@@ -14,7 +14,7 @@
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes, z_reduxStateKey, z_olx_boolean, src } from '@/lib/blocks/attributeSchemas';
+import { z_reduxStateKey, z_olx_boolean, src } from '@/lib/blocks/attributeSchemas';
 import _WordUsage from './_WordUsage';
 
 const WordUsage = dev({
@@ -23,7 +23,7 @@ const WordUsage = dev({
   requiresUniqueId: false,
   component: _WordUsage,
   description: 'Analyzes writing patterns (repeated words, sentence starters, alliteration, transition words) in text from a target block.',
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     ...src,
     target: z_reduxStateKey.describe('ID of the block whose text to analyze'),
     mode: z.enum(['repeated_words', 'sentence_starters', 'alliteration', 'transition_words'])
@@ -34,7 +34,7 @@ const WordUsage = dev({
       .describe('Show highlighted text'),
     words: z.string().optional()
       .describe('Comma-separated word/phrase list (for transition_words mode)'),
-  }),
+  }).strict(),
 });
 
 export default WordUsage;

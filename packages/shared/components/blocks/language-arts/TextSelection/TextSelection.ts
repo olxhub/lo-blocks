@@ -5,7 +5,6 @@ import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as blocks from '@/lib/blocks';
 import { peggyParser } from '@/lib/content/parsers';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import * as parser from './_textSelectionParser';
 import _TextSelection from './_TextSelection';
 
@@ -41,12 +40,12 @@ const TextSelection = core({
   description: 'Interactive text highlighting exercise with feedback',
   component: _TextSelection,
   fields,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     mode: z.enum(['immediate', 'graded', 'selfcheck']).optional()
       .describe('Interaction mode: "immediate" (live feedback), "graded" (check button), or "selfcheck" (reveal answer)'),
     showRealtimeFeedback: z.coerce.boolean().optional()
       .describe('In immediate mode, color selections green/red as the student selects (default: false)'),
-  }),
+  }).strict(),
 });
 
 export default TextSelection;

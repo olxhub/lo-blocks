@@ -4,10 +4,11 @@
 //   <CopyFieldAction target="source_input" output="dest_input" />
 //   <CopyFieldAction target="grader.correct" output="display1.value,display2.value" />
 
+import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { baseAttributes, z_blockFieldRef, z_blockFieldRefList } from '@/lib/blocks/attributeSchemas';
+import { z_blockFieldRef, z_blockFieldRefList } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import type { BlockFieldRef } from '@/lib/blocks/attributeSchemas';
 
@@ -37,10 +38,10 @@ const CopyFieldAction = blocks.dev({
   name: 'CopyFieldAction',
   description: 'Copies a field value from one block to one or more others when triggered',
   component: _Noop,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     target: z_blockFieldRef.describe('Source block.field to read from (default field: value)'),
     output: z_blockFieldRefList.describe('Destination block.field(s) to write to, comma-separated (default field: value)'),
-  }),
+  }).strict(),
 });
 
 export default CopyFieldAction;

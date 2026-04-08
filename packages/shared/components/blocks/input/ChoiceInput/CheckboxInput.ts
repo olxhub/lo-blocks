@@ -8,7 +8,6 @@ import { core, input, getBlockByOLXId, z_reduxStateKeyList } from '@/lib/blocks'
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import type { RuntimeProps } from '@/lib/types';
@@ -51,9 +50,9 @@ const CheckboxInput = core({
     }
     return value;
   },
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     target: z_reduxStateKeyList.optional().describe('Comma-separated IDs of Key/Distractor children if not directly nested'),
-  }),
+  }).strict(),
   locals: {
     getChoices
   }

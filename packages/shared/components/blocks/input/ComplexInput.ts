@@ -5,7 +5,6 @@ import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _LineInput from './_LineInput';
 import type { RuntimeProps } from '@/lib/types';
 
@@ -24,9 +23,9 @@ const ComplexInput = core({
   component: _ComplexInput,
   fields,
   selectValue: (props: RuntimeProps, state, _reduxKey) => fieldSelector(state, props, fields.value, { fallback: '' }),
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     placeholder: z.string().optional().describe('Placeholder text shown when empty'),
-  }),
+  }).strict(),
 });
 
 export default ComplexInput;
