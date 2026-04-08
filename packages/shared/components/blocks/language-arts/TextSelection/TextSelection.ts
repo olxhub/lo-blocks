@@ -1,10 +1,11 @@
 // src/components/blocks/TextSelection/TextSelection.ts
+import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as blocks from '@/lib/blocks';
 import { peggyParser } from '@/lib/content/parsers';
-import { srcAttributes } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import * as parser from './_textSelectionParser';
 import _TextSelection from './_TextSelection';
 
@@ -40,7 +41,12 @@ const TextSelection = core({
   description: 'Interactive text highlighting exercise with feedback',
   component: _TextSelection,
   fields,
-  // Uses grader mixin attributes; content defined by PEG syntax
+  attributes: baseAttributes.extend({
+    mode: z.enum(['immediate', 'graded', 'selfcheck']).optional()
+      .describe('Interaction mode: "immediate" (live feedback), "graded" (check button), or "selfcheck" (reveal answer)'),
+    showRealtimeFeedback: z.coerce.boolean().optional()
+      .describe('In immediate mode, color selections green/red as the student selects (default: false)'),
+  }),
 });
 
 export default TextSelection;

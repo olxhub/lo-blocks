@@ -91,14 +91,20 @@ function mixinConflictMessage(
 
 /**
  * Merge two ZodObject attribute schemas, raising on shape-key collision.
- * Strictness is preserved: strict beats passthrough.
  *
- * TODO: Tighten further — the codebase is moving toward schemas always
- * being strict. The next step is to make merged attributes *always*
- * strict regardless of the input layers' modes, and require any block
- * that genuinely needs extra attributes to declare them explicitly.
- * Doing that now would be a migration with unknown blast radius, so
- * for this commit we keep stricter-wins as a transitional policy.
+ * The merged schema is always `.strict()`. Any block that genuinely needs
+ * to accept extra attributes must declare them explicitly in its own
+ * attribute shape — there is no longer a `.passthrough()` escape hatch
+ * surviving composition. This was previously "stricter-wins" as a
+ * transitional policy; the codebase is now uniformly strict so we
+ * collapse to always-strict and remove the last `_def` poke.
+ *
+ * TODO: Make `baseAttributes` an implicit first composition layer so
+ * individual blocks no longer need to write `baseAttributes.extend({...})`.
+ * Today virtually every block boilerplates that wrapper; once the factory
+ * prepends baseAttributes itself, blocks can just write
+ * `attributes: z.object({ myAttr: ... }).strict()` (or even a bare shape
+ * object) and the merge does the rest. Will simplify ~all block files.
  */
 function mergeAttributes(
   a: z.ZodTypeAny | undefined,
@@ -110,15 +116,14 @@ function mergeAttributes(
 ): z.ZodTypeAny | undefined {
   if (!a) return b;
   if (!b) return a;
-  if (a._def?.typeName !== 'ZodObject' || b._def?.typeName !== 'ZodObject') {
+  if (!(a instanceof z.ZodObject) || !(b instanceof z.ZodObject)) {
     throw new Error(
       `createBlock(${blockName}): mixin composition requires ZodObject ` +
-      `attribute schemas; got ${a._def?.typeName} and ${b._def?.typeName} ` +
-      `from layers \`${layerA}\` and \`${layerB}\`.`
+      `attribute schemas from layers \`${layerA}\` and \`${layerB}\`.`
     );
   }
-  const shapeA = (a as z.ZodObject<any>).shape;
-  const shapeB = (b as z.ZodObject<any>).shape;
+  const shapeA = a.shape;
+  const shapeB = b.shape;
   const merged: Record<string, z.ZodTypeAny> = { ...shapeA };
   for (const key of Object.keys(shapeB)) {
     if (key in shapeA && !allowOverrides.includes(key)) {
@@ -127,11 +132,7 @@ function mergeAttributes(
     // Later layer wins (either no collision, or collision was explicitly allowed).
     merged[key] = shapeB[key];
   }
-  const aStrict = a._def?.unknownKeys === 'strict';
-  const bStrict = b._def?.unknownKeys === 'strict';
-  return (aStrict || bStrict)
-    ? z.object(merged).strict()
-    : z.object(merged).passthrough();
+  return z.object(merged).strict();
 }
 
 /** Extract FieldInfo values from a Fields object (skipping `extend`). */
