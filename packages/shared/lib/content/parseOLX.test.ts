@@ -29,6 +29,16 @@ test('returns first element id when multiple roots', async () => {
   expect(root).toBe('one');
 });
 
+test('CRITICAL: _sourceOffset is the byte offset of `<` from fast-xml-parser captureMetaData', async () => {
+  // Regression guard: captureMetaData is undocumented in most search results
+  // and could plausibly be removed or renamed in a fast-xml-parser minor
+  // version bump. If this test fails after an upgrade, check parseOLX.ts for
+  // the `captureMetaData: true` option and the XML_META symbol indexing.
+  const xml = '<!-- Hi! --><Vertical id="foo"></Vertical>';
+  const { idMap } = await parseOLX(xml, PROV);
+  expect(getOlxJson(idMap, 'foo')?._sourceOffset).toBe(12); // position of `<` in `<Vertical>`
+});
+
 test('parses <Use> with attribute overrides', async () => {
   const xml = '<Vertical id="L"><Chat id="C" clip="[1,2]"/><Use ref="C" clip="[3,4]"/></Vertical>';
   const { idMap, root } = await parseOLX(xml, PROV);

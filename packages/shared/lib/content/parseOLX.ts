@@ -65,8 +65,14 @@ const xmlParser = new XMLParser({
   transformTagName
 });
 
-/** Symbol key under which fast-xml-parser stores per-node metadata. */
-const XML_META = XMLParser.getMetaDataSymbol();
+/**
+ * Symbol key under which fast-xml-parser stores per-node metadata.
+ *
+ * The upstream type declares this as `Symbol` (the constructor type) rather
+ * than `symbol` (the primitive type), which TypeScript refuses to use as an
+ * index. Cast once here so callers can write `node[XML_META]` cleanly.
+ */
+const XML_META = XMLParser.getMetaDataSymbol() as unknown as symbol;
 
 /**
  * Check if a block type requires unique IDs based on its Component definition.
@@ -414,6 +420,14 @@ export async function parseOLX(
 
     const attributes = node[':@'] ?? {};
 
+    // Per-node source position from fast-xml-parser's captureMetaData. The
+    // value is the byte offset of the opening `<` of this element within
+    // the original XML string. May be undefined for synthetically-built
+    // nodes (e.g. blocks.wrapText creates fake `{ Markdown: [...] }`
+    // envelopes that never went through the XML parser). See
+    // OlxJson._sourceOffset for the interim-storage rationale.
+    const sourceOffset: number | undefined = node?.[XML_META]?.startIndex;
+
     // Extract metadata from preceding sibling comment
     const metadata = extractSiblingMetadata(siblings, nodeIndex, provenance, errors);
 
@@ -490,6 +504,7 @@ export async function parseOLX(
         id, tag: 'ErrorNode', attributes, provenance,
         rawParsed: node, kids: errorObj, parseError: true,
         lang,
+        ...(sourceOffset !== undefined ? { _sourceOffset: sourceOffset } : {}),
         ...(metadata || {})
       };
       if (!idMap[id]) idMap[id] = {};
@@ -570,6 +585,22 @@ export async function parseOLX(
         // human-authored content over machine translations in its fallback.
         if (entry && typeof entry === 'object' && !('generated' in entry) && currentGenerated) {
           entry.generated = currentGenerated;
+        }
+
+        // Stamp the byte offset of the source element. Parsers usually
+        // build their entry from the same node parseNode is processing, so
+        // we attach this here once instead of asking every parser to
+        // remember it. Parsers that store an entry for a *different* node
+        // (e.g. a synthetic child) can override by setting `_sourceOffset`
+        // themselves before calling storeEntry. See OlxJson._sourceOffset
+        // for the rationale on why this lives at the entry level rather
+        // than inside provenance.
+        if (
+          entry && typeof entry === 'object'
+          && !('_sourceOffset' in entry)
+          && sourceOffset !== undefined
+        ) {
+          entry._sourceOffset = sourceOffset;
         }
 
         // If this is an update to an existing entry, just update it

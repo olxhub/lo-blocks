@@ -1055,6 +1055,23 @@ export interface OlxJson {
     source_version?: string;  // hash of source at generation time
   };
 
+  /**
+   * INTERIM: byte offset of this element's tag name within its source XML
+   * (i.e. the character right after `<`). Populated from fast-xml-parser's
+   * `captureMetaData` option in parseOLX.ts.
+   *
+   * The `_` prefix and the type-level documentation flag this as a temporary
+   * placement. The right home for it is inside the provenance URI itself —
+   * something like `file:///foo.olx#offset=91` or RFC 5147 `#char=91,107` —
+   * so a single `provenance` value carries both the source identity and the
+   * span. When that lands, this field goes away.
+   *
+   * Until then, consumers (DisplayError, duplicate-id reporting, the build
+   * pipeline) read `_sourceOffset` directly. It is offset-only, not line/col;
+   * callers that want line/col convert against the original XML string.
+   */
+  _sourceOffset?: number;
+
   [key: string]: JSONValue | undefined;
 }
 
