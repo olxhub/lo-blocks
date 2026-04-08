@@ -43,8 +43,17 @@ const xmlParser = new XMLParser({
   parseTagValue: false,       // Keep tag text content as strings (not numbers/booleans)
   parseAttributeValue: false, // Keep attribute values as strings
 
+  // Attach per-node position info. Accessed via XMLParser.getMetaDataSymbol();
+  // fast-xml-parser stores { startIndex } on a Symbol key so it is invisible
+  // to Object.keys / JSON.stringify / structural walks. Consumers who want
+  // real line/column convert startIndex against the original xml string.
+  captureMetaData: true,
+
   transformTagName
 });
+
+/** Symbol key under which fast-xml-parser stores per-node metadata. */
+const XML_META = XMLParser.getMetaDataSymbol();
 
 /**
  * Check if a block type requires unique IDs based on its Component definition.
