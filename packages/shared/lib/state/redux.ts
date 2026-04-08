@@ -669,56 +669,45 @@ export function useValue(
 
 /**
  * React hook for text-display blocks that can receive their source text
- * from any of several places.
+ * from any of four places. Pairs with `parsers.text.withTarget()`. Used
+ * by blocks like Mermaid, Markdown, and ObservablePlot, whose source
+ * text might come from:
  *
- * Pairs with `parsers.text.withTarget()`. Used by blocks like Mermaid,
- * Markdown, and ObservablePlot, whose source text might come from:
- *
+ *   - child text          → parsed at parse time into `kids`
+ *   - `src=` attribute    → loaded at parse time into `kids`
+ *   - own value field     → settable via `<Set target="me" value="..."/>`
  *   - `target=` attribute → reactive read from another block's value
- *   - `src=` attribute    → loaded at parse time into `props.kids`
- *   - child text          → also lives in `props.kids`
  *
- * Precedence: `target=` beats `kids`. When `target=` is set, the hook
- * calls `useValue` to read the target block's value field, and the hook
- * reports `loading`/`error`/`ready` accordingly. When `target=` is not
- * set, `props.kids` is returned directly (already populated by the
- * parser at parse time, from either `src=` or child text).
+ * All four routes converge on `useValue`, which routes through the
+ * appropriate block's `selectValue`. The `withTarget` parserMixin
+ * supplies a `selectValue` that reads `commonFields.value` with a
+ * fallback to `kids`, so the static-text and settable-value cases both
+ * work without special handling here.
  *
- * Always calls `useValue` internally (rules of hooks): when there's no
- * target, it passes `reduxKey: null`, which `valueSelector` short-circuits
- * into a `ready` fallback with zero selector cost.
+ * - No `target=` → `useValue`'s natural default of "this block" kicks
+ *   in: reads through *this* block's selectValue (Redux value → kids).
+ * - `target="other"` → reads through the *target* block's selectValue.
+ *   If the target also uses this mixin (or any block with a compatible
+ *   value field — TextArea, etc.), it just works.
  *
  * 95% of callers can just destructure `{ text }` and let the loading
- * branch render an empty frame.
+ * branch render a spinner.
  */
 export function useTextContent(
   props: RuntimeProps,
   { fallback = '' }: { fallback?: string } = {}
 ): { text: string; loading: boolean; error: string | null; ready: boolean } {
   const target = props.target as OlxReference | undefined;
+  const result = useValue(props, { target, fallback });
 
-  // Always call useValue — passing reduxKey: null when no target makes
-  // valueSelector short-circuit to the fallback with ready: true.
-  const result = useValue(props, {
-    reduxKey: target ? undefined : null,
-    target: target ?? undefined,
-    fallback,
-  });
+  const text =
+    typeof result.value === 'string'
+      ? result.value
+      : result.value == null
+        ? fallback
+        : String(result.value);
 
-  if (target) {
-    const text =
-      typeof result.value === 'string'
-        ? result.value
-        : result.value == null
-          ? fallback
-          : String(result.value);
-    return { text, loading: result.loading, error: result.error, ready: result.ready };
-  }
-
-  // No target → use kids (populated at parse time from src= or child text).
-  const kids = props.kids;
-  const text = typeof kids === 'string' ? kids : fallback;
-  return { text, loading: false, error: null, ready: true };
+  return { text, loading: result.loading, error: result.error, ready: result.ready };
 }
 
 /**

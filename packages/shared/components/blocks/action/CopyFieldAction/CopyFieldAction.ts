@@ -15,7 +15,23 @@ import type { BlockFieldRef } from '@/lib/blocks/attributeSchemas';
 async function copyFieldAction({ targetInstance, props }) {
   const { target, output }: { target: BlockFieldRef, output: BlockFieldRef[] } = targetInstance.attributes;
 
-  // Read from source — materialize via field.read (e.g., RgaDoc → string)
+  // Read from source — materialize via field.read (e.g., RgaDoc → string).
+  //
+  // TODO: This reads the source's raw Redux field. It does NOT consult
+  // the source block's per-field "currently displayed value" — e.g., a
+  // TextArea with starter text in its OLX kids visibly shows that text
+  // but its value field is unset until the user edits, so we copy ""
+  // instead of what's on screen. TextArea's selectValue knows about
+  // this fallback, but selectValue is value-field-only and we can't
+  // call it for arbitrary `target.field`.
+  //
+  // The right fix is a general per-field "current displayed value"
+  // read protocol — the generalization of selectValue to arbitrary
+  // fields. Once that lands, every action (this one, SetFieldAction,
+  // LLMAction, …) and `<Ref>` see the same semantically-meaningful
+  // value the renderer sees, and the per-block fallback semantics live
+  // in one place. See parsers.ts textWithTargetParserMixin for the
+  // matching note, and MermaidPublish.olx for the canonical bite.
   const srcField = state.componentFieldByName(props, target.ref, target.field);
   const value = state.getField(props, srcField, {
     reduxKey: target.ref,

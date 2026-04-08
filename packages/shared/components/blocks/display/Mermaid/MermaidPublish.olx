@@ -1,0 +1,33 @@
+<Vertical id="MermaidPublishDemo" title="Mermaid: live preview vs publish">
+
+<Markdown> Edit the diagram in the editor below. The **live preview**
+updates as you type — it reads the editor's value reactively via
+`target=`. The **published** diagram only updates when you click
+**Publish**, which uses `CopyFieldAction` to write the editor's text
+into the published diagram's own value field. </Markdown>
+
+<TextArea id="editor" rows="6">
+graph LR
+    A[Edit] --> B[Live preview]
+    A --> C[Published on click]
+</TextArea>
+
+<Markdown>**Live preview** (reactive `target=editor`):</Markdown>
+<Mermaid target="editor" />
+
+<Markdown>**Published** (own value field, written by CopyFieldAction):</Markdown>
+<Mermaid id="published">
+graph LR
+    A[Click Publish] --> B[to update this diagram]
+</Mermaid>
+
+<ActionButton id="publish_btn" label="Publish"> <CopyFieldAction target="editor" output="published" /> </ActionButton>
+
+<Markdown> **Design note.** Clicking Publish *before* typing in the
+editor clears the published diagram, rather than copying over the
+placeholder text. This behavior will likely change in the future,
+since it's a bit counterintuitive.
+
+Don't rely on it.</Markdown>
+
+</Vertical>

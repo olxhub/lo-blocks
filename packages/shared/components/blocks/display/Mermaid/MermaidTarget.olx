@@ -1,0 +1,12 @@
+<Vertical id="MermaidTargetDemo" title="Mermaid: live edit via target=">
+  <Markdown>
+Edit the Mermaid source below — the diagram updates live.
+  </Markdown>
+  <TextArea id="mermaidSource" placeholder="Edit the diagram..." rows="8">
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
+  </TextArea>
+  <Mermaid target="mermaidSource" />
+</Vertical>
