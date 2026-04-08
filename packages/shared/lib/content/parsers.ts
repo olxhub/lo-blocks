@@ -596,9 +596,9 @@ export function peggyParser(
       const errorObj: OLXLoadingError = {
         type: 'peg_error' as const,
         summary: `Dialogue parsing error in ${prov.join(' → ')}`,
-        file: prov.join(' → '),
         message: parseError.message,
         location: {
+          provenance: prov,
           line: parseError.location?.start?.line,
           column: parseError.location?.start?.column,
           offset: parseError.location?.start?.offset

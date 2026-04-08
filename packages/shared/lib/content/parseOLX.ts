@@ -132,7 +132,7 @@ function extractMetadataFromComment(
   provenance: Provenance,
   errors: OLXLoadingError[]
 ): OLXMetadata | OLXLoadingError | null {
-  const file = provenance.join(' → ');
+  const provStr = provenance.join(' → ');
 
   // Fail early if comment structure is invalid
   //
@@ -142,9 +142,9 @@ function extractMetadataFromComment(
   if (commentText === undefined || commentText === null) {
     const error: OLXLoadingError = {
       type: 'parse_error',
-      summary: `Internal parser error in ${file}`,
-      file,
+      summary: `Internal parser error in ${provStr}`,
       message: 'Internal parser error: Comment node found but text content is missing. This may indicate a parser configuration issue.',
+      location: { provenance },
       technical: { commentText }
     };
     errors.push(error);
@@ -154,9 +154,9 @@ function extractMetadataFromComment(
   if (typeof commentText !== 'string') {
     const error: OLXLoadingError = {
       type: 'parse_error',
-      summary: `Internal parser error in ${file}`,
-      file,
+      summary: `Internal parser error in ${provStr}`,
       message: `Internal parser error: Comment text has unexpected type '${typeof commentText}' (expected string).`,
+      location: { provenance },
       technical: { commentText, type: typeof commentText }
     };
     errors.push(error);
@@ -189,8 +189,7 @@ function extractMetadataFromComment(
 
       const error: OLXLoadingError = {
         type: 'metadata_error',
-        summary: `${file} has an error in its file header`,
-        file,
+        summary: `${provStr} has an error in its file header`,
         message: `📝 Metadata Format Error
 
 The metadata in your comment has formatting issues:
@@ -212,6 +211,7 @@ Common issues:
 • Make sure field names are spelled correctly
 • Text values should be in quotes if they contain special characters
 • Lists need proper YAML formatting with dashes (-)`,
+        location: { provenance },
         technical: {
           yamlContent,
           zodIssues: result.error.issues
@@ -226,8 +226,7 @@ Common issues:
     // YAML parsing failed
     const error: OLXLoadingError = {
       type: 'metadata_error',
-      summary: `${file} has an error in its file header`,
-      file,
+      summary: `${provStr} has an error in its file header`,
       message: `📝 Metadata YAML Syntax Error
 
 The metadata in your comment contains invalid YAML syntax:
@@ -250,6 +249,7 @@ Example of correct format:
    category: psychology
    ---
    -->`,
+      location: { provenance },
       technical: {
         yamlContent,
         yamlError: yamlError.message,
@@ -448,9 +448,8 @@ export async function parseOLX(
       const errorObj = {
         type: 'attribute_validation' as const,
         summary: `Invalid attribute on <${tag}> in ${provenance.join(', ')}`,
-        file: provenance.join(', '),
         message: `Invalid attributes for <${tag} id="${id}">:\n${zodErrors}`,
-        location: { line: node.line, column: node.column },
+        location: { provenance, line: node.line, column: node.column },
         technical: {
           tag,
           id,
@@ -488,9 +487,8 @@ export async function parseOLX(
           errors.push({
             type: 'attribute_validation',
             summary: `Invalid attribute on <${tag}> in ${provenance.join(', ')}`,
-            file: provenance.join(', '),
             message: `Invalid attributes for <${tag} id="${id}">:\n${errorList}`,
-            location: { line: node.line, column: node.column },
+            location: { provenance, line: node.line, column: node.column },
             technical: {
               tag,
               id,
@@ -586,7 +584,6 @@ export async function parseOLX(
           errors.push({
             type: 'duplicate_id',
             summary: `Duplicate ID "${storeId}" in ${provenance.join(', ')}`,
-            file: provenance.join(', '),
             message: `Duplicate ID "${storeId}" found in ${provenance.join(', ')}. Each element must have a unique id.
 
 🔍 EXISTING ENTRY (Line ${existingEntry.line || '?'}, Column ${existingEntry.column || '?'}):
@@ -600,7 +597,7 @@ export async function parseOLX(
    Content: ${entry.text || entry.kids || node.text || 'N/A'}
 
 💡 TIP: If these appear to be different elements, they likely have the same text content and are generating the same hash ID. Add explicit id="unique_name" attributes to distinguish them.`,
-            location: { line: entry.line, column: entry.column },
+            location: { provenance, line: entry.line, column: entry.column },
             technical: {
               duplicateId: storeId,
               existingEntry: existingEntry,
@@ -627,9 +624,8 @@ export async function parseOLX(
         errors.push({
           type: 'attribute_validation',
           summary: `Invalid children in <${tag}> in ${provenance.join(', ')}`,
-          file: provenance.join(', '),
           message: `Invalid children for <${tag} id="${id}">:\n${errorList}`,
-          location: { line: node.line, column: node.column },
+          location: { provenance, line: node.line, column: node.column },
           technical: { tag, id, childErrors }
         });
       }
@@ -719,9 +715,8 @@ export async function parseOLX(
         errors.push({
           type: 'attribute_validation',
           summary: `Type mismatch: <${entry.tag}> with <${inputEntry.tag}> in ${provenance.join(', ')}`,
-          file: provenance.join(', '),
           message: `<${entry.tag}> expects ${describeZodType(graderBlock.inputSchema)} input, but <${inputEntry.tag}> provides ${describeZodType(inputBlock.valueSchema)}.`,
-          location: { line: entry.line, column: entry.column },
+          location: { provenance, line: entry.line, column: entry.column },
           technical: {
             graderId: blockId,
             graderTag: entry.tag,

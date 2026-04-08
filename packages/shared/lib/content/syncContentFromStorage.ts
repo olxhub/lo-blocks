@@ -387,8 +387,8 @@ async function parseAndIndexFiles(
       errors.push({
         type: 'file_error',
         summary: `${fileUri} could not be loaded`,
-        file: fileUri,
         message: `Failed to parse file: ${fatalError.message}`,
+        location: { provenance: [fileUri] },
         technical: fatalError,
         stack: fatalError.stack
       });
@@ -478,7 +478,7 @@ function createDuplicateIdError(
   return {
     type: 'duplicate_id',
     summary: `Duplicate ID "${blockId}" in ${sourceFile}`,
-    file: sourceFile,
+    location: { provenance: [sourceFile] },
     message: `Duplicate ID "${blockId}" found in ${sourceFile} (conflicts with entry from another file)
 
 🔍 EXISTING ENTRY (from different file):

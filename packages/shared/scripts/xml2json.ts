@@ -54,12 +54,13 @@ const isStaticMode = !!staticDir;
 function formatErrorForConsole(error: any): string {
   let output = `❌ ${error.type.toUpperCase()}: ${error.message}`;
 
-  if (error.file) {
-    output += `\n   📁 File: ${error.file}`;
-  }
-
   if (error.location) {
-    const { line, column, offset } = error.location;
+    const { line, column, offset, provenance } = error.location;
+    if (provenance && provenance.length > 0) {
+      // Producers should narrow provenance to the actually-offending
+      // source(s); passing all related sources is the default.
+      output += `\n   📁 Source: ${provenance.join('\n      ')}`;
+    }
     if (line || column) {
       output += `\n   📍 Location: Line ${line || '?'}, Column ${column || '?'}`;
       if (offset) output += ` (offset ${offset})`;

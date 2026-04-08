@@ -38,8 +38,16 @@ export function _ErrorNode(props: RuntimeProps) {
   let technicalStr = '';
 
   if (error.location) {
-    const { line, column, file } = error.location;
-    if (file) technicalStr += `File: ${file}\n`;
+    const { line, column, provenance } = error.location;
+    if (provenance && provenance.length > 0) {
+      // `provenance` is the set of sources this error can be traced
+      // to. Producers should ideally narrow it to the source(s) that
+      // actually contain the problem — e.g. an XML parse error should
+      // be attributed to the .olx, a PEG error to the .chatpeg — but
+      // passing the whole set is an acceptable default. Render
+      // whatever arrived, one per line.
+      technicalStr += `Source:\n  ${provenance.join('\n  ')}\n`;
+    }
     if (line || column) technicalStr += `Location: Line ${line ?? '?'}, Column ${column ?? '?'}\n`;
   }
 
