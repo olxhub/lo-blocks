@@ -47,6 +47,19 @@ const xmlParser = new XMLParser({
   // fast-xml-parser stores { startIndex } on a Symbol key so it is invisible
   // to Object.keys / JSON.stringify / structural walks. Consumers who want
   // real line/column convert startIndex against the original xml string.
+  //
+  // Heads-up: this option is genuinely undocumented in most places — ChatGPT,
+  // Claude, and general web search will all confidently tell you it doesn't
+  // exist. It does. The one piece of real upstream docs lives in an
+  // awkwardly-named directory ("v4, v5", with the comma) in the repo:
+  //   https://github.com/NaturalIntelligence/fast-xml-parser/blob/master/docs/v4,%20v5/2.XMLparseOptions.md#capturemetadata
+  // Local confirmation in node_modules/fast-xml-parser:
+  //   src/xmlparser/OptionsBuilder.js   — default `captureMetaData: false`
+  //   src/fxp.d.ts                       — `captureMetaData?: boolean`,
+  //                                        `interface XMLMetaData { startIndex?: number }`,
+  //                                        `static getMetaDataSymbol(): Symbol`
+  //   src/xmlparser/OrderedObjParser.js  — honored under `preserveOrder: true`
+  //   src/xmlparser/xmlNode.js           — actually attaches the symbol to children
   captureMetaData: true,
 
   transformTagName
