@@ -81,6 +81,12 @@ describe('factory mixin composition', () => {
   });
 
   it('raises on duplicate attribute key with a friendly forward-looking message', () => {
+    // Note: this test passes a `graderMixin` layer directly on the config,
+    // NOT via `createGrader()`. The factory performs no automatic
+    // `isGrader`-driven attribute extension — the real `graderAttributes`
+    // only get applied when a block spreads the return value of
+    // `createGrader()`. This test is exercising the composition layer's
+    // duplicate detection, not grader auto-wiring.
     expect(() =>
       testBlocks({
         graderMixin: {

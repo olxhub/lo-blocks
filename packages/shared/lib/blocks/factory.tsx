@@ -66,36 +66,42 @@ type MixinLayer = Partial<BlueprintInput> & {
   allowOverrides?: string[];
 };
 
-/** Input config to createBlock, including the optional mixin keys. */
-type BlueprintInputWithMixins = BlueprintInput & {
+/**
+ * Shared shape of the optional mixin/override keys that `createBlock` and
+ * `blocks(namespace)` both accept on top of their core blueprint type.
+ *
+ * The `acceptsUnknownAttributes` flag is an escape hatch for template
+ * blocks that receive attributes whose names are determined by user
+ * content at runtime. Navigator's preview/detail templates are the
+ * canonical case: their parent injects per-item data fields (from
+ * user-authored YAML) as attributes, so the set of allowed attribute
+ * names isn't knowable at block-definition time.
+ *
+ * When `acceptsUnknownAttributes` is true:
+ *   - the implicit baseAttributes layer is NOT prepended
+ *   - the block's effective attribute schema is `z.object({}).passthrough()`
+ *
+ * This bypasses strict validation entirely, so reach for it only when
+ * the block's *purpose* is to accept attributes whose names cannot be
+ * declared up front.
+ *
+ * TODO (tech debt): ErrorNode currently uses this flag because it
+ * inherits arbitrary attributes from failed source nodes. That is a
+ * legacy accommodation — ErrorNode should declare a real, strict schema
+ * for what it actually needs to render an error (name, message,
+ * technicalDetails, source, etc.) and discard the rest. Migrate when
+ * the error-rendering path gets its next pass.
+ */
+type WithMixins<T> = T & {
   parserMixin?: MixinLayer;
   inputMixin?: MixinLayer;
   graderMixin?: MixinLayer;
   allowOverrides?: string[];
-  /**
-   * Escape hatch for template blocks that receive attributes whose names
-   * are determined by user content at runtime. Navigator's preview/detail
-   * templates are the canonical case: their parent injects per-item data
-   * fields (from user-authored YAML) as attributes, so the set of allowed
-   * attribute names isn't knowable at block-definition time.
-   *
-   * When true:
-   *   - the implicit baseAttributes layer is NOT prepended
-   *   - the block's effective attribute schema is `z.object({}).passthrough()`
-   *
-   * This bypasses strict validation entirely, so reach for it only when
-   * the block's *purpose* is to accept attributes whose names cannot be
-   * declared up front.
-   *
-   * TODO (tech debt): ErrorNode currently uses this flag because it
-   * inherits arbitrary attributes from failed source nodes. That is a
-   * legacy accommodation — ErrorNode should declare a real, strict schema
-   * for what it actually needs to render an error (name, message,
-   * technicalDetails, source, etc.) and discard the rest. Migrate when
-   * the error-rendering path gets its next pass.
-   */
   acceptsUnknownAttributes?: boolean;
 };
+
+/** Input config to createBlock, including the optional mixin keys. */
+type BlueprintInputWithMixins = WithMixins<BlueprintInput>;
 
 /**
  * Build the friendly forward-looking conflict message used for both fields
@@ -155,16 +161,14 @@ function mergeAttributes(
   return z.object(merged).strict();
 }
 
-/** Extract FieldInfo values from a Fields object (skipping `extend`). */
-function fieldInfosFromFields(f: Fields): any[] {
-  return Object.values(f).filter(
-    (v: any) => v && typeof v === 'object' && v.type === 'field'
-  );
-}
-
 /**
  * Merge two Fields objects, raising on duplicate field name.
- * Delegates to state.fields to produce a fresh Fields with a working extend().
+ *
+ * A direct object merge isn't enough because each `Fields` carries an
+ * `extend` method that closes over its originating field set. To get a
+ * merged result with a coherent `extend`, we pull the raw FieldInfo lists
+ * out with `state.fieldInfosFrom` and feed the concatenation back through
+ * `state.fields(...)`.
  *
  * Names listed in `allowOverrides` are intentional replacements: the
  * corresponding entries from `a` are dropped so `state.fields`' own
@@ -180,8 +184,8 @@ function mergeFields(
 ): Fields | undefined {
   if (!a) return b;
   if (!b) return a;
-  const fieldsA = fieldInfosFromFields(a);
-  const fieldsB = fieldInfosFromFields(b);
+  const fieldsA = state.fieldInfosFrom(a);
+  const fieldsB = state.fieldInfosFrom(b);
   const namesA = new Set(fieldsA.map(f => f.name));
   const overrideNames = new Set<string>();
   for (const f of fieldsB) {
@@ -193,7 +197,7 @@ function mergeFields(
     }
   }
   const keptA = fieldsA.filter(f => !overrideNames.has(f.name));
-  return state.fields([...keptA, ...fieldsB] as any);
+  return state.fields([...keptA, ...fieldsB]);
 }
 
 /** Merge locals per-key. Later wins per child key. No error on conflict. */
@@ -384,13 +388,7 @@ function createBlock(config: BlueprintInputWithMixins): LoBlock {
   return block;
 }
 
-type BlueprintRegWithMixins = BlueprintReg & {
-  parserMixin?: MixinLayer;
-  inputMixin?: MixinLayer;
-  graderMixin?: MixinLayer;
-  allowOverrides?: string[];
-  acceptsUnknownAttributes?: boolean;
-};
+type BlueprintRegWithMixins = WithMixins<BlueprintReg>;
 
 export const blocks = (namespace: string) =>
   (config: BlueprintRegWithMixins, locals?: any) =>

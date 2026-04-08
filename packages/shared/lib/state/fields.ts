@@ -59,8 +59,17 @@ export function fieldByName(fieldname: string) {
   return _fieldInfoByField[fieldname];
 }
 
-/** Extract FieldInfo values from a Fields object (skipping the extend method). */
-function fieldInfosFrom(f: Fields): FieldInfo[] {
+/**
+ * Extract FieldInfo values from a Fields object (skipping the extend method).
+ *
+ * Exported so the block factory's mixin-composition layer can pull the
+ * raw FieldInfo list out of one `Fields` object and feed it back into
+ * `fields(...)` to produce a merged `Fields` with a working `extend()`.
+ * A direct merge isn't possible because `extend` closes over its
+ * originating `Fields` object, so the only way to get a merged result
+ * with a coherent `extend` is to round-trip through `fields(...)`.
+ */
+export function fieldInfosFrom(f: Fields): FieldInfo[] {
   return Object.values(f).filter((v): v is FieldInfo =>
     v && typeof v === 'object' && v.type === 'field'
   );
