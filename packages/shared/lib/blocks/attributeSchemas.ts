@@ -423,8 +423,14 @@ export const character = {
 // Legacy pre-composed schemas — still widely used; migrate incrementally.
 // srcAttributes: ~20 block files import this
 
-/** @deprecated Use baseAttributes.extend({...src}) instead */
-export const srcAttributes = baseAttributes.extend(src);
+/**
+ * Convenience: a strict ZodObject with only the `src` attribute.
+ * The factory implicitly merges baseAttributes, so this no longer
+ * needs to wrap baseAttributes itself.
+ *
+ * @deprecated Prefer inlining `z.object({...src}).strict()` directly.
+ */
+export const srcAttributes = z.object({ ...src }).strict();
 
 /** Inferred type for grader attributes */
 export type GraderAttributes = z.infer<typeof graderAttributes>;

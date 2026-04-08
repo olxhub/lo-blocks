@@ -64,10 +64,10 @@ export const fields = state.fields([commonFields.value]);
 
 const LineInput = core({
   ...parsers.blocks(),                                                 // Parser so line label can be any OLX block
+  ...input(),                                                          // Advertise as input for graders
   name: 'LineInput',
   description: 'Single-line text input field for student responses',   // For documentation
   component: _LineInput,
-  isInput: true,                                                       // Advertise as input for graders
   fields,                                                              // Where we store our state in redux
   selectValue: (props, state, id) =>                                   // What data we send to a grader
     fieldSelector(state, { ...props, id }, fields.value, { fallback: '' }),

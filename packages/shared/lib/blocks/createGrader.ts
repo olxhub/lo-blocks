@@ -34,9 +34,7 @@ import { z } from 'zod';
 import { core } from './namespaces';
 import * as parsers from '@/lib/content/parsers';
 import { grader, type GraderParams, type SingleParam, type ListParam, type DictParam } from './actions';
-import { graderAttributes, baseAttributes, z_reduxStateKey } from './attributeSchemas';
-// Pre-composed attribute schema for full grader blocks (base + grader-specific).
-const graderFullAttributes = baseAttributes.extend(graderAttributes.shape);
+import { graderAttributes, z_reduxStateKey } from './attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import { registerDSLFunction } from '@/lib/stateLanguage/functions';
 import { correctness } from './correctness';
@@ -263,6 +261,15 @@ interface CreateGraderConfig {
   component?: React.ComponentType<any>;
   /** Custom parser for children. Default: parsers.blocks.allowHTML(). Use parsers.text.raw() for code content. */
   parser?: { parser: (ctx: any) => Promise<any>; staticKids?: (entry: any) => any[] };
+  /**
+   * Explicit allow-list of attribute/field names that the blueprint layer
+   * is intentionally redefining over the graderMixin defaults. See
+   * factory.tsx for the composition rules. Use sparingly — the common
+   * case is to not touch attributes like `target` that graderMixin already
+   * provides. CustomGrader uses this because its `target` is required
+   * (children are code, not inputs, so nothing can be inferred).
+   */
+  allowOverrides?: string[];
 }
 
 export function createGrader({
@@ -284,6 +291,7 @@ export function createGrader({
   createMatch = true,
   component = _Noop,
   parser,
+  allowOverrides,
 }: CreateGraderConfig) {
   const graderName = `${base}Grader`;
   const matchName = `${base}Match`;
@@ -311,6 +319,20 @@ export function createGrader({
   // Determine default answer display mode based on input configuration
   const effectiveAnswerDisplayMode = answerDisplayMode ?? (slots ? 'summary' : 'per-input');
 
+  // Auto-detect intentional narrowing of graderMixin attributes.
+  // graderMixin provides `answer`/`displayAnswer`/`target` as optional
+  // defaults; most graders narrow `answer` to required with a custom
+  // error message. Treat any collision with graderAttributes' keys as
+  // an intentional override so callers don't need boilerplate
+  // `allowOverrides: ['answer']`. Explicit `allowOverrides` from the
+  // caller is additionally honored (e.g., CustomGrader documents intent).
+  const graderMixinKeys = new Set(Object.keys(graderAttributes.shape));
+  const autoAllowOverrides = Object.keys(attributes).filter(k => graderMixinKeys.has(k));
+  const mergedAllowOverrides = Array.from(new Set([
+    ...autoAllowOverrides,
+    ...(allowOverrides ?? []),
+  ]));
+
   // Create the full Grader block (connects to inputs, grades them)
   const graderBlock = core({
     ...(parser ?? parsers.blocks.allowHTML()),
@@ -320,12 +342,16 @@ export function createGrader({
     category: 'grading',
     component,
     fields: state.fields(state.graderFields()),
-    attributes: graderFullAttributes.extend(attributes),
+    // graderMixin (via grader(...)) contributes target/answer/displayAnswer;
+    // blueprint layer only adds grader-specific attrs from callers.
+    // baseAttributes is implicit via the factory.
+    attributes: z.object(attributes).strict(),
     inputSchema,
     validateAttributes,
     answerDisplayMode: effectiveAnswerDisplayMode,
     getDisplayAnswer: getDisplayAnswer ?? ((props: RuntimeProps) => props.displayAnswer ?? props.answer),
     getDisplayAnswers,
+    ...(mergedAllowOverrides.length > 0 ? { allowOverrides: mergedAllowOverrides } : {}),
   }, locals);
 
   // Create the Match block (a rule for use inside RulesGrader)
@@ -339,7 +365,7 @@ export function createGrader({
       component: _Noop,
       internal: true,
       isMatch: true,
-      attributes: baseAttributes.extend({
+      attributes: z.object({
         ...RULE_ATTRIBUTES,
         ...attributes,
       }).strict(),

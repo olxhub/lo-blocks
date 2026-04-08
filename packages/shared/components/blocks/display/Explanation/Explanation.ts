@@ -12,7 +12,7 @@
 //
 import { z } from 'zod';
 import { dev, visibilityHandlers } from '@/lib/blocks';
-import { baseAttributes, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
+import { z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
 import * as parsers from '@/lib/content/parsers';
 import _Explanation from './_Explanation';
 
@@ -25,10 +25,10 @@ const Explanation = dev({
   component: _Explanation,
   requiresUniqueId: false,
   requiresGrader: true,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     showWhen: z.enum(validShowWhen).default('correct'),
     target: z_reduxStateKey.optional(),
-  }),
+  }).strict(),
 });
 
 export default Explanation;

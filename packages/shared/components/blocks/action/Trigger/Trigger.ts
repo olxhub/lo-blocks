@@ -14,10 +14,11 @@
 // for conditional visibility (hides the block when false). Trigger must stay
 // mounted to detect false→true transitions.
 
+import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes, z_expression, z_triggerMode } from '@/lib/blocks/attributeSchemas';
+import { z_expression, z_triggerMode } from '@/lib/blocks/attributeSchemas';
 import _Trigger from './_Trigger';
 
 export const fields = state.fields([
@@ -31,11 +32,11 @@ const Trigger = dev({
   description: 'Fires related actions when a DSL expression becomes true (edge-triggered)',
   component: _Trigger,
   fields,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     watch: z_expression.describe('DSL expression to watch (e.g., "@grader.correct === correctness.correct")'),
     mode: z_triggerMode
       .describe('"once" fires only the first time (persists across remounts), "each" fires every false→true transition'),
-  }),
+  }).strict(),
 });
 
 export default Trigger;

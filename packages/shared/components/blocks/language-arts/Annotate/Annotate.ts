@@ -45,7 +45,6 @@ import { z } from 'zod';
 import { test } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Annotate from './_Annotate';
 
 // All fields on the block — including per-annotation scoped fields.
@@ -72,10 +71,10 @@ const Annotate = test({
   description: 'Text annotation block: students highlight passages and take notes in a sidebar',
   component: _Annotate,
   fields,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     editor: z.string().optional()
       .describe('Per-annotation editor: block ID, "textarea" (default), or "false" to disable'),
-  }),
+  }).strict(),
 });
 
 export default Annotate;

@@ -9,7 +9,9 @@ const NavigatorTeamDetail = dev({
   name: 'NavigatorTeamDetail',
   description: 'Team member detail component for Navigator',
   component: _NavigatorTeamDetail,
-  requiresUniqueId: false
+  requiresUniqueId: false,
+  // Navigator injects per-item data fields as attributes at render time.
+  acceptsUnknownAttributes: true,
 });
 
 export default NavigatorTeamDetail;

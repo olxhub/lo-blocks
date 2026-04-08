@@ -26,7 +26,7 @@
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import { ignore } from '@/lib/content/parsers';
-import { baseAttributes, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
+import { z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
 import _StatusText from './_StatusText';
 
 const StatusText = dev({
@@ -36,10 +36,10 @@ const StatusText = dev({
   component: _StatusText,
   requiresGrader: true,
   internal: true,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     field: z.string().default('message').describe('Field name to display from the target component'),
     target: z_reduxStateKey.optional().describe('ID of specific component to read from; infers from parent grader if omitted'),
-  }),
+  }).strict(),
 });
 
 export default StatusText;

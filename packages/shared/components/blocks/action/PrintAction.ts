@@ -7,7 +7,6 @@
 
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 
 async function printAction() {
@@ -22,7 +21,6 @@ const PrintAction = blocks.core({
   name: 'PrintAction',
   description: 'Triggers the browser print dialog for PDF export',
   component: _Noop,
-  attributes: baseAttributes,
 });
 
 export default PrintAction;

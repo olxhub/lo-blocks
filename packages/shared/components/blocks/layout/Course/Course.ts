@@ -22,7 +22,6 @@
 import { dev } from '@/lib/blocks';
 import { childParser } from '@/lib/content/parsers';
 import * as state from '@/lib/state';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Course from './_Course';
 
 export const fields = state.fields(['selectedChild', 'expandedChapter', 'navCollapsed']);
@@ -84,7 +83,6 @@ const Course = dev({
   description: 'Hierarchical course structure with chapter navigation and content display',
   component: _Course,
   fields,
-  attributes: baseAttributes.strict(),
 });
 
 export default Course;

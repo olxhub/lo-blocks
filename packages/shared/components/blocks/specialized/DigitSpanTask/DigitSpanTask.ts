@@ -3,7 +3,6 @@ import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { _DigitSpanTask } from './_DigitSpanTask';
 
 const description = 'Working memory assessment where participants recall spoken digit sequences';
@@ -22,9 +21,9 @@ const DigitSpanTask = dev({
   component: _DigitSpanTask,
   description,
   fields,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     mode: z.enum(['forward', 'backward', 'ascending']).optional().describe('Recall mode (default: forward)'),
-  }),
+  }).strict(),
 });
 
 export default DigitSpanTask;

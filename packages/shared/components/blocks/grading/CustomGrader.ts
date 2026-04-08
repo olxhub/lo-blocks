@@ -99,7 +99,7 @@
 //
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
-import { z_reduxStateKeyList } from '@/lib/blocks/attributeSchemas';
+import { z_reduxStateKeyList, src } from '@/lib/blocks/attributeSchemas';
 import { correctness } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
 import _Hidden from '@/components/blocks/layout/_Hidden';
@@ -295,11 +295,15 @@ const CustomGrader = createGrader({
   grader: gradeCode,
   inputSchema: z.any(),
   inputType: 'list',  // Can handle any number of inputs
+  // `target` is normally optional via graderMixin (inferred from children),
+  // but CustomGrader's children are code, not inputs — there is nothing to
+  // infer from. We intentionally override `target` to be required here and
+  // tell the composition layer that this collision is expected.
+  allowOverrides: ['target'],
   attributes: {
-    // target is required since we can't infer inputs from children
     target: z_reduxStateKeyList.describe('Input block ID(s) to grade, comma-separated'),
     // Optional: load code from external file
-    src: z.string().optional(),
+    ...src,
   },
   // Children are code, not inputs - require explicit target
   infer: false,

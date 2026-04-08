@@ -9,7 +9,9 @@ const NavigatorDefaultDetail = dev({
   name: 'NavigatorDefaultDetail',
   description: 'Default detail component for Navigator',
   component: _NavigatorDefaultDetail,
-  requiresUniqueId: false
+  requiresUniqueId: false,
+  // Navigator injects per-item data fields as attributes at render time.
+  acceptsUnknownAttributes: true,
 });
 
 export default NavigatorDefaultDetail;

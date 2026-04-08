@@ -20,7 +20,6 @@ import yaml from 'js-yaml';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector } from '@/lib/state';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { extendIdPrefix, scopeMarker } from '@/lib/blocks/idResolver';
 import {
   DIMENSIONS, DIMENSIONS_BY_KEY, DIMENSION_CATEGORIES,
@@ -49,7 +48,6 @@ const CastEditor = dev({
   description: 'Toy/prototype: Cast-of-characters editor — build a full cast with avatars, traits, and profiles',
   component: _CastEditor,
   fields,
-  attributes: baseAttributes,
   locals: {
     // CastEditor's own field refs
     characterBuilderFields,

@@ -2,7 +2,6 @@
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import { childParser } from '@/lib/content/parsers';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _SplitPanel from './_SplitPanel';
 
 const splitParser = childParser(async function splitPanelParser({ rawKids, parseNode }) {
@@ -48,9 +47,9 @@ const SplitPanel = dev({
   name: 'SplitPanel',
   description: 'Two-column layout with separate LeftPane and RightPane sections',
   component: _SplitPanel,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     sizes: z.string().optional().describe('Comma-separated percentage sizes (e.g., "30,70" default: "50,50")'),
-  }),
+  }).strict(),
 });
 
 export default SplitPanel;

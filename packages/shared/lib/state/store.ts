@@ -405,12 +405,16 @@ let reduxStoreInstance: any = null;
 function configureStore({
   extraFields = [],
   websocket,
-  blockRegistry = {},
+  blockRegistry,
 }: {
   extraFields?: ExtraFieldsParam;
   websocket?: boolean;
   blockRegistry?: BlockRegistryParam;
 } = {}) {
+  if (!blockRegistry || Object.keys(blockRegistry).length === 0) {
+    throw new Error('store.init() requires a non-empty blockRegistry; pass BLOCK_REGISTRY');
+  }
+
   const allEventTypes = collectEventTypes(extraFields, blockRegistry);
   reduxLogger.registerReducer(
     allEventTypes,

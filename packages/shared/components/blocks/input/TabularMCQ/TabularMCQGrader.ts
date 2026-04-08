@@ -13,7 +13,6 @@
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import { core, correctness, getInputs, getBlockByOLXId } from '@/lib/blocks';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 

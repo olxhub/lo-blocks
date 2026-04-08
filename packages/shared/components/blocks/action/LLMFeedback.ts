@@ -6,7 +6,7 @@ import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { baseAttributes, placeholder } from '@/lib/blocks/attributeSchemas';
+import { placeholder } from '@/lib/blocks/attributeSchemas';
 import _LLMFeedback from './_LLMFeedback';
 
 export const fields = state.fields(['value', 'state']);
@@ -17,7 +17,8 @@ const LLMFeedback = dev({
   description: 'Displays AI-generated feedback responses to student input',
   component: _LLMFeedback,
   fields,
-  attributes: baseAttributes.extend(placeholder).extend({
+  attributes: z.object({
+    ...placeholder,
     render: z.enum(['markdown', 'text', 'code']).default('markdown')
       .describe('How to render the LLM output: markdown (default), text, or code'),
   }).strict(),

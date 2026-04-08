@@ -14,7 +14,7 @@
 //   </RulesGrader>
 //
 import { z } from 'zod';
-import { core, grader, baseAttributes, z_reduxStateKey, isMatch, inferRelatedNodes, refToOlxKey, getBlockByOLXId } from '@/lib/blocks';
+import { core, grader, isMatch, inferRelatedNodes, refToOlxKey, getBlockByOLXId } from '@/lib/blocks';
 import { correctness } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
 import _Noop from '@/components/blocks/layout/_Noop';
@@ -95,9 +95,6 @@ const RulesGrader = core({
   description: 'Grader that evaluates Match rules top-to-bottom with partial credit and feedback',
   category: 'grading',
   component: _Noop,
-  attributes: baseAttributes.extend({
-    target: z_reduxStateKey.optional().describe('ID of the input block to grade (inferred from children if omitted)'),
-  }),
   // Display answer: find first Match child with score=1
   getDisplayAnswer: (props: RuntimeProps) => {
     if (props.displayAnswer) return props.displayAnswer;

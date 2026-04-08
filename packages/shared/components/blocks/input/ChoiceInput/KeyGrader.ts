@@ -8,7 +8,6 @@ import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import { getBlockByOLXId } from '@/lib/blocks';
 import { getInputs } from '@/lib/blocks/olxdom';
-import { baseAttributes, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 import { correctness } from '@/lib/blocks/correctness';
@@ -71,11 +70,6 @@ const KeyGrader = blocks.test({
   fields,
   getDisplayAnswer: getKeyDisplayAnswer,
   inputSchema: z.string(),
-  attributes: baseAttributes.extend({
-    target: z_reduxStateKey.optional().describe('ID of the ChoiceInput to grade; infers from children if omitted'),
-    answer: z.string().optional().describe('Correct answer value (alternative to using Key/Distractor)'),
-    displayAnswer: z.string().optional().describe('Answer text to display when showing answers'),
-  }),
 });
 
 export default KeyGrader;

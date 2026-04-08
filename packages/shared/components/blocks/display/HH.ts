@@ -12,7 +12,6 @@
 
 import { test } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { _Markdown } from './Markdown/_Markdown';
 
 function stripDecoration(text: string): string {
@@ -28,7 +27,6 @@ const HH = test({
   component: _Markdown,
   internal: true,
   requiresUniqueId: false,
-  attributes: baseAttributes,
 });
 
 export default HH;
