@@ -668,6 +668,60 @@ export function useValue(
 }
 
 /**
+ * React hook for text-display blocks that can receive their source text
+ * from any of several places.
+ *
+ * Pairs with `parsers.text.withTarget()`. Used by blocks like Mermaid,
+ * Markdown, and ObservablePlot, whose source text might come from:
+ *
+ *   - `target=` attribute → reactive read from another block's value
+ *   - `src=` attribute    → loaded at parse time into `props.kids`
+ *   - child text          → also lives in `props.kids`
+ *
+ * Precedence: `target=` beats `kids`. When `target=` is set, the hook
+ * calls `useValue` to read the target block's value field, and the hook
+ * reports `loading`/`error`/`ready` accordingly. When `target=` is not
+ * set, `props.kids` is returned directly (already populated by the
+ * parser at parse time, from either `src=` or child text).
+ *
+ * Always calls `useValue` internally (rules of hooks): when there's no
+ * target, it passes `reduxKey: null`, which `valueSelector` short-circuits
+ * into a `ready` fallback with zero selector cost.
+ *
+ * 95% of callers can just destructure `{ text }` and let the loading
+ * branch render an empty frame.
+ */
+export function useTextContent(
+  props: RuntimeProps,
+  { fallback = '' }: { fallback?: string } = {}
+): { text: string; loading: boolean; error: string | null; ready: boolean } {
+  const target = props.target as OlxReference | undefined;
+
+  // Always call useValue — passing reduxKey: null when no target makes
+  // valueSelector short-circuit to the fallback with ready: true.
+  const result = useValue(props, {
+    reduxKey: target ? undefined : null,
+    target: target ?? undefined,
+    fallback,
+  });
+
+  if (target) {
+    const text =
+      typeof result.value === 'string'
+        ? result.value
+        : result.value == null
+          ? fallback
+          : String(result.value);
+    return { text, loading: result.loading, error: result.error, ready: result.ready };
+  }
+
+  // No target → use kids (populated at parse time from src= or child text).
+  const kids = props.kids;
+  const text = typeof kids === 'string' ? kids : fallback;
+  return { text, loading: false, error: null, ready: true };
+}
+
+/**
  * React hook to get the full Redux state object for a component.
  *
  * INTENDED FOR DEBUGGING/INTROSPECTION ONLY - not for regular block development.

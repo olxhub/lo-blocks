@@ -19,9 +19,11 @@
 // Future: An `xmljson` parser could pass through raw fast-xml-parser JSON for blocks
 // that need to do their own XML processing. Not currently implemented.
 //
+import { z } from 'zod';
 import { XMLBuilder } from 'fast-xml-parser';
 import type { OLXLoadingError, OlxReference, OlxKey } from '@/lib/types';
 import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
+import { z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
 
 // === Setup ===
 
@@ -456,9 +458,51 @@ const textFactory = childParser(async function textParser({ rawParsed, attribute
   return content;
 });
 textFactory.staticKids = () => [];
+
+// === withTarget variant ===
+//
+// `parsers.text.withTarget()` (and its `.raw` / `.stripIndent` siblings)
+// bundle the same text parser together with a `parserMixin` that
+// contributes the `src=` and `target=` attributes. This lets display
+// blocks like Mermaid, Markdown, ObservablePlot, etc. accept their
+// source text from any of three places:
+//
+//   1. child text                 <Mermaid>graph TD; A --> B</Mermaid>
+//   2. src= (parse-time load)     <Mermaid src="diagram.mmd"/>
+//   3. target= (reactive read)    <Mermaid target="codeEditor"/>
+//
+// Precedence at render time: `target=` beats `kids` (which was already
+// populated at parse time from either `src=` or the block's child text).
+// Mirrors the existing silent precedence of `src=` over child text.
+//
+// `target=` is tagged via `z_reduxStateKey`, so `getRefAttributes` /
+// `ensureReferencedBlocks` will automatically preload the referenced
+// block. The component reads the value at render time via `useTextContent`.
+//
+// `requiresUniqueId: false` is baked in because text-display blocks
+// typically don't need unique IDs — they render content, not state.
+// Blueprint-level `requiresUniqueId: true` still wins via the factory's
+// later-layer-overrides rule for scalar keys.
+const textWithTargetParserMixin = {
+  attributes: z.object({
+    src: z.string().optional().describe('Path to external file containing content'),
+    target: z_reduxStateKey.optional().describe(
+      'Read content from another block\'s value field (reactive)'
+    ),
+  }).strict(),
+  requiresUniqueId: false,
+};
+
 export const text = Object.assign(textFactory, {
   raw: () => textFactory({ postprocess: 'raw' }),
   stripIndent: () => textFactory({ postprocess: 'stripIndent' }),
+  withTarget: Object.assign(
+    () => ({ ...textFactory(), parserMixin: textWithTargetParserMixin }),
+    {
+      raw: () => ({ ...textFactory({ postprocess: 'raw' }), parserMixin: textWithTargetParserMixin }),
+      stripIndent: () => ({ ...textFactory({ postprocess: 'stripIndent' }), parserMixin: textWithTargetParserMixin }),
+    }
+  ),
 });
 
 // Text content → attribute parser.
