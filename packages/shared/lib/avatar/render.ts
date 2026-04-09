@@ -8,7 +8,7 @@
 
 import { createAvatar } from '@dicebear/core';
 import * as openPeepsStyle from '@dicebear/open-peeps';
-import { Face, Head, Accessories, FacialHair, Mask } from '@/lib/avatar/types';
+import { Face, Head, Accessories, FacialHair, Mask, type OpenPeeps } from '@/lib/avatar/types';
 
 // =============================================================================
 // Option categories — derived from the Zod enum schemas in types.ts
@@ -62,11 +62,11 @@ export const HAIR_COLORS = [
  * Coerce single-value option fields to arrays (DiceBear wants arrays)
  * and set probability flags so optional features actually appear.
  */
-export function toDiceBear(opts: Record<string, string>): Record<string, any> {
+export function toDiceBear(opts: OpenPeeps): Record<string, any> {
   const result: Record<string, any> = {};
   for (const [key, value] of Object.entries(opts)) {
     if (!value) continue;
-    result[key] = [value];
+    result[key] = Array.isArray(value) ? value : [value];
   }
   if (result.accessories) result.accessoriesProbability = 100;
   if (result.facialHair) result.facialHairProbability = 100;
@@ -79,11 +79,14 @@ export function toDiceBear(opts: Record<string, string>): Record<string, any> {
  *
  * Used for preview images and thumbnail grids in avatar pickers.
  * For inline rendering in content, use the Avatar component instead.
+ *
+ * Picker UI values come from CATEGORIES.*.options (valid enum members),
+ * so the cast to OpenPeeps is safe here even though TS only sees strings.
  */
 export function renderAvatar(seed: string, opts: Record<string, string>, size: number): string {
   return createAvatar(openPeepsStyle, {
     seed,
     size,
-    ...toDiceBear(opts),
+    ...toDiceBear(opts as OpenPeeps),
   }).toDataUri();
 }
