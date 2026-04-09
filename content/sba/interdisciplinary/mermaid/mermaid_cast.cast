@@ -1,0 +1,68 @@
+# Cast for the Mermaid Sequence
+#
+# Three caricatures from a real-world ed-tech argument. Used by the Chat
+# blocks in MermaidSequence.olx.
+
+Piotr:
+  seed: piotr_eastern_european
+  openPeeps:
+    face: blank
+    head: medium3
+    facialHair: full
+    skinColor: f8d5c2
+    clothingColor: '264653'
+    headContrastColor: d6b370
+  profile:
+    role: Ed-tech researcher and entrepreneur
+    bio: |
+      Eastern European. Speaks in declarative sentences that end before
+      you expect them to. Will tell you your code is wrong, your
+      architecture is wrong, and possibly your worldview is wrong, all
+      in the same breath, and he'll be right about at least two of them.
+      Has strong opinions about strictness, both in type systems and in
+      life. Believes "this is fine" is a load-bearing lie. Drinks his
+      coffee black and his feedback blacker. Anyone and everyone can and
+      should achieve excellence if they just work harder and push harder.
+      And when they do that? Raise the bar for excellence. He built this
+      platform... and several others. It's HIS platform.
+
+John:
+  seed: john_reading_researcher
+  openPeeps:
+    face: contempt
+    head: short2
+    facialHair: chin
+    skinColor: f8d5c2
+    clothingColor: 6c757d
+    headContrastColor: e8e1e1
+  profile:
+    role: Reading Researcher
+    bio: |
+      Speaks slowly, the way one does when the other party is clearly
+      going to need the extra time. Begins sentences with "Well,
+      actually..." and somehow makes it land. Has read the paper you're
+      about to cite, and also the paper that paper was wrong about.
+      Smiles benevolently when corrected, then corrects you back twice
+      as hard, twenty minutes later, in writing, with citations. After
+      decades of experience studying the topic, he no longer believes
+      people can learn. Himself included. Or do much of anything else.
+      Leading this grant... and many others. It's HIS project.
+
+Omer:
+  seed: omer_kindly_prof
+  openPeeps:
+    face: explaining
+    head: short5
+    skinColor: ffd5b2
+    headContrastColor: 2c1b18
+  profile:
+    role: Kindly Professor
+    bio: |
+      The kindly professor who genuinely just wants everyone to learn
+      something today. Walks into the meeting with a thoughtful question
+      about reading comprehension and walks out having mediated a treaty
+      between two ed-research factions who didn't realize they'd been
+      fighting. Says "that's a really interesting point" and means it
+      both times. Will gently rephrase Piotr's most cutting remark as
+      "what I think Piotr is getting at is..." and somehow make Piotr
+      nod. Teaching this class. It's HIS class and HIS students.

@@ -1,0 +1,320 @@
+<!--
+---
+description: Concept-mapping sequence — three professors argue about strictness, then five interactive slides walk a student through making their first interdisciplinary diagram. Slide 6 branches based on the student's reflection.
+category: interdisciplinary
+lang: en-Latn-US
+license: AGPL
+---
+-->
+<Cast cast="mermaid_cast.cast" id="mermaid_sequence" title="Concept-mapping disciplines" launchable="true">
+<Sequential>
+
+
+<!-- ============================================================
+     SLIDE 1: THE MEETING
+     ============================================================ -->
+<Vertical id="slide1" title="A conversation between a bunch of old guys">
+
+<Markdown># A conversation between a bunch of old guys</Markdown>
+<Chat id="slide1_meeting" height="600px" src="intro.chatpeg" />
+
+</Vertical>
+
+
+<!-- ============================================================
+     SLIDE 2: YOUR FIRST DIAGRAM
+     ============================================================ -->
+<SplitPanel id="slide2_split" sizes="55,45" title="Your first diagram"> <StartPane>
+
+
+<TalkBubble who="Omer" face="smile"> <Markdown>
+Don't worry — you're not coding. Type four words and an
+arrow. The picture updates as you type.
+
+The starter on the left already has the three pieces you need:
+`graph LR`, one box, one arrow, one second box. That's where the
+diagram you see came from. Read the syntax box underneath it if you
+want to know *why* those three lines mean what they mean — then come
+back over here and we'll add to it together.
+</Markdown> </TalkBubble>
+
+<Markdown>
+You're picking up as the student!
+
+**Type this exactly, on a new line, indented like the line above:**
+
+```
+  A --> C[Psychology]
+```
+
+We re-use the name `A` so the new arrow comes out of the *same*
+box, and `C` is brand new so Mermaid draws a brand-new box for it.
+Watch the picture when you hit the second `]`.
+
+Then, as Omer suggests, a third one!
+</Markdown>
+
+<TextArea id="slide2_editor" rows="10">
+graph LR
+  A[My cousin works two jobs] --> B[Economics]
+</TextArea>
+
+<Mermaid target="slide2_editor" />
+
+<ActionButton id="slide2_reset_btn" label="Reset diagram">
+    <SetFieldAction target="slide2_editor" field="value" value="graph LR
+  A[My cousin works two jobs] --> B[Economics]
+" />
+</ActionButton>
+
+<Markdown>
+### The whole syntax, in three lines
+
+1. **`graph LR`** on the first line means "draw left to right."
+   (`graph TD` is top-down — try either.)
+2. **A box** is a *name* followed by its label in square brackets:
+   `A[My cousin works two jobs]`. The name `A` is just a handle so
+   you can refer to the same box again later.
+3. **An arrow** is literally `-->`. Three keystrokes: `-`, `-`, `>`.
+   Your editor may *display* them as a single arrow once you finish
+   typing. That's a font trick, not a special character.
+
+*More:* [docs](https://mermaid.js.org/intro/getting-started.html) · [live editor](https://mermaid.live/edit)
+</Markdown>
+
+</StartPane>  <EndPane>
+
+
+<NextReveal id="slide2_steps">
+
+<TalkBubble who="Omer" side="secondary"> <Markdown>
+Working two jobs touches *more* than just economics —
+exhaustion is a psychological state even before it's an economic
+one. Add a second arrow from `A` to psychology.
+
+</Markdown> </TalkBubble>
+
+<TalkBubble who="Omer" face="smile"> <Markdown>
+Now do a third one — but pick the discipline yourself.
+
+Same cause (`A`), a brand-new name (`D` or any letter you haven't
+used), and a brand-new label in square brackets. Sociology? Public
+health? Family studies? Any field that studies *what happens to a
+person* when they work two jobs.
+
+If the picture breaks while you're typing, that's expected —
+Mermaid is strict and you'll see an error until the line is
+finished. If you get stuck, hit **Reset diagram** and start the
+line over.
+</Markdown> </TalkBubble>
+
+<TalkBubble who="Omer" side="secondary"> <Markdown>
+One more thing, and we're done with syntax for the day.
+
+Once a box has a label, you can refer to it by *name only* — no
+brackets needed. So `B` is still Economics even if you just write
+`B`.
+
+Why does that matter? Because the disciplines you just drew **also
+talk to each other**. Economics and Psychology aren't strangers —
+there's a whole field called *behavioral economics* about exactly
+that conversation. Add this line:
+
+```
+  B --> C
+```
+
+No labels, no brackets — just two names you've already introduced
+and the same three-keystroke arrow. Watch the shape change.
+</Markdown> </TalkBubble>
+
+
+</NextReveal> </EndPane> </SplitPanel>
+
+
+<!-- ============================================================
+     SLIDE 3: WHERE THE LINES MEET
+     ============================================================ -->
+<Vertical id="OmerSlide3" title="Where the lines meet">
+
+<TalkBubble who="Omer"> <Markdown>
+Here are two different problems. Each one has an obvious home —
+economics for the first, psychology for the second. But your cousin
+lives both of these at once, in the same body, on the same Tuesday
+morning. **What discipline studies how those two collide?**
+
+Add one new box for that discipline, and draw an arrow into it from
+*both* causes. Watch what happens to the shape.
+</Markdown> </TalkBubble>
+
+<TextArea id="slide3_editor" rows="8">
+graph LR
+  A[Working two jobs] --> B[Economics]
+  C[Sleep deprivation] --> D[Psychology]
+</TextArea>
+
+<Mermaid target="slide3_editor" />
+
+<TalkBubble who="Omer" face="smile"> <Markdown>
+That box with two arrows pointing into it — that's not just one more
+discipline on a list. That's the place where two different problems
+turn out to be the same problem, told in different languages.
+Sociology, public health, urban policy — a field exists wherever two
+arrows meet.
+</Markdown> </TalkBubble>
+
+</Vertical>
+
+<!-- ============================================================
+     SLIDE 4: MAKE YOUR OWN
+     ============================================================ -->
+<Vertical id="OmerSlide4" title="Make your own">
+
+<TalkBubble who="Omer"> <Markdown>
+Your turn. Pick something from your own life — your neighborhood,
+your job, your family, your friends. One cause, two disciplines,
+minimum. More if you can find them. The diagram below is your scratch
+pad: draw, erase, rearrange, type nonsense, fix it. Whatever's on the
+screen when you click **Next** is what I'll see on the next slide —
+no Submit button, no ceremony.
+</Markdown> </TalkBubble>
+
+<TextArea id="slide4_editor" rows="10">
+graph LR
+  %% Your causes go on the left, the disciplines they touch on the right.
+  A[Your cause here] --> B[A discipline]
+  A --> C[Another discipline]
+</TextArea>
+
+<Mermaid target="slide4_editor" />
+
+<TalkBubble who="Omer" face="smile"> <Markdown>
+There is no wrong answer here. There is only "I noticed something
+about my own life and I had to draw an arrow to show it." If you
+noticed something, you did the assignment.
+</Markdown> </TalkBubble>
+
+<Collapsible title="Want to go further?"> <Markdown>
+
+You've now seen *one corner* of Mermaid: a flowchart with arrows
+between labeled boxes. Mermaid can do a lot more than that, and the
+whole language is small enough to skim in an afternoon.
+
+If you're curious — even a little — try things like:
+
+- **Colors and styles.** `style A fill:#fef,stroke:#909` and your box
+  goes purple. Group related disciplines by color and the diagram
+  starts to *say* something even before anyone reads the labels.
+- **Top-down vs left-to-right.** Swap `graph LR` for `graph TD` and
+  the whole picture re-flows. Sometimes that alone changes which
+  arrows look important.
+- **Other diagram types entirely.** Sequence diagrams (who said what
+  to whom, in order). Gantt charts (what happens when). Mind maps.
+  State diagrams. Class diagrams. Pie charts. Timelines. Each one is
+  its own small grammar with its own keyword on the first line.
+- **Subgraphs.** Group boxes inside a labeled border with `subgraph`
+  ... `end`. Useful when one of your "disciplines" has internal
+  structure of its own.
+
+Two places to play and read:
+
+- **[Mermaid Live Editor](https://mermaid.live/edit)** — paste your
+  diagram in, mess with it, see it render instantly. No account, no
+  install. Use it as a scratchpad.
+- **[Mermaid documentation](https://mermaid.js.org/intro/getting-started.html)** —
+  the official getting-started guide, with one page per diagram type.
+  Read the page for whichever type sounds interesting; ignore the rest.
+
+You don't need any of this to do the rest of the course. But the
+students who get the most out of concept maps are usually the ones
+who treat the notation like a tool they can shape, not a form they
+have to fill in.
+
+</Markdown> </Collapsible>
+
+</Vertical>
+
+<!-- ============================================================
+     SLIDE 5: HOW DID THAT GO?
+     ============================================================ -->
+<Vertical id="OmerSlide5" title="How did that go?">
+
+<TalkBubble who="Omer"> <Markdown>
+One last question. **Honest answer.** How did that go?
+
+Here's the diagram you made, so you can look at it while you think:
+</Markdown> </TalkBubble>
+
+<Mermaid target="slide4_editor" />
+
+<TalkBubble who="Omer"> <Markdown>
+Did the diagram help you see something you wouldn't have seen on a
+piece of paper? Or did it get in the way — too fiddly, too much
+typing, the picture never quite doing what you wanted? Or somewhere
+in between?
+
+I'm asking because the three of us are arguing about it, and your
+answer settles it.
+</Markdown> </TalkBubble>
+
+<Markdown>## How did it go?</Markdown>
+<TextArea id="slide5_reflection" rows="5" />
+
+<TalkBubble who="Omer" face="smile"> <Markdown>
+A sentence is plenty. Whatever you wrote, thank you.
+
+Now, in one click — which way did it land for you? Your answer
+decides how I report back to Piotr and John.
+</Markdown> </TalkBubble>
+
+<ChoiceInput id="reflection_choice">
+  <Key value="piotr">Tell Piotr he was right. (Maybe I struggled, maybe it was easy — but I did this.)</Key>
+  <Key value="john">Tell John he was right. (This was too hard. I failed, or it took an unreasonable amount of time.)</Key>
+</ChoiceInput>
+
+<Markdown>
+---
+
+## Submitting your work
+
+**This is how you turn in the assignment.** Click the button below.
+Your browser's print dialog will open; choose **"Save as PDF"** as
+the destination, save the file, and email it to Omer.
+
+The PDF will include your diagram, your written reflection, and your
+answer to the question above — everything on this slide. Make sure
+you've answered the reflection question and picked one of the two
+options *before* you save, or those parts will be blank in your
+submission.
+</Markdown>
+
+<ActionButton id="slide5_print_btn" label="Print to PDF">
+  <PrintAction />
+</ActionButton>
+
+</Vertical>
+
+
+<!-- ============================================================
+     SLIDE 6a: THE READING — IF PIOTR IS RIGHT
+     (shown when student told us "Piotr was right")
+     ============================================================ -->
+<Chat id="slide6a_piotr_was_right"
+      title="The Reading — if Piotr was right"
+      height="600px"
+      when="@reflection_choice.value === 'piotr'"
+      src="conclusion_piotr.chatpeg"
+      />
+
+<!-- ============================================================
+     SLIDE 6b: THE READING — IF JOHN IS RIGHT
+     (shown when student told us "John was right")
+     ============================================================ -->
+<Chat id="slide6b_john_was_right"
+      title="The Reading — if John was right"
+      height="600px"
+      when="@reflection_choice.value === 'john'"
+      src="conclusion_john.chatpeg"/>
+
+</Sequential>
+</Cast>
