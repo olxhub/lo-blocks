@@ -22,4 +22,95 @@ interdisciplinary_sba_sidebar2 -> interdisciplinary_recap
 
 Omer: Let's see if you remember the disciplines for each insight.
 
-interdisciplinary_sba_sidebar2 -> insight_to_discipline_mapping
+interdisciplinary_sba_sidebar2 -> insights_by_disciplines
+
+Omer: If you remember from Repko et al. (2025), we can use mapping to integrate
+insights from different disciplines which will help us achieve a more comprehensive
+understanding of the problem. I started a map for us (to the right) using
+abbreviations of insights from the studies we reviewed.
+
+interdisciplinary_sba_sidebar2 -> dropout_cause_mapping
+
+Lacey: Yes, I remember we talked about mapping in class but I don't remember
+what kind of map this is supposed to be. It is either a **multidisciplinary**
+map or an **interdisciplinary** map.
+
+interdisciplinary_sba_sidebar2 -> classify_map
+
+Lianne: What do you think? And what is the difference between a multidisciplinary
+and an interdisciplinary map anyway?
+
+--- wait @cause_mapping_choice.value && @cause_mapping_choice_explanation.value ---
+
+Ty: I checked my notes and found out that this is what Dr. Ari said is
+a **multidisciplinary map** where each interdisciplinary insight is used
+to explain only a part of the problem.
+
+Peggie: Exactly! Because of that, it does not show us how these insights relate
+to one another. That is what we need to do to gain a comprehensive understanding
+of the problem.
+
+interdisciplinary_sba_sidebar2 -> dropout_cause_mapping
+
+Lianne: Great! Let's see how we can integrate these insights.
+
+interdisciplinary_sba_sidebar2 -> dropout_factor_combos
+
+Lianne: Why don't you brainstorm and we'll compare notes? Try to decide which
+of the facts are likely to interact or affect one another in important ways,
+and if so, take notes about how that might happen.
+
+Lacey: OK, let's see ... Students working long hours most likely come from families low on family assets.
+
+interdisciplinary_sba_sidebar2 -> cause_connection_1
+
+Lianne: That is right. We can show that relationship by drawing an arrow from
+**Family and Peer Factors** to **Students Working Long Hours** like this (look to the right).
+
+interdisciplinary_sba_sidebar2 -> cause_connection_2
+
+Ty: That makes sense. I am sure students working long hours are also trying
+to support their families if they come from families with low assets. So the
+arrow should go the other direction as well. We can show it this way (look to the right).
+
+interdisciplinary_sba_sidebar2 -> cause_mapping_2
+
+Lianne: Yes, exactly! Integration is helping bring these disparate insights together for
+a broad-view understanding of the causes of this problem. (See diagram to the right.)
+
+Lianne: How about we start a summary of these connections? We will use
+this summary as the end of Part 3 where we will write a problem statement.
+
+interdisciplinary_sba_sidebar2 -> cause_mapping_introduction
+
+Peggie: Great! I started an introduction.
+
+interdisciplinary_sba_sidebar2 -> cause_connection_2
+
+Lacey: Thank you, Peggy. This introduction looks great. Now let's
+add a sentence about the connections we just made.
+
+Peggy: How about the points you and Ty made earlier with a sentence like this --
+
+**Students working long hours are likely to come from families with low assets.
+These students are most likely trying to help their families financially.**
+
+interdisciplinary_sba_sidebar2 -> cause_mapping_with_first_crosslink
+
+Lianne: That sounds great. I added that sentence to our summary.
+
+interdisciplinary_sba_sidebar2 -> extra_cause_connections
+
+Lianne: Looking over the map, I see three more connections we should make.
+They make the most sense considering the studies we reviewed.
+
+We've already worked on connections between **Family Peer Factors** and
+**Students Working Long Hours**. How about we work on explaining the
+remaining connections?
+
+interdisciplinary_sba_sidebar2 -> factors_2_to_3
+
+Lianne: Let's start with this one.
+
+How about we each write a sentence to explain the connection we see.
+Write your explanation in the box to the right.

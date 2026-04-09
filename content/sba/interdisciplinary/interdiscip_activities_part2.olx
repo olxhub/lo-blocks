@@ -35,13 +35,221 @@ We read summaries of studies from these disciplines and derived their **discipli
 
 **Select each discipline that applies.**
       </Markdown>
-      <TabularMCQ id="insight_to_discipline_mapping">
+         <CapaProblem id="insight_review" title="Insight to Discipline Mapping"> 
+            <TabularMCQGrader>
+              <TabularMCQ id="insight_to_discipline_mapping">
         mode: checkbox
         cols: Psychology, Sociology, Economics, Political Science, Health Sciences
-        rows: If a student feels they need to earn money right away to help their family⸴ they might drop out to get a full-time job,Conditions like depression⸴ anxiety⸴ or ADHD can interfere with a student's ability to get good grades and remain engaged in school.,A student's environment may increase their likelihood of dropping out if they live in an area affected by gang activity⸴ neighborhood instability⸴ and limited support systems⸴ as seen in some urban communities.,Lack of school funding means fewer resources and support for students, making historically underserved students more likely to drop out.
-      </TabularMCQ>
-  
+        rows: If a student feels they need to earn money right away to help their family⸴ they might drop out to get a full-time job[Psychology],Conditions like depression⸴ anxiety⸴ or ADHD can interfere with a student's ability to get good grades and remain engaged in school.[Economics, Sociology],A student's environment may increase their likelihood of dropping out if they live in an area affected by gang activity⸴ neighborhood instability⸴ and limited support systems⸴ as seen in some urban communities.[Economics, Sociology],Lack of school funding means fewer resources and support for students, making historically underserved students more likely to drop out.[Political Science]
+          </TabularMCQ>
+        </TabularMCQGrader>
+      </CapaProblem>
     </Vertical>
+
+    <Vertical id="dropout_cause_mapping">
+      <Markdown>
+## Mapping Causes of High School Dropout
+      </Markdown>
+      <Mermaid id="cause_mapping"><![CDATA[
+graph LR
+    C1[Family and Peer Factors] --> D1[Dropping out of high school]
+    C2[Students Working Long Hours] --> D1
+    C3[Equitable School Funding] --> D1
+    C4[ADHD Status] --> D1
+
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+    style C3 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+    style D1 fill:#fff4e1
+]]>
+      </Mermaid>
+   </Vertical>
+   
+   <SplitPanel id="classify_map">
+     <LeftPane>
+       <Markdown>
+## Classifying the Map
+
+**Which one does it look like to you?**
+
+_Click on the correct answer._
+       </Markdown>
+       <ChoiceInput id="cause_mapping_choice">
+         <Key>Multidisciplinary Map</Key>
+         <Distractor>Interdisciplinary Map</Distractor>
+       </ChoiceInput>
+       <Markdown>
+Why did you choose this answer?
+       </Markdown>
+       <TextArea id="cause_mapping_choice_explanation" placeholder="Enter your explanation..." />       
+     </LeftPane>
+     <RightPane>
+       <Use id="cause_mapping2" ref="cause_mapping" />
+     </RightPane>
+   </SplitPanel>
+    
+  <Vertical id="dropout_factor_combos">  
+   <CheckboxInput id="dropout_factor_checkboxes">
+    <Key value="0">
+      <Markdown>
+**Family and Peer Factors** | **Students Working Long Hours**
+      </Markdown>
+      <TextBlock>I would like to use an IntakeGate here to only display this textarea if this option is checked.
+               Right now, I can't find a way to do this!</TextBlock>
+      <TextArea id="dropout_factor_combo_1_explanation" placeholder="How you think the two factors might interact, if they do..." />       
+    </Key>
+    <Key value="1">
+      <Markdown>
+**Family and Peer Factors** | **Equitable School Funding**
+      </Markdown>
+      <TextArea id="dropout_factor_combo_2_explanation" placeholder="How you think the two factors might interact, if they do..." />       
+    </Key>
+    <Key value="2">
+      <Markdown>
+**Family and Peer Factors** | **ADHD Status**
+      </Markdown>
+      <TextArea id="dropout_factor_combo_3_explanation" placeholder="How you think the two factors might interact, if they do..." />       
+    </Key>
+    <Key value="3">
+      <Markdown>
+**Students Working Long Hours** | **Equitable School Funding**
+      </Markdown>
+      <TextArea id="dropout_factor_combo_4_explanation" placeholder="How you think the two factors might interact, if they do..." />       
+    </Key>
+    <Key value="4">
+      <Markdown>
+**Students Working Long Hours** | **ADHD Status**
+      </Markdown>
+      <TextArea id="dropout_factor_combo_5_explanation" placeholder="How you think the two factors might interact, if they do..." />       
+    </Key>
+    <Key value="5">
+      <Markdown>
+**Equitable School Funding** | **ADHD Status**
+      </Markdown>
+      <TextArea id="dropout_factor_combo_6_explanation" placeholder="How you think the two factors might interact, if they do..." />       
+    </Key>
+   </CheckboxInput>
+   <StateViewer target="dropout_factor_checkboxes" />
+  </Vertical>
+
+  <Mermaid id="cause_connection_1"><![CDATA[
+graph LR
+    C1[Family and Peer Factors] --> C2[Students Working Long Hours]
+
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+]]>
+  </Mermaid>
+
+  <Mermaid id="cause_connection_2"><![CDATA[
+graph LR
+    C1[Family and Peer Factors] --> C2[Students Working Long Hours]
+    C2 --> C1
+    
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+]]>
+  </Mermaid>
+
+  <Mermaid id="cause_mapping_2"><![CDATA[
+graph LR
+    C1[Family and Peer Factors] --> D1[Dropping out of high school]
+    C2[Students Working Long Hours] --> D1
+    C1 --> C2
+    C2 --> C1
+    C3[Equitable School Funding] --> D1
+    C4[ADHD Status] --> D1
+
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+    style C3 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+    style D1 fill:#fff4e1
+]]>
+  </Mermaid>
+  
+  <SplitPanel id="cause_mapping_with_first_crosslink">
+   <LeftPane>
+    <Markdown id="cause_mapping_introduction">
+## Mapping Causes of High School Dropout
+### Introduction
+
+High school dropout is a complex problem with many causes.
+Some of the causes include psychological risks like ADHD,
+economic pressures from intensive work, family and peer
+influences across rural and urban settings, and inequities
+in school funding. A more comprehensive understanding of this
+problem requires us to study and understand how these causes
+relate to one another.
+    </Markdown>
+    <Markdown id="first_crosslink_sentence">
+Students working long hours are likely to come from families with low assets.
+These students are most likely trying to help their families financially.
+    </Markdown>
+   </LeftPane>
+   <RightPane>
+     <Use id="cause_mapping_2b" ref="cause_mapping_2" />
+   </RightPane>
+  </SplitPanel>
+
+  <Vertical id="extra_cause_connections">
+    <Markdown>## Mapping Causes of High School Dropout</Markdown>
+    <Mermaid id="cause_connection_3"><![CDATA[
+graph LR
+    C1[Family and Peer Factors] --> C4[ADHD Status]
+    
+    style C1 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+]]>
+    </Mermaid>
+    <Mermaid id="cause_connection_4"><![CDATA[
+graph LR
+    C2[Family and Peer Factors] --> C3[Equitable School Funding]
+    
+    style C2 fill:#e1f5ff
+    style C3 fill:#e1f5ff
+]]>
+    </Mermaid>
+    <Mermaid id="cause_connection_5"><![CDATA[
+graph LR
+    C3[Equitable School Funding] --> C4[ADHD Status]
+    
+    style C3 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+]]>
+    </Mermaid>
+  </Vertical>
+
+  <SplitPanel id="factors_2_to_3">
+   <LeftPane>
+     <Markdown>## Mapping Causes of High School Dropout</Markdown>
+     <Use id="cause_connection_3b" ref="cause_connection_3" />
+     <TextArea id="cause_connection_3_explanation" 
+              placeholder="How you think the two factors might interact, if they do..." />       
+    </LeftPane>
+    <RightPane>
+      <Mermaid id="cause_mapping_3"><![CDATA[
+graph LR
+    C1[Family and Peer Factors] --> D1[Dropping out of high school]
+    C2[Students Working Long Hours] --> D1
+    C1 --> C2
+    C1 --> C4
+    C2 --> C1
+    C3[Equitable School Funding] --> D1
+    C3 --> C2
+    C3 --> C4
+    C4[ADHD Status] --> D1
+
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+    style C3 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+    style D1 fill:#fff4e1
+]]>
+     </Mermaid>
+    </RightPane>
+  </SplitPanel>
 
 </Vertical>
 </Cast>
