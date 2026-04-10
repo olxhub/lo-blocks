@@ -88,7 +88,6 @@ Why did you choose this answer?
        <Use id="cause_mapping2" ref="cause_mapping" />
      </RightPane>
    </SplitPanel>
-    
   <Vertical id="dropout_factor_combos">  
    <CheckboxInput id="dropout_factor_checkboxes">
     <Key value="0">
@@ -146,7 +145,6 @@ graph LR
 graph LR
     C1[Family and Peer Factors] --> C2[Students Working Long Hours]
     C2 --> C1
-    
     style C1 fill:#e1f5ff
     style C2 fill:#e1f5ff
 ]]>
@@ -205,7 +203,7 @@ graph LR
     </Mermaid>
     <Mermaid id="cause_connection_4"><![CDATA[
 graph LR
-    C2[Family and Peer Factors] --> C3[Equitable School Funding]
+    C3[Equitable School Funding] --> C2[Students Working Long Hours]
     
     style C2 fill:#e1f5ff
     style C3 fill:#e1f5ff
@@ -221,7 +219,7 @@ graph LR
     </Mermaid>
   </Vertical>
 
-  <SplitPanel id="factors_2_to_3">
+  <SplitPanel id="factors_1_to_4">
    <LeftPane>
      <Markdown>## Mapping Causes of High School Dropout</Markdown>
      <Use id="cause_connection_3b" ref="cause_connection_3" />
@@ -251,6 +249,152 @@ graph LR
     </RightPane>
   </SplitPanel>
 
+  <SplitPanel id="cause_connection_3_explanation_choice">
+   <LeftPane>
+    <Markdown>&nbsp;
+    
+    **Select the best sentences to use in the summary.**</Markdown>
+    <ChoiceInput id="cause_connection_3_explanation_choice_input">
+      <Distractor>
+Family factors can affect students who are at risk of dropping out due to ADHD status.
+      </Distractor>
+      <Distractor>
+          <Ref target="cause_connection_3_explanation" />
+      </Distractor>
+      <Key><TextBlock id="factor_connection_1_key">
+It may be harder to locate and afford needed services for a student with ADHD if
+the family has limited assets or is influenced by other family characteristics,
+such as the presence of both parents or maternal education, which are reported by
+research as key determinants.
+      </TextBlock></Key>
+    </ChoiceInput>
+    <Markdown>
+    &nbsp;
+    
+    **Why did you choose the sentence you picked?**</Markdown>
+    <TextArea id="cause_connection_3_choice_explanation" 
+              placeholder="Put your answer here..." /> 
+   </LeftPane>
+   <RightPane>
+    <Use ref="cause_mapping_3" />
+   </RightPane>
+  </SplitPanel>
+  
+  <SplitPanel id="factors_2_to_3">
+   <LeftPane>
+    <Use ref="cause_connection_4" />
+    <Markdown>
+    **Explain the connection between long working hours and equitable school funding**</Markdown>
+    <TextArea id="cause_connection_4_explanation" 
+              placeholder="Put your answer here..." /> 
+   </LeftPane>
+   <RightPane>
+    <Use ref="cause_mapping_3" />
+   </RightPane>
+  </SplitPanel>
+
+
+
+  <SplitPanel id="cause_connection_4_explanation_choice">
+   <LeftPane>
+    <Markdown>**Select the best sentences to use in the summary.**</Markdown>
+    <ChoiceInput id="cause_connection_4_explanation_choice_input">
+      <Distractor>
+          <Ref target="cause_connection_4_explanation" />
+      </Distractor>
+      <Distractor>
+Equitable school funding is related to long working hours.
+      </Distractor>
+      <Key><TextBlock id="factor_connection_2_key">
+Equitably funded schools -- especially those in underfunded districts
+serving disproportionately large numbers of vulnerable student populations --
+are more likely to be able to provide the supports and flexibility
+needed by students who must work long hours.
+      </TextBlock></Key>
+    </ChoiceInput>
+    <Markdown>
+    &nbsp;
+    
+    **Why did you choose the sentence you picked?**</Markdown>
+    <TextArea id="cause_connection_4_choice_explanation" 
+              placeholder="Put your answer here..." /> 
+   </LeftPane>
+   <RightPane>
+    <Use ref="cause_mapping_3" />
+   </RightPane>
+  </SplitPanel>
+
+  <SplitPanel id="factors_3_to_4">
+   <LeftPane>
+    <Use ref="cause_connection_5" />
+    <Markdown>
+    **Explain how these two factors are related**</Markdown>
+    <TextArea id="cause_connection_5_explanation" 
+              placeholder="Put your answer here..." /> 
+   </LeftPane>
+   <RightPane>
+    <Use ref="cause_mapping_3" />
+   </RightPane>
+  </SplitPanel>
+
+
+
+  <SplitPanel id="cause_connection_5_explanation_choice">
+   <LeftPane>
+    <Markdown>**Select the best sentences to use in the summary.**</Markdown>
+    <ChoiceInput id="cause_connection_5_explanation_choice_input">
+      <Distractor>
+Students with psychological conditions like ADHD are more likely to drop
+out of high school than their peers with ADHD.
+      </Distractor>
+      <Key><TextBlock id="factor_connection_3_key">
+Schools may not be able to support students who require significant accommodations
+and supports due to a psychological condition like ADHD or a learning disability
+without adequate resources.
+      </TextBlock></Key>
+      <Distractor>
+          <Ref target="cause_connection_5_explanation" />
+      </Distractor>
+    </ChoiceInput>
+    <Markdown>
+    &nbsp;
+    
+    **Why did you choose the sentence you picked?**</Markdown>
+    <TextArea id="cause_connection_5_choice_explanation" 
+              placeholder="Put your answer here..." /> 
+   </LeftPane>
+   <RightPane>
+    <Use ref="cause_mapping_3" />
+   </RightPane>
+  </SplitPanel>
+  
+  <Vertical id="overview_of_connections">
+    <SplitPanel id="comparison_1">
+      <LeftPane>
+        <Use id="cause_connection_3b" ref="cause_connection_3" />
+      </LeftPane>
+      <RightPane>
+        <Use id="factor_connection_1_key_b" ref="factor_connection_1_key" />
+      </RightPane>
+    </SplitPanel>
+    <SplitPanel id="comparison_2">
+      <LeftPane>
+        <Use id="cause_connection_4b" ref="cause_connection_4" />
+      </LeftPane>
+      <RightPane>
+        <Use id="factor_connection_2_key_b" ref="factor_connection_2_key" />
+      </RightPane>
+    </SplitPanel>
+    <SplitPanel id="comparison_3">
+      <LeftPane>
+        <Use id="cause_connection_5b" ref="cause_connection_5" />
+      </LeftPane>
+      <RightPane>
+        <Use id="factor_connection_3_key_b" ref="factor_connection_3_key" />
+      </RightPane>
+    </SplitPanel>
+  </Vertical>
+  
 </Vertical>
 </Cast>
 
