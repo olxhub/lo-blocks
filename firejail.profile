@@ -20,6 +20,12 @@ ignore noexec ${HOME}
 # Allow /usr/bin/env to find node (needed for shebang scripts)
 noblacklist /usr/bin/env
 
+# Allow node/npm/npx (blacklisted by disable-shell.inc)
+noblacklist /usr/bin/node
+noblacklist /usr/local/bin/node
+noblacklist /usr/bin/npm
+noblacklist /usr/bin/npx
+
 # Common whitelist includes
 include whitelist-usr-share-common.inc
 include whitelist-var-common.inc
