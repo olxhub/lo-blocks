@@ -48,7 +48,6 @@
   padding: var(--lo-space-md) var(--lo-space-lg);
   font-weight: 500;
   color: var(--lo-text);
-  white-space: nowrap;
 }
 
 /* Selection cells */
