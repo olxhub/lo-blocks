@@ -7,6 +7,7 @@ import { xml } from '@codemirror/lang-xml';
 import { markdown } from '@codemirror/lang-markdown';
 import { yaml } from '@codemirror/lang-yaml';
 import { javascript } from '@codemirror/lang-javascript';
+import { indentService } from '@codemirror/language';
 import { linter, lintGutter, Diagnostic } from '@codemirror/lint';
 import { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
@@ -326,6 +327,17 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
     // Language extension (syntax highlighting)
     const langExt = getLanguageExtension(effectiveLanguage);
     if (langExt) exts.push(langExt);
+
+    // For XML/OLX, override auto-indentation: just preserve the previous
+    // line's indentation instead of indenting based on element nesting.
+    // Literate XML is formatted around content, not around tag hierarchy.
+    if (effectiveLanguage === 'xml' || effectiveLanguage === 'olx') {
+      exts.push(indentService.of((context, pos) => {
+        const line = context.lineAt(pos);
+        if (line.from > 0) return context.lineIndent(line.from - 1);
+        return 0;
+      }));
+    }
 
     // PEG content files: parse with the specific parser for inline errors
     if (isPegContent && ext) {
