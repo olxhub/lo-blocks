@@ -90,6 +90,13 @@ lang: en-Latn-US
   description: Relationship between funding inequality and african american dropout rates
   ref: source_4_highlights
 
+
+- id: funding_study2
+  title: The  Effects  of  School  Spending  on  Educational  and  Economic  Outcomes 
+  subtitle: Evidence  from  School  Finance  Reforms  - Jackson et al. (2016)
+  description: Relationship between school funding and adult outcomes
+  ref: reading_funding2
+
 - id: marijuana_study
   title: Marijuana Use and Dropout
   subtitle: Health Economics - McCaffrey et al. (2010)
@@ -121,7 +128,10 @@ lang: en-Latn-US
     <Markdown id="adhd_study_text_md2" src="readings/research_study_adhd_dropout.md" />
   </Annotate>
   <Markdown id="reading_marijuana" src="readings/research_study_marijuana_dropout.md"/>
-  <Markdown id="reading_policy" src="readings/policy_brief_dropout_crisis.md"/>
+    <Markdown id="reading_policy2" src="readings/policy_brief_dropout_crisis.md"/>
+  <Annotate id="reading_funding2a">
+    <Markdown id="reading_funding2b" src="readings/research_study_school_funding.md"/>
+  </Annotate>
   <Markdown id="reading_focus_group" src="readings/focus_group_silent_epidemic_excerpts.md"/>
 </Hidden>
 

@@ -90,14 +90,6 @@ Why did you choose this answer?
    </SplitPanel>
   <Vertical id="dropout_factor_combos">  
    <CheckboxInput id="dropout_factor_checkboxes">
-    <Key value="0">
-      <Markdown>
-**Family and Peer Factors** | **Students Working Long Hours**
-      </Markdown>
-      <TextBlock>I would like to use an IntakeGate here to only display this textarea if this option is checked.
-               Right now, I can't find a way to do this!</TextBlock>
-      <TextArea id="dropout_factor_combo_1_explanation" placeholder="How you think the two factors might interact, if they do..." />       
-    </Key>
     <Key value="1">
       <Markdown>
 **Family and Peer Factors** | **Equitable School Funding**
@@ -129,26 +121,48 @@ Why did you choose this answer?
       <TextArea id="dropout_factor_combo_6_explanation" placeholder="How you think the two factors might interact, if they do..." />       
     </Key>
    </CheckboxInput>
-   <StateViewer target="dropout_factor_checkboxes" />
   </Vertical>
-  <TextBlock id="content_for_mermaid1">graph LR
+
+  <Vertical id="revise_dropout_cause_diagram">
+    <Markdown> 
+**Edit the diagram in the editor below so that it shows the connections
+you chose on the last screen.** 
+
+_The graph shown updates as you type. To avoid getting into trouble,
+do not change the text that is already there, just
+add extra connections. For example, to create a link
+from "Students Working Long Hours" to "Equitable
+School Funding", type this on its own line, just under the other
+arrow connections:_
+
+C2-->C4
+
+_(note that to type the arrow, type two hyphens - - followed by a right angle bracket >)_
+    </Markdown>
+    <SplitPanel id="MermaidPublishDemo2" title="Update your diagram">
+     <LeftPane>
+      <TextArea id="editor" rows="18">
+graph LR
     C1[Family and Peer Factors] --> D1[Dropping out of high school]
     C2[Students Working Long Hours] --> D1
     C3[Equitable School Funding] --> D1
     C4[ADHD Status] --> D1
-  </TextBlock>
-  <TextBlock id="content_for_mermaid2">
+    C1 --> C2
+    C2 --> C1
+
     style C1 fill:#e1f5ff
     style C2 fill:#e1f5ff
     style C3 fill:#e1f5ff
     style C4 fill:#e1f5ff
     style D1 fill:#fff4e1
-  </TextBlock>
-
-  <Mermaid id="cause_mapping_insert"><![CDATA[
-        {{@content_for_mermaid1.value}}
-        {{@content_for_mermaid2.value}}
-    ]] />
+      </TextArea>
+    </LeftPane>
+    <RightPane>
+      <Mermaid target="editor" />
+    </RightPane>
+   </SplitPanel>
+  </Vertical>
+   
  <Mermaid id="cause_connection_1"><![CDATA[
 graph LR
     C1[Family and Peer Factors] --> C2[Students Working Long Hours]
@@ -268,8 +282,8 @@ graph LR
 
   <SplitPanel id="cause_connection_3_explanation_choice">
    <LeftPane>
-    <Markdown>&nbsp;
-    
+    <Use id="cause_connection_3c" ref="cause_connection_3" />
+    <Markdown>
     **Select the best sentences to use in the summary.**</Markdown>
     <ChoiceInput id="cause_connection_3_explanation_choice_input">
       <Distractor>
@@ -299,7 +313,7 @@ research as key determinants.
   
   <SplitPanel id="factors_2_to_3">
    <LeftPane>
-    <Use ref="cause_connection_4" />
+    <Use id="cause_connection_4a" ref="cause_connection_4" />
     <Markdown>
     **Explain the connection between long working hours and equitable school funding**</Markdown>
     <TextArea id="cause_connection_4_explanation" 
@@ -310,10 +324,9 @@ research as key determinants.
    </RightPane>
   </SplitPanel>
 
-
-
   <SplitPanel id="cause_connection_4_explanation_choice">
    <LeftPane>
+    <Use id="cause_connection_4b" ref="cause_connection_4" />
     <Markdown>**Select the best sentences to use in the summary.**</Markdown>
     <ChoiceInput id="cause_connection_4_explanation_choice_input">
       <Distractor>
@@ -343,7 +356,7 @@ needed by students who must work long hours.
 
   <SplitPanel id="factors_3_to_4">
    <LeftPane>
-    <Use ref="cause_connection_5" />
+    <Use id="cause_connection_5a" ref="cause_connection_5" />
     <Markdown>
     **Explain how these two factors are related**</Markdown>
     <TextArea id="cause_connection_5_explanation" 
@@ -354,10 +367,9 @@ needed by students who must work long hours.
    </RightPane>
   </SplitPanel>
 
-
-
   <SplitPanel id="cause_connection_5_explanation_choice">
    <LeftPane>
+    <Use id="cause_connection_5a" ref="cause_connection_5" />
     <Markdown>**Select the best sentences to use in the summary.**</Markdown>
     <ChoiceInput id="cause_connection_5_explanation_choice_input">
       <Distractor>
@@ -412,6 +424,34 @@ without adequate resources.
     </SplitPanel>
   </Vertical>
   
+  <Vertical id="reading_funding_text">
+    <Markdown>
+**Select words or phrases that cue a specific discipline. Takes notes explaining which disciplines they cue, and why.**
+    </Markdown>
+    <Use ref="reading_funding2a" />
+  </Vertical>
+  
+    <!-- Employment Study (Source 2) - identify disciplines -->
+    <Tabs id="reading_funding_checkboxes">
+      <Vertical id="reading_funding_t1" title="Identify Relevant Disciplines">
+         <Markdown>
+**Select all disciplines represented in this study:**
+         </Markdown>
+         <CheckboxInput id="reading_funding_classification">
+           <Distractor id="rf_health">Health Sciences</Distractor>
+           <Distractor id="rf_bio">Biology</Distractor>
+           <Key id="rf_psych">Psychology</Key>
+           <Key id="rf_soc">Sociology</Key>
+           <Key id="rf_econ">Economics</Key>
+           <Distractor id="rf_polisci">Political Science</Distractor>
+         </CheckboxInput>
+      </Vertical>
+      <Vertical id="reading_funding_t2" title="School Funding Study">
+          <Use ref="reading_funding_text" />
+      </Vertical>
+    </Tabs> 
+  
+    <Markdown id="reading_funding_highlighted" src="readings/research_study_school_funding_highlighted.md" />
 </Vertical>
 </Cast>
 

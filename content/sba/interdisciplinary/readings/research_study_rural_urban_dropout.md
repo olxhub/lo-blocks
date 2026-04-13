@@ -4,7 +4,15 @@
 
 **Authors:** Jeffrey L. Jordan, Genti Kostandini, Elton Mykerezi
 
-**Journal:** Journal of Research in Rural Education **Publication Year:** 2012 **Volume:** 27 **Issue:** 12 **Pages:** 1-21
+**Journal:** Journal of Research in Rural Education
+
+**Publication Year:** 2012
+
+**Volume:** 27
+
+**Issue:** 12
+
+**Pages:** 1-21
 
 ## Abstract
 
