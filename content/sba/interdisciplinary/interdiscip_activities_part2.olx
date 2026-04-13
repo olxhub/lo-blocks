@@ -131,8 +131,25 @@ Why did you choose this answer?
    </CheckboxInput>
    <StateViewer target="dropout_factor_checkboxes" />
   </Vertical>
+  <TextBlock id="content_for_mermaid1">graph LR
+    C1[Family and Peer Factors] --> D1[Dropping out of high school]
+    C2[Students Working Long Hours] --> D1
+    C3[Equitable School Funding] --> D1
+    C4[ADHD Status] --> D1
+  </TextBlock>
+  <TextBlock id="content_for_mermaid2">
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+    style C3 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+    style D1 fill:#fff4e1
+  </TextBlock>
 
-  <Mermaid id="cause_connection_1"><![CDATA[
+  <Mermaid id="cause_mapping_insert"><![CDATA[
+        {{@content_for_mermaid1.value}}
+        {{@content_for_mermaid2.value}}
+    ]] />
+ <Mermaid id="cause_connection_1"><![CDATA[
 graph LR
     C1[Family and Peer Factors] --> C2[Students Working Long Hours]
 
