@@ -102,7 +102,7 @@ export default function _TabularMCQ(props: RuntimeProps) {
       <table>
         <thead>
           <tr>
-            <th></th>
+            <th>{props.title}</th>
             {cols.map((col, colIndex) => (
               <th key={col.id || colIndex}>
                 {col.text}

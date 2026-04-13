@@ -1,4 +1,14 @@
-<TabularMCQ id="scored_demo">
-  cols: Strongly Disagree|-2, Disagree|-1, Neutral|0, Agree|1, Strongly Agree|2
-  rows: I enjoy meeting new people|extrovert_1, I prefer quiet evenings|introvert_1
+<TabularMCQ id="scored_demo" title="Freire, Pedagogy of the Oppressed (1970)">
+cols: Strongly Disagree|-2, Disagree|-1, Neutral|0, Agree|1, Strongly Agree|2
+rows:
+  - The teacher teaches and the students are taught|taught
+  - The teacher knows everything and the students know nothing|knows
+  - The teacher thinks and the students are thought about|thinks
+  - The teacher talks and the students listen — meekly|talks
+  - The teacher disciplines and the students are disciplined|disciplines
+  - "The teacher chooses and enforces his choice, and the students comply|chooses"
+  - The teacher acts and the students have the illusion of acting through the action of the teacher|acts
+  - "The teacher chooses the program content, and the students (who were not consulted) adapt to it|content"
+  - "The teacher confuses the authority of knowledge with his or her own professional authority, which she and he sets in opposition to the freedom of the students|authority"
+  - "The teacher is the Subject of the learning process, while the pupils are mere objects|subject"
 </TabularMCQ>

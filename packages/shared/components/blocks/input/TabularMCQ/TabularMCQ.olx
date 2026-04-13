@@ -1,4 +1,4 @@
 <TabularMCQ id="demo">
-  cols: Love, Like, Neutral, Dislike, Hate
-  rows: Jim, Sue, Bob, Alice
+cols: Not useful, Slightly useful, Useful, Very useful
+rows: Readings, Lectures, Discussion sections, Problem sets
 </TabularMCQ>

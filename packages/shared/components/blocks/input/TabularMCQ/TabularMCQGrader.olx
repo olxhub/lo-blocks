@@ -1,8 +1,20 @@
-<CapaProblem id="parts_of_speech_quiz" title="Parts of Speech">
+<CapaProblem id="freire_quiz" title="Banking vs. Problem-Posing Education">
   <TabularMCQGrader>
-    <TabularMCQ id="parts_of_speech">
-      cols: Noun, Verb, Adjective
-      rows: Dog[Noun], Run[Verb], Happy[Adjective]
+    <TabularMCQ id="freire_classify" title="Freire, Pedagogy of the Oppressed (1970)">
+cols: Banking, Problem-Posing
+rows:
+  - Mythicizes reality to conceal certain facts|mythicize[Banking]
+  - Sets itself the task of demythologizing|demythologize[Problem-Posing]
+  - Resists dialogue|resists_dialogue[Banking]
+  - Regards dialogue as indispensable to the act of cognition|dialogue[Problem-Posing]
+  - Treats students as objects of assistance|objects[Banking]
+  - Makes students critical thinkers|critical[Problem-Posing]
+  - Inhibits creativity and domesticates consciousness|inhibit[Banking]
+  - Stimulates true reflection and action upon reality|reflection[Problem-Posing]
+  - "Denies people their ontological and historical vocation of becoming more fully human|denies[Banking]"
+  - "Responds to the vocation of persons as beings who are authentic only when engaged in inquiry and creative transformation|responds[Problem-Posing]"
+  - Fails to acknowledge men and women as historical beings|fails[Banking]
+  - Takes people's historicity as its starting point|historicity[Problem-Posing]
     </TabularMCQ>
   </TabularMCQGrader>
 </CapaProblem>
