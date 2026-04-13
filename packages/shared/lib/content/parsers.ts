@@ -793,7 +793,7 @@ export function yamlParser(schema: z.ZodType) {
         : (parseError.message || String(parseError));
 
       const errorObj: OLXLoadingError = {
-        type: 'peg_error' as const,  // Reuse existing error type for compatibility
+        type: 'parse_error' as const,
         summary: `YAML parse error in ${prov.join(' → ')}`,
         message,
         location: {

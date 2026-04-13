@@ -18,8 +18,8 @@ export default function _TabularMCQ(props: RuntimeProps) {
   // Show answer support - displayAnswer is { rowId: correctColIndex }
   const { showAnswer, displayAnswer } = useGraderAnswer(props);
 
-  // Check for PEG parsing failure (ErrorNode)
-  if (props.parseError || (kids && kids.type === 'peg_error')) {
+  // Check for parse failure (YAML or validation error)
+  if (props.parseError || (kids && (kids.type === 'peg_error' || kids.type === 'parse_error'))) {
     return (
       <DisplayError
         props={props}
@@ -30,14 +30,14 @@ export default function _TabularMCQ(props: RuntimeProps) {
     );
   }
 
-  // peggyParser always produces { type: 'parsed', parsed: {...} }
+  // Parser produces { type: 'parsed', parsed: {...} }
   if (!kids || !kids.parsed) {
     return (
       <DisplayError
         props={props}
         name="TabularMCQ Error"
         message="No content provided"
-        technical={`Expected PEG syntax inside <TabularMCQ>:\ncols: Col1, Col2, Col3\nrows: Row1, Row2, Row3\n\nReceived: ${JSON.stringify(kids, null, 2)}`}
+        technical={`Expected YAML content inside <TabularMCQ>:\ncols: Col1, Col2, Col3\nrows: Row1, Row2, Row3\n\nReceived: ${JSON.stringify(kids, null, 2)}`}
       />
     );
   }

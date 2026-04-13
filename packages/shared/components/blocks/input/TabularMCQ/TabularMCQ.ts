@@ -61,7 +61,14 @@ function splitBracketSuffix(s: string): [string, string | null] {
 
 // --- Item transforms ---
 
-/** Parse pipe suffix from text as id or numeric value. Skips if id/value already set. */
+/**
+ * Parse pipe suffix from text. Skips if id/value already set.
+ *
+ * The suffix is always the id. Numeric suffixes also set value (e.g. for Likert scoring).
+ *   "Agree|2"         → { text: "Agree", id: "2", value: 2 }
+ *   "Agree|agree_col" → { text: "Agree", id: "agree_col" }
+ *   "Agree"           → { text: "Agree", id: "agree" }  (auto-derived)
+ */
 function parseColItem(item: { text: string; id?: string; value?: number }) {
   if (item.id !== undefined || item.value !== undefined) {
     return { text: item.text, id: item.id ?? toId(item.text), value: item.value };
@@ -69,13 +76,19 @@ function parseColItem(item: { text: string; id?: string; value?: number }) {
   const [text, suffix] = splitPipeSuffix(item.text);
   if (suffix !== null) {
     const num = parseFloat(suffix);
-    if (!isNaN(num)) return { text, id: toId(text), value: num };
+    if (!isNaN(num)) return { text, id: suffix, value: num };
     return { text, id: suffix };
   }
   return { text, id: toId(text) };
 }
 
-/** Parse pipe (id) and bracket (answer) suffixes from text. Skips if already set. */
+/**
+ * Parse pipe (id) and bracket (answer) suffixes from text. Skips if already set.
+ *
+ * Bracket is extracted first so that "Label|id[answer]" splits correctly:
+ * bracket gives ["Label|id", "answer"], then pipe gives ["Label", "id"].
+ * This works because ']' cannot appear in a pipe suffix.
+ */
 function parseRowItem(item: { text: string; id?: string; answer?: string | null }) {
   if (item.id !== undefined || item.answer !== undefined) {
     return { text: item.text, id: item.id ?? toId(item.text), answer: item.answer ?? null };
@@ -107,10 +120,70 @@ const rowInput = z.union([
   z.object({ text: z.string(), id: z.string().optional(), answer: z.string().nullable().optional() }),
 ]).transform(parseRowItem);
 
+/** Match an answer string against column text or id */
+function findColIndex(cols: { text: string; id: string }[], answer: string): number {
+  return cols.findIndex(c => c.text === answer || c.id === answer);
+}
+
 const tabularMCQSchema = z.object({
   mode: z.enum(['radio', 'checkbox']).optional().default('radio'),
   cols: commaList.pipe(z.array(colInput)),
   rows: commaList.pipe(z.array(rowInput)),
+}).superRefine((data, ctx) => {
+  // Validate no empty IDs (e.g., from "Foo|" typo)
+  data.cols.forEach((col, i) => {
+    if (!col.id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['cols', i],
+        message: `Column "${col.text}" has an empty id — remove the trailing "|" or provide an id`,
+      });
+    }
+  });
+
+  data.rows.forEach((row, i) => {
+    if (!row.id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['rows', i],
+        message: `Row "${row.text}" has an empty id — remove the trailing "|" or provide an id`,
+      });
+    }
+    if (row.answer !== null && !row.answer) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['rows', i],
+        message: `Row "${row.text}" has empty brackets "[]" — remove them or provide an answer`,
+      });
+    }
+  });
+
+  // Validate row IDs are unique
+  const seenIds = new Set<string>();
+  data.rows.forEach((row, i) => {
+    if (seenIds.has(row.id)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['rows', i],
+        message: `Duplicate row id "${row.id}" — add explicit |id suffixes to disambiguate`,
+      });
+    }
+    seenIds.add(row.id);
+  });
+
+  // Validate answers reference actual columns (case-insensitive)
+  data.rows.forEach((row, i) => {
+    if (!row.answer) return;
+    const numAnswer = parseInt(row.answer, 10);
+    if (!isNaN(numAnswer) && numAnswer >= 0 && numAnswer < data.cols.length) return;
+    if (findColIndex(data.cols, row.answer) >= 0) return;
+    const colNames = data.cols.map(c => c.text).join(', ');
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['rows', i],
+      message: `Answer "${row.answer}" does not match any column. Available columns: ${colNames}`,
+    });
+  });
 });
 
 // === Block Definition ===
@@ -172,14 +245,13 @@ const TabularMCQ = core({
       const answers = {};
       rows.forEach(row => {
         if (row.answer !== null) {
-          // Answer can be column label/id or index
+          // Answer can be column index or label/id (case-insensitive)
           let colIdx;
           const numAnswer = parseInt(row.answer, 10);
           if (!isNaN(numAnswer) && numAnswer >= 0 && numAnswer < cols.length) {
             colIdx = numAnswer;
           } else {
-            // Find by text or id
-            colIdx = cols.findIndex(c => c.text === row.answer || c.id === row.answer);
+            colIdx = findColIndex(cols, row.answer);
           }
           if (colIdx >= 0) {
             answers[row.id] = colIdx;
