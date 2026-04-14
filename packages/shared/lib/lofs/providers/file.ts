@@ -29,7 +29,7 @@ import { fileTypes } from '../fileTypes';
 import type { JSONValue } from '../../types';
 
 /** Content file extensions recognized by the storage provider. */
-const CONTENT_EXTENSIONS = ['.xml', '.olx', '.md', ...pegExts.map(e => `.${e}`), ...EXT.mermaid.map(ext => `.${ext}`)];
+const CONTENT_EXTENSIONS = ['.xml', '.olx', '.md', '.cast', ...pegExts.map(e => `.${e}`), ...EXT.mermaid.map(ext => `.${ext}`)];
 
 /**
  * FileStorageProvider-specific metadata structure.
