@@ -15,11 +15,11 @@ export default function _TabularMCQ(props: RuntimeProps) {
   // State: { rowId: colIndex } for radio, { rowId: [colIndex, ...] } for checkbox
   const [value, setValue] = useFieldState(props, fields.value, {});
 
-  // Show answer support - displayAnswer is { rowId: correctColIndex }
+  // Show answer support - displayAnswer is { rowId: number[] }
   const { showAnswer, displayAnswer } = useGraderAnswer(props);
 
-  // Check for PEG parsing failure (ErrorNode)
-  if (props.parseError || (kids && kids.type === 'peg_error')) {
+  // Check for parse failure (YAML or validation error)
+  if (props.parseError) {
     return (
       <DisplayError
         props={props}
@@ -30,14 +30,14 @@ export default function _TabularMCQ(props: RuntimeProps) {
     );
   }
 
-  // peggyParser always produces { type: 'parsed', parsed: {...} }
+  // Parser produces { type: 'parsed', parsed: {...} }
   if (!kids || !kids.parsed) {
     return (
       <DisplayError
         props={props}
         name="TabularMCQ Error"
         message="No content provided"
-        technical={`Expected PEG syntax inside <TabularMCQ>:\ncols: Col1, Col2, Col3\nrows: Row1, Row2, Row3\n\nReceived: ${JSON.stringify(kids, null, 2)}`}
+        technical={`Expected YAML content inside <TabularMCQ>:\ncols: Col1, Col2, Col3\nrows: Row1, Row2, Row3\n\nReceived: ${JSON.stringify(kids, null, 2)}`}
       />
     );
   }
@@ -102,7 +102,7 @@ export default function _TabularMCQ(props: RuntimeProps) {
       <table>
         <thead>
           <tr>
-            <th></th>
+            <th>{props.title}</th>
             {cols.map((col, colIndex) => (
               <th key={col.id || colIndex}>
                 {col.text}
@@ -116,9 +116,12 @@ export default function _TabularMCQ(props: RuntimeProps) {
               <td>{row.text}</td>
               {cols.map((col, colIndex) => {
                 const inputId = `${props.id}-${row.id}-${colIndex}`;
-                const isCorrectCell = showAnswer && displayAnswer?.[row.id] === colIndex;
+                const correctIndices = showAnswer ? displayAnswer?.[row.id] : undefined;
+                const isCorrectCell = correctIndices !== undefined && correctIndices.includes(colIndex);
+                const isWrongSelection = correctIndices !== undefined && !isCorrectCell && isChecked(row.id, colIndex);
+                const cellClass = isCorrectCell ? 'tabular-mcq-correct' : isWrongSelection ? 'tabular-mcq-wrong' : '';
                 return (
-                  <td key={col.id || colIndex} className={isCorrectCell ? 'tabular-mcq-correct' : ''}>
+                  <td key={col.id || colIndex} className={cellClass}>
                     <label htmlFor={inputId}>
                       <input
                         id={inputId}

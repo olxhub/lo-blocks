@@ -724,6 +724,115 @@ export function peggyParser(
   return { parser, staticKids: () => [] };
 }
 
+// === YAML + Zod Support ===
+//
+// For blocks with simple structured content (key-value config), YAML is a
+// natural fit. Combined with a Zod schema for validation and transforms,
+// this replaces PEG grammars for formats that are essentially "a few fields
+// with lists." The Zod schema can do things like split comma-separated
+// strings into arrays (idempotently — already-arrays pass through), parse
+// suffixes, and provide clear validation errors.
+//
+// See TabularMCQ for the canonical example.
+
+/**
+ * YAML+Zod parser adapter for content inside OLX blocks.
+ *
+ * Extracts text content from the block, parses it as YAML, then validates
+ * and transforms the result through a Zod schema. The output is stored
+ * in the standard `{ type: 'parsed', parsed }` kids structure.
+ *
+ * @param schema - Zod schema to validate/transform the parsed YAML
+ */
+export function yamlParser(schema: z.ZodType) {
+  async function parser({
+    id,
+    rawParsed,
+    tag,
+    attributes,
+    provenance,
+    provider,
+    storeEntry,
+    errors,
+    metadata
+  }) {
+    const tagParsed = rawParsed[tag];
+    const kids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
+
+    let prov = provenance;
+    let textContent: string;
+    if (attributes?.src) {
+      const loaded = await loadExternalSource({ src: attributes.src, provider, provenance });
+      textContent = loaded.text;
+      prov = loaded.provenance;
+    } else {
+      const extracted = extractTextFromXmlNodes(kids, { preserveWhitespace: true });
+      textContent = typeof extracted === 'string' ? extracted : extracted.text;
+    }
+
+    let entry;
+    try {
+      const { default: yaml } = await import('js-yaml');
+      const raw = yaml.load(textContent);
+      const parsed = schema.parse(raw);
+
+      entry = {
+        id,
+        tag,
+        attributes,
+        provenance: prov,
+        rawParsed,
+        kids: { type: 'parsed', parsed },
+        ...(metadata || {})
+      };
+    } catch (parseError) {
+      // Zod errors have a nice .issues array; YAML errors have .mark with line/column
+      const isZod = parseError?.issues !== undefined;
+      const message = isZod
+        ? parseError.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ')
+        : (parseError.message || String(parseError));
+
+      const errorObj: OLXLoadingError = {
+        type: 'parse_error' as const,
+        summary: `YAML parse error in ${prov.join(' → ')}`,
+        message,
+        location: {
+          provenance: prov,
+          line: parseError.mark?.line != null ? parseError.mark.line + 1 : undefined,
+          column: parseError.mark?.column != null ? parseError.mark.column + 1 : undefined,
+        },
+        technical: {
+          name: parseError.name,
+          originalTag: tag,
+          originalId: id,
+          ...(isZod ? { zodIssues: parseError.issues } : {}),
+          fullError: parseError
+        }
+      };
+
+      entry = {
+        id,
+        tag: 'ErrorNode',
+        attributes,
+        provenance: prov,
+        rawParsed,
+        kids: errorObj,
+        parseError: true,
+        ...(metadata || {})
+      };
+
+      if (typeof errors !== 'undefined' && Array.isArray(errors)) {
+        errors.push(errorObj);
+      }
+    }
+
+    storeEntry(id, entry);
+    return id;
+  }
+
+  return { parser, staticKids: () => [] };
+}
+
 // === Asset Source Parser ===
 //
 // Reusable parser for blocks that reference content files via `src`

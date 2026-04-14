@@ -48,7 +48,6 @@
   padding: var(--lo-space-md) var(--lo-space-lg);
   font-weight: 500;
   color: var(--lo-text);
-  white-space: nowrap;
 }
 
 /* Selection cells */
@@ -97,14 +96,59 @@
   background-color: var(--lo-primary-subtle);
 }
 
-/* Show answer - correct cell highlight */
-.tabular-mcq tbody td.tabular-mcq-correct {
-  background-color: var(--lo-success-subtle);
-  border-color: var(--lo-success);
+/*
+ * Show answer — three independent channels:
+ *   Radio/checkbox = what the student picked
+ *   Green ring     = which answer is correct
+ *   ✓/✗ + background = whether the student got it right
+ *
+ *   Correct + selected   → ✓ green, blue bg   (got it right)
+ *   Correct + unselected → ✗ red,   green bg  (missed correct answer)
+ *   Wrong + selected     → ✗ red,   red bg    (wrong pick)
+ */
+
+/* Green ring around the input in correct cells */
+.tabular-mcq tbody td.tabular-mcq-correct input {
+  box-shadow: 0 0 0 3px var(--lo-success);
+  border-radius: 50%;
 }
 
-.tabular-mcq tbody td.tabular-mcq-correct label {
+/* ✓/✗ performance indicator next to input */
+.tabular-mcq tbody td.tabular-mcq-correct label::after,
+.tabular-mcq tbody td.tabular-mcq-wrong label::after {
+  margin-inline-start: var(--lo-space-xs);
+  font-weight: bold;
+  font-size: var(--lo-font-size-lg);
+}
+
+/* Correct + selected = got it right ✓ */
+.tabular-mcq tbody td.tabular-mcq-correct label:has(input:checked) {
+  background-color: var(--lo-primary-subtle);
+}
+
+.tabular-mcq tbody td.tabular-mcq-correct label:has(input:checked)::after {
+  content: '\2713';  /* ✓ */
+  color: var(--lo-success);
+}
+
+/* Correct + unselected = missed correct answer ✗ */
+.tabular-mcq tbody td.tabular-mcq-correct label:not(:has(input:checked)) {
   background-color: var(--lo-success-subtle);
+}
+
+.tabular-mcq tbody td.tabular-mcq-correct label:not(:has(input:checked))::after {
+  content: '\2717';  /* ✗ */
+  color: var(--lo-error);
+}
+
+/* Wrong selection ✗ */
+.tabular-mcq tbody td.tabular-mcq-wrong label {
+  background-color: var(--lo-error-subtle);
+}
+
+.tabular-mcq tbody td.tabular-mcq-wrong label::after {
+  content: '\2717';  /* ✗ */
+  color: var(--lo-error);
 }
 
 /* Disabled state (for future use) */

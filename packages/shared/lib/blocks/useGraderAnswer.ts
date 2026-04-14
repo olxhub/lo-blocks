@@ -154,7 +154,7 @@ export function useGraderAnswer(props: RuntimeProps) {
   // When no grader exists and component has no fields, create a dummy field for hook compliance
   const fallbackField = props.fields?.value ?? { scope: 'component', name: 'showAnswer' };
   const graderReduxKey = refToReduxKey({ ...props, id: graderId || props.id });
-  const showAnswer = useFieldSelector(
+  const showAnswer = useFieldSelector<boolean>(
     props,
     showAnswerField || fallbackField,
     {
@@ -170,7 +170,7 @@ export function useGraderAnswer(props: RuntimeProps) {
   const { olxJson: graderInstance } = useOlxJson(props, graderId);
 
   // Get displayAnswer from grader's blueprint when showAnswer is true
-  let displayAnswer = undefined;
+  let displayAnswer: any = undefined;
   let slot: string | undefined = undefined;
 
   if (showAnswer && graderId && graderInstance) {

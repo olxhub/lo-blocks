@@ -1,8 +1,12 @@
-<CapaProblem id="parts_of_speech_quiz" title="Parts of Speech">
+<CapaProblem id="freire_quiz" title="Banking vs. Problem-Posing Education">
   <TabularMCQGrader>
-    <TabularMCQ id="parts_of_speech">
-      cols: Noun, Verb, Adjective
-      rows: Dog[Noun], Run[Verb], Happy[Adjective]
+    <TabularMCQ id="freire_classify" title="Freire, Pedagogy of the Oppressed (1970)">
+cols: Banking, Problem-Posing
+rows:
+  - Resists dialogue|resists_dialogue[Banking]
+  - Makes students critical thinkers|critical[Problem-Posing]
+  - Inhibits creativity and domesticates consciousness|inhibit[Banking]
+  - Regards dialogue as indispensable to the act of cognition|dialogue[Problem-Posing]
     </TabularMCQ>
   </TabularMCQGrader>
 </CapaProblem>
