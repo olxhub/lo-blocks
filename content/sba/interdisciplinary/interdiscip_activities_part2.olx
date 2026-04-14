@@ -29,24 +29,79 @@ We read summaries of studies from these disciplines and derived their **discipli
   </Markdown>
 
     <!-- Causes by disciplines mapping -->
-    <Vertical id="insights_by_disciplines">
-      <Markdown>
-## Map Each Insight to Relevant Disciplines
-
-**Select each discipline that applies.**
-      </Markdown>
-         <CapaProblem id="insight_review" title="Insight to Discipline Mapping"> 
-            <TabularMCQGrader>
-              <TabularMCQ id="insight_to_discipline_mapping">
+      <CapaProblem id="insight_review" title="Map Each Insight to Relevant Disciplines"> 
+        <TabularMCQGrader>
+          <TabularMCQ id="insight_to_discipline_mapping">
         mode: checkbox
-        cols: Psychology, Sociology, Economics, Political Science, Health Sciences
-        rows: If a student feels they need to earn money right away to help their family⸴ they might drop out to get a full-time job[Psychology],Conditions like depression⸴ anxiety⸴ or ADHD can interfere with a student's ability to get good grades and remain engaged in school.[Economics, Sociology],A student's environment may increase their likelihood of dropping out if they live in an area affected by gang activity⸴ neighborhood instability⸴ and limited support systems⸴ as seen in some urban communities.[Economics, Sociology],Lack of school funding means fewer resources and support for students, making historically underserved students more likely to drop out.[Political Science]
-          </TabularMCQ>
-        </TabularMCQGrader>
-      </CapaProblem>
-    </Vertical>
+        cols: Psychology|Psych, Sociology|Soc, Economics|Econ, Political Science|PoliSci, Health Sciences|HealthSci
+        rows: 
+         - "If a student feels they need to earn money right away to help their family, they might drop out to get a full-time job[Psych]"
+         - "Conditions like depression, anxiety, or ADHD can interfere with a student's ability to get good grades and remain engaged in school.[Econ, Soc]"
+         - "A student's environment may increase their likelihood of dropping out if they live in an area affected by gang activity, neighborhood instability, and limited support systems, as seen in some urban communities.[Econ, Soc]"
+         - "Lack of school funding means fewer resources and support for students, making historically underserved students more likely to drop out.[PoliSci]"
+      </TabularMCQ>
+    </TabularMCQGrader>
+   </CapaProblem>
 
-    <Vertical id="dropout_cause_mapping">
+  <Vertical id="initial_dropout_cause_diagram">
+    <Markdown> 
+**Edit the diagram in the editor below so that it shows the connections
+you chose on the last screen.** 
+
+_The graph shown updates as you type. To avoid getting into trouble,
+do not change the text that is already there, just
+add extra connections. For example, to create a link
+from "Students working long hours" to "Dropping out
+of high school", type this on its own line, just under the other
+arrow connections:_ C2-->C4  _(note that to type the arrow, type two hyphens - - followed
+by a right angle bracket >)_
+    </Markdown>
+    <SplitPanel id="Mermaid_for_initial_diagram" title="Create a Diagram">
+     <LeftPane>
+      <TextArea id="editor_cause_diagram" rows="18">
+graph LR
+    C1[Family and Peer Factors]
+    C2[Students Working Long Hours]
+    C3[Equitable School Funding]
+    C4[ADHD Status]
+    D1[Dropping out of high school]
+
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+    style C3 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+    style D1 fill:#fff4e1
+      </TextArea>
+    </LeftPane>
+    <RightPane>
+      <Mermaid target="editor_cause_diagram" />
+      <CheckboxInput id="initial_links_done">
+          <Key>Check this when you are satisfied with the diagram</Key>
+      </CheckboxInput>
+      <ActionButton 
+        id="restore_initial_diagram_btn" 
+        label="Restore Original Diagram">
+          <SetFieldAction target="editor_cause_diagram" field="value" value="
+graph LR
+    C1[Family and Peer Factors]
+    C2[Students Working Long Hours]
+    C3[Equitable School Funding]
+    C4[ADHD Status]
+    D1[Dropping out of high school]
+
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+    style C3 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+    style D1 fill:#fff4e1
+      " />
+      </ActionButton>
+    </RightPane>
+   </SplitPanel>
+  </Vertical>
+
+
+   <Vertical id="dropout_cause_mapping">
       <Markdown>
 ## Mapping Causes of High School Dropout
       </Markdown>
@@ -159,6 +214,28 @@ graph LR
     </LeftPane>
     <RightPane>
       <Mermaid target="editor" />
+      <CheckboxInput id="extra_links_done">
+          <Key>Check this when you are satisfied with the diagram</Key>
+      </CheckboxInput>
+      <ActionButton 
+        id="restore_cause_diagram_btn" 
+        label="Restore Diagram with Causal Links">
+          <SetFieldAction target="editor" field="value" value="
+graph LR
+    C1[Family and Peer Factors] --> D1[Dropping out of high school]
+    C2[Students Working Long Hours] --> D1
+    C3[Equitable School Funding] --> D1
+    C4[ADHD Status] --> D1
+    C1 --> C2
+    C2 --> C1
+
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+    style C3 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+    style D1 fill:#fff4e1
+      " />
+      </ActionButton>
     </RightPane>
    </SplitPanel>
   </Vertical>

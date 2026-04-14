@@ -20,16 +20,30 @@ Omer: You've done good work in Part 1. Let's recap where we are.
 
 interdisciplinary_sba_sidebar2 -> interdisciplinary_recap
 
-Omer: Let's see if you remember the disciplines for each insight.
+Omer: Let's see if you remember the disciplines for each insight. **For each insight, select each discipline that applies.**
 
-interdisciplinary_sba_sidebar2 -> insights_by_disciplines
+interdisciplinary_sba_sidebar2 -> insight_review
+
+--- wait @insight_review.submitCount > 0 ---
+
+interdisciplinary_sba_sidebar2 -> initial_dropout_cause_diagram
 
 Omer: If you remember from Repko et al. (2025), we can use mapping to integrate
 insights from different disciplines which will help us achieve a more comprehensive
-understanding of the problem. I started a map for us (to the right) using
-abbreviations of insights from the studies we reviewed.
+understanding of the problem. Please add the links you think we should add to the diagram.
+
+--- wait @initial_links_done.value ---
+
+Ty: I'm done.
+
+Peggy: So am I!
+
+Lacy: Me too.
 
 interdisciplinary_sba_sidebar2 -> dropout_cause_mapping
+
+Omer: Thank you for your contributions. The map to the right correctly summarizes
+the causal connections we have already discussed.
 
 Lacey: Yes, I remember we talked about mapping in class but I don't remember
 what kind of map this is supposed to be. It is either a **multidisciplinary**
@@ -111,9 +125,17 @@ connections you've chosen. It may take you a few minutes to get the
 hang of it, but you can directly edit the code for the diagram in
 the screen to the right.
 
+--- wait @extra_links_done.value ---
+
+Ty: I'm done.
+
+Peggy: So am I!
+
+Lacy: Me too.
+
 interdisciplinary_sba_sidebar2 -> extra_cause_connections
 
-Lianne: Looking over the map, I see three more connections we should make.
+Lianne: Looking over your suggestions, I see three more connections we should make.
 They make the most sense considering the studies we reviewed.
 
 We've already worked on connections between **Family Peer Factors** and
