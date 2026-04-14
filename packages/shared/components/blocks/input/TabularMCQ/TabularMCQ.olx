@@ -1,4 +1,4 @@
-<TabularMCQ id="demo">
-cols: Not useful, Slightly useful, Useful, Very useful
-rows: Readings, Lectures, Discussion sections, Problem sets
+<TabularMCQ title="Example" id="demo">
+cols: Not useful|0, Slightly useful|1, Useful|2, Very useful3
+rows: Readings|read, Lectures|lecture, Discussion sections|recitation, Problem sets|pset
 </TabularMCQ>
