@@ -1,13 +1,12 @@
-<CapaProblem id="quiz" title="Classification Quiz">
-  <Markdown>Classify each item:</Markdown>
+<CapaProblem id="freire_quiz" title="Banking vs. Problem-Posing Education">
   <TabularMCQGrader>
-    <TabularMCQ id="classify" title="Items">
-cols: Category A|A, Category B|B, Category C|C
+    <TabularMCQ id="freire_classify" title="Freire, Pedagogy of the Oppressed (1970)">
+cols: Banking, Problem-Posing
 rows:
-  - First item|q1[A]
-  - Second item|q2[B]
-  - Third item|q3[C]
-  - Fourth item|q4[A]
+  - Resists dialogue|resists_dialogue[Banking]
+  - Makes students critical thinkers|critical[Problem-Posing]
+  - Inhibits creativity and domesticates consciousness|inhibit[Banking]
+  - Regards dialogue as indispensable to the act of cognition|dialogue[Problem-Posing]
     </TabularMCQ>
   </TabularMCQGrader>
 </CapaProblem>

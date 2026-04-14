@@ -88,13 +88,20 @@ function parseColItem(item: { text: string; id?: string; value?: number }) {
  * Bracket is extracted first so that "Label|id[answer]" splits correctly:
  * bracket gives ["Label|id", "answer"], then pipe gives ["Label", "id"].
  * This works because ']' cannot appear in a pipe suffix.
+ *
+ * answer is always string[] | null. Bracket content is comma-split:
+ *   "Label[A]"    → answer: ["A"]
+ *   "Label[A, B]" → answer: ["A", "B"]   (checkbox mode)
  */
-function parseRowItem(item: { text: string; id?: string; answer?: string | null }) {
+function parseRowItem(item: { text: string; id?: string; answer?: string[] | null }) {
   if (item.id !== undefined || item.answer !== undefined) {
     return { text: item.text, id: item.id ?? toId(item.text), answer: item.answer ?? null };
   }
-  const [afterBracket, answer] = splitBracketSuffix(item.text);
+  const [afterBracket, bracketContent] = splitBracketSuffix(item.text);
   const [text, id] = splitPipeSuffix(afterBracket);
+  const answer = bracketContent !== null
+    ? bracketContent.split(',').map(s => s.trim()).filter(Boolean)
+    : null;
   return { text, id: id ?? toId(text), answer };
 }
 
@@ -117,7 +124,7 @@ const colInput = z.union([
 
 const rowInput = z.union([
   z.string().transform(s => ({ text: s.trim() })),
-  z.object({ text: z.string(), id: z.string().optional(), answer: z.string().nullable().optional() }),
+  z.object({ text: z.string(), id: z.string().optional(), answer: commaList.nullable().optional() }),
 ]).transform(parseRowItem);
 
 /** Match an answer string against column text or id */
@@ -149,7 +156,7 @@ const tabularMCQSchema = z.object({
         message: `Row "${row.text}" has an empty id — remove the trailing "|" or provide an id`,
       });
     }
-    if (row.answer !== null && !row.answer) {
+    if (row.answer !== null && row.answer.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['rows', i],
@@ -174,14 +181,16 @@ const tabularMCQSchema = z.object({
   // Validate answers reference actual columns
   data.rows.forEach((row, i) => {
     if (!row.answer) return;
-    const numAnswer = parseInt(row.answer, 10);
-    if (!isNaN(numAnswer) && numAnswer >= 0 && numAnswer < data.cols.length) return;
-    if (findColIndex(data.cols, row.answer) >= 0) return;
     const colNames = data.cols.map(c => c.text).join(', ');
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['rows', i],
-      message: `Answer "${row.answer}" does not match any column. Available columns: ${colNames}`,
+    row.answer.forEach(ans => {
+      const numAnswer = parseInt(ans, 10);
+      if (!isNaN(numAnswer) && numAnswer >= 0 && numAnswer < data.cols.length) return;
+      if (findColIndex(data.cols, ans) >= 0) return;
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['rows', i],
+        message: `Answer "${ans}" does not match any column. Available columns: ${colNames}`,
+      });
     });
   });
 });
@@ -237,7 +246,8 @@ const TabularMCQ = core({
     // Get mode ('radio' or 'checkbox')
     getMode: (props) => props.kids.parsed.mode || 'radio',
 
-    // Get expected answers for grading: { rowId: expectedColIndex }
+    // Get expected answers for grading: { rowId: number[] }
+    // Always an array of correct column indices (single-element for radio, multi for checkbox).
     getAnswers: (props) => {
       const parsed = props.kids.parsed;
       const rows = parsed.rows;
@@ -245,16 +255,13 @@ const TabularMCQ = core({
       const answers = {};
       rows.forEach(row => {
         if (row.answer !== null) {
-          // Answer can be column index or label/id (exact match)
-          let colIdx;
-          const numAnswer = parseInt(row.answer, 10);
-          if (!isNaN(numAnswer) && numAnswer >= 0 && numAnswer < cols.length) {
-            colIdx = numAnswer;
-          } else {
-            colIdx = findColIndex(cols, row.answer);
-          }
-          if (colIdx >= 0) {
-            answers[row.id] = colIdx;
+          const indices = row.answer.map(ans => {
+            const num = parseInt(ans, 10);
+            if (!isNaN(num) && num >= 0 && num < cols.length) return num;
+            return findColIndex(cols, ans);
+          }).filter(idx => idx >= 0);
+          if (indices.length > 0) {
+            answers[row.id] = indices;
           }
         }
       });

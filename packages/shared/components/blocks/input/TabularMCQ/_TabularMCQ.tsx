@@ -15,7 +15,7 @@ export default function _TabularMCQ(props: RuntimeProps) {
   // State: { rowId: colIndex } for radio, { rowId: [colIndex, ...] } for checkbox
   const [value, setValue] = useFieldState(props, fields.value, {});
 
-  // Show answer support - displayAnswer is { rowId: correctColIndex }
+  // Show answer support - displayAnswer is { rowId: number[] }
   const { showAnswer, displayAnswer } = useGraderAnswer(props);
 
   // Check for parse failure (YAML or validation error)
@@ -116,8 +116,9 @@ export default function _TabularMCQ(props: RuntimeProps) {
               <td>{row.text}</td>
               {cols.map((col, colIndex) => {
                 const inputId = `${props.id}-${row.id}-${colIndex}`;
-                const isCorrectCell = showAnswer && displayAnswer?.[row.id] === colIndex;
-                const isWrongSelection = showAnswer && !isCorrectCell && isChecked(row.id, colIndex) && displayAnswer?.[row.id] !== undefined;
+                const correctIndices = showAnswer ? displayAnswer?.[row.id] : undefined;
+                const isCorrectCell = correctIndices !== undefined && correctIndices.includes(colIndex);
+                const isWrongSelection = correctIndices !== undefined && !isCorrectCell && isChecked(row.id, colIndex);
                 const cellClass = isCorrectCell ? 'tabular-mcq-correct' : isWrongSelection ? 'tabular-mcq-wrong' : '';
                 return (
                   <td key={col.id || colIndex} className={cellClass}>
