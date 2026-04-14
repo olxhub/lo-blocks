@@ -228,6 +228,20 @@ export const useFieldSelector = <T>(
 };
 
 
+/**
+ * Hook to access the current user identity from Redux.
+ * Returns null until the server's auth echo has landed.
+ *
+ * We might consider a dummy name until auth. Dunno. We're
+ * still figuring this out.
+ */
+export function useUser(): CurrentUser | null {
+  return useSelector(
+    (state: any) => state?.application_state?.system?.currentUser ?? null
+  );
+}
+
+
 // =============================================================================
 // Dispatch infrastructure
 // =============================================================================

@@ -994,6 +994,67 @@ export interface BaselineProps {
   runtime: LoBlockRuntimeContext;  // Required - contains store, logEvent, locale, blockRegistry
 }
 
+/**
+ * CurrentUser - identity of the logged-in user, as resolved by the server.
+ *
+ * The server's auth pipeline (HTTP Basic via nginx, LTI, password file,
+ * guest cookie, etc.) echoes the resolved identity back over the WebSocket
+ * in a `{status: 'auth', ...}` message. websocketLogger stashes it in its
+ * storage shim and dispatches a DOM CustomEvent; reduxLogger consumes that
+ * event and dispatches SET_CURRENT_USER to land the object here, at
+ * state.system.currentUser (via the settings.currentUser field).
+ *
+ * Currently minimal: just user_id (client-side) and safe_user_id (server-
+ * side persistence key, scoped by auth provider so two providers' "mchen"
+ * don't collide).
+ *
+ * Profile and display-name fields are commented out below. They originated
+ * from Learning Observer, which started from Google Classroom's roster
+ * format (itself based on Google OIDC claims: given_name, family_name,
+ * etc.). The rationale was to avoid reinventing wheels — Google put real
+ * work into those formats, and starting from them gave us documentation
+ * and compatibility for free. But the decomposition doesn't map well to
+ * what we actually need:
+ *
+ *   1. user_id — system identifier ("mchen")
+ *   2. display name — context-dependent social label. Could be "Maggie",
+ *      "mchen", "Dr. Chen", or "陈美琳" depending on locale, role, and
+ *      social context (student vs scholar, formal vs informal). Open
+ *      question whether this is systemwide or via props/PMSS.
+ *   3. legal name — full formal name ("Margaret Chen"), rarely displayed
+ *
+ * Google's given_name/family_name split bakes in Western name structure
+ * and doesn't capture any of these three cleanly. We'll revisit when we
+ * actually need display names in the UX.
+ */
+export interface CurrentUser {
+  /** Unencoded user identifier from the auth provider (e.g., "mchen"). */
+  user_id: string;
+  /**
+   * Provider-prefixed key for server-side persistence (e.g., "nginx-mchen").
+   * Scoped by provenance so identities from different auth providers don't
+   * collide — two providers may each have an "mchen" who are different people.
+   */
+  safe_user_id?: string;
+  /** Which auth provider resolved this identity: 'nginx', 'pwd', 'gcu', 'lti', 'guest', etc. */
+  provenance?: string;
+
+  // --- Profile fields (from LO / Google Classroom heritage) ---
+  // Commented out until we need them. See docstring above for design notes.
+  // When re-enabled, these should be redesigned around the three use cases
+  // (system id, display name, legal name) rather than the OIDC decomposition.
+  //
+  // email?: string;
+  // name?: string;           // LO mapped Google OIDC given_name here
+  // family_name?: string;    // Google OIDC family_name
+  // picture?: string;        // avatar URL
+  // role?: 'student' | 'teacher' | 'admin';
+  // authorized?: boolean;
+
+  /** Forward-compat: new fields added server-side flow through without a type change. */
+  [key: string]: any;
+}
+
 export interface RuntimeProps extends BaselineProps {
   // This block's identity and content
   id: DefinitionKey;
