@@ -171,7 +171,7 @@ const tabularMCQSchema = z.object({
     seenIds.add(row.id);
   });
 
-  // Validate answers reference actual columns (case-insensitive)
+  // Validate answers reference actual columns
   data.rows.forEach((row, i) => {
     if (!row.answer) return;
     const numAnswer = parseInt(row.answer, 10);
@@ -245,7 +245,7 @@ const TabularMCQ = core({
       const answers = {};
       rows.forEach(row => {
         if (row.answer !== null) {
-          // Answer can be column index or label/id (case-insensitive)
+          // Answer can be column index or label/id (exact match)
           let colIdx;
           const numAnswer = parseInt(row.answer, 10);
           if (!isNaN(numAnswer) && numAnswer >= 0 && numAnswer < cols.length) {

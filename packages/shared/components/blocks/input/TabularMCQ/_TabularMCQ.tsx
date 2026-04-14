@@ -19,7 +19,7 @@ export default function _TabularMCQ(props: RuntimeProps) {
   const { showAnswer, displayAnswer } = useGraderAnswer(props);
 
   // Check for parse failure (YAML or validation error)
-  if (props.parseError || (kids && (kids.type === 'peg_error' || kids.type === 'parse_error'))) {
+  if (props.parseError) {
     return (
       <DisplayError
         props={props}
