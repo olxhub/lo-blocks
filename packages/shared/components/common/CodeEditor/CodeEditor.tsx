@@ -7,7 +7,7 @@ import { xml } from '@codemirror/lang-xml';
 import { markdown } from '@codemirror/lang-markdown';
 import { yaml } from '@codemirror/lang-yaml';
 import { javascript } from '@codemirror/lang-javascript';
-import { indentService } from '@codemirror/language';
+import { indentService, syntaxTree } from '@codemirror/language';
 import { linter, lintGutter, Diagnostic } from '@codemirror/lint';
 import { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
@@ -29,6 +29,53 @@ let _olxSchema: ReturnType<typeof generateOlxSchema> | null = null;
 function getOlxSchema() {
   if (!_olxSchema) _olxSchema = generateOlxSchema(BLOCK_REGISTRY);
   return _olxSchema;
+}
+
+// ---------------------------------------------------------------------------
+// OLX cursor context — which block tag is the cursor inside?
+//
+// Lezer's XML parser gives us: Element > OpenTag > TagName. We walk up the
+// tree from the cursor to find the enclosing Element and read its tag name.
+//
+// This is currently a standalone helper. The long-term plan is to expose
+// cursor context as a subscribable field so sibling components (e.g. a
+// contextual docs panel) can react to it:
+//
+//   <Docs target="editorId" />
+//   <CodeEditor id="editorId" />
+//
+// That will happen once the editor is extracted from /studio/ into its own
+// reusable component. For now, this is penciled in as a building block.
+//
+// This is NOT TESTED CODE.
+//
+// If it is removed, we should also remove the syntaxTree import, and the
+// getEnclosingTagName export from index.ts
+//
+// Possible paths forward:
+// * <Docs target="codeMirrorId"/>
+// * CodeMirror hoverTooltip API
+// * The existing autocompletion already supports info fields on Completion
+//   objects. Could we attach .describe() text there? This is a deeper dive.
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the OLX tag name of the nearest enclosing element at `pos`,
+ * or null if the cursor is outside any element (e.g. in the document root
+ * or in a non-XML file).
+ *
+ * Uses CodeMirror's Lezer syntax tree — no re-parsing required.
+ */
+export function getEnclosingTagName(state: import('@codemirror/state').EditorState, pos: number): string | null {
+  const tree = syntaxTree(state);
+  let node = tree.resolveInner(pos, -1);
+  for (let cur: typeof node | null = node; cur; cur = cur.parent) {
+    if (cur.name === 'Element') {
+      const tagName = cur.firstChild?.getChild('TagName');
+      if (tagName) return state.doc.sliceString(tagName.from, tagName.to);
+    }
+  }
+  return null;
 }
 
 export type CodeLanguage = 'xml' | 'olx' | 'md' | 'markdown' | 'yaml' | 'json' | 'js' | 'mermaid' | PEGContentExtension;
