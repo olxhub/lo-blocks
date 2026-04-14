@@ -117,8 +117,10 @@ export default function _TabularMCQ(props: RuntimeProps) {
               {cols.map((col, colIndex) => {
                 const inputId = `${props.id}-${row.id}-${colIndex}`;
                 const isCorrectCell = showAnswer && displayAnswer?.[row.id] === colIndex;
+                const isWrongSelection = showAnswer && !isCorrectCell && isChecked(row.id, colIndex) && displayAnswer?.[row.id] !== undefined;
+                const cellClass = isCorrectCell ? 'tabular-mcq-correct' : isWrongSelection ? 'tabular-mcq-wrong' : '';
                 return (
-                  <td key={col.id || colIndex} className={isCorrectCell ? 'tabular-mcq-correct' : ''}>
+                  <td key={col.id || colIndex} className={cellClass}>
                     <label htmlFor={inputId}>
                       <input
                         id={inputId}
