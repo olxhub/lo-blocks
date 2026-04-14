@@ -357,6 +357,7 @@ function createBlock(config: BlueprintInputWithMixins): LoBlock {
     internal: effectiveConfig.internal,
     category: effectiveConfig.category,
     requiresUniqueId: effectiveConfig.requiresUniqueId,
+    childMode: effectiveConfig.childMode,
     attributes: effectiveConfig.attributes,
     validateAttributes: effectiveConfig.validateAttributes,
     validateChildren: effectiveConfig.validateChildren,

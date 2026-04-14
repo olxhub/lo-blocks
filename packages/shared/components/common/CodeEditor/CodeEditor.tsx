@@ -1,4 +1,4 @@
-// src/components/common/CodeEditor.tsx
+// src/components/common/CodeEditor/CodeEditor.tsx
 'use client';
 
 import { useMemo, useRef, useImperativeHandle, forwardRef, useState, useEffect } from 'react';
@@ -14,12 +14,22 @@ import { EditorView } from '@codemirror/view';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { getParserForExtension, type PEGContentExtension } from '@/generated/parserRegistry';
 import { getExtension, isPEGFile, isOLXFile, isMarkdownFile } from '@/lib/util/fileTypes';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import { generateOlxSchema } from './olxSchema';
 
 // Dynamic import for CodeMirror to avoid SSR issues
 const CodeMirror = dynamic(
   () => import('@uiw/react-codemirror').then(mod => mod.default),
   { ssr: false }
 );
+
+// OLX schema for CodeMirror autocompletion — lazy singleton to avoid
+// circular-init issues (BLOCK_REGISTRY is a module-level const too).
+let _olxSchema: ReturnType<typeof generateOlxSchema> | null = null;
+function getOlxSchema() {
+  if (!_olxSchema) _olxSchema = generateOlxSchema(BLOCK_REGISTRY);
+  return _olxSchema;
+}
 
 export type CodeLanguage = 'xml' | 'olx' | 'md' | 'markdown' | 'yaml' | 'json' | 'js' | 'mermaid' | PEGContentExtension;
 
@@ -206,7 +216,11 @@ function getLanguageExtension(language?: CodeLanguage): Extension | undefined {
   switch (language) {
     case 'xml':
     case 'olx':
-      return xml();
+      const schema = getOlxSchema();
+      return xml({
+        elements: schema.elements,
+        attributes: schema.attributes,
+      });
     case 'md':
     case 'markdown':
       return markdown();
@@ -238,6 +252,9 @@ function detectLanguageFromPath(filePath?: string): CodeLanguage | undefined {
  * Handles the dynamic import of CodeMirror to avoid SSR issues and
  * provides automatic syntax highlighting based on file extension or
  * explicit language prop.
+ *
+ * For OLX files, provides schema-based autocompletion for block elements
+ * and attributes, derived from the block registry.
  *
  * For PEG content files (.chatpeg, .sortpeg, etc.), provides inline
  * error highlighting using the appropriate parser.
@@ -324,7 +341,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
     // Line wrapping
     if (lineWrapping) exts.push(EditorView.lineWrapping);
 
-    // Language extension (syntax highlighting)
+    // Language extension (syntax highlighting + schema-based autocompletion)
     const langExt = getLanguageExtension(effectiveLanguage);
     if (langExt) exts.push(langExt);
 
