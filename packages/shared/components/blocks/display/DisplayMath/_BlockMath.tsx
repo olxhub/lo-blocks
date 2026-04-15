@@ -1,23 +1,35 @@
-// src/components/blocks/DisplayMath/_BlockMath.jsx
+'use client';
 import React from 'react';
 import katex from 'katex';
 import type { RuntimeProps } from '@/lib/types';
-import { assertString } from '@/lib/util/kids';
 if (typeof window !== 'undefined') {
   import('katex/dist/katex.min.css');
 }
-// DebugWrapper now handles debug info globally
+import { useTextContent } from '@/lib/state/redux';
+import { DisplayError } from '@/lib/util/debug';
+import Spinner from '@/components/common/Spinner';
 
 export function _BlockMath( props: RuntimeProps ) {
-  const { kids } = props;
-  assertString(kids);
+  const { text, loading } = useTextContent(props);
+
+  if (loading) {
+    return <Spinner />;
+  }
+
   let html = '';
   try {
-    html = katex.renderToString(kids, {
+    html = katex.renderToString(text, {
       displayMode: true
     });
   } catch (err) {
-    console.error('KaTeX render error', err);
+    return (
+      <DisplayError
+        props={props}
+        name="BlockMath"
+        message="Could not render LaTeX math."
+        technical={err instanceof Error ? err.message : String(err)}
+      />
+    );
   }
 
   return (

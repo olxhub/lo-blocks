@@ -297,6 +297,105 @@ describe('object literals', () => {
   });
 });
 
+describe('in operator', () => {
+  it('checks array membership', () => {
+    const ctx = createContext({
+      componentState: {
+        cb: { value: ['optA', 'optB', 'optC'] }
+      }
+    });
+    expect(evaluate(parse('"optA" in @cb.value'), ctx)).toBe(true);
+    expect(evaluate(parse('"optD" in @cb.value'), ctx)).toBe(false);
+  });
+
+  it('checks object key membership', () => {
+    const ctx = createContext({
+      componentState: {
+        data: { value: { name: 'Alice', age: 30 } }
+      }
+    });
+    expect(evaluate(parse('"name" in @data.value'), ctx)).toBe(true);
+    expect(evaluate(parse('"missing" in @data.value'), ctx)).toBe(false);
+  });
+
+  it('returns false for non-container types', () => {
+    const ctx = createContext({
+      componentState: { x: { value: 42 } }
+    });
+    expect(evaluate(parse('"a" in @x.value'), ctx)).toBe(false);
+  });
+
+  it('works with logical operators', () => {
+    const ctx = createContext({
+      componentState: {
+        cb: { value: ['optA', 'optC'] }
+      }
+    });
+    expect(evaluate(parse('"optA" in @cb.value && "optC" in @cb.value'), ctx)).toBe(true);
+    expect(evaluate(parse('"optA" in @cb.value && "optB" in @cb.value'), ctx)).toBe(false);
+  });
+
+  it('does not parse "in" as an identifier', () => {
+    // "in" is reserved — can't be used as an identifier
+    expect(() => parse('in')).toThrow();
+  });
+});
+
+describe('method calls on sigil refs', () => {
+  it('calls .includes() on sigil ref array', () => {
+    const ctx = createContext({
+      componentState: {
+        cb: { value: ['optA', 'optB', 'optC'] }
+      }
+    });
+    expect(evaluate(parse('@cb.value.includes("optA")'), ctx)).toBe(true);
+    expect(evaluate(parse('@cb.value.includes("optD")'), ctx)).toBe(false);
+  });
+
+  it('calls .every() on sigil ref array', () => {
+    const ctx = createContext({
+      componentState: {
+        list: { value: [1, 2, 3] }
+      }
+    });
+    expect(evaluate(parse('@list.value.every(x => x > 0)'), ctx)).toBe(true);
+    expect(evaluate(parse('@list.value.every(x => x > 2)'), ctx)).toBe(false);
+  });
+
+  it('calls .some() on sigil ref array', () => {
+    const ctx = createContext({
+      componentState: {
+        list: { value: [1, 2, 3] }
+      }
+    });
+    expect(evaluate(parse('@list.value.some(x => x > 2)'), ctx)).toBe(true);
+    expect(evaluate(parse('@list.value.some(x => x > 5)'), ctx)).toBe(false);
+  });
+
+  it('calls .filter().length on sigil ref array', () => {
+    const ctx = createContext({
+      componentState: {
+        list: { value: [1, 2, 3, 4, 5] }
+      }
+    });
+    expect(evaluate(parse('@list.value.filter(x => x > 3).length'), ctx)).toBe(2);
+  });
+
+  it('calls .join() on sigil ref array', () => {
+    const ctx = createContext({
+      componentState: {
+        list: { value: ['a', 'b', 'c'] }
+      }
+    });
+    expect(evaluate(parse('@list.value.join(", ")'), ctx)).toBe('a, b, c');
+  });
+
+  it('throws on null/undefined method target', () => {
+    const ctx = createContext();
+    expect(() => evaluate(parse('@missing.value.includes("x")'), ctx)).toThrow();
+  });
+});
+
 describe('DSL match functions', () => {
   // Note: stringMatch and numericalMatch are registered by their grader modules.
   // These tests verify the function registry lookup works.

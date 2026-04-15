@@ -1,7 +1,10 @@
+'use client';
 import React, { useMemo } from 'react';
 import RenderMarkdown, { markdownComponents } from '@/components/common/RenderMarkdown';
 import type { RuntimeProps } from '@/lib/types';
 import { isKidArray } from '@/lib/util/kids';
+import { useTextContent } from '@/lib/state/redux';
+import Spinner from '@/components/common/Spinner';
 import {
   extractInterpolations,
   extractInterpolationRefs,
@@ -15,14 +18,12 @@ import {
 export { markdownComponents };
 
 export function _Markdown(props: RuntimeProps) {
-  const { kids } = props;
+  let { text: content, loading } = useTextContent(props);
 
   /*** HACK HACK HACK ***/
   // This works around a bug where CapaProblem doesn't use block parsers correctly
-  let content: string = typeof kids === 'string' ? kids : '';
-  if (isKidArray(kids) && kids.length > 0) {
-    // If kids contains objects with type 'text', extract the text content
-    content = kids.map((kid) => {
+  if (!content && isKidArray(props.kids) && props.kids.length > 0) {
+    content = props.kids.map((kid) => {
       if (kid.type === 'text') {
         return kid.text;
       }
@@ -68,6 +69,10 @@ export function _Markdown(props: RuntimeProps) {
 
     return result;
   }, [content, interpolations, resolved]);
+
+  if (loading) {
+    return <Spinner />;
+  }
 
   return <RenderMarkdown>{resolvedContent as string}</RenderMarkdown>;
 }
