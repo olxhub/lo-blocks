@@ -171,7 +171,7 @@ function evaluateBinaryOp(
     // Membership / containment
     case 'in':
       if (Array.isArray(right)) return right.includes(left);
-      if (right != null && typeof right === 'object') return left in right;
+      if (right != null && typeof right === 'object') return Object.prototype.hasOwnProperty.call(right, left);
       return false;
 
     // Arithmetic
