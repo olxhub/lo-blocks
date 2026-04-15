@@ -4,12 +4,12 @@
 // Constraints (all default false, teacher opts in):
 //   invisible  - hide text while writing (bypass inner critic)
 //   nodelete   - no backspace/delete (forward momentum only)
-//   wordcount  - show live word count
+//   counter    - show live word count
 //   pace       - gamified pause indicator (smooth green → red decay)
 //
 // Usage:
 //   <TimedContainer duration="3 minutes">
-//     <Freewrite invisible="true" nodelete="true" wordcount="true" pace="true" />
+//     <Freewrite invisible="true" nodelete="true" counter="true" pace="true" />
 //   </TimedContainer>
 
 import { z } from 'zod';
@@ -35,7 +35,7 @@ const Freewrite = dev({
       .describe('Hide text while writing — students cannot see what they type'),
     nodelete: z_olx_boolean.default(false)
       .describe('Disable backspace and delete — forward-only writing'),
-    wordcount: z_olx_boolean.default(false)
+    counter: z_olx_boolean.default(false)
       .describe('Show live word count'),
     pace: z_olx_boolean.default(false)
       .describe('Show pace indicator bar that decays during pauses'),

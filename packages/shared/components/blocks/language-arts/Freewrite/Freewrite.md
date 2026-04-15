@@ -14,7 +14,7 @@ practice.
 Standalone with a Reveal button:
 
 ```xml
-<Freewrite invisible="true" nodelete="true" wordcount="true" pace="true" reveal="true" />
+<Freewrite invisible="true" nodelete="true" counter="true" pace="true" reveal="true" />
 ```
 
 Inside a TimedContainer for timed sessions:
@@ -22,7 +22,7 @@ Inside a TimedContainer for timed sessions:
 ```xml
 <TimedContainer duration="3 minutes" hideuntilstart="true"
                 before="Write whatever comes to mind. Don't stop.">
-  <Freewrite invisible="true" nodelete="true" wordcount="true" pace="true" />
+  <Freewrite invisible="true" nodelete="true" counter="true" pace="true" />
 </TimedContainer>
 ```
 
@@ -34,7 +34,7 @@ All constraints default to off. The teacher opts into each one.
 |-------------|-------------|
 | `invisible` | Hide text while writing. Students cannot see what they type. Text is revealed when the exercise ends (via Reveal button, pace decay, or TimedContainer expiry). |
 | `nodelete`  | Disable backspace, delete, and cut. Cursor is locked to the end of the text. Forward-only writing. |
-| `wordcount` | Show a live word count. Displayed prominently when text is hidden (since it's the student's only progress feedback). |
+| `counter`   | Show a live word count. Displayed prominently when text is hidden (since it's the student's only progress feedback). |
 | `pace`      | Show a pace indicator bar that decays from green to red when the student pauses. Resets on each non-whitespace keystroke. When the bar reaches zero, the exercise auto-locks (textarea goes read-only). |
 
 ## Other Attributes

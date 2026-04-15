@@ -31,6 +31,6 @@ Reflect on this passage from _Writing Without Teachers_ by Peter Elbow:
 You can write as long as you like, but if you stop, the exercise ends. See how long you can go!
 </Markdown>
 
-<Freewrite id="fwElbow" nodelete="true" pace="true" wordcount="true" />
+<Freewrite id="fwElbow" nodelete="true" pace="true" counter="true" />
 
 </Vertical>

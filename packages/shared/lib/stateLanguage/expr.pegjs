@@ -49,7 +49,7 @@ Equality
     }
 
 Comparison
-  = head:Additive tail:(_ (">=" / "<=" / ">" / "<") _ Additive)* {
+  = head:Additive tail:(_ (">=" / "<=" / ">" / "<" / "in" !IdentifierChar { return "in"; }) _ Additive)* {
       return tail.reduce((left, [, op, , right]) => ({
         type: 'BinaryOp', op, left, right
       }), head);
@@ -267,7 +267,7 @@ Identifier
   = !ReservedWord name:$([a-zA-Z_][a-zA-Z0-9_]*) { return name; }
 
 ReservedWord
-  = ("true" / "false" / "null" / "undefined") ![a-zA-Z0-9_]
+  = ("true" / "false" / "null" / "undefined" / "in") ![a-zA-Z0-9_]
 
 _ "whitespace"
   = [ \t\n\r]*

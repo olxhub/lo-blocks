@@ -19,6 +19,7 @@ import { z } from 'zod';
 
 import { BlockBlueprintSchema, LoBlock, Fields, OLXTag } from '../types';
 import { baseAttributes } from './attributeSchemas';
+import { assertNotReserved } from '../stateLanguage/keywords';
 
 // Factory-local type aliases derived from the schema
 type BlueprintInput = z.input<typeof BlockBlueprintSchema>;
@@ -311,6 +312,15 @@ function createBlock(config: BlueprintInputWithMixins): LoBlock {
   const effectiveConfig: BlueprintInput = composeBlueprint(layers, layerNames, blockName);
   if (acceptsUnknownAttributes) {
     effectiveConfig.attributes = z.object({}).passthrough();
+  }
+
+  // Validate attribute names against reserved expression-language keywords.
+  // This catches collisions at block-definition time rather than leaving
+  // ambiguous semantics for content authors.
+  if (effectiveConfig.attributes instanceof z.ZodObject) {
+    for (const key of Object.keys(effectiveConfig.attributes.shape)) {
+      assertNotReserved(key, `createBlock(${blockName})`);
+    }
   }
 
   // We are using zod primarily for **validation** rather than parsing.

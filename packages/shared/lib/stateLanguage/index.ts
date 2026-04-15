@@ -43,5 +43,8 @@ export {
   getDSLFunctionNames
 } from './functions';
 
+// Keywords
+export { ACTIVE_METHODS, RESERVED_KEYWORDS, assertNotReserved } from './keywords';
+
 // React hooks (require Redux)
 export { useReferences, selectReferences, getReferences, useDSLExpression } from './hooks';
