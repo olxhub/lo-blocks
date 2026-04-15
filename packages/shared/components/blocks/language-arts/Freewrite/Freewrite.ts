@@ -35,6 +35,8 @@ const Freewrite = dev({
       .describe('Hide text while writing — students cannot see what they type'),
     nodelete: z_olx_boolean.default(false)
       .describe('Disable backspace and delete — forward-only writing'),
+    autofocus: z_olx_boolean.default(true)
+      .describe('Focus the textarea when the exercise starts'),
     counter: z_olx_boolean.default(false)
       .describe('Show live word count'),
     pace: z_olx_boolean.default(false)

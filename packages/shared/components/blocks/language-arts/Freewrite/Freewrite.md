@@ -41,6 +41,7 @@ All constraints default to off. The teacher opts into each one.
 
 | Attribute   | Type     | Default      | Description |
 |-------------|----------|--------------|-------------|
+| `autofocus` | boolean  | `true`       | Focus the textarea when the exercise starts. Works with `hideuntilstart` on TimedContainer — the textarea focuses when it first appears. |
 | `reveal`    | boolean  | `false`      | Show a Reveal button that ends the exercise: text becomes visible and the textarea goes read-only. |
 | `pacedecay` | duration | `5 seconds`  | How long the pace bar takes to decay fully. Shorter values (e.g. `2 seconds`) create more pressure to keep writing. |
 | `rows`      | number   | `8`          | Number of visible text rows. |
@@ -71,7 +72,36 @@ automatically reveals invisible text (via CSS) and disables the textarea.
 Use `hideuntilstart="true"` on TimedContainer to hide the textarea until the
 student clicks Start.
 
+## Chaining exercises
+
+Multiple timed freewrites can run in succession using `when=` conditions
+and `start="render"` on TimedContainer. Each round auto-starts when the
+previous one expires:
+
+```xml
+<TimedContainer id="r1" duration="30 seconds" start="render" hideuntilstart="true"
+                when="!@r1.expired">
+  <Markdown>**Round 1:** Brainstorm a world.</Markdown>
+  <Freewrite id="fw1" invisible="true" nodelete="true" counter="true" />
+</TimedContainer>
+
+<TimedContainer id="r2" duration="30 seconds" start="render" hideuntilstart="true"
+                when="@r1.expired &amp;&amp; !@r2.expired">
+  <Markdown>**Round 2:** Brainstorm characters.</Markdown>
+  <Freewrite id="fw2" invisible="true" nodelete="true" counter="true" />
+</TimedContainer>
+```
+
+The prompt goes inside the TimedContainer as a `<Markdown>` (not in `before`,
+which is only shown for `start="go"`). The pattern
+`when="@prev.expired && !@current.expired"` makes each round appear when
+the previous one finishes and disappear when it finishes itself. Use a
+final `<Markdown when="@lastRound.expired">` to display all results.
+
+See `FreewriteChain.olx` for a full working example.
+
 ## Examples
 
 - `Freewrite.olx` — standalone with all options enabled
 - `FreewriteDemo.olx` — four variants inside TimedContainers
+- `FreewriteChain.olx` — three chained rounds with auto-start and results summary

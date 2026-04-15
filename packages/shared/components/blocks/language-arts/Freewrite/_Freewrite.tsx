@@ -36,7 +36,7 @@ function _Freewrite(props: RuntimeProps) {
   const {
     fields,
     invisible, nodelete,
-    counter, pace,
+    autofocus, counter, pace,
     pacedecay, reveal,
     placeholder, rows,
   } = props;
@@ -173,6 +173,7 @@ function _Freewrite(props: RuntimeProps) {
         readOnly={revealed}
         placeholder={placeholder}
         rows={rows}
+        autoFocus={autofocus && !revealed}
         spellCheck={false}
         autoComplete="off"
         autoCorrect="off"
