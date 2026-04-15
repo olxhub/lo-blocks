@@ -3,8 +3,9 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect, useMemo, useRef } from 'react';
 import * as Plot from '@observablehq/plot';
 import YAML from 'yaml';
+import { useTextContent } from '@/lib/state/redux';
 import { DisplayError } from '@/lib/util/debug';
-import { assertString } from '@/lib/util/kids';
+import Spinner from '@/components/common/Spinner';
 
 /**
  * Translate a declarative mark spec into a Plot mark.
@@ -71,27 +72,27 @@ function evaluateJsSpec(code: string, plotLib: typeof Plot) {
 }
 
 export default function _ObservablePlot(props: RuntimeProps) {
-  const { kids, format, width, height } = props;
-  assertString(kids);
+  const { format, width, height } = props;
+  const { text, loading } = useTextContent(props);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const effectiveFormat = format || 'yaml';
 
   // All Plot operations are synchronous — compute during render
   const { plotNode, error } = useMemo(() => {
-    if (!kids || !kids.trim()) return { plotNode: null, error: null };
+    if (!text || !text.trim()) return { plotNode: null, error: null };
 
     try {
       let node;
 
       if (effectiveFormat === 'js') {
-        const result = evaluateJsSpec(kids, Plot);
+        const result = evaluateJsSpec(text, Plot);
         if (!(result instanceof Node)) {
           throw new Error('JS spec must return a DOM node (e.g. return Plot.plot({...}))');
         }
         node = result;
       } else {
-        const opts = parseYamlSpec(kids);
+        const opts = parseYamlSpec(text);
         if (width) opts.width = width;
         if (height) opts.height = height;
         node = Plot.plot(opts);
@@ -101,7 +102,7 @@ export default function _ObservablePlot(props: RuntimeProps) {
     } catch (e) {
       return { plotNode: null, error: e instanceof Error ? e.message : String(e) };
     }
-  }, [kids, effectiveFormat, width, height]);
+  }, [text, effectiveFormat, width, height]);
 
   // Mount the Plot-generated DOM node
   useEffect(() => {
@@ -109,7 +110,11 @@ export default function _ObservablePlot(props: RuntimeProps) {
     containerRef.current.replaceChildren(plotNode);
   }, [plotNode]);
 
-  if (!kids || !kids.trim()) {
+  if (loading) {
+    return <Spinner />;
+  }
+
+  if (!text || !text.trim()) {
     return <DisplayError props={props} name="ObservablePlot" message="Empty plot spec" />;
   }
 
