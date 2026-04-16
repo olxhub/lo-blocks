@@ -15,7 +15,7 @@ You can't see what you're writing and you can't go back. Just write.
   <TimedContainer id="t1" duration="2 minutes" hideuntilstart="true"
                   before="Write whatever comes to mind. Don't stop.">
     <Freewrite id="fw1" invisible="true" nodelete="true"
-               wordcount="true" pace="true" />
+               counter="true" pace="true" />
   </TimedContainer>
 
   <Markdown id="desc2">
@@ -26,7 +26,7 @@ You can see your text, but you can't edit it.
 
   <TimedContainer id="t2" duration="1 minute" hideuntilstart="true"
                   before="Write continuously for one minute.">
-    <Freewrite id="fw2" nodelete="true" wordcount="true" />
+    <Freewrite id="fw2" nodelete="true" counter="true" />
   </TimedContainer>
 
   <Markdown id="desc3">
@@ -37,7 +37,7 @@ You can't see what you're writing, but backspace works if you need it.
 
   <TimedContainer id="t3" duration="90 seconds" hideuntilstart="true"
                   before="Write without seeing your words.">
-    <Freewrite id="fw3" invisible="true" wordcount="true" pace="true" />
+    <Freewrite id="fw3" invisible="true" counter="true" pace="true" />
   </TimedContainer>
 
   <Markdown id="desc4">
@@ -48,7 +48,7 @@ Just a timed writing session with word count.
 
   <TimedContainer id="t4" duration="3 minutes" hideuntilstart="true"
                   before="Free writing time.">
-    <Freewrite id="fw4" wordcount="true" rows="12" />
+    <Freewrite id="fw4" counter="true" rows="12" />
   </TimedContainer>
 
 </Vertical>

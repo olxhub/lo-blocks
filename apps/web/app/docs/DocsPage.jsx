@@ -321,12 +321,6 @@ function BlockTabs({ tabs, activeTab, onTabChange }) {
 function QuickReference({ block }) {
   const attributes = block.attributes || [];
 
-  // Collect all shared attribute names
-  const allSharedNames = SHARED_ATTRIBUTE_SETS.flatMap(set => set.names);
-
-  // Block-specific attributes (not in any shared set)
-  const customAttrs = attributes.filter(attr => !allSharedNames.includes(attr.name));
-
   // Filter shared sets: only show if block has matching prop (or no condition)
   const applicableSets = SHARED_ATTRIBUTE_SETS
     .filter(set => !set.blockProp || block[set.blockProp])
@@ -335,6 +329,12 @@ function QuickReference({ block }) {
       attrs: attributes.filter(attr => set.names.includes(attr.name))
     }))
     .filter(set => set.attrs.length > 0);
+
+  // Collect shared attribute names only from *applicable* sets
+  const sharedNames = applicableSets.flatMap(set => set.attrs.map(a => a.name));
+
+  // Block-specific attributes (not in any applicable shared set)
+  const customAttrs = attributes.filter(attr => !sharedNames.includes(attr.name));
 
   return (
     <section className="bg-background rounded-lg border p-6">

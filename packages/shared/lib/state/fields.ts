@@ -23,6 +23,7 @@ import { Scope, scopes } from '../state/scopes';
 import { Fields, FieldInfoByEvent, FieldInfo, FieldName, FieldEvent } from '../types';
 import { commonFields } from './commonFields';
 import { stateField, fieldNameToDefaultEventName } from './fieldTypes';
+import { assertNotReserved } from '../stateLanguage/keywords';
 
 const _fieldInfoByField: Record<string, FieldInfo> = {};
 const _fieldInfoByEvent: FieldInfoByEvent = {};
@@ -129,6 +130,7 @@ export function fields(decl: FieldDecl): Fields {
   const fieldsByEvent: FieldInfoByEvent = {};
 
   for (const info of infos) {
+    assertNotReserved(info.name, `[fields]`);
     if (fieldsByName[info.name]) {
       throw new Error(
         `[fields] Duplicate field name "${info.name}". ` +

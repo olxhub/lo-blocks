@@ -192,12 +192,24 @@ function extractTextFromXmlNodes(rawParsed, { preserveWhitespace = false } = {})
 type ParserFn = (ctx: any) => any;
 type StaticKidsFn = (entry: any) => any[];
 
+/**
+ * What kind of children this parser accepts.
+ * Used by CodeMirror XML schema to determine autocompletion behavior:
+ *   'blocks' — child elements are OLX blocks (suggests block names)
+ *   'text'   — text content only (no child element suggestions)
+ *   'none'   — self-closing / no children
+ *   undefined — custom parser (permissive: suggests all block names)
+ */
+export type ChildMode = 'blocks' | 'text' | 'none';
+
 type ChildParserReturn = {
   parser: (ctx: any) => Promise<any>;
   staticKids?: StaticKidsFn;
+  childMode?: ChildMode;
 };
 type ChildParserFactory = ((options?: Record<string, unknown>) => ChildParserReturn) & {
   staticKids?: StaticKidsFn;
+  childMode?: ChildMode;
 };
 
 interface ChildParserFn extends ParserFn {
@@ -235,6 +247,9 @@ export function childParser(fn: ChildParserFn, nameOverride?: string) {
     if (typeof factory.staticKids === 'function') {
       mixin.staticKids = factory.staticKids;
     }
+    if (factory.childMode) {
+      mixin.childMode = factory.childMode;
+    }
 
     return mixin;
   } as ChildParserFactory;
@@ -247,6 +262,7 @@ export function childParser(fn: ChildParserFn, nameOverride?: string) {
 // No internal information - returns empty kids array (not null).
 const ignoreFactory = childParser(() => []);
 ignoreFactory.staticKids = () => [];
+ignoreFactory.childMode = 'none';
 export const ignore = ignoreFactory;
 
 // Ad-hoc reconstruction of the source XML.
@@ -266,7 +282,8 @@ export const xml = {
       }
     ];
   },
-  staticKids: () => []
+  staticKids: () => [],
+  childMode: 'text' as ChildMode,
 };
 
 // Assumes we have a list of OLX-style Blocks. E.g. for a learning sequence.
@@ -382,6 +399,7 @@ function createBlocksParser(options: { text?: BlocksTextMode; wrapTag?: string }
       .filter(k => k && (k.id || (k.type === 'block' && k.id)))
       .map(k => k.id);
   };
+  factory.childMode = 'blocks';
 
   return factory;
 }
@@ -459,6 +477,7 @@ const textFactory = childParser(async function textParser({ rawParsed, attribute
   return content;
 });
 textFactory.staticKids = () => [];
+textFactory.childMode = 'text';
 
 // === withTarget variant ===
 //
@@ -597,7 +616,7 @@ export function textToAttribute(attrName: string) {
     return id;
   }
 
-  return { parser: textToAttributeParser, staticKids: () => [] };
+  return { parser: textToAttributeParser, staticKids: () => [], childMode: 'none' as ChildMode };
 }
 
 // === PEG Support ===
@@ -830,7 +849,7 @@ export function yamlParser(schema: z.ZodType) {
     return id;
   }
 
-  return { parser, staticKids: () => [] };
+  return { parser, staticKids: () => [], childMode: 'text' as ChildMode };
 }
 
 // === Asset Source Parser ===
@@ -884,6 +903,6 @@ const assetSrcFactory = function assetSrc() {
     return id;
   }
 
-  return { parser: assetSrcParser, staticKids: () => [] };
+  return { parser: assetSrcParser, staticKids: () => [], childMode: 'none' as ChildMode };
 };
 export const assetSrc = assetSrcFactory;

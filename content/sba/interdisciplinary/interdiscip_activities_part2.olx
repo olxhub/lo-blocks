@@ -46,9 +46,7 @@ We read summaries of studies from these disciplines and derived their **discipli
   <Vertical id="initial_dropout_cause_diagram">
     <Markdown> 
 **Edit the diagram in the editor below so that it shows the connections
-you chose on the last screen.** 
-
-_The graph shown updates as you type. To avoid getting into trouble,
+you chose on the last screen.** _The graph shown updates as you type. To avoid getting into trouble,
 do not change the text that is already there, just
 add extra connections. For example, to create a link
 from "Students working long hours" to "Dropping out
@@ -56,6 +54,33 @@ of high school", type this on its own line, just under the other
 arrow connections:_ C2-->C4  _(note that to type the arrow, type two hyphens - - followed
 by a right angle bracket >)_
     </Markdown>
+    <SplitPanel id="action_for_initial_diagram">
+     <LeftPane>
+      <CheckboxInput id="initial_links_done">
+          <Key>Check this when you are satisfied with the diagram</Key>
+      </CheckboxInput>
+     </LeftPane>
+     <RightPane>
+      <ActionButton 
+        id="restore_initial_diagram_btn" 
+        label="Restore Original Diagram">
+          <SetFieldAction target="editor_cause_diagram" field="value" value="
+graph LR
+    C1[Family and Peer Factors]
+    C2[Students Working Long Hours]
+    C3[Equitable School Funding]
+    C4[ADHD Status]
+    D1[Dropping out of high school]
+
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+    style C3 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+    style D1 fill:#fff4e1
+      " />
+      </ActionButton>
+     </RightPane>
+    </SplitPanel>
     <SplitPanel id="Mermaid_for_initial_diagram" title="Create a Diagram">
      <LeftPane>
       <TextArea id="editor_cause_diagram" rows="18">
@@ -75,27 +100,6 @@ graph LR
     </LeftPane>
     <RightPane>
       <Mermaid target="editor_cause_diagram" />
-      <CheckboxInput id="initial_links_done">
-          <Key>Check this when you are satisfied with the diagram</Key>
-      </CheckboxInput>
-      <ActionButton 
-        id="restore_initial_diagram_btn" 
-        label="Restore Original Diagram">
-          <SetFieldAction target="editor_cause_diagram" field="value" value="
-graph LR
-    C1[Family and Peer Factors]
-    C2[Students Working Long Hours]
-    C3[Equitable School Funding]
-    C4[ADHD Status]
-    D1[Dropping out of high school]
-
-    style C1 fill:#e1f5ff
-    style C2 fill:#e1f5ff
-    style C3 fill:#e1f5ff
-    style C4 fill:#e1f5ff
-    style D1 fill:#fff4e1
-      " />
-      </ActionButton>
     </RightPane>
    </SplitPanel>
   </Vertical>
@@ -134,49 +138,70 @@ _Click on the correct answer._
          <Key>Multidisciplinary Map</Key>
          <Distractor>Interdisciplinary Map</Distractor>
        </ChoiceInput>
-       <Markdown>
-Why did you choose this answer?
-       </Markdown>
-       <TextArea id="cause_mapping_choice_explanation" placeholder="Enter your explanation..." />       
+       <IntakeGate ready="@cause_mapping_choice.value" id="mapping_choice_explanation_container">
+       <Markdown>&nbsp;</Markdown>
+       <Vertical id="mapping_choice_explanation_display">
+         <Markdown>&nbsp;
+
+**Why did you choose this answer?**
+         </Markdown>
+         <TextArea id="cause_mapping_choice_explanation" placeholder="Enter your explanation..." />       
+       </Vertical>
+      </IntakeGate>
      </LeftPane>
      <RightPane>
        <Use id="cause_mapping2" ref="cause_mapping" />
      </RightPane>
    </SplitPanel>
-  <Vertical id="dropout_factor_combos">  
+  <Vertical id="dropout_factor_combos"> 
+   <Markdown>
+**Which other relationships between causal factors do you think are important?** 
+   </Markdown>
    <CheckboxInput id="dropout_factor_checkboxes">
-    <Key value="combination 1">
+    <Key id="combo_1">
       <Markdown>
-**Family and Peer Factors** | **Equitable School Funding**
+Family and Peer Factors | Equitable School Funding
       </Markdown>
-      <TimedContainer when="&quot;combination 1&quot; in @dropout_factor_combos.value" duration="30 seconds" start="render" hideuntilstart="true" id="combo_2_container">
-      <TextArea id="dropout_factor_combo_2_explanation" placeholder="How you think the two factors might interact, if they do..." />
-  <Freewrite id="fw1" nodelete="true" counter="true" />
-</TimedContainer>
+      <IntakeGate ready="&quot;combo_1&quot; in @dropout_factor_checkboxes.value" id="combo_1_container">
+          <Markdown>&nbsp;</Markdown>
+          <TextArea id="dropout_factor_combo_1_explanation" placeholder="How you think the two factors might interact, if they do..." />
+      </IntakeGate>
     </Key>
-    <Key value="2">
+    <Key id="combo_2">
       <Markdown>
-**Family and Peer Factors** | **ADHD Status**
+Family and Peer Factors | ADHD Status
       </Markdown>
-      <TextArea id="dropout_factor_combo_3_explanation" placeholder="How you think the two factors might interact, if they do..." />       
+      <IntakeGate ready="&quot;combo_2&quot; in @dropout_factor_checkboxes.value" id="combo_2_container">
+          <Markdown>&nbsp;</Markdown>
+          <TextArea id="dropout_factor_combo_2_explanation" placeholder="How you think the two factors might interact, if they do..." />
+      </IntakeGate>
     </Key>
-    <Key value="3">
+    <Key id="combo_3">
       <Markdown>
-**Students Working Long Hours** | **Equitable School Funding**
+Students Working Long Hours | Equitable School Funding
       </Markdown>
-      <TextArea id="dropout_factor_combo_4_explanation" placeholder="How you think the two factors might interact, if they do..." />       
+      <IntakeGate ready="&quot;combo_3&quot; in @dropout_factor_checkboxes.value" id="combo_3_container">
+          <Markdown>&nbsp;</Markdown>
+          <TextArea id="dropout_factor_combo_3_explanation" placeholder="How you think the two factors might interact, if they do..." />
+      </IntakeGate>
     </Key>
-    <Key value="4">
+    <Key id="combo_4">
       <Markdown>
-**Students Working Long Hours** | **ADHD Status**
+Students Working Long Hours | ADHD Status
       </Markdown>
-      <TextArea id="dropout_factor_combo_5_explanation" placeholder="How you think the two factors might interact, if they do..." />       
+      <IntakeGate ready="&quot;combo_4&quot; in @dropout_factor_checkboxes.value" id="combo_4_container">
+          <Markdown>&nbsp;</Markdown>
+          <TextArea id="dropout_factor_combo_4_explanation" placeholder="How you think the two factors might interact, if they do..." />
+      </IntakeGate>
     </Key>
-    <Key value="5">
+    <Key id="combo_5">
       <Markdown>
-**Equitable School Funding** | **ADHD Status**
+Equitable School Funding | ADHD Status
       </Markdown>
-      <TextArea id="dropout_factor_combo_6_explanation" placeholder="How you think the two factors might interact, if they do..." />       
+      <IntakeGate ready="&quot;combo_5&quot; in @dropout_factor_checkboxes.value" id="combo_5_container">
+          <Markdown>&nbsp;</Markdown>
+          <TextArea id="dropout_factor_combo_5_explanation" placeholder="How you think the two factors might interact, if they do..." />
+      </IntakeGate>
     </Key>
    </CheckboxInput>
   </Vertical>
@@ -184,9 +209,7 @@ Why did you choose this answer?
   <Vertical id="revise_dropout_cause_diagram">
     <Markdown> 
 **Edit the diagram in the editor below so that it shows the connections
-you chose on the last screen.** 
-
-_The graph shown updates as you type. To avoid getting into trouble,
+you chose on the last screen.** _The graph shown updates as you type. To avoid getting into trouble,
 do not change the text that is already there, just
 add extra connections. For example, to create a link
 from "Students Working Long Hours" to "Equitable
@@ -197,6 +220,34 @@ C2-->C4
 
 _(note that to type the arrow, type two hyphens - - followed by a right angle bracket >)_
     </Markdown>
+    <SplitPanel>
+     <LeftPane>
+      <CheckboxInput id="extra_links_done">
+          <Key>Check this when you are satisfied with the diagram</Key>
+      </CheckboxInput>
+     </LeftPane>
+     <RightPane>
+      <ActionButton 
+        id="restore_cause_diagram_btn" 
+        label="Restore Diagram with Causal Links">
+          <SetFieldAction target="editor" field="value" value="
+graph LR
+    C1[Family and Peer Factors] --> D1[Dropping out of high school]
+    C2[Students Working Long Hours] --> D1
+    C3[Equitable School Funding] --> D1
+    C4[ADHD Status] --> D1
+    C1 --> C2
+    C2 --> C1
+
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+    style C3 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+    style D1 fill:#fff4e1
+      " />
+      </ActionButton>
+     </RightPane>
+    </SplitPanel>
     <SplitPanel id="MermaidPublishDemo2" title="Update your diagram">
      <LeftPane>
       <TextArea id="editor" rows="18">
@@ -217,28 +268,6 @@ graph LR
     </LeftPane>
     <RightPane>
       <Mermaid target="editor" />
-      <CheckboxInput id="extra_links_done">
-          <Key>Check this when you are satisfied with the diagram</Key>
-      </CheckboxInput>
-      <ActionButton 
-        id="restore_cause_diagram_btn" 
-        label="Restore Diagram with Causal Links">
-          <SetFieldAction target="editor" field="value" value="
-graph LR
-    C1[Family and Peer Factors] --> D1[Dropping out of high school]
-    C2[Students Working Long Hours] --> D1
-    C3[Equitable School Funding] --> D1
-    C4[ADHD Status] --> D1
-    C1 --> C2
-    C2 --> C1
-
-    style C1 fill:#e1f5ff
-    style C2 fill:#e1f5ff
-    style C3 fill:#e1f5ff
-    style C4 fill:#e1f5ff
-    style D1 fill:#fff4e1
-      " />
-      </ActionButton>
     </RightPane>
    </SplitPanel>
   </Vertical>
@@ -252,15 +281,20 @@ graph LR
 ]]>
   </Mermaid>
 
-  <Mermaid id="cause_connection_2"><![CDATA[
+  <Vertical id="cause_connection_2">
+    <Mermaid id="cause_connection_2_mermaid"><![CDATA[
 graph LR
     C1[Family and Peer Factors] --> C2[Students Working Long Hours]
     C2 --> C1
     style C1 fill:#e1f5ff
     style C2 fill:#e1f5ff
 ]]>
-  </Mermaid>
-
+    </Mermaid>
+    <Markdown>
+**Students working long hours are likely to come from families with low assets.
+These students are most likely trying to help their families financially.**
+    </Markdown>
+  </Vertical>
   <Mermaid id="cause_mapping_2"><![CDATA[
 graph LR
     C1[Family and Peer Factors] --> D1[Dropping out of high school]
@@ -360,37 +394,43 @@ graph LR
     </RightPane>
   </SplitPanel>
 
-  <SplitPanel id="cause_connection_3_explanation_choice">
-   <LeftPane>
-    <Use id="cause_connection_3c" ref="cause_connection_3" />
-    <Markdown>
+  <Vertical id="cause_connection_3_explanation_choice">
+    <SplitPanel id="cause_connection_3_explanation_choice_panel">
+     <LeftPane>
+      <Use id="cause_connection_3c" ref="cause_connection_3" />
+      <IntakeGate ready="@cause_connection_3_explanation_choice_input.value">
+        <Markdown>&nbsp;</Markdown>
+        <Vertical id="factor_connection_3_explanation_block">
+          <Markdown>
+    &nbsp;
+    
+    **Why did you choose the sentence you picked?**</Markdown>
+          <TextArea id="cause_connection_3_choice_explanation" 
+              placeholder="Put your answer here..." /> 
+       </Vertical>              
+      </IntakeGate>
+     </LeftPane>
+     <RightPane>
+      <Markdown>
     **Select the best sentences to use in the summary.**</Markdown>
-    <ChoiceInput id="cause_connection_3_explanation_choice_input">
-      <Distractor>
+      <ChoiceInput id="cause_connection_3_explanation_choice_input">
+        <Distractor>
 Family factors can affect students who are at risk of dropping out due to ADHD status.
-      </Distractor>
-      <Distractor>
+        </Distractor>
+        <Distractor>
           <Ref target="cause_connection_3_explanation" />
-      </Distractor>
-      <Key><TextBlock id="factor_connection_1_key">
+        </Distractor>
+        <Key><TextBlock id="factor_connection_1_key">
 It may be harder to locate and afford needed services for a student with ADHD if
 the family has limited assets or is influenced by other family characteristics,
 such as the presence of both parents or maternal education, which are reported by
 research as key determinants.
-      </TextBlock></Key>
-    </ChoiceInput>
-    <Markdown>
-    &nbsp;
-    
-    **Why did you choose the sentence you picked?**</Markdown>
-    <TextArea id="cause_connection_3_choice_explanation" 
-              placeholder="Put your answer here..." /> 
-   </LeftPane>
-   <RightPane>
-    <Use ref="cause_mapping_3" />
-   </RightPane>
-  </SplitPanel>
-  
+        </TextBlock></Key>
+      </ChoiceInput>
+     </RightPane>
+    </SplitPanel>
+    <Use id="cause_mapping3c" ref="cause_mapping_3" />
+  </Vertical>  
   <SplitPanel id="factors_2_to_3">
    <LeftPane>
     <Use id="cause_connection_4a" ref="cause_connection_4" />
@@ -404,36 +444,42 @@ research as key determinants.
    </RightPane>
   </SplitPanel>
 
-  <SplitPanel id="cause_connection_4_explanation_choice">
-   <LeftPane>
-    <Use id="cause_connection_4b" ref="cause_connection_4" />
-    <Markdown>**Select the best sentences to use in the summary.**</Markdown>
-    <ChoiceInput id="cause_connection_4_explanation_choice_input">
-      <Distractor>
+  <Vertical id="cause_connection_4_explanation_choice">
+    <SplitPanel id="cause_connection_4_explanation_choice_panel">
+     <LeftPane>
+       <Use id="cause_connection_4b" ref="cause_connection_4" />
+       <IntakeGate ready="@cause_connection_4_explanation_choice_input.value">
+         <Markdown>&nbsp;</Markdown>
+         <Vertical id="cause_connection_4_explanation_block">
+           <Markdown>
+&nbsp;
+    
+**Why did you choose the sentence you picked?**</Markdown>
+          <TextArea id="cause_connection_4_choice_explanation" 
+              placeholder="Put your answer here..." />
+         </Vertical>
+       </IntakeGate>
+     </LeftPane>
+     <RightPane>
+      <Markdown>**Select the best sentences to use in the summary.**</Markdown>
+      <ChoiceInput id="cause_connection_4_explanation_choice_input">
+        <Distractor>
           <Ref target="cause_connection_4_explanation" />
-      </Distractor>
-      <Distractor>
+        </Distractor>
+        <Distractor>
 Equitable school funding is related to long working hours.
-      </Distractor>
-      <Key><TextBlock id="factor_connection_2_key">
+        </Distractor>
+        <Key><TextBlock id="factor_connection_2_key">
 Equitably funded schools -- especially those in underfunded districts
 serving disproportionately large numbers of vulnerable student populations --
 are more likely to be able to provide the supports and flexibility
 needed by students who must work long hours.
-      </TextBlock></Key>
-    </ChoiceInput>
-    <Markdown>
-    &nbsp;
-    
-    **Why did you choose the sentence you picked?**</Markdown>
-    <TextArea id="cause_connection_4_choice_explanation" 
-              placeholder="Put your answer here..." /> 
-   </LeftPane>
-   <RightPane>
+        </TextBlock></Key>
+      </ChoiceInput>
+     </RightPane>
+    </SplitPanel>
     <Use ref="cause_mapping_3" />
-   </RightPane>
-  </SplitPanel>
-
+  </Vertical>
   <SplitPanel id="factors_3_to_4">
    <LeftPane>
     <Use id="cause_connection_5a" ref="cause_connection_5" />
@@ -447,36 +493,42 @@ needed by students who must work long hours.
    </RightPane>
   </SplitPanel>
 
-  <SplitPanel id="cause_connection_5_explanation_choice">
-   <LeftPane>
-    <Use id="cause_connection_5a" ref="cause_connection_5" />
-    <Markdown>**Select the best sentences to use in the summary.**</Markdown>
-    <ChoiceInput id="cause_connection_5_explanation_choice_input">
-      <Distractor>
-Students with psychological conditions like ADHD are more likely to drop
-out of high school than their peers with ADHD.
-      </Distractor>
-      <Key><TextBlock id="factor_connection_3_key">
-Schools may not be able to support students who require significant accommodations
-and supports due to a psychological condition like ADHD or a learning disability
-without adequate resources.
-      </TextBlock></Key>
-      <Distractor>
-          <Ref target="cause_connection_5_explanation" />
-      </Distractor>
-    </ChoiceInput>
-    <Markdown>
+  <Vertical id="cause_connection_5_explanation_choice">
+    <SplitPanel id="cause_connection_5_explanation_choice_panel">
+     <LeftPane>
+      <Use id="cause_connection_5b" ref="cause_connection_5" />
+      <IntakeGate ready="@cause_connection_5_explanation_choice_input.value">
+      <Markdown>&nbsp;</Markdown>
+      <Vertical id="cause_connection_5_choice_explanation_panel">
+        <Markdown>
     &nbsp;
     
     **Why did you choose the sentence you picked?**</Markdown>
-    <TextArea id="cause_connection_5_choice_explanation" 
-              placeholder="Put your answer here..." /> 
-   </LeftPane>
-   <RightPane>
+        <TextArea id="cause_connection_5_choice_explanation" 
+              placeholder="Put your answer here..." />
+       </Vertical>
+      </IntakeGate>
+     </LeftPane>
+     <RightPane>
+      <Markdown>**Select the best sentences to use in the summary.**</Markdown>
+      <ChoiceInput id="cause_connection_5_explanation_choice_input">
+        <Distractor>
+Students with psychological conditions like ADHD are more likely to drop
+out of high school than their peers with ADHD.
+        </Distractor>
+        <Key><TextBlock id="factor_connection_3_key">
+Schools may not be able to support students who require significant accommodations
+and supports due to a psychological condition like ADHD or a learning disability
+without adequate resources.
+        </TextBlock></Key>
+        <Distractor>
+          <Ref target="cause_connection_5_explanation" />
+        </Distractor>
+      </ChoiceInput>
+     </RightPane>
+    </SplitPanel>
     <Use ref="cause_mapping_3" />
-   </RightPane>
-  </SplitPanel>
-  
+  </Vertical>  
   <Vertical id="overview_of_connections">
     <SplitPanel id="comparison_1">
       <LeftPane>
@@ -504,11 +556,25 @@ without adequate resources.
     </SplitPanel>
   </Vertical>
   
+  <SplitPanel id="extended_summary">
+    <LeftPane>
+      <Use ref="cause_mapping_introduction" />
+      <Use ref="first_crosslink_sentence" />
+      <Use ref="factor_connection_1_key" />
+      <Use ref="factor_connection_2_key" />
+      <Use ref="factor_connection_3_key" />
+    </LeftPane>
+    <RightPane>
+      <Use ref="cause_mapping_3" />
+    </RightPane>
+  </SplitPanel>
+  
   <Vertical id="reading_funding_text">
     <Markdown>
 **Select words or phrases that cue a specific discipline. Takes notes explaining which disciplines they cue, and why.**
     </Markdown>
     <Use ref="reading_funding2a" />
+    <StateViewer target="reading_funding2a" />
   </Vertical>
   
     <!-- Employment Study (Source 2) - identify disciplines -->
@@ -527,11 +593,69 @@ without adequate resources.
          </CheckboxInput>
       </Vertical>
       <Vertical id="reading_funding_t2" title="School Funding Study">
-          <Use ref="reading_funding_text" />
+          <Use id="reading_funding_text_b" ref="reading_funding_text" />
       </Vertical>
-    </Tabs> 
-  
+    </Tabs>  
+    
     <Markdown id="reading_funding_highlighted" src="readings/research_study_school_funding_highlighted.md" />
+    
+    <Tabs id="reading_funding_insight">
+      <Vertical id="rfi_t1" title="Insight Sentence">
+        <Markdown>
+**Write your sentence for the insight of this source.**
+        </Markdown>
+        <TextArea id="reading_funding_insight_sentence" placeholder="Write your insight sentence here" />
+      </Vertical>
+      <Vertical id="rfi_t2" title="School Funding Study">
+        <Use ref="reading_funding_highlighted" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="reading_funding_insight_choice">
+     <SplitPanel id="reading_funding_insight_choice_panel" title="Choose the Best Insight Sentence">
+      <LeftPane>
+        <Markdown>
+**Click on the insight summary that you consider the best.**
+        </Markdown>
+        <ChoiceInput id="reading_funding_insight_choice_input">
+          <Distractor>
+Just 10% increase in per-pupil spending increased completed schooling raising likelihood of high school graduation.
+          </Distractor>
+          <Key><TextBlock id="best_reading_funding_insight_sentence">
+Sustained increases in school spending significantly improve educational attainment, adult earnings, and poverty outcomes—especially for low-income students—show that equitable school finance reforms are powerful tools for reducing inequality and promoting economic mobility.
+          </TextBlock></Key>
+          <Distractor><Ref target="reading_funding_insight_sentence" /></Distractor>
+          <Distractor>
+Participants who were exposed to that school funding increase saw increased wages and family income when they reached adulthood. Poverty rates were lower too because of it.
+          </Distractor>
+          <Distractor>
+Sustained increases in school spending significantly improve educational attainment, adult earnings, and poverty outcomes.
+          </Distractor>
+        </ChoiceInput>
+        </LeftPane>
+        <RightPane>
+          <IntakeGate id="reading_funding_insight_choice_explanation_gate" ready="@reading_funding_insight_choice_input.value">
+            <Markdown>&nbsp;</Markdown>
+            <Vertical id="reading_funding_insight_choice_explanation_panel">
+            <Markdown>
+**Why did you select this explanation?**
+            </Markdown>
+            <TextArea id="reading_funding_insight_choice_explanation" />
+            </Vertical>
+          </IntakeGate>
+        </RightPane>
+     </SplitPanel>
+     <Vertical id="reading_funding_insight_choice_panel2" title="School Funding Study">
+       <Use ref="reading_funding_highlighted" />
+     </Vertical>
+    </Tabs>
+    
+    <Vertical id="best_reading_funding_insight_sentence_display">
+      <Markdown>
+**Best Insight Sentence for this Passage**
+      </Markdown>
+      <Use ref="best_reading_funding_insight_sentence" />
+    </Vertical>
 </Vertical>
 </Cast>
 

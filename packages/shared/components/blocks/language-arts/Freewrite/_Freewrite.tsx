@@ -3,7 +3,7 @@
 // A textarea with composable writing constraints:
 //   invisible - text hidden while typing (revealed when parent goes inert)
 //   nodelete  - cursor locked to end, no backspace/delete/cut
-//   wordcount - live word count (prominent when invisible)
+//   counter   - live word count (prominent when invisible)
 //   pace      - CSS-animated bar that decays from green→red during pauses;
 //               when the bar reaches zero, the exercise auto-locks
 //
@@ -36,7 +36,7 @@ function _Freewrite(props: RuntimeProps) {
   const {
     fields,
     invisible, nodelete,
-    wordcount, pace,
+    autofocus, counter, pace,
     pacedecay, reveal,
     placeholder, rows,
   } = props;
@@ -173,6 +173,7 @@ function _Freewrite(props: RuntimeProps) {
         readOnly={revealed}
         placeholder={placeholder}
         rows={rows}
+        autoFocus={autofocus && !revealed}
         spellCheck={false}
         autoComplete="off"
         autoCorrect="off"
@@ -191,8 +192,8 @@ function _Freewrite(props: RuntimeProps) {
       )}
 
       {/* Status bar: word count and/or pace indicator */}
-      {(wordcount || (pace && !revealed)) && (
-        <div className={`lo-freewrite__status${hidden && wordcount ? ' lo-freewrite__status--prominent' : ''}`}>
+      {(counter || (pace && !revealed)) && (
+        <div className={`lo-freewrite__status${hidden && counter ? ' lo-freewrite__status--prominent' : ''}`}>
           {pace && !revealed && lastKeystrokeTime && (
             <div className="lo-freewrite__pace">
               <div
@@ -202,7 +203,7 @@ function _Freewrite(props: RuntimeProps) {
               />
             </div>
           )}
-          {wordcount && (
+          {counter && (
             <div className="lo-freewrite__wordcount">
               {words} {words === 1 ? 'word' : 'words'}
             </div>

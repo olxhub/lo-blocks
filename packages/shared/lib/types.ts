@@ -558,6 +558,16 @@ export const BlockBlueprintSchema = z.object({
    */
   requiresUniqueId: z.boolean().optional(),
   /**
+   * What kind of children this block's parser accepts.
+   * Set automatically by standard parsers (blocks, text, ignore, etc.).
+   * Used by CodeMirror XML schema for autocompletion:
+   *   'blocks' — suggests block names as children
+   *   'text'   — no child element suggestions (text content)
+   *   'none'   — self-closing / no children
+   *   undefined — custom parser (permissive: suggests all block names)
+   */
+  childMode: z.enum(['blocks', 'text', 'none']).optional(),
+  /**
    * Zod schema for validating block attributes at parse time and render time.
    * If defined, invalid attributes produce errors in parseOLX and DisplayError at render.
    */
@@ -675,6 +685,11 @@ export interface LoBlock {
    *   Receives context including parsed content, attributes, and current state.
    */
   requiresUniqueId?: boolean;
+  /**
+   * What kind of children this block's parser accepts.
+   * Set automatically by standard parsers. Used for editor autocompletion.
+   */
+  childMode?: 'blocks' | 'text' | 'none';
   /**
    * Zod schema for validating block attributes at parse time and render time.
    */

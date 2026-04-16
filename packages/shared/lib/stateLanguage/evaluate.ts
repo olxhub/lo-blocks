@@ -6,6 +6,7 @@
 import type { ASTNode } from './parser';
 import { dslFunctions } from './functions';
 import { correctness, completion } from '@/lib/blocks/correctness';
+import { ACTIVE_METHODS } from './keywords';
 
 /**
  * Context data for evaluation.
@@ -167,6 +168,12 @@ function evaluateBinaryOp(
     case '&&': return left && right;
     case '||': return left || right;
 
+    // Membership / containment
+    case 'in':
+      if (Array.isArray(right)) return right.includes(left);
+      if (right != null && typeof right === 'object') return Object.prototype.hasOwnProperty.call(right, left);
+      return false;
+
     // Arithmetic
     case '+': return left + right;
     case '-': return left - right;
@@ -231,6 +238,29 @@ function evaluateCall(
 
     // Call with proper binding
     return method.apply(obj, args);
+  }
+
+  // Handle method calls on SigilRef chains.
+  // The PEG grammar greedily consumes @foo.bar.method as a single SigilRef
+  // with fields ['bar', 'method'], so the callee is a SigilRef rather than
+  // a MemberAccess. When the last field is a whitelisted method name, split
+  // it off and use .apply() for proper `this` binding.
+  if (ast.callee.type === 'SigilRef' && ast.callee.fields.length > 0) {
+    const fields = ast.callee.fields;
+    const methodName = fields[fields.length - 1];
+
+    if (ACTIVE_METHODS.has(methodName)) {
+      const parentRef = { ...ast.callee, fields: fields.slice(0, -1) };
+      const obj = evaluate(parentRef, context);
+      if (obj == null) {
+        throw new Error(`Cannot call method '${methodName}' on null/undefined`);
+      }
+      const method = obj[methodName];
+      if (typeof method !== 'function') {
+        throw new Error(`'${methodName}' is not available on this value`);
+      }
+      return method.apply(obj, args);
+    }
   }
 
   // Other callee types (identifiers, nested calls, etc.)

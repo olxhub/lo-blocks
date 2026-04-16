@@ -517,7 +517,6 @@ function StudioPageContent() {
               onChange={(value) => setContent(value)}
               path={filePath}
               height="100%"
-
             />
           </div>
           {showPreview && (

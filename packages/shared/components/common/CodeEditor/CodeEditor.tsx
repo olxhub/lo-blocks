@@ -1,4 +1,4 @@
-// src/components/common/CodeEditor.tsx
+// src/components/common/CodeEditor/CodeEditor.tsx
 'use client';
 
 import { useMemo, useRef, useImperativeHandle, forwardRef, useState, useEffect } from 'react';
@@ -7,19 +7,76 @@ import { xml } from '@codemirror/lang-xml';
 import { markdown } from '@codemirror/lang-markdown';
 import { yaml } from '@codemirror/lang-yaml';
 import { javascript } from '@codemirror/lang-javascript';
-import { indentService } from '@codemirror/language';
+import { indentService, syntaxTree } from '@codemirror/language';
 import { linter, lintGutter, Diagnostic } from '@codemirror/lint';
 import { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { getParserForExtension, type PEGContentExtension } from '@/generated/parserRegistry';
 import { getExtension, isPEGFile, isOLXFile, isMarkdownFile } from '@/lib/util/fileTypes';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import { generateOlxSchema } from './olxSchema';
 
 // Dynamic import for CodeMirror to avoid SSR issues
 const CodeMirror = dynamic(
   () => import('@uiw/react-codemirror').then(mod => mod.default),
   { ssr: false }
 );
+
+// OLX schema for CodeMirror autocompletion — lazy singleton to avoid
+// circular-init issues (BLOCK_REGISTRY is a module-level const too).
+let _olxSchema: ReturnType<typeof generateOlxSchema> | null = null;
+function getOlxSchema() {
+  if (!_olxSchema) _olxSchema = generateOlxSchema(BLOCK_REGISTRY);
+  return _olxSchema;
+}
+
+// ---------------------------------------------------------------------------
+// OLX cursor context — which block tag is the cursor inside?
+//
+// Lezer's XML parser gives us: Element > OpenTag > TagName. We walk up the
+// tree from the cursor to find the enclosing Element and read its tag name.
+//
+// This is currently a standalone helper. The long-term plan is to expose
+// cursor context as a subscribable field so sibling components (e.g. a
+// contextual docs panel) can react to it:
+//
+//   <Docs target="editorId" />
+//   <CodeEditor id="editorId" />
+//
+// That will happen once the editor is extracted from /studio/ into its own
+// reusable component. For now, this is penciled in as a building block.
+//
+// This is NOT TESTED CODE.
+//
+// If it is removed, we should also remove the syntaxTree import, and the
+// getEnclosingTagName export from index.ts
+//
+// Possible paths forward:
+// * <Docs target="codeMirrorId"/>
+// * CodeMirror hoverTooltip API
+// * The existing autocompletion already supports info fields on Completion
+//   objects. Could we attach .describe() text there? This is a deeper dive.
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the OLX tag name of the nearest enclosing element at `pos`,
+ * or null if the cursor is outside any element (e.g. in the document root
+ * or in a non-XML file).
+ *
+ * Uses CodeMirror's Lezer syntax tree — no re-parsing required.
+ */
+export function getEnclosingTagName(state: import('@codemirror/state').EditorState, pos: number): string | null {
+  const tree = syntaxTree(state);
+  let node = tree.resolveInner(pos, -1);
+  for (let cur: typeof node | null = node; cur; cur = cur.parent) {
+    if (cur.name === 'Element') {
+      const tagName = cur.firstChild?.getChild('TagName');
+      if (tagName) return state.doc.sliceString(tagName.from, tagName.to);
+    }
+  }
+  return null;
+}
 
 export type CodeLanguage = 'xml' | 'olx' | 'md' | 'markdown' | 'yaml' | 'json' | 'js' | 'mermaid' | PEGContentExtension;
 
@@ -206,7 +263,11 @@ function getLanguageExtension(language?: CodeLanguage): Extension | undefined {
   switch (language) {
     case 'xml':
     case 'olx':
-      return xml();
+      const schema = getOlxSchema();
+      return xml({
+        elements: schema.elements,
+        attributes: schema.attributes,
+      });
     case 'md':
     case 'markdown':
       return markdown();
@@ -238,6 +299,9 @@ function detectLanguageFromPath(filePath?: string): CodeLanguage | undefined {
  * Handles the dynamic import of CodeMirror to avoid SSR issues and
  * provides automatic syntax highlighting based on file extension or
  * explicit language prop.
+ *
+ * For OLX files, provides schema-based autocompletion for block elements
+ * and attributes, derived from the block registry.
  *
  * For PEG content files (.chatpeg, .sortpeg, etc.), provides inline
  * error highlighting using the appropriate parser.
@@ -324,7 +388,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
     // Line wrapping
     if (lineWrapping) exts.push(EditorView.lineWrapping);
 
-    // Language extension (syntax highlighting)
+    // Language extension (syntax highlighting + schema-based autocompletion)
     const langExt = getLanguageExtension(effectiveLanguage);
     if (langExt) exts.push(langExt);
 

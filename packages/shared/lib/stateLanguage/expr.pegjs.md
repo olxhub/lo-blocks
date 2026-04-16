@@ -85,6 +85,16 @@ Standard JavaScript operators are supported:
 @value < 100
 ```
 
+### Membership (`in`)
+
+Test whether a value is in an array or an object has a key:
+
+```
+"optA" in @checkboxes.value          # Is "optA" selected?
+"optA" in @cb.value && "optB" in @cb.value  # Both selected?
+"name" in @data.value                # Does object have key "name"?
+```
+
 ### Boolean
 
 ```
@@ -156,15 +166,26 @@ Math.min(@a, @b)
 Math.max(@a, @b)
 ```
 
-## Aggregation
+## Array Methods
 
-For working with lists of child components, array methods are supported:
+Array methods work on both `items` bindings (child component lists) and
+on array-valued fields accessed via sigil references:
+
+### includes
+
+```
+@checkboxes.value.includes("optA")
+@checkboxes.value.includes("optA") && @checkboxes.value.includes("optB")
+```
+
+For simple membership tests, the `in` operator (see above) is often cleaner.
 
 ### every / some
 
 ```
 items.every(c => c.done === completion.done)
 items.some(c => c.correct === correctness.correct)
+@list.value.some(x => x > 0)
 ```
 
 ### filter
@@ -181,10 +202,11 @@ items.map(c => c.value)
 items.map(c => c.value).join(", ")
 ```
 
-### length
+### find / length
 
 ```
 items.length
+@list.value.find(x => x > 10)
 ```
 
 ## Usage Examples
@@ -239,15 +261,21 @@ Gate content behind prerequisites:
 
 ## Reserved Words
 
-These identifiers are reserved and cannot be used as field names:
+These identifiers are reserved and cannot be used as block field or
+attribute names. The full list is maintained in `keywords.ts`.
+
+**Operators:** `in`
 
 **Enums:** `correctness`, `completion`
 
-**Functions:** `wordcount`, `Math`
+**Functions:** `wordcount`, `isFilled`, `text2markdown`, `stringMatch`, `numericalMatch`, `Math`, `Object`
 
-**Array methods:** `length`, `every`, `some`, `filter`, `map`, `find`, `includes`, `join`, `reduce`
+**Active array/string methods:** `length`, `every`, `some`, `filter`, `map`, `find`, `includes`, `join`
 
-**Runtime:** `componentState`, `olxContent`, `globalVar`
+**Reserved for future use:** `reduce`, `indexOf`, `slice`, `concat`, `sort`, `reverse`, `flat`, `flatMap`, `trim`, `startsWith`, `endsWith`, `split`, `replace`, `toLowerCase`, `toUpperCase`, `keys`, `entries`, `of`, `typeof`, `instanceof`, `not`, `and`, `or`
+
+Block field and attribute names are validated against this list at
+registration time. If a name collides, the block definition will throw.
 
 ## Technical Notes
 

@@ -1,15 +1,21 @@
-// src/components/blocks/DisplayMath/_InlineMath.jsx
+'use client';
 import React from 'react';
 import katex from 'katex';
 import type { RuntimeProps } from '@/lib/types';
 if (typeof window !== 'undefined') {
   import('katex/dist/katex.min.css');
 }
+import { useTextContent } from '@/lib/state/redux';
 import { DisplayError } from '@/lib/util/debug';
+import Spinner from '@/components/common/Spinner';
 
 export function _InlineMath( props: RuntimeProps ) {
-  const { kids } = props;
-  const latex = typeof kids === 'string' ? kids.trim() : '';
+  const { text, loading } = useTextContent(props);
+  const latex = text.trim();
+
+  if (loading) {
+    return <Spinner />;
+  }
 
   let html = '';
   try {
