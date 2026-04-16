@@ -16,6 +16,101 @@ Alex: Hello [id=greeting]
 Sam: How are you?
 `);
 
+/* ── Indented rich content ─────────────────────────────────────────────── */
+
+describe('indented rich content', () => {
+  it('parses indented block as part of speaker text', () => {
+    const result = parseChat(`~~~~
+Kim: Here is what I found:
+
+  The results were striking:
+
+  - Testing improved retention by 50%
+  - Re-reading only improved it by 20%
+
+Alex: Wow!
+`);
+    const kim = result.body[0];
+    expect(kim.type).toBe('Line');
+    expect(kim.speaker).toBe('Kim');
+    expect(kim.text).toContain('Here is what I found:');
+    expect(kim.text).toContain('- Testing improved retention by 50%');
+    expect(kim.text).toContain('- Re-reading only improved it by 20%');
+    // Should have paragraph break between inline text and indented block
+    expect(kim.text).toContain('found:\n\nThe results');
+
+    const alex = result.body[1];
+    expect(alex.speaker).toBe('Alex');
+    expect(alex.text).toBe('Wow!');
+  });
+
+  it('preserves blank lines within indented block as paragraph breaks', () => {
+    const result = parseChat(`~~~~
+Kim: Summary:
+
+  First paragraph.
+
+  Second paragraph.
+
+Alex: Got it.
+`);
+    const kim = result.body[0];
+    expect(kim.text).toContain('First paragraph.\n\nSecond paragraph.');
+  });
+
+  it('treats # and [ as literal text inside indented blocks', () => {
+    const result = parseChat(`~~~~
+Kim: Notes:
+
+  # This is a heading
+  [This is bracketed text]
+
+Alex: Thanks.
+`);
+    const kim = result.body[0];
+    expect(kim.text).toContain('# This is a heading');
+    expect(kim.text).toContain('[This is bracketed text]');
+  });
+
+  it('ends indented block at non-indented content', () => {
+    const result = parseChat(`~~~~
+Kim: Intro:
+
+  Indented content here.
+
+Sam: Next speaker.
+`);
+    expect(result.body).toHaveLength(2);
+    expect(result.body[0].speaker).toBe('Kim');
+    expect(result.body[1].speaker).toBe('Sam');
+  });
+
+  it('works with continuation lines before indented block', () => {
+    const result = parseChat(`~~~~
+Kim: This is a long message that
+continues on the next line.
+
+  And then has an indented block.
+
+Alex: Ok.
+`);
+    const kim = result.body[0];
+    expect(kim.text).toContain('continues on the next line.');
+    expect(kim.text).toContain('And then has an indented block.');
+  });
+
+  it('does not affect existing non-indented continuation lines', () => {
+    const result = parseChat(`~~~~
+Kim: This is a message
+that continues without indentation
+across multiple lines.
+Alex: Reply.
+`);
+    const kim = result.body[0];
+    expect(kim.text).toBe('This is a message\nthat continues without indentation\nacross multiple lines.');
+  });
+});
+
 describe('chatUtils', () => {
   describe('byId', () => {
     it('finds elements by ID (message or section)', () => {

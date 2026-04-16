@@ -146,6 +146,57 @@ continues across multiple lines until
 a new speaker or command appears.
 ```
 
+### Rich Content (Indented Blocks)
+
+For paragraphs, lists, headings, and other rich markdown, indent continuation lines by 2+ spaces. Everything inside the indented block is treated as literal markdown — chatpeg special syntax (`#`, `[metadata]`, `--- commands ---`) does not apply.
+
+```
+Kim: Here's what the research shows:
+
+  The results were striking:
+
+  - Testing improved retention by 50%
+  - Re-reading only improved it by 20%
+
+  > Roediger & Karpicke, 2006
+
+Alex: Wow, that's a big difference! [face=awe]
+```
+
+Rules:
+
+- **2+ leading spaces** mark a line as indented content (the leading spaces are stripped)
+- **Single blank lines** within the block are preserved as paragraph breaks
+- **Two consecutive blank lines**, a non-indented non-blank line, or end-of-file ends the block
+- The speaker's initial text and the indented block are joined with a paragraph break
+- Non-indented continuation lines still work as before — indented blocks are optional
+
+Indented content can include anything valid in markdown:
+
+```
+Professor Liu: Let me walk you through this:
+
+  # Key Concepts
+
+  There are three main findings:
+
+  1. **Testing effect** — practice tests beat re-reading
+  2. **Spacing effect** — distributed study beats massed practice
+  3. **Interleaving** — mixing topics beats blocking
+
+  | Study | Effect Size |
+  |-------|-------------|
+  | Roediger (2006) | d = 0.67 |
+  | Cepeda (2006) | d = 0.42 |
+
+  ```python
+  # Even code blocks work
+  recall_rate = tests_taken * 0.15
+  ```
+
+Amara: That table is really helpful. [face=smile]
+```
+
 ## Inline Metadata
 
 Annotate dialogue lines with `[key=value]` at the end of the line:

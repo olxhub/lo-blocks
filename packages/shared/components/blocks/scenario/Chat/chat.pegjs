@@ -180,12 +180,16 @@ WaitExpression
 
 
 DialogueGroup
-  = metaAbove:MetadataLine? line:DialogueLine continuation:ContinuationLine* {
-      const textLines = [line.text].concat(continuation.map(c => c.text));
+  = metaAbove:MetadataLine? line:DialogueLine continuation:ContinuationLine* indented:IndentedBlock? {
+      const parts = [line.text].concat(continuation.map(c => c.text));
+      // Join inline text, then append indented block with paragraph break.
+      // Trim trailing newlines (from empty continuation lines) before joining.
+      const inlineText = parts.join("\n");
+      const text = indented ? inlineText.replace(/\n*$/, '') + "\n\n" + indented : inlineText;
       return {
         type: "Line",
         speaker: line.speaker,
-        text: textLines.join("\n"),
+        text,
         metadata: {
           ...(metaAbove ? metaAbove.data : {}),
           ...(line.metadata || {})
@@ -194,8 +198,47 @@ DialogueGroup
   }
 
 ContinuationLine
-  = !SectionHeaderBlockStart !DialogueLineStart !MetadataLineStart !StartCommandBlock !ArrowCommand !PauseCommandStart !WaitCommandStart !CommentLineStart content:LineContent NewLine {
+  = !SectionHeaderBlockStart !DialogueLineStart !MetadataLineStart !StartCommandBlock !ArrowCommand !PauseCommandStart !WaitCommandStart !CommentLineStart !IndentedLine content:LineContent NewLine {
       return { text: content };
+  }
+
+/* ─────────────────────────  Indented rich content  ───────────────────────── */
+/*
+ * After a speaker line, lines indented 2+ spaces form a rich markdown block.
+ * Within the block, all chatpeg special syntax (#, [metadata], --- commands)
+ * is treated as literal text — only indentation matters.
+ *
+ * Single blank lines are preserved as paragraph breaks.
+ * Two consecutive blank lines (or a non-indented non-blank line) end the block.
+ *
+ *   Kim: Here's what the research shows:
+ *
+ *     The results were striking:
+ *
+ *     - Testing improved retention by 50%
+ *     - Re-reading only improved it by 20%
+ *
+ *     > Roediger & Karpicke, 2006
+ *
+ *   Alex: Wow! [face=awe]
+ */
+
+IndentedBlock
+  = BlankLine* first:IndentedLine rest:(IndentedBlankLine / IndentedLine)* {
+      return [first, ...rest].join("\n");
+  }
+
+// A content line with 2+ leading spaces (stripped from output)
+IndentedLine
+  = "  " content:[^\r\n]* NewLine {
+      return content.join('');
+  }
+
+// A blank line within an indented block — only valid if followed by another
+// indented line (lookahead prevents consuming trailing blank lines)
+IndentedBlankLine
+  = _ NewLine &((_ NewLine)* IndentedLine) {
+      return "";
   }
 
 DialogueLineStart

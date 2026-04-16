@@ -93,6 +93,25 @@ Main Discussion
 Alex: Let's dive in.
 ```
 
+### Rich Content
+
+Indent lines by 2+ spaces for full markdown — paragraphs, lists, tables, code blocks. Inside the indented block, `#`, `[`, and `---` are literal text, not chatpeg syntax.
+
+```
+Kim: Here's the summary:
+
+  The results were clear:
+
+  - Testing beats re-reading
+  - Spacing beats cramming
+
+  > "Desirable difficulties" — Bjork, 1994
+
+Alex: Got it. [face=smile]
+```
+
+See the Chatpeg Grammar Reference for full details.
+
 ### Inline Metadata
 
 Annotate any dialogue line with `[key=value]` pairs:
