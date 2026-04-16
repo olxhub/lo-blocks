@@ -5,7 +5,6 @@ import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
 import { fieldSelector } from '@/lib/state';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Collapsible from './_Collapsible';
 
 export const fields = state.fields(['expanded']);
@@ -21,9 +20,9 @@ const Collapsible = dev({
     const expanded = fieldSelector(state, props, fields.expanded, { fallback: false });
     return { expanded };
   }) as any,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     label: z.string().optional().describe('Header text for the collapsible section (alias for title)'),
-  }),
+  }).strict(),
 });
 
 export default Collapsible;

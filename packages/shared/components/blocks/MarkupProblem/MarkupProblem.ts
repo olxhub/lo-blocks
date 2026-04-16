@@ -13,11 +13,10 @@
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
-import { srcAttributes, problemMixin } from '@/lib/blocks/attributeSchemas';
+import { srcAttributes, problemAttributes } from '@/lib/blocks/attributeSchemas';
 import * as capaParser from '../specialized/peg_prototype/_capaParser';
 import _CapaProblem from '@/components/blocks/CapaProblem/_CapaProblem';
 import type { BlueprintKidEntry, OlxReference } from '@/lib/types';
-import type { CheckboxGraderAttributes } from '../input/ChoiceInput/CheckboxGrader';
 import { parse as parseExpr } from '@/lib/stateLanguage';
 
 // Pre-parse a when= expression into the { expr, ast } shape that useKidsJson expects.
@@ -245,7 +244,12 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
         });
 
         // CheckboxGrader - optionally add partialCredit="true" if block specifies it
-        const graderAttrs: CheckboxGraderAttributes = { id: graderId, target: inputId };
+        // Inline type: graderMixin contributes target/answer/displayAnswer at factory time,
+        // but here we're emitting raw OLX attributes, so target is a single string.
+        const graderAttrs: { id: string; target: string; partialCredit?: 'true' | 'false' } = {
+          id: graderId,
+          target: inputId,
+        };
         if (block.partialCredit) {
           graderAttrs.partialCredit = 'true';
         }
@@ -495,7 +499,7 @@ const MarkupProblem = dev({
   component: _CapaProblem,
   fields,
   isGrader: true,  // Metagrader: aggregates child grader states (same as CapaProblem)
-  attributes: srcAttributes.extend(problemMixin.shape).strict(),
+  attributes: srcAttributes.extend(problemAttributes.shape).strict(),
   // peggyParser sets staticKids: () => [], but MarkupProblem generates child
   // blocks (graders, inputs, hints) dynamically during PEG parsing.
   // Without this, the content API's static-kids mode won't include them.

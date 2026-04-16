@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes, z_reduxStateKeyList } from '@/lib/blocks/attributeSchemas';
+import { z_reduxStateKeyList } from '@/lib/blocks/attributeSchemas';
 import _ShowAnswerButton from './_ShowAnswerButton';
 
 const ShowAnswerButton = core({
@@ -11,10 +11,10 @@ const ShowAnswerButton = core({
   description: 'Button that reveals the correct answer for a grader. Use target attribute to specify grader IDs.',
   category: 'action',
   component: _ShowAnswerButton,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     label: z.string().default('Show Answer').describe('Button text (toggles to "Hide Answer" when shown)'),
     target: z_reduxStateKeyList.optional().describe('Comma-separated grader IDs to toggle; infers from parent if omitted'),
-  }),
+  }).strict(),
 });
 
 export default ShowAnswerButton;

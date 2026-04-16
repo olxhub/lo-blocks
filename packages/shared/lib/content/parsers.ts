@@ -19,9 +19,12 @@
 // Future: An `xmljson` parser could pass through raw fast-xml-parser JSON for blocks
 // that need to do their own XML processing. Not currently implemented.
 //
+import { z } from 'zod';
 import { XMLBuilder } from 'fast-xml-parser';
-import type { OLXLoadingError, OlxReference, OlxKey } from '@/lib/types';
+import type { OLXLoadingError, OlxReference, OlxKey, RuntimeProps, ReduxStateKey } from '@/lib/types';
 import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
+import { z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
+import * as state from '@/lib/state';
 
 // === Setup ===
 
@@ -456,9 +459,90 @@ const textFactory = childParser(async function textParser({ rawParsed, attribute
   return content;
 });
 textFactory.staticKids = () => [];
+
+// === withTarget variant ===
+//
+// `parsers.text.withTarget()` (and its `.raw` / `.stripIndent` siblings)
+// bundle the same text parser together with a `parserMixin` that turns
+// the block into a coherent text-source consumer. This lets display
+// blocks like Mermaid, Markdown, ObservablePlot, etc. accept their
+// source text from any of four places:
+//
+//   1. child text                 <Mermaid>graph TD; A --> B</Mermaid>
+//   2. src= (parse-time load)     <Mermaid src="diagram.mmd"/>
+//   3. target= (reactive read)    <Mermaid target="codeEditor"/>
+//   4. own value field (settable) <Set target="myMermaid" value="..."/>
+//
+// All four routes converge on the same `selectValue` below, which reads
+// `commonFields.value` from Redux and falls back to the block's parsed
+// `kids` (which was populated at parse time from either `src=` or the
+// block's child text). The render-time hook is `useTextContent`.
+//
+// - With no `target=`, `useValue` defaults to "this block", so the read
+//   goes through *this* block's selectValue → Redux value → kids.
+// - With `target="other"`, the read goes through the *target* block's
+//   selectValue. If the target also uses this mixin (or any block with a
+//   compatible value field — TextArea, etc.), it just works.
+//
+// `target=` is tagged via `z_reduxStateKey`, so `getRefAttributes` /
+// `ensureReferencedBlocks` automatically preload the referenced block.
+//
+// `requiresUniqueId: false` is baked in because text-display blocks
+// typically don't need unique IDs — they render content, not state.
+// Blueprint-level `requiresUniqueId: true` still wins via the factory's
+// later-layer-overrides rule for scalar keys.
+const textWithTargetParserMixin = {
+  attributes: z.object({
+    src: z.string().optional().describe('Path to external file containing content'),
+    target: z_reduxStateKey.optional().describe(
+      'Read content from another block\'s value field (reactive)'
+    ),
+  }).strict(),
+  fields: state.fields([state.commonFields.value]),
+  // Read commonFields.value, falling back to the block's parsed text
+  // (kids). The fallback is what makes the static
+  //   <Mermaid>graph TD; A --> B</Mermaid>
+  // form render before anyone has written to the value field, and what
+  // makes a `<Ref target="myMermaid">` see the diagram's current text.
+  //
+  // TODO: This selectValue is a stopgap living at the *value* field
+  // only. It lets `<Ref>` and any other `valueSelector` consumer read
+  // a sensible "current displayed value" off this block — Redux value
+  // when set, kids when not. But sibling actions like CopyFieldAction,
+  // SetFieldAction, LLMAction read fields via raw `getField` and so
+  // bypass selectValue entirely. They see "" for an unset value field
+  // even when the rendered block clearly shows kids text. (See
+  // MermaidPublish.olx — click Publish before editing and watch the
+  // published diagram clear.)
+  //
+  // The right fix is a general per-field "current displayed value"
+  // protocol — selectValue generalized from value-only to arbitrary
+  // fields, or a `field.display` hook that every consumer (refs,
+  // copies, LLM context, …) consults. Once that lands, this one-off
+  // selectValue goes away and every consumer sees the same
+  // semantically-meaningful value the renderer sees.
+  selectValue: (props: RuntimeProps, reduxState: any, id: ReduxStateKey) => {
+    const kids = typeof props.kids === 'string' ? props.kids : '';
+    return state.fieldSelector(
+      reduxState,
+      { ...props, id },
+      state.commonFields.value,
+      { fallback: kids }
+    );
+  },
+  requiresUniqueId: false,
+};
+
 export const text = Object.assign(textFactory, {
   raw: () => textFactory({ postprocess: 'raw' }),
   stripIndent: () => textFactory({ postprocess: 'stripIndent' }),
+  withTarget: Object.assign(
+    () => ({ ...textFactory(), parserMixin: textWithTargetParserMixin }),
+    {
+      raw: () => ({ ...textFactory({ postprocess: 'raw' }), parserMixin: textWithTargetParserMixin }),
+      stripIndent: () => ({ ...textFactory({ postprocess: 'stripIndent' }), parserMixin: textWithTargetParserMixin }),
+    }
+  ),
 });
 
 // Text content → attribute parser.
@@ -596,9 +680,9 @@ export function peggyParser(
       const errorObj: OLXLoadingError = {
         type: 'peg_error' as const,
         summary: `Dialogue parsing error in ${prov.join(' → ')}`,
-        file: prov.join(' → '),
         message: parseError.message,
         location: {
+          provenance: prov,
           line: parseError.location?.start?.line,
           column: parseError.location?.start?.column,
           offset: parseError.location?.start?.offset
@@ -634,6 +718,115 @@ export function peggyParser(
     if (!skipStoreEntry) {
       storeEntry(id, entry);
     }
+    return id;
+  }
+
+  return { parser, staticKids: () => [] };
+}
+
+// === YAML + Zod Support ===
+//
+// For blocks with simple structured content (key-value config), YAML is a
+// natural fit. Combined with a Zod schema for validation and transforms,
+// this replaces PEG grammars for formats that are essentially "a few fields
+// with lists." The Zod schema can do things like split comma-separated
+// strings into arrays (idempotently — already-arrays pass through), parse
+// suffixes, and provide clear validation errors.
+//
+// See TabularMCQ for the canonical example.
+
+/**
+ * YAML+Zod parser adapter for content inside OLX blocks.
+ *
+ * Extracts text content from the block, parses it as YAML, then validates
+ * and transforms the result through a Zod schema. The output is stored
+ * in the standard `{ type: 'parsed', parsed }` kids structure.
+ *
+ * @param schema - Zod schema to validate/transform the parsed YAML
+ */
+export function yamlParser(schema: z.ZodType) {
+  async function parser({
+    id,
+    rawParsed,
+    tag,
+    attributes,
+    provenance,
+    provider,
+    storeEntry,
+    errors,
+    metadata
+  }) {
+    const tagParsed = rawParsed[tag];
+    const kids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
+
+    let prov = provenance;
+    let textContent: string;
+    if (attributes?.src) {
+      const loaded = await loadExternalSource({ src: attributes.src, provider, provenance });
+      textContent = loaded.text;
+      prov = loaded.provenance;
+    } else {
+      const extracted = extractTextFromXmlNodes(kids, { preserveWhitespace: true });
+      textContent = typeof extracted === 'string' ? extracted : extracted.text;
+    }
+
+    let entry;
+    try {
+      const { default: yaml } = await import('js-yaml');
+      const raw = yaml.load(textContent);
+      const parsed = schema.parse(raw);
+
+      entry = {
+        id,
+        tag,
+        attributes,
+        provenance: prov,
+        rawParsed,
+        kids: { type: 'parsed', parsed },
+        ...(metadata || {})
+      };
+    } catch (parseError) {
+      // Zod errors have a nice .issues array; YAML errors have .mark with line/column
+      const isZod = parseError?.issues !== undefined;
+      const message = isZod
+        ? parseError.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ')
+        : (parseError.message || String(parseError));
+
+      const errorObj: OLXLoadingError = {
+        type: 'parse_error' as const,
+        summary: `YAML parse error in ${prov.join(' → ')}`,
+        message,
+        location: {
+          provenance: prov,
+          line: parseError.mark?.line != null ? parseError.mark.line + 1 : undefined,
+          column: parseError.mark?.column != null ? parseError.mark.column + 1 : undefined,
+        },
+        technical: {
+          name: parseError.name,
+          originalTag: tag,
+          originalId: id,
+          ...(isZod ? { zodIssues: parseError.issues } : {}),
+          fullError: parseError
+        }
+      };
+
+      entry = {
+        id,
+        tag: 'ErrorNode',
+        attributes,
+        provenance: prov,
+        rawParsed,
+        kids: errorObj,
+        parseError: true,
+        ...(metadata || {})
+      };
+
+      if (typeof errors !== 'undefined' && Array.isArray(errors)) {
+        errors.push(errorObj);
+      }
+    }
+
+    storeEntry(id, entry);
     return id;
   }
 

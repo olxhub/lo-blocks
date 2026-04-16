@@ -36,14 +36,6 @@ A mastery-based practice block that presents problems from a bank until the stud
 </MasteryBank>
 ```
 
-## Attributes
-
-| Attribute | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `id` | string | required | Unique identifier for this bank |
-| `goal` | number | 6 | Number of correct answers in a row needed for mastery |
-| `src` | string | - | Path to external file containing problem IDs |
-
 ## ID List Format
 
 Problem IDs can be separated by:
@@ -56,19 +48,11 @@ IDs should not contain commas, spaces, or newlines.
 
 ## Behavior
 
-1. Problems are presented in random order
-2. On correct answer: streak increments, next problem shown
-3. On incorrect answer: streak resets to 0, next problem shown
+1. Problems are presented one at a time (linear by default, or shuffled with `mode="shuffle"`)
+2. On correct first attempt: streak increments, next problem shown
+3. On incorrect first attempt: streak resets to 0, student must answer correctly before advancing
 4. When streak reaches goal: mastery achieved, completion message shown
-5. If all problems exhausted before mastery: list reshuffles and continues
-
-## State
-
-The block tracks:
-- `currentIndex` - Position in the shuffled problem order
-- `correctStreak` - Current consecutive correct answers
-- `shuffledOrder` - Randomized order of problem indices
-- `completed` - Whether mastery has been achieved
+5. If all problems exhausted before mastery: cycle restarts (reshuffled if in shuffle mode), attempt number increments to scope fresh state
 
 ## Catches
 

@@ -7,7 +7,8 @@
 //
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
-import { numericalMatch, validateNumericalInput, validateNumericalAttributes } from '@/lib/util/numeric';
+import { numericalMatch, validateNumericalInput, validateNumericalAttributes } from '@/lib/grading';
+import { ToleranceSchema } from '@/lib/util/calc/index.js';
 
 const NumericalGrader = createGrader({
   base: 'Numerical',
@@ -16,7 +17,7 @@ const NumericalGrader = createGrader({
   inputSchema: z.string(),  // Single string input
   attributes: {
     answer: z.string({ required_error: 'answer is required' }),
-    tolerance: z.string().optional(),
+    tolerance: ToleranceSchema.optional(),
   },
   validateAttributes: validateNumericalAttributes,
   validateInputs: validateNumericalInput,

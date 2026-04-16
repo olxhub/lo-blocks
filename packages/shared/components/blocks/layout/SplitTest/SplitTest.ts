@@ -31,7 +31,7 @@ import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
+import { z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
 import _SplitTest from './_SplitTest';
 
 export const fields = state.fields([state.commonFields.value]);
@@ -43,14 +43,14 @@ const SplitTest = dev({
   component: _SplitTest,
   fields,
   internal: true,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     target: z_reduxStateKey.optional()
       .describe('ID of master SplitTest whose group assignment to follow'),
     groups: z.string().optional()
       .describe('Comma-separated group names for analytics (e.g. "inquiry,traditional")'),
     weights: z.string().optional()
       .describe('Comma-separated assignment weights, normalized to 1 (e.g. "0.5,0.25,0.25")'),
-  }),
+  }).strict(),
 });
 
 export default SplitTest;

@@ -8,6 +8,7 @@ import { fields } from './fields';
 import { useFieldState, useAggregate, updateField } from './redux';
 import { scopes } from './scopes';
 import { store } from './store';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 
 const testFields = fields(['input']);
 const settingFields = fields([{ name: 'speed', event: 'SET_SPEED', scope: scopes.componentSetting }]);
@@ -24,7 +25,10 @@ const props = {
 
 // Test helpers — reduce boilerplate for Redux hook tests
 function createWrapper(extraFields?) {
-  const reduxStore = store.init(extraFields ? { extraFields } : undefined);
+  const reduxStore = store.init({
+    blockRegistry: BLOCK_REGISTRY,
+    ...(extraFields ? { extraFields } : {}),
+  });
   const wrapper = ({ children }: any) => (
     <Provider store={reduxStore}>{children}</Provider>
   );

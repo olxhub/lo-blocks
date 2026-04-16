@@ -12,7 +12,6 @@ import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import { getBlockByOLXId } from '@/lib/blocks';
 import { getInputs } from '@/lib/blocks/olxdom';
-import { baseAttributes, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 import { correctness } from '@/lib/blocks/correctness';
@@ -108,16 +107,11 @@ function getCheckboxDisplayAnswer(props) {
   return keyChoices.map(k => k.value);
 }
 
-export const checkboxGraderAttributes = baseAttributes.extend({
-  target: z_reduxStateKey.optional().describe('ID of the CheckboxInput to grade; infers from children if omitted'),
+// CheckboxGrader-specific attributes (merged with base + graderMixin at factory time).
+// Keep this exported so MarkupProblem can construct typed attribute literals.
+export const checkboxGraderAttributes = z.object({
   partialCredit: z.enum(['true', 'false']).optional().describe('Enable partial credit scoring (n/m formula)'),
-  // TODO: Does answer work? This is a list. We should figure this out, and if it is available, update the
-  // documentation / zod
-  answer: z.string().optional().describe('Correct answer values (alternative to using Key/Distractor)'),
-  displayAnswer: z.string().optional().describe('Answer text to display when showing answers'),
-});
-
-export type CheckboxGraderAttributes = z.infer<typeof checkboxGraderAttributes>;
+}).strict();
 
 const CheckboxGrader = blocks.test({
   ...parsers.blocks.allowHTML(),

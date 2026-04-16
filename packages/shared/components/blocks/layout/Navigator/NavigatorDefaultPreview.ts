@@ -9,7 +9,9 @@ const NavigatorDefaultPreview = dev({
   name: 'NavigatorDefaultPreview',
   description: 'Default preview component for Navigator',
   component: _NavigatorDefaultPreview,
-  requiresUniqueId: false
+  requiresUniqueId: false,
+  // Navigator injects per-item data fields as attributes at render time.
+  acceptsUnknownAttributes: true,
 });
 
 export default NavigatorDefaultPreview;

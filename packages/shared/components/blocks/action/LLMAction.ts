@@ -4,7 +4,7 @@ import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as reduxClient from '@/lib/llm/reduxClient';
-import { baseAttributes, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
+import { z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
 import _Hidden from '@/components/blocks/layout/_Hidden';
 
 export const fields = state.fields([]);
@@ -89,9 +89,9 @@ const LLMAction = blocks.test({
   description: 'Executes LLM prompts with embedded Element references and updates target components',
   component: _Hidden,
   fields,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     target: z_reduxStateKey.describe('ID of the TextSlot or LLMFeedback to write output to'),
-  }),
+  }).strict(),
 });
 
 export default LLMAction;

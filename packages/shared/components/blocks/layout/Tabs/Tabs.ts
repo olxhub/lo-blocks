@@ -4,7 +4,6 @@ import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Tabs from './_Tabs';
 
 export const fields = state.fields(['activeTab']);
@@ -20,7 +19,6 @@ const Tabs = dev({
     const activeTab = fieldSelector(state, props, fields.activeTab, { fallback: 0 });
     return { activeTab };
   }) as any,
-  attributes: baseAttributes.strict(),
 });
 
 export default Tabs;

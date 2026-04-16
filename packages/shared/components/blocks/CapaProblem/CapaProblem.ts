@@ -30,7 +30,7 @@ import { dev, refToReduxKey } from '@/lib/blocks';
 import { isPascalCase } from '@/lib/util';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import * as state from '@/lib/state';
-import { baseAttributes, problemMixin } from '@/lib/blocks/attributeSchemas';
+import { problemAttributes } from '@/lib/blocks/attributeSchemas';
 import _CapaProblem from './_CapaProblem';
 import type { ReduxStateKey, BlueprintKidEntry, OlxReference } from '@/lib/types';
 
@@ -183,9 +183,10 @@ const CapaProblem = dev({
   component: _CapaProblem,
   fields,
   isGrader: true,  // Metagrader: aggregates child grader states
-  attributes: baseAttributes.extend(problemMixin.shape).extend({
+  attributes: z.object({
+    ...problemAttributes.shape,
     displayName: z.string().optional().describe('Display name for the problem'),
-  }),
+  }).strict(),
 });
 
 export default CapaProblem;

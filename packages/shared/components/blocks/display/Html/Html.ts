@@ -16,7 +16,6 @@
 //
 import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { _Html } from './_Html';
 
 const Html = dev({
@@ -26,7 +25,6 @@ const Html = dev({
   description: 'Render raw HTML content (OLX 1.0 backwards compatibility ONLY — NOT for new content).',
   requiresUniqueId: false,
   internal: true,
-  attributes: baseAttributes.strict(),
 });
 
 export default Html;

@@ -38,6 +38,8 @@ Rules for XML content:
 - Maintain the exact same XML structure and nesting
 - For mathematical content, preserve formulas but translate surrounding text
 - Use natural, culturally appropriate phrasing
+- When the target region is obvious from the locale, localize units, currencies, and similar context (e.g., EN→PL: "20 dollars" → "70 złotych", "5 pounds" → "2 kg"). If the region is ambiguous, leave values as-is.
+- Only convert URLs (e.g., en.wikipedia.org → pl.wikipedia.org) if you are 100% confident the target page exists. If unsure, keep the original URL.
 
 Rules for YAML metadata comments (<!-- --- ... --- -->):
 - Translate "description" and "title" values
@@ -66,6 +68,8 @@ Rules for translation:
 - PRESERVE line-level comments (# or //)
 - Maintain the exact same document structure
 - Use natural, culturally appropriate phrasing for dialogue
+- When the target region is obvious from the locale, localize units, currencies, and similar context (e.g., EN→PL: "20 dollars" → "70 złotych", "5 pounds" → "2 kg"). If the region is ambiguous, leave values as-is.
+- Only convert URLs (e.g., en.wikipedia.org → pl.wikipedia.org) if you are 100% confident the target page exists. If unsure, keep the original URL.
 - Set the header "lang" field to "${targetLocale}" if present
 
 Output ONLY the translated content — no explanations, no markdown fencing, no commentary.`;

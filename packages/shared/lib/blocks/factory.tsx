@@ -18,11 +18,11 @@ import React from 'react';
 import { z } from 'zod';
 
 import { BlockBlueprintSchema, LoBlock, Fields, OLXTag } from '../types';
+import { baseAttributes } from './attributeSchemas';
 
 // Factory-local type aliases derived from the schema
 type BlueprintInput = z.input<typeof BlockBlueprintSchema>;
 type BlueprintReg = Omit<BlueprintInput, "namespace">;
-import { baseAttributes, inputMixin, graderMixin } from './attributeSchemas';
 import * as state from '@/lib/state';
 
 function assertUnimplemented<T>(field: T | undefined, fieldName: string) {
@@ -31,81 +31,287 @@ function assertUnimplemented<T>(field: T | undefined, fieldName: string) {
   }
 }
 
-// === Mixin extensions ===
-// These functions extend config based on mixin flags (isGrader, isInput, etc.)
-
-// Standard attributes for graders - uses graderMixin from attributeSchemas
-// passthrough preserves additional attrs (like src for PEG parsers)
-const GRADER_ATTRIBUTES = baseAttributes.extend(graderMixin.shape).passthrough();
+// === Mixin composition ===
+//
+// A block config may carry `parserMixin`, `inputMixin`, or `graderMixin`
+// keys, each of which is itself a partial BlueprintInput. Layers compose
+// in a fixed order, with `baseAttributes` always silently prepended:
+//
+//   baseAttributes → parser → input → grader → blueprint
+//
+// `baseAttributes` is implicit so individual blocks no longer need to
+// write `baseAttributes.extend({...})`. Just declare your own attribute
+// shape (`z.object({...}).strict()`) and the factory merges in the
+// common base keys (id, title, class, when, popout, …) for you.
+//
+// For most keys, the later layer wins. For `fields` and `attributes`,
+// layers accumulate and duplicates raise. For `locals`, layers merge
+// per-child key (later wins, no error).
+//
+// The mixin keys are stripped from the config before it reaches
+// BlockBlueprintSchema, so the schema (and LoBlock) never see them.
+//
+// See plan: .claude/plans/enchanted-swimming-ladybug.md
 
 /**
- * Extend config for grader blocks.
- * Adds standard attributes (answer, displayAnswer, target).
+ * A partial blueprint that mixin layers accept. Everything is optional.
  *
- * Fields are NOT auto-added — graders should declare them explicitly
- * via graderFields() in their field definitions.
+ * `allowOverrides` is an explicit allow-list of field/attribute names this
+ * layer is intentionally redefining. When a later layer names a key in its
+ * `allowOverrides`, colliding keys from earlier layers are replaced
+ * silently instead of raising. This is a narrow, per-key escape hatch —
+ * there is deliberately no blanket `allowOverrides: true`.
  */
-function applyGraderExtensions(config: BlueprintInput): BlueprintInput {
-  if (!config.isGrader) return config;
+type MixinLayer = Partial<BlueprintInput> & {
+  allowOverrides?: string[];
+};
 
-  // Extend attributes - merge grader attributes by combining shapes
-  // Note: We can't use .and() because it fails when schemas contain transforms
-  // (e.g., strictBoolean) combined with passthrough. Instead, merge shapes manually.
-  let extendedSchema = config.attributes ?? GRADER_ATTRIBUTES;
-  if (config.attributes && config.attributes._def?.typeName === 'ZodObject') {
-    // Get existing shape and merge with grader attributes shape
-    const existingShape = (config.attributes as z.ZodObject<any>).shape;
-    const graderShape = GRADER_ATTRIBUTES.shape;
-    // Existing attrs take precedence (grader-specific overrides base)
-    const mergedShape = { ...graderShape, ...existingShape };
-    extendedSchema = z.object(mergedShape).passthrough();
-  }
+/**
+ * Shared shape of the optional mixin/override keys that `createBlock` and
+ * `blocks(namespace)` both accept on top of their core blueprint type.
+ *
+ * The `acceptsUnknownAttributes` flag is an escape hatch for template
+ * blocks that receive attributes whose names are determined by user
+ * content at runtime. Navigator's preview/detail templates are the
+ * canonical case: their parent injects per-item data fields (from
+ * user-authored YAML) as attributes, so the set of allowed attribute
+ * names isn't knowable at block-definition time.
+ *
+ * When `acceptsUnknownAttributes` is true:
+ *   - the implicit baseAttributes layer is NOT prepended
+ *   - the block's effective attribute schema is `z.object({}).passthrough()`
+ *
+ * This bypasses strict validation entirely, so reach for it only when
+ * the block's *purpose* is to accept attributes whose names cannot be
+ * declared up front.
+ *
+ * TODO (tech debt): ErrorNode currently uses this flag because it
+ * inherits arbitrary attributes from failed source nodes. That is a
+ * legacy accommodation — ErrorNode should declare a real, strict schema
+ * for what it actually needs to render an error (name, message,
+ * technicalDetails, source, etc.) and discard the rest. Migrate when
+ * the error-rendering path gets its next pass.
+ */
+type WithMixins<T> = T & {
+  parserMixin?: MixinLayer;
+  inputMixin?: MixinLayer;
+  graderMixin?: MixinLayer;
+  allowOverrides?: string[];
+  acceptsUnknownAttributes?: boolean;
+};
 
-  return {
-    ...config,
-    attributes: extendedSchema,
-  };
+/** Input config to createBlock, including the optional mixin keys. */
+type BlueprintInputWithMixins = WithMixins<BlueprintInput>;
+
+/**
+ * Build the friendly forward-looking conflict message used for both fields
+ * and attributes collisions.
+ */
+function mixinConflictMessage(
+  blockName: string,
+  kind: 'attribute' | 'field',
+  key: string,
+  layerA: string,
+  layerB: string,
+): string {
+  return (
+    `createBlock(${blockName}): mixin composition conflict. ` +
+    `${kind === 'attribute' ? 'Attribute' : 'Field'} \`${key}\` is defined by ` +
+    `both \`${layerA}\` and \`${layerB}\`. We raise on duplicate ` +
+    `fields/attributes because in 99% of cases this is a bug. If this ` +
+    `override is intentional, add \`allowOverrides: ['${key}']\` to the ` +
+    `\`${layerB}\` layer to silence this error.`
+  );
 }
 
 /**
- * Extend config for input blocks.
- * Adds input mixin attributes (slot) for multi-input grader support.
+ * Merge two ZodObject attribute schemas, raising on shape-key collision.
+ *
+ * The merged schema is always `.strict()`. Any block that genuinely needs
+ * to accept extra attributes must declare them explicitly in its own
+ * attribute shape — there is no longer a `.passthrough()` escape hatch
+ * surviving composition.
  */
-function applyInputExtensions(config: BlueprintInput): BlueprintInput {
-  if (!config.isInput) return config;
-
-  // Extend attributes with inputMixin - merge by combining shapes
-  const inputShape = inputMixin.shape;
-  let extendedSchema = config.attributes ?? baseAttributes.extend(inputShape);
-  if (config.attributes && config.attributes._def?.typeName === 'ZodObject') {
-    const existingShape = (config.attributes as z.ZodObject<any>).shape;
-    // Only add input attrs if not already defined
-    const attrsToAdd = Object.fromEntries(
-      Object.entries(inputShape).filter(([k]) => !existingShape[k])
+function mergeAttributes(
+  a: z.ZodTypeAny | undefined,
+  b: z.ZodTypeAny | undefined,
+  blockName: string,
+  layerA: string,
+  layerB: string,
+  allowOverrides: string[],
+): z.ZodTypeAny | undefined {
+  if (!a) return b;
+  if (!b) return a;
+  if (!(a instanceof z.ZodObject) || !(b instanceof z.ZodObject)) {
+    throw new Error(
+      `createBlock(${blockName}): mixin composition requires ZodObject ` +
+      `attribute schemas from layers \`${layerA}\` and \`${layerB}\`.`
     );
-    if (Object.keys(attrsToAdd).length > 0) {
-      const mergedShape = { ...existingShape, ...attrsToAdd };
-      // Preserve strictness - check if original was strict
-      const isStrict = config.attributes._def?.unknownKeys === 'strict';
-      extendedSchema = isStrict
-        ? z.object(mergedShape).strict()
-        : z.object(mergedShape).passthrough();
+  }
+  const shapeA = a.shape;
+  const shapeB = b.shape;
+  const merged: Record<string, z.ZodTypeAny> = { ...shapeA };
+  for (const key of Object.keys(shapeB)) {
+    if (key in shapeA && !allowOverrides.includes(key)) {
+      throw new Error(mixinConflictMessage(blockName, 'attribute', key, layerA, layerB));
+    }
+    // Later layer wins (either no collision, or collision was explicitly allowed).
+    merged[key] = shapeB[key];
+  }
+  return z.object(merged).strict();
+}
+
+/**
+ * Merge two Fields objects, raising on duplicate field name.
+ *
+ * A direct object merge isn't enough because each `Fields` carries an
+ * `extend` method that closes over its originating field set. To get a
+ * merged result with a coherent `extend`, we pull the raw FieldInfo lists
+ * out with `state.fieldInfosFrom` and feed the concatenation back through
+ * `state.fields(...)`.
+ *
+ * Names listed in `allowOverrides` are intentional replacements: the
+ * corresponding entries from `a` are dropped so `state.fields`' own
+ * duplicate-name guard doesn't fire when we append `b`.
+ */
+function mergeFields(
+  a: Fields | undefined,
+  b: Fields | undefined,
+  blockName: string,
+  layerA: string,
+  layerB: string,
+  allowOverrides: string[],
+): Fields | undefined {
+  if (!a) return b;
+  if (!b) return a;
+  const fieldsA = state.fieldInfosFrom(a);
+  const fieldsB = state.fieldInfosFrom(b);
+  const namesA = new Set(fieldsA.map(f => f.name));
+  const overrideNames = new Set<string>();
+  for (const f of fieldsB) {
+    if (namesA.has(f.name)) {
+      if (!allowOverrides.includes(f.name)) {
+        throw new Error(mixinConflictMessage(blockName, 'field', f.name, layerA, layerB));
+      }
+      overrideNames.add(f.name);
+    }
+  }
+  const keptA = fieldsA.filter(f => !overrideNames.has(f.name));
+  return state.fields([...keptA, ...fieldsB]);
+}
+
+/** Merge locals per-key. Later wins per child key. No error on conflict. */
+function mergeLocals(
+  a: Record<string, any> | undefined,
+  b: Record<string, any> | undefined,
+): Record<string, any> | undefined {
+  if (!a) return b;
+  if (!b) return a;
+  return { ...a, ...b };
+}
+
+/**
+ * Compose a sequence of partial blueprint layers into a single effective
+ * config. Most keys use later-wins override. `fields` and `attributes`
+ * accumulate and raise on duplicates. `locals` merges per-key.
+ *
+ * `layerNames[i]` parallels `layers[i]` and is used only for error messages.
+ */
+function composeBlueprint(
+  layers: (MixinLayer | undefined)[],
+  layerNames: string[],
+  blockName: string,
+): BlueprintInput {
+  const result: Record<string, any> = {};
+  // Track which layer last contributed each accumulating key so the
+  // conflict message names the right two layers.
+  const lastSource: { fields?: string; attributes?: string } = {};
+
+  for (let i = 0; i < layers.length; i++) {
+    const layer = layers[i];
+    const layerName = layerNames[i];
+    if (!layer) continue;
+
+    // A layer's `allowOverrides` applies when that layer's own keys collide
+    // with entries already accumulated from earlier layers.
+    const layerAllowOverrides = layer.allowOverrides ?? [];
+
+    for (const [key, value] of Object.entries(layer)) {
+      if (value === undefined) continue;
+      // allowOverrides is a directive for the merge logic, not a blueprint
+      // field. Strip it so it never reaches BlockBlueprintSchema (strict).
+      if (key === 'allowOverrides') continue;
+
+      if (key === 'fields') {
+        result.fields = mergeFields(
+          result.fields as Fields | undefined,
+          value as Fields,
+          blockName,
+          lastSource.fields ?? '(previous layer)',
+          layerName,
+          layerAllowOverrides,
+        );
+        lastSource.fields = layerName;
+      } else if (key === 'attributes') {
+        result.attributes = mergeAttributes(
+          result.attributes as z.ZodTypeAny | undefined,
+          value as z.ZodTypeAny,
+          blockName,
+          lastSource.attributes ?? '(previous layer)',
+          layerName,
+          layerAllowOverrides,
+        );
+        lastSource.attributes = layerName;
+      } else if (key === 'locals') {
+        result.locals = mergeLocals(
+          result.locals as Record<string, any> | undefined,
+          value as Record<string, any>,
+        );
+      } else {
+        // All other keys: later wins.
+        result[key] = value;
+      }
     }
   }
 
-  return {
-    ...config,
-    attributes: extendedSchema,
-  };
+  return result as BlueprintInput;
 }
 
-// Future: applyActionExtensions, etc.
-
 // === Main factory ===
-function createBlock(config: BlueprintInput): LoBlock {
-  // Apply mixin extensions
-  let effectiveConfig = applyGraderExtensions(config);
-  effectiveConfig = applyInputExtensions(effectiveConfig);
+function createBlock(config: BlueprintInputWithMixins): LoBlock {
+  // Step 1: Strip mixin keys and compose. The three mixin keys are peeled
+  // off first because BlockBlueprintSchema doesn't know about them.
+  // baseAttributes is silently prepended as an implicit first layer so
+  // every block automatically validates against the common base keys —
+  // individual blocks no longer write `baseAttributes.extend({...})`.
+  const {
+    parserMixin,
+    inputMixin,
+    graderMixin,
+    acceptsUnknownAttributes,
+    ...blueprintLayer
+  } = config;
+  const blockName = (blueprintLayer as BlueprintInput).name ?? '(unknown)';
+
+  // Fallback blocks (ErrorNode) opt out of the implicit baseAttributes
+  // layer and end up with a wide-open passthrough schema.
+  const layers: (MixinLayer | undefined)[] = acceptsUnknownAttributes
+    ? [parserMixin, inputMixin, graderMixin, blueprintLayer as MixinLayer]
+    : [
+        { attributes: baseAttributes },
+        parserMixin,
+        inputMixin,
+        graderMixin,
+        blueprintLayer as MixinLayer,
+      ];
+  const layerNames = acceptsUnknownAttributes
+    ? ['parserMixin', 'inputMixin', 'graderMixin', 'blueprint']
+    : ['baseAttributes', 'parserMixin', 'inputMixin', 'graderMixin', 'blueprint'];
+
+  const effectiveConfig: BlueprintInput = composeBlueprint(layers, layerNames, blockName);
+  if (acceptsUnknownAttributes) {
+    effectiveConfig.attributes = z.object({}).passthrough();
+  }
 
   // We are using zod primarily for **validation** rather than parsing.
   //
@@ -182,6 +388,8 @@ function createBlock(config: BlueprintInput): LoBlock {
   return block;
 }
 
+type BlueprintRegWithMixins = WithMixins<BlueprintReg>;
+
 export const blocks = (namespace: string) =>
-  (config: BlueprintReg, locals?: any) =>
+  (config: BlueprintRegWithMixins, locals?: any) =>
     createBlock({ ...config, namespace, locals: locals ?? config.locals });

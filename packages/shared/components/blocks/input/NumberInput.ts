@@ -1,6 +1,6 @@
 // src/components/blocks/NumberInput.js
 import { z } from 'zod';
-import { core } from '@/lib/blocks';
+import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
@@ -12,8 +12,8 @@ export const fields = state.fields([commonFields.value]);
 
 const NumberInput = core({
   ...parsers.text(),
+  ...input(),
   name: 'NumberInput',
-  isInput: true,
   description: 'Numeric input field that parses and validates numerical values',
   component: _NumberInput,
   fields,

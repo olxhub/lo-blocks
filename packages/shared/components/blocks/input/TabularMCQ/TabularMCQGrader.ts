@@ -13,14 +13,13 @@
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import { core, correctness, getInputs, getBlockByOLXId } from '@/lib/blocks';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 
 export const fields = state.fields(state.graderFields());
 
 /**
- * Get display answer for TabularMCQ - returns { rowId: colIndex } map of correct answers.
+ * Get display answer for TabularMCQ - returns { rowId: number[] } map of correct column indices.
  * Used by _TabularMCQ.jsx when showAnswer is true.
  */
 function getTabularMCQDisplayAnswer(props) {
@@ -69,12 +68,21 @@ function gradeTabularMCQ(props, { input, inputApi }) {
   }
 
   // Count correct answers
+  const mode = inputApi.getMode();
   let correct = 0;
   gradedRows.forEach(row => {
-    const expected = answers[row.id];
-    const selected = input[row.id];
-    if (selected === expected) {
-      correct++;
+    const expected = answers[row.id]; // number[]
+    const selected = input[row.id];   // number (radio) or number[] (checkbox)
+    if (mode === 'checkbox') {
+      const sel = Array.isArray(selected) ? [...selected].sort() : [];
+      const exp = [...expected].sort();
+      if (sel.length === exp.length && sel.every((v, i) => v === exp[i])) {
+        correct++;
+      }
+    } else {
+      if (expected.includes(selected)) {
+        correct++;
+      }
     }
   });
 

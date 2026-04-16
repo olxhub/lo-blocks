@@ -12,7 +12,6 @@
 
 import { dev } from '@/lib/blocks';
 import { childParser } from '@/lib/content/parsers';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _SideBarPanel from './_SideBarPanel';
 
 // === Custom parser to build named slots ===
@@ -58,7 +57,6 @@ const SideBarPanel = dev({
   name: 'SideBarPanel',
   description: 'Layout with separate MainPane and Sidebar sections for content organization',
   component: _SideBarPanel,
-  attributes: baseAttributes.strict(),
 });
 
 export default SideBarPanel;

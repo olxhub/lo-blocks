@@ -1,0 +1,13 @@
+<CapaProblem id="checkbox_quiz" title="Checkbox Graded Quiz">
+  <Markdown>Select **all** that apply for each row:</Markdown>
+  <TabularMCQGrader>
+    <TabularMCQ id="checkbox_graded" title="Course Delivery Methods">
+mode: checkbox
+cols: Lecture|L, Seminar|S, Lab|Lab, Online|O
+rows:
+  - Introductory courses|intro[L, Lab]
+  - Advanced seminars|advanced[S]
+  - Research methods|research[Lab, S]
+    </TabularMCQ>
+  </TabularMCQGrader>
+</CapaProblem>

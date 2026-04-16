@@ -145,11 +145,14 @@ Why did you choose this answer?
    </SplitPanel>
   <Vertical id="dropout_factor_combos">  
    <CheckboxInput id="dropout_factor_checkboxes">
-    <Key value="1">
+    <Key value="combination 1">
       <Markdown>
 **Family and Peer Factors** | **Equitable School Funding**
       </Markdown>
-      <TextArea id="dropout_factor_combo_2_explanation" placeholder="How you think the two factors might interact, if they do..." />       
+      <TimedContainer when="&quot;combination 1&quot; in @dropout_factor_combos.value" duration="30 seconds" start="render" hideuntilstart="true" id="combo_2_container">
+      <TextArea id="dropout_factor_combo_2_explanation" placeholder="How you think the two factors might interact, if they do..." />
+  <Freewrite id="fw1" nodelete="true" counter="true" />
+</TimedContainer>
     </Key>
     <Key value="2">
       <Markdown>

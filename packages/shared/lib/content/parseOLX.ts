@@ -43,8 +43,64 @@ const xmlParser = new XMLParser({
   parseTagValue: false,       // Keep tag text content as strings (not numbers/booleans)
   parseAttributeValue: false, // Keep attribute values as strings
 
+  // Attach per-node position info. Accessed via XMLParser.getMetaDataSymbol();
+  // fast-xml-parser stores { startIndex } on a Symbol key so it is invisible
+  // to Object.keys / JSON.stringify / structural walks. Consumers who want
+  // real line/column convert startIndex against the original xml string.
+  //
+  // Heads-up: this option is genuinely undocumented in most places — ChatGPT,
+  // Claude, and general web search will all confidently tell you it doesn't
+  // exist. It does. The one piece of real upstream docs lives in an
+  // awkwardly-named directory ("v4, v5", with the comma) in the repo:
+  //   https://github.com/NaturalIntelligence/fast-xml-parser/blob/master/docs/v4,%20v5/2.XMLparseOptions.md#capturemetadata
+  // Local confirmation in node_modules/fast-xml-parser:
+  //   src/xmlparser/OptionsBuilder.js   — default `captureMetaData: false`
+  //   src/fxp.d.ts                       — `captureMetaData?: boolean`,
+  //                                        `interface XMLMetaData { startIndex?: number }`,
+  //                                        `static getMetaDataSymbol(): Symbol`
+  //   src/xmlparser/OrderedObjParser.js  — honored under `preserveOrder: true`
+  //   src/xmlparser/xmlNode.js           — actually attaches the symbol to children
+  captureMetaData: true,
+
   transformTagName
 });
+
+/**
+ * Symbol key under which fast-xml-parser stores per-node metadata.
+ *
+ * The upstream type declares this as `Symbol` (the constructor type) rather
+ * than `symbol` (the primitive type), which TypeScript refuses to use as an
+ * index. Cast once here so callers can write `node[XML_META]` cleanly.
+ */
+const XML_META = XMLParser.getMetaDataSymbol() as unknown as symbol;
+
+/**
+ * Convert a byte offset within an XML source string to a 1-based line/column
+ * pair. Returns the bits in the shape AppError.location accepts, so callers
+ * can spread directly:
+ *
+ *   location: { provenance, ...offsetToLineCol(xml, sourceOffset) }
+ *
+ * If `offset` is undefined (e.g. a synthetic node that never had a
+ * captureMetaData symbol attached) the result is empty and nothing extra
+ * gets spread into location.
+ */
+function offsetToLineCol(
+  src: string,
+  offset: number | undefined
+): { line?: number; column?: number; offset?: number } {
+  if (offset === undefined || offset < 0) return {};
+  let line = 1;
+  let lastNl = -1;
+  const stop = Math.min(offset, src.length);
+  for (let i = 0; i < stop; i++) {
+    if (src.charCodeAt(i) === 10 /* \n */) {
+      line++;
+      lastNl = i;
+    }
+  }
+  return { line, column: offset - lastNl, offset };
+}
 
 /**
  * Check if a block type requires unique IDs based on its Component definition.
@@ -132,7 +188,7 @@ function extractMetadataFromComment(
   provenance: Provenance,
   errors: OLXLoadingError[]
 ): OLXMetadata | OLXLoadingError | null {
-  const file = provenance.join(' → ');
+  const provStr = provenance.join(' → ');
 
   // Fail early if comment structure is invalid
   //
@@ -142,9 +198,9 @@ function extractMetadataFromComment(
   if (commentText === undefined || commentText === null) {
     const error: OLXLoadingError = {
       type: 'parse_error',
-      summary: `Internal parser error in ${file}`,
-      file,
+      summary: `Internal parser error in ${provStr}`,
       message: 'Internal parser error: Comment node found but text content is missing. This may indicate a parser configuration issue.',
+      location: { provenance },
       technical: { commentText }
     };
     errors.push(error);
@@ -154,9 +210,9 @@ function extractMetadataFromComment(
   if (typeof commentText !== 'string') {
     const error: OLXLoadingError = {
       type: 'parse_error',
-      summary: `Internal parser error in ${file}`,
-      file,
+      summary: `Internal parser error in ${provStr}`,
       message: `Internal parser error: Comment text has unexpected type '${typeof commentText}' (expected string).`,
+      location: { provenance },
       technical: { commentText, type: typeof commentText }
     };
     errors.push(error);
@@ -189,8 +245,7 @@ function extractMetadataFromComment(
 
       const error: OLXLoadingError = {
         type: 'metadata_error',
-        summary: `${file} has an error in its file header`,
-        file,
+        summary: `${provStr} has an error in its file header`,
         message: `📝 Metadata Format Error
 
 The metadata in your comment has formatting issues:
@@ -212,6 +267,7 @@ Common issues:
 • Make sure field names are spelled correctly
 • Text values should be in quotes if they contain special characters
 • Lists need proper YAML formatting with dashes (-)`,
+        location: { provenance },
         technical: {
           yamlContent,
           zodIssues: result.error.issues
@@ -226,8 +282,7 @@ Common issues:
     // YAML parsing failed
     const error: OLXLoadingError = {
       type: 'metadata_error',
-      summary: `${file} has an error in its file header`,
-      file,
+      summary: `${provStr} has an error in its file header`,
       message: `📝 Metadata YAML Syntax Error
 
 The metadata in your comment contains invalid YAML syntax:
@@ -250,6 +305,7 @@ Example of correct format:
    category: psychology
    ---
    -->`,
+      location: { provenance },
       technical: {
         yamlContent,
         yamlError: yamlError.message,
@@ -392,6 +448,14 @@ export async function parseOLX(
 
     const attributes = node[':@'] ?? {};
 
+    // Per-node source position from fast-xml-parser's captureMetaData. The
+    // value is the byte offset of the opening `<` of this element within
+    // the original XML string. May be undefined for synthetically-built
+    // nodes (e.g. blocks.wrapText creates fake `{ Markdown: [...] }`
+    // envelopes that never went through the XML parser). See
+    // OlxJson._sourceOffset for the interim-storage rationale.
+    const sourceOffset: number | undefined = node?.[XML_META]?.startIndex;
+
     // Extract metadata from preceding sibling comment
     const metadata = extractSiblingMetadata(siblings, nodeIndex, provenance, errors);
 
@@ -445,19 +509,36 @@ export async function parseOLX(
     let parsedAttributes = attributes;
     if (!result.success) {
       const zodErrors = result.error.issues.map(i => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
-      errors.push({
-        type: 'attribute_validation',
+      const errorObj = {
+        type: 'attribute_validation' as const,
         summary: `Invalid attribute on <${tag}> in ${provenance.join(', ')}`,
-        file: provenance.join(', '),
         message: `Invalid attributes for <${tag} id="${id}">:\n${zodErrors}`,
-        location: { line: node.line, column: node.column },
+        location: { provenance, ...offsetToLineCol(xml, sourceOffset) },
         technical: {
           tag,
           id,
           attributes,
           zodError: result.error
         }
-      });
+      };
+      errors.push(errorObj);
+
+      // Replace block with ErrorNode instead of rendering with raw attributes.
+      // Raw attributes bypass Zod transforms (e.g. sanitization, type coercion),
+      // which could cause runtime crashes or security issues downstream.
+      // Matches the PEG error pattern in parsers.ts.
+      const lang = resolveElementLanguage(attributes, currentLang, metadataLang);
+      const entry = {
+        id, tag: 'ErrorNode', attributes, provenance,
+        rawParsed: node, kids: errorObj, parseError: true,
+        lang,
+        ...(sourceOffset !== undefined ? { _sourceOffset: sourceOffset } : {}),
+        ...(metadata || {})
+      };
+      if (!idMap[id]) idMap[id] = {};
+      idMap[id][lang] = entry;
+      parsedIds.push(id);
+      return { type: 'block', id };
     } else {
       // Use transformed attributes (e.g., "true" -> true for booleans)
       parsedAttributes = result.data;
@@ -471,9 +552,8 @@ export async function parseOLX(
           errors.push({
             type: 'attribute_validation',
             summary: `Invalid attribute on <${tag}> in ${provenance.join(', ')}`,
-            file: provenance.join(', '),
             message: `Invalid attributes for <${tag} id="${id}">:\n${errorList}`,
-            location: { line: node.line, column: node.column },
+            location: { provenance, ...offsetToLineCol(xml, sourceOffset) },
             technical: {
               tag,
               id,
@@ -535,6 +615,22 @@ export async function parseOLX(
           entry.generated = currentGenerated;
         }
 
+        // Stamp the byte offset of the source element. Parsers usually
+        // build their entry from the same node parseNode is processing, so
+        // we attach this here once instead of asking every parser to
+        // remember it. Parsers that store an entry for a *different* node
+        // (e.g. a synthetic child) can override by setting `_sourceOffset`
+        // themselves before calling storeEntry. See OlxJson._sourceOffset
+        // for the rationale on why this lives at the entry level rather
+        // than inside provenance.
+        if (
+          entry && typeof entry === 'object'
+          && !('_sourceOffset' in entry)
+          && sourceOffset !== undefined
+        ) {
+          entry._sourceOffset = sourceOffset;
+        }
+
         // If this is an update to an existing entry, just update it
         if (typeof entryOrUpdater === 'function' && idMap[storeId]?.[lang]) {
           if (!idMap[storeId]) idMap[storeId] = {};
@@ -565,25 +661,26 @@ export async function parseOLX(
 
           // Get detailed information about both the existing and duplicate entries
           const existingEntry = idMap[storeId][lang];
+          const existingLoc = offsetToLineCol(xml, existingEntry._sourceOffset);
+          const dupLoc = offsetToLineCol(xml, entry._sourceOffset);
 
           errors.push({
             type: 'duplicate_id',
             summary: `Duplicate ID "${storeId}" in ${provenance.join(', ')}`,
-            file: provenance.join(', '),
             message: `Duplicate ID "${storeId}" found in ${provenance.join(', ')}. Each element must have a unique id.
 
-🔍 EXISTING ENTRY (Line ${existingEntry.line || '?'}, Column ${existingEntry.column || '?'}):
+🔍 EXISTING ENTRY (Line ${existingLoc.line ?? '?'}, Column ${existingLoc.column ?? '?'}):
    Tag: <${existingEntry.tag || 'unknown'}>
    Attributes: ${JSON.stringify(existingEntry.attributes || {}, null, 2)}
    Content: ${existingEntry.text || existingEntry.kids || 'N/A'}
 
-🔍 DUPLICATE ENTRY (Line ${entry.line || '?'}, Column ${entry.column || '?'}):
+🔍 DUPLICATE ENTRY (Line ${dupLoc.line ?? '?'}, Column ${dupLoc.column ?? '?'}):
    Tag: <${entry.tag || tag || 'unknown'}>
    Attributes: ${JSON.stringify(entry.attributes || attributes || {}, null, 2)}
    Content: ${entry.text || entry.kids || node.text || 'N/A'}
 
 💡 TIP: If these appear to be different elements, they likely have the same text content and are generating the same hash ID. Add explicit id="unique_name" attributes to distinguish them.`,
-            location: { line: entry.line, column: entry.column },
+            location: { provenance, ...dupLoc },
             technical: {
               duplicateId: storeId,
               existingEntry: existingEntry,
@@ -610,9 +707,8 @@ export async function parseOLX(
         errors.push({
           type: 'attribute_validation',
           summary: `Invalid children in <${tag}> in ${provenance.join(', ')}`,
-          file: provenance.join(', '),
           message: `Invalid children for <${tag} id="${id}">:\n${errorList}`,
-          location: { line: node.line, column: node.column },
+          location: { provenance, ...offsetToLineCol(xml, sourceOffset) },
           technical: { tag, id, childErrors }
         });
       }
@@ -702,9 +798,8 @@ export async function parseOLX(
         errors.push({
           type: 'attribute_validation',
           summary: `Type mismatch: <${entry.tag}> with <${inputEntry.tag}> in ${provenance.join(', ')}`,
-          file: provenance.join(', '),
           message: `<${entry.tag}> expects ${describeZodType(graderBlock.inputSchema)} input, but <${inputEntry.tag}> provides ${describeZodType(inputBlock.valueSchema)}.`,
-          location: { line: entry.line, column: entry.column },
+          location: { provenance, ...offsetToLineCol(xml, entry._sourceOffset) },
           technical: {
             graderId: blockId,
             graderTag: entry.tag,

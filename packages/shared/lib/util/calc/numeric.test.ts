@@ -1,23 +1,30 @@
 // @vitest-environment node
-// src/lib/util/numeric.test.ts
+// Tests for numerical grading: calc/ parsers + lib/grading/ match functions.
+import type { Tolerance } from '@/lib/util/calc/tolerance';
 import {
   parseComplex,
   parseTolerance,
   parseRange,
   inRange,
-  compareWithTolerance,
+  compareAbsolute,
+} from '@/lib/util/calc/index.js';
+import {
   numericalMatch,
   validateNumericalInput,
   ratioMatch,
   validateRatioInputs,
   validateNumericalAttributes,
-} from './numeric';
+} from '@/lib/grading';
 
 it('parses complex numbers and compares', () => {
-  expect(parseComplex('3+4i').toString()).toBe('3 + 4i');
-  expect(parseComplex('5j').toString()).toBe('5i');
-  expect(compareWithTolerance('5', '5', 0)).toBe(true);
-  expect(compareWithTolerance('5', '6', 1)).toBe(true);
+  const c1 = parseComplex('3+4i');
+  expect(c1.re).toBe(3);
+  expect(c1.im).toBe(4);
+  const c2 = parseComplex('5j');
+  expect(c2.re).toBeCloseTo(0);
+  expect(c2.im).toBe(5);
+  expect(compareAbsolute('5', '5', 0)).toBe(true);
+  expect(compareAbsolute('5', '6', 1)).toBe(true);
 });
 
 it('handles ranges', () => {
@@ -38,8 +45,8 @@ describe('numericalMatch', () => {
   });
 
   it('matches with tolerance', () => {
-    expect(numericalMatch('5.5', '5', { tolerance: '1' })).toBe(true);
-    expect(numericalMatch('5.5', '5', { tolerance: '0.1' })).toBe(false);
+    expect(numericalMatch('5.5', '5', { tolerance: '1' as Tolerance })).toBe(true);
+    expect(numericalMatch('5.5', '5', { tolerance: '0.1' as Tolerance })).toBe(false);
   });
 
   it('matches ranges', () => {
@@ -79,8 +86,8 @@ describe('ratioMatch', () => {
   });
 
   it('matches with tolerance', () => {
-    expect(ratioMatch({ numerator: '2', denominator: '5' }, '0.5', { tolerance: '0.1' })).toBe(true);
-    expect(ratioMatch({ numerator: '2', denominator: '5' }, '0.5', { tolerance: '0.01' })).toBe(false);
+    expect(ratioMatch({ numerator: '2', denominator: '5' }, '0.5', { tolerance: '0.1' as Tolerance })).toBe(true);
+    expect(ratioMatch({ numerator: '2', denominator: '5' }, '0.5', { tolerance: '0.01' as Tolerance })).toBe(false);
   });
 });
 
@@ -141,7 +148,7 @@ describe('validateNumericalAttributes', () => {
   it('rejects invalid tolerances', () => {
     const errors = validateNumericalAttributes({ answer: '42', tolerance: 'abc' });
     expect(errors).toBeDefined();
-    expect(errors![0]).toContain('not a valid tolerance');
+    expect(errors![0]).toContain('not a valid non-negative number');
   });
 
   it('rejects invalid ranges', () => {

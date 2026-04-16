@@ -40,14 +40,16 @@ export type JSONValue =
  * Error type hierarchy:
  *
  *   AppError                  — Base error value type (lib/errors.ts)
- *     └─ OLXLoadingError      — Content loading/parsing errors (adds type, summary, file)
+ *     └─ OLXLoadingError      — Content loading/parsing errors (adds type, summary)
  *
  * AppError is the canonical error shape. It aligns with DisplayError props
  * so you can spread one into the other: <DisplayError {...error} />.
  *
  * OLXLoadingError extends AppError with content-pipeline-specific fields
- * (error type tag, human summary, source file). Any code that accepts
- * AppError also accepts OLXLoadingError.
+ * (error type tag, human summary). Source location lives on
+ * `AppError.location.provenance` (a ProvenanceURI[] — file://, memory://,
+ * etc. — so errors from non-filesystem sources still carry their origin).
+ * Any code that accepts AppError also accepts OLXLoadingError.
  *
  * ErrorNode (the block) receives AppError as kids and passes through to
  * DisplayError. It doesn't need to know which subtype it has.
@@ -68,7 +70,6 @@ export interface OLXLoadingError extends AppError {
   type: 'parse_error' | 'duplicate_id' | 'file_error' | 'peg_error' | 'attribute_validation' | 'metadata_error';
   /** Human-readable summary for display (e.g. "Error in file header") */
   summary: string;
-  file: string;
 }
 
 /**
@@ -1053,6 +1054,37 @@ export interface OlxJson {
     source_file?: string;     // source file that was translated or processed
     source_version?: string;  // hash of source at generation time
   };
+
+  /**
+   * INTERIM: byte offset of this element's opening `<` within its source
+   * XML, captured from fast-xml-parser's `captureMetaData` option in
+   * parseOLX.ts. The `_` prefix flags this as a temporary placement.
+   *
+   * Eventual home: folded into the provenance URI itself, e.g.
+   * `file:///foo.olx#L3:3` or `file:///foo.olx#char=36,55` (RFC 5147), so
+   * one provenance value carries source identity AND span. When that
+   * lands, this field goes away.
+   *
+   * OPEN QUESTION (decide when authoring tooling forces it):
+   * The shape of this field is wrong for any consumer outside parseOLX.
+   * Byte offset is only convertible to line/col with the original XML
+   * string in scope, and the source string only exists during parse.
+   * Right now the only consumer is parseOLX itself (the duplicate-id
+   * message), where xml IS in scope, so it works — but as soon as
+   * something downstream (an authoring UI badge, an editor jump-to,
+   * the warning panel) wants line/col, it can't get there from here.
+   *
+   * Three options when we revisit:
+   *   A) Keep just `_sourceOffset` (status quo). Cheapest, but downstream
+   *      consumers are blocked.
+   *   B) Replace with `_sourceLine` / `_sourceColumn` computed at parse
+   *      time. Matches the eventual `#L3:3` URI fragment shape and is
+   *      what humans actually read. Drops the byte offset (which is an
+   *      FXP implementation detail).
+   *   C) Store all three. "More complete" but the offset is only useful
+   *      to a hypothetical IDE-jump consumer.
+   */
+  _sourceOffset?: number;
 
   [key: string]: JSONValue | undefined;
 }

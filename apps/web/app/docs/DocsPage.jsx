@@ -25,7 +25,7 @@ import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import { useFieldState } from '@/lib/state';
 import { editorFields } from '@/lib/state/editorFields';
 import { useBaselineProps } from '@/components/common/RenderOLX';
-import { baseAttributes, inputMixin, graderMixin } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes, inputAttributes, graderAttributes } from '@/lib/blocks/attributeSchemas';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import Notice from '@/components/common/Notice';
@@ -35,8 +35,8 @@ import { CATEGORY_ORDER, getCategory, groupBlocksByCategory } from '@/lib/docs/c
 // Shared attribute sets for documentation display.
 // Derives attribute names from the actual mixin definitions (DRY).
 const SHARED_ATTRIBUTE_SETS = [
-  { label: 'Input attributes', names: Object.keys(inputMixin.shape), blockProp: 'isInput' },
-  { label: 'Grader attributes', names: Object.keys(graderMixin.shape), blockProp: 'isGrader' },
+  { label: 'Input attributes', names: Object.keys(inputAttributes.shape), blockProp: 'isInput' },
+  { label: 'Grader attributes', names: Object.keys(graderAttributes.shape), blockProp: 'isGrader' },
   { label: 'Base attributes', names: Object.keys(baseAttributes.shape), blockProp: null },
 ];
 

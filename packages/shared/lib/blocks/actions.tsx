@@ -28,6 +28,7 @@ import { refToReduxKey } from './idResolver';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { valueSelector } from '@/lib/state/redux';
 import { isZodCompatible, describeZodType } from './zodCompat';
+import { inputAttributes, graderAttributes } from './attributeSchemas';
 import type { RuntimeProps, OlxKey, OlxReference, LoBlock, ValueSelectorFn } from '@/lib/types';
 import type { Store } from 'redux';
 
@@ -68,7 +69,17 @@ export function isAction(loBlock) {
  * compatible input with any compatible grader.
  */
 export function input(opts: { selectValue?: ValueSelectorFn; valueSchema?: z.ZodType } = {}) {
-  return { ...opts, isInput: true as const };
+  // Everything the helper contributes is packaged as an `inputMixin` layer.
+  // createBlock's composition pass merges this layer into the final blueprint,
+  // so callers get `isInput`, `slot` attribute, and any `selectValue`/`valueSchema`
+  // without declaring them at the top level themselves.
+  return {
+    inputMixin: {
+      ...opts,
+      isInput: true as const,
+      attributes: inputAttributes,
+    },
+  };
 }
 export function isInput(loBlock: LoBlock) {
   return loBlock.isInput;
@@ -338,12 +349,20 @@ export function grader({ grader, infer = true, slots, inputType }: {
     return correct;
   };
 
+  // Everything the helper contributes is packaged as a `graderMixin` layer.
+  // createBlock's composition pass merges this layer into the final blueprint,
+  // so callers get `isGrader`, the grading action, `slots`, `getDisplayAnswer`,
+  // and the `answer`/`displayAnswer`/`target` attributes without declaring them
+  // at the top level themselves.
   return {
-    action,
-    isGrader: true,
-    slots,  // Named slots for multi-input graders
-    // Default display answer - can be overridden in block definition
-    getDisplayAnswer: (props) => props.displayAnswer ?? props.answer,
+    graderMixin: {
+      action,
+      isGrader: true,
+      slots,  // Named slots for multi-input graders
+      // Default display answer - can be overridden in block definition
+      getDisplayAnswer: (props) => props.displayAnswer ?? props.answer,
+      attributes: graderAttributes,
+    },
   };
 }
 

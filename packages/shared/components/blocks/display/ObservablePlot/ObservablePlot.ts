@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
-import { baseAttributes, src } from '@/lib/blocks/attributeSchemas';
+import { src } from '@/lib/blocks/attributeSchemas';
 import _ObservablePlot from './_ObservablePlot';
 
 const ObservablePlot = core({
@@ -10,7 +10,7 @@ const ObservablePlot = core({
   component: _ObservablePlot,
   description: 'Render Observable Plot visualizations from YAML or JavaScript specs.',
   requiresUniqueId: false,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     ...src,
     format: z.enum(['yaml', 'js']).optional()
       .describe('Spec format: yaml (default, also accepts JSON) or js (sandboxed)'),

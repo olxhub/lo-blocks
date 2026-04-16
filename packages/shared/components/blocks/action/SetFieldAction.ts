@@ -12,7 +12,7 @@ import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { baseAttributes, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
+import { z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 
 async function setFieldAction({ targetInstance, props }) {
@@ -33,14 +33,14 @@ const SetFieldAction = blocks.core({
   name: 'SetFieldAction',
   description: 'Sets a field value on a target component when triggered',
   component: _Noop,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     target: z_reduxStateKey
       .describe('ID of the component to update'),
     field: z.string({ required_error: 'field is required' })
       .describe('Field name to set on the target'),
     value: z.string({ required_error: 'value is required' })
       .describe('Value to set (coerced by the target field\'s schema if defined)'),
-  }),
+  }).strict(),
 });
 
 export default SetFieldAction;

@@ -2,7 +2,6 @@
 import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 import { gradeArrangement } from './gradingUtils';
@@ -20,9 +19,9 @@ const SortableGrader = blocks.test({
   category: 'grading',
   component: _Noop,
   fields,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     algorithm: z.enum(['exact', 'partial', 'adjacent', 'spearman', 'survey']).optional().describe('Grading algorithm: exact match, partial order, adjacent pairs, Spearman rank correlation, or survey (always correct)'),
-  }),
+  }).strict(),
 });
 
 export default SortableGrader;

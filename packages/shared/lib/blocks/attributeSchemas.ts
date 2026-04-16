@@ -4,8 +4,8 @@
 //
 // Architecture:
 //   - baseAttributes: Common to ALL blocks (id, title, class, etc.)
-//   - inputMixin: Added by factory when isInput=true
-//   - graderMixin: Added by factory when isGrader=true
+//   - inputAttributes: Added by factory when isInput=true
+//   - graderAttributes: Added by factory when isGrader=true
 //   - Optional spreads (placeholder, src): Blocks include manually if needed
 //
 // Composition happens in factory.tsx based on block properties.
@@ -277,18 +277,18 @@ export const baseAttributes = z.object({
 // =============================================================================
 
 /**
- * Input mixin - added by factory when isInput=true.
+ * Input attributes - added by factory when isInput=true.
  * Contains attributes specific to input blocks.
  */
-export const inputMixin = z.object({
+export const inputAttributes = z.object({
   slot: z.string().optional().describe('Named slot for multi-input graders (e.g., "numerator")'),
 });
 
 /**
- * Grader mixin - added by factory when isGrader=true.
+ * Grader attributes - added by factory when isGrader=true.
  * Contains attributes specific to grader blocks.
  */
-export const graderMixin = z.object({
+export const graderAttributes = z.object({
   answer: z.string().optional().describe('Expected answer for grading'),
   displayAnswer: z.string().optional().describe('Answer shown to student (may differ from grading answer)'),
   target: z_reduxStateKeyList.optional().describe('Target input ID(s) to grade, comma-separated for multi-input graders (inferred if omitted)'),
@@ -327,13 +327,36 @@ export const maxAttemptsAttr = z.string()
   .describe('Maximum submission attempts (empty = unlimited)');
 
 /**
- * Problem mixin - added to problem container blocks.
+ * Problem attributes - added to problem container blocks.
  * Contains attributes for attempts and answer visibility.
  */
-export const problemMixin = z.object({
+export const problemAttributes = z.object({
   maxAttempts: maxAttemptsAttr,
   showanswer: showAnswerAttr,
 });
+
+// =============================================================================
+// Shared Value Lists
+// =============================================================================
+
+/** License identifiers — single source of truth for Image attrs and YAML metadata. */
+export const licenseValues = [
+  'CC0', 'CC BY', 'CC BY-SA', 'CC BY-NC', 'CC BY-NC-SA', 'CC BY-ND', 'CC BY-NC-ND',
+  'Public domain', 'Fair use', 'AGPL', 'GPL',
+] as const;
+
+export type License = typeof licenseValues[number];
+
+/**
+ * Normalize a string-or-list to a list. Idempotent.
+ * Useful when an attribute may be a single value or an array (e.g. YAML list vs XML string).
+ */
+export const z_stringOrList = z.union([z.string(), z.array(z.string())])
+  .transform(v => Array.isArray(v) ? v : [v]);
+
+/** URL-validated variant of z_stringOrList. */
+export const z_urlOrList = z.union([z.string().url(), z.array(z.string().url())])
+  .transform(v => Array.isArray(v) ? v : [v]);
 
 // =============================================================================
 // Optional Spreads (blocks include manually if needed)
@@ -354,6 +377,19 @@ export const placeholder = {
 export const src = {
   src: z.string().optional().describe('Path to external file containing content'),
 };
+
+/**
+ * Licensed content attribution — author(s), hyperlink(s), and license.
+ * Usage: baseAttributes.extend({ ...licensed, myAttr: z.string() })
+ */
+export const licensed = {
+  authors: z_stringOrList.optional().describe('Creator name(s)'),
+  hyperlink: z_urlOrList.optional().describe('URL(s) to the original work (per CC/GPL license terms)'),
+  license: z.enum(licenseValues).optional().describe('License identifier'),
+};
+
+/** Parsed output type of the `licensed` fields. */
+export type LicensedAttrs = z.output<z.ZodObject<typeof licensed>>;
 
 /**
  * Cast attribute - for blocks that support cast-of-characters.
@@ -386,13 +422,15 @@ export const character = {
 
 // Legacy pre-composed schemas — still widely used; migrate incrementally.
 // srcAttributes: ~20 block files import this
-// graderAttributes: used by createGrader.ts
 
-/** @deprecated Use baseAttributes.extend({...src}) instead */
-export const srcAttributes = baseAttributes.extend(src);
-
-/** @deprecated Factory now handles grader attrs via isGrader flag */
-export const graderAttributes = baseAttributes.extend(graderMixin.shape);
+/**
+ * Convenience: a strict ZodObject with only the `src` attribute.
+ * The factory implicitly merges baseAttributes, so this no longer
+ * needs to wrap baseAttributes itself.
+ *
+ * @deprecated Prefer inlining `z.object({...src}).strict()` directly.
+ */
+export const srcAttributes = z.object({ ...src }).strict();
 
 /** Inferred type for grader attributes */
-export type GraderAttributes = z.infer<typeof graderMixin>;
+export type GraderAttributes = z.infer<typeof graderAttributes>;

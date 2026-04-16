@@ -28,6 +28,7 @@ import * as lo_event from 'lo_event';
 import { store, extendSettings, useFieldState } from '@/lib/state';
 import { settings } from '@/lib/state/settings';
 import { editorFields } from '@/lib/state/editorFields';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { replayToEvent, filterByContext, LoggedEvent, AppState } from '@/lib/replay';
 import { DebugSettingsContext, type DebugSettings } from '@/lib/state/debugSettings';
 import GlobalDebugPanel from '@/components/common/debug/GlobalDebugPanel';
@@ -46,7 +47,8 @@ const debugLogEvent = (eventType: string, data?: any) => {
 };
 
 const reduxStore = store.init({
-  extraFields: extendSettings(editorFields)
+  extraFields: extendSettings(editorFields),
+  blockRegistry: BLOCK_REGISTRY,
 });
 
 const DEFAULT_REDUX_STORE_ID = 'default';

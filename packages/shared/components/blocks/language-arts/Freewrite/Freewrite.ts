@@ -17,7 +17,7 @@ import { dev, input } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
 import { commonFields } from '@/lib/state';
-import { baseAttributes, z_olx_boolean, z_olx_duration, placeholder } from '@/lib/blocks/attributeSchemas';
+import { z_olx_boolean, z_olx_duration, placeholder } from '@/lib/blocks/attributeSchemas';
 import _Freewrite from './_Freewrite';
 
 export const fields = state.fields([commonFields.value, 'revealed', 'lastKeystrokeTime']);
@@ -29,7 +29,7 @@ const Freewrite = dev({
   description: 'Freewriting input with optional constraints (invisible text, no deletion, pace tracking). Use inside TimedContainer for timed sessions.',
   component: _Freewrite,
   fields,
-  attributes: baseAttributes.extend({
+  attributes: z.object({
     ...placeholder,
     invisible: z_olx_boolean.default(false)
       .describe('Hide text while writing — students cannot see what they type'),
@@ -47,7 +47,7 @@ const Freewrite = dev({
       .pipe(z.coerce.number().int().positive())
       .default(8)
       .describe('Number of visible text rows'),
-  }),
+  }).strict(),
 });
 
 export default Freewrite;

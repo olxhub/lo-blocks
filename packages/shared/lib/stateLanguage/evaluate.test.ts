@@ -6,7 +6,7 @@ import { evaluate, createContext, wordcount } from './evaluate';
 
 // Import match functions from their pure modules (avoid circular imports)
 import { stringMatch } from '@/components/blocks/grading/stringMatch';
-import { numericalMatch } from '@/lib/util/numeric';
+import { numericalMatch } from '@/lib/grading';
 import { registerDSLFunction } from './functions';
 
 // Register match functions for DSL evaluation

@@ -16,6 +16,7 @@ import React, { useMemo } from 'react';
 import { createAvatar } from '@dicebear/core';
 import * as openPeeps from '@dicebear/open-peeps';
 import { resolveContentPath } from '@/lib/content/contentPaths';
+import { toDiceBear } from '@/lib/avatar/render';
 import type { OpenPeeps, AvatarStyleValue } from '@/lib/avatar/types';
 
 interface AvatarProps {
@@ -55,19 +56,11 @@ function getInitials(name: string | undefined) {
 export default function Avatar({ name, src, emoji, seed, style = 'illustrated', options, size = 32 }: AvatarProps) {
   const generatedSvg = useMemo(() => {
     if (src || emoji || style === 'initials' || style === 'emoji') return undefined;
-    // DiceBear expects array values for enumerated options like face, head, etc.
-    // Our schema allows singles; coerce to arrays before passing through.
-    const dicebearOptions: Record<string, any> = {
+    const avatar = createAvatar(openPeeps, {
       seed: seed || name || 'unknown',
       size,
-      ...options,
-    };
-    for (const key of ['face', 'head', 'accessories', 'facialHair', 'mask', 'skinColor', 'clothingColor', 'headContrastColor']) {
-      if (typeof dicebearOptions[key] === 'string') {
-        dicebearOptions[key] = [dicebearOptions[key]];
-      }
-    }
-    const avatar = createAvatar(openPeeps, dicebearOptions);
+      ...toDiceBear(options ?? {}),
+    });
     return avatar.toDataUri();
   }, [name, src, seed, style, options, size]);
 

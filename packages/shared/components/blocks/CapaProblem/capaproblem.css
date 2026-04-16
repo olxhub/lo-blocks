@@ -42,6 +42,7 @@
 
 .lo-problem__content {
   padding: var(--lo-space-xs) 0;
+  min-width: 0; /* Allow grid item to shrink below content width so children can scroll */
 }
 
 .lo-problem__footer {
