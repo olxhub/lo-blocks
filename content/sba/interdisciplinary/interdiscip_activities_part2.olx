@@ -33,10 +33,10 @@ We read summaries of studies from these disciplines and derived their **discipli
         <TabularMCQGrader>
           <TabularMCQ id="insight_to_discipline_mapping">
         mode: checkbox
-        cols: Psychology|Psych, Sociology|Soc, Economics|Econ, Political Science|PoliSci, Health Sciences|HealthSci
+        cols: Economics|Econ, Health Sciences|HealthSci, Political Science|PoliSci, Psychology|Psych, Sociology|Soc
         rows: 
-         - "If a student feels they need to earn money right away to help their family, they might drop out to get a full-time job[Psych]"
-         - "Conditions like depression, anxiety, or ADHD can interfere with a student's ability to get good grades and remain engaged in school.[Econ, Soc]"
+         - "If a student feels they need to earn money right away to help their family, they might drop out to get a full-time job[Econ, Soc]"
+         - "Conditions like depression, anxiety, or ADHD can interfere with a student's ability to get good grades and remain engaged in school.[Psych]"
          - "A student's environment may increase their likelihood of dropping out if they live in an area affected by gang activity, neighborhood instability, and limited support systems, as seen in some urban communities.[Econ, Soc]"
          - "Lack of school funding means fewer resources and support for students, making historically underserved students more likely to drop out.[PoliSci]"
       </TabularMCQ>
@@ -64,6 +64,7 @@ by a right angle bracket >)_
       <ActionButton 
         id="restore_initial_diagram_btn" 
         label="Restore Original Diagram">
+          <SetFieldAction target="initial_links_done" field="value" value="" />
           <SetFieldAction target="editor_cause_diagram" field="value" value="
 graph LR
     C1[Family and Peer Factors]
@@ -139,7 +140,7 @@ _Click on the correct answer._
          <Distractor>Interdisciplinary Map</Distractor>
        </ChoiceInput>
        <IntakeGate ready="@cause_mapping_choice.value" id="mapping_choice_explanation_container">
-       <Markdown>&nbsp;</Markdown>
+       <Hidden> </Hidden>
        <Vertical id="mapping_choice_explanation_display">
          <Markdown>&nbsp;
 
@@ -163,7 +164,7 @@ _Click on the correct answer._
 Family and Peer Factors | Equitable School Funding
       </Markdown>
       <IntakeGate ready="&quot;combo_1&quot; in @dropout_factor_checkboxes.value" id="combo_1_container">
-          <Markdown>&nbsp;</Markdown>
+          <Hidden> </Hidden>
           <TextArea id="dropout_factor_combo_1_explanation" placeholder="How you think the two factors might interact, if they do..." />
       </IntakeGate>
     </Key>
@@ -172,7 +173,7 @@ Family and Peer Factors | Equitable School Funding
 Family and Peer Factors | ADHD Status
       </Markdown>
       <IntakeGate ready="&quot;combo_2&quot; in @dropout_factor_checkboxes.value" id="combo_2_container">
-          <Markdown>&nbsp;</Markdown>
+          <Hidden> </Hidden>
           <TextArea id="dropout_factor_combo_2_explanation" placeholder="How you think the two factors might interact, if they do..." />
       </IntakeGate>
     </Key>
@@ -181,7 +182,7 @@ Family and Peer Factors | ADHD Status
 Students Working Long Hours | Equitable School Funding
       </Markdown>
       <IntakeGate ready="&quot;combo_3&quot; in @dropout_factor_checkboxes.value" id="combo_3_container">
-          <Markdown>&nbsp;</Markdown>
+          <Hidden> </Hidden>
           <TextArea id="dropout_factor_combo_3_explanation" placeholder="How you think the two factors might interact, if they do..." />
       </IntakeGate>
     </Key>
@@ -190,7 +191,7 @@ Students Working Long Hours | Equitable School Funding
 Students Working Long Hours | ADHD Status
       </Markdown>
       <IntakeGate ready="&quot;combo_4&quot; in @dropout_factor_checkboxes.value" id="combo_4_container">
-          <Markdown>&nbsp;</Markdown>
+          <Hidden> </Hidden>
           <TextArea id="dropout_factor_combo_4_explanation" placeholder="How you think the two factors might interact, if they do..." />
       </IntakeGate>
     </Key>
@@ -199,7 +200,7 @@ Students Working Long Hours | ADHD Status
 Equitable School Funding | ADHD Status
       </Markdown>
       <IntakeGate ready="&quot;combo_5&quot; in @dropout_factor_checkboxes.value" id="combo_5_container">
-          <Markdown>&nbsp;</Markdown>
+          <Hidden> </Hidden>
           <TextArea id="dropout_factor_combo_5_explanation" placeholder="How you think the two factors might interact, if they do..." />
       </IntakeGate>
     </Key>
@@ -229,7 +230,8 @@ _(note that to type the arrow, type two hyphens - - followed by a right angle br
      <RightPane>
       <ActionButton 
         id="restore_cause_diagram_btn" 
-        label="Restore Diagram with Causal Links">
+        label="Restore Original Diagram">
+          <SetFieldAction target="extra_links_done" field="value" value="" />
           <SetFieldAction target="editor" field="value" value="
 graph LR
     C1[Family and Peer Factors] --> D1[Dropping out of high school]
@@ -398,19 +400,6 @@ graph LR
     <SplitPanel id="cause_connection_3_explanation_choice_panel">
      <LeftPane>
       <Use id="cause_connection_3c" ref="cause_connection_3" />
-      <IntakeGate ready="@cause_connection_3_explanation_choice_input.value">
-        <Markdown>&nbsp;</Markdown>
-        <Vertical id="factor_connection_3_explanation_block">
-          <Markdown>
-    &nbsp;
-    
-    **Why did you choose the sentence you picked?**</Markdown>
-          <TextArea id="cause_connection_3_choice_explanation" 
-              placeholder="Put your answer here..." /> 
-       </Vertical>              
-      </IntakeGate>
-     </LeftPane>
-     <RightPane>
       <Markdown>
     **Select the best sentences to use in the summary.**</Markdown>
       <ChoiceInput id="cause_connection_3_explanation_choice_input">
@@ -427,9 +416,22 @@ such as the presence of both parents or maternal education, which are reported b
 research as key determinants.
         </TextBlock></Key>
       </ChoiceInput>
+      <IntakeGate ready="@cause_connection_3_explanation_choice_input.value">
+        <Hidden> </Hidden>
+        <Vertical id="factor_connection_3_explanation_block">
+          <Markdown>
+    &nbsp;
+    
+    **Why did you choose the sentence you picked?**</Markdown>
+          <TextArea id="cause_connection_3_choice_explanation" 
+              placeholder="Put your answer here..." /> 
+       </Vertical>              
+      </IntakeGate>
+     </LeftPane>
+     <RightPane>
+       <Use id="cause_mapping3c" ref="cause_mapping_3" />
      </RightPane>
     </SplitPanel>
-    <Use id="cause_mapping3c" ref="cause_mapping_3" />
   </Vertical>  
   <SplitPanel id="factors_2_to_3">
    <LeftPane>
@@ -448,19 +450,6 @@ research as key determinants.
     <SplitPanel id="cause_connection_4_explanation_choice_panel">
      <LeftPane>
        <Use id="cause_connection_4b" ref="cause_connection_4" />
-       <IntakeGate ready="@cause_connection_4_explanation_choice_input.value">
-         <Markdown>&nbsp;</Markdown>
-         <Vertical id="cause_connection_4_explanation_block">
-           <Markdown>
-&nbsp;
-    
-**Why did you choose the sentence you picked?**</Markdown>
-          <TextArea id="cause_connection_4_choice_explanation" 
-              placeholder="Put your answer here..." />
-         </Vertical>
-       </IntakeGate>
-     </LeftPane>
-     <RightPane>
       <Markdown>**Select the best sentences to use in the summary.**</Markdown>
       <ChoiceInput id="cause_connection_4_explanation_choice_input">
         <Distractor>
@@ -476,9 +465,22 @@ are more likely to be able to provide the supports and flexibility
 needed by students who must work long hours.
         </TextBlock></Key>
       </ChoiceInput>
+       <IntakeGate ready="@cause_connection_4_explanation_choice_input.value">
+         <Hidden> </Hidden>
+         <Vertical id="cause_connection_4_explanation_block">
+           <Markdown>
+&nbsp;
+    
+**Why did you choose the sentence you picked?**</Markdown>
+          <TextArea id="cause_connection_4_choice_explanation" 
+              placeholder="Put your answer here..." />
+         </Vertical>
+       </IntakeGate>
+     </LeftPane>
+     <RightPane>
+       <Use ref="cause_mapping_3" />
      </RightPane>
     </SplitPanel>
-    <Use ref="cause_mapping_3" />
   </Vertical>
   <SplitPanel id="factors_3_to_4">
    <LeftPane>
@@ -497,19 +499,6 @@ needed by students who must work long hours.
     <SplitPanel id="cause_connection_5_explanation_choice_panel">
      <LeftPane>
       <Use id="cause_connection_5b" ref="cause_connection_5" />
-      <IntakeGate ready="@cause_connection_5_explanation_choice_input.value">
-      <Markdown>&nbsp;</Markdown>
-      <Vertical id="cause_connection_5_choice_explanation_panel">
-        <Markdown>
-    &nbsp;
-    
-    **Why did you choose the sentence you picked?**</Markdown>
-        <TextArea id="cause_connection_5_choice_explanation" 
-              placeholder="Put your answer here..." />
-       </Vertical>
-      </IntakeGate>
-     </LeftPane>
-     <RightPane>
       <Markdown>**Select the best sentences to use in the summary.**</Markdown>
       <ChoiceInput id="cause_connection_5_explanation_choice_input">
         <Distractor>
@@ -525,9 +514,22 @@ without adequate resources.
           <Ref target="cause_connection_5_explanation" />
         </Distractor>
       </ChoiceInput>
+      <IntakeGate ready="@cause_connection_5_explanation_choice_input.value">
+      <Hidden> </Hidden>
+      <Vertical id="cause_connection_5_choice_explanation_panel">
+        <Markdown>
+    &nbsp;
+    
+    **Why did you choose the sentence you picked?**</Markdown>
+        <TextArea id="cause_connection_5_choice_explanation" 
+              placeholder="Put your answer here..." />
+       </Vertical>
+      </IntakeGate>
+     </LeftPane>
+     <RightPane>
+       <Use ref="cause_mapping_3" />
      </RightPane>
     </SplitPanel>
-    <Use ref="cause_mapping_3" />
   </Vertical>  
   <Vertical id="overview_of_connections">
     <SplitPanel id="comparison_1">
@@ -569,12 +571,11 @@ without adequate resources.
     </RightPane>
   </SplitPanel>
   
-  <Vertical id="reading_funding_text">
+  <Vertical id="reading_funding_text" popout="window">
     <Markdown>
 **Select words or phrases that cue a specific discipline. Takes notes explaining which disciplines they cue, and why.**
     </Markdown>
     <Use ref="reading_funding2a" />
-    <StateViewer target="reading_funding2a" />
   </Vertical>
   
     <!-- Employment Study (Source 2) - identify disciplines -->
@@ -584,12 +585,60 @@ without adequate resources.
 **Select all disciplines represented in this study:**
          </Markdown>
          <CheckboxInput id="reading_funding_classification">
-           <Distractor id="rf_health">Health Sciences</Distractor>
-           <Distractor id="rf_bio">Biology</Distractor>
-           <Key id="rf_psych">Psychology</Key>
-           <Key id="rf_soc">Sociology</Key>
-           <Key id="rf_econ">Economics</Key>
-           <Distractor id="rf_polisci">Political Science</Distractor>
+           <Distractor id="rf_bio">
+             <TextBlock id="rf_bio_text">
+Biology
+             </TextBlock>
+             <IntakeGate ready="&quot;rf_bio&quot; in @reading_funding_classification.value" id="rf_bio_itg">
+               <Hidden> </Hidden>
+               <TextArea id="rf_bio_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
+             </IntakeGate>
+           </Distractor>
+           <Key id="rf_econ">
+             <TextBlock id="rf_econ_text">
+Economics
+             </TextBlock>
+             <IntakeGate ready="&quot;rf_econ&quot; in @reading_funding_classification.value" id="rf_econ_itg">
+               <Hidden> </Hidden>
+               <TextArea id="rf_econ_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
+             </IntakeGate>
+           </Key>
+           <Distractor id="rf_health">
+             <TextBlock id="rf_health_text">
+Health Sciences
+             </TextBlock>
+             <IntakeGate ready="&quot;rf_health&quot; in @reading_funding_classification.value" id="rf_health_itg">
+               <Hidden> </Hidden>
+               <TextArea id="rf_health_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
+             </IntakeGate>
+           </Distractor>
+           <Distractor id="rf_polisci">
+             <TextBlock id="rf_polisci_text">
+Political Science
+             </TextBlock>
+             <IntakeGate ready="&quot;rf_polisci&quot; in @reading_funding_classification.value" id="rf_polisci_itg">
+               <Hidden> </Hidden>
+               <TextArea id="rf_polisci_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
+             </IntakeGate>
+           </Distractor>
+           <Key id="rf_psych">
+             <TextBlock id="rf_psych_text">
+Psychology
+             </TextBlock>
+             <IntakeGate ready="&quot;rf_psych&quot; in @reading_funding_classification.value" id="rf_psych_itg">
+               <Hidden> </Hidden>
+               <TextArea id="rf_psych_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
+             </IntakeGate>
+           </Key>
+           <Key id="rf_soc">
+             <TextBlock id="rf_soc_text">
+Sociology
+             </TextBlock>
+             <IntakeGate ready="&quot;rf_soc&quot; in @reading_funding_classification.value" id="rf_soc_itg">
+               <Hidden> </Hidden>
+               <TextArea id="rf_soc_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
+             </IntakeGate>
+           </Key>
          </CheckboxInput>
       </Vertical>
       <Vertical id="reading_funding_t2" title="School Funding Study">
@@ -597,7 +646,7 @@ without adequate resources.
       </Vertical>
     </Tabs>  
     
-    <Markdown id="reading_funding_highlighted" src="readings/research_study_school_funding_highlighted.md" />
+    <Markdown id="reading_funding_highlighted" src="readings/research_study_school_funding_highlighted.md"  popout="window" />
     
     <Tabs id="reading_funding_insight">
       <Vertical id="rfi_t1" title="Insight Sentence">
@@ -619,28 +668,34 @@ without adequate resources.
         </Markdown>
         <ChoiceInput id="reading_funding_insight_choice_input">
           <Distractor>
+            <TextBlock id="best_reading_funding_d1">
 Just 10% increase in per-pupil spending increased completed schooling raising likelihood of high school graduation.
+            </TextBlock>
           </Distractor>
-          <Key><TextBlock id="best_reading_funding_insight_sentence">
+          <Key>
+            <TextBlock id="best_reading_funding_insight_sentence">
 Sustained increases in school spending significantly improve educational attainment, adult earnings, and poverty outcomes—especially for low-income students—show that equitable school finance reforms are powerful tools for reducing inequality and promoting economic mobility.
-          </TextBlock></Key>
-          <Distractor><Ref target="reading_funding_insight_sentence" /></Distractor>
-          <Distractor>
+            </TextBlock>
+          </Key>
+          <Distractor id="best_reading_funding_d2"><Ref target="reading_funding_insight_sentence" /></Distractor>
+          <Distractor id="best_reading_funding_d3">
+            <TextBlock>
 Participants who were exposed to that school funding increase saw increased wages and family income when they reached adulthood. Poverty rates were lower too because of it.
+            </TextBlock>
           </Distractor>
-          <Distractor>
+          <Distractor id="best_reading_funding_d4">
+            <TextBlock>
 Sustained increases in school spending significantly improve educational attainment, adult earnings, and poverty outcomes.
+            </TextBlock>
           </Distractor>
         </ChoiceInput>
         </LeftPane>
         <RightPane>
           <IntakeGate id="reading_funding_insight_choice_explanation_gate" ready="@reading_funding_insight_choice_input.value">
-            <Markdown>&nbsp;</Markdown>
+            <Hidden> </Hidden>
             <Vertical id="reading_funding_insight_choice_explanation_panel">
-            <Markdown>
-**Why did you select this explanation?**
-            </Markdown>
-            <TextArea id="reading_funding_insight_choice_explanation" />
+               <Markdown>**Why did you choose this insight summary?**</Markdown>
+               <TextArea id="reading_funding_insight_choice_explanation" placeholder="Put your reason for selecting this explanation here" />
             </Vertical>
           </IntakeGate>
         </RightPane>
@@ -650,12 +705,159 @@ Sustained increases in school spending significantly improve educational attainm
      </Vertical>
     </Tabs>
     
-    <Vertical id="best_reading_funding_insight_sentence_display">
-      <Markdown>
+    <Tabs id="best_reading_funding_insight_sentence_display">
+      <Vertical id="best_reading_funding_insight_sentence_display_t1" title="Insight Sentence">
+        <Markdown>
 **Best Insight Sentence for this Passage**
-      </Markdown>
-      <Use ref="best_reading_funding_insight_sentence" />
-    </Vertical>
+        </Markdown>
+        <Use ref="best_reading_funding_insight_sentence" />
+      </Vertical>
+     <Vertical id="best_reading_funding_insight_sentence_display_t2" title="School Funding Study">
+       <Use ref="reading_funding_highlighted" />
+     </Vertical>
+   </Tabs>
+
+  <Vertical id="revise_dropout_cause_diagram_with_finance_reform">
+    <Markdown> 
+**Edit the diagram in the editor below by adding a node for "School Finance Reform" and adding connections
+showing its causal impacts.** _The graph shown updates as you type._
+    </Markdown>
+    <SplitPanel id="finance_reform_split_a" sizes="40, 60">
+     <LeftPane>
+      <CheckboxInput id="extra_links_done_finance_reform">
+          <Key>Check this when you are satisfied with the diagram</Key>
+      </CheckboxInput>
+     </LeftPane>
+     <RightPane>
+      <ActionButton 
+        id="restore_expanded_cause_diagram_btn" 
+        label="Restore Original Diagram">
+          <SetFieldAction target="extra_links_done_finance_reform" field="value" value="" />
+          <SetFieldAction target="editor_finance_reform" field="value" value="
+graph LR
+    C1[Family and Peer Factors] --> D1[Dropping out of high school]
+    C2[Students Working Long Hours] --> D1
+    C1 --> C2
+    C1 --> C4
+    C2 --> C1
+    C3[Equitable School Funding] --> D1
+    C3 --> C2
+    C3 --> C4
+    C4[ADHD Status] --> D1
+
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+    style C3 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+    style D1 fill:#fff4e1
+      " />
+      </ActionButton>
+     </RightPane>
+    </SplitPanel>
+    <SplitPanel id="MermaidPublishDemo3" title="Update your diagram" sizes="40, 60">
+     <LeftPane>
+      <TextArea id="editor_finance_reform" rows="18">
+graph LR
+    C1[Family and Peer Factors] --> D1[Dropping out of high school]
+    C2[Students Working Long Hours] --> D1
+    C1 --> C2
+    C1 --> C4
+    C2 --> C1
+    C3[Equitable School Funding] --> D1
+    C3 --> C2
+    C3 --> C4
+    C4[ADHD Status] --> D1
+
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+    style C3 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+    style D1 fill:#fff4e1
+      </TextArea>
+    </LeftPane>
+    <RightPane>
+      <Mermaid target="editor_finance_reform" />
+    </RightPane>
+   </SplitPanel>
+  </Vertical>
+
+    <Mermaid id="cause_mapping_4"><![CDATA[
+graph LR
+    C1[Family and Peer Factors] --> D1[Dropping Out of High School]
+    C2[Students Working Long Hours] --> D1
+    C1 --> C2
+    C1 --> C4
+    C2 --> C1
+    C3[Equitable School Funding] --> D1
+    C3 --> C2
+    C3 --> C4
+    C4[ADHD Status] --> D1
+    C5[School Finance Reform]-->C1
+    C5-->C3
+
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+    style C3 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+    style C5 fill:#e1f5ff
+    style D1 fill:#fff4e1
+]]>
+   </Mermaid>
+
+  <Vertical id="overview_of_connections_2">
+    <SplitPanel id="comparison_4">
+      <LeftPane>
+         <Mermaid id="connection_4_diagram"><![CDATA[
+graph LR
+    C1[Family and Peer Factors]
+    C5[School Finance Reform]-->C1
+
+    style C1 fill:#e1f5ff
+    style C5 fill:#e1f5ff
+]]>
+        </Mermaid>
+      </LeftPane>
+      <RightPane>
+        <TextBlock id="factor_connection_4">
+Changes to current school funding practices through school finance reforms will lead to more equitable money and resource allocations to schools in high-need districts allowing schools to be better able to serve those students who are at risk either because they work long hours or have ADHD.
+        </TextBlock>
+      </RightPane>
+    </SplitPanel>
+    <SplitPanel id="comparison_5">
+      <LeftPane>
+        <Mermaid id="connection_5_diagram"><![CDATA[
+graph LR
+    C3[Equitable School Funding]
+    C5[School Finance Reform]-->C3
+
+    style C3 fill:#e1f5ff
+    style C5 fill:#e1f5ff
+]]>
+        </Mermaid>
+      </LeftPane>
+      <RightPane>
+        <TextBlock id="factor_connection_5">
+There are important family characteristics that directly benefit from increased school spending in the long run including adult wages, family income and reduced poverty rates. With greater family assets, students may feel less compelled to work long hours or will have resources to address their special needs.
+        </TextBlock>
+      </RightPane>
+    </SplitPanel>
+  </Vertical>
+
+  <SplitPanel id="extended_summary_2">
+    <LeftPane>
+      <Use ref="cause_mapping_introduction" />
+      <Use ref="first_crosslink_sentence" />
+      <Use ref="factor_connection_1_key" />
+      <Use ref="factor_connection_2_key" />
+      <Use ref="factor_connection_3_key" />
+      <Use ref="factor_connection_4" />
+      <Use ref="factor_connection_5" />
+    </LeftPane>
+    <RightPane>
+      <Use ref="cause_mapping_4" />
+    </RightPane>
+  </SplitPanel>
+
 </Vertical>
 </Cast>
 

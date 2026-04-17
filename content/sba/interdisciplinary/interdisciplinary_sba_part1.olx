@@ -95,7 +95,7 @@ lang: en-Latn-US
   title: The  Effects  of  School  Spending  on  Educational  and  Economic  Outcomes 
   subtitle: Evidence  from  School  Finance  Reforms  - Jackson et al. (2016)
   description: Relationship between school funding and adult outcomes
-  ref: reading_funding2
+  ref: reading_funding2a
 
 - id: marijuana_study
   title: Marijuana Use and Dropout
@@ -107,7 +107,7 @@ lang: en-Latn-US
   title: The Dropout Crisis
   subtitle: Policy Brief
   description: National crisis overview and policy recommendations
-  ref: reading_policy
+  ref: reading_policy2
 
 - id: focus_group
   title: Student Perspectives
@@ -128,7 +128,7 @@ lang: en-Latn-US
     <Markdown id="adhd_study_text_md2" src="readings/research_study_adhd_dropout.md" />
   </Annotate>
   <Markdown id="reading_marijuana" src="readings/research_study_marijuana_dropout.md"/>
-    <Markdown id="reading_policy2" src="readings/policy_brief_dropout_crisis.md"/>
+  <Markdown id="reading_policy2" src="readings/policy_brief_dropout_crisis.md"/>
   <Annotate id="reading_funding2a">
     <Markdown id="reading_funding2b" src="readings/research_study_school_funding.md"/>
   </Annotate>

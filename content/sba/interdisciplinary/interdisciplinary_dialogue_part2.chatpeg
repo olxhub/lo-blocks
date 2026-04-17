@@ -224,7 +224,7 @@ interdisciplinary_sba_sidebar2 -> reading_funding_checkboxes
 
 Lianne: So which discipline or disciplines do you think are represented in the study?
 
---- wait @reading_funding_classification.value ---
+--- wait @reading_funding_classification.value && (@rf_bio_explanation.value || @rf_econ_explanation.value || @rf_health_explanation.value || rf_polisci_explanation.value || @rf_psych_explanation.value || @rf_soc_explanation.value) ---
 
 interdisciplinary_sba_sidebar2 -> reading_funding_highlighted
 
@@ -267,3 +267,53 @@ interdisciplinary_sba_sidebar2 -> best_reading_funding_insight_sentence_display
 
 Lianne: Good work, everyone! The sentence on the right captures all the important points from the study
 and we should use it as the insight for this source.
+
+Ty: Great! We should add this insight to our map.
+
+Peggy: We could label this insight on our map "School Finance Reforms".
+
+interdisciplinary_sba_sidebar2 -> revise_dropout_cause_diagram_with_finance_reform
+
+Lianne: Why don't you try adding this insight to the map. You'll have to both add a node with the label, and add connections.
+
+--- wait @extra_links_done_finance_reform.value ---
+
+Lacey: I considered putting a connection directly from "School finance reform" to "Dropping out of high school", but that didn't make sense. The obvious thing that school finance reform is change the status of "Equitable school funding". So I added a link from "School Finance Reform" to "Equitable School Funding".
+
+Ty: I thought about those things too, but I also noticed in the passage the following quote: "**Mechanisms: Spending increases translated into smaller class sizes, longer school years, and higher teacher salaries, which contributed to improved student outcomes.**" All of those are things that are made possible by equitable school funding.
+
+Peggy: There's another possible connection, though. If schools have more money, they can do things like more outreach to families, hire more school counselors, do more after-school programs, and things like that. Which would create a connection from "School Finance Reform" to "Family and Peer Factors".
+
+Ty: But that isn't in the article! If we're going to add that connection, we have to be able to provide evidence from studies, not just pull it out of our heads. And anyway, those are direct results of equitable funding, **not** a direct result of school finance reform. School finance reform produces better funding, and **that** is what reduces dropout rates.
+
+Lacey: Well, it does say that school finance reform leads, over the long term, to higher adult wages, greater family incomes, and lower poverty rates. That certainly is an effect on "Family and Peer Factors"!
+
+interdisciplinary_sba_sidebar2 -> cause_mapping_4
+
+Peggy: I think that works. So that gives us the diagram shown to the right. It's interesting that school finance reform doesn't affect graduation rates directly. It's an **indirect** influence, through its effects on schools and families.
+
+Ty: That means we need to add explanations for the two connections we've added to our summary.
+
+interdisciplinary_sba_sidebar2 -> overview_of_connections_2
+
+Lianne: That's right! But you've already pretty much said what they are, so I'll write them up real fast. (Take a look to the right).
+
+interdisciplinary_sba_sidebar2 -> extended_summary_2
+
+Lianne: So here's how the summary looks now. (Take a look to the right).
+
+Ty: Adding this new insight on **School finance reforms** has definitely enriched my understanding of causes of this problem.
+
+Lacey: I agree. I broadened our understanding to the larger structural issues around policy reform.
+
+Lianne: Good work! That ends Part 2 of the SBA. Let's recap what we've done so far.
+
+We've built an interdisciplinary map of causes of high school dropout using insights from the studies we have reviewed. That allowed us to achieve a more comprehensive understanding of the problem and revealed that an important insight was missing. **School finance reforms**. We were able to add that insight to our map and our updated summary.
+
+In Part 3, we will explore other aspects of the problem and define the scope of what our nonprofit can do to address it in our community. We will synthesize all this in a problem statement to be submitted to our director.
+
+Nice job, everyone!
+
+**However, there's one more thing to do.**
+
+Go to the next page, where you will find a report for you to share with your teacher. Click on the **Print or save as PDF** button and save that report as a PDF file on your computer. Then upload it to your part 2 assignment in iCollege.
