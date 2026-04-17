@@ -162,9 +162,9 @@ Lacy: Which ones would you select to research? Pick at least three to start with
 
 --- wait @reasons.value.length > 2 && @reasons.value.length < 6 ---
 
-Lianne: I agree with you on some of your choices. Why did you select that set? Why do you think Comm360 would be able to address them?
-
 interdisciplinary_sba_sidebar -> reasons_shown
+
+Lianne: I agree with you on some of your choices. Why did you select that set? Why do you think Comm360 would be able to address them?
 
 interdisciplinary_sba_sidebar -> reason_explanation_input
 
