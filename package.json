@@ -41,7 +41,8 @@
     "xml2graph": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/xml2graph.js",
     "clean": "./sandbox.sh rm -rf apps/web/.next apps/static/.next node_modules .turbo out apps/web/public/content apps/static/public/static-content",
     "clean-translations": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/clean-translations.ts",
-    "clean-zombies": "pkill -9 -f 'next-server' ; pkill -9 -f 'next dev' ; pkill -9 -f postcss.js"
+    "clean-zombies": "pkill -9 -f 'next-server' ; pkill -9 -f 'next dev' ; pkill -9 -f postcss.js",
+    "dashboard": "tsx apps/dashboard/src/index.tsx"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.958.0",
@@ -79,8 +80,8 @@
     "openai": "^5.3.0",
     "peggy": "^5.0.2",
     "pmss": "^0.0.3",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "react-i18next": "^16.1.1",
     "react-markdown": "^10.1.0",
     "react-redux": "^9.2.0",
@@ -90,6 +91,7 @@
     "remark-math": "^6.0.0",
     "vitest": "^3.1.4",
     "yaml": "^2.8.2",
+    "ink": "^7.0.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {

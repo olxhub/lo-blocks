@@ -25,6 +25,7 @@ import type { AuthUser } from './auth.js';
 import type { ConnectionLog } from './eventLog.js';
 import { saveConnectionLog } from './eventLog.js';
 import type { KVStore } from './kvs.js';
+import { ServerState } from './serverState.js';
 
 /** Parsed event from the client. Loose shape for now. */
 export interface PipelineEvent {
@@ -39,6 +40,7 @@ export interface PipelineContext {
   user: AuthUser;
   conn: ConnectionLog;
   kvs: KVStore;
+  serverState?: ServerState;
 }
 
 // =============================================================================
@@ -172,10 +174,13 @@ async function* handleBlobs(
 
 async function* runReducers(
   events: AsyncIterable<PipelineEvent>,
-  _ctx: PipelineContext
+  ctx: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
-  // TODO: run events through field reducers
+  const serverState = new ServerState();
+  ctx.serverState = serverState;
+
   for await (const event of events) {
+    serverState.dispatch(event);
     yield event;
   }
 }

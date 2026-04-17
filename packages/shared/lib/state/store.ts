@@ -354,7 +354,7 @@ export const updateResponseReducer = (state = initialState, action) => {
 };
 
 type ExtraFieldsParam = Fields | (FieldInfo | string)[];
-type BlockRegistryParam = Record<string, { fields?: Record<string, any> } | undefined>;
+export type BlockRegistryParam = Record<string, { fields?: Record<string, any> } | undefined>;
 
 function collectEventTypes(
   extraFields: ExtraFieldsParam = [],
@@ -429,6 +429,18 @@ function collectEventTypes(
     ...OLXJSON_EVENT_TYPES,
     ...CHAT_EVENT_TYPES,
   ]));
+}
+
+/**
+ * Initialize the field reducer registry without starting lo_event or creating
+ * a Redux store. Server-side entry point: call once at startup with the block
+ * registry so that `updateResponseReducer` can route events to field reducers.
+ *
+ * Client-side callers should use `store.init()` instead — it calls this
+ * internally alongside lo_event setup.
+ */
+export function initReducers(blockRegistry: BlockRegistryParam) {
+  collectEventTypes([], blockRegistry);
 }
 
 // Event capture logger - accessible via window.__eventCapture in browser
