@@ -45,11 +45,9 @@ description: Format for dialogue-driven scenarios, simulations, and training mod
  * - Support for LLM-driven interludes: conversational loops with an AI agent,
  *   potentially via a `>>> interactWithLLM: { ... }` command or section tag
  * - Variable setting, condition checking, and branching logic
- * - Support for referenced or inline OLX elements, such as:
- *
- *     Bob: Let's think about this.
- *     ::: <problem ref="problem_ref_1"/>
- *
+ * - Inline-in-bubble embeds (::ref:: within speaker text) could allow
+ *   small blocks to render inside a chat bubble. Deferred until there's
+ *   a concrete use case — block-level ::ref handles most scenarios.
  * - Handling of semantic flow cues (e.g. jump, continue, return)
  */
 
@@ -81,7 +79,7 @@ ConversationHeader
 
 // Body of the document: could contain dialogues, commands, etc.
 ConversationBody
-  = lines:(CommentLine / SectionHeaderBlock / BlankLine / WaitCommand / PauseCommand / CommandBlock / ArrowCommand / DialogueGroup)* {
+  = lines:(CommentLine / SectionHeaderBlock / BlankLine / WaitCommand / PauseCommand / CommandBlock / ArrowCommand / EmbedCommand / EmbedBlock / DialogueGroup)* {
       return lines.filter(Boolean);
     }
 
@@ -179,6 +177,49 @@ WaitExpression
   = chars:[^-\r\n]+ { return chars.join('').trim(); }
 
 
+/* ──────────────────────────  Embed directives  ──────────────────────── */
+/*
+ * Block-level embeds reference other blocks or include literal OLX:
+ *
+ *   ::problem_1                         Embed by reference
+ *   ::video_1 [fullscreen]              With inline metadata
+ *   ::video_1                           With YAML-style options
+ *     fullscreen: true
+ *     label: Watch a video
+ *   ::                                  Fenced inline OLX
+ *   <MCQ id="quick">...</MCQ>
+ *   ::
+ *
+ * Future: inline-in-bubble embeds (::ref:: within speaker text) could
+ * allow small blocks inside a chat bubble. Deferred until concrete
+ * use case — block-level ::ref handles most scenarios.
+ */
+
+// Lookahead helper to prevent continuation lines from swallowing embeds
+EmbedStart
+  = _ "::"
+
+// Embed by reference, with optional inline metadata and/or YAML options.
+// The YAML options block (indented lines after the directive) is returned
+// as a raw string for downstream YAML parsing.
+EmbedCommand
+  = _ "::" ref:Identifier _ meta:InlineMetadata? _ NewLine yaml:IndentedBlock? {
+      return { type: "EmbedCommand", ref, metadata: meta || {}, options: yaml || null };
+  }
+
+// Fenced inline OLX — :: opens and closes the block.
+// Everything between the fences is returned as raw content.
+EmbedBlock
+  = _ "::" _ meta:InlineMetadata? _ NewLine content:EmbedBlockContent _ "::" _ NewLine {
+      return { type: "EmbedBlock", ref: null, content: content.trim(), metadata: meta || {} };
+  }
+
+EmbedBlockContent
+  = chars:(!(_ "::" _ NewLine) c:. { return c; })* {
+      return chars.join('');
+  }
+
+
 DialogueGroup
   = metaAbove:MetadataLine? line:DialogueLine continuation:ContinuationLine* indented:IndentedBlock? {
       const parts = [line.text].concat(continuation.map(c => c.text));
@@ -198,7 +239,7 @@ DialogueGroup
   }
 
 ContinuationLine
-  = !SectionHeaderBlockStart !DialogueLineStart !MetadataLineStart !StartCommandBlock !ArrowCommand !PauseCommandStart !WaitCommandStart !CommentLineStart !IndentedLine content:LineContent NewLine {
+  = !SectionHeaderBlockStart !DialogueLineStart !MetadataLineStart !StartCommandBlock !ArrowCommand !PauseCommandStart !WaitCommandStart !CommentLineStart !IndentedLine !EmbedStart content:LineContent NewLine {
       return { text: content };
   }
 

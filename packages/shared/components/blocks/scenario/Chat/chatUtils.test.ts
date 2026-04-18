@@ -111,6 +111,113 @@ Alex: Reply.
   });
 });
 
+/* ── Embed directives ──────────────────────────────────────────────────── */
+
+describe('embed directives', () => {
+  it('parses simple embed by ref', () => {
+    const result = parseChat(`~~~~
+Kim: Try this.
+
+::problem_1
+
+Kim: How was it?
+`);
+    expect(result.body).toHaveLength(3);
+    expect(result.body[1]).toEqual({
+      type: 'EmbedCommand', ref: 'problem_1', metadata: {}, options: null
+    });
+  });
+
+  it('parses embed with inline metadata', () => {
+    const result = parseChat(`~~~~
+::video_1 [display=fullscreen]
+`);
+    expect(result.body[0]).toEqual({
+      type: 'EmbedCommand', ref: 'video_1',
+      metadata: { display: 'fullscreen' },
+      options: null
+    });
+  });
+
+  it('parses embed with key=value metadata', () => {
+    const result = parseChat(`~~~~
+::video_1 [display=fullscreen label="Watch this"]
+`);
+    const embed = result.body[0];
+    expect(embed.type).toBe('EmbedCommand');
+    expect(embed.ref).toBe('video_1');
+    expect(embed.metadata.display).toBe('fullscreen');
+    expect(embed.metadata.label).toBe('Watch this');
+  });
+
+  it('parses embed with YAML options', () => {
+    const result = parseChat(`~~~~
+::video_1
+  fullscreen: true
+  label: Watch a video
+
+Kim: After the video.
+`);
+    expect(result.body[0].type).toBe('EmbedCommand');
+    expect(result.body[0].ref).toBe('video_1');
+    expect(result.body[0].options).toContain('fullscreen: true');
+    expect(result.body[0].options).toContain('label: Watch a video');
+    expect(result.body[1].speaker).toBe('Kim');
+  });
+
+  it('parses fenced inline OLX', () => {
+    const result = parseChat(`~~~~
+Kim: Try this.
+
+::
+<MCQ id="quick">
+  <Prompt>What is 2+2?</Prompt>
+  <Key>4</Key>
+</MCQ>
+::
+
+Kim: Done.
+`);
+    expect(result.body).toHaveLength(3);
+    const embed = result.body[1];
+    expect(embed.type).toBe('EmbedBlock');
+    expect(embed.ref).toBe(null);
+    expect(embed.content).toContain('<MCQ id="quick">');
+    expect(embed.content).toContain('<Key>4</Key>');
+  });
+
+  it('parses fenced OLX with metadata', () => {
+    const result = parseChat(`~~~~
+:: [display=fullscreen]
+<Video src="lecture.mp4" />
+::
+`);
+    const embed = result.body[0];
+    expect(embed.type).toBe('EmbedBlock');
+    expect(embed.metadata.display).toBe('fullscreen');
+    expect(embed.content).toContain('<Video');
+  });
+
+  it('does not confuse :: in speaker text with embed', () => {
+    const result = parseChat(`~~~~
+Kim: Hello
+Alex: Reply
+`);
+    expect(result.body).toHaveLength(2);
+    expect(result.body[0].speaker).toBe('Kim');
+  });
+
+  it('handles consecutive embeds', () => {
+    const result = parseChat(`~~~~
+::problem_1
+::problem_2
+`);
+    expect(result.body).toHaveLength(2);
+    expect(result.body[0].ref).toBe('problem_1');
+    expect(result.body[1].ref).toBe('problem_2');
+  });
+});
+
 describe('chatUtils', () => {
   describe('byId', () => {
     it('finds elements by ID (message or section)', () => {
