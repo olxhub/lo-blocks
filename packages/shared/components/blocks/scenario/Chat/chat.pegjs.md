@@ -245,6 +245,61 @@ Introduction [id=intro]
 -----------------------
 ```
 
+## Embeds
+
+Reference other blocks or include literal OLX inline with the conversation flow.
+
+### Embed by Reference
+
+```
+::problem_1
+::video_1 [display=fullscreen]
+::video_1 [display=fullscreen label="Watch this"]
+```
+
+The simplest form is `::ref` where `ref` is the ID of another block. Optional `[key=value]` metadata provides display hints to the renderer.
+
+### Embed with YAML Options
+
+For multiple options, use an indented block (same indentation rules as rich content):
+
+```
+::video_1
+  display: fullscreen
+  label: Watch a video about the Kolb Cycle
+```
+
+The indented YAML is returned as a raw string for downstream parsing.
+
+### Fenced Inline OLX
+
+Embed literal OLX between `::` fences:
+
+```
+::
+<MCQ id="quick_check">
+  <Prompt>What is 2+2?</Prompt>
+  <Key>4</Key>
+</MCQ>
+::
+```
+
+With metadata:
+
+```
+:: [display=expandable]
+<Video src="lecture.mp4" />
+::
+```
+
+### AST Output
+
+```json
+{ "type": "EmbedCommand", "ref": "problem_1", "metadata": {}, "options": null }
+{ "type": "EmbedCommand", "ref": "video_1", "metadata": { "display": "fullscreen" }, "options": "label: Watch..." }
+{ "type": "EmbedBlock", "ref": null, "content": "<MCQ>...</MCQ>", "metadata": {} }
+```
+
 ## Commands
 
 ### Pause

@@ -122,6 +122,20 @@ Kim: This is a key point. [id=key_finding face=smile]
 
 Use `id` for clipping and navigation. Use `face` for per-line expression overrides. Metadata can also appear on a standalone line above dialogue.
 
+### Embeds
+
+Reference other blocks directly in the conversation flow:
+
+```
+Kim: Now try this problem.
+
+::problem_1
+
+Kim: How did that go?
+```
+
+With display hints: `::video_1 [display=fullscreen]`. See the Chatpeg Grammar Reference for full syntax including YAML options and fenced inline OLX.
+
 ### Commands
 
 **Pause** — Waits for user to click continue:

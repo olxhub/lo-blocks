@@ -1,4 +1,4 @@
-// src/components/blocks/Chat/_Chat.jsx
+// packages/shared/components/blocks/scenario/Chat/_Chat.tsx
 'use client';
 
 import React, { useCallback, useMemo, useEffect } from 'react';
@@ -6,11 +6,24 @@ import React, { useCallback, useMemo, useEffect } from 'react';
 import { useFieldState, updateField } from '@/lib/state';
 import { refToReduxKey } from '@/lib/blocks/idResolver';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
+import type { ChatMessage } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
 import { useCast, mergeCasts } from '@/lib/avatar/cast';
+import type { RuntimeProps } from '@/lib/types';
+import type { DialogueLine, ParsedConversation } from './_chatTypes';
 import { useWaitConditions } from './waitConditions';
 
 import * as chatUtils from './chatUtils';
+
+/** Resolved clip range — indexes into the conversation body array. */
+interface ClipRange {
+  start: number;
+  end: number;
+  valid: boolean;
+  message?: string | null;
+  error?: boolean;
+  clip?: string;
+}
 
 /* ----------------------------------------------------------------
  * Advance Handler Registry
@@ -19,14 +32,14 @@ import * as chatUtils from './chatUtils';
 // or keyboard shortcuts) can trigger progression without holding direct
 // references to the chat component. This indirection also makes cleanup
 // predictable when components unmount.
-const advanceHandlers = new Map();
+const advanceHandlers = new Map<string, () => void>();
 
-export function registerChatAdvanceHandler(id, handler) {
+export function registerChatAdvanceHandler(id: string, handler: () => void) {
   if (!id || typeof handler !== 'function') return;
   advanceHandlers.set(id, handler);
 }
 
-export function unregisterChatAdvanceHandler(id, handler) {
+export function unregisterChatAdvanceHandler(id: string, handler: () => void) {
   if (!id) return;
   const existing = advanceHandlers.get(id);
   if (existing === handler) {
@@ -34,7 +47,7 @@ export function unregisterChatAdvanceHandler(id, handler) {
   }
 }
 
-export function callChatAdvanceHandler(id) {
+export function callChatAdvanceHandler(id: string): boolean {
   const handler = advanceHandlers.get(id);
   if (typeof handler === 'function') {
     handler();
@@ -45,26 +58,39 @@ export function callChatAdvanceHandler(id) {
 }
 
 /* ----------------------------------------------------------------
+ * Custom Hook for Handler Registration
+ * -------------------------------------------------------------- */
+
+export function useChatAdvanceRegistration(id: string, handler: () => void) {
+  useEffect(() => {
+    registerChatAdvanceHandler(id, handler);
+    return () => unregisterChatAdvanceHandler(id, handler);
+  }, [id, handler]);
+}
+
+/* ----------------------------------------------------------------
  * Main Component
  * -------------------------------------------------------------- */
 
-export function _Chat(props) {
+export function _Chat(props: RuntimeProps) {
   const { id, fields, kids, clip, history } = props;
 
+  const parsed: ParsedConversation = (kids as any).parsed;
+
   /*  Full parsed body (dialogue lines + command entries).  */
-  const allEntries = kids.parsed.body;
+  const allEntries = parsed.body;
 
   /* Cast: merge runtime cast → cast= attribute → chatpeg header cast.
    * Most specific (header) wins. */
   const baseCast = useCast(props);
-  const headerCast = kids.parsed.header?.cast || null;
+  const headerCast = parsed.header?.cast || null;
   const participants = mergeCasts(baseCast, headerCast);
 
   /* Validation warnings from postprocess (e.g. case-sensitivity typos). */
-  const headerWarnings = kids.parsed.headerWarnings || [];
+  const headerWarnings = parsed.headerWarnings || [];
 
   // Clip student is going through
-  const clipRange = useMemo(() => {
+  const clipRange: ClipRange = useMemo(() => {
     if (!clip) {
       // Default: whole doc
       return { start: 0, end: allEntries.length - 1, valid: true };
@@ -73,26 +99,26 @@ export function _Chat(props) {
     try {
       // Resolve using your PEG+process logic
       return chatUtils.clip({ body: allEntries }, clip);
-    } catch (error) {
+    } catch (error: any) {
       // Return error sentinel instead of throwing
       return {
         error: true,
         message: error.message,
-        clip: clip,
+        clip,
         start: 0,
         end: 0,
-        valid: false
+        valid: false,
       };
     }
   }, [allEntries, clip]);
 
   // Messages before the clip
-  const historyRange = useMemo(() => {
+  const historyRange: ClipRange | null = useMemo(() => {
     if (!history) return null;
 
     try {
       return chatUtils.clip({ body: allEntries }, history);
-    } catch (error) {
+    } catch (error: any) {
       // Return error sentinel instead of throwing
       return {
         error: true,
@@ -100,7 +126,7 @@ export function _Chat(props) {
         clip: history,
         start: 0,
         end: 0,
-        valid: false
+        valid: false,
       };
     }
   }, [allEntries, history]);
@@ -125,10 +151,10 @@ export function _Chat(props) {
   const windowedIndex = Math.max(clipRange.start, Math.min(index, clipRange.end));
 
   // Show only entries within current visible window
-  const visibleMessages = useMemo(() => {
+  const visibleMessages: ChatMessage[] = useMemo(() => {
     return allEntries
       .slice(windowRange.start, windowedIndex + 1)
-      .filter(b => b.type === 'Line');
+      .filter((b): b is DialogueLine => b.type === 'Line');
   }, [allEntries, windowRange, windowedIndex]);
 
   /** Total number of dialogue lines (commands excluded) */
@@ -159,32 +185,46 @@ export function _Chat(props) {
     while (nextIndex < windowRange.end) {
       const block = allEntries[nextIndex + 1];
       if (!block) break;
-      if (block.type === 'ArrowCommand') {
-        updateField(props, fields.value, block.target, { reduxKey: refToReduxKey({ ...props, id: block.source }) });
-        nextIndex += 1;
-        continue;
-      }
-      if (block.type === 'WaitCommand') {
-        if (!isWaitSatisfied(block)) {
-          // Unsatisfied wait - stop here, user must wait for condition
+
+      switch (block.type) {
+        case 'ArrowCommand':
+          updateField(props, fields.value, block.target, { reduxKey: refToReduxKey({ ...props, id: block.source as any }) });
+          nextIndex += 1;
+          continue;
+
+        case 'WaitCommand':
+          if (!isWaitSatisfied(block)) {
+            // Unsatisfied wait - stop here, user must wait for condition
+            setIndex(Math.min(nextIndex, windowRange.end));
+            return;
+          }
+          // Satisfied - skip past it
+          nextIndex += 1;
+          continue;
+
+        case 'SectionHeader':
+          setSectionHeader(block.title);
+          nextIndex += 1;
+          continue;
+
+        case 'Line':
+        case 'PauseCommand':
+          nextIndex += 1;
+          setIndex(Math.min(nextIndex, windowRange.end));
+          return;
+
+        case 'EmbedCommand':
+        case 'EmbedBlock':
+          // TODO: render embedded blocks as ElementEntry in visibleMessages
+          nextIndex += 1;
+          setIndex(Math.min(nextIndex, windowRange.end));
+          return;
+
+        default:
+          console.warn('[Chat] Unhandled entry type:', block.type, block);
+          nextIndex += 1;
           break;
-        }
-        // Satisfied - skip past it
-        nextIndex += 1;
-        continue;
       }
-      if (block.type === 'SectionHeader') {
-        setSectionHeader(block.title);
-        nextIndex += 1;
-        continue
-      }
-      nextIndex += 1;
-      if (block.type === 'Line' || block.type === 'PauseCommand') {
-        break;
-      }
-      console.log("[Chat] WARNING: Unhandled block type");
-      console.log(block);
-      console.log(block.type);
     }
     setIndex(Math.min(nextIndex, windowRange.end));
   }, [canAdvance, isWaitSatisfied, props, fields.value, windowedIndex, windowRange, allEntries, setIndex, setSectionHeader]);
@@ -259,17 +299,4 @@ export function _Chat(props) {
       />
     </>
   );
-}
-
-/* ----------------------------------------------------------------
- * Custom Hook for Handler Registration
- * -------------------------------------------------------------- */
-// Convenience hook to register/unregister an advance handler alongside the
-// component lifecycle so callers don't have to manage the registry directly.
-
-export function useChatAdvanceRegistration(id, handler) {
-  useEffect(() => {
-    registerChatAdvanceHandler(id, handler);
-    return () => unregisterChatAdvanceHandler(id, handler);
-  }, [id, handler]);
 }
