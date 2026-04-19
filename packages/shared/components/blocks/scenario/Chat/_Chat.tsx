@@ -253,8 +253,9 @@ export function _Chat(props: RuntimeProps) {
           return;
 
         case 'EmbedBlock':
-          // TODO: inline OLX parsing via storeEntry in postprocess
-          console.warn('[Chat] EmbedBlock (inline OLX) not yet supported:', block.content?.slice(0, 80));
+          // Normally converted to EmbedCommand by postprocess.
+          // If still present, parseNode wasn't available — skip with warning.
+          console.warn('[Chat] Unconverted EmbedBlock — inline OLX was not parsed');
           nextIndex += 1;
           continue;
 

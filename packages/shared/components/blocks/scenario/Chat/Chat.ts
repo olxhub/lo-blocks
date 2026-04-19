@@ -1,12 +1,14 @@
-// src/components/blocks/Chat/Chat.js
+// src/components/blocks/Chat/Chat.ts
 
 import { z } from 'zod';
 import yaml from 'js-yaml';
+import { XMLParser } from 'fast-xml-parser';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes, cast } from '@/lib/blocks/attributeSchemas';
 import { CHAT_METADATA_KEYS } from '@/lib/content/metadata';
+import { transformTagName } from '@/lib/content/xmlTransforms';
 import { validateCast, withCastSupport } from '@/lib/avatar/cast';
 import * as cp  from './_chatParser';
 import { _Chat, callChatAdvanceHandler } from './_Chat';
@@ -77,12 +79,90 @@ function parseEmbedOptions(body: any[]): string[] {
   return warnings;
 }
 
+/* ----------------------------------------------------------------
+ * Inline OLX parser for EmbedBlock
+ * ----------------------------------------------------------------
+ * EmbedBlock contains raw OLX XML between :: fences.  We parse it
+ * using fast-xml-parser (same config as parseOLX) and run each root
+ * element through the content pipeline via parseNode.  The resulting
+ * blocks are stored via storeEntry and the EmbedBlock body entry is
+ * replaced with an EmbedCommand pointing at the generated block.
+ */
+
+const embedXmlParser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: '',
+  preserveOrder: true,
+  commentPropName: '#comment',
+  trimValues: false,
+  parseTagValue: false,
+  parseAttributeValue: false,
+  transformTagName,
+});
+
+async function processEmbedBlocks(
+  body: any[],
+  parentId: string,
+  parseNode: (node: any, siblings: any[] | null, index: number) => Promise<any>,
+  storeEntry: (id: string, entry: any) => void,
+): Promise<string[]> {
+  const warnings: string[] = [];
+  let embedIndex = 0;
+
+  for (let i = 0; i < body.length; i++) {
+    const entry = body[i];
+    if (entry.type !== 'EmbedBlock') continue;
+
+    try {
+      const xmlContent = entry.content;
+      const tree = embedXmlParser.parse(xmlContent);
+
+      // Find the root element(s) in the parsed tree
+      const elements = Array.isArray(tree) ? tree : [tree];
+      const rootNodes = elements.filter(
+        (node: any) => typeof node === 'object' && node !== null &&
+          Object.keys(node).some((k: string) => k !== '#text' && k !== '#comment' && k !== ':@')
+      );
+
+      if (rootNodes.length === 0) {
+        warnings.push(`EmbedBlock #${embedIndex}: no valid XML elements found`);
+        embedIndex++;
+        continue;
+      }
+
+      // Process the first root element through the full block pipeline.
+      // parseNode calls the block's parser and storeEntry internally.
+      const result = await parseNode(rootNodes[0], rootNodes, 0);
+
+      if (result?.id) {
+        // Replace EmbedBlock with EmbedCommand pointing at the parsed block
+        body[i] = {
+          type: 'EmbedCommand',
+          ref: result.id,
+          metadata: entry.metadata || {},
+          options: null,
+          parsedOptions: {},
+        };
+      } else {
+        warnings.push(`EmbedBlock #${embedIndex}: parseNode returned no id`);
+      }
+    } catch (e: any) {
+      warnings.push(`EmbedBlock #${embedIndex}: ${e.message}`);
+    }
+    embedIndex++;
+  }
+
+  return warnings;
+}
+
 /**
- * Post-process PEG output: parse header text as YAML, parse embed options.
+ * Post-process PEG output: parse header text as YAML, parse embed options,
+ * and process inline OLX embed blocks.
+ *
  * The grammar returns header as raw text; we parse it here so the header
  * supports both simple key-value pairs and nested structures (e.g. participants).
  */
-function postprocess({ parsed, ...rest }) {
+async function postprocess({ parsed, parseNode, storeEntry, id, ...rest }) {
   if (parsed.header && typeof parsed.header === 'string') {
     try {
       parsed.header = yaml.load(parsed.header) || {};
@@ -100,11 +180,19 @@ function postprocess({ parsed, ...rest }) {
     }
   }
 
-  // Parse YAML options on embed commands
   if (parsed.body) {
+    // Parse YAML options on embed commands
     const embedWarnings = parseEmbedOptions(parsed.body);
     if (embedWarnings.length > 0) {
       parsed.headerWarnings = [...(parsed.headerWarnings || []), ...embedWarnings];
+    }
+
+    // Process inline OLX embed blocks → block refs
+    if (parseNode) {
+      const blockWarnings = await processEmbedBlocks(parsed.body, id, parseNode, storeEntry);
+      if (blockWarnings.length > 0) {
+        parsed.headerWarnings = [...(parsed.headerWarnings || []), ...blockWarnings];
+      }
     }
   }
 

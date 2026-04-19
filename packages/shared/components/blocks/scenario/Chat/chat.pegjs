@@ -19,7 +19,7 @@ description: Format for dialogue-driven scenarios, simulations, and training mod
  *   or side-effects (e.g. --- waitFor: userInput ---)
  * - Support for structured referencing via ids, allowing external tools to
  *   embed, skip, or navigate sections of the conversation
- * - Line-level comments (# or //), and whitespace-tolerant formatting
+ * - Line-level comments (//), and whitespace-tolerant formatting
  *
  * The goal is to empower content authors to write readable and structured
  * conversational flows without requiring complex tooling, while giving
@@ -246,7 +246,7 @@ ContinuationLine
 /* ─────────────────────────  Indented rich content  ───────────────────────── */
 /*
  * After a speaker line, lines indented 2+ spaces form a rich markdown block.
- * Within the block, all chatpeg special syntax (#, [metadata], --- commands)
+ * Within the block, all chatpeg special syntax ([metadata], --- commands)
  * is treated as literal text — only indentation matters.
  *
  * Single blank lines are preserved as paragraph breaks.
@@ -322,9 +322,9 @@ MetadataPair
       return { key, value };
   }
 
-// Comments: lines starting with '#' or '//' and ignored
+// Comments: lines starting with '//'
 CommentLineStart
-  = _ ("#" / "//")
+  = _ "//"
 
 CommentLine
   = CommentLineStart [^\r\n]* NewLine {

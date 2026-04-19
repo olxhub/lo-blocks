@@ -1,0 +1,51 @@
+<Vertical>
+  <Chat id="ChatEmbedDemo" title="Embed Demo" height="500px"><![CDATA[
+title: Study Group — Embeds
+cast:
+  Kim:
+    seed: kim_researcher
+  Alex:
+~~~~
+
+Kim: Let me show you the key finding from the study.
+
+  The testing effect is one of the most robust findings in
+  cognitive psychology:
+
+  - Students who **tested themselves** recalled ~50% more
+  - Students who **re-read** the material felt more confident
+    but performed worse
+
+  > Roediger & Karpicke, 2006
+
+Alex: Wow, that's a big difference. [face=awe]
+
+Kim: Before we go on, take a moment to reflect on this.
+
+// Embed a <Vertical> with <Markdown> + <TextArea> by reference
+::reflection_activity
+
+Kim: Great work! Now try this quick check. [face=smileBig]
+
+// Embed an inline <MarkupProblem>
+::
+<MarkupProblem id="quick_check" title="Quick Check">
+Which study technique produced better long-term retention?
+
+(x) Practice testing
+( ) Re-reading the material
+( ) Highlighting key passages
+</MarkupProblem>
+::
+
+Alex: I definitely need to change my study habits. [face=awe]
+]]></Chat>
+
+  <Vertical id="reflection_activity">
+    <Markdown>
+      **Reflection:** What surprised you most about the testing effect?
+      Write a few sentences below.
+    </Markdown>
+    <TextArea id="reflection_input" placeholder="Type your reflection here..." rows="4" />
+  </Vertical>
+</Vertical>

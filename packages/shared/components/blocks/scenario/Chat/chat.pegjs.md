@@ -344,11 +344,10 @@ Alex: Now complete this activity.
 
 ## Comments
 
-Lines starting with `#` or `//` are ignored:
+Lines starting with `//` are ignored:
 
 ```
-# This won't appear in the chat
-// Neither will this
+// This won't appear in the chat
 ```
 
 ## Clips
