@@ -3,16 +3,21 @@ authors: "TODO -- fill this in"
 cast:
   Annie:
     seed: annie
-    face: smile
+    openPeeps:
+      face: smile
   JJ:
     seed: alexander
-    face: smile
+    openPeeps:
+      face: smile
   Lin:
     seed: lynnette
-    face: smile
+    openPeeps:
+      face: smile
   Lianne:
     seed: lianne
-    face: smile
+    openPeeps:
+      face: smile
+
 ~~~~
 
 Introduction
