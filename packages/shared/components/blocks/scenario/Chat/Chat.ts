@@ -194,6 +194,26 @@ async function postprocess({ parsed, parseNode, storeEntry, id, ...rest }) {
         parsed.headerWarnings = [...(parsed.headerWarnings || []), ...blockWarnings];
       }
     }
+
+    // Wrap display=fullscreen/window embeds in CompactPopout blocks.
+    // Creates a synthetic CompactPopout via storeEntry that wraps the
+    // original block ref, so _Chat.tsx renders it transparently.
+    let popoutIndex = 0;
+    for (const entry of parsed.body) {
+      if (entry.type !== 'EmbedCommand') continue;
+      const display = entry.metadata?.display ?? entry.parsedOptions?.display;
+      if (display !== 'fullscreen' && display !== 'window') continue;
+
+      const label = entry.metadata?.label ?? entry.parsedOptions?.label ?? 'View expanded content';
+      const wrapperId = `${id}_popout_${popoutIndex++}`;
+      storeEntry(wrapperId, {
+        id: wrapperId,
+        tag: 'CompactPopout',
+        attributes: { id: wrapperId, label, mode: display },
+        kids: [{ type: 'block', id: entry.ref }],
+      });
+      entry.ref = wrapperId;
+    }
   }
 
   return { type: 'parsed', parsed };

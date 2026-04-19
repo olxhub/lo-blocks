@@ -22,8 +22,8 @@ Alex: Wow, that's a big difference. [face=awe]
 
 Kim: Before we go on, take a moment to reflect on this.
 
-// Embed a <Vertical> with <Markdown> + <TextArea> by reference
-::reflection_activity
+// Embed a <Vertical> with <Markdown> + <TextArea>, fullscreen popout
+::reflection_activity [display=fullscreen label="Write your reflection"]
 
 Kim: Great work! Now try this quick check. [face=smileBig]
 
