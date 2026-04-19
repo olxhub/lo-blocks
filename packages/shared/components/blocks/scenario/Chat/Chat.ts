@@ -19,7 +19,7 @@ export const fields = state.fields([
   'sectionHeader'
 ]);
 
-function advanceChat({ targetId }) {
+function advanceChat({ targetId }: { targetId: string }) {
   callChatAdvanceHandler(targetId);
 }
 
@@ -69,7 +69,7 @@ function parseEmbedOptions(body: any[]): string[] {
   for (const entry of body) {
     if (entry.type !== 'EmbedCommand' || !entry.options) continue;
     try {
-      const opts = yaml.load(entry.options);
+      const opts = yaml.load(entry.options, { schema: yaml.JSON_SCHEMA });
       entry.parsedOptions = (opts && typeof opts === 'object') ? opts : {};
     } catch (e: any) {
       warnings.push(`YAML parse error in embed options for ::${entry.ref}: ${e.message}`);
@@ -107,7 +107,6 @@ async function processEmbedBlocks(
   storeEntry: (id: string, entry: any) => void,
 ): Promise<string[]> {
   const warnings: string[] = [];
-  let embedIndex = 0;
 
   for (let i = 0; i < body.length; i++) {
     const entry = body[i];
@@ -125,9 +124,12 @@ async function processEmbedBlocks(
       );
 
       if (rootNodes.length === 0) {
-        warnings.push(`EmbedBlock #${embedIndex}: no valid XML elements found`);
-        embedIndex++;
+        warnings.push(`EmbedBlock at position ${i}: no valid XML elements found`);
         continue;
+      }
+
+      if (rootNodes.length > 1) {
+        warnings.push(`EmbedBlock at position ${i}: multiple root elements found (only the first will be used). Wrap in a <Vertical> to include all.`);
       }
 
       // Process the first root element through the full block pipeline.
@@ -144,12 +146,11 @@ async function processEmbedBlocks(
           parsedOptions: {},
         };
       } else {
-        warnings.push(`EmbedBlock #${embedIndex}: parseNode returned no id`);
+        warnings.push(`EmbedBlock at position ${i}: parseNode returned no id`);
       }
     } catch (e: any) {
-      warnings.push(`EmbedBlock #${embedIndex}: ${e.message}`);
+      warnings.push(`EmbedBlock at position ${i}: ${e?.message ?? String(e)}`);
     }
-    embedIndex++;
   }
 
   return warnings;
@@ -165,7 +166,7 @@ async function processEmbedBlocks(
 async function postprocess({ parsed, parseNode, storeEntry, id, ...rest }) {
   if (parsed.header && typeof parsed.header === 'string') {
     try {
-      parsed.header = yaml.load(parsed.header) || {};
+      parsed.header = yaml.load(parsed.header, { schema: yaml.JSON_SCHEMA }) || {};
     } catch (e) {
       parsed.header = {};
       parsed.headerWarnings = [`YAML parse error in header: ${e.message}`];
@@ -198,11 +199,17 @@ async function postprocess({ parsed, parseNode, storeEntry, id, ...rest }) {
     // Wrap display=fullscreen/window embeds in CompactPopout blocks.
     // Creates a synthetic CompactPopout via storeEntry that wraps the
     // original block ref, so _Chat.tsx renders it transparently.
+    const VALID_DISPLAY_MODES = new Set(['fullscreen', 'window']);
     let popoutIndex = 0;
     for (const entry of parsed.body) {
       if (entry.type !== 'EmbedCommand') continue;
       const display = entry.metadata?.display ?? entry.parsedOptions?.display;
-      if (display !== 'fullscreen' && display !== 'window') continue;
+      if (!display) continue;
+      if (!VALID_DISPLAY_MODES.has(display as string)) {
+        parsed.headerWarnings = [...(parsed.headerWarnings || []),
+          `Unknown display mode "${display}" on ::${entry.ref}. Valid modes: ${[...VALID_DISPLAY_MODES].join(', ')}`];
+        continue;
+      }
 
       const label = entry.metadata?.label ?? entry.parsedOptions?.label ?? 'View expanded content';
       const wrapperId = `${id}_popout_${popoutIndex++}`;

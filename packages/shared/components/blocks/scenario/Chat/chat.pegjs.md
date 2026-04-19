@@ -148,7 +148,7 @@ a new speaker or command appears.
 
 ### Rich Content (Indented Blocks)
 
-For paragraphs, lists, headings, and other rich markdown, indent continuation lines by 2+ spaces. Everything inside the indented block is treated as literal markdown — chatpeg special syntax (`#`, `[metadata]`, `--- commands ---`) does not apply.
+For paragraphs, lists, headings, and other rich markdown, indent continuation lines by 2+ spaces. Everything inside the indented block is treated as literal markdown — chatpeg special syntax (`//`, `[metadata]`, `--- commands ---`) does not apply.
 
 ```
 Kim: Here's what the research shows:
@@ -214,6 +214,8 @@ Alex: That's surprising. [id=surprise face=awe]
 | `class` | CSS class for styling |
 
 Values with spaces use quotes: `[id="my section"]`
+
+**Note:** Literal `[` characters in dialogue text are not yet supported on the speaker line — the parser treats `[` as the start of metadata. Until escape support is added (e.g. `\[`), use an indented block for text containing square brackets.
 
 Metadata can also appear on a standalone line above dialogue:
 

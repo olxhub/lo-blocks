@@ -226,8 +226,9 @@ export const InputFooter: React.FC<InputFooterProps> = ({
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && (message.trim() || attachedFile) && !disabled) {
+      e.preventDefault();
       handleSend();
     }
   };
@@ -301,7 +302,7 @@ export const InputFooter: React.FC<InputFooterProps> = ({
           placeholder={disabled ? 'Observation mode' : placeholder}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyDown}
           disabled={disabled}
         />
         <button

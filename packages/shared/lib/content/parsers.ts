@@ -637,7 +637,7 @@ export function peggyParser(
   peggyParser,
   options: {
     preprocess?: (x: { type: string; text: string;[key: string]: any }) => any;
-    postprocess?: (parsed: any) => any;
+    postprocess?: (parsed: any) => any | Promise<any>;
     skipStoreEntry?: boolean;
   } = {}
 ) {

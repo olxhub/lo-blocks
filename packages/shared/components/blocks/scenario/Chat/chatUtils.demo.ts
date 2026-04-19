@@ -56,7 +56,7 @@ console.log('section(conversation, "NoSuchSection"):', section(conversation, "No
 // null
 
 console.log('\n--- clip() DEMOS ---');
-function showClip(input) {
+function showClip(input: string) {
   const result = clip(conversation, input);
   console.log(`clip(conversation, ${JSON.stringify(input)}):`, result);
 }

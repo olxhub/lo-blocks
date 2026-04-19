@@ -2,7 +2,7 @@
 //
 // Wait condition evaluation using the state language.
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   parse,
   extractStructuredRefs,
@@ -74,8 +74,8 @@ export function canAdvanceToContent(
       continue;
     }
 
-    // Line or Pause - we can definitely advance to show this
-    if (entry.type === 'Line' || entry.type === 'PauseCommand') {
+    // Line, Pause, or Embed - we can definitely advance to show this
+    if (entry.type === 'Line' || entry.type === 'PauseCommand' || entry.type === 'EmbedCommand') {
       return true;
     }
   }
@@ -116,8 +116,11 @@ export function useWaitConditions(
   // Check if we can advance (first wait before next content is satisfied)
   const canAdvance = canAdvanceToContent(entries, currentIndex, endIndex, context);
 
-  // Function to evaluate a specific wait entry
-  const isWaitSatisfied = (entry: WaitCommand) => evaluateWaitEntry(entry, context);
+  // Stable reference for evaluating a specific wait entry
+  const isWaitSatisfied = useCallback(
+    (entry: WaitCommand) => evaluateWaitEntry(entry, context),
+    [context]
+  );
 
   return { canAdvance, isWaitSatisfied, context };
 }

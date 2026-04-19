@@ -1,7 +1,7 @@
 // packages/shared/components/blocks/scenario/Chat/_Chat.tsx
 'use client';
 
-import React, { useCallback, useMemo, useEffect } from 'react';
+import React, { useCallback, useMemo, useEffect, useRef } from 'react';
 
 import { useFieldState, updateField } from '@/lib/state';
 import { refToReduxKey } from '@/lib/blocks/idResolver';
@@ -10,7 +10,7 @@ import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/C
 import type { ChatMessage } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
 import { useCast, mergeCasts } from '@/lib/avatar/cast';
-import type { RuntimeProps, PeggyKids, OlxReference, BlueprintKidEntry, ParentContext } from '@/lib/types';
+import type { RuntimeProps, PeggyKids, OlxReference, BlueprintKidEntry } from '@/lib/types';
 import type { DialogueLine, EmbedCommand, ParsedConversation } from './_chatTypes';
 import { useWaitConditions } from './waitConditions';
 
@@ -75,6 +75,11 @@ export function useChatAdvanceRegistration(id: string, handler: () => void) {
 
 export function _Chat(props: RuntimeProps) {
   const { id, fields, kids, clip, history } = props;
+
+  // Stable ref for props — used in handleAdvance callback to avoid
+  // recreating the handler every render (props object is new each time).
+  const propsRef = useRef(props);
+  propsRef.current = props;
 
   const parsed = (kids as unknown as PeggyKids<ParsedConversation>).parsed;
 
@@ -161,18 +166,9 @@ export function _Chat(props: RuntimeProps) {
       if (entry.type === 'Line') {
         messages.push(entry);
       } else if (entry.type === 'EmbedCommand') {
-        // Build parentContext from inline [key=value] metadata + parsed YAML options
-        const parentContext: ParentContext = {
-          ...Object.fromEntries(
-            Object.entries(entry.metadata).map(([k, v]) => [k, v])
-          ),
-          ...(entry.parsedOptions as Record<string, string> | undefined),
-        };
-
         const blockRef: BlueprintKidEntry = {
           type: 'block',
           id: entry.ref as OlxReference,
-          ...(Object.keys(parentContext).length > 0 ? { parentContext } : {}),
         };
 
         const rendered = renderCompiledKids({
@@ -221,7 +217,7 @@ export function _Chat(props: RuntimeProps) {
 
       switch (block.type) {
         case 'ArrowCommand':
-          updateField(props, fields.value, block.target, { reduxKey: refToReduxKey({ ...props, id: block.source as any }) });
+          updateField(propsRef.current, fields.value, block.target, { reduxKey: refToReduxKey({ ...propsRef.current, id: block.source as any }) });
           nextIndex += 1;
           continue;
 
@@ -253,9 +249,10 @@ export function _Chat(props: RuntimeProps) {
           return;
 
         case 'EmbedBlock':
-          // Normally converted to EmbedCommand by postprocess.
-          // If still present, parseNode wasn't available — skip with warning.
-          console.warn('[Chat] Unconverted EmbedBlock — inline OLX was not parsed');
+          // Normally converted to EmbedCommand by postprocess. If still
+          // present, the content pipeline didn't have parseNode available.
+          console.warn('[Chat] Unconverted EmbedBlock at index', nextIndex + 1,
+            '— inline OLX between :: fences was not parsed. Check that the Chat block is loaded via parseOLX.');
           nextIndex += 1;
           continue;
 
@@ -266,7 +263,7 @@ export function _Chat(props: RuntimeProps) {
       }
     }
     setIndex(Math.min(nextIndex, windowRange.end));
-  }, [canAdvance, isWaitSatisfied, props, fields.value, windowedIndex, windowRange, allEntries, setIndex, setSectionHeader]);
+  }, [canAdvance, isWaitSatisfied, fields.value, windowedIndex, windowRange, allEntries, setIndex, setSectionHeader]);
 
   // Register advance handler for external calls
   useChatAdvanceRegistration(id, handleAdvance);

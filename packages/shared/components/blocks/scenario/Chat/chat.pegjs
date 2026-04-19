@@ -96,8 +96,8 @@ SectionHeaderTitle
   = chars:[^\r\n\[]+ { return chars.join(''); }
 
 SectionUnderline
-  = _ dashes:"-" dashTail:[\-*+]* _ NewLine {
-      if (dashes.length + dashTail.length >= 3) return null;
+  = _ dash:"-" dashTail:[\-*+]* _ NewLine {
+      if (1 + dashTail.length >= 3) return null;
       expected("at least 3 dashes in section underline");
     }
 
@@ -344,6 +344,10 @@ LineContent
       return chars.join('').trim();
     }
 
+// Captures text up to the first `[` (which starts inline metadata).
+// Limitation: literal `[` in speech text is not supported — use an
+// indented block for text containing square brackets.
+// TODO: Add support for escaping (e.g. \[)
 SpeechContent
   = chars:[^\[\r\n]* {
       return chars.join('').trim();

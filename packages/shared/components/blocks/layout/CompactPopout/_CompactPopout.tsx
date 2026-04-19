@@ -49,16 +49,22 @@ export default function _CompactPopout(props: RuntimeProps) {
     setExpanded(true);
     if (mode === 'fullscreen') {
       setTimeout(() => {
-        overlayRef.current?.requestFullscreen?.().catch(() => {});
+        overlayRef.current?.requestFullscreen?.().catch((e) => {
+          console.warn('[CompactPopout] Fullscreen request denied:', e.message);
+        });
       }, 0);
     }
   }, [mode, setExpanded]);
 
-  // Request fullscreen on initial auto-expand
+  // Request fullscreen on initial auto-expand.
+  // Empty deps: intentionally runs once on mount only — we want the
+  // initial auto-expand, not re-requests on every state change.
   useEffect(() => {
     if (expanded && mode === 'fullscreen') {
       setTimeout(() => {
-        overlayRef.current?.requestFullscreen?.().catch(() => {});
+        overlayRef.current?.requestFullscreen?.().catch((e) => {
+          console.warn('[CompactPopout] Initial fullscreen request denied:', e.message);
+        });
       }, 0);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
