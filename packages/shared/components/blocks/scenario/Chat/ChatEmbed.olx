@@ -38,8 +38,28 @@ Which study technique produced better long-term retention?
 </MarkupProblem>
 ::
 
+Kim: Here's the full summary from the paper.
+
+// Embed a <Markdown> block in a window-mode popout
+::study_summary [display=window label="View study summary"]
+
 Alex: I definitely need to change my study habits. [face=awe]
 ]]></Chat>
+
+  <Markdown id="study_summary">
+## The Testing Effect — Summary
+
+Roediger &amp; Karpicke (2006) found that students who practiced
+**retrieval** (testing themselves) retained ~50% more material after
+one week than students who simply re-read the material.
+
+Paradoxically, re-readers reported *higher confidence* in their
+learning despite performing worse on delayed tests.
+
+### Key takeaway
+
+Active recall beats passive review — even when it feels harder.
+  </Markdown>
 
   <Vertical id="reflection_activity">
     <Markdown>
