@@ -7,7 +7,7 @@ import NavArrow from '@/components/common/NavArrow';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import * as cast from '@/lib/avatar/cast';
 import { acceptString } from '@/lib/util/fileTypes';
-import type { Cast } from '@/lib/avatar/types';
+import type { Cast, FaceExpression } from '@/lib/avatar/types';
 
 /* ----------------------------------------------------------------
  * Types
@@ -128,7 +128,7 @@ function ChatLine({ message, isSequential, participants }: {
   const { avatar, name } = cast.avatar({}, {
     who: message.speaker,
     cast: participants ?? {},
-    face: message.metadata?.face,
+    face: message.metadata?.face as FaceExpression | undefined,
   });
 
   return (
@@ -394,7 +394,7 @@ export function ChatComponent({
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (!onAdvance) return;
-      if (e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.nativeEvent.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.code === 'Space' || e.key === ' ') {
         e.preventDefault();
         onAdvance();
