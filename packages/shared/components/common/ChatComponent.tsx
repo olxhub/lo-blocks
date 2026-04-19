@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import ReactMarkdown from 'react-markdown';
+import RenderMarkdown from '@/components/common/RenderMarkdown';
 import NavArrow from '@/components/common/NavArrow';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import * as cast from '@/lib/avatar/cast';
@@ -145,7 +145,7 @@ function ChatLine({ message, isSequential, participants }: {
           <span className={`text-sm font-semibold mb-1 ${t.headerText}`}>{name}</span>
         )}
         <div className={`${t.message} ${t.messageText} p-2 px-3 rounded-lg max-w-md`}>
-          <ReactMarkdown>{message.text || ''}</ReactMarkdown>
+          <RenderMarkdown>{message.text || ''}</RenderMarkdown>
         </div>
       </div>
     </div>
