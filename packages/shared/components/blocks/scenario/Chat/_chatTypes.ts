@@ -171,6 +171,8 @@ export interface EmbedCommand {
   ref: string;
   metadata: Record<string, string>;
   options: string | null;
+  /** Parsed YAML options (set by postprocess in Chat.ts). */
+  parsedOptions?: Record<string, unknown>;
 }
 
 /**

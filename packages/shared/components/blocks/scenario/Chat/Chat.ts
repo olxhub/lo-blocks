@@ -50,7 +50,35 @@ function validateHeader(header: Record<string, unknown>): string[] {
 }
 
 /**
- * Post-process PEG output: parse header text as YAML.
+ * Parse EmbedCommand YAML options into objects.
+ *
+ * Chatpeg embed syntax allows YAML options on indented lines after the ref:
+ *
+ *   ::video_1
+ *     fullscreen: true
+ *     label: Watch this video
+ *
+ * The grammar captures this as a raw string in `options`.  Here we parse it
+ * into a Record and merge with the inline [key=value] metadata to form the
+ * entry's `parsedOptions`.
+ */
+function parseEmbedOptions(body: any[]): string[] {
+  const warnings: string[] = [];
+  for (const entry of body) {
+    if (entry.type !== 'EmbedCommand' || !entry.options) continue;
+    try {
+      const opts = yaml.load(entry.options);
+      entry.parsedOptions = (opts && typeof opts === 'object') ? opts : {};
+    } catch (e: any) {
+      warnings.push(`YAML parse error in embed options for ::${entry.ref}: ${e.message}`);
+      entry.parsedOptions = {};
+    }
+  }
+  return warnings;
+}
+
+/**
+ * Post-process PEG output: parse header text as YAML, parse embed options.
  * The grammar returns header as raw text; we parse it here so the header
  * supports both simple key-value pairs and nested structures (e.g. participants).
  */
@@ -69,6 +97,14 @@ function postprocess({ parsed, ...rest }) {
     const warnings = validateHeader(parsed.header);
     if (warnings.length > 0) {
       parsed.headerWarnings = [...(parsed.headerWarnings || []), ...warnings];
+    }
+  }
+
+  // Parse YAML options on embed commands
+  if (parsed.body) {
+    const embedWarnings = parseEmbedOptions(parsed.body);
+    if (embedWarnings.length > 0) {
+      parsed.headerWarnings = [...(parsed.headerWarnings || []), ...embedWarnings];
     }
   }
 

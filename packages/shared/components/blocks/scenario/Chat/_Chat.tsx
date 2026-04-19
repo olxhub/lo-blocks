@@ -5,12 +5,13 @@ import React, { useCallback, useMemo, useEffect } from 'react';
 
 import { useFieldState, updateField } from '@/lib/state';
 import { refToReduxKey } from '@/lib/blocks/idResolver';
+import { renderCompiledKids } from '@/lib/render';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
 import type { ChatMessage } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
 import { useCast, mergeCasts } from '@/lib/avatar/cast';
-import type { RuntimeProps, PeggyKids } from '@/lib/types';
-import type { DialogueLine, ParsedConversation } from './_chatTypes';
+import type { RuntimeProps, PeggyKids, OlxReference, BlueprintKidEntry, ParentContext } from '@/lib/types';
+import type { DialogueLine, EmbedCommand, ParsedConversation } from './_chatTypes';
 import { useWaitConditions } from './waitConditions';
 
 import * as chatUtils from './chatUtils';
@@ -150,18 +151,50 @@ export function _Chat(props: RuntimeProps) {
   // Clamp index to within the clip
   const windowedIndex = Math.max(clipRange.start, Math.min(index, clipRange.end));
 
-  // Show only entries within current visible window
+  // Show only entries within current visible window.
+  // Lines render as chat bubbles; EmbedCommands render as inline blocks.
   const visibleMessages: ChatMessage[] = useMemo(() => {
-    return allEntries
-      .slice(windowRange.start, windowedIndex + 1)
-      .filter((b): b is DialogueLine => b.type === 'Line');
-  }, [allEntries, windowRange, windowedIndex]);
+    const window = allEntries.slice(windowRange.start, windowedIndex + 1);
+    const messages: ChatMessage[] = [];
 
-  /** Total number of dialogue lines (commands excluded) */
+    for (const entry of window) {
+      if (entry.type === 'Line') {
+        messages.push(entry);
+      } else if (entry.type === 'EmbedCommand') {
+        // Build parentContext from inline [key=value] metadata + parsed YAML options
+        const parentContext: ParentContext = {
+          ...Object.fromEntries(
+            Object.entries(entry.metadata).map(([k, v]) => [k, v])
+          ),
+          ...(entry.parsedOptions as Record<string, string> | undefined),
+        };
+
+        const blockRef: BlueprintKidEntry = {
+          type: 'block',
+          id: entry.ref as OlxReference,
+          ...(Object.keys(parentContext).length > 0 ? { parentContext } : {}),
+        };
+
+        const rendered = renderCompiledKids({
+          kids: [blockRef],
+          nodeInfo: props.nodeInfo,
+          runtime: props.runtime,
+        });
+
+        messages.push({
+          type: 'Element',
+          element: <>{rendered}</>,
+        });
+      }
+    }
+    return messages;
+  }, [allEntries, windowRange, windowedIndex, props.nodeInfo, props.runtime]);
+
+  /** Total number of visible entries (lines + embeds; commands excluded) */
   const totalDialogueLines = useMemo(() => {
     return allEntries
       .slice(windowRange.start, windowRange.end + 1)
-      .filter(b => b.type === 'Line').length;
+      .filter(b => b.type === 'Line' || b.type === 'EmbedCommand').length;
   }, [allEntries, windowRange]);
 
   const conversationFinished = windowedIndex >= clipRange.end;
@@ -214,11 +247,16 @@ export function _Chat(props: RuntimeProps) {
           return;
 
         case 'EmbedCommand':
-        case 'EmbedBlock':
-          // TODO: render embedded blocks as ElementEntry in visibleMessages
+          // Rendered as ElementEntry in visibleMessages via renderCompiledKids
           nextIndex += 1;
           setIndex(Math.min(nextIndex, windowRange.end));
           return;
+
+        case 'EmbedBlock':
+          // TODO: inline OLX parsing via storeEntry in postprocess
+          console.warn('[Chat] EmbedBlock (inline OLX) not yet supported:', block.content?.slice(0, 80));
+          nextIndex += 1;
+          continue;
 
         default:
           console.warn('[Chat] Unhandled entry type:', block.type, block);
