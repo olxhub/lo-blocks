@@ -9,7 +9,7 @@ import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/C
 import type { ChatMessage } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
 import { useCast, mergeCasts } from '@/lib/avatar/cast';
-import type { RuntimeProps } from '@/lib/types';
+import type { RuntimeProps, PeggyKids } from '@/lib/types';
 import type { DialogueLine, ParsedConversation } from './_chatTypes';
 import { useWaitConditions } from './waitConditions';
 
@@ -75,7 +75,7 @@ export function useChatAdvanceRegistration(id: string, handler: () => void) {
 export function _Chat(props: RuntimeProps) {
   const { id, fields, kids, clip, history } = props;
 
-  const parsed: ParsedConversation = (kids as any).parsed;
+  const parsed = (kids as unknown as PeggyKids<ParsedConversation>).parsed;
 
   /*  Full parsed body (dialogue lines + command entries).  */
   const allEntries = parsed.body;

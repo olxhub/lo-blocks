@@ -769,15 +769,82 @@ export type ParseError = string | null | {
 };
 
 /**
- * BlueprintKidEntry - A single child element in the parsed block structure.
- * Can represent blocks, text, XML, CDATA, or HTML elements.
+ * BlueprintKidEntry — a single child element in a parsed block structure.
+ *
+ * Standard OLX parsing produces arrays of these entries as the `kids` field
+ * of an OlxJson block.  Each variant represents a different kind of child:
+ *
+ *   block  — reference to another block:  <MCQ id="q1">...</MCQ>
+ *   text   — literal text content:        Some paragraph text
+ *   xml    — raw XML string (lossy):      <foo bar="baz"/>
+ *   cdata  — CDATA section:               <![CDATA[...]]>
+ *   html   — HTML element with children:  <div class="x">...</div>
+ *   custom — parser-specific node type (see below)
+ *
+ * PARENTCONTEXT
+ * -------------
+ * Any entry can carry `parentContext` — opaque metadata from the parent
+ * block's parser about how to present this child.  The child block never
+ * sees it; only the parent's rendering logic reads it.
+ *
+ * Example: chatpeg embed with display hints:
+ *
+ *   ::video_1 [display=fullscreen title="Theory of Foo"]
+ *
+ *   → { type: 'block', id: 'video_1',
+ *       parentContext: { display: 'fullscreen', title: 'Theory of Foo' } }
+ *
+ * The Video block renders normally.  _Chat.tsx reads parentContext to
+ * decide whether to show it inline, expanded, or fullscreen.
+ *
+ * CUSTOM ENTRIES
+ * --------------
+ * PEG-parsed blocks (Chat, MarkupProblem, etc.) can produce domain-specific
+ * node types that don't map to standard block/text/html.  The `custom`
+ * variant gives them a place in the kids type system:
+ *
+ *   Kim: Did you read the study? [face=smile]
+ *
+ *   → { type: 'custom', subtype: 'line',
+ *       data: { speaker: 'Kim', text: 'Did you read the study?', face: 'smile' } }
+ *
+ * `subtype` is a parser-specific discriminator (e.g. 'line', 'pause',
+ * 'wait', 'arrow').  `data` carries the payload — the parent block knows
+ * its own subtypes and narrows accordingly.  The kids system treats custom
+ * entries as opaque.
  */
+
+/** Opaque context from the parent block's parser about how to present a child.
+ *  Read by the parent's rendering logic; invisible to the child block itself.
+ *  Example: `{ display: 'fullscreen', title: 'Theory of Foo' }` from a
+ *  chatpeg embed directive `::video_1 [display=fullscreen title="Theory of Foo"]`. */
+export type ParentContext = Record<string, JSONValue>;
+
 export type BlueprintKidEntry =
-  | { type: 'block'; id: OlxReference; overrides?: Record<string, JSONValue> }
-  | { type: 'text'; text: string }
-  | { type: 'xml'; xml: string }
-  | { type: 'cdata'; value: string }
-  | { type: 'html'; tag: string; attributes: Record<string, JSONValue>; kids: BlueprintKidEntry[] };
+  | { type: 'block'; id: OlxReference; overrides?: Record<string, JSONValue>; parentContext?: ParentContext }
+  | { type: 'text'; text: string; parentContext?: ParentContext }
+  | { type: 'xml'; xml: string; parentContext?: ParentContext }
+  | { type: 'cdata'; value: string; parentContext?: ParentContext }
+  | { type: 'html'; tag: string; attributes: Record<string, JSONValue>; kids: BlueprintKidEntry[]; parentContext?: ParentContext }
+  | { type: 'custom'; subtype: string; data: Record<string, JSONValue>; parentContext?: ParentContext };
+
+/**
+ * PeggyKids<T> — typed wrapper for PEG parser output stored as kids.
+ *
+ * peggyParser() in parsers.ts wraps grammar output as { type: 'parsed', parsed }.
+ * This type makes the shape explicit so block components can access `kids.parsed`
+ * without casting through `any`.
+ *
+ * Usage in a block component:
+ *
+ *   const parsed = (kids as PeggyKids<ParsedConversation>).parsed;
+ *
+ * See parsers.ts peggyParser() for how this structure is produced.
+ */
+export interface PeggyKids<T> {
+  type: 'parsed';
+  parsed: T;
+}
 
 /**
  * OlxDomNode - a node in the dynamic OLX DOM tree.
