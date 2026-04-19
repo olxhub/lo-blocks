@@ -453,7 +453,13 @@ export function ChatComponent({
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <span className={`font-semibold ${t.headerText}`}>Chat</span>
-            <span className={`ms-2 ${t.headerSubtle} text-sm`}>{messages.length} messages</span>
+
+	    {/* HACK: suppressHydrationWarning because message count can differ
+                between SSR (0 — Redux store not populated) and client (1+ — e.g.
+                useChat initialMessage) -- or so we think. TODO: confirm and
+		investigate proper SSR hydration. */}
+
+            <span className={`ms-2 ${t.headerSubtle} text-sm`} suppressHydrationWarning>{messages.length} messages</span>
           </div>
           {subtitle && (
             <span className={`font-semibold text-sm ${t.headerText}`}>{subtitle}</span>
