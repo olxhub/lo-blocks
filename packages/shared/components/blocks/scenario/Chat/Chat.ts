@@ -11,6 +11,7 @@ import { CHAT_METADATA_KEYS } from '@/lib/content/metadata';
 import { transformTagName } from '@/lib/content/xmlTransforms';
 import { validateCast, withCastSupport } from '@/lib/avatar/cast';
 import type { ConversationEntry } from './_chatTypes';
+import type { OlxKey, OlxReference } from '@/lib/types';
 import * as cp  from './_chatParser';
 import { _Chat, callChatAdvanceHandler } from './_Chat';
 
@@ -104,7 +105,7 @@ const embedXmlParser = new XMLParser({
 async function processEmbedBlocks(
   body: ConversationEntry[],
   parseNode: (node: any, siblings: any[] | null, index: number) => Promise<any>,
-  storeEntry: (id: string, entry: any) => void,
+  storeEntry: (id: OlxKey, entry: any) => void,
 ): Promise<string[]> {
   const warnings: string[] = [];
 
@@ -173,8 +174,8 @@ async function processEmbedBlocks(
 async function postprocess({ parsed, parseNode, storeEntry, id }: {
   parsed: any;
   parseNode?: (node: any, siblings: any[] | null, index: number) => Promise<any>;
-  storeEntry: (id: string, entry: any) => void;
-  id: string;
+  storeEntry: (id: OlxKey, entry: any) => void;
+  id: OlxKey;
   [key: string]: any;
 }) {
   if (parsed.header && typeof parsed.header === 'string') {
@@ -228,7 +229,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
           continue;
         }
         const label = entry.metadata.label ?? entry.parsedOptions?.label ?? 'View expanded content';
-        const wrapperId = `${id}_popout_${popoutIndex++}`;
+        const wrapperId = `${id}_popout_${popoutIndex++}` as OlxKey;
         storeEntry(wrapperId, {
           id: wrapperId,
           tag: 'CompactPopout',
@@ -246,7 +247,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
       }
 
       const label = entry.metadata.label ?? entry.parsedOptions?.label ?? 'View expanded content';
-      const wrapperId = `${id}_popout_${popoutIndex++}`;
+      const wrapperId = `${id}_popout_${popoutIndex++}` as OlxKey;
       storeEntry(wrapperId, {
         id: wrapperId,
         tag: 'CompactPopout',

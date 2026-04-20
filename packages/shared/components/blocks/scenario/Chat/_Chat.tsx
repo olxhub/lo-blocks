@@ -24,6 +24,16 @@ import type { ClipResolution } from './chatUtils';
 // or keyboard shortcuts) can trigger progression without holding direct
 // references to the chat component. This indirection also makes cleanup
 // predictable when components unmount.
+// HACK: The advance handler registry uses a module-global Map keyed by the
+// Chat block's props.id (OlxKey). This has two problems:
+// 1. The key type is unclear — props.id is OlxKey, but the action system
+//    also passes targetId as OlxKey. Inside a DynamicList, multiple instances
+//    share the same OlxKey and clobber each other in the Map. The key should
+//    probably be ReduxStateKey (scoped) to distinguish instances.
+// 2. The registry itself is a code smell — it exists so the action system
+//    can trigger advance without a direct component reference. A better
+//    approach might be dispatching a Redux action or using a ref callback.
+// Using bare `string` until the correct key type is determined.
 const advanceHandlers = new Map<string, () => void>();
 
 export function registerChatAdvanceHandler(id: string, handler: () => void) {
