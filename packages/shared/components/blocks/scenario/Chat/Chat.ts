@@ -209,18 +209,39 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
       }
     }
 
-    // Wrap display=fullscreen/window embeds in CompactPopout blocks.
-    // Creates a synthetic CompactPopout via storeEntry that wraps the
-    // original block ref, so _Chat.tsx renders it transparently.
+    // Process display= modes on embed commands.
+    //   display=fullscreen/window → wrap in CompactPopout
+    //   display=target:<id>       → set displayTarget for runtime repointing
     const VALID_DISPLAY_MODES = new Set(['fullscreen', 'window']);
     let popoutIndex = 0;
     for (const entry of parsed.body) {
       if (entry.type !== 'EmbedCommand') continue;
       const display = entry.metadata.display ?? entry.parsedOptions?.display;
       if (!display) continue;
+
+      // target:<id> — repoint a component to show this embed
+      if (typeof display === 'string' && display.startsWith('target:')) {
+        const target = display.slice('target:'.length).trim();
+        if (!target) {
+          parsed.headerWarnings = [...(parsed.headerWarnings || []),
+            `Empty target in display=target: on ::${entry.ref}`];
+          continue;
+        }
+        const label = entry.metadata.label ?? entry.parsedOptions?.label ?? 'View expanded content';
+        const wrapperId = `${id}_popout_${popoutIndex++}`;
+        storeEntry(wrapperId, {
+          id: wrapperId,
+          tag: 'CompactPopout',
+          attributes: { id: wrapperId, label, mode: 'target', target, targetContent: entry.ref },
+          kids: [{ type: 'block', id: entry.ref }],
+        });
+        entry.ref = wrapperId;
+        continue;
+      }
+
       if (!VALID_DISPLAY_MODES.has(display as string)) {
         parsed.headerWarnings = [...(parsed.headerWarnings || []),
-          `Unknown display mode "${display}" on ::${entry.ref}. Valid modes: ${[...VALID_DISPLAY_MODES].join(', ')}`];
+          `Unknown display mode "${display}" on ::${entry.ref}. Valid modes: ${[...VALID_DISPLAY_MODES].join(', ')}, target:<id>`];
         continue;
       }
 

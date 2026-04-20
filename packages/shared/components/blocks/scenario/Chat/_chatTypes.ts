@@ -162,6 +162,15 @@ export interface CommandBlock {
  * `ref` is an OLX block ID (like BlueprintKidEntry.block.id).
  * `metadata` carries inline [key=value] pairs (display hints).
  * `options` is a raw YAML string from indented lines, or null.
+ *
+ * Display modes (set via [display=...] metadata):
+ *   [display=fullscreen]       — wrap in CompactPopout (fullscreen modal)
+ *   [display=window]           — wrap in CompactPopout (windowed modal)
+ *   [display=target:sidebar]   — wrap in CompactPopout (repoints `sidebar`)
+ *
+ * All display modes wrap the embed in a CompactPopout via postprocess.
+ * The CompactPopout handles the display behavior (modal vs repoint)
+ * and shows a clickable placeholder in the chat flow.
  */
 export interface EmbedCommand {
   type: 'EmbedCommand';

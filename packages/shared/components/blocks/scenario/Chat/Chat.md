@@ -134,7 +134,31 @@ Kim: Now try this problem.
 Kim: How did that go?
 ```
 
-With display hints: `::video_1 [display=fullscreen]`. See the Chatpeg Grammar Reference for full syntax including YAML options and fenced inline OLX.
+See the Chatpeg Grammar Reference for full syntax including YAML options and fenced inline OLX.
+
+#### Display Modes
+
+Control how an embedded block is presented using `[display=...]` metadata:
+
+| Mode | Effect |
+|------|--------|
+| *(none)* | Render inline in the conversation flow |
+| `fullscreen` | Wrap in a CompactPopout that opens as a fullscreen modal |
+| `window` | Wrap in a CompactPopout that opens as a windowed modal |
+| `target:<id>` | Send the block to a target component (e.g., a UseHistory sidebar) |
+
+```
+::video_1 [display=fullscreen]
+::reference_chart [display=window label="View chart"]
+::activity_1 [display=target:sidebar]
+```
+
+**Target mode** repoints a component (like UseHistory) to display the embedded block, replacing the arrow command for embed-specific use cases. The embed does not appear inline — it auto-advances like an arrow command. Use surrounding dialogue to direct the learner's attention:
+
+```
+::problem_1 [display=target:sidebar]
+Kim: Take a look at the problem on the right.
+```
 
 ### Commands
 
@@ -154,7 +178,7 @@ With display hints: `::video_1 [display=fullscreen]`. See the Chatpeg Grammar Re
 
 See [State Language Expressions](../../../lib/stateLanguage/expr.pegjs.md) for full syntax.
 
-**Arrow** — Repoints a dynamic component to show different content:
+**Arrow** — Repoints a dynamic component to show different content. For repointing embeds, prefer `display=target:<id>` (see [Display Modes](#display-modes)). Arrow commands are for general field updates:
 
 ```
 sidebar -> student_input

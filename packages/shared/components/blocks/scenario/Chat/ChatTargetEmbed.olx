@@ -1,0 +1,57 @@
+<!--
+  Target display mode demo: display=target:<id> sends embeds to an
+  external component (e.g. UseHistory sidebar) instead of rendering
+  them inline in the chat.
+
+  This is the recommended approach for sidebar activities.  For
+  general-purpose field updates (not embeds), arrow syntax still works:
+    sidebar -> some_content
+-->
+<Vertical>
+  <SplitPanel sizes="65,35">
+    <LeftPane>
+      <Chat id="ChatTargetDemo" title="Target Demo" height="400px"><![CDATA[
+title: Sidebar Embeds
+cast:
+  Kim:
+    seed: kim_researcher
+  Alex:
+~~~~
+
+Kim: Let's work through this step by step.
+
+Kim: First, make a prediction about what you think will happen.
+
+::prediction [display=target:sidebar label="Make your prediction"]
+
+--- wait @prediction_input.value ---
+
+Kim: Now let's see the actual results.
+
+::results [display=target:sidebar label="View results"]
+
+Alex: That's different from what I expected! [face=awe]
+]]></Chat>
+    </LeftPane>
+    <RightPane>
+      <UseHistory id="sidebar" initial="instructions" />
+    </RightPane>
+  </SplitPanel>
+
+  <Hidden>
+    <Markdown id="instructions">
+Follow along with the conversation on the left.
+Activities will appear here as you progress.
+    </Markdown>
+    <Vertical id="prediction">
+      <Markdown>**Your Prediction**</Markdown>
+      <TextArea id="prediction_input" placeholder="What do you think will happen?" />
+    </Vertical>
+    <Markdown id="results">
+## Actual Results
+
+The testing effect produced a **50% improvement** in retention
+compared to re-reading.
+    </Markdown>
+  </Hidden>
+</Vertical>

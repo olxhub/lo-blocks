@@ -1,5 +1,25 @@
 <Vertical id="ChatWithSidebar" title="Interactive Discussion">
 
+<Markdown>
+# Legacy code / deprecated syntax
+
+We originally repointed the sidebar with:
+```
+sidebar -> follow_up_activity
+```
+Which just sets the field. Setting a field is useful, so we are continuing to support arrow syntax (although we might flip the arrow or left/right sides -- the current version is a bit counterintuitive).
+
+We now have dedicated syntax for embedding activities which supercedes this:
+
+```
+::prediction [display=target:sidebar]
+```
+
+Legacy content should be migrated, but this is not urgent as setting a field still technically works, even if it is not semantic.
+
+This might continue to evolve. We would like this to be /more/ semantic.
+</Markdown>
+
   <!-- Activities that appear in the sidebar -->
   <Hidden>
     <Markdown id="sidebar_intro">Activities will appear here as the conversation progresses.</Markdown>

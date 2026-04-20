@@ -12,31 +12,58 @@
 //
 // Or via chatpeg embed metadata:
 //   ::paper_pdf [display=fullscreen label="View the research paper"]
+//   ::activity  [display=target:sidebar]
 //
-// Flow:
-//   1. Block appears → immediately opens in overlay
-//   2. User closes → placeholder in chat: [ View the research paper ☐ ]
-//   3. User clicks placeholder → re-opens overlay
+// Modes:
+//   fullscreen — Fullscreen API overlay, auto-opens on first render
+//   window     — Fixed overlay, auto-opens on first render
+//   target     — Repoints a target component (e.g. UseHistory sidebar),
+//                auto-repoints on first render, placeholder stays in chat
 'use client';
 
 import React, { useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Maximize2, X } from 'lucide-react';
-import { useFieldState } from '@/lib/state';
+import { useFieldState, updateField } from '@/lib/state';
+import { fieldByName } from '@/lib/state/fields';
+import { refToReduxKey } from '@/lib/blocks/idResolver';
 import { useKids } from '@/lib/render';
-import type { RuntimeProps } from '@/lib/types';
+import type { RuntimeProps, OlxReference } from '@/lib/types';
 import { fields } from './CompactPopout';
 
 export default function _CompactPopout(props: RuntimeProps) {
   const { kids } = useKids(props);
 
-  const mode = (props.mode ?? 'window') as 'fullscreen' | 'window';
+  const mode = (props.mode ?? 'window') as 'fullscreen' | 'window' | 'target';
   const label = (props.label as string) ?? 'View expanded content';
 
-  const [expanded, setExpanded] = useFieldState(props, fields.expanded, true);
+  // Target mode never auto-expands the overlay (it repoints instead)
+  const [expanded, setExpanded] = useFieldState(props, fields.expanded, mode !== 'target');
 
   const overlayRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  /* ── Target mode: repoint a component ─────────────────────────── */
+
+  const targetId = props.target as string | undefined;
+  const targetContent = props.targetContent as string | undefined;
+
+  const repoint = useCallback(() => {
+    if (!targetId || !targetContent) return;
+    const valueField = fieldByName('value');
+    if (!valueField) return;
+    updateField(props, valueField, targetContent, {
+      reduxKey: refToReduxKey({ ...props, id: targetId as OlxReference }),
+    });
+  }, [props, targetId, targetContent]);
+
+  // Auto-repoint on mount (like auto-expand for fullscreen/window).
+  // Attributes are fixed per instance so capturing initial values is safe.
+  useEffect(() => {
+    if (mode === 'target') repoint();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ── Fullscreen/window: overlay expand/collapse ───────────────── */
 
   const collapse = useCallback(() => {
     if (document.fullscreenElement === overlayRef.current) {
@@ -94,11 +121,13 @@ export default function _CompactPopout(props: RuntimeProps) {
     return () => document.removeEventListener('fullscreenchange', handleChange);
   }, [expanded, mode, setExpanded]);
 
+  /* ── Collapsed / target placeholder ───────────────────────────── */
+
   if (!expanded) {
     return (
       <button
         type="button"
-        onClick={expand}
+        onClick={mode === 'target' ? repoint : expand}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -119,6 +148,8 @@ export default function _CompactPopout(props: RuntimeProps) {
       </button>
     );
   }
+
+  /* ── Expanded overlay (fullscreen/window only) ────────────────── */
 
   const overlay = (
     <div
