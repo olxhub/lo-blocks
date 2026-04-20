@@ -23,8 +23,6 @@ export const fields = state.fields([
 ]);
 
 function advanceChat({ targetId, props }: { targetId: OlxKey; props: RuntimeProps }) {
-  // Compute the same ReduxStateKey used by _Chat's registration —
-  // combines OlxKey + runtime.idPrefix so scoped instances match.
   const key = refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix });
   callChatAdvanceHandler(key);
 }

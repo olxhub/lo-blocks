@@ -20,16 +20,13 @@ import type { ClipResolution } from './chatUtils';
 /* ----------------------------------------------------------------
  * Advance Handler Registry
  * -------------------------------------------------------------- */
-// Module-global registry so the action system (Chat.ts advanceChat) can
-// trigger progression without a direct component reference.
+// Module-global registry so the action system (advanceChat in Chat.ts)
+// can trigger chat progression without a direct component reference.
+// Keyed by ReduxStateKey so scoped instances (e.g. inside DynamicList)
+// each get their own entry.
 //
-// Keyed by ReduxStateKey (scoped) so instances inside DynamicList each
-// get their own entry.  The action system provides runtime.idPrefix in
-// the action handler's props, which we combine with targetId to compute
-// the same ReduxStateKey.
-//
-// TODO: The registry pattern itself is a code smell — a Redux action or
-// ref callback would avoid the module-global Map entirely.
+// TODO: Replace with a Redux action or ref callback to avoid the
+// module-global Map.
 const advanceHandlers = new Map<ReduxStateKey, () => void>();
 
 export function registerChatAdvanceHandler(key: ReduxStateKey, handler: () => void) {
@@ -250,8 +247,6 @@ export function _Chat(props: RuntimeProps) {
     setIndex(Math.min(nextIndex, windowRange.end));
   }, [canAdvance, isWaitSatisfied, fields.value, windowedIndex, windowRange, allEntries, setIndex, setSectionHeader]);
 
-  // Register advance handler for external calls (keyed by ReduxStateKey for
-  // correct scoping inside DynamicList — see advanceChat in Chat.ts).
   useChatAdvanceRegistration(refToReduxKey(props), handleAdvance);
 
   /* ----------------------------------------------------------------
