@@ -15,10 +15,13 @@
 //   ::activity  [display=target:sidebar]
 //
 // Modes:
-//   fullscreen — Fullscreen API overlay, auto-opens on first render
-//   window     — Fixed overlay, auto-opens on first render
+//   fullscreen — Fullscreen API overlay
+//   window     — Fixed overlay
 //   target     — Repoints a target component (e.g. UseHistory sidebar),
 //                auto-repoints on first render, placeholder stays in chat
+//
+// Set autoOpen=true to expand on first render (used by Chat embeds).
+// Defaults to false so standalone usage starts collapsed.
 'use client';
 
 import React, { useCallback, useEffect, useRef } from 'react';
@@ -36,9 +39,9 @@ export default function _CompactPopout(props: RuntimeProps) {
 
   const mode = (props.mode ?? 'window') as 'fullscreen' | 'window' | 'target';
   const label = (props.label as string) ?? 'View expanded content';
+  const autoOpen = props.autoOpen as boolean ?? false;
 
-  // Target mode never auto-expands the overlay (it repoints instead)
-  const [expanded, setExpanded] = useFieldState(props, fields.expanded, mode !== 'target');
+  const [expanded, setExpanded] = useFieldState(props, fields.expanded, autoOpen && mode !== 'target');
 
   const overlayRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);

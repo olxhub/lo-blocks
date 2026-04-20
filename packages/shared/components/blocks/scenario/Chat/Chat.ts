@@ -235,7 +235,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
         storeEntry(wrapperId, {
           id: wrapperId,
           tag: 'CompactPopout',
-          attributes: { id: wrapperId, label, mode: 'target', target, targetContent: entry.ref },
+          attributes: { id: wrapperId, label, mode: 'target', autoOpen: true, target, targetContent: entry.ref },
           kids: [{ type: 'block', id: entry.ref }],
         });
         entry.ref = wrapperId;
@@ -253,7 +253,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
       storeEntry(wrapperId, {
         id: wrapperId,
         tag: 'CompactPopout',
-        attributes: { id: wrapperId, label, mode: display },
+        attributes: { id: wrapperId, label, mode: display, autoOpen: true },
         kids: [{ type: 'block', id: entry.ref }],
       });
       entry.ref = wrapperId;

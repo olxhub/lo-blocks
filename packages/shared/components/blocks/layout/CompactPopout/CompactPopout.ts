@@ -16,6 +16,7 @@ const CompactPopout = dev({
   attributes: z.object({
     label: z.string().optional().describe('Placeholder text shown when collapsed (e.g. "View the research paper")'),
     mode: z.enum(['fullscreen', 'window', 'target']).optional().describe('Display mode: "fullscreen" uses the Fullscreen API, "window" uses a fixed overlay, "target" repoints a component. Defaults to "window".'),
+    autoOpen: z.boolean().default(false).describe('If true, auto-expand on first render. Defaults to false.'),
     target: z_reduxStateKey.optional().describe('Component ID to repoint (mode="target" only, e.g. "sidebar")'),
     targetContent: z_reduxStateKey.optional().describe('Block ID to display in the target (mode="target" only)'),
   }).strict(),
