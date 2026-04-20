@@ -11,7 +11,8 @@ import { CHAT_METADATA_KEYS } from '@/lib/content/metadata';
 import { transformTagName } from '@/lib/content/xmlTransforms';
 import { validateCast, withCastSupport } from '@/lib/avatar/cast';
 import type { ConversationEntry } from './_chatTypes';
-import type { OlxKey, OlxReference } from '@/lib/types';
+import { refToReduxKey } from '@/lib/blocks/idResolver';
+import type { OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
 import * as cp  from './_chatParser';
 import { _Chat, callChatAdvanceHandler } from './_Chat';
 
@@ -21,8 +22,11 @@ export const fields = state.fields([
   'sectionHeader'
 ]);
 
-function advanceChat({ targetId }: { targetId: string }) {
-  callChatAdvanceHandler(targetId);
+function advanceChat({ targetId, props }: { targetId: OlxKey; props: RuntimeProps }) {
+  // Compute the same ReduxStateKey used by _Chat's registration —
+  // combines OlxKey + runtime.idPrefix so scoped instances match.
+  const key = refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix });
+  callChatAdvanceHandler(key);
 }
 
 /* ----------------------------------------------------------------

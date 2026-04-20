@@ -10,7 +10,7 @@ import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/C
 import type { ChatMessage } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
 import { useCast, mergeCasts } from '@/lib/avatar/cast';
-import type { RuntimeProps, PeggyKids, OlxReference, BlueprintKidEntry } from '@/lib/types';
+import type { RuntimeProps, ReduxStateKey, PeggyKids, OlxReference, BlueprintKidEntry } from '@/lib/types';
 import type { ParsedConversation } from './_chatTypes';
 import { useWaitConditions } from './waitConditions';
 
@@ -20,42 +20,38 @@ import type { ClipResolution } from './chatUtils';
 /* ----------------------------------------------------------------
  * Advance Handler Registry
  * -------------------------------------------------------------- */
-// We keep a registry of advance handlers so other components (e.g., footers
-// or keyboard shortcuts) can trigger progression without holding direct
-// references to the chat component. This indirection also makes cleanup
-// predictable when components unmount.
-// HACK: The advance handler registry uses a module-global Map keyed by the
-// Chat block's props.id (OlxKey). This has two problems:
-// 1. The key type is unclear — props.id is OlxKey, but the action system
-//    also passes targetId as OlxKey. Inside a DynamicList, multiple instances
-//    share the same OlxKey and clobber each other in the Map. The key should
-//    probably be ReduxStateKey (scoped) to distinguish instances.
-// 2. The registry itself is a code smell — it exists so the action system
-//    can trigger advance without a direct component reference. A better
-//    approach might be dispatching a Redux action or using a ref callback.
-// Using bare `string` until the correct key type is determined.
-const advanceHandlers = new Map<string, () => void>();
+// Module-global registry so the action system (Chat.ts advanceChat) can
+// trigger progression without a direct component reference.
+//
+// Keyed by ReduxStateKey (scoped) so instances inside DynamicList each
+// get their own entry.  The action system provides runtime.idPrefix in
+// the action handler's props, which we combine with targetId to compute
+// the same ReduxStateKey.
+//
+// TODO: The registry pattern itself is a code smell — a Redux action or
+// ref callback would avoid the module-global Map entirely.
+const advanceHandlers = new Map<ReduxStateKey, () => void>();
 
-export function registerChatAdvanceHandler(id: string, handler: () => void) {
-  if (!id || typeof handler !== 'function') return;
-  advanceHandlers.set(id, handler);
+export function registerChatAdvanceHandler(key: ReduxStateKey, handler: () => void) {
+  if (!key || typeof handler !== 'function') return;
+  advanceHandlers.set(key, handler);
 }
 
-export function unregisterChatAdvanceHandler(id: string, handler: () => void) {
-  if (!id) return;
-  const existing = advanceHandlers.get(id);
+export function unregisterChatAdvanceHandler(key: ReduxStateKey, handler: () => void) {
+  if (!key) return;
+  const existing = advanceHandlers.get(key);
   if (existing === handler) {
-    advanceHandlers.delete(id);
+    advanceHandlers.delete(key);
   }
 }
 
-export function callChatAdvanceHandler(id: string): boolean {
-  const handler = advanceHandlers.get(id);
+export function callChatAdvanceHandler(key: ReduxStateKey): boolean {
+  const handler = advanceHandlers.get(key);
   if (typeof handler === 'function') {
     handler();
     return true;
   }
-  console.warn(`[Chat] No advance handler registered for ${id}`);
+  console.warn(`[Chat] No advance handler registered for ${key}`);
   return false;
 }
 
@@ -63,11 +59,11 @@ export function callChatAdvanceHandler(id: string): boolean {
  * Custom Hook for Handler Registration
  * -------------------------------------------------------------- */
 
-export function useChatAdvanceRegistration(id: string, handler: () => void) {
+export function useChatAdvanceRegistration(key: ReduxStateKey, handler: () => void) {
   useEffect(() => {
-    registerChatAdvanceHandler(id, handler);
-    return () => unregisterChatAdvanceHandler(id, handler);
-  }, [id, handler]);
+    registerChatAdvanceHandler(key, handler);
+    return () => unregisterChatAdvanceHandler(key, handler);
+  }, [key, handler]);
 }
 
 /* ----------------------------------------------------------------
@@ -254,8 +250,9 @@ export function _Chat(props: RuntimeProps) {
     setIndex(Math.min(nextIndex, windowRange.end));
   }, [canAdvance, isWaitSatisfied, fields.value, windowedIndex, windowRange, allEntries, setIndex, setSectionHeader]);
 
-  // Register advance handler for external calls
-  useChatAdvanceRegistration(id, handleAdvance);
+  // Register advance handler for external calls (keyed by ReduxStateKey for
+  // correct scoping inside DynamicList — see advanceChat in Chat.ts).
+  useChatAdvanceRegistration(refToReduxKey(props), handleAdvance);
 
   /* ----------------------------------------------------------------
    * Footers
