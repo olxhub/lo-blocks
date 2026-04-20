@@ -15,16 +15,7 @@ import type { DialogueLine, EmbedCommand, ParsedConversation } from './_chatType
 import { useWaitConditions } from './waitConditions';
 
 import * as chatUtils from './chatUtils';
-
-/** Resolved clip range — indexes into the conversation body array. */
-interface ClipRange {
-  start: number;
-  end: number;
-  valid: boolean;
-  message?: string | null;
-  error?: boolean;
-  clip?: string;
-}
+import type { ClipResolution } from './chatUtils';
 
 /* ----------------------------------------------------------------
  * Advance Handler Registry
@@ -89,50 +80,46 @@ export function _Chat(props: RuntimeProps) {
   /* Cast: merge runtime cast → cast= attribute → chatpeg header cast.
    * Most specific (header) wins. */
   const baseCast = useCast(props);
-  const headerCast = parsed.header?.cast || null;
+  const headerCast = parsed.header.cast ?? null;
   const participants = mergeCasts(baseCast, headerCast);
 
   /* Validation warnings from postprocess (e.g. case-sensitivity typos). */
   const headerWarnings = parsed.headerWarnings || [];
 
   // Clip student is going through
-  const clipRange: ClipRange = useMemo(() => {
+  const clipRange: ClipResolution = useMemo(() => {
     if (!clip) {
-      // Default: whole doc
-      return { start: 0, end: allEntries.length - 1, valid: true };
+      return { start: 0, end: allEntries.length - 1, valid: true, message: null } as const;
     }
 
     try {
-      // Resolve using your PEG+process logic
       return chatUtils.clip({ body: allEntries }, clip);
     } catch (error: any) {
-      // Return error sentinel instead of throwing
       return {
-        error: true,
+        error: true as const,
         message: error.message,
         clip,
         start: 0,
         end: 0,
-        valid: false,
+        valid: false as const,
       };
     }
   }, [allEntries, clip]);
 
   // Messages before the clip
-  const historyRange: ClipRange | null = useMemo(() => {
+  const historyRange: ClipResolution | null = useMemo(() => {
     if (!history) return null;
 
     try {
       return chatUtils.clip({ body: allEntries }, history);
     } catch (error: any) {
-      // Return error sentinel instead of throwing
       return {
-        error: true,
+        error: true as const,
         message: error.message,
         clip: history,
         start: 0,
         end: 0,
-        valid: false,
+        valid: false as const,
       };
     }
   }, [allEntries, history]);
@@ -217,7 +204,7 @@ export function _Chat(props: RuntimeProps) {
 
       switch (block.type) {
         case 'ArrowCommand':
-          updateField(propsRef.current, fields.value, block.target, { reduxKey: refToReduxKey({ ...propsRef.current, id: block.source as any }) });
+          updateField(propsRef.current, fields.value, block.target, { reduxKey: refToReduxKey({ ...propsRef.current, id: block.source as OlxReference }) });
           nextIndex += 1;
           continue;
 
@@ -289,7 +276,7 @@ export function _Chat(props: RuntimeProps) {
    * -------------------------------------------------------------- */
 
   // Check for clip errors and render error display instead of chat
-  if (clipRange.error) {
+  if (!clipRange.valid) {
     return (
       <DisplayError
         props={props}
@@ -302,7 +289,7 @@ export function _Chat(props: RuntimeProps) {
   }
 
   // Check for history errors
-  if (historyRange?.error) {
+  if (historyRange && !historyRange.valid) {
     return (
       <DisplayError
         props={props}

@@ -385,10 +385,9 @@ export function ChatComponent({
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
-    chatContainerRef.current?.scrollTo({
-      top: chatContainerRef.current.scrollHeight,
-      behavior: 'smooth',
-    });
+    const el = chatContainerRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
   }, [messages.length]);
 
   // Space to advance (only when this region has focus)
@@ -454,10 +453,10 @@ export function ChatComponent({
           <div className="flex items-center">
             <span className={`font-semibold ${t.headerText}`}>Chat</span>
 
-	    {/* HACK: suppressHydrationWarning because message count can differ
+            {/* HACK: suppressHydrationWarning because message count can differ
                 between SSR (0 — Redux store not populated) and client (1+ — e.g.
                 useChat initialMessage) -- or so we think. TODO: confirm and
-		investigate proper SSR hydration. */}
+                investigate proper SSR hydration. */}
 
             <span className={`ms-2 ${t.headerSubtle} text-sm`} suppressHydrationWarning>{messages.length} messages</span>
           </div>

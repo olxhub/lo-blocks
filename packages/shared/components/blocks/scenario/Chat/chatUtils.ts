@@ -27,6 +27,17 @@ export interface ClipResult extends Range {
   message: null;
 }
 
+/** Failed clip resolution — returned when the clip expression is invalid. */
+export interface ClipError extends Range {
+  valid: false;
+  error: true;
+  message: string;
+  clip: string;
+}
+
+/** Either a successful or failed clip resolution. */
+export type ClipResolution = ClipResult | ClipError;
+
 /* ─── Clip parser AST (output of clip.pegjs) ─────────────────────── */
 
 interface ClipNumber {
@@ -69,7 +80,7 @@ type ClipAST = ClipNumber | ClipIdentifier | ClipQuoted | ClipRange;
 export function byId(conversation: ConversationBody, id: string): Range | number | false {
   const { body } = conversation;
   const idx = body.findIndex(line =>
-    'metadata' in line && (line.metadata as Record<string, string>)?.id === id
+    'metadata' in line && (line.metadata as Record<string, string>).id === id
   );
   if (idx === -1) return false;
 
@@ -89,7 +100,7 @@ export function listSections(conversation: ConversationBody): SectionHeader[] {
 /** List all IDs found in metadata across all entries. */
 export function listIds(conversation: ConversationBody): string[] {
   return conversation.body
-    .map(line => 'metadata' in line ? (line.metadata as Record<string, string>)?.id : undefined)
+    .map(line => 'metadata' in line ? (line.metadata as Record<string, string>).id : undefined)
     .filter((id): id is string => Boolean(id));
 }
 
@@ -106,6 +117,17 @@ export function section(conversation: ConversationBody, title: string): Range | 
   const next = body.slice(start + 1).findIndex(line => line.type === 'SectionHeader');
   const end = next === -1 ? body.length - 1 : start + next;
   return { start, end };
+}
+
+/** Throws with a diagnostic listing available sections and IDs. */
+function throwUnknownRef(conversation: ConversationBody, value: string): never {
+  const availableSections = listSections(conversation).map(s => s.title);
+  const availableIds = listIds(conversation);
+  throw Error(
+    `Unknown section or ID: "${value}"\n` +
+    `Available sections: ${availableSections.map(s => `"${s}"`).join(', ')}\n` +
+    `Available IDs: ${availableIds.join(', ')}`
+  );
 }
 
 /* ─────────────────────────────────────────────────────────────────────
@@ -133,13 +155,7 @@ function process(conversation: ConversationBody, ast: ClipAST | null): Range {
       const sectionRange = section(conversation, ast.value);
       if (sectionRange) return sectionRange;
 
-      const availableSections = listSections(conversation).map(s => s.title);
-      const availableIds = listIds(conversation);
-      throw Error(
-        `Unknown section or ID: "${ast.value}"\n` +
-        `Available sections: ${availableSections.map(s => `"${s}"`).join(', ')}\n` +
-        `Available IDs: ${availableIds.join(', ')}`
-      );
+      throwUnknownRef(conversation, ast.value);
     }
 
     case 'quoted': {
@@ -151,13 +167,7 @@ function process(conversation: ConversationBody, ast: ClipAST | null): Range {
         return { start: idx, end: idx };
       }
 
-      const availableSections = listSections(conversation).map(s => s.title);
-      const availableIds = listIds(conversation);
-      throw Error(
-        `Unknown section or ID: "${ast.value}"\n` +
-        `Available sections: ${availableSections.map(s => `"${s}"`).join(', ')}\n` +
-        `Available IDs: ${availableIds.join(', ')}`
-      );
+      throwUnknownRef(conversation, ast.value);
     }
 
     case 'range': {

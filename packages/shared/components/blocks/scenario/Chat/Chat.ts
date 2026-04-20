@@ -10,6 +10,7 @@ import { srcAttributes, cast } from '@/lib/blocks/attributeSchemas';
 import { CHAT_METADATA_KEYS } from '@/lib/content/metadata';
 import { transformTagName } from '@/lib/content/xmlTransforms';
 import { validateCast, withCastSupport } from '@/lib/avatar/cast';
+import type { ConversationEntry } from './_chatTypes';
 import * as cp  from './_chatParser';
 import { _Chat, callChatAdvanceHandler } from './_Chat';
 
@@ -64,13 +65,13 @@ function validateHeader(header: Record<string, unknown>): string[] {
  * into a Record and merge with the inline [key=value] metadata to form the
  * entry's `parsedOptions`.
  */
-function parseEmbedOptions(body: any[]): string[] {
+function parseEmbedOptions(body: ConversationEntry[]): string[] {
   const warnings: string[] = [];
   for (const entry of body) {
     if (entry.type !== 'EmbedCommand' || !entry.options) continue;
     try {
       const opts = yaml.load(entry.options, { schema: yaml.JSON_SCHEMA });
-      entry.parsedOptions = (opts && typeof opts === 'object') ? opts : {};
+      entry.parsedOptions = (opts && typeof opts === 'object') ? opts as Record<string, unknown> : {};
     } catch (e: any) {
       warnings.push(`YAML parse error in embed options for ::${entry.ref}: ${e.message}`);
       entry.parsedOptions = {};
@@ -101,7 +102,7 @@ const embedXmlParser = new XMLParser({
 });
 
 async function processEmbedBlocks(
-  body: any[],
+  body: ConversationEntry[],
   parentId: string,
   parseNode: (node: any, siblings: any[] | null, index: number) => Promise<any>,
   storeEntry: (id: string, entry: any) => void,
@@ -162,8 +163,21 @@ async function processEmbedBlocks(
  *
  * The grammar returns header as raw text; we parse it here so the header
  * supports both simple key-value pairs and nested structures (e.g. participants).
+ *
+ * MUTATION CONTRACT: This function mutates `parsed` in place across three
+ * passes: (1) parseEmbedOptions adds parsedOptions to EmbedCommand entries,
+ * (2) processEmbedBlocks replaces EmbedBlock entries with EmbedCommands,
+ * (3) the CompactPopout loop rewrites entry.ref for display-mode embeds.
+ * This is safe because `parsed` is freshly produced by the PEG parser and
+ * not yet stored or shared.
  */
-async function postprocess({ parsed, parseNode, storeEntry, id, ...rest }) {
+async function postprocess({ parsed, parseNode, storeEntry, id }: {
+  parsed: any;
+  parseNode?: (node: any, siblings: any[] | null, index: number) => Promise<any>;
+  storeEntry: (id: string, entry: any) => void;
+  id: string;
+  [key: string]: any;
+}) {
   if (parsed.header && typeof parsed.header === 'string') {
     try {
       parsed.header = yaml.load(parsed.header, { schema: yaml.JSON_SCHEMA }) || {};
@@ -203,7 +217,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id, ...rest }) {
     let popoutIndex = 0;
     for (const entry of parsed.body) {
       if (entry.type !== 'EmbedCommand') continue;
-      const display = entry.metadata?.display ?? entry.parsedOptions?.display;
+      const display = entry.metadata.display ?? entry.parsedOptions?.display;
       if (!display) continue;
       if (!VALID_DISPLAY_MODES.has(display as string)) {
         parsed.headerWarnings = [...(parsed.headerWarnings || []),
@@ -211,7 +225,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id, ...rest }) {
         continue;
       }
 
-      const label = entry.metadata?.label ?? entry.parsedOptions?.label ?? 'View expanded content';
+      const label = entry.metadata.label ?? entry.parsedOptions?.label ?? 'View expanded content';
       const wrapperId = `${id}_popout_${popoutIndex++}`;
       storeEntry(wrapperId, {
         id: wrapperId,

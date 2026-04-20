@@ -230,10 +230,14 @@ export interface ConversationHeader {
  *
  * Stored as kids: { type: 'parsed', parsed: ParsedConversation }
  * via peggyParser() in Chat.ts.
+ *
+ * Note: header is always an object after postprocess — the raw grammar
+ * may produce a string or null, but postprocess parses YAML and falls
+ * back to {} on error.
  */
 export interface ParsedConversation {
   type: 'Conversation';
-  header: ConversationHeader | null;
+  header: ConversationHeader;
   headerWarnings?: string[];
   body: ConversationEntry[];
 }
