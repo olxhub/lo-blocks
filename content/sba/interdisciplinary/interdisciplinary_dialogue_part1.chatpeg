@@ -112,7 +112,7 @@ Peggy: That's a good idea. I'll try it even though I'm not quite sure I get the 
 
 Peggy: So let's see if we can each write two causes.
 
-interdisciplinary_sba_sidebar -> cause_inputs
+::cause_inputs [display=target:interdisciplinary_sba_sidebar label="Write two causes, one internal, oneMake your prediction"]
 
 --- wait @cause_internal.value && @cause_structural.value ---
 

@@ -54,86 +54,8 @@ lang: en-Latn-US
 <!-- Team Directory -->
 <TeamDirectory id="interdisciplinary_team_members" title="Comm360 Team"/>
 
-<!-- Reading Library Navigator -->
-<Navigator id="interdisciplinary_library"
-           title="Research Library"
-           preview="library_preview"
-           detail="library_detail"
-           popout="window">
-- id: focus_group_annotation_info
-  title: Focus Group Transcript
-  subtitle: 
-  description: Transcript of a focus group on high school dropout
-  ref: focus_group
-  
-- id: adhd_study
-  title: ADHD and High School Dropout
-  subtitle: Psychology - Fried et al. (2016)
-  description: Examines ADHD as a risk factor for grade retention and dropout
-  ref: reading_adhd
-
-- id: employment_study
-  title: Adolescent Employment and Dropout
-  subtitle: Sociology - Staff et al. (2019)
-  description: Whether intensive work during high school increases dropout risk
-  ref: employment_study_annotation
-
-- id: rural_urban_study
-  title: Rural vs Urban Dropout Rates
-  subtitle: Education - Jordan et al. (2012)
-  description: Comparing dropout rates across geographic settings
-  ref: reading_rural_urban_annotation
-
-- id: funding_study
-  title: School  Funding  Inequity
-  subtitle: Walden University Dissertation - Williams (2023)
-  description: Relationship between funding inequality and african american dropout rates
-  ref: source_4_highlights
-
-
-- id: funding_study2
-  title: The  Effects  of  School  Spending  on  Educational  and  Economic  Outcomes 
-  subtitle: Evidence  from  School  Finance  Reforms  - Jackson et al. (2016)
-  description: Relationship between school funding and adult outcomes
-  ref: reading_funding2a
-
-- id: marijuana_study
-  title: Marijuana Use and Dropout
-  subtitle: Health Economics - McCaffrey et al. (2010)
-  description: Relationship between substance use and educational outcomes
-  ref: reading_marijuana
-
-- id: policy_brief
-  title: The Dropout Crisis
-  subtitle: Policy Brief
-  description: National crisis overview and policy recommendations
-  ref: reading_policy2
-
-- id: focus_group
-  title: Student Perspectives
-  subtitle: Primary Source - Gates Foundation (2006)
-  description: Focus group data from high school dropouts
-  ref: reading_focus_group
-</Navigator>
-
-<!-- Library template blocks -->
-<Hidden>
-  <NavigatorDefaultPreview id="library_preview"/>
-  <NavigatorReadingDetail id="library_detail"/>
-</Hidden>
-
-<!-- Reading content blocks -->
-<Hidden>
-  <Annotate id="reading_adhd">
-    <Markdown id="adhd_study_text_md2" src="readings/research_study_adhd_dropout.md" />
-  </Annotate>
-  <Markdown id="reading_marijuana" src="readings/research_study_marijuana_dropout.md"/>
-  <Markdown id="reading_policy2" src="readings/policy_brief_dropout_crisis.md"/>
-  <Annotate id="reading_funding2a">
-    <Markdown id="reading_funding2b" src="readings/research_study_school_funding.md"/>
-  </Annotate>
-  <Markdown id="reading_focus_group" src="readings/focus_group_silent_epidemic_excerpts.md"/>
-</Hidden>
+<!-- Include the library structure -->
+<Use id="interdisciplinary_library2" ref="interdisciplinary_library" />
 
 <!-- Include the artifact structure -->
 <Use ref="interdisciplinary_artifact" src="artifact.olx"/>

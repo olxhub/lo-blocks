@@ -165,7 +165,28 @@ Research studies you've reviewed from different disciplines.
     <Markdown>
 Analysis of how different disciplines view the problem and where they conflict.
     </Markdown>
-
+    <Tabs>
+      <Vertical title="Causal Diagram (Version 1)">
+        <SplitPanel>
+          <LeftPane><Markdown>**My Causal Diagram**</Markdown></LeftPane>
+          <RightPane><Markdown>**Group Consensus for Causal Diagram**</Markdown></RightPane>
+        </SplitPanel>
+        <SplitPanel>
+          <LeftPane><Mermaid target="editor_cause_diagram" /></LeftPane>
+          <RightPane><Mermaid target="cause_mapping" /></RightPane>
+        </SplitPanel>
+      </Vertical>
+      <Vertical title="Causal Diagram (Version 2)">
+        <SplitPanel>
+          <LeftPane><Markdown>**My Causal Diagram**</Markdown></LeftPane>
+          <RightPane><Markdown>**Group Consensus for Causal Diagram**</Markdown></RightPane>
+        </SplitPanel>
+        <SplitPanel>
+          <LeftPane><Mermaid target="editor" /></LeftPane>
+          <RightPane><Mermaid target="cause_mapping_3" /></RightPane>
+        </SplitPanel>
+      </Vertical>
+    </Tabs>    
     <Markdown id="artifact_tb_23">**Key Insights from Psychology:**</Markdown>
     <TextArea id="interdisciplinary_sba_insights_psychology" placeholder="Psychology insights: ADHD, motivation, self-efficacy factors..." />
 
