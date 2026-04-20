@@ -103,3 +103,8 @@
 .rendered-markdown a:hover {
   text-decoration-color: var(--lo-primary);
 }
+
+/* Strip trailing margin from last child to avoid blank space at bottom */
+.rendered-markdown > :last-child {
+  margin-bottom: 0;
+}

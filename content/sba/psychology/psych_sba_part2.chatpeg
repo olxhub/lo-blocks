@@ -1,18 +1,23 @@
-Title: Psychology Study Group, Task 2
-Author: "TODO -- fill this in"
-Cast:
+title: Psychology Study Group, Task 2
+authors: "TODO -- fill this in"
+cast:
   Annie:
     seed: annie
-    face: smile
+    openPeeps:
+      face: smile
   JJ:
     seed: alexander
-    face: smile
+    openPeeps:
+      face: smile
   Lin:
     seed: lynnette
-    face: smile
+    openPeeps:
+      face: smile
   Lianne:
     seed: lianne
-    face: smile
+    openPeeps:
+      face: smile
+
 ~~~~
 
 psych_sba_sidebar2 -> bedtime_problem_introduction2
@@ -184,7 +189,7 @@ JJ: Good idea. We know it was sometimes "do nothing," but maybe not every time.
 
 Annie: Sure, I'll text her now and let you know what she says.
 
-# Note: This shows screenshot of messages between Annie's roommate and parents
+// Note: This shows screenshot of messages between Annie's roommate and parents
 psych_sba_sidebar2 -> messages_image
 
 Annie: She texted right back. See for yourselves.

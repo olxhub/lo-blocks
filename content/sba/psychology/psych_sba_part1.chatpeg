@@ -1,18 +1,23 @@
-Title: Psychology Study Group, Task 1
-Author: "TODO -- fill this in"
-Cast:
+title: Psychology Study Group, Task 1
+authors: "TODO -- fill this in"
+cast:
   Annie:
     seed: annie
-    face: smile
+    openPeeps:
+      face: smile
   JJ:
     seed: alexander
-    face: smile
+    openPeeps:
+      face: smile
   Lin:
     seed: lynnette
-    face: smile
+    openPeeps:
+      face: smile
   Lianne:
     seed: lianne
-    face: smile
+    openPeeps:
+      face: smile
+
 ~~~~
 
 Introduction
@@ -55,7 +60,7 @@ Lin: And I've got little cousins.
 Annie: Thanks for helping out. She's really stressing about it.
 OK, what do YOU think she should do to get the 6-year-old to go to sleep at bedtime???
 
-# [Results/feedback from group - no activity, just text]
+// [Results/feedback from group - no activity, just text]
 Lin: Tell him you'll give him 50 cents if he goes to bed on time. Hey, 50 cents is a lot of money to a 6-year-old!
 
 Annie: Say that you won't play any games with him ever again unless he goes to sleep at his bedtime.
@@ -63,7 +68,7 @@ Annie: Say that you won't play any games with him ever again unless he goes to s
 JJ: I'm with the "do nothing" crowd. She shouldn't do anything at all.
 If he stays up, he stays up. That's on him. He'll be so tired the next day, he'll probably never do it again!
 
-# [activity: constructed response]
+// [activity: constructed response]
 psych_sba_sidebar -> student_suggestion
 
 --- wait @initial_suggestion.value ---

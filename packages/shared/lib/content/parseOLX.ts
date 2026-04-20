@@ -65,6 +65,28 @@ const xmlParser = new XMLParser({
   transformTagName
 });
 
+/** True if a parsed FXP node represents an XML element (not text/comment). */
+function isElementNode(node: any): boolean {
+  return typeof node === 'object' && node !== null &&
+    Object.keys(node).some(k => k !== '#text' && k !== '#comment' && k !== ':@');
+}
+
+/**
+ * Parse an OLX XML fragment and return its element nodes.
+ *
+ * Uses the same XMLParser config as parseOLX so behavior is consistent.
+ * Filters out text-only and comment-only nodes — returns only elements
+ * (nodes that have at least one key besides #text, #comment, :@).
+ *
+ * Used by Chat.ts postprocess to parse inline EmbedBlock OLX without
+ * duplicating the parser config.
+ */
+export function parseXmlFragment(xml: string): any[] {
+  const tree = xmlParser.parse(xml);
+  const nodes = Array.isArray(tree) ? tree : [tree];
+  return nodes.filter(isElementNode);
+}
+
 /**
  * Symbol key under which fast-xml-parser stores per-node metadata.
  *
@@ -722,9 +744,7 @@ export async function parseOLX(
   // root block. Find the first element node so we don't accidentally treat a
   // comment as the root of the document.
   const rootNode = Array.isArray(parsedTree)
-    ? parsedTree.find(n =>
-      !!Object.keys(n).find(k => ![':@', '#text', '#comment'].includes(k))
-    )
+    ? parsedTree.find(isElementNode)
     : parsedTree;
 
   let fileMetadata: OLXMetadata = OLXMetadataSchema.parse({});

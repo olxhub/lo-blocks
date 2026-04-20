@@ -1,0 +1,13 @@
+<CompactPopout label="View the research paper" mode="window">
+  <Markdown>
+## The Testing Effect
+
+Students who tested themselves recalled approximately **50% more**
+material after one week compared to those who simply re-read the
+material (Roediger &amp; Karpicke, 2006).
+
+This finding — known as the *testing effect* — demonstrates that
+retrieval practice strengthens memory more effectively than passive
+review, even when learners feel less confident during practice.
+  </Markdown>
+</CompactPopout>

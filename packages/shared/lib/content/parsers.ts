@@ -637,7 +637,7 @@ export function peggyParser(
   peggyParser,
   options: {
     preprocess?: (x: { type: string; text: string;[key: string]: any }) => any;
-    postprocess?: (parsed: any) => any;
+    postprocess?: (parsed: any) => any | Promise<any>;
     skipStoreEntry?: boolean;
   } = {}
 ) {
@@ -653,6 +653,7 @@ export function peggyParser(
     attributes,
     provenance,
     provider,
+    parseNode,
     storeEntry,
     errors,
     metadata
@@ -675,12 +676,13 @@ export function peggyParser(
     let entry;
     try {
       const parsed = peggyParser.parse(text);
-      const processedKids = postprocess({
+      const processedKids = await postprocess({
         type: 'parsed',
         parsed,
         ...rest,
         // Pass through context for advanced use cases
         storeEntry,
+        parseNode,
         id,
         tag,
         attributes

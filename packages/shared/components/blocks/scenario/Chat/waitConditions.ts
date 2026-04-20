@@ -2,7 +2,7 @@
 //
 // Wait condition evaluation using the state language.
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   parse,
   extractStructuredRefs,
@@ -13,19 +13,12 @@ import {
   EMPTY_REFS
 } from '@/lib/stateLanguage';
 import type { References, ContextData } from '@/lib/stateLanguage';
-
-/**
- * Chat script entry that might be a wait command.
- */
-interface ChatEntry {
-  type: string;
-  expression?: string;
-}
+import type { ConversationEntry, WaitCommand } from './_chatTypes';
 
 /**
  * Extract all references from wait commands in a chat script.
  */
-export function extractWaitRefs(entries: ChatEntry[]): References {
+export function extractWaitRefs(entries: ConversationEntry[]): References {
   const expressions: string[] = [];
 
   for (const entry of entries) {
@@ -48,7 +41,7 @@ export function extractWaitRefs(entries: ChatEntry[]): References {
  * Multiple consecutive waits act as AND - all must pass.
  */
 export function canAdvanceToContent(
-  entries: ChatEntry[],
+  entries: ConversationEntry[],
   fromIndex: number,
   toIndex: number,
   context: ContextData
@@ -81,8 +74,8 @@ export function canAdvanceToContent(
       continue;
     }
 
-    // Line or Pause - we can definitely advance to show this
-    if (entry.type === 'Line' || entry.type === 'PauseCommand') {
+    // Line, Pause, or Embed - we can definitely advance to show this
+    if (entry.type === 'Line' || entry.type === 'PauseCommand' || entry.type === 'EmbedCommand') {
       return true;
     }
   }
@@ -93,7 +86,7 @@ export function canAdvanceToContent(
 /**
  * Evaluate a single wait entry.
  */
-export function evaluateWaitEntry(entry: ChatEntry, context: ContextData): boolean {
+export function evaluateWaitEntry(entry: WaitCommand, context: ContextData): boolean {
   if (!entry.expression) return true;
   try {
     return Boolean(evaluate(parse(entry.expression), context));
@@ -112,7 +105,7 @@ export function evaluateWaitEntry(entry: ChatEntry, context: ContextData): boole
  */
 export function useWaitConditions(
   props: any,
-  entries: ChatEntry[],
+  entries: ConversationEntry[],
   currentIndex: number,
   endIndex: number
 ) {
@@ -123,8 +116,11 @@ export function useWaitConditions(
   // Check if we can advance (first wait before next content is satisfied)
   const canAdvance = canAdvanceToContent(entries, currentIndex, endIndex, context);
 
-  // Function to evaluate a specific wait entry
-  const isWaitSatisfied = (entry: ChatEntry) => evaluateWaitEntry(entry, context);
+  // Stable reference for evaluating a specific wait entry
+  const isWaitSatisfied = useCallback(
+    (entry: WaitCommand) => evaluateWaitEntry(entry, context),
+    [context]
+  );
 
   return { canAdvance, isWaitSatisfied, context };
 }

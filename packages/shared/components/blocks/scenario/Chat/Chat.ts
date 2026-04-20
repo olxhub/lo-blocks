@@ -1,4 +1,4 @@
-// src/components/blocks/Chat/Chat.js
+// src/components/blocks/Chat/Chat.ts
 
 import { z } from 'zod';
 import yaml from 'js-yaml';
@@ -7,7 +7,11 @@ import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes, cast } from '@/lib/blocks/attributeSchemas';
 import { CHAT_METADATA_KEYS } from '@/lib/content/metadata';
+import { parseXmlFragment } from '@/lib/content/parseOLX';
 import { validateCast, withCastSupport } from '@/lib/avatar/cast';
+import type { ConversationEntry } from './_chatTypes';
+import { refToReduxKey } from '@/lib/blocks/idResolver';
+import type { OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
 import * as cp  from './_chatParser';
 import { _Chat, callChatAdvanceHandler } from './_Chat';
 
@@ -17,8 +21,9 @@ export const fields = state.fields([
   'sectionHeader'
 ]);
 
-function advanceChat({ targetId }) {
-  callChatAdvanceHandler(targetId);
+function advanceChat({ targetId, props }: { targetId: OlxKey; props: RuntimeProps }) {
+  const key = refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix });
+  callChatAdvanceHandler(key);
 }
 
 /* ----------------------------------------------------------------
@@ -50,14 +55,110 @@ function validateHeader(header: Record<string, unknown>): string[] {
 }
 
 /**
- * Post-process PEG output: parse header text as YAML.
+ * Parse EmbedCommand YAML options into objects.
+ *
+ * Chatpeg embed syntax allows YAML options on indented lines after the ref:
+ *
+ *   ::video_1
+ *     fullscreen: true
+ *     label: Watch this video
+ *
+ * The grammar captures this as a raw string in `options`.  Here we parse it
+ * into a Record and merge with the inline [key=value] metadata to form the
+ * entry's `parsedOptions`.
+ */
+function parseEmbedOptions(body: ConversationEntry[]): string[] {
+  const warnings: string[] = [];
+  for (const entry of body) {
+    if (entry.type !== 'EmbedCommand' || !entry.options) continue;
+    try {
+      const opts = yaml.load(entry.options, { schema: yaml.JSON_SCHEMA });
+      entry.parsedOptions = (opts && typeof opts === 'object') ? opts as Record<string, unknown> : {};
+    } catch (e: any) {
+      warnings.push(`YAML parse error in embed options for ::${entry.ref}: ${e.message}`);
+      entry.parsedOptions = {};
+    }
+  }
+  return warnings;
+}
+
+/**
+ * Process inline OLX embed blocks in the chatpeg body.
+ *
+ * EmbedBlock entries contain raw OLX XML between :: fences. We parse them
+ * via parseXmlFragment (shared with parseOLX) and run each root element
+ * through the content pipeline via parseNode. The resulting blocks are
+ * stored via storeEntry and the EmbedBlock entry is replaced with an
+ * EmbedCommand pointing at the generated block.
+ */
+async function processEmbedBlocks(
+  body: ConversationEntry[],
+  parseNode: (node: any, siblings: any[] | null, index: number) => Promise<any>,
+  storeEntry: (id: OlxKey, entry: any) => void,
+): Promise<string[]> {
+  const warnings: string[] = [];
+
+  for (let i = 0; i < body.length; i++) {
+    const entry = body[i];
+    if (entry.type !== 'EmbedBlock') continue;
+
+    try {
+      const rootNodes = parseXmlFragment(entry.content);
+
+      if (rootNodes.length === 0) {
+        warnings.push(`EmbedBlock at position ${i}: no valid XML elements found`);
+        continue;
+      }
+
+      if (rootNodes.length > 1) {
+        warnings.push(`EmbedBlock at position ${i}: multiple root elements found (only the first will be used). Wrap in a <Vertical> to include all.`);
+      }
+
+      const result = await parseNode(rootNodes[0], rootNodes, 0);
+
+      if (result?.id) {
+        body[i] = {
+          type: 'EmbedCommand',
+          ref: result.id,
+          metadata: entry.metadata || {},
+          options: null,
+          parsedOptions: {},
+        };
+      } else {
+        warnings.push(`EmbedBlock at position ${i}: parseNode returned no id`);
+      }
+    } catch (e: any) {
+      warnings.push(`EmbedBlock at position ${i}: ${e?.message ?? String(e)}`);
+    }
+  }
+
+  return warnings;
+}
+
+/**
+ * Post-process PEG output: parse header text as YAML, parse embed options,
+ * and process inline OLX embed blocks.
+ *
  * The grammar returns header as raw text; we parse it here so the header
  * supports both simple key-value pairs and nested structures (e.g. participants).
+ *
+ * MUTATION CONTRACT: This function mutates `parsed` in place across three
+ * passes: (1) parseEmbedOptions adds parsedOptions to EmbedCommand entries,
+ * (2) processEmbedBlocks replaces EmbedBlock entries with EmbedCommands,
+ * (3) the CompactPopout loop rewrites entry.ref for display-mode embeds.
+ * This is safe because `parsed` is freshly produced by the PEG parser and
+ * not yet stored or shared.
  */
-function postprocess({ parsed, ...rest }) {
+async function postprocess({ parsed, parseNode, storeEntry, id }: {
+  parsed: any;
+  parseNode?: (node: any, siblings: any[] | null, index: number) => Promise<any>;
+  storeEntry: (id: OlxKey, entry: any) => void;
+  id: OlxKey;
+  [key: string]: any;
+}) {
   if (parsed.header && typeof parsed.header === 'string') {
     try {
-      parsed.header = yaml.load(parsed.header) || {};
+      parsed.header = yaml.load(parsed.header, { schema: yaml.JSON_SCHEMA }) || {};
     } catch (e) {
       parsed.header = {};
       parsed.headerWarnings = [`YAML parse error in header: ${e.message}`];
@@ -69,6 +170,69 @@ function postprocess({ parsed, ...rest }) {
     const warnings = validateHeader(parsed.header);
     if (warnings.length > 0) {
       parsed.headerWarnings = [...(parsed.headerWarnings || []), ...warnings];
+    }
+  }
+
+  if (parsed.body) {
+    // Parse YAML options on embed commands
+    const embedWarnings = parseEmbedOptions(parsed.body);
+    if (embedWarnings.length > 0) {
+      parsed.headerWarnings = [...(parsed.headerWarnings || []), ...embedWarnings];
+    }
+
+    // Process inline OLX embed blocks → block refs
+    if (parseNode) {
+      const blockWarnings = await processEmbedBlocks(parsed.body, parseNode, storeEntry);
+      if (blockWarnings.length > 0) {
+        parsed.headerWarnings = [...(parsed.headerWarnings || []), ...blockWarnings];
+      }
+    }
+
+    // Process display= modes on embed commands.
+    //   display=fullscreen/window → wrap in CompactPopout
+    //   display=target:<id>       → set displayTarget for runtime repointing
+    const VALID_DISPLAY_MODES = new Set(['fullscreen', 'window']);
+    let popoutIndex = 0;
+    for (const entry of parsed.body) {
+      if (entry.type !== 'EmbedCommand') continue;
+      const display = entry.metadata.display ?? entry.parsedOptions?.display;
+      if (!display) continue;
+
+      // target:<id> — repoint a component to show this embed
+      if (typeof display === 'string' && display.startsWith('target:')) {
+        const target = display.slice('target:'.length).trim();
+        if (!target) {
+          parsed.headerWarnings = [...(parsed.headerWarnings || []),
+            `Empty target in display=target: on ::${entry.ref}`];
+          continue;
+        }
+        const label = entry.metadata.label ?? entry.parsedOptions?.label ?? 'View expanded content';
+        const wrapperId = `${id}_popout_${popoutIndex++}` as OlxKey;
+        storeEntry(wrapperId, {
+          id: wrapperId,
+          tag: 'CompactPopout',
+          attributes: { id: wrapperId, label, mode: 'target', autoOpen: true, target, targetContent: entry.ref },
+          kids: [{ type: 'block', id: entry.ref }],
+        });
+        entry.ref = wrapperId;
+        continue;
+      }
+
+      if (!VALID_DISPLAY_MODES.has(display as string)) {
+        parsed.headerWarnings = [...(parsed.headerWarnings || []),
+          `Unknown display mode "${display}" on ::${entry.ref}. Valid modes: ${[...VALID_DISPLAY_MODES].join(', ')}, target:<id>`];
+        continue;
+      }
+
+      const label = entry.metadata.label ?? entry.parsedOptions?.label ?? 'View expanded content';
+      const wrapperId = `${id}_popout_${popoutIndex++}` as OlxKey;
+      storeEntry(wrapperId, {
+        id: wrapperId,
+        tag: 'CompactPopout',
+        attributes: { id: wrapperId, label, mode: display, autoOpen: true },
+        kids: [{ type: 'block', id: entry.ref }],
+      });
+      entry.ref = wrapperId;
     }
   }
 

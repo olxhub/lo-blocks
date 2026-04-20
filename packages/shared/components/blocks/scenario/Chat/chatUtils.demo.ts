@@ -20,15 +20,16 @@ import {
   section,
   clip
 } from './chatUtils';
+import type { ConversationEntry } from './_chatTypes';
 
-const conversation = {
+const conversation: { body: ConversationEntry[] } = {
   body: [
     { type: "Line", speaker: "Annie", metadata: { id: "intro_start" }, text: "Hey!" },
     { type: "Line", speaker: "JJ", metadata: {}, text: "Welcome!" },
     { type: "SectionHeader", title: "Argument", metadata: {} },
     { type: "Line", speaker: "JJ", metadata: {}, text: "Awwww..." },
     { type: "SectionHeader", title: "Debrief", metadata: { id: "outro" } },
-    { type: "Line", speaker: "Annie", metadata: {}, text: "Goodbye!" }
+    { type: "Line", speaker: "Annie", metadata: {}, text: "Goodbye!" },
   ]
 };
 
@@ -55,7 +56,7 @@ console.log('section(conversation, "NoSuchSection"):', section(conversation, "No
 // null
 
 console.log('\n--- clip() DEMOS ---');
-function showClip(input) {
+function showClip(input: string) {
   const result = clip(conversation, input);
   console.log(`clip(conversation, ${JSON.stringify(input)}):`, result);
 }

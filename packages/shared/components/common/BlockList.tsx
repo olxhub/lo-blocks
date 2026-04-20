@@ -68,9 +68,14 @@ function ExpandableBlockItem({ name, block, onInsert, isGrammar, extension }: Ex
               examples: doc.examples,
               attributes: doc.attributes,
             });
+          } else {
+            setDetailedDocs({});  // prevent infinite refetch
           }
         })
-        .catch(console.error)
+        .catch((err) => {
+          console.error(err);
+          setDetailedDocs({});  // prevent infinite refetch
+        })
         .finally(() => setLoadingDocs(false));
     }
   }, [expanded, name, isGrammar, detailedDocs, loadingDocs]);
