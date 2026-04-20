@@ -83,7 +83,7 @@ export function _Chat(props: RuntimeProps) {
   /* Cast: merge runtime cast → cast= attribute → chatpeg header cast.
    * Most specific (header) wins. */
   const baseCast = useCast(props);
-  const headerCast = parsed.header.cast ?? null;
+  const headerCast = parsed.header?.cast ?? null;
   const participants = mergeCasts(baseCast, headerCast);
 
   /* Validation warnings from postprocess (e.g. case-sensitivity typos). */
