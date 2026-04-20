@@ -8,7 +8,8 @@ title: Study Group
 cast:
   Kim:
     seed: kim_researcher
-    face: smile
+    openPeeps:
+      face: smile
   Alex:
     seed: alex_student
 ~~~~
@@ -47,7 +48,8 @@ author: Education Team
 cast:
   Kim:
     seed: kim_researcher
-    face: smile
+    openPeeps:
+      face: smile
   Alex:
     seed: alex_student
 ~~~~
@@ -61,8 +63,9 @@ Define avatar appearance for each speaker in the header. Not every cast member n
 cast:
   Kim:
     seed: kim_researcher
-    face: smile
-    skinColor: ["694d3d"]
+    openPeeps:
+      face: smile
+      skinColor: ["694d3d"]
   Alex:
 ```
 
