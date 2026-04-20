@@ -13,7 +13,7 @@ function HistoryContent({ props, current }) {
 }
 
 export function _UseHistory(props: RuntimeProps) {
-  const { target, targetRef, fields, initial } = props;
+  const { target, targetRef, fields, initial, appendRepeats } = props;
 
   // If targetRef is provided, get the target from another component's value
   // Fall back to target if refValue is null/undefined (e.g., before selection)
@@ -31,6 +31,16 @@ export function _UseHistory(props: RuntimeProps) {
 
   useEffect(() => {
     if (!value) return;
+
+    // If value already exists in history, navigate to it instead of duplicating
+    if (!appendRepeats) {
+      const existingIndex = history.indexOf(value);
+      if (existingIndex !== -1) {
+        setIndex(existingIndex);
+        return;
+      }
+    }
+
     let updated = history;
     if (history.length === 0 || history[history.length - 1] !== value) {
       updated = [...history, value];

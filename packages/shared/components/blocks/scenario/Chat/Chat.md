@@ -93,6 +93,25 @@ Main Discussion
 Alex: Let's dive in.
 ```
 
+### Rich Content
+
+Indent lines by 2+ spaces for full markdown — paragraphs, lists, tables, code blocks. Inside the indented block, `#`, `[`, and `---` are literal text, not chatpeg syntax.
+
+```
+Kim: Here's the summary:
+
+  The results were clear:
+
+  - Testing beats re-reading
+  - Spacing beats cramming
+
+  > "Desirable difficulties" — Bjork, 1994
+
+Alex: Got it. [face=smile]
+```
+
+See the Chatpeg Grammar Reference for full details.
+
 ### Inline Metadata
 
 Annotate any dialogue line with `[key=value]` pairs:
@@ -102,6 +121,44 @@ Kim: This is a key point. [id=key_finding face=smile]
 ```
 
 Use `id` for clipping and navigation. Use `face` for per-line expression overrides. Metadata can also appear on a standalone line above dialogue.
+
+### Embeds
+
+Reference other blocks directly in the conversation flow:
+
+```
+Kim: Now try this problem.
+
+::problem_1
+
+Kim: How did that go?
+```
+
+See the Chatpeg Grammar Reference for full syntax including YAML options and fenced inline OLX.
+
+#### Display Modes
+
+Control how an embedded block is presented using `[display=...]` metadata:
+
+| Mode | Effect |
+|------|--------|
+| *(none)* | Render inline in the conversation flow |
+| `fullscreen` | Wrap in a CompactPopout that opens as a fullscreen modal |
+| `window` | Wrap in a CompactPopout that opens as a windowed modal |
+| `target:<id>` | Send the block to a target component (e.g., a UseHistory sidebar) |
+
+```
+::video_1 [display=fullscreen]
+::reference_chart [display=window label="View chart"]
+::activity_1 [display=target:sidebar]
+```
+
+**Target mode** repoints a component (like UseHistory) to display the embedded block, replacing the arrow command for embed-specific use cases. The embed does not appear inline — it auto-advances like an arrow command. Use surrounding dialogue to direct the learner's attention:
+
+```
+::problem_1 [display=target:sidebar]
+Kim: Take a look at the problem on the right.
+```
 
 ### Commands
 
@@ -121,7 +178,7 @@ Use `id` for clipping and navigation. Use `face` for per-line expression overrid
 
 See [State Language Expressions](../../../lib/stateLanguage/expr.pegjs.md) for full syntax.
 
-**Arrow** — Repoints a dynamic component to show different content:
+**Arrow** — Repoints a dynamic component to show different content. For repointing embeds, prefer `display=target:<id>` (see [Display Modes](#display-modes)). Arrow commands are for general field updates:
 
 ```
 sidebar -> student_input

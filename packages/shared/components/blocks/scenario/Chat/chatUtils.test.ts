@@ -16,6 +16,208 @@ Alex: Hello [id=greeting]
 Sam: How are you?
 `);
 
+/* ── Indented rich content ─────────────────────────────────────────────── */
+
+describe('indented rich content', () => {
+  it('parses indented block as part of speaker text', () => {
+    const result = parseChat(`~~~~
+Kim: Here is what I found:
+
+  The results were striking:
+
+  - Testing improved retention by 50%
+  - Re-reading only improved it by 20%
+
+Alex: Wow!
+`);
+    const kim = result.body[0];
+    expect(kim.type).toBe('Line');
+    expect(kim.speaker).toBe('Kim');
+    expect(kim.text).toContain('Here is what I found:');
+    expect(kim.text).toContain('- Testing improved retention by 50%');
+    expect(kim.text).toContain('- Re-reading only improved it by 20%');
+    // Should have paragraph break between inline text and indented block
+    expect(kim.text).toContain('found:\n\nThe results');
+
+    const alex = result.body[1];
+    expect(alex.speaker).toBe('Alex');
+    expect(alex.text).toBe('Wow!');
+  });
+
+  it('preserves blank lines within indented block as paragraph breaks', () => {
+    const result = parseChat(`~~~~
+Kim: Summary:
+
+  First paragraph.
+
+  Second paragraph.
+
+Alex: Got it.
+`);
+    const kim = result.body[0];
+    expect(kim.text).toContain('First paragraph.\n\nSecond paragraph.');
+  });
+
+  it('treats # and [ as literal text inside indented blocks', () => {
+    const result = parseChat(`~~~~
+Kim: Notes:
+
+  # This is a heading
+  [This is bracketed text]
+
+Alex: Thanks.
+`);
+    const kim = result.body[0];
+    expect(kim.text).toContain('# This is a heading');
+    expect(kim.text).toContain('[This is bracketed text]');
+  });
+
+  it('ends indented block at non-indented content', () => {
+    const result = parseChat(`~~~~
+Kim: Intro:
+
+  Indented content here.
+
+Sam: Next speaker.
+`);
+    expect(result.body).toHaveLength(2);
+    expect(result.body[0].speaker).toBe('Kim');
+    expect(result.body[1].speaker).toBe('Sam');
+  });
+
+  it('works with continuation lines before indented block', () => {
+    const result = parseChat(`~~~~
+Kim: This is a long message that
+continues on the next line.
+
+  And then has an indented block.
+
+Alex: Ok.
+`);
+    const kim = result.body[0];
+    expect(kim.text).toContain('continues on the next line.');
+    expect(kim.text).toContain('And then has an indented block.');
+  });
+
+  it('does not affect existing non-indented continuation lines', () => {
+    const result = parseChat(`~~~~
+Kim: This is a message
+that continues without indentation
+across multiple lines.
+Alex: Reply.
+`);
+    const kim = result.body[0];
+    expect(kim.text).toBe('This is a message\nthat continues without indentation\nacross multiple lines.');
+  });
+});
+
+/* ── Embed directives ──────────────────────────────────────────────────── */
+
+describe('embed directives', () => {
+  it('parses simple embed by ref', () => {
+    const result = parseChat(`~~~~
+Kim: Try this.
+
+::problem_1
+
+Kim: How was it?
+`);
+    expect(result.body).toHaveLength(3);
+    expect(result.body[1]).toEqual({
+      type: 'EmbedCommand', ref: 'problem_1', metadata: {}, options: null
+    });
+  });
+
+  it('parses embed with inline metadata', () => {
+    const result = parseChat(`~~~~
+::video_1 [display=fullscreen]
+`);
+    expect(result.body[0]).toEqual({
+      type: 'EmbedCommand', ref: 'video_1',
+      metadata: { display: 'fullscreen' },
+      options: null
+    });
+  });
+
+  it('parses embed with key=value metadata', () => {
+    const result = parseChat(`~~~~
+::video_1 [display=fullscreen label="Watch this"]
+`);
+    const embed = result.body[0];
+    expect(embed.type).toBe('EmbedCommand');
+    expect(embed.ref).toBe('video_1');
+    expect(embed.metadata.display).toBe('fullscreen');
+    expect(embed.metadata.label).toBe('Watch this');
+  });
+
+  it('parses embed with YAML options', () => {
+    const result = parseChat(`~~~~
+::video_1
+  fullscreen: true
+  label: Watch a video
+
+Kim: After the video.
+`);
+    expect(result.body[0].type).toBe('EmbedCommand');
+    expect(result.body[0].ref).toBe('video_1');
+    expect(result.body[0].options).toContain('fullscreen: true');
+    expect(result.body[0].options).toContain('label: Watch a video');
+    expect(result.body[1].speaker).toBe('Kim');
+  });
+
+  it('parses fenced inline OLX', () => {
+    const result = parseChat(`~~~~
+Kim: Try this.
+
+::
+<MCQ id="quick">
+  <Prompt>What is 2+2?</Prompt>
+  <Key>4</Key>
+</MCQ>
+::
+
+Kim: Done.
+`);
+    expect(result.body).toHaveLength(3);
+    const embed = result.body[1];
+    expect(embed.type).toBe('EmbedBlock');
+    expect(embed.ref).toBe(null);
+    expect(embed.content).toContain('<MCQ id="quick">');
+    expect(embed.content).toContain('<Key>4</Key>');
+  });
+
+  it('parses fenced OLX with metadata', () => {
+    const result = parseChat(`~~~~
+:: [display=fullscreen]
+<Video src="lecture.mp4" />
+::
+`);
+    const embed = result.body[0];
+    expect(embed.type).toBe('EmbedBlock');
+    expect(embed.metadata.display).toBe('fullscreen');
+    expect(embed.content).toContain('<Video');
+  });
+
+  it('does not confuse :: in speaker text with embed', () => {
+    const result = parseChat(`~~~~
+Kim: Hello
+Alex: Reply
+`);
+    expect(result.body).toHaveLength(2);
+    expect(result.body[0].speaker).toBe('Kim');
+  });
+
+  it('handles consecutive embeds', () => {
+    const result = parseChat(`~~~~
+::problem_1
+::problem_2
+`);
+    expect(result.body).toHaveLength(2);
+    expect(result.body[0].ref).toBe('problem_1');
+    expect(result.body[1].ref).toBe('problem_2');
+  });
+});
+
 describe('chatUtils', () => {
   describe('byId', () => {
     it('finds elements by ID (message or section)', () => {

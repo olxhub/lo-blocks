@@ -19,7 +19,7 @@ description: Format for dialogue-driven scenarios, simulations, and training mod
  *   or side-effects (e.g. --- waitFor: userInput ---)
  * - Support for structured referencing via ids, allowing external tools to
  *   embed, skip, or navigate sections of the conversation
- * - Line-level comments (# or //), and whitespace-tolerant formatting
+ * - Line-level comments (//), and whitespace-tolerant formatting
  *
  * The goal is to empower content authors to write readable and structured
  * conversational flows without requiring complex tooling, while giving
@@ -45,11 +45,9 @@ description: Format for dialogue-driven scenarios, simulations, and training mod
  * - Support for LLM-driven interludes: conversational loops with an AI agent,
  *   potentially via a `>>> interactWithLLM: { ... }` command or section tag
  * - Variable setting, condition checking, and branching logic
- * - Support for referenced or inline OLX elements, such as:
- *
- *     Bob: Let's think about this.
- *     ::: <problem ref="problem_ref_1"/>
- *
+ * - Inline-in-bubble embeds (::ref:: within speaker text) could allow
+ *   small blocks to render inside a chat bubble. Deferred until there's
+ *   a concrete use case — block-level ::ref handles most scenarios.
  * - Handling of semantic flow cues (e.g. jump, continue, return)
  */
 
@@ -81,7 +79,7 @@ ConversationHeader
 
 // Body of the document: could contain dialogues, commands, etc.
 ConversationBody
-  = lines:(CommentLine / SectionHeaderBlock / BlankLine / WaitCommand / PauseCommand / CommandBlock / ArrowCommand / DialogueGroup)* {
+  = lines:(CommentLine / SectionHeaderBlock / BlankLine / WaitCommand / PauseCommand / CommandBlock / ArrowCommand / EmbedCommand / EmbedBlock / DialogueGroup)* {
       return lines.filter(Boolean);
     }
 
@@ -98,8 +96,8 @@ SectionHeaderTitle
   = chars:[^\r\n\[]+ { return chars.join(''); }
 
 SectionUnderline
-  = _ dashes:"-" dashTail:[\-*+]* _ NewLine {
-      if (dashes.length + dashTail.length >= 3) return null;
+  = _ dash:"-" dashTail:[\-*+]* _ NewLine {
+      if (1 + dashTail.length >= 3) return null;
       expected("at least 3 dashes in section underline");
     }
 
@@ -179,13 +177,60 @@ WaitExpression
   = chars:[^-\r\n]+ { return chars.join('').trim(); }
 
 
+/* ──────────────────────────  Embed directives  ──────────────────────── */
+/*
+ * Block-level embeds reference other blocks or include literal OLX:
+ *
+ *   ::problem_1                         Embed by reference
+ *   ::video_1 [fullscreen]              With inline metadata
+ *   ::video_1                           With YAML-style options
+ *     fullscreen: true
+ *     label: Watch a video
+ *   ::                                  Fenced inline OLX
+ *   <MCQ id="quick">...</MCQ>
+ *   ::
+ *
+ * Future: inline-in-bubble embeds (::ref:: within speaker text) could
+ * allow small blocks inside a chat bubble. Deferred until concrete
+ * use case — block-level ::ref handles most scenarios.
+ */
+
+// Lookahead helper to prevent continuation lines from swallowing embeds
+EmbedStart
+  = _ "::"
+
+// Embed by reference, with optional inline metadata and/or YAML options.
+// The YAML options block (indented lines after the directive) is returned
+// as a raw string for downstream YAML parsing.
+EmbedCommand
+  = _ "::" ref:Identifier _ meta:InlineMetadata? _ NewLine yaml:IndentedBlock? {
+      return { type: "EmbedCommand", ref, metadata: meta || {}, options: yaml || null };
+  }
+
+// Fenced inline OLX — :: opens and closes the block.
+// Everything between the fences is returned as raw content.
+EmbedBlock
+  = _ "::" _ meta:InlineMetadata? _ NewLine content:EmbedBlockContent _ "::" _ NewLine {
+      return { type: "EmbedBlock", ref: null, content: content.trim(), metadata: meta || {} };
+  }
+
+EmbedBlockContent
+  = chars:(!(_ "::" _ NewLine) c:. { return c; })* {
+      return chars.join('');
+  }
+
+
 DialogueGroup
-  = metaAbove:MetadataLine? line:DialogueLine continuation:ContinuationLine* {
-      const textLines = [line.text].concat(continuation.map(c => c.text));
+  = metaAbove:MetadataLine? line:DialogueLine continuation:ContinuationLine* indented:IndentedBlock? {
+      const parts = [line.text].concat(continuation.map(c => c.text));
+      // Join inline text, then append indented block with paragraph break.
+      // Trim trailing newlines (from empty continuation lines) before joining.
+      const inlineText = parts.join("\n");
+      const text = indented ? inlineText.replace(/\n*$/, '') + "\n\n" + indented : inlineText;
       return {
         type: "Line",
         speaker: line.speaker,
-        text: textLines.join("\n"),
+        text,
         metadata: {
           ...(metaAbove ? metaAbove.data : {}),
           ...(line.metadata || {})
@@ -194,8 +239,47 @@ DialogueGroup
   }
 
 ContinuationLine
-  = !SectionHeaderBlockStart !DialogueLineStart !MetadataLineStart !StartCommandBlock !ArrowCommand !PauseCommandStart !WaitCommandStart !CommentLineStart content:LineContent NewLine {
+  = !SectionHeaderBlockStart !DialogueLineStart !MetadataLineStart !StartCommandBlock !ArrowCommand !PauseCommandStart !WaitCommandStart !CommentLineStart !IndentedLine !EmbedStart content:LineContent NewLine {
       return { text: content };
+  }
+
+/* ─────────────────────────  Indented rich content  ───────────────────────── */
+/*
+ * After a speaker line, lines indented 2+ spaces form a rich markdown block.
+ * Within the block, all chatpeg special syntax ([metadata], --- commands)
+ * is treated as literal text — only indentation matters.
+ *
+ * Single blank lines are preserved as paragraph breaks.
+ * Two consecutive blank lines (or a non-indented non-blank line) end the block.
+ *
+ *   Kim: Here's what the research shows:
+ *
+ *     The results were striking:
+ *
+ *     - Testing improved retention by 50%
+ *     - Re-reading only improved it by 20%
+ *
+ *     > Roediger & Karpicke, 2006
+ *
+ *   Alex: Wow! [face=awe]
+ */
+
+IndentedBlock
+  = BlankLine* first:IndentedLine rest:(IndentedBlankLine / IndentedLine)* {
+      return [first, ...rest].join("\n");
+  }
+
+// A content line with 2+ leading spaces (stripped from output)
+IndentedLine
+  = "  " content:[^\r\n]* NewLine {
+      return content.join('');
+  }
+
+// A blank line within an indented block — only valid if followed by another
+// indented line (lookahead prevents consuming trailing blank lines)
+IndentedBlankLine
+  = _ NewLine &((_ NewLine)* IndentedLine) {
+      return "";
   }
 
 DialogueLineStart
@@ -238,9 +322,9 @@ MetadataPair
       return { key, value };
   }
 
-// Comments: lines starting with '#' or '//' and ignored
+// Comments: lines starting with '//'
 CommentLineStart
-  = _ ("#" / "//")
+  = _ "//"
 
 CommentLine
   = CommentLineStart [^\r\n]* NewLine {
@@ -260,6 +344,10 @@ LineContent
       return chars.join('').trim();
     }
 
+// Captures text up to the first `[` (which starts inline metadata).
+// Limitation: literal `[` in speech text is not supported — use an
+// indented block for text containing square brackets.
+// TODO: Add support for escaping (e.g. \[)
 SpeechContent
   = chars:[^\[\r\n]* {
       return chars.join('').trim();

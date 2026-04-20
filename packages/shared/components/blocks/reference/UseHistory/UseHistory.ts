@@ -23,7 +23,8 @@ const UseHistory = dev({
   attributes: z.object({
     target: z_reduxStateKey.optional().describe('Component ID to track'),
     targetRef: z_reduxStateKey.optional().describe('ID of component whose value determines the target'),
-    initial: z.string().optional().describe('Initial history value'),
+    initial: z_reduxStateKey.optional().describe('Initial block to display before any repointing'),
+    appendRepeats: z.boolean().default(false).describe('If true, repointing to a value already in history appends a duplicate dot. If false (default), navigates to the existing entry.'),
   }).strict(),
 });
 

@@ -1,12 +1,94 @@
-// src/components/common/ChatComponent.jsx
+// packages/shared/components/common/ChatComponent.tsx
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import ReactMarkdown from 'react-markdown';
+import RenderMarkdown from '@/components/common/RenderMarkdown';
 import NavArrow from '@/components/common/NavArrow';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import * as cast from '@/lib/avatar/cast';
 import { acceptString } from '@/lib/util/fileTypes';
+import type { Cast, FaceExpression } from '@/lib/avatar/types';
+
+/* ----------------------------------------------------------------
+ * Types
+ * -------------------------------------------------------------- */
+
+/** A chat line from a speaker (chatpeg Line, LLM response, etc.) */
+export interface ChatLineMessage {
+  type: 'Line';
+  speaker: string;
+  text: string;
+  metadata?: Record<string, string>;
+}
+
+/** A system-level notification in the conversation */
+export interface SystemMessageEntry {
+  type: 'SystemMessage';
+  text: string;
+}
+
+/** A date divider between messages */
+export interface DateSeparatorEntry {
+  type: 'DateSeparator';
+  date: string;
+}
+
+/** An LLM tool call (Studio) */
+export interface ToolCallEntry {
+  type: 'ToolCall';
+  name: string;
+  args: Record<string, unknown>;
+  result: string;
+}
+
+/** A pre-rendered React element (embedded blocks, custom content) */
+export interface ElementEntry {
+  type: 'Element';
+  element: React.ReactNode;
+}
+
+export type ChatMessage =
+  | ChatLineMessage
+  | SystemMessageEntry
+  | DateSeparatorEntry
+  | ToolCallEntry
+  | ElementEntry;
+
+export interface FileAttachment {
+  name: string;
+  content: string;
+}
+
+export interface InputFooterProps {
+  id?: string;
+  onSendMessage?: (message: string, file: FileAttachment | null) => void;
+  disabled?: boolean;
+  placeholder?: string;
+  allowFileUpload?: boolean;
+}
+
+export interface AdvanceFooterProps {
+  id?: string;
+  onAdvance: () => void;
+  currentMessageIndex: number;
+  totalMessages: number;
+  disabled?: boolean;
+}
+
+export interface ChatComponentProps {
+  id: string;
+  messages: ChatMessage[];
+  participants?: Cast | null;
+  initialScrollPosition?: 'bottom' | 'top' | number;
+  subtitle?: string | null;
+  footer?: React.ReactNode;
+  height?: string;
+  onAdvance?: (() => void) | null;
+}
+
+/* ----------------------------------------------------------------
+ * Theme tokens
+ * -------------------------------------------------------------- */
 
 // Token-mapped CSS classes — dark mode handled automatically via CSS custom
 // properties (--lo-* tokens).  To render this component on a dark/contrasting
@@ -34,12 +116,19 @@ const t = {
   errorBadge: 'bg-error-subtle text-error',
 };
 
-// Message component for chat lines
-const ChatMessage = ({ message, isSequential, participants }) => {
+/* ----------------------------------------------------------------
+ * Internal message renderers
+ * -------------------------------------------------------------- */
+
+function ChatLine({ message, isSequential, participants }: {
+  message: ChatLineMessage;
+  isSequential: boolean;
+  participants: Cast | null;
+}) {
   const { avatar, name } = cast.avatar({}, {
     who: message.speaker,
     cast: participants ?? {},
-    face: message.metadata?.face,
+    face: message.metadata?.face as FaceExpression | undefined,
   });
 
   return (
@@ -56,15 +145,14 @@ const ChatMessage = ({ message, isSequential, participants }) => {
           <span className={`text-sm font-semibold mb-1 ${t.headerText}`}>{name}</span>
         )}
         <div className={`${t.message} ${t.messageText} p-2 px-3 rounded-lg max-w-md`}>
-          <ReactMarkdown>{message.text || ''}</ReactMarkdown>
+          <RenderMarkdown>{message.text || ''}</RenderMarkdown>
         </div>
       </div>
     </div>
   );
-};
+}
 
-// System message component
-const SystemMessage = ({ message }) => {
+function SystemMsg({ message }: { message: SystemMessageEntry }) {
   return (
     <div className="flex justify-center my-2">
       <span className={`text-xs ${t.systemText} ${t.systemBg} py-1 px-3 rounded-full`}>
@@ -72,10 +160,9 @@ const SystemMessage = ({ message }) => {
       </span>
     </div>
   );
-};
+}
 
-// Date separator component
-const DateSeparator = ({ message }) => {
+function DateDivider({ message }: { message: DateSeparatorEntry }) {
   return (
     <div className="flex justify-center my-4">
       <span className={`text-xs ${t.systemText} ${t.systemBg} py-1 px-3 rounded-full`}>
@@ -83,13 +170,11 @@ const DateSeparator = ({ message }) => {
       </span>
     </div>
   );
-};
+}
 
-// Tool call component - shows what tool the LLM called
-const ToolCallMessage = ({ message }) => {
+function ToolCall({ message }: { message: ToolCallEntry }) {
   const [expanded, setExpanded] = useState(false);
 
-  // Truncate result for synopsis display
   const synopsis = message.result || '(no result)';
   const truncatedSynopsis = synopsis.length > 80
     ? synopsis.slice(0, 80) + '...'
@@ -116,36 +201,39 @@ const ToolCallMessage = ({ message }) => {
       )}
     </div>
   );
-};
+}
 
-export const InputFooter = ({
+/* ----------------------------------------------------------------
+ * InputFooter
+ * -------------------------------------------------------------- */
+
+export const InputFooter: React.FC<InputFooterProps> = ({
   onSendMessage,
   disabled = false,
   placeholder = 'Type a message...',
   allowFileUpload = false,
 }) => {
   const [message, setMessage] = useState('');
-  const [attachedFile, setAttachedFile] = useState(null); // { name, content }
-  const [fileError, setFileError] = useState(null);
-  const fileInputRef = useRef(null);
+  const [attachedFile, setAttachedFile] = useState<FileAttachment | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSend = () => {
-    if ((message.trim() || attachedFile) && !disabled) {
-      // Send message with optional file attachment
-      // File content is passed separately, not embedded in message text
+    if ((message.trim() || attachedFile) && !disabled && onSendMessage) {
       onSendMessage(message, attachedFile);
       setMessage('');
       setAttachedFile(null);
     }
   };
 
-  const handleKeyPress = (e) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && (message.trim() || attachedFile) && !disabled) {
+      e.preventDefault();
       handleSend();
     }
   };
 
-  const handleFileSelect = async (e) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -153,7 +241,7 @@ export const InputFooter = ({
     try {
       const content = await file.text();
       setAttachedFile({ name: file.name, content });
-    } catch (err) {
+    } catch {
       setFileError(`Failed to read ${file.name}`);
     }
 
@@ -163,7 +251,6 @@ export const InputFooter = ({
 
   return (
     <div className={`${t.inputBg} p-3 border-t`}>
-      {/* Show attached file */}
       {attachedFile && (
         <div className={`mb-2 flex items-center text-sm ${t.fileBadge} rounded px-2 py-1`}>
           <span className="me-2">📎</span>
@@ -176,7 +263,6 @@ export const InputFooter = ({
           </button>
         </div>
       )}
-      {/* Show file error */}
       {fileError && (
         <div className={`mb-2 flex items-center text-sm ${t.errorBadge} rounded px-2 py-1`}>
           <span className="flex-1">{fileError}</span>
@@ -189,14 +275,13 @@ export const InputFooter = ({
         </div>
       )}
       <div className="flex items-center">
-        {/* File upload (when enabled) */}
         {allowFileUpload && (
           <>
             <input
               type="file"
               ref={fileInputRef}
               className="hidden"
-              accept={acceptString('uploadable')} // .olx,.xml,.md,.chatpeg,.sortpeg,.js,.jsx,...
+              accept={acceptString('uploadable')}
               onChange={handleFileSelect}
             />
             <button
@@ -217,7 +302,7 @@ export const InputFooter = ({
           placeholder={disabled ? 'Observation mode' : placeholder}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyDown}
           disabled={disabled}
         />
         <button
@@ -234,10 +319,16 @@ export const InputFooter = ({
   );
 };
 
-// Continue/Advance Footer Component
-export const AdvanceFooter = ({ onAdvance, currentMessageIndex, totalMessages, disabled=false }) => {
-  // No global key listeners — advancing is handled by the focused chat region.
+/* ----------------------------------------------------------------
+ * AdvanceFooter
+ * -------------------------------------------------------------- */
 
+export const AdvanceFooter: React.FC<AdvanceFooterProps> = ({
+  onAdvance,
+  currentMessageIndex,
+  totalMessages,
+  disabled = false,
+}) => {
   return (
     <div className="bg-surface p-3 border-t border-border">
       <div className="flex items-center justify-between">
@@ -263,7 +354,10 @@ export const AdvanceFooter = ({ onAdvance, currentMessageIndex, totalMessages, d
   );
 };
 
-// Main Chat Component
+/* ----------------------------------------------------------------
+ * ChatComponent
+ * -------------------------------------------------------------- */
+
 export function ChatComponent({
   id,
   messages,
@@ -273,39 +367,34 @@ export function ChatComponent({
   footer,
   height = 'h-96',
   onAdvance = null,
-}) {
-  const chatContainerRef = useRef(null);
+}: ChatComponentProps) {
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (chatContainerRef.current) {
-      if (initialScrollPosition === 'bottom') {
-        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-      } else if (initialScrollPosition === 'top') {
-        chatContainerRef.current.scrollTop = 0;
-      } else if (typeof initialScrollPosition === 'number') {
-        const messageElements = chatContainerRef.current.querySelectorAll('.message-item');
-        if (messageElements[initialScrollPosition]) {
-          messageElements[initialScrollPosition].scrollIntoView({ behavior: 'smooth' });
-        }
-      }
+    const el = chatContainerRef.current;
+    if (!el) return;
+    if (initialScrollPosition === 'bottom') {
+      el.scrollTop = el.scrollHeight;
+    } else if (initialScrollPosition === 'top') {
+      el.scrollTop = 0;
+    } else if (typeof initialScrollPosition === 'number') {
+      const items = el.querySelectorAll('.message-item');
+      items[initialScrollPosition]?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [initialScrollPosition]);
 
-  // Always scroll to the bottom when new messages are added
+  // Scroll to bottom when new messages arrive
   useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTo({
-        top: chatContainerRef.current.scrollHeight,
-        behavior: 'smooth',
-      });
-    }
+    const el = chatContainerRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
   }, [messages.length]);
 
-  // Handle Space to advance only when this chat region (or its children) has focus.
+  // Space to advance (only when this region has focus)
   const handleKeyDown = useCallback(
-    (e) => {
+    (e: React.KeyboardEvent) => {
       if (!onAdvance) return;
-      if (e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.nativeEvent.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.code === 'Space' || e.key === ' ') {
         e.preventDefault();
         onAdvance();
@@ -314,34 +403,42 @@ export function ChatComponent({
     [onAdvance]
   );
 
-  const renderMessage = (message, index) => {
-    const isSequential = index > 0 &&
-      messages[index - 1].type === 'Line' &&
-      messages[index - 1].speaker === message.speaker;
+  const renderMessage = (message: ChatMessage, index: number) => {
+    const prev = index > 0 ? messages[index - 1] : null;
+    const isSequential =
+      prev?.type === 'Line' &&
+      message.type === 'Line' &&
+      prev.speaker === message.speaker;
 
     switch (message.type) {
       case 'Line':
         return (
           <div key={index} className="message-item">
-            <ChatMessage message={message} isSequential={isSequential} participants={participants} />
+            <ChatLine message={message} isSequential={isSequential} participants={participants ?? null} />
           </div>
         );
       case 'SystemMessage':
         return (
           <div key={index} className="message-item">
-            <SystemMessage message={message} />
+            <SystemMsg message={message} />
           </div>
         );
       case 'DateSeparator':
         return (
           <div key={index} className="message-item">
-            <DateSeparator message={message} />
+            <DateDivider message={message} />
           </div>
         );
       case 'ToolCall':
         return (
           <div key={index} className="message-item">
-            <ToolCallMessage message={message} />
+            <ToolCall message={message} />
+          </div>
+        );
+      case 'Element':
+        return (
+          <div key={index} className="message-item my-4">
+            {message.element}
           </div>
         );
       default:
@@ -355,7 +452,13 @@ export function ChatComponent({
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <span className={`font-semibold ${t.headerText}`}>Chat</span>
-            <span className={`ms-2 ${t.headerSubtle} text-sm`}>{messages.length} messages</span>
+
+            {/* HACK: suppressHydrationWarning because message count can differ
+                between SSR (0 — Redux store not populated) and client (1+ — e.g.
+                useChat initialMessage) -- or so we think. TODO: confirm and
+                investigate proper SSR hydration. */}
+
+            <span className={`ms-2 ${t.headerSubtle} text-sm`} suppressHydrationWarning>{messages.length} messages</span>
           </div>
           {subtitle && (
             <span className={`font-semibold text-sm ${t.headerText}`}>{subtitle}</span>
