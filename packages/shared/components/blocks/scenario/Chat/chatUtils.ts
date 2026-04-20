@@ -4,7 +4,7 @@
 // resolve clip ranges.  Used by _Chat.tsx for the clip= and history= attributes.
 
 import { parse } from './_clipParser';
-import type { ConversationEntry, SectionHeader, ParsedConversation } from './_chatTypes';
+import type { ConversationEntry, SectionHeader } from './_chatTypes';
 
 /* ─────────────────────────────────────────────────────────────────────
  * Types

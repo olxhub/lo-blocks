@@ -162,9 +162,6 @@ export interface CommandBlock {
  * `ref` is an OLX block ID (like BlueprintKidEntry.block.id).
  * `metadata` carries inline [key=value] pairs (display hints).
  * `options` is a raw YAML string from indented lines, or null.
- *
- * TODO: In postprocess, convert these to BlueprintKidEntry block refs
- * using the storeEntry/blockRef pattern (cf. MarkupProblem.ts).
  */
 export interface EmbedCommand {
   type: 'EmbedCommand';

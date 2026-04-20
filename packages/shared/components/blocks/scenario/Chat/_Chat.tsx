@@ -11,7 +11,7 @@ import type { ChatMessage } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
 import { useCast, mergeCasts } from '@/lib/avatar/cast';
 import type { RuntimeProps, PeggyKids, OlxReference, BlueprintKidEntry } from '@/lib/types';
-import type { DialogueLine, EmbedCommand, ParsedConversation } from './_chatTypes';
+import type { ParsedConversation } from './_chatTypes';
 import { useWaitConditions } from './waitConditions';
 
 import * as chatUtils from './chatUtils';
@@ -234,14 +234,6 @@ export function _Chat(props: RuntimeProps) {
           nextIndex += 1;
           setIndex(Math.min(nextIndex, windowRange.end));
           return;
-
-        case 'EmbedBlock':
-          // Normally converted to EmbedCommand by postprocess. If still
-          // present, the content pipeline didn't have parseNode available.
-          console.warn('[Chat] Unconverted EmbedBlock at index', nextIndex + 1,
-            '— inline OLX between :: fences was not parsed. Check that the Chat block is loaded via parseOLX.');
-          nextIndex += 1;
-          continue;
 
         default:
           console.warn('[Chat] Unhandled entry type:', block.type, block);

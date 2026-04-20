@@ -103,7 +103,6 @@ const embedXmlParser = new XMLParser({
 
 async function processEmbedBlocks(
   body: ConversationEntry[],
-  parentId: string,
   parseNode: (node: any, siblings: any[] | null, index: number) => Promise<any>,
   storeEntry: (id: string, entry: any) => void,
 ): Promise<string[]> {
@@ -204,7 +203,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
 
     // Process inline OLX embed blocks → block refs
     if (parseNode) {
-      const blockWarnings = await processEmbedBlocks(parsed.body, id, parseNode, storeEntry);
+      const blockWarnings = await processEmbedBlocks(parsed.body, parseNode, storeEntry);
       if (blockWarnings.length > 0) {
         parsed.headerWarnings = [...(parsed.headerWarnings || []), ...blockWarnings];
       }
