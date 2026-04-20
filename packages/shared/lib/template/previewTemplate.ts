@@ -22,7 +22,13 @@ export function injectPreviewContent(template, content) {
     return { error: `Template is missing ${CONTENT_PLACEHOLDER} placeholder` };
   }
 
-  return { olx: template.replace(CONTENT_PLACEHOLDER, content || '') };
+  let safe = content || '';
+  // If the placeholder sits inside a CDATA section, escape any ]]> in the
+  // content so it doesn't prematurely close the surrounding CDATA.
+  if (template.includes('<![CDATA[' + CONTENT_PLACEHOLDER + ']]>')) {
+    safe = safe.replaceAll(']]>', ']]]]><![CDATA[>');
+  }
+  return { olx: template.replace(CONTENT_PLACEHOLDER, safe) };
 }
 
 /**
