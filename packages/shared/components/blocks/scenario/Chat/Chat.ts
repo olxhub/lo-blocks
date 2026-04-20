@@ -2,13 +2,12 @@
 
 import { z } from 'zod';
 import yaml from 'js-yaml';
-import { XMLParser } from 'fast-xml-parser';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes, cast } from '@/lib/blocks/attributeSchemas';
 import { CHAT_METADATA_KEYS } from '@/lib/content/metadata';
-import { transformTagName } from '@/lib/content/xmlTransforms';
+import { parseXmlFragment } from '@/lib/content/parseOLX';
 import { validateCast, withCastSupport } from '@/lib/avatar/cast';
 import type { ConversationEntry } from './_chatTypes';
 import { refToReduxKey } from '@/lib/blocks/idResolver';
@@ -83,27 +82,15 @@ function parseEmbedOptions(body: ConversationEntry[]): string[] {
   return warnings;
 }
 
-/* ----------------------------------------------------------------
- * Inline OLX parser for EmbedBlock
- * ----------------------------------------------------------------
- * EmbedBlock contains raw OLX XML between :: fences.  We parse it
- * using fast-xml-parser (same config as parseOLX) and run each root
- * element through the content pipeline via parseNode.  The resulting
- * blocks are stored via storeEntry and the EmbedBlock body entry is
- * replaced with an EmbedCommand pointing at the generated block.
+/**
+ * Process inline OLX embed blocks in the chatpeg body.
+ *
+ * EmbedBlock entries contain raw OLX XML between :: fences. We parse them
+ * via parseXmlFragment (shared with parseOLX) and run each root element
+ * through the content pipeline via parseNode. The resulting blocks are
+ * stored via storeEntry and the EmbedBlock entry is replaced with an
+ * EmbedCommand pointing at the generated block.
  */
-
-const embedXmlParser = new XMLParser({
-  ignoreAttributes: false,
-  attributeNamePrefix: '',
-  preserveOrder: true,
-  commentPropName: '#comment',
-  trimValues: false,
-  parseTagValue: false,
-  parseAttributeValue: false,
-  transformTagName,
-});
-
 async function processEmbedBlocks(
   body: ConversationEntry[],
   parseNode: (node: any, siblings: any[] | null, index: number) => Promise<any>,
@@ -116,15 +103,7 @@ async function processEmbedBlocks(
     if (entry.type !== 'EmbedBlock') continue;
 
     try {
-      const xmlContent = entry.content;
-      const tree = embedXmlParser.parse(xmlContent);
-
-      // Find the root element(s) in the parsed tree
-      const elements = Array.isArray(tree) ? tree : [tree];
-      const rootNodes = elements.filter(
-        (node: any) => typeof node === 'object' && node !== null &&
-          Object.keys(node).some((k: string) => k !== '#text' && k !== '#comment' && k !== ':@')
-      );
+      const rootNodes = parseXmlFragment(entry.content);
 
       if (rootNodes.length === 0) {
         warnings.push(`EmbedBlock at position ${i}: no valid XML elements found`);
@@ -135,12 +114,9 @@ async function processEmbedBlocks(
         warnings.push(`EmbedBlock at position ${i}: multiple root elements found (only the first will be used). Wrap in a <Vertical> to include all.`);
       }
 
-      // Process the first root element through the full block pipeline.
-      // parseNode calls the block's parser and storeEntry internally.
       const result = await parseNode(rootNodes[0], rootNodes, 0);
 
       if (result?.id) {
-        // Replace EmbedBlock with EmbedCommand pointing at the parsed block
         body[i] = {
           type: 'EmbedCommand',
           ref: result.id,
