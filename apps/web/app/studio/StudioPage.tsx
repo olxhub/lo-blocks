@@ -239,10 +239,10 @@ function StudioPageContent() {
       try {
         await storage.write(olxPath, content);
         refreshFiles();
-        const result = await storage.read(olxPath);
+        // Switch to the named file — the file-loading effect will read from storage
+        // and set content/metadata with the correct Redux key.
         setFilePath(name);
         updateUrl(name);
-        fileStateRef.current.set(name, { content, metadata: result.metadata });
         notify('success', `Saved ${name}`);
       } catch (err) {
         console.error('Failed to save:', err);
@@ -296,22 +296,18 @@ function StudioPageContent() {
       const olxPath = toOlxRelativePath(path);
       await storage.write(olxPath, fileContent);
       refreshFiles();
-      // Open the new file and get its metadata
-      const result = await storage.read(olxPath);
+      // Switch to the new file — the file-loading effect will read from storage
+      // and set content with the correct Redux key (don't call setContent here;
+      // useFieldState's ref is stale until the next render).
       setFilePath(path);
       updateUrl(path);
-      setContent(result.content);
-      fileStateRef.current.set(path, {
-        content: result.content,
-        metadata: result.metadata,
-      });
       notify('success', `Created ${path}`);
     } catch (err) {
       console.error('Failed to create file:', err);
       notify('error', `Failed to create ${path}`, err instanceof Error ? err.message : String(err));
       throw err; // Re-throw so FilesPanel can handle it
     }
-  }, [refreshFiles, notify, updateUrl, setContent]);
+  }, [refreshFiles, notify, updateUrl]);
 
   const handleFileDelete = useCallback(async (path: string) => {
     try {

@@ -7,7 +7,7 @@
 //
 
 import path from 'path';
-import { PEG_CONTENT_EXTENSIONS } from '@/generated/parserRegistry';
+import { PEG_CONTENT_EXTENSIONS, pegMetadata, pegTemplates } from '@/generated/parserRegistry';
 
 // ============================================================
 // BASE EXTENSION SETS (atoms we compose from)
@@ -178,3 +178,43 @@ export function extensionsWithDots(extensions: readonly string[]): string[] {
 export function acceptString(category: keyof typeof CATEGORY): string {
   return extensionsWithDots(CATEGORY[category]).join(',');
 }
+
+// ============================================================
+// CREATABLE TYPES (for file creation UI)
+// ============================================================
+// PEG types auto-discovered from .pegjs.template.{ext} / .preview.{ext} files.
+// Non-PEG types defined statically below.
+
+export interface CreatableType {
+  label: string;
+  ext: string;
+  template: string;
+}
+
+// Static types (not grammar-based — no auto-discovery for these)
+const STATIC_CREATABLE: Record<string, CreatableType> = {
+  // TODO: OLX template should come from a canonical .template.olx file
+  olx: {
+    label: 'OLX',
+    ext: 'olx',
+    template: `<Vertical>
+  <Markdown>
+# New Content
+
+Start writing here.
+  </Markdown>
+</Vertical>`,
+  },
+  markdown: { label: 'Markdown', ext: 'md', template: '# New Document\n\n' },
+  mermaid: { label: 'Mermaid', ext: 'mmd', template: 'graph TD\n    A[Start] --> B[End]\n' },
+};
+
+// Combine static + auto-discovered PEG types (filtered by creatable flag)
+export const CREATABLE_TYPES: Record<string, CreatableType> = {
+  ...STATIC_CREATABLE,
+  ...Object.fromEntries(
+    Object.entries(pegMetadata)
+      .filter(([ext, meta]) => meta.creatable && pegTemplates[ext])
+      .map(([ext, meta]) => [ext, { label: meta.name, ext, template: pegTemplates[ext]! }])
+  ),
+};

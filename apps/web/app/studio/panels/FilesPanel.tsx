@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import type { UriNode } from '@/lib/lofs/types';
-import { isEditableFile, isOLXFile } from '@/lib/util/fileTypes';
+import { CREATABLE_TYPES } from '@/lib/util/fileTypes';
 import { FORBIDDEN_FILENAME_CHARS } from '@/lib/lofs/types';
 import ExpandIcon from '@/components/common/ExpandIcon';
 
@@ -36,34 +36,27 @@ export function FilesPanel({
   // TODO: Consider moving dialog state to redux for analytics
   const [showNewFileDialog, setShowNewFileDialog] = useState(false);
   const [newFileName, setNewFileName] = useState('');
+  const [newFileType, setNewFileType] = useState('olx');
   const [fileActionPath, setFileActionPath] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+
+  const creatableTypeKeys = Object.keys(CREATABLE_TYPES);
+  const selectedType = CREATABLE_TYPES[newFileType] || CREATABLE_TYPES.olx;
+
+  // Directory derived from current file path
+  const currentDir = currentPath.includes('/') ? currentPath.substring(0, currentPath.lastIndexOf('/')) : '';
 
   const handleCreateFile = async () => {
     if (!newFileName.trim()) return;
 
-    // Determine the filename with extension (use fileTypes for valid extensions)
-    const filename = isEditableFile(newFileName) ? newFileName : `${newFileName}.olx`;
-
-    // Create in the same directory as the current file
-    const currentDir = currentPath.includes('/') ? currentPath.substring(0, currentPath.lastIndexOf('/')) : '';
+    const filename = `${newFileName.trim()}.${selectedType.ext}`;
     const path = currentDir ? `${currentDir}/${filename}` : filename;
 
-    // Template based on extension
-    const template = isOLXFile(filename)
-      ? `<Vertical>
-  <Markdown>
-# New Content
-
-Start writing here.
-  </Markdown>
-</Vertical>`
-      : '';
-
     try {
-      await onFileCreate(path, template);
+      await onFileCreate(path, selectedType.template);
       setShowNewFileDialog(false);
       setNewFileName('');
+      setNewFileType('olx');
     } catch (err) {
       console.error('Failed to create file:', err);
     }
@@ -109,15 +102,31 @@ Start writing here.
       {/* New file dialog */}
       {showNewFileDialog && (
         <div className="file-dialog">
-          <input
-            type="text"
-            className="search-input"
-            placeholder="filename.olx"
-            value={newFileName}
-            onChange={(e) => setNewFileName(sanitizeFileName(e.target.value))}
-            onKeyDown={(e) => e.key === 'Enter' && handleCreateFile()}
-            autoFocus
-          />
+          <div className="file-dialog-dir">in: {currentDir || '/'}</div>
+          <div className="file-dialog-name-row">
+            <input
+              type="text"
+              className="file-dialog-name"
+              placeholder="filename"
+              value={newFileName}
+              onChange={(e) => setNewFileName(sanitizeFileName(e.target.value))}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreateFile()}
+              autoFocus
+            />
+            <span className="file-dialog-ext">.{selectedType.ext}</span>
+          </div>
+          <label className="file-dialog-label">
+            Type:
+            <select
+              className="file-dialog-select"
+              value={newFileType}
+              onChange={(e) => setNewFileType(e.target.value)}
+            >
+              {creatableTypeKeys.map(key => (
+                <option key={key} value={key}>{CREATABLE_TYPES[key].label}</option>
+              ))}
+            </select>
+          </label>
           <div className="file-dialog-actions">
             <button className="file-dialog-btn" onClick={handleCreateFile}>Create</button>
             <button className="file-dialog-btn cancel" onClick={() => setShowNewFileDialog(false)}>Cancel</button>

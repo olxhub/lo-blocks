@@ -66,6 +66,12 @@ export default function PreviewPane({
     );
   }
 
+  // Empty content — nothing to render (avoids crash when parsed.root is null
+  // and the file path falls through as a block reference)
+  if (!content?.trim()) {
+    return <div className="preview-empty">No content to preview</div>;
+  }
+
   // OLX files use RenderOLX with full props
   return (
     <RenderOLX

@@ -13,7 +13,7 @@ import { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { getParserForExtension, type PEGContentExtension } from '@/generated/parserRegistry';
-import { getExtension, isPEGFile, isOLXFile, isMarkdownFile } from '@/lib/util/fileTypes';
+import { getExtension, getContentType, isPEGFile, isOLXFile } from '@/lib/util/fileTypes';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { generateOlxSchema } from './olxSchema';
 
@@ -282,15 +282,16 @@ function getLanguageExtension(language?: CodeLanguage): Extension | undefined {
   }
 }
 
-/** Detect syntax highlighting language from file path */
+/** Detect syntax highlighting language from file path via getContentType(). */
 function detectLanguageFromPath(filePath?: string): CodeLanguage | undefined {
-  if (isOLXFile(filePath)) return 'xml';
-  if (isMarkdownFile(filePath)) return 'md';
-  const ext = getExtension(filePath);
-  if (ext === 'yaml' || ext === 'yml' || ext === 'json') return 'yaml';
-  if (ext === 'js') return 'js';
-  if (ext === 'mmd' || ext === 'mermaid') return 'mermaid';
-  return undefined;
+  const type = getContentType(filePath);
+  switch (type) {
+    case 'olx':      return 'xml';
+    case 'markdown':  return 'md';
+    case 'data':      return 'yaml';
+    case 'mermaid':   return 'mermaid';
+    default:          return undefined;
+  }
 }
 
 /**
