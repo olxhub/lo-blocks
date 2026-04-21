@@ -51,7 +51,7 @@ export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
     }
 
     setLoading(true);
-    fetch(`/api/docs/grammar/${encodeURIComponent(ext)}`)
+    fetch(`/api/docs/grammar/${encodeURIComponent(ext)}?context=studio`)
       .then(res => {
         if (!res.ok) {
           if (res.status === 404) {

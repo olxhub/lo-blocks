@@ -1,0 +1,9 @@
+Select the key terms:
+---
+The [required term|term1] must be selected. A {bonus term|bonus1} is optional. A <<common mistake|trap1>> triggers targeted feedback.
+---
+all: Perfect! You found everything.
+found>=1: Good start, but look for more.
+---
+term1: This is the main concept.
+trap1: This word is related but not quite right.

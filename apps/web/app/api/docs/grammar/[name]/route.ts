@@ -7,9 +7,10 @@ import { getGrammarMetadata } from '@/lib/docs/grammar';
 
 export async function GET(request, { params }) {
   const { name } = await params;
+  const context = new URL(request.url).searchParams.get('context') || undefined;
 
   try {
-    const result = await getGrammarMetadata(name);
+    const result = await getGrammarMetadata(name, { context });
     if (!result.ok) {
       return Response.json(result, { status: 404 });
     }

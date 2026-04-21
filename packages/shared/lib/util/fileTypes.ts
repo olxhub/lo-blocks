@@ -180,6 +180,17 @@ export function acceptString(category: keyof typeof CATEGORY): string {
 }
 
 // ============================================================
+// PREVIEW WRAPPERS (content type → OLX block name for preview)
+// ============================================================
+// Content types whose raw text can be previewed by wrapping in an
+// OLX block.  Add new entries here as block types are created —
+// no changes needed in PreviewPane.
+
+export const PREVIEW_WRAPPER: Partial<Record<ContentType, string>> = {
+  mermaid: 'Mermaid',
+};
+
+// ============================================================
 // CREATABLE TYPES (for file creation UI)
 // ============================================================
 // PEG types auto-discovered from .pegjs.template.{ext} / .preview.{ext} files.
@@ -197,13 +208,31 @@ const STATIC_CREATABLE: Record<string, CreatableType> = {
   olx: {
     label: 'OLX',
     ext: 'olx',
-    template: `<Vertical>
-  <Markdown>
-# New Content
+    template: `<!--
+---
+title: New Content
+description: Describe it here!
+---
+-->
+<Sequential>
 
-Start writing here.
-  </Markdown>
-</Vertical>`,
+<Markdown>
+# Sequential content
+
+This lays out a series of elements students step through!
+</Markdown>
+
+<MarkupProblem id="mcq" title="Question">
+Is this a multiple choice question?
+(x) yes
+( ) no
+</MarkupProblem>
+
+<Vertical>
+  <TalkBubble who="Marianne"><Markdown>I'd like several elements on one screen!</Markdown></TalkBubble>
+  <TalkBubble side="secondary" who="Bob"><Markdown>Why don't you group them in a vertical?</Markdown></TalkBubble>
+</Vertical>
+</Sequential>`,
   },
   markdown: { label: 'Markdown', ext: 'md', template: '# New Document\n\n' },
   mermaid: { label: 'Mermaid', ext: 'mmd', template: 'graph TD\n    A[Start] --> B[End]\n' },

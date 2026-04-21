@@ -1,0 +1,48 @@
+Topic Title
+===
+
+>>Multiple choice: select the best answer<<
+
+( ) Wrong answer {{ Why this is wrong }}
+(x) Correct answer
+( ) Another wrong answer
+
+||Hint: think about...||
+
+[explanation]
+The correct answer is X because...
+[/explanation]
+
+---
+
+>>Check all that apply<<
+
+[x] Correct option
+[ ] Wrong option
+[x] Also correct
+
+---
+
+>>Type your answer<<
+
+= correct answer
+or= alternative spelling
+not= common mistake {{ That's a common error because... }}
+
+---
+
+>>What is 2 + 2?<<
+
+= 4 +- 0.1
+
+---
+
+>>The capital of France is [[London, (Paris), Berlin]]<<
+
+{{
+Hint 1: It's in Europe
+====
+Hint 2: It's known as the City of Light
+====
+Hint 3: It starts with P
+}}
