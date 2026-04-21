@@ -107,7 +107,7 @@ export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
     }
   }, [ext, content]);
 
-  const hasPreview = previewOLX !== null;
+  const hasPreview = !loading && previewOLX !== null;
 
   // Inject content into the preview OLX using shared template logic
   const previewWithContent = useMemo((): { olx: string } | { error: string } | null => {
