@@ -86,7 +86,7 @@ function getEditComponentState(field, provenance, defaultState) {
 function StudioPageContent() {
   // Read initial file from URL query param
   const searchParams = useSearchParams();
-  const initialFile = searchParams.get('file') || 'untitled.olx';
+  const initialFile = searchParams.get('file') || '';
 
   // Debug mode toggle (system-wide setting)
   // TODO: Pass baselineProps from useBaselineProps() instead of null
@@ -168,7 +168,7 @@ function StudioPageContent() {
   // Only load from storage if we haven't loaded this file before -
   // otherwise Redux has the (possibly edited) content cached
   useEffect(() => {
-    if (!filePath || filePath === 'untitled.olx') return;
+    if (!filePath) return;
 
     // If we've already loaded this file, use Redux cache (preserves edits)
     if (fileStateRef.current.has(filePath)) {
@@ -204,7 +204,7 @@ function StudioPageContent() {
   // Update URL without page reload using History API
   const updateUrl = useCallback((path: string, replace = false) => {
     const url = new URL(window.location.href);
-    if (path === 'untitled.olx') {
+    if (!path) {
       url.searchParams.delete('file');
     } else {
       url.searchParams.set('file', path);
@@ -224,6 +224,34 @@ function StudioPageContent() {
   }, [updateUrl]);
 
   const handleSave = useCallback(async (force = false) => {
+    // Untitled file: prompt for a name and save-as
+    if (!filePath) {
+      const name = window.prompt('Save as:', 'document.olx');
+      if (!name) return;
+      let olxPath;
+      try {
+        olxPath = toOlxRelativePath(name);
+      } catch (err) {
+        notify('error', `Invalid filename: ${name}`, err instanceof Error ? err.message : String(err));
+        return;
+      }
+      setSaving(true);
+      try {
+        await storage.write(olxPath, content);
+        refreshFiles();
+        const result = await storage.read(olxPath);
+        setFilePath(name);
+        updateUrl(name);
+        fileStateRef.current.set(name, { content, metadata: result.metadata });
+        notify('success', `Saved ${name}`);
+      } catch (err) {
+        console.error('Failed to save:', err);
+        notify('error', `Failed to save ${name}`, err instanceof Error ? err.message : String(err));
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
     setSaving(true);
     try {
       const previousMetadata = fileStateRef.current.get(filePath)?.metadata;
@@ -261,7 +289,7 @@ function StudioPageContent() {
     } finally {
       setSaving(false);
     }
-  }, [filePath, content, notify]);
+  }, [filePath, content, notify, refreshFiles, updateUrl]);
 
   const handleFileCreate = useCallback(async (path: string, fileContent: string) => {
     try {
@@ -293,8 +321,8 @@ function StudioPageContent() {
       fileStateRef.current.delete(path);
       // If we deleted the current file, clear the editor
       if (path === filePath) {
-        setFilePath('untitled.olx');
-        updateUrl('untitled.olx');
+        setFilePath('');
+        updateUrl('');
         setContent(DEMO_CONTENT);
       }
       notify('success', `Deleted ${path}`);
@@ -332,7 +360,7 @@ function StudioPageContent() {
   useEffect(() => {
     const handlePopState = () => {
       const url = new URL(window.location.href);
-      const fileParam = url.searchParams.get('file') || 'untitled.olx';
+      const fileParam = url.searchParams.get('file') || '';
       if (fileParam !== filePath) {
         setFilePath(fileParam);
       }
@@ -401,7 +429,7 @@ function StudioPageContent() {
         </div>
         <div className="studio-header-center">
           <span className="studio-filepath">
-            {filePath}{isDirty && <span className="studio-dirty-indicator" title="Unsaved changes"> •</span>}
+            {filePath || 'untitled'}{isDirty && <span className="studio-dirty-indicator" title="Unsaved changes"> •</span>}
           </span>
         </div>
         <div className="studio-header-right">
