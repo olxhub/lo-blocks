@@ -42,7 +42,7 @@ export function parseMetadataFromComments(comments: string[]): Record<string, an
     const match = text.match(/^---\s*\n([\s\S]*?)\n\s*---\s*$/);
     if (!match) continue;
     try {
-      return (yaml.load(match[1]) as Record<string, any>) || {};
+      return (yaml.load(match[1], { schema: yaml.JSON_SCHEMA }) as Record<string, any>) || {};
     } catch {
       continue;
     }

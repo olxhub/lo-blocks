@@ -769,7 +769,7 @@ export type ParseError = string | null | {
 };
 
 /**
- * BlueprintKidEntry — a single child element in a parsed block structure.
+ * KidEntry — a single child element in a parsed block structure.
  *
  * Standard OLX parsing produces arrays of these entries as the `kids` field
  * of an OlxJson block.  Each variant represents a different kind of child:
@@ -820,12 +820,12 @@ export type ParseError = string | null | {
  *  chatpeg embed directive `::video_1 [display=fullscreen title="Theory of Foo"]`. */
 export type ParentContext = Record<string, JSONValue>;
 
-export type BlueprintKidEntry =
+export type KidEntry =
   | { type: 'block'; id: OlxReference; overrides?: Record<string, JSONValue>; parentContext?: ParentContext }
   | { type: 'text'; text: string; parentContext?: ParentContext }
   | { type: 'xml'; xml: string; parentContext?: ParentContext }
   | { type: 'cdata'; value: string; parentContext?: ParentContext }
-  | { type: 'html'; tag: string; attributes: Record<string, JSONValue>; kids: BlueprintKidEntry[]; parentContext?: ParentContext }
+  | { type: 'html'; tag: string; attributes: Record<string, JSONValue>; kids: KidEntry[]; parentContext?: ParentContext }
   | { type: 'custom'; subtype: string; data: Record<string, JSONValue>; parentContext?: ParentContext };
 
 /**

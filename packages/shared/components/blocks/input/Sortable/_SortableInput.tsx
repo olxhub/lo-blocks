@@ -41,7 +41,7 @@ export default function _SortableInput(props: RuntimeProps) {
   }
 
   // Fetch block definitions to get attributes
-  type BlockKid = Extract<import('@/lib/types').BlueprintKidEntry, { type: 'block' }>;
+  type BlockKid = Extract<import('@/lib/types').KidEntry, { type: 'block' }>;
   const blockKids = kids.filter((k): k is BlockKid => k.type === 'block');
   const kidIds = blockKids.map((k) => k.id);
   const { olxJsons: kidBlocks } = useOlxJsonMultiple(props, kidIds);

@@ -28,7 +28,7 @@ export function extractMetadata(content) {
   }
 
   try {
-    const parsed = yaml.load(frontmatterMatch[1]);
+    const parsed = yaml.load(frontmatterMatch[1], { schema: yaml.JSON_SCHEMA });
     return typeof parsed === 'object' && parsed !== null ? parsed : {};
   } catch (err) {
     console.warn('[extractMetadata] Failed to parse YAML frontmatter:', err.message);

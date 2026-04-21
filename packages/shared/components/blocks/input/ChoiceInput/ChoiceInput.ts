@@ -9,7 +9,7 @@ import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { isKidArray } from '@/lib/util/kids';
-import type { RuntimeProps, OlxKey, BlueprintKidEntry } from '@/lib/types';
+import type { RuntimeProps, OlxKey, KidEntry } from '@/lib/types';
 import _Noop from '@/components/blocks/layout/_Noop';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import { refToOlxKey } from '@/lib/blocks/idResolver';
@@ -32,7 +32,7 @@ function getChoices(props: RuntimeProps, state, id) {
   // Try to get IDs from kids prop first (works without matching nodeInfo, such as from MarkupProblem)
   if (isKidArray(props.kids)) {
     ids = props.kids
-      .filter((k): k is Extract<BlueprintKidEntry, { type: 'block' }> => k.type === 'block')
+      .filter((k): k is Extract<KidEntry, { type: 'block' }> => k.type === 'block')
       .map(k => refToOlxKey(k.id))
       .filter(cid => {
         const inst = getBlockByOLXId(props, cid);

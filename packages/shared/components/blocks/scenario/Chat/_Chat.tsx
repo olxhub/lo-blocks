@@ -10,7 +10,7 @@ import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/C
 import type { ChatMessage } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
 import { useCast, mergeCasts } from '@/lib/avatar/cast';
-import type { RuntimeProps, ReduxStateKey, PeggyKids, OlxReference, BlueprintKidEntry } from '@/lib/types';
+import type { RuntimeProps, ReduxStateKey, PeggyKids, OlxReference, KidEntry } from '@/lib/types';
 import type { ParsedConversation } from './_chatTypes';
 import { useWaitConditions } from './waitConditions';
 
@@ -156,7 +156,7 @@ export function _Chat(props: RuntimeProps) {
       if (entry.type === 'Line') {
         messages.push(entry);
       } else if (entry.type === 'EmbedCommand') {
-        const blockRef: BlueprintKidEntry = {
+        const blockRef: KidEntry = {
           type: 'block',
           id: entry.ref as OlxReference,
         };

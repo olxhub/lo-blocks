@@ -198,7 +198,7 @@ function useCastYaml(props: RuntimeProps, arrangement: string[]): string {
         if (!memberYaml) continue;
 
         try {
-          const parsed = yaml.load(memberYaml) as Record<string, any>;
+          const parsed = yaml.load(memberYaml, { schema: yaml.JSON_SCHEMA }) as Record<string, any>;
           if (parsed && typeof parsed === 'object') {
             Object.assign(cast, parsed);
           }

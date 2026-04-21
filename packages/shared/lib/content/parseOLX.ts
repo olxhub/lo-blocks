@@ -254,7 +254,7 @@ function extractMetadataFromComment(
 
   try {
     // Parse YAML
-    const parsed = yaml.load(yamlContent);
+    const parsed = yaml.load(yamlContent, { schema: yaml.JSON_SCHEMA });
 
     // Validate with Zod schema
     const result = OLXMetadataSchema.safeParse(parsed);

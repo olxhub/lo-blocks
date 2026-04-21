@@ -32,7 +32,7 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import * as state from '@/lib/state';
 import { problemAttributes } from '@/lib/blocks/attributeSchemas';
 import _CapaProblem from './_CapaProblem';
-import type { ReduxStateKey, BlueprintKidEntry, OlxReference } from '@/lib/types';
+import type { ReduxStateKey, KidEntry, OlxReference } from '@/lib/types';
 
 // Grader-input mapping for auto-wiring targets
 type GraderMapping = { id: ReduxStateKey; inputs: ReduxStateKey[] };
@@ -108,7 +108,7 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
       }
 
       // TODO BUG HACK: CapaProblem generates ReduxStateKey-formatted IDs at parse time,
-      // but BlueprintKidEntry expects OlxReference. This conflates two ID stages:
+      // but KidEntry expects OlxReference. This conflates two ID stages:
       // - OlxReference: static refs in OLX content (e.g., "foo", "./foo")
       // - ReduxStateKey: runtime keys with idPrefix (e.g., "problem:0:foo")
       //
@@ -124,19 +124,19 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
     // HTML tag
     const kids = node[childTag];
     const kidsArray = Array.isArray(kids) ? kids : [];
-    const childKids: BlueprintKidEntry[] = [];
+    const childKids: KidEntry[] = [];
     for (const n of kidsArray) {
       const result = assignIdsAndBuildStructure(n, currentGrader);
-      if (result) childKids.push(result as BlueprintKidEntry);
+      if (result) childKids.push(result as KidEntry);
     }
     return { type: 'html', tag: childTag, attributes: childAttrs, id: childAttrs.id, kids: childKids };
   }
 
   // Assign IDs to all descendants and build kids structure
-  const kidsParsed: BlueprintKidEntry[] = [];
+  const kidsParsed: KidEntry[] = [];
   for (const n of rawKids) {
     const result = assignIdsAndBuildStructure(n, null);
-    if (result) kidsParsed.push(result as BlueprintKidEntry);
+    if (result) kidsParsed.push(result as KidEntry);
   }
 
   // Call parseNode on immediate block children to trigger their parsers
@@ -164,7 +164,7 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
   return id;
 }
 
-function collectIds(nodes: BlueprintKidEntry[] = []) {
+function collectIds(nodes: KidEntry[] = []) {
   return nodes.flatMap(n => {
     if (!n) return [];
     if (n.type === 'block' && n.id) return [n.id];

@@ -170,7 +170,7 @@ export function validateCast(raw: unknown): { cast: Cast; warnings: string[] } {
  * @throws on invalid YAML or schema violations (with case-sensitivity hints)
  */
 export function parseCastYaml(text: string): Cast {
-  const raw = yaml.load(text);
+  const raw = yaml.load(text, { schema: yaml.JSON_SCHEMA });
   if (!raw || typeof raw !== 'object') return {};
   const { cast } = validateCast(raw);
   return cast;
