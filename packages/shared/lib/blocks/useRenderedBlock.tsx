@@ -14,7 +14,8 @@
 //
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
+import { useSelector } from 'react-redux';
 import { useOlxJson } from '@/lib/blocks/useOlxJson';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { renderOlxJson, renderCompiledKids } from '@/lib/render';
@@ -28,7 +29,7 @@ import { selectBlock } from '@/lib/state/olxjson';
 import {
   evaluate, createContext,
   extractStructuredRefs, mergeReferences, EMPTY_REFS,
-  useReferences, selectReferences,
+  selectReferences,
 } from '@/lib/stateLanguage';
 
 export type RenderedBlockResult = BlockDataResult & {
@@ -185,30 +186,8 @@ export function getKidsJson(props: RuntimeProps): any[] {
  * the kids list — e.g. for counting, navigation, tab bars. Blocks that
  * just render all children should use useKids() instead.
  */
-export function useKidsJson(props) {
-  const rawKids = props.kids || [];
-
-  // rawKids is the real dependency; runtime.store and locale are stable across renders
-  const whenMap = useMemo(() => collectWhens(rawKids, props), [rawKids]);
-
-  const allRefs = useMemo(() => {
-    const entries = Object.values(whenMap) as { expr: string }[];
-    if (entries.length === 0) return EMPTY_REFS;
-    return mergeReferences(...entries.map(w => extractStructuredRefs(w.expr)));
-  }, [whenMap]);
-
-  // Single hook call — stable count regardless of how many when= expressions exist
-  const resolved = useReferences(props, allRefs);
-
-  return useMemo(() => {
-    if (Object.keys(whenMap).length === 0) return rawKids;
-    const ctx = createContext(resolved);
-    return rawKids.filter(kid => {
-      const when = whenMap[kid.id];
-      if (!when) return true;
-      return Boolean(evaluate(when.ast, ctx));
-    });
-  }, [rawKids, whenMap, resolved]);
+export function useKidsJson(props: RuntimeProps): any[] {
+  return useSelector((reduxState: any) => selectKidsJson(props, reduxState));
 }
 
 // ─── Public hooks ───────────────────────────────────────────────────────────
