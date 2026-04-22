@@ -51,7 +51,7 @@ import { FieldInfo, OlxReference, OlxKey, ReduxStateKey, RuntimeProps, BaselineP
 import { assertValidField } from './fields';
 import type { Store } from 'redux';
 import { selectBlock, selectBlockState } from './olxjson';
-import { getDomNodeByReduxKey } from '../blocks/olxdom';
+import { getDomNodeByReduxKey, propsFromNode } from '../blocks/olxdom';
 import { ensureBlock } from '../blocks/useOlxJson';
 import { getReduxStoreInstance } from './store';
 
@@ -523,25 +523,23 @@ export function componentFieldByName(props: RuntimeProps, targetId: OlxKey | Red
 
 
 /**
- * Reconstruct a component's RuntimeProps from its OlxJson node and blueprint.
+ * Reconstruct a component's RuntimeProps from its Redux key and blueprint.
  *
  * Used when we need a component's own props outside of its render tree
  * (e.g., calling selectValue from valueSelector). Looks up the component's
- * OlxDomNode by ReduxStateKey for correct runtime context (idPrefix, logEvent).
+ * OlxDomNode by ReduxStateKey — if found, delegates to propsFromNode.
  *
- * Falls back to caller's runtime if the target hasn't been rendered yet.
- *
- * Note: This is a minimal reconstruction — it includes id, attributes, kids,
- * loBlock, fields, locals, and runtime, which is sufficient for selectValue.
- * It does NOT include injected props like extraDebug that the render pipeline
- * adds. If future callers need fuller props, this should be expanded.
+ * Falls back to manual construction with the caller's runtime context if
+ * the target hasn't been rendered yet (no DomNode available).
  */
 export function propsForNode(callerProps: RuntimeProps, reduxKey: ReduxStateKey, node: OlxJson, loBlock: LoBlock) {
   const domNode = callerProps.nodeInfo
     ? getDomNodeByReduxKey(callerProps, reduxKey)
     : null;
 
-  const runtime = domNode?.runtime ?? callerProps.runtime;
+  if (domNode) return propsFromNode(domNode);
+
+  // Pre-render fallback: no DomNode yet, use caller's context
   return {
     ...node.attributes,
     id: node.id,
@@ -549,9 +547,9 @@ export function propsForNode(callerProps: RuntimeProps, reduxKey: ReduxStateKey,
     loBlock,
     fields: loBlock.fields,
     locals: loBlock.locals,
-    runtime,
-    nodeInfo: domNode ?? callerProps.nodeInfo,
-    idPrefix: runtime.idPrefix,
+    runtime: callerProps.runtime,
+    nodeInfo: callerProps.nodeInfo,
+    idPrefix: callerProps.runtime.idPrefix,
   };
 }
 

@@ -229,6 +229,28 @@ export function getDomNodeByReduxKey(props: RuntimeProps, key: ReduxStateKey): O
 }
 
 /**
+ * Build RuntimeProps from an OlxDomNode.
+ *
+ * The OlxDomNode already carries the block's OlxJson, LoBlock, and runtime
+ * context — this just reshapes them into the props object that blueprint
+ * functions (advance, canAdvance, action, selectValue) expect.
+ */
+export function propsFromNode(node: OlxDomNode): RuntimeProps {
+  const { olxJson, loBlock, runtime } = node;
+  return {
+    ...olxJson.attributes,
+    id: olxJson.id,
+    kids: olxJson.kids ?? [],
+    loBlock,
+    fields: loBlock.fields,
+    locals: loBlock.locals,
+    runtime,
+    nodeInfo: node,
+    idPrefix: runtime.idPrefix,
+  } as RuntimeProps;
+}
+
+/**
  * Generic inference utility for finding related nodes by selector.
  *
  * @param {Object} props - Props object (must include 'node' and maybe 'idMap')
