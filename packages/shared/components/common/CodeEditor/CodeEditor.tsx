@@ -78,6 +78,7 @@ export function getEnclosingTagName(state: import('@codemirror/state').EditorSta
   return null;
 }
 
+// TODO: This should not be hardcoded, but come from filetypes
 export type CodeLanguage = 'xml' | 'olx' | 'md' | 'markdown' | 'yaml' | 'json' | 'js' | 'mermaid' | PEGContentExtension;
 
 // PEG parse error type
@@ -260,6 +261,7 @@ function indentText(text: string, baseIndent: string): string {
 }
 
 function getLanguageExtension(language?: CodeLanguage): Extension | undefined {
+  // TODO: This should not be hardcoded, but come from filetypes
   switch (language) {
     case 'xml':
     case 'olx':
@@ -284,13 +286,14 @@ function getLanguageExtension(language?: CodeLanguage): Extension | undefined {
 
 /** Detect syntax highlighting language from file path via getContentType(). */
 function detectLanguageFromPath(filePath?: string): CodeLanguage | undefined {
+  // TODO: This should not be hardcoded, but come from filetypes
   const type = getContentType(filePath);
   switch (type) {
-    case 'olx':      return 'xml';
-    case 'markdown':  return 'md';
-    case 'data':      return 'yaml';
-    case 'mermaid':   return 'mermaid';
-    default:          break;
+    case 'olx': return 'xml';
+    case 'markdown': return 'md';
+    case 'data': return 'yaml';
+    case 'mermaid': return 'mermaid';
+    default: break;
   }
   // TODO/HACK: getContentType groups all code files (js, ts, css, html) as 'code' —
   // check extension directly for languages with CodeMirror support.
