@@ -80,13 +80,14 @@ type ClipAST = ClipNumber | ClipIdentifier | ClipQuoted | ClipRange;
 export function byId(conversation: ConversationBody, id: string): Range | number | false {
   const { body } = conversation;
   const idx = body.findIndex(line =>
-    'metadata' in line && (line.metadata as Record<string, string>).id === id
+    'metadata' in line && line.metadata.id === id
   );
   if (idx === -1) return false;
 
   // If the ID belongs to a SectionHeader, return the full section range
-  if (body[idx].type === 'SectionHeader') {
-    return section(conversation, (body[idx] as SectionHeader).title) ?? false;
+  const entry = body[idx];
+  if (entry.type === 'SectionHeader') {
+    return section(conversation, entry.title) ?? false;
   }
 
   return idx;
@@ -100,7 +101,7 @@ export function listSections(conversation: ConversationBody): SectionHeader[] {
 /** List all IDs found in metadata across all entries. */
 export function listIds(conversation: ConversationBody): string[] {
   return conversation.body
-    .map(line => 'metadata' in line ? (line.metadata as Record<string, string>).id : undefined)
+    .map(line => 'metadata' in line ? line.metadata.id : undefined)
     .filter((id): id is string => Boolean(id));
 }
 
@@ -111,7 +112,7 @@ export function listIds(conversation: ConversationBody): string[] {
 export function section(conversation: ConversationBody, title: string): Range | null {
   const { body } = conversation;
   const start = body.findIndex(
-    line => line.type === 'SectionHeader' && (line as SectionHeader).title.trim() === title.trim()
+    line => line.type === 'SectionHeader' && line.title.trim() === title.trim()
   );
   if (start === -1) return null;
   const next = body.slice(start + 1).findIndex(line => line.type === 'SectionHeader');
