@@ -39,9 +39,10 @@ export function extractMetadata(content) {
 /**
  * Get metadata for a single grammar by name or extension.
  * @param {string} name - Grammar name (e.g., "chat") or extension (e.g., "chatpeg")
+ * @param {{ context?: 'docs' | 'studio' }} [options]
  * @returns {Promise<{ok: true, grammar: object} | {ok: false, error: string}>}
  */
-export async function getGrammarMetadata(name) {
+export async function getGrammarMetadata(name, { context = 'docs' } = {}) {
   const projectRoot = process.cwd();
 
   // Accept both "chat" and "chatpeg"
@@ -82,14 +83,21 @@ export async function getGrammarMetadata(name) {
     }
   }
 
-  // Load preview template if it exists
-  const previewPath = `${grammarDirPath}/${info.grammarName}.pegjs.preview.olx`;
-  try {
-    const fullPath = await resolveSafeReadPath(projectRoot, previewPath);
-    result.preview = await fs.readFile(fullPath, 'utf-8');
-  } catch (err) {
-    if (err.code !== 'ENOENT' && !err.message?.includes('not found')) {
-      console.warn(`[getGrammarMetadata] Could not read preview: ${err.message}`);
+  // Load preview OLX wrapper: studio prefers .template.olx, docs prefers .preview.olx
+  const templateOlx = `${grammarDirPath}/${info.grammarName}.pegjs.template.olx`;
+  const previewOlx = `${grammarDirPath}/${info.grammarName}.pegjs.preview.olx`;
+  const olxCandidates = context === 'studio'
+    ? [templateOlx, previewOlx]
+    : [previewOlx, templateOlx];
+  for (const candidate of olxCandidates) {
+    try {
+      const fullPath = await resolveSafeReadPath(projectRoot, candidate);
+      result.preview = await fs.readFile(fullPath, 'utf-8');
+      break;
+    } catch (err) {
+      if (err.code !== 'ENOENT' && !err.message?.includes('not found')) {
+        console.warn(`[getGrammarMetadata] Could not read preview: ${err.message}`);
+      }
     }
   }
 

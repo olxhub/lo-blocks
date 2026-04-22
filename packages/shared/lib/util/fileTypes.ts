@@ -7,7 +7,7 @@
 //
 
 import path from 'path';
-import { PEG_CONTENT_EXTENSIONS } from '@/generated/parserRegistry';
+import { PEG_CONTENT_EXTENSIONS, pegMetadata, pegTemplates } from '@/generated/parserRegistry';
 
 // ============================================================
 // BASE EXTENSION SETS (atoms we compose from)
@@ -56,35 +56,42 @@ export const CATEGORY = {
 // ============================================================
 
 /**
- * Get the lowercase file extension from a path.
+ * Get the file extension from a path, preserving case.
+ *
+ * Case is significant for registry lookups (e.g. textSelectionpeg).
+ * Comparison functions (fileHasExtension, extInList) handle
+ * case-insensitivity separately.
  *
  * @example
- * getExtension('foo/bar.OLX') // => 'olx'
+ * getExtension('foo/bar.OLX') // => 'OLX'
  * getExtension('file.chatpeg') // => 'chatpeg'
  * getExtension('noextension') // => ''
  */
 export function getExtension(filePath: string | undefined | null): string {
   if (!filePath) return '';
   const ext = path.extname(filePath);
-  return ext ? ext.slice(1).toLowerCase() : '';
+  return ext ? ext.slice(1) : '';
 }
 
 /**
  * Check if a file path has one of the given extensions.
  * Use the named helpers below for common cases.
+ *
+ * Case-sensitive: extensions must be lowercase (e.g. .olx not .OLX).
+ * This is a deliberate policy choice — accepting mixed case now would
+ * force case-insensitivity forever. We can relax later if needed.
  */
 export function fileHasExtension(path: string | undefined | null, extensions: readonly string[]): boolean {
-  const ext = getExtension(path);  // Already lowercased
-  // Case-insensitive comparison (extensions may have mixed case like textSelectionpeg)
-  return ext !== '' && extensions.some(e => e.toLowerCase() === ext);
+  const ext = getExtension(path);
+  return ext !== '' && extensions.includes(ext);
 }
 
 /**
  * Check if an extension (already extracted) is in a list.
- * Use when you already have the extension and don't need path parsing.
+ * Case-sensitive — see fileHasExtension for rationale.
  */
 export function isExtensionIn(ext: string, extensions: readonly string[]): boolean {
-  return ext !== '' && extensions.includes(ext.toLowerCase());
+  return ext !== '' && extensions.includes(ext);
 }
 
 // ============================================================
@@ -100,9 +107,9 @@ export type ContentType = 'olx' | 'markdown' | 'peg' | 'mermaid' | 'data' | 'cas
  * const editors = { olx: OLXEditor, markdown: MarkdownEditor };
  * const Editor = editors[getContentType(path)];
  */
-// Case-insensitive extension check (ext is already lowercased)
+// Case-sensitive — all EXT lists are lowercase; see fileHasExtension for rationale.
 function extInList(ext: string, list: readonly string[]): boolean {
-  return list.some(e => e.toLowerCase() === ext);
+  return list.includes(ext);
 }
 
 export function getContentType(path: string | undefined | null): ContentType {
@@ -178,3 +185,73 @@ export function extensionsWithDots(extensions: readonly string[]): string[] {
 export function acceptString(category: keyof typeof CATEGORY): string {
   return extensionsWithDots(CATEGORY[category]).join(',');
 }
+
+// ============================================================
+// PREVIEW WRAPPERS (content type → OLX block name for preview)
+// ============================================================
+// Content types whose raw text can be previewed by wrapping in an
+// OLX block.  Add new entries here as block types are created —
+// no changes needed in PreviewPane.
+
+export const PREVIEW_WRAPPER: Partial<Record<ContentType, string>> = {
+  mermaid: 'Mermaid',
+};
+
+// ============================================================
+// CREATABLE TYPES (for file creation UI)
+// ============================================================
+// PEG types auto-discovered from .pegjs.template.{ext} / .preview.{ext} files.
+// Non-PEG types defined statically below.
+
+export interface CreatableType {
+  label: string;
+  ext: string;
+  template: string;
+}
+
+// Static types (not grammar-based — no auto-discovery for these)
+const STATIC_CREATABLE: Record<string, CreatableType> = {
+  // TODO: OLX template should come from a canonical .template.olx file
+  olx: {
+    label: 'OLX',
+    ext: 'olx',
+    template: `<!--
+---
+title: New Content
+description: Describe it here!
+---
+-->
+<Sequential>
+
+<Markdown>
+# Sequential content
+
+This lays out a series of elements students step through!
+</Markdown>
+
+<MarkupProblem id="mcq" title="Question">
+Is this a multiple choice question?
+(x) yes
+( ) no
+</MarkupProblem>
+
+<Vertical>
+  <TalkBubble who="Marianne"><Markdown>I'd like several elements on one screen!</Markdown></TalkBubble>
+  <TalkBubble side="secondary" who="Bob"><Markdown>Why don't you group them in a vertical?</Markdown></TalkBubble>
+</Vertical>
+
+</Sequential>`,
+  },
+  markdown: { label: 'Markdown', ext: 'md', template: '# New Document\n\n' },
+  mermaid: { label: 'Mermaid', ext: 'mmd', template: 'graph TD\n    A[Start] --> B[End]\n' },
+};
+
+// Combine static + auto-discovered PEG types (filtered by creatable flag)
+export const CREATABLE_TYPES: Record<string, CreatableType> = {
+  ...STATIC_CREATABLE,
+  ...Object.fromEntries(
+    Object.entries(pegMetadata)
+      .filter(([ext, meta]) => meta.creatable && pegTemplates[ext])
+      .map(([ext, meta]) => [ext, { label: meta.name, ext, template: pegTemplates[ext]! }])
+  ),
+};

@@ -86,7 +86,7 @@ function getEditComponentState(field, provenance, defaultState) {
 function StudioPageContent() {
   // Read initial file from URL query param
   const searchParams = useSearchParams();
-  const initialFile = searchParams.get('file') || 'untitled.olx';
+  const initialFile = searchParams.get('file') || '';
 
   // Debug mode toggle (system-wide setting)
   // TODO: Pass baselineProps from useBaselineProps() instead of null
@@ -167,8 +167,12 @@ function StudioPageContent() {
   // Load file content when filePath changes
   // Only load from storage if we haven't loaded this file before -
   // otherwise Redux has the (possibly edited) content cached
+  //
+  // TODO: This cache-skip logic means externally modified files won't refresh
+  // when re-selected. Need a staleness check (compare metadata) to detect
+  // external changes and offer reload. Related: collaborative editing roadmap.
   useEffect(() => {
-    if (!filePath || filePath === 'untitled.olx') return;
+    if (!filePath) return;
 
     // If we've already loaded this file, use Redux cache (preserves edits)
     if (fileStateRef.current.has(filePath)) {
@@ -198,13 +202,13 @@ function StudioPageContent() {
         notify('error', `Failed to load ${filePath}`, err instanceof Error ? err.message : String(err));
       })
       .finally(() => setLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filePath]); // Only reload when filePath changes
 
   // Update URL without page reload using History API
   const updateUrl = useCallback((path: string, replace = false) => {
     const url = new URL(window.location.href);
-    if (path === 'untitled.olx') {
+    if (!path) {
       url.searchParams.delete('file');
     } else {
       url.searchParams.set('file', path);
@@ -224,6 +228,56 @@ function StudioPageContent() {
   }, [updateUrl]);
 
   const handleSave = useCallback(async (force = false) => {
+    // Untitled file: prompt for a name and save-as
+    // TODO: Replace window.prompt with a proper save-as dialog — directory picker,
+    // file type selector, overwrite warning, validation feedback. Reuse FilesPanel's
+    // file-creation UI or factor out a shared SaveDialog component.
+    if (!filePath) {
+      const name = window.prompt('Save as:', 'document.olx');
+      if (!name) return;
+      let olxPath;
+      try {
+        olxPath = toOlxRelativePath(name);
+      } catch (err) {
+        notify('error', `Invalid filename: ${name}`, err instanceof Error ? err.message : String(err));
+        return;
+      }
+      setSaving(true);
+      try {
+        // Check if file already exists — don't silently overwrite
+        // TODO: Replace confirm() with a proper modal
+        // TODO: Race condition. Read then write. LOFS needs a rewrite.
+        try {
+          await storage.read(olxPath);
+          // File exists — confirm overwrite
+          if (!window.confirm(`${name} already exists. Overwrite?`)) {
+            setSaving(false);
+            return;
+          }
+        } catch {
+          // File doesn't exist — safe to create
+        }
+        await storage.write(olxPath, content);
+        // Re-read to get metadata for conflict detection on subsequent saves
+        const result = await storage.read(olxPath);
+        refreshFiles();
+        // Update cache so the file-loading effect doesn't show stale content
+        // (it skips files already in fileStateRef)
+        fileStateRef.current.set(name, {
+          content,
+          metadata: result.metadata,
+        });
+        setFilePath(name);
+        updateUrl(name);
+        notify('success', `Saved ${name}`);
+      } catch (err) {
+        console.error('Failed to save:', err);
+        notify('error', `Failed to save ${name}`, err instanceof Error ? err.message : String(err));
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
     setSaving(true);
     try {
       const previousMetadata = fileStateRef.current.get(filePath)?.metadata;
@@ -261,29 +315,27 @@ function StudioPageContent() {
     } finally {
       setSaving(false);
     }
-  }, [filePath, content, notify]);
+  }, [filePath, content, notify, refreshFiles, updateUrl]);
 
+  // TODO: handleFileCreate can silently overwrite an existing file with the same name.
+  // Should check existence first and confirm, similar to save-as above.
   const handleFileCreate = useCallback(async (path: string, fileContent: string) => {
     try {
       const olxPath = toOlxRelativePath(path);
       await storage.write(olxPath, fileContent);
       refreshFiles();
-      // Open the new file and get its metadata
-      const result = await storage.read(olxPath);
+      // Switch to the new file — the file-loading effect will read from storage
+      // and set content with the correct Redux key (don't call setContent here;
+      // useFieldState's ref is stale until the next render).
       setFilePath(path);
       updateUrl(path);
-      setContent(result.content);
-      fileStateRef.current.set(path, {
-        content: result.content,
-        metadata: result.metadata,
-      });
       notify('success', `Created ${path}`);
     } catch (err) {
       console.error('Failed to create file:', err);
       notify('error', `Failed to create ${path}`, err instanceof Error ? err.message : String(err));
       throw err; // Re-throw so FilesPanel can handle it
     }
-  }, [refreshFiles, notify, updateUrl, setContent]);
+  }, [refreshFiles, notify, updateUrl]);
 
   const handleFileDelete = useCallback(async (path: string) => {
     try {
@@ -293,8 +345,8 @@ function StudioPageContent() {
       fileStateRef.current.delete(path);
       // If we deleted the current file, clear the editor
       if (path === filePath) {
-        setFilePath('untitled.olx');
-        updateUrl('untitled.olx');
+        setFilePath('');
+        updateUrl('');
         setContent(DEMO_CONTENT);
       }
       notify('success', `Deleted ${path}`);
@@ -332,7 +384,7 @@ function StudioPageContent() {
   useEffect(() => {
     const handlePopState = () => {
       const url = new URL(window.location.href);
-      const fileParam = url.searchParams.get('file') || 'untitled.olx';
+      const fileParam = url.searchParams.get('file') || '';
       if (fileParam !== filePath) {
         setFilePath(fileParam);
       }
@@ -401,7 +453,7 @@ function StudioPageContent() {
         </div>
         <div className="studio-header-center">
           <span className="studio-filepath">
-            {filePath}{isDirty && <span className="studio-dirty-indicator" title="Unsaved changes"> •</span>}
+            {filePath || 'untitled'}{isDirty && <span className="studio-dirty-indicator" title="Unsaved changes"> •</span>}
           </span>
         </div>
         <div className="studio-header-right">
@@ -539,6 +591,11 @@ function StudioPageContent() {
               <div className="studio-preview-pane">
                 <div className="studio-preview-header">Preview</div>
                 <div className="studio-preview-content">
+                  {/* TODO/BUG: Translanguaging auto-translates the preview back to the
+                      user's locale. Editing file.pl.olx shows an English preview, defeating
+                      the purpose. Studio preview should disable translanguaging or pin locale
+                      to the file's language. LanguageSwitcher already has a translanguaging
+                      prop — need to thread it through RenderOLX/PreviewPane. */}
                   <PreviewPane path={filePath} content={content} idMap={idMap} />
                 </div>
               </div>

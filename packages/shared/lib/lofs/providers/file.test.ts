@@ -45,7 +45,7 @@ describe('FileStorageProvider security', () => {
 
     test('rejects Windows-style backslash traversal at type boundary', () => {
       expect(() => toOlxRelativePath('..\\..\\etc\\passwd'))
-        .toThrow(/not allowed in filenames/);
+        .toThrow(/not allowed|Hidden/);
     });
 
     test('rejects write with path traversal', async () => {

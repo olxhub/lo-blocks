@@ -9,7 +9,7 @@ import { useMemo } from 'react';
 import RenderOLX from './RenderOLX';
 import PEGPreviewPane from './PEGPreviewPane';
 import RenderMarkdown from './RenderMarkdown';
-import { isPEGFile, isMarkdownFile } from '@/lib/util/fileTypes';
+import { isPEGFile, isMarkdownFile, getContentType, PREVIEW_WRAPPER } from '@/lib/util/fileTypes';
 import { NetworkStorageProvider } from '@/lib/lofs';
 import type { IdMap, OlxDomNode } from '@/lib/types';
 import type { StorageProvider } from '@/lib/lofs/types';
@@ -64,6 +64,28 @@ export default function PreviewPane({
         <RenderMarkdown>{content}</RenderMarkdown>
       </div>
     );
+  }
+
+  // Content types with a 1:1 OLX block wrapper (mermaid, observable, etc.)
+  // TODO: This should probably use `src=`
+  // TODO: This should probably not be inlined but come in from templates
+  const wrapperBlock = PREVIEW_WRAPPER[getContentType(path)];
+  if (wrapperBlock) {
+    if (!content?.trim()) {
+      return <div className="preview-empty">No content to preview</div>;
+    }
+    return (
+      <RenderOLX
+        id={path || '_preview'}
+        inline={`<${wrapperBlock}><![CDATA[\n${content}\n]]></${wrapperBlock}>`}
+      />
+    );
+  }
+
+  // Empty content — nothing to render (avoids crash when parsed.root is null
+  // and the file path falls through as a block reference)
+  if (!content?.trim()) {
+    return <div className="preview-empty">No content to preview</div>;
   }
 
   // OLX files use RenderOLX with full props

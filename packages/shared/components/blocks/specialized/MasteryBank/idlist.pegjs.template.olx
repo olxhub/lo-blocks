@@ -1,0 +1,10 @@
+<Markdown>
+## ID List
+
+```
+{{CONTENT}}
+```
+
+One problem ID per line. These IDs reference CapaProblem blocks
+defined elsewhere in the course.
+</Markdown>

@@ -1,6 +1,6 @@
 // src/components/blocks/TextSelection/TextSelection.ts
 import { z } from 'zod';
-import { core } from '@/lib/blocks';
+import { test } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as blocks from '@/lib/blocks';
@@ -16,7 +16,7 @@ export const fields = state.fields([
   'checked',               // Whether graded mode has been checked
 ]);
 
-const TextSelection = core({
+const TextSelection = test({
   ...peggyParser(parser),
   ...blocks.input({
     selectValue: (props, state, _reduxKey) => {
@@ -37,7 +37,7 @@ const TextSelection = core({
   }),
   name: 'TextSelection',
   category: 'language-arts',
-  description: 'Interactive text highlighting exercise with feedback',
+  description: 'Prototype text highlighting exercise. Works for wireframing courses; scoring and feedback rules are placeholders pending integration with the expression language and Capa grading system.',
   component: _TextSelection,
   fields,
   attributes: z.object({

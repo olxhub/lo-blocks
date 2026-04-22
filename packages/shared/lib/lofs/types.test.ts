@@ -14,7 +14,7 @@ describe('validatePathSegment', () => {
     });
   });
 
-  describe('rejects spaces and punctuation', () => {
+  describe('rejects shell metacharacters and punctuation', () => {
     it('rejects space', () => {
       expect(validatePathSegment('file name.olx')).toMatch(/not allowed/);
     });
@@ -22,6 +22,11 @@ describe('validatePathSegment', () => {
     it('rejects exclamation mark', () => {
       expect(validatePathSegment('hello!.olx')).toMatch(/not allowed/);
     });
+
+    it.each(['@', '$', '%', '^', '&', '~', '`', ';', '(', ')', '{', '}', '[', ']', "'", '+', '=', ','])
+      ('rejects "%s"', (char) => {
+        expect(validatePathSegment(`file${char}name.olx`)).toMatch(/not allowed/);
+      });
   });
 
   describe('rejects control characters', () => {
@@ -54,8 +59,8 @@ describe('validatePathSegment', () => {
       'my-file_v2.olx',
       'André.olx',
       'café.md',
-      'file(copy).olx',
-      '100%.olx',
+      'rozprawka_o_łodzi.olx',
+      '日本語.olx',
     ])('accepts "%s"', (name) => {
       expect(validatePathSegment(name)).toBeNull();
     });
@@ -86,6 +91,12 @@ describe('toOlxRelativePath', () => {
 
     it('rejects exclamation mark', () => {
       expect(() => toOlxRelativePath('wow!/file.olx')).toThrow(/not allowed/);
+    });
+
+    it('rejects shell metacharacters', () => {
+      expect(() => toOlxRelativePath('dir/file$name.olx')).toThrow(/not allowed/);
+      expect(() => toOlxRelativePath('dir/file;name.olx')).toThrow(/not allowed/);
+      expect(() => toOlxRelativePath('dir/file`name.olx')).toThrow(/not allowed/);
     });
   });
 
