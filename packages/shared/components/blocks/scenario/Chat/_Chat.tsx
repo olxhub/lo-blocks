@@ -1,16 +1,16 @@
 // packages/shared/components/blocks/scenario/Chat/_Chat.tsx
 'use client';
 
-import React, { useCallback, useMemo, useEffect, useRef } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
-import { useFieldState, updateField } from '@/lib/state';
-import { refToReduxKey } from '@/lib/blocks/idResolver';
+import { useFieldState } from '@/lib/state';
 import { renderCompiledKids } from '@/lib/render';
+import { advanceFrom } from '@/lib/advance';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
 import type { ChatMessage } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
 import { useCast, mergeCasts } from '@/lib/avatar/cast';
-import type { RuntimeProps, ReduxStateKey, PeggyKids, OlxReference, KidEntry } from '@/lib/types';
+import type { RuntimeProps, PeggyKids, OlxReference, KidEntry } from '@/lib/types';
 import type { ParsedConversation } from './_chatTypes';
 import { useWaitConditions } from './waitConditions';
 
@@ -18,62 +18,11 @@ import * as chatUtils from './chatUtils';
 import type { ClipResolution } from './chatUtils';
 
 /* ----------------------------------------------------------------
- * Advance Handler Registry
- * -------------------------------------------------------------- */
-// Module-global registry so the action system (advanceChat in Chat.ts)
-// can trigger chat progression without a direct component reference.
-// Keyed by ReduxStateKey so scoped instances (e.g. inside DynamicList)
-// each get their own entry.
-//
-// TODO: Replace with a Redux action or ref callback to avoid the
-// module-global Map.
-const advanceHandlers = new Map<ReduxStateKey, () => void>();
-
-export function registerChatAdvanceHandler(key: ReduxStateKey, handler: () => void) {
-  if (!key || typeof handler !== 'function') return;
-  advanceHandlers.set(key, handler);
-}
-
-export function unregisterChatAdvanceHandler(key: ReduxStateKey, handler: () => void) {
-  if (!key) return;
-  const existing = advanceHandlers.get(key);
-  if (existing === handler) {
-    advanceHandlers.delete(key);
-  }
-}
-
-export function callChatAdvanceHandler(key: ReduxStateKey): boolean {
-  const handler = advanceHandlers.get(key);
-  if (typeof handler === 'function') {
-    handler();
-    return true;
-  }
-  console.warn(`[Chat] No advance handler registered for ${key}`);
-  return false;
-}
-
-/* ----------------------------------------------------------------
- * Custom Hook for Handler Registration
- * -------------------------------------------------------------- */
-
-export function useChatAdvanceRegistration(key: ReduxStateKey, handler: () => void) {
-  useEffect(() => {
-    registerChatAdvanceHandler(key, handler);
-    return () => unregisterChatAdvanceHandler(key, handler);
-  }, [key, handler]);
-}
-
-/* ----------------------------------------------------------------
  * Main Component
  * -------------------------------------------------------------- */
 
 export function _Chat(props: RuntimeProps) {
   const { id, fields, kids, clip, history } = props;
-
-  // Stable ref for props — used in handleAdvance callback to avoid
-  // recreating the handler every render (props object is new each time).
-  const propsRef = useRef(props);
-  propsRef.current = props;
 
   const parsed = (kids as unknown as PeggyKids<ParsedConversation>).parsed;
 
@@ -137,7 +86,7 @@ export function _Chat(props: RuntimeProps) {
    * `index` counts how many raw entries we've consumed
    * (including command entries that never appear in the UI)
    */
-  const [index, setIndex] = useFieldState(
+  const [index] = useFieldState(
     props,
     fields.value,
     clipRange.start // start by showing the first block
@@ -188,66 +137,20 @@ export function _Chat(props: RuntimeProps) {
   /* ----------------------------------------------------------------
    * Wait conditions - check if we can advance past any wait commands
    * -------------------------------------------------------------- */
-  const { canAdvance, isWaitSatisfied } = useWaitConditions(props, allEntries, windowedIndex, windowRange.end);
+  const { canAdvance } = useWaitConditions(props, allEntries, windowedIndex, windowRange.end);
 
   /* ----------------------------------------------------------------
-   * Advance handler
+   * Advance handler — delegates to the blueprint advance function
+   * via advanceFrom, which is the same path the global spacebar uses.
    * -------------------------------------------------------------- */
-  const [sectionHeader, setSectionHeader] = useFieldState(props, fields.sectionHeader);
+  const [sectionHeader] = useFieldState(props, fields.sectionHeader);
 
   const isDisabled = !canAdvance;
 
   const handleAdvance = useCallback(() => {
-    if (!canAdvance) return;
-
-    let nextIndex = windowedIndex;
-    while (nextIndex < windowRange.end) {
-      const block = allEntries[nextIndex + 1];
-      if (!block) break;
-
-      switch (block.type) {
-        case 'ArrowCommand':
-          updateField(propsRef.current, fields.value, block.target, { reduxKey: refToReduxKey({ ...propsRef.current, id: block.source as OlxReference }) });
-          nextIndex += 1;
-          continue;
-
-        case 'WaitCommand':
-          if (!isWaitSatisfied(block)) {
-            // Unsatisfied wait - stop here, user must wait for condition
-            setIndex(Math.min(nextIndex, windowRange.end));
-            return;
-          }
-          // Satisfied - skip past it
-          nextIndex += 1;
-          continue;
-
-        case 'SectionHeader':
-          setSectionHeader(block.title);
-          nextIndex += 1;
-          continue;
-
-        case 'Line':
-        case 'PauseCommand':
-          nextIndex += 1;
-          setIndex(Math.min(nextIndex, windowRange.end));
-          return;
-
-        case 'EmbedCommand':
-          // Rendered as ElementEntry in visibleMessages via renderCompiledKids
-          nextIndex += 1;
-          setIndex(Math.min(nextIndex, windowRange.end));
-          return;
-
-        default:
-          console.warn('[Chat] Unhandled entry type:', block.type, block);
-          nextIndex += 1;
-          break;
-      }
-    }
-    setIndex(Math.min(nextIndex, windowRange.end));
-  }, [canAdvance, isWaitSatisfied, fields.value, windowedIndex, windowRange, allEntries, setIndex, setSectionHeader]);
-
-  useChatAdvanceRegistration(refToReduxKey(props), handleAdvance);
+    const state = props.runtime.store.getState();
+    advanceFrom(props.nodeInfo, state);
+  }, [props.nodeInfo, props.runtime.store]);
 
   /* ----------------------------------------------------------------
    * Footers
@@ -311,7 +214,6 @@ export function _Chat(props: RuntimeProps) {
         participants={participants}
         subtitle={sectionHeader}
         footer={footer}
-        onAdvance={handleAdvance}
         height={props.height ?? 'flex-1'}
       />
     </>

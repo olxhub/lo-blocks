@@ -1,10 +1,13 @@
-// src/components/blocks/_Sequential.jsx
+// packages/shared/components/blocks/layout/Sequential/_Sequential.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { useFieldState } from '@/lib/state';
 import { useKids, useKidsJson } from '@/lib/render';
+import { refToReduxKey } from '@/lib/blocks/idResolver';
+import { canAdvanceFrom } from '@/lib/advance';
 import HistoryBar from '@/components/common/HistoryBar';
 import NavArrow from '@/components/common/NavArrow';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
@@ -67,6 +70,19 @@ export default function _Sequential(props: RuntimeProps) {
   if (clampedIndex !== index && numItems > 0) setIndex(clampedIndex);
 
   const currentChild = clampedIndex >= 0 && clampedIndex < numItems ? kidsJson[clampedIndex] : null;
+
+  // Check if the current child (or its descendants) can advance.
+  // When true, spacebar will advance the child — so dim the Next button
+  // to signal that Next isn't the primary action right now.
+  const childCanAdvance = useSelector((reduxState: any) => {
+    if (!currentChild) return false;
+    const kidId = currentChild.id ?? currentChild.tag;
+    if (!kidId) return false;
+    const reduxKey = refToReduxKey({ id: kidId, idPrefix: props.runtime.idPrefix });
+    const childNode = props.nodeInfo?.renderedKids?.[reduxKey];
+    if (!childNode) return false;
+    return canAdvanceFrom(childNode, reduxState);
+  });
 
   // Navigation handlers
   const handlePrev = () => {
@@ -133,7 +149,13 @@ export default function _Sequential(props: RuntimeProps) {
           <button
             onClick={handleNext}
             disabled={index >= numItems - 1}
-            className="px-4 py-2 bg-accent text-inverse rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent-hover inline-flex items-center gap-1"
+            className={`px-4 py-2 rounded inline-flex items-center gap-1 ${
+              index >= numItems - 1
+                ? 'bg-accent text-inverse opacity-50 cursor-not-allowed'
+                : childCanAdvance
+                  ? 'bg-muted text-dimmed hover:bg-accent hover:text-inverse'
+                  : 'bg-accent text-inverse hover:bg-accent-hover'
+            }`}
           >
             {t('next')} <NavArrow direction="forward" />
           </button>

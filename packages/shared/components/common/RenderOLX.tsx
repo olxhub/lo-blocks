@@ -60,6 +60,7 @@ import { useDebugSettings } from '@/lib/state/debugSettings';
 import { settings } from '@/lib/state/settings';
 import { useSetting } from '@/lib/state/settingsAccess';
 import { getTextDirection, getBrowserLocale } from '@/lib/i18n/getTextDirection';
+import { registerAdvanceRoot, unregisterAdvanceRoot } from '@/lib/advance';
 import type { BaselineProps, IdPrefix, LoBlockRuntimeContext, OlxDomNode, UserLocale, ProvenanceURI, OLXLoadingError } from '@/lib/types';
 
 // Stable no-op for replay mode - avoids creating new function on each render
@@ -446,6 +447,14 @@ export default function RenderOLX({
   }
   // Keep runtime current (locale, logEvent, etc. can change between renders)
   stableRootRef.current.runtime = runtime;
+
+  // Register root for global spacebar advance
+  useEffect(() => {
+    const root = stableRootRef.current;
+    if (!root) return;
+    registerAdvanceRoot(root);
+    return () => unregisterAdvanceRoot(root);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- stable root, runs once
 
   // Expose root nodeInfo to callers (see timing caveat on nodeInfoRef prop)
   if (nodeInfoRef) {
