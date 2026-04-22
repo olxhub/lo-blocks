@@ -21,7 +21,7 @@ import { renderOlxJson, renderCompiledKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
 import TranslatingIndicator from '@/lib/i18n/TranslatingIndicator';
-import type { OlxReference, BlockDataResult, OlxJson } from '@/lib/types';
+import type { OlxReference, BlockDataResult, OlxJson, RuntimeProps } from '@/lib/types';
 import { blockData } from '@/lib/state/redux';
 import { refToOlxKey } from '@/lib/blocks/idResolver';
 import { selectBlock } from '@/lib/state/olxjson';
@@ -153,8 +153,8 @@ function collectWhens(kids, props) {
  * Use in blueprint functions (advance, canAdvance, actions) where hooks
  * are unavailable.  Composable — wrap with `.length` for kid count, etc.
  */
-export function selectKidsJson(props, reduxState) {
-  const rawKids = props.kids || [];
+export function selectKidsJson(props: RuntimeProps, reduxState: any): any[] {
+  const rawKids = (props.kids || []) as any[];
   const whenMap = collectWhens(rawKids, props);
   if (Object.keys(whenMap).length === 0) return rawKids;
 
@@ -174,7 +174,7 @@ export function selectKidsJson(props, reduxState) {
 }
 
 /** One-shot imperative form: grabs current state and calls selectKidsJson. */
-export function getKidsJson(props) {
+export function getKidsJson(props: RuntimeProps): any[] {
   return selectKidsJson(props, props.runtime.store.getState());
 }
 

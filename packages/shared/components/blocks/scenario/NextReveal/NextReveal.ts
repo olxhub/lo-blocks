@@ -1,9 +1,10 @@
-// src/components/blocks/layout/NextReveal/NextReveal.js
+// packages/shared/components/blocks/scenario/NextReveal/NextReveal.ts
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
 import { advanceChildren, canAdvanceChildren } from '@/lib/advance';
 import { selectKidsJson } from '@/lib/render';
+import type { RuntimeProps } from '@/lib/types';
 import _NextReveal from './_NextReveal';
 
 export const fields = state.fields([
@@ -19,14 +20,14 @@ export const fields = state.fields([
  * next" as our own fallback.
  * -------------------------------------------------------------- */
 
-function nextRevealCanAdvance(props, reduxState) {
+function nextRevealCanAdvance(props: RuntimeProps, reduxState: any): boolean {
   if (canAdvanceChildren(props.nodeInfo, reduxState)) return true;
   const numItems = selectKidsJson(props, reduxState).length;
   const currentStep = state.fieldSelector(reduxState, props, fields.currentStep, { fallback: 1 });
   return currentStep < numItems;
 }
 
-function nextRevealAdvance(props, reduxState) {
+function nextRevealAdvance(props: RuntimeProps, reduxState: any): boolean {
   if (advanceChildren(props.nodeInfo, reduxState)) return true;
 
   const numItems = selectKidsJson(props, reduxState).length;

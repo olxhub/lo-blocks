@@ -66,14 +66,13 @@ function getChatState(props: RuntimeProps, reduxState: any) {
   // Read current index from Redux
   const index = state.fieldSelector(reduxState, props, fields.value, { fallback: clipStart });
   const windowedIndex = Math.max(clipStart, Math.min(index, clipEnd));
-  const windowEnd = clipEnd;
 
   // Build wait condition context
   const allRefs = extractWaitRefs(allEntries);
   const resolved = selectReferences(reduxState, props, allRefs);
   const waitContext = createContext(resolved);
 
-  return { parsed, allEntries, clipStart, clipEnd, windowedIndex, windowEnd, historyStart, waitContext };
+  return { allEntries, clipStart, clipEnd, windowedIndex, waitContext };
 }
 
 /** Extract all wait command references from entries. */
@@ -89,30 +88,24 @@ function extractWaitRefs(entries: ConversationEntry[]) {
 }
 
 function chatCanAdvance(props: RuntimeProps, reduxState: any): boolean {
-  const { allEntries, windowedIndex, windowEnd, clipEnd, waitContext } = getChatState(props, reduxState);
-
-  // Conversation finished
-  if (windowedIndex >= clipEnd) return false;
-
-  // Blocked on a wait condition — still "active" (return true so parent doesn't advance past us)
-  // but canAdvanceToContent returns false when blocked
-  return true;
+  const { windowedIndex, clipEnd } = getChatState(props, reduxState);
+  return windowedIndex < clipEnd;
 }
 
 function chatAdvance(props: RuntimeProps, reduxState: any): boolean {
-  const { allEntries, windowedIndex, windowEnd, clipEnd, waitContext } = getChatState(props, reduxState);
+  const { allEntries, windowedIndex, clipEnd, waitContext } = getChatState(props, reduxState);
 
   // Conversation finished
   if (windowedIndex >= clipEnd) return false;
 
   // Check if next content is reachable (may be blocked by wait)
-  if (!canAdvanceToContent(allEntries, windowedIndex, windowEnd, waitContext)) {
+  if (!canAdvanceToContent(allEntries, windowedIndex, clipEnd, waitContext)) {
     return true; // blocked on wait — still active, don't let parent advance past us
   }
 
   // Step through entries, executing commands and stopping at content
   let nextIndex = windowedIndex;
-  while (nextIndex < windowEnd) {
+  while (nextIndex < clipEnd) {
     const block = allEntries[nextIndex + 1];
     if (!block) break;
 
@@ -126,7 +119,7 @@ function chatAdvance(props: RuntimeProps, reduxState: any): boolean {
 
       case 'WaitCommand':
         if (!evaluateWaitEntry(block, waitContext)) {
-          state.updateField(props, fields.value, Math.min(nextIndex, windowEnd));
+          state.updateField(props, fields.value, Math.min(nextIndex, clipEnd));
           return true; // blocked — still active
         }
         nextIndex += 1;
@@ -141,7 +134,7 @@ function chatAdvance(props: RuntimeProps, reduxState: any): boolean {
       case 'PauseCommand':
       case 'EmbedCommand':
         nextIndex += 1;
-        state.updateField(props, fields.value, Math.min(nextIndex, windowEnd));
+        state.updateField(props, fields.value, Math.min(nextIndex, clipEnd));
         return true;
 
       default:
@@ -151,7 +144,7 @@ function chatAdvance(props: RuntimeProps, reduxState: any): boolean {
     }
   }
 
-  state.updateField(props, fields.value, Math.min(nextIndex, windowEnd));
+  state.updateField(props, fields.value, Math.min(nextIndex, clipEnd));
   return nextIndex < clipEnd;
 }
 
@@ -159,7 +152,8 @@ function chatAdvance(props: RuntimeProps, reduxState: any): boolean {
  * Action handler — targeted advance from ActionButton
  * -------------------------------------------------------------- */
 
-function advanceChat({ targetId, props }: { targetId: OlxKey; props: RuntimeProps }) {
+// Action signature requires targetId but Chat advances itself, not a target.
+function advanceChat({ props }: { targetId: OlxKey; props: RuntimeProps }) {
   const reduxState = props.runtime.store.getState();
   chatAdvance(props, reduxState);
 }
