@@ -3,7 +3,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useFieldState } from '@/lib/state';
-import { useKids } from '@/lib/render';
+import { useKids, useKidsJson } from '@/lib/render';
 function RevealedItem({ props, node }) {
   const { kids } = useKids({ ...props, kids: [node] });
   return <>{kids}</>;
@@ -19,7 +19,7 @@ export default function _NextReveal(props) {
 
   const bottomRef = useRef(null);
 
-  const allKids = props.kids || [];
+  const allKids = useKidsJson(props);
   const numItems = allKids.length;
 
   // Scroll to bottom when currentStep changes
