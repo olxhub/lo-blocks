@@ -1,9 +1,10 @@
 Select the key terms:
 ---
-The [required term|term1] must be selected. A {bonus term|bonus1} is optional. A <<common mistake|trap1>> triggers targeted feedback.
+The [first key concept|term1] is important. So is the [second key concept|term2]. A {bonus insight|bonus1} is optional. A <<common mistake|trap1>> triggers targeted feedback.
 ---
 all: Perfect! You found everything.
 found>=1: Good start, but look for more.
 ---
-term1: This is the main concept.
-trap1: This word is related but not quite right.
+term1: Feedback shown when this term is selected or missed.
+term2: Each term ID gets its own targeted explanation.
+trap1: Feedback for why this selection is wrong.

@@ -229,6 +229,9 @@ function StudioPageContent() {
 
   const handleSave = useCallback(async (force = false) => {
     // Untitled file: prompt for a name and save-as
+    // TODO: Replace window.prompt with a proper save-as dialog — directory picker,
+    // file type selector, overwrite warning, validation feedback. Reuse FilesPanel's
+    // file-creation UI or factor out a shared SaveDialog component.
     if (!filePath) {
       const name = window.prompt('Save as:', 'document.olx');
       if (!name) return;

@@ -113,10 +113,10 @@ ConditionField
   / "incorrect" { return 'incorrect'; }
 
 ComparisonOp
-  = ">" { return '>'; }
-  / "<" { return '<'; }
-  / ">=" { return '>='; }
+  = ">=" { return '>='; }
   / "<=" { return '<='; }
+  / ">" { return '>'; }
+  / "<" { return '<'; }
   / "=" { return '='; }
 
 FeedbackSection
