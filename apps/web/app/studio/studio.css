@@ -419,8 +419,13 @@
   font-size: 12px;
 }
 
-.file-dialog-btn:hover {
+.file-dialog-btn:hover:not(:disabled) {
   background: var(--lo-primary-hover);
+}
+
+.file-dialog-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .file-dialog-btn.cancel {
