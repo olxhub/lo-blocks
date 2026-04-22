@@ -1,5 +1,5 @@
 // src/app/api/olxjson/[id]/route.ts
-import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
+import { getContentIndex } from '@/lib/content/contentIndex';
 import { getBestVariantServer } from '@/lib/i18n/getBestVariant';
 import { allOlxKeys } from '@/lib/blocks/idResolver';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { id } = await params;
 
   try {
-    const { idMap, errors } = await syncContentFromStorage();
+    const { idMap, errors } = await getContentIndex().sync();
 
     if (id === 'all') {
       return Response.json({

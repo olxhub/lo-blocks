@@ -1,9 +1,14 @@
 // src/app/api/file/route.js
-import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { getStorageManager } from '@/lib/lofs/storageManager';
 import { VersionConflictError } from '@/lib/lofs/types';
 import { validateContentPath } from '@/lib/lofs/contentPaths';
 
-const provider = new FileStorageProvider('./content');
+// Lazy — initialized on first request after instrumentation hook has run.
+let _provider;
+function getDefaultProvider() {
+  if (!_provider) _provider = getStorageManager().getDefaultProvider();
+  return _provider;
+}
 
 export async function GET(request) {
   const url = new URL(request.url);
@@ -16,7 +21,7 @@ export async function GET(request) {
   }
 
   try {
-    const result = await provider.read(validation.relativePath);
+    const result = await getDefaultProvider().read(validation.relativePath);
     return Response.json({ ok: true, content: result.content, metadata: result.metadata });
   } catch (err) {
     const isNotFound = err.code === 'ENOENT' || err.message?.includes('not found');
@@ -40,7 +45,7 @@ export async function POST(request) {
   }
 
   try {
-    await provider.write(validation.relativePath, content, { previousMetadata, force });
+    await getDefaultProvider().write(validation.relativePath, content, { previousMetadata, force });
     return Response.json({ ok: true });
   } catch (err) {
     // Handle version conflict specially
@@ -68,7 +73,7 @@ export async function DELETE(request) {
   }
 
   try {
-    await provider.delete(validation.relativePath);
+    await getDefaultProvider().delete(validation.relativePath);
     return Response.json({ ok: true });
   } catch (err) {
     const isNotFound = err.code === 'ENOENT' || err.message?.includes('not found');
@@ -93,7 +98,7 @@ export async function PUT(request) {
   }
 
   try {
-    await provider.rename(srcValidation.relativePath, dstValidation.relativePath);
+    await getDefaultProvider().rename(srcValidation.relativePath, dstValidation.relativePath);
     return Response.json({ ok: true });
   } catch (err) {
     const isNotFound = err.code === 'ENOENT' || err.message?.includes('not found');

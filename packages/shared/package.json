@@ -2,5 +2,12 @@
   "name": "@lo-blocks/shared",
   "version": "0.1.0",
   "type": "module",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "isomorphic-git": "^1.37.5",
+    "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.20.0"
+  }
 }

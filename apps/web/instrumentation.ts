@@ -8,5 +8,12 @@ export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     const { validateProviderOrExit } = await import('@/lib/llm/provider');
     validateProviderOrExit();
+
+    try {
+      const { initServerStorage } = await import('@/lib/lofs/serverInit');
+      initServerStorage();
+    } catch (err) {
+      console.error('[instrumentation] Failed to initialize storage:', err);
+    }
   }
 }

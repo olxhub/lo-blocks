@@ -12,6 +12,26 @@ import type {
 import { FileType } from './fileTypes';
 
 /**
+ * A content namespace identifies a course, repository, or logical content scope.
+ *
+ * Uses reverse-domain notation for cross-course references:
+ *   "local"                           — local development content
+ *   "docs"                            — block/grammar documentation
+ *   "github.com/pmitros/ee101"        — a specific course repo
+ *   "institution.edu/cs101"           — institutional deployment
+ *
+ * Namespaces map to StorageProvider stacks via StorageManager.
+ */
+export type ContentNamespace = string & { readonly __brand: 'ContentNamespace' };
+
+export function toContentNamespace(ns: string): ContentNamespace {
+  if (!ns || typeof ns !== 'string') {
+    throw new Error(`toContentNamespace: expected non-empty string but got "${ns}"`);
+  }
+  return ns as ContentNamespace;
+}
+
+/**
  * Provider-specific metadata for change detection.
  *
  * Opaque to consumers. Each provider extends this with what it actually tracks.
@@ -247,6 +267,15 @@ export interface GrepMatch {
 }
 
 export interface StorageProvider {
+  /** Provider scheme identifier (e.g., 'file', 'memory', 'network', 'git', 'postgres'). */
+  readonly scheme: string;
+
+  /** Which content namespace this provider serves. */
+  readonly namespace: ContentNamespace;
+
+  /** Whether this provider accepts writes (write, delete, rename). */
+  readonly writable: boolean;
+
   /**
    * Scan for XML/OLX files returning added/changed/unchanged/deleted
    * relative to a previous scan. The `_metadata` structure is
@@ -256,7 +285,6 @@ export interface StorageProvider {
 
   read(path: OlxRelativePath): Promise<ReadResult>;
   write(path: OlxRelativePath, content: string, options?: WriteOptions): Promise<void>;
-  update(path: OlxRelativePath, content: string): Promise<void>;
   delete(path: OlxRelativePath): Promise<void>;
   rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void>;
   listFiles(selection?: FileSelection): Promise<UriNode>;

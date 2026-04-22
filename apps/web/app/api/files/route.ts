@@ -5,10 +5,15 @@
 // GET /api/files           - Returns file tree
 // GET /api/files?pattern=  - Returns files matching glob pattern
 //
-import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { getStorageManager } from '@/lib/lofs/storageManager';
 import { toOlxRelativePath } from '@/lib/lofs/types';
 
-const provider = new FileStorageProvider('./content');
+// Lazy — initialized on first request after instrumentation hook has run.
+let _provider: ReturnType<ReturnType<typeof getStorageManager>['getDefaultProvider']>;
+function getDefaultProvider() {
+  if (!_provider) _provider = getStorageManager().getDefaultProvider();
+  return _provider;
+}
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -33,11 +38,11 @@ export async function GET(request: Request) {
   try {
     if (pattern) {
       // Glob mode - return array of matching files
-      const files = await provider.glob(pattern, basePath);
+      const files = await getDefaultProvider().glob(pattern, basePath);
       return Response.json({ ok: true, files });
     } else {
       // Tree mode - return full file tree
-      const tree = await provider.listFiles();
+      const tree = await getDefaultProvider().listFiles();
       return Response.json({ ok: true, tree });
     }
   } catch (err: any) {

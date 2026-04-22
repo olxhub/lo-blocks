@@ -15,6 +15,7 @@
 
 import { StorageProvider, fileTypes } from '@/lib/lofs';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { getStorageManager } from '@/lib/lofs/storageManager';
 import type { ProvenanceURI, OLXLoadingError, OlxJson, IdMap, OlxKey, ContentVariant, VariantMap } from '@/lib/types';
 import { parseOLX, blockRequiresUniqueId } from '@/lib/content/parseOLX';
 import { copyAssetsToPublic } from '@/lib/content/staticAssetSync';
@@ -164,8 +165,13 @@ const contentStore: ContentStore = {
 // Main Entry Point
 // =============================================================================
 
+function defaultProvider(): StorageProvider {
+  try { return getStorageManager().getDefaultProvider(); }
+  catch { return new FileStorageProvider('./content'); }
+}
+
 export async function syncContentFromStorage(
-  provider: StorageProvider = new FileStorageProvider('./content')
+  provider: StorageProvider = defaultProvider()
 ) {
   // Step 1: Get file change sets from storage
   const changeSets = await provider.loadXmlFilesWithStats(

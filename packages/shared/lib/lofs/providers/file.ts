@@ -13,6 +13,7 @@ import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, FileSystemPath }
 import { EXT } from '@/lib/util/fileTypes';
 import {
   type StorageProvider,
+  type ContentNamespace,
   type XmlFileInfo,
   type XmlScanResult,
   type FileSelection,
@@ -24,6 +25,7 @@ import {
   VersionConflictError,
   toFileProvenanceURI,
   fileProvenancePath,
+  toContentNamespace,
 } from '../types';
 import { fileTypes } from '../fileTypes';
 import type { JSONValue } from '../../types';
@@ -337,6 +339,9 @@ async function listFileTree(
 }
 
 export class FileStorageProvider implements StorageProvider {
+  readonly scheme = 'file' as const;
+  readonly namespace: ContentNamespace;
+  readonly writable = true;
   readonly baseDir: string;
   readonly mountPoint: string;
 
@@ -347,13 +352,14 @@ export class FileStorageProvider implements StorageProvider {
    *   produce indistinguishable provenance URIs. Pass explicitly when basename doesn't
    *   match the desired mount (e.g., OLX_CONTENT_DIR=/data/courses → mountPoint='content').
    */
-  constructor(baseDir = './content', mountPoint?: string) {
+  constructor(baseDir = './content', mountPoint?: string, namespace?: string) {
     this.baseDir = path.resolve(baseDir);
     const mp = mountPoint ?? path.basename(this.baseDir);
     if (!mp || mp.startsWith('/') || mp.includes('\0') || mp.split('/').some(s => s === '..')) {
       throw new Error(`Invalid mount point: "${mp}"`);
     }
     this.mountPoint = mp;
+    this.namespace = toContentNamespace(namespace ?? 'local');
   }
 
   /**
@@ -499,10 +505,6 @@ export class FileStorageProvider implements StorageProvider {
     }
 
     await fs.writeFile(full, content, 'utf-8');
-  }
-
-  async update(path: OlxRelativePath, content: string): Promise<void> {
-    await this.write(path, content);
   }
 
   async delete(filePath: OlxRelativePath): Promise<void> {

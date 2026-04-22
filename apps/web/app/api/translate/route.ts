@@ -7,6 +7,8 @@
 import { NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs/promises';
+// TODO: Migrate to getStorageManager() once translate no longer needs
+// FileStorageProvider-specific methods (toRelativePath) and direct fs access.
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
 import { syncContentFromStorage, getSourceFile, getBlocksForFiles, getBlockVariant, getOriginalVariant } from '@/lib/content/syncContentFromStorage';
 import { getProvider } from '@/lib/llm/provider';

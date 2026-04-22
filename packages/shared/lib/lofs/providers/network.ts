@@ -12,7 +12,7 @@
 // configurable endpoints, maintaining the same interface as local file storage.
 //
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, LofsPath } from '../../types';
-import { provenancePath } from '../types';
+import { provenancePath, type ContentNamespace, toContentNamespace } from '../types';
 import {
   type StorageProvider,
   type XmlFileInfo,
@@ -38,11 +38,13 @@ export interface NetworkProviderOptions {
 }
 
 export class NetworkStorageProvider implements StorageProvider {
+  readonly scheme = 'network' as const;
+  readonly writable = true;
   readEndpoint: string;
   listEndpoint: string;
   grepEndpoint: string;
   imageEndpoint: string;
-  namespace: string;
+  namespace: ContentNamespace;
 
   /**
    * Create a NetworkStorageProvider that transforms OlxRelativePath to LofsPath.
@@ -56,7 +58,7 @@ export class NetworkStorageProvider implements StorageProvider {
    * storage.read('demos/foo.olx')  // internally: 'content/demos/foo.olx'
    */
   constructor(namespace: string = 'content', options: NetworkProviderOptions = {}) {
-    this.namespace = namespace;
+    this.namespace = toContentNamespace(namespace);
     this.readEndpoint = (options.readEndpoint ?? '/api/file').replace(/\/$/, '');
     this.listEndpoint = (options.listEndpoint ?? '/api/files').replace(/\/$/, '');
     this.grepEndpoint = (options.grepEndpoint ?? '/api/grep').replace(/\/$/, '');
@@ -224,10 +226,6 @@ export class NetworkStorageProvider implements StorageProvider {
     }
   }
 
-  async update(path: OlxRelativePath, content: string): Promise<void> {
-    await this.write(path, content);
-  }
-
   async delete(path: OlxRelativePath): Promise<void> {
     const lofsPath = this.toLofsPath(path);
     const res = await fetch(
@@ -265,7 +263,7 @@ export class NetworkStorageProvider implements StorageProvider {
       params.set('path', lofsBasePath);
     } else {
       // If no basePath, search from namespace root
-      params.set('path', this.namespace as LofsPath);
+      params.set('path', this.namespace as string as LofsPath);
     }
 
     const res = await fetch(`${this.listEndpoint}?${params.toString()}`);
@@ -290,7 +288,7 @@ export class NetworkStorageProvider implements StorageProvider {
       params.set('path', lofsBasePath);
     } else {
       // If no basePath, search from namespace root
-      params.set('path', this.namespace as LofsPath);
+      params.set('path', this.namespace as string as LofsPath);
     }
     if (options.include) params.set('include', options.include);
     if (options.limit) params.set('limit', String(options.limit));

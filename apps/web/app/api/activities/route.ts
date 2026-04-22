@@ -24,13 +24,13 @@
  */
 
 import { NextRequest } from 'next/server';
-import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
+import { getContentIndex } from '@/lib/content/contentIndex';
 import { buildActivityCards } from '@/lib/content/buildActivityCards';
 import { getBestVariantServer } from '@/lib/i18n/getBestVariant';
 
 export async function GET(request: NextRequest) {
   try {
-    const { idMap, errors } = await syncContentFromStorage();
+    const { idMap, errors } = await getContentIndex().sync();
 
     const activities = buildActivityCards(
       idMap,

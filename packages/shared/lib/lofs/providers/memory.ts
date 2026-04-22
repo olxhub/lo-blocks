@@ -21,16 +21,22 @@ import type {
   GrepOptions,
   GrepMatch,
 } from '../types';
+import { type ContentNamespace, toContentNamespace } from '../types';
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath } from '../../types';
 import { toMemoryProvenanceURI, provenancePath } from '../types';
 
 export class InMemoryStorageProvider implements StorageProvider {
+  readonly scheme = 'memory' as const;
+  readonly namespace: ContentNamespace;
+  readonly writable: boolean;
   files: Record<string, string>;
   basePath: string;
 
-  constructor(files: Record<string, string>, basePath = '') {
+  constructor(files: Record<string, string>, basePath = '', options?: { writable?: boolean; namespace?: string }) {
     this.files = files;
     this.basePath = basePath;
+    this.writable = options?.writable ?? false;
+    this.namespace = toContentNamespace(options?.namespace ?? 'local');
   }
 
   async read(path: OlxRelativePath): Promise<ReadResult> {
@@ -56,12 +62,10 @@ export class InMemoryStorageProvider implements StorageProvider {
     return this.files[normalized] !== undefined;
   }
 
-  async write(): Promise<void> {
-    throw new Error('InMemoryStorageProvider is read-only');
-  }
-
-  async update(): Promise<void> {
-    throw new Error('InMemoryStorageProvider is read-only');
+  async write(path: OlxRelativePath, content: string): Promise<void> {
+    if (!this.writable) throw new Error('InMemoryStorageProvider is read-only');
+    const normalized = (path as string).replace(/^\.?\//, '');
+    this.files[normalized] = content;
   }
 
   async listFiles(): Promise<UriNode> {
@@ -200,11 +204,19 @@ export class InMemoryStorageProvider implements StorageProvider {
     return matches;
   }
 
-  async delete(): Promise<void> {
-    throw new Error('InMemoryStorageProvider is read-only');
+  async delete(path: OlxRelativePath): Promise<void> {
+    if (!this.writable) throw new Error('InMemoryStorageProvider is read-only');
+    const normalized = (path as string).replace(/^\.?\//, '');
+    if (this.files[normalized] === undefined) throw new Error(`File not found: ${path}`);
+    delete this.files[normalized];
   }
 
-  async rename(): Promise<void> {
-    throw new Error('InMemoryStorageProvider is read-only');
+  async rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
+    if (!this.writable) throw new Error('InMemoryStorageProvider is read-only');
+    const oldNorm = (oldPath as string).replace(/^\.?\//, '');
+    const newNorm = (newPath as string).replace(/^\.?\//, '');
+    if (this.files[oldNorm] === undefined) throw new Error(`File not found: ${oldPath}`);
+    this.files[newNorm] = this.files[oldNorm];
+    delete this.files[oldNorm];
   }
 }

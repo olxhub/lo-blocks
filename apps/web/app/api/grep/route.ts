@@ -5,10 +5,15 @@
 // GET /api/grep?pattern=    - Search file contents for pattern
 // GET /api/grep?pattern=&path=&include=&limit=  - With options
 //
-import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { getStorageManager } from '@/lib/lofs/storageManager';
 import { toOlxRelativePath } from '@/lib/lofs/types';
 
-const provider = new FileStorageProvider('./content');
+// Lazy — initialized on first request after instrumentation hook has run.
+let _provider: ReturnType<ReturnType<typeof getStorageManager>['getDefaultProvider']>;
+function getDefaultProvider() {
+  if (!_provider) _provider = getStorageManager().getDefaultProvider();
+  return _provider;
+}
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -56,7 +61,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const matches = await provider.grep(pattern, { basePath, include, limit });
+    const matches = await getDefaultProvider().grep(pattern, { basePath, include, limit });
     return Response.json({ ok: true, matches });
   } catch (err: any) {
     console.error(`[API /grep] ${err.message}`);

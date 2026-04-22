@@ -1072,6 +1072,7 @@ export interface LoBlockRuntimeContext {
   idPrefix?: IdPrefix;  // Scope prefix for Redux state (changes at list boundaries)
   locale: LocaleContext;  // Language and text direction
   cast: Cast;  // Cast of characters
+  storage?: import('./lofs/types').StorageProvider;  // Optional — for blocks that need content access (student-as-author tutorials)
 }
 
 /**

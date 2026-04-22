@@ -30,5 +30,17 @@ export * from './types';
 // Providers
 export * from './providers';
 
+// Storage manager
+export { StorageManager, initStorage, getStorageManager, resetStorage } from './storageManager';
+export type { StorageManagerConfig } from './storageManager';
+
+// Namespaces
+export {
+  parseQualifiedReference,
+  isQualifiedReference,
+  toQualifiedReference,
+} from './namespace';
+export type { QualifiedOlxReference } from './namespace';
+
 // Other modules
 export * from './fileTypes';

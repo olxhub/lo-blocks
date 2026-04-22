@@ -20,6 +20,7 @@
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath } from '../../types';
 import {
   type StorageProvider,
+  type ContentNamespace,
   type XmlFileInfo,
   type XmlScanResult,
   type FileSelection,
@@ -28,6 +29,7 @@ import {
   type WriteOptions,
   type GrepOptions,
   type GrepMatch,
+  toContentNamespace,
 } from '../types';
 
 /**
@@ -103,13 +105,23 @@ function mergeXmlScanResults(higher: XmlScanResult, lower: XmlScanResult): XmlSc
 }
 
 export class StackedStorageProvider implements StorageProvider {
+  readonly scheme = 'stacked' as const;
+  readonly namespace: ContentNamespace;
+  readonly writable: boolean;
   providers: StorageProvider[];
 
-  constructor(providers: StorageProvider[]) {
+  constructor(providers: StorageProvider[], namespace?: string) {
     if (providers.length === 0) {
       throw new Error('StackedStorageProvider requires at least one provider');
     }
     this.providers = providers;
+    this.namespace = toContentNamespace(namespace ?? providers[0].namespace);
+    this.writable = providers.some(p => p.writable);
+  }
+
+  /** Returns the first writable provider, or null if none. */
+  getWriteTarget(): StorageProvider | null {
+    return this.providers.find(p => p.writable) ?? null;
   }
 
   // Read from the first provider that has the file
@@ -127,14 +139,11 @@ export class StackedStorageProvider implements StorageProvider {
     throw lastError || new Error(`File not found in any provider: ${filePath}`);
   }
 
-  // Write to the first provider
+  // Write to the first writable provider
   async write(filePath: OlxRelativePath, content: string, options?: WriteOptions): Promise<void> {
-    return this.providers[0].write(filePath, content, options);
-  }
-
-  // Update in the first provider
-  async update(filePath: OlxRelativePath, content: string): Promise<void> {
-    return this.providers[0].update(filePath, content);
+    const target = this.getWriteTarget();
+    if (!target) throw new Error('No writable provider in stack');
+    return target.write(filePath, content, options);
   }
 
   // List files merged from all providers (higher priority shadows lower)
@@ -287,13 +296,17 @@ export class StackedStorageProvider implements StorageProvider {
     return results;
   }
 
-  // Delete from the first provider
+  // Delete via the first writable provider
   async delete(filePath: OlxRelativePath): Promise<void> {
-    return this.providers[0].delete(filePath);
+    const target = this.getWriteTarget();
+    if (!target) throw new Error('No writable provider in stack');
+    return target.delete(filePath);
   }
 
-  // Rename in the first provider
+  // Rename via the first writable provider
   async rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
-    return this.providers[0].rename(oldPath, newPath);
+    const target = this.getWriteTarget();
+    if (!target) throw new Error('No writable provider in stack');
+    return target.rename(oldPath, newPath);
   }
 }
