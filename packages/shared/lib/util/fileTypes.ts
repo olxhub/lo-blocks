@@ -56,17 +56,21 @@ export const CATEGORY = {
 // ============================================================
 
 /**
- * Get the lowercase file extension from a path.
+ * Get the file extension from a path, preserving case.
+ *
+ * Case is significant for registry lookups (e.g. textSelectionpeg).
+ * Comparison functions (fileHasExtension, extInList) handle
+ * case-insensitivity separately.
  *
  * @example
- * getExtension('foo/bar.OLX') // => 'olx'
+ * getExtension('foo/bar.OLX') // => 'OLX'
  * getExtension('file.chatpeg') // => 'chatpeg'
  * getExtension('noextension') // => ''
  */
 export function getExtension(filePath: string | undefined | null): string {
   if (!filePath) return '';
   const ext = path.extname(filePath);
-  return ext ? ext.slice(1).toLowerCase() : '';
+  return ext ? ext.slice(1) : '';
 }
 
 /**
@@ -74,9 +78,9 @@ export function getExtension(filePath: string | undefined | null): string {
  * Use the named helpers below for common cases.
  */
 export function fileHasExtension(path: string | undefined | null, extensions: readonly string[]): boolean {
-  const ext = getExtension(path);  // Already lowercased
-  // Case-insensitive comparison (extensions may have mixed case like textSelectionpeg)
-  return ext !== '' && extensions.some(e => e.toLowerCase() === ext);
+  const ext = getExtension(path);
+  const lower = ext.toLowerCase();
+  return lower !== '' && extensions.some(e => e.toLowerCase() === lower);
 }
 
 /**
@@ -84,7 +88,8 @@ export function fileHasExtension(path: string | undefined | null, extensions: re
  * Use when you already have the extension and don't need path parsing.
  */
 export function isExtensionIn(ext: string, extensions: readonly string[]): boolean {
-  return ext !== '' && extensions.includes(ext.toLowerCase());
+  const lower = ext.toLowerCase();
+  return lower !== '' && extensions.some(e => e.toLowerCase() === lower);
 }
 
 // ============================================================
@@ -100,9 +105,10 @@ export type ContentType = 'olx' | 'markdown' | 'peg' | 'mermaid' | 'data' | 'cas
  * const editors = { olx: OLXEditor, markdown: MarkdownEditor };
  * const Editor = editors[getContentType(path)];
  */
-// Case-insensitive extension check (ext is already lowercased)
+// Case-insensitive extension check
 function extInList(ext: string, list: readonly string[]): boolean {
-  return list.some(e => e.toLowerCase() === ext);
+  const lower = ext.toLowerCase();
+  return list.some(e => e.toLowerCase() === lower);
 }
 
 export function getContentType(path: string | undefined | null): ContentType {
@@ -232,6 +238,7 @@ Is this a multiple choice question?
   <TalkBubble who="Marianne"><Markdown>I'd like several elements on one screen!</Markdown></TalkBubble>
   <TalkBubble side="secondary" who="Bob"><Markdown>Why don't you group them in a vertical?</Markdown></TalkBubble>
 </Vertical>
+
 </Sequential>`,
   },
   markdown: { label: 'Markdown', ext: 'md', template: '# New Document\n\n' },

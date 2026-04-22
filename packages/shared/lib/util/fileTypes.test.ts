@@ -17,9 +17,9 @@ import {
 } from './fileTypes';
 
 describe('fileTypes', () => {
-  test('extension extraction normalizes to lowercase', () => {
-    expect(getExtension('foo/bar.OLX')).toBe('olx');
-    expect(getExtension('TEST.ChatPeg')).toBe('chatpeg');
+  test('extension extraction preserves case', () => {
+    expect(getExtension('foo/bar.OLX')).toBe('OLX');
+    expect(getExtension('TEST.ChatPeg')).toBe('ChatPeg');
     expect(getExtension('no-extension')).toBe('');
     expect(getExtension(null)).toBe('');
     expect(getExtension(undefined)).toBe('');
