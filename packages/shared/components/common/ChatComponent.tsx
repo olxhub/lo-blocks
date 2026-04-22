@@ -347,7 +347,7 @@ export const AdvanceFooter: React.FC<AdvanceFooterProps> = ({
         >
           Continue <NavArrow direction="forward" className="ms-1 w-4 h-4" />
         </button>
-        <span className="text-xs text-dimmed">or press [space]</span>
+        <span className="w-24" /> {/* balance the counter on the left */}
       </div>
     </div>
   );
