@@ -102,11 +102,35 @@ export function advance(nodeInfo: OlxDomNode): boolean {
 }
 
 /* ----------------------------------------------------------------
+ * Advance scope stack
+ * ----------------------------------------------------------------
+ * Overlays (CompactPopout, fullscreen views) push a scope to restrict
+ * spacebar advancement to their subtree.  When a scope is active,
+ * the global handler advances within the top scope instead of the
+ * roots.  Scopes nest: the topmost wins.
+ */
+
+const advanceScopes: OlxDomNode[] = [];
+
+/** Restrict spacebar advancement to this node's subtree. */
+export function pushAdvanceScope(node: OlxDomNode) {
+  advanceScopes.push(node);
+}
+
+/** Remove a scope.  Safe to call if already removed (e.g. double-cleanup). */
+export function popAdvanceScope(node: OlxDomNode) {
+  const idx = advanceScopes.lastIndexOf(node);
+  if (idx >= 0) advanceScopes.splice(idx, 1);
+}
+
+/* ----------------------------------------------------------------
  * Root registry + global spacebar
  * ----------------------------------------------------------------
  * Each RenderOLX registers its root node.  A single document-level
  * keydown listener tries each root first-to-last on spacebar.
  * The listener installs lazily on first registration.
+ *
+ * When an advance scope is active, only the scoped subtree is tried.
  */
 
 const advanceRoots: OlxDomNode[] = [];
@@ -116,6 +140,16 @@ function handleGlobalKeyDown(e: KeyboardEvent) {
   if (isTextInputFocused()) return;
   if (e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.code !== 'Space' && e.key !== ' ') return;
+
+  // If an overlay has pushed a scope, advance only within it.
+  if (advanceScopes.length > 0) {
+    const scope = advanceScopes[advanceScopes.length - 1];
+    const state = scope.runtime.store.getState();
+    if (advanceFrom(scope, state)) {
+      e.preventDefault();
+    }
+    return; // Whether or not it advanced, don't fall through to roots
+  }
 
   for (const root of advanceRoots) {
     const state = root.runtime.store.getState();

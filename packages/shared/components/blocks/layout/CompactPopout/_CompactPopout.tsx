@@ -30,6 +30,7 @@ import { Maximize2, X } from 'lucide-react';
 import { useFieldState, updateField } from '@/lib/state';
 import { fieldByName } from '@/lib/state/fields';
 import { refToReduxKey } from '@/lib/blocks/idResolver';
+import { pushAdvanceScope, popAdvanceScope } from '@/lib/advance';
 import { useKids } from '@/lib/render';
 import type { RuntimeProps, OlxReference, ReduxStateKey } from '@/lib/types';
 import { fields } from './CompactPopout';
@@ -98,6 +99,15 @@ export default function _CompactPopout(props: RuntimeProps) {
       }, 0);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Scope spacebar advancement to this overlay while expanded
+  useEffect(() => {
+    if (!expanded || mode === 'target') return;
+    const node = props.nodeInfo;
+    if (!node) return;
+    pushAdvanceScope(node);
+    return () => popAdvanceScope(node);
+  }, [expanded, mode, props.nodeInfo]);
 
   // Focus close button when expanded
   useEffect(() => {
