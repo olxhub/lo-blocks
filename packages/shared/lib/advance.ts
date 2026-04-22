@@ -17,30 +17,8 @@
 //
 // Global spacebar: auto-installed on first registerAdvanceRoot call.
 
-import type { OlxDomNode, RuntimeProps } from '@/lib/types';
-
-/* ----------------------------------------------------------------
- * Props reconstruction
- * ----------------------------------------------------------------
- * Build RuntimeProps from an OlxDomNode.  Same pattern as
- * actions.tsx:executeNodeActions and redux.ts:propsForNode, but
- * we already have the node — no lookup needed.
- */
-
-function propsFromNode(node: OlxDomNode): RuntimeProps {
-  const { olxJson, loBlock, runtime } = node;
-  return {
-    ...olxJson.attributes,
-    id: olxJson.id,
-    kids: olxJson.kids ?? [],
-    loBlock,
-    fields: loBlock.fields,
-    locals: loBlock.locals,
-    runtime,
-    nodeInfo: node,
-    idPrefix: runtime.idPrefix,
-  } as RuntimeProps;
-}
+import type { OlxDomNode } from '@/lib/types';
+import { propsFromNode } from '@/lib/blocks/olxdom';
 
 /* ----------------------------------------------------------------
  * Tree walkers

@@ -103,10 +103,8 @@ export default function _CompactPopout(props: RuntimeProps) {
   // Scope spacebar advancement to this overlay while expanded
   useEffect(() => {
     if (!expanded || mode === 'target') return;
-    const node = props.nodeInfo;
-    if (!node) return;
-    pushAdvanceScope(node);
-    return () => popAdvanceScope(node);
+    pushAdvanceScope(props.nodeInfo);
+    return () => popAdvanceScope(props.nodeInfo);
   }, [expanded, mode, props.nodeInfo]);
 
   // Focus close button when expanded
