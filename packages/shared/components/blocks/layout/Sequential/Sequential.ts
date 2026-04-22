@@ -28,7 +28,7 @@ function sequentialCanAdvance(props: RuntimeProps, reduxState: any): boolean {
   if (canAdvanceChildren(props.nodeInfo, reduxState)) return true;
 
   const index = state.fieldSelector(reduxState, props, fields.index, { fallback: 0 });
-  return Math.min(index, filteredKids.length - 1) < filteredKids.length - 1;
+  return index < filteredKids.length - 1;
 }
 
 function sequentialAdvance(props: RuntimeProps, reduxState: any): boolean {
@@ -38,9 +38,8 @@ function sequentialAdvance(props: RuntimeProps, reduxState: any): boolean {
   if (advanceChildren(props.nodeInfo, reduxState)) return true;
 
   const index = state.fieldSelector(reduxState, props, fields.index, { fallback: 0 });
-  const clampedIndex = Math.min(index, filteredKids.length - 1);
-  if (clampedIndex < filteredKids.length - 1) {
-    state.updateField(props, fields.index, clampedIndex + 1);
+  if (index < filteredKids.length - 1) {
+    state.updateField(props, fields.index, index + 1);
     return true;
   }
   return false;

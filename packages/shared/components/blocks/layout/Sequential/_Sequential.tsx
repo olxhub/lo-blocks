@@ -73,10 +73,9 @@ export default function _Sequential(props: RuntimeProps) {
   // Check if the current child (or its descendants) can advance.
   // When true, spacebar will advance the child — so dim the Next button
   // to signal that Next isn't the primary action right now.
-  const childCanAdvance = useSelector((reduxState: any) => {
-    if (!props.nodeInfo) return false;
-    return canAdvanceChildren(props.nodeInfo, reduxState);
-  });
+  const childCanAdvance = useSelector((reduxState: any) =>
+    canAdvanceChildren(props.nodeInfo, reduxState)
+  );
 
   // Navigation handlers
   const handlePrev = () => {
