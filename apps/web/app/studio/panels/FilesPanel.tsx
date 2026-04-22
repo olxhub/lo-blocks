@@ -46,6 +46,8 @@ export function FilesPanel({
   // Directory derived from current file path
   const currentDir = currentPath.includes('/') ? currentPath.substring(0, currentPath.lastIndexOf('/')) : '';
 
+  // TODO: No way to select root (/) or create subdirectories from this UI.
+  // Blocked on LOFS not auto-creating parent directories on write.
   const handleCreateFile = async () => {
     if (!newFileName.trim()) return;
 

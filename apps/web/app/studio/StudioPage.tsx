@@ -167,6 +167,10 @@ function StudioPageContent() {
   // Load file content when filePath changes
   // Only load from storage if we haven't loaded this file before -
   // otherwise Redux has the (possibly edited) content cached
+  //
+  // TODO: This cache-skip logic means externally modified files won't refresh
+  // when re-selected. Need a staleness check (compare metadata) to detect
+  // external changes and offer reload. Related: collaborative editing roadmap.
   useEffect(() => {
     if (!filePath) return;
 
@@ -198,7 +202,7 @@ function StudioPageContent() {
         notify('error', `Failed to load ${filePath}`, err instanceof Error ? err.message : String(err));
       })
       .finally(() => setLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filePath]); // Only reload when filePath changes
 
   // Update URL without page reload using History API
@@ -237,10 +241,29 @@ function StudioPageContent() {
       }
       setSaving(true);
       try {
+        // Check if file already exists — don't silently overwrite
+        // TODO: Replace confirm() with a proper modal
+        // TODO: Race condition. Read then write. LOFS needs a rewrite.
+        try {
+          await storage.read(olxPath);
+          // File exists — confirm overwrite
+          if (!window.confirm(`${name} already exists. Overwrite?`)) {
+            setSaving(false);
+            return;
+          }
+        } catch {
+          // File doesn't exist — safe to create
+        }
         await storage.write(olxPath, content);
+        // Re-read to get metadata for conflict detection on subsequent saves
+        const result = await storage.read(olxPath);
         refreshFiles();
-        // Switch to the named file — the file-loading effect will read from storage
-        // and set content/metadata with the correct Redux key.
+        // Update cache so the file-loading effect doesn't show stale content
+        // (it skips files already in fileStateRef)
+        fileStateRef.current.set(name, {
+          content,
+          metadata: result.metadata,
+        });
         setFilePath(name);
         updateUrl(name);
         notify('success', `Saved ${name}`);
@@ -291,6 +314,8 @@ function StudioPageContent() {
     }
   }, [filePath, content, notify, refreshFiles, updateUrl]);
 
+  // TODO: handleFileCreate can silently overwrite an existing file with the same name.
+  // Should check existence first and confirm, similar to save-as above.
   const handleFileCreate = useCallback(async (path: string, fileContent: string) => {
     try {
       const olxPath = toOlxRelativePath(path);
@@ -563,6 +588,11 @@ function StudioPageContent() {
               <div className="studio-preview-pane">
                 <div className="studio-preview-header">Preview</div>
                 <div className="studio-preview-content">
+                  {/* TODO/BUG: Translanguaging auto-translates the preview back to the
+                      user's locale. Editing file.pl.olx shows an English preview, defeating
+                      the purpose. Studio preview should disable translanguaging or pin locale
+                      to the file's language. LanguageSwitcher already has a translanguaging
+                      prop — need to thread it through RenderOLX/PreviewPane. */}
                   <PreviewPane path={filePath} content={content} idMap={idMap} />
                 </div>
               </div>
