@@ -295,7 +295,7 @@ function detectLanguageFromPath(filePath?: string): CodeLanguage | undefined {
   // TODO/HACK: getContentType groups all code files (js, ts, css, html) as 'code' —
   // check extension directly for languages with CodeMirror support.
   const ext = getExtension(filePath);
-  if (ext.toLowerCase() === 'js') return 'js';
+  if (ext === 'js') return 'js';
   return undefined;
 }
 

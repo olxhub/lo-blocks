@@ -128,7 +128,7 @@ export function FilesPanel({
             </select>
           </label>
           <div className="file-dialog-actions">
-            <button className="file-dialog-btn" onClick={handleCreateFile}>Create</button>
+            <button className="file-dialog-btn" onClick={handleCreateFile} disabled={!newFileName.trim()}>Create</button>
             <button className="file-dialog-btn cancel" onClick={() => setShowNewFileDialog(false)}>Cancel</button>
           </div>
         </div>

@@ -32,8 +32,13 @@ describe('fileTypes', () => {
     // OLX files
     expect(isOLXFile('content/demo.olx')).toBe(true);
     expect(isOLXFile('content/demo.xml')).toBe(true);
-    expect(isOLXFile('content/demo.OLX')).toBe(true); // case insensitive
     expect(isOLXFile('content/demo.md')).toBe(false);
+
+    // Case-sensitive: uppercase extensions are rejected.
+    // Policy: require lowercase now, can relax later if needed.
+    // Accepting mixed case would force case-insensitivity forever.
+    expect(isOLXFile('content/demo.OLX')).toBe(false);
+    expect(isMediaFile('photo.PNG')).toBe(false);
 
     // PEG files
     expect(isPEGFile('dialogue.chatpeg')).toBe(true);
@@ -48,7 +53,6 @@ describe('fileTypes', () => {
 
     // Media files
     expect(isMediaFile('photo.jpg')).toBe(true);
-    expect(isMediaFile('photo.PNG')).toBe(true); // case insensitive
     expect(isMediaFile('doc.pdf')).toBe(true);
     expect(isMediaFile('demo.olx')).toBe(false);
   });

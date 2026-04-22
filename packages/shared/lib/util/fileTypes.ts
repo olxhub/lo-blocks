@@ -76,20 +76,22 @@ export function getExtension(filePath: string | undefined | null): string {
 /**
  * Check if a file path has one of the given extensions.
  * Use the named helpers below for common cases.
+ *
+ * Case-sensitive: extensions must be lowercase (e.g. .olx not .OLX).
+ * This is a deliberate policy choice — accepting mixed case now would
+ * force case-insensitivity forever. We can relax later if needed.
  */
 export function fileHasExtension(path: string | undefined | null, extensions: readonly string[]): boolean {
   const ext = getExtension(path);
-  const lower = ext.toLowerCase();
-  return lower !== '' && extensions.some(e => e.toLowerCase() === lower);
+  return ext !== '' && extensions.includes(ext);
 }
 
 /**
  * Check if an extension (already extracted) is in a list.
- * Use when you already have the extension and don't need path parsing.
+ * Case-sensitive — see fileHasExtension for rationale.
  */
 export function isExtensionIn(ext: string, extensions: readonly string[]): boolean {
-  const lower = ext.toLowerCase();
-  return lower !== '' && extensions.some(e => e.toLowerCase() === lower);
+  return ext !== '' && extensions.includes(ext);
 }
 
 // ============================================================
@@ -105,10 +107,9 @@ export type ContentType = 'olx' | 'markdown' | 'peg' | 'mermaid' | 'data' | 'cas
  * const editors = { olx: OLXEditor, markdown: MarkdownEditor };
  * const Editor = editors[getContentType(path)];
  */
-// Case-insensitive extension check
+// Case-sensitive — all EXT lists are lowercase; see fileHasExtension for rationale.
 function extInList(ext: string, list: readonly string[]): boolean {
-  const lower = ext.toLowerCase();
-  return list.some(e => e.toLowerCase() === lower);
+  return list.includes(ext);
 }
 
 export function getContentType(path: string | undefined | null): ContentType {
