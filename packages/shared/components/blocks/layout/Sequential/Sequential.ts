@@ -4,6 +4,7 @@ import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
 import { advanceChildren, canAdvanceChildren } from '@/lib/advance';
+import { selectKidsJson } from '@/lib/render';
 import type { RuntimeProps } from '@/lib/types';
 import _Sequential from './_Sequential';
 
@@ -14,30 +15,31 @@ export const fields = state.fields([
 /* ----------------------------------------------------------------
  * Advance / canAdvance
  *
- * renderedKids contains only the current child (since _Sequential
- * renders one at a time).  advanceChildren handles the child walk;
- * we just add "move to next step" as our own fallback.
+ * Uses selectKidsJson to apply when= filtering — same filtered list
+ * the UI renders against.  renderedKids contains only the current
+ * child; advanceChildren handles the child walk; we add "move to
+ * next step" as our own fallback.
  * -------------------------------------------------------------- */
 
 function sequentialCanAdvance(props: RuntimeProps, reduxState: any): boolean {
-  const numItems = ((props.kids || []) as any[]).length;
-  if (numItems === 0) return false;
+  const filteredKids = selectKidsJson(props, reduxState);
+  if (filteredKids.length === 0) return false;
 
   if (canAdvanceChildren(props.nodeInfo, reduxState)) return true;
 
   const index = state.fieldSelector(reduxState, props, fields.index, { fallback: 0 });
-  return Math.min(index, numItems - 1) < numItems - 1;
+  return Math.min(index, filteredKids.length - 1) < filteredKids.length - 1;
 }
 
 function sequentialAdvance(props: RuntimeProps, reduxState: any): boolean {
-  const numItems = ((props.kids || []) as any[]).length;
-  if (numItems === 0) return false;
+  const filteredKids = selectKidsJson(props, reduxState);
+  if (filteredKids.length === 0) return false;
 
   if (advanceChildren(props.nodeInfo, reduxState)) return true;
 
   const index = state.fieldSelector(reduxState, props, fields.index, { fallback: 0 });
-  const clampedIndex = Math.min(index, numItems - 1);
-  if (clampedIndex < numItems - 1) {
+  const clampedIndex = Math.min(index, filteredKids.length - 1);
+  if (clampedIndex < filteredKids.length - 1) {
     state.updateField(props, fields.index, clampedIndex + 1);
     return true;
   }

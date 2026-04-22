@@ -28,7 +28,7 @@ import { selectBlock } from '@/lib/state/olxjson';
 import {
   evaluate, createContext,
   extractStructuredRefs, mergeReferences, EMPTY_REFS,
-  useReferences,
+  useReferences, selectReferences,
 } from '@/lib/stateLanguage';
 
 export type RenderedBlockResult = BlockDataResult & {
@@ -112,9 +112,14 @@ export function useBlock(
 
 // ─── when= filtering ───────────────────────────────────────────────────────
 //
-// Collects `when` expressions from kid blocks, subscribes to their
-// dependencies via useReferences (one hook call with merged refs),
-// evaluates each, and filters out kids whose condition is false.
+// Three forms following the project convention:
+//   selectKidsJson(props, reduxState) — pure selector (the logic)
+//   useKidsJson(props)                — reactive hook wrapper
+//   getKidsJson(props)                — one-shot imperative wrapper
+//
+// Collects `when` expressions from kid blocks, resolves their
+// dependencies, evaluates each, and filters out kids whose condition
+// is false.
 
 // Returns the pre-parsed { expr, ast } from the when= attribute, or undefined.
 function getWhen(kid, props) {
@@ -140,6 +145,37 @@ function collectWhens(kids, props) {
     map[kid.id] = when;
   }
   return map;
+}
+
+/**
+ * Pure selector: returns kids as OlxJson nodes with `when=` filtering applied.
+ *
+ * Use in blueprint functions (advance, canAdvance, actions) where hooks
+ * are unavailable.  Composable — wrap with `.length` for kid count, etc.
+ */
+export function selectKidsJson(props, reduxState) {
+  const rawKids = props.kids || [];
+  const whenMap = collectWhens(rawKids, props);
+  if (Object.keys(whenMap).length === 0) return rawKids;
+
+  const allRefs = (() => {
+    const entries = Object.values(whenMap) as { expr: string }[];
+    if (entries.length === 0) return EMPTY_REFS;
+    return mergeReferences(...entries.map(w => extractStructuredRefs(w.expr)));
+  })();
+
+  const resolved = selectReferences(reduxState, props, allRefs);
+  const ctx = createContext(resolved);
+  return rawKids.filter(kid => {
+    const when = whenMap[kid.id];
+    if (!when) return true;
+    return Boolean(evaluate(when.ast, ctx));
+  });
+}
+
+/** One-shot imperative form: grabs current state and calls selectKidsJson. */
+export function getKidsJson(props) {
+  return selectKidsJson(props, props.runtime.store.getState());
 }
 
 /**

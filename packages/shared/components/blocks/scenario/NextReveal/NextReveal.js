@@ -3,6 +3,7 @@ import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
 import { advanceChildren, canAdvanceChildren } from '@/lib/advance';
+import { selectKidsJson } from '@/lib/render';
 import _NextReveal from './_NextReveal';
 
 export const fields = state.fields([
@@ -12,15 +13,15 @@ export const fields = state.fields([
 /* ----------------------------------------------------------------
  * Advance / canAdvance
  *
- * renderedKids contains only the revealed children (since
- * _NextReveal renders kids.slice(0, currentStep)).  advanceChildren
- * handles the child walk; we just add "reveal next" as our own
- * fallback.
+ * Uses selectKidsJson to apply when= filtering — same filtered list
+ * the UI renders against.  renderedKids contains only the revealed
+ * children; advanceChildren handles the child walk; we add "reveal
+ * next" as our own fallback.
  * -------------------------------------------------------------- */
 
 function nextRevealCanAdvance(props, reduxState) {
   if (canAdvanceChildren(props.nodeInfo, reduxState)) return true;
-  const numItems = (props.kids || []).length;
+  const numItems = selectKidsJson(props, reduxState).length;
   const currentStep = state.fieldSelector(reduxState, props, fields.currentStep, { fallback: 1 });
   return currentStep < numItems;
 }
@@ -28,7 +29,7 @@ function nextRevealCanAdvance(props, reduxState) {
 function nextRevealAdvance(props, reduxState) {
   if (advanceChildren(props.nodeInfo, reduxState)) return true;
 
-  const numItems = (props.kids || []).length;
+  const numItems = selectKidsJson(props, reduxState).length;
   const currentStep = state.fieldSelector(reduxState, props, fields.currentStep, { fallback: 1 });
   if (currentStep < numItems) {
     state.updateField(props, fields.currentStep, currentStep + 1);

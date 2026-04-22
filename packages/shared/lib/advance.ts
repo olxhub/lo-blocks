@@ -156,7 +156,7 @@ const advanceRoots: OlxDomNode[] = [];
 let listenerInstalled = false;
 
 function handleGlobalKeyDown(e: KeyboardEvent) {
-  if (isTextInputFocused()) return;
+  if (!isBodyFocused()) return;
   if (e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.code !== 'Space' && e.key !== ' ') return;
 
@@ -196,19 +196,18 @@ export function unregisterAdvanceRoot(root: OlxDomNode) {
 }
 
 /* ----------------------------------------------------------------
- * Text input detection (for spacebar guard)
- * -------------------------------------------------------------- */
+ * Focus guard (for spacebar)
+ * ----------------------------------------------------------------
+ * Space-to-advance only fires when nothing specific is focused
+ * (activeElement is <body> or null).  This avoids stealing spacebar
+ * from ANY interactive element — buttons, links, checkboxes, inputs,
+ * ARIA widgets, etc.  Trying to enumerate interactive elements is
+ * fragile and breaks a11y; checking for body focus is simple and
+ * correct.
+ */
 
-const TEXT_INPUT_TYPES = new Set([
-  'text', 'search', 'url', 'tel', 'email', 'password', 'number',
-]);
-
-/** True if the element accepts keyboard text input. */
-export function isTextInputFocused(): boolean {
+/** True when no specific element has focus (safe to capture spacebar). */
+export function isBodyFocused(): boolean {
   const el = document.activeElement;
-  if (!el) return false;
-  if (el.tagName === 'TEXTAREA') return true;
-  if (el.tagName === 'INPUT' && TEXT_INPUT_TYPES.has((el as HTMLInputElement).type)) return true;
-  if ((el as HTMLElement).isContentEditable) return true;
-  return false;
+  return !el || el === document.body;
 }
