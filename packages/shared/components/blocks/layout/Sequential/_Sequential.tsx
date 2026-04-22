@@ -6,8 +6,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { useFieldState } from '@/lib/state';
 import { useKids, useKidsJson } from '@/lib/render';
-import { refToReduxKey } from '@/lib/blocks/idResolver';
-import { canAdvanceFrom } from '@/lib/advance';
+import { canAdvanceChildren } from '@/lib/advance';
 import HistoryBar from '@/components/common/HistoryBar';
 import NavArrow from '@/components/common/NavArrow';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
@@ -75,13 +74,8 @@ export default function _Sequential(props: RuntimeProps) {
   // When true, spacebar will advance the child — so dim the Next button
   // to signal that Next isn't the primary action right now.
   const childCanAdvance = useSelector((reduxState: any) => {
-    if (!currentChild) return false;
-    const kidId = currentChild.id ?? currentChild.tag;
-    if (!kidId) return false;
-    const reduxKey = refToReduxKey({ id: kidId, idPrefix: props.runtime.idPrefix });
-    const childNode = props.nodeInfo?.renderedKids?.[reduxKey];
-    if (!childNode) return false;
-    return canAdvanceFrom(childNode, reduxState);
+    if (!props.nodeInfo) return false;
+    return canAdvanceChildren(props.nodeInfo, reduxState);
   });
 
   // Navigation handlers

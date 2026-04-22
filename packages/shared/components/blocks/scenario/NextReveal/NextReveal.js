@@ -2,7 +2,7 @@
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
-import { advanceFrom, canAdvanceFrom } from '@/lib/advance';
+import { advanceChildren, canAdvanceChildren } from '@/lib/advance';
 import _NextReveal from './_NextReveal';
 
 export const fields = state.fields([
@@ -12,28 +12,22 @@ export const fields = state.fields([
 /* ----------------------------------------------------------------
  * Advance / canAdvance
  *
- * renderedKids already contains only the revealed children (since
- * _NextReveal renders kids.slice(0, currentStep)).  So we just
- * walk renderedKids like a transparent container, then reveal the
- * next child if nothing advanced.
+ * renderedKids contains only the revealed children (since
+ * _NextReveal renders kids.slice(0, currentStep)).  advanceChildren
+ * handles the child walk; we just add "reveal next" as our own
+ * fallback.
  * -------------------------------------------------------------- */
 
 function nextRevealCanAdvance(props, reduxState) {
-  for (const child of Object.values(props.nodeInfo?.renderedKids ?? {})) {
-    if (canAdvanceFrom(child, reduxState)) return true;
-  }
+  if (canAdvanceChildren(props.nodeInfo, reduxState)) return true;
   const numItems = (props.kids || []).length;
   const currentStep = state.fieldSelector(reduxState, props, fields.currentStep, { fallback: 1 });
   return currentStep < numItems;
 }
 
 function nextRevealAdvance(props, reduxState) {
-  // Try revealed children first (depth-first)
-  for (const child of Object.values(props.nodeInfo?.renderedKids ?? {})) {
-    if (advanceFrom(child, reduxState)) return true;
-  }
+  if (advanceChildren(props.nodeInfo, reduxState)) return true;
 
-  // All children done — reveal next
   const numItems = (props.kids || []).length;
   const currentStep = state.fieldSelector(reduxState, props, fields.currentStep, { fallback: 1 });
   if (currentStep < numItems) {

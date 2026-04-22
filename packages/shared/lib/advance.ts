@@ -47,28 +47,50 @@ function propsFromNode(node: OlxDomNode): RuntimeProps {
  * -------------------------------------------------------------- */
 
 /**
- * Advance the deepest active child in the subtree rooted at `nodeInfo`.
+ * Walk `renderedKids` first-to-last, trying to advance each.
  *
- * If the block declares `advance`, it owns the traversal — the system
- * calls it and does not auto-walk children.  The block can call
- * `advanceFrom` on specific children internally.
+ * This is the default child walk — the same thing transparent containers
+ * do, and the standard fallback for blocks that declare `advance` but
+ * want to try children before their own logic:
  *
- * If the block does NOT declare `advance`, the system walks its
- * `renderedKids` first-to-last looking for an advanceable descendant.
+ *     function myAdvance(props, state) {
+ *       if (advanceChildren(props.nodeInfo, state)) return true;
+ *       return selfAdvanceLogic();
+ *     }
  */
-export function advanceFrom(nodeInfo: OlxDomNode, state: any): boolean {
-  const { loBlock } = nodeInfo;
-
-  // Block owns traversal — delegate entirely
-  if (loBlock?.advance) {
-    return loBlock.advance(propsFromNode(nodeInfo), state);
-  }
-
-  // Transparent container — auto-walk children
+export function advanceChildren(nodeInfo: OlxDomNode, state: any): boolean {
   for (const child of Object.values(nodeInfo.renderedKids ?? {})) {
     if (advanceFrom(child, state)) return true;
   }
   return false;
+}
+
+/** Read-only version of `advanceChildren`. */
+export function canAdvanceChildren(nodeInfo: OlxDomNode, state: any): boolean {
+  for (const child of Object.values(nodeInfo.renderedKids ?? {})) {
+    if (canAdvanceFrom(child, state)) return true;
+  }
+  return false;
+}
+
+/**
+ * Advance the deepest active child in the subtree rooted at `nodeInfo`.
+ *
+ * If the block declares `advance`, it owns the traversal — the system
+ * calls it and does not auto-walk children.  The block can call
+ * `advanceChildren` / `advanceFrom` on specific children internally.
+ *
+ * If the block does NOT declare `advance`, it is a transparent container
+ * and the system walks its `renderedKids` via `advanceChildren`.
+ */
+export function advanceFrom(nodeInfo: OlxDomNode, state: any): boolean {
+  const { loBlock } = nodeInfo;
+
+  if (loBlock?.advance) {
+    return loBlock.advance(propsFromNode(nodeInfo), state);
+  }
+
+  return advanceChildren(nodeInfo, state);
 }
 
 /**
@@ -82,10 +104,7 @@ export function canAdvanceFrom(nodeInfo: OlxDomNode, state: any): boolean {
     return loBlock.canAdvance(propsFromNode(nodeInfo), state);
   }
 
-  for (const child of Object.values(nodeInfo.renderedKids ?? {})) {
-    if (canAdvanceFrom(child, state)) return true;
-  }
-  return false;
+  return canAdvanceChildren(nodeInfo, state);
 }
 
 /* ----------------------------------------------------------------
