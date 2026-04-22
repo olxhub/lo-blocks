@@ -67,6 +67,8 @@ export default function PreviewPane({
   }
 
   // Content types with a 1:1 OLX block wrapper (mermaid, observable, etc.)
+  // TODO: This should probably use `src=`
+  // TODO: This should probably not be inlined but come in from templates
   const wrapperBlock = PREVIEW_WRAPPER[getContentType(path)];
   if (wrapperBlock) {
     if (!content?.trim()) {
