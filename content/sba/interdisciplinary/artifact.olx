@@ -172,20 +172,62 @@ Analysis of how different disciplines view the problem and where they conflict.
           <RightPane><Markdown>**Group Consensus for Causal Diagram**</Markdown></RightPane>
         </SplitPanel>
         <SplitPanel>
-          <LeftPane><Mermaid target="editor_cause_diagram" /></LeftPane>
-          <RightPane><Mermaid target="cause_mapping" /></RightPane>
+          <LeftPane>
+            <IntakeGate ready="@initial_links_done.value">
+              <Markdown>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**Not Final**</Markdown>
+              <Hidden> </Hidden>
+            </IntakeGate>
+            <Mermaid target="editor_cause_diagram" />
+          </LeftPane>
+          <RightPane>
+            <IntakeGate ready="@initial_links_done.value">
+              <Markdown>**Not shown until your work is marked complete**</Markdown>
+              <Mermaid target="cause_mapping" />
+            </IntakeGate>
+          </RightPane>
         </SplitPanel>
       </Vertical>
       <Vertical title="Causal Diagram (Version 2)">
-        <SplitPanel>
-          <LeftPane><Markdown>**My Causal Diagram**</Markdown></LeftPane>
-          <RightPane><Markdown>**Group Consensus for Causal Diagram**</Markdown></RightPane>
-        </SplitPanel>
-        <SplitPanel>
-          <LeftPane><Mermaid target="editor" /></LeftPane>
-          <RightPane><Mermaid target="cause_mapping_3" /></RightPane>
-        </SplitPanel>
+        <IntakeGate ready="@initial_links_done.value">
+          <Markdown>**Not shown until previous diagram marked complete**</Markdown>
+          <Vertical>
+            <SplitPanel>
+              <LeftPane><Markdown>**My Causal Diagram**</Markdown></LeftPane>
+              <RightPane><Markdown>**Group Consensus for Causal Diagram**</Markdown></RightPane>
+            </SplitPanel>
+            <SplitPanel>
+              <LeftPane><Mermaid target="editor" /></LeftPane>
+              <RightPane>
+                <IntakeGate ready="@extra_links_done.value">
+                  <Markdown>**Not shown until previous diagram marked complete**</Markdown>
+                  <Mermaid target="cause_mapping_3" />
+                </IntakeGate>
+              </RightPane>
+            </SplitPanel>
+          </Vertical>
+        </IntakeGate>
       </Vertical>
+      <Vertical title="Final Causal Diagram">
+        <IntakeGate ready="@extra_links_done.value">
+          <Markdown>**Not shown until previous diagram marked complete**</Markdown>
+          <Vertical>
+            <SplitPanel>
+              <LeftPane><Markdown>**My Causal Diagram**</Markdown></LeftPane>
+              <RightPane><Markdown>**Group Consensus for Causal Diagram**</Markdown></RightPane>
+            </SplitPanel>
+            <SplitPanel>
+              <LeftPane><Mermaid target="editor_finance_reform" /></LeftPane>
+              <RightPane>
+                <IntakeGate ready="@extra_links_done_finance_reform.value">
+                  <Markdown>**Not shown until previous diagram marked complete**</Markdown>
+                  <Mermaid target="cause_mapping_4" />
+                </IntakeGate>
+              </RightPane>
+            </SplitPanel>
+          </Vertical>
+        </IntakeGate>
+    </Vertical>
+    
     </Tabs>    
     <Markdown id="artifact_tb_23">**Key Insights from Psychology:**</Markdown>
     <TextArea id="interdisciplinary_sba_insights_psychology" placeholder="Psychology insights: ADHD, motivation, self-efficacy factors..." />
