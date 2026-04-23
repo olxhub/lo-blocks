@@ -94,11 +94,17 @@ export class VersionConflictError extends Error {
   }
 }
 
-/** Characters forbidden in filenames: URI-unsafe (#?), OS-reserved, control chars, space, !. */
-const FORBIDDEN_SEGMENT_CHARS = /[#?\\:<>"|*!\s\x00-\x1f]/;
+/**
+ * Allowed characters in a single path segment (filename or directory name):
+ * Unicode letters/digits, dot, hyphen, underscore. Everything else is rejected.
+ * Conservative allowlist — avoids shell metacharacters, URI-unsafe chars, and
+ * OS-reserved chars while remaining i18n-friendly.
+ */
+const ALLOWED_SEGMENT_CHARS = /^[\p{L}\p{N}._-]+$/u;
 
-/** Global version for stripping forbidden characters from user input (e.g. in Studio). */
-export const FORBIDDEN_FILENAME_CHARS = /[#?\\:<>"|*!\s\x00-\x1f]/g;
+/** Matches any character NOT in the allowlist. Global, for stripping from user input.
+ *  Also permits `/` so it works on full paths (segment validation catches per-segment issues). */
+export const FORBIDDEN_FILENAME_CHARS = /[^\p{L}\p{N}._\/-]/gu;
 
 /**
  * Validate a single path segment (filename or directory name).
@@ -107,9 +113,11 @@ export const FORBIDDEN_FILENAME_CHARS = /[#?\\:<>"|*!\s\x00-\x1f]/g;
  */
 export function validatePathSegment(segment: string): string | null {
   if (!segment) return 'Empty path segment';
-  const match = segment.match(FORBIDDEN_SEGMENT_CHARS);
-  if (match) return `Character "${match[0]}" is not allowed in filenames`;
   if (segment.startsWith('.')) return 'Hidden files (starting with .) not allowed';
+  if (!ALLOWED_SEGMENT_CHARS.test(segment)) {
+    const badChar = segment.match(/[^\p{L}\p{N}._-]/u);
+    return `Character "${badChar?.[0]}" is not allowed in filenames`;
+  }
   return null;
 }
 

@@ -51,7 +51,7 @@ export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
     }
 
     setLoading(true);
-    fetch(`/api/docs/grammar/${encodeURIComponent(ext)}`)
+    fetch(`/api/docs/grammar/${encodeURIComponent(ext)}?context=studio`)
       .then(res => {
         if (!res.ok) {
           if (res.status === 404) {
@@ -107,7 +107,7 @@ export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
     }
   }, [ext, content]);
 
-  const hasPreview = previewOLX !== null;
+  const hasPreview = !loading && previewOLX !== null;
 
   // Inject content into the preview OLX using shared template logic
   const previewWithContent = useMemo((): { olx: string } | { error: string } | null => {

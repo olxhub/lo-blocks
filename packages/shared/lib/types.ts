@@ -512,6 +512,32 @@ export const BlockBlueprintSchema = z.object({
   fields: ReduxFieldsReturn.optional(),
   selectValue: z.function().optional(),
   /**
+   * Advance the block's internal state by one step (e.g. next dialogue line,
+   * next sequence item).  Called by the advance tree walker (lib/advance.ts).
+   *
+   * Return value:
+   *   true  — still active (advanced, or waiting on a condition)
+   *   false — nothing left to advance (conversation finished, end of sequence)
+   *
+   * When present, the block OWNS child traversal: the system will NOT
+   * auto-walk renderedKids.  Call advanceFrom() on specific children
+   * to implement depth-first semantics (e.g. Sequential advances its
+   * current child before itself).
+   *
+   * When absent, the block is a transparent container — the system
+   * auto-walks its renderedKids looking for advanceable descendants.
+   */
+  advance: z.function().optional(),
+  /**
+   * Read-only check: can this block (or its active subtree) advance?
+   * Used for visual feedback (e.g. Sequential dims its Next button when
+   * a child is still advanceable).
+   *
+   * Same ownership rule as advance: when present, the block owns child
+   * traversal.
+   */
+  canAdvance: z.function().optional(),
+  /**
    * Block-local API functions that expose the block's logic separately from its UI.
    *
    * While the React component (_Block.jsx) handles presentation, `locals` contains
@@ -655,6 +681,10 @@ export interface LoBlock {
   staticKids?: Function;
   reducers: Function[];
   selectValue?: ValueSelectorFn;
+  /** Advance one step. See BlockBlueprintSchema.advance for semantics. */
+  advance?: (props: RuntimeProps, state: any) => boolean;
+  /** Can this block advance? See BlockBlueprintSchema.canAdvance for semantics. */
+  canAdvance?: (props: RuntimeProps, state: any) => boolean;
   locals: Record<string, any>;
   fields: Fields;
   name: OLXTag;  // Block name — always set by factory (inferred from component name if not in blueprint)
@@ -769,7 +799,7 @@ export type ParseError = string | null | {
 };
 
 /**
- * BlueprintKidEntry — a single child element in a parsed block structure.
+ * KidEntry — a single child element in a parsed block structure.
  *
  * Standard OLX parsing produces arrays of these entries as the `kids` field
  * of an OlxJson block.  Each variant represents a different kind of child:
@@ -820,12 +850,12 @@ export type ParseError = string | null | {
  *  chatpeg embed directive `::video_1 [display=fullscreen title="Theory of Foo"]`. */
 export type ParentContext = Record<string, JSONValue>;
 
-export type BlueprintKidEntry =
+export type KidEntry =
   | { type: 'block'; id: OlxReference; overrides?: Record<string, JSONValue>; parentContext?: ParentContext }
   | { type: 'text'; text: string; parentContext?: ParentContext }
   | { type: 'xml'; xml: string; parentContext?: ParentContext }
   | { type: 'cdata'; value: string; parentContext?: ParentContext }
-  | { type: 'html'; tag: string; attributes: Record<string, JSONValue>; kids: BlueprintKidEntry[]; parentContext?: ParentContext }
+  | { type: 'html'; tag: string; attributes: Record<string, JSONValue>; kids: KidEntry[]; parentContext?: ParentContext }
   | { type: 'custom'; subtype: string; data: Record<string, JSONValue>; parentContext?: ParentContext };
 
 /**

@@ -24,6 +24,8 @@ Omer: Let's see if you remember the disciplines for each insight. **For each ins
 
 interdisciplinary_sba_sidebar2 -> insight_review
 
+::insight_review [display=target:interdisciplinary_sba_sidebar2 label="Select Relevant Disciplines for Each Insight"]
+
 --- wait @insight_review.submitCount > 0 ---
 
 interdisciplinary_sba_sidebar2 -> initial_dropout_cause_diagram

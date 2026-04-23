@@ -14,21 +14,22 @@
 //
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
+import { useSelector, shallowEqual } from 'react-redux';
 import { useOlxJson } from '@/lib/blocks/useOlxJson';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { renderOlxJson, renderCompiledKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
 import TranslatingIndicator from '@/lib/i18n/TranslatingIndicator';
-import type { OlxReference, BlockDataResult, OlxJson } from '@/lib/types';
+import type { OlxReference, BlockDataResult, OlxJson, RuntimeProps } from '@/lib/types';
 import { blockData } from '@/lib/state/redux';
 import { refToOlxKey } from '@/lib/blocks/idResolver';
 import { selectBlock } from '@/lib/state/olxjson';
 import {
   evaluate, createContext,
   extractStructuredRefs, mergeReferences, EMPTY_REFS,
-  useReferences,
+  selectReferences,
 } from '@/lib/stateLanguage';
 
 export type RenderedBlockResult = BlockDataResult & {
@@ -112,9 +113,14 @@ export function useBlock(
 
 // ─── when= filtering ───────────────────────────────────────────────────────
 //
-// Collects `when` expressions from kid blocks, subscribes to their
-// dependencies via useReferences (one hook call with merged refs),
-// evaluates each, and filters out kids whose condition is false.
+// Three forms following the project convention:
+//   selectKidsJson(props, reduxState) — pure selector (the logic)
+//   useKidsJson(props)                — reactive hook wrapper
+//   getKidsJson(props)                — one-shot imperative wrapper
+//
+// Collects `when` expressions from kid blocks, resolves their
+// dependencies, evaluates each, and filters out kids whose condition
+// is false.
 
 // Returns the pre-parsed { expr, ast } from the when= attribute, or undefined.
 function getWhen(kid, props) {
@@ -143,36 +149,51 @@ function collectWhens(kids, props) {
 }
 
 /**
+ * Pure selector: returns kids as OlxJson nodes with `when=` filtering applied.
+ *
+ * Use in blueprint functions (advance, canAdvance, actions) where hooks
+ * are unavailable.  Composable — wrap with `.length` for kid count, etc.
+ */
+export function selectKidsJson(props: RuntimeProps, reduxState: any): any[] {
+  const rawKids = (props.kids || []) as any[];
+  const whenMap = collectWhens(rawKids, props);
+  if (Object.keys(whenMap).length === 0) return rawKids;
+
+  const allRefs = (() => {
+    const entries = Object.values(whenMap) as { expr: string }[];
+    if (entries.length === 0) return EMPTY_REFS;
+    return mergeReferences(...entries.map(w => extractStructuredRefs(w.expr)));
+  })();
+
+  const resolved = selectReferences(reduxState, props, allRefs);
+  const ctx = createContext(resolved);
+  return rawKids.filter(kid => {
+    const when = whenMap[kid.id];
+    if (!when) return true;
+    return Boolean(evaluate(when.ast, ctx));
+  });
+}
+
+/** One-shot imperative form: grabs current state and calls selectKidsJson. */
+export function getKidsJson(props: RuntimeProps): any[] {
+  return selectKidsJson(props, props.runtime.store.getState());
+}
+
+/**
  * Hook that returns kids as OlxJson nodes with `when=` filtering applied.
  *
  * Use this (instead of props.kids) when you need structural access to
  * the kids list — e.g. for counting, navigation, tab bars. Blocks that
  * just render all children should use useKids() instead.
  */
-export function useKidsJson(props) {
-  const rawKids = props.kids || [];
-
-  // rawKids is the real dependency; runtime.store and locale are stable across renders
-  const whenMap = useMemo(() => collectWhens(rawKids, props), [rawKids]);
-
-  const allRefs = useMemo(() => {
-    const entries = Object.values(whenMap) as { expr: string }[];
-    if (entries.length === 0) return EMPTY_REFS;
-    return mergeReferences(...entries.map(w => extractStructuredRefs(w.expr)));
-  }, [whenMap]);
-
-  // Single hook call — stable count regardless of how many when= expressions exist
-  const resolved = useReferences(props, allRefs);
-
-  return useMemo(() => {
-    if (Object.keys(whenMap).length === 0) return rawKids;
-    const ctx = createContext(resolved);
-    return rawKids.filter(kid => {
-      const when = whenMap[kid.id];
-      if (!when) return true;
-      return Boolean(evaluate(when.ast, ctx));
-    });
-  }, [rawKids, whenMap, resolved]);
+// todo: selectKidsJson allocates a new array when when= conditions exist,
+// so we need shallowEqual to avoid re-renders on unrelated dispatches.
+// The old useKidsJson used useReferences (scoped subscription) + useMemo
+// which avoided even running the filter. Revisit when we rearchitect the
+// selector/use/get split — we need a pattern for hooks that post-process
+// selector results (filter, map, derive) without losing subscription scoping.
+export function useKidsJson(props: RuntimeProps): any[] {
+  return useSelector((reduxState: any) => selectKidsJson(props, reduxState), shallowEqual);
 }
 
 // ─── Public hooks ───────────────────────────────────────────────────────────

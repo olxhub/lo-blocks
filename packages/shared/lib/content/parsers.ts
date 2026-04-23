@@ -794,7 +794,7 @@ export function yamlParser(schema: z.ZodType) {
     let entry;
     try {
       const { default: yaml } = await import('js-yaml');
-      const raw = yaml.load(textContent);
+      const raw = yaml.load(textContent, { schema: yaml.JSON_SCHEMA });
       const parsed = schema.parse(raw);
 
       entry = {

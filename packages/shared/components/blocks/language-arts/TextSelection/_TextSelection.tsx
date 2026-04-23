@@ -8,6 +8,52 @@ import { DisplayError } from '@/lib/util/debug';
 import { assertNamedObject } from '@/lib/util/kids';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
+/**
+ * Evaluate parsed scoring rules against current selection stats.
+ * Returns the feedback string from the first matching rule, or null.
+ *
+ * Condition formats from the grammar:
+ *   'all'              — all required segments found, no errors
+ *   'found>=1'         — comparison on a field
+ *   'found>0,errors=0' — comma-separated conjunction
+ *   ''                 — always matches (default/fallback)
+ */
+function evaluateScoringRules(
+  rules: { condition: string; feedback: string }[],
+  vars: { found: number; errors: number; incorrect: number; total: number },
+): string | null {
+  const compare = (val: number, op: string, num: number): boolean => {
+    switch (op) {
+      case '>=': return val >= num;
+      case '<=': return val <= num;
+      case '>':  return val > num;
+      case '<':  return val < num;
+      case '=':  return val === num;
+      default:   return false;
+    }
+  };
+
+  const evalPart = (part: string): boolean => {
+    const m = part.match(/^(found|errors|incorrect)?(>=|<=|>|<|=)(\d+)$/);
+    if (!m) return false;
+    const field = (m[1] || 'found') as keyof typeof vars;
+    return compare(vars[field], m[2], parseInt(m[3], 10));
+  };
+
+  for (const rule of rules) {
+    const cond = rule.condition.trim();
+    if (cond === '') { return rule.feedback; } // default/fallback
+    if (cond === 'all') {
+      if (vars.found === vars.total && vars.errors === 0) return rule.feedback;
+      continue;
+    }
+    // Comma-separated conjunction
+    const parts = cond.split(',');
+    if (parts.every(p => evalPart(p.trim()))) return rule.feedback;
+  }
+  return null;
+}
+
 // Token types for text highlighting (discriminated union on isSpace)
 type WordToken = {
   index: number;
@@ -171,10 +217,12 @@ export default function _TextSelection(props: RuntimeProps) {
   }, [wordData]);
 
   // Calculate selection statistics at the segment level
+  // Only groups with required tokens count toward the score — optional-only
+  // groups (bonus terms) don't affect correctSegments or totalSegments.
   const stats = useMemo(() => {
-    // Correct segments: groups where all required tokens are selected
+    const requiredGroups = groups.filter(g => g.required.size > 0);
     let correctSegments = 0;
-    for (const g of groups) {
+    for (const g of requiredGroups) {
       let allReqSelected = true;
       for (const idx of g.required) {
         if (!selectedIndices.has(idx)) { allReqSelected = false; break; }
@@ -195,7 +243,7 @@ export default function _TextSelection(props: RuntimeProps) {
       }
     }
 
-    const totalSegments = groups.length;
+    const totalSegments = requiredGroups.length;
     const isComplete = correctSegments === totalSegments && incorrectSegments === 0;
     return { correctSegments, incorrectSegments, totalSegments, isComplete };
   }, [groups, wordData, selectedIndices]);
@@ -203,8 +251,9 @@ export default function _TextSelection(props: RuntimeProps) {
   // Immediate feedback updater
   const updateImmediateFeedback = (selectionSet) => {
     const temp = new Set(selectionSet);
+    const requiredGroups = groups.filter(g => g.required.size > 0);
     let correctSegments = 0;
-    for (const g of groups) {
+    for (const g of requiredGroups) {
       let allReqSelected = true;
       for (const idx of g.required) {
         if (!temp.has(idx)) { allReqSelected = false; break; }
@@ -222,14 +271,21 @@ export default function _TextSelection(props: RuntimeProps) {
         inRun = false;
       }
     }
-    if (correctSegments === groups.length && incorrectSegments === 0) {
+    const total = requiredGroups.length;
+    const scoringVars = { found: correctSegments, errors: incorrectSegments, incorrect: incorrectSegments, total };
+    const ruleFeedback = parsed.scoring?.length
+      ? evaluateScoringRules(parsed.scoring, scoringVars)
+      : null;
+    if (ruleFeedback) {
+      setFeedback(ruleFeedback);
+    } else if (correctSegments === total && incorrectSegments === 0) {
       setFeedback('Perfect! You selected all target segments.');
     } else if (incorrectSegments > 0) {
-      setFeedback(`${correctSegments}/${groups.length} correct • ${incorrectSegments} errors`);
+      setFeedback(`${correctSegments}/${total} correct • ${incorrectSegments} errors`);
     } else {
-      setFeedback(`${correctSegments}/${groups.length} correct`);
+      setFeedback(`${correctSegments}/${total} correct`);
     }
-    setScore(correctSegments / groups.length)
+    setScore(total > 0 ? correctSegments / total : 0);
   };
 
   // Handle native text selection
@@ -372,7 +428,13 @@ export default function _TextSelection(props: RuntimeProps) {
   const checkAnswers = () => {
     setChecked(true);
     setAttempts(attempts + 1);
-    if (stats.isComplete) {
+    const scoringVars = { found: stats.correctSegments, errors: stats.incorrectSegments, incorrect: stats.incorrectSegments, total: stats.totalSegments };
+    const ruleFeedback = parsed.scoring?.length
+      ? evaluateScoringRules(parsed.scoring, scoringVars)
+      : null;
+    if (ruleFeedback) {
+      setFeedback(ruleFeedback);
+    } else if (stats.isComplete) {
       setFeedback('Correct! You selected all target segments.');
     } else {
       setFeedback(`${stats.correctSegments}/${stats.totalSegments} correct • ${stats.incorrectSegments} errors`);
@@ -530,6 +592,33 @@ export default function _TextSelection(props: RuntimeProps) {
           {feedback}
         </div>
       )}
+
+      {/* Per-term targeted feedback for selected segments */}
+      {parsed.targetedFeedback && (() => {
+        const seen = new Set<string>();
+        const items: { id: string; label: string; text: string }[] = [];
+        for (const w of wordData) {
+          if (w.isSpace || !selectedIndices.has(w.index)) continue;
+          const wt = w as WordToken;
+          if (!wt.segmentId || seen.has(wt.segmentId)) continue;
+          seen.add(wt.segmentId);
+          const fb = parsed.targetedFeedback[wt.segmentId];
+          if (!fb) continue;
+          // Collect display text for this segment (all selected tokens with same segmentId)
+          const segmentWords = wordData
+            .filter(t => !t.isSpace && (t as WordToken).segmentId === wt.segmentId)
+            .map(t => t.text);
+          items.push({ id: wt.segmentId, label: segmentWords.join(' '), text: fb });
+        }
+        if (items.length === 0) return null;
+        return (
+          <div className="targeted-feedback mt-2 text-sm">
+            {items.map(({ id, label, text }) => (
+              <div key={id} className="mb-1 text-secondary"><strong>{label}:</strong> {text}</div>
+            ))}
+          </div>
+        );
+      })()}
 
       <div className="controls flex gap-2">
         {mode === 'graded' && !checked && (

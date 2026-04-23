@@ -32,26 +32,31 @@ import type { OlxReference } from '@/lib/types';
  *   --- wait @quiz.done ---
  *   ::reflection_prompt
  *
- * RELATIONSHIP TO BlueprintKidEntry
+ * RELATIONSHIP TO KidEntry
  * ---------------------------------
- * Standard OLX blocks store children as BlueprintKidEntry[] — a union of
+ * Standard OLX blocks store children as KidEntry[] — a union of
  * { type: 'block' }, { type: 'text' }, { type: 'html' }, etc.  PEG-parsed
  * blocks like MarkupProblem use postprocess() to convert their AST into
- * BlueprintKidEntry[] (see MarkupProblem.ts: storeEntry + blockRef).
+ * KidEntry[] (see MarkupProblem.ts: storeEntry + blockRef).
  *
  * Chat's body entries serve the same role — they ARE the kids list — but
  * carry richer semantics (speaker, expression, section title) that don't
- * map to the existing BlueprintKidEntry variants.  EmbedCommand is the
+ * map to the existing KidEntry variants.  EmbedCommand is the
  * closest overlap: it's conceptually { type: 'block', id: ref } with
  * display metadata.
  *
  * Current: body entries are chat-specific types; postprocess wraps them
  * as { type: 'parsed', parsed: ParsedConversation }.
  *
- * Future: extend BlueprintKidEntry with chat-specific variants so the
- * body IS a BlueprintKidEntry[], and embed refs use the standard block
+ * Future: extend KidEntry with chat-specific variants so the
+ * body IS a KidEntry[], and embed refs use the standard block
  * resolution machinery (storeEntry/blockRef pattern from MarkupProblem).
  */
+
+/** Shared by entry types that carry [key=value] metadata from the grammar. */
+export interface HasMetadata {
+  metadata: Record<string, string>;
+}
 
 /**
  * A spoken line in the dialogue.
@@ -70,11 +75,10 @@ import type { OlxReference } from '@/lib/types';
  * The `text` field contains the full markdown (inline + indented block
  * joined with \n\n).  ReactMarkdown renders it in the chat bubble.
  */
-export interface DialogueLine {
+export interface DialogueLine extends HasMetadata {
   type: 'Line';
   speaker: string;
   text: string;
-  metadata: Record<string, string>;
 }
 
 /**
@@ -87,10 +91,9 @@ export interface DialogueLine {
  * Title text followed by a line of 3+ dashes.  Optional [key=value]
  * metadata (commonly `id` for clip addressing).
  */
-export interface SectionHeader {
+export interface SectionHeader extends HasMetadata {
   type: 'SectionHeader';
   title: string;
-  metadata: Record<string, string>;
 }
 
 /**
@@ -151,7 +154,7 @@ export interface CommandBlock {
 
 /**
  * Embed a block by reference.  Conceptually equivalent to
- * BlueprintKidEntry { type: 'block', id: ref } — an existing block
+ * KidEntry { type: 'block', id: ref } — an existing block
  * rendered inline in the conversation flow.
  *
  *   ::problem_1                               Simple reference
@@ -160,7 +163,7 @@ export interface CommandBlock {
  *     fullscreen: true
  *     label: Watch a video
  *
- * `ref` is an OLX block ID (like BlueprintKidEntry.block.id).
+ * `ref` is an OLX block ID (like KidEntry.block.id).
  * `metadata` carries inline [key=value] pairs (display hints).
  * `options` is a raw YAML string from indented lines, or null.
  *
@@ -173,10 +176,9 @@ export interface CommandBlock {
  * The CompactPopout handles the display behavior (modal vs repoint)
  * and shows a clickable placeholder in the chat flow.
  */
-export interface EmbedCommand {
+export interface EmbedCommand extends HasMetadata {
   type: 'EmbedCommand';
   ref: OlxReference;
-  metadata: Record<string, string>;
   options: string | null;
   /** Parsed YAML options (set by postprocess in Chat.ts). */
   parsedOptions?: Record<string, unknown>;
@@ -198,11 +200,10 @@ export interface EmbedCommand {
  * at render time — analogous to how MarkupProblem generates synthetic
  * child blocks via storeEntry() in postprocess.
  */
-export interface EmbedBlock {
+export interface EmbedBlock extends HasMetadata {
   type: 'EmbedBlock';
   ref: null;
   content: string;
-  metadata: Record<string, string>;
 }
 
 /** All possible entries in a chatpeg body. */

@@ -1,7 +1,7 @@
 // packages/shared/components/common/ChatComponent.tsx
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import RenderMarkdown from '@/components/common/RenderMarkdown';
 import NavArrow from '@/components/common/NavArrow';
 import ExpandIcon from '@/components/common/ExpandIcon';
@@ -83,7 +83,6 @@ export interface ChatComponentProps {
   subtitle?: string | null;
   footer?: React.ReactNode;
   height?: string;
-  onAdvance?: (() => void) | null;
 }
 
 /* ----------------------------------------------------------------
@@ -348,7 +347,7 @@ export const AdvanceFooter: React.FC<AdvanceFooterProps> = ({
         >
           Continue <NavArrow direction="forward" className="ms-1 w-4 h-4" />
         </button>
-        <span className="text-xs text-dimmed">or focus chat and press [space]</span>
+        <span className="w-24" /> {/* balance the counter on the left */}
       </div>
     </div>
   );
@@ -366,7 +365,6 @@ export function ChatComponent({
   subtitle = null,
   footer,
   height = 'h-96',
-  onAdvance = null,
 }: ChatComponentProps) {
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -389,19 +387,6 @@ export function ChatComponent({
     if (!el) return;
     el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
   }, [messages.length]);
-
-  // Space to advance (only when this region has focus)
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (!onAdvance) return;
-      if (e.nativeEvent.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
-      if (e.code === 'Space' || e.key === ' ') {
-        e.preventDefault();
-        onAdvance();
-      }
-    },
-    [onAdvance]
-  );
 
   const renderMessage = (message: ChatMessage, index: number) => {
     const prev = index > 0 ? messages[index - 1] : null;
@@ -467,12 +452,8 @@ export function ChatComponent({
       </div>
       <div
         ref={chatContainerRef}
-        className={`overflow-y-auto p-4 ${t.content} focus:outline-none focus:ring-2 focus:ring-accent ${height === 'flex-1' ? 'flex-1' : ''}`}
+        className={`overflow-y-auto p-4 ${t.content} ${height === 'flex-1' ? 'flex-1' : ''}`}
         style={height !== 'flex-1' ? { height } : undefined}
-        tabIndex={0}
-        role="region"
-        aria-label="Chat transcript. Press space to advance."
-        onKeyDown={handleKeyDown}
       >
         {messages.map(renderMessage)}
       </div>

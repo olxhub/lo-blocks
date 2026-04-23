@@ -16,7 +16,7 @@ import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes, problemAttributes } from '@/lib/blocks/attributeSchemas';
 import * as capaParser from '../specialized/peg_prototype/_capaParser';
 import _CapaProblem from '@/components/blocks/CapaProblem/_CapaProblem';
-import type { BlueprintKidEntry, OlxReference } from '@/lib/types';
+import type { KidEntry, OlxReference } from '@/lib/types';
 import { parse as parseExpr } from '@/lib/stateLanguage';
 
 // Pre-parse a when= expression into the { expr, ast } shape that useKidsJson expects.
@@ -31,7 +31,7 @@ const escapeExprString = (s: string) =>
   s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r');
 
 // Helper: create a block reference with properly typed OlxReference
-const blockRef = (id: string): BlueprintKidEntry => ({ type: 'block', id: id as OlxReference });
+const blockRef = (id: string): KidEntry => ({ type: 'block', id: id as OlxReference });
 
 /**
  * Transform parsed CAPA AST into OLX component structure.
@@ -43,8 +43,8 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
   let hintIndex = 0;
   let contentIndex = 0;
 
-  const problemKids: BlueprintKidEntry[] = [];
-  const demandHints: BlueprintKidEntry[] = [];
+  const problemKids: KidEntry[] = [];
+  const demandHints: KidEntry[] = [];
 
   for (const block of parsed) {
     switch (block.type) {
@@ -89,7 +89,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
         } else {
           // Question with inline dropdowns - handle each part
           const parts = block.label;
-          const questionKids: BlueprintKidEntry[] = [];
+          const questionKids: KidEntry[] = [];
           let textBuffer = '';
 
           for (const part of parts) {
@@ -286,7 +286,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
         const graderId = `${id}_grader_${graderIndex++}`;
         const inputId = `${id}_input_${inputIndex++}`;
 
-        const matchKids: BlueprintKidEntry[] = [];
+        const matchKids: KidEntry[] = [];
 
         // Create StringMatch for each rule from grammar
         block.rules.forEach((rule, i) => {

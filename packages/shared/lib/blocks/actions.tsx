@@ -21,7 +21,7 @@
 // This enables replay mode where a different store provides historical state.
 //
 import { z } from 'zod';
-import { inferRelatedNodes, getDomNodeByReduxKey } from './olxdom';
+import { inferRelatedNodes, getDomNodeByReduxKey, propsFromNode } from './olxdom';
 import * as lo_event from 'lo_event';
 import { correctness } from './correctness';
 import { refToReduxKey } from './idResolver';
@@ -393,22 +393,7 @@ export async function executeNodeActions(props: RuntimeProps) {
       throw new Error(`Action ${targetId} not found in dynamic DOM tree - this indicates a bug in the rendering system`);
     }
 
-    // Create proper props for the action component
-    // Match the props structure that render.jsx creates for normal components.
-    // Use the action's own runtime (captured at render time) for correct idPrefix,
-    // logEvent context, etc. Falls back to caller's runtime if unavailable.
-    const actionProps = {
-      runtime: actionNodeInfo.runtime ?? props.runtime,
-
-      // Target-specific props (like render.jsx does)
-      ...targetInstance.attributes,        // OLX attributes from target action
-      kids: targetInstance.kids || [],     // Children of the action block
-      id: targetId,
-      loBlock: targetBlueprint,
-      fields: targetBlueprint.fields || {}, // Fields are now directly { fieldName: FieldInfo }
-      locals: targetBlueprint.locals || {},
-      nodeInfo: actionNodeInfo,
-    };
+    const actionProps = propsFromNode(actionNodeInfo);
 
     await targetBlueprint.action({
       targetId,

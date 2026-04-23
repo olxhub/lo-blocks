@@ -355,6 +355,8 @@ function createBlock(config: BlueprintInputWithMixins): LoBlock {
     staticKids: effectiveConfig.staticKids,
     reducers: effectiveConfig.reducers ?? [],
     selectValue: effectiveConfig.selectValue,
+    advance: effectiveConfig.advance as LoBlock['advance'],
+    canAdvance: effectiveConfig.canAdvance as LoBlock['canAdvance'],
     fields: (effectiveConfig.fields as Fields) ?? state.fields([]),
     locals: effectiveConfig.locals ?? {},
 

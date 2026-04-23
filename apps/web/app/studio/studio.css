@@ -334,6 +334,74 @@
   border-radius: 6px;
 }
 
+.file-dialog-dir {
+  font-size: 12px;
+  color: var(--lo-chrome-text-muted, var(--lo-chrome-text));
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+
+.file-dialog-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 8px;
+}
+
+.file-dialog-name {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  background: var(--lo-chrome-surface);
+  border: 1px solid var(--lo-chrome-border);
+  border-radius: 6px 0 0 6px;
+  color: var(--lo-chrome-text);
+  font-size: 14px;
+}
+
+.file-dialog-name:focus {
+  outline: none;
+  border-color: var(--lo-primary);
+}
+
+.file-dialog-ext {
+  padding: 8px 10px;
+  background: var(--lo-chrome-hover);
+  border: 1px solid var(--lo-chrome-border);
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  color: var(--lo-chrome-text);
+  opacity: 0.7;
+  font-size: 14px;
+  font-family: monospace;
+  white-space: nowrap;
+}
+
+.file-dialog-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--lo-chrome-text);
+  margin-bottom: 8px;
+}
+
+.file-dialog-select {
+  flex: 1;
+  padding: 6px 10px;
+  background: var(--lo-chrome-surface);
+  border: 1px solid var(--lo-chrome-border);
+  border-radius: 6px;
+  color: var(--lo-chrome-text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.file-dialog-select:focus {
+  outline: none;
+  border-color: var(--lo-primary);
+}
+
 .file-dialog-actions {
   display: flex;
   gap: 8px;
@@ -351,8 +419,13 @@
   font-size: 12px;
 }
 
-.file-dialog-btn:hover {
+.file-dialog-btn:hover:not(:disabled) {
   background: var(--lo-primary-hover);
+}
+
+.file-dialog-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .file-dialog-btn.cancel {
