@@ -156,7 +156,7 @@ describe('PostgresStorageProvider', () => {
     await provider.write('hello.olx' as OlxRelativePath, '<Markdown>Hello</Markdown>');
     const result = await provider.read('hello.olx' as OlxRelativePath);
     expect(result.content).toBe('<Markdown>Hello</Markdown>');
-    expect(result.provenance).toBe('postgres:///test-tenant/hello.olx');
+    expect(result.provenance).toBe('postgres:test-tenant://hello.olx');
     expect((result.metadata as any).version).toBe(1);
   });
 
@@ -288,13 +288,13 @@ describe('PostgresStorageProvider', () => {
   // -- resolveRelativePath --
 
   it('resolves relative path', () => {
-    const base = 'postgres:///test-tenant/sub/lesson.olx' as ProvenanceURI;
+    const base = 'postgres:test-tenant://sub/lesson.olx' as ProvenanceURI;
     const resolved = provider.resolveRelativePath(base, 'image.png');
     expect(resolved).toBe('sub/image.png');
   });
 
   it('resolves parent path', () => {
-    const base = 'postgres:///test-tenant/sub/lesson.olx' as ProvenanceURI;
+    const base = 'postgres:test-tenant://sub/lesson.olx' as ProvenanceURI;
     const resolved = provider.resolveRelativePath(base, '../other.olx');
     expect(resolved).toBe('other.olx');
   });
@@ -303,6 +303,6 @@ describe('PostgresStorageProvider', () => {
 
   it('constructs provenance URI', () => {
     const uri = provider.toProvenanceURI('sub/file.olx' as any);
-    expect(uri).toBe('postgres:///test-tenant/sub/file.olx');
+    expect(uri).toBe('postgres:test-tenant://sub/file.olx');
   });
 });

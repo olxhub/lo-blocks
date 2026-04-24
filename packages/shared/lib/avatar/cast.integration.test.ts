@@ -71,7 +71,7 @@ function makeMockProvider(files: Record<string, string>) {
       return { content };
     },
     resolveRelativePath: (_base: string, relative: string) => relative,
-    toProvenanceURI: (path: string) => `file:///${path}`,
+    toProvenanceURI: (path: string) => `file:test://${path}`,
     loadXmlFilesWithStats: async () => ({}),
     write: async () => {},
     update: async () => {},
@@ -89,7 +89,7 @@ function makeMockProvider(files: Record<string, string>) {
  */
 async function parseAndRender(olx: string, providerFiles?: Record<string, string>, renderRoot?: string) {
   const provider = providerFiles ? makeMockProvider(providerFiles) : undefined;
-  const { idMap, root } = await parseOLX(olx, ['file:///test.olx'], provider);
+  const { idMap, root } = await parseOLX(olx, ['file:test://test.olx'], provider);
 
   if (!root) throw new Error('No root element found after parsing');
   const renderId = renderRoot ?? root;

@@ -220,7 +220,7 @@ function useParseContent(
         if (inline) {
           const result = await parseOLX(
             inline,
-            [(provenance || 'inline://') as ProvenanceURI],
+            [(provenance || 'memory:inline://content') as ProvenanceURI],
             effectiveProvider
           );
           if (!cancelled) {

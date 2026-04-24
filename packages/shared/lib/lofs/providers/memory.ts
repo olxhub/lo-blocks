@@ -23,7 +23,8 @@ import type {
 } from '../types';
 import { type ContentNamespace, toContentNamespace } from '../types';
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath } from '../../types';
-import { toMemoryProvenanceURI, provenancePath } from '../types';
+import { toMemoryProvenanceURI } from '../types';
+import { scheme as addressScheme, path as addressPath, toLofsAddress } from '../address';
 
 export class InMemoryStorageProvider implements StorageProvider {
   readonly scheme = 'memory' as const;
@@ -44,13 +45,13 @@ export class InMemoryStorageProvider implements StorageProvider {
     const normalized = path.replace(/^\.?\//, '');
 
     if (this.files[normalized] !== undefined) {
-      return { content: this.files[normalized], metadata: {}, provenance: toMemoryProvenanceURI(normalized) };
+      return { content: this.files[normalized], metadata: {}, provenance: toMemoryProvenanceURI(normalized, this.namespace) };
     }
 
     // Try with basePath prefix
     const withBase = this.basePath ? `${this.basePath}/${normalized}` : normalized;
     if (this.files[withBase] !== undefined) {
-      return { content: this.files[withBase], metadata: {}, provenance: toMemoryProvenanceURI(withBase) };
+      return { content: this.files[withBase], metadata: {}, provenance: toMemoryProvenanceURI(withBase, this.namespace) };
     }
 
     const availableFiles = Object.keys(this.files).join(', ') || '(none)';
@@ -82,7 +83,7 @@ export class InMemoryStorageProvider implements StorageProvider {
     for (const [filename, content] of Object.entries(this.files)) {
       if (!isContentFile(filename)) continue;
 
-      const uri = toMemoryProvenanceURI(filename);
+      const uri = toMemoryProvenanceURI(filename, this.namespace);
       const ext = getExtension(filename);
 
       if (previous[uri]) {
@@ -96,15 +97,15 @@ export class InMemoryStorageProvider implements StorageProvider {
   }
 
   resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
-    // Only handle memory:// provenance — lets the stacked provider fall through
-    // to the file provider for file:// URIs.
-    if (!baseProvenance.startsWith('memory://')) {
+    // Only handle memory: provenance — lets the stacked provider fall through
+    // to the file provider for file: URIs.
+    if (addressScheme(toLofsAddress(baseProvenance)) !== 'memory') {
       throw new Error(`Unsupported provenance format: ${baseProvenance}`);
     }
 
     // Extract directory from base provenance URI and resolve relative to it.
-    // e.g., memory:///subdir/lesson.olx + "notes.md" → "subdir/notes.md"
-    const memoryPath = provenancePath(baseProvenance);
+    // e.g., memory:local://subdir/lesson.olx + "notes.md" → "subdir/notes.md"
+    const memoryPath = addressPath(toLofsAddress(baseProvenance));
     const lastSlash = memoryPath.lastIndexOf('/');
     const baseDir = lastSlash >= 0 ? memoryPath.substring(0, lastSlash) : '';
     const joined = baseDir ? `${baseDir}/${relativePath}` : relativePath;
@@ -127,13 +128,13 @@ export class InMemoryStorageProvider implements StorageProvider {
     // for files that aren't in memory.
     const normalized = (safePath as string).replace(/^\.?\//, '');
     if (this.files[normalized] !== undefined) {
-      return toMemoryProvenanceURI(safePath);
+      return toMemoryProvenanceURI(safePath, this.namespace);
     }
     // Try with basePath prefix
     if (this.basePath) {
       const withBase = `${this.basePath}/${normalized}`;
       if (this.files[withBase] !== undefined) {
-        return toMemoryProvenanceURI(safePath);
+        return toMemoryProvenanceURI(safePath, this.namespace);
       }
     }
     throw new Error(`File not found in memory provider: ${safePath}`);

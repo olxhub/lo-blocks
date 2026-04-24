@@ -4,6 +4,7 @@
 import React, { ReactNode, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import type { ProvenanceURI } from '@/lib/types';
+import { scheme as lofScheme, path as lofsPath, toLofsAddress } from '@/lib/lofs/address';
 import { getExtension } from '@/lib/util/fileTypes';
 import { useFieldState, settings } from '@/lib/state';
 
@@ -77,29 +78,19 @@ export const DebugWrapper = ({ props = {}, loBlock, children }: DebugWrapperProp
   const provenance = props?.nodeInfo?.olxJson?.provenance ?? [];
   const prefix = process.env.NEXT_PUBLIC_DEBUG_LINK_PREFIX ?? '';
 
-  /** Extract scheme and path from a provenance URI (e.g., "file:///foo" → ["file", "/foo"]) */
-  function splitProvenance(uri: ProvenanceURI): { scheme: string; path: string } {
-    const idx = uri.indexOf('://');
-    if (idx < 0) return { scheme: 'unknown', path: uri };
-    return { scheme: uri.slice(0, idx), path: uri.slice(idx + 3) };
-  }
-
   const links = provenance.map((uri, idx) => {
-    const { scheme, path: uriPath } = splitProvenance(uri);
-    if (scheme === 'file') {
-      // Logical path after file:/// e.g. '/content/sba/foo.olx' → 'content/sba/foo.olx'
-      const logicalPath = uriPath.startsWith('/') ? uriPath.slice(1) : uriPath;
-      // Strip mount point prefix (e.g. 'content/') for Studio-relative link
-      const contentPrefix = 'content/';
-      const rel = logicalPath.startsWith(contentPrefix)
-        ? logicalPath.slice(contentPrefix.length)
-        : logicalPath;
-      const href = `/studio?file=${encodeURIComponent(rel)}`;
+    const addr = toLofsAddress(uri);
+    const sch = lofScheme(addr);
+    const uriPath = lofsPath(addr);
+
+    if (sch === 'file') {
+      // Path from LOFS address is already relative to the mount
+      const href = `/studio?file=${encodeURIComponent(uriPath)}`;
       const fileType = getExtension(uriPath) || 'file';
-      return <Link key={idx} href={href} title={rel}>{fileType}</Link>;
+      return <Link key={idx} href={href} title={uriPath}>{fileType}</Link>;
     }
     // Fallback for non-file provenances
-    return <a key={idx} href={`${prefix}${uri}`}>{scheme}</a>;
+    return <a key={idx} href={`${prefix}${uri}`}>{sch}</a>;
   });
 
   const handleLog = () => console.log('[props]', props);

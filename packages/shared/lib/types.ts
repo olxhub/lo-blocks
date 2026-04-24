@@ -17,6 +17,7 @@
 import { z } from 'zod';
 import { scopeNames } from './state/scopes';
 import type { Store } from 'redux';
+import type { LofsAddress } from './lofs/address';
 
 /**
  * ════════════
@@ -170,7 +171,10 @@ export type OLXTag = string & { __brand: 'OLXTag' };
  * Every piece of parsed content carries a provenance chain — an array of
  * URIs recording where it came from. For a block in foo.olx that includes
  * quiz.chatpeg, that chain might be:
- *   ["file:///content/demos/foo.olx", "file:///content/demos/quiz.chatpeg"]
+ *   ["file:content://demos/foo.olx", "file:content://demos/quiz.chatpeg"]
+ *
+ * Provenance URIs use the LOFS address format: source-locator://path
+ * See packages/shared/lib/lofs/address.ts for the grammar.
  *
  * This enables:
  * - Precise error messages ("syntax error in demos/foo.olx:42")
@@ -181,9 +185,9 @@ export type OLXTag = string & { __brand: 'OLXTag' };
  * (SafeRelativePath "uofa/writing/foo.md") can exist in multiple places
  * simultaneously — a university postgres database, a professor's git repo,
  * an in-memory editing buffer. Each has its own provenance:
- *   postgres://profx@uofa.edu/uofa/writing/foo.md
- *   git://profx@github.com/profx/olxrepo/uofa/writing/foo.md
- *   inline://uofa/writing/foo.md
+ *   postgres:profx@uofa.edu://uofa/writing/foo.md
+ *   git@github.com:profx/olxrepo://uofa/writing/foo.md
+ *   memory:inline://uofa/writing/foo.md
  *
  * "Save" might push content from inline → git; "publish" from git → postgres.
  * The true canonical identity is ultimately the content itself (a SHA hash),
@@ -192,15 +196,14 @@ export type OLXTag = string & { __brand: 'OLXTag' };
  * Providers construct provenance URIs — parsers should never need to know
  * about schemes. See StorageProvider.toProvenanceURI().
  *
- * Sub-branded by scheme so TypeScript can distinguish file:// from memory://
- * at compile time. Runtime checks (startsWith('file://')) stay as
- * defense-in-depth — `as` casts and JS callers bypass brands.
+ * Backed by LofsAddress so address functions (source, path, scheme, etc.)
+ * work directly on provenance URIs.
  */
-/** Any provenance URI — base brand for all schemes */
-export type ProvenanceURI = string & { __brand: 'Provenance' };
-/** file:// provenance — content loaded from local filesystem */
+/** Any provenance URI — backed by LofsAddress (source-locator://path) */
+export type ProvenanceURI = LofsAddress;
+/** file: provenance — content loaded from local filesystem */
 export type FileProvenanceURI = ProvenanceURI & { __scheme: 'file' };
-/** memory:// provenance — content from in-memory storage (tests, virtual FS) */
+/** memory: provenance — content from in-memory storage (tests, virtual FS) */
 export type MemoryProvenanceURI = ProvenanceURI & { __scheme: 'memory' };
 
 /** Primary representation for provenance references */
@@ -1174,7 +1177,7 @@ export interface OlxJson {
    * parseOLX.ts. The `_` prefix flags this as a temporary placement.
    *
    * Eventual home: folded into the provenance URI itself, e.g.
-   * `file:///foo.olx#L3:3` or `file:///foo.olx#char=36,55` (RFC 5147), so
+   * `file:content://foo.olx#L3:3` or `file:content://foo.olx#char=36,55` (RFC 5147), so
    * one provenance value carries source identity AND span. When that
    * lands, this field goes away.
    *

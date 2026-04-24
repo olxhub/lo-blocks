@@ -150,7 +150,7 @@ describe('Demo OLX files render without errors', () => {
         }
 
         // Parse the OLX
-        const { idMap, root } = await parseOLX(content, [`file:///test/${filePath}`]);
+        const { idMap, root } = await parseOLX(content, [`file:test://${filePath}`]);
 
         if (!root || !idMap[root]) {
           errors.push({

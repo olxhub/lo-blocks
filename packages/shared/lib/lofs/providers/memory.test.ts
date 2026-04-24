@@ -12,9 +12,9 @@ describe('InMemoryStorageProvider', () => {
   describe('resolveRelativePath', () => {
     const provider = new InMemoryStorageProvider(files);
 
-    it('resolves relative path against memory:/// provenance', () => {
+    it('resolves relative path against memory: provenance', () => {
       const result = provider.resolveRelativePath(
-        'memory:///subdir/lesson.olx' as ProvenanceURI,
+        'memory:local://subdir/lesson.olx' as ProvenanceURI,
         'notes.md'
       );
       expect(result).toBe('subdir/notes.md');
@@ -22,7 +22,7 @@ describe('InMemoryStorageProvider', () => {
 
     it('resolves path at root level', () => {
       const result = provider.resolveRelativePath(
-        'memory:///lesson.olx' as ProvenanceURI,
+        'memory:local://lesson.olx' as ProvenanceURI,
         'other.olx'
       );
       expect(result).toBe('other.olx');
@@ -30,21 +30,21 @@ describe('InMemoryStorageProvider', () => {
 
     it('resolves .. segments', () => {
       const result = provider.resolveRelativePath(
-        'memory:///subdir/deep/file.olx' as ProvenanceURI,
+        'memory:local://subdir/deep/file.olx' as ProvenanceURI,
         '../notes.md'
       );
       expect(result).toBe('subdir/notes.md');
     });
 
-    it('throws for file:// provenance', () => {
+    it('throws for file: provenance', () => {
       expect(() =>
-        provider.resolveRelativePath('file:///some/path.olx' as ProvenanceURI, 'notes.md')
+        provider.resolveRelativePath('file:content://some/path.olx' as ProvenanceURI, 'notes.md')
       ).toThrow('Unsupported provenance format');
     });
 
     it('throws for unknown provenance schemes', () => {
       expect(() =>
-        provider.resolveRelativePath('postgres://table/row' as ProvenanceURI, 'notes.md')
+        provider.resolveRelativePath('postgres:tenant://row' as ProvenanceURI, 'notes.md')
       ).toThrow('Unsupported provenance format');
     });
   });
@@ -52,14 +52,14 @@ describe('InMemoryStorageProvider', () => {
   describe('toProvenanceURI', () => {
     const provider = new InMemoryStorageProvider(files);
 
-    it('returns memory:/// URI for files that exist', () => {
+    it('returns memory: URI for files that exist', () => {
       const result = provider.toProvenanceURI('lesson.olx' as SafeRelativePath);
-      expect(result).toBe('memory:///lesson.olx');
+      expect(result).toBe('memory:local://lesson.olx');
     });
 
-    it('returns memory:/// URI for nested files that exist', () => {
+    it('returns memory: URI for nested files that exist', () => {
       const result = provider.toProvenanceURI('subdir/notes.md' as SafeRelativePath);
-      expect(result).toBe('memory:///subdir/notes.md');
+      expect(result).toBe('memory:local://subdir/notes.md');
     });
 
     it('throws for files that do not exist', () => {
@@ -96,7 +96,7 @@ describe('InMemoryStorageProvider', () => {
         'base'
       );
       const result = providerWithBase.toProvenanceURI('file.olx' as SafeRelativePath);
-      expect(result).toBe('memory:///file.olx');
+      expect(result).toBe('memory:local://file.olx');
     });
   });
 });

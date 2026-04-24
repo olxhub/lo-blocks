@@ -18,6 +18,10 @@ import git from 'isomorphic-git';
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, JSONValue } from '../../types';
 import { isContentFile, getExtension } from '@/lib/util/fileTypes';
 import { minimatch } from 'minimatch';
+import {
+  makeAddress, source as addressSource, path as addressPath, scheme as addressScheme,
+  toLofsAddress, toLofsSourceLocator, toLofsContentPath,
+} from '../address';
 import type {
   StorageProvider,
   ContentNamespace,
@@ -34,30 +38,17 @@ import { toContentNamespace } from '../types';
 import { fileTypes } from '../fileTypes';
 
 /**
- * Construct a git:// provenance URI.
+ * Construct a git: provenance URI.
  *
- * Format: git:///<mountId>/<path>  (triple-slash, same pattern as file:///)
+ * Format: git:mountId://path
  *   mountId = identifier for this repo (no slashes — use dashes or dots)
  *   path    = file path within the repo
  */
 function toGitProvenanceURI(mountId: string, filePath: string): ProvenanceURI {
-  return `git:///${mountId}/${filePath}` as ProvenanceURI;
-}
-
-/**
- * Extract the file path from a git:// provenance URI.
- * Returns the mount ID and the path after the mount prefix.
- */
-function gitProvenancePath(uri: string, mountId: string): string {
-  if (!uri.startsWith('git:///')) {
-    throw new Error(`Not a git provenance URI: ${uri}`);
-  }
-  const fullPath = decodeURIComponent(uri.slice('git:///'.length));
-  const prefix = mountId + '/';
-  if (!fullPath.startsWith(prefix)) {
-    throw new Error(`Mount ID mismatch: URI '${uri}' doesn't match mount '${mountId}'`);
-  }
-  return fullPath.slice(prefix.length);
+  return makeAddress(
+    toLofsSourceLocator(`git:${mountId}`),
+    toLofsContentPath(filePath),
+  ) as unknown as ProvenanceURI;
 }
 
 export interface GitStorageProviderOptions {
@@ -309,11 +300,11 @@ export class GitStorageProvider implements StorageProvider {
   // ---------------------------------------------------------------------------
 
   resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
-    if (!baseProvenance.startsWith('git:///')) {
+    if (addressScheme(toLofsAddress(baseProvenance)) !== 'git') {
       throw new Error(`Unsupported provenance format: ${baseProvenance}`);
     }
 
-    const filePath = gitProvenancePath(baseProvenance, this.mountId);
+    const filePath = addressPath(toLofsAddress(baseProvenance));
     const baseDir = path.dirname(filePath);
     const resolved = path.normalize(path.join(baseDir, relativePath));
 

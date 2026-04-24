@@ -51,7 +51,7 @@ describe('GitStorageProvider', () => {
   it('reads a file from the working tree', async () => {
     const result = await provider.read('hello.olx' as OlxRelativePath);
     expect(result.content).toContain('Hello');
-    expect(result.provenance).toBe('git:///test-repo/hello.olx');
+    expect(result.provenance).toBe('git:test-repo://hello.olx');
     expect(result.metadata).toBeDefined();
   });
 
@@ -145,19 +145,19 @@ describe('GitStorageProvider', () => {
   // -- resolveRelativePath --
 
   it('resolves relative path from provenance', () => {
-    const base = 'git:///test-repo/subdir/nested.olx' as ProvenanceURI;
+    const base = 'git:test-repo://subdir/nested.olx' as ProvenanceURI;
     const resolved = provider.resolveRelativePath(base, 'image.png');
     expect(resolved).toBe('subdir/image.png');
   });
 
   it('resolves parent relative path', () => {
-    const base = 'git:///test-repo/subdir/nested.olx' as ProvenanceURI;
+    const base = 'git:test-repo://subdir/nested.olx' as ProvenanceURI;
     const resolved = provider.resolveRelativePath(base, '../other.olx');
     expect(resolved).toBe('other.olx');
   });
 
   it('rejects paths that escape repo', () => {
-    const base = 'git:///test-repo/hello.olx' as ProvenanceURI;
+    const base = 'git:test-repo://hello.olx' as ProvenanceURI;
     expect(() => provider.resolveRelativePath(base, '../../etc/passwd')).toThrow('escapes');
   });
 
@@ -165,7 +165,7 @@ describe('GitStorageProvider', () => {
 
   it('constructs provenance URI', () => {
     const uri = provider.toProvenanceURI('subdir/nested.olx' as any);
-    expect(uri).toBe('git:///test-repo/subdir/nested.olx');
+    expect(uri).toBe('git:test-repo://subdir/nested.olx');
   });
 
   // -- write operations throw --

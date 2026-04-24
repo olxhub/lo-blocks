@@ -9,6 +9,10 @@ import type {
   ProvenanceURI, FileProvenanceURI, MemoryProvenanceURI,
   JSONValue, OlxRelativePath, SafeRelativePath,
 } from '../types';
+import {
+  makeAddress, source, path as addressPath, scheme,
+  toLofsAddress, toLofsSourceLocator, toLofsContentPath,
+} from './address';
 import { FileType } from './fileTypes';
 
 /**
@@ -189,57 +193,68 @@ export function toOlxRelativePath(
 }
 
 /**
- * Construct a file:// provenance URI from a mount point and relative path.
+ * Construct a file: provenance URI from a mount point and relative path.
+ *
+ * Uses LOFS address format: file:mountPoint://relativePath
  *
  * @param mountPoint - Logical mount name (e.g., 'content', 'content/ee/ee101')
  * @param relativePath - Path within the mount (e.g., 'sba/foo.olx')
- * @returns e.g. 'file:///content/sba/foo.olx'
+ * @returns e.g. 'file:content://sba/foo.olx'
  */
 export function toFileProvenanceURI(mountPoint: string, relativePath: string): FileProvenanceURI {
   if (relativePath.includes('\\')) {
     throw new Error(`Provenance paths must use forward slashes: "${relativePath}"`);
   }
-  return `file:///${mountPoint}/${relativePath}` as FileProvenanceURI;
+  return makeAddress(
+    toLofsSourceLocator(`file:${mountPoint}`),
+    toLofsContentPath(relativePath),
+  ) as unknown as FileProvenanceURI;
 }
 
 /**
- * Extract the logical path from any provenance URI using standard URL parsing.
+ * Extract the content path from any provenance URI.
  *
- * Combines hostname and pathname so the result is correct regardless of
- * whether the namespace sits in the authority (scheme://ns/path) or the
- * path (scheme:///ns/path).
+ * Uses the LOFS address parser (last "://" rule).
  *
  * Examples:
- *   'file:///content/sba/foo.olx'    → 'content/sba/foo.olx'
- *   'network:///content/sba/foo.olx' → 'content/sba/foo.olx'
- *   'memory:///test.xml'             → 'test.xml'
+ *   'file:content://sba/foo.olx'    → 'sba/foo.olx'
+ *   'network:content://sba/foo.olx' → 'sba/foo.olx'
+ *   'memory:local://test.xml'       → 'test.xml'
  */
 export function provenancePath(uri: string): string {
-  const parsed = new URL(uri);
-  return decodeURIComponent((parsed.hostname + parsed.pathname).replace(/^\/+/, ''));
+  return addressPath(toLofsAddress(uri));
 }
 
 /**
- * Extract the logical path from a file:// provenance URI.
+ * Extract the content path from a file: provenance URI.
  *
- * Returns the full path after file:/// — e.g. 'content/sba/foo.olx'
- * from 'file:///content/sba/foo.olx'.
+ * Returns the path part — e.g. 'sba/foo.olx'
+ * from 'file:content://sba/foo.olx'.
  *
  * Mount point resolution is the provider's responsibility — see
  * FileStorageProvider.extractRelativePath().
  */
 export function fileProvenancePath(uri: string): string {
-  if (!uri.startsWith('file:///')) {
+  const addr = toLofsAddress(uri);
+  if (scheme(addr) !== 'file') {
     throw new Error(`Not a file provenance URI: ${uri}`);
   }
-  return provenancePath(uri);
+  return addressPath(addr);
 }
 
 /**
- * Brand a memory:// provenance URI. Used by InMemoryStorageProvider.
+ * Construct a memory: provenance URI. Used by InMemoryStorageProvider.
+ *
+ * Uses LOFS address format: memory:sourceId://name
+ *
+ * @param name - File path within the memory store
+ * @param sourceId - Source identifier (default: 'local')
  */
-export function toMemoryProvenanceURI(name: string): MemoryProvenanceURI {
-  return `memory:///${name}` as MemoryProvenanceURI;
+export function toMemoryProvenanceURI(name: string, sourceId = 'local'): MemoryProvenanceURI {
+  return makeAddress(
+    toLofsSourceLocator(`memory:${sourceId}`),
+    toLofsContentPath(name),
+  ) as unknown as MemoryProvenanceURI;
 }
 
 /**
@@ -320,8 +335,8 @@ export interface StorageProvider {
    *
    * Maps from a canonical name (SafeRelativePath) to this provider's
    * location URI. For example:
-   * - FileStorageProvider:   "sba/foo.olx" → "file:///content/sba/foo.olx"
-   * - InMemoryStorageProvider: "sba/foo.olx" → "memory:///sba/foo.olx"
+   * - FileStorageProvider:     "sba/foo.olx" → "file:content://sba/foo.olx"
+   * - InMemoryStorageProvider: "sba/foo.olx" → "memory:local://sba/foo.olx"
    *
    * Used by parsers to extend provenance chains without knowing about
    * storage schemes. See also ReadResult.provenance (set during read).

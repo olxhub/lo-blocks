@@ -69,16 +69,16 @@ describe('validateContentPath security', () => {
 });
 
 describe('getEditPathFromProvenance security', () => {
-  test('extracts content-relative path from mount-point URI', () => {
-    const result = getEditPathFromProvenance(['file:///content/demos/foo.xml']);
+  test('extracts content-relative path from LOFS address', () => {
+    const result = getEditPathFromProvenance(['file:content://demos/foo.xml']);
     expect(result.valid).toBe(true);
     expect(result.relativePath).toBe('demos/foo.xml');
   });
 
   test('rejects provenance with traversal', () => {
-    const result = getEditPathFromProvenance(['file:///content/../../etc/passwd']);
+    const result = getEditPathFromProvenance(['file:content://../../etc/passwd']);
     expect(result.valid).toBe(false);
-    expect(result.error).toMatch(/not in the content mount/i);
+    expect(result.error).toMatch(/outside content directory/i);
   });
 
   test('rejects empty provenance', () => {
@@ -91,13 +91,8 @@ describe('getEditPathFromProvenance security', () => {
     expect(result.error).toMatch(/no file provenance/i);
   });
 
-  test('rejects malformed file URI (missing triple slash)', () => {
-    const result = getEditPathFromProvenance(['file://etc/passwd']);
-    expect(result.error).toMatch(/malformed/i);
-  });
-
-  test('rejects non-content mount', () => {
-    const result = getEditPathFromProvenance(['file:///etc/passwd']);
-    expect(result.error).toMatch(/not in the content mount/i);
+  test('rejects non-file scheme', () => {
+    const result = getEditPathFromProvenance(['memory:local://test.xml']);
+    expect(result.error).toMatch(/no file provenance/i);
   });
 });

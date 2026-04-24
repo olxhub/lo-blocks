@@ -12,7 +12,11 @@
 // configurable endpoints, maintaining the same interface as local file storage.
 //
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, LofsPath } from '../../types';
-import { provenancePath, type ContentNamespace, toContentNamespace } from '../types';
+import {
+  makeAddress, path as addressPath,
+  toLofsAddress, toLofsSourceLocator, toLofsContentPath,
+} from '../address';
+import { type ContentNamespace, toContentNamespace } from '../types';
 import {
   type StorageProvider,
   type XmlFileInfo,
@@ -99,21 +103,14 @@ export class NetworkStorageProvider implements StorageProvider {
    * Works client-side by manipulating path strings.
    */
   resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
-    // Extract logical path from provenance URI using standard URL parsing.
+    // Extract content path from provenance URI using LOFS address parser.
+    // This is the path within the source (after ://), already relative to
+    // the namespace root, so no need to strip a namespace prefix.
     let basePath: string;
     if (baseProvenance.includes('://')) {
-      basePath = provenancePath(baseProvenance);
+      basePath = addressPath(toLofsAddress(baseProvenance));
     } else {
       basePath = baseProvenance;
-    }
-
-    // Strip namespace prefix if present. Provenance URIs include the mount
-    // point / namespace (e.g., file:///content/sba/foo.olx has 'content/' as
-    // the mount point matching this provider's namespace). The resolved result
-    // must be relative to the namespace root since read() prepends it back.
-    const nsPrefix = this.namespace + '/';
-    if (basePath.startsWith(nsPrefix)) {
-      basePath = basePath.slice(nsPrefix.length);
     }
 
     // Get directory of base file
@@ -141,8 +138,11 @@ export class NetworkStorageProvider implements StorageProvider {
   toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
     // NetworkStorageProvider is client-side; provenance is typically constructed
     // server-side during loadXmlFilesWithStats. For client-side use (e.g., editor
-    // tools), return a network:/// URI (empty authority, namespace in path).
-    return `network:///${this.namespace}/${safePath}` as ProvenanceURI;
+    // tools), construct a LOFS address with network:<namespace> as source locator.
+    return makeAddress(
+      toLofsSourceLocator(`network:${this.namespace}`),
+      toLofsContentPath(safePath),
+    ) as unknown as ProvenanceURI;
   }
 
   /**

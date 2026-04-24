@@ -25,6 +25,10 @@ import type { Pool } from 'pg';
 import { minimatch } from 'minimatch';
 import { isContentFile, getExtension } from '@/lib/util/fileTypes';
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, JSONValue } from '../../types';
+import {
+  makeAddress, path as addressPath, scheme as addressScheme,
+  toLofsAddress, toLofsSourceLocator, toLofsContentPath,
+} from '../address';
 import type {
   StorageProvider,
   ContentNamespace,
@@ -41,26 +45,14 @@ import { VersionConflictError, toContentNamespace } from '../types';
 import { fileTypes } from '../fileTypes';
 
 /**
- * Construct a postgres:// provenance URI.
- * Format: postgres:///<tenant>/<path>
+ * Construct a postgres: provenance URI.
+ * Format: postgres:tenant://path
  */
 function toPgProvenanceURI(tenant: string, filePath: string): ProvenanceURI {
-  return `postgres:///${tenant}/${filePath}` as ProvenanceURI;
-}
-
-/**
- * Extract path from a postgres:// provenance URI.
- */
-function pgProvenancePath(uri: string, tenant: string): string {
-  if (!uri.startsWith('postgres:///')) {
-    throw new Error(`Not a postgres provenance URI: ${uri}`);
-  }
-  const fullPath = decodeURIComponent(uri.slice('postgres:///'.length));
-  const prefix = tenant + '/';
-  if (!fullPath.startsWith(prefix)) {
-    throw new Error(`Tenant mismatch: URI '${uri}' doesn't match tenant '${tenant}'`);
-  }
-  return fullPath.slice(prefix.length);
+  return makeAddress(
+    toLofsSourceLocator(`postgres:${tenant}`),
+    toLofsContentPath(filePath),
+  ) as unknown as ProvenanceURI;
 }
 
 /** Row shape from the lofs_files table. */
@@ -352,11 +344,11 @@ export class PostgresStorageProvider implements StorageProvider {
   // ---------------------------------------------------------------------------
 
   resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
-    if (!baseProvenance.startsWith('postgres:///')) {
+    if (addressScheme(toLofsAddress(baseProvenance)) !== 'postgres') {
       throw new Error(`Unsupported provenance format: ${baseProvenance}`);
     }
 
-    const filePath = pgProvenancePath(baseProvenance, this.tenant);
+    const filePath = addressPath(toLofsAddress(baseProvenance));
     const lastSlash = filePath.lastIndexOf('/');
     const baseDir = lastSlash >= 0 ? filePath.substring(0, lastSlash) : '';
     const joined = baseDir ? `${baseDir}/${relativePath}` : relativePath;

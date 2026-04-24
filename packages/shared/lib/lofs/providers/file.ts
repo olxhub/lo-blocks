@@ -12,6 +12,10 @@ import pegExts from '../../../generated/pegExtensions.json' assert { type: 'json
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, FileSystemPath } from '../../types';
 import { EXT } from '@/lib/util/fileTypes';
 import {
+  source as addressSource, path as addressPath, scheme as addressScheme,
+  toLofsAddress,
+} from '../address';
+import {
   type StorageProvider,
   type ContentNamespace,
   type XmlFileInfo,
@@ -24,7 +28,6 @@ import {
   type GrepMatch,
   VersionConflictError,
   toFileProvenanceURI,
-  fileProvenancePath,
   toContentNamespace,
 } from '../types';
 import { fileTypes } from '../fileTypes';
@@ -363,23 +366,27 @@ export class FileStorageProvider implements StorageProvider {
   }
 
   /**
-   * Extract the path within this mount from a file:// provenance URI.
+   * Extract the path within this mount from a file: provenance URI.
    *
-   * 'file:///content/sba/foo.olx'       + mountPoint='content'         → 'sba/foo.olx'
-   * 'file:///content/ee/ee101/labs/l.olx' + mountPoint='content/ee/ee101' → 'labs/l.olx'
+   * 'file:content://sba/foo.olx'              + mountPoint='content'         → 'sba/foo.olx'
+   * 'file:content/ee/ee101://labs/l.olx'       + mountPoint='content/ee/ee101' → 'labs/l.olx'
    *
    * Throws on mount-point mismatch, which is how StackedStorageProvider
    * routes to the correct provider (try/catch fallthrough).
    */
   private extractRelativePath(uri: string): string {
-    const logicalPath = fileProvenancePath(uri);
-    const prefix = this.mountPoint + '/';
-    if (!logicalPath.startsWith(prefix)) {
+    const addr = toLofsAddress(uri);
+    if (addressScheme(addr) !== 'file') {
+      throw new Error(`Not a file provenance URI: ${uri}`);
+    }
+    const src = addressSource(addr) as string;
+    const expectedSource = `file:${this.mountPoint}`;
+    if (src !== expectedSource) {
       throw new Error(
         `Mount point mismatch: URI '${uri}' doesn't match mount '${this.mountPoint}'`
       );
     }
-    const rel = logicalPath.slice(prefix.length);
+    const rel = addressPath(addr) as string;
     const normalized = path.normalize(rel);
     if (normalized.startsWith('..') || path.isAbsolute(normalized)) {
       throw new Error(`Path traversal in provenance URI: ${uri}`);
@@ -514,9 +521,9 @@ export class FileStorageProvider implements StorageProvider {
     await fs.unlink(full);
   }
 
-  /** Convert a path or file:// provenance URI to a provider-relative path. */
+  /** Convert a path or file: provenance URI to a provider-relative path. */
   toRelativePath(pathOrUri: string): string {
-    if (!pathOrUri.startsWith('file://')) return pathOrUri;
+    if (!pathOrUri.includes('://')) return pathOrUri;
     return this.extractRelativePath(pathOrUri);
   }
 
@@ -539,7 +546,7 @@ export class FileStorageProvider implements StorageProvider {
 
   resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
     // Runtime scheme check — defense-in-depth beyond TypeScript brands.
-    if (!baseProvenance.startsWith('file://')) {
+    if (addressScheme(toLofsAddress(baseProvenance)) !== 'file') {
       throw new Error(`Unsupported provenance format: ${baseProvenance}`);
     }
 

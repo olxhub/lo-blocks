@@ -27,6 +27,10 @@
 // Types
 export * from './types';
 
+// Content address system
+export * from './address';
+export { contentHash } from './hash';
+
 // Providers
 export * from './providers';
 
