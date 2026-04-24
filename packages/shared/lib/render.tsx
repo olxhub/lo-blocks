@@ -27,7 +27,7 @@ import type { OlxKey, IdPrefix, ReduxStateKey, LoBlockRuntimeContext, OlxJson } 
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { getGrader, getEventContext } from '@/lib/blocks/olxdom';
 import { assignReactKeys, refToOlxKey, refToReduxKey } from '@/lib/blocks/idResolver';
-import { selectBlock } from '@/lib/state/olxjson';
+import { selectBlock, CONTENT_SOURCE } from '@/lib/state/olxjson';
 import type { Store } from 'redux';
 
 // Root sentinel has minimal loBlock so selectors don't need ?. checks
@@ -122,7 +122,7 @@ export function render({ node, nodeInfo, runtime }: {
     }
     const locale = runtime.locale.code;
     const olxKey = refToOlxKey(node.id);
-    const sources = actualOlxJsonSources ?? ['content'];
+    const sources = actualOlxJsonSources ?? [CONTENT_SOURCE];
     const entry = selectBlock(actualStore.getState(), sources, olxKey, locale);
     if (!entry) {
       return (

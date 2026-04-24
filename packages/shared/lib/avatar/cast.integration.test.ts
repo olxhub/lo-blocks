@@ -15,7 +15,7 @@ import { parseOLX } from '@/lib/content/parseOLX';
 import { render, makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { store } from '@/lib/state/store';
-import { dispatchOlxJsonSync } from '@/lib/state/olxjson';
+import { dispatchOlxJsonSync, CONTENT_SOURCE } from '@/lib/state/olxjson';
 import { render as rtlRender, cleanup } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import React from 'react';
@@ -95,7 +95,7 @@ async function parseAndRender(olx: string, providerFiles?: Record<string, string
   const renderId = renderRoot ?? root;
 
   const reduxStore = store.init({ blockRegistry: BLOCK_REGISTRY });
-  dispatchOlxJsonSync(reduxStore, 'content', idMap);
+  dispatchOlxJsonSync(reduxStore, CONTENT_SOURCE, idMap);
 
   const localeCode = 'en-Latn-US';
   const runtime = {
@@ -103,7 +103,7 @@ async function parseAndRender(olx: string, providerFiles?: Record<string, string
     store: reduxStore,
     logEvent: () => {},
     sideEffectFree: false,
-    olxJsonSources: ['content'],
+    olxJsonSources: [CONTENT_SOURCE],
     idPrefix: '' as any,
     locale: { code: localeCode, dir: getTextDirection(localeCode) },
   };

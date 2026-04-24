@@ -13,12 +13,13 @@
 // props from React components using useStore().
 //
 import { refToOlxKey } from './idResolver';
-import { selectBlock } from '@/lib/state/olxjson';
+import { selectBlock, CONTENT_SOURCE } from '@/lib/state/olxjson';
 import type { OlxJson, OlxReference, UserLocale } from '@/lib/types';
+import type { ContentNamespace } from '@/lib/lofs/types';
 import type { Store } from 'redux';
 
 interface PropsWithStore {
-  runtime: { store: Store; olxJsonSources?: string[]; locale?: { code: UserLocale } };
+  runtime: { store: Store; olxJsonSources?: ContentNamespace[]; locale?: { code: UserLocale } };
 }
 
 /**
@@ -43,7 +44,7 @@ export function getBlockByOLXId(props: PropsWithStore, id: OlxReference | null):
 
   const key = refToOlxKey(id);
   const store = props.runtime.store;
-  const sources = props.runtime.olxJsonSources ?? ['content'];
+  const sources = props.runtime.olxJsonSources ?? [CONTENT_SOURCE];
   const locale = props.runtime.locale?.code;
   if (!locale) {
     return undefined;

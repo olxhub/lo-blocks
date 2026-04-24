@@ -17,6 +17,8 @@
 import React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { useOlxJson } from '@/lib/blocks/useOlxJson';
+import { CONTENT_SOURCE } from '@/lib/state/olxjson';
+import type { ContentNamespace } from '@/lib/lofs/types';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { renderOlxJson, renderCompiledKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
@@ -52,7 +54,7 @@ export type RenderedBlockResult = BlockDataResult & {
 export function useBlock(
   props: any,
   id: OlxReference | null,
-  source: string = 'content'
+  source: ContentNamespace = CONTENT_SOURCE
 ): RenderedBlockResult {
   // Always call hooks unconditionally (React rules of hooks)
   const olxResult = useOlxJson(props, id, source);
@@ -127,7 +129,7 @@ function getWhen(kid, props) {
   if (kid.type === 'block') {
     const olxKey = refToOlxKey(kid.id);
     const state = props.runtime.store.getState();
-    const sources = props.runtime.olxJsonSources ?? ['content'];
+    const sources = props.runtime.olxJsonSources ?? [CONTENT_SOURCE];
     const block = selectBlock(state, sources, olxKey, props.runtime.locale.code);
     if (!block) return undefined;  // not yet loaded — show by default
     return block.attributes.when;

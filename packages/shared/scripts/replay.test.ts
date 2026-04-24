@@ -13,7 +13,7 @@ import * as path from 'path';
 import { store } from '../lib/state/store';
 import { fieldSelector } from '../lib/state/redux';
 import { commonFields } from '../lib/state/commonFields';
-import { selectBlock } from '../lib/state/olxjson';
+import { selectBlock, CONTENT_SOURCE } from '../lib/state/olxjson';
 import type { OlxKey, UserLocale } from '../lib/types';
 import { BLOCK_REGISTRY } from '../components/blockRegistry';
 
@@ -41,7 +41,7 @@ describe('Event Replay', () => {
     const state = reduxStore.getState();
 
     // Verify OLX content is in Redux
-    const block = selectBlock(state, ['content'], 'NumericalGraderBasic' as OlxKey, 'en-Latn-US' as UserLocale);
+    const block = selectBlock(state, [CONTENT_SOURCE], 'NumericalGraderBasic' as OlxKey, 'en-Latn-US' as UserLocale);
     expect(block).toBeDefined();
     expect(block?.tag).toBe('CapaProblem');
     expect(block?.attributes.title).toBe('Squares');

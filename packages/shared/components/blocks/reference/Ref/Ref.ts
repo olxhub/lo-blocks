@@ -6,7 +6,7 @@ import { valueSelector, fieldByName, fieldSelector } from '@/lib/state';
 import { blockData, withStatus } from '@/lib/state/blockData';
 import { refToOlxKey, toOlxReference, reduxKeyToOlxKey, refToReduxKey } from '@/lib/blocks/idResolver';
 import { srcAttributes, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
-import { selectBlock, selectBlockState } from '@/lib/state/olxjson';
+import { selectBlock, selectBlockState, CONTENT_SOURCE } from '@/lib/state/olxjson';
 import _Ref from './_Ref';
 import type { RuntimeProps, ReduxStateKey, BlockDataResult } from '@/lib/types';
 
@@ -64,7 +64,7 @@ const Ref = core({
     // TODO: This logic is infrastructure, not component logic. selectValue should move to /lib/
     // so it can access runtime context properly without accessing props directly.
     // Get the Ref block from Redux to access its attributes and content
-    const sources = props.runtime.olxJsonSources ?? ['content'];
+    const sources = props.runtime.olxJsonSources ?? [CONTENT_SOURCE];
     const locale = props.runtime.locale.code;
     const refNode = selectBlock(state, sources, reduxKeyToOlxKey(reduxKey), locale);
     if (!refNode) {

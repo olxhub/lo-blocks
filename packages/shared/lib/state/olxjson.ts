@@ -20,6 +20,10 @@ import * as lo_event from 'lo_event';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, OlxKey, IdMap, UserLocale, VariantMap } from '../types';
 import type { LogEventFn } from '../render';
+import { type ContentNamespace, toContentNamespace } from '../lofs/types';
+
+/** Default source for content loaded from the primary namespace. */
+export const CONTENT_SOURCE = toContentNamespace('content');
 
 // =============================================================================
 // Types
@@ -82,19 +86,19 @@ export const CLEAR_OLXJSON = 'CLEAR_OLXJSON';
  * when accessed via selectors.
  *
  * @param props - Component props (must include logEvent)
- * @param source - Source identifier (e.g., 'content', 'inline', 'studio')
+ * @param source - Content namespace (e.g., CONTENT_SOURCE)
  * @param blocks - IdMap of parsed blocks: { [id]: OlxJson }
  *
  * @example
  * // After fetching from API:
- * dispatchOlxJson(props, 'content', data.idMap);
+ * dispatchOlxJson(props, CONTENT_SOURCE, data.idMap);
  *
  * // After parsing inline content:
- * dispatchOlxJson(props, 'inline', parseResult.idMap);
+ * dispatchOlxJson(props, toContentNamespace('inline'), parseResult.idMap);
  */
 export function dispatchOlxJson(
   props: { runtime: { logEvent: LogEventFn } },
-  source: string,
+  source: ContentNamespace,
   blocks: IdMap
 ): void {
   if (!blocks || Object.keys(blocks).length === 0) {
@@ -115,12 +119,12 @@ export function dispatchOlxJson(
  * For learning analytics logging, use dispatchOlxJson() instead.
  *
  * @param reduxStore - The Redux store (from store.init())
- * @param source - Source identifier (e.g., 'content')
+ * @param source - Content namespace (e.g., CONTENT_SOURCE)
  * @param blocks - IdMap of parsed blocks
  */
 export function dispatchOlxJsonSync(
   reduxStore: any,
-  source: string,
+  source: ContentNamespace,
   blocks: IdMap
 ): void {
   if (!blocks || Object.keys(blocks).length === 0) {
@@ -140,12 +144,12 @@ export function dispatchOlxJsonSync(
  * Mark a block as loading in Redux.
  *
  * @param props - Component props (must include logEvent)
- * @param source - Source identifier
+ * @param source - Content namespace
  * @param id - Block ID being loaded
  */
 export function dispatchOlxJsonLoading(
   props: { runtime: { logEvent: LogEventFn } },
-  source: string,
+  source: ContentNamespace,
   id: string
 ): void {
   props.runtime.logEvent(OLXJSON_LOADING, { source, id });
@@ -155,13 +159,13 @@ export function dispatchOlxJsonLoading(
  * Mark a variant as translating (translation in flight).
  *
  * @param props - Component props (must include logEvent)
- * @param source - Source identifier
+ * @param source - Content namespace
  * @param id - Block ID being translated
  * @param variant - Target locale variant being translated to
  */
 export function dispatchOlxJsonTranslating(
   props: { runtime: { logEvent: LogEventFn } },
-  source: string,
+  source: ContentNamespace,
   id: string,
   variant: string
 ): void {
@@ -175,14 +179,14 @@ export function dispatchOlxJsonTranslating(
  * With `variant`: variant-level error (e.g., translation failed).
  *
  * @param props - Component props (must include logEvent)
- * @param source - Source identifier
+ * @param source - Content namespace
  * @param id - Block ID that failed
  * @param error - Error information
  * @param variant - Optional: specific variant that failed
  */
 export function dispatchOlxJsonError(
   props: { runtime: { logEvent: LogEventFn } },
-  source: string,
+  source: ContentNamespace,
   id: string,
   error: string | Error,
   variant?: string
@@ -199,7 +203,7 @@ export function dispatchOlxJsonError(
  */
 export function dispatchClearOlxJson(
   props: { runtime: { logEvent: LogEventFn } },
-  source?: string
+  source?: ContentNamespace
 ): void {
   props.runtime.logEvent(CLEAR_OLXJSON, { source });
 }
@@ -382,7 +386,7 @@ export function olxjsonReducer(
  */
 export function selectBlock(
   state: RootState,
-  sources: string[],
+  sources: ContentNamespace[],
   id: OlxKey,
   locale: UserLocale
 ): OlxJson | undefined {
@@ -414,7 +418,7 @@ export function selectBlock(
  */
 export function selectBlockState(
   state: RootState,
-  sources: string[],
+  sources: ContentNamespace[],
   id: OlxKey
 ): BlockEntry | undefined {
   const olxjson = state.application_state?.olxjson;
@@ -434,7 +438,7 @@ export function selectBlockState(
  * @param sources - Array of source names to check
  * @returns true if all blocks in all sources are ready
  */
-export function selectBlocksReady(state: RootState, sources: string[]): boolean {
+export function selectBlocksReady(state: RootState, sources: ContentNamespace[]): boolean {
   const olxjson = state.application_state?.olxjson;
   if (!olxjson) return true; // No state = nothing loading
 
@@ -458,7 +462,7 @@ export function selectBlocksReady(state: RootState, sources: string[]): boolean 
  * @param sources - Array of source names
  * @returns Array of all block IDs (may have duplicates if same ID in multiple sources)
  */
-export function selectAllBlockIds(state: RootState, sources: string[]): string[] {
+export function selectAllBlockIds(state: RootState, sources: ContentNamespace[]): string[] {
   const olxjson = state.application_state?.olxjson;
   if (!olxjson) return [];
 
@@ -554,7 +558,7 @@ export function selectVariantTiers(state: RootState): VariantTiers {
  * @param locale - BCP 47 locale code (e.g., 'en-Latn-US')
  * @returns OlxJson if found and ready, undefined otherwise
  */
-export function useOlxJsonBlock(sources: string[], id: OlxKey, locale: UserLocale): OlxJson | undefined {
+export function useOlxJsonBlock(sources: ContentNamespace[], id: OlxKey, locale: UserLocale): OlxJson | undefined {
   return useSelector((state: RootState) => selectBlock(state, sources, id, locale));
 }
 
@@ -566,7 +570,7 @@ export function useOlxJsonBlock(sources: string[], id: OlxKey, locale: UserLocal
  * @returns BlockEntry if found, undefined otherwise
  */
 export function useOlxJsonBlockState(
-  sources: string[],
+  sources: ContentNamespace[],
   id: OlxKey
 ): BlockEntry | undefined {
   return useSelector((state: RootState) => selectBlockState(state, sources, id));
@@ -578,7 +582,7 @@ export function useOlxJsonBlockState(
  * @param sources - Array of source names to check
  * @returns true if all blocks are ready
  */
-export function useBlocksReady(sources: string[]): boolean {
+export function useBlocksReady(sources: ContentNamespace[]): boolean {
   return useSelector((state: RootState) => selectBlocksReady(state, sources));
 }
 

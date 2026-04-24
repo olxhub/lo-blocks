@@ -17,8 +17,10 @@ import {
   selectBlockState,
   dispatchOlxJsonLoading,
   dispatchOlxJson,
-  dispatchOlxJsonError
+  dispatchOlxJsonError,
+  CONTENT_SOURCE,
 } from '@/lib/state/olxjson';
+import type { ContentNamespace } from '@/lib/lofs/types';
 import { refToOlxKey, allOlxKeys } from '@/lib/blocks/idResolver';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
@@ -81,7 +83,7 @@ const ensuredIds = new Set<string>();
 export function ensureBlock(
   props: BaselineProps,
   id: string | OlxReference | null | undefined,
-  source: string = 'content'
+  source: ContentNamespace = CONTENT_SOURCE
 ): void {
   if (!id || props.runtime.sideEffectFree) return;
 
@@ -141,7 +143,7 @@ export function ensureBlock(
  * Recursive: when a referenced block loads, ITS references get ensured in turn.
  */
 
-function ensureReferencedBlocks(props: BaselineProps, idMap: IdMap, source: string): void {
+function ensureReferencedBlocks(props: BaselineProps, idMap: IdMap, source: ContentNamespace): void {
   const blockRegistry = props.runtime.blockRegistry ?? {};
   for (const variantMap of Object.values(idMap)) {
     // Check any variant — refs don't change across languages
@@ -192,7 +194,7 @@ function ensureReferencedBlocks(props: BaselineProps, idMap: IdMap, source: stri
 export function useOlxJson(
   props: RuntimeProps,
   id: OlxReference | null,
-  source: string = 'content'
+  source: ContentNamespace = CONTENT_SOURCE
 ): OlxJsonResult {
   // Compute olxKey outside hooks — empty string for null id (won't match anything)
   const olxKey: OlxKey = id ? refToOlxKey(id) : '' as OlxKey;
@@ -281,7 +283,7 @@ function errorOlxJson(id: string, message: string): OlxJson {
 export function useOlxJsonMultiple(
   props: RuntimeProps,
   ids: OlxReference[],
-  source: string = 'content'
+  source: ContentNamespace = CONTENT_SOURCE
 ): {
   olxJsons: OlxJson[];
   allReady: boolean;

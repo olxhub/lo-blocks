@@ -13,7 +13,7 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { Provider } from 'react-redux';
 import React from 'react';
 import { store } from '@/lib/state/store';
-import { dispatchOlxJsonSync } from '@/lib/state/olxjson';
+import { dispatchOlxJsonSync, CONTENT_SOURCE } from '@/lib/state/olxjson';
 import { render as rtlRender, cleanup } from '@testing-library/react';
 import fs from 'fs/promises';
 import path from 'path';
@@ -162,7 +162,7 @@ describe('Demo OLX files render without errors', () => {
 
         // Create Redux store and populate with parsed content synchronously
         const reduxStore = store.init({ blockRegistry: BLOCK_REGISTRY });
-        dispatchOlxJsonSync(reduxStore, 'content', idMap);
+        dispatchOlxJsonSync(reduxStore, CONTENT_SOURCE, idMap);
 
         // Render the component
         const localeCode = 'en-Latn-US';
@@ -171,7 +171,7 @@ describe('Demo OLX files render without errors', () => {
           store: reduxStore,
           logEvent: () => { }, // no-op for tests
           sideEffectFree: false,
-          olxJsonSources: ['content'],
+          olxJsonSources: [CONTENT_SOURCE],
           idPrefix: '' as any,
           locale: { code: localeCode, dir: getTextDirection(localeCode) },
         };

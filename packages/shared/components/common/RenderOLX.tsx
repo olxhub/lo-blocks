@@ -54,7 +54,8 @@ import ErrorBoundary from '@/components/common/ErrorBoundary';
 import Spinner from '@/components/common/Spinner';
 import { InMemoryStorageProvider, StackedStorageProvider, toMemoryProvenanceURI } from '@/lib/lofs';
 import { isOLXFile } from '@/lib/util/fileTypes';
-import { dispatchOlxJson } from '@/lib/state/olxjson';
+import { dispatchOlxJson, CONTENT_SOURCE } from '@/lib/state/olxjson';
+import type { ContentNamespace } from '@/lib/lofs/types';
 import { useBlock } from '@/lib/blocks/useRenderedBlock';
 import { useDebugSettings } from '@/lib/state/debugSettings';
 import { settings } from '@/lib/state/settings';
@@ -187,7 +188,7 @@ function useParseContent(
   files?: Record<string, string>,
   effectiveProvider?: any,
   provenance?: string,
-  source?: string,
+  source?: ContentNamespace,
   logEvent?: any,
   sideEffectFree?: boolean,
   onError?: (err: any) => void
@@ -352,8 +353,8 @@ interface RenderOLXProps {
   onParsed?: (result: { idMap: Record<string, any>; root: string | null }) => void;
   /** Custom block registry (defaults to BLOCK_REGISTRY) */
   blockRegistry?: Record<string, any>;
-  /** Source name for Redux state namespacing (e.g., 'content', 'inline', 'studio'). Defaults to 'content'. */
-  source?: string;
+  /** Content namespace for Redux state namespacing. Defaults to CONTENT_SOURCE. */
+  source?: ContentNamespace;
   /** Event context root (e.g., 'preview', 'studio'). Sets the root nodeInfo ID for event context hierarchy. */
   eventContext?: string;
   /** Ref to expose the root OlxDomNode for external tree inspection.
@@ -385,7 +386,7 @@ export default function RenderOLX({
   onError,
   onParsed,
   blockRegistry = BLOCK_REGISTRY,
-  source = 'content',
+  source = CONTENT_SOURCE,
   eventContext,
   nodeInfoRef,
 }: RenderOLXProps) {

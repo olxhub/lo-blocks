@@ -7,7 +7,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { dispatchOlxJson } from '@/lib/state/olxjson';
+import { dispatchOlxJson, CONTENT_SOURCE } from '@/lib/state/olxjson';
 import { useBaselineProps } from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
 import type { IdMap } from '@/lib/types';
@@ -47,7 +47,7 @@ export default function StaticContentProvider({ children }: { children: React.Re
       })
       .then(data => {
         // Dispatch to Redux so blocks can access content reactively
-        dispatchOlxJson(baselineProps, 'content', data.idMap);
+        dispatchOlxJson(baselineProps, CONTENT_SOURCE, data.idMap);
         setIdMap(data.idMap);
       })
       .catch(err => {

@@ -5,7 +5,7 @@ import * as state from '@/lib/state';
 import { docField } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { placeholder, z_olx_boolean } from '@/lib/blocks/attributeSchemas';
-import { selectBlock } from '@/lib/state/olxjson';
+import { selectBlock, CONTENT_SOURCE } from '@/lib/state/olxjson';
 import _TextArea from './_TextArea';
 import type { RuntimeProps, ReduxStateKey } from '@/lib/types';
 
@@ -30,7 +30,7 @@ const TextArea = core({
     }
 
     // No Redux state yet — fall back to parsed children text
-    const sources = props.runtime.olxJsonSources ?? ['content'];
+    const sources = props.runtime.olxJsonSources ?? [CONTENT_SOURCE];
     const locale = props.runtime.locale.code;
     return (selectBlock(reduxState, sources, props.id, locale)!.kids as string).trim();
   },

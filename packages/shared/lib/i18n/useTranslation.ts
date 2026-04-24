@@ -23,7 +23,9 @@ import {
   dispatchOlxJson,
   dispatchOlxJsonTranslating,
   dispatchOlxJsonError,
+  CONTENT_SOURCE,
 } from '@/lib/state/olxjson';
+import type { ContentNamespace } from '@/lib/lofs/types';
 import type { OlxJson, UserLocale, ContentVariant } from '@/lib/types';
 import type { LogEventFn } from '@/lib/render';
 
@@ -107,7 +109,7 @@ function ensureTranslation(
   props: EnsureTranslationProps,
   blockId: string,
   targetLocale: UserLocale,
-  source: string
+  source: ContentNamespace
 ): void {
   if (props.runtime.sideEffectFree) return;
 
@@ -187,7 +189,7 @@ interface UseTranslationProps {
 export function useTranslation(
   props: UseTranslationProps,
   olxJson: OlxJson | null,
-  source: string = 'content'
+  source: ContentNamespace = CONTENT_SOURCE
 ): TranslationState {
   const propsRef = useRef(props);
   propsRef.current = props;

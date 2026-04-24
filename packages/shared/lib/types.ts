@@ -18,6 +18,7 @@ import { z } from 'zod';
 import { scopeNames } from './state/scopes';
 import type { Store } from 'redux';
 import type { LofsAddress } from './lofs/address';
+import type { ContentNamespace } from './lofs/types';
 
 /**
  * ════════════
@@ -1071,7 +1072,7 @@ export interface LoBlockRuntimeContext {
   store: Store;
   logEvent: (event: string, payload: any) => void;  // Event logging - no-op during replay
   sideEffectFree: boolean;  // True during replay - disables fetches, event logging, etc.
-  olxJsonSources?: string[];  // Redux source names in priority order for OlxJson lookup
+  olxJsonSources?: ContentNamespace[];  // Content namespaces in priority order for OlxJson lookup
   idPrefix?: IdPrefix;  // Scope prefix for Redux state (changes at list boundaries)
   locale: LocaleContext;  // Language and text direction
   cast: Cast;  // Cast of characters

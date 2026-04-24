@@ -50,7 +50,7 @@ import { scopes } from '../state/scopes';
 import { FieldInfo, OlxReference, OlxKey, ReduxStateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus } from '../types';
 import { assertValidField } from './fields';
 import type { Store } from 'redux';
-import { selectBlock, selectBlockState } from './olxjson';
+import { selectBlock, selectBlockState, CONTENT_SOURCE } from './olxjson';
 import { getDomNodeByReduxKey, propsFromNode } from '../blocks/olxdom';
 import { ensureBlock } from '../blocks/useOlxJson';
 import { getReduxStoreInstance } from './store';
@@ -489,7 +489,7 @@ export function useReduxCheckbox(
 export function componentFieldByName(props: RuntimeProps, targetId: OlxKey | ReduxStateKey, fieldName: string) {
   // Normalize to OlxKey: handles both bare OlxKey (unchanged) and scoped ReduxStateKey (extracts leaf)
   const normalizedId = idResolver.reduxKeyToOlxKey(targetId as ReduxStateKey);
-  const sources = props.runtime.olxJsonSources ?? ['content'];
+  const sources = props.runtime.olxJsonSources ?? [CONTENT_SOURCE];
   const locale = props.runtime.locale.code;
   const targetNode = selectBlock(props.runtime.store.getState(), sources, normalizedId, locale);
   if (!targetNode) {
@@ -589,7 +589,7 @@ export function valueSelector(
 
   // ReduxStateKey → OlxKey for content store lookup
   const mapKey = idResolver.reduxKeyToOlxKey(reduxKey);
-  const sources = props.runtime.olxJsonSources ?? ['content'];
+  const sources = props.runtime.olxJsonSources ?? [CONTENT_SOURCE];
   const locale = props.runtime.locale.code;
   const targetNode = selectBlock(state, sources, mapKey, locale);
   const loBlock = targetNode ? props.runtime.blockRegistry[targetNode.tag] : null;
@@ -654,7 +654,7 @@ export function useValue(
   // eslint-disable-next-line react-hooks/exhaustive-deps — props is intentionally
   // omitted: ensureBlock deduplicates via module-level Set, so stale props cannot
   // cause duplicate fetches. Including props would cause spurious effect re-runs.
-  const source = props.runtime.olxJsonSources?.[0] ?? 'content';
+  const source = props.runtime.olxJsonSources?.[0] ?? CONTENT_SOURCE;
   const sideEffectFree = props.runtime.sideEffectFree;
   useEffect(() => {
     if (resolvedKey && result.loading) {

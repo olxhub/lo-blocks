@@ -8,7 +8,7 @@
 import { useMemo } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import * as idResolver from '../blocks/idResolver';
-import { selectBlock } from '../state/olxjson';
+import { selectBlock, CONTENT_SOURCE } from '../state/olxjson';
 import type { FieldInfo } from '../types';
 import type { References } from './references';
 import { EMPTY_REFS } from './references';
@@ -62,7 +62,7 @@ function materializeComponentState(
 
   // Look up block type → field definitions
   const olxKey = idResolver.reduxKeyToOlxKey(reduxKey as any);
-  const sources = props.runtime?.olxJsonSources ?? ['content'];
+  const sources = props.runtime?.olxJsonSources ?? [CONTENT_SOURCE];
   const locale = props.runtime?.locale?.code;
   const blockNode = selectBlock(state, sources, olxKey, locale);
   // Use props.runtime.blockRegistry — no static import of BLOCK_REGISTRY to
