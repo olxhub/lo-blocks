@@ -13,7 +13,7 @@ lang: en-Latn-US
   <SplitPanel id="interdisciplinary_orientation" title="Introduction" sizes="65,35">
       <LeftPane>
           <Markdown id="interdisciplinary_orientation_md">
-## Introduction
+**Introduction**
 
 Imagine that as part of your degree requirements, you are completing an internship at a local
 nonprofit called **Community 360**, or **Comm360** for short.
@@ -37,7 +37,11 @@ Comm360's services can be developed to address the problem.
       </RightPane>
   </SplitPanel>
 
-  <Image id="interdisciplinary_gsu_plaza_image" src="/sba/interdisciplinary/images/GSU_Library_Plaza.jpg" alt="GSU Library Plaza. Photograph by Hwi Padam, CC by SA 4.0" />
+  <Image id="interdisciplinary_gsu_plaza_image" 
+         src="/sba/interdisciplinary/images/GSU_Library_Plaza.jpg" 
+         alt="GSU Library Plaza. Photograph by Hwi Padam, CC by SA 4.0" 
+         height="400px"
+  />
 
   <Markdown id="interdisciplinary_task_list">
 ## Task Outline
@@ -53,7 +57,10 @@ This is Part One. In Parts Two and Three you will complete the rest of the inter
 research process.
   </Markdown>
 
-  <Image id="cause_brainstorming" src="/sba/interdisciplinary/images/team_workshop.jpg" alt="Talking about processes at a team brainstorming session. Source: UCT MOOC, CC by SA 4.0 International License" />
+  <Image id="cause_brainstorming" 
+         src="/sba/interdisciplinary/images/team_workshop.jpg"
+         height="400px"
+         alt="Talking about processes at a team brainstorming session. Source: UCT MOOC, CC by SA 4.0 International License" />
 
   <Markdown id="internal_and_structural_causes">
 ## Internal and Structural Causes
@@ -70,9 +77,6 @@ research process.
   <!-- TEAM AND LIBRARY - resolved from interdisciplinary_sba.olx -->
 
   <Vertical id="interdisciplinary_team_intro">
-      <Markdown>
-## Introduction to the Team
-      </Markdown>
       <Use ref="interdisciplinary_team_members" />
   </Vertical>
 
@@ -221,7 +225,10 @@ _Select the causes you think are most important to research._
        ============================================================ -->
   <Vertical id="interdisciplinary_taskset3">
 
-    <Image id="task_set_3_intro" src="/sba/interdisciplinary/images/the_thinker.jpg" alt="Photograph of the Rodin sculpture, 'The Thinker' by Tammy Lo. CC by SS 2.0 Generic." />
+    <Image id="task_set_3_intro" 
+           src="/sba/interdisciplinary/images/the_thinker.jpg"
+           height="400px"
+           alt="Photograph of the Rodin sculpture, 'The Thinker' by Tammy Lo. CC by SS 2.0 Generic." />
 
     <!-- Repko's Broad Model -->
     <Vertical id="broad_model_display">
