@@ -175,46 +175,34 @@ function ensureReferencedBlocks(props: BaselineProps, idMap: IdMap, source: stri
 }
 
 // =============================================================================
-// useOlxJson — hook for reading + auto-fetching
+// Selector trio pattern for single OlxJson
 // =============================================================================
 
 /**
- * Hook to access OlxJson by ID from Redux.
+ * Pure selector: reads OlxJson by ID from Redux state.
  *
- * - Reads from Redux state
- * - If not found and not sideEffectFree, triggers a fetch via ensureBlock
- * - Returns BlockDataResult & { olxJson }
+ * Does NOT trigger fetches — just reads what's already in Redux.
+ * Use in blueprint functions (advance, canAdvance, actions) where hooks
+ * are unavailable, or inside useSelector for reactive subscriptions.
  *
- * @param props - Component props (must include logEvent, sideEffectFree)
+ * @param state - Redux state
+ * @param props - Component props (for locale)
  * @param id - The OLX ID to look up
  * @param source - Content source (default: 'content')
  */
-export function useOlxJson(
-  props: RuntimeProps,
+export function selectOlxJson(
+  state: any,
+  props: BaselineProps,
   id: OlxReference | null,
   source: string = 'content'
 ): OlxJsonResult {
-  // Compute olxKey outside hooks — empty string for null id (won't match anything)
-  const olxKey: OlxKey = id ? refToOlxKey(id) : '' as OlxKey;
-
-  // Read from Redux - always call hook (Rules of Hooks)
-  const blockState = useSelector((state: any) =>
-    id ? selectBlockState(state, [source], olxKey) : undefined
-  );
-
-  // Trigger fetch for missing blocks - always call hook (Rules of Hooks)
-  useEffect(() => {
-    if (id && !blockState) {
-      ensureBlock(props, id, source);
-    }
-  }, [id, blockState, olxKey, source, props.runtime.sideEffectFree, props.runtime.logEvent]);
-
-  // Handle null/undefined id - return after hooks are called
   if (!id) {
     return { olxJson: null, ...blockData('ready') };
   }
 
-  // Return based on Redux state
+  const olxKey: OlxKey = refToOlxKey(id);
+  const blockState = selectBlockState(state, [source], olxKey);
+
   if (!blockState) {
     return { olxJson: null, ...blockData('loading') };
   }
@@ -232,7 +220,6 @@ export function useOlxJson(
     };
   }
 
-  // Extract the language variant from nested structure
   const stored = blockState.olxJson;
   if (!stored) {
     return { olxJson: null, ...blockData('ready') };
@@ -242,6 +229,57 @@ export function useOlxJson(
   const langVariant = extractLocalizedVariant(stored, userLocale);
 
   return { olxJson: langVariant || null, ...blockData('ready') };
+}
+
+/**
+ * One-shot imperative form: grabs current state and calls selectOlxJson.
+ *
+ * Use when you need OlxJson in a callback or non-reactive context.
+ * Does NOT trigger fetches.
+ */
+export function getOlxJson(
+  props: RuntimeProps,
+  id: OlxReference | null,
+  source: string = 'content'
+): OlxJsonResult {
+  const state = props.runtime.store.getState();
+  return selectOlxJson(state, props, id, source);
+}
+
+/**
+ * Hook to access OlxJson by ID from Redux.
+ *
+ * - Reads from Redux via selectOlxJson
+ * - If not found and not sideEffectFree, triggers a fetch via ensureBlock
+ * - Returns BlockDataResult & { olxJson }
+ *
+ * @param props - Component props (must include logEvent, sideEffectFree)
+ * @param id - The OLX ID to look up
+ * @param source - Content source (default: 'content')
+ */
+export function useOlxJson(
+  props: RuntimeProps,
+  id: OlxReference | null,
+  source: string = 'content'
+): OlxJsonResult {
+  // Compute olxKey outside hooks — empty string for null id (won't match anything)
+  const olxKey: OlxKey = id ? refToOlxKey(id) : '' as OlxKey;
+
+  // Read from Redux using the pure selector
+  const result = useSelector(
+    (state: any) => selectOlxJson(state, props, id, source),
+    // Shallow equality on the result object
+    (a, b) => a.status === b.status && a.olxJson === b.olxJson && a.error === b.error
+  );
+
+  // Trigger fetch for missing blocks - always call hook (Rules of Hooks)
+  useEffect(() => {
+    if (id && result.loading) {
+      ensureBlock(props, id, source);
+    }
+  }, [id, result.loading, olxKey, source, props.runtime.sideEffectFree, props.runtime.logEvent]);
+
+  return result;
 }
 
 // TODO: Build these from actual OLX parsing rather than hardcoding the data structure.
@@ -266,6 +304,82 @@ function errorOlxJson(id: string, message: string): OlxJson {
   };
 }
 
+// =============================================================================
+// Selector trio pattern for multiple OlxJson blocks
+// =============================================================================
+
+type OlxJsonMultipleResult = {
+  olxJson: OlxJson | null;
+  status: 'ready' | 'loading' | 'error' | 'missing';
+  error?: string;
+};
+
+/**
+ * Pure selector: reads multiple OlxJson blocks by IDs from Redux state.
+ *
+ * Does NOT trigger fetches — just reads what's already in Redux.
+ * Returns placeholders (Spinner/ErrorNode OlxJson) for missing/loading/errored blocks.
+ *
+ * @param state - Redux state
+ * @param props - Component props (for locale)
+ * @param ids - Array of OLX IDs to look up
+ * @param source - Content source (default: 'content')
+ */
+export function selectOlxJsonMultiple(
+  state: any,
+  props: BaselineProps,
+  ids: OlxReference[],
+  source: string = 'content'
+): {
+  olxJsons: OlxJson[];
+  allReady: boolean;
+} {
+  const sources = [source];
+  const userLocale = props.runtime.locale.code;
+
+  const results: OlxJsonMultipleResult[] = ids.map(id => {
+    const olxKey: OlxKey = id ? refToOlxKey(id as OlxReference) : '' as OlxKey;
+    const entry = selectBlockState(state, sources, olxKey);
+    if (!entry) return { olxJson: null, status: 'missing' as const };
+    const status = entry.loadingState?.status;
+    if (status === 'loading') return { olxJson: null, status: 'loading' as const };
+    if (status === 'error') return { olxJson: null, status: 'error' as const, error: entry.error?.message };
+    const stored = entry.olxJson;
+    if (!stored) return { olxJson: null, status: 'ready' as const };
+    const langVariant = extractLocalizedVariant(stored, userLocale);
+    return { olxJson: langVariant || null, status: 'ready' as const };
+  });
+
+  const olxJsons = results.map((r, i) => {
+    if (r.olxJson) return r.olxJson;
+    if (r.status === 'loading' || r.status === 'missing') return spinnerOlxJson(ids[i]);
+    if (r.status === 'error') return errorOlxJson(ids[i], r.error || `Error loading "${ids[i]}"`);
+    return errorOlxJson(ids[i], `Block "${ids[i]}" not found`);
+  });
+
+  const allReady = results.every(r => r.status === 'ready' && r.olxJson !== null);
+
+  return { olxJsons, allReady };
+}
+
+/**
+ * One-shot imperative form: grabs current state and calls selectOlxJsonMultiple.
+ *
+ * Use when you need OlxJson[] in a callback or non-reactive context.
+ * Does NOT trigger fetches.
+ */
+export function getOlxJsonMultiple(
+  props: RuntimeProps,
+  ids: OlxReference[],
+  source: string = 'content'
+): {
+  olxJsons: OlxJson[];
+  allReady: boolean;
+} {
+  const state = props.runtime.store.getState();
+  return selectOlxJsonMultiple(state, props, ids, source);
+}
+
 /**
  * Hook to access multiple OlxJson blocks by IDs.
  *
@@ -286,26 +400,14 @@ export function useOlxJsonMultiple(
   olxJsons: OlxJson[];
   allReady: boolean;
 } {
-  const sources = [source];
-  const userLocale = props.runtime.locale.code;
-
-  // Single useSelector — maps over all ids inside the selector.
-  // Custom equality avoids re-renders when the resolved blocks haven't changed.
-  const results = useSelector(
-    (state: any) => ids.map(id => {
-      const olxKey: OlxKey = id ? refToOlxKey(id as OlxReference) : '' as OlxKey;
-      const entry = selectBlockState(state, sources, olxKey);
-      if (!entry) return { olxJson: null, status: 'missing' as const };
-      const status = entry.loadingState?.status;
-      if (status === 'loading') return { olxJson: null, status: 'loading' as const };
-      if (status === 'error') return { olxJson: null, status: 'error' as const, error: entry.error?.message };
-      const stored = entry.olxJson;
-      if (!stored) return { olxJson: null, status: 'ready' as const };
-      const langVariant = extractLocalizedVariant(stored, userLocale);
-      return { olxJson: langVariant || null, status: 'ready' as const };
-    }),
-    // Shallow-compare: re-render only when an entry's status or olxJson identity changes
-    (a, b) => a.length === b.length && a.every((ai, i) => ai.status === b[i].status && ai.olxJson === b[i].olxJson)
+  // Read from Redux using the pure selector
+  // Custom equality avoids re-renders when the resolved blocks haven't changed
+  const result = useSelector(
+    (state: any) => selectOlxJsonMultiple(state, props, ids, source),
+    // Shallow-compare the olxJsons array and allReady flag
+    (a, b) => a.allReady === b.allReady &&
+              a.olxJsons.length === b.olxJsons.length &&
+              a.olxJsons.every((olxJson, i) => olxJson === b.olxJsons[i])
   );
 
   // Trigger fetches for missing blocks (not a hook — fire-and-forget with dedup)
@@ -315,14 +417,5 @@ export function useOlxJsonMultiple(
     }
   }, [JSON.stringify(ids), source, props.runtime.sideEffectFree, props.runtime.logEvent]);
 
-  const olxJsons = results.map((r, i) => {
-    if (r.olxJson) return r.olxJson;
-    if (r.status === 'loading' || r.status === 'missing') return spinnerOlxJson(ids[i]);
-    if (r.status === 'error') return errorOlxJson(ids[i], r.error || `Error loading "${ids[i]}"`);
-    return errorOlxJson(ids[i], `Block "${ids[i]}" not found`);
-  });
-
-  const allReady = results.every(r => r.status === 'ready' && r.olxJson !== null);
-
-  return { olxJsons, allReady };
+  return result;
 }

@@ -16,7 +16,7 @@
 
 import React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
-import { useOlxJson } from '@/lib/blocks/useOlxJson';
+import { useOlxJson, useOlxJsonMultiple, getOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { renderOlxJson, renderCompiledKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
@@ -109,6 +109,63 @@ export function useBlock(
     </TranslatingIndicator>
   );
   return { block, olxJson: reduxOlxJson, ...blockData('ready') };
+}
+
+// ─── Rendered blocks from ID lists ─────────────────────────────────────────
+//
+// Hook and getter for rendering multiple blocks from an array of IDs.
+// Fills the gap between useKids (for kids lists) and useBlock (single ID).
+//
+
+/**
+ * Hook for rendering multiple blocks from an array of IDs.
+ *
+ * Takes an array of OlxReference IDs and returns rendered React elements.
+ * Each block is fetched via useOlxJsonMultiple and rendered via renderOlxJson.
+ * Placeholders (Spinner/ErrorNode) are automatically returned for loading/error states
+ * by useOlxJsonMultiple's contract.
+ *
+ * This is the missing piece: useKids handles kids lists, useBlock handles
+ * single IDs, and this handles ID lists.
+ *
+ * @param props - Component props (runtime, nodeInfo, etc.)
+ * @param ids - Array of OLX IDs to render
+ * @param source - Content source (default: 'content')
+ */
+export function useRenderedBlocksMultiple(
+  props: RuntimeProps,
+  ids: OlxReference[],
+  source: string = 'content'
+): {
+  blocks: React.ReactNode[];
+  allReady: boolean;
+} {
+  const { olxJsons, allReady } = useOlxJsonMultiple(props, ids, source);
+
+  // useOlxJsonMultiple guarantees non-null entries (Spinner/ErrorNode OlxJson for loading/error)
+  // Just render each one through the normal block pipeline
+  const blocks = olxJsons.map(olxJson => renderOlxJson({ ...props, node: olxJson }));
+
+  return { blocks, allReady };
+}
+
+/**
+ * One-shot imperative form: renders multiple blocks from IDs.
+ *
+ * Use in callbacks or non-reactive contexts. Not for regular use —
+ * prefer useRenderedBlocksMultiple in components.
+ */
+export function getRenderedBlocksMultiple(
+  props: RuntimeProps,
+  ids: OlxReference[],
+  source: string = 'content'
+): {
+  blocks: React.ReactNode[];
+  allReady: boolean;
+} {
+  const { olxJsons, allReady } = getOlxJsonMultiple(props, ids, source);
+  const blocks = olxJsons.map(olxJson => renderOlxJson({ ...props, node: olxJson }));
+  return { blocks, allReady };
 }
 
 // ─── when= filtering ───────────────────────────────────────────────────────

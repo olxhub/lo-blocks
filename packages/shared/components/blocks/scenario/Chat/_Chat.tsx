@@ -4,13 +4,13 @@
 import React, { useCallback, useMemo } from 'react';
 
 import { useFieldState } from '@/lib/state';
-import { renderCompiledKids } from '@/lib/render';
+import { useRenderedBlocksMultiple } from '@/lib/blocks/useRenderedBlock';
 import { advanceFrom } from '@/lib/advance';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
 import type { ChatMessage } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
 import { useCast, mergeCasts } from '@/lib/avatar/cast';
-import type { RuntimeProps, PeggyKids, OlxReference, KidEntry } from '@/lib/types';
+import type { RuntimeProps, PeggyKids, OlxReference } from '@/lib/types';
 import type { ParsedConversation } from './_chatTypes';
 import { useWaitConditions } from './waitConditions';
 
@@ -95,35 +95,39 @@ export function _Chat(props: RuntimeProps) {
   // Clamp index to within the clip
   const windowedIndex = Math.max(clipRange.start, Math.min(index, clipRange.end));
 
-  // Show only entries within current visible window.
-  // Lines render as chat bubbles; EmbedCommands render as inline blocks.
+  // Collect all embedded block IDs from the visible window
+  const embedIds = useMemo(() => {
+    const window = allEntries.slice(windowRange.start, windowedIndex + 1);
+    const ids: OlxReference[] = [];
+    for (const entry of window) {
+      if (entry.type === 'EmbedCommand') {
+        ids.push(entry.ref as OlxReference);
+      }
+    }
+    return ids;
+  }, [allEntries, windowRange, windowedIndex]);
+
+  // Use lazy-loading hook to render all embedded blocks
+  const { blocks: renderedBlocks } = useRenderedBlocksMultiple(props, embedIds);
+
+  // Build visible messages, mapping EmbedCommands to their rendered blocks
   const visibleMessages: ChatMessage[] = useMemo(() => {
     const window = allEntries.slice(windowRange.start, windowedIndex + 1);
     const messages: ChatMessage[] = [];
+    let embedIndex = 0;
 
     for (const entry of window) {
       if (entry.type === 'Line') {
         messages.push(entry);
       } else if (entry.type === 'EmbedCommand') {
-        const blockRef: KidEntry = {
-          type: 'block',
-          id: entry.ref as OlxReference,
-        };
-
-        const rendered = renderCompiledKids({
-          kids: [blockRef],
-          nodeInfo: props.nodeInfo,
-          runtime: props.runtime,
-        });
-
         messages.push({
           type: 'Element',
-          element: <>{rendered}</>,
+          element: renderedBlocks[embedIndex++],
         });
       }
     }
     return messages;
-  }, [allEntries, windowRange, windowedIndex, props.nodeInfo, props.runtime]);
+  }, [allEntries, windowRange, windowedIndex, renderedBlocks]);
 
   /** Total number of visible entries (lines + embeds; commands excluded) */
   const totalDialogueLines = useMemo(() => {
