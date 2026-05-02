@@ -4,7 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
-import { refToReduxKey } from '@/lib/blocks/idResolver';
+import { refToReduxKey } from '@/lib/types/id';
 import { correctness, computeVisibility } from '@/lib/blocks';
 import { useKids } from '@/lib/render';
 

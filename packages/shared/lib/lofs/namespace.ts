@@ -18,9 +18,9 @@
 // - Redux scope also uses ":" but only in target= / ReduxStateKeys, never in id= attrs
 //
 import type { OlxKey, OlxReference } from '../types';
-import { refToOlxKey, toOlxKey } from '../blocks/idResolver';
-import type { ContentNamespace } from './types';
-import { toContentNamespace } from './types';
+import { refToOlxKey, toOlxKey } from '../types/id';
+import type { ContentNamespace } from '../types/storage';
+import { toContentNamespace } from '../types/storage';
 
 /**
  * A qualified reference to a block in another namespace.

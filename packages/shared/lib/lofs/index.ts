@@ -24,11 +24,11 @@
 // - Image path resolution for media assets
 //
 
-// Types
-export * from './types';
+// Types (canonical home: lib/types/storage.ts and lib/types/address.ts)
+export * from '../types/storage';
 
 // Content address system
-export * from './address';
+export * from '../types/address';
 export { contentHash } from './hash';
 
 // Providers

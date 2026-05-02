@@ -32,7 +32,7 @@ describe('GitStorageProvider', () => {
     repoDir = await createTestRepo();
     provider = new GitStorageProvider(repoDir, {
       namespace: 'test-repo',
-      mountId: 'test-repo',
+      mountPoint: 'test-repo',
     });
   });
 

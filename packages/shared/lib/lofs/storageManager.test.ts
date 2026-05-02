@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StorageManager, initStorage, getStorageManager, resetStorage } from './storageManager';
 import { InMemoryStorageProvider } from './providers/memory';
-import { toContentNamespace } from './types';
+import { toContentNamespace } from '../types/storage';
 
 describe('StorageManager', () => {
   beforeEach(() => resetStorage());

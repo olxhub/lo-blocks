@@ -55,7 +55,7 @@ import Spinner from '@/components/common/Spinner';
 import { InMemoryStorageProvider, StackedStorageProvider, toMemoryProvenanceURI } from '@/lib/lofs';
 import { isOLXFile } from '@/lib/util/fileTypes';
 import { dispatchOlxJson, CONTENT_SOURCE } from '@/lib/state/olxjson';
-import type { ContentNamespace } from '@/lib/lofs/types';
+import type { ContentNamespace } from '@/lib/types/storage';
 import { useBlock } from '@/lib/blocks/useRenderedBlock';
 import { useDebugSettings } from '@/lib/state/debugSettings';
 import { settings } from '@/lib/state/settings';

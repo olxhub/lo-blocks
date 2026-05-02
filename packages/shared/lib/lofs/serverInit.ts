@@ -11,7 +11,7 @@
 // of hardcoding new FileStorageProvider('./content').
 //
 import { initStorage } from './storageManager';
-import { toContentNamespace } from './types';
+import { toContentNamespace } from '../types/storage';
 import { FileStorageProvider } from './providers/file';
 
 /**

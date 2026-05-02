@@ -5,7 +5,7 @@
 
 import { parseOLX } from '@/lib/content/parseOLX';
 import type { Provenance } from '@/lib/types';
-import type { StorageProvider } from '@/lib/lofs/types';
+import type { StorageProvider } from '@/lib/types/storage';
 import { getParserForExtension } from '@/generated/parserRegistry';
 import { extractLeadingComments } from '@/lib/translate/metadata';
 

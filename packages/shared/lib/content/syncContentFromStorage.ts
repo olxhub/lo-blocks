@@ -13,7 +13,7 @@
 // 4. Parse new/changed files and update indexes
 //
 
-import { StorageProvider, fileTypes } from '@/lib/lofs';
+import { StorageProvider } from '@/lib/lofs';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
 import { getStorageManager } from '@/lib/lofs/storageManager';
 import type { ProvenanceURI, OLXLoadingError, OlxJson, IdMap, OlxKey, ContentVariant, VariantMap } from '@/lib/types';
@@ -32,9 +32,9 @@ import { stableStringify } from '@/lib/util';
  */
 interface FileRecord {
   id: ProvenanceURI;   // The file:// URI identifying this file
-  type: string;        // File type (olx, xml, chatpeg, etc.)
+  type: string;        // Content type (olx, markdown, peg, etc.)
   content: string;     // The file's text content
-  _metadata: any;      // Provider-specific metadata (stat, hash, etc.)
+  _metadata: unknown;  // Provider-specific metadata (stat, hash, etc.)
 }
 
 /**
@@ -66,7 +66,7 @@ export function getSourceFile(blockId: OlxKey, locale: ContentVariant): Provenan
 
   for (const prov of variantMap[locale].provenance) {
     const entry = contentStore.parsedFiles[prov as ProvenanceURI];
-    if (entry && (entry.type === fileTypes.olx || entry.type === fileTypes.xml)) {
+    if (entry && entry.type === 'olx') {
       return prov as ProvenanceURI;
     }
   }
@@ -245,7 +245,7 @@ function findChangedAuxiliaryFiles(changeSets: FileChangeSets): Set<ProvenanceUR
   ];
 
   for (const [uri, fileRecord] of allChangedFiles) {
-    const isOlxOrXml = fileRecord?.type === fileTypes.olx || fileRecord?.type === fileTypes.xml;
+    const isOlxOrXml = fileRecord?.type === 'olx';
     if (!isOlxOrXml) {
       auxiliaryFiles.add(uri as ProvenanceURI);
     }
@@ -362,7 +362,7 @@ async function parseAndIndexFiles(
 
   for (const [fileUri, fileRecord] of Object.entries(filesToParse) as [ProvenanceURI, FileRecord][]) {
     // Non-OLX files (auxiliary files) are stored but not parsed for blocks
-    if (fileRecord.type !== fileTypes.olx && fileRecord.type !== fileTypes.xml) {
+    if (fileRecord.type !== 'olx') {
       store.parsedFiles[fileUri] = {
         ...fileRecord,
         blockIds: []

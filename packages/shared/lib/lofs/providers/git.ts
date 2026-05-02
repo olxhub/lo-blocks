@@ -16,40 +16,23 @@
 import path from 'path';
 import git from 'isomorphic-git';
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, JSONValue } from '../../types';
-import { isContentFile, getExtension } from '@/lib/util/fileTypes';
+import { isContentFile, getContentType } from '@/lib/util/fileTypes';
 import { minimatch } from 'minimatch';
-import {
-  makeAddress, source as addressSource, path as addressPath, scheme as addressScheme,
-  toLofsAddress, toLofsSourceLocator, toLofsContentPath,
-} from '../address';
+import { scheme as addressScheme, toLofsAddress } from '../../types/address';
+import { resolveRelativeToProvenance } from '../pathResolve';
+import { grepContent } from '../searchUtils';
 import type {
   StorageProvider,
   ContentNamespace,
   XmlFileInfo,
   XmlScanResult,
-  FileSelection,
   UriNode,
   ReadResult,
   WriteOptions,
   GrepOptions,
   GrepMatch,
-} from '../types';
-import { toContentNamespace } from '../types';
-import { fileTypes } from '../fileTypes';
-
-/**
- * Construct a git: provenance URI.
- *
- * Format: git:mountId://path
- *   mountId = identifier for this repo (no slashes — use dashes or dots)
- *   path    = file path within the repo
- */
-function toGitProvenanceURI(mountId: string, filePath: string): ProvenanceURI {
-  return makeAddress(
-    toLofsSourceLocator(`git:${mountId}`),
-    toLofsContentPath(filePath),
-  ) as unknown as ProvenanceURI;
-}
+} from '../../types/storage';
+import { toContentNamespace, toGitProvenanceURI } from '../../types/storage';
 
 export interface GitStorageProviderOptions {
   /** Namespace for this provider (default: derived from remote URL or 'local'). */
@@ -57,7 +40,7 @@ export interface GitStorageProviderOptions {
   /** Git ref to read from (default: 'HEAD' — reads working tree). */
   ref?: string;
   /** Mount ID for provenance URIs — a slash-free identifier (default: repo basename). */
-  mountId?: string;
+  mountPoint?: string;
 }
 
 export class GitStorageProvider implements StorageProvider {
@@ -70,14 +53,14 @@ export class GitStorageProvider implements StorageProvider {
   /** Git ref to read from. 'HEAD' reads the working tree. */
   readonly ref: string;
   /** Mount ID for provenance URIs. */
-  readonly mountId: string;
+  readonly mountPoint: string;
   /** Node.js fs module — loaded lazily. */
   private _fs: typeof import('fs') | null = null;
 
   constructor(repoDir: string, options: GitStorageProviderOptions = {}) {
     this.repoDir = path.resolve(repoDir);
     this.ref = options.ref ?? 'HEAD';
-    this.mountId = options.mountId ?? path.basename(this.repoDir);
+    this.mountPoint = options.mountPoint ?? path.basename(this.repoDir);
     this.namespace = toContentNamespace(options.namespace ?? 'local');
   }
 
@@ -112,10 +95,10 @@ export class GitStorageProvider implements StorageProvider {
       return {
         content,
         metadata: oid ? { oid } : {},
-        provenance: toGitProvenanceURI(this.mountId, filePath),
+        provenance: toGitProvenanceURI(this.mountPoint, filePath),
       };
-    } catch (err: any) {
-      if (err.code === 'ENOENT') {
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
         throw new Error(`File not found: ${filePath}`);
       }
       throw err;
@@ -146,7 +129,7 @@ export class GitStorageProvider implements StorageProvider {
         if (entry.isDirectory()) {
           await walk(relPath);
         } else if (entry.isFile() && isContentFile(relPath)) {
-          const uri = toGitProvenanceURI(this.mountId, relPath);
+          const uri = toGitProvenanceURI(this.mountPoint, relPath);
           found[uri] = true;
 
           const content = await fs.promises.readFile(
@@ -156,12 +139,11 @@ export class GitStorageProvider implements StorageProvider {
 
           // Compute blob hash for change detection
           const blob = await git.hashBlob({ object: content });
-          const ext = getExtension(relPath);
-          const type = (fileTypes as any)[ext] ?? ext;
+          const type = getContentType(relPath);
 
           const prev = previous[uri];
           if (prev) {
-            const prevMeta = prev._metadata as any;
+            const prevMeta = prev._metadata as { oid?: string } | null;
             if (prevMeta?.oid !== blob.oid) {
               changed[uri] = {
                 id: uri,
@@ -200,7 +182,7 @@ export class GitStorageProvider implements StorageProvider {
   // File listing
   // ---------------------------------------------------------------------------
 
-  async listFiles(_selection: FileSelection = {}): Promise<UriNode> {
+  async listFiles(): Promise<UriNode> {
     const fs = await this.getFs();
 
     const walk = async (relDir: string): Promise<UriNode> => {
@@ -262,37 +244,22 @@ export class GitStorageProvider implements StorageProvider {
   async grep(pattern: string, options: GrepOptions = {}): Promise<GrepMatch[]> {
     const { basePath, include, limit = 1000 } = options;
     const fs = await this.getFs();
-    const regex = new RegExp(pattern);
-    const matches: GrepMatch[] = [];
-
-    const files = include
+    const filePaths = include
       ? await this.glob(include, basePath)
       : await this.glob('**/*', basePath);
-
-    for (const filePath of files) {
+    const files: Array<{ path: string; content: string }> = [];
+    for (const filePath of filePaths) {
       if (!isContentFile(filePath)) continue;
       try {
         const content = await fs.promises.readFile(
-          path.join(this.repoDir, filePath),
-          'utf-8'
+          path.join(this.repoDir, filePath), 'utf-8'
         );
-        const lines = content.split('\n');
-        for (let i = 0; i < lines.length; i++) {
-          if (regex.test(lines[i])) {
-            matches.push({
-              path: filePath,
-              line: i + 1,
-              content: lines[i].trim(),
-            });
-            if (matches.length >= limit) return matches;
-          }
-        }
+        files.push({ path: filePath, content });
       } catch {
         // Skip unreadable files
       }
     }
-
-    return matches;
+    return grepContent(files, pattern, limit);
   }
 
   // ---------------------------------------------------------------------------
@@ -303,20 +270,11 @@ export class GitStorageProvider implements StorageProvider {
     if (addressScheme(toLofsAddress(baseProvenance)) !== 'git') {
       throw new Error(`Unsupported provenance format: ${baseProvenance}`);
     }
-
-    const filePath = addressPath(toLofsAddress(baseProvenance));
-    const baseDir = path.dirname(filePath);
-    const resolved = path.normalize(path.join(baseDir, relativePath));
-
-    if (resolved.startsWith('..') || path.isAbsolute(resolved)) {
-      throw new Error(`Resolved path escapes base directory: ${relativePath}`);
-    }
-
-    return resolved as SafeRelativePath;
+    return resolveRelativeToProvenance(baseProvenance, relativePath) as SafeRelativePath;
   }
 
   toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
-    return toGitProvenanceURI(this.mountId, safePath);
+    return toGitProvenanceURI(this.mountPoint, safePath);
   }
 
   async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {

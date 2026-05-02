@@ -10,17 +10,16 @@ import path from 'path';
 import { glob as globLib } from 'glob';
 import pegExts from '../../../generated/pegExtensions.json' assert { type: 'json' };
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, FileSystemPath } from '../../types';
-import { EXT } from '@/lib/util/fileTypes';
+import { EXT, getContentType } from '@/lib/util/fileTypes';
 import {
   source as addressSource, path as addressPath, scheme as addressScheme,
   toLofsAddress,
-} from '../address';
+} from '../../types/address';
 import {
   type StorageProvider,
   type ContentNamespace,
   type XmlFileInfo,
   type XmlScanResult,
-  type FileSelection,
   type UriNode,
   type ReadResult,
   type WriteOptions,
@@ -29,8 +28,7 @@ import {
   VersionConflictError,
   toFileProvenanceURI,
   toContentNamespace,
-} from '../types';
-import { fileTypes } from '../fileTypes';
+} from '../../types/storage';
 import type { JSONValue } from '../../types';
 
 /** Content file extensions recognized by the storage provider. */
@@ -43,8 +41,14 @@ const CONTENT_EXTENSIONS = ['.xml', '.olx', '.md', '.cast', ...pegExts.map(e => 
  * Note: fs.Stats is a class instance, but all its properties are JSON-serializable
  * (numbers, strings, booleans). We cast to JSONValue when storing in _metadata.
  */
+interface FileStat {
+  size: number;
+  mtimeMs: number;
+  ctimeMs: number;
+}
+
 interface FileMetadata {
-  stat: any; // fs.Stats - properties are all numbers/strings
+  stat: FileStat;
 }
 
 /*
@@ -180,8 +184,8 @@ export async function resolveSafeReadPath(baseDir: string, relPath: string): Pro
   let canonicalPath: string;
   try {
     canonicalPath = await fs.realpath(full);
-  } catch (err: any) {
-    if (err.code === 'ENOENT') {
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
       // File doesn't exist - return logical path, caller will handle ENOENT
       return full as FileSystemPath;
     }
@@ -229,8 +233,8 @@ export async function resolveSafeWritePath(baseDir: string, relPath: string): Pr
   let canonicalPath: string;
   try {
     canonicalPath = await fs.realpath(full);
-  } catch (err: any) {
-    if (err.code === 'ENOENT') {
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
       // File doesn't exist yet (creating new file)
       // Check parent directory exists and is within allowed dirs
       const parentDir = path.dirname(full);
@@ -243,8 +247,8 @@ export async function resolveSafeWritePath(baseDir: string, relPath: string): Pr
         if (canonicalParent !== parentDir) {
           throw new Error('Invalid path: symlinks not allowed for write operations');
         }
-      } catch (parentErr: any) {
-        if (parentErr.code === 'ENOENT') {
+      } catch (parentErr) {
+        if ((parentErr as NodeJS.ErrnoException).code === 'ENOENT') {
           throw new Error('Invalid path: parent directory does not exist');
         }
         throw parentErr;
@@ -268,49 +272,10 @@ export async function resolveSafeWritePath(baseDir: string, relPath: string): Pr
 }
 
 /**
- * @deprecated Use resolveSafeReadPath or resolveSafeWritePath instead.
- *
- * Legacy function maintained for backwards compatibility during migration.
- * Will be removed once all callers are updated.
- */
-export async function resolveSafePath(
-  baseDir: string,
-  relPath: string,
-  { allowSymlinks = false }: { allowSymlinks?: boolean | 'file' } = {}
-): Promise<string> {
-  // For backwards compatibility, delegate to read path if symlinks allowed,
-  // otherwise use stricter write path logic
-  if (allowSymlinks) {
-    return resolveSafeReadPath(baseDir, relPath);
-  }
-
-  // Original strict behavior - no symlinks, must stay within baseDir
-  if (typeof relPath !== 'string' || relPath.includes('\0')) {
-    throw new Error('Invalid path');
-  }
-
-  const fs = await import('fs/promises');
-  const full = path.resolve(baseDir, relPath);
-  const relative = path.relative(baseDir, full);
-
-  if (relative.startsWith('..') || path.isAbsolute(relative)) {
-    throw new Error('Invalid path');
-  }
-
-  const stats = await fs.lstat(full).catch(() => null);
-  if (stats && stats.isSymbolicLink()) {
-    throw new Error('Symlinks not allowed');
-  }
-
-  return full;
-}
-
-/**
  * Build a tree of XML/OLX files from a content directory.
  * Server-only - uses Node.js fs module.
  */
 async function listFileTree(
-  selection: FileSelection = {},
   baseDir = './content'
 ): Promise<UriNode> {
   const fs = await import('fs/promises');
@@ -336,8 +301,6 @@ async function listFileTree(
     };
   };
 
-  // currently selection is unused but reserved for future features
-  void selection;
   return walk('');
 }
 
@@ -408,7 +371,7 @@ export class FileStorageProvider implements StorageProvider {
       );
     }
 
-    function fileChanged(statA: any, statB: any) {
+    function fileChanged(statA: FileStat | undefined, statB: FileStat | undefined) {
       if (!statA || !statB) return true;
       return (
         statA.size !== statB.size ||
@@ -431,8 +394,7 @@ export class FileStorageProvider implements StorageProvider {
         } else if (isContentFile(entry, fullPath)) {
           const id = toFileProvenanceURI(this.mountPoint, path.relative(this.baseDir, fullPath));
           const stat = await fs.stat(fullPath);
-          const ext = path.extname(fullPath).slice(1);
-          const type = (fileTypes as any)[ext] ?? ext;
+          const type = getContentType(fullPath);
           found[id] = true;
           const prev = previous[id];
           if (prev) {
@@ -476,8 +438,8 @@ export class FileStorageProvider implements StorageProvider {
         metadata: { mtime: stat.mtimeMs, size: stat.size },
         provenance: toFileProvenanceURI(this.mountPoint, path.relative(this.baseDir, full)),
       };
-    } catch (err: any) {
-      if (err.code === 'ENOENT') {
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
         throw new Error(`File not found: ${filePath} (resolved to ${full})`);
       }
       throw err;
@@ -500,12 +462,12 @@ export class FileStorageProvider implements StorageProvider {
             { mtime: stat.mtimeMs, size: stat.size }
           );
         }
-      } catch (err: any) {
+      } catch (err) {
         // If file doesn't exist but we have previous metadata, that's also a conflict
-        if (err.code === 'ENOENT' && previousMetadata) {
+        if ((err as NodeJS.ErrnoException).code === 'ENOENT' && previousMetadata) {
           throw new VersionConflictError('File was deleted');
         }
-        if (err.name === 'VersionConflictError') throw err;
+        if (err instanceof VersionConflictError) throw err;
         // Other errors (like permission) should propagate
         throw err;
       }
@@ -540,8 +502,8 @@ export class FileStorageProvider implements StorageProvider {
     await fs.rename(fullOld, fullNew);
   }
 
-  async listFiles(selection: FileSelection = {}): Promise<UriNode> {
-    return listFileTree(selection, this.baseDir);
+  async listFiles(): Promise<UriNode> {
+    return listFileTree(this.baseDir);
   }
 
   resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {

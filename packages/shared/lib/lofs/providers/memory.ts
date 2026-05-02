@@ -11,7 +11,7 @@
 //
 
 import { minimatch } from 'minimatch';
-import { isContentFile, getExtension } from '@/lib/util/fileTypes';
+import { isContentFile, getContentType } from '@/lib/util/fileTypes';
 import type {
   StorageProvider,
   ReadResult,
@@ -20,11 +20,13 @@ import type {
   XmlScanResult,
   GrepOptions,
   GrepMatch,
-} from '../types';
-import { type ContentNamespace, toContentNamespace } from '../types';
+} from '../../types/storage';
+import { type ContentNamespace, toContentNamespace } from '../../types/storage';
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath } from '../../types';
-import { toMemoryProvenanceURI } from '../types';
-import { scheme as addressScheme, path as addressPath, toLofsAddress } from '../address';
+import { toMemoryProvenanceURI } from '../../types/storage';
+import { scheme as addressScheme, toLofsAddress } from '../../types/address';
+import { resolveRelativeToProvenance } from '../pathResolve';
+import { grepContent } from '../searchUtils';
 
 export class InMemoryStorageProvider implements StorageProvider {
   readonly scheme = 'memory' as const;
@@ -84,12 +86,12 @@ export class InMemoryStorageProvider implements StorageProvider {
       if (!isContentFile(filename)) continue;
 
       const uri = toMemoryProvenanceURI(filename, this.namespace);
-      const ext = getExtension(filename);
+      const type = getContentType(filename);
 
       if (previous[uri]) {
         unchanged[uri] = previous[uri];
       } else {
-        added[uri] = { id: uri, type: ext, _metadata: {}, content };
+        added[uri] = { id: uri, type, _metadata: {}, content };
       }
     }
 
@@ -97,29 +99,10 @@ export class InMemoryStorageProvider implements StorageProvider {
   }
 
   resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
-    // Only handle memory: provenance — lets the stacked provider fall through
-    // to the file provider for file: URIs.
     if (addressScheme(toLofsAddress(baseProvenance)) !== 'memory') {
       throw new Error(`Unsupported provenance format: ${baseProvenance}`);
     }
-
-    // Extract directory from base provenance URI and resolve relative to it.
-    // e.g., memory:local://subdir/lesson.olx + "notes.md" → "subdir/notes.md"
-    const memoryPath = addressPath(toLofsAddress(baseProvenance));
-    const lastSlash = memoryPath.lastIndexOf('/');
-    const baseDir = lastSlash >= 0 ? memoryPath.substring(0, lastSlash) : '';
-    const joined = baseDir ? `${baseDir}/${relativePath}` : relativePath;
-
-    // Normalize: resolve ., .., strip leading ./
-    const segments = joined.split('/');
-    const resolved: string[] = [];
-    for (const seg of segments) {
-      if (seg === '' || seg === '.') continue;
-      if (seg === '..') { resolved.pop(); continue; }
-      resolved.push(seg);
-    }
-
-    return resolved.join('/') as SafeRelativePath;
+    return resolveRelativeToProvenance(baseProvenance, relativePath) as SafeRelativePath;
   }
 
   toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
@@ -168,41 +151,15 @@ export class InMemoryStorageProvider implements StorageProvider {
     });
   }
 
-  /**
-   * Search file contents for a pattern in the in-memory filesystem.
-   */
   async grep(pattern: string, options: GrepOptions = {}): Promise<GrepMatch[]> {
     const { basePath, include, limit = 1000 } = options;
-    const regex = new RegExp(pattern);
-    const matches: GrepMatch[] = [];
-
-    // Get files to search
-    const files = include
+    const filePaths = include
       ? await this.glob(include, basePath)
       : Object.keys(this.files);
-
-    for (const filePath of files) {
-      const content = this.files[filePath];
-      if (!content) continue;
-
-      const lines = content.split('\n');
-      for (let i = 0; i < lines.length; i++) {
-        if (regex.test(lines[i])) {
-          matches.push({
-            // Keys come from this.files which is written via write(path: OlxRelativePath, ...)
-            path: filePath as OlxRelativePath,
-            line: i + 1,
-            content: lines[i].trim(),
-          });
-
-          if (matches.length >= limit) {
-            return matches;
-          }
-        }
-      }
-    }
-
-    return matches;
+    const files = filePaths
+      .filter(p => this.files[p])
+      .map(p => ({ path: p, content: this.files[p] }));
+    return grepContent(files, pattern, limit);
   }
 
   async delete(path: OlxRelativePath): Promise<void> {

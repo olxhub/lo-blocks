@@ -1,4 +1,4 @@
-// src/lib/lofs/types.ts
+// packages/shared/lib/types/storage.ts
 //
 // Type definitions for the storage abstraction layer.
 //
@@ -8,12 +8,12 @@
 import type {
   ProvenanceURI, FileProvenanceURI, MemoryProvenanceURI,
   JSONValue, OlxRelativePath, SafeRelativePath,
-} from '../types';
+} from './core';
 import {
   makeAddress, source, path as addressPath, scheme,
   toLofsAddress, toLofsSourceLocator, toLofsContentPath,
 } from './address';
-import { FileType } from './fileTypes';
+import type { ContentType } from '@/lib/util/fileTypes';
 
 /**
  * A content namespace identifies a course, repository, or logical content scope.
@@ -53,7 +53,7 @@ export type ProviderMetadata = JSONValue;
 
 export interface XmlFileInfo {
   id: ProvenanceURI;
-  type: FileType;
+  type: ContentType;
   /** Provider-specific metadata for change detection (opaque to consumers). */
   _metadata: ProviderMetadata;
   content: string;
@@ -64,11 +64,6 @@ export interface XmlScanResult {
   changed: Record<ProvenanceURI, XmlFileInfo>;
   unchanged: Record<ProvenanceURI, XmlFileInfo>;
   deleted: Record<ProvenanceURI, XmlFileInfo>;
-}
-
-export interface FileSelection {
-  // Reserved for future filtering options
-  [key: string]: any;
 }
 
 export interface UriNode {
@@ -258,6 +253,28 @@ export function toMemoryProvenanceURI(name: string, sourceId = 'local'): MemoryP
 }
 
 /**
+ * Construct a git: provenance URI.
+ * Format: git:mountPoint://path
+ */
+export function toGitProvenanceURI(mountPoint: string, filePath: string): ProvenanceURI {
+  return makeAddress(
+    toLofsSourceLocator(`git:${mountPoint}`),
+    toLofsContentPath(filePath),
+  ) as unknown as ProvenanceURI;
+}
+
+/**
+ * Construct a postgres: provenance URI.
+ * Format: postgres:tenant://path
+ */
+export function toPgProvenanceURI(tenant: string, filePath: string): ProvenanceURI {
+  return makeAddress(
+    toLofsSourceLocator(`postgres:${tenant}`),
+    toLofsContentPath(filePath),
+  ) as unknown as ProvenanceURI;
+}
+
+/**
  * Options for grep operation
  */
 export interface GrepOptions {
@@ -302,7 +319,7 @@ export interface StorageProvider {
   write(path: OlxRelativePath, content: string, options?: WriteOptions): Promise<void>;
   delete(path: OlxRelativePath): Promise<void>;
   rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void>;
-  listFiles(selection?: FileSelection): Promise<UriNode>;
+  listFiles(): Promise<UriNode>;
 
   /**
    * Find files matching a glob pattern

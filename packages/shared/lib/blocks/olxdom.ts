@@ -4,8 +4,8 @@
 // dynamic content DAG.
 
 import * as state from '@/lib/state';
-import * as idResolver from './idResolver';
-import { refToOlxKey, toOlxReference } from './idResolver';
+import * as idResolver from '../types/id';
+import { refToOlxKey, toOlxReference } from '../types/id';
 import type { OlxDomNode, OlxDomSelector, OlxKey, OlxReference, ReduxStateKey, RuntimeProps } from '@/lib/types';
 //
 // The OLX DOM is Learning Observer's internal representation of educational content,

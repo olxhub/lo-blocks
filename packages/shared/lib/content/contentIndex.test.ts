@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { ContentIndex, getContentIndex, resetContentIndex } from './contentIndex';
 import { initStorage, resetStorage } from '../lofs/storageManager';
 import { InMemoryStorageProvider } from '../lofs/providers/memory';
-import { toContentNamespace } from '../lofs/types';
+import { toContentNamespace } from '../types/storage';
 
 describe('ContentIndex', () => {
   beforeEach(() => {

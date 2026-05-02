@@ -24,7 +24,7 @@ import { z } from 'zod';
 import { inferRelatedNodes, getDomNodeByReduxKey, propsFromNode } from './olxdom';
 import * as lo_event from 'lo_event';
 import { correctness } from './correctness';
-import { refToReduxKey } from './idResolver';
+import { refToReduxKey } from '../types/id';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { valueSelector } from '@/lib/state/redux';
 import { isZodCompatible, describeZodType } from './zodCompat';

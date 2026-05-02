@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { IdMap, ComponentError, OlxKey } from '@/lib/types';
 import { dispatchOlxJson, CONTENT_SOURCE } from '@/lib/state/olxjson';
-import type { ContentNamespace } from '@/lib/lofs/types';
+import type { ContentNamespace } from '@/lib/types/storage';
 import { useDebugSettings } from '@/lib/state/debugSettings';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { useBaselineProps } from '@/components/common/RenderOLX';

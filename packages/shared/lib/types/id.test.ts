@@ -1,6 +1,6 @@
 // @vitest-environment node
 // src/lib/blocks/idResolver.test.js
-import * as idResolver from "./idResolver";
+import * as idResolver from "./id";
 
 describe("ID helpers", () => {
   it("passes through strings, resolves objects, and throws when unresolved", () => {

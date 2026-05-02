@@ -19,8 +19,8 @@
 //
 import { getStorageManager } from '../lofs/storageManager';
 import { getContentIndex } from '../content/contentIndex';
-import { toContentNamespace } from '../lofs/types';
-import type { ContentNamespace } from '../lofs/types';
+import { toContentNamespace } from '../types/storage';
+import type { ContentNamespace } from '../types/storage';
 import type { OlxRelativePath, OlxKey, ContentVariant } from '../types';
 
 // =============================================================================

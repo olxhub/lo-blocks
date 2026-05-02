@@ -6,7 +6,7 @@
 // GET /api/files?pattern=  - Returns files matching glob pattern
 //
 import { getStorageManager } from '@/lib/lofs/storageManager';
-import { toOlxRelativePath } from '@/lib/lofs/types';
+import { toOlxRelativePath } from '@/lib/types/storage';
 
 // Lazy — initialized on first request after instrumentation hook has run.
 let _provider: ReturnType<ReturnType<typeof getStorageManager>['getDefaultProvider']>;

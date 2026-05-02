@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PostgresStorageProvider } from './postgres';
-import { VersionConflictError } from '../types';
+import { VersionConflictError } from '../../types/storage';
 import type { OlxRelativePath, ProvenanceURI } from '../../types';
 
 /**

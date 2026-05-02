@@ -25,7 +25,7 @@ import {
   dispatchOlxJsonError,
   CONTENT_SOURCE,
 } from '@/lib/state/olxjson';
-import type { ContentNamespace } from '@/lib/lofs/types';
+import type { ContentNamespace } from '@/lib/types/storage';
 import type { OlxJson, UserLocale, ContentVariant } from '@/lib/types';
 import type { LogEventFn } from '@/lib/render';
 

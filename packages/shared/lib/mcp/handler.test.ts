@@ -3,7 +3,7 @@ import { handleMcpRequest, TOOLS } from './handler';
 import { initStorage, resetStorage } from '../lofs/storageManager';
 import { resetContentIndex } from '../content/contentIndex';
 import { InMemoryStorageProvider } from '../lofs/providers/memory';
-import { toContentNamespace } from '../lofs/types';
+import { toContentNamespace } from '../types/storage';
 
 describe('MCP handler', () => {
   beforeEach(() => {

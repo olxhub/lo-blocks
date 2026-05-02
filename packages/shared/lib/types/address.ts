@@ -1,4 +1,4 @@
-// packages/shared/lib/lofs/address.ts
+// packages/shared/lib/types/address.ts
 //
 // Content address system — branded types and pure functions.
 //

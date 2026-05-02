@@ -3,7 +3,6 @@
 import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
-import { fileTypes } from '../lofs';
 import { FileStorageProvider } from '../lofs/providers/file';
 import { syncContentFromStorage } from './syncContentFromStorage';
 import { getOlxJson } from '../test-utils';
@@ -25,7 +24,7 @@ it('handles added, unchanged, changed, and deleted files via filesystem mutation
     const provider = new FileStorageProvider(tmpDir);
     const first = await provider.loadXmlFilesWithStats();
     for (const info of Object.values(first.added)) {
-      expect([fileTypes.xml, fileTypes.olx]).toContain(info.type);
+      expect(info.type).toBe('olx');
     }
     const prev = { ...first.added };
 
@@ -42,7 +41,7 @@ it('handles added, unchanged, changed, and deleted files via filesystem mutation
     const second = await provider.loadXmlFilesWithStats(prev);
 
     for (const info of Object.values(second.added)) {
-      expect([fileTypes.xml, fileTypes.olx]).toContain(info.type);
+      expect(info.type).toBe('olx');
     }
 
     expect(Object.keys(second.unchanged).some(id => id.endsWith('psychology_sba_part1.olx'))).toBe(true);

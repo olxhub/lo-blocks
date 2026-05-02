@@ -12,10 +12,10 @@
 // a different store provides historical state. The store is threaded through
 // props from React components using useStore().
 //
-import { refToOlxKey } from './idResolver';
+import { refToOlxKey } from '../types/id';
 import { selectBlock, CONTENT_SOURCE } from '@/lib/state/olxjson';
 import type { OlxJson, OlxReference, UserLocale } from '@/lib/types';
-import type { ContentNamespace } from '@/lib/lofs/types';
+import type { ContentNamespace } from '@/lib/types/storage';
 import type { Store } from 'redux';
 
 interface PropsWithStore {

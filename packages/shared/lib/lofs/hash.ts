@@ -8,7 +8,7 @@
 // Ported from prototypes/lofs/src/hash.ts.
 
 import { createHash } from 'node:crypto';
-import { type LofsContentHash, toLofsContentHash } from './address';
+import { type LofsContentHash, toLofsContentHash } from '../types/address';
 
 /**
  * SHA-256 hex digest of a string. Same content = same hash everywhere.

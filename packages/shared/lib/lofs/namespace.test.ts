@@ -4,7 +4,7 @@ import {
   isQualifiedReference,
   toQualifiedReference,
 } from './namespace';
-import { toContentNamespace } from './types';
+import { toContentNamespace } from '../types/storage';
 import type { OlxKey } from '../types';
 
 describe('parseQualifiedReference', () => {

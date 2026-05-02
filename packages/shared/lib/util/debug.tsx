@@ -4,7 +4,7 @@
 import React, { ReactNode, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import type { ProvenanceURI } from '@/lib/types';
-import { scheme as lofScheme, path as lofsPath, toLofsAddress } from '@/lib/lofs/address';
+import { scheme as lofScheme, path as lofsPath, toLofsAddress } from '@/lib/types/address';
 import { getExtension } from '@/lib/util/fileTypes';
 import { useFieldState, settings } from '@/lib/state';
 

@@ -11,7 +11,7 @@
 // be implemented when cross-namespace references are first used.
 //
 import type { IdMap, OlxKey, VariantMap, ContentVariant, OlxJson, OLXLoadingError } from '../types';
-import type { ContentNamespace, StorageProvider } from '../lofs/types';
+import type { ContentNamespace, StorageProvider } from '../types/storage';
 import { getStorageManager } from '../lofs/storageManager';
 import {
   syncContentFromStorage,

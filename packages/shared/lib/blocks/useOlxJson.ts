@@ -20,8 +20,8 @@ import {
   dispatchOlxJsonError,
   CONTENT_SOURCE,
 } from '@/lib/state/olxjson';
-import type { ContentNamespace } from '@/lib/lofs/types';
-import { refToOlxKey, allOlxKeys } from '@/lib/blocks/idResolver';
+import type { ContentNamespace } from '@/lib/types/storage';
+import { refToOlxKey, allOlxKeys } from '@/lib/types/id';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, OlxKey, OlxReference, ReduxStateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';

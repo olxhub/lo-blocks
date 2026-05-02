@@ -20,7 +20,7 @@ import * as lo_event from 'lo_event';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, OlxKey, IdMap, UserLocale, VariantMap } from '../types';
 import type { LogEventFn } from '../render';
-import { type ContentNamespace, toContentNamespace } from '../lofs/types';
+import { type ContentNamespace, toContentNamespace } from '../types/storage';
 
 /** Default source for content loaded from the primary namespace. */
 export const CONTENT_SOURCE = toContentNamespace('content');

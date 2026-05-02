@@ -13,22 +13,22 @@
 //
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, LofsPath } from '../../types';
 import {
-  makeAddress, path as addressPath,
-  toLofsAddress, toLofsSourceLocator, toLofsContentPath,
-} from '../address';
-import { type ContentNamespace, toContentNamespace } from '../types';
+  makeAddress,
+  toLofsSourceLocator, toLofsContentPath,
+} from '../../types/address';
+import { resolveRelativeToProvenance } from '../pathResolve';
+import { type ContentNamespace, toContentNamespace } from '../../types/storage';
 import {
   type StorageProvider,
   type XmlFileInfo,
   type XmlScanResult,
-  type FileSelection,
   type UriNode,
   type ReadResult,
   type WriteOptions,
   type GrepOptions,
   type GrepMatch,
   VersionConflictError,
-} from '../types';
+} from '../../types/storage';
 
 export interface NetworkProviderOptions {
   /** Endpoint for single-file operations (read/write/delete) */
@@ -98,41 +98,8 @@ export class NetworkStorageProvider implements StorageProvider {
     );
   }
 
-  /**
-   * Resolve a relative path against a base provenance URI.
-   * Works client-side by manipulating path strings.
-   */
   resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
-    // Extract content path from provenance URI using LOFS address parser.
-    // This is the path within the source (after ://), already relative to
-    // the namespace root, so no need to strip a namespace prefix.
-    let basePath: string;
-    if (baseProvenance.includes('://')) {
-      basePath = addressPath(toLofsAddress(baseProvenance));
-    } else {
-      basePath = baseProvenance;
-    }
-
-    // Get directory of base file
-    const lastSlash = basePath.lastIndexOf('/');
-    const baseDir = lastSlash >= 0 ? basePath.slice(0, lastSlash) : '';
-
-    // Resolve relative path
-    const parts = (baseDir + '/' + relativePath).split('/').filter(Boolean);
-    const resolved: string[] = [];
-
-    for (const part of parts) {
-      if (part === '..') {
-        if (resolved.length === 0) {
-          throw new Error(`Path traversal above root: "${relativePath}" from "${baseProvenance}"`);
-        }
-        resolved.pop();
-      } else if (part !== '.') {
-        resolved.push(part);
-      }
-    }
-
-    return resolved.join('/') as SafeRelativePath;
+    return resolveRelativeToProvenance(baseProvenance, relativePath) as SafeRelativePath;
   }
 
   toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
@@ -178,15 +145,8 @@ export class NetworkStorageProvider implements StorageProvider {
     );
   }
 
-  async listFiles(selection: FileSelection = {}): Promise<UriNode> {
-    const params = new URLSearchParams();
-    for (const [key, value] of Object.entries(selection)) {
-      if (value != null) params.set(key, String(value));
-    }
-    const url = params.toString()
-      ? `${this.listEndpoint}?${params.toString()}`
-      : this.listEndpoint;
-    const res = await fetch(url);
+  async listFiles(): Promise<UriNode> {
+    const res = await fetch(this.listEndpoint);
     const json = await res.json();
     if (!json.ok) {
       throw new Error(json.error ?? 'Failed to list files');
@@ -206,6 +166,7 @@ export class NetworkStorageProvider implements StorageProvider {
     return {
       content: json.content as string,
       metadata: json.metadata,
+      provenance: this.toProvenanceURI(path as unknown as SafeRelativePath),
     };
   }
 

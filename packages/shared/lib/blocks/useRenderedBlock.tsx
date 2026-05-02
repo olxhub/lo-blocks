@@ -18,7 +18,7 @@ import React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { useOlxJson } from '@/lib/blocks/useOlxJson';
 import { CONTENT_SOURCE } from '@/lib/state/olxjson';
-import type { ContentNamespace } from '@/lib/lofs/types';
+import type { ContentNamespace } from '@/lib/types/storage';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { renderOlxJson, renderCompiledKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
@@ -26,7 +26,7 @@ import Spinner from '@/components/common/Spinner';
 import TranslatingIndicator from '@/lib/i18n/TranslatingIndicator';
 import type { OlxReference, BlockDataResult, OlxJson, RuntimeProps } from '@/lib/types';
 import { blockData } from '@/lib/state/redux';
-import { refToOlxKey } from '@/lib/blocks/idResolver';
+import { refToOlxKey } from '@/lib/types/id';
 import { selectBlock } from '@/lib/state/olxjson';
 import {
   evaluate, createContext,

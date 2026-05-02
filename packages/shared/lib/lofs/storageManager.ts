@@ -19,8 +19,8 @@
 //   const provider = getStorageManager().getDefaultProvider();
 //   const content = await provider.read(path);
 //
-import type { StorageProvider, ContentNamespace } from './types';
-import { toContentNamespace } from './types';
+import type { StorageProvider, ContentNamespace } from '../types/storage';
+import { toContentNamespace } from '../types/storage';
 import { StackedStorageProvider } from './providers/stacked';
 
 /**

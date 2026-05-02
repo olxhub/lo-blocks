@@ -23,37 +23,23 @@
 //
 import type { Pool } from 'pg';
 import { minimatch } from 'minimatch';
-import { isContentFile, getExtension } from '@/lib/util/fileTypes';
+import { isContentFile, getContentType } from '@/lib/util/fileTypes';
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, JSONValue } from '../../types';
-import {
-  makeAddress, path as addressPath, scheme as addressScheme,
-  toLofsAddress, toLofsSourceLocator, toLofsContentPath,
-} from '../address';
+import { scheme as addressScheme, toLofsAddress } from '../../types/address';
+import { resolveRelativeToProvenance } from '../pathResolve';
+import { grepContent } from '../searchUtils';
 import type {
   StorageProvider,
   ContentNamespace,
   XmlFileInfo,
   XmlScanResult,
-  FileSelection,
   UriNode,
   ReadResult,
   WriteOptions,
   GrepOptions,
   GrepMatch,
-} from '../types';
-import { VersionConflictError, toContentNamespace } from '../types';
-import { fileTypes } from '../fileTypes';
-
-/**
- * Construct a postgres: provenance URI.
- * Format: postgres:tenant://path
- */
-function toPgProvenanceURI(tenant: string, filePath: string): ProvenanceURI {
-  return makeAddress(
-    toLofsSourceLocator(`postgres:${tenant}`),
-    toLofsContentPath(filePath),
-  ) as unknown as ProvenanceURI;
-}
+} from '../../types/storage';
+import { VersionConflictError, toContentNamespace, toPgProvenanceURI } from '../../types/storage';
 
 /** Row shape from the lofs_files table. */
 interface FileRow {
@@ -224,13 +210,12 @@ export class PostgresStorageProvider implements StorageProvider {
       const uri = toPgProvenanceURI(this.tenant, row.path);
       found[uri] = true;
 
-      const ext = getExtension(row.path);
-      const type = (fileTypes as any)[ext] ?? ext;
+      const type = getContentType(row.path);
       const metadata = { version: row.version, updated_at: row.updated_at.toISOString() };
 
       const prev = previous[uri];
       if (prev) {
-        const prevMeta = prev._metadata as any;
+        const prevMeta = prev._metadata as { version?: number } | null;
         if (prevMeta?.version !== row.version) {
           changed[uri] = { id: uri, type, _metadata: metadata as unknown as JSONValue, content: row.content };
         } else {
@@ -255,7 +240,7 @@ export class PostgresStorageProvider implements StorageProvider {
   // File listing
   // ---------------------------------------------------------------------------
 
-  async listFiles(_selection: FileSelection = {}): Promise<UriNode> {
+  async listFiles(): Promise<UriNode> {
     await this.ensureTable();
     const { rows } = await this.pool.query<{ path: string }>(
       'SELECT path FROM lofs_files WHERE tenant = $1 ORDER BY path',
@@ -310,33 +295,16 @@ export class PostgresStorageProvider implements StorageProvider {
   async grep(pattern: string, options: GrepOptions = {}): Promise<GrepMatch[]> {
     await this.ensureTable();
     const { basePath, include, limit = 1000 } = options;
-    const regex = new RegExp(pattern);
-    const matches: GrepMatch[] = [];
-
-    // Get all content for this tenant (could use SQL LIKE for basic patterns)
     const { rows } = await this.pool.query<FileRow>(
       'SELECT path, content FROM lofs_files WHERE tenant = $1',
       [this.tenant]
     );
-
-    for (const row of rows) {
-      if (basePath && !row.path.startsWith(basePath)) continue;
-      if (include && !minimatch(row.path, include)) continue;
-
-      const lines = row.content.split('\n');
-      for (let i = 0; i < lines.length; i++) {
-        if (regex.test(lines[i])) {
-          matches.push({
-            path: row.path as OlxRelativePath,
-            line: i + 1,
-            content: lines[i].trim(),
-          });
-          if (matches.length >= limit) return matches;
-        }
-      }
-    }
-
-    return matches;
+    const files = rows.filter(row => {
+      if (basePath && !row.path.startsWith(basePath)) return false;
+      if (include && !minimatch(row.path, include)) return false;
+      return true;
+    });
+    return grepContent(files, pattern, limit);
   }
 
   // ---------------------------------------------------------------------------
@@ -347,28 +315,7 @@ export class PostgresStorageProvider implements StorageProvider {
     if (addressScheme(toLofsAddress(baseProvenance)) !== 'postgres') {
       throw new Error(`Unsupported provenance format: ${baseProvenance}`);
     }
-
-    const filePath = addressPath(toLofsAddress(baseProvenance));
-    const lastSlash = filePath.lastIndexOf('/');
-    const baseDir = lastSlash >= 0 ? filePath.substring(0, lastSlash) : '';
-    const joined = baseDir ? `${baseDir}/${relativePath}` : relativePath;
-
-    // Normalize: resolve ., .., strip leading ./
-    const segments = joined.split('/');
-    const resolved: string[] = [];
-    for (const seg of segments) {
-      if (seg === '' || seg === '.') continue;
-      if (seg === '..') { resolved.pop(); continue; }
-      resolved.push(seg);
-    }
-
-    const result = resolved.join('/');
-    // Check for path traversal
-    if (result.startsWith('..')) {
-      throw new Error(`Resolved path escapes base directory: ${relativePath}`);
-    }
-
-    return result as SafeRelativePath;
+    return resolveRelativeToProvenance(baseProvenance, relativePath) as SafeRelativePath;
   }
 
   toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {

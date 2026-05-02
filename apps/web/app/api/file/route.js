@@ -1,6 +1,6 @@
 // src/app/api/file/route.js
 import { getStorageManager } from '@/lib/lofs/storageManager';
-import { VersionConflictError } from '@/lib/lofs/types';
+import { VersionConflictError } from '@/lib/types/storage';
 import { validateContentPath } from '@/lib/lofs/contentPaths';
 
 // Lazy — initialized on first request after instrumentation hook has run.

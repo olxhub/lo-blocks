@@ -23,14 +23,13 @@ import {
   type ContentNamespace,
   type XmlFileInfo,
   type XmlScanResult,
-  type FileSelection,
   type UriNode,
   type ReadResult,
   type WriteOptions,
   type GrepOptions,
   type GrepMatch,
   toContentNamespace,
-} from '../types';
+} from '../../types/storage';
 
 /**
  * Merge two UriNode trees, with nodes from `higher` taking precedence.
@@ -147,12 +146,12 @@ export class StackedStorageProvider implements StorageProvider {
   }
 
   // List files merged from all providers (higher priority shadows lower)
-  async listFiles(selection: FileSelection = {}): Promise<UriNode> {
+  async listFiles(): Promise<UriNode> {
     // Collect results from all providers (reverse order so we merge low-to-high)
     const results: UriNode[] = [];
     for (const provider of this.providers) {
       try {
-        results.push(await provider.listFiles(selection));
+        results.push(await provider.listFiles());
       } catch {
         // Provider doesn't support listFiles or failed - skip it
       }

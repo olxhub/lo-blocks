@@ -14,7 +14,7 @@ import { syncContentFromStorage, getSourceFile, getBlocksForFiles, getBlockVaria
 import { getProvider } from '@/lib/llm/provider';
 import { translateContent } from '@/lib/translate';
 import type { OlxKey, ContentVariant, ProvenanceURI, OlxRelativePath, SafeRelativePath } from '@/lib/types';
-import { toOlxKey } from '@/lib/blocks/idResolver';
+import { toOlxKey } from '@/lib/types/id';
 
 const contentDir = process.env.OLX_CONTENT_DIR || './content';
 const logsDir = path.resolve(contentDir, '..', 'logs');

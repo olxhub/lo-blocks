@@ -12,7 +12,7 @@ import { extensionsWithDots, CATEGORY } from '@/lib/util/fileTypes';
 import {
   path as addressPath, scheme as addressScheme,
   toLofsAddress,
-} from './address';
+} from '../types/address';
 import type { LofsPath, FileSystemPath, OlxRelativePath, SafeRelativePath } from '@/lib/types';
 
 // Base directory for content - resolved once at module load

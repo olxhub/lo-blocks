@@ -16,7 +16,7 @@ import RenderOLX from '@/components/common/RenderOLX';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import { useStaticContent } from '../../lib/StaticContentProvider';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
-import { toOlxKey } from '@/lib/blocks/idResolver';
+import { toOlxKey } from '@/lib/types/id';
 import type { Locale } from '@/lib/types';
 
 export default function StaticPage({ olxKey, title }: { olxKey: string; title?: string }) {

@@ -18,6 +18,7 @@ import { useFieldSelector, useFieldState, useValue } from '@/lib/state';
 import { LLM_STATUS } from '@/lib/llm/reduxClient';
 import { parseOLX } from '@/lib/content/parseOLX';
 import type { ProvenanceURI } from '@/lib/types';
+import { toContentNamespace } from '@/lib/types';
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
@@ -167,7 +168,7 @@ function _OlxSlot(props: RuntimeProps) {
         <RenderOLX
           id={id}
           inline={parseError}
-          source={`olxslot:${id}`}
+          source={toContentNamespace(`olxslot:${id}`)}
           eventContext={`olxslot:${id}`}
           provenance={`olxslot://${id}`}
         />
@@ -196,7 +197,7 @@ function _OlxSlot(props: RuntimeProps) {
         <RenderOLX
           id={id}
           inline={parseError}
-          source={`olxslot:${id}:error`}
+          source={toContentNamespace(`olxslot:${id}:error`)}
           eventContext={`olxslot:${id}`}
           provenance={`olxslot://${id}`}
         />
@@ -204,7 +205,7 @@ function _OlxSlot(props: RuntimeProps) {
       <RenderOLX
         id={id}
         inline={olxString}
-        source={`olxslot:${id}`}
+        source={toContentNamespace(`olxslot:${id}`)}
         eventContext={`olxslot:${id}`}
         provenance={`olxslot://${id}`}
       />
