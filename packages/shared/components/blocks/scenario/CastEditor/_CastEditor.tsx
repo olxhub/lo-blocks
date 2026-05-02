@@ -17,7 +17,7 @@ import { useSelector } from 'react-redux';
 import yaml from 'js-yaml';
 import { Plus, X } from 'lucide-react';
 import { useFieldState, useSet, useNextId } from '@/lib/state';
-import { extendIdPrefix, scopeMarker } from '@/lib/blocks/idResolver';
+import { extendIdPrefix, scopeMarker } from '@/lib/types/id';
 import AvatarPreview from '@/components/common/avatar/AvatarPreview';
 import CopyableYaml from '@/components/common/avatar/CopyableYaml';
 import _CharacterBuilder from '../CharacterBuilder/_CharacterBuilder';

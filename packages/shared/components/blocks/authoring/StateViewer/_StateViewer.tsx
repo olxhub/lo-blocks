@@ -5,7 +5,7 @@ import React from 'react';
 import { DisplayError } from '@/lib/util/debug';
 import { useComponentState } from '@/lib/state';
 import { decodeState } from '@/lib/state/stateDisplay';
-import { refToReduxKey } from '@/lib/blocks/idResolver';
+import { refToReduxKey } from '@/lib/types/id';
 import { useOlxJson } from '@/lib/blocks/useOlxJson';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 

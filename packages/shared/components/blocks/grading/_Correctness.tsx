@@ -8,7 +8,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { correctness } from '@/lib/blocks';
 import { useFieldSelector } from '@/lib/state';
-import { refToReduxKey } from '@/lib/blocks/idResolver';
+import { refToReduxKey } from '@/lib/types/id';
 
 function _Correctness(props: RuntimeProps) {
   const { fields, graderId } = props;

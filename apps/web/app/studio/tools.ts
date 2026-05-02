@@ -19,7 +19,7 @@
 import { parseOLX } from '@/lib/content/parseOLX';
 import { isPEGContentExtension, getParserForExtension } from '@/generated/parserRegistry';
 import { NetworkStorageProvider } from '@/lib/lofs/providers/network';
-import { type StorageProvider, toOlxRelativePath } from '@/lib/lofs/types';
+import { type StorageProvider, toOlxRelativePath } from '@/lib/types/storage';
 import type { ProvenanceURI } from '@/lib/types';
 
 // Default storage provider for client-side use

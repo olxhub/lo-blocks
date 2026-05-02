@@ -6,7 +6,7 @@ import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import { isInputReadOnly, useGraderAnswer, refToOlxKey } from '@/lib/blocks';
-import { extendIdPrefix } from '@/lib/blocks/idResolver';
+import { extendIdPrefix } from '@/lib/types/id';
 import { HandleCommon } from '@/components/common/DragHandle';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
 import { buildArrangementWithPositions } from '@/lib/util/shuffle';

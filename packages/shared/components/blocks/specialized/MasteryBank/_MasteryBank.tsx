@@ -5,7 +5,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect, useRef } from 'react';
 import { useBlock } from '@/lib/render';
 import { useFieldState, useFieldSelector, commonFields } from '@/lib/state';
-import { extendIdPrefix, scopeMarker, toOlxReference, refToReduxKey } from '@/lib/blocks/idResolver';
+import { extendIdPrefix, scopeMarker, toOlxReference, refToReduxKey } from '@/lib/types/id';
 import { correctness } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
 import { fisherYatesShuffleInPlace } from '@/lib/util/shuffle';

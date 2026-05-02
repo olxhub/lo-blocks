@@ -3,7 +3,7 @@
 // Shared helpers for CharacterBuilder sub-components.
 // Scoping, formatting, and unit conversion.
 
-import { extendIdPrefix, scopeMarker } from '@/lib/blocks/idResolver';
+import { extendIdPrefix, scopeMarker } from '@/lib/types/id';
 import type { RuntimeProps } from '@/lib/types';
 import type { StatDef, UnitOption } from '@/lib/avatar/traits';
 

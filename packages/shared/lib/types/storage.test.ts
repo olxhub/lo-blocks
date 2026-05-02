@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { validatePathSegment, toOlxRelativePath } from './types';
+import { validatePathSegment, toOlxRelativePath } from './storage';
 
 describe('validatePathSegment', () => {
   describe('rejects URI-unsafe characters', () => {

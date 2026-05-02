@@ -24,7 +24,7 @@ import {
   VersionConflictError,
   toFileProvenanceURI,
   fileProvenancePath,
-} from '../types';
+} from '../../types/storage';
 import { fileTypes } from '../fileTypes';
 import type { JSONValue } from '../../types';
 

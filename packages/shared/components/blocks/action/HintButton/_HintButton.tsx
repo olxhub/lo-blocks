@@ -4,7 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo, useCallback } from 'react';
 import * as state from '@/lib/state';
-import { refToReduxKey } from '@/lib/blocks/idResolver';
+import { refToReduxKey } from '@/lib/types/id';
 import { getAllNodes } from '@/lib/blocks/olxdom';
 import { DisplayError } from '@/lib/util/debug';
 import * as DemandHints from '@/components/blocks/display/DemandHints/DemandHints';

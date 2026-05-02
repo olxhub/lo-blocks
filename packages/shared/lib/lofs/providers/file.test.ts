@@ -10,7 +10,7 @@
 //
 
 import { FileStorageProvider } from './file';
-import { toOlxRelativePath } from '../types';
+import { toOlxRelativePath } from '../../types/storage';
 import type { OlxRelativePath } from '../../types';
 import * as path from 'path';
 import * as fs from 'fs/promises';

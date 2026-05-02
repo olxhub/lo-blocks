@@ -3,7 +3,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
-import { refToReduxKey } from '@/lib/blocks/idResolver';
+import { refToReduxKey } from '@/lib/types/id';
 import { useKids, useKidsJson } from '@/lib/render';
 
 function SplitTestChild({ props, node }) {

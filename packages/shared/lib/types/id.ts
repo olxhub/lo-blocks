@@ -1,5 +1,5 @@
-// src/lib/blocks/idResolver.ts
-import type { OlxReference, OlxKey, ReduxStateKey, IdPrefix, ScopeMarker } from '../types';
+// packages/shared/lib/types/id.ts
+import type { OlxReference, OlxKey, ReduxStateKey, IdPrefix, ScopeMarker } from './core';
 //
 // ID Resolution System
 // ====================

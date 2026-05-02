@@ -19,7 +19,7 @@ import type {
   WriteOptions,
   GrepOptions,
   GrepMatch,
-} from '../types';
+} from '../../types/storage';
 
 export class GitStorageProvider implements StorageProvider {
   constructor(public repoPath: string) {}

@@ -1,7 +1,7 @@
 // src/app/api/olxjson/[id]/route.ts
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { getBestVariantServer } from '@/lib/i18n/getBestVariant';
-import { allOlxKeys } from '@/lib/blocks/idResolver';
+import { allOlxKeys } from '@/lib/types/id';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { NextRequest } from 'next/server';
 import type { IdMap, OlxJson, ReduxStateKey } from '@/lib/types';

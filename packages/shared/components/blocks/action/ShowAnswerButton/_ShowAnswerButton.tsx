@@ -5,7 +5,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useMemo, useCallback } from 'react';
 import * as state from '@/lib/state';
 import { getGrader } from '@/lib/blocks';
-import { refToReduxKey } from '@/lib/blocks/idResolver';
+import { refToReduxKey } from '@/lib/types/id';
 import { DisplayError } from '@/lib/util/debug';
 
 /**

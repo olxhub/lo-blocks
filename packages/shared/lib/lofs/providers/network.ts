@@ -12,7 +12,7 @@
 // configurable endpoints, maintaining the same interface as local file storage.
 //
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, LofsPath } from '../../types';
-import { provenancePath } from '../types';
+import { provenancePath } from '../../types/storage';
 import {
   type StorageProvider,
   type XmlFileInfo,
@@ -24,7 +24,7 @@ import {
   type GrepOptions,
   type GrepMatch,
   VersionConflictError,
-} from '../types';
+} from '../../types/storage';
 
 export interface NetworkProviderOptions {
   /** Endpoint for single-file operations (read/write/delete) */

@@ -8,7 +8,7 @@
 //
 import { correctness } from './correctness';
 import { inferRelatedNodes } from './olxdom';
-import { refToReduxKey } from './idResolver';
+import { refToReduxKey } from '../types/id';
 import * as state from '@/lib/state';
 
 /**

@@ -9,7 +9,7 @@
 //
 import path from 'path';
 import { extensionsWithDots, CATEGORY } from '@/lib/util/fileTypes';
-import { fileProvenancePath } from './types';
+import { fileProvenancePath } from '../types/storage';
 import type { LofsPath, FileSystemPath, OlxRelativePath, SafeRelativePath } from '@/lib/types';
 
 // Base directory for content - resolved once at module load

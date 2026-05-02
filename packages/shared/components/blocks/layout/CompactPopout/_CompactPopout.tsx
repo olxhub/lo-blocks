@@ -29,7 +29,7 @@ import { createPortal } from 'react-dom';
 import { Maximize2, X } from 'lucide-react';
 import { useFieldState, updateField } from '@/lib/state';
 import { fieldByName } from '@/lib/state/fields';
-import { refToReduxKey } from '@/lib/blocks/idResolver';
+import { refToReduxKey } from '@/lib/types/id';
 import { pushAdvanceScope, popAdvanceScope } from '@/lib/advance';
 import { useKids } from '@/lib/render';
 import type { RuntimeProps, OlxReference, ReduxStateKey } from '@/lib/types';

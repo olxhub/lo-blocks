@@ -43,7 +43,7 @@ import { useSelector, shallowEqual } from 'react-redux';
 
 import * as lo_event from 'lo_event';
 
-import * as idResolver from '../blocks/idResolver';
+import * as idResolver from '../types/id';
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';

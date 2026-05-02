@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { StackedStorageProvider } from './stacked';
 import { InMemoryStorageProvider } from './memory';
-import { fileProvenancePath } from '../types';
+import { fileProvenancePath } from '../../types/storage';
 import type { ProvenanceURI, SafeRelativePath } from '../../types';
 
 /**

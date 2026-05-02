@@ -28,7 +28,7 @@ import {
   type WriteOptions,
   type GrepOptions,
   type GrepMatch,
-} from '../types';
+} from '../../types/storage';
 
 /**
  * Merge two UriNode trees, with nodes from `higher` taking precedence.

@@ -13,7 +13,7 @@
 
 import { syncContentFromStorage, getSourceFile } from '../lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '../lib/lofs/providers/file';
-import { toOlxRelativePath } from '../lib/lofs/types';
+import { toOlxRelativePath } from '../lib/types/storage';
 import path from 'path';
 import type { IdMap, OlxJson, OlxKey, ContentVariant } from '../lib/types';
 

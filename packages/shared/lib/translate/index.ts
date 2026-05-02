@@ -28,7 +28,7 @@ export type TranslateOptions = {
   sourceCategory?: string;     // from content store or source frontmatter
   grammar?: string;            // PEG grammar text for PEG-based formats
   logsDir?: string;            // where to write rejected translations
-  provider?: import('@/lib/lofs/types').StorageProvider;  // for resolving src= in OLX validation
+  provider?: import('@/lib/types/storage').StorageProvider;  // for resolving src= in OLX validation
   sourceProvenance?: import('@/lib/types').Provenance;   // provenance of source file, for src= resolution
 };
 

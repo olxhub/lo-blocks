@@ -26,7 +26,7 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { OlxKey, IdPrefix, ReduxStateKey, LoBlockRuntimeContext, OlxJson } from '@/lib/types';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { getGrader, getEventContext } from '@/lib/blocks/olxdom';
-import { assignReactKeys, refToOlxKey, refToReduxKey } from '@/lib/blocks/idResolver';
+import { assignReactKeys, refToOlxKey, refToReduxKey } from '@/lib/types/id';
 import { selectBlock } from '@/lib/state/olxjson';
 import type { Store } from 'redux';
 

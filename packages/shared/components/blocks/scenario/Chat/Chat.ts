@@ -17,7 +17,7 @@ import {
 import type { ConversationEntry, WaitCommand, ParsedConversation } from './_chatTypes';
 import type { PeggyKids } from '@/lib/types';
 import { canAdvanceToContent, evaluateWaitEntry } from './waitConditions';
-import { refToReduxKey } from '@/lib/blocks/idResolver';
+import { refToReduxKey } from '@/lib/types/id';
 import type { OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
 import * as cp  from './_chatParser';
 import { _Chat } from './_Chat';

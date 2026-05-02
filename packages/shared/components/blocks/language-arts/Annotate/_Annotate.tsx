@@ -24,7 +24,7 @@ import type { RuntimeProps, OlxReference } from '@/lib/types';
 import React, { useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useFieldState, useSet, useNextId, updateField } from '@/lib/state';
-import { extendIdPrefix, scopeMarker, toOlxReference, refToReduxKey } from '@/lib/blocks/idResolver';
+import { extendIdPrefix, scopeMarker, toOlxReference, refToReduxKey } from '@/lib/types/id';
 import { useKids, useBlock } from '@/lib/render';
 import { assertKidArray } from '@/lib/util/kids';
 import { groupHue, themeColors } from '@/lib/util/colorWheel';

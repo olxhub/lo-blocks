@@ -20,9 +20,9 @@ import type {
   XmlScanResult,
   GrepOptions,
   GrepMatch,
-} from '../types';
+} from '../../types/storage';
 import type { ProvenanceURI, OlxRelativePath, SafeRelativePath } from '../../types';
-import { toMemoryProvenanceURI, provenancePath } from '../types';
+import { toMemoryProvenanceURI, provenancePath } from '../../types/storage';
 
 export class InMemoryStorageProvider implements StorageProvider {
   files: Record<string, string>;

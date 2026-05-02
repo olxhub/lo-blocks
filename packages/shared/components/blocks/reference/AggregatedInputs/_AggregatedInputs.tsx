@@ -4,7 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo } from 'react';
 import { inferRelatedNodes, getDomNodeByReduxKey } from '@/lib/blocks/olxdom';
-import { refToReduxKey } from '@/lib/blocks/idResolver';
+import { refToReduxKey } from '@/lib/types/id';
 import { useAggregate, componentFieldByName } from '@/lib/state';
 
 function normalizeTargets(rawTargets) {

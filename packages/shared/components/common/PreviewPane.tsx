@@ -12,7 +12,7 @@ import RenderMarkdown from './RenderMarkdown';
 import { isPEGFile, isMarkdownFile, getContentType, PREVIEW_WRAPPER } from '@/lib/util/fileTypes';
 import { NetworkStorageProvider } from '@/lib/lofs';
 import type { IdMap, OlxDomNode } from '@/lib/types';
-import type { StorageProvider } from '@/lib/lofs/types';
+import type { StorageProvider } from '@/lib/types/storage';
 
 export interface PreviewPaneProps {
   /** File path - used for file type detection and provenance */

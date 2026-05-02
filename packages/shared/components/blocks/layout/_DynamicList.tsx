@@ -4,7 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
-import { extendIdPrefix, scopeMarker } from '@/lib/blocks/idResolver';
+import { extendIdPrefix, scopeMarker } from '@/lib/types/id';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import { assertKidArray } from '@/lib/util/kids';

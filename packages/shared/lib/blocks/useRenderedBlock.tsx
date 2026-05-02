@@ -24,7 +24,7 @@ import Spinner from '@/components/common/Spinner';
 import TranslatingIndicator from '@/lib/i18n/TranslatingIndicator';
 import type { OlxReference, BlockDataResult, OlxJson, RuntimeProps } from '@/lib/types';
 import { blockData } from '@/lib/state/redux';
-import { refToOlxKey } from '@/lib/blocks/idResolver';
+import { refToOlxKey } from '@/lib/types/id';
 import { selectBlock } from '@/lib/state/olxjson';
 import {
   evaluate, createContext,

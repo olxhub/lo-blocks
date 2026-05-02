@@ -1,4 +1,4 @@
-// packages/shared/lib/types.ts
+// packages/shared/lib/types/core.ts
 //
 // Type definitions - central TypeScript types for Learning Observer architecture.
 //
@@ -15,7 +15,7 @@
 // Focus is on documenting contracts between system components, not exhaustive typing.
 //
 import { z } from 'zod';
-import { scopeNames } from './state/scopes';
+import { scopeNames } from '../state/scopes';
 import type { Store } from 'redux';
 
 /**
@@ -342,7 +342,7 @@ export interface FieldInfo {
    *  field types may add more (SET_ADD, SET_REMOVE, COUNTER_INCREMENT, etc.). */
   events: FieldEvent[];
 
-  scope: import('./state/scopes').Scope;
+  scope: import('../state/scopes').Scope;
 
   /** Zod schema for value validation/coercion. Fields without schemas accept any value. */
   schema?: z.ZodType;
@@ -403,7 +403,7 @@ export interface FieldInfo {
    *  Default (no batching specified): immediate — every event sent as-is.
    *
    *  See fieldTypes/batching.ts for strategy constructors and documentation. */
-  batching?: import('./state/fieldTypes/batching').BatchingStrategy;
+  batching?: import('../state/fieldTypes/batching').BatchingStrategy;
 
   // ---------------------------------------------------------------------------
   // Future: serverReduce, merge

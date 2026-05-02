@@ -4,7 +4,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { fetchOlxJson } from '@/lib/content/fetchOlxJson';
-import { toOlxKey } from '@/lib/blocks/idResolver';
+import { toOlxKey } from '@/lib/types/id';
 
 import {
   ReactFlow,

@@ -1,4 +1,4 @@
-// src/lib/lofs/types.ts
+// packages/shared/lib/types/storage.ts
 //
 // Type definitions for the storage abstraction layer.
 //
@@ -8,8 +8,8 @@
 import type {
   ProvenanceURI, FileProvenanceURI, MemoryProvenanceURI,
   JSONValue, OlxRelativePath, SafeRelativePath,
-} from '../types';
-import { FileType } from './fileTypes';
+} from './core';
+import { FileType } from '../lofs/fileTypes';
 
 /**
  * Provider-specific metadata for change detection.

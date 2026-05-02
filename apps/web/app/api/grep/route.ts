@@ -6,7 +6,7 @@
 // GET /api/grep?pattern=&path=&include=&limit=  - With options
 //
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
-import { toOlxRelativePath } from '@/lib/lofs/types';
+import { toOlxRelativePath } from '@/lib/types/storage';
 
 const provider = new FileStorageProvider('./content');
 

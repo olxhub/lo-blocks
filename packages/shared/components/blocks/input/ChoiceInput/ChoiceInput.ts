@@ -12,7 +12,7 @@ import { isKidArray } from '@/lib/util/kids';
 import type { RuntimeProps, OlxKey, KidEntry } from '@/lib/types';
 import _Noop from '@/components/blocks/layout/_Noop';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
-import { refToOlxKey } from '@/lib/blocks/idResolver';
+import { refToOlxKey } from '@/lib/types/id';
 
 export const fields = state.fields([commonFields.value]);
 
