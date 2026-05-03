@@ -6,23 +6,25 @@
 // LOFS content-addressed storage.
 //
 // An address is a string with up to three parts:
-//   source-locator[@version]://path
+//   source://path[#version]
 //
 // Parsing rules:
-//   1. Find the LAST "://" — everything after is the path,
-//      everything before is the source-with-optional-version.
+//   1. Find the LAST "://" — everything before is the source,
+//      everything after is the path-with-optional-version.
 //      If no "://", the whole string is the source, path is empty.
 //
-//   2. In the source part, find the LAST "@". If the text after
-//      that "@" matches /^[a-zA-Z0-9._-]+$/ (no ":", "/", "@"),
-//      it's the version. Otherwise, no version.
+//   2. In the path part, find "#". Everything before is the path,
+//      everything after is the version. "#" is reserved — it
+//      must not appear in paths or source locators.
 //
 // Why "last ://" works: source locators may contain "://" (like
 // file://, pg://), but paths within a source never do.
 //
-// Why "last @ with restricted charset" works: git SSH URLs contain
-// "@" (git@github.com) but the text after that "@" contains ":" and
-// "/", so it's never mistaken for a version.
+// Why "#" works: "#" does not appear in file paths (by convention
+// and by our locked-down path validation), source locators, git
+// ref names (git forbids it), hostnames, or email addresses.
+// Unlike the old "@version" format, there is no ambiguity with
+// "@" in source locators (git SSH URLs, email-style identifiers).
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // BRANDED TYPES
@@ -31,14 +33,14 @@
 /**
  * LOFS content reference — what you ask for.
  *
- * Format: source-locator[@version]://path
+ * Format: source://path[#version]
  *
  * Examples:
  *   git@github.com:olxhub/lo-blocks.git://content/myfile.olx
- *   git@github.com:olxhub/lo-blocks.git@main://content/myfile.olx
- *   git@github.com:olxhub/lo-blocks.git@3f41866://content/myfile.olx
+ *   git@github.com:olxhub/lo-blocks.git://content/myfile.olx#main
+ *   git@github.com:olxhub/lo-blocks.git://content/myfile.olx#3f41866
  *   file:/home/user/content://myfile.olx
- *   pg://school.edu/cs101@v42://hw1/problem3.olx
+ *   pg://school.edu/cs101://hw1/problem3.olx#v42
  *   memory:session-42://draft.olx
  */
 export type LofsRef = string & { readonly __brand: 'LofsRef' };
@@ -48,7 +50,7 @@ export type LofsRef = string & { readonly __brand: 'LofsRef' };
  * something immutable (commit hash, version number, snapshot id).
  *
  * Same string format as LofsRef. The distinction is semantic:
- * a ref might say @main (mutable), provenance says @3f41866 (immutable).
+ * a ref might say #main (mutable), provenance says #3f41866 (immutable).
  */
 export type LofsCanonical = LofsRef & { readonly __resolved: true };
 
@@ -132,11 +134,11 @@ export function toLofsContentHash(s: string): LofsContentHash {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const SEPARATOR = '://';
-const VERSION_CHARS = /^[a-zA-Z0-9._-]+$/;
+const VERSION_DELIM = '#';
 
 /**
- * Split a reference at the last "://" into source-with-version and path.
- * Returns [sourceWithVersion, path].
+ * Split a reference at the last "://" into source and path-with-version.
+ * Returns [source, pathWithVersion].
  */
 function splitAtSeparator(ref: string): [string, string] {
   const idx = ref.lastIndexOf(SEPARATOR);
@@ -147,46 +149,41 @@ function splitAtSeparator(ref: string): [string, string] {
 }
 
 /**
- * Split a source-with-version string into [source, version | undefined].
+ * Split a path-with-version string into [path, version | undefined].
  *
- * Finds the last "@" and checks if what follows is a valid version
- * (alphanumeric, dots, hyphens, underscores — no colons, slashes, or @).
+ * "#" is the version delimiter. It is reserved and must not appear in
+ * paths or source locators.
  */
-function splitVersion(sourceWithVersion: string): [string, string | undefined] {
-  const idx = sourceWithVersion.lastIndexOf('@');
+function splitVersion(pathWithVersion: string): [string, string | undefined] {
+  const idx = pathWithVersion.indexOf(VERSION_DELIM);
   if (idx === -1) {
-    return [sourceWithVersion, undefined];
+    return [pathWithVersion, undefined];
   }
-  const candidate = sourceWithVersion.slice(idx + 1);
-  if (candidate.length > 0 && VERSION_CHARS.test(candidate)) {
-    return [sourceWithVersion.slice(0, idx), candidate];
-  }
-  return [sourceWithVersion, undefined];
+  return [pathWithVersion.slice(0, idx), pathWithVersion.slice(idx + 1)];
 }
 
 /**
  * Extract the source from a reference.
  *
- * source("git@github.com:olxhub/lo-blocks.git@main://content/foo.olx")
+ * source("git@github.com:olxhub/lo-blocks.git://content/foo.olx#main")
  *   → "git@github.com:olxhub/lo-blocks.git"
  */
 export function source(ref: LofsRef): LofsOrigin {
-  const [sourceWithVersion] = splitAtSeparator(ref);
-  const [src] = splitVersion(sourceWithVersion);
+  const [src] = splitAtSeparator(ref);
   return toLofsOrigin(src);
 }
 
 /**
  * Extract the version from a reference, if present.
  *
- * version("git@github.com:olxhub/lo-blocks.git@3f41866://foo.olx")
+ * version("git@github.com:olxhub/lo-blocks.git://foo.olx#3f41866")
  *   → "3f41866"
  * version("git@github.com:olxhub/lo-blocks.git://foo.olx")
  *   → undefined
  */
 export function version(ref: LofsRef): LofsVersion | undefined {
-  const [sourceWithVersion] = splitAtSeparator(ref);
-  const [, ver] = splitVersion(sourceWithVersion);
+  const [, pathWithVersion] = splitAtSeparator(ref);
+  const [, ver] = splitVersion(pathWithVersion);
   return ver !== undefined ? toLofsVersion(ver) : undefined;
 }
 
@@ -199,7 +196,8 @@ export function version(ref: LofsRef): LofsVersion | undefined {
  *   → ""
  */
 export function addressPath(ref: LofsRef): LofsContentPath {
-  const [, p] = splitAtSeparator(ref);
+  const [, pathWithVersion] = splitAtSeparator(ref);
+  const [p] = splitVersion(pathWithVersion);
   return toLofsContentPath(p);
 }
 
@@ -207,23 +205,23 @@ export function addressPath(ref: LofsRef): LofsContentPath {
  * Return a new reference with the version replaced (or added).
  *
  * withVersion("git@github.com:org/repo.git://foo.olx", "abc123")
- *   → "git@github.com:org/repo.git@abc123://foo.olx"
- * withVersion("git@github.com:org/repo.git@main://foo.olx", "abc123")
- *   → "git@github.com:org/repo.git@abc123://foo.olx"
+ *   → "git@github.com:org/repo.git://foo.olx#abc123"
+ * withVersion("git@github.com:org/repo.git://foo.olx#main", "abc123")
+ *   → "git@github.com:org/repo.git://foo.olx#abc123"
  */
 export function withVersion(ref: LofsRef, ver: LofsVersion): LofsRef {
-  const [sourceWithVersion, p] = splitAtSeparator(ref);
-  const [src] = splitVersion(sourceWithVersion);
-  const pathSuffix = ref.includes(SEPARATOR) ? `${SEPARATOR}${p}` : '';
-  return toLofsRef(`${src}@${ver}${pathSuffix}`);
+  const [src, pathWithVersion] = splitAtSeparator(ref);
+  const [p] = splitVersion(pathWithVersion);
+  const pathSuffix = ref.includes(SEPARATOR) ? `${SEPARATOR}${p}${VERSION_DELIM}${ver}` : '';
+  return toLofsRef(`${src}${pathSuffix}`);
 }
 
 /**
  * Return a new reference with the version removed.
  */
 export function withoutVersion(ref: LofsRef): LofsRef {
-  const [sourceWithVersion, p] = splitAtSeparator(ref);
-  const [src] = splitVersion(sourceWithVersion);
+  const [src, pathWithVersion] = splitAtSeparator(ref);
+  const [p] = splitVersion(pathWithVersion);
   const pathSuffix = ref.includes(SEPARATOR) ? `${SEPARATOR}${p}` : '';
   return toLofsRef(`${src}${pathSuffix}`);
 }
@@ -231,19 +229,21 @@ export function withoutVersion(ref: LofsRef): LofsRef {
 /**
  * Return a new reference with the path replaced.
  *
- * withPath("git@github.com:org/repo.git@main://old.olx", "new.olx")
- *   → "git@github.com:org/repo.git@main://new/path.olx"
+ * withPath("git@github.com:org/repo.git://old.olx#main", "new.olx")
+ *   → "git@github.com:org/repo.git://new/path.olx#main"
  */
 export function withPath(ref: LofsRef, newPath: LofsContentPath): LofsRef {
-  const [sourceWithVersion] = splitAtSeparator(ref);
-  return toLofsRef(`${sourceWithVersion}${SEPARATOR}${newPath}`);
+  const [src, pathWithVersion] = splitAtSeparator(ref);
+  const [, ver] = splitVersion(pathWithVersion);
+  const versionSuffix = ver !== undefined ? `${VERSION_DELIM}${ver}` : '';
+  return toLofsRef(`${src}${SEPARATOR}${newPath}${versionSuffix}`);
 }
 
 /**
  * Construct a reference from parts.
  *
  * makeAddress("git@github.com:org/repo.git", "content/foo.olx", "main")
- *   → "git@github.com:org/repo.git@main://content/foo.olx"
+ *   → "git@github.com:org/repo.git://content/foo.olx#main"
  * makeAddress("memory:session-42", "draft.olx")
  *   → "memory:session-42://draft.olx"
  * makeAddress("git@github.com:org/repo.git")
@@ -255,8 +255,8 @@ export function makeAddress(
   ver?: LofsVersion,
 ): LofsRef {
   let result = src as string;
-  if (ver) result += `@${ver}`;
   if (p !== undefined) result += `${SEPARATOR}${p}`;
+  if (ver) result += `${VERSION_DELIM}${ver}`;
   return toLofsRef(result);
 }
 
@@ -271,10 +271,10 @@ export function hasVersion(ref: LofsRef): boolean {
 /**
  * Get the scheme prefix of a source.
  *
- * scheme("git@github.com:org/repo.git://foo.olx") → "git"   (SSH-style)
- * scheme("file:/home/user/content://foo.olx")     → "file"
- * scheme("pg://school.edu/cs101://hw1/p3.olx")    → "pg"
- * scheme("memory:session-42://draft.olx")          → "memory"
+ * scheme("git@github.com:org/repo.git://foo.olx")  → "git"   (SSH-style)
+ * scheme("file:/home/user/content://foo.olx")      → "file"
+ * scheme("pg://school.edu/cs101://hw1/p3.olx")     → "pg"
+ * scheme("memory:session-42://draft.olx")           → "memory"
  */
 export function scheme(ref: LofsRef): string {
   const src = source(ref) as string;

@@ -29,13 +29,13 @@ describe('address parsing', () => {
       path: 'content/myfile.olx',
     },
     {
-      address: 'git@github.com:olxhub/lo-blocks.git@3f41866://content/myfile.olx',
+      address: 'git@github.com:olxhub/lo-blocks.git://content/myfile.olx#3f41866',
       source: 'git@github.com:olxhub/lo-blocks.git',
       version: '3f41866',
       path: 'content/myfile.olx',
     },
     {
-      address: 'git@github.com:olxhub/lo-blocks.git@main://',
+      address: 'git@github.com:olxhub/lo-blocks.git://#main',
       source: 'git@github.com:olxhub/lo-blocks.git',
       version: 'main',
       path: '',
@@ -47,7 +47,7 @@ describe('address parsing', () => {
       path: 'myfile.olx',
     },
     {
-      address: 'pg://school.edu/cs101@v42://hw1/problem3.olx',
+      address: 'pg://school.edu/cs101://hw1/problem3.olx#v42',
       source: 'pg://school.edu/cs101',
       version: 'v42',
       path: 'hw1/problem3.olx',
@@ -57,6 +57,19 @@ describe('address parsing', () => {
       source: 'memory:session-42',
       version: undefined,
       path: 'draft.olx',
+    },
+    // @ in source locators — the old format would have misparsed these
+    {
+      address: 'postgres:profx@uofa.edu://hw1/problem.olx',
+      source: 'postgres:profx@uofa.edu',
+      version: undefined,
+      path: 'hw1/problem.olx',
+    },
+    {
+      address: 'postgres:profx@uofa.edu://hw1/problem.olx#v42',
+      source: 'postgres:profx@uofa.edu',
+      version: 'v42',
+      path: 'hw1/problem.olx',
     },
   ];
 
@@ -98,9 +111,7 @@ describe('address parsing', () => {
     });
   });
 
-  describe('git SSH @ not confused with version', () => {
-    // git@github.com has "@" but "github.com:olxhub/lo-blocks.git" contains
-    // ":" and "/" so it's NOT a valid version
+  describe('@ in source locator is not confused with version', () => {
     const a = ref('git@github.com:olxhub/lo-blocks.git://foo.olx');
     it('no version parsed', () => {
       expect(version(a)).toBeUndefined();
@@ -111,17 +122,19 @@ describe('address parsing', () => {
   });
 
   describe('version with dots and hyphens', () => {
-    const a = ref('git@github.com:org/repo.git@v2.1-rc.3://foo.olx');
+    const a = ref('git@github.com:org/repo.git://foo.olx#v2.1-rc.3');
     it('parses version with dots and hyphens', () => {
       expect(version(a)).toBe('v2.1-rc.3');
     });
-    it('source excludes version', () => {
+    it('source is unchanged', () => {
       expect(source(a)).toBe('git@github.com:org/repo.git');
+    });
+    it('path excludes version', () => {
+      expect(addressPath(a)).toBe('foo.olx');
     });
   });
 
   describe('multiple :// — last one wins', () => {
-    // pg://school.edu/cs101 has :// in it, then the separator ://
     const a = ref('pg://school.edu/cs101://sub/dir/file.olx');
     it('path is after the last ://', () => {
       expect(addressPath(a)).toBe('sub/dir/file.olx');
@@ -143,7 +156,7 @@ describe('makeAddress', () => {
       cp('content/foo.olx'),
       vr('main'),
     );
-    expect(a).toBe('git@github.com:org/repo.git@main://content/foo.olx');
+    expect(a).toBe('git@github.com:org/repo.git://content/foo.olx#main');
     expect(source(a)).toBe('git@github.com:org/repo.git');
     expect(version(a)).toBe('main');
     expect(addressPath(a)).toBe('content/foo.olx');
@@ -165,28 +178,27 @@ describe('withVersion', () => {
   it('adds version to unversioned reference', () => {
     const a = ref('git@github.com:org/repo.git://foo.olx');
     const b = withVersion(a, vr('abc123'));
-    expect(b).toBe('git@github.com:org/repo.git@abc123://foo.olx');
+    expect(b).toBe('git@github.com:org/repo.git://foo.olx#abc123');
   });
 
   it('replaces existing version', () => {
-    const a = ref('git@github.com:org/repo.git@main://foo.olx');
+    const a = ref('git@github.com:org/repo.git://foo.olx#main');
     const b = withVersion(a, vr('abc123'));
-    expect(b).toBe('git@github.com:org/repo.git@abc123://foo.olx');
+    expect(b).toBe('git@github.com:org/repo.git://foo.olx#abc123');
   });
 
-  it('works on source-only reference (no path)', () => {
+  it('no-op on source-only reference (no path, no ://)', () => {
+    // Without ://, withVersion has no path segment to attach #version to.
+    // This is a source-only ref — versioning requires a path segment.
     const a = ref('git@github.com:org/repo.git');
     const b = withVersion(a, vr('main'));
-    // No :// in original, so no path suffix appended
-    expect(b).toBe('git@github.com:org/repo.git@main');
-    // Round-trip: no :// means path is empty, version parsed from source part
-    expect(version(b)).toBe('main');
+    expect(b).toBe('git@github.com:org/repo.git');
   });
 });
 
 describe('withoutVersion', () => {
   it('removes version', () => {
-    const a = ref('git@github.com:org/repo.git@main://foo.olx');
+    const a = ref('git@github.com:org/repo.git://foo.olx#main');
     const b = withoutVersion(a);
     expect(b).toBe('git@github.com:org/repo.git://foo.olx');
     expect(version(b)).toBeUndefined();
@@ -199,10 +211,10 @@ describe('withoutVersion', () => {
 });
 
 describe('withPath', () => {
-  it('replaces path', () => {
-    const a = ref('git@github.com:org/repo.git@main://old.olx');
+  it('replaces path, preserves version', () => {
+    const a = ref('git@github.com:org/repo.git://old.olx#main');
     const b = withPath(a, cp('new/path.olx'));
-    expect(b).toBe('git@github.com:org/repo.git@main://new/path.olx');
+    expect(b).toBe('git@github.com:org/repo.git://new/path.olx#main');
   });
 
   it('adds path to pathless reference', () => {
@@ -214,7 +226,7 @@ describe('withPath', () => {
 
 describe('hasVersion', () => {
   it('true for versioned reference', () => {
-    expect(hasVersion(ref('git@github.com:org/repo.git@main://foo.olx'))).toBe(true);
+    expect(hasVersion(ref('git@github.com:org/repo.git://foo.olx#main'))).toBe(true);
   });
 
   it('false for unversioned reference', () => {
