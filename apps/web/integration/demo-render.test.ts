@@ -8,6 +8,7 @@
 //
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import { parseOLX } from '@/lib/content/parseOLX';
+import { toMemoryRef } from '@/lib/types/storage';
 
 import { render, makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
@@ -151,7 +152,7 @@ describe('Demo OLX files render without errors', () => {
         }
 
         // Parse the OLX
-        const { idMap, root } = await parseOLX(content, [`file:test://${filePath}`]);
+        const { idMap, root } = await parseOLX(content, [toMemoryRef(filePath)]);
 
         if (!root || !idMap[root]) {
           errors.push({

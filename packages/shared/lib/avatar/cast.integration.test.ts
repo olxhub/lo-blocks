@@ -12,6 +12,8 @@
 
 import { describe, test, expect, afterEach } from 'vitest';
 import { parseOLX } from '@/lib/content/parseOLX';
+import { InMemoryStorageProvider } from '@/lib/lofs/providers/memory';
+import { toMemoryRef } from '@/lib/types/storage';
 
 import { render, makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
@@ -64,33 +66,13 @@ carol:
     - team_b
 `;
 
-function makeMockProvider(files: Record<string, string>) {
-  return {
-    read: async (path: string) => {
-      const content = files[path] ?? files[path.replace(/^\//, '')];
-      if (content === undefined) throw new Error(`Mock: file not found: ${path}`);
-      return { content };
-    },
-    resolveRelativePath: (_base: string, relative: string) => relative,
-    toLofsRef: (path: string) => `file:test://${path}`,
-    loadXmlFilesWithStats: async () => ({}),
-    write: async () => {},
-    update: async () => {},
-    delete: async () => {},
-    rename: async () => {},
-    listFiles: async () => ({}),
-    glob: async () => [],
-    grep: async () => [],
-  };
-}
-
 /** Parse OLX, load into Redux, create runtime, render, and return the container.
  *  @param renderRoot - If provided, start rendering from this ID instead of the document root.
  *                      Simulates the preview page launching from a launchable block.
  */
 async function parseAndRender(olx: string, providerFiles?: Record<string, string>, renderRoot?: string) {
-  const provider = providerFiles ? makeMockProvider(providerFiles) : undefined;
-  const { idMap, root } = await parseOLX(olx, ['file:test://test.olx'], provider);
+  const provider = providerFiles ? new InMemoryStorageProvider(providerFiles) : undefined;
+  const { idMap, root } = await parseOLX(olx, [toMemoryRef('test.olx')], provider);
 
   if (!root) throw new Error('No root element found after parsing');
   const renderId = renderRoot ?? root;

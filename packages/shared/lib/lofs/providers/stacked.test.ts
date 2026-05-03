@@ -1,39 +1,13 @@
 // @vitest-environment node
 import { StackedStorageProvider } from './stacked';
 import { InMemoryStorageProvider } from './memory';
-import { fileProvenancePath } from '../../types/storage';
-import { scheme, source, toLofsRef as brandLofsRef } from '../../types/address';
+import { FileStorageProvider } from './file';
 import type { LofsRef, SafeRelativePath } from '../../types';
-
-/**
- * Minimal mock of a file-like provider that handles file: provenance.
- * Uses mount-point matching, like the real FileStorageProvider.
- */
-function makeFileProvider(mountPoint: string, files: Record<string, string>) {
-  return {
-    resolveRelativePath(baseProvenance: LofsRef, relativePath: string): SafeRelativePath {
-      if (scheme(brandLofsRef(baseProvenance)) !== 'file') {
-        throw new Error(`Unsupported provenance format: ${baseProvenance}`);
-      }
-      const expectedSource = `file:${mountPoint}`;
-      if (source(brandLofsRef(baseProvenance)) !== expectedSource) {
-        throw new Error(`Mount point mismatch: expected '${mountPoint}'`);
-      }
-      const baseRelPath = fileProvenancePath(baseProvenance);
-      const lastSlash = baseRelPath.lastIndexOf('/');
-      const dir = lastSlash >= 0 ? baseRelPath.substring(0, lastSlash) : '';
-      return (dir ? `${dir}/${relativePath}` : relativePath) as SafeRelativePath;
-    },
-    toLofsRef(safePath: SafeRelativePath): LofsRef {
-      return `file:${mountPoint}://${safePath}` as LofsRef;
-    },
-  } as any; // partial implementation — only the methods under test
-}
 
 describe('StackedStorageProvider path resolution', () => {
   const memoryFiles = { 'inline.olx': '<Vertical/>' };
   const memoryProvider = new InMemoryStorageProvider(memoryFiles);
-  const fileProvider = makeFileProvider('content', { 'demos/lesson.olx': '...', 'demos/notes.md': '...' });
+  const fileProvider = new FileStorageProvider('./content', 'content');
   const stacked = new StackedStorageProvider([memoryProvider, fileProvider]);
 
   describe('resolveRelativePath', () => {
