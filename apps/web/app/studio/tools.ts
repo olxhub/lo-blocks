@@ -20,7 +20,7 @@ import { parseOLX } from '@/lib/content/parseOLX';
 import { isPEGContentExtension, getParserForExtension } from '@/generated/parserRegistry';
 import { NetworkStorageProvider } from '@/lib/lofs/providers/network';
 import { type StorageProvider, toOlxRelativePath } from '@/lib/types/storage';
-import type { ProvenanceURI } from '@/lib/types';
+import { toLofsRef } from '@/lib/types/address';
 
 // Default storage provider for client-side use
 const defaultStorage = new NetworkStorageProvider();
@@ -111,7 +111,7 @@ export function createEditorTools({
         // Validate content by parsing it
         if (fileType === 'olx' || fileType === 'xml') {
           try {
-            const { errors } = await parseOLX(newContent, ['editor://' as ProvenanceURI]);
+            const { errors } = await parseOLX(newContent, [toLofsRef('editor://')]);
             if (errors.length > 0) {
               const messages = errors.map(e => e.message).join('\n\n---\n\n');
               return `Error (${errors.length} issue${errors.length > 1 ? 's' : ''}):\n\n${messages}`;

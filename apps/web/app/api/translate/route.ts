@@ -11,7 +11,8 @@ import { FileStorageProvider } from '@/lib/lofs/providers/file';
 import { syncContentFromStorage, getSourceFile, getBlocksForFiles, getBlockVariant, getOriginalVariant } from '@/lib/content/syncContentFromStorage';
 import { getProvider } from '@/lib/llm/provider';
 import { translateContent } from '@/lib/translate';
-import type { OlxKey, ContentVariant, ProvenanceURI, OlxRelativePath, SafeRelativePath } from '@/lib/types';
+import type { OlxKey, ContentVariant, LofsRef, OlxRelativePath, SafeRelativePath } from '@/lib/types';
+
 import { toOlxKey } from '@/lib/types/id';
 
 const contentDir = process.env.OLX_CONTENT_DIR || './content';
@@ -27,7 +28,7 @@ type TranslationResult = { ok: boolean; idMap?: any; error?: string };
 // Content-store helpers (depend on syncContentFromStorage state)
 // =============================================================================
 
-function uriToRelPath(fileUri: ProvenanceURI): OlxRelativePath {
+function uriToRelPath(fileUri: LofsRef): OlxRelativePath {
   return provider.toRelativePath(fileUri) as OlxRelativePath;
 }
 
@@ -40,8 +41,8 @@ function computeTranslationPath(sourceRelPath: OlxRelativePath, targetLocale: Co
 /** Follow source_file back to the human-authored original to avoid
  *  quality degradation from translating translations. */
 function resolveOriginalSource(
-  sourceFileUri: ProvenanceURI, blockId: OlxKey, sourceLocale: ContentVariant
-): { fileUri: ProvenanceURI; locale: ContentVariant } {
+  sourceFileUri: LofsRef, blockId: OlxKey, sourceLocale: ContentVariant
+): { fileUri: LofsRef; locale: ContentVariant } {
   const sourceVariant = getBlockVariant(blockId, sourceLocale);
   if (sourceVariant?.generated?.method !== 'machineTranslated' || !sourceVariant?.generated?.source_file) {
     return { fileUri: sourceFileUri, locale: sourceLocale };
@@ -53,11 +54,11 @@ function resolveOriginalSource(
   const original = getOriginalVariant(blockId);
   const effectiveLocale = (original?.lang as ContentVariant) || sourceLocale;
 
-  return { fileUri: provider.toProvenanceURI(originalRelPath as SafeRelativePath), locale: effectiveLocale };
+  return { fileUri: provider.toLofsRef(originalRelPath as SafeRelativePath), locale: effectiveLocale };
 }
 
-function buildIdMapResult(sourceFileUri: ProvenanceURI, targetRelPath: OlxRelativePath): TranslationResult {
-  const targetFileUri = provider.toProvenanceURI(targetRelPath as SafeRelativePath);
+function buildIdMapResult(sourceFileUri: LofsRef, targetRelPath: OlxRelativePath): TranslationResult {
+  const targetFileUri = provider.toLofsRef(targetRelPath as SafeRelativePath);
   // Check that the target file was actually indexed — getBlocksForFiles
   // returns source blocks too, so a non-empty result doesn't guarantee
   // the translation was parsed successfully.
@@ -71,7 +72,7 @@ function buildIdMapResult(sourceFileUri: ProvenanceURI, targetRelPath: OlxRelati
 
 async function checkExistingTranslation(
   targetRelPath: OlxRelativePath,
-  sourceFileUri: ProvenanceURI
+  sourceFileUri: LofsRef
 ): Promise<TranslationResult | null> {
   try {
     await provider.read(targetRelPath);
@@ -88,7 +89,7 @@ async function checkExistingTranslation(
 
 async function doTranslation(
   blockId: OlxKey,
-  sourceFileUri: ProvenanceURI,
+  sourceFileUri: LofsRef,
   targetLocale: ContentVariant,
   sourceLocale: ContentVariant
 ): Promise<TranslationResult> {

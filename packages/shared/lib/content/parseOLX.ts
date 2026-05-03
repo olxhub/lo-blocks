@@ -23,7 +23,10 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { transformTagName } from '@/lib/content/xmlTransforms';
 
 import * as parsers from '@/lib/content/parsers';
-import { Provenance, IdMap, OLXLoadingError, OlxReference, OlxKey, JSONValue } from '@/lib/types';
+import { LofsDependencies, IdMap, OLXLoadingError, OlxReference, OlxKey, JSONValue } from '@/lib/types';
+import type { LofsRef } from '@/lib/types/address';
+import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
+import { hashContent } from '@/lib/util';
 
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { isZodCompatible, describeZodType } from '@/lib/blocks/zodCompat';
@@ -207,7 +210,7 @@ function resolveElementLanguage(
  */
 function extractMetadataFromComment(
   commentText: any,
-  provenance: Provenance,
+  provenance: LofsDependencies,
   errors: OLXLoadingError[]
 ): OLXMetadata | OLXLoadingError | null {
   const provStr = provenance.join(' → ');
@@ -356,7 +359,7 @@ Example of correct format:
 function extractSiblingMetadata(
   siblings: any[] | null,
   nodeIndex: number,
-  provenance: Provenance,
+  provenance: LofsDependencies,
   errors: OLXLoadingError[]
 ): OLXMetadata {
   if (!siblings || nodeIndex <= 0) {
@@ -408,13 +411,21 @@ function extractSiblingMetadata(
 
 export async function parseOLX(
   xml,
-  provenance: Provenance,
+  inputProvenance: LofsRef[],
   provider?: import('../lofs').StorageProvider
 ) {
   const idMap: IdMap = {};
 
+  // HACK: All input refs get stamped with the same content hash. This only
+  // works because callers always pass a single-element array. Should assert
+  // length === 1 or handle multi-ref canonicalization properly.
+  const contentVersion = toLofsVersion(await hashContent(xml));
+  const provenance: LofsDependencies = inputProvenance.map(
+    ref => toLofsCanonical(withVersion(ref, contentVersion))
+  );
+
   // Validate XML first for better error messages
-  const provenanceStr = provenance.join(', ');
+  const provenanceStr = inputProvenance.join(', ');
   const validation = XMLValidator.validate(xml, {
     allowBooleanAttributes: true
   });

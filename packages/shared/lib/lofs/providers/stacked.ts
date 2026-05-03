@@ -17,7 +17,7 @@
 // - loadXmlFilesWithStats(): Merged scan, higher priority files shadow lower
 // - validateAssetPath(): True if exists in any provider
 //
-import type { ProvenanceURI, OlxRelativePath, SafeRelativePath } from '../../types';
+import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
 import {
   type StorageProvider,
   type XmlFileInfo,
@@ -87,10 +87,10 @@ function mergeXmlScanResults(higher: XmlScanResult, lower: XmlScanResult): XmlSc
   ];
 
   for (const id of higherIds) {
-    delete merged.added[id as ProvenanceURI];
-    delete merged.changed[id as ProvenanceURI];
-    delete merged.unchanged[id as ProvenanceURI];
-    delete merged.deleted[id as ProvenanceURI];
+    delete merged.added[id as LofsRef];
+    delete merged.changed[id as LofsRef];
+    delete merged.unchanged[id as LofsRef];
+    delete merged.deleted[id as LofsRef];
   }
 
   // Now add higher priority results
@@ -165,7 +165,7 @@ export class StackedStorageProvider implements StorageProvider {
 
   // Scan merged from all providers (higher priority shadows lower)
   async loadXmlFilesWithStats(
-    previous: Record<ProvenanceURI, XmlFileInfo> = {}
+    previous: Record<LofsRef, XmlFileInfo> = {}
   ): Promise<XmlScanResult> {
     // Collect results from all providers
     const results: XmlScanResult[] = [];
@@ -191,9 +191,9 @@ export class StackedStorageProvider implements StorageProvider {
   }
 
   // Resolve path using the provider whose scheme matches the provenance.
-  // Each provider checks its own scheme (memory://, file://, etc.) and throws
+  // Each provider checks its own scheme (memory:, file:, etc.) and throws
   // on mismatch, so the right provider handles the resolution.
-  resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
+  resolveRelativePath(baseProvenance: LofsRef, relativePath: string): SafeRelativePath {
     for (const provider of this.providers) {
       try {
         return provider.resolveRelativePath(baseProvenance, relativePath);
@@ -208,10 +208,10 @@ export class StackedStorageProvider implements StorageProvider {
   // Each provider checks existence and throws if it doesn't have the file,
   // so the first provider that has it claims the provenance — matching
   // read() priority order.
-  toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
+  toLofsRef(safePath: SafeRelativePath): LofsRef {
     for (const provider of this.providers) {
       try {
-        return provider.toProvenanceURI(safePath);
+        return provider.toLofsRef(safePath);
       } catch {
         // Continue to next provider
       }

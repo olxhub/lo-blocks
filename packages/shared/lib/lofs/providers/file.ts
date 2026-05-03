@@ -9,7 +9,7 @@
 import path from 'path';
 import { glob as globLib } from 'glob';
 import pegExts from '../../../generated/pegExtensions.json' assert { type: 'json' };
-import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, FileSystemPath } from '../../types';
+import type { LofsRef, OlxRelativePath, SafeRelativePath, FileSystemPath } from '../../types';
 import { EXT } from '@/lib/util/fileTypes';
 import {
   type StorageProvider,
@@ -22,9 +22,10 @@ import {
   type GrepOptions,
   type GrepMatch,
   VersionConflictError,
-  toFileProvenanceURI,
+  toFileRef,
   fileProvenancePath,
 } from '../../types/storage';
+import { source, scheme, withVersion, withoutVersion, toLofsRef as brandLofsRef, toLofsVersion, toLofsCanonical } from '../../types/address';
 import { fileTypes } from '../fileTypes';
 import type { JSONValue } from '../../types';
 
@@ -357,23 +358,26 @@ export class FileStorageProvider implements StorageProvider {
   }
 
   /**
-   * Extract the path within this mount from a file:// provenance URI.
+   * Extract the path within this mount from a file: LofsRef.
    *
-   * 'file:///content/sba/foo.olx'       + mountPoint='content'         → 'sba/foo.olx'
-   * 'file:///content/ee/ee101/labs/l.olx' + mountPoint='content/ee/ee101' → 'labs/l.olx'
+   * 'file:content://sba/foo.olx'         + mountPoint='content'         → 'sba/foo.olx'
+   * 'file:content/ee/ee101://labs/l.olx'  + mountPoint='content/ee/ee101' → 'labs/l.olx'
    *
    * Throws on mount-point mismatch, which is how StackedStorageProvider
    * routes to the correct provider (try/catch fallthrough).
    */
   private extractRelativePath(uri: string): string {
-    const logicalPath = fileProvenancePath(uri);
-    const prefix = this.mountPoint + '/';
-    if (!logicalPath.startsWith(prefix)) {
+    // In the LOFS address format the mount point is part of the source locator
+    // (e.g., source("file:content://sba/foo.olx") → "file:content").
+    // The path portion already contains only the relative path within the mount.
+    const ref = brandLofsRef(uri);
+    const expectedSource = `file:${this.mountPoint}`;
+    if (source(ref) !== expectedSource) {
       throw new Error(
         `Mount point mismatch: URI '${uri}' doesn't match mount '${this.mountPoint}'`
       );
     }
-    const rel = logicalPath.slice(prefix.length);
+    const rel = fileProvenancePath(uri);
     const normalized = path.normalize(rel);
     if (normalized.startsWith('..') || path.isAbsolute(normalized)) {
       throw new Error(`Path traversal in provenance URI: ${uri}`);
@@ -381,7 +385,7 @@ export class FileStorageProvider implements StorageProvider {
     return normalized;
   }
 
-  async loadXmlFilesWithStats(previous: Record<ProvenanceURI, XmlFileInfo> = {}): Promise<XmlScanResult> {
+  async loadXmlFilesWithStats(previous: Record<LofsRef, XmlFileInfo> = {}): Promise<XmlScanResult> {
     const fs = await import('fs/promises');
 
     function isContentFile(entry: any, fullPath: string) {
@@ -404,10 +408,10 @@ export class FileStorageProvider implements StorageProvider {
       );
     }
 
-    const found: Record<ProvenanceURI, boolean> = {};
-    const added: Record<ProvenanceURI, XmlFileInfo> = {};
-    const changed: Record<ProvenanceURI, XmlFileInfo> = {};
-    const unchanged: Record<ProvenanceURI, XmlFileInfo> = {};
+    const found: Record<LofsRef, boolean> = {};
+    const added: Record<LofsRef, XmlFileInfo> = {};
+    const changed: Record<LofsRef, XmlFileInfo> = {};
+    const unchanged: Record<LofsRef, XmlFileInfo> = {};
 
     const walk = async (currentDir: string) => {
       const entries = await fs.readdir(currentDir, { withFileTypes: true });
@@ -416,23 +420,25 @@ export class FileStorageProvider implements StorageProvider {
         if (entry.isDirectory()) {
           await walk(fullPath);
         } else if (isContentFile(entry, fullPath)) {
-          const id = toFileProvenanceURI(this.mountPoint, path.relative(this.baseDir, fullPath));
+          const ref = toFileRef(this.mountPoint, path.relative(this.baseDir, fullPath));
           const stat = await fs.stat(fullPath);
           const ext = path.extname(fullPath).slice(1);
           const type = (fileTypes as any)[ext] ?? ext;
-          found[id] = true;
-          const prev = previous[id];
+          const id = toLofsCanonical(withVersion(ref, toLofsVersion(String(stat.mtimeMs))));
+          const key = withoutVersion(id);
+          found[key] = true;
+          const prev = previous[key];
           if (prev) {
             const prevMetadata = prev._metadata as unknown as FileMetadata;
             if (fileChanged(prevMetadata.stat, stat)) {
               const content = await fs.readFile(fullPath, 'utf-8');
-              changed[id] = { id, type, _metadata: { stat } as unknown as JSONValue, content };
+              changed[key] = { id, type, _metadata: { stat } as unknown as JSONValue, content };
             } else {
-              unchanged[id] = prev;
+              unchanged[key] = prev;
             }
           } else {
             const content = await fs.readFile(fullPath, 'utf-8');
-            added[id] = { id, type, _metadata: { stat } as unknown as JSONValue, content };
+            added[key] = { id, type, _metadata: { stat } as unknown as JSONValue, content };
           }
         }
       }
@@ -440,10 +446,10 @@ export class FileStorageProvider implements StorageProvider {
 
     await walk(this.baseDir);
 
-    const deleted: Record<ProvenanceURI, XmlFileInfo> = Object.keys(previous)
-      .filter(id => !(id in found))
-      .reduce((out: Record<ProvenanceURI, XmlFileInfo>, id: ProvenanceURI) => {
-        out[id] = previous[id];
+    const deleted: Record<LofsRef, XmlFileInfo> = Object.keys(previous)
+      .filter(key => !(key in found))
+      .reduce((out: Record<LofsRef, XmlFileInfo>, key: LofsRef) => {
+        out[key] = previous[key];
         return out;
       }, {});
 
@@ -458,10 +464,11 @@ export class FileStorageProvider implements StorageProvider {
         fs.readFile(full, 'utf-8'),
         fs.stat(full),
       ]);
+      const ref = toFileRef(this.mountPoint, path.relative(this.baseDir, full));
       return {
         content,
         metadata: { mtime: stat.mtimeMs, size: stat.size },
-        provenance: toFileProvenanceURI(this.mountPoint, path.relative(this.baseDir, full)),
+        provenance: toLofsCanonical(withVersion(ref, toLofsVersion(String(stat.mtimeMs)))),
       };
     } catch (err: any) {
       if (err.code === 'ENOENT') {
@@ -512,9 +519,10 @@ export class FileStorageProvider implements StorageProvider {
     await fs.unlink(full);
   }
 
-  /** Convert a path or file:// provenance URI to a provider-relative path. */
+  /** TODO: Callers should pass a consistent type (path or LofsRef), not both.
+   *  The includes('://') heuristic papers over caller inconsistency. */
   toRelativePath(pathOrUri: string): string {
-    if (!pathOrUri.startsWith('file://')) return pathOrUri;
+    if (!pathOrUri.includes('://')) return pathOrUri;
     return this.extractRelativePath(pathOrUri);
   }
 
@@ -535,9 +543,9 @@ export class FileStorageProvider implements StorageProvider {
     return listFileTree(selection, this.baseDir);
   }
 
-  resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
+  resolveRelativePath(baseProvenance: LofsRef, relativePath: string): SafeRelativePath {
     // Runtime scheme check — defense-in-depth beyond TypeScript brands.
-    if (!baseProvenance.startsWith('file://')) {
+    if (scheme(brandLofsRef(baseProvenance)) !== 'file') {
       throw new Error(`Unsupported provenance format: ${baseProvenance}`);
     }
 
@@ -558,8 +566,8 @@ export class FileStorageProvider implements StorageProvider {
     return resolved as SafeRelativePath;
   }
 
-  toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
-    return toFileProvenanceURI(this.mountPoint, safePath);
+  toLofsRef(safePath: SafeRelativePath): LofsRef {
+    return toFileRef(this.mountPoint, safePath);
   }
 
   async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {

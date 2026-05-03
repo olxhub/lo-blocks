@@ -50,7 +50,7 @@ export default function PreviewPane({
   // Create default provider if none supplied (for src="" resolution)
   const defaultProvider = useMemo(() => new NetworkStorageProvider(), []);
   const provider = resolveProvider ?? defaultProvider;
-  const provenance = path ? `file:///content/${path}` : undefined;
+  const provenance = path ? `file:content://${path}` : undefined;
 
   // PEG files get their own preview pane
   if (isPEGFile(path)) {

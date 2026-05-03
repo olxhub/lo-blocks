@@ -11,8 +11,10 @@
 // The provider translates storage operations into HTTP requests against
 // configurable endpoints, maintaining the same interface as local file storage.
 //
-import type { ProvenanceURI, OlxRelativePath, SafeRelativePath, LofsPath } from '../../types';
+import type { LofsRef, OlxRelativePath, SafeRelativePath, LofsPath } from '../../types';
 import { provenancePath } from '../../types/storage';
+import { toLofsCanonical, withVersion, toLofsVersion } from '../../types/address';
+import { hashContent } from '../../util';
 import {
   type StorageProvider,
   type XmlFileInfo,
@@ -96,22 +98,13 @@ export class NetworkStorageProvider implements StorageProvider {
    * Resolve a relative path against a base provenance URI.
    * Works client-side by manipulating path strings.
    */
-  resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
+  resolveRelativePath(baseProvenance: LofsRef, relativePath: string): SafeRelativePath {
     // Extract logical path from provenance URI using standard URL parsing.
     let basePath: string;
     if (baseProvenance.includes('://')) {
       basePath = provenancePath(baseProvenance);
     } else {
       basePath = baseProvenance;
-    }
-
-    // Strip namespace prefix if present. Provenance URIs include the mount
-    // point / namespace (e.g., file:///content/sba/foo.olx has 'content/' as
-    // the mount point matching this provider's namespace). The resolved result
-    // must be relative to the namespace root since read() prepends it back.
-    const nsPrefix = this.namespace + '/';
-    if (basePath.startsWith(nsPrefix)) {
-      basePath = basePath.slice(nsPrefix.length);
     }
 
     // Get directory of base file
@@ -136,11 +129,11 @@ export class NetworkStorageProvider implements StorageProvider {
     return resolved.join('/') as SafeRelativePath;
   }
 
-  toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
+  toLofsRef(safePath: SafeRelativePath): LofsRef {
     // NetworkStorageProvider is client-side; provenance is typically constructed
     // server-side during loadXmlFilesWithStats. For client-side use (e.g., editor
-    // tools), return a network:/// URI (empty authority, namespace in path).
-    return `network:///${this.namespace}/${safePath}` as ProvenanceURI;
+    // tools), return a network:namespace:// URI.
+    return `network:${this.namespace}://${safePath}` as LofsRef;
   }
 
   /**
@@ -168,7 +161,7 @@ export class NetworkStorageProvider implements StorageProvider {
    * use listFiles() + read() instead, or implement server-side change detection.
    */
   async loadXmlFilesWithStats(
-    _prev: Record<ProvenanceURI, XmlFileInfo> = {}
+    _prev: Record<LofsRef, XmlFileInfo> = {}
   ): Promise<XmlScanResult> {
     throw new Error(
       'NetworkStorageProvider does not support incremental file scanning. ' +
@@ -201,9 +194,13 @@ export class NetworkStorageProvider implements StorageProvider {
     if (!json.ok) {
       throw new Error(json.error ?? 'Failed to read');
     }
+    const content = json.content as string;
+    const ref = `network:${this.namespace}://${path}` as LofsRef;
+    const ver = toLofsVersion(await hashContent(content));
     return {
-      content: json.content as string,
+      content,
       metadata: json.metadata,
+      provenance: toLofsCanonical(withVersion(ref, ver)),
     };
   }
 

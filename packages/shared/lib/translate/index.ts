@@ -29,7 +29,7 @@ export type TranslateOptions = {
   grammar?: string;            // PEG grammar text for PEG-based formats
   logsDir?: string;            // where to write rejected translations
   provider?: import('@/lib/types/storage').StorageProvider;  // for resolving src= in OLX validation
-  sourceProvenance?: import('@/lib/types').Provenance;   // provenance of source file, for src= resolution
+  sourceProvenance?: import('@/lib/types/address').LofsRef[];   // provenance of source file, for src= resolution
 };
 
 export type TranslateResult = {

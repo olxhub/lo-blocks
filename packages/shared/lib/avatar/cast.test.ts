@@ -493,7 +493,7 @@ function makeMockProvider(files: Record<string, string>) {
       return { content };
     },
     resolveRelativePath: (_base: string, relative: string) => relative,
-    toProvenanceURI: (path: string) => `file:///${path}`,
+    toLofsRef: (path: string) => `file:test://${path}`,
     loadXmlFilesWithStats: async () => ({}),
     write: async () => {},
     update: async () => {},
@@ -521,7 +521,7 @@ describe('Integration: withCastSupport parse-time loading', () => {
       </Cast>
     `;
     const provider = makeMockProvider({ 'test.cast': CAST_YAML });
-    const { idMap } = await parseOLX(olx, ['file:///test.olx'], provider);
+    const { idMap } = await parseOLX(olx, ['file:test://test.olx'], provider);
 
     // The Cast block should have the parsed cast object (not a string) in its attributes
     const castEntry = idMap['test_cast'];

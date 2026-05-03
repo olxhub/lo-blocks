@@ -21,7 +21,8 @@
 //
 import { z } from 'zod';
 import { XMLBuilder } from 'fast-xml-parser';
-import type { OLXLoadingError, OlxReference, OlxKey, RuntimeProps, ReduxStateKey } from '@/lib/types';
+import type { OLXLoadingError, OlxReference, OlxKey, RuntimeProps, ReduxStateKey, LofsDependencies } from '@/lib/types';
+import { toLofsCanonical } from '@/lib/types/address';
 import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
 import { z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
 import * as state from '@/lib/state';
@@ -85,12 +86,11 @@ async function loadExternalSource({
   // SafeRelativePath — same idea as OlxReference → OlxKey for block IDs.
   const resolved = provider.resolveRelativePath(lastProv, src);
 
-  // Let the provider construct provenance — it knows its own scheme
-  // (file://, memory://, postgres://, etc.). Parsers don't need to.
-  const newProvenance = [...provenance, provider.toProvenanceURI(resolved)];
-
-  const { content } = await provider.read(resolved);
-  return { text: content, provenance: newProvenance };
+  // Read first, then use the canonical provenance from the read result.
+  // ReadResult.provenance is LofsCanonical — it records what was actually read.
+  const readResult = await provider.read(resolved);
+  const newProvenance: LofsDependencies = [...provenance, readResult.provenance];
+  return { text: readResult.content, provenance: newProvenance };
 }
 
 /**
@@ -893,10 +893,11 @@ const assetSrcFactory = function assetSrc() {
         const olxProvenance = provenance[0];
         resolvedSrc = provider.resolveRelativePath(olxProvenance, src);
 
-        // Add asset to provenance for dependency tracking (like peg/md parsers do).
-        // Let the provider construct the URI — it knows its own scheme.
-        if (provider.toProvenanceURI) {
-          updatedProvenance = [...provenance, provider.toProvenanceURI(resolvedSrc)];
+        // HACK: toLofsCanonical is a lie — this ref has no version because
+        // the parser is synchronous and can't call provider.read(). Making
+        // the parser async would let us get real canonical provenance here.
+        if (provider.toLofsRef) {
+          updatedProvenance = [...provenance, toLofsCanonical(provider.toLofsRef(resolvedSrc))];
         }
       }
     }

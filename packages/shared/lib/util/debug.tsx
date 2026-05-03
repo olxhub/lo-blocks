@@ -3,7 +3,7 @@
 
 import React, { ReactNode, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import type { ProvenanceURI } from '@/lib/types';
+import type { LofsRef } from '@/lib/types';
 import { getExtension } from '@/lib/util/fileTypes';
 import { useFieldState, settings } from '@/lib/state';
 
@@ -77,23 +77,20 @@ export const DebugWrapper = ({ props = {}, loBlock, children }: DebugWrapperProp
   const provenance = props?.nodeInfo?.olxJson?.provenance ?? [];
   const prefix = process.env.NEXT_PUBLIC_DEBUG_LINK_PREFIX ?? '';
 
-  /** Extract scheme and path from a provenance URI (e.g., "file:///foo" → ["file", "/foo"]) */
-  function splitProvenance(uri: ProvenanceURI): { scheme: string; path: string } {
-    const idx = uri.indexOf('://');
+  /** Extract scheme and path from a LofsRef (e.g., "file:content://foo" → ["file:content", "foo"]) */
+  function splitProvenance(uri: LofsRef): { scheme: string; path: string } {
+    const idx = uri.lastIndexOf('://');
     if (idx < 0) return { scheme: 'unknown', path: uri };
     return { scheme: uri.slice(0, idx), path: uri.slice(idx + 3) };
   }
 
   const links = provenance.map((uri, idx) => {
     const { scheme, path: uriPath } = splitProvenance(uri);
-    if (scheme === 'file') {
-      // Logical path after file:/// e.g. '/content/sba/foo.olx' → 'content/sba/foo.olx'
+    if (scheme.startsWith('file:')) {
+      // Path after last :// e.g. 'file:content://sba/foo.olx' → 'sba/foo.olx'
       const logicalPath = uriPath.startsWith('/') ? uriPath.slice(1) : uriPath;
-      // Strip mount point prefix (e.g. 'content/') for Studio-relative link
-      const contentPrefix = 'content/';
-      const rel = logicalPath.startsWith(contentPrefix)
-        ? logicalPath.slice(contentPrefix.length)
-        : logicalPath;
+      // logicalPath is already relative to the mount point (e.g. 'sba/foo.olx')
+      const rel = logicalPath;
       const href = `/studio?file=${encodeURIComponent(rel)}`;
       const fileType = getExtension(uriPath) || 'file';
       return <Link key={idx} href={href} title={rel}>{fileType}</Link>;

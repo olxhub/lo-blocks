@@ -19,7 +19,7 @@
 //     └─ OLXLoadingError    — content pipeline errors (types.ts)
 //
 // Location tracking:
-// - `location.provenance` is a ProvenanceURI[] — the set of sources the
+// - `location.provenance` is LofsDependencies (LofsCanonical[]) — the sources
 //   error can be traced to. It is an array (not a single URI) because an
 //   error may involve several related sources (an XML that references a
 //   PEG file, an asset loaded by a fragment, etc.) and the producer may
@@ -48,7 +48,7 @@
 //   (e.g. string | Record<string, unknown>) rather than `any`.
 //
 
-import type { ProvenanceURI } from '@/lib/types';
+import type { LofsDependencies } from '@/lib/types';
 
 /**
  * Standard error shape used throughout the codebase.
@@ -75,7 +75,7 @@ export interface AppError {
      * file://, memory://, git://, postgres://, etc. work uniformly.
      * See the file header comment for the full contract.
      */
-    provenance?: ProvenanceURI[];
+    provenance?: LofsDependencies;
     /** Line within the error's primary source (may be absent). */
     line?: number;
     /** Column within the error's primary source (may be absent). */

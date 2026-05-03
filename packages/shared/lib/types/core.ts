@@ -17,6 +17,7 @@
 import { z } from 'zod';
 import { scopeNames } from '../state/scopes';
 import type { Store } from 'redux';
+import type { LofsRef, LofsCanonical } from './address';
 
 /**
  * ════════════
@@ -47,8 +48,8 @@ export type JSONValue =
  *
  * OLXLoadingError extends AppError with content-pipeline-specific fields
  * (error type tag, human summary). Source location lives on
- * `AppError.location.provenance` (a ProvenanceURI[] — file://, memory://,
- * etc. — so errors from non-filesystem sources still carry their origin).
+ * `AppError.location.provenance` (LofsDependencies — canonical refs from
+ * file:, memory:, etc. — so errors from non-filesystem sources carry their origin).
  * Any code that accepts AppError also accepts OLXLoadingError.
  *
  * ErrorNode (the block) receives AppError as kids and passes through to
@@ -163,14 +164,15 @@ export type OLXTag = string & { __brand: 'OLXTag' };
 
 
 /**
- * ═══════════
- * Provenances
- * ═══════════
+ * ═══════════════════
+ * Provenance (LofsRef)
+ * ═══════════════════
  *
- * Every piece of parsed content carries a provenance chain — an array of
- * URIs recording where it came from. For a block in foo.olx that includes
- * quiz.chatpeg, that chain might be:
- *   ["file:///content/demos/foo.olx", "file:///content/demos/quiz.chatpeg"]
+ * Every piece of parsed content carries a provenance list — all source files
+ * that contributed to it. If any change, the OlxJson should be invalidated.
+ * For a block in foo.olx that includes quiz.chatpeg and characters.castpeg:
+ *   ["file:content://demos/foo.olx", "file:content://demos/quiz.chatpeg",
+ *    "file:content://demos/characters.castpeg"]
  *
  * This enables:
  * - Precise error messages ("syntax error in demos/foo.olx:42")
@@ -181,30 +183,31 @@ export type OLXTag = string & { __brand: 'OLXTag' };
  * (SafeRelativePath "uofa/writing/foo.md") can exist in multiple places
  * simultaneously — a university postgres database, a professor's git repo,
  * an in-memory editing buffer. Each has its own provenance:
- *   postgres://profx@uofa.edu/uofa/writing/foo.md
- *   git://profx@github.com/profx/olxrepo/uofa/writing/foo.md
- *   inline://uofa/writing/foo.md
+ *   pg:profx@uofa.edu://uofa/writing/foo.md
+ *   git:profx@github.com/profx/olxrepo://uofa/writing/foo.md
+ *   memory:local://uofa/writing/foo.md
  *
- * "Save" might push content from inline → git; "publish" from git → postgres.
+ * "Save" might push content from memory: → git:; "publish" from git: → pg:.
  * The true canonical identity is ultimately the content itself (a SHA hash),
- * with paths and provenance URIs serving as mutable pointers.
+ * with paths and provenance serving as mutable pointers.
  *
- * Providers construct provenance URIs — parsers should never need to know
- * about schemes. See StorageProvider.toProvenanceURI().
+ * Backed by LofsRef (see address.ts) so address functions (source, addressPath,
+ * scheme, etc.) work directly on provenance values.
  *
- * Sub-branded by scheme so TypeScript can distinguish file:// from memory://
- * at compile time. Runtime checks (startsWith('file://')) stay as
- * defense-in-depth — `as` casts and JS callers bypass brands.
+ * Sub-branded by scheme so TypeScript can distinguish file: from memory:
+ * at compile time.
  */
-/** Any provenance URI — base brand for all schemes */
-export type ProvenanceURI = string & { __brand: 'Provenance' };
-/** file:// provenance — content loaded from local filesystem */
-export type FileProvenanceURI = ProvenanceURI & { __scheme: 'file' };
-/** memory:// provenance — content from in-memory storage (tests, virtual FS) */
-export type MemoryProvenanceURI = ProvenanceURI & { __scheme: 'memory' };
+/** file: ref — content loaded from local filesystem */
+export type FileLofsRef = LofsRef & { __scheme: 'file' };
+/** memory: ref — content from in-memory storage (tests, virtual FS) */
+export type MemoryLofsRef = LofsRef & { __scheme: 'memory' };
 
-/** Primary representation for provenance references */
-export type Provenance = ProvenanceURI[];
+/**
+ * All source files that contributed to this content — invalidate if any change.
+ * LofsCanonical (not LofsRef) because these record what was actually read.
+ * Providers produce canonical refs by including version info (mtime, hash, etc.).
+ */
+export type LofsDependencies = LofsCanonical[];
 
 
 /*
@@ -242,7 +245,7 @@ export type SafeRelativePath = OlxRelativePath & { __safe: true };
  * canonicalization: a unique name in the virtual namespace, with "../"
  * resolved away. This is a *name*, not a *location* — the same
  * SafeRelativePath can exist in multiple storage providers simultaneously
- * (postgres, git, in-memory). The provider's toProvenanceURI() maps
+ * (postgres, git, in-memory). The provider's toLofsRef() maps
  * from name → location.
  *
  * From here, it must be read from storage. The location in our
@@ -1147,7 +1150,7 @@ export interface OlxJson {
   tag: OLXTag;
   attributes: Record<string, JSONValue>;  // Always present, defaults to {} in parsing
   kids?: JSONValue;  // Child nodes, or a string from text parsers
-  provenance: Provenance;
+  provenance: LofsDependencies;
 
   // Optional metadata (from YAML frontmatter or parsed attributes)
   /** Brief description of this content block (for search, activity cards, etc.) */
@@ -1173,7 +1176,7 @@ export interface OlxJson {
    * parseOLX.ts. The `_` prefix flags this as a temporary placement.
    *
    * Eventual home: folded into the provenance URI itself, e.g.
-   * `file:///foo.olx#L3:3` or `file:///foo.olx#char=36,55` (RFC 5147), so
+   * `file:content://foo.olx#L3:3` or `file:content://foo.olx#char=36,55` (RFC 5147), so
    * one provenance value carries source identity AND span. When that
    * lands, this field goes away.
    *
