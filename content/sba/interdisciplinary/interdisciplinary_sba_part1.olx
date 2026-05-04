@@ -11,7 +11,8 @@ lang: en-Latn-US
 ---
 -->
 <Cast cast="characters.cast" id="interdisciplinary_sba_demo_part1" title="Interdisciplinary Studies SBA, Part 1 - High School Dropout Analysis" launchable="true">
-  <Sequential id="interdisciplinary_seq_1">
+ <Tabs id="interdisciplinary_sba_tabs">
+  <Sequential id="interdisciplinary_seq_1" title="Current Activity">
     <SplitPanel sizes="30, 70" id="interdisciplinary_1sp1">
       <!-- Left Panel: Dialogue Conversation -->
       <LeftPane>
@@ -21,29 +22,11 @@ lang: en-Latn-US
             height="400px" />
       </LeftPane>
 
-      <!-- Right Panel: Tabbed interface -->
+      <!-- Right Panel: Current Activity -->
       <RightPane>
-        <Tabs id="interdisciplinary_sba_tabs_a">
-          <!-- Tab 1: Current Activity -->
           <Vertical id="interdisciplinary_current_activity_a" title="Current Activity">
             <UseHistory id="interdisciplinary_sba_sidebar_a" initial="interdisciplinary_gsu_plaza_image" />
           </Vertical>
-
-          <!-- Tab 2: Student Artifact -->
-          <Vertical id="interdisciplinary_artifact_tab" title="Artifact">
-            <Use ref="interdisciplinary_artifact" />
-          </Vertical>
-
-          <!-- Tab 3: Library of Readings -->
-          <Vertical id="interdisciplinary_library_tab" title="Library">
-            <Use ref="interdisciplinary_library" />
-          </Vertical>
-
-          <!-- Tab 4: Team Directory -->
-          <Vertical id="interdisciplinary_directory" title="Team">
-            <Use ref="interdisciplinary_team_members" />
-          </Vertical>
-        </Tabs>
       </RightPane>
     </SplitPanel>
 
@@ -56,29 +39,11 @@ lang: en-Latn-US
             height="400px" />
       </LeftPane>
 
-      <!-- Right Panel: Tabbed interface -->
+      <!-- Right Panel: Current Activity -->
       <RightPane>
-        <Tabs id="interdisciplinary_sba_tabs_b">
-          <!-- Tab 1: Current Activity -->
           <Vertical id="interdisciplinary_current_activity_b" title="Current Activity">
             <UseHistory id="interdisciplinary_sba_sidebar_b" initial="interdisciplinary_orientation" />
           </Vertical>
-
-          <!-- Tab 2: Student Artifact -->
-          <Vertical id="interdisciplinary_artifact_tab" title="Artifact">
-            <Use ref="interdisciplinary_artifact" />
-          </Vertical>
-
-          <!-- Tab 3: Library of Readings -->
-          <Vertical id="interdisciplinary_library_tab" title="Library">
-            <Use ref="interdisciplinary_library" />
-          </Vertical>
-
-          <!-- Tab 4: Team Directory -->
-          <Vertical id="interdisciplinary_directory" title="Team">
-            <Use ref="interdisciplinary_team_members" />
-          </Vertical>
-        </Tabs>
       </RightPane>
     </SplitPanel>
 
@@ -91,29 +56,11 @@ lang: en-Latn-US
             height="400px" />
       </LeftPane>
 
-      <!-- Right Panel: Tabbed interface -->
+      <!-- Right Panel: Current Activity -->
       <RightPane>
-        <Tabs id="interdisciplinary_sba_tabs_c">
-          <!-- Tab 1: Current Activity -->
           <Vertical id="interdisciplinary_current_activity_c" title="Current Activity">
             <UseHistory id="interdisciplinary_sba_sidebar_c" initial="interdisciplinary_team_intro" />
           </Vertical>
-
-          <!-- Tab 2: Student Artifact -->
-          <Vertical id="interdisciplinary_artifact_tab" title="Artifact">
-            <Use ref="interdisciplinary_artifact" />
-          </Vertical>
-
-          <!-- Tab 3: Library of Readings -->
-          <Vertical id="interdisciplinary_library_tab" title="Library">
-            <Use ref="interdisciplinary_library" />
-          </Vertical>
-
-          <!-- Tab 4: Team Directory -->
-          <Vertical id="interdisciplinary_directory" title="Team">
-            <Use ref="interdisciplinary_team_members" />
-          </Vertical>
-        </Tabs>
       </RightPane>
     </SplitPanel>
 
@@ -126,29 +73,11 @@ lang: en-Latn-US
             height="400px" />
       </LeftPane>
 
-      <!-- Right Panel: Tabbed interface -->
+      <!-- Right Panel: Current Activity -->
       <RightPane>
-        <Tabs id="interdisciplinary_sba_tabs_d">
-          <!-- Tab 1: Current Activity -->
           <Vertical id="interdisciplinary_current_activity_d" title="Current Activity">
             <UseHistory id="interdisciplinary_sba_sidebar_d" initial="interdisciplinary_task_list" />
           </Vertical>
-
-          <!-- Tab 2: Student Artifact -->
-          <Vertical id="interdisciplinary_artifact_tab" title="Artifact">
-            <Use ref="interdisciplinary_artifact" />
-          </Vertical>
-
-          <!-- Tab 3: Library of Readings -->
-          <Vertical id="interdisciplinary_library_tab" title="Library">
-            <Use ref="interdisciplinary_library" />
-          </Vertical>
-
-          <!-- Tab 4: Team Directory -->
-          <Vertical id="interdisciplinary_directory" title="Team">
-            <Use ref="interdisciplinary_team_members" />
-          </Vertical>
-        </Tabs>
       </RightPane>
     </SplitPanel>
 
@@ -161,29 +90,11 @@ lang: en-Latn-US
             height="400px" />
       </LeftPane>
 
-      <!-- Right Panel: Tabbed interface -->
+      <!-- Right Panel: Current Activity -->
       <RightPane>
-        <Tabs id="interdisciplinary_sba_tabs_e">
-          <!-- Tab 1: Current Activity -->
           <Vertical id="interdisciplinary_current_activity_e" title="Current Activity">
             <UseHistory id="interdisciplinary_sba_sidebar_e" initial="cause_brainstorming" />
           </Vertical>
-
-          <!-- Tab 2: Student Artifact -->
-          <Vertical id="interdisciplinary_artifact_tab" title="Artifact">
-            <Use ref="interdisciplinary_artifact" />
-          </Vertical>
-
-          <!-- Tab 3: Library of Readings -->
-          <Vertical id="interdisciplinary_library_tab" title="Library">
-            <Use ref="interdisciplinary_library" />
-          </Vertical>
-
-          <!-- Tab 4: Team Directory -->
-          <Vertical id="interdisciplinary_directory" title="Team">
-            <Use ref="interdisciplinary_team_members" />
-          </Vertical>
-        </Tabs>
       </RightPane>
     </SplitPanel>
 
@@ -196,29 +107,11 @@ lang: en-Latn-US
             height="400px" />
       </LeftPane>
 
-      <!-- Right Panel: Tabbed interface -->
+      <!-- Right Panel: Current Activity -->
       <RightPane>
-        <Tabs id="interdisciplinary_sba_tabs_f">
-          <!-- Tab 1: Current Activity -->
           <Vertical id="interdisciplinary_current_activity_f" title="Current Activity">
             <UseHistory id="interdisciplinary_sba_sidebar_f" initial="transcript_md1" />
           </Vertical>
-
-          <!-- Tab 2: Student Artifact -->
-          <Vertical id="interdisciplinary_artifact_tab" title="Artifact">
-            <Use ref="interdisciplinary_artifact" />
-          </Vertical>
-
-          <!-- Tab 3: Library of Readings -->
-          <Vertical id="interdisciplinary_library_tab" title="Library">
-            <Use ref="interdisciplinary_library" />
-          </Vertical>
-
-          <!-- Tab 4: Team Directory -->
-          <Vertical id="interdisciplinary_directory" title="Team">
-            <Use ref="interdisciplinary_team_members" />
-          </Vertical>
-        </Tabs>
       </RightPane>
     </SplitPanel>
 
@@ -231,29 +124,11 @@ lang: en-Latn-US
             height="400px" />
       </LeftPane>
 
-      <!-- Right Panel: Tabbed interface -->
+      <!-- Right Panel: Current Activity -->
       <RightPane>
-        <Tabs id="interdisciplinary_sba_tabs_g">
-          <!-- Tab 1: Current Activity -->
           <Vertical id="interdisciplinary_current_activity_g" title="Current Activity">
             <UseHistory id="interdisciplinary_sba_sidebar_g" initial="reasons_list" />
           </Vertical>
-
-          <!-- Tab 2: Student Artifact -->
-          <Vertical id="interdisciplinary_artifact_tab" title="Artifact">
-            <Use ref="interdisciplinary_artifact" />
-          </Vertical>
-
-          <!-- Tab 3: Library of Readings -->
-          <Vertical id="interdisciplinary_library_tab" title="Library">
-            <Use ref="interdisciplinary_library" />
-          </Vertical>
-
-          <!-- Tab 4: Team Directory -->
-          <Vertical id="interdisciplinary_directory" title="Team">
-            <Use ref="interdisciplinary_team_members" />
-          </Vertical>
-        </Tabs>
       </RightPane>
     </SplitPanel>
 
@@ -266,29 +141,11 @@ lang: en-Latn-US
             height="400px" />
       </LeftPane>
 
-      <!-- Right Panel: Tabbed interface -->
+      <!-- Right Panel: Current Activity -->
       <RightPane>
-        <Tabs id="interdisciplinary_sba_tabs_h">
-          <!-- Tab 1: Current Activity -->
           <Vertical id="interdisciplinary_current_activity_h" title="Current Activity">
             <UseHistory id="interdisciplinary_sba_sidebar_h" initial="task_set_3_intro" />
           </Vertical>
-
-          <!-- Tab 2: Student Artifact -->
-          <Vertical id="interdisciplinary_artifact_tab" title="Artifact">
-            <Use ref="interdisciplinary_artifact" />
-          </Vertical>
-
-          <!-- Tab 3: Library of Readings -->
-          <Vertical id="interdisciplinary_library_tab" title="Library">
-            <Use ref="interdisciplinary_library" />
-          </Vertical>
-
-          <!-- Tab 4: Team Directory -->
-          <Vertical id="interdisciplinary_directory" title="Team">
-            <Use ref="interdisciplinary_team_members" />
-          </Vertical>
-        </Tabs>
       </RightPane>
     </SplitPanel>
 
@@ -301,29 +158,11 @@ lang: en-Latn-US
             height="400px" />
       </LeftPane>
 
-      <!-- Right Panel: Tabbed interface -->
+      <!-- Right Panel: Current Activity -->
       <RightPane>
-        <Tabs id="interdisciplinary_sba_tabs_i">
-          <!-- Tab 1: Current Activity -->
           <Vertical id="interdisciplinary_current_activity_i" title="Current Activity">
             <UseHistory id="interdisciplinary_sba_sidebar_i" initial="task_set_3_intro" />
           </Vertical>
-
-          <!-- Tab 2: Student Artifact -->
-          <Vertical id="interdisciplinary_artifact_tab" title="Artifact">
-            <Use ref="interdisciplinary_artifact" />
-          </Vertical>
-
-          <!-- Tab 3: Library of Readings -->
-          <Vertical id="interdisciplinary_library_tab" title="Library">
-            <Use ref="interdisciplinary_library" />
-          </Vertical>
-
-          <!-- Tab 4: Team Directory -->
-          <Vertical id="interdisciplinary_directory" title="Team">
-            <Use ref="interdisciplinary_team_members" />
-          </Vertical>
-        </Tabs>
       </RightPane>
     </SplitPanel>
 
@@ -336,29 +175,11 @@ lang: en-Latn-US
             height="400px" />
       </LeftPane>
 
-      <!-- Right Panel: Tabbed interface -->
+      <!-- Right Panel: Current Activity -->
       <RightPane>
-        <Tabs id="interdisciplinary_sba_tabs_j">
-          <!-- Tab 1: Current Activity -->
           <Vertical id="interdisciplinary_current_activity_j" title="Current Activity">
             <UseHistory id="interdisciplinary_sba_sidebar_j" initial="employment_study_text" />
           </Vertical>
-
-          <!-- Tab 2: Student Artifact -->
-          <Vertical id="interdisciplinary_artifact_tab" title="Artifact">
-            <Use ref="interdisciplinary_artifact" />
-          </Vertical>
-
-          <!-- Tab 3: Library of Readings -->
-          <Vertical id="interdisciplinary_library_tab" title="Library">
-            <Use ref="interdisciplinary_library" />
-          </Vertical>
-
-          <!-- Tab 4: Team Directory -->
-          <Vertical id="interdisciplinary_directory" title="Team">
-            <Use ref="interdisciplinary_team_members" />
-          </Vertical>
-        </Tabs>
       </RightPane>
     </SplitPanel>
 
@@ -371,29 +192,11 @@ lang: en-Latn-US
             height="400px" />
       </LeftPane>
 
-      <!-- Right Panel: Tabbed interface -->
+      <!-- Right Panel: Current Activity -->
       <RightPane>
-        <Tabs id="interdisciplinary_sba_tabs_k">
-          <!-- Tab 1: Current Activity -->
           <Vertical id="interdisciplinary_current_activity_k" title="Current Activity">
             <UseHistory id="interdisciplinary_sba_sidebar_k" initial="reading_rural_urban" />
           </Vertical>
-
-          <!-- Tab 2: Student Artifact -->
-          <Vertical id="interdisciplinary_artifact_tab" title="Artifact">
-            <Use ref="interdisciplinary_artifact" />
-          </Vertical>
-
-          <!-- Tab 3: Library of Readings -->
-          <Vertical id="interdisciplinary_library_tab" title="Library">
-            <Use ref="interdisciplinary_library" />
-          </Vertical>
-
-          <!-- Tab 4: Team Directory -->
-          <Vertical id="interdisciplinary_directory" title="Team">
-            <Use ref="interdisciplinary_team_members" />
-          </Vertical>
-        </Tabs>
       </RightPane>
     </SplitPanel>
 
@@ -406,29 +209,11 @@ lang: en-Latn-US
             height="400px" />
       </LeftPane>
 
-      <!-- Right Panel: Tabbed interface -->
+      <!-- Right Panel: Current Activity -->
       <RightPane>
-        <Tabs id="interdisciplinary_sba_tabs_l">
-          <!-- Tab 1: Current Activity -->
           <Vertical id="interdisciplinary_current_activity_l" title="Current Activity">
             <UseHistory id="interdisciplinary_sba_sidebar_l" initial="reading_funding2b" />
           </Vertical>
-
-          <!-- Tab 2: Student Artifact -->
-          <Vertical id="interdisciplinary_artifact_tab" title="Artifact">
-            <Use ref="interdisciplinary_artifact" />
-          </Vertical>
-
-          <!-- Tab 3: Library of Readings -->
-          <Vertical id="interdisciplinary_library_tab" title="Library">
-            <Use ref="interdisciplinary_library" />
-          </Vertical>
-
-          <!-- Tab 4: Team Directory -->
-          <Vertical id="interdisciplinary_directory" title="Team">
-            <Use ref="interdisciplinary_team_members" />
-          </Vertical>
-        </Tabs>
       </RightPane>
     </SplitPanel>
 
@@ -441,33 +226,30 @@ lang: en-Latn-US
             height="400px" />
       </LeftPane>
 
-      <!-- Right Panel: Tabbed interface -->
+      <!-- Right Panel: Current Activity -->
       <RightPane>
-        <Tabs id="interdisciplinary_sba_tabs_m">
-          <!-- Tab 1: Current Activity -->
           <Vertical id="interdisciplinary_current_activity_m" title="Current Activity">
             <UseHistory id="interdisciplinary_sba_sidebar_m" initial="interdisciplinary_gsu_plaza_image" />
           </Vertical>
-
-          <!-- Tab 2: Student Artifact -->
-          <Vertical id="interdisciplinary_artifact_tab" title="Artifact">
-            <Use ref="interdisciplinary_artifact" />
-          </Vertical>
-
-          <!-- Tab 3: Library of Readings -->
-          <Vertical id="interdisciplinary_library_tab" title="Library">
-            <Use ref="interdisciplinary_library" />
-          </Vertical>
-
-          <!-- Tab 4: Team Directory -->
-          <Vertical id="interdisciplinary_directory" title="Team">
-            <Use ref="interdisciplinary_team_members" />
-          </Vertical>
-        </Tabs>
       </RightPane>
     </SplitPanel>
+   </Sequential>
+   
+   <!-- Tab 2: Student Artifact -->
+   <Vertical id="interdisciplinary_artifact_tab" title="Artifact">
+     <Use ref="interdisciplinary_artifact" />
+   </Vertical>
 
-</Sequential>
+   <!-- Tab 3: Library of Readings -->
+   <Vertical id="interdisciplinary_library_tab" title="Library">
+     <Use ref="interdisciplinary_library" />
+   </Vertical>
+
+   <!-- Tab 4: Team Directory -->
+   <Vertical id="interdisciplinary_directory" title="Team">
+     <Use ref="interdisciplinary_team_members" />
+   </Vertical>
+  </Tabs>
 </Cast>
 
 <!-- ============================================================
