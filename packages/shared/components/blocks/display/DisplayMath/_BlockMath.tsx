@@ -25,7 +25,7 @@ export function _BlockMath( props: RuntimeProps ) {
     return (
       <DisplayError
         props={props}
-        name="BlockMath"
+        title="BlockMath"
         message="Could not render LaTeX math."
         technical={err instanceof Error ? err.message : String(err)}
       />

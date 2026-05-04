@@ -153,7 +153,7 @@ function _OlxSlot(props: RuntimeProps) {
     return (
       <div className="olx-slot olx-slot--error" style={chromeStyle}>
         {label}
-        <DisplayError name="OlxSlot" message={ownValue || 'Content generation failed'} />
+        <DisplayError title="OlxSlot" message={ownValue || 'Content generation failed'} />
       </div>
     );
   }

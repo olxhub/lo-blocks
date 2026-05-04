@@ -101,7 +101,7 @@ const XML_META = XMLParser.getMetaDataSymbol() as unknown as symbol;
 
 /**
  * Convert a byte offset within an XML source string to a 1-based line/column
- * pair. Returns the bits in the shape AppError.location accepts, so callers
+ * pair. Returns the bits in the shape OLXLoadingError.location accepts, so callers
  * can spread directly:
  *
  *   location: { provenance, ...offsetToLineCol(xml, sourceOffset) }
@@ -223,7 +223,7 @@ function extractMetadataFromComment(
   if (commentText === undefined || commentText === null) {
     const error: OLXLoadingError = {
       type: 'parse_error',
-      summary: `Internal parser error in ${provStr}`,
+      title: `Internal parser error in ${provStr}`,
       message: 'Internal parser error: Comment node found but text content is missing. This may indicate a parser configuration issue.',
       location: { provenance },
       technical: { commentText }
@@ -235,7 +235,7 @@ function extractMetadataFromComment(
   if (typeof commentText !== 'string') {
     const error: OLXLoadingError = {
       type: 'parse_error',
-      summary: `Internal parser error in ${provStr}`,
+      title: `Internal parser error in ${provStr}`,
       message: `Internal parser error: Comment text has unexpected type '${typeof commentText}' (expected string).`,
       location: { provenance },
       technical: { commentText, type: typeof commentText }
@@ -270,7 +270,7 @@ function extractMetadataFromComment(
 
       const error: OLXLoadingError = {
         type: 'metadata_error',
-        summary: `${provStr} has an error in its file header`,
+        title: `${provStr} has an error in its file header`,
         message: `📝 Metadata Format Error
 
 The metadata in your comment has formatting issues:
@@ -307,7 +307,7 @@ Common issues:
     // YAML parsing failed
     const error: OLXLoadingError = {
       type: 'metadata_error',
-      summary: `${provStr} has an error in its file header`,
+      title: `${provStr} has an error in its file header`,
       message: `📝 Metadata YAML Syntax Error
 
 The metadata in your comment contains invalid YAML syntax:
@@ -544,7 +544,7 @@ export async function parseOLX(
       const zodErrors = result.error.issues.map(i => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
       const errorObj = {
         type: 'attribute_validation' as const,
-        summary: `Invalid attribute on <${tag}> in ${provenance.join(', ')}`,
+        title: `Invalid attribute on <${tag}> in ${provenance.join(', ')}`,
         message: `Invalid attributes for <${tag} id="${id}">:\n${zodErrors}`,
         location: { provenance, ...offsetToLineCol(xml, sourceOffset) },
         technical: {
@@ -562,8 +562,8 @@ export async function parseOLX(
       // Matches the PEG error pattern in parsers.ts.
       const lang = resolveElementLanguage(attributes, currentLang, metadataLang);
       const entry = {
-        id, tag: 'ErrorNode', attributes, provenance,
-        rawParsed: node, kids: errorObj, parseError: true,
+        id, tag: 'ErrorNode', attributes: errorObj, provenance,
+        rawParsed: node, kids: [], parseError: true,
         lang,
         ...(sourceOffset !== undefined ? { _sourceOffset: sourceOffset } : {}),
         ...(metadata || {})
@@ -584,7 +584,7 @@ export async function parseOLX(
           const errorList = semanticErrors.map(e => `  - ${e}`).join('\n');
           errors.push({
             type: 'attribute_validation',
-            summary: `Invalid attribute on <${tag}> in ${provenance.join(', ')}`,
+            title: `Invalid attribute on <${tag}> in ${provenance.join(', ')}`,
             message: `Invalid attributes for <${tag} id="${id}">:\n${errorList}`,
             location: { provenance, ...offsetToLineCol(xml, sourceOffset) },
             technical: {
@@ -699,7 +699,7 @@ export async function parseOLX(
 
           errors.push({
             type: 'duplicate_id',
-            summary: `Duplicate ID "${storeId}" in ${provenance.join(', ')}`,
+            title: `Duplicate ID "${storeId}" in ${provenance.join(', ')}`,
             message: `Duplicate ID "${storeId}" found in ${provenance.join(', ')}. Each element must have a unique id.
 
 🔍 EXISTING ENTRY (Line ${existingLoc.line ?? '?'}, Column ${existingLoc.column ?? '?'}):
@@ -739,7 +739,7 @@ export async function parseOLX(
         const errorList = childErrors.map(e => `  - ${e}`).join('\n');
         errors.push({
           type: 'attribute_validation',
-          summary: `Invalid children in <${tag}> in ${provenance.join(', ')}`,
+          title: `Invalid children in <${tag}> in ${provenance.join(', ')}`,
           message: `Invalid children for <${tag} id="${id}">:\n${errorList}`,
           location: { provenance, ...offsetToLineCol(xml, sourceOffset) },
           technical: { tag, id, childErrors }
@@ -828,7 +828,7 @@ export async function parseOLX(
       if (!isZodCompatible(inputBlock.valueSchema, graderBlock.inputSchema)) {
         errors.push({
           type: 'attribute_validation',
-          summary: `Type mismatch: <${entry.tag}> with <${inputEntry.tag}> in ${provenance.join(', ')}`,
+          title: `Type mismatch: <${entry.tag}> with <${inputEntry.tag}> in ${provenance.join(', ')}`,
           message: `<${entry.tag}> expects ${describeZodType(graderBlock.inputSchema)} input, but <${inputEntry.tag}> provides ${describeZodType(inputBlock.valueSchema)}.`,
           location: { provenance, ...offsetToLineCol(xml, entry._sourceOffset) },
           technical: {

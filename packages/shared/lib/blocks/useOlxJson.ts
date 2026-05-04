@@ -260,8 +260,8 @@ function errorOlxJson(id: string, message: string): OlxJson {
   return {
     id: `_error_${id}` as OlxKey,
     tag: 'ErrorNode' as any,
-    attributes: {},
-    kids: { message },
+    attributes: { message },
+    kids: [],
     provenance: [],
   };
 }

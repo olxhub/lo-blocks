@@ -48,7 +48,7 @@ function getFatalError(kids) {
 function MissingPane({ paneType }) {
   return (
     <DisplayError
-      name={`Missing ${paneType}Pane`}
+      title={`Missing ${paneType}Pane`}
       message={`Add a <${paneType}Pane> element`}
       id={`splitpanel_missing_${paneType.toLowerCase()}`}
     />
@@ -67,7 +67,7 @@ export default function _SplitPanel(props: RuntimeProps) {
     return (
       <DisplayError
         props={props}
-        name={fatalError.name}
+        title={fatalError.name}
         message="SplitPanel configuration issue"
         technical={fatalError.technical}
         id="splitpanel_config_error"

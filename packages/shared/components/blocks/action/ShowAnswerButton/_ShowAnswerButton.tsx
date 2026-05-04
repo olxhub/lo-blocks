@@ -48,7 +48,7 @@ function _ShowAnswerButton(props: RuntimeProps) {
   if (graderReduxKeys.length === 0) {
     return (
       <DisplayError
-        name="ShowAnswerButton"
+        title="ShowAnswerButton"
         message="No grader found. Use target attribute or place inside a grader."
         data={{ id: props.id }}
       />

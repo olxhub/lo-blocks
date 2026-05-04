@@ -1,5 +1,4 @@
-import type { AppError } from '@/lib/errors';
-import { appError } from '@/lib/errors';
+import type { AppError } from '@/lib/types/errors';
 
 /**
  * Fisher–Yates shuffle (in-place).
@@ -31,6 +30,11 @@ export function buildArrangementWithPositions<T>(
 ): { arrangement: T[] } | { error: AppError } {
   const n = items.length;
   const { idSelector, positionSelector, shouldShuffleUnpositioned = true } = opts;
+  const positionError = (message: string, technical: Record<string, unknown>): AppError => ({
+    title: 'Position Error',
+    message,
+    technical,
+  });
 
   // Extract and validate positions
   const usedPositions = new Map<number, string>(); // position -> itemId
@@ -43,36 +47,36 @@ export function buildArrangementWithPositions<T>(
 
     if (typeof rawPos !== 'number' || !Number.isFinite(rawPos)) {
       return {
-        error: appError(
+        error: positionError(
           `Position for "${id}" must be a number between 1 and ${n}. You wrote: ${JSON.stringify(rawPos)}.`,
-          { technical: { id, rawPos } }
+          { id, rawPos }
         )
       };
     }
 
     if (!Number.isInteger(rawPos)) {
       return {
-        error: appError(
+        error: positionError(
           `Position for "${id}" must be a whole number. You wrote: ${rawPos}.`,
-          { technical: { id, rawPos } }
+          { id, rawPos }
         )
       };
     }
 
     if (rawPos < 1) {
       return {
-        error: appError(
+        error: positionError(
           `Position for "${id}" is ${rawPos}, but positions start at 1 (not 0). Use a number from 1 to ${n}.`,
-          { technical: { id, rawPos } }
+          { id, rawPos }
         )
       };
     }
 
     if (rawPos > n) {
       return {
-        error: appError(
+        error: positionError(
           `Position for "${id}" is ${rawPos}, but this question has ${n} items. Use a number from 1 to ${n}.`,
-          { technical: { id, rawPos } }
+          { id, rawPos }
         )
       };
     }
@@ -80,9 +84,9 @@ export function buildArrangementWithPositions<T>(
     const existingId = usedPositions.get(rawPos);
     if (existingId) {
       return {
-        error: appError(
+        error: positionError(
           `You put "${existingId}" and "${id}" in position ${rawPos}. Move one of them.`,
-          { technical: { idA: existingId, idB: id, position: rawPos } }
+          { idA: existingId, idB: id, position: rawPos }
         )
       };
     }

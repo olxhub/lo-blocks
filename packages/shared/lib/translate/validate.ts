@@ -51,7 +51,7 @@ async function validateOlx(
   }
 
   if (translatedResult.errors.length > 0) {
-    const summaries = translatedResult.errors.map((e: any) => e.summary || e.message).join('; ');
+    const summaries = translatedResult.errors.map((e: any) => e.title || e.message).join('; ');
     return `Translated OLX has errors: ${summaries}`;
   }
 

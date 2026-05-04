@@ -76,7 +76,7 @@ export function useBlock(
       block: (
         <DisplayError
           id={`block-error-${id}`}
-          name="useBlock"
+          title="useBlock"
           message={olxResult.error}
           data={{ blockId: id }}
         />
@@ -92,7 +92,7 @@ export function useBlock(
       block: (
         <DisplayError
           id={`block-missing-${id}`}
-          name="useBlock"
+          title="useBlock"
           message={msg}
           data={{ blockId: id, olxKey }}
         />

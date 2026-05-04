@@ -23,7 +23,7 @@ export default function _TabularMCQ(props: RuntimeProps) {
     return (
       <DisplayError
         props={props}
-        name="TabularMCQ Parse Error"
+        title="TabularMCQ Parse Error"
         message={String(kids.message || "Failed to parse TabularMCQ content")}
         technical={kids.technical ? JSON.stringify(kids.technical, null, 2) : undefined}
       />
@@ -35,7 +35,7 @@ export default function _TabularMCQ(props: RuntimeProps) {
     return (
       <DisplayError
         props={props}
-        name="TabularMCQ Error"
+        title="TabularMCQ Error"
         message="No content provided"
         technical={`Expected YAML content inside <TabularMCQ>:\ncols: Col1, Col2, Col3\nrows: Row1, Row2, Row3\n\nReceived: ${JSON.stringify(kids, null, 2)}`}
       />
@@ -52,7 +52,7 @@ export default function _TabularMCQ(props: RuntimeProps) {
     return (
       <DisplayError
         props={props}
-        name="TabularMCQ Error"
+        title="TabularMCQ Error"
         message="No rows defined"
         technical={`Add rows to your content:\nrows: Item1, Item2, Item3\n\nParsed data: ${JSON.stringify(parsed, null, 2)}`}
       />
@@ -64,7 +64,7 @@ export default function _TabularMCQ(props: RuntimeProps) {
     return (
       <DisplayError
         props={props}
-        name="TabularMCQ Error"
+        title="TabularMCQ Error"
         message="No columns defined"
         technical={`Add columns to your content:\ncols: Col1, Col2, Col3\n\nParsed data: ${JSON.stringify(parsed, null, 2)}`}
       />

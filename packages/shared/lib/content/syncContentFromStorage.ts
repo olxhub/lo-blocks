@@ -375,7 +375,7 @@ async function parseAndIndexFiles(
 
       errors.push({
         type: 'file_error',
-        summary: `${fileUri} could not be loaded`,
+        title: `${fileUri} could not be loaded`,
         message: `Failed to parse file: ${fatalError.message}`,
         location: { provenance: [fileRecord.id] },
         technical: fatalError,
@@ -475,7 +475,7 @@ function createDuplicateIdError(
   const duplicateOffset = duplicateBlock._sourceOffset ?? '?';
   return {
     type: 'duplicate_id',
-    summary: `Duplicate ID "${blockId}" in ${sourceFile}`,
+    title: `Duplicate ID "${blockId}" in ${sourceFile}`,
     location: { provenance: [sourceFile] },
     message: `Duplicate ID "${blockId}" found in ${sourceFile} (conflicts with entry from another file)
 

@@ -165,7 +165,7 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
     return (
       <DisplayError
         props={props}
-        name="MasteryBank"
+        title="MasteryBank"
         message={`Problem not found: "${problemId}"`}
         technical={{
           hint: 'Make sure this problem is defined elsewhere in your content.',
@@ -213,7 +213,7 @@ export default function _MasteryBank(props: RuntimeProps) {
     return (
       <DisplayError
         props={props}
-        name="MasteryBank"
+        title="MasteryBank"
         message="No problems found in MasteryBank"
         technical={{
           hint: 'Add problem IDs as content, e.g., <MasteryBank>problem_id_1, problem_id_2</MasteryBank>',
@@ -232,7 +232,7 @@ export default function _MasteryBank(props: RuntimeProps) {
     return (
       <DisplayError
         props={props}
-        name="MasteryBank"
+        title="MasteryBank"
         message="Unable to select current problem"
         technical={{
           hint: 'Internal state error - modeState may not be initialized',

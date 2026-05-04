@@ -202,7 +202,7 @@ function Activities() {
     return (
       <DisplayError
         props={{ id: 'lessons', tag: 'home' }}
-        name="Failed to Load Activities"
+        title="Failed to Load Activities"
         message="Could not retrieve available activities"
         technical={error}
         id="lessons_load_error"

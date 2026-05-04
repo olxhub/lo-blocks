@@ -700,7 +700,7 @@ export function peggyParser(
     } catch (parseError) {
       const errorObj: OLXLoadingError = {
         type: 'peg_error' as const,
-        summary: `Dialogue parsing error in ${prov.join(' → ')}`,
+        title: `Dialogue parsing error in ${prov.join(' → ')}`,
         message: parseError.message,
         location: {
           provenance: prov,
@@ -721,10 +721,10 @@ export function peggyParser(
       entry = {
         id,
         tag: 'ErrorNode',
-        attributes,
+        attributes: errorObj,
         provenance: prov,
         rawParsed,
-        kids: errorObj,
+        kids: [],
         parseError: true,
         ...(metadata || {})  // Spread metadata even for error nodes
       };
@@ -815,7 +815,7 @@ export function yamlParser(schema: z.ZodType) {
 
       const errorObj: OLXLoadingError = {
         type: 'parse_error' as const,
-        summary: `YAML parse error in ${prov.join(' → ')}`,
+        title: `YAML parse error in ${prov.join(' → ')}`,
         message,
         location: {
           provenance: prov,
@@ -834,10 +834,10 @@ export function yamlParser(schema: z.ZodType) {
       entry = {
         id,
         tag: 'ErrorNode',
-        attributes,
+        attributes: errorObj,
         provenance: prov,
         rawParsed,
-        kids: errorObj,
+        kids: [],
         parseError: true,
         ...(metadata || {})
       };

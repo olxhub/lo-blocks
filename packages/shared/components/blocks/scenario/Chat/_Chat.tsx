@@ -177,7 +177,7 @@ export function _Chat(props: RuntimeProps) {
     return (
       <DisplayError
         props={props}
-        name="Chat Clip Error"
+        title="Chat Clip Error"
         message={`Invalid clip: "${clipRange.clip}"`}
         technical={clipRange.message}
         id={`${id}_clip_error`}
@@ -190,7 +190,7 @@ export function _Chat(props: RuntimeProps) {
     return (
       <DisplayError
         props={props}
-        name="Chat History Error"
+        title="Chat History Error"
         message={`Invalid history clip: "${historyRange.clip}"`}
         technical={historyRange.message}
         id={`${id}_history_error`}

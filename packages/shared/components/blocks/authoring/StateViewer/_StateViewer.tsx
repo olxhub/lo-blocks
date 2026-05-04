@@ -21,11 +21,11 @@ export default function _StateViewer(props: RuntimeProps) {
   const componentState = useComponentState(props, targetReduxKey, { scope });
 
   if (!targetId) {
-    return <DisplayError name="StateViewer" message="No target specified. Use target attribute or provide component ID as content." />;
+    return <DisplayError title="StateViewer" message="No target specified. Use target attribute or provide component ID as content." />;
   }
 
   if (!targetBlock) {
-    return <DisplayError name="StateViewer" message={`Target block "${targetId}" not found`} />;
+    return <DisplayError title="StateViewer" message={`Target block "${targetId}" not found`} />;
   }
 
   // Look up field definitions from the block registry

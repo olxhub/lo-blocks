@@ -48,7 +48,7 @@ function _IntakeGate(props: RuntimeProps) {
     return (
       <DisplayError
         id={id}
-        name="IntakeGate"
+        title="IntakeGate"
         message={`IntakeGate requires exactly 2 children (intake and content), but got ${kids.length}`}
         technical={{ kids }}
       />
@@ -61,7 +61,7 @@ function _IntakeGate(props: RuntimeProps) {
     return (
       <DisplayError
         id={id}
-        name="IntakeGate"
+        title="IntakeGate"
         message='IntakeGate requires either a "targets" or "ready" attribute'
         technical={{ example: '<IntakeGate ready="@output.value">' }}
       />
@@ -85,7 +85,7 @@ function _IntakeGate(props: RuntimeProps) {
     return (
       <DisplayError
         id={id}
-        name="IntakeGate"
+        title="IntakeGate"
         message='"targets" attribute is empty or contains only whitespace'
         technical={{ targets }}
       />
@@ -99,7 +99,7 @@ function _IntakeGate(props: RuntimeProps) {
         return (
           <DisplayError
             id={id}
-            name="IntakeGate"
+            title="IntakeGate"
             message={`Invalid "${name}" expression: ${e.message}`}
             technical={{ expression: expr }}
           />

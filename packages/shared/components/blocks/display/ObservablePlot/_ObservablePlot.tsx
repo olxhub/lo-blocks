@@ -115,11 +115,11 @@ export default function _ObservablePlot(props: RuntimeProps) {
   }
 
   if (!text || !text.trim()) {
-    return <DisplayError props={props} name="ObservablePlot" message="Empty plot spec" />;
+    return <DisplayError props={props} title="ObservablePlot" message="Empty plot spec" />;
   }
 
   if (error) {
-    return <DisplayError props={props} name="ObservablePlot" message="Invalid plot spec" technical={error} />;
+    return <DisplayError props={props} title="ObservablePlot" message="Invalid plot spec" technical={error} />;
   }
 
   return <div ref={containerRef} />;

@@ -34,7 +34,7 @@ export default function _SortableInput(props: RuntimeProps) {
     return (
       <DisplayError
         props={props}
-        name="SortableInput Error"
+        title="SortableInput Error"
         message="No items provided"
       />
     );

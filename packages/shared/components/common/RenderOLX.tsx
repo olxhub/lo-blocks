@@ -530,7 +530,7 @@ export default function RenderOLX({
           </div>
           {warnings.map((err, i) => (
             <details key={i} className="mb-1">
-              <summary>{err.summary}</summary>
+              <summary>{err.title}</summary>
               <pre className="whitespace-pre-wrap mt-1 text-xs">{err.message}</pre>
             </details>
           ))}

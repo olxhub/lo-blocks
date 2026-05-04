@@ -4,6 +4,7 @@
 import React, { ReactNode, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import type { LofsRef } from '@/lib/types';
+import type { AppError } from '@/lib/types/errors';
 import { getExtension } from '@/lib/util/fileTypes';
 import { useFieldState, settings } from '@/lib/state';
 
@@ -135,20 +136,18 @@ export const debugLog = (...args: any[]) => {
   }
 };
 
-interface DisplayErrorProps {
+interface DisplayErrorProps extends AppError {
   props?: any;
-  name?: string;
-  message: string;
-  /** Technical details (error message, stack trace, etc.) */
-  technical?: string | Error | any;
   data?: any;
   id?: string;
 }
 
 // Safe, debuggable error wrapper
-export function DisplayError({ props = {}, name = 'Error', message, technical, data, id = 'error' }: DisplayErrorProps) {
+export function DisplayError({ props = {}, title = 'Error', message, technical, stack, data, id = 'error' }: DisplayErrorProps) {
+  const technicalDetails = [technical, stack].filter(Boolean);
+
   // Log raw data for dev console inspection
-  debugLog(`[${name}] ${message}`, { technical, data });
+  debugLog(`[${title}] ${message}`, { technical, stack, data });
 
   // Helper: stringify safely
   const safe = (value) => {
@@ -164,19 +163,19 @@ export function DisplayError({ props = {}, name = 'Error', message, technical, d
 
   // In debug mode, crash hard
   if (debug) {
-    const techMsg = technical ? ` [Technical: ${technical}]` : '';
-    throw new Error(`[${name}] ${message}${techMsg}`);
+    const techMsg = technicalDetails.length > 0 ? ` [Technical: ${technicalDetails.join('\n')}]` : '';
+    throw new Error(`[${title}] ${message}${techMsg}`);
   }
 
   // In production / non-debug mode, render friendly box
   return (
     <div key={id} className="lo-display-error bg-yellow-50 text-yellow-800 text-sm p-3 rounded border border-yellow-200 whitespace-pre-wrap overflow-auto">
-      <div><strong>{name}</strong>: {message}</div>
+      <div><strong>{title}</strong>: {message}</div>
 
-      {technical && (
+      {technicalDetails.length > 0 && (
         <details style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>
           <summary>Technical Details</summary>
-          <pre className="overflow-auto mt-2">{safe(technical)}</pre>
+          <pre className="overflow-auto mt-2">{technicalDetails.map(safe).join('\n\n')}</pre>
         </details>
       )}
     </div>

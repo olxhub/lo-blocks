@@ -195,7 +195,7 @@ export default function _CapaProblem(props: RuntimeProps) {
       <DisplayError
         props={props}
         id={`${id}_no_grader`}
-        name="CapaProblem"
+        title="CapaProblem"
         message="No grader found. Add a grader block (e.g., NumericalGrader, KeyGrader) to this problem."
         technical={{ hint: 'CapaProblem expects at least one child block with isGrader=true' }}
       />

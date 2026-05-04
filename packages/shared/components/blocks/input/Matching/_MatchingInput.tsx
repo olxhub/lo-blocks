@@ -261,7 +261,7 @@ export default function _MatchingInput(props: RuntimeProps) {
     return (
       <DisplayError
         props={props}
-        name="MatchingInput Error"
+        title="MatchingInput Error"
         message="MatchingInput requires an even number of children (left/right pairs)"
       />
     );

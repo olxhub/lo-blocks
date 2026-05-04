@@ -69,7 +69,7 @@ function _Trigger(props: RuntimeProps) {
   if (evalError) {
     return <DisplayError
       props={props}
-      name="Trigger"
+      title="Trigger"
       message={`Failed to evaluate watch expression: ${expr}`}
       technical={evalError}
     />;

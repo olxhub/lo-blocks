@@ -78,7 +78,7 @@ export default function _HintButton(props: RuntimeProps) {
     return (
       <DisplayError
         props={props}
-        name="HintButton"
+        title="HintButton"
         message="No DemandHints component found"
         technical="Add target='hints_id' or place a DemandHints component in the same problem."
       />

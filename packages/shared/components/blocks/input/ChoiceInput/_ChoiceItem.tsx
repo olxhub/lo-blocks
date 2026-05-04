@@ -40,7 +40,7 @@ export default function _ChoiceItem(props: RuntimeProps) {
 
   if (!parentId) {
     return (
-      <DisplayError name="ChoiceItem" message="No parent ChoiceInput or CheckboxInput found" data={{ id: props.id }} />
+      <DisplayError title="ChoiceItem" message="No parent ChoiceInput or CheckboxInput found" data={{ id: props.id }} />
     );
   }
 

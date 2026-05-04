@@ -114,7 +114,7 @@ export function render({ node, nodeInfo, runtime }: {
       return (
         <DisplayError
           id={`missing-store-${node.id}`}
-          name="render"
+          title="render"
           message="Redux store not available"
           technical={{ blockId: node.id, hint: 'Store is missing from runtime context' }}
         />
@@ -128,7 +128,7 @@ export function render({ node, nodeInfo, runtime }: {
       return (
         <DisplayError
           id={`block-missing-${node.id}`}
-          name="render"
+          title="render"
           message={`Block "${node.id}" not found in content`}
           technical={{ blockId: node.id, olxKey, locale, sources }}
         />
@@ -147,7 +147,7 @@ export function render({ node, nodeInfo, runtime }: {
     return (
       <DisplayError
         id={`unknown-tag-${tag}`}
-        name="render"
+        title="render"
         message={`No component found for tag "${tag}"`}
         data={node}
       />
@@ -165,7 +165,7 @@ export function render({ node, nodeInfo, runtime }: {
     return (
       <DisplayError
         id={`validation-${node.id}`}
-        name={tag}
+        title={tag}
         message={`Invalid attributes: ${zodErrors}`}
         technical={{ attributes, zodError: validationResult.error }}
       />
@@ -179,7 +179,7 @@ export function render({ node, nodeInfo, runtime }: {
       return (
         <DisplayError
           id={`semantic-validation-${node.id}`}
-          name={tag}
+          title={tag}
           message={`Invalid attributes:\n${semanticErrors.join('\n')}`}
           technical={{ attributes: validationResult.data, semanticErrors }}
         />
@@ -218,7 +218,7 @@ export function render({ node, nodeInfo, runtime }: {
       return (
         <DisplayError
           id={`grader-required-${node.id}`}
-          name={tag}
+          title={tag}
           message={e.message}
           technical={{ tag, blockId: node.id }}
         />
@@ -315,7 +315,7 @@ export function renderCompiledKids(props): React.ReactNode[] {
     return [
       <DisplayError
         key="invalid-kids-type"
-        name="renderCompiledKids"
+        title="renderCompiledKids"
         message={`Expected kids to be an array, got ${typeof kids}`}
         data={kids}
       />
@@ -377,7 +377,7 @@ export function renderCompiledKids(props): React.ReactNode[] {
     return (
       <DisplayError
         key={child.key}
-        name="renderCompiledKids"
+        title="renderCompiledKids"
         message={`Unknown child type: "${child.type}"`}
         data={child}
       />
