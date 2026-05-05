@@ -94,7 +94,7 @@ Lianne: Well, for example, there are cases where schools, like in rural communit
 
 Lianne: This is an example of a structural cause, not one situated in the individual.
 
-::internal_and_structural_causes [display=target:interdisciplinary_sba_sidebar_e]
+::internal_and_structural_causes [display=target:interdisciplinary_sba_sidebar_e label="View cause types"]
 
 Lianne: Keep an open mind about possible causes because our programs can work with multiple stakeholders, like schools and community groups as well as families and students.
 
@@ -102,7 +102,7 @@ Ty: Ah, I get it. So, why don't we each write one reason that is more like a str
 
 Peggy: That's a good idea. I'll try it even though I'm not quite sure I get the difference yet.
 
-::cause_inputs [display=target:interdisciplinary_sba_sidebar_e]
+::cause_inputs [display=target:interdisciplinary_sba_sidebar_e label="Enter your causes"]
 
 Peggy: So let's see if we can each write two causes.
 
@@ -111,7 +111,7 @@ Peggy: So let's see if we can each write two causes.
 [id=causes_review]
 You: I'm done.
 
-::causes_list [display=target:interdisciplinary_sba_sidebar_e]
+::causes_list [display=target:interdisciplinary_sba_sidebar_e label="View team discussion"]
 
 Lacy: Here are all of our reasons, Lianne. What do you think?
 
@@ -122,15 +122,15 @@ Task 2: Review Focus Group Data [id=focus_group_start]
 
 Lianne: Now let's move on to the next task. I'd like you to take a look at part of the transcript from that focus group to extract additional reasons because this is an extremely complex problem, as you've already identified, with many causes.
 
-::transcript_md1 [display=target:interdisciplinary_sba_sidebar_f]
+::transcript_md1 [display=target:interdisciplinary_sba_sidebar_f label="Read focus group transcript"]
 
 Lianne: Read the transcript before you go on.
 
-::focus_group_transcript_pt1 [display=target:interdisciplinary_sba_sidebar_f]
+::focus_group_transcript_pt1 [display=target:interdisciplinary_sba_sidebar_f label="Highlight dropout causes"]
 
 Lianne: Highlight any reasons that our participants gave for students dropping out of high school, and add a note explaining why it describes a cause of high school dropout. You'll be able to use these notes later.
 
-::focus_group_highlights_shown [display=target:interdisciplinary_sba_sidebar_f]
+::focus_group_highlights_shown [display=target:interdisciplinary_sba_sidebar_f label="View highlighted transcript"]
 
 Ty: I hope we get to work on focus groups here because that was really interesting. Here's what I highlighted.
 
@@ -139,23 +139,23 @@ Task 3: Select Focus Areas [id=focus_selection]
 
 Lacy: I studied focus groups in my research methods class last year. We analyzed lots of transcripts. Ty, I'm taking your highlights and combining them with the reasons we already came up with. I re-worded some of them, but I think I've captured everything.
 
-::brainstorming_disciplines [display=target:interdisciplinary_sba_sidebar_g]
+::brainstorming_disciplines [display=target:interdisciplinary_sba_sidebar_g label="List relevant disciplines"]
 
 Lianne: Good work. This list reflects what we've heard in the community about this issue. Now we need to turn our attention to the research. To do that, we need to have an idea what disciplines might be relevant to our problem. Why don't you all look over the list again, and come up with a list of disciplines that might have something to say about one or more of the causes we listed?
 
 Lianne: Great work! However, I think we should focus on a subset of these reasons -- ones that Comm360 might actually be able to address.
 
-::reasons_checklist [display=target:interdisciplinary_sba_sidebar_g]
+::reasons_checklist [display=target:interdisciplinary_sba_sidebar_g label="Select focus areas"]
 
 Lacy: Which ones would you select to research? Pick at least three to start with, and no more than five.
 
 --- wait @reasons.value.length > 2 && @reasons.value.length < 6 ---
 
-::reasons_shown [display=target:interdisciplinary_sba_sidebar_g]
+::reasons_shown [display=target:interdisciplinary_sba_sidebar_g label="View your selections"]
 
 Lianne: I agree with you on some of your choices. Why did you select that set? Why do you think Comm360 would be able to address them?
 
-::reason_explanation_input [display=target:interdisciplinary_sba_sidebar_g]
+::reason_explanation_input [display=target:interdisciplinary_sba_sidebar_g label="Explain your choices"]
 
 --- wait @reason_explanation.value ---
 
@@ -174,11 +174,11 @@ Lianne: Yes, and we'll move into the research phase of this work shortly, but fi
 
 Lianne: So we'll need to determine if the problem of people dropping out of high school is the kind of problem that is appropriate for interdisciplinary research.
 
-::broad_model_display [display=target:interdisciplinary_sba_sidebar_h]
+::broad_model_display [display=target:interdisciplinary_sba_sidebar_h label="View Repko criteria"]
 
 Peggy: Ah, I think all of us are familiar with Broad Model from Repko from Professor Ari.
 
-::first_pass_on_criteria [display=target:interdisciplinary_sba_sidebar_h]
+::first_pass_on_criteria [display=target:interdisciplinary_sba_sidebar_h label="Evaluate problem fit"]
 
 Lianne: Of course. Which means you should be able to see how the high school dropout model fits the model! Why don't you all take a moment and see how well it fits Repko's criteria.
 
@@ -196,14 +196,14 @@ Ty: Let's do it.
 
 Peggy: Let's figure out which disciplines are likely to give us the most insights into the problem and possible solutions. How about each of us select all the disciplines in a row that we think apply for each of the causes listed? I think it is ok if we check as many boxes in a row as we think apply. Then, we can sum up our responses to see if they align and if we think this is an interdisciplinary problem.
 
-::causes_by_disciplines [display=target:interdisciplinary_sba_sidebar_h]
+::causes_by_disciplines [display=target:interdisciplinary_sba_sidebar_h label="Map causes to disciplines"]
 
 // HACK: Object.keys().length is instructor-unfriendly. TODO: Add isFilled() or .numberFilled field
 --- wait Object.keys(@discipline_mapping.value).length > 3 ---
 
 Peggy: Ok, I summed up our responses and this shows any category that got more than one vote. We didn't always agree on each discipline, but overall we all seem to see how different disciplines might investigate the problem.
 
-::causes_by_disciplines_answers [display=target:interdisciplinary_sba_sidebar_h]
+::causes_by_disciplines_answers [display=target:interdisciplinary_sba_sidebar_h label="View mapping results"]
 
 Lacy: I agree. Our analysis supports what you were saying, Ty. These causes cut across a lot of subjects.
 
@@ -220,7 +220,7 @@ Lianne: Let's dig in a bit now and get more information about some of the causes
 
 Ty: I'm on it. I took a few key words from one of the causes and did a search. One study looks promising.
 
-::adhd_study_text [display=target:interdisciplinary_sba_sidebar_i]
+::adhd_study_text [display=target:interdisciplinary_sba_sidebar_i label="Read ADHD study"]
 
 Ty: Here it is.
 
@@ -230,7 +230,7 @@ Peggy: I think it's Psychology. There are some clues and jargon in the summary.
 
 Ty: Can you show us?
 
-::adhd_study_highlighted [display=target:interdisciplinary_sba_sidebar_i]
+::adhd_study_highlighted [display=target:interdisciplinary_sba_sidebar_i label="View discipline clues"]
 
 Peggy: So I highlighted the clues and jargon that makes me think this study is in the Psychology field. Attention, learning disorders, and IQ are all concepts that psychologists typically study.
 
@@ -238,7 +238,7 @@ Peggy: Plus there's a heavy focus on early identification and intervention, espe
 
 Peggy: A big clue was also psychological risk factors.
 
-::adhd_study_text [display=target:interdisciplinary_sba_sidebar_i]
+::adhd_study_text [display=target:interdisciplinary_sba_sidebar_i label="Review ADHD study"]
 
 Lianne: Great! Thanks for that, Peggy. Now let's look at the article again.
 
@@ -256,14 +256,14 @@ Ty: Yeah, but ADHD status continues to predict high school dropout even after co
 social class and IQ. So I am not sure about adding them. Instead, we should add something about
 early intervention; the source repeatedly mentions the importance of early intervention.
 
-::adhd_insight_sentence_tabs [display=target:interdisciplinary_sba_sidebar_i]
+::adhd_insight_sentence_tabs [display=target:interdisciplinary_sba_sidebar_i label="Write insight sentence"]
 
 Lianne: Great discussion, everyone! Let's try to capture the insight more clearly than
 we have so far. Why don't we all write a sentence?
 
 --- wait @adhd_insight_sentence.value ---
 
-::adhd_insight_sentence_choice [display=target:interdisciplinary_sba_sidebar_i]
+::adhd_insight_sentence_choice [display=target:interdisciplinary_sba_sidebar_i label="Choose best sentence"]
 
 Lianne: Good work. Here are the sentences we suggested. Which one should we go with?
 
@@ -282,23 +282,23 @@ Lacy: I used the search term method and found another study. This one is on empl
 
 Lianne: See if you can find the clue words that indicate which disciplines are relevant in this study.
 
-::employment_study_annotation_screen [display=target:interdisciplinary_sba_sidebar_j]
+::employment_study_annotation_screen [display=target:interdisciplinary_sba_sidebar_j label="Highlight employment study"]
 
 Lianne: So which disciplines do you think are represented in this study? Highlight clue words or phrases in the text. Then click on "Annotate", go to the right, and add a note saying what discipline the clue suggests, and why.
 
-::employment_discipline_checkboxes [display=target:interdisciplinary_sba_sidebar_j]
+::employment_discipline_checkboxes [display=target:interdisciplinary_sba_sidebar_j label="Select disciplines"]
 
 Lianne: Based on your answers, check the disciplines represented in this study.
 
 --- wait @source_2_classification.value ---
 
-::source_2_explanation_input [display=target:interdisciplinary_sba_sidebar_j]
+::source_2_explanation_input [display=target:interdisciplinary_sba_sidebar_j label="Explain discipline clues"]
 
 Lianne: How are the clues you picked representative of the disciplines you picked? Can you explain?
 
 --- wait @source_2_classification_explanation.value ---
 
-::employment_study_text [display=target:interdisciplinary_sba_sidebar_j]
+::employment_study_text [display=target:interdisciplinary_sba_sidebar_j label="Read employment study"]
 
 Lianne: As we did with the ADHD study, we need to identify the "insight of this source".
 
@@ -312,19 +312,19 @@ Lacy: Yeah, but only 11% of students worked more than 20 hours in the study duri
 
 Peggy: It also cites overrepresentation of disadvantaged youth in the high risk group.
 
-::source_2_insight_input [display=target:interdisciplinary_sba_sidebar_j]
+::source_2_insight_input [display=target:interdisciplinary_sba_sidebar_j label="Write insight sentence"]
 
 Lianne: Why don't we each write our own sentence like we did for the other study?
 
 --- wait @source_2_insight_sentence.value ---
 
-::employment_insight_sentence_choice [display=target:interdisciplinary_sba_sidebar_j]
+::employment_insight_sentence_choice [display=target:interdisciplinary_sba_sidebar_j label="Choose best sentence"]
 
 Lianne: Great work. Here are the sentences you all suggested. Which one should we go with?
 
 --- wait @employment_insight_sentence_choice_input.value ---
 
-::source_2_insight_explanation_screen [display=target:interdisciplinary_sba_sidebar_j]
+::source_2_insight_explanation_screen [display=target:interdisciplinary_sba_sidebar_j label="Explain your choice"]
 
 Lianne: Could you explain why you chose the sentence you picked?
 
@@ -343,11 +343,11 @@ Task 5: Literature Review -- Rural and Urban Study [id=literature_rural_urban]
 
 Lacy: I think it makes sense to use this highlighting method for other studies we find. Like this one.
 
-::rural_urban_study_text [display=target:interdisciplinary_sba_sidebar_k]
+::rural_urban_study_text [display=target:interdisciplinary_sba_sidebar_k label="Highlight rural/urban study"]
 
 Peggy: OK, let's do the annotation and see what we find out!
 
-::rural_discipline_checkboxes [display=target:interdisciplinary_sba_sidebar_k]
+::rural_discipline_checkboxes [display=target:interdisciplinary_sba_sidebar_k label="Select disciplines"]
 
 Lianne: So which disciplines do you think are represented in this study?
 
@@ -355,11 +355,11 @@ Lianne: So which disciplines do you think are represented in this study?
 
 Lianne: How are the clues you picked representative of the study you picked. Can you explain?
 
-::source_3_explanation_input [display=target:interdisciplinary_sba_sidebar_k]
+::source_3_explanation_input [display=target:interdisciplinary_sba_sidebar_k label="Explain discipline clues"]
 
 --- wait @source_3_classification_explanation.value ---
 
-::reading_rural_urban [display=target:interdisciplinary_sba_sidebar_k]
+::reading_rural_urban [display=target:interdisciplinary_sba_sidebar_k label="Read rural/urban study"]
 
 Lianne: What do you think is the disciplinary insight of this source?
 
@@ -383,18 +383,18 @@ Lacy: And for peer influences it lists gang involvement and drug use.
 Peggy: These should be included in the study insight, which should also include
 policy implications of addressing family and peer influences to improve graduation rates.
 
-::source_3_insight [display=target:interdisciplinary_sba_sidebar_k]
+::source_3_insight [display=target:interdisciplinary_sba_sidebar_k label="Write insight sentence"]
 
 Lianne: These are all great points. How about we each write our own sentence and pick
 the one that captures these points the best?
 
-::rural_insight_checkboxes [display=target:interdisciplinary_sba_sidebar_k]
+::rural_insight_checkboxes [display=target:interdisciplinary_sba_sidebar_k label="Choose best sentence"]
 
 --- wait @source_3_insight_selection.value ---
 
 Lianne: Great work. Here are the sentences you suggested. Which one should we go with?
 
-::source_3_insight_explanation [display=target:interdisciplinary_sba_sidebar_k]
+::source_3_insight_explanation [display=target:interdisciplinary_sba_sidebar_k label="Explain your choice"]
 
 Lianne: You chose the following sentence. Why did you select that one?
 
@@ -412,23 +412,23 @@ Task 5: Literature Review -- School Funding Study [id=literature_funding]
 
 Ty: I'm going to add this study to the ones we should review.
 
-::funding_study_text [display=target:interdisciplinary_sba_sidebar_l]
+::funding_study_text [display=target:interdisciplinary_sba_sidebar_l label="Highlight funding study"]
 
 Lacy: Good, let's annotate it and figure out what disciplines are involved.
 
 Lianne: So which disciplines do you think are represented in this study?
 
-::funding_study_additional_disciplines_checkboxes [display=target:interdisciplinary_sba_sidebar_l]
+::funding_study_additional_disciplines_checkboxes [display=target:interdisciplinary_sba_sidebar_l label="Select disciplines"]
 
 --- wait @funding_study_additional_disciplines.value ---
 
 Lianne: How are the clues you picked representative of the disciplines you selected? Can you explain?
 
-::source_4_explanation_input [display=target:interdisciplinary_sba_sidebar_l]
+::source_4_explanation_input [display=target:interdisciplinary_sba_sidebar_l label="Explain discipline clues"]
 
 --- wait @source_4_classification_explanation.value ---
 
-::funding_study_text_md [display=target:interdisciplinary_sba_sidebar_l]
+::funding_study_text_md [display=target:interdisciplinary_sba_sidebar_l label="Read funding study"]
 
 Lianne: How about the disciplinary insight of this source?
 
@@ -444,19 +444,19 @@ fewer academic and support services."
 Lianne: Yes, and the author argues for school finance reform included weighted student
 funding models to more equitably allocate funding to high-need schools.
 
-::source_4_insight_input [display=target:interdisciplinary_sba_sidebar_l]
+::source_4_insight_input [display=target:interdisciplinary_sba_sidebar_l label="Write insight sentence"]
 
 Lianne: Let's write a sentence for the insight of this fourth source.
 
 --- wait @source_4_classification_explanation.value ---
 
-::source_4_insight_selection_input [display=target:interdisciplinary_sba_sidebar_l]
+::source_4_insight_selection_input [display=target:interdisciplinary_sba_sidebar_l label="Choose best sentence"]
 
 Lianne: Good work. Here are the sentences you all suggested. Which one should we go with?
 
 --- wait @source4_insight_selection.value ---
 
-::source_4_insight_explanation_input [display=target:interdisciplinary_sba_sidebar_l]
+::source_4_insight_explanation_input [display=target:interdisciplinary_sba_sidebar_l label="Explain your choice"]
 
 Lianne: Why did you choose this sentence? Explain.
 
