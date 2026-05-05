@@ -318,7 +318,8 @@ type OlxJsonMultipleResult = {
  * Pure selector: reads multiple OlxJson blocks by IDs from Redux state.
  *
  * Does NOT trigger fetches — just reads what's already in Redux.
- * Returns placeholders (Spinner/ErrorNode OlxJson) for missing/loading/errored blocks.
+ * Returns results array with status + olxJson (null for unresolved blocks).
+ * The hook layer creates Spinner/ErrorNode placeholders to avoid re-render churn.
  *
  * @param state - Redux state
  * @param props - Component props (for locale)
@@ -331,7 +332,7 @@ export function selectOlxJsonMultiple(
   ids: OlxReference[],
   source: string = 'content'
 ): {
-  olxJsons: OlxJson[];
+  results: OlxJsonMultipleResult[];
   allReady: boolean;
 } {
   const sources = [source];
@@ -350,16 +351,9 @@ export function selectOlxJsonMultiple(
     return { olxJson: langVariant || null, status: 'ready' as const };
   });
 
-  const olxJsons = results.map((r, i) => {
-    if (r.olxJson) return r.olxJson;
-    if (r.status === 'loading' || r.status === 'missing') return spinnerOlxJson(ids[i]);
-    if (r.status === 'error') return errorOlxJson(ids[i], r.error || `Error loading "${ids[i]}"`);
-    return errorOlxJson(ids[i], `Block "${ids[i]}" not found`);
-  });
-
   const allReady = results.every(r => r.status === 'ready' && r.olxJson !== null);
 
-  return { olxJsons, allReady };
+  return { results, allReady };
 }
 
 /**
@@ -377,7 +371,17 @@ export function getOlxJsonMultiple(
   allReady: boolean;
 } {
   const state = props.runtime.store.getState();
-  return selectOlxJsonMultiple(state, props, ids, source);
+  const { results, allReady } = selectOlxJsonMultiple(state, props, ids, source);
+
+  // Create placeholders for unresolved blocks
+  const olxJsons = results.map((r, i) => {
+    if (r.olxJson) return r.olxJson;
+    if (r.status === 'loading' || r.status === 'missing') return spinnerOlxJson(ids[i]);
+    if (r.status === 'error') return errorOlxJson(ids[i], r.error || `Error loading "${ids[i]}"`);
+    return errorOlxJson(ids[i], `Block "${ids[i]}" not found`);
+  });
+
+  return { olxJsons, allReady };
 }
 
 /**
@@ -387,6 +391,9 @@ export function getOlxJsonMultiple(
  * Each entry is the real block, a Spinner (if loading), or an ErrorNode
  * (if errored or missing). Callers never see nulls — every entry is
  * renderable through the normal block pipeline.
+ *
+ * Equality check compares status + olxJson identity, not placeholder objects,
+ * to prevent re-render churn from loading/error states.
  *
  * @param props - Component props (must include logEvent, sideEffectFree)
  * @param ids - Array of OLX IDs to look up
@@ -401,13 +408,18 @@ export function useOlxJsonMultiple(
   allReady: boolean;
 } {
   // Read from Redux using the pure selector
-  // Custom equality avoids re-renders when the resolved blocks haven't changed
-  const result = useSelector(
+  // Equality compares status (not placeholder objects) to avoid re-render churn
+  const { results, allReady } = useSelector(
     (state: any) => selectOlxJsonMultiple(state, props, ids, source),
-    // Shallow-compare the olxJsons array and allReady flag
+    // Compare status + olxJson identity (placeholders created AFTER this check)
     (a, b) => a.allReady === b.allReady &&
-              a.olxJsons.length === b.olxJsons.length &&
-              a.olxJsons.every((olxJson, i) => olxJson === b.olxJsons[i])
+              a.results.length === b.results.length &&
+              a.results.every((ar, i) => {
+                const br = b.results[i];
+                return ar.status === br.status &&
+                       ar.olxJson === br.olxJson &&
+                       ar.error === br.error;
+              })
   );
 
   // Trigger fetches for missing blocks (not a hook — fire-and-forget with dedup)
@@ -417,5 +429,13 @@ export function useOlxJsonMultiple(
     }
   }, [JSON.stringify(ids), source, props.runtime.sideEffectFree, props.runtime.logEvent]);
 
-  return result;
+  // Create placeholders AFTER equality check to avoid re-render churn
+  const olxJsons = results.map((r, i) => {
+    if (r.olxJson) return r.olxJson;
+    if (r.status === 'loading' || r.status === 'missing') return spinnerOlxJson(ids[i]);
+    if (r.status === 'error') return errorOlxJson(ids[i], r.error || `Error loading "${ids[i]}"`);
+    return errorOlxJson(ids[i], `Block "${ids[i]}" not found`);
+  });
+
+  return { olxJsons, allReady };
 }
