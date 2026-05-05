@@ -164,6 +164,12 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    if (targetLocale === '*') {
+      return NextResponse.json(
+        { ok: false, error: 'Cannot translate to wildcard locale "*" — specify a concrete target language' },
+        { status: 400 }
+      );
+    }
 
     const blockId = toOlxKey(body.blockId);
 

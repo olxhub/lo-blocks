@@ -199,6 +199,8 @@ export function render({ node, nodeInfo, runtime }: {
   if (!childNodeInfo) {
     childNodeInfo = { olxJson: node, reduxKey, renderedKids: {}, parent: nodeInfo, loBlock: blockType };
     nodeInfo.renderedKids[reduxKey] = childNodeInfo;
+  } else {
+    childNodeInfo.olxJson = node;
   }
 
   const wrapperProps = {
