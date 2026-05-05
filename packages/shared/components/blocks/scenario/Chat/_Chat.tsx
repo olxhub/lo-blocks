@@ -111,6 +111,9 @@ export function _Chat(props: RuntimeProps) {
   const { blocks: renderedBlocks } = useRenderedBlocksMultiple(props, embedIds);
 
   // Build visible messages, mapping EmbedCommands to their rendered blocks
+  // TODO: The embedIndex counter assumes embedIds and visibleMessages iterate the same window
+  // with the same filter logic. A Map<OlxReference, ReactNode> keyed by entry.ref would be
+  // more robust against dependency/closure mismatches, at the cost of a bit more memory.
   const visibleMessages: ChatMessage[] = useMemo(() => {
     const window = allEntries.slice(windowRange.start, windowedIndex + 1);
     const messages: ChatMessage[] = [];
