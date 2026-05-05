@@ -7,15 +7,8 @@
  */
 
 import type { UserLocale, LoBlockRuntimeContext } from '@/lib/types';
+import { toUserLocale } from '@/lib/types/i18n';
 import { getTextDirection } from './getTextDirection';
-
-/**
- * Type constructors - convert plain strings to branded types safely.
- */
-function asUserLocale(code: string): UserLocale {
-  if (!code) throw new Error('UserLocale cannot be empty');
-  return code as UserLocale;
-}
 
 function getBaseVariant(variant: UserLocale | string): string {
   return (variant as string).split(':')[0];
@@ -43,7 +36,7 @@ export function updateRuntimeLocale(
   runtime: LoBlockRuntimeContext,
   newLocaleCode: string
 ): LoBlockRuntimeContext {
-  const userLocale = asUserLocale(newLocaleCode);
+  const userLocale = toUserLocale(newLocaleCode);
   const baseVariant = getBaseVariant(userLocale);
   const dir = getTextDirection(baseVariant);
 

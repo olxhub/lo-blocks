@@ -25,7 +25,7 @@
 //
 
 // Types
-export * from './types';
+export * from '../types/storage';
 
 // Providers
 export * from './providers';

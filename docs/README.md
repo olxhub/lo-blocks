@@ -589,6 +589,119 @@ Note: LLMs can generate very decent semantic IDs.
 
 Also: Namespaces still need to be figured out.
 
+## Content Addressing and the Naming Hierarchy
+
+The system has three distinct naming levels that connect where content *lives* to how it behaves at runtime:
+
+```
+  LofsRef            Where content lives (storage reference)
+      │               "git@github.com:olxhub/lo-blocks.git://content/hw1.olx"
+      │               "git@github.com:olxhub/lo-blocks.git://content/hw1.olx#main"
+      │
+      │  addressPath() → OlxKey lookup
+      │  withoutVersion() strips version for identity
+      │
+  OlxKey             What a block is (content identity)
+      │               "week1_problem3"  (a block defined inside hw1.olx)
+      │
+      │  refToReduxKey(props) applies idPrefix
+      │
+  ReduxStateKey      Which runtime instance
+                      "mastery:#0:week1_problem3"
+```
+
+The existing IDs section above covers OlxKey and ReduxStateKey in detail. This section documents the storage layer below them.
+
+### LOFS Addresses
+
+A LOFS (Learning Observer File System) address identifies a piece of content at a specific location, optionally at a specific version:
+
+```
+source://path[#version]
+```
+
+Examples:
+```
+git@github.com:olxhub/lo-blocks.git://content/myfile.olx
+git@github.com:olxhub/lo-blocks.git://content/myfile.olx#main
+git@github.com:olxhub/lo-blocks.git://content/myfile.olx#3f41866
+file:/home/user/content://myfile.olx
+pg://school.edu/cs101://hw1/problem3.olx#v42
+memory:session-42://draft.olx
+```
+
+The address grammar is designed to handle real-world source locators (which often contain `://`, `@`, colons, and slashes) without ambiguity:
+
+1. **Path**: Split at the *last* `://`. Everything before is the source, everything after is the path-with-optional-version. Source locators may contain `://` (like `file://`, `pg://`), but paths within a source never do.
+
+2. **Version**: In the path part, find `#`. Everything before is the path, everything after is the version. `#` is reserved — it must not appear in paths or source locators. This is unambiguous by design: `#` doesn't appear in file paths (by convention), git ref names (git forbids it), hostnames, or email addresses.
+
+### The LofsRef → LofsCanonical Subtype Hierarchy
+
+This is the critical type distinction in the address system. **`LofsCanonical` is a subtype of `LofsRef`**, and TypeScript enforces the difference at compile time.
+
+```
+  LofsRef                              General reference — may be mutable
+      │                                 foo://hw1.olx#main      (branch — mutable)
+      │                                 foo://hw1.olx#f367812   (specific commit)
+      │                                 foo://hw1.olx           (no version — latest)
+      │
+      └── LofsCanonical                Resolved reference — immutable #version
+                                        foo://hw1.olx#3f41866  (commit hash)
+                                        file:content://hw1.olx#1714680000-4096  (mtime+size)
+```
+
+A `LofsRef` can carry `#branch`, `#hash`, `#version`, or no version at all. A `LofsCanonical` always has a `#version` that is immutable — a git commit hash, an mtime, a content hash, a database version number. The version is provider-opaque: consumers compare versions for equality but never interpret them.
+
+**Why this matters**: `LofsDependencies` (the list of all source files that contributed to an OlxJson node) is `LofsCanonical[]`. If we know exactly which version of each dependency we read, we can detect staleness precisely. With `LofsRef[]`, `foo://hw1.olx#main` tells us nothing — "main" might have moved. With `LofsCanonical[]`, `foo://hw1.olx#3f41866` is immutable and comparable. We also need absolute versions for analytics, and other places where we want to know exactly what the student did.
+
+TypeScript enforces canonicalization: you cannot assign a `LofsRef` where `LofsCanonical` is expected. This catches every place where we forgot to resolve versions at compile time. The canonicalization boundary is at providers and at `parseOLX`. `ReadResult.provenance` is `LofsCanonical`: `FileStorageProvider` includes mtime as `#version`, and `InMemoryStorageProvider` uses a SHA-256 content hash. `parseOLX` accepts `LofsRef[]` input and canonicalizes internally (using content hash as `#version`), so callers never need to pre-canonicalize.
+
+Note that `hasVersion()` returns `boolean`, NOT a type guard. A ref with `#main` has a version but is NOT canonical (main is mutable). Only the provider decides what's canonical — via `toLofsCanonical()` at the point where it resolves what was actually read.
+
+### LofsOrigin
+
+`LofsOrigin` is the source part of an address, stripped of version and path. It identifies *where* content comes from.
+
+```
+LofsRef:     git@github.com:olxhub/lo-blocks.git://content/hw1.olx#main
+LofsOrigin:  git@github.com:olxhub/lo-blocks.git
+```
+
+More examples: `file:/home/user/content`, `pg://school.edu/cs101`, `memory:session-42`.
+
+This was originally intended to be used for namespacing redux and OLX keys. This turned out to be a **bad idea**. 95+% of the time, there is a 1:1 mapping between LofsOrigin and namespace. By default, we will derive namespace from LofsOrigin: `git@github.com:olxhub/lo-blocks.git` corresponds to the namespace `lo-blocks`, for example, and we will use that to namespace.
+
+However, we want to maintain the same key for:
+
+- The same repository across forks. If a student did a problem in `gsu/course.git`, it should remain done in `memphis/course.git`.
+- The same content in a stack. If I am editing a course on disk, in-memory, etc. we have a **different** origin in the stack, but the same identity.
+
+This is the "identity" dimension — it doesn't change when you switch branches or update files. If a student starts homework on `#ae1f` and the instructor pushes to `#main`, the origin is the same and the student's Redux state survives. Fixing a typo in a piece of content shouldn't cause the student to lose state.
+
+Not, as well, that the same file might be referred to as:
+
+```
+git@github.com:other/ee101.git://hw1.olx#main         (mutable branch)
+git@github.com:other/ee101.git://hw1.olx#ae1f         (specific commit)
+git@github.com:other/ee101.git://hw1.olx              (no version)
+```
+
+All three may refer to the same namespace, `ee101`, and will have the same keys.
+
+### Cross-Repository References (Future)
+
+Today, OlxKeys are local to a single content source. But content import requires cross-repository references. An OlxKey like `hw1` is ambiguous when two sources both define it.
+
+The planned approach uses namespace-qualified references with `://` as the separator:
+
+```
+analogForDummies://hw1            (cross-repo reference)
+hw1                               (local, unqualified)
+```
+
+The namespace is a short logical name for a content collection (e.g., `analogForDummies`, `calculusForDummies`), derived from the LOFS origin by default but decoupled from it — forks, memory overlays, and local checkouts of the same course share a namespace.
+
 ## Kid nodes
 
 We would like most parsers to return renderable portions of their kids in this format:

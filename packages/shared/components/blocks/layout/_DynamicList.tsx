@@ -4,7 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
-import { extendIdPrefix, scopeMarker } from '@/lib/blocks/idResolver';
+import { extendIdPrefix, scopeMarker } from '@/lib/types/id';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import { assertKidArray } from '@/lib/util/kids';
@@ -50,7 +50,7 @@ export default function _DynamicList(props: RuntimeProps) {
     return (
       <DisplayError
         id={id}
-        name="DynamicList"
+        title="DynamicList"
         message="DynamicList requires a child element to use as a template"
       />
     );
@@ -59,7 +59,7 @@ export default function _DynamicList(props: RuntimeProps) {
     return (
       <DisplayError
         id={id}
-        name="DynamicList"
+        title="DynamicList"
         message="DynamicList expects exactly one child. Wrap multiple elements in a Vertical or other container."
         data={{ childCount: props.kids.length }}
       />

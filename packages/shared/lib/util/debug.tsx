@@ -3,7 +3,8 @@
 
 import React, { ReactNode, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import type { ProvenanceURI } from '@/lib/types';
+import type { LofsRef } from '@/lib/types';
+import type { AppError } from '@/lib/types/errors';
 import { getExtension } from '@/lib/util/fileTypes';
 import { useFieldState, settings } from '@/lib/state';
 
@@ -77,23 +78,20 @@ export const DebugWrapper = ({ props = {}, loBlock, children }: DebugWrapperProp
   const provenance = props?.nodeInfo?.olxJson?.provenance ?? [];
   const prefix = process.env.NEXT_PUBLIC_DEBUG_LINK_PREFIX ?? '';
 
-  /** Extract scheme and path from a provenance URI (e.g., "file:///foo" → ["file", "/foo"]) */
-  function splitProvenance(uri: ProvenanceURI): { scheme: string; path: string } {
-    const idx = uri.indexOf('://');
+  /** Extract scheme and path from a LofsRef (e.g., "file:content://foo" → ["file:content", "foo"]) */
+  function splitProvenance(uri: LofsRef): { scheme: string; path: string } {
+    const idx = uri.lastIndexOf('://');
     if (idx < 0) return { scheme: 'unknown', path: uri };
     return { scheme: uri.slice(0, idx), path: uri.slice(idx + 3) };
   }
 
   const links = provenance.map((uri, idx) => {
     const { scheme, path: uriPath } = splitProvenance(uri);
-    if (scheme === 'file') {
-      // Logical path after file:/// e.g. '/content/sba/foo.olx' → 'content/sba/foo.olx'
+    if (scheme.startsWith('file:')) {
+      // Path after last :// e.g. 'file:content://sba/foo.olx' → 'sba/foo.olx'
       const logicalPath = uriPath.startsWith('/') ? uriPath.slice(1) : uriPath;
-      // Strip mount point prefix (e.g. 'content/') for Studio-relative link
-      const contentPrefix = 'content/';
-      const rel = logicalPath.startsWith(contentPrefix)
-        ? logicalPath.slice(contentPrefix.length)
-        : logicalPath;
+      // logicalPath is already relative to the mount point (e.g. 'sba/foo.olx')
+      const rel = logicalPath;
       const href = `/studio?file=${encodeURIComponent(rel)}`;
       const fileType = getExtension(uriPath) || 'file';
       return <Link key={idx} href={href} title={rel}>{fileType}</Link>;
@@ -138,20 +136,18 @@ export const debugLog = (...args: any[]) => {
   }
 };
 
-interface DisplayErrorProps {
+interface DisplayErrorProps extends AppError {
   props?: any;
-  name?: string;
-  message: string;
-  /** Technical details (error message, stack trace, etc.) */
-  technical?: string | Error | any;
   data?: any;
   id?: string;
 }
 
 // Safe, debuggable error wrapper
-export function DisplayError({ props = {}, name = 'Error', message, technical, data, id = 'error' }: DisplayErrorProps) {
+export function DisplayError({ props = {}, title = 'Error', message, technical, stack, data, id = 'error' }: DisplayErrorProps) {
+  const technicalDetails = [technical, stack].filter(Boolean);
+
   // Log raw data for dev console inspection
-  debugLog(`[${name}] ${message}`, { technical, data });
+  debugLog(`[${title}] ${message}`, { technical, stack, data });
 
   // Helper: stringify safely
   const safe = (value) => {
@@ -167,19 +163,19 @@ export function DisplayError({ props = {}, name = 'Error', message, technical, d
 
   // In debug mode, crash hard
   if (debug) {
-    const techMsg = technical ? ` [Technical: ${technical}]` : '';
-    throw new Error(`[${name}] ${message}${techMsg}`);
+    const techMsg = technicalDetails.length > 0 ? ` [Technical: ${technicalDetails.join('\n')}]` : '';
+    throw new Error(`[${title}] ${message}${techMsg}`);
   }
 
   // In production / non-debug mode, render friendly box
   return (
     <div key={id} className="lo-display-error bg-yellow-50 text-yellow-800 text-sm p-3 rounded border border-yellow-200 whitespace-pre-wrap overflow-auto">
-      <div><strong>{name}</strong>: {message}</div>
+      <div><strong>{title}</strong>: {message}</div>
 
-      {technical && (
+      {technicalDetails.length > 0 && (
         <details style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>
           <summary>Technical Details</summary>
-          <pre className="overflow-auto mt-2">{safe(technical)}</pre>
+          <pre className="overflow-auto mt-2">{technicalDetails.map(safe).join('\n\n')}</pre>
         </details>
       )}
     </div>

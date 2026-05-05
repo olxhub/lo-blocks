@@ -82,7 +82,7 @@ export function _DigitSpanTask( props: RuntimeProps ) {
   if (!['forward', 'backward', 'ascending'].includes(mode)) {
     return (
       <DisplayError
-        name="DigitSpanTask"
+        title="DigitSpanTask"
         message="Invalid mode provided. Must be 'forward', 'backward', or 'ascending'."
         technical={`Got mode="${mode}"`}
         data={{ attributes }}

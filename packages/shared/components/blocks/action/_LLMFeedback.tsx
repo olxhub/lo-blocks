@@ -41,7 +41,7 @@ function _LLMFeedback(props: RuntimeProps) {
       return <Spinner />;
     }
     if (isError) {
-      return <DisplayError name="LLMFeedback" message={feedback || 'LLM request failed'} />;
+      return <DisplayError title="LLMFeedback" message={feedback || 'LLM request failed'} />;
     }
     if (isEmpty) {
       return <span className="llm-feedback-placeholder">AI feedback will appear here</span>;

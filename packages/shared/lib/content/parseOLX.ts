@@ -23,7 +23,11 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { transformTagName } from '@/lib/content/xmlTransforms';
 
 import * as parsers from '@/lib/content/parsers';
-import { Provenance, IdMap, OLXLoadingError, OlxReference, OlxKey, JSONValue } from '@/lib/types';
+import { LofsDependencies, IdMap, OLXLoadingError, OlxReference, OlxKey, JSONValue } from '@/lib/types';
+import type { LofsRef } from '@/lib/types/address';
+import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
+import { variantMapKeys } from '@/lib/types/i18n';
+import { hashContent } from '@/lib/util';
 
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { isZodCompatible, describeZodType } from '@/lib/blocks/zodCompat';
@@ -71,6 +75,11 @@ function isElementNode(node: any): boolean {
     Object.keys(node).some(k => k !== '#text' && k !== '#comment' && k !== ':@');
 }
 
+function isBlockKid(node: JSONValue): node is { type: 'block'; id: OlxKey } {
+  return typeof node === 'object' && node !== null && !Array.isArray(node) &&
+    node.type === 'block' && typeof node.id === 'string';
+}
+
 /**
  * Parse an OLX XML fragment and return its element nodes.
  *
@@ -98,7 +107,7 @@ const XML_META = XMLParser.getMetaDataSymbol() as unknown as symbol;
 
 /**
  * Convert a byte offset within an XML source string to a 1-based line/column
- * pair. Returns the bits in the shape AppError.location accepts, so callers
+ * pair. Returns the bits in the shape OLXLoadingError.location accepts, so callers
  * can spread directly:
  *
  *   location: { provenance, ...offsetToLineCol(xml, sourceOffset) }
@@ -207,7 +216,7 @@ function resolveElementLanguage(
  */
 function extractMetadataFromComment(
   commentText: any,
-  provenance: Provenance,
+  provenance: LofsDependencies,
   errors: OLXLoadingError[]
 ): OLXMetadata | OLXLoadingError | null {
   const provStr = provenance.join(' → ');
@@ -220,7 +229,7 @@ function extractMetadataFromComment(
   if (commentText === undefined || commentText === null) {
     const error: OLXLoadingError = {
       type: 'parse_error',
-      summary: `Internal parser error in ${provStr}`,
+      title: `Internal parser error in ${provStr}`,
       message: 'Internal parser error: Comment node found but text content is missing. This may indicate a parser configuration issue.',
       location: { provenance },
       technical: { commentText }
@@ -232,7 +241,7 @@ function extractMetadataFromComment(
   if (typeof commentText !== 'string') {
     const error: OLXLoadingError = {
       type: 'parse_error',
-      summary: `Internal parser error in ${provStr}`,
+      title: `Internal parser error in ${provStr}`,
       message: `Internal parser error: Comment text has unexpected type '${typeof commentText}' (expected string).`,
       location: { provenance },
       technical: { commentText, type: typeof commentText }
@@ -267,7 +276,7 @@ function extractMetadataFromComment(
 
       const error: OLXLoadingError = {
         type: 'metadata_error',
-        summary: `${provStr} has an error in its file header`,
+        title: `${provStr} has an error in its file header`,
         message: `📝 Metadata Format Error
 
 The metadata in your comment has formatting issues:
@@ -304,7 +313,7 @@ Common issues:
     // YAML parsing failed
     const error: OLXLoadingError = {
       type: 'metadata_error',
-      summary: `${provStr} has an error in its file header`,
+      title: `${provStr} has an error in its file header`,
       message: `📝 Metadata YAML Syntax Error
 
 The metadata in your comment contains invalid YAML syntax:
@@ -356,7 +365,7 @@ Example of correct format:
 function extractSiblingMetadata(
   siblings: any[] | null,
   nodeIndex: number,
-  provenance: Provenance,
+  provenance: LofsDependencies,
   errors: OLXLoadingError[]
 ): OLXMetadata {
   if (!siblings || nodeIndex <= 0) {
@@ -408,13 +417,24 @@ function extractSiblingMetadata(
 
 export async function parseOLX(
   xml,
-  provenance: Provenance,
+  inputProvenance: LofsRef[],
   provider?: import('../lofs').StorageProvider
 ) {
   const idMap: IdMap = {};
 
+  if (inputProvenance.length !== 1) {
+    throw new Error(
+      `parseOLX expects exactly one input provenance ref, got ${inputProvenance.length}. ` +
+      `Multi-ref canonicalization is not implemented.`
+    );
+  }
+  const contentVersion = toLofsVersion(await hashContent(xml));
+  const provenance: LofsDependencies = inputProvenance.map(
+    ref => toLofsCanonical(withVersion(ref, contentVersion))
+  );
+
   // Validate XML first for better error messages
-  const provenanceStr = provenance.join(', ');
+  const provenanceStr = inputProvenance.join(', ');
   const validation = XMLValidator.validate(xml, {
     allowBooleanAttributes: true
   });
@@ -487,7 +507,7 @@ export async function parseOLX(
     // 3. Inherited from parent element (carries file-level lang via cascade)
     // 4. Default '*'
     const metadataLang = metadata?.lang;
-    const currentLang = resolveElementLanguage(attributes, parentLang, metadataLang);
+    let currentLang = resolveElementLanguage(attributes, parentLang, metadataLang);
 
     // Resolve generated status: element's own metadata, or inherited from parent.
     // File-level generated (e.g., machineTranslated) cascades to all children.
@@ -533,7 +553,7 @@ export async function parseOLX(
       const zodErrors = result.error.issues.map(i => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
       const errorObj = {
         type: 'attribute_validation' as const,
-        summary: `Invalid attribute on <${tag}> in ${provenance.join(', ')}`,
+        title: `Invalid attribute on <${tag}> in ${provenance.join(', ')}`,
         message: `Invalid attributes for <${tag} id="${id}">:\n${zodErrors}`,
         location: { provenance, ...offsetToLineCol(xml, sourceOffset) },
         technical: {
@@ -551,8 +571,8 @@ export async function parseOLX(
       // Matches the PEG error pattern in parsers.ts.
       const lang = resolveElementLanguage(attributes, currentLang, metadataLang);
       const entry = {
-        id, tag: 'ErrorNode', attributes, provenance,
-        rawParsed: node, kids: errorObj, parseError: true,
+        id, tag: 'ErrorNode', attributes: errorObj, provenance,
+        rawParsed: node, kids: [], parseError: true,
         lang,
         ...(sourceOffset !== undefined ? { _sourceOffset: sourceOffset } : {}),
         ...(metadata || {})
@@ -565,6 +585,11 @@ export async function parseOLX(
       // Use transformed attributes (e.g., "true" -> true for booleans)
       parsedAttributes = result.data;
 
+      // Re-resolve lang from transformed attributes (Zod canonicalizes e.g. "EN-us" → "en-US")
+      if (parsedAttributes.lang) {
+        currentLang = resolveElementLanguage(parsedAttributes, parentLang, metadataLang);
+      }
+
       // Semantic validation beyond what Zod schema can express
       // e.g., NumericalGrader answer must be a valid number, StringGrader regexp must be valid
       if (Component?.validateAttributes) {
@@ -573,7 +598,7 @@ export async function parseOLX(
           const errorList = semanticErrors.map(e => `  - ${e}`).join('\n');
           errors.push({
             type: 'attribute_validation',
-            summary: `Invalid attribute on <${tag}> in ${provenance.join(', ')}`,
+            title: `Invalid attribute on <${tag}> in ${provenance.join(', ')}`,
             message: `Invalid attributes for <${tag} id="${id}">:\n${errorList}`,
             location: { provenance, ...offsetToLineCol(xml, sourceOffset) },
             technical: {
@@ -688,7 +713,7 @@ export async function parseOLX(
 
           errors.push({
             type: 'duplicate_id',
-            summary: `Duplicate ID "${storeId}" in ${provenance.join(', ')}`,
+            title: `Duplicate ID "${storeId}" in ${provenance.join(', ')}`,
             message: `Duplicate ID "${storeId}" found in ${provenance.join(', ')}. Each element must have a unique id.
 
 🔍 EXISTING ENTRY (Line ${existingLoc.line ?? '?'}, Column ${existingLoc.column ?? '?'}):
@@ -721,14 +746,15 @@ export async function parseOLX(
 
     // Structural validation: check children after they are parsed
     if (Component?.validateChildren) {
-      const entry = idMap[id]?.[currentLang] ?? idMap[id]?.[Object.keys(idMap[id] || {})[0]];
+      const fallbackLang = idMap[id] ? variantMapKeys(idMap[id])[0] : undefined;
+      const entry = idMap[id]?.[currentLang] ?? (fallbackLang ? idMap[id]?.[fallbackLang] : undefined);
       const kids = entry?.kids;
       const childErrors = Component.validateChildren(kids, idMap);
       if (childErrors && childErrors.length > 0) {
         const errorList = childErrors.map(e => `  - ${e}`).join('\n');
         errors.push({
           type: 'attribute_validation',
-          summary: `Invalid children in <${tag}> in ${provenance.join(', ')}`,
+          title: `Invalid children in <${tag}> in ${provenance.join(', ')}`,
           message: `Invalid children for <${tag} id="${id}">:\n${errorList}`,
           location: { provenance, ...offsetToLineCol(xml, sourceOffset) },
           technical: { tag, id, childErrors }
@@ -783,7 +809,8 @@ export async function parseOLX(
   for (const blockId of parsedIds) {
     const variants = idMap[blockId];
     if (!variants) continue;
-    const entry = variants[Object.keys(variants)[0]];
+    const variant = variantMapKeys(variants)[0];
+    const entry = variant ? variants[variant] : undefined;
     if (!entry?.tag) continue;
     const graderBlock = BLOCK_REGISTRY[entry.tag];
     if (!graderBlock?.isGrader || !graderBlock.inputSchema) continue;
@@ -792,16 +819,17 @@ export async function parseOLX(
     let inputIds: string[] = [];
     const target = entry.attributes?.target;
     if (target) {
-      inputIds = Array.isArray(target) ? target
+      inputIds = Array.isArray(target) ? target.filter((value): value is string => typeof value === 'string')
         : typeof target === 'string' ? target.split(',').map(s => s.trim()) : [];
     } else if (Array.isArray(entry.kids)) {
       inputIds = entry.kids
-        .filter(k => k.type === 'block')
+        .filter(isBlockKid)
         .map(k => k.id)
         .filter(id => {
           const v = idMap[id];
           if (!v) return false;
-          const e = v[Object.keys(v)[0]];
+          const variant = variantMapKeys(v)[0];
+          const e = variant ? v[variant] : undefined;
           return e?.tag && BLOCK_REGISTRY[e.tag]?.isInput;
         });
     }
@@ -809,7 +837,8 @@ export async function parseOLX(
     for (const inputId of inputIds) {
       const inputVariants = idMap[inputId];
       if (!inputVariants) continue; // Cross-file or unresolvable — skip
-      const inputEntry = inputVariants[Object.keys(inputVariants)[0]];
+      const inputVariant = variantMapKeys(inputVariants)[0];
+      const inputEntry = inputVariant ? inputVariants[inputVariant] : undefined;
       if (!inputEntry?.tag) continue;
       const inputBlock = BLOCK_REGISTRY[inputEntry.tag];
       if (!inputBlock?.valueSchema) continue;
@@ -817,7 +846,7 @@ export async function parseOLX(
       if (!isZodCompatible(inputBlock.valueSchema, graderBlock.inputSchema)) {
         errors.push({
           type: 'attribute_validation',
-          summary: `Type mismatch: <${entry.tag}> with <${inputEntry.tag}> in ${provenance.join(', ')}`,
+          title: `Type mismatch: <${entry.tag}> with <${inputEntry.tag}> in ${provenance.join(', ')}`,
           message: `<${entry.tag}> expects ${describeZodType(graderBlock.inputSchema)} input, but <${inputEntry.tag}> provides ${describeZodType(inputBlock.valueSchema)}.`,
           location: { provenance, ...offsetToLineCol(xml, entry._sourceOffset) },
           technical: {

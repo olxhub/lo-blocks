@@ -11,8 +11,10 @@ import { FileStorageProvider } from '@/lib/lofs/providers/file';
 import { syncContentFromStorage, getSourceFile, getBlocksForFiles, getBlockVariant, getOriginalVariant } from '@/lib/content/syncContentFromStorage';
 import { getProvider } from '@/lib/llm/provider';
 import { translateContent } from '@/lib/translate';
-import type { OlxKey, ContentVariant, ProvenanceURI, OlxRelativePath, SafeRelativePath } from '@/lib/types';
-import { toOlxKey } from '@/lib/blocks/idResolver';
+import type { OlxKey, ContentVariant, LofsRef, OlxRelativePath, SafeRelativePath } from '@/lib/types';
+
+import { toOlxKey } from '@/lib/types/id';
+import { toContentVariant } from '@/lib/types/i18n';
 
 const contentDir = process.env.OLX_CONTENT_DIR || './content';
 const logsDir = path.resolve(contentDir, '..', 'logs');
@@ -27,7 +29,7 @@ type TranslationResult = { ok: boolean; idMap?: any; error?: string };
 // Content-store helpers (depend on syncContentFromStorage state)
 // =============================================================================
 
-function uriToRelPath(fileUri: ProvenanceURI): OlxRelativePath {
+function uriToRelPath(fileUri: LofsRef): OlxRelativePath {
   return provider.toRelativePath(fileUri) as OlxRelativePath;
 }
 
@@ -40,8 +42,8 @@ function computeTranslationPath(sourceRelPath: OlxRelativePath, targetLocale: Co
 /** Follow source_file back to the human-authored original to avoid
  *  quality degradation from translating translations. */
 function resolveOriginalSource(
-  sourceFileUri: ProvenanceURI, blockId: OlxKey, sourceLocale: ContentVariant
-): { fileUri: ProvenanceURI; locale: ContentVariant } {
+  sourceFileUri: LofsRef, blockId: OlxKey, sourceLocale: ContentVariant
+): { fileUri: LofsRef; locale: ContentVariant } {
   const sourceVariant = getBlockVariant(blockId, sourceLocale);
   if (sourceVariant?.generated?.method !== 'machineTranslated' || !sourceVariant?.generated?.source_file) {
     return { fileUri: sourceFileUri, locale: sourceLocale };
@@ -51,13 +53,13 @@ function resolveOriginalSource(
   const originalRelPath = path.join(path.dirname(path.dirname(sourceRelPath)), originalFileName) as OlxRelativePath;
 
   const original = getOriginalVariant(blockId);
-  const effectiveLocale = (original?.lang as ContentVariant) || sourceLocale;
+  const effectiveLocale = original?.lang ? toContentVariant(original.lang) : sourceLocale;
 
-  return { fileUri: provider.toProvenanceURI(originalRelPath as SafeRelativePath), locale: effectiveLocale };
+  return { fileUri: provider.toLofsRef(originalRelPath as SafeRelativePath), locale: effectiveLocale };
 }
 
-function buildIdMapResult(sourceFileUri: ProvenanceURI, targetRelPath: OlxRelativePath): TranslationResult {
-  const targetFileUri = provider.toProvenanceURI(targetRelPath as SafeRelativePath);
+function buildIdMapResult(sourceFileUri: LofsRef, targetRelPath: OlxRelativePath): TranslationResult {
+  const targetFileUri = provider.toLofsRef(targetRelPath as SafeRelativePath);
   // Check that the target file was actually indexed — getBlocksForFiles
   // returns source blocks too, so a non-empty result doesn't guarantee
   // the translation was parsed successfully.
@@ -71,7 +73,7 @@ function buildIdMapResult(sourceFileUri: ProvenanceURI, targetRelPath: OlxRelati
 
 async function checkExistingTranslation(
   targetRelPath: OlxRelativePath,
-  sourceFileUri: ProvenanceURI
+  sourceFileUri: LofsRef
 ): Promise<TranslationResult | null> {
   try {
     await provider.read(targetRelPath);
@@ -88,7 +90,7 @@ async function checkExistingTranslation(
 
 async function doTranslation(
   blockId: OlxKey,
-  sourceFileUri: ProvenanceURI,
+  sourceFileUri: LofsRef,
   targetLocale: ContentVariant,
   sourceLocale: ContentVariant
 ): Promise<TranslationResult> {
@@ -153,16 +155,23 @@ export async function POST(request: Request) {
       );
     }
 
-    const bcp47Re = /^[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*$/;
-    if (!bcp47Re.test(body.targetLocale)) {
+    let targetLocale: ContentVariant;
+    try {
+      targetLocale = toContentVariant(body.targetLocale);
+    } catch {
       return NextResponse.json(
         { ok: false, error: 'Invalid locale format' },
         { status: 400 }
       );
     }
+    if (targetLocale === '*') {
+      return NextResponse.json(
+        { ok: false, error: 'Cannot translate to wildcard locale "*" — specify a concrete target language' },
+        { status: 400 }
+      );
+    }
 
     const blockId = toOlxKey(body.blockId);
-    const targetLocale = body.targetLocale as ContentVariant;
 
     if (getProvider().provider === 'stub') {
       return NextResponse.json(
@@ -183,7 +192,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const sourceLocale = (originalVariant.lang || 'en') as ContentVariant;
+    // HACK: Should not be hardcoded to English
+    const sourceLocale = toContentVariant(originalVariant.lang || 'en');
     const sourceFileUri = getSourceFile(blockId, sourceLocale);
     if (!sourceFileUri) {
       return NextResponse.json(

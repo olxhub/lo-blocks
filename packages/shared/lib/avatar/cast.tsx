@@ -25,6 +25,7 @@
 import React from 'react';
 import yaml from 'js-yaml';
 import type { LoBlockRuntimeContext } from '@/lib/types';
+
 import Avatar from '@/components/common/Avatar';
 import {
   CastSchema, CastMemberSchema, OpenPeepsSchema,
@@ -389,8 +390,9 @@ export function withCastSupport(
         let resolved, castProvenance, content;
         try {
           resolved = ctx.provider.resolveRelativePath(lastProv, castPath);
-          castProvenance = ctx.provider.toProvenanceURI(resolved);
-          ({ content } = await ctx.provider.read(resolved));
+          const readResult = await ctx.provider.read(resolved);
+          content = readResult.content;
+          castProvenance = readResult.provenance;
         } catch (e: any) {
           throw new Error(`Cast file not found: "${castPath}" (resolved from ${lastProv})\n${e.message}`);
         }

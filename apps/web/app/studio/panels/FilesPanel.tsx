@@ -2,9 +2,9 @@
 'use client';
 
 import { useState } from 'react';
-import type { UriNode } from '@/lib/lofs/types';
+import type { UriNode } from '@/lib/types/storage';
 import { CREATABLE_TYPES } from '@/lib/util/fileTypes';
-import { FORBIDDEN_FILENAME_CHARS } from '@/lib/lofs/types';
+import { FORBIDDEN_FILENAME_CHARS } from '@/lib/types/storage';
 import ExpandIcon from '@/components/common/ExpandIcon';
 
 /** Strip characters that are not allowed in filenames. */

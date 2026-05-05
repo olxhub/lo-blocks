@@ -20,9 +20,11 @@ import type {
   XmlScanResult,
   GrepOptions,
   GrepMatch,
-} from '../types';
-import type { ProvenanceURI, OlxRelativePath, SafeRelativePath } from '../../types';
-import { toMemoryProvenanceURI, provenancePath } from '../types';
+} from '../../types/storage';
+import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
+import { toMemoryRef, provenancePath } from '../../types/storage';
+import { scheme, withVersion, toLofsRef as brandLofsRef, toLofsCanonical, toLofsVersion } from '../../types/address';
+import { hashContent } from '../../util';
 
 export class InMemoryStorageProvider implements StorageProvider {
   files: Record<string, string>;
@@ -38,13 +40,19 @@ export class InMemoryStorageProvider implements StorageProvider {
     const normalized = path.replace(/^\.?\//, '');
 
     if (this.files[normalized] !== undefined) {
-      return { content: this.files[normalized], metadata: {}, provenance: toMemoryProvenanceURI(normalized) };
+      const content = this.files[normalized];
+      const ref = toMemoryRef(normalized);
+      const ver = toLofsVersion(await hashContent(content));
+      return { content, metadata: {}, provenance: toLofsCanonical(withVersion(ref, ver)) };
     }
 
     // Try with basePath prefix
     const withBase = this.basePath ? `${this.basePath}/${normalized}` : normalized;
     if (this.files[withBase] !== undefined) {
-      return { content: this.files[withBase], metadata: {}, provenance: toMemoryProvenanceURI(withBase) };
+      const content = this.files[withBase];
+      const ref = toMemoryRef(withBase);
+      const ver = toLofsVersion(await hashContent(content));
+      return { content, metadata: {}, provenance: toLofsCanonical(withVersion(ref, ver)) };
     }
 
     const availableFiles = Object.keys(this.files).join(', ') || '(none)';
@@ -70,36 +78,38 @@ export class InMemoryStorageProvider implements StorageProvider {
   }
 
   async loadXmlFilesWithStats(
-    previous: Record<ProvenanceURI, XmlFileInfo> = {}
+    previous: Record<LofsRef, XmlFileInfo> = {}
   ): Promise<XmlScanResult> {
-    const added: Record<ProvenanceURI, XmlFileInfo> = {};
-    const unchanged: Record<ProvenanceURI, XmlFileInfo> = {};
+    const added: Record<LofsRef, XmlFileInfo> = {};
+    const unchanged: Record<LofsRef, XmlFileInfo> = {};
 
     for (const [filename, content] of Object.entries(this.files)) {
       if (!isContentFile(filename)) continue;
 
-      const uri = toMemoryProvenanceURI(filename);
+      const ref = toMemoryRef(filename);
       const ext = getExtension(filename);
 
-      if (previous[uri]) {
-        unchanged[uri] = previous[uri];
+      if (previous[ref]) {
+        unchanged[ref] = previous[ref];
       } else {
-        added[uri] = { id: uri, type: ext, _metadata: {}, content };
+        const ver = toLofsVersion(await hashContent(content));
+        const id = toLofsCanonical(withVersion(ref, ver));
+        added[ref] = { id, type: ext, _metadata: {}, content };
       }
     }
 
     return { added, changed: {}, unchanged, deleted: {} };
   }
 
-  resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath {
-    // Only handle memory:// provenance — lets the stacked provider fall through
-    // to the file provider for file:// URIs.
-    if (!baseProvenance.startsWith('memory://')) {
+  resolveRelativePath(baseProvenance: LofsRef, relativePath: string): SafeRelativePath {
+    // Only handle memory: provenance — lets the stacked provider fall through
+    // to the file provider for file: refs.
+    if (scheme(brandLofsRef(baseProvenance)) !== 'memory') {
       throw new Error(`Unsupported provenance format: ${baseProvenance}`);
     }
 
     // Extract directory from base provenance URI and resolve relative to it.
-    // e.g., memory:///subdir/lesson.olx + "notes.md" → "subdir/notes.md"
+    // e.g., memory:local://subdir/lesson.olx + "notes.md" → "subdir/notes.md"
     const memoryPath = provenancePath(baseProvenance);
     const lastSlash = memoryPath.lastIndexOf('/');
     const baseDir = lastSlash >= 0 ? memoryPath.substring(0, lastSlash) : '';
@@ -117,19 +127,19 @@ export class InMemoryStorageProvider implements StorageProvider {
     return resolved.join('/') as SafeRelativePath;
   }
 
-  toProvenanceURI(safePath: SafeRelativePath): ProvenanceURI {
+  toLofsRef(safePath: SafeRelativePath): LofsRef {
     // Only claim provenance for files that actually exist in this provider.
     // In a stacked provider, this lets the file provider claim provenance
     // for files that aren't in memory.
     const normalized = (safePath as string).replace(/^\.?\//, '');
     if (this.files[normalized] !== undefined) {
-      return toMemoryProvenanceURI(safePath);
+      return toMemoryRef(safePath);
     }
     // Try with basePath prefix
     if (this.basePath) {
       const withBase = `${this.basePath}/${normalized}`;
       if (this.files[withBase] !== undefined) {
-        return toMemoryProvenanceURI(safePath);
+        return toMemoryRef(safePath);
       }
     }
     throw new Error(`File not found in memory provider: ${safePath}`);

@@ -41,7 +41,7 @@ export default function _DropdownSelect(props: RuntimeProps) {
   if (hasParsedContent && hasAttrOptions) {
     return (
       <DisplayError
-        name="DropdownInput"
+        title="DropdownInput"
         message="Cannot specify both content and options attribute"
         data={{ id: props.id }}
       />

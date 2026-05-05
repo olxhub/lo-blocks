@@ -7,7 +7,7 @@ import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import { isInputReadOnly, useGraderAnswer, refToOlxKey } from '@/lib/blocks';
-import { extendIdPrefix } from '@/lib/blocks/idResolver';
+import { extendIdPrefix } from '@/lib/types/id';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
 import { buildArrangementWithPositions } from '@/lib/util/shuffle';
 import { isKidArray } from '@/lib/util/kids';
@@ -34,7 +34,7 @@ export default function _SortableInput(props: RuntimeProps) {
     return (
       <DisplayError
         props={props}
-        name="SortableInput Error"
+        title="SortableInput Error"
         message="No items provided"
       />
     );

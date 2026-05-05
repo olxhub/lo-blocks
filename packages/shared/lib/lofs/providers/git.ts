@@ -8,7 +8,7 @@
 // - Tracking content history and changes
 // - Integration with git-based authoring workflows
 //
-import type { ProvenanceURI, OlxRelativePath, SafeRelativePath } from '../../types';
+import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
 import type {
   StorageProvider,
   XmlFileInfo,
@@ -19,13 +19,13 @@ import type {
   WriteOptions,
   GrepOptions,
   GrepMatch,
-} from '../types';
+} from '../../types/storage';
 
 export class GitStorageProvider implements StorageProvider {
   constructor(public repoPath: string) {}
 
   async loadXmlFilesWithStats(
-    _prev: Record<ProvenanceURI, XmlFileInfo> = {}
+    _prev: Record<LofsRef, XmlFileInfo> = {}
   ): Promise<XmlScanResult> {
     throw new Error('git storage not implemented');
   }
@@ -46,11 +46,11 @@ export class GitStorageProvider implements StorageProvider {
     throw new Error('git storage not implemented');
   }
 
-  resolveRelativePath(_baseProvenance: ProvenanceURI, _relativePath: string): SafeRelativePath {
+  resolveRelativePath(_baseProvenance: LofsRef, _relativePath: string): SafeRelativePath {
     throw new Error('git storage not implemented');
   }
 
-  toProvenanceURI(_path: SafeRelativePath): ProvenanceURI {
+  toLofsRef(_path: SafeRelativePath): LofsRef {
     throw new Error('git storage not implemented');
   }
 

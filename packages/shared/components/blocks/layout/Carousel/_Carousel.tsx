@@ -63,7 +63,7 @@ export default function _Carousel(props: RuntimeProps) {
   // 2. No items — early exit
   if (itemIds.length === 0) {
     return (
-      <DisplayError props={props} name="Carousel"
+      <DisplayError props={props} title="Carousel"
         message="No items found in Carousel"
         technical={{ hint: 'Add item IDs as content, e.g., <Carousel>item_1, item_2</Carousel>', blockId: id }}
         id={`${id}_no_items`}

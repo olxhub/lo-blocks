@@ -3,7 +3,8 @@
 // Import in test files:
 //   import { getOlxJson } from '@/lib/test-utils';
 
-import type { IdMap, OlxJson, OlxKey, ContentVariant } from './types';
+import { variantMapKeys } from './types/i18n';
+import type { IdMap, OlxJson, OlxKey } from './types';
 
 /**
  * Extract the first available variant from idMap for a given block ID.
@@ -12,6 +13,6 @@ import type { IdMap, OlxJson, OlxKey, ContentVariant } from './types';
 export const getOlxJson = (idMap: IdMap, id: string): OlxJson | undefined => {
   const variantMap = idMap[id as OlxKey];
   if (!variantMap) return undefined;
-  const variants = Object.keys(variantMap) as ContentVariant[];
+  const variants = variantMapKeys(variantMap);
   return variants.length > 0 ? variantMap[variants[0]] : undefined;
 };

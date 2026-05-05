@@ -27,7 +27,7 @@ function _SideBarPanel( props: RuntimeProps ) {
     return (
       <DisplayError
         props = { props }
-        name="SideBarPanel"
+        title="SideBarPanel"
         message="This section of the lesson expects multiple content blocks (like text or buttons), but something went wrong. Please check if the structure inside <MainPane> is correct."
         technical="Expected 'kids.main' to be an array"
         data={{ main }}
@@ -39,7 +39,7 @@ function _SideBarPanel( props: RuntimeProps ) {
     return (
       <DisplayError
         props = { props }
-        name="SideBarPanel"
+        title="SideBarPanel"
         message="The sidebar is expecting a list of items (like buttons or prompts), but couldn't find them. Make sure the <Sidebar> has content inside."
         technical="Expected 'kids.sidebar' to be an array"
         data={{ sidebar }}

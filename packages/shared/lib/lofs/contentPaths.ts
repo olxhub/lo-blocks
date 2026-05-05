@@ -9,7 +9,8 @@
 //
 import path from 'path';
 import { extensionsWithDots, CATEGORY } from '@/lib/util/fileTypes';
-import { fileProvenancePath } from './types';
+import { fileProvenancePath } from '../types/storage';
+import { source, toLofsRef } from '../types/address';
 import type { LofsPath, FileSystemPath, OlxRelativePath, SafeRelativePath } from '@/lib/types';
 
 // Base directory for content - resolved once at module load
@@ -64,6 +65,11 @@ export function validateContentPath(lofsPath: string): PathValidation {
     return { valid: false, error: "Path cannot be empty after 'content/' prefix" };
   }
 
+  // Reject version delimiter (# is reserved in LOFS addresses)
+  if (relPath.includes('#')) {
+    return { valid: false, error: 'Path must not contain "#" (reserved as LOFS version delimiter)' };
+  }
+
   // Normalize and check for directory traversal
   const normalized = path.normalize(relPath);
   if (normalized.startsWith('..') || path.isAbsolute(normalized)) {
@@ -83,17 +89,17 @@ export function validateContentPath(lofsPath: string): PathValidation {
 }
 
 /**
- * Extract the content-relative path from a provenance URI.
+ * Extract the content-relative path from a LofsRef.
  *
- * With mount-point URIs, the logical path is directly in the URI:
- * 'file:///content/demos/foo.xml' → logical path 'content/demos/foo.xml'.
- * Studio expects paths relative to the mount, so we strip the 'content/' prefix.
+ * With mount-point URIs, the path after :// is relative to the mount:
+ * 'file:content://demos/foo.xml' → content path 'demos/foo.xml'.
+ * fileProvenancePath extracts the path part and prepends the mount for validation.
  *
- * @param provenance - Array of provenance URIs
+ * @param provenance - Array of provenance URIs (LofsRef strings)
  * @returns Validation result with relative path or error message
  *
  * @example
- * getEditPathFromProvenance(['file:///content/demos/foo.xml'])
+ * getEditPathFromProvenance(['file:content://demos/foo.xml'])
  * // => { valid: true, relativePath: 'demos/foo.xml' }
  */
 export function getEditPathFromProvenance(provenance: string[] | undefined): PathValidation {
@@ -101,7 +107,7 @@ export function getEditPathFromProvenance(provenance: string[] | undefined): Pat
     return { valid: false, error: 'No provenance available' };
   }
 
-  const fileProv = provenance.find(p => p.startsWith('file://'));
+  const fileProv = provenance.find(p => p.startsWith('file:'));
   if (!fileProv) {
     return { valid: false, error: 'No file provenance found (content may be from non-file source)' };
   }
@@ -114,13 +120,14 @@ export function getEditPathFromProvenance(provenance: string[] | undefined): Pat
   }
 
   // Only accept files from the content mount
-  const contentPrefix = 'content/';
-  if (!logicalPath.startsWith(contentPrefix)) {
+  // In the new format, the mount point is in the source locator: file:content://path
+  const src = source(toLofsRef(fileProv)) as string;
+  if (src !== 'file:content' && !src.startsWith('file:content/')) {
     return { valid: false, error: 'File is not in the content mount' };
   }
-  const relativePath = logicalPath.slice(contentPrefix.length);
 
-  const normalized = path.normalize(relativePath);
+  // logicalPath is already relative to the mount (e.g. 'demos/foo.xml')
+  const normalized = path.normalize(logicalPath);
 
   // Security: reject paths that escape via traversal
   if (normalized.startsWith('..') || path.isAbsolute(normalized)) {

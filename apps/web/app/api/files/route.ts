@@ -6,7 +6,7 @@
 // GET /api/files?pattern=  - Returns files matching glob pattern
 //
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
-import { toOlxRelativePath } from '@/lib/lofs/types';
+import { toOlxRelativePath } from '@/lib/types/storage';
 
 const provider = new FileStorageProvider('./content');
 

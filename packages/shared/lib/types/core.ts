@@ -1,4 +1,4 @@
-// packages/shared/lib/types.ts
+// packages/shared/lib/types/core.ts
 //
 // Type definitions - central TypeScript types for Learning Observer architecture.
 //
@@ -15,8 +15,10 @@
 // Focus is on documenting contracts between system components, not exhaustive typing.
 //
 import { z } from 'zod';
-import { scopeNames } from './state/scopes';
+import { scopeNames } from '../state/scopes';
 import type { Store } from 'redux';
+import type { LofsRef, LofsCanonical } from './address';
+import type { ContentVariant, LocaleContext } from './i18n';
 
 /**
  * ════════════
@@ -31,46 +33,6 @@ export type JSONValue =
   | null
   | JSONValue[]
   | { [key: string]: JSONValue };
-
-/**
- * ═══════════
- * ERROR TYPES
- * ═══════════
- *
- * Error type hierarchy:
- *
- *   AppError                  — Base error value type (lib/errors.ts)
- *     └─ OLXLoadingError      — Content loading/parsing errors (adds type, summary)
- *
- * AppError is the canonical error shape. It aligns with DisplayError props
- * so you can spread one into the other: <DisplayError {...error} />.
- *
- * OLXLoadingError extends AppError with content-pipeline-specific fields
- * (error type tag, human summary). Source location lives on
- * `AppError.location.provenance` (a ProvenanceURI[] — file://, memory://,
- * etc. — so errors from non-filesystem sources still carry their origin).
- * Any code that accepts AppError also accepts OLXLoadingError.
- *
- * ErrorNode (the block) receives AppError as kids and passes through to
- * DisplayError. It doesn't need to know which subtype it has.
- *
- * Future directions:
- * - Other error subtypes (e.g. NetworkError, ValidationError) can extend
- *   AppError the same way OLXLoadingError does.
- * - DisplayError could gain location awareness (render line/column info)
- *   so ErrorNode doesn't need to format it.
- * - Consider whether the error panel (which uses OLXLoadingError[]) should
- *   accept AppError[] and use type narrowing for subtype-specific rendering.
- */
-
-import type { AppError } from '@/lib/errors';
-
-// OLX Content Loading Errors
-export interface OLXLoadingError extends AppError {
-  type: 'parse_error' | 'duplicate_id' | 'file_error' | 'peg_error' | 'attribute_validation' | 'metadata_error';
-  /** Human-readable summary for display (e.g. "Error in file header") */
-  summary: string;
-}
 
 /**
  * ════════
@@ -125,52 +87,91 @@ export interface OLXLoadingError extends AppError {
  * See docs/redux-key-decomposition.md for full design documentation.
  */
 
+// ════��══════════════════════════��═══════════════════════════════════════════════
+// CONTENT NAMESPACE
+// ══���════════════════════════════════════════════════════════════════════════════
+
+/**
+ * A short logical name for a content collection.
+ *
+ * Identifies WHAT a content source is (logical identity), not WHERE it lives
+ * (physical location). Multiple LOFS origins can map to the same namespace:
+ * forks, memory overlays, and local checkouts of the same course all share one.
+ *
+ * Derived from the LOFS origin by default (last path component, strip .git),
+ * but can be overridden via manifest.yaml.
+ *
+ * Examples: "analogForDummies", "calculusForDummies", "docs", "content"
+ *
+ * Used as the first dimension in Redux state: state.olxjson[namespace][bareKey]
+ */
+export type ContentNamespace = string & { readonly __brand: 'ContentNamespace' };
+
+const VALID_NAMESPACE = /^[a-zA-Z_][a-zA-Z0-9_.-]*$/;
+
+/** Validate and brand a content namespace string. */
+export function toContentNamespace(s: string): ContentNamespace {
+  if (!s) throw new Error('ContentNamespace cannot be empty');
+  if (!VALID_NAMESPACE.test(s)) {
+    throw new Error(`ContentNamespace must be alphanumeric (with ._-), starting with letter/underscore: "${s}"`);
+  }
+  return s as ContentNamespace;
+}
+
+/** The transitional namespace for single-repo content. Will eventually be repo-derived. */
+export const CONTENT_NAMESPACE = toContentNamespace('content');
+
+// ═══════════════���═══════════════════════════════════════════════��═══════════════
+// ID TYPES
+// ════════════════════════════════��══════════════════════════════════════════════
+
 // Valid ID segments: [a-zA-Z_][a-zA-Z0-9_]* (no hyphens, dots, colons, slashes, commas).
 // Auto-generated IDs are "_" + SHA1 hex hash.
 // See idResolver.ts VALID_ID_SEGMENT for the canonical regex and delimiter conventions.
 
 // User-authored reference as found in source OLX.
 // Created via toOlxReference(string, context).
-export type OlxReference = string & { __brand: 'OlxReference' };
+export type OlxReference = string & { readonly __brand: 'OlxReference' };
 
 // Canonical content key — used for content lookup in Redux (selectBlock, ensureBlock).
 // Created via refToOlxKey(ref) — strips path prefixes and scope prefixes.
-export type OlxKey = OlxReference & { __resolved: true };
+export type OlxKey = OlxReference & { readonly __resolved: true };
 
 // Scoping prefix for blocks rendered in repeating contexts (DynamicList, MasteryBank, etc.).
 // Created via extendIdPrefix(props, [id, scopeMarker(index)]).
 // Format: colon-delimited segments, e.g. "mylist:#0" or "bank:#attempt_2".
-export type IdPrefix = string & { __brand: 'IdPrefix' };
+export type IdPrefix = string & { readonly __brand: 'IdPrefix' };
 
 // Scoped state key — used for Redux state access (field values, correctness, etc.).
 // Created via refToReduxKey(props) — combines IdPrefix + OlxKey.
 // Format: "prefix:baseId" or just "baseId" if no prefix.
 // The target= attribute in OLX always contains a ReduxStateKey.
-export type ReduxStateKey = string & { __brand: 'ReduxStateKey' };
+export type ReduxStateKey = string & { readonly __brand: 'ReduxStateKey' };
 
 // A non-OlxKey scope segment in a ReduxStateKey. Format: #[0-9a-zA-Z_]+
 // Marks instance indices, attempt numbers, etc. — NOT loadable block IDs.
 // Created via scopeMarker(label) in idResolver.ts.
 // Examples: "#0" (list instance), "#attempt_2" (mastery bank attempt)
-export type ScopeMarker = string & { __brand: 'ScopeMarker' };
+export type ScopeMarker = string & { readonly __brand: 'ScopeMarker' };
 
 // React Keys and HTML IDs have different uniqueness constraints:
-export type ReactKey = string & { __brand: 'ReactKey' };          // React reconciliation
-export type HtmlId = string & { __brand: 'HtmlId' };              // DOM element ID
+export type ReactKey = string & { readonly __brand: 'ReactKey' };          // React reconciliation
+export type HtmlId = string & { readonly __brand: 'HtmlId' };              // DOM element ID
 
 // OLX element tag name (e.g., "Vertical", "Sequential", "ChoiceInput")
-export type OLXTag = string & { __brand: 'OLXTag' };
+export type OLXTag = string & { readonly __brand: 'OLXTag' };
 
 
 /**
- * ═══════════
- * Provenances
- * ═══════════
+ * ═══════════════════
+ * Provenance (LofsRef)
+ * ═══════════════════
  *
- * Every piece of parsed content carries a provenance chain — an array of
- * URIs recording where it came from. For a block in foo.olx that includes
- * quiz.chatpeg, that chain might be:
- *   ["file:///content/demos/foo.olx", "file:///content/demos/quiz.chatpeg"]
+ * Every piece of parsed content carries a provenance list — all source files
+ * that contributed to it. If any change, the OlxJson should be invalidated.
+ * For a block in foo.olx that includes quiz.chatpeg and characters.castpeg:
+ *   ["file:content://demos/foo.olx", "file:content://demos/quiz.chatpeg",
+ *    "file:content://demos/characters.castpeg"]
  *
  * This enables:
  * - Precise error messages ("syntax error in demos/foo.olx:42")
@@ -181,30 +182,31 @@ export type OLXTag = string & { __brand: 'OLXTag' };
  * (SafeRelativePath "uofa/writing/foo.md") can exist in multiple places
  * simultaneously — a university postgres database, a professor's git repo,
  * an in-memory editing buffer. Each has its own provenance:
- *   postgres://profx@uofa.edu/uofa/writing/foo.md
- *   git://profx@github.com/profx/olxrepo/uofa/writing/foo.md
- *   inline://uofa/writing/foo.md
+ *   pg:profx@uofa.edu://uofa/writing/foo.md
+ *   git:profx@github.com/profx/olxrepo://uofa/writing/foo.md
+ *   memory:local://uofa/writing/foo.md
  *
- * "Save" might push content from inline → git; "publish" from git → postgres.
+ * "Save" might push content from memory: → git:; "publish" from git: → pg:.
  * The true canonical identity is ultimately the content itself (a SHA hash),
- * with paths and provenance URIs serving as mutable pointers.
+ * with paths and provenance serving as mutable pointers.
  *
- * Providers construct provenance URIs — parsers should never need to know
- * about schemes. See StorageProvider.toProvenanceURI().
+ * Backed by LofsRef (see address.ts) so address functions (source, addressPath,
+ * scheme, etc.) work directly on provenance values.
  *
- * Sub-branded by scheme so TypeScript can distinguish file:// from memory://
- * at compile time. Runtime checks (startsWith('file://')) stay as
- * defense-in-depth — `as` casts and JS callers bypass brands.
+ * Sub-branded by scheme so TypeScript can distinguish file: from memory:
+ * at compile time.
  */
-/** Any provenance URI — base brand for all schemes */
-export type ProvenanceURI = string & { __brand: 'Provenance' };
-/** file:// provenance — content loaded from local filesystem */
-export type FileProvenanceURI = ProvenanceURI & { __scheme: 'file' };
-/** memory:// provenance — content from in-memory storage (tests, virtual FS) */
-export type MemoryProvenanceURI = ProvenanceURI & { __scheme: 'memory' };
+/** file: ref — content loaded from local filesystem */
+export type FileLofsRef = LofsRef & { readonly __scheme: 'file' };
+/** memory: ref — content from in-memory storage (tests, virtual FS) */
+export type MemoryLofsRef = LofsRef & { readonly __scheme: 'memory' };
 
-/** Primary representation for provenance references */
-export type Provenance = ProvenanceURI[];
+/**
+ * All source files that contributed to this content — invalidate if any change.
+ * LofsCanonical (not LofsRef) because these record what was actually read.
+ * Providers produce canonical refs by including version info (mtime, hash, etc.).
+ */
+export type LofsDependencies = LofsCanonical[];
 
 
 /*
@@ -242,7 +244,7 @@ export type SafeRelativePath = OlxRelativePath & { __safe: true };
  * canonicalization: a unique name in the virtual namespace, with "../"
  * resolved away. This is a *name*, not a *location* — the same
  * SafeRelativePath can exist in multiple storage providers simultaneously
- * (postgres, git, in-memory). The provider's toProvenanceURI() maps
+ * (postgres, git, in-memory). The provider's toLofsRef() maps
  * from name → location.
  *
  * From here, it must be read from storage. The location in our
@@ -314,10 +316,10 @@ export type FileSystemPath = string & { __brand: 'FileSystemPath', __safe: true 
 // =============================================================================
 
 /** Branded type for field names within a block's state. */
-export type FieldName = string & { __brand: 'FieldName' };
+export type FieldName = string & { readonly __brand: 'FieldName' };
 
 /** Branded type for event type strings dispatched via logEvent. */
-export type FieldEvent = string & { __brand: 'FieldEvent' };
+export type FieldEvent = string & { readonly __brand: 'FieldEvent' };
 
 /** Result of a field.write() call — event type + payload to dispatch. */
 export interface WriteResult {
@@ -342,7 +344,7 @@ export interface FieldInfo {
    *  field types may add more (SET_ADD, SET_REMOVE, COUNTER_INCREMENT, etc.). */
   events: FieldEvent[];
 
-  scope: import('./state/scopes').Scope;
+  scope: import('../state/scopes').Scope;
 
   /** Zod schema for value validation/coercion. Fields without schemas accept any value. */
   schema?: z.ZodType;
@@ -403,7 +405,7 @@ export interface FieldInfo {
    *  Default (no batching specified): immediate — every event sent as-is.
    *
    *  See fieldTypes/batching.ts for strategy constructors and documentation. */
-  batching?: import('./state/fieldTypes/batching').BatchingStrategy;
+  batching?: import('../state/fieldTypes/batching').BatchingStrategy;
 
   // ---------------------------------------------------------------------------
   // Future: serverReduce, merge
@@ -897,148 +899,6 @@ export interface OlxDomNode {
 /** Selector function for filtering OlxDomNodes in DOM traversal */
 export type OlxDomSelector = (node: OlxDomNode) => boolean;
 
-/**
- * ═══════════════════════════════════════════════════════════════════════════════
- * INTERNATIONALIZATION TYPES: Locale, UserLocale, ContentVariant, RenderedVariant
- * ═══════════════════════════════════════════════════════════════════════════════
- *
- * These branded types prevent confusion between different semantic concepts in the
- * i18n pipeline. Each represents a distinct role:
- *
- * ┌─────────────────────────────────────────────────────────────────────────────┐
- * │ LOCALE - A single language code, extracted from variants                    │
- * ├─────────────────────────────────────────────────────────────────────────────┤
- * │ What: A BCP 47 language tag for a single language (no feature flags)        │
- * │ Examples: "en-Latn-US", "ar-Arab-SA", "pl-Latn-PL", "es-Latn-ES"           │
- * │ Source: Extracted from ContentVariants by stripping feature flags           │
- * │ Usage: Content selection, language switcher UI, user preferences            │
- * │ Current: Identical to ContentVariant at runtime (no feature flags yet)      │
- * │ Future: Feature variants like "en-Latn-US:audio-only" will be parsed to    │
- * │         extract just "en-Latn-US" via localeFromVariant()                  │
- * │                                                                              │
- * │ Helper: localeFromVariant(variant: ContentVariant) → Locale                │
- * │   - Current: No-op (variants are just locales)                             │
- * │   - Future: Parses compound variants, returns language part                │
- * └─────────────────────────────────────────────────────────────────────────────┘
- *
- * ┌─────────────────────────────────────────────────────────────────────────────┐
- * │ USER LOCALE - What the user prefers to read                                │
- * ├─────────────────────────────────────────────────────────────────────────────┤
- * │ What: User's language preference/setting                                   │
- * │ Current: A single Locale (e.g., "en-Latn-US")                             │
- * │ Source: Browser language → Redux settings → author override (lang= attr)   │
- * │ Usage: Select content variant to render, configure UI language            │
- * │                                                                              │
- * │ FUTURE EVOLUTION:                                                           │
- * │ As platform matures, UserLocale will become more sophisticated:            │
- * │                                                                              │
- * │ Option A: Polyglot Users                                                   │
- * │   type UserLocale = {                                                      │
- * │     preferred: Locale[];  // [en-Latn-US, pl-Latn-PL, fr-Latn-FR]       │
- * │     fallback: Locale;                                                      │
- * │   }                                                                         │
- * │   Use case: Teachers in multilingual communities reading in 2-3 languages  │
- * │   Selection: Try each preferred locale; fall back if not available        │
- * │                                                                              │
- * │ Option B: Feature Preferences                                              │
- * │   type UserLocale = {                                                      │
- * │     locale: Locale;                                                        │
- * │     features: {                                                            │
- * │       audioEnabled: boolean;    // Prefer audio when available            │
- * │       highContrast: boolean;    // Prefer high-contrast visuals           │
- * │       fontSize: 'normal' | 'large' | 'xlarge';                          │
- * │     };                                                                      │
- * │   }                                                                         │
- * │   Use case: Accessibility preferences, low-bandwidth mode                 │
- * │   Selection: Match feature preferences alongside language                 │
- * │                                                                              │
- * │ Both: Combined                                                              │
- * │   type UserLocale = {                                                      │
- * │     preferred: Locale[];  // Polyglot support                            │
- * │     features: FeaturePreferences;  // Accessibility + context             │
- * │   }                                                                         │
- * └─────────────────────────────────────────────────────────────────────────────┘
- *
- * ┌─────────────────────────────────────────────────────────────────────────────┐
- * │ CONTENT VARIANT - What's available in content                              │
- * ├─────────────────────────────────────────────────────────────────────────────┤
- * │ What: A key representing available language/feature combination in content │
- * │ Examples:                                                                   │
- * │   Current: "en-Latn-US", "ar-Arab-SA", "pl-Latn-PL"                      │
- * │   Future: "en-Latn-US", "en-Latn-US:audio-only", "en:low-bandwidth",     │
- * │           "ar-Arab-SA:vision-impaired", "*" (catch-all)                  │
- * │ Source: idMap keys (from file-level metadata in OLX)                     │
- * │ Storage: idMap[blockId][variant] = OlxJson                              │
- * │ Usage: Variant selection/matching, content storage structure             │
- * │                                                                              │
- * │ Structure: language[:feature][:feature]...                               │
- * │   - language: BCP 47 tag (e.g., "en-Latn-US")                           │
- * │   - feature: accessibility/context modifier (e.g., "audio-only")        │
- * │   - "*": Wildcard fallback matching any variant                         │
- * │                                                                              │
- * │ Selection Algorithm (getBestVariant):                                      │
- * │   1. Try exact UserLocale match                                           │
- * │   2. Try language + matching features                                     │
- * │   3. Try language only (discard feature preferences)                     │
- * │   4. Try language parent (en-Latn-US → en-Latn → en)                   │
- * │   5. Try wildcard "*"                                                    │
- * │   6. Error: no variant available                                         │
- * └─────────────────────────────────────────────────────────────────────────────┘
- *
- * ┌─────────────────────────────────────────────────────────────────────────────┐
- * │ RENDERED VARIANT - The selected variant to render                          │
- * ├─────────────────────────────────────────────────────────────────────────────┤
- * │ What: A ContentVariant that has been selected via getBestVariant*         │
- * │ Usage: Marks that this variant has been "chosen" and is being rendered   │
- * │ Purpose: Prevents re-selection; enables caching and memoization         │
- * └─────────────────────────────────────────────────────────────────────────────┘
- *
- * ═══════════════════════════════════════════════════════════════════════════════
- * MIGRATION PATH FOR FUTURE FEATURE VARIANTS
- * ═══════════════════════════════════════════════════════════════════════════════
- *
- * Phase 1 (Current):
- * - ContentVariant is just locale codes
- * - localeFromVariant() is a no-op
- * - All code treats variants and locales identically
- *
- * Phase 2 (Near Future):
- * - Add support for compound variants: "en-Latn-US:audio-only"
- * - localeFromVariant() parses and extracts language part
- * - LanguageSwitcher filters out non-language variants for UI
- * - Content storage unchanged (idMap[blockId][fullVariant] = OlxJson)
- *
- * Phase 3 (Longer Term):
- * - UserLocale evolves to support preferences/polyglot
- * - getBestVariant matches both language and feature preferences
- * - LanguageSwitcher shows language options with feature indicators
- * - SelectVariant selector becomes more sophisticated (feature filtering)
- *
- * ═══════════════════════════════════════════════════════════════════════════════
- */
-
-/** A single language code, extracted from variants by stripping feature flags */
-export type Locale = string & { readonly __locale: true };
-
-/** What the user prefers to read (browser → Redux → author override) */
-export type UserLocale = string & { readonly __userLocale: true };
-
-/** A language/accessibility/context variant available for content (e.g., "ar-Arab-SA", "en:audio-only") */
-export type ContentVariant = string & { readonly __variant: true };
-
-/** The variant we actually render - a ContentVariant selected via getBestVariant* functions */
-export type RenderedVariant = ContentVariant & { readonly __rendered: true };
-
-/**
- * LocaleContext - language and text direction configuration.
- *
- * Enables i18n throughout the platform. For now, `dir` comes from Redux settings.
- * Future: derive `dir` from Intl.Locale.getTextInfo() when browser support is universal.
- */
-export interface LocaleContext {
-  code: UserLocale;  // BCP 47 locale code: 'en-Latn-US', 'zh-Hans-CN', 'ar-Arab-SA', 'pl-Latn-PL', 'tr-TR'
-  dir: 'ltr' | 'rtl';  // Text direction from Redux settings
-}
 
 // =============================================================================
 // Cast of characters — types derived from Zod schemas in cast.ts.
@@ -1147,7 +1007,7 @@ export interface OlxJson {
   tag: OLXTag;
   attributes: Record<string, JSONValue>;  // Always present, defaults to {} in parsing
   kids?: JSONValue;  // Child nodes, or a string from text parsers
-  provenance: Provenance;
+  provenance: LofsDependencies;
 
   // Optional metadata (from YAML frontmatter or parsed attributes)
   /** Brief description of this content block (for search, activity cards, etc.) */
@@ -1173,7 +1033,7 @@ export interface OlxJson {
    * parseOLX.ts. The `_` prefix flags this as a temporary placement.
    *
    * Eventual home: folded into the provenance URI itself, e.g.
-   * `file:///foo.olx#L3:3` or `file:///foo.olx#char=36,55` (RFC 5147), so
+   * `file:content://foo.olx#L3:3` or `file:content://foo.olx#char=36,55` (RFC 5147), so
    * one provenance value carries source identity AND span. When that
    * lands, this field goes away.
    *

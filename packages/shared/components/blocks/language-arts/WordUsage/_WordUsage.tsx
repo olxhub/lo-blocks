@@ -26,13 +26,13 @@ export default function _WordUsage(props: RuntimeProps) {
   }, [text, mode, locale, words]);
 
   if (!target) {
-    return <DisplayError props={props} name="WordUsage" message="No target specified" />;
+    return <DisplayError props={props} title="WordUsage" message="No target specified" />;
   }
   if (!mode) {
-    return <DisplayError props={props} name="WordUsage" message="No mode specified" />;
+    return <DisplayError props={props} title="WordUsage" message="No mode specified" />;
   }
   if (mode === 'transition_words' && !words) {
-    return <DisplayError props={props} name="WordUsage"
+    return <DisplayError props={props} title="WordUsage"
       message="transition_words mode requires a word list (inline text or src attribute)" />;
   }
 
@@ -41,7 +41,7 @@ export default function _WordUsage(props: RuntimeProps) {
   }
 
   if (error) {
-    return <DisplayError props={props} name="WordUsage" message={error} />;
+    return <DisplayError props={props} title="WordUsage" message={error} />;
   }
 
   if (!text?.trim()) {

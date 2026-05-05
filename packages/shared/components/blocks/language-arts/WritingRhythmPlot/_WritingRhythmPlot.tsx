@@ -93,7 +93,7 @@ export default function _WritingRhythmPlot(props: RuntimeProps) {
   }, [plotNode]);
 
   if (!target) {
-    return <DisplayError props={props} name="WritingRhythmPlot" message="No target specified" />;
+    return <DisplayError props={props} title="WritingRhythmPlot" message="No target specified" />;
   }
 
   const minHeight = height || 200;

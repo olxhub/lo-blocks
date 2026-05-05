@@ -5,7 +5,7 @@ import React from 'react';
 import { DisplayError } from '@/lib/util/debug';
 import { useComponentState } from '@/lib/state';
 import { decodeState } from '@/lib/state/stateDisplay';
-import { refToReduxKey } from '@/lib/blocks/idResolver';
+import { refToReduxKey } from '@/lib/types/id';
 import { useOlxJson } from '@/lib/blocks/useOlxJson';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 
@@ -21,11 +21,11 @@ export default function _StateViewer(props: RuntimeProps) {
   const componentState = useComponentState(props, targetReduxKey, { scope });
 
   if (!targetId) {
-    return <DisplayError name="StateViewer" message="No target specified. Use target attribute or provide component ID as content." />;
+    return <DisplayError title="StateViewer" message="No target specified. Use target attribute or provide component ID as content." />;
   }
 
   if (!targetBlock) {
-    return <DisplayError name="StateViewer" message={`Target block "${targetId}" not found`} />;
+    return <DisplayError title="StateViewer" message={`Target block "${targetId}" not found`} />;
   }
 
   // Look up field definitions from the block registry

@@ -16,7 +16,9 @@ import RenderOLX from '@/components/common/RenderOLX';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import { useStaticContent } from '../../lib/StaticContentProvider';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
-import { toOlxKey } from '@/lib/blocks/idResolver';
+import { localeFromVariant } from '@/lib/i18n/localeUtils';
+import { toOlxKey } from '@/lib/types/id';
+import { variantMapLocaleEntries } from '@/lib/types/i18n';
 import type { Locale } from '@/lib/types';
 
 export default function StaticPage({ olxKey, title }: { olxKey: string; title?: string }) {
@@ -36,9 +38,10 @@ export default function StaticPage({ olxKey, title }: { olxKey: string; title?: 
   const variantMap = idMap[key] || {};
   const curated: Locale[] = [];
   const bestEffort: Locale[] = [];
-  for (const [variant, olxJson] of Object.entries(variantMap)) {
-    (olxJson.generated ? bestEffort : curated).push(variant as Locale);
-  }
+  variantMapLocaleEntries(variantMap)
+    .forEach(([variant, olxJson]) => {
+      (olxJson.generated ? bestEffort : curated).push(localeFromVariant(variant));
+    });
   const allLocales = [...curated, ...bestEffort];
 
   return (

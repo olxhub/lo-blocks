@@ -15,7 +15,10 @@
 
 import { StorageProvider, fileTypes } from '@/lib/lofs';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
-import type { ProvenanceURI, OLXLoadingError, OlxJson, IdMap, OlxKey, ContentVariant, VariantMap } from '@/lib/types';
+import type { LofsRef, LofsCanonical, OLXLoadingError, OlxJson, IdMap, OlxKey, ContentVariant, VariantMap } from '@/lib/types';
+import type { XmlFileInfo, XmlScanResult } from '@/lib/types/storage';
+import { withoutVersion } from '@/lib/types/address';
+import { variantMapEntries } from '@/lib/types/i18n';
 import { parseOLX, blockRequiresUniqueId } from '@/lib/content/parseOLX';
 import { copyAssetsToPublic } from '@/lib/content/staticAssetSync';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
@@ -26,21 +29,10 @@ import { stableStringify } from '@/lib/util';
 // =============================================================================
 
 /**
- * Metadata and content for a file from storage.
- * Matches XmlFileInfo from storage/types.ts
- */
-interface FileRecord {
-  id: ProvenanceURI;   // The file:// URI identifying this file
-  type: string;        // File type (olx, xml, chatpeg, etc.)
-  content: string;     // The file's text content
-  _metadata: any;      // Provider-specific metadata (stat, hash, etc.)
-}
-
-/**
  * A parsed file's entry in the parsedFiles index.
- * Extends FileRecord with parsing results.
+ * Extends XmlFileInfo with parsing results.
  */
-interface ParsedFileEntry extends FileRecord {
+interface ParsedFileEntry extends XmlFileInfo {
   blockIds: OlxKey[];  // IDs of blocks parsed from this file
   error?: string;      // Set if parsing failed
 }
@@ -59,14 +51,17 @@ interface ParsedFileEntry extends FileRecord {
  *
  * Returns a file:// URI, or null if the block/locale doesn't exist.
  */
-export function getSourceFile(blockId: OlxKey, locale: ContentVariant): ProvenanceURI | null {
+export function getSourceFile(blockId: OlxKey, locale: ContentVariant): LofsRef | null {
   const variantMap = contentStore.blockIndex[blockId];
   if (!variantMap?.[locale]?.provenance) return null;
 
   for (const prov of variantMap[locale].provenance) {
-    const entry = contentStore.parsedFiles[prov as ProvenanceURI];
+    // Provenance entries are LofsCanonical (may have @version); parsedFiles is keyed
+    // by unversioned LofsRef. Strip version for lookup.
+    const key = withoutVersion(prov);
+    const entry = contentStore.parsedFiles[key];
     if (entry && (entry.type === fileTypes.olx || entry.type === fileTypes.xml)) {
-      return prov as ProvenanceURI;
+      return key;
     }
   }
   return null;
@@ -103,7 +98,7 @@ export function getOriginalVariant(blockId: OlxKey): OlxJson | null {
  * so that whichever variant extractLocalizedVariant picks, its children
  * are available.
  */
-export function getBlocksForFiles(...fileUris: ProvenanceURI[]): Record<OlxKey, VariantMap> {
+export function getBlocksForFiles(...fileUris: LofsRef[]): Record<OlxKey, VariantMap> {
   const result: Record<OlxKey, VariantMap> = {} as Record<OlxKey, VariantMap>;
   for (const fileUri of fileUris) {
     const entry = contentStore.parsedFiles[fileUri];
@@ -130,25 +125,15 @@ function* entriesIdMap(idMap: IdMap): Generator<[OlxKey, IdMap[OlxKey]]> {
 
 /** Typed iteration over variant map entries */
 function* entriesVariantMap(variantMap: IdMap[OlxKey]): Generator<[ContentVariant, OlxJson]> {
-  for (const [variant, olxJson] of Object.entries(variantMap)) {
-    yield [variant as ContentVariant, olxJson as OlxJson];
-  }
+  yield* variantMapEntries(variantMap);
 }
 
 /** The in-memory content store */
 interface ContentStore {
   /** Maps file URI -> parsed file entry (what blocks came from this file) */
-  parsedFiles: Record<ProvenanceURI, ParsedFileEntry>;
+  parsedFiles: Record<LofsRef, ParsedFileEntry>;
   /** Maps block ID -> language variant map (the actual parsed content) */
   blockIndex: Record<OlxKey, VariantMap>;
-}
-
-/** Result of categorizing files by change status */
-interface FileChangeSets {
-  added: Record<ProvenanceURI, FileRecord>;
-  changed: Record<ProvenanceURI, FileRecord>;
-  unchanged: Record<ProvenanceURI, ParsedFileEntry>;
-  deleted: Record<ProvenanceURI, ParsedFileEntry>;
 }
 
 // =============================================================================
@@ -169,8 +154,8 @@ export async function syncContentFromStorage(
 ) {
   // Step 1: Get file change sets from storage
   const changeSets = await provider.loadXmlFilesWithStats(
-    contentStore.parsedFiles as Record<ProvenanceURI, any>
-  ) as FileChangeSets;
+    contentStore.parsedFiles as Record<LofsRef, XmlFileInfo>
+  );
 
   // Step 2: Find OLX files that need re-parsing due to auxiliary file changes
   promoteFilesWithChangedDependencies(changeSets, contentStore.blockIndex);
@@ -179,7 +164,7 @@ export async function syncContentFromStorage(
   const filesToRemove = [
     ...Object.keys(changeSets.deleted),
     ...Object.keys(changeSets.changed)
-  ] as ProvenanceURI[];
+  ] as LofsRef[];
   removeBlocksFromFiles(filesToRemove, contentStore);
 
   // Step 4: Parse all new and changed files
@@ -215,7 +200,7 @@ export async function syncContentFromStorage(
  * set and moves them to "changed".
  */
 function promoteFilesWithChangedDependencies(
-  changeSets: FileChangeSets,
+  changeSets: XmlScanResult,
   blockIndex: Record<OlxKey, VariantMap>,
 ): void {
   const changedAuxiliaryFiles = findChangedAuxiliaryFiles(changeSets);
@@ -229,8 +214,8 @@ function promoteFilesWithChangedDependencies(
 }
 
 /** Returns URIs of non-OLX/XML files that were added, changed, or deleted */
-function findChangedAuxiliaryFiles(changeSets: FileChangeSets): Set<ProvenanceURI> {
-  const auxiliaryFiles = new Set<ProvenanceURI>();
+function findChangedAuxiliaryFiles(changeSets: XmlScanResult): Set<LofsRef> {
+  const auxiliaryFiles = new Set<LofsRef>();
 
   const allChangedFiles = [
     ...Object.entries(changeSets.added),
@@ -241,7 +226,7 @@ function findChangedAuxiliaryFiles(changeSets: FileChangeSets): Set<ProvenanceUR
   for (const [uri, fileRecord] of allChangedFiles) {
     const isOlxOrXml = fileRecord?.type === fileTypes.olx || fileRecord?.type === fileTypes.xml;
     if (!isOlxOrXml) {
-      auxiliaryFiles.add(uri as ProvenanceURI);
+      auxiliaryFiles.add(uri as LofsRef);
     }
   }
 
@@ -254,11 +239,11 @@ function findChangedAuxiliaryFiles(changeSets: FileChangeSets): Set<ProvenanceUR
  * includes the auxiliary file.
  */
 function findOlxFilesDependingOn(
-  changedAuxiliaryFiles: Set<ProvenanceURI>,
+  changedAuxiliaryFiles: Set<LofsRef>,
   blockIndex: Record<OlxKey, VariantMap>,
-  unchangedFiles: Record<ProvenanceURI, ParsedFileEntry>
-): Set<ProvenanceURI> {
-  const olxFilesToReparse = new Set<ProvenanceURI>();
+  unchangedFiles: Record<LofsRef, XmlFileInfo>
+): Set<LofsRef> {
+  const olxFilesToReparse = new Set<LofsRef>();
 
   for (const variantMap of Object.values(blockIndex)) {
     // blockIndex stores nested structure { variant: OlxJson }
@@ -267,14 +252,17 @@ function findOlxFilesDependingOn(
     for (const olxJson of Object.values(variantMap)) {
       if (!olxJson?.provenance || !Array.isArray(olxJson.provenance)) continue;
 
-      // Check if this variant's provenance includes a changed auxiliary file
+      // Check if this variant's provenance includes a changed auxiliary file.
+      // Provenance entries are LofsCanonical (may have @version); auxiliary file keys
+      // are unversioned LofsRef. Strip version for comparison.
       const dependsOnChangedFile = olxJson.provenance.some(
-        (prov: string) => changedAuxiliaryFiles.has(prov as ProvenanceURI)
+        (prov) => changedAuxiliaryFiles.has(withoutVersion(prov))
       );
 
       if (dependsOnChangedFile) {
-        // The root OLX file is the first element in the provenance chain
-        const rootOlxFile = olxJson.provenance[0] as ProvenanceURI;
+        // The root OLX file is the first element in the provenance list.
+        // Strip version to match against unversioned Record keys.
+        const rootOlxFile = withoutVersion(olxJson.provenance[0]);
         if (rootOlxFile && unchangedFiles[rootOlxFile]) {
           olxFilesToReparse.add(rootOlxFile);
         }
@@ -298,14 +286,14 @@ function findOlxFilesDependingOn(
  * set after re-parsing.
  */
 function moveUnchangedToChanged(
-  fileUri: ProvenanceURI,
-  changeSets: FileChangeSets,
+  fileUri: LofsRef,
+  changeSets: XmlScanResult,
 ): void {
   const existingEntry = changeSets.unchanged[fileUri];
   if (!existingEntry) return;
 
-  // Create a clean FileRecord without the old blockIds
-  const fileRecord: FileRecord = {
+  // Copy only XmlFileInfo fields — strip blockIds from previous parse
+  const fileRecord: XmlFileInfo = {
     id: existingEntry.id,
     type: existingEntry.type,
     content: existingEntry.content,
@@ -325,7 +313,7 @@ function moveUnchangedToChanged(
  * This cleans up the blockIndex before re-parsing.
  */
 function removeBlocksFromFiles(
-  fileUris: ProvenanceURI[],
+  fileUris: LofsRef[],
   store: ContentStore
 ): void {
   for (const fileUri of fileUris) {
@@ -348,13 +336,13 @@ function removeBlocksFromFiles(
  * Returns any errors encountered during parsing.
  */
 async function parseAndIndexFiles(
-  filesToParse: Record<ProvenanceURI, FileRecord>,
+  filesToParse: Record<LofsRef, XmlFileInfo>,
   store: ContentStore,
   provider: StorageProvider
 ): Promise<OLXLoadingError[]> {
   const errors: OLXLoadingError[] = [];
 
-  for (const [fileUri, fileRecord] of Object.entries(filesToParse) as [ProvenanceURI, FileRecord][]) {
+  for (const [fileUri, fileRecord] of Object.entries(filesToParse) as [LofsRef, XmlFileInfo][]) {
     // Non-OLX files (auxiliary files) are stored but not parsed for blocks
     if (fileRecord.type !== fileTypes.olx && fileRecord.type !== fileTypes.xml) {
       store.parsedFiles[fileUri] = {
@@ -365,10 +353,10 @@ async function parseAndIndexFiles(
     }
 
     try {
-      const parseResult = await parseOLX(fileRecord.content, [fileUri], provider);
+      const parseResult = await parseOLX(fileRecord.content, [fileRecord.id], provider);
 
       collectParseErrors(parseResult.errors, errors);
-      indexParsedBlocks(parseResult.idMap, store.blockIndex, fileUri, errors);
+      indexParsedBlocks(parseResult.idMap, store.blockIndex, fileRecord.id, errors);
 
       // IMPORTANT: Spread fileRecord FIRST, then set blockIds.
       // This ensures fresh blockIds from parsing overwrite any stale
@@ -386,9 +374,9 @@ async function parseAndIndexFiles(
 
       errors.push({
         type: 'file_error',
-        summary: `${fileUri} could not be loaded`,
+        title: `${fileUri} could not be loaded`,
         message: `Failed to parse file: ${fatalError.message}`,
-        location: { provenance: [fileUri] },
+        location: { provenance: [fileRecord.id] },
         technical: fatalError,
         stack: fatalError.stack
       });
@@ -425,7 +413,7 @@ function collectParseErrors(
 function indexParsedBlocks(
   newBlocks: IdMap,
   blockIndex: Record<OlxKey, VariantMap>,
-  sourceFile: ProvenanceURI,
+  sourceFile: LofsCanonical,
   errors: OLXLoadingError[]
 ): void {
   for (const [blockId, newVariantMap] of entriesIdMap(newBlocks)) {
@@ -473,7 +461,7 @@ function createDuplicateIdError(
   blockId: OlxKey,
   existingBlock: OlxJson,
   duplicateBlock: OlxJson,
-  sourceFile: ProvenanceURI
+  sourceFile: LofsCanonical
 ): OLXLoadingError {
   // TODO: We'd love to print line/column for both entries, but OlxJson only
   // carries `_sourceOffset` (a byte offset into the leaf source file), and
@@ -486,7 +474,7 @@ function createDuplicateIdError(
   const duplicateOffset = duplicateBlock._sourceOffset ?? '?';
   return {
     type: 'duplicate_id',
-    summary: `Duplicate ID "${blockId}" in ${sourceFile}`,
+    title: `Duplicate ID "${blockId}" in ${sourceFile}`,
     location: { provenance: [sourceFile] },
     message: `Duplicate ID "${blockId}" found in ${sourceFile} (conflicts with entry from another file)
 

@@ -21,7 +21,7 @@ import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
 import { getGrader, getDomNodeByReduxKey, getAllNodes, inferRelatedNodes } from './olxdom';
 import { useOlxJson } from './useOlxJson';
-import { refToOlxKey, refToReduxKey, toOlxReference } from './idResolver';
+import { refToOlxKey, refToReduxKey, toOlxReference } from '../types/id';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { isInput } from './actions';
 import type { OlxKey, OlxReference, RuntimeProps } from '@/lib/types';

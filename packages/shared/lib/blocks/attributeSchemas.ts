@@ -12,7 +12,8 @@
 // This allows a block to be input+grader+src without combinatorial explosion.
 //
 import { z } from 'zod';
-import { VALID_ID_SEGMENT, VALID_REDUX_STATE_KEY, toOlxReference, toReduxStateKey } from './idResolver';
+import { VALID_ID_SEGMENT, VALID_REDUX_STATE_KEY, toOlxReference, toReduxStateKey } from '../types/id';
+import { z_locale } from '../types/i18n';
 import type { OlxReference, ReduxStateKey } from '@/lib/types';
 import { parse as parseExpr } from '@/lib/stateLanguage';
 import { CastSchema, Face, AvatarStyle } from '@/lib/avatar/types';
@@ -120,7 +121,7 @@ export const z_olxKey = tagRefSchema(
   z.string().refine(
     id => VALID_ID_SEGMENT.test(id),
     id => ({ message: `"${id}" is not a valid block ID (must start with letter or underscore, then letters/digits/underscores)` })
-  ),
+  ).transform(id => id as unknown as OlxReference & { readonly __resolved: true }),
   v => [v],
 );
 
@@ -129,7 +130,7 @@ export const z_reduxStateKey = tagRefSchema(
   z.string().refine(
     key => VALID_REDUX_STATE_KEY.test(key),
     key => ({ message: `"${key}" is not a valid target key` })
-  ),
+  ).transform(key => key as unknown as ReduxStateKey),
   v => [v],
 );
 
@@ -261,7 +262,7 @@ export const baseAttributes = z.object({
   class: z.string().optional().describe('Visual styling classes (CSS classes for developers)'),
   launchable: z.string().optional().describe('Set to "true" to show in activity indexes'),
   initialPosition: z.coerce.number().optional().describe('Initial position for sortable items (1-indexed)'),
-  lang: z.string().optional().describe('BCP 47 language tag (e.g., en-Latn-US, ar-Arab-SA). Overrides parent and file-level language.'),
+  lang: z_locale.optional().describe('BCP 47 language tag (e.g., en-Latn-US, ar-Arab-SA). Overrides parent and file-level language.'),
   when: z_expression.optional()
     .describe('State-language expression controlling visibility (e.g. "@quiz.correct === correctness.correct")'),
   popout: z.enum([

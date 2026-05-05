@@ -1,4 +1,4 @@
-// src/lib/lofs/types.ts
+// packages/shared/lib/types/storage.ts
 //
 // Type definitions for the storage abstraction layer.
 //
@@ -6,10 +6,15 @@
 // all storage implementations (file, network, memory, git, postgres).
 //
 import type {
-  ProvenanceURI, FileProvenanceURI, MemoryProvenanceURI,
+  FileLofsRef, MemoryLofsRef,
   JSONValue, OlxRelativePath, SafeRelativePath,
-} from '../types';
-import { FileType } from './fileTypes';
+} from './core';
+import {
+  type LofsRef, type LofsCanonical,
+  makeAddress, addressPath, scheme, withVersion,
+  toLofsRef, toLofsOrigin, toLofsContentPath, toLofsVersion, toLofsCanonical,
+} from './address';
+import { FileType } from '../lofs/fileTypes';
 
 /**
  * Provider-specific metadata for change detection.
@@ -28,7 +33,7 @@ import { FileType } from './fileTypes';
 export type ProviderMetadata = JSONValue;
 
 export interface XmlFileInfo {
-  id: ProvenanceURI;
+  id: LofsCanonical;
   type: FileType;
   /** Provider-specific metadata for change detection (opaque to consumers). */
   _metadata: ProviderMetadata;
@@ -36,10 +41,10 @@ export interface XmlFileInfo {
 }
 
 export interface XmlScanResult {
-  added: Record<ProvenanceURI, XmlFileInfo>;
-  changed: Record<ProvenanceURI, XmlFileInfo>;
-  unchanged: Record<ProvenanceURI, XmlFileInfo>;
-  deleted: Record<ProvenanceURI, XmlFileInfo>;
+  added: Record<LofsRef, XmlFileInfo>;
+  changed: Record<LofsRef, XmlFileInfo>;
+  unchanged: Record<LofsRef, XmlFileInfo>;
+  deleted: Record<LofsRef, XmlFileInfo>;
 }
 
 export interface FileSelection {
@@ -63,11 +68,8 @@ export interface ReadResult {
    * Provenance URI identifying which specific storage instance served this read.
    * The same SafeRelativePath may exist in multiple providers (postgres, git,
    * memory); this tells you which one the content actually came from.
-   *
-   * Optional for backwards compatibility — new provider implementations
-   * should always set this.
    */
-  provenance?: ProvenanceURI;
+  provenance: LofsCanonical;
 }
 
 /**
@@ -169,57 +171,88 @@ export function toOlxRelativePath(
 }
 
 /**
- * Construct a file:// provenance URI from a mount point and relative path.
+ * Construct a file: LofsRef from a mount point and relative path.
+ *
+ * Uses LOFS address format: file:mountPoint://relativePath
  *
  * @param mountPoint - Logical mount name (e.g., 'content', 'content/ee/ee101')
  * @param relativePath - Path within the mount (e.g., 'sba/foo.olx')
- * @returns e.g. 'file:///content/sba/foo.olx'
+ * @returns e.g. 'file:content://sba/foo.olx'
  */
-export function toFileProvenanceURI(mountPoint: string, relativePath: string): FileProvenanceURI {
+export function toFileRef(mountPoint: string, relativePath: string): FileLofsRef {
   if (relativePath.includes('\\')) {
-    throw new Error(`Provenance paths must use forward slashes: "${relativePath}"`);
+    throw new Error(`Paths must use forward slashes: "${relativePath}"`);
   }
-  return `file:///${mountPoint}/${relativePath}` as FileProvenanceURI;
+  return makeAddress(
+    toLofsOrigin(`file:${mountPoint}`),
+    toLofsContentPath(relativePath),
+  ) as unknown as FileLofsRef;
 }
 
 /**
- * Extract the logical path from any provenance URI using standard URL parsing.
+ * Extract the content path from any LofsRef.
  *
- * Combines hostname and pathname so the result is correct regardless of
- * whether the namespace sits in the authority (scheme://ns/path) or the
- * path (scheme:///ns/path).
+ * Uses the LOFS address parser (last "://" rule).
  *
  * Examples:
- *   'file:///content/sba/foo.olx'    → 'content/sba/foo.olx'
- *   'network:///content/sba/foo.olx' → 'content/sba/foo.olx'
- *   'memory:///test.xml'             → 'test.xml'
+ *   'file:content://sba/foo.olx'     → 'sba/foo.olx'
+ *   'network:content://sba/foo.olx'  → 'sba/foo.olx'
+ *   'memory:local://test.xml'        → 'test.xml'
  */
 export function provenancePath(uri: string): string {
-  const parsed = new URL(uri);
-  return decodeURIComponent((parsed.hostname + parsed.pathname).replace(/^\/+/, ''));
+  return addressPath(toLofsRef(uri));
 }
 
 /**
- * Extract the logical path from a file:// provenance URI.
+ * Extract the content path from a file: LofsRef.
  *
- * Returns the full path after file:/// — e.g. 'content/sba/foo.olx'
- * from 'file:///content/sba/foo.olx'.
+ * Returns the path part — e.g. 'sba/foo.olx'
+ * from 'file:content://sba/foo.olx'.
  *
  * Mount point resolution is the provider's responsibility — see
  * FileStorageProvider.extractRelativePath().
  */
 export function fileProvenancePath(uri: string): string {
-  if (!uri.startsWith('file:///')) {
-    throw new Error(`Not a file provenance URI: ${uri}`);
+  const ref = toLofsRef(uri);
+  if (scheme(ref) !== 'file') {
+    throw new Error(`Not a file ref: ${uri}`);
   }
-  return provenancePath(uri);
+  return addressPath(ref);
 }
 
 /**
- * Brand a memory:// provenance URI. Used by InMemoryStorageProvider.
+ * Construct a memory: LofsRef. Used by InMemoryStorageProvider.
+ *
+ * @param name - File path within the memory store
+ * @param sourceId - Source identifier (default: 'local')
  */
-export function toMemoryProvenanceURI(name: string): MemoryProvenanceURI {
-  return `memory:///${name}` as MemoryProvenanceURI;
+export function toMemoryRef(name: string, sourceId = 'local'): MemoryLofsRef {
+  return makeAddress(
+    toLofsOrigin(`memory:${sourceId}`),
+    toLofsContentPath(name),
+  ) as unknown as MemoryLofsRef;
+}
+
+/**
+ * Construct a git: LofsRef.
+ * Format: git:mountPoint://path
+ */
+export function toGitRef(mountPoint: string, filePath: string): LofsRef {
+  return makeAddress(
+    toLofsOrigin(`git:${mountPoint}`),
+    toLofsContentPath(filePath),
+  );
+}
+
+/**
+ * Construct a postgres: LofsRef.
+ * Format: postgres:tenant://path
+ */
+export function toPgRef(tenant: string, filePath: string): LofsRef {
+  return makeAddress(
+    toLofsOrigin(`postgres:${tenant}`),
+    toLofsContentPath(filePath),
+  );
 }
 
 /**
@@ -252,7 +285,7 @@ export interface StorageProvider {
    * relative to a previous scan. The `_metadata` structure is
    * provider specific (mtime+size, git hash, DB id, etc.).
    */
-  loadXmlFilesWithStats(previous?: Record<ProvenanceURI, XmlFileInfo>): Promise<XmlScanResult>;
+  loadXmlFilesWithStats(previous?: Record<LofsRef, XmlFileInfo>): Promise<XmlScanResult>;
 
   read(path: OlxRelativePath): Promise<ReadResult>;
   write(path: OlxRelativePath, content: string, options?: WriteOptions): Promise<void>;
@@ -278,27 +311,26 @@ export interface StorageProvider {
   grep(pattern: string, options?: GrepOptions): Promise<GrepMatch[]>;
 
   /**
-   * Resolve a relative path against a base provenance URI.
+   * Resolve a relative path against a base LofsRef.
    * Validates the resolved result stays within the content directory.
    *
-   * @param baseProvenance - Provenance URI of current OLX file
+   * @param baseRef - LofsRef of current OLX file
    * @param relativePath - Raw relative path from OLX (e.g., "static/image.png")
    * @returns SafeRelativePath — escape-validated, safe to use without further traversal checks
    */
-  resolveRelativePath(baseProvenance: ProvenanceURI, relativePath: string): SafeRelativePath;
+  resolveRelativePath(baseProvenance: LofsRef, relativePath: string): SafeRelativePath;
 
   /**
-   * Construct the provenance URI for a content path in this provider.
+   * Construct the LofsRef for a content path in this provider.
    *
-   * Maps from a canonical name (SafeRelativePath) to this provider's
-   * location URI. For example:
-   * - FileStorageProvider:   "sba/foo.olx" → "file:///content/sba/foo.olx"
-   * - InMemoryStorageProvider: "sba/foo.olx" → "memory:///sba/foo.olx"
+   * Maps from a SafeRelativePath to this provider's address. For example:
+   * - FileStorageProvider:     "sba/foo.olx" → "file:content://sba/foo.olx"
+   * - InMemoryStorageProvider: "sba/foo.olx" → "memory:local://sba/foo.olx"
    *
-   * Used by parsers to extend provenance chains without knowing about
+   * Used by parsers to extend provenance without knowing about
    * storage schemes. See also ReadResult.provenance (set during read).
    */
-  toProvenanceURI(path: SafeRelativePath): ProvenanceURI;
+  toLofsRef(path: SafeRelativePath): LofsRef;
 
   /**
    * Check if a static asset file exists and is valid

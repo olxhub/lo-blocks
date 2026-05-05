@@ -12,7 +12,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useMemo } from 'react';
 import * as state from '@/lib/state';
 import { inferRelatedNodes, useGraderAnswer } from '@/lib/blocks';
-import { refToReduxKey } from '@/lib/blocks/idResolver';
+import { refToReduxKey } from '@/lib/types/id';
 import { DisplayError } from '@/lib/util/debug';
 import { useKids } from '@/lib/render';
 
@@ -40,7 +40,7 @@ export default function _ChoiceItem(props: RuntimeProps) {
 
   if (!parentId) {
     return (
-      <DisplayError name="ChoiceItem" message="No parent ChoiceInput or CheckboxInput found" data={{ id: props.id }} />
+      <DisplayError title="ChoiceItem" message="No parent ChoiceInput or CheckboxInput found" data={{ id: props.id }} />
     );
   }
 

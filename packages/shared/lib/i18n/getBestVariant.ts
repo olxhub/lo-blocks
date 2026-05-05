@@ -3,6 +3,15 @@
 
 import type { NextRequest } from 'next/server';
 import type { RuntimeProps, UserLocale, ContentVariant, RenderedVariant } from '@/lib/types';
+import {
+  toContentVariant,
+  toRenderedVariant,
+  toUserLocale,
+  variantMapKeys,
+  type VariantKeyedRecord,
+} from '@/lib/types/i18n';
+
+const WILDCARD_VARIANT = toContentVariant('*');
 
 /**
  * Select best variant on the server from Accept-Language header.
@@ -10,18 +19,18 @@ import type { RuntimeProps, UserLocale, ContentVariant, RenderedVariant } from '
  * Requires availableVariants to be non-empty. Throws if empty (indicates malformed content).
  *
  * @param request - NextRequest with headers
- * @param availableVariants - Array of available BCP 47 locale codes (must be non-empty)
+ * @param availableVariants - Available content variants, e.g. "en-US", "es", or "*"
  * @returns The best matching variant
  */
 export function getBestVariantServer(
   request: NextRequest,
-  availableVariants: string[]
-): string {
+  availableVariants: ContentVariant[]
+): RenderedVariant {
   if (!availableVariants || availableVariants.length === 0) {
     throw new Error('getBestVariantServer: availableVariants cannot be empty');
   }
 
-  const preferredLocale = request.headers.get('accept-language');
+  const preferredLocale = userLocaleFromAcceptLanguage(request.headers.get('accept-language'));
   return pickBestVariant(preferredLocale, availableVariants);
 }
 
@@ -31,13 +40,13 @@ export function getBestVariantServer(
  * Fails fast if props.runtime.locale is missing.
  *
  * @param props - Component props with runtime.locale.code
- * @param availableVariants - Array of available BCP 47 locale codes
+ * @param availableVariants - Available content variants, e.g. "en-US", "es", or "*"
  * @returns The best matching variant, or first available as fallback
  */
 export function getBestVariantClient(
   props: RuntimeProps,
-  availableVariants: string[]
-): string {
+  availableVariants: ContentVariant[]
+): RenderedVariant {
   if (!availableVariants || availableVariants.length === 0) {
     throw new Error('getBestVariantClient: availableVariants cannot be empty');
   }
@@ -91,51 +100,56 @@ export function scoreBCP47Match(requested: string, available: string): number {
   return score;
 }
 
-function pickBestVariant(
-  requestedLocale: string | null | undefined,
-  availableVariants: string[]
-): string {
-  if (!requestedLocale) {
-    return availableVariants[0];
-  }
+function userLocaleFromAcceptLanguage(header: string | null | undefined): UserLocale | null {
+  if (!header) return null;
 
   // TODO: Parse full Accept-Language header (q-values, fallback tags).
   // Currently only uses the first tag; ignores "en;q=0.9,ar;q=0.8" fallbacks.
   // Consider @formatjs/intl-localematcher or manual q-value sorting.
-  const normalizedLocale = requestedLocale.split(',')[0].trim().split(';')[0].trim();
+  const firstTag = header.split(',')[0].trim().split(';')[0].trim();
+  if (!firstTag) return null;
 
-  if (availableVariants.includes(normalizedLocale)) {
-    return normalizedLocale;
+  try {
+    return toUserLocale(firstTag);
+  } catch {
+    return null;
+  }
+}
+
+function pickBestVariant(
+  requestedLocale: UserLocale | null | undefined,
+  availableVariants: ContentVariant[]
+): RenderedVariant {
+  if (!requestedLocale) {
+    return toRenderedVariant(availableVariants[0]);
+  }
+
+  const normalizedLocale = requestedLocale as string;
+
+  if (availableVariants.includes(normalizedLocale as ContentVariant)) {
+    return toRenderedVariant(normalizedLocale);
   }
 
   // Find best match using BCP 47 hierarchy
-  let bestMatch: { variant: string; score: number } | null = null;
+  let bestMatch: { variant: ContentVariant; score: number } | null = null;
 
   for (const availableVariant of availableVariants) {
-    const score = scoreBCP47Match(normalizedLocale, availableVariant);
+    const score = scoreBCP47Match(normalizedLocale, availableVariant as string);
     if (score > (bestMatch?.score ?? 0)) {
       bestMatch = { variant: availableVariant, score };
     }
   }
 
   if (bestMatch && bestMatch.score > 0) {
-    return bestMatch.variant;
+    return toRenderedVariant(bestMatch.variant);
   }
 
   // Try generic variant (*) if available
-  if (availableVariants.includes('*')) {
-    return '*';
+  if (availableVariants.includes(WILDCARD_VARIANT)) {
+    return toRenderedVariant('*');
   }
 
-  return availableVariants[0];
-}
-
-/**
- * Type constructors - convert plain strings to branded types safely.
- */
-function asRenderedVariant(code: string): RenderedVariant {
-  if (!code) throw new Error('RenderedVariant cannot be empty');
-  return code as RenderedVariant;
+  return toRenderedVariant(availableVariants[0]);
 }
 
 function getBaseVariant(variant: string): string {
@@ -158,26 +172,26 @@ function getBaseVariant(variant: string): string {
  */
 export function selectBestVariant(
   userLocale: UserLocale,
-  availableVariants: (ContentVariant | string)[]
+  availableVariants: ContentVariant[]
 ): RenderedVariant | null {
   if (!availableVariants || availableVariants.length === 0) {
     return null;
   }
 
   const userLocaleStr = userLocale as string;
-  const variants = availableVariants as string[];
+  const variants = availableVariants;
 
   // 1. Try exact match
-  if (variants.includes(userLocaleStr)) {
-    return asRenderedVariant(userLocaleStr);
+  if (variants.includes(userLocaleStr as ContentVariant)) {
+    return toRenderedVariant(userLocaleStr);
   }
 
   // 2. Try BCP 47 hierarchy on base variants (without features)
   const userBase = getBaseVariant(userLocaleStr);
-  let bestMatch: { variant: string; score: number } | null = null;
+  let bestMatch: { variant: ContentVariant; score: number } | null = null;
 
   for (const variant of variants) {
-    const variantBase = getBaseVariant(variant);
+    const variantBase = getBaseVariant(variant as string);
 
     // Score BCP 47 match (e.g., "en-Latn-KE" vs "en-Latn" scores 3)
     const score = scoreBCP47Match(userBase, variantBase);
@@ -188,16 +202,16 @@ export function selectBestVariant(
   }
 
   if (bestMatch && bestMatch.score > 0) {
-    return asRenderedVariant(bestMatch.variant);
+    return toRenderedVariant(bestMatch.variant);
   }
 
   // 3. Try wildcard variant "*"
-  if (variants.includes('*')) {
-    return asRenderedVariant('*');
+  if (variants.includes(WILDCARD_VARIANT)) {
+    return toRenderedVariant('*');
   }
 
   // 4. Last resort: first available
-  return asRenderedVariant(variants[0]);
+  return toRenderedVariant(variants[0]);
 }
 
 /**
@@ -219,28 +233,29 @@ export function selectBestVariant(
  * @returns The data for the best matching variant, or undefined if variantMap is empty
  */
 export function extractLocalizedVariant<T>(
-  variantMap: Record<string, T>,
+  variantMap: VariantKeyedRecord<T>,
   requestedLocale: string
 ): T | undefined {
   if (!variantMap || typeof variantMap !== 'object') {
     return undefined;
   }
 
-  const availableVariants = Object.keys(variantMap);
+  const availableVariants = variantMapKeys(variantMap);
   if (availableVariants.length === 0) {
     return undefined;
   }
 
   // Try exact variant match first
-  if (variantMap[requestedLocale]) {
-    return variantMap[requestedLocale];
+  const requestedVariant = availableVariants.find(variant => variant === requestedLocale);
+  if (requestedVariant) {
+    return variantMap[requestedVariant];
   }
 
   // Find best match using BCP 47 hierarchy
-  let bestMatch: { variant: string; score: number } | null = null;
+  let bestMatch: { variant: ContentVariant; score: number } | null = null;
 
   for (const availableVariant of availableVariants) {
-    const score = scoreBCP47Match(requestedLocale, availableVariant);
+    const score = scoreBCP47Match(requestedLocale, availableVariant as string);
     if (score > (bestMatch?.score ?? 0)) {
       bestMatch = { variant: availableVariant, score };
     }
@@ -251,8 +266,8 @@ export function extractLocalizedVariant<T>(
   }
 
   // Try generic variant (*) if available
-  if (variantMap['*']) {
-    return variantMap['*'];
+  if (variantMap[WILDCARD_VARIANT]) {
+    return variantMap[WILDCARD_VARIANT];
   }
 
   // Fall back: prefer human-authored (non-generated) content over translations.
@@ -262,6 +277,5 @@ export function extractLocalizedVariant<T>(
     const val = variantMap[v] as any;
     return val && typeof val === 'object' && !val.generated;
   });
-  return variantMap[preferred || availableVariants[0]];
+  return variantMap[preferred ?? availableVariants[0]];
 }
-

@@ -4,8 +4,9 @@
 // and structurally matches the source before it gets saved.
 
 import { parseOLX } from '@/lib/content/parseOLX';
-import type { Provenance } from '@/lib/types';
-import type { StorageProvider } from '@/lib/lofs/types';
+import type { LofsRef } from '@/lib/types/address';
+import { toLofsRef } from '@/lib/types/address';
+import type { StorageProvider } from '@/lib/types/storage';
 import { getParserForExtension } from '@/generated/parserRegistry';
 import { extractLeadingComments } from '@/lib/translate/metadata';
 
@@ -18,7 +19,7 @@ export async function validateTranslation(
   fileType: string,
   label: string,
   provider?: StorageProvider,
-  sourceProvenance?: Provenance
+  sourceProvenance?: LofsRef[]
 ): Promise<string | null> {
   if (fileType === 'olx') {
     return validateOlx(translatedContent, sourceContent, label, provider, sourceProvenance);
@@ -37,11 +38,11 @@ async function validateOlx(
   sourceContent: string,
   label: string,
   provider?: StorageProvider,
-  sourceProvenance?: Provenance
+  sourceProvenance?: LofsRef[]
 ): Promise<string | null> {
   // Parse the translated output. Use source provenance so src= paths resolve
   // correctly (translated file lives next to source, same relative paths).
-  const provenance = sourceProvenance || [`translation:${label}`] as Provenance;
+  const provenance = sourceProvenance || [toLofsRef(`translation:${label}`)];
   let translatedResult;
   try {
     translatedResult = await parseOLX(translatedContent, provenance, provider);
@@ -50,8 +51,8 @@ async function validateOlx(
   }
 
   if (translatedResult.errors.length > 0) {
-    const summaries = translatedResult.errors.map((e: any) => e.summary || e.message).join('; ');
-    return `Translated OLX has errors: ${summaries}`;
+    const titles = translatedResult.errors.map((e: any) => e.title || e.message).join('; ');
+    return `Translated OLX has errors: ${titles}`;
   }
 
   // Compare explicit IDs: every author-specified id in the source must appear
@@ -59,7 +60,7 @@ async function validateOlx(
   // dependent SHA1 hashes that will naturally differ after translation.
   let sourceResult;
   try {
-    sourceResult = await parseOLX(sourceContent, ['source'] as Provenance, provider);
+    sourceResult = await parseOLX(sourceContent, [toLofsRef('source')], provider);
   } catch {
     // If the source itself doesn't parse, skip the ID comparison —
     // that's a pre-existing problem, not a translation problem.

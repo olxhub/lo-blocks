@@ -13,7 +13,8 @@ import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
 import { fetchActivities } from '@/lib/content/fetchOlxJson';
-import type { ContentVariant, Locale } from '@/lib/types';
+import { variantMapLocales, type VariantKeyedRecord } from '@/lib/types/i18n';
+import type { Locale } from '@/lib/types';
 
 const ENDPOINT_LINKS = [
   {
@@ -202,7 +203,7 @@ function Activities() {
     return (
       <DisplayError
         props={{ id: 'lessons', tag: 'home' }}
-        name="Failed to Load Activities"
+        title="Failed to Load Activities"
         message="Could not retrieve available activities"
         technical={error}
         id="lessons_load_error"
@@ -342,14 +343,12 @@ export default function Home() {
           const localeSet = new Set<Locale>();
           for (const activity of Object.values(data.activities) as Record<string, any>[]) {
             if (activity.title && typeof activity.title === 'object') {
-              Object.keys(activity.title).forEach(variant => {
-                localeSet.add(localeFromVariant(variant as ContentVariant));
-              });
+              variantMapLocales(activity.title as VariantKeyedRecord<unknown>)
+                .forEach(variant => localeSet.add(localeFromVariant(variant)));
             }
             if (activity.description && typeof activity.description === 'object') {
-              Object.keys(activity.description).forEach(variant => {
-                localeSet.add(localeFromVariant(variant as ContentVariant));
-              });
+              variantMapLocales(activity.description as VariantKeyedRecord<unknown>)
+                .forEach(variant => localeSet.add(localeFromVariant(variant)));
             }
           }
           setAvailableLocales(Array.from(localeSet).sort());

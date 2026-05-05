@@ -19,7 +19,7 @@ import {
   dispatchOlxJson,
   dispatchOlxJsonError
 } from '@/lib/state/olxjson';
-import { refToOlxKey, allOlxKeys } from '@/lib/blocks/idResolver';
+import { refToOlxKey, allOlxKeys } from '@/lib/types/id';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, OlxKey, OlxReference, ReduxStateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
@@ -260,8 +260,8 @@ function errorOlxJson(id: string, message: string): OlxJson {
   return {
     id: `_error_${id}` as OlxKey,
     tag: 'ErrorNode' as any,
-    attributes: {},
-    kids: { message },
+    attributes: { message },
+    kids: [],
     provenance: [],
   };
 }

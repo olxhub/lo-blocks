@@ -17,7 +17,7 @@ import React, { useEffect, useRef } from 'react';
 import { useFieldSelector, useFieldState, useValue } from '@/lib/state';
 import { LLM_STATUS } from '@/lib/llm/reduxClient';
 import { parseOLX } from '@/lib/content/parseOLX';
-import type { ProvenanceURI } from '@/lib/types';
+import { toLofsRef } from '@/lib/types/address';
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
@@ -101,7 +101,7 @@ function _OlxSlot(props: RuntimeProps) {
 
     async function validate() {
       try {
-        const result = await parseOLX(candidate, ['validate://' as ProvenanceURI]);
+        const result = await parseOLX(candidate, [toLofsRef('validate://')]);
         if (cancelled) return;
 
         if (result.root && result.errors.length === 0) {
@@ -153,7 +153,7 @@ function _OlxSlot(props: RuntimeProps) {
     return (
       <div className="olx-slot olx-slot--error" style={chromeStyle}>
         {label}
-        <DisplayError name="OlxSlot" message={ownValue || 'Content generation failed'} />
+        <DisplayError title="OlxSlot" message={ownValue || 'Content generation failed'} />
       </div>
     );
   }

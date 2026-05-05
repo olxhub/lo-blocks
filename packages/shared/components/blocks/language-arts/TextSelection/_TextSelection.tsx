@@ -90,7 +90,7 @@ export default function _TextSelection(props: RuntimeProps) {
     return (
       <DisplayError
         props={props}
-        name="TextSelection Mode Error"
+        title="TextSelection Mode Error"
         message={`Mode must be one of: ${validModes.join(', ')}`}
         technical={`Received mode: "${mode}"`}
       />
@@ -537,7 +537,7 @@ export default function _TextSelection(props: RuntimeProps) {
     return (
       <DisplayError
         props={props}
-        name="TextSelection Parsing Error"
+        title="TextSelection Parsing Error"
         message="Unable to parse TextSelection content"
         technical={parsed.prompt}
       />

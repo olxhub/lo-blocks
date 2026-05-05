@@ -24,7 +24,7 @@ export function _InlineMath( props: RuntimeProps ) {
     return (
       <DisplayError
         props = { props }
-        name="InlineMath"
+        title="InlineMath"
         message="Could not render LaTeX math."
         technical={err.message}
         data={{ latex }}

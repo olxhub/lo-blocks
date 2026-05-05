@@ -25,6 +25,8 @@ import {
 } from './types';
 
 import { parseOLX } from '@/lib/content/parseOLX';
+import { InMemoryStorageProvider } from '@/lib/lofs/providers/memory';
+import { toMemoryRef } from '@/lib/types/storage';
 
 // =============================================================================
 // parseCastYaml — parse YAML text into a validated Cast object
@@ -485,26 +487,6 @@ carol:
     - team_b
 `;
 
-function makeMockProvider(files: Record<string, string>) {
-  return {
-    read: async (path: string) => {
-      const content = files[path] ?? files[path.replace(/^\//, '')];
-      if (content === undefined) throw new Error(`Mock: file not found: ${path}`);
-      return { content };
-    },
-    resolveRelativePath: (_base: string, relative: string) => relative,
-    toProvenanceURI: (path: string) => `file:///${path}`,
-    loadXmlFilesWithStats: async () => ({}),
-    write: async () => {},
-    update: async () => {},
-    delete: async () => {},
-    rename: async () => {},
-    listFiles: async () => ({}),
-    glob: async () => [],
-    grep: async () => [],
-  };
-}
-
 // =============================================================================
 // Integration: withCastSupport parse-time file loading
 // =============================================================================
@@ -520,8 +502,8 @@ describe('Integration: withCastSupport parse-time loading', () => {
         <TeamDirectory id="test_dir" group="team_a"/>
       </Cast>
     `;
-    const provider = makeMockProvider({ 'test.cast': CAST_YAML });
-    const { idMap } = await parseOLX(olx, ['file:///test.olx'], provider);
+    const provider = new InMemoryStorageProvider({ 'test.cast': CAST_YAML });
+    const { idMap } = await parseOLX(olx, [toMemoryRef('test.olx')], provider);
 
     // The Cast block should have the parsed cast object (not a string) in its attributes
     const castEntry = idMap['test_cast'];

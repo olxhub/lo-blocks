@@ -4,7 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect } from 'react';
 import { correctness, worstCaseCorrectness } from '@/lib/blocks';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
-import { refToReduxKey } from '@/lib/blocks/idResolver';
+import { refToReduxKey } from '@/lib/types/id';
 import * as state from '@/lib/state';
 import { useKids, renderBlock } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
@@ -195,7 +195,7 @@ export default function _CapaProblem(props: RuntimeProps) {
       <DisplayError
         props={props}
         id={`${id}_no_grader`}
-        name="CapaProblem"
+        title="CapaProblem"
         message="No grader found. Add a grader block (e.g., NumericalGrader, KeyGrader) to this problem."
         technical={{ hint: 'CapaProblem expects at least one child block with isGrader=true' }}
       />

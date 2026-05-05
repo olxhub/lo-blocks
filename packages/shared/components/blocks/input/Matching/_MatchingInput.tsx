@@ -6,7 +6,7 @@ import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import { isInputReadOnly, useGraderAnswer, refToOlxKey } from '@/lib/blocks';
-import { extendIdPrefix } from '@/lib/blocks/idResolver';
+import { extendIdPrefix } from '@/lib/types/id';
 import { HandleCommon } from '@/components/common/DragHandle';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
 import { buildArrangementWithPositions } from '@/lib/util/shuffle';
@@ -261,7 +261,7 @@ export default function _MatchingInput(props: RuntimeProps) {
     return (
       <DisplayError
         props={props}
-        name="MatchingInput Error"
+        title="MatchingInput Error"
         message="MatchingInput requires an even number of children (left/right pairs)"
       />
     );

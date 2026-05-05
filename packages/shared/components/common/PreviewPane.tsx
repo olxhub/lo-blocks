@@ -12,7 +12,7 @@ import RenderMarkdown from './RenderMarkdown';
 import { isPEGFile, isMarkdownFile, getContentType, PREVIEW_WRAPPER } from '@/lib/util/fileTypes';
 import { NetworkStorageProvider } from '@/lib/lofs';
 import type { IdMap, OlxDomNode } from '@/lib/types';
-import type { StorageProvider } from '@/lib/lofs/types';
+import type { StorageProvider } from '@/lib/types/storage';
 
 export interface PreviewPaneProps {
   /** File path - used for file type detection and provenance */
@@ -50,7 +50,7 @@ export default function PreviewPane({
   // Create default provider if none supplied (for src="" resolution)
   const defaultProvider = useMemo(() => new NetworkStorageProvider(), []);
   const provider = resolveProvider ?? defaultProvider;
-  const provenance = path ? `file:///content/${path}` : undefined;
+  const provenance = path ? `file:content://${path}` : undefined;
 
   // PEG files get their own preview pane
   if (isPEGFile(path)) {

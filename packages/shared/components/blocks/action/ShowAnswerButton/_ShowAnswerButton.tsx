@@ -5,7 +5,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useMemo, useCallback } from 'react';
 import * as state from '@/lib/state';
 import { getGrader } from '@/lib/blocks';
-import { refToReduxKey } from '@/lib/blocks/idResolver';
+import { refToReduxKey } from '@/lib/types/id';
 import { DisplayError } from '@/lib/util/debug';
 
 /**
@@ -48,7 +48,7 @@ function _ShowAnswerButton(props: RuntimeProps) {
   if (graderReduxKeys.length === 0) {
     return (
       <DisplayError
-        name="ShowAnswerButton"
+        title="ShowAnswerButton"
         message="No grader found. Use target attribute or place inside a grader."
         data={{ id: props.id }}
       />

@@ -28,12 +28,12 @@ export default function _Ref(props: RuntimeProps) {
   }
 
   if (error) {
-    return <DisplayError props={props} name="Ref" message={error} />;
+    return <DisplayError props={props} title="Ref" message={error} />;
   }
 
   // Validate format attribute if provided
   if (format && !VALID_FORMATS.includes(format)) {
-    return <DisplayError props={props} name="Ref" message={`Unknown format "${format}". Valid options: ${VALID_FORMATS.join(', ')}`} />;
+    return <DisplayError props={props} title="Ref" message={`Unknown format "${format}". Valid options: ${VALID_FORMATS.join(', ')}`} />;
   }
 
   if (format === 'code') {

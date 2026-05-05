@@ -52,7 +52,7 @@ import { makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import Spinner from '@/components/common/Spinner';
-import { InMemoryStorageProvider, StackedStorageProvider, toMemoryProvenanceURI } from '@/lib/lofs';
+import { InMemoryStorageProvider, StackedStorageProvider, toMemoryRef } from '@/lib/lofs';
 import { isOLXFile } from '@/lib/util/fileTypes';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
 import { useBlock } from '@/lib/blocks/useRenderedBlock';
@@ -61,7 +61,8 @@ import { settings } from '@/lib/state/settings';
 import { useSetting } from '@/lib/state/settingsAccess';
 import { getTextDirection, getBrowserLocale } from '@/lib/i18n/getTextDirection';
 import { registerAdvanceRoot, unregisterAdvanceRoot } from '@/lib/advance';
-import type { BaselineProps, IdPrefix, LoBlockRuntimeContext, OlxDomNode, UserLocale, ProvenanceURI, OLXLoadingError } from '@/lib/types';
+import type { BaselineProps, IdPrefix, LoBlockRuntimeContext, OlxDomNode, UserLocale, OLXLoadingError } from '@/lib/types';
+import { toLofsRef } from '@/lib/types/address';
 
 // Stable no-op for replay mode - avoids creating new function on each render
 const noopLogEvent = () => { };
@@ -220,7 +221,7 @@ function useParseContent(
         if (inline) {
           const result = await parseOLX(
             inline,
-            [(provenance || 'inline://') as ProvenanceURI],
+            [toLofsRef(provenance || 'inline://')],
             effectiveProvider
           );
           if (!cancelled) {
@@ -253,7 +254,7 @@ function useParseContent(
 
             const result = await parseOLX(
               content,
-              [provenance as ProvenanceURI || toMemoryProvenanceURI(filename)],
+              [provenance ? toLofsRef(provenance) : toMemoryRef(filename)],
               effectiveProvider
             );
 
@@ -344,7 +345,7 @@ interface RenderOLXProps {
   baseIdMap?: Record<string, any>;
   /** Storage provider for resolving references - added at end of stack (lowest priority for resolution) */
   resolveProvider?: any;
-  /** Source identifier for debugging/tracking (e.g., 'file:///path/to.olx') */
+  /** Source identifier for debugging/tracking (e.g., 'file:content://path/to.olx') */
   provenance?: string;
   /** Called when parsing or rendering errors occur */
   onError?: (err: any) => void;
@@ -529,7 +530,7 @@ export default function RenderOLX({
           </div>
           {warnings.map((err, i) => (
             <details key={i} className="mb-1">
-              <summary>{err.summary}</summary>
+              <summary>{err.title}</summary>
               <pre className="whitespace-pre-wrap mt-1 text-xs">{err.message}</pre>
             </details>
           ))}

@@ -21,7 +21,8 @@
 //
 import { z } from 'zod';
 import { XMLBuilder } from 'fast-xml-parser';
-import type { OLXLoadingError, OlxReference, OlxKey, RuntimeProps, ReduxStateKey } from '@/lib/types';
+import type { OLXLoadingError, OlxReference, OlxKey, RuntimeProps, ReduxStateKey, LofsDependencies } from '@/lib/types';
+import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
 import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
 import { z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
 import * as state from '@/lib/state';
@@ -85,12 +86,11 @@ async function loadExternalSource({
   // SafeRelativePath — same idea as OlxReference → OlxKey for block IDs.
   const resolved = provider.resolveRelativePath(lastProv, src);
 
-  // Let the provider construct provenance — it knows its own scheme
-  // (file://, memory://, postgres://, etc.). Parsers don't need to.
-  const newProvenance = [...provenance, provider.toProvenanceURI(resolved)];
-
-  const { content } = await provider.read(resolved);
-  return { text: content, provenance: newProvenance };
+  // Read first, then use the canonical provenance from the read result.
+  // ReadResult.provenance is LofsCanonical — it records what was actually read.
+  const readResult = await provider.read(resolved);
+  const newProvenance: LofsDependencies = [...provenance, readResult.provenance];
+  return { text: readResult.content, provenance: newProvenance };
 }
 
 /**
@@ -700,7 +700,7 @@ export function peggyParser(
     } catch (parseError) {
       const errorObj: OLXLoadingError = {
         type: 'peg_error' as const,
-        summary: `Dialogue parsing error in ${prov.join(' → ')}`,
+        title: `Dialogue parsing error in ${prov.join(' → ')}`,
         message: parseError.message,
         location: {
           provenance: prov,
@@ -721,10 +721,10 @@ export function peggyParser(
       entry = {
         id,
         tag: 'ErrorNode',
-        attributes,
+        attributes: errorObj,
         provenance: prov,
         rawParsed,
-        kids: errorObj,
+        kids: [],
         parseError: true,
         ...(metadata || {})  // Spread metadata even for error nodes
       };
@@ -815,7 +815,7 @@ export function yamlParser(schema: z.ZodType) {
 
       const errorObj: OLXLoadingError = {
         type: 'parse_error' as const,
-        summary: `YAML parse error in ${prov.join(' → ')}`,
+        title: `YAML parse error in ${prov.join(' → ')}`,
         message,
         location: {
           provenance: prov,
@@ -834,10 +834,10 @@ export function yamlParser(schema: z.ZodType) {
       entry = {
         id,
         tag: 'ErrorNode',
-        attributes,
+        attributes: errorObj,
         provenance: prov,
         rawParsed,
-        kids: errorObj,
+        kids: [],
         parseError: true,
         ...(metadata || {})
       };
@@ -893,10 +893,13 @@ const assetSrcFactory = function assetSrc() {
         const olxProvenance = provenance[0];
         resolvedSrc = provider.resolveRelativePath(olxProvenance, src);
 
-        // Add asset to provenance for dependency tracking (like peg/md parsers do).
-        // Let the provider construct the URI — it knows its own scheme.
-        if (provider.toProvenanceURI) {
-          updatedProvenance = [...provenance, provider.toProvenanceURI(resolvedSrc)];
+        // HACK: This ref has no real version because the parser is synchronous
+        // and can't call provider.read(). We use a placeholder version so it's
+        // structurally valid as LofsCanonical. Making the parser async would
+        // let us get real canonical provenance (mtime, content hash) here.
+        if (provider.toLofsRef) {
+          const assetRef = withVersion(provider.toLofsRef(resolvedSrc), toLofsVersion('unresolved'));
+          updatedProvenance = [...provenance, toLofsCanonical(assetRef)];
         }
       }
     }

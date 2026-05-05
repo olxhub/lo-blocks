@@ -48,12 +48,12 @@ export default function _Mermaid(props: RuntimeProps) {
   }
 
   if (!text || !text.trim()) {
-    return <DisplayError props={props} name="Mermaid" message="Empty diagram" />;
+    return <DisplayError props={props} title="Mermaid" message="Empty diagram" />;
   }
 
   return (
     <>
-      {error && <DisplayError props={props} name="Mermaid" message="Invalid diagram syntax" technical={error} />}
+      {error && <DisplayError props={props} title="Mermaid" message="Invalid diagram syntax" technical={error} />}
       <div ref={containerRef} style={error ? { display: 'none' } : undefined} />
     </>
   );

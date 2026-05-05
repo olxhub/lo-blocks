@@ -7,7 +7,7 @@
 
 import { useMemo } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
-import * as idResolver from '../blocks/idResolver';
+import * as idResolver from '../types/id';
 import { selectBlock } from '../state/olxjson';
 import type { FieldInfo } from '../types';
 import type { References } from './references';

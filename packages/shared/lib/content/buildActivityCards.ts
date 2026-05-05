@@ -6,8 +6,9 @@
 
 import { getEditPathFromProvenance } from '../lofs/contentPaths';
 import type { IdMap, ContentVariant, ContentTier } from '../types';
+import { variantMapKeys } from '../types/i18n';
 
-export type VariantPicker = (availableVariants: string[]) => string;
+export type VariantPicker = (availableVariants: ContentVariant[]) => ContentVariant;
 
 export interface ActivityCard {
   id: string;
@@ -41,7 +42,7 @@ export function buildActivityCards(
         );
       })
       .map(([id, variantMap]: [string, any]) => {
-        const availableVariants = Object.keys(variantMap);
+        const availableVariants = variantMapKeys(variantMap);
 
         const title: Record<ContentVariant, string> = {};
         const description: Record<ContentVariant, string> = {};
