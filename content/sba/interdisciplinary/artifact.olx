@@ -191,11 +191,11 @@ Analysis of how different disciplines view the problem and where they conflict.
         <IntakeGate ready="@initial_links_done.value">
           <Markdown>**Not shown until previous diagram marked complete**</Markdown>
           <Vertical>
-            <SplitPanel>
+            <SplitPanel id="causal_diagram_v2_headers">
               <LeftPane><Markdown>**My Causal Diagram**</Markdown></LeftPane>
               <RightPane><Markdown>**Group Consensus for Causal Diagram**</Markdown></RightPane>
             </SplitPanel>
-            <SplitPanel>
+            <SplitPanel id="causal_diagram_v2_content">
               <LeftPane><Mermaid target="editor" /></LeftPane>
               <RightPane>
                 <IntakeGate ready="@extra_links_done.value">
@@ -211,11 +211,11 @@ Analysis of how different disciplines view the problem and where they conflict.
         <IntakeGate ready="@extra_links_done.value">
           <Markdown>**Not shown until previous diagram marked complete**</Markdown>
           <Vertical>
-            <SplitPanel>
+            <SplitPanel id="final_causal_diagram_headers">
               <LeftPane><Markdown>**My Causal Diagram**</Markdown></LeftPane>
               <RightPane><Markdown>**Group Consensus for Causal Diagram**</Markdown></RightPane>
             </SplitPanel>
-            <SplitPanel>
+            <SplitPanel id="final_causal_diagram_content">
               <LeftPane><Mermaid target="editor_finance_reform" /></LeftPane>
               <RightPane>
                 <IntakeGate ready="@extra_links_done_finance_reform.value">

@@ -134,7 +134,7 @@ _Click on the correct answer._
          <Distractor>Interdisciplinary Map</Distractor>
        </ChoiceInput>
        <IntakeGate ready="@cause_mapping_choice.value" id="mapping_choice_explanation_container">
-       <Hidden> </Hidden>
+       <Hidden id="hidden_1"> </Hidden>
        <Vertical id="mapping_choice_explanation_display">
          <Markdown>&nbsp;
 
@@ -158,7 +158,7 @@ _Click on the correct answer._
 Family and Peer Factors | Equitable School Funding
       </Markdown>
       <IntakeGate ready="&quot;combo_1&quot; in @dropout_factor_checkboxes.value" id="combo_1_container">
-          <Hidden> </Hidden>
+          <Hidden id="hidden_2"> </Hidden>
           <TextArea id="dropout_factor_combo_1_explanation" placeholder="How you think the two factors might interact, if they do..." />
       </IntakeGate>
     </Key>
@@ -167,7 +167,7 @@ Family and Peer Factors | Equitable School Funding
 Family and Peer Factors | ADHD Status
       </Markdown>
       <IntakeGate ready="&quot;combo_2&quot; in @dropout_factor_checkboxes.value" id="combo_2_container">
-          <Hidden> </Hidden>
+          <Hidden id="hidden_3"> </Hidden>
           <TextArea id="dropout_factor_combo_2_explanation" placeholder="How you think the two factors might interact, if they do..." />
       </IntakeGate>
     </Key>
@@ -176,7 +176,7 @@ Family and Peer Factors | ADHD Status
 Students Working Long Hours | Equitable School Funding
       </Markdown>
       <IntakeGate ready="&quot;combo_3&quot; in @dropout_factor_checkboxes.value" id="combo_3_container">
-          <Hidden> </Hidden>
+          <Hidden id="hidden_4"> </Hidden>
           <TextArea id="dropout_factor_combo_3_explanation" placeholder="How you think the two factors might interact, if they do..." />
       </IntakeGate>
     </Key>
@@ -185,7 +185,7 @@ Students Working Long Hours | Equitable School Funding
 Students Working Long Hours | ADHD Status
       </Markdown>
       <IntakeGate ready="&quot;combo_4&quot; in @dropout_factor_checkboxes.value" id="combo_4_container">
-          <Hidden> </Hidden>
+          <Hidden id="hidden_5"> </Hidden>
           <TextArea id="dropout_factor_combo_4_explanation" placeholder="How you think the two factors might interact, if they do..." />
       </IntakeGate>
     </Key>
@@ -194,7 +194,7 @@ Students Working Long Hours | ADHD Status
 Equitable School Funding | ADHD Status
       </Markdown>
       <IntakeGate ready="&quot;combo_5&quot; in @dropout_factor_checkboxes.value" id="combo_5_container">
-          <Hidden> </Hidden>
+          <Hidden id="hidden_6"> </Hidden>
           <TextArea id="dropout_factor_combo_5_explanation" placeholder="How you think the two factors might interact, if they do..." />
       </IntakeGate>
     </Key>
@@ -411,7 +411,7 @@ research as key determinants.
         </TextBlock></Key>
       </ChoiceInput>
       <IntakeGate ready="@cause_connection_3_explanation_choice_input.value">
-        <Hidden> </Hidden>
+        <Hidden id="hidden_7"> </Hidden>
         <Vertical id="factor_connection_3_explanation_block">
           <Markdown>
     &nbsp;
@@ -460,7 +460,7 @@ needed by students who must work long hours.
         </TextBlock></Key>
       </ChoiceInput>
        <IntakeGate ready="@cause_connection_4_explanation_choice_input.value">
-         <Hidden> </Hidden>
+         <Hidden id="hidden_8"> </Hidden>
          <Vertical id="cause_connection_4_explanation_block">
            <Markdown>
 &nbsp;
@@ -509,7 +509,7 @@ without adequate resources.
         </Distractor>
       </ChoiceInput>
       <IntakeGate ready="@cause_connection_5_explanation_choice_input.value">
-      <Hidden> </Hidden>
+      <Hidden id="hidden_9"> </Hidden>
       <Vertical id="cause_connection_5_choice_explanation_panel">
         <Markdown>
     &nbsp;
@@ -584,7 +584,7 @@ without adequate resources.
 Biology
              </TextBlock>
              <IntakeGate ready="&quot;rf_bio&quot; in @reading_funding_classification.value" id="rf_bio_itg">
-               <Hidden> </Hidden>
+               <Hidden id="hidden_10"> </Hidden>
                <TextArea id="rf_bio_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
              </IntakeGate>
            </Distractor>
@@ -593,7 +593,7 @@ Biology
 Economics
              </TextBlock>
              <IntakeGate ready="&quot;rf_econ&quot; in @reading_funding_classification.value" id="rf_econ_itg">
-               <Hidden> </Hidden>
+               <Hidden id="hidden_11"> </Hidden>
                <TextArea id="rf_econ_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
              </IntakeGate>
            </Key>
@@ -602,7 +602,7 @@ Economics
 Health Sciences
              </TextBlock>
              <IntakeGate ready="&quot;rf_health&quot; in @reading_funding_classification.value" id="rf_health_itg">
-               <Hidden> </Hidden>
+               <Hidden id="hidden_12"> </Hidden>
                <TextArea id="rf_health_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
              </IntakeGate>
            </Distractor>
@@ -611,7 +611,7 @@ Health Sciences
 Political Science
              </TextBlock>
              <IntakeGate ready="&quot;rf_polisci&quot; in @reading_funding_classification.value" id="rf_polisci_itg">
-               <Hidden> </Hidden>
+               <Hidden id="hidden_13"> </Hidden>
                <TextArea id="rf_polisci_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
              </IntakeGate>
            </Distractor>
@@ -620,7 +620,7 @@ Political Science
 Psychology
              </TextBlock>
              <IntakeGate ready="&quot;rf_psych&quot; in @reading_funding_classification.value" id="rf_psych_itg">
-               <Hidden> </Hidden>
+               <Hidden id="hidden_14"> </Hidden>
                <TextArea id="rf_psych_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
              </IntakeGate>
            </Key>
@@ -629,7 +629,7 @@ Psychology
 Sociology
              </TextBlock>
              <IntakeGate ready="&quot;rf_soc&quot; in @reading_funding_classification.value" id="rf_soc_itg">
-               <Hidden> </Hidden>
+               <Hidden id="hidden_15"> </Hidden>
                <TextArea id="rf_soc_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
              </IntakeGate>
            </Key>
@@ -686,7 +686,7 @@ Sustained increases in school spending significantly improve educational attainm
         </LeftPane>
         <RightPane>
           <IntakeGate id="reading_funding_insight_choice_explanation_gate" ready="@reading_funding_insight_choice_input.value">
-            <Hidden> </Hidden>
+            <Hidden id="hidden_16"> </Hidden>
             <Vertical id="reading_funding_insight_choice_explanation_panel">
                <Markdown>**Why did you choose this insight summary?**</Markdown>
                <TextArea id="reading_funding_insight_choice_explanation" placeholder="Put your reason for selecting this explanation here" />
