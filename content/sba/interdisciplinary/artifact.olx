@@ -21,43 +21,31 @@ Your comprehensive problem statement that addresses:
 - Focus and scope aligned with Comm360's capacity
     </Markdown>
 
-    <Markdown id="artifact_tb_1">**Final Problem Statement:**</Markdown>
-    <TextArea id="interdisciplinary_sba_full_problem_statement" placeholder="Your final problem statement will appear here once completed..." />
-
-    <Markdown id="artifact_tb_2">**Revised Significance Statement:**</Markdown>
-    <TextArea id="interdisciplinary_sba_problem_statement_revised" placeholder="Your significance statement will appear here..." />
+    <Tabs id="repko_step_1">
+      <Vertical id="initial_ps" title="Initial Problem Statement">
+        <Markdown id="initial_ps_md1">
+We've been asked to investigate the causes of high school dropout so Comm360 can develop services to address the problem.
+        </Markdown>
+      </Vertical>
+      <Vertical id="artifact_tb_2" title="Significance Statement">
+        <TextArea id="interdisciplinary_sba_problem_statement_revised" placeholder="Your significance statement will appear here..." />
+      </Vertical>
+      <Vertical id="artifact_tb_1" title="Final Problem Statement">
+        <TextArea id="interdisciplinary_sba_full_problem_statement" placeholder="Your final problem statement will appear here once completed..." />
+      </Vertical>
+    </Tabs>
   </Collapsible>
 
   <!-- Step 2: Justification -->
   <Collapsible id="artifact_step2" title="Step 2: Justify using an interdisciplinary approach">
-    <Markdown>
-Evidence supporting the use of an interdisciplinary approach for this complex problem.
-    </Markdown>
-
-    <Markdown id="artifact_tb_3">**Why You Selected These Reasons:**</Markdown>
-    <TextArea id="interdisciplinary_sba_reason_explanation" placeholder="Your explanation will appear here..." />
-
-    <Markdown id="artifact_tb_4">**Selected Causes to Research:**</Markdown>
-    <Markdown id="interdisciplinary_sba_reasons">
-- [ ] Some school systems can't accommodate students with physical or other kinds of disabilities
-- [ ] Students need to earn money right away to help their family
-- [ ] Individual cause (from student input)
-- [ ] Schools use curricula that students don't see as relevant
-- [ ] Student's environment with gang activity, neighborhood instability
-- [ ] Structural cause (from student input)
-- [ ] Conditions like depression, anxiety, or ADHD interfere with engagement
-- [ ] School systems can't accommodate disabilities (duplicate)
-- [ ] Students lack family, friends, or teacher support
-- [ ] Negative peer influences encourage dropping out
-- [ ] Cultural responsibilities more important than high school
-- [ ] Legal trouble makes it difficult to continue school
-    </Markdown>
-
-    <Markdown id="artifact_tb_5">**Importance Evidence:**</Markdown>
-    <TextArea id="interdisciplinary_sba_source_5_importance_explanation" placeholder="Your explanation will appear here..." />
-
-    <Markdown id="artifact_tb_6">**Unresolved Problem Evidence:**</Markdown>
-    <TextArea id="interdisciplinary_sba_source_5_unresolved_explanation" placeholder="Your explanation will appear here..." />
+    <Tabs id="bm_step2">
+      <Vertical id="bm_step2_criteria" title="Criteria">
+        <Use id="broad_model_display3" ref="repko_criteria" />
+      </Vertical>
+      <Vertical id="bm_step2_eval" title="My Initial Evaluation">
+        <Use id="initial_repko_evaluation2" ref="initial_repko_evaluation" />
+      </Vertical>
+    </Tabs>
   </Collapsible>
 
   <!-- Step 3: Relevant Disciplines -->
@@ -65,23 +53,60 @@ Evidence supporting the use of an interdisciplinary approach for this complex pr
     <Markdown>
 The disciplines you've identified as relevant to understanding high school dropout.
     </Markdown>
-
-    <Markdown id="artifact_tb_7">**Causes Mapped to Disciplines (Table):**</Markdown>
-    <Markdown id="artifact_tb_8">[Table component for interdisciplinary_sba_reasons discipline mapping - to be implemented]</Markdown>
-
-    <Markdown id="artifact_tb_9">**Priority Area Alignment:**</Markdown>
-    <Markdown id="artifact_tb_10">[Table component for interdisciplinary_sba_problem_areas - to be implemented]</Markdown>
-    <TextArea id="interdisciplinary_sba_priority_explanation" placeholder="Your explanation will appear here..." />
-
-    <Markdown id="artifact_tb_11">**Additional Relevant Disciplines:**</Markdown>
-    <Markdown id="interdisciplinary_sba_additional_disciplines">
-- [ ] Health Sciences
-- [ ] Biology
-- [ ] Sociology
-- [ ] Economics
-- [ ] Political Science
-    </Markdown>
-    <TextArea id="interdisciplinary_sba_additional_disciplines_explanation" placeholder="Your explanation will appear here..." />
+    <Tabs>
+        <Vertical id="initial_discipline_list" title="Initial Brainstorming">
+          <IntakeGate ready="@reason_explanation.value">
+            <Markdown>
+When you have finished brainstorming disciplines that might be relevant to studying
+the causes of high school dropout, this page will display a list of causes of high
+school dropout and your personal list of potentially relevant disciplines.
+            </Markdown>
+            <Vertical id="brainstorming_responses">
+              <Use id="brainstorming_disciplines2" ref="brainstorming_disciplines" />
+              <Markdown>
+-----------------------------------
+&nbsp;
+              </Markdown>
+              <Use id="reasons_shown3" ref="reasons_shown" />
+              <Markdown>
+-----------------------------------
+**Why you selected these causes:**
+              </Markdown>
+              <Use id="reason_explanation2" ref="reason_explanation" />
+              <Markdown>
+-----------------------------------
+**The causes you suggested yourself:**
+              </Markdown>
+              <Use id="cause_internal2" ref="cause_internal" />
+              <Use id="cause_structural2" ref="cause_structural" />             
+              <Markdown>
+------------------------------------
+**My Notes on the Focus Group Transcript** 
+              </Markdown>
+              <Use id="" ref="focus_group" />
+            </Vertical>
+          </IntakeGate>
+        </Vertical>
+        <Vertical id="identifying_disciplines" title="Identifying Relevant Disciplines">
+            <IntakeGate ready="Object.keys(@discipline_mapping.value).length > 3">
+              <Markdown>
+When you have have finished thinking about which causes of high school dropout
+Comm360 should focus on, this page will display your judgments about which disciplines provide information
+about each cause.
+              </Markdown>
+              <Use id="causes_by_disciplines_final" ref="causes_by_disciplines" />
+            </IntakeGate>
+        </Vertical>
+        <Vertical id="mapping_of_causes" title="Final Mapping">
+            <IntakeGate ready="Object.keys(@discipline_mapping.value).length > 3">
+              <Markdown>
+When you have finished analyzing which disciplines study which causes of high school dropout,
+this page will display a diagram showing your group's final analysis.
+              </Markdown>
+              <Use id="causes_by_disciplines_final" ref="causes_by_disciplines_answers" />
+            </IntakeGate>
+        </Vertical>
+    </Tabs>
   </Collapsible>
 
   <!-- Step 4: Literature Review -->
@@ -89,48 +114,50 @@ The disciplines you've identified as relevant to understanding high school dropo
     <Markdown>
 Research studies you've reviewed from different disciplines.
     </Markdown>
-
-    <Markdown id="artifact_tb_12">**Study 1: ADHD Research (Psychology)**</Markdown>
-    <Markdown id="artifact_tb_13">[Highlight component for interdisciplinary_sba_source.1 - to be implemented]</Markdown>
-
-    <Markdown id="artifact_tb_14">**Study 2: Employment Research**</Markdown>
-    <Markdown id="artifact_tb_15">[Highlight component for interdisciplinary_sba_source.2 - to be implemented]</Markdown>
-    <Markdown id="artifact_tb_16">**Disciplines Identified:**</Markdown>
-    <Markdown id="interdisciplinary_sba_source_2_classification">
-- [ ] Health Sciences
-- [ ] Biology
-- [ ] Psychology
-- [ ] Sociology
-- [ ] Economics
-- [ ] Political Science
-    </Markdown>
-    <TextArea id="interdisciplinary_sba_source_2_classification_explanation" placeholder="Your explanation will appear here..." />
-
-    <Markdown id="artifact_tb_17">**Study 3: Rural/Urban Research**</Markdown>
-    <Markdown id="artifact_tb_18">[Highlight component for interdisciplinary_sba_source.3 - to be implemented]</Markdown>
-    <Markdown id="artifact_tb_19">**Disciplines Identified:**</Markdown>
-    <Markdown id="interdisciplinary_sba_source_3_classification">
-- [ ] Health Sciences
-- [ ] Biology
-- [ ] Psychology
-- [ ] Sociology
-- [ ] Economics
-- [ ] Political Science
-    </Markdown>
-    <TextArea id="interdisciplinary_sba_source_3_classification_explanation" placeholder="Your explanation will appear here..." />
-
-    <Markdown id="artifact_tb_20">**Study 4: School Funding Research**</Markdown>
-    <Markdown id="artifact_tb_21">[Highlight component for interdisciplinary_sba_source.4 - to be implemented]</Markdown>
-    <Markdown id="artifact_tb_22">**Disciplines Identified:**</Markdown>
-    <Markdown id="interdisciplinary_sba_source_4_classification">
-- [ ] Health Sciences
-- [ ] Biology
-- [ ] Psychology
-- [ ] Sociology
-- [ ] Economics
-- [ ] Political Science
-    </Markdown>
-    <TextArea id="interdisciplinary_sba_source_4_classification_explanation" placeholder="Your explanation will appear here..." />
+    <Tabs id="artifact_lit_tabs">
+        <Vertical id="artifact_lit_tab1" title="Study 1: ADHD Research (Psychology)">
+          <Markdown>**The insight sentence you drafted:**</Markdown>
+          <Use ref="adhd_insight_sentence" />
+          <Markdown>**The insight sentence you selected:**</Markdown>         
+          <Use ref="adhd_insight_sentence_choice_input" />
+        </Vertical>
+        <Vertical id="artifact_lit_tab2" title="Study 2: Employment Research">
+          <Markdown>**The insight sentence you drafted:**</Markdown>
+          <Use ref="source_2_insight_sentence" />
+          <Markdown>**The insight sentence you selected:**</Markdown>         
+          <Use ref="employment_insight_sentence_choice_input" />
+          <Markdown>**Your explanation of your choice:**</Markdown>
+          <Use ref="source_2_insight_explanation" />
+          <Markdown>**The disciplines you chose for this source:**</Markdown>
+          <Use ref="source_2_classification" />
+          <Markdown>**Why you chose this discipline:**</Markdown>
+          <Use ref="source_2_classification_explanation" />
+        </Vertical>
+        <Vertical id="artifact_lit_tab3" title="Study 3: Rural/Urban Research">
+          <Markdown>**The insight sentence you drafted:**</Markdown>
+          <Use ref="source_3_insight_sentence" />
+          <Markdown>**The insight sentence you selected:**</Markdown>         
+          <Use ref="employment_insight_sentence_choice_input" />
+          <Markdown>**Your explanation of your choice:**</Markdown>
+          <Use ref="source_3_insight_sentence_explanation" />
+          <Markdown>**The disciplines you chose for this source:**</Markdown>
+          <Use ref="source_3_classification" />
+          <Markdown>**Why you chose this discipline:**</Markdown>
+          <Use ref="source_3_classification_explanation" />
+        </Vertical>
+        <Vertical id="artifact_lit_tab4" title="Study 4: School Funding Research">
+          <Markdown>**The insight sentence you drafted:**</Markdown>
+          <Use ref="source_4_insight_sentence" />
+          <Markdown>**The insight sentence you selected:**</Markdown>         
+          <Use ref="source4_insight_selection" />
+          <Markdown>**Your explanation of your choice:**</Markdown>
+          <Use ref="source_4_insight_sentence_explanation" />
+          <Markdown>**The disciplines you chose for this source:**</Markdown>
+          <Use ref="funding_study_additional_disciplines" />
+          <Markdown>**Why you chose this discipline:**</Markdown>
+          <Use ref="source_4_classification_explanation" />
+        </Vertical>
+    </Tabs>
   </Collapsible>
 
   <!-- Step 5: Critical Analysis -->
@@ -138,7 +165,70 @@ Research studies you've reviewed from different disciplines.
     <Markdown>
 Analysis of how different disciplines view the problem and where they conflict.
     </Markdown>
-
+    <Tabs>
+      <Vertical title="Causal Diagram (Version 1)">
+        <SplitPanel>
+          <LeftPane><Markdown>**My Causal Diagram**</Markdown></LeftPane>
+          <RightPane><Markdown>**Group Consensus for Causal Diagram**</Markdown></RightPane>
+        </SplitPanel>
+        <SplitPanel>
+          <LeftPane>
+            <IntakeGate ready="@initial_links_done.value">
+              <Markdown>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**Not Final**</Markdown>
+              <Hidden> </Hidden>
+            </IntakeGate>
+            <Mermaid target="editor_cause_diagram" />
+          </LeftPane>
+          <RightPane>
+            <IntakeGate ready="@initial_links_done.value">
+              <Markdown>**Not shown until your work is marked complete**</Markdown>
+              <Mermaid target="cause_mapping" />
+            </IntakeGate>
+          </RightPane>
+        </SplitPanel>
+      </Vertical>
+      <Vertical title="Causal Diagram (Version 2)">
+        <IntakeGate ready="@initial_links_done.value">
+          <Markdown>**Not shown until previous diagram marked complete**</Markdown>
+          <Vertical>
+            <SplitPanel>
+              <LeftPane><Markdown>**My Causal Diagram**</Markdown></LeftPane>
+              <RightPane><Markdown>**Group Consensus for Causal Diagram**</Markdown></RightPane>
+            </SplitPanel>
+            <SplitPanel>
+              <LeftPane><Mermaid target="editor" /></LeftPane>
+              <RightPane>
+                <IntakeGate ready="@extra_links_done.value">
+                  <Markdown>**Not shown until previous diagram marked complete**</Markdown>
+                  <Mermaid target="cause_mapping_3" />
+                </IntakeGate>
+              </RightPane>
+            </SplitPanel>
+          </Vertical>
+        </IntakeGate>
+      </Vertical>
+      <Vertical title="Final Causal Diagram">
+        <IntakeGate ready="@extra_links_done.value">
+          <Markdown>**Not shown until previous diagram marked complete**</Markdown>
+          <Vertical>
+            <SplitPanel>
+              <LeftPane><Markdown>**My Causal Diagram**</Markdown></LeftPane>
+              <RightPane><Markdown>**Group Consensus for Causal Diagram**</Markdown></RightPane>
+            </SplitPanel>
+            <SplitPanel>
+              <LeftPane><Mermaid target="editor_finance_reform" /></LeftPane>
+              <RightPane>
+                <IntakeGate ready="@extra_links_done_finance_reform.value">
+                  <Markdown>**Not shown until previous diagram marked complete**</Markdown>
+                  <Mermaid target="cause_mapping_4" />
+                </IntakeGate>
+              </RightPane>
+            </SplitPanel>
+          </Vertical>
+        </IntakeGate>
+    </Vertical>
+    
+    </Tabs>    
     <Markdown id="artifact_tb_23">**Key Insights from Psychology:**</Markdown>
     <TextArea id="interdisciplinary_sba_insights_psychology" placeholder="Psychology insights: ADHD, motivation, self-efficacy factors..." />
 
@@ -178,3 +268,4 @@ How the interdisciplinary process has enlarged your understanding of high school
     <TextArea id="interdisciplinary_sba_reflection_new_insights" placeholder="What you learned that you didn't know before..." />
   </Collapsible>
 </Vertical>
+
