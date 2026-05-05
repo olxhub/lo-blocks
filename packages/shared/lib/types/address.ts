@@ -223,10 +223,12 @@ export function addressPath(ref: LofsRef): LofsContentPath {
  *   → "git@github.com:org/repo.git://foo.olx#abc123"
  */
 export function withVersion(ref: LofsRef, ver: LofsVersion): LofsRef {
+  if (!ref.includes(SEPARATOR)) {
+    throw new Error(`withVersion requires a ref with "://": "${ref}"`);
+  }
   const [src, pathWithVersion] = splitAtSeparator(ref);
   const [p] = splitVersion(pathWithVersion);
-  const pathSuffix = ref.includes(SEPARATOR) ? `${SEPARATOR}${p}${VERSION_DELIM}${ver}` : '';
-  return toLofsRef(`${src}${pathSuffix}`);
+  return toLofsRef(`${src}${SEPARATOR}${p}${VERSION_DELIM}${ver}`);
 }
 
 /**
@@ -269,7 +271,7 @@ export function makeAddress(
 ): LofsRef {
   let result = src as string;
   if (p !== undefined) result += `${SEPARATOR}${p}`;
-  if (ver) result += `${VERSION_DELIM}${ver}`;
+  if (ver !== undefined) result += `${VERSION_DELIM}${ver}`;
   return toLofsRef(result);
 }
 

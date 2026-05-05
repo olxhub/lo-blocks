@@ -18,7 +18,7 @@ import { useStaticContent } from '../../lib/StaticContentProvider';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
 import { toOlxKey } from '@/lib/types/id';
-import { variantMapEntries } from '@/lib/types/i18n';
+import { variantMapLocaleEntries } from '@/lib/types/i18n';
 import type { Locale } from '@/lib/types';
 
 export default function StaticPage({ olxKey, title }: { olxKey: string; title?: string }) {
@@ -38,8 +38,7 @@ export default function StaticPage({ olxKey, title }: { olxKey: string; title?: 
   const variantMap = idMap[key] || {};
   const curated: Locale[] = [];
   const bestEffort: Locale[] = [];
-  variantMapEntries(variantMap)
-    .filter(([variant]) => variant !== '*')
+  variantMapLocaleEntries(variantMap)
     .forEach(([variant, olxJson]) => {
       (olxJson.generated ? bestEffort : curated).push(localeFromVariant(variant));
     });

@@ -422,9 +422,12 @@ export async function parseOLX(
 ) {
   const idMap: IdMap = {};
 
-  // HACK: All input refs get stamped with the same content hash. This only
-  // works because callers always pass a single-element array. Should assert
-  // length === 1 or handle multi-ref canonicalization properly.
+  if (inputProvenance.length !== 1) {
+    throw new Error(
+      `parseOLX expects exactly one input provenance ref, got ${inputProvenance.length}. ` +
+      `Multi-ref canonicalization is not implemented.`
+    );
+  }
   const contentVersion = toLofsVersion(await hashContent(xml));
   const provenance: LofsDependencies = inputProvenance.map(
     ref => toLofsCanonical(withVersion(ref, contentVersion))
@@ -504,7 +507,7 @@ export async function parseOLX(
     // 3. Inherited from parent element (carries file-level lang via cascade)
     // 4. Default '*'
     const metadataLang = metadata?.lang;
-    const currentLang = resolveElementLanguage(attributes, parentLang, metadataLang);
+    let currentLang = resolveElementLanguage(attributes, parentLang, metadataLang);
 
     // Resolve generated status: element's own metadata, or inherited from parent.
     // File-level generated (e.g., machineTranslated) cascades to all children.
@@ -581,6 +584,11 @@ export async function parseOLX(
     } else {
       // Use transformed attributes (e.g., "true" -> true for booleans)
       parsedAttributes = result.data;
+
+      // Re-resolve lang from transformed attributes (Zod canonicalizes e.g. "EN-us" → "en-US")
+      if (parsedAttributes.lang) {
+        currentLang = resolveElementLanguage(parsedAttributes, parentLang, metadataLang);
+      }
 
       // Semantic validation beyond what Zod schema can express
       // e.g., NumericalGrader answer must be a valid number, StringGrader regexp must be valid

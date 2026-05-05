@@ -27,7 +27,7 @@ export function stableStringify(v: unknown): string {
 /**
  * Hash content (file body) for replicability in learning analytics.
  * Used to identify files across sessions and enable download restoration.
- * Returns 8-char hex string (first 64 bits of SHA256).
+ * Returns 16-char hex string (64 bits of SHA256).
  * Works in both Node.js and browser environments via Web Crypto API.
  */
 export async function hashContent(content: string): Promise<string> {
@@ -35,5 +35,5 @@ export async function hashContent(content: string): Promise<string> {
   const hex = Array.from(new Uint8Array(buffer))
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');
-  return hex.slice(0, 8);
+  return hex.slice(0, 16);
 }

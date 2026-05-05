@@ -11,6 +11,8 @@ import {
   type VariantKeyedRecord,
 } from '@/lib/types/i18n';
 
+const WILDCARD_VARIANT = toContentVariant('*');
+
 /**
  * Select best variant on the server from Accept-Language header.
  *
@@ -143,8 +145,7 @@ function pickBestVariant(
   }
 
   // Try generic variant (*) if available
-  const wildcardVariant = toContentVariant('*');
-  if (availableVariants.includes(wildcardVariant)) {
+  if (availableVariants.includes(WILDCARD_VARIANT)) {
     return toRenderedVariant('*');
   }
 
@@ -205,8 +206,7 @@ export function selectBestVariant(
   }
 
   // 3. Try wildcard variant "*"
-  const wildcardVariant = toContentVariant('*');
-  if (variants.includes(wildcardVariant)) {
+  if (variants.includes(WILDCARD_VARIANT)) {
     return toRenderedVariant('*');
   }
 
@@ -266,9 +266,8 @@ export function extractLocalizedVariant<T>(
   }
 
   // Try generic variant (*) if available
-  const wildcardVariant = toContentVariant('*');
-  if (variantMap[wildcardVariant]) {
-    return variantMap[wildcardVariant];
+  if (variantMap[WILDCARD_VARIANT]) {
+    return variantMap[WILDCARD_VARIANT];
   }
 
   // Fall back: prefer human-authored (non-generated) content over translations.

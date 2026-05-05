@@ -13,7 +13,7 @@ import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
 import { fetchActivities } from '@/lib/content/fetchOlxJson';
-import { variantMapKeys, type VariantKeyedRecord } from '@/lib/types/i18n';
+import { variantMapLocales, type VariantKeyedRecord } from '@/lib/types/i18n';
 import type { Locale } from '@/lib/types';
 
 const ENDPOINT_LINKS = [
@@ -343,13 +343,11 @@ export default function Home() {
           const localeSet = new Set<Locale>();
           for (const activity of Object.values(data.activities) as Record<string, any>[]) {
             if (activity.title && typeof activity.title === 'object') {
-              variantMapKeys(activity.title as VariantKeyedRecord<unknown>)
-                .filter(variant => variant !== '*')
+              variantMapLocales(activity.title as VariantKeyedRecord<unknown>)
                 .forEach(variant => localeSet.add(localeFromVariant(variant)));
             }
             if (activity.description && typeof activity.description === 'object') {
-              variantMapKeys(activity.description as VariantKeyedRecord<unknown>)
-                .filter(variant => variant !== '*')
+              variantMapLocales(activity.description as VariantKeyedRecord<unknown>)
                 .forEach(variant => localeSet.add(localeFromVariant(variant)));
             }
           }

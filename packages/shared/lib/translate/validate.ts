@@ -51,8 +51,8 @@ async function validateOlx(
   }
 
   if (translatedResult.errors.length > 0) {
-    const summaries = translatedResult.errors.map((e: any) => e.title || e.message).join('; ');
-    return `Translated OLX has errors: ${summaries}`;
+    const titles = translatedResult.errors.map((e: any) => e.title || e.message).join('; ');
+    return `Translated OLX has errors: ${titles}`;
   }
 
   // Compare explicit IDs: every author-specified id in the source must appear

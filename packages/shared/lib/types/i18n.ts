@@ -234,11 +234,23 @@ export function variantMapKeys<T>(variantMap: VariantKeyedRecord<T>): ContentVar
   return Object.keys(variantMap).map(asContentVariant);
 }
 
+/** Like variantMapKeys but excludes the '*' wildcard — returns only real locales. */
+export function variantMapLocales<T>(variantMap: VariantKeyedRecord<T>): ContentVariant[] {
+  return Object.keys(variantMap).filter(k => k !== '*').map(asContentVariant);
+}
+
 export function variantMapEntries<T>(variantMap: VariantKeyedRecord<T>): [ContentVariant, T][] {
   return Object.entries(variantMap).map(([variant, value]) => [
     asContentVariant(variant),
     value as T,
   ]);
+}
+
+/** Like variantMapEntries but excludes the '*' wildcard. */
+export function variantMapLocaleEntries<T>(variantMap: VariantKeyedRecord<T>): [ContentVariant, T][] {
+  return Object.entries(variantMap)
+    .filter(([k]) => k !== '*')
+    .map(([variant, value]) => [asContentVariant(variant), value as T]);
 }
 
 /**

@@ -65,6 +65,11 @@ export function validateContentPath(lofsPath: string): PathValidation {
     return { valid: false, error: "Path cannot be empty after 'content/' prefix" };
   }
 
+  // Reject version delimiter (# is reserved in LOFS addresses)
+  if (relPath.includes('#')) {
+    return { valid: false, error: 'Path must not contain "#" (reserved as LOFS version delimiter)' };
+  }
+
   // Normalize and check for directory traversal
   const normalized = path.normalize(relPath);
   if (normalized.startsWith('..') || path.isAbsolute(normalized)) {

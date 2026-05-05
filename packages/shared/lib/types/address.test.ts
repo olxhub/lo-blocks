@@ -187,12 +187,9 @@ describe('withVersion', () => {
     expect(b).toBe('git@github.com:org/repo.git://foo.olx#abc123');
   });
 
-  it('no-op on source-only reference (no path, no ://)', () => {
-    // Without ://, withVersion has no path segment to attach #version to.
-    // This is a source-only ref — versioning requires a path segment.
+  it('throws on source-only reference (no path, no ://)', () => {
     const a = ref('git@github.com:org/repo.git');
-    const b = withVersion(a, vr('main'));
-    expect(b).toBe('git@github.com:org/repo.git');
+    expect(() => withVersion(a, vr('main'))).toThrow('requires a ref with "://"');
   });
 });
 
