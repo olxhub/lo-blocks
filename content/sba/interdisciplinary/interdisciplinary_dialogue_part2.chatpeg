@@ -22,15 +22,15 @@ Lianne: We read summaries of studies from these disciplines and derived their **
 
 Lianne: Let's see if you remember the disciplines for each insight. **For each insight, select each discipline that applies.**
 
-interdisciplinary_sba_sidebar2_b -> insight_review
+::insight_review [display=target:interdisciplinary_sba_sidebar2_b]
 
 --- wait @insight_review.submitCount > 0 ---
 
 Omer: If you remember from Repko et al. (2025), we can use mapping to integrate
 insights from different disciplines which will help us achieve a more comprehensive
-understanding of the problem. 
+understanding of the problem.
 
-interdisciplinary_sba_sidebar2_b -> initial_dropout_cause_diagram
+::initial_dropout_cause_diagram [display=target:interdisciplinary_sba_sidebar2_b]
 
 Omer: Please add the links you think we should add to the diagram.
 
@@ -42,7 +42,7 @@ Peggy: So am I!
 
 Lacy: Me too.
 
-interdisciplinary_sba_sidebar2_b -> dropout_cause_mapping
+::dropout_cause_mapping [display=target:interdisciplinary_sba_sidebar2_b]
 
 Omer: Thank you for your contributions. The map to the right correctly summarizes
 the causal connections we have already discussed.
@@ -51,7 +51,7 @@ Lacey: Yes, I remember we talked about mapping in class but I don't remember
 what kind of map this is supposed to be. It is either a **multidisciplinary**
 map or an **interdisciplinary** map.
 
-interdisciplinary_sba_sidebar2_b -> classify_map
+::classify_map [display=target:interdisciplinary_sba_sidebar2_b]
 
 Lianne: What do you think? And what is the difference between a multidisciplinary
 and an interdisciplinary map anyway?
@@ -71,7 +71,7 @@ Interacting Factors [id=interdisciplinary_multifactor]
 
 Lianne: Great! Let's see how we can integrate these insights.
 
-interdisciplinary_sba_sidebar2_c -> dropout_cause_mapping
+::dropout_cause_mapping [display=target:interdisciplinary_sba_sidebar2_c]
 
 Lianne: Why don't you brainstorm and we'll compare notes? Try to decide which
 of the facts are likely to interact or affect one another in important ways,
@@ -79,18 +79,18 @@ and if so, take notes about how that might happen.
 
 Lacey: OK, let's see ... Students working long hours most likely come from families low on family assets.
 
-interdisciplinary_sba_sidebar2_c -> cause_connection_1
+::cause_connection_1 [display=target:interdisciplinary_sba_sidebar2_c]
 
 Lianne: That is right. We can show that relationship by drawing an arrow from
 **Family and Peer Factors** to **Students Working Long Hours** like this (look to the right).
 
-interdisciplinary_sba_sidebar2_c -> cause_connection_2_mermaid
+::cause_connection_2_mermaid [display=target:interdisciplinary_sba_sidebar2_c]
 
 Ty: That makes sense. I am sure students working long hours are also trying
 to support their families if they come from families with low assets. So the
 arrow should go the other direction as well. We can show it this way (look to the right).
 
-interdisciplinary_sba_sidebar2_c -> cause_mapping_2
+::cause_mapping_2 [display=target:interdisciplinary_sba_sidebar2_c]
 
 Lianne: Yes, exactly! Integration is helping bring these disparate insights together for
 a broad-view understanding of the causes of this problem. (See diagram to the right.)
@@ -98,18 +98,18 @@ a broad-view understanding of the causes of this problem. (See diagram to the ri
 Lianne: How about we start a summary of these connections? We will use
 this summary as the end of Part 3 where we will write a problem statement.
 
-interdisciplinary_sba_sidebar2_c -> cause_mapping_introduction
+::cause_mapping_introduction [display=target:interdisciplinary_sba_sidebar2_c]
 
 Peggie: Great! I started an introduction.
 
 Lacey: Thank you, Peggy. This introduction looks great. Now let's
 add a sentence about the connections we just made.
 
-interdisciplinary_sba_sidebar2_c -> cause_connection_2
+::cause_connection_2 [display=target:interdisciplinary_sba_sidebar2_c]
 
 Peggy: How about the points you and Ty made earlier with a sentence like the one shown to the right?
 
-interdisciplinary_sba_sidebar2_c -> cause_mapping_with_first_crosslink
+::cause_mapping_with_first_crosslink [display=target:interdisciplinary_sba_sidebar2_c]
 
 Lianne: That sounds great. I added that sentence to our summary.
 
@@ -123,7 +123,7 @@ factors you need to add. (Use the form to the right.)
 
 --- wait @dropout_factor_checkboxes.value && (@dropout_factor_combo_1_explanation.value || @dropout_factor_combo_2_explanation.value || @dropout_factor_combo_3_explanation.value || @dropout_factor_combo_4_explanation.value || @dropout_factor_combo_5_explanation.value) ---
 
-interdisciplinary_sba_sidebar2_d -> revise_dropout_cause_diagram
+::revise_dropout_cause_diagram [display=target:interdisciplinary_sba_sidebar2_d]
 
 Lianne: Good! Now you need to revise the diagram so that it shows the
 connections you've chosen. It may take you a few minutes to get the
@@ -138,7 +138,7 @@ Peggy: So am I!
 
 Lacy: Me too.
 
-interdisciplinary_sba_sidebar2_d -> extra_cause_connections
+::extra_cause_connections [display=target:interdisciplinary_sba_sidebar2_d]
 
 Lianne: Looking over your suggestions, I see three more connections we should make.
 They make the most sense considering the studies we reviewed.
@@ -147,7 +147,7 @@ We've already worked on connections between **Family Peer Factors** and
 **Students Working Long Hours**. How about we work on explaining the
 remaining connections?
 
-interdisciplinary_sba_sidebar2_d -> factors_1_to_4
+::factors_1_to_4 [display=target:interdisciplinary_sba_sidebar2_d]
  	
 Lianne: Let's start with this one.
 
@@ -160,20 +160,20 @@ Ty: I've finished my explanation.
 
 Lacy: So have I.
 
-interdisciplinary_sba_sidebar2_d -> cause_connection_3_explanation_choice
+::cause_connection_3_explanation_choice [display=target:interdisciplinary_sba_sidebar2_d]
 
 Lianne: Good work. Here are all the explanations for this connection. Now we need to select the one we need to include in our summary. Which one would you select to include in our summary?
 
 --- wait @cause_connection_3_explanation_choice_input.value && @cause_connection_3_choice_explanation.value ---
 
-interdisciplinary_sba_sidebar2_d -> factors_2_to_3
+::factors_2_to_3 [display=target:interdisciplinary_sba_sidebar2_d]
 
 Lianne: Let's do the same thing for this one too. Write a sentence to explain
 the connection you see in the box under it.
 
 --- wait @cause_connection_4_explanation.value ---
 
-interdisciplinary_sba_sidebar2_d -> cause_connection_4_explanation_choice
+::cause_connection_4_explanation_choice [display=target:interdisciplinary_sba_sidebar2_d]
 
 Lianne: Good work. Here are all the explanations for this connection.
 
@@ -182,28 +182,28 @@ would you select to include in your summary?
 
 --- wait @cause_connection_4_explanation_choice_input.value && @cause_connection_4_choice_explanation.value ---
 
-interdisciplinary_sba_sidebar2_d -> factors_3_to_4
+::factors_3_to_4 [display=target:interdisciplinary_sba_sidebar2_d]
 
 Lianne: Let's do the same thing for the third connection too. Write a sentence to explain
 the connection you see in the box under it.
 
 --- wait @cause_connection_5_explanation.value ---
 
-interdisciplinary_sba_sidebar2_d -> cause_connection_5_explanation_choice
+::cause_connection_5_explanation_choice [display=target:interdisciplinary_sba_sidebar2_d]
 
 Lianne: Good work. Here are all the explanations for this connection. Now we need to select the one we need to include in our summary. Which one would you select to include in your summary?
 
 Lianne: I appreciate the thoughtfulness you've all shown on this exercise,
 both as individuals and as a team.
 
-interdisciplinary_sba_sidebar2_d -> overview_of_connections
+::overview_of_connections [display=target:interdisciplinary_sba_sidebar2_d]
 
 Lianne: I reviewed the explanations you wrote. I think the sentences shown to the right
 do a good job of explaining the three connections we worked on. These sentences
 cite detailed information from studies that shed light on the nature of these
 connections. I will add these sentences to our summary.
 
-interdisciplinary_sba_sidebar2_d -> extended_summary
+::extended_summary [display=target:interdisciplinary_sba_sidebar2_d]
 
 Lianne: Integrating disciplinary insights like this helps us see the big picture -- often revealing what's missing.
 
@@ -226,13 +226,13 @@ School Funding Text [id=interdisciplinary_funding_text]
 
 Ty: Using keyword search I found this study. Let's see which disciplines are represented in this study.
 
-interdisciplinary_sba_sidebar2_e -> reading_funding_checkboxes
+::reading_funding_checkboxes [display=target:interdisciplinary_sba_sidebar2_e]
 
 Lianne: So which discipline or disciplines do you think are represented in the study?
 
 --- wait @reading_funding_classification.value && (@rf_bio_explanation.value || @rf_econ_explanation.value || @rf_health_explanation.value || rf_polisci_explanation.value || @rf_psych_explanation.value || @rf_soc_explanation.value) ---
 
-interdisciplinary_sba_sidebar2_e -> reading_funding_highlighted
+::reading_funding_highlighted [display=target:interdisciplinary_sba_sidebar2_e]
 
 Lianne: Let's think about the insight of this source just like we did with the other studies.
 
@@ -257,19 +257,19 @@ of students like those with ADHD or those who fall behind because they have to w
 Lianne: Great discussion, everyone! We'll need to capture all of those points in a sentence that will serve as the
 insight of this source.
 
-interdisciplinary_sba_sidebar2_e -> reading_funding_insight
+::reading_funding_insight [display=target:interdisciplinary_sba_sidebar2_e]
 
 Lianne: Why don't we each write our own sentence just like we've been doing in other studies?
 
 --- wait @reading_funding_insight_sentence.value ---
 
-interdisciplinary_sba_sidebar2_e -> reading_funding_insight_choice
+::reading_funding_insight_choice [display=target:interdisciplinary_sba_sidebar2_e]
 
 Lianne: Good work. Here are the sentences you all suggested. Which one should we go with?
 
 --- wait @reading_funding_insight_choice_input.value && @reading_funding_insight_choice_explanation.value ---
 
-interdisciplinary_sba_sidebar2_e -> best_reading_funding_insight_sentence_display
+::best_reading_funding_insight_sentence_display [display=target:interdisciplinary_sba_sidebar2_e]
 
 Lianne: Good work, everyone! The sentence on the right captures all the important points from the study
 and we should use it as the insight for this source.
@@ -278,7 +278,7 @@ Ty: Great! We should add this insight to our map.
 
 Peggy: We could label this insight on our map "School Finance Reforms".
 
-interdisciplinary_sba_sidebar2_e -> revise_dropout_cause_diagram_with_finance_reform
+::revise_dropout_cause_diagram_with_finance_reform [display=target:interdisciplinary_sba_sidebar2_e]
 
 Lianne: Why don't you try adding this insight to the map. You'll have to both add a node with the label, and add connections.
 
@@ -294,17 +294,17 @@ Ty: But that isn't in the article! If we're going to add that connection, we hav
 
 Lacey: Well, it does say that school finance reform leads, over the long term, to higher adult wages, greater family incomes, and lower poverty rates. That certainly is an effect on "Family and Peer Factors"!
 
-interdisciplinary_sba_sidebar2_e -> cause_mapping_4
+::cause_mapping_4 [display=target:interdisciplinary_sba_sidebar2_e]
 
 Peggy: I think that works. So that gives us the diagram shown to the right. It's interesting that school finance reform doesn't affect graduation rates directly. It's an **indirect** influence, through its effects on schools and families.
 
 Ty: That means we need to add explanations for the two connections we've added to our summary.
 
-interdisciplinary_sba_sidebar2_e -> overview_of_connections_2
+::overview_of_connections_2 [display=target:interdisciplinary_sba_sidebar2_e]
 
 Lianne: That's right! But you've already pretty much said what they are, so I'll write them up real fast. (Take a look to the right).
 
-interdisciplinary_sba_sidebar2_e -> extended_summary_2
+::extended_summary_2 [display=target:interdisciplinary_sba_sidebar2_e]
 
 Lianne: So here's how the summary looks now. (Take a look to the right).
 
