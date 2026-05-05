@@ -1,6 +1,7 @@
 // src/app/api/olxjson/[id]/route.ts
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { getBestVariantServer } from '@/lib/i18n/getBestVariant';
+import { variantMapKeys } from '@/lib/types/i18n';
 import { allOlxKeys } from '@/lib/types/id';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { NextRequest } from 'next/server';
@@ -33,7 +34,7 @@ function collectBlockWithKids(
 
   const variantMap = idMap[id];
   // variantMap is nested structure { 'en-Latn-US': OlxJson, 'ar-Arab-SA': OlxJson, ... }
-  const availableVariants = Object.keys(variantMap);
+  const availableVariants = variantMapKeys(variantMap);
   const bestVariant = getBestVariantServer(request, availableVariants);
   if (!bestVariant) return collected;  // No valid variant for this block
   const entry = variantMap[bestVariant] as OlxJson | undefined;

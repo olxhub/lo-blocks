@@ -26,6 +26,7 @@ import * as parsers from '@/lib/content/parsers';
 import { LofsDependencies, IdMap, OLXLoadingError, OlxReference, OlxKey, JSONValue } from '@/lib/types';
 import type { LofsRef } from '@/lib/types/address';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
+import { variantMapKeys } from '@/lib/types/i18n';
 import { hashContent } from '@/lib/util';
 
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
@@ -72,6 +73,11 @@ const xmlParser = new XMLParser({
 function isElementNode(node: any): boolean {
   return typeof node === 'object' && node !== null &&
     Object.keys(node).some(k => k !== '#text' && k !== '#comment' && k !== ':@');
+}
+
+function isBlockKid(node: JSONValue): node is { type: 'block'; id: OlxKey } {
+  return typeof node === 'object' && node !== null && !Array.isArray(node) &&
+    node.type === 'block' && typeof node.id === 'string';
 }
 
 /**
@@ -732,7 +738,8 @@ export async function parseOLX(
 
     // Structural validation: check children after they are parsed
     if (Component?.validateChildren) {
-      const entry = idMap[id]?.[currentLang] ?? idMap[id]?.[Object.keys(idMap[id] || {})[0]];
+      const fallbackLang = idMap[id] ? variantMapKeys(idMap[id])[0] : undefined;
+      const entry = idMap[id]?.[currentLang] ?? (fallbackLang ? idMap[id]?.[fallbackLang] : undefined);
       const kids = entry?.kids;
       const childErrors = Component.validateChildren(kids, idMap);
       if (childErrors && childErrors.length > 0) {
@@ -794,7 +801,8 @@ export async function parseOLX(
   for (const blockId of parsedIds) {
     const variants = idMap[blockId];
     if (!variants) continue;
-    const entry = variants[Object.keys(variants)[0]];
+    const variant = variantMapKeys(variants)[0];
+    const entry = variant ? variants[variant] : undefined;
     if (!entry?.tag) continue;
     const graderBlock = BLOCK_REGISTRY[entry.tag];
     if (!graderBlock?.isGrader || !graderBlock.inputSchema) continue;
@@ -803,16 +811,17 @@ export async function parseOLX(
     let inputIds: string[] = [];
     const target = entry.attributes?.target;
     if (target) {
-      inputIds = Array.isArray(target) ? target
+      inputIds = Array.isArray(target) ? target.filter((value): value is string => typeof value === 'string')
         : typeof target === 'string' ? target.split(',').map(s => s.trim()) : [];
     } else if (Array.isArray(entry.kids)) {
       inputIds = entry.kids
-        .filter(k => k.type === 'block')
+        .filter(isBlockKid)
         .map(k => k.id)
         .filter(id => {
           const v = idMap[id];
           if (!v) return false;
-          const e = v[Object.keys(v)[0]];
+          const variant = variantMapKeys(v)[0];
+          const e = variant ? v[variant] : undefined;
           return e?.tag && BLOCK_REGISTRY[e.tag]?.isInput;
         });
     }
@@ -820,7 +829,8 @@ export async function parseOLX(
     for (const inputId of inputIds) {
       const inputVariants = idMap[inputId];
       if (!inputVariants) continue; // Cross-file or unresolvable — skip
-      const inputEntry = inputVariants[Object.keys(inputVariants)[0]];
+      const inputVariant = variantMapKeys(inputVariants)[0];
+      const inputEntry = inputVariant ? inputVariants[inputVariant] : undefined;
       if (!inputEntry?.tag) continue;
       const inputBlock = BLOCK_REGISTRY[inputEntry.tag];
       if (!inputBlock?.valueSchema) continue;

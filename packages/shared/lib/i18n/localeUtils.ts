@@ -34,13 +34,8 @@ import type { ContentVariant, Locale } from '@/lib/types';
  * localeFromVariant("es-Latn-ES:vision-impaired" as ContentVariant) → "es-Latn-ES" as Locale
  */
 export function localeFromVariant(variant: ContentVariant): Locale {
-  // Current: variants are just locale codes, return as-is
-  // (type cast tells TypeScript this is a Locale, not a full ContentVariant)
-  //
-  // Future: Parse out feature flags
-  // const [locale] = variant.split(':');
-  // if (!locale || locale === '*') throw new Error(`Cannot extract locale from variant: ${variant}`);
-  // return locale as Locale;
-
-  return variant as unknown as Locale;
+  const [locale] = (variant as string).split(':');
+  if (!locale || locale === '*') throw new Error(`Cannot extract locale from variant: ${variant}`);
+  // ContentVariant is validated at the boundary; its locale prefix is already canonical.
+  return locale as Locale;
 }

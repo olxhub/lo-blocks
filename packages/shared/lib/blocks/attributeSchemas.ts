@@ -13,6 +13,7 @@
 //
 import { z } from 'zod';
 import { VALID_ID_SEGMENT, VALID_REDUX_STATE_KEY, toOlxReference, toReduxStateKey } from '../types/id';
+import { z_locale } from '../types/i18n';
 import type { OlxReference, ReduxStateKey } from '@/lib/types';
 import { parse as parseExpr } from '@/lib/stateLanguage';
 import { CastSchema, Face, AvatarStyle } from '@/lib/avatar/types';
@@ -261,7 +262,7 @@ export const baseAttributes = z.object({
   class: z.string().optional().describe('Visual styling classes (CSS classes for developers)'),
   launchable: z.string().optional().describe('Set to "true" to show in activity indexes'),
   initialPosition: z.coerce.number().optional().describe('Initial position for sortable items (1-indexed)'),
-  lang: z.string().optional().describe('BCP 47 language tag (e.g., en-Latn-US, ar-Arab-SA). Overrides parent and file-level language.'),
+  lang: z_locale.optional().describe('BCP 47 language tag (e.g., en-Latn-US, ar-Arab-SA). Overrides parent and file-level language.'),
   when: z_expression.optional()
     .describe('State-language expression controlling visibility (e.g. "@quiz.correct === correctness.correct")'),
   popout: z.enum([

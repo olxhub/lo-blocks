@@ -5,5 +5,6 @@
 export * from './address';
 export * from './core';
 export * from './errors';
+export * from './i18n';
 export * from './id';
 export * from './storage';

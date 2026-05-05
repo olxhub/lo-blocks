@@ -14,6 +14,7 @@ import { translateContent } from '@/lib/translate';
 import type { OlxKey, ContentVariant, LofsRef, OlxRelativePath, SafeRelativePath } from '@/lib/types';
 
 import { toOlxKey } from '@/lib/types/id';
+import { toContentVariant } from '@/lib/types/i18n';
 
 const contentDir = process.env.OLX_CONTENT_DIR || './content';
 const logsDir = path.resolve(contentDir, '..', 'logs');
@@ -52,7 +53,7 @@ function resolveOriginalSource(
   const originalRelPath = path.join(path.dirname(path.dirname(sourceRelPath)), originalFileName) as OlxRelativePath;
 
   const original = getOriginalVariant(blockId);
-  const effectiveLocale = (original?.lang as ContentVariant) || sourceLocale;
+  const effectiveLocale = original?.lang ? toContentVariant(original.lang) : sourceLocale;
 
   return { fileUri: provider.toLofsRef(originalRelPath as SafeRelativePath), locale: effectiveLocale };
 }
@@ -154,8 +155,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const bcp47Re = /^[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*$/;
-    if (!bcp47Re.test(body.targetLocale)) {
+    let targetLocale: ContentVariant;
+    try {
+      targetLocale = toContentVariant(body.targetLocale);
+    } catch {
       return NextResponse.json(
         { ok: false, error: 'Invalid locale format' },
         { status: 400 }
@@ -163,7 +166,6 @@ export async function POST(request: Request) {
     }
 
     const blockId = toOlxKey(body.blockId);
-    const targetLocale = body.targetLocale as ContentVariant;
 
     if (getProvider().provider === 'stub') {
       return NextResponse.json(
@@ -184,7 +186,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const sourceLocale = (originalVariant.lang || 'en') as ContentVariant;
+    // HACK: Should not be hardcoded to English
+    const sourceLocale = toContentVariant(originalVariant.lang || 'en');
     const sourceFileUri = getSourceFile(blockId, sourceLocale);
     if (!sourceFileUri) {
       return NextResponse.json(

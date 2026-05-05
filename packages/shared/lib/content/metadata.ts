@@ -23,6 +23,7 @@
 
 import { z } from 'zod';
 import { licensed } from '@/lib/blocks/attributeSchemas';
+import { z_locale } from '@/lib/types/i18n';
 
 /**
  * Schema for OLX file metadata
@@ -30,19 +31,6 @@ import { licensed } from '@/lib/blocks/attributeSchemas';
  * Currently supports:
  * - description: Brief text description of the activity/content
  */
-// BCP 47 language tag validator using Intl API
-const languageTagSchema = z.string().refine(
-  (value) => {
-    try {
-      Intl.getCanonicalLocales(value);
-      return true;
-    } catch {
-      return false;
-    }
-  },
-  { message: "Invalid BCP 47 language tag" }
-);
-
 /**
  * Base metadata fields shared across all content formats (OLX, chatpeg, etc.).
  * Format-specific schemas extend this with additional fields.
@@ -63,7 +51,7 @@ export const BASE_METADATA_KEYS = new Set<string>(Object.keys(baseMetadataFields
 export const OLXMetadataSchema = z.object({
   ...baseMetadataFields,
   index: z.number().optional(),
-  lang: languageTagSchema.optional(),  // BCP 47 language tag (e.g., 'en-Latn-US', 'ar-Arab-SA')
+  lang: z_locale.optional(),  // BCP 47 language tag (e.g., 'en-Latn-US', 'ar-Arab-SA')
 
   // Content provenance and generation status.
   //

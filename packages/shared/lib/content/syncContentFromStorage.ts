@@ -18,6 +18,7 @@ import { FileStorageProvider } from '@/lib/lofs/providers/file';
 import type { LofsRef, LofsCanonical, OLXLoadingError, OlxJson, IdMap, OlxKey, ContentVariant, VariantMap } from '@/lib/types';
 import type { XmlFileInfo, XmlScanResult } from '@/lib/types/storage';
 import { withoutVersion } from '@/lib/types/address';
+import { variantMapEntries } from '@/lib/types/i18n';
 import { parseOLX, blockRequiresUniqueId } from '@/lib/content/parseOLX';
 import { copyAssetsToPublic } from '@/lib/content/staticAssetSync';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
@@ -124,9 +125,7 @@ function* entriesIdMap(idMap: IdMap): Generator<[OlxKey, IdMap[OlxKey]]> {
 
 /** Typed iteration over variant map entries */
 function* entriesVariantMap(variantMap: IdMap[OlxKey]): Generator<[ContentVariant, OlxJson]> {
-  for (const [variant, olxJson] of Object.entries(variantMap)) {
-    yield [variant as ContentVariant, olxJson as OlxJson];
-  }
+  yield* variantMapEntries(variantMap);
 }
 
 /** The in-memory content store */
