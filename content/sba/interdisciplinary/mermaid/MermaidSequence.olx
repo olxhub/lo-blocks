@@ -3,25 +3,11 @@
 description: Concept-mapping sequence — three professors argue about strictness, then five interactive slides walk a student through making their first interdisciplinary diagram. Slide 6 branches based on the student's reflection.
 category: interdisciplinary
 lang: en-Latn-US
+license: AGPL
 ---
 -->
-<!--
-RQs:
-
-1. This sequence is intentionally provocative. I think this will engage and motivate students. Risks are it might distract, annoy, or demotivate them.
-2. Can students do Mermaid diagrams? Or will the language be too hard for them?
-
-Things it probably needs:
-
-1. The dialogue should be tightened up -- too much
-2. The information hierarchy is sometimes unclear. We should highlight where they work
-3. Perhaps, LLM feedback on the Mermaid diagram if they make a mistake -- a "HELP!" button.
-4. Definitely, a copy-edit. This is a very drafty version for course team review.
-
--->
-
 <Cast cast="mermaid_cast.cast" id="mermaid_sequence" title="Concept-mapping disciplines" launchable="true">
-<Sequential id="mermaid_seq">
+<Sequential>
 
 
 <!-- ============================================================
@@ -56,30 +42,22 @@ You're picking up as the student!
   A --> C[Psychology]
 ```
 
-**(That arrow is made up of three characters: - - >)**
-
 We re-use the name `A` so the new arrow comes out of the *same* box, and `C` is brand new so Mermaid draws a brand-new box for it. Watch the picture when you hit the second `]`.
 
 Then, as Omer suggests, a third one!
 </Markdown>
-<Vertical id="slide2_combo">
+
 <TextArea id="slide2_editor" rows="10">
 graph LR
   A[My cousin works two jobs] --> B[Economics]
-
-
-  %% Add yours above!
-  %% The arrow (-->) is just - - > (without the spaces)
 </TextArea>
 
-<Mermaid target="slide2_editor" id="slide2_diagram"/>
-</Vertical>
+<Mermaid target="slide2_editor" />
 
 <ActionButton id="slide2_reset_btn" label="Reset diagram">
     <SetFieldAction target="slide2_editor" field="value" value="graph LR
   A[My cousin works two jobs] --> B[Economics]
 " />
-  <Flash target="slide2_combo"/>
 </ActionButton>
 
 <Markdown>

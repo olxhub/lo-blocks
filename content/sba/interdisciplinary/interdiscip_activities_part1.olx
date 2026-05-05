@@ -1,0 +1,661 @@
+<!--
+---
+description: Activity file for the Interdisciplinary SBA with all activities organized for easy editing
+category: interdisciplinary
+index: 75
+lang: en-Latn-US
+---
+-->
+<Cast cast="characters.cast" id="interdisciplinary_activities_part1" title="Activities for Part 1 of Interdisciplinary Studies SBA on High School Dropout Rates" launchable="true">
+<Vertical>
+
+  <!-- ORIENTATION -->
+  <SplitPanel id="interdisciplinary_orientation" title="Introduction" sizes="65,35">
+      <LeftPane>
+          <Markdown id="interdisciplinary_orientation_md">
+**Introduction**
+
+Imagine that as part of your degree requirements, you are completing an internship at a local
+nonprofit called **Community 360**, or **Comm360** for short.
+
+The mission of Comm360 is to address community-based needs and issues through responsive
+programming in multiple areas such as:
+ - Education and Training
+ - Health and Welfare
+ - Family and Youth Services
+ - Community Building and Advocacy
+
+A community needs survey conducted by Comm360 identified the high rate of students dropping out
+of high school in the area as a serious issue. You have been asked to work with other interns
+to investigate the causes of high school dropout to better understand the problem so that
+Comm360's services can be developed to address the problem.
+          </Markdown>
+      </LeftPane>
+      <RightPane>
+          <Image id="interdisciplinary_image" src="/sba/interdisciplinary/images/nonprofit.png" alt="Nonprofit" />
+          <Image id="interdisciplinary_image2" src="/sba/interdisciplinary/images/wordcloud.png" alt="Helping, volunteer, community, donations ..." />
+      </RightPane>
+  </SplitPanel>
+
+  <Image id="interdisciplinary_gsu_plaza_image" 
+         src="/sba/interdisciplinary/images/GSU_Library_Plaza.jpg" 
+         alt="GSU Library Plaza. Photograph by Hwi Padam, CC by SA 4.0" 
+         height="400px"
+  />
+
+  <Markdown id="interdisciplinary_task_list">
+## Task Outline
+
+In the next 45-60 minutes you will work with your teammates to complete the following tasks:
+ 1. _Brainstorm causes for high school dropout._
+ 2. _Review community focus group data._
+ 3. _Select Focus Areas._
+ 4. _Reflect: Is this an interdisciplinary problem?_
+ 5. _Review the literature._
+
+This is Part One. In Parts Two and Three you will complete the rest of the interdisciplinary
+research process.
+  </Markdown>
+
+  <Image id="cause_brainstorming" 
+         src="/sba/interdisciplinary/images/team_workshop.jpg"
+         height="400px"
+         alt="Talking about processes at a team brainstorming session. Source: UCT MOOC, CC by SA 4.0 International License" />
+
+  <Markdown id="internal_and_structural_causes">
+## Internal and Structural Causes
+
+ - **Internal Causes** arise from **inside** the student;
+     for instance, they may get sick and be unable to keep up with the work.
+ - **Structural Causes** arise from **outside the student**, from the way
+     their family, community and school are structured and organized;
+     for instance, the school may not provide any support for sick
+     students that would enable them to continue their classes by
+     independent study.
+  </Markdown>
+
+  <!-- TEAM AND LIBRARY - resolved from interdisciplinary_sba.olx -->
+
+  <Vertical id="interdisciplinary_team_intro">
+      <Use ref="interdisciplinary_team_members" />
+  </Vertical>
+
+  <!-- ============================================================
+       TASKSET 1: BRAINSTORM CAUSES
+       ============================================================ -->
+  <Vertical id="interdisciplinary_taskset1">
+
+    <!-- Input for student's causes -->
+    <Vertical id="cause_inputs">
+      <Markdown>
+**Think of two causes for high school dropout:**
+      </Markdown>
+      <Markdown>**Your individual cause (internal):** Type a cause that focuses on an individual's choice or situation:</Markdown>
+      <TextArea id="cause_internal" placeholder="e.g., Students who struggle with learning disabilities..." />
+      <Markdown>**Your structural cause:** Type a cause that focuses on external factors beyond the individual:</Markdown>
+      <TextArea id="cause_structural" placeholder="e.g., Schools in underfunded districts lack resources..." />
+    </Vertical>
+
+    <!-- Combined list of causes from team + student -->
+    <Vertical id="causes_list" popout="window">
+      <Markdown>
+**Combined Causes from Team Discussion:**
+
+**Peggy's causes:**
+- Students who have illnesses that make it hard for them to keep up with schoolwork
+- Schools in rural communities can't accommodate students with physical disabilities
+
+**Ty's causes:**
+- Students who get involved with drugs or alcohol
+- Family financial situations force students to work instead of studying
+
+**Lacy's causes:**
+- Students who don't see school as relevant to their future
+- Schools lack counselors to help students navigate challenges
+
+**Lianne's example:**
+- Schools can't accommodate students with certain physical or mental disabilities (structural cause)
+
+**Your causes:**
+      </Markdown>
+      <Ref target="cause_internal" />
+      <Ref target="cause_structural" />
+    </Vertical>
+  </Vertical>
+
+  <!-- ============================================================
+       TASKSET 2: FOCUS GROUP DATA
+       ============================================================ -->
+  <Vertical id="interdisciplinary_taskset2">
+
+    <!-- Focus group transcript part 1 -->
+    <Vertical id="focus_group_transcript_pt1">
+      <Markdown>
+**Highlight places in the text where a participant mentions a cause of high school dropout,
+and add an annotation that says why this statement identifies a dropout cause. You'll be able
+to use these notes later.**
+
+_You can expand the text to a full window by clicking on the square double arrow icon below to the
+right of "Annotations"._
+</Markdown>
+      <Annotate id="focus_group" title="Focus Group Transcript (Part 1)" popout="window">
+        <Markdown id="transcript_md1" src="readings/focus_group_transcript.md"/>
+    </Annotate>
+    </Vertical>
+
+    <!-- Display of focus group highlights -->
+    <Vertical id="focus_group_highlights_shown">
+        <Markdown id="transcript_md2" src="readings/focus_group_transcript_highlighted.md"/>
+    </Vertical>
+
+    <Vertical id="reasons_list">
+    <Markdown id="full_cause_list">
+## List of causes of high school dropout
+ - Some school systems can't accommodate students with physical or other disabilities
+ - Students need to earn money right away to help their family
+ - Schools use curricula that students don't see as relevant
+ - Student's environment with gang activity, neighborhood instability
+ - Conditions like depression, anxiety, or ADHD interfere with engagement
+ - Students lack family, friends, or teacher support
+ - Negative peer influences encourage dropping out
+ - Cultural responsibilities more important than high school
+ - Legal trouble makes it difficult to continue school
+ - Lack of school funding for support services
+ - Teen pregnancy with no school support
+ - Substance abuse issues
+      </Markdown>
+    </Vertical>
+
+
+    <SplitPanel id="brainstorming_disciplines">
+      <LeftPane>
+        <Use ref="full_cause_list" />
+      </LeftPane>
+      <RightPane>
+        <Markdown>
+## Disciplines that might be relevant to these causes
+** List your choices here.**
+        </Markdown>
+        <DynamicList id="disciplines">
+          <LineInput id="discipline_name" placeholder="Enter a discipline..." />
+        </DynamicList>
+      </RightPane>
+    </SplitPanel>
+
+    <!-- Checklist of reasons to research -->
+    <Vertical id="reasons_checklist">
+      <Markdown>
+_Select the causes you think are most important to research._
+
+**Choose at least three but no more than five.**
+      </Markdown>
+      <CheckboxInput id="reasons">
+        <Key id="reason_disability" value="School systems can't accommodate disabilities">Some school systems can't accommodate students with physical or other disabilities</Key>
+        <Key id="reason_money" value="Students need to earn money for family">Students need to earn money right away to help their family</Key>
+        <Key id="reason_relevance" value="Curricula not seen as relevant">Schools use curricula that students don't see as relevant</Key>
+        <Key id="reason_environment" value="Gang activity and neighborhood instability">Student's environment with gang activity, neighborhood instability</Key>
+        <Key id="reason_mental_health" value="Depression, anxiety, or ADHD">Conditions like depression, anxiety, or ADHD interfere with engagement</Key>
+        <Key id="reason_support" value="Lack of family/teacher support">Students lack family, friends, or teacher support</Key>
+        <Key id="reason_peers" value="Negative peer influences">Negative peer influences encourage dropping out</Key>
+        <Key id="reason_cultural" value="Cultural responsibilities">Cultural responsibilities more important than high school</Key>
+        <Key id="reason_legal" value="Legal trouble">Legal trouble makes it difficult to continue school</Key>
+        <Key id="reason_funding" value="Lack of school funding">Lack of school funding for support services</Key>
+        <Key id="reason_pregnancy" value="Teen pregnancy without support">Teen pregnancy with no school support</Key>
+        <Key id="reason_substance" value="Substance abuse">Substance abuse issues</Key>
+      </CheckboxInput>
+    </Vertical>
+
+    <!-- Display selected reasons -->
+    <Vertical id="reasons_shown">
+      <Markdown>
+**You selected these causes to focus on:**
+      </Markdown>
+      <Ref target="reasons" />
+    </Vertical>
+
+    <!-- Explanation input -->
+    <Vertical id="reason_explanation_input">
+      <Use id="reasons_shown2" ref="reasons_shown" />
+      <Markdown>**Explain why you selected these causes:**</Markdown>
+      <TextArea id="reason_explanation" placeholder="I selected these causes because..." />
+    </Vertical>
+  </Vertical>
+
+  <!-- ============================================================
+       TASKSET 3: INTERDISCIPLINARY ANALYSIS
+       ============================================================ -->
+  <Vertical id="interdisciplinary_taskset3">
+
+    <Image id="task_set_3_intro" 
+           src="/sba/interdisciplinary/images/the_thinker.jpg"
+           height="400px"
+           alt="Photograph of the Rodin sculpture, 'The Thinker' by Tammy Lo. CC by SS 2.0 Generic." />
+
+    <!-- Repko's Broad Model -->
+    <Vertical id="broad_model_display">
+      <Markdown id="repko_criteria" src="readings/repko_criteria.md" />
+    </Vertical>
+
+    <Tabs id="first_pass_on_criteria">
+      <Vertical id="first_pass_t1" title="My Evaluation">
+        <Markdown>
+**How well do you think the problem of high school dropout fit's Repko's criteria?**
+        </Markdown>
+        <TextArea id="initial_repko_evaluation" placeholder="Your initial evaluation of how well this problem fits Repko's criteria for an interdisciplinary study will go here ..." />
+      </Vertical>
+      <Vertical id="first_pass_t2" title="Repko's Criteria">
+        <Use id="broad_model_display2" ref="repko_criteria" />
+      </Vertical>
+    </Tabs>
+
+    <!-- Causes by disciplines mapping -->
+    <Vertical id="causes_by_disciplines">
+      <Markdown>
+## Map Each Cause to Relevant Disciplines
+
+**For each cause, select all disciplines that might study it.**
+      </Markdown>
+      <TabularMCQ id="discipline_mapping">
+        mode: checkbox
+        cols: Psychology, Sociology, Economics, Political Science, Health Sciences
+        rows: Students need money to help family, Depression/anxiety/ADHD interferes, Gang activity / neighborhood instability, Lack of school funding
+      </TabularMCQ>
+  
+    </Vertical>
+
+    <!-- Display discipline mapping results -->
+    <Vertical id="causes_by_disciplines_answers">
+      <Markdown>
+## Discipline Mapping Summary
+
+Based on the team's analysis, here's how the causes map to disciplines:
+      </Markdown>
+      <Mermaid><![CDATA[
+graph LR
+    C1[Students need money<br/>to help family] --> D1[Economics]
+    C1 --> D2[Sociology]
+
+    C2[Depression/anxiety/ADHD<br/>interferes] --> D3[Psychology]
+    C2 --> D4[Health Sciences]
+
+    C3[Gang activity /<br/>neighborhood instability] --> D2
+    C3 --> D5[Political Science]
+
+    C4[Lack of school<br/>funding] --> D1
+    C4 --> D5
+
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+    style C3 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+    style D1 fill:#fff4e1
+    style D2 fill:#fff4e1
+    style D3 fill:#fff4e1
+    style D4 fill:#fff4e1
+    style D5 fill:#fff4e1
+]]></Mermaid>
+      <Markdown>
+This confirms that the high school dropout problem spans multiple disciplines, making it appropriate for interdisciplinary research.
+      </Markdown>
+    </Vertical>
+  </Vertical>
+
+  <!-- ============================================================
+       TASKSET 4: LITERATURE REVIEW
+       ============================================================ -->
+  <Vertical id="interdisciplinary_taskset4">
+
+    <!-- ADHD Study text -->
+    <Vertical id="adhd_study_text" popout="window">
+      <Markdown id="adhd_study_text_md" src="readings/research_study_adhd_dropout.md" />
+    </Vertical>
+
+    <!-- ADHD study with highlights shown -->
+    <Tabs id="adhd_study_highlighted">
+      <Vertical id="adhd_study_highlights_T1" title="Peggy's Discipline Clues">
+        <Markdown>
+## Peggy's Discipline Clues
+
+The discipline clues Peggy identified:
+
+- **"Learning disorders"** - Psychology term
+- **"IQ scores"** - Psychological assessment measure
+- **"Psychological risk factors"** - Psychology concept
+- **"self-efficacy"** - Psychology construct (Bandura)
+- **"intervention"** - Educational psychology focus
+
+These terms indicate this study comes from **Psychology**, specifically educational and clinical psychology.
+        </Markdown>
+      </Vertical>
+
+      <Vertical id="adhd_study_highlights_t2" title="Peggy's Highlights" popout="window">
+        <Markdown id="adhd_study_text_highlights_md" src="readings/research_study_adhd_dropout_highlights.md" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="adhd_insight_sentence_tabs">
+        <Vertical id="adhd_insight_screen" title="My Insight Sentence">
+            <Markdown>
+**Write your sentence for the insight of this source**
+            </Markdown>
+            <TextArea id="adhd_insight_sentence" />
+        </Vertical>
+        <Vertical id="adhd_article_screen" title="ADHD and High School Dropout">
+           <Use ref="adhd_study_text"/>
+        </Vertical>
+    </Tabs>
+
+    <Tabs id="adhd_insight_sentence_choice">
+      <Vertical id="adhd_insight_sentence_choice_screen" title="Choose the Best Insight Sentence">
+        <Markdown>
+**Indicate which of these sentences best expresses the insight for this passage.**
+        </Markdown>
+        <ChoiceInput id="adhd_insight_sentence_choice_input">
+           <Distractor>Students with ADHD are more likely to repeat a grade or drop out.</Distractor>
+           <Distractor>ADHD status, along with social class and IQ, predict high school group and grade retention</Distractor>
+           <Key>ADHD is a key risk factor for dropout, and early intervention can reduce this risk</Key>
+           <Distractor><Ref target="adhd_insight_sentence" /></Distractor>
+         </ChoiceInput>
+       </Vertical>
+       <Vertical id="adhd_article_screen2" title="ADHD and High School Dropout">
+          <Use ref="adhd_study_text"/>
+       </Vertical>
+    </Tabs>
+
+    <!-- Employment study text with highlighting -->
+    <Vertical id="employment_study_annotation_screen">
+     <Markdown>
+_Highlight the clue words or phrases that show what discipline or disciplines are relevant to this article. Then
+click on the "Annotate" button and explain what discipline this clue suggests, and why._
+     </Markdown>
+     <Annotate id="employment_study_annotation" popout="window">
+       <Markdown id="employment_study_text" src="readings/research_study_employment_dropout.md"/>
+     </Annotate>
+    </Vertical>
+
+    <!-- Employment Study (Source 2) - identify disciplines -->
+    <Tabs id="employment_discipline_checkboxes">
+      <Vertical id="employment_discipline_t1" title="Identify Relevant Disciplines">
+         <Markdown>
+**Select all disciplines represented in this study:**
+         </Markdown>
+         <CheckboxInput id="source_2_classification">
+           <Distractor id="s2_health">Health Sciences</Distractor>
+           <Distractor id="s2_bio">Biology</Distractor>
+           <Key id="s2_psych">Psychology</Key>
+           <Key id="s2_soc">Sociology</Key>
+           <Key id="s2_econ">Economics</Key>
+           <Distractor id="s2_polisci">Political Science</Distractor>
+         </CheckboxInput>
+      </Vertical>
+      <Vertical id="employment_discipline_t2" title="Employment Study">
+          <Use ref="employment_study_text" />
+      </Vertical>
+    </Tabs>
+
+    <!-- Employment study explanation input -->
+    <Tabs id="source_2_explanation_input">
+      <Vertical id="source_2_explanation_t1" title="Explanation of Discipline Cues">
+        <Markdown>
+**You chose the following disciplines**:
+        </Markdown>
+        <Use ref="source_2_classification" />
+        <Markdown>
+**Explain how the clues you highlighted indicate the disciplines you selected:**
+        </Markdown>
+        <TextArea id="source_2_classification_explanation" placeholder="The terms I highlighted indicate these disciplines because..." />
+      </Vertical>
+      <Vertical id="source_2_explanation_t2" title="Employment Study">
+          <Use ref="employment_study_text" />
+      </Vertical>
+    </Tabs>
+
+    <!-- Employment study insight sentence input -->
+    <Tabs id="source_2_insight_input">
+      <Vertical id="source_2_insight_t1" title="Insight Sentence">
+        <Markdown>
+**Write your sentence for the insight of this passage:**
+        </Markdown>
+        <TextArea id="source_2_insight_sentence" placeholder="The main disciplinary insight of this passage is ..." />
+      </Vertical>
+      <Vertical id="source_2_insight_t2" title="Employment Study">
+          <Use ref="employment_study_text" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="employment_insight_sentence_choice">
+      <Vertical id="employment_insight_sentence_choice_screen" title="Choose the Best Insight Sentence">
+        <Markdown>
+**Indicate which of these sentences best expresses the insight for this passage.**
+        </Markdown>
+        <ChoiceInput id="employment_insight_sentence_choice_input">
+           <Distractor>Students who work more than 20 hours per week have lower grades and higher dropout rates than their peers.</Distractor>
+           <Distractor><Ref target="source_2_insight_sentence" /></Distractor>
+           <Distractor>Only 11% of students in the study worked more than 20 hours per week during the school year.</Distractor>
+           <Key>Intensive work during high school remains a risk factor for dropout, and schools should provide support and flexibility for students who must work long hours.</Key>
+           <Distractor>Disadvantaged youth are overrepresented among students who work intensively and are more likely to drop out.</Distractor>
+         </ChoiceInput>
+       </Vertical>
+       <Vertical id="employment_article_screen2" title="Employment Study">
+          <Use ref="employment_study_text"/>
+       </Vertical>
+    </Tabs>
+
+    <!-- Employment study insight sentence input -->
+    <Tabs id="source_2_insight_explanation_screen">
+      <Vertical id="source_2_insight_explanation_t1" title="Insight Sentence">
+        <Markdown>
+**You selected the following sentence**:
+        </Markdown>
+        <Use ref="employment_insight_sentence_choice_input" />
+        <Markdown>
+**Why did you select it? Write your answer below:**
+        </Markdown>
+        <TextArea id="source_2_insight_explanation" placeholder="The main disciplinary insight of this passage is ..." />
+      </Vertical>
+      <Vertical id="source_2_insight_explanation_t2" title="Employment Study">
+          <Use ref="employment_study_text" />
+      </Vertical>
+    </Tabs>
+
+
+    <!-- Rural/Urban study text -->
+    <Vertical id="rural_urban_study_text">
+     <Markdown>
+_Highlight the clue words or phrases that show what discipline or disciplines are relevant to this article. Then
+click on the "Annotate" button and explain what discipline this clue suggests, and why._
+     </Markdown>
+     <Annotate id="reading_rural_urban_annotation" popout="window">
+        <Markdown id="reading_rural_urban" src="readings/research_study_rural_urban_dropout.md"/>
+      </Annotate>
+    </Vertical>
+
+  <!-- Rural/Urban Study (Source 3) - identify disciplines -->
+  <Tabs id="rural_discipline_checkboxes">
+    <Vertical id="rural_discipline_checkboxes_t1" title="Identify Relevant Disciplines">
+      <Markdown>
+**Select all disciplines represented in this study:**
+      </Markdown>
+      <CheckboxInput id="source_3_classification">
+        <Distractor id="s3_health">Health Sciences</Distractor>
+        <Distractor id="s3_bio">Biology</Distractor>
+        <Distractor id="s3_psych">Psychology</Distractor>
+        <Key id="s3_soc">Sociology</Key>
+        <Distractor id="s3_econ">Economics</Distractor>
+        <Key id="s3_polisci">Political Science</Key>
+      </CheckboxInput>
+    </Vertical>
+    <Vertical id="rural_discipline_checkboxes_t2" title="Rural/Urban Study">
+      <Use ref="reading_rural_urban" />
+    </Vertical>
+  </Tabs>
+
+    <!-- Rural/Urban study explanation input -->
+    <Tabs id="source_3_explanation_input">
+      <Vertical id="source_3_explanation_t1" title="Explanation of Selection">
+        <Markdown>
+**You selected the following disciplines**:
+        </Markdown>
+        <Use ref="source_3_classification" />
+        <Markdown>
+**Explain how the clues you highlighted indicate the disciplines you selected:**
+        </Markdown>
+        <TextArea id="source_3_classification_explanation" placeholder="The terms I highlighted indicate these disciplines because..." />
+      </Vertical>
+      <Vertical id="source_3_explanation_t2" title="Rural/Urban Study">
+        <Use ref="reading_rural_urban" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="source_3_insight">
+      <Vertical id="source_3_insight_t1" title="Insight Sentence">
+        <Markdown>
+**Write your sentence for the insight of this source:**
+        </Markdown>
+        <TextArea id="source_3_insight_sentence" placeholder="..." />
+      </Vertical>
+      <Vertical id="source_3_insight_t2" title="Rural/Urban Study">
+        <Use ref="reading_rural_urban" />
+      </Vertical>
+   </Tabs>
+
+  <!-- Rural/Urban Study (Source 3) - Select insight statement -->
+  <Tabs id="rural_insight_checkboxes">
+    <Vertical id="rural_insight_checkboxes_t1" title="Select Best Insight Sentence">
+      <Markdown>
+**Select the best insight statement for this study:**
+      </Markdown>
+      <ChoiceInput id="source_3_insight_selection">
+        <Distractor>
+Dropout rates are lower and they are largely similar between rural and urban areas.
+        </Distractor>
+        <Distractor>
+Family characteristics and peer influences are more important to high school dropout rates than geography.
+        </Distractor>
+        <Key>
+High school dropout rates are similar in rural and urban areas, with family and peer factors
+being more important than geography in predicting graduation, underscoring the need for policies that
+address these influences.
+        </Key>
+        <Distractor><Ref target="source_3_insight_sentence" /></Distractor>
+        <Distractor>
+Policy reforms should address key determinants, gang involvement, and drug use.
+        </Distractor>
+      </ChoiceInput>
+    </Vertical>
+    <Vertical id="rural_insight_checkboxes_t2" title="Rural/Urban Study">
+      <Use ref="reading_rural_urban" />
+    </Vertical>
+  </Tabs>
+
+    <Tabs id="source_3_insight_explanation">
+      <Vertical id="source_3_insight_explanation_t1" title="Insight Sentence Explanation">
+        <Markdown>
+**You chose the following sentence.**
+        </Markdown>
+        <Use ref="source_3_insight_selection" />
+        <Markdown>
+ **Why did you select it? Explain.**
+        </Markdown>
+        <TextArea id="source_3_insight_sentence_explanation" placeholder="..." />
+      </Vertical>
+      <Vertical id="source_3_insight_explanation_t2" title="Rural/Urban Study">
+        <Use ref="reading_rural_urban" />
+      </Vertical>
+   </Tabs>
+
+    <!-- School funding study text -->
+    <Vertical id="funding_study_text">
+      <Markdown>
+_Highlight the clue words or phrases that show what discipline or disciplines are relevant to this article. Then
+click on the "Annotate" button and explain what discipline this clue suggests, and why._
+      </Markdown>
+      <Annotate id="source_4_highlights" popout="window">
+        <Markdown id="funding_study_text_md" src="readings/research_study_funding_equity.md" />
+      </Annotate>
+    </Vertical>
+
+  <!-- Additional Disciplines Selection -->
+  <Tabs id="funding_study_additional_disciplines_checkboxes">
+    <Vertical id="funding_study_additional_disciplines_checkboxes_t1" title="Selection of Relevant Disciplines">
+      <Markdown>
+**Which discipline(s) do you think are represented in this study?**
+      </Markdown>
+      <CheckboxInput id="funding_study_additional_disciplines">
+        <Key id="add_health">Health Sciences</Key>
+        <Key id="add_bio">Biology</Key>
+        <Distractor id="add_psych">Psychology</Distractor>
+        <Key id="add_soc">Sociology</Key>
+        <Key id="add_econ">Economics</Key>
+        <Key id="add_polisci">Political Science</Key>
+      </CheckboxInput>
+    </Vertical>
+    <Vertical id="funding_discipline_t2" title="Funding Study">
+      <Use id="funding_study_text_md2" ref="funding_study_text_md" />
+    </Vertical>
+  </Tabs>
+
+    <!-- Funding study explanation input -->
+    <Tabs id="source_4_explanation_input">
+      <Vertical id="source_4_explanation_input_t1" title="Explanation of Discipline Clues">
+        <Markdown>
+**How are the clues you picked representative of the disciplines you selected. Can you explain?**
+        </Markdown>
+        <TextArea id="source_4_classification_explanation" placeholder="The terms I highlighted indicate these disciplines because..." />
+      </Vertical>
+      <Vertical id="funding_study_t2" title="Funding Study">
+        <Use id="funding_study_text_md3" ref="funding_study_text_md" />
+      </Vertical>
+    </Tabs>
+
+    <!-- Funding study explanation input -->
+    <Tabs id="source_4_insight_input">
+      <Vertical id="source_4_insight_input_t1" title="Write Insight Sentence">
+        <Markdown>
+**Write your sentence for the insight of this source.**
+        </Markdown>
+        <TextArea id="source_4_insight_sentence" placeholder="..." />
+      </Vertical>
+      <Vertical id="funding_study_insight_t2" title="Funding Study">
+        <Use id="funding_study_text_md4" ref="funding_study_text_md" />
+      </Vertical>
+    </Tabs>
+
+
+  <!-- Additional Disciplines Selection -->
+  <Tabs id="source_4_insight_selection_input">
+    <Vertical id="source_4_insight_selection_input_t1" title="Select Best Insight Sentence">
+      <Markdown>
+**Which of these sentences best describes the insight of this article?**
+      </Markdown>
+      <ChoiceInput id="source4_insight_selection">
+        <Distractor>African American students attending high-need schools are at greatest risk.</Distractor>
+        <Distractor><Ref target="source_4_insight_sentence" /></Distractor>
+        <Key>Inadequate school funding is linked to higher dropout rates among African American students, underscoring the need for funding reforms to improve resources in high-poverty schools.</Key>
+        <Distractor>Students in underfunded schools face increased risks due to fewer academic and support services.</Distractor>
+      </ChoiceInput>
+    </Vertical>
+    <Vertical id="funding_study_insight_selection_t2" title="Funding Study">
+      <Use id="funding_study_text_md5" ref="funding_study_text_md" />
+    </Vertical>
+  </Tabs>
+
+    <!-- Funding study explanation input -->
+  <Tabs id="source_4_insight_explanation_input">
+    <Vertical id="source_4_insight_explanation_input_t1" title="Explain Your Choice">
+      <Markdown>
+**You chose the following sentence:**
+      </Markdown>
+      <Use ref="source4_insight_selection" />
+      <Markdown>
+**Why did you select this choice? Type your answer below.**
+      </Markdown>
+      <TextArea id="source_4_insight_sentence_explanation" placeholder="..." />
+    </Vertical>
+    <Vertical id="funding_study_insight_selection_explanation_t2" title="Funding Study">
+      <Use id="funding_study_text_md6" ref="funding_study_text_md" />
+    </Vertical>
+  </Tabs>
+ </Vertical>
+</Vertical>
+</Cast>

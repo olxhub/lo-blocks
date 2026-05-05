@@ -371,6 +371,28 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
   return { type: 'parsed', parsed };
 }
 
+/**
+ * Static kids function for Chat block.
+ *
+ * Extracts all EmbedCommand block IDs from the parsed conversation so the
+ * server can preload them when fetching the Chat block.
+ *
+ * @param olxJson - The OlxJson entry for the Chat block
+ * @returns Array of block IDs that are embedded in the conversation
+ */
+function chatStaticKids(olxJson: any): string[] {
+  const kids = olxJson.kids as PeggyKids<ParsedConversation> | undefined;
+  if (!kids?.parsed?.body) return [];
+
+  const ids: string[] = [];
+  for (const entry of kids.parsed.body) {
+    if (entry.type === 'EmbedCommand' && entry.ref) {
+      ids.push(entry.ref);
+    }
+  }
+  return ids;
+}
+
 const Chat = blocks.dev({
   ...withCastSupport(peggyParser(cp, { postprocess })),
   ...blocks.action({
@@ -382,6 +404,7 @@ const Chat = blocks.dev({
   fields,
   advance: chatAdvance,
   canAdvance: chatCanAdvance,
+  staticKids: chatStaticKids,
   attributes: srcAttributes.extend({
     ...cast,
     clip: z.string().optional().describe('Clip range for dialogue section'),
