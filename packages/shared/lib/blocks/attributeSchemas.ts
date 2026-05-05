@@ -121,7 +121,7 @@ export const z_olxKey = tagRefSchema(
   z.string().refine(
     id => VALID_ID_SEGMENT.test(id),
     id => ({ message: `"${id}" is not a valid block ID (must start with letter or underscore, then letters/digits/underscores)` })
-  ),
+  ).transform(id => id as unknown as OlxReference & { readonly __resolved: true }),
   v => [v],
 );
 
@@ -130,7 +130,7 @@ export const z_reduxStateKey = tagRefSchema(
   z.string().refine(
     key => VALID_REDUX_STATE_KEY.test(key),
     key => ({ message: `"${key}" is not a valid target key` })
-  ),
+  ).transform(key => key as unknown as ReduxStateKey),
   v => [v],
 );
 

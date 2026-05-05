@@ -1,5 +1,5 @@
 // packages/shared/lib/types/id.ts
-import type { OlxReference, OlxKey, ReduxStateKey, IdPrefix, ScopeMarker } from './core';
+import type { OlxReference, OlxKey, ReduxStateKey, IdPrefix, ScopeMarker, OLXTag, FieldName, FieldEvent } from './core';
 //
 // ID Resolution System
 // ====================
@@ -483,6 +483,37 @@ export function assignReactKeys(children) {
     }
     return { ...child, key };
   });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TAG AND FIELD CONVERTERS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const VALID_OLX_TAG = /^[A-Z][a-zA-Z0-9]*$/;
+
+/** Validate and brand an OLX tag name (PascalCase, e.g. "Vertical", "TextBlock"). */
+export function toOLXTag(s: string): OLXTag {
+  if (!s) throw new Error('OLXTag cannot be empty');
+  if (!VALID_OLX_TAG.test(s)) {
+    throw new Error(`OLXTag must be PascalCase (start uppercase, then letters/digits): "${s}"`);
+  }
+  return s as OLXTag;
+}
+
+const VALID_FIELD_NAME = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
+/** Validate and brand a field name. */
+export function toFieldName(s: string): FieldName {
+  if (!VALID_FIELD_NAME.test(s)) {
+    throw new Error(`FieldName must be a valid identifier: "${s}"`);
+  }
+  return s as FieldName;
+}
+
+/** Validate and brand a field event string. */
+export function toFieldEvent(s: string): FieldEvent {
+  if (!s) throw new Error('FieldEvent cannot be empty');
+  return s as FieldEvent;
 }
 
 export const __testables = { assignReactKeys };

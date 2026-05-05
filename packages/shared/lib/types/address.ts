@@ -106,26 +106,39 @@ export type LofsContentHash = string & { readonly __brand: 'LofsContentHash' };
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export function toLofsRef(s: string): LofsRef {
+  if (!s) throw new Error('LofsRef cannot be empty');
   return s as LofsRef;
 }
 
 export function toLofsCanonical(ref: LofsRef): LofsCanonical {
+  if (!hasVersion(ref)) {
+    throw new Error(`LofsCanonical requires a #version: "${ref}"`);
+  }
   return ref as LofsCanonical;
 }
 
 export function toLofsOrigin(s: string): LofsOrigin {
+  if (!s) throw new Error('LofsOrigin cannot be empty');
+  if (s.includes(VERSION_DELIM)) throw new Error(`LofsOrigin must not contain "${VERSION_DELIM}": "${s}"`);
   return s as LofsOrigin;
 }
 
 export function toLofsContentPath(s: string): LofsContentPath {
+  if (s.includes(VERSION_DELIM)) throw new Error(`LofsContentPath must not contain "${VERSION_DELIM}": "${s}"`);
   return s as LofsContentPath;
 }
 
 export function toLofsVersion(s: string): LofsVersion {
+  if (!s) throw new Error('LofsVersion cannot be empty');
   return s as LofsVersion;
 }
 
+const CONTENT_HASH_RE = /^[0-9a-f]{8,64}$/;
+
 export function toLofsContentHash(s: string): LofsContentHash {
+  if (!CONTENT_HASH_RE.test(s)) {
+    throw new Error(`LofsContentHash must be 8-64 hex characters: "${s}"`);
+  }
   return s as LofsContentHash;
 }
 

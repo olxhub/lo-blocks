@@ -87,41 +87,79 @@ export type JSONValue =
  * See docs/redux-key-decomposition.md for full design documentation.
  */
 
+// ════��══════════════════════════��═══════════════════════════════════════════════
+// CONTENT NAMESPACE
+// ══���════════════════════════════════════════════════════════════════════════════
+
+/**
+ * A short logical name for a content collection.
+ *
+ * Identifies WHAT a content source is (logical identity), not WHERE it lives
+ * (physical location). Multiple LOFS origins can map to the same namespace:
+ * forks, memory overlays, and local checkouts of the same course all share one.
+ *
+ * Derived from the LOFS origin by default (last path component, strip .git),
+ * but can be overridden via manifest.yaml.
+ *
+ * Examples: "analogForDummies", "calculusForDummies", "docs", "content"
+ *
+ * Used as the first dimension in Redux state: state.olxjson[namespace][bareKey]
+ */
+export type ContentNamespace = string & { readonly __brand: 'ContentNamespace' };
+
+const VALID_NAMESPACE = /^[a-zA-Z_][a-zA-Z0-9_.-]*$/;
+
+/** Validate and brand a content namespace string. */
+export function toContentNamespace(s: string): ContentNamespace {
+  if (!s) throw new Error('ContentNamespace cannot be empty');
+  if (!VALID_NAMESPACE.test(s)) {
+    throw new Error(`ContentNamespace must be alphanumeric (with ._-), starting with letter/underscore: "${s}"`);
+  }
+  return s as ContentNamespace;
+}
+
+/** The transitional namespace for single-repo content. Will eventually be repo-derived. */
+export const CONTENT_NAMESPACE = toContentNamespace('content');
+
+// ═══════════════���═══════════════════════════════════════════════��═══════════════
+// ID TYPES
+// ════════════════════════════════��══════════════════════════════════════════════
+
 // Valid ID segments: [a-zA-Z_][a-zA-Z0-9_]* (no hyphens, dots, colons, slashes, commas).
 // Auto-generated IDs are "_" + SHA1 hex hash.
 // See idResolver.ts VALID_ID_SEGMENT for the canonical regex and delimiter conventions.
 
 // User-authored reference as found in source OLX.
 // Created via toOlxReference(string, context).
-export type OlxReference = string & { __brand: 'OlxReference' };
+export type OlxReference = string & { readonly __brand: 'OlxReference' };
 
 // Canonical content key — used for content lookup in Redux (selectBlock, ensureBlock).
 // Created via refToOlxKey(ref) — strips path prefixes and scope prefixes.
-export type OlxKey = OlxReference & { __resolved: true };
+export type OlxKey = OlxReference & { readonly __resolved: true };
 
 // Scoping prefix for blocks rendered in repeating contexts (DynamicList, MasteryBank, etc.).
 // Created via extendIdPrefix(props, [id, scopeMarker(index)]).
 // Format: colon-delimited segments, e.g. "mylist:#0" or "bank:#attempt_2".
-export type IdPrefix = string & { __brand: 'IdPrefix' };
+export type IdPrefix = string & { readonly __brand: 'IdPrefix' };
 
 // Scoped state key — used for Redux state access (field values, correctness, etc.).
 // Created via refToReduxKey(props) — combines IdPrefix + OlxKey.
 // Format: "prefix:baseId" or just "baseId" if no prefix.
 // The target= attribute in OLX always contains a ReduxStateKey.
-export type ReduxStateKey = string & { __brand: 'ReduxStateKey' };
+export type ReduxStateKey = string & { readonly __brand: 'ReduxStateKey' };
 
 // A non-OlxKey scope segment in a ReduxStateKey. Format: #[0-9a-zA-Z_]+
 // Marks instance indices, attempt numbers, etc. — NOT loadable block IDs.
 // Created via scopeMarker(label) in idResolver.ts.
 // Examples: "#0" (list instance), "#attempt_2" (mastery bank attempt)
-export type ScopeMarker = string & { __brand: 'ScopeMarker' };
+export type ScopeMarker = string & { readonly __brand: 'ScopeMarker' };
 
 // React Keys and HTML IDs have different uniqueness constraints:
-export type ReactKey = string & { __brand: 'ReactKey' };          // React reconciliation
-export type HtmlId = string & { __brand: 'HtmlId' };              // DOM element ID
+export type ReactKey = string & { readonly __brand: 'ReactKey' };          // React reconciliation
+export type HtmlId = string & { readonly __brand: 'HtmlId' };              // DOM element ID
 
 // OLX element tag name (e.g., "Vertical", "Sequential", "ChoiceInput")
-export type OLXTag = string & { __brand: 'OLXTag' };
+export type OLXTag = string & { readonly __brand: 'OLXTag' };
 
 
 /**
@@ -159,9 +197,9 @@ export type OLXTag = string & { __brand: 'OLXTag' };
  * at compile time.
  */
 /** file: ref — content loaded from local filesystem */
-export type FileLofsRef = LofsRef & { __scheme: 'file' };
+export type FileLofsRef = LofsRef & { readonly __scheme: 'file' };
 /** memory: ref — content from in-memory storage (tests, virtual FS) */
-export type MemoryLofsRef = LofsRef & { __scheme: 'memory' };
+export type MemoryLofsRef = LofsRef & { readonly __scheme: 'memory' };
 
 /**
  * All source files that contributed to this content — invalidate if any change.
@@ -278,10 +316,10 @@ export type FileSystemPath = string & { __brand: 'FileSystemPath', __safe: true 
 // =============================================================================
 
 /** Branded type for field names within a block's state. */
-export type FieldName = string & { __brand: 'FieldName' };
+export type FieldName = string & { readonly __brand: 'FieldName' };
 
 /** Branded type for event type strings dispatched via logEvent. */
-export type FieldEvent = string & { __brand: 'FieldEvent' };
+export type FieldEvent = string & { readonly __brand: 'FieldEvent' };
 
 /** Result of a field.write() call — event type + payload to dispatch. */
 export interface WriteResult {

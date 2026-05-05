@@ -22,7 +22,7 @@
 import { z } from 'zod';
 import { XMLBuilder } from 'fast-xml-parser';
 import type { OLXLoadingError, OlxReference, OlxKey, RuntimeProps, ReduxStateKey, LofsDependencies } from '@/lib/types';
-import { toLofsCanonical } from '@/lib/types/address';
+import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
 import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
 import { z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
 import * as state from '@/lib/state';
@@ -893,11 +893,13 @@ const assetSrcFactory = function assetSrc() {
         const olxProvenance = provenance[0];
         resolvedSrc = provider.resolveRelativePath(olxProvenance, src);
 
-        // HACK: toLofsCanonical is a lie — this ref has no version because
-        // the parser is synchronous and can't call provider.read(). Making
-        // the parser async would let us get real canonical provenance here.
+        // HACK: This ref has no real version because the parser is synchronous
+        // and can't call provider.read(). We use a placeholder version so it's
+        // structurally valid as LofsCanonical. Making the parser async would
+        // let us get real canonical provenance (mtime, content hash) here.
         if (provider.toLofsRef) {
-          updatedProvenance = [...provenance, toLofsCanonical(provider.toLofsRef(resolvedSrc))];
+          const assetRef = withVersion(provider.toLofsRef(resolvedSrc), toLofsVersion('unresolved'));
+          updatedProvenance = [...provenance, toLofsCanonical(assetRef)];
         }
       }
     }
