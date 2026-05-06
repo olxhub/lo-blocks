@@ -27,7 +27,7 @@ import Spinner from '@/components/common/Spinner';
  *   ready:   @ctx_1.value && @ctx_2.value
  *   loading: @ctx_1.state === 'LLM_RUNNING' || @ctx_2.state === 'LLM_RUNNING' || @ctx_1.value || @ctx_2.value
  *
- * Note: `ids` is already a string[] — the zod schema (z_reduxStateKeyList)
+ * Note: `ids` is already a string[] — the zod schema (z_reduxStateRefList)
  * splits the comma-separated OLX attribute at parse time.
  */
 function targetsToExpressions(ids: ReduxStateKey[]): { ready: string; loading: string } {
@@ -56,7 +56,7 @@ function _IntakeGate(props: RuntimeProps) {
   }
 
   // Validate: must have targets or ready
-  // targets is string[] (from z_reduxStateKeyList), so check length not truthiness
+  // targets is string[] (from z_reduxStateRefList), so check length not truthiness
   if ((!targets || (Array.isArray(targets) && targets.length === 0)) && !readyProp) {
     return (
       <DisplayError

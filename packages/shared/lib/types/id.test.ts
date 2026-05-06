@@ -203,6 +203,17 @@ describe("ID helpers", () => {
     expect(() => idResolver.toReduxStateKey('foo.bar')).toThrow();
   });
 
+  it("parseReduxStateRef validates authored ReduxStateRef format", () => {
+    expect(idResolver.parseReduxStateRef('foo')).toBe('foo');
+    expect(idResolver.parseReduxStateRef('myList:#0:answer')).toBe('myList:#0:answer');
+    expect(idResolver.parseReduxStateRef('_list:#0:_child')).toBe('_list:#0:_child');
+
+    expect(() => idResolver.parseReduxStateRef('')).toThrow();
+    expect(() => idResolver.parseReduxStateRef('foo-bar')).toThrow();
+    expect(() => idResolver.parseReduxStateRef('#0')).toThrow(/scope markers/);
+    expect(() => idResolver.parseReduxStateRef('0abc')).toThrow();
+  });
+
   it("VALID_REDUX_STATE_KEY regex", () => {
     const re = idResolver.VALID_REDUX_STATE_KEY;
     // Valid patterns

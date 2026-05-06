@@ -4,7 +4,7 @@
 // For single-select (radio buttons), use ChoiceInput instead.
 //
 import { z } from 'zod';
-import { core, input, getBlockByOLXId, z_reduxStateKeyList } from '@/lib/blocks';
+import { core, input, getBlockByOLXId, z_reduxStateRefList } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
@@ -51,7 +51,7 @@ const CheckboxInput = core({
     return value;
   },
   attributes: z.object({
-    target: z_reduxStateKeyList.optional().describe('Comma-separated IDs of Key/Distractor children if not directly nested'),
+    target: z_reduxStateRefList.optional().describe('Comma-separated IDs of Key/Distractor children if not directly nested'),
   }).strict(),
   locals: {
     getChoices

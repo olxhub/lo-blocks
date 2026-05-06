@@ -14,7 +14,7 @@
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
-import { z_reduxStateKey, z_olx_boolean, src } from '@/lib/blocks/attributeSchemas';
+import { z_reduxStateRef, z_olx_boolean, src } from '@/lib/blocks/attributeSchemas';
 import _WordUsage from './_WordUsage';
 
 const WordUsage = dev({
@@ -25,7 +25,7 @@ const WordUsage = dev({
   description: 'Analyzes writing patterns (repeated words, sentence starters, alliteration, transition words) in text from a target block.',
   attributes: z.object({
     ...src,
-    target: z_reduxStateKey.describe('ID of the block whose text to analyze'),
+    target: z_reduxStateRef.describe('ID of the block whose text to analyze'),
     mode: z.enum(['repeated_words', 'sentence_starters', 'alliteration', 'transition_words'])
       .describe('Analysis mode'),
     summary: z_olx_boolean.default(true)

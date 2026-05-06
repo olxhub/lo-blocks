@@ -24,7 +24,7 @@ import { XMLBuilder } from 'fast-xml-parser';
 import type { OLXLoadingError, OlxReference, OlxKey, RuntimeProps, ReduxStateKey, LofsDependencies } from '@/lib/types';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
 import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
-import { z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
+import { z_reduxStateRef } from '@/lib/blocks/attributeSchemas';
 import * as state from '@/lib/state';
 
 // === Setup ===
@@ -503,7 +503,7 @@ textFactory.childMode = 'text';
 //   selectValue. If the target also uses this mixin (or any block with a
 //   compatible value field — TextArea, etc.), it just works.
 //
-// `target=` is tagged via `z_reduxStateKey`, so `getRefAttributes` /
+// `target=` is tagged via `z_reduxStateRef`, so `getRefAttributes` /
 // `ensureReferencedBlocks` automatically preload the referenced block.
 //
 // `requiresUniqueId: false` is baked in because text-display blocks
@@ -513,7 +513,7 @@ textFactory.childMode = 'text';
 const textWithTargetParserMixin = {
   attributes: z.object({
     src: z.string().optional().describe('Path to external file containing content'),
-    target: z_reduxStateKey.optional().describe(
+    target: z_reduxStateRef.optional().describe(
       'Read content from another block\'s value field (reactive)'
     ),
   }).strict(),

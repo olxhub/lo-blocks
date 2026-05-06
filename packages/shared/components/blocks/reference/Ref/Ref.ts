@@ -5,7 +5,7 @@ import * as parsers from '@/lib/content/parsers';
 import { valueSelector, fieldByName, fieldSelector } from '@/lib/state';
 import { blockData, withStatus } from '@/lib/state/blockData';
 import { refToOlxKey, toOlxReference, reduxKeyToOlxKey, refToReduxKey } from '@/lib/types/id';
-import { srcAttributes, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
+import { srcAttributes, z_reduxStateRef } from '@/lib/blocks/attributeSchemas';
 import { selectBlock, selectBlockState } from '@/lib/state/olxjson';
 import _Ref from './_Ref';
 import type { RuntimeProps, ReduxStateKey, BlockDataResult } from '@/lib/types';
@@ -54,7 +54,7 @@ const Ref = core({
   component: _Ref,
   description: 'Reference another component\'s value by ID via target attribute.',
   attributes: srcAttributes.extend({
-    target: z_reduxStateKey.optional().describe('ID of component to reference'),
+    target: z_reduxStateRef.optional().describe('ID of component to reference'),
     field: z.string().optional().describe('Specific field to access from target'),
     visible: z.enum(['true', 'false']).optional().describe('Set to "false" to hide the reference display'),
     fallback: z.string().optional().describe('Fallback value when target is empty'),

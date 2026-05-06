@@ -47,7 +47,7 @@ import * as idResolver from '../types/id';
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
-import { FieldInfo, OlxReference, OlxKey, ReduxStateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus } from '../types';
+import { FieldInfo, OlxReference, OlxKey, ReduxStateRef, ReduxStateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus } from '../types';
 import { assertValidField } from './fields';
 import type { Store } from 'redux';
 import { selectBlock, selectBlockState } from './olxjson';
@@ -635,7 +635,7 @@ export function useValue(
     fallback,
   }: {
     reduxKey?: ReduxStateKey | null;
-    target?: OlxReference | null;
+    target?: OlxReference | ReduxStateRef | null;
     fallback?: any;
   } = {}
 ): BlockDataResult & { value: any } {
@@ -695,7 +695,7 @@ export function useTextContent(
   props: RuntimeProps,
   { fallback = '' }: { fallback?: string } = {}
 ): { text: string; loading: boolean; error: string | null; ready: boolean } {
-  const target = props.target as OlxReference | undefined;
+  const target = props.target as ReduxStateRef | undefined;
   const result = useValue(props, { target, fallback });
 
   const text =

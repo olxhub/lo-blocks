@@ -42,14 +42,30 @@ export type JSONValue =
  * The ID system has four layers, from authored content to runtime state.
  * Branded types enforce correct usage at compile time.
  *
+ * NAMING PLAN
+ * -----------
+ * Type helpers should distinguish three jobs:
+ * - parseX(value): validate an untrusted value and return a branded type.
+ * - asX(value): unchecked internal branding when a value is already inside the
+ *   type system and validation would be redundant.
+ * - validateX(value): boolean or assertion-style validation without conversion.
+ *
+ * Ref -> Key conversion is a separate job and should use resolver names such as
+ * refToReduxKey(...) or, once namespace context is required, a name like
+ * resolveReduxStateRef(ref, props). Existing toX(...) helpers predate this
+ * convention and should be migrated opportunistically as each type is cleaned up.
+ *
  * ┌──────────────────────────────────────────────────────────────────────┐
  * │                        CONVERSION PATHWAYS                           │
  * │                                                                      │
  * │  OlxReference ──refToOlxKey()──────> OlxKey                          │
  * │      │                                  │                            │
- * │      │   refToReduxKey(props)           │  Content lookup in Redux   │
- * │      │   (combines with IdPrefix)       │  (selectBlock, ensureBlock)│
+ * │      │                                  │  Content lookup in Redux   │
+ * │      │                                  │  (selectBlock, ensureBlock)│
  * │      v                                  │                            │
+ * │  ReduxStateRef ─refToReduxKey(props)──> ReduxStateKey                │
+ * │        (authored target=, combines with IdPrefix)                    │
+ * │                                                                      │
  * │  ReduxStateKey ─reduxKeyToOlxKey()──> OlxKey  (leaf block)           │
  * │      │              ↑                                                │
  * │      │              │ Last non-ScopeMarker segment                   │
@@ -57,7 +73,7 @@ export type JSONValue =
  * │      │                                                               │
  * │  ReduxStateKey ─allOlxKeys()──> OlxKey[]  (all blocks in scope)      │
  * │                                                                      │
- * │  IdPrefix + OlxKey ──refToReduxKey()──> ReduxStateKey                │
+ * │  IdPrefix + ReduxStateRef ─refToReduxKey()──> ReduxStateKey          │
  * │                                                                      │
  * │  extendIdPrefix(props, [id, scopeMarker(index)]) → IdPrefix          │
  * │    Blocks like DynamicList create scoped prefixes                    │
@@ -75,6 +91,7 @@ export type JSONValue =
  * Examples:
  *   OlxReference:  "resistorProblem", "/mit.edu/6002x/resistorProblem"
  *   OlxKey:        "resistorProblem" (canonical, for content lookup)
+ *   ReduxStateRef: "answer" or "myList:#0:answer" (authored target)
  *   ScopeMarker:   "#0", "#attempt_2" (instance scoping, not a block ID)
  *   IdPrefix:      "myList:#0" (DynamicList "myList", instance 0)
  *   ReduxStateKey: "myList:#0:resistorProblem" (scoped state key)
@@ -142,10 +159,15 @@ export type OlxKey = OlxReference & { readonly __resolved: true };
 // Format: colon-delimited segments, e.g. "mylist:#0" or "bank:#attempt_2".
 export type IdPrefix = string & { readonly __brand: 'IdPrefix' };
 
+// User-authored state reference as found in OLX attributes.
+// May be bare or scoped, e.g. "answer" or "myList:#0:answer".
+// Eventually may also be namespace-qualified. Created via parseReduxStateRef().
+export type ReduxStateRef = string & { readonly __brand: 'ReduxStateRef' };
+
 // Scoped state key — used for Redux state access (field values, correctness, etc.).
-// Created via refToReduxKey(props) — combines IdPrefix + OlxKey.
-// Format: "prefix:baseId" or just "baseId" if no prefix.
-// The target= attribute in OLX always contains a ReduxStateKey.
+// Created via refToReduxKey(props) — resolves a ReduxStateRef in runtime context.
+// Format today: "prefix:baseId" or just "baseId" if no prefix.
+// Future format: namespace-qualified, e.g. "content://prefix:baseId".
 export type ReduxStateKey = string & { readonly __brand: 'ReduxStateKey' };
 
 // A non-OlxKey scope segment in a ReduxStateKey. Format: #[0-9a-zA-Z_]+

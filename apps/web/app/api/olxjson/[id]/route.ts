@@ -2,10 +2,10 @@
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { getBestVariantServer } from '@/lib/i18n/getBestVariant';
 import { variantMapKeys } from '@/lib/types/i18n';
-import { allOlxKeys } from '@/lib/types/id';
+import { allOlxKeys, refToReduxKey, parseReduxStateRef } from '@/lib/types/id';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { NextRequest } from 'next/server';
-import type { IdMap, OlxJson, ReduxStateKey } from '@/lib/types';
+import type { IdMap, OlxJson } from '@/lib/types';
 
 // Block fetching mode for testing async loading:
 //   'all'         - return full idMap (fast, sends everything)
@@ -51,14 +51,14 @@ function collectBlockWithKids(
   }
 
   // Recurse into target= references (cross-block dependencies).
-  // target= is a ReduxStateKey — may contain scope markers (#0) and
-  // multiple OlxKey segments (myList:#0:answer). allOlxKeys extracts
-  // just the loadable block IDs.
+  // target= is an authored ReduxStateRef — it may contain scope markers (#0)
+  // and multiple OlxKey segments (myList:#0:answer). Resolve it to today's
+  // runtime ReduxStateKey shape, then allOlxKeys extracts the loadable block IDs.
   //
   // TODO: Validate target= values. Invalid targets should eventually
   // surface as DisplayErrors to the author. Open design question: what
   // to validate where. OlxKey segments (the block IDs) could be checked
-  // here or at parse time, but scoped ReduxStateKeys (e.g. foo:#0:bar)
+  // here or at parse time, but scoped ReduxStateRefs (e.g. foo:#0:bar)
   // can't be fully validated statically — scope markers are runtime
   // constructs (DynamicList instance count, etc.). This is one possible
   // validation site; parse-time and client-side contexts (Studio,
@@ -67,7 +67,8 @@ function collectBlockWithKids(
   if (typeof target === 'string') {
     const parts = target.split(',').map(s => s.trim()).filter(Boolean);
     for (const part of parts) {
-      for (const key of allOlxKeys(part as ReduxStateKey)) {
+      const reduxKey = refToReduxKey(parseReduxStateRef(part));
+      for (const key of allOlxKeys(reduxKey)) {
         collectBlockWithKids(idMap, key, request, collected);
       }
     }

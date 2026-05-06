@@ -18,8 +18,9 @@ function _ShowAnswerButton(props: RuntimeProps) {
   // Resolve target grader ReduxStateKeys - explicit target or parent inference
   const graderReduxKeys = useMemo(() => {
     if (target) {
-      // target is z_reduxStateKeyList — already an array of ReduxStateKeys
-      return Array.isArray(target) ? target : [target];
+      // target is z_reduxStateRefList — resolve authored refs in this runtime context.
+      const targetRefs = Array.isArray(target) ? target : [target];
+      return targetRefs.map(ref => refToReduxKey({ ...props, id: ref }));
     }
     try {
       // getGrader returns OlxKey — convert to ReduxStateKey

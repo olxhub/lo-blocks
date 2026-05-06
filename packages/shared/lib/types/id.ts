@@ -1,5 +1,5 @@
 // packages/shared/lib/types/id.ts
-import type { OlxReference, OlxKey, ReduxStateKey, IdPrefix, ScopeMarker, OLXTag, FieldName, FieldEvent } from './core';
+import type { OlxReference, OlxKey, ReduxStateRef, ReduxStateKey, IdPrefix, ScopeMarker, OLXTag, FieldName, FieldEvent } from './core';
 //
 // ID Resolution System
 // ====================
@@ -180,14 +180,60 @@ export function allOlxKeys(key: ReduxStateKey): OlxKey[] {
 export const VALID_ID_SEGMENT = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 const INVALID_CHARS_DISPLAY = /[^a-zA-Z0-9_\s]/g;  // For error messages
 
-// Valid ReduxStateKey: one or more segments separated by ":", where each segment
+// Valid ReduxStateRef/ReduxStateKey: one or more segments separated by ":", where each segment
 // is either an OlxKey ([a-zA-Z_][a-zA-Z0-9_]*) or a ScopeMarker (#[0-9a-zA-Z_]+).
 // Examples: "foo", "myList:#0:answer", "a:#0:b:#1:c"
 const OLXKEY_SEG = '[a-zA-Z_][a-zA-Z0-9_]*';
 const SCOPE_SEG = '#[0-9a-zA-Z_]+';
+export const VALID_REDUX_STATE_REF = new RegExp(
+  `^(${OLXKEY_SEG}|${SCOPE_SEG})(:${OLXKEY_SEG}|:${SCOPE_SEG})*$`
+);
+
 export const VALID_REDUX_STATE_KEY = new RegExp(
   `^(${OLXKEY_SEG}|${SCOPE_SEG})(:${OLXKEY_SEG}|:${SCOPE_SEG})*$`
 );
+
+function validateReduxStatePath(input: string, typeName: 'ReduxStateRef' | 'ReduxStateKey'): string {
+  if (!input || typeof input !== 'string') {
+    throw new Error(`${typeName}: value is required but got "${input}"`);
+  }
+
+  const trimmed = input.trim();
+  if (!trimmed) {
+    throw new Error(`${typeName}: value cannot be empty or whitespace`);
+  }
+
+  if (!VALID_REDUX_STATE_REF.test(trimmed)) {
+    const invalidChars = trimmed.match(INVALID_CHARS_DISPLAY);
+    const charList = invalidChars ? [...new Set(invalidChars)].join(' ') : 'special characters';
+    throw new Error(
+      `${typeName}: "${input}" is not a valid Redux state path (invalid characters: ${charList}). ` +
+      `Redux state paths use ":" to separate segments. Each segment must be a block ID ` +
+      `(letters/digits/underscores) or a scope marker (#index).`
+    );
+  }
+
+  // Must contain at least one OlxKey (non-ScopeMarker) segment.
+  const segments = trimmed.split(REDUX_SCOPE_SEPARATOR);
+  const hasOlxKey = segments.some(seg => !seg.startsWith(SCOPE_MARKER_PREFIX));
+  if (!hasOlxKey) {
+    throw new Error(
+      `${typeName}: "${input}" contains only scope markers — must include at least one block ID.`
+    );
+  }
+
+  return trimmed;
+}
+
+/**
+ * Validate and brand a string as a ReduxStateRef.
+ *
+ * ReduxStateRef is authored/resolution input from OLX, not the final storage
+ * key. Runtime code should pass it through refToReduxKey() before Redux lookup.
+ */
+export function parseReduxStateRef(input: string): ReduxStateRef {
+  return validateReduxStatePath(input, 'ReduxStateRef') as ReduxStateRef;
+}
 
 /**
  * Validate and brand a string as a ReduxStateKey.
@@ -196,10 +242,11 @@ export const VALID_REDUX_STATE_KEY = new RegExp(
  * an OlxKey (block ID) or a ScopeMarker (#index). Must contain at least one
  * OlxKey segment.
  *
- * Use this at system boundaries where target= values enter the type system.
+ * TODO(type-system): Rename this to parseReduxStateKey or replace it with a
+ * true Ref -> Key resolver once ReduxStateKey becomes namespace-qualified.
+ * The current toX name predates the parse/as/validate convention in core.ts.
  *
- * @param input - Raw string from OLX target= attribute
- * @param context - Description for error messages
+ * @param input - Raw ReduxStateKey string
  * @returns Branded ReduxStateKey
  * @throws Error with human-friendly message if invalid
  *
@@ -209,36 +256,8 @@ export const VALID_REDUX_STATE_KEY = new RegExp(
  *   toReduxStateKey('#0')                   // throws — no OlxKey segment
  *   toReduxStateKey('foo-bar')              // throws — invalid characters
  */
-export function toReduxStateKey(input: string, context = 'target'): ReduxStateKey {
-  if (!input || typeof input !== 'string') {
-    throw new Error(`${context}: target is required but got "${input}"`);
-  }
-
-  const trimmed = input.trim();
-  if (!trimmed) {
-    throw new Error(`${context}: target cannot be empty or whitespace`);
-  }
-
-  if (!VALID_REDUX_STATE_KEY.test(trimmed)) {
-    const invalidChars = trimmed.match(INVALID_CHARS_DISPLAY);
-    const charList = invalidChars ? [...new Set(invalidChars)].join(' ') : 'special characters';
-    throw new Error(
-      `${context}: "${input}" is not a valid target key (invalid characters: ${charList}). ` +
-      `Target keys use ":" to separate segments. Each segment must be a block ID ` +
-      `(letters/digits/underscores) or a scope marker (#index).`
-    );
-  }
-
-  // Must contain at least one OlxKey (non-ScopeMarker) segment
-  const segments = trimmed.split(REDUX_SCOPE_SEPARATOR);
-  const hasOlxKey = segments.some(seg => !seg.startsWith(SCOPE_MARKER_PREFIX));
-  if (!hasOlxKey) {
-    throw new Error(
-      `${context}: "${input}" contains only scope markers — must include at least one block ID.`
-    );
-  }
-
-  return trimmed as ReduxStateKey;
+export function toReduxStateKey(input: string): ReduxStateKey {
+  return validateReduxStatePath(input, 'ReduxStateKey') as ReduxStateKey;
 }
 
 /**
@@ -308,8 +327,8 @@ export function toOlxReference(input: string, context = 'ID'): OlxReference {
  * refToReduxKey({ id: './foo', idPrefix: 'scope' }) // => 'scope:foo'
  * refToReduxKey({ id: 'foo' })                      // => 'foo'
  */
-type RefToReduxKeyInput = OlxReference | {
-  id?: OlxReference;
+type RefToReduxKeyInput = OlxReference | ReduxStateRef | {
+  id?: OlxReference | ReduxStateRef;
   idPrefix?: IdPrefix;
   [key: string]: unknown;
 };

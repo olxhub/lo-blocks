@@ -1,7 +1,7 @@
 // src/components/blocks/reference/StateViewer/StateViewer.js
 import { z } from 'zod';
 import { test } from '@/lib/blocks';
-import { srcAttributes, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
+import { srcAttributes, z_reduxStateRef } from '@/lib/blocks/attributeSchemas';
 import _StateViewer from './_StateViewer';
 
 const StateViewer = test({
@@ -9,7 +9,7 @@ const StateViewer = test({
   component: _StateViewer,
   description: 'Display the Redux state of another component by ID. For debugging/introspection only.',
   attributes: srcAttributes.extend({
-    target: z_reduxStateKey.optional().describe('ID of component whose state to display'),
+    target: z_reduxStateRef.optional().describe('ID of component whose state to display'),
     scope: z.enum(['component', 'componentSetting', 'system', 'storage']).optional().describe('Scope of state to display'),
   }),
 });

@@ -10,7 +10,7 @@
 //
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
-import { z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
+import { z_reduxStateRef } from '@/lib/blocks/attributeSchemas';
 import _HintButton from './_HintButton';
 
 const HintButton = core({
@@ -20,7 +20,7 @@ const HintButton = core({
   internal: true,
   component: _HintButton,
   attributes: z.object({
-    target: z_reduxStateKey.optional().describe('ID of DemandHints component; infers from parent/siblings if omitted'),
+    target: z_reduxStateRef.optional().describe('ID of DemandHints component; infers from parent/siblings if omitted'),
   }).strict(),
 });
 
