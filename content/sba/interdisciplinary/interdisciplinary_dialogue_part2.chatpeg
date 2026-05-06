@@ -230,7 +230,7 @@ Ty: Using keyword search I found this study. Let's see which disciplines are rep
 
 Lianne: So which discipline or disciplines do you think are represented in the study?
 
---- wait @reading_funding_classification.value && (@rf_bio_explanation.value || @rf_econ_explanation.value || @rf_health_explanation.value || rf_polisci_explanation.value || @rf_psych_explanation.value || @rf_soc_explanation.value) ---
+--- wait @source_5_additional_disciplines.value && (@rf_bio_explanation.value || @rf_econ_explanation.value || @rf_health_explanation.value || rf_polisci_explanation.value || @rf_psych_explanation.value || @rf_soc_explanation.value) ---
 
 ::reading_funding_highlighted [display=target:interdisciplinary_sba_sidebar2_e label="Read Funding Study"]
 
@@ -261,13 +261,13 @@ insight of this source.
 
 Lianne: Why don't we each write our own sentence just like we've been doing in other studies?
 
---- wait @reading_funding_insight_sentence.value ---
+--- wait @source_5_insight_sentence.value ---
 
 ::reading_funding_insight_choice [display=target:interdisciplinary_sba_sidebar2_e label="Choose Best Insight"]
 
 Lianne: Good work. Here are the sentences you all suggested. Which one should we go with?
 
---- wait @reading_funding_insight_choice_input.value && @reading_funding_insight_choice_explanation.value ---
+--- wait @source5_insight_selection.value && @source_5_insight_sentence_explanation.value ---
 
 ::best_reading_funding_insight_sentence_display [display=target:interdisciplinary_sba_sidebar2_e label="View Best Insight"]
 

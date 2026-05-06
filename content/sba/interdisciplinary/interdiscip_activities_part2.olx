@@ -578,12 +578,12 @@ without adequate resources.
          <Markdown>
 **Select all disciplines represented in this study:**
          </Markdown>
-         <CheckboxInput id="reading_funding_classification">
+         <CheckboxInput id="source_5_additional_disciplines">
            <Distractor id="rf_bio">
              <TextBlock id="rf_bio_text">
 Biology
              </TextBlock>
-             <IntakeGate ready="&quot;rf_bio&quot; in @reading_funding_classification.value" id="rf_bio_itg">
+             <IntakeGate ready="&quot;rf_bio&quot; in @source_5_additional_disciplines.value" id="rf_bio_itg">
                <Hidden id="hidden_10"> </Hidden>
                <TextArea id="rf_bio_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
              </IntakeGate>
@@ -592,7 +592,7 @@ Biology
              <TextBlock id="rf_econ_text">
 Economics
              </TextBlock>
-             <IntakeGate ready="&quot;rf_econ&quot; in @reading_funding_classification.value" id="rf_econ_itg">
+             <IntakeGate ready="&quot;rf_econ&quot; in @source_5_additional_disciplines.value" id="rf_econ_itg">
                <Hidden id="hidden_11"> </Hidden>
                <TextArea id="rf_econ_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
              </IntakeGate>
@@ -601,7 +601,7 @@ Economics
              <TextBlock id="rf_health_text">
 Health Sciences
              </TextBlock>
-             <IntakeGate ready="&quot;rf_health&quot; in @reading_funding_classification.value" id="rf_health_itg">
+             <IntakeGate ready="&quot;rf_health&quot; in @source_5_additional_disciplines.value" id="rf_health_itg">
                <Hidden id="hidden_12"> </Hidden>
                <TextArea id="rf_health_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
              </IntakeGate>
@@ -610,7 +610,7 @@ Health Sciences
              <TextBlock id="rf_polisci_text">
 Political Science
              </TextBlock>
-             <IntakeGate ready="&quot;rf_polisci&quot; in @reading_funding_classification.value" id="rf_polisci_itg">
+             <IntakeGate ready="&quot;rf_polisci&quot; in @source_5_additional_disciplines.value" id="rf_polisci_itg">
                <Hidden id="hidden_13"> </Hidden>
                <TextArea id="rf_polisci_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
              </IntakeGate>
@@ -619,7 +619,7 @@ Political Science
              <TextBlock id="rf_psych_text">
 Psychology
              </TextBlock>
-             <IntakeGate ready="&quot;rf_psych&quot; in @reading_funding_classification.value" id="rf_psych_itg">
+             <IntakeGate ready="&quot;rf_psych&quot; in @source_5_additional_disciplines.value" id="rf_psych_itg">
                <Hidden id="hidden_14"> </Hidden>
                <TextArea id="rf_psych_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
              </IntakeGate>
@@ -628,7 +628,7 @@ Psychology
              <TextBlock id="rf_soc_text">
 Sociology
              </TextBlock>
-             <IntakeGate ready="&quot;rf_soc&quot; in @reading_funding_classification.value" id="rf_soc_itg">
+             <IntakeGate ready="&quot;rf_soc&quot; in @source_5_additional_disciplines.value" id="rf_soc_itg">
                <Hidden id="hidden_15"> </Hidden>
                <TextArea id="rf_soc_explanation" placeholder="Put your explanation of how the context clues support this discipline here" />
              </IntakeGate>
@@ -647,7 +647,7 @@ Sociology
         <Markdown>
 **Write your sentence for the insight of this source.**
         </Markdown>
-        <TextArea id="reading_funding_insight_sentence" placeholder="Write your insight sentence here" />
+        <TextArea id="source_5_insight_sentence" placeholder="Write your insight sentence here" />
       </Vertical>
       <Vertical id="rfi_t2" title="School Funding Study">
         <Use ref="reading_funding_highlighted" />
@@ -660,7 +660,7 @@ Sociology
         <Markdown>
 **Click on the insight summary that you consider the best.**
         </Markdown>
-        <ChoiceInput id="reading_funding_insight_choice_input">
+        <ChoiceInput id="source5_insight_selection">
           <Distractor>
             <TextBlock id="best_reading_funding_d1">
 Just 10% increase in per-pupil spending increased completed schooling raising likelihood of high school graduation.
@@ -671,7 +671,7 @@ Just 10% increase in per-pupil spending increased completed schooling raising li
 Sustained increases in school spending significantly improve educational attainment, adult earnings, and poverty outcomes—especially for low-income students—show that equitable school finance reforms are powerful tools for reducing inequality and promoting economic mobility.
             </TextBlock>
           </Key>
-          <Distractor id="best_reading_funding_d2"><Ref target="reading_funding_insight_sentence" /></Distractor>
+          <Distractor id="best_reading_funding_d2"><Ref target="source_5_insight_sentence" /></Distractor>
           <Distractor id="best_reading_funding_d3">
             <TextBlock>
 Participants who were exposed to that school funding increase saw increased wages and family income when they reached adulthood. Poverty rates were lower too because of it.
@@ -685,11 +685,11 @@ Sustained increases in school spending significantly improve educational attainm
         </ChoiceInput>
         </LeftPane>
         <RightPane>
-          <IntakeGate id="reading_funding_insight_choice_explanation_gate" ready="@reading_funding_insight_choice_input.value">
+          <IntakeGate id="reading_funding_insight_choice_explanation_gate" ready="@source5_insight_selection.value">
             <Hidden id="hidden_16"> </Hidden>
             <Vertical id="reading_funding_insight_choice_explanation_panel">
                <Markdown>**Why did you choose this insight summary?**</Markdown>
-               <TextArea id="reading_funding_insight_choice_explanation" placeholder="Put your reason for selecting this explanation here" />
+               <TextArea id="source_5_insight_sentence_explanation" placeholder="Put your reason for selecting this explanation here" />
             </Vertical>
           </IntakeGate>
         </RightPane>

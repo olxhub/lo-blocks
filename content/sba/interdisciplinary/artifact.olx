@@ -130,7 +130,7 @@ Research studies you've reviewed from different disciplines.
           <Use ref="source_2_insight_explanation" />
           <Markdown>**The disciplines you chose for this source:**</Markdown>
           <Use ref="source_2_classification" />
-          <Markdown>**Why you chose this discipline:**</Markdown>
+          <Markdown>**Why you chose these disciplines:**</Markdown>
           <Use ref="source_2_classification_explanation" />
         </Vertical>
         <Vertical id="artifact_lit_tab3" title="Study 3: Rural/Urban Research">
@@ -142,7 +142,7 @@ Research studies you've reviewed from different disciplines.
           <Use ref="source_3_insight_sentence_explanation" />
           <Markdown>**The disciplines you chose for this source:**</Markdown>
           <Use ref="source_3_classification" />
-          <Markdown>**Why you chose this discipline:**</Markdown>
+          <Markdown>**Why you chose these disciplines:**</Markdown>
           <Use ref="source_3_classification_explanation" />
         </Vertical>
         <Vertical id="artifact_lit_tab4" title="Study 4: School Funding Research">
@@ -154,8 +154,19 @@ Research studies you've reviewed from different disciplines.
           <Use ref="source_4_insight_sentence_explanation" />
           <Markdown>**The disciplines you chose for this source:**</Markdown>
           <Use ref="funding_study_additional_disciplines" />
-          <Markdown>**Why you chose this discipline:**</Markdown>
+          <Markdown>**Why you chose these disciplines:**</Markdown>
           <Use ref="source_4_classification_explanation" />
+        </Vertical>
+        <Vertical id="artifact_lit_tab5" title="Study 5: School Finance Reform">
+          <Markdown>**The insight sentence you drafted:**</Markdown>
+          <Use ref="source_5_insight_sentence" />
+          <Markdown>**The insight sentence you selected:**</Markdown>         
+          <Use ref="source5_insight_selection" />
+          <Markdown>**Your explanation of your choice:**</Markdown>
+          <Use ref="source_5_insight_sentence_explanation" />
+          <Markdown>**The disciplines you chose for this source
+                    (and your explanation for each choice):**</Markdown>
+          <Use ref="source_5_additional_disciplines" />
         </Vertical>
     </Tabs>
   </Collapsible>
