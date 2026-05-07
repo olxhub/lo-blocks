@@ -238,22 +238,184 @@ Analysis of how different disciplines view the problem and where they conflict.
           </Vertical>
         </IntakeGate>
     </Vertical>
-    
     </Tabs>    
-    <Markdown id="artifact_tb_23">**Key Insights from Psychology:**</Markdown>
-    <TextArea id="interdisciplinary_sba_insights_psychology" placeholder="Psychology insights: ADHD, motivation, self-efficacy factors..." />
+    
+  <IntakeGate ready="@cause_mapping_choice_explanation.value">
+    <TextBlock>A table of factor interactions will be shown here once you have completed your first causal factor diagram</TextBlock>
+    <Vertical id="table_of_connections">
+      <SplitPanel sizes="30,70">
+        <LeftPane><Markdown>## Factor Interactions</Markdown></LeftPane>
+        <RightPane>
+          <SplitPanel>
+            <LeftPane>
+              <SplitPanel>
+                <LeftPane><Markdown>## My initial hypothesis</Markdown></LeftPane>
+                <RightPane><Markdown>## My second take</Markdown></RightPane>
+              </SplitPanel>
+            </LeftPane>
+            <RightPane><Markdown>## Final group consensus</Markdown></RightPane>
+          </SplitPanel>
+        </RightPane>
+      </SplitPanel>
+      <SplitPanel sizes="30,70">
+        <LeftPane><Markdown>
+**Family and Peer Factors | Students Working Long Hours**
 
-    <Markdown id="artifact_tb_24">**Key Insights from Sociology:**</Markdown>
-    <TextArea id="interdisciplinary_sba_insights_sociology" placeholder="Sociology insights: Family structure, community factors, peer influences..." />
+**Relevant Disciplines**: Sociology, Economics
+</Markdown></LeftPane>
+        <RightPane>
+          <SplitPanel>
+            <LeftPane />
+            <RightPane><Use ref="first_crosslink_sentence" /></RightPane>
+          </SplitPanel>
+        </RightPane>
+      </SplitPanel>
+      <IntakeGate ready="@dropout_factor_combo_1_explanation.value">
+        <Markdown> </Markdown>
+        <SplitPanel sizes="30,70">
+          <LeftPane><Markdown>**Family and Peer Factors | Equitable School Funding**</Markdown></LeftPane>
+          <RightPane>
+            <SplitPanel>
+              <LeftPane><Markdown>_{{@dropout_factor_combo_1_explanation.value}}_</Markdown></LeftPane>
+              <RightPane><TextBlock>No interaction</TextBlock></RightPane>
+            </SplitPanel>
+          </RightPane>
+        </SplitPanel>
+      </IntakeGate>
+      <IntakeGate ready="@dropout_factor_combo_2_explanation.value || @cause_connection_3_explanation.value || @cause_connection_3_choice_explanation.value">
+        <Markdown> </Markdown>
+        <SplitPanel sizes="30,70">
+          <LeftPane><Markdown>
+**Family and Peer Factors | ADHD Status**
 
-    <Markdown id="artifact_tb_25">**Key Insights from Economics:**</Markdown>
-    <TextArea id="interdisciplinary_sba_insights_economics" placeholder="Economics insights: Employment pressures, cost-benefit of intervention..." />
+**Relevant Disciplines**: Sociology, Psychology
+          </Markdown></LeftPane>
+          <RightPane>
+             <SplitPanel>
+               <LeftPane>
+                 <SplitPanel>
+                   <LeftPane><Markdown>_{{@dropout_factor_combo_2_explanation.value}}_</Markdown></LeftPane>                 
+                   <RightPane><Markdown>_{{@cause_connection_3_explanation.value}}_</Markdown></RightPane>
+                  </SplitPanel>
+               </LeftPane>
+               <RightPane>
+                 <IntakeGate ready="@cause_connection_3_choice_explanation.value">
+                  <Markdown>Not displayed until your input is completed.</Markdown>
+                  <Use ref="factor_connection_1_key" />
+                 </IntakeGate>
+               </RightPane>
+             </SplitPanel>
+          </RightPane>
+        </SplitPanel>
+      </IntakeGate>
+      <IntakeGate ready="@dropout_factor_combo_3_explanation.value || @cause_connection_4_explanation.value || @cause_connection_4_choice_explanation.value">
+        <Markdown> </Markdown>
+        <SplitPanel sizes="30,70">
+          <LeftPane><Markdown>
+**Students Working Long Hours | Equitable School Funding**
 
-    <Markdown id="artifact_tb_26">**Key Insights from Political Science:**</Markdown>
-    <TextArea id="interdisciplinary_sba_insights_political_science" placeholder="Political Science insights: School funding, policy interventions..." />
+**Relevant Disciplines**: Sociology, Economics, Political Science
+          </Markdown></LeftPane>
+          <RightPane>
+            <SplitPanel>
+              <LeftPane>
+                <SplitPanel>
+                  <LeftPane><Markdown>_{{@dropout_factor_combo_3_explanation.value}}_</Markdown></LeftPane>
+                  <RightPane><Markdown>_{{@cause_connection_4_explanation.value}}_</Markdown></RightPane>
+                </SplitPanel>
+              </LeftPane>
+              <RightPane>
+                <IntakeGate ready="@cause_connection_4_choice_explanation.value">
+                  <Markdown>Not displayed until your input is completed.</Markdown>
+                  <Use ref="factor_connection_2_key" />
+                </IntakeGate>
+              </RightPane>
+            </SplitPanel>
+          </RightPane>
+        </SplitPanel>
+      </IntakeGate>
+      <IntakeGate ready="@dropout_factor_combo_4_explanation.value">
+        <Markdown> </Markdown>
+        <SplitPanel sizes="30,70">
+          <LeftPane><Markdown>
+**Students Working Long Hours | ADHD Status**
 
-    <Markdown id="artifact_tb_27">**Sources of Conflict:**</Markdown>
-    <TextArea id="interdisciplinary_sba_insights_conflicts" placeholder="Where disciplines disagree or have different emphases..." />
+**Relevant Disciplines**: Economics, Sociology, Psychology
+          </Markdown></LeftPane>
+          <RightPane>
+            <SplitPanel>
+              <LeftPane><Markdown>_{{@dropout_factor_combo_4_explanation.value}}_</Markdown></LeftPane>
+              <RightPane><TextBlock>No interaction</TextBlock></RightPane>
+            </SplitPanel>
+          </RightPane>
+        </SplitPanel>
+      </IntakeGate>
+      <IntakeGate ready="@dropout_factor_combo_5_explanation.value || @cause_connection_5_explanation.value || @cause_connection_5_choice_explanation.value">
+        <Markdown> </Markdown>
+        <SplitPanel sizes="30,70">
+          <LeftPane><Markdown>
+**Equitable School Funding | ADHD Status**
+
+**Relevant Disciplines**: Political Science, Psychology
+          </Markdown></LeftPane>
+          <RightPane>
+            <SplitPanel>
+              <LeftPane>
+                <SplitPanel>
+                  <LeftPane><Markdown>_{{@dropout_factor_combo_5_explanation.value}}_</Markdown></LeftPane>
+                  <RightPane><Markdown>_{{@cause_connection_5_explanation.value}}_</Markdown></RightPane>
+                </SplitPanel>
+              </LeftPane>
+              <RightPane>
+                <IntakeGate ready="@cause_connection_5_choice_explanation.value">
+                  <Markdown>Not displayed until your input is completed.</Markdown>
+                  <Use ref="factor_connection_3_key" />
+                </IntakeGate>
+              </RightPane>
+            </SplitPanel>
+          </RightPane>
+        </SplitPanel>
+      </IntakeGate>
+      
+      <IntakeGate ready="@editor_finance_reform.value">
+        <Markdown> </Markdown>
+        <Vertical>
+         <SplitPanel sizes="30,70">
+          <LeftPane><Markdown>
+**School Finance Reform | Family and Peer Factors**
+
+**Relevant Disciplines**: Political Science, Economics, Sociology
+          </Markdown></LeftPane>
+          <RightPane>
+            <SplitPanel>
+              <LeftPane> </LeftPane>
+              <RightPane>
+                  <Use ref="factor_connection_4" />
+              </RightPane>
+            </SplitPanel>
+          </RightPane>
+        </SplitPanel>
+        <SplitPanel sizes="30,70">
+          <LeftPane><Markdown>
+**School Finance Reform | Equitable School Funding**
+
+**Relevant Disciplines**: Political Science, Economics
+          </Markdown></LeftPane>
+          <RightPane>
+            <SplitPanel>
+              <LeftPane> </LeftPane>
+              <RightPane>
+                  <Use ref="factor_connection_5" />
+              </RightPane>
+            </SplitPanel>
+          </RightPane>
+        </SplitPanel>
+       </Vertical>
+      </IntakeGate>
+      
+      
+    </Vertical>
+   </IntakeGate>
   </Collapsible>
 
   <!-- Step 6: Reflection -->
