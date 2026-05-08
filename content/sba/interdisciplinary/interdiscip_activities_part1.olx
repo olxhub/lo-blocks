@@ -9,6 +9,10 @@ lang: en-Latn-US
 <Cast cast="characters.cast" id="interdisciplinary_activities_part1" title="Activities for Part 1 of Interdisciplinary Studies SBA on High School Dropout Rates" launchable="true">
 <Vertical>
 
+  <ActionButton id="print_interdisciplinary_part1_btn" label="Export as PDF">
+    <PrintAction id="print_interdisciplinary_part1" />
+  </ActionButton>
+  
   <!-- ORIENTATION -->
   <SplitPanel id="interdisciplinary_orientation" title="Introduction" sizes="65,35">
       <LeftPane>
