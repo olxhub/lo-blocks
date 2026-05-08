@@ -8,6 +8,10 @@ lang: en-Latn-US
 -->
 <Vertical id="psych_sba_fba_activities" title="Psychology Study Group: 3. Function of Behavior (Activities)" launchable="true">
 
+  <ActionButton id="print_psych_part3_btn" label="Export as PDF">
+    <PrintAction id="print_psych_part3" />
+  </ActionButton>
+  
   <!-- Introduction section -->
   <Markdown id="fba_introduction">
 ## About This Scenario
@@ -1121,7 +1125,9 @@ Evaluate the email using the following criteria:
   - Next time, you will review and apply a few more concepts from your coursework
     in psychology to help Annie's roommate learn to use **operant conditioning** principles
     to modify the child's behavior.
-  </Markdown>
+    
+## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
+   </Markdown>
 </CheckboxInput>
   </Vertical>
 

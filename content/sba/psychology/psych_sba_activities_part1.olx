@@ -8,7 +8,9 @@ lang: en-Latn-US
 -->
 <Vertical id="psych_sba_activities_part1" title="Psychology Study Group: 1. Sleep Refusal (Activities)" launchable="true">
 
-
+  <ActionButton id="print_psych_part1_btn" label="Export as PDF">
+    <PrintAction id="print_psych_part1" />
+  </ActionButton>
 
 <HH> ============= Screen: Introduction ======================== </HH>
 
@@ -590,7 +592,9 @@ the screen time, remove a misused toy, or give a brief time-out._
   - Next time, you will review and apply several other concepts from your coursework
     in psychology to help Annie's roommate learn to use **operant conditioning** principles
     to modify the child's behavior.
-  </Markdown>
+    
+    ## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
+    </Markdown>
 </CheckboxInput>
 
 </Vertical>

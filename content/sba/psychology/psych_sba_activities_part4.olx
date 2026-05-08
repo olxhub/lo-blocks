@@ -8,6 +8,11 @@ lang: en-Latn-US
 -->
 <Vertical id="psych_sba_part4_activities" title="Psychology Study Group: 4. Implementation Fidelity" launchable="true">
 
+
+  <ActionButton id="print_psych_part4_btn" label="Export as PDF">
+    <PrintAction id="print_psych_part4" />
+  </ActionButton>
+
   <Markdown id="psych_sba_part4_intro">
 ## About This Scenario
 

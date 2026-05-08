@@ -8,6 +8,11 @@ lang: en-Latn-US
 -->
 <Vertical id="psych_sba_activities_part2" title="Psychology Study Group: 2. Operant Conditioning (Activities)" launchable="true">
 
+
+  <ActionButton id="print_psych_part2_btn" label="Export as PDF">
+    <PrintAction id="print_psych_part2" />
+  </ActionButton>
+  
   <!-- Introduction section -->
   <Markdown id="bedtime_problem_introduction2">
 ## Introduction
@@ -1037,6 +1042,9 @@ Remember:
           sleep refusal.
         - Next time, you will review and apply several other concepts from your coursework
           in psychology to help Annie's roommate even more.
+          
+    
+## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
       </Markdown>
     </Vertical>
 

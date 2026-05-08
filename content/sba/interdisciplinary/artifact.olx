@@ -270,7 +270,7 @@ Analysis of how different disciplines view the problem and where they conflict.
           </SplitPanel>
         </RightPane>
       </SplitPanel>
-      <IntakeGate ready="@dropout_factor_combo_1_explanation.value">
+      <IntakeGate ready="@dropout_factor_combo_1_explanation.value || @editor_finance_reform.value">
         <Markdown> </Markdown>
         <SplitPanel sizes="30,70">
           <LeftPane><Markdown>**Family and Peer Factors | Equitable School Funding**</Markdown></LeftPane>
@@ -334,7 +334,7 @@ Analysis of how different disciplines view the problem and where they conflict.
           </RightPane>
         </SplitPanel>
       </IntakeGate>
-      <IntakeGate ready="@dropout_factor_combo_4_explanation.value">
+      <IntakeGate ready="@dropout_factor_combo_4_explanation.value || @editor_finance_reform.value">
         <Markdown> </Markdown>
         <SplitPanel sizes="30,70">
           <LeftPane><Markdown>
