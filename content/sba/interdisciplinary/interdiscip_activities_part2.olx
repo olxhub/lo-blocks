@@ -13,7 +13,9 @@ lang: en-Latn-US
     <PrintAction id="print_interdisciplinary_part2" />
   </ActionButton>
   
-  <Markdown id="interdisciplinary_orientation2">
+   <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
+     <Markdown> </Markdown>
+     <Markdown id="interdisciplinary_orientation2">
 ## Orientation
 
 In this module, you'll apply what you’ve learned in class about interdisciplinary research process and the Broad Model of Interdisciplinary Research Process. The module contains everything you need to complete the project.
@@ -23,8 +25,8 @@ There are instructions on the screen to help you navigate and give your answers.
 The purpose of this task is to help you practice doing the interdisciplinary research process yourself. Therefore, please do not use an AI tool like ChatGPT, Copilot, Grok, or Claude to answer these questions. Also, please compose your answers by yourself directly in this interface. Please don't write your answers elsewhere and paste them into this window. It's safe to write in the interface; your work is saved as you type.
 
 Please keep in mind that this is a learning opportunity, not a test. You will often be given a chance to answer a question, and then review the correct answer on a following screen. You are allowed to revise your answers, but be aware that the system will record both your initial answers and your revisions, and report both of them to me when I review your work.
-  </Markdown>
-
+    </Markdown>
+  </IntakeGate>
 
     <!-- Causes by disciplines mapping -->
       <CapaProblem id="insight_review" title="Map Each Insight to Relevant Disciplines"> 
@@ -104,7 +106,9 @@ graph LR
   </Vertical>
 
 
-   <Vertical id="dropout_cause_mapping">
+   <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
+     <Markdown> </Markdown>
+     <Vertical id="dropout_cause_mapping">
       <Markdown>
 ## Mapping Causes of High School Dropout
       </Markdown>
@@ -122,7 +126,8 @@ graph LR
     style D1 fill:#fff4e1
 ]]>
       </Mermaid>
-   </Vertical>
+     </Vertical>
+   </IntakeGate>
    
    <SplitPanel id="classify_map">
      <LeftPane>
@@ -272,30 +277,34 @@ graph LR
    </SplitPanel>
   </Vertical>
    
- <Mermaid id="cause_connection_1"><![CDATA[
+   <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
+     <Markdown> </Markdown>
+     <Vertical>
+       <Mermaid id="cause_connection_1"><![CDATA[
 graph LR
     C1[Family and Peer Factors] --> C2[Students Working Long Hours]
 
     style C1 fill:#e1f5ff
     style C2 fill:#e1f5ff
 ]]>
-  </Mermaid>
-
-  <Vertical id="cause_connection_2">
-    <Mermaid id="cause_connection_2_mermaid"><![CDATA[
+      </Mermaid>
+  
+    <Vertical id="cause_connection_2">
+      <Mermaid id="cause_connection_2_mermaid"><![CDATA[
 graph LR
     C1[Family and Peer Factors] --> C2[Students Working Long Hours]
     C2 --> C1
     style C1 fill:#e1f5ff
     style C2 fill:#e1f5ff
 ]]>
-    </Mermaid>
-    <Markdown>
+      </Mermaid>
+      <Markdown>
 **Students working long hours are likely to come from families with low assets.
 These students are most likely trying to help their families financially.**
-    </Markdown>
-  </Vertical>
-  <Mermaid id="cause_mapping_2"><![CDATA[
+      </Markdown>
+    </Vertical>
+  
+    <Mermaid id="cause_mapping_2"><![CDATA[
 graph LR
     C1[Family and Peer Factors] --> D1[Dropping out of high school]
     C2[Students Working Long Hours] --> D1
@@ -310,11 +319,11 @@ graph LR
     style C4 fill:#e1f5ff
     style D1 fill:#fff4e1
 ]]>
-  </Mermaid>
+    </Mermaid>
   
-  <SplitPanel id="cause_mapping_with_first_crosslink">
-   <LeftPane>
-    <Markdown id="cause_mapping_introduction">
+    <SplitPanel id="cause_mapping_with_first_crosslink">
+     <LeftPane>
+      <Markdown id="cause_mapping_introduction">
 ## Mapping Causes of High School Dropout
 ### Introduction
 
@@ -325,45 +334,47 @@ influences across rural and urban settings, and inequities
 in school funding. A more comprehensive understanding of this
 problem requires us to study and understand how these causes
 relate to one another.
-    </Markdown>
-    <Markdown id="first_crosslink_sentence">
+      </Markdown>
+      <Markdown id="first_crosslink_sentence">
 Students working long hours are likely to come from families with low assets.
 These students are most likely trying to help their families financially.
-    </Markdown>
-   </LeftPane>
-   <RightPane>
-     <Use id="cause_mapping_2b" ref="cause_mapping_2" />
-   </RightPane>
-  </SplitPanel>
+      </Markdown>
+     </LeftPane>
+     <RightPane>
+       <Use id="cause_mapping_2b" ref="cause_mapping_2" />
+     </RightPane>
+    </SplitPanel>
 
-  <Vertical id="extra_cause_connections">
-    <Markdown>## Mapping Causes of High School Dropout</Markdown>
-    <Mermaid id="cause_connection_3"><![CDATA[
+     <Vertical id="extra_cause_connections">
+      <Markdown>## Mapping Causes of High School Dropout</Markdown>
+      <Mermaid id="cause_connection_3"><![CDATA[
 graph LR
     C1[Family and Peer Factors] --> C4[ADHD Status]
     
     style C1 fill:#e1f5ff
     style C4 fill:#e1f5ff
 ]]>
-    </Mermaid>
-    <Mermaid id="cause_connection_4"><![CDATA[
+      </Mermaid>
+      <Mermaid id="cause_connection_4"><![CDATA[
 graph LR
     C3[Equitable School Funding] --> C2[Students Working Long Hours]
     
     style C2 fill:#e1f5ff
     style C3 fill:#e1f5ff
 ]]>
-    </Mermaid>
-    <Mermaid id="cause_connection_5"><![CDATA[
+      </Mermaid>
+      <Mermaid id="cause_connection_5"><![CDATA[
 graph LR
     C3[Equitable School Funding] --> C4[ADHD Status]
     
     style C3 fill:#e1f5ff
     style C4 fill:#e1f5ff
 ]]>
-    </Mermaid>
-  </Vertical>
-
+      </Mermaid>
+    </Vertical>
+   </Vertical>
+  </IntakeGate>
+  
   <SplitPanel id="factors_1_to_4">
    <LeftPane>
      <Markdown>## Mapping Causes of High School Dropout</Markdown>
@@ -528,56 +539,66 @@ without adequate resources.
        <Use ref="cause_mapping_3" />
      </RightPane>
     </SplitPanel>
-  </Vertical>  
-  <Vertical id="overview_of_connections">
-    <SplitPanel id="comparison_1">
-      <LeftPane>
-        <Use id="cause_connection_3b" ref="cause_connection_3" />
-      </LeftPane>
-      <RightPane>
-        <Use id="factor_connection_1_key_b" ref="factor_connection_1_key" />
-      </RightPane>
-    </SplitPanel>
-    <SplitPanel id="comparison_2">
-      <LeftPane>
-        <Use id="cause_connection_4b" ref="cause_connection_4" />
-      </LeftPane>
-      <RightPane>
-        <Use id="factor_connection_2_key_b" ref="factor_connection_2_key" />
-      </RightPane>
-    </SplitPanel>
-    <SplitPanel id="comparison_3">
-      <LeftPane>
-        <Use id="cause_connection_5b" ref="cause_connection_5" />
-      </LeftPane>
-      <RightPane>
-        <Use id="factor_connection_3_key_b" ref="factor_connection_3_key" />
-      </RightPane>
-    </SplitPanel>
   </Vertical>
   
-  <SplitPanel id="extended_summary">
-    <LeftPane>
-      <Use ref="cause_mapping_introduction" />
-      <Use ref="first_crosslink_sentence" />
-      <Use ref="factor_connection_1_key" />
-      <Use ref="factor_connection_2_key" />
-      <Use ref="factor_connection_3_key" />
-    </LeftPane>
-    <RightPane>
-      <Use ref="cause_mapping_3" />
-    </RightPane>
-  </SplitPanel>
+  <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
+    <Markdown> </Markdown>
+    <Vertical id="overview_of_connections">
+      <SplitPanel id="comparison_1">
+        <LeftPane>
+          <Use id="cause_connection_3b" ref="cause_connection_3" />
+        </LeftPane>
+        <RightPane>
+          <Use id="factor_connection_1_key_b" ref="factor_connection_1_key" />
+        </RightPane>
+      </SplitPanel>
+      <SplitPanel id="comparison_2">
+        <LeftPane>
+          <Use id="cause_connection_4b" ref="cause_connection_4" />
+        </LeftPane>
+        <RightPane>
+          <Use id="factor_connection_2_key_b" ref="factor_connection_2_key" />
+        </RightPane>
+      </SplitPanel>    
+      <SplitPanel id="comparison_3">
+        <LeftPane>
+          <Use id="cause_connection_5b" ref="cause_connection_5" />
+        </LeftPane>
+        <RightPane>
+          <Use id="factor_connection_3_key_b" ref="factor_connection_3_key" />
+        </RightPane>
+      </SplitPanel>
+    </Vertical>
+  </IntakeGate>
   
-  <Vertical id="reading_funding_text" popout="window">
-    <Markdown>
+  <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
+    <Markdown> </Markdown>
+    <SplitPanel id="extended_summary">
+      <LeftPane>
+        <Use ref="cause_mapping_introduction" />
+        <Use ref="first_crosslink_sentence" />
+        <Use ref="factor_connection_1_key" />
+        <Use ref="factor_connection_2_key" />
+        <Use ref="factor_connection_3_key" />
+      </LeftPane>
+      <RightPane>
+        <Use ref="cause_mapping_3" />
+      </RightPane>
+    </SplitPanel>
+  </IntakeGate>
+  
+  <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
+    <Markdown> </Markdown>
+    <Vertical id="reading_funding_text" popout="window">
+      <Markdown>
 **Select words or phrases that cue a specific discipline. Takes notes explaining which disciplines they cue, and why.**
-    </Markdown>
-    <Use ref="reading_funding2a" />
-  </Vertical>
+      </Markdown>
+      <Use ref="reading_funding2a" />
+    </Vertical>
+  </IntakeGate>
   
-    <!-- Employment Study (Source 2) - identify disciplines -->
-    <Tabs id="reading_funding_checkboxes">
+   <!-- Employment Study (Source 2) - identify disciplines -->
+   <Tabs id="reading_funding_checkboxes">
       <Vertical id="reading_funding_t1" title="Identify Relevant Disciplines">
          <Markdown>
 **Select all disciplines represented in this study:**
@@ -644,8 +665,13 @@ Sociology
       </Vertical>
     </Tabs>  
     
+  <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
+    <Markdown> </Markdown>
     <Markdown id="reading_funding_highlighted" src="readings/research_study_school_funding_highlighted.md"  popout="window" />
-    
+  </IntakeGate>
+  
+  <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
+    <Markdown> </Markdown>
     <Tabs id="reading_funding_insight">
       <Vertical id="rfi_t1" title="Insight Sentence">
         <Markdown>
@@ -657,8 +683,9 @@ Sociology
         <Use ref="reading_funding_highlighted" />
       </Vertical>
     </Tabs>
-
-    <Tabs id="reading_funding_insight_choice">
+  </IntakeGate>
+  
+  <Tabs id="reading_funding_insight_choice">
      <SplitPanel id="reading_funding_insight_choice_panel" title="Choose the Best Insight Sentence">
       <LeftPane>
         <Markdown>
@@ -703,6 +730,8 @@ Sustained increases in school spending significantly improve educational attainm
      </Vertical>
     </Tabs>
     
+  <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
+    <Markdown> </Markdown>
     <Tabs id="best_reading_funding_insight_sentence_display">
       <Vertical id="best_reading_funding_insight_sentence_display_t1" title="Insight Sentence">
         <Markdown>
@@ -714,7 +743,8 @@ Sustained increases in school spending significantly improve educational attainm
        <Use ref="reading_funding_highlighted" />
      </Vertical>
    </Tabs>
-
+  </IntakeGate>
+  
   <Vertical id="revise_dropout_cause_diagram_with_finance_reform">
     <Markdown> 
 **Edit the diagram in the editor below by adding a node for "School Finance Reform" and adding connections
@@ -779,6 +809,8 @@ graph LR
    </SplitPanel>
   </Vertical>
 
+  <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
+    <Markdown> </Markdown>
     <Mermaid id="cause_mapping_4"><![CDATA[
 graph LR
     C1[Family and Peer Factors] --> D1[Dropping Out of High School]
@@ -800,12 +832,15 @@ graph LR
     style C5 fill:#e1f5ff
     style D1 fill:#fff4e1
 ]]>
-   </Mermaid>
-
-  <Vertical id="overview_of_connections_2">
-    <SplitPanel id="comparison_4">
-      <LeftPane>
-         <Mermaid id="connection_4_diagram"><![CDATA[
+     </Mermaid>
+  </IntakeGate>
+  
+  <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
+    <Markdown> </Markdown>
+    <Vertical id="overview_of_connections_2">
+      <SplitPanel id="comparison_4">
+        <LeftPane>
+           <Mermaid id="connection_4_diagram"><![CDATA[
 graph LR
     C1[Family and Peer Factors]
     C5[School Finance Reform]-->C1
@@ -813,17 +848,17 @@ graph LR
     style C1 fill:#e1f5ff
     style C5 fill:#e1f5ff
 ]]>
-        </Mermaid>
-      </LeftPane>
-      <RightPane>
-        <TextBlock id="factor_connection_4">
+          </Mermaid>
+        </LeftPane>
+        <RightPane>
+          <TextBlock id="factor_connection_4">
 Changes to current school funding practices through school finance reforms will lead to more equitable money and resource allocations to schools in high-need districts allowing schools to be better able to serve those students who are at risk either because they work long hours or have ADHD.
-        </TextBlock>
-      </RightPane>
-    </SplitPanel>
-    <SplitPanel id="comparison_5">
-      <LeftPane>
-        <Mermaid id="connection_5_diagram"><![CDATA[
+          </TextBlock>
+        </RightPane>
+      </SplitPanel>
+      <SplitPanel id="comparison_5">
+        <LeftPane>
+          <Mermaid id="connection_5_diagram"><![CDATA[
 graph LR
     C3[Equitable School Funding]
     C5[School Finance Reform]-->C3
@@ -831,30 +866,50 @@ graph LR
     style C3 fill:#e1f5ff
     style C5 fill:#e1f5ff
 ]]>
-        </Mermaid>
+          </Mermaid>
+        </LeftPane>
+        <RightPane>
+          <TextBlock id="factor_connection_5">
+There are important family characteristics that directly benefit from increased school spending in the long run including adult wages, family income and reduced poverty rates. With greater family assets, students may feel less compelled to work long hours or will have resources to address their special needs.
+          </TextBlock>
+        </RightPane>
+      </SplitPanel>
+    </Vertical>
+  </IntakeGate>
+  
+  <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
+    <Markdown> </Markdown>
+    <SplitPanel id="extended_summary_2">
+      <LeftPane>
+        <Use ref="cause_mapping_introduction" />
+        <Use ref="first_crosslink_sentence" />
+        <Use ref="factor_connection_1_key" />
+        <Use ref="factor_connection_2_key" />
+        <Use ref="factor_connection_3_key" />
+        <Use ref="factor_connection_4" />
+        <Use ref="factor_connection_5" />
       </LeftPane>
       <RightPane>
-        <TextBlock id="factor_connection_5">
-There are important family characteristics that directly benefit from increased school spending in the long run including adult wages, family income and reduced poverty rates. With greater family assets, students may feel less compelled to work long hours or will have resources to address their special needs.
-        </TextBlock>
+        <Use ref="cause_mapping_4" />
       </RightPane>
     </SplitPanel>
-  </Vertical>
+  </IntakeGate>
 
-  <SplitPanel id="extended_summary_2">
-    <LeftPane>
-      <Use ref="cause_mapping_introduction" />
-      <Use ref="first_crosslink_sentence" />
-      <Use ref="factor_connection_1_key" />
-      <Use ref="factor_connection_2_key" />
-      <Use ref="factor_connection_3_key" />
-      <Use ref="factor_connection_4" />
-      <Use ref="factor_connection_5" />
-    </LeftPane>
-    <RightPane>
-      <Use ref="cause_mapping_4" />
-    </RightPane>
-  </SplitPanel>
+   <!-- Completion summary -->
+  <Vertical id="completion_interdisciplinary_2" >
+  <CheckboxInput id="interdisciplinary_2_completion_page">
+    <Markdown id="interdisciplinary_2_confirmation">**Confirm that you are done with this exercise.**</Markdown>
+    <Key id="Part_2_finished">I don't need to make any more changes</Key>
+  </CheckboxInput>
+  <IntakeGate ready="'Part_2_finished' in @interdisciplinary_2_completion_page.value">
+   <Markdown> </Markdown>
+   <Markdown>
+## Part 1 Complete!
+  
+## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
+     </Markdown>
+   </IntakeGate>
+  </Vertical>
 
 </Vertical>
 </Cast>
