@@ -3,6 +3,28 @@ Learning Observer Blocks -- Design Documentation
 
 This is design documentation for both humans and LLMs.
 
+# Using the system
+
+Scripts are in `package.json`. Every operation should be done with `npm run` rather than directly.
+
+Ports:
+
+```
+  ┌────────┬─────────────────┬────────────────────────────────────────────────────────────────────────┐
+  │ Port   │     Service     │                                 Notes                                  │
+  ├────────┼─────────────────┼────────────────────────────────────────────────────────────────────────┤
+  │ 80/443 │ nginx (prod)    │ nginx config (outside repo)                                            │
+  ├────────┼─────────────────┼────────────────────────────────────────────────────────────────────────┤
+  │ 8810   │ nginx (dev)     │ nginx config (outside repo)                                            │
+  ├────────┼─────────────────┼────────────────────────────────────────────────────────────────────────┤
+  │ 8888   │ App server      │ Master entry point. Proxies to Next.js, serves client dist, handles WS │
+  ├────────┼─────────────────┼────────────────────────────────────────────────────────────────────────┤
+  │ 3000   │ Next.js dev     │ Default, goes away when Next.js is removed                             │
+  ├────────┼─────────────────┼────────────────────────────────────────────────────────────────────────┤
+  │ 5173   │ Vite static dev │ Vite's default. Only used for standalone static dev, rarely needed     │
+  └────────┴─────────────────┴────────────────────────────────────────────────────────────────────────┘
+```
+
 # Blocks
 
 Learning Observer blocks are similar to Open edX XBlocks and React components: each block defines an XML tag, which can then be used in courseware.

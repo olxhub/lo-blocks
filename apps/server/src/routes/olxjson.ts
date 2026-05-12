@@ -5,45 +5,32 @@
 // Serves parsed OLX content. Same logic as the Next.js API route,
 // using the same shared code — no duplication.
 
-import type { IncomingMessage, ServerResponse } from 'node:http';
+import type { Context } from 'hono';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { collectBlockWithKids } from '@/lib/content/collectBlockWithKids';
 
 // See apps/web/app/api/olxjson/[id]/route.ts for mode documentation.
 const SINGLE_BLOCK_MODE: string = 'static-kids';
 
-function jsonResponse(res: ServerResponse, status: number, body: any) {
-  res.writeHead(status, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify(body));
-}
-
-export async function handleOlxJson(
-  req: IncomingMessage,
-  res: ServerResponse,
-  url: URL
-): Promise<void> {
-  // Extract ID from /api/olxjson/:id
-  const id = url.pathname.replace('/api/olxjson/', '');
+export async function handleOlxJson(c: Context): Promise<Response> {
+  const id = c.req.param('id');
 
   if (!id) {
-    jsonResponse(res, 400, { ok: false, error: 'Missing ID' });
-    return;
+    return c.json({ ok: false, error: 'Missing ID' }, 400);
   }
 
   try {
     const { idMap, errors } = await syncContentFromStorage();
 
     if (id === 'all') {
-      jsonResponse(res, 200, { ok: true, idMap, errors });
-      return;
+      return c.json({ ok: true, idMap, errors });
     }
 
     if (!idMap[id]) {
-      jsonResponse(res, 404, { ok: false, error: `No content found for ID: ${id}` });
-      return;
+      return c.json({ ok: false, error: `No content found for ID: ${id}` }, 404);
     }
 
-    const acceptLanguage = req.headers['accept-language'] ?? null;
+    const acceptLanguage = c.req.header('accept-language') ?? null;
     let responseIdMap;
     switch (SINGLE_BLOCK_MODE) {
       case 'single':
@@ -58,9 +45,9 @@ export async function handleOlxJson(
         break;
     }
 
-    jsonResponse(res, 200, { ok: true, idMap: responseIdMap });
+    return c.json({ ok: true, idMap: responseIdMap });
   } catch (error: any) {
     console.error('Error loading content:', error);
-    jsonResponse(res, 500, { ok: false, error: error.message ?? 'Unknown error' });
+    return c.json({ ok: false, error: error.message ?? 'Unknown error' }, 500);
   }
 }

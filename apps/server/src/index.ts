@@ -3,18 +3,24 @@
 //
 // The unified application server for Learning Opus.
 //
-// Primary protocol: WebSocket (state management, auth, event streams).
-// Secondary: HTTP (proxied to Next.js during transition; eventually static
-// file serving + API routes as Next.js is replaced).
+// Hono handles HTTP routing and static file serving.
+// WebSocket is handled directly via the `ws` library (not through Hono).
+// The Next.js proxy remains as a fallback for un-migrated routes.
 //
 // Architecture:
 //   Browser → nginx (:8810 dev, :80/443 prod)
 //              → this server (:8888)
-//                 ├→ /wsapi/in/  → WebSocket handler
-//                 └→ everything  → proxy to Next.js :3000 (transition)
+//                 ├→ /wsapi/in/     → WebSocket (event pipeline, via ws)
+//                 ├→ /api/olxjson/  → content API (Hono)
+//                 ├→ /assets/*      → Vite-built client (Hono serveStatic)
+//                 ├→ /preview/*     → SPA fallback (Hono serveStatic)
+//                 └→ everything else → proxy to Next.js :3000 (transition)
 
 import { createServer } from 'node:http';
 import { WebSocketServer, WebSocket } from 'ws';
+import { Hono } from 'hono';
+import { getRequestListener } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
 
 import { resolveUser } from './auth.js';
 import { createConnectionLog, saveConnectionLog, type ConnectionLog } from './eventLog.js';
@@ -27,32 +33,42 @@ const PORT = 8888;
 const WS_PATH = '/wsapi/in/';
 
 // --- KVS -------------------------------------------------------------------
-// In-memory for now. Future: select backend via PMSS config (Valkey, SQLite).
 const kvs = new MemoryKVStore();
 
-// --- HTTP server ------------------------------------------------------------
-// All HTTP requests are proxied to Next.js. As routes migrate, they get
-// handled here before reaching the proxy.
+// --- Hono app (HTTP only) --------------------------------------------------
+const app = new Hono();
+
+// API routes
+app.get('/api/olxjson/:id', handleOlxJson);
+
+// Vite-built client (static files from apps/client/dist/)
+app.use('/assets/*', serveStatic({ root: './apps/client/dist' }));
+
+// SPA fallback: client-side routes serve index.html.
+// Add route patterns here as they migrate from Next.js.
+app.get('/preview/*', serveStatic({ root: './apps/client/dist', path: 'index.html' }));
+
+const honoHandler = getRequestListener(app.fetch);
+
+// --- HTTP server -----------------------------------------------------------
+// Prefixes owned by this server. Everything else proxies to Next.js.
+// Note: /api/ is intentionally narrow — only /api/olxjson/ is handled here.
+const SERVER_PREFIXES = ['/api/olxjson/', '/assets/', '/preview/'];
+
 const server = createServer(async (req, res) => {
-  try {
-    const url = new URL(req.url!, `http://${req.headers.host}`);
-
-    if (req.method === 'GET' && url.pathname.startsWith('/api/olxjson/')) {
-      await handleOlxJson(req, res, url);
-      return;
-    }
-
+  const url = req.url || '/';
+  if (SERVER_PREFIXES.some(p => url.startsWith(p))) {
+    await honoHandler(req, res);
+  } else {
     proxy.web(req, res);
-  } catch (err) {
-    console.error('HTTP handler error:', err);
-    if (!res.headersSent) {
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ ok: false, error: 'Internal server error' }));
-    }
   }
 });
 
-// --- WebSocket server -------------------------------------------------------
+// --- WebSocket server (via ws, not Hono) -----------------------------------
+// TODO: We use the raw `ws` library here because we need to selectively proxy
+// non-matching WS upgrades to Next.js (e.g. HMR). @hono/node-ws intercepts
+// ALL upgrades, breaking that. Once Next.js is removed, switch to @hono/node-ws
+// so WebSocket handling lives inside Hono alongside the HTTP routes.
 const wss = new WebSocketServer({ noServer: true });
 const activeConnections = new Map<WebSocket, ConnectionLog>();
 
@@ -76,14 +92,8 @@ wss.on('connection', (ws: WebSocket, req) => {
     `${req.socket.remoteAddress} → ${conn.path}`
   );
 
-  // Echo the resolved identity back to the client. websocketLogger will stash
-  // this in its storage shim and dispatch a DOM CustomEvent; reduxLogger
-  // consumes that event and populates state.system.currentUser via the
-  // settings.currentUser field. The client treats `user_id` as the only
-  // required field; everything else is spread-through forward-compat.
   ws.send(JSON.stringify({ status: 'auth', ...user }));
 
-  // Run the event pipeline. It drains when the connection closes.
   runPipeline({ ws, user, conn, kvs }).then(() => {
     console.log(`[${conn.id}] Client disconnected - ${conn.log.events.length} events saved`);
     saveConnectionLog(conn);
@@ -93,6 +103,15 @@ wss.on('connection', (ws: WebSocket, req) => {
     saveConnectionLog(conn);
     activeConnections.delete(ws);
   });
+});
+
+// --- Start ------------------------------------------------------------------
+server.listen(PORT, () => {
+  console.log(`Server listening on http://localhost:${PORT}`);
+  console.log(`  WebSocket: ws://localhost:${PORT}${WS_PATH}`);
+  console.log(`  Client: apps/client/dist/`);
+  console.log(`  Fallback: proxying to Next.js at http://127.0.0.1:3000`);
+  console.log('Press Ctrl+C to stop.\n');
 });
 
 // --- Error handling ---------------------------------------------------------
@@ -117,11 +136,3 @@ function shutdown() {
 
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
-
-// --- Start ------------------------------------------------------------------
-server.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
-  console.log(`  WebSocket: ws://localhost:${PORT}${WS_PATH}`);
-  console.log(`  HTTP: proxying to Next.js at http://127.0.0.1:3000`);
-  console.log('Press Ctrl+C to stop.\n');
-});
