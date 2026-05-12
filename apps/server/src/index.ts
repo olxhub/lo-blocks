@@ -21,6 +21,7 @@ import { createConnectionLog, saveConnectionLog, type ConnectionLog } from './ev
 import { proxy } from './proxy.js';
 import { MemoryKVStore } from './kvs.js';
 import { runPipeline } from './pipeline.js';
+import { handleOlxJson } from './routes/olxjson.js';
 
 const PORT = 8888;
 const WS_PATH = '/wsapi/in/';
@@ -32,9 +33,23 @@ const kvs = new MemoryKVStore();
 // --- HTTP server ------------------------------------------------------------
 // All HTTP requests are proxied to Next.js. As routes migrate, they get
 // handled here before reaching the proxy.
-const server = createServer((req, res) => {
-  // No native HTTP routes yet — everything goes to Next.js
-  proxy.web(req, res);
+const server = createServer(async (req, res) => {
+  try {
+    const url = new URL(req.url!, `http://${req.headers.host}`);
+
+    if (req.method === 'GET' && url.pathname.startsWith('/api/olxjson/')) {
+      await handleOlxJson(req, res, url);
+      return;
+    }
+
+    proxy.web(req, res);
+  } catch (err) {
+    console.error('HTTP handler error:', err);
+    if (!res.headersSent) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: false, error: 'Internal server error' }));
+    }
+  }
 });
 
 // --- WebSocket server -------------------------------------------------------

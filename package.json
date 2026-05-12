@@ -41,7 +41,7 @@
     "xml2graph": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/xml2graph.js",
     "clean": "./sandbox.sh rm -rf apps/web/.next apps/static/.next node_modules .turbo out apps/web/public/content apps/static/public/static-content",
     "clean-translations": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/clean-translations.ts",
-    "clean-zombies": "pkill -9 -f 'next-server' ; pkill -9 -f 'next dev' ; pkill -9 -f postcss.js",
+    "clean-zombies": "pkill -9 -f 'next-server' ; pkill -9 -f 'next dev' ; pkill -9 -f postcss.js ; pkill -9 -f event-server ; pkill -9 -f 'apps/server/src'",
     "dashboard": "tsx apps/dashboard/src/index.tsx"
   },
   "dependencies": {

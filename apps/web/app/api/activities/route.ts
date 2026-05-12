@@ -26,15 +26,16 @@
 import { NextRequest } from 'next/server';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { buildActivityCards } from '@/lib/content/buildActivityCards';
-import { getBestVariantServer } from '@/lib/i18n/getBestVariant';
+import { pickBestVariant } from '@/lib/i18n/getBestVariant';
 
 export async function GET(request: NextRequest) {
   try {
     const { idMap, errors } = await syncContentFromStorage();
+    const acceptLanguage = request.headers.get('accept-language');
 
     const activities = buildActivityCards(
       idMap,
-      (variants) => getBestVariantServer(request, variants)
+      (variants) => pickBestVariant(acceptLanguage, variants)
     );
 
     return Response.json({
