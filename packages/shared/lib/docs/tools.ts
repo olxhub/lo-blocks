@@ -1,12 +1,13 @@
 // packages/shared/lib/docs/tools.ts
 //
-// Docs tools — register block documentation tools with a ToolRegistry.
+// Docs tools — register block and content format documentation tools
+// with a ToolRegistry.
 //
-// One tool:
-//   get_blocks — unified block query with filtering, pagination, and
-//                selectable detail level via `include`.
-//
-// Replaces the earlier list_blocks + get_block_info pair.
+// Two tools:
+//   get_blocks  — unified block query with filtering, pagination, and
+//                 selectable detail level via `include`.
+//   get_formats — content format query (PEG grammars, YAML schemas, etc.)
+//                 with filtering, pagination, and selectable detail.
 
 import fs from 'fs/promises';
 import path from 'path';
@@ -15,9 +16,15 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { extractAttributes, AttributeDocSchema } from '@/lib/docs/schemaUtils';
 import { getCategories } from '@/lib/docs/categoryUtils';
 import { resolveSafeReadPath } from '@/lib/lofs/providers/file';
+import { grammarInfo, PEG_CONTENT_EXTENSIONS } from '@/generated/parserRegistry';
+import { extractMetadata } from '@/lib/docs/grammar';
 import { OLXTagSchema, BlockGitStatusSchema } from '@/lib/types';
 import type { LoBlock } from '@/lib/types';
 import type { ToolRegistry } from '@/lib/mcp/registry';
+
+// ===========================================================================
+// get_blocks
+// ===========================================================================
 
 /** Optional heavy fields that callers can request via `include`. */
 const IncludeField = z.enum([
@@ -27,6 +34,7 @@ const IncludeField = z.enum([
   'demo',        // Docs marquee example (minimum working example with context)
   'readme',      // Full README content
   'examples',    // All example files with content
+  'formats',     // Content format names used by this block
 ]);
 
 // -- Input ------------------------------------------------------------------
@@ -75,6 +83,7 @@ const BlockResultSchema = z.object({
   demo: z.string().nullable().optional().describe('Docs marquee example (minimum working example with context)'),
   readme: FileContentSchema.nullable().optional(),
   examples: z.array(ExampleSchema).optional(),
+  formats: z.array(z.string()).optional().describe('Content format names used by this block (e.g. "chatpeg")'),
 });
 
 const GetBlocksOutput = z.object({
@@ -98,7 +107,7 @@ async function safeReadFile(relPath: string): Promise<string | null> {
 }
 
 // ---------------------------------------------------------------------------
-// Handler
+// get_blocks handler
 // ---------------------------------------------------------------------------
 
 const DEFAULT_LIMIT = 300;
@@ -165,25 +174,214 @@ async function getBlocks(
       const content = await safeReadFile(block.readme);
       entry.readme = content ? { path: block.readme, content } : null;
     }
+    if (includeSet.has('formats')) {
+      // Currently populated from block.grammars (PEG). Will expand to
+      // include YAML+Zod and other content format identifiers.
+      entry.formats = block.grammars ?? [];
+    }
     if (includeSet.has('examples') && block.examples?.length) {
-      entry.examples = [];
-      for (const example of block.examples) {
-        const content = await safeReadFile(example.path);
-        if (content !== null) {
-          entry.examples.push({
+      const results = await Promise.all(
+        block.examples.map(async (example) => {
+          const content = await safeReadFile(example.path);
+          if (content === null) return null;
+          return {
             path: example.path,
             filename: path.basename(example.path),
             content,
             gitStatus: example.gitStatus ?? null,
-          });
-        }
-      }
+          };
+        }),
+      );
+      entry.examples = results.filter((r): r is NonNullable<typeof r> => r !== null);
     }
 
     blocks.push(entry);
   }
 
   return { blocks, total };
+}
+
+// ===========================================================================
+// get_formats
+// ===========================================================================
+
+/** Format types. PEG grammars are auto-discovered; others will be registered
+ *  as the format system grows. */
+const FormatType = z.enum(['peg', 'yaml']);
+
+const FormatIncludeField = z.enum([
+  'readme',      // Full README content
+  'spec',        // Format specification (PEG grammar source, Zod schema description, etc.)
+  'preview',     // Preview OLX template
+  'examples',    // Example content files
+]);
+
+const GetFormatsInput = z.object({
+  filter: z.array(z.string()).optional().describe(
+    'Format names, extensions, or block names to include (OR). ' +
+    'Accepts grammar names ("chat"), extensions ("chatpeg"), or block names ("Chat"). ' +
+    'Omit to return all formats.',
+  ),
+  include: z.array(FormatIncludeField).optional().describe(
+    'Additional detail to include per format. ' +
+    'Without this, only name/type/description/blocks are returned.',
+  ),
+  limit: z.number().int().min(0).max(100).optional().describe('Max formats to return (default 50)'),
+  offset: z.number().int().min(0).optional().describe('Number of formats to skip (default 0)'),
+});
+
+const FormatResultSchema = z.object({
+  name: z.string().describe('Format name (e.g. "chat")'),
+  type: FormatType.describe('Format type'),
+  extension: z.string().nullable().describe('Content file extension (e.g. "chatpeg"), null for inline-only formats'),
+  description: z.string().nullable(),
+  source: z.string().nullable().describe('Path to format spec file (e.g. .pegjs source)'),
+  blocks: z.array(z.string()).describe('Block names that use this format'),
+
+  // Included on request
+  spec: z.string().nullable().optional().describe('Format specification (PEG grammar source, schema description, etc.)'),
+  readme: FileContentSchema.nullable().optional(),
+  preview: z.string().nullable().optional().describe('Preview OLX template'),
+  examples: z.array(z.object({
+    path: z.string(),
+    filename: z.string(),
+    content: z.string(),
+  })).optional(),
+});
+
+const GetFormatsOutput = z.object({
+  formats: z.array(FormatResultSchema),
+  total: z.number().describe('Total matching formats (before pagination)'),
+});
+
+const FORMAT_DEFAULT_LIMIT = 50;
+
+/** A discovered content format entry (internal, pre-filtering). */
+type FormatEntry = {
+  name: string;
+  type: z.infer<typeof FormatType>;
+  extension: string | null;
+  dir: string | null;
+  source: string | null;
+};
+
+async function getFormats(
+  args: z.infer<typeof GetFormatsInput>,
+): Promise<z.infer<typeof GetFormatsOutput>> {
+  const { filter, include, limit = FORMAT_DEFAULT_LIMIT, offset = 0 } = args;
+  const includeSet = new Set(include ?? []);
+
+  // -- Build block↔format reverse index (always — used for default blocks
+  // field and for filter-by-block-name) ------------------------------------
+  const formatToBlocks: Record<string, string[]> = {};
+  for (const block of Object.values(BLOCK_REGISTRY) as LoBlock[]) {
+    if (!block._isBlock || !block.grammars) continue;
+    for (const g of block.grammars) {
+      if (!formatToBlocks[g]) formatToBlocks[g] = [];
+      formatToBlocks[g].push(block.name);
+    }
+  }
+
+  // -- Collect all formats --------------------------------------------------
+  const allEntries: FormatEntry[] = [];
+
+  // PEG formats: auto-discovered from parser registry
+  for (const ext of PEG_CONTENT_EXTENSIONS) {
+    const info = grammarInfo[ext];
+    if (!info) continue;
+    const dir = info.grammarDir.replace(/^@\//, 'packages/shared/');
+    const source = `${dir}/${info.grammarName}.pegjs`;
+    allEntries.push({ name: info.grammarName, type: 'peg', extension: ext, dir, source });
+  }
+
+  // TODO: Non-PEG formats (YAML+Zod, cast, etc.) will be registered here
+  // as the format system grows. For now, only PEG formats are auto-discovered.
+
+  // -- Filter (matches format name, extension, OR block name) ---------------
+  let matched: FormatEntry[];
+  if (filter && filter.length > 0) {
+    const filterSet = new Set(filter);
+    matched = allEntries.filter((e) => {
+      if (filterSet.has(e.name)) return true;
+      if (e.extension && filterSet.has(e.extension)) return true;
+      const key = e.extension ?? e.name;
+      if ((formatToBlocks[key] ?? []).some((b) => filterSet.has(b))) return true;
+      return false;
+    });
+  } else {
+    matched = allEntries;
+  }
+
+  // -- Sort & paginate ------------------------------------------------------
+  matched.sort((a, b) => a.name.localeCompare(b.name));
+  const total = matched.length;
+  const page = matched.slice(offset, offset + limit);
+
+  // -- Build results --------------------------------------------------------
+  const formats: z.infer<typeof FormatResultSchema>[] = [];
+
+  for (const { name, type, extension, dir, source } of page) {
+    // Read spec source for description (always needed)
+    const specContent = source ? await safeReadFile(source) : null;
+    const metadata: Record<string, any> = specContent ? extractMetadata(specContent) : {};
+
+    const key = extension ?? name;
+    const entry: z.infer<typeof FormatResultSchema> = {
+      name,
+      type,
+      extension,
+      description: metadata.description || null,
+      source,
+      blocks: formatToBlocks[key] ?? [],
+    };
+
+    if (includeSet.has('spec')) {
+      entry.spec = specContent;
+    }
+
+    if (includeSet.has('readme') && dir) {
+      const readmePaths = [
+        `${dir}/${name}.pegjs.md`,
+        `${dir}/README.md`,
+      ];
+      entry.readme = null;
+      for (const rp of readmePaths) {
+        const content = await safeReadFile(rp);
+        if (content) {
+          entry.readme = { path: rp, content };
+          break;
+        }
+      }
+    }
+
+    if (includeSet.has('preview') && dir) {
+      entry.preview = await safeReadFile(`${dir}/${name}.pegjs.preview.olx`);
+    }
+
+    if (includeSet.has('examples') && dir && extension) {
+      try {
+        const fullDir = await resolveSafeReadPath(process.cwd(), dir);
+        const files = await fs.readdir(fullDir);
+        const exampleFiles = files.filter(f => f.endsWith(`.${extension}`));
+        const results = await Promise.all(
+          exampleFiles.map(async (filename) => {
+            const filePath = `${dir}/${filename}`;
+            const content = await safeReadFile(filePath);
+            if (content === null) return null;
+            return { path: filePath, filename, content };
+          }),
+        );
+        entry.examples = results.filter((r): r is NonNullable<typeof r> => r !== null);
+      } catch {
+        // Directory not readable — skip examples
+        entry.examples = [];
+      }
+    }
+
+    formats.push(entry);
+  }
+
+  return { formats, total };
 }
 
 // ---------------------------------------------------------------------------
@@ -194,17 +392,30 @@ async function getBlocks(
  * Register docs tools with a ToolRegistry.
  *
  * Tools registered:
- *   get_blocks — query block documentation with filtering, pagination,
- *                and selectable detail level.
+ *   get_blocks  — query block documentation with filtering, pagination,
+ *                 and selectable detail level.
+ *   get_formats — query content format documentation (PEG grammars, YAML
+ *                 schemas, etc.) with filtering, pagination, and detail.
  */
 export function registerDocsTools(registry: ToolRegistry): void {
   registry.register('get_blocks', {
     description:
       'Query OLX block types. Returns name, description, and categories by default. ' +
       'Use `filter` to select blocks by name or category (OR). ' +
-      'Use `include` to add detail: attributes, fields, template, demo, readme, examples.',
+      'Use `include` to add detail: attributes, fields, template, demo, readme, examples, formats.',
     input: GetBlocksInput,
     output: GetBlocksOutput,
     annotations: { readOnlyHint: true, idempotentHint: true },
   }, getBlocks);
+
+  registry.register('get_formats', {
+    description:
+      'Query content format definitions (PEG grammars, YAML schemas, etc.). ' +
+      'Returns name, type, description, and associated blocks by default. ' +
+      'Use `filter` to select formats by name, extension, or block name. ' +
+      'Use `include` to add detail: spec, readme, preview, examples.',
+    input: GetFormatsInput,
+    output: GetFormatsOutput,
+    annotations: { readOnlyHint: true, idempotentHint: true },
+  }, getFormats);
 }

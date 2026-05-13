@@ -40,7 +40,7 @@
     "smoke": "playwright test --config apps/web/playwright.smoke.config.ts",
     "clean": "./sandbox.sh rm -rf apps/web/.next apps/static/dist apps/client/dist node_modules .turbo out apps/web/public/content apps/static/public/static-content",
     "clean-translations": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/clean-translations.ts",
-    "clean-zombies": "pkill -9 -f 'next-server' ; pkill -9 -f 'next dev' ; pkill -9 -f postcss.js ; pkill -9 -f event-server ; pkill -9 -f 'tsx.*apps/server' ; pkill -9 -f 'node.*apps/server/src' ; pkill -9 -f 'firejail.*apps/server'",
+    "clean-zombies": "pkill -9 -f '[n]ext-server' ; pkill -9 -f '[n]ext dev' ; pkill -9 -f '[p]ostcss.js' ; pkill -9 -f '[e]vent-server' ; pkill -9 -f '[v]ite.*apps/client' ; pkill -9 -f '[f]irejail.*apps/server' ; pkill -9 -f '[t]sx.*apps/server' ; pkill -9 -f '[n]ode.*apps/server/src'",
     "dashboard": "tsx apps/dashboard/src/index.tsx",
     "serve:static": "./sandbox.sh npx serve apps/static/dist",
     "upgrade-olx": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/upgrade-olx.ts",

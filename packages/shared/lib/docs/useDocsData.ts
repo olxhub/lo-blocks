@@ -32,6 +32,8 @@ export interface BlockDoc {
   attributes?: AttributeDoc[] | null;
   namespace?: string;
   exportName?: string;
+  /** PEG grammar extensions used by this block (e.g. ['chatpeg']) */
+  grammars?: string[];
   // Grammar fields (present when _isGrammar is true)
   _isGrammar?: boolean;
   extension?: string;

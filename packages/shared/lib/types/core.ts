@@ -675,6 +675,12 @@ export const BlockBlueprintSchema = z.object({
    * Returns the answer to display (may differ from grading answer).
    */
   getDisplayAnswer: z.function().optional(),
+  /**
+   * PEG grammar extensions used by this block (e.g. ['chatpeg']).
+   * Auto-populated by peggyParser() for the 95% case; set manually
+   * on the blueprint for blocks that use grammars without peggyParser().
+   */
+  grammars: z.array(z.string()).optional(),
 }).strict();
 
 export type BlockBlueprint = z.infer<typeof BlockBlueprintSchema>;
@@ -808,6 +814,8 @@ export interface LoBlock {
   examples?: Array<{ path: string; gitStatus?: 'committed' | 'modified' | 'untracked' }>;
   /** Git status of the block source file: 'committed' | 'modified' | 'untracked' */
   gitStatus?: 'committed' | 'modified' | 'untracked';
+  /** PEG grammar extensions used by this block (e.g. ['chatpeg']) */
+  grammars?: string[];
 }
 
 export interface BlockRegistry {

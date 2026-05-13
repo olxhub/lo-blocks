@@ -742,7 +742,13 @@ export function peggyParser(
     return id;
   }
 
-  return { parser, staticKids: () => [] };
+  // Auto-detect grammar from compiled parser metadata (set by compile-grammars)
+  const grammarExt = peggyParser._grammarExtension;
+  return {
+    parser,
+    staticKids: () => [],
+    ...(grammarExt && { grammars: [grammarExt] }),
+  };
 }
 
 // === YAML + Zod Support ===

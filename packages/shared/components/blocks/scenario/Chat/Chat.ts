@@ -455,6 +455,7 @@ const Chat = blocks.dev({
   ...blocks.action({
     action: advanceChat
   }),
+  grammars: ['chatpeg', 'clippeg'],
   name: 'Chat',
   component: _Chat,
   description: 'Example block that parses an SBA dialogue format using PEG.',
