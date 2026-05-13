@@ -34,14 +34,17 @@ if (routes.length === 0) {
   process.exit(0);
 }
 
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+const title = escapeHtml(manifest.title ?? 'Learning Observer');
+
 let count = 0;
 for (const [urlPath, olxKey] of routes) {
-  let html = template.replace(/%OLX_KEY%/g, olxKey);
-
-  // Optionally set the page title
-  if (manifest.title) {
-    html = html.replace(/<title>[^<]*<\/title>/, `<title>${manifest.title}</title>`);
-  }
+  let html = template
+    .replace(/%OLX_KEY%/g, escapeHtml(olxKey))
+    .replace(/%TITLE%/g, title);
 
   if (urlPath === '/') {
     // Root route: overwrite dist/index.html
