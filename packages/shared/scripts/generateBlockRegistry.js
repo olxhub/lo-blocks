@@ -231,6 +231,8 @@ function discoverBlockAssets(blockFilePath, gitStatusMap) {
   const assets = {
     docs: null,
     docsGitStatus: null,
+    template: null,       // Editor insert template (bare block)
+    demo: null,    // Docs marquee example (minimum working example)
     examples: [],
     i18n: {},
     blockGitStatus: getFileGitStatus(blockRelPath, gitStatusMap)
@@ -257,6 +259,19 @@ function discoverBlockAssets(blockFilePath, gitStatusMap) {
       });
     }
   }
+
+  // Resolve templates from discovered examples.
+  // {BlockName}.olx is the primary example (minimum working example for docs,
+  // and default editor insert template).
+  // {BlockName}.template.olx overrides the editor insert template when the
+  // primary example includes wrapper context (e.g. CapaProblem around a grader).
+  const primaryExample = assets.examples.find(e => e.path.endsWith(`/${blockName}.olx`))?.path ?? null;
+  assets.demo =
+    assets.examples.find(e => e.path.endsWith(`/${blockName}.demo.olx`))?.path ??
+    primaryExample;
+  assets.template =
+    assets.examples.find(e => e.path.endsWith(`/${blockName}.template.olx`))?.path ??
+    primaryExample;
 
   // Scan i18n/ subdirectory for per-locale JSON resource files
   if (fs.existsSync(i18nDir) && fs.statSync(i18nDir).isDirectory()) {
@@ -316,6 +331,8 @@ function reduceBlockRegistry(files, outputFile, gitStatusMap) {
         blockMeta.readmeGitStatus = assets.docsGitStatus;
       }
     }
+    if (assets.template) blockMeta.template = assets.template;
+    if (assets.demo) blockMeta.demo = assets.demo;
     if (assets.examples.length > 0) {
       blockMeta.examples = assets.examples;
     }

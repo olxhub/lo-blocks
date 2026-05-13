@@ -15,11 +15,9 @@
     "dev:legacy": "npm run server:legacy & npm run dev:next",
     "dev:next": "./sandbox.sh next dev apps/web --turbopack",
     "dev:static": "./sandbox.sh npx vite dev apps/static",
-
     "server": "./sandbox.sh ./node_modules/.bin/tsx --watch apps/server/src/index.ts",
     "server:legacy": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/event-server.ts",
     "start": "./sandbox.sh next start apps/web",
-
     "build": "npm run build:grammars && npm run build:parser-registry && npm run build:gen-block-registry && npm run build:content",
     "build:client": "./sandbox.sh npx vite build apps/client",
     "build:clean": "npm run clean && npm run clean-zombies ; npm install && npm run build",
@@ -33,7 +31,6 @@
     "build:static": "npm run build && npm run build:static-content && ./sandbox.sh npx vite build apps/static && ./sandbox.sh ./node_modules/.bin/tsx apps/static/scripts/stamp-pages.ts",
     "build:static-content": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/xml2json.ts --static-dir apps/static/public/static-content",
     "build:sync-images": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/sync-images.ts",
-
     "typecheck": "./sandbox.sh npx tsc --noEmit",
     "lint": "./sandbox.sh next lint apps/web",
     "test": "npm run typecheck && ./sandbox.sh vitest",
@@ -41,10 +38,9 @@
     "test:unit": "./sandbox.sh vitest --exclude='**/integration/**'",
     "test:ui": "./sandbox.sh vitest --ui",
     "smoke": "playwright test --config apps/web/playwright.smoke.config.ts",
-
     "clean": "./sandbox.sh rm -rf apps/web/.next apps/static/dist apps/client/dist node_modules .turbo out apps/web/public/content apps/static/public/static-content",
     "clean-translations": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/clean-translations.ts",
-    "clean-zombies": "pkill -9 -f 'next-server' ; pkill -9 -f 'next dev' ; pkill -9 -f postcss.js ; pkill -9 -f event-server ; pkill -9 -f 'apps/server/src'",
+    "clean-zombies": "pkill -9 -f 'next-server' ; pkill -9 -f 'next dev' ; pkill -9 -f postcss.js ; pkill -9 -f event-server ; pkill -9 -f 'tsx.*apps/server' ; pkill -9 -f 'node.*apps/server/src' ; pkill -9 -f 'firejail.*apps/server'",
     "dashboard": "tsx apps/dashboard/src/index.tsx",
     "serve:static": "./sandbox.sh npx serve apps/static/dist",
     "upgrade-olx": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/upgrade-olx.ts",
@@ -63,6 +59,8 @@
     "@fontsource/geist-mono": "^5.2.6",
     "@fontsource/geist-sans": "^5.2.5",
     "@hono/node-server": "^1.14.1",
+    "@hono/zod-validator": "^0.8.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@observablehq/plot": "^0.6.17",
     "@tailwindcss/typography": "^0.5.19",
     "@uiw/react-codemirror": "^4.23.12",
@@ -98,7 +96,8 @@
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "yaml": "^2.8.2",
-    "zod": "^3.24.2"
+    "zod": "^3.24.2",
+    "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

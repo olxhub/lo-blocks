@@ -35,9 +35,29 @@ export async function GET(request, { params }) {
       fields: Object.keys(block.fields || {}),
       hasAction: !!block.action,
       hasParser: !!block.parser,
+      template: null,
+      demo: null,
       readme: null,
       examples: []
     };
+
+    // Read template (editor insert) and demo (docs marquee) content
+    if (block.template) {
+      try {
+        const fullPath = await resolveSafeReadPath(process.cwd(), block.template);
+        blockDocs.template = await fs.readFile(fullPath, 'utf8');
+      } catch (err) {
+        console.warn(`Could not read template for ${blockName}: ${err.message}`);
+      }
+    }
+    if (block.demo) {
+      try {
+        const fullPath = await resolveSafeReadPath(process.cwd(), block.demo);
+        blockDocs.demo = await fs.readFile(fullPath, 'utf8');
+      } catch (err) {
+        console.warn(`Could not read demo for ${blockName}: ${err.message}`);
+      }
+    }
 
     // Read readme content if path exists
     if (block.readme) {
@@ -55,19 +75,16 @@ export async function GET(request, { params }) {
     // Read example file contents
     if (block.examples && block.examples.length > 0) {
       for (const example of block.examples) {
-        // Handle both old format (string) and new format ({path, gitStatus})
-        const examplePath = typeof example === 'string' ? example : example.path;
-        const gitStatus = typeof example === 'object' ? example.gitStatus : null;
         try {
-          const fullPath = await resolveSafeReadPath(process.cwd(), examplePath);
+          const fullPath = await resolveSafeReadPath(process.cwd(), example.path);
           blockDocs.examples.push({
-            path: examplePath,
-            filename: path.basename(examplePath),
+            path: example.path,
+            filename: path.basename(example.path),
             content: await fs.readFile(fullPath, 'utf8'),
-            gitStatus
+            gitStatus: example.gitStatus ?? null
           });
         } catch (err) {
-          console.warn(`Could not read example ${examplePath}: ${err.message}`);
+          console.warn(`Could not read example ${example.path}: ${err.message}`);
         }
       }
     }

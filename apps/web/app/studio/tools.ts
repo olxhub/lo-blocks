@@ -366,11 +366,8 @@ export function createEditorTools({
             result += `## Documentation\n${block.readme.content}\n\n`;
           }
 
-          if (block.examples?.length > 0) {
-            result += `## Examples\n`;
-            for (const ex of block.examples) {
-              result += `### ${ex.filename}\n\`\`\`xml\n${ex.content}\n\`\`\`\n\n`;
-            }
+          if (block.template) {
+            result += `## Template\n\`\`\`xml\n${block.template}\n\`\`\`\n\n`;
           }
 
           return result;

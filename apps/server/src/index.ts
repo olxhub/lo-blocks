@@ -11,6 +11,7 @@
 //   Browser → nginx (:8810 dev, :80/443 prod)
 //              → this server (:8888)
 //                 ├→ /wsapi/in/     → WebSocket (event pipeline, via ws)
+//                 ├→ /mcp           → MCP tools (StreamableHTTP, raw Node)
 //                 ├→ /api/olxjson/  → content API (Hono)
 //                 ├→ /assets/*      → Vite-built client (Hono serveStatic)
 //                 ├→ /preview/*     → SPA fallback (Hono serveStatic)
@@ -28,6 +29,17 @@ import { proxy } from './proxy.js';
 import { MemoryKVStore } from './kvs.js';
 import { runPipeline } from './pipeline.js';
 import { handleOlxJson } from './routes/olxjson.js';
+import { handleMcpPost, handleMcpGet, handleMcpDelete } from './mcp.js';
+import { createToolRegistry } from '@/lib/mcp/registry';
+import { registerDocsTools } from '@/lib/docs/tools';
+
+// --- Tool registry ----------------------------------------------------------
+// Modules register their tools here. The registry serves MCP, Claude API
+// tool_use format, and direct in-process calls from the same definitions.
+const registry = createToolRegistry();
+
+registerDocsTools(registry);
+// TODO: registerLofsTools(registry, storage);
 
 const PORT = 8888;
 const WS_PATH = '/wsapi/in/';
@@ -57,6 +69,28 @@ const SERVER_PREFIXES = ['/api/olxjson/', '/assets/', '/preview/'];
 
 const server = createServer(async (req, res) => {
   const url = req.url || '/';
+
+  // MCP endpoint — handled at raw HTTP level (needs Node.js req/res for
+  // StreamableHTTPServerTransport, same reason WebSocket uses raw `ws`).
+  if (url === '/mcp' || url.startsWith('/mcp?')) {
+    try {
+      if (req.method === 'POST') await handleMcpPost(req, res, registry);
+      else if (req.method === 'GET') await handleMcpGet(req, res);
+      else if (req.method === 'DELETE') await handleMcpDelete(req, res);
+      else {
+        res.writeHead(405, { Allow: 'GET, POST, DELETE' });
+        res.end();
+      }
+    } catch (err) {
+      console.error('[MCP] Error:', err);
+      if (!res.headersSent) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Internal server error' }));
+      }
+    }
+    return;
+  }
+
   if (SERVER_PREFIXES.some(p => url.startsWith(p))) {
     await honoHandler(req, res);
   } else {
@@ -110,6 +144,7 @@ server.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
   console.log(`  WebSocket: ws://localhost:${PORT}${WS_PATH}`);
   console.log(`  Client: apps/client/dist/`);
+  console.log(`  MCP: http://localhost:${PORT}/mcp`);
   console.log(`  Fallback: proxying to Next.js at http://127.0.0.1:3000`);
   console.log('Press Ctrl+C to stop.\n');
 });

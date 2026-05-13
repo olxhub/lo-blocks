@@ -8,21 +8,35 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getCategory, sortCategories } from './categoryUtils';
 import type { AttributeDoc } from './schemaUtils';
+import type { BlockGitStatus } from '@/lib/types';
 
+/**
+ * Block documentation metadata — the display/API-layer representation of a
+ * block. Shared by /docs, Studio sidebar, and MCP get_blocks.
+ *
+ * This is the documentation subset of LoBlock: no component, reducers, parsers,
+ * or other runtime fields. Grammar-related fields (_isGrammar, extension, etc.)
+ * are included so the same type covers both blocks and grammars in combined lists.
+ */
 export interface BlockDoc {
   name: string;
   description?: string | null;
   category?: string | null;
   source?: string;
   readme?: string | null;
-  examples?: Array<{ path: string; gitStatus?: string }>;
-  gitStatus?: string;
-  readmeGitStatus?: string;
+  examples?: Array<{ path: string; gitStatus?: BlockGitStatus }>;
+  gitStatus?: BlockGitStatus;
+  readmeGitStatus?: BlockGitStatus;
   internal?: boolean;
   fields?: string[];
   attributes?: AttributeDoc[] | null;
   namespace?: string;
   exportName?: string;
+  // Grammar fields (present when _isGrammar is true)
+  _isGrammar?: boolean;
+  extension?: string;
+  hasPreview?: boolean;
+  exampleCount?: number;
 }
 
 export interface GrammarDoc {

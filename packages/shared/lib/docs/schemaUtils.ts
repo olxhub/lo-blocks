@@ -4,14 +4,17 @@
 //
 import { z } from 'zod';
 
-export interface AttributeDoc {
-  name: string;
-  type: string;           // 'string' | 'number' | 'boolean' | 'enum' | etc.
-  required: boolean;
-  description?: string;
-  enumValues?: string[];  // For enum types
-  default?: unknown;
-}
+/** Attribute documentation extracted from a block's Zod schema. */
+export const AttributeDocSchema = z.object({
+  name: z.string().describe('Attribute name as used in OLX'),
+  type: z.string().describe('Type label (string, number, boolean, enum, etc.)'),
+  required: z.boolean(),
+  description: z.string().optional(),
+  enumValues: z.array(z.string()).optional().describe('Allowed values for enum types'),
+  default: z.unknown().optional(),
+});
+
+export type AttributeDoc = z.infer<typeof AttributeDocSchema>;
 
 /**
  * Get the human-readable type name from a Zod schema.
