@@ -263,6 +263,8 @@ type FormatEntry = {
   extension: string | null;
   dir: string | null;
   source: string | null;
+  /** Explicit description — skips frontmatter extraction when set. */
+  description?: string;
 };
 
 async function getFormats(
@@ -294,8 +296,19 @@ async function getFormats(
     allEntries.push({ name: info.grammarName, type: 'peg', extension: ext, dir, source });
   }
 
-  // TODO: Non-PEG formats (YAML+Zod, cast, etc.) will be registered here
-  // as the format system grows. For now, only PEG formats are auto-discovered.
+  // TODO: Non-PEG formats are hardcoded here. Move to a declarative
+  // format registry (parallel to parserRegistry for PEG) so formats
+  // can self-register from their own modules.
+  // TODO: Cast has no format documentation (README, examples, preview).
+  // Needs a cast.md or README.md in packages/shared/lib/avatar/.
+  allEntries.push({
+    name: 'cast',
+    type: 'yaml',
+    extension: 'cast',
+    dir: 'packages/shared/lib/avatar',
+    source: 'packages/shared/lib/avatar/types.ts',
+    description: 'Character definitions for dialogue and scenario blocks (YAML)',
+  });
 
   // -- Filter (matches format name, extension, OR block name) ---------------
   let matched: FormatEntry[];
@@ -320,17 +333,27 @@ async function getFormats(
   // -- Build results --------------------------------------------------------
   const formats: z.infer<typeof FormatResultSchema>[] = [];
 
-  for (const { name, type, extension, dir, source } of page) {
-    // Read spec source for description (always needed)
+  for (const fmt of page) {
+    const { name, type, extension, dir, source } = fmt;
+
+    // Read spec source — used for frontmatter description (PEG) and
+    // optionally returned via include: ['spec']
     const specContent = source ? await safeReadFile(source) : null;
-    const metadata: Record<string, any> = specContent ? extractMetadata(specContent) : {};
+
+    // Prefer explicit description (non-PEG formats), fall back to
+    // frontmatter extraction (PEG grammars)
+    let description = fmt.description ?? null;
+    if (!description && specContent) {
+      const metadata: Record<string, any> = extractMetadata(specContent);
+      description = metadata.description || null;
+    }
 
     const key = extension ?? name;
     const entry: z.infer<typeof FormatResultSchema> = {
       name,
       type,
       extension,
-      description: metadata.description || null,
+      description,
       source,
       blocks: formatToBlocks[key] ?? [],
     };
@@ -340,10 +363,10 @@ async function getFormats(
     }
 
     if (includeSet.has('readme') && dir) {
-      const readmePaths = [
-        `${dir}/${name}.pegjs.md`,
-        `${dir}/README.md`,
-      ];
+      // Try format-specific readme, then directory README
+      const readmePaths = type === 'peg'
+        ? [`${dir}/${name}.pegjs.md`, `${dir}/README.md`]
+        : [`${dir}/${name}.md`, `${dir}/README.md`];
       entry.readme = null;
       for (const rp of readmePaths) {
         const content = await safeReadFile(rp);
@@ -355,7 +378,11 @@ async function getFormats(
     }
 
     if (includeSet.has('preview') && dir) {
-      entry.preview = await safeReadFile(`${dir}/${name}.pegjs.preview.olx`);
+      // Preview template: {name}.pegjs.preview.olx (PEG) or {name}.preview.olx
+      const previewPath = type === 'peg'
+        ? `${dir}/${name}.pegjs.preview.olx`
+        : `${dir}/${name}.preview.olx`;
+      entry.preview = await safeReadFile(previewPath);
     }
 
     if (includeSet.has('examples') && dir && extension) {
