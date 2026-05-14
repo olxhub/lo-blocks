@@ -259,7 +259,8 @@ _Based on AI suggestions and course materials, here are some modifications that 
 
 <IntakeGate ready="!@fba3_completion_checkbox.value">
 <Markdown> </Markdown>
-<Markdown id="fba3_checklist_display">
+<Vertical id="fba3_checklist_display">
+<Markdown id="fba3_checklist_bedtime">
 ## Sample Fidelity Checklist
 
 **Bedtime Routine**
@@ -272,8 +273,10 @@ _Based on AI suggestions and course materials, here are some modifications that 
 | 4 | Followed visual schedule for routine steps | ☐ Yes  ☐ No | |
 | 5 | Offered limited choices during routine | ☐ Yes  ☐ No | |
 | 6 | Incorporated brief preferred activity | ☐ Yes  ☐ No | |
+</Markdown>
 
-**Response to Escape Behavior**
+<Markdown id="fba3_checklist_escape_response">
+## Response to Escape Behavior
 
 | Step | Task | Completed | Notes |
 |:---:|------|:---:|-------|
@@ -282,6 +285,7 @@ _Based on AI suggestions and course materials, here are some modifications that 
 | 9 | Provided sticker/praise for compliance | ☐ Yes  ☐ No | |
 | 10 | Honored bedtime pass if used | ☐ Yes  ☐ No | |
 </Markdown>
+</Vertical>
 </IntakeGate>
 
 
@@ -309,6 +313,71 @@ Of these modifications, which ones do you think we should add to help Annie's ro
 <Markdown>**Why did you choose these modifications? How will they help with adherence?**</Markdown>
 <TextArea id="fba3_modification_explanation" rows="3" placeholder="Explain why you chose these modifications..." />
 </Vertical>
+
+
+<HH> ============= Screen: Email revision ======================== </HH>
+
+<Tabs id="fba3_revision_email">
+<Vertical id="fba3_revision_left" title="One More Suggestion">
+<Markdown>
+## Provide One More Suggestion
+
+Based on what you have learned, write an email in which you tell
+Annie's roommate about **one more way** she can improve her fidelity of
+implementation, besides using the two checklists.
+
+You can use one of the suggestions provided by the AI, but if you do,
+be sure to tweak it and provide extra details to make it as useful as
+possible.
+</Markdown>
+<TextArea id="fba3_revision_email_text" rows="8"
+  placeholder="Dear Roommate, besides using the checklists, here's something else you can do that will help..." />
+<LLMFeedback id="fba3_revision_feedback" render="markdown" />
+<ActionButton id="fba3_revision_btn" label="Get AI Feedback" dependsOn="@fba3_revision_email_text.value">
+<LLMAction target="fba3_revision_feedback"><![CDATA[
+BACKGROUND:
+Here is a student's email suggesting how her friend's roommate who is babysitting
+a six-year-old with sleep refusal issues should change her intervention plan designed
+to get the child to bed on time regularly, in order to improve adherence:
+]]>
+<Ref target="fba3_revision_email_text" />
+<![CDATA[
+The following suggested checklists the babysitter could follow were provided
+by other students:
+]]>
+<Ref target="fba3_checklist_bedtime" />
+<Ref target="fba3_checklist_escape_response" />
+<![CDATA[
+The following is a list of AI suggestions about how the babysitter could improve her
+adherence to the intervention plan to overcome the six-year-old's sleep refusal issue:
+]]>
+<Ref target="fba3_ai_adherence_response" />
+<![CDATA[
+DIRECTIONS:
+First, check whether the student's revision email overlaps in content with the checklists
+provided by other students. If there is such an overlap, say so briefly, in a sentence or so.
+
+Next, check whether the student's revision email overlaps in content with the list of AI
+suggestions. If there is any overlap, identify it and point out what parts of the response
+are original -- that is, present neither in the checklists nor in the AI response.
+
+Finally, evaluate the advice provided in the student email for consistency with what is
+known about using operant conditioning to treat sleep refusal and with what is known about
+effective ways to improve adherence to an intervention, focusing on whether the proposed
+plan is sound and effective.
+]]></LLMAction>
+</ActionButton>
+</Vertical>
+<Vertical id="fba3_revision_ai_ref" title="AI Suggestions">
+<Use ref="fba3_ai_adherence_response" />
+</Vertical>
+<Vertical id="fba3_revision_checklist1" title="Lin's Checklist">
+<Use ref="fba3_checklist_bedtime" />
+</Vertical>
+<Vertical id="fba3_revision_checklist2" title="JJ's Checklist">
+<Use ref="fba3_checklist_escape_response" />
+</Vertical>
+</Tabs>
 
 
 <HH> ============= Screen: Updated plan ========================= </HH>

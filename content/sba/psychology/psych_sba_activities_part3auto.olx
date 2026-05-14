@@ -179,6 +179,206 @@ Student's request: <Ref id="fba2_ref_chart_prompt" target="fba2_ai_chart_prompt"
 </Vertical>
 
 
+<HH> ============= Screen: Own examples - Attention ============ </HH>
+
+<SplitPanel id="fba2_own_examples_attention">
+<LeftPane>
+<Markdown>
+**Write Your Own Example of Positive Reinforcement**
+
+1\. Attention
+</Markdown>
+<TextArea id="fba2_pos_reinforcement_attention" rows="3"
+  placeholder="Describe a situation where behavior is maintained by attention through positive reinforcement..." />
+<LLMFeedback id="fba2_pr_attention_feedback" render="markdown" />
+<ActionButton id="fba2_pr_attention_btn" label="Get AI Feedback" dependsOn="@fba2_pos_reinforcement_attention.value">
+<LLMAction target="fba2_pr_attention_feedback">
+A student in a psychology class has offered the following situation as an
+example of positive reinforcement whose function is attention --
+
+Student's example: <Ref target="fba2_pos_reinforcement_attention" />
+
+Evaluate whether the student's example is a correct example of positive reinforcement
+with attention as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+</LLMAction>
+</ActionButton>
+</LeftPane>
+<RightPane>
+<Markdown>
+**Write Your Own Example of Negative Reinforcement**
+
+1\. Attention
+</Markdown>
+<TextArea id="fba2_neg_reinforcement_attention" rows="3"
+  placeholder="Describe a situation where behavior is maintained by attention through negative reinforcement..." />
+<LLMFeedback id="fba2_nr_attention_feedback" render="markdown" />
+<ActionButton id="fba2_nr_attention_btn" label="Get AI Feedback" dependsOn="@fba2_neg_reinforcement_attention.value">
+<LLMAction target="fba2_nr_attention_feedback">
+A student in a psychology class has offered the following situation as an
+example of negative reinforcement whose function is attention --
+
+Student's example: <Ref target="fba2_neg_reinforcement_attention" />
+
+Evaluate whether the student's example is a correct example of negative reinforcement
+with attention as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+</LLMAction>
+</ActionButton>
+</RightPane>
+</SplitPanel>
+
+
+<HH> ============= Screen: Own examples - Escape =============== </HH>
+
+<SplitPanel id="fba2_own_examples_escape">
+<LeftPane>
+<Markdown>
+**Write Your Own Example of Positive Reinforcement**
+
+2\. Escape
+</Markdown>
+<TextArea id="fba2_pos_reinforcement_escape" rows="3"
+  placeholder="Describe a situation where behavior is maintained by escape through positive reinforcement..." />
+<LLMFeedback id="fba2_pr_escape_feedback" render="markdown" />
+<ActionButton id="fba2_pr_escape_btn" label="Get AI Feedback" dependsOn="@fba2_pos_reinforcement_escape.value">
+<LLMAction target="fba2_pr_escape_feedback">
+A student in a psychology class has offered the following situation as an
+example of positive reinforcement whose function is escape --
+
+Student's example: <Ref target="fba2_pos_reinforcement_escape" />
+
+Evaluate whether the student's example is a correct example of positive reinforcement
+with escape as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+</LLMAction>
+</ActionButton>
+</LeftPane>
+<RightPane>
+<Markdown>
+**Write Your Own Example of Negative Reinforcement**
+
+2\. Escape
+</Markdown>
+<TextArea id="fba2_neg_reinforcement_escape" rows="3"
+  placeholder="Describe a situation where behavior is maintained by escape through negative reinforcement..." />
+<LLMFeedback id="fba2_nr_escape_feedback" render="markdown" />
+<ActionButton id="fba2_nr_escape_btn" label="Get AI Feedback" dependsOn="@fba2_neg_reinforcement_escape.value">
+<LLMAction target="fba2_nr_escape_feedback">
+A student in a psychology class has offered the following situation as an
+example of negative reinforcement whose function is escape --
+
+Student's example: <Ref target="fba2_neg_reinforcement_escape" />
+
+Evaluate whether the student's example is a correct example of negative reinforcement
+with escape as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+</LLMAction>
+</ActionButton>
+</RightPane>
+</SplitPanel>
+
+
+<HH> ============= Screen: Own examples - Access ================ </HH>
+
+<SplitPanel id="fba2_own_examples_access">
+<LeftPane>
+<Markdown>
+**Write Your Own Example of Positive Reinforcement**
+
+3\. Access/Tangible
+</Markdown>
+<TextArea id="fba2_pos_reinforcement_access" rows="3"
+  placeholder="Describe a situation where behavior is maintained by access to tangibles through positive reinforcement..." />
+<LLMFeedback id="fba2_pr_access_feedback" render="markdown" />
+<ActionButton id="fba2_pr_access_btn" label="Get AI Feedback" dependsOn="@fba2_pos_reinforcement_access.value">
+<LLMAction target="fba2_pr_access_feedback">
+A student in a psychology class has offered the following situation as an
+example of positive reinforcement whose function is access to tangibles --
+
+Student's example: <Ref target="fba2_pos_reinforcement_access" />
+
+Evaluate whether the student's example is a correct example of positive reinforcement
+with access as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+</LLMAction>
+</ActionButton>
+</LeftPane>
+<RightPane>
+<Markdown>
+**Write Your Own Example of Negative Reinforcement**
+
+3\. Access/Tangible
+</Markdown>
+<TextArea id="fba2_neg_reinforcement_access" rows="3"
+  placeholder="Describe a situation where behavior is maintained by access to tangibles through negative reinforcement..." />
+<LLMFeedback id="fba2_nr_access_feedback" render="markdown" />
+<ActionButton id="fba2_nr_access_btn" label="Get AI Feedback" dependsOn="@fba2_neg_reinforcement_access.value">
+<LLMAction target="fba2_nr_access_feedback">
+A student in a psychology class has offered the following situation as an
+example of negative reinforcement whose function is access to tangibles --
+
+Student's example: <Ref target="fba2_neg_reinforcement_access" />
+
+Evaluate whether the student's example is a correct example of negative reinforcement
+with access as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+</LLMAction>
+</ActionButton>
+</RightPane>
+</SplitPanel>
+
+
+<HH> ============= Screen: Own examples - Sensory =============== </HH>
+
+<SplitPanel id="fba2_own_examples_sensory">
+<LeftPane>
+<Markdown>
+**Write Your Own Example of Positive Reinforcement**
+
+4\. Sensory
+</Markdown>
+<TextArea id="fba2_pos_reinforcement_sensory" rows="3"
+  placeholder="Describe a situation where behavior is maintained by sensory stimulation through positive reinforcement..." />
+<LLMFeedback id="fba2_pr_sensory_feedback" render="markdown" />
+<ActionButton id="fba2_pr_sensory_btn" label="Get AI Feedback" dependsOn="@fba2_pos_reinforcement_sensory.value">
+<LLMAction target="fba2_pr_sensory_feedback">
+A student in a psychology class has offered the following situation as an
+example of positive reinforcement with a sensory function --
+
+Student's example: <Ref target="fba2_pos_reinforcement_sensory" />
+
+Evaluate whether the student's example is a correct example of positive reinforcement
+with a sensory function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+</LLMAction>
+</ActionButton>
+</LeftPane>
+<RightPane>
+<Markdown>
+**Write Your Own Example of Negative Reinforcement**
+
+4\. Sensory
+</Markdown>
+<TextArea id="fba2_neg_reinforcement_sensory" rows="3"
+  placeholder="Describe a situation where behavior is maintained by sensory stimulation through negative reinforcement..." />
+<LLMFeedback id="fba2_nr_sensory_feedback" render="markdown" />
+<ActionButton id="fba2_nr_sensory_btn" label="Get AI Feedback" dependsOn="@fba2_neg_reinforcement_sensory.value">
+<LLMAction target="fba2_nr_sensory_feedback">
+A student in a psychology class has offered the following situation as an
+example of negative reinforcement with a sensory function --
+
+Student's example: <Ref target="fba2_neg_reinforcement_sensory" />
+
+Evaluate whether the student's example is a correct example of negative reinforcement
+with a sensory function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+</LLMAction>
+</ActionButton>
+</RightPane>
+</SplitPanel>
+
+
 <HH> ============= Screen: Punishment is not a function ========= </HH>
 
 <IntakeGate ready="!@fba2_completion_checkbox.value">
@@ -628,35 +828,104 @@ rows:
 </Vertical>
 
 
-<HH> ============= Screen: Ask AI for more interventions ======== </HH>
+<HH> ============= Screen: AI antecedent interventions ========== </HH>
 
-<Vertical id="fba2_ai_more_interventions">
+<Vertical id="fba2_ai_antecedent_interventions">
 <Markdown>
-## Ask AI: More Intervention Strategies
+## Ask AI: General Antecedent Strategies
 
-Write a prompt that will help you understand how to change the antecedents and consequences when the function of a behavior is escape.
+Write a prompt asking AI for **antecedent strategies** — things you can change *before* the problem behavior occurs to prevent it.
 </Markdown>
+<TextArea id="fba2_ai_antecedent_prompt" rows="2"
+  placeholder="Ask AI for antecedent strategies to prevent problem behaviors..." />
+<LLMFeedback id="fba2_ai_antecedent_response" render="markdown" />
+<ActionButton id="fba2_ai_antecedent_btn" label="Ask AI" dependsOn="@fba2_ai_antecedent_prompt.value">
+<LLMAction target="fba2_ai_antecedent_response"><![CDATA[
+If the following prompt is about antecedent strategies for preventing problem behaviors,
+provide a list of no more than 6 practical, evidence-based antecedent strategies.
+Otherwise, point out the prompt is not relevant and stop.
+]]>
+Student's prompt: <Ref target="fba2_ai_antecedent_prompt" />
+<![CDATA[
+Format with bolded headers and a numbered list. Keep each strategy to 1-2 sentences.
+]]></LLMAction>
+</ActionButton>
+</Vertical>
 
-<Collapsible id="fba2_intervention_hint" title="Hint: Example prompt">
+
+<HH> ============= Screen: AI consequence interventions ========= </HH>
+
+<Vertical id="fba2_ai_consequence_interventions">
 <Markdown>
-Try something like: "Create a list of interventions using antecedent strategies to prevent the problem behavior of not going to bed on time with escape as the function of behavior, and another list of interventions using consequence strategies to react to the problem behavior."
+## Ask AI: General Consequence Strategies
+
+Now write a prompt asking AI for **consequence strategies** — things you can change *after* the problem behavior occurs.
 </Markdown>
-</Collapsible>
+<TextArea id="fba2_ai_consequence_prompt" rows="2"
+  placeholder="Ask AI for consequence strategies to respond to problem behaviors..." />
+<LLMFeedback id="fba2_ai_consequence_response" render="markdown" />
+<ActionButton id="fba2_ai_consequence_btn" label="Ask AI" dependsOn="@fba2_ai_consequence_prompt.value">
+<LLMAction target="fba2_ai_consequence_response"><![CDATA[
+If the following prompt is about consequence strategies for responding to problem behaviors,
+provide a list of no more than 6 practical, evidence-based consequence strategies.
+Otherwise, point out the prompt is not relevant and stop.
+]]>
+Student's prompt: <Ref target="fba2_ai_consequence_prompt" />
+<![CDATA[
+Format with bolded headers and a numbered list. Keep each strategy to 1-2 sentences.
+]]></LLMAction>
+</ActionButton>
+</Vertical>
 
-<TextArea id="fba2_ai_intervention_prompt" rows="3" placeholder="Type your prompt for AI about escape-focused intervention strategies..." />
 
-<LLMFeedback id="fba2_ai_intervention_response" render="markdown" />
+<HH> ============= Screen: AI escape antecedent ================== </HH>
 
-<ActionButton id="fba2_ai_intervention_btn" label="Ask AI">
-<LLMAction id="fba2_ai_intervention_action" target="fba2_ai_intervention_response">
-If the following question is about generating intervention strategies (antecedent and/or
-consequence strategies) for addressing a behavior whose function is escape — particularly
-in the context of a child refusing to go to bed — provide practical, evidence-based
-strategies organized by antecedent and consequence categories. Otherwise, point out
+<Vertical id="fba2_ai_escape_antecedent">
+<Markdown>
+## Ask AI: Escape-Focused Antecedent Strategies
+
+Now let's focus specifically on **escape**. Write a prompt asking AI for antecedent strategies that address escape-maintained behavior — particularly for a child refusing to go to bed.
+</Markdown>
+<TextArea id="fba2_ai_escape_ante_prompt" rows="2"
+  placeholder="Ask AI for antecedent strategies specific to escape-maintained bedtime refusal..." />
+<LLMFeedback id="fba2_ai_escape_ante_response" render="markdown" />
+<ActionButton id="fba2_ai_escape_ante_btn" label="Ask AI" dependsOn="@fba2_ai_escape_ante_prompt.value">
+<LLMAction target="fba2_ai_escape_ante_response"><![CDATA[
+If the following prompt is about antecedent strategies for escape-maintained behavior,
+particularly a child refusing to go to bed, provide a list of no more than 6 practical,
+evidence-based antecedent strategies specifically targeting escape. Otherwise, point out
 the prompt is not relevant and stop.
-<Ref id="fba2_ref_intervention_prompt" target="fba2_ai_intervention_prompt" />
-Use Markdown to format your reply with bolded headers and organized lists.
-</LLMAction>
+]]>
+Student's prompt: <Ref target="fba2_ai_escape_ante_prompt" />
+<![CDATA[
+Format with bolded headers and a numbered list. Keep each strategy to 1-2 sentences.
+]]></LLMAction>
+</ActionButton>
+</Vertical>
+
+
+<HH> ============= Screen: AI escape consequence ================= </HH>
+
+<Vertical id="fba2_ai_escape_consequence">
+<Markdown>
+## Ask AI: Escape-Focused Consequence Strategies
+
+Finally, write a prompt asking AI for **consequence strategies** that specifically address escape-maintained bedtime refusal.
+</Markdown>
+<TextArea id="fba2_ai_escape_cons_prompt" rows="2"
+  placeholder="Ask AI for consequence strategies specific to escape-maintained bedtime refusal..." />
+<LLMFeedback id="fba2_ai_escape_cons_response" render="markdown" />
+<ActionButton id="fba2_ai_escape_cons_btn" label="Ask AI" dependsOn="@fba2_ai_escape_cons_prompt.value">
+<LLMAction target="fba2_ai_escape_cons_response"><![CDATA[
+If the following prompt is about consequence strategies for escape-maintained behavior,
+particularly a child refusing to go to bed, provide a list of no more than 6 practical,
+evidence-based consequence strategies specifically targeting escape. Otherwise, point out
+the prompt is not relevant and stop.
+]]>
+Student's prompt: <Ref target="fba2_ai_escape_cons_prompt" />
+<![CDATA[
+Format with bolded headers and a numbered list. Keep each strategy to 1-2 sentences.
+]]></LLMAction>
 </ActionButton>
 </Vertical>
 

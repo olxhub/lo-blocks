@@ -113,8 +113,32 @@ JJ: Especially because it leaves two cells blank. Escape is the removal of somet
 
 Annie: Good catch, JJ! But we won't really **learn** what the chart is telling us unless we try ourselves.
 
-// TODO (Commit 3): Add own-examples activities here -- one per function
-// (attention, escape, access, sensory) with positive/negative reinforcement TextAreas + LLM feedback
+Your Turn: Own Examples [id=fba2_own_examples_section]
+------------------------
+
+Annie: Let's each come up with our own examples for each function. That way we'll really know if we understand the chart.
+
+Lin: For each function, try to think of a situation that involves positive reinforcement, and another that involves negative reinforcement. Some combinations might be tricky!
+
+::fba2_own_examples_attention [display=target:psych_sba_sidebar3auto label="Your Examples: Attention"]
+
+--- wait @fba2_pos_reinforcement_attention.value && @fba2_neg_reinforcement_attention.value ---
+
+::fba2_own_examples_escape [display=target:psych_sba_sidebar3auto label="Your Examples: Escape"]
+
+--- wait @fba2_pos_reinforcement_escape.value && @fba2_neg_reinforcement_escape.value ---
+
+::fba2_own_examples_access [display=target:psych_sba_sidebar3auto label="Your Examples: Access"]
+
+--- wait @fba2_pos_reinforcement_access.value && @fba2_neg_reinforcement_access.value ---
+
+::fba2_own_examples_sensory [display=target:psych_sba_sidebar3auto label="Your Examples: Sensory"]
+
+--- wait @fba2_pos_reinforcement_sensory.value && @fba2_neg_reinforcement_sensory.value ---
+
+Annie: Some of those were really hard! Did anyone else have trouble with escape and positive reinforcement?
+
+JJ: Yes! That's because those combinations don't actually work -- which is exactly what the blank cells in the chart were telling us.
 
 JJ: But didn't we learn about punishment too?
 
@@ -252,12 +276,29 @@ Annie: My roommate is going to be so happy!
 AI Intervention Strategies [id=fba2_ai_interventions]
 ---------------------------
 
-// TODO (Commit 3): Split into 4 rounds -- antecedent general, consequence general,
-// escape antecedent, escape consequence -- each with its own LLM prompt
+JJ: Let's start by asking AI about general strategies -- antecedent strategies first, then consequence strategies.
 
-::fba2_ai_more_interventions [display=target:psych_sba_sidebar3auto label="Ask AI for More Interventions"]
+::fba2_ai_antecedent_interventions [display=target:psych_sba_sidebar3auto label="Ask AI: Antecedent Strategies"]
 
---- wait @fba2_ai_intervention_response.value ---
+--- wait @fba2_ai_antecedent_response.value ---
+
+Lin: Good, now let's get consequence strategies.
+
+::fba2_ai_consequence_interventions [display=target:psych_sba_sidebar3auto label="Ask AI: Consequence Strategies"]
+
+--- wait @fba2_ai_consequence_response.value ---
+
+Annie: Those are helpful, but they're pretty general. Let's narrow it down to strategies specifically for escape-maintained behavior.
+
+::fba2_ai_escape_antecedent [display=target:psych_sba_sidebar3auto label="Ask AI: Escape Antecedent Strategies"]
+
+--- wait @fba2_ai_escape_ante_response.value ---
+
+JJ: And finally, escape-focused consequence strategies.
+
+::fba2_ai_escape_consequence [display=target:psych_sba_sidebar3auto label="Ask AI: Escape Consequence Strategies"]
+
+--- wait @fba2_ai_escape_cons_response.value ---
 
 Putting It Together [id=fba2_putting_together]
 --------------------

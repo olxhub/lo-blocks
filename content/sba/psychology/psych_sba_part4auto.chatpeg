@@ -106,8 +106,14 @@ Annie: Great! Of these modifications, which ones do you think we should add? Pic
 
 --- wait @fba3_modification_explanation.value ---
 
-// TODO (Commit 3): Add email revision activity here
-// Annie asks students to write one more suggestion for the roommate
+One More Suggestion [id=fba3_revision_section]
+--------------------
+
+Annie: Before we finalize, I think we should write one more specific suggestion for my roommate -- something beyond just "use the checklists." You can look at the AI's suggestions for ideas, but try to make it your own.
+
+::fba3_revision_email [display=target:psych_sba_sidebar4auto label="Write One More Suggestion"]
+
+--- wait @fba3_revision_email_text.value ---
 
 Updated Plan [id=fba3_updated_plan_section]
 -------------
