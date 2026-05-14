@@ -39,18 +39,76 @@ Let's check in with Annie to see how things went.
 
 <IntakeGate ready="!@fba3_completion_checkbox.value">
 <Markdown> </Markdown>
-<Markdown id="fba3_progress_graph_1">
+<Vertical id="fba3_progress_graph_1">
+<Markdown>
 ## Progress Monitoring: Week 1–2
 
-TODO: This should be a line graph or bar chart showing Johnny's bedtime compliance over 2 weeks (5 babysitting sessions). The data shows a worsening trend:
-- Session 1: Went to bed on time ✓
-- Session 2: Went to bed on time ✓
-- Session 3: Did not go to bed on time ✗
-- Session 4: Did not go to bed on time ✗ (roommate noted she didn't follow the plan)
-- Session 5: Did not go to bed on time ✗ (escape behaviors worse)
-
-The graph should make it visually clear that the intervention is not working as expected and that performance is declining.
+Annie's roommate tracked Johnny's bedtime over 5 babysitting sessions:
 </Markdown>
+<ObservablePlot id="fba3_week1_chart" title="Johnny's Bedtimes (Week 1–2)" format="js"><![CDATA[
+const data = [
+  { date: "9/5", bedtimeIndex: 0 },
+  { date: "9/6", bedtimeIndex: 0 },
+  { date: "9/7", bedtimeIndex: 1 },
+  { date: "9/8", bedtimeIndex: 2 },
+  { date: "9/9", bedtimeIndex: 2 }
+];
+
+function formatBedtimeLabel(index) {
+  const labels = {
+    "-0.25": "7:45 PM",
+    0: "8:00 PM",
+    1: "8:30 PM",
+    2: "9:00 PM",
+    "2.25": "9:15 PM"
+  };
+  return labels[index] ?? `${index}`;
+}
+
+return Plot.plot({
+  width: 680,
+  height: 300,
+  marginLeft: 72,
+  marginBottom: 48,
+  marks: [
+    Plot.lineY(data, {
+      x: "date",
+      y: "bedtimeIndex",
+      stroke: "#111827",
+      curve: "linear",
+      strokeWidth: 3,
+      clip: false
+    }),
+    Plot.dot(data, {
+      x: "date",
+      y: "bedtimeIndex",
+      stroke: "#111827",
+      fill: "#111827",
+      r: 4,
+      clip: false
+    })
+  ],
+  x: {
+    label: "Date",
+    ticks: data.map((d) => d.date)
+  },
+  y: {
+    label: "Bedtime",
+    domain: [-0.25, 2.25],
+    ticks: [0, 1, 2],
+    tickFormat: formatBedtimeLabel
+  }
+});
+]]></ObservablePlot>
+<Markdown>
+- Johnny went to bed on time (8:00 PM) only on the first **2 out of 5** sessions
+- Bedtimes got progressively later over the two weeks
+- On one occasion, the roommate noted she didn't follow the plan exactly
+- The escape behaviors seem to have gotten worse over time
+
+**Something isn't working right...**
+</Markdown>
+</Vertical>
 </IntakeGate>
 
 
@@ -77,18 +135,30 @@ Implementation fidelity refers to how accurately and consistently a behavior pla
 <IntakeGate ready="!@fba3_completion_checkbox.value">
 <Markdown> </Markdown>
 <Tabs id="fba3_fidelity_tabs">
-<Vertical id="fba3_fidelity_tab1" title="Fidelity Overview">
+<Vertical id="fba3_fidelity_tab1" title="Fidelity Check">
+<CapaProblem id="fba3_fidelity_matching_problem" title="Match the Fidelity Aspects">
 <Markdown>
-## Five Aspects of Implementation Fidelity
-
-| Aspect | Key Question |
-|--------|-------------|
-| **Adherence**                | Are all steps of the plan followed as written?                                        |
-| **Dosage**                   | Is the plan used for the correct amount of time/frequency?                            |
-| **Quality of Delivery**      | Are strategies implemented correctly and with the intended tone?                       |
-| **Participant Responsiveness** | Is the child actually exposed to and engaged with the intervention?                 |
-| **Program Differentiation**  | Are other strategies (not part of the plan) avoided during implementation?             |
+## Match Each Fidelity Aspect to Its Key Question
 </Markdown>
+<MatchingGrader id="fba3_fidelity_matching_grader">
+  <MatchingInput id="fba3_fidelity_matching">
+    <Markdown id="fba3_match_adherence">Adherence</Markdown>
+    <Markdown id="fba3_match_adherence_def">Are all steps of the plan followed as written?</Markdown>
+
+    <Markdown id="fba3_match_dosage">Dosage</Markdown>
+    <Markdown id="fba3_match_dosage_def">Is the plan used for the correct amount of time/frequency?</Markdown>
+
+    <Markdown id="fba3_match_quality">Quality of Delivery</Markdown>
+    <Markdown id="fba3_match_quality_def">Are strategies implemented with the intended tone/approach?</Markdown>
+
+    <Markdown id="fba3_match_responsive">Participant Responsiveness</Markdown>
+    <Markdown id="fba3_match_responsive_def">Is the child exposed to and engaged with the intervention?</Markdown>
+
+    <Markdown id="fba3_match_differentiation">Program Differentiation</Markdown>
+    <Markdown id="fba3_match_differentiation_def">Are non-plan strategies avoided during implementation?</Markdown>
+  </MatchingInput>
+</MatchingGrader>
+</CapaProblem>
 </Vertical>
 <Vertical id="fba3_fidelity_tab2" title="Modifications &amp; Checklist">
 <Markdown>
@@ -192,18 +262,25 @@ _Based on AI suggestions and course materials, here are some modifications that 
 <Markdown id="fba3_checklist_display">
 ## Sample Fidelity Checklist
 
-| Step | Did I do it? |
-|------|:---:|
-| Gave 10-minute advance warning            | ☐ Yes  ☐ No |
-| Gave 5-minute advance warning             | ☐ Yes  ☐ No |
-| Started timer for bedtime routine         | ☐ Yes  ☐ No |
-| Followed visual schedule for routine steps | ☐ Yes  ☐ No |
-| Offered limited choices during routine     | ☐ Yes  ☐ No |
-| Ignored escape behaviors (did not chase)   | ☐ Yes  ☐ No |
-| Did not negotiate or argue                 | ☐ Yes  ☐ No |
-| Provided sticker/praise for compliance     | ☐ Yes  ☐ No |
-| Honored bedtime pass if used               | ☐ Yes  ☐ No |
-| Recorded data in journal                   | ☐ Yes  ☐ No |
+**Bedtime Routine**
+
+| Step | Task | Completed | Notes |
+|:---:|------|:---:|-------|
+| 1 | Gave 10-minute advance warning | ☐ Yes  ☐ No | |
+| 2 | Gave 5-minute advance warning | ☐ Yes  ☐ No | |
+| 3 | Started timer for bedtime routine | ☐ Yes  ☐ No | |
+| 4 | Followed visual schedule for routine steps | ☐ Yes  ☐ No | |
+| 5 | Offered limited choices during routine | ☐ Yes  ☐ No | |
+| 6 | Incorporated brief preferred activity | ☐ Yes  ☐ No | |
+
+**Response to Escape Behavior**
+
+| Step | Task | Completed | Notes |
+|:---:|------|:---:|-------|
+| 7 | Ignored escape behaviors (did not chase) | ☐ Yes  ☐ No | |
+| 8 | Did not negotiate or argue | ☐ Yes  ☐ No | |
+| 9 | Provided sticker/praise for compliance | ☐ Yes  ☐ No | |
+| 10 | Honored bedtime pass if used | ☐ Yes  ☐ No | |
 </Markdown>
 </IntakeGate>
 
@@ -232,55 +309,140 @@ Of these modifications, which ones do you think we should add to help Annie's ro
 
 <HH> ============= Screen: Updated plan ========================= </HH>
 
-<IntakeGate ready="!@fba3_completion_checkbox.value">
-<Markdown> </Markdown>
-<Markdown id="fba3_updated_plan">
+<Vertical id="fba3_updated_plan">
+<Markdown>
 ## Updated Behavior Modification Plan
 
-TODO: This should display the original escape-focused plan from Part 5 with the student's selected modifications incorporated. Ideally, the modifications the student selected above would be inserted into the appropriate sections of the plan.
+Based on your selected modifications, here is the updated plan:
+</Markdown>
 
-For now, here is the updated plan with all possible modifications noted:
+<LLMFeedback id="fba3_updated_plan_response" render="markdown" />
 
-**Original Antecedent Strategies:**
+<ActionButton id="fba3_generate_plan_btn" label="Generate Updated Plan">
+<LLMAction id="fba3_generate_plan_action" target="fba3_updated_plan_response"><![CDATA[
+You are helping a group of psychology students update a behavior modification plan for a child named Johnny who has escape-maintained bedtime behavior. His babysitter has been struggling with adherence to the original plan.
+
+Here is the ORIGINAL escape-focused behavior modification plan:
+
+**Target Behavior:** Johnny does not go to bed on time
+**Function of Behavior:** Escape
+**Behavior Goal:** Johnny will go to bed on time when told, without running away, for 4 out of 5 bedtimes over a 2-week period
+
+**Antecedent Strategies:**
 - Create a predictable bedtime routine with a visual schedule
 - Use a timer to signal when each routine step begins and ends
 - Give 10-minute and 5-minute advance warnings
 - Incorporate a brief preferred activity into the routine
 - Allow limited choices within the routine
 
-**Original Consequence Strategies:**
+**Consequence Strategies:**
 - Provide positive reinforcement (sticker chart, praise) for on-time bedtime
 - Ignore escape behaviors — do not chase or engage
 - Use a "bedtime pass" for one approved brief delay per night
 - Provide brief positive attention when Johnny stays in bed
 
-**New Adherence Supports:**
-- Step-by-step guide posted where the roommate can see it
-- Fidelity checklist to mark off each step during each session
-- Phone reminders for key transition points
-- Weekly check-in with Annie to review and troubleshoot
-
 **Data Collection:**
-- Continue tracking bedtime compliance for 2 more weeks
-- Use fidelity checklist to track plan adherence each session
-</Markdown>
-</IntakeGate>
+- Track whether Johnny goes to bed on time each night for 2 weeks
+- Note any modifications or deviations from the plan
+
+The student selected these modifications to improve the babysitter's adherence:
+]]>
+<Ref id="fba3_ref_modifications" target="fba3_modification_choices" />
+<![CDATA[
+The student's reasoning for choosing these modifications:
+]]>
+<Ref id="fba3_ref_mod_explanation" target="fba3_modification_explanation" />
+<![CDATA[
+Now generate an UPDATED plan that:
+1. Keeps all the original antecedent and consequence strategies
+2. Incorporates the student's selected modifications as a new "Adherence Supports" section
+3. Updates the Data Collection section to include fidelity tracking
+4. Uses clear Markdown formatting with bold headers and bullet points
+5. Is specific and actionable — tailor the adherence supports to Johnny's bedtime scenario
+6. Keeps the plan concise (no more than ~300 words)
+
+Format the plan with these sections:
+- Target Behavior / Function / Goal (brief header)
+- Antecedent Strategies
+- Consequence Strategies
+- New Adherence Supports (based on student's selections)
+- Data Collection
+]]></LLMAction>
+</ActionButton>
+</Vertical>
 
 
 <HH> ============= Screen: Progress graph 2 ==================== </HH>
 
 <IntakeGate ready="!@fba3_completion_checkbox.value">
 <Markdown> </Markdown>
-<Markdown id="fba3_progress_graph_2">
+<Vertical id="fba3_progress_graph_2">
+<Markdown>
 ## Progress Monitoring: Week 3–4
 
-TODO: This should be a line graph or bar chart showing Johnny's bedtime compliance over the second 2-week period (after modifications). The data shows improvement:
-- Sessions 6–10 show increasing compliance, with Johnny going to bed on time in most sessions
-
-The graph should contrast visually with the first graph, making it clear that the modified plan (with improved adherence) is working.
-
-Annie's roommate reports that with the simplified checklist and phone reminders, she was able to follow the plan much more consistently. Johnny is going to bed on time more often!
+After implementing the modifications, Annie's roommate tracked another 5 sessions:
 </Markdown>
+<ObservablePlot id="fba3_week3_chart" title="Johnny's Bedtimes (Week 3–4)" format="js"><![CDATA[
+const data = [
+  { date: "9/19", bedtimeIndex: 0 },
+  { date: "9/20", bedtimeIndex: 1 },
+  { date: "9/24", bedtimeIndex: 0 },
+  { date: "9/25", bedtimeIndex: 0 },
+  { date: "9/26", bedtimeIndex: 0 }
+];
+
+function formatBedtimeLabel(index) {
+  const labels = {
+    "-0.25": "7:45 PM",
+    0: "8:00 PM",
+    1: "8:30 PM",
+    2: "9:00 PM",
+    "2.25": "9:15 PM"
+  };
+  return labels[index] ?? `${index}`;
+}
+
+return Plot.plot({
+  width: 680,
+  height: 300,
+  marginLeft: 72,
+  marginBottom: 48,
+  marks: [
+    Plot.lineY(data, {
+      x: "date",
+      y: "bedtimeIndex",
+      stroke: "#111827",
+      curve: "linear",
+      strokeWidth: 3,
+      clip: false
+    }),
+    Plot.dot(data, {
+      x: "date",
+      y: "bedtimeIndex",
+      stroke: "#111827",
+      fill: "#111827",
+      r: 4,
+      clip: false
+    })
+  ],
+  x: {
+    label: "Date",
+    ticks: data.map((d) => d.date)
+  },
+  y: {
+    label: "Bedtime",
+    domain: [-0.25, 2.25],
+    ticks: [0, 1, 2],
+    tickFormat: formatBedtimeLabel
+  }
+});
+]]></ObservablePlot>
+<Markdown>
+**The modified intervention was a success!**
+
+Annie's roommate reports that with the simplified checklist and phone reminders, she was able to follow the plan much more consistently. Johnny went to bed on time in **4 out of 5** sessions — a big improvement from Week 1–2.
+</Markdown>
+</Vertical>
 </IntakeGate>
 
 

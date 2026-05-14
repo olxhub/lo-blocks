@@ -16,7 +16,7 @@ import { z_reduxStateKeyList } from '@/lib/blocks/attributeSchemas';
 import _IntakeGate from './_IntakeGate';
 
 const IntakeGate = test({
-  ...parsers.blocks(),
+  ...parsers.blocks({ requiredChildren: 2 }),
   name: 'IntakeGate',
   description: 'Gates content behind a readiness condition - shows first child until ready, then reveals second child',
   component: _IntakeGate,

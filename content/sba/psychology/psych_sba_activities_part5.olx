@@ -134,9 +134,13 @@ The worksheet (something undesirable) is **removed** after Jenny whines, and Jen
 ## Ask AI: Functions of Behavior Chart
 
 Ask AI to provide a chart that incorporates functions of behavior and types of reinforcement.
-
-**Hint:** Try a prompt like: "Put all four functions of behavior in a chart with examples of positive and negative reinforcement side-by-side."
 </Markdown>
+
+<Collapsible id="fba2_chart_hint" title="Hint: Example prompt">
+<Markdown>
+Try a prompt like: "Put all four functions of behavior in a chart with examples of positive and negative reinforcement side-by-side."
+</Markdown>
+</Collapsible>
 
 <TextArea id="fba2_ai_chart_prompt" rows="2" placeholder="Type your prompt asking AI for a chart of functions and reinforcement types..." />
 
@@ -204,24 +208,30 @@ In your own words, explain why there is no function for punishment.
 <HH> ============= Screen: Function sorting ===================== </HH>
 
 <Vertical id="fba2_function_sorting">
+
+<CapaProblem id="fba2_function_sort_problem" title="Practice: Identify the Function of Each Behavior">
 <Markdown>
 ## Practice: Identify the Function of Each Behavior
 
-TODO: We'd like a drag-and-drop activity where students sort each behavior example into the correct function category (Escape, Attention, Sensory, or Access/Tangible). When a student places an item in the wrong category, feedback should indicate the correct function.
-
-**Behavior examples to sort:**
-
-1. Michelle does not want to do her math test, so she gets up and hides under desks and furniture in her classroom. → **Escape**
-2. Beth does not want to do her science seatwork, so she talks back and argues with her teacher, yelling that the teacher is unfair and trying to get other students to agree with her. → **Attention**
-3. Randy hums softly to himself while doing his work because it feels calming, even if no one responds. → **Sensory**
-4. Ryan wants to play with his iPad but needs to finish his work first. He rushes through his math work and answers "100" for every question just so he can play with the iPad. → **Access/Tangible**
-5. Emily makes silly noises during silent reading time because she knows her peers will turn around to giggle and talk to her. → **Attention**
-6. Sally drops her writing supplies or spends a long time at the pencil sharpener every time it is time to do writing work. → **Escape**
-7. Aidan repeatedly blurts out answers and makes comments during his teacher's lessons to make the teacher laugh. → **Attention**
-8. Matthew taps his foot because the movement feels good, regardless of what others say or do. → **Sensory**
-9. Jasmine tantrums when she is told she cannot have the snack she wants at the grocery store. → **Access/Tangible**
-10. Simon suddenly needs to go to the bathroom every time it is time to transition to math class. → **Escape**
+For each behavior example below, select the function it serves.
 </Markdown>
+<TabularMCQGrader>
+  <TabularMCQ id="fba2_function_sort">
+cols: Escape, Attention, Sensory, Access/Tangible
+rows:
+  - "Michelle does not want to do her math test, so she gets up and hides under desks and furniture in her classroom.|michelle[Escape]"
+  - "Beth does not want to do her science seatwork, so she talks back and argues with her teacher, yelling that the teacher is unfair and trying to get other students to agree with her.|beth[Attention]"
+  - "Randy hums softly to himself while doing his work because it feels calming, even if no one responds.|randy[Sensory]"
+  - "Ryan wants to play with his iPad but needs to finish his work first. He rushes through his math work and answers \"100\" for every question just so he can play with the iPad.|ryan[Access/Tangible]"
+  - "Emily makes silly noises during silent reading time because she knows her peers will turn around to giggle and talk to her.|emily[Attention]"
+  - "Sally drops her writing supplies or spends a long time at the pencil sharpener every time it is time to do writing work.|sally[Escape]"
+  - "Aidan repeatedly blurts out answers and makes comments during his teacher's lessons to make the teacher laugh.|aidan[Attention]"
+  - "Matthew taps his foot because the movement feels good, regardless of what others say or do.|matthew[Sensory]"
+  - "Jasmine tantrums when she is told she cannot have the snack she wants at the grocery store.|jasmine[Access/Tangible]"
+  - "Simon suddenly needs to go to the bathroom every time it is time to transition to math class.|simon[Escape]"
+  </TabularMCQ>
+</TabularMCQGrader>
+</CapaProblem>
 
 <Markdown>**After reviewing these examples, briefly describe how you would identify the function of a behavior:**</Markdown>
 <TextArea id="fba2_function_sort_done" rows="2" placeholder="How can you tell what function a behavior serves?" />
@@ -234,21 +244,75 @@ TODO: We'd like a drag-and-drop activity where students sort each behavior examp
 <Markdown>
 ## Ask AI: The ABCs of Behavior
 
-Ask AI to help you understand the ABCs (Antecedent, Behavior, Consequence) by creating diagrams using the four functions of behavior.
+Ask AI to create a **flowchart diagram** showing the ABCs (Antecedent → Behavior → Consequence) for each of the four functions of behavior.
+
+**Tip:** If the diagram doesn't render correctly, click "Ask AI" again. The AI sometimes needs another attempt to get the diagram syntax right.
 </Markdown>
 
-<TextArea id="fba2_ai_abc_prompt" rows="2" placeholder="Type your prompt asking AI about ABCs and functions of behavior..." />
+<Collapsible id="fba2_abc_diagram_hint" title="Hint: Example prompt">
+<Markdown>
+Try a prompt like: "Create a flowchart showing the ABC pattern for each function of behavior — escape, attention, access/tangible, and sensory — with a classroom example for each."
+</Markdown>
+</Collapsible>
+
+<TextArea id="fba2_ai_abc_prompt" rows="2" placeholder="Ask AI to create Mermaid ABC diagrams for each function of behavior..." />
 
 <LLMFeedback id="fba2_ai_abc_response" render="markdown" />
 
+<Mermaid id="fba2_ai_abc_diagram" target="fba2_ai_abc_code" />
+<Collapsible id="fba2_mermaid_source" title="View diagram source code">
+<LLMFeedback id="fba2_ai_abc_code" render="code" />
+</Collapsible>
+
 <ActionButton id="fba2_ai_abc_btn" label="Ask AI">
-<LLMAction id="fba2_ai_abc_action" target="fba2_ai_abc_response">
+<LLMAction id="fba2_ai_abc_action" target="fba2_ai_abc_response"><![CDATA[
 If the following question is about the ABCs (Antecedent, Behavior, Consequence) model
 in behavioral psychology and how it relates to the four functions of behavior
-(attention, escape, access/tangibles, sensory), provide clear examples showing the
-ABC sequence for each function. Otherwise, point out the prompt is not relevant and stop.
-<Ref id="fba2_ref_abc_prompt" target="fba2_ai_abc_prompt" />
-Use Markdown to format your reply with bolded headers and clear diagrams.
+(attention, escape, access/tangibles, sensory), provide a brief explanation of each
+ABC example in the diagram. For each function, describe the example and explain whether
+it involves positive or negative reinforcement.
+
+If the student's question is not relevant to ABCs or functions of behavior,
+point that out and stop.
+]]>
+Student prompt: <Ref id="fba2_ref_abc_prompt" target="fba2_ai_abc_prompt" />
+</LLMAction>
+<LLMAction id="fba2_ai_abc_code_action" target="fba2_ai_abc_code"><![CDATA[
+If the following question is about the ABCs (Antecedent, Behavior, Consequence) model
+and functions of behavior, generate ONLY valid Mermaid flowchart code. No explanations,
+no markdown, no code fences — output must start with "flowchart LR" and contain nothing
+else besides valid Mermaid syntax.
+
+Create a single diagram with four subgraphs, one per function of behavior. Each subgraph
+shows an Antecedent, Behavior, and Consequence connected by arrows, using a concrete
+classroom example. Follow this structure:
+
+flowchart LR
+  subgraph escape ["Escape — Negative Reinforcement"]
+    E_A["Antecedent: ..."] --> E_B["Behavior: ..."] --> E_C["Consequence: ..."]
+  end
+  subgraph attention ["Attention — Positive Reinforcement"]
+    A_A["Antecedent: ..."] --> A_B["Behavior: ..."] --> A_C["Consequence: ..."]
+  end
+  subgraph tangible ["Access/Tangible — Positive Reinforcement"]
+    T_A["Antecedent: ..."] --> T_B["Behavior: ..."] --> T_C["Consequence: ..."]
+  end
+  subgraph sensory ["Sensory — Automatic Reinforcement"]
+    S_A["Antecedent: ..."] --> S_B["Behavior: ..."] --> S_C["Consequence: ..."]
+  end
+
+Rules:
+- Output ONLY mermaid code — no other text whatsoever
+- Wrap all node labels in double quotes inside square brackets: E_A["label"]
+- Use underscores in node names (E_A, not E-A)
+- Keep each label under 50 characters
+- Do NOT use bare colons, parentheses, or special characters outside the double quotes
+
+If the question is not relevant, output only:
+flowchart LR
+  A["Please ask about ABCs and functions of behavior"]
+]]>
+Student prompt: <Ref id="fba2_ref_abc_code_prompt" target="fba2_ai_abc_prompt" />
 </LLMAction>
 </ActionButton>
 </Vertical>
@@ -258,19 +322,61 @@ Use Markdown to format your reply with bolded headers and clear diagrams.
 
 <IntakeGate ready="!@fba2_completion_checkbox.value">
 <Markdown> </Markdown>
-<Markdown id="fba2_abc_reference">
-## ABC Reference: Escape Example
+<Vertical id="fba2_abc_reference">
+<Markdown>
+## ABC Reference Diagrams
 
-| **Antecedent** (Before) | → | **Behavior** | → | **Consequence** (After) |
-|---|---|---|---|---|
-| Teacher gives a difficult task | → | Student puts head down | → | Task is removed or delayed |
-
-**Function: Escape** — The student's behavior (putting head down) is maintained by negative reinforcement (removal of the aversive task).
-
----
-
-TODO: The PowerPoint shows four color-coded ABC diagrams (one per function: Escape, Attention, Access, Sensory) with yellow/blue/green boxes. Ideally this would be a set of visual graphics rather than a single table.
+Each diagram shows the **Antecedent → Behavior → Consequence** chain for one function of behavior.
 </Markdown>
+
+<Markdown>### Escape (Negative Reinforcement)</Markdown>
+<Mermaid id="fba2_abc_ref_escape"><![CDATA[
+flowchart LR
+  A["Antecedent:<br/>Teacher gives a difficult task"] --> B["Behavior:<br/>Student puts head down"] --> C["Consequence:<br/>Task is removed or delayed"]
+  class A ant
+  class B beh
+  class C con
+  classDef ant fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
+  classDef beh fill:#cfe2ff,stroke:#0d6efd,stroke-width:2px,color:#000
+  classDef con fill:#d1e7dd,stroke:#198754,stroke-width:2px,color:#000
+]]></Mermaid>
+
+<Markdown>### Attention (Positive Reinforcement)</Markdown>
+<Mermaid id="fba2_abc_ref_attention"><![CDATA[
+flowchart LR
+  A["Antecedent:<br/>Parent is on the phone"] --> B["Behavior:<br/>Child shouts loudly"] --> C["Consequence:<br/>Parent gives attention"]
+  class A ant
+  class B beh
+  class C con
+  classDef ant fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
+  classDef beh fill:#cfe2ff,stroke:#0d6efd,stroke-width:2px,color:#000
+  classDef con fill:#d1e7dd,stroke:#198754,stroke-width:2px,color:#000
+]]></Mermaid>
+
+<Markdown>### Access/Tangible (Positive Reinforcement)</Markdown>
+<Mermaid id="fba2_abc_ref_tangible"><![CDATA[
+flowchart LR
+  A["Antecedent:<br/>Toy is out of reach"] --> B["Behavior:<br/>Child cries"] --> C["Consequence:<br/>Parent gives the toy"]
+  class A ant
+  class B beh
+  class C con
+  classDef ant fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
+  classDef beh fill:#cfe2ff,stroke:#0d6efd,stroke-width:2px,color:#000
+  classDef con fill:#d1e7dd,stroke:#198754,stroke-width:2px,color:#000
+]]></Mermaid>
+
+<Markdown>### Sensory (Automatic Reinforcement)</Markdown>
+<Mermaid id="fba2_abc_ref_sensory"><![CDATA[
+flowchart LR
+  A["Antecedent:<br/>Quiet time with no stimulation"] --> B["Behavior:<br/>Child flaps hands"] --> C["Consequence:<br/>Self-stimulation feels good"]
+  class A ant
+  class B beh
+  class C con
+  classDef ant fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
+  classDef beh fill:#cfe2ff,stroke:#0d6efd,stroke-width:2px,color:#000
+  classDef con fill:#d1e7dd,stroke:#198754,stroke-width:2px,color:#000
+]]></Mermaid>
+</Vertical>
 </IntakeGate>
 
 
@@ -315,18 +421,35 @@ The function is **escape**. Johnny's running away is maintained by negative rein
 <Markdown>
 ## Competing Behavior Pathway
 
-TODO: This should be a visual graphic organizer showing a Competing Behavior Pathway diagram. The layout has:
-- **Antecedent** → **Problem Behavior** → **Consequence** (top row)
-- **Function** (below consequence)
-- **Desired Behavior** → **Desired Outcome** (bottom row, branching from antecedent)
-
-A color-coded reference diagram should appear at the top, with a blank version below for students to fill in. Pre-fill the antecedent ("Roommate tells Johnny to go to bed") and leave the rest blank.
-
-For now, fill in each part of the Competing Behavior Pathway:
+Use the color-coded reference diagram below to understand the Competing Behavior Pathway. Then fill in each part for Johnny's bedtime scenario.
 </Markdown>
 
-<Markdown>**Antecedent** (what happens before the problem behavior):</Markdown>
-<TextArea id="fba2_pathway_antecedent" rows="1" placeholder="What triggers Johnny's behavior?" />
+<Mermaid id="fba2_pathway_reference"><![CDATA[
+flowchart LR
+  A["Antecedent:<br/>(trigger)"] --> PB["Problem Behavior:<br/>(what the child does)"] --> C["Consequence:<br/>(what happens next)"]
+  C --> F["Function:<br/>(why it continues)"]
+  A --> DB["Desired Behavior:<br/>(what we want instead)"] --> DO["Desired Outcome:<br/>(positive result)"]
+  class A ant
+  class PB beh
+  class C con
+  class F func
+  class DB desired
+  class DO outcome
+  classDef ant fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
+  classDef beh fill:#cfe2ff,stroke:#0d6efd,stroke-width:2px,color:#000
+  classDef con fill:#d1e7dd,stroke:#198754,stroke-width:2px,color:#000
+  classDef func fill:#f8d7da,stroke:#dc3545,stroke-width:2px,color:#000
+  classDef desired fill:#d0e8ff,stroke:#0a58ca,stroke-width:2px,color:#000
+  classDef outcome fill:#c3e6cb,stroke:#28a745,stroke-width:2px,color:#000
+]]></Mermaid>
+
+<Markdown>
+### Fill in the Competing Behavior Pathway for Johnny
+
+The antecedent has been filled in for you. Complete the rest based on what you know about Johnny's bedtime situation.
+</Markdown>
+
+<Markdown>**Antecedent** (what happens before the problem behavior): **Roommate tells Johnny to go to bed**</Markdown>
 
 <Markdown>**Problem Behavior** (what Johnny does):</Markdown>
 <TextArea id="fba2_pathway_behavior" rows="1" placeholder="What does Johnny do?" />
@@ -343,18 +466,35 @@ For now, fill in each part of the Competing Behavior Pathway:
 
 <IntakeGate ready="!@fba2_completion_checkbox.value">
 <Markdown> </Markdown>
+<Vertical id="fba2_competing_pathway_jj_section">
 <Markdown id="fba2_competing_pathway_jj">
 ## JJ's Completed Competing Behavior Pathway
-
-| Component | Johnny's Scenario |
-|-----------|-------------------|
-| **Antecedent**        | Roommate tells Johnny to go to bed        |
-| **Problem Behavior**  | Johnny runs out of the room laughing      |
-| **Consequence**       | Roommate runs after him, nagging          |
-| **Function**          | Escape                                    |
-| **Desired Behavior**  | Johnny goes to bed appropriately          |
-| **Desired Outcome**   | Johnny goes to sleep                      |
 </Markdown>
+<Mermaid id="fba2_competing_pathway_jj_diagram"><![CDATA[
+flowchart LR
+  A["Antecedent:<br/>Told to go to bed"]
+  PB["Problem Behavior:<br/>Runs out of room laughing"]
+  C["Consequence:<br/>Roommate chases, nags"]
+  F["Function:<br/>Escape"]
+  DB["Desired Behavior:<br/>Goes to bed on time"]
+  DO["Desired Outcome:<br/>Falls asleep"]
+  A --> PB --> C
+  C --> F
+  A --> DB --> DO
+  class A ant
+  class PB beh
+  class C con
+  class F func
+  class DB desired
+  class DO outcome
+  classDef ant fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
+  classDef beh fill:#cfe2ff,stroke:#0d6efd,stroke-width:2px,color:#000
+  classDef con fill:#d1e7dd,stroke:#198754,stroke-width:2px,color:#000
+  classDef func fill:#f8d7da,stroke:#dc3545,stroke-width:2px,color:#000
+  classDef desired fill:#d0e8ff,stroke:#0a58ca,stroke-width:2px,color:#000
+  classDef outcome fill:#c3e6cb,stroke:#28a745,stroke-width:2px,color:#000
+]]></Mermaid>
+</Vertical>
 </IntakeGate>
 
 
@@ -376,35 +516,43 @@ _"Escape is used to get away from something aversive or not preferred. Changing 
 <Markdown>
 ## Intervention Strategies
 
-TODO: We'd like an interactive activity where students mark/highlight which strategies specifically address **escape** as the function of behavior. When a student selects an incorrect strategy, feedback should indicate which function it actually addresses (shown in parentheses below).
-
-Below are **antecedent strategies** (to prevent the problem behavior) and **consequence strategies** (to react to the problem behavior). The ones that address escape are marked with ✓.
-
-### Antecedent Strategies
-
-| Strategy | Function |
-|----------|----------|
-| Use sensory-friendly relaxation techniques before bed | Sensory |
-| ✓ Create a predictable bedtime routine to make bedtime more manageable and less aversive | **Escape** |
-| Give high-quality attention before bed | Attention |
-| ✓ Use timers and advance warnings to make bedtime more predictable | **Escape** |
-| Give the child a stuffed animal before they get into bed | Tangible |
-| Have the child engage in yoga right before bedtime | Sensory |
-
-### Consequence Strategies
-
-| Strategy | Function |
-|----------|----------|
-| Provide extra attention during bedtime refusal behaviors | Attention |
-| ✓ Teach the child to use a "bedtime pass" — one approved brief delay per night | **Escape** |
-| Talk to the child until they eventually go to sleep | Attention |
-| Give the child access to an iPad when they successfully get in bed | Tangible |
-| ✓ Ignore behaviors such as whining that serve to delay bedtime | **Escape** |
-| Track sensory triggers that relate to bedtime challenges | Sensory |
+Below are strategies for addressing problem behaviors. For each strategy, select which **function of behavior** it addresses. Remember: Johnny's function is **escape**, so we need to identify which strategies target escape.
 </Markdown>
 
-<Markdown>**Which strategies above would you recommend for Johnny, and why?**</Markdown>
-<TextArea id="fba2_escape_strategies_done" rows="3" placeholder="Which strategies address escape and would work for Johnny?" />
+<CapaProblem id="fba2_antecedent_strategies_problem" title="Antecedent Strategies">
+<Markdown>### Antecedent Strategies (to prevent the problem behavior)</Markdown>
+<TabularMCQGrader>
+  <TabularMCQ id="fba2_antecedent_strategies">
+cols: Escape, Attention, Sensory, Tangible
+rows:
+  - "Use sensory-friendly relaxation techniques before bed|relaxation[Sensory]"
+  - "Create a predictable bedtime routine to make bedtime more manageable and less aversive|routine[Escape]"
+  - "Give high-quality attention before bed|attention_before[Attention]"
+  - "Use timers and advance warnings to make bedtime more predictable|timers[Escape]"
+  - "Give the child a stuffed animal before they get into bed|stuffed_animal[Tangible]"
+  - "Have the child engage in yoga right before bedtime|yoga[Sensory]"
+  </TabularMCQ>
+</TabularMCQGrader>
+</CapaProblem>
+
+<CapaProblem id="fba2_consequence_strategies_problem" title="Consequence Strategies">
+<Markdown>### Consequence Strategies (to react to the problem behavior)</Markdown>
+<TabularMCQGrader>
+  <TabularMCQ id="fba2_consequence_strategies">
+cols: Escape, Attention, Sensory, Tangible
+rows:
+  - "Provide extra attention during bedtime refusal behaviors|extra_attention[Attention]"
+  - "Teach the child to use a bedtime pass — one approved brief delay per night|bedtime_pass[Escape]"
+  - "Talk to the child until they eventually go to sleep|talk_sleep[Attention]"
+  - "Give the child access to an iPad when they successfully get in bed|ipad_reward[Tangible]"
+  - "Ignore behaviors such as whining that serve to delay bedtime|ignore_whining[Escape]"
+  - "Track sensory triggers that relate to bedtime challenges|sensory_tracking[Sensory]"
+  </TabularMCQ>
+</TabularMCQGrader>
+</CapaProblem>
+
+<Markdown>**Now that you've identified which strategies address escape, which ones would you recommend for Johnny and why?**</Markdown>
+<TextArea id="fba2_escape_strategies_done" rows="3" placeholder="Which escape-focused strategies would work best for Johnny?" />
 </Vertical>
 
 
@@ -415,9 +563,13 @@ Below are **antecedent strategies** (to prevent the problem behavior) and **cons
 ## Ask AI: More Intervention Strategies
 
 Write a prompt that will help you understand how to change the antecedents and consequences when the function of a behavior is escape.
-
-**Hint:** Try something like: "Create a list of interventions using antecedent strategies to prevent the problem behavior of not going to bed on time with escape as the function of behavior, and another list of interventions using consequence strategies to react to the problem behavior."
 </Markdown>
+
+<Collapsible id="fba2_intervention_hint" title="Hint: Example prompt">
+<Markdown>
+Try something like: "Create a list of interventions using antecedent strategies to prevent the problem behavior of not going to bed on time with escape as the function of behavior, and another list of interventions using consequence strategies to react to the problem behavior."
+</Markdown>
+</Collapsible>
 
 <TextArea id="fba2_ai_intervention_prompt" rows="3" placeholder="Type your prompt for AI about escape-focused intervention strategies..." />
 
@@ -443,16 +595,44 @@ Use Markdown to format your reply with bolded headers and organized lists.
 <Markdown>
 ## Revised Competing Behavior Pathway
 
-TODO: This should display the original Competing Behavior Pathway on the left and a new one on the right for the student to fill in with improved strategies. The new pathway has three boxes: "Antecedent + new strategies," "Desired behavior," and "Consequence/Outcome + new strategies." Ideally, the strategies the student highlighted in the earlier activity would carry over here.
-
-Using what you've learned about escape-maintained behavior and the strategies from the previous screens, describe your revised plan:
+Here is JJ's original pathway for reference. Now that you've identified escape-focused strategies, revise the plan by filling in the three boxes below.
 </Markdown>
 
-<Markdown>**New antecedent strategies** (how will you change what happens *before* bedtime to prevent escape?):</Markdown>
-<TextArea id="fba2_revised_antecedent" rows="3" placeholder="Describe the antecedent strategies you would add to the plan..." />
+<Collapsible id="fba2_original_pathway_ref" title="JJ's Original Pathway (click to expand)">
+<Mermaid id="fba2_pathway_ref_diagram"><![CDATA[
+flowchart LR
+  A["Antecedent:<br/>Roommate tells Johnny<br/>to go to bed"] --> PB["Problem Behavior:<br/>Johnny runs out of<br/>the room laughing"] --> C["Consequence:<br/>Roommate runs after<br/>him, nagging"]
+  C --> F["Function:<br/>Escape"]
+  A --> DB["Desired Behavior:<br/>Johnny goes to bed<br/>appropriately"] --> DO["Desired Outcome:<br/>Johnny goes to sleep"]
+  class A ant
+  class PB beh
+  class C con
+  class F func
+  class DB desired
+  class DO outcome
+  classDef ant fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
+  classDef beh fill:#cfe2ff,stroke:#0d6efd,stroke-width:2px,color:#000
+  classDef con fill:#d1e7dd,stroke:#198754,stroke-width:2px,color:#000
+  classDef func fill:#f8d7da,stroke:#dc3545,stroke-width:2px,color:#000
+  classDef desired fill:#d0e8ff,stroke:#0a58ca,stroke-width:2px,color:#000
+  classDef outcome fill:#c3e6cb,stroke:#28a745,stroke-width:2px,color:#000
+]]></Mermaid>
+</Collapsible>
 
-<Markdown>**New consequence strategies** (how will you respond *after* the behavior to support the desired outcome?):</Markdown>
-<TextArea id="fba2_revised_consequence" rows="3" placeholder="Describe the consequence strategies you would add to the plan..." />
+<Markdown>
+### Your Revised Plan
+
+Using the escape-focused antecedent and consequence strategies you identified, fill in the revised pathway:
+</Markdown>
+
+<Markdown>**Antecedent + new strategies** (what happens before bedtime, and what strategies will you add to prevent escape?):</Markdown>
+<TextArea id="fba2_revised_antecedent" rows="3" placeholder="Roommate tells Johnny to go to bed + your chosen antecedent strategies..." />
+
+<Markdown>**Desired behavior** (what do you want Johnny to do instead of running away?):</Markdown>
+<TextArea id="fba2_revised_desired" rows="2" placeholder="What should Johnny do at bedtime?" />
+
+<Markdown>**Consequence/Outcome + new strategies** (what happens after the desired behavior, and what consequence strategies support it?):</Markdown>
+<TextArea id="fba2_revised_consequence" rows="3" placeholder="Johnny goes to sleep + your chosen consequence strategies..." />
 </Vertical>
 
 
@@ -494,12 +674,20 @@ Annie has two plans to present. Both include data collection over a 2-week perio
 <Markdown>
 ## The Escape-Focused Behavior Modification Plan
 
+| | |
+|---|---|
+| **Target Behavior** | Johnny does not go to bed on time |
+| **Function of Behavior** | Escape |
+| **Behavior Goal** | Johnny will go to bed on time when told, without running away, for 4 out of 5 bedtimes over a 2-week period |
+
 **Antecedent Strategies:**
 - Create a predictable bedtime routine with a visual schedule showing each step
 - Use a timer to clearly signal when each routine step begins and ends
 - Give 10-minute and 5-minute advance warnings before bedtime begins
 - Incorporate a brief preferred activity (e.g., short story) as part of the routine to make bedtime less aversive
 - Allow limited choices within the routine (e.g., "Do you want to brush teeth or put on pajamas first?")
+
+**~~Replacement Behaviors (Teach):~~** ~~Not applicable for this plan — replacement behaviors are used when the function involves skill deficits rather than escape from aversive conditions.~~
 
 **Consequence Strategies:**
 - Provide positive reinforcement (sticker chart, verbal praise) when Johnny goes to bed on time
@@ -524,11 +712,36 @@ Annie has two plans to present. Both include data collection over a 2-week perio
 <Markdown>
 ## Check for Understanding: The Sensory-Focused Plan
 
-Here is Plan B again:
+Here is Plan B in detail:
 
-**Sensory-Focused Plan:**
-- _Antecedent strategies:_ Play calming music; use a weighted blanket; dim lights; provide a lavender-scented pillow.
-- _Consequence strategies:_ Allow access to a sensory toy in bed; redirect sensory-seeking behavior; track sensory triggers.
+| | |
+|---|---|
+| **Target Behavior** | Johnny does not go to bed on time |
+| **Function of Behavior** | Sensory |
+| **Behavior Goal** | Johnny will go to bed on time when told, without running away, for 4 out of 5 bedtimes over a 2-week period |
+
+**Antecedent Strategies:**
+- Play calming music in the bedroom 15 minutes before bedtime
+- Use a weighted blanket on Johnny's bed
+- Dim the lights gradually during the bedtime routine
+- Provide a lavender-scented pillow
+- Allow Johnny to hold a preferred textured object during the routine
+
+**~~Replacement Behaviors (Teach):~~** ~~Not applicable for this plan.~~
+
+**Consequence Strategies:**
+- Allow access to a sensory toy (fidget spinner, stress ball) while in bed
+- Redirect sensory-seeking behavior to appropriate sensory input
+- Track which sensory inputs are most effective
+
+**Reinforcement Plan:**
+- Provide praise when Johnny uses sensory tools appropriately
+- Allow extra time with preferred sensory items as a reward
+- Track sensory triggers and adjust environment accordingly
+
+**Data Collection:**
+- Track whether Johnny goes to bed on time each night for 2 weeks
+- Note which sensory accommodations were used each night
 </Markdown>
 
 <MarkupProblem id="fba2_sensory_check_choice" title="Why Not the Sensory Plan?"><![CDATA[
