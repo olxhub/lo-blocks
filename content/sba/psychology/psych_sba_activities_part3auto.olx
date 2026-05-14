@@ -1011,8 +1011,17 @@ Annie has two plans to present. Both include data collection over a 2-week perio
 
 <HH> ============= Screen: Escape plan display ================== </HH>
 
-<Vertical id="fba2_escape_plan_display">
+<Tabs id="fba2_escape_plan_display">
+<Vertical id="fba2_plan_preferences" title="Record Your Preferences">
 <Markdown>
+## What Do You Like About This Plan?
+
+Review the full escape-focused plan in the other tab, then come back here and record the parts you think will be most effective.
+</Markdown>
+<TextArea id="fba2_plan_likes" rows="3" placeholder="What parts of this plan do you think will be most effective?" />
+</Vertical>
+<Vertical id="fba2_plan_reference" title="The Escape Plan">
+<Markdown id="fba2_escape_plan_markdown">
 ## The Escape-Focused Behavior Modification Plan
 
 | | |
@@ -1041,10 +1050,8 @@ Annie has two plans to present. Both include data collection over a 2-week perio
 - Track whether Johnny goes to bed on time each night for 2 weeks
 - Note any modifications or deviations from the plan
 </Markdown>
-
-<Markdown>**In the box below, type the parts of this plan that you like:**</Markdown>
-<TextArea id="fba2_plan_likes" rows="3" placeholder="What parts of this plan do you think will be most effective?" />
 </Vertical>
+</Tabs>
 
 
 <HH> ============= Screen: Sensory plan check =================== </HH>
