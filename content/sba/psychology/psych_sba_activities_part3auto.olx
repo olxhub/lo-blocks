@@ -38,23 +38,38 @@ Let's begin.
 
 <Vertical id="fba2_ai_function_def">
 <Markdown>
-## Ask AI: Function of Behavior
+## What is the Function of a Behavior?
 
-Ask AI to provide a definition of the function of a behavior.
+Try to explain what the function of a behavior is, based on what you know or remember from class. Then get AI feedback on your explanation.
 </Markdown>
 
-<TextArea id="fba2_ai_function_prompt" rows="2" placeholder="Type your prompt asking AI about the function of behavior..." />
+<TextArea id="fba2_ai_function_prompt" rows="2" placeholder="Type your explanation of function of behavior here..." />
 
 <LLMFeedback id="fba2_ai_function_response" render="markdown" />
 
-<ActionButton id="fba2_ai_function_btn" label="Ask AI">
-<LLMAction id="fba2_ai_function_action" target="fba2_ai_function_response">
-If the following question is about the function of behavior in behavioral psychology,
-answer it clearly and concisely; otherwise, point out the prompt is not relevant
-to function of behavior and stop.
+<ActionButton id="fba2_ai_function_btn" label="Get AI Feedback" dependsOn="@fba2_ai_function_prompt.value">
+<LLMAction id="fba2_ai_function_action" target="fba2_ai_function_response"><![CDATA[
+You are a helpful psychology teaching assistant. One of your students has
+provided the following attempt to explain what function of behavior is:
+]]>
 <Ref id="fba2_ref_function_prompt" target="fba2_ai_function_prompt" />
-Use Markdown to format your reply with bolded headers.
-</LLMAction>
+<![CDATA[
+If their response is not a good-faith effort to explain what function
+of behavior is, reprimand them about that, and stop without mentioning
+what the function of a behavior is or what the four main functions are.
+Otherwise, let them know what they've gotten right and explain anything
+they've missed or misstated, making your goal to explain the concept of
+'function of behavior' in behavioral psychology, including the fact that
+'function of behavior' refers to the purpose or reason behind why a
+behavior occurs -- what the person gains from the behavior -- and
+mentioning the four main functions: attention, escape, access to
+tangibles/preferred items, and sensory/automatic reinforcement.
+
+Keep your response accessible for undergraduate students.
+
+Output your response in Markdown with bolded paragraph and list headers,
+but keep it short -- no more than a few paragraphs.
+]]></LLMAction>
 </ActionButton>
 </Vertical>
 
@@ -147,13 +162,18 @@ Try a prompt like: "Put all four functions of behavior in a chart with examples 
 <LLMFeedback id="fba2_ai_chart_response" render="markdown" />
 
 <ActionButton id="fba2_ai_chart_btn" label="Ask AI">
-<LLMAction id="fba2_ai_chart_action" target="fba2_ai_chart_response">
-If the following question is about creating a chart or table relating the four functions
-of behavior (attention, escape, access/tangibles, sensory) to types of reinforcement
-(positive and negative), create a clear chart with examples. Otherwise, point out the
-prompt is not relevant and stop.
-<Ref id="fba2_ref_chart_prompt" target="fba2_ai_chart_prompt" />
-Format your response as a Markdown table with bolded headers.
+<LLMAction id="fba2_ai_chart_action" target="fba2_ai_chart_response"><![CDATA[
+You are a helpful psychology teaching assistant. Create a chart showing the four
+functions of behavior (attention, escape, access to tangibles, sensory) with examples
+of how each relates to positive and negative reinforcement. Use a markdown table format.
+Include concrete examples for each combination of function with positive or negative
+reinforcement. Leave a cell blank if the function of the behavior is by definition
+incompatible with the type of reinforcement, assuming that negative reinforcement is
+compatible with removal of unwanted attention but not with access, while escape is
+not compatible with positive reinforcement. Highlight the function names in the
+function column.
+]]>
+Student's request: <Ref id="fba2_ref_chart_prompt" target="fba2_ai_chart_prompt" />
 </LLMAction>
 </ActionButton>
 </Vertical>
@@ -196,12 +216,12 @@ _Annie asked AI this question earlier. Here's what it said:_
 
 <Vertical id="fba2_explain_no_punishment">
 <Markdown>
-## Check for Understanding
+## Predict: Why Not Punishment?
 
-In your own words, explain why there is no function for punishment.
+Before reading the explanation, try to predict: **why do you think punishment is NOT listed as a function of behavior?** Think about what "function" means and how it relates to reinforcement.
 </Markdown>
 
-<TextArea id="fba2_no_punishment_explanation" rows="3" placeholder="Explain in your own words why punishment is not a function of behavior..." />
+<TextArea id="fba2_no_punishment_explanation" rows="3" placeholder="Why do you think punishment is not a function of behavior? Write your prediction..." />
 </Vertical>
 
 
@@ -392,6 +412,28 @@ _Recall: Annie's roommate tells Johnny to get into bed, but he runs away from th
 </Markdown>
 
 <TextArea id="fba2_abc_johnny_explanation" rows="4" placeholder="Describe the Antecedent, Behavior, and Consequence for Johnny's bedtime situation..." />
+
+<LLMFeedback id="fba2_abc_johnny_feedback" render="markdown" />
+
+<ActionButton id="fba2_abc_johnny_check_btn" label="Check My Understanding" dependsOn="@fba2_abc_johnny_explanation.value">
+<LLMAction id="fba2_abc_johnny_check" target="fba2_abc_johnny_feedback"><![CDATA[
+A psychology student was asked to identify the ABCs (Antecedent, Behavior, Consequence)
+for this scenario: Annie's roommate tells Johnny to get into bed, but he runs away from
+the room laughing. The roommate chases after him and keeps nagging him to go to bed.
+
+The correct answer is:
+- Antecedent: Roommate tells Johnny to go to bed
+- Behavior: Johnny runs out of the room laughing
+- Consequence: Roommate chases after him / he avoids going to bed on time
+
+Here is the student's response:
+]]>
+<Ref id="fba2_ref_abc_johnny" target="fba2_abc_johnny_explanation" />
+<![CDATA[
+Evaluate whether the student correctly identified each component. Be encouraging but
+specific about what they got right and what needs correction. Keep it brief.
+]]></LLMAction>
+</ActionButton>
 </Vertical>
 
 
@@ -459,6 +501,36 @@ The antecedent has been filled in for you. Complete the rest based on what you k
 
 <Markdown>**Function** (why does this behavior continue?):</Markdown>
 <TextArea id="fba2_pathway_function" rows="1" placeholder="What function does this behavior serve?" />
+
+<LLMFeedback id="fba2_pathway_feedback" render="markdown" />
+
+<ActionButton id="fba2_pathway_check_btn" label="Check My Pathway" dependsOn="@fba2_pathway_behavior.value">
+<LLMAction id="fba2_pathway_check" target="fba2_pathway_feedback"><![CDATA[
+A psychology student was asked to fill in a Competing Behavior Pathway for Johnny's
+bedtime scenario. The antecedent was provided: "Roommate tells Johnny to go to bed."
+
+The expected answers are:
+- Problem Behavior: Johnny runs out of the room / runs away laughing
+- Consequence: Roommate chases him / nags him / he avoids bedtime
+- Function: Escape
+
+The student's answers:
+- Problem Behavior:
+]]>
+<Ref id="fba2_ref_pathway_behavior" target="fba2_pathway_behavior" />
+<![CDATA[
+- Consequence:
+]]>
+<Ref id="fba2_ref_pathway_consequence" target="fba2_pathway_consequence" />
+<![CDATA[
+- Function:
+]]>
+<Ref id="fba2_ref_pathway_function" target="fba2_pathway_function" />
+<![CDATA[
+Evaluate each component. Be encouraging but specific about what they got right
+and what needs correction. Keep it brief.
+]]></LLMAction>
+</ActionButton>
 </Vertical>
 
 
@@ -774,7 +846,37 @@ Based on everything you have learned in this activity, write an email to Annie's
 - Competing behavior pathway
 </Markdown>
 
+<Markdown id="fba2_email_rubric">
+### Email Rubric
+
+Your email will be evaluated on:
+1. Does it specify changes to **antecedent conditions** that will make it easier to get the child to bed on time?
+2. Does it specify changes to **consequence conditions** that will make it easier to get the child to bed on time?
+3. Are the interventions proposed ones that the psychological literature recommends as effective in addressing sleep refusal?
+4. Does the email provide enough **detail** about the interventions that the babysitter will be able to implement the plan effectively?
+</Markdown>
+
 <TextArea id="fba2_email_to_roommate" rows="10" placeholder="Dear Annie's roommate,&#10;&#10;Based on what we learned about behavioral psychology..." />
+
+<LLMFeedback id="fba2_email_feedback" render="markdown" />
+
+<ActionButton id="fba2_email_check_btn" label="Get AI Feedback" dependsOn="@fba2_email_to_roommate.value">
+<LLMAction id="fba2_email_check" target="fba2_email_feedback"><![CDATA[
+Here is an email designed to help a babysitter implement an operant conditioning
+intervention designed to address sleep refusal by the child she is babysitting.
+]]>
+<Ref id="fba2_ref_email" target="fba2_email_to_roommate" />
+<![CDATA[
+Evaluate the email using the following criteria:
+1. Does it specify changes to antecedent conditions that will make it easier to get the child to bed on time?
+2. Does it specify changes to consequence conditions that will make it easier to get the child to bed on time?
+3. Are the interventions proposed ones that the psychological literature recommends as effective in addressing sleep refusal?
+4. Does the email provide enough detail about the interventions that the babysitter will be able to implement the plan effectively?
+
+For each criterion, note what was done well and what could be improved.
+Keep your feedback constructive and concise.
+]]></LLMAction>
+</ActionButton>
 </Vertical>
 
 

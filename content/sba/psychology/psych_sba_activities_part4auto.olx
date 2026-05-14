@@ -294,13 +294,17 @@ _Based on AI suggestions and course materials, here are some modifications that 
 Of these modifications, which ones do you think we should add to help Annie's roommate improve her adherence? **Pick up to 2.**
 </Markdown>
 
+<CapaProblem id="fba3_modification_problem" title="Choose Modifications">
+<CorrectGrader>
 <CheckboxInput id="fba3_modification_choices">
-<Distractor id="fba3_mod_simplify">    Simplify the plan using a step-by-step guide                  </Distractor>
-<Distractor id="fba3_mod_training">    Provide direct training using in-person or video modeling      </Distractor>
-<Distractor id="fba3_mod_checklist">   Use simple yes/no fidelity checklists for key steps            </Distractor>
-<Distractor id="fba3_mod_coaching">    Provide coaching and feedback                                  </Distractor>
-<Distractor id="fba3_mod_reminders">   Set reminders and visual prompts on the roommate's phone       </Distractor>
+<Key  id="fba3_mod_simplify"> Simplify the plan using a step-by-step guide              </Key>
+<Key  id="fba3_mod_training"> Provide direct training using in-person or video modeling </Key>
+<Key id="fba3_mod_checklist"> Use simple yes/no fidelity checklists for key steps       </Key>
+<Key  id="fba3_mod_coaching"> Provide coaching and feedback                             </Key>
+<Key id="fba3_mod_reminders"> Set reminders and visual prompts on the roommate's phone  </Key>
 </CheckboxInput>
+</CorrectGrader>
+</CapaProblem>
 
 <Markdown>**Why did you choose these modifications? How will they help with adherence?**</Markdown>
 <TextArea id="fba3_modification_explanation" rows="3" placeholder="Explain why you chose these modifications..." />
