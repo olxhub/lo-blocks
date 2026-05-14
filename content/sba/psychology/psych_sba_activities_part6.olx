@@ -135,18 +135,30 @@ Implementation fidelity refers to how accurately and consistently a behavior pla
 <IntakeGate ready="!@fba3_completion_checkbox.value">
 <Markdown> </Markdown>
 <Tabs id="fba3_fidelity_tabs">
-<Vertical id="fba3_fidelity_tab1" title="Fidelity Overview">
+<Vertical id="fba3_fidelity_tab1" title="Fidelity Check">
+<CapaProblem id="fba3_fidelity_matching_problem" title="Match the Fidelity Aspects">
 <Markdown>
-## Five Aspects of Implementation Fidelity
-
-| Aspect | Key Question |
-|--------|-------------|
-| **Adherence**                | Are all steps of the plan followed as written?                                        |
-| **Dosage**                   | Is the plan used for the correct amount of time/frequency?                            |
-| **Quality of Delivery**      | Are strategies implemented correctly and with the intended tone?                       |
-| **Participant Responsiveness** | Is the child actually exposed to and engaged with the intervention?                 |
-| **Program Differentiation**  | Are other strategies (not part of the plan) avoided during implementation?             |
+## Match Each Fidelity Aspect to Its Key Question
 </Markdown>
+<MatchingGrader id="fba3_fidelity_matching_grader">
+  <MatchingInput id="fba3_fidelity_matching">
+    <Markdown id="fba3_match_adherence">Adherence</Markdown>
+    <Markdown id="fba3_match_adherence_def">Are all steps of the plan followed as written?</Markdown>
+
+    <Markdown id="fba3_match_dosage">Dosage</Markdown>
+    <Markdown id="fba3_match_dosage_def">Is the plan used for the correct amount of time/frequency?</Markdown>
+
+    <Markdown id="fba3_match_quality">Quality of Delivery</Markdown>
+    <Markdown id="fba3_match_quality_def">Are strategies implemented with the intended tone/approach?</Markdown>
+
+    <Markdown id="fba3_match_responsive">Participant Responsiveness</Markdown>
+    <Markdown id="fba3_match_responsive_def">Is the child exposed to and engaged with the intervention?</Markdown>
+
+    <Markdown id="fba3_match_differentiation">Program Differentiation</Markdown>
+    <Markdown id="fba3_match_differentiation_def">Are non-plan strategies avoided during implementation?</Markdown>
+  </MatchingInput>
+</MatchingGrader>
+</CapaProblem>
 </Vertical>
 <Vertical id="fba3_fidelity_tab2" title="Modifications &amp; Checklist">
 <Markdown>
