@@ -390,7 +390,7 @@ Analysis of how different disciplines view the problem and where they conflict.
             <SplitPanel>
               <LeftPane> </LeftPane>
               <RightPane>
-                  <Use ref="factor_connection_4" />
+                  <Use ref="factor_connection_5" />
               </RightPane>
             </SplitPanel>
           </RightPane>
@@ -405,7 +405,7 @@ Analysis of how different disciplines view the problem and where they conflict.
             <SplitPanel>
               <LeftPane> </LeftPane>
               <RightPane>
-                  <Use ref="factor_connection_5" />
+                  <Use ref="factor_connection_4" />
               </RightPane>
             </SplitPanel>
           </RightPane>
