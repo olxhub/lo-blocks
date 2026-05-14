@@ -8,11 +8,16 @@ lang: en-Latn-US
 -->
 <Vertical id="psych_sba_activities_part1" title="Psychology Study Group: 1. Sleep Refusal (Activities)" launchable="true">
 
-
+  <ActionButton id="print_psych_part1_btn" label="Export as PDF">
+    <PrintAction id="print_psych_part1" />
+  </ActionButton>
 
 <HH> ============= Screen: Introduction ======================== </HH>
 
-<Markdown id="bedtime_problem_introduction">
+  <IntakeGate ready="!@psych_sba_part_1_completion_page.value">
+    <Markdown> </Markdown>
+    <Vertical>
+      <Markdown id="bedtime_problem_introduction">
 ## Introduction
 
 In this module, you will review and apply several concepts from your coursework on behavioral modification. Specifically, you will:
@@ -24,16 +29,18 @@ In this module, you will review and apply several concepts from your coursework 
 To complete these parts, you will imagine that you are working in a breakout group with classmates named Annie, JJ, and Lin. But keep in mind that this is not an actual breakout group, and these are not real people. They are characters who will help you as you go along. You will also be able to use an AI assistant that is built into this module.
 
 Let's begin.
-</Markdown>
+      </Markdown>
 
-
-<Markdown id="bedtime_problem_clear_screen_1"> &nbsp; </Markdown>
-
+      <Markdown id="bedtime_problem_clear_screen_1"> &nbsp; </Markdown>
+    </Vertical>
+  </IntakeGate>
 
 
 <HH> ============= Screen: Opening - problem image ========== </HH>
+  <IntakeGate ready="!@psych_sba_part_1_completion_page.value">
+    <Markdown> </Markdown>
 
-<SplitPanel id="bedtime_scenario_image"> <LeftPane> <Markdown id="bedtime_intro_text">
+    <SplitPanel id="bedtime_scenario_image"> <LeftPane> <Markdown id="bedtime_intro_text">
 ## The Bedtime Problem
 
 Annie's roommate is babysitting a 6-year-old who refuses to go to bed. The parents have tried everything:
@@ -42,11 +49,11 @@ Annie's roommate is babysitting a 6-year-old who refuses to go to bed. The paren
 - Various punishments
 
 Nothing seems to work! Let's use psychology principles to help.
-</Markdown> </LeftPane>
-<RightPane>
-  <Image id="bedtime_problem_img" src="images/sleep-refusal-llm.png" alt="Child refusing bedtime" />
-</RightPane></SplitPanel>
-
+    </Markdown> </LeftPane>
+    <RightPane>
+      <Image id="bedtime_problem_img" src="images/sleep-refusal-llm.png" alt="Child refusing bedtime" />
+    </RightPane></SplitPanel>
+  </IntakeGate>
 
 
 <HH> ============= Screen: Student suggestion ================ </HH>
@@ -91,7 +98,9 @@ The group has several different suggestions. Rank these ideas from
 
 <HH> ============= Screen: Messages screenshot =============== </HH>
 
-<Markdown id="messages_image">
+  <IntakeGate ready="!@psych_sba_part_1_completion_page.value">
+    <Markdown> </Markdown>
+    <Markdown id="messages_image">
 ## Text Messages from the Babysitter
 
 **Parent:** He's doing it again. Running around at bedtime.
@@ -101,8 +110,8 @@ The group has several different suggestions. Rank these ideas from
 **Parent:** That's what we usually do but it doesn't seem to help.
 
 **Key observation:** The yelling seems to be making things worse - it might be accidentally *reinforcing* the behavior by giving attention!
-</Markdown>
-
+    </Markdown>
+  </IntakeGate>
 
 
 <HH> ============= Screen: AI prompt suggestion ============== </HH>
@@ -169,7 +178,9 @@ you try it, you can.
 
 <HH> ============= Screen: No-rules parenting (1) =========== </HH>
 
-<Markdown id="vetted_info_part1">
+  <IntakeGate ready="!@psych_sba_part_1_completion_page.value">
+    <Markdown> </Markdown>
+    <Markdown id="vetted_info_part1">
 # No-Rules Parenting and Sleep Refusal
 
 "No-rules parenting," or "permissive parenting," is an approach where parents avoid
@@ -195,13 +206,15 @@ However, young children often lack the biological and cognitive maturity
 to make health-conscious decisions about sleep. Sleep research shows that
 inconsistent schedules can disrupt circadian rhythms, leading to insufficient
 or fragmented sleep.
-</Markdown>
-
+    </Markdown>
+  </IntakeGate>
 
 
 <HH> ============= Screen: No-rules parenting (2) =========== </HH>
 
-<Markdown id="vetted_info_part2">
+  <IntakeGate ready="!@psych_sba_part_1_completion_page.value">
+    <Markdown> </Markdown>
+    <Markdown id="vetted_info_part2">
 2. **Natural Consequences**
 
 **Claim**: Experiencing the effects of insufficient sleep (e.g., feeling tired)
@@ -227,13 +240,15 @@ Stress and anxiety are known to interfere with sleep onset.
 
 However, research suggests that structured bedtime routines reduce
 cortisol levels and promote melatonin release, facilitating better sleep.
-</Markdown>
-
+    </Markdown>
+  </IntakeGate>
 
 
 <HH> ============= Screen: No-rules parenting (3) =========== </HH>
 
-<Markdown id="vetted_info_part3">
+  <IntakeGate ready="!@psych_sba_part_1_completion_page.value">
+    <Markdown> </Markdown>
+    <Markdown id="vetted_info_part3">
 4. **Parental Responsiveness**
 
 **Claim**: Prioritizing connection and meeting the child's needs (e.g.,
@@ -255,8 +270,8 @@ disrupting their natural sleep-wake cycles.
 
 **Parental Burnout**: Allowing children to dictate bedtime can result in extended
 negotiations and increased nighttime disruptions.
-</Markdown>
-
+    </Markdown>
+  </IntakeGate>
 
 
 <HH> ============= Screen: Draft email activity ============== </HH>
@@ -323,7 +338,9 @@ feedback. Then, you can revise it again based on the AI feedback.
 
 <HH> ============= Screen: Strategy notes (1) =============== </HH>
 
-<Markdown id="strategy_notes_1">
+  <IntakeGate ready="!@psych_sba_part_1_completion_page.value">
+    <Markdown> </Markdown>
+    <Markdown id="strategy_notes_1">
 ## Alternatives to Address Sleep Refusal
 
 Evidence-based strategies balance autonomy with structure, helping
@@ -351,13 +368,15 @@ while minimizing resistance.
 
 **Evidence**: Behavioral interventions, including reward systems, are shown
 to be effective in managing sleep refusal.
-</Markdown>
-
+    </Markdown>
+  </IntakeGate>
 
 
 <HH> ============= Screen: Strategy notes (2) =============== </HH>
 
-<Markdown id="strategy_notes_2">
+  <IntakeGate ready="!@psych_sba_part_1_completion_page.value">
+    <Markdown> </Markdown>
+    <Markdown id="strategy_notes_2">
 3. **Gradual Fading**
 
 **What It Is**: Gradually adjusting bedtime to an earlier time, aligning it
@@ -378,13 +397,15 @@ might underlie sleep refusal.
 
 **Evidence**: Emotion-focused approaches, such as validating feelings or using
 comfort objects, improve sleep in children with separation anxiety or fear of the dark.
-</Markdown>
-
+    </Markdown>
+    </IntakeGate>
 
 
 <HH> ============= Screen: Strategy notes (3) =============== </HH>
 
-<Markdown id="strategy_notes_3">
+  <IntakeGate ready="!@psych_sba_part_1_completion_page.value">
+    <Markdown> </Markdown>
+    <Markdown id="strategy_notes_3">
 5. **Natural Consequences with Limits**
 
 **What It Is**: Allowing some flexibility in bedtime while enforcing
@@ -404,13 +425,15 @@ on strict enforcement.
 
 **Evidence**: Environmental adjustments have been shown to improve sleep quality
 in both children and adults.
-</Markdown>
-
+    </Markdown>
+  </IntakeGate>
 
 
 <HH> ============= Screen: Strategy notes (4) =============== </HH>
 
-<Markdown id="strategy_notes_4">
+  <IntakeGate ready="!@psych_sba_part_1_completion_page.value">
+    <Markdown> </Markdown>
+    <Markdown id="strategy_notes_4">
 7. **Collaborative Problem-Solving**
 
 **What It Is**: Working with the child to identify and address
@@ -430,8 +453,8 @@ especially in younger children. Structured, evidence-based alternatives
 --such as flexible routines, positive reinforcement, and gradual fading
 --are more consistently effective at promoting healthy sleep while
 respecting a child's autonomy.
-</Markdown>
-
+    </Markdown>
+  </IntakeGate>
 
 
 <HH> ============= Screen: Age-appropriate strategies ======== </HH>
@@ -530,7 +553,9 @@ respecting a child's autonomy.
 
 <HH> ============= Screen: Reinforcement poster ============== </HH>
 
-<Markdown id="chart_image">
+  <IntakeGate ready="!@psych_sba_part_1_completion_page.value">
+    <Markdown> </Markdown>
+    <Markdown id="chart_image">
 |  Strategy         |    Age Appropriate     |      Feasible          |
 |-------------------|------------------------|------------------------|
 | Flexible          |                        |                        |
@@ -553,19 +578,23 @@ respecting a child's autonomy.
 | Collaborative     |                        |                        |
 | Problem Solving   | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             |
 |-------------------|------------------------|------------------------|
-</Markdown>
-
+    </Markdown>
+  </IntakeGate>
 
 
 <HH> ============= Screen: PDF article ======================= </HH>
 
-<PDFViewer id="psych_sba_article_view" src="documents/PIIS0890856718319804.pdf" />
-
+  <IntakeGate ready="!@psych_sba_part_1_completion_page.value">
+    <Markdown> </Markdown>
+    <PDFViewer id="psych_sba_article_view" src="documents/PIIS0890856718319804.pdf" />
+  </IntakeGate>
 
 
 <HH> ============= Screen: Article excerpt =================== </HH>
 
-<Markdown id="psych_sba_article_excerpt">
+  <IntakeGate ready="!@psych_sba_part_1_completion_page.value">
+    <Markdown> </Markdown>
+    <Markdown id="psych_sba_article_excerpt">
 _As we have seen, parents can learn from operant conditioning practices
 ... parents should remember the basic rule of shaping: **Notice people
 doing something right and affirm them for it.** Give children attention
@@ -573,16 +602,22 @@ and other reinforcers when they are behaving **well** .... Target a
 specific behavior, reward it, and watch it increase. When children misbehave,
 don't yell at them or hit them. Simply explain the misbehavior and take away
 the screen time, remove a misused toy, or give a brief time-out._
-</Markdown>
-
+    </Markdown>
+  </IntakeGate>
 
 
 <HH> ============= Screen: Completion ======================== </HH>
 
 <CheckboxInput id="psych_sba_part_1_completion_page">
   <Markdown>**Confirm that you are done with this exercise.**</Markdown>
-  <Key id="completion_message">I don't need to make any more changes</Key>
-  <Markdown>
+  <Key id="Part_1_finished">I don't need to make any more changes</Key>
+  <Markdown>&nbsp;
+
+  &nbsp;
+  </Markdown>
+  <IntakeGate ready="'Part_1_finished' in @psych_sba_part_1_completion_page.value">
+    <Markdown> </Markdown>
+    <Markdown>
   - In this activity, you learned about **parenting techniques** and the **strengths
     and weaknesses of AI**. You also practiced applying information you have learned
     from the textbook and scientific research to a **real-life scenario**, a child
@@ -590,7 +625,10 @@ the screen time, remove a misused toy, or give a brief time-out._
   - Next time, you will review and apply several other concepts from your coursework
     in psychology to help Annie's roommate learn to use **operant conditioning** principles
     to modify the child's behavior.
-  </Markdown>
+
+    ## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
+    </Markdown>
+  </IntakeGate>
 </CheckboxInput>
 
 </Vertical>

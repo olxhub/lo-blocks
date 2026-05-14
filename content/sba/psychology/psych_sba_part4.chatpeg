@@ -135,10 +135,14 @@ JJ: Let's write up a reflection on what we learned from this whole experience.
 
 --- wait @reflection_text.value ---
 
-psych_sba_sidebar4 -> completion_summary_fba
-
 Annie: Thanks everyone. This was a great learning experience - we really used what we learned in psychology class to solve a real problem!
 
 Lin: And we learned about function of behavior, the ABCs, competing behavior pathways, and implementation fidelity along the way.
 
+psych_sba_sidebar4 -> completion_summary_fba
+
 JJ: Great teamwork!
+
+psych_sba_sidebar4 -> psych_sba_part4_activities
+
+Lianne: Now that you've finished this task, please use the "Export as PDF" button to the right to save a copy of your answers and upload the resulting PDF to your class system to complete your assignment.

@@ -8,6 +8,13 @@ lang: en-Latn-US
 -->
 <Vertical id="psych_sba_fba_activities" title="Psychology Study Group: 3. Function of Behavior (Activities)" launchable="true">
 
+  <ActionButton id="print_psych_part3_btn" label="Export as PDF">
+    <PrintAction id="print_psych_part3" />
+  </ActionButton>
+
+  <IntakeGate ready="!@psych_sba_part_3_completion_page.value">
+   <Markdown> </Markdown>
+   <Vertical>
   <!-- Introduction section -->
   <Markdown id="fba_introduction">
 ## About This Scenario
@@ -46,6 +53,8 @@ Annie's roommate has been trying positive reinforcement techniques to get Johnny
 
 One of the things we learned in class was that whenever you need to intervene with a behavior, the intervention must address the **function of the behavior**.
     </Markdown>
+   </Vertical>
+  </IntakeGate>
 
   <!-- AI interface for function definition -->
   <Vertical id="ai_function_definition">
@@ -88,6 +97,9 @@ Try to explain what the function of a behavior is, based on what you know or rem
         placeholder="The AI response will appear here..." />
   </Vertical>
 
+  <IntakeGate ready="!@psych_sba_part_3_completion_page.value">
+   <Markdown> </Markdown>
+
   <!-- Lin's notes on 4 functions -->
   <Markdown id="four_functions_notes">
 ## The Four Functions of Behavior
@@ -104,6 +116,7 @@ The four main functions of behavior are:
 | **Sensory** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Behavior occurs because it feels good (automatic reinforcement) |
 
     </Markdown>
+  </IntakeGate>
 
   <!-- Review MCQ: Reinforcement concepts -->
   <Vertical id="review_reinforcement1">
@@ -160,7 +173,10 @@ The four main functions of behavior are:
     </CapaProblem>
   </Vertical>
 
-  <Markdown id="four_functions_review_notes">
+  <IntakeGate ready="!@psych_sba_part_3_completion_page.value">
+   <Markdown> </Markdown>
+   <Vertical>
+    <Markdown id="four_functions_review_notes">
 **Lecture Notes Reminder:**
 
 - **Reinforcement** is any event that strengthens (increases the frequency of) a preceding response
@@ -169,8 +185,8 @@ The four main functions of behavior are:
 - **Negative Reinforcement** strengthens a response by reducing or removing something negative
     </Markdown>
 
-  <!-- Function + Reinforcement relationship -->
-  <Markdown id="function_reinforcement">
+    <!-- Function + Reinforcement relationship -->
+    <Markdown id="function_reinforcement">
 ## Functions and Reinforcement Types
 
 Lianne also said during class:
@@ -179,6 +195,8 @@ Lianne also said during class:
 - If the function is **escape**, it typically involves **negative reinforcement**
 - For **sensory**, it can be either one
     </Markdown>
+   </Vertical>
+  </IntakeGate>
 
   <!-- AI interface for chart -->
   <Vertical id="ai_function_chart">
@@ -389,8 +407,10 @@ why it is not. Do not offer examples of your own.
       </RightPane>
   </SplitPanel>
 
-  <!-- Why no punishment function -->
-  <Markdown id="no_punishment_function">
+  <IntakeGate ready="!@psych_sba_part_3_completion_page.value">
+   <Markdown> </Markdown>
+   <!-- Why no punishment function -->
+   <Markdown id="no_punishment_function">
 ## Why Is There No Function for Punishment?
 
 You might wonder: what about punishment? Isn't that a function too?
@@ -406,6 +426,7 @@ Functions describe what maintains or increases a behavior - they're about **rein
 
 So while punishment is an important concept in behavior modification, it's not considered a "function" because functions describe what the person is trying to **get** (attention, escape, tangibles, sensory stimulation), not what they're trying to **avoid**.
     </Markdown>
+  </IntakeGate>
 
   <!-- Check for understanding - explain no punishment function -->
   <Vertical id="explain_no_punishment">
@@ -640,13 +661,16 @@ In your own words, explain why there is no function for punishment.
     </CapaProblem>
   </Vertical>
 
-  <!-- Screen clearer -->
-  <Markdown id="abc_screen_clear">
+  <IntakeGate ready="!@psych_sba_part_3_completion_page.value">
+   <Markdown> </Markdown>
+   <Vertical>
+    <!-- Screen clearer -->
+    <Markdown id="abc_screen_clear">
         &nbsp;
     </Markdown>
 
-  <!-- ABCs Introduction -->
-  <Markdown id="abc_introduction">
+    <!-- ABCs Introduction -->
+    <Markdown id="abc_introduction">
 ## The ABCs of Behavior
 
 To figure out the function of behavior, we need to look at:
@@ -657,6 +681,8 @@ To figure out the function of behavior, we need to look at:
 
 As the professor said: "It's as easy as learning your ABCs!"
     </Markdown>
+   </Vertical>
+  </IntakeGate>
 
   <!-- AI interface for ABC diagrams -->
   <Vertical id="ai_abc_diagrams">
@@ -679,8 +705,11 @@ Format your response in markdown, starting with a separator line ('-------------
         placeholder="AI response will appear here..." />
   </Vertical>
 
-  <!-- ABC Example walkthrough -->
-  <Markdown id="abc_example">
+  <IntakeGate ready="!@psych_sba_part_3_completion_page.value">
+   <Markdown> </Markdown>
+   <Vertical>
+   <!-- ABC Example walkthrough -->
+   <Markdown id="abc_example">
 ## ABC Example: Escape
 
 Let's look at an example:
@@ -695,10 +724,10 @@ Let's look at an example:
 **JJ explains:** The teacher gave a hard task, then the student put their head down instead of working on it. Then the teacher probably got sick of waiting and gave up on making them do it, or just assigned it for homework.
 
 **Lin adds:** Right, the student continued to put their head down for so long that maybe the teacher just delayed the task. Either way, the student successfully escaped the aversive task.
-    </Markdown>
+     </Markdown>
 
-  <!-- ABC Check: Johnny scenario -->
-<Mermaid id="sample_competing_behavior_diagram" title="Sample Competing Behavior Pathway" src="diagrams/sample_cbp.mmd" />
+     <!-- ABC Check: Johnny scenario -->
+     <Mermaid id="sample_competing_behavior_diagram" title="Sample Competing Behavior Pathway" src="diagrams/sample_cbp.mmd" />
 
   <!-- Competing Behavior Pathway introduction -->
   <Vertical id="cbp_introduction"><Markdown id="cbp_intro">
@@ -712,12 +741,14 @@ This organizer helps us plan interventions by showing:
 3. What we want to happen instead
     </Markdown>
 
-  <!-- ABC Check: Johnny scenario -->
+    <!-- ABC Check: Johnny scenario -->
 <Mermaid id="blank_competing_behavior_diagram" title="Johnny's Competing Behavior Pathway (blank template)" src="diagrams/johnny_cbp_blank.mmd" /></Vertical>
+    </Vertical>
+  </IntakeGate>
 
   <!-- ABC Check: Johnny scenario -->
-  <Vertical id="abc_johnny_check">
-    <Markdown id="abc_johnny_prompt">
+    <Vertical id="abc_johnny_check">
+      <Markdown id="abc_johnny_prompt">
 ## Apply ABCs to Johnny's Situation
 
 Explain the sequence of Antecedent, Behavior, and Consequence from Annie's roommate's story:
@@ -776,22 +807,26 @@ Fill in the blanks to create an intervention plan:
 
   </Vertical>
 
-  <!-- CBP Comparison -->
-  <Vertical id="cbp_comparison"><Markdown id="cbp_comp">
+  <IntakeGate ready="!@psych_sba_part_3_completion_page.value">
+   <Markdown> </Markdown>
+     <Vertical>
+
+    <!-- CBP Comparison -->
+    <Vertical id="cbp_comparison"><Markdown id="cbp_comp">
 ## JJ's Competing Behavior Pathway
 
 Here's what JJ came up with.
 
 Now that we know the function is **escape**, we need to figure out an intervention that addresses this!
-    </Markdown>
+      </Markdown>
 <Mermaid id="JJs_version" title="JJ's Competing Behavior Pathway" src="diagrams/johnny_cbp_jj.mmd" /></Vertical>
 
-  <Vertical id="cbp_comparison2"><Markdown id="cbp_comp2">
+    <Vertical id="cbp_comparison2"><Markdown id="cbp_comp2">
 ## JJ's Competing Behavior Pathway -- Updated
     </Markdown>
 <Mermaid id="JJs_version_updated" title="JJ's Competing Behavior Pathway -- Updated" src="diagrams/johnny_cbp_jj_updated.mmd" /></Vertical>
 
-  <Vertical id="cbp_comparison3"><Markdown id="cbp_comp3">
+    <Vertical id="cbp_comparison3"><Markdown id="cbp_comp3">
 ## JJ's Competing Behavior Pathway -- Updated
     </Markdown>
 <Mermaid id="Johnny_FJs_version_updated" title="Johnny's Final Competing Behavior Pathway" src="diagrams/johnny_cbp_final.mmd" /></Vertical>
@@ -817,6 +852,8 @@ Now that we know the function is **escape**, we need to figure out an interventi
 - React to desired behaviors by making reinforcement at a higher rate, more immediate, and of higher quality by using consequence strategies.
 - Make desired behaviors take less effort to perform to obtain the same consequence.
     </Markdown>
+  </Vertical>
+  </IntakeGate>
 
   <!-- AI interface for intervention strategies -->
   <Vertical id="ai_intervention">
@@ -944,6 +981,8 @@ Directions: If the prompt focuses on consequence strategies to prevent bedtime r
     <LLMFeedback id="intervention_ai_response4" placeholder="AI response will appear here..." />
   </Vertical>
 
+  <IntakeGate ready="!@psych_sba_part_3_completion_page.value">
+   <Markdown> </Markdown>
   <!-- Revised pathway -->
   <Tabs id="revised_pathway">
     <Vertical id="revised_pathway_left" title="Updates">
@@ -968,7 +1007,8 @@ Now let's revise our pathway with the strategies we've identified.
     <Vertical id="revised_pathway_right2" title="Consequence Strategies">
         <Use ref="intervention_ai_response4" />
     </Vertical>
-  </Tabs>
+   </Tabs>
+  </IntakeGate>
 
   <!-- Two plans comparison -->
   <Vertical id="plans_comparison">
@@ -1009,6 +1049,8 @@ Plan A correctly fits the function of the behavior, which is **escape**. Plan B 
     </CapaProblem>
   </Vertical>
 
+  <IntakeGate ready="!@psych_sba_part_3_completion_page.value">
+   <Markdown> </Markdown>
   <Markdown id="full_plan">
 ## Lianne's Notes Based on the Competing Behavior Pathways Diagram
 
@@ -1042,7 +1084,8 @@ Child will follow the bedtime routine at the scheduled time without engaging in 
 - If child engages in escape behavior:
   - Do **not** delay bedtime (no negotiation or extended time)
   - Use a neutral, consistent response ("It's bedtime now")
-  </Markdown>
+    </Markdown>
+  </IntakeGate>
 
   <!-- Plan discussion -->
   <Tabs id="plan_discussion">
@@ -1054,7 +1097,6 @@ Child will follow the bedtime routine at the scheduled time without engaging in 
 
 **Lin:** Yes, me too. I really like the consequence strategy of ignoring or not providing attention during the escape behavior. That makes a lot of sense to me.
       </Markdown>
-
       <Markdown id="plan_preference_label">
 In the box below, type the parts of the plan that you like, and explain why:
       </Markdown>
@@ -1110,9 +1152,12 @@ Evaluate the email using the following criteria:
   </Tabs>
   <Vertical id="psych_sba_part3_completion" >
   <CheckboxInput id="psych_sba_part_3_completion_page">
-  <Markdown id="psych_sba_part3_confirmation">**Confirm that you are done with this exercise.**</Markdown>
-  <Key id="completion_message3">I don't need to make any more changes</Key>
-  <Markdown>
+    <Markdown id="psych_sba_part3_confirmation">**Confirm that you are done with this exercise.**</Markdown>
+    <Key id="Part_3_finished">I don't need to make any more changes</Key>
+  </CheckboxInput>
+  <IntakeGate ready="'Part_3_finished' in @psych_sba_part_3_completion_page.value">
+   <Markdown> </Markdown>
+   <Markdown>
   - In this activity, you learned about **the functions of behavior**, how they
     relate to positive and negative reinforcement, and continued to learn about the **strengths
     and weaknesses of AI**. You also continued applying information you have learned
@@ -1121,8 +1166,10 @@ Evaluate the email using the following criteria:
   - Next time, you will review and apply a few more concepts from your coursework
     in psychology to help Annie's roommate learn to use **operant conditioning** principles
     to modify the child's behavior.
-  </Markdown>
-</CheckboxInput>
+
+## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
+    </Markdown>
+   </IntakeGate>
   </Vertical>
 
 </Vertical>

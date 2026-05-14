@@ -9,8 +9,15 @@ lang: en-Latn-US
 <Cast cast="characters.cast" id="interdisciplinary_activities_part1" title="Activities for Part 1 of Interdisciplinary Studies SBA on High School Dropout Rates" launchable="true">
 <Vertical>
 
+  <ActionButton id="print_interdisciplinary_part1_btn" label="Export as PDF">
+    <PrintAction id="print_interdisciplinary_part1" />
+  </ActionButton>
+
+   <IntakeGate ready="!@interdisciplinary_1_completion_page.value">
+   <Markdown> </Markdown>
+   <Vertical>
   <!-- ORIENTATION -->
-  <SplitPanel id="interdisciplinary_orientation" title="Introduction" sizes="65,35">
+    <SplitPanel id="interdisciplinary_orientation" title="Introduction" sizes="65,35">
       <LeftPane>
           <Markdown id="interdisciplinary_orientation_md">
 **Introduction**
@@ -35,15 +42,15 @@ Comm360's services can be developed to address the problem.
           <Image id="interdisciplinary_image" src="/sba/interdisciplinary/images/nonprofit.png" alt="Nonprofit" />
           <Image id="interdisciplinary_image2" src="/sba/interdisciplinary/images/wordcloud.png" alt="Helping, volunteer, community, donations ..." />
       </RightPane>
-  </SplitPanel>
+    </SplitPanel>
 
-  <Image id="interdisciplinary_gsu_plaza_image" 
-         src="/sba/interdisciplinary/images/GSU_Library_Plaza.jpg" 
-         alt="GSU Library Plaza. Photograph by Hwi Padam, CC by SA 4.0" 
+    <Image id="interdisciplinary_gsu_plaza_image"
+         src="/sba/interdisciplinary/images/GSU_Library_Plaza.jpg"
+         alt="GSU Library Plaza. Photograph by Hwi Padam, CC by SA 4.0"
          height="400px"
-  />
+    />
 
-  <Markdown id="interdisciplinary_task_list">
+    <Markdown id="interdisciplinary_task_list">
 ## Task Outline
 
 In the next 45-60 minutes you will work with your teammates to complete the following tasks:
@@ -55,14 +62,14 @@ In the next 45-60 minutes you will work with your teammates to complete the foll
 
 This is Part One. In Parts Two and Three you will complete the rest of the interdisciplinary
 research process.
-  </Markdown>
+    </Markdown>
 
-  <Image id="cause_brainstorming" 
+    <Image id="cause_brainstorming"
          src="/sba/interdisciplinary/images/team_workshop.jpg"
          height="400px"
          alt="Talking about processes at a team brainstorming session. Source: UCT MOOC, CC by SA 4.0 International License" />
 
-  <Markdown id="internal_and_structural_causes">
+    <Markdown id="internal_and_structural_causes">
 ## Internal and Structural Causes
 
  - **Internal Causes** arise from **inside** the student;
@@ -72,19 +79,23 @@ research process.
      for instance, the school may not provide any support for sick
      students that would enable them to continue their classes by
      independent study.
-  </Markdown>
+    </Markdown>
 
   <!-- TEAM AND LIBRARY - resolved from interdisciplinary_sba.olx -->
 
-  <Vertical id="interdisciplinary_team_intro">
+    <Vertical id="interdisciplinary_team_intro">
       <Use ref="interdisciplinary_team_members" />
-  </Vertical>
+    </Vertical>
+   </Vertical>
+  </IntakeGate>
 
   <!-- ============================================================
        TASKSET 1: BRAINSTORM CAUSES
        ============================================================ -->
   <Vertical id="interdisciplinary_taskset1">
 
+   <IntakeGate ready="!@interdisciplinary_1_completion_page.value">
+    <Markdown> </Markdown>
     <!-- Input for student's causes -->
     <Vertical id="cause_inputs">
       <Markdown>
@@ -94,8 +105,11 @@ research process.
       <TextArea id="cause_internal" placeholder="e.g., Students who struggle with learning disabilities..." />
       <Markdown>**Your structural cause:** Type a cause that focuses on external factors beyond the individual:</Markdown>
       <TextArea id="cause_structural" placeholder="e.g., Schools in underfunded districts lack resources..." />
-    </Vertical>
+     </Vertical>
+    </IntakeGate>
 
+   <IntakeGate ready="!@interdisciplinary_1_completion_page.value">
+    <Markdown> </Markdown>
     <!-- Combined list of causes from team + student -->
     <Vertical id="causes_list" popout="window">
       <Markdown>
@@ -121,6 +135,7 @@ research process.
       <Ref target="cause_internal" />
       <Ref target="cause_structural" />
     </Vertical>
+   </IntakeGate>
   </Vertical>
 
   <!-- ============================================================
@@ -143,13 +158,18 @@ right of "Annotations"._
     </Annotate>
     </Vertical>
 
-    <!-- Display of focus group highlights -->
-    <Vertical id="focus_group_highlights_shown">
-        <Markdown id="transcript_md2" src="readings/focus_group_transcript_highlighted.md"/>
-    </Vertical>
+   <IntakeGate ready="!@interdisciplinary_1_completion_page.value">
+     <Markdown> </Markdown>
+     <!-- Display of focus group highlights -->
+     <Vertical id="focus_group_highlights_shown">
+       <Markdown id="transcript_md2" src="readings/focus_group_transcript_highlighted.md"/>
+     </Vertical>
+   </IntakeGate>
 
-    <Vertical id="reasons_list">
-    <Markdown id="full_cause_list">
+   <IntakeGate ready="!@interdisciplinary_1_completion_page.value">
+    <Markdown> </Markdown>
+     <Vertical id="reasons_list">
+     <Markdown id="full_cause_list">
 ## List of causes of high school dropout
  - Some school systems can't accommodate students with physical or other disabilities
  - Students need to earn money right away to help their family
@@ -164,24 +184,32 @@ right of "Annotations"._
  - Teen pregnancy with no school support
  - Substance abuse issues
       </Markdown>
-    </Vertical>
+     </Vertical>
+    </IntakeGate>
 
-
-    <SplitPanel id="brainstorming_disciplines">
+   <IntakeGate ready="!@interdisciplinary_1_completion_page.value">
+     <Vertical>
+        <Markdown>
+### Disciplines that might be relevant to the causes of high school dropout the group has identified.
+**List your choices here.**
+        </Markdown>
+       <Use ref="disciplines" />
+     </Vertical>
+     <SplitPanel id="brainstorming_disciplines">
       <LeftPane>
         <Use ref="full_cause_list" />
       </LeftPane>
       <RightPane>
         <Markdown>
 ## Disciplines that might be relevant to these causes
-** List your choices here.**
+**List your choices here.**
         </Markdown>
         <DynamicList id="disciplines">
           <LineInput id="discipline_name" placeholder="Enter a discipline..." />
         </DynamicList>
       </RightPane>
-    </SplitPanel>
-
+     </SplitPanel>
+    </IntakeGate>
     <!-- Checklist of reasons to research -->
     <Vertical id="reasons_checklist">
       <Markdown>
@@ -206,12 +234,15 @@ _Select the causes you think are most important to research._
     </Vertical>
 
     <!-- Display selected reasons -->
-    <Vertical id="reasons_shown">
+   <IntakeGate ready="!@interdisciplinary_1_completion_page.value">
+    <Markdown> </Markdown>
+     <Vertical id="reasons_shown">
       <Markdown>
 **You selected these causes to focus on:**
       </Markdown>
       <Ref target="reasons" />
-    </Vertical>
+     </Vertical>
+    </IntakeGate>
 
     <!-- Explanation input -->
     <Vertical id="reason_explanation_input">
@@ -226,15 +257,20 @@ _Select the causes you think are most important to research._
        ============================================================ -->
   <Vertical id="interdisciplinary_taskset3">
 
-    <Image id="task_set_3_intro" 
+   <IntakeGate ready="!@interdisciplinary_1_completion_page.value">
+    <Markdown> </Markdown>
+      <Vertical>
+        <Image id="task_set_3_intro"
            src="/sba/interdisciplinary/images/the_thinker.jpg"
            height="400px"
            alt="Photograph of the Rodin sculpture, 'The Thinker' by Tammy Lo. CC by SS 2.0 Generic." />
 
-    <!-- Repko's Broad Model -->
-    <Vertical id="broad_model_display">
-      <Markdown id="repko_criteria" src="readings/repko_criteria.md" />
-    </Vertical>
+        <!-- Repko's Broad Model -->
+        <Vertical id="broad_model_display">
+          <Markdown id="repko_criteria" src="readings/repko_criteria.md" />
+        </Vertical>
+      </Vertical>
+    </IntakeGate>
 
     <Tabs id="first_pass_on_criteria">
       <Vertical id="first_pass_t1" title="My Evaluation">
@@ -260,17 +296,19 @@ _Select the causes you think are most important to research._
         cols: Psychology, Sociology, Economics, Political Science, Health Sciences
         rows: Students need money to help family, Depression/anxiety/ADHD interferes, Gang activity / neighborhood instability, Lack of school funding
       </TabularMCQ>
-  
+
     </Vertical>
 
-    <!-- Display discipline mapping results -->
-    <Vertical id="causes_by_disciplines_answers">
-      <Markdown>
+   <IntakeGate ready="!@interdisciplinary_1_completion_page.value">
+    <Markdown> </Markdown>
+      <!-- Display discipline mapping results -->
+      <Vertical id="causes_by_disciplines_answers">
+        <Markdown>
 ## Discipline Mapping Summary
 
 Based on the team's analysis, here's how the causes map to disciplines:
-      </Markdown>
-      <Mermaid><![CDATA[
+        </Markdown>
+        <Mermaid><![CDATA[
 graph LR
     C1[Students need money<br/>to help family] --> D1[Economics]
     C1 --> D2[Sociology]
@@ -294,10 +332,11 @@ graph LR
     style D4 fill:#fff4e1
     style D5 fill:#fff4e1
 ]]></Mermaid>
-      <Markdown>
+        <Markdown>
 This confirms that the high school dropout problem spans multiple disciplines, making it appropriate for interdisciplinary research.
-      </Markdown>
-    </Vertical>
+        </Markdown>
+      </Vertical>
+    </IntakeGate>
   </Vertical>
 
   <!-- ============================================================
@@ -305,15 +344,20 @@ This confirms that the high school dropout problem spans multiple disciplines, m
        ============================================================ -->
   <Vertical id="interdisciplinary_taskset4">
 
+   <IntakeGate ready="!@interdisciplinary_1_completion_page.value">
+    <Markdown> </Markdown>
     <!-- ADHD Study text -->
     <Vertical id="adhd_study_text" popout="window">
       <Markdown id="adhd_study_text_md" src="readings/research_study_adhd_dropout.md" />
     </Vertical>
+   </IntakeGate>
 
-    <!-- ADHD study with highlights shown -->
-    <Tabs id="adhd_study_highlighted">
-      <Vertical id="adhd_study_highlights_T1" title="Peggy's Discipline Clues">
-        <Markdown>
+   <IntakeGate ready="!@interdisciplinary_1_completion_page.value">
+    <Markdown> </Markdown>
+      <!-- ADHD study with highlights shown -->
+      <Tabs id="adhd_study_highlighted">
+        <Vertical id="adhd_study_highlights_T1" title="Peggy's Discipline Clues">
+          <Markdown>
 ## Peggy's Discipline Clues
 
 The discipline clues Peggy identified:
@@ -325,24 +369,25 @@ The discipline clues Peggy identified:
 - **"intervention"** - Educational psychology focus
 
 These terms indicate this study comes from **Psychology**, specifically educational and clinical psychology.
-        </Markdown>
-      </Vertical>
+          </Markdown>
+        </Vertical>
 
-      <Vertical id="adhd_study_highlights_t2" title="Peggy's Highlights" popout="window">
-        <Markdown id="adhd_study_text_highlights_md" src="readings/research_study_adhd_dropout_highlights.md" />
-      </Vertical>
-    </Tabs>
+        <Vertical id="adhd_study_highlights_t2" title="Peggy's Highlights" popout="window">
+          <Markdown id="adhd_study_text_highlights_md" src="readings/research_study_adhd_dropout_highlights.md" />
+        </Vertical>
+      </Tabs>
+    </IntakeGate>
 
     <Tabs id="adhd_insight_sentence_tabs">
-        <Vertical id="adhd_insight_screen" title="My Insight Sentence">
-            <Markdown>
+      <Vertical id="adhd_insight_screen" title="My Insight Sentence">
+          <Markdown>
 **Write your sentence for the insight of this source**
-            </Markdown>
-            <TextArea id="adhd_insight_sentence" />
-        </Vertical>
-        <Vertical id="adhd_article_screen" title="ADHD and High School Dropout">
-           <Use ref="adhd_study_text"/>
-        </Vertical>
+          </Markdown>
+          <TextArea id="adhd_insight_sentence" />
+      </Vertical>
+      <Vertical id="adhd_article_screen" title="ADHD and High School Dropout">
+         <Use ref="adhd_study_text"/>
+      </Vertical>
     </Tabs>
 
     <Tabs id="adhd_insight_sentence_choice">
@@ -657,5 +702,23 @@ click on the "Annotate" button and explain what discipline this clue suggests, a
     </Vertical>
   </Tabs>
  </Vertical>
+
+   <!-- Completion summary -->
+  <Vertical id="completion_interdisciplinary_1" >
+  <CheckboxInput id="interdisciplinary_1_completion_page">
+    <Markdown id="interdisciplinary_1_confirmation">**Confirm that you are done with this exercise.**</Markdown>
+    <Key id="Part_1_finished">I don't need to make any more changes</Key>
+  </CheckboxInput>
+  <IntakeGate ready="'Part_1_finished' in @interdisciplinary_1_completion_page.value">
+   <Markdown> </Markdown>
+   <Markdown>
+## Part 1 Complete!
+
+## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
+     </Markdown>
+   </IntakeGate>
+  </Vertical>
+
+
 </Vertical>
 </Cast>

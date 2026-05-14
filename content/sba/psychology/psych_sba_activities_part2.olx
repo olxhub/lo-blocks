@@ -8,8 +8,16 @@ lang: en-Latn-US
 -->
 <Vertical id="psych_sba_activities_part2" title="Psychology Study Group: 2. Operant Conditioning (Activities)" launchable="true">
 
-  <!-- Introduction section -->
-  <Markdown id="bedtime_problem_introduction2">
+
+  <ActionButton id="print_psych_part2_btn" label="Export as PDF">
+    <PrintAction id="print_psych_part2" />
+  </ActionButton>
+
+  <IntakeGate ready="!@psych_part_2_finished.value">
+   <Markdown> </Markdown>
+   <Vertical>
+     <!-- Introduction section -->
+     <Markdown id="bedtime_problem_introduction2">
 ## Introduction
 
 In this module, you will pick up where you left off in helping Annie's friend, who babysits for a 6-year-old who has been engaging in sleep refusal.
@@ -26,10 +34,10 @@ In this session, you will review and apply several concepts from your coursework
 During this session, you will continue to work in the breakout group with the characters Annie, JJ, and Lin, and you will continue to use the embedded AI Assistant to help you.
 
 Let's begin.
-    </Markdown>
+     </Markdown>
 
-  <!-- First page of JJ's lecture notes -->
-  <Markdown id="lecture_notes_1">
+     <!-- First page of JJ's lecture notes -->
+     <Markdown id="lecture_notes_1">
 ## Lecture Notes:
 
 **Definition of Reinforcement**: Reinforcement is any event that strengthens (increases the frequency of) a preceding response.
@@ -40,10 +48,10 @@ Let's begin.
   - _Sofia screams in the grocery store until her parent gives her candy._
   - _Benjamin plays nicely with others because he gets extra playtime when he shares._
   - _Daniel whines loudly whenever his caregiver focuses on another child._
-    </Markdown>
+     </Markdown>
 
-  <!-- Second page of JJ's lecture notes -->
-  <Markdown id="lecture_notes_2">
+     <!-- Second page of JJ's lecture notes -->
+     <Markdown id="lecture_notes_2">
 ## Lecture Notes:
 
 **Definition of Punishment**: Punishment is any consequence that decreases the frequency of a preceding behavior.
@@ -54,7 +62,9 @@ Let's begin.
   - _Amelia avoids asking questions in class because she once received an impatient response from her teacher._
   - _Nathan follows classroom rules after being sent to the principal's office for breaking them._
   - _Ella withdraws from group activities because her peers laughed at her during a presentation._
-    </Markdown>
+     </Markdown>
+   </Vertical>
+  </IntakeGate>
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, Question 1 -->
   <MarkupProblem id="reinforce_punish_practice_1" title="Question 1: Sticker"><![CDATA[
@@ -69,6 +79,7 @@ Let's begin.
 Getting the sticker increases the likelihood that Liam will read the book, so this is reinforcement.
 [/explanation]
 ]]></MarkupProblem>
+
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, Question 2 -->
   <MarkupProblem id="reinforce_punish_practice_1b" title="Question 2: Asking"><![CDATA[
@@ -338,11 +349,14 @@ Getting the badge made Charlotte more likely to organized her desk, so this is r
 [/explanation]
 ]]></MarkupProblem>
 
-  <Markdown id="operant_conditioning_clear_screen_1">
-      &nbsp;
-    </Markdown>
+  <IntakeGate ready="!@psych_part_2_finished.value">
+   <Markdown> </Markdown>
+   <Vertical>
+      <Markdown id="operant_conditioning_clear_screen_1">
+        &nbsp;
+      </Markdown>
 
-  <Markdown id="operant_conditioning_reinforcement_notes">
+      <Markdown id="operant_conditioning_reinforcement_notes">
        ## Lecture Notes
 
        **Positive reinforcement** strengthens responding by **presenting** a typically
@@ -350,9 +364,9 @@ Getting the badge made Charlotte more likely to organized her desk, so this is r
 
        **Negative reinforcement** strengthens a response by **reducing or removing**&nbsp;
        a typically **unpleasant** stimulus immediately after a response.
-    </Markdown>
+      </Markdown>
 
-  <Markdown id="operant_conditioning_reinforcement_notes2">
+      <Markdown id="operant_conditioning_reinforcement_notes2">
        ## Lecture Notes
 
        **Positive punishment** refers to weakening responses by **presenting** a **typically aversive** stimulus immediately after a response.
@@ -360,7 +374,9 @@ Getting the badge made Charlotte more likely to organized her desk, so this is r
        **Negative punishment** weakens a response by **reducing or removing** something typically **pleasurable** immediately after a response.
     </Markdown>
 
-  <Image id="operant_conditioning_poster" src="images/poster.jpg" alt="Chart on types of reinforcement and punishment" />
+    <Image id="operant_conditioning_poster" src="images/poster.jpg" alt="Chart on types of reinforcement and punishment" />
+   </Vertical>
+  </IntakeGate>
 
   <Vertical id="conditioning_example_chart">
     <Markdown>
@@ -403,8 +419,10 @@ Getting the badge made Charlotte more likely to organized her desk, so this is r
     </Markdown>
   </Vertical>
 
-  <!-- Reinforcement poster -->
-  <Markdown id="filled_out_poster">
+  <IntakeGate ready="!@psych_part_2_finished.value">
+   <Markdown> </Markdown>
+   <!-- Reinforcement poster -->
+   <Markdown id="filled_out_poster">
 ## Quick Reference Chart
 
 |                   | Add Something          | Remove Something       |
@@ -431,7 +449,8 @@ Remember:
 - **Negative** = Removing something
 - **Reinforcement** = Increases behavior
 - **Punishment** = Decreases behavior
-    </Markdown>
+     </Markdown>
+  </IntakeGate>
 
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 1 -->
   <MarkupProblem id="four_types_practice_1" title="Question 1: Sticker"><![CDATA[
@@ -774,6 +793,7 @@ Remember:
 [/explanation]
 ]]></MarkupProblem>
 
+
   <!-- Clear screen -->
   <Markdown id="clear_screen_after_quiz">
         &nbsp;
@@ -787,7 +807,9 @@ Remember:
     <TextArea id="email_draft_part2" />
   </Vertical>
 
-  <Vertical id="outline_of_full_email">
+  <IntakeGate ready="!@psych_part_2_finished.value">
+   <Markdown> </Markdown>
+   <Vertical id="outline_of_full_email">
       <Markdown>
           ## Outline for Our Email to Annie's Friend
 
@@ -806,6 +828,7 @@ Remember:
           5. Final paragraph -- wish her luck!
       </Markdown>
     </Vertical>
+  </IntakeGate>
 
   <Vertical id="draft_full_email">
       <Markdown>
@@ -1002,7 +1025,9 @@ Remember:
             </Markdown>
         </Vertical>
     </Tabs>
-    <Markdown id="roommate_response">
+    <IntakeGate ready="!@psych_part_2_finished.value">
+      <Markdown> </Markdown>
+      <Markdown id="roommate_response">
           ## Annie's roommate's email:
 
           Hey!
@@ -1023,21 +1048,29 @@ Remember:
 
           Please tell everyone I really appreciate their ideas! Y'all are lifesavers!
       </Markdown>
+    </IntakeGate>
+
     <Vertical id="psych_sba_part_2_completion_page">
       <Markdown>
         **Confirm that you are done with this exercise.**
       </Markdown>
-      <CheckboxInput id="pysch_part_2_finished">
-          <Key id="completion_message2">I'm finished with this task!</Key>
+      <CheckboxInput id="psych_part_2_finished">
+          <Key id="psych_Part_2_finished">I'm finished with this task!</Key>
       </CheckboxInput>
-      <Markdown>
+      <IntakeGate ready="'psych_Part_2_finished' in @psych_part_2_finished.value">
+        <Markdown> </Markdown>
+        <Markdown>
         - In this activity, you learned about **the four types of operant conditioning**
           (positive and negative reinforcement and punishment) and developed recommendations
           for Annie's roommate to use positive reinforcement to address the child's
           sleep refusal.
         - Next time, you will review and apply several other concepts from your coursework
           in psychology to help Annie's roommate even more.
-      </Markdown>
+
+
+## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
+        </Markdown>
+      </IntakeGate>
     </Vertical>
 
 </Vertical>

@@ -8,7 +8,15 @@ lang: en-Latn-US
 -->
 <Vertical id="psych_sba_part4_activities" title="Psychology Study Group: 4. Implementation Fidelity" launchable="true">
 
-  <Markdown id="psych_sba_part4_intro">
+
+  <ActionButton id="print_psych_part4_btn" label="Export as PDF">
+    <PrintAction id="print_psych_part4" />
+  </ActionButton>
+
+  <IntakeGate ready="!@psych_sba_part_4_completion_page.value">
+   <Markdown> </Markdown>
+   <Vertical>
+    <Markdown id="psych_sba_part4_intro">
 ## About This Scenario
 
 Your class teammates are JJ, Lin, and Annie. Your team is responsible for helping each other identify key concepts, review and learn from readings, and organize information to develop a solution to the problem.
@@ -20,7 +28,7 @@ In this module, you will review and apply several concepts from your coursework 
  - **Review fidelity of implementation for a psychology intervention**
  - **Brainstorm revisions to the intervention plan developed in earlier modules**
  - **Use an AI Assistant to support learning and problem solving**
-  </Markdown>
+   </Markdown>
 
   <Markdown id="psych_sba_4_clear">
       &nbsp;
@@ -129,6 +137,8 @@ xychart-beta
 | **Participant Responsiveness** | Is the child actually exposed to and engaged with the intervention? |
 | **Program Differentiation** | Are other strategies (not part of the plan) avoided during implementation? |
     </Markdown>
+   </Vertical>
+  </IntakeGate>
 
   <!-- Fidelity comprehension check -->
   <Vertical id="fidelity_check">
@@ -173,6 +183,8 @@ Let's use AI to brainstorm how we can improve adherence to the intervention plan
     </ActionButton>
   </Vertical>
 
+  <IntakeGate ready="!@psych_sba_part_4_completion_page.value">
+   <Markdown> </Markdown>
   <Vertical id="ai_intervention_brainstorming_prompt"><Markdown>
 We need advice on a psychological intervention using operant conditioning.
 
@@ -200,6 +212,7 @@ Given the problems that Annie's roommate is having getting the boy to bed
 on time, what advice should we give her to help her improve her adherence
 to the intervention plan?
       </Markdown></Vertical>
+  </IntakeGate>
 
   <!-- AI help for modifications -->
   <Vertical id="ai_modifications2">
@@ -262,7 +275,10 @@ Of these modifications, which ones should we add to help the roommate follow the
     </CapaProblem>
   </Vertical>
 
-  <Markdown id="fidelity_checklist">
+  <IntakeGate ready="!@psych_sba_part_4_completion_page.value">
+   <Markdown> </Markdown>
+   <Vertical>
+    <Markdown id="fidelity_checklist">
 ## Bedtime Routine Plan -- Fidelity Checklist
 
 Child's name:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date:
@@ -397,12 +413,15 @@ return Plot.plot({
   }
 });
 ]]></ObservablePlot>
-    <Markdown id="conclusion_progress_md2">
+     <Markdown id="conclusion_progress_md2">
 **The modified intervention was a success!**
 
 With better adherence to the plan, Johnny's bedtime behavior improved significantly
-    </Markdown>
-  </Vertical>
+     </Markdown>
+    </Vertical>
+   </Vertical>
+  </IntakeGate>
+
   <!-- Final email -->
   <Tabs id="revision_suggestion_email">
     <Vertical id="revision_left" title="One More Suggestion ...">
@@ -479,7 +498,14 @@ Write a brief reflection of your experience, noting:
   </Vertical>
 
   <!-- Completion summary -->
-  <Markdown id="completion_summary_fba">
+  <Vertical id="completion_summary_fba" >
+  <CheckboxInput id="psych_sba_part_4_completion_page">
+    <Markdown id="psych_sba_part4_confirmation">**Confirm that you are done with this exercise.**</Markdown>
+    <Key id="Part_4_finished">I don't need to make any more changes</Key>
+  </CheckboxInput>
+  <IntakeGate ready="'Part_4_finished' in @psych_sba_part_4_completion_page.value">
+   <Markdown> </Markdown>
+   <Markdown>
 ## Module Complete!
 
 ### What You've Learned:
@@ -499,6 +525,9 @@ You successfully helped Annie's roommate solve Johnny's bedtime problem by:
 - Recognizing and addressing implementation fidelity issues
 
 **Great work using behavioral psychology to solve a real problem!**
-    </Markdown>
 
+## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
+     </Markdown>
+   </IntakeGate>
+  </Vertical>
 </Vertical>

@@ -78,10 +78,10 @@ school dropout and your personal list of potentially relevant disciplines.
 **The causes you suggested yourself:**
               </Markdown>
               <Use id="cause_internal2" ref="cause_internal" />
-              <Use id="cause_structural2" ref="cause_structural" />             
+              <Use id="cause_structural2" ref="cause_structural" />
               <Markdown>
 ------------------------------------
-**My Notes on the Focus Group Transcript** 
+**My Notes on the Focus Group Transcript**
               </Markdown>
               <Use id="" ref="focus_group" />
             </Vertical>
@@ -118,44 +118,55 @@ Research studies you've reviewed from different disciplines.
         <Vertical id="artifact_lit_tab1" title="Study 1: ADHD Research (Psychology)">
           <Markdown>**The insight sentence you drafted:**</Markdown>
           <Use ref="adhd_insight_sentence" />
-          <Markdown>**The insight sentence you selected:**</Markdown>         
+          <Markdown>**The insight sentence you selected:**</Markdown>
           <Use ref="adhd_insight_sentence_choice_input" />
         </Vertical>
         <Vertical id="artifact_lit_tab2" title="Study 2: Employment Research">
           <Markdown>**The insight sentence you drafted:**</Markdown>
           <Use ref="source_2_insight_sentence" />
-          <Markdown>**The insight sentence you selected:**</Markdown>         
+          <Markdown>**The insight sentence you selected:**</Markdown>
           <Use ref="employment_insight_sentence_choice_input" />
           <Markdown>**Your explanation of your choice:**</Markdown>
           <Use ref="source_2_insight_explanation" />
           <Markdown>**The disciplines you chose for this source:**</Markdown>
           <Use ref="source_2_classification" />
-          <Markdown>**Why you chose this discipline:**</Markdown>
+          <Markdown>**Why you chose these disciplines:**</Markdown>
           <Use ref="source_2_classification_explanation" />
         </Vertical>
         <Vertical id="artifact_lit_tab3" title="Study 3: Rural/Urban Research">
           <Markdown>**The insight sentence you drafted:**</Markdown>
           <Use ref="source_3_insight_sentence" />
-          <Markdown>**The insight sentence you selected:**</Markdown>         
+          <Markdown>**The insight sentence you selected:**</Markdown>
           <Use ref="employment_insight_sentence_choice_input" />
           <Markdown>**Your explanation of your choice:**</Markdown>
           <Use ref="source_3_insight_sentence_explanation" />
           <Markdown>**The disciplines you chose for this source:**</Markdown>
           <Use ref="source_3_classification" />
-          <Markdown>**Why you chose this discipline:**</Markdown>
+          <Markdown>**Why you chose these disciplines:**</Markdown>
           <Use ref="source_3_classification_explanation" />
         </Vertical>
         <Vertical id="artifact_lit_tab4" title="Study 4: School Funding Research">
           <Markdown>**The insight sentence you drafted:**</Markdown>
           <Use ref="source_4_insight_sentence" />
-          <Markdown>**The insight sentence you selected:**</Markdown>         
+          <Markdown>**The insight sentence you selected:**</Markdown>
           <Use ref="source4_insight_selection" />
           <Markdown>**Your explanation of your choice:**</Markdown>
           <Use ref="source_4_insight_sentence_explanation" />
           <Markdown>**The disciplines you chose for this source:**</Markdown>
           <Use ref="funding_study_additional_disciplines" />
-          <Markdown>**Why you chose this discipline:**</Markdown>
+          <Markdown>**Why you chose these disciplines:**</Markdown>
           <Use ref="source_4_classification_explanation" />
+        </Vertical>
+        <Vertical id="artifact_lit_tab5" title="Study 5: School Finance Reform">
+          <Markdown>**The insight sentence you drafted:**</Markdown>
+          <Use ref="source_5_insight_sentence" />
+          <Markdown>**The insight sentence you selected:**</Markdown>
+          <Use ref="source5_insight_selection" />
+          <Markdown>**Your explanation of your choice:**</Markdown>
+          <Use ref="source_5_insight_sentence_explanation" />
+          <Markdown>**The disciplines you chose for this source
+                    (and your explanation for each choice):**</Markdown>
+          <Use ref="source_5_additional_disciplines" />
         </Vertical>
     </Tabs>
   </Collapsible>
@@ -227,22 +238,184 @@ Analysis of how different disciplines view the problem and where they conflict.
           </Vertical>
         </IntakeGate>
     </Vertical>
-    
-    </Tabs>    
-    <Markdown id="artifact_tb_23">**Key Insights from Psychology:**</Markdown>
-    <TextArea id="interdisciplinary_sba_insights_psychology" placeholder="Psychology insights: ADHD, motivation, self-efficacy factors..." />
+    </Tabs>
 
-    <Markdown id="artifact_tb_24">**Key Insights from Sociology:**</Markdown>
-    <TextArea id="interdisciplinary_sba_insights_sociology" placeholder="Sociology insights: Family structure, community factors, peer influences..." />
+  <IntakeGate ready="@cause_mapping_choice_explanation.value">
+    <TextBlock>A table of factor interactions will be shown here once you have completed your first causal factor diagram</TextBlock>
+    <Vertical id="table_of_connections">
+      <SplitPanel sizes="30,70">
+        <LeftPane><Markdown>## Factor Interactions</Markdown></LeftPane>
+        <RightPane>
+          <SplitPanel>
+            <LeftPane>
+              <SplitPanel>
+                <LeftPane><Markdown>## My initial hypothesis</Markdown></LeftPane>
+                <RightPane><Markdown>## My second take</Markdown></RightPane>
+              </SplitPanel>
+            </LeftPane>
+            <RightPane><Markdown>## Final group consensus</Markdown></RightPane>
+          </SplitPanel>
+        </RightPane>
+      </SplitPanel>
+      <SplitPanel sizes="30,70">
+        <LeftPane><Markdown>
+**Family and Peer Factors | Students Working Long Hours**
 
-    <Markdown id="artifact_tb_25">**Key Insights from Economics:**</Markdown>
-    <TextArea id="interdisciplinary_sba_insights_economics" placeholder="Economics insights: Employment pressures, cost-benefit of intervention..." />
+**Relevant Disciplines**: Sociology, Economics
+</Markdown></LeftPane>
+        <RightPane>
+          <SplitPanel>
+            <LeftPane />
+            <RightPane><Use ref="first_crosslink_sentence" /></RightPane>
+          </SplitPanel>
+        </RightPane>
+      </SplitPanel>
+      <IntakeGate ready="@dropout_factor_combo_1_explanation.value || @editor_finance_reform.value">
+        <Markdown> </Markdown>
+        <SplitPanel sizes="30,70">
+          <LeftPane><Markdown>**Family and Peer Factors | Equitable School Funding**</Markdown></LeftPane>
+          <RightPane>
+            <SplitPanel>
+              <LeftPane><Markdown>_{{@dropout_factor_combo_1_explanation.value}}_</Markdown></LeftPane>
+              <RightPane><TextBlock>No interaction</TextBlock></RightPane>
+            </SplitPanel>
+          </RightPane>
+        </SplitPanel>
+      </IntakeGate>
+      <IntakeGate ready="@dropout_factor_combo_2_explanation.value || @cause_connection_3_explanation.value || @cause_connection_3_choice_explanation.value">
+        <Markdown> </Markdown>
+        <SplitPanel sizes="30,70">
+          <LeftPane><Markdown>
+**Family and Peer Factors | ADHD Status**
 
-    <Markdown id="artifact_tb_26">**Key Insights from Political Science:**</Markdown>
-    <TextArea id="interdisciplinary_sba_insights_political_science" placeholder="Political Science insights: School funding, policy interventions..." />
+**Relevant Disciplines**: Sociology, Psychology
+          </Markdown></LeftPane>
+          <RightPane>
+             <SplitPanel>
+               <LeftPane>
+                 <SplitPanel>
+                   <LeftPane><Markdown>_{{@dropout_factor_combo_2_explanation.value}}_</Markdown></LeftPane>
+                   <RightPane><Markdown>_{{@cause_connection_3_explanation.value}}_</Markdown></RightPane>
+                  </SplitPanel>
+               </LeftPane>
+               <RightPane>
+                 <IntakeGate ready="@cause_connection_3_choice_explanation.value">
+                  <Markdown>Not displayed until your input is completed.</Markdown>
+                  <Use ref="factor_connection_1_key" />
+                 </IntakeGate>
+               </RightPane>
+             </SplitPanel>
+          </RightPane>
+        </SplitPanel>
+      </IntakeGate>
+      <IntakeGate ready="@dropout_factor_combo_3_explanation.value || @cause_connection_4_explanation.value || @cause_connection_4_choice_explanation.value">
+        <Markdown> </Markdown>
+        <SplitPanel sizes="30,70">
+          <LeftPane><Markdown>
+**Students Working Long Hours | Equitable School Funding**
 
-    <Markdown id="artifact_tb_27">**Sources of Conflict:**</Markdown>
-    <TextArea id="interdisciplinary_sba_insights_conflicts" placeholder="Where disciplines disagree or have different emphases..." />
+**Relevant Disciplines**: Sociology, Economics, Political Science
+          </Markdown></LeftPane>
+          <RightPane>
+            <SplitPanel>
+              <LeftPane>
+                <SplitPanel>
+                  <LeftPane><Markdown>_{{@dropout_factor_combo_3_explanation.value}}_</Markdown></LeftPane>
+                  <RightPane><Markdown>_{{@cause_connection_4_explanation.value}}_</Markdown></RightPane>
+                </SplitPanel>
+              </LeftPane>
+              <RightPane>
+                <IntakeGate ready="@cause_connection_4_choice_explanation.value">
+                  <Markdown>Not displayed until your input is completed.</Markdown>
+                  <Use ref="factor_connection_2_key" />
+                </IntakeGate>
+              </RightPane>
+            </SplitPanel>
+          </RightPane>
+        </SplitPanel>
+      </IntakeGate>
+      <IntakeGate ready="@dropout_factor_combo_4_explanation.value || @editor_finance_reform.value">
+        <Markdown> </Markdown>
+        <SplitPanel sizes="30,70">
+          <LeftPane><Markdown>
+**Students Working Long Hours | ADHD Status**
+
+**Relevant Disciplines**: Economics, Sociology, Psychology
+          </Markdown></LeftPane>
+          <RightPane>
+            <SplitPanel>
+              <LeftPane><Markdown>_{{@dropout_factor_combo_4_explanation.value}}_</Markdown></LeftPane>
+              <RightPane><TextBlock>No interaction</TextBlock></RightPane>
+            </SplitPanel>
+          </RightPane>
+        </SplitPanel>
+      </IntakeGate>
+      <IntakeGate ready="@dropout_factor_combo_5_explanation.value || @cause_connection_5_explanation.value || @cause_connection_5_choice_explanation.value">
+        <Markdown> </Markdown>
+        <SplitPanel sizes="30,70">
+          <LeftPane><Markdown>
+**Equitable School Funding | ADHD Status**
+
+**Relevant Disciplines**: Political Science, Psychology
+          </Markdown></LeftPane>
+          <RightPane>
+            <SplitPanel>
+              <LeftPane>
+                <SplitPanel>
+                  <LeftPane><Markdown>_{{@dropout_factor_combo_5_explanation.value}}_</Markdown></LeftPane>
+                  <RightPane><Markdown>_{{@cause_connection_5_explanation.value}}_</Markdown></RightPane>
+                </SplitPanel>
+              </LeftPane>
+              <RightPane>
+                <IntakeGate ready="@cause_connection_5_choice_explanation.value">
+                  <Markdown>Not displayed until your input is completed.</Markdown>
+                  <Use ref="factor_connection_3_key" />
+                </IntakeGate>
+              </RightPane>
+            </SplitPanel>
+          </RightPane>
+        </SplitPanel>
+      </IntakeGate>
+
+      <IntakeGate ready="@editor_finance_reform.value">
+        <Markdown> </Markdown>
+        <Vertical>
+         <SplitPanel sizes="30,70">
+          <LeftPane><Markdown>
+**School Finance Reform | Family and Peer Factors**
+
+**Relevant Disciplines**: Political Science, Economics, Sociology
+          </Markdown></LeftPane>
+          <RightPane>
+            <SplitPanel>
+              <LeftPane> </LeftPane>
+              <RightPane>
+                  <Use ref="factor_connection_5" />
+              </RightPane>
+            </SplitPanel>
+          </RightPane>
+        </SplitPanel>
+        <SplitPanel sizes="30,70">
+          <LeftPane><Markdown>
+**School Finance Reform | Equitable School Funding**
+
+**Relevant Disciplines**: Political Science, Economics
+          </Markdown></LeftPane>
+          <RightPane>
+            <SplitPanel>
+              <LeftPane> </LeftPane>
+              <RightPane>
+                  <Use ref="factor_connection_4" />
+              </RightPane>
+            </SplitPanel>
+          </RightPane>
+        </SplitPanel>
+       </Vertical>
+      </IntakeGate>
+
+
+    </Vertical>
+   </IntakeGate>
   </Collapsible>
 
   <!-- Step 6: Reflection -->

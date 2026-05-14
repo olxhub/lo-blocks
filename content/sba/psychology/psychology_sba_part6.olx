@@ -1,0 +1,13 @@
+<!--
+---
+description: Follow up on a behavioral intervention plan with progress monitoring, implementation fidelity, and plan modifications through interactive study group discussion
+category: psychology
+index: 6
+lang: en-Latn-US
+---
+-->
+
+<SplitPanel id="psych_sba6" title="Psychology Study Group: 6. Progress Monitoring" sizes="40, 60" launchable="true">
+  <StartPane> <Chat id="psych_chat6" src="psych_sba_part6.chatpeg" height="400px" /> </StartPane>
+  <EndPane>   <UseHistory id="psych_sba_sidebar6" initial="fba3_introduction" />   </EndPane>
+</SplitPanel>
