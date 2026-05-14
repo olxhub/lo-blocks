@@ -1055,9 +1055,9 @@ Remember:
         **Confirm that you are done with this exercise.**
       </Markdown>
       <CheckboxInput id="psych_part_2_finished">
-          <Key id="Part_2_finished">I'm finished with this task!</Key>
+          <Key id="psych_Part_2_finished">I'm finished with this task!</Key>
       </CheckboxInput>
-      <IntakeGate ready="'Part_2_finished' in @psych_part_2_finished.value">
+      <IntakeGate ready="'psych_Part_2_finished' in @psych_part_2_finished.value">
         <Markdown> </Markdown>
         <Markdown>
         - In this activity, you learned about **the four types of operant conditioning**
