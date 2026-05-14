@@ -1,0 +1,330 @@
+<!--
+---
+description: "Activities used in Psychology Study Group: 6. Progress Monitoring. Not a separate activity; included to support content editing."
+category: psychology
+index: 56
+lang: en-Latn-US
+---
+-->
+<Vertical id="psych_sba_activities_part6" title="Psychology Study Group: 6. Progress Monitoring (Activities)" launchable="true">
+
+<ActionButton id="print_psych_part6_btn" label="Export as PDF">
+<PrintAction id="print_psych_part6" />
+</ActionButton>
+
+
+<HH> ============= Screen: Introduction ======================== </HH>
+
+<IntakeGate ready="!@fba3_completion_checkbox.value">
+<Markdown> </Markdown>
+<Markdown id="fba3_introduction">
+## Introduction
+
+Two weeks have passed since your group helped Annie's roommate create an escape-focused behavior modification plan for Johnny's bedtime routine.
+
+In this session, you will:
+
+- Review **progress monitoring** data to evaluate how the intervention is going.
+- Learn about **implementation fidelity** and why it matters.
+- Identify areas where the plan was not followed correctly.
+- Use AI to brainstorm **modifications** to improve adherence.
+- Reflect on the overall experience.
+
+Let's check in with Annie to see how things went.
+</Markdown>
+</IntakeGate>
+
+
+<HH> ============= Screen: Progress graph 1 ==================== </HH>
+
+<IntakeGate ready="!@fba3_completion_checkbox.value">
+<Markdown> </Markdown>
+<Markdown id="fba3_progress_graph_1">
+## Progress Monitoring: Week 1–2
+
+TODO: This should be a line graph or bar chart showing Johnny's bedtime compliance over 2 weeks (5 babysitting sessions). The data shows a worsening trend:
+- Session 1: Went to bed on time ✓
+- Session 2: Went to bed on time ✓
+- Session 3: Did not go to bed on time ✗
+- Session 4: Did not go to bed on time ✗ (roommate noted she didn't follow the plan)
+- Session 5: Did not go to bed on time ✗ (escape behaviors worse)
+
+The graph should make it visually clear that the intervention is not working as expected and that performance is declining.
+</Markdown>
+</IntakeGate>
+
+
+<HH> ============= Screen: Fidelity info ======================== </HH>
+
+<IntakeGate ready="!@fba3_completion_checkbox.value">
+<Markdown> </Markdown>
+<Markdown id="fba3_fidelity_info">
+## Implementation Fidelity
+
+Implementation fidelity refers to how accurately and consistently a behavior plan is implemented as it was designed. There are five key aspects:
+
+1. **Adherence** — Are all steps of the plan followed as written?
+2. **Dosage** — Is the plan used for the correct amount of time/frequency?
+3. **Quality of Delivery** — Are the strategies implemented correctly and with the intended tone/approach (e.g., calm redirection vs. yelling)?
+4. **Participant Responsiveness** — Is the child actually exposed to and engaged with the intervention?
+5. **Program Differentiation** — Are other strategies (not part of the plan) avoided during implementation?
+</Markdown>
+</IntakeGate>
+
+
+<HH> ============= Screen: Fidelity tabs ======================== </HH>
+
+<IntakeGate ready="!@fba3_completion_checkbox.value">
+<Markdown> </Markdown>
+<Tabs id="fba3_fidelity_tabs">
+<Vertical id="fba3_fidelity_tab1" title="Fidelity Overview">
+<Markdown>
+## Five Aspects of Implementation Fidelity
+
+| Aspect | Key Question |
+|--------|-------------|
+| **Adherence**                | Are all steps of the plan followed as written?                                        |
+| **Dosage**                   | Is the plan used for the correct amount of time/frequency?                            |
+| **Quality of Delivery**      | Are strategies implemented correctly and with the intended tone?                       |
+| **Participant Responsiveness** | Is the child actually exposed to and engaged with the intervention?                 |
+| **Program Differentiation**  | Are other strategies (not part of the plan) avoided during implementation?             |
+</Markdown>
+</Vertical>
+<Vertical id="fba3_fidelity_tab2" title="Modifications &amp; Checklist">
+<Markdown>
+## When Fidelity Is Low
+
+When the person implementing the plan is not following it accurately, you can:
+
+- **Simplify** the plan so it's easier to follow
+- **Provide training** on each step
+- **Create checklists** to track whether each step was completed
+- **Offer coaching** and feedback after each session
+- **Set reminders** to prompt specific actions
+
+A **fidelity checklist** is a simple tool that lists each step of the plan with a yes/no checkbox, so the implementer can track whether they completed each step during each session.
+</Markdown>
+</Vertical>
+</Tabs>
+</IntakeGate>
+
+
+<HH> ============= Screen: Fidelity check ====================== </HH>
+
+<Vertical id="fba3_fidelity_check">
+<Markdown>
+## Comprehension Check
+
+Annie's roommate said:
+- She sometimes forgets to do the warning countdown and timer
+- She forgets the small bedtime reward
+- She often falls into negotiating or arguing when he whines for extended time
+</Markdown>
+
+<MarkupProblem id="fba3_fidelity_choice" title="Fidelity Area"><![CDATA[
+>>Which is the main area of treatment fidelity that Annie's roommate is struggling with?<<
+
+(x) Adherence
+( ) Dosage
+( ) Quality of delivery
+( ) Participant responsiveness
+( ) Program differentiation
+
+[explanation]
+The main issue is **adherence** — Annie's roommate is not following all the steps of the plan as written. She forgets the countdown timer, forgets the bedtime reward, and falls into negotiating instead of ignoring escape behaviors. These are all failures to adhere to the specific steps in the intervention plan.
+[/explanation]
+]]></MarkupProblem>
+</Vertical>
+
+
+<HH> ============= Screen: AI adherence prompt ================== </HH>
+
+<Vertical id="fba3_ai_adherence">
+<Markdown>
+## Ask AI: Improving Adherence
+
+In the box below, type out a prompt that will help us improve adherence to an intervention plan.
+</Markdown>
+
+<TextArea id="fba3_ai_adherence_prompt" rows="3" placeholder="Type a prompt to help brainstorm how to improve adherence to a behavior plan..." />
+
+<LLMFeedback id="fba3_ai_adherence_response" render="markdown" />
+
+<ActionButton id="fba3_ai_adherence_btn" label="Ask AI">
+<LLMAction id="fba3_ai_adherence_action" target="fba3_ai_adherence_response">
+If the following question is about improving adherence to a behavior intervention
+plan — particularly helping a caregiver consistently follow all steps of a bedtime
+intervention plan for a child with escape-maintained behavior — provide practical,
+actionable suggestions. Otherwise, point out the prompt is not relevant and stop.
+<Ref id="fba3_ref_adherence_prompt" target="fba3_ai_adherence_prompt" />
+Use Markdown to format your reply with bolded headers and organized lists.
+</LLMAction>
+</ActionButton>
+</Vertical>
+
+
+<HH> ============= Screen: Modifications display ================ </HH>
+
+<IntakeGate ready="!@fba3_completion_checkbox.value">
+<Markdown> </Markdown>
+<Markdown id="fba3_modifications_display">
+## Example Modifications to Improve Adherence
+
+_Based on AI suggestions and course materials, here are some modifications that could help Annie's roommate follow the plan more consistently:_
+
+1. **Simplify the plan using a step-by-step guide** — Break the bedtime routine into a short numbered list (e.g., "Step 1: Give 10-minute warning. Step 2: Start timer. Step 3: Begin routine...") posted on the fridge or bedroom door.
+
+2. **Provide direct training using in-person or video modeling** — Show Annie's roommate exactly what each step looks like in practice, so she knows what to do in the moment.
+
+3. **Use simple yes/no fidelity checklists for key steps** — A printed or phone-based checklist where she marks off each step as she completes it during each babysitting session.
+
+4. **Provide coaching and feedback** — After each session, Annie can check in with her roommate to review what went well and what was missed, and problem-solve together.
+
+5. **Set reminders and visual prompts on the roommate's phone** — Phone alarms for the 10-minute warning, timer start, and reward delivery, so she doesn't forget key steps.
+</Markdown>
+</IntakeGate>
+
+
+<HH> ============= Screen: Checklist display ==================== </HH>
+
+<IntakeGate ready="!@fba3_completion_checkbox.value">
+<Markdown> </Markdown>
+<Markdown id="fba3_checklist_display">
+## Sample Fidelity Checklist
+
+| Step | Did I do it? |
+|------|:---:|
+| Gave 10-minute advance warning            | ☐ Yes  ☐ No |
+| Gave 5-minute advance warning             | ☐ Yes  ☐ No |
+| Started timer for bedtime routine         | ☐ Yes  ☐ No |
+| Followed visual schedule for routine steps | ☐ Yes  ☐ No |
+| Offered limited choices during routine     | ☐ Yes  ☐ No |
+| Ignored escape behaviors (did not chase)   | ☐ Yes  ☐ No |
+| Did not negotiate or argue                 | ☐ Yes  ☐ No |
+| Provided sticker/praise for compliance     | ☐ Yes  ☐ No |
+| Honored bedtime pass if used               | ☐ Yes  ☐ No |
+| Recorded data in journal                   | ☐ Yes  ☐ No |
+</Markdown>
+</IntakeGate>
+
+
+<HH> ============= Screen: Modification selection =============== </HH>
+
+<Vertical id="fba3_modification_selection">
+<Markdown>
+## Choose Modifications
+
+Of these modifications, which ones do you think we should add to help Annie's roommate improve her adherence? **Pick up to 2.**
+</Markdown>
+
+<CheckboxInput id="fba3_modification_choices">
+<Distractor id="fba3_mod_simplify">    Simplify the plan using a step-by-step guide                  </Distractor>
+<Distractor id="fba3_mod_training">    Provide direct training using in-person or video modeling      </Distractor>
+<Distractor id="fba3_mod_checklist">   Use simple yes/no fidelity checklists for key steps            </Distractor>
+<Distractor id="fba3_mod_coaching">    Provide coaching and feedback                                  </Distractor>
+<Distractor id="fba3_mod_reminders">   Set reminders and visual prompts on the roommate's phone       </Distractor>
+</CheckboxInput>
+
+<Markdown>**Why did you choose these modifications? How will they help with adherence?**</Markdown>
+<TextArea id="fba3_modification_explanation" rows="3" placeholder="Explain why you chose these modifications..." />
+</Vertical>
+
+
+<HH> ============= Screen: Updated plan ========================= </HH>
+
+<IntakeGate ready="!@fba3_completion_checkbox.value">
+<Markdown> </Markdown>
+<Markdown id="fba3_updated_plan">
+## Updated Behavior Modification Plan
+
+TODO: This should display the original escape-focused plan from Part 5 with the student's selected modifications incorporated. Ideally, the modifications the student selected above would be inserted into the appropriate sections of the plan.
+
+For now, here is the updated plan with all possible modifications noted:
+
+**Original Antecedent Strategies:**
+- Create a predictable bedtime routine with a visual schedule
+- Use a timer to signal when each routine step begins and ends
+- Give 10-minute and 5-minute advance warnings
+- Incorporate a brief preferred activity into the routine
+- Allow limited choices within the routine
+
+**Original Consequence Strategies:**
+- Provide positive reinforcement (sticker chart, praise) for on-time bedtime
+- Ignore escape behaviors — do not chase or engage
+- Use a "bedtime pass" for one approved brief delay per night
+- Provide brief positive attention when Johnny stays in bed
+
+**New Adherence Supports:**
+- Step-by-step guide posted where the roommate can see it
+- Fidelity checklist to mark off each step during each session
+- Phone reminders for key transition points
+- Weekly check-in with Annie to review and troubleshoot
+
+**Data Collection:**
+- Continue tracking bedtime compliance for 2 more weeks
+- Use fidelity checklist to track plan adherence each session
+</Markdown>
+</IntakeGate>
+
+
+<HH> ============= Screen: Progress graph 2 ==================== </HH>
+
+<IntakeGate ready="!@fba3_completion_checkbox.value">
+<Markdown> </Markdown>
+<Markdown id="fba3_progress_graph_2">
+## Progress Monitoring: Week 3–4
+
+TODO: This should be a line graph or bar chart showing Johnny's bedtime compliance over the second 2-week period (after modifications). The data shows improvement:
+- Sessions 6–10 show increasing compliance, with Johnny going to bed on time in most sessions
+
+The graph should contrast visually with the first graph, making it clear that the modified plan (with improved adherence) is working.
+
+Annie's roommate reports that with the simplified checklist and phone reminders, she was able to follow the plan much more consistently. Johnny is going to bed on time more often!
+</Markdown>
+</IntakeGate>
+
+
+<HH> ============= Screen: Reflection ========================== </HH>
+
+<Vertical id="fba3_reflection">
+<Markdown>
+## Final Reflection
+
+You have determined that the modified intervention was a success! Write a brief reflection of the experience, addressing the following points:
+
+1. Whether the behavior was successfully or unsuccessfully modified
+2. What aspects of the intervention were effective and not effective
+3. Whether your plan was too complicated, simple, or just right
+4. Your personal reflections about the execution of this project, including what could have been done differently — provide at least 2 specific examples of what changes you would have made if Annie's roommate were to continue to babysit Johnny
+</Markdown>
+
+<TextArea id="fba3_reflection_text" rows="10" placeholder="Write your reflection here..." />
+</Vertical>
+
+
+<HH> ============= Screen: Completion ========================== </HH>
+
+<Vertical id="fba3_completion_page">
+<Markdown>**Confirm that you are done with this exercise.**</Markdown>
+
+<CheckboxInput id="fba3_completion_checkbox">
+<Key id="fba3_part_6_finished">I don't need to make any more changes</Key>
+</CheckboxInput>
+
+<IntakeGate ready="'fba3_part_6_finished' in @fba3_completion_checkbox.value">
+<Markdown> </Markdown>
+<Markdown>
+- In this activity, you learned about **progress monitoring** and **implementation fidelity**.
+  You identified that Annie's roommate was struggling with **adherence** and used AI to
+  brainstorm modifications to improve plan implementation.
+- You saw how improving fidelity led to better outcomes for Johnny's bedtime behavior.
+- This concludes the Psychology Study Group series. You have covered parenting techniques,
+  operant conditioning, function of behavior, ABCs, competing behavior pathways,
+  intervention planning, progress monitoring, and implementation fidelity.
+
+## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
+</Markdown>
+</IntakeGate>
+</Vertical>
+
+</Vertical>
