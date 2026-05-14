@@ -55,7 +55,7 @@ One of the things we learned in class was that whenever you need to intervene wi
     </Markdown>
    </Vertical>
   </IntakeGate>
-  
+
   <!-- AI interface for function definition -->
   <Vertical id="ai_function_definition">
     <Markdown id="ai_function_prompt">
@@ -117,7 +117,7 @@ The four main functions of behavior are:
 
     </Markdown>
   </IntakeGate>
-  
+
   <!-- Review MCQ: Reinforcement concepts -->
   <Vertical id="review_reinforcement1">
     <Markdown id="review_header">
@@ -175,7 +175,7 @@ The four main functions of behavior are:
 
   <IntakeGate ready="!@psych_sba_part_3_completion_page.value">
    <Markdown> </Markdown>
-   <Vertical>  
+   <Vertical>
     <Markdown id="four_functions_review_notes">
 **Lecture Notes Reminder:**
 
@@ -427,7 +427,7 @@ Functions describe what maintains or increases a behavior - they're about **rein
 So while punishment is an important concept in behavior modification, it's not considered a "function" because functions describe what the person is trying to **get** (attention, escape, tangibles, sensory stimulation), not what they're trying to **avoid**.
     </Markdown>
   </IntakeGate>
-  
+
   <!-- Check for understanding - explain no punishment function -->
   <Vertical id="explain_no_punishment">
     <Markdown id="explain_prompt">
@@ -683,7 +683,7 @@ As the professor said: "It's as easy as learning your ABCs!"
     </Markdown>
    </Vertical>
   </IntakeGate>
-  
+
   <!-- AI interface for ABC diagrams -->
   <Vertical id="ai_abc_diagrams">
     <Markdown id="ai_abc_prompt">
@@ -854,7 +854,7 @@ Now that we know the function is **escape**, we need to figure out an interventi
     </Markdown>
   </Vertical>
   </IntakeGate>
-  
+
   <!-- AI interface for intervention strategies -->
   <Vertical id="ai_intervention">
     <Markdown id="ai_intervention_prompt">
@@ -1009,7 +1009,7 @@ Now let's revise our pathway with the strategies we've identified.
     </Vertical>
    </Tabs>
   </IntakeGate>
-  
+
   <!-- Two plans comparison -->
   <Vertical id="plans_comparison">
     <Markdown id="plans_intro">
@@ -1086,7 +1086,7 @@ Child will follow the bedtime routine at the scheduled time without engaging in 
   - Use a neutral, consistent response ("It's bedtime now")
     </Markdown>
   </IntakeGate>
-  
+
   <!-- Plan discussion -->
   <Tabs id="plan_discussion">
      <Vertical id="plan_discussion_left" title="Record Your Preferences">
@@ -1166,7 +1166,7 @@ Evaluate the email using the following criteria:
   - Next time, you will review and apply a few more concepts from your coursework
     in psychology to help Annie's roommate learn to use **operant conditioning** principles
     to modify the child's behavior.
-    
+
 ## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
     </Markdown>
    </IntakeGate>

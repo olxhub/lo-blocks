@@ -12,10 +12,10 @@ lang: en-Latn-US
   <ActionButton id="print_psych_part2_btn" label="Export as PDF">
     <PrintAction id="print_psych_part2" />
   </ActionButton>
-  
+
   <IntakeGate ready="!@psych_part_2_finished.value">
    <Markdown> </Markdown>
-   <Vertical>      
+   <Vertical>
      <!-- Introduction section -->
      <Markdown id="bedtime_problem_introduction2">
 ## Introduction
@@ -65,7 +65,7 @@ Let's begin.
      </Markdown>
    </Vertical>
   </IntakeGate>
-  
+
   <!-- Quiz 1: Basic Reinforcement vs Punishment, Question 1 -->
   <MarkupProblem id="reinforce_punish_practice_1" title="Question 1: Sticker"><![CDATA[
 ## Practice Quiz: Positive vs. Negative Reinforcement and Punishment
@@ -351,7 +351,7 @@ Getting the badge made Charlotte more likely to organized her desk, so this is r
 
   <IntakeGate ready="!@psych_part_2_finished.value">
    <Markdown> </Markdown>
-   <Vertical>      
+   <Vertical>
       <Markdown id="operant_conditioning_clear_screen_1">
         &nbsp;
       </Markdown>
@@ -451,7 +451,7 @@ Remember:
 - **Punishment** = Decreases behavior
      </Markdown>
   </IntakeGate>
-  
+
   <!-- Quiz 2: Four Types of Operant Conditioning, Question 1 -->
   <MarkupProblem id="four_types_practice_1" title="Question 1: Sticker"><![CDATA[
 ## Practice Quiz: The Four Types of Operant Conditioning
@@ -829,7 +829,7 @@ Remember:
       </Markdown>
     </Vertical>
   </IntakeGate>
-  
+
   <Vertical id="draft_full_email">
       <Markdown>
           ## Writing the Email to Annie's Friend
@@ -1049,7 +1049,7 @@ Remember:
           Please tell everyone I really appreciate their ideas! Y'all are lifesavers!
       </Markdown>
     </IntakeGate>
-    
+
     <Vertical id="psych_sba_part_2_completion_page">
       <Markdown>
         **Confirm that you are done with this exercise.**
@@ -1066,8 +1066,8 @@ Remember:
           sleep refusal.
         - Next time, you will review and apply several other concepts from your coursework
           in psychology to help Annie's roommate even more.
-          
-    
+
+
 ## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
         </Markdown>
       </IntakeGate>

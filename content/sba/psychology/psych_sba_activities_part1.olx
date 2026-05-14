@@ -612,7 +612,7 @@ the screen time, remove a misused toy, or give a brief time-out._
   <Markdown>**Confirm that you are done with this exercise.**</Markdown>
   <Key id="Part_1_finished">I don't need to make any more changes</Key>
   <Markdown>&nbsp;
-  
+
   &nbsp;
   </Markdown>
   <IntakeGate ready="'Part_1_finished' in @psych_sba_part_1_completion_page.value">
@@ -625,7 +625,7 @@ the screen time, remove a misused toy, or give a brief time-out._
   - Next time, you will review and apply several other concepts from your coursework
     in psychology to help Annie's roommate learn to use **operant conditioning** principles
     to modify the child's behavior.
-    
+
     ## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
     </Markdown>
   </IntakeGate>

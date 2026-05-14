@@ -12,10 +12,10 @@ lang: en-Latn-US
   <ActionButton id="print_interdisciplinary_part1_btn" label="Export as PDF">
     <PrintAction id="print_interdisciplinary_part1" />
   </ActionButton>
- 
+
    <IntakeGate ready="!@interdisciplinary_1_completion_page.value">
    <Markdown> </Markdown>
-   <Vertical>   
+   <Vertical>
   <!-- ORIENTATION -->
     <SplitPanel id="interdisciplinary_orientation" title="Introduction" sizes="65,35">
       <LeftPane>
@@ -44,9 +44,9 @@ Comm360's services can be developed to address the problem.
       </RightPane>
     </SplitPanel>
 
-    <Image id="interdisciplinary_gsu_plaza_image" 
-         src="/sba/interdisciplinary/images/GSU_Library_Plaza.jpg" 
-         alt="GSU Library Plaza. Photograph by Hwi Padam, CC by SA 4.0" 
+    <Image id="interdisciplinary_gsu_plaza_image"
+         src="/sba/interdisciplinary/images/GSU_Library_Plaza.jpg"
+         alt="GSU Library Plaza. Photograph by Hwi Padam, CC by SA 4.0"
          height="400px"
     />
 
@@ -64,7 +64,7 @@ This is Part One. In Parts Two and Three you will complete the rest of the inter
 research process.
     </Markdown>
 
-    <Image id="cause_brainstorming" 
+    <Image id="cause_brainstorming"
          src="/sba/interdisciplinary/images/team_workshop.jpg"
          height="400px"
          alt="Talking about processes at a team brainstorming session. Source: UCT MOOC, CC by SA 4.0 International License" />
@@ -165,7 +165,7 @@ right of "Annotations"._
        <Markdown id="transcript_md2" src="readings/focus_group_transcript_highlighted.md"/>
      </Vertical>
    </IntakeGate>
-   
+
    <IntakeGate ready="!@interdisciplinary_1_completion_page.value">
     <Markdown> </Markdown>
      <Vertical id="reasons_list">
@@ -196,7 +196,7 @@ right of "Annotations"._
        <Use ref="disciplines" />
      </Vertical>
      <SplitPanel id="brainstorming_disciplines">
-      <LeftPane>      
+      <LeftPane>
         <Use ref="full_cause_list" />
       </LeftPane>
       <RightPane>
@@ -243,7 +243,7 @@ _Select the causes you think are most important to research._
       <Ref target="reasons" />
      </Vertical>
     </IntakeGate>
-    
+
     <!-- Explanation input -->
     <Vertical id="reason_explanation_input">
       <Use id="reasons_shown2" ref="reasons_shown" />
@@ -260,7 +260,7 @@ _Select the causes you think are most important to research._
    <IntakeGate ready="!@interdisciplinary_1_completion_page.value">
     <Markdown> </Markdown>
       <Vertical>
-        <Image id="task_set_3_intro" 
+        <Image id="task_set_3_intro"
            src="/sba/interdisciplinary/images/the_thinker.jpg"
            height="400px"
            alt="Photograph of the Rodin sculpture, 'The Thinker' by Tammy Lo. CC by SS 2.0 Generic." />
@@ -271,7 +271,7 @@ _Select the causes you think are most important to research._
         </Vertical>
       </Vertical>
     </IntakeGate>
-    
+
     <Tabs id="first_pass_on_criteria">
       <Vertical id="first_pass_t1" title="My Evaluation">
         <Markdown>
@@ -296,7 +296,7 @@ _Select the causes you think are most important to research._
         cols: Psychology, Sociology, Economics, Political Science, Health Sciences
         rows: Students need money to help family, Depression/anxiety/ADHD interferes, Gang activity / neighborhood instability, Lack of school funding
       </TabularMCQ>
-  
+
     </Vertical>
 
    <IntakeGate ready="!@interdisciplinary_1_completion_page.value">
@@ -351,7 +351,7 @@ This confirms that the high school dropout problem spans multiple disciplines, m
       <Markdown id="adhd_study_text_md" src="readings/research_study_adhd_dropout.md" />
     </Vertical>
    </IntakeGate>
-   
+
    <IntakeGate ready="!@interdisciplinary_1_completion_page.value">
     <Markdown> </Markdown>
       <!-- ADHD study with highlights shown -->
@@ -377,7 +377,7 @@ These terms indicate this study comes from **Psychology**, specifically educatio
         </Vertical>
       </Tabs>
     </IntakeGate>
-    
+
     <Tabs id="adhd_insight_sentence_tabs">
       <Vertical id="adhd_insight_screen" title="My Insight Sentence">
           <Markdown>
@@ -389,7 +389,7 @@ These terms indicate this study comes from **Psychology**, specifically educatio
          <Use ref="adhd_study_text"/>
       </Vertical>
     </Tabs>
-    
+
     <Tabs id="adhd_insight_sentence_choice">
       <Vertical id="adhd_insight_sentence_choice_screen" title="Choose the Best Insight Sentence">
         <Markdown>
@@ -702,7 +702,7 @@ click on the "Annotate" button and explain what discipline this clue suggests, a
     </Vertical>
   </Tabs>
  </Vertical>
- 
+
    <!-- Completion summary -->
   <Vertical id="completion_interdisciplinary_1" >
   <CheckboxInput id="interdisciplinary_1_completion_page">
@@ -713,12 +713,12 @@ click on the "Annotate" button and explain what discipline this clue suggests, a
    <Markdown> </Markdown>
    <Markdown>
 ## Part 1 Complete!
-  
+
 ## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
      </Markdown>
    </IntakeGate>
   </Vertical>
 
- 
+
 </Vertical>
 </Cast>

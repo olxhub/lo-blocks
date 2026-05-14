@@ -12,7 +12,7 @@ lang: en-Latn-US
   <ActionButton id="print_interdisciplinary_part2_btn" label="Export as PDF">
     <PrintAction id="print_interdisciplinary_part2" />
   </ActionButton>
-  
+
    <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
      <Markdown> </Markdown>
      <Markdown id="interdisciplinary_orientation2">
@@ -29,12 +29,12 @@ Please keep in mind that this is a learning opportunity, not a test. You will of
   </IntakeGate>
 
     <!-- Causes by disciplines mapping -->
-      <CapaProblem id="insight_review" title="Map Each Insight to Relevant Disciplines"> 
+      <CapaProblem id="insight_review" title="Map Each Insight to Relevant Disciplines">
         <TabularMCQGrader>
           <TabularMCQ id="insight_to_discipline_mapping">
         mode: checkbox
         cols: Economics|Econ, Health Sciences|HealthSci, Political Science|PoliSci, Psychology|Psych, Sociology|Soc
-        rows: 
+        rows:
          - "If a student feels they need to earn money right away to help their family, they might drop out to get a full-time job[Econ, Soc]"
          - "Conditions like depression, anxiety, or ADHD can interfere with a student's ability to get good grades and remain engaged in school.[Psych]"
          - "A student's environment may increase their likelihood of dropping out if they live in an area affected by gang activity, neighborhood instability, and limited support systems, as seen in some urban communities.[Econ, Soc]"
@@ -44,7 +44,7 @@ Please keep in mind that this is a learning opportunity, not a test. You will of
    </CapaProblem>
 
   <Vertical id="initial_dropout_cause_diagram">
-    <Markdown> 
+    <Markdown>
 **Edit the diagram in the editor below so that it shows the connections
 you chose on the last screen.** _The graph shown updates as you type. To avoid getting into trouble,
 do not change the text that is already there, just
@@ -61,8 +61,8 @@ by a right angle bracket >)_
       </CheckboxInput>
      </LeftPane>
      <RightPane>
-      <ActionButton 
-        id="restore_initial_diagram_btn" 
+      <ActionButton
+        id="restore_initial_diagram_btn"
         label="Restore Original Diagram">
           <SetFieldAction target="initial_links_done" field="value" value="" />
           <SetFieldAction target="editor_cause_diagram" field="value" value="
@@ -128,7 +128,7 @@ graph LR
       </Mermaid>
      </Vertical>
    </IntakeGate>
-   
+
    <SplitPanel id="classify_map">
      <LeftPane>
        <Markdown>
@@ -149,7 +149,7 @@ _Click on the correct answer._
 
 **Why did you choose this answer?**
          </Markdown>
-         <TextArea id="cause_mapping_choice_explanation" placeholder="Enter your explanation..." />       
+         <TextArea id="cause_mapping_choice_explanation" placeholder="Enter your explanation..." />
        </Vertical>
       </IntakeGate>
      </LeftPane>
@@ -157,9 +157,9 @@ _Click on the correct answer._
        <Use id="cause_mapping2" ref="cause_mapping" />
      </RightPane>
    </SplitPanel>
-  <Vertical id="dropout_factor_combos"> 
+  <Vertical id="dropout_factor_combos">
    <Markdown>
-**Which other relationships between causal factors do you think are important?** 
+**Which other relationships between causal factors do you think are important?**
    </Markdown>
    <CheckboxInput id="dropout_factor_checkboxes">
     <Key id="combo_1">
@@ -211,7 +211,7 @@ Equitable School Funding | ADHD Status
   </Vertical>
 
   <Vertical id="revise_dropout_cause_diagram">
-    <Markdown> 
+    <Markdown>
 **Edit the diagram in the editor below so that it shows the connections
 you chose on the last screen.** _The graph shown updates as you type. To avoid getting into trouble,
 do not change the text that is already there, just
@@ -231,8 +231,8 @@ _(note that to type the arrow, type two hyphens - - followed by a right angle br
       </CheckboxInput>
      </LeftPane>
      <RightPane>
-      <ActionButton 
-        id="restore_cause_diagram_btn" 
+      <ActionButton
+        id="restore_cause_diagram_btn"
         label="Restore Original Diagram">
           <SetFieldAction target="extra_links_done" field="value" value="" />
           <SetFieldAction target="editor" field="value" value="
@@ -276,7 +276,7 @@ graph LR
     </RightPane>
    </SplitPanel>
   </Vertical>
-   
+
    <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
      <Markdown> </Markdown>
      <Vertical>
@@ -288,7 +288,7 @@ graph LR
     style C2 fill:#e1f5ff
 ]]>
       </Mermaid>
-  
+
     <Vertical id="cause_connection_2">
       <Mermaid id="cause_connection_2_mermaid"><![CDATA[
 graph LR
@@ -303,7 +303,7 @@ graph LR
 These students are most likely trying to help their families financially.**
       </Markdown>
     </Vertical>
-  
+
     <Mermaid id="cause_mapping_2"><![CDATA[
 graph LR
     C1[Family and Peer Factors] --> D1[Dropping out of high school]
@@ -320,7 +320,7 @@ graph LR
     style D1 fill:#fff4e1
 ]]>
     </Mermaid>
-  
+
     <SplitPanel id="cause_mapping_with_first_crosslink">
      <LeftPane>
       <Markdown id="cause_mapping_introduction">
@@ -350,7 +350,7 @@ These students are most likely trying to help their families financially.
       <Mermaid id="cause_connection_3"><![CDATA[
 graph LR
     C1[Family and Peer Factors] --> C4[ADHD Status]
-    
+
     style C1 fill:#e1f5ff
     style C4 fill:#e1f5ff
 ]]>
@@ -358,7 +358,7 @@ graph LR
       <Mermaid id="cause_connection_4"><![CDATA[
 graph LR
     C3[Equitable School Funding] --> C2[Students Working Long Hours]
-    
+
     style C2 fill:#e1f5ff
     style C3 fill:#e1f5ff
 ]]>
@@ -366,7 +366,7 @@ graph LR
       <Mermaid id="cause_connection_5"><![CDATA[
 graph LR
     C3[Equitable School Funding] --> C4[ADHD Status]
-    
+
     style C3 fill:#e1f5ff
     style C4 fill:#e1f5ff
 ]]>
@@ -374,13 +374,13 @@ graph LR
     </Vertical>
    </Vertical>
   </IntakeGate>
-  
+
   <SplitPanel id="factors_1_to_4">
    <LeftPane>
      <Markdown>## Mapping Causes of High School Dropout</Markdown>
      <Use id="cause_connection_3b" ref="cause_connection_3" />
-     <TextArea id="cause_connection_3_explanation" 
-              placeholder="How you think the two factors might interact, if they do..." />       
+     <TextArea id="cause_connection_3_explanation"
+              placeholder="How you think the two factors might interact, if they do..." />
     </LeftPane>
     <RightPane>
       <Mermaid id="cause_mapping_3"><![CDATA[
@@ -430,25 +430,25 @@ research as key determinants.
         <Vertical id="factor_connection_3_explanation_block">
           <Markdown>
     &nbsp;
-    
+
     **Why did you choose the sentence you picked?**</Markdown>
-          <TextArea id="cause_connection_3_choice_explanation" 
-              placeholder="Put your answer here..." /> 
-       </Vertical>              
+          <TextArea id="cause_connection_3_choice_explanation"
+              placeholder="Put your answer here..." />
+       </Vertical>
       </IntakeGate>
      </LeftPane>
      <RightPane>
        <Use id="cause_mapping3c" ref="cause_mapping_3" />
      </RightPane>
     </SplitPanel>
-  </Vertical>  
+  </Vertical>
   <SplitPanel id="factors_2_to_3">
    <LeftPane>
     <Use id="cause_connection_4a" ref="cause_connection_4" />
     <Markdown>
     **Explain the connection between long working hours and equitable school funding**</Markdown>
-    <TextArea id="cause_connection_4_explanation" 
-              placeholder="Put your answer here..." /> 
+    <TextArea id="cause_connection_4_explanation"
+              placeholder="Put your answer here..." />
    </LeftPane>
    <RightPane>
     <Use ref="cause_mapping_3" />
@@ -479,9 +479,9 @@ needed by students who must work long hours.
          <Vertical id="cause_connection_4_explanation_block">
            <Markdown>
 &nbsp;
-    
+
 **Why did you choose the sentence you picked?**</Markdown>
-          <TextArea id="cause_connection_4_choice_explanation" 
+          <TextArea id="cause_connection_4_choice_explanation"
               placeholder="Put your answer here..." />
          </Vertical>
        </IntakeGate>
@@ -496,8 +496,8 @@ needed by students who must work long hours.
     <Use id="cause_connection_5a" ref="cause_connection_5" />
     <Markdown>
     **Explain how these two factors are related**</Markdown>
-    <TextArea id="cause_connection_5_explanation" 
-              placeholder="Put your answer here..." /> 
+    <TextArea id="cause_connection_5_explanation"
+              placeholder="Put your answer here..." />
    </LeftPane>
    <RightPane>
     <Use ref="cause_mapping_3" />
@@ -528,9 +528,9 @@ without adequate resources.
       <Vertical id="cause_connection_5_choice_explanation_panel">
         <Markdown>
     &nbsp;
-    
+
     **Why did you choose the sentence you picked?**</Markdown>
-        <TextArea id="cause_connection_5_choice_explanation" 
+        <TextArea id="cause_connection_5_choice_explanation"
               placeholder="Put your answer here..." />
        </Vertical>
       </IntakeGate>
@@ -540,7 +540,7 @@ without adequate resources.
      </RightPane>
     </SplitPanel>
   </Vertical>
-  
+
   <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
     <Markdown> </Markdown>
     <Vertical id="overview_of_connections">
@@ -559,7 +559,7 @@ without adequate resources.
         <RightPane>
           <Use id="factor_connection_2_key_b" ref="factor_connection_2_key" />
         </RightPane>
-      </SplitPanel>    
+      </SplitPanel>
       <SplitPanel id="comparison_3">
         <LeftPane>
           <Use id="cause_connection_5b" ref="cause_connection_5" />
@@ -570,7 +570,7 @@ without adequate resources.
       </SplitPanel>
     </Vertical>
   </IntakeGate>
-  
+
   <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
     <Markdown> </Markdown>
     <SplitPanel id="extended_summary">
@@ -586,7 +586,7 @@ without adequate resources.
       </RightPane>
     </SplitPanel>
   </IntakeGate>
-  
+
   <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
     <Markdown> </Markdown>
     <Vertical id="reading_funding_text" popout="window">
@@ -596,7 +596,7 @@ without adequate resources.
       <Use ref="reading_funding2a" />
     </Vertical>
   </IntakeGate>
-  
+
    <!-- Employment Study (Source 2) - identify disciplines -->
    <Tabs id="reading_funding_checkboxes">
       <Vertical id="reading_funding_t1" title="Identify Relevant Disciplines">
@@ -663,13 +663,13 @@ Sociology
       <Vertical id="reading_funding_t2" title="School Funding Study">
           <Use id="reading_funding_text_b" ref="reading_funding_text" />
       </Vertical>
-    </Tabs>  
-    
+    </Tabs>
+
   <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
     <Markdown> </Markdown>
     <Markdown id="reading_funding_highlighted" src="readings/research_study_school_funding_highlighted.md"  popout="window" />
   </IntakeGate>
-  
+
   <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
     <Markdown> </Markdown>
     <Tabs id="reading_funding_insight">
@@ -684,7 +684,7 @@ Sociology
       </Vertical>
     </Tabs>
   </IntakeGate>
-  
+
   <Tabs id="reading_funding_insight_choice">
      <SplitPanel id="reading_funding_insight_choice_panel" title="Choose the Best Insight Sentence">
       <LeftPane>
@@ -729,7 +729,7 @@ Sustained increases in school spending significantly improve educational attainm
        <Use ref="reading_funding_highlighted" />
      </Vertical>
     </Tabs>
-    
+
   <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
     <Markdown> </Markdown>
     <Tabs id="best_reading_funding_insight_sentence_display">
@@ -744,9 +744,9 @@ Sustained increases in school spending significantly improve educational attainm
      </Vertical>
    </Tabs>
   </IntakeGate>
-  
+
   <Vertical id="revise_dropout_cause_diagram_with_finance_reform">
-    <Markdown> 
+    <Markdown>
 **Edit the diagram in the editor below by adding a node for "School Finance Reform" and adding connections
 showing its causal impacts.** _The graph shown updates as you type._
     </Markdown>
@@ -757,8 +757,8 @@ showing its causal impacts.** _The graph shown updates as you type._
       </CheckboxInput>
      </LeftPane>
      <RightPane>
-      <ActionButton 
-        id="restore_expanded_cause_diagram_btn" 
+      <ActionButton
+        id="restore_expanded_cause_diagram_btn"
         label="Restore Original Diagram">
           <SetFieldAction target="extra_links_done_finance_reform" field="value" value="" />
           <SetFieldAction target="editor_finance_reform" field="value" value="
@@ -834,7 +834,7 @@ graph LR
 ]]>
      </Mermaid>
   </IntakeGate>
-  
+
   <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
     <Markdown> </Markdown>
     <Vertical id="overview_of_connections_2">
@@ -876,7 +876,7 @@ There are important family characteristics that directly benefit from increased 
       </SplitPanel>
     </Vertical>
   </IntakeGate>
-  
+
   <IntakeGate ready="!@interdisciplinary_2_completion_page.value">
     <Markdown> </Markdown>
     <SplitPanel id="extended_summary_2">
@@ -905,7 +905,7 @@ There are important family characteristics that directly benefit from increased 
    <Markdown> </Markdown>
    <Markdown>
 ## Part 1 Complete!
-  
+
 ## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
      </Markdown>
    </IntakeGate>

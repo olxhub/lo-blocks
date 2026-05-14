@@ -12,7 +12,7 @@ lang: en-Latn-US
   <ActionButton id="print_psych_part4_btn" label="Export as PDF">
     <PrintAction id="print_psych_part4" />
   </ActionButton>
-  
+
   <IntakeGate ready="!@psych_sba_part_4_completion_page.value">
    <Markdown> </Markdown>
    <Vertical>
@@ -29,7 +29,7 @@ In this module, you will review and apply several concepts from your coursework 
  - **Brainstorm revisions to the intervention plan developed in earlier modules**
  - **Use an AI Assistant to support learning and problem solving**
    </Markdown>
-  
+
   <Markdown id="psych_sba_4_clear">
       &nbsp;
   </Markdown>
@@ -421,7 +421,7 @@ With better adherence to the plan, Johnny's bedtime behavior improved significan
     </Vertical>
    </Vertical>
   </IntakeGate>
-  
+
   <!-- Final email -->
   <Tabs id="revision_suggestion_email">
     <Vertical id="revision_left" title="One More Suggestion ...">
@@ -525,7 +525,7 @@ You successfully helped Annie's roommate solve Johnny's bedtime problem by:
 - Recognizing and addressing implementation fidelity issues
 
 **Great work using behavioral psychology to solve a real problem!**
-  
+
 ## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
      </Markdown>
    </IntakeGate>
