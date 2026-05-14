@@ -92,11 +92,13 @@ Updated Plan [id=fba3_updated_plan_section]
 
 JJ: Great choices! I totally agree.
 
-Lin: Me too. Let's see the full, updated plan!
+Lin: Me too. Let's have AI put together the full, updated plan with your modifications! Click "Generate Updated Plan" on the right.
 
 psych_sba_sidebar6 -> fba3_updated_plan
 
-Annie: I will let you know how it goes in another 2 weeks!
+--- wait @fba3_updated_plan_response.value ---
+
+Annie: That looks great! I'll send this to my roommate. Let you know how it goes in another 2 weeks!
 
 Two Weeks Later [id=fba3_followup_section]
 ----------------

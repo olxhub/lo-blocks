@@ -185,7 +185,7 @@ Lin: Okay, let's put it all together. Using the colored diagram on the top-right
 
 JJ: Lianne showed us this in class -- it's called a Competing Behavior Pathway!
 
---- wait @fba2_pathway_antecedent.value && @fba2_pathway_behavior.value && @fba2_pathway_consequence.value && @fba2_pathway_function.value ---
+--- wait @fba2_pathway_behavior.value && @fba2_pathway_consequence.value && @fba2_pathway_function.value ---
 
 psych_sba_sidebar5 -> fba2_competing_pathway_jj
 
@@ -246,7 +246,7 @@ JJ: Okay, great! We've got a lot of ideas here. Let's put them into a graphic or
 
 Annie: Let's fill this one out with our new ideas.
 
---- wait @fba2_revised_antecedent.value && @fba2_revised_consequence.value ---
+--- wait @fba2_revised_antecedent.value && @fba2_revised_desired.value && @fba2_revised_consequence.value ---
 
 Behavior Modification Plan [id=fba2_plan_section]
 ---------------------------
