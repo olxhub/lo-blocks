@@ -1,15 +1,15 @@
 <!--
 ---
-description: "Activities used in Psychology Study Group: 5. Function of Behavior. Not a separate activity; included to support content editing."
+description: "Activities used in Psychology Study Group: 3 Auto. Function of Behavior. Not a separate activity; included to support content editing."
 category: psychology
-index: 55
+index: 53.5
 lang: en-Latn-US
 ---
 -->
-<Vertical id="psych_sba_activities_part5" title="Psychology Study Group: 5. Function of Behavior (Activities)" launchable="true">
+<Vertical id="psych_sba_activities_part3auto" title="Psychology Study Group: 3 Auto. Function of Behavior (Activities)" launchable="true">
 
-<ActionButton id="print_psych_part5_btn" label="Export as PDF">
-<PrintAction id="print_psych_part5" />
+<ActionButton id="print_psych_part3auto_btn" label="Export as PDF">
+<PrintAction id="print_psych_part3auto" />
 </ActionButton>
 
 
@@ -784,10 +784,10 @@ Based on everything you have learned in this activity, write an email to Annie's
 <Markdown>**Confirm that you are done with this exercise.**</Markdown>
 
 <CheckboxInput id="fba2_completion_checkbox">
-<Key id="fba2_part_5_finished">I don't need to make any more changes</Key>
+<Key id="fba2_part_3auto_finished">I don't need to make any more changes</Key>
 </CheckboxInput>
 
-<IntakeGate ready="'fba2_part_5_finished' in @fba2_completion_checkbox.value">
+<IntakeGate ready="'fba2_part_3auto_finished' in @fba2_completion_checkbox.value">
 <Markdown> </Markdown>
 <Markdown>
 - In this activity, you learned about the **function of behavior** (attention, escape,

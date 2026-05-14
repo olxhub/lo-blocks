@@ -1,4 +1,4 @@
-title: Psychology Study Group, Task 6 - Progress Monitoring & Implementation Fidelity
+title: Psychology Study Group, Task 4 Auto - Progress Monitoring & Implementation Fidelity
 authors: EDUC 3100 Assessment Module
 cast:
   Annie:
@@ -22,7 +22,7 @@ cast:
 
 Introduction [id=fba3_intro_section]
 ------------
-psych_sba_sidebar6 -> fba3_introduction
+psych_sba_sidebar4auto -> fba3_introduction
 
 Lin: So how did the intervention go with your roommate?
 
@@ -32,7 +32,7 @@ JJ: That doesn't sound good at all.
 
 Progress Monitoring [id=fba3_progress_section]
 -------------------
-psych_sba_sidebar6 -> fba3_progress_graph_1
+psych_sba_sidebar4auto -> fba3_progress_graph_1
 
 Lin: Let's talk to our professor to find more resources to help improve the plan.
 
@@ -42,19 +42,19 @@ Lianne: Looks like you need to improve on implementation fidelity.
 
 Implementation Fidelity [id=fba3_fidelity_section]
 ------------------------
-psych_sba_sidebar6 -> fba3_fidelity_info
+psych_sba_sidebar4auto -> fba3_fidelity_info
 
 Lin: Okay, our professor gave us lots of good resources. Intervention fidelity refers to how accurately and consistently a behavior plan is implemented as it was designed.
 
 JJ: In other words, was Annie's roommate doing what our plan says they should do?
 
-psych_sba_sidebar6 -> fba3_fidelity_tabs
+psych_sba_sidebar4auto -> fba3_fidelity_tabs
 
 Annie: Now we're getting somewhere! Let me text my roommate to see exactly where things went wrong...
 
 Fidelity Check [id=fba3_fidelity_check_section]
 ---------------
-psych_sba_sidebar6 -> fba3_fidelity_check
+psych_sba_sidebar4auto -> fba3_fidelity_check
 
 Annie: My roommate got back to me! She said that sometimes she forgets to do the warning countdown and timer, she forgets the small bedtime reward, and often falls into negotiating or arguing when he whines for extended time.
 
@@ -67,21 +67,21 @@ JJ: Looks like she is struggling with adherence, mostly.
 
 Lin: Right. Let's have AI help brainstorm how we can help her.
 
-psych_sba_sidebar6 -> fba3_ai_adherence
+psych_sba_sidebar4auto -> fba3_ai_adherence
 
 --- wait @fba3_ai_adherence_response.value ---
 
 Modifications [id=fba3_modifications_section]
 --------------
-psych_sba_sidebar6 -> fba3_modifications_display
+psych_sba_sidebar4auto -> fba3_modifications_display
 
 JJ: AI came up with some great ideas!
 
-psych_sba_sidebar6 -> fba3_checklist_display
+psych_sba_sidebar4auto -> fba3_checklist_display
 
 Lin: And here's a fidelity checklist we can give to Annie's roommate.
 
-psych_sba_sidebar6 -> fba3_modification_selection
+psych_sba_sidebar4auto -> fba3_modification_selection
 
 Annie: Great! Of these modifications, which ones do you think we should add? Pick up to 2.
 
@@ -94,7 +94,7 @@ JJ: Great choices! I totally agree.
 
 Lin: Me too. Let's have AI put together the full, updated plan with your modifications! Click "Generate Updated Plan" on the right.
 
-psych_sba_sidebar6 -> fba3_updated_plan
+psych_sba_sidebar4auto -> fba3_updated_plan
 
 --- wait @fba3_updated_plan_response.value ---
 
@@ -102,7 +102,7 @@ Annie: That looks great! I'll send this to my roommate. Let you know how it goes
 
 Two Weeks Later [id=fba3_followup_section]
 ----------------
-psych_sba_sidebar6 -> fba3_progress_graph_2
+psych_sba_sidebar4auto -> fba3_progress_graph_2
 
 JJ: That looks much better!
 
@@ -112,12 +112,12 @@ Lin: That's amazing! I'm so glad we were able to help this time.
 
 Reflection [id=fba3_reflection_section]
 -----------
-psych_sba_sidebar6 -> fba3_reflection
+psych_sba_sidebar4auto -> fba3_reflection
 
 Annie: Let's write up our reflection on this whole experience.
 
 --- wait @fba3_reflection_text.value ---
 
-psych_sba_sidebar6 -> fba3_completion_page
+psych_sba_sidebar4auto -> fba3_completion_page
 
-Lianne: Now you're done with Part 6, you can review all your answers to the right. Use the "Export as PDF" button to save a copy of your answers and upload it to our course system.
+Lianne: Now you're done with Part 4 Auto, you can review all your answers to the right. Use the "Export as PDF" button to save a copy of your answers and upload it to our course system.

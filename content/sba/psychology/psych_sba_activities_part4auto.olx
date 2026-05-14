@@ -1,15 +1,15 @@
 <!--
 ---
-description: "Activities used in Psychology Study Group: 6. Progress Monitoring. Not a separate activity; included to support content editing."
+description: "Activities used in Psychology Study Group: 4 Auto. Progress Monitoring. Not a separate activity; included to support content editing."
 category: psychology
-index: 56
+index: 54.5
 lang: en-Latn-US
 ---
 -->
-<Vertical id="psych_sba_activities_part6" title="Psychology Study Group: 6. Progress Monitoring (Activities)" launchable="true">
+<Vertical id="psych_sba_activities_part4auto" title="Psychology Study Group: 4 Auto. Progress Monitoring (Activities)" launchable="true">
 
-<ActionButton id="print_psych_part6_btn" label="Export as PDF">
-<PrintAction id="print_psych_part6" />
+<ActionButton id="print_psych_part4auto_btn" label="Export as PDF">
+<PrintAction id="print_psych_part4auto" />
 </ActionButton>
 
 
@@ -470,10 +470,10 @@ You have determined that the modified intervention was a success! Write a brief 
 <Markdown>**Confirm that you are done with this exercise.**</Markdown>
 
 <CheckboxInput id="fba3_completion_checkbox">
-<Key id="fba3_part_6_finished">I don't need to make any more changes</Key>
+<Key id="fba3_part_4auto_finished">I don't need to make any more changes</Key>
 </CheckboxInput>
 
-<IntakeGate ready="'fba3_part_6_finished' in @fba3_completion_checkbox.value">
+<IntakeGate ready="'fba3_part_4auto_finished' in @fba3_completion_checkbox.value">
 <Markdown> </Markdown>
 <Markdown>
 - In this activity, you learned about **progress monitoring** and **implementation fidelity**.
