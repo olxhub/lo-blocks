@@ -63,9 +63,13 @@ Lin: I took a picture of a couple of examples that our TA Lianne wrote down on t
 Review of Previously Learned Concepts [id=fba2_reinforcement_review_section]
 --------------------------------------
 
+Lin: Before we go further, let's make sure we remember the basics. Let's work through a few of these until we get, say, 3 in a row right. [face=serious]
+
+JJ: Good idea. That way we know we're not just guessing! [face=smile]
+
 ::fba2_reinforcement_review [display=target:psych_sba_sidebar3auto label="Review Reinforcement Concepts"]
 
---- wait @fba2_billy_question.submitCount > 0 && @fba2_jenny_question.submitCount > 0 ---
+--- wait @fba2_reinforcement_mastery.completed ---
 
 Teaching Function of Behavior [id=fba2_function_teaching]
 ------------------------------
@@ -218,7 +222,7 @@ JJ: Lianne showed us this in class -- it's called a Competing Behavior Pathway!
 
 --- wait @fba2_pathway_behavior.value && @fba2_pathway_consequence.value && @fba2_pathway_function.value ---
 
-::fba2_competing_pathway_jj [display=target:psych_sba_sidebar3auto label="Compare with JJ's Pathway"]
+::fba2_competing_pathway_jj_section [display=target:psych_sba_sidebar3auto label="Compare with JJ's Pathway"]
 
 JJ: Let's compare! [face=smile]
 
