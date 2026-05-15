@@ -7,7 +7,9 @@
 //   npx tsx content/sba/psychology/convert-psych-mcq.js content/sba/psychology/operant-questions.json
 //   npx tsx content/sba/psychology/convert-psych-mcq.js content/sba/psychology/function-questions.json
 //
-// Output: Creates an .auto.olx file with CapaProblems wrapped in a Vertical.
+// Output:
+//   - Creates an .auto.olx file with CapaProblems wrapped in a Vertical.
+//   - Creates an .auto.idlistpeg file with problem IDs for MasteryBank src=.
 // Answer options and ID prefix are derived from the data and filename.
 
 import fs from 'fs';
@@ -66,6 +68,7 @@ function convertJsonToOlx(jsonPath) {
   const basename = path.basename(jsonPath, '.json');
   const dirname = path.dirname(jsonPath);
   const outputPath = path.join(dirname, `${basename}.auto.olx`);
+  const idlistPath = path.join(dirname, `${basename}.auto.idlistpeg`);
 
   // Derive prefix and title from filename: "operant-questions" → "operant", "function-questions" → "function"
   const prefix = basename.replace(/-questions$/, '').replace(/-/g, '_');
@@ -103,7 +106,9 @@ ${problemsXml}
 `;
 
   fs.writeFileSync(outputPath, olxContent);
+  fs.writeFileSync(idlistPath, idList + '\n');
   console.log(`✅ Generated ${outputPath}`);
+  console.log(`✅ Generated ${idlistPath}`);
   console.log(`   ${questions.length} problems created`);
   console.log(`   Answer options: ${answerOptions.join(', ')}`);
 
