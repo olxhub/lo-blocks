@@ -71,9 +71,8 @@ function getHeaderStateClass(correctnessValue: string) {
  * Checkbox and text input problems have similar issues. See MarkupProblemMultipart.olx.
  */
 function useGraderAggregation(props, childGraderIds) {
-  const { id, fields } = props;
-  const hasChildGraders = childGraderIds.length > 0;
-  const sampleGraderId = childGraderIds[0] || id;
+  const { fields } = props;
+  const sampleGraderId = childGraderIds[0];
 
   // inferRelatedNodes returns OlxKeys — convert to ReduxStateKeys for useAggregate
   const childGraderReduxKeys = childGraderIds.map(gid => refToReduxKey({ ...props, id: gid }));
@@ -83,23 +82,21 @@ function useGraderAggregation(props, childGraderIds) {
   const childCorrectnessValues = state.useAggregate(
     props,
     correctField,
-    hasChildGraders ? childGraderReduxKeys : [],
+    childGraderReduxKeys,
     {
       fallback: correctness.unsubmitted,
       aggregate: (values) => values.map(v => v ?? correctness.unsubmitted)
     }
   );
 
-  const aggregatedCorrectness = hasChildGraders
-    ? worstCaseCorrectness(childCorrectnessValues)
-    : correctness.unsubmitted;
+  const aggregatedCorrectness = worstCaseCorrectness(childCorrectnessValues);
 
   // Subscribe to child grader messages
   const messageField = state.componentFieldByName(props, sampleGraderId, 'message');
   const childMessages = state.useAggregate(
     props,
     messageField,
-    hasChildGraders ? childGraderReduxKeys : [],
+    childGraderReduxKeys,
     {
       fallback: '',
       aggregate: (values) => values.map(v => v ?? '')
@@ -113,7 +110,7 @@ function useGraderAggregation(props, childGraderIds) {
   const childSubmitCounts = state.useAggregate(
     props,
     submitCountField,
-    hasChildGraders ? childGraderReduxKeys : [],
+    childGraderReduxKeys,
     {
       fallback: 0,
       aggregate: (values) => values.map(v => v ?? 0)
@@ -121,26 +118,27 @@ function useGraderAggregation(props, childGraderIds) {
   );
   const totalSubmitCount = Math.max(...childSubmitCounts, 0);
 
+  // Aggregate score: count of correct children
+  const score = childCorrectnessValues.filter(v => v === correctness.correct).length;
+
   // Update CapaProblem's own fields with aggregated values
   // props object changes on every render, only re-run when values change
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    if (fields?.correct) {
-      state.updateField(props, fields.correct, aggregatedCorrectness);
-    }
+    state.updateField(props, fields.correct, aggregatedCorrectness);
   }, [aggregatedCorrectness, props.id, fields]);
 
   useEffect(() => {
-    if (fields?.message) {
-      state.updateField(props, fields.message, message);
-    }
+    state.updateField(props, fields.message, message);
   }, [message, props.id, fields]);
 
   useEffect(() => {
-    if (fields?.submitCount) {
-      state.updateField(props, fields.submitCount, totalSubmitCount);
-    }
+    state.updateField(props, fields.submitCount, totalSubmitCount);
   }, [totalSubmitCount, props.id, fields]);
+
+  useEffect(() => {
+    state.updateField(props, fields.score, score);
+  }, [score, props.id, fields]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
   return { correctness: aggregatedCorrectness, message, submitCount: totalSubmitCount };
