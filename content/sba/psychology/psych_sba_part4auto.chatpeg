@@ -1,0 +1,142 @@
+title: Psychology Study Group, Task 4 Auto - Progress Monitoring & Implementation Fidelity
+authors: EDUC 3100 Assessment Module
+
+~~~~
+
+Introduction [id=fba3_intro_section]
+------------
+
+::fba3_introduction [display=target:psych_sba_sidebar4auto label="View Introduction"]
+
+Lin: So how did the intervention go with your roommate?
+
+Annie: Thanks for asking! My roommate read our intervention plan. She tracked his progress in her journal. Over the past 2 weeks, she babysat 5 times. He went to bed on time 2 of the 5 occasions. On one of those occasions where he did not go to bed on time, she noted that she did not exactly follow our plan. In fact, the escape behaviors seem to have gotten worse over time! [face=worried]
+
+JJ: That doesn't sound good at all. [face=concerned]
+
+Progress Monitoring [id=fba3_progress_section]
+-------------------
+
+::fba3_predict_fidelity [display=target:psych_sba_sidebar4auto label="View Progress Data"]
+
+--- wait @fba3_interpretation_confidence.value ---
+
+Lin: Let's talk to our professor to find more resources to help improve the plan.
+
+Annie: We showed the graph to the professor and explained that the roommate admitted she did not follow all of the consequence strategies.
+
+Lianne: Looks like you need to improve on implementation fidelity. [face=serious]
+
+Implementation Fidelity [id=fba3_fidelity_section]
+------------------------
+
+Lin: Okay, our professor gave us lots of good resources. Intervention fidelity refers to how accurately and consistently a behavior plan is implemented as it was designed.
+
+JJ: In other words, was Annie's roommate doing what our plan says they should do? [face=explaining]
+
+::fba3_fidelity_tabs [display=target:psych_sba_sidebar4auto label="Practice Fidelity Concepts"]
+
+Annie: Now we're getting somewhere! Let me text my roommate to see exactly where things went wrong...
+
+Fidelity Check [id=fba3_fidelity_check_section]
+---------------
+
+::fba3_fidelity_check [display=target:psych_sba_sidebar4auto label="Diagnose the Fidelity Issue"]
+
+Annie: My roommate got back to me! She said that sometimes she forgets to do the warning countdown and timer, she forgets the small bedtime reward, and often falls into negotiating or arguing when he whines for extended time.
+
+--- wait @fba3_fidelity_choice.submitCount > 0 ---
+
+Improving Adherence [id=fba3_adherence_section]
+--------------------
+
+JJ: Looks like she is struggling with adherence, mostly.
+
+Lin: Right. Let's have AI help brainstorm how we can help her.
+
+JJ: I tried just asking "How can I improve adherence to the intervention plan?" but I got a really long, generic set of suggestions that wasn't very helpful. [face=explaining]
+
+Lin: Well, that's because you didn't give it any context. We have to give enough background so it's giving advice on the problem we're actually trying to solve. Otherwise, it just fills in the blanks with general stuff that sounds reasonable but isn't really tailored to our needs. [face=serious]
+
+JJ: What sort of context do we need?
+
+Lianne: Well, you might want to make sure it knows that this is a psychology intervention using operant conditioning. And it really needs to know what plan you were following, and what specific problems Annie's roommate was having. [face=calm]
+
+Annie: In short, we have to make everything explicit! Let's lay it all out this time. [face=smile]
+
+::fba3_ai_adherence [display=target:psych_sba_sidebar4auto label="Ask AI About Adherence"]
+
+--- wait @fba3_ai_adherence_response.value ---
+
+Modifications [id=fba3_modifications_section]
+--------------
+
+::fba3_modifications_display [display=target:psych_sba_sidebar4auto label="View Modification Ideas"]
+
+JJ: AI came up with some great ideas! [face=smile]
+
+Annie: This is a lot. We'd better read it carefully to make sure it's all in line with what we've been taught.
+
+::fba3_checklist_display [display=target:psych_sba_sidebar4auto label="View Fidelity Checklist"]
+
+Lin: And here's a fidelity checklist we can give to Annie's roommate. It covers the bedtime routine steps.
+
+JJ: I added some items about how to respond to escape behaviors, too. [face=explaining]
+
+::fba3_modification_selection [display=target:psych_sba_sidebar4auto label="Choose Modifications"]
+
+Annie: Great! Of these modifications, which ones do you think we should add? Pick up to 2.
+
+--- wait @fba3_modification_explanation.value ---
+
+One More Suggestion [id=fba3_revision_section]
+--------------------
+
+Annie: Before we finalize, I think we should write one more specific suggestion for my roommate -- something beyond just "use the checklists." You can look at the AI's suggestions for ideas, but try to make it your own.
+
+::fba3_revision_email [display=target:psych_sba_sidebar4auto label="Write One More Suggestion"]
+
+--- wait @fba3_revision_email_text.value ---
+
+Updated Plan [id=fba3_updated_plan_section]
+-------------
+
+JJ: Great choices! I totally agree. [face=smile]
+
+Lin: Me too. Let's have AI put together the full, updated plan with your modifications! Click "Generate Updated Plan" on the right.
+
+::fba3_updated_plan [display=target:psych_sba_sidebar4auto label="Generate Updated Plan"]
+
+--- wait @fba3_updated_plan_response.value ---
+
+Annie: That looks great! I'll send this to my roommate. Let you know how it goes in another 2 weeks! [face=smile]
+
+Two Weeks Later [id=fba3_followup_section]
+----------------
+
+::fba3_progress_graph_2 [display=target:psych_sba_sidebar4auto label="View Follow-Up Progress"]
+
+JJ: That looks much better! [face=smile]
+
+Annie: I know, right? My roommate is much happier. He is going to bed on time more often, and his parents even asked my roommate for her secrets on how she got him to go to bed on time! [face=smile]
+
+Lin: That's amazing! I'm so glad we were able to help this time. [face=smile]
+
+Reflection [id=fba3_reflection_section]
+-----------
+
+::fba3_reflection [display=target:psych_sba_sidebar4auto label="Write Reflection"]
+
+Annie: Let's write up our reflection on this whole experience.
+
+--- wait @fba3_reflection_text.value ---
+
+::fba3_completion_page [display=target:psych_sba_sidebar4auto label="Complete Exercise"]
+
+Annie: Thanks everyone. This was a great learning experience -- we really used what we learned in psychology class to solve a real problem! [face=smile]
+
+Lin: And we learned about function of behavior, the ABCs, competing behavior pathways, and implementation fidelity along the way.
+
+JJ: Great teamwork! [face=smile]
+
+Lianne: Now you're done with Part 4 Auto, you can review all your answers to the right. Use the "Export as PDF" button to save a copy of your answers and upload it to our course system.

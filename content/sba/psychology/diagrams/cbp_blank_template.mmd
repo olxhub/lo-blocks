@@ -1,0 +1,16 @@
+flowchart LR
+  A["Antecedent:<br/>(trigger)"] --> PB["Problem Behavior:<br/>(what the child does)"] --> C["Consequence:<br/>(what happens next)"]
+  C --> F["Function:<br/>(why it continues)"]
+  A --> DB["Desired Behavior:<br/>(what we want instead)"] --> DO["Desired Outcome:<br/>(positive result)"]
+  class A ant
+  class PB beh
+  class C con
+  class F func
+  class DB desired
+  class DO outcome
+  classDef ant fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
+  classDef beh fill:#cfe2ff,stroke:#0d6efd,stroke-width:2px,color:#000
+  classDef con fill:#d1e7dd,stroke:#198754,stroke-width:2px,color:#000
+  classDef func fill:#f8d7da,stroke:#dc3545,stroke-width:2px,color:#000
+  classDef desired fill:#d0e8ff,stroke:#0a58ca,stroke-width:2px,color:#000
+  classDef outcome fill:#c3e6cb,stroke:#28a745,stroke-width:2px,color:#000

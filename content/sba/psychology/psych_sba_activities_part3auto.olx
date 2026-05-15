@@ -1,0 +1,1076 @@
+<!--
+---
+description: "Activities used in Psychology Study Group: 3 Auto. Function of Behavior. Not a separate activity; included to support content editing."
+category: psychology
+index: 53.5
+lang: en-Latn-US
+---
+-->
+<Vertical id="psych_sba_activities_part3auto" title="Psychology Study Group: 3 Auto. Function of Behavior (Activities)" launchable="true">
+
+<ActionButton id="print_psych_part3auto_btn" label="Export as PDF">
+<PrintAction id="print_psych_part3auto" />
+</ActionButton>
+
+
+<HH> ============= Screen: Introduction ======================== </HH>
+
+<IntakeGate ready="!@fba2_completion_checkbox.value">
+<Markdown> </Markdown>
+<Markdown id="fba2_introduction">
+## Introduction
+
+In this module, you will continue helping Annie's roommate with Johnny, the 6-year-old she babysits. The positive reinforcement techniques from last time are partially working, but Johnny still runs away at bedtime.
+
+In this session, you will review and apply several concepts from your coursework on behavior modification. Specifically, you will:
+
+- Identify the **function of behavior** and the four main functions.
+- Understand the **ABCs** (Antecedent, Behavior, Consequence) of behavior analysis.
+- Develop an **intervention plan** using a Competing Behavior Pathway.
+- Use an **AI Assistant** to support learning and problem solving.
+
+Let's begin.
+</Markdown>
+</IntakeGate>
+
+
+<HH> ============= Screen: Ask AI about function of behavior ==== </HH>
+
+<Vertical id="fba2_ai_function_def">
+<Markdown>
+## What is the Function of a Behavior?
+
+Try to explain what the function of a behavior is, based on what you know or remember from class. Then get AI feedback on your explanation.
+</Markdown>
+
+<TextArea id="fba2_ai_function_prompt" rows="2" placeholder="Type your explanation of function of behavior here..." />
+
+<LLMFeedback id="fba2_ai_function_response" render="markdown" />
+
+<ActionButton id="fba2_ai_function_btn" label="Get AI Feedback" dependsOn="@fba2_ai_function_prompt.value">
+<LLMAction id="fba2_ai_function_action" target="fba2_ai_function_response"><![CDATA[
+You are a helpful psychology teaching assistant. One of your students has
+provided the following attempt to explain what function of behavior is:
+]]>
+<Ref id="fba2_ref_function_prompt" target="fba2_ai_function_prompt" />
+<![CDATA[
+If their response is not a good-faith effort to explain what function
+of behavior is, reprimand them about that, and stop without mentioning
+what the function of a behavior is or what the four main functions are.
+Otherwise, let them know what they've gotten right and explain anything
+they've missed or misstated, making your goal to explain the concept of
+'function of behavior' in behavioral psychology, including the fact that
+'function of behavior' refers to the purpose or reason behind why a
+behavior occurs -- what the person gains from the behavior -- and
+mentioning the four main functions: attention, escape, access to
+tangibles/preferred items, and sensory/automatic reinforcement.
+
+Keep your response accessible for undergraduate students.
+
+Output your response in Markdown with bolded paragraph and list headers,
+but keep it short -- no more than a few paragraphs.
+]]></LLMAction>
+</ActionButton>
+</Vertical>
+
+
+<HH> ============= Screen: Lin's class notes =================== </HH>
+
+<IntakeGate ready="!@fba2_completion_checkbox.value">
+<Markdown> </Markdown>
+<Markdown id="fba2_function_notes">
+## Lin's Class Notes: Four Functions of Behavior
+
+The four main functions of behavior are:
+
+1. **Attention** — The behavior gets a response or reaction from others.
+2. **Escape** — The behavior allows the person to get away from something aversive or non-preferred.
+3. **Access to Preferred Activity/Object (Tangibles)** — The behavior results in obtaining something desired.
+4. **Sensory** — The behavior itself produces a sensation that is reinforcing.
+
+The function always refers to a type of **reinforcement** — either positive or negative.
+</Markdown>
+</IntakeGate>
+
+
+<HH> ============= Screen: Reinforcement review ================ </HH>
+
+<Vertical id="fba2_reinforcement_review">
+
+<Collapsible id="fba2_lecture_notes_collapsible" title="Lecture Notes">
+<Markdown>
+**Reinforcement** is any event that strengthens (increases the frequency of) a preceding response.
+
+**Punishment** is any consequence that decreases the frequency of a preceding behavior.
+
+**Positive Reinforcement** strengthens responding by presenting a typically pleasurable stimulus immediately after a response.
+
+**Negative Reinforcement** strengthens a response by reducing or removing something negative.
+</Markdown>
+</Collapsible>
+
+<Markdown>
+## Quick Review: Operant Conditioning
+
+For each scenario, identify the type of operant conditioning at work. You need to get 3 correct in a row to move on. If you get one wrong, the streak resets — correct your answer and keep going.
+</Markdown>
+
+<MasteryBank id="fba2_reinforcement_mastery" goal="3" mode="shuffle" src="operant-questions.auto.idlistpeg" />
+
+</Vertical>
+
+
+<HH> ============= Screen: Ask AI for function chart ============ </HH>
+
+<Vertical id="fba2_ai_function_chart">
+<Markdown>
+## Ask AI: Functions of Behavior Chart
+
+Ask AI to provide a chart that incorporates functions of behavior and types of reinforcement.
+</Markdown>
+
+<Collapsible id="fba2_chart_hint" title="Hint: Example prompt">
+<Markdown>
+Try a prompt like: "Put all four functions of behavior in a chart with examples of positive and negative reinforcement side-by-side."
+</Markdown>
+</Collapsible>
+
+<TextArea id="fba2_ai_chart_prompt" rows="2" placeholder="Type your prompt asking AI for a chart of functions and reinforcement types..." />
+
+<LLMFeedback id="fba2_ai_chart_response" render="markdown" />
+
+<ActionButton id="fba2_ai_chart_btn" label="Ask AI">
+<LLMAction id="fba2_ai_chart_action" target="fba2_ai_chart_response"><![CDATA[
+You are a helpful psychology teaching assistant. Create a chart showing the four
+functions of behavior (attention, escape, access to tangibles, sensory) with examples
+of how each relates to positive and negative reinforcement. Use a markdown table format.
+Include concrete examples for each combination of function with positive or negative
+reinforcement. Leave a cell blank if the function of the behavior is by definition
+incompatible with the type of reinforcement, assuming that negative reinforcement is
+compatible with removal of unwanted attention but not with access, while escape is
+not compatible with positive reinforcement. Highlight the function names in the
+function column.
+]]>
+Student's request: <Ref id="fba2_ref_chart_prompt" target="fba2_ai_chart_prompt" />
+</LLMAction>
+</ActionButton>
+</Vertical>
+
+
+<HH> ============= Screen: Own examples - Attention ============ </HH>
+
+<SplitPanel id="fba2_own_examples_attention">
+<LeftPane>
+<Markdown>
+**Write Your Own Example of Positive Reinforcement**
+
+1\. Attention
+</Markdown>
+<TextArea id="fba2_pos_reinforcement_attention" rows="3"
+  placeholder="Describe a situation where behavior is maintained by attention through positive reinforcement..." />
+<LLMFeedback id="fba2_pr_attention_feedback" render="markdown" />
+<ActionButton id="fba2_pr_attention_btn" label="Get AI Feedback" dependsOn="@fba2_pos_reinforcement_attention.value">
+<LLMAction target="fba2_pr_attention_feedback">
+A student in a psychology class has offered the following situation as an
+example of positive reinforcement whose function is attention --
+
+Student's example: <Ref target="fba2_pos_reinforcement_attention" />
+
+Evaluate whether the student's example is a correct example of positive reinforcement
+with attention as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+</LLMAction>
+</ActionButton>
+</LeftPane>
+<RightPane>
+<Markdown>
+**Write Your Own Example of Negative Reinforcement**
+
+1\. Attention
+</Markdown>
+<TextArea id="fba2_neg_reinforcement_attention" rows="3"
+  placeholder="Describe a situation where behavior is maintained by attention through negative reinforcement..." />
+<LLMFeedback id="fba2_nr_attention_feedback" render="markdown" />
+<ActionButton id="fba2_nr_attention_btn" label="Get AI Feedback" dependsOn="@fba2_neg_reinforcement_attention.value">
+<LLMAction target="fba2_nr_attention_feedback">
+A student in a psychology class has offered the following situation as an
+example of negative reinforcement whose function is attention --
+
+Student's example: <Ref target="fba2_neg_reinforcement_attention" />
+
+Evaluate whether the student's example is a correct example of negative reinforcement
+with attention as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+</LLMAction>
+</ActionButton>
+</RightPane>
+</SplitPanel>
+
+
+<HH> ============= Screen: Own examples - Escape =============== </HH>
+
+<SplitPanel id="fba2_own_examples_escape">
+<LeftPane>
+<Markdown>
+**Write Your Own Example of Positive Reinforcement**
+
+2\. Escape
+</Markdown>
+<TextArea id="fba2_pos_reinforcement_escape" rows="3"
+  placeholder="Describe a situation where behavior is maintained by escape through positive reinforcement..." />
+<LLMFeedback id="fba2_pr_escape_feedback" render="markdown" />
+<ActionButton id="fba2_pr_escape_btn" label="Get AI Feedback" dependsOn="@fba2_pos_reinforcement_escape.value">
+<LLMAction target="fba2_pr_escape_feedback">
+A student in a psychology class has offered the following situation as an
+example of positive reinforcement whose function is escape --
+
+Student's example: <Ref target="fba2_pos_reinforcement_escape" />
+
+Evaluate whether the student's example is a correct example of positive reinforcement
+with escape as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+</LLMAction>
+</ActionButton>
+</LeftPane>
+<RightPane>
+<Markdown>
+**Write Your Own Example of Negative Reinforcement**
+
+2\. Escape
+</Markdown>
+<TextArea id="fba2_neg_reinforcement_escape" rows="3"
+  placeholder="Describe a situation where behavior is maintained by escape through negative reinforcement..." />
+<LLMFeedback id="fba2_nr_escape_feedback" render="markdown" />
+<ActionButton id="fba2_nr_escape_btn" label="Get AI Feedback" dependsOn="@fba2_neg_reinforcement_escape.value">
+<LLMAction target="fba2_nr_escape_feedback">
+A student in a psychology class has offered the following situation as an
+example of negative reinforcement whose function is escape --
+
+Student's example: <Ref target="fba2_neg_reinforcement_escape" />
+
+Evaluate whether the student's example is a correct example of negative reinforcement
+with escape as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+</LLMAction>
+</ActionButton>
+</RightPane>
+</SplitPanel>
+
+
+<HH> ============= Screen: Own examples - Access ================ </HH>
+
+<SplitPanel id="fba2_own_examples_access">
+<LeftPane>
+<Markdown>
+**Write Your Own Example of Positive Reinforcement**
+
+3\. Access/Tangible
+</Markdown>
+<TextArea id="fba2_pos_reinforcement_access" rows="3"
+  placeholder="Describe a situation where behavior is maintained by access to tangibles through positive reinforcement..." />
+<LLMFeedback id="fba2_pr_access_feedback" render="markdown" />
+<ActionButton id="fba2_pr_access_btn" label="Get AI Feedback" dependsOn="@fba2_pos_reinforcement_access.value">
+<LLMAction target="fba2_pr_access_feedback">
+A student in a psychology class has offered the following situation as an
+example of positive reinforcement whose function is access to tangibles --
+
+Student's example: <Ref target="fba2_pos_reinforcement_access" />
+
+Evaluate whether the student's example is a correct example of positive reinforcement
+with access as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+</LLMAction>
+</ActionButton>
+</LeftPane>
+<RightPane>
+<Markdown>
+**Write Your Own Example of Negative Reinforcement**
+
+3\. Access/Tangible
+</Markdown>
+<TextArea id="fba2_neg_reinforcement_access" rows="3"
+  placeholder="Describe a situation where behavior is maintained by access to tangibles through negative reinforcement..." />
+<LLMFeedback id="fba2_nr_access_feedback" render="markdown" />
+<ActionButton id="fba2_nr_access_btn" label="Get AI Feedback" dependsOn="@fba2_neg_reinforcement_access.value">
+<LLMAction target="fba2_nr_access_feedback">
+A student in a psychology class has offered the following situation as an
+example of negative reinforcement whose function is access to tangibles --
+
+Student's example: <Ref target="fba2_neg_reinforcement_access" />
+
+Evaluate whether the student's example is a correct example of negative reinforcement
+with access as its function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+</LLMAction>
+</ActionButton>
+</RightPane>
+</SplitPanel>
+
+
+<HH> ============= Screen: Own examples - Sensory =============== </HH>
+
+<SplitPanel id="fba2_own_examples_sensory">
+<LeftPane>
+<Markdown>
+**Write Your Own Example of Positive Reinforcement**
+
+4\. Sensory
+</Markdown>
+<TextArea id="fba2_pos_reinforcement_sensory" rows="3"
+  placeholder="Describe a situation where behavior is maintained by sensory stimulation through positive reinforcement..." />
+<LLMFeedback id="fba2_pr_sensory_feedback" render="markdown" />
+<ActionButton id="fba2_pr_sensory_btn" label="Get AI Feedback" dependsOn="@fba2_pos_reinforcement_sensory.value">
+<LLMAction target="fba2_pr_sensory_feedback">
+A student in a psychology class has offered the following situation as an
+example of positive reinforcement with a sensory function --
+
+Student's example: <Ref target="fba2_pos_reinforcement_sensory" />
+
+Evaluate whether the student's example is a correct example of positive reinforcement
+with a sensory function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+</LLMAction>
+</ActionButton>
+</LeftPane>
+<RightPane>
+<Markdown>
+**Write Your Own Example of Negative Reinforcement**
+
+4\. Sensory
+</Markdown>
+<TextArea id="fba2_neg_reinforcement_sensory" rows="3"
+  placeholder="Describe a situation where behavior is maintained by sensory stimulation through negative reinforcement..." />
+<LLMFeedback id="fba2_nr_sensory_feedback" render="markdown" />
+<ActionButton id="fba2_nr_sensory_btn" label="Get AI Feedback" dependsOn="@fba2_neg_reinforcement_sensory.value">
+<LLMAction target="fba2_nr_sensory_feedback">
+A student in a psychology class has offered the following situation as an
+example of negative reinforcement with a sensory function --
+
+Student's example: <Ref target="fba2_neg_reinforcement_sensory" />
+
+Evaluate whether the student's example is a correct example of negative reinforcement
+with a sensory function and if it is, say so and stop; otherwise, explain
+why it is not. Do not offer examples of your own.
+</LLMAction>
+</ActionButton>
+</RightPane>
+</SplitPanel>
+
+
+<HH> ============= Screen: Predict why punishment is not a function ========= </HH>
+
+<IntakeGate id="fba2_predict_punishment" ready="@fba2_punishment_confidence.value">
+
+  <!-- Front: predict before seeing the answer -->
+  <Vertical>
+    <Markdown>
+## Predict: Why Not Punishment?
+
+Annie mentioned that she asked AI why punishment isn't listed as a function of behavior. **Before reading the answer, write your own prediction.** Think about what "function" means and how it relates to reinforcement.
+    </Markdown>
+
+    <TextArea id="fba2_no_punishment_explanation" rows="3"
+      placeholder="Why do you think punishment is not a function of behavior? Write your prediction..." />
+
+    <Markdown>Once you've written your prediction, **select a confidence level below to see the real answer.** (You won't be able to change your prediction after selecting.)</Markdown>
+    <ChoiceInput id="fba2_punishment_confidence">
+      <Key value="very">Very confident — I'm sure about this</Key>
+      <Key value="somewhat">Somewhat confident — I think so but I'm not sure</Key>
+      <Key value="guess">Just guessing</Key>
+    </ChoiceInput>
+  </Vertical>
+
+  <!-- Back: show prediction alongside the answer -->
+  <Vertical>
+    <Markdown>
+## Your Prediction
+
+{{text2markdown(@fba2_no_punishment_explanation.value)}}
+
+---
+
+## AI Response: Why Punishment Is Not a Function of Behavior
+
+_Annie asked AI this question earlier. Here's what it said:_
+
+> **Why isn't punishment listed as a function of behavior?**
+>
+> Great question! The four functions of behavior — **attention**, **escape**,
+> **access to tangibles**, and **sensory** — all describe what *maintains*
+> or *reinforces* a behavior. When we ask "What is the function of this
+> behavior?", we're really asking: **"What is this behavior getting for the
+> person?"**
+>
+> - If the behavior gets them **attention**, the function is attention.
+> - If the behavior helps them **escape** something unpleasant, the function is escape.
+> - If the behavior gets them **access** to something they want, the function is tangibles.
+> - If the behavior itself **feels good**, the function is sensory.
+>
+> **Punishment**, by definition, *decreases* behavior — it doesn't maintain
+> it. Since the function of behavior describes what keeps the behavior going
+> (i.e., what reinforces it), punishment cannot be a function. The function
+> always tells us what the person is **gaining** (positive reinforcement) or
+> **avoiding** (negative reinforcement) through their behavior.
+    </Markdown>
+  </Vertical>
+
+</IntakeGate>
+
+
+<HH> ============= Screen: Function sorting ===================== </HH>
+
+<Vertical id="fba2_function_sorting">
+
+<Markdown>
+## Practice: Identify the Function of Each Behavior
+
+Answer **6 questions correctly in a row** to demonstrate mastery. Each scenario
+describes a behavior with its antecedent and consequence. Identify which function
+the behavior serves:
+
+- **Escape** — behavior removes or delays something aversive
+- **Attention** — behavior produces social attention (even negative attention)
+- **Sensory** — behavior produces its own internal reinforcement
+- **Access/Tangible** — behavior obtains a preferred item or activity
+
+You need to get **6 correct in a row** to move on. If you get one wrong, your streak resets — correct your answer, then keep going.
+</Markdown>
+
+<MasteryBank id="fba2_function_mastery" goal="6" mode="shuffle" src="function-questions.auto.idlistpeg" />
+
+</Vertical>
+
+
+<HH> ============= Screen: Ask AI for ABC diagrams ============== </HH>
+
+<Vertical id="fba2_ai_abc_diagrams">
+<Markdown>
+## Ask AI: The ABCs of Behavior
+
+Ask AI to create a **flowchart diagram** showing the ABCs (Antecedent → Behavior → Consequence) for each of the four functions of behavior.
+</Markdown>
+
+<Collapsible id="fba2_abc_diagram_hint" title="Hint: Example prompt">
+<Markdown>
+Try a prompt like: "Create a flowchart showing the ABC pattern for each function of behavior — escape, attention, access/tangible, and sensory — with a classroom example for each."
+</Markdown>
+</Collapsible>
+
+<TextArea id="fba2_ai_abc_prompt" rows="2" placeholder="Ask AI to create Mermaid ABC diagrams for each function of behavior..." />
+
+<ActionButton id="fba2_ai_abc_btn" label="Ask AI">
+<SetFieldAction id="fba2_ai_abc_trigger" target="fba2_ai_abc_placeholder" field="value" value="*Generating diagram — this may take up to a minute...*" />
+<LLMAction id="fba2_ai_abc_action" target="fba2_ai_abc_response"><![CDATA[
+If the following question is about the ABCs (Antecedent, Behavior, Consequence) model
+in behavioral psychology and how it relates to the four functions of behavior
+(attention, escape, access/tangibles, sensory), provide a brief explanation of each
+ABC example in the diagram. For each function, describe the example and explain whether
+it involves positive or negative reinforcement.
+
+If the student's question is not relevant to ABCs or functions of behavior,
+point that out and stop.
+]]>
+Student prompt: <Ref id="fba2_ref_abc_prompt" target="fba2_ai_abc_prompt" />
+</LLMAction>
+<LLMAction id="fba2_ai_abc_code_action" target="fba2_ai_abc_code"><![CDATA[
+If the following question is about the ABCs (Antecedent, Behavior, Consequence) model
+and functions of behavior, generate ONLY valid Mermaid flowchart code. No explanations,
+no markdown, no code fences — output must start with "flowchart LR" and contain nothing
+else besides valid Mermaid syntax.
+
+Create a single diagram with four subgraphs, one per function of behavior. Each subgraph
+shows an Antecedent, Behavior, and Consequence connected by arrows, using a concrete
+classroom example. Follow this structure:
+
+flowchart LR
+  subgraph escape ["Escape — Negative Reinforcement"]
+    E_A["Antecedent: ..."] --> E_B["Behavior: ..."] --> E_C["Consequence: ..."]
+  end
+  subgraph attention ["Attention — Positive Reinforcement"]
+    A_A["Antecedent: ..."] --> A_B["Behavior: ..."] --> A_C["Consequence: ..."]
+  end
+  subgraph tangible ["Access/Tangible — Positive Reinforcement"]
+    T_A["Antecedent: ..."] --> T_B["Behavior: ..."] --> T_C["Consequence: ..."]
+  end
+  subgraph sensory ["Sensory — Automatic Reinforcement"]
+    S_A["Antecedent: ..."] --> S_B["Behavior: ..."] --> S_C["Consequence: ..."]
+  end
+
+Rules:
+- Output ONLY mermaid code — no other text whatsoever
+- Wrap all node labels in double quotes inside square brackets: E_A["label"]
+- Use underscores in node names (E_A, not E-A)
+- Keep each label under 50 characters
+- Do NOT use bare colons, parentheses, or special characters outside the double quotes
+
+If the question is not relevant, output only:
+flowchart LR
+  A["Please ask about ABCs and functions of behavior"]
+]]>
+Student prompt: <Ref id="fba2_ref_abc_code_prompt" target="fba2_ai_abc_prompt" />
+</LLMAction>
+</ActionButton>
+
+<LLMFeedback id="fba2_ai_abc_response" render="markdown" when="@fba2_ai_abc_response.value" />
+
+<Markdown id="fba2_ai_abc_placeholder" when="!@fba2_ai_abc_code.value">
+*Your diagram will appear here once the AI finishes generating it. The text explanation will appear first; the diagram follows after and may take up to a minute. If it doesn't render correctly, click "Ask AI" again — the AI sometimes needs another attempt to get the diagram syntax right.*
+</Markdown>
+<Mermaid id="fba2_ai_abc_diagram" target="fba2_ai_abc_code" when="@fba2_ai_abc_code.value" />
+<Collapsible id="fba2_mermaid_source" title="View diagram source code" when="@fba2_ai_abc_code.value">
+<LLMFeedback id="fba2_ai_abc_code" render="code" />
+</Collapsible>
+
+</Vertical>
+
+
+<HH> ============= Screen: ABC reference diagram ================ </HH>
+
+<IntakeGate ready="!@fba2_completion_checkbox.value">
+<Markdown> </Markdown>
+<Vertical id="fba2_abc_reference">
+<Markdown>
+## ABC Reference Diagrams
+
+Each diagram shows the **Antecedent → Behavior → Consequence** chain for one function of behavior.
+</Markdown>
+
+<Markdown>### Escape (Negative Reinforcement)</Markdown>
+<Mermaid id="fba2_abc_ref_escape" src="diagrams/abc_ref_escape.mmd" />
+
+<Markdown>### Attention (Positive Reinforcement)</Markdown>
+<Mermaid id="fba2_abc_ref_attention" src="diagrams/abc_ref_attention.mmd" />
+
+<Markdown>### Access/Tangible (Positive Reinforcement)</Markdown>
+<Mermaid id="fba2_abc_ref_tangible" src="diagrams/abc_ref_tangible.mmd" />
+
+<Markdown>### Sensory (Automatic Reinforcement)</Markdown>
+<Mermaid id="fba2_abc_ref_sensory" src="diagrams/abc_ref_sensory.mmd" />
+</Vertical>
+</IntakeGate>
+
+
+<HH> ============= Screen: ABC for Johnny ====================== </HH>
+
+<Vertical id="fba2_abc_johnny">
+<Markdown>
+## Your Turn: Johnny's ABCs
+
+Using the story about Johnny, explain the sequence of **Antecedent**, **Behavior**, and **Consequence** in your own words.
+
+_Recall: Annie's roommate tells Johnny to get into bed, but he runs away from the room laughing whenever "bed" is mentioned. The roommate chases after him and keeps nagging him to go to bed._
+</Markdown>
+
+<TextArea id="fba2_abc_johnny_explanation" rows="4" placeholder="Describe the Antecedent, Behavior, and Consequence for Johnny's bedtime situation..." />
+
+<LLMFeedback id="fba2_abc_johnny_feedback" render="markdown" />
+
+<ActionButton id="fba2_abc_johnny_check_btn" label="Check My Understanding" dependsOn="@fba2_abc_johnny_explanation.value">
+<LLMAction id="fba2_abc_johnny_check" target="fba2_abc_johnny_feedback"><![CDATA[
+A psychology student was asked to identify the ABCs (Antecedent, Behavior, Consequence)
+for this scenario: Annie's roommate tells Johnny to get into bed, but he runs away from
+the room laughing. The roommate chases after him and keeps nagging him to go to bed.
+
+The correct answer is:
+- Antecedent: Roommate tells Johnny to go to bed
+- Behavior: Johnny runs out of the room laughing
+- Consequence: Roommate chases after him / he avoids going to bed on time
+
+Here is the student's response:
+]]>
+<Ref id="fba2_ref_abc_johnny" target="fba2_abc_johnny_explanation" />
+<![CDATA[
+Evaluate whether the student correctly identified each component. Be encouraging but
+specific about what they got right and what needs correction. Keep it brief.
+]]></LLMAction>
+</ActionButton>
+</Vertical>
+
+
+<HH> ============= Screen: Johnny's function ==================== </HH>
+
+<Vertical id="fba2_johnny_function">
+<MarkupProblem id="fba2_johnny_function_choice" title="Function of Johnny's Behavior"><![CDATA[
+## What is the function of Johnny's behavior?
+
+>>Now that you've identified the ABCs of Johnny's bedtime behavior, what is the function of his running out of the room?<<
+
+( ) Access to preferred activity/object
+( ) Attention
+(x) Escape
+( ) Sensory
+
+[explanation]
+The function is **escape**. Johnny's running away is maintained by negative reinforcement — he successfully avoids or delays going to bed (the aversive event). The antecedent (being told to go to bed) triggers the behavior (running away), and the consequence (not having to go to bed right away) reinforces it.
+[/explanation]
+]]></MarkupProblem>
+</Vertical>
+
+
+<HH> ============= Screen: Competing Behavior Pathway (blank) === </HH>
+
+<Vertical id="fba2_competing_pathway_blank">
+<Markdown>
+## Competing Behavior Pathway
+
+Use the color-coded reference diagram below to understand the Competing Behavior Pathway. Then fill in each part for Johnny's bedtime scenario.
+</Markdown>
+
+<Mermaid id="fba2_pathway_reference" src="diagrams/cbp_blank_template.mmd" />
+
+<Markdown>
+### Fill in the Competing Behavior Pathway for Johnny
+
+The antecedent has been filled in for you. Complete the rest based on what you know about Johnny's bedtime situation.
+</Markdown>
+
+<Markdown>**Antecedent** (what happens before the problem behavior): **Roommate tells Johnny to go to bed**</Markdown>
+
+<Markdown>**Problem Behavior** (what Johnny does):</Markdown>
+<TextArea id="fba2_pathway_behavior" rows="1" placeholder="What does Johnny do?" />
+
+<Markdown>**Consequence** (what happens after the behavior):</Markdown>
+<TextArea id="fba2_pathway_consequence" rows="1" placeholder="What does the roommate do in response?" />
+
+<Markdown>**Function** (why does this behavior continue?):</Markdown>
+<TextArea id="fba2_pathway_function" rows="1" placeholder="What function does this behavior serve?" />
+
+<LLMFeedback id="fba2_pathway_feedback" render="markdown" />
+
+<ActionButton id="fba2_pathway_check_btn" label="Check My Pathway" dependsOn="@fba2_pathway_behavior.value">
+<LLMAction id="fba2_pathway_check" target="fba2_pathway_feedback"><![CDATA[
+A psychology student was asked to fill in a Competing Behavior Pathway for Johnny's
+bedtime scenario. The antecedent was provided: "Roommate tells Johnny to go to bed."
+
+The expected answers are:
+- Problem Behavior: Johnny runs out of the room / runs away laughing
+- Consequence: Roommate chases him / nags him / he avoids bedtime
+- Function: Escape
+
+The student's answers:
+- Problem Behavior:
+]]>
+<Ref id="fba2_ref_pathway_behavior" target="fba2_pathway_behavior" />
+<![CDATA[
+- Consequence:
+]]>
+<Ref id="fba2_ref_pathway_consequence" target="fba2_pathway_consequence" />
+<![CDATA[
+- Function:
+]]>
+<Ref id="fba2_ref_pathway_function" target="fba2_pathway_function" />
+<![CDATA[
+Evaluate each component. Be encouraging but specific about what they got right
+and what needs correction. Keep it brief.
+]]></LLMAction>
+</ActionButton>
+</Vertical>
+
+
+<HH> ============= Screen: JJ's completed pathway ============== </HH>
+
+<IntakeGate ready="!@fba2_completion_checkbox.value">
+<Markdown> </Markdown>
+<Vertical id="fba2_competing_pathway_jj_section">
+<Markdown id="fba2_competing_pathway_jj">
+## JJ's Completed Competing Behavior Pathway
+</Markdown>
+<Mermaid id="fba2_competing_pathway_jj_diagram" src="diagrams/johnny_cbp_jj_auto.mmd" />
+</Vertical>
+</IntakeGate>
+
+
+<HH> ============= Screen: Textbook on escape =================== </HH>
+
+<IntakeGate ready="!@fba2_completion_checkbox.value">
+<Markdown> </Markdown>
+<Markdown id="fba2_textbook_escape">
+## From the Textbook
+
+_"Escape is used to get away from something aversive or not preferred. Changing **antecedent conditions** is key to intervening when the function of behavior is escape."_
+</Markdown>
+</IntakeGate>
+
+
+<HH> ============= Screen: Intervention strategies ============== </HH>
+
+<Vertical id="fba2_intervention_strategies">
+<Markdown>
+## Intervention Strategies
+
+Below are strategies for addressing problem behaviors. For each strategy, select which **function of behavior** it addresses. Remember: Johnny's function is **escape**, so we need to identify which strategies target escape.
+</Markdown>
+
+<CapaProblem id="fba2_antecedent_strategies_problem" title="Antecedent Strategies">
+<Markdown>### Antecedent Strategies (to prevent the problem behavior)</Markdown>
+<TabularMCQGrader>
+  <TabularMCQ id="fba2_antecedent_strategies">
+cols: Escape, Attention, Sensory, Tangible
+rows:
+  - "Use sensory-friendly relaxation techniques before bed|relaxation[Sensory]"
+  - "Create a predictable bedtime routine to make bedtime more manageable and less aversive|routine[Escape]"
+  - "Give high-quality attention before bed|attention_before[Attention]"
+  - "Use timers and advance warnings to make bedtime more predictable|timers[Escape]"
+  - "Give the child a stuffed animal before they get into bed|stuffed_animal[Tangible]"
+  - "Have the child engage in yoga right before bedtime|yoga[Sensory]"
+  </TabularMCQ>
+</TabularMCQGrader>
+</CapaProblem>
+
+<CapaProblem id="fba2_consequence_strategies_problem" title="Consequence Strategies">
+<Markdown>### Consequence Strategies (to react to the problem behavior)</Markdown>
+<TabularMCQGrader>
+  <TabularMCQ id="fba2_consequence_strategies">
+cols: Escape, Attention, Sensory, Tangible
+rows:
+  - "Provide extra attention during bedtime refusal behaviors|extra_attention[Attention]"
+  - "Teach the child to use a bedtime pass — one approved brief delay per night|bedtime_pass[Escape]"
+  - "Talk to the child until they eventually go to sleep|talk_sleep[Attention]"
+  - "Give the child access to an iPad when they successfully get in bed|ipad_reward[Tangible]"
+  - "Ignore behaviors such as whining that serve to delay bedtime|ignore_whining[Escape]"
+  - "Track sensory triggers that relate to bedtime challenges|sensory_tracking[Sensory]"
+  </TabularMCQ>
+</TabularMCQGrader>
+</CapaProblem>
+
+<Markdown>**Now that you've identified which strategies address escape, which ones would you recommend for Johnny and why?**</Markdown>
+<TextArea id="fba2_escape_strategies_done" rows="3" placeholder="Which escape-focused strategies would work best for Johnny?" />
+</Vertical>
+
+
+<HH> ============= Screen: AI antecedent interventions ========== </HH>
+
+<Vertical id="fba2_ai_antecedent_interventions">
+<Markdown>
+## Ask AI: General Antecedent Strategies
+
+Write a prompt asking AI for **antecedent strategies** — things you can change *before* the problem behavior occurs to prevent it.
+</Markdown>
+<TextArea id="fba2_ai_antecedent_prompt" rows="2"
+  placeholder="Ask AI for antecedent strategies to prevent problem behaviors..." />
+<LLMFeedback id="fba2_ai_antecedent_response" render="markdown" />
+<ActionButton id="fba2_ai_antecedent_btn" label="Ask AI" dependsOn="@fba2_ai_antecedent_prompt.value">
+<LLMAction target="fba2_ai_antecedent_response"><![CDATA[
+If the following prompt is about antecedent strategies for preventing problem behaviors,
+provide a list of no more than 6 practical, evidence-based antecedent strategies.
+Otherwise, point out the prompt is not relevant and stop.
+]]>
+Student's prompt: <Ref target="fba2_ai_antecedent_prompt" />
+<![CDATA[
+Format with bolded headers and a numbered list. Keep each strategy to 1-2 sentences.
+]]></LLMAction>
+</ActionButton>
+</Vertical>
+
+
+<HH> ============= Screen: AI consequence interventions ========= </HH>
+
+<Vertical id="fba2_ai_consequence_interventions">
+<Markdown>
+## Ask AI: General Consequence Strategies
+
+Now write a prompt asking AI for **consequence strategies** — things you can change *after* the problem behavior occurs.
+</Markdown>
+<TextArea id="fba2_ai_consequence_prompt" rows="2"
+  placeholder="Ask AI for consequence strategies to respond to problem behaviors..." />
+<LLMFeedback id="fba2_ai_consequence_response" render="markdown" />
+<ActionButton id="fba2_ai_consequence_btn" label="Ask AI" dependsOn="@fba2_ai_consequence_prompt.value">
+<LLMAction target="fba2_ai_consequence_response"><![CDATA[
+If the following prompt is about consequence strategies for responding to problem behaviors,
+provide a list of no more than 6 practical, evidence-based consequence strategies.
+Otherwise, point out the prompt is not relevant and stop.
+]]>
+Student's prompt: <Ref target="fba2_ai_consequence_prompt" />
+<![CDATA[
+Format with bolded headers and a numbered list. Keep each strategy to 1-2 sentences.
+]]></LLMAction>
+</ActionButton>
+</Vertical>
+
+
+<HH> ============= Screen: AI escape antecedent ================== </HH>
+
+<Vertical id="fba2_ai_escape_antecedent">
+<Markdown>
+## Ask AI: Escape-Focused Antecedent Strategies
+
+Now let's focus specifically on **escape**. Write a prompt asking AI for antecedent strategies that address escape-maintained behavior — particularly for a child refusing to go to bed.
+</Markdown>
+<TextArea id="fba2_ai_escape_ante_prompt" rows="2"
+  placeholder="Ask AI for antecedent strategies specific to escape-maintained bedtime refusal..." />
+<LLMFeedback id="fba2_ai_escape_ante_response" render="markdown" />
+<ActionButton id="fba2_ai_escape_ante_btn" label="Ask AI" dependsOn="@fba2_ai_escape_ante_prompt.value">
+<LLMAction target="fba2_ai_escape_ante_response"><![CDATA[
+If the following prompt is about antecedent strategies for escape-maintained behavior,
+particularly a child refusing to go to bed, provide a list of no more than 6 practical,
+evidence-based antecedent strategies specifically targeting escape. Otherwise, point out
+the prompt is not relevant and stop.
+]]>
+Student's prompt: <Ref target="fba2_ai_escape_ante_prompt" />
+<![CDATA[
+Format with bolded headers and a numbered list. Keep each strategy to 1-2 sentences.
+]]></LLMAction>
+</ActionButton>
+</Vertical>
+
+
+<HH> ============= Screen: AI escape consequence ================= </HH>
+
+<Vertical id="fba2_ai_escape_consequence">
+<Markdown>
+## Ask AI: Escape-Focused Consequence Strategies
+
+Finally, write a prompt asking AI for **consequence strategies** that specifically address escape-maintained bedtime refusal.
+</Markdown>
+<TextArea id="fba2_ai_escape_cons_prompt" rows="2"
+  placeholder="Ask AI for consequence strategies specific to escape-maintained bedtime refusal..." />
+<LLMFeedback id="fba2_ai_escape_cons_response" render="markdown" />
+<ActionButton id="fba2_ai_escape_cons_btn" label="Ask AI" dependsOn="@fba2_ai_escape_cons_prompt.value">
+<LLMAction target="fba2_ai_escape_cons_response"><![CDATA[
+If the following prompt is about consequence strategies for escape-maintained behavior,
+particularly a child refusing to go to bed, provide a list of no more than 6 practical,
+evidence-based consequence strategies specifically targeting escape. Otherwise, point out
+the prompt is not relevant and stop.
+]]>
+Student's prompt: <Ref target="fba2_ai_escape_cons_prompt" />
+<![CDATA[
+Format with bolded headers and a numbered list. Keep each strategy to 1-2 sentences.
+]]></LLMAction>
+</ActionButton>
+</Vertical>
+
+
+<HH> ============= Screen: Revised pathway ====================== </HH>
+
+<Vertical id="fba2_revised_pathway">
+<Markdown>
+## Revised Competing Behavior Pathway
+
+Here is JJ's original pathway for reference. Now that you've identified escape-focused strategies, revise the plan by filling in the three boxes below.
+</Markdown>
+
+<Collapsible id="fba2_original_pathway_ref" title="JJ's Original Pathway (click to expand)">
+<Mermaid id="fba2_pathway_ref_diagram" src="diagrams/johnny_cbp_filled.mmd" />
+</Collapsible>
+
+<Markdown>
+### Your Revised Plan
+
+Using the escape-focused antecedent and consequence strategies you identified, fill in the revised pathway:
+</Markdown>
+
+<Markdown>**Antecedent + new strategies** (what happens before bedtime, and what strategies will you add to prevent escape?):</Markdown>
+<TextArea id="fba2_revised_antecedent" rows="3" placeholder="Roommate tells Johnny to go to bed + your chosen antecedent strategies..." />
+
+<Markdown>**Desired behavior** (what do you want Johnny to do instead of running away?):</Markdown>
+<TextArea id="fba2_revised_desired" rows="2" placeholder="What should Johnny do at bedtime?" />
+
+<Markdown>**Consequence/Outcome + new strategies** (what happens after the desired behavior, and what consequence strategies support it?):</Markdown>
+<TextArea id="fba2_revised_consequence" rows="3" placeholder="Johnny goes to sleep + your chosen consequence strategies..." />
+</Vertical>
+
+
+<HH> ============= Screen: Plan selection ======================= </HH>
+
+<Vertical id="fba2_plan_selection">
+<Markdown>
+## Behavior Modification Plan
+
+Annie has two plans to present. Both include data collection over a 2-week period.
+
+**Plan A: Escape-Focused Plan**
+
+- _Antecedent strategies:_ Create a predictable bedtime routine with a visual schedule; use a timer to signal each step; give 10- and 5-minute warnings before bedtime.
+- _Consequence strategies:_ Provide positive reinforcement (sticker chart) when Johnny goes to bed on time; ignore escape behaviors (don't chase); use a "bedtime pass" for one approved brief delay per night.
+
+**Plan B: Sensory-Focused Plan**
+
+- _Antecedent strategies:_ Play calming music in the bedroom; use a weighted blanket; dim lights gradually; provide a lavender-scented pillow.
+- _Consequence strategies:_ Allow access to a sensory toy (fidget) in bed; redirect sensory-seeking behavior to appropriate sensory input; track which sensory inputs are most effective.
+</Markdown>
+
+<MarkupProblem id="fba2_plan_choice" title="Choose the Best Plan"><![CDATA[
+>>Which plan do you think will work best for Johnny?<<
+
+(x) Plan A — Escape-Focused Plan
+( ) Plan B — Sensory-Focused Plan
+
+[explanation]
+**Plan A** is correct. Since the function of Johnny's behavior is **escape**, the intervention plan must address escape. Plan A uses antecedent strategies to make bedtime less aversive (predictable routine, warnings, timers) and consequence strategies that don't reinforce escape behavior (ignoring running away, not chasing). Plan B targets sensory needs, which is not the function of Johnny's behavior.
+[/explanation]
+]]></MarkupProblem>
+</Vertical>
+
+
+<HH> ============= Screen: Escape plan display ================== </HH>
+
+<Tabs id="fba2_escape_plan_display">
+<Vertical id="fba2_plan_preferences" title="Record Your Preferences">
+<Markdown>
+## What Do You Like About This Plan?
+
+Review the full escape-focused plan in the other tab, then come back here and record the parts you think will be most effective.
+</Markdown>
+<TextArea id="fba2_plan_likes" rows="3" placeholder="What parts of this plan do you think will be most effective?" />
+</Vertical>
+<Vertical id="fba2_plan_reference" title="The Escape Plan">
+<Markdown id="fba2_escape_plan_markdown">
+## The Escape-Focused Behavior Modification Plan
+
+| | |
+|---|---|
+| **Target Behavior** | Johnny does not go to bed on time |
+| **Function of Behavior** | Escape |
+| **Behavior Goal** | Johnny will go to bed on time when told, without running away, for 4 out of 5 bedtimes over a 2-week period |
+
+**Antecedent Strategies:**
+- Create a predictable bedtime routine with a visual schedule showing each step
+- Use a timer to clearly signal when each routine step begins and ends
+- Give 10-minute and 5-minute advance warnings before bedtime begins
+- Incorporate a brief preferred activity (e.g., short story) as part of the routine to make bedtime less aversive
+- Allow limited choices within the routine (e.g., "Do you want to brush teeth or put on pajamas first?")
+
+**~~Replacement Behaviors (Teach):~~** ~~Not applicable for this plan — replacement behaviors are used when the function involves skill deficits rather than escape from aversive conditions.~~
+
+**Consequence Strategies:**
+- Provide positive reinforcement (sticker chart, verbal praise) when Johnny goes to bed on time
+- Ignore escape behaviors — do not chase or engage when he runs away
+- Do not provide attention or reinforcement during escape behavior
+- Use a "bedtime pass" — Johnny is allowed one brief, approved delay (e.g., one more minute, one more sip of water) per night
+- If Johnny gets in bed and stays, provide brief positive attention and praise
+
+**Data Collection:**
+- Track whether Johnny goes to bed on time each night for 2 weeks
+- Note any modifications or deviations from the plan
+</Markdown>
+</Vertical>
+</Tabs>
+
+
+<HH> ============= Screen: Sensory plan check =================== </HH>
+
+<Vertical id="fba2_sensory_plan_check">
+<Markdown>
+## Check for Understanding: The Sensory-Focused Plan
+
+Here is Plan B in detail:
+
+| | |
+|---|---|
+| **Target Behavior** | Johnny does not go to bed on time |
+| **Function of Behavior** | Sensory |
+| **Behavior Goal** | Johnny will go to bed on time when told, without running away, for 4 out of 5 bedtimes over a 2-week period |
+
+**Antecedent Strategies:**
+- Play calming music in the bedroom 15 minutes before bedtime
+- Use a weighted blanket on Johnny's bed
+- Dim the lights gradually during the bedtime routine
+- Provide a lavender-scented pillow
+- Allow Johnny to hold a preferred textured object during the routine
+
+**~~Replacement Behaviors (Teach):~~** ~~Not applicable for this plan.~~
+
+**Consequence Strategies:**
+- Allow access to a sensory toy (fidget spinner, stress ball) while in bed
+- Redirect sensory-seeking behavior to appropriate sensory input
+- Track which sensory inputs are most effective
+
+**Reinforcement Plan:**
+- Provide praise when Johnny uses sensory tools appropriately
+- Allow extra time with preferred sensory items as a reward
+- Track sensory triggers and adjust environment accordingly
+
+**Data Collection:**
+- Track whether Johnny goes to bed on time each night for 2 weeks
+- Note which sensory accommodations were used each night
+</Markdown>
+
+<MarkupProblem id="fba2_sensory_check_choice" title="Why Not the Sensory Plan?"><![CDATA[
+>>Why wouldn't this be a good plan for Johnny?<<
+
+( ) It does not address the function of behavior (attention)
+(x) It does not address the function of behavior (escape)
+( ) It does not include positive reinforcement
+( ) It does not include positive punishment
+
+[explanation]
+This plan addresses **sensory** needs, but Johnny's behavior function is **escape**. The plan does not address why Johnny is running away — to avoid going to bed. A good intervention must match the function of the behavior. Since Johnny's behavior is maintained by escape, the plan needs strategies that make bedtime less aversive and don't reinforce escape.
+[/explanation]
+]]></MarkupProblem>
+</Vertical>
+
+
+<HH> ============= Screen: Final email ========================== </HH>
+
+<Vertical id="fba2_final_email">
+<Markdown>
+## Final Activity: Email to Annie's Roommate
+
+Based on everything you have learned in this activity, write an email to Annie's roommate describing the details of the new intervention you and your teammates would like to suggest.
+
+**Make sure to use the following terms:**
+- Function of behavior
+- Antecedent, behavior, consequence
+- Positive reinforcement
+- Competing behavior pathway
+</Markdown>
+
+<Markdown id="fba2_email_rubric">
+### Email Rubric
+
+Your email will be evaluated on:
+1. Does it specify changes to **antecedent conditions** that will make it easier to get the child to bed on time?
+2. Does it specify changes to **consequence conditions** that will make it easier to get the child to bed on time?
+3. Are the interventions proposed ones that the psychological literature recommends as effective in addressing sleep refusal?
+4. Does the email provide enough **detail** about the interventions that the babysitter will be able to implement the plan effectively?
+</Markdown>
+
+<TextArea id="fba2_email_to_roommate" rows="10" placeholder="Write your email to Annie's roommate describing the new intervention plan..." />
+
+<LLMFeedback id="fba2_email_feedback" render="markdown" />
+
+<ActionButton id="fba2_email_check_btn" label="Get AI Feedback" dependsOn="@fba2_email_to_roommate.value">
+<LLMAction id="fba2_email_check" target="fba2_email_feedback"><![CDATA[
+Here is an email designed to help a babysitter implement an operant conditioning
+intervention designed to address sleep refusal by the child she is babysitting.
+]]>
+<Ref id="fba2_ref_email" target="fba2_email_to_roommate" />
+<![CDATA[
+Evaluate the email using the following criteria:
+1. Does it specify changes to antecedent conditions that will make it easier to get the child to bed on time?
+2. Does it specify changes to consequence conditions that will make it easier to get the child to bed on time?
+3. Are the interventions proposed ones that the psychological literature recommends as effective in addressing sleep refusal?
+4. Does the email provide enough detail about the interventions that the babysitter will be able to implement the plan effectively?
+
+For each criterion, note what was done well and what could be improved.
+Keep your feedback constructive and concise.
+]]></LLMAction>
+</ActionButton>
+</Vertical>
+
+
+<HH> ============= Screen: Completion ========================== </HH>
+
+<Vertical id="fba2_completion_page">
+<Markdown>**Confirm that you are done with this exercise.**</Markdown>
+
+<CheckboxInput id="fba2_completion_checkbox">
+<Key id="fba2_part_3auto_finished">I don't need to make any more changes</Key>
+</CheckboxInput>
+
+<IntakeGate ready="'fba2_part_3auto_finished' in @fba2_completion_checkbox.value">
+<Markdown> </Markdown>
+<Markdown>
+- In this activity, you learned about the **function of behavior** (attention, escape,
+  access/tangibles, sensory), the **ABCs** (Antecedent, Behavior, Consequence), and
+  **Competing Behavior Pathways**. You used these concepts to develop an **intervention
+  plan** for Johnny's bedtime escape behavior.
+- Next time, you will follow up on the intervention plan and learn about **progress
+  monitoring** and **implementation fidelity**.
+
+## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
+</Markdown>
+</IntakeGate>
+</Vertical>
+
+</Vertical>

@@ -1,4 +1,5 @@
 Annie:
+  seed: annie
   openPeeps:
     face: smile
 JJ:
@@ -10,5 +11,6 @@ Lin:
   openPeeps:
     face: smile
 Lianne:
+  seed: lianne
   openPeeps:
     face: smile

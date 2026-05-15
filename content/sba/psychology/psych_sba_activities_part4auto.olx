@@ -1,15 +1,15 @@
 <!--
 ---
-description: "Activities used in Psychology Study Group: 6. Progress Monitoring. Not a separate activity; included to support content editing."
+description: "Activities used in Psychology Study Group: 4 Auto. Progress Monitoring. Not a separate activity; included to support content editing."
 category: psychology
-index: 56
+index: 54.5
 lang: en-Latn-US
 ---
 -->
-<Vertical id="psych_sba_activities_part6" title="Psychology Study Group: 6. Progress Monitoring (Activities)" launchable="true">
+<Vertical id="psych_sba_activities_part4auto" title="Psychology Study Group: 4 Auto. Progress Monitoring (Activities)" launchable="true">
 
-<ActionButton id="print_psych_part6_btn" label="Export as PDF">
-<PrintAction id="print_psych_part6" />
+<ActionButton id="print_psych_part4auto_btn" label="Export as PDF">
+<PrintAction id="print_psych_part4auto" />
 </ActionButton>
 
 
@@ -35,17 +35,18 @@ Let's check in with Annie to see how things went.
 </IntakeGate>
 
 
-<HH> ============= Screen: Progress graph 1 ==================== </HH>
+<HH> ============= Screen: Progress graph + predict fidelity ===== </HH>
 
-<IntakeGate ready="!@fba3_completion_checkbox.value">
-<Markdown> </Markdown>
-<Vertical id="fba3_progress_graph_1">
-<Markdown>
+<IntakeGate id="fba3_predict_fidelity" ready="@fba3_interpretation_confidence.value">
+
+  <!-- Front: see the data, predict what went wrong -->
+  <Vertical>
+    <Markdown>
 ## Progress Monitoring: Week 1–2
 
 Annie's roommate tracked Johnny's bedtime over 5 babysitting sessions:
-</Markdown>
-<ObservablePlot id="fba3_week1_chart" title="Johnny's Bedtimes (Week 1–2)" format="js"><![CDATA[
+    </Markdown>
+    <ObservablePlot id="fba3_week1_chart" title="Johnny's Bedtimes (Week 1–2)" format="js"><![CDATA[
 const data = [
   { date: "9/5", bedtimeIndex: 0 },
   { date: "9/6", bedtimeIndex: 0 },
@@ -100,23 +101,39 @@ return Plot.plot({
   }
 });
 ]]></ObservablePlot>
-<Markdown>
+    <Markdown>
+The data shows that something isn't working. **Before reading the explanation, look at the graph and write what you think went wrong.** Consider: Is the plan itself flawed, or is something else going on?
+    </Markdown>
+
+    <TextArea id="fba3_week1_interpretation" rows="3"
+      placeholder="Looking at the graph, I think the problem might be..." />
+
+    <Markdown>Once you've written your interpretation, **select a confidence level below to see what actually happened.** (You won't be able to change your answer after selecting.)</Markdown>
+    <ChoiceInput id="fba3_interpretation_confidence">
+      <Key value="very">Very confident — I'm sure about this</Key>
+      <Key value="somewhat">Somewhat confident — I think so but I'm not sure</Key>
+      <Key value="guess">Just guessing</Key>
+    </ChoiceInput>
+  </Vertical>
+
+  <!-- Back: show interpretation alongside the fidelity framework -->
+  <Vertical>
+    <Markdown>
+## Your Interpretation
+
+{{text2markdown(@fba3_week1_interpretation.value)}}
+
+---
+
+## What Actually Happened
+
 - Johnny went to bed on time (8:00 PM) only on the first **2 out of 5** sessions
 - Bedtimes got progressively later over the two weeks
 - On one occasion, the roommate noted she didn't follow the plan exactly
 - The escape behaviors seem to have gotten worse over time
 
-**Something isn't working right...**
-</Markdown>
-</Vertical>
-</IntakeGate>
+The issue turns out to be **implementation fidelity** — how accurately and consistently the behavior plan was followed.
 
-
-<HH> ============= Screen: Fidelity info ======================== </HH>
-
-<IntakeGate ready="!@fba3_completion_checkbox.value">
-<Markdown> </Markdown>
-<Markdown id="fba3_fidelity_info">
 ## Implementation Fidelity
 
 Implementation fidelity refers to how accurately and consistently a behavior plan is implemented as it was designed. There are five key aspects:
@@ -126,7 +143,9 @@ Implementation fidelity refers to how accurately and consistently a behavior pla
 3. **Quality of Delivery** — Are the strategies implemented correctly and with the intended tone/approach (e.g., calm redirection vs. yelling)?
 4. **Participant Responsiveness** — Is the child actually exposed to and engaged with the intervention?
 5. **Program Differentiation** — Are other strategies (not part of the plan) avoided during implementation?
-</Markdown>
+    </Markdown>
+  </Vertical>
+
 </IntakeGate>
 
 
@@ -259,7 +278,8 @@ _Based on AI suggestions and course materials, here are some modifications that 
 
 <IntakeGate ready="!@fba3_completion_checkbox.value">
 <Markdown> </Markdown>
-<Markdown id="fba3_checklist_display">
+<Vertical id="fba3_checklist_display">
+<Markdown id="fba3_checklist_bedtime">
 ## Sample Fidelity Checklist
 
 **Bedtime Routine**
@@ -272,8 +292,10 @@ _Based on AI suggestions and course materials, here are some modifications that 
 | 4 | Followed visual schedule for routine steps | ☐ Yes  ☐ No | |
 | 5 | Offered limited choices during routine | ☐ Yes  ☐ No | |
 | 6 | Incorporated brief preferred activity | ☐ Yes  ☐ No | |
+</Markdown>
 
-**Response to Escape Behavior**
+<Markdown id="fba3_checklist_escape_response">
+## Response to Escape Behavior
 
 | Step | Task | Completed | Notes |
 |:---:|------|:---:|-------|
@@ -282,6 +304,7 @@ _Based on AI suggestions and course materials, here are some modifications that 
 | 9 | Provided sticker/praise for compliance | ☐ Yes  ☐ No | |
 | 10 | Honored bedtime pass if used | ☐ Yes  ☐ No | |
 </Markdown>
+</Vertical>
 </IntakeGate>
 
 
@@ -294,17 +317,86 @@ _Based on AI suggestions and course materials, here are some modifications that 
 Of these modifications, which ones do you think we should add to help Annie's roommate improve her adherence? **Pick up to 2.**
 </Markdown>
 
+<CapaProblem id="fba3_modification_problem" title="Choose Modifications" showanswer="never">
+<CorrectGrader>
 <CheckboxInput id="fba3_modification_choices">
-<Distractor id="fba3_mod_simplify">    Simplify the plan using a step-by-step guide                  </Distractor>
-<Distractor id="fba3_mod_training">    Provide direct training using in-person or video modeling      </Distractor>
-<Distractor id="fba3_mod_checklist">   Use simple yes/no fidelity checklists for key steps            </Distractor>
-<Distractor id="fba3_mod_coaching">    Provide coaching and feedback                                  </Distractor>
-<Distractor id="fba3_mod_reminders">   Set reminders and visual prompts on the roommate's phone       </Distractor>
+<Key  id="fba3_mod_simplify"> Simplify the plan using a step-by-step guide              </Key>
+<Key  id="fba3_mod_training"> Provide direct training using in-person or video modeling </Key>
+<Key id="fba3_mod_checklist"> Use simple yes/no fidelity checklists for key steps       </Key>
+<Key  id="fba3_mod_coaching"> Provide coaching and feedback                             </Key>
+<Key id="fba3_mod_reminders"> Set reminders and visual prompts on the roommate's phone  </Key>
 </CheckboxInput>
+</CorrectGrader>
+</CapaProblem>
 
 <Markdown>**Why did you choose these modifications? How will they help with adherence?**</Markdown>
 <TextArea id="fba3_modification_explanation" rows="3" placeholder="Explain why you chose these modifications..." />
 </Vertical>
+
+
+<HH> ============= Screen: Email revision ======================== </HH>
+
+<Tabs id="fba3_revision_email">
+<Vertical id="fba3_revision_left" title="One More Suggestion">
+<Markdown>
+## Provide One More Suggestion
+
+Based on what you have learned, write an email in which you tell
+Annie's roommate about **one more way** she can improve her fidelity of
+implementation, besides using the two checklists.
+
+You can use one of the suggestions provided by the AI, but if you do,
+be sure to tweak it and provide extra details to make it as useful as
+possible.
+</Markdown>
+<TextArea id="fba3_revision_email_text" rows="8"
+  placeholder="Dear Roommate, besides using the checklists, here's something else you can do that will help..." />
+<LLMFeedback id="fba3_revision_feedback" render="markdown" />
+<ActionButton id="fba3_revision_btn" label="Get AI Feedback" dependsOn="@fba3_revision_email_text.value">
+<LLMAction target="fba3_revision_feedback"><![CDATA[
+BACKGROUND:
+Here is a student's email suggesting how her friend's roommate who is babysitting
+a six-year-old with sleep refusal issues should change her intervention plan designed
+to get the child to bed on time regularly, in order to improve adherence:
+]]>
+<Ref target="fba3_revision_email_text" />
+<![CDATA[
+The following suggested checklists the babysitter could follow were provided
+by other students:
+]]>
+<Ref target="fba3_checklist_bedtime" />
+<Ref target="fba3_checklist_escape_response" />
+<![CDATA[
+The following is a list of AI suggestions about how the babysitter could improve her
+adherence to the intervention plan to overcome the six-year-old's sleep refusal issue:
+]]>
+<Ref target="fba3_ai_adherence_response" />
+<![CDATA[
+DIRECTIONS:
+First, check whether the student's revision email overlaps in content with the checklists
+provided by other students. If there is such an overlap, say so briefly, in a sentence or so.
+
+Next, check whether the student's revision email overlaps in content with the list of AI
+suggestions. If there is any overlap, identify it and point out what parts of the response
+are original -- that is, present neither in the checklists nor in the AI response.
+
+Finally, evaluate the advice provided in the student email for consistency with what is
+known about using operant conditioning to treat sleep refusal and with what is known about
+effective ways to improve adherence to an intervention, focusing on whether the proposed
+plan is sound and effective.
+]]></LLMAction>
+</ActionButton>
+</Vertical>
+<Vertical id="fba3_revision_ai_ref" title="AI Suggestions">
+<Use ref="fba3_ai_adherence_response" />
+</Vertical>
+<Vertical id="fba3_revision_checklist1" title="Lin's Checklist">
+<Use ref="fba3_checklist_bedtime" />
+</Vertical>
+<Vertical id="fba3_revision_checklist2" title="JJ's Checklist">
+<Use ref="fba3_checklist_escape_response" />
+</Vertical>
+</Tabs>
 
 
 <HH> ============= Screen: Updated plan ========================= </HH>
@@ -470,10 +562,10 @@ You have determined that the modified intervention was a success! Write a brief 
 <Markdown>**Confirm that you are done with this exercise.**</Markdown>
 
 <CheckboxInput id="fba3_completion_checkbox">
-<Key id="fba3_part_6_finished">I don't need to make any more changes</Key>
+<Key id="fba3_part_4auto_finished">I don't need to make any more changes</Key>
 </CheckboxInput>
 
-<IntakeGate ready="'fba3_part_6_finished' in @fba3_completion_checkbox.value">
+<IntakeGate ready="'fba3_part_4auto_finished' in @fba3_completion_checkbox.value">
 <Markdown> </Markdown>
 <Markdown>
 - In this activity, you learned about **progress monitoring** and **implementation fidelity**.
