@@ -306,10 +306,19 @@ With metadata:
 
 ### Pause
 
-Stops dialogue until the user clicks Continue:
+Inserts a hard stop between commands that would otherwise execute together. **Rarely needed.**
+
+Normal flow: each "Continue" click reveals the next batch of dialogue messages and simultaneously executes any commands (arrows, embeds, waits) adjacent to them. You do **not** need `--- pause ---` between dialogue lines — the user already clicks Continue to advance.
+
+Use `--- pause ---` only when two commands must run sequentially with a user confirmation in between (e.g., an arrow command that must visibly complete before a wait command fires).
 
 ```
+sidebar -> intro_panel
+
 --- pause ---
+
+sidebar -> activity_panel
+--- wait @activity.done ---
 ```
 
 ### Wait
@@ -393,14 +402,10 @@ Kim: Did you read the Roediger and Karpicke study?
 
 Alex: The one about practice tests?
 
---- pause ---
-
 Kim: Students who tested themselves remembered about 50% more
 after a week, even though they felt less confident during practice.
 
 Alex: That's the "desirable difficulty" idea? [face=awe]
-
-# Next topic
 
 Spacing Effect [id=spacing]
 ---------------------------

@@ -114,6 +114,7 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
       <button
         onClick={() => setShowDropdown(!showDropdown)}
         className="px-2 py-1 text-sm bg-background border border-border rounded hover:border-border focus:outline-none focus:ring-1 focus:ring-accent"
+        suppressHydrationWarning
       >
         {localeCode ? getLanguageLabel(localeCode, 'en', 'short') : '…'}
       </button>

@@ -104,6 +104,36 @@
   text-decoration-color: var(--lo-primary);
 }
 
+/* Tables (GFM) */
+.rendered-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--lo-space-lg);
+  font-size: var(--lo-font-size-base, 1rem);
+}
+
+.rendered-markdown th,
+.rendered-markdown td {
+  border: 1px solid var(--lo-border);
+  padding: var(--lo-space-sm) var(--lo-space-md);
+  text-align: start;
+  color: var(--lo-text);
+}
+
+.rendered-markdown th {
+  background-color: var(--lo-bg-surface);
+  font-weight: 600;
+}
+
+.rendered-markdown tr:nth-child(even) td {
+  background-color: color-mix(in srgb, var(--lo-bg-surface) 40%, transparent);
+}
+
+/* Hide thead when all header cells are empty (headerless GFM tables like | | |) */
+.rendered-markdown thead:not(:has(th:not(:empty))) {
+  display: none;
+}
+
 /* Strip trailing margin from last child to avoid blank space at bottom */
 .rendered-markdown > :last-child {
   margin-bottom: 0;

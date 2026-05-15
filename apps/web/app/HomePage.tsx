@@ -360,7 +360,7 @@ export default function Home() {
   }, [userLocale]);
 
   return (
-    <div {...localeAttrs} className="flex h-screen">
+    <div {...localeAttrs} suppressHydrationWarning className="flex h-screen">
       <Sidebar />
       <main className="flex-1 overflow-auto flex flex-col">
         <div className="flex justify-end p-4 border-b border-border">

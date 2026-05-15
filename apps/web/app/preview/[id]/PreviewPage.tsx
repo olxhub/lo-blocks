@@ -30,7 +30,7 @@ export default function PreviewPage() {
 
   if (error) {
     return (
-      <div {...localeAttrs} className="flex flex-col h-screen">
+      <div {...localeAttrs} suppressHydrationWarning className="flex flex-col h-screen">
         <AppHeader home user />
         <div className="p-6 flex-1">
           <DisplayError
@@ -47,7 +47,7 @@ export default function PreviewPage() {
 
   if (loading) {
     return (
-      <div {...localeAttrs} className="flex flex-col h-screen">
+      <div {...localeAttrs} suppressHydrationWarning className="flex flex-col h-screen">
         <AppHeader home user />
         <Spinner>Loading content...</Spinner>
       </div>
@@ -56,7 +56,7 @@ export default function PreviewPage() {
 
   if (!idMap) {
     return (
-      <div {...localeAttrs} className="flex flex-col h-screen">
+      <div {...localeAttrs} suppressHydrationWarning className="flex flex-col h-screen">
         <AppHeader home user />
         <div className="p-6 flex-1">
           <DisplayError
