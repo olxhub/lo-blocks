@@ -407,7 +407,9 @@ Annie mentioned that she asked AI why punishment isn't listed as a function of b
     <Markdown>
 ## Your Prediction
 
-> {{text2markdown(@fba2_no_punishment_explanation.value)}}
+{{text2markdown(@fba2_no_punishment_explanation.value)}}
+
+---
 
 ## AI Response: Why Punishment Is Not a Function of Behavior
 
@@ -452,6 +454,8 @@ the behavior serves:
 - **Attention** — behavior produces social attention (even negative attention)
 - **Sensory** — behavior produces its own internal reinforcement
 - **Access/Tangible** — behavior obtains a preferred item or activity
+
+You need to get **6 correct in a row** to move on. If you get one wrong, your streak resets — correct your answer, then keep going.
 </Markdown>
 
 <MasteryBank id="fba2_function_mastery" goal="6" mode="shuffle">
@@ -567,8 +571,6 @@ the behavior serves:
 ## Ask AI: The ABCs of Behavior
 
 Ask AI to create a **flowchart diagram** showing the ABCs (Antecedent → Behavior → Consequence) for each of the four functions of behavior.
-
-**Tip:** If the diagram doesn't render correctly, click "Ask AI" again. The AI sometimes needs another attempt to get the diagram syntax right.
 </Markdown>
 
 <Collapsible id="fba2_abc_diagram_hint" title="Hint: Example prompt">
@@ -579,14 +581,8 @@ Try a prompt like: "Create a flowchart showing the ABC pattern for each function
 
 <TextArea id="fba2_ai_abc_prompt" rows="2" placeholder="Ask AI to create Mermaid ABC diagrams for each function of behavior..." />
 
-<LLMFeedback id="fba2_ai_abc_response" render="markdown" />
-
-<Mermaid id="fba2_ai_abc_diagram" target="fba2_ai_abc_code" />
-<Collapsible id="fba2_mermaid_source" title="View diagram source code">
-<LLMFeedback id="fba2_ai_abc_code" render="code" />
-</Collapsible>
-
 <ActionButton id="fba2_ai_abc_btn" label="Ask AI">
+<SetFieldAction id="fba2_ai_abc_trigger" target="fba2_ai_abc_placeholder" field="value" value="*Generating diagram — this may take up to a minute...*" />
 <LLMAction id="fba2_ai_abc_action" target="fba2_ai_abc_response"><![CDATA[
 If the following question is about the ABCs (Antecedent, Behavior, Consequence) model
 in behavioral psychology and how it relates to the four functions of behavior
@@ -637,6 +633,17 @@ flowchart LR
 Student prompt: <Ref id="fba2_ref_abc_code_prompt" target="fba2_ai_abc_prompt" />
 </LLMAction>
 </ActionButton>
+
+<LLMFeedback id="fba2_ai_abc_response" render="markdown" when="@fba2_ai_abc_response.value" />
+
+<Markdown id="fba2_ai_abc_placeholder" when="!@fba2_ai_abc_code.value">
+*Your diagram will appear here once the AI finishes generating it. The text explanation will appear first; the diagram follows after and may take up to a minute. If it doesn't render correctly, click "Ask AI" again — the AI sometimes needs another attempt to get the diagram syntax right.*
+</Markdown>
+<Mermaid id="fba2_ai_abc_diagram" target="fba2_ai_abc_code" when="@fba2_ai_abc_code.value" />
+<Collapsible id="fba2_mermaid_source" title="View diagram source code" when="@fba2_ai_abc_code.value">
+<LLMFeedback id="fba2_ai_abc_code" render="code" />
+</Collapsible>
+
 </Vertical>
 
 
@@ -652,52 +659,16 @@ Each diagram shows the **Antecedent → Behavior → Consequence** chain for one
 </Markdown>
 
 <Markdown>### Escape (Negative Reinforcement)</Markdown>
-<Mermaid id="fba2_abc_ref_escape"><![CDATA[
-flowchart LR
-  A["Antecedent:<br/>Teacher gives a difficult task"] --> B["Behavior:<br/>Student puts head down"] --> C["Consequence:<br/>Task is removed or delayed"]
-  class A ant
-  class B beh
-  class C con
-  classDef ant fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
-  classDef beh fill:#cfe2ff,stroke:#0d6efd,stroke-width:2px,color:#000
-  classDef con fill:#d1e7dd,stroke:#198754,stroke-width:2px,color:#000
-]]></Mermaid>
+<Mermaid id="fba2_abc_ref_escape" src="diagrams/abc_ref_escape.mmd" />
 
 <Markdown>### Attention (Positive Reinforcement)</Markdown>
-<Mermaid id="fba2_abc_ref_attention"><![CDATA[
-flowchart LR
-  A["Antecedent:<br/>Parent is on the phone"] --> B["Behavior:<br/>Child shouts loudly"] --> C["Consequence:<br/>Parent gives attention"]
-  class A ant
-  class B beh
-  class C con
-  classDef ant fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
-  classDef beh fill:#cfe2ff,stroke:#0d6efd,stroke-width:2px,color:#000
-  classDef con fill:#d1e7dd,stroke:#198754,stroke-width:2px,color:#000
-]]></Mermaid>
+<Mermaid id="fba2_abc_ref_attention" src="diagrams/abc_ref_attention.mmd" />
 
 <Markdown>### Access/Tangible (Positive Reinforcement)</Markdown>
-<Mermaid id="fba2_abc_ref_tangible"><![CDATA[
-flowchart LR
-  A["Antecedent:<br/>Toy is out of reach"] --> B["Behavior:<br/>Child cries"] --> C["Consequence:<br/>Parent gives the toy"]
-  class A ant
-  class B beh
-  class C con
-  classDef ant fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
-  classDef beh fill:#cfe2ff,stroke:#0d6efd,stroke-width:2px,color:#000
-  classDef con fill:#d1e7dd,stroke:#198754,stroke-width:2px,color:#000
-]]></Mermaid>
+<Mermaid id="fba2_abc_ref_tangible" src="diagrams/abc_ref_tangible.mmd" />
 
 <Markdown>### Sensory (Automatic Reinforcement)</Markdown>
-<Mermaid id="fba2_abc_ref_sensory"><![CDATA[
-flowchart LR
-  A["Antecedent:<br/>Quiet time with no stimulation"] --> B["Behavior:<br/>Child flaps hands"] --> C["Consequence:<br/>Self-stimulation feels good"]
-  class A ant
-  class B beh
-  class C con
-  classDef ant fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
-  classDef beh fill:#cfe2ff,stroke:#0d6efd,stroke-width:2px,color:#000
-  classDef con fill:#d1e7dd,stroke:#198754,stroke-width:2px,color:#000
-]]></Mermaid>
+<Mermaid id="fba2_abc_ref_sensory" src="diagrams/abc_ref_sensory.mmd" />
 </Vertical>
 </IntakeGate>
 
@@ -768,24 +739,7 @@ The function is **escape**. Johnny's running away is maintained by negative rein
 Use the color-coded reference diagram below to understand the Competing Behavior Pathway. Then fill in each part for Johnny's bedtime scenario.
 </Markdown>
 
-<Mermaid id="fba2_pathway_reference"><![CDATA[
-flowchart LR
-  A["Antecedent:<br/>(trigger)"] --> PB["Problem Behavior:<br/>(what the child does)"] --> C["Consequence:<br/>(what happens next)"]
-  C --> F["Function:<br/>(why it continues)"]
-  A --> DB["Desired Behavior:<br/>(what we want instead)"] --> DO["Desired Outcome:<br/>(positive result)"]
-  class A ant
-  class PB beh
-  class C con
-  class F func
-  class DB desired
-  class DO outcome
-  classDef ant fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
-  classDef beh fill:#cfe2ff,stroke:#0d6efd,stroke-width:2px,color:#000
-  classDef con fill:#d1e7dd,stroke:#198754,stroke-width:2px,color:#000
-  classDef func fill:#f8d7da,stroke:#dc3545,stroke-width:2px,color:#000
-  classDef desired fill:#d0e8ff,stroke:#0a58ca,stroke-width:2px,color:#000
-  classDef outcome fill:#c3e6cb,stroke:#28a745,stroke-width:2px,color:#000
-]]></Mermaid>
+<Mermaid id="fba2_pathway_reference" src="diagrams/cbp_blank_template.mmd" />
 
 <Markdown>
 ### Fill in the Competing Behavior Pathway for Johnny
@@ -844,30 +798,7 @@ and what needs correction. Keep it brief.
 <Markdown id="fba2_competing_pathway_jj">
 ## JJ's Completed Competing Behavior Pathway
 </Markdown>
-<Mermaid id="fba2_competing_pathway_jj_diagram"><![CDATA[
-flowchart LR
-  A["Antecedent:<br/>Told to go to bed"]
-  PB["Problem Behavior:<br/>Runs out of room laughing"]
-  C["Consequence:<br/>Roommate chases, nags"]
-  F["Function:<br/>Escape"]
-  DB["Desired Behavior:<br/>Goes to bed on time"]
-  DO["Desired Outcome:<br/>Falls asleep"]
-  A --> PB --> C
-  C --> F
-  A --> DB --> DO
-  class A ant
-  class PB beh
-  class C con
-  class F func
-  class DB desired
-  class DO outcome
-  classDef ant fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
-  classDef beh fill:#cfe2ff,stroke:#0d6efd,stroke-width:2px,color:#000
-  classDef con fill:#d1e7dd,stroke:#198754,stroke-width:2px,color:#000
-  classDef func fill:#f8d7da,stroke:#dc3545,stroke-width:2px,color:#000
-  classDef desired fill:#d0e8ff,stroke:#0a58ca,stroke-width:2px,color:#000
-  classDef outcome fill:#c3e6cb,stroke:#28a745,stroke-width:2px,color:#000
-]]></Mermaid>
+<Mermaid id="fba2_competing_pathway_jj_diagram" src="diagrams/johnny_cbp_jj_auto.mmd" />
 </Vertical>
 </IntakeGate>
 
@@ -1042,24 +973,7 @@ Here is JJ's original pathway for reference. Now that you've identified escape-f
 </Markdown>
 
 <Collapsible id="fba2_original_pathway_ref" title="JJ's Original Pathway (click to expand)">
-<Mermaid id="fba2_pathway_ref_diagram"><![CDATA[
-flowchart LR
-  A["Antecedent:<br/>Roommate tells Johnny<br/>to go to bed"] --> PB["Problem Behavior:<br/>Johnny runs out of<br/>the room laughing"] --> C["Consequence:<br/>Roommate runs after<br/>him, nagging"]
-  C --> F["Function:<br/>Escape"]
-  A --> DB["Desired Behavior:<br/>Johnny goes to bed<br/>appropriately"] --> DO["Desired Outcome:<br/>Johnny goes to sleep"]
-  class A ant
-  class PB beh
-  class C con
-  class F func
-  class DB desired
-  class DO outcome
-  classDef ant fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
-  classDef beh fill:#cfe2ff,stroke:#0d6efd,stroke-width:2px,color:#000
-  classDef con fill:#d1e7dd,stroke:#198754,stroke-width:2px,color:#000
-  classDef func fill:#f8d7da,stroke:#dc3545,stroke-width:2px,color:#000
-  classDef desired fill:#d0e8ff,stroke:#0a58ca,stroke-width:2px,color:#000
-  classDef outcome fill:#c3e6cb,stroke:#28a745,stroke-width:2px,color:#000
-]]></Mermaid>
+<Mermaid id="fba2_pathway_ref_diagram" src="diagrams/johnny_cbp_filled.mmd" />
 </Collapsible>
 
 <Markdown>
@@ -1234,7 +1148,7 @@ Your email will be evaluated on:
 4. Does the email provide enough **detail** about the interventions that the babysitter will be able to implement the plan effectively?
 </Markdown>
 
-<TextArea id="fba2_email_to_roommate" rows="10" placeholder="Dear Annie's roommate,&#10;&#10;Based on what we learned about behavioral psychology..." />
+<TextArea id="fba2_email_to_roommate" rows="10" placeholder="Write your email to Annie's roommate describing the new intervention plan..." />
 
 <LLMFeedback id="fba2_email_feedback" render="markdown" />
 

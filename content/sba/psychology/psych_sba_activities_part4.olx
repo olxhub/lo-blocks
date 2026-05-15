@@ -262,7 +262,7 @@ to the intervention plan?
 Of these modifications, which ones should we add to help the roommate follow the plan? (Pick up to 2)
     </Markdown>
 
-    <CapaProblem id="modification_choices" title="Select Modifications">
+    <CapaProblem id="modification_choices" title="Select Modifications" showanswer="never">
       <CorrectGrader>
         <CheckboxInput>
           <Key id="mod_1">Simplify the plan using a step-by-step guide</Key>
