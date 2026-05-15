@@ -54,6 +54,20 @@ function getHeaderStateClass(correctnessValue: string) {
  * Aggregate correctness and messages from child graders.
  * Updates CapaProblem's own fields with aggregated values.
  *
+ * TODO: This whole hook should be replaced by moving aggregation into the
+ * grading action pipeline. The current approach has several problems:
+ *
+ * 1. **Architecture:** Uses useEffect + state.updateField to write derived
+ *    state back to Redux, rather than computing it in the grading action
+ *    that already sets child grader fields. The grading action should set
+ *    the parent's aggregated fields (correct, message, score, submitCount)
+ *    at the same time it sets child fields — no component-level effects needed.
+ *
+ * 2. **Replay:** useEffect doesn't replay reliably. Moving to the action
+ *    pipeline makes aggregation part of the event stream.
+ *
+ * 3. **Lag:** Aggregated values are one render cycle behind child values.
+ *
  * TODO: Multipart problem aggregation needs work. Current issues:
  * - Messages are joined with spaces, so feedback from one part floats to the footer
  *   disconnected from its question (e.g., "Correct! Bandura's..." appears at bottom)
