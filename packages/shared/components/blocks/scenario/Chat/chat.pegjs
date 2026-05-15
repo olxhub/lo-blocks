@@ -144,7 +144,19 @@ ArrowCommandStart
 
 
 /* Pause command
- * Matches any line of the form
+ *
+ * Inserts a hard stop between commands that would otherwise execute together.
+ *
+ * Normal flow: each "Continue" click reveals the next batch of messages AND
+ * executes any commands (arrows, embeds, waits) that precede them. Multiple
+ * consecutive commands run simultaneously.
+ *
+ * --- pause --- forces a break: commands before the pause execute, the user
+ * must click Continue, and only then do commands after the pause execute.
+ * This is rarely needed — it is NOT a progressive reveal between dialogue
+ * lines (the user already clicks Continue for each new batch of dialogue).
+ *
+ * Matches any line of the form:
  *   --- pause ---
  *   -pause-
  *   --   pause   ----

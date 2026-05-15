@@ -18,8 +18,6 @@ Kim: Did you read the Roediger study? Students who took practice tests remembere
 
 Alex: That's counterintuitive. You'd think studying more would help more than testing.
 
---- pause ---
-
 Kim: That's exactly why it's called "desirable difficulty" — it feels harder during practice but produces better long-term retention.
 
 Alex: So re-reading feels productive but mostly builds familiarity? [face=awe]
@@ -165,10 +163,12 @@ Kim: Take a look at the problem on the right.
 
 ### Commands
 
-**Pause** — Waits for user to click continue:
+**Pause** — Inserts a hard stop between commands that would otherwise execute together. **Rarely needed.** Each "Continue" click already advances dialogue, so `--- pause ---` is not for progressive reveal between messages. Use it only when consecutive commands must run sequentially with a user confirmation in between:
 
 ```
+sidebar -> intro_panel
 --- pause ---
+sidebar -> activity_panel
 ```
 
 **Wait** — Blocks until a state language expression is truthy:
@@ -217,8 +217,6 @@ Alex: Before we look at the research, what do you think: is it better to study i
 --- wait prediction_input ---
 
 Kim: Interesting! Let's see what the research says...
-
---- pause ---
 
 Kim: Cepeda et al. found that spacing study sessions produces dramatically better retention — especially when the spacing matches how long you need to remember.
 

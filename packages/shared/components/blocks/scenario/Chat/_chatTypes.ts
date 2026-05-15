@@ -27,7 +27,6 @@ import type { OlxReference } from '@/lib/types';
  *   -----------------------
  *   Kim: Did you read the Roediger study?
  *   Alex: The one about testing? [face=awe]
- *   --- pause ---
  *   Kim: Students who tested themselves remembered 50% more.
  *   --- wait @quiz.done ---
  *   ::reflection_prompt
@@ -97,9 +96,14 @@ export interface SectionHeader extends HasMetadata {
 }
 
 /**
- * Stops the dialogue until the learner clicks "Continue."
+ * Inserts a hard stop between commands that would otherwise execute together.
+ * Rarely needed — the user already clicks Continue to advance dialogue.
+ * Use only when consecutive commands must run sequentially with a user
+ * confirmation in between.
  *
+ *   sidebar -> intro_panel
  *   --- pause ---
+ *   sidebar -> activity_panel
  */
 export interface PauseCommand {
   type: 'PauseCommand';
