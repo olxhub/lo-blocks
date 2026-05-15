@@ -695,7 +695,9 @@ export function useTextContent(
   props: RuntimeProps,
   { fallback = '' }: { fallback?: string } = {}
 ): { text: string; loading: boolean; error: string | null; ready: boolean } {
-  const target = props.target as ReduxStateRef | undefined;
+  const target = typeof props.target === 'string'
+    ? idResolver.parseReduxStateRef(props.target)
+    : undefined;
   const result = useValue(props, { target, fallback });
 
   const text =

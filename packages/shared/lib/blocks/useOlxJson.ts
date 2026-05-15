@@ -22,7 +22,7 @@ import {
 import { refToOlxKey, allOlxKeys } from '@/lib/types/id';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
-import type { OlxJson, OlxKey, OlxReference, ReduxStateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
+import type { OlxJson, OlxKey, OlxReference, ReduxStateRef, ReduxStateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
 import type { LogEventFn } from '@/lib/render';
 import { blockData } from '@/lib/state/redux';
 
@@ -161,7 +161,7 @@ function ensureReferencedBlocks(props: BaselineProps, idMap: IdMap, source: stri
         const cleaned = ref.startsWith('/') ? ref.slice(1)
                       : ref.startsWith('./') ? ref.slice(2)
                       : ref;
-        for (const key of allOlxKeys(cleaned as ReduxStateKey)) {
+        for (const key of allOlxKeys(cleaned as ReduxStateRef)) {
           // Skip blocks already in this idMap — they were just dispatched
           // in the same LOAD_OLXJSON event. Calling ensureBlock here would
           // race: OLXJSON_LOADING enqueued AFTER LOAD_OLXJSON overwrites

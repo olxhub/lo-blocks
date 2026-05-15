@@ -5,7 +5,7 @@ import { variantMapKeys } from '@/lib/types/i18n';
 import { allOlxKeys, refToReduxKey, parseReduxStateRef } from '@/lib/types/id';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { NextRequest } from 'next/server';
-import type { IdMap, OlxJson } from '@/lib/types';
+import type { IdMap, OlxJson, ReduxStateRef } from '@/lib/types';
 
 // Block fetching mode for testing async loading:
 //   'all'         - return full idMap (fast, sends everything)
@@ -16,6 +16,11 @@ import type { IdMap, OlxJson } from '@/lib/types';
 // children loaded together (ChoiceInput+Key, graders, etc.) while still
 // testing async loading for dynamic references.
 const SINGLE_BLOCK_MODE: string = 'static-kids';
+
+function targetRefs(target: unknown): ReduxStateRef[] {
+  if (typeof target !== 'string') return [];
+  return target.split(',').map(s => s.trim()).filter(Boolean).map(parseReduxStateRef);
+}
 
 /**
  * Recursively collect a block, its static children, and its target= references.
@@ -63,14 +68,10 @@ function collectBlockWithKids(
   // constructs (DynamicList instance count, etc.). This is one possible
   // validation site; parse-time and client-side contexts (Studio,
   // Markdown editor) are others. See docs/loading-state-todo.md.
-  const target = entry.attributes?.target;
-  if (typeof target === 'string') {
-    const parts = target.split(',').map(s => s.trim()).filter(Boolean);
-    for (const part of parts) {
-      const reduxKey = refToReduxKey(parseReduxStateRef(part));
-      for (const key of allOlxKeys(reduxKey)) {
-        collectBlockWithKids(idMap, key, request, collected);
-      }
+  for (const ref of targetRefs(entry.attributes?.target)) {
+    const reduxKey = refToReduxKey(ref);
+    for (const key of allOlxKeys(reduxKey)) {
+      collectBlockWithKids(idMap, key, request, collected);
     }
   }
 

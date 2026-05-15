@@ -11,7 +11,7 @@
 // TextSlot value/state fields.
 //
 'use client';
-import type { RuntimeProps, ReduxStateKey } from '@/lib/types';
+import type { RuntimeProps, ReduxStateRef } from '@/lib/types';
 
 import React from 'react';
 import { assertKidArray } from '@/lib/util/kids';
@@ -30,7 +30,7 @@ import Spinner from '@/components/common/Spinner';
  * Note: `ids` is already a string[] — the zod schema (z_reduxStateRefList)
  * splits the comma-separated OLX attribute at parse time.
  */
-function targetsToExpressions(ids: ReduxStateKey[]): { ready: string; loading: string } {
+function targetsToExpressions(ids: ReduxStateRef[]): { ready: string; loading: string } {
   const ready = ids.map(id => `@${id}.value`).join(' && ');
   const loading = [
     ...ids.map(id => `@${id}.state === 'LLM_RUNNING'`),
@@ -75,7 +75,7 @@ function _IntakeGate(props: RuntimeProps) {
     readyExpr = readyProp;
     loadingExpr = loadingProp;
   } else {
-    const generated = targetsToExpressions(targets as ReduxStateKey[]);
+    const generated = targetsToExpressions(targets as ReduxStateRef[]);
     readyExpr = generated.ready;
     loadingExpr = loadingProp ?? generated.loading;
   }

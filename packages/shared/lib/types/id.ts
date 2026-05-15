@@ -168,7 +168,7 @@ export function reduxKeyToOlxKey(key: ReduxStateKey): OlxKey {
  *   allOlxKeys('bank:#attempt_2:child')   // → ['bank', 'child']
  *   allOlxKeys('a:#0:b:#1:c')             // → ['a', 'b', 'c']
  */
-export function allOlxKeys(key: ReduxStateKey): OlxKey[] {
+export function allOlxKeys(key: ReduxStateKey | ReduxStateRef): OlxKey[] {
   return key
     .split(REDUX_SCOPE_SEPARATOR)
     .filter(seg => !seg.startsWith(SCOPE_MARKER_PREFIX)) as OlxKey[];
@@ -183,6 +183,10 @@ const INVALID_CHARS_DISPLAY = /[^a-zA-Z0-9_\s]/g;  // For error messages
 // Valid ReduxStateRef/ReduxStateKey: one or more segments separated by ":", where each segment
 // is either an OlxKey ([a-zA-Z_][a-zA-Z0-9_]*) or a ScopeMarker (#[0-9a-zA-Z_]+).
 // Examples: "foo", "myList:#0:answer", "a:#0:b:#1:c"
+//
+// NOTE: These two regexes are intentionally identical today. They'll diverge when
+// namespace prefixes land — ReduxStateKey will gain a namespace qualifier that
+// ReduxStateRef (authored input) won't have.
 const OLXKEY_SEG = '[a-zA-Z_][a-zA-Z0-9_]*';
 const SCOPE_SEG = '#[0-9a-zA-Z_]+';
 export const VALID_REDUX_STATE_REF = new RegExp(

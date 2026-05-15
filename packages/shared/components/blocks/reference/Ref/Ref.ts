@@ -4,11 +4,11 @@ import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { valueSelector, fieldByName, fieldSelector } from '@/lib/state';
 import { blockData, withStatus } from '@/lib/state/blockData';
-import { refToOlxKey, toOlxReference, reduxKeyToOlxKey, refToReduxKey } from '@/lib/types/id';
+import { reduxKeyToOlxKey } from '@/lib/types/id';
 import { srcAttributes, z_reduxStateRef } from '@/lib/blocks/attributeSchemas';
 import { selectBlock, selectBlockState } from '@/lib/state/olxjson';
 import _Ref from './_Ref';
-import type { RuntimeProps, ReduxStateKey, BlockDataResult } from '@/lib/types';
+import type { RuntimeProps, ReduxStateKey, OlxKey, BlockDataResult } from '@/lib/types';
 
 /**
  * Convert any value to a string representation for display.
@@ -79,10 +79,16 @@ const Ref = core({
       return { value: '', ...blockData('error', 'No target specified. Use target= attribute or <Ref>targetId</Ref>.') };
     }
 
+    // Target is validated by z_reduxStateRef — may be a simple ID or a scoped key.
+    // Scoped keys (containing ':') are used as-is; simple IDs are treated as OlxKeys.
+    const isScoped = targetId.includes(':');
+    const targetOlxKey = isScoped
+      ? reduxKeyToOlxKey(targetId as ReduxStateKey)
+      : targetId as unknown as OlxKey;
+
     // Check if target exists in Redux — distinguish loading from missing
-    const targetKey = refToOlxKey(toOlxReference(targetId));
-    if (!selectBlock(state, sources, targetKey, locale)) {
-      const bs = selectBlockState(state, sources, targetKey);
+    if (!selectBlock(state, sources, targetOlxKey, locale)) {
+      const bs = selectBlockState(state, sources, targetOlxKey);
       if (bs?.loadingState?.status === 'error') {
         return { value: '', ...blockData('error', `Target "${targetId}" not found`) };
       }
@@ -95,11 +101,10 @@ const Ref = core({
     const rawFallback = refNode.attributes?.fallback;
     const fallback = typeof rawFallback === 'string' ? rawFallback : '';
 
-    // HACK: Force absolute path for cross-block references.
-    // Absolute paths ("/id") bypass idPrefix in refToReduxKey.
-    // TODO: Unify ID resolution so cross-block refs work without this hack.
-    const absoluteTargetId = targetId.startsWith('/') ? targetId : `/${targetId}`;
-    const targetReduxKey = refToReduxKey(toOlxReference(absoluteTargetId));
+    // Scoped refs already encode the full Redux path; simple IDs are valid
+    // ReduxStateKeys directly (Ref targets are always resolved globally,
+    // not scoped by idPrefix).
+    const targetReduxKey = targetId as ReduxStateKey;
 
     if (field) {
       const fieldInfo = fieldByName(field);

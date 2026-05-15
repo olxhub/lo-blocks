@@ -32,7 +32,7 @@ import { fieldByName } from '@/lib/state/fields';
 import { refToReduxKey } from '@/lib/types/id';
 import { pushAdvanceScope, popAdvanceScope } from '@/lib/advance';
 import { useKids } from '@/lib/render';
-import type { RuntimeProps, OlxReference, ReduxStateKey } from '@/lib/types';
+import type { RuntimeProps, ReduxStateRef } from '@/lib/types';
 import { fields } from './CompactPopout';
 
 export default function _CompactPopout(props: RuntimeProps) {
@@ -49,15 +49,15 @@ export default function _CompactPopout(props: RuntimeProps) {
 
   /* ── Target mode: repoint a component ─────────────────────────── */
 
-  const targetId = props.target as ReduxStateKey | undefined;
-  const targetContent = props.targetContent as ReduxStateKey | undefined;
+  const targetId = props.target as ReduxStateRef | undefined;
+  const targetContent = props.targetContent as ReduxStateRef | undefined;
 
   const repoint = useCallback(() => {
     if (!targetId || !targetContent) return;
     const valueField = fieldByName('value');
     if (!valueField) return;
     updateField(props, valueField, targetContent, {
-      reduxKey: refToReduxKey({ ...props, id: targetId as unknown as OlxReference }),
+      reduxKey: refToReduxKey({ ...props, id: targetId }),
     });
   }, [props, targetId, targetContent]);
 

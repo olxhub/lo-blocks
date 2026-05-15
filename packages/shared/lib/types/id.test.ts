@@ -214,6 +214,25 @@ describe("ID helpers", () => {
     expect(() => idResolver.parseReduxStateRef('0abc')).toThrow();
   });
 
+  it("VALID_REDUX_STATE_REF regex", () => {
+    const re = idResolver.VALID_REDUX_STATE_REF;
+    // Valid patterns
+    expect(re.test('foo')).toBe(true);
+    expect(re.test('myList:#0:answer')).toBe(true);
+    expect(re.test('a:#0:b:#1:c')).toBe(true);
+    expect(re.test('#0:foo')).toBe(true);       // scope-first is valid syntax
+    expect(re.test('_hash')).toBe(true);
+    expect(re.test('A1')).toBe(true);
+
+    // Invalid patterns
+    expect(re.test('foo-bar')).toBe(false);      // hyphen
+    expect(re.test('')).toBe(false);             // empty
+    expect(re.test('foo::')).toBe(false);        // trailing colon
+    expect(re.test(':foo')).toBe(false);         // leading colon
+    expect(re.test('foo bar')).toBe(false);      // space
+    expect(re.test('0foo')).toBe(false);         // leading digit (not a scope marker)
+  });
+
   it("VALID_REDUX_STATE_KEY regex", () => {
     const re = idResolver.VALID_REDUX_STATE_KEY;
     // Valid patterns
