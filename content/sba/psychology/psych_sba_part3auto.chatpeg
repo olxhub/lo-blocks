@@ -149,7 +149,7 @@ Annie: I asked AI to come up with some examples about the functions of behaviors
 
 ::fba2_function_sorting [display=target:psych_sba_sidebar3auto label="Practice: Identify Functions"]
 
---- wait @fba2_function_sort_done.value ---
+--- wait @fba2_function_mastery.completed ---
 
 ABCs of Behavior [id=fba2_abc_section]
 -----------------

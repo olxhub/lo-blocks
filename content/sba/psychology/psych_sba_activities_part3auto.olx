@@ -441,32 +441,122 @@ _Annie asked AI this question earlier. Here's what it said:_
 
 <Vertical id="fba2_function_sorting">
 
-<CapaProblem id="fba2_function_sort_problem" title="Practice: Identify the Function of Each Behavior">
 <Markdown>
 ## Practice: Identify the Function of Each Behavior
 
-For each behavior example below, select the function it serves.
-</Markdown>
-<TabularMCQGrader>
-  <TabularMCQ id="fba2_function_sort">
-cols: Escape, Attention, Sensory, Access/Tangible
-rows:
-  - "Michelle does not want to do her math test, so she gets up and hides under desks and furniture in her classroom.|michelle[Escape]"
-  - "Beth does not want to do her science seatwork, so she talks back and argues with her teacher, yelling that the teacher is unfair and trying to get other students to agree with her.|beth[Attention]"
-  - "Randy hums softly to himself while doing his work because it feels calming, even if no one responds.|randy[Sensory]"
-  - "Ryan wants to play with his iPad but needs to finish his work first. He rushes through his math work and answers \"100\" for every question just so he can play with the iPad.|ryan[Access/Tangible]"
-  - "Emily makes silly noises during silent reading time because she knows her peers will turn around to giggle and talk to her.|emily[Attention]"
-  - "Sally drops her writing supplies or spends a long time at the pencil sharpener every time it is time to do writing work.|sally[Escape]"
-  - "Aidan repeatedly blurts out answers and makes comments during his teacher's lessons to make the teacher laugh.|aidan[Attention]"
-  - "Matthew taps his foot because the movement feels good, regardless of what others say or do.|matthew[Sensory]"
-  - "Jasmine tantrums when she is told she cannot have the snack she wants at the grocery store.|jasmine[Access/Tangible]"
-  - "Simon suddenly needs to go to the bathroom every time it is time to transition to math class.|simon[Escape]"
-  </TabularMCQ>
-</TabularMCQGrader>
-</CapaProblem>
+Answer **6 questions correctly in a row** to demonstrate mastery. Each scenario
+describes a behavior with its antecedent and consequence. Identify which function
+the behavior serves:
 
-<Markdown>**After reviewing these examples, briefly describe how you would identify the function of a behavior:**</Markdown>
-<TextArea id="fba2_function_sort_done" rows="2" placeholder="How can you tell what function a behavior serves?" />
+- **Escape** — behavior removes or delays something aversive
+- **Attention** — behavior produces social attention (even negative attention)
+- **Sensory** — behavior produces its own internal reinforcement
+- **Access/Tangible** — behavior obtains a preferred item or activity
+</Markdown>
+
+<MasteryBank id="fba2_function_mastery" goal="6" mode="shuffle">
+    function_001_escape
+    function_002_escape
+    function_003_escape
+    function_004_escape
+    function_005_escape
+    function_006_escape
+    function_007_escape
+    function_008_escape
+    function_009_escape
+    function_010_escape
+    function_011_escape
+    function_012_escape
+    function_013_escape
+    function_014_escape
+    function_015_escape
+    function_016_escape
+    function_017_escape
+    function_018_escape
+    function_019_escape
+    function_020_escape
+    function_021_escape
+    function_022_escape
+    function_023_escape
+    function_024_escape
+    function_025_escape
+    function_026_attention
+    function_027_attention
+    function_028_attention
+    function_029_attention
+    function_030_attention
+    function_031_attention
+    function_032_attention
+    function_033_attention
+    function_034_attention
+    function_035_attention
+    function_036_attention
+    function_037_attention
+    function_038_attention
+    function_039_attention
+    function_040_attention
+    function_041_attention
+    function_042_attention
+    function_043_attention
+    function_044_attention
+    function_045_attention
+    function_046_attention
+    function_047_attention
+    function_048_attention
+    function_049_attention
+    function_050_attention
+    function_051_sensory
+    function_052_sensory
+    function_053_sensory
+    function_054_sensory
+    function_055_sensory
+    function_056_sensory
+    function_057_sensory
+    function_058_sensory
+    function_059_sensory
+    function_060_sensory
+    function_061_sensory
+    function_062_sensory
+    function_063_sensory
+    function_064_sensory
+    function_065_sensory
+    function_066_sensory
+    function_067_sensory
+    function_068_sensory
+    function_069_sensory
+    function_070_sensory
+    function_071_sensory
+    function_072_sensory
+    function_073_sensory
+    function_074_sensory
+    function_075_sensory
+    function_076_access_tangible
+    function_077_access_tangible
+    function_078_access_tangible
+    function_079_access_tangible
+    function_080_access_tangible
+    function_081_access_tangible
+    function_082_access_tangible
+    function_083_access_tangible
+    function_084_access_tangible
+    function_085_access_tangible
+    function_086_access_tangible
+    function_087_access_tangible
+    function_088_access_tangible
+    function_089_access_tangible
+    function_090_access_tangible
+    function_091_access_tangible
+    function_092_access_tangible
+    function_093_access_tangible
+    function_094_access_tangible
+    function_095_access_tangible
+    function_096_access_tangible
+    function_097_access_tangible
+    function_098_access_tangible
+    function_099_access_tangible
+    function_100_access_tangible
+</MasteryBank>
+
 </Vertical>
 
 
