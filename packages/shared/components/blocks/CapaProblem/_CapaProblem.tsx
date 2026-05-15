@@ -85,8 +85,11 @@ function getHeaderStateClass(correctnessValue: string) {
  * Checkbox and text input problems have similar issues. See MarkupProblemMultipart.olx.
  */
 function useGraderAggregation(props, childGraderIds) {
-  const { fields } = props;
-  const sampleGraderId = childGraderIds[0];
+  const { id, fields } = props;
+  const hasChildGraders = childGraderIds.length > 0;
+  // Even when childGraderIds is empty, useAggregate needs a valid field
+  // reference. Fall back to self (CapaProblem also has grader fields).
+  const sampleGraderId = childGraderIds[0] || id;
 
   // inferRelatedNodes returns OlxKeys — convert to ReduxStateKeys for useAggregate
   const childGraderReduxKeys = childGraderIds.map(gid => refToReduxKey({ ...props, id: gid }));
@@ -96,21 +99,23 @@ function useGraderAggregation(props, childGraderIds) {
   const childCorrectnessValues = state.useAggregate(
     props,
     correctField,
-    childGraderReduxKeys,
+    hasChildGraders ? childGraderReduxKeys : [],
     {
       fallback: correctness.unsubmitted,
       aggregate: (values) => values.map(v => v ?? correctness.unsubmitted)
     }
   );
 
-  const aggregatedCorrectness = worstCaseCorrectness(childCorrectnessValues);
+  const aggregatedCorrectness = hasChildGraders
+    ? worstCaseCorrectness(childCorrectnessValues)
+    : correctness.unsubmitted;
 
   // Subscribe to child grader messages
   const messageField = state.componentFieldByName(props, sampleGraderId, 'message');
   const childMessages = state.useAggregate(
     props,
     messageField,
-    childGraderReduxKeys,
+    hasChildGraders ? childGraderReduxKeys : [],
     {
       fallback: '',
       aggregate: (values) => values.map(v => v ?? '')
@@ -124,7 +129,7 @@ function useGraderAggregation(props, childGraderIds) {
   const childSubmitCounts = state.useAggregate(
     props,
     submitCountField,
-    childGraderReduxKeys,
+    hasChildGraders ? childGraderReduxKeys : [],
     {
       fallback: 0,
       aggregate: (values) => values.map(v => v ?? 0)
