@@ -132,13 +132,9 @@ Check for Understanding - Punishment [id=fba2_punishment_check]
 
 Annie: Hmm, before we look up the answer, what do you all think? Why might punishment NOT be listed as a function of behavior? [face=thinking]
 
-::fba2_explain_no_punishment [display=target:psych_sba_sidebar3auto label="Predict: Why Not Punishment?"]
+::fba2_predict_punishment [display=target:psych_sba_sidebar3auto label="Predict: Why Not Punishment?"]
 
---- wait @fba2_no_punishment_explanation.value ---
-
-Annie: I had that same question, so I asked AI. Here's what it told me -- let's see how our prediction compares.
-
-::fba2_punishment_explanation [display=target:psych_sba_sidebar3auto label="Read: Why Punishment Is Not a Function"]
+--- wait @fba2_punishment_confidence.value ---
 
 Annie: That makes sense! Functions are about what we GAIN from the behavior, not what we're trying to avoid. [face=smile]
 

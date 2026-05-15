@@ -379,12 +379,36 @@ why it is not. Do not offer examples of your own.
 </SplitPanel>
 
 
-<HH> ============= Screen: Punishment is not a function ========= </HH>
+<HH> ============= Screen: Predict why punishment is not a function ========= </HH>
 
-<IntakeGate ready="!@fba2_completion_checkbox.value">
-<Markdown> </Markdown>
-<Vertical id="fba2_punishment_explanation">
-<Markdown>
+<IntakeGate id="fba2_predict_punishment" ready="@fba2_punishment_confidence.value">
+
+  <!-- Front: predict before seeing the answer -->
+  <Vertical>
+    <Markdown>
+## Predict: Why Not Punishment?
+
+Annie mentioned that she asked AI why punishment isn't listed as a function of behavior. **Before reading the answer, write your own prediction.** Think about what "function" means and how it relates to reinforcement.
+    </Markdown>
+
+    <TextArea id="fba2_no_punishment_explanation" rows="3"
+      placeholder="Why do you think punishment is not a function of behavior? Write your prediction..." />
+
+    <Markdown>Once you've written your prediction, **select a confidence level below to see the real answer.** (You won't be able to change your prediction after selecting.)</Markdown>
+    <ChoiceInput id="fba2_punishment_confidence">
+      <Key value="very">Very confident — I'm sure about this</Key>
+      <Key value="somewhat">Somewhat confident — I think so but I'm not sure</Key>
+      <Key value="guess">Just guessing</Key>
+    </ChoiceInput>
+  </Vertical>
+
+  <!-- Back: show prediction alongside the answer -->
+  <Vertical>
+    <Markdown>
+## Your Prediction
+
+> {{text2markdown(@fba2_no_punishment_explanation.value)}}
+
 ## AI Response: Why Punishment Is Not a Function of Behavior
 
 _Annie asked AI this question earlier. Here's what it said:_
@@ -407,22 +431,10 @@ _Annie asked AI this question earlier. Here's what it said:_
 > (i.e., what reinforces it), punishment cannot be a function. The function
 > always tells us what the person is **gaining** (positive reinforcement) or
 > **avoiding** (negative reinforcement) through their behavior.
-</Markdown>
-</Vertical>
+    </Markdown>
+  </Vertical>
+
 </IntakeGate>
-
-
-<HH> ============= Screen: Explain no punishment ================ </HH>
-
-<Vertical id="fba2_explain_no_punishment">
-<Markdown>
-## Predict: Why Not Punishment?
-
-Before reading the explanation, try to predict: **why do you think punishment is NOT listed as a function of behavior?** Think about what "function" means and how it relates to reinforcement.
-</Markdown>
-
-<TextArea id="fba2_no_punishment_explanation" rows="3" placeholder="Why do you think punishment is not a function of behavior? Write your prediction..." />
-</Vertical>
 
 
 <HH> ============= Screen: Function sorting ===================== </HH>

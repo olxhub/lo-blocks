@@ -17,7 +17,9 @@ JJ: That doesn't sound good at all. [face=concerned]
 Progress Monitoring [id=fba3_progress_section]
 -------------------
 
-::fba3_progress_graph_1 [display=target:psych_sba_sidebar4auto label="View Progress Data"]
+::fba3_predict_fidelity [display=target:psych_sba_sidebar4auto label="View Progress Data"]
+
+--- wait @fba3_interpretation_confidence.value ---
 
 Lin: Let's talk to our professor to find more resources to help improve the plan.
 
@@ -27,8 +29,6 @@ Lianne: Looks like you need to improve on implementation fidelity. [face=serious
 
 Implementation Fidelity [id=fba3_fidelity_section]
 ------------------------
-
-::fba3_fidelity_info [display=target:psych_sba_sidebar4auto label="Learn About Implementation Fidelity"]
 
 Lin: Okay, our professor gave us lots of good resources. Intervention fidelity refers to how accurately and consistently a behavior plan is implemented as it was designed.
 

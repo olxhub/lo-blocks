@@ -35,17 +35,18 @@ Let's check in with Annie to see how things went.
 </IntakeGate>
 
 
-<HH> ============= Screen: Progress graph 1 ==================== </HH>
+<HH> ============= Screen: Progress graph + predict fidelity ===== </HH>
 
-<IntakeGate ready="!@fba3_completion_checkbox.value">
-<Markdown> </Markdown>
-<Vertical id="fba3_progress_graph_1">
-<Markdown>
+<IntakeGate id="fba3_predict_fidelity" ready="@fba3_interpretation_confidence.value">
+
+  <!-- Front: see the data, predict what went wrong -->
+  <Vertical>
+    <Markdown>
 ## Progress Monitoring: Week 1–2
 
 Annie's roommate tracked Johnny's bedtime over 5 babysitting sessions:
-</Markdown>
-<ObservablePlot id="fba3_week1_chart" title="Johnny's Bedtimes (Week 1–2)" format="js"><![CDATA[
+    </Markdown>
+    <ObservablePlot id="fba3_week1_chart" title="Johnny's Bedtimes (Week 1–2)" format="js"><![CDATA[
 const data = [
   { date: "9/5", bedtimeIndex: 0 },
   { date: "9/6", bedtimeIndex: 0 },
@@ -100,23 +101,37 @@ return Plot.plot({
   }
 });
 ]]></ObservablePlot>
-<Markdown>
+    <Markdown>
+The data shows that something isn't working. **Before reading the explanation, look at the graph and write what you think went wrong.** Consider: Is the plan itself flawed, or is something else going on?
+    </Markdown>
+
+    <TextArea id="fba3_week1_interpretation" rows="3"
+      placeholder="Looking at the graph, I think the problem might be..." />
+
+    <Markdown>Once you've written your interpretation, **select a confidence level below to see what actually happened.** (You won't be able to change your answer after selecting.)</Markdown>
+    <ChoiceInput id="fba3_interpretation_confidence">
+      <Key value="very">Very confident — I'm sure about this</Key>
+      <Key value="somewhat">Somewhat confident — I think so but I'm not sure</Key>
+      <Key value="guess">Just guessing</Key>
+    </ChoiceInput>
+  </Vertical>
+
+  <!-- Back: show interpretation alongside the fidelity framework -->
+  <Vertical>
+    <Markdown>
+## Your Interpretation
+
+> {{text2markdown(@fba3_week1_interpretation.value)}}
+
+## What Actually Happened
+
 - Johnny went to bed on time (8:00 PM) only on the first **2 out of 5** sessions
 - Bedtimes got progressively later over the two weeks
 - On one occasion, the roommate noted she didn't follow the plan exactly
 - The escape behaviors seem to have gotten worse over time
 
-**Something isn't working right...**
-</Markdown>
-</Vertical>
-</IntakeGate>
+The issue turns out to be **implementation fidelity** — how accurately and consistently the behavior plan was followed.
 
-
-<HH> ============= Screen: Fidelity info ======================== </HH>
-
-<IntakeGate ready="!@fba3_completion_checkbox.value">
-<Markdown> </Markdown>
-<Markdown id="fba3_fidelity_info">
 ## Implementation Fidelity
 
 Implementation fidelity refers to how accurately and consistently a behavior plan is implemented as it was designed. There are five key aspects:
@@ -126,7 +141,9 @@ Implementation fidelity refers to how accurately and consistently a behavior pla
 3. **Quality of Delivery** — Are the strategies implemented correctly and with the intended tone/approach (e.g., calm redirection vs. yelling)?
 4. **Participant Responsiveness** — Is the child actually exposed to and engaged with the intervention?
 5. **Program Differentiation** — Are other strategies (not part of the plan) avoided during implementation?
-</Markdown>
+    </Markdown>
+  </Vertical>
+
 </IntakeGate>
 
 
