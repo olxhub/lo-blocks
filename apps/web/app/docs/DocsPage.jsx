@@ -1017,7 +1017,7 @@ export default function DocsPage() {
   }
 
   return (
-    <div {...localeAttrs} className="min-h-screen bg-surface flex flex-col">
+    <div {...localeAttrs} suppressHydrationWarning className="min-h-screen bg-surface flex flex-col">
       <header className="bg-background border-b px-6 py-4 flex justify-between items-start">
         <div>
           <Link href="/" className="text-2xl font-bold text-foreground hover:text-secondary">
