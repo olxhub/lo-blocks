@@ -105,8 +105,18 @@
   }
 
   .rendered-markdown blockquote,
-  .rendered-markdown pre {
+  .rendered-markdown pre,
+  .rendered-markdown table {
     break-inside: avoid;
+  }
+
+  .rendered-markdown th,
+  .rendered-markdown td {
+    border: 1px solid #999;
+  }
+
+  .rendered-markdown tr:nth-child(even) td {
+    background-color: #f5f5f5;
   }
 
   /* SVG charts should not split across pages */
