@@ -28,8 +28,8 @@ export function literal(s: string): string {
 
 export const leafId       = String.raw`[\p{L}_][\p{L}\p{N}_]*`;       // "answer", "żółw", "_hash123"
 export const indexId      = String.raw`[\p{L}\p{N}_]+`;               // Same + leading digits: "0", "3fgb", "attempt_2"
-export const scopeMarker  = `#${indexId}`;                             // "#0", "#attempt_2", "#a3F"
-export const scopeSegment = `(?:${leafId}|${scopeMarker})`;           // "answer" | "#0"
+const scopeMarkerPat      = `#${indexId}`;                             // "#0", "#attempt_2", "#a3F"
+export const scopeSegment = `(?:${leafId}|${scopeMarkerPat})`;        // "answer" | "#0"
 
 // --- Namespace ------------------------------------------------------------
 //
@@ -163,7 +163,7 @@ function compile(pattern: string): RegExp {
 export const VALID = {
   leafId:             compile(leafId),
   indexId:            compile(indexId),
-  scopeMarker:        compile(scopeMarker),
+  scopeMarker:        compile(scopeMarkerPat),
   namespace:          compile(namespace),
   definitionRef:             compile(definitionRef),
   definitionKey:             compile(definitionKey),
@@ -173,49 +173,342 @@ export const VALID = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// STRUCTURED PARSERS (named capture groups)
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// VALID regexes answer "is this valid?" (boolean). PARSE regexes answer
+// "what are the pieces?" (named groups). Same grammar, different jobs.
+
+function compileGroups(pattern: string): RegExp {
+  return new RegExp(`^${pattern}$`, 'u');
+}
+
+export const PARSE = {
+  /** "ee101://hw1" → { ns: "ee101", id: "hw1" } */
+  definitionKey: compileGroups(`(?<ns>${namespace})${nsDelim}(?<id>${leafId})`),
+
+  /** "ee101://list:#0:answer" → { ns: "ee101", path: "list:#0:answer" } */
+  stateKey: compileGroups(`(?<ns>${namespace})${nsDelim}(?<path>${statePath})`),
+
+  /** "problems:#0:answer.value" → { ref: "problems:#0:answer", field: "value" } */
+  stateFieldRef: compileGroups(`(?<ref>(?:${stateRef}))\\.(?<field>${fieldAccess})`),
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SPLIT / JOIN HELPERS
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// Small primitives for breaking apart and reassembling IDs. Conversion
+// functions compose these — no string surgery with indexOf.
+
+/** "ee101://list:#0:answer" → { ns: "ee101", path: "list:#0:answer" } */
+export function splitNs(key: string): { ns: string; path: string } {
+  const m = key.match(PARSE.stateKey) ?? key.match(PARSE.definitionKey);
+  if (m?.groups) return { ns: m.groups.ns, path: m.groups.path ?? m.groups.id };
+  throw new Error(`splitNs: "${key}" has no namespace`);
+}
+
+/** "ee101" + "list:#0:answer" → "ee101://list:#0:answer" */
+export function joinNs(ns: string, path: string): string {
+  return `${ns}${NS_DELIM}${path}`;
+}
+
+/** "list:#0:answer" → ["list", "#0", "answer"] */
+export function splitPath(path: string): string[] {
+  return path.split(':');
+}
+
+/** ["list", "#0", "answer"] → "list:#0:answer" */
+export function joinPath(segments: string[]): string {
+  return segments.join(':');
+}
+
+/** "list:#0:answer" → "answer" (last non-scope-marker segment) */
+export function leafBlock(path: string): string {
+  const segs = splitPath(path);
+  for (let i = segs.length - 1; i >= 0; i--) {
+    if (!segs[i].startsWith('#')) return segs[i];
+  }
+  return segs[segs.length - 1];
+}
+
+/** "list:#0:answer" → ["list", "answer"] (all non-scope-marker segments) */
+export function blockSegments(path: string): string[] {
+  return splitPath(path).filter(s => !s.startsWith('#'));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BRANDED TYPES
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// Nominal types for the ID system. At runtime these are plain strings — the
+// brands exist only at compile time to prevent mixing up refs, keys, and
+// other ID-shaped strings.
+//
+// The Ref → Key relationship is a subtype: every Key is a valid Ref (it has
+// been resolved/qualified with a namespace). This mirrors LofsRef →
+// LofsCanonical in the address system.
+
+import { Brand, Branded } from './brand';
+
+// --- Content namespace -------------------------------------------------------
+
+export type ContentNamespace = Branded<string, 'ContentNamespace'>;  // "ee101", "analogForDummies"
+
+// --- Content identity (what a block IS) --------------------------------------
+
+export type DefinitionRef = Branded<string, 'DefinitionRef'>;        // "answer", "ee101://answer"
+export type DefinitionKey = DefinitionRef & Brand<'Resolved'>;       // "ee101://answer" (always namespaced)
+
+// --- State identity (which runtime INSTANCE) ---------------------------------
+
+export type StateRef = Branded<string, 'StateRef'>;                  // "list:#0:answer"
+export type StateKey = StateRef & Brand<'Resolved'>;                 // "ee101://list:#0:answer"
+
+// --- Scoping and rendering ---------------------------------------------------
+
+export type IdPrefix    = Branded<string, 'IdPrefix'>;    // "list:#0" — accumulated scope from containers
+export type ScopeMarker = Branded<string, 'ScopeMarker'>; // "#0", "#attempt_2" — instance index, not a block ID
+export type ReactKey    = Branded<string, 'ReactKey'>;    // React reconciliation key
+export type HtmlId      = Branded<string, 'HtmlId'>;      // DOM element id attribute
+export type OLXTag      = Branded<string, 'OLXTag'>;      // "Vertical", "ChoiceInput"
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// UNCHECKED CASTS (asX)
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// For values proven correct by construction — you just built the string, no
+// need to re-validate. Use parseX at boundaries; asX internally.
+
+export const asContentNamespace = (s: string) => s as ContentNamespace;
+export const asDefinitionRef    = (s: string) => s as DefinitionRef;
+export const asDefinitionKey    = (s: string) => s as unknown as DefinitionKey;
+export const asStateRef         = (s: string) => s as StateRef;
+export const asStateKey         = (s: string) => s as unknown as StateKey;
+export const asIdPrefix         = (s: string) => s as IdPrefix;
+export const asScopeMarker      = (s: string) => s as ScopeMarker;
+export const asReactKey         = (s: string) => s as ReactKey;
+export const asOLXTag           = (s: string) => s as OLXTag;
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// VALIDATORS (validateX)
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// Pure shape checks. Return true on success, error message string on failure.
+// No branding — these are the shared logic consumed by both parseX and z_x.
+
+export function validateContentNamespace(s: string): true | string {
+  if (!s) return 'ContentNamespace cannot be empty';
+  if (!VALID.namespace.test(s)) return `Not a valid namespace: "${s}" (must match ${namespace})`;
+  return true;
+}
+
+export function validateDefinitionRef(s: string): true | string {
+  if (!s) return 'DefinitionRef cannot be empty';
+  // DefinitionRef accepts bare IDs and path-prefixed forms (/, ./)
+  const stripped = s.replace(/^\.?\//, '');
+  if (!stripped) return `DefinitionRef "${s}" has path prefix but no ID`;
+  if (!VALID.leafId.test(stripped)) return `DefinitionRef "${s}" contains invalid characters`;
+  return true;
+}
+
+export function validateDefinitionKey(s: string): true | string {
+  if (!s) return 'DefinitionKey cannot be empty';
+  if (!VALID.definitionKey.test(s) && !VALID.leafId.test(s)) {
+    return `Not a valid DefinitionKey: "${s}"`;
+  }
+  return true;
+}
+
+export function validateStateRef(s: string): true | string {
+  if (!s) return 'StateRef cannot be empty';
+  if (!VALID.stateRef.test(s)) {
+    return `Not a valid StateRef: "${s}" (segments must be block IDs or #index markers, separated by :)`;
+  }
+  // Must have at least one non-ScopeMarker segment
+  const segs = s.split(':');
+  if (segs.every(seg => seg.startsWith('#'))) {
+    return `StateRef "${s}" has only scope markers — must include at least one block ID`;
+  }
+  return true;
+}
+
+export function validateStateKey(s: string): true | string {
+  if (!s) return 'StateKey cannot be empty';
+  // Accept both bare (transitional) and namespaced forms
+  if (!VALID.stateKey.test(s) && !VALID.stateRef.test(s)) {
+    return `Not a valid StateKey: "${s}"`;
+  }
+  return true;
+}
+
+export function validateOLXTag(s: string): true | string {
+  if (!s) return 'OLXTag cannot be empty';
+  if (!/^[A-Z][a-zA-Z0-9]*$/.test(s)) return `OLXTag must be PascalCase: "${s}"`;
+  return true;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PARSERS (parseX)
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// Boundary functions: validate + brand. Accept unknown/string, throw on
+// failure. No Zod dependency — Zod schemas consume these, not the reverse.
+
+function assertValid(result: true | string): asserts result is true {
+  if (result !== true) throw new Error(result);
+}
+
+export function parseContentNamespace(s: string): ContentNamespace {
+  assertValid(validateContentNamespace(s));
+  return asContentNamespace(s);
+}
+
+export function parseDefinitionRef(s: string, context = 'ID'): DefinitionRef {
+  const result = validateDefinitionRef(s);
+  if (result !== true) throw new Error(`${context}: ${result}`);
+  return asDefinitionRef(s.trim());
+}
+
+export function parseDefinitionKey(s: string): DefinitionKey {
+  assertValid(validateDefinitionKey(s));
+  return asDefinitionKey(s.trim());
+}
+
+export function parseStateRef(s: string): StateRef {
+  assertValid(validateStateRef(s));
+  return asStateRef(s.trim());
+}
+
+export function parseStateKey(s: string): StateKey {
+  assertValid(validateStateKey(s));
+  return asStateKey(s.trim());
+}
+
+export function parseOLXTag(s: string): OLXTag {
+  assertValid(validateOLXTag(s));
+  return asOLXTag(s);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SCOPE CONSTRUCTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export const SCOPE_SEPARATOR = ':';
+export const SCOPE_MARKER_PREFIX = '#';
+
+/**
+ * Create a ScopeMarker — an instance index segment in a StateKey.
+ *
+ *   scopeMarker(0)            → "#0"
+ *   scopeMarker('attempt_2')  → "#attempt_2"
+ */
+export function scopeMarker(label: string | number): ScopeMarker {
+  const str = String(label);
+  if (!VALID.indexId.test(str)) {
+    throw new Error(`scopeMarker: "${label}" must match [0-9a-zA-Z_]+`);
+  }
+  return asScopeMarker(`${SCOPE_MARKER_PREFIX}${str}`);
+}
+
+/**
+ * Extend an IdPrefix for child components in scoping containers.
+ *
+ *   extendIdPrefix(props, [id, scopeMarker(0)])
+ *   // { idPrefix: "list:#0" } or { idPrefix: "outer:#1:list:#0" }
+ */
+export function extendIdPrefix(
+  props: { idPrefix?: IdPrefix; [key: string]: unknown },
+  scope: string | (string | number | ScopeMarker)[]
+): { idPrefix: IdPrefix } {
+  const scopeStr = Array.isArray(scope) ? scope.join(SCOPE_SEPARATOR) : scope;
+  const newPrefix = props.idPrefix
+    ? `${props.idPrefix}${SCOPE_SEPARATOR}${scopeStr}`
+    : scopeStr;
+  return { idPrefix: asIdPrefix(newPrefix) };
+}
+
+/**
+ * Insert scope into a DefinitionKey to produce a StateKey.
+ * Scope goes AFTER the namespace:
+ *
+ *   addScope("ee101://answer", "list:#0" as IdPrefix)
+ *   → "ee101://list:#0:answer"
+ *
+ *   addScope("ee101://answer", undefined)
+ *   → "ee101://answer"  (no scope — StateKey = DefinitionKey)
+ */
+export function addScope(key: DefinitionKey, idPrefix?: IdPrefix): StateKey {
+  if (!idPrefix) return key as unknown as StateKey;
+  if (hasNamespace(key)) {
+    const { ns, path } = splitNs(key);
+    return asStateKey(joinNs(ns, `${idPrefix}${SCOPE_SEPARATOR}${path}`));
+  }
+  // Bare key (transitional — no namespace yet)
+  return asStateKey(`${idPrefix}${SCOPE_SEPARATOR}${key}`);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ZOD SCHEMAS (z_x)
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// Boundary adapters for Zod-based attribute validation. These consume the
+// same validateX functions as parseX — Zod is a consumer, not the source of
+// truth for ID validation.
+
+import { z } from 'zod';
+
+/** Factory: builds a Zod schema that validates a string and brands it. */
+function brandedString<T extends string>(
+  validate: (value: string) => true | string,
+  brand: (value: string) => T,
+): z.ZodType<T, z.ZodTypeDef, string> {
+  return z.string()
+    .superRefine((value, ctx) => {
+      const result = validate(value);
+      if (result !== true) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: result });
+      }
+    })
+    .transform(value => brand(value)) as z.ZodType<T, z.ZodTypeDef, string>;
+}
+
+export const z_contentNamespace = brandedString(validateContentNamespace, asContentNamespace);
+export const z_definitionRef    = brandedString(validateDefinitionRef, asDefinitionRef);
+export const z_definitionKey    = brandedString(validateDefinitionKey, asDefinitionKey);
+export const z_stateRef         = brandedString(validateStateRef, asStateRef);
+export const z_stateKey         = brandedString(validateStateKey, asStateKey);
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // DECOMPOSITION
 // ═══════════════════════════════════════════════════════════════════════════════
 //
-// These extract structure from validated keys. They assume input has already
-// been validated — they don't re-check the grammar.
-//
-// Return values include the namespace so callers can reconstruct qualified
-// DefinitionKeys for content loading (e.g., "physics://problems:#0:answer" →
-// need DefinitionKeys ["physics://problems", "physics://answer"] in the idMap).
-
-/** Split a namespaced key into { namespace, path }. */
-export function splitNamespace(key: string): { namespace: string; path: string } {
-  const idx = key.indexOf(NS_DELIM);
-  if (idx < 0) throw new Error(`splitNamespace: "${key}" has no ${NS_DELIM} delimiter`);
-  return { namespace: key.slice(0, idx), path: key.slice(idx + NS_DELIM.length) };
-}
+// These compose splitNs + blockSegments + leafBlock to extract structure from
+// validated keys. Callers get namespace context so they can reconstruct
+// qualified DefinitionKeys for content loading.
 
 /**
  * Extract all block IDs from a StateKey, preserving namespace context.
  *
- * Returns { namespace, blockIds } so callers can reconstruct DefinitionKeys:
  *   extractBlocks("physics://problems:#0:answer")
- *   → { namespace: "physics", blockIds: ["problems", "answer"] }
+ *   → { ns: "physics", blockIds: ["problems", "answer"] }
  *
- * To get DefinitionKeys for content loading:
- *   result.blockIds.map(id => `${result.namespace}://${id}`)
- *   → ["physics://problems", "physics://answer"]
+ * To get DefinitionKeys:
+ *   result.blockIds.map(id => joinNs(result.ns, id))
  */
-export function extractBlocks(key: string): { namespace: string; blockIds: string[] } {
-  const { namespace, path } = splitNamespace(key);
-  const blockIds = path.split(':').filter(seg => !seg.startsWith('#'));
-  return { namespace, blockIds };
+export function extractBlocks(key: string): { ns: string; blockIds: string[] } {
+  const { ns, path } = splitNs(key);
+  return { ns, blockIds: blockSegments(path) };
 }
 
-/** Extract all block IDs from a scoped path (strips namespace, strips scope markers). */
+/** Extract all block IDs (strips namespace and scope markers). */
 export function extractBlockIds(key: string): string[] {
-  return extractBlocks(key).blockIds;
+  return blockSegments(splitNs(key).path);
 }
 
-/** Extract the leaf (target) block ID from a scoped path. */
+/** Extract the leaf (target) block ID. */
 export function extractLeafId(key: string): string {
-  const blocks = extractBlockIds(key);
-  return blocks[blocks.length - 1];
+  return leafBlock(splitNs(key).path);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -285,6 +578,16 @@ export function qualifyRef(ref: string, namespace: string): string {
   );
 }
 
+/** Qualify a DefinitionRef → DefinitionKey. Already-namespaced refs pass through. */
+export function qualifyDefinitionRef(ref: DefinitionRef, ns: ContentNamespace): DefinitionKey {
+  return asDefinitionKey(qualifyRef(ref, ns));
+}
+
+/** Qualify a StateRef → StateKey. Already-namespaced refs pass through. */
+export function qualifyStateRef(ref: StateRef, ns: ContentNamespace): StateKey {
+  return asStateKey(qualifyRef(ref, ns));
+}
+
 /**
  * Derive a namespace from a content source origin.
  *
@@ -299,7 +602,7 @@ export function qualifyRef(ref: string, namespace: string): string {
  *
  * @throws {Error} if the derived name is not a valid namespace
  */
-export function defaultNamespace(origin: string): string {
+export function defaultNamespace(origin: string): ContentNamespace {
   const cleaned = origin.replace(/\.git$/, '');
   const lastSep = Math.max(cleaned.lastIndexOf('/'), cleaned.lastIndexOf(':'));
   const derived = cleaned.slice(lastSep + 1);
@@ -309,72 +612,17 @@ export function defaultNamespace(origin: string): string {
       `Add an explicit "namespace" field to manifest.yaml.`
     );
   }
-  return derived;
+  return asContentNamespace(derived);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CONSOLIDATION PLAN
+// REMAINING WORK
 // ═══════════════════════════════════════════════════════════════════════════════
 //
-// This file is the beginning of a cleanroom rewrite of the ID type system.
-// The goal is to consolidate and replace:
+// This file owns grammar, types, validation, parsing, Zod schemas, scope
+// construction, namespace qualification, and decomposition. What's left:
 //
-//   address.ts   — LofsRef, LofsCanonical, LofsOrigin, LofsVersion, etc.
-//                  The LOFS address grammar (source://path#version) for
-//                  content-addressed storage. Provides provenance identity.
-//
-//   core.ts      — Branded type definitions (DefinitionRef, DefinitionKey,
-//   (ID section)   StateRef, StateKey, IdPrefix, ScopeMarker,
-//                  ContentNamespace). The conversion pathway diagram.
-//
-//   id.ts        — Validation functions (toDefinitionRef, parseStateRef,
-//                  toStateKey, toDefinitionKey), resolution functions
-//                  (refToStateKey, refToDefinitionKey, stateKeyToDefinitionKey, allDefinitionKeys,
-//                  extendIdPrefix), and assignReactKeys.
-//
-// After this file stabilizes, the plan is:
-//
-//   1. GRAMMAR (this section, above)
-//      Single source of truth for what each type accepts.
-//
-//   2. BRANDED TYPES (next section to add, below grammar)
-//      Type definitions with __brand and __resolved markers.
-//      Mirrors the LofsRef → LofsCanonical pattern from address.ts:
-//        DefinitionRef → DefinitionKey  (Key extends Ref with __resolved)
-//        StateRef      → StateKey       (same pattern)
-//
-//   3. VALIDATION + BRANDING FUNCTIONS (below types)
-//      parseDefinitionRef, parseDefinitionKey, parseStateRef, parseStateKey,
-//      parseNamespace, etc. Each validates against the compiled grammar
-//      and returns a branded type.
-//
-//   4. CONVERSION FUNCTIONS (below validation)
-//      qualifyDefinitionRef(ref, namespace) → DefinitionKey
-//      qualifyStateRef(ref, namespace) → StateKey
-//      addScope(key, idPrefix) → StateKey  (scope after namespace)
-//      extractBlockIds(key) → DefinitionRef[]
-//      defaultNamespace(origin) → ContentNamespace
-//
-//   5. ZOD SCHEMAS (below conversions)
-//      z_definitionRef, z_definitionKey, z_stateRef, z_stateKey, etc.
-//      Wrappers around the validation functions for use in block attribute
-//      schemas.
-//
-//   6. LOFS ADDRESS INTEGRATION
-//      Fold in address.ts types. The relationship:
-//        LofsRef    = source://path#version  (what you ask for)
-//        LofsCanonical = same, with immutable version  (what you got)
-//        LofsOrigin = source portion  (derives namespace via defaultNamespace)
-//      Source-qualified DefinitionRefs (git@...://hw1) are LofsRefs without
-//      a path component — the "path" IS the DefinitionRef's leafId.
-//
-// The two normalized forms for identity:
-//
-//   ee101://hw1                                    ← DefinitionKey (runtime identity)
-//   git@gitlab.com:olxhub/ee101.git@a1238b://hw1  ← LofsCanonical (provenance)
-//
-// Both refer to the same content. DefinitionKey is what Redux uses. LofsCanonical
-// is what analytics, replay, and cache invalidation use.
-//
-// assignReactKeys stays in its own utility — it's a rendering concern,
-// not an identity concern.
+//   - Migrate attributeSchemas.ts to import from here (not id.ts)
+//   - Migrate 44 consumer files from id.ts to here (see plan.md)
+//   - Delete id.ts once empty
+//   - LOFS address integration (fold in address.ts types)

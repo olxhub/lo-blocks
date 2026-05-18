@@ -21,7 +21,8 @@ import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
 import { getGrader, getDomNodeByReduxKey, getAllNodes, inferRelatedNodes } from './olxdom';
 import { useOlxJson } from './useOlxJson';
-import { refToDefinitionKey, refToReduxKey, toDefinitionRef } from '../types/id';
+import { parseDefinitionRef } from '../types/id-grammar';
+import { refToDefinitionKey, refToReduxKey } from '../types/id';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { isInput } from './actions';
 import type { DefinitionKey, DefinitionRef, RuntimeProps } from '@/lib/types';
@@ -48,7 +49,7 @@ function findTargetingGrader(props: RuntimeProps): DefinitionKey | null {
     // target is a comma-separated list of OlxRefs (guaranteed by selector filter)
     const targetList = graderNodeInfo.olxJson.attributes.target;
     if (typeof targetList !== 'string') continue;  // Type guard for TypeScript
-    const targets = targetList.split(',').map(t => refToDefinitionKey(toDefinitionRef(t.trim())));
+    const targets = targetList.split(',').map(t => refToDefinitionKey(parseDefinitionRef(t.trim())));
     if (targets.includes(normalizedId)) {
       return graderNodeInfo.olxJson.id;
     }

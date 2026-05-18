@@ -12,9 +12,9 @@
 // This allows a block to be input+grader+src without combinatorial explosion.
 //
 import { z } from 'zod';
-import { VALID_ID_SEGMENT, VALID_REDUX_STATE_REF, toDefinitionRef, parseStateRef } from '../types/id';
+import { VALID, validateStateRef, parseStateRef } from '../types/id-grammar';
+import type { DefinitionKey, StateRef } from '../types/id-grammar';
 import { z_locale } from '../types/i18n';
-import type { DefinitionRef, StateRef } from '@/lib/types';
 import { parse as parseExpr } from '@/lib/stateLanguage';
 import { CastSchema, Face, AvatarStyle } from '@/lib/avatar/types';
 
@@ -25,7 +25,7 @@ import { CastSchema, Face, AvatarStyle } from '@/lib/avatar/types';
  */
 const validateOlxId = (id) => {
   if (!id) return undefined;
-  if (!VALID_ID_SEGMENT.test(id)) {
+  if (!VALID.leafId.test(id)) {
     return `ID "${id}" is invalid. IDs must start with a letter or underscore and contain only letters, digits, and underscores.`;
   }
   return undefined;
@@ -119,19 +119,14 @@ function tagRefSchema<T extends z.ZodType>(schema: T, extractor: RefExtractor): 
 /** Single DefinitionKey — bare block ID, no path prefix, no scope. */
 export const z_definitionKey = tagRefSchema(
   z.string().refine(
-    id => VALID_ID_SEGMENT.test(id),
+    id => VALID.leafId.test(id),
     id => ({ message: `"${id}" is not a valid block ID (must start with letter or underscore, then letters/digits/underscores)` })
-  ).transform(id => id as unknown as DefinitionRef & { readonly __resolved: true }),
+  ).transform(id => id as unknown as DefinitionKey),
   v => [v],
 );
 
 function hasStateRefShape(input: string): boolean {
-  try {
-    parseStateRef(input);
-    return true;
-  } catch {
-    return false;
-  }
+  return validateStateRef(input) === true;
 }
 
 /** Single StateRef — authored target ref, may include scope markers (e.g. "myList:#0:answer"). */
@@ -179,9 +174,9 @@ function splitFieldRef(val: string): BlockFieldRef {
   const dot = val.lastIndexOf('.');
   if (dot >= 0) {
     const fieldPart = val.substring(dot + 1);
-    if (VALID_ID_SEGMENT.test(fieldPart)) {
+    if (VALID.leafId.test(fieldPart)) {
       const base = val.substring(0, dot);
-      if (VALID_REDUX_STATE_REF.test(base)) {
+      if (VALID.stateRef.test(base)) {
         return { ref: parseStateRef(base), field: fieldPart };
       }
     }
@@ -270,7 +265,7 @@ export function getRefAttributes(attributeSchema: z.ZodType): Array<{ name: stri
  */
 export const baseAttributes = z.object({
   id: z.string().optional().refine(
-    (id) => !id || VALID_ID_SEGMENT.test(id),
+    (id) => !id || VALID.leafId.test(id),
     (id) => ({ message: validateOlxId(id) })
   ).describe('Unique identifier (letter or underscore start, then letters/digits/underscores)'),
   title: z.string().optional().describe('Display title (shown in tabs, course navigation, headers)'),

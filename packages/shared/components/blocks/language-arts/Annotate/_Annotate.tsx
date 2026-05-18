@@ -24,7 +24,8 @@ import type { RuntimeProps, DefinitionRef } from '@/lib/types';
 import React, { useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useFieldState, useSet, useNextId, updateField } from '@/lib/state';
-import { extendIdPrefix, scopeMarker, toDefinitionRef, refToReduxKey } from '@/lib/types/id';
+import { extendIdPrefix, scopeMarker, parseDefinitionRef } from '@/lib/types/id-grammar';
+import { refToReduxKey } from '@/lib/types/id';
 import { useKids, useBlock } from '@/lib/render';
 import { assertKidArray } from '@/lib/util/kids';
 import { groupHue, themeColors } from '@/lib/util/colorWheel';
@@ -220,7 +221,7 @@ function CustomEditor({
   editorId: string;
 }) {
   const scoped = scopedNoteProps(props, noteId);
-  const ref = toDefinitionRef(editorId) as DefinitionRef;
+  const ref = parseDefinitionRef(editorId) as DefinitionRef;
   const { block } = useBlock(scoped, ref);
   return <>{block}</>;
 }

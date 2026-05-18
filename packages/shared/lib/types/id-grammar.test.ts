@@ -13,7 +13,7 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  VALID, splitNamespace, extractBlocks, extractBlockIds, extractLeafId,
+  VALID, splitNs, joinNs, extractBlocks, extractBlockIds, extractLeafId,
   hasNamespace, defaultNamespace,
 } from './id-grammar';
 
@@ -312,7 +312,7 @@ describe("stateFieldRef", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 //
 // These operate on Keys (namespaced). Used for:
-//   splitNamespace:  routing (which course does this belong to?)
+//   splitNs:         routing (which course does this belong to?)
 //   extractBlocks:   content loading (which definitions do I need, with namespace?)
 //   extractBlockIds: same, but just the bare IDs
 //   extractLeafId:   target resolution (which block is being referenced?)
@@ -331,11 +331,11 @@ describe("decomposition", () => {
 
   for (const ex of examples) {
     describe(ex.key, () => {
-      it("splitNamespace", () => {
-        expect(splitNamespace(ex.key)).toEqual({ namespace: ex.namespace, path: ex.key.split('://')[1] });
+      it("splitNs", () => {
+        expect(splitNs(ex.key)).toEqual({ ns: ex.namespace, path: ex.key.split('://')[1] });
       });
-      it("extractBlocks (namespace + blockIds)", () => {
-        expect(extractBlocks(ex.key)).toEqual({ namespace: ex.namespace, blockIds: ex.blocks });
+      it("extractBlocks (ns + blockIds)", () => {
+        expect(extractBlocks(ex.key)).toEqual({ ns: ex.namespace, blockIds: ex.blocks });
       });
       it("extractBlockIds (bare IDs)", () => {
         expect(extractBlockIds(ex.key)).toEqual(ex.blocks);
@@ -348,8 +348,8 @@ describe("decomposition", () => {
 
   it("extractBlocks enables DefinitionKey reconstruction for content loading", () => {
     // Given a StateKey, what DefinitionKeys do we need in the idMap?
-    const { namespace, blockIds } = extractBlocks("physics://problems:#0:answer");
-    const definitionKeys = blockIds.map(id => `${namespace}://${id}`);
+    const { ns, blockIds } = extractBlocks("physics://problems:#0:answer");
+    const definitionKeys = blockIds.map(id => joinNs(ns, id));
     expect(definitionKeys).toEqual(["physics://problems", "physics://answer"]);
   });
 });

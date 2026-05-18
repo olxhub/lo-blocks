@@ -4,7 +4,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { fetchOlxJson } from '@/lib/content/fetchOlxJson';
-import { toDefinitionKey } from '@/lib/types/id';
+import { parseDefinitionKey } from '@/lib/types/id-grammar';
 
 import {
   ReactFlow,
@@ -100,7 +100,7 @@ function GraphPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const json = await fetchOlxJson(toDefinitionKey(id as string));
+      const json = await fetchOlxJson(parseDefinitionKey(id as string));
       const { nodes, edges, issues } = parseIdMap(json.idMap);
       const laidOutNodes = layoutElements(nodes, edges, 'TB');
       setIssues(issues);

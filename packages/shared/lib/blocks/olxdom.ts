@@ -4,8 +4,9 @@
 // dynamic content DAG.
 
 import * as state from '@/lib/state';
+import { parseDefinitionRef } from '../types/id-grammar';
 import * as idResolver from '../types/id';
-import { refToDefinitionKey, toDefinitionRef } from '../types/id';
+import { refToDefinitionKey } from '../types/id';
 import type { OlxDomNode, OlxDomSelector, DefinitionKey, DefinitionRef, StateKey, RuntimeProps } from '@/lib/types';
 //
 // The OLX DOM is Learning Observer's internal representation of educational content,
@@ -122,13 +123,13 @@ function normalizeTargetIds(targets): DefinitionRef[] | false {
   if (targets === true) throw new Error('Boolean true is not a valid target');
   // User input from OLX - validate and brand as references
   if (Array.isArray(targets)) {
-    return targets.map(t => toDefinitionRef(String(t), 'target attribute'));
+    return targets.map(t => parseDefinitionRef(String(t), 'target attribute'));
   }
   if (typeof targets === "string") {
     return targets.split(',')
       .map(s => s.trim())
       .filter(Boolean)
-      .map(s => toDefinitionRef(s, 'target attribute'));
+      .map(s => parseDefinitionRef(s, 'target attribute'));
   }
   throw new Error('Unsupported target type');
 }

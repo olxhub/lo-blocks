@@ -2,7 +2,8 @@
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { getBestVariantServer } from '@/lib/i18n/getBestVariant';
 import { variantMapKeys } from '@/lib/types/i18n';
-import { allDefinitionKeys, refToReduxKey, parseStateRef } from '@/lib/types/id';
+import { parseStateRef } from '@/lib/types/id-grammar';
+import { allDefinitionKeys, refToReduxKey } from '@/lib/types/id';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { NextRequest } from 'next/server';
 import type { IdMap, OlxJson, StateRef } from '@/lib/types';

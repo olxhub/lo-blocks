@@ -122,15 +122,16 @@ export type JSONValue =
  *
  * Used as the first dimension in Redux state: state.olxjson[namespace][bareKey]
  */
-export type ContentNamespace = string & { readonly __brand: 'ContentNamespace' };
-
-const VALID_NAMESPACE = /^[a-zA-Z_][a-zA-Z0-9_.-]*$/;
+// Re-exported from id-grammar.ts — see that file for the Brand<> pattern.
+export type { ContentNamespace } from './id-grammar';
+import type { ContentNamespace } from './id-grammar';
+import { VALID } from './id-grammar';
 
 /** Validate and brand a content namespace string. */
 export function toContentNamespace(s: string): ContentNamespace {
   if (!s) throw new Error('ContentNamespace cannot be empty');
-  if (!VALID_NAMESPACE.test(s)) {
-    throw new Error(`ContentNamespace must be alphanumeric (with ._-), starting with letter/underscore: "${s}"`);
+  if (!VALID.namespace.test(s)) {
+    throw new Error(`ContentNamespace must match namespace grammar (letter/underscore start, dot-separated segments): "${s}"`);
   }
   return s as ContentNamespace;
 }
@@ -142,46 +143,21 @@ export const CONTENT_NAMESPACE = toContentNamespace('content');
 // ID TYPES
 // ════════════════════════════════��══════════════════════════════════════════════
 
-// Valid ID segments: [a-zA-Z_][a-zA-Z0-9_]* (no hyphens, dots, colons, slashes, commas).
-// Auto-generated IDs are "_" + SHA1 hex hash.
-// See idResolver.ts VALID_ID_SEGMENT for the canonical regex and delimiter conventions.
+// All ID types re-exported from id-grammar.ts (single source of truth).
+export type {
+  DefinitionRef, DefinitionKey,
+  StateRef, StateKey,
+  IdPrefix, ScopeMarker,
+  ReactKey, HtmlId, OLXTag,
+} from './id-grammar';
 
-// User-authored reference as found in source OLX.
-// Created via toDefinitionRef(string, context).
-export type DefinitionRef = string & { readonly __brand: 'DefinitionRef' };
-
-// Canonical content key — used for content lookup in Redux (selectBlock, ensureBlock).
-// Created via refToDefinitionKey(ref) — strips path prefixes and scope prefixes.
-export type DefinitionKey = DefinitionRef & { readonly __resolved: true };
-
-// Scoping prefix for blocks rendered in repeating contexts (DynamicList, MasteryBank, etc.).
-// Created via extendIdPrefix(props, [id, scopeMarker(index)]).
-// Format: colon-delimited segments, e.g. "mylist:#0" or "bank:#attempt_2".
-export type IdPrefix = string & { readonly __brand: 'IdPrefix' };
-
-// User-authored state reference as found in OLX attributes.
-// May be bare or scoped, e.g. "answer" or "myList:#0:answer".
-// Eventually may also be namespace-qualified. Created via parseStateRef().
-export type StateRef = string & { readonly __brand: 'StateRef' };
-
-// Scoped state key — used for Redux state access (field values, correctness, etc.).
-// Created via refToReduxKey(props) — resolves a StateRef in runtime context.
-// Format today: "prefix:baseId" or just "baseId" if no prefix.
-// Future format: namespace-qualified, e.g. "content://prefix:baseId".
-export type StateKey = string & { readonly __brand: 'StateKey' };
-
-// A non-DefinitionKey scope segment in a StateKey. Format: #[0-9a-zA-Z_]+
-// Marks instance indices, attempt numbers, etc. — NOT loadable block IDs.
-// Created via scopeMarker(label) in idResolver.ts.
-// Examples: "#0" (list instance), "#attempt_2" (mastery bank attempt)
-export type ScopeMarker = string & { readonly __brand: 'ScopeMarker' };
-
-// React Keys and HTML IDs have different uniqueness constraints:
-export type ReactKey = string & { readonly __brand: 'ReactKey' };          // React reconciliation
-export type HtmlId = string & { readonly __brand: 'HtmlId' };              // DOM element ID
-
-// OLX element tag name (e.g., "Vertical", "Sequential", "ChoiceInput")
-export type OLXTag = string & { readonly __brand: 'OLXTag' };
+// Local imports for use within this file.
+import type {
+  DefinitionRef, DefinitionKey,
+  StateRef, StateKey,
+  IdPrefix, ScopeMarker,
+  ReactKey, HtmlId, OLXTag,
+} from './id-grammar';
 
 
 /**
