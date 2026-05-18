@@ -15,15 +15,15 @@
 //   ┌──────────────┬───────────────────────┬────────────────────────────────┐
 //   │              │ Ref (may lack ns)     │ Key (always ns://...)          │
 //   ├──────────────┼───────────────────────┼────────────────────────────────┤
-//   │ Content      │ OlxRef                │ OlxKey                         │
-//   │ (definition) │ "answer"              │ "physics://answer"             │
+//   │ Definition   │ DefinitionRef         │ DefinitionKey                  │
+//   │              │ "answer"              │ "physics://answer"             │
 //   ├──────────────┼───────────────────────┼────────────────────────────────┤
-//   │ State        │ ReduxStateRef         │ ReduxStateKey                  │
+//   │ State        │ StateRef              │ StateKey                       │
 //   │ (instance)   │ "problems:#0:answer"  │ "physics://problems:#0:answer" │
 //   └──────────────┴───────────────────────┴────────────────────────────────┘
 //
-//   Horizontal (Ref → Key):   prepend namespace
-//   Vertical   (Olx → Redux): insert instance scope
+//   Horizontal (Ref → Key):          prepend namespace
+//   Vertical   (Definition → State): insert instance scope
 //   Diagonal shortcuts exist but always decompose into these two steps.
 //
 // WHY TWO AXES?
@@ -32,10 +32,10 @@
 // <TextArea id="answer"/> creates N instances. We distinguish them:
 //   problems:#0:answer   (instance 0)
 //   problems:#1:answer   (instance 1)
-// But there's still only ONE definition: OlxKey "answer".
+// But there's still only ONE definition: DefinitionRef "answer".
 //
 // Axis 2 — Namespace: Two courses both defining "pset1" must not collide
-// in Redux. We prepend a stable course name:
+// in the state store. We prepend a stable course name:
 //   physics://pset1   vs   calculus://pset1
 //
 // These compose orthogonally:
@@ -72,7 +72,7 @@ import { hasNamespace, defaultNamespace, extractBlocks } from './id-grammar';
 // namespace, it's a cross-course reference and passes through unchanged.
 
 describe("Ref → Key: namespace qualification", () => {
-  // This is the target API. Same logic for both Olx and Redux refs.
+  // This is the target API. Same logic for both Definition and State refs.
   const qualify = (ref: string, ns: string) => {
     if (hasNamespace(ref)) return ref;       // already "ee101://..."
     if (!ref.includes('://')) return `${ns}://${ref}`;
@@ -99,18 +99,18 @@ describe("Ref → Key: namespace qualification", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Olx → Redux: instance scope insertion
+// Definition → State: instance scope insertion
 // ═══════════════════════════════════════════════════════════════════════════════
 //
 // When a block renders inside a scoping container (DynamicList, etc.), the
-// container provides an idPrefix via React context. The block's OlxKey gets
-// scoped to produce a ReduxStateKey. With namespaces, scope goes AFTER "://".
+// container provides an idPrefix via React context. The block's DefinitionKey gets
+// scoped to produce a StateKey. With namespaces, scope goes AFTER "://".
 //
 // This is RUNTIME OWN-STATE SCOPING (pathway 1 in id-grammar.ts). Don't
-// confuse with authored cross-references (pathway 2 = qualifyReduxStateRef),
+// confuse with authored cross-references (pathway 2 = qualifyStateRef),
 // which are already scoped and only need namespace prepended.
 
-describe("Olx → Redux: instance scope insertion", () => {
+describe("Definition → State: instance scope insertion", () => {
   const addScope = (key: string, idPrefix: string) => {
     if (!idPrefix) return key;
     const sep = key.indexOf('://');
@@ -140,21 +140,21 @@ describe("Olx → Redux: instance scope insertion", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Redux → Olx: extracting block definitions from state keys
+// State → Definition: extracting block definitions from state keys
 // ═══════════════════════════════════════════════════════════════════════════════
 //
-// Given a ReduxStateKey, which OlxKeys need to be loaded? Strip scope
+// Given a StateKey, which DefinitionKeys need to be loaded? Strip scope
 // markers (segments starting with "#") — everything else is a block ID.
-// extractBlocks() preserves the namespace so you can reconstruct OlxKeys.
+// extractBlocks() preserves the namespace so you can reconstruct DefinitionKeys.
 
-describe("Redux → Olx: extract block definitions", () => {
+describe("State → Definition: extract block definitions", () => {
   it("returns namespace + block IDs for content loading", () => {
     const result = extractBlocks("physics://problems:#0:answer");
     expect(result).toEqual({ namespace: "physics", blockIds: ["problems", "answer"] });
 
-    // To get OlxKeys for the idMap:
-    const olxKeys = result.blockIds.map(id => `${result.namespace}://${id}`);
-    expect(olxKeys).toEqual(["physics://problems", "physics://answer"]);
+    // To get DefinitionKeys for the idMap:
+    const definitionKeys = result.blockIds.map(id => `${result.namespace}://${id}`);
+    expect(definitionKeys).toEqual(["physics://problems", "physics://answer"]);
   });
 
   it("unscoped keys have a single block", () => {
@@ -204,9 +204,9 @@ describe("Namespace derivation", () => {
 // containing a TextArea "answer". A grader targets instance 0.
 
 describe("Full round-trip", () => {
-  it("same-course: author → parse → Redux → content loading", () => {
+  it("same-course: author → parse → state store → content loading", () => {
     // Author writes: <Grader target="problems:#0:answer"/>
-    // That's a ReduxStateRef — scoped, but no namespace yet.
+    // That's a StateRef — scoped, but no namespace yet.
     const authored = "problems:#0:answer";
 
     // At parse time, the system qualifies it with the course namespace:

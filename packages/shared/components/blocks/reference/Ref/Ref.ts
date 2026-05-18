@@ -4,11 +4,11 @@ import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { valueSelector, fieldByName, fieldSelector } from '@/lib/state';
 import { blockData, withStatus } from '@/lib/state/blockData';
-import { reduxKeyToOlxKey } from '@/lib/types/id';
-import { srcAttributes, z_reduxStateRef } from '@/lib/blocks/attributeSchemas';
+import { stateKeyToDefinitionKey } from '@/lib/types/id';
+import { srcAttributes, z_stateRef } from '@/lib/blocks/attributeSchemas';
 import { selectBlock, selectBlockState } from '@/lib/state/olxjson';
 import _Ref from './_Ref';
-import type { RuntimeProps, ReduxStateKey, OlxKey, BlockDataResult } from '@/lib/types';
+import type { RuntimeProps, StateKey, DefinitionKey, BlockDataResult } from '@/lib/types';
 
 /**
  * Convert any value to a string representation for display.
@@ -54,19 +54,19 @@ const Ref = core({
   component: _Ref,
   description: 'Reference another component\'s value by ID via target attribute.',
   attributes: srcAttributes.extend({
-    target: z_reduxStateRef.optional().describe('ID of component to reference'),
+    target: z_stateRef.optional().describe('ID of component to reference'),
     field: z.string().optional().describe('Specific field to access from target'),
     visible: z.enum(['true', 'false']).optional().describe('Set to "false" to hide the reference display'),
     fallback: z.string().optional().describe('Fallback value when target is empty'),
     format: z.enum(['code']).optional().describe('Display format for the value'),
   }),
-  selectValue: withStatus((props: RuntimeProps, state: any, reduxKey: ReduxStateKey): BlockDataResult & { value: any } => {
+  selectValue: withStatus((props: RuntimeProps, state: any, stateKey: StateKey): BlockDataResult & { value: any } => {
     // TODO: This logic is infrastructure, not component logic. selectValue should move to /lib/
     // so it can access runtime context properly without accessing props directly.
     // Get the Ref block from Redux to access its attributes and content
     const sources = props.runtime.olxJsonSources ?? ['content'];
     const locale = props.runtime.locale.code;
-    const refNode = selectBlock(state, sources, reduxKeyToOlxKey(reduxKey), locale);
+    const refNode = selectBlock(state, sources, stateKeyToDefinitionKey(stateKey), locale);
     if (!refNode) {
       return { value: '', ...blockData('error', 'Component not found') };
     }
@@ -79,16 +79,16 @@ const Ref = core({
       return { value: '', ...blockData('error', 'No target specified. Use target= attribute or <Ref>targetId</Ref>.') };
     }
 
-    // Target is validated by z_reduxStateRef — may be a simple ID or a scoped key.
-    // Scoped keys (containing ':') are used as-is; simple IDs are treated as OlxKeys.
+    // Target is validated by z_stateRef — may be a simple ID or a scoped key.
+    // Scoped keys (containing ':') are used as-is; simple IDs are treated as DefinitionKeys.
     const isScoped = targetId.includes(':');
-    const targetOlxKey = isScoped
-      ? reduxKeyToOlxKey(targetId as ReduxStateKey)
-      : targetId as unknown as OlxKey;
+    const targetDefinitionKey = isScoped
+      ? stateKeyToDefinitionKey(targetId as StateKey)
+      : targetId as unknown as DefinitionKey;
 
     // Check if target exists in Redux — distinguish loading from missing
-    if (!selectBlock(state, sources, targetOlxKey, locale)) {
-      const bs = selectBlockState(state, sources, targetOlxKey);
+    if (!selectBlock(state, sources, targetDefinitionKey, locale)) {
+      const bs = selectBlockState(state, sources, targetDefinitionKey);
       if (bs?.loadingState?.status === 'error') {
         return { value: '', ...blockData('error', `Target "${targetId}" not found`) };
       }
@@ -102,16 +102,16 @@ const Ref = core({
     const fallback = typeof rawFallback === 'string' ? rawFallback : '';
 
     // Scoped refs already encode the full Redux path; simple IDs are valid
-    // ReduxStateKeys directly (Ref targets are always resolved globally,
+    // StateKeys directly (Ref targets are always resolved globally,
     // not scoped by idPrefix).
-    const targetReduxKey = targetId as ReduxStateKey;
+    const targetReduxKey = targetId as StateKey;
 
     if (field) {
       const fieldInfo = fieldByName(field);
       if (!fieldInfo) {
         return { value: '', ...blockData('error', `Unknown field "${field}"`) };
       }
-      const rawValue = fieldSelector(state, props, fieldInfo, { reduxKey: targetReduxKey, fallback });
+      const rawValue = fieldSelector(state, props, fieldInfo, { stateKey: targetReduxKey, fallback });
       return { value: formatRefValue(rawValue, fallback), ...blockData('ready') };
     }
 

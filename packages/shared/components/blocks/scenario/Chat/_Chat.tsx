@@ -10,7 +10,7 @@ import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/C
 import type { ChatMessage } from '@/components/common/ChatComponent';
 import { DisplayError } from '@/lib/util/debug';
 import { useCast, mergeCasts } from '@/lib/avatar/cast';
-import type { RuntimeProps, PeggyKids, OlxReference } from '@/lib/types';
+import type { RuntimeProps, PeggyKids, DefinitionRef } from '@/lib/types';
 import type { ParsedConversation } from './_chatTypes';
 import { useWaitConditions } from './waitConditions';
 
@@ -98,10 +98,10 @@ export function _Chat(props: RuntimeProps) {
   // Collect all embedded block IDs from the visible window
   const embedIds = useMemo(() => {
     const window = allEntries.slice(windowRange.start, windowedIndex + 1);
-    const ids: OlxReference[] = [];
+    const ids: DefinitionRef[] = [];
     for (const entry of window) {
       if (entry.type === 'EmbedCommand') {
-        ids.push(entry.ref as OlxReference);
+        ids.push(entry.ref as DefinitionRef);
       }
     }
     return ids;
@@ -112,7 +112,7 @@ export function _Chat(props: RuntimeProps) {
 
   // Build visible messages, mapping EmbedCommands to their rendered blocks
   // TODO: The embedIndex counter assumes embedIds and visibleMessages iterate the same window
-  // with the same filter logic. A Map<OlxReference, ReactNode> keyed by entry.ref would be
+  // with the same filter logic. A Map<DefinitionRef, ReactNode> keyed by entry.ref would be
   // more robust against dependency/closure mismatches, at the cost of a bit more memory.
   const visibleMessages: ChatMessage[] = useMemo(() => {
     const window = allEntries.slice(windowRange.start, windowedIndex + 1);

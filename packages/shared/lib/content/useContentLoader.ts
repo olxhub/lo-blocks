@@ -1,6 +1,6 @@
 // src/lib/content/useContentLoader.ts
 import { useState, useEffect } from 'react';
-import { IdMap, ComponentError, OlxKey } from '@/lib/types';
+import { IdMap, ComponentError, DefinitionKey } from '@/lib/types';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
 import { useDebugSettings } from '@/lib/state/debugSettings';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
@@ -19,7 +19,7 @@ import { fetchOlxJson } from '@/lib/content/fetchOlxJson';
  * Usage:
  * const { idMap, error, loading } = useContentLoader('my_content_id');
  */
-export function useContentLoader(id: OlxKey, source = 'content') {
+export function useContentLoader(id: DefinitionKey, source = 'content') {
   const [idMap, setIdMap] = useState<IdMap | null>(null);
   const [error, setError] = useState<ComponentError>(null);
   const [loading, setLoading] = useState(true);

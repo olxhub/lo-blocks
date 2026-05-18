@@ -20,7 +20,7 @@ function _Correctness(props: RuntimeProps) {
     {
       selector: s => s?.correct ?? correctness.unsubmitted,
       fallback: correctness.unsubmitted,
-      reduxKey: graderReduxKey
+      stateKey: graderReduxKey
     }
   );
 
@@ -32,7 +32,7 @@ function _Correctness(props: RuntimeProps) {
     {
       selector: s => s?.submitCount ?? 0,
       fallback: 0,
-      reduxKey: graderReduxKey
+      stateKey: graderReduxKey
     }
   );
 

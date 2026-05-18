@@ -10,7 +10,7 @@
 //
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
-import { GraphNode, GraphEdge, ParseError, IdMap, OlxKey } from '@/lib/types';
+import { GraphNode, GraphEdge, ParseError, IdMap, DefinitionKey } from '@/lib/types';
 
 interface ParseResult {
   nodes: GraphNode[];
@@ -20,12 +20,12 @@ interface ParseResult {
 }
 
 /**
- * Helper to iterate IdMap entries with proper OlxKey typing.
+ * Helper to iterate IdMap entries with proper DefinitionKey typing.
  * Object.entries() returns string keys even for branded types, so we cast them back.
  */
-function* entriesIdMap(idMap: IdMap): Generator<[OlxKey, IdMap[OlxKey]]> {
+function* entriesIdMap(idMap: IdMap): Generator<[DefinitionKey, IdMap[DefinitionKey]]> {
   for (const [id, variants] of Object.entries(idMap)) {
-    yield [id as OlxKey, variants];
+    yield [id as DefinitionKey, variants];
   }
 }
 
@@ -78,7 +78,7 @@ export function parseIdMap(idMap: IdMap, locale: string = 'en-Latn-US'): ParseRe
     for (const childId of childIds) {
       const edgeId = `${id}->${childId}`;
       if (!edges.find(e => e.id === edgeId)) {
-        edges.push({ id: edgeId, source: id, target: childId as OlxKey });
+        edges.push({ id: edgeId, source: id, target: childId as DefinitionKey });
       }
     }
 

@@ -1,5 +1,5 @@
 'use client';
-import type { RuntimeProps, ReduxStateRef } from '@/lib/types';
+import type { RuntimeProps, StateRef } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
@@ -81,11 +81,11 @@ export default function _SplitTest(props: RuntimeProps) {
   // Symmetric: master reads/writes its own id, follower reads from master's id.
   // target defaults to self. Resolve through refToReduxKey to apply scope (idPrefix).
   const targetReduxKey = props.target
-    ? refToReduxKey({ ...props, id: props.target as ReduxStateRef })
+    ? refToReduxKey({ ...props, id: props.target as StateRef })
     : refToReduxKey(props);
   // TODO: When we have hash-based assignment (userId + experimentId), use that
   // instead of random for deterministic reproducibility.
-  const [groupValue, setGroupValue] = useFieldState(props, fields.value, null, { reduxKey: targetReduxKey });
+  const [groupValue, setGroupValue] = useFieldState(props, fields.value, null, { stateKey: targetReduxKey });
 
   let groupIndex = parseGroupIndex(groupValue, numGroups);
 

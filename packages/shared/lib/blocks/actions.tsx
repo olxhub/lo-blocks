@@ -29,7 +29,7 @@ import { getBlockByOLXId } from './getBlockByOLXId';
 import { valueSelector } from '@/lib/state/redux';
 import { isZodCompatible, describeZodType } from './zodCompat';
 import { inputAttributes, graderAttributes } from './attributeSchemas';
-import type { RuntimeProps, OlxKey, OlxReference, LoBlock, ValueSelectorFn } from '@/lib/types';
+import type { RuntimeProps, DefinitionKey, DefinitionRef, LoBlock, ValueSelectorFn } from '@/lib/types';
 import type { Store } from 'redux';
 
 // Grader parameter types - each grader receives exactly one of these
@@ -102,8 +102,8 @@ export function isMatch(loBlock) {
  */
 function resolveInputSlots(
   slots: string[],
-  inputIds: OlxKey[],
-  getInputSlot: (id: OlxKey) => string | undefined
+  inputIds: DefinitionKey[],
+  getInputSlot: (id: DefinitionKey) => string | undefined
 ): { slotMap: Record<string, string>; errors: string[] } {
   const errors: string[] = [];
   const slotMap: Record<string, string> = {};
@@ -177,7 +177,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
   // blueprint and nodeInfo. The runtime context is shared from the source props.
 
   const action = async ({ targetId, targetInstance, props }) => {
-    // OlxKey → ReduxStateKey (applies runtime.idPrefix for DynamicList scoping)
+    // DefinitionKey → StateKey (applies runtime.idPrefix for DynamicList scoping)
     const targetNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix }));
     const targetAttributes = targetInstance.attributes;
 
@@ -201,7 +201,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
         return { value: undefined, api: {} };
       }
       const loBlock = map[inst.tag];
-      // OlxKey → ReduxStateKey (applies runtime.idPrefix for DynamicList scoping)
+      // DefinitionKey → StateKey (applies runtime.idPrefix for DynamicList scoping)
       const inputReduxKey = refToReduxKey({ id, idPrefix: props.runtime?.idPrefix });
       const inputNodeInfo = getDomNodeByReduxKey(props, inputReduxKey);
 
@@ -270,7 +270,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
 
       if (slots && slots.length > 0) {
         // Dict mode: resolve inputs to named slots
-        const getInputSlot = (id: OlxKey) => {
+        const getInputSlot = (id: DefinitionKey) => {
           const inst = getBlockByOLXId(props, id);
           return inst?.attributes?.slot as string | undefined;
         };
@@ -386,7 +386,7 @@ export async function executeNodeActions(props: RuntimeProps) {
     }
 
     // Find the action's OlxDomNode
-    // OlxKey → ReduxStateKey (applies runtime.idPrefix for DynamicList scoping)
+    // DefinitionKey → StateKey (applies runtime.idPrefix for DynamicList scoping)
     const actionNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix }));
 
     if (!actionNodeInfo) {

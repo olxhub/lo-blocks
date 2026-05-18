@@ -6,8 +6,8 @@
 // Used in docs page to help developers see component state during demos.
 //
 // Scopes state to the current preview by walking the dynamic OLX DOM tree
-// (nodeInfo) to discover which ReduxStateKeys belong to this render tree.
-// Each OlxDomNode carries its reduxKey and loBlock.fields, so we can both
+// (nodeInfo) to discover which StateKeys belong to this render tree.
+// Each OlxDomNode carries its stateKey and loBlock.fields, so we can both
 // filter and decode state without BLOCK_REGISTRY lookups.
 //
 // TIMING: This component reads nodeInfoRef (a React ref) populated by
@@ -24,11 +24,11 @@ import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getKidsBFS } from '@/lib/blocks/olxdom';
 import { decodeState } from '@/lib/state/stateDisplay';
-import type { OlxDomNode, ReduxStateKey, FieldInfo } from '@/lib/types';
+import type { OlxDomNode, StateKey, FieldInfo } from '@/lib/types';
 
 /** Info about a block in the nodeInfo tree, for state display. */
 interface TreeEntry {
-  reduxKey: ReduxStateKey;
+  stateKey: StateKey;
   tag: string;
   fields: Record<string, FieldInfo> | undefined;
 }
@@ -44,7 +44,7 @@ function collectTreeEntries(root: OlxDomNode): TreeEntry[] {
   });
 
   return nodes.map(n => ({
-    reduxKey: n.reduxKey,
+    stateKey: n.stateKey,
     tag: n.olxJson?.tag || '?',
     fields: n.loBlock?.fields as Record<string, FieldInfo> | undefined,
   }));
@@ -55,7 +55,7 @@ function collectTreeEntries(root: OlxDomNode): TreeEntry[] {
  */
 function StateRow({ entry }: { entry: TreeEntry }) {
   const componentState = useSelector(
-    (state: any) => state?.application_state?.component?.[entry.reduxKey] || null,
+    (state: any) => state?.application_state?.component?.[entry.stateKey] || null,
   );
 
   if (componentState === null) return null;
@@ -67,7 +67,7 @@ function StateRow({ entry }: { entry: TreeEntry }) {
   return (
     <div className="border-b last:border-b-0 py-2">
       <div className="flex items-center gap-2 text-xs text-dimmed mb-1">
-        <code className="font-semibold text-secondary">{entry.reduxKey}</code>
+        <code className="font-semibold text-secondary">{entry.stateKey}</code>
         <span className="text-dimmed">{entry.tag}</span>
       </div>
       {hasDecoded && (
@@ -101,15 +101,15 @@ function StateRows({ entries }: { entries: TreeEntry[] }) {
 
   // Sort by state size (largest first) — stateless blocks like Markdown sink to bottom
   const sorted = [...entries].sort((a, b) => {
-    const sizeA = JSON.stringify(componentStates?.[a.reduxKey] ?? null).length;
-    const sizeB = JSON.stringify(componentStates?.[b.reduxKey] ?? null).length;
+    const sizeA = JSON.stringify(componentStates?.[a.stateKey] ?? null).length;
+    const sizeB = JSON.stringify(componentStates?.[b.stateKey] ?? null).length;
     return sizeB - sizeA;
   });
 
   return (
     <div className="p-3 bg-background max-h-64 overflow-y-auto">
       {sorted.map(entry => (
-        <StateRow key={entry.reduxKey} entry={entry} />
+        <StateRow key={entry.stateKey} entry={entry} />
       ))}
     </div>
   );
@@ -119,7 +119,7 @@ function StateRows({ entries }: { entries: TreeEntry[] }) {
  * Collapsible panel showing Redux component state scoped to the current preview.
  *
  * Reads the nodeInfo tree from a ref populated by RenderOLX. Walks the tree
- * to discover which ReduxStateKeys belong to this preview, then shows decoded
+ * to discover which StateKeys belong to this preview, then shows decoded
  * field state for each block that has state.
  */
 export default function StatePanel({
@@ -133,7 +133,7 @@ export default function StatePanel({
   // The ref is populated by RenderOLX during rendering — see timing caveat above.
   const rootNodeInfo = nodeInfoRef?.current;
   const treeEntries = rootNodeInfo ? collectTreeEntries(rootNodeInfo) : [];
-  const treeKeySet = new Set(treeEntries.map(e => e.reduxKey));
+  const treeKeySet = new Set(treeEntries.map(e => e.stateKey));
 
   // Subscribe to Redux state keys
   const componentKeys = useSelector(
@@ -147,7 +147,7 @@ export default function StatePanel({
   const matchingKeys = treeKeySet.size === 0
     ? componentKeys
     : componentKeys.filter(k =>
-        treeKeySet.has(k as ReduxStateKey) ||
+        treeKeySet.has(k as StateKey) ||
         [...treeKeySet].some(tk => k.startsWith(tk + ':'))
       );
 
@@ -161,11 +161,11 @@ export default function StatePanel({
   // Build entries for all matching keys. Tree entries match directly;
   // scoped keys inherit tag and fields from their parent tree entry.
   const activeEntries: TreeEntry[] = matchingKeys.map(k => {
-    const direct = treeEntries.find(e => e.reduxKey === k);
+    const direct = treeEntries.find(e => e.stateKey === k);
     if (direct) return direct;
-    const parent = treeEntries.find(e => k.startsWith(e.reduxKey + ':'));
+    const parent = treeEntries.find(e => k.startsWith(e.stateKey + ':'));
     return {
-      reduxKey: k as ReduxStateKey,
+      stateKey: k as StateKey,
       tag: parent ? parent.tag + ' (scoped)' : '?',
       fields: parent?.fields,
     };

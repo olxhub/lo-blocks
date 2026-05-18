@@ -1,7 +1,7 @@
 // @vitest-environment node
 // src/lib/content/parseOLX.test.js
 import { parseOLX } from './parseOLX';
-import type { IdMap, OlxJson, OlxKey, ContentVariant } from '../types';
+import type { IdMap, OlxJson, DefinitionKey, ContentVariant } from '../types';
 import { toMemoryRef } from '../types/storage';
 
 const PROV = [toMemoryRef('test.xml')];
@@ -9,7 +9,7 @@ const PROV = [toMemoryRef('test.xml')];
 // Helper: extract the '*' (language-agnostic) variant for a block ID.
 // Accepts string for convenience in tests (cast to branded types internally).
 const getOlxJson = (idMap: IdMap, id: string): OlxJson | undefined =>
-  idMap[id as OlxKey]?.['*' as ContentVariant];
+  idMap[id as DefinitionKey]?.['*' as ContentVariant];
 
 // Helper: get all blocks with a given tag (across all IDs, language-agnostic variant).
 const getBlocksByTag = (idMap: IdMap, tag: string): OlxJson[] =>

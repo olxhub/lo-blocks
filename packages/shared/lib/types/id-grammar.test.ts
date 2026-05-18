@@ -146,34 +146,34 @@ describe("namespace", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// olxRef — Content definition reference (what authors write)
+// definitionRef — Content definition reference (what authors write)
 // ═══════════════════════════════════════════════════════════════════════════════
 //
 // The most permissive content identifier. Anything an author might write to
-// refer to a block definition. OlxKey is a canonical SUBSET of OlxRef.
+// refer to a block definition. DefinitionKey is a canonical SUBSET of OlxRef.
 //
 // The grammar: optional source/namespace prefix (anything before "://"),
 // then a leafId after the delimiter. If no "://", the whole thing is a
 // bare leafId.
 //
 // All of these might refer to the same content definition — the system
-// canonicalizes to OlxKey (ee101://hw1) at parse time.
+// canonicalizes to DefinitionKey (ee101://hw1) at parse time.
 
-describe("olxRef", () => {
-  const re = VALID.olxRef;
+describe("definitionRef", () => {
+  const re = VALID.definitionRef;
 
   const valid = [
     "answer",                                              // bare (same-course)
     "hw1",                                                 // bare
     "żółw",                                                // unicode
-    "ee101://hw1",                                         // namespace-qualified (also a valid OlxKey)
+    "ee101://hw1",                                         // namespace-qualified (also a valid DefinitionKey)
     "git@gitlab.com:olxhub/ee101.git://hw1",              // source-qualified
     "git@gitlab.com:olxhub/ee101.git@main://hw1",         // branch-pinned
     "git@gitlab.com:olxhub/ee101.git@a1238b://hw1",       // immutable (commit hash)
   ];
 
   const invalid = [
-    "problems:#0:answer",         // that's state (ReduxStateRef), not content
+    "problems:#0:answer",         // that's state (StateRef), not content
     "",                           // empty
   ];
 
@@ -182,18 +182,18 @@ describe("olxRef", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// reduxStateRef — State instance reference (what authors write)
+// stateRef — State instance reference (what authors write)
 // ═══════════════════════════════════════════════════════════════════════════════
 //
 // Identifies a specific piece of student state. Includes instance scope
 // (the colon-separated chain of blocks and scope markers). Must end with
 // a leafId (the target block), not a scope marker.
 //
-// ReduxStateKey is a canonical SUBSET of ReduxStateRef — any valid Key is
+// StateKey is a canonical SUBSET of StateRef — any valid Key is
 // also a valid Ref. Authors write Refs; the system canonicalizes to Keys.
 
-describe("reduxStateRef", () => {
-  const re = VALID.reduxStateRef;
+describe("stateRef", () => {
+  const re = VALID.stateRef;
 
   const valid = [
     "problems:#0:answer",                                        // unqualified, scoped
@@ -216,15 +216,15 @@ describe("reduxStateRef", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// olxKey — Content definition key (always namespaced)
+// definitionKey — Content definition key (always namespaced)
 // ═══════════════════════════════════════════════════════════════════════════════
 //
 // The globally unique key for a content DEFINITION. Always has a namespace.
-// No scope — OlxKeys identify what a block IS, not which instance.
+// No scope — DefinitionKeys identify what a block IS, not which instance.
 // Used for idMap lookups (selectBlock, ensureBlock).
 
-describe("olxKey", () => {
-  const re = VALID.olxKey;
+describe("definitionKey", () => {
+  const re = VALID.definitionKey;
 
   const valid = [
     "ee101://hw1",                                 // simple
@@ -235,7 +235,7 @@ describe("olxKey", () => {
   const invalid = [
     "hw1",                                         // no namespace (that's an OlxRef)
     "answer",                                      // no namespace
-    "ee101://problems:#0:answer",                  // has scope (that's a ReduxStateKey)
+    "ee101://problems:#0:answer",                  // has scope (that's a StateKey)
   ];
 
   for (const v of valid)   it(`✓ ${v}`, () => expect(re.test(v)).toBe(true));
@@ -243,15 +243,15 @@ describe("olxKey", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// reduxStateKey — State instance key (always namespaced)
+// stateKey — State instance key (always namespaced)
 // ═══════════════════════════════════════════════════════════════════════════════
 //
 // The globally unique key for a piece of student state. Always has a namespace.
-// This is what Redux is keyed by. Includes instance scope when the block
+// This is what the state store is keyed by. Includes instance scope when the block
 // appears inside a scoping container.
 
-describe("reduxStateKey", () => {
-  const re = VALID.reduxStateKey;
+describe("stateKey", () => {
+  const re = VALID.stateKey;
 
   const valid = [
     "ee101://designList:#7:mydesigns",             // scoped
@@ -262,7 +262,7 @@ describe("reduxStateKey", () => {
   ];
 
   const invalid = [
-    "problems:#0:answer",                          // no namespace (that's a ReduxStateRef)
+    "problems:#0:answer",                          // no namespace (that's a StateRef)
     "answer",                                      // no namespace
     "ee101://problems:#0",                         // ends with scope marker
   ];
@@ -297,7 +297,7 @@ describe("stateFieldRef", () => {
   const invalid = [
     "answer",                         // no field
     "problems:#0:answer",             // no field
-    "ee101://answer",                 // no field (that's a ReduxStateRef)
+    "ee101://answer",                 // no field (that's a StateRef)
     "answer.",                        // trailing dot, no field name
     ".value",                         // no key, just field
     "answer.0bad",                    // field starts with digit (not a leafId)
@@ -346,11 +346,11 @@ describe("decomposition", () => {
     });
   }
 
-  it("extractBlocks enables OlxKey reconstruction for content loading", () => {
-    // Given a ReduxStateKey, what OlxKeys do we need in the idMap?
+  it("extractBlocks enables DefinitionKey reconstruction for content loading", () => {
+    // Given a StateKey, what DefinitionKeys do we need in the idMap?
     const { namespace, blockIds } = extractBlocks("physics://problems:#0:answer");
-    const olxKeys = blockIds.map(id => `${namespace}://${id}`);
-    expect(olxKeys).toEqual(["physics://problems", "physics://answer"]);
+    const definitionKeys = blockIds.map(id => `${namespace}://${id}`);
+    expect(definitionKeys).toEqual(["physics://problems", "physics://answer"]);
   });
 });
 
@@ -361,7 +361,7 @@ describe("decomposition", () => {
 // Both "ee101://hw1" and "git@gitlab.com:olxhub/ee101.git://hw1" contain
 // "://". hasNamespace checks whether the part BEFORE "://" is a valid
 // namespace. It does NOT validate the rest of the string — that's what
-// VALID.olxKey / VALID.reduxStateKey are for.
+// VALID.definitionKey / VALID.stateKey are for.
 
 describe("hasNamespace", () => {
   it("true when a valid namespace precedes ://", () => {

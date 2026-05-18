@@ -12,7 +12,7 @@ import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { z_reduxStateRef } from '@/lib/blocks/attributeSchemas';
+import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 import { refToReduxKey } from '@/lib/types/id';
 import _Noop from '@/components/blocks/layout/_Noop';
 
@@ -24,7 +24,7 @@ async function setFieldAction({ targetInstance, props }) {
 
   const targetReduxKey = refToReduxKey({ ...props, id: target });
   const field = state.componentFieldByName(props, targetReduxKey, fieldName);
-  state.updateField(props, field, value, { reduxKey: targetReduxKey });
+  state.updateField(props, field, value, { stateKey: targetReduxKey });
 }
 
 const SetFieldAction = blocks.core({
@@ -36,7 +36,7 @@ const SetFieldAction = blocks.core({
   description: 'Sets a field value on a target component when triggered',
   component: _Noop,
   attributes: z.object({
-    target: z_reduxStateRef
+    target: z_stateRef
       .describe('ID of the component to update'),
     field: z.string({ required_error: 'field is required' })
       .describe('Field name to set on the target'),

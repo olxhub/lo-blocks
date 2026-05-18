@@ -4,7 +4,7 @@ import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as reduxClient from '@/lib/llm/reduxClient';
-import { z_reduxStateRef } from '@/lib/blocks/attributeSchemas';
+import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 import { refToReduxKey } from '@/lib/types/id';
 import _Hidden from '@/components/blocks/layout/_Hidden';
 
@@ -26,8 +26,8 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
   try { stateField = state.componentFieldByName(props, targetReduxKey, 'state'); } catch {}
 
   try {
-    state.updateField(props, valueField, '', { reduxKey: targetReduxKey });
-    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RUNNING, { reduxKey: targetReduxKey });
+    state.updateField(props, valueField, '', { stateKey: targetReduxKey });
+    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RUNNING, { stateKey: targetReduxKey });
 
     const promptText = blocks.extractChildText(props, props.nodeInfo.olxJson);
     if (!promptText.trim()) {
@@ -35,13 +35,13 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
     }
 
     const content = await reduxClient.callLLMSimple(promptText);
-    state.updateField(props, valueField, content, { reduxKey: targetReduxKey });
-    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RESPONSE_READY, { reduxKey: targetReduxKey });
+    state.updateField(props, valueField, content, { stateKey: targetReduxKey });
+    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RESPONSE_READY, { stateKey: targetReduxKey });
 
   } catch (error) {
     console.error('LLM generation failed:', error);
-    state.updateField(props, valueField, `Error: ${error.message}`, { reduxKey: targetReduxKey });
-    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.ERROR, { reduxKey: targetReduxKey });
+    state.updateField(props, valueField, `Error: ${error.message}`, { stateKey: targetReduxKey });
+    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.ERROR, { stateKey: targetReduxKey });
   }
 }
 
@@ -92,7 +92,7 @@ const LLMAction = blocks.test({
   component: _Hidden,
   fields,
   attributes: z.object({
-    target: z_reduxStateRef.describe('ID of the TextSlot or LLMFeedback to write output to'),
+    target: z_stateRef.describe('ID of the TextSlot or LLMFeedback to write output to'),
   }).strict(),
 });
 

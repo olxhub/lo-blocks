@@ -21,10 +21,10 @@ import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
 import { getGrader, getDomNodeByReduxKey, getAllNodes, inferRelatedNodes } from './olxdom';
 import { useOlxJson } from './useOlxJson';
-import { refToOlxKey, refToReduxKey, toOlxReference } from '../types/id';
+import { refToDefinitionKey, refToReduxKey, toDefinitionRef } from '../types/id';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { isInput } from './actions';
-import type { OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
+import type { DefinitionKey, DefinitionRef, RuntimeProps } from '@/lib/types';
 
 /**
  * Find a grader that targets this input (for sibling grader patterns).
@@ -34,7 +34,7 @@ import type { OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
  * may return duplicates, but we return on first match so this is benign.
  * If performance becomes an issue, add a visited set.
  */
-function findTargetingGrader(props: RuntimeProps): OlxKey | null {
+function findTargetingGrader(props: RuntimeProps): DefinitionKey | null {
   const { id, nodeInfo } = props;
   if (!nodeInfo) return null;
 
@@ -42,13 +42,13 @@ function findTargetingGrader(props: RuntimeProps): OlxKey | null {
     selector: (n) => !!n.loBlock.isGrader && !!n.olxJson.attributes.target
   });
 
-  const normalizedId = refToOlxKey(id);
+  const normalizedId = refToDefinitionKey(id);
 
   for (const graderNodeInfo of graderNodes) {
     // target is a comma-separated list of OlxRefs (guaranteed by selector filter)
     const targetList = graderNodeInfo.olxJson.attributes.target;
     if (typeof targetList !== 'string') continue;  // Type guard for TypeScript
-    const targets = targetList.split(',').map(t => refToOlxKey(toOlxReference(t.trim())));
+    const targets = targetList.split(',').map(t => refToDefinitionKey(toDefinitionRef(t.trim())));
     if (targets.includes(normalizedId)) {
       return graderNodeInfo.olxJson.id;
     }
@@ -61,7 +61,7 @@ function findTargetingGrader(props: RuntimeProps): OlxKey | null {
  * Does not throw - inputs can legitimately exist without graders.
  * Exported for conditional rendering (e.g., only render DisplayAnswer if grader exists).
  */
-export function findGrader(props: RuntimeProps): OlxKey | null {
+export function findGrader(props: RuntimeProps): DefinitionKey | null {
   // First try targeting grader (sibling pattern)
   const targetingGrader = findTargetingGrader(props);
   if (targetingGrader) return targetingGrader;
@@ -80,7 +80,7 @@ export function findGrader(props: RuntimeProps): OlxKey | null {
  */
 function resolveInputSlot(
   props: RuntimeProps,
-  graderId: OlxKey,
+  graderId: DefinitionKey,
   graderBlueprint: any,
   graderInstance: any
 ): string | undefined {
@@ -101,9 +101,9 @@ function resolveInputSlot(
   const targetAttr = graderInstance.attributes?.target;
 
   // Get input IDs (same inference logic as grader action)
-  let inputIds: OlxKey[] = [];
+  let inputIds: DefinitionKey[] = [];
   try {
-    // Find the grader's OlxDomNode (OlxKey → ReduxStateKey applies runtime.idPrefix for scoping)
+    // Find the grader's OlxDomNode (DefinitionKey → StateKey applies runtime.idPrefix for scoping)
     const graderNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id: graderId, idPrefix: props.runtime?.idPrefix }));
     if (!graderNodeInfo) return undefined;
 
@@ -119,8 +119,8 @@ function resolveInputSlot(
   }
 
   // Find position of this input in the list
-  const normalizedId = refToOlxKey(inputId);
-  const position = inputIds.findIndex(id => refToOlxKey(id) === normalizedId);
+  const normalizedId = refToDefinitionKey(inputId);
+  const position = inputIds.findIndex(id => refToDefinitionKey(id) === normalizedId);
 
   if (position >= 0 && position < slots.length) {
     return slots[position];
@@ -158,7 +158,7 @@ export function useGraderAnswer(props: RuntimeProps) {
     props,
     showAnswerField || fallbackField,
     {
-      reduxKey: graderReduxKey,
+      stateKey: graderReduxKey,
       fallback: false,
       // When no grader, selector always returns false
       selector: showAnswerField ? (s => s?.showAnswer ?? false) : (() => false)
@@ -216,7 +216,7 @@ export function useGraderAnswer(props: RuntimeProps) {
  * @param {string} graderId - The grader's ID
  * @returns {{ showAnswer: boolean, summaryAnswer: any }}
  */
-export function useGraderSummary(props: RuntimeProps, graderId: OlxKey | null) {
+export function useGraderSummary(props: RuntimeProps, graderId: DefinitionKey | null) {
   // Get showAnswer field from grader
   const showAnswerField = graderId
     ? state.componentFieldByName(props, graderId, 'showAnswer')
@@ -228,7 +228,7 @@ export function useGraderSummary(props: RuntimeProps, graderId: OlxKey | null) {
     props,
     showAnswerField || fallbackField,
     {
-      reduxKey: summaryGraderReduxKey,
+      stateKey: summaryGraderReduxKey,
       fallback: false,
       selector: showAnswerField ? (s => s?.showAnswer ?? false) : (() => false)
     }

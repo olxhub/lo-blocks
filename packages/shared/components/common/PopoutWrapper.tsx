@@ -14,7 +14,7 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Maximize2, X } from 'lucide-react';
 import { useFieldState, commonFields } from '@/lib/state';
-import type { ReduxStateKey, LoBlockRuntimeContext } from '@/lib/types';
+import type { StateKey, LoBlockRuntimeContext } from '@/lib/types';
 
 type PopoutMode = 'window' | 'fullscreen';
 type PopoutPosition = 'tl' | 'tr' | 'bl' | 'br';
@@ -41,17 +41,17 @@ const POSITION_STYLES: Record<PopoutPosition, React.CSSProperties> = {
 
 interface PopoutWrapperProps {
   popout: string;
-  reduxKey: ReduxStateKey;
+  stateKey: StateKey;
   runtime: LoBlockRuntimeContext;
   children: React.ReactNode;
 }
 
-export default function PopoutWrapper({ popout, reduxKey, runtime, children }: PopoutWrapperProps) {
+export default function PopoutWrapper({ popout, stateKey, runtime, children }: PopoutWrapperProps) {
   const [expanded, setExpanded] = useFieldState(
     { runtime },
     commonFields.popoutExpanded,
     false,
-    { reduxKey }
+    { stateKey }
   );
   const { mode, position } = parsePopout(popout);
   const overlayRef = useRef<HTMLDivElement>(null);

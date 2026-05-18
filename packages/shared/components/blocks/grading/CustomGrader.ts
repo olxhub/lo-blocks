@@ -99,7 +99,7 @@
 //
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
-import { z_reduxStateRefList, src } from '@/lib/blocks/attributeSchemas';
+import { z_stateRefList, src } from '@/lib/blocks/attributeSchemas';
 import { correctness } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
 import _Hidden from '@/components/blocks/layout/_Hidden';
@@ -301,7 +301,7 @@ const CustomGrader = createGrader({
   // tell the composition layer that this collision is expected.
   allowOverrides: ['target'],
   attributes: {
-    target: z_reduxStateRefList.describe('Input block ID(s) to grade, comma-separated'),
+    target: z_stateRefList.describe('Input block ID(s) to grade, comma-separated'),
     // Optional: load code from external file
     ...src,
   },

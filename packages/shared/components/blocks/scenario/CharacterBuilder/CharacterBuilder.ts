@@ -234,7 +234,7 @@ const CharacterBuilder = dev({
     STAT_PRESETS, STAT_PRESETS_BY_KEY,
   },
 
-  selectValue: (props: RuntimeProps, reduxState: any, _reduxKey: any) => {
+  selectValue: (props: RuntimeProps, reduxState: any, _stateKey: any) => {
     const { characterName, cards, avatar } = readCharacterState(reduxState, props, avatarEditorFields);
     return buildYaml(characterName, cards, avatar);
   },

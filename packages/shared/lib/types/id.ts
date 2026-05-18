@@ -1,5 +1,5 @@
 // packages/shared/lib/types/id.ts
-import type { OlxReference, OlxKey, ReduxStateRef, ReduxStateKey, IdPrefix, ScopeMarker, OLXTag, FieldName, FieldEvent } from './core';
+import type { DefinitionRef, DefinitionKey, StateRef, StateKey, IdPrefix, ScopeMarker, OLXTag, FieldName, FieldEvent } from './core';
 //
 // ID Resolution System
 // ====================
@@ -25,8 +25,8 @@ import type { OlxReference, OlxKey, ReduxStateRef, ReduxStateKey, IdPrefix, Scop
 // HTML and React are trees. IDs and keys MUST be unique per position.
 //
 // This creates tension:
-//   - Same element reused twice → MUST share Redux state (same reduxKey)
-//   - Same element in two list items → MUST have separate state (different reduxKey)
+//   - Same element reused twice → MUST share Redux state (same stateKey)
+//   - Same element in two list items → MUST have separate state (different stateKey)
 //   - Both cases → MUST have unique React keys (different reactKey)
 //
 // ID TYPES AND THEIR RELATIONSHIPS
@@ -34,9 +34,9 @@ import type { OlxReference, OlxKey, ReduxStateRef, ReduxStateKey, IdPrefix, Scop
 //
 //   ref (OLX input)     What's written in OLX: "/foo", "./foo", "foo"
 //         ↓
-//   olxKey              Resolved key for idMap lookup: "foo"
+//   definitionKey              Resolved key for idMap lookup: "foo"
 //         ↓             (strips /, ./, namespaces)
-//   reduxKey            State storage key: "list:0:foo"
+//   stateKey            State storage key: "list:0:foo"
 //                       (adds idPrefix for scoped instances, using ":")
 //
 //   For rendering:
@@ -45,8 +45,8 @@ import type { OlxReference, OlxKey, ReduxStateRef, ReduxStateKey, IdPrefix, Scop
 // | ID Type    | Purpose                    | Uniqueness           | Example              |
 // |------------|----------------------------|----------------------|----------------------|
 // | ref        | ID as written in OLX       | n/a (input form)     | "/foo", "./foo"      |
-// | olxKey     | Definition lookup          | Per definition       | "foo"                |
-// | reduxKey   | State storage              | Per logical instance | "list:0:foo"         |
+// | definitionKey     | Definition lookup          | Per definition       | "foo"                |
+// | stateKey   | State storage              | Per logical instance | "list:0:foo"         |
 // | reactKey   | React reconciliation       | Per sibling position | "foo", "foo:1"       |
 // | htmlId     | DOM element ID             | Per rendered element | "foo"                |
 //
@@ -62,7 +62,7 @@ import type { OlxReference, OlxKey, ReduxStateRef, ReduxStateKey, IdPrefix, Scop
 // ----------
 // Resolution:
 //   refToReduxKey(props)        - "prefix.id" for state storage
-//   refToOlxKey(id)             - strips prefix, gets base ID for idMap lookup
+//   refToDefinitionKey(id)             - strips prefix, gets base ID for idMap lookup
 //   htmlId(props)               - DOM-safe ID
 //
 // Scoping:
@@ -105,9 +105,9 @@ export const SCOPE_MARKER_PREFIX = '#';
 /**
  * Create a ScopeMarker for use in extendIdPrefix.
  *
- * ScopeMarkers are non-OlxKey segments in ReduxStateKeys that represent
+ * ScopeMarkers are non-DefinitionKey segments in StateKeys that represent
  * instance indices, attempt numbers, etc. They start with '#' so they
- * can be distinguished from OlxKeys during decomposition.
+ * can be distinguished from DefinitionKeys during decomposition.
  *
  * @param label - Instance identifier (number or string). Must match [0-9a-zA-Z_]+
  * @returns Branded ScopeMarker string (e.g., '#0', '#attempt_2')
@@ -130,32 +130,32 @@ export function scopeMarker(label: string | number): ScopeMarker {
 }
 
 /**
- * Extract the target (leaf) OlxKey from a ReduxStateKey.
+ * Extract the target (leaf) DefinitionKey from a StateKey.
  *
  * Returns the last non-ScopeMarker segment — the specific block this key
  * points to. This is the correct way to get the content key for a scoped
- * ReduxStateKey; it handles ScopeMarkers properly unlike refToOlxKey which
+ * StateKey; it handles ScopeMarkers properly unlike refToDefinitionKey which
  * blindly takes the last ':'-delimited segment.
  *
  * @example
- *   reduxKeyToOlxKey('myList:#0:answer')       // → 'answer'
- *   reduxKeyToOlxKey('answer')                  // → 'answer'
- *   reduxKeyToOlxKey('bank:#attempt_2:child')   // → 'child'
+ *   stateKeyToDefinitionKey('myList:#0:answer')       // → 'answer'
+ *   stateKeyToDefinitionKey('answer')                  // → 'answer'
+ *   stateKeyToDefinitionKey('bank:#attempt_2:child')   // → 'child'
  */
-export function reduxKeyToOlxKey(key: ReduxStateKey): OlxKey {
+export function stateKeyToDefinitionKey(key: StateKey): DefinitionKey {
   const segments = key.split(REDUX_SCOPE_SEPARATOR);
   for (let i = segments.length - 1; i >= 0; i--) {
     if (!segments[i].startsWith(SCOPE_MARKER_PREFIX)) {
-      return segments[i] as OlxKey;
+      return segments[i] as DefinitionKey;
     }
   }
-  // Shouldn't happen — a ReduxStateKey must contain at least one OlxKey.
+  // Shouldn't happen — a StateKey must contain at least one DefinitionKey.
   // Fall back to last segment to avoid throwing in production.
-  return segments[segments.length - 1] as OlxKey;
+  return segments[segments.length - 1] as DefinitionKey;
 }
 
 /**
- * Extract ALL OlxKeys from a ReduxStateKey.
+ * Extract ALL DefinitionKeys from a StateKey.
  *
  * Returns every non-ScopeMarker segment — all the loadable block IDs
  * in the scope chain. Used for content loading: when a target= attribute
@@ -163,15 +163,15 @@ export function reduxKeyToOlxKey(key: ReduxStateKey): OlxKey {
  * are fetched.
  *
  * @example
- *   allOlxKeys('myList:#0:answer')       // → ['myList', 'answer']
- *   allOlxKeys('answer')                  // → ['answer']
- *   allOlxKeys('bank:#attempt_2:child')   // → ['bank', 'child']
- *   allOlxKeys('a:#0:b:#1:c')             // → ['a', 'b', 'c']
+ *   allDefinitionKeys('myList:#0:answer')       // → ['myList', 'answer']
+ *   allDefinitionKeys('answer')                  // → ['answer']
+ *   allDefinitionKeys('bank:#attempt_2:child')   // → ['bank', 'child']
+ *   allDefinitionKeys('a:#0:b:#1:c')             // → ['a', 'b', 'c']
  */
-export function allOlxKeys(key: ReduxStateKey | ReduxStateRef): OlxKey[] {
+export function allDefinitionKeys(key: StateKey | StateRef): DefinitionKey[] {
   return key
     .split(REDUX_SCOPE_SEPARATOR)
-    .filter(seg => !seg.startsWith(SCOPE_MARKER_PREFIX)) as OlxKey[];
+    .filter(seg => !seg.startsWith(SCOPE_MARKER_PREFIX)) as DefinitionKey[];
 }
 
 // Valid ID segment: must start with letter or underscore, then letters/digits/underscores.
@@ -180,13 +180,13 @@ export function allOlxKeys(key: ReduxStateKey | ReduxStateRef): OlxKey[] {
 export const VALID_ID_SEGMENT = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 const INVALID_CHARS_DISPLAY = /[^a-zA-Z0-9_\s]/g;  // For error messages
 
-// Valid ReduxStateRef/ReduxStateKey: one or more segments separated by ":", where each segment
-// is either an OlxKey ([a-zA-Z_][a-zA-Z0-9_]*) or a ScopeMarker (#[0-9a-zA-Z_]+).
+// Valid StateRef/StateKey: one or more segments separated by ":", where each segment
+// is either an DefinitionKey ([a-zA-Z_][a-zA-Z0-9_]*) or a ScopeMarker (#[0-9a-zA-Z_]+).
 // Examples: "foo", "myList:#0:answer", "a:#0:b:#1:c"
 //
 // NOTE: These two regexes are intentionally identical today. They'll diverge when
-// namespace prefixes land — ReduxStateKey will gain a namespace qualifier that
-// ReduxStateRef (authored input) won't have.
+// namespace prefixes land — StateKey will gain a namespace qualifier that
+// StateRef (authored input) won't have.
 const OLXKEY_SEG = '[a-zA-Z_][a-zA-Z0-9_]*';
 const SCOPE_SEG = '#[0-9a-zA-Z_]+';
 export const VALID_REDUX_STATE_REF = new RegExp(
@@ -197,7 +197,7 @@ export const VALID_REDUX_STATE_KEY = new RegExp(
   `^(${OLXKEY_SEG}|${SCOPE_SEG})(:${OLXKEY_SEG}|:${SCOPE_SEG})*$`
 );
 
-function validateReduxStatePath(input: string, typeName: 'ReduxStateRef' | 'ReduxStateKey'): string {
+function validateReduxStatePath(input: string, typeName: 'StateRef' | 'StateKey'): string {
   if (!input || typeof input !== 'string') {
     throw new Error(`${typeName}: value is required but got "${input}"`);
   }
@@ -217,10 +217,10 @@ function validateReduxStatePath(input: string, typeName: 'ReduxStateRef' | 'Redu
     );
   }
 
-  // Must contain at least one OlxKey (non-ScopeMarker) segment.
+  // Must contain at least one DefinitionKey (non-ScopeMarker) segment.
   const segments = trimmed.split(REDUX_SCOPE_SEPARATOR);
-  const hasOlxKey = segments.some(seg => !seg.startsWith(SCOPE_MARKER_PREFIX));
-  if (!hasOlxKey) {
+  const hasDefinitionKey = segments.some(seg => !seg.startsWith(SCOPE_MARKER_PREFIX));
+  if (!hasDefinitionKey) {
     throw new Error(
       `${typeName}: "${input}" contains only scope markers — must include at least one block ID.`
     );
@@ -230,50 +230,50 @@ function validateReduxStatePath(input: string, typeName: 'ReduxStateRef' | 'Redu
 }
 
 /**
- * Validate and brand a string as a ReduxStateRef.
+ * Validate and brand a string as a StateRef.
  *
- * ReduxStateRef is authored/resolution input from OLX, not the final storage
+ * StateRef is authored/resolution input from OLX, not the final storage
  * key. Runtime code should pass it through refToReduxKey() before Redux lookup.
  */
-export function parseReduxStateRef(input: string): ReduxStateRef {
-  return validateReduxStatePath(input, 'ReduxStateRef') as ReduxStateRef;
+export function parseStateRef(input: string): StateRef {
+  return validateReduxStatePath(input, 'StateRef') as StateRef;
 }
 
 /**
- * Validate and brand a string as a ReduxStateKey.
+ * Validate and brand a string as a StateKey.
  *
- * A ReduxStateKey is one or more colon-separated segments, each being either
- * an OlxKey (block ID) or a ScopeMarker (#index). Must contain at least one
- * OlxKey segment.
+ * A StateKey is one or more colon-separated segments, each being either
+ * an DefinitionKey (block ID) or a ScopeMarker (#index). Must contain at least one
+ * DefinitionKey segment.
  *
- * TODO(type-system): Rename this to parseReduxStateKey or replace it with a
- * true Ref -> Key resolver once ReduxStateKey becomes namespace-qualified.
+ * TODO(type-system): Rename this to parseStateKey or replace it with a
+ * true Ref -> Key resolver once StateKey becomes namespace-qualified.
  * The current toX name predates the parse/as/validate convention in core.ts.
  *
- * @param input - Raw ReduxStateKey string
- * @returns Branded ReduxStateKey
+ * @param input - Raw StateKey string
+ * @returns Branded StateKey
  * @throws Error with human-friendly message if invalid
  *
  * @example
- *   toReduxStateKey('foo')                  // → 'foo'
- *   toReduxStateKey('myList:#0:answer')     // → 'myList:#0:answer'
- *   toReduxStateKey('#0')                   // throws — no OlxKey segment
- *   toReduxStateKey('foo-bar')              // throws — invalid characters
+ *   toStateKey('foo')                  // → 'foo'
+ *   toStateKey('myList:#0:answer')     // → 'myList:#0:answer'
+ *   toStateKey('#0')                   // throws — no DefinitionKey segment
+ *   toStateKey('foo-bar')              // throws — invalid characters
  */
-export function toReduxStateKey(input: string): ReduxStateKey {
-  return validateReduxStatePath(input, 'ReduxStateKey') as ReduxStateKey;
+export function toStateKey(input: string): StateKey {
+  return validateReduxStatePath(input, 'StateKey') as StateKey;
 }
 
 /**
- * Validate and brand a user-provided ID string as OlxReference.
+ * Validate and brand a user-provided ID string as DefinitionRef.
  * Use this at system boundaries where user input enters the type system.
  *
  * @param input - Raw string from OLX id= attribute or target= attribute
  * @param context - Description for error messages (e.g., "id attribute", "target")
- * @returns Branded OlxReference
+ * @returns Branded DefinitionRef
  * @throws Error with human-friendly message if invalid
  */
-export function toOlxReference(input: string, context = 'ID'): OlxReference {
+export function toDefinitionRef(input: string, context = 'ID'): DefinitionRef {
   if (!input || typeof input !== 'string') {
     throw new Error(`${context}: ID is required but got "${input}"`);
   }
@@ -301,7 +301,7 @@ export function toOlxReference(input: string, context = 'ID'): OlxReference {
     );
   }
 
-  return trimmed as OlxReference;
+  return trimmed as DefinitionRef;
 }
 
 /**
@@ -323,7 +323,7 @@ export function toOlxReference(input: string, context = 'ID'): OlxReference {
  *   - "../foo"   → parent scope (TODO: not yet implemented)
  *
  * @param input - OLX reference string, or props object with id and optional idPrefix
- * @returns ReduxStateKey for state access
+ * @returns StateKey for state access
  *
  * @example
  * refToReduxKey({ id: 'foo', idPrefix: 'list:0' })  // => 'list:0:foo'
@@ -331,13 +331,13 @@ export function toOlxReference(input: string, context = 'ID'): OlxReference {
  * refToReduxKey({ id: './foo', idPrefix: 'scope' }) // => 'scope:foo'
  * refToReduxKey({ id: 'foo' })                      // => 'foo'
  */
-type RefToReduxKeyInput = OlxReference | ReduxStateRef | {
-  id?: OlxReference | ReduxStateRef;
+type RefToReduxKeyInput = DefinitionRef | StateRef | {
+  id?: DefinitionRef | StateRef;
   idPrefix?: IdPrefix;
   [key: string]: unknown;
 };
 
-export const refToReduxKey = (input: RefToReduxKeyInput): ReduxStateKey => {
+export const refToReduxKey = (input: RefToReduxKeyInput): StateKey => {
   // Extract base ID from string or props.id
   let base: string;
   if (typeof input === 'string') {
@@ -356,36 +356,36 @@ export const refToReduxKey = (input: RefToReduxKeyInput): ReduxStateKey => {
 
   // Absolute references (starting with /) bypass the prefix
   if (base.startsWith('/')) {
-    return base.slice(1) as ReduxStateKey;
+    return base.slice(1) as StateKey;
   }
 
   // Explicit relative (starting with ./) - strip prefix marker
   const resolvedBase = base.startsWith('./') ? base.slice(2) : base;
 
   const prefix = (input as { idPrefix?: string })?.idPrefix ?? '';
-  return (prefix ? `${prefix}${REDUX_SCOPE_SEPARATOR}${resolvedBase}` : resolvedBase) as ReduxStateKey;
+  return (prefix ? `${prefix}${REDUX_SCOPE_SEPARATOR}${resolvedBase}` : resolvedBase) as StateKey;
 };
 
 /**
- * Convert an OLX reference to an OlxKey for idMap lookup.
+ * Convert an OLX reference to an DefinitionKey for idMap lookup.
  *
  * Strips path prefixes (/, ./) and returns the bare ID.
- * Validates that the result is a valid OlxKey — throws on reserved
- * characters like ":" (ReduxStateKey) or "#" (ScopeMarker).
+ * Validates that the result is a valid DefinitionKey — throws on reserved
+ * characters like ":" (StateKey) or "#" (ScopeMarker).
  *
- * For ReduxStateKeys, use reduxKeyToOlxKey() instead.
+ * For StateKeys, use stateKeyToDefinitionKey() instead.
  *
  * @param ref - OLX reference string (e.g., "foo", "/foo", "./foo")
- * @returns OlxKey for idMap lookup
+ * @returns DefinitionKey for idMap lookup
  * @throws Error if ref contains reserved delimiters (likely a type boundary violation)
  *
  * @example
- * refToOlxKey('/foo')    // => 'foo'
- * refToOlxKey('./foo')   // => 'foo'
- * refToOlxKey('foo')     // => 'foo'
+ * refToDefinitionKey('/foo')    // => 'foo'
+ * refToDefinitionKey('./foo')   // => 'foo'
+ * refToDefinitionKey('foo')     // => 'foo'
  */
-export const refToOlxKey = (ref: OlxReference): OlxKey => {
-  if (typeof ref !== 'string') return ref as unknown as OlxKey;
+export const refToDefinitionKey = (ref: DefinitionRef): DefinitionKey => {
+  if (typeof ref !== 'string') return ref as unknown as DefinitionKey;
 
   // Strip path prefixes (/, ./)
   let result: string = ref;
@@ -395,39 +395,39 @@ export const refToOlxKey = (ref: OlxReference): OlxKey => {
   // Validate: result must be a valid ID segment (no reserved delimiters)
   if (!VALID_ID_SEGMENT.test(result)) {
     const hint = (result.includes(':') || result.includes('#'))
-      ? ` This looks like a ReduxStateKey — use reduxKeyToOlxKey() instead.`
+      ? ` This looks like a StateKey — use stateKeyToDefinitionKey() instead.`
       : '';
     throw new Error(
-      `refToOlxKey: "${ref}" is not a valid OlxReference.${hint}`
+      `refToDefinitionKey: "${ref}" is not a valid DefinitionRef.${hint}`
     );
   }
 
-  return result as OlxKey;
+  return result as DefinitionKey;
 };
 
 /**
- * Validate and brand a string as OlxKey.
+ * Validate and brand a string as DefinitionKey.
  *
  * Use at system boundaries where IDs enter as already-resolved keys
  * (no path prefixes like / or ./). For raw OLX references that may
- * have prefixes, use toOlxReference() + refToOlxKey().
+ * have prefixes, use toDefinitionRef() + refToDefinitionKey().
  *
  * Validation can be extended later to check if the key exists in idMap.
  */
-export function toOlxKey(input: string): OlxKey {
+export function toDefinitionKey(input: string): DefinitionKey {
   if (!input || typeof input !== 'string') {
-    throw new Error(`toOlxKey: expected non-empty string but got "${input}"`);
+    throw new Error(`toDefinitionKey: expected non-empty string but got "${input}"`);
   }
   const trimmed = input.trim();
   if (!trimmed) {
-    throw new Error(`toOlxKey: ID cannot be empty or whitespace`);
+    throw new Error(`toDefinitionKey: ID cannot be empty or whitespace`);
   }
   if (!VALID_ID_SEGMENT.test(trimmed)) {
     throw new Error(
-      `toOlxKey: "${input}" is not a valid OlxKey (must start with letter or underscore, then letters/digits/underscores)`
+      `toDefinitionKey: "${input}" is not a valid DefinitionKey (must start with letter or underscore, then letters/digits/underscores)`
     );
   }
-  return trimmed as OlxKey;
+  return trimmed as DefinitionKey;
 }
 
 /**
@@ -442,7 +442,7 @@ export function toOlxKey(input: string): OlxKey {
  * @returns {{ idPrefix: string }} Object to spread into child props
  *
  * @example
- * // In a list component — scopeMarker() marks non-OlxKey segments:
+ * // In a list component — scopeMarker() marks non-DefinitionKey segments:
  * extendIdPrefix(props, [id, scopeMarker(index)])
  *
  * // In MasteryBank:

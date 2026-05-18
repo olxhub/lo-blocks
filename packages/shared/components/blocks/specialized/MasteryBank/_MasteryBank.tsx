@@ -5,7 +5,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect, useRef } from 'react';
 import { useBlock } from '@/lib/render';
 import { useFieldState, useFieldSelector, commonFields } from '@/lib/state';
-import { extendIdPrefix, scopeMarker, toOlxReference, refToReduxKey } from '@/lib/types/id';
+import { extendIdPrefix, scopeMarker, toDefinitionRef, refToReduxKey } from '@/lib/types/id';
 import { correctness } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
 import { fisherYatesShuffleInPlace } from '@/lib/util/shuffle';
@@ -94,7 +94,7 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
     ...props,
     runtime: scopedRuntime,
   };
-  const scopedGraderRef = toOlxReference(`${problemId}_grader`, 'MasteryBank grader');
+  const scopedGraderRef = toDefinitionRef(`${problemId}_grader`, 'MasteryBank grader');
 
   // Render problem - useBlock handles loading state with Spinner
   const { block: renderedProblem, error } = useBlock(scopedProps, problemId);
@@ -108,7 +108,7 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   const currentCorrectness = useFieldSelector(
     scopedProps,
     graderField,
-    { reduxKey: scopedGraderReduxKey, fallback: correctness.unsubmitted, selector: s => s?.correct }
+    { stateKey: scopedGraderReduxKey, fallback: correctness.unsubmitted, selector: s => s?.correct }
   );
 
   const prevCorrectnessRef = useRef(currentCorrectness);

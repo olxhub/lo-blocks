@@ -17,13 +17,13 @@ import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import { useStaticContent } from '../../lib/StaticContentProvider';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
-import { toOlxKey } from '@/lib/types/id';
+import { toDefinitionKey } from '@/lib/types/id';
 import { variantMapLocaleEntries } from '@/lib/types/i18n';
 import type { Locale } from '@/lib/types';
 
-export default function StaticPage({ olxKey, title }: { olxKey: string; title?: string }) {
+export default function StaticPage({ definitionKey, title }: { definitionKey: string; title?: string }) {
   const { idMap } = useStaticContent();
-  const key = toOlxKey(olxKey);
+  const key = toDefinitionKey(definitionKey);
 
   // Sync <html> lang and dir for accessibility and RTL
   const localeAttrs = useLocaleAttributes();

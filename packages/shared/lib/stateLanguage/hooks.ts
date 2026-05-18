@@ -52,7 +52,7 @@ function materializeComponentState(
   rawState: any,
   state: any,
   props: any,
-  reduxKey: string
+  stateKey: string
 ): any {
   if (!rawState || typeof rawState !== 'object') return rawState;
 
@@ -61,10 +61,10 @@ function materializeComponentState(
   if (cached) return cached;
 
   // Look up block type → field definitions
-  const olxKey = idResolver.reduxKeyToOlxKey(reduxKey as any);
+  const definitionKey = idResolver.stateKeyToDefinitionKey(stateKey as any);
   const sources = props.runtime?.olxJsonSources ?? ['content'];
   const locale = props.runtime?.locale?.code;
-  const blockNode = selectBlock(state, sources, olxKey, locale);
+  const blockNode = selectBlock(state, sources, definitionKey, locale);
   // Use props.runtime.blockRegistry — no static import of BLOCK_REGISTRY to
   // avoid circular dependency (hooks → blockRegistry → blocks → factory → state → hooks).
   const registry = props.runtime?.blockRegistry;
@@ -149,20 +149,20 @@ export function selectReferences(
   // Resolve component state references (@)
   for (const { key } of refs.componentState) {
     // Resolve the key to a Redux key (handles relative vs absolute paths)
-    const reduxKey = resolveToReduxKey(props, key);
-    const rawState = state?.application_state?.component?.[reduxKey];
+    const stateKey = resolveToReduxKey(props, key);
+    const rawState = state?.application_state?.component?.[stateKey];
     // Materialize field values (e.g., RgaDoc → string) using block's field definitions.
     // Returns rawState unchanged if no fields have read transforms.
     // Cached per raw state object for referential stability.
-    componentState[key] = materializeComponentState(rawState, state, props, reduxKey);
+    componentState[key] = materializeComponentState(rawState, state, props, stateKey);
   }
 
   // Resolve OLX content references (#)
   // Note: These are typically resolved at parse time, not runtime
   // For now, we look in the olxjson store
   for (const { id } of refs.olxContent) {
-    const reduxKey = resolveToReduxKey(props, id);
-    const block = state?.olxjson?.[reduxKey];
+    const stateKey = resolveToReduxKey(props, id);
+    const block = state?.olxjson?.[stateKey];
     // Extract text content from the block if available
     olxContent[id] = block?.content ?? block?.kids ?? '';
   }

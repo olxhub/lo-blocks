@@ -64,7 +64,7 @@ export default function _HintButton(props: RuntimeProps) {
     props,
     DemandHints.fields.hintsRevealed,
     0,
-    { reduxKey: targetReduxKey }
+    { stateKey: targetReduxKey }
   );
 
   const handleClick = useCallback(() => {

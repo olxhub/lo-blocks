@@ -16,7 +16,7 @@ import { useCallback, useRef } from 'react';
 
 import { useFieldSelector, dispatchFieldEvent } from '../../redux';
 import { assertValidField } from '../../fields';
-import type { FieldInfo, RuntimeProps, ReduxStateKey } from '../../../types';
+import type { FieldInfo, RuntimeProps, StateKey } from '../../../types';
 
 /**
  * Hook that returns a stable `nextId()` callback for allocating unique IDs.
@@ -29,13 +29,13 @@ import type { FieldInfo, RuntimeProps, ReduxStateKey } from '../../../types';
  *
  * @param props - Component props
  * @param field - An idField (kind: 'id')
- * @param opts - Optional reduxKey/tag overrides
+ * @param opts - Optional stateKey/tag overrides
  * @returns A stable `() => string` callback
  */
 export function useNextId(
   props: RuntimeProps,
   field: FieldInfo,
-  { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
+  { stateKey, tag }: { stateKey?: StateKey; tag?: string } = {}
 ): () => string {
   if (field.kind && field.kind !== 'id') {
     throw new Error(
@@ -46,14 +46,14 @@ export function useNextId(
   assertValidField(field);
 
   // Subscribe to raw counter value (pre-read) for optimistic updates
-  const raw = useFieldSelector(props, field, { reduxKey, tag });
+  const raw = useFieldSelector(props, field, { stateKey, tag });
 
   // Ref for optimistic rapid-fire calls within the same render cycle
-  const ref = useRef({ raw, props, field, reduxKey, tag });
-  ref.current = { raw, props, field, reduxKey, tag };
+  const ref = useRef({ raw, props, field, stateKey, tag });
+  ref.current = { raw, props, field, stateKey, tag };
 
   const nextId = useCallback((): string => {
-    const { raw, props, field, reduxKey, tag } = ref.current;
+    const { raw, props, field, stateKey, tag } = ref.current;
     if (!field.write) {
       throw new Error(`[useNextId] Field '${field.name}' has no write method — is it an idField?`);
     }
@@ -64,7 +64,7 @@ export function useNextId(
     }
 
     const { event, payload } = results[0];
-    dispatchFieldEvent(props, field, event, payload, { reduxKey, tag });
+    dispatchFieldEvent(props, field, event, payload, { stateKey, tag });
 
     // Optimistic update: advance the raw value for rapid consecutive calls
     // so the next call within the same render cycle gets the right counter.

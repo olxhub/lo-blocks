@@ -19,7 +19,7 @@ export const fields = state.fields([
 const TextSelection = test({
   ...peggyParser(parser),
   ...blocks.input({
-    selectValue: (props, state, _reduxKey) => {
+    selectValue: (props, state, _stateKey) => {
       const selections = fieldSelector(state, props, fields.value, { fallback: [] });
       const attempts = fieldSelector(state, props, fields.attempts, { fallback: 0 });
       const score = fieldSelector(state, props, fields.score, { fallback: 0 });

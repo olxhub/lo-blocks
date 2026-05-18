@@ -32,10 +32,10 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import * as state from '@/lib/state';
 import { problemAttributes } from '@/lib/blocks/attributeSchemas';
 import _CapaProblem from './_CapaProblem';
-import type { ReduxStateKey, KidEntry, OlxReference } from '@/lib/types';
+import type { StateKey, KidEntry, DefinitionRef } from '@/lib/types';
 
 // Grader-input mapping for auto-wiring targets
-type GraderMapping = { id: ReduxStateKey; inputs: ReduxStateKey[] };
+type GraderMapping = { id: StateKey; inputs: StateKey[] };
 
 // CapaProblem acts as a "metagrader" - it aggregates correctness from child graders.
 // This allows Correctness/StatusText inside CapaProblem to find CapaProblem itself
@@ -107,10 +107,10 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
         assignIdsAndBuildStructure(kid, mapping);
       }
 
-      // TODO BUG HACK: CapaProblem generates ReduxStateKey-formatted IDs at parse time,
-      // but KidEntry expects OlxReference. This conflates two ID stages:
-      // - OlxReference: static refs in OLX content (e.g., "foo", "./foo")
-      // - ReduxStateKey: runtime keys with idPrefix (e.g., "problem:0:foo")
+      // TODO BUG HACK: CapaProblem generates StateKey-formatted IDs at parse time,
+      // but KidEntry expects DefinitionRef. This conflates two ID stages:
+      // - DefinitionRef: static refs in OLX content (e.g., "foo", "./foo")
+      // - StateKey: runtime keys with idPrefix (e.g., "problem:0:foo")
       //
       // This is a type system violation that masks a real architectural issue.
       // Fix by either:
@@ -118,7 +118,7 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
       // 2. Having a separate type for "parsed with scoped IDs" entries
       //
       // See docs/README.md "IDs" section for the ID type hierarchy.
-      return { type: 'block', id: blockId as unknown as OlxReference };
+      return { type: 'block', id: blockId as unknown as DefinitionRef };
     }
 
     // HTML tag

@@ -23,10 +23,10 @@ import React from 'react';
 import { DisplayError, DebugWrapper } from '@/lib/util/debug';
 import PopoutWrapper from '@/components/common/PopoutWrapper';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import type { OlxKey, IdPrefix, ReduxStateKey, LoBlockRuntimeContext, OlxJson } from '@/lib/types';
+import type { DefinitionKey, IdPrefix, StateKey, LoBlockRuntimeContext, OlxJson } from '@/lib/types';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { getGrader, getEventContext } from '@/lib/blocks/olxdom';
-import { assignReactKeys, refToOlxKey, refToReduxKey } from '@/lib/types/id';
+import { assignReactKeys, refToDefinitionKey, refToReduxKey } from '@/lib/types/id';
 import { selectBlock } from '@/lib/state/olxjson';
 import type { Store } from 'redux';
 
@@ -35,7 +35,7 @@ import type { Store } from 'redux';
 const ROOT_LOBLOCK = Object.freeze({ name: 'Root', isGrader: false, isInput: false });
 
 const ROOT_OLXJSON: OlxJson = Object.freeze({
-  id: 'root' as OlxKey,
+  id: 'root' as DefinitionKey,
   tag: 'Root' as any,
   attributes: {},
   provenance: [] as any,
@@ -50,7 +50,7 @@ export const makeRootNode = (runtime: LoBlockRuntimeContext, contextId?: string)
   sentinel: 'root',
   id: contextId,
   olxJson: ROOT_OLXJSON,
-  reduxKey: 'root' as ReduxStateKey,
+  stateKey: 'root' as StateKey,
   renderedKids: {},
   loBlock: ROOT_LOBLOCK,
   runtime,
@@ -121,16 +121,16 @@ export function render({ node, nodeInfo, runtime }: {
       );
     }
     const locale = runtime.locale.code;
-    const olxKey = refToOlxKey(node.id);
+    const definitionKey = refToDefinitionKey(node.id);
     const sources = actualOlxJsonSources ?? ['content'];
-    const entry = selectBlock(actualStore.getState(), sources, olxKey, locale);
+    const entry = selectBlock(actualStore.getState(), sources, definitionKey, locale);
     if (!entry) {
       return (
         <DisplayError
           id={`block-missing-${node.id}`}
           title="render"
           message={`Block "${node.id}" not found in content`}
-          technical={{ blockId: node.id, olxKey, locale, sources }}
+          technical={{ blockId: node.id, definitionKey, locale, sources }}
         />
       );
     }
@@ -189,16 +189,16 @@ export function render({ node, nodeInfo, runtime }: {
 
   // Create a dynamic shadow hierarchy
   //
-  // Keyed by ReduxStateKey (idPrefix + node.id) so scoped instances
+  // Keyed by StateKey (idPrefix + node.id) so scoped instances
   // (e.g. factors:0:factor vs factors:1:factor) each get their own entry.
   //
   // Note: render() can be called multiple times (e.g. in Strict mode),
   // so we reuse existing entries if present.
-  const reduxKey = refToReduxKey({ id: node.id, idPrefix: actualIdPrefix });
-  let childNodeInfo = nodeInfo.renderedKids[reduxKey];
+  const stateKey = refToReduxKey({ id: node.id, idPrefix: actualIdPrefix });
+  let childNodeInfo = nodeInfo.renderedKids[stateKey];
   if (!childNodeInfo) {
-    childNodeInfo = { olxJson: node, reduxKey, renderedKids: {}, parent: nodeInfo, loBlock: blockType };
-    nodeInfo.renderedKids[reduxKey] = childNodeInfo;
+    childNodeInfo = { olxJson: node, stateKey, renderedKids: {}, parent: nodeInfo, loBlock: blockType };
+    nodeInfo.renderedKids[stateKey] = childNodeInfo;
   } else {
     childNodeInfo.olxJson = node;
   }
@@ -212,7 +212,7 @@ export function render({ node, nodeInfo, runtime }: {
   };
 
   // Check requiresGrader - inject graderId or show error
-  let graderId: OlxKey | null = null;
+  let graderId: DefinitionKey | null = null;
   if (blockType.requiresGrader) {
     try {
       graderId = getGrader({ ...wrapperProps });
@@ -281,7 +281,7 @@ export function render({ node, nodeInfo, runtime }: {
   return (
     <DebugWrapper props={wrapperProps} loBlock={blockType}>
       {attributes.popout ? (
-        <PopoutWrapper popout={attributes.popout} reduxKey={reduxKey} runtime={finalRuntime}>
+        <PopoutWrapper popout={attributes.popout} stateKey={stateKey} runtime={finalRuntime}>
           {blockContent}
         </PopoutWrapper>
       ) : blockContent}

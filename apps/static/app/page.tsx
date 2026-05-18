@@ -7,9 +7,9 @@ import StaticPage from './[...slug]/StaticPage';
 
 export default async function Page() {
   const manifest = readManifest();
-  const olxKey = resolveSlug(manifest);
+  const definitionKey = resolveSlug(manifest);
 
-  if (!olxKey) {
+  if (!definitionKey) {
     return (
       <div style={{ padding: '2rem' }}>
         <h1>No root content</h1>
@@ -18,5 +18,5 @@ export default async function Page() {
     );
   }
 
-  return <StaticPage olxKey={olxKey} title={manifest.title} />;
+  return <StaticPage definitionKey={definitionKey} title={manifest.title} />;
 }

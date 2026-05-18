@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
-import { isInputReadOnly, useGraderAnswer, refToOlxKey } from '@/lib/blocks';
+import { isInputReadOnly, useGraderAnswer, refToDefinitionKey } from '@/lib/blocks';
 import { extendIdPrefix } from '@/lib/types/id';
 import { HandleCommon } from '@/components/common/DragHandle';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';

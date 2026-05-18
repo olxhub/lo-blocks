@@ -11,9 +11,9 @@ import { FileStorageProvider } from '@/lib/lofs/providers/file';
 import { syncContentFromStorage, getSourceFile, getBlocksForFiles, getBlockVariant, getOriginalVariant } from '@/lib/content/syncContentFromStorage';
 import { getProvider } from '@/lib/llm/provider';
 import { translateContent } from '@/lib/translate';
-import type { OlxKey, ContentVariant, LofsRef, OlxRelativePath, SafeRelativePath } from '@/lib/types';
+import type { DefinitionKey, ContentVariant, LofsRef, OlxRelativePath, SafeRelativePath } from '@/lib/types';
 
-import { toOlxKey } from '@/lib/types/id';
+import { toDefinitionKey } from '@/lib/types/id';
 import { toContentVariant } from '@/lib/types/i18n';
 
 const contentDir = process.env.OLX_CONTENT_DIR || './content';
@@ -42,7 +42,7 @@ function computeTranslationPath(sourceRelPath: OlxRelativePath, targetLocale: Co
 /** Follow source_file back to the human-authored original to avoid
  *  quality degradation from translating translations. */
 function resolveOriginalSource(
-  sourceFileUri: LofsRef, blockId: OlxKey, sourceLocale: ContentVariant
+  sourceFileUri: LofsRef, blockId: DefinitionKey, sourceLocale: ContentVariant
 ): { fileUri: LofsRef; locale: ContentVariant } {
   const sourceVariant = getBlockVariant(blockId, sourceLocale);
   if (sourceVariant?.generated?.method !== 'machineTranslated' || !sourceVariant?.generated?.source_file) {
@@ -89,7 +89,7 @@ async function checkExistingTranslation(
 // =============================================================================
 
 async function doTranslation(
-  blockId: OlxKey,
+  blockId: DefinitionKey,
   sourceFileUri: LofsRef,
   targetLocale: ContentVariant,
   sourceLocale: ContentVariant
@@ -171,7 +171,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const blockId = toOlxKey(body.blockId);
+    const blockId = toDefinitionKey(body.blockId);
 
     if (getProvider().provider === 'stub') {
       return NextResponse.json(

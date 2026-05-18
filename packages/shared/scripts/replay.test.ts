@@ -14,7 +14,7 @@ import { store } from '../lib/state/store';
 import { fieldSelector } from '../lib/state/redux';
 import { commonFields } from '../lib/state/commonFields';
 import { selectBlock } from '../lib/state/olxjson';
-import type { OlxKey, UserLocale } from '../lib/types';
+import type { DefinitionKey, UserLocale } from '../lib/types';
 import { BLOCK_REGISTRY } from '../components/blockRegistry';
 
 // Load fixture
@@ -41,7 +41,7 @@ describe('Event Replay', () => {
     const state = reduxStore.getState();
 
     // Verify OLX content is in Redux
-    const block = selectBlock(state, ['content'], 'NumericalGraderBasic' as OlxKey, 'en-Latn-US' as UserLocale);
+    const block = selectBlock(state, ['content'], 'NumericalGraderBasic' as DefinitionKey, 'en-Latn-US' as UserLocale);
     expect(block).toBeDefined();
     expect(block?.tag).toBe('CapaProblem');
     expect(block?.attributes.title).toBe('Squares');
@@ -53,19 +53,19 @@ describe('Event Replay', () => {
 
     // Query final values
     const inputValue = fieldSelector(state, {}, commonFields.value, {
-      reduxKey: 'NumericalGraderBasic.input' as any,
+      stateKey: 'NumericalGraderBasic.input' as any,
       fallback: ''
     });
     expect(inputValue).toBe('144');
 
     const correct = fieldSelector(state, {}, commonFields.correct, {
-      reduxKey: 'NumericalGraderBasic.grader' as any,
+      stateKey: 'NumericalGraderBasic.grader' as any,
       fallback: ''
     });
     expect(correct).toBe('correct');
 
     const submitCount = fieldSelector(state, {}, commonFields.submitCount, {
-      reduxKey: 'NumericalGraderBasic.grader' as any,
+      stateKey: 'NumericalGraderBasic.grader' as any,
       fallback: 0
     });
     expect(submitCount).toBe(2);
@@ -79,19 +79,19 @@ describe('Event Replay', () => {
 
     // At this point, student has submitted wrong answer
     const inputValue = fieldSelector(state, {}, commonFields.value, {
-      reduxKey: 'NumericalGraderBasic.input' as any,
+      stateKey: 'NumericalGraderBasic.input' as any,
       fallback: ''
     });
     expect(inputValue).toBe('100'); // Wrong answer
 
     const correct = fieldSelector(state, {}, commonFields.correct, {
-      reduxKey: 'NumericalGraderBasic.grader' as any,
+      stateKey: 'NumericalGraderBasic.grader' as any,
       fallback: ''
     });
     expect(correct).toBe('incorrect');
 
     const submitCount = fieldSelector(state, {}, commonFields.submitCount, {
-      reduxKey: 'NumericalGraderBasic.grader' as any,
+      stateKey: 'NumericalGraderBasic.grader' as any,
       fallback: 0
     });
     expect(submitCount).toBe(1);

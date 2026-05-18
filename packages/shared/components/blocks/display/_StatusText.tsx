@@ -19,7 +19,7 @@ function _StatusText(props: RuntimeProps) {
   const text = useFieldSelector(
     props,
     targetField,
-    { selector: s => s?.[field] ?? '', fallback: '', reduxKey: refToReduxKey({ ...props, id: graderId }) }
+    { selector: s => s?.[field] ?? '', fallback: '', stateKey: refToReduxKey({ ...props, id: graderId }) }
   );
   return <span>{text}</span>;
 }

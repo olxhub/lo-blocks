@@ -1,7 +1,7 @@
 // apps/static/app/[...slug]/page.tsx
 //
 // Catch-all route for non-root pages. Reads the manifest and resolves
-// the slug to an OlxKey. generateStaticParams enumerates all routes.
+// the slug to an DefinitionKey. generateStaticParams enumerates all routes.
 //
 import { readManifest, resolveSlug } from '../../lib/manifest';
 import StaticPage from './StaticPage';
@@ -23,9 +23,9 @@ export async function generateStaticParams() {
 export default async function Page({ params }: { params: Promise<{ slug: string[] }> }) {
   const manifest = readManifest();
   const { slug } = await params;
-  const olxKey = resolveSlug(manifest, slug);
+  const definitionKey = resolveSlug(manifest, slug);
 
-  if (!olxKey) {
+  if (!definitionKey) {
     const urlPath = '/' + slug.join('/');
     return (
       <div style={{ padding: '2rem' }}>
@@ -35,5 +35,5 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
     );
   }
 
-  return <StaticPage olxKey={olxKey} title={manifest.title} />;
+  return <StaticPage definitionKey={definitionKey} title={manifest.title} />;
 }

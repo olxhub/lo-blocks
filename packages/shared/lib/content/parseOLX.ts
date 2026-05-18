@@ -23,7 +23,7 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { transformTagName } from '@/lib/content/xmlTransforms';
 
 import * as parsers from '@/lib/content/parsers';
-import { LofsDependencies, IdMap, OLXLoadingError, OlxReference, OlxKey, JSONValue } from '@/lib/types';
+import { LofsDependencies, IdMap, OLXLoadingError, DefinitionRef, DefinitionKey, JSONValue } from '@/lib/types';
 import type { LofsRef } from '@/lib/types/address';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
 import { variantMapKeys } from '@/lib/types/i18n';
@@ -75,7 +75,7 @@ function isElementNode(node: any): boolean {
     Object.keys(node).some(k => k !== '#text' && k !== '#comment' && k !== ':@');
 }
 
-function isBlockKid(node: JSONValue): node is { type: 'block'; id: OlxKey } {
+function isBlockKid(node: JSONValue): node is { type: 'block'; id: DefinitionKey } {
   return typeof node === 'object' && node !== null && !Array.isArray(node) &&
     node.type === 'block' && typeof node.id === 'string';
 }
@@ -480,7 +480,7 @@ export async function parseOLX(
     );
   }
 
-  const parsedIds: OlxKey[] = [];
+  const parsedIds: DefinitionKey[] = [];
   let rootId = '';
   const errors: OLXLoadingError[] = [];
 
@@ -531,7 +531,7 @@ export async function parseOLX(
       }
 
       const { ref, ...overrides } = attributes;
-      return { type: 'block', id: ref as OlxReference, overrides };
+      return { type: 'block', id: ref as DefinitionRef, overrides };
     }
 
     if (attributes.ref) {
@@ -540,7 +540,7 @@ export async function parseOLX(
       );
     }
 
-    const id: OlxKey = (attributes.id ?? createId(node)) as OlxKey;
+    const id: DefinitionKey = (attributes.id ?? createId(node)) as DefinitionKey;
 
     const Component = BLOCK_REGISTRY[tag];
 
@@ -863,12 +863,12 @@ export async function parseOLX(
   return { ids: parsedIds, idMap, root: rootId, errors };
 }
 
-function createId(node): OlxKey {
+function createId(node): DefinitionKey {
   const attributes = node[':@'] ?? {};
-  if (attributes.id) return attributes.id as OlxKey;
+  if (attributes.id) return attributes.id as DefinitionKey;
 
   // Prefix with "_" so the hex hash never starts with a digit,
   // keeping auto-generated IDs valid per VALID_ID_SEGMENT.
   const canonical = JSON.stringify(node);
-  return ('_' + SHA1(canonical).toString()) as OlxKey;
+  return ('_' + SHA1(canonical).toString()) as DefinitionKey;
 }

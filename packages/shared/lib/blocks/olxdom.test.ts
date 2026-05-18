@@ -10,19 +10,19 @@ const mockRuntime = {} as any;  // Tests don't exercise runtime
 
 const tree = {
   olxJson: { id: 'A' },
-  reduxKey: 'A' as any,
+  stateKey: 'A' as any,
   runtime: mockRuntime,
   loBlock: { isAction: true, isGrader: false, isInput: false, isMatch: false },
   renderedKids: {
     B: {
       olxJson: { id: 'B' },
-      reduxKey: 'B' as any,
+      stateKey: 'B' as any,
       runtime: mockRuntime,
       loBlock: { isAction: false, isGrader: false, isInput: false, isMatch: false },
       renderedKids: {
         D: {
           olxJson: { id: 'D' },
-          reduxKey: 'D' as any,
+          stateKey: 'D' as any,
           runtime: mockRuntime,
           loBlock: { isAction: true, isGrader: false, isInput: false, isMatch: false },
           renderedKids: {},
@@ -33,7 +33,7 @@ const tree = {
     },
     C: {
       olxJson: { id: 'C' },
-      reduxKey: 'C' as any,
+      stateKey: 'C' as any,
       runtime: mockRuntime,
       loBlock: { isAction: true, isGrader: false, isInput: false, isMatch: false },
       renderedKids: {},

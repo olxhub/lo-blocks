@@ -36,7 +36,7 @@ async function copyFieldAction({ targetInstance, props }) {
   const targetReduxKey = refToReduxKey({ ...props, id: target.ref });
   const srcField = state.componentFieldByName(props, targetReduxKey, target.field);
   const value = state.getField(props, srcField, {
-    reduxKey: targetReduxKey,
+    stateKey: targetReduxKey,
     fallback: '',
   });
 
@@ -45,7 +45,7 @@ async function copyFieldAction({ targetInstance, props }) {
   for (const dest of output) {
     const destReduxKey = refToReduxKey({ ...props, id: dest.ref });
     const destField = state.componentFieldByName(props, destReduxKey, dest.field);
-    state.updateField(props, destField, value, { reduxKey: destReduxKey });
+    state.updateField(props, destField, value, { stateKey: destReduxKey });
   }
 }
 

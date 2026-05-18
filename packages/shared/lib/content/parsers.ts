@@ -21,10 +21,10 @@
 //
 import { z } from 'zod';
 import { XMLBuilder } from 'fast-xml-parser';
-import type { OLXLoadingError, OlxReference, OlxKey, RuntimeProps, ReduxStateKey, LofsDependencies } from '@/lib/types';
+import type { OLXLoadingError, DefinitionRef, DefinitionKey, RuntimeProps, StateKey, LofsDependencies } from '@/lib/types';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
 import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
-import { z_reduxStateRef } from '@/lib/blocks/attributeSchemas';
+import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 import * as state from '@/lib/state';
 
 // === Setup ===
@@ -83,7 +83,7 @@ async function loadExternalSource({
   const lastProv = provenance?.[provenance.length - 1];
 
   // Resolve src against the current file's location to get a canonical
-  // SafeRelativePath — same idea as OlxReference → OlxKey for block IDs.
+  // SafeRelativePath — same idea as DefinitionRef → DefinitionKey for block IDs.
   const resolved = provider.resolveRelativePath(lastProv, src);
 
   // Read first, then use the canonical provenance from the read result.
@@ -369,7 +369,7 @@ function createBlocksParser(options: { text?: BlocksTextMode; wrapTag?: string }
           type: 'html',
           tag,
           attributes,
-          id: attributes.id as OlxKey | undefined,
+          id: attributes.id as DefinitionKey | undefined,
           kids: childResults
         });
       } else {
@@ -503,7 +503,7 @@ textFactory.childMode = 'text';
 //   selectValue. If the target also uses this mixin (or any block with a
 //   compatible value field — TextArea, etc.), it just works.
 //
-// `target=` is tagged via `z_reduxStateRef`, so `getRefAttributes` /
+// `target=` is tagged via `z_stateRef`, so `getRefAttributes` /
 // `ensureReferencedBlocks` automatically preload the referenced block.
 //
 // `requiresUniqueId: false` is baked in because text-display blocks
@@ -513,7 +513,7 @@ textFactory.childMode = 'text';
 const textWithTargetParserMixin = {
   attributes: z.object({
     src: z.string().optional().describe('Path to external file containing content'),
-    target: z_reduxStateRef.optional().describe(
+    target: z_stateRef.optional().describe(
       'Read content from another block\'s value field (reactive)'
     ),
   }).strict(),
@@ -540,7 +540,7 @@ const textWithTargetParserMixin = {
   // copies, LLM context, …) consults. Once that lands, this one-off
   // selectValue goes away and every consumer sees the same
   // semantically-meaningful value the renderer sees.
-  selectValue: (props: RuntimeProps, reduxState: any, id: ReduxStateKey) => {
+  selectValue: (props: RuntimeProps, reduxState: any, id: StateKey) => {
     const kids = typeof props.kids === 'string' ? props.kids : '';
     return state.fieldSelector(
       reduxState,

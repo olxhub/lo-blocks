@@ -29,7 +29,7 @@ function resolveTargetIds(props, targetIds) {
   const seen = new Set();
 
   targetIds.forEach((targetId) => {
-    // OlxKey → ReduxStateKey (applies runtime.idPrefix for DynamicList scoping)
+    // DefinitionKey → StateKey (applies runtime.idPrefix for DynamicList scoping)
     const targetNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix }));
 
     const graderIds = targetNodeInfo
@@ -95,7 +95,7 @@ export function _AggregatedInputs(props: RuntimeProps) {
   const fieldInfo = componentFieldByName(props, resolvedTargetIds[0], field);
   resolvedTargetIds.slice(1).forEach((id) => componentFieldByName(props, id, field));
 
-  // resolvedTargetIds may contain OlxKeys (from inferRelatedNodes) — convert to ReduxStateKeys
+  // resolvedTargetIds may contain DefinitionKeys (from inferRelatedNodes) — convert to StateKeys
   const resolvedReduxKeys = resolvedTargetIds.map(id => refToReduxKey({ ...props, id }));
 
   const aggregateMode = aggregate ?? (asObject ? 'object' : 'list');

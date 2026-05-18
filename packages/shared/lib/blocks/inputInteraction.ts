@@ -50,7 +50,7 @@ export function isInputReadOnly(props) {
       props,
       correctField,
       {
-        reduxKey: graderReduxKey,
+        stateKey: graderReduxKey,
         fallback: correctness.unsubmitted,
         selector: s => s?.correct
       }

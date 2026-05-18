@@ -91,7 +91,7 @@ function useGraderAggregation(props, childGraderIds) {
   // reference. Fall back to self (CapaProblem also has grader fields).
   const sampleGraderId = childGraderIds[0] || id;
 
-  // inferRelatedNodes returns OlxKeys — convert to ReduxStateKeys for useAggregate
+  // inferRelatedNodes returns DefinitionKeys — convert to StateKeys for useAggregate
   const childGraderReduxKeys = childGraderIds.map(gid => refToReduxKey({ ...props, id: gid }));
 
   // Subscribe to child grader correctness values

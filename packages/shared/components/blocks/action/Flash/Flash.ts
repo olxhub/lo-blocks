@@ -12,7 +12,7 @@
 import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
-import { z_reduxStateRef } from '@/lib/blocks/attributeSchemas';
+import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 import _Noop from '@/components/blocks/layout/_Noop';
 
 function flashAction({ targetInstance }) {
@@ -53,7 +53,7 @@ const Flash = blocks.core({
   description: 'Applies a momentary highlight animation to a target block',
   component: _Noop,
   attributes: z.object({
-    target: z_reduxStateRef.describe('Block ID to flash'),
+    target: z_stateRef.describe('Block ID to flash'),
     duration: z.string().default('500ms').describe('Animation duration (CSS time value)'),
     color: z.string().default('gold').describe('Flash color (CSS color value)'),
   }).strict(),

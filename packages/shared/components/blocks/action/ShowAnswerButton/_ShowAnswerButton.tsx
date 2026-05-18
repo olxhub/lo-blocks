@@ -15,15 +15,15 @@ import { DisplayError } from '@/lib/util/debug';
 function _ShowAnswerButton(props: RuntimeProps) {
   const { label = 'Show Answer', target } = props;
 
-  // Resolve target grader ReduxStateKeys - explicit target or parent inference
+  // Resolve target grader StateKeys - explicit target or parent inference
   const graderReduxKeys = useMemo(() => {
     if (target) {
-      // target is z_reduxStateRefList — resolve authored refs in this runtime context.
+      // target is z_stateRefList — resolve authored refs in this runtime context.
       const targetRefs = Array.isArray(target) ? target : [target];
       return targetRefs.map(ref => refToReduxKey({ ...props, id: ref }));
     }
     try {
-      // getGrader returns OlxKey — convert to ReduxStateKey
+      // getGrader returns DefinitionKey — convert to StateKey
       return [refToReduxKey({ ...props, id: getGrader(props) })];
     } catch (e) {
       return [];
@@ -34,14 +34,14 @@ function _ShowAnswerButton(props: RuntimeProps) {
   // Read showAnswer from first grader (or use own key as fallback for hook stability)
   const primaryGraderKey = graderReduxKeys[0] ?? refToReduxKey(props);
   const showAnswerField = state.componentFieldByName(props, primaryGraderKey, 'showAnswer');
-  const [showAnswer] = state.useFieldState(props, showAnswerField, false, { reduxKey: primaryGraderKey });
+  const [showAnswer] = state.useFieldState(props, showAnswerField, false, { stateKey: primaryGraderKey });
 
   const handleClick = useCallback(() => {
     const newValue = !showAnswer;
     // Toggle all targeted graders
     for (const graderKey of graderReduxKeys) {
       const field = state.componentFieldByName(props, graderKey, 'showAnswer');
-      state.updateField(props, field, newValue, { reduxKey: graderKey });
+      state.updateField(props, field, newValue, { stateKey: graderKey });
     }
   }, [showAnswer, graderReduxKeys, props]);
 

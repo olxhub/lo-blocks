@@ -58,21 +58,21 @@ export const nsDelim  = literal(NS_DELIM);
 // This mirrors LofsRef → LofsCanonical: same string format, different
 // semantic guarantee (resolved / canonical).
 //
-// OlxRef:          Content definition reference. Anything an author writes
+// DefinitionRef:   Content definition reference. Anything an author writes
 //                  to identify a block. Very permissive before "://".
 //                  Examples:
 //                    "hw1"                                              (bare)
-//                    "ee101://hw1"                                      (also a valid OlxKey)
+//                    "ee101://hw1"                                      (also a valid DefinitionKey)
 //                    "git@gitlab.com:olxhub/ee101.git://hw1"           (source-qualified)
 //                    "git@gitlab.com:olxhub/ee101.git@main://hw1"      (branch-pinned)
 //                    "git@gitlab.com:olxhub/ee101.git@a1238b://hw1"    (immutable)
 //
-// ReduxStateRef:   State instance reference. Scoped, may or may not have
-//                  a namespace. A namespaced ReduxStateRef is also a valid
-//                  ReduxStateKey.
+// StateRef:   State instance reference. Scoped, may or may not have
+//                  a namespace. A namespaced StateRef is also a valid
+//                  StateKey.
 //                  Examples:
 //                    "problems:#0:answer"                               (unqualified)
-//                    "ee101://problems:#0:answer"                       (also a valid ReduxStateKey)
+//                    "ee101://problems:#0:answer"                       (also a valid StateKey)
 //                    "git@gitlab.com:olxhub/ee101.git://problems:#0:answer"  (source-qualified)
 //
 // DISTINGUISHING CANONICAL KEYS FROM SOURCE-QUALIFIED REFS:
@@ -92,8 +92,8 @@ export const nsDelim  = literal(NS_DELIM);
 //   - Otherwise → source-qualified ref, resolve via LOFS layer
 //   - No "://" at all → bare ref, prepend namespace
 
-export const olxRef        = `(?:.+${nsDelim})?${leafId}`;
-export const reduxStateRef = `(?:.+${nsDelim})?(?:${scopeSegment}:)*${leafId}`;
+export const definitionRef        = `(?:.+${nsDelim})?${leafId}`;
+export const stateRef = `(?:.+${nsDelim})?(?:${scopeSegment}:)*${leafId}`;
 
 // --- Keys (canonical forms — always namespace://path) ---------------------
 //
@@ -101,16 +101,16 @@ export const reduxStateRef = `(?:.+${nsDelim})?(?:${scopeSegment}:)*${leafId}`;
 // a short stable name (not a full URL). In TypeScript, branded as a subtype
 // of the corresponding Ref (Key extends Ref with { __resolved: true }).
 //
-// OlxKey:          "ee101://hw1", "edu.mit.eecs6002://resistorProblem"
-// ReduxStateKey:   "ee101://designList:#7:mydesigns"
+// DefinitionKey:          "ee101://hw1", "edu.mit.eecs6002://resistorProblem"
+// StateKey:   "ee101://designList:#7:mydesigns"
 
-const reduxStatePath = `(?:${scopeSegment}:)*${leafId}`;
-export const olxKey        = `${namespace}${nsDelim}${leafId}`;
-export const reduxStateKey = `${namespace}${nsDelim}${reduxStatePath}`;
+const statePath = `(?:${scopeSegment}:)*${leafId}`;
+export const definitionKey        = `${namespace}${nsDelim}${leafId}`;
+export const stateKey = `${namespace}${nsDelim}${statePath}`;
 
 // --- Source-qualified refs (for provenance, analytics, reload) -------------
 //
-// These are NOT used for Redux keys or content lookup at runtime. They carry
+// These are NOT used for state keys or content lookup at runtime. They carry
 // richer origin information for other purposes:
 //
 //   Immutable (analytics, replay):
@@ -122,7 +122,7 @@ export const reduxStateKey = `${namespace}${nsDelim}${reduxStatePath}`;
 //   Bare origin (fetch, no version):
 //     git:github.com/olxhub/ee101.git://hw1
 //
-// These all resolve to the same OlxKey: ee101://hw1
+// These all resolve to the same DefinitionKey: ee101://hw1
 // The grammar for source-qualified refs is intentionally permissive — the
 // part before "://" can be nearly anything (URLs, file paths, etc.).
 // Validation of the source portion is left to the LOFS layer.
@@ -139,7 +139,7 @@ export const sourceQualifiedRef = `.+?${nsDelim}${leafId}`;
 //   "myInput.submitted"                 (SetFieldAction target)
 //
 // The field is separated by "." and is always a leafId. The part before "."
-// is a ReduxStateRef (or ReduxStateKey). This is what attribute schemas like
+// is a StateRef (or StateKey). This is what attribute schemas like
 // z_blockFieldRef validate against.
 //
 // NOTE: The "." here is NOT a namespace hierarchy separator — those only
@@ -147,7 +147,7 @@ export const sourceQualifiedRef = `.+?${nsDelim}${leafId}`;
 // first "." encountered is always a field separator.
 
 export const fieldAccess   = leafId;                                    // "value", "score", "submitted"
-export const stateFieldRef = `(?:${reduxStateRef})\\.${fieldAccess}`;  // "problems:#0:answer.value"
+export const stateFieldRef = `(?:${stateRef})\\.${fieldAccess}`;  // "problems:#0:answer.value"
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // COMPILED VALIDATORS
@@ -165,10 +165,10 @@ export const VALID = {
   indexId:            compile(indexId),
   scopeMarker:        compile(scopeMarker),
   namespace:          compile(namespace),
-  olxRef:             compile(olxRef),
-  olxKey:             compile(olxKey),
-  reduxStateRef:      compile(reduxStateRef),
-  reduxStateKey:      compile(reduxStateKey),
+  definitionRef:             compile(definitionRef),
+  definitionKey:             compile(definitionKey),
+  stateRef:      compile(stateRef),
+  stateKey:      compile(stateKey),
   stateFieldRef:      compile(stateFieldRef),
 };
 
@@ -180,8 +180,8 @@ export const VALID = {
 // been validated — they don't re-check the grammar.
 //
 // Return values include the namespace so callers can reconstruct qualified
-// OlxKeys for content loading (e.g., "physics://problems:#0:answer" →
-// need OlxKeys ["physics://problems", "physics://answer"] in the idMap).
+// DefinitionKeys for content loading (e.g., "physics://problems:#0:answer" →
+// need DefinitionKeys ["physics://problems", "physics://answer"] in the idMap).
 
 /** Split a namespaced key into { namespace, path }. */
 export function splitNamespace(key: string): { namespace: string; path: string } {
@@ -191,13 +191,13 @@ export function splitNamespace(key: string): { namespace: string; path: string }
 }
 
 /**
- * Extract all block IDs from a ReduxStateKey, preserving namespace context.
+ * Extract all block IDs from a StateKey, preserving namespace context.
  *
- * Returns { namespace, blockIds } so callers can reconstruct OlxKeys:
+ * Returns { namespace, blockIds } so callers can reconstruct DefinitionKeys:
  *   extractBlocks("physics://problems:#0:answer")
  *   → { namespace: "physics", blockIds: ["problems", "answer"] }
  *
- * To get OlxKeys for content loading:
+ * To get DefinitionKeys for content loading:
  *   result.blockIds.map(id => `${result.namespace}://${id}`)
  *   → ["physics://problems", "physics://answer"]
  */
@@ -238,21 +238,21 @@ export function extractLeafId(key: string): string {
 // ---------------------------
 // Scope enters the system two ways. Do not conflate them:
 //
-//   1. RUNTIME OWN-STATE SCOPING (addScope / refToReduxKey)
+//   1. RUNTIME OWN-STATE SCOPING (addScope / refToStateKey)
 //      A block renders inside a scoping container (DynamicList, etc.).
 //      The container passes `idPrefix` via React context. Each block
-//      builds its own ReduxStateKey from its OlxKey + inherited idPrefix:
+//      builds its own StateKey from its DefinitionKey + inherited idPrefix:
 //
-//        OlxKey "physics://answer" + idPrefix "problems:#0"
-//        → ReduxStateKey "physics://problems:#0:answer"
+//        DefinitionKey "physics://answer" + idPrefix "problems:#0"
+//        → StateKey "physics://problems:#0:answer"
 //
-//   2. AUTHORED CROSS-REFERENCE (qualifyReduxStateRef)
+//   2. AUTHORED CROSS-REFERENCE (qualifyStateRef)
 //      An author writes `target="problems:#0:answer"` to reference a
 //      SPECIFIC instance of another block's state. The scope is already
 //      fully specified — it only needs namespace qualification:
 //
-//        ReduxStateRef "problems:#0:answer" + namespace "physics"
-//        → ReduxStateKey "physics://problems:#0:answer"
+//        StateRef "problems:#0:answer" + namespace "physics"
+//        → StateKey "physics://problems:#0:answer"
 //
 // Applying pathway 1 to pathway 2 inputs (or vice versa) produces
 // double-scoped nonsense. Keep them separate.
@@ -263,6 +263,26 @@ export function hasNamespace(ref: string): boolean {
   if (idx < 0) return false;
   const prefix = ref.slice(0, idx);
   return VALID.namespace.test(prefix);
+}
+
+/**
+ * Prepend namespace to a ref that lacks one. Already-namespaced refs
+ * (cross-course references) pass through unchanged.
+ *
+ *   qualifyRef("answer", "physics")                    → "physics://answer"
+ *   qualifyRef("problems:#0:answer", "physics")        → "physics://problems:#0:answer"
+ *   qualifyRef("ee101://notes", "ee202")               → "ee101://notes"  (pass-through)
+ *
+ * @throws {Error} for source-qualified refs (e.g., "git@...://hw1") which
+ *   need LOFS resolution, not simple namespace prepending.
+ */
+export function qualifyRef(ref: string, namespace: string): string {
+  if (hasNamespace(ref)) return ref;
+  if (!ref.includes(NS_DELIM)) return `${namespace}${NS_DELIM}${ref}`;
+  throw new Error(
+    `Source-qualified ref needs LOFS resolution: "${ref}". ` +
+    `Cannot qualify with simple namespace prepend.`
+  );
 }
 
 /**
@@ -303,13 +323,13 @@ export function defaultNamespace(origin: string): string {
 //                  The LOFS address grammar (source://path#version) for
 //                  content-addressed storage. Provides provenance identity.
 //
-//   core.ts      — Branded type definitions (OlxReference, OlxKey,
-//   (ID section)   ReduxStateRef, ReduxStateKey, IdPrefix, ScopeMarker,
+//   core.ts      — Branded type definitions (DefinitionRef, DefinitionKey,
+//   (ID section)   StateRef, StateKey, IdPrefix, ScopeMarker,
 //                  ContentNamespace). The conversion pathway diagram.
 //
-//   id.ts        — Validation functions (toOlxReference, parseReduxStateRef,
-//                  toReduxStateKey, toOlxKey), resolution functions
-//                  (refToReduxKey, refToOlxKey, reduxKeyToOlxKey, allOlxKeys,
+//   id.ts        — Validation functions (toDefinitionRef, parseStateRef,
+//                  toStateKey, toDefinitionKey), resolution functions
+//                  (refToStateKey, refToDefinitionKey, stateKeyToDefinitionKey, allDefinitionKeys,
 //                  extendIdPrefix), and assignReactKeys.
 //
 // After this file stabilizes, the plan is:
@@ -320,23 +340,23 @@ export function defaultNamespace(origin: string): string {
 //   2. BRANDED TYPES (next section to add, below grammar)
 //      Type definitions with __brand and __resolved markers.
 //      Mirrors the LofsRef → LofsCanonical pattern from address.ts:
-//        OlxRef    → OlxKey    (Key extends Ref with __resolved)
-//        ReduxStateRef → ReduxStateKey (same pattern)
+//        DefinitionRef → DefinitionKey  (Key extends Ref with __resolved)
+//        StateRef      → StateKey       (same pattern)
 //
 //   3. VALIDATION + BRANDING FUNCTIONS (below types)
-//      parseOlxRef, parseOlxKey, parseReduxStateRef, parseReduxStateKey,
+//      parseDefinitionRef, parseDefinitionKey, parseStateRef, parseStateKey,
 //      parseNamespace, etc. Each validates against the compiled grammar
 //      and returns a branded type.
 //
 //   4. CONVERSION FUNCTIONS (below validation)
-//      qualifyOlxRef(ref, namespace) → OlxKey
-//      qualifyReduxStateRef(ref, namespace) → ReduxStateKey
-//      addScope(key, idPrefix) → ReduxStateKey  (scope after namespace)
-//      extractBlockIds(key) → OlxRef[]
+//      qualifyDefinitionRef(ref, namespace) → DefinitionKey
+//      qualifyStateRef(ref, namespace) → StateKey
+//      addScope(key, idPrefix) → StateKey  (scope after namespace)
+//      extractBlockIds(key) → DefinitionRef[]
 //      defaultNamespace(origin) → ContentNamespace
 //
 //   5. ZOD SCHEMAS (below conversions)
-//      z_olxRef, z_olxKey, z_reduxStateRef, z_reduxStateKey, etc.
+//      z_definitionRef, z_definitionKey, z_stateRef, z_stateKey, etc.
 //      Wrappers around the validation functions for use in block attribute
 //      schemas.
 //
@@ -345,15 +365,15 @@ export function defaultNamespace(origin: string): string {
 //        LofsRef    = source://path#version  (what you ask for)
 //        LofsCanonical = same, with immutable version  (what you got)
 //        LofsOrigin = source portion  (derives namespace via defaultNamespace)
-//      Source-qualified OlxRefs (git@...://hw1) are LofsRefs without a path
-//      component — the "path" IS the OlxRef's leafId.
+//      Source-qualified DefinitionRefs (git@...://hw1) are LofsRefs without
+//      a path component — the "path" IS the DefinitionRef's leafId.
 //
 // The two normalized forms for identity:
 //
-//   ee101://hw1                                    ← OlxKey (runtime identity)
+//   ee101://hw1                                    ← DefinitionKey (runtime identity)
 //   git@gitlab.com:olxhub/ee101.git@a1238b://hw1  ← LofsCanonical (provenance)
 //
-// Both refer to the same content. OlxKey is what Redux uses. LofsCanonical
+// Both refer to the same content. DefinitionKey is what Redux uses. LofsCanonical
 // is what analytics, replay, and cache invalidation use.
 //
 // assignReactKeys stays in its own utility — it's a rendering concern,

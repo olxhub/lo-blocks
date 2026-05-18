@@ -11,7 +11,7 @@
 // TextSlot value/state fields.
 //
 'use client';
-import type { RuntimeProps, ReduxStateRef } from '@/lib/types';
+import type { RuntimeProps, StateRef } from '@/lib/types';
 
 import React from 'react';
 import { assertKidArray } from '@/lib/util/kids';
@@ -27,10 +27,10 @@ import Spinner from '@/components/common/Spinner';
  *   ready:   @ctx_1.value && @ctx_2.value
  *   loading: @ctx_1.state === 'LLM_RUNNING' || @ctx_2.state === 'LLM_RUNNING' || @ctx_1.value || @ctx_2.value
  *
- * Note: `ids` is already a string[] — the zod schema (z_reduxStateRefList)
+ * Note: `ids` is already a string[] — the zod schema (z_stateRefList)
  * splits the comma-separated OLX attribute at parse time.
  */
-function targetsToExpressions(ids: ReduxStateRef[]): { ready: string; loading: string } {
+function targetsToExpressions(ids: StateRef[]): { ready: string; loading: string } {
   const ready = ids.map(id => `@${id}.value`).join(' && ');
   const loading = [
     ...ids.map(id => `@${id}.state === 'LLM_RUNNING'`),
@@ -56,7 +56,7 @@ function _IntakeGate(props: RuntimeProps) {
   }
 
   // Validate: must have targets or ready
-  // targets is string[] (from z_reduxStateRefList), so check length not truthiness
+  // targets is string[] (from z_stateRefList), so check length not truthiness
   if ((!targets || (Array.isArray(targets) && targets.length === 0)) && !readyProp) {
     return (
       <DisplayError
@@ -75,7 +75,7 @@ function _IntakeGate(props: RuntimeProps) {
     readyExpr = readyProp;
     loadingExpr = loadingProp;
   } else {
-    const generated = targetsToExpressions(targets as ReduxStateRef[]);
+    const generated = targetsToExpressions(targets as StateRef[]);
     readyExpr = generated.ready;
     loadingExpr = loadingProp ?? generated.loading;
   }

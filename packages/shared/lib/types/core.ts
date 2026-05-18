@@ -52,28 +52,28 @@ export type JSONValue =
  *
  * Ref -> Key conversion is a separate job and should use resolver names such as
  * refToReduxKey(...) or, once namespace context is required, a name like
- * resolveReduxStateRef(ref, props). Existing toX(...) helpers predate this
+ * resolveStateRef(ref, props). Existing toX(...) helpers predate this
  * convention and should be migrated opportunistically as each type is cleaned up.
  *
  * ┌──────────────────────────────────────────────────────────────────────┐
  * │                        CONVERSION PATHWAYS                           │
  * │                                                                      │
- * │  OlxReference ──refToOlxKey()──────> OlxKey                          │
+ * │  DefinitionRef ──refToDefinitionKey()──────> DefinitionKey                          │
  * │      │                                  │                            │
  * │      │                                  │  Content lookup in Redux   │
  * │      │                                  │  (selectBlock, ensureBlock)│
  * │      v                                  │                            │
- * │  ReduxStateRef ─refToReduxKey(props)──> ReduxStateKey                │
+ * │  StateRef ─refToReduxKey(props)──> StateKey                │
  * │        (authored target=, combines with IdPrefix)                    │
  * │                                                                      │
- * │  ReduxStateKey ─reduxKeyToOlxKey()──> OlxKey  (leaf block)           │
+ * │  StateKey ─stateKeyToDefinitionKey()──> DefinitionKey  (leaf block)           │
  * │      │              ↑                                                │
  * │      │              │ Last non-ScopeMarker segment                   │
- * │      │              │ (OlxKeys cannot contain ':' or start with '#') │
+ * │      │              │ (DefinitionKeys cannot contain ':' or start with '#') │
  * │      │                                                               │
- * │  ReduxStateKey ─allOlxKeys()──> OlxKey[]  (all blocks in scope)      │
+ * │  StateKey ─allDefinitionKeys()──> DefinitionKey[]  (all blocks in scope)      │
  * │                                                                      │
- * │  IdPrefix + ReduxStateRef ─refToReduxKey()──> ReduxStateKey          │
+ * │  IdPrefix + StateRef ─refToReduxKey()──> StateKey          │
  * │                                                                      │
  * │  extendIdPrefix(props, [id, scopeMarker(index)]) → IdPrefix          │
  * │    Blocks like DynamicList create scoped prefixes                    │
@@ -81,25 +81,25 @@ export type JSONValue =
  *
  * SCOPE MARKERS
  * -------------
- * Segments in a ReduxStateKey that start with '#' are ScopeMarkers —
+ * Segments in a StateKey that start with '#' are ScopeMarkers —
  * instance indices, attempt numbers, etc. They are NOT loadable block IDs.
- * All other segments are valid OlxKeys.
+ * All other segments are valid DefinitionKeys.
  *
  * Constructed via scopeMarker(label): e.g. scopeMarker(0) → '#0'
  * Format: #[0-9a-zA-Z_]+
  *
  * Examples:
- *   OlxReference:  "resistorProblem", "/mit.edu/6002x/resistorProblem"
- *   OlxKey:        "resistorProblem" (canonical, for content lookup)
- *   ReduxStateRef: "answer" or "myList:#0:answer" (authored target)
+ *   DefinitionRef:  "resistorProblem", "/mit.edu/6002x/resistorProblem"
+ *   DefinitionKey:        "resistorProblem" (canonical, for content lookup)
+ *   StateRef: "answer" or "myList:#0:answer" (authored target)
  *   ScopeMarker:   "#0", "#attempt_2" (instance scoping, not a block ID)
  *   IdPrefix:      "myList:#0" (DynamicList "myList", instance 0)
- *   ReduxStateKey: "myList:#0:resistorProblem" (scoped state key)
+ *   StateKey: "myList:#0:resistorProblem" (scoped state key)
  *
  * The ':' delimiter (REDUX_SCOPE_SEPARATOR) is reserved — forbidden in
  * user-authored IDs. This makes decomposition deterministic:
- *   reduxKeyToOlxKey("myList:#0:resistorProblem") → "resistorProblem"
- *   allOlxKeys("myList:#0:resistorProblem")       → ["myList", "resistorProblem"]
+ *   stateKeyToDefinitionKey("myList:#0:resistorProblem") → "resistorProblem"
+ *   allDefinitionKeys("myList:#0:resistorProblem")       → ["myList", "resistorProblem"]
  *
  * See docs/redux-key-decomposition.md for full design documentation.
  */
@@ -147,12 +147,12 @@ export const CONTENT_NAMESPACE = toContentNamespace('content');
 // See idResolver.ts VALID_ID_SEGMENT for the canonical regex and delimiter conventions.
 
 // User-authored reference as found in source OLX.
-// Created via toOlxReference(string, context).
-export type OlxReference = string & { readonly __brand: 'OlxReference' };
+// Created via toDefinitionRef(string, context).
+export type DefinitionRef = string & { readonly __brand: 'DefinitionRef' };
 
 // Canonical content key — used for content lookup in Redux (selectBlock, ensureBlock).
-// Created via refToOlxKey(ref) — strips path prefixes and scope prefixes.
-export type OlxKey = OlxReference & { readonly __resolved: true };
+// Created via refToDefinitionKey(ref) — strips path prefixes and scope prefixes.
+export type DefinitionKey = DefinitionRef & { readonly __resolved: true };
 
 // Scoping prefix for blocks rendered in repeating contexts (DynamicList, MasteryBank, etc.).
 // Created via extendIdPrefix(props, [id, scopeMarker(index)]).
@@ -161,16 +161,16 @@ export type IdPrefix = string & { readonly __brand: 'IdPrefix' };
 
 // User-authored state reference as found in OLX attributes.
 // May be bare or scoped, e.g. "answer" or "myList:#0:answer".
-// Eventually may also be namespace-qualified. Created via parseReduxStateRef().
-export type ReduxStateRef = string & { readonly __brand: 'ReduxStateRef' };
+// Eventually may also be namespace-qualified. Created via parseStateRef().
+export type StateRef = string & { readonly __brand: 'StateRef' };
 
 // Scoped state key — used for Redux state access (field values, correctness, etc.).
-// Created via refToReduxKey(props) — resolves a ReduxStateRef in runtime context.
+// Created via refToReduxKey(props) — resolves a StateRef in runtime context.
 // Format today: "prefix:baseId" or just "baseId" if no prefix.
 // Future format: namespace-qualified, e.g. "content://prefix:baseId".
-export type ReduxStateKey = string & { readonly __brand: 'ReduxStateKey' };
+export type StateKey = string & { readonly __brand: 'StateKey' };
 
-// A non-OlxKey scope segment in a ReduxStateKey. Format: #[0-9a-zA-Z_]+
+// A non-DefinitionKey scope segment in a StateKey. Format: #[0-9a-zA-Z_]+
 // Marks instance indices, attempt numbers, etc. — NOT loadable block IDs.
 // Created via scopeMarker(label) in idResolver.ts.
 // Examples: "#0" (list instance), "#attempt_2" (mastery bank attempt)
@@ -245,7 +245,7 @@ export type LofsDependencies = LofsCanonical[];
  */
 export type OlxRelativePath = string & { __brand: 'OlxRelativePath' };
 /*
- * These are really more like IDs than paths — analogous to OlxReference
+ * These are really more like IDs than paths — analogous to DefinitionRef
  * for block IDs. They come from user input (OLX attributes, URL params,
  * LLM tool callbacks) and may be invalid (traversal attacks, nonexistent
  * files, etc.). At trust boundaries, we brand them via toOlxRelativePath()
@@ -255,7 +255,7 @@ export type OlxRelativePath = string & { __brand: 'OlxRelativePath' };
  * When an OLX file references another file relatively
  * (src="../foo.md"), we need to resolve that against the referring
  * file's location to get a canonical, unique path, which can be used
- * as a key — just like resolving OlxReference → OlxKey.  If ../foo.md
+ * as a key — just like resolving DefinitionRef → DefinitionKey.  If ../foo.md
  * appears in uofa/writing/101/bar.olx, it resolves to
  * uofa/writing/foo.md. This canonical form is:
  */
@@ -695,7 +695,7 @@ export type BlockBlueprint = z.infer<typeof BlockBlueprintSchema>;
  *
  * For blocks using withStatus, the return type is BlockDataResult & { value }.
  */
-export type ValueSelectorFn = (props: RuntimeProps, state: any, reduxKey: ReduxStateKey) => any;
+export type ValueSelectorFn = (props: RuntimeProps, state: any, stateKey: StateKey) => any;
 
 export interface LoBlock {
   component: React.ComponentType<any>;
@@ -875,7 +875,7 @@ export type ParseError = string | null | {
 export type ParentContext = Record<string, JSONValue>;
 
 export type KidEntry =
-  | { type: 'block'; id: OlxReference; overrides?: Record<string, JSONValue>; parentContext?: ParentContext }
+  | { type: 'block'; id: DefinitionRef; overrides?: Record<string, JSONValue>; parentContext?: ParentContext }
   | { type: 'text'; text: string; parentContext?: ParentContext }
   | { type: 'xml'; xml: string; parentContext?: ParentContext }
   | { type: 'cdata'; value: string; parentContext?: ParentContext }
@@ -910,8 +910,8 @@ export interface PeggyKids<T> {
  */
 export interface OlxDomNode {
   olxJson: OlxJson;
-  reduxKey: ReduxStateKey;  // Scoped runtime key (idPrefix + id), e.g. "factors:0:factor"
-  renderedKids: Record<ReduxStateKey, OlxDomNode>;
+  stateKey: StateKey;  // Scoped runtime key (idPrefix + id), e.g. "factors:0:factor"
+  renderedKids: Record<StateKey, OlxDomNode>;
   parent?: OlxDomNode;
   loBlock: LoBlock;
   sentinel?: string;  // 'root' for root node
@@ -993,7 +993,7 @@ export interface BaselineProps {
 
 export interface RuntimeProps extends BaselineProps {
   // This block's identity and content
-  id: OlxKey;
+  id: DefinitionKey;
   kids: JSONValue;
 
   // Opaque context - thread through
@@ -1025,7 +1025,7 @@ export interface RuntimeProps extends BaselineProps {
  * simple BCP 47 code for now, identifying which language variant this entry represents.
  */
 export interface OlxJson {
-  id: OlxKey;
+  id: DefinitionKey;
   tag: OLXTag;
   attributes: Record<string, JSONValue>;  // Always present, defaults to {} in parsing
   kids?: JSONValue;  // Child nodes, or a string from text parsers
@@ -1123,7 +1123,7 @@ export interface OlxJson {
 export type VariantMap = { [variant: ContentVariant]: OlxJson };
 
 export interface IdMap {
-  [id: OlxKey]: VariantMap;
+  [id: DefinitionKey]: VariantMap;
 }
 
 /**
@@ -1131,7 +1131,7 @@ export interface IdMap {
  * Represents a single block and its metadata.
  */
 export interface GraphNode {
-  id: OlxKey;  // Block ID that this node represents
+  id: DefinitionKey;  // Block ID that this node represents
   data: {
     label: string;
     attributes: Record<string, JSONValue>;
@@ -1148,8 +1148,8 @@ export interface GraphNode {
  */
 export interface GraphEdge {
   id: string;  // Edge ID (graph-specific, not a block ID)
-  source: OlxKey;  // Source block ID
-  target: OlxKey;  // Target block ID
+  source: DefinitionKey;  // Source block ID
+  target: DefinitionKey;  // Target block ID
 }
 
 /**

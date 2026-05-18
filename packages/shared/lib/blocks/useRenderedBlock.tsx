@@ -22,9 +22,9 @@ import { renderOlxJson, renderCompiledKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
 import TranslatingIndicator from '@/lib/i18n/TranslatingIndicator';
-import type { OlxReference, BlockDataResult, OlxJson, RuntimeProps } from '@/lib/types';
+import type { DefinitionRef, BlockDataResult, OlxJson, RuntimeProps } from '@/lib/types';
 import { blockData } from '@/lib/state/redux';
-import { refToOlxKey } from '@/lib/types/id';
+import { refToDefinitionKey } from '@/lib/types/id';
 import { selectBlock } from '@/lib/state/olxjson';
 import {
   evaluate, createContext,
@@ -51,7 +51,7 @@ export type RenderedBlockResult = BlockDataResult & {
  */
 export function useBlock(
   props: any,
-  id: OlxReference | null,
+  id: DefinitionRef | null,
   source: string = 'content'
 ): RenderedBlockResult {
   // Always call hooks unconditionally (React rules of hooks)
@@ -86,7 +86,7 @@ export function useBlock(
   }
 
   if (!reduxOlxJson) {
-    const olxKey = refToOlxKey(id);
+    const definitionKey = refToDefinitionKey(id);
     const msg = `Block "${id}" not found in Redux`;
     return {
       block: (
@@ -94,7 +94,7 @@ export function useBlock(
           id={`block-missing-${id}`}
           title="useBlock"
           message={msg}
-          data={{ blockId: id, olxKey }}
+          data={{ blockId: id, definitionKey }}
         />
       ),
       ...blockData('error', msg)
@@ -120,7 +120,7 @@ export function useBlock(
 /**
  * Hook for rendering multiple blocks from an array of IDs.
  *
- * Takes an array of OlxReference IDs and returns rendered React elements.
+ * Takes an array of DefinitionRef IDs and returns rendered React elements.
  * Each block is fetched via useOlxJsonMultiple and rendered via renderOlxJson.
  * Placeholders (Spinner/ErrorNode) are automatically returned for loading/error states
  * by useOlxJsonMultiple's contract.
@@ -134,7 +134,7 @@ export function useBlock(
  */
 export function useRenderedBlocksMultiple(
   props: RuntimeProps,
-  ids: OlxReference[],
+  ids: DefinitionRef[],
   source: string = 'content'
 ): {
   blocks: React.ReactNode[];
@@ -157,7 +157,7 @@ export function useRenderedBlocksMultiple(
  */
 export function getRenderedBlocksMultiple(
   props: RuntimeProps,
-  ids: OlxReference[],
+  ids: DefinitionRef[],
   source: string = 'content'
 ): {
   blocks: React.ReactNode[];
@@ -182,10 +182,10 @@ export function getRenderedBlocksMultiple(
 // Returns the pre-parsed { expr, ast } from the when= attribute, or undefined.
 function getWhen(kid, props) {
   if (kid.type === 'block') {
-    const olxKey = refToOlxKey(kid.id);
+    const definitionKey = refToDefinitionKey(kid.id);
     const state = props.runtime.store.getState();
     const sources = props.runtime.olxJsonSources ?? ['content'];
-    const block = selectBlock(state, sources, olxKey, props.runtime.locale.code);
+    const block = selectBlock(state, sources, definitionKey, props.runtime.locale.code);
     if (!block) return undefined;  // not yet loaded — show by default
     return block.attributes.when;
   }
@@ -293,7 +293,7 @@ export function useKidsWithState(props: any): {
  * Component for rendering a block reference with async loading.
  * Used for dynamic content that may not be pre-loaded.
  */
-export function BlockRef({ id, ...props }: { id: OlxReference; [key: string]: any }) {
+export function BlockRef({ id, ...props }: { id: DefinitionRef; [key: string]: any }) {
   const { block } = useBlock(props, id);
   return <>{block}</>;
 }

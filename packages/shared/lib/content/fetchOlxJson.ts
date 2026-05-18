@@ -5,7 +5,7 @@
 // export builds that serve pre-rendered JSON instead of hitting API routes).
 //
 
-import type { OlxKey, IdMap } from '@/lib/types';
+import type { DefinitionKey, IdMap } from '@/lib/types';
 
 /**
  * Fetch content by ID.
@@ -14,7 +14,7 @@ import type { OlxKey, IdMap } from '@/lib/types';
  * Options (e.g. headers) are passed through to fetch.
  */
 export async function fetchOlxJson(
-  id: OlxKey,
+  id: DefinitionKey,
   options?: RequestInit
 ): Promise<{ ok: boolean; idMap: IdMap; error?: string }> {
   const res = await globalThis.fetch(`/api/olxjson/${id}`, options);

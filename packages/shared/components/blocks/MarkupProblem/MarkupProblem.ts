@@ -16,7 +16,7 @@ import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes, problemAttributes } from '@/lib/blocks/attributeSchemas';
 import * as capaParser from '../specialized/peg_prototype/_capaParser';
 import _CapaProblem from '@/components/blocks/CapaProblem/_CapaProblem';
-import type { KidEntry, OlxReference } from '@/lib/types';
+import type { KidEntry, DefinitionRef } from '@/lib/types';
 import { parse as parseExpr } from '@/lib/stateLanguage';
 
 // Pre-parse a when= expression into the { expr, ast } shape that useKidsJson expects.
@@ -30,8 +30,8 @@ const whenExpr = (expr: string) => ({ expr, ast: parseExpr(expr) });
 const escapeExprString = (s: string) =>
   s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r');
 
-// Helper: create a block reference with properly typed OlxReference
-const blockRef = (id: string): KidEntry => ({ type: 'block', id: id as OlxReference });
+// Helper: create a block reference with properly typed DefinitionRef
+const blockRef = (id: string): KidEntry => ({ type: 'block', id: id as DefinitionRef });
 
 /**
  * Transform parsed CAPA AST into OLX component structure.

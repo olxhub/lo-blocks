@@ -31,7 +31,7 @@ function _Explanation(props: RuntimeProps) {
   const correctnessValue = useFieldSelector(
     props,
     correctField,
-    { reduxKey: graderReduxKey, fallback: correctness.unsubmitted, selector: s => s?.correct }
+    { stateKey: graderReduxKey, fallback: correctness.unsubmitted, selector: s => s?.correct }
   ) ?? correctness.unsubmitted;
 
   // useKids must be called unconditionally

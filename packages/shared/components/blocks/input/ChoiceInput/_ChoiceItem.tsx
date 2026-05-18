@@ -44,7 +44,7 @@ export default function _ChoiceItem(props: RuntimeProps) {
     );
   }
 
-  // Resolve parent's ReduxStateKey once for all state access
+  // Resolve parent's StateKey once for all state access
   const parentReduxId = useMemo(
     () => refToReduxKey({ ...props, id: parentId }),
     // parentId is stable (from structural inference in mount-time useMemo)
@@ -58,7 +58,7 @@ export default function _ChoiceItem(props: RuntimeProps) {
   const selected = state.useFieldSelector(
     props,
     valueField,
-    { reduxKey: parentReduxId, fallback: isCheckbox ? [] : '' }
+    { stateKey: parentReduxId, fallback: isCheckbox ? [] : '' }
   );
 
   // Check if grader is showing the answer
@@ -80,10 +80,10 @@ export default function _ChoiceItem(props: RuntimeProps) {
       const newSelection = currentSelection.includes(itemValue)
         ? currentSelection.filter(v => v !== itemValue)
         : [...currentSelection, itemValue];
-      state.updateField(props, valueField, newSelection, { reduxKey: parentReduxId });
+      state.updateField(props, valueField, newSelection, { stateKey: parentReduxId });
     } else {
       // Radio: set single value
-      state.updateField(props, valueField, itemValue, { reduxKey: parentReduxId });
+      state.updateField(props, valueField, itemValue, { stateKey: parentReduxId });
     }
   };
 

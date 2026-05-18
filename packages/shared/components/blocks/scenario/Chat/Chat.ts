@@ -18,7 +18,7 @@ import type { ConversationEntry, WaitCommand, ParsedConversation } from './_chat
 import type { PeggyKids } from '@/lib/types';
 import { canAdvanceToContent, evaluateWaitEntry } from './waitConditions';
 import { refToReduxKey } from '@/lib/types/id';
-import type { OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
+import type { DefinitionKey, DefinitionRef, RuntimeProps } from '@/lib/types';
 import * as cp  from './_chatParser';
 import { _Chat } from './_Chat';
 
@@ -112,7 +112,7 @@ function chatAdvance(props: RuntimeProps, reduxState: any): boolean {
     switch (block.type) {
       case 'ArrowCommand':
         state.updateField(props, fields.value, block.target, {
-          reduxKey: refToReduxKey({ ...props, id: block.source as OlxReference }),
+          stateKey: refToReduxKey({ ...props, id: block.source as DefinitionRef }),
         });
         nextIndex += 1;
         continue;
@@ -153,7 +153,7 @@ function chatAdvance(props: RuntimeProps, reduxState: any): boolean {
  * -------------------------------------------------------------- */
 
 // Action signature requires targetId but Chat advances itself, not a target.
-function advanceChat({ props }: { targetId: OlxKey; props: RuntimeProps }) {
+function advanceChat({ props }: { targetId: DefinitionKey; props: RuntimeProps }) {
   const reduxState = props.runtime.store.getState();
   chatAdvance(props, reduxState);
 }
@@ -226,7 +226,7 @@ function parseEmbedOptions(body: ConversationEntry[]): string[] {
 async function processEmbedBlocks(
   body: ConversationEntry[],
   parseNode: (node: any, siblings: any[] | null, index: number) => Promise<any>,
-  storeEntry: (id: OlxKey, entry: any) => void,
+  storeEntry: (id: DefinitionKey, entry: any) => void,
 ): Promise<string[]> {
   const warnings: string[] = [];
 
@@ -284,8 +284,8 @@ async function processEmbedBlocks(
 async function postprocess({ parsed, parseNode, storeEntry, id }: {
   parsed: any;
   parseNode?: (node: any, siblings: any[] | null, index: number) => Promise<any>;
-  storeEntry: (id: OlxKey, entry: any) => void;
-  id: OlxKey;
+  storeEntry: (id: DefinitionKey, entry: any) => void;
+  id: DefinitionKey;
   [key: string]: any;
 }) {
   if (parsed.header && typeof parsed.header === 'string') {
@@ -339,7 +339,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
           continue;
         }
         const label = entry.metadata.label ?? entry.parsedOptions?.label ?? 'View expanded content';
-        const wrapperId = `${id}_popout_${popoutIndex++}` as OlxKey;
+        const wrapperId = `${id}_popout_${popoutIndex++}` as DefinitionKey;
         storeEntry(wrapperId, {
           id: wrapperId,
           tag: 'CompactPopout',
@@ -357,7 +357,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
       }
 
       const label = entry.metadata.label ?? entry.parsedOptions?.label ?? 'View expanded content';
-      const wrapperId = `${id}_popout_${popoutIndex++}` as OlxKey;
+      const wrapperId = `${id}_popout_${popoutIndex++}` as DefinitionKey;
       storeEntry(wrapperId, {
         id: wrapperId,
         tag: 'CompactPopout',

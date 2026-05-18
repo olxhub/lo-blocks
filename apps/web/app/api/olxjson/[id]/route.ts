@@ -2,10 +2,10 @@
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { getBestVariantServer } from '@/lib/i18n/getBestVariant';
 import { variantMapKeys } from '@/lib/types/i18n';
-import { allOlxKeys, refToReduxKey, parseReduxStateRef } from '@/lib/types/id';
+import { allDefinitionKeys, refToReduxKey, parseStateRef } from '@/lib/types/id';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { NextRequest } from 'next/server';
-import type { IdMap, OlxJson, ReduxStateRef } from '@/lib/types';
+import type { IdMap, OlxJson, StateRef } from '@/lib/types';
 
 // Block fetching mode for testing async loading:
 //   'all'         - return full idMap (fast, sends everything)
@@ -17,9 +17,9 @@ import type { IdMap, OlxJson, ReduxStateRef } from '@/lib/types';
 // testing async loading for dynamic references.
 const SINGLE_BLOCK_MODE: string = 'static-kids';
 
-function targetRefs(target: unknown): ReduxStateRef[] {
+function targetRefs(target: unknown): StateRef[] {
   if (typeof target !== 'string') return [];
-  return target.split(',').map(s => s.trim()).filter(Boolean).map(parseReduxStateRef);
+  return target.split(',').map(s => s.trim()).filter(Boolean).map(parseStateRef);
 }
 
 /**
@@ -56,21 +56,21 @@ function collectBlockWithKids(
   }
 
   // Recurse into target= references (cross-block dependencies).
-  // target= is an authored ReduxStateRef — it may contain scope markers (#0)
-  // and multiple OlxKey segments (myList:#0:answer). Resolve it to today's
-  // runtime ReduxStateKey shape, then allOlxKeys extracts the loadable block IDs.
+  // target= is an authored StateRef — it may contain scope markers (#0)
+  // and multiple DefinitionKey segments (myList:#0:answer). Resolve it to today's
+  // runtime StateKey shape, then allDefinitionKeys extracts the loadable block IDs.
   //
   // TODO: Validate target= values. Invalid targets should eventually
   // surface as DisplayErrors to the author. Open design question: what
-  // to validate where. OlxKey segments (the block IDs) could be checked
-  // here or at parse time, but scoped ReduxStateRefs (e.g. foo:#0:bar)
+  // to validate where. DefinitionKey segments (the block IDs) could be checked
+  // here or at parse time, but scoped StateRefs (e.g. foo:#0:bar)
   // can't be fully validated statically — scope markers are runtime
   // constructs (DynamicList instance count, etc.). This is one possible
   // validation site; parse-time and client-side contexts (Studio,
   // Markdown editor) are others. See docs/loading-state-todo.md.
   for (const ref of targetRefs(entry.attributes?.target)) {
-    const reduxKey = refToReduxKey(ref);
-    for (const key of allOlxKeys(reduxKey)) {
+    const stateKey = refToReduxKey(ref);
+    for (const key of allDefinitionKeys(stateKey)) {
       collectBlockWithKids(idMap, key, request, collected);
     }
   }

@@ -58,7 +58,7 @@ const MatchingInput = dev({
   description: 'Match items from left column to right column',
   component: _MatchingInput,
   fields,
-  selectValue: (props: RuntimeProps, reduxState, _reduxKey) => ({
+  selectValue: (props: RuntimeProps, reduxState, _stateKey) => ({
     arrangement: fieldSelector(reduxState, props, fields.arrangement, { fallback: {} })
   }),
   attributes: z.object({

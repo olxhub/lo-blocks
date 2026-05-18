@@ -19,10 +19,10 @@ import {
   dispatchOlxJson,
   dispatchOlxJsonError
 } from '@/lib/state/olxjson';
-import { refToOlxKey, allOlxKeys } from '@/lib/types/id';
+import { refToDefinitionKey, allDefinitionKeys } from '@/lib/types/id';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
-import type { OlxJson, OlxKey, OlxReference, ReduxStateRef, ReduxStateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
+import type { OlxJson, DefinitionKey, DefinitionRef, StateRef, StateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
 import type { LogEventFn } from '@/lib/render';
 import { blockData } from '@/lib/state/redux';
 
@@ -36,7 +36,7 @@ export type OlxJsonResult = BlockDataResult & { olxJson: OlxJson | null };
 /**
  * Dedup: once we've started a fetch for a given request, don't start another.
  *
- * Keyed by `source:requestProfile:olxKey` so that:
+ * Keyed by `source:requestProfile:definitionKey` so that:
  * - Different sources can load the same block independently
  * - A change in user profile triggers re-fetch (the server may negotiate
  *   a different content variant)
@@ -80,32 +80,32 @@ const ensuredIds = new Set<string>();
  */
 export function ensureBlock(
   props: BaselineProps,
-  id: string | OlxReference | null | undefined,
+  id: string | DefinitionRef | null | undefined,
   source: string = 'content'
 ): void {
   if (!id || props.runtime.sideEffectFree) return;
 
-  const olxKey: OlxKey = refToOlxKey(id as OlxReference);
+  const definitionKey: DefinitionKey = refToDefinitionKey(id as DefinitionRef);
   const locale = props.runtime.locale.code;
   // Dedup on request profile — currently just locale, will grow (see comment above)
-  const dedupKey = `${source}:${locale}:${olxKey}`;
+  const dedupKey = `${source}:${locale}:${definitionKey}`;
   if (ensuredIds.has(dedupKey)) return;
 
   const state = props.runtime.store.getState();
-  const blockState = selectBlockState(state, [source], olxKey);
+  const blockState = selectBlockState(state, [source], definitionKey);
   if (blockState) return; // Already known (loading, ready, or error)
 
   ensuredIds.add(dedupKey);
-  dispatchOlxJsonLoading(props, source, olxKey);
+  dispatchOlxJsonLoading(props, source, definitionKey);
 
-  fetchOlxJson(olxKey, {
+  fetchOlxJson(definitionKey, {
       headers: { 'Accept-Language': locale },
     })
     .then(data => {
       if (!data.ok) {
         // API error (404 missing content, 500 server error) — don't retry.
         // Key stays in ensuredIds to prevent retry storms.
-        dispatchOlxJsonError(props, source, olxKey, data.error || `Failed to load ${olxKey}`);
+        dispatchOlxJsonError(props, source, definitionKey, data.error || `Failed to load ${definitionKey}`);
       } else {
         dispatchOlxJson(props, source, data.idMap);
         // Recursively ensure blocks referenced by ref-typed attributes
@@ -118,7 +118,7 @@ export function ensureBlock(
       // returns truthy, so ensureBlock returns early at line 94. In practice, retry
       // requires clearing both gates — currently only a page reload does that.
       ensuredIds.delete(dedupKey);
-      dispatchOlxJsonError(props, source, olxKey, err.message || `Failed to load ${olxKey}`);
+      dispatchOlxJsonError(props, source, definitionKey, err.message || `Failed to load ${definitionKey}`);
     });
 }
 
@@ -127,7 +127,7 @@ export function ensureBlock(
  * those blocks are loaded.
  *
  * Which attributes to scan is determined by the block's zod schema — any
- * attribute tagged with a ref extractor (z_olxKey, z_reduxStateRef, z_reduxStateRefList,
+ * attribute tagged with a ref extractor (z_definitionKey, z_stateRef, z_stateRefList,
  * z_blockFieldRef, z_blockFieldRefList) is automatically discovered via
  * getRefAttributes(). Each schema knows how to extract block IDs from its
  * (possibly transformed) value.
@@ -161,7 +161,7 @@ function ensureReferencedBlocks(props: BaselineProps, idMap: IdMap, source: stri
         const cleaned = ref.startsWith('/') ? ref.slice(1)
                       : ref.startsWith('./') ? ref.slice(2)
                       : ref;
-        for (const key of allOlxKeys(cleaned as ReduxStateRef)) {
+        for (const key of allDefinitionKeys(cleaned as StateRef)) {
           // Skip blocks already in this idMap — they were just dispatched
           // in the same LOAD_OLXJSON event. Calling ensureBlock here would
           // race: OLXJSON_LOADING enqueued AFTER LOAD_OLXJSON overwrites
@@ -193,15 +193,15 @@ function ensureReferencedBlocks(props: BaselineProps, idMap: IdMap, source: stri
 export function selectOlxJson(
   state: any,
   props: BaselineProps,
-  id: OlxReference | null,
+  id: DefinitionRef | null,
   source: string = 'content'
 ): OlxJsonResult {
   if (!id) {
     return { olxJson: null, ...blockData('ready') };
   }
 
-  const olxKey: OlxKey = refToOlxKey(id);
-  const blockState = selectBlockState(state, [source], olxKey);
+  const definitionKey: DefinitionKey = refToDefinitionKey(id);
+  const blockState = selectBlockState(state, [source], definitionKey);
 
   if (!blockState) {
     return { olxJson: null, ...blockData('loading') };
@@ -216,7 +216,7 @@ export function selectOlxJson(
   if (status === 'error') {
     return {
       olxJson: null,
-      ...blockData('error', blockState.error?.message || `Error loading "${olxKey}"`)
+      ...blockData('error', blockState.error?.message || `Error loading "${definitionKey}"`)
     };
   }
 
@@ -239,7 +239,7 @@ export function selectOlxJson(
  */
 export function getOlxJson(
   props: RuntimeProps,
-  id: OlxReference | null,
+  id: DefinitionRef | null,
   source: string = 'content'
 ): OlxJsonResult {
   const state = props.runtime.store.getState();
@@ -259,11 +259,11 @@ export function getOlxJson(
  */
 export function useOlxJson(
   props: RuntimeProps,
-  id: OlxReference | null,
+  id: DefinitionRef | null,
   source: string = 'content'
 ): OlxJsonResult {
-  // Compute olxKey outside hooks — empty string for null id (won't match anything)
-  const olxKey: OlxKey = id ? refToOlxKey(id) : '' as OlxKey;
+  // Compute definitionKey outside hooks — empty string for null id (won't match anything)
+  const definitionKey: DefinitionKey = id ? refToDefinitionKey(id) : '' as DefinitionKey;
 
   // Read from Redux using the pure selector
   const result = useSelector(
@@ -277,7 +277,7 @@ export function useOlxJson(
     if (id && result.loading) {
       ensureBlock(props, id, source);
     }
-  }, [id, result.loading, olxKey, source, props.runtime.sideEffectFree, props.runtime.logEvent]);
+  }, [id, result.loading, definitionKey, source, props.runtime.sideEffectFree, props.runtime.logEvent]);
 
   return result;
 }
@@ -286,7 +286,7 @@ export function useOlxJson(
 /** Construct an OlxJson for a Spinner placeholder. */
 function spinnerOlxJson(id: string): OlxJson {
   return {
-    id: `_spinner_${id}` as OlxKey,
+    id: `_spinner_${id}` as DefinitionKey,
     tag: 'Spinner' as any,
     attributes: {},
     provenance: [],
@@ -296,7 +296,7 @@ function spinnerOlxJson(id: string): OlxJson {
 /** Construct an OlxJson for an ErrorNode placeholder. */
 function errorOlxJson(id: string, message: string): OlxJson {
   return {
-    id: `_error_${id}` as OlxKey,
+    id: `_error_${id}` as DefinitionKey,
     tag: 'ErrorNode' as any,
     attributes: { message },
     kids: [],
@@ -329,7 +329,7 @@ type OlxJsonMultipleResult = {
 export function selectOlxJsonMultiple(
   state: any,
   props: BaselineProps,
-  ids: OlxReference[],
+  ids: DefinitionRef[],
   source: string = 'content'
 ): {
   results: OlxJsonMultipleResult[];
@@ -339,8 +339,8 @@ export function selectOlxJsonMultiple(
   const userLocale = props.runtime.locale.code;
 
   const results: OlxJsonMultipleResult[] = ids.map(id => {
-    const olxKey: OlxKey = id ? refToOlxKey(id as OlxReference) : '' as OlxKey;
-    const entry = selectBlockState(state, sources, olxKey);
+    const definitionKey: DefinitionKey = id ? refToDefinitionKey(id as DefinitionRef) : '' as DefinitionKey;
+    const entry = selectBlockState(state, sources, definitionKey);
     if (!entry) return { olxJson: null, status: 'missing' as const };
     const status = entry.loadingState?.status;
     if (status === 'loading') return { olxJson: null, status: 'loading' as const };
@@ -364,7 +364,7 @@ export function selectOlxJsonMultiple(
  */
 export function getOlxJsonMultiple(
   props: RuntimeProps,
-  ids: OlxReference[],
+  ids: DefinitionRef[],
   source: string = 'content'
 ): {
   olxJsons: OlxJson[];
@@ -401,7 +401,7 @@ export function getOlxJsonMultiple(
  */
 export function useOlxJsonMultiple(
   props: RuntimeProps,
-  ids: OlxReference[],
+  ids: DefinitionRef[],
   source: string = 'content'
 ): {
   olxJsons: OlxJson[];

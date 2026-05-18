@@ -12,9 +12,9 @@
 // a different store provides historical state. The store is threaded through
 // props from React components using useStore().
 //
-import { refToOlxKey } from '../types/id';
+import { refToDefinitionKey } from '../types/id';
 import { selectBlock } from '@/lib/state/olxjson';
-import type { OlxJson, OlxReference, UserLocale } from '@/lib/types';
+import type { OlxJson, DefinitionRef, UserLocale } from '@/lib/types';
 import type { Store } from 'redux';
 
 interface PropsWithStore {
@@ -31,7 +31,7 @@ interface PropsWithStore {
  * @param id - The OLX ID to look up (can be null for optional lookups)
  * @returns The block entry, or undefined if not found
  */
-export function getBlockByOLXId(props: PropsWithStore, id: OlxReference | null): OlxJson | undefined {
+export function getBlockByOLXId(props: PropsWithStore, id: DefinitionRef | null): OlxJson | undefined {
   if (id == null) {
     return undefined;
   }
@@ -41,7 +41,7 @@ export function getBlockByOLXId(props: PropsWithStore, id: OlxReference | null):
     return undefined;
   }
 
-  const key = refToOlxKey(id);
+  const key = refToDefinitionKey(id);
   const store = props.runtime.store;
   const sources = props.runtime.olxJsonSources ?? ['content'];
   const locale = props.runtime.locale?.code;
@@ -61,6 +61,6 @@ export function getBlockByOLXId(props: PropsWithStore, id: OlxReference | null):
  * @param ids - Array of OLX IDs to look up
  * @returns Array of block entries (undefined for blocks not found)
  */
-export function getBlocksByOLXIds(props: PropsWithStore, ids: OlxReference[]): (OlxJson | undefined)[] {
+export function getBlocksByOLXIds(props: PropsWithStore, ids: DefinitionRef[]): (OlxJson | undefined)[] {
   return ids.map(id => getBlockByOLXId(props, id));
 }

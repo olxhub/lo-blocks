@@ -57,7 +57,7 @@ const CastEditor = dev({
     STAT_PRESETS, STAT_PRESETS_BY_KEY,
   },
 
-  selectValue: (props: RuntimeProps, reduxState: any, _reduxKey: any) => {
+  selectValue: (props: RuntimeProps, reduxState: any, _stateKey: any) => {
     const arrangement: string[] = fieldSelector(reduxState, props, fields.arrangement, { fallback: [] });
     if (arrangement.length === 0) return '';
 

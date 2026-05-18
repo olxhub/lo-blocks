@@ -163,7 +163,7 @@ it('byProvenance.nodes stays in sync with byId when auxiliary files add/remove I
     }
 
     // Every ID in idMap that came from this file should be in nodes
-    for (const [id, variantMap] of Object.entries(second.idMap) as [OlxKey, IdMap[OlxKey]][]) {
+    for (const [id, variantMap] of Object.entries(second.idMap) as [DefinitionKey, IdMap[DefinitionKey]][]) {
       const entry = variantMap['*' as ContentVariant];
       if (entry?.provenance && entry.provenance[0] === olxUri) {
         expect(secondNodes).toContain(id);

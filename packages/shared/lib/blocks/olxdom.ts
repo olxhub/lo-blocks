@@ -5,8 +5,8 @@
 
 import * as state from '@/lib/state';
 import * as idResolver from '../types/id';
-import { refToOlxKey, toOlxReference } from '../types/id';
-import type { OlxDomNode, OlxDomSelector, OlxKey, OlxReference, ReduxStateKey, RuntimeProps } from '@/lib/types';
+import { refToDefinitionKey, toDefinitionRef } from '../types/id';
+import type { OlxDomNode, OlxDomSelector, DefinitionKey, DefinitionRef, StateKey, RuntimeProps } from '@/lib/types';
 //
 // The OLX DOM is Learning Observer's internal representation of educational content,
 // distinct from both the React virtual DOM and the browser DOM. It represents the
@@ -115,20 +115,20 @@ export function getKidsDFS(nodeInfo: OlxDomNode, { selector = (_: OlxDomNode) =>
  *   - "foo" => ["foo"]
  *   - true => Raise an exception
  * @param {any} targets - Target attribute from OLX (user-authored references)
- * @returns {OlxReference[] | false}
+ * @returns {DefinitionRef[] | false}
  */
-function normalizeTargetIds(targets): OlxReference[] | false {
+function normalizeTargetIds(targets): DefinitionRef[] | false {
   if (!targets) return false; // Target was not specified
   if (targets === true) throw new Error('Boolean true is not a valid target');
   // User input from OLX - validate and brand as references
   if (Array.isArray(targets)) {
-    return targets.map(t => toOlxReference(String(t), 'target attribute'));
+    return targets.map(t => toDefinitionRef(String(t), 'target attribute'));
   }
   if (typeof targets === "string") {
     return targets.split(',')
       .map(s => s.trim())
       .filter(Boolean)
-      .map(s => toOlxReference(s, 'target attribute'));
+      .map(s => toDefinitionRef(s, 'target attribute'));
   }
   throw new Error('Unsupported target type');
 }
@@ -185,7 +185,7 @@ function root(nodeInfo: OlxDomNode): OlxDomNode {
  * @returns {string} The node ID
  * @throws {Error} If nodeInfo.olxJson or nodeInfo.olxJson.id is missing
  */
-function getNodeId(nodeInfo: OlxDomNode, context = 'getNodeId'): OlxKey {
+function getNodeId(nodeInfo: OlxDomNode, context = 'getNodeId'): DefinitionKey {
   if (!nodeInfo.olxJson) {
     // Root node has sentinel instead of olxJson
     if (nodeInfo.sentinel === 'root') {
@@ -213,18 +213,18 @@ export function getAllNodes(nodeInfo: OlxDomNode, { selector = (_: OlxDomNode) =
 }
 
 /**
- * Find a specific OlxDomNode in the rendered tree by ReduxStateKey.
+ * Find a specific OlxDomNode in the rendered tree by StateKey.
  *
- * Callers convert OlxKey → ReduxStateKey (via refToReduxKey) before calling,
+ * Callers convert DefinitionKey → StateKey (via refToReduxKey) before calling,
  * which makes the scoping (idPrefix) explicit at the call site.
  *
  * @param props - Must include nodeInfo (tree to search)
- * @param key - The ReduxStateKey identifying the node
+ * @param key - The StateKey identifying the node
  * @returns The matching OlxDomNode, or null
  */
-export function getDomNodeByReduxKey(props: RuntimeProps, key: ReduxStateKey): OlxDomNode | null {
+export function getDomNodeByReduxKey(props: RuntimeProps, key: StateKey): OlxDomNode | null {
   return getAllNodes(props.nodeInfo, {
-    selector: n => n.reduxKey === key
+    selector: n => n.stateKey === key
   })[0] ?? null;
 }
 
@@ -271,7 +271,7 @@ export function inferRelatedNodes(props: RuntimeProps, {
   infer,
   targets,
   closest = false,
-}: { selector?: OlxDomSelector; infer?; targets?; closest?: boolean } = {}): OlxKey[] {
+}: { selector?: OlxDomSelector; infer?; targets?; closest?: boolean } = {}): DefinitionKey[] {
   const { nodeInfo } = props;
   if (!nodeInfo) { console.log(props); throw new Error("inferRelatedNodes: props.nodeInfo is required"); };
   if (!selector) throw new Error("inferRelatedNodes: selector is required");
@@ -284,10 +284,10 @@ export function inferRelatedNodes(props: RuntimeProps, {
   );
 
   // Extract each group separately
-  // Resolve OlxReferences to OlxKeys for idMap lookup
-  const explicitTargets: OlxKey[] = targetIds ? targetIds.map(ref => refToOlxKey(ref)) : [];
+  // Resolve DefinitionRefs to DefinitionKeys for idMap lookup
+  const explicitTargets: DefinitionKey[] = targetIds ? targetIds.map(ref => refToDefinitionKey(ref)) : [];
 
-  let parents: OlxKey[] = [];
+  let parents: DefinitionKey[] = [];
   if (inferModes.includes('parents')) {
     const allParents = getParents(nodeInfo, { selector, includeRoot: false });
     // getParents returns nearest-first, so [0] is the closest parent
@@ -296,7 +296,7 @@ export function inferRelatedNodes(props: RuntimeProps, {
       : allParents.map(n => getNodeId(n, 'inferRelatedNodes (parents)'));
   }
 
-  let kids: OlxKey[] = [];
+  let kids: DefinitionKey[] = [];
   if (inferModes.includes('kids')) {
     const allKids = getKidsBFS(nodeInfo, { selector, includeRoot: false });
     // BFS returns nearest-first, so [0] is the closest kid
@@ -318,7 +318,7 @@ export function inferRelatedNodes(props: RuntimeProps, {
  * @returns {string} Grader ID
  * @throws {Error} If no grader found or multiple graders found at same level
  */
-export function getGrader(props: RuntimeProps, { infer }: { infer? } = {}): OlxKey {
+export function getGrader(props: RuntimeProps, { infer }: { infer? } = {}): DefinitionKey {
   const ids = inferRelatedNodes(props, {
     selector: n => n.loBlock.isGrader,
     targets: props.target,
@@ -371,14 +371,14 @@ export function getInputs(props, { infer }: { infer? } = {}) {
  * @param id - ID of the component to get value from
  * @returns The component's current value
  */
-export function getValueById(props: RuntimeProps, id: OlxReference | null | undefined) {
+export function getValueById(props: RuntimeProps, id: DefinitionRef | null | undefined) {
   const reduxState = props.runtime.store.getState();
-  const reduxKey = id ? idResolver.refToReduxKey({ ...props, id }) : null;
+  const stateKey = id ? idResolver.refToReduxKey({ ...props, id }) : null;
 
   // valueSelector handles content lookup and selectValue dispatch.
   // Unwrap .value — non-hook callers get the raw value (by the time actions
   // run, content should be loaded; if not, they get the fallback).
-  return state.valueSelector(props, reduxState, reduxKey).value;
+  return state.valueSelector(props, reduxState, stateKey).value;
 }
 
 /**
