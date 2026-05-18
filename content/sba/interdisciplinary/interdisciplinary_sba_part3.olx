@@ -1,0 +1,87 @@
+<!-- Interdisciplinary Studies SBA, Part 3: Developing a Problem Statement -->
+<Vertical id="interdisciplinary_sba2_root">
+
+<!-- Main SBA Interface -->
+<!--
+---
+description: Analyze high school dropout rates, focusing on developing an effective problem statement (part 3)
+category: interdisciplinary
+index: 71
+lang: en-Latn-US
+---
+-->
+<Cast cast="characters.cast" id="interdisciplinary_sba_demo_part3" title="Interdisciplinary Studies SBA, Part 3 - Developing a Problem Statement" launchable="true">
+  <Tabs id="interdisciplinary_sba3_tabs">
+    <!-- Tab 1: Student Current Work -->
+   <Sequential id="interdisciplinary_part3_seq" title="Current Activity">
+ 
+     <SplitPanel sizes="30, 70" id="interdisciplinary_part3_sp1">
+        <!-- Left Panel: Dialogue Conversation -->
+        <LeftPane>
+          <Chat id="interdisciplinary_chat_intro3" 
+            src="interdisciplinary_dialogue_part3.chatpeg" 
+            clip="orientation3"
+            height="400px" />
+        </LeftPane>
+
+        <!-- Right Panel: Current Activity -->
+        <RightPane>
+          <Vertical id="interdisciplinary3_orientation" title="Current Activity">
+            <UseHistory id="interdisciplinary_sba_sidebar3_a" initial="interdisciplinary_3_intro" />
+          </Vertical>
+        </RightPane>
+      </SplitPanel>
+
+   <SplitPanel sizes="30, 70" id="interdisciplinary_part3_sp2">
+      <!-- Left Panel: Dialogue Conversation -->
+      <LeftPane>
+        <Chat id="interdisciplinary_chat_intro3b" 
+            src="interdisciplinary_dialogue_part3.chatpeg" 
+            clip="interdisciplinary_status"
+            height="400px" />
+      </LeftPane>
+
+      <!-- Right Panel: Current Activity -->
+      <RightPane>
+          <Vertical id="interdisciplinary3_status" title="Current Activity">
+            <UseHistory id="interdisciplinary_sba_sidebar3_b" initial="extended_summary_3" />
+          </Vertical>
+      </RightPane>
+    </SplitPanel>
+ 
+    <SplitPanel sizes="30, 70" id="interdisciplinary_part3_sp3">
+      <!-- Left Panel: Dialogue Conversation -->
+      <LeftPane>
+        <Chat id="interdisciplinary_chat_intro3c" 
+            src="interdisciplinary_dialogue_part3.chatpeg" 
+            clip="interdisciplinary_problem_statement"
+            height="400px" />
+      </LeftPane>
+
+      <!-- Right Panel: Current Activity -->
+      <RightPane>
+          <Vertical id="interdisciplinary3_criteria" title="Current Activity">
+            <UseHistory id="interdisciplinary_sba_sidebar3_c" initial="repko_criteria" />
+          </Vertical>
+      </RightPane>
+    </SplitPanel>
+    </Sequential>
+
+    <!-- Tab 2: Student Artifact -->
+    <Vertical id="interdisciplinary3_artifact_tab" title="Artifact">
+      <Use ref="interdisciplinary_artifact" />
+    </Vertical>
+
+    <!-- Tab 3: Library of Readings -->
+    <Vertical id="interdisciplinary3_library_tab" title="Library">
+      <Use ref="interdisciplinary_library" />
+    </Vertical>
+
+    <!-- Tab 4: Team Directory -->
+    <Vertical id="interdisciplinary3_directory" title="Team">
+      <Use ref="interdisciplinary_team_members" />
+    </Vertical>
+  </Tabs>
+</Cast>
+
+</Vertical>

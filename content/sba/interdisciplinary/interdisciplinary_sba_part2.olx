@@ -10,7 +10,7 @@ index: 71
 lang: en-Latn-US
 ---
 -->
-<Cast cast="characters.cast" id="interdisciplinary_sba_demo_part2" title="Interdisciplinary Studies SBA, Part 2 - Developing a Problem Statement" launchable="true">
+<Cast cast="characters.cast" id="interdisciplinary_sba_demo_part2" title="Interdisciplinary Studies SBA, Part 2 - Interdisciplinary Research Methods and Statistical Reasoning" launchable="true">
   <Tabs id="interdisciplinary_sba2_tabs">
     <!-- Tab 1: Student Current Work -->
    <Sequential id="interdisciplinary_part2_seq" title="Current Activity">

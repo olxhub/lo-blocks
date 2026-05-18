@@ -28,7 +28,7 @@ We've been asked to investigate the causes of high school dropout so Comm360 can
         </Markdown>
       </Vertical>
       <Vertical id="artifact_tb_2" title="Significance Statement">
-        <TextArea id="interdisciplinary_sba_problem_statement_revised" placeholder="Your significance statement will appear here..." />
+        <TextArea id="interdisciplinary_sba_problem_statement_revised" placeholder="Your revision of Peggy's significance statement goes here..." />
       </Vertical>
       <Vertical id="artifact_tb_1" title="Final Problem Statement">
         <TextArea id="interdisciplinary_sba_full_problem_statement" placeholder="Your final problem statement will appear here once completed..." />
