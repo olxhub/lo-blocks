@@ -13,7 +13,7 @@
 //
 import { z } from 'zod';
 import { VALID, validateStateRef, parseStateRef } from '../types/id-grammar';
-import type { DefinitionKey, StateRef } from '../types/id-grammar';
+import type { StateRef } from '../types/id-grammar';
 import { z_locale } from '../types/i18n';
 import { parse as parseExpr } from '@/lib/stateLanguage';
 import { CastSchema, Face, AvatarStyle } from '@/lib/avatar/types';
@@ -115,15 +115,6 @@ function tagRefSchema<T extends z.ZodType>(schema: T, extractor: RefExtractor): 
   (schema as any)._def[REF_EXTRACTOR] = extractor;
   return schema;
 }
-
-/** Single DefinitionKey — bare block ID, no path prefix, no scope. */
-export const z_definitionKey = tagRefSchema(
-  z.string().refine(
-    id => VALID.leafId.test(id),
-    id => ({ message: `"${id}" is not a valid block ID (must start with letter or underscore, then letters/digits/underscores)` })
-  ).transform(id => id as unknown as DefinitionKey),
-  v => [v],
-);
 
 function hasStateRefShape(input: string): boolean {
   return validateStateRef(input) === true;

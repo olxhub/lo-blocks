@@ -99,7 +99,7 @@ export const stateRef = `(?:.+${nsDelim})?(?:${scopeSegment}:)*${leafId}`;
 //
 // Keys are the normalized subset of Refs. Always namespace-qualified with
 // a short stable name (not a full URL). In TypeScript, branded as a subtype
-// of the corresponding Ref (Key extends Ref with { __resolved: true }).
+// of the corresponding Ref (Key = Ref & Brand<'Resolved'>).
 //
 // DefinitionKey:          "ee101://hw1", "edu.mit.eecs6002://resistorProblem"
 // StateKey:   "ee101://designList:#7:mydesigns"
@@ -305,17 +305,16 @@ export function validateContentNamespace(s: string): true | string {
 
 export function validateDefinitionRef(s: string): true | string {
   if (!s) return 'DefinitionRef cannot be empty';
-  // DefinitionRef accepts bare IDs and path-prefixed forms (/, ./)
-  const stripped = s.replace(/^\.?\//, '');
-  if (!stripped) return `DefinitionRef "${s}" has path prefix but no ID`;
-  if (!VALID.leafId.test(stripped)) return `DefinitionRef "${s}" contains invalid characters`;
+  if (!VALID.definitionRef.test(s)) {
+    return `Not a valid DefinitionRef: "${s}" (expected leafId, or source://leafId)`;
+  }
   return true;
 }
 
 export function validateDefinitionKey(s: string): true | string {
   if (!s) return 'DefinitionKey cannot be empty';
-  if (!VALID.definitionKey.test(s) && !VALID.leafId.test(s)) {
-    return `Not a valid DefinitionKey: "${s}"`;
+  if (!VALID.definitionKey.test(s)) {
+    return `Not a valid DefinitionKey: "${s}" (must be namespace://leafId)`;
   }
   return true;
 }
@@ -335,9 +334,8 @@ export function validateStateRef(s: string): true | string {
 
 export function validateStateKey(s: string): true | string {
   if (!s) return 'StateKey cannot be empty';
-  // Accept both bare (transitional) and namespaced forms
-  if (!VALID.stateKey.test(s) && !VALID.stateRef.test(s)) {
-    return `Not a valid StateKey: "${s}"`;
+  if (!VALID.stateKey.test(s)) {
+    return `Not a valid StateKey: "${s}" (must be namespace://path)`;
   }
   return true;
 }
@@ -364,25 +362,25 @@ export function parseContentNamespace(s: string): ContentNamespace {
   return asContentNamespace(s);
 }
 
-export function parseDefinitionRef(s: string, context = 'ID'): DefinitionRef {
+export function parseDefinitionRef(s: string, context?: string): DefinitionRef {
   const result = validateDefinitionRef(s);
-  if (result !== true) throw new Error(`${context}: ${result}`);
-  return asDefinitionRef(s.trim());
+  if (result !== true) throw new Error(context ? `${context}: ${result}` : result);
+  return asDefinitionRef(s);
 }
 
 export function parseDefinitionKey(s: string): DefinitionKey {
   assertValid(validateDefinitionKey(s));
-  return asDefinitionKey(s.trim());
+  return asDefinitionKey(s);
 }
 
 export function parseStateRef(s: string): StateRef {
   assertValid(validateStateRef(s));
-  return asStateRef(s.trim());
+  return asStateRef(s);
 }
 
 export function parseStateKey(s: string): StateKey {
   assertValid(validateStateKey(s));
-  return asStateKey(s.trim());
+  return asStateKey(s);
 }
 
 export function parseOLXTag(s: string): OLXTag {
@@ -440,12 +438,8 @@ export function extendIdPrefix(
  */
 export function addScope(key: DefinitionKey, idPrefix?: IdPrefix): StateKey {
   if (!idPrefix) return key as unknown as StateKey;
-  if (hasNamespace(key)) {
-    const { ns, path } = splitNs(key);
-    return asStateKey(joinNs(ns, `${idPrefix}${SCOPE_SEPARATOR}${path}`));
-  }
-  // Bare key (transitional — no namespace yet)
-  return asStateKey(`${idPrefix}${SCOPE_SEPARATOR}${key}`);
+  const { ns, path } = splitNs(key);
+  return asStateKey(joinNs(ns, `${idPrefix}${SCOPE_SEPARATOR}${path}`));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -580,12 +574,12 @@ export function qualifyRef(ref: string, namespace: string): string {
 
 /** Qualify a DefinitionRef → DefinitionKey. Already-namespaced refs pass through. */
 export function qualifyDefinitionRef(ref: DefinitionRef, ns: ContentNamespace): DefinitionKey {
-  return asDefinitionKey(qualifyRef(ref, ns));
+  return parseDefinitionKey(qualifyRef(ref, ns));
 }
 
 /** Qualify a StateRef → StateKey. Already-namespaced refs pass through. */
 export function qualifyStateRef(ref: StateRef, ns: ContentNamespace): StateKey {
-  return asStateKey(qualifyRef(ref, ns));
+  return parseStateKey(qualifyRef(ref, ns));
 }
 
 /**

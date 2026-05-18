@@ -9,13 +9,13 @@ import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
 import { useFieldState, settings } from '@/lib/state';
 import { useContentLoader } from '@/lib/content/useContentLoader';
-import { parseDefinitionKey } from '@/lib/types/id-grammar';
+import { toDefinitionKey } from '@/lib/types/id';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { ComponentError } from '@/lib/types';
 
 export default function PreviewPage() {
   const params = useParams();
-  const definitionKey = parseDefinitionKey(params.id as string);
+  const definitionKey = toDefinitionKey(params.id as string);
   // TODO: Pass baselineProps from useBaselineProps() instead of null
   const [debug] = useFieldState(
     null,

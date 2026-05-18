@@ -127,7 +127,7 @@ export function ensureBlock(
  * those blocks are loaded.
  *
  * Which attributes to scan is determined by the block's zod schema — any
- * attribute tagged with a ref extractor (z_definitionKey, z_stateRef, z_stateRefList,
+ * attribute tagged with a ref extractor (z_stateRef, z_stateRefList,
  * z_blockFieldRef, z_blockFieldRefList) is automatically discovered via
  * getRefAttributes(). Each schema knows how to extract block IDs from its
  * (possibly transformed) value.

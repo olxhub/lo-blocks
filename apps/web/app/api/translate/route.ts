@@ -13,7 +13,7 @@ import { getProvider } from '@/lib/llm/provider';
 import { translateContent } from '@/lib/translate';
 import type { DefinitionKey, ContentVariant, LofsRef, OlxRelativePath, SafeRelativePath } from '@/lib/types';
 
-import { parseDefinitionKey } from '@/lib/types/id-grammar';
+import { toDefinitionKey } from '@/lib/types/id';
 import { toContentVariant } from '@/lib/types/i18n';
 
 const contentDir = process.env.OLX_CONTENT_DIR || './content';
@@ -171,7 +171,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const blockId = parseDefinitionKey(body.blockId);
+    const blockId = toDefinitionKey(body.blockId);
 
     if (getProvider().provider === 'stub') {
       return NextResponse.json(
