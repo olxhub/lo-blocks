@@ -61,10 +61,28 @@ lang: en-Latn-US
       <!-- Right Panel: Current Activity -->
       <RightPane>
           <Vertical id="interdisciplinary3_criteria" title="Current Activity">
-            <UseHistory id="interdisciplinary_sba_sidebar3_c" initial="repko_criteria" />
+            <UseHistory id="interdisciplinary_sba_sidebar3_c" initial="repko_problem_statement_criteria" />
           </Vertical>
       </RightPane>
     </SplitPanel>
+
+    <SplitPanel sizes="30, 70" id="interdisciplinary_part3_sp4">
+      <!-- Left Panel: Dialogue Conversation -->
+      <LeftPane>
+        <Chat id="interdisciplinary_chat_intro3d" 
+            src="interdisciplinary_dialogue_part3.chatpeg" 
+            clip="problem_statement_draft"
+            height="400px" />
+      </LeftPane>
+
+      <!-- Right Panel: Current Activity -->
+      <RightPane>
+          <Vertical id="interdisciplinary3_problem_statement_writing" title="Current Activity">
+            <UseHistory id="interdisciplinary_sba_sidebar3_d" initial="repko_problem_statement_criteria" />
+          </Vertical>
+      </RightPane>
+    </SplitPanel>
+
     </Sequential>
 
     <!-- Tab 2: Student Artifact -->
@@ -82,6 +100,7 @@ lang: en-Latn-US
       <Use ref="interdisciplinary_team_members" />
     </Vertical>
   </Tabs>
+
 </Cast>
 
 </Vertical>
