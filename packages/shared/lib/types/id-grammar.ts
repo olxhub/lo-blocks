@@ -350,8 +350,8 @@ export function validateOLXTag(s: string): true | string {
 // PARSERS (parseX)
 // ═══════════════════════════════════════════════════════════════════════════════
 //
-// Boundary functions: validate + brand. Accept unknown/string, throw on
-// failure. No Zod dependency — Zod schemas consume these, not the reverse.
+// Boundary functions: validate + brand. Accept string, throw on failure.
+// No Zod dependency — Zod schemas consume these, not the reverse.
 
 function assertValid(result: true | string): asserts result is true {
   if (result !== true) throw new Error(result);
@@ -485,14 +485,14 @@ export const z_stateKey         = brandedString(validateStateKey, asStateKey);
  * Extract all block IDs from a StateKey, preserving namespace context.
  *
  *   extractBlocks("physics://problems:#0:answer")
- *   → { ns: "physics", blockIds: ["problems", "answer"] }
+ *   → { namespace: "physics", blockIds: ["problems", "answer"] }
  *
  * To get DefinitionKeys:
- *   result.blockIds.map(id => joinNs(result.ns, id))
+ *   result.blockIds.map(id => joinNs(result.namespace, id))
  */
-export function extractBlocks(key: string): { ns: string; blockIds: string[] } {
+export function extractBlocks(key: string): { namespace: string; blockIds: string[] } {
   const { ns, path } = splitNs(key);
-  return { ns, blockIds: blockSegments(path) };
+  return { namespace: ns, blockIds: blockSegments(path) };
 }
 
 /** Extract all block IDs (strips namespace and scope markers). */

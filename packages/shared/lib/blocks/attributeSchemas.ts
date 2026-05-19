@@ -12,7 +12,7 @@
 // This allows a block to be input+grader+src without combinatorial explosion.
 //
 import { z } from 'zod';
-import { VALID, validateStateRef, parseStateRef } from '../types/id-grammar';
+import { VALID, validateStateRef, parseStateRef, z_stateRef as z_stateRef_canonical } from '../types/id-grammar';
 import type { StateRef } from '../types/id-grammar';
 import { z_locale } from '../types/i18n';
 import { parse as parseExpr } from '@/lib/stateLanguage';
@@ -121,13 +121,7 @@ function hasStateRefShape(input: string): boolean {
 }
 
 /** Single StateRef — authored target ref, may include scope markers (e.g. "myList:#0:answer"). */
-export const z_stateRef = tagRefSchema(
-  z.string().refine(
-    key => hasStateRefShape(key),
-    key => ({ message: `"${key}" is not a valid target ref` })
-  ).transform(key => parseStateRef(key)),
-  v => [v],
-);
+export const z_stateRef = tagRefSchema(z_stateRef_canonical, v => [v]);
 
 /** Comma-separated StateRefs → StateRef[]. Idempotent (accepts already-split arrays). */
 export const z_stateRefList = tagRefSchema(

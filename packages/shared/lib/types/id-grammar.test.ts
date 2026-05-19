@@ -334,8 +334,8 @@ describe("decomposition", () => {
       it("splitNs", () => {
         expect(splitNs(ex.key)).toEqual({ ns: ex.namespace, path: ex.key.split('://')[1] });
       });
-      it("extractBlocks (ns + blockIds)", () => {
-        expect(extractBlocks(ex.key)).toEqual({ ns: ex.namespace, blockIds: ex.blocks });
+      it("extractBlocks (namespace + blockIds)", () => {
+        expect(extractBlocks(ex.key)).toEqual({ namespace: ex.namespace, blockIds: ex.blocks });
       });
       it("extractBlockIds (bare IDs)", () => {
         expect(extractBlockIds(ex.key)).toEqual(ex.blocks);
@@ -348,8 +348,8 @@ describe("decomposition", () => {
 
   it("extractBlocks enables DefinitionKey reconstruction for content loading", () => {
     // Given a StateKey, what DefinitionKeys do we need in the idMap?
-    const { ns, blockIds } = extractBlocks("physics://problems:#0:answer");
-    const definitionKeys = blockIds.map(id => joinNs(ns, id));
+    const { namespace, blockIds } = extractBlocks("physics://problems:#0:answer");
+    const definitionKeys = blockIds.map(id => joinNs(namespace, id));
     expect(definitionKeys).toEqual(["physics://problems", "physics://answer"]);
   });
 });
