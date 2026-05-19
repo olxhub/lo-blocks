@@ -35,8 +35,11 @@ import { problemAttributes } from '@/lib/blocks/attributeSchemas';
 import _CapaProblem from './_CapaProblem';
 import type { KidEntry, DefinitionKey, DefinitionRef } from '@/lib/types';
 
-// Grader-input mapping for auto-wiring targets
-type GraderMapping = { id: DefinitionKey; inputs: DefinitionKey[] };
+// Grader-input mapping for auto-wiring targets.
+// `inputs` stores bare DefinitionRefs (not qualified DefinitionKeys) because
+// auto-wired target attributes are an authored-ref channel — they go through
+// the same Zod/parse pipeline as hand-written target="foo,bar" attributes.
+type GraderMapping = { id: DefinitionKey; inputs: DefinitionRef[] };
 
 // CapaProblem acts as a "metagrader" - it aggregates correctness from child graders.
 // This allows Correctness/StatusText inside CapaProblem to find CapaProblem itself
@@ -90,9 +93,10 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
           childAttrs.id = `${bareId}_${childTag.toLowerCase()}_${nodeIndex++}`;
         }
       }
-      // Qualify the bare ID to a DefinitionKey for tracking.
+      // Parse the bare ref and qualify to a DefinitionKey for idMap tracking.
       // parseNode will also qualify when processing the child, producing the same key.
-      const blockId = definitionKeyForRef(parseDefinitionRef(childAttrs.id));
+      const blockRef = parseDefinitionRef(childAttrs.id);
+      const blockId = definitionKeyForRef(blockRef);
 
       let mapping = currentGrader;
       if (blockType.isGrader) {
@@ -100,7 +104,7 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
         graders.push(mapping);
       }
       if (blockType.isInput && currentGrader) {
-        currentGrader.inputs.push(blockId);
+        currentGrader.inputs.push(blockRef);
       }
 
       const kids = node[childTag];
@@ -109,7 +113,7 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
         assignIdsAndBuildStructure(kid, mapping);
       }
 
-      return { type: 'block', id: blockId as unknown as DefinitionRef };
+      return { type: 'block', id: blockId };
     }
 
     // HTML tag
