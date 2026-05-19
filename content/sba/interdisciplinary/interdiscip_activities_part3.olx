@@ -7,13 +7,15 @@ lang: en-Latn-US
 ---
 -->
 <Cast cast="characters.cast" id="interdisciplinary_activities_part3" title="Activities for Part 3 of Interdisciplinary Studies SBA on High School Dropout Rates" launchable="true">
-<Vertical>
+<Vertical id="interdisciplinary_part_3_activities">
 
   <ActionButton id="print_interdisciplinary_part3_btn" label="Export as PDF">
     <PrintAction id="print_interdisciplinary_part3" />
   </ActionButton>
   
-  <Markdown id="interdisciplinary_3_intro">
+  <IntakeGate ready="@student_problem_statement.value" >
+    <HH />
+    <Markdown id="interdisciplinary_3_intro">
 In this module, you'll apply what you've learned in class about the interdisciplinary research process and the Broad Model of the Interdisciplinary Research Process. The module contains everything you need to complete the project.
 
 There are instructions on the screen to help you navigate and give your answers. Please follow them carefully.
@@ -23,39 +25,51 @@ The purpose of this task is to help you practice **doing** the interdisciplinary
 Remember that I will be seeing these results, so please take it seriously and do your best work. I think you'll enjoy it.
 
 Please keep in mind that this is a learning opportunity, not a test. You will often be given a chance to answer a question, and then review the correct answer on a following screen. You are allowed to revise your answers, but be aware that the system will record both your **initial** answers and your **revisions**, and your revision history will be available to me for review.
-  </Markdown>
-  
-  <Markdown id="interdisciplinary_3_clear">&nbsp;</Markdown>
-  
-  <SplitPanel id="extended_summary_3">
-    <LeftPane>
-      <Use ref="cause_mapping_introduction" />
-      <Use ref="first_crosslink_sentence" />
-      <Use ref="factor_connection_1_key" />
-      <Use ref="factor_connection_2_key" />
-      <Use ref="factor_connection_3_key" />
-      <Use ref="factor_connection_4" />
-      <Use ref="factor_connection_5" />
-    </LeftPane>
-    <RightPane>
-      <Use ref="cause_mapping_4" />
-    </RightPane>
-  </SplitPanel>
+    </Markdown>
+  </IntakeGate>
 
-  <Markdown id="peggys_significance_statement">
+  <IntakeGate ready="@student_problem_statement.value" >
+    <HH />
+    <Vertical>
+      <Markdown id="interdisciplinary_3_clear">&nbsp;</Markdown>
+      <SplitPanel id="extended_summary_3">
+        <LeftPane>
+          <Use ref="cause_mapping_introduction" />
+          <Use ref="first_crosslink_sentence" />
+          <Use ref="factor_connection_1_key" />
+          <Use ref="factor_connection_2_key" />
+          <Use ref="factor_connection_3_key" />
+          <Use ref="factor_connection_4" />
+          <Use ref="factor_connection_5" />
+        </LeftPane>
+        <RightPane>
+          <Use ref="cause_mapping_4" />
+        </RightPane>
+      </SplitPanel>
+    </Vertical>
+  </IntakeGate>
+  
+  <IntakeGate ready="@student_problem_statement.value" >
+    <HH />
+   <Markdown id="peggys_significance_statement">
 Higher school dropout rates can increase crime as education often provides structure and opportunity, reducing the likelihood of criminal activities, thus suggesting vocational education can be pivotal as it offers practical skills training, presents clear job opportunities, and keeps students engaged and less likely to drop out.
-  </Markdown>
-
+    </Markdown>
+  </IntakeGate>
+  
   <Vertical id="correct_significance_statement">
-    <SplitPanel sizes="30,70">
-      <LeftPane>
-        <Markdown>
+    <IntakeGate ready="@student_problem_statement.value" >
+      <Markdown>
+### Your revision of Peggy's Significance Statement
+      </Markdown>
+      <SplitPanel sizes="30,70">
+        <LeftPane>
+          <Markdown>
 **Correct and revise this significance statement**
-        </Markdown>
-        <Use ref="peggys_significance_statement" />
-      </LeftPane>
-      <RightPane>
-        <Markdown>
+          </Markdown>
+          <Use ref="peggys_significance_statement" />
+        </LeftPane>
+        <RightPane>
+          <Markdown>
 **Based on this source text... (excerpt from source text)**
 
 ### Impact of High School Dropout
@@ -69,21 +83,27 @@ those without high school diplomas (Do Something). This places financial strain 
 and social services. At a national level, a less educated workforce weakens the economy. The government
 spends between \$1.7 and \$2.3 million per dropout over their lifetime due to lost tax revenue and
 social service costs (elevatetheusa.org).
-        </Markdown>
-      </RightPane>
-    </SplitPanel>
+          </Markdown>
+        </RightPane>
+      </SplitPanel>
+    </IntakeGate>
     <Markdown>**Write your revision in the box.**</Markdown>
     <Use ref="interdisciplinary_sba_problem_statement_revised" />
   </Vertical>
-  
-  <Markdown id="peggys_revised_significance_statement">
+
+  <IntakeGate ready="@student_problem_statement.value" >
+    <TextBlock />
+    <Markdown id="peggys_revised_significance_statement">
 Higher school dropout is a pressing social issue with far-reaching consequences, affecting economic stability,
 social mobility, public health, and community well-being. Dropouts face higher unemployment, increased
 likelihood of criminal activity, and greater reliance on public assistance. Their lower earning potential
 also strains public resources, including healthcare, welfare, and the criminal justice system.
-  </Markdown>
+    </Markdown>
+  </IntakeGate>
   
-  <Markdown id="repko_problem_statement_criteria">
+  <IntakeGate ready="@student_problem_statement.value" >
+    <HH />
+    <Markdown id="repko_problem_statement_criteria">
 A successful problem statement:
  1. **answers the "so what" question** by explaining why the topic is important to society;
  2. shows that the problem to be researched is a good candidate for an interdisciplinary study
@@ -92,8 +112,11 @@ A successful problem statement:
  4. states the **focus of the study** clearly and concisely;
  5. defines the **scope of the study** by narrowing its focus to the part of the topic that will be studied.
   </Markdown>
-
-  <Markdown id="comm360_mission">
+  </IntakeGate>
+  
+  <IntakeGate ready="@student_problem_statement.value" >
+    <HH />
+    <Markdown id="comm360_mission">
 The mission of Comm360 is to address **community-based needs and issues** through responsive programming
 in four priority areas:
  - **Education and Training**: Programs designed to equip individuals with knowledge and skills
@@ -108,8 +131,8 @@ in four priority areas:
    community development through inclusive initiatives. _Examples_: Voter Education, Neighborhood
    Revitalization, Diversity Workshops (including advocating for changes in school curriculum
    and instruction and equitable school funding).
-  </Markdown>
-
+    </Markdown>
+  </IntakeGate>
 
     <!-- Causes to service area mapping -->
       <CapaProblem id="cause_service_mapping" title="Map Each Cause of High School Dropout to Comm360 Service Areas"> 
@@ -138,19 +161,24 @@ _Put your answer in the box to the right._
       <RightPane>
         <TextArea id="interdisciplinary_explain_comm360_relevance" placeholder="Put your explanation here ..." />
       </RightPane>
-    </SplitPanel>   
-    <Use ref="cause_service_mapping" />
+    </SplitPanel>
+    <IntakeGate ready="@student_problem_statement.value" >
+      <HH />
+      <Use ref="cause_service_mapping" />
+    </IntakeGate>
   </Vertical>  
   
   <HH>What I really wanted to do here is to display the correct answers to the tabularMCQ without showing the student answers. If that's possible I couldn't see how.</HH>
-  <Markdown id="interdisciplinary_show_service_areas">
+  <IntakeGate ready="@student_problem_statement.value" >
+    <Markdown>&nbsp;</Markdown>
+    <Markdown id="interdisciplinary_show_service_areas">
 ### Which of Comm360's service areas can address each cause of high school dropout.
 - **Family and Youth Services:** If a student feels they need to earn money right away to help their family, they might drop out to get a full-time job.
 - **Health and Wellness:** Conditions like depression, anxiety, or ADHD can interfere with a student's ability to get good grades and remain engaged in school.
 - **Community Building and Advocacy**: A student's environment may increase their likelihood of dropping out if they live in an  area affected by gang activity, neighborhood instability, and limited support systems, as seen in some urban communities.
 - **Community Building and Advocacy**: Lack of school funding means fewer resources and support for students, making historically underserved students more likely to drop out.
-  </Markdown>
-  
+    </Markdown>
+  </IntakeGate>
   
   <Vertical id="relevant_disciplines_for_problem_statement"> 
    <Markdown>
@@ -248,6 +276,8 @@ Social Work
       </Markdown>
       <TextArea id="student_problem_statement" placeholder="Draft your problem statement here ..." rows="20" />
   </Vertical>
+  
+  <Markdown id="clear_screen">&nbsp;</Markdown>
   
 </Vertical>
 </Cast>

@@ -83,7 +83,287 @@ lang: en-Latn-US
       </RightPane>
     </SplitPanel>
 
-    </Sequential>
+    <SplitPanel sizes="30, 70" id="interdisciplinary_part3_sp5">
+      <!-- Left Panel: Dialogue Conversation -->
+      <LeftPane>
+        <Chat id="interdisciplinary_chat_intro3e" 
+            src="interdisciplinary_dialogue_part3.chatpeg" 
+            clip="interdisciplinary_finishing_up"
+            height="400px" />
+      </LeftPane>
+
+      <!-- Right Panel: Current Activity -->
+      <RightPane>
+          <Vertical id="interdisciplinary3_finishing_up" title="Current Activity">
+            <UseHistory id="interdisciplinary_sba_sidebar3_e" initial="clear_screen" />
+          </Vertical>
+      </RightPane>
+    </SplitPanel>
+
+    <Markdown>
+## Post-SBA Survey
+
+The following questions will ask you about the Scenario-based Activity (SBA) interface and the content of the SBA. The SBA interface is the system in which you completed the SBA assignment for this course. When considering interface questions, please consider the usability of the system, such as moving from screen to screen, interacting with the text boxes, and reading or accessing the content. When considering content questions, please consider how you feel regarding the content of the SBA and how it relates to this course and your understanding.
+
+There are 18 questions total, and this should take about 10 minutes to complete.
+    </Markdown>
+    
+    <Vertical>
+      <Markdown>
+### How much do you agree or disagree with the following statements regarding your experience with the SBA in this course?
+
+**I thought the SBA interface was easy to use.**
+      </Markdown>
+      <ChoiceInput id="interdisciplinary_post_survey_1">
+        <Key>Strongly Disagree</Key>
+        <Key>Disagree</Key>
+        <Key>Neutral</Key>
+        <Key>Agree</Key>
+        <Key>Strongly Agree</Key>
+      </ChoiceInput>
+    </Vertical>
+
+    <Vertical>
+      <Markdown>
+### How much do you agree or disagree with the following statements regarding your experience with the SBA in this course?
+
+**I think I would want the support of a technical person to be able to use the SBA interface.**
+      </Markdown>
+      <ChoiceInput id="interdisciplinary_post_survey_2">
+        <Key>Strongly Disagree</Key>
+        <Key>Disagree</Key>
+        <Key>Neutral</Key>
+        <Key>Agree</Key>
+        <Key>Strongly Agree</Key>
+      </ChoiceInput>
+    </Vertical>
+
+    <Vertical>
+      <Markdown>
+### How much do you agree or disagree with the following statements regarding your experience with the SBA in this course?
+
+**I thought the various parts of the SBA interface fit together well.**
+      </Markdown>
+      <ChoiceInput id="interdisciplinary_post_survey_3">
+        <Key>Strongly Disagree</Key>
+        <Key>Disagree</Key>
+        <Key>Neutral</Key>
+        <Key>Agree</Key>
+        <Key>Strongly Agree</Key>
+      </ChoiceInput>
+    </Vertical>
+
+    <Vertical>
+      <Markdown>
+### How much do you agree or disagree with the following statements regarding your experience with the SBA in this course?
+
+**I would imagine that most people would learn to use the SBA interface very quickly.**
+      </Markdown>
+      <ChoiceInput id="interdisciplinary_post_survey_4">
+        <Key>Strongly Disagree</Key>
+        <Key>Disagree</Key>
+        <Key>Neutral</Key>
+        <Key>Agree</Key>
+        <Key>Strongly Agree</Key>
+      </ChoiceInput>
+    </Vertical>
+
+    <Vertical>
+      <Markdown>
+### How much do you agree or disagree with the following statements regarding your experience with the SBA in this course?
+
+**I found the SBA interface very cumbersome to use.**
+      </Markdown>
+      <ChoiceInput id="interdisciplinary_post_survey_5">
+        <Key>Strongly Disagree</Key>
+        <Key>Disagree</Key>
+        <Key>Neutral</Key>
+        <Key>Agree</Key>
+        <Key>Strongly Agree</Key>
+      </ChoiceInput>
+    </Vertical>
+
+    <Vertical>
+      <Markdown>
+### How much do you agree or disagree with the following statements regarding your experience with the SBA in this course?
+
+**I felt very confident using the SBA interface.**
+      </Markdown>
+      <ChoiceInput id="interdisciplinary_post_survey_6">
+        <Key>Strongly Disagree</Key>
+        <Key>Disagree</Key>
+        <Key>Neutral</Key>
+        <Key>Agree</Key>
+        <Key>Strongly Agree</Key>
+      </ChoiceInput>
+    </Vertical>
+
+    <Vertical>
+      <Markdown>
+### How much do you agree or disagree with the following statements regarding your experience with the SBA in this course?
+
+**I felt confident in my understanding of the content.**
+      </Markdown>
+      <ChoiceInput id="interdisciplinary_post_survey_7">
+        <Key>Strongly Disagree</Key>
+        <Key>Disagree</Key>
+        <Key>Neutral</Key>
+        <Key>Agree</Key>
+        <Key>Strongly Agree</Key>
+      </ChoiceInput>
+    </Vertical>
+
+    <Vertical>
+      <Markdown>
+### How much do you agree or disagree with the following statements regarding your experience with the SBA in this course?
+
+**I found the content to be consistent with what we were learning in the course.**
+      </Markdown>
+      <ChoiceInput id="interdisciplinary_post_survey_8">
+        <Key>Strongly Disagree</Key>
+        <Key>Disagree</Key>
+        <Key>Neutral</Key>
+        <Key>Agree</Key>
+        <Key>Strongly Agree</Key>
+      </ChoiceInput>
+    </Vertical>
+
+    <Vertical>
+      <Markdown>
+### How much do you agree or disagree with the following statements regarding your experience with the SBA in this course?
+
+**I think that I would like more SBAs to be used in other courses.**
+      </Markdown>
+      <ChoiceInput id="interdisciplinary_post_survey_9">
+        <Key>Strongly Disagree</Key>
+        <Key>Disagree</Key>
+        <Key>Neutral</Key>
+        <Key>Agree</Key>
+        <Key>Strongly Agree</Key>
+      </ChoiceInput>
+    </Vertical>
+
+    <Vertical>
+      <Markdown>
+### How helpful were the following aspects of the SBA in learning the Broad Model?
+
+**Conversations between characters**
+      </Markdown>
+      <ChoiceInput id="interdisciplinary_post_survey_10">
+        <Key>Not at all</Key>
+        <Key>Slightly</Key>
+        <Key>Moderately</Key>
+        <Key>Very</Key>
+        <Key>Extremely</Key>
+      </ChoiceInput>
+    </Vertical>
+
+    <Vertical>
+      <Markdown>
+### How helpful were the following aspects of the SBA in learning the Broad Model?
+
+**The characters demonstrating how to complete the activities**
+      </Markdown>
+      <ChoiceInput id="interdisciplinary_post_survey_11">
+        <Key>Not at all</Key>
+        <Key>Slightly</Key>
+        <Key>Moderately</Key>
+        <Key>Very</Key>
+        <Key>Extremely</Key>
+      </ChoiceInput>
+    </Vertical>
+
+    <Vertical>
+      <Markdown>
+### How helpful were the following aspects of the SBA in learning the Broad Model?
+
+**Use of a real-life problem (high school dropout)**
+      </Markdown>
+      <ChoiceInput id="interdisciplinary_post_survey_12">
+        <Key>Not at all</Key>
+        <Key>Slightly</Key>
+        <Key>Moderately</Key>
+        <Key>Very</Key>
+        <Key>Extremely</Key>
+      </ChoiceInput>
+    </Vertical>
+
+    <Vertical>
+      <Markdown>
+### How helpful were the following aspects of the SBA in learning the Broad Model?
+
+**Text annotation activity**
+      </Markdown>
+      <ChoiceInput id="interdisciplinary_post_survey_13">
+        <Key>Not at all</Key>
+        <Key>Slightly</Key>
+        <Key>Moderately</Key>
+        <Key>Very</Key>
+        <Key>Extremely</Key>
+      </ChoiceInput>
+    </Vertical>
+
+    <Vertical>
+      <Markdown>
+### How helpful were the following aspects of the SBA in learning the Broad Model?
+
+**Writing a problem statement**
+      </Markdown>
+      <ChoiceInput id="interdisciplinary_post_survey_14">
+        <Key>Not at all</Key>
+        <Key>Slightly</Key>
+        <Key>Moderately</Key>
+        <Key>Very</Key>
+        <Key>Extremely</Key>
+      </ChoiceInput>
+    </Vertical>
+
+    <Vertical>
+      <Markdown>
+### How helpful were the following aspects of the SBA in learning the Broad Model?
+
+**Graphic Organizer**
+      </Markdown>
+      <ChoiceInput id="interdisciplinary_post_survey_15">
+        <Key>Not at all</Key>
+        <Key>Slightly</Key>
+        <Key>Moderately</Key>
+        <Key>Very</Key>
+        <Key>Extremely</Key>
+      </ChoiceInput>
+    </Vertical>
+
+    <Vertical>
+      <Markdown>
+### How helpful were the following aspects of the SBA in learning the Broad Model?
+
+**Feedback**
+      </Markdown>
+      <ChoiceInput id="interdisciplinary_post_survey_16">
+        <Key>Not at all</Key>
+        <Key>Slightly</Key>
+        <Key>Moderately</Key>
+        <Key>Very</Key>
+        <Key>Extremely</Key>
+      </ChoiceInput>
+    </Vertical>
+
+    <Vertical>
+      <Markdown>
+**You just made judgments about features of the SBA. With these features in mind, reflect on
+your experience with the SBA and how it compares to other activities you've done in this and other courses.**
+      </Markdown>
+      <TextArea id="interdisciplinary_post_survey_17" placeholder="Write your reflection here..." />
+    </Vertical>
+
+    <Vertical>
+      <Markdown>
+**How did your understanding of the Broad Model change as a result of the SBA, if at all? Please explain.**
+      </Markdown>
+      <TextArea id="interdisciplinary_post_survey_18" placeholder="Write your reflection here..." />
+    </Vertical>
+
+  </Sequential>
 
     <!-- Tab 2: Student Artifact -->
     <Vertical id="interdisciplinary3_artifact_tab" title="Artifact">
