@@ -60,6 +60,12 @@
   subtitle: Primary Source - Gates Foundation (2006)
   description: Focus group data from high school dropouts
   ref: reading_focus_group
+
+- id: dropout_trends_annotated
+  title: Trends in High School Dropout and Completion Rates in the United States
+  subtitle: 2019
+  description: Statistics on changes in high school dropout rates
+  ref: research_study_dropout_trends_annotated
 </Navigator>
 
 <!-- Library template blocks -->
@@ -71,14 +77,22 @@
 <!-- Reading content blocks -->
 <Hidden>
   <Annotate id="reading_adhd">
+    <Markdown id="annotation_instructions">
+**_Highlight sentences then click on "annotate" to add notes; make sure you scroll down to the bottom to read the whole text._**
+    </Markdown>
     <Markdown id="adhd_study_text_md2" src="readings/research_study_adhd_dropout.md" />
   </Annotate>
   <Markdown id="reading_marijuana" src="readings/research_study_marijuana_dropout.md"/>
   <Markdown id="reading_policy2" src="readings/policy_brief_dropout_crisis.md"/>
   <Annotate id="reading_funding2a">
+    <Use ref="annotation_instructions" />
     <Markdown id="reading_funding2b" src="readings/research_study_school_funding.md"/>
   </Annotate>
   <Markdown id="reading_focus_group" src="readings/focus_group_silent_epidemic_excerpts.md"/>
+  <Annotate id="research_study_dropout_trends_annotated">
+    <Use ref="annotation_instructions" />
+    <Markdown id="research_study_dropout_trends" src="readings/research_study_dropout_trends.md"/>
+  </Annotate>
 </Hidden>
 
 </Vertical>
