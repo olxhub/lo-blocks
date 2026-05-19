@@ -596,6 +596,9 @@ export function qualifyStateRef(ref: StateRef, ns: ContentNamespace): StateKey {
  *
  * @throws {Error} if the derived name is not a valid namespace
  */
+// TODO(namespace): origin should be LofsOrigin (from address.ts), not string.
+// Blocked by circular dependency — id-grammar.ts is the leaf of the type system
+// and address.ts doesn't depend on it yet. Resolve when folding in address types.
 export function defaultNamespace(origin: string): ContentNamespace {
   const cleaned = origin.replace(/\.git$/, '');
   const lastSep = Math.max(cleaned.lastIndexOf('/'), cleaned.lastIndexOf(':'));
