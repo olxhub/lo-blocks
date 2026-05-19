@@ -4,7 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo } from 'react';
 import { inferRelatedNodes, getDomNodeByStateKey } from '@/lib/blocks/olxdom';
-import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
+import { stateKeyForGlobalRef, parseStateRef } from '@/lib/types/id-grammar';
 import { useAggregate, componentFieldByName } from '@/lib/state';
 
 function normalizeTargets(rawTargets) {
@@ -29,8 +29,8 @@ function resolveTargetIds(props, targetIds) {
   const seen = new Set();
 
   targetIds.forEach((targetId) => {
-    // DefinitionKey → StateKey (applies runtime.idPrefix for DynamicList scoping)
-    const targetNodeInfo = getDomNodeByStateKey(props, scopedStateKeyForBlock({ id: targetId, idPrefix: props.runtime?.idPrefix }));
+    // Authored target ref → StateKey (namespace-qualify but do NOT apply idPrefix)
+    const targetNodeInfo = getDomNodeByStateKey(props, stateKeyForGlobalRef(parseStateRef(targetId)));
 
     const graderIds = targetNodeInfo
       ? inferRelatedNodes(
@@ -96,7 +96,7 @@ export function _AggregatedInputs(props: RuntimeProps) {
   resolvedTargetIds.slice(1).forEach((id) => componentFieldByName(props, id, field));
 
   // resolvedTargetIds may contain DefinitionKeys (from inferRelatedNodes) — convert to StateKeys
-  const resolvedStateKeys = resolvedTargetIds.map(id => scopedStateKeyForBlock({ ...props, id }));
+  const resolvedStateKeys = resolvedTargetIds.map(id => stateKeyForGlobalRef(parseStateRef(id)));
 
   const aggregateMode = aggregate ?? (asObject ? 'object' : 'list');
   const values = useAggregate(props, fieldInfo, resolvedStateKeys, { fallback, aggregate: aggregateMode });
