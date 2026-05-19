@@ -15,6 +15,9 @@ import { describe, it, expect } from 'vitest';
 import {
   VALID, splitNs, joinNs, extractBlocks, extractBlockIds, extractLeafId,
   hasNamespace, defaultNamespace,
+  PLACEHOLDER_NS, scopedStateKeyForBlock, stateKeyForGlobalRef,
+  definitionKeyForRef, leafDefinitionKeyFromStateKey, allDefinitionKeysFromStateKey,
+  asIdPrefix, asStateRef, asStateKey, asDefinitionRef,
 } from './id-grammar';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -413,5 +416,110 @@ describe("defaultNamespace", () => {
       .toThrow("manifest.yaml");                                          // leading digit + dot
     expect(() => defaultNamespace("git@github.com:olxhub/my course.git"))
       .toThrow("manifest.yaml");                                          // space
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// KEY RESOLUTION — runtime key construction
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// These compose grammar, validation, scope construction, and namespace
+// qualification into the functions call sites actually use. Two distinct
+// operations: own-state (scoped) vs authored-target (global).
+
+describe("PLACEHOLDER_NS", () => {
+  it("is 'CONTENT'", () => {
+    expect(String(PLACEHOLDER_NS)).toBe("CONTENT");
+  });
+});
+
+describe("scopedStateKeyForBlock", () => {
+  it("bare id, no scope", () => {
+    expect(String(scopedStateKeyForBlock({ id: asDefinitionRef('answer') })))
+      .toBe("CONTENT://answer");
+  });
+
+  it("bare id + idPrefix", () => {
+    expect(String(scopedStateKeyForBlock({ id: asDefinitionRef('answer'), idPrefix: asIdPrefix('list:#0') })))
+      .toBe("CONTENT://list:#0:answer");
+  });
+
+  it("already-namespaced id passes through", () => {
+    expect(String(scopedStateKeyForBlock({ id: asDefinitionRef('calculus://answer') })))
+      .toBe("calculus://answer");
+  });
+
+  it("nested scope", () => {
+    expect(String(scopedStateKeyForBlock({
+      id: asDefinitionRef('answer'),
+      idPrefix: asIdPrefix('outer:#0:inner:#1')
+    }))).toBe("CONTENT://outer:#0:inner:#1:answer");
+  });
+});
+
+describe("stateKeyForGlobalRef", () => {
+  it("bare ref", () => {
+    expect(String(stateKeyForGlobalRef(asStateRef('answer'))))
+      .toBe("CONTENT://answer");
+  });
+
+  it("scoped ref", () => {
+    expect(String(stateKeyForGlobalRef(asStateRef('problems:#0:answer'))))
+      .toBe("CONTENT://problems:#0:answer");
+  });
+
+  it("already-namespaced ref passes through", () => {
+    expect(String(stateKeyForGlobalRef(asStateRef('calculus://answer'))))
+      .toBe("calculus://answer");
+  });
+
+  it("custom namespace", () => {
+    const ns = PLACEHOLDER_NS;  // uses default
+    expect(String(stateKeyForGlobalRef(asStateRef('answer'), ns)))
+      .toBe("CONTENT://answer");
+  });
+});
+
+describe("definitionKeyForRef", () => {
+  it("bare ref", () => {
+    expect(String(definitionKeyForRef(asDefinitionRef('answer')))).toBe("CONTENT://answer");
+  });
+
+  it("already-namespaced passes through", () => {
+    expect(String(definitionKeyForRef(asDefinitionRef('calculus://hw1')))).toBe("calculus://hw1");
+  });
+});
+
+describe("leafDefinitionKeyFromStateKey", () => {
+  it("scoped key → leaf", () => {
+    expect(String(leafDefinitionKeyFromStateKey(asStateKey("CONTENT://list:#0:answer"))))
+      .toBe("CONTENT://answer");
+  });
+
+  it("unscoped key → same", () => {
+    expect(String(leafDefinitionKeyFromStateKey(asStateKey("CONTENT://answer"))))
+      .toBe("CONTENT://answer");
+  });
+
+  it("deeply nested", () => {
+    expect(String(leafDefinitionKeyFromStateKey(asStateKey("physics://outer:#0:inner:#1:leaf"))))
+      .toBe("physics://leaf");
+  });
+});
+
+describe("allDefinitionKeysFromStateKey", () => {
+  it("scoped key → all blocks", () => {
+    expect(allDefinitionKeysFromStateKey(asStateKey("CONTENT://problems:#0:answer")).map(String))
+      .toEqual(["CONTENT://problems", "CONTENT://answer"]);
+  });
+
+  it("unscoped key → single block", () => {
+    expect(allDefinitionKeysFromStateKey(asStateKey("CONTENT://answer")).map(String))
+      .toEqual(["CONTENT://answer"]);
+  });
+
+  it("deeply nested", () => {
+    expect(allDefinitionKeysFromStateKey(asStateKey("physics://a:#0:b:#1:c")).map(String))
+      .toEqual(["physics://a", "physics://b", "physics://c"]);
   });
 });

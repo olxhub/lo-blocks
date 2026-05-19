@@ -610,13 +610,102 @@ export function defaultNamespace(origin: string): ContentNamespace {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// REMAINING WORK
+// KEY RESOLUTION
 // ═══════════════════════════════════════════════════════════════════════════════
 //
-// This file owns grammar, types, validation, parsing, Zod schemas, scope
-// construction, namespace qualification, and decomposition. What's left:
+// Runtime key construction. These compose everything above — grammar, validators,
+// parsers, scope construction, and namespace qualification — into the functions
+// that call sites actually use.
 //
-//   - Migrate attributeSchemas.ts to import from here (not id.ts)
-//   - Migrate 44 consumer files from id.ts to here (see plan.md)
-//   - Delete id.ts once empty
-//   - LOFS address integration (fold in address.ts types)
+// Two fundamentally different operations:
+//   1. Own-state (scope-relative): block builds its own StateKey from its
+//      DefinitionRef + inherited idPrefix. Uses scopedStateKeyForBlock.
+//   2. Authored target (global): an authored target="answer" attribute resolves
+//      globally — no caller idPrefix. Uses stateKeyForGlobalRef.
+//
+// Do NOT conflate these. See namespace-migration.md for rationale.
+
+export const PLACEHOLDER_NS = asContentNamespace('CONTENT');
+
+/**
+ * Build a block's scoped StateKey from its props.
+ *
+ * Scope-relative: applies idPrefix from the rendering container.
+ * The id is a DefinitionRef — validated by the grammar. No path prefix
+ * stripping; if props.id contains "/" or "./", that's a bug upstream.
+ *
+ *   scopedStateKeyForBlock({ id: 'answer', idPrefix: 'list:#0' as IdPrefix })
+ *   → "CONTENT://list:#0:answer"
+ *
+ *   scopedStateKeyForBlock({ id: 'answer' })
+ *   → "CONTENT://answer"  (no scope)
+ */
+export function scopedStateKeyForBlock(
+  props: { id: DefinitionRef; idPrefix?: IdPrefix; [key: string]: unknown }
+): StateKey {
+  const defKey = qualifyDefinitionRef(props.id, PLACEHOLDER_NS);
+  return addScope(defKey, props.idPrefix);
+}
+
+/**
+ * Resolve an authored target reference globally.
+ *
+ * Replaces refToReduxKey({...props, id: target}) for authored cross-refs.
+ * Global: does NOT apply the caller's idPrefix.
+ *
+ *   stateKeyForGlobalRef(asStateRef('answer'))
+ *   → "CONTENT://answer"
+ *
+ *   stateKeyForGlobalRef(asStateRef('problems:#0:answer'))
+ *   → "CONTENT://problems:#0:answer"
+ *
+ *   stateKeyForGlobalRef(asStateRef('calculus://answer'))
+ *   → "calculus://answer"  (already qualified, pass-through)
+ */
+// TODO(namespace): Authored StateRefs currently resolve globally.
+// Local-then-global resolution needs an existence query and must
+// account for caller scope, target render scope, and namespace scope.
+export function stateKeyForGlobalRef(
+  ref: StateRef,
+  ns: ContentNamespace = PLACEHOLDER_NS
+): StateKey {
+  return qualifyStateRef(ref, ns);
+}
+
+/**
+ * Resolve a DefinitionRef to a DefinitionKey for idMap lookup.
+ *
+ * Validates and qualifies with namespace.
+ *
+ *   definitionKeyForRef('answer')            → "CONTENT://answer"
+ *   definitionKeyForRef('calculus://hw1')    → "calculus://hw1"  (pass-through)
+ */
+export function definitionKeyForRef(ref: DefinitionRef): DefinitionKey {
+  return qualifyDefinitionRef(ref, PLACEHOLDER_NS);
+}
+
+/**
+ * Extract the leaf DefinitionKey from a StateKey.
+ *
+ * Replaces stateKeyToDefinitionKey from id.ts. Namespace-aware.
+ *
+ *   leafDefinitionKeyFromStateKey("CONTENT://list:#0:answer")
+ *   → "CONTENT://answer"
+ */
+export function leafDefinitionKeyFromStateKey(key: StateKey): DefinitionKey {
+  const { ns, path } = splitNs(key);
+  return asDefinitionKey(joinNs(ns, leafBlock(path)));
+}
+
+/**
+ * Extract ALL DefinitionKeys from a StateKey (for content loading).
+ *
+ * Replaces allDefinitionKeys from id.ts. Namespace-aware.
+ *
+ *   allDefinitionKeysFromStateKey("CONTENT://problems:#0:answer")
+ *   → ["CONTENT://problems", "CONTENT://answer"]
+ */
+export function allDefinitionKeysFromStateKey(key: StateKey): DefinitionKey[] {
+  const { ns, path } = splitNs(key);
+  return blockSegments(path).map(id => asDefinitionKey(joinNs(ns, id)));
+}
