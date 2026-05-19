@@ -1,9 +1,8 @@
-// src/app/api/olxjson/[id]/route.ts
+// src/app/api/olxjson/route.ts
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { getBestVariantServer } from '@/lib/i18n/getBestVariant';
 import { variantMapKeys } from '@/lib/types/i18n';
-import { parseStateRef, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
-import { allDefinitionKeys } from '@/lib/types/id';
+import { parseStateRef, stateKeyForGlobalRef, allDefinitionKeysFromStateKey } from '@/lib/types/id-grammar';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { NextRequest } from 'next/server';
 import type { IdMap, OlxJson, StateRef } from '@/lib/types';
@@ -59,19 +58,10 @@ function collectBlockWithKids(
   // Recurse into target= references (cross-block dependencies).
   // target= is an authored StateRef — it may contain scope markers (#0)
   // and multiple DefinitionKey segments (myList:#0:answer). Resolve it to today's
-  // runtime StateKey shape, then allDefinitionKeys extracts the loadable block IDs.
-  //
-  // TODO: Validate target= values. Invalid targets should eventually
-  // surface as DisplayErrors to the author. Open design question: what
-  // to validate where. DefinitionKey segments (the block IDs) could be checked
-  // here or at parse time, but scoped StateRefs (e.g. foo:#0:bar)
-  // can't be fully validated statically — scope markers are runtime
-  // constructs (DynamicList instance count, etc.). This is one possible
-  // validation site; parse-time and client-side contexts (Studio,
-  // Markdown editor) are others. See docs/loading-state-todo.md.
+  // runtime StateKey shape, then extract the loadable block IDs.
   for (const ref of targetRefs(entry.attributes?.target)) {
     const stateKey = stateKeyForGlobalRef(ref);
-    for (const key of allDefinitionKeys(stateKey)) {
+    for (const key of allDefinitionKeysFromStateKey(stateKey)) {
       collectBlockWithKids(idMap, key, request, collected);
     }
   }
@@ -79,8 +69,8 @@ function collectBlockWithKids(
   return collected;
 }
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export async function GET(request: NextRequest) {
+  const id = request.nextUrl.searchParams.get('id') ?? '';
 
   try {
     const { idMap, errors } = await syncContentFromStorage();
@@ -93,7 +83,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       });
     }
 
-    // TODO: Break out into /api/olxjson/by-id/[id]/
     if (!id || !idMap[id]) {
       return Response.json(
         {

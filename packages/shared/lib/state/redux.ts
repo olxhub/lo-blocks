@@ -43,7 +43,7 @@ import { useSelector, shallowEqual } from 'react-redux';
 
 import * as lo_event from 'lo_event';
 
-import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseStateRef, hasNamespace, definitionKeyForRef } from '../types/id-grammar';
+import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseStateRef, isNamespaceQualified, definitionKeyForRef } from '../types/id-grammar';
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
@@ -490,7 +490,7 @@ export function useReduxCheckbox(
  */
 export function componentFieldByName(props: RuntimeProps, targetId: DefinitionKey | StateKey, fieldName: string) {
   // Normalize to DefinitionKey: handles qualified StateKeys (extracts leaf) and bare refs (qualifies them).
-  const normalizedId = hasNamespace(targetId)
+  const normalizedId = isNamespaceQualified(targetId)
     ? leafDefinitionKeyFromStateKey(targetId as StateKey)
     : definitionKeyForRef(targetId as any);
   const sources = props.runtime.olxJsonSources ?? ['content'];

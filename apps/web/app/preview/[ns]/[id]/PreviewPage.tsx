@@ -1,4 +1,4 @@
-// src/app/preview/[id]/PreviewPage.tsx
+// src/app/preview/[ns]/[id]/PreviewPage.tsx
 'use client';
 
 import { useState } from 'react';
@@ -9,13 +9,14 @@ import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
 import { useFieldState, settings } from '@/lib/state';
 import { useContentLoader } from '@/lib/content/useContentLoader';
-import { toDefinitionKey } from '@/lib/types/id';
+import { parseDefinitionKey } from '@/lib/types/id-grammar';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { ComponentError } from '@/lib/types';
 
 export default function PreviewPage() {
   const params = useParams();
-  const definitionKey = toDefinitionKey(params.id as string);
+  // Route is /preview/[ns]/[id] — reconstruct DefinitionKey as "ns/id"
+  const definitionKey = parseDefinitionKey(`${params.ns}/${params.id}`);
   // TODO: Pass baselineProps from useBaselineProps() instead of null
   const [debug] = useFieldState(
     null,

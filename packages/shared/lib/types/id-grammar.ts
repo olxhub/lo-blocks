@@ -49,8 +49,10 @@ export const namespace = `${leafId}(?:\\.${leafId})*`;
 
 // --- Delimiter ------------------------------------------------------------
 
-export const NS_DELIM = '://';                                         // Separates namespace from path
-export const nsDelim = literal(NS_DELIM);
+export const NS_DELIM = '/';                                           // Separates namespace from path in Keys
+export const SOURCE_DELIM = '://';                                     // Separates source from path in source-qualified Refs (unimplemented)
+const nsDelim = literal(NS_DELIM);
+const sourceDelim = literal(SOURCE_DELIM);
 
 // --- Refs (what authors write — may or may not have namespace) -------------
 //
@@ -59,50 +61,41 @@ export const nsDelim = literal(NS_DELIM);
 // semantic guarantee (resolved / canonical).
 //
 // DefinitionRef:   Content definition reference. Anything an author writes
-//                  to identify a block. Very permissive before "://".
+//                  to identify a block. Bare or namespace-qualified.
 //                  Examples:
 //                    "hw1"                                              (bare)
-//                    "ee101://hw1"                                      (also a valid DefinitionKey)
-//                    "git@gitlab.com:olxhub/ee101.git://hw1"           (source-qualified)
-//                    "git@gitlab.com:olxhub/ee101.git@main://hw1"      (branch-pinned)
-//                    "git@gitlab.com:olxhub/ee101.git@a1238b://hw1"    (immutable)
+//                    "ee101/hw1"                                        (also a valid DefinitionKey)
 //
-// StateRef:   State instance reference. Scoped, may or may not have
+// StateRef:        State instance reference. Scoped, may or may not have
 //                  a namespace. A namespaced StateRef is also a valid
 //                  StateKey.
 //                  Examples:
 //                    "problems:#0:answer"                               (unqualified)
-//                    "ee101://problems:#0:answer"                       (also a valid StateKey)
-//                    "git@gitlab.com:olxhub/ee101.git://problems:#0:answer"  (source-qualified)
+//                    "ee101/problems:#0:answer"                         (also a valid StateKey)
 //
-// DISTINGUISHING CANONICAL KEYS FROM SOURCE-QUALIFIED REFS:
+// Source-qualified refs (e.g., "git@gitlab.com:olxhub/ee101.git://hw1")
+// use "://" as their delimiter. These are detected by isSourceQualifiedRef()
+// and rejected at runtime — they require LOFS resolution to determine the
+// canonical namespace. This is not yet implemented.
 //
-// Both "ee101://hw1" and "git@gitlab.com:olxhub/ee101.git://hw1" contain
-// "://". A simple `includes('://')` check is NOT sufficient to tell if a
-// ref is already a canonical Key. To determine canonicality:
+// DISTINGUISHING KEYS FROM SOURCE-QUALIFIED REFS:
 //
-//   1. Find the FIRST occurrence of "://"
-//   2. Check if the part BEFORE it matches the `namespace` grammar
-//   3. If yes → canonical Key. If no → source-qualified Ref that still
-//      needs resolution to a Key.
-//
-// In practice, `qualifyRef(ref, ns)` should use this logic:
-//   - Split on first "://"
-//   - If prefix matches `namespace` regex → already a Key, pass through
-//   - Otherwise → source-qualified ref, resolve via LOFS layer
-//   - No "://" at all → bare ref, prepend namespace
+// Keys use "/" (e.g., "ee101/hw1"). Source-qualified refs use "://"
+// (e.g., "git@gitlab.com:olxhub/ee101.git://hw1"). Check for "://" first
+// to distinguish them — a ref that contains "://" is source-qualified,
+// not a canonical Key.
 
-export const definitionRef = `(?:.+${nsDelim})?${leafId}`;
-export const stateRef = `(?:.+${nsDelim})?(?:${scopeSegment}:)*${leafId}`;
+export const definitionRef = `(?:${namespace}${nsDelim})?${leafId}`;
+export const stateRef = `(?:${namespace}${nsDelim})?(?:${scopeSegment}:)*${leafId}`;
 
-// --- Keys (canonical forms — always namespace://path) ---------------------
+// --- Keys (canonical forms — always namespace/path) -----------------------
 //
 // Keys are the normalized subset of Refs. Always namespace-qualified with
 // a short stable name (not a full URL). In TypeScript, branded as a subtype
 // of the corresponding Ref (Key = Ref & Brand<'Resolved'>).
 //
-// DefinitionKey:          "ee101://hw1", "edu.mit.eecs6002://resistorProblem"
-// StateKey:   "ee101://designList:#7:mydesigns"
+// DefinitionKey:   "ee101/hw1", "edu.mit.eecs6002/resistorProblem"
+// StateKey:        "ee101/designList:#7:mydesigns"
 
 const statePath = `(?:${scopeSegment}:)*${leafId}`;
 export const definitionKey = `${namespace}${nsDelim}${leafId}`;
@@ -122,12 +115,14 @@ export const stateKey = `${namespace}${nsDelim}${statePath}`;
 //   Bare origin (fetch, no version):
 //     git:github.com/olxhub/ee101.git://hw1
 //
-// These all resolve to the same DefinitionKey: ee101://hw1
-// The grammar for source-qualified refs is intentionally permissive — the
-// part before "://" can be nearly anything (URLs, file paths, etc.).
-// Validation of the source portion is left to the LOFS layer.
+// These all resolve to the same DefinitionKey: ee101/hw1
+// Source-qualified refs use "://" as delimiter (distinct from the "/" used by Keys).
+// The grammar is intentionally permissive — the part before "://" can be
+// nearly anything (URLs, file paths, etc.). Validation is left to the LOFS layer.
+//
+// NOT YET IMPLEMENTED: isSourceQualifiedRef() detects these and throws.
 
-export const sourceQualifiedRef = `.+?${nsDelim}${leafId}`;
+export const sourceQualifiedRef = `.+?${sourceDelim}${leafId}`;
 
 // --- Field access ------------------------------------------------------------
 //
@@ -135,7 +130,7 @@ export const sourceQualifiedRef = `.+?${nsDelim}${leafId}`;
 // the block itself:
 //
 //   "problems:#0:answer.value"          (CopyFieldAction source)
-//   "ee101://finalexam.score"           (IntakeGate when= expression)
+//   "ee101/finalexam.score"             (IntakeGate when= expression)
 //   "myInput.submitted"                 (SetFieldAction target)
 //
 // The field is separated by "." and is always a leafId. The part before "."
@@ -143,7 +138,7 @@ export const sourceQualifiedRef = `.+?${nsDelim}${leafId}`;
 // z_blockFieldRef validate against.
 //
 // NOTE: The "." here is NOT a namespace hierarchy separator — those only
-// appear within the namespace portion (before "://"). After "://", the
+// appear within the namespace portion (before "/"). After "/", the
 // first "." encountered is always a field separator.
 
 export const fieldAccess = leafId;                                    // "value", "score", "submitted"
@@ -184,10 +179,10 @@ function compileGroups(pattern: string): RegExp {
 }
 
 export const PARSE = {
-  /** "ee101://hw1" → { ns: "ee101", id: "hw1" } */
+  /** "ee101/hw1" → { ns: "ee101", id: "hw1" } */
   definitionKey: compileGroups(`(?<ns>${namespace})${nsDelim}(?<id>${leafId})`),
 
-  /** "ee101://list:#0:answer" → { ns: "ee101", path: "list:#0:answer" } */
+  /** "ee101/list:#0:answer" → { ns: "ee101", path: "list:#0:answer" } */
   stateKey: compileGroups(`(?<ns>${namespace})${nsDelim}(?<path>${statePath})`),
 
   /** "problems:#0:answer.value" → { ref: "problems:#0:answer", field: "value" } */
@@ -201,14 +196,14 @@ export const PARSE = {
 // Small primitives for breaking apart and reassembling IDs. Conversion
 // functions compose these — no string surgery with indexOf.
 
-/** "ee101://list:#0:answer" → { ns: "ee101", path: "list:#0:answer" } */
+/** "ee101/list:#0:answer" → { ns: "ee101", path: "list:#0:answer" } */
 export function splitNs(key: string): { ns: string; path: string } {
   const m = key.match(PARSE.stateKey) ?? key.match(PARSE.definitionKey);
   if (m?.groups) return { ns: m.groups.ns, path: m.groups.path ?? m.groups.id };
   throw new Error(`splitNs: "${key}" has no namespace`);
 }
 
-/** "ee101" + "list:#0:answer" → "ee101://list:#0:answer" */
+/** "ee101" + "list:#0:answer" → "ee101/list:#0:answer" */
 export function joinNs(ns: string, path: string): string {
   return `${ns}${NS_DELIM}${path}`;
 }
@@ -257,13 +252,13 @@ export type ContentNamespace = Branded<string, 'ContentNamespace'>;  // "ee101",
 
 // --- Content identity (what a block IS) --------------------------------------
 
-export type DefinitionRef = Branded<string, 'DefinitionRef'>;        // "answer", "ee101://answer"
-export type DefinitionKey = DefinitionRef & Brand<'Resolved'>;       // "ee101://answer" (always namespaced)
+export type DefinitionRef = Branded<string, 'DefinitionRef'>;        // "answer", "ee101/answer"
+export type DefinitionKey = DefinitionRef & Brand<'Resolved'>;       // "ee101/answer" (always namespaced)
 
 // --- State identity (which runtime INSTANCE) ---------------------------------
 
 export type StateRef = Branded<string, 'StateRef'>;                  // "list:#0:answer"
-export type StateKey = StateRef & Brand<'Resolved'>;                 // "ee101://list:#0:answer"
+export type StateKey = StateRef & Brand<'Resolved'>;                 // "ee101/list:#0:answer"
 
 // --- Scoping and rendering ---------------------------------------------------
 
@@ -306,7 +301,7 @@ export function validateContentNamespace(s: string): true | string {
 export function validateDefinitionRef(s: string): true | string {
   if (!s) return 'DefinitionRef cannot be empty';
   if (!VALID.definitionRef.test(s)) {
-    return `Not a valid DefinitionRef: "${s}" (expected leafId, or source://leafId)`;
+    return `Not a valid DefinitionRef: "${s}" (expected leafId or namespace/leafId)`;
   }
   return true;
 }
@@ -314,7 +309,7 @@ export function validateDefinitionRef(s: string): true | string {
 export function validateDefinitionKey(s: string): true | string {
   if (!s) return 'DefinitionKey cannot be empty';
   if (!VALID.definitionKey.test(s)) {
-    return `Not a valid DefinitionKey: "${s}" (must be namespace://leafId)`;
+    return `Not a valid DefinitionKey: "${s}" (must be namespace/leafId)`;
   }
   return true;
 }
@@ -335,7 +330,7 @@ export function validateStateRef(s: string): true | string {
 export function validateStateKey(s: string): true | string {
   if (!s) return 'StateKey cannot be empty';
   if (!VALID.stateKey.test(s)) {
-    return `Not a valid StateKey: "${s}" (must be namespace://path)`;
+    return `Not a valid StateKey: "${s}" (must be namespace/path)`;
   }
   return true;
 }
@@ -421,10 +416,10 @@ export function extendIdPrefix(
 ): { idPrefix: IdPrefix } {
   // Strip namespace from scope components — idPrefix is a bare scope path,
   // never namespace-qualified. Callers commonly pass props.id (a DefinitionRef
-  // that may be qualified like "CONTENT://list") as a scope component.
+  // that may be qualified like "CONTENT/list") as a scope component.
   const strip = (s: string | number | ScopeMarker): string => {
     const str = String(s);
-    return str.includes(NS_DELIM) && hasNamespace(str) ? splitNs(str).path : str;
+    return isNamespaceQualified(str) ? splitNs(str).path : str;
   };
   const scopeStr = Array.isArray(scope) ? scope.map(strip).join(SCOPE_SEPARATOR) : strip(scope);
   const newPrefix = props.idPrefix
@@ -437,11 +432,11 @@ export function extendIdPrefix(
  * Insert scope into a DefinitionKey to produce a StateKey.
  * Scope goes AFTER the namespace:
  *
- *   addScope("ee101://answer", "list:#0" as IdPrefix)
- *   → "ee101://list:#0:answer"
+ *   addScope("ee101/answer", "list:#0" as IdPrefix)
+ *   → "ee101/list:#0:answer"
  *
- *   addScope("ee101://answer", undefined)
- *   → "ee101://answer"  (no scope — StateKey = DefinitionKey)
+ *   addScope("ee101/answer", undefined)
+ *   → "ee101/answer"  (no scope — StateKey = DefinitionKey)
  */
 export function addScope(key: DefinitionKey, idPrefix?: IdPrefix): StateKey {
   if (!idPrefix) return key as unknown as StateKey;
@@ -491,7 +486,7 @@ export const z_stateKey = brandedString(validateStateKey, asStateKey);
 /**
  * Extract all block IDs from a StateKey, preserving namespace context.
  *
- *   extractBlocks("physics://problems:#0:answer")
+ *   extractBlocks("physics/problems:#0:answer")
  *   → { namespace: "physics", blockIds: ["problems", "answer"] }
  *
  * To get DefinitionKeys:
@@ -517,16 +512,15 @@ export function extractLeafId(key: string): string {
 // ═══════════════════════════════════════════════════════════════════════════════
 //
 // Determines whether a ref is already a canonical Key or needs namespace
-// prepended. The logic:
+// prepended. Three ref forms:
 //
-//   1. No "://" at all → bare ref, prepend namespace
-//   2. Has "://" AND prefix matches `namespace` grammar → already a Key
-//   3. Has "://" but prefix does NOT match `namespace` → source-qualified
-//      ref (e.g., "git@gitlab.com:olxhub/ee101.git://hw1"). This requires
-//      resolution via the LOFS layer to determine the canonical namespace.
+//   1. Bare ref (no "/" or "://") → prepend namespace with "/"
+//   2. Namespace-qualified ("ee101/hw1") → already a Key, pass through
+//   3. Source-qualified ("git@.../ee101.git://hw1") → needs LOFS resolution
+//      (not yet implemented — throws)
 //
-// Cases 1 and 2 are common. Case 3 is rare at runtime (usually resolved
-// at content-load time before attributes reach Redux).
+// Check order matters: test for "://" FIRST (source-qualified), then "/"
+// (namespace-qualified), because source-qualified refs also contain "/".
 //
 // TWO DISTINCT SCOPE PATHWAYS
 // ---------------------------
@@ -537,8 +531,8 @@ export function extractLeafId(key: string): string {
 //      The container passes `idPrefix` via React context. Each block
 //      builds its own StateKey from its DefinitionKey + inherited idPrefix:
 //
-//        DefinitionKey "physics://answer" + idPrefix "problems:#0"
-//        → StateKey "physics://problems:#0:answer"
+//        DefinitionKey "physics/answer" + idPrefix "problems:#0"
+//        → StateKey "physics/problems:#0:answer"
 //
 //   2. AUTHORED CROSS-REFERENCE (qualifyStateRef)
 //      An author writes `target="problems:#0:answer"` to reference a
@@ -546,37 +540,48 @@ export function extractLeafId(key: string): string {
 //      fully specified — it only needs namespace qualification:
 //
 //        StateRef "problems:#0:answer" + namespace "physics"
-//        → StateKey "physics://problems:#0:answer"
+//        → StateKey "physics/problems:#0:answer"
 //
 // Applying pathway 1 to pathway 2 inputs (or vice versa) produces
 // double-scoped nonsense. Keep them separate.
 
-/** Check if a ref already has a namespace prefix (i.e., a valid namespace before "://"). */
-export function hasNamespace(ref: string): boolean {
+/** Check if a ref is source-qualified (contains "://"). These need LOFS resolution. */
+export function isSourceQualifiedRef(ref: string): boolean {
+  return ref.includes(SOURCE_DELIM);
+}
+
+/** Check if a ref already has a namespace prefix (valid namespace before "/"). */
+export function isNamespaceQualified(ref: string): boolean {
+  if (isSourceQualifiedRef(ref)) return false;  // "://" refs are NOT namespace-qualified Keys
   const idx = ref.indexOf(NS_DELIM);
   if (idx < 0) return false;
   const prefix = ref.slice(0, idx);
   return VALID.namespace.test(prefix);
 }
 
+/** @deprecated Use isNamespaceQualified instead. */
+export const hasNamespace = isNamespaceQualified;
+
 /**
  * Prepend namespace to a ref that lacks one. Already-namespaced refs
  * (cross-course references) pass through unchanged.
  *
- *   qualifyRef("answer", "physics")                    → "physics://answer"
- *   qualifyRef("problems:#0:answer", "physics")        → "physics://problems:#0:answer"
- *   qualifyRef("ee101://notes", "ee202")               → "ee101://notes"  (pass-through)
+ *   qualifyRef("answer", "physics")                    → "physics/answer"
+ *   qualifyRef("problems:#0:answer", "physics")        → "physics/problems:#0:answer"
+ *   qualifyRef("ee101/notes", "ee202")                 → "ee101/notes"  (pass-through)
  *
  * @throws {Error} for source-qualified refs (e.g., "git@...://hw1") which
  *   need LOFS resolution, not simple namespace prepending.
  */
 export function qualifyRef(ref: string, namespace: string): string {
-  if (hasNamespace(ref)) return ref;
-  if (!ref.includes(NS_DELIM)) return `${namespace}${NS_DELIM}${ref}`;
-  throw new Error(
-    `Source-qualified ref needs LOFS resolution: "${ref}". ` +
-    `Cannot qualify with simple namespace prepend.`
-  );
+  if (isSourceQualifiedRef(ref)) {
+    throw new Error(
+      `Source-qualified ref needs LOFS resolution: "${ref}". ` +
+      `Cannot qualify with simple namespace prepend.`
+    );
+  }
+  if (isNamespaceQualified(ref)) return ref;
+  return `${namespace}${NS_DELIM}${ref}`;
 }
 
 /** Qualify a DefinitionRef → DefinitionKey. Already-namespaced refs pass through. */
@@ -642,13 +647,13 @@ export const PLACEHOLDER_NS = asContentNamespace('CONTENT');
  *
  * Scope-relative: applies idPrefix from the rendering container.
  * The id is a DefinitionRef — validated by the grammar. No path prefix
- * stripping; if props.id contains "/" or "./", that's a bug upstream.
+ * stripping; if props.id contains "./" that's a bug upstream.
  *
  *   scopedStateKeyForBlock({ id: 'answer', idPrefix: 'list:#0' as IdPrefix })
- *   → "CONTENT://list:#0:answer"
+ *   → "CONTENT/list:#0:answer"
  *
  *   scopedStateKeyForBlock({ id: 'answer' })
- *   → "CONTENT://answer"  (no scope)
+ *   → "CONTENT/answer"  (no scope)
  *
  * TODO(propthread-ns): Hardcodes PLACEHOLDER_NS. Once namespace is propthreaded
  * through runtime context, this should take ns from props (e.g. props.runtime.ns)
@@ -668,13 +673,13 @@ export function scopedStateKeyForBlock(
  * Global: does NOT apply the caller's idPrefix.
  *
  *   stateKeyForGlobalRef(asStateRef('answer'))
- *   → "CONTENT://answer"
+ *   → "CONTENT/answer"
  *
  *   stateKeyForGlobalRef(asStateRef('problems:#0:answer'))
- *   → "CONTENT://problems:#0:answer"
+ *   → "CONTENT/problems:#0:answer"
  *
- *   stateKeyForGlobalRef(asStateRef('calculus://answer'))
- *   → "calculus://answer"  (already qualified, pass-through)
+ *   stateKeyForGlobalRef(asStateRef('calculus/answer'))
+ *   → "calculus/answer"  (already qualified, pass-through)
  */
 // TODO(target-scope): Current behavior is global resolution (no idPrefix applied).
 //
@@ -711,8 +716,8 @@ export function stateKeyForGlobalRef(
  *
  * Validates and qualifies with namespace.
  *
- *   definitionKeyForRef('answer')            → "CONTENT://answer"
- *   definitionKeyForRef('calculus://hw1')    → "calculus://hw1"  (pass-through)
+ *   definitionKeyForRef('answer')            → "CONTENT/answer"
+ *   definitionKeyForRef('calculus/hw1')      → "calculus/hw1"  (pass-through)
  *
  * TODO(propthread-ns): Hardcodes PLACEHOLDER_NS. Once namespace is propthreaded,
  * callers should provide the namespace from their content-loading context (e.g.
@@ -727,8 +732,8 @@ export function definitionKeyForRef(ref: DefinitionRef): DefinitionKey {
  *
  * Replaces stateKeyToDefinitionKey from id.ts. Namespace-aware.
  *
- *   leafDefinitionKeyFromStateKey("CONTENT://list:#0:answer")
- *   → "CONTENT://answer"
+ *   leafDefinitionKeyFromStateKey("CONTENT/list:#0:answer")
+ *   → "CONTENT/answer"
  */
 export function leafDefinitionKeyFromStateKey(key: StateKey): DefinitionKey {
   const { ns, path } = splitNs(key);
@@ -740,8 +745,8 @@ export function leafDefinitionKeyFromStateKey(key: StateKey): DefinitionKey {
  *
  * Replaces allDefinitionKeys from id.ts. Namespace-aware.
  *
- *   allDefinitionKeysFromStateKey("CONTENT://problems:#0:answer")
- *   → ["CONTENT://problems", "CONTENT://answer"]
+ *   allDefinitionKeysFromStateKey("CONTENT/problems:#0:answer")
+ *   → ["CONTENT/problems", "CONTENT/answer"]
  */
 export function allDefinitionKeysFromStateKey(key: StateKey): DefinitionKey[] {
   const { ns, path } = splitNs(key);

@@ -24,7 +24,7 @@ import { transformTagName } from '@/lib/content/xmlTransforms';
 
 import * as parsers from '@/lib/content/parsers';
 import { LofsDependencies, IdMap, OLXLoadingError, DefinitionRef, DefinitionKey, JSONValue } from '@/lib/types';
-import { PLACEHOLDER_NS, qualifyDefinitionRef, parseDefinitionRef, joinNs, asDefinitionKey, hasNamespace } from '@/lib/types/id-grammar';
+import { PLACEHOLDER_NS, qualifyDefinitionRef, parseDefinitionRef, joinNs, asDefinitionKey, isNamespaceQualified } from '@/lib/types/id-grammar';
 import type { LofsRef } from '@/lib/types/address';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
 import { variantMapKeys } from '@/lib/types/i18n';
@@ -639,7 +639,7 @@ export async function parseOLX(
       storeEntry: (rawStoreId, entryOrUpdater) => {
         // Auto-qualify bare IDs so parsers can construct child IDs without
         // worrying about namespace. Already-qualified IDs pass through.
-        const storeId = hasNamespace(rawStoreId)
+        const storeId = isNamespaceQualified(rawStoreId)
           ? rawStoreId
           : qualifyDefinitionRef(parseDefinitionRef(rawStoreId), PLACEHOLDER_NS);
 
@@ -662,7 +662,7 @@ export async function parseOLX(
         // Ensure entry.id matches the qualified store key so downstream code
         // (render, inferRelatedNodes, etc.) always sees qualified IDs.
         if (entry && typeof entry === 'object' && 'id' in entry && typeof entry.id === 'string') {
-          if (!hasNamespace(entry.id)) {
+          if (!isNamespaceQualified(entry.id)) {
             entry.id = qualifyDefinitionRef(parseDefinitionRef(entry.id), PLACEHOLDER_NS);
           }
         }

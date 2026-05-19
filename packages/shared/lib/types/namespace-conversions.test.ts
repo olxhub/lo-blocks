@@ -13,13 +13,13 @@
 // ──────────────
 //
 //   ┌──────────────┬───────────────────────┬────────────────────────────────┐
-//   │              │ Ref (may lack ns)     │ Key (always ns://...)          │
+//   │              │ Ref (may lack ns)     │ Key (always ns/...)            │
 //   ├──────────────┼───────────────────────┼────────────────────────────────┤
 //   │ Definition   │ DefinitionRef         │ DefinitionKey                  │
-//   │              │ "answer"              │ "physics://answer"             │
+//   │              │ "answer"              │ "physics/answer"               │
 //   ├──────────────┼───────────────────────┼────────────────────────────────┤
 //   │ State        │ StateRef              │ StateKey                       │
-//   │ (instance)   │ "problems:#0:answer"  │ "physics://problems:#0:answer" │
+//   │ (instance)   │ "problems:#0:answer"  │ "physics/problems:#0:answer"   │
 //   └──────────────┴───────────────────────┴────────────────────────────────┘
 //
 //   Horizontal (Ref → Key):          prepend namespace
@@ -36,12 +36,12 @@
 //
 // Axis 2 — Namespace: Two courses both defining "pset1" must not collide
 // in the state store. We prepend a stable course name:
-//   physics://pset1   vs   calculus://pset1
+//   physics/pset1   vs   calculus/pset1
 //
 // These compose orthogonally:
-//   physics://problems:#0:answer
-//   ^^^^^^^^  ^^^^^^^^ ^^ ^^^^^^
-//   namespace  scope      block
+//   physics/problems:#0:answer
+//   ^^^^^^^  ^^^^^^^ ^^ ^^^^^
+//   namespace  scope     block
 //
 // NAMESPACE
 // ─────────
@@ -56,12 +56,12 @@
 // Namespace qualification usually happens at parse time. But authors CAN
 // write namespaces explicitly for cross-course references:
 //
-//   <Sequential id="review" when="ee101://finalexam.score < 85">
-//     <UseDynamic target="ee101://notes"/>
+//   <Sequential id="review" when="ee101/finalexam.score < 85">
+//     <UseDynamic target="ee101/notes"/>
 //   </Sequential>
 
 import { describe, it, expect } from 'vitest';
-import { hasNamespace, defaultNamespace, extractBlocks } from './id-grammar';
+import { isNamespaceQualified, isSourceQualifiedRef, defaultNamespace, extractBlocks } from './id-grammar';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Ref → Key: namespace qualification
@@ -74,20 +74,20 @@ import { hasNamespace, defaultNamespace, extractBlocks } from './id-grammar';
 describe("Ref → Key: namespace qualification", () => {
   // This is the target API. Same logic for both Definition and State refs.
   const qualify = (ref: string, ns: string) => {
-    if (hasNamespace(ref)) return ref;       // already "ee101://..."
-    if (!ref.includes('://')) return `${ns}://${ref}`;
-    throw new Error(`Source-qualified ref needs LOFS resolution: "${ref}"`);
+    if (isSourceQualifiedRef(ref)) throw new Error(`Source-qualified ref needs LOFS resolution: "${ref}"`);
+    if (isNamespaceQualified(ref)) return ref;       // already "ee101/..."
+    return `${ns}/${ref}`;
   };
 
   it("bare refs get namespace prepended", () => {
-    expect(qualify("answer", "physics")).toBe("physics://answer");
-    expect(qualify("problems:#0:answer", "physics")).toBe("physics://problems:#0:answer");
+    expect(qualify("answer", "physics")).toBe("physics/answer");
+    expect(qualify("problems:#0:answer", "physics")).toBe("physics/problems:#0:answer");
   });
 
   it("cross-course refs pass through", () => {
     // Author in ee202 references ee101 content — already qualified:
-    expect(qualify("ee101://notes", "ee202")).toBe("ee101://notes");
-    expect(qualify("ee101://problems:#0:answer", "ee202")).toBe("ee101://problems:#0:answer");
+    expect(qualify("ee101/notes", "ee202")).toBe("ee101/notes");
+    expect(qualify("ee101/problems:#0:answer", "ee202")).toBe("ee101/problems:#0:answer");
   });
 
   it("source-qualified refs are not silently passed through", () => {
@@ -104,7 +104,7 @@ describe("Ref → Key: namespace qualification", () => {
 //
 // When a block renders inside a scoping container (DynamicList, etc.), the
 // container provides an idPrefix via React context. The block's DefinitionKey gets
-// scoped to produce a StateKey. With namespaces, scope goes AFTER "://".
+// scoped to produce a StateKey. With namespaces, scope goes AFTER "ns/".
 //
 // This is RUNTIME OWN-STATE SCOPING (pathway 1 in id-grammar.ts). Don't
 // confuse with authored cross-references (pathway 2 = qualifyStateRef),
@@ -113,29 +113,29 @@ describe("Ref → Key: namespace qualification", () => {
 describe("Definition → State: instance scope insertion", () => {
   const addScope = (key: string, idPrefix: string) => {
     if (!idPrefix) return key;
-    const sep = key.indexOf('://');
+    const sep = key.indexOf('/');
     if (sep >= 0) {
-      return key.slice(0, sep + 3) + idPrefix + ':' + key.slice(sep + 3);
+      return key.slice(0, sep + 1) + idPrefix + ':' + key.slice(sep + 1);
     }
     return idPrefix + ':' + key;
   };
 
   it("inserts scope between namespace and block", () => {
-    expect(addScope("physics://answer", "problems:#0"))
-      .toBe("physics://problems:#0:answer");       // scope goes after "physics://"
+    expect(addScope("physics/answer", "problems:#0"))
+      .toBe("physics/problems:#0:answer");       // scope goes after "physics/"
 
     expect(addScope("answer", "problems:#0"))
       .toBe("problems:#0:answer");                  // no namespace: scope prepended directly
   });
 
   it("top-level blocks (no scope) pass through unchanged", () => {
-    expect(addScope("physics://answer", "")).toBe("physics://answer");
+    expect(addScope("physics/answer", "")).toBe("physics/answer");
     expect(addScope("answer", "")).toBe("answer");
   });
 
   it("deeply nested scope composes", () => {
-    expect(addScope("physics://leaf", "outer:#0:inner:#1"))
-      .toBe("physics://outer:#0:inner:#1:leaf");
+    expect(addScope("physics/leaf", "outer:#0:inner:#1"))
+      .toBe("physics/outer:#0:inner:#1:leaf");
   });
 });
 
@@ -149,21 +149,21 @@ describe("Definition → State: instance scope insertion", () => {
 
 describe("State → Definition: extract block definitions", () => {
   it("returns namespace + block IDs for content loading", () => {
-    const result = extractBlocks("physics://problems:#0:answer");
+    const result = extractBlocks("physics/problems:#0:answer");
     expect(result).toEqual({ namespace: "physics", blockIds: ["problems", "answer"] });
 
     // To get DefinitionKeys for the idMap:
-    const definitionKeys = result.blockIds.map(id => `${result.namespace}://${id}`);
-    expect(definitionKeys).toEqual(["physics://problems", "physics://answer"]);
+    const definitionKeys = result.blockIds.map(id => `${result.namespace}/${id}`);
+    expect(definitionKeys).toEqual(["physics/problems", "physics/answer"]);
   });
 
   it("unscoped keys have a single block", () => {
-    expect(extractBlocks("physics://answer"))
+    expect(extractBlocks("physics/answer"))
       .toEqual({ namespace: "physics", blockIds: ["answer"] });
   });
 
   it("deeply nested: all blocks, no scope markers", () => {
-    expect(extractBlocks("physics://outer:#0:inner:#1:bank:#attempt_2:leaf"))
+    expect(extractBlocks("physics/outer:#0:inner:#1:bank:#attempt_2:leaf"))
       .toEqual({ namespace: "physics", blockIds: ["outer", "inner", "bank", "leaf"] });
   });
 });
@@ -210,23 +210,23 @@ describe("Full round-trip", () => {
     const authored = "problems:#0:answer";
 
     // At parse time, the system qualifies it with the course namespace:
-    const key = `physics://${authored}`;
-    expect(key).toBe("physics://problems:#0:answer");
+    const key = `physics/${authored}`;
+    expect(key).toBe("physics/problems:#0:answer");
 
     // For content loading, extract which definitions we need:
     const { namespace, blockIds } = extractBlocks(key);
     expect(namespace).toBe("physics");
     expect(blockIds).toEqual(["problems", "answer"]);
 
-    // Both "physics://problems" and "physics://answer" must be in the idMap.
+    // Both "physics/problems" and "physics/answer" must be in the idMap.
   });
 
   it("cross-course: author-qualified ref passes through", () => {
-    // Author in ee202 writes: <UseDynamic target="ee101://notes"/>
-    const authored = "ee101://notes";
+    // Author in ee202 writes: <UseDynamic target="ee101/notes"/>
+    const authored = "ee101/notes";
 
     // Already has a namespace — qualification is a no-op:
-    expect(hasNamespace(authored)).toBe(true);
+    expect(isNamespaceQualified(authored)).toBe(true);
 
     // The system needs ee101's content loaded to resolve this.
   });

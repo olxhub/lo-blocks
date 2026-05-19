@@ -14,7 +14,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   VALID, splitNs, joinNs, extractBlocks, extractBlockIds, extractLeafId,
-  hasNamespace, defaultNamespace,
+  isNamespaceQualified, isSourceQualifiedRef, defaultNamespace,
   PLACEHOLDER_NS, scopedStateKeyForBlock, stateKeyForGlobalRef,
   definitionKeyForRef, leafDefinitionKeyFromStateKey, allDefinitionKeysFromStateKey,
   asIdPrefix, asStateRef, asStateKey, asDefinitionRef,
@@ -155,12 +155,11 @@ describe("namespace", () => {
 // The most permissive content identifier. Anything an author might write to
 // refer to a block definition. DefinitionKey is a canonical SUBSET of OlxRef.
 //
-// The grammar: optional source/namespace prefix (anything before "://"),
-// then a leafId after the delimiter. If no "://", the whole thing is a
-// bare leafId.
+// The grammar: optional namespace/prefix (namespace "/" leafId),
+// or a bare leafId. Source-qualified refs (with "://") are detected
+// and rejected separately by isSourceQualifiedRef.
 //
-// All of these might refer to the same content definition — the system
-// canonicalizes to DefinitionKey (ee101://hw1) at parse time.
+// The system canonicalizes to DefinitionKey (ee101/hw1) at parse time.
 
 describe("definitionRef", () => {
   const re = VALID.definitionRef;
@@ -169,15 +168,13 @@ describe("definitionRef", () => {
     "answer",                                              // bare (same-course)
     "hw1",                                                 // bare
     "żółw",                                                // unicode
-    "ee101://hw1",                                         // namespace-qualified (also a valid DefinitionKey)
-    "git@gitlab.com:olxhub/ee101.git://hw1",              // source-qualified
-    "git@gitlab.com:olxhub/ee101.git@main://hw1",         // branch-pinned
-    "git@gitlab.com:olxhub/ee101.git@a1238b://hw1",       // immutable (commit hash)
+    "ee101/hw1",                                           // namespace-qualified (also a valid DefinitionKey)
   ];
 
   const invalid = [
     "problems:#0:answer",         // that's state (StateRef), not content
     "",                           // empty
+    "git@gitlab.com:olxhub/ee101.git://hw1",              // source-qualified (detected by isSourceQualifiedRef)
   ];
 
   for (const v of valid)   it(`✓ ${v}`, () => expect(re.test(v)).toBe(true));
@@ -203,8 +200,7 @@ describe("stateRef", () => {
     "designList:#7:mydesigns",                                   // unqualified, scoped
     "outer:#0:inner:#1:bank:#attempt_2:answer",                  // deeply nested
     "answer",                                                    // unscoped (top-level)
-    "ee101://problems:#0:answer",                                // namespaced (also a valid Key)
-    "git@gitlab.com:olxhub/ee101.git://problems:#0:answer",     // source-qualified
+    "ee101/problems:#0:answer",                                  // namespaced (also a valid Key)
   ];
 
   const invalid = [
@@ -212,6 +208,7 @@ describe("stateRef", () => {
     "#0",                         // just a scope marker
     "#0:#1",                      // only scope markers, no block
     "",                           // empty
+    "git@gitlab.com:olxhub/ee101.git://problems:#0:answer",     // source-qualified (detected separately)
   ];
 
   for (const v of valid)   it(`✓ ${v}`, () => expect(re.test(v)).toBe(true));
@@ -230,15 +227,15 @@ describe("definitionKey", () => {
   const re = VALID.definitionKey;
 
   const valid = [
-    "ee101://hw1",                                 // simple
-    "physics://answer",                            // simple
-    "edu.mit.eecs6002://resistorProblem",           // hierarchical namespace
+    "ee101/hw1",                                   // simple
+    "physics/answer",                              // simple
+    "edu.mit.eecs6002/resistorProblem",            // hierarchical namespace
   ];
 
   const invalid = [
-    "hw1",                                         // no namespace (that's an OlxRef)
+    "hw1",                                         // no namespace (that's a DefinitionRef)
     "answer",                                      // no namespace
-    "ee101://problems:#0:answer",                  // has scope (that's a StateKey)
+    "ee101/problems:#0:answer",                    // has scope (that's a StateKey)
   ];
 
   for (const v of valid)   it(`✓ ${v}`, () => expect(re.test(v)).toBe(true));
@@ -257,17 +254,17 @@ describe("stateKey", () => {
   const re = VALID.stateKey;
 
   const valid = [
-    "ee101://designList:#7:mydesigns",             // scoped
-    "physics://problems:#0:answer",                // scoped
-    "physics://outer:#0:inner:#1:bank:#attempt_2:answer",  // deeply nested
-    "ee101://hw1",                                 // unscoped (top-level state)
-    "physics://answer",                            // unscoped
+    "ee101/designList:#7:mydesigns",               // scoped
+    "physics/problems:#0:answer",                  // scoped
+    "physics/outer:#0:inner:#1:bank:#attempt_2:answer",  // deeply nested
+    "ee101/hw1",                                   // unscoped (top-level state)
+    "physics/answer",                              // unscoped
   ];
 
   const invalid = [
     "problems:#0:answer",                          // no namespace (that's a StateRef)
     "answer",                                      // no namespace
-    "ee101://problems:#0",                         // ends with scope marker
+    "ee101/problems:#0",                           // ends with scope marker
   ];
 
   for (const v of valid)   it(`✓ ${v}`, () => expect(re.test(v)).toBe(true));
@@ -282,7 +279,7 @@ describe("stateKey", () => {
 // expressions (IntakeGate when=, conditional visibility). The field is
 // separated by "." and is always a leafId.
 //
-// The "." here is NOT a namespace hierarchy separator. After "://", the
+// The "." here is NOT a namespace hierarchy separator. After "/", the
 // first "." encountered is always a field separator.
 
 describe("stateFieldRef", () => {
@@ -292,18 +289,18 @@ describe("stateFieldRef", () => {
     "answer.value",                                        // bare key + field
     "problems:#0:answer.value",                            // scoped + field
     "problems:#0:answer.submitted",                        // different field
-    "ee101://finalexam.score",                             // namespaced + field
-    "ee101://problems:#0:answer.value",                    // namespaced, scoped + field
-    "git@gitlab.com:olxhub/ee101.git://answer.value",     // source-qualified + field
+    "ee101/finalexam.score",                               // namespaced + field
+    "ee101/problems:#0:answer.value",                      // namespaced, scoped + field
   ];
 
   const invalid = [
     "answer",                         // no field
     "problems:#0:answer",             // no field
-    "ee101://answer",                 // no field (that's a StateRef)
+    "ee101/answer",                   // no field (that's a StateRef)
     "answer.",                        // trailing dot, no field name
     ".value",                         // no key, just field
     "answer.0bad",                    // field starts with digit (not a leafId)
+    "git@gitlab.com:olxhub/ee101.git://answer.value",     // source-qualified (not supported in stateFieldRef)
   ];
 
   for (const v of valid)   it(`✓ ${v}`, () => expect(re.test(v)).toBe(true));
@@ -322,20 +319,21 @@ describe("stateFieldRef", () => {
 
 describe("decomposition", () => {
   const examples = [
-    { key: "physics://problems:#0:answer",
+    { key: "physics/problems:#0:answer",
       namespace: "physics", blocks: ["problems", "answer"], leaf: "answer" },
-    { key: "ee101://designList:#7:mydesigns",
+    { key: "ee101/designList:#7:mydesigns",
       namespace: "ee101", blocks: ["designList", "mydesigns"], leaf: "mydesigns" },
-    { key: "physics://outer:#0:inner:#1:leaf",
+    { key: "physics/outer:#0:inner:#1:leaf",
       namespace: "physics", blocks: ["outer", "inner", "leaf"], leaf: "leaf" },
-    { key: "edu.mit.eecs6002://resistorProblem",
+    { key: "edu.mit.eecs6002/resistorProblem",
       namespace: "edu.mit.eecs6002", blocks: ["resistorProblem"], leaf: "resistorProblem" },
   ];
 
   for (const ex of examples) {
     describe(ex.key, () => {
       it("splitNs", () => {
-        expect(splitNs(ex.key)).toEqual({ ns: ex.namespace, path: ex.key.split('://')[1] });
+        const firstSlash = ex.key.indexOf('/');
+        expect(splitNs(ex.key)).toEqual({ ns: ex.namespace, path: ex.key.slice(firstSlash + 1) });
       });
       it("extractBlocks (namespace + blockIds)", () => {
         expect(extractBlocks(ex.key)).toEqual({ namespace: ex.namespace, blockIds: ex.blocks });
@@ -351,38 +349,57 @@ describe("decomposition", () => {
 
   it("extractBlocks enables DefinitionKey reconstruction for content loading", () => {
     // Given a StateKey, what DefinitionKeys do we need in the idMap?
-    const { namespace, blockIds } = extractBlocks("physics://problems:#0:answer");
+    const { namespace, blockIds } = extractBlocks("physics/problems:#0:answer");
     const definitionKeys = blockIds.map(id => joinNs(namespace, id));
-    expect(definitionKeys).toEqual(["physics://problems", "physics://answer"]);
+    expect(definitionKeys).toEqual(["physics/problems", "physics/answer"]);
   });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// hasNamespace — does a ref already have a namespace prefix?
+// isNamespaceQualified — does a ref have a namespace/path prefix?
 // ═══════════════════════════════════════════════════════════════════════════════
 //
-// Both "ee101://hw1" and "git@gitlab.com:olxhub/ee101.git://hw1" contain
-// "://". hasNamespace checks whether the part BEFORE "://" is a valid
-// namespace. It does NOT validate the rest of the string — that's what
-// VALID.definitionKey / VALID.stateKey are for.
+// Checks for "/" with a valid namespace before it. Returns false for
+// source-qualified refs ("://") and bare refs.
 
-describe("hasNamespace", () => {
-  it("true when a valid namespace precedes ://", () => {
-    expect(hasNamespace("ee101://hw1")).toBe(true);
-    expect(hasNamespace("physics://problems:#0:answer")).toBe(true);
-    expect(hasNamespace("edu.mit.eecs6002://resistorProblem")).toBe(true);
-    expect(hasNamespace("lo_course://bank:#attempt_2:child")).toBe(true);
+describe("isNamespaceQualified", () => {
+  it("true when a valid namespace precedes /", () => {
+    expect(isNamespaceQualified("ee101/hw1")).toBe(true);
+    expect(isNamespaceQualified("physics/problems:#0:answer")).toBe(true);
+    expect(isNamespaceQualified("edu.mit.eecs6002/resistorProblem")).toBe(true);
+    expect(isNamespaceQualified("lo_course/bank:#attempt_2:child")).toBe(true);
   });
 
-  it("source-qualified Refs (non-namespace before ://)", () => {
-    expect(hasNamespace("git@gitlab.com:olxhub/ee101.git://hw1")).toBe(false);
-    expect(hasNamespace("git@gitlab.com:olxhub/ee101.git@main://hw1")).toBe(false);
-    expect(hasNamespace("/home/user/courses/ee101://hw1")).toBe(false);
+  it("source-qualified refs (contain ://) are NOT namespace-qualified", () => {
+    expect(isNamespaceQualified("git@gitlab.com:olxhub/ee101.git://hw1")).toBe(false);
+    expect(isNamespaceQualified("git@gitlab.com:olxhub/ee101.git@main://hw1")).toBe(false);
   });
 
-  it("bare refs (no :// at all)", () => {
-    expect(hasNamespace("hw1")).toBe(false);
-    expect(hasNamespace("problems:#0:answer")).toBe(false);
+  it("bare refs (no / at all)", () => {
+    expect(isNamespaceQualified("hw1")).toBe(false);
+    expect(isNamespaceQualified("problems:#0:answer")).toBe(false);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// isSourceQualifiedRef — does a ref contain "://" (source-qualified)?
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe("isSourceQualifiedRef", () => {
+  it("true for source-qualified refs", () => {
+    expect(isSourceQualifiedRef("git@gitlab.com:olxhub/ee101.git://hw1")).toBe(true);
+    expect(isSourceQualifiedRef("git@gitlab.com:olxhub/ee101.git@main://hw1")).toBe(true);
+    expect(isSourceQualifiedRef("/home/user/courses/ee101://hw1")).toBe(true);
+  });
+
+  it("false for namespace-qualified keys", () => {
+    expect(isSourceQualifiedRef("ee101/hw1")).toBe(false);
+    expect(isSourceQualifiedRef("physics/answer")).toBe(false);
+  });
+
+  it("false for bare refs", () => {
+    expect(isSourceQualifiedRef("hw1")).toBe(false);
+    expect(isSourceQualifiedRef("problems:#0:answer")).toBe(false);
   });
 });
 
@@ -436,90 +453,90 @@ describe("PLACEHOLDER_NS", () => {
 describe("scopedStateKeyForBlock", () => {
   it("bare id, no scope", () => {
     expect(String(scopedStateKeyForBlock({ id: asDefinitionRef('answer') })))
-      .toBe("CONTENT://answer");
+      .toBe("CONTENT/answer");
   });
 
   it("bare id + idPrefix", () => {
     expect(String(scopedStateKeyForBlock({ id: asDefinitionRef('answer'), idPrefix: asIdPrefix('list:#0') })))
-      .toBe("CONTENT://list:#0:answer");
+      .toBe("CONTENT/list:#0:answer");
   });
 
   it("already-namespaced id passes through", () => {
-    expect(String(scopedStateKeyForBlock({ id: asDefinitionRef('calculus://answer') })))
-      .toBe("calculus://answer");
+    expect(String(scopedStateKeyForBlock({ id: asDefinitionRef('calculus/answer') })))
+      .toBe("calculus/answer");
   });
 
   it("nested scope", () => {
     expect(String(scopedStateKeyForBlock({
       id: asDefinitionRef('answer'),
       idPrefix: asIdPrefix('outer:#0:inner:#1')
-    }))).toBe("CONTENT://outer:#0:inner:#1:answer");
+    }))).toBe("CONTENT/outer:#0:inner:#1:answer");
   });
 });
 
 describe("stateKeyForGlobalRef", () => {
   it("bare ref", () => {
     expect(String(stateKeyForGlobalRef(asStateRef('answer'))))
-      .toBe("CONTENT://answer");
+      .toBe("CONTENT/answer");
   });
 
   it("scoped ref", () => {
     expect(String(stateKeyForGlobalRef(asStateRef('problems:#0:answer'))))
-      .toBe("CONTENT://problems:#0:answer");
+      .toBe("CONTENT/problems:#0:answer");
   });
 
   it("already-namespaced ref passes through", () => {
-    expect(String(stateKeyForGlobalRef(asStateRef('calculus://answer'))))
-      .toBe("calculus://answer");
+    expect(String(stateKeyForGlobalRef(asStateRef('calculus/answer'))))
+      .toBe("calculus/answer");
   });
 
   it("custom namespace", () => {
     const ns = PLACEHOLDER_NS;  // uses default
     expect(String(stateKeyForGlobalRef(asStateRef('answer'), ns)))
-      .toBe("CONTENT://answer");
+      .toBe("CONTENT/answer");
   });
 });
 
 describe("definitionKeyForRef", () => {
   it("bare ref", () => {
-    expect(String(definitionKeyForRef(asDefinitionRef('answer')))).toBe("CONTENT://answer");
+    expect(String(definitionKeyForRef(asDefinitionRef('answer')))).toBe("CONTENT/answer");
   });
 
   it("already-namespaced passes through", () => {
-    expect(String(definitionKeyForRef(asDefinitionRef('calculus://hw1')))).toBe("calculus://hw1");
+    expect(String(definitionKeyForRef(asDefinitionRef('calculus/hw1')))).toBe("calculus/hw1");
   });
 });
 
 describe("leafDefinitionKeyFromStateKey", () => {
   it("scoped key → leaf", () => {
-    expect(String(leafDefinitionKeyFromStateKey(asStateKey("CONTENT://list:#0:answer"))))
-      .toBe("CONTENT://answer");
+    expect(String(leafDefinitionKeyFromStateKey(asStateKey("CONTENT/list:#0:answer"))))
+      .toBe("CONTENT/answer");
   });
 
   it("unscoped key → same", () => {
-    expect(String(leafDefinitionKeyFromStateKey(asStateKey("CONTENT://answer"))))
-      .toBe("CONTENT://answer");
+    expect(String(leafDefinitionKeyFromStateKey(asStateKey("CONTENT/answer"))))
+      .toBe("CONTENT/answer");
   });
 
   it("deeply nested", () => {
-    expect(String(leafDefinitionKeyFromStateKey(asStateKey("physics://outer:#0:inner:#1:leaf"))))
-      .toBe("physics://leaf");
+    expect(String(leafDefinitionKeyFromStateKey(asStateKey("physics/outer:#0:inner:#1:leaf"))))
+      .toBe("physics/leaf");
   });
 });
 
 describe("allDefinitionKeysFromStateKey", () => {
   it("scoped key → all blocks", () => {
-    expect(allDefinitionKeysFromStateKey(asStateKey("CONTENT://problems:#0:answer")).map(String))
-      .toEqual(["CONTENT://problems", "CONTENT://answer"]);
+    expect(allDefinitionKeysFromStateKey(asStateKey("CONTENT/problems:#0:answer")).map(String))
+      .toEqual(["CONTENT/problems", "CONTENT/answer"]);
   });
 
   it("unscoped key → single block", () => {
-    expect(allDefinitionKeysFromStateKey(asStateKey("CONTENT://answer")).map(String))
-      .toEqual(["CONTENT://answer"]);
+    expect(allDefinitionKeysFromStateKey(asStateKey("CONTENT/answer")).map(String))
+      .toEqual(["CONTENT/answer"]);
   });
 
   it("deeply nested", () => {
-    expect(allDefinitionKeysFromStateKey(asStateKey("physics://a:#0:b:#1:c")).map(String))
-      .toEqual(["physics://a", "physics://b", "physics://c"]);
+    expect(allDefinitionKeysFromStateKey(asStateKey("physics/a:#0:b:#1:c")).map(String))
+      .toEqual(["physics/a", "physics/b", "physics/c"]);
   });
 });

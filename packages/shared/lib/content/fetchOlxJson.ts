@@ -10,14 +10,14 @@ import type { DefinitionKey, IdMap } from '@/lib/types';
 /**
  * Fetch content by ID.
  *
- * Returns the same { ok, idMap, error? } shape as /api/olxjson/[id].
+ * Returns the same { ok, idMap, error? } shape as /api/olxjson?id=...
  * Options (e.g. headers) are passed through to fetch.
  */
 export async function fetchOlxJson(
   id: DefinitionKey,
   options?: RequestInit
 ): Promise<{ ok: boolean; idMap: IdMap; error?: string }> {
-  const res = await globalThis.fetch(`/api/olxjson/${id}`, options);
+  const res = await globalThis.fetch(`/api/olxjson?id=${encodeURIComponent(id)}`, options);
   if (!res.ok) return { ok: false, idMap: {}, error: `HTTP ${res.status}` };
   return res.json();
 }
@@ -32,7 +32,7 @@ export async function fetchOlxJson(
 export async function fetchAllOlxJson(
   options?: RequestInit
 ): Promise<{ ok: boolean; idMap: IdMap; error?: string }> {
-  const res = await globalThis.fetch('/api/olxjson/all', options);
+  const res = await globalThis.fetch('/api/olxjson?id=all', options);
   return res.json();
 }
 
