@@ -5,7 +5,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useMemo, useCallback } from 'react';
 import * as state from '@/lib/state';
 import { getGrader } from '@/lib/blocks';
-import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
+import { scopedStateKeyForBlock, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import { DisplayError } from '@/lib/util/debug';
 
 /**
@@ -18,9 +18,9 @@ function _ShowAnswerButton(props: RuntimeProps) {
   // Resolve target grader StateKeys - explicit target or parent inference
   const graderReduxKeys = useMemo(() => {
     if (target) {
-      // target is z_stateRefList — resolve authored refs in this runtime context.
+      // target is z_stateRefList — resolve authored refs globally (no idPrefix).
       const targetRefs = Array.isArray(target) ? target : [target];
-      return targetRefs.map(ref => scopedStateKeyForBlock({ ...props, id: ref }));
+      return targetRefs.map(ref => stateKeyForGlobalRef(ref));
     }
     try {
       // getGrader returns DefinitionKey — convert to StateKey

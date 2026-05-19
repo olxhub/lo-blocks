@@ -24,7 +24,7 @@ import { transformTagName } from '@/lib/content/xmlTransforms';
 
 import * as parsers from '@/lib/content/parsers';
 import { LofsDependencies, IdMap, OLXLoadingError, DefinitionRef, DefinitionKey, JSONValue } from '@/lib/types';
-import { PLACEHOLDER_NS, qualifyDefinitionRef, parseDefinitionRef, joinNs, asDefinitionKey, isNamespaceQualified } from '@/lib/types/id-grammar';
+import { PLACEHOLDER_NS, qualifyDefinitionRef, parseDefinitionRef, isNamespaceQualified, stateKeyForGlobalRef, parseStateRef, allDefinitionKeysFromStateKey } from '@/lib/types/id-grammar';
 import type { LofsRef } from '@/lib/types/address';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
 import { variantMapKeys } from '@/lib/types/i18n';
@@ -833,15 +833,19 @@ export async function parseOLX(
     if (!graderBlock?.isGrader || !graderBlock.inputSchema) continue;
 
     // Find input IDs: explicit target attribute, or child blocks with isInput.
-    // Target attrs are bare authored refs — qualify them for idMap lookup.
-    // Scoped refs (e.g., "list:#0:answer") won't match a DefinitionKey and are
-    // skipped downstream (best-effort validation).
+    // Target values are either Zod-validated StateRef[] (from z_stateRefList) or
+    // bare ref strings (from CapaProblem auto-wiring). Resolve via the canonical
+    // stateKeyForGlobalRef path — handles already-qualified refs correctly and
+    // extracts DefinitionKeys from scoped refs (e.g., "list:#0:answer" → ["list", "answer"]).
     let inputIds: string[] = [];
     const target = entry.attributes?.target;
     if (target) {
       const rawIds = Array.isArray(target) ? target.filter((value): value is string => typeof value === 'string')
         : typeof target === 'string' ? target.split(',').map(s => s.trim()) : [];
-      inputIds = rawIds.map(s => asDefinitionKey(joinNs(PLACEHOLDER_NS, s)));
+      inputIds = rawIds.flatMap(s => {
+        const stateKey = stateKeyForGlobalRef(parseStateRef(s));
+        return allDefinitionKeysFromStateKey(stateKey);
+      });
     } else if (Array.isArray(entry.kids)) {
       inputIds = entry.kids
         .filter(isBlockKid)
