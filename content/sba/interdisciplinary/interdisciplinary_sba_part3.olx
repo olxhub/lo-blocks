@@ -14,12 +14,12 @@ lang: en-Latn-US
   <Tabs id="interdisciplinary_sba3_tabs">
     <!-- Tab 1: Student Current Work -->
    <Sequential id="interdisciplinary_part3_seq" title="Current Activity">
- 
+
      <SplitPanel sizes="30, 70" id="interdisciplinary_part3_sp1">
         <!-- Left Panel: Dialogue Conversation -->
         <LeftPane>
-          <Chat id="interdisciplinary_chat_intro3" 
-            src="interdisciplinary_dialogue_part3.chatpeg" 
+          <Chat id="interdisciplinary_chat_intro3"
+            src="interdisciplinary_dialogue_part3.chatpeg"
             clip="orientation3"
             height="400px" />
         </LeftPane>
@@ -35,8 +35,8 @@ lang: en-Latn-US
    <SplitPanel sizes="30, 70" id="interdisciplinary_part3_sp2">
       <!-- Left Panel: Dialogue Conversation -->
       <LeftPane>
-        <Chat id="interdisciplinary_chat_intro3b" 
-            src="interdisciplinary_dialogue_part3.chatpeg" 
+        <Chat id="interdisciplinary_chat_intro3b"
+            src="interdisciplinary_dialogue_part3.chatpeg"
             clip="interdisciplinary_status"
             height="400px" />
       </LeftPane>
@@ -48,12 +48,12 @@ lang: en-Latn-US
           </Vertical>
       </RightPane>
     </SplitPanel>
- 
+
     <SplitPanel sizes="30, 70" id="interdisciplinary_part3_sp3">
       <!-- Left Panel: Dialogue Conversation -->
       <LeftPane>
-        <Chat id="interdisciplinary_chat_intro3c" 
-            src="interdisciplinary_dialogue_part3.chatpeg" 
+        <Chat id="interdisciplinary_chat_intro3c"
+            src="interdisciplinary_dialogue_part3.chatpeg"
             clip="interdisciplinary_problem_statement"
             height="400px" />
       </LeftPane>
@@ -69,8 +69,8 @@ lang: en-Latn-US
     <SplitPanel sizes="30, 70" id="interdisciplinary_part3_sp4">
       <!-- Left Panel: Dialogue Conversation -->
       <LeftPane>
-        <Chat id="interdisciplinary_chat_intro3d" 
-            src="interdisciplinary_dialogue_part3.chatpeg" 
+        <Chat id="interdisciplinary_chat_intro3d"
+            src="interdisciplinary_dialogue_part3.chatpeg"
             clip="problem_statement_draft"
             height="400px" />
       </LeftPane>
@@ -86,8 +86,8 @@ lang: en-Latn-US
     <SplitPanel sizes="30, 70" id="interdisciplinary_part3_sp5">
       <!-- Left Panel: Dialogue Conversation -->
       <LeftPane>
-        <Chat id="interdisciplinary_chat_intro3e" 
-            src="interdisciplinary_dialogue_part3.chatpeg" 
+        <Chat id="interdisciplinary_chat_intro3e"
+            src="interdisciplinary_dialogue_part3.chatpeg"
             clip="interdisciplinary_finishing_up"
             height="400px" />
       </LeftPane>
@@ -107,7 +107,7 @@ The following questions will ask you about the Scenario-based Activity (SBA) int
 
 There are 18 questions total, and this should take about 10 minutes to complete.
     </Markdown>
-    
+
     <Vertical>
       <Markdown>
 ### How much do you agree or disagree with the following statements regarding your experience with the SBA in this course?

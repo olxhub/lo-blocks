@@ -8,10 +8,10 @@
            popout="window">
 - id: focus_group_annotation_info
   title: Focus Group Transcript
-  subtitle: 
+  subtitle:
   description: Transcript of a focus group on high school dropout
   ref: focus_group
-  
+
 - id: adhd_study
   title: ADHD and High School Dropout
   subtitle: Psychology - Fried et al. (2016)
@@ -38,7 +38,7 @@
 
 
 - id: funding_study2
-  title: The  Effects  of  School  Spending  on  Educational  and  Economic  Outcomes 
+  title: The  Effects  of  School  Spending  on  Educational  and  Economic  Outcomes
   subtitle: Evidence  from  School  Finance  Reforms  - Jackson et al. (2016)
   description: Relationship between school funding and adult outcomes
   ref: reading_funding2a

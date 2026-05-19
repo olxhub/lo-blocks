@@ -12,7 +12,7 @@ lang: en-Latn-US
   <ActionButton id="print_interdisciplinary_part3_btn" label="Export as PDF">
     <PrintAction id="print_interdisciplinary_part3" />
   </ActionButton>
-  
+
   <IntakeGate ready="@student_problem_statement.value" >
     <HH />
     <Markdown id="interdisciplinary_3_intro">
@@ -48,14 +48,14 @@ Please keep in mind that this is a learning opportunity, not a test. You will of
       </SplitPanel>
     </Vertical>
   </IntakeGate>
-  
+
   <IntakeGate ready="@student_problem_statement.value" >
     <HH />
    <Markdown id="peggys_significance_statement">
 Higher school dropout rates can increase crime as education often provides structure and opportunity, reducing the likelihood of criminal activities, thus suggesting vocational education can be pivotal as it offers practical skills training, presents clear job opportunities, and keeps students engaged and less likely to drop out.
     </Markdown>
   </IntakeGate>
-  
+
   <Vertical id="correct_significance_statement">
     <IntakeGate ready="@student_problem_statement.value" >
       <Markdown>
@@ -79,7 +79,7 @@ significantly less--about \$375,000 less over a lifetime than graduates (elevate
 are also more likely to rely on public assistance, contributing to cycles of poverty.
 
 Dropouts are overrepresented in the criminal justice system, with about 75% of crimes committed by
-those without high school diplomas (Do Something). This places financial strain on law enforcement 
+those without high school diplomas (Do Something). This places financial strain on law enforcement
 and social services. At a national level, a less educated workforce weakens the economy. The government
 spends between \$1.7 and \$2.3 million per dropout over their lifetime due to lost tax revenue and
 social service costs (elevatetheusa.org).
@@ -100,7 +100,7 @@ likelihood of criminal activity, and greater reliance on public assistance. Thei
 also strains public resources, including healthcare, welfare, and the criminal justice system.
     </Markdown>
   </IntakeGate>
-  
+
   <IntakeGate ready="@student_problem_statement.value" >
     <HH />
     <Markdown id="repko_problem_statement_criteria">
@@ -113,7 +113,7 @@ A successful problem statement:
  5. defines the **scope of the study** by narrowing its focus to the part of the topic that will be studied.
   </Markdown>
   </IntakeGate>
-  
+
   <IntakeGate ready="@student_problem_statement.value" >
     <HH />
     <Markdown id="comm360_mission">
@@ -135,12 +135,12 @@ in four priority areas:
   </IntakeGate>
 
     <!-- Causes to service area mapping -->
-      <CapaProblem id="cause_service_mapping" title="Map Each Cause of High School Dropout to Comm360 Service Areas"> 
+      <CapaProblem id="cause_service_mapping" title="Map Each Cause of High School Dropout to Comm360 Service Areas">
         <TabularMCQGrader>
           <TabularMCQ id="cause_to_service_mapping">
         mode: checkbox
         cols: Education and Training|EducTrain, Health and Wellness|HealthWellness, Family and YouthServices|FamilyYouth, Community Building and Advocacy|CommunityBuilding
-        rows: 
+        rows:
          - "If a student feels they need to earn money right away to help their family, they might drop out to get a full-time job[FamilyYouth]"
          - "Conditions like depression, anxiety, or ADHD can interfere with a student's ability to get good grades and remain engaged in school.[HealthWellness]"
          - "A student's environment may increase their likelihood of dropping out if they live in an area affected by gang activity, neighborhood instability, and limited support systems, as seen in some urban communities.[CommunityBuilding]"
@@ -148,7 +148,7 @@ in four priority areas:
       </TabularMCQ>
     </TabularMCQGrader>
    </CapaProblem>
-   
+
    <Vertical id="explain_mission_mapping">
      <SplitPanel id="explain_mission_mapping_sp" sizes="30, 70">
        <LeftPane>
@@ -166,8 +166,8 @@ _Put your answer in the box to the right._
       <HH />
       <Use ref="cause_service_mapping" />
     </IntakeGate>
-  </Vertical>  
-  
+  </Vertical>
+
   <HH>What I really wanted to do here is to display the correct answers to the tabularMCQ without showing the student answers. If that's possible I couldn't see how.</HH>
   <IntakeGate ready="@student_problem_statement.value" >
     <Markdown>&nbsp;</Markdown>
@@ -179,10 +179,10 @@ _Put your answer in the box to the right._
 - **Community Building and Advocacy**: Lack of school funding means fewer resources and support for students, making historically underserved students more likely to drop out.
     </Markdown>
   </IntakeGate>
-  
-  <Vertical id="relevant_disciplines_for_problem_statement"> 
+
+  <Vertical id="relevant_disciplines_for_problem_statement">
    <Markdown>
-**Which other relationships between causal factors do you think are important?** 
+**Which other relationships between causal factors do you think are important?**
    </Markdown>
    <CheckboxInput id="relevant_for_ps">
     <Key id="rd1">
@@ -266,19 +266,19 @@ Social Work
           <TextArea id="rd9_explanation" placeholder="Why this discipline is relevant and what Comm360 might be able to do using methods this discipline supports..." />
       </IntakeGate>
     </Key>
-    
+
    </CheckboxInput>
   </Vertical>
-  
+
   <Vertical id="write_interdisciplinary_problem_statement">
       <Markdown>
 ## Write Your Problem Statement
       </Markdown>
       <TextArea id="student_problem_statement" placeholder="Draft your problem statement here ..." rows="20" />
   </Vertical>
-  
+
   <Markdown id="clear_screen">&nbsp;</Markdown>
-  
+
 </Vertical>
 </Cast>
 

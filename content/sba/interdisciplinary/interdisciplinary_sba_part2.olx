@@ -14,12 +14,12 @@ lang: en-Latn-US
   <Tabs id="interdisciplinary_sba2_tabs">
     <!-- Tab 1: Student Current Work -->
    <Sequential id="interdisciplinary_part2_seq" title="Current Activity">
-  
+
     <SplitPanel sizes="30, 70" id="interdisciplinary_part2_sp1">
       <!-- Left Panel: Dialogue Conversation -->
       <LeftPane>
-        <Chat id="interdisciplinary_chat_orientation2" 
-            src="interdisciplinary_dialogue_part2.chatpeg" 
+        <Chat id="interdisciplinary_chat_orientation2"
+            src="interdisciplinary_dialogue_part2.chatpeg"
             clip="orientation2"
             height="400px" />
       </LeftPane>
@@ -35,8 +35,8 @@ lang: en-Latn-US
     <SplitPanel sizes="30, 70" id="interdisciplinary_part2_sp2">
       <!-- Left Panel: Dialogue Conversation -->
       <LeftPane>
-        <Chat id="interdisciplinary_chat_introduction2" 
-            src="interdisciplinary_dialogue_part2.chatpeg" 
+        <Chat id="interdisciplinary_chat_introduction2"
+            src="interdisciplinary_dialogue_part2.chatpeg"
             clip="interdisciplinary_introduction2"
             height="400px" />
       </LeftPane>
@@ -52,8 +52,8 @@ lang: en-Latn-US
     <SplitPanel sizes="30, 70" id="interdisciplinary_part2_sp3">
       <!-- Left Panel: Dialogue Conversation -->
       <LeftPane>
-        <Chat id="interdisciplinary_chat_multifactor" 
-            src="interdisciplinary_dialogue_part2.chatpeg" 
+        <Chat id="interdisciplinary_chat_multifactor"
+            src="interdisciplinary_dialogue_part2.chatpeg"
             clip="interdisciplinary_multifactor"
             height="400px" />
       </LeftPane>
@@ -69,8 +69,8 @@ lang: en-Latn-US
     <SplitPanel sizes="30, 70" id="interdisciplinary_part2_sp4">
       <!-- Left Panel: Dialogue Conversation -->
       <LeftPane>
-        <Chat id="interdisciplinary_chat_additional_factors" 
-            src="interdisciplinary_dialogue_part2.chatpeg" 
+        <Chat id="interdisciplinary_chat_additional_factors"
+            src="interdisciplinary_dialogue_part2.chatpeg"
             clip="interdisciplinary_additional_factors"
             height="400px" />
       </LeftPane>
@@ -86,8 +86,8 @@ lang: en-Latn-US
     <SplitPanel sizes="30, 70" id="interdisciplinary_part2_sp5">
       <!-- Left Panel: Dialogue Conversation -->
       <LeftPane>
-        <Chat id="interdisciplinary_chat_funding_text" 
-            src="interdisciplinary_dialogue_part2.chatpeg" 
+        <Chat id="interdisciplinary_chat_funding_text"
+            src="interdisciplinary_dialogue_part2.chatpeg"
             clip="interdisciplinary_funding_text"
             height="400px" />
       </LeftPane>
@@ -103,8 +103,8 @@ lang: en-Latn-US
     <SplitPanel sizes="30, 70" id="interdisciplinary_part2_sp6">
       <!-- Left Panel: Dialogue Conversation -->
       <LeftPane>
-        <Chat id="interdisciplinary_chat_part2_conclusion" 
-            src="interdisciplinary_dialogue_part2.chatpeg" 
+        <Chat id="interdisciplinary_chat_part2_conclusion"
+            src="interdisciplinary_dialogue_part2.chatpeg"
             clip="interdisciplinary_part_2_conclusion"
             height="400px" />
       </LeftPane>
