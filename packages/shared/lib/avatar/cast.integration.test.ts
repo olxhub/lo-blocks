@@ -14,7 +14,7 @@ import { describe, test, expect, afterEach } from 'vitest';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { InMemoryStorageProvider } from '@/lib/lofs/providers/memory';
 import { toMemoryRef } from '@/lib/types/storage';
-import { TEST_NS } from '@/lib/test-utils';
+import { TEST_NS, testKey } from '@/lib/test-utils';
 import { asDefinitionKey } from '@/lib/types/id-grammar';
 
 import { render, makeRootNode } from '@/lib/render';
@@ -211,7 +211,7 @@ describe('Launchable block: rendering from non-root ID', () => {
     `;
 
     // Render from the Vertical (simulating preview starting from launchable)
-    const { container } = await parseAndRender(olx, { 'test.cast': CAST_YAML }, asDefinitionKey(`${TEST_NS}://vert_above`));
+    const { container } = await parseAndRender(olx, { 'test.cast': CAST_YAML }, testKey('vert_above'));
 
     // The Cast block is above the render root — it never runs.
     // TeamDirectory gets no runtime.cast → shows empty state.
@@ -246,7 +246,7 @@ describe('Launchable block: rendering from non-root ID', () => {
     `;
 
     // Render from the Vertical, bypassing the Cast wrapper
-    const { container } = await parseAndRender(olx, { 'test.cast': CAST_YAML }, asDefinitionKey(`${TEST_NS}://vert_launch`));
+    const { container } = await parseAndRender(olx, { 'test.cast': CAST_YAML }, testKey('vert_launch'));
 
     // TeamDirectory has its own cast= → works even without Cast wrapper in render tree
     expect(container.textContent).toContain('Bob Builder');

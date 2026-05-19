@@ -1,7 +1,7 @@
 // src/lib/blocks/olxdom.test.js
 import { getKidsBFS, getKidsDFS, getParents, inferRelatedNodes, getAllNodes, __testables } from './olxdom';
 import { asDefinitionKey } from '../types/id-grammar';
-import { TEST_NS } from '../test-utils';
+import { TEST_NS, testKey } from '../test-utils';
 
 const { normalizeTargetIds, normalizeInfer} = __testables;
 
@@ -174,7 +174,7 @@ describe('inferRelatedNodes', () => {
       { nodeInfo: tree },
       { selector: n => true, targets: "B, C" }
     );
-    expect(result.sort()).toEqual([asDefinitionKey(`${TEST_NS}://B`), asDefinitionKey(`${TEST_NS}://C`)]);
+    expect(result.sort()).toEqual([testKey('B'), testKey('C')]);
   });
 
   it("throws if no node or selector", () => {

@@ -3,8 +3,8 @@
 import { parseOLX } from './parseOLX';
 import type { IdMap, OlxJson, DefinitionKey, ContentVariant } from '../types';
 import { toMemoryRef } from '../types/storage';
-import { TEST_NS } from '../test-utils';
-import { asDefinitionKey, qualifyDefinitionRef, parseDefinitionRef, PLACEHOLDER_NS } from '../types/id-grammar';
+import { TEST_NS, testKey } from '../test-utils';
+import { asDefinitionKey, qualifyDefinitionRef, parseDefinitionRef, PLACEHOLDER_NS, joinNs } from '../types/id-grammar';
 
 const PROV = [toMemoryRef('test.xml')];
 
@@ -22,14 +22,14 @@ const getBlocksByTag = (idMap: IdMap, tag: string): OlxJson[] =>
 test('returns root id of single element', async () => {
   const xml = '<Vertical id="root"><TextBlock id="child"/></Vertical>';
   const { root, idMap } = await parseOLX(xml, PROV);
-  expect(root).toBe(asDefinitionKey(`${TEST_NS}://root`));
+  expect(root).toBe(testKey('root'));
   expect(idMap[root]).toBeDefined();
 });
 
 test('returns first element id when multiple roots', async () => {
   const xml = '<Vertical id="one"/><Vertical id="two"/>';
   const { root } = await parseOLX(xml, PROV);
-  expect(root).toBe(asDefinitionKey(`${TEST_NS}://one`));
+  expect(root).toBe(testKey('one'));
 });
 
 test('CRITICAL: _sourceOffset is the byte offset of `<` from fast-xml-parser captureMetaData', async () => {
@@ -58,7 +58,7 @@ test('parses <Use> with attribute overrides', async () => {
   const { idMap, root } = await parseOLX(xml, PROV);
   const lesson = getOlxJson(idMap, root);
   const useKid = lesson.kids[1];
-  expect(useKid).toEqual({ type: 'block', id: asDefinitionKey(`${TEST_NS}://C`), overrides: { clip: '[3,4]' } });
+  expect(useKid).toEqual({ type: 'block', id: testKey('C'), overrides: { clip: '[3,4]' } });
 });
 
 test('CRITICAL: Parser must preserve numeric text as strings (prevents "text.trim is not a function" errors)', async () => {
@@ -125,10 +125,10 @@ test('auto-generated IDs are namespace-qualified with underscore-prefixed hash',
   const xml = '<Vertical id="root"><TextBlock>Some content</TextBlock></Vertical>';
   const { idMap } = await parseOLX(xml, PROV);
   const ids = Object.keys(idMap);
-  const autoIds = ids.filter(id => id !== asDefinitionKey(`${TEST_NS}://root`));
+  const autoIds = ids.filter(id => id !== testKey('root'));
   expect(autoIds.length).toBeGreaterThan(0);
   for (const id of autoIds) {
-    expect(id).toMatch(new RegExp(`^${TEST_NS}://_[a-f0-9]+$`));
+    expect(id).toMatch(new RegExp(`^${TEST_NS}/_[a-f0-9]+$`));
   }
 });
 
@@ -201,7 +201,7 @@ test('Explicit IDs should still be enforced for blocks that require uniqueness',
   const { errors } = await parseOLX(xml, PROV);
   expect(errors.length).toBe(1);
   expect(errors[0].type).toBe('duplicate_id');
-  expect(errors[0].message).toContain('CONTENT://explicit');
+  expect(errors[0].message).toContain(String(testKey('explicit')));
 });
 
 test('Explicit different IDs should work for all block types', async () => {
@@ -297,8 +297,8 @@ test('child elements inherit parent language when no lang attribute', async () =
   expect(errors.length).toBe(0);
 
   // Both elements should be stored under ar-Arab-SA language
-  expect(idMap[asDefinitionKey(`${TEST_NS}://parent`)]).toBeDefined();
-  expect(idMap[asDefinitionKey(`${TEST_NS}://parent`)]['ar-Arab-SA']).toBeDefined();
+  expect(idMap[testKey('parent')]).toBeDefined();
+  expect(idMap[testKey('parent')]['ar-Arab-SA']).toBeDefined();
 });
 
 test('child can override parent language with own lang attribute', async () => {
@@ -312,8 +312,8 @@ test('child can override parent language with own lang attribute', async () => {
   expect(errors.length).toBe(0);
 
   // Parent should be stored under ar-Arab-SA (explicit lang attribute)
-  expect(idMap[asDefinitionKey(`${TEST_NS}://parent`)]).toBeDefined();
-  expect(idMap[asDefinitionKey(`${TEST_NS}://parent`)]['ar-Arab-SA']).toBeDefined();
+  expect(idMap[testKey('parent')]).toBeDefined();
+  expect(idMap[testKey('parent')]['ar-Arab-SA']).toBeDefined();
 });
 
 test('language cascade: element > parent > file metadata > default', async () => {
@@ -332,14 +332,14 @@ test('language cascade: element > parent > file metadata > default', async () =>
   expect(errors.length).toBe(0);
 
   // Root has explicit lang, should use that (es-Latn-ES, not file metadata de-Latn-DE)
-  expect(idMap[asDefinitionKey(`${TEST_NS}://root`)]).toBeDefined();
-  expect(idMap[asDefinitionKey(`${TEST_NS}://root`)]['es-Latn-ES']).toBeDefined();
+  expect(idMap[testKey('root')]).toBeDefined();
+  expect(idMap[testKey('root')]['es-Latn-ES']).toBeDefined();
 
   // TextBlock with explicit lang should use that
-  expect(idMap[asDefinitionKey(`${TEST_NS}://explicit_lang`)]).toBeDefined();
-  expect(idMap[asDefinitionKey(`${TEST_NS}://explicit_lang`)]['fr-Latn-FR']).toBeDefined();
+  expect(idMap[testKey('explicit_lang')]).toBeDefined();
+  expect(idMap[testKey('explicit_lang')]['fr-Latn-FR']).toBeDefined();
 
   // TextBlock without lang should inherit parent's es-Latn-ES
-  expect(idMap[asDefinitionKey(`${TEST_NS}://inherit_parent`)]).toBeDefined();
-  expect(idMap[asDefinitionKey(`${TEST_NS}://inherit_parent`)]['es-Latn-ES']).toBeDefined();
+  expect(idMap[testKey('inherit_parent')]).toBeDefined();
+  expect(idMap[testKey('inherit_parent')]['es-Latn-ES']).toBeDefined();
 });

@@ -6,7 +6,7 @@ import path from 'path';
 import { fileTypes } from '../lofs';
 import { FileStorageProvider } from '../lofs/providers/file';
 import { syncContentFromStorage } from './syncContentFromStorage';
-import { getOlxJson, TEST_NS } from '../test-utils';
+import { getOlxJson, TEST_NS, testKey } from '../test-utils';
 import { asDefinitionKey } from '../types/id-grammar';
 
 it('handles added, unchanged, changed, and deleted files via filesystem mutation', async () => {
@@ -137,7 +137,7 @@ it('byProvenance.nodes stays in sync with byId when auxiliary files add/remove I
 
     // Verify byProvenance.nodes contains the correct IDs after first parse
     const firstNodes = first.parsed[olxUri].nodes;
-    expect(firstNodes).toContain(asDefinitionKey(`${TEST_NS}://chat_main`));
+    expect(firstNodes).toContain(testKey('chat_main'));
 
     // Now update the chatpeg to have a DIFFERENT message id
     // This simulates adding/removing block IDs via auxiliary file changes
@@ -155,7 +155,7 @@ it('byProvenance.nodes stays in sync with byId when auxiliary files add/remove I
     const secondNodes = second.parsed[olxUri].nodes;
 
     // The nodes array should reflect the current state
-    expect(secondNodes).toContain(asDefinitionKey(`${TEST_NS}://chat_main`));
+    expect(secondNodes).toContain(testKey('chat_main'));
 
     // Every ID in nodes should exist in idMap
     for (const nodeId of secondNodes) {
@@ -227,7 +227,7 @@ it('stale nodes array does not overwrite fresh IDs after auxiliary file change',
     const firstNodes = first.parsed[olxUri].nodes;
 
     // Should have chat1 (vertical is anonymous, doesn't get tracked by ID)
-    expect(firstNodes).toContain(asDefinitionKey(`${TEST_NS}://chat1`));
+    expect(firstNodes).toContain(testKey('chat1'));
     const firstNodeCount = firstNodes.length;
 
     // Now: change BOTH the OLX (add new block) AND the chatpeg
@@ -248,8 +248,8 @@ it('stale nodes array does not overwrite fresh IDs after auxiliary file change',
     const secondNodes = second.parsed[olxUri].nodes;
 
     // Must have both chat1 AND text_new
-    expect(secondNodes).toContain(asDefinitionKey(`${TEST_NS}://chat1`));
-    expect(secondNodes).toContain(asDefinitionKey(`${TEST_NS}://text_new`));
+    expect(secondNodes).toContain(testKey('chat1'));
+    expect(secondNodes).toContain(testKey('text_new'));
     expect(getOlxJson(second.idMap, 'text_new')).toBeDefined();
 
     // Verify the chat was updated too
@@ -289,7 +289,7 @@ it('auxiliary-only change preserves correct nodes after spread', async () => {
 
     // Record the exact nodes array reference/content
     const nodesAfterFirst = [...first.parsed[olxUri].nodes];
-    expect(nodesAfterFirst).toContain(asDefinitionKey(`${TEST_NS}://the_chat`));
+    expect(nodesAfterFirst).toContain(testKey('the_chat'));
 
     // ONLY change the chatpeg - OLX file stays unchanged
     const chatpegV2 = `Title: Version2\n~~~~\nAlice: Bye [id=m2]\n`;
@@ -308,7 +308,7 @@ it('auxiliary-only change preserves correct nodes after spread', async () => {
 
     // They should be equivalent (same IDs) - if the bug exists, we might
     // see the old nodes array object here
-    expect(nodesAfterSecond).toContain(asDefinitionKey(`${TEST_NS}://the_chat`));
+    expect(nodesAfterSecond).toContain(testKey('the_chat'));
 
     // More importantly: verify the internal contentStore is consistent
     // by doing a THIRD sync where we delete the OLX

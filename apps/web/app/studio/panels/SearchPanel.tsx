@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import type { IdMap, OlxJson } from '@/lib/types';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
+import { fileProvenancePath } from '@/lib/types/storage';
 
 interface SearchPanelProps {
   idMap: IdMap | null;
@@ -25,11 +26,13 @@ function extractIds(content: string): Array<{ id: string; tag: string }> {
   return results;
 }
 
-// Extract relative path from provenance
+// Extract relative path from provenance URI.
+// Uses the address parser to handle all URI schemes correctly.
 function getRelPath(prov?: string[]): string | null {
   if (!prov || prov.length === 0) return null;
-  const idx = prov[0].indexOf('/content/');
-  return idx >= 0 ? prov[0].slice(idx + '/content/'.length) : prov[0];
+  const fileProv = prov.find(p => p.startsWith('file:'));
+  if (!fileProv) return null;
+  return fileProvenancePath(fileProv);
 }
 
 export function SearchPanel({ idMap, content, currentPath, onFileSelect, onScrollToId, onNotify }: SearchPanelProps) {
