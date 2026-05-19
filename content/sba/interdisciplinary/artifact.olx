@@ -14,13 +14,7 @@ This is your accumulated work on the high school dropout analysis. Review your p
 
   <!-- Step 1: Problem Statement -->
   <Collapsible id="artifact_step1" title="Step 1: Define the problem or state the research question">
-    <Markdown>
-Your comprehensive problem statement that addresses:
-- Why the problem is important (significance)
-- Why it's unresolved
-- Focus and scope aligned with Comm360's capacity
-    </Markdown>
-
+    <Use ref="repko_problem_statement_criteria" />
     <Tabs id="repko_step_1">
       <Vertical id="initial_ps" title="Initial Problem Statement">
         <Markdown id="initial_ps_md1">
@@ -28,10 +22,25 @@ We've been asked to investigate the causes of high school dropout so Comm360 can
         </Markdown>
       </Vertical>
       <Vertical id="artifact_tb_2" title="Significance Statement">
-        <TextArea id="interdisciplinary_sba_problem_statement_revised" placeholder="Your significance statement will appear here..." />
+        <TextArea id="interdisciplinary_sba_problem_statement_revised" placeholder="Your revision of Peggy's significance statement goes here..." />
+      </Vertical>
+      <Vertical id="artifact_tb_3" title="Focus and Scope">
+        <IntakeGate ready="@relevant_for_ps.value">
+          <Markdown>Your scope and focus will be shown here once you have determined what they are.</Markdown>
+          <Vertical id="interdisciplinary_scope_and_focus">
+            <Markdown>
+        ### Our Focus
+        - **Comm360 Service Area**: Health and Wellness
+        - **Cause We Will Focus on**: Conditions like depression, anxiety, or ADHD can interfere with a student's ability to get good grades and remain engaged in school.
+
+        ### Our scope will include the disciplines selected below:
+            </Markdown>
+            <Use ref="relevant_for_ps" />
+          </Vertical>
+        </IntakeGate>
       </Vertical>
       <Vertical id="artifact_tb_1" title="Final Problem Statement">
-        <TextArea id="interdisciplinary_sba_full_problem_statement" placeholder="Your final problem statement will appear here once completed..." />
+          <Use ref="write_interdisciplinary_problem_statement" />
       </Vertical>
     </Tabs>
   </Collapsible>
@@ -40,7 +49,7 @@ We've been asked to investigate the causes of high school dropout so Comm360 can
   <Collapsible id="artifact_step2" title="Step 2: Justify using an interdisciplinary approach">
     <Tabs id="bm_step2">
       <Vertical id="bm_step2_criteria" title="Criteria">
-        <Use id="broad_model_display3" ref="repko_criteria" />
+        <Markdown id="repko_criteria2" src="readings/repko_criteria.md" />
       </Vertical>
       <Vertical id="bm_step2_eval" title="My Initial Evaluation">
         <Use id="initial_repko_evaluation2" ref="initial_repko_evaluation" />

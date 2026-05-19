@@ -472,13 +472,13 @@ Conclusion to Part One [id=part_one_conclusion]
 
 Lianne: Good work! This ends Part 1 of the SBA. Let's recap what we have done so far.
 
-interdisciplinary_sba_sidebar_m -> completion_interdisciplinary_1
+::completion_interdisciplinary_1 [display=target:interdisciplinary_sba_sidebar_m label="Mark Your Work Complete"]
 
 Lianne: We brainstormed and learned causes of high school dropout. That helped us understand
 that this is a complex problem with multiple parts, which makes it suitable for interdisciplinary
 study. We then located sources from different disciplines shedding light and insight on those causes.
 
-interdisciplinary_sba_sidebar_m -> interdisciplinary_activities_part1
+::interdisciplinary_activities_part1 [display=target:interdisciplinary_sba_sidebar_m label="Review and Save Your Work"]
 
 Lianne: Now that you've finished this task, please use the "Export as PDF" button to the right to save a copy of your answers and upload the resulting PDF to your class system to complete your assignment.
 
