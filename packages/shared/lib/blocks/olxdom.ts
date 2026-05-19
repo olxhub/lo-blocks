@@ -5,7 +5,6 @@
 
 import * as state from '@/lib/state';
 import { parseDefinitionRef, definitionKeyForRef, scopedStateKeyForBlock } from '../types/id-grammar';
-import * as idResolver from '../types/id';
 import type { OlxDomNode, OlxDomSelector, DefinitionKey, DefinitionRef, StateKey, RuntimeProps } from '@/lib/types';
 //
 // The OLX DOM is Learning Observer's internal representation of educational content,

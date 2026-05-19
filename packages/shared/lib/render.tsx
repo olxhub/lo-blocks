@@ -26,10 +26,44 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { DefinitionKey, IdPrefix, StateKey, LoBlockRuntimeContext, OlxJson } from '@/lib/types';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { getGrader, getEventContext } from '@/lib/blocks/olxdom';
-import { assignReactKeys } from '@/lib/types/id';
-import { definitionKeyForRef, scopedStateKeyForBlock } from '@/lib/types/id-grammar';
+import { definitionKeyForRef, scopedStateKeyForBlock, SCOPE_SEPARATOR } from '@/lib/types/id-grammar';
 import { selectBlock } from '@/lib/state/olxjson';
 import type { Store } from 'redux';
+
+/**
+ * Assigns unique React keys to an array of children.
+ *
+ * React requires unique keys for siblings to efficiently reconcile changes.
+ * In OLX, the same block can appear multiple times (DAG reuse), so we need
+ * to handle duplicate IDs by appending suffixes: "foo", "foo:1", "foo:2".
+ */
+export function assignReactKeys(children) {
+  const idCounts = {};
+  return children.map((child, i) => {
+    if (child == null || typeof child !== 'object') {
+      return child;
+    }
+    if ('key' in child) {
+      throw new Error(
+        `assignReactKeys: Child at index ${i} already has a 'key' property. ` +
+        `Don't double-key children.`
+      );
+    }
+    let key;
+    if ('id' in child && child.id != null) {
+      if (!idCounts[child.id]) {
+        idCounts[child.id] = 1;
+        key = child.id;
+      } else {
+        key = `${child.id}${SCOPE_SEPARATOR}${idCounts[child.id]}`;
+        idCounts[child.id]++;
+      }
+    } else {
+      key = `__idx__${i}`;
+    }
+    return { ...child, key };
+  });
+}
 
 // Root sentinel has minimal loBlock so selectors don't need ?. checks
 // TODO: Give root a real loBlock created via blocks.core() for consistency

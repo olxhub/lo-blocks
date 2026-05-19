@@ -17,13 +17,13 @@ import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import { useStaticContent } from '../../lib/StaticContentProvider';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
-import { toDefinitionKey } from '@/lib/types/id';
+import { definitionKeyForRef, parseDefinitionRef } from '@/lib/types/id-grammar';
 import { variantMapLocaleEntries } from '@/lib/types/i18n';
 import type { Locale } from '@/lib/types';
 
 export default function StaticPage({ definitionKey, title }: { definitionKey: string; title?: string }) {
   const { idMap } = useStaticContent();
-  const key = toDefinitionKey(definitionKey);
+  const key = definitionKeyForRef(parseDefinitionRef(definitionKey));
 
   // Sync <html> lang and dir for accessibility and RTL
   const localeAttrs = useLocaleAttributes();

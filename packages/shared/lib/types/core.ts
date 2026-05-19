@@ -50,30 +50,28 @@ export type JSONValue =
  *   type system and validation would be redundant.
  * - validateX(value): boolean or assertion-style validation without conversion.
  *
- * Ref -> Key conversion is a separate job and should use resolver names such as
- * refToReduxKey(...) or, once namespace context is required, a name like
- * resolveStateRef(ref, props). Existing toX(...) helpers predate this
- * convention and should be migrated opportunistically as each type is cleaned up.
+ * Ref -> Key conversion is a separate job with named resolvers in id-grammar.ts.
+ * Own-state and authored cross-references use DIFFERENT resolvers — see
+ * scopedStateKeyForBlock (own-state) vs stateKeyForGlobalRef (authored targets).
  *
  * ┌──────────────────────────────────────────────────────────────────────┐
  * │                        CONVERSION PATHWAYS                           │
+ * │  (all functions live in id-grammar.ts)                               │
  * │                                                                      │
- * │  DefinitionRef ──refToDefinitionKey()──────> DefinitionKey                          │
+ * │  DefinitionRef ──definitionKeyForRef()──> DefinitionKey              │
  * │      │                                  │                            │
  * │      │                                  │  Content lookup in Redux   │
  * │      │                                  │  (selectBlock, ensureBlock)│
  * │      v                                  │                            │
- * │  StateRef ─refToReduxKey(props)──> StateKey                │
- * │        (authored target=, combines with IdPrefix)                    │
+ * │  props ─scopedStateKeyForBlock(props)──> StateKey  (own-state)       │
+ * │  StateRef ─stateKeyForGlobalRef(ref)──> StateKey   (authored target) │
  * │                                                                      │
- * │  StateKey ─stateKeyToDefinitionKey()──> DefinitionKey  (leaf block)           │
+ * │  StateKey ─leafDefinitionKeyFromStateKey()──> DefinitionKey (leaf)   │
  * │      │              ↑                                                │
  * │      │              │ Last non-ScopeMarker segment                   │
- * │      │              │ (DefinitionKeys cannot contain ':' or start with '#') │
+ * │      │              │ (DefinitionKeys cannot contain ':' or '#')     │
  * │      │                                                               │
- * │  StateKey ─allDefinitionKeys()──> DefinitionKey[]  (all blocks in scope)      │
- * │                                                                      │
- * │  IdPrefix + StateRef ─refToReduxKey()──> StateKey          │
+ * │  StateKey ─allDefinitionKeysFromStateKey()──> DefinitionKey[]        │
  * │                                                                      │
  * │  extendIdPrefix(props, [id, scopeMarker(index)]) → IdPrefix          │
  * │    Blocks like DynamicList create scoped prefixes                    │
@@ -96,10 +94,10 @@ export type JSONValue =
  *   IdPrefix:      "myList:#0" (DynamicList "myList", instance 0)
  *   StateKey: "myList:#0:resistorProblem" (scoped state key)
  *
- * The ':' delimiter (REDUX_SCOPE_SEPARATOR) is reserved — forbidden in
+ * The ':' delimiter (SCOPE_SEPARATOR) is reserved — forbidden in
  * user-authored IDs. This makes decomposition deterministic:
- *   stateKeyToDefinitionKey("myList:#0:resistorProblem") → "resistorProblem"
- *   allDefinitionKeys("myList:#0:resistorProblem")       → ["myList", "resistorProblem"]
+ *   leafDefinitionKeyFromStateKey("CONTENT/myList:#0:resistorProblem") → "CONTENT/resistorProblem"
+ *   allDefinitionKeysFromStateKey("CONTENT/myList:#0:resistorProblem") → ["CONTENT/myList", "CONTENT/resistorProblem"]
  *
  * See docs/redux-key-decomposition.md for full design documentation.
  */
