@@ -54,36 +54,21 @@ export const SOURCE_DELIM = '://';                                     // Separa
 const nsDelim = literal(NS_DELIM);
 const sourceDelim = literal(SOURCE_DELIM);
 
-// --- Refs (what authors write — may or may not have namespace) -------------
+// --- Refs (brandable input forms — bare or namespace-qualified) -------------
 //
-// Refs are the permissive input form. Keys are canonical subsets of Refs.
-// This mirrors LofsRef → LofsCanonical: same string format, different
-// semantic guarantee (resolved / canonical).
+// DefinitionRef and StateRef are the validated, brandable input forms.
+// They accept bare IDs or namespace-qualified IDs, but NOT source-qualified
+// refs (which contain "://"). Keys are canonical subsets of Refs — always
+// namespace-qualified.
 //
-// DefinitionRef:   Content definition reference. Anything an author writes
-//                  to identify a block. Bare or namespace-qualified.
-//                  Examples:
-//                    "hw1"                                              (bare)
-//                    "ee101/hw1"                                        (also a valid DefinitionKey)
-//
-// StateRef:        State instance reference. Scoped, may or may not have
-//                  a namespace. A namespaced StateRef is also a valid
-//                  StateKey.
-//                  Examples:
-//                    "problems:#0:answer"                               (unqualified)
-//                    "ee101/problems:#0:answer"                         (also a valid StateKey)
+// DefinitionRef:   "hw1"  (bare)  or  "ee101/hw1"  (also a valid DefinitionKey)
+// StateRef:        "problems:#0:answer"  (bare)  or  "ee101/problems:#0:answer"
 //
 // Source-qualified refs (e.g., "git@gitlab.com:olxhub/ee101.git://hw1")
-// use "://" as their delimiter. These are detected by isSourceQualifiedRef()
-// and rejected at runtime — they require LOFS resolution to determine the
-// canonical namespace. This is not yet implemented.
-//
-// DISTINGUISHING KEYS FROM SOURCE-QUALIFIED REFS:
-//
-// Keys use "/" (e.g., "ee101/hw1"). Source-qualified refs use "://"
-// (e.g., "git@gitlab.com:olxhub/ee101.git://hw1"). Check for "://" first
-// to distinguish them — a ref that contains "://" is source-qualified,
-// not a canonical Key.
+// are a SEPARATE pre-validation form. They cannot be branded as DefinitionRef
+// or StateRef because they need LOFS resolution to determine the canonical
+// namespace first. isSourceQualifiedRef() detects them; qualifyRef() throws
+// if one is passed in. See the "Source-qualified refs" section below.
 
 export const definitionRef = `(?:${namespace}${nsDelim})?${leafId}`;
 export const stateRef = `(?:${namespace}${nsDelim})?(?:${scopeSegment}:)*${leafId}`;
@@ -101,10 +86,12 @@ const statePath = `(?:${scopeSegment}:)*${leafId}`;
 export const definitionKey = `${namespace}${nsDelim}${leafId}`;
 export const stateKey = `${namespace}${nsDelim}${statePath}`;
 
-// --- Source-qualified refs (for provenance, analytics, reload) -------------
+// --- Source-qualified refs (pre-validation input — NOT brandable) -----------
 //
-// These are NOT used for state keys or content lookup at runtime. They carry
-// richer origin information for other purposes:
+// These are raw input strings that identify content by its storage origin.
+// They are NOT DefinitionRefs or StateRefs — they must go through LOFS
+// resolution to extract the canonical namespace before they can be used as
+// Refs or Keys. parseDefinitionRef() and parseStateRef() reject them.
 //
 //   Immutable (analytics, replay):
 //     git:github.com/olxhub/ee101.git@a1238b://hw1
@@ -120,7 +107,8 @@ export const stateKey = `${namespace}${nsDelim}${statePath}`;
 // The grammar is intentionally permissive — the part before "://" can be
 // nearly anything (URLs, file paths, etc.). Validation is left to the LOFS layer.
 //
-// NOT YET IMPLEMENTED: isSourceQualifiedRef() detects these and throws.
+// LOFS resolution (source-qualified → DefinitionKey) is not yet implemented.
+// isSourceQualifiedRef() detects them; qualifyRef() throws if one is passed.
 
 export const sourceQualifiedRef = `.+?${sourceDelim}${leafId}`;
 
@@ -301,7 +289,10 @@ export function validateContentNamespace(s: string): true | string {
 export function validateDefinitionRef(s: string): true | string {
   if (!s) return 'DefinitionRef cannot be empty';
   if (!VALID.definitionRef.test(s)) {
-    return `Not a valid DefinitionRef: "${s}" (expected leafId or namespace/leafId)`;
+    const hint = s.includes(SOURCE_DELIM)
+      ? '. Source-qualified refs (containing "://") need LOFS resolution first'
+      : '';
+    return `Not a valid DefinitionRef: "${s}" (expected leafId or namespace/leafId${hint})`;
   }
   return true;
 }

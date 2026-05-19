@@ -157,11 +157,9 @@ function ensureReferencedBlocks(props: BaselineProps, idMap: IdMap, source: stri
 
       const refs = extractRefs(refValue);
       for (const ref of refs) {
-        // Strip /absolute and ./relative prefixes before decomposing
-        const cleaned = ref.startsWith('/') ? ref.slice(1)
-                      : ref.startsWith('./') ? ref.slice(2)
-                      : ref;
-        const qualifiedKey = stateKeyForGlobalRef(parseStateRef(cleaned));
+        // extractRefs returns Zod-validated values — no prefix stripping needed.
+        // If a "/" or "./" ref appears, parseStateRef will throw, surfacing bad data.
+        const qualifiedKey = stateKeyForGlobalRef(parseStateRef(ref));
         for (const defKey of allDefinitionKeysFromStateKey(qualifiedKey)) {
           // Skip blocks already in this idMap — they were just dispatched
           // in the same LOAD_OLXJSON event. Calling ensureBlock here would

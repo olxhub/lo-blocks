@@ -152,14 +152,12 @@ describe("namespace", () => {
 // definitionRef — Content definition reference (what authors write)
 // ═══════════════════════════════════════════════════════════════════════════════
 //
-// The most permissive content identifier. Anything an author might write to
-// refer to a block definition. DefinitionKey is a canonical SUBSET of OlxRef.
+// The brandable content identifier — bare or namespace-qualified.
+// Source-qualified refs (with "://") are a separate pre-validation form
+// that cannot be branded as DefinitionRef (they need LOFS resolution first).
 //
-// The grammar: optional namespace/prefix (namespace "/" leafId),
-// or a bare leafId. Source-qualified refs (with "://") are detected
-// and rejected separately by isSourceQualifiedRef.
-//
-// The system canonicalizes to DefinitionKey (ee101/hw1) at parse time.
+// The grammar: optional namespace prefix (namespace "/" leafId),
+// or a bare leafId. The system qualifies to DefinitionKey at resolve time.
 
 describe("definitionRef", () => {
   const re = VALID.definitionRef;
@@ -174,7 +172,7 @@ describe("definitionRef", () => {
   const invalid = [
     "problems:#0:answer",         // that's state (StateRef), not content
     "",                           // empty
-    "git@gitlab.com:olxhub/ee101.git://hw1",              // source-qualified (detected by isSourceQualifiedRef)
+    "git@gitlab.com:olxhub/ee101.git://hw1",              // source-qualified — not a DefinitionRef (needs LOFS resolution)
   ];
 
   for (const v of valid)   it(`✓ ${v}`, () => expect(re.test(v)).toBe(true));
@@ -208,7 +206,7 @@ describe("stateRef", () => {
     "#0",                         // just a scope marker
     "#0:#1",                      // only scope markers, no block
     "",                           // empty
-    "git@gitlab.com:olxhub/ee101.git://problems:#0:answer",     // source-qualified (detected separately)
+    "git@gitlab.com:olxhub/ee101.git://problems:#0:answer",     // source-qualified — not a StateRef (needs LOFS resolution)
   ];
 
   for (const v of valid)   it(`✓ ${v}`, () => expect(re.test(v)).toBe(true));
@@ -300,7 +298,7 @@ describe("stateFieldRef", () => {
     "answer.",                        // trailing dot, no field name
     ".value",                         // no key, just field
     "answer.0bad",                    // field starts with digit (not a leafId)
-    "git@gitlab.com:olxhub/ee101.git://answer.value",     // source-qualified (not supported in stateFieldRef)
+    "git@gitlab.com:olxhub/ee101.git://answer.value",     // source-qualified — needs LOFS resolution first
   ];
 
   for (const v of valid)   it(`✓ ${v}`, () => expect(re.test(v)).toBe(true));

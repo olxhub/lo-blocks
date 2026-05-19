@@ -24,15 +24,15 @@ const ENDPOINT_LINKS = [
     description: 'Activity cards for browsing and launching (GET)',
   },
   {
-    href: '/api/olxjson/all',
-    label: '/api/olxjson/all',
+    href: '/api/olxjson?id=all',
+    label: '/api/olxjson?id=all',
     type: 'JSON',
     description: 'Complete content map (GET)',
   },
   {
     key: 'contentId',
-    hrefTemplate: id => `/api/olxjson/${id}`,
-    label: '/api/olxjson/',
+    hrefTemplate: id => `/api/olxjson?id=${encodeURIComponent(id)}`,
+    label: '/api/olxjson?id=',
     placeholder: 'id',
     type: 'JSON',
     description: 'Content lookup for a specific ID (GET)',
@@ -153,7 +153,7 @@ function ActivityRow({ entry, userLocale }: { entry: any; userLocale: string }) 
             Graph
           </Link>
           <Link
-            href={`/api/olxjson/${entry.id}`}
+            href={`/api/olxjson?id=${encodeURIComponent(entry.id)}`}
             className="text-dimmed hover:text-secondary transition-colors"
             target="_blank"
           >
