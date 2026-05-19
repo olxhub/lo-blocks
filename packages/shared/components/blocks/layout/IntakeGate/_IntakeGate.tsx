@@ -31,10 +31,12 @@ import Spinner from '@/components/common/Spinner';
  * splits the comma-separated OLX attribute at parse time.
  */
 function targetsToExpressions(ids: StateRef[]): { ready: string; loading: string } {
-  const ready = ids.map(id => `@${id}.value`).join(' && ');
+  // Quote IDs because they may contain namespace delimiters (/) or scope
+  // markers (: #) that conflict with expression syntax.
+  const ready = ids.map(id => `@"${id}".value`).join(' && ');
   const loading = [
-    ...ids.map(id => `@${id}.state === 'LLM_RUNNING'`),
-    ...ids.map(id => `@${id}.value`),
+    ...ids.map(id => `@"${id}".state === 'LLM_RUNNING'`),
+    ...ids.map(id => `@"${id}".value`),
   ].join(' || ');
   return { ready, loading };
 }

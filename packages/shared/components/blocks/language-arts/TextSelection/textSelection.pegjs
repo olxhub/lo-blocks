@@ -145,8 +145,11 @@ FeedbackIds
 FeedbackText
   = (!nl .)+ { return text().trim(); }
 
+Namespace
+  = $([a-zA-Z_][a-zA-Z0-9_]* ("." [a-zA-Z_][a-zA-Z0-9_]*)* "/")
+
 Identifier
-  = $( ([a-zA-Z_][a-zA-Z0-9_]+ "/")? [a-zA-Z0-9_-]+ )
+  = $(Namespace? [a-zA-Z0-9_-]+)
 
 Integer
   = digits:[0-9]+ { return parseInt(digits.join(''), 10); }

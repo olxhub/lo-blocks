@@ -192,11 +192,15 @@ SigilId
   / NamespacedId
   / Identifier
 
-// Namespace-qualified ID: ns/path (e.g., CONTENT/quiz, ee101/hw1)
+// Namespace-qualified ID: ns/leafId (e.g., CONTENT/quiz, edu.mit.eecs6002/hw1)
 // Only valid after a sigil (@, #, $) where "/" can't mean division.
-// Namespace requires 2+ chars to avoid matching single-letter "x/y" as qualified.
+// Accepts DefinitionRef-shaped IDs only. For scoped StateRef paths like
+// CONTENT/list:#0:answer, use quoted syntax: @"CONTENT/list:#0:answer".
 NamespacedId
-  = ns:$([a-zA-Z_][a-zA-Z0-9_]+) "/" path:$([a-zA-Z_][a-zA-Z0-9_]*) { return ns + '/' + path; }
+  = ns:$(NsSegment ("." NsSegment)*) "/" path:$([a-zA-Z_][a-zA-Z0-9_]*) { return ns + '/' + path; }
+
+NsSegment
+  = [a-zA-Z_][a-zA-Z0-9_]*
 
 QuotedPath
   = '"' chars:QuotedPathChar* '"' { return chars.join(''); }

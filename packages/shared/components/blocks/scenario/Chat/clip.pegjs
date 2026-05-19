@@ -39,8 +39,11 @@ SingleClip
 
 // Identifiers don't have spaces, but if a person uses a section header in place of an identifier,
 // we want to have a graceful fallback.
+Namespace
+  = $([a-zA-Z_][a-zA-Z0-9_]* ("." [a-zA-Z_][a-zA-Z0-9_]*)* "/")
+
 Identifier
-  = id:$( ([a-zA-Z_][a-zA-Z0-9_]+ "/")? [a-zA-Z0-9_\. :-]+ ) {
+  = id:$(Namespace? [a-zA-Z0-9_\. :-]+) {
       return { type: "identifier", "value": id.trim() };
     }
 
