@@ -189,7 +189,14 @@ SigilRef
 
 SigilId
   = QuotedPath
+  / NamespacedId
   / Identifier
+
+// Namespace-qualified ID: ns/path (e.g., CONTENT/quiz, ee101/hw1)
+// Only valid after a sigil (@, #, $) where "/" can't mean division.
+// Namespace requires 2+ chars to avoid matching single-letter "x/y" as qualified.
+NamespacedId
+  = ns:$([a-zA-Z_][a-zA-Z0-9_]+) "/" path:$([a-zA-Z_][a-zA-Z0-9_]*) { return ns + '/' + path; }
 
 QuotedPath
   = '"' chars:QuotedPathChar* '"' { return chars.join(''); }

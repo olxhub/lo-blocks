@@ -17,6 +17,14 @@ We use the `@` sigil as shorthand for component state (Redux runtime values):
 >>> @quiz.answer.text
 { "type": "SigilRef", "sigil": "@", "id": "quiz", "fields": ["answer", "text"] }
 
+Namespace-qualified refs use `ns/id` syntax (no quotes needed):
+
+>>> @CONTENT/quiz
+{ "type": "SigilRef", "sigil": "@", "id": "CONTENT/quiz", "fields": [] }
+
+>>> @ee101/hw1.done
+{ "type": "SigilRef", "sigil": "@", "id": "ee101/hw1", "fields": ["done"] }
+
 For full paths (cross-course references, etc.), use quoted syntax:
 
 >>> @"/mit.edu/pmitros/electronics/hw1/problem3"
