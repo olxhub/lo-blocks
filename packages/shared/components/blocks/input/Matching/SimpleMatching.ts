@@ -18,6 +18,7 @@ import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
+import { splitNs } from '@/lib/types/id-grammar';
 import * as matchingParser from './_matchingParser';
 import _Noop from '@/components/blocks/layout/_Noop';
 
@@ -27,19 +28,21 @@ import _Noop from '@/components/blocks/layout/_Noop';
  */
 function generateMatchingComponents({ parsed, storeEntry, id, tag, attributes }: any) {
   const { title, pairs } = parsed as any;
+  // Extract bare id for building child IDs. storeEntry auto-qualifies.
+  const bareId = splitNs(id).path;
 
   // Generate IDs for all components
-  const problemId = `${id}_problem`;
-  const graderId = `${id}_grader`;
-  const inputId = `${id}_input`;
-  const titleId = `${id}_title`;
+  const problemId = `${bareId}_problem`;
+  const graderId = `${bareId}_grader`;
+  const inputId = `${bareId}_input`;
+  const titleId = `${bareId}_title`;
 
   // Generate IDs for each pair's left and right items
   const itemIds: any[] = [];
   (pairs as any[]).forEach((pair: any, i: number) => {
     itemIds.push({
-      left: `${id}_left_${i}`,
-      right: `${id}_right_${i}`
+      left: `${bareId}_left_${i}`,
+      right: `${bareId}_right_${i}`
     });
   });
 

@@ -22,7 +22,7 @@ import { useFieldSelector } from '@/lib/state';
 import { getGrader, getDomNodeByReduxKey, getAllNodes, inferRelatedNodes } from './olxdom';
 import { useOlxJson } from './useOlxJson';
 import { parseDefinitionRef } from '../types/id-grammar';
-import { refToDefinitionKey, refToReduxKey } from '../types/id';
+import { definitionKeyForRef, scopedStateKeyForBlock } from '../types/id-grammar';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { isInput } from './actions';
 import type { DefinitionKey, DefinitionRef, RuntimeProps } from '@/lib/types';
@@ -43,13 +43,13 @@ function findTargetingGrader(props: RuntimeProps): DefinitionKey | null {
     selector: (n) => !!n.loBlock.isGrader && !!n.olxJson.attributes.target
   });
 
-  const normalizedId = refToDefinitionKey(id);
+  const normalizedId = definitionKeyForRef(id);
 
   for (const graderNodeInfo of graderNodes) {
     // target is a comma-separated list of OlxRefs (guaranteed by selector filter)
     const targetList = graderNodeInfo.olxJson.attributes.target;
     if (typeof targetList !== 'string') continue;  // Type guard for TypeScript
-    const targets = targetList.split(',').map(t => refToDefinitionKey(parseDefinitionRef(t.trim())));
+    const targets = targetList.split(',').map(t => definitionKeyForRef(parseDefinitionRef(t.trim())));
     if (targets.includes(normalizedId)) {
       return graderNodeInfo.olxJson.id;
     }
@@ -105,7 +105,7 @@ function resolveInputSlot(
   let inputIds: DefinitionKey[] = [];
   try {
     // Find the grader's OlxDomNode (DefinitionKey → StateKey applies runtime.idPrefix for scoping)
-    const graderNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id: graderId, idPrefix: props.runtime?.idPrefix }));
+    const graderNodeInfo = getDomNodeByReduxKey(props, scopedStateKeyForBlock({ id: graderId, idPrefix: props.runtime?.idPrefix }));
     if (!graderNodeInfo) return undefined;
 
     // Create props with grader's nodeInfo for proper traversal
@@ -120,8 +120,8 @@ function resolveInputSlot(
   }
 
   // Find position of this input in the list
-  const normalizedId = refToDefinitionKey(inputId);
-  const position = inputIds.findIndex(id => refToDefinitionKey(id) === normalizedId);
+  const normalizedId = definitionKeyForRef(inputId);
+  const position = inputIds.findIndex(id => definitionKeyForRef(id) === normalizedId);
 
   if (position >= 0 && position < slots.length) {
     return slots[position];
@@ -154,7 +154,7 @@ export function useGraderAnswer(props: RuntimeProps) {
   // Subscribe to field (hook must always be called, but selector handles null field)
   // When no grader exists and component has no fields, create a dummy field for hook compliance
   const fallbackField = props.fields?.value ?? { scope: 'component', name: 'showAnswer' };
-  const graderReduxKey = refToReduxKey({ ...props, id: graderId || props.id });
+  const graderReduxKey = scopedStateKeyForBlock({ ...props, id: graderId || props.id });
   const showAnswer = useFieldSelector<boolean>(
     props,
     showAnswerField || fallbackField,
@@ -224,7 +224,7 @@ export function useGraderSummary(props: RuntimeProps, graderId: DefinitionKey | 
     : null;
 
   const fallbackField = props.fields?.value ?? { scope: 'component', name: 'showAnswer' };
-  const summaryGraderReduxKey = refToReduxKey({ ...props, id: graderId || props.id });
+  const summaryGraderReduxKey = scopedStateKeyForBlock({ ...props, id: graderId || props.id });
   const showAnswer = useFieldSelector(
     props,
     showAnswerField || fallbackField,

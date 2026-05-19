@@ -29,7 +29,7 @@ import { createPortal } from 'react-dom';
 import { Maximize2, X } from 'lucide-react';
 import { useFieldState, updateField } from '@/lib/state';
 import { fieldByName } from '@/lib/state/fields';
-import { refToReduxKey } from '@/lib/types/id';
+import { scopedStateKeyForBlock, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import { pushAdvanceScope, popAdvanceScope } from '@/lib/advance';
 import { useKids } from '@/lib/render';
 import type { RuntimeProps, StateRef } from '@/lib/types';
@@ -57,7 +57,7 @@ export default function _CompactPopout(props: RuntimeProps) {
     const valueField = fieldByName('value');
     if (!valueField) return;
     updateField(props, valueField, targetContent, {
-      stateKey: refToReduxKey({ ...props, id: targetId }),
+      stateKey: stateKeyForGlobalRef(targetId),
     });
   }, [props, targetId, targetContent]);
 

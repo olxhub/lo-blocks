@@ -12,7 +12,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useMemo } from 'react';
 import * as state from '@/lib/state';
 import { inferRelatedNodes, useGraderAnswer } from '@/lib/blocks';
-import { refToReduxKey } from '@/lib/types/id';
+import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { DisplayError } from '@/lib/util/debug';
 import { useKids } from '@/lib/render';
 
@@ -46,7 +46,7 @@ export default function _ChoiceItem(props: RuntimeProps) {
 
   // Resolve parent's StateKey once for all state access
   const parentReduxId = useMemo(
-    () => refToReduxKey({ ...props, id: parentId }),
+    () => scopedStateKeyForBlock({ ...props, id: parentId }),
     // parentId is stable (from structural inference in mount-time useMemo)
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [parentId]

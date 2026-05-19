@@ -4,7 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
-import { refToReduxKey } from '@/lib/types/id';
+import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { correctness, computeVisibility } from '@/lib/blocks';
 import { useKids } from '@/lib/render';
 
@@ -27,7 +27,7 @@ function _Explanation(props: RuntimeProps) {
   const { showWhen = 'correct', title, graderId } = props;
 
   const correctField = state.componentFieldByName(props, graderId, 'correct');
-  const graderReduxKey = refToReduxKey({ ...props, id: graderId });
+  const graderReduxKey = scopedStateKeyForBlock({ ...props, id: graderId });
   const correctnessValue = useFieldSelector(
     props,
     correctField,

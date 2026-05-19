@@ -24,6 +24,7 @@ import { transformTagName } from '@/lib/content/xmlTransforms';
 
 import * as parsers from '@/lib/content/parsers';
 import { LofsDependencies, IdMap, OLXLoadingError, DefinitionRef, DefinitionKey, JSONValue } from '@/lib/types';
+import { PLACEHOLDER_NS, qualifyDefinitionRef, parseDefinitionRef, joinNs, asDefinitionKey, hasNamespace } from '@/lib/types/id-grammar';
 import type { LofsRef } from '@/lib/types/address';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
 import { variantMapKeys } from '@/lib/types/i18n';
@@ -531,7 +532,8 @@ export async function parseOLX(
       }
 
       const { ref, ...overrides } = attributes;
-      return { type: 'block', id: ref as DefinitionRef, overrides };
+      const qualifiedRef = qualifyDefinitionRef(parseDefinitionRef(ref), PLACEHOLDER_NS);
+      return { type: 'block', id: qualifiedRef, overrides };
     }
 
     if (attributes.ref) {
@@ -540,7 +542,8 @@ export async function parseOLX(
       );
     }
 
-    const id: DefinitionKey = (attributes.id ?? createId(node)) as DefinitionKey;
+    const bareId = String(attributes.id ?? createId(node));
+    const id: DefinitionKey = qualifyDefinitionRef(parseDefinitionRef(bareId), PLACEHOLDER_NS);
 
     const Component = BLOCK_REGISTRY[tag];
 
@@ -633,7 +636,13 @@ export async function parseOLX(
       provider,
       parseNode: parseNodeWithLang,
       metadata,  // Pass metadata to parser so it can include in entry
-      storeEntry: (storeId, entryOrUpdater) => {
+      storeEntry: (rawStoreId, entryOrUpdater) => {
+        // Auto-qualify bare IDs so parsers can construct child IDs without
+        // worrying about namespace. Already-qualified IDs pass through.
+        const storeId = hasNamespace(rawStoreId)
+          ? rawStoreId
+          : qualifyDefinitionRef(parseDefinitionRef(rawStoreId), PLACEHOLDER_NS);
+
         // Support both direct entry and updater function patterns:
         // - storeEntry(id, entry) - store/overwrite
         // - storeEntry(id, (existing) => newEntry) - update existing
@@ -649,6 +658,14 @@ export async function parseOLX(
         const entry = typeof entryOrUpdater === 'function'
           ? entryOrUpdater(idMap[storeId]?.[lang])
           : entryOrUpdater;
+
+        // Ensure entry.id matches the qualified store key so downstream code
+        // (render, inferRelatedNodes, etc.) always sees qualified IDs.
+        if (entry && typeof entry === 'object' && 'id' in entry && typeof entry.id === 'string') {
+          if (!hasNamespace(entry.id)) {
+            entry.id = qualifyDefinitionRef(parseDefinitionRef(entry.id), PLACEHOLDER_NS);
+          }
+        }
 
         // Ensure every entry has its resolved lang — it's used as the variant
         // map key AND needed on the entry for translation mismatch detection.
@@ -815,12 +832,16 @@ export async function parseOLX(
     const graderBlock = BLOCK_REGISTRY[entry.tag];
     if (!graderBlock?.isGrader || !graderBlock.inputSchema) continue;
 
-    // Find input IDs: explicit target attribute, or child blocks with isInput
+    // Find input IDs: explicit target attribute, or child blocks with isInput.
+    // Target attrs are bare authored refs — qualify them for idMap lookup.
+    // Scoped refs (e.g., "list:#0:answer") won't match a DefinitionKey and are
+    // skipped downstream (best-effort validation).
     let inputIds: string[] = [];
     const target = entry.attributes?.target;
     if (target) {
-      inputIds = Array.isArray(target) ? target.filter((value): value is string => typeof value === 'string')
+      const rawIds = Array.isArray(target) ? target.filter((value): value is string => typeof value === 'string')
         : typeof target === 'string' ? target.split(',').map(s => s.trim()) : [];
+      inputIds = rawIds.map(s => asDefinitionKey(joinNs(PLACEHOLDER_NS, s)));
     } else if (Array.isArray(entry.kids)) {
       inputIds = entry.kids
         .filter(isBlockKid)
@@ -863,12 +884,12 @@ export async function parseOLX(
   return { ids: parsedIds, idMap, root: rootId, errors };
 }
 
-function createId(node): DefinitionKey {
+function createId(node): string {
   const attributes = node[':@'] ?? {};
-  if (attributes.id) return attributes.id as DefinitionKey;
+  if (attributes.id) return String(attributes.id);
 
   // Prefix with "_" so the hex hash never starts with a digit,
-  // keeping auto-generated IDs valid per VALID_ID_SEGMENT.
+  // keeping auto-generated IDs valid per VALID.leafId.
   const canonical = JSON.stringify(node);
-  return ('_' + SHA1(canonical).toString()) as DefinitionKey;
+  return '_' + SHA1(canonical).toString();
 }

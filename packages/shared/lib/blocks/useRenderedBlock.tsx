@@ -24,7 +24,7 @@ import Spinner from '@/components/common/Spinner';
 import TranslatingIndicator from '@/lib/i18n/TranslatingIndicator';
 import type { DefinitionRef, BlockDataResult, OlxJson, RuntimeProps } from '@/lib/types';
 import { blockData } from '@/lib/state/redux';
-import { refToDefinitionKey } from '@/lib/types/id';
+import { definitionKeyForRef } from '@/lib/types/id-grammar';
 import { selectBlock } from '@/lib/state/olxjson';
 import {
   evaluate, createContext,
@@ -86,7 +86,7 @@ export function useBlock(
   }
 
   if (!reduxOlxJson) {
-    const definitionKey = refToDefinitionKey(id);
+    const definitionKey = definitionKeyForRef(id);
     const msg = `Block "${id}" not found in Redux`;
     return {
       block: (
@@ -182,7 +182,7 @@ export function getRenderedBlocksMultiple(
 // Returns the pre-parsed { expr, ast } from the when= attribute, or undefined.
 function getWhen(kid, props) {
   if (kid.type === 'block') {
-    const definitionKey = refToDefinitionKey(kid.id);
+    const definitionKey = definitionKeyForRef(kid.id);
     const state = props.runtime.store.getState();
     const sources = props.runtime.olxJsonSources ?? ['content'];
     const block = selectBlock(state, sources, definitionKey, props.runtime.locale.code);

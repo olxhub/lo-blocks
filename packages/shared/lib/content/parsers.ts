@@ -544,9 +544,9 @@ const textWithTargetParserMixin = {
     const kids = typeof props.kids === 'string' ? props.kids : '';
     return state.fieldSelector(
       reduxState,
-      { ...props, id },
+      props,
       state.commonFields.value,
-      { fallback: kids }
+      { fallback: kids, stateKey: id }
     );
   },
   requiresUniqueId: false,

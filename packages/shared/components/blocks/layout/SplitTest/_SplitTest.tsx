@@ -3,7 +3,7 @@ import type { RuntimeProps, StateRef } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
-import { refToReduxKey } from '@/lib/types/id';
+import { scopedStateKeyForBlock, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import { useKids, useKidsJson } from '@/lib/render';
 
 function SplitTestChild({ props, node }) {
@@ -79,10 +79,10 @@ export default function _SplitTest(props: RuntimeProps) {
   const numGroups = kidsJson.length;
 
   // Symmetric: master reads/writes its own id, follower reads from master's id.
-  // target defaults to self. Resolve through refToReduxKey to apply scope (idPrefix).
+  // target defaults to self. Resolve through scopedStateKeyForBlock to apply scope (idPrefix).
   const targetReduxKey = props.target
-    ? refToReduxKey({ ...props, id: props.target as StateRef })
-    : refToReduxKey(props);
+    ? stateKeyForGlobalRef(props.target as StateRef)
+    : scopedStateKeyForBlock(props);
   // TODO: When we have hash-based assignment (userId + experimentId), use that
   // instead of random for deterministic reproducibility.
   const [groupValue, setGroupValue] = useFieldState(props, fields.value, null, { stateKey: targetReduxKey });

@@ -5,7 +5,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useMemo, useCallback } from 'react';
 import * as state from '@/lib/state';
 import { getGrader } from '@/lib/blocks';
-import { refToReduxKey } from '@/lib/types/id';
+import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { DisplayError } from '@/lib/util/debug';
 
 /**
@@ -20,11 +20,11 @@ function _ShowAnswerButton(props: RuntimeProps) {
     if (target) {
       // target is z_stateRefList — resolve authored refs in this runtime context.
       const targetRefs = Array.isArray(target) ? target : [target];
-      return targetRefs.map(ref => refToReduxKey({ ...props, id: ref }));
+      return targetRefs.map(ref => scopedStateKeyForBlock({ ...props, id: ref }));
     }
     try {
       // getGrader returns DefinitionKey — convert to StateKey
-      return [refToReduxKey({ ...props, id: getGrader(props) })];
+      return [scopedStateKeyForBlock({ ...props, id: getGrader(props) })];
     } catch (e) {
       return [];
     }
@@ -32,7 +32,7 @@ function _ShowAnswerButton(props: RuntimeProps) {
   }, [target]);
 
   // Read showAnswer from first grader (or use own key as fallback for hook stability)
-  const primaryGraderKey = graderReduxKeys[0] ?? refToReduxKey(props);
+  const primaryGraderKey = graderReduxKeys[0] ?? scopedStateKeyForBlock(props);
   const showAnswerField = state.componentFieldByName(props, primaryGraderKey, 'showAnswer');
   const [showAnswer] = state.useFieldState(props, showAnswerField, false, { stateKey: primaryGraderKey });
 

@@ -17,7 +17,7 @@ import {
 import type { ConversationEntry, WaitCommand, ParsedConversation } from './_chatTypes';
 import type { PeggyKids } from '@/lib/types';
 import { canAdvanceToContent, evaluateWaitEntry } from './waitConditions';
-import { refToReduxKey } from '@/lib/types/id';
+import { scopedStateKeyForBlock, splitNs } from '@/lib/types/id-grammar';
 import type { DefinitionKey, DefinitionRef, RuntimeProps } from '@/lib/types';
 import * as cp  from './_chatParser';
 import { _Chat } from './_Chat';
@@ -112,7 +112,7 @@ function chatAdvance(props: RuntimeProps, reduxState: any): boolean {
     switch (block.type) {
       case 'ArrowCommand':
         state.updateField(props, fields.value, block.target, {
-          stateKey: refToReduxKey({ ...props, id: block.source as DefinitionRef }),
+          stateKey: scopedStateKeyForBlock({ ...props, id: block.source as DefinitionRef }),
         });
         nextIndex += 1;
         continue;
@@ -284,10 +284,12 @@ async function processEmbedBlocks(
 async function postprocess({ parsed, parseNode, storeEntry, id }: {
   parsed: any;
   parseNode?: (node: any, siblings: any[] | null, index: number) => Promise<any>;
-  storeEntry: (id: DefinitionKey, entry: any) => void;
+  storeEntry: (id: string, entry: any) => void;
   id: DefinitionKey;
   [key: string]: any;
 }) {
+  // Extract bare id for building child IDs. storeEntry auto-qualifies.
+  const bareId = splitNs(id).path;
   if (parsed.header && typeof parsed.header === 'string') {
     try {
       parsed.header = yaml.load(parsed.header, { schema: yaml.JSON_SCHEMA }) || {};
@@ -339,7 +341,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
           continue;
         }
         const label = entry.metadata.label ?? entry.parsedOptions?.label ?? 'View expanded content';
-        const wrapperId = `${id}_popout_${popoutIndex++}` as DefinitionKey;
+        const wrapperId = `${bareId}_popout_${popoutIndex++}`;
         storeEntry(wrapperId, {
           id: wrapperId,
           tag: 'CompactPopout',
@@ -357,7 +359,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
       }
 
       const label = entry.metadata.label ?? entry.parsedOptions?.label ?? 'View expanded content';
-      const wrapperId = `${id}_popout_${popoutIndex++}` as DefinitionKey;
+      const wrapperId = `${bareId}_popout_${popoutIndex++}` as DefinitionKey;
       storeEntry(wrapperId, {
         id: wrapperId,
         tag: 'CompactPopout',

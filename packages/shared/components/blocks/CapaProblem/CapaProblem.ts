@@ -26,16 +26,17 @@
  */
 
 import { z } from 'zod';
-import { dev, refToReduxKey } from '@/lib/blocks';
+import { dev } from '@/lib/blocks';
+import { splitNs, definitionKeyForRef, parseDefinitionRef } from '@/lib/types/id-grammar';
 import { isPascalCase } from '@/lib/util';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import * as state from '@/lib/state';
 import { problemAttributes } from '@/lib/blocks/attributeSchemas';
 import _CapaProblem from './_CapaProblem';
-import type { StateKey, KidEntry, DefinitionRef } from '@/lib/types';
+import type { KidEntry, DefinitionKey, DefinitionRef } from '@/lib/types';
 
 // Grader-input mapping for auto-wiring targets
-type GraderMapping = { id: StateKey; inputs: StateKey[] };
+type GraderMapping = { id: DefinitionKey; inputs: DefinitionKey[] };
 
 // CapaProblem acts as a "metagrader" - it aggregates correctness from child graders.
 // This allows Correctness/StatusText inside CapaProblem to find CapaProblem itself
@@ -56,6 +57,8 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
   let graderIndex = 0;
   let nodeIndex = 0;
   const graders: GraderMapping[] = [];
+  // Extract bare id for building child IDs. parseNode will qualify them.
+  const bareId = splitNs(id).path;
 
   // Recursively assign IDs to all descendants and build kids structure (mutates nodes)
   function assignIdsAndBuildStructure(node, currentGrader: GraderMapping | null = null) {
@@ -79,18 +82,17 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
       const blockType = BLOCK_REGISTRY[childTag];
 
       if (!childAttrs.id) {
-        let defaultId;
         if (blockType.isGrader) {
-          defaultId = `${id}_grader_${graderIndex++}`;
+          childAttrs.id = `${bareId}_grader_${graderIndex++}`;
         } else if (blockType.isInput) {
-          defaultId = `${id}_input_${inputIndex++}`;
+          childAttrs.id = `${bareId}_input_${inputIndex++}`;
         } else {
-          defaultId = `${id}_${childTag.toLowerCase()}_${nodeIndex++}`;
+          childAttrs.id = `${bareId}_${childTag.toLowerCase()}_${nodeIndex++}`;
         }
-        childAttrs.id = defaultId;
       }
-      const blockId = refToReduxKey(childAttrs);
-      childAttrs.id = blockId;
+      // Qualify the bare ID to a DefinitionKey for tracking.
+      // parseNode will also qualify when processing the child, producing the same key.
+      const blockId = definitionKeyForRef(parseDefinitionRef(childAttrs.id));
 
       let mapping = currentGrader;
       if (blockType.isGrader) {
@@ -107,17 +109,6 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
         assignIdsAndBuildStructure(kid, mapping);
       }
 
-      // TODO BUG HACK: CapaProblem generates StateKey-formatted IDs at parse time,
-      // but KidEntry expects DefinitionRef. This conflates two ID stages:
-      // - DefinitionRef: static refs in OLX content (e.g., "foo", "./foo")
-      // - StateKey: runtime keys with idPrefix (e.g., "problem:0:foo")
-      //
-      // This is a type system violation that masks a real architectural issue.
-      // Fix by either:
-      // 1. Not scoping IDs at parse time (defer to render), or
-      // 2. Having a separate type for "parsed with scoped IDs" entries
-      //
-      // See docs/README.md "IDs" section for the ID type hierarchy.
       return { type: 'block', id: blockId as unknown as DefinitionRef };
     }
 

@@ -43,7 +43,7 @@ import { useSelector, shallowEqual } from 'react-redux';
 
 import * as lo_event from 'lo_event';
 
-import * as idResolver from '../types/id';
+import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseStateRef, hasNamespace, definitionKeyForRef } from '../types/id-grammar';
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
@@ -109,8 +109,10 @@ export const fieldSelector = <T>(
       case scopes.storage:
       case scopes.component: {
         // Use explicit stateKey (cross-component access) or resolve from props.
-        const key = stateKey ?? idResolver.refToReduxKey(props);
-        return selector(scopedState?.[key]);
+        // Guard: if props.id is undefined and no stateKey, return undefined
+        // (hits fallback). Old refToReduxKey returned undefined in this case.
+        const key = stateKey ?? (props?.id ? scopedStateKeyForBlock(props) : undefined);
+        return key ? selector(scopedState?.[key]) : undefined;
       }
       default:
         throw new Error('Unrecognized scope');
@@ -250,7 +252,7 @@ export function dispatchFieldEvent(
 ) {
   const scope = field.scope;
   const resolvedKey = (scope === scopes.component || scope === scopes.storage)
-    ? (stateKey ?? idResolver.refToReduxKey(props as RuntimeProps))
+    ? (stateKey ?? scopedStateKeyForBlock(props as RuntimeProps))
     : undefined;
   const resolvedTag = tag ?? (props as RuntimeProps)?.loBlock?.name;
   const logEvent = props ? props.runtime.logEvent : lo_event.logEvent;
@@ -403,7 +405,7 @@ export function useReduxInput(
     }
   );
 
-  const id = idResolver.refToReduxKey(props);
+  const id = scopedStateKeyForBlock(props);
   const tag = props.loBlock.name;
   const logEvent = props.runtime.logEvent;
 
@@ -487,8 +489,10 @@ export function useReduxCheckbox(
  * @throws {Error} If component or field not found
  */
 export function componentFieldByName(props: RuntimeProps, targetId: DefinitionKey | StateKey, fieldName: string) {
-  // Normalize to DefinitionKey: handles both bare DefinitionKey (unchanged) and scoped StateKey (extracts leaf)
-  const normalizedId = idResolver.stateKeyToDefinitionKey(targetId as StateKey);
+  // Normalize to DefinitionKey: handles qualified StateKeys (extracts leaf) and bare refs (qualifies them).
+  const normalizedId = hasNamespace(targetId)
+    ? leafDefinitionKeyFromStateKey(targetId as StateKey)
+    : definitionKeyForRef(targetId as any);
   const sources = props.runtime.olxJsonSources ?? ['content'];
   const locale = props.runtime.locale.code;
   const targetNode = selectBlock(props.runtime.store.getState(), sources, normalizedId, locale);
@@ -588,7 +592,7 @@ export function valueSelector(
   }
 
   // StateKey → DefinitionKey for content store lookup
-  const mapKey = idResolver.stateKeyToDefinitionKey(stateKey);
+  const mapKey = leafDefinitionKeyFromStateKey(stateKey);
   const sources = props.runtime.olxJsonSources ?? ['content'];
   const locale = props.runtime.locale.code;
   const targetNode = selectBlock(state, sources, mapKey, locale);
@@ -635,15 +639,15 @@ export function useValue(
     fallback,
   }: {
     stateKey?: StateKey | null;
-    target?: DefinitionRef | StateRef | null;
+    target?: StateRef | null;
     fallback?: any;
   } = {}
 ): BlockDataResult & { value: any } {
   // Priority: explicit stateKey > target (resolved) > own component
   const resolvedKey: StateKey | null =
     stateKey !== undefined ? stateKey
-    : target !== undefined ? (target ? idResolver.refToReduxKey({ ...props, id: target }) as StateKey : null)
-    : idResolver.refToReduxKey(props);
+    : target !== undefined ? (target ? stateKeyForGlobalRef(target) : null)
+    : scopedStateKeyForBlock(props);
 
   const result = useSelector(
     (state) => valueSelector(props, state, resolvedKey, { fallback }),
@@ -658,7 +662,7 @@ export function useValue(
   const sideEffectFree = props.runtime.sideEffectFree;
   useEffect(() => {
     if (resolvedKey && result.loading) {
-      ensureBlock(props, idResolver.stateKeyToDefinitionKey(resolvedKey), source);
+      ensureBlock(props, leafDefinitionKeyFromStateKey(resolvedKey), source);
     }
   }, [resolvedKey, result.status, source, sideEffectFree]);
 
@@ -696,7 +700,7 @@ export function useTextContent(
   { fallback = '' }: { fallback?: string } = {}
 ): { text: string; loading: boolean; error: string | null; ready: boolean } {
   const target = typeof props.target === 'string'
-    ? idResolver.parseStateRef(props.target)
+    ? parseStateRef(props.target)
     : undefined;
   const result = useValue(props, { target, fallback });
 

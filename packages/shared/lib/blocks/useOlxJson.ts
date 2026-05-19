@@ -19,7 +19,8 @@ import {
   dispatchOlxJson,
   dispatchOlxJsonError
 } from '@/lib/state/olxjson';
-import { refToDefinitionKey, allDefinitionKeys } from '@/lib/types/id';
+import { allDefinitionKeys } from '@/lib/types/id';
+import { definitionKeyForRef } from '@/lib/types/id-grammar';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, DefinitionKey, DefinitionRef, StateRef, StateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
@@ -85,7 +86,7 @@ export function ensureBlock(
 ): void {
   if (!id || props.runtime.sideEffectFree) return;
 
-  const definitionKey: DefinitionKey = refToDefinitionKey(id as DefinitionRef);
+  const definitionKey: DefinitionKey = definitionKeyForRef(id as DefinitionRef);
   const locale = props.runtime.locale.code;
   // Dedup on request profile — currently just locale, will grow (see comment above)
   const dedupKey = `${source}:${locale}:${definitionKey}`;
@@ -200,7 +201,7 @@ export function selectOlxJson(
     return { olxJson: null, ...blockData('ready') };
   }
 
-  const definitionKey: DefinitionKey = refToDefinitionKey(id);
+  const definitionKey: DefinitionKey = definitionKeyForRef(id);
   const blockState = selectBlockState(state, [source], definitionKey);
 
   if (!blockState) {
@@ -263,7 +264,7 @@ export function useOlxJson(
   source: string = 'content'
 ): OlxJsonResult {
   // Compute definitionKey outside hooks — empty string for null id (won't match anything)
-  const definitionKey: DefinitionKey = id ? refToDefinitionKey(id) : '' as DefinitionKey;
+  const definitionKey: DefinitionKey = id ? definitionKeyForRef(id) : '' as DefinitionKey;
 
   // Read from Redux using the pure selector
   const result = useSelector(
@@ -339,7 +340,7 @@ export function selectOlxJsonMultiple(
   const userLocale = props.runtime.locale.code;
 
   const results: OlxJsonMultipleResult[] = ids.map(id => {
-    const definitionKey: DefinitionKey = id ? refToDefinitionKey(id as DefinitionRef) : '' as DefinitionKey;
+    const definitionKey: DefinitionKey = id ? definitionKeyForRef(id as DefinitionRef) : '' as DefinitionKey;
     const entry = selectBlockState(state, sources, definitionKey);
     if (!entry) return { olxJson: null, status: 'missing' as const };
     const status = entry.loadingState?.status;

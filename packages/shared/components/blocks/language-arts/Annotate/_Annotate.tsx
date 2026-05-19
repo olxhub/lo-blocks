@@ -24,8 +24,7 @@ import type { RuntimeProps, DefinitionRef } from '@/lib/types';
 import React, { useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useFieldState, useSet, useNextId, updateField } from '@/lib/state';
-import { extendIdPrefix, scopeMarker, parseDefinitionRef } from '@/lib/types/id-grammar';
-import { refToReduxKey } from '@/lib/types/id';
+import { extendIdPrefix, scopeMarker, parseDefinitionRef, scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { useKids, useBlock } from '@/lib/render';
 import { assertKidArray } from '@/lib/util/kids';
 import { groupHue, themeColors } from '@/lib/util/colorWheel';
@@ -46,7 +45,7 @@ import type { AnnotationRange } from './useHighlights';
 
 /**
  * Build scoped props for an annotation. Sets idPrefix at both the top level
- * (where refToReduxKey reads it) and on runtime (where child blocks read it).
+ * (where scopedStateKeyForBlock reads it) and on runtime (where child blocks read it).
  *
  * For noteId "2" on block "annotate_demo", the Redux key becomes
  * "annotate_demo:#2" — and fields like `quote` store under
@@ -573,7 +572,7 @@ function useAnnotationRanges(props: RuntimeProps, noteIds: string[]): Annotation
   // and noteIds, not on Redux state.
   const stateKeys = noteIds.map((noteId) => ({
     noteId,
-    key: refToReduxKey(scopedNoteProps(props, noteId)),
+    key: scopedStateKeyForBlock(scopedNoteProps(props, noteId)),
   }));
 
   return useSelector(

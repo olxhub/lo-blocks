@@ -17,6 +17,7 @@ import { srcAttributes, problemAttributes } from '@/lib/blocks/attributeSchemas'
 import * as capaParser from '../specialized/peg_prototype/_capaParser';
 import _CapaProblem from '@/components/blocks/CapaProblem/_CapaProblem';
 import type { KidEntry, DefinitionRef } from '@/lib/types';
+import { splitNs } from '@/lib/types/id-grammar';
 import { parse as parseExpr } from '@/lib/stateLanguage';
 
 // Pre-parse a when= expression into the { expr, ast } shape that useKidsJson expects.
@@ -38,6 +39,10 @@ const blockRef = (id: string): KidEntry => ({ type: 'block', id: id as Definitio
  * Returns graders, inputs, and content as direct children of MarkupProblem.
  */
 function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
+  // Extract bare id for building child IDs. storeEntry auto-qualifies bare IDs.
+  // Expressions (@ref syntax) also need bare IDs since the expression parser
+  // doesn't understand namespace:// syntax.
+  const bareId = splitNs(id).path;
   let graderIndex = 0;
   let inputIndex = 0;
   let hintIndex = 0;
@@ -50,7 +55,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
     switch (block.type) {
       case 'h3': {
         // Header becomes Markdown
-        const headerId = `${id}_header_${contentIndex++}`;
+        const headerId = `${bareId}_header_${contentIndex++}`;
         storeEntry(headerId, {
           id: headerId,
           tag: 'Markdown',
@@ -63,7 +68,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
 
       case 'p': {
         // Paragraph becomes Markdown
-        const pId = `${id}_p_${contentIndex++}`;
+        const pId = `${bareId}_p_${contentIndex++}`;
         storeEntry(pId, {
           id: pId,
           tag: 'Markdown',
@@ -78,7 +83,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
         // Question label can be a string or array with inline dropdowns
         if (typeof block.label === 'string') {
           // Simple question without dropdowns
-          const qId = `${id}_question_${contentIndex++}`;
+          const qId = `${bareId}_question_${contentIndex++}`;
           storeEntry(qId, {
             id: qId,
             tag: 'Markdown',
@@ -98,7 +103,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
             } else if (part.type === 'dropdown') {
               // Flush text buffer as Markdown
               if (textBuffer.trim()) {
-                const textId = `${id}_qtext_${contentIndex++}`;
+                const textId = `${bareId}_qtext_${contentIndex++}`;
                 storeEntry(textId, {
                   id: textId,
                   tag: 'Markdown',
@@ -110,8 +115,8 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
               }
 
               // Create KeyGrader with DropdownInput for inline dropdown
-              const graderId = `${id}_grader_${graderIndex++}`;
-              const inputId = `${id}_input_${inputIndex++}`;
+              const graderId = `${bareId}_grader_${graderIndex++}`;
+              const inputId = `${bareId}_input_${inputIndex++}`;
 
               // Store DropdownInput with pre-parsed options (grammar outputs DropdownInput format directly)
               storeEntry(inputId, {
@@ -135,7 +140,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
 
           // Flush any remaining text
           if (textBuffer.trim()) {
-            const textId = `${id}_qtext_${contentIndex++}`;
+            const textId = `${bareId}_qtext_${contentIndex++}`;
             storeEntry(textId, {
               id: textId,
               tag: 'Markdown',
@@ -154,11 +159,11 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       case 'choices': {
         // Multiple choice - KeyGrader with ChoiceInput
         // Grammar outputs { text, value, tag: 'Key'/'Distractor', feedback? } directly
-        const graderId = `${id}_grader_${graderIndex++}`;
-        const inputId = `${id}_input_${inputIndex++}`;
+        const graderId = `${bareId}_grader_${graderIndex++}`;
+        const inputId = `${bareId}_input_${inputIndex++}`;
 
         const choiceKids = block.options.map((opt, i) => {
-          const choiceId = `${id}_choice_${inputIndex - 1}_${i}`;
+          const choiceId = `${bareId}_choice_${inputIndex - 1}_${i}`;
           const choiceMdId = `${choiceId}_md`;
           storeEntry(choiceMdId, {
             id: choiceMdId,
@@ -198,7 +203,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
           const opt = block.options[oi];
           if (!opt.feedback) continue;
           const escaped = escapeExprString(opt.text);
-          const fbId = `${id}_fb_${inputIndex - 1}_${oi}`;
+          const fbId = `${bareId}_fb_${inputIndex - 1}_${oi}`;
           storeEntry(fbId, {
             id: fbId,
             tag: 'Markdown',
@@ -214,11 +219,11 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       case 'checkboxes': {
         // Checkboxes - multi-select using CheckboxInput and CheckboxGrader
         // Grammar outputs { text, value, tag: 'Key'/'Distractor', feedback? } directly
-        const graderId = `${id}_grader_${graderIndex++}`;
-        const inputId = `${id}_input_${inputIndex++}`;
+        const graderId = `${bareId}_grader_${graderIndex++}`;
+        const inputId = `${bareId}_input_${inputIndex++}`;
 
         const choiceKids = block.options.map((opt, i) => {
-          const choiceId = `${id}_checkbox_${inputIndex - 1}_${i}`;
+          const choiceId = `${bareId}_checkbox_${inputIndex - 1}_${i}`;
           const choiceMdId = `${choiceId}_md`;
           storeEntry(choiceMdId, {
             id: choiceMdId,
@@ -267,7 +272,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
           const opt = block.options[oi];
           if (!opt.feedback) continue;
           const escaped = escapeExprString(opt.text);
-          const fbId = `${id}_fb_${inputIndex - 1}_${oi}`;
+          const fbId = `${bareId}_fb_${inputIndex - 1}_${oi}`;
           storeEntry(fbId, {
             id: fbId,
             tag: 'Markdown',
@@ -283,14 +288,14 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       case 'textInput': {
         // Text input - RulesGrader with StringMatch rules
         // Grammar outputs rules array: [{ answer, score, feedback }, ...]
-        const graderId = `${id}_grader_${graderIndex++}`;
-        const inputId = `${id}_input_${inputIndex++}`;
+        const graderId = `${bareId}_grader_${graderIndex++}`;
+        const inputId = `${bareId}_input_${inputIndex++}`;
 
         const matchKids: KidEntry[] = [];
 
         // Create StringMatch for each rule from grammar
         block.rules.forEach((rule, i) => {
-          const matchId = `${id}_match_${graderIndex - 1}_${i}`;
+          const matchId = `${bareId}_match_${graderIndex - 1}_${i}`;
           storeEntry(matchId, {
             id: matchId,
             tag: 'StringMatch',
@@ -306,7 +311,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
         });
 
         // Default catch-all
-        const defaultMatchId = `${id}_match_${graderIndex - 1}_default`;
+        const defaultMatchId = `${bareId}_match_${graderIndex - 1}_default`;
         storeEntry(defaultMatchId, {
           id: defaultMatchId,
           tag: 'DefaultMatch',
@@ -342,8 +347,8 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
 
       case 'numericalInput': {
         // Numerical input - NumericalGrader
-        const graderId = `${id}_grader_${graderIndex++}`;
-        const inputId = `${id}_input_${inputIndex++}`;
+        const graderId = `${bareId}_grader_${graderIndex++}`;
+        const inputId = `${bareId}_input_${inputIndex++}`;
 
         let answer, tolerance;
         if (block.range) {
@@ -380,8 +385,8 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
 
       case 'dropdown': {
         // Standalone dropdown - KeyGrader with DropdownInput
-        const graderId = `${id}_grader_${graderIndex++}`;
-        const inputId = `${id}_input_${inputIndex++}`;
+        const graderId = `${bareId}_grader_${graderIndex++}`;
+        const inputId = `${bareId}_input_${inputIndex++}`;
 
         // Store DropdownInput with pre-parsed options (grammar outputs DropdownInput format directly)
         storeEntry(inputId, {
@@ -405,7 +410,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
 
       case 'hint': {
         // Single hint - add to demand hints (revealed on request)
-        const hintId = `${id}_hint_${hintIndex++}`;
+        const hintId = `${bareId}_hint_${hintIndex++}`;
         storeEntry(hintId, {
           id: hintId,
           tag: 'Markdown',
@@ -419,7 +424,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       case 'demandHints': {
         // Progressive demand hints
         block.hints.forEach((hint, i) => {
-          const hintId = `${id}_demand_hint_${i}`;
+          const hintId = `${bareId}_demand_hint_${i}`;
           storeEntry(hintId, {
             id: hintId,
             tag: 'Markdown',
@@ -434,7 +439,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       case 'explanation': {
         // Explanation block - shown after correct answer
         // Wrap content in Markdown for proper rendering
-        const explId = `${id}_explanation_${contentIndex++}`;
+        const explId = `${bareId}_explanation_${contentIndex++}`;
         const explContentId = `${explId}_content`;
         storeEntry(explContentId, {
           id: explContentId,
@@ -455,7 +460,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       case 'separator': {
         // Question separator - could start a new sub-problem
         // For now, just add a visual separator
-        const sepId = `${id}_sep_${contentIndex++}`;
+        const sepId = `${bareId}_sep_${contentIndex++}`;
         storeEntry(sepId, {
           id: sepId,
           tag: 'Markdown',
@@ -473,7 +478,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
 
   // Add DemandHints if any
   if (demandHints.length > 0) {
-    const demandHintsId = `${id}_demand_hints`;
+    const demandHintsId = `${bareId}_demand_hints`;
     storeEntry(demandHintsId, {
       id: demandHintsId,
       tag: 'DemandHints',

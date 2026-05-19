@@ -2,8 +2,8 @@
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { getBestVariantServer } from '@/lib/i18n/getBestVariant';
 import { variantMapKeys } from '@/lib/types/i18n';
-import { parseStateRef } from '@/lib/types/id-grammar';
-import { allDefinitionKeys, refToReduxKey } from '@/lib/types/id';
+import { parseStateRef, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
+import { allDefinitionKeys } from '@/lib/types/id';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { NextRequest } from 'next/server';
 import type { IdMap, OlxJson, StateRef } from '@/lib/types';
@@ -70,7 +70,7 @@ function collectBlockWithKids(
   // validation site; parse-time and client-side contexts (Studio,
   // Markdown editor) are others. See docs/loading-state-todo.md.
   for (const ref of targetRefs(entry.attributes?.target)) {
-    const stateKey = refToReduxKey(ref);
+    const stateKey = stateKeyForGlobalRef(ref);
     for (const key of allDefinitionKeys(stateKey)) {
       collectBlockWithKids(idMap, key, request, collected);
     }

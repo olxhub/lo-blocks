@@ -4,7 +4,8 @@ import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { valueSelector, fieldByName, fieldSelector } from '@/lib/state';
 import { blockData, withStatus } from '@/lib/state/blockData';
-import { stateKeyToDefinitionKey } from '@/lib/types/id';
+import { leafDefinitionKeyFromStateKey, definitionKeyForRef, leafBlock, stateKeyForGlobalRef, parseStateRef } from '@/lib/types/id-grammar';
+import type { DefinitionRef } from '@/lib/types';
 import { srcAttributes, z_stateRef } from '@/lib/blocks/attributeSchemas';
 import { selectBlock, selectBlockState } from '@/lib/state/olxjson';
 import _Ref from './_Ref';
@@ -66,7 +67,7 @@ const Ref = core({
     // Get the Ref block from Redux to access its attributes and content
     const sources = props.runtime.olxJsonSources ?? ['content'];
     const locale = props.runtime.locale.code;
-    const refNode = selectBlock(state, sources, stateKeyToDefinitionKey(stateKey), locale);
+    const refNode = selectBlock(state, sources, leafDefinitionKeyFromStateKey(stateKey), locale);
     if (!refNode) {
       return { value: '', ...blockData('error', 'Component not found') };
     }
@@ -80,11 +81,8 @@ const Ref = core({
     }
 
     // Target is validated by z_stateRef — may be a simple ID or a scoped key.
-    // Scoped keys (containing ':') are used as-is; simple IDs are treated as DefinitionKeys.
-    const isScoped = targetId.includes(':');
-    const targetDefinitionKey = isScoped
-      ? stateKeyToDefinitionKey(targetId as StateKey)
-      : targetId as unknown as DefinitionKey;
+    // Extract the leaf block ID and qualify it as a DefinitionKey for block lookup.
+    const targetDefinitionKey = definitionKeyForRef(leafBlock(targetId) as DefinitionRef);
 
     // Check if target exists in Redux — distinguish loading from missing
     if (!selectBlock(state, sources, targetDefinitionKey, locale)) {
@@ -101,10 +99,9 @@ const Ref = core({
     const rawFallback = refNode.attributes?.fallback;
     const fallback = typeof rawFallback === 'string' ? rawFallback : '';
 
-    // Scoped refs already encode the full Redux path; simple IDs are valid
-    // StateKeys directly (Ref targets are always resolved globally,
-    // not scoped by idPrefix).
-    const targetReduxKey = targetId as StateKey;
+    // Qualify the target ref into a proper StateKey for Redux lookup.
+    // Ref targets are resolved globally (not scoped by idPrefix).
+    const targetReduxKey = stateKeyForGlobalRef(parseStateRef(targetId));
 
     if (field) {
       const fieldInfo = fieldByName(field);

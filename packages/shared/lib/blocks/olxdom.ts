@@ -4,9 +4,8 @@
 // dynamic content DAG.
 
 import * as state from '@/lib/state';
-import { parseDefinitionRef } from '../types/id-grammar';
+import { parseDefinitionRef, definitionKeyForRef, scopedStateKeyForBlock } from '../types/id-grammar';
 import * as idResolver from '../types/id';
-import { refToDefinitionKey } from '../types/id';
 import type { OlxDomNode, OlxDomSelector, DefinitionKey, DefinitionRef, StateKey, RuntimeProps } from '@/lib/types';
 //
 // The OLX DOM is Learning Observer's internal representation of educational content,
@@ -286,7 +285,7 @@ export function inferRelatedNodes(props: RuntimeProps, {
 
   // Extract each group separately
   // Resolve DefinitionRefs to DefinitionKeys for idMap lookup
-  const explicitTargets: DefinitionKey[] = targetIds ? targetIds.map(ref => refToDefinitionKey(ref)) : [];
+  const explicitTargets: DefinitionKey[] = targetIds ? targetIds.map(ref => definitionKeyForRef(ref)) : [];
 
   let parents: DefinitionKey[] = [];
   if (inferModes.includes('parents')) {
@@ -374,7 +373,7 @@ export function getInputs(props, { infer }: { infer? } = {}) {
  */
 export function getValueById(props: RuntimeProps, id: DefinitionRef | null | undefined) {
   const reduxState = props.runtime.store.getState();
-  const stateKey = id ? idResolver.refToReduxKey({ ...props, id }) : null;
+  const stateKey = id ? scopedStateKeyForBlock({ ...props, id }) : null;
 
   // valueSelector handles content lookup and selectValue dispatch.
   // Unwrap .value — non-hook callers get the raw value (by the time actions

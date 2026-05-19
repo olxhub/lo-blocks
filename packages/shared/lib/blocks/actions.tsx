@@ -24,7 +24,7 @@ import { z } from 'zod';
 import { inferRelatedNodes, getDomNodeByReduxKey, propsFromNode } from './olxdom';
 import * as lo_event from 'lo_event';
 import { correctness } from './correctness';
-import { refToReduxKey } from '../types/id';
+import { scopedStateKeyForBlock } from '../types/id-grammar';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { valueSelector } from '@/lib/state/redux';
 import { isZodCompatible, describeZodType } from './zodCompat';
@@ -178,7 +178,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
 
   const action = async ({ targetId, targetInstance, props }) => {
     // DefinitionKey → StateKey (applies runtime.idPrefix for DynamicList scoping)
-    const targetNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix }));
+    const targetNodeInfo = getDomNodeByReduxKey(props, scopedStateKeyForBlock({ id: targetId, idPrefix: props.runtime?.idPrefix }));
     const targetAttributes = targetInstance.attributes;
 
     const inputIds = inferRelatedNodes(
@@ -202,7 +202,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
       }
       const loBlock = map[inst.tag];
       // DefinitionKey → StateKey (applies runtime.idPrefix for DynamicList scoping)
-      const inputReduxKey = refToReduxKey({ id, idPrefix: props.runtime?.idPrefix });
+      const inputReduxKey = scopedStateKeyForBlock({ id, idPrefix: props.runtime?.idPrefix });
       const inputNodeInfo = getDomNodeByReduxKey(props, inputReduxKey);
 
       // Use the input's own runtime (captured at render time) for correct idPrefix,
@@ -324,7 +324,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
         correct; // In case it's already a correctness value
 
     // Use refToReduxKey to get scoped ID (applies runtime.idPrefix for list/repeated contexts)
-    const scopedTargetId = refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix });
+    const scopedTargetId = scopedStateKeyForBlock({ id: targetId, idPrefix: props.runtime?.idPrefix });
 
     // Get current submitCount — only increment for real submissions (not blank/invalid)
     const currentState = state.application_state?.component?.[scopedTargetId] || {};
@@ -387,7 +387,7 @@ export async function executeNodeActions(props: RuntimeProps) {
 
     // Find the action's OlxDomNode
     // DefinitionKey → StateKey (applies runtime.idPrefix for DynamicList scoping)
-    const actionNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id: targetId, idPrefix: props.runtime?.idPrefix }));
+    const actionNodeInfo = getDomNodeByReduxKey(props, scopedStateKeyForBlock({ id: targetId, idPrefix: props.runtime?.idPrefix }));
 
     if (!actionNodeInfo) {
       throw new Error(`Action ${targetId} not found in dynamic DOM tree - this indicates a bug in the rendering system`);

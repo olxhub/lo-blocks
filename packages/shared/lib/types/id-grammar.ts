@@ -26,9 +26,9 @@ export function literal(s: string): string {
 
 // --- Atoms ----------------------------------------------------------------
 
-export const leafId       = String.raw`[\p{L}_][\p{L}\p{N}_]*`;       // "answer", "żółw", "_hash123"
-export const indexId      = String.raw`[\p{L}\p{N}_]+`;               // Same + leading digits: "0", "3fgb", "attempt_2"
-const scopeMarkerPat      = `#${indexId}`;                             // "#0", "#attempt_2", "#a3F"
+export const leafId = String.raw`[\p{L}_][\p{L}\p{N}_]*`;       // "answer", "żółw", "_hash123"
+export const indexId = String.raw`[\p{L}\p{N}_]+`;               // Same + leading digits: "0", "3fgb", "attempt_2"
+const scopeMarkerPat = `#${indexId}`;                             // "#0", "#attempt_2", "#a3F"
 export const scopeSegment = `(?:${leafId}|${scopeMarkerPat})`;        // "answer" | "#0"
 
 // --- Namespace ------------------------------------------------------------
@@ -50,7 +50,7 @@ export const namespace = `${leafId}(?:\\.${leafId})*`;
 // --- Delimiter ------------------------------------------------------------
 
 export const NS_DELIM = '://';                                         // Separates namespace from path
-export const nsDelim  = literal(NS_DELIM);
+export const nsDelim = literal(NS_DELIM);
 
 // --- Refs (what authors write — may or may not have namespace) -------------
 //
@@ -92,7 +92,7 @@ export const nsDelim  = literal(NS_DELIM);
 //   - Otherwise → source-qualified ref, resolve via LOFS layer
 //   - No "://" at all → bare ref, prepend namespace
 
-export const definitionRef        = `(?:.+${nsDelim})?${leafId}`;
+export const definitionRef = `(?:.+${nsDelim})?${leafId}`;
 export const stateRef = `(?:.+${nsDelim})?(?:${scopeSegment}:)*${leafId}`;
 
 // --- Keys (canonical forms — always namespace://path) ---------------------
@@ -105,7 +105,7 @@ export const stateRef = `(?:.+${nsDelim})?(?:${scopeSegment}:)*${leafId}`;
 // StateKey:   "ee101://designList:#7:mydesigns"
 
 const statePath = `(?:${scopeSegment}:)*${leafId}`;
-export const definitionKey        = `${namespace}${nsDelim}${leafId}`;
+export const definitionKey = `${namespace}${nsDelim}${leafId}`;
 export const stateKey = `${namespace}${nsDelim}${statePath}`;
 
 // --- Source-qualified refs (for provenance, analytics, reload) -------------
@@ -146,7 +146,7 @@ export const sourceQualifiedRef = `.+?${nsDelim}${leafId}`;
 // appear within the namespace portion (before "://"). After "://", the
 // first "." encountered is always a field separator.
 
-export const fieldAccess   = leafId;                                    // "value", "score", "submitted"
+export const fieldAccess = leafId;                                    // "value", "score", "submitted"
 export const stateFieldRef = `(?:${stateRef})\\.${fieldAccess}`;  // "problems:#0:answer.value"
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -161,15 +161,15 @@ function compile(pattern: string): RegExp {
 }
 
 export const VALID = {
-  leafId:             compile(leafId),
-  indexId:            compile(indexId),
-  scopeMarker:        compile(scopeMarkerPat),
-  namespace:          compile(namespace),
-  definitionRef:             compile(definitionRef),
-  definitionKey:             compile(definitionKey),
-  stateRef:      compile(stateRef),
-  stateKey:      compile(stateKey),
-  stateFieldRef:      compile(stateFieldRef),
+  leafId: compile(leafId),
+  indexId: compile(indexId),
+  scopeMarker: compile(scopeMarkerPat),
+  namespace: compile(namespace),
+  definitionRef: compile(definitionRef),
+  definitionKey: compile(definitionKey),
+  stateRef: compile(stateRef),
+  stateKey: compile(stateKey),
+  stateFieldRef: compile(stateFieldRef),
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -267,11 +267,11 @@ export type StateKey = StateRef & Brand<'Resolved'>;                 // "ee101:/
 
 // --- Scoping and rendering ---------------------------------------------------
 
-export type IdPrefix    = Branded<string, 'IdPrefix'>;    // "list:#0" — accumulated scope from containers
+export type IdPrefix = Branded<string, 'IdPrefix'>;    // "list:#0" — accumulated scope from containers
 export type ScopeMarker = Branded<string, 'ScopeMarker'>; // "#0", "#attempt_2" — instance index, not a block ID
-export type ReactKey    = Branded<string, 'ReactKey'>;    // React reconciliation key
-export type HtmlId      = Branded<string, 'HtmlId'>;      // DOM element id attribute
-export type OLXTag      = Branded<string, 'OLXTag'>;      // "Vertical", "ChoiceInput"
+export type ReactKey = Branded<string, 'ReactKey'>;    // React reconciliation key
+export type HtmlId = Branded<string, 'HtmlId'>;      // DOM element id attribute
+export type OLXTag = Branded<string, 'OLXTag'>;      // "Vertical", "ChoiceInput"
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // UNCHECKED CASTS (asX)
@@ -281,14 +281,14 @@ export type OLXTag      = Branded<string, 'OLXTag'>;      // "Vertical", "Choice
 // need to re-validate. Use parseX at boundaries; asX internally.
 
 export const asContentNamespace = (s: string) => s as ContentNamespace;
-export const asDefinitionRef    = (s: string) => s as DefinitionRef;
-export const asDefinitionKey    = (s: string) => s as unknown as DefinitionKey;
-export const asStateRef         = (s: string) => s as StateRef;
-export const asStateKey         = (s: string) => s as unknown as StateKey;
-export const asIdPrefix         = (s: string) => s as IdPrefix;
-export const asScopeMarker      = (s: string) => s as ScopeMarker;
-export const asReactKey         = (s: string) => s as ReactKey;
-export const asOLXTag           = (s: string) => s as OLXTag;
+export const asDefinitionRef = (s: string) => s as DefinitionRef;
+export const asDefinitionKey = (s: string) => s as unknown as DefinitionKey;
+export const asStateRef = (s: string) => s as StateRef;
+export const asStateKey = (s: string) => s as unknown as StateKey;
+export const asIdPrefix = (s: string) => s as IdPrefix;
+export const asScopeMarker = (s: string) => s as ScopeMarker;
+export const asReactKey = (s: string) => s as ReactKey;
+export const asOLXTag = (s: string) => s as OLXTag;
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // VALIDATORS (validateX)
@@ -416,10 +416,17 @@ export function scopeMarker(label: string | number): ScopeMarker {
  *   // { idPrefix: "list:#0" } or { idPrefix: "outer:#1:list:#0" }
  */
 export function extendIdPrefix(
-  props: { idPrefix?: IdPrefix; [key: string]: unknown },
+  props: { idPrefix?: IdPrefix;[key: string]: unknown },
   scope: string | (string | number | ScopeMarker)[]
 ): { idPrefix: IdPrefix } {
-  const scopeStr = Array.isArray(scope) ? scope.join(SCOPE_SEPARATOR) : scope;
+  // Strip namespace from scope components — idPrefix is a bare scope path,
+  // never namespace-qualified. Callers commonly pass props.id (a DefinitionRef
+  // that may be qualified like "CONTENT://list") as a scope component.
+  const strip = (s: string | number | ScopeMarker): string => {
+    const str = String(s);
+    return str.includes(NS_DELIM) && hasNamespace(str) ? splitNs(str).path : str;
+  };
+  const scopeStr = Array.isArray(scope) ? scope.map(strip).join(SCOPE_SEPARATOR) : strip(scope);
   const newPrefix = props.idPrefix
     ? `${props.idPrefix}${SCOPE_SEPARATOR}${scopeStr}`
     : scopeStr;
@@ -468,10 +475,10 @@ function brandedString<T extends string>(
 }
 
 export const z_contentNamespace = brandedString(validateContentNamespace, asContentNamespace);
-export const z_definitionRef    = brandedString(validateDefinitionRef, asDefinitionRef);
-export const z_definitionKey    = brandedString(validateDefinitionKey, asDefinitionKey);
-export const z_stateRef         = brandedString(validateStateRef, asStateRef);
-export const z_stateKey         = brandedString(validateStateKey, asStateKey);
+export const z_definitionRef = brandedString(validateDefinitionRef, asDefinitionRef);
+export const z_definitionKey = brandedString(validateDefinitionKey, asDefinitionKey);
+export const z_stateRef = brandedString(validateStateRef, asStateRef);
+export const z_stateKey = brandedString(validateStateKey, asStateKey);
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // DECOMPOSITION
@@ -642,9 +649,13 @@ export const PLACEHOLDER_NS = asContentNamespace('CONTENT');
  *
  *   scopedStateKeyForBlock({ id: 'answer' })
  *   → "CONTENT://answer"  (no scope)
+ *
+ * TODO(propthread-ns): Hardcodes PLACEHOLDER_NS. Once namespace is propthreaded
+ * through runtime context, this should take ns from props (e.g. props.runtime.ns)
+ * or accept it as a parameter.
  */
 export function scopedStateKeyForBlock(
-  props: { id: DefinitionRef; idPrefix?: IdPrefix; [key: string]: unknown }
+  props: { id: DefinitionRef; idPrefix?: IdPrefix;[key: string]: unknown }
 ): StateKey {
   const defKey = qualifyDefinitionRef(props.id, PLACEHOLDER_NS);
   return addScope(defKey, props.idPrefix);
@@ -665,9 +676,29 @@ export function scopedStateKeyForBlock(
  *   stateKeyForGlobalRef(asStateRef('calculus://answer'))
  *   → "calculus://answer"  (already qualified, pass-through)
  */
-// TODO(namespace): Authored StateRefs currently resolve globally.
-// Local-then-global resolution needs an existence query and must
-// account for caller scope, target render scope, and namespace scope.
+// TODO(target-scope): Current behavior is global resolution (no idPrefix applied).
+//
+// Desired behavior: local-then-global fallback. Given <Ref target="bar"> inside
+// a DynamicList scope, first check if "bar" exists in the local scope (e.g.
+// foo:#0:bar), then fall back to the global "bar". This preserves the ability to
+// reference things outside the current scope — if we always applied scope, we'd
+// lose that.
+//
+// Note the THREE-SCOPE problem for cross-references:
+//   <Example id="foo"/>
+//   <DynamicList id="a">
+//     <Example id="foo"/>             ← action's scope 'a:#n:foo' (local #1)
+//     <SetFieldAction id="b" target="useDynamic" field="value" value="foo">
+//   </DynamicList>
+//   <DynamicList id="c">
+//     <Example id="foo"/>             ← UseDynamic's scope 'b:#n:foo' (local #2)
+//     <UseDynamic id="d">
+//   <Example id="foo">                ← global scope 'foo'
+//
+// The local -> global problem complicates!
+
+// // TODO(propthread-ns): Default ns=PLACEHOLDER_NS. Once propthreaded,
+// callers should pass the real namespace; drop the default.
 export function stateKeyForGlobalRef(
   ref: StateRef,
   ns: ContentNamespace = PLACEHOLDER_NS
@@ -682,6 +713,10 @@ export function stateKeyForGlobalRef(
  *
  *   definitionKeyForRef('answer')            → "CONTENT://answer"
  *   definitionKeyForRef('calculus://hw1')    → "calculus://hw1"  (pass-through)
+ *
+ * TODO(propthread-ns): Hardcodes PLACEHOLDER_NS. Once namespace is propthreaded,
+ * callers should provide the namespace from their content-loading context (e.g.
+ * LOFS origin). Signature will become definitionKeyForRef(ref, ns).
  */
 export function definitionKeyForRef(ref: DefinitionRef): DefinitionKey {
   return qualifyDefinitionRef(ref, PLACEHOLDER_NS);

@@ -26,7 +26,8 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { DefinitionKey, IdPrefix, StateKey, LoBlockRuntimeContext, OlxJson } from '@/lib/types';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { getGrader, getEventContext } from '@/lib/blocks/olxdom';
-import { assignReactKeys, refToDefinitionKey, refToReduxKey } from '@/lib/types/id';
+import { assignReactKeys } from '@/lib/types/id';
+import { definitionKeyForRef, scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { selectBlock } from '@/lib/state/olxjson';
 import type { Store } from 'redux';
 
@@ -121,7 +122,7 @@ export function render({ node, nodeInfo, runtime }: {
       );
     }
     const locale = runtime.locale.code;
-    const definitionKey = refToDefinitionKey(node.id);
+    const definitionKey = definitionKeyForRef(node.id);
     const sources = actualOlxJsonSources ?? ['content'];
     const entry = selectBlock(actualStore.getState(), sources, definitionKey, locale);
     if (!entry) {
@@ -194,7 +195,7 @@ export function render({ node, nodeInfo, runtime }: {
   //
   // Note: render() can be called multiple times (e.g. in Strict mode),
   // so we reuse existing entries if present.
-  const stateKey = refToReduxKey({ id: node.id, idPrefix: actualIdPrefix });
+  const stateKey = scopedStateKeyForBlock({ id: node.id, idPrefix: actualIdPrefix });
   let childNodeInfo = nodeInfo.renderedKids[stateKey];
   if (!childNodeInfo) {
     childNodeInfo = { olxJson: node, stateKey, renderedKids: {}, parent: nodeInfo, loBlock: blockType };

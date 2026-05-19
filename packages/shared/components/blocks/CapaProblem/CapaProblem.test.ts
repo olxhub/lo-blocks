@@ -5,11 +5,12 @@
 //
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
-import { getOlxJson } from '@/lib/test-utils';
+import { getOlxJson, TEST_NS } from '@/lib/test-utils';
+import { asDefinitionKey } from '@/lib/types/id-grammar';
 
 it('wires inputs and graders with explicit targeting', async () => {
   const { idMap } = await syncContentFromStorage(new FileStorageProvider('packages/shared/components/blocks/CapaProblem'));
-  const root = idMap['CapaProblemTargeting'];
+  const root = idMap[asDefinitionKey(`${TEST_NS}://CapaProblemTargeting`)];
   expect(root).toBeDefined();
 
   // RatioGrader with explicit target="num,den"
@@ -22,6 +23,6 @@ it('wires inputs and graders with explicit targeting', async () => {
   expect(getOlxJson(idMap, graderId).attributes.target).toEqual(['num', 'den']);
 
   // Render-time controls should NOT be injected into idMap by the parser
-  expect(Object.keys(idMap)).not.toContain('CapaProblemTargeting_button');
-  expect(Object.keys(idMap)).not.toContain('CapaProblemTargeting_correctness');
+  expect(Object.keys(idMap)).not.toContain(asDefinitionKey(`${TEST_NS}://CapaProblemTargeting_button`));
+  expect(Object.keys(idMap)).not.toContain(asDefinitionKey(`${TEST_NS}://CapaProblemTargeting_correctness`));
 });

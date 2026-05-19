@@ -14,7 +14,7 @@
 //   </RulesGrader>
 //
 import { z } from 'zod';
-import { core, grader, isMatch, inferRelatedNodes, refToDefinitionKey, getBlockByOLXId } from '@/lib/blocks';
+import { core, grader, isMatch, inferRelatedNodes, getBlockByOLXId } from '@/lib/blocks';
 import { correctness } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
 import _Noop from '@/components/blocks/layout/_Noop';

@@ -6,8 +6,8 @@ import React, { useRef } from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
-import { isInputReadOnly, useGraderAnswer, refToDefinitionKey } from '@/lib/blocks';
-import { extendIdPrefix } from '@/lib/types/id-grammar';
+import { isInputReadOnly, useGraderAnswer } from '@/lib/blocks';
+import { extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
 import { buildArrangementWithPositions } from '@/lib/util/shuffle';
 import { isKidArray } from '@/lib/util/kids';
@@ -143,7 +143,7 @@ export default function _SortableInput(props: RuntimeProps) {
           // blocks — not repeated like DynamicList instances — so they shouldn't need
           // scoping. Removing requires verifying no grader/action code depends on
           // the prefixed keys, and testing state management still works.
-          const itemIdPrefix = extendIdPrefix(props, ['sortitem', displayIndex]).idPrefix;
+          const itemIdPrefix = extendIdPrefix(props, ['sortitem', scopeMarker(displayIndex)]).idPrefix;
 
           const itemContent = (
             <SortableItemContent props={props} kid={kid} itemIdPrefix={itemIdPrefix} />

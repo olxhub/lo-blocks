@@ -3,6 +3,7 @@ import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
+import { splitNs } from '@/lib/types/id-grammar';
 import * as sortParser from './_sortParser';
 import _Noop from '@/components/blocks/layout/_Noop';
 
@@ -12,13 +13,15 @@ import _Noop from '@/components/blocks/layout/_Noop';
  */
 function generateSortableComponents({ parsed, storeEntry, id, tag, attributes }) {
   const { prompt, items } = parsed;
+  // Extract bare id for building child IDs. storeEntry auto-qualifies.
+  const bareId = splitNs(id).path;
 
   // Generate IDs for all components
-  const problemId = `${id}_problem`;
-  const graderId = `${id}_grader`;
-  const inputId = `${id}_input`;
-  const promptId = `${id}_prompt`;
-  const itemIds = items.map((_, i) => `${id}_item_${i}`);
+  const problemId = `${bareId}_problem`;
+  const graderId = `${bareId}_grader`;
+  const inputId = `${bareId}_input`;
+  const promptId = `${bareId}_prompt`;
+  const itemIds = items.map((_, i) => `${bareId}_item_${i}`);
 
   // Store prompt block (using Markdown for rich text)
   storeEntry(promptId, {

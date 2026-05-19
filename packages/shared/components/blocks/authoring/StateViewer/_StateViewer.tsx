@@ -5,7 +5,7 @@ import React from 'react';
 import { DisplayError } from '@/lib/util/debug';
 import { useComponentState } from '@/lib/state';
 import { decodeState } from '@/lib/state/stateDisplay';
-import { refToReduxKey } from '@/lib/types/id';
+import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { useOlxJson } from '@/lib/blocks/useOlxJson';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 
@@ -14,7 +14,7 @@ export default function _StateViewer(props: RuntimeProps) {
 
   // Target can come from attribute or children text (like Ref)
   const targetId = target || (typeof kids === 'string' ? kids : String(kids)).trim();
-  const targetReduxKey = targetId ? refToReduxKey({ ...props, id: targetId }) : refToReduxKey(props);
+  const targetReduxKey = targetId ? scopedStateKeyForBlock({ ...props, id: targetId }) : scopedStateKeyForBlock(props);
 
   // Hooks must be called unconditionally, so call before any early returns
   const { olxJson: targetBlock } = useOlxJson(props, targetId || null);

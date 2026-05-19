@@ -8,7 +8,7 @@
 //
 import { correctness } from './correctness';
 import { inferRelatedNodes } from './olxdom';
-import { refToReduxKey } from '../types/id';
+import { scopedStateKeyForBlock } from '../types/id-grammar';
 import * as state from '@/lib/state';
 
 /**
@@ -45,7 +45,7 @@ export function isInputReadOnly(props) {
 
   try {
     const correctField = state.componentFieldByName(props, graderId, 'correct');
-    const graderReduxKey = refToReduxKey({ ...props, id: graderId });
+    const graderReduxKey = scopedStateKeyForBlock({ ...props, id: graderId });
     const correctnessValue = state.useFieldSelector(
       props,
       correctField,

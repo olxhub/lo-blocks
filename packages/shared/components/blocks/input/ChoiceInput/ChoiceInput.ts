@@ -12,7 +12,7 @@ import { isKidArray } from '@/lib/util/kids';
 import type { RuntimeProps, DefinitionKey, KidEntry } from '@/lib/types';
 import _Noop from '@/components/blocks/layout/_Noop';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
-import { refToDefinitionKey } from '@/lib/types/id';
+import { definitionKeyForRef } from '@/lib/types/id-grammar';
 
 export const fields = state.fields([commonFields.value]);
 
@@ -33,7 +33,7 @@ function getChoices(props: RuntimeProps, state, id) {
   if (isKidArray(props.kids)) {
     ids = props.kids
       .filter((k): k is Extract<KidEntry, { type: 'block' }> => k.type === 'block')
-      .map(k => refToDefinitionKey(k.id))
+      .map(k => definitionKeyForRef(k.id))
       .filter(cid => {
         const inst = getBlockByOLXId(props, cid);
         return inst && (inst.tag === 'Key' || inst.tag === 'Distractor');

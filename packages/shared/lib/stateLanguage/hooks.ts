@@ -7,7 +7,7 @@
 
 import { useMemo } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
-import * as idResolver from '../types/id';
+import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey } from '../types/id-grammar';
 import { selectBlock } from '../state/olxjson';
 import type { FieldInfo } from '../types';
 import type { References } from './references';
@@ -61,7 +61,7 @@ function materializeComponentState(
   if (cached) return cached;
 
   // Look up block type → field definitions
-  const definitionKey = idResolver.stateKeyToDefinitionKey(stateKey as any);
+  const definitionKey = leafDefinitionKeyFromStateKey(stateKey as any);
   const sources = props.runtime?.olxJsonSources ?? ['content'];
   const locale = props.runtime?.locale?.code;
   const blockNode = selectBlock(state, sources, definitionKey, locale);
@@ -183,13 +183,10 @@ export function selectReferences(
 
 /**
  * Resolve a reference ID to a Redux key.
- * Delegates to idResolver.refToReduxKey which handles all reference forms:
- * - "/foo" (absolute) → "foo"
- * - "./foo" (explicit relative) → applies idPrefix
- * - "foo" (bare) → applies idPrefix
+ * Qualifies with namespace and applies idPrefix from props.
  */
 function resolveToReduxKey(props: any, id: string): string {
-  return idResolver.refToReduxKey({ ...props, id });
+  return scopedStateKeyForBlock({ ...props, id });
 }
 
 /**

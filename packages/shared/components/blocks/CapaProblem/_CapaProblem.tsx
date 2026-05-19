@@ -4,7 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect } from 'react';
 import { correctness, worstCaseCorrectness } from '@/lib/blocks';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
-import { refToReduxKey } from '@/lib/types/id';
+import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import * as state from '@/lib/state';
 import { useKids, renderBlock } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
@@ -92,7 +92,7 @@ function useGraderAggregation(props, childGraderIds) {
   const sampleGraderId = childGraderIds[0] || id;
 
   // inferRelatedNodes returns DefinitionKeys — convert to StateKeys for useAggregate
-  const childGraderReduxKeys = childGraderIds.map(gid => refToReduxKey({ ...props, id: gid }));
+  const childGraderReduxKeys = childGraderIds.map(gid => scopedStateKeyForBlock({ ...props, id: gid }));
 
   // Subscribe to child grader correctness values
   const correctField = state.componentFieldByName(props, sampleGraderId, 'correct');

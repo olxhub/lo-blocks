@@ -9,6 +9,7 @@ import { useFieldState, useAggregate, updateField } from './redux';
 import { scopes } from './scopes';
 import { store } from './store';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import { TEST_NS } from '@/lib/test-utils';
 
 const testFields = fields(['input']);
 const settingFields = fields([{ name: 'speed', event: 'SET_SPEED', scope: scopes.componentSetting }]);
@@ -53,7 +54,7 @@ describe('useFieldState integration', () => {
     await flushAsync();
 
     expect(result.current[0]).toBe('bar');
-    expect(reduxStore.getState().application_state.component['test'].input).toBe('bar');
+    expect(reduxStore.getState().application_state.component[`${TEST_NS}://test`].input).toBe('bar');
   });
 
   it('handles componentSetting scoped fields', async () => {
