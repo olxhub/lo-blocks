@@ -550,8 +550,6 @@ export function isNamespaceQualified(ref: string): boolean {
   return VALID.namespace.test(prefix);
 }
 
-/** @deprecated Use isNamespaceQualified instead. */
-export const hasNamespace = isNamespaceQualified;
 
 /**
  * Prepend namespace to a ref that lacks one. Already-namespaced refs

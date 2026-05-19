@@ -16,7 +16,7 @@ function _ShowAnswerButton(props: RuntimeProps) {
   const { label = 'Show Answer', target } = props;
 
   // Resolve target grader StateKeys - explicit target or parent inference
-  const graderReduxKeys = useMemo(() => {
+  const graderStateKeys = useMemo(() => {
     if (target) {
       // target is z_stateRefList — resolve authored refs globally (no idPrefix).
       const targetRefs = Array.isArray(target) ? target : [target];
@@ -32,21 +32,21 @@ function _ShowAnswerButton(props: RuntimeProps) {
   }, [target]);
 
   // Read showAnswer from first grader (or use own key as fallback for hook stability)
-  const primaryGraderKey = graderReduxKeys[0] ?? scopedStateKeyForBlock(props);
+  const primaryGraderKey = graderStateKeys[0] ?? scopedStateKeyForBlock(props);
   const showAnswerField = state.componentFieldByName(props, primaryGraderKey, 'showAnswer');
   const [showAnswer] = state.useFieldState(props, showAnswerField, false, { stateKey: primaryGraderKey });
 
   const handleClick = useCallback(() => {
     const newValue = !showAnswer;
     // Toggle all targeted graders
-    for (const graderKey of graderReduxKeys) {
+    for (const graderKey of graderStateKeys) {
       const field = state.componentFieldByName(props, graderKey, 'showAnswer');
       state.updateField(props, field, newValue, { stateKey: graderKey });
     }
-  }, [showAnswer, graderReduxKeys, props]);
+  }, [showAnswer, graderStateKeys, props]);
 
   // No graders found - show error (after all hooks)
-  if (graderReduxKeys.length === 0) {
+  if (graderStateKeys.length === 0) {
     return (
       <DisplayError
         title="ShowAnswerButton"

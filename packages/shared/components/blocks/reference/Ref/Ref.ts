@@ -101,19 +101,19 @@ const Ref = core({
 
     // Qualify the target ref into a proper StateKey for Redux lookup.
     // Ref targets are resolved globally (not scoped by idPrefix).
-    const targetReduxKey = stateKeyForGlobalRef(parseStateRef(targetId));
+    const targetStateKey = stateKeyForGlobalRef(parseStateRef(targetId));
 
     if (field) {
       const fieldInfo = fieldByName(field);
       if (!fieldInfo) {
         return { value: '', ...blockData('error', `Unknown field "${field}"`) };
       }
-      const rawValue = fieldSelector(state, props, fieldInfo, { stateKey: targetReduxKey, fallback });
+      const rawValue = fieldSelector(state, props, fieldInfo, { stateKey: targetStateKey, fallback });
       return { value: formatRefValue(rawValue, fallback), ...blockData('ready') };
     }
 
     // Use valueSelector to get the target's value — propagate its status
-    const { value: rawValue, ...status } = valueSelector(props, state, targetReduxKey, { fallback });
+    const { value: rawValue, ...status } = valueSelector(props, state, targetStateKey, { fallback });
     return { value: formatRefValue(rawValue, fallback), ...status };
   })
 });

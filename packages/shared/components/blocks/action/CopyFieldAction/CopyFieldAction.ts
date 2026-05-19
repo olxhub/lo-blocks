@@ -33,19 +33,19 @@ async function copyFieldAction({ targetInstance, props }) {
   // value the renderer sees, and the per-block fallback semantics live
   // in one place. See parsers.ts textWithTargetParserMixin for the
   // matching note, and MermaidPublish.olx for the canonical bite.
-  const targetReduxKey = stateKeyForGlobalRef(target.ref);
-  const srcField = state.componentFieldByName(props, targetReduxKey, target.field);
+  const targetStateKey = stateKeyForGlobalRef(target.ref);
+  const srcField = state.componentFieldByName(props, targetStateKey, target.field);
   const value = state.getField(props, srcField, {
-    stateKey: targetReduxKey,
+    stateKey: targetStateKey,
     fallback: '',
   });
 
   // Write to each output — field.write handles storage-specific dispatch
   // (e.g., docField computes splice deltas, plain field sets value directly)
   for (const dest of output) {
-    const destReduxKey = stateKeyForGlobalRef(dest.ref);
-    const destField = state.componentFieldByName(props, destReduxKey, dest.field);
-    state.updateField(props, destField, value, { stateKey: destReduxKey });
+    const destStateKey = stateKeyForGlobalRef(dest.ref);
+    const destField = state.componentFieldByName(props, destStateKey, dest.field);
+    state.updateField(props, destField, value, { stateKey: destStateKey });
   }
 }
 

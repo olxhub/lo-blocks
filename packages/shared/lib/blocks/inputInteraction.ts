@@ -45,12 +45,12 @@ export function isInputReadOnly(props) {
 
   try {
     const correctField = state.componentFieldByName(props, graderId, 'correct');
-    const graderReduxKey = scopedStateKeyForBlock({ ...props, id: graderId });
+    const graderStateKey = scopedStateKeyForBlock({ ...props, id: graderId });
     const correctnessValue = state.useFieldSelector(
       props,
       correctField,
       {
-        stateKey: graderReduxKey,
+        stateKey: graderStateKey,
         fallback: correctness.unsubmitted,
         selector: s => s?.correct
       }

@@ -59,12 +59,12 @@ export default function _HintButton(props: RuntimeProps) {
 
   // Read/write hintsRevealed field on the DemandHints component
   // Use the field definition from DemandHints directly (avoids null field issue)
-  const targetReduxKey = scopedStateKeyForBlock({ ...props, id: hintsId || id });
+  const targetStateKey = scopedStateKeyForBlock({ ...props, id: hintsId || id });
   const [hintsRevealed, setHintsRevealed] = state.useFieldState(
     props,
     DemandHints.fields.hintsRevealed,
     0,
-    { stateKey: targetReduxKey }
+    { stateKey: targetStateKey }
   );
 
   const handleClick = useCallback(() => {

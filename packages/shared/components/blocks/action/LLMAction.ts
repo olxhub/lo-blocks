@@ -17,17 +17,17 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
     console.warn('⚠️ LLMAction: No target specified in action attributes');
     return;
   }
-  const targetReduxKey = stateKeyForGlobalRef(targetRef);
+  const targetStateKey = stateKeyForGlobalRef(targetRef);
 
   // Get target component's fields dynamically
   // 'state' field is optional — TextSlot has it, TextArea doesn't
-  const valueField = state.componentFieldByName(props, targetReduxKey, 'value');
+  const valueField = state.componentFieldByName(props, targetStateKey, 'value');
   let stateField;
-  try { stateField = state.componentFieldByName(props, targetReduxKey, 'state'); } catch {}
+  try { stateField = state.componentFieldByName(props, targetStateKey, 'state'); } catch {}
 
   try {
-    state.updateField(props, valueField, '', { stateKey: targetReduxKey });
-    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RUNNING, { stateKey: targetReduxKey });
+    state.updateField(props, valueField, '', { stateKey: targetStateKey });
+    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RUNNING, { stateKey: targetStateKey });
 
     const promptText = blocks.extractChildText(props, props.nodeInfo.olxJson);
     if (!promptText.trim()) {
@@ -35,13 +35,13 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
     }
 
     const content = await reduxClient.callLLMSimple(promptText);
-    state.updateField(props, valueField, content, { stateKey: targetReduxKey });
-    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RESPONSE_READY, { stateKey: targetReduxKey });
+    state.updateField(props, valueField, content, { stateKey: targetStateKey });
+    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RESPONSE_READY, { stateKey: targetStateKey });
 
   } catch (error) {
     console.error('LLM generation failed:', error);
-    state.updateField(props, valueField, `Error: ${error.message}`, { stateKey: targetReduxKey });
-    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.ERROR, { stateKey: targetReduxKey });
+    state.updateField(props, valueField, `Error: ${error.message}`, { stateKey: targetStateKey });
+    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.ERROR, { stateKey: targetStateKey });
   }
 }
 

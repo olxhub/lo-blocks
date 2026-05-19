@@ -14,11 +14,11 @@ export default function _StateViewer(props: RuntimeProps) {
 
   // Target can come from attribute or children text (like Ref)
   const targetId = target || (typeof kids === 'string' ? kids : String(kids)).trim();
-  const targetReduxKey = targetId ? scopedStateKeyForBlock({ ...props, id: targetId }) : scopedStateKeyForBlock(props);
+  const targetStateKey = targetId ? scopedStateKeyForBlock({ ...props, id: targetId }) : scopedStateKeyForBlock(props);
 
   // Hooks must be called unconditionally, so call before any early returns
   const { olxJson: targetBlock } = useOlxJson(props, targetId || null);
-  const componentState = useComponentState(props, targetReduxKey, { scope });
+  const componentState = useComponentState(props, targetStateKey, { scope });
 
   if (!targetId) {
     return <DisplayError title="StateViewer" message="No target specified. Use target attribute or provide component ID as content." />;

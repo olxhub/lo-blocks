@@ -92,14 +92,14 @@ function useGraderAggregation(props, childGraderIds) {
   const sampleGraderId = childGraderIds[0] || id;
 
   // inferRelatedNodes returns DefinitionKeys — convert to StateKeys for useAggregate
-  const childGraderReduxKeys = childGraderIds.map(gid => scopedStateKeyForBlock({ ...props, id: gid }));
+  const childGraderStateKeys = childGraderIds.map(gid => scopedStateKeyForBlock({ ...props, id: gid }));
 
   // Subscribe to child grader correctness values
   const correctField = state.componentFieldByName(props, sampleGraderId, 'correct');
   const childCorrectnessValues = state.useAggregate(
     props,
     correctField,
-    hasChildGraders ? childGraderReduxKeys : [],
+    hasChildGraders ? childGraderStateKeys : [],
     {
       fallback: correctness.unsubmitted,
       aggregate: (values) => values.map(v => v ?? correctness.unsubmitted)
@@ -115,7 +115,7 @@ function useGraderAggregation(props, childGraderIds) {
   const childMessages = state.useAggregate(
     props,
     messageField,
-    hasChildGraders ? childGraderReduxKeys : [],
+    hasChildGraders ? childGraderStateKeys : [],
     {
       fallback: '',
       aggregate: (values) => values.map(v => v ?? '')
@@ -129,7 +129,7 @@ function useGraderAggregation(props, childGraderIds) {
   const childSubmitCounts = state.useAggregate(
     props,
     submitCountField,
-    hasChildGraders ? childGraderReduxKeys : [],
+    hasChildGraders ? childGraderStateKeys : [],
     {
       fallback: 0,
       aggregate: (values) => values.map(v => v ?? 0)

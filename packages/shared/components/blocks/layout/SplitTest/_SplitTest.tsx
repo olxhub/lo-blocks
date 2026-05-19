@@ -80,12 +80,12 @@ export default function _SplitTest(props: RuntimeProps) {
 
   // Symmetric: master reads/writes its own id, follower reads from master's id.
   // target defaults to self. Resolve through scopedStateKeyForBlock to apply scope (idPrefix).
-  const targetReduxKey = props.target
+  const targetStateKey = props.target
     ? stateKeyForGlobalRef(props.target as StateRef)
     : scopedStateKeyForBlock(props);
   // TODO: When we have hash-based assignment (userId + experimentId), use that
   // instead of random for deterministic reproducibility.
-  const [groupValue, setGroupValue] = useFieldState(props, fields.value, null, { stateKey: targetReduxKey });
+  const [groupValue, setGroupValue] = useFieldState(props, fields.value, null, { stateKey: targetStateKey });
 
   let groupIndex = parseGroupIndex(groupValue, numGroups);
 

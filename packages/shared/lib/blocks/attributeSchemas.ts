@@ -153,7 +153,7 @@ export type BlockFieldRef = { ref: StateRef; field: string };
  * If no .field suffix, defaults field to 'value'.
  *
  * The ref is an authored StateRef (e.g. "foo", "list:#0:item").
- * Runtime consumers resolve it with refToReduxKey() before Redux lookup.
+ * Runtime consumers resolve it with stateKeyForGlobalRef() before Redux lookup.
  */
 function splitFieldRef(val: string): BlockFieldRef {
   const dot = val.lastIndexOf('.');

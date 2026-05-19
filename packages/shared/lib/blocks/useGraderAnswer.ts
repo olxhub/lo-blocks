@@ -19,7 +19,7 @@
 'use client';
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
-import { getGrader, getDomNodeByReduxKey, getAllNodes, inferRelatedNodes } from './olxdom';
+import { getGrader, getDomNodeByStateKey, getAllNodes, inferRelatedNodes } from './olxdom';
 import { useOlxJson } from './useOlxJson';
 import { parseDefinitionRef } from '../types/id-grammar';
 import { definitionKeyForRef, scopedStateKeyForBlock } from '../types/id-grammar';
@@ -105,7 +105,7 @@ function resolveInputSlot(
   let inputIds: DefinitionKey[] = [];
   try {
     // Find the grader's OlxDomNode (DefinitionKey → StateKey applies runtime.idPrefix for scoping)
-    const graderNodeInfo = getDomNodeByReduxKey(props, scopedStateKeyForBlock({ id: graderId, idPrefix: props.runtime?.idPrefix }));
+    const graderNodeInfo = getDomNodeByStateKey(props, scopedStateKeyForBlock({ id: graderId, idPrefix: props.runtime?.idPrefix }));
     if (!graderNodeInfo) return undefined;
 
     // Create props with grader's nodeInfo for proper traversal
@@ -154,12 +154,12 @@ export function useGraderAnswer(props: RuntimeProps) {
   // Subscribe to field (hook must always be called, but selector handles null field)
   // When no grader exists and component has no fields, create a dummy field for hook compliance
   const fallbackField = props.fields?.value ?? { scope: 'component', name: 'showAnswer' };
-  const graderReduxKey = scopedStateKeyForBlock({ ...props, id: graderId || props.id });
+  const graderStateKey = scopedStateKeyForBlock({ ...props, id: graderId || props.id });
   const showAnswer = useFieldSelector<boolean>(
     props,
     showAnswerField || fallbackField,
     {
-      stateKey: graderReduxKey,
+      stateKey: graderStateKey,
       fallback: false,
       // When no grader, selector always returns false
       selector: showAnswerField ? (s => s?.showAnswer ?? false) : (() => false)
@@ -224,12 +224,12 @@ export function useGraderSummary(props: RuntimeProps, graderId: DefinitionKey | 
     : null;
 
   const fallbackField = props.fields?.value ?? { scope: 'component', name: 'showAnswer' };
-  const summaryGraderReduxKey = scopedStateKeyForBlock({ ...props, id: graderId || props.id });
+  const summaryGraderStateKey = scopedStateKeyForBlock({ ...props, id: graderId || props.id });
   const showAnswer = useFieldSelector(
     props,
     showAnswerField || fallbackField,
     {
-      stateKey: summaryGraderReduxKey,
+      stateKey: summaryGraderStateKey,
       fallback: false,
       selector: showAnswerField ? (s => s?.showAnswer ?? false) : (() => false)
     }

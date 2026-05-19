@@ -27,11 +27,11 @@ function _Explanation(props: RuntimeProps) {
   const { showWhen = 'correct', title, graderId } = props;
 
   const correctField = state.componentFieldByName(props, graderId, 'correct');
-  const graderReduxKey = scopedStateKeyForBlock({ ...props, id: graderId });
+  const graderStateKey = scopedStateKeyForBlock({ ...props, id: graderId });
   const correctnessValue = useFieldSelector(
     props,
     correctField,
-    { stateKey: graderReduxKey, fallback: correctness.unsubmitted, selector: s => s?.correct }
+    { stateKey: graderStateKey, fallback: correctness.unsubmitted, selector: s => s?.correct }
   ) ?? correctness.unsubmitted;
 
   // useKids must be called unconditionally

@@ -214,14 +214,14 @@ export function getAllNodes(nodeInfo: OlxDomNode, { selector = (_: OlxDomNode) =
 /**
  * Find a specific OlxDomNode in the rendered tree by StateKey.
  *
- * Callers convert DefinitionKey → StateKey (via refToReduxKey) before calling,
+ * Callers convert DefinitionKey → StateKey (via scopedStateKeyForBlock) before calling,
  * which makes the scoping (idPrefix) explicit at the call site.
  *
  * @param props - Must include nodeInfo (tree to search)
  * @param key - The StateKey identifying the node
  * @returns The matching OlxDomNode, or null
  */
-export function getDomNodeByReduxKey(props: RuntimeProps, key: StateKey): OlxDomNode | null {
+export function getDomNodeByStateKey(props: RuntimeProps, key: StateKey): OlxDomNode | null {
   return getAllNodes(props.nodeInfo, {
     selector: n => n.stateKey === key
   })[0] ?? null;

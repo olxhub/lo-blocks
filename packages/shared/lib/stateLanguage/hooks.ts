@@ -149,7 +149,7 @@ export function selectReferences(
   // Resolve component state references (@)
   for (const { key } of refs.componentState) {
     // Resolve the key to a Redux key (handles relative vs absolute paths)
-    const stateKey = resolveToReduxKey(props, key);
+    const stateKey = resolveToStateKey(props, key);
     const rawState = state?.application_state?.component?.[stateKey];
     // Materialize field values (e.g., RgaDoc → string) using block's field definitions.
     // Returns rawState unchanged if no fields have read transforms.
@@ -161,7 +161,7 @@ export function selectReferences(
   // Note: These are typically resolved at parse time, not runtime
   // For now, we look in the olxjson store
   for (const { id } of refs.olxContent) {
-    const stateKey = resolveToReduxKey(props, id);
+    const stateKey = resolveToStateKey(props, id);
     const block = state?.olxjson?.[stateKey];
     // Extract text content from the block if available
     olxContent[id] = block?.content ?? block?.kids ?? '';
@@ -182,10 +182,10 @@ export function selectReferences(
 }
 
 /**
- * Resolve a reference ID to a Redux key.
+ * Resolve a reference ID to a StateKey.
  * Qualifies with namespace and applies idPrefix from props.
  */
-function resolveToReduxKey(props: any, id: string): string {
+function resolveToStateKey(props: any, id: string): string {
   return scopedStateKeyForBlock({ ...props, id });
 }
 

@@ -21,7 +21,7 @@
 // This enables replay mode where a different store provides historical state.
 //
 import { z } from 'zod';
-import { inferRelatedNodes, getDomNodeByReduxKey, propsFromNode } from './olxdom';
+import { inferRelatedNodes, getDomNodeByStateKey, propsFromNode } from './olxdom';
 import * as lo_event from 'lo_event';
 import { correctness } from './correctness';
 import { scopedStateKeyForBlock } from '../types/id-grammar';
@@ -178,7 +178,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
 
   const action = async ({ targetId, targetInstance, props }) => {
     // DefinitionKey → StateKey (applies runtime.idPrefix for DynamicList scoping)
-    const targetNodeInfo = getDomNodeByReduxKey(props, scopedStateKeyForBlock({ id: targetId, idPrefix: props.runtime?.idPrefix }));
+    const targetNodeInfo = getDomNodeByStateKey(props, scopedStateKeyForBlock({ id: targetId, idPrefix: props.runtime?.idPrefix }));
     const targetAttributes = targetInstance.attributes;
 
     const inputIds = inferRelatedNodes(
@@ -202,8 +202,8 @@ export function grader({ grader, infer = true, slots, inputType }: {
       }
       const loBlock = map[inst.tag];
       // DefinitionKey → StateKey (applies runtime.idPrefix for DynamicList scoping)
-      const inputReduxKey = scopedStateKeyForBlock({ id, idPrefix: props.runtime?.idPrefix });
-      const inputNodeInfo = getDomNodeByReduxKey(props, inputReduxKey);
+      const inputStateKey = scopedStateKeyForBlock({ id, idPrefix: props.runtime?.idPrefix });
+      const inputNodeInfo = getDomNodeByStateKey(props, inputStateKey);
 
       // Use the input's own runtime (captured at render time) for correct idPrefix,
       // logEvent context, etc. Falls back to caller's runtime if nodeInfo unavailable.
@@ -219,7 +219,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
       };
 
       // Use valueSelector for uniform handling of withStatus / raw selectValue
-      const { value } = valueSelector(inputProps as RuntimeProps, state, inputReduxKey);
+      const { value } = valueSelector(inputProps as RuntimeProps, state, inputStateKey);
 
       // Create bound API from locals - each function gets (props, state, id) pre-bound
       const api = loBlock.locals
@@ -323,7 +323,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
       correct === false ? correctness.incorrect :
         correct; // In case it's already a correctness value
 
-    // Use refToReduxKey to get scoped ID (applies runtime.idPrefix for list/repeated contexts)
+    // Scope the target ID (applies runtime.idPrefix for list/repeated contexts)
     const scopedTargetId = scopedStateKeyForBlock({ id: targetId, idPrefix: props.runtime?.idPrefix });
 
     // Get current submitCount — only increment for real submissions (not blank/invalid)
@@ -387,7 +387,7 @@ export async function executeNodeActions(props: RuntimeProps) {
 
     // Find the action's OlxDomNode
     // DefinitionKey → StateKey (applies runtime.idPrefix for DynamicList scoping)
-    const actionNodeInfo = getDomNodeByReduxKey(props, scopedStateKeyForBlock({ id: targetId, idPrefix: props.runtime?.idPrefix }));
+    const actionNodeInfo = getDomNodeByStateKey(props, scopedStateKeyForBlock({ id: targetId, idPrefix: props.runtime?.idPrefix }));
 
     if (!actionNodeInfo) {
       throw new Error(`Action ${targetId} not found in dynamic DOM tree - this indicates a bug in the rendering system`);

@@ -51,7 +51,7 @@ import { FieldInfo, DefinitionRef, DefinitionKey, StateRef, StateKey, RuntimePro
 import { assertValidField } from './fields';
 import type { Store } from 'redux';
 import { selectBlock, selectBlockState } from './olxjson';
-import { getDomNodeByReduxKey, propsFromNode } from '../blocks/olxdom';
+import { getDomNodeByStateKey, propsFromNode } from '../blocks/olxdom';
 import { ensureBlock } from '../blocks/useOlxJson';
 import { getReduxStoreInstance } from './store';
 
@@ -110,7 +110,7 @@ export const fieldSelector = <T>(
       case scopes.component: {
         // Use explicit stateKey (cross-component access) or resolve from props.
         // Guard: if props.id is undefined and no stateKey, return undefined
-        // (hits fallback). Old refToReduxKey returned undefined in this case.
+        // (hits fallback). Before scopedStateKeyForBlock, this returned undefined.
         const key = stateKey ?? (props?.id ? scopedStateKeyForBlock(props) : undefined);
         return key ? selector(scopedState?.[key]) : undefined;
       }
@@ -538,7 +538,7 @@ export function componentFieldByName(props: RuntimeProps, targetId: DefinitionKe
  */
 export function propsForNode(callerProps: RuntimeProps, stateKey: StateKey, node: OlxJson, loBlock: LoBlock) {
   const domNode = callerProps.nodeInfo
-    ? getDomNodeByReduxKey(callerProps, stateKey)
+    ? getDomNodeByStateKey(callerProps, stateKey)
     : null;
 
   if (domNode) return propsFromNode(domNode);

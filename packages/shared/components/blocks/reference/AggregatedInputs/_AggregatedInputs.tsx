@@ -3,7 +3,7 @@
 import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo } from 'react';
-import { inferRelatedNodes, getDomNodeByReduxKey } from '@/lib/blocks/olxdom';
+import { inferRelatedNodes, getDomNodeByStateKey } from '@/lib/blocks/olxdom';
 import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { useAggregate, componentFieldByName } from '@/lib/state';
 
@@ -30,7 +30,7 @@ function resolveTargetIds(props, targetIds) {
 
   targetIds.forEach((targetId) => {
     // DefinitionKey → StateKey (applies runtime.idPrefix for DynamicList scoping)
-    const targetNodeInfo = getDomNodeByReduxKey(props, scopedStateKeyForBlock({ id: targetId, idPrefix: props.runtime?.idPrefix }));
+    const targetNodeInfo = getDomNodeByStateKey(props, scopedStateKeyForBlock({ id: targetId, idPrefix: props.runtime?.idPrefix }));
 
     const graderIds = targetNodeInfo
       ? inferRelatedNodes(
@@ -96,10 +96,10 @@ export function _AggregatedInputs(props: RuntimeProps) {
   resolvedTargetIds.slice(1).forEach((id) => componentFieldByName(props, id, field));
 
   // resolvedTargetIds may contain DefinitionKeys (from inferRelatedNodes) — convert to StateKeys
-  const resolvedReduxKeys = resolvedTargetIds.map(id => scopedStateKeyForBlock({ ...props, id }));
+  const resolvedStateKeys = resolvedTargetIds.map(id => scopedStateKeyForBlock({ ...props, id }));
 
   const aggregateMode = aggregate ?? (asObject ? 'object' : 'list');
-  const values = useAggregate(props, fieldInfo, resolvedReduxKeys, { fallback, aggregate: aggregateMode });
+  const values = useAggregate(props, fieldInfo, resolvedStateKeys, { fallback, aggregate: aggregateMode });
 
   const entries = Array.isArray(values)
     ? resolvedTargetIds.map((id, index) => [id, values[index]])

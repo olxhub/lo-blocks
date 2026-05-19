@@ -12,7 +12,7 @@ import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 
 function _Correctness(props: RuntimeProps) {
   const { fields, graderId } = props;
-  const graderReduxKey = scopedStateKeyForBlock({ ...props, id: graderId });
+  const graderStateKey = scopedStateKeyForBlock({ ...props, id: graderId });
 
   const correctnessValue = useFieldSelector(
     props,
@@ -20,7 +20,7 @@ function _Correctness(props: RuntimeProps) {
     {
       selector: s => s?.correct ?? correctness.unsubmitted,
       fallback: correctness.unsubmitted,
-      stateKey: graderReduxKey
+      stateKey: graderStateKey
     }
   );
 
@@ -32,7 +32,7 @@ function _Correctness(props: RuntimeProps) {
     {
       selector: s => s?.submitCount ?? 0,
       fallback: 0,
-      stateKey: graderReduxKey
+      stateKey: graderStateKey
     }
   );
 
