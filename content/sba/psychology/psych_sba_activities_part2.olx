@@ -68,7 +68,7 @@ Let's begin.
 
   <!-- Quiz 1: Basic Reinforcement vs Punishment, Question 1 -->
   <MarkupProblem id="reinforce_punish_practice_1" title="Question 1: Sticker"><![CDATA[
-## Practice Quiz: Positive vs. Negative Reinforcement and Punishment
+## Practice Quiz: Reinforcement vs. Punishment
 
 >>Liam reads a book every night because he earns a sticker for each completed book.<<
 
@@ -80,15 +80,14 @@ Getting the sticker increases the likelihood that Liam will read the book, so th
 [/explanation]
 ]]></MarkupProblem>
 
-
   <!-- Quiz 1: Basic Reinforcement vs Punishment, Question 2 -->
   <MarkupProblem id="reinforce_punish_practice_1b" title="Question 2: Asking"><![CDATA[
 ## Practice Quiz: Reinforcement vs. Punishment
 
 >>Daniel puts away his toys so his parents will stop asking him to clean up.<<
 
-( ) Reinforcement
-(x) Punishment
+(x) Reinforcement
+( ) Punishment
 
 [explanation]
 The parent's asking increases the likelihood that Daniel will put his toys away, so this is reinforcement.
@@ -385,26 +384,26 @@ Getting the badge made Charlotte more likely to organized her desk, so this is r
     <SplitPanel id="conditioning_example_chart_details">
       <LeftPane>
           <Markdown>
-              **Positive Reinforcement**
+              Positive Reinforcement
           </Markdown>
           <TextArea id="positive_reinforcement_example"
               placeholder="Put an example of positive reinforcement here" />
           <Markdown>
           ------------------------------
-              **Positive Punishment**
+              Positive Punishment
           </Markdown>
           <TextArea id="positive_punishment_example"
               placeholder="Put an example of positive punishment here" />
       </LeftPane>
       <RightPane>
           <Markdown>
-              **Negative Reinforcement**
+              Negative Reinforcement
           </Markdown>
           <TextArea id="negative_reinforcement_example"
               placeholder="Put an example of negative reinforcement here" />
           <Markdown>
           ------------------------------
-              **Negative Punishment**
+              Negative Punishment
           </Markdown>
           <TextArea id="negative_punishment_example"
               placeholder="Put an example of negative punishment here" />
@@ -804,7 +803,7 @@ Remember:
     <Markdown id="email_draft_prompt">
         ## The Opening We Wrote
     </Markdown>
-    <TextArea id="email_draft_part2" />
+    <UseDynamic id="ref_email_draft2" target="email_draft" />
   </Vertical>
 
   <IntakeGate ready="!@psych_part_2_finished.value">
@@ -1023,6 +1022,9 @@ Remember:
 
                     I hope these techniques make your net babysitting experience a lot easier!
             </Markdown>
+        </Vertical>
+        <Vertical id="tab5" title="My outline">
+          <Use ref="draft_full_email" />
         </Vertical>
     </Tabs>
     <IntakeGate ready="!@psych_part_2_finished.value">
