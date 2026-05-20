@@ -20,15 +20,28 @@ lang: en-Latn-US
       <Markdown id="bedtime_problem_introduction">
 ## Introduction
 
-In this module, you will review and apply several concepts from your coursework on behavioral modification. Specifically, you will:
+As we have been discussing in class, the psychological concepts you are learning can be used to
+help you solve problems that you may face in the real world. Today, we are going to help another
+college student address a problem they are facing.
 
-- Read about behavior modification techniques and think about how they apply to a real-life situation.
-- Understand the differences between reinforcement and punishment.
-- Identify whether behavior modification techniques are positive or negative.
+As you complete this activity, you will learn, review, and apply several concepts from your
+coursework. Specifically, you will:
+ - Learn about different ways that parents/adults approach child misbehavior.
+ - Learn about the strengths and weaknesses associated with AI use.
+ - Practice applying information from the course textbook, as well as from scientific research,
+to real-life scenarios.
 
-To complete these parts, you will imagine that you are working in a breakout group with classmates named Annie, JJ, and Lin. But keep in mind that this is not an actual breakout group, and these are not real people. They are characters who will help you as you go along. You will also be able to use an AI assistant that is built into this module.
+While you are completing this activity, imagine you are working in a breakout group with
+classmates named Annie, JJ, and Lin. But, keep in mind that this is not an actual breakout group,
+and these are not real people. They are characters who will assist you as you progress through this
+activity. You will also have access to an AI assistant built into this module.
 
-Let's begin.
+In this activity, the screen is divided into two parts. On the left side of the screen, you will progress
+through the chat conversation between Annie, JJ, and Lin. If you want to reread a part of the
+conversation, you can scroll back through the chat. On the right side of the screen, your activities
+will appear.
+
+Let&#39;s begin. Please click CONTINUE.
       </Markdown>
 
       <Markdown id="bedtime_problem_clear_screen_1"> &nbsp; </Markdown>
@@ -143,7 +156,7 @@ Drag to rank from **best** (top) to **worst** (bottom):
       <Ref target="initial_ai_suggestion" id="ref_student_ai_suggestion_in_brainstorm" fallback="[Please make sure you've entered a suggestion on the prior screen]" />
       <Markdown> Is no-rules parenting any good for sleep refusal, and if not, what other things could I try? </Markdown>
       <Markdown> What is the evidence for no-rules parenting and any alternatives to address sleep refusal? </Markdown>
-      <Markdown>What is the evidence-based way to stop sleep refusal: no-rules parenting or something else like behavior modification?</Markdown>
+      <Markdown> What is the evidence-based way to stop sleep refusal: no-rules parenting or something else like behavior modification? </Markdown>
     </SortableInput>
   </SortableGrader>
 </CapaProblem>
@@ -155,11 +168,16 @@ Drag to rank from **best** (top) to **worst** (bottom):
 <Vertical id="ai_info">
 <Markdown id="ai_info_md">
 From all of your group member's AI prompt suggestions, your group
-chose this prompt. If you still want to edit the AI prompt before
+chose this prompt:
+
+**What is the evidence for no-rules parenting and any alternatives to address sleep refusal?**
+
+Retype this prompt to get the AI to carry it out.
+If you still want to edit the AI prompt before
 you try it, you can.
 </Markdown>
 
-<TextArea id="ai_response" rows="2" placeholder="Paste or type your prompt here." />
+<TextArea id="ai_response" rows="2" placeholder="What is the evidence-based way to stop sleep refusal: no-rules parenting or something else like behavior modification?" />
 
 <LLMFeedback id="ai_feedback" render="markdown" />
 
@@ -282,7 +300,7 @@ negotiations and increased nighttime disruptions.
 parenting is a bad idea, she should figure out an effective bedtime strategy
 for her 6-year-old.**
 
-_Put your answer in the box below. You can use the little dots between the forward
+_Put your answer in the box below. You can click on the little dots between the forward
 and back arrows on the top right of the screen to go back to review the arguments
 and evidence you have just read._
 </Markdown>
@@ -417,6 +435,7 @@ children connect choices with outcomes.
 **Evidence**: Works best with children who can understand cause and effect.
 
 6. **Environmental Adjustments**
+
 **What It Is**: Optimizing the sleep environment with dim lighting, white noise,
 or calming activities like reading.
 
@@ -572,8 +591,9 @@ respecting a child's autonomy.
 | Natural           |                        |                        |
 | Consequences with |                        |                        |
 | Limits            |                        |                        |
+|-------------------|------------------------|------------------------|
 | Environmental     |                        |                        |
-| Adjustments       | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             |                        |
+| Adjustments       | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             |
 |-------------------|------------------------|------------------------|
 | Collaborative     |                        |                        |
 | Problem Solving   | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             |
