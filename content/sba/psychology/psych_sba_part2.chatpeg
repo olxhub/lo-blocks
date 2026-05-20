@@ -79,7 +79,7 @@ psych_sba_sidebar2 -> reinforce_punish_practice_1g
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1h
 
---- wait @reinforce_punish_prtestmarkupproblemactice_1h.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1h.submitCount > 0 ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1i
 
@@ -145,9 +145,9 @@ psych_sba_sidebar2 -> reinforce_punish_practice_1j
 
 Lin: #10 confused me because I didn't think NOT doing something would count as punishment. But her teacher never calling on her to speak made it less likely that Luna would ask questions in class, so it counts as punishment.
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1p
+psych_sba_sidebar2 -> reinforce_punish_practice_1k
 
-JJ: #16 confused me because the sister is probably calling her an artist to be sarcastic. She wants her to stop! But the sarcastic praise is still making her more likely to scribble on the walls, so it's a reinforcer.
+JJ: #11 confused me because the sister is probably calling her an artist to be sarcastic. She wants her to stop! But the sarcastic praise is still making her more likely to scribble on the walls, so it's a reinforcer.
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1o
 
