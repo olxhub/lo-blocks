@@ -108,11 +108,8 @@ export const fieldSelector = <T>(
         return selector(scopedState);
       case scopes.storage:
       case scopes.component: {
-        // Use explicit stateKey (cross-component access) or resolve from props.
-        // Guard: if props.id is undefined and no stateKey, return undefined
-        // (hits fallback). Before scopedStateKeyForBlock, this returned undefined.
-        const key = stateKey ?? (props?.id ? scopedStateKeyForBlock(props) : undefined);
-        return key ? selector(scopedState?.[key]) : undefined;
+        const key = stateKey ?? scopedStateKeyForBlock(props);
+        return selector(scopedState?.[key]);
       }
       default:
         throw new Error('Unrecognized scope');

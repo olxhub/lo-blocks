@@ -27,7 +27,7 @@
 
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
-import { splitNs, definitionKeyForRef, parseDefinitionRef } from '@/lib/types/id-grammar';
+import { splitNs, definitionKeyForRef, parseDefinitionRef, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
 import { isPascalCase } from '@/lib/util';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import * as state from '@/lib/state';
@@ -41,6 +41,11 @@ import type { KidEntry, DefinitionKey, DefinitionRef } from '@/lib/types';
 // the same Zod/parse pipeline as hand-written target="foo,bar" attributes.
 type GraderMapping = { id: DefinitionKey; inputs: DefinitionRef[] };
 
+// Typed child-role suffixes for joinDefinitionRef.
+// Validated once at import time so typos are caught early.
+const GRADER = parseLeafId('grader');
+const INPUT  = parseLeafId('input');
+
 // CapaProblem acts as a "metagrader" - it aggregates correctness from child graders.
 // This allows Correctness/StatusText inside CapaProblem to find CapaProblem itself
 // as their grader and display aggregate state.
@@ -53,15 +58,15 @@ export const fields = state.fields(state.graderFields());
 //
 // IDs are assigned by mutating nodes BEFORE child parsers run. See:
 // docs/architecture/container-id-scoping.md
-async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEntry, parseNode }) {
+async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEntry, parseNode, assignSystemId }) {
   const tagParsed = rawParsed[tag];
   const rawKids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
   let inputIndex = 0;
   let graderIndex = 0;
   let nodeIndex = 0;
   const graders: GraderMapping[] = [];
-  // Extract bare id for building child IDs. parseNode will qualify them.
-  const bareId = splitNs(id).path;
+  // Parent ref for building child IDs via joinDefinitionRef.
+  const parentRef = asDefinitionRef(splitNs(id).path);
 
   // Recursively assign IDs to all descendants and build kids structure (mutates nodes)
   function assignIdsAndBuildStructure(node, currentGrader: GraderMapping | null = null) {
@@ -76,26 +81,28 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
     const childTag = Object.keys(node).find(k => ![':@', '#text', '#comment'].includes(k));
     if (!childTag) return null;
 
-    if (!node[':@']) node[':@'] = {};
-    const childAttrs = node[':@'];
+    const childAttrs = node[':@'] ?? {};
 
     // TODO: Handle Open edX OLX cases: Label, Description, ResponseParam
 
     if (isPascalCase(childTag)) {
       const blockType = BLOCK_REGISTRY[childTag];
 
+      // Derive a branded DefinitionRef: auto-assigned via joinDefinitionRef,
+      // or validated from an authored id attribute.
+      let blockRef: DefinitionRef;
       if (!childAttrs.id) {
         if (blockType.isGrader) {
-          childAttrs.id = `${bareId}_grader_${graderIndex++}`;
+          blockRef = joinDefinitionRef(parentRef, GRADER, graderIndex++);
         } else if (blockType.isInput) {
-          childAttrs.id = `${bareId}_input_${inputIndex++}`;
+          blockRef = joinDefinitionRef(parentRef, INPUT, inputIndex++);
         } else {
-          childAttrs.id = `${bareId}_${childTag.toLowerCase()}_${nodeIndex++}`;
+          blockRef = joinDefinitionRef(parentRef, parseLeafId(childTag.toLowerCase()), nodeIndex++);
         }
+        assignSystemId(node, blockRef);
+      } else {
+        blockRef = parseDefinitionRef(childAttrs.id);
       }
-      // Parse the bare ref and qualify to a DefinitionKey for idMap tracking.
-      // parseNode will also qualify when processing the child, producing the same key.
-      const blockRef = parseDefinitionRef(childAttrs.id);
       const blockId = definitionKeyForRef(blockRef);
 
       let mapping = currentGrader;

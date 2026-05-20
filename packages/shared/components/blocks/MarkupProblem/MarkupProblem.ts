@@ -17,7 +17,7 @@ import { srcAttributes, problemAttributes } from '@/lib/blocks/attributeSchemas'
 import * as capaParser from '../specialized/peg_prototype/_capaParser';
 import _CapaProblem from '@/components/blocks/CapaProblem/_CapaProblem';
 import type { KidEntry, DefinitionRef } from '@/lib/types';
-import { splitNs } from '@/lib/types/id-grammar';
+import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
 import { parse as parseExpr } from '@/lib/stateLanguage';
 
 // Pre-parse a when= expression into the { expr, ast } shape that useKidsJson expects.
@@ -31,18 +31,39 @@ const whenExpr = (expr: string) => ({ expr, ast: parseExpr(expr) });
 const escapeExprString = (s: string) =>
   s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r');
 
-// Helper: create a block reference with properly typed DefinitionRef
-const blockRef = (id: string): KidEntry => ({ type: 'block', id: id as DefinitionRef });
+// Typed child-role suffixes for joinDefinitionRef.
+// Validated once at import time so typos are caught early.
+const HEADER       = parseLeafId('header');
+const P            = parseLeafId('p');
+const QUESTION     = parseLeafId('question');
+const QTEXT        = parseLeafId('qtext');
+const GRADER       = parseLeafId('grader');
+const INPUT        = parseLeafId('input');
+const CHOICE       = parseLeafId('choice');
+const CHECKBOX     = parseLeafId('checkbox');
+const MD           = parseLeafId('md');
+const FB           = parseLeafId('fb');
+const MATCH        = parseLeafId('match');
+const DEFAULT      = parseLeafId('default');
+const HINT         = parseLeafId('hint');
+const DEMAND_HINT  = parseLeafId('demandHint');
+const DEMAND_HINTS = parseLeafId('demandHints');
+const EXPLANATION  = parseLeafId('explanation');
+const CONTENT      = parseLeafId('content');
+const SEP          = parseLeafId('sep');
+
+// Helper: create a block kid entry from a DefinitionRef.
+const blockRef = (id: DefinitionRef): KidEntry => ({ type: 'block', id });
 
 /**
  * Transform parsed CAPA AST into OLX component structure.
  * Returns graders, inputs, and content as direct children of MarkupProblem.
  */
 function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
-  // Extract bare id for building child IDs. storeEntry auto-qualifies bare IDs.
+  // Parent ref for building child IDs via joinDefinitionRef.
   // Expressions (@ref syntax) also need bare IDs since the expression parser
-  // doesn't understand namespace:// syntax.
-  const bareId = splitNs(id).path;
+  // doesn't understand namespace syntax.
+  const parentRef = asDefinitionRef(splitNs(id).path);
   let graderIndex = 0;
   let inputIndex = 0;
   let hintIndex = 0;
@@ -55,7 +76,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
     switch (block.type) {
       case 'h3': {
         // Header becomes Markdown
-        const headerId = `${bareId}_header_${contentIndex++}`;
+        const headerId = joinDefinitionRef(parentRef, HEADER, contentIndex++);
         storeEntry(headerId, {
           id: headerId,
           tag: 'Markdown',
@@ -68,7 +89,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
 
       case 'p': {
         // Paragraph becomes Markdown
-        const pId = `${bareId}_p_${contentIndex++}`;
+        const pId = joinDefinitionRef(parentRef, P, contentIndex++);
         storeEntry(pId, {
           id: pId,
           tag: 'Markdown',
@@ -83,7 +104,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
         // Question label can be a string or array with inline dropdowns
         if (typeof block.label === 'string') {
           // Simple question without dropdowns
-          const qId = `${bareId}_question_${contentIndex++}`;
+          const qId = joinDefinitionRef(parentRef, QUESTION, contentIndex++);
           storeEntry(qId, {
             id: qId,
             tag: 'Markdown',
@@ -103,7 +124,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
             } else if (part.type === 'dropdown') {
               // Flush text buffer as Markdown
               if (textBuffer.trim()) {
-                const textId = `${bareId}_qtext_${contentIndex++}`;
+                const textId = joinDefinitionRef(parentRef, QTEXT, contentIndex++);
                 storeEntry(textId, {
                   id: textId,
                   tag: 'Markdown',
@@ -115,8 +136,8 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
               }
 
               // Create KeyGrader with DropdownInput for inline dropdown
-              const graderId = `${bareId}_grader_${graderIndex++}`;
-              const inputId = `${bareId}_input_${inputIndex++}`;
+              const graderId = joinDefinitionRef(parentRef, GRADER, graderIndex++);
+              const inputId = joinDefinitionRef(parentRef, INPUT, inputIndex++);
 
               // Store DropdownInput with pre-parsed options (grammar outputs DropdownInput format directly)
               storeEntry(inputId, {
@@ -140,7 +161,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
 
           // Flush any remaining text
           if (textBuffer.trim()) {
-            const textId = `${bareId}_qtext_${contentIndex++}`;
+            const textId = joinDefinitionRef(parentRef, QTEXT, contentIndex++);
             storeEntry(textId, {
               id: textId,
               tag: 'Markdown',
@@ -159,12 +180,12 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       case 'choices': {
         // Multiple choice - KeyGrader with ChoiceInput
         // Grammar outputs { text, value, tag: 'Key'/'Distractor', feedback? } directly
-        const graderId = `${bareId}_grader_${graderIndex++}`;
-        const inputId = `${bareId}_input_${inputIndex++}`;
+        const graderId = joinDefinitionRef(parentRef, GRADER, graderIndex++);
+        const inputId = joinDefinitionRef(parentRef, INPUT, inputIndex++);
 
         const choiceKids = block.options.map((opt, i) => {
-          const choiceId = `${bareId}_choice_${inputIndex - 1}_${i}`;
-          const choiceMdId = `${choiceId}_md`;
+          const choiceId = joinDefinitionRef(parentRef, CHOICE, inputIndex - 1, i);
+          const choiceMdId = joinDefinitionRef(choiceId, MD);
           storeEntry(choiceMdId, {
             id: choiceMdId,
             tag: 'Markdown',
@@ -203,7 +224,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
           const opt = block.options[oi];
           if (!opt.feedback) continue;
           const escaped = escapeExprString(opt.text);
-          const fbId = `${bareId}_fb_${inputIndex - 1}_${oi}`;
+          const fbId = joinDefinitionRef(parentRef, FB, inputIndex - 1, oi);
           storeEntry(fbId, {
             id: fbId,
             tag: 'Markdown',
@@ -219,12 +240,12 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       case 'checkboxes': {
         // Checkboxes - multi-select using CheckboxInput and CheckboxGrader
         // Grammar outputs { text, value, tag: 'Key'/'Distractor', feedback? } directly
-        const graderId = `${bareId}_grader_${graderIndex++}`;
-        const inputId = `${bareId}_input_${inputIndex++}`;
+        const graderId = joinDefinitionRef(parentRef, GRADER, graderIndex++);
+        const inputId = joinDefinitionRef(parentRef, INPUT, inputIndex++);
 
         const choiceKids = block.options.map((opt, i) => {
-          const choiceId = `${bareId}_checkbox_${inputIndex - 1}_${i}`;
-          const choiceMdId = `${choiceId}_md`;
+          const choiceId = joinDefinitionRef(parentRef, CHECKBOX, inputIndex - 1, i);
+          const choiceMdId = joinDefinitionRef(choiceId, MD);
           storeEntry(choiceMdId, {
             id: choiceMdId,
             tag: 'Markdown',
@@ -272,7 +293,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
           const opt = block.options[oi];
           if (!opt.feedback) continue;
           const escaped = escapeExprString(opt.text);
-          const fbId = `${bareId}_fb_${inputIndex - 1}_${oi}`;
+          const fbId = joinDefinitionRef(parentRef, FB, inputIndex - 1, oi);
           storeEntry(fbId, {
             id: fbId,
             tag: 'Markdown',
@@ -288,14 +309,14 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       case 'textInput': {
         // Text input - RulesGrader with StringMatch rules
         // Grammar outputs rules array: [{ answer, score, feedback }, ...]
-        const graderId = `${bareId}_grader_${graderIndex++}`;
-        const inputId = `${bareId}_input_${inputIndex++}`;
+        const graderId = joinDefinitionRef(parentRef, GRADER, graderIndex++);
+        const inputId = joinDefinitionRef(parentRef, INPUT, inputIndex++);
 
         const matchKids: KidEntry[] = [];
 
         // Create StringMatch for each rule from grammar
         block.rules.forEach((rule, i) => {
-          const matchId = `${bareId}_match_${graderIndex - 1}_${i}`;
+          const matchId = joinDefinitionRef(parentRef, MATCH, graderIndex - 1, i);
           storeEntry(matchId, {
             id: matchId,
             tag: 'StringMatch',
@@ -311,7 +332,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
         });
 
         // Default catch-all
-        const defaultMatchId = `${bareId}_match_${graderIndex - 1}_default`;
+        const defaultMatchId = joinDefinitionRef(parentRef, MATCH, graderIndex - 1, DEFAULT);
         storeEntry(defaultMatchId, {
           id: defaultMatchId,
           tag: 'DefaultMatch',
@@ -347,8 +368,8 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
 
       case 'numericalInput': {
         // Numerical input - NumericalGrader
-        const graderId = `${bareId}_grader_${graderIndex++}`;
-        const inputId = `${bareId}_input_${inputIndex++}`;
+        const graderId = joinDefinitionRef(parentRef, GRADER, graderIndex++);
+        const inputId = joinDefinitionRef(parentRef, INPUT, inputIndex++);
 
         let answer, tolerance;
         if (block.range) {
@@ -385,8 +406,8 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
 
       case 'dropdown': {
         // Standalone dropdown - KeyGrader with DropdownInput
-        const graderId = `${bareId}_grader_${graderIndex++}`;
-        const inputId = `${bareId}_input_${inputIndex++}`;
+        const graderId = joinDefinitionRef(parentRef, GRADER, graderIndex++);
+        const inputId = joinDefinitionRef(parentRef, INPUT, inputIndex++);
 
         // Store DropdownInput with pre-parsed options (grammar outputs DropdownInput format directly)
         storeEntry(inputId, {
@@ -410,7 +431,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
 
       case 'hint': {
         // Single hint - add to demand hints (revealed on request)
-        const hintId = `${bareId}_hint_${hintIndex++}`;
+        const hintId = joinDefinitionRef(parentRef, HINT, hintIndex++);
         storeEntry(hintId, {
           id: hintId,
           tag: 'Markdown',
@@ -424,7 +445,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       case 'demandHints': {
         // Progressive demand hints
         block.hints.forEach((hint, i) => {
-          const hintId = `${bareId}_demand_hint_${i}`;
+          const hintId = joinDefinitionRef(parentRef, DEMAND_HINT, i);
           storeEntry(hintId, {
             id: hintId,
             tag: 'Markdown',
@@ -439,8 +460,8 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       case 'explanation': {
         // Explanation block - shown after correct answer
         // Wrap content in Markdown for proper rendering
-        const explId = `${bareId}_explanation_${contentIndex++}`;
-        const explContentId = `${explId}_content`;
+        const explId = joinDefinitionRef(parentRef, EXPLANATION, contentIndex++);
+        const explContentId = joinDefinitionRef(explId, CONTENT);
         storeEntry(explContentId, {
           id: explContentId,
           tag: 'Markdown',
@@ -460,7 +481,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       case 'separator': {
         // Question separator - could start a new sub-problem
         // For now, just add a visual separator
-        const sepId = `${bareId}_sep_${contentIndex++}`;
+        const sepId = joinDefinitionRef(parentRef, SEP, contentIndex++);
         storeEntry(sepId, {
           id: sepId,
           tag: 'Markdown',
@@ -478,7 +499,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
 
   // Add DemandHints if any
   if (demandHints.length > 0) {
-    const demandHintsId = `${bareId}_demand_hints`;
+    const demandHintsId = joinDefinitionRef(parentRef, DEMAND_HINTS);
     storeEntry(demandHintsId, {
       id: demandHintsId,
       tag: 'DemandHints',

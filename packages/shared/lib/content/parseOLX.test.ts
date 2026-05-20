@@ -120,8 +120,8 @@ test('CRITICAL: Parser must preserve numeric text as strings (prevents "text.tri
 });
 
 test('auto-generated IDs are namespace-qualified with underscore-prefixed hash', async () => {
-  // Blocks without explicit id= get SHA1-based IDs prefixed with "_"
-  // to avoid leading-digit violations, then namespace-qualified.
+  // Blocks without explicit id= get SHA1-based IDs via makeSystemDefinitionRef:
+  // "_" prefix reserves them from author use, then namespace-qualified.
   const xml = '<Vertical id="root"><TextBlock>Some content</TextBlock></Vertical>';
   const { idMap } = await parseOLX(xml, PROV);
   const ids = Object.keys(idMap);

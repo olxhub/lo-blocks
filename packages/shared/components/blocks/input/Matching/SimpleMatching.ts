@@ -18,9 +18,17 @@ import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
-import { splitNs } from '@/lib/types/id-grammar';
+import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
 import * as matchingParser from './_matchingParser';
 import _Noop from '@/components/blocks/layout/_Noop';
+
+// Typed child-role suffixes for joinDefinitionRef.
+const PROBLEM = parseLeafId('problem');
+const GRADER  = parseLeafId('grader');
+const INPUT   = parseLeafId('input');
+const TITLE   = parseLeafId('title');
+const LEFT    = parseLeafId('left');
+const RIGHT   = parseLeafId('right');
 
 /**
  * Generate all required components for a matching problem
@@ -28,23 +36,19 @@ import _Noop from '@/components/blocks/layout/_Noop';
  */
 function generateMatchingComponents({ parsed, storeEntry, id, tag, attributes }: any) {
   const { title, pairs } = parsed as any;
-  // Extract bare id for building child IDs. storeEntry auto-qualifies.
-  const bareId = splitNs(id).path;
+  const parentRef = asDefinitionRef(splitNs(id).path);
 
   // Generate IDs for all components
-  const problemId = `${bareId}_problem`;
-  const graderId = `${bareId}_grader`;
-  const inputId = `${bareId}_input`;
-  const titleId = `${bareId}_title`;
+  const problemId = joinDefinitionRef(parentRef, PROBLEM);
+  const graderId = joinDefinitionRef(parentRef, GRADER);
+  const inputId = joinDefinitionRef(parentRef, INPUT);
+  const titleId = joinDefinitionRef(parentRef, TITLE);
 
   // Generate IDs for each pair's left and right items
-  const itemIds: any[] = [];
-  (pairs as any[]).forEach((pair: any, i: number) => {
-    itemIds.push({
-      left: `${bareId}_left_${i}`,
-      right: `${bareId}_right_${i}`
-    });
-  });
+  const itemIds = (pairs as any[]).map((_: any, i: number) => ({
+    left: joinDefinitionRef(parentRef, LEFT, i),
+    right: joinDefinitionRef(parentRef, RIGHT, i),
+  }));
 
   // Store title/prompt block if present
   let titleBlockRef: any = null;

@@ -17,7 +17,10 @@ import {
   isNamespaceQualified, isSourceQualifiedRef, defaultNamespace,
   PLACEHOLDER_NS, scopedStateKeyForBlock, stateKeyForGlobalRef,
   definitionKeyForRef, leafDefinitionKeyFromStateKey, allDefinitionKeysFromStateKey,
-  asIdPrefix, asStateRef, asStateKey, asDefinitionRef,
+  asIdPrefix, asStateRef, asStateKey, asDefinitionRef, asLeafId,
+  parseLeafId, joinDefinitionRef,
+  parseAnyDefinitionRef, parseAnyStateRef,
+  validateAnyDefinitionRef, validateAnyStateRef,
 } from './id-grammar';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -167,10 +170,12 @@ describe("definitionRef", () => {
     "hw1",                                                 // bare
     "żółw",                                                // unicode
     "ee101/hw1",                                           // namespace-qualified (also a valid DefinitionKey)
+    "CONTENT/_spinner_quiz",                               // _-prefix OK when namespace-qualified (system sentinel)
   ];
 
   const invalid = [
     "problems:#0:answer",         // that's state (StateRef), not content
+    "_hash123",                   // leading _ reserved for system use (bare refs only)
     "",                           // empty
     "git@gitlab.com:olxhub/ee101.git://hw1",              // source-qualified — not a DefinitionRef (needs LOFS resolution)
   ];
@@ -199,6 +204,100 @@ describe("stateRef", () => {
     "outer:#0:inner:#1:bank:#attempt_2:answer",                  // deeply nested
     "answer",                                                    // unscoped (top-level)
     "ee101/problems:#0:answer",                                  // namespaced (also a valid Key)
+    "CONTENT/_spinner_quiz",                                     // _-prefix OK when namespace-qualified
+  ];
+
+  const invalid = [
+    "problems:#0",                // ends with scope marker, not a block
+    "#0",                         // just a scope marker
+    "#0:#1",                      // only scope markers, no block
+    "_answer",                    // leading _ reserved for system use (bare refs only)
+    "",                           // empty
+    "git@gitlab.com:olxhub/ee101.git://problems:#0:answer",     // source-qualified — not a StateRef (needs LOFS resolution)
+  ];
+
+  for (const v of valid)   it(`✓ ${v}`, () => expect(re.test(v)).toBe(true));
+  for (const v of invalid) it(`✗ ${v}`, () => expect(re.test(v)).toBe(false));
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// anyDefinitionRef — Permissive DefinitionRef (accepts system _-prefixed bare refs)
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// Same as definitionRef but uses leafId for bare refs instead of publicLeafId.
+// Used at runtime boundaries where system-generated _-prefixed targets are valid.
+
+describe("anyDefinitionRef", () => {
+  const re = VALID.anyDefinitionRef;
+
+  const valid = [
+    "answer",                                              // bare (same-course)
+    "hw1",                                                 // bare
+    "żółw",                                                // unicode
+    "ee101/hw1",                                           // namespace-qualified
+    "CONTENT/_spinner_quiz",                               // _-prefix OK when namespace-qualified
+    "_hash123",                                            // _-prefix bare ref (system-generated) — accepted
+    "_abc_grader_0",                                       // joinDefinitionRef output
+  ];
+
+  const invalid = [
+    "problems:#0:answer",         // that's state (StateRef), not content
+    "",                           // empty
+    "git@gitlab.com:olxhub/ee101.git://hw1",              // source-qualified
+    "0abc",                       // leading digit
+    "foo-bar",                    // hyphen
+  ];
+
+  for (const v of valid)   it(`✓ ${v}`, () => expect(re.test(v)).toBe(true));
+  for (const v of invalid) it(`✗ ${v}`, () => expect(re.test(v)).toBe(false));
+});
+
+describe("parseAnyDefinitionRef", () => {
+  it("accepts user-authored bare refs", () => {
+    expect(String(parseAnyDefinitionRef("answer"))).toBe("answer");
+  });
+
+  it("accepts system-generated _-prefixed bare refs", () => {
+    expect(String(parseAnyDefinitionRef("_hash123"))).toBe("_hash123");
+    expect(String(parseAnyDefinitionRef("_abc_grader_0"))).toBe("_abc_grader_0");
+  });
+
+  it("accepts namespace-qualified refs", () => {
+    expect(String(parseAnyDefinitionRef("ee101/hw1"))).toBe("ee101/hw1");
+    expect(String(parseAnyDefinitionRef("CONTENT/_spinner"))).toBe("CONTENT/_spinner");
+  });
+
+  it("rejects invalid refs", () => {
+    expect(() => parseAnyDefinitionRef("")).toThrow();
+    expect(() => parseAnyDefinitionRef("0abc")).toThrow();
+    expect(() => parseAnyDefinitionRef("foo-bar")).toThrow();
+  });
+
+  it("includes context in error message", () => {
+    expect(() => parseAnyDefinitionRef("0abc", "target attribute")).toThrow("target attribute");
+  });
+
+  it("still validates structural correctness", () => {
+    expect(validateAnyDefinitionRef("_valid_ref")).toBe(true);
+    expect(validateAnyDefinitionRef("foo-bar")).not.toBe(true);
+    expect(validateAnyDefinitionRef("")).not.toBe(true);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// anyStateRef — Permissive StateRef (accepts system _-prefixed bare refs)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe("anyStateRef", () => {
+  const re = VALID.anyStateRef;
+
+  const valid = [
+    "problems:#0:answer",                                        // unqualified, scoped
+    "answer",                                                    // unscoped (top-level)
+    "ee101/problems:#0:answer",                                  // namespaced
+    "CONTENT/_spinner_quiz",                                     // _-prefix OK when namespace-qualified
+    "_answer",                                                   // _-prefix bare ref (system-generated) — accepted
+    "_abc_input_0",                                              // joinDefinitionRef output
   ];
 
   const invalid = [
@@ -206,11 +305,42 @@ describe("stateRef", () => {
     "#0",                         // just a scope marker
     "#0:#1",                      // only scope markers, no block
     "",                           // empty
-    "git@gitlab.com:olxhub/ee101.git://problems:#0:answer",     // source-qualified — not a StateRef (needs LOFS resolution)
+    "0abc",                       // leading digit
   ];
 
   for (const v of valid)   it(`✓ ${v}`, () => expect(re.test(v)).toBe(true));
   for (const v of invalid) it(`✗ ${v}`, () => expect(re.test(v)).toBe(false));
+});
+
+describe("parseAnyStateRef", () => {
+  it("accepts user-authored bare refs", () => {
+    expect(String(parseAnyStateRef("answer"))).toBe("answer");
+  });
+
+  it("accepts system-generated _-prefixed bare refs", () => {
+    expect(String(parseAnyStateRef("_hash123"))).toBe("_hash123");
+    expect(String(parseAnyStateRef("_abc_input_0"))).toBe("_abc_input_0");
+  });
+
+  it("accepts scoped refs", () => {
+    expect(String(parseAnyStateRef("problems:#0:answer"))).toBe("problems:#0:answer");
+  });
+
+  it("accepts namespace-qualified refs", () => {
+    expect(String(parseAnyStateRef("ee101/problems:#0:answer"))).toBe("ee101/problems:#0:answer");
+  });
+
+  it("rejects invalid refs", () => {
+    expect(() => parseAnyStateRef("")).toThrow();
+    expect(() => parseAnyStateRef("#0")).toThrow();
+    expect(() => parseAnyStateRef("0abc")).toThrow();
+  });
+
+  it("still validates structural correctness", () => {
+    expect(validateAnyStateRef("_valid_ref")).toBe(true);
+    expect(validateAnyStateRef("#0")).not.toBe(true);
+    expect(validateAnyStateRef("")).not.toBe(true);
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -228,6 +358,7 @@ describe("definitionKey", () => {
     "ee101/hw1",                                   // simple
     "physics/answer",                              // simple
     "edu.mit.eecs6002/resistorProblem",            // hierarchical namespace
+    "CONTENT/_spinner_quiz",                       // _-prefix OK in Keys (system sentinels)
   ];
 
   const invalid = [
@@ -536,5 +667,43 @@ describe("allDefinitionKeysFromStateKey", () => {
   it("deeply nested", () => {
     expect(allDefinitionKeysFromStateKey(asStateKey("physics/a:#0:b:#1:c")).map(String))
       .toEqual(["physics/a", "physics/b", "physics/c"]);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// joinDefinitionRef — Typed child ID construction
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// Component parsers derive child IDs from a parent DefinitionRef. The join
+// function uses "_" as separator and returns a branded DefinitionRef.
+
+describe("joinDefinitionRef", () => {
+  const GRADER = parseLeafId('grader');
+  const INPUT = parseLeafId('input');
+  const PROBLEM = parseLeafId('problem');
+
+  it("joins parent + suffix + index", () => {
+    expect(String(joinDefinitionRef(asDefinitionRef('quiz'), GRADER, 0))).toBe('quiz_grader_0');
+  });
+
+  it("strips namespace from parent", () => {
+    expect(String(joinDefinitionRef(asDefinitionRef('CONTENT/quiz'), GRADER, 0))).toBe('quiz_grader_0');
+  });
+
+  it("works with system-prefixed parents", () => {
+    expect(String(joinDefinitionRef(asDefinitionRef('_abc123'), INPUT, 1))).toBe('_abc123_input_1');
+  });
+
+  it("suffix only, no index", () => {
+    expect(String(joinDefinitionRef(asDefinitionRef('quiz'), PROBLEM))).toBe('quiz_problem');
+  });
+
+  it("multiple indices", () => {
+    expect(String(joinDefinitionRef(asDefinitionRef('quiz'), parseLeafId('choice'), 2, 3))).toBe('quiz_choice_2_3');
+  });
+
+  it("nested derivation (child of child)", () => {
+    const choiceId = joinDefinitionRef(asDefinitionRef('quiz'), parseLeafId('choice'), 0);
+    expect(String(joinDefinitionRef(choiceId, parseLeafId('md')))).toBe('quiz_choice_0_md');
   });
 });

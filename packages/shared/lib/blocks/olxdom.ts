@@ -4,7 +4,7 @@
 // dynamic content DAG.
 
 import * as state from '@/lib/state';
-import { parseDefinitionRef, definitionKeyForRef, scopedStateKeyForBlock } from '../types/id-grammar';
+import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey, definitionKeyForRef, scopedStateKeyForBlock } from '../types/id-grammar';
 import type { OlxDomNode, OlxDomSelector, DefinitionKey, DefinitionRef, StateKey, RuntimeProps } from '@/lib/types';
 //
 // The OLX DOM is Learning Observer's internal representation of educational content,
@@ -119,15 +119,21 @@ export function getKidsDFS(nodeInfo: OlxDomNode, { selector = (_: OlxDomNode) =>
 function normalizeTargetIds(targets): DefinitionRef[] | false {
   if (!targets) return false; // Target was not specified
   if (targets === true) throw new Error('Boolean true is not a valid target');
-  // User input from OLX - validate and brand as references
+  // Target attrs are validated as StateRef by Zod. Parse as StateRef (accepts
+  // both authored and system-generated refs, with or without scope markers),
+  // then extract the leaf block as a DefinitionRef for OLX DOM node matching.
+  const toDefinitionRef = (s: string): DefinitionRef => {
+    const stateKey = stateKeyForGlobalRef(parseAnyStateRef(s));
+    return leafDefinitionKeyFromStateKey(stateKey);
+  };
   if (Array.isArray(targets)) {
-    return targets.map(t => parseDefinitionRef(String(t), 'target attribute'));
+    return targets.map(t => toDefinitionRef(String(t)));
   }
   if (typeof targets === "string") {
     return targets.split(',')
       .map(s => s.trim())
       .filter(Boolean)
-      .map(s => parseDefinitionRef(s, 'target attribute'));
+      .map(toDefinitionRef);
   }
   throw new Error('Unsupported target type');
 }

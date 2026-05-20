@@ -13,7 +13,7 @@
 // The one helper we need: literal strings in regex context.
 
 export function literal(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&');
+  return s.replace(/[.*+?^${}()|[\]\\\-]/g, '\\$&');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -26,7 +26,14 @@ export function literal(s: string): string {
 
 // --- Atoms ----------------------------------------------------------------
 
-export const leafId = String.raw`[\p{L}_][\p{L}\p{N}_]*`;       // "answer", "żółw", "_hash123"
+// publicLeafId — what authors write in OLX. No leading underscore.
+// leafId       — full form used in Keys and internal sentinels. Allows leading "_".
+//
+// This reserves "_"-prefixed IDs for system use (e.g. _spinner_, _error_
+// placeholders). Authors can't collide because bare "_foo" is rejected at
+// parse time, but "CONTENT/_foo" is a valid DefinitionKey.
+export const publicLeafId = String.raw`[\p{L}][\p{L}\p{N}_]*`;  // "answer", "żółw"
+export const leafId = String.raw`[\p{L}_][\p{L}\p{N}_]*`;       // "answer", "żółw", "_spinner_quiz"
 export const indexId = String.raw`[\p{L}\p{N}_]+`;               // Same + leading digits: "0", "3fgb", "attempt_2"
 const scopeMarkerPat = `#${indexId}`;                             // "#0", "#attempt_2", "#a3F"
 export const scopeSegment = `(?:${leafId}|${scopeMarkerPat})`;        // "answer" | "#0"
@@ -70,8 +77,19 @@ const sourceDelim = literal(SOURCE_DELIM);
 // namespace first. isSourceQualifiedRef() detects them; qualifyRef() throws
 // if one is passed in. See the "Source-qualified refs" section below.
 
-export const definitionRef = `(?:${namespace}${nsDelim})?${leafId}`;
-export const stateRef = `(?:${namespace}${nsDelim})?(?:${scopeSegment}:)*${leafId}`;
+// Bare refs use publicLeafId (no leading _); qualified refs use full leafId.
+export const definitionRef = `(?:${namespace}${nsDelim}${leafId}|${publicLeafId})`;
+export const stateRef = `(?:${namespace}${nsDelim}(?:${scopeSegment}:)*${leafId}|(?:${scopeSegment}:)*${publicLeafId})`;
+
+// --- "Any" Refs (permissive — accept system-generated _-prefixed bare refs) ----
+//
+// At OLX parse boundaries, bare _-prefixed refs are rejected (parseDefinitionRef,
+// parseStateRef) because authors cannot create them. But at runtime, attributes
+// like target= may contain system-generated _-prefixed bare refs (from
+// joinDefinitionRef with auto-generated parents). These patterns accept both
+// authored and system refs while still validating structure.
+export const anyDefinitionRef = `(?:${namespace}${nsDelim}${leafId}|${leafId})`;
+export const anyStateRef = `(?:${namespace}${nsDelim}(?:${scopeSegment}:)*${leafId}|(?:${scopeSegment}:)*${leafId})`;
 
 // --- Keys (canonical forms — always namespace/path) -----------------------
 //
@@ -153,6 +171,8 @@ export const VALID = {
   stateRef: compile(stateRef),
   stateKey: compile(stateKey),
   stateFieldRef: compile(stateFieldRef),
+  anyDefinitionRef: compile(anyDefinitionRef),
+  anyStateRef: compile(anyStateRef),
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -255,6 +275,7 @@ export type ScopeMarker = Branded<string, 'ScopeMarker'>; // "#0", "#attempt_2" 
 export type ReactKey = Branded<string, 'ReactKey'>;    // React reconciliation key
 export type HtmlId = Branded<string, 'HtmlId'>;      // DOM element id attribute
 export type OLXTag = Branded<string, 'OLXTag'>;      // "Vertical", "ChoiceInput"
+export type LeafId = Branded<string, 'LeafId'>;      // "answer", "grader" — single identifier segment
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // UNCHECKED CASTS (asX)
@@ -272,6 +293,7 @@ export const asIdPrefix = (s: string) => s as IdPrefix;
 export const asScopeMarker = (s: string) => s as ScopeMarker;
 export const asReactKey = (s: string) => s as ReactKey;
 export const asOLXTag = (s: string) => s as OLXTag;
+export const asLeafId = (s: string) => s as LeafId;
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // VALIDATORS (validateX)
@@ -279,6 +301,12 @@ export const asOLXTag = (s: string) => s as OLXTag;
 //
 // Pure shape checks. Return true on success, error message string on failure.
 // No branding — these are the shared logic consumed by both parseX and z_x.
+
+export function validateLeafId(s: string): true | string {
+  if (!s) return 'LeafId cannot be empty';
+  if (!VALID.leafId.test(s)) return `Not a valid LeafId: "${s}" (must match ${leafId})`;
+  return true;
+}
 
 export function validateContentNamespace(s: string): true | string {
   if (!s) return 'ContentNamespace cannot be empty';
@@ -292,7 +320,8 @@ export function validateDefinitionRef(s: string): true | string {
     const hint = s.includes(SOURCE_DELIM)
       ? '. Source-qualified refs (containing "://") need LOFS resolution first'
       : '';
-    return `Not a valid DefinitionRef: "${s}" (expected leafId or namespace/leafId${hint})`;
+    const underscore = /^_/.test(s) ? '. Bare IDs starting with _ are reserved for system use' : '';
+    return `Not a valid DefinitionRef: "${s}" (expected leafId or namespace/leafId${hint}${underscore})`;
   }
   return true;
 }
@@ -322,6 +351,36 @@ export function validateStateKey(s: string): true | string {
   if (!s) return 'StateKey cannot be empty';
   if (!VALID.stateKey.test(s)) {
     return `Not a valid StateKey: "${s}" (must be namespace/path)`;
+  }
+  return true;
+}
+
+/** Permissive DefinitionRef validator — accepts both authored refs and system-generated _-prefixed bare refs.
+ *  Use at runtime boundaries (attribute resolution, target lookup) where system-generated
+ *  refs are legitimate. Use validateDefinitionRef at authoring boundaries (OLX parsing). */
+export function validateAnyDefinitionRef(s: string): true | string {
+  if (!s) return 'DefinitionRef cannot be empty';
+  if (!VALID.anyDefinitionRef.test(s)) {
+    const hint = s.includes(SOURCE_DELIM)
+      ? '. Source-qualified refs (containing "://") need LOFS resolution first'
+      : '';
+    return `Not a valid DefinitionRef: "${s}" (expected leafId or namespace/leafId${hint})`;
+  }
+  return true;
+}
+
+/** Permissive StateRef validator — accepts both authored refs and system-generated _-prefixed bare refs.
+ *  Use at runtime boundaries (attribute resolution, target lookup) where system-generated
+ *  refs are legitimate. Use validateStateRef at authoring boundaries (OLX parsing). */
+export function validateAnyStateRef(s: string): true | string {
+  if (!s) return 'StateRef cannot be empty';
+  if (!VALID.anyStateRef.test(s)) {
+    return `Not a valid StateRef: "${s}" (segments must be block IDs or #index markers, separated by :)`;
+  }
+  // Must have at least one non-ScopeMarker segment
+  const segs = s.split(':');
+  if (segs.every(seg => seg.startsWith('#'))) {
+    return `StateRef "${s}" has only scope markers — must include at least one block ID`;
   }
   return true;
 }
@@ -369,9 +428,54 @@ export function parseStateKey(s: string): StateKey {
   return asStateKey(s);
 }
 
+/** Create a system-reserved DefinitionRef by prefixing "_" to a validated base.
+ *  Authors cannot collide: bare "_foo" refs are rejected by parseDefinitionRef.
+ *  Base is validated (must be safe characters — letters, digits, underscores)
+ *  so garbage can't sneak through even on the system path. */
+export function makeSystemDefinitionRef(base: string): DefinitionRef {
+  if (!VALID.indexId.test(base)) {
+    throw new Error(`makeSystemDefinitionRef: invalid base "${base}" (must match indexId)`);
+  }
+  return asDefinitionRef('_' + base);
+}
+
+export function parseLeafId(s: string): LeafId {
+  assertValid(validateLeafId(s));
+  return asLeafId(s);
+}
+
 export function parseOLXTag(s: string): OLXTag {
   assertValid(validateOLXTag(s));
   return asOLXTag(s);
+}
+
+/** Permissive DefinitionRef parser — accepts both authored and system-generated _-prefixed bare refs.
+ *  Use at runtime boundaries where target attributes may contain system-generated refs.
+ *  Use parseDefinitionRef at authoring boundaries (OLX parsing) to reject bare _-prefixed refs. */
+export function parseAnyDefinitionRef(s: string, context?: string): DefinitionRef {
+  const result = validateAnyDefinitionRef(s);
+  if (result !== true) throw new Error(context ? `${context}: ${result}` : result);
+  return asDefinitionRef(s);
+}
+
+/** Permissive StateRef parser — accepts both authored and system-generated _-prefixed bare refs.
+ *  Use at runtime boundaries where target attributes may contain system-generated refs.
+ *  Use parseStateRef at authoring boundaries (OLX parsing) to reject bare _-prefixed refs. */
+export function parseAnyStateRef(s: string): StateRef {
+  assertValid(validateAnyStateRef(s));
+  return asStateRef(s);
+}
+
+/** Join a parent ref with child segments to form a derived DefinitionRef.
+ *  Uses "_" as separator. The result inherits the parent's system prefix
+ *  if present — authors cannot collide because bare "_foo" refs are rejected.
+ *  Strips namespace from qualified parents so the result is always a bare ref. */
+export function joinDefinitionRef(
+  parent: DefinitionRef,
+  ...parts: (LeafId | number)[]
+): DefinitionRef {
+  const path = isNamespaceQualified(parent) ? splitNs(parent).path : String(parent);
+  return asDefinitionRef([path, ...parts.map(String)].join('_'));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -465,6 +569,13 @@ export const z_definitionRef = brandedString(validateDefinitionRef, asDefinition
 export const z_definitionKey = brandedString(validateDefinitionKey, asDefinitionKey);
 export const z_stateRef = brandedString(validateStateRef, asStateRef);
 export const z_stateKey = brandedString(validateStateKey, asStateKey);
+
+/** Permissive Zod schemas for runtime attribute validation.
+ *  Accept both authored and system-generated _-prefixed bare refs.
+ *  Use at render-time attribute boundaries; strict z_stateRef/z_definitionRef
+ *  remain for authoring boundaries. */
+export const z_anyDefinitionRef = brandedString(validateAnyDefinitionRef, asDefinitionRef);
+export const z_anyStateRef = brandedString(validateAnyStateRef, asStateRef);
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // DECOMPOSITION

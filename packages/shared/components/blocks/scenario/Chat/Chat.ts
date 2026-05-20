@@ -17,7 +17,7 @@ import {
 import type { ConversationEntry, WaitCommand, ParsedConversation } from './_chatTypes';
 import type { PeggyKids } from '@/lib/types';
 import { canAdvanceToContent, evaluateWaitEntry } from './waitConditions';
-import { scopedStateKeyForBlock, splitNs } from '@/lib/types/id-grammar';
+import { scopedStateKeyForBlock, splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
 import type { DefinitionKey, DefinitionRef, RuntimeProps } from '@/lib/types';
 import * as cp  from './_chatParser';
 import { _Chat } from './_Chat';
@@ -226,7 +226,7 @@ function parseEmbedOptions(body: ConversationEntry[]): string[] {
 async function processEmbedBlocks(
   body: ConversationEntry[],
   parseNode: (node: any, siblings: any[] | null, index: number) => Promise<any>,
-  storeEntry: (id: DefinitionKey, entry: any) => void,
+  storeEntry: (id: DefinitionRef, entry: any) => void,
 ): Promise<string[]> {
   const warnings: string[] = [];
 
@@ -281,15 +281,17 @@ async function processEmbedBlocks(
  * This is safe because `parsed` is freshly produced by the PEG parser and
  * not yet stored or shared.
  */
+// Typed child-role suffix for joinDefinitionRef.
+const POPOUT = parseLeafId('popout');
+
 async function postprocess({ parsed, parseNode, storeEntry, id }: {
   parsed: any;
   parseNode?: (node: any, siblings: any[] | null, index: number) => Promise<any>;
-  storeEntry: (id: string, entry: any) => void;
+  storeEntry: (id: DefinitionRef, entry: any) => void;
   id: DefinitionKey;
   [key: string]: any;
 }) {
-  // Extract bare id for building child IDs. storeEntry auto-qualifies.
-  const bareId = splitNs(id).path;
+  const parentRef = asDefinitionRef(splitNs(id).path);
   if (parsed.header && typeof parsed.header === 'string') {
     try {
       parsed.header = yaml.load(parsed.header, { schema: yaml.JSON_SCHEMA }) || {};
@@ -341,7 +343,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
           continue;
         }
         const label = entry.metadata.label ?? entry.parsedOptions?.label ?? 'View expanded content';
-        const wrapperId = `${bareId}_popout_${popoutIndex++}`;
+        const wrapperId = joinDefinitionRef(parentRef, POPOUT, popoutIndex++);
         storeEntry(wrapperId, {
           id: wrapperId,
           tag: 'CompactPopout',
@@ -359,7 +361,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
       }
 
       const label = entry.metadata.label ?? entry.parsedOptions?.label ?? 'View expanded content';
-      const wrapperId = `${bareId}_popout_${popoutIndex++}` as DefinitionKey;
+      const wrapperId = joinDefinitionRef(parentRef, POPOUT, popoutIndex++);
       storeEntry(wrapperId, {
         id: wrapperId,
         tag: 'CompactPopout',

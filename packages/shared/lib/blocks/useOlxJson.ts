@@ -19,7 +19,7 @@ import {
   dispatchOlxJson,
   dispatchOlxJsonError
 } from '@/lib/state/olxjson';
-import { definitionKeyForRef, allDefinitionKeysFromStateKey, stateKeyForGlobalRef, parseStateRef } from '@/lib/types/id-grammar';
+import { definitionKeyForRef, allDefinitionKeysFromStateKey, stateKeyForGlobalRef, parseStateRef, splitNs, joinNs, asDefinitionKey } from '@/lib/types/id-grammar';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, DefinitionKey, DefinitionRef, StateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
@@ -282,10 +282,17 @@ export function useOlxJson(
 }
 
 // TODO: Build these from actual OLX parsing rather than hardcoding the data structure.
+
+/** Build a namespace-qualified sentinel DefinitionKey: ns/_prefix_bareId */
+function sentinelKey(id: string, prefix: string): DefinitionKey {
+  const { ns, path } = splitNs(id);
+  return asDefinitionKey(joinNs(ns, `${prefix}${path}`));
+}
+
 /** Construct an OlxJson for a Spinner placeholder. */
 function spinnerOlxJson(id: string): OlxJson {
   return {
-    id: `_spinner_${id}` as DefinitionKey,
+    id: sentinelKey(id, '_spinner_'),
     tag: 'Spinner' as any,
     attributes: {},
     provenance: [],
@@ -295,7 +302,7 @@ function spinnerOlxJson(id: string): OlxJson {
 /** Construct an OlxJson for an ErrorNode placeholder. */
 function errorOlxJson(id: string, message: string): OlxJson {
   return {
-    id: `_error_${id}` as DefinitionKey,
+    id: sentinelKey(id, '_error_'),
     tag: 'ErrorNode' as any,
     attributes: { message },
     kids: [],

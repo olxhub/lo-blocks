@@ -146,7 +146,7 @@ export type {
   DefinitionRef, DefinitionKey,
   StateRef, StateKey,
   IdPrefix, ScopeMarker,
-  ReactKey, HtmlId, OLXTag,
+  ReactKey, HtmlId, OLXTag, LeafId,
 } from './id-grammar';
 
 // Local imports for use within this file.

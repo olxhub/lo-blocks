@@ -105,9 +105,11 @@ describe('inferRelatedNodes', () => {
     expect(normalizeTargetIds(undefined)).toEqual(false);
     expect(normalizeTargetIds(null)).toEqual(false);
     expect(() => normalizeTargetIds(true)).toThrow();
-    expect(normalizeTargetIds("foo, bar, baz")).toEqual(["foo", "bar", "baz"]);
-    expect(normalizeTargetIds("foo")).toEqual(["foo"]);
-    expect(normalizeTargetIds(["foo", "bar"])).toEqual(["foo", "bar"]);
+    // normalizeTargetIds parses targets as StateRef then extracts the leaf
+    // DefinitionKey — results are namespace-qualified with PLACEHOLDER_NS.
+    expect(normalizeTargetIds("foo, bar, baz")).toEqual(["CONTENT/foo", "CONTENT/bar", "CONTENT/baz"]);
+    expect(normalizeTargetIds("foo")).toEqual(["CONTENT/foo"]);
+    expect(normalizeTargetIds(["foo", "bar"])).toEqual(["CONTENT/foo", "CONTENT/bar"]);
     expect(() => normalizeTargetIds(123)).toThrow();
     expect(() => normalizeTargetIds({})).toThrow();
   });

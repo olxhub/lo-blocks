@@ -12,7 +12,7 @@
 // This allows a block to be input+grader+src without combinatorial explosion.
 //
 import { z } from 'zod';
-import { VALID, validateStateRef, parseStateRef, z_stateRef as z_stateRef_canonical } from '../types/id-grammar';
+import { VALID, validateAnyStateRef, parseAnyStateRef, z_anyStateRef as z_anyStateRef_canonical } from '../types/id-grammar';
 import type { StateRef } from '../types/id-grammar';
 import { z_locale } from '../types/i18n';
 import { parse as parseExpr } from '@/lib/stateLanguage';
@@ -116,28 +116,28 @@ function tagRefSchema<T extends z.ZodType>(schema: T, extractor: RefExtractor): 
   return schema;
 }
 
-function hasStateRefShape(input: string): boolean {
-  return validateStateRef(input) === true;
-}
+/** Single StateRef — target ref, may include scope markers (e.g. "myList:#0:answer").
+ *  Uses permissive validation: accepts both authored refs and system-generated
+ *  _-prefixed bare refs (from joinDefinitionRef with auto-generated parents). */
+export const z_stateRef = tagRefSchema(z_anyStateRef_canonical, v => [v]);
 
-/** Single StateRef — authored target ref, may include scope markers (e.g. "myList:#0:answer"). */
-export const z_stateRef = tagRefSchema(z_stateRef_canonical, v => [v]);
-
-/** Comma-separated StateRefs → StateRef[]. Idempotent (accepts already-split arrays). */
+/** Comma-separated StateRefs → StateRef[]. Idempotent (accepts already-split arrays).
+ *  Uses validateAnyStateRef/parseAnyStateRef to accept both authored and system-generated
+ *  _-prefixed bare refs (from joinDefinitionRef with auto-generated parents). */
 export const z_stateRefList = tagRefSchema(
   z.union([
     z.string().transform(val => val.split(',').map(s => s.trim()).filter(Boolean))
       .refine(
-        parts => parts.every(hasStateRefShape),
-        parts => ({ message: `target contains invalid ref(s): ${parts.filter(p => !hasStateRefShape(p)).join(', ')}` })
+        parts => parts.every(p => validateAnyStateRef(p) === true),
+        parts => ({ message: `target contains invalid ref(s): ${parts.filter(p => validateAnyStateRef(p) !== true).join(', ')}` })
       )
-      .transform(parts => parts.map(part => parseStateRef(part))),
+      .transform(parts => parts.map(part => parseAnyStateRef(part))),
     z.array(z.string())
       .refine(
-        parts => parts.every(hasStateRefShape),
-        parts => ({ message: `target contains invalid ref(s): ${parts.filter(p => !hasStateRefShape(p)).join(', ')}` })
+        parts => parts.every(p => validateAnyStateRef(p) === true),
+        parts => ({ message: `target contains invalid ref(s): ${parts.filter(p => validateAnyStateRef(p) !== true).join(', ')}` })
       )
-      .transform(parts => parts.map(part => parseStateRef(part))),
+      .transform(parts => parts.map(part => parseAnyStateRef(part))),
   ]),
   v => typeof v === 'string' ? v.split(',').map(s => s.trim()).filter(Boolean) : Array.isArray(v) ? v : [],
 );
@@ -161,12 +161,12 @@ function splitFieldRef(val: string): BlockFieldRef {
     const fieldPart = val.substring(dot + 1);
     if (VALID.leafId.test(fieldPart)) {
       const base = val.substring(0, dot);
-      if (VALID.stateRef.test(base)) {
-        return { ref: parseStateRef(base), field: fieldPart };
+      if (VALID.anyStateRef.test(base)) {
+        return { ref: parseAnyStateRef(base), field: fieldPart };
       }
     }
   }
-  return { ref: parseStateRef(val), field: 'value' };
+  return { ref: parseAnyStateRef(val), field: 'value' };
 }
 
 /** Single block.field reference. Transforms to { ref: StateRef, field: string }. */

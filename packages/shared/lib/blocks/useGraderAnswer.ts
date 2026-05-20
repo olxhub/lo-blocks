@@ -21,7 +21,7 @@ import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
 import { getGrader, getDomNodeByStateKey, getAllNodes, inferRelatedNodes } from './olxdom';
 import { useOlxJson } from './useOlxJson';
-import { parseDefinitionRef } from '../types/id-grammar';
+import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey } from '../types/id-grammar';
 import { definitionKeyForRef, scopedStateKeyForBlock } from '../types/id-grammar';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { isInput } from './actions';
@@ -49,7 +49,12 @@ function findTargetingGrader(props: RuntimeProps): DefinitionKey | null {
     // target is a comma-separated list of OlxRefs (guaranteed by selector filter)
     const targetList = graderNodeInfo.olxJson.attributes.target;
     if (typeof targetList !== 'string') continue;  // Type guard for TypeScript
-    const targets = targetList.split(',').map(t => definitionKeyForRef(parseDefinitionRef(t.trim())));
+    // Target attrs are validated as StateRef by Zod. Parse as StateRef, then
+    // extract the leaf DefinitionKey for identity matching against this input.
+    const targets = targetList.split(',').map(t => {
+      const stateKey = stateKeyForGlobalRef(parseAnyStateRef(t.trim()));
+      return leafDefinitionKeyFromStateKey(stateKey);
+    });
     if (targets.includes(normalizedId)) {
       return graderNodeInfo.olxJson.id;
     }
