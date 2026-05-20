@@ -43,7 +43,7 @@ import { useSelector, shallowEqual } from 'react-redux';
 
 import * as lo_event from 'lo_event';
 
-import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseStateRef, isNamespaceQualified, definitionKeyForRef } from '../types/id-grammar';
+import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, isNamespaceQualified, definitionKeyForRef } from '../types/id-grammar';
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
@@ -697,7 +697,7 @@ export function useTextContent(
   { fallback = '' }: { fallback?: string } = {}
 ): { text: string; loading: boolean; error: string | null; ready: boolean } {
   const target = typeof props.target === 'string'
-    ? parseStateRef(props.target)
+    ? parseAnyStateRef(props.target)
     : undefined;
   const result = useValue(props, { target, fallback });
 

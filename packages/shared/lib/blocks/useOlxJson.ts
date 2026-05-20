@@ -19,7 +19,7 @@ import {
   dispatchOlxJson,
   dispatchOlxJsonError
 } from '@/lib/state/olxjson';
-import { definitionKeyForRef, allDefinitionKeysFromStateKey, stateKeyForGlobalRef, parseStateRef, splitNs, joinNs, asDefinitionKey } from '@/lib/types/id-grammar';
+import { definitionKeyForRef, allDefinitionKeysFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, isNamespaceQualified, qualifyRef, PLACEHOLDER_NS, splitNs, joinNs, asDefinitionKey } from '@/lib/types/id-grammar';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, DefinitionKey, DefinitionRef, StateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
@@ -157,9 +157,9 @@ function ensureReferencedBlocks(props: BaselineProps, idMap: IdMap, source: stri
 
       const refs = extractRefs(refValue);
       for (const ref of refs) {
-        // extractRefs returns Zod-validated values — no prefix stripping needed.
-        // If a "/" or "./" ref appears, parseStateRef will throw, surfacing bad data.
-        const qualifiedKey = stateKeyForGlobalRef(parseStateRef(ref));
+        // extractRefs returns Zod-validated values — may include system-generated
+        // _-prefixed bare refs since z_stateRef uses the permissive validator.
+        const qualifiedKey = stateKeyForGlobalRef(parseAnyStateRef(ref));
         for (const defKey of allDefinitionKeysFromStateKey(qualifiedKey)) {
           // Skip blocks already in this idMap — they were just dispatched
           // in the same LOAD_OLXJSON event. Calling ensureBlock here would
@@ -283,9 +283,11 @@ export function useOlxJson(
 
 // TODO: Build these from actual OLX parsing rather than hardcoding the data structure.
 
-/** Build a namespace-qualified sentinel DefinitionKey: ns/_prefix_bareId */
+/** Build a namespace-qualified sentinel DefinitionKey: ns/_prefix_bareId.
+ *  Handles both bare DefinitionRefs and namespace-qualified keys. */
 function sentinelKey(id: string, prefix: string): DefinitionKey {
-  const { ns, path } = splitNs(id);
+  const qualified = isNamespaceQualified(id) ? id : qualifyRef(id, PLACEHOLDER_NS);
+  const { ns, path } = splitNs(qualified);
   return asDefinitionKey(joinNs(ns, `${prefix}${path}`));
 }
 

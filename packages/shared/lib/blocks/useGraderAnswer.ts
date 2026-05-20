@@ -46,13 +46,19 @@ function findTargetingGrader(props: RuntimeProps): DefinitionKey | null {
   const normalizedId = definitionKeyForRef(id);
 
   for (const graderNodeInfo of graderNodes) {
-    // target is a comma-separated list of OlxRefs (guaranteed by selector filter)
-    const targetList = graderNodeInfo.olxJson.attributes.target;
-    if (typeof targetList !== 'string') continue;  // Type guard for TypeScript
-    // Target attrs are validated as StateRef by Zod. Parse as StateRef, then
-    // extract the leaf DefinitionKey for identity matching against this input.
-    const targets = targetList.split(',').map(t => {
-      const stateKey = stateKeyForGlobalRef(parseAnyStateRef(t.trim()));
+    const targetAttr = graderNodeInfo.olxJson.attributes.target;
+    if (!targetAttr) continue;
+
+    // target may be a StateRef[] (Zod-validated authored targets) or a raw
+    // comma-separated string (CapaProblem auto-wired targets set after Zod).
+    const targetStrings: string[] = Array.isArray(targetAttr)
+      ? targetAttr.map(String)
+      : typeof targetAttr === 'string'
+        ? targetAttr.split(',').map(s => s.trim()).filter(Boolean)
+        : [];
+
+    const targets = targetStrings.map(t => {
+      const stateKey = stateKeyForGlobalRef(parseAnyStateRef(t));
       return leafDefinitionKeyFromStateKey(stateKey);
     });
     if (targets.includes(normalizedId)) {
