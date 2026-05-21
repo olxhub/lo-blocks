@@ -5,8 +5,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
-import { isInputReadOnly, useGraderAnswer, refToOlxKey } from '@/lib/blocks';
-import { extendIdPrefix } from '@/lib/types/id';
+import { isInputReadOnly, useGraderAnswer } from '@/lib/blocks';
+import { definitionKeyForRef, extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
 import { HandleCommon } from '@/components/common/DragHandle';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
 import { buildArrangementWithPositions } from '@/lib/util/shuffle';
@@ -489,7 +489,7 @@ export default function _MatchingInput(props: RuntimeProps) {
                     <MatchingItemContent
                       props={props}
                       kid={pair.leftKid}
-                      itemIdPrefix={extendIdPrefix(props, ['left', pair.pairIndex]).idPrefix}
+                      itemIdPrefix={extendIdPrefix(props, ['left', scopeMarker(pair.pairIndex)]).idPrefix}
                     />
                   </div>
                 </div>
@@ -552,7 +552,7 @@ export default function _MatchingInput(props: RuntimeProps) {
                     <MatchingItemContent
                       props={props}
                       kid={pair.rightKid}
-                      itemIdPrefix={extendIdPrefix(props, ['right', pair.pairIndex]).idPrefix}
+                      itemIdPrefix={extendIdPrefix(props, ['right', scopeMarker(pair.pairIndex)]).idPrefix}
                     />
                   </div>
                 </div>

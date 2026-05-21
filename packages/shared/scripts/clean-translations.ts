@@ -16,7 +16,7 @@ import { FileStorageProvider } from '../lib/lofs/providers/file';
 import { variantMapEntries } from '../lib/types/i18n';
 import { toOlxRelativePath } from '../lib/types/storage';
 import path from 'path';
-import type { IdMap, OlxKey } from '../lib/types';
+import type { IdMap, DefinitionKey } from '../lib/types';
 
 const contentDir = path.resolve(process.env.OLX_CONTENT_DIR || './content');
 const dryRun = !process.argv.includes('--rm');
@@ -28,7 +28,7 @@ async function main() {
   // Collect provenance URIs of machine-translated files
   const filesToDelete = new Set<string>();
 
-  for (const [blockId, variantMap] of Object.entries(idMap) as [OlxKey, IdMap[OlxKey]][]) {
+  for (const [blockId, variantMap] of Object.entries(idMap) as [DefinitionKey, IdMap[DefinitionKey]][]) {
     for (const [variant, olxJson] of variantMapEntries(variantMap)) {
       if (olxJson.generated?.method !== 'machineTranslated') continue;
 

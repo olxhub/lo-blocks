@@ -17,7 +17,28 @@ We use the `@` sigil as shorthand for component state (Redux runtime values):
 >>> @quiz.answer.text
 { "type": "SigilRef", "sigil": "@", "id": "quiz", "fields": ["answer", "text"] }
 
-For full paths (cross-course references, etc.), use quoted syntax:
+Namespace-qualified refs use `ns/id` syntax (no quotes needed).
+Namespaces support dotted segments matching id-grammar.ts:
+
+>>> @CONTENT/quiz
+{ "type": "SigilRef", "sigil": "@", "id": "CONTENT/quiz", "fields": [] }
+
+>>> @ee101/hw1.done
+{ "type": "SigilRef", "sigil": "@", "id": "ee101/hw1", "fields": ["done"] }
+
+>>> @edu.mit.eecs6002/resistorProblem
+{ "type": "SigilRef", "sigil": "@", "id": "edu.mit.eecs6002/resistorProblem", "fields": [] }
+
+>>> @x/y
+{ "type": "SigilRef", "sigil": "@", "id": "x/y", "fields": [] }
+
+Sigil refs accept DefinitionRef-shaped IDs only (ns/leafId). For scoped
+StateRef paths like `CONTENT/list:#0:answer`, use quoted syntax:
+
+>>> @"CONTENT/list:#0:answer".value
+{ "type": "SigilRef", "sigil": "@", "id": "CONTENT/list:#0:answer", "fields": ["value"] }
+
+For full paths (cross-course references, etc.), also use quoted syntax:
 
 >>> @"/mit.edu/pmitros/electronics/hw1/problem3"
 { "type": "SigilRef", "sigil": "@", "id": "/mit.edu/pmitros/electronics/hw1/problem3", "fields": [] }

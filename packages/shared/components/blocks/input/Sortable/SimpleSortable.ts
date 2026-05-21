@@ -3,8 +3,16 @@ import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
+import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
 import * as sortParser from './_sortParser';
 import _Noop from '@/components/blocks/layout/_Noop';
+
+// Typed child-role suffixes for joinDefinitionRef.
+const PROBLEM = parseLeafId('problem');
+const GRADER  = parseLeafId('grader');
+const INPUT   = parseLeafId('input');
+const PROMPT  = parseLeafId('prompt');
+const ITEM    = parseLeafId('item');
 
 /**
  * Generate all required components for a sortable problem
@@ -12,13 +20,14 @@ import _Noop from '@/components/blocks/layout/_Noop';
  */
 function generateSortableComponents({ parsed, storeEntry, id, tag, attributes }) {
   const { prompt, items } = parsed;
+  const parentRef = asDefinitionRef(splitNs(id).path);
 
   // Generate IDs for all components
-  const problemId = `${id}_problem`;
-  const graderId = `${id}_grader`;
-  const inputId = `${id}_input`;
-  const promptId = `${id}_prompt`;
-  const itemIds = items.map((_, i) => `${id}_item_${i}`);
+  const problemId = joinDefinitionRef(parentRef, PROBLEM);
+  const graderId = joinDefinitionRef(parentRef, GRADER);
+  const inputId = joinDefinitionRef(parentRef, INPUT);
+  const promptId = joinDefinitionRef(parentRef, PROMPT);
+  const itemIds = items.map((_, i) => joinDefinitionRef(parentRef, ITEM, i));
 
   // Store prompt block (using Markdown for rich text)
   storeEntry(promptId, {

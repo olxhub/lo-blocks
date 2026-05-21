@@ -1,10 +1,10 @@
-// src/app/graph/[id]/GraphPage.tsx
+// src/app/graph/[ns]/[id]/GraphPage.tsx
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { fetchOlxJson } from '@/lib/content/fetchOlxJson';
-import { toOlxKey } from '@/lib/types/id';
+import { parseDefinitionKey } from '@/lib/types/id-grammar';
 
 import {
   ReactFlow,
@@ -90,7 +90,8 @@ function CustomNode({ data, id }) {
 
 function GraphPage() {
   const params = useParams();
-  const id = params?.id;
+  // Route is /graph/[ns]/[id] — reconstruct DefinitionKey as "ns/id"
+  const definitionKey = (params?.ns && params?.id) ? parseDefinitionKey(`${params.ns}/${params.id}`) : null;
 
   const [issues, setIssues] = useState<ParseError[]>([]);
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
@@ -99,8 +100,9 @@ function GraphPage() {
   const [edges, setEdges, onEdgesChange] = useEdgesState<GraphEdge>([]);
 
   const fetchData = useCallback(async () => {
+    if (!definitionKey) return;
     try {
-      const json = await fetchOlxJson(toOlxKey(id as string));
+      const json = await fetchOlxJson(definitionKey);
       const { nodes, edges, issues } = parseIdMap(json.idMap);
       const laidOutNodes = layoutElements(nodes, edges, 'TB');
       setIssues(issues);
@@ -113,11 +115,11 @@ function GraphPage() {
     }
     // setNodes and setEdges intentionally omitted: they are stable setState functions, so we need
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [definitionKey]);
 
   useEffect(() => {
-    if (id) fetchData();
-  }, [id, fetchData]);
+    if (definitionKey) fetchData();
+  }, [definitionKey, fetchData]);
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>

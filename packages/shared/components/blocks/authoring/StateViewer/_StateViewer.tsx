@@ -5,7 +5,7 @@ import React from 'react';
 import { DisplayError } from '@/lib/util/debug';
 import { useComponentState } from '@/lib/state';
 import { decodeState } from '@/lib/state/stateDisplay';
-import { refToReduxKey } from '@/lib/types/id';
+import { scopedStateKeyForBlock, stateKeyForGlobalRef, parseAnyStateRef } from '@/lib/types/id-grammar';
 import { useOlxJson } from '@/lib/blocks/useOlxJson';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 
@@ -14,11 +14,12 @@ export default function _StateViewer(props: RuntimeProps) {
 
   // Target can come from attribute or children text (like Ref)
   const targetId = target || (typeof kids === 'string' ? kids : String(kids)).trim();
-  const targetReduxKey = targetId ? refToReduxKey({ ...props, id: targetId }) : refToReduxKey(props);
+  const targetRef = targetId ? parseAnyStateRef(targetId) : null;
+  const targetStateKey = targetRef ? stateKeyForGlobalRef(targetRef) : scopedStateKeyForBlock(props);
 
   // Hooks must be called unconditionally, so call before any early returns
   const { olxJson: targetBlock } = useOlxJson(props, targetId || null);
-  const componentState = useComponentState(props, targetReduxKey, { scope });
+  const componentState = useComponentState(props, targetStateKey, { scope });
 
   if (!targetId) {
     return <DisplayError title="StateViewer" message="No target specified. Use target attribute or provide component ID as content." />;

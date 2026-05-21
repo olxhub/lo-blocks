@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import * as blocks from '@/lib/blocks';
 import { ignore } from '@/lib/content/parsers';
-import { problemAttributes, z_reduxStateKeyList, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
+import { problemAttributes, z_stateRefList, z_stateRef } from '@/lib/blocks/attributeSchemas';
 import _CapaFooter from './_CapaFooter';
 
 const CapaFooter = blocks.dev({
@@ -14,8 +14,8 @@ const CapaFooter = blocks.dev({
   // Note: Receives runtime attributes from _CapaProblem
   attributes: z.object({
     ...problemAttributes.shape,
-    target: z_reduxStateKeyList.optional().describe('Comma-separated grader IDs to trigger'),
-    hintsTarget: z_reduxStateKey.nullish().describe('DemandHints ID for hint button'),
+    target: z_stateRefList.optional().describe('Comma-separated grader IDs to trigger'),
+    hintsTarget: z_stateRef.nullish().describe('DemandHints ID for hint button'),
     label: z.string().optional().describe('Override check button label'),
     // Runtime state (passed from CapaProblem)
     submitCount: z.number().optional().describe('Current submission count'),

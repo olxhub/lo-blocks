@@ -1,11 +1,12 @@
-// src/app/api/olxjson/[id]/route.ts
+// src/app/api/olxjson/route.ts
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { getBestVariantServer } from '@/lib/i18n/getBestVariant';
 import { variantMapKeys } from '@/lib/types/i18n';
-import { allOlxKeys } from '@/lib/types/id';
+import { parseAnyStateRef, stateKeyForGlobalRef, allDefinitionKeysFromStateKey } from '@/lib/types/id-grammar';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import type { NextRequest } from 'next/server';
-import type { IdMap, OlxJson, ReduxStateKey } from '@/lib/types';
+import type { IdMap, OlxJson } from '@/lib/types';
 
 // Block fetching mode for testing async loading:
 //   'all'         - return full idMap (fast, sends everything)
@@ -18,11 +19,12 @@ import type { IdMap, OlxJson, ReduxStateKey } from '@/lib/types';
 const SINGLE_BLOCK_MODE: string = 'static-kids';
 
 /**
- * Recursively collect a block, its static children, and its target= references.
+ * Recursively collect a block, its static children, and all ref-typed dependencies.
  *
  * Static children are structural (parent-child in the OLX tree).
- * Targets are cross-block references (e.g. Ref → TextArea, Grader → Input).
- * Both are included so the client gets everything it needs in one response.
+ * Ref dependencies are cross-block references discovered from Zod-tagged attributes
+ * (target=, source=, dest=, etc.). Both are included so the client gets everything
+ * it needs in one response.
  */
 function collectBlockWithKids(
   idMap: IdMap,
@@ -50,24 +52,21 @@ function collectBlockWithKids(
     }
   }
 
-  // Recurse into target= references (cross-block dependencies).
-  // target= is a ReduxStateKey — may contain scope markers (#0) and
-  // multiple OlxKey segments (myList:#0:answer). allOlxKeys extracts
-  // just the loadable block IDs.
-  //
-  // TODO: Validate target= values. Invalid targets should eventually
-  // surface as DisplayErrors to the author. Open design question: what
-  // to validate where. OlxKey segments (the block IDs) could be checked
-  // here or at parse time, but scoped ReduxStateKeys (e.g. foo:#0:bar)
-  // can't be fully validated statically — scope markers are runtime
-  // constructs (DynamicList instance count, etc.). This is one possible
-  // validation site; parse-time and client-side contexts (Studio,
-  // Markdown editor) are others. See docs/loading-state-todo.md.
-  const target = entry.attributes?.target;
-  if (typeof target === 'string') {
-    const parts = target.split(',').map(s => s.trim()).filter(Boolean);
-    for (const part of parts) {
-      for (const key of allOlxKeys(part as ReduxStateKey)) {
+  // Recurse into all ref-typed attributes (target=, source=, dest=, etc.).
+  // Uses the same getRefAttributes discovery as the client-side ensureReferencedBlocks,
+  // so any attribute tagged with z_stateRef/z_stateRefList/z_blockFieldRef* is included.
+  const refAttrs = comp?.attributes ? getRefAttributes(comp.attributes) : [];
+  for (const { name, extractRefs } of refAttrs) {
+    const refValue = entry.attributes?.[name];
+    if (refValue == null) continue;
+
+    const refs = extractRefs(refValue);
+    for (const ref of refs) {
+      // extractRefs returns Zod-validated values — no prefix stripping needed.
+      // Use parseAnyStateRef to accept system-generated _-prefixed refs
+      // (e.g., auto-wired grader targets from CapaProblem parsers).
+      const stateKey = stateKeyForGlobalRef(parseAnyStateRef(ref));
+      for (const key of allDefinitionKeysFromStateKey(stateKey)) {
         collectBlockWithKids(idMap, key, request, collected);
       }
     }
@@ -76,8 +75,8 @@ function collectBlockWithKids(
   return collected;
 }
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export async function GET(request: NextRequest) {
+  const id = request.nextUrl.searchParams.get('id') ?? '';
 
   try {
     const { idMap, errors } = await syncContentFromStorage();
@@ -90,7 +89,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       });
     }
 
-    // TODO: Break out into /api/olxjson/by-id/[id]/
     if (!id || !idMap[id]) {
       return Response.json(
         {

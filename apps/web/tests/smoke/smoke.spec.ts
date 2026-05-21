@@ -97,7 +97,7 @@ test('docs loads', async ({ page }) => {
 });
 
 test('bogus activity shows DisplayError', async ({ page }) => {
-  const result = await loadPage(page, '/preview/nonexistent_smoke_test');
+  const result = await loadPage(page, '/preview/CONTENT/nonexistent_smoke_test');
   expect(result.ok).toBe(false);
   if (!result.ok) {
     expect(result.error).toContain('Content Loading Error');

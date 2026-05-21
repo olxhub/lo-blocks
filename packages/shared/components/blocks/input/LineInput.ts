@@ -27,7 +27,7 @@ const LineInput = core({
   description: 'Single-line text input field for student responses',
   component: _LineInput,
   fields,
-  selectValue: (props: RuntimeProps, state, _reduxKey) => fieldSelector(state, props, fields.value, { fallback: '' }),
+  selectValue: (props: RuntimeProps, state, _stateKey) => fieldSelector(state, props, fields.value, { fallback: '' }),
   attributes: z.object({
     ...placeholder,
     min: z.string().optional().describe('Minimum allowed value (for numeric types)'),

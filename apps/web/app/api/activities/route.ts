@@ -9,8 +9,8 @@
  * {
  *   ok: boolean,
  *   activities: {
- *     [id: OlxKey]: {
- *       id: OlxKey,
+ *     [id: DefinitionKey]: {
+ *       id: DefinitionKey,
  *       category: string,
  *       tag: string,
  *       editPath: string | null,

@@ -23,19 +23,54 @@ import React from 'react';
 import { DisplayError, DebugWrapper } from '@/lib/util/debug';
 import PopoutWrapper from '@/components/common/PopoutWrapper';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import type { OlxKey, IdPrefix, ReduxStateKey, LoBlockRuntimeContext, OlxJson } from '@/lib/types';
+import type { DefinitionKey, IdPrefix, StateKey, LoBlockRuntimeContext, OlxJson } from '@/lib/types';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { getGrader, getEventContext } from '@/lib/blocks/olxdom';
-import { assignReactKeys, refToOlxKey, refToReduxKey } from '@/lib/types/id';
+import { definitionKeyForRef, scopedStateKeyForBlock, SCOPE_SEPARATOR } from '@/lib/types/id-grammar';
 import { selectBlock } from '@/lib/state/olxjson';
 import type { Store } from 'redux';
+
+/**
+ * Assigns unique React keys to an array of children.
+ *
+ * React requires unique keys for siblings to efficiently reconcile changes.
+ * In OLX, the same block can appear multiple times (DAG reuse), so we need
+ * to handle duplicate IDs by appending suffixes: "foo", "foo:1", "foo:2".
+ */
+export function assignReactKeys(children) {
+  const idCounts = {};
+  return children.map((child, i) => {
+    if (child == null || typeof child !== 'object') {
+      return child;
+    }
+    if ('key' in child) {
+      throw new Error(
+        `assignReactKeys: Child at index ${i} already has a 'key' property. ` +
+        `Don't double-key children.`
+      );
+    }
+    let key;
+    if ('id' in child && child.id != null) {
+      if (!idCounts[child.id]) {
+        idCounts[child.id] = 1;
+        key = child.id;
+      } else {
+        key = `${child.id}${SCOPE_SEPARATOR}${idCounts[child.id]}`;
+        idCounts[child.id]++;
+      }
+    } else {
+      key = `__idx__${i}`;
+    }
+    return { ...child, key };
+  });
+}
 
 // Root sentinel has minimal loBlock so selectors don't need ?. checks
 // TODO: Give root a real loBlock created via blocks.core() for consistency
 const ROOT_LOBLOCK = Object.freeze({ name: 'Root', isGrader: false, isInput: false });
 
 const ROOT_OLXJSON: OlxJson = Object.freeze({
-  id: 'root' as OlxKey,
+  id: 'root' as DefinitionKey,
   tag: 'Root' as any,
   attributes: {},
   provenance: [] as any,
@@ -50,7 +85,7 @@ export const makeRootNode = (runtime: LoBlockRuntimeContext, contextId?: string)
   sentinel: 'root',
   id: contextId,
   olxJson: ROOT_OLXJSON,
-  reduxKey: 'root' as ReduxStateKey,
+  stateKey: 'root' as StateKey,
   renderedKids: {},
   loBlock: ROOT_LOBLOCK,
   runtime,
@@ -121,16 +156,16 @@ export function render({ node, nodeInfo, runtime }: {
       );
     }
     const locale = runtime.locale.code;
-    const olxKey = refToOlxKey(node.id);
+    const definitionKey = definitionKeyForRef(node.id);
     const sources = actualOlxJsonSources ?? ['content'];
-    const entry = selectBlock(actualStore.getState(), sources, olxKey, locale);
+    const entry = selectBlock(actualStore.getState(), sources, definitionKey, locale);
     if (!entry) {
       return (
         <DisplayError
           id={`block-missing-${node.id}`}
           title="render"
           message={`Block "${node.id}" not found in content`}
-          technical={{ blockId: node.id, olxKey, locale, sources }}
+          technical={{ blockId: node.id, definitionKey, locale, sources }}
         />
       );
     }
@@ -172,6 +207,17 @@ export function render({ node, nodeInfo, runtime }: {
     );
   }
 
+  // TODO(render-validated-attrs): render currently validates attributes but
+  // continues to pass the raw `attributes` object below. Parsed OLX normally
+  // arrives here already transformed by parseOLX, so this is usually harmless.
+  // The edge case is render-time-only attributes, especially <Use ref="...">
+  // overrides. A documented override like
+  // `<Use ref="show" target="grader1,grader2" />` would validate into
+  // StateRef[] via z_stateRefList, then still pass the raw comma string to the
+  // component. Before this system scales to broader course-author usage, switch
+  // wrapperProps, Component props, popout/class reads, and nodeInfo.olxJson to
+  // use `validationResult.data` consistently.
+
   // Semantic validation beyond what Zod can express (e.g., valid number, valid regex)
   if (blockType.validateAttributes) {
     const semanticErrors = blockType.validateAttributes(validationResult.data);
@@ -189,16 +235,16 @@ export function render({ node, nodeInfo, runtime }: {
 
   // Create a dynamic shadow hierarchy
   //
-  // Keyed by ReduxStateKey (idPrefix + node.id) so scoped instances
+  // Keyed by StateKey (idPrefix + node.id) so scoped instances
   // (e.g. factors:0:factor vs factors:1:factor) each get their own entry.
   //
   // Note: render() can be called multiple times (e.g. in Strict mode),
   // so we reuse existing entries if present.
-  const reduxKey = refToReduxKey({ id: node.id, idPrefix: actualIdPrefix });
-  let childNodeInfo = nodeInfo.renderedKids[reduxKey];
+  const stateKey = scopedStateKeyForBlock({ id: node.id, idPrefix: actualIdPrefix });
+  let childNodeInfo = nodeInfo.renderedKids[stateKey];
   if (!childNodeInfo) {
-    childNodeInfo = { olxJson: node, reduxKey, renderedKids: {}, parent: nodeInfo, loBlock: blockType };
-    nodeInfo.renderedKids[reduxKey] = childNodeInfo;
+    childNodeInfo = { olxJson: node, stateKey, renderedKids: {}, parent: nodeInfo, loBlock: blockType };
+    nodeInfo.renderedKids[stateKey] = childNodeInfo;
   } else {
     childNodeInfo.olxJson = node;
   }
@@ -212,7 +258,7 @@ export function render({ node, nodeInfo, runtime }: {
   };
 
   // Check requiresGrader - inject graderId or show error
-  let graderId: OlxKey | null = null;
+  let graderId: StateKey | null = null;
   if (blockType.requiresGrader) {
     try {
       graderId = getGrader({ ...wrapperProps });
@@ -281,7 +327,7 @@ export function render({ node, nodeInfo, runtime }: {
   return (
     <DebugWrapper props={wrapperProps} loBlock={blockType}>
       {attributes.popout ? (
-        <PopoutWrapper popout={attributes.popout} reduxKey={reduxKey} runtime={finalRuntime}>
+        <PopoutWrapper popout={attributes.popout} stateKey={stateKey} runtime={finalRuntime}>
           {blockContent}
         </PopoutWrapper>
       ) : blockContent}

@@ -14,7 +14,8 @@
 //   </RulesGrader>
 //
 import { z } from 'zod';
-import { core, grader, isMatch, inferRelatedNodes, refToOlxKey, getBlockByOLXId } from '@/lib/blocks';
+import { core, grader, isMatch, inferRelatedNodes, getBlockByOLXId } from '@/lib/blocks';
+import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import { correctness } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
 import _Noop from '@/components/blocks/layout/_Noop';
@@ -47,7 +48,7 @@ function gradeRules(props: RuntimeProps, context) {
     infer: 'kids'
   });
   for (const matchId of matchIds) {
-    const childEntry = getBlockByOLXId(props, matchId);
+    const childEntry = getBlockByOLXId(props, leafDefinitionKeyFromStateKey(matchId));
     if (!childEntry) continue;
 
     const childBlueprint = blockRegistry[childEntry.tag];

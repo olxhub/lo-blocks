@@ -156,9 +156,9 @@ function writeManifest(idMap: any, activities: Record<string, any>) {
   if (fs.existsSync(manifestSource)) {
     const manifest = JSON.parse(fs.readFileSync(manifestSource, 'utf-8'));
     const deadRoutes: string[] = [];
-    for (const [urlPath, olxKey] of Object.entries(manifest.routes || {})) {
-      if (!idMap[olxKey as string]) {
-        deadRoutes.push(`  ${urlPath} → "${olxKey}" (not found in content)`);
+    for (const [urlPath, definitionKey] of Object.entries(manifest.routes || {})) {
+      if (!idMap[definitionKey as string]) {
+        deadRoutes.push(`  ${urlPath} → "${definitionKey}" (not found in content)`);
       }
     }
     if (deadRoutes.length > 0) {

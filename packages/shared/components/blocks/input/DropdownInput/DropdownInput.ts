@@ -18,7 +18,7 @@ const DropdownInput = core({
   description: 'Dropdown select input for choosing from a list of options',
   component: _DropdownSelect,
   fields,
-  selectValue: (props: RuntimeProps, state, _reduxKey) => {
+  selectValue: (props: RuntimeProps, state, _stateKey) => {
     return fieldSelector(state, props, fields.value, { fallback: '' });
   },
   attributes: srcAttributes.extend({

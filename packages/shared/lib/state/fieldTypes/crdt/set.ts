@@ -17,7 +17,7 @@ import { useRef, useCallback } from 'react';
 import { getActorId } from '../../../crdt/actorId';
 import { useFieldSelector, dispatchFieldEvent } from '../../redux';
 import { assertValidField } from '../../fields';
-import type { FieldInfo, RuntimeProps, ReduxStateKey } from '../../../types';
+import type { FieldInfo, RuntimeProps, StateKey } from '../../../types';
 
 // Re-export constructor from cycle-safe module
 export { setField } from './setConstructor';
@@ -39,7 +39,7 @@ const EMPTY_SET: Set<string> = new Set();
 export function useSet(
   props: RuntimeProps,
   field: FieldInfo,
-  { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
+  { stateKey, tag }: { stateKey?: StateKey; tag?: string } = {}
 ) {
   if (field.kind && field.kind !== 'set') {
     throw new Error(
@@ -49,29 +49,29 @@ export function useSet(
   }
   assertValidField(field);
 
-  const values: Set<string> = useFieldSelector(props, field, { reduxKey, tag, fallback: EMPTY_SET });
+  const values: Set<string> = useFieldSelector(props, field, { stateKey, tag, fallback: EMPTY_SET });
 
-  const ref = useRef({ props, field, reduxKey, tag });
-  ref.current = { props, field, reduxKey, tag };
+  const ref = useRef({ props, field, stateKey, tag });
+  ref.current = { props, field, stateKey, tag };
 
   const add = useCallback((element: string) => {
-    const { props, field, reduxKey, tag } = ref.current;
+    const { props, field, stateKey, tag } = ref.current;
     dispatchFieldEvent(props, field, 'SET_ADD', {
       field: field.name,
       element,
       ts: Date.now(),
       actor: getActorId(),
-    }, { reduxKey, tag });
+    }, { stateKey, tag });
   }, []);
 
   const del = useCallback((element: string) => {
-    const { props, field, reduxKey, tag } = ref.current;
+    const { props, field, stateKey, tag } = ref.current;
     dispatchFieldEvent(props, field, 'SET_REMOVE', {
       field: field.name,
       element,
       ts: Date.now(),
       actor: getActorId(),
-    }, { reduxKey, tag });
+    }, { stateKey, tag });
   }, []);
 
   return {

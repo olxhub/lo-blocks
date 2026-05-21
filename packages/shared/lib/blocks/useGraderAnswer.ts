@@ -19,12 +19,13 @@
 'use client';
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
-import { getGrader, getDomNodeByReduxKey, getAllNodes, inferRelatedNodes } from './olxdom';
+import { getGrader, getDomNodeByStateKey, getAllNodes, inferRelatedNodes } from './olxdom';
 import { useOlxJson } from './useOlxJson';
-import { refToOlxKey, refToReduxKey, toOlxReference } from '../types/id';
+import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey } from '../types/id-grammar';
+import { definitionKeyForRef, scopedStateKeyForBlock } from '../types/id-grammar';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { isInput } from './actions';
-import type { OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
+import type { DefinitionKey, DefinitionRef, StateKey, RuntimeProps } from '@/lib/types';
 
 /**
  * Find a grader that targets this input (for sibling grader patterns).
@@ -34,7 +35,7 @@ import type { OlxKey, OlxReference, RuntimeProps } from '@/lib/types';
  * may return duplicates, but we return on first match so this is benign.
  * If performance becomes an issue, add a visited set.
  */
-function findTargetingGrader(props: RuntimeProps): OlxKey | null {
+function findTargetingGrader(props: RuntimeProps): StateKey | null {
   const { id, nodeInfo } = props;
   if (!nodeInfo) return null;
 
@@ -42,15 +43,26 @@ function findTargetingGrader(props: RuntimeProps): OlxKey | null {
     selector: (n) => !!n.loBlock.isGrader && !!n.olxJson.attributes.target
   });
 
-  const normalizedId = refToOlxKey(id);
+  const normalizedId = definitionKeyForRef(id);
 
   for (const graderNodeInfo of graderNodes) {
-    // target is a comma-separated list of OlxRefs (guaranteed by selector filter)
-    const targetList = graderNodeInfo.olxJson.attributes.target;
-    if (typeof targetList !== 'string') continue;  // Type guard for TypeScript
-    const targets = targetList.split(',').map(t => refToOlxKey(toOlxReference(t.trim())));
+    const targetAttr = graderNodeInfo.olxJson.attributes.target;
+    if (!targetAttr) continue;
+
+    // target may be a StateRef[] (Zod-validated authored targets) or a raw
+    // comma-separated string (CapaProblem auto-wired targets set after Zod).
+    const targetStrings: string[] = Array.isArray(targetAttr)
+      ? targetAttr.map(String)
+      : typeof targetAttr === 'string'
+        ? targetAttr.split(',').map(s => s.trim()).filter(Boolean)
+        : [];
+
+    const targets = targetStrings.map(t => {
+      const stateKey = stateKeyForGlobalRef(parseAnyStateRef(t));
+      return leafDefinitionKeyFromStateKey(stateKey);
+    });
     if (targets.includes(normalizedId)) {
-      return graderNodeInfo.olxJson.id;
+      return graderNodeInfo.stateKey;
     }
   }
   return null;
@@ -61,7 +73,7 @@ function findTargetingGrader(props: RuntimeProps): OlxKey | null {
  * Does not throw - inputs can legitimately exist without graders.
  * Exported for conditional rendering (e.g., only render DisplayAnswer if grader exists).
  */
-export function findGrader(props: RuntimeProps): OlxKey | null {
+export function findGrader(props: RuntimeProps): StateKey | null {
   // First try targeting grader (sibling pattern)
   const targetingGrader = findTargetingGrader(props);
   if (targetingGrader) return targetingGrader;
@@ -80,7 +92,7 @@ export function findGrader(props: RuntimeProps): OlxKey | null {
  */
 function resolveInputSlot(
   props: RuntimeProps,
-  graderId: OlxKey,
+  graderId: StateKey,
   graderBlueprint: any,
   graderInstance: any
 ): string | undefined {
@@ -101,14 +113,15 @@ function resolveInputSlot(
   const targetAttr = graderInstance.attributes?.target;
 
   // Get input IDs (same inference logic as grader action)
-  let inputIds: OlxKey[] = [];
+  let inputIds: StateKey[] = [];
   try {
-    // Find the grader's OlxDomNode (OlxKey → ReduxStateKey applies runtime.idPrefix for scoping)
-    const graderNodeInfo = getDomNodeByReduxKey(props, refToReduxKey({ id: graderId, idPrefix: props.runtime?.idPrefix }));
+    // graderId is already a StateKey — look up the OlxDomNode directly
+    const graderNodeInfo = getDomNodeByStateKey(props, graderId);
     if (!graderNodeInfo) return undefined;
 
     // Create props with grader's nodeInfo for proper traversal
-    const graderProps = { ...props, id: graderId, nodeInfo: graderNodeInfo };
+    const graderDefKey = leafDefinitionKeyFromStateKey(graderId);
+    const graderProps = { ...props, id: graderDefKey, nodeInfo: graderNodeInfo };
     inputIds = inferRelatedNodes(graderProps, {
       selector: n => n.loBlock && isInput(n.loBlock),
       infer: true,
@@ -119,8 +132,8 @@ function resolveInputSlot(
   }
 
   // Find position of this input in the list
-  const normalizedId = refToOlxKey(inputId);
-  const position = inputIds.findIndex(id => refToOlxKey(id) === normalizedId);
+  const normalizedId = definitionKeyForRef(inputId);
+  const position = inputIds.findIndex(id => leafDefinitionKeyFromStateKey(id) === normalizedId);
 
   if (position >= 0 && position < slots.length) {
     return slots[position];
@@ -147,18 +160,19 @@ export function useGraderAnswer(props: RuntimeProps) {
 
   // Get showAnswer field from grader, or null if no grader
   const showAnswerField = graderId
-    ? state.componentFieldByName(props, graderId, 'showAnswer')
+    ? state.componentFieldByStateKey(props, graderId, 'showAnswer')
     : null;
 
   // Subscribe to field (hook must always be called, but selector handles null field)
   // When no grader exists and component has no fields, create a dummy field for hook compliance
   const fallbackField = props.fields?.value ?? { scope: 'component', name: 'showAnswer' };
-  const graderReduxKey = refToReduxKey({ ...props, id: graderId || props.id });
+  // graderId is already a StateKey; fall back to own scoped key for hook stability
+  const graderStateKey = graderId || scopedStateKeyForBlock(props);
   const showAnswer = useFieldSelector<boolean>(
     props,
     showAnswerField || fallbackField,
     {
-      reduxKey: graderReduxKey,
+      stateKey: graderStateKey,
       fallback: false,
       // When no grader, selector always returns false
       selector: showAnswerField ? (s => s?.showAnswer ?? false) : (() => false)
@@ -166,8 +180,9 @@ export function useGraderAnswer(props: RuntimeProps) {
   );
 
   // Get grader instance unconditionally (hook must always be called).
-  // Pass graderId directly - useOlxJson handles null gracefully.
-  const { olxJson: graderInstance } = useOlxJson(props, graderId);
+  // Convert StateKey to DefinitionKey for useOlxJson lookup.
+  const graderDefKeyForLookup = graderId ? leafDefinitionKeyFromStateKey(graderId) : null;
+  const { olxJson: graderInstance } = useOlxJson(props, graderDefKeyForLookup);
 
   // Get displayAnswer from grader's blueprint when showAnswer is true
   let displayAnswer: any = undefined;
@@ -180,9 +195,10 @@ export function useGraderAnswer(props: RuntimeProps) {
     // Only show per-input answer in 'per-input' mode
     if (displayMode === 'per-input') {
       // TODO: graderProps should include complete runtime context and blueprint fields
+      const graderDefKey = leafDefinitionKeyFromStateKey(graderId);
       const graderProps = {
         ...props,
-        id: graderId,
+        id: graderDefKey,
         kids: graderInstance.kids,
         ...graderInstance.attributes,
       };
@@ -216,25 +232,27 @@ export function useGraderAnswer(props: RuntimeProps) {
  * @param {string} graderId - The grader's ID
  * @returns {{ showAnswer: boolean, summaryAnswer: any }}
  */
-export function useGraderSummary(props: RuntimeProps, graderId: OlxKey | null) {
+export function useGraderSummary(props: RuntimeProps, graderId: StateKey | null) {
   // Get showAnswer field from grader
   const showAnswerField = graderId
-    ? state.componentFieldByName(props, graderId, 'showAnswer')
+    ? state.componentFieldByStateKey(props, graderId, 'showAnswer')
     : null;
 
   const fallbackField = props.fields?.value ?? { scope: 'component', name: 'showAnswer' };
-  const summaryGraderReduxKey = refToReduxKey({ ...props, id: graderId || props.id });
+  // graderId is already a StateKey; fall back to own scoped key for hook stability
+  const summaryGraderStateKey = graderId || scopedStateKeyForBlock(props);
   const showAnswer = useFieldSelector(
     props,
     showAnswerField || fallbackField,
     {
-      reduxKey: summaryGraderReduxKey,
+      stateKey: summaryGraderStateKey,
       fallback: false,
       selector: showAnswerField ? (s => s?.showAnswer ?? false) : (() => false)
     }
   );
 
-  const { olxJson: graderInstance } = useOlxJson(props, graderId);
+  const summaryGraderDefKey = graderId ? leafDefinitionKeyFromStateKey(graderId) : null;
+  const { olxJson: graderInstance } = useOlxJson(props, summaryGraderDefKey);
 
   let summaryAnswer = undefined;
 
@@ -245,9 +263,10 @@ export function useGraderSummary(props: RuntimeProps, graderId: OlxKey | null) {
     // Only return summary for 'summary' mode
     if (displayMode === 'summary' && graderBlueprint.getDisplayAnswer) {
       // TODO: graderProps should include complete runtime context and blueprint fields
+      const graderDefKey = leafDefinitionKeyFromStateKey(graderId);
       const graderProps = {
         ...props,
-        id: graderId,
+        id: graderDefKey,
         kids: graderInstance.kids,
         ...graderInstance.attributes,
       };

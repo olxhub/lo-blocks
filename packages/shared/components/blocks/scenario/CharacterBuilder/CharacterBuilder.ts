@@ -47,7 +47,7 @@ import yaml from 'js-yaml';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector } from '@/lib/state';
-import { extendIdPrefix, scopeMarker } from '@/lib/types/id';
+import { extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
 import {
   DIMENSIONS, DIMENSIONS_BY_KEY, DIMENSION_CATEGORIES,
   STAT_PRESETS, STAT_PRESETS_BY_KEY,
@@ -234,7 +234,7 @@ const CharacterBuilder = dev({
     STAT_PRESETS, STAT_PRESETS_BY_KEY,
   },
 
-  selectValue: (props: RuntimeProps, reduxState: any, _reduxKey: any) => {
+  selectValue: (props: RuntimeProps, reduxState: any, _stateKey: any) => {
     const { characterName, cards, avatar } = readCharacterState(reduxState, props, avatarEditorFields);
     return buildYaml(characterName, cards, avatar);
   },

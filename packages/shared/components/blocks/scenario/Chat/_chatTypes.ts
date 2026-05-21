@@ -4,7 +4,7 @@
 // waitConditions.ts, and chatUtils.ts.
 
 import type { Cast } from '@/lib/avatar/types';
-import type { OlxReference } from '@/lib/types';
+import type { DefinitionRef } from '@/lib/types';
 
 /* ═══════════════════════════════════════════════════════════════════════════════
  * CHATPEG AST — Types produced by chat.pegjs
@@ -142,8 +142,8 @@ export interface WaitCommand {
  */
 export interface ArrowCommand {
   type: 'ArrowCommand';
-  source: OlxReference;
-  target: OlxReference;
+  source: DefinitionRef;
+  target: DefinitionRef;
 }
 
 /**
@@ -182,7 +182,7 @@ export interface CommandBlock {
  */
 export interface EmbedCommand extends HasMetadata {
   type: 'EmbedCommand';
-  ref: OlxReference;
+  ref: DefinitionRef;
   options: string | null;
   /** Parsed YAML options (set by postprocess in Chat.ts). */
   parsedOptions?: Record<string, unknown>;

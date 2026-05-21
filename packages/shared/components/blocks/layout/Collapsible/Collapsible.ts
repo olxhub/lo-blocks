@@ -16,7 +16,7 @@ const Collapsible = dev({
   component: _Collapsible,
   fields: fields,
   // as any: See selectValue spec in lib/blocks/actions.tsx
-  selectValue: ((props, state, _reduxKey) => {
+  selectValue: ((props, state, _stateKey) => {
     const expanded = fieldSelector(state, props, fields.expanded, { fallback: false });
     return { expanded };
   }) as any,

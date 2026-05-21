@@ -8,6 +8,7 @@ import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import { getBlockByOLXId } from '@/lib/blocks';
 import { getInputs } from '@/lib/blocks/olxdom';
+import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 import { correctness } from '@/lib/blocks/correctness';
@@ -42,16 +43,17 @@ function getKeyDisplayAnswer(props) {
     throw new Error(`KeyGrader "${props.id}": No input found. Nest a ChoiceInput inside, or add target="inputId".`);
   }
 
-  const inputId = inputIds[0];
-  const inputNode = getBlockByOLXId(props, inputId);
+  const inputStateKey = inputIds[0];
+  const inputDefKey = leafDefinitionKeyFromStateKey(inputStateKey);
+  const inputNode = getBlockByOLXId(props, inputDefKey);
   if (!inputNode) {
-    throw new Error(`KeyGrader "${props.id}": Input "${inputId}" not found. Check the target attribute.`);
+    throw new Error(`KeyGrader "${props.id}": Input "${inputStateKey}" not found. Check the target attribute.`);
   }
 
   // TODO: This grader logic should move to /lib/blocks/. Components shouldn't access
   // blockRegistry and construct props - that's infrastructure logic.
   const inputBlueprint = props.runtime.blockRegistry[inputNode.tag];
-  const inputProps = { ...props, id: inputId, ...inputNode.attributes, kids: inputNode.kids };
+  const inputProps = { ...props, id: inputDefKey, ...inputNode.attributes, kids: inputNode.kids };
   const choices = inputBlueprint.locals.getChoices(inputProps);
   const keyChoice = choices.find(c => c.tag === 'Key');
   if (!keyChoice) {

@@ -9,6 +9,7 @@ import { useFieldState, useAggregate, updateField } from './redux';
 import { scopes } from './scopes';
 import { store } from './store';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import { TEST_NS, testKey } from '@/lib/test-utils';
 
 const testFields = fields(['input']);
 const settingFields = fields([{ name: 'speed', event: 'SET_SPEED', scope: scopes.componentSetting }]);
@@ -53,7 +54,7 @@ describe('useFieldState integration', () => {
     await flushAsync();
 
     expect(result.current[0]).toBe('bar');
-    expect(reduxStore.getState().application_state.component['test'].input).toBe('bar');
+    expect(reduxStore.getState().application_state.component[String(testKey('test'))].input).toBe('bar');
   });
 
   it('handles componentSetting scoped fields', async () => {
@@ -95,7 +96,7 @@ describe('useFieldState integration', () => {
     const { reduxStore, wrapper } = createWrapper(storageFields);
 
     const { result } = renderHook(
-      () => useFieldState(null, storageFields.content, '', { reduxKey: 'file1' as any }),
+      () => useFieldState(null, storageFields.content, '', { stateKey: 'file1' as any }),
       { wrapper }
     );
 
@@ -113,8 +114,8 @@ describe('useAggregate aggregate hook', () => {
     const { wrapper } = createWrapper();
 
     await act(async () => {
-      updateField(props, testFields.input, 'alpha', { reduxKey: 'first' as any });
-      updateField(props, testFields.input, 'beta', { reduxKey: 'second' as any });
+      updateField(props, testFields.input, 'alpha', { stateKey: 'first' as any });
+      updateField(props, testFields.input, 'beta', { stateKey: 'second' as any });
       await new Promise(r => setTimeout(r, 0));
     });
 
@@ -130,7 +131,7 @@ describe('useAggregate aggregate hook', () => {
     const { wrapper } = createWrapper();
 
     await act(async () => {
-      updateField(props, testFields.input, 'alpha', { reduxKey: 'first' as any });
+      updateField(props, testFields.input, 'alpha', { stateKey: 'first' as any });
       await new Promise(r => setTimeout(r, 0));
     });
 
@@ -146,8 +147,8 @@ describe('useAggregate aggregate hook', () => {
     const { wrapper } = createWrapper();
 
     await act(async () => {
-      updateField(props, testFields.input, 'hello', { reduxKey: 'first' as any });
-      updateField(props, testFields.input, 'world', { reduxKey: 'second' as any });
+      updateField(props, testFields.input, 'hello', { stateKey: 'first' as any });
+      updateField(props, testFields.input, 'world', { stateKey: 'second' as any });
       await new Promise(r => setTimeout(r, 0));
     });
 

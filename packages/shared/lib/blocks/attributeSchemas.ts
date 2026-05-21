@@ -12,9 +12,9 @@
 // This allows a block to be input+grader+src without combinatorial explosion.
 //
 import { z } from 'zod';
-import { VALID_ID_SEGMENT, VALID_REDUX_STATE_KEY, toOlxReference, toReduxStateKey } from '../types/id';
+import { VALID, validateAnyStateRef, parseAnyStateRef, z_anyStateRef as z_anyStateRef_canonical } from '../types/id-grammar';
+import type { StateRef } from '../types/id-grammar';
 import { z_locale } from '../types/i18n';
-import type { OlxReference, ReduxStateKey } from '@/lib/types';
 import { parse as parseExpr } from '@/lib/stateLanguage';
 import { CastSchema, Face, AvatarStyle } from '@/lib/avatar/types';
 
@@ -25,7 +25,7 @@ import { CastSchema, Face, AvatarStyle } from '@/lib/avatar/types';
  */
 const validateOlxId = (id) => {
   if (!id) return undefined;
-  if (!VALID_ID_SEGMENT.test(id)) {
+  if (!VALID.leafId.test(id)) {
     return `ID "${id}" is invalid. IDs must start with a letter or underscore and contain only letters, digits, and underscores.`;
   }
   return undefined;
@@ -116,69 +116,64 @@ function tagRefSchema<T extends z.ZodType>(schema: T, extractor: RefExtractor): 
   return schema;
 }
 
-/** Single OlxKey — bare block ID, no path prefix, no scope. */
-export const z_olxKey = tagRefSchema(
-  z.string().refine(
-    id => VALID_ID_SEGMENT.test(id),
-    id => ({ message: `"${id}" is not a valid block ID (must start with letter or underscore, then letters/digits/underscores)` })
-  ).transform(id => id as unknown as OlxReference & { readonly __resolved: true }),
-  v => [v],
-);
+/** Single StateRef — target ref, may include scope markers (e.g. "myList:#0:answer").
+ *  Uses permissive validation: accepts both authored refs and system-generated
+ *  _-prefixed bare refs (from joinDefinitionRef with auto-generated parents). */
+export const z_stateRef = tagRefSchema(z_anyStateRef_canonical, v => [v]);
 
-/** Single ReduxStateKey — may include scope markers (e.g. "myList:#0:answer"). */
-export const z_reduxStateKey = tagRefSchema(
-  z.string().refine(
-    key => VALID_REDUX_STATE_KEY.test(key),
-    key => ({ message: `"${key}" is not a valid target key` })
-  ).transform(key => key as unknown as ReduxStateKey),
-  v => [v],
-);
-
-/** Comma-separated ReduxStateKeys → string[]. Idempotent (accepts already-split arrays). */
-export const z_reduxStateKeyList = tagRefSchema(
+/** Comma-separated StateRefs → StateRef[]. Idempotent (accepts already-split arrays).
+ *  Uses validateAnyStateRef/parseAnyStateRef to accept both authored and system-generated
+ *  _-prefixed bare refs (from joinDefinitionRef with auto-generated parents). */
+export const z_stateRefList = tagRefSchema(
   z.union([
     z.string().transform(val => val.split(',').map(s => s.trim()).filter(Boolean))
       .refine(
-        parts => parts.every(part => VALID_REDUX_STATE_KEY.test(part)),
-        parts => ({ message: `target contains invalid key(s): ${parts.filter(p => !VALID_REDUX_STATE_KEY.test(p)).join(', ')}` })
-      ),
-    z.array(z.string()),
+        parts => parts.every(p => validateAnyStateRef(p) === true),
+        parts => ({ message: `target contains invalid ref(s): ${parts.filter(p => validateAnyStateRef(p) !== true).join(', ')}` })
+      )
+      .transform(parts => parts.map(part => parseAnyStateRef(part))),
+    z.array(z.string())
+      .refine(
+        parts => parts.every(p => validateAnyStateRef(p) === true),
+        parts => ({ message: `target contains invalid ref(s): ${parts.filter(p => validateAnyStateRef(p) !== true).join(', ')}` })
+      )
+      .transform(parts => parts.map(part => parseAnyStateRef(part))),
   ]),
   v => typeof v === 'string' ? v.split(',').map(s => s.trim()).filter(Boolean) : Array.isArray(v) ? v : [],
 );
 
 // -----------------------------------------------------------------------------
-// Block.field references — transform to { ref: ReduxStateKey, field: string }
+// Block.field references — transform to { ref: StateRef, field: string }
 // -----------------------------------------------------------------------------
 
-export type BlockFieldRef = { ref: ReduxStateKey; field: string };
+export type BlockFieldRef = { ref: StateRef; field: string };
 
 /**
- * Split "blockId.fieldName" into { ref: ReduxStateKey, field }.
+ * Split "blockId.fieldName" into { ref: StateRef, field }.
  * If no .field suffix, defaults field to 'value'.
  *
- * The ref is a ReduxStateKey (e.g. "foo", "list:#0:item") — used directly
- * for Redux state access without re-scoping.
+ * The ref is an authored StateRef (e.g. "foo", "list:#0:item").
+ * Runtime consumers resolve it with stateKeyForGlobalRef() before Redux lookup.
  */
 function splitFieldRef(val: string): BlockFieldRef {
   const dot = val.lastIndexOf('.');
   if (dot >= 0) {
     const fieldPart = val.substring(dot + 1);
-    if (VALID_ID_SEGMENT.test(fieldPart)) {
+    if (VALID.leafId.test(fieldPart)) {
       const base = val.substring(0, dot);
-      if (VALID_REDUX_STATE_KEY.test(base)) {
-        return { ref: toReduxStateKey(base), field: fieldPart };
+      if (VALID.anyStateRef.test(base)) {
+        return { ref: parseAnyStateRef(base), field: fieldPart };
       }
     }
   }
-  return { ref: toReduxStateKey(val), field: 'value' };
+  return { ref: parseAnyStateRef(val), field: 'value' };
 }
 
-/** Single block.field reference. Transforms to { ref: ReduxStateKey, field: string }. */
+/** Single block.field reference. Transforms to { ref: StateRef, field: string }. */
 export const z_blockFieldRef = tagRefSchema(
   z.union([
     z.string().transform(splitFieldRef),
-    z.object({ ref: z.custom<ReduxStateKey>(), field: z.string() }),
+    z.object({ ref: z.custom<StateRef>(), field: z.string() }),
   ]),
   v => typeof v === 'string' ? [splitFieldRef(v).ref] : (v?.ref ? [String(v.ref)] : []),
 );
@@ -189,7 +184,7 @@ export const z_blockFieldRefList = tagRefSchema(
     z.string().transform((val): BlockFieldRef[] =>
       val.split(',').map(s => s.trim()).filter(Boolean).map(splitFieldRef)
     ),
-    z.array(z.object({ ref: z.custom<ReduxStateKey>(), field: z.string() })),
+    z.array(z.object({ ref: z.custom<StateRef>(), field: z.string() })),
   ]),
   v => typeof v === 'string'
     ? v.split(',').map(s => s.trim()).filter(Boolean).map(s => splitFieldRef(s).ref)
@@ -255,7 +250,7 @@ export function getRefAttributes(attributeSchema: z.ZodType): Array<{ name: stri
  */
 export const baseAttributes = z.object({
   id: z.string().optional().refine(
-    (id) => !id || VALID_ID_SEGMENT.test(id),
+    (id) => !id || VALID.leafId.test(id),
     (id) => ({ message: validateOlxId(id) })
   ).describe('Unique identifier (letter or underscore start, then letters/digits/underscores)'),
   title: z.string().optional().describe('Display title (shown in tabs, course navigation, headers)'),
@@ -292,7 +287,7 @@ export const inputAttributes = z.object({
 export const graderAttributes = z.object({
   answer: z.string().optional().describe('Expected answer for grading'),
   displayAnswer: z.string().optional().describe('Answer shown to student (may differ from grading answer)'),
-  target: z_reduxStateKeyList.optional().describe('Target input ID(s) to grade, comma-separated for multi-input graders (inferred if omitted)'),
+  target: z_stateRefList.optional().describe('Target input ID(s) to grade, comma-separated for multi-input graders (inferred if omitted)'),
 });
 
 // =============================================================================
