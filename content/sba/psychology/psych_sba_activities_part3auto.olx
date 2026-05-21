@@ -45,8 +45,6 @@ Try to explain what the function of a behavior is, based on what you know or rem
 
 <TextArea id="fba2_ai_function_prompt" rows="2" placeholder="Type your explanation of function of behavior here..." />
 
-<LLMFeedback id="fba2_ai_function_response" render="markdown" />
-
 <ActionButton id="fba2_ai_function_btn" label="Get AI Feedback" dependsOn="@fba2_ai_function_prompt.value">
 <LLMAction id="fba2_ai_function_action" target="fba2_ai_function_response"><![CDATA[
 You are a helpful psychology teaching assistant. One of your students has
@@ -71,6 +69,18 @@ Output your response in Markdown with bolded paragraph and list headers,
 but keep it short -- no more than a few paragraphs.
 ]]></LLMAction>
 </ActionButton>
+
+<LLMFeedback id="fba2_ai_function_response" render="markdown" />
+
+<Markdown when="@fba2_ai_function_response.value">
+**Before you move on:** take your best guess — what do you think is the function of Johnny's running-away-at-bedtime behavior?
+</Markdown>
+<ChoiceInput when="@fba2_ai_function_response.value" id="fba2_johnny_function_prediction">
+  <Distractor> Attention            </Distractor>
+         <Key> Escape               </Key>
+  <Distractor> Access to tangibles  </Distractor>
+  <Distractor> Sensory              </Distractor>
+</ChoiceInput>
 </Vertical>
 
 
