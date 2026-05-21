@@ -62,8 +62,7 @@ function findTargetingGrader(props: RuntimeProps): StateKey | null {
       return leafDefinitionKeyFromStateKey(stateKey);
     });
     if (targets.includes(normalizedId)) {
-      // Convert DefinitionKey to StateKey for consistency with getGrader
-      return scopedStateKeyForBlock({ ...props, id: graderNodeInfo.olxJson.id });
+      return graderNodeInfo.stateKey;
     }
   }
   return null;

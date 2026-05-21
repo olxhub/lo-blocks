@@ -4,6 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo, useCallback } from 'react';
 import * as state from '@/lib/state';
+import { showAnswer as showAnswerField } from '@/lib/state/commonFields';
 import { getGrader } from '@/lib/blocks';
 import { scopedStateKeyForBlock, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import { DisplayError } from '@/lib/util/debug';
@@ -31,10 +32,15 @@ function _ShowAnswerButton(props: RuntimeProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target]);
 
-  // Read showAnswer from first grader (or use own key as fallback for hook stability)
+  // Read showAnswer from first grader. When no grader found, use own key and
+  // the global showAnswer field for hook stability — the value is unused since
+  // we render DisplayError below.
+  const hasGraders = graderStateKeys.length > 0;
   const primaryGraderKey = graderStateKeys[0] ?? scopedStateKeyForBlock(props);
-  const showAnswerField = state.componentFieldByStateKey(props, primaryGraderKey, 'showAnswer');
-  const [showAnswer] = state.useFieldState(props, showAnswerField, false, { stateKey: primaryGraderKey });
+  const resolvedField = hasGraders
+    ? state.componentFieldByStateKey(props, primaryGraderKey, 'showAnswer')
+    : showAnswerField;
+  const [showAnswer] = state.useFieldState(props, resolvedField, false, { stateKey: primaryGraderKey });
 
   const handleClick = useCallback(() => {
     const newValue = !showAnswer;

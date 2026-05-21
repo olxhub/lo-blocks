@@ -2,7 +2,7 @@
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { getBestVariantServer } from '@/lib/i18n/getBestVariant';
 import { variantMapKeys } from '@/lib/types/i18n';
-import { parseStateRef, stateKeyForGlobalRef, allDefinitionKeysFromStateKey } from '@/lib/types/id-grammar';
+import { parseAnyStateRef, stateKeyForGlobalRef, allDefinitionKeysFromStateKey } from '@/lib/types/id-grammar';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import type { NextRequest } from 'next/server';
@@ -63,8 +63,9 @@ function collectBlockWithKids(
     const refs = extractRefs(refValue);
     for (const ref of refs) {
       // extractRefs returns Zod-validated values — no prefix stripping needed.
-      // If a "/" or "./" ref appears, parseStateRef will throw, surfacing bad data.
-      const stateKey = stateKeyForGlobalRef(parseStateRef(ref));
+      // Use parseAnyStateRef to accept system-generated _-prefixed refs
+      // (e.g., auto-wired grader targets from CapaProblem parsers).
+      const stateKey = stateKeyForGlobalRef(parseAnyStateRef(ref));
       for (const key of allDefinitionKeysFromStateKey(stateKey)) {
         collectBlockWithKids(idMap, key, request, collected);
       }
