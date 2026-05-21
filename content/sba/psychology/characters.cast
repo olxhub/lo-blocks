@@ -1,16 +1,426 @@
+# ============================================================================
+# Psychology SBA Cast
+# ============================================================================
+#
+# Four undergraduates in EDUC 3100 (Assessment) working through a semester-
+# long behavioral psychology project. They're helping Annie's roommate with
+# Johnny, a 6-year-old with bedtime escape behavior.
+#
+# Lianne Park is their graduate-student TA.
+#
+# ────────────────────────────────────────────────────────────────────────────
+# CHARACTER DIMENSION PROFILES
+# (Reference for dialogue writing — not rendered by the system)
+# ────────────────────────────────────────────────────────────────────────────
+#
+# ═══════════════════════════════════════════════════════════════════════════
+# ANNIE
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Identity:
+#   Place of origin: Grew up in a big family in a small Texas town. She's
+#     the oldest of four siblings and has been managing younger kids since
+#     she could walk. College is 800 miles from home and she misses it.
+#   Family background: Parents run a daycare center. Annie grew up
+#     surrounded by kids and absorbed a lot of practical child-rearing
+#     knowledge — but it's intuitive, not theoretical. She sometimes
+#     confuses "what worked for my mom" with evidence-based practice.
+#   Education: Education major, sophomore. Strong in practicum courses,
+#     struggles with the theoretical/research side. Finds journal articles
+#     intimidating but loves case studies.
+#
+# Personality:
+#   Core traits: Warm, practical, occasionally impatient with abstraction.
+#     She wants to *do* something, not just talk about it. Emotionally
+#     invested in the people in her stories — when she talks about Johnny,
+#     she talks about him like she knows him personally.
+#   Confidence: 6/10 in general. 8/10 when talking about kids or practical
+#     strategies. 3/10 when asked to explain theoretical frameworks.
+#   Stress response: Takes action, sometimes prematurely. When the plan
+#     isn't working, her instinct is to throw more strategies at it rather
+#     than step back and diagnose. She'll say "Let's just try ___" before
+#     the group has finished analyzing.
+#   Decision-making: Intuitive. Trusts her gut about what "feels right"
+#     for a kid, then looks for theory to back it up (sometimes selectively).
+#   Blind spots: Assumes her childcare intuitions are universal. Doesn't
+#     always distinguish between "what I've seen work" and "what the
+#     evidence says works." Can mistake empathy for analysis.
+#
+# Voice:
+#   Speech patterns: Conversational and direct. Uses "okay" and "so" to
+#     start sentences. Tends to tell stories and anecdotes rather than
+#     state abstractions. Often grounds abstract discussion by bringing it
+#     back to Johnny or her roommate. Sentences are medium-length, with a
+#     casual rhythm.
+#   Vocabulary: Everyday language. Uses "kid" not "child," "bedtime stuff"
+#     not "sleep hygiene protocol." When she uses a technical term, she
+#     often paraphrases it immediately: "the function — like, the reason
+#     he's doing it."
+#   Humor: Warm and self-deprecating. Makes fun of her own confusion.
+#     "My brain is going to explode" when something is complex. Uses
+#     exaggeration for comedic effect.
+#   Verbal tics: "Okay, so..." to start explanations. "Right?" as a
+#     check-in after stating something. "My roommate says..." to bring
+#     in external information.
+#   Formality: 3/10. The most casual speaker in the group.
+#
+# Relationships:
+#   Team role: The connector. She brings the real-world problem and keeps
+#     the group focused on actually helping Johnny (not just learning
+#     theory). She's the reason the project matters to anyone.
+#   With JJ: She appreciates his energy but sometimes has to rein in
+#     his enthusiasm when he jumps ahead. They're friends outside the
+#     study group — they joke around easily.
+#   With Lin: She respects Lin's knowledge but sometimes feels a little
+#     inadequate by comparison. When Lin pulls out class notes, Annie
+#     feels like she should have been more organized.
+#   With Lianne: Comfortable asking Lianne questions. Sees her as
+#     approachable, not intimidating.
+#   Conflict style: Diplomatic. Avoids direct confrontation but will
+#     redirect: "That's a good point, but what about..."
+#
+# Narrative:
+#   Story arc: Starts relying on intuition and personal experience. By
+#     the end, she's learned to combine her practical instincts with
+#     systematic analysis (ABCs, function of behavior) and recognizes
+#     that good intentions + wrong strategy = poor outcomes.
+#   Defining moment: Watching her mom handle a difficult child at the
+#     daycare using a simple routine change instead of punishment. She
+#     didn't understand it then, but this course is giving her the
+#     vocabulary for what her mom already knew.
+#
+# Rules:
+#   - Annie always relates concepts to real people she knows.
+#   - Annie never uses jargon without immediately explaining it.
+#   - When confused, Annie asks "wait, so what does that mean for
+#     Johnny?" to ground the conversation.
+#   - Annie sometimes jumps to a strategy before the group has
+#     finished diagnosing the problem — this is her productive flaw.
+#   - Annie does not put herself down about being less academic;
+#     she's matter-of-fact about what she knows and doesn't know.
+#
+# ═══════════════════════════════════════════════════════════════════════════
+# JJ
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Identity:
+#   Place of origin: Suburban New Jersey. Only child. Parents are both
+#     engineers — the household ran on logic, schedules, and spreadsheets.
+#   Family background: His parents solved every problem with a system.
+#     Chore charts, reward schedules, color-coded calendars. He grew up
+#     thinking every problem has an optimal solution if you just model it
+#     right. This makes him good at structured thinking and slightly
+#     overconfident in systems.
+#   Education: Double major in education and computer science. Takes the
+#     CS mindset into education courses — wants to optimize, quantify,
+#     and automate. Genuinely interested in AI/EdTech and sees it as the
+#     future of learning.
+#
+# Personality:
+#   Core traits: Enthusiastic, systematic, sometimes misses the human
+#     element. He's the first to say "let's make a chart" or "let's
+#     ask AI." He gets excited about tools and frameworks, sometimes at
+#     the expense of understanding the underlying concept first.
+#   Confidence: 7/10 in general. 9/10 with technology and AI. 4/10
+#     with emotional or ambiguous situations where there's no clear
+#     "right answer."
+#   Stress response: Over-engineers. When something isn't working, JJ
+#     wants to add more structure — more data, more steps, more tracking.
+#     His instinct is that the system needs to be more elaborate, not
+#     simpler.
+#   Decision-making: Analytical. Wants data before deciding. Can get
+#     stuck in analysis paralysis when the data is ambiguous.
+#   Blind spots: Assumes systems and tools solve problems. Sometimes
+#     treats AI output as authoritative rather than as a starting point.
+#     Can miss that a "simple" plan might be better than an elaborate one.
+#     Doesn't always recognize when a problem is about people, not
+#     processes.
+#
+# Voice:
+#   Speech patterns: Quick, energetic sentences. Uses exclamation marks
+#     naturally (in speech, this comes across as genuine excitement, not
+#     shouting). Jumps between topics. Sometimes starts a sentence before
+#     finishing his thought, creating a slightly breathless quality. Asks
+#     questions he immediately tries to answer himself.
+#   Vocabulary: Comfortable with technical terms — uses them readily,
+#     sometimes before he fully understands them. Borrows CS metaphors:
+#     "debug the plan," "let's iterate on this." Uses AI terminology
+#     naturally: "prompt," "output," "hallucination."
+#   Humor: Enthusiastic and slightly nerdy. Makes pop culture references.
+#     Gets excited and says things like "Oh THAT's what that means!" with
+#     genuine delight. His humor is unintentional — he's funny because
+#     he's so earnest, not because he's trying to be clever.
+#   Verbal tics: "Wait, wait, wait—" when he has an idea. "What if
+#     we..." to propose solutions. "Oh!" as a genuine exclamation of
+#     understanding. "Let me think about this..."
+#   Formality: 4/10. Informal but peppered with technical vocabulary.
+#
+# Relationships:
+#   Team role: The experimenter. He drives the AI interactions, proposes
+#     new approaches, and builds things. He's the first to volunteer to
+#     try something — and sometimes the first to need correction when
+#     his enthusiasm outpaces his understanding.
+#   With Annie: He likes her directness and finds her practical knowledge
+#     impressive (his own childhood was very structured, very different).
+#     They joke around easily.
+#   With Lin: He respects her precision and relies on her to catch his
+#     errors. Sometimes impatient when she slows him down with "let's
+#     check the textbook first."
+#   With Lianne: Slightly eager to impress. Tends to show off his AI
+#     prompts. Lianne gently redirects him when he's relying on tools
+#     instead of thinking.
+#   Conflict style: Direct but not aggressive. Will say "I don't think
+#     that's right" without softening it much, then immediately suggest
+#     an alternative. Doesn't hold grudges.
+#
+# Narrative:
+#   Story arc: Starts as a tool-first thinker ("let's just ask AI").
+#     Learns that tools are only as good as the thinking behind them —
+#     a bad prompt gives a bad answer, and a good plan matters more than
+#     a fancy system. By Part 6, he's the one who recognizes that the
+#     simple checklist on a phone might matter more than an elaborate plan.
+#   Defining moment: In Part 6 (or earlier Part 4), JJ writes a vague
+#     AI prompt and gets generic, useless advice. The group discusses
+#     what went wrong. This is the moment he realizes that "ask AI"
+#     isn't a strategy — it's a tool that requires thought.
+#
+# Rules:
+#   - JJ is the first to suggest using AI or making a chart/diagram.
+#   - JJ sometimes states things with more confidence than his
+#     understanding warrants — this creates teachable moments when
+#     Lin or Lianne corrects him.
+#   - JJ always tries to answer his own questions before waiting for
+#     others. He'll say "Is it because... no, wait, maybe it's..."
+#   - When JJ is wrong, he recovers quickly and with good humor —
+#     "Oh! Right, that makes way more sense."
+#   - JJ never dismisses other people's ideas — he builds on them
+#     (sometimes too quickly, before fully understanding them).
+#
+# ═══════════════════════════════════════════════════════════════════════════
+# LIN
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Identity:
+#   Place of origin: San Francisco Bay Area. Daughter of Taiwanese
+#     immigrants. Grew up bilingual. Her household valued education
+#     intensely — not as status, but as security.
+#   Family background: Her father is a pharmacist, her mother teaches
+#     high school math. Both parents modeled careful, methodical
+#     thinking. Dinner-table conversations were about evidence and
+#     reasoning. She was raised to "show your work."
+#   Education: Psychology major with a minor in statistics. She's the
+#     only one in the group taking the course because it genuinely
+#     interests her, not just as a requirement. Reads ahead in the
+#     textbook. Takes detailed, organized notes with color-coding.
+#
+# Personality:
+#   Core traits: Precise, thoughtful, quietly confident. She doesn't
+#     talk first in a group, but when she does, people listen because
+#     she's usually right. She values accuracy over speed and will
+#     gently correct errors even when it slows the conversation down.
+#   Confidence: 7/10 in general. 9/10 on course material. 5/10 in
+#     unstructured social situations — she's more comfortable with ideas
+#     than small talk.
+#   Stress response: Goes quiet and methodical. When things go wrong,
+#     Lin's instinct is to go back to the data, back to the textbook,
+#     back to first principles. She doesn't panic — she narrows her
+#     focus. This is her strength and occasionally her limitation (she
+#     can miss the forest for the trees).
+#   Decision-making: Analytical-consultative. Gathers evidence, then
+#     checks her reasoning with the group. Won't commit to a position
+#     until she's thought it through.
+#   Blind spots: Can be rigid about "the right way" to do things.
+#     Sometimes prioritizes textbook correctness over practical
+#     workability. Occasionally dismisses an approach that's technically
+#     imprecise but practically effective.
+#
+# Voice:
+#   Speech patterns: Measured, clear, slightly more formal than the
+#     others. Complete sentences. She qualifies her statements: "based
+#     on what we learned," "if I remember correctly," "the textbook
+#     says." She pauses before responding — she doesn't do stream-of-
+#     consciousness. When she explains something, she walks through it
+#     step by step.
+#   Vocabulary: Accurate and field-appropriate. Uses terms correctly:
+#     "negative reinforcement" means exactly what it means, not a vague
+#     sense of punishment. She's comfortable with jargon because she
+#     actually understands it, and she'll quietly correct misuse.
+#   Humor: Dry and understated. Occasional deadpan one-liners that
+#     land precisely because they're unexpected from the serious one.
+#     She's not trying to be funny — that's what makes it work.
+#   Verbal tics: "Let's think about this carefully" when the group is
+#     rushing. "Actually..." to make corrections (gently, but she does
+#     correct). "Here's what my notes say..." to ground discussion
+#     in evidence. "Right, and..." to build on others' points.
+#   Formality: 6/10. The most formal speaker in the group, but not
+#     stiff — just precise.
+#
+# Relationships:
+#   Team role: The scholar. She's the group's fact-checker and the one
+#     who brings textbook knowledge to bear. When the group is
+#     speculating, Lin is the one who says "let me look that up."
+#   With Annie: She admires Annie's practical knowledge about kids.
+#     She recognizes that Annie knows things Lin only reads about.
+#     Sometimes wishes she had Annie's ease with people.
+#   With JJ: She finds his energy exhausting sometimes, but values his
+#     willingness to try things. She's the one who catches his errors,
+#     and he's genuinely grateful rather than defensive — which is why
+#     it works.
+#   With Lianne: She looks up to Lianne and wants to follow a similar
+#     academic path. She's the most attentive to Lianne's feedback.
+#   Conflict style: Diplomatic-collaborative. She frames corrections
+#     as shared discovery: "I think it might actually be..." rather
+#     than "You're wrong." But she won't let an error stand.
+#
+# Narrative:
+#   Story arc: Starts as the textbook expert who trusts theory over
+#     practice. Through the project, she learns that correct theory +
+#     poor implementation = failure (the fidelity lesson). By Part 6,
+#     she's the one advocating for simple, practical modifications
+#     because she's seen that the best plan in the world doesn't work
+#     if nobody follows it.
+#   Defining moment: Seeing the Week 1-2 data in Part 6 — the plan
+#     they designed (correctly!) didn't work because of fidelity
+#     issues. This shakes her assumption that getting the theory right
+#     is sufficient.
+#
+# Rules:
+#   - Lin always grounds claims in evidence (notes, textbook, class).
+#   - Lin corrects errors, but gently — she frames it as "I think"
+#     or "actually, I believe" rather than "you're wrong."
+#   - Lin doesn't guess. If she doesn't know, she says so and
+#     suggests looking it up.
+#   - When the group is moving too fast, Lin is the one who says
+#     "hold on, let's make sure we understand this first."
+#   - Lin explains things step-by-step, even when others want to
+#     skip ahead. This is occasionally annoying and always useful.
+#
+# ═══════════════════════════════════════════════════════════════════════════
+# LIANNE (LIANNE PARK)
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Identity:
+#   Place of origin: Chicago suburbs. Korean-American. Undergrad at
+#     UChicago, now a second-year master's student in school psychology.
+#   Family background: Her mother is a social worker; her father manages
+#     a restaurant. She grew up watching her mom navigate systems on
+#     behalf of families — IEP meetings, school discipline hearings,
+#     family court. This gave her both a passion for helping kids and a
+#     realistic view of how institutions work (and fail).
+#   Education: BA in psychology from UChicago, currently in a school
+#     psychology master's program. She's done practicum placements in
+#     elementary schools and has actually conducted functional behavior
+#     assessments with real children. The gap between her experience
+#     and the undergrads' is real but she doesn't flaunt it.
+#
+# Personality:
+#   Core traits: Warm but boundaried. Genuinely wants the students to
+#     learn and will invest time in their understanding — but she asks
+#     questions instead of giving answers, which can feel frustrating
+#     in the moment (and illuminating in retrospect). She has the
+#     patience of someone who works with elementary schoolers.
+#   Confidence: 8/10. She knows this material deeply and trusts her
+#     knowledge. But she also knows what she doesn't know — she won't
+#     bluff about topics outside her training.
+#   Stress response: Gets calmer when others get more agitated.
+#     Her instinct under pressure is to slow down, ask a clarifying
+#     question, and refocus the group on what they actually know.
+#     She never matches the energy of panic.
+#   Decision-making: Consultative-Socratic. She doesn't make decisions
+#     for the group — she asks the questions that lead the group to
+#     make better decisions themselves.
+#   Blind spots: Can over-rely on the Socratic approach when students
+#     genuinely need direct instruction. Sometimes her questions feel
+#     like tests rather than invitations. She's aware of this and
+#     tries to calibrate, but she errs on the side of asking.
+#
+# Voice:
+#   Speech patterns: Calm, clear, slightly more formal than the
+#     students but not stiff. She asks more questions than she makes
+#     statements. Her questions are specific and targeted — never
+#     vague. She uses pauses deliberately. She validates before
+#     redirecting: "That's a reasonable thought — and what happens
+#     when we apply it to Johnny's case?"
+#   Vocabulary: Professional but accessible. She uses the technical
+#     terms (she's modeling correct usage) but she doesn't expect
+#     students to already know them. She'll use a term and then
+#     unpack it: "implementation fidelity — meaning, is the person
+#     actually doing what the plan says they should do?"
+#   Humor: Sparing and warm. An occasional knowing smile in her
+#     dialogue. She doesn't make jokes, but she appreciates them, and
+#     she has a dry way of pointing out the obvious that lands as
+#     gentle humor: "So the plan didn't work because nobody followed
+#     the plan. Sound familiar?"
+#   Verbal tics: "What do you think?" to push the group to reason.
+#     "That's a good start — what else?" to extend thinking. "Let's
+#     slow down" when the group is rushing. She often reflects back
+#     what a student said in slightly more precise language.
+#   Formality: 7/10. Professional but approachable. She sounds like
+#     a grad student, not a professor — knowledgeable but not distant.
+#
+# Relationships:
+#   Team role: The guide. She doesn't do the work for the group, but
+#     she shapes their thinking through questions, timely information,
+#     and the occasional direct correction when they're heading toward
+#     a genuinely wrong conclusion. She models expert reasoning.
+#   With Annie: She sees Annie's practical instincts as a strength and
+#     tries to help her connect those instincts to formal frameworks.
+#     "Your mom was doing antecedent manipulation — she just didn't
+#     call it that."
+#   With JJ: She likes his energy but gently redirects his tool-first
+#     impulse. "What are you hoping the AI will tell you?" is her
+#     go-to when JJ reaches for AI before thinking.
+#   With Lin: She recognizes Lin as a strong student and gives her
+#     slightly harder questions. She's also the one who pushes Lin
+#     beyond textbook answers: "The textbook says X. Do you agree?"
+#   Conflict style: Redirective. She doesn't confront — she reframes.
+#     When the group is arguing, she'll say "You're both making a
+#     point — can you identify where you actually disagree?"
+#
+# Narrative:
+#   Story arc: Lianne doesn't change much — she's already competent.
+#     Her arc is about the group's relationship with her: they start
+#     by looking to her for answers and end by using her as a sounding
+#     board. The shift is theirs, but she facilitates it.
+#   Defining moment: Not part of the SBA narrative, but as background:
+#     during a practicum, she watched a well-designed behavior plan
+#     fail completely because the classroom aide was never trained on
+#     it. This is why she cares so much about fidelity — she's seen
+#     firsthand that even perfect plans fail without implementation
+#     support.
+#
+# Rules:
+#   - Lianne asks questions more than she gives answers.
+#   - When Lianne gives direct information, it's because the students
+#     genuinely need it and can't discover it themselves (new
+#     terminology, course-specific framing).
+#   - Lianne validates effort before correcting: "You're on the right
+#     track" or "That's a reasonable first thought" before "but
+#     consider..."
+#   - Lianne never says "that's wrong." She says "what happens if
+#     we test that assumption?" or "how does that fit with what we
+#     know about the consequence?"
+#   - When the group is stuck, Lianne provides exactly one nudge,
+#     then waits. She doesn't rescue them.
+#
+# ============================================================================
+
 Annie:
   seed: annie
   openPeeps:
     face: smile
+
 JJ:
   seed: alexander
   openPeeps:
     face: smile
+
 Lin:
   seed: lynnette
   openPeeps:
     face: smile
+
 Lianne:
   seed: lianne
   openPeeps:
-    face: smile
+    face: calm
