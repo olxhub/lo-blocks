@@ -565,9 +565,36 @@ export async function parseOLX(
     // and validated with parseAnyDefinitionRef (structural check, allows "_" prefix).
     const idStr = attributes.id ? String(attributes.id) : null;
     const systemAssigned = idStr && systemAssignedIds.has(attributes);
-    const bareRef: DefinitionRef = idStr
-      ? (systemAssigned ? parseAnyDefinitionRef(idStr) : parseDefinitionRef(idStr))
-      : createId(node);
+    let bareRef: DefinitionRef;
+    try {
+      bareRef = idStr
+        ? (systemAssigned ? parseAnyDefinitionRef(idStr) : parseDefinitionRef(idStr))
+        : createId(node);
+    } catch (idError: any) {
+      // Invalid authored ID — produce a recoverable ErrorNode instead of aborting the file.
+      bareRef = createId(node);
+      const id: DefinitionKey = qualifyDefinitionRef(bareRef, PLACEHOLDER_NS);
+      const errorObj = {
+        type: 'attribute_validation' as const,
+        title: `Invalid id on <${tag}> in ${provenance.join(', ')}`,
+        message: `Invalid id="${idStr}" on <${tag}>: ${idError.message}`,
+        location: { provenance, ...offsetToLineCol(xml, sourceOffset) },
+        technical: { tag, id: idStr, attributes }
+      };
+      errors.push(errorObj);
+      const lang = resolveElementLanguage(attributes, currentLang, metadataLang);
+      const entry = {
+        id, tag: 'ErrorNode', attributes: errorObj, provenance,
+        rawParsed: node, kids: [], parseError: true,
+        lang,
+        ...(sourceOffset !== undefined ? { _sourceOffset: sourceOffset } : {}),
+        ...(metadata || {})
+      };
+      if (!idMap[id]) idMap[id] = {};
+      idMap[id][lang] = entry;
+      parsedIds.push(id);
+      return { type: 'block', id };
+    }
     const id: DefinitionKey = qualifyDefinitionRef(bareRef, PLACEHOLDER_NS);
 
     const Component = BLOCK_REGISTRY[tag];

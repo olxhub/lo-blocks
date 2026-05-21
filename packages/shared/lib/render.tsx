@@ -207,6 +207,17 @@ export function render({ node, nodeInfo, runtime }: {
     );
   }
 
+  // TODO(render-validated-attrs): render currently validates attributes but
+  // continues to pass the raw `attributes` object below. Parsed OLX normally
+  // arrives here already transformed by parseOLX, so this is usually harmless.
+  // The edge case is render-time-only attributes, especially <Use ref="...">
+  // overrides. A documented override like
+  // `<Use ref="show" target="grader1,grader2" />` would validate into
+  // StateRef[] via z_stateRefList, then still pass the raw comma string to the
+  // component. Before this system scales to broader course-author usage, switch
+  // wrapperProps, Component props, popout/class reads, and nodeInfo.olxJson to
+  // use `validationResult.data` consistently.
+
   // Semantic validation beyond what Zod can express (e.g., valid number, valid regex)
   if (blockType.validateAttributes) {
     const semanticErrors = blockType.validateAttributes(validationResult.data);

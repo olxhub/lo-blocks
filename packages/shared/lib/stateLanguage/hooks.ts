@@ -182,8 +182,25 @@ export function selectReferences(
 }
 
 /**
- * Resolve a reference ID to a StateKey.
- * Qualifies with namespace and applies idPrefix from props.
+ * Resolve a DSL reference ID to a StateKey.
+ *
+ * Current behavior is intentionally lexical: `@answer.value` inside a scoped
+ * renderer (DynamicList, UseDynamic, etc.) resolves through the caller's
+ * idPrefix, so each repeated instance watches its own local `answer`.
+ *
+ * TODO(namespace/dsl): This resolver only models that lexical form. The
+ * expression grammar also accepts quoted IDs, and generated expressions may
+ * eventually contain already-scoped StateRefs such as
+ * `@"CONTENT/list:#0:answer".value`. Those must NOT go through
+ * scopedStateKeyForBlock(), because they already contain their runtime scope.
+ * When we take on scoped StateRef support in the DSL, split this resolver into
+ * two explicit paths:
+ *
+ *   - lexical DefinitionRef-like refs: apply caller idPrefix
+ *   - explicit StateRef/StateKey refs: validate/qualify without adding scope
+ *
+ * Do not "fix" this by making all DSL refs global; that would break the useful
+ * local semantics of bare `@answer` inside repeated/scoped content.
  */
 function resolveToStateKey(props: any, id: string): StateKey {
   return scopedStateKeyForBlock({ ...props, id });

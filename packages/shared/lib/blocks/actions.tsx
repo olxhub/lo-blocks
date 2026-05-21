@@ -24,7 +24,7 @@ import { z } from 'zod';
 import { inferRelatedNodes, getDomNodeByStateKey, propsFromNode } from './olxdom';
 import * as lo_event from 'lo_event';
 import { correctness } from './correctness';
-import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey } from '../types/id-grammar';
+import { leafDefinitionKeyFromStateKey } from '../types/id-grammar';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { valueSelector } from '@/lib/state/redux';
 import { isZodCompatible, describeZodType } from './zodCompat';
@@ -177,8 +177,8 @@ export function grader({ grader, infer = true, slots, inputType }: {
   // blueprint and nodeInfo. The runtime context is shared from the source props.
 
   const action = async ({ targetId, targetInstance, props }) => {
-    // DefinitionKey → StateKey (applies runtime.idPrefix for DynamicList scoping)
-    const targetNodeInfo = getDomNodeByStateKey(props, scopedStateKeyForBlock({ id: targetId, idPrefix: props.runtime?.idPrefix }));
+    // targetId is already a StateKey from inferRelatedNodes (via executeNodeActions)
+    const targetNodeInfo = getDomNodeByStateKey(props, targetId);
     const targetAttributes = targetInstance.attributes;
 
     const inputIds = inferRelatedNodes(
@@ -323,11 +323,9 @@ export function grader({ grader, infer = true, slots, inputType }: {
       correct === false ? correctness.incorrect :
         correct; // In case it's already a correctness value
 
-    // Scope the target ID (applies runtime.idPrefix for list/repeated contexts)
-    const scopedTargetId = scopedStateKeyForBlock({ id: targetId, idPrefix: props.runtime?.idPrefix });
-
+    // targetId is already a StateKey — use directly
     // Get current submitCount — only increment for real submissions (not blank/invalid)
-    const currentState = state.application_state?.component?.[scopedTargetId] || {};
+    const currentState = state.application_state?.component?.[targetId] || {};
     const isRealSubmission = correctnessValue !== correctness.unsubmitted &&
                              correctnessValue !== correctness.invalid;
     const submitCount = (currentState.submitCount || 0) + (isRealSubmission ? 1 : 0);
@@ -339,7 +337,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
     // (or per-field events) so all properties get proper conflict resolution.
     const logEvent = props.runtime.logEvent;
     logEvent('UPDATE_CORRECT', {
-      id: scopedTargetId,
+      id: targetId,
       correct: correctnessValue,
       message,
       score,
