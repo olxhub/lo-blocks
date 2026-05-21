@@ -24,7 +24,7 @@ export interface BlockDoc {
   category?: string | null;
   source?: string;
   readme?: string | null;
-  examples?: Array<{ path: string; gitStatus?: BlockGitStatus }>;
+  examples?: Record<string, { path: string; content?: string; gitStatus?: BlockGitStatus }>;
   gitStatus?: BlockGitStatus;
   readmeGitStatus?: BlockGitStatus;
   internal?: boolean;

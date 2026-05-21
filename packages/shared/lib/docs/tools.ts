@@ -61,10 +61,9 @@ const FileContentSchema = z.object({
   content: z.string().describe('File content (UTF-8)'),
 });
 
-/** Example file with content and metadata. */
+/** Example file with content and metadata (value in examples dict). */
 const ExampleSchema = z.object({
   path: z.string().describe('Path relative to project root'),
-  filename: z.string().describe('Base filename'),
   content: z.string().describe('Example file content (UTF-8)'),
   gitStatus: BlockGitStatusSchema.nullable(),
 });
@@ -82,7 +81,7 @@ const BlockResultSchema = z.object({
   template: z.string().nullable().optional().describe('Editor insert template (bare block)'),
   demo: z.string().nullable().optional().describe('Docs marquee example (minimum working example with context)'),
   readme: FileContentSchema.nullable().optional(),
-  examples: z.array(ExampleSchema).optional(),
+  examples: z.record(z.string(), ExampleSchema).optional().describe('Example files keyed by filename'),
   formats: z.array(z.string()).optional().describe('Content format names used by this block (e.g. "chatpeg")'),
 });
 
@@ -179,20 +178,22 @@ async function getBlocks(
       // include YAML+Zod and other content format identifiers.
       entry.formats = block.grammars ?? [];
     }
-    if (includeSet.has('examples') && block.examples?.length) {
+    if (includeSet.has('examples') && block.examples) {
+      const entries = Object.entries(block.examples);
       const results = await Promise.all(
-        block.examples.map(async (example) => {
+        entries.map(async ([filename, example]) => {
           const content = await safeReadFile(example.path);
           if (content === null) return null;
-          return {
+          return [filename, {
             path: example.path,
-            filename: path.basename(example.path),
             content,
             gitStatus: example.gitStatus ?? null,
-          };
+          }] as const;
         }),
       );
-      entry.examples = results.filter((r): r is NonNullable<typeof r> => r !== null);
+      entry.examples = Object.fromEntries(
+        results.filter((r): r is NonNullable<typeof r> => r !== null),
+      );
     }
 
     blocks.push(entry);

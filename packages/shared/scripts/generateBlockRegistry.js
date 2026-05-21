@@ -231,9 +231,9 @@ function discoverBlockAssets(blockFilePath, gitStatusMap) {
   const assets = {
     docs: null,
     docsGitStatus: null,
-    template: null,       // Editor insert template (bare block)
-    demo: null,    // Docs marquee example (minimum working example)
-    examples: [],
+    template: null,       // Key into examples dict (editor insert template)
+    demo: null,           // Key into examples dict (docs marquee example)
+    examples: {},         // Dict keyed by filename
     i18n: {},
     blockGitStatus: getFileGitStatus(blockRelPath, gitStatusMap)
   };
@@ -253,25 +253,21 @@ function discoverBlockAssets(blockFilePath, gitStatusMap) {
     else if (
       (entry.name.startsWith(blockName) && (entry.name.endsWith('.olx') || entry.name.endsWith('.xml')))
     ) {
-      assets.examples.push({
+      assets.examples[entry.name] = {
         path: entryPath,
         gitStatus: getFileGitStatus(entryPath, gitStatusMap)
-      });
+      };
     }
   }
 
-  // Resolve templates from discovered examples.
-  // {BlockName}.olx is the primary example (minimum working example for docs,
-  // and default editor insert template).
-  // {BlockName}.template.olx overrides the editor insert template when the
-  // primary example includes wrapper context (e.g. CapaProblem around a grader).
-  const primaryExample = assets.examples.find(e => e.path.endsWith(`/${blockName}.olx`))?.path ?? null;
-  assets.demo =
-    assets.examples.find(e => e.path.endsWith(`/${blockName}.demo.olx`))?.path ??
-    primaryExample;
-  assets.template =
-    assets.examples.find(e => e.path.endsWith(`/${blockName}.template.olx`))?.path ??
-    primaryExample;
+  // Resolve template/demo as keys into the examples dict.
+  // {BlockName}.olx is the primary example (fallback for both).
+  // {BlockName}.template.olx overrides the editor insert template.
+  // {BlockName}.demo.olx overrides the docs marquee example.
+  const primaryKey = `${blockName}.olx`;
+  const fallback = primaryKey in assets.examples ? primaryKey : null;
+  assets.demo = `${blockName}.demo.olx` in assets.examples ? `${blockName}.demo.olx` : fallback;
+  assets.template = `${blockName}.template.olx` in assets.examples ? `${blockName}.template.olx` : fallback;
 
   // Scan i18n/ subdirectory for per-locale JSON resource files
   if (fs.existsSync(i18nDir) && fs.statSync(i18nDir).isDirectory()) {
@@ -333,7 +329,7 @@ function reduceBlockRegistry(files, outputFile, gitStatusMap) {
     }
     if (assets.template) blockMeta.template = assets.template;
     if (assets.demo) blockMeta.demo = assets.demo;
-    if (assets.examples.length > 0) {
+    if (Object.keys(assets.examples).length > 0) {
       blockMeta.examples = assets.examples;
     }
     if (Object.keys(assets.i18n).length > 0) {

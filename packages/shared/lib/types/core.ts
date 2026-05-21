@@ -157,6 +157,13 @@ import type {
   ReactKey, HtmlId, OLXTag,
 } from './id-grammar';
 
+// Zod schemas re-exported for use by MCP tools and other schema consumers.
+export const OLXTagSchema = z.string().describe('OLX tag name (e.g. "Markdown", "ChoiceInput")');
+
+/** Git status of a file tracked by the block registry generator. */
+export const BlockGitStatusSchema = z.enum(['committed', 'modified', 'untracked']);
+export type BlockGitStatus = z.infer<typeof BlockGitStatusSchema>;
+
 
 /**
  * ═══════════════════
@@ -808,12 +815,16 @@ export interface LoBlock {
   source?: string;
   /** Path to the block's README.md documentation file */
   readme?: string;
-  /** Git status of the README file: 'committed' | 'modified' | 'untracked' */
-  readmeGitStatus?: 'committed' | 'modified' | 'untracked';
-  /** Array of example OLX files for this block */
-  examples?: Array<{ path: string; gitStatus?: 'committed' | 'modified' | 'untracked' }>;
-  /** Git status of the block source file: 'committed' | 'modified' | 'untracked' */
-  gitStatus?: 'committed' | 'modified' | 'untracked';
+  /** Git status of the README file */
+  readmeGitStatus?: BlockGitStatus;
+  /** Key into examples dict for editor insert template (bare block) */
+  template?: string;
+  /** Key into examples dict for docs marquee example (minimum working example with context) */
+  demo?: string;
+  /** Example OLX files keyed by filename. template/demo are keys into this dict. */
+  examples?: Record<string, { path: string; gitStatus?: BlockGitStatus }>;
+  /** Git status of the block source file */
+  gitStatus?: BlockGitStatus;
   /** PEG grammar extensions used by this block (e.g. ['chatpeg']) */
   grammars?: string[];
 }

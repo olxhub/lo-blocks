@@ -24,7 +24,7 @@ function generateDocumentation() {
       source: block.source || null,
       category: block.category || null,
       readme: block.readme || null,
-      examples: block.examples || [],
+      examples: block.examples || {},
       fields: Object.keys(block.fields || {}),
       attributes: extractAttributes(block.attributes),
       hasAction: !!block.action,

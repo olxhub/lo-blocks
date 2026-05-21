@@ -13,8 +13,8 @@ import './BlockList.css';
 
 interface DetailedDocs {
   readme?: { content: string };
-  template?: string | null;
-  examples?: Array<{ filename: string; content: string }>;
+  template?: string | null;  // Key into examples dict
+  examples?: Record<string, { path: string; content: string }>;
   attributes?: AttributeDoc[] | null;
 }
 
@@ -68,8 +68,10 @@ function ExpandableBlockDoc({ name, block, onInsert, isGrammar, extension }: Exp
   // Use attributes from detailed docs if available, fall back to block.attributes
   const attributes = detailedDocs?.attributes ?? block?.attributes;
   const customAttrs = attributes?.filter(attr => attr.description) || [];
-  // BlockList is the Studio sidebar — always use template (bare block)
-  const templateContent = detailedDocs?.template ?? null;
+  // BlockList is the Studio sidebar — always use template (bare block).
+  // template is a key into examples dict; look up the content.
+  const templateKey = detailedDocs?.template;
+  const templateContent = (templateKey && detailedDocs?.examples?.[templateKey]?.content) ?? null;
 
   const handleInsert = () => {
     if (templateContent && onInsert) {
