@@ -4,8 +4,8 @@
 // dynamic content DAG.
 
 import * as state from '@/lib/state';
-import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey, definitionKeyForRef, scopedStateKeyForBlock } from '../types/id-grammar';
-import type { OlxDomNode, OlxDomSelector, DefinitionKey, DefinitionRef, StateKey, RuntimeProps } from '@/lib/types';
+import { parseAnyStateRef, stateKeyForGlobalRef, scopedStateKeyForBlock } from '../types/id-grammar';
+import type { OlxDomNode, OlxDomSelector, DefinitionRef, StateKey, RuntimeProps } from '@/lib/types';
 //
 // The OLX DOM is Learning Observer's internal representation of educational content,
 // distinct from both the React virtual DOM and the browser DOM. It represents the
@@ -106,34 +106,32 @@ export function getKidsDFS(nodeInfo: OlxDomNode, { selector = (_: OlxDomNode) =>
 
 
 /**
- * Convert the various accepted forms of targets into an array of IDs.
+ * Convert the various accepted forms of targets into an array of StateKeys.
+ * Targets are authored cross-references — resolved globally (no idPrefix).
  * Accepts: array, comma-string, single string, true/false/null/undefined.
  *   - false/null/undefined => false
- *   - "foo,bar,baz" => ["foo", "bar", "baz"]
- *   - ["foo", "bar"] => ["foo", "bar"]
- *   - "foo" => ["foo"]
+ *   - "foo,bar,baz" => [StateKey, StateKey, StateKey]
+ *   - ["foo", "bar"] => [StateKey, StateKey]
+ *   - "foo" => [StateKey]
  *   - true => Raise an exception
  * @param {any} targets - Target attribute from OLX (user-authored references)
- * @returns {DefinitionRef[] | false}
+ * @returns {StateKey[] | false}
  */
-function normalizeTargetIds(targets): DefinitionRef[] | false {
+function normalizeTargetIds(targets): StateKey[] | false {
   if (!targets) return false; // Target was not specified
   if (targets === true) throw new Error('Boolean true is not a valid target');
   // Target attrs are validated as StateRef by Zod. Parse as StateRef (accepts
   // both authored and system-generated refs, with or without scope markers),
-  // then extract the leaf block as a DefinitionRef for OLX DOM node matching.
-  const toDefinitionRef = (s: string): DefinitionRef => {
-    const stateKey = stateKeyForGlobalRef(parseAnyStateRef(s));
-    return leafDefinitionKeyFromStateKey(stateKey);
-  };
+  // then resolve globally to a StateKey.
+  const toStateKey = (s: string): StateKey => stateKeyForGlobalRef(parseAnyStateRef(s));
   if (Array.isArray(targets)) {
-    return targets.map(t => toDefinitionRef(String(t)));
+    return targets.map(t => toStateKey(String(t)));
   }
   if (typeof targets === "string") {
     return targets.split(',')
       .map(s => s.trim())
       .filter(Boolean)
-      .map(toDefinitionRef);
+      .map(toStateKey);
   }
   throw new Error('Unsupported target type');
 }
@@ -184,18 +182,15 @@ function root(nodeInfo: OlxDomNode): OlxDomNode {
 }
 
 /**
- * Safely extract node ID from a nodeInfo, with helpful error for debugging.
- * @param {Object} nodeInfo - The nodeInfo to get ID from
- * @param {string} context - Description of what operation is being performed
- * @returns {string} The node ID
- * @throws {Error} If nodeInfo.olxJson or nodeInfo.olxJson.id is missing
+ * Extract the StateKey from an OlxDomNode, with helpful error for debugging.
+ * Returns the scoped runtime identity (e.g. "CONTENT/list:#2:grader_0"),
+ * not just the definition identity.
  */
-function getNodeId(nodeInfo: OlxDomNode, context = 'getNodeId'): DefinitionKey {
+function getNodeStateKey(nodeInfo: OlxDomNode, context = 'getNodeStateKey'): StateKey {
   if (!nodeInfo.olxJson) {
-    // Root node has sentinel instead of olxJson
     if (nodeInfo.sentinel === 'root') {
       throw new Error(
-        `${context}: Attempted to get ID from root sentinel node. ` +
+        `${context}: Attempted to get StateKey from root sentinel node. ` +
         `This usually means a selector matched the root (blueprint.name === 'Root'). ` +
         `Selectors should filter out the root node.`
       );
@@ -204,13 +199,13 @@ function getNodeId(nodeInfo: OlxDomNode, context = 'getNodeId'): DefinitionKey {
       `${context}: nodeInfo.olxJson is undefined. nodeInfo keys: [${Object.keys(nodeInfo).join(', ')}]`
     );
   }
-  if (nodeInfo.olxJson.id === undefined) {
+  if (!nodeInfo.stateKey) {
     throw new Error(
-      `${context}: nodeInfo.olxJson.id is undefined. olxJson keys: [${Object.keys(nodeInfo.olxJson).join(', ')}], ` +
+      `${context}: nodeInfo.stateKey is undefined. olxJson.id: ${nodeInfo.olxJson.id ?? 'N/A'}, ` +
       `tag: ${nodeInfo.olxJson.tag || 'N/A'}`
     );
   }
-  return nodeInfo.olxJson.id;
+  return nodeInfo.stateKey;
 }
 
 export function getAllNodes(nodeInfo: OlxDomNode, { selector = (_: OlxDomNode) => true }: { selector?: OlxDomSelector } = {}) {
@@ -276,7 +271,7 @@ export function inferRelatedNodes(props: RuntimeProps, {
   infer,
   targets,
   closest = false,
-}: { selector?: OlxDomSelector; infer?; targets?; closest?: boolean } = {}): DefinitionKey[] {
+}: { selector?: OlxDomSelector; infer?; targets?; closest?: boolean } = {}): StateKey[] {
   const { nodeInfo } = props;
   if (!nodeInfo) { console.log(props); throw new Error("inferRelatedNodes: props.nodeInfo is required"); };
   if (!selector) throw new Error("inferRelatedNodes: selector is required");
@@ -288,26 +283,23 @@ export function inferRelatedNodes(props: RuntimeProps, {
     (targets ? [] : ['parents', 'kids']) // default: infer if no targets, else don't
   );
 
-  // Extract each group separately
-  // Resolve DefinitionRefs to DefinitionKeys for idMap lookup
-  const explicitTargets: DefinitionKey[] = targetIds ? targetIds.map(ref => definitionKeyForRef(ref)) : [];
+  // Explicit targets are already resolved to StateKeys by normalizeTargetIds.
+  const explicitTargets: StateKey[] = targetIds || [];
 
-  let parents: DefinitionKey[] = [];
+  let parents: StateKey[] = [];
   if (inferModes.includes('parents')) {
     const allParents = getParents(nodeInfo, { selector, includeRoot: false });
-    // getParents returns nearest-first, so [0] is the closest parent
     parents = closest && allParents.length > 0
-      ? [getNodeId(allParents[0], 'inferRelatedNodes (parents)')]
-      : allParents.map(n => getNodeId(n, 'inferRelatedNodes (parents)'));
+      ? [getNodeStateKey(allParents[0], 'inferRelatedNodes (parents)')]
+      : allParents.map(n => getNodeStateKey(n, 'inferRelatedNodes (parents)'));
   }
 
-  let kids: DefinitionKey[] = [];
+  let kids: StateKey[] = [];
   if (inferModes.includes('kids')) {
     const allKids = getKidsBFS(nodeInfo, { selector, includeRoot: false });
-    // BFS returns nearest-first, so [0] is the closest kid
     kids = closest && allKids.length > 0
-      ? [getNodeId(allKids[0], 'inferRelatedNodes (kids)')]
-      : allKids.map(n => getNodeId(n, 'inferRelatedNodes (kids)'));
+      ? [getNodeStateKey(allKids[0], 'inferRelatedNodes (kids)')]
+      : allKids.map(n => getNodeStateKey(n, 'inferRelatedNodes (kids)'));
   }
 
   // Combine all IDs and deduplicate using Set
@@ -323,7 +315,7 @@ export function inferRelatedNodes(props: RuntimeProps, {
  * @returns {string} Grader ID
  * @throws {Error} If no grader found or multiple graders found at same level
  */
-export function getGrader(props: RuntimeProps, { infer }: { infer? } = {}): DefinitionKey {
+export function getGrader(props: RuntimeProps, { infer }: { infer? } = {}): StateKey {
   const ids = inferRelatedNodes(props, {
     selector: n => n.loBlock.isGrader,
     targets: props.target,

@@ -247,7 +247,7 @@ export function render({ node, nodeInfo, runtime }: {
   };
 
   // Check requiresGrader - inject graderId or show error
-  let graderId: DefinitionKey | null = null;
+  let graderId: StateKey | null = null;
   if (blockType.requiresGrader) {
     try {
       graderId = getGrader({ ...wrapperProps });

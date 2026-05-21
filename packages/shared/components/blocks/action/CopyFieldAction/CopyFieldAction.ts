@@ -34,7 +34,7 @@ async function copyFieldAction({ targetInstance, props }) {
   // in one place. See parsers.ts textWithTargetParserMixin for the
   // matching note, and MermaidPublish.olx for the canonical bite.
   const targetStateKey = stateKeyForGlobalRef(target.ref);
-  const srcField = state.componentFieldByName(props, targetStateKey, target.field);
+  const srcField = state.componentFieldByStateKey(props, targetStateKey, target.field);
   const value = state.getField(props, srcField, {
     stateKey: targetStateKey,
     fallback: '',
@@ -44,7 +44,7 @@ async function copyFieldAction({ targetInstance, props }) {
   // (e.g., docField computes splice deltas, plain field sets value directly)
   for (const dest of output) {
     const destStateKey = stateKeyForGlobalRef(dest.ref);
-    const destField = state.componentFieldByName(props, destStateKey, dest.field);
+    const destField = state.componentFieldByStateKey(props, destStateKey, dest.field);
     state.updateField(props, destField, value, { stateKey: destStateKey });
   }
 }

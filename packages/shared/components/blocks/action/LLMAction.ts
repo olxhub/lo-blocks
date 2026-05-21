@@ -21,9 +21,9 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
 
   // Get target component's fields dynamically
   // 'state' field is optional — TextSlot has it, TextArea doesn't
-  const valueField = state.componentFieldByName(props, targetStateKey, 'value');
+  const valueField = state.componentFieldByStateKey(props, targetStateKey, 'value');
   let stateField;
-  try { stateField = state.componentFieldByName(props, targetStateKey, 'state'); } catch {}
+  try { stateField = state.componentFieldByStateKey(props, targetStateKey, 'state'); } catch {}
 
   try {
     state.updateField(props, valueField, '', { stateKey: targetStateKey });

@@ -9,10 +9,10 @@ import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { isKidArray } from '@/lib/util/kids';
-import type { RuntimeProps, DefinitionKey, KidEntry } from '@/lib/types';
+import type { RuntimeProps, DefinitionKey, StateKey, KidEntry } from '@/lib/types';
 import _Noop from '@/components/blocks/layout/_Noop';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
-import { definitionKeyForRef } from '@/lib/types/id-grammar';
+import { definitionKeyForRef, leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 
 export const fields = state.fields([commonFields.value]);
 
@@ -27,11 +27,11 @@ export const fields = state.fields([commonFields.value]);
  * @returns {Array<{id: string, tag: string, value: string}>}
  */
 function getChoices(props: RuntimeProps, state, id) {
-  let ids: DefinitionKey[] = [];
+  let defIds: DefinitionKey[] = [];
 
   // Try to get IDs from kids prop first (works without matching nodeInfo, such as from MarkupProblem)
   if (isKidArray(props.kids)) {
-    ids = props.kids
+    defIds = props.kids
       .filter((k): k is Extract<KidEntry, { type: 'block' }> => k.type === 'block')
       .map(k => definitionKeyForRef(k.id))
       .filter(cid => {
@@ -41,15 +41,16 @@ function getChoices(props: RuntimeProps, state, id) {
   }
 
   // Fall back to inferRelatedNodes if searching kids directly didn't work (such as targets or nested hierarchies)
-  if (ids.length === 0 && props.nodeInfo) {
-    ids = inferRelatedNodes(props, {
+  if (defIds.length === 0 && props.nodeInfo) {
+    const stateKeys: StateKey[] = inferRelatedNodes(props, {
       selector: n => n.loBlock.name === 'Key' || n.loBlock.name === 'Distractor',
       infer: ['kids'],
       targets: props.target
     });
+    defIds = stateKeys.map(sk => leafDefinitionKeyFromStateKey(sk));
   }
 
-  const choices = ids.map(cid => {
+  const choices = defIds.map(cid => {
     const inst = getBlockByOLXId(props, cid);
     if (!inst) return null;
     const choiceValue = inst.attributes.value ?? cid;

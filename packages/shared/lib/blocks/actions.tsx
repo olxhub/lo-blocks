@@ -24,12 +24,12 @@ import { z } from 'zod';
 import { inferRelatedNodes, getDomNodeByStateKey, propsFromNode } from './olxdom';
 import * as lo_event from 'lo_event';
 import { correctness } from './correctness';
-import { scopedStateKeyForBlock } from '../types/id-grammar';
+import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey } from '../types/id-grammar';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { valueSelector } from '@/lib/state/redux';
 import { isZodCompatible, describeZodType } from './zodCompat';
 import { inputAttributes, graderAttributes } from './attributeSchemas';
-import type { RuntimeProps, DefinitionKey, DefinitionRef, LoBlock, ValueSelectorFn } from '@/lib/types';
+import type { RuntimeProps, DefinitionKey, DefinitionRef, StateKey, LoBlock, ValueSelectorFn } from '@/lib/types';
 import type { Store } from 'redux';
 
 // Grader parameter types - each grader receives exactly one of these
@@ -102,8 +102,8 @@ export function isMatch(loBlock) {
  */
 function resolveInputSlots(
   slots: string[],
-  inputIds: DefinitionKey[],
-  getInputSlot: (id: DefinitionKey) => string | undefined
+  inputIds: StateKey[],
+  getInputSlot: (id: StateKey) => string | undefined
 ): { slotMap: Record<string, string>; errors: string[] } {
   const errors: string[] = [];
   const slotMap: Record<string, string> = {};
@@ -195,22 +195,22 @@ export function grader({ grader, infer = true, slots, inputType }: {
 
     // Gather values and APIs from each input (synchronous - blocks are in idMap)
     const inputData = inputIds.map(id => {
-      const inst = getBlockByOLXId(props, id);
+      const defKey = leafDefinitionKeyFromStateKey(id);
+      const inst = getBlockByOLXId(props, defKey);
       if (!inst) {
         console.warn(`[runGrader] Input block "${id}" not found in idMap`);
         return { value: undefined, api: {} };
       }
       const loBlock = map[inst.tag];
-      // DefinitionKey → StateKey (applies runtime.idPrefix for DynamicList scoping)
-      const inputStateKey = scopedStateKeyForBlock({ id, idPrefix: props.runtime?.idPrefix });
-      const inputNodeInfo = getDomNodeByStateKey(props, inputStateKey);
+      // id is already a StateKey from inferRelatedNodes
+      const inputNodeInfo = getDomNodeByStateKey(props, id);
 
       // Use the input's own runtime (captured at render time) for correct idPrefix,
       // logEvent context, etc. Falls back to caller's runtime if nodeInfo unavailable.
       const inputProps = {
         runtime: inputNodeInfo?.runtime ?? props.runtime,
         nodeInfo: inputNodeInfo,
-        id,
+        id: defKey,
         kids: inst.kids || [],
         loBlock,
         fields: loBlock.fields || {},
@@ -219,7 +219,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
       };
 
       // Use valueSelector for uniform handling of withStatus / raw selectValue
-      const { value } = valueSelector(inputProps as RuntimeProps, state, inputStateKey);
+      const { value } = valueSelector(inputProps as RuntimeProps, state, id);
 
       // Create bound API from locals - each function gets (props, state, id) pre-bound
       const api = loBlock.locals
@@ -245,7 +245,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
     const graderInputSchema = props.loBlock?.inputSchema;
     if (graderInputSchema) {
       for (const id of inputIds) {
-        const inst = getBlockByOLXId(props, id);
+        const inst = getBlockByOLXId(props, leafDefinitionKeyFromStateKey(id));
         if (!inst) continue;
         const inputBlock = map[inst.tag];
         if (!inputBlock?.valueSchema) continue;
@@ -270,8 +270,8 @@ export function grader({ grader, infer = true, slots, inputType }: {
 
       if (slots && slots.length > 0) {
         // Dict mode: resolve inputs to named slots
-        const getInputSlot = (id: DefinitionKey) => {
-          const inst = getBlockByOLXId(props, id);
+        const getInputSlot = (id: StateKey) => {
+          const inst = getBlockByOLXId(props, leafDefinitionKeyFromStateKey(id));
           return inst?.attributes?.slot as string | undefined;
         };
 
@@ -374,7 +374,8 @@ export async function executeNodeActions(props: RuntimeProps) {
   });
   const map = props.runtime.blockRegistry;
   for (const targetId of ids) {
-    const targetInstance = getBlockByOLXId(props, targetId);
+    const targetDefKey = leafDefinitionKeyFromStateKey(targetId);
+    const targetInstance = getBlockByOLXId(props, targetDefKey);
     if (!targetInstance) {
       console.warn(`[executeNodeActions] Action block "${targetId}" not found in Redux`);
       continue;
@@ -386,8 +387,8 @@ export async function executeNodeActions(props: RuntimeProps) {
     }
 
     // Find the action's OlxDomNode
-    // DefinitionKey → StateKey (applies runtime.idPrefix for DynamicList scoping)
-    const actionNodeInfo = getDomNodeByStateKey(props, scopedStateKeyForBlock({ id: targetId, idPrefix: props.runtime?.idPrefix }));
+    // targetId is already a StateKey from inferRelatedNodes
+    const actionNodeInfo = getDomNodeByStateKey(props, targetId);
 
     if (!actionNodeInfo) {
       throw new Error(`Action ${targetId} not found in dynamic DOM tree - this indicates a bug in the rendering system`);

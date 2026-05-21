@@ -11,7 +11,7 @@
 //
 // How it works:
 // 1. Uses inferRelatedNodes to find related graders (components with isGrader=true)
-// 2. Uses componentFieldByName to get the specified field from the target component
+// 2. Uses componentFieldByStateKey to get the specified field from the target component
 // 3. Displays that field's value using useFieldSelector
 //
 // Usage examples:

@@ -12,7 +12,6 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useMemo } from 'react';
 import * as state from '@/lib/state';
 import { inferRelatedNodes, useGraderAnswer } from '@/lib/blocks';
-import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { DisplayError } from '@/lib/util/debug';
 import { useKids } from '@/lib/render';
 
@@ -44,16 +43,11 @@ export default function _ChoiceItem(props: RuntimeProps) {
     );
   }
 
-  // Resolve parent's StateKey once for all state access
-  const parentReduxId = useMemo(
-    () => scopedStateKeyForBlock({ ...props, id: parentId }),
-    // parentId is stable (from structural inference in mount-time useMemo)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [parentId]
-  );
+  // parentId is already a StateKey from inferRelatedNodes
+  const parentReduxId = parentId;
 
   // Get the parent input's value field dynamically
-  const valueField = state.componentFieldByName(props, parentId, 'value');
+  const valueField = state.componentFieldByStateKey(props, parentId, 'value');
   // For checkboxes, fallback to empty array; for radio, fallback to empty string
   const selected = state.useFieldSelector(
     props,

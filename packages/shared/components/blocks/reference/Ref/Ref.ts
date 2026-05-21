@@ -4,8 +4,7 @@ import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { valueSelector, fieldByName, fieldSelector } from '@/lib/state';
 import { blockData, withStatus } from '@/lib/state/blockData';
-import { leafDefinitionKeyFromStateKey, definitionKeyForRef, leafBlock, stateKeyForGlobalRef, parseAnyStateRef } from '@/lib/types/id-grammar';
-import type { DefinitionRef } from '@/lib/types';
+import { leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseAnyStateRef } from '@/lib/types/id-grammar';
 import { srcAttributes, z_stateRef } from '@/lib/blocks/attributeSchemas';
 import { selectBlock, selectBlockState } from '@/lib/state/olxjson';
 import _Ref from './_Ref';
@@ -80,9 +79,11 @@ const Ref = core({
       return { value: '', ...blockData('error', 'No target specified. Use target= attribute or <Ref>targetId</Ref>.') };
     }
 
-    // Target is validated by z_stateRef — may be a simple ID or a scoped key.
-    // Extract the leaf block ID and qualify it as a DefinitionKey for block lookup.
-    const targetDefinitionKey = definitionKeyForRef(leafBlock(targetId) as DefinitionRef);
+    // Qualify the target ref into a proper StateKey for Redux lookup.
+    // Ref targets are resolved globally (not scoped by idPrefix).
+    const targetRef = parseAnyStateRef(targetId);
+    const targetStateKey = stateKeyForGlobalRef(targetRef);
+    const targetDefinitionKey = leafDefinitionKeyFromStateKey(targetStateKey);
 
     // Check if target exists in Redux — distinguish loading from missing
     if (!selectBlock(state, sources, targetDefinitionKey, locale)) {
@@ -98,11 +99,6 @@ const Ref = core({
 
     const rawFallback = refNode.attributes?.fallback;
     const fallback = typeof rawFallback === 'string' ? rawFallback : '';
-
-    // Qualify the target ref into a proper StateKey for Redux lookup.
-    // Ref targets are resolved globally (not scoped by idPrefix).
-    const targetRef = parseAnyStateRef(targetId);
-    const targetStateKey = stateKeyForGlobalRef(targetRef);
 
     if (field) {
       const fieldInfo = fieldByName(field);

@@ -4,7 +4,6 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect } from 'react';
 import { correctness, worstCaseCorrectness } from '@/lib/blocks';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
-import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import * as state from '@/lib/state';
 import { useKids, renderBlock } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
@@ -91,11 +90,11 @@ function useGraderAggregation(props, childGraderIds) {
   // reference. Fall back to self (CapaProblem also has grader fields).
   const sampleGraderId = childGraderIds[0] || id;
 
-  // inferRelatedNodes returns DefinitionKeys — convert to StateKeys for useAggregate
-  const childGraderStateKeys = childGraderIds.map(gid => scopedStateKeyForBlock({ ...props, id: gid }));
+  // inferRelatedNodes returns StateKeys — use directly for useAggregate
+  const childGraderStateKeys = childGraderIds;
 
   // Subscribe to child grader correctness values
-  const correctField = state.componentFieldByName(props, sampleGraderId, 'correct');
+  const correctField = state.componentFieldByStateKey(props, sampleGraderId, 'correct');
   const childCorrectnessValues = state.useAggregate(
     props,
     correctField,
@@ -111,7 +110,7 @@ function useGraderAggregation(props, childGraderIds) {
     : correctness.unsubmitted;
 
   // Subscribe to child grader messages
-  const messageField = state.componentFieldByName(props, sampleGraderId, 'message');
+  const messageField = state.componentFieldByStateKey(props, sampleGraderId, 'message');
   const childMessages = state.useAggregate(
     props,
     messageField,
@@ -125,7 +124,7 @@ function useGraderAggregation(props, childGraderIds) {
 
   // Subscribe to child grader submitCounts - sum them for flash animation
   // TODO: Wire this more cleanly?
-  const submitCountField = state.componentFieldByName(props, sampleGraderId, 'submitCount');
+  const submitCountField = state.componentFieldByStateKey(props, sampleGraderId, 'submitCount');
   const childSubmitCounts = state.useAggregate(
     props,
     submitCountField,

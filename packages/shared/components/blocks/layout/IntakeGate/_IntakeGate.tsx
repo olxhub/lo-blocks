@@ -113,7 +113,7 @@ function _IntakeGate(props: RuntimeProps) {
   // TODO: Validate that IDs referenced in ready/loading/targets expressions
   // actually exist as components. A typo like targets="outpt" (instead of
   // "output") silently resolves to undefined, leaving the gate permanently
-  // locked with no visible error. See componentFieldByName() for a pattern
+  // locked with no visible error. See componentFieldByStateKey() for a pattern
   // that validates component existence and gives helpful error messages.
 
   // Evaluate phase expressions

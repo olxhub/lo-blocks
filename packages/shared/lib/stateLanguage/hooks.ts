@@ -9,7 +9,7 @@ import { useMemo } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey } from '../types/id-grammar';
 import { selectBlock } from '../state/olxjson';
-import type { FieldInfo } from '../types';
+import type { FieldInfo, StateKey } from '../types';
 import type { References } from './references';
 import { EMPTY_REFS } from './references';
 import { parse } from './parser';
@@ -52,7 +52,7 @@ function materializeComponentState(
   rawState: any,
   state: any,
   props: any,
-  stateKey: string
+  stateKey: StateKey
 ): any {
   if (!rawState || typeof rawState !== 'object') return rawState;
 
@@ -61,7 +61,7 @@ function materializeComponentState(
   if (cached) return cached;
 
   // Look up block type → field definitions
-  const definitionKey = leafDefinitionKeyFromStateKey(stateKey as any);
+  const definitionKey = leafDefinitionKeyFromStateKey(stateKey);
   const sources = props.runtime?.olxJsonSources ?? ['content'];
   const locale = props.runtime?.locale?.code;
   const blockNode = selectBlock(state, sources, definitionKey, locale);
@@ -185,7 +185,7 @@ export function selectReferences(
  * Resolve a reference ID to a StateKey.
  * Qualifies with namespace and applies idPrefix from props.
  */
-function resolveToStateKey(props: any, id: string): string {
+function resolveToStateKey(props: any, id: string): StateKey {
   return scopedStateKeyForBlock({ ...props, id });
 }
 

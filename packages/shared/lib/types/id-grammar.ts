@@ -512,9 +512,26 @@ export function extendIdPrefix(
   // Strip namespace from scope components — idPrefix is a bare scope path,
   // never namespace-qualified. Callers commonly pass props.id (a DefinitionRef
   // that may be qualified like "CONTENT/list") as a scope component.
+  //
+  // Currently, all callers pass IDs from the same namespace (the block's own
+  // id). Cross-namespace scoping (e.g. embedding ns1/foo inside ns2/bar) is
+  // not reachable with current syntax. When it becomes possible, we'll need
+  // to decide whether mixed-namespace idPrefixes are valid or whether scoping
+  // should be namespace-local. For now, reject the case we know is wrong.
+  let seenNs: string | null = null;
   const strip = (s: string | number | ScopeMarker): string => {
     const str = String(s);
-    return isNamespaceQualified(str) ? splitNs(str).path : str;
+    if (!isNamespaceQualified(str)) return str;
+    const { ns, path } = splitNs(str);
+    if (seenNs === null) {
+      seenNs = ns;
+    } else if (ns !== seenNs) {
+      throw new Error(
+        `extendIdPrefix: mixed namespaces in scope components ("${seenNs}" vs "${ns}"). ` +
+        `Cross-namespace scoping is not yet supported.`
+      );
+    }
+    return path;
   };
   const scopeStr = Array.isArray(scope) ? scope.map(strip).join(SCOPE_SEPARATOR) : strip(scope);
   const newPrefix = props.idPrefix

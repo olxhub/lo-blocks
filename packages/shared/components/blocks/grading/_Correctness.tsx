@@ -8,11 +8,11 @@ import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { correctness } from '@/lib/blocks';
 import { useFieldSelector } from '@/lib/state';
-import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 
 function _Correctness(props: RuntimeProps) {
   const { fields, graderId } = props;
-  const graderStateKey = scopedStateKeyForBlock({ ...props, id: graderId });
+  // graderId is a StateKey injected by render (requiresGrader: true)
+  const graderStateKey = graderId;
 
   const correctnessValue = useFieldSelector(
     props,

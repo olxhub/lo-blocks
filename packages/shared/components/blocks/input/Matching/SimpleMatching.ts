@@ -19,6 +19,7 @@ import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
+import type { DefinitionRef } from '@/lib/types';
 import * as matchingParser from './_matchingParser';
 import _Noop from '@/components/blocks/layout/_Noop';
 
@@ -30,12 +31,18 @@ const TITLE   = parseLeafId('title');
 const LEFT    = parseLeafId('left');
 const RIGHT   = parseLeafId('right');
 
+/** PEG parser output for matching DSL. */
+interface MatchingParsed {
+  title: string;
+  pairs: { left: string; right: string }[];
+}
+
 /**
  * Generate all required components for a matching problem
  * Expands DSL into CapaProblem + MatchingGrader + MatchingInput + Markdown items
  */
 function generateMatchingComponents({ parsed, storeEntry, id, tag, attributes }: any) {
-  const { title, pairs } = parsed as any;
+  const { title, pairs } = parsed as MatchingParsed;
   const parentRef = asDefinitionRef(splitNs(id).path);
 
   // Generate IDs for all components
@@ -45,13 +52,13 @@ function generateMatchingComponents({ parsed, storeEntry, id, tag, attributes }:
   const titleId = joinDefinitionRef(parentRef, TITLE);
 
   // Generate IDs for each pair's left and right items
-  const itemIds = (pairs as any[]).map((_: any, i: number) => ({
+  const itemIds = pairs.map((_, i) => ({
     left: joinDefinitionRef(parentRef, LEFT, i),
     right: joinDefinitionRef(parentRef, RIGHT, i),
   }));
 
   // Store title/prompt block if present
-  let titleBlockRef: any = null;
+  let titleBlockRef: { type: 'block'; id: DefinitionRef } | null = null;
   if (title) {
     storeEntry(titleId, {
       id: titleId,
@@ -63,8 +70,8 @@ function generateMatchingComponents({ parsed, storeEntry, id, tag, attributes }:
   }
 
   // Store left and right item blocks
-  const inputKids: any[] = [];
-  (pairs as any[]).forEach((pair: any, i: number) => {
+  const inputKids: { type: 'block'; id: DefinitionRef }[] = [];
+  pairs.forEach((pair, i) => {
     // Store left item
     storeEntry(itemIds[i].left, {
       id: itemIds[i].left,
@@ -93,7 +100,7 @@ function generateMatchingComponents({ parsed, storeEntry, id, tag, attributes }:
   });
 
   // Build MatchingGrader kids
-  const graderKids: any[] = [];
+  const graderKids: { type: 'block'; id: DefinitionRef }[] = [];
   if (titleBlockRef) {
     graderKids.push(titleBlockRef);
   }

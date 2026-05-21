@@ -1,6 +1,5 @@
 // src/lib/blocks/olxdom.test.js
 import { getKidsBFS, getKidsDFS, getParents, inferRelatedNodes, getAllNodes, __testables } from './olxdom';
-import { asDefinitionKey } from '../types/id-grammar';
 import { TEST_NS, testKey } from '../test-utils';
 
 const { normalizeTargetIds, normalizeInfer} = __testables;
@@ -105,8 +104,8 @@ describe('inferRelatedNodes', () => {
     expect(normalizeTargetIds(undefined)).toEqual(false);
     expect(normalizeTargetIds(null)).toEqual(false);
     expect(() => normalizeTargetIds(true)).toThrow();
-    // normalizeTargetIds parses targets as StateRef then extracts the leaf
-    // DefinitionKey — results are namespace-qualified with PLACEHOLDER_NS.
+    // normalizeTargetIds parses targets as StateRef then resolves to
+    // StateKey — results are namespace-qualified with PLACEHOLDER_NS.
     expect(normalizeTargetIds("foo, bar, baz")).toEqual(["CONTENT/foo", "CONTENT/bar", "CONTENT/baz"]);
     expect(normalizeTargetIds("foo")).toEqual(["CONTENT/foo"]);
     expect(normalizeTargetIds(["foo", "bar"])).toEqual(["CONTENT/foo", "CONTENT/bar"]);

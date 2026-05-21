@@ -23,8 +23,8 @@ function _ShowAnswerButton(props: RuntimeProps) {
       return targetRefs.map(ref => stateKeyForGlobalRef(ref));
     }
     try {
-      // getGrader returns DefinitionKey — convert to StateKey
-      return [scopedStateKeyForBlock({ ...props, id: getGrader(props) })];
+      // getGrader now returns StateKey directly
+      return [getGrader(props)];
     } catch (e) {
       return [];
     }
@@ -33,14 +33,14 @@ function _ShowAnswerButton(props: RuntimeProps) {
 
   // Read showAnswer from first grader (or use own key as fallback for hook stability)
   const primaryGraderKey = graderStateKeys[0] ?? scopedStateKeyForBlock(props);
-  const showAnswerField = state.componentFieldByName(props, primaryGraderKey, 'showAnswer');
+  const showAnswerField = state.componentFieldByStateKey(props, primaryGraderKey, 'showAnswer');
   const [showAnswer] = state.useFieldState(props, showAnswerField, false, { stateKey: primaryGraderKey });
 
   const handleClick = useCallback(() => {
     const newValue = !showAnswer;
     // Toggle all targeted graders
     for (const graderKey of graderStateKeys) {
-      const field = state.componentFieldByName(props, graderKey, 'showAnswer');
+      const field = state.componentFieldByStateKey(props, graderKey, 'showAnswer');
       state.updateField(props, field, newValue, { stateKey: graderKey });
     }
   }, [showAnswer, graderStateKeys, props]);

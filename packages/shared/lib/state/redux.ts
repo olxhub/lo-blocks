@@ -471,30 +471,14 @@ export function useReduxCheckbox(
 }
 
 /**
- * Helper to get a field from another component by string name.
- * Throws if the component or field is not found to prevent typos.
- *
- * Note that this should only be used when field names are coming
- * from user input (e.g. OLX files). Otherwise, we should treat
- * fields as if they were an enum or symbol, and only use as
- * `fields.field`
- *
- * @param {Object} props - Component props with blockRegistry and olxJsonSources
- * @param {string} targetId - ID of the target component
- * @param {string} fieldName - Name of the field to access (e.g., 'value')
- * @returns {FieldInfo} The field info
- * @throws {Error} If component or field not found
+ * Core: look up a field definition given a resolved DefinitionKey.
  */
-export function componentFieldByName(props: RuntimeProps, targetId: DefinitionKey | StateKey, fieldName: string) {
-  // Normalize to DefinitionKey: handles qualified StateKeys (extracts leaf) and bare refs (qualifies them).
-  const normalizedId = isNamespaceQualified(targetId)
-    ? leafDefinitionKeyFromStateKey(targetId as StateKey)
-    : definitionKeyForRef(targetId as any);
+function _componentField(props: RuntimeProps, definitionKey: DefinitionKey, fieldName: string): FieldInfo {
   const sources = props.runtime.olxJsonSources ?? ['content'];
   const locale = props.runtime.locale.code;
-  const targetNode = selectBlock(props.runtime.store.getState(), sources, normalizedId, locale);
+  const targetNode = selectBlock(props.runtime.store.getState(), sources, definitionKey, locale);
   if (!targetNode) {
-    throw new Error(`Could not find component "${targetId}". Check that the id exists in your OLX and is spelled correctly.`);
+    throw new Error(`Could not find component "${definitionKey}". Check that the id exists in your OLX and is spelled correctly.`);
   }
 
   const targetLoBlock = props.runtime.blockRegistry[targetNode.tag];
@@ -505,11 +489,25 @@ export function componentFieldByName(props: RuntimeProps, targetId: DefinitionKe
   const field = targetLoBlock.fields?.[fieldName];
   if (!field) {
     const availableFields = Object.keys(targetLoBlock.fields || {});
-    throw new Error(`<${targetNode.tag} id="${targetId}"> has no "${fieldName}" field. Available fields: ${availableFields.join(', ') || 'none'}`);
+    throw new Error(`<${targetNode.tag} id="${definitionKey}"> has no "${fieldName}" field. Available fields: ${availableFields.join(', ') || 'none'}`);
   }
 
   return field;
 }
+
+/**
+ * Look up a field definition from another component by StateKey and field name.
+ * Use when you have a resolved StateKey (from stateKeyForGlobalRef or scopedStateKeyForBlock).
+ *
+ * @example
+ *   const targetStateKey = stateKeyForGlobalRef(target);
+ *   const field = componentFieldByStateKey(props, targetStateKey, 'value');
+ *   const val = useFieldSelector(props, field, { stateKey: targetStateKey });
+ */
+export function componentFieldByStateKey(props: RuntimeProps, stateKey: StateKey, fieldName: string): FieldInfo {
+  return _componentField(props, leafDefinitionKeyFromStateKey(stateKey), fieldName);
+}
+
 
 /**
  * Selector function to get a component's value by ID.

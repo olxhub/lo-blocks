@@ -10,6 +10,7 @@ import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import _Noop from '@/components/blocks/layout/_Noop';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
+import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import type { RuntimeProps } from '@/lib/types';
 
 export const fields = state.fields([commonFields.value]);
@@ -27,10 +28,11 @@ function getChoices(props: RuntimeProps, state, id) {
     targets: props.target
   });
   const choices = ids.map(cid => {
-    const inst = getBlockByOLXId(props, cid);
+    const defKey = leafDefinitionKeyFromStateKey(cid);
+    const inst = getBlockByOLXId(props, defKey);
     if (!inst) return null;
-    const choiceValue = inst.attributes.value ?? cid;
-    return { id: cid, tag: inst.tag, value: choiceValue };
+    const choiceValue = inst.attributes.value ?? defKey;
+    return { id: defKey, tag: inst.tag, value: choiceValue };
   }).filter(Boolean);
   return choices;
 }
