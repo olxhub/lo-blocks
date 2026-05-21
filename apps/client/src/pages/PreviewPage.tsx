@@ -10,12 +10,12 @@ import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
 import { useFieldState, settings } from '@/lib/state';
 import { useContentLoader } from '@/lib/content/useContentLoader';
-import { toOlxKey } from '@/lib/blocks/idResolver';
+import { parseDefinitionKey } from '@/lib/types/id-grammar';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import type { ComponentError } from '@/lib/types';
 
 export default function PreviewPage({ id }: { id: string }) {
-  const olxKey = toOlxKey(id);
+  const olxKey = parseDefinitionKey(id);
   const [debug] = useFieldState(
     null,
     settings.debug,
@@ -33,7 +33,7 @@ export default function PreviewPage({ id }: { id: string }) {
         <div className="p-6 flex-1">
           <DisplayError
             props={{ id: olxKey, tag: 'preview' }}
-            name="Content Loading Error"
+            title="Content Loading Error"
             message={`Failed to load content: ${olxKey}`}
             technical={error}
             id={`${olxKey}_load_error`}
@@ -57,7 +57,7 @@ export default function PreviewPage({ id }: { id: string }) {
         <div className="p-6 flex-1">
           <DisplayError
             props={{ id: olxKey, tag: 'preview' }}
-            name="No Content"
+            title="No Content"
             message={`No content found for ID: ${olxKey}`}
             id={`${olxKey}_no_content`}
           />
@@ -73,7 +73,7 @@ export default function PreviewPage({ id }: { id: string }) {
           {renderError ? (
             <DisplayError
               props={{ id: olxKey, tag: 'preview' }}
-              name="Render Error"
+              title="Render Error"
               message={`Failed to render content: ${olxKey}`}
               technical={renderError}
               id={`${olxKey}_render_error`}

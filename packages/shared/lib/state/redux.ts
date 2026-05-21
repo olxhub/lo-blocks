@@ -47,7 +47,7 @@ import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey, stateKeyForGloba
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
-import { FieldInfo, DefinitionRef, DefinitionKey, StateRef, StateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus } from '../types';
+import { FieldInfo, DefinitionRef, DefinitionKey, StateRef, StateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus, CurrentUser } from '../types';
 import { assertValidField } from './fields';
 import { getUrlOverride, setUrlValue } from './urlFields';
 import type { Store } from 'redux';

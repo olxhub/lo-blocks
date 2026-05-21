@@ -100,6 +100,24 @@ export function scoreBCP47Match(requested: string, available: string): number {
   return score;
 }
 
+/**
+ * Select best variant from a raw Accept-Language header string.
+ *
+ * Same logic as getBestVariantServer but without NextRequest dependency,
+ * for use from Hono/non-Next.js server code.
+ */
+export function getBestVariantFromHeader(
+  acceptLanguage: string | null,
+  availableVariants: ContentVariant[]
+): RenderedVariant {
+  if (!availableVariants || availableVariants.length === 0) {
+    throw new Error('getBestVariantFromHeader: availableVariants cannot be empty');
+  }
+
+  const preferredLocale = userLocaleFromAcceptLanguage(acceptLanguage);
+  return pickBestVariant(preferredLocale, availableVariants);
+}
+
 function userLocaleFromAcceptLanguage(header: string | null | undefined): UserLocale | null {
   if (!header) return null;
 

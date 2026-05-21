@@ -45,9 +45,9 @@ async function resolveOlxKey(): Promise<string> {
   return resolved;
 }
 
-resolveOlxKey().then(olxKey => {
+resolveOlxKey().then(definitionKey => {
   const root = document.getElementById('root')!;
-  createRoot(root).render(<App olxKey={olxKey} />);
+  createRoot(root).render(<App definitionKey={definitionKey} />);
 }).catch(err => {
   console.error('Failed to resolve OLX key:', err);
   const root = document.getElementById('root')!;

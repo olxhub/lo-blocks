@@ -17,11 +17,11 @@ const reduxStore = store.init({
   blockRegistry: BLOCK_REGISTRY,
 });
 
-export default function App({ olxKey }: { olxKey: string }) {
+export default function App({ definitionKey }: { definitionKey: string }) {
   return (
     <Provider store={reduxStore}>
       <StaticContentProvider>
-        <StaticPage olxKey={olxKey} />
+        <StaticPage definitionKey={definitionKey} />
       </StaticContentProvider>
     </Provider>
   );
