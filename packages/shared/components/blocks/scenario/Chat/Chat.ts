@@ -19,7 +19,7 @@ import type { PeggyKids } from '@/lib/types';
 import { canAdvanceToContent, evaluateWaitEntry } from './waitConditions';
 import { scopedStateKeyForBlock, splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
 import type { DefinitionKey, DefinitionRef, RuntimeProps } from '@/lib/types';
-import * as cp  from './_chatParser';
+import * as cp from './_chatParser';
 import { _Chat } from './_Chat';
 
 import * as chatUtils from './chatUtils';
@@ -27,7 +27,8 @@ import * as chatUtils from './chatUtils';
 export const fields = state.fields([
   'value',           // pointer into the full body array
   'isDisabled',
-  'sectionHeader'
+  'sectionHeader',
+  'ignoreWaits',     // instructor mode: treat all wait conditions as satisfied
 ]);
 
 /* ----------------------------------------------------------------
@@ -39,7 +40,7 @@ export const fields = state.fields([
  * -------------------------------------------------------------- */
 
 /** Extract parsed body and clip range from Chat props. */
-function getChatState(props: RuntimeProps, reduxState: any) {
+function getState(props: RuntimeProps, reduxState: any) {
   const parsed = (props.kids as unknown as PeggyKids<ParsedConversation>).parsed;
   const allEntries = parsed.body;
 
@@ -67,12 +68,17 @@ function getChatState(props: RuntimeProps, reduxState: any) {
   const index = state.fieldSelector(reduxState, props, fields.value, { fallback: clipStart });
   const windowedIndex = Math.max(clipStart, Math.min(index, clipEnd));
 
+  // Instructor mode: ignore wait conditions (requires both the per-block
+  // toggle and the global instructor mode setting to be active)
+  const instructorMode = state.fieldSelector(reduxState, null, state.settings.instructorMode, { fallback: false });
+  const ignoreWaits = instructorMode && state.fieldSelector(reduxState, props, fields.ignoreWaits, { fallback: false });
+
   // Build wait condition context
   const allRefs = extractWaitRefs(allEntries);
   const resolved = selectReferences(reduxState, props, allRefs);
   const waitContext = createContext(resolved);
 
-  return { allEntries, clipStart, clipEnd, windowedIndex, waitContext };
+  return { allEntries, clipStart, clipEnd, windowedIndex, waitContext, ignoreWaits };
 }
 
 /** Extract all wait command references from entries. */
@@ -87,19 +93,19 @@ function extractWaitRefs(entries: ConversationEntry[]) {
   return mergeReferences(...expressions.map(extractStructuredRefs));
 }
 
-function chatCanAdvance(props: RuntimeProps, reduxState: any): boolean {
-  const { windowedIndex, clipEnd } = getChatState(props, reduxState);
+function canAdvance(props: RuntimeProps, reduxState: any): boolean {
+  const { windowedIndex, clipEnd } = getState(props, reduxState);
   return windowedIndex < clipEnd;
 }
 
-function chatAdvance(props: RuntimeProps, reduxState: any): boolean {
-  const { allEntries, windowedIndex, clipEnd, waitContext } = getChatState(props, reduxState);
+function advance(props: RuntimeProps, reduxState: any): boolean {
+  const { allEntries, windowedIndex, clipEnd, waitContext, ignoreWaits } = getState(props, reduxState);
 
   // Conversation finished
   if (windowedIndex >= clipEnd) return false;
 
   // Check if next content is reachable (may be blocked by wait)
-  if (!canAdvanceToContent(allEntries, windowedIndex, clipEnd, waitContext)) {
+  if (!ignoreWaits && !canAdvanceToContent(allEntries, windowedIndex, clipEnd, waitContext)) {
     return true; // blocked on wait — still active, don't let parent advance past us
   }
 
@@ -118,7 +124,7 @@ function chatAdvance(props: RuntimeProps, reduxState: any): boolean {
         continue;
 
       case 'WaitCommand':
-        if (!evaluateWaitEntry(block, waitContext)) {
+        if (!ignoreWaits && !evaluateWaitEntry(block, waitContext)) {
           state.updateField(props, fields.value, Math.min(nextIndex, clipEnd));
           return true; // blocked — still active
         }
@@ -149,13 +155,60 @@ function chatAdvance(props: RuntimeProps, reduxState: any): boolean {
 }
 
 /* ----------------------------------------------------------------
+ * Instructor mode helper — autoadvance for content review.
+ *
+ * Called from the instructor toolbar in _Chat.tsx.  Single-step
+ * ignore-waits is handled by advance() reading fields.ignoreWaits.
+ * -------------------------------------------------------------- */
+
+/**
+ * THIS IS A BIT OF A HACK
+ *
+ * Advance the entire chat to the end in a single pass.
+ *
+ * Unlike advance (which pauses at each content entry), this walks
+ * all entries from the current position to clipEnd, executing side
+ * effects (arrow commands, section headers) and skipping waits. Only
+ * the final index is written to Redux, avoiding per-step dispatches.
+ *
+ * HACK: UseHistory currently picks up intermediate arrow command
+ * values because React re-renders between synchronous dispatches
+ * (likely due to lo_event). This is not guaranteed in the future. If
+ * UseHistory stops building full history, convert this to an async
+ * loop with requestAnimationFrame yielding.
+ */
+function autoadvance(props: RuntimeProps): void {
+  const { allEntries, windowedIndex, clipEnd } = getState(props, props.runtime.store.getState());
+  if (windowedIndex >= clipEnd) return;
+
+  for (let i = windowedIndex + 1; i <= clipEnd; i++) {
+    const entry = allEntries[i];
+    if (!entry) break;
+
+    switch (entry.type) {
+      case 'ArrowCommand':
+        state.updateField(props, fields.value, entry.target, {
+          stateKey: scopedStateKeyForBlock({ ...props, id: entry.source as DefinitionRef }),
+        });
+        break;
+      case 'SectionHeader':
+        state.updateField(props, fields.sectionHeader, entry.title);
+        break;
+      // WaitCommand, Line, PauseCommand, EmbedCommand — skip, no dispatch needed
+    }
+  }
+
+  // Single write for final position
+  state.updateField(props, fields.value, clipEnd);
+}
+
+/* ----------------------------------------------------------------
  * Action handler — targeted advance from ActionButton
  * -------------------------------------------------------------- */
 
 // Action signature requires targetId but Chat advances itself, not a target.
 function advanceChat({ props }: { targetId: DefinitionKey; props: RuntimeProps }) {
-  const reduxState = props.runtime.store.getState();
-  chatAdvance(props, reduxState);
+  advance(props, props.runtime.store.getState());
 }
 
 /* ----------------------------------------------------------------
@@ -339,7 +392,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
         const target = display.slice('target:'.length).trim();
         if (!target) {
           parsed.headerWarnings = [...(parsed.headerWarnings || []),
-            `Empty target in display=target: on ::${entry.ref}`];
+          `Empty target in display=target: on ::${entry.ref}`];
           continue;
         }
         const label = entry.metadata.label ?? entry.parsedOptions?.label ?? 'View expanded content';
@@ -356,7 +409,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
 
       if (!VALID_DISPLAY_MODES.has(display as string)) {
         parsed.headerWarnings = [...(parsed.headerWarnings || []),
-          `Unknown display mode "${display}" on ::${entry.ref}. Valid modes: ${[...VALID_DISPLAY_MODES].join(', ')}, target:<id>`];
+        `Unknown display mode "${display}" on ::${entry.ref}. Valid modes: ${[...VALID_DISPLAY_MODES].join(', ')}, target:<id>`];
         continue;
       }
 
@@ -384,7 +437,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
  * @param olxJson - The OlxJson entry for the Chat block
  * @returns Array of block IDs that are embedded in the conversation
  */
-function chatStaticKids(olxJson: any): string[] {
+function staticKids(olxJson: any): string[] {
   const kids = olxJson.kids as PeggyKids<ParsedConversation> | undefined;
   if (!kids?.parsed?.body) return [];
 
@@ -406,9 +459,10 @@ const Chat = blocks.dev({
   component: _Chat,
   description: 'Example block that parses an SBA dialogue format using PEG.',
   fields,
-  advance: chatAdvance,
-  canAdvance: chatCanAdvance,
-  staticKids: chatStaticKids,
+  advance,
+  canAdvance: canAdvance,
+  staticKids: staticKids,
+  locals: { autoadvance },
   attributes: srcAttributes.extend({
     ...cast,
     clip: z.string().optional().describe('Clip range for dialogue section'),

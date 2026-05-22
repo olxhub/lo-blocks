@@ -3,7 +3,7 @@
 
 import React, { useCallback, useMemo } from 'react';
 
-import { useFieldState } from '@/lib/state';
+import { useFieldState, settings } from '@/lib/state';
 import { useRenderedBlocksMultiple } from '@/lib/blocks/useRenderedBlock';
 import { advanceFrom } from '@/lib/advance';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
@@ -152,12 +152,23 @@ export function _Chat(props: RuntimeProps) {
    * -------------------------------------------------------------- */
   const [sectionHeader] = useFieldState(props, fields.sectionHeader);
 
-  const isDisabled = !canAdvance;
+  /* ----------------------------------------------------------------
+   * Instructor mode — ignore waits and autoadvance for content review.
+   * The ignore-waits toggle is a component field read by advance()
+   * so it works for both button clicks and spacebar.
+   * -------------------------------------------------------------- */
+  const [instructorMode] = useFieldState(null, settings.instructorMode, false);
+  const [ignoreWaits, setIgnoreWaits] = useFieldState(props, fields.ignoreWaits, false);
+
+  const isDisabled = !canAdvance && !ignoreWaits;
 
   const handleAdvance = useCallback(() => {
-    const state = props.runtime.store.getState();
-    advanceFrom(props.nodeInfo, state);
+    advanceFrom(props.nodeInfo, props.runtime.store.getState());
   }, [props.nodeInfo, props.runtime.store]);
+
+  const handleAutoadvance = useCallback(() => {
+    props.locals.autoadvance(props);
+  }, [props]);
 
   /* ----------------------------------------------------------------
    * Footers
@@ -205,6 +216,26 @@ export function _Chat(props: RuntimeProps) {
     );
   }
 
+  const instructorToolbar = instructorMode && !conversationFinished ? (
+    <div className="bg-warning-subtle text-sm px-3 py-2 border border-warning rounded-t flex items-center gap-3">
+      <span className="font-semibold text-warning uppercase tracking-wide text-xs">Instructor</span>
+      <label className="flex items-center gap-1 text-xs cursor-pointer">
+        <input
+          type="checkbox"
+          checked={ignoreWaits}
+          onChange={e => setIgnoreWaits(e.target.checked)}
+        />
+        Ignore waits
+      </label>
+      <button
+        onClick={handleAutoadvance}
+        className="text-xs bg-accent text-inverse px-3 py-1 rounded hover:opacity-80"
+      >
+        Autoadvance
+      </button>
+    </div>
+  ) : null;
+
   return (
     <>
       {headerWarnings.length > 0 && (
@@ -215,6 +246,7 @@ export function _Chat(props: RuntimeProps) {
           </ul>
         </div>
       )}
+      {instructorToolbar}
       <ChatComponent
         id={`${id}_component`}
         messages={visibleMessages}
