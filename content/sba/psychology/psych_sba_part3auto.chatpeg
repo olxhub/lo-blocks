@@ -6,7 +6,7 @@ authors: EDUC 3100 Assessment Module
 Introduction [id=fba2_intro_section]
 ------------
 
-::fba2_introduction [display=target:psych_sba_sidebar3auto label="View Introduction"]
+::fba2_introduction [display=target:psych_sba_sidebar3auto label="Introduction"]
 
 Annie: Okay, so... bad news about Johnny. The positive reinforcement stuff from last time works for getting him to his room — sticker chart, toys before bed, all of that. But the second my roommate says "time for bed," he takes off running. Every single time. [face=concerned]
 
@@ -46,7 +46,7 @@ Lin: Maybe. But let's learn the framework first before we commit to an answer. I
 Introducing Function of Behavior [id=fba2_function_concepts]
 ---------------------------------
 
-::fba2_function_notes [display=target:psych_sba_sidebar3auto label="View Lin's Notes"]
+::fba2_function_notes [display=target:psych_sba_sidebar3auto label="Lin's Notes"]
 
 Lin: Here are my notes from class. Based on what we covered, the four main functions of behavior are attention, escape, access to preferred activity or object, and sensory.
 
@@ -174,7 +174,7 @@ Annie: Let's get AI to help us see the ABCs in action with some examples.
 Scaffolding ABCs [id=fba2_abc_scaffold]
 -----------------
 
-::fba2_abc_reference [display=target:psych_sba_sidebar3auto label="View ABC Reference Diagrams"]
+::fba2_abc_reference [display=target:psych_sba_sidebar3auto label="ABC Reference Diagrams"]
 
 JJ: Okay, let me walk through the first one. The Antecedent is the yellow box — that's what happens before the behavior. Here, the teacher gives a difficult task... [face=explaining]
 

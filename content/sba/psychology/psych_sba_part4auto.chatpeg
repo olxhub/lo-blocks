@@ -6,7 +6,7 @@ authors: EDUC 3100 Assessment Module
 Introduction [id=fba3_intro_section]
 ------------
 
-::fba3_introduction [display=target:psych_sba_sidebar4auto label="View Introduction"]
+::fba3_introduction [display=target:psych_sba_sidebar4auto label="Introduction"]
 
 Annie: Okay, so... I have good news and bad news about Johnny. [face=concerned]
 
@@ -23,7 +23,7 @@ JJ: "Didn't exactly follow the plan." I have a feeling that's going to be import
 Progress Monitoring [id=fba3_progress_section]
 -------------------
 
-::fba3_predict_fidelity [display=target:psych_sba_sidebar4auto label="View Progress Data"]
+::fba3_predict_fidelity [display=target:psych_sba_sidebar4auto label="Progress Data"]
 
 --- wait @fba3_interpretation_confidence.value ---
 
@@ -93,13 +93,13 @@ Annie: Right — we can't just say "help me fix the plan." We have to lay out th
 Modifications [id=fba3_modifications_section]
 --------------
 
-::fba3_modifications_display [display=target:psych_sba_sidebar4auto label="View Modification Ideas"]
+::fba3_modifications_display [display=target:psych_sba_sidebar4auto label="Modification Ideas"]
 
 JJ: Much better this time — these suggestions are actually specific to our situation! [face=smile]
 
 Annie: It is a lot, though. We should read through carefully and make sure everything lines up with what we've actually learned. AI can sound confident even when it's off-base. [face=serious]
 
-::fba3_checklist_display [display=target:psych_sba_sidebar4auto label="View Fidelity Checklist"]
+::fba3_checklist_display [display=target:psych_sba_sidebar4auto label="Fidelity Checklist"]
 
 Lin: Here's a fidelity checklist we can give to Annie's roommate. It covers the main bedtime routine steps — things like the warning countdown, the timer, the reward.
 
@@ -142,7 +142,7 @@ Lin: I think the checklist is going to make a real difference. But I guess we'll
 Two Weeks Later [id=fba3_followup_section]
 ----------------
 
-::fba3_progress_graph_2 [display=target:psych_sba_sidebar4auto label="View Follow-Up Progress"]
+::fba3_progress_graph_2 [display=target:psych_sba_sidebar4auto label="Follow-Up Progress"]
 
 JJ: Wait — that's way better! [face=awe]
 
