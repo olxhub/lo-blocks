@@ -44,7 +44,7 @@ export default function _ChoiceItem(props: RuntimeProps) {
   }
 
   // parentId is already a StateKey from inferRelatedNodes
-  const parentReduxId = parentId;
+  const parentStateKey = parentId;
 
   // Get the parent input's value field dynamically
   const valueField = state.componentFieldByStateKey(props, parentId, 'value');
@@ -52,7 +52,7 @@ export default function _ChoiceItem(props: RuntimeProps) {
   const selected = state.useFieldSelector(
     props,
     valueField,
-    { stateKey: parentReduxId, fallback: isCheckbox ? [] : '' }
+    { stateKey: parentStateKey, fallback: isCheckbox ? [] : '' }
   );
 
   // Check if grader is showing the answer
@@ -74,15 +74,15 @@ export default function _ChoiceItem(props: RuntimeProps) {
       const newSelection = currentSelection.includes(itemValue)
         ? currentSelection.filter(v => v !== itemValue)
         : [...currentSelection, itemValue];
-      state.updateField(props, valueField, newSelection, { stateKey: parentReduxId });
+      state.updateField(props, valueField, newSelection, { stateKey: parentStateKey });
     } else {
       // Radio: set single value
-      state.updateField(props, valueField, itemValue, { stateKey: parentReduxId });
+      state.updateField(props, valueField, itemValue, { stateKey: parentStateKey });
     }
   };
 
   // Radio button name needs the scoped ID for proper grouping
-  const scopedParentId = parentReduxId;
+  const scopedParentId = parentStateKey;
 
   const { kids: renderedKids } = useKids(props);
 

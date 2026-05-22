@@ -2,7 +2,7 @@
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { getBestVariantServer } from '@/lib/i18n/getBestVariant';
 import { variantMapKeys } from '@/lib/types/i18n';
-import { parseAnyStateRef, stateKeyForGlobalRef, allDefinitionKeysFromStateKey } from '@/lib/types/id-grammar';
+import { parseAnyStateRef, stateKeyForGlobalRef, allDefinitionKeysFromStateKey, definitionKeyForRef } from '@/lib/types/id-grammar';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import type { NextRequest } from 'next/server';
@@ -48,7 +48,7 @@ function collectBlockWithKids(
   const comp = BLOCK_REGISTRY[entry.tag];
   if (comp?.staticKids) {
     for (const childId of comp.staticKids(entry)) {
-      collectBlockWithKids(idMap, childId, request, collected);
+      collectBlockWithKids(idMap, definitionKeyForRef(childId), request, collected);
     }
   }
 
