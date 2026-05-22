@@ -266,6 +266,8 @@ export const baseAttributes = z.object({
     'fullscreen:tl', 'fullscreen:tr', 'fullscreen:bl', 'fullscreen:br',
   ]).optional()
     .describe('Pop-out mode: "window" or "fullscreen", with optional button position (:tl, :tr, :bl, :br)'),
+  print: z_olx_boolean.optional()
+    .describe('Set to "false" to hide this block from print/PDF output'),
 }).strict();
 
 // =============================================================================
