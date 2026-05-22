@@ -48,7 +48,7 @@ function useDocsExampleState(blockName, exampleFilename, originalContent) {
     baselineProps,
     editorFields.editedContent,
     originalContent,
-    { reduxKey: provenance }
+    { stateKey: provenance }
   );
 }
 
