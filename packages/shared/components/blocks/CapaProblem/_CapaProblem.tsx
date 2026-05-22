@@ -58,12 +58,14 @@ function noGraderTechnicalDetails(props: RuntimeProps, childGraderIds: string[])
     provenance: node?.provenance,
     sourceOffset: node?._sourceOffset,
     childGraderIds,
-    staticKids: Array.isArray(props.kids)
-      ? props.kids.map((kid: any) => kid?.id ?? kid)
-      : props.kids,
-    renderedKids: props.nodeInfo?.renderedKids
-      ? Object.keys(props.nodeInfo.renderedKids)
-      : [],
+    consoleHint: 'Raw props.kids and props.nodeInfo.renderedKids are logged in this DisplayError data payload.',
+  };
+}
+
+function noGraderDebugData(props: RuntimeProps) {
+  return {
+    kids: props.kids,
+    renderedKids: props.nodeInfo?.renderedKids,
   };
 }
 
@@ -234,6 +236,7 @@ export default function _CapaProblem(props: RuntimeProps) {
         title="CapaProblem"
         message={`No grader found in CapaProblem "${id}". Add a grader block (e.g., NumericalGrader, KeyGrader) to this problem.`}
         technical={noGraderTechnicalDetails(props, childGraderIds)}
+        data={noGraderDebugData(props)}
       />
     );
   }
