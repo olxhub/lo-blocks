@@ -47,6 +47,26 @@ function getHeaderStateClass(correctnessValue: string) {
   }
 }
 
+function noGraderTechnicalDetails(props: RuntimeProps, childGraderIds: string[]) {
+  const node = props.nodeInfo?.olxJson;
+  return {
+    hint: 'CapaProblem expects at least one child block with isGrader=true',
+    id: props.id,
+    title: props.title,
+    tag: node?.tag,
+    stateKey: props.nodeInfo?.stateKey,
+    provenance: node?.provenance,
+    sourceOffset: node?._sourceOffset,
+    childGraderIds,
+    staticKids: Array.isArray(props.kids)
+      ? props.kids.map((kid: any) => kid?.id ?? kid)
+      : props.kids,
+    renderedKids: props.nodeInfo?.renderedKids
+      ? Object.keys(props.nodeInfo.renderedKids)
+      : [],
+  };
+}
+
 // --- Hooks ---
 
 /**
@@ -212,8 +232,8 @@ export default function _CapaProblem(props: RuntimeProps) {
         props={props}
         id={`${id}_no_grader`}
         title="CapaProblem"
-        message="No grader found. Add a grader block (e.g., NumericalGrader, KeyGrader) to this problem."
-        technical={{ hint: 'CapaProblem expects at least one child block with isGrader=true' }}
+        message={`No grader found in CapaProblem "${id}". Add a grader block (e.g., NumericalGrader, KeyGrader) to this problem.`}
+        technical={noGraderTechnicalDetails(props, childGraderIds)}
       />
     );
   }
