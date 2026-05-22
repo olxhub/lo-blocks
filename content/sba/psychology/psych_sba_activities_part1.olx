@@ -575,29 +575,15 @@ respecting a child's autonomy.
   <IntakeGate ready="!@psych_sba_part_1_completion_page.value">
     <Markdown> </Markdown>
     <Markdown id="chart_image">
-|  Strategy         |    Age Appropriate     |      Feasible          |
-|-------------------|------------------------|------------------------|
-| Flexible          |                        |                        |
-| Bedtimes          | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             |                        |
-|-------------------|------------------------|------------------------|
-| Positive          |                        |                        |
-| Reinforcement     | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             |
-|-------------------|------------------------|------------------------|
-| Gradual Fading    | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             |                        |
-|-------------------|------------------------|------------------------|
-| Empathy and       |                        |                        |
-| Emotional Support | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             |
-|-------------------|------------------------|------------------------|
-| Natural           |                        |                        |
-| Consequences with |                        |                        |
-| Limits            |                        |                        |
-|-------------------|------------------------|------------------------|
-| Environmental     |                        |                        |
-| Adjustments       | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             |
-|-------------------|------------------------|------------------------|
-| Collaborative     |                        |                        |
-| Problem Solving   | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X             |
-|-------------------|------------------------|------------------------|
+| Strategy | Age Appropriate | Feasible |
+|---|:---:|:---:|
+| Flexible Bedtimes | X | |
+| Positive Reinforcement | X | X |
+| Gradual Fading | X | |
+| Empathy and Emotional Support | X | X |
+| Natural Consequences with Limits | | |
+| Environmental Adjustments | X | X |
+| Collaborative Problem Solving | X | X |
     </Markdown>
   </IntakeGate>
 
