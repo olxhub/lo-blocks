@@ -72,6 +72,9 @@ but keep it short -- no more than a few paragraphs.
 
 <LLMFeedback id="fba2_ai_function_response" render="markdown" />
 
+<!-- Prediction moved inline into chatpeg (fba2_johnny_function_prediction_inline).
+     Remove once approved by course team. -->
+<!--
 <Markdown when="@fba2_ai_function_response.value">
 **Before you move on:** take your best guess — what do you think is the function of Johnny's running-away-at-bedtime behavior?
 </Markdown>
@@ -81,6 +84,7 @@ but keep it short -- no more than a few paragraphs.
   <Distractor> Access to tangibles  </Distractor>
   <Distractor> Sensory              </Distractor>
 </ChoiceInput>
+-->
 </Vertical>
 
 
@@ -536,6 +540,10 @@ Student prompt: <Ref id="fba2_ref_abc_code_prompt" target="fba2_ai_abc_prompt" /
 
 <HH> ============= Screen: ABC reference diagram ================ </HH>
 
+<!-- The escape diagram (fba2_abc_ref_escape) is now inlined in the chatpeg.
+     The container Vertical and the other three diagrams are no longer referenced.
+     Keeping the individual Mermaid blocks in case the escape diagram inline needs them.
+     Remove the unused ones (attention, tangible, sensory) once approved by course team. -->
 <IntakeGate ready="!@fba2_completion_checkbox.value">
 <Markdown> </Markdown>
 <Vertical id="fba2_abc_reference">
@@ -692,6 +700,9 @@ and what needs correction. Keep it brief.
 
 <HH> ============= Screen: Textbook on escape =================== </HH>
 
+<!-- Textbook quote moved inline into Lin's dialogue in the chatpeg.
+     Remove once approved by course team. -->
+<!--
 <IntakeGate ready="!@fba2_completion_checkbox.value">
 <Markdown> </Markdown>
 <Markdown id="fba2_textbook_escape">
@@ -700,6 +711,7 @@ and what needs correction. Keep it brief.
 _"Escape is used to get away from something aversive or not preferred. Changing **antecedent conditions** is key to intervening when the function of behavior is escape."_
 </Markdown>
 </IntakeGate>
+-->
 
 
 <HH> ============= Screen: Intervention strategies ============== </HH>
