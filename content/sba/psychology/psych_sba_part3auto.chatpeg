@@ -37,6 +37,20 @@ JJ: Okay, fair. I think I can write a prompt to get AI to check our answer, at l
 
 --- wait @fba2_ai_function_response.value ---
 
+Annie: JJ thinks it's attention. What's your guess? [face=smile]
+
+::
+<ChoiceInput id="fba2_johnny_function_prediction_inline">
+  <Markdown>Maybe...</Markdown>
+  <Distractor> Attention            </Distractor>
+         <Key> Escape               </Key>
+  <Distractor> Access to tangibles  </Distractor>
+  <Distractor> Sensory              </Distractor>
+</ChoiceInput>
+::
+
+--- wait @fba2_johnny_function_prediction_inline.submitCount > 0 ---
+
 Annie: Okay, so the function is basically the reason the behavior keeps happening — what the kid is getting out of it. That makes sense. So we need to figure out WHY Johnny is running away at bedtime. [face=smile]
 
 JJ: Right, and I still think it's attention. He's laughing, she's chasing — that's a social interaction he's creating. [face=explaining]
@@ -174,9 +188,11 @@ Annie: Let's get AI to help us see the ABCs in action with some examples.
 Scaffolding ABCs [id=fba2_abc_scaffold]
 -----------------
 
-::fba2_abc_reference [display=target:psych_sba_sidebar3auto label="ABC Reference Diagrams"]
+JJ: I tried making one of these myself. Here's what I came up with for an escape example. [face=explaining]
 
-JJ: Okay, let me walk through the first one. The Antecedent is the yellow box — that's what happens before the behavior. Here, the teacher gives a difficult task... [face=explaining]
+::fba2_abc_ref_escape
+
+JJ: The Antecedent is the yellow box — that's what happens before the behavior. Here, the teacher gives a difficult task... [face=explaining]
 
 Lin: Which leads to the Behavior in the blue box — the student puts their head down.
 
@@ -259,7 +275,7 @@ JJ: Okay, so now we need to figure out an actual intervention. We know the funct
 
 Lin: Here's what my textbook says about escape-maintained behavior.
 
-::fba2_textbook_escape [display=target:psych_sba_sidebar3auto label="Read Textbook on Escape"]
+  _"Escape is used to get away from something aversive or not preferred. Changing **antecedent conditions** is key to intervening when the function of behavior is escape."_
 
 Annie: That's interesting — last time we focused mostly on consequences, but the textbook is saying antecedent strategies are really important for escape. We kind of skipped over that before.
 
