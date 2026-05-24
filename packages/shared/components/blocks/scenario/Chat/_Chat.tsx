@@ -160,7 +160,7 @@ export function _Chat(props: RuntimeProps) {
   const [instructorMode] = useFieldState(null, settings.instructorMode, false);
   const [ignoreWaits, setIgnoreWaits] = useFieldState(props, fields.ignoreWaits, false);
 
-  const isDisabled = !canAdvance && !ignoreWaits;
+  const isDisabled = !canAdvance && !(instructorMode && ignoreWaits);
 
   const handleAdvance = useCallback(() => {
     advanceFrom(props.nodeInfo, props.runtime.store.getState());
