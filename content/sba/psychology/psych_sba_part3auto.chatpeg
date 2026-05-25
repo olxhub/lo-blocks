@@ -55,7 +55,7 @@ Annie: JJ thinks it's attention. What's your guess? [face=smile]
 </ChoiceInput>
 ::
 
---- wait @fba2_johnny_function_prediction_inline.submitCount > 0 ---
+--- wait @fba2_johnny_function_prediction_inline ---
 
 Annie: Okay — so we need to figure out WHY Johnny is running away at bedtime. [face=smile]
 
