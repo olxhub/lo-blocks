@@ -33,7 +33,7 @@ interface McpSession {
 const sessions = new Map<string, McpSession>();
 
 // Periodic sweep for expired sessions
-setInterval(() => {
+const sweepTimer = setInterval(() => {
   const now = Date.now();
   for (const [sid, session] of sessions) {
     if (now - session.lastActivity > SESSION_TTL_MS) {
@@ -178,4 +178,18 @@ export async function handleMcpDelete(
   }
   const session = sessions.get(sessionId)!;
   await session.transport.handleRequest(req, res);
+}
+
+/**
+ * Clean up MCP resources on server shutdown.
+ * Clears the session sweep timer and closes all active sessions.
+ */
+export function shutdownMcp(): void {
+  clearInterval(sweepTimer);
+  for (const [sid, session] of sessions) {
+    session.transport.close?.();
+    session.server.close().catch(() => {});
+    sessions.delete(sid);
+    console.log(`[MCP] Closed session on shutdown: ${sid}`);
+  }
 }

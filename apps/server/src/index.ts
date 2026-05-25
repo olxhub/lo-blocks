@@ -29,7 +29,7 @@ import { proxy } from './proxy.js';
 import { MemoryKVStore } from './kvs.js';
 import { runPipeline } from './pipeline.js';
 import { handleOlxJson } from './routes/olxjson.js';
-import { handleMcpPost, handleMcpGet, handleMcpDelete } from './mcp.js';
+import { handleMcpPost, handleMcpGet, handleMcpDelete, shutdownMcp } from './mcp.js';
 import { createToolRegistry } from '@/lib/mcp/registry';
 import { registerDocsTools } from '@/lib/docs/tools';
 
@@ -161,6 +161,7 @@ server.on('error', (err) => {
 // --- Graceful shutdown ------------------------------------------------------
 function shutdown() {
   console.log('\nShutting down...');
+  shutdownMcp();
   for (const conn of activeConnections.values()) {
     saveConnectionLog(conn);
     console.log(`Saved ${conn.log.events.length} events to ${conn.path}`);
