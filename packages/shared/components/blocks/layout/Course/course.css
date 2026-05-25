@@ -103,9 +103,8 @@
   font-weight: 500;
 }
 
-/* Top-level loose blocks get slightly more padding to match chapter headers visually */
+/* Top-level loose blocks get slightly more spacing between items */
 .lo-tag-course .course-nav-top-level {
-  padding: var(--lo-space-md) var(--lo-space-lg);
   margin-bottom: var(--lo-space-sm);
 }
 
@@ -117,7 +116,6 @@
 
 .lo-tag-course .course-content > div {
   padding: var(--lo-space-md);
-  height: 100%;
 }
 
 /* Empty state — only the direct placeholder paragraph, not content inside blocks */
