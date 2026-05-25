@@ -27,7 +27,11 @@ import { childParser } from '@/lib/content/parsers';
 import * as state from '@/lib/state';
 import _Course from './_Course';
 
-export const fields = state.fields(['selectedChild', 'expandedChapter', 'navCollapsed']);
+export const fields = state.fields([
+  { name: 'selectedChild', url: true, urlDefault: true },
+  'expandedChapter',
+  'navCollapsed',
+]);
 
 // === Custom parser to build sections structure ===
 const courseParser = childParser(async function courseBlockParser({ rawKids, parseNode }) {
@@ -65,7 +69,7 @@ const courseParser = childParser(async function courseBlockParser({ rawKids, par
       // Loose block: parse and add directly as a block entry
       const parsed = await parseNode(child);
       if (parsed) {
-        sections.push({ type: 'block', ...parsed });
+        sections.push({ ...parsed, type: 'block' });
       }
     }
   }
