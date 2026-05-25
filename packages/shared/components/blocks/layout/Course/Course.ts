@@ -2,13 +2,15 @@
 /*
   Course Block (Dev)
 
-  Hierarchical course structure with chapters:
-  - <Chapter title="..." id="..."> contains child blocks
+  Hierarchical course structure with chapters and/or loose blocks:
+  - <Chapter title="..." id="..."> contains child blocks (rendered with accordion nav)
+  - Direct child blocks outside of Chapter are rendered as flat nav items
   - Renders accordion navigation on left, selected content on right
   - Maintains expandedChapter state but doesn't auto-switch children
 
   XML structure:
   <Course title="My Course">
+    <Markdown id="intro" title="Introduction">Welcome!</Markdown>
     <Chapter title="Getting Started" id="ch1">
       <Sequential>...</Sequential>
       <Problem>...</Problem>
@@ -16,6 +18,7 @@
     <Chapter title="Advanced Topics" id="ch2">
       <Vertical>...</Vertical>
     </Chapter>
+    <Markdown id="conclusion" title="Wrap-up">Done!</Markdown>
   </Course>
 */
 
@@ -26,9 +29,9 @@ import _Course from './_Course';
 
 export const fields = state.fields(['selectedChild', 'expandedChapter', 'navCollapsed']);
 
-// === Custom parser to build chapter structure ===
+// === Custom parser to build sections structure ===
 const courseParser = childParser(async function courseBlockParser({ rawKids, parseNode }) {
-  const chapters: any[] = [];
+  const sections: any[] = [];
 
   for (const child of rawKids) {
     const tag = Object.keys(child).find(k => ![':@', '#text', '#comment'].includes(k));
@@ -39,8 +42,9 @@ const courseParser = childParser(async function courseBlockParser({ rawKids, par
       const chapterAttributes = child[':@'] || {};
 
       // Extract chapter info
-      const chapter: { id: any; title: any; children: any[] } = {
-        id: chapterAttributes.id || `chapter_${chapters.length}`,
+      const chapter: { type: string; id: any; title: any; children: any[] } = {
+        type: 'chapter',
+        id: chapterAttributes.id || `chapter_${sections.length}`,
         title: chapterAttributes.title || 'Untitled Chapter',
         children: []
       };
@@ -56,22 +60,30 @@ const courseParser = childParser(async function courseBlockParser({ rawKids, par
         }
       }
 
-      chapters.push(chapter);
+      sections.push(chapter);
     } else {
-      console.warn(`[Course] Unknown tag: <${tag}> (expected <Chapter>)`);
+      // Loose block: parse and add directly as a block entry
+      const parsed = await parseNode(child);
+      if (parsed) {
+        sections.push({ type: 'block', ...parsed });
+      }
     }
   }
 
-  return { chapters };
+  return { sections };
 });
 
 courseParser.staticKids = entry => {
   const allChildren: any[] = [];
-  for (const chapter of entry.kids.chapters || []) {
-    for (const child of chapter.children || []) {
-      if (child && child.id) {
-        allChildren.push(child.id);
+  for (const section of entry.kids.sections || []) {
+    if (section.type === 'chapter') {
+      for (const child of section.children || []) {
+        if (child && child.id) {
+          allChildren.push(child.id);
+        }
       }
+    } else if (section.type === 'block' && section.id) {
+      allChildren.push(section.id);
     }
   }
   return allChildren;
