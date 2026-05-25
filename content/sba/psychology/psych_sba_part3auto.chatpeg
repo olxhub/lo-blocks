@@ -6,66 +6,76 @@ authors: EDUC 3100 Assessment Module
 Introduction [id=fba2_intro_section]
 ------------
 
-::fba2_introduction [display=target:psych_sba_sidebar3auto label="View Introduction"]
+::fba2_introduction [display=target:psych_sba_sidebar3auto label="Introduction"]
 
-Annie: Thanks again for your help with my roommate's dilemma with Johnny, the kid she babysits. She has been trying all kinds of positive reinforcement techniques to get him to go to bed, but she says they aren't working out like she thought they would. [face=fear]
+Annie: Okay, so... bad news about Johnny. The positive reinforcement stuff from last time works for getting him to his room — sticker chart, toys before bed, all of that. But the second my roommate says "time for bed," he takes off running and laughing. Every single time. [face=concerned]
 
-JJ: Oh no! That must be hard. What's going on?
+JJ: Running? Like, around the house? [face=awe]
 
-Annie: She has been rewarding him for going to his room when she asks by letting him play with his favorite toys before bed.
+Annie: Through the house, behind the couch, under the dining table. At first she'd just call his name from the doorway. Now she's literally sprinting after him. He knocked a lamp off the end table last week. [face=fear]
 
-Lin: Yep, that sounds like positive reinforcement. What's the issue?
+JJ: Sounds like he's trying to get a reaction out of her. Classic attention-seeking, right? [face=explaining]
 
-Annie: After a while, she tells him to put away his toys in a box in his room, which he does.
+Annie: Maybe? One night she tried not reacting — just stayed in the kitchen, didn't chase. He got wilder and wilder until she gave in and went after him. Now she's resorted to bribing — she promised him extra screen time last night just to get him to stop. He eventually wears himself out, but she texted me afterward and just said, "I want this to be over." [face=concerned]
 
-JJ: Great! Glad to hear he's finally following some directions! [face=smile]
-
-Annie: Then, she tells him to get into bed, but like always, he runs away from the room laughing whenever "bed" is mentioned.
-
-Lin: Well, does he eventually go to bed? [face=concerned]
-
-Annie: Well, yeah, but not without a fight. After he runs away, my roommate chases after him and keeps nagging on him to go to bed. I think he eventually gets tired and goes to bed, but my roommate is left feeling tired and frustrated, just like before.
-
-JJ: Yikes. Looks like it's time to go back to the drawing board! [face=concerned]
+Lin: Hmm. Let's not jump to conclusions about why he's doing it — not yet. But it does sound like whatever's happening, the current approach isn't working. [face=serious]
 
 Function of Behavior [id=fba2_function_intro]
 ---------------------
 
-Lin: One of the things we learned in class was that whenever you need to intervene with a behavior, the intervention must address the function of the behavior.
+Lin: Actually, this reminds me of something from class. One of the things we learned was that whenever you need to intervene with a behavior, the intervention has to address the function of the behavior. [face=serious]
 
-Annie: What in the world does that mean? Function?? [face=hectic]
+Annie: The function? Like... what the behavior does? [face=hectic]
 
-JJ: I don't remember at all. Let's ask AI.
+JJ: Oh! I think I sort of remember this. It's why the kid is doing it — like I said, Johnny's probably doing it for the attention.
 
-Lin: Wait -- I remember our T.A. telling us that it's better to try to actively remember something than to just passively read it. You understand it better that way.
+Lin: That's the right idea — function is about why the behavior keeps happening. But let's not assume we already know Johnny's. I remember Lianne telling us it's better to try to actively recall something than to just passively look it up. You understand it better that way.
 
-JJ: Well, it's worth a try if one of you remembers better than I do. But I'll write a prompt to get AI to evaluate your answer. That way we can see if we missed something! [face=explaining]
+JJ: Okay, fair. I think I can write a prompt to get AI to check our answer, at least. That way we'll know if we're on the right track. [face=explaining]
 
 ::fba2_ai_function_def [display=target:psych_sba_sidebar3auto label="Define Function of Behavior"]
 
 --- wait @fba2_ai_function_response.value ---
 
-Annie: Oh, that's helpful! So we need to figure out WHY Johnny is running away at bedtime. [face=smile]
+Annie: JJ thinks it's attention. What's your guess? [face=smile]
+
+::
+<ChoiceInput id="fba2_johnny_function_prediction_inline">
+  <Markdown>Maybe...</Markdown>
+  <Distractor> Attention            </Distractor>
+         <Key> Escape               </Key>
+  <Distractor> Access to tangibles  </Distractor>
+  <Distractor> Sensory              </Distractor>
+</ChoiceInput>
+::
+
+--- wait @fba2_johnny_function_prediction_inline.submitCount > 0 ---
+
+Annie: Okay, so the function is basically the reason the behavior keeps happening — what the kid is getting out of it. That makes sense. So we need to figure out WHY Johnny is running away at bedtime. [face=smile]
+
+JJ: Right, and I still think it's attention. He's laughing, she's chasing — that's a social interaction he's creating. [face=explaining]
+
+Lin: Maybe. But let's learn the framework first before we commit to an answer. If we just go with our gut, we might design the wrong intervention. [face=serious]
 
 Introducing Function of Behavior [id=fba2_function_concepts]
 ---------------------------------
 
-::fba2_function_notes [display=target:psych_sba_sidebar3auto label="View Lin's Notes"]
+::fba2_function_notes [display=target:psych_sba_sidebar3auto label="Lin's Notes"]
 
-Lin: Here are my notes from class. The four main functions of behavior are attention, escape, access to preferred activity/object, and sensory.
+Lin: Here are my notes from class. Based on what we covered, the four main functions of behavior are attention, escape, access to preferred activity or object, and sensory.
 
-JJ: My notes say that the function always refers to a type of reinforcement, positive or negative.
+JJ: And my notes say the function always refers to a type of reinforcement — positive or negative. Wait, that's key, right? It's always reinforcement, never punishment?
 
-Annie: Positive and negative reinforcement! We went over that last time...
+Annie: Positive and negative reinforcement! We went over that last time. I remember the gist, but I'm a little fuzzy on the details...
 
-Lin: I took a picture of a couple of examples that our TA Lianne wrote down on the board that would help me remember...
+Lin: I took a picture of some examples our TA Lianne wrote on the board. Let me pull those up.
 
 Review of Previously Learned Concepts [id=fba2_reinforcement_review_section]
 --------------------------------------
 
-Lin: Before we go further, let's make sure we remember the basics. Let's work through a few of these until we get, say, 3 in a row right. [face=serious]
+Lin: Before we go further, let's make sure we actually remember the basics. Let's work through a few of these until we get, say, 3 in a row right. [face=serious]
 
-JJ: Good idea. That way we know we're not just guessing! [face=smile]
+JJ: Good call. Otherwise we might just be fooling ourselves! [face=smile]
 
 ::fba2_reinforcement_review [display=target:psych_sba_sidebar3auto label="Review Reinforcement Concepts"]
 
@@ -74,38 +84,38 @@ JJ: Good idea. That way we know we're not just guessing! [face=smile]
 Teaching Function of Behavior [id=fba2_function_teaching]
 ------------------------------
 
-JJ: Whew, thank you for the refresher. I needed that. [face=relieved]
+JJ: Okay, I definitely needed that refresher. Some of those were trickier than I expected.
 
-Lin: Me too. Lianne also said a couple of other things during our last class. She said that if the function is for attention or tangibles, it usually involves positive reinforcement. If the function is escape, it typically involves negative reinforcement. And for sensory, it can be either one.
+Lin: Me too. Now, Lianne also mentioned something else in class — she said that if the function is attention or tangibles, it usually involves positive reinforcement. If the function is escape, it typically involves negative reinforcement. And for sensory, it can be either one.
 
-Annie: I think it would really help my brain if we put all these concepts together. I think AI would help here.
+Annie: My brain would really benefit from seeing all of that in one place. Like a chart or something. I bet AI could help with that.
 
-JJ: OK, I tried writing a prompt. Here's my first attempt -- "You are a helpful psychology teaching assistant. Create a chart showing the four functions of behavior with examples of how each relates to positive and negative reinforcement." [face=explaining]
+JJ: Actually, I already tried writing a prompt for this. My first version was something like "Create a chart showing the four functions of behavior with examples of how each relates to positive and negative reinforcement." [face=explaining]
 
-Lin: Have you tried it?
+Lin: And how did that go?
 
-JJ: I did. The results looked good on the surface, but when I worked through them carefully, I discovered it would fill in cells that really shouldn't be filled in, with subtly misleading examples. I had to tweak the prompt several times before the results were consistently correct. [face=concerned]
+JJ: Honestly? The results looked good at first glance, but when I checked them carefully, the AI had filled in cells that shouldn't have entries — with examples that sounded plausible but were actually misleading. I had to revise the prompt several times. [face=concerned]
 
-Annie: So what was your final prompt? [face=surprised]
+Annie: So what did you end up with? [face=awe]
 
-JJ: Basically, I had to spell out which combinations are valid and tell it to leave incompatible cells blank. It was like the AI was so eager to follow directions that it fudged things to fill in all of the cells otherwise. [face=smile]
+JJ: I basically had to spell out which combinations are valid and tell it to leave incompatible cells blank. It was like the AI was so eager to be helpful that it made stuff up to fill every cell. [face=smile]
 
 ::fba2_ai_function_chart [display=target:psych_sba_sidebar3auto label="Create Function Chart with AI"]
 
 --- wait @fba2_ai_chart_response.value ---
 
-Lin: That chart makes things so much clearer! [face=smile]
+Lin: That chart makes the relationships much clearer. [face=smile]
 
-JJ: Especially because it leaves two cells blank. Escape is the removal of something unwanted, so it doesn't combine with positive reinforcement, which is adding something. And access to tangibles is about getting something, so it doesn't combine with negative reinforcement, which is about removing something. [face=explaining]
+JJ: Especially because two cells are blank! Escape involves removing something aversive, so it doesn't combine with positive reinforcement, which is about adding something. And tangibles are about gaining something, so they don't combine with negative reinforcement, which is about removal. [face=explaining]
 
-Annie: Good catch, JJ! But we won't really **learn** what the chart is telling us unless we try ourselves.
+Annie: Okay, that's a good explanation of the chart. But we won't really learn it just by reading it — we need to try making examples ourselves, right?
 
 Your Turn: Own Examples [id=fba2_own_examples_section]
 ------------------------
 
-Annie: Let's each come up with our own examples for each function. That way we'll really know if we understand the chart.
+Annie: Let's each come up with our own examples for each function. That's the only way I'll know if I actually understand this.
 
-Lin: For each function, try to think of a situation that involves positive reinforcement, and another that involves negative reinforcement. Some combinations might be tricky!
+Lin: Right. For each function, try to think of a situation involving positive reinforcement, and another involving negative reinforcement. Some of those combinations are going to be tricky — that's the point.
 
 ::fba2_own_examples_attention [display=target:psych_sba_sidebar3auto label="Your Examples: Attention"]
 
@@ -123,33 +133,33 @@ Lin: For each function, try to think of a situation that involves positive reinf
 
 --- wait @fba2_pos_reinforcement_sensory.value && @fba2_neg_reinforcement_sensory.value ---
 
-Annie: Some of those were really hard! Did anyone else have trouble with escape and positive reinforcement?
+Annie: Okay, some of those were really hard. Did anyone else have trouble with escape and positive reinforcement? I kept going in circles. [face=hectic]
 
-JJ: Yes! That's because those combinations don't actually work -- which is exactly what the blank cells in the chart were telling us.
+JJ: Yes! And I think that's because those combinations don't actually work — which is exactly what the blank cells in the chart were telling us. The struggle was the lesson!
 
-JJ: But didn't we learn about punishment too?
+Lin: Right. But didn't we learn about punishment too?
 
-Lin: Yeah, I thought punishment could be a function too.
+JJ: Yeah, I was wondering about that. Can punishment be a function?
 
 Check for Understanding - Punishment [id=fba2_punishment_check]
 --------------------------------------
 
-Annie: Hmm, before we look up the answer, what do you all think? Why might punishment NOT be listed as a function of behavior? [face=thinking]
+Annie: Hmm, before we look up the answer, what do you all think? Why might punishment NOT be a function of behavior?
 
 ::fba2_predict_punishment [display=target:psych_sba_sidebar3auto label="Predict: Why Not Punishment?"]
 
 --- wait @fba2_punishment_confidence.value ---
 
-Annie: That makes sense! Functions are about what we GAIN from the behavior, not what we're trying to avoid. [face=smile]
+Annie: That makes sense! Functions are about what the person gains from the behavior — what keeps it going. Punishment by definition decreases behavior, so it can't be the reason a behavior continues. [face=smile]
 
 Practice with Functions [id=fba2_function_practice]
 ------------------------
 
-JJ: This is starting to make sense, but I think I need more practice.
+JJ: Okay, this is starting to click for me. But I feel like I need more reps before I trust myself with it.
 
-Lin: Me too.
+Lin: Same. Practice is the only way to make this stick.
 
-Annie: I asked AI to come up with some examples about the functions of behaviors for us to use to test our knowledge. Let's try them together.
+Annie: I asked AI to generate some examples for us to test ourselves on. Let's see how we do.
 
 ::fba2_function_sorting [display=target:psych_sba_sidebar3auto label="Practice: Identify Functions"]
 
@@ -158,18 +168,18 @@ Annie: I asked AI to come up with some examples about the functions of behaviors
 ABCs of Behavior [id=fba2_abc_section]
 -----------------
 
-Annie: Alright, I think I get it now. But didn't Lianne say that we had to do something else to figure out the function of behavior?
+Annie: Okay, I think I'm getting the hang of functions. But didn't Lianne say there was something else we needed to do to actually figure out the function? Like, a process? [face=explaining]
 
-Lin: Right, we had to look at what came before the behavior and then what came after the behavior.
+Lin: Right — we need to look at what comes before the behavior and what comes after it. The antecedent, the behavior, and the consequence.
 
-JJ: Yes, the antecedent, then the behavior, then the consequences.
+JJ: The ABCs! A for antecedent, B for behavior, C for consequence.
 
-Annie: Oh, that's right, I remember now. The professor said, "It's as easy as learning your ABCs!"
+Annie: Oh right, the professor said "It's as easy as learning your ABCs!" I remember thinking that was a little corny but also really helpful. [face=smile]
 
 Teaching ABCs with AI [id=fba2_abc_teaching]
 ----------------------
 
-Annie: Let's ask AI to help us better understand the ABCs.
+Annie: Let's get AI to help us see the ABCs in action with some examples.
 
 ::fba2_ai_abc_diagrams [display=target:psych_sba_sidebar3auto label="Create ABC Diagrams with AI"]
 
@@ -178,34 +188,66 @@ Annie: Let's ask AI to help us better understand the ABCs.
 Scaffolding ABCs [id=fba2_abc_scaffold]
 -----------------
 
-::fba2_abc_reference [display=target:psych_sba_sidebar3auto label="View ABC Reference Diagrams"]
+JJ: I tried making one of these myself. Here's what I came up with for an escape example. [face=explaining]
 
-JJ: I remember this from my notes. Let's look at the first box. The Antecedent is the thing that happens before the behavior. That's the yellow box. The teacher gives a difficult task... [face=explaining]
+::fba2_abc_ref_escape
 
-Lin: Right, which leads to the Behavior, in the blue box. Student puts head down.
+JJ: The Antecedent is the yellow box — that's what happens before the behavior. Here, the teacher gives a difficult task... [face=explaining]
 
-Annie: So, the Consequence is the green box? Task is removed or delayed...
+Lin: Which leads to the Behavior in the blue box — the student puts their head down.
 
-JJ: Exactly. So in that example, the teacher gave a hard task, then the student put their head down instead of working on it, so then the teacher probably got sick of waiting for them to do the task and gave up on making them do it and removed the task.
+Annie: And the Consequence is the green box? The task is removed or delayed... so the student basically got out of doing the work.
 
-Lin: Right, or the student continued to put their head down for so long that maybe the teacher just assigned it for homework, delaying the task.
+JJ: Exactly. The teacher gave a hard task, the student put their head down, and then the teacher either gave up and removed the task, or just pushed it to homework. Either way, the student escaped.
+
+Lin: And that's why the behavior continues — it works. The student learned that putting their head down gets them out of hard tasks. That's escape maintained by negative reinforcement.
 
 Checking ABCs Understanding [id=fba2_abc_check]
 ----------------------------
 
-Lin: Let's try applying this to Johnny's situation.
+Lin: Let's apply this framework to Johnny's situation now.
 
 ::fba2_abc_johnny [display=target:psych_sba_sidebar3auto label="Apply ABCs to Johnny"]
 
 --- wait @fba2_abc_johnny_explanation.value ---
 
-JJ: So using the ABCs, we know that: [face=explaining]
+JJ: Okay, here's what I got. The antecedent is Johnny running around the house. The behavior is the roommate chasing him. And the consequence is he eventually goes to bed. [face=explaining]
 
-The antecedent was your roommate told him to go to bed.
+Lin: Hold on — whose behavior are you analyzing? [face=serious]
 
-The behavior was that he ran out of his room.
+JJ: ...Johnny's? [face=concerned]
 
-The consequence was that your roommate chased after him. His running around ultimately led to him not going to bed on time again.
+Lin: You just described the roommate's chain. Johnny running is the antecedent for *her* behavior. We need to start from Johnny's perspective — what triggers *his* running? [face=serious]
+
+JJ: Oh — right. The antecedent is the roommate saying "time for bed." The behavior is Johnny running. And the consequence is... the roommate chases after him and bedtime gets delayed. [face=explaining]
+
+JJ: So the function is attention, right? He runs away laughing, she chases him — he's getting a big social reaction out of the whole thing. [face=smile]
+
+Lin: Think about what the consequence actually achieves. Yes, the roommate chases him — but what's the *outcome*? What changes in Johnny's world because he ran? [face=serious]
+
+JJ: He gets chased... the roommate is paying attention to him...
+
+Annie: But also he doesn't go to bed. The running works — bedtime gets pushed back every time.
+
+Lin: Exactly. The laughing and the chasing are what it looks like on the surface. But the consequence that's actually maintaining the behavior is that bedtime gets delayed. He runs, and he successfully avoids going to bed. That's escape, not attention. [face=serious]
+
+JJ: Oh. OH. So the laughing is just how he does it, but the function — the reason it keeps happening — is because it gets him out of bedtime? [face=awe]
+
+Lin: Right. If it were attention, you'd expect the behavior to stop once he got the attention. But it doesn't — he keeps running until bedtime is effectively over. The attention is incidental. The escape is the function.
+
+Annie: That's actually a really important distinction. It looks like one thing but it's actually another. [face=concerned]
+
+Lin: And remember the chain JJ wrote first — the one from the roommate's perspective? That wasn't actually wrong. It was a different behavior chain. [face=calm]
+
+JJ: Wait, what? [face=awe]
+
+Lin: Think about it. The roommate hears Johnny running — that's her antecedent. She chases — that's her behavior. And eventually he goes to bed and the chaos stops — that's her consequence. The relief of it being over reinforces the chasing. [face=serious]
+
+JJ: So Johnny is escaping bedtime, and the roommate is escaping Johnny-running-around-the-house? [face=awe]
+
+Lin: They've conditioned each other. Remember when she tried ignoring him? He got wilder, she caved — and she never tried ignoring again. Johnny shaped her into chasing, then bargaining, then screen time bribes. And she shaped Johnny into running by making it work every time. [face=serious]
+
+Annie: A six-year-old has operant-conditioned a college student. I am NOT telling her that. [face=smileLOL]
 
 ::fba2_johnny_function [display=target:psych_sba_sidebar3auto label="Identify Johnny's Function"]
 
@@ -216,68 +258,68 @@ Competing Behavior Pathway [id=fba2_pathway_section]
 
 ::fba2_competing_pathway_blank [display=target:psych_sba_sidebar3auto label="Fill In Competing Behavior Pathway"]
 
-Lin: Okay, let's put it all together. Using the colored diagram on the top-right, let's fill out the blank diagram on the bottom-right using everything we know so far about Johnny!
+Lin: Now let's put it all together. Using the color-coded reference diagram, fill out the blank pathway with everything we know about Johnny.
 
-JJ: Lianne showed us this in class -- it's called a Competing Behavior Pathway!
+JJ: Lianne showed us this in class — it's called a Competing Behavior Pathway. The idea is you map out the problem behavior and then figure out what you want instead. [face=explaining]
 
 --- wait @fba2_pathway_behavior.value && @fba2_pathway_consequence.value && @fba2_pathway_function.value ---
 
 ::fba2_competing_pathway_jj_section [display=target:psych_sba_sidebar3auto label="Compare with JJ's Pathway"]
 
-JJ: Let's compare! [face=smile]
+JJ: Let's compare! Here's what I put. [face=smile]
 
 Intervention Planning [id=fba2_intervention_section]
 ----------------------
 
-JJ: Okay, so now we need to figure out an intervention now that we know the function of the behavior of running away from his room at bedtime is escape.
+JJ: Okay, so now we need to figure out an actual intervention. We know the function of Johnny's running-away behavior is escape — not attention, as I learned the hard way. So what do we do about it? [face=smile]
 
-Lin: Right, and here's what my textbook says about escape.
+Lin: Here's what my textbook says about escape-maintained behavior.
 
-::fba2_textbook_escape [display=target:psych_sba_sidebar3auto label="Read Textbook on Escape"]
+  _"Escape is used to get away from something aversive or not preferred. Changing **antecedent conditions** is key to intervening when the function of behavior is escape."_
 
-Annie: We sure focused a lot on consequences in our last project, but we did not focus much on antecedents.
+Annie: That's interesting — last time we focused mostly on consequences, but the textbook is saying antecedent strategies are really important for escape. We kind of skipped over that before.
 
 Checking Intervention Understanding [id=fba2_intervention_check]
 ------------------------------------
 
 ::fba2_intervention_strategies [display=target:psych_sba_sidebar3auto label="Sort Intervention Strategies"]
 
-Lin: Take a look at what my Child Development course's textbook says about generating interventions. The problem behavior we're talking about is "not going to bed on time."
+Lin: Here's what my Child Development textbook says about generating interventions. We need strategies for the problem behavior of "not going to bed on time."
 
-JJ: Maybe we should consider both antecedents and consequences. I think it would be better to break it up -- let's think about antecedent strategies first, then consequence strategies separately. Otherwise we'll get too many possibilities at once. [face=explaining]
+JJ: What if we break this into two pieces? Let's think about antecedent strategies first — things we can do before bedtime to prevent escape. Then we'll tackle consequence strategies separately. Otherwise this is going to get overwhelming. [face=explaining]
 
 --- wait @fba2_escape_strategies_done.value ---
 
-Annie: I think I've got the hang of this now!! [face=smile]
+Annie: Okay, I think I'm getting the hang of this! [face=smile]
 
-Annie: But not all the strategies we're finding are focused on addressing ESCAPE specifically. We should narrow down to strategies that prevent or discourage escape-oriented behavior.
+Annie: But wait — not all of those strategies were about escape. Some of them were for attention or sensory. We should make sure we're narrowing down to strategies that actually address the escape function, right?
 
-JJ: Great point. Let's ask AI to help us think of even more interventions, this time focused specifically on escape as the function of behavior. Then we'll create our new behavior modification plan!
+JJ: Good catch! Let's ask AI to help us brainstorm more interventions, this time specifically focused on escape as the function. Then we can build our actual plan.
 
-Annie: My roommate is going to be so happy!
+Annie: My roommate is going to be so relieved when we figure this out. [face=smile]
 
 AI Intervention Strategies [id=fba2_ai_interventions]
 ---------------------------
 
-JJ: Let's start by asking AI about general strategies -- antecedent strategies first, then consequence strategies.
+JJ: Let's be systematic about this. We'll start by getting AI to suggest antecedent strategies.
 
 ::fba2_ai_antecedent_interventions [display=target:psych_sba_sidebar3auto label="Ask AI: Antecedent Strategies"]
 
 --- wait @fba2_ai_antecedent_response.value ---
 
-Lin: Good, now let's get consequence strategies.
+Lin: Good. Now let's get consequence strategies as well.
 
 ::fba2_ai_consequence_interventions [display=target:psych_sba_sidebar3auto label="Ask AI: Consequence Strategies"]
 
 --- wait @fba2_ai_consequence_response.value ---
 
-Annie: Those are helpful, but they're pretty general. Let's narrow it down to strategies specifically for escape-maintained behavior.
+Annie: Those are helpful, but they're pretty general. We need to specifically target escape-maintained behavior. Can we ask for more specific antecedent strategies? [face=serious]
 
 ::fba2_ai_escape_antecedent [display=target:psych_sba_sidebar3auto label="Ask AI: Escape Antecedent Strategies"]
 
 --- wait @fba2_ai_escape_ante_response.value ---
 
-JJ: And finally, escape-focused consequence strategies.
+JJ: And one more round — escape-focused consequence strategies.
 
 ::fba2_ai_escape_consequence [display=target:psych_sba_sidebar3auto label="Ask AI: Escape Consequence Strategies"]
 
@@ -286,33 +328,35 @@ JJ: And finally, escape-focused consequence strategies.
 Putting It Together [id=fba2_putting_together]
 --------------------
 
-Annie: Wow! Those are some great ideas for changing the antecedent conditions to prevent a behavior from occurring, especially when the function of the behavior is escape. [face=smile]
+Annie: Okay, there are a lot of good ideas here, especially for changing the antecedent conditions. That makes sense — if bedtime feels less like something to escape from, maybe he won't try to escape. [face=smile]
 
-Lin: Okay -- let's put it all together. So we now know that our behavior modification plan should incorporate positive reinforcement for a desired behavior that addresses the function of the problem behavior of escape. We know that manipulating antecedent conditions is the way to go. We also know from last time that, in general, punishment should be avoided as a consequence.
+Lin: Right. Let me put the pieces together. Based on everything we've learned: the plan should use positive reinforcement for a desired behavior, it needs to address the function of escape specifically, and manipulating antecedent conditions is key for escape-maintained behavior. And from last time, we know punishment should generally be avoided as a consequence.
 
-Annie: That sounds hard. We've already gotten some great ideas, but I don't even know where to start. [face=fear]
+Annie: That sounds like a lot to juggle. I know we have all these ideas, but I honestly don't know where to start putting them together. [face=fear]
 
-JJ: Let's go back to the Competing Behavior Pathway organizer we started and use some of the strategies we've talked about so far.
+JJ: What if we go back to the Competing Behavior Pathway? We can use it as a framework and plug in the strategies we've identified.
 
 Revisiting the Pathway [id=fba2_revised_pathway_section]
 -----------------------
 
 ::fba2_revised_pathway [display=target:psych_sba_sidebar3auto label="Revise the Pathway"]
 
-JJ: Okay, great! We've got a lot of ideas here. Let's put them into a graphic organizer.
+JJ: Here's the original pathway for reference. Now we need to fill in the new version with our escape-focused strategies.
 
-Annie: Let's fill this one out with our new ideas.
+Annie: Let's do it — this time we actually know what we're targeting. [face=smile]
 
 --- wait @fba2_revised_antecedent.value && @fba2_revised_desired.value && @fba2_revised_consequence.value ---
 
 Behavior Modification Plan [id=fba2_plan_section]
 ---------------------------
 
-Annie: We've got some great ideas here! Here's your plan, and here's mine.
+Annie: Okay, we've pulled together two different plans. One is focused on escape, and one is focused on sensory. Take a look at both.
 
 ::fba2_plan_selection [display=target:psych_sba_sidebar3auto label="Choose Best Plan"]
 
-JJ: Pick the one that you think will work best here.
+Annie: Honestly, some of the ideas in the sensory plan sound really nice — calming music, weighted blankets. I could see those helping Johnny relax at bedtime. [face=explaining]
+
+JJ: They do sound nice. Which one do you think is the better fit?
 
 --- wait @fba2_plan_choice.submitCount > 0 ---
 
@@ -321,11 +365,11 @@ Escape Plan Review [id=fba2_escape_plan_review]
 
 ::fba2_escape_plan_display [display=target:psych_sba_sidebar3auto label="Review Escape Plan Details"]
 
-JJ: Wow, there's a lot here. They don't all make sense here, but I do like the idea of using a timer to show when each routine step begins and ends as an antecedent strategy. [face=explaining]
+JJ: There's a lot in here. Not everything makes equal sense for Johnny's specific situation, but I really like the timer idea — using a timer to show when each routine step begins and ends. That's a solid antecedent strategy. [face=explaining]
 
-Lin: Yes, me too. I really like the consequence strategy of ignoring or not providing attention or reinforcement during the escape behavior. That makes a lot of sense to me.
+Lin: I agree. And on the consequence side, I think the strategy of ignoring escape behavior — not chasing, not providing attention or reinforcement during the escape — makes a lot of sense based on what we've learned.
 
-Annie: Me too. What do you think?
+Annie: Me too. What parts stand out to you?
 
 --- wait @fba2_plan_likes.value ---
 
@@ -334,18 +378,22 @@ Checking Understanding of Plans [id=fba2_plan_check]
 
 ::fba2_sensory_plan_check [display=target:psych_sba_sidebar3auto label="Check: Why Not the Sensory Plan?"]
 
-JJ: This looks very different from the other one.
+JJ: This sensory plan looks completely different from the escape one.
 
-Lin: Yes, it does. This doesn't seem like it would work for Johnny.
+Annie: I know, but some of the sensory ideas are genuinely good strategies. Calming music before bed, a predictable sensory environment... wouldn't those help any kid? [face=explaining]
+
+Lin: They might help in general — but remember what we learned. The intervention has to address the function. Johnny's function is escape, not sensory. A weighted blanket isn't going to solve the problem if the reason he's running away is to avoid going to bed. It's like treating a headache with a bandaid — the bandaid isn't bad, it's just not targeting the right thing. [face=serious]
+
+Annie: Okay, that's a good way to put it. Nice strategies, wrong function. [face=smile]
 
 --- wait @fba2_sensory_check_choice.submitCount > 0 ---
 
 Final Email [id=fba2_final]
 ------------
 
-Lianne: Before you write your email, here's a tip. People usually think of a rubric as something teachers use for grading. But it's really a way to describe your goals, so you can evaluate whether you've met them. Keep that in mind as you write. [face=smile]
+Lianne: Before you write your email, here's something worth keeping in mind. People usually think of a rubric as a grading tool. But really, it's a description of your goals — a way to check whether you've accomplished what you set out to do. Think about that as you write. [face=calm]
 
-JJ: Make sure to use the terms we've learned -- function of behavior, antecedent, behavior, consequence, and competing behavior pathway! [face=explaining]
+JJ: And make sure to use the terms we've been working with — function of behavior, antecedent, behavior, consequence, and competing behavior pathway. Those aren't just vocabulary words; they show your roommate that you have a real framework behind your suggestions. [face=explaining]
 
 ::fba2_final_email [display=target:psych_sba_sidebar3auto label="Write Email to Roommate"]
 
@@ -353,8 +401,8 @@ JJ: Make sure to use the terms we've learned -- function of behavior, antecedent
 
 ::fba2_completion_page [display=target:psych_sba_sidebar3auto label="Complete Exercise"]
 
-Annie: Perfect! I'll send this to my roommate right away. [face=smile]
+Annie: Done! I'll send this to my roommate tonight. I actually feel like we have a solid plan this time. [face=smile]
 
-Lin: Great job everyone! Let's check back in a couple weeks to see how it goes.
+Lin: I think so too. Let's check back in a couple of weeks to see how it goes.
 
 Lianne: Now you're done with Part 3 Auto, you can review all your answers to the right. Use the "Export as PDF" button to save a copy of your answers and upload it to our course system.

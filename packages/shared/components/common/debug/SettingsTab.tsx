@@ -54,6 +54,13 @@ export default function SettingsTab() {
     { tag: 'debug_panel' }
   );
 
+  const [instructorMode, setInstructorMode] = useFieldState(
+    null,
+    settings.instructorMode,
+    false,
+    { tag: 'debug_panel' }
+  );
+
   // Theme settings — stored in Redux, synced to DOM by ThemeSync component.
   // Default to current DOM values so toggles reflect reality on first open.
   const domColorMode = typeof document !== 'undefined'
@@ -89,6 +96,22 @@ export default function SettingsTab() {
             <strong>Block overlays</strong>
             <span className="debug-setting-description">
               Show borders, tags, IDs, and studio links for all blocks
+            </span>
+          </span>
+        </label>
+      </div>
+
+      <div className="debug-setting-item">
+        <label className="debug-setting-label">
+          <input
+            type="checkbox"
+            checked={instructorMode}
+            onChange={e => setInstructorMode(e.target.checked)}
+          />
+          <span className="debug-setting-text">
+            <strong>Instructor mode</strong>
+            <span className="debug-setting-description">
+              Show instructor toolbars on blocks (skip waits, autoadvance, etc.)
             </span>
           </span>
         </label>

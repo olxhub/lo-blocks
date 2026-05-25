@@ -279,7 +279,8 @@ export function render({ node, nodeInfo, runtime }: {
   // TODO: We might add lo-id-... and other classes as well, to refer to specific components
   // later
   const userClassName = attributes.class || '';
-  const combinedClassName = `${blockClassName} ${userClassName}`.trim();
+  const printClass = attributes.print === false ? 'print-hide' : '';
+  const combinedClassName = `${blockClassName} ${userClassName} ${printClass}`.trim();
 
   // Wrap logEvent to include context from OLX DOM hierarchy
   // Don't overwrite if context already set by a deeper child

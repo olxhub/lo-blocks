@@ -8,7 +8,7 @@ Introduction
 
 Annie: Hey, sorry I'm late. I was talking to my roommate about a problem. [id=start]
 
-::bedtime_problem_introduction [display=target:psych_sba_sidebar label="View Introduction"]
+::bedtime_problem_introduction [display=target:psych_sba_sidebar label="Introduction"]
 
 JJ: What's going on? Is it something you can tell us?
 
@@ -26,7 +26,7 @@ fix this. She's really frustrated and thinks she should just let him do whatever
 hope he'll grow out of it. I told her I was meeting with you all and we would try to come up
 with something to help her from what we've been learning in our psychology class.
 
-::bedtime_scenario_image [display=target:psych_sba_sidebar label="View Bedtime Scenario image"]
+::bedtime_scenario_image [display=target:psych_sba_sidebar label="Bedtime Scenario image"]
 
 Lin: Hey! I read in our textbook that a good way to learn something is to actually use it to solve
 a problem. We should be able to use what we're learning from psych to come up with a solution
@@ -130,17 +130,17 @@ Then we can go over it together.
 JJ: Thanks, Annie! This sounds like a lot of work, but I guess we need to do it
 if we want to help your friend!
 
-::vetted_info_part1 [display=target:psych_sba_sidebar label="View Annie's summary. (Part 1)"]
+::vetted_info_part1 [display=target:psych_sba_sidebar label="Annie's summary. (Part 1)"]
 
 Lin: Good job, Annie! That's a lot of content. I guess we had better each go over it before we discuss it.
 
 JJ: This research is amazing!
 
-::vetted_info_part2 [display=target:psych_sba_sidebar label="View Annie's summary. (Part 2)"]
+::vetted_info_part2 [display=target:psych_sba_sidebar label="Annie's summary. (Part 2)"]
 
 Annie: It is a lot. I actually had to ask the question several different ways to get all of the information I found. Sometimes small differences in the way I asked the question got me a very different answer.
 
-::vetted_info_part3 [display=target:psych_sba_sidebar label="View Annie's summary. (Part 3)"]
+::vetted_info_part3 [display=target:psych_sba_sidebar label="Annie's summary. (Part 3)"]
 
 JJ: So much for "do nothing" lol. It seems like there's a lot more evidence against no-rules parenting than for it.
 
@@ -176,20 +176,20 @@ Lin: Well, I know which one I like! Why don't we take a poll and see which of th
 
 Annie: Well ... since it seems like we can’t agree on what to recommend, maybe we should take a closer look at the notes I put together about each strategy.
 
-::strategy_notes_1 [display=target:psych_sba_sidebar label="View Annie's notes (Part 1)."]
+::strategy_notes_1 [display=target:psych_sba_sidebar label="Annie's notes (Part 1)."]
 
-::strategy_notes_2 [display=target:psych_sba_sidebar label="View Annie's notes (Part 2)."]
+::strategy_notes_2 [display=target:psych_sba_sidebar label="Annie's notes (Part 2)."]
 
 JJ: Hey Annie, do you know if your friend's child gets scared or anxious when bedtime approaches? I hadn't even thought about the need for empathy and emotional support.
 
 Annie: I don't know. I'll have to ask her.
 
-::strategy_notes_3 [display=target:psych_sba_sidebar label="View Annie's notes (Part 3)."]
+::strategy_notes_3 [display=target:psych_sba_sidebar label="Annie's notes (Part 3)."]
 
 JJ: Woah! There’s honestly a lot of good strategies she could try, and we haven’t even covered them all yet.
 
 
-::strategy_notes_4 [display=target:psych_sba_sidebar label="View Annie's notes (Part 4)."]
+::strategy_notes_4 [display=target:psych_sba_sidebar label="Annie's notes (Part 4)."]
 
 Annie: Yeah. I think we're going to have to figure out which of these is the best thing for her to try and explain that!
 

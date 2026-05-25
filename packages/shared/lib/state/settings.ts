@@ -36,6 +36,8 @@ const settingsFields = fields([
   { name: 'themeColorMode', event: 'SET_THEME_COLOR_MODE', scope: scopes.system },
   { name: 'themeTheme', event: 'SET_THEME_THEME', scope: scopes.system },
   { name: 'themeBrand', event: 'SET_THEME_BRAND', scope: scopes.system },
+  // Instructor mode: show instructor toolbars on blocks (skip waits, autoadvance, etc.)
+  { name: 'instructorMode', event: 'SET_INSTRUCTOR_MODE', scope: scopes.system },
 ]);
 
 // Fields are now directly { fieldName: FieldInfo }

@@ -6,63 +6,85 @@ authors: EDUC 3100 Assessment Module
 Introduction [id=fba3_intro_section]
 ------------
 
-::fba3_introduction [display=target:psych_sba_sidebar4auto label="View Introduction"]
+::fba3_introduction [display=target:psych_sba_sidebar4auto label="Introduction"]
 
-Lin: So how did the intervention go with your roommate?
+Annie: Okay, so... I have good news and bad news about Johnny. [face=concerned]
 
-Annie: Thanks for asking! My roommate read our intervention plan. She tracked his progress in her journal. Over the past 2 weeks, she babysat 5 times. He went to bed on time 2 of the 5 occasions. On one of those occasions where he did not go to bed on time, she noted that she did not exactly follow our plan. In fact, the escape behaviors seem to have gotten worse over time! [face=worried]
+JJ: Oh no. Bad news first. [face=concernedFear]
 
-JJ: That doesn't sound good at all. [face=concerned]
+Annie: The bad news is that things actually got worse over the two weeks. My roommate tracked everything in her journal like we said — she babysat 5 times, and Johnny only went to bed on time twice. And she noticed the escape behaviors getting worse, not better. [face=fear]
+
+Lin: Worse? But the plan was solid — we based it on the right function, we used antecedent strategies. What happened? [face=serious]
+
+Annie: That's kind of the thing. On at least one of the bad nights, she admitted she didn't exactly follow the plan. [face=concerned]
+
+JJ: "Didn't exactly follow the plan." I have a feeling that's going to be important. [face=explaining]
 
 Progress Monitoring [id=fba3_progress_section]
 -------------------
 
-::fba3_predict_fidelity [display=target:psych_sba_sidebar4auto label="View Progress Data"]
+::fba3_predict_fidelity [display=target:psych_sba_sidebar4auto label="Progress Data"]
 
 --- wait @fba3_interpretation_confidence.value ---
 
-Lin: Let's talk to our professor to find more resources to help improve the plan.
+Lin: Let's bring this to Lianne. We need more resources if we're going to figure out what went wrong. [face=serious]
 
-Annie: We showed the graph to the professor and explained that the roommate admitted she did not follow all of the consequence strategies.
+Annie: We showed her the graph and explained that my roommate admitted she hadn't followed all of the consequence strategies.
 
-Lianne: Looks like you need to improve on implementation fidelity. [face=serious]
+Lianne: That's actually a very common issue. It sounds like you need to think about implementation fidelity. [face=calm]
 
 Implementation Fidelity [id=fba3_fidelity_section]
 ------------------------
 
-Lin: Okay, our professor gave us lots of good resources. Intervention fidelity refers to how accurately and consistently a behavior plan is implemented as it was designed.
+Lin: Based on what Lianne shared, implementation fidelity refers to how accurately and consistently a behavior plan is implemented as it was designed. It's not just about having a good plan — it's about whether the plan was actually carried out. [face=serious]
 
-JJ: In other words, was Annie's roommate doing what our plan says they should do? [face=explaining]
+JJ: So the question is: was Annie's roommate actually doing what our plan said she should do? Step by step, consistently? [face=explaining]
 
 ::fba3_fidelity_tabs [display=target:psych_sba_sidebar4auto label="Practice Fidelity Concepts"]
 
-Annie: Now we're getting somewhere! Let me text my roommate to see exactly where things went wrong...
+Annie: Okay, this is making sense. The plan might be fine — the problem might be in the execution. Let me text my roommate and find out exactly where things broke down.
 
 Fidelity Check [id=fba3_fidelity_check_section]
 ---------------
 
 ::fba3_fidelity_check [display=target:psych_sba_sidebar4auto label="Diagnose the Fidelity Issue"]
 
-Annie: My roommate got back to me! She said that sometimes she forgets to do the warning countdown and timer, she forgets the small bedtime reward, and often falls into negotiating or arguing when he whines for extended time.
+Annie: She got back to me with details. Last Thursday was the worst night. She started the bedtime routine at 7:45, but she forgot the 5-minute warning completely — just went straight to "time for bed." No timer, either. Johnny immediately ran to the living room. [face=concerned]
+
+Annie: She said she tried to stay calm, but after about ten minutes of him running around, she started bargaining — "If you go to bed right now, you can have extra screen time tomorrow." He whined that bedtime was unfair, and she ended up going back and forth with him for another fifteen minutes before he finally wore himself out. [face=fear]
+
+Lin: So she skipped the antecedent steps, and then reinforced the escape behavior by negotiating. That's essentially the opposite of the plan. [face=serious]
+
+Annie: She also says she sometimes forgets the small bedtime reward even on the good nights. She's a college student with a full course load — she's not trying to mess this up, she just has a lot going on. [face=concerned]
 
 --- wait @fba3_fidelity_choice.submitCount > 0 ---
 
 Improving Adherence [id=fba3_adherence_section]
 --------------------
 
-JJ: Looks like she is struggling with adherence, mostly.
+JJ: So the main issue is adherence — she's not consistently following the plan steps. [face=explaining]
 
-Lin: Right. Let's have AI help brainstorm how we can help her.
+Lin: Right. And now we can see exactly why it matters. Without the warning and the timer, Johnny doesn't get the antecedent cues that make bedtime predictable. And every time she negotiates, she's actually reinforcing the escape — he learns that whining and running gets him a conversation instead of bedtime. [face=serious]
 
-JJ: I tried just asking "How can I improve adherence to the intervention plan?" but I got a really long, generic set of suggestions that wasn't very helpful. [face=explaining]
+JJ: Honestly, I'm starting to think we need to redesign the whole plan. Maybe it's too complicated. We could simplify it, streamline the steps, maybe build in some kind of automated— [face=explaining]
 
-Lin: Well, that's because you didn't give it any context. We have to give enough background so it's giving advice on the problem we're actually trying to solve. Otherwise, it just fills in the blanks with general stuff that sounds reasonable but isn't really tailored to our needs. [face=serious]
+Lin: Hold on. Before we throw out the plan, let's figure out whether the problem is really the plan or whether it's the implementation. Those are two very different problems with very different solutions. [face=serious]
 
-JJ: What sort of context do we need?
+JJ: I mean, if she can't follow it, doesn't that mean it's not a good plan?
 
-Lianne: Well, you might want to make sure it knows that this is a psychology intervention using operant conditioning. And it really needs to know what plan you were following, and what specific problems Annie's roommate was having. [face=calm]
+Lianne: That's a good question, JJ. But think about it this way — if a patient doesn't take their medication, do you change the medication, or do you figure out why they're not taking it? Sometimes the answer is one, sometimes the other, and sometimes both. But you have to diagnose before you prescribe. [face=calm]
 
-Annie: In short, we have to make everything explicit! Let's lay it all out this time. [face=smile]
+JJ: ...Fair point. Okay, let's diagnose first. [face=smile]
+
+JJ: I tried asking AI for help with this, but my first prompt was just "How can I improve adherence to the intervention plan?" — and I got back this really long, generic list that could apply to anything. [face=concerned]
+
+Lin: That's because you didn't give it any context. The AI doesn't know we're talking about a specific child with escape-maintained bedtime behavior being implemented by a busy college student. Without that background, it's just filling in blanks with generic advice. [face=serious]
+
+JJ: What kind of context does it need?
+
+Lianne: Think about what makes your situation specific. The AI should know this is an operant conditioning intervention, what the plan actually involves, and what specific problems the roommate is having. The more specific your input, the more useful the output. [face=calm]
+
+Annie: Right — we can't just say "help me fix the plan." We have to lay out the whole picture. Let's be really explicit this time. [face=smile]
 
 ::fba3_ai_adherence [display=target:psych_sba_sidebar4auto label="Ask AI About Adherence"]
 
@@ -71,28 +93,28 @@ Annie: In short, we have to make everything explicit! Let's lay it all out this 
 Modifications [id=fba3_modifications_section]
 --------------
 
-::fba3_modifications_display [display=target:psych_sba_sidebar4auto label="View Modification Ideas"]
+::fba3_modifications_display [display=target:psych_sba_sidebar4auto label="Modification Ideas"]
 
-JJ: AI came up with some great ideas! [face=smile]
+JJ: Much better this time — these suggestions are actually specific to our situation! [face=smile]
 
-Annie: This is a lot. We'd better read it carefully to make sure it's all in line with what we've been taught.
+Annie: It is a lot, though. We should read through carefully and make sure everything lines up with what we've actually learned. AI can sound confident even when it's off-base. [face=serious]
 
-::fba3_checklist_display [display=target:psych_sba_sidebar4auto label="View Fidelity Checklist"]
+::fba3_checklist_display [display=target:psych_sba_sidebar4auto label="Fidelity Checklist"]
 
-Lin: And here's a fidelity checklist we can give to Annie's roommate. It covers the bedtime routine steps.
+Lin: Here's a fidelity checklist we can give to Annie's roommate. It covers the main bedtime routine steps — things like the warning countdown, the timer, the reward.
 
-JJ: I added some items about how to respond to escape behaviors, too. [face=explaining]
+JJ: And I added some items about how to respond when escape behaviors happen — like not chasing, not negotiating. That was where the roommate was struggling most. [face=explaining]
 
 ::fba3_modification_selection [display=target:psych_sba_sidebar4auto label="Choose Modifications"]
 
-Annie: Great! Of these modifications, which ones do you think we should add? Pick up to 2.
+Annie: Okay, of these modifications, which ones do you think would actually help my roommate the most? Pick up to 2.
 
 --- wait @fba3_modification_explanation.value ---
 
 One More Suggestion [id=fba3_revision_section]
 --------------------
 
-Annie: Before we finalize, I think we should write one more specific suggestion for my roommate -- something beyond just "use the checklists." You can look at the AI's suggestions for ideas, but try to make it your own.
+Annie: Before we finalize everything, let's write one more specific suggestion for my roommate — something beyond just "use the checklists." Something practical she can actually do, knowing that she's juggling this with her own coursework. You can look at the AI suggestions for ideas, but put it in your own words. [face=smile]
 
 ::fba3_revision_email [display=target:psych_sba_sidebar4auto label="Write One More Suggestion"]
 
@@ -101,42 +123,52 @@ Annie: Before we finalize, I think we should write one more specific suggestion 
 Updated Plan [id=fba3_updated_plan_section]
 -------------
 
-JJ: Great choices! I totally agree. [face=smile]
+JJ: Those are solid choices. [face=smile]
 
-Lin: Me too. Let's have AI put together the full, updated plan with your modifications! Click "Generate Updated Plan" on the right.
+Lin: Agreed. Let's have AI put together the full updated plan incorporating your modifications. Click "Generate Updated Plan" on the right. [face=smile]
 
 ::fba3_updated_plan [display=target:psych_sba_sidebar4auto label="Generate Updated Plan"]
 
 --- wait @fba3_updated_plan_response.value ---
 
-Annie: That looks great! I'll send this to my roommate. Let you know how it goes in another 2 weeks! [face=smile]
+Annie: This looks really good. I'm going to send it to my roommate tonight. [face=smile]
+
+JJ: I really hope this works. We've put a lot of thought into it. [face=concerned]
+
+Annie: Me too. My roommate said she's going to tape the checklist to the fridge so she can't forget it. I'll let you all know how it goes in another couple of weeks. [face=smile]
+
+Lin: I think the checklist is going to make a real difference. But I guess we'll see. [face=serious]
 
 Two Weeks Later [id=fba3_followup_section]
 ----------------
 
-::fba3_progress_graph_2 [display=target:psych_sba_sidebar4auto label="View Follow-Up Progress"]
+::fba3_progress_graph_2 [display=target:psych_sba_sidebar4auto label="Follow-Up Progress"]
 
-JJ: That looks much better! [face=smile]
+JJ: Wait — that's way better! [face=awe]
 
-Annie: I know, right? My roommate is much happier. He is going to bed on time more often, and his parents even asked my roommate for her secrets on how she got him to go to bed on time! [face=smile]
+Annie: Right?! My roommate is so much happier. Johnny is going to bed on time most nights now. His parents even asked her what her secret was! [face=smileBig]
 
-Lin: That's amazing! I'm so glad we were able to help this time. [face=smile]
+JJ: So we didn't even need a whole new plan after all. [face=smile]
+
+Lin: That's exactly the point. Look at what actually changed between Round 1 and Round 2. The intervention strategy was almost the same. We didn't redesign the plan — we made it easier to follow. The fidelity changed, and the results followed. [face=serious]
+
+JJ: Okay, I hear you. I was ready to start from scratch, and it turned out the plan was fine — we just needed to support the person doing it. That's... actually a really important lesson. [face=explaining]
 
 Reflection [id=fba3_reflection_section]
 -----------
 
 ::fba3_reflection [display=target:psych_sba_sidebar4auto label="Write Reflection"]
 
-Annie: Let's write up our reflection on this whole experience.
+Annie: Let's write up a reflection on this whole experience — what worked, what didn't, and what we learned along the way.
 
 --- wait @fba3_reflection_text.value ---
 
 ::fba3_completion_page [display=target:psych_sba_sidebar4auto label="Complete Exercise"]
 
-Annie: Thanks everyone. This was a great learning experience -- we really used what we learned in psychology class to solve a real problem! [face=smile]
+Annie: Thanks, everyone. We actually solved a real problem using what we learned in class. That feels pretty good. [face=smile]
 
-Lin: And we learned about function of behavior, the ABCs, competing behavior pathways, and implementation fidelity along the way.
+Lin: And we covered a lot of ground — function of behavior, the ABCs, competing behavior pathways, and implementation fidelity. Those concepts aren't abstract anymore.
 
-JJ: Great teamwork! [face=smile]
+JJ: Teamwork! [face=smileBig]
 
 Lianne: Now you're done with Part 4 Auto, you can review all your answers to the right. Use the "Export as PDF" button to save a copy of your answers and upload it to our course system.

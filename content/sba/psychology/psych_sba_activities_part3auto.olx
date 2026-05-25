@@ -45,8 +45,6 @@ Try to explain what the function of a behavior is, based on what you know or rem
 
 <TextArea id="fba2_ai_function_prompt" rows="2" placeholder="Type your explanation of function of behavior here..." />
 
-<LLMFeedback id="fba2_ai_function_response" render="markdown" />
-
 <ActionButton id="fba2_ai_function_btn" label="Get AI Feedback" dependsOn="@fba2_ai_function_prompt.value">
 <LLMAction id="fba2_ai_function_action" target="fba2_ai_function_response"><![CDATA[
 You are a helpful psychology teaching assistant. One of your students has
@@ -71,6 +69,22 @@ Output your response in Markdown with bolded paragraph and list headers,
 but keep it short -- no more than a few paragraphs.
 ]]></LLMAction>
 </ActionButton>
+
+<LLMFeedback id="fba2_ai_function_response" render="markdown" />
+
+<!-- Prediction moved inline into chatpeg (fba2_johnny_function_prediction_inline).
+     Remove once approved by course team. -->
+<!--
+<Markdown when="@fba2_ai_function_response.value">
+**Before you move on:** take your best guess — what do you think is the function of Johnny's running-away-at-bedtime behavior?
+</Markdown>
+<ChoiceInput when="@fba2_ai_function_response.value" id="fba2_johnny_function_prediction">
+  <Distractor> Attention            </Distractor>
+         <Key> Escape               </Key>
+  <Distractor> Access to tangibles  </Distractor>
+  <Distractor> Sensory              </Distractor>
+</ChoiceInput>
+-->
 </Vertical>
 
 
@@ -137,8 +151,6 @@ Try a prompt like: "Put all four functions of behavior in a chart with examples 
 
 <TextArea id="fba2_ai_chart_prompt" rows="2" placeholder="Type your prompt asking AI for a chart of functions and reinforcement types..." />
 
-<LLMFeedback id="fba2_ai_chart_response" render="markdown" />
-
 <ActionButton id="fba2_ai_chart_btn" label="Ask AI">
 <LLMAction id="fba2_ai_chart_action" target="fba2_ai_chart_response"><![CDATA[
 You are a helpful psychology teaching assistant. Create a chart showing the four
@@ -154,6 +166,8 @@ function column.
 Student's request: <Ref id="fba2_ref_chart_prompt" target="fba2_ai_chart_prompt" />
 </LLMAction>
 </ActionButton>
+
+<LLMFeedback id="fba2_ai_chart_response" render="markdown" />
 </Vertical>
 
 
@@ -168,7 +182,6 @@ Student's request: <Ref id="fba2_ref_chart_prompt" target="fba2_ai_chart_prompt"
 </Markdown>
 <TextArea id="fba2_pos_reinforcement_attention" rows="3"
   placeholder="Describe a situation where behavior is maintained by attention through positive reinforcement..." />
-<LLMFeedback id="fba2_pr_attention_feedback" render="markdown" />
 <ActionButton id="fba2_pr_attention_btn" label="Get AI Feedback" dependsOn="@fba2_pos_reinforcement_attention.value">
 <LLMAction target="fba2_pr_attention_feedback">
 A student in a psychology class has offered the following situation as an
@@ -181,6 +194,7 @@ with attention as its function and if it is, say so and stop; otherwise, explain
 why it is not. Do not offer examples of your own.
 </LLMAction>
 </ActionButton>
+<LLMFeedback id="fba2_pr_attention_feedback" render="markdown" />
 </LeftPane>
 <RightPane>
 <Markdown>
@@ -190,7 +204,6 @@ why it is not. Do not offer examples of your own.
 </Markdown>
 <TextArea id="fba2_neg_reinforcement_attention" rows="3"
   placeholder="Describe a situation where behavior is maintained by attention through negative reinforcement..." />
-<LLMFeedback id="fba2_nr_attention_feedback" render="markdown" />
 <ActionButton id="fba2_nr_attention_btn" label="Get AI Feedback" dependsOn="@fba2_neg_reinforcement_attention.value">
 <LLMAction target="fba2_nr_attention_feedback">
 A student in a psychology class has offered the following situation as an
@@ -203,6 +216,7 @@ with attention as its function and if it is, say so and stop; otherwise, explain
 why it is not. Do not offer examples of your own.
 </LLMAction>
 </ActionButton>
+<LLMFeedback id="fba2_nr_attention_feedback" render="markdown" />
 </RightPane>
 </SplitPanel>
 
@@ -218,7 +232,6 @@ why it is not. Do not offer examples of your own.
 </Markdown>
 <TextArea id="fba2_pos_reinforcement_escape" rows="3"
   placeholder="Describe a situation where behavior is maintained by escape through positive reinforcement..." />
-<LLMFeedback id="fba2_pr_escape_feedback" render="markdown" />
 <ActionButton id="fba2_pr_escape_btn" label="Get AI Feedback" dependsOn="@fba2_pos_reinforcement_escape.value">
 <LLMAction target="fba2_pr_escape_feedback">
 A student in a psychology class has offered the following situation as an
@@ -231,6 +244,7 @@ with escape as its function and if it is, say so and stop; otherwise, explain
 why it is not. Do not offer examples of your own.
 </LLMAction>
 </ActionButton>
+<LLMFeedback id="fba2_pr_escape_feedback" render="markdown" />
 </LeftPane>
 <RightPane>
 <Markdown>
@@ -240,7 +254,6 @@ why it is not. Do not offer examples of your own.
 </Markdown>
 <TextArea id="fba2_neg_reinforcement_escape" rows="3"
   placeholder="Describe a situation where behavior is maintained by escape through negative reinforcement..." />
-<LLMFeedback id="fba2_nr_escape_feedback" render="markdown" />
 <ActionButton id="fba2_nr_escape_btn" label="Get AI Feedback" dependsOn="@fba2_neg_reinforcement_escape.value">
 <LLMAction target="fba2_nr_escape_feedback">
 A student in a psychology class has offered the following situation as an
@@ -253,6 +266,7 @@ with escape as its function and if it is, say so and stop; otherwise, explain
 why it is not. Do not offer examples of your own.
 </LLMAction>
 </ActionButton>
+<LLMFeedback id="fba2_nr_escape_feedback" render="markdown" />
 </RightPane>
 </SplitPanel>
 
@@ -268,7 +282,6 @@ why it is not. Do not offer examples of your own.
 </Markdown>
 <TextArea id="fba2_pos_reinforcement_access" rows="3"
   placeholder="Describe a situation where behavior is maintained by access to tangibles through positive reinforcement..." />
-<LLMFeedback id="fba2_pr_access_feedback" render="markdown" />
 <ActionButton id="fba2_pr_access_btn" label="Get AI Feedback" dependsOn="@fba2_pos_reinforcement_access.value">
 <LLMAction target="fba2_pr_access_feedback">
 A student in a psychology class has offered the following situation as an
@@ -281,6 +294,7 @@ with access as its function and if it is, say so and stop; otherwise, explain
 why it is not. Do not offer examples of your own.
 </LLMAction>
 </ActionButton>
+<LLMFeedback id="fba2_pr_access_feedback" render="markdown" />
 </LeftPane>
 <RightPane>
 <Markdown>
@@ -290,7 +304,6 @@ why it is not. Do not offer examples of your own.
 </Markdown>
 <TextArea id="fba2_neg_reinforcement_access" rows="3"
   placeholder="Describe a situation where behavior is maintained by access to tangibles through negative reinforcement..." />
-<LLMFeedback id="fba2_nr_access_feedback" render="markdown" />
 <ActionButton id="fba2_nr_access_btn" label="Get AI Feedback" dependsOn="@fba2_neg_reinforcement_access.value">
 <LLMAction target="fba2_nr_access_feedback">
 A student in a psychology class has offered the following situation as an
@@ -303,6 +316,7 @@ with access as its function and if it is, say so and stop; otherwise, explain
 why it is not. Do not offer examples of your own.
 </LLMAction>
 </ActionButton>
+<LLMFeedback id="fba2_nr_access_feedback" render="markdown" />
 </RightPane>
 </SplitPanel>
 
@@ -318,7 +332,6 @@ why it is not. Do not offer examples of your own.
 </Markdown>
 <TextArea id="fba2_pos_reinforcement_sensory" rows="3"
   placeholder="Describe a situation where behavior is maintained by sensory stimulation through positive reinforcement..." />
-<LLMFeedback id="fba2_pr_sensory_feedback" render="markdown" />
 <ActionButton id="fba2_pr_sensory_btn" label="Get AI Feedback" dependsOn="@fba2_pos_reinforcement_sensory.value">
 <LLMAction target="fba2_pr_sensory_feedback">
 A student in a psychology class has offered the following situation as an
@@ -331,6 +344,7 @@ with a sensory function and if it is, say so and stop; otherwise, explain
 why it is not. Do not offer examples of your own.
 </LLMAction>
 </ActionButton>
+<LLMFeedback id="fba2_pr_sensory_feedback" render="markdown" />
 </LeftPane>
 <RightPane>
 <Markdown>
@@ -340,7 +354,6 @@ why it is not. Do not offer examples of your own.
 </Markdown>
 <TextArea id="fba2_neg_reinforcement_sensory" rows="3"
   placeholder="Describe a situation where behavior is maintained by sensory stimulation through negative reinforcement..." />
-<LLMFeedback id="fba2_nr_sensory_feedback" render="markdown" />
 <ActionButton id="fba2_nr_sensory_btn" label="Get AI Feedback" dependsOn="@fba2_neg_reinforcement_sensory.value">
 <LLMAction target="fba2_nr_sensory_feedback">
 A student in a psychology class has offered the following situation as an
@@ -353,6 +366,7 @@ with a sensory function and if it is, say so and stop; otherwise, explain
 why it is not. Do not offer examples of your own.
 </LLMAction>
 </ActionButton>
+<LLMFeedback id="fba2_nr_sensory_feedback" render="markdown" />
 </RightPane>
 </SplitPanel>
 
@@ -526,6 +540,10 @@ Student prompt: <Ref id="fba2_ref_abc_code_prompt" target="fba2_ai_abc_prompt" /
 
 <HH> ============= Screen: ABC reference diagram ================ </HH>
 
+<!-- The escape diagram (fba2_abc_ref_escape) is now inlined in the chatpeg.
+     The container Vertical and the other three diagrams are no longer referenced.
+     Keeping the individual Mermaid blocks in case the escape diagram inline needs them.
+     Remove the unused ones (attention, tangible, sensory) once approved by course team. -->
 <IntakeGate ready="!@fba2_completion_checkbox.value">
 <Markdown> </Markdown>
 <Vertical id="fba2_abc_reference">
@@ -563,8 +581,6 @@ _Recall: Annie's roommate tells Johnny to get into bed, but he runs away from th
 
 <TextArea id="fba2_abc_johnny_explanation" rows="4" placeholder="Describe the Antecedent, Behavior, and Consequence for Johnny's bedtime situation..." />
 
-<LLMFeedback id="fba2_abc_johnny_feedback" render="markdown" />
-
 <ActionButton id="fba2_abc_johnny_check_btn" label="Check My Understanding" dependsOn="@fba2_abc_johnny_explanation.value">
 <LLMAction id="fba2_abc_johnny_check" target="fba2_abc_johnny_feedback"><![CDATA[
 A psychology student was asked to identify the ABCs (Antecedent, Behavior, Consequence)
@@ -584,6 +600,8 @@ Evaluate whether the student correctly identified each component. Be encouraging
 specific about what they got right and what needs correction. Keep it brief.
 ]]></LLMAction>
 </ActionButton>
+
+<LLMFeedback id="fba2_abc_johnny_feedback" render="markdown" />
 </Vertical>
 
 
@@ -635,8 +653,6 @@ The antecedent has been filled in for you. Complete the rest based on what you k
 <Markdown>**Function** (why does this behavior continue?):</Markdown>
 <TextArea id="fba2_pathway_function" rows="1" placeholder="What function does this behavior serve?" />
 
-<LLMFeedback id="fba2_pathway_feedback" render="markdown" />
-
 <ActionButton id="fba2_pathway_check_btn" label="Check My Pathway" dependsOn="@fba2_pathway_behavior.value">
 <LLMAction id="fba2_pathway_check" target="fba2_pathway_feedback"><![CDATA[
 A psychology student was asked to fill in a Competing Behavior Pathway for Johnny's
@@ -664,6 +680,8 @@ Evaluate each component. Be encouraging but specific about what they got right
 and what needs correction. Keep it brief.
 ]]></LLMAction>
 </ActionButton>
+
+<LLMFeedback id="fba2_pathway_feedback" render="markdown" />
 </Vertical>
 
 
@@ -682,6 +700,9 @@ and what needs correction. Keep it brief.
 
 <HH> ============= Screen: Textbook on escape =================== </HH>
 
+<!-- Textbook quote moved inline into Lin's dialogue in the chatpeg.
+     Remove once approved by course team. -->
+<!--
 <IntakeGate ready="!@fba2_completion_checkbox.value">
 <Markdown> </Markdown>
 <Markdown id="fba2_textbook_escape">
@@ -690,6 +711,7 @@ and what needs correction. Keep it brief.
 _"Escape is used to get away from something aversive or not preferred. Changing **antecedent conditions** is key to intervening when the function of behavior is escape."_
 </Markdown>
 </IntakeGate>
+-->
 
 
 <HH> ============= Screen: Intervention strategies ============== </HH>
@@ -748,7 +770,6 @@ Write a prompt asking AI for **antecedent strategies** — things you can change
 </Markdown>
 <TextArea id="fba2_ai_antecedent_prompt" rows="2"
   placeholder="Ask AI for antecedent strategies to prevent problem behaviors..." />
-<LLMFeedback id="fba2_ai_antecedent_response" render="markdown" />
 <ActionButton id="fba2_ai_antecedent_btn" label="Ask AI" dependsOn="@fba2_ai_antecedent_prompt.value">
 <LLMAction target="fba2_ai_antecedent_response"><![CDATA[
 If the following prompt is about antecedent strategies for preventing problem behaviors,
@@ -760,6 +781,7 @@ Student's prompt: <Ref target="fba2_ai_antecedent_prompt" />
 Format with bolded headers and a numbered list. Keep each strategy to 1-2 sentences.
 ]]></LLMAction>
 </ActionButton>
+<LLMFeedback id="fba2_ai_antecedent_response" render="markdown" />
 </Vertical>
 
 
@@ -773,7 +795,6 @@ Now write a prompt asking AI for **consequence strategies** — things you can c
 </Markdown>
 <TextArea id="fba2_ai_consequence_prompt" rows="2"
   placeholder="Ask AI for consequence strategies to respond to problem behaviors..." />
-<LLMFeedback id="fba2_ai_consequence_response" render="markdown" />
 <ActionButton id="fba2_ai_consequence_btn" label="Ask AI" dependsOn="@fba2_ai_consequence_prompt.value">
 <LLMAction target="fba2_ai_consequence_response"><![CDATA[
 If the following prompt is about consequence strategies for responding to problem behaviors,
@@ -785,6 +806,7 @@ Student's prompt: <Ref target="fba2_ai_consequence_prompt" />
 Format with bolded headers and a numbered list. Keep each strategy to 1-2 sentences.
 ]]></LLMAction>
 </ActionButton>
+<LLMFeedback id="fba2_ai_consequence_response" render="markdown" />
 </Vertical>
 
 
@@ -798,7 +820,6 @@ Now let's focus specifically on **escape**. Write a prompt asking AI for anteced
 </Markdown>
 <TextArea id="fba2_ai_escape_ante_prompt" rows="2"
   placeholder="Ask AI for antecedent strategies specific to escape-maintained bedtime refusal..." />
-<LLMFeedback id="fba2_ai_escape_ante_response" render="markdown" />
 <ActionButton id="fba2_ai_escape_ante_btn" label="Ask AI" dependsOn="@fba2_ai_escape_ante_prompt.value">
 <LLMAction target="fba2_ai_escape_ante_response"><![CDATA[
 If the following prompt is about antecedent strategies for escape-maintained behavior,
@@ -811,6 +832,7 @@ Student's prompt: <Ref target="fba2_ai_escape_ante_prompt" />
 Format with bolded headers and a numbered list. Keep each strategy to 1-2 sentences.
 ]]></LLMAction>
 </ActionButton>
+<LLMFeedback id="fba2_ai_escape_ante_response" render="markdown" />
 </Vertical>
 
 
@@ -824,7 +846,6 @@ Finally, write a prompt asking AI for **consequence strategies** that specifical
 </Markdown>
 <TextArea id="fba2_ai_escape_cons_prompt" rows="2"
   placeholder="Ask AI for consequence strategies specific to escape-maintained bedtime refusal..." />
-<LLMFeedback id="fba2_ai_escape_cons_response" render="markdown" />
 <ActionButton id="fba2_ai_escape_cons_btn" label="Ask AI" dependsOn="@fba2_ai_escape_cons_prompt.value">
 <LLMAction target="fba2_ai_escape_cons_response"><![CDATA[
 If the following prompt is about consequence strategies for escape-maintained behavior,
@@ -837,6 +858,7 @@ Student's prompt: <Ref target="fba2_ai_escape_cons_prompt" />
 Format with bolded headers and a numbered list. Keep each strategy to 1-2 sentences.
 ]]></LLMAction>
 </ActionButton>
+<LLMFeedback id="fba2_ai_escape_cons_response" render="markdown" />
 </Vertical>
 
 
@@ -1027,8 +1049,6 @@ Your email will be evaluated on:
 
 <TextArea id="fba2_email_to_roommate" rows="10" placeholder="Write your email to Annie's roommate describing the new intervention plan..." />
 
-<LLMFeedback id="fba2_email_feedback" render="markdown" />
-
 <ActionButton id="fba2_email_check_btn" label="Get AI Feedback" dependsOn="@fba2_email_to_roommate.value">
 <LLMAction id="fba2_email_check" target="fba2_email_feedback"><![CDATA[
 Here is an email designed to help a babysitter implement an operant conditioning
@@ -1046,6 +1066,8 @@ For each criterion, note what was done well and what could be improved.
 Keep your feedback constructive and concise.
 ]]></LLMAction>
 </ActionButton>
+
+<LLMFeedback id="fba2_email_feedback" render="markdown" />
 </Vertical>
 
 
