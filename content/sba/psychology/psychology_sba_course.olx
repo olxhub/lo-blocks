@@ -11,5 +11,5 @@ lang: en-Latn-US
   <Use ref="psych_sba" />
   <Use ref="psych_sba2" />
   <Use ref="psych_sba_part3" />
-  <Use ref="psych_sba_sba_part4" />
+  <Use ref="psych_sba_part4" />
 </Course>
