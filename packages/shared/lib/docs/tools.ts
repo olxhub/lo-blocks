@@ -243,9 +243,8 @@ const FormatResultSchema = z.object({
   spec: z.string().nullable().optional().describe('Format specification (PEG grammar source, schema description, etc.)'),
   readme: FileContentSchema.nullable().optional(),
   preview: z.string().nullable().optional().describe('Preview OLX template'),
-  examples: z.array(z.object({
+  examples: z.record(z.string(), z.object({
     path: z.string(),
-    filename: z.string(),
     content: z.string(),
   })).optional(),
 });
@@ -396,13 +395,15 @@ async function getFormats(
             const filePath = `${dir}/${filename}`;
             const content = await safeReadFile(filePath);
             if (content === null) return null;
-            return { path: filePath, filename, content };
+            return [filename, { path: filePath, content }] as const;
           }),
         );
-        entry.examples = results.filter((r): r is NonNullable<typeof r> => r !== null);
+        entry.examples = Object.fromEntries(
+          results.filter((r): r is NonNullable<typeof r> => r !== null),
+        );
       } catch {
         // Directory not readable — skip examples
-        entry.examples = [];
+        entry.examples = {};
       }
     }
 

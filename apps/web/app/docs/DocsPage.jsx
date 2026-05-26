@@ -56,6 +56,14 @@ function useDocsExampleState(blockName, exampleFilename, originalContent) {
 // Utilities
 // =============================================================================
 
+/** Look up an example by numeric index from a Record<filename, data>. */
+function getExampleByIndex(examples, index) {
+  const entries = Object.entries(examples ?? {});
+  if (index < 0 || index >= entries.length) return null;
+  const [filename, data] = entries[index];
+  return { filename, ...data };
+}
+
 function buildTabs(blockDetails, isGrammar = false) {
   const tabs = [{ id: 'overview', label: 'Overview' }];
 
@@ -68,12 +76,12 @@ function buildTabs(blockDetails, isGrammar = false) {
     tabs.push({ id: 'grammar-source', label: 'Grammar' });
   }
 
-  blockDetails?.examples?.forEach((example, index) => {
+  Object.keys(blockDetails?.examples ?? {}).forEach((filename, index) => {
     // For grammars, remove the extension from label
     const ext = isGrammar ? blockDetails.extension : null;
     const label = isGrammar
-      ? example.filename.replace(new RegExp(`\\.${ext}$`), '')
-      : example.filename.replace(/\.(olx|xml)$/, '');
+      ? filename.replace(new RegExp(`\\.${ext}$`), '')
+      : filename.replace(/\.(olx|xml)$/, '');
     tabs.push({
       id: `example-${index}`,
       label,
@@ -136,7 +144,7 @@ function BlockSidebar({
                   // Determine if block or its docs are uncommitted
                   const blockUncommitted = block.gitStatus && block.gitStatus !== 'committed';
                   const docsUncommitted = block.readmeGitStatus && block.readmeGitStatus !== 'committed';
-                  const examplesUncommitted = block.examples?.some(e => e.gitStatus && e.gitStatus !== 'committed');
+                  const examplesUncommitted = Object.values(block.examples ?? {}).some(e => e.gitStatus && e.gitStatus !== 'committed');
                   const anyUncommitted = blockUncommitted || docsUncommitted || examplesUncommitted;
 
                   // Git status indicator styling
@@ -188,7 +196,7 @@ function BlockSidebar({
                             />
                           )
                         )}
-                        {(block.examples?.length > 0 || block.exampleCount > 0) && (
+                        {(Object.keys(block.examples ?? {}).length > 0 || block.exampleCount > 0) && (
                           <span
                             className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                               examplesUncommitted ? 'bg-warning' : 'bg-purple-500'
@@ -668,8 +676,9 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
 }
 
 function OverviewTab({ block, details }) {
-  const firstExample = details?.examples?.[0];
-  const moreExamplesCount = (details?.examples?.length || 0) - 1;
+  const exampleEntries = Object.entries(details?.examples ?? {});
+  const firstExample = exampleEntries.length > 0 ? { filename: exampleEntries[0][0], ...exampleEntries[0][1] } : null;
+  const moreExamplesCount = exampleEntries.length - 1;
 
   return (
     <div className="space-y-6">
@@ -755,8 +764,9 @@ function ExampleTab({ example, blockName }) {
 }
 
 function GrammarOverviewTab({ grammar, details }) {
-  const firstExample = details?.examples?.[0];
-  const moreExamplesCount = (details?.examples?.length || 0) - 1;
+  const exampleEntries = Object.entries(details?.examples ?? {});
+  const firstExample = exampleEntries.length > 0 ? { filename: exampleEntries[0][0], ...exampleEntries[0][1] } : null;
+  const moreExamplesCount = exampleEntries.length - 1;
 
   return (
     <div className="space-y-6">
@@ -802,7 +812,7 @@ function BlockContent({ block, details, activeTab, loading, isGrammar = false })
 
     if (activeTab.startsWith('example-')) {
       const index = parseInt(activeTab.replace('example-', ''), 10);
-      const example = details?.examples?.[index];
+      const example = getExampleByIndex(details?.examples, index);
       if (example) {
         return (
           <GrammarExampleTab
@@ -828,7 +838,7 @@ function BlockContent({ block, details, activeTab, loading, isGrammar = false })
 
   if (activeTab.startsWith('example-')) {
     const index = parseInt(activeTab.replace('example-', ''), 10);
-    const example = details?.examples?.[index];
+    const example = getExampleByIndex(details?.examples, index);
     if (example) {
       return <ExampleTab example={example} blockName={block.name} />;
     }
