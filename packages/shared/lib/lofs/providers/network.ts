@@ -12,6 +12,7 @@
 // configurable endpoints, maintaining the same interface as local file storage.
 //
 import type { LofsRef, OlxRelativePath, SafeRelativePath, LofsPath } from '../../types';
+import { isMediaFile } from '@/lib/util/fileTypes';
 import { provenancePath } from '../../types/storage';
 import { toLofsCanonical, withVersion, toLofsVersion } from '../../types/address';
 import { hashContent } from '../../util';
@@ -140,7 +141,6 @@ export class NetworkStorageProvider implements StorageProvider {
    * Check if an asset file exists via HEAD request.
    */
   async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {
-    const { isMediaFile } = await import('@/lib/util/fileTypes');
     if (!isMediaFile(assetPath)) {
       return false;
     }

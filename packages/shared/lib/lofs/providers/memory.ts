@@ -11,7 +11,7 @@
 //
 
 import { minimatch } from 'minimatch';
-import { isContentFile, getExtension } from '@/lib/util/fileTypes';
+import { isContentFile, isMediaFile, getExtension } from '@/lib/util/fileTypes';
 import type {
   StorageProvider,
   ReadResult,
@@ -146,7 +146,6 @@ export class InMemoryStorageProvider implements StorageProvider {
   }
 
   async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {
-    const { isMediaFile } = await import('@/lib/util/fileTypes');
     return isMediaFile(assetPath) && this.exists(assetPath);
   }
 

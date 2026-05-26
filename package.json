@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev": "npm run server & npm run dev:client & npm run dev:next",
-    "dev:client": "./sandbox.sh npx vite build --watch apps/client",
+    "dev:client": "./sandbox.sh npx vite build --watch --logLevel warn apps/client",
     "dev:crdt": "NEXT_PUBLIC_LO_FIELD_STRATEGY=crdt npm run dev",
     "dev:full": "npm run build && npm run dev",
     "dev:legacy": "npm run server:legacy & npm run dev:next",
@@ -38,7 +38,7 @@
     "test:unit": "./sandbox.sh vitest --exclude='**/integration/**'",
     "test:ui": "./sandbox.sh vitest --ui",
     "smoke": "playwright test --config apps/web/playwright.smoke.config.ts",
-    "clean": "./sandbox.sh rm -rf apps/web/.next apps/static/dist apps/client/dist node_modules .turbo out apps/web/public/content apps/static/public/static-content",
+    "clean": "./sandbox.sh rm -rf apps/web/.next apps/web/.next-test apps/static/.next apps/static/dist apps/client/dist node_modules .turbo out apps/web/public/content apps/static/public/static-content",
     "clean-translations": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/clean-translations.ts",
     "clean-zombies": "pkill -9 -f '[n]ext-server' ; pkill -9 -f '[n]ext dev' ; pkill -9 -f '[p]ostcss.js' ; pkill -9 -f '[e]vent-server' ; pkill -9 -f '[v]ite.*apps/client' ; pkill -9 -f '[f]irejail.*apps/server' ; pkill -9 -f '[t]sx.*apps/server' ; pkill -9 -f '[n]ode.*apps/server/src'",
     "serve:static": "./sandbox.sh npx serve apps/static/dist",
