@@ -1,32 +1,40 @@
 // src/app/preview/[ns]/[id]/PreviewPage.tsx
 'use client';
 
-import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import AppHeader from '@/components/common/AppHeader';
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
-import { useFieldState, settings } from '@/lib/state';
+import { useFieldState, system } from '@/lib/state';
 import { useContentLoader } from '@/lib/content/useContentLoader';
-import { parseDefinitionKey } from '@/lib/types/id-grammar';
+import { parseStateKey, leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
-import { ComponentError } from '@/lib/types';
 
 export default function PreviewPage() {
   const params = useParams();
-  // Route is /preview/[ns]/[id] — reconstruct DefinitionKey as "ns/id"
-  const definitionKey = parseDefinitionKey(`${params.ns}/${params.id}`);
+  // Route is /preview/[ns]/[id] — reconstruct StateKey as "ns/id"
+  // (a bare "ns/id" is a valid StateKey — no scope markers means top-level instance)
+  const definitionKey = parseStateKey(`${params.ns}/${params.id}`);
   // TODO: Pass baselineProps from useBaselineProps() instead of null
   const [debug] = useFieldState(
     null,
-    settings.debug,
+    system.debug,
     false,
     { tag: 'preview' } // HACK: This works around not having proper props. Should be fixed. See below
   );
 
-  const { idMap, error, loading } = useContentLoader(definitionKey);
-  const [renderError, setRenderError] = useState<ComponentError>(null);
+  // TODO: useContentLoader should accept StateKey and load ALL definition keys
+  // via allDefinitionKeysFromStateKey (e.g. "foo:#7:bar" needs both foo and bar).
+  // Currently only loads the leaf — works for top-level renders but breaks for
+  // scoped state keys.
+  const { idMap, error, loading } = useContentLoader(leafDefinitionKeyFromStateKey(definitionKey));
+  const [renderError, setRenderError] = useFieldState(
+    null,
+    system.renderError,
+    null,
+    { tag: 'preview' }
+  );
   const localeAttrs = useLocaleAttributes();
 
   if (error) {
@@ -55,21 +63,8 @@ export default function PreviewPage() {
     );
   }
 
-  if (!idMap) {
-    return (
-      <div {...localeAttrs} suppressHydrationWarning className="flex flex-col h-screen">
-        <AppHeader home user />
-        <div className="p-6 flex-1">
-          <DisplayError
-            props={{ id: definitionKey, tag: 'preview' }}
-            title="No Content"
-            message={`No content found for ID: ${definitionKey}`}
-            id={`${definitionKey}_no_content`}
-          />
-        </div>
-      </div>
-    );
-  }
+  // After loading=false and error=null, idMap should always be populated.
+  // If not, it's a bug in useContentLoader (e.g. unhandled replay/locale edge case).
 
   return (
     <div {...localeAttrs} className="flex flex-col h-screen">
@@ -87,7 +82,7 @@ export default function PreviewPage() {
           ) : (
             <RenderOLX
               id={definitionKey}
-              baseIdMap={idMap}
+              baseIdMap={idMap!}
               eventContext="preview"
               onError={(err) => setRenderError(err.message)}
             />

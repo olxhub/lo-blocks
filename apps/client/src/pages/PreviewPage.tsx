@@ -4,27 +4,34 @@
 // from /api/olxjson/. Adapted from apps/web/app/preview/[id]/PreviewPage.tsx
 // with Next.js useParams replaced by a prop from the router.
 //
-import { useState } from 'react';
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
-import { useFieldState, settings } from '@/lib/state';
+import { useFieldState, system } from '@/lib/state';
 import { useContentLoader } from '@/lib/content/useContentLoader';
-import { parseDefinitionKey } from '@/lib/types/id-grammar';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
-import type { ComponentError } from '@/lib/types';
+import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
+import type { StateKey } from '@/lib/types';
 
-export default function PreviewPage({ id }: { id: string }) {
-  const olxKey = parseDefinitionKey(id);
+export default function PreviewPage({ id }: { id: StateKey }) {
   const [debug] = useFieldState(
     null,
-    settings.debug,
+    system.debug,
     false,
     { tag: 'preview' }
   );
 
-  const { idMap, error, loading } = useContentLoader(olxKey);
-  const [renderError, setRenderError] = useState<ComponentError>(null);
+  // TODO: useContentLoader should accept StateKey and load ALL definition keys
+  // via allDefinitionKeysFromStateKey (e.g. "foo:#7:bar" needs both foo and bar).
+  // Currently only loads the leaf — works for top-level renders but breaks for
+  // scoped state keys.
+  const { idMap, error, loading } = useContentLoader(leafDefinitionKeyFromStateKey(id));
+  const [renderError, setRenderError] = useFieldState(
+    null,
+    system.renderError,
+    null,
+    { tag: 'preview' }
+  );
   const localeAttrs = useLocaleAttributes();
 
   if (error) {
@@ -32,11 +39,11 @@ export default function PreviewPage({ id }: { id: string }) {
       <div {...localeAttrs} className="flex flex-col h-screen">
         <div className="p-6 flex-1">
           <DisplayError
-            props={{ id: olxKey, tag: 'preview' }}
+            props={{ id, tag: 'preview' }}
             title="Content Loading Error"
-            message={`Failed to load content: ${olxKey}`}
+            message={`Failed to load content: ${id}`}
             technical={error}
-            id={`${olxKey}_load_error`}
+            id={`${id}_load_error`}
           />
         </div>
       </div>
@@ -51,20 +58,8 @@ export default function PreviewPage({ id }: { id: string }) {
     );
   }
 
-  if (!idMap) {
-    return (
-      <div {...localeAttrs} className="flex flex-col h-screen">
-        <div className="p-6 flex-1">
-          <DisplayError
-            props={{ id: olxKey, tag: 'preview' }}
-            title="No Content"
-            message={`No content found for ID: ${olxKey}`}
-            id={`${olxKey}_no_content`}
-          />
-        </div>
-      </div>
-    );
-  }
+  // After loading=false and error=null, idMap should always be populated.
+  // If not, it's a bug in useContentLoader (e.g. unhandled replay/locale edge case).
 
   return (
     <div {...localeAttrs} className="flex flex-col h-screen">
@@ -72,16 +67,16 @@ export default function PreviewPage({ id }: { id: string }) {
         <div className="space-y-4">
           {renderError ? (
             <DisplayError
-              props={{ id: olxKey, tag: 'preview' }}
+              props={{ id, tag: 'preview' }}
               title="Render Error"
-              message={`Failed to render content: ${olxKey}`}
+              message={`Failed to render content: ${id}`}
               technical={renderError}
-              id={`${olxKey}_render_error`}
+              id={`${id}_render_error`}
             />
           ) : (
             <RenderOLX
-              id={olxKey}
-              baseIdMap={idMap}
+              id={id}
+              baseIdMap={idMap!}
               eventContext="preview"
               onError={(err) => setRenderError(err.message)}
             />

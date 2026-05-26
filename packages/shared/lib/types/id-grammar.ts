@@ -12,6 +12,8 @@
 //
 // The one helper we need: literal strings in regex context.
 
+import { parse } from 'pathe';
+
 export function literal(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\\-]/g, '\\$&');
 }
@@ -464,6 +466,32 @@ export function parseAnyDefinitionRef(s: string, context?: string): DefinitionRe
 export function parseAnyStateRef(s: string): StateRef {
   assertValid(validateAnyStateRef(s));
   return asStateRef(s);
+}
+
+/**
+ * Derive a StateKey from a file path and content namespace.
+ *
+ * Uses pathe to extract the basename (no directory, no extension), lowercases
+ * the first character (PascalCase → camelCase), and qualifies with the namespace.
+ *
+ * Examples:
+ *   stateKeyFromFilename('blocks/CodeMirror/CodeMirrorPEGSyntaxDemo.olx', 'docs')
+ *   → "docs/codeMirrorPEGSyntaxDemo"
+ *
+ *   stateKeyFromFilename('example.chatpeg', 'docs')
+ *   → "docs/example"
+ *
+ *   stateKeyFromFilename('demos/resistor.olx', 'edu.memphis.psych101')
+ *   → "edu.memphis.psych101/resistor"
+ */
+export function stateKeyFromFilename(filename: string, ns: ContentNamespace): StateKey {
+  const { name } = parse(filename);
+  // Dots become camelCase boundaries: "Chat.demo" → "chatDemo"
+  // (dots are field separators in state keys, so they can't appear in IDs)
+  const parts = name.split('.');
+  const camel = parts[0].charAt(0).toLowerCase() + parts[0].slice(1)
+    + parts.slice(1).map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('');
+  return parseStateKey(`${ns}/${camel}`);
 }
 
 /** Join a parent ref with child segments to form a derived DefinitionRef.

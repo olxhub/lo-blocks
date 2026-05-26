@@ -15,7 +15,8 @@ import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import { useStaticContent } from './StaticContentProvider';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
-import { definitionKeyForRef, parseDefinitionRef } from '@/lib/types/id-grammar';
+import { definitionKeyForRef, parseDefinitionRef, addScope } from '@/lib/types/id-grammar';
+
 import { variantMapLocaleEntries } from '@/lib/types/i18n';
 import type { Locale } from '@/lib/types';
 
@@ -51,7 +52,7 @@ export default function StaticPage({ definitionKey, title }: { definitionKey: st
       )}
       <div className="p-6 flex-1 overflow-auto">
         <RenderOLX
-          id={key}
+          id={addScope(key)}
           baseIdMap={idMap}
           eventContext="static"
         />

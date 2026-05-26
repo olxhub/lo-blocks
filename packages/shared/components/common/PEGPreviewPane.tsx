@@ -9,6 +9,8 @@ import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
 import { getExtension } from '@/lib/util/fileTypes';
+import { stateKeyFromFilename } from '@/lib/types/id-grammar';
+import { toContentNamespace } from '@/lib/types';
 
 interface PEGPreviewPaneProps {
   path: string;
@@ -196,7 +198,7 @@ export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
               <DisplayError message={previewWithContent.error} />
             ) : previewWithContent && 'olx' in previewWithContent ? (
               <RenderOLX
-                id={`peg-preview-${ext}`}
+                id={stateKeyFromFilename(`preview.${ext}`, toContentNamespace('pegPreview'))}
                 inline={previewWithContent.olx}
               />
             ) : (
