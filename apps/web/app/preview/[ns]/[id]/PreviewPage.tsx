@@ -15,7 +15,7 @@ export default function PreviewPage() {
   const params = useParams();
   // Route is /preview/[ns]/[id] — reconstruct StateKey as "ns/id"
   // (a bare "ns/id" is a valid StateKey — no scope markers means top-level instance)
-  const definitionKey = parseStateKey(`${params.ns}/${params.id}`);
+  const stateKey = parseStateKey(`${params.ns}/${params.id}`);
   // TODO: Pass baselineProps from useBaselineProps() instead of null
   const [debug] = useFieldState(
     null,
@@ -28,12 +28,12 @@ export default function PreviewPage() {
   // via allDefinitionKeysFromStateKey (e.g. "foo:#7:bar" needs both foo and bar).
   // Currently only loads the leaf — works for top-level renders but breaks for
   // scoped state keys.
-  const { idMap, error, loading } = useContentLoader(leafDefinitionKeyFromStateKey(definitionKey));
+  const { idMap, error, loading } = useContentLoader(leafDefinitionKeyFromStateKey(stateKey));
   const [renderError, setRenderError] = useFieldState(
     null,
     commonFields.renderError,
     null,
-    { stateKey: definitionKey }
+    { stateKey }
   );
   const localeAttrs = useLocaleAttributes();
 
@@ -43,11 +43,11 @@ export default function PreviewPage() {
         <AppHeader home user />
         <div className="p-6 flex-1">
           <DisplayError
-            props={{ id: definitionKey, tag: 'preview' }}
+            props={{ id: stateKey, tag: 'preview' }}
             title="Content Loading Error"
-            message={`Failed to load content: ${definitionKey}`}
+            message={`Failed to load content: ${stateKey}`}
             technical={error}
-            id={`${definitionKey}_load_error`}
+            id={`${stateKey}_load_error`}
           />
         </div>
       </div>
@@ -73,15 +73,15 @@ export default function PreviewPage() {
         <div className="space-y-4">
           {renderError ? (
             <DisplayError
-              props={{ id: definitionKey, tag: 'preview' }}
+              props={{ id: stateKey, tag: 'preview' }}
               title="Render Error"
-              message={`Failed to render content: ${definitionKey}`}
+              message={`Failed to render content: ${stateKey}`}
               technical={renderError}
-              id={`${definitionKey}_render_error`}
+              id={`${stateKey}_render_error`}
             />
           ) : (
             <RenderOLX
-              id={definitionKey}
+              id={stateKey}
               baseIdMap={idMap ?? undefined /* TS workaround; always defined by the time we're here */}
               eventContext="preview"
               onError={(err) => setRenderError(err.message)}
