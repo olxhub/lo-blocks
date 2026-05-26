@@ -28,7 +28,7 @@
     "build:grammars": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/compile-grammars.ts",
     "build:parser-registry": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/generate-parser-registry.ts",
     "build:prod": "npm run build && npm run build:client && npm run build:sync-images && ./sandbox.sh next build apps/web",
-    "build:static": "npm run build && npm run build:static-content && ./sandbox.sh npx vite build apps/static && ./sandbox.sh ./node_modules/.bin/tsx apps/static/scripts/stamp-pages.ts",
+    "build:static": "npm run build && npm run build:static-content && ./sandbox.sh npx vite build apps/static && ./sandbox.sh ./node_modules/.bin/tsx apps/static/scripts/stamp-pages.ts && ./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/sync-images.ts --target apps/static/dist/content",
     "build:static-content": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/xml2json.ts --static-dir apps/static/public/static-content",
     "build:sync-images": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/sync-images.ts",
     "typecheck": "./sandbox.sh npx tsc --noEmit",
