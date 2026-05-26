@@ -19,7 +19,7 @@ import {
   dispatchOlxJson,
   dispatchOlxJsonError
 } from '@/lib/state/olxjson';
-import { definitionKeyForRef, allDefinitionKeysFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, isNamespaceQualified, qualifyRef, PLACEHOLDER_NS, splitNs, joinNs, asDefinitionKey } from '@/lib/types/id-grammar';
+import { definitionKeyForRef, allDefinitionKeysFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, isNamespaceQualified, qualifyRef, PLACEHOLDER_NS, splitNs, joinNs, asDefinitionKey, parseDefinitionKey } from '@/lib/types/id-grammar';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, DefinitionKey, DefinitionRef, StateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
@@ -287,7 +287,7 @@ export function useOlxJson(
  *  Handles both bare DefinitionRefs and namespace-qualified keys. */
 function sentinelKey(id: string, prefix: string): DefinitionKey {
   const qualified = isNamespaceQualified(id) ? id : qualifyRef(id, PLACEHOLDER_NS);
-  const { ns, path } = splitNs(qualified);
+  const { ns, path } = splitNs(parseDefinitionKey(qualified));
   return asDefinitionKey(joinNs(ns, `${prefix}${path}`));
 }
 

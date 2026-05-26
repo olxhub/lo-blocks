@@ -206,10 +206,13 @@ export const PARSE = {
 // Small primitives for breaking apart and reassembling IDs. Conversion
 // functions compose these — no string surgery with indexOf.
 
+/** "ee101/answer" → { ns: "ee101", path: "answer" } */
+export function splitNs(key: DefinitionKey): { ns: ContentNamespace; path: DefinitionRef };
 /** "ee101/list:#0:answer" → { ns: "ee101", path: "list:#0:answer" } */
-export function splitNs(key: string): { ns: string; path: string } {
+export function splitNs(key: StateKey): { ns: ContentNamespace; path: StateRef };
+export function splitNs(key: DefinitionKey | StateKey): { ns: ContentNamespace; path: string } {
   const m = key.match(PARSE.stateKey) ?? key.match(PARSE.definitionKey);
-  if (m?.groups) return { ns: m.groups.ns, path: m.groups.path ?? m.groups.id };
+  if (m?.groups) return { ns: asContentNamespace(m.groups.ns), path: m.groups.path ?? m.groups.id };
   throw new Error(`splitNs: "${key}" has no namespace`);
 }
 
@@ -502,7 +505,7 @@ export function joinDefinitionRef(
   parent: DefinitionRef,
   ...parts: (LeafId | number)[]
 ): DefinitionRef {
-  const path = isNamespaceQualified(parent) ? splitNs(parent).path : String(parent);
+  const path = isNamespaceQualified(parent) ? splitNs(parseDefinitionKey(parent)).path : String(parent);
   return asDefinitionRef([path, ...parts.map(String)].join('_'));
 }
 
@@ -550,7 +553,7 @@ export function extendIdPrefix(
   const strip = (s: string | number | ScopeMarker): string => {
     const str = String(s);
     if (!isNamespaceQualified(str)) return str;
-    const { ns, path } = splitNs(str);
+    const { ns, path } = splitNs(parseDefinitionKey(str));
     if (seenNs === null) {
       seenNs = ns;
     } else if (ns !== seenNs) {
@@ -639,19 +642,19 @@ export const z_anyStateRef = brandedString(validateAnyStateRef, asStateRef);
  * To get DefinitionKeys:
  *   result.blockIds.map(id => joinNs(result.namespace, id))
  */
-export function extractBlocks(key: string): { namespace: string; blockIds: string[] } {
-  const { ns, path } = splitNs(key);
+export function extractBlocks(key: DefinitionKey | StateKey): { namespace: ContentNamespace; blockIds: string[] } {
+  const { ns, path } = splitNs(key as StateKey);
   return { namespace: ns, blockIds: blockSegments(path) };
 }
 
 /** Extract all block IDs (strips namespace and scope markers). */
-export function extractBlockIds(key: string): string[] {
-  return blockSegments(splitNs(key).path);
+export function extractBlockIds(key: DefinitionKey | StateKey): string[] {
+  return blockSegments(splitNs(key as StateKey).path);
 }
 
 /** Extract the leaf (target) block ID. */
-export function extractLeafId(key: string): string {
-  return leafBlock(splitNs(key).path);
+export function extractLeafId(key: DefinitionKey | StateKey): string {
+  return leafBlock(splitNs(key as StateKey).path);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

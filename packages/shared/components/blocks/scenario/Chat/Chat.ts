@@ -17,7 +17,7 @@ import {
 import type { ConversationEntry, WaitCommand, ParsedConversation } from './_chatTypes';
 import type { PeggyKids } from '@/lib/types';
 import { canAdvanceToContent, evaluateWaitEntry } from './waitConditions';
-import { scopedStateKeyForBlock, splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
+import { scopedStateKeyForBlock, splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId, qualifyDefinitionRef, parseDefinitionRef } from '@/lib/types/id-grammar';
 import type { DefinitionKey, DefinitionRef, RuntimeProps } from '@/lib/types';
 import * as cp from './_chatParser';
 import { _Chat } from './_Chat';
@@ -374,6 +374,17 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
       const blockWarnings = await processEmbedBlocks(parsed.body, parseNode, storeEntry);
       if (blockWarnings.length > 0) {
         parsed.headerWarnings = [...(parsed.headerWarnings || []), ...blockWarnings];
+      }
+    }
+
+    // Qualify bare EmbedCommand refs with the parent's namespace.
+    // PEG produces bare refs (e.g. "my_quiz"); idMap is keyed by qualified
+    // DefinitionKeys (e.g. "CONTENT/my_quiz"). Qualify here so staticKids
+    // and runtime rendering see consistent keys.
+    const ns = splitNs(id).ns;
+    for (const entry of parsed.body) {
+      if (entry.type === 'EmbedCommand' && entry.ref) {
+        entry.ref = qualifyDefinitionRef(parseDefinitionRef(entry.ref), ns);
       }
     }
 

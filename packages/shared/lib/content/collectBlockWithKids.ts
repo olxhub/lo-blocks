@@ -11,11 +11,11 @@ import { variantMapKeys } from '@/lib/types/i18n';
 import { parseAnyStateRef, stateKeyForGlobalRef, allDefinitionKeysFromStateKey } from '@/lib/types/id-grammar';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
-import type { IdMap, OlxJson } from '@/lib/types';
+import type { IdMap, DefinitionKey, OlxJson } from '@/lib/types';
 
 export function collectBlockWithKids(
   idMap: IdMap,
-  id: string,
+  id: DefinitionKey,
   acceptLanguage: string | null,
   collected: Record<string, any> = {}
 ): Record<string, any> {
@@ -30,7 +30,11 @@ export function collectBlockWithKids(
 
   collected[id] = variantMap;
 
-  // Recurse into static children (structural kids)
+  // Recurse into static children (structural kids).
+  // staticKids must return qualified DefinitionKeys (matching idMap keys).
+  // The blocks parser qualifies during parseNode; PEG-based parsers must
+  // qualify in their postprocess step (they have access to the namespace
+  // via storeEntry's qualification).
   const comp = BLOCK_REGISTRY[entry.tag];
   if (comp?.staticKids) {
     for (const childId of comp.staticKids(entry)) {

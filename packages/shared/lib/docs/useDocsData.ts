@@ -12,7 +12,11 @@ import type { BlockGitStatus } from '@/lib/types';
 
 /**
  * Block documentation metadata — the display/API-layer representation of a
- * block. Shared by /docs, Studio sidebar, and MCP get_blocks.
+ * block. Used by /docs page and Studio sidebar via the legacy /api/docs route.
+ *
+ * TODO: Migrate /docs and Studio to use MCP get_blocks (tools.ts), then remove
+ * this type and the /api/docs route. MCP's BlockResultSchema is the canonical
+ * wire format going forward.
  *
  * This is the documentation subset of LoBlock: no component, reducers, parsers,
  * or other runtime fields. Grammar-related fields (_isGrammar, extension, etc.)

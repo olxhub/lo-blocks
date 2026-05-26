@@ -8,6 +8,7 @@
 import type { Context } from 'hono';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { collectBlockWithKids } from '@/lib/content/collectBlockWithKids';
+import { parseDefinitionKey } from '@/lib/types/id-grammar';
 
 // See apps/web/app/api/olxjson/[id]/route.ts for mode documentation.
 const SINGLE_BLOCK_MODE: string = 'static-kids';
@@ -37,7 +38,7 @@ export async function handleOlxJson(c: Context): Promise<Response> {
         responseIdMap = { [id]: idMap[id] };
         break;
       case 'static-kids':
-        responseIdMap = collectBlockWithKids(idMap, id, acceptLanguage);
+        responseIdMap = collectBlockWithKids(idMap, parseDefinitionKey(id), acceptLanguage);
         break;
       case 'all':
       default:

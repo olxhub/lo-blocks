@@ -1,6 +1,7 @@
 // src/app/api/olxjson/route.ts
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { collectBlockWithKids } from '@/lib/content/collectBlockWithKids';
+import { parseDefinitionKey } from '@/lib/types/id-grammar';
 import type { NextRequest } from 'next/server';
 
 // Block fetching mode for testing async loading:
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
         break;
       case 'static-kids':
         // Practical mode: return block + static children + targets
-        responseIdMap = collectBlockWithKids(idMap, id, acceptLanguage);
+        responseIdMap = collectBlockWithKids(idMap, parseDefinitionKey(id), acceptLanguage);
         break;
       case 'all':
       default:
