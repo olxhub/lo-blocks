@@ -2,12 +2,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import AppHeader from '@/components/common/AppHeader';
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
-import { useFieldState, settings, UrlFieldProvider } from '@/lib/state';
+import { useFieldState, settings } from '@/lib/state';
 import { useContentLoader } from '@/lib/content/useContentLoader';
 import { parseDefinitionKey } from '@/lib/types/id-grammar';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
@@ -15,7 +15,6 @@ import { ComponentError } from '@/lib/types';
 
 export default function PreviewPage() {
   const params = useParams();
-  const searchParams = useSearchParams();
   // Route is /preview/[ns]/[id] — reconstruct DefinitionKey as "ns/id"
   const definitionKey = parseDefinitionKey(`${params.ns}/${params.id}`);
   // TODO: Pass baselineProps from useBaselineProps() instead of null
@@ -73,37 +72,35 @@ export default function PreviewPage() {
   }
 
   return (
-    <UrlFieldProvider searchParams={searchParams}>
-      <div {...localeAttrs} className="flex flex-col h-screen">
-        <AppHeader home user />
-        <div className="p-6 flex-1 overflow-auto">
-          <div className="space-y-4">
-            {renderError ? (
-              <DisplayError
-                props={{ id: definitionKey, tag: 'preview' }}
-                title="Render Error"
-                message={`Failed to render content: ${definitionKey}`}
-                technical={renderError}
-                id={`${definitionKey}_render_error`}
-              />
-            ) : (
-              <RenderOLX
-                id={definitionKey}
-                baseIdMap={idMap}
-                eventContext="preview"
-                onError={(err) => setRenderError(err.message)}
-              />
-            )}
-          </div>
-
-          {debug && (
-            <pre className="mt-4 bg-gray-100 p-4 text-xs rounded overflow-auto">
-              {JSON.stringify({ idMap }, null, 2)}
-            </pre>
+    <div {...localeAttrs} className="flex flex-col h-screen">
+      <AppHeader home user />
+      <div className="p-6 flex-1 overflow-auto">
+        <div className="space-y-4">
+          {renderError ? (
+            <DisplayError
+              props={{ id: definitionKey, tag: 'preview' }}
+              title="Render Error"
+              message={`Failed to render content: ${definitionKey}`}
+              technical={renderError}
+              id={`${definitionKey}_render_error`}
+            />
+          ) : (
+            <RenderOLX
+              id={definitionKey}
+              baseIdMap={idMap}
+              eventContext="preview"
+              onError={(err) => setRenderError(err.message)}
+            />
           )}
         </div>
+
+        {debug && (
+          <pre className="mt-4 bg-gray-100 p-4 text-xs rounded overflow-auto">
+            {JSON.stringify({ idMap }, null, 2)}
+          </pre>
+        )}
       </div>
-    </UrlFieldProvider>
+    </div>
   );
 }
 

@@ -49,7 +49,7 @@ import { commonFields } from './commonFields';
 import { scopes } from '../state/scopes';
 import { FieldInfo, DefinitionRef, DefinitionKey, StateRef, StateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus } from '../types';
 import { assertValidField } from './fields';
-import { useUrlFieldApi, getUrlOverride, setUrlValue } from './urlFields';
+import { getUrlOverride, setUrlValue } from './urlFields';
 import type { Store } from 'redux';
 import { selectBlock, selectBlockState } from './olxjson';
 import { getDomNodeByStateKey, propsFromNode } from '../blocks/olxdom';
@@ -308,22 +308,21 @@ export function useFieldState(
 
   // URL field sync: check URL search params for an override of the fallback.
   // Only applies to fields with url:true — other fields skip this entirely.
-  const urlApi = useUrlFieldApi();
   const propsId = (props as any)?.id;
-  const urlOverride = field.url ? getUrlOverride(urlApi, propsId, field) : undefined;
+  const urlOverride = field.url ? getUrlOverride(propsId, field) : undefined;
   const effectiveFallback = urlOverride !== undefined ? urlOverride : fallback;
 
   const value = useFieldSelector(props, field, { fallback: effectiveFallback, stateKey, tag });
 
-  const ref = useRef({ props, field, stateKey, tag, urlApi });
-  ref.current = { props, field, stateKey, tag, urlApi };
+  const ref = useRef({ props, field, stateKey, tag });
+  ref.current = { props, field, stateKey, tag };
   const setValue = useCallback(
     (newValue: any) => {
-      const { props, field, stateKey, tag, urlApi } = ref.current;
+      const { props, field, stateKey, tag } = ref.current;
       updateField(props, field, newValue, { stateKey, tag });
       // Sync to URL for url-enabled fields
       if (field.url) {
-        setUrlValue(urlApi, (props as any)?.id, field, newValue);
+        setUrlValue((props as any)?.id, field, newValue);
       }
     },
     []
