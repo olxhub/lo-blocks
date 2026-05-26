@@ -10,6 +10,8 @@ import NavArrow from '@/components/common/NavArrow';
 import { fisherYatesShuffleInPlace } from '@/lib/util/shuffle';
 import { assertNamedObject } from '@/lib/util/kids';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
+import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
+import type { StateRef } from '@/lib/types';
 
 function shuffledIds(ids: string[]): string[] {
   const order = [...ids];
@@ -58,7 +60,8 @@ export default function _Carousel(props: RuntimeProps) {
     setCurrentId(displayOrder[position]);
   }
 
-  const { block: renderedItem, olxJson } = useBlock(props, displayOrder[position]);
+  const currentRef = displayOrder[position] as StateRef;
+  const { block: renderedItem, olxJson } = useBlock(props, stateKeyForGlobalRef(currentRef));
 
   // 2. No items — early exit
   if (itemIds.length === 0) {

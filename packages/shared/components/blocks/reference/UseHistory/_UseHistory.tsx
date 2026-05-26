@@ -5,10 +5,13 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect } from 'react';
 import { useBlock } from '@/lib/render';
 import { useReduxInput, useFieldState, useValue } from '@/lib/state';
+import type { StateRef } from '@/lib/types';
+import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import HistoryBar from '@/components/common/HistoryBar';
 
-function HistoryContent({ props, current }) {
-  const { block } = useBlock(props, current);
+function HistoryContent({ props, current }: { props: RuntimeProps; current: StateRef }) {
+  const stateKey = stateKeyForGlobalRef(current);
+  const { block } = useBlock(props, stateKey);
   return <>{block}</>;
 }
 

@@ -54,7 +54,6 @@ export function useBlock(
   stateKey: StateKey | null,
   source: string = 'content'
 ): RenderedBlockResult {
-  // Extract definition ref for content lookup
   const defRef: DefinitionRef | null = stateKey
     ? leafDefinitionKeyFromStateKey(stateKey)
     : null;
