@@ -720,20 +720,6 @@ export async function parseOLX(
           entry.id = qualifyDefinitionRef(asDefinitionRef(entry.id), PLACEHOLDER_NS);
         }
 
-        // Qualify bare refs in kids entries so staticKids (and collectBlockWithKids)
-        // finds them in the namespace-qualified idMap. PEG parsers build kid refs
-        // via joinDefinitionRef (bare); the blocks parser builds them from parseNode
-        // results (already qualified). qualifyDefinitionRef passes through
-        // already-qualified refs, so this is safe for both paths.
-        if (entry && typeof entry === 'object' && Array.isArray(entry.kids)) {
-          entry.kids = entry.kids.map(kid => {
-            if (kid && typeof kid === 'object' && kid.type === 'block' && typeof kid.id === 'string') {
-              return { ...kid, id: qualifyDefinitionRef(asDefinitionRef(kid.id), PLACEHOLDER_NS) };
-            }
-            return kid;
-          });
-        }
-
         // Ensure every entry has its resolved lang — it's used as the variant
         // map key AND needed on the entry for translation mismatch detection.
         if (entry && typeof entry === 'object' && !('lang' in entry)) {

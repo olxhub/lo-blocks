@@ -8,10 +8,10 @@
 
 import { getBestVariantFromHeader } from '@/lib/i18n/getBestVariant';
 import { variantMapKeys } from '@/lib/types/i18n';
-import { parseAnyStateRef, stateKeyForGlobalRef, allDefinitionKeysFromStateKey } from '@/lib/types/id-grammar';
+import { parseAnyStateRef, stateKeyForGlobalRef, allDefinitionKeysFromStateKey, splitNs, qualifyDefinitionRef, parseDefinitionRef } from '@/lib/types/id-grammar';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
-import type { IdMap, DefinitionKey, OlxJson } from '@/lib/types';
+import type { IdMap, DefinitionKey, DefinitionRef, OlxJson } from '@/lib/types';
 
 export function collectBlockWithKids(
   idMap: IdMap,
@@ -31,14 +31,15 @@ export function collectBlockWithKids(
   collected[id] = variantMap;
 
   // Recurse into static children (structural kids).
-  // staticKids must return qualified DefinitionKeys (matching idMap keys).
-  // The blocks parser qualifies during parseNode; PEG-based parsers must
-  // qualify in their postprocess step (they have access to the namespace
-  // via storeEntry's qualification).
+  // staticKids returns DefinitionRefs (potentially bare — PEG parsers build
+  // kid refs via joinDefinitionRef which strips the namespace). We qualify
+  // them here using the parent's namespace, which we know from `id`.
+  const ns = splitNs(id).ns;
   const comp = BLOCK_REGISTRY[entry.tag];
   if (comp?.staticKids) {
-    for (const childId of comp.staticKids(entry)) {
-      collectBlockWithKids(idMap, childId, acceptLanguage, collected);
+    for (const childRef of comp.staticKids(entry) as DefinitionRef[]) {
+      const childKey = qualifyDefinitionRef(parseDefinitionRef(childRef), ns);
+      collectBlockWithKids(idMap, childKey, acceptLanguage, collected);
     }
   }
 
