@@ -160,14 +160,14 @@ async function getBlocks(
       entry.fields = Object.keys(block.fields || {});
     }
     if (includeSet.has('template')) {
-      // Resolved by generateBlockRegistry.js:
-      // {BlockName}.template.olx if it exists, else {BlockName}.olx.
-      entry.template = block.template ? await safeReadFile(block.template) : null;
+      // block.template is a key into block.examples (set by generateBlockRegistry.js)
+      const templateExample = block.template ? block.examples?.[block.template] : undefined;
+      entry.template = templateExample ? await safeReadFile(templateExample.path) : null;
     }
     if (includeSet.has('demo')) {
-      // Resolved by generateBlockRegistry.js:
-      // {BlockName}.demo.olx if it exists, else {BlockName}.olx.
-      entry.demo = block.demo ? await safeReadFile(block.demo) : null;
+      // block.demo is a key into block.examples (set by generateBlockRegistry.js)
+      const demoExample = block.demo ? block.examples?.[block.demo] : undefined;
+      entry.demo = demoExample ? await safeReadFile(demoExample.path) : null;
     }
     if (includeSet.has('readme') && block.readme) {
       const content = await safeReadFile(block.readme);
