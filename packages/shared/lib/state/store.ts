@@ -138,11 +138,11 @@ function resolveWebsocketUrl() {
   return { port: targetPort };
 }
 
-// SSR: pass a string so websocketLogger skips wsHost() (which needs window.location).
-// Browser: dispatch via WS_PORT_MAP — see resolveWebsocketUrl above.
-const WEBSOCKET_URL = isBrowser
-  ? resolveWebsocketUrl()
-  : 'ws://localhost:8888/wsapi/in/';
+// Deferred: only resolved when websocket is actually enabled in configureStore.
+// SSR gets a placeholder string so websocketLogger skips wsHost().
+function getWebsocketUrl() {
+  return isBrowser ? resolveWebsocketUrl() : 'ws://localhost:8888/wsapi/in/';
+}
 
 // Initial state - includes olxjson alongside component state
 //
@@ -452,10 +452,12 @@ let reduxStoreInstance: any = null;
 function configureStore({
   extraFields = [],
   websocket,
+  eventServerUrl,
   blockRegistry,
 }: {
   extraFields?: ExtraFieldsParam;
   websocket?: boolean;
+  eventServerUrl?: string;
   blockRegistry?: BlockRegistryParam;
 } = {}) {
   if (!blockRegistry || Object.keys(blockRegistry).length === 0) {
@@ -473,15 +475,18 @@ function configureStore({
 
   const debugEvents = false; // Toggle here to log events to the console
   const isTest = process.env.VITEST === 'true';
-  // PMSS provides the default; explicit websocket param overrides if provided
-  const wsEnabled = websocket ?? getConfigBool('websocket');
+  // eventServerUrl implies websocket: true. Otherwise PMSS / explicit flag.
+  const wsEnabled = eventServerUrl ? true : (websocket ?? getConfigBool('websocket'));
   const useWebsocket = wsEnabled && !isTest;
 
   const loggers = [
     reduxLogger.reduxLogger([], {}),
     eventCaptureLogger,
     ...(debugEvents ? [consoleLogger()] : []),
-    ...(useWebsocket ? [websocketLogger(WEBSOCKET_URL)] : []),
+    // Explicit URL (e.g. from static.config.json) bypasses port-map resolution.
+    // getWebsocketUrl() must only be called when actually needed — it throws on
+    // unknown ports.
+    ...(useWebsocket ? [websocketLogger(eventServerUrl || getWebsocketUrl())] : []),
   ];
 
   lo_event.init(
