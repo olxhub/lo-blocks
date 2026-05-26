@@ -1,6 +1,6 @@
 // apps/server/src/routes/olxjson.ts
 //
-// GET /api/olxjson/:id
+// GET /api/olxjson?id=X
 //
 // Serves parsed OLX content. Same logic as the Next.js API route,
 // using the same shared code — no duplication.
@@ -13,7 +13,7 @@ import { collectBlockWithKids } from '@/lib/content/collectBlockWithKids';
 const SINGLE_BLOCK_MODE: string = 'static-kids';
 
 export async function handleOlxJson(c: Context): Promise<Response> {
-  const id = c.req.param('id');
+  const id = c.req.query('id');
 
   if (!id) {
     return c.json({ ok: false, error: 'Missing ID' }, 400);

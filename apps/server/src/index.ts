@@ -12,7 +12,7 @@
 //              → this server (:8888)
 //                 ├→ /wsapi/in/     → WebSocket (event pipeline, via ws)
 //                 ├→ /mcp           → MCP tools (StreamableHTTP, raw Node)
-//                 ├→ /api/olxjson/  → content API (Hono)
+//                 ├→ /api/olxjson   → content API (Hono)
 //                 ├→ /assets/*      → Vite-built client (Hono serveStatic)
 //                 ├→ /preview/*     → SPA fallback (Hono serveStatic)
 //                 └→ everything else → proxy to Next.js :3000 (transition)
@@ -51,7 +51,7 @@ const kvs = new MemoryKVStore();
 const app = new Hono();
 
 // API routes
-app.get('/api/olxjson/:id', handleOlxJson);
+app.get('/api/olxjson', handleOlxJson);
 
 // Vite-built client (static files from apps/client/dist/)
 app.use('/assets/*', serveStatic({ root: './apps/client/dist' }));
@@ -64,8 +64,8 @@ const honoHandler = getRequestListener(app.fetch);
 
 // --- HTTP server -----------------------------------------------------------
 // Prefixes owned by this server. Everything else proxies to Next.js.
-// Note: /api/ is intentionally narrow — only /api/olxjson/ is handled here.
-const SERVER_PREFIXES = ['/api/olxjson/', '/assets/', '/preview/'];
+// Note: /api/ is intentionally narrow — only /api/olxjson is handled here.
+const SERVER_PREFIXES = ['/api/olxjson', '/assets/', '/preview/'];
 
 const server = createServer(async (req, res) => {
   const url = req.url || '/';
