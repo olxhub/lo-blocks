@@ -427,6 +427,35 @@ export interface FieldInfo {
   //   Counter (G-Counter): (local, remote) => gCounterMerge(local, remote)
   // ---------------------------------------------------------------------------
 
+  // ---------------------------------------------------------------------------
+  // URL sync — opt-in per field
+  // ---------------------------------------------------------------------------
+
+  /** Sync this field to/from URL search params.
+   *  When true, useFieldState reads an initial value from the URL (as fallback
+   *  override) and writes back on setValue.
+   *
+   *  URL key convention:
+   *  - Component-scoped: `?blockOlxId.fieldName=value`
+   *  - System-scoped: `?fieldName=value`
+   *  - If urlDefault is also true: `?blockOlxId=value` (bare, no field name)
+   *
+   *  Only fields explicitly marked url:true are accessible from the URL.
+   *  This is a security boundary — fields like score, correct, etc. must
+   *  never be URL-overridable. */
+  url?: boolean;
+
+  /** Make this the "bare" URL parameter for its block.
+   *  With urlDefault, `?myBlock=someValue` sets this field.
+   *  Without it, `?myBlock.fieldName=someValue` is required.
+   *  At most one field per block should have urlDefault. */
+  urlDefault?: boolean;
+
+  /** Use pushState instead of replaceState when updating the URL.
+   *  pushState creates browser history entries (back button navigates).
+   *  Default: false (replaceState — URL updates silently). */
+  urlPush?: boolean;
+
   /** @deprecated Use `events[0]` for single-event fields. Kept for backward compatibility
    *  during migration — will be removed once all callers use `events`. */
   event?: string;

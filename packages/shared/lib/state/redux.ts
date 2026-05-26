@@ -49,6 +49,7 @@ import { commonFields } from './commonFields';
 import { scopes } from '../state/scopes';
 import { FieldInfo, DefinitionRef, DefinitionKey, StateRef, StateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus } from '../types';
 import { assertValidField } from './fields';
+import { getUrlOverride, setUrlValue } from './urlFields';
 import type { Store } from 'redux';
 import { selectBlock, selectBlockState } from './olxjson';
 import { getDomNodeByStateKey, propsFromNode } from '../blocks/olxdom';
@@ -305,7 +306,13 @@ export function useFieldState(
 ) {
   assertValidField(field);
 
-  const value = useFieldSelector(props, field, { fallback, stateKey, tag });
+  // URL field sync: check URL search params for an override of the fallback.
+  // Only applies to fields with url:true — other fields skip this entirely.
+  const propsId = (props as any)?.id;
+  const urlOverride = field.url ? getUrlOverride(propsId, field) : undefined;
+  const effectiveFallback = urlOverride !== undefined ? urlOverride : fallback;
+
+  const value = useFieldSelector(props, field, { fallback: effectiveFallback, stateKey, tag });
 
   const ref = useRef({ props, field, stateKey, tag });
   ref.current = { props, field, stateKey, tag };
@@ -313,6 +320,10 @@ export function useFieldState(
     (newValue: any) => {
       const { props, field, stateKey, tag } = ref.current;
       updateField(props, field, newValue, { stateKey, tag });
+      // Sync to URL for url-enabled fields
+      if (field.url) {
+        setUrlValue((props as any)?.id, field, newValue);
+      }
     },
     []
   );

@@ -8,7 +8,7 @@ Introduction [id=fba2_intro_section]
 
 ::fba2_introduction [display=target:psych_sba_sidebar3auto label="Introduction"]
 
-Annie: Okay, so... bad news about Johnny. The positive reinforcement stuff from last time works for getting him to his room — sticker chart, toys before bed, all of that. But the second my roommate says "time for bed," he takes off running and laughing. Every single time. [face=concerned]
+Annie: Okay, so... remember how I told my roommate to try the sticker chart? It works — he goes to his room now, toys before bed, all of that. But the second she says "time for bed," he takes off running and laughing. Every single time. She thinks I made it worse. [face=concerned]
 
 JJ: Running? Like, around the house? [face=awe]
 
@@ -20,10 +20,16 @@ Annie: Maybe? One night she tried not reacting — just stayed in the kitchen, d
 
 Lin: Hmm. Let's not jump to conclusions about why he's doing it — not yet. But it does sound like whatever's happening, the current approach isn't working. [face=serious]
 
+JJ: I mean, it seems pretty simple. If he runs, no toys the next night. He'll learn fast. [face=explaining]
+
+Annie: That feels harsh. He's six. [face=concerned]
+
+Lin: And we don't even know why he's running yet. If we pick the wrong consequence, we could make it worse. [face=serious]
+
 Function of Behavior [id=fba2_function_intro]
 ---------------------
 
-Lin: Actually, this reminds me of something from class. One of the things we learned was that whenever you need to intervene with a behavior, the intervention has to address the function of the behavior. [face=serious]
+Lin: This is actually exactly what they warned us about in class. You can't just pick a consequence and hope — the intervention has to address the function of the behavior. [face=serious]
 
 Annie: The function? Like... what the behavior does? [face=hectic]
 
@@ -49,20 +55,18 @@ Annie: JJ thinks it's attention. What's your guess? [face=smile]
 </ChoiceInput>
 ::
 
---- wait @fba2_johnny_function_prediction_inline.submitCount > 0 ---
+--- wait @fba2_johnny_function_prediction_inline ---
 
-Annie: Okay, so the function is basically the reason the behavior keeps happening — what the kid is getting out of it. That makes sense. So we need to figure out WHY Johnny is running away at bedtime. [face=smile]
+Annie: Okay — so we need to figure out WHY Johnny is running away at bedtime. [face=smile]
 
 JJ: Right, and I still think it's attention. He's laughing, she's chasing — that's a social interaction he's creating. [face=explaining]
-
-Lin: Maybe. But let's learn the framework first before we commit to an answer. If we just go with our gut, we might design the wrong intervention. [face=serious]
 
 Introducing Function of Behavior [id=fba2_function_concepts]
 ---------------------------------
 
-::fba2_function_notes [display=target:psych_sba_sidebar3auto label="Lin's Notes"]
-
 Lin: Here are my notes from class. Based on what we covered, the four main functions of behavior are attention, escape, access to preferred activity or object, and sensory.
+
+::fba2_function_notes [display=target:psych_sba_sidebar3auto label="Lin's Notes"]
 
 JJ: And my notes say the function always refers to a type of reinforcement — positive or negative. Wait, that's key, right? It's always reinforcement, never punishment?
 
@@ -84,36 +88,26 @@ JJ: Good call. Otherwise we might just be fooling ourselves! [face=smile]
 Teaching Function of Behavior [id=fba2_function_teaching]
 ------------------------------
 
-JJ: Okay, I definitely needed that refresher. Some of those were trickier than I expected.
+JJ: Okay, I definitely needed that refresher. Some of those were trickier than I expected. [face=concerned]
 
-Lin: Me too. Now, Lianne also mentioned something else in class — she said that if the function is attention or tangibles, it usually involves positive reinforcement. If the function is escape, it typically involves negative reinforcement. And for sensory, it can be either one.
+Annie: I keep thinking about the screen time bribe. My roommate added something Johnny wanted — that's positive reinforcement, right? But it reinforced *her giving in*, not anything good about bedtime. [face=concerned]
+
+Lin: Exactly — and that's why we need to understand function before we intervene. Lianne also mentioned something else in class — she said that if the function is attention or tangibles, it usually involves positive reinforcement. If the function is escape, it typically involves negative reinforcement. And for sensory, it can be either one.
 
 Annie: My brain would really benefit from seeing all of that in one place. Like a chart or something. I bet AI could help with that.
 
-JJ: Actually, I already tried writing a prompt for this. My first version was something like "Create a chart showing the four functions of behavior with examples of how each relates to positive and negative reinforcement." [face=explaining]
-
-Lin: And how did that go?
-
-JJ: Honestly? The results looked good at first glance, but when I checked them carefully, the AI had filled in cells that shouldn't have entries — with examples that sounded plausible but were actually misleading. I had to revise the prompt several times. [face=concerned]
-
-Annie: So what did you end up with? [face=awe]
-
-JJ: I basically had to spell out which combinations are valid and tell it to leave incompatible cells blank. It was like the AI was so eager to be helpful that it made stuff up to fill every cell. [face=smile]
+JJ: Actually, I already tried this. My first prompt generated a chart where every cell had an example — but some of those combinations don't exist. The AI just made up plausible-sounding examples to fill every cell. I had to explicitly tell it which cells to leave blank. [face=explaining]
 
 ::fba2_ai_function_chart [display=target:psych_sba_sidebar3auto label="Create Function Chart with AI"]
 
 --- wait @fba2_ai_chart_response.value ---
 
-Lin: That chart makes the relationships much clearer. [face=smile]
-
-JJ: Especially because two cells are blank! Escape involves removing something aversive, so it doesn't combine with positive reinforcement, which is about adding something. And tangibles are about gaining something, so they don't combine with negative reinforcement, which is about removal. [face=explaining]
-
-Annie: Okay, that's a good explanation of the chart. But we won't really learn it just by reading it — we need to try making examples ourselves, right?
+JJ: Two cells are blank! Escape involves removing something aversive, so it doesn't combine with positive reinforcement. And tangibles are about gaining something, so they don't combine with negative reinforcement. [face=explaining]
 
 Your Turn: Own Examples [id=fba2_own_examples_section]
 ------------------------
 
-Annie: Let's each come up with our own examples for each function. That's the only way I'll know if I actually understand this.
+Annie: We won't learn this just by reading it. Let's each come up with our own examples for each function. [face=smile]
 
 Lin: Right. For each function, try to think of a situation involving positive reinforcement, and another involving negative reinforcement. Some of those combinations are going to be tricky — that's the point.
 
@@ -137,9 +131,9 @@ Annie: Okay, some of those were really hard. Did anyone else have trouble with e
 
 JJ: Yes! And I think that's because those combinations don't actually work — which is exactly what the blank cells in the chart were telling us. The struggle was the lesson!
 
-Lin: Right. But didn't we learn about punishment too?
+Annie: You know what I keep coming back to? When my roommate tried ignoring him and he got *wilder*. That's not punishment working — it's like the opposite. [face=concerned]
 
-JJ: Yeah, I was wondering about that. Can punishment be a function?
+JJ: Yeah, that's bugging me too. Which reminds me — can punishment be a function?
 
 Check for Understanding - Punishment [id=fba2_punishment_check]
 --------------------------------------
@@ -155,11 +149,7 @@ Annie: That makes sense! Functions are about what the person gains from the beha
 Practice with Functions [id=fba2_function_practice]
 ------------------------
 
-JJ: Okay, this is starting to click for me. But I feel like I need more reps before I trust myself with it.
-
-Lin: Same. Practice is the only way to make this stick.
-
-Annie: I asked AI to generate some examples for us to test ourselves on. Let's see how we do.
+JJ: This is starting to click, but I need more reps before I trust myself with it. I asked AI to generate some practice examples. [face=explaining]
 
 ::fba2_function_sorting [display=target:psych_sba_sidebar3auto label="Practice: Identify Functions"]
 
@@ -168,7 +158,7 @@ Annie: I asked AI to generate some examples for us to test ourselves on. Let's s
 ABCs of Behavior [id=fba2_abc_section]
 -----------------
 
-Annie: Okay, I think I'm getting the hang of functions. But didn't Lianne say there was something else we needed to do to actually figure out the function? Like, a process? [face=explaining]
+Annie: Okay, I think I'm getting the hang of functions in general. But we still haven't figured out Johnny's. Didn't Lianne say there was a process for that? [face=explaining]
 
 Lin: Right — we need to look at what comes before the behavior and what comes after it. The antecedent, the behavior, and the consequence.
 
@@ -198,9 +188,7 @@ Lin: Which leads to the Behavior in the blue box — the student puts their head
 
 Annie: And the Consequence is the green box? The task is removed or delayed... so the student basically got out of doing the work.
 
-JJ: Exactly. The teacher gave a hard task, the student put their head down, and then the teacher either gave up and removed the task, or just pushed it to homework. Either way, the student escaped.
-
-Lin: And that's why the behavior continues — it works. The student learned that putting their head down gets them out of hard tasks. That's escape maintained by negative reinforcement.
+Lin: And the behavior continues because it works — putting their head down gets the student out of hard tasks. That's escape maintained by negative reinforcement.
 
 Checking ABCs Understanding [id=fba2_abc_check]
 ----------------------------
@@ -277,7 +265,11 @@ Lin: Here's what my textbook says about escape-maintained behavior.
 
   _"Escape is used to get away from something aversive or not preferred. Changing **antecedent conditions** is key to intervening when the function of behavior is escape."_
 
-Annie: That's interesting — last time we focused mostly on consequences, but the textbook is saying antecedent strategies are really important for escape. We kind of skipped over that before.
+Annie: Wait — so instead of punishing him for running, we should change what happens *before* bedtime? Make it less like something he needs to escape from? [face=explaining]
+
+Lin: Exactly. The goal isn't just to stop the running — it's to make bedtime something Johnny doesn't need to escape from. [face=serious]
+
+JJ: Okay, that's actually really different from "no toys tomorrow." [face=concerned]
 
 Checking Intervention Understanding [id=fba2_intervention_check]
 ------------------------------------
@@ -290,36 +282,32 @@ JJ: What if we break this into two pieces? Let's think about antecedent strategi
 
 --- wait @fba2_escape_strategies_done.value ---
 
-Annie: Okay, I think I'm getting the hang of this! [face=smile]
+Annie: But not all of those strategies were about escape. Some were for attention or sensory. We need to narrow down, right? [face=serious]
 
-Annie: But wait — not all of those strategies were about escape. Some of them were for attention or sensory. We should make sure we're narrowing down to strategies that actually address the escape function, right?
-
-JJ: Good catch! Let's ask AI to help us brainstorm more interventions, this time specifically focused on escape as the function. Then we can build our actual plan.
-
-Annie: My roommate is going to be so relieved when we figure this out. [face=smile]
+JJ: Right. Let's ask AI for more options.
 
 AI Intervention Strategies [id=fba2_ai_interventions]
 ---------------------------
-
-JJ: Let's be systematic about this. We'll start by getting AI to suggest antecedent strategies.
 
 ::fba2_ai_antecedent_interventions [display=target:psych_sba_sidebar3auto label="Ask AI: Antecedent Strategies"]
 
 --- wait @fba2_ai_antecedent_response.value ---
 
-Lin: Good. Now let's get consequence strategies as well.
-
 ::fba2_ai_consequence_interventions [display=target:psych_sba_sidebar3auto label="Ask AI: Consequence Strategies"]
 
 --- wait @fba2_ai_consequence_response.value ---
 
-Annie: Those are helpful, but they're pretty general. We need to specifically target escape-maintained behavior. Can we ask for more specific antecedent strategies? [face=serious]
+JJ: "Redirect the child's attention to a preferred activity" — that one sounds right for Johnny. [face=smile]
+
+Lin: Does it? That strategy assumes the function is attention. If Johnny's running to escape bedtime, redirecting his attention doesn't address why he's running. [face=serious]
+
+JJ: So the same strategy could be right or wrong depending on the function? [face=concerned]
+
+Lin: Exactly. We need escape-specific strategies.
 
 ::fba2_ai_escape_antecedent [display=target:psych_sba_sidebar3auto label="Ask AI: Escape Antecedent Strategies"]
 
 --- wait @fba2_ai_escape_ante_response.value ---
-
-JJ: And one more round — escape-focused consequence strategies.
 
 ::fba2_ai_escape_consequence [display=target:psych_sba_sidebar3auto label="Ask AI: Escape Consequence Strategies"]
 
@@ -328,13 +316,11 @@ JJ: And one more round — escape-focused consequence strategies.
 Putting It Together [id=fba2_putting_together]
 --------------------
 
-Annie: Okay, there are a lot of good ideas here, especially for changing the antecedent conditions. That makes sense — if bedtime feels less like something to escape from, maybe he won't try to escape. [face=smile]
+Lin: So the plan should address escape specifically, focus on antecedent conditions, and use positive reinforcement for a desired behavior. [face=serious]
 
-Lin: Right. Let me put the pieces together. Based on everything we've learned: the plan should use positive reinforcement for a desired behavior, it needs to address the function of escape specifically, and manipulating antecedent conditions is key for escape-maintained behavior. And from last time, we know punishment should generally be avoided as a consequence.
+Annie: That's a lot to juggle. How do we organize all of this? [face=fear]
 
-Annie: That sounds like a lot to juggle. I know we have all these ideas, but I honestly don't know where to start putting them together. [face=fear]
-
-JJ: What if we go back to the Competing Behavior Pathway? We can use it as a framework and plug in the strategies we've identified.
+JJ: What if we go back to the Competing Behavior Pathway and plug in the strategies we've identified? [face=explaining]
 
 Revisiting the Pathway [id=fba2_revised_pathway_section]
 -----------------------
@@ -350,13 +336,13 @@ Annie: Let's do it — this time we actually know what we're targeting. [face=sm
 Behavior Modification Plan [id=fba2_plan_section]
 ---------------------------
 
-Annie: Okay, we've pulled together two different plans. One is focused on escape, and one is focused on sensory. Take a look at both.
+JJ: I asked AI to generate two complete plans — one assuming escape, one assuming sensory. That way we can see why getting the function right actually matters. [face=explaining]
 
 ::fba2_plan_selection [display=target:psych_sba_sidebar3auto label="Choose Best Plan"]
 
-Annie: Honestly, some of the ideas in the sensory plan sound really nice — calming music, weighted blankets. I could see those helping Johnny relax at bedtime. [face=explaining]
+Annie: Honestly, some of the sensory ideas sound really nice — calming music, weighted blankets. I could see those helping Johnny relax. [face=explaining]
 
-JJ: They do sound nice. Which one do you think is the better fit?
+JJ: They do sound nice. But which plan actually fits what we know about Johnny?
 
 --- wait @fba2_plan_choice.submitCount > 0 ---
 
@@ -367,9 +353,13 @@ Escape Plan Review [id=fba2_escape_plan_review]
 
 JJ: There's a lot in here. Not everything makes equal sense for Johnny's specific situation, but I really like the timer idea — using a timer to show when each routine step begins and ends. That's a solid antecedent strategy. [face=explaining]
 
-Lin: I agree. And on the consequence side, I think the strategy of ignoring escape behavior — not chasing, not providing attention or reinforcement during the escape — makes a lot of sense based on what we've learned.
+Lin: I agree. And on the consequence side, not reinforcing the escape — no chasing, no bargaining — makes a lot of sense.
 
-Annie: Me too. What parts stand out to you?
+Annie: Wait — "not reinforcing"? He knocked over a lamp last time. We can't just ignore him running through the house. [face=concerned]
+
+Lin: We're not saying ignore him completely — you still keep bedtime safe. The point is to stop chasing and bribing, because those are what reinforce the running. You change the antecedents so he doesn't need to escape, and you don't let the running "work" by delaying bedtime. [face=serious]
+
+Annie: Okay, that's an important distinction. What parts of the plan stand out to you?
 
 --- wait @fba2_plan_likes.value ---
 
@@ -378,13 +368,11 @@ Checking Understanding of Plans [id=fba2_plan_check]
 
 ::fba2_sensory_plan_check [display=target:psych_sba_sidebar3auto label="Check: Why Not the Sensory Plan?"]
 
-JJ: This sensory plan looks completely different from the escape one.
+Annie: But some of the sensory ideas are genuinely good strategies. Calming music before bed, a predictable sensory environment... wouldn't those help any kid? [face=explaining]
 
-Annie: I know, but some of the sensory ideas are genuinely good strategies. Calming music before bed, a predictable sensory environment... wouldn't those help any kid? [face=explaining]
+Lin: They might be nice supports, but they can't be the core plan. Johnny's function is escape — a weighted blanket isn't going to solve the problem if the reason he's running away is to avoid going to bed. You could add calming music as part of an antecedent strategy, but only if the plan is built around escape first. [face=serious]
 
-Lin: They might help in general — but remember what we learned. The intervention has to address the function. Johnny's function is escape, not sensory. A weighted blanket isn't going to solve the problem if the reason he's running away is to avoid going to bed. It's like treating a headache with a bandaid — the bandaid isn't bad, it's just not targeting the right thing. [face=serious]
-
-Annie: Okay, that's a good way to put it. Nice strategies, wrong function. [face=smile]
+Annie: So: wrong function for the core plan, but nice supports on top of the right one. [face=smile]
 
 --- wait @fba2_sensory_check_choice.submitCount > 0 ---
 

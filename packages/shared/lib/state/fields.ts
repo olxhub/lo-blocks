@@ -82,7 +82,7 @@ export function fieldInfosFrom(f: Fields): FieldInfo[] {
  * property get missing defaults filled in. Arrays are flattened recursively.
  */
 type FieldDecl = string | FieldInfo
-  | { name: string; event?: string; events?: string[]; scope?: Scope; schema?: FieldInfo['schema']; read?: FieldInfo['read']; equality?: FieldInfo['equality']; batching?: FieldInfo['batching'] }
+  | { name: string; event?: string; events?: string[]; scope?: Scope; schema?: FieldInfo['schema']; read?: FieldInfo['read']; equality?: FieldInfo['equality']; batching?: FieldInfo['batching']; url?: boolean; urlDefault?: boolean; urlPush?: boolean }
   | FieldDecl[];
 
 /** Recursively normalize field declarations into a flat list of FieldInfos. */
@@ -106,6 +106,9 @@ function normalize(decl: FieldDecl): FieldInfo[] {
     ...('read' in decl && decl.read ? { read: decl.read } : {}),
     ...('equality' in decl && decl.equality ? { equality: decl.equality } : {}),
     ...('batching' in decl && decl.batching ? { batching: decl.batching } : {}),
+    ...('url' in decl && decl.url ? { url: decl.url } : {}),
+    ...('urlDefault' in decl && decl.urlDefault ? { urlDefault: decl.urlDefault } : {}),
+    ...('urlPush' in decl && decl.urlPush ? { urlPush: decl.urlPush } : {}),
   })];
 }
 

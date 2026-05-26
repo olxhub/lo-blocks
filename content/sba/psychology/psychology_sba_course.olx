@@ -1,0 +1,15 @@
+<!--
+---
+description: Complete psychology study group course covering sleep refusal, operant conditioning, function of behavior, and fidelity of implementation
+category: psychology
+index: 0
+lang: en-Latn-US
+---
+-->
+
+<Course id="psych_course" title="Psychology Study Group" launchable="true">
+  <Use ref="psych_sba" />
+  <Use ref="psych_sba2" />
+  <Use ref="psych_sba_part3" />
+  <Use ref="psych_sba_part4" />
+</Course>

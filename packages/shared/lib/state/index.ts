@@ -22,6 +22,7 @@ export * from './blockData';
 export * from './redux';
 export * from './store';
 export * from './olxjson';
+export * from './urlFields';
 
 // ---------------------------------------------------------------------------
 // Data structure hooks (loaded after redux to break circular dependency)

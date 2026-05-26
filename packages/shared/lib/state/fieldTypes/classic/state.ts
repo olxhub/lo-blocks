@@ -36,5 +36,8 @@ export function stateField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
     ...(opts?.read ? { read: opts.read } : {}),
     ...(opts?.equality ? { equality: opts.equality } : {}),
     ...(opts?.batching ? { batching: opts.batching } : {}),
+    ...(opts?.url ? { url: opts.url } : {}),
+    ...(opts?.urlDefault ? { urlDefault: opts.urlDefault } : {}),
+    ...(opts?.urlPush ? { urlPush: opts.urlPush } : {}),
   };
 }

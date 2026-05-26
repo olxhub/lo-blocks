@@ -28,7 +28,8 @@
   padding: var(--lo-space-md);
 }
 
-.lo-tag-course .course-navigation > div:last-child > div > button {
+/* Chapter header button */
+.lo-tag-course .course-chapter-header {
   width: 100%;
   text-align: start;
   padding: var(--lo-space-lg);
@@ -41,41 +42,42 @@
   margin-bottom: var(--lo-space-sm);
 }
 
-.lo-tag-course .course-navigation > div:last-child > div > button:hover {
+.lo-tag-course .course-chapter-header:hover {
   background-color: var(--lo-bg-muted);
 }
 
-.lo-tag-course .course-navigation > div:last-child > div > button:focus {
+.lo-tag-course .course-chapter-header:focus {
   background-color: var(--lo-bg-muted);
   box-shadow: var(--lo-focus-ring-shadow);
 }
 
-/* Chapter header styles */
-.lo-tag-course .course-navigation > div:last-child > div > button > div {
+/* Chapter header inner layout */
+.lo-tag-course .course-chapter-header > div {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.lo-tag-course .course-navigation > div:last-child > div > button > div > span:first-child {
+.lo-tag-course .course-chapter-header > div > span:first-child {
   font-weight: 500;
   color: var(--lo-text);
   font-size: var(--lo-font-size-base);
 }
 
-.lo-tag-course .course-navigation > div:last-child > div > button > div > span:last-child {
+.lo-tag-course .course-chapter-header > div > span:last-child {
   color: var(--lo-text-secondary);
   font-size: var(--lo-font-size-sm);
   transition: transform 150ms ease;
 }
 
-/* Chapter children */
-.lo-tag-course .course-navigation > div:last-child > div > div {
+/* Chapter children container */
+.lo-tag-course .course-chapter-children {
   margin-inline-start: var(--lo-space-lg);
   margin-top: var(--lo-space-md);
 }
 
-.lo-tag-course .course-navigation > div:last-child > div > div > button {
+/* Leaf nav button (chapter child or top-level loose block) */
+.lo-tag-course .course-nav-leaf {
   width: 100%;
   text-align: start;
   padding: var(--lo-space-md) var(--lo-space-lg);
@@ -90,15 +92,20 @@
   font-family: var(--lo-font-ui);
 }
 
-.lo-tag-course .course-navigation > div:last-child > div > div > button:hover {
+.lo-tag-course .course-nav-leaf:hover {
   background-color: var(--lo-primary-subtle);
   color: var(--lo-primary);
 }
 
-.lo-tag-course .course-navigation > div:last-child > div > div > button.selected {
+.lo-tag-course .course-nav-leaf.selected {
   background-color: var(--lo-primary-subtle);
   color: var(--lo-primary);
   font-weight: 500;
+}
+
+/* Top-level loose blocks get slightly more spacing between items */
+.lo-tag-course .course-nav-top-level {
+  margin-bottom: var(--lo-space-sm);
 }
 
 .lo-tag-course .course-content {
@@ -108,15 +115,13 @@
 }
 
 .lo-tag-course .course-content > div {
-  padding: var(--lo-space-2xl);
-  max-width: var(--lo-container-max-width);
-  margin: 0 auto;
+  padding: var(--lo-space-md);
 }
 
 /* Empty state — only the direct placeholder paragraph, not content inside blocks */
-.lo-tag-course .course-content > div > p {
+.lo-tag-course .course-content > .course-empty-state {
   color: var(--lo-text-muted);
   text-align: center;
   font-size: var(--lo-font-size-lg);
-  margin-top: var(--lo-space-3xl);
+  padding-top: var(--lo-space-3xl);
 }
