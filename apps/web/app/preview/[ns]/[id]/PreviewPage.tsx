@@ -6,7 +6,7 @@ import AppHeader from '@/components/common/AppHeader';
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
-import { useFieldState, system } from '@/lib/state';
+import { useFieldState, system, commonFields } from '@/lib/state';
 import { useContentLoader } from '@/lib/content/useContentLoader';
 import { parseStateKey, leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
@@ -31,9 +31,9 @@ export default function PreviewPage() {
   const { idMap, error, loading } = useContentLoader(leafDefinitionKeyFromStateKey(definitionKey));
   const [renderError, setRenderError] = useFieldState(
     null,
-    system.renderError,
+    commonFields.renderError,
     null,
-    { tag: 'preview' }
+    { stateKey: definitionKey }
   );
   const localeAttrs = useLocaleAttributes();
 
@@ -82,7 +82,7 @@ export default function PreviewPage() {
           ) : (
             <RenderOLX
               id={definitionKey}
-              baseIdMap={idMap!}
+              baseIdMap={idMap ?? undefined /* TS workaround; always defined by the time we're here */}
               eventContext="preview"
               onError={(err) => setRenderError(err.message)}
             />

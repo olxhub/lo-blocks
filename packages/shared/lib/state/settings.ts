@@ -4,7 +4,7 @@
 // Learning Observer application.
 //
 // This includes both user preferences (debug flags, locale, theme) and
-// runtime state (currentUser, renderError). All use scopes.system.
+// runtime state (currentUser). All use scopes.system.
 //
 // Debug fields (system.debug*):
 //   - debugPanel: whether debug panel is visible
@@ -44,8 +44,6 @@ const systemFields = fields([
   // Written by reduxLogger.handleAuth; read by anything needing user identity
   // (persistence keying, display, per-user content selection, etc.).
   { name: 'currentUser', event: 'SET_CURRENT_USER', scope: scopes.system },
-  // Render error: captures component render failures for display and debug visibility.
-  { name: 'renderError', event: 'SET_RENDER_ERROR', scope: scopes.system },
 ]);
 
 export const system = systemFields;

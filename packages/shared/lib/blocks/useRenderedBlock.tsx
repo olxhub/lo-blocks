@@ -22,9 +22,9 @@ import { renderOlxJson, renderCompiledKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
 import TranslatingIndicator from '@/lib/i18n/TranslatingIndicator';
-import type { DefinitionRef, BlockDataResult, OlxJson, RuntimeProps } from '@/lib/types';
+import type { DefinitionRef, StateKey, BlockDataResult, OlxJson, RuntimeProps } from '@/lib/types';
 import { blockData } from '@/lib/state/redux';
-import { definitionKeyForRef } from '@/lib/types/id-grammar';
+import { definitionKeyForRef, leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import { selectBlock } from '@/lib/state/olxjson';
 import {
   evaluate, createContext,
@@ -40,33 +40,38 @@ export type RenderedBlockResult = BlockDataResult & {
 };
 
 /**
- * Hook to render a block by OLX ID.
+ * Hook to render a block by state key.
  *
  * Reads block data from Redux via useOlxJson. If not found, triggers a fetch.
  * Returns { block, ready, error } for handling loading/error states.
  *
  * @param props - Component props (nodeInfo, blockRegistry, olxJsonSources, etc.)
- * @param id - The OLX ID to render
+ * @param stateKey - The StateKey identifying which runtime instance to render
  * @param source - Content source for Redux lookup (default: 'content')
  */
 export function useBlock(
   props: any,
-  id: DefinitionRef | null,
+  stateKey: StateKey | null,
   source: string = 'content'
 ): RenderedBlockResult {
+  // Extract definition ref for content lookup
+  const defRef: DefinitionRef | null = stateKey
+    ? leafDefinitionKeyFromStateKey(stateKey)
+    : null;
+
   // Always call hooks unconditionally (React rules of hooks)
-  const olxResult = useOlxJson(props, id, source);
+  const olxResult = useOlxJson(props, defRef, source);
   const { olxJson: reduxOlxJson } = olxResult;
   const translationState = useTranslation(props, reduxOlxJson, source);
 
-  if (!id) {
+  if (!stateKey) {
     return { block: null, olxJson: undefined, ...blockData('ready') };
   }
 
   // Check Redux state
   if (olxResult.loading) {
     return {
-      block: <Spinner>{`Loading ${id}...`}</Spinner>,
+      block: <Spinner>{`Loading ${stateKey}...`}</Spinner>,
       ...blockData('loading')
     };
   }
@@ -75,10 +80,10 @@ export function useBlock(
     return {
       block: (
         <DisplayError
-          id={`block-error-${id}`}
+          id={`block-error-${stateKey}`}
           title="useBlock"
           message={olxResult.error}
-          data={{ blockId: id }}
+          data={{ stateKey }}
         />
       ),
       ...blockData('error', olxResult.error)
@@ -86,15 +91,14 @@ export function useBlock(
   }
 
   if (!reduxOlxJson) {
-    const definitionKey = definitionKeyForRef(id);
-    const msg = `Block "${id}" not found in Redux`;
+    const msg = `Block "${stateKey}" not found in Redux`;
     return {
       block: (
         <DisplayError
-          id={`block-missing-${id}`}
+          id={`block-missing-${stateKey}`}
           title="useBlock"
           message={msg}
-          data={{ blockId: id, definitionKey }}
+          data={{ stateKey, definitionKey: defRef }}
         />
       ),
       ...blockData('error', msg)
@@ -293,7 +297,7 @@ export function useKidsWithState(props: any): {
  * Component for rendering a block reference with async loading.
  * Used for dynamic content that may not be pre-loaded.
  */
-export function BlockRef({ id, ...props }: { id: DefinitionRef; [key: string]: any }) {
+export function BlockRef({ id, ...props }: { id: StateKey; [key: string]: any }) {
   const { block } = useBlock(props, id);
   return <>{block}</>;
 }
