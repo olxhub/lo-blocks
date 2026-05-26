@@ -21,6 +21,13 @@
 // Architecture note: this context lives in packages/shared (framework-agnostic).
 // The page-level component (e.g., Next.js PreviewPage) provides the concrete
 // provider, initialized from the framework's URL param API.
+//
+// TODO:
+// - URL normalization (e.g. foo=bar&foo=bar). We do a little bit of this already
+//   with default fields
+// - Global fields / settings (e.g. search)
+// - Fields which don't sync (initial values)
+// ...
 
 'use client';
 
@@ -42,7 +49,7 @@ interface UrlFieldApi {
 
 const defaultApi: UrlFieldApi = {
   getParam: () => undefined,
-  setParam: () => {},
+  setParam: () => { },
 };
 
 const UrlFieldContext = createContext<UrlFieldApi>(defaultApi);
@@ -142,7 +149,14 @@ export function urlKeyForField(
 
 /**
  * Read the URL override value for a field.
- * Checks block-specific key first, then bare/default key.
+ *
+ * Checks both key forms and returns the value if present. When a urlDefault
+ * field has a canonical form (?blockId=value), any non-canonical form
+ * (?blockId.fieldName=value) is rewritten to canonical on read.
+ *
+ * Priority when both keys are present: the canonical (default) key wins,
+ * and the explicit key is removed.
+ *
  * Returns undefined if no override exists.
  */
 export function getUrlOverride(
@@ -154,16 +168,24 @@ export function getUrlOverride(
 
   const { defaultKey, explicitKey } = urlKeyForField(propsId, field);
 
-  // Explicit key takes priority: ?blockId.fieldName=value
-  if (explicitKey) {
-    const explicit = api.getParam(explicitKey);
-    if (explicit !== undefined) return explicit;
+  const canonicalValue = defaultKey ? api.getParam(defaultKey) : undefined;
+  const explicitValue = explicitKey ? api.getParam(explicitKey) : undefined;
+
+  if (canonicalValue !== undefined && explicitValue !== undefined) {
+    // Both present: canonical wins, remove explicit
+    api.setParam(explicitKey!, null);
+    return canonicalValue;
   }
 
-  // Default key: ?blockId=value (only if urlDefault)
-  if (defaultKey) {
-    const bare = api.getParam(defaultKey);
-    if (bare !== undefined) return bare;
+  if (canonicalValue !== undefined) return canonicalValue;
+
+  if (explicitValue !== undefined) {
+    if (defaultKey) {
+      // Rewrite non-canonical to canonical form
+      api.setParam(defaultKey, explicitValue);
+      api.setParam(explicitKey!, null);
+    }
+    return explicitValue;
   }
 
   return undefined;
@@ -171,6 +193,11 @@ export function getUrlOverride(
 
 /**
  * Write a field value to the URL.
+ *
+ * Writes to the default key (if urlDefault) or explicit key, and clears
+ * the other form to prevent stale params from winning on reload.
+ * (getUrlOverride checks explicit first, so a leftover explicit key
+ * would shadow a newer default key.)
  */
 export function setUrlValue(
   api: UrlFieldApi,
@@ -184,5 +211,14 @@ export function setUrlValue(
   const key = defaultKey || explicitKey;
   if (!key) return;
 
-  api.setParam(key, value != null ? String(value) : null, { push: field.urlPush });
+  const strValue = value != null ? String(value) : null;
+  const pushOpts = { push: field.urlPush };
+
+  api.setParam(key, strValue, pushOpts);
+
+  // Clear the other key form so stale values can't shadow on reload
+  const otherKey = key === defaultKey ? explicitKey : defaultKey;
+  if (otherKey && otherKey !== key) {
+    api.setParam(otherKey, null, pushOpts);
+  }
 }
