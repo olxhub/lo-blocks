@@ -75,7 +75,7 @@
     "js-yaml": "^4.1.1",
     "json-stable-stringify": "^1.3.0",
     "katex": "^0.16.22",
-    "lo_event": "file:../lo_event/lo_event-0.0.4-alpha.1.tgz",
+    "lo_event": "^0.0.5",
     "lodash-es": "^4.17.21",
     "lucide-react": "^0.510.0",
     "mathjs": "^15.1.1",
