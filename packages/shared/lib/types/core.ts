@@ -156,9 +156,15 @@ import type {
   IdPrefix, ScopeMarker,
   ReactKey, HtmlId, OLXTag,
 } from './id-grammar';
+import { asOLXTag } from './id-grammar';
 
 // Zod schemas re-exported for use by MCP tools and other schema consumers.
-export const OLXTagSchema = z.string().describe('OLX tag name (e.g. "Markdown", "ChoiceInput")');
+// Uses transform so z.infer<typeof OLXTagSchema> preserves the branded OLXTag type.
+// Regex matches validateOLXTag in id-grammar.ts: PascalCase, letters/digits only.
+export const OLXTagSchema = z.string()
+  .regex(/^[A-Z][a-zA-Z0-9]*$/, 'OLXTag must be PascalCase')
+  .describe('OLX tag name (e.g. "Markdown", "ChoiceInput")')
+  .transform((s): OLXTag => asOLXTag(s));
 
 /** Git status of a file tracked by the block registry generator. */
 export const BlockGitStatusSchema = z.enum(['committed', 'modified', 'untracked']);

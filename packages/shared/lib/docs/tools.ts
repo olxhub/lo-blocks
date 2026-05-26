@@ -19,7 +19,7 @@ import { resolveSafeReadPath } from '@/lib/lofs/providers/file';
 import { grammarInfo, PEG_CONTENT_EXTENSIONS } from '@/generated/parserRegistry';
 import { extractMetadata } from '@/lib/docs/grammar';
 import { OLXTagSchema, BlockGitStatusSchema } from '@/lib/types';
-import type { LoBlock } from '@/lib/types';
+import type { LoBlock, OLXTag } from '@/lib/types';
 import type { ToolRegistry } from '@/lib/mcp/registry';
 
 // ===========================================================================
@@ -118,7 +118,7 @@ async function getBlocks(
   const includeSet = new Set(include ?? []);
 
   // -- Collect all blocks with their categories ----------------------------
-  type Entry = { block: LoBlock; name: string; categories: string[] };
+  type Entry = { block: LoBlock; name: OLXTag; categories: string[] };
   const allEntries: Entry[] = [];
   for (const block of Object.values(BLOCK_REGISTRY) as LoBlock[]) {
     if (!block._isBlock) continue;
