@@ -6,7 +6,7 @@
 // Single source of truth for extension lists used throughout the app.
 //
 
-import path from 'path';
+import { extname } from 'pathe';
 import { PEG_CONTENT_EXTENSIONS, pegMetadata, pegTemplates } from '@/generated/parserRegistry';
 
 // ============================================================
@@ -69,7 +69,7 @@ export const CATEGORY = {
  */
 export function getExtension(filePath: string | undefined | null): string {
   if (!filePath) return '';
-  const ext = path.extname(filePath);
+  const ext = extname(filePath);
   return ext ? ext.slice(1) : '';
 }
 

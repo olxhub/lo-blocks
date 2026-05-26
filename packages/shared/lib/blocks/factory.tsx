@@ -380,6 +380,7 @@ function createBlock(config: BlueprintInputWithMixins): LoBlock {
     slots: effectiveConfig.slots,
     answerDisplayMode: effectiveConfig.answerDisplayMode,
     getDisplayAnswers: effectiveConfig.getDisplayAnswers as LoBlock['getDisplayAnswers'],
+    grammars: effectiveConfig.grammars,
   }
   // Validate requiresUniqueId at block registration time so block authors
   // get an early error, not course authors hitting it at content parse time.

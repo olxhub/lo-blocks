@@ -18,10 +18,10 @@
 // (state no longer reaches into the components layer), breaks the
 // factory → state → store → blockRegistry → blocks → factory load cycle, and
 // fits the future direction where blocks may be loaded dynamically at runtime.
-import * as reduxLogger from 'lo_event/lo_event/reduxLogger.js';
+import * as reduxLogger from 'lo_event/redux';
 import * as lo_event from 'lo_event';
-import * as debug from 'lo_event/lo_event/debugLog.js';
-import { consoleLogger } from 'lo_event/lo_event/consoleLogger.js';
+import * as debug from 'lo_event/debug';
+import { consoleLogger } from 'lo_event/console';
 import { getConfigBool } from '../config';
 
 // Simple array logger for event capture - could move to lo_event
@@ -35,7 +35,7 @@ function createArrayLogger() {
   logEvent.lo_name = 'Array Logger';
   return logEvent;
 }
-import { websocketLogger } from 'lo_event/lo_event/websocketLogger.js';
+import { websocketLogger } from 'lo_event/websocket';
 import { scopes, Scope } from './scopes';
 import { commonFields } from './commonFields';
 import type { FieldInfo, Fields } from '../types';
@@ -99,15 +99,50 @@ type FieldReducerEntry = { reduce: FieldReduceFn; fieldName: string };
 const _fieldReducers = new Map<string, FieldReducerEntry>();
 
 // Event server URL for capturing events.
-// In dev (localhost/127.0.0.1), point to the local event-server on port 8888.
-// In production, let lo_event derive from window.location (wss://, same host/port).
+//
+// TODO: This routing table really belongs in config (e.g. PMSS) rather than
+// hard-coded here. Each deployment should supply its own map rather than
+// baking dev/prod assumptions into the app.
+//
+// Encoding: page port → event-server port. 0 means "same origin as the page"
+// (so Authorization headers and cookies propagate through a reverse proxy).
+// Non-zero means "override port, inherit hostname" — i.e. connect directly
+// to event-server. Unlisted ports fail loudly.
+const WS_PORT_MAP = new Map([
+  [8810, 0],    // local nginx (Basic Auth)
+  [8888, 0],    // app server direct (proxies HTTP to Next.js)
+  [3000, 8888], // Next.js dev direct
+  [3001, 8888],
+  [3002, 8888],
+  [3003, 8888],
+]);
+
 const isBrowser = typeof window !== 'undefined';
-const isLocalDev = isBrowser &&
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-// SSR: pass a string so websocketLogger skips wsHost() (which needs window.location).
-// Browser: pass an object to let lo_event derive the URL from window.location.
-const WEBSOCKET_URL = !isBrowser ? 'ws://localhost:8888/wsapi/in/'
-  : isLocalDev ? { port: 8888 } : {};
+
+function resolveWebsocketUrl() {
+  // Default port (http://host/ or https://host/ with no explicit port).
+  // Browsers normalize this to an empty string. Always reverse-proxied.
+  if (!window.location.port) return {};
+
+  const pagePort = parseInt(window.location.port, 10);
+  const targetPort = WS_PORT_MAP.get(pagePort);
+
+  if (targetPort === undefined) {
+    throw new Error(
+      `store.ts: no event-server route configured for page on port ${pagePort}. ` +
+      `Configured ports: ${[...WS_PORT_MAP.keys()].join(', ')}.`
+    );
+  }
+
+  if (targetPort === 0) return {};  // same origin
+  return { port: targetPort };
+}
+
+// Deferred: only resolved when websocket is actually enabled in configureStore.
+// SSR gets a placeholder string so websocketLogger skips wsHost().
+function getWebsocketUrl() {
+  return isBrowser ? resolveWebsocketUrl() : 'ws://localhost:8888/wsapi/in/';
+}
 
 // Initial state - includes olxjson alongside component state
 //
@@ -319,7 +354,7 @@ export const updateResponseReducer = (state = initialState, action) => {
 };
 
 type ExtraFieldsParam = Fields | (FieldInfo | string)[];
-type BlockRegistryParam = Record<string, { fields?: Record<string, any> } | undefined>;
+export type BlockRegistryParam = Record<string, { fields?: Record<string, any> } | undefined>;
 
 function collectEventTypes(
   extraFields: ExtraFieldsParam = [],
@@ -396,6 +431,18 @@ function collectEventTypes(
   ]));
 }
 
+/**
+ * Initialize the field reducer registry without starting lo_event or creating
+ * a Redux store. Server-side entry point: call once at startup with the block
+ * registry so that `updateResponseReducer` can route events to field reducers.
+ *
+ * Client-side callers should use `store.init()` instead — it calls this
+ * internally alongside lo_event setup.
+ */
+export function initReducers(blockRegistry: BlockRegistryParam) {
+  collectEventTypes([], blockRegistry);
+}
+
 // Event capture logger - accessible via window.__eventCapture in browser
 let eventCaptureLogger: ReturnType<typeof createArrayLogger> | null = null;
 
@@ -405,10 +452,12 @@ let reduxStoreInstance: any = null;
 function configureStore({
   extraFields = [],
   websocket,
+  eventServerUrl,
   blockRegistry,
 }: {
   extraFields?: ExtraFieldsParam;
   websocket?: boolean;
+  eventServerUrl?: string;
   blockRegistry?: BlockRegistryParam;
 } = {}) {
   if (!blockRegistry || Object.keys(blockRegistry).length === 0) {
@@ -426,15 +475,18 @@ function configureStore({
 
   const debugEvents = false; // Toggle here to log events to the console
   const isTest = process.env.VITEST === 'true';
-  // PMSS provides the default; explicit websocket param overrides if provided
-  const wsEnabled = websocket ?? getConfigBool('websocket');
+  // eventServerUrl implies websocket: true. Otherwise PMSS / explicit flag.
+  const wsEnabled = eventServerUrl ? true : (websocket ?? getConfigBool('websocket'));
   const useWebsocket = wsEnabled && !isTest;
 
   const loggers = [
     reduxLogger.reduxLogger([], {}),
     eventCaptureLogger,
     ...(debugEvents ? [consoleLogger()] : []),
-    ...(useWebsocket ? [websocketLogger(WEBSOCKET_URL)] : []),
+    // Explicit URL (e.g. from static.config.json) bypasses port-map resolution.
+    // getWebsocketUrl() must only be called when actually needed — it throws on
+    // unknown ports.
+    ...(useWebsocket ? [websocketLogger(eventServerUrl || getWebsocketUrl())] : []),
   ];
 
   lo_event.init(
@@ -449,7 +501,7 @@ function configureStore({
       queueType: lo_event.QueueType.IN_MEMORY
     }
   );
-  lo_event.setFieldSet([{ activity: 'lo-blocks' }]);
+  lo_event.lockFields([{ activity: 'lo-blocks' }]);
   lo_event.go();
 
   // Store the reference for getReduxState to use

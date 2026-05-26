@@ -20,6 +20,7 @@
 // that need to do their own XML processing. Not currently implemented.
 //
 import { z } from 'zod';
+import yaml from 'js-yaml';
 import { XMLBuilder } from 'fast-xml-parser';
 import type { OLXLoadingError, DefinitionRef, DefinitionKey, RuntimeProps, StateKey, LofsDependencies } from '@/lib/types';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
@@ -742,7 +743,13 @@ export function peggyParser(
     return id;
   }
 
-  return { parser, staticKids: () => [] };
+  // Auto-detect grammar from compiled parser metadata (set by compile-grammars)
+  const grammarExt = peggyParser._grammarExtension;
+  return {
+    parser,
+    staticKids: () => [],
+    ...(grammarExt && { grammars: [grammarExt] }),
+  };
 }
 
 // === YAML + Zod Support ===
@@ -793,7 +800,6 @@ export function yamlParser(schema: z.ZodType) {
 
     let entry;
     try {
-      const { default: yaml } = await import('js-yaml');
       const raw = yaml.load(textContent, { schema: yaml.JSON_SCHEMA });
       const parsed = schema.parse(raw);
 

@@ -7,46 +7,30 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { getCategory, sortCategories } from '@/lib/docs';
-import type { AttributeDoc } from '@/lib/docs';
+import type { AttributeDoc, BlockDoc } from '@/lib/docs';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import './BlockList.css';
 
-export interface BlockItem {
-  name: string;
-  description?: string | null;
-  category?: string | null;
-  source?: string;
-  readme?: string | null;
-  examples?: Array<{ path: string; gitStatus?: string }>;
-  attributes?: AttributeDoc[] | null;
-  gitStatus?: string;
-  readmeGitStatus?: string;
-  internal?: boolean;
-  _isGrammar?: boolean;
-  extension?: string;
-  hasPreview?: boolean;
-  exampleCount?: number;
-}
-
 interface DetailedDocs {
   readme?: { content: string };
-  examples?: Array<{ filename: string; content: string }>;
+  template?: string | null;  // Key into examples dict
+  examples?: Record<string, { path: string; content: string }>;
   attributes?: AttributeDoc[] | null;
 }
 
 // =============================================================================
-// ExpandableBlockItem - Unified expandable block/element component
+// ExpandableBlockDoc - Unified expandable block/element component
 // =============================================================================
 
-interface ExpandableBlockItemProps {
+interface ExpandableBlockDocProps {
   name: string;
-  block?: BlockItem;
+  block?: BlockDoc;
   onInsert?: (olx: string) => void;
   isGrammar?: boolean;
   extension?: string;
 }
 
-function ExpandableBlockItem({ name, block, onInsert, isGrammar, extension }: ExpandableBlockItemProps) {
+function ExpandableBlockDoc({ name, block, onInsert, isGrammar, extension }: ExpandableBlockDocProps) {
   const [expanded, setExpanded] = useState(false);
   const [detailedDocs, setDetailedDocs] = useState<DetailedDocs | null>(null);
   const [loadingDocs, setLoadingDocs] = useState(false);
@@ -65,6 +49,7 @@ function ExpandableBlockItem({ name, block, onInsert, isGrammar, extension }: Ex
             const doc = isGrammar ? data.grammar : data.block;
             setDetailedDocs({
               readme: doc.readme,
+              template: doc.template,
               examples: doc.examples,
               attributes: doc.attributes,
             });
@@ -80,14 +65,17 @@ function ExpandableBlockItem({ name, block, onInsert, isGrammar, extension }: Ex
     }
   }, [expanded, name, isGrammar, detailedDocs, loadingDocs]);
 
-  const firstExample = detailedDocs?.examples?.[0];
   // Use attributes from detailed docs if available, fall back to block.attributes
   const attributes = detailedDocs?.attributes ?? block?.attributes;
   const customAttrs = attributes?.filter(attr => attr.description) || [];
+  // BlockList is the Studio sidebar — always use template (bare block).
+  // template is a key into examples dict; look up the content.
+  const templateKey = detailedDocs?.template;
+  const templateContent = (templateKey && detailedDocs?.examples?.[templateKey]?.content) ?? null;
 
   const handleInsert = () => {
-    if (firstExample?.content && onInsert) {
-      onInsert(firstExample.content);
+    if (templateContent && onInsert) {
+      onInsert(templateContent);
     }
   };
 
@@ -140,11 +128,11 @@ function ExpandableBlockItem({ name, block, onInsert, isGrammar, extension }: Ex
             </div>
           )}
 
-          {/* Example OLX */}
-          {firstExample && (
+          {/* Template OLX */}
+          {templateContent && (
             <div className="expandable-block-item__example-section">
               <div className="expandable-block-item__example-header">
-                <span>Example</span>
+                <span>Template</span>
                 {onInsert && (
                   <button
                     className="expandable-block-item__insert-btn"
@@ -155,7 +143,7 @@ function ExpandableBlockItem({ name, block, onInsert, isGrammar, extension }: Ex
                   </button>
                 )}
               </div>
-              <pre className="expandable-block-item__example">{firstExample.content}</pre>
+              <pre className="expandable-block-item__example">{templateContent}</pre>
             </div>
           )}
 
@@ -180,7 +168,7 @@ function ExpandableBlockItem({ name, block, onInsert, isGrammar, extension }: Ex
 
 interface ElementsInFileProps {
   elements: string[];
-  blockDocs: Record<string, BlockItem>;
+  blockDocs: Record<string, BlockDoc>;
   onInsert?: (olx: string) => void;
   className?: string;
 }
@@ -193,7 +181,7 @@ export function ElementsInFile({ elements, blockDocs, onInsert, className = '' }
       <div className="elements-in-file__header">Elements in file</div>
       <div className="elements-in-file__list">
         {elements.map(tag => (
-          <ExpandableBlockItem
+          <ExpandableBlockDoc
             key={tag}
             name={tag}
             block={blockDocs[tag]}
@@ -210,7 +198,7 @@ export function ElementsInFile({ elements, blockDocs, onInsert, className = '' }
 // =============================================================================
 
 interface BlockListProps {
-  blocks: BlockItem[];
+  blocks: BlockDoc[];
   selectedBlock?: string | null;
   onSelectBlock?: (name: string, isGrammar?: boolean) => void;
   onInsert?: (olx: string) => void;
@@ -240,7 +228,7 @@ export function BlockList({
 
   // Group blocks by category
   const categorizedBlocks = useMemo(() => {
-    const groups: Record<string, BlockItem[]> = {};
+    const groups: Record<string, BlockDoc[]> = {};
     blocks.forEach(block => {
       const category = getCategory(block);
       if (!groups[category]) groups[category] = [];
@@ -253,7 +241,7 @@ export function BlockList({
   const filteredCategories = useMemo(() => {
     if (!searchQuery.trim()) return categorizedBlocks;
     const query = searchQuery.toLowerCase();
-    const filtered: Record<string, BlockItem[]> = {};
+    const filtered: Record<string, BlockDoc[]> = {};
     Object.entries(categorizedBlocks).forEach(([category, items]) => {
       const matching = items.filter(item =>
         item.name.toLowerCase().includes(query) ||
@@ -291,7 +279,7 @@ export function BlockList({
             {!isCollapsed && (
               <div className="block-list__items">
                 {items.map(block => (
-                  <ExpandableBlockItem
+                  <ExpandableBlockDoc
                     key={block.name}
                     name={block.name}
                     block={block}

@@ -10,7 +10,7 @@ import path from 'path';
 import { glob as globLib } from 'glob';
 import pegExts from '../../../generated/pegExtensions.json' assert { type: 'json' };
 import type { LofsRef, OlxRelativePath, SafeRelativePath, FileSystemPath } from '../../types';
-import { EXT } from '@/lib/util/fileTypes';
+import { EXT, isMediaFile } from '@/lib/util/fileTypes';
 import {
   type StorageProvider,
   type XmlFileInfo,
@@ -572,7 +572,6 @@ export class FileStorageProvider implements StorageProvider {
 
   async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {
     try {
-      const { isMediaFile } = await import('@/lib/util/fileTypes');
       if (!isMediaFile(assetPath)) {
         return false;
       }

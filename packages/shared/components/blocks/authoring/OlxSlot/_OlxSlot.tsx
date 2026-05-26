@@ -18,6 +18,7 @@ import { useFieldSelector, useFieldState, useValue } from '@/lib/state';
 import { LLM_STATUS } from '@/lib/llm/reduxClient';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { toLofsRef } from '@/lib/types/address';
+import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
@@ -53,6 +54,7 @@ function ChromeLabel({ title }: { title?: string }) {
 
 function _OlxSlot(props: RuntimeProps) {
   const { id, fields, target, title, debounce: debounceMs = 150, chrome = false } = props;
+  const stateKey = scopedStateKeyForBlock(props);
 
   // Mode 1: Read from own value field (LLMAction writes here)
   const ownValue = useFieldSelector(props, fields.value, { fallback: '' });
@@ -165,7 +167,7 @@ function _OlxSlot(props: RuntimeProps) {
       <div className="olx-slot olx-slot--error" style={chromeStyle}>
         {label}
         <RenderOLX
-          id={id}
+          id={stateKey}
           inline={parseError}
           source={`olxslot:${id}`}
           eventContext={`olxslot:${id}`}
@@ -194,7 +196,7 @@ function _OlxSlot(props: RuntimeProps) {
       )}
       {stale && parseError && (
         <RenderOLX
-          id={id}
+          id={stateKey}
           inline={parseError}
           source={`olxslot:${id}:error`}
           eventContext={`olxslot:${id}`}
@@ -202,7 +204,7 @@ function _OlxSlot(props: RuntimeProps) {
         />
       )}
       <RenderOLX
-        id={id}
+        id={stateKey}
         inline={olxString}
         source={`olxslot:${id}`}
         eventContext={`olxslot:${id}`}

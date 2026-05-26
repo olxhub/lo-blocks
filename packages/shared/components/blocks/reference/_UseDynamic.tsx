@@ -2,10 +2,12 @@
 import React from 'react';
 import { useBlock } from '@/lib/render';
 import { useFieldState, useValue } from '@/lib/state';
-import type { RuntimeProps } from '@/lib/types';
+import type { RuntimeProps, StateRef } from '@/lib/types';
+import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 
-function DynamicContent({ props, value }) {
-  const { block } = useBlock(props, value);
+function DynamicContent({ props, value }: { props: RuntimeProps; value: StateRef }) {
+  const stateKey = stateKeyForGlobalRef(value);
+  const { block } = useBlock(props, stateKey);
   return <>{block}</>;
 }
 

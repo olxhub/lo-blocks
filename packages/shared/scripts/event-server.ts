@@ -16,6 +16,8 @@ import { WebSocketServer, WebSocket } from 'ws';
 import * as fs from 'fs';
 import * as path from 'path';
 
+import { type AuthUser, resolveUser } from '../lib/util/auth';
+
 const PORT = 8888;
 const WS_PATH = '/wsapi/in/';
 const EVENTS_DIR = 'events';
@@ -26,29 +28,38 @@ fs.mkdirSync(EVENTS_DIR, { recursive: true });
 interface EventLog {
   description: string;
   started: string;
+  user: AuthUser;
   events: any[];
 }
 
 interface Session {
   id: string;
+  user: AuthUser;
   log: EventLog;
   path: string;
 }
 
 let sessionCounter = 0;
 
-function createSession(): Session {
+function createSession(user: AuthUser): Session {
   const id = `${Date.now()}-${++sessionCounter}`;
-  const filename = `events-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}-${sessionCounter}.json`;
+  // Include the user's safe_user_id in the filename so sessions for the same
+  // user cluster together on disk and are greppable. Fall back to the bare
+  // counter if something goes wrong (shouldn't happen, but keeps the path
+  // safe if a future auth source produces an empty safe_user_id).
+  const userTag = user.safe_user_id || `unknown-${sessionCounter}`;
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const filename = `events-${timestamp}-${userTag}-${sessionCounter}.json`;
   const sessionPath = path.join(EVENTS_DIR, filename);
 
   const log: EventLog = {
     description: 'Captured event stream',
     started: new Date().toISOString(),
+    user,
     events: []
   };
 
-  return { id, log, path: sessionPath };
+  return { id, user, log, path: sessionPath };
 }
 
 function saveSession(session: Session) {
@@ -83,9 +94,20 @@ console.log(`Saving events to: ${EVENTS_DIR}/`);
 console.log('Press Ctrl+C to stop and save.\n');
 
 wss.on('connection', (ws: WebSocket, req) => {
-  const session = createSession();
+  const user = resolveUser(req as any);
+  const session = createSession(user);
   activeSessions.set(ws, session);
-  console.log(`[${session.id}] Client connected from ${req.socket.remoteAddress} → ${session.path}`);
+  console.log(
+    `[${session.id}] ${user.user_id} (${user.provenance}) connected from ` +
+    `${req.socket.remoteAddress} → ${session.path}`
+  );
+
+  // Echo the resolved identity back to the client. websocketLogger will stash
+  // this in its storage shim and dispatch a DOM CustomEvent; reduxLogger
+  // consumes that event and populates state.system.currentUser via the
+  // settings.currentUser field. The client treats `user_id` as the only
+  // required field; everything else is spread-through forward-compat.
+  ws.send(JSON.stringify({ status: 'auth', ...user }));
 
   ws.on('message', (data: Buffer) => {
     try {

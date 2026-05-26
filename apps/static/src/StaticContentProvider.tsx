@@ -1,11 +1,9 @@
-// apps/static/lib/StaticContentProvider.tsx
+// apps/static/src/StaticContentProvider.tsx
 //
 // Loads baked content JSON once and provides it via React context.
 // This is the static app's equivalent of useContentLoader -- instead of
 // fetching from /api/content/[id], it loads a single pre-built JSON file.
 //
-'use client';
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
 import { useBaselineProps } from '@/components/common/RenderOLX';

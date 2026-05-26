@@ -220,8 +220,8 @@ function CustomEditor({
   editorId: string;
 }) {
   const scoped = scopedNoteProps(props, noteId);
-  const ref = parseDefinitionRef(editorId) as DefinitionRef;
-  const { block } = useBlock(scoped, ref);
+  const stateKey = scopedStateKeyForBlock({ ...scoped, id: parseDefinitionRef(editorId) });
+  const { block } = useBlock(scoped, stateKey);
   return <>{block}</>;
 }
 

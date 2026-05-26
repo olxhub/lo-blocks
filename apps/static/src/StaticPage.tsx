@@ -1,23 +1,22 @@
-// apps/static/app/[...slug]/StaticPage.tsx
+// apps/static/src/StaticPage.tsx
 //
 // Client component: renders OLX content for a given key.
 // Gets the idMap from StaticContentProvider context (loaded once for the whole app).
 //
 // Language support:
-// - Browser language is auto-detected (via useBaselineRuntime → navigator.language)
+// - Browser language is auto-detected (via useBaselineRuntime -> navigator.language)
 // - Best variant is selected automatically (via selectBestVariant BCP 47 matching)
 // - LanguageSwitcher shown when 2+ language variants exist in the content
 // - <html> lang/dir synced for accessibility and RTL support
 //
-'use client';
-
 import { useEffect } from 'react';
 import RenderOLX from '@/components/common/RenderOLX';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
-import { useStaticContent } from '../../lib/StaticContentProvider';
+import { useStaticContent } from './StaticContentProvider';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
-import { definitionKeyForRef, parseDefinitionRef } from '@/lib/types/id-grammar';
+import { definitionKeyForRef, parseDefinitionRef, addScope } from '@/lib/types/id-grammar';
+
 import { variantMapLocaleEntries } from '@/lib/types/i18n';
 import type { Locale } from '@/lib/types';
 
@@ -53,7 +52,7 @@ export default function StaticPage({ definitionKey, title }: { definitionKey: st
       )}
       <div className="p-6 flex-1 overflow-auto">
         <RenderOLX
-          id={key}
+          id={addScope(key)}
           baseIdMap={idMap}
           eventContext="static"
         />

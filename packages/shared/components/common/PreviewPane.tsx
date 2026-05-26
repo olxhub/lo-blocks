@@ -13,6 +13,8 @@ import { isPEGFile, isMarkdownFile, getContentType, PREVIEW_WRAPPER } from '@/li
 import { NetworkStorageProvider } from '@/lib/lofs';
 import type { IdMap, OlxDomNode } from '@/lib/types';
 import type { StorageProvider } from '@/lib/types/storage';
+import { stateKeyFromFilename } from '@/lib/types/id-grammar';
+import { CONTENT_NAMESPACE } from '@/lib/types';
 
 export interface PreviewPaneProps {
   /** File path - used for file type detection and provenance */
@@ -76,7 +78,7 @@ export default function PreviewPane({
     }
     return (
       <RenderOLX
-        id={path || '_preview'}
+        id={stateKeyFromFilename(path || '_preview.olx', CONTENT_NAMESPACE)}
         inline={`<${wrapperBlock}><![CDATA[\n${content}\n]]></${wrapperBlock}>`}
       />
     );
@@ -91,7 +93,7 @@ export default function PreviewPane({
   // OLX files use RenderOLX with full props
   return (
     <RenderOLX
-      id={path || '_preview'}
+      id={stateKeyFromFilename(path || '_preview.olx', CONTENT_NAMESPACE)}
       inline={content}
       baseIdMap={idMap ?? undefined}
       resolveProvider={provider}

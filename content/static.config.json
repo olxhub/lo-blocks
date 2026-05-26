@@ -1,9 +1,7 @@
 {
-  "title": "Learning Observer Demos",
+  "title": "Psychology Study Group",
+  "eventServerUrl": false,
   "routes": {
-    "/": "intro_course",
-    "/demos/ref": "ref_demo",
-    "/demos/rewrite": "rewrite_lesson",
-    "/demos/dialogue": "discourse_community_dialogue"
+    "/": "CONTENT/psych_course"
   }
 }

@@ -4,9 +4,17 @@
 // Reads readme and example file contents from paths stored on the block object.
 //
 import fs from 'fs/promises';
-import path from 'path';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { resolveSafeReadPath } from '@/lib/lofs/providers/file';
+
+async function safeRead(relPath) {
+  try {
+    const full = await resolveSafeReadPath(process.cwd(), relPath);
+    return await fs.readFile(full, 'utf8');
+  } catch {
+    return null;
+  }
+}
 
 export async function GET(request, { params }) {
   const { block: blockName } = await params;
@@ -35,41 +43,34 @@ export async function GET(request, { params }) {
       fields: Object.keys(block.fields || {}),
       hasAction: !!block.action,
       hasParser: !!block.parser,
+      template: block.template ?? null,   // Key into examples
+      demo: block.demo ?? null,           // Key into examples
       readme: null,
-      examples: []
+      examples: {},
     };
 
     // Read readme content if path exists
     if (block.readme) {
-      try {
-        const readmePath = await resolveSafeReadPath(process.cwd(), block.readme);
-        blockDocs.readme = {
-          path: block.readme,
-          content: await fs.readFile(readmePath, 'utf8')
-        };
-      } catch (err) {
-        console.warn(`Could not read readme for ${blockName}: ${err.message}`);
+      const content = await safeRead(block.readme);
+      if (content) {
+        blockDocs.readme = { path: block.readme, content };
       }
     }
 
-    // Read example file contents
-    if (block.examples && block.examples.length > 0) {
-      for (const example of block.examples) {
-        // Handle both old format (string) and new format ({path, gitStatus})
-        const examplePath = typeof example === 'string' ? example : example.path;
-        const gitStatus = typeof example === 'object' ? example.gitStatus : null;
-        try {
-          const fullPath = await resolveSafeReadPath(process.cwd(), examplePath);
-          blockDocs.examples.push({
-            path: examplePath,
-            filename: path.basename(examplePath),
-            content: await fs.readFile(fullPath, 'utf8'),
-            gitStatus
-          });
-        } catch (err) {
-          console.warn(`Could not read example ${examplePath}: ${err.message}`);
-        }
-      }
+    // Read example file contents (dict keyed by filename)
+    if (block.examples) {
+      const entries = await Promise.all(
+        Object.entries(block.examples).map(async ([filename, example]) => {
+          const content = await safeRead(example.path);
+          if (content === null) return null;
+          return [filename, {
+            path: example.path,
+            content,
+            gitStatus: example.gitStatus ?? null,
+          }];
+        }),
+      );
+      blockDocs.examples = Object.fromEntries(entries.filter(Boolean));
     }
 
     return Response.json({

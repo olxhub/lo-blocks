@@ -67,7 +67,7 @@ export async function getGrammarMetadata(name, { context = 'docs' } = {}) {
     grammar: null,
     preview: null,
     readme: null,
-    examples: []
+    examples: {}
   };
 
   // Read grammar file
@@ -129,11 +129,10 @@ export async function getGrammarMetadata(name, { context = 'docs' } = {}) {
       const examplePath = `${grammarDirPath}/${filename}`;
       try {
         const fullPath = await resolveSafeReadPath(projectRoot, examplePath);
-        result.examples.push({
+        result.examples[filename] = {
           path: examplePath,
-          filename,
           content: await fs.readFile(fullPath, 'utf-8')
-        });
+        };
       } catch (err) {
         console.warn(`[getGrammarMetadata] Could not read example ${examplePath}: ${err.message}`);
       }

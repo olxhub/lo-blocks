@@ -8,21 +8,41 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getCategory, sortCategories } from './categoryUtils';
 import type { AttributeDoc } from './schemaUtils';
+import type { BlockGitStatus } from '@/lib/types';
 
+/**
+ * Block documentation metadata — the display/API-layer representation of a
+ * block. Used by /docs page and Studio sidebar via the legacy /api/docs route.
+ *
+ * TODO: Migrate /docs and Studio to use MCP get_blocks (tools.ts), then remove
+ * this type and the /api/docs route. MCP's BlockResultSchema is the canonical
+ * wire format going forward.
+ *
+ * This is the documentation subset of LoBlock: no component, reducers, parsers,
+ * or other runtime fields. Grammar-related fields (_isGrammar, extension, etc.)
+ * are included so the same type covers both blocks and grammars in combined lists.
+ */
 export interface BlockDoc {
   name: string;
   description?: string | null;
   category?: string | null;
   source?: string;
   readme?: string | null;
-  examples?: Array<{ path: string; gitStatus?: string }>;
-  gitStatus?: string;
-  readmeGitStatus?: string;
+  examples?: Record<string, { path: string; content?: string; gitStatus?: BlockGitStatus }>;
+  gitStatus?: BlockGitStatus;
+  readmeGitStatus?: BlockGitStatus;
   internal?: boolean;
   fields?: string[];
   attributes?: AttributeDoc[] | null;
   namespace?: string;
   exportName?: string;
+  /** PEG grammar extensions used by this block (e.g. ['chatpeg']) */
+  grammars?: string[];
+  // Grammar fields (present when _isGrammar is true)
+  _isGrammar?: boolean;
+  extension?: string;
+  hasPreview?: boolean;
+  exampleCount?: number;
 }
 
 export interface GrammarDoc {

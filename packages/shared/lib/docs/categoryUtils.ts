@@ -57,9 +57,37 @@ export function getCategory(block: BlockLike): string {
     return CATEGORY_MAP[block.category] || block.category;
   }
   // Fall back to directory-based categorization
+  // block.source paths are forward-slash-normalized by generateBlockRegistry.js
   if (!block.source) return 'Other';
   const match = block.source.match(/components\/blocks\/([^/]+)\//);
   return match ? (CATEGORY_MAP[match[1]] || match[1]) : 'Other';
+}
+
+/**
+ * Get all categories for a block as an array.
+ *
+ * Returns real categories only (explicit + directory-inferred), not the block
+ * name. When LoBlock gains `categories: string[]`, this function will return
+ * the union.
+ */
+export function getCategories(block: BlockLike): string[] {
+  const cats = new Set<string>();
+
+  // Explicit category
+  if (block.category) {
+    cats.add(CATEGORY_MAP[block.category] || block.category);
+  }
+
+  // Directory-inferred category
+  // block.source paths are forward-slash-normalized by generateBlockRegistry.js
+  if (block.source) {
+    const match = block.source.match(/components\/blocks\/([^/]+)\//);
+    if (match) cats.add(CATEGORY_MAP[match[1]] || match[1]);
+  }
+
+  if (cats.size === 0) cats.add('Other');
+
+  return [...cats];
 }
 
 /**

@@ -16,8 +16,8 @@ import { extensionsWithDots, CATEGORY } from '@/lib/util/fileTypes';
 
 const ASSET_EXTS_WITH_DOTS = extensionsWithDots(CATEGORY.media);
 
-export async function copyAssetsToPublic(provider) {
-  const publicContentDir = './apps/web/public/content';
+export async function copyAssetsToPublic(provider, targetDir = './apps/web/public/content') {
+  const publicContentDir = targetDir;
 
   try {
     await fs.mkdir(publicContentDir, { recursive: true });

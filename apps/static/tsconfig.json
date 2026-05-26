@@ -4,18 +4,12 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["../../packages/shared/*"]
-    },
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+    }
   },
   "include": [
-    "next-env.d.ts",
-    ".next/types/**/*.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "scripts/**/*.ts",
     "../../packages/shared/**/*.ts",
     "../../packages/shared/**/*.tsx"
   ],

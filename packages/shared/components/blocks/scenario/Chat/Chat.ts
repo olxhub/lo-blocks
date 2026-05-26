@@ -17,7 +17,7 @@ import {
 import type { ConversationEntry, WaitCommand, ParsedConversation } from './_chatTypes';
 import type { PeggyKids } from '@/lib/types';
 import { canAdvanceToContent, evaluateWaitEntry } from './waitConditions';
-import { scopedStateKeyForBlock, splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
+import { scopedStateKeyForBlock, splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId, qualifyDefinitionRef, parseDefinitionRef } from '@/lib/types/id-grammar';
 import type { DefinitionKey, DefinitionRef, RuntimeProps } from '@/lib/types';
 import * as cp from './_chatParser';
 import { _Chat } from './_Chat';
@@ -377,6 +377,17 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
       }
     }
 
+    // Qualify bare EmbedCommand refs with the parent's namespace.
+    // PEG produces bare refs (e.g. "my_quiz"); idMap is keyed by qualified
+    // DefinitionKeys (e.g. "CONTENT/my_quiz"). Qualify here so staticKids
+    // and runtime rendering see consistent keys.
+    const ns = splitNs(id).ns;
+    for (const entry of parsed.body) {
+      if (entry.type === 'EmbedCommand' && entry.ref) {
+        entry.ref = qualifyDefinitionRef(parseDefinitionRef(entry.ref), ns);
+      }
+    }
+
     // Process display= modes on embed commands.
     //   display=fullscreen/window → wrap in CompactPopout
     //   display=target:<id>       → set displayTarget for runtime repointing
@@ -455,6 +466,7 @@ const Chat = blocks.dev({
   ...blocks.action({
     action: advanceChat
   }),
+  grammars: ['chatpeg', 'clippeg'],
   name: 'Chat',
   component: _Chat,
   description: 'Example block that parses an SBA dialogue format using PEG.',

@@ -19,6 +19,7 @@
 
 import React, { useState, useId } from 'react';
 import RenderOLX from '@/components/common/RenderOLX';
+import { parseStateKey } from '@/lib/types/id-grammar';
 
 // TODO: Add CodeMirror support once Turbopack dynamic import issue is resolved
 // For now, using textarea to avoid Turbopack crash
@@ -63,14 +64,16 @@ function OLXCodeView({ code }) {
  */
 function OLXRenderView({ code }) {
   const uniqueId = useId();
-  const rootId = `olx_embed_${uniqueId.replace(/:/g, '_')}`;
+  const bareId = `_embed_${uniqueId.replace(/:/g, '_')}`;
+  // TODO(propthread-ns): Namespace should come from runtime context.
+  const rootId = `olxEmbed/${bareId}`;
 
   // Wrap in a root element with known ID
-  const wrappedOLX = `<Vertical id="${rootId}">${code}</Vertical>`;
+  const wrappedOLX = `<Vertical id="${bareId}">${code}</Vertical>`;
 
   return (
     <RenderOLX
-      id={rootId}
+      id={parseStateKey(rootId)}
       inline={wrappedOLX}
       provenance="markdown-embed://"
     />
@@ -84,9 +87,11 @@ function OLXRenderView({ code }) {
 function OLXPlaygroundView({ code: initialCode }) {
   const [code, setCode] = useState(initialCode);
   const uniqueId = useId();
-  const rootId = `olx_playground_${uniqueId.replace(/:/g, '_')}`;
+  const bareId = `_playground_${uniqueId.replace(/:/g, '_')}`;
+  // TODO(propthread-ns): Namespace should come from runtime context.
+  const rootId = `olxEmbed/${bareId}`;
 
-  const wrappedOLX = `<Vertical id="${rootId}">${code}</Vertical>`;
+  const wrappedOLX = `<Vertical id="${bareId}">${code}</Vertical>`;
 
   return (
     <div className="olx-playground">
@@ -103,7 +108,7 @@ function OLXPlaygroundView({ code: initialCode }) {
         <div className="olx-playground-header">Preview</div>
         <div className="olx-playground-content">
           <RenderOLX
-            id={rootId}
+            id={parseStateKey(rootId)}
             inline={wrappedOLX}
             provenance="markdown-playground://"
           />

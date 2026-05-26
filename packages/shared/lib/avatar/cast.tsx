@@ -380,6 +380,8 @@ export function withCastSupport(
 ): { parser: (...args: any[]) => any; staticKids?: (...args: any[]) => any; [key: string]: any } {
   return {
     ...parserConfig,
+    // Register cast as a content format (parallel to peggyParser's grammars)
+    grammars: [...(parserConfig.grammars ?? []), 'cast'],
     parser: async function withCastParser(ctx: any) {
       if (ctx.attributes?.cast && typeof ctx.attributes.cast === 'string') {
         if (!ctx.provider) {

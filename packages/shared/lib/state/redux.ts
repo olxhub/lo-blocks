@@ -47,7 +47,7 @@ import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey, stateKeyForGloba
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
-import { FieldInfo, DefinitionRef, DefinitionKey, StateRef, StateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus } from '../types';
+import { FieldInfo, DefinitionRef, DefinitionKey, StateRef, StateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus, CurrentUser } from '../types';
 import { assertValidField } from './fields';
 import { getUrlOverride, setUrlValue } from './urlFields';
 import type { Store } from 'redux';
@@ -226,6 +226,20 @@ export const useFieldSelector = <T>(
   }
   return raw;
 };
+
+
+/**
+ * Hook to access the current user identity from Redux.
+ * Returns null until the server's auth echo has landed.
+ *
+ * We might consider a dummy name until auth. Dunno. We're
+ * still figuring this out.
+ */
+export function useUser(): CurrentUser | null {
+  return useSelector(
+    (state: any) => state?.application_state?.system?.currentUser ?? null
+  );
+}
 
 
 // =============================================================================
