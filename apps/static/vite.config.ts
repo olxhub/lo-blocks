@@ -35,6 +35,7 @@ export default defineConfig({
   define: {
     'process.env.NEXT_PUBLIC_BASE_PATH': JSON.stringify(basePath),
     '__STATIC_EVENT_SERVER_URL__': JSON.stringify(staticConfig.eventServerUrl || ''),
+    '__STATIC_CLASSES__': JSON.stringify(staticConfig.classes || []),
     '__SYSTEM_PMSS__': JSON.stringify(systemPmss),
   },
   build: {

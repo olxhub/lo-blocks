@@ -16,8 +16,9 @@ import StaticPage from './StaticPage';
 // Injected at build time by Vite define.
 declare const __SYSTEM_PMSS__: string;
 declare const __STATIC_EVENT_SERVER_URL__: string;
+declare const __STATIC_CLASSES__: string[];
 
-initConfig(__SYSTEM_PMSS__, ['static']);
+initConfig(__SYSTEM_PMSS__, ['static', ...__STATIC_CLASSES__]);
 
 const eventServerUrl = __STATIC_EVENT_SERVER_URL__ || undefined;
 

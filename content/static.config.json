@@ -1,6 +1,7 @@
 {
   "title": "Psychology Study Group",
   "eventServerUrl": false,
+  "classes": ["no-translanguaging"],
   "routes": {
     "/": "CONTENT/psych_course"
   }

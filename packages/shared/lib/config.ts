@@ -64,3 +64,17 @@ export function getConfig(key: string, context?: SelectorMatchContext): string |
 export function getConfigBool(key: string, context?: SelectorMatchContext): boolean {
   return getConfig(key, context) === 'true';
 }
+
+// --- React hooks -------------------------------------------------------------
+// Thin wrappers today. When config moves into Redux, these become selectors
+// that trigger re-renders on config changes (e.g. toggling debug-panel).
+
+/** React hook: resolve a PMSS config value as a string. */
+export function useConfig(key: string, context?: SelectorMatchContext): string | null {
+  return getConfig(key, context);
+}
+
+/** React hook: resolve a PMSS config value as a boolean. */
+export function useConfigBool(key: string, context?: SelectorMatchContext): boolean {
+  return getConfigBool(key, context);
+}

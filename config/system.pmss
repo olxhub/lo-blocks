@@ -41,3 +41,8 @@
 .production {
     debug-panel: false;
 }
+
+/* Content classes — declared in course manifest.yaml */
+.no-translanguaging {
+    translanguaging: false;
+}
