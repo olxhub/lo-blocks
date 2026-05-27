@@ -14,7 +14,7 @@
 import * as jose from 'jose';
 import fs from 'fs';
 import path from 'path';
-import type { AuthUser } from './auth.js';
+import { resolveBasicAuth, createGuestUser, type AuthUser } from './auth.js';
 
 const COOKIE_NAME = 'lo_session';
 const MAX_AGE_SECONDS = 30 * 24 * 60 * 60; // 30 days
@@ -92,3 +92,22 @@ export function buildSetCookie(token: string): string {
 }
 
 export { COOKIE_NAME };
+
+// --- User resolution ---------------------------------------------------------
+// Priority: HTTP Basic auth > session cookie > new guest.
+// Returns the user and whether a new session cookie should be set.
+
+export async function resolveUserWithSession(
+  req: { headers: { authorization?: string; cookie?: string } }
+): Promise<{ user: AuthUser; needsCookie: boolean }> {
+  const basicUser = resolveBasicAuth(req);
+  if (basicUser) return { user: basicUser, needsCookie: false };
+
+  const token = parseCookie(req.headers.cookie);
+  if (token) {
+    const sessionUser = await verifySessionToken(token);
+    if (sessionUser) return { user: sessionUser, needsCookie: false };
+  }
+
+  return { user: createGuestUser(), needsCookie: true };
+}

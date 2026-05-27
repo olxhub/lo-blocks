@@ -10,40 +10,19 @@
 //   import { getConfig, getConfigBool } from '@/lib/config';
 //   const useWs = getConfigBool('websocket');  // true for web, false for static
 //
-// Path forward:
-//   - Now: inline config string, build-time profile via NEXT_PUBLIC_APP_PROFILE.
-//   - Near-term: build step generates this from a .pmss file as config grows.
-//   - Longer-term: multiple ruleset layers (system, local, env, runtime) —
-//     the Python PMSS already has this pattern (ArgsRuleset, SimpleEnvsRuleset,
-//     PMSSFileRuleset). JS side would add equivalent ruleset layering.
-//   - Static builds: always build-time resolution (Turbopack inlines NEXT_PUBLIC_*).
-//   - Web/server: can do runtime resolution for server-only settings (LLM, storage).
-//   - Tests: set NEXT_PUBLIC_APP_PROFILE or pass explicit context to getConfig().
+// The PMSS source of truth is config/system.pmss. A build step
+// (scripts/generate-config.ts) reads it and produces config.generated.ts
+// so this module works in 'use client' contexts without file I/O.
+//
+// Future layers: course overrides.pmss, env rulesets, runtime resolution.
+// See configuration.md for the full design.
 
 import { PMSSParserAdapter, resolve } from 'pmss';
 import type { SelectorMatchContext } from 'pmss';
-
-// Config is inline for now — no file I/O, works in 'use client' modules,
-// no loader/bundler config needed. As config grows, a build step can
-// generate this from a .pmss source file.
-const PMSS_CONFIG = `
-/* Defaults: conservative — no server features */
-* {
-    websocket: false;
-}
-
-/* Server-backed apps: websocket enabled */
-.web {
-    websocket: true;
-}
-
-.client {
-    websocket: true;
-}
-`;
+import { SYSTEM_PMSS } from './config.generated';
 
 // Parse once at module load time
-const rules = PMSSParserAdapter.parse(PMSS_CONFIG);
+const rules = PMSSParserAdapter.parse(SYSTEM_PMSS);
 
 // App profile from env var (set in each app's next.config.mjs).
 //

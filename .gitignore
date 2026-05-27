@@ -58,6 +58,7 @@ packages/shared/generated/pegExtensions.json
 packages/shared/generated/parserRegistry.ts
 packages/shared/styles/componentsAutogen.css
 packages/shared/lib/i18n/blockI18nAutogen.ts
+packages/shared/lib/config.generated.ts
 
 # Autosaves
 *~

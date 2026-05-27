@@ -33,6 +33,7 @@ import { quotePlus } from '@/lib/util/quotePlus';
 
 export interface AuthUser extends CurrentUser {
   authorized: boolean;
+  safe_user_id: string;
 }
 
 /**

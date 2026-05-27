@@ -11,7 +11,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import Redis from 'ioredis';
+import Redis, { type RedisOptions } from 'ioredis';
 
 export interface KVStore {
   get(key: string): Promise<string | null>;
@@ -120,7 +120,7 @@ export class FileKVStore implements KVStore {
 export class ValkeyKVStore implements KVStore {
   private client: Redis;
 
-  constructor(opts?: string | Redis.RedisOptions) {
+  constructor(opts?: string | RedisOptions) {
     this.client = typeof opts === 'string'
       ? new Redis(opts)
       : new Redis(opts ?? {});
