@@ -32,8 +32,12 @@ const PMSS_CONFIG = `
     websocket: false;
 }
 
-/* Web app: server-backed features enabled */
+/* Server-backed apps: websocket enabled */
 .web {
+    websocket: true;
+}
+
+.client {
     websocket: true;
 }
 `;

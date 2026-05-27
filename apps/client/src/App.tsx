@@ -5,7 +5,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { store, extendSettings } from '@/lib/state';
+import { store, extendSettings, ReduxStoreLoader } from '@/lib/state';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { Route } from './router';
 import PreviewPage from './pages/PreviewPage';
@@ -32,5 +32,10 @@ export default function App({ route }: { route: Route }) {
       break;
   }
 
-  return <Provider store={reduxStore}>{page}</Provider>;
+  return (
+    <Provider store={reduxStore}>
+      <ReduxStoreLoader />
+      {page}
+    </Provider>
+  );
 }

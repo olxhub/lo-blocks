@@ -17,21 +17,24 @@
 //                 ├→ /preview/*     → SPA fallback (Hono serveStatic)
 //                 └→ everything else → proxy to Next.js :3000 (transition)
 
-import { createServer } from 'node:http';
+import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { WebSocketServer, WebSocket } from 'ws';
 import { Hono } from 'hono';
 import { getRequestListener } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 
-import { resolveUser } from './auth.js';
+import { resolveBasicAuth, createGuestUser, type AuthUser } from './auth.js';
 import { createConnectionLog, saveConnectionLog, type ConnectionLog } from './eventLog.js';
 import { proxy } from './proxy.js';
-import { MemoryKVStore } from './kvs.js';
+import { FileKVStore } from './kvs.js';
 import { runPipeline } from './pipeline.js';
 import { handleOlxJson } from './routes/olxjson.js';
 import { handleMcpPost, handleMcpGet, handleMcpDelete, shutdownMcp } from './mcp.js';
 import { createToolRegistry } from '@/lib/mcp/registry';
 import { registerDocsTools } from '@/lib/docs/tools';
+import {
+  parseCookie, verifySessionToken, createSessionToken, buildSetCookie
+} from './session.js';
 
 // --- Tool registry ----------------------------------------------------------
 // Modules register their tools here. The registry serves MCP, Claude API
@@ -45,7 +48,31 @@ const PORT = 8888;
 const WS_PATH = '/wsapi/in/';
 
 // --- KVS -------------------------------------------------------------------
-const kvs = new MemoryKVStore();
+// File-backed by default — survives restarts, zero dependencies.
+// Swap to ValkeyKVStore for multi-instance production deploys.
+const kvs = new FileKVStore();
+
+// --- Session-aware user resolution -----------------------------------------
+// Priority: HTTP Basic auth > session cookie > new guest.
+// Returns the user and whether a new session cookie should be set.
+
+async function resolveUserWithSession(
+  req: { headers: { authorization?: string; cookie?: string } }
+): Promise<{ user: AuthUser; needsCookie: boolean }> {
+  // 1. HTTP Basic auth always wins (production path via nginx)
+  const basicUser = resolveBasicAuth(req);
+  if (basicUser) return { user: basicUser, needsCookie: false };
+
+  // 2. Check for existing session cookie
+  const token = parseCookie(req.headers.cookie);
+  if (token) {
+    const sessionUser = await verifySessionToken(token);
+    if (sessionUser) return { user: sessionUser, needsCookie: false };
+  }
+
+  // 3. Mint a new guest — caller should set cookie
+  return { user: createGuestUser(), needsCookie: true };
+}
 
 // --- Hono app (HTTP only) --------------------------------------------------
 const app = new Hono();
@@ -61,6 +88,42 @@ app.use('/assets/*', serveStatic({ root: './apps/client/dist' }));
 app.get('/preview/*', serveStatic({ root: './apps/client/dist', path: 'index.html' }));
 
 const honoHandler = getRequestListener(app.fetch);
+
+// --- Session cookie middleware for HTTP responses --------------------------
+// Wraps the Hono handler to set a session cookie on responses when needed.
+// The cookie must be set on an HTTP response before the WebSocket upgrade
+// (browsers send cookies on WS upgrade requests to the same origin).
+
+async function handleWithSession(req: IncomingMessage, res: ServerResponse) {
+  const { user, needsCookie } = await resolveUserWithSession(req);
+
+  if (needsCookie) {
+    const token = await createSessionToken(user);
+    res.setHeader('Set-Cookie', buildSetCookie(token));
+  }
+
+  await honoHandler(req, res);
+}
+
+// --- Session cookie for proxied responses ----------------------------------
+// The proxy.web() call forwards the response from Next.js. We can't set
+// headers after the proxy writes them, so we use the 'proxyRes' event to
+// inject Set-Cookie into the upstream response before it reaches the client.
+//
+// We stash pending cookie values on the request object (keyed by a symbol)
+// so the event handler can find them without a separate map.
+const PENDING_COOKIE = Symbol('pendingSessionCookie');
+
+proxy.on('proxyRes', (proxyRes, req) => {
+  const cookie = (req as any)[PENDING_COOKIE] as string | undefined;
+  if (!cookie) return;
+
+  // Merge with any Set-Cookie headers from the upstream response
+  const existing = proxyRes.headers['set-cookie'] || [];
+  const cookies = Array.isArray(existing) ? existing : [existing];
+  cookies.push(cookie);
+  proxyRes.headers['set-cookie'] = cookies;
+});
 
 // --- HTTP server -----------------------------------------------------------
 // Prefixes owned by this server. Everything else proxies to Next.js.
@@ -92,8 +155,16 @@ const server = createServer(async (req, res) => {
   }
 
   if (SERVER_PREFIXES.some(p => url.startsWith(p))) {
-    await honoHandler(req, res);
+    await handleWithSession(req, res);
   } else {
+    // Resolve session before proxying so the cookie gets set on the
+    // first page load (which is served by Next.js). The proxyRes handler
+    // above picks up the stashed cookie value.
+    const { needsCookie, user } = await resolveUserWithSession(req);
+    if (needsCookie) {
+      const token = await createSessionToken(user);
+      (req as any)[PENDING_COOKIE] = buildSetCookie(token);  // symbol key on req
+    }
     proxy.web(req, res);
   }
 });
@@ -106,8 +177,16 @@ const server = createServer(async (req, res) => {
 const wss = new WebSocketServer({ noServer: true });
 const activeConnections = new Map<WebSocket, ConnectionLog>();
 
-server.on('upgrade', (req, socket, head) => {
+// Resolve user identity during the HTTP upgrade — before the WebSocket is
+// established — so the connection handler can be fully synchronous. This
+// avoids a race where messages arriving during an async resolveUserWithSession
+// would be dropped because the pipeline's message listener wasn't attached yet.
+const RESOLVED_USER = Symbol('resolvedUser');
+
+server.on('upgrade', async (req, socket, head) => {
   if (req.url?.startsWith(WS_PATH)) {
+    const { user } = await resolveUserWithSession(req);
+    (req as any)[RESOLVED_USER] = user;
     wss.handleUpgrade(req, socket, head, (ws) => {
       wss.emit('connection', ws, req);
     });
@@ -117,8 +196,8 @@ server.on('upgrade', (req, socket, head) => {
   }
 });
 
-wss.on('connection', (ws: WebSocket, req) => {
-  const user = resolveUser(req as any);
+wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
+  const user: AuthUser = (req as any)[RESOLVED_USER];
   const conn = createConnectionLog(user);
   activeConnections.set(ws, conn);
   console.log(
@@ -166,8 +245,10 @@ function shutdown() {
     saveConnectionLog(conn);
     console.log(`Saved ${conn.log.events.length} events to ${conn.path}`);
   }
-  server.close();
-  process.exit(0);
+  Promise.resolve(kvs.close?.()).then(() => {
+    server.close();
+    process.exit(0);
+  });
 }
 
 process.on('SIGINT', shutdown);

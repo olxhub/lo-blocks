@@ -63,24 +63,22 @@ export function parseBasicAuth(authHeader: string | undefined): string | null {
 }
 
 /**
- * Resolve the user identity for an incoming connection.
- *
- * HTTP Basic path: use the username verbatim, provenance='nginx'.
- * Fallback: mint a fresh friendly guest name via generateGuestName,
- *   provenance='guest', unauthorized. Note that guest identity is
- *   ephemeral-per-connection today; see guestNames/index.ts for the
- *   scaffolding story and upgrade path.
+ * Resolve the user identity for an incoming connection from HTTP Basic auth.
+ * Returns null if no Basic credentials are present.
  */
-export function resolveUser(req: { headers: { authorization?: string } }): AuthUser {
+export function resolveBasicAuth(req: { headers: { authorization?: string } }): AuthUser | null {
   const username = parseBasicAuth(req.headers.authorization);
-  if (username !== null) {
-    return {
-      user_id: username,
-      provenance: 'nginx',
-      safe_user_id: encodeId('nginx', username),
-      authorized: true,
-    };
-  }
+  if (username === null) return null;
+  return {
+    user_id: username,
+    provenance: 'nginx',
+    safe_user_id: encodeId('nginx', username),
+    authorized: true,
+  };
+}
+
+/** Mint a new guest identity. Ephemeral unless persisted via session cookie. */
+export function createGuestUser(): AuthUser {
   const guestName = generateGuestName();
   return {
     user_id: guestName,
@@ -88,4 +86,15 @@ export function resolveUser(req: { headers: { authorization?: string } }): AuthU
     safe_user_id: encodeId('guest', guestName),
     authorized: false,
   };
+}
+
+/**
+ * Resolve the user identity for an incoming connection.
+ *
+ * Priority: HTTP Basic > guest fallback.
+ * Session cookie handling is done by the server layer (apps/server/src/session.ts)
+ * which wraps this function.
+ */
+export function resolveUser(req: { headers: { authorization?: string } }): AuthUser {
+  return resolveBasicAuth(req) ?? createGuestUser();
 }

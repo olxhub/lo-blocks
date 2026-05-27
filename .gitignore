@@ -78,6 +78,9 @@ logs/
 # Captured event streams (from event-server)
 events/
 
+# Server-side persistent data (SQLite KVS, etc.)
+data/
+
 # Runtime artifacts (ephemeral, machine-local)
 lofs/runtime/
 

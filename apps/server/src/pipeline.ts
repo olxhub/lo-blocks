@@ -153,13 +153,67 @@ async function* resolveAuth(
 // mechanism. save_blob writes the Redux state snapshot to the KVS;
 // fetch_blob retrieves it and sends it back over the WebSocket.
 // Non-blob events pass through unchanged.
+//
+// Wire protocol (matching lo_event's websocketLogger/reduxLogger):
+//   Client → Server:
+//     { event: "fetch_blob", reduxID: "default" }
+//     { event: "save_blob", blob: { ...reduxState } }
+//   Server → Client:
+//     { status: "fetch_blob", data: { ...reduxState } | null }
+
+function blobKey(safeUserId: string, reduxID: string): string {
+  return `blob:${safeUserId}:${reduxID}`;
+}
 
 async function* handleBlobs(
   events: AsyncIterable<PipelineEvent>,
-  _ctx: PipelineContext
+  ctx: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
-  // TODO: intercept save_blob/fetch_blob, route to kvs
+  const { ws, user, kvs } = ctx;
+  // Track the active reduxID — set by save_setting or fetch_blob events.
+  // Falls back to "default" if the client never sends one.
+  let activeReduxID = 'default';
+
   for await (const event of events) {
+    const eventType = event.event || event.type;
+
+    if (eventType === 'save_setting' && event.reduxID) {
+      activeReduxID = event.reduxID;
+      // save_setting also flows downstream (it sets lock fields metadata)
+      yield event;
+      continue;
+    }
+
+    if (eventType === 'fetch_blob') {
+      const reduxID = event.reduxID || activeReduxID;
+      activeReduxID = reduxID;
+      const key = blobKey(user.safe_user_id, reduxID);
+      try {
+        const raw = await kvs.get(key);
+        const data = raw ? JSON.parse(raw) : null;
+        ws.send(JSON.stringify({ status: 'fetch_blob', data }));
+        console.log(`[${ctx.conn.id}] fetch_blob ${key}: ${raw ? `${raw.length} bytes` : 'empty'}`);
+      } catch (err) {
+        console.error(`[${ctx.conn.id}] fetch_blob error:`, err);
+        ws.send(JSON.stringify({ status: 'fetch_blob', data: null }));
+      }
+      // fetch_blob is consumed here — not yielded downstream
+      continue;
+    }
+
+    if (eventType === 'save_blob') {
+      const key = blobKey(user.safe_user_id, activeReduxID);
+      try {
+        const blob = JSON.stringify(event.blob);
+        await kvs.set(key, blob);
+        console.log(`[${ctx.conn.id}] save_blob ${key}: ${blob.length} bytes`);
+      } catch (err) {
+        console.error(`[${ctx.conn.id}] save_blob error:`, err);
+      }
+      // save_blob is consumed here — not yielded downstream
+      continue;
+    }
+
     yield event;
   }
 }

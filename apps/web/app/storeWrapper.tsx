@@ -19,13 +19,13 @@
 //   </Provider>
 //
 'use client';
-import React, { useMemo, useCallback, useEffect, useRef } from 'react';
-import { Provider, useSelector, useStore } from 'react-redux';
+import React, { useMemo, useCallback } from 'react';
+import { Provider, useStore } from 'react-redux';
 import { legacy_createStore as createStore } from 'redux';
 
 import * as lo_event from 'lo_event';
 
-import { store, extendSettings, useFieldState, useUser } from '@/lib/state';
+import { store, extendSettings, useFieldState, ReduxStoreLoader } from '@/lib/state';
 import { settings } from '@/lib/state/settings';
 import { editorFields } from '@/lib/state/editorFields';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
@@ -52,43 +52,6 @@ const reduxStore = store.init({
 });
 
 const DEFAULT_REDUX_STORE_ID = 'default';
-
-// =============================================================================
-// Redux Store Loader (persists/loads state)
-// =============================================================================
-
-function ReduxStoreLoader({ id = DEFAULT_REDUX_STORE_ID }) {
-  const reduxStoreLoaded = useSelector((state: any) => state?.settings?.reduxStoreStatus ?? false);
-  // Wait for the server's auth echo before fetching the blob. Otherwise we'd
-  // race: the blob is keyed server-side by safe_user_id, and if the client
-  // asks for it before identity is known the server can't route the request
-  // correctly. The server pushes `{status:'auth', ...}` as the first message
-  // on every WS connection, so this gate is cheap — usually a few ms — and
-  // it only blocks the initial fetch, not subsequent user interaction.
-  const currentUser = useUser();
-  const lastFetchedIdRef = useRef<string | null>(null);
-  const pendingRequestRef = useRef(false);
-
-  useEffect(() => {
-    if (!currentUser) return;
-
-    const idChanged = lastFetchedIdRef.current !== id;
-    const shouldFetch = (!reduxStoreLoaded && !pendingRequestRef.current) || idChanged;
-
-    if (shouldFetch) {
-      lo_event.logEvent('save_setting', { reduxID: id });
-      lo_event.logEvent('fetch_blob', { reduxID: id });
-      lastFetchedIdRef.current = id;
-      pendingRequestRef.current = !reduxStoreLoaded;
-    }
-
-    if (reduxStoreLoaded) {
-      pendingRequestRef.current = false;
-    }
-  }, [id, reduxStoreLoaded, currentUser]);
-
-  return null;
-}
 
 // =============================================================================
 // Helper: Get events from window.__events
