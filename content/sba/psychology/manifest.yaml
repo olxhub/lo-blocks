@@ -1,0 +1,12 @@
+# content/sba/psychology/manifest.yaml
+#
+# Manifest for the Psychology Study Group static site.
+# Used by: scripts/build-static.ts --manifest <this file>
+#
+title: Psychology Study Group
+namespace: psych
+classes:
+  - no-translanguaging
+eventServerUrl: false
+routes:
+  /: CONTENT/psych_course
