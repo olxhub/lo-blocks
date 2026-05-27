@@ -8,6 +8,7 @@
 //                 ├→ /wsapi/in/     → WebSocket (event pipeline, via ws)
 //                 ├→ /mcp           → MCP tools (StreamableHTTP, raw Node)
 //                 ├→ /api/olxjson   → content API (Hono)
+//                 ├→ /api/config    → PMSS configuration (Hono)
 //                 ├→ /assets/*      → Vite-built client (Hono serveStatic)
 //                 ├→ /preview/*     → SPA fallback (Hono serveStatic)
 //                 └→ everything else → proxy to Next.js :3000 (transition)
@@ -27,13 +28,14 @@ import { createConnectionLog, saveConnectionLog, type ConnectionLog } from './ev
 import { proxy } from './proxy.js';
 import { runPipeline } from './pipeline.js';
 import { handleOlxJson } from './routes/olxjson.js';
+import { handleConfig } from './routes/config.js';
 import { handleMcpPost, handleMcpGet, handleMcpDelete } from './mcp.js';
 import { ToolRegistry } from '@/lib/mcp/registry';
 
 // --- Constants ---------------------------------------------------------------
 const PORT = 8888;
 const WS_PATH = '/wsapi/in/';
-const SERVER_PREFIXES = ['/api/olxjson', '/assets/', '/preview/'];
+const SERVER_PREFIXES = ['/api/olxjson', '/api/config', '/assets/', '/preview/'];
 
 // Symbols for annotating request objects between middleware stages
 const PENDING_COOKIE = Symbol('pendingSessionCookie');
@@ -56,6 +58,7 @@ export async function startServer(
   const app = new Hono();
 
   app.get('/api/olxjson', handleOlxJson);
+  app.get('/api/config', handleConfig);
 
   // Vite-built client (static files from apps/client/dist/)
   app.use('/assets/*', serveStatic({ root: './apps/client/dist' }));

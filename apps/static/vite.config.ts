@@ -18,6 +18,11 @@ const staticConfig: Record<string, unknown> = fs.existsSync(staticConfigPath)
   ? JSON.parse(fs.readFileSync(staticConfigPath, 'utf-8'))
   : {};
 
+// Read system.pmss for build-time PMSS injection
+const systemPmss = fs.readFileSync(
+  path.resolve(__dirname, '../../config/system.pmss'), 'utf-8'
+);
+
 export default defineConfig({
   root: path.resolve(__dirname),
   base: basePath || '/',
@@ -28,9 +33,9 @@ export default defineConfig({
     },
   },
   define: {
-    'process.env.NEXT_PUBLIC_APP_PROFILE': JSON.stringify('static'),
     'process.env.NEXT_PUBLIC_BASE_PATH': JSON.stringify(basePath),
     '__STATIC_EVENT_SERVER_URL__': JSON.stringify(staticConfig.eventServerUrl || ''),
+    '__SYSTEM_PMSS__': JSON.stringify(systemPmss),
   },
   build: {
     outDir: 'dist',

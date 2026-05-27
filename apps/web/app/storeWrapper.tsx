@@ -49,6 +49,7 @@ const debugLogEvent = (eventType: string, data?: any) => {
 const reduxStore = store.init({
   extraFields: extendSettings(editorFields),
   blockRegistry: BLOCK_REGISTRY,
+  websocket: true,
 });
 
 const DEFAULT_REDUX_STORE_ID = 'default';

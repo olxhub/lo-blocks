@@ -28,6 +28,7 @@ const props = {
 function createWrapper(extraFields?) {
   const reduxStore = store.init({
     blockRegistry: BLOCK_REGISTRY,
+    websocket: false,
     ...(extraFields ? { extraFields } : {}),
   });
   const wrapper = ({ children }: any) => (

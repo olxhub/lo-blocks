@@ -6,6 +6,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 
 import { store, extendSettings, ReduxStoreLoader } from '@/lib/state';
+import { getConfigBool } from '@/lib/config';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { Route } from './router';
 import PreviewPage from './pages/PreviewPage';
@@ -13,6 +14,7 @@ import PreviewPage from './pages/PreviewPage';
 const reduxStore = store.init({
   extraFields: extendSettings([]),
   blockRegistry: BLOCK_REGISTRY,
+  websocket: getConfigBool('websocket'),
 });
 
 export default function App({ route }: { route: Route }) {

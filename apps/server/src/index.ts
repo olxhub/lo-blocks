@@ -4,6 +4,8 @@
 // Startup orchestrator for the Learning Opus server.
 // Each step delegates to its own module; this file is the sequence.
 
+import fs from 'fs';
+import { initConfig } from '@/lib/config';
 import { FileKVStore, type KVStore } from './kvs.js';
 import { startServer, type ServerHandle } from './server.js';
 import { saveConnectionLog } from './eventLog.js';
@@ -17,9 +19,10 @@ import { registerDocsTools } from '@/lib/docs/tools';
 
 /** 1. Load configuration. */
 async function loadConfig() {
-  // TODO: Read config/system.pmss at runtime, call initConfig().
-  // Currently config is baked in at build time via config.generated.ts.
-  console.log('  Config: loaded (build-time)');
+  const pmss = fs.readFileSync('config/system.pmss', 'utf-8');
+  const env = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+  initConfig(pmss, ['server', env]);
+  console.log(`  Config: system.pmss [server, ${env}]`);
 }
 
 /** 2. Initialize storage backend. */

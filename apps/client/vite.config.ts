@@ -21,7 +21,6 @@ export default defineConfig({
     },
   },
   define: {
-    'process.env.NEXT_PUBLIC_APP_PROFILE': JSON.stringify('client'),
     'process.env.NEXT_PUBLIC_BASE_PATH': JSON.stringify(''),
   },
   build: {

@@ -22,7 +22,7 @@ const fixturePath = path.join(__dirname, 'fixtures/grading-session.json');
 const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf-8'));
 
 function replayEvents(events: any[]) {
-  const reduxStore = store.init({ blockRegistry: BLOCK_REGISTRY });
+  const reduxStore = store.init({ blockRegistry: BLOCK_REGISTRY, websocket: false });
 
   for (const event of events) {
     reduxStore.dispatch({
