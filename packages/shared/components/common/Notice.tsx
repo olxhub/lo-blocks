@@ -1,14 +1,30 @@
 'use client';
 
-export default function Notice() {
+import RenderMarkdown from './RenderMarkdown';
+
+/**
+ * Renders a notice line. With no props, shows the platform notice.
+ * Pass `content` (markdown string) to render custom content (e.g. course licensing).
+ *
+ * Styling is intentionally minimal — parent containers control colors and
+ * sizing via the `.lo-notice` class (see studio.css for an example).
+ */
+export default function Notice({ content }: { content?: string } = {}) {
+  if (content) {
+    return (
+      <div className="lo-notice lo-notice-content">
+        <RenderMarkdown>{content}</RenderMarkdown>
+      </div>
+    );
+  }
   return (
     <span className="lo-notice">
       lo-blocks is free and open-source software by{' '}
-      <a href="http://mitros.org/p" className="underline decoration-slate-300 text-slate-400 hover:text-slate-500">Piotr Mitros</a>.{' '}
-      <a href="https://github.com/olxhub/lo-blocks/" className="underline decoration-slate-300 text-slate-400 hover:text-slate-500">Project Repository</a>.{' '}
-      <a href="http://mitros.org/p/lo/license.html" className="underline decoration-slate-300 text-slate-400 hover:text-slate-500">Licensing information</a>.{' '}
+      <a href="http://mitros.org/p">Piotr Mitros</a>.{' '}
+      <a href="https://github.com/olxhub/lo-blocks/">Project Repository</a>.{' '}
+      <a href="http://mitros.org/p/lo/license.html">Licensing information</a>.{' '}
       Copyright &copy; 2011-2026 Piotr Mitros and{' '}
-      <a href="http://mitros.org/p/lo/contributors.html" className="underline decoration-slate-300 text-slate-400 hover:text-slate-500">others</a>.{' '}
+      <a href="http://mitros.org/p/lo/contributors.html">others</a>.{' '}
       Any representation of another party as the original author or inventor
       of this tool or methodology is a misrepresentation of origin and authorship.
     </span>

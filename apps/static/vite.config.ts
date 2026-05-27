@@ -47,6 +47,7 @@ export default defineConfig({
     '__STATIC_EVENT_SERVER_URL__': JSON.stringify(staticConfig.eventServerUrl || ''),
     '__STATIC_CLASSES__': JSON.stringify((staticConfig.classes as string[]) || []),
     '__SYSTEM_PMSS__': JSON.stringify(systemPmss),
+    '__STATIC_CONTENT_NOTICE__': JSON.stringify((staticConfig.content_notice as string) || ''),
   },
   build: {
     outDir: 'dist',

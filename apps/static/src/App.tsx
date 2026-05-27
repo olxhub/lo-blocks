@@ -17,6 +17,7 @@ import StaticPage from './StaticPage';
 declare const __SYSTEM_PMSS__: string;
 declare const __STATIC_EVENT_SERVER_URL__: string;
 declare const __STATIC_CLASSES__: string[];
+declare const __STATIC_CONTENT_NOTICE__: string;
 
 initConfig(__SYSTEM_PMSS__, ['static', ...__STATIC_CLASSES__]);
 
@@ -33,7 +34,7 @@ export default function App({ definitionKey }: { definitionKey: string }) {
   return (
     <Provider store={reduxStore}>
       <StaticContentProvider>
-        <StaticPage definitionKey={definitionKey} />
+        <StaticPage definitionKey={definitionKey} contentNotice={__STATIC_CONTENT_NOTICE__} />
       </StaticContentProvider>
     </Provider>
   );
