@@ -8,7 +8,7 @@
 
 import { getBestVariantFromHeader } from '@/lib/i18n/getBestVariant';
 import { variantMapKeys } from '@/lib/types/i18n';
-import { parseAnyStateRef, stateKeyForGlobalRef, allDefinitionKeysFromStateKey, splitNs, qualifyDefinitionRef, parseDefinitionRef } from '@/lib/types/id-grammar';
+import { parseAnyStateRef, stateKeyForGlobalRef, allDefinitionKeysFromStateKey, splitNs, qualifyDefinitionRef, parseAnyDefinitionRef } from '@/lib/types/id-grammar';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import type { IdMap, DefinitionKey, DefinitionRef, OlxJson } from '@/lib/types';
@@ -38,7 +38,7 @@ export function collectBlockWithKids(
   const comp = BLOCK_REGISTRY[entry.tag];
   if (comp?.staticKids) {
     for (const childRef of comp.staticKids(entry) as DefinitionRef[]) {
-      const childKey = qualifyDefinitionRef(parseDefinitionRef(childRef), ns);
+      const childKey = qualifyDefinitionRef(parseAnyDefinitionRef(childRef), ns);
       collectBlockWithKids(idMap, childKey, acceptLanguage, collected);
     }
   }
