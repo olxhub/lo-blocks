@@ -13,6 +13,7 @@ import { shutdownMcp } from './mcp.js';
 import { createToolRegistry } from '@/lib/mcp/registry';
 import { registerDocsTools } from '@/lib/docs/tools';
 import { validateProviderOrExit } from '@/lib/llm/provider';
+import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 
 // =============================================================================
 // Startup steps
@@ -51,6 +52,8 @@ async function main() {
 
   await loadConfig();
   validateProviderOrExit();
+  const { idMap } = await syncContentFromStorage();
+  console.log(`  Content: ${Object.keys(idMap).length} definitions loaded`);
   const kvs = await initStorage();
   const registry = await initTools();
   const handle = await startServer(kvs, registry);
