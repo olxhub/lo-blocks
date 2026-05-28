@@ -52,8 +52,6 @@ const reduxStore = store.init({
   websocket: true,
 });
 
-const DEFAULT_REDUX_STORE_ID = 'default';
-
 // =============================================================================
 // Helper: Get events from window.__events
 // =============================================================================
@@ -116,10 +114,9 @@ function ReplayProvider({ children, replayMode, replayEventIndex }: ReplayProvid
 
 interface StoreWrapperInnerProps {
   children: React.ReactNode;
-  reduxID: string;
 }
 
-function StoreWrapperInner({ children, reduxID }: StoreWrapperInnerProps) {
+function StoreWrapperInner({ children }: StoreWrapperInnerProps) {
   // Read debug settings from Redux (using debugLogEvent with "debug" context)
   // These are separate from app's event context hierarchy.
   // Minimal BaselineProps: only runtime.logEvent is used for system-scope settings.
@@ -161,7 +158,7 @@ function StoreWrapperInner({ children, reduxID }: StoreWrapperInnerProps) {
 
   return (
     <DebugSettingsContext.Provider value={debugSettings}>
-      <ReduxStoreLoader id={reduxID} />
+      <ReduxStoreLoader />
       <ReplayModeIndicator />
       <ReplayProvider replayMode={replayMode} replayEventIndex={replayEventIndex}>
         {children}
@@ -176,10 +173,10 @@ function StoreWrapperInner({ children, reduxID }: StoreWrapperInnerProps) {
 // Main StoreWrapper
 // =============================================================================
 
-const StoreWrapper = ({ children, reduxID = DEFAULT_REDUX_STORE_ID }) => {
+const StoreWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <Provider store={reduxStore}>
-      <StoreWrapperInner reduxID={reduxID}>
+      <StoreWrapperInner>
         {children}
       </StoreWrapperInner>
     </Provider>

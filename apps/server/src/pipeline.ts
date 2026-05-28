@@ -158,38 +158,22 @@ async function* resolveAuth(
 //
 // Wire protocol (matching lo_event's websocketLogger/reduxLogger):
 //   Client → Server:
-//     { event: "fetch_blob", reduxID: "default" }
+//     { event: "fetch_blob" }
 //     { event: "save_blob", blob: { ...reduxState } }
 //   Server → Client:
 //     { status: "fetch_blob", data: { ...reduxState } | null }
-
-function blobKey(safeUserId: SafeUserId, reduxID: string) {
-  return kvsKey.blob(safeUserId, reduxID);
-}
 
 async function* handleBlobs(
   events: AsyncIterable<PipelineEvent>,
   ctx: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
   const { ws, user, kvs } = ctx;
-  // Track the active reduxID — set by save_setting or fetch_blob events.
-  // Falls back to "default" if the client never sends one.
-  let activeReduxID = 'default';
+  const key = kvsKey.blob(user.safe_user_id);
 
   for await (const event of events) {
     const eventType = event.event || event.type;
 
-    if (eventType === 'save_setting' && event.reduxID) {
-      activeReduxID = event.reduxID;
-      // save_setting also flows downstream (it sets lock fields metadata)
-      yield event;
-      continue;
-    }
-
     if (eventType === 'fetch_blob') {
-      const reduxID = event.reduxID || activeReduxID;
-      activeReduxID = reduxID;
-      const key = blobKey(user.safe_user_id, reduxID);
       try {
         const raw = await kvs.get(key);
         const data = raw ? JSON.parse(raw) : null;
@@ -204,7 +188,6 @@ async function* handleBlobs(
     }
 
     if (eventType === 'save_blob') {
-      const key = blobKey(user.safe_user_id, activeReduxID);
       try {
         const blob = JSON.stringify(event.blob);
         await kvs.set(key, blob);

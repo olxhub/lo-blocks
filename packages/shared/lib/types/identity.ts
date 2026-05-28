@@ -90,15 +90,15 @@ const asKVSKey = (s: string) => s as KVSKey;
  * pattern and takes typed arguments.
  *
  * Key namespace conventions:
- *   blob:{safeUserId}:{activity}     — user state blobs
+ *   blob:{safeUserId}                — user state blob
  *   field:{safeUserId}:{scope}:{name} — individual state fields
  *   rate:{safeUserId}:rpm            — rate limit: requests per minute
  *   rate:{safeUserId}:tokens         — rate limit: token budget
  */
 export const kvsKey = {
-  /** User state blob: `blob:{safeUserId}:{activity}` */
-  blob(safeUserId: SafeUserId, activity: string): KVSKey {
-    return asKVSKey(`blob:${safeUserId}:${activity}`);
+  /** User state blob: `blob:{safeUserId}` */
+  blob(safeUserId: SafeUserId): KVSKey {
+    return asKVSKey(`blob:${safeUserId}`);
   },
 
   /** Individual state field: `field:{safeUserId}:{scope}:{name}` */
