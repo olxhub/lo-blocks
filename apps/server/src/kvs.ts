@@ -12,11 +12,12 @@
 import fs from 'fs';
 import path from 'path';
 import Redis, { type RedisOptions } from 'ioredis';
+import type { KVSKey } from '@/lib/types/identity';
 
 export interface KVStore {
-  get(key: string): Promise<string | null>;
-  set(key: string, value: string): Promise<void>;
-  del(key: string): Promise<void>;
+  get(key: KVSKey): Promise<string | null>;
+  set(key: KVSKey, value: string): Promise<void>;
+  del(key: KVSKey): Promise<void>;
   close?(): Promise<void>;
 }
 
@@ -25,17 +26,17 @@ export interface KVStore {
  * Good for tests; not for anything you care about keeping.
  */
 export class MemoryKVStore implements KVStore {
-  private data = new Map<string, string>();
+  private data = new Map<KVSKey, string>();
 
-  async get(key: string) {
+  async get(key: KVSKey) {
     return this.data.get(key) ?? null;
   }
 
-  async set(key: string, value: string) {
+  async set(key: KVSKey, value: string) {
     this.data.set(key, value);
   }
 
-  async del(key: string) {
+  async del(key: KVSKey) {
     this.data.delete(key);
   }
 }
@@ -94,16 +95,16 @@ export class FileKVStore implements KVStore {
     fs.renameSync(tmp, this.filePath);
   }
 
-  async get(key: string) {
+  async get(key: KVSKey) {
     return this.data[key] ?? null;
   }
 
-  async set(key: string, value: string) {
+  async set(key: KVSKey, value: string) {
     this.data[key] = value;
     this.persist();
   }
 
-  async del(key: string) {
+  async del(key: KVSKey) {
     delete this.data[key];
     this.persist();
   }
@@ -126,15 +127,15 @@ export class ValkeyKVStore implements KVStore {
       : new Redis(opts ?? {});
   }
 
-  async get(key: string) {
+  async get(key: KVSKey) {
     return await this.client.get(key);
   }
 
-  async set(key: string, value: string) {
+  async set(key: KVSKey, value: string) {
     await this.client.set(key, value);
   }
 
-  async del(key: string) {
+  async del(key: KVSKey) {
     await this.client.del(key);
   }
 

@@ -15,6 +15,7 @@ import * as jose from 'jose';
 import fs from 'fs';
 import path from 'path';
 import { resolveBasicAuth, createGuestUser, type AuthUser } from './auth.js';
+import { asUserId, asSafeUserId } from '@/lib/types/identity';
 
 const COOKIE_NAME = 'lo_session';
 const MAX_AGE_SECONDS = 30 * 24 * 60 * 60; // 30 days
@@ -67,9 +68,9 @@ export async function verifySessionToken(token: string): Promise<AuthUser | null
     const { payload } = await jose.jwtVerify(token, SECRET);
     if (!payload.user_id || !payload.safe_user_id) return null;
     return {
-      user_id: payload.user_id as string,
+      user_id: asUserId(payload.user_id as string),
       provenance: (payload.provenance as string) ?? 'session',
-      safe_user_id: payload.safe_user_id as string,
+      safe_user_id: asSafeUserId(payload.safe_user_id as string),
       authorized: (payload.authorized as boolean) ?? false,
     };
   } catch {

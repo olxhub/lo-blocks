@@ -29,13 +29,14 @@ import { proxy } from './proxy.js';
 import { runPipeline } from './pipeline.js';
 import { handleOlxJson } from './routes/olxjson.js';
 import { handleConfig } from './routes/config.js';
+import { createLLMHandler } from './routes/llm.js';
 import { handleMcpPost, handleMcpGet, handleMcpDelete } from './mcp.js';
 import { ToolRegistry } from '@/lib/mcp/registry';
 
 // --- Constants ---------------------------------------------------------------
 const PORT = 8888;
 const WS_PATH = '/wsapi/in/';
-const SERVER_PREFIXES = ['/api/olxjson', '/api/config', '/assets/', '/preview/'];
+const SERVER_PREFIXES = ['/api/olxjson', '/api/config', '/api/llm/', '/assets/', '/preview/'];
 
 // Symbols for annotating request objects between middleware stages
 const PENDING_COOKIE = Symbol('pendingSessionCookie');
@@ -59,6 +60,7 @@ export async function startServer(
 
   app.get('/api/olxjson', handleOlxJson);
   app.get('/api/config', handleConfig);
+  app.post('/api/llm/chat/completions', createLLMHandler(kvs));
 
   // Vite-built client (static files from apps/client/dist/)
   app.use('/assets/*', serveStatic({ root: './apps/client/dist' }));
@@ -80,6 +82,9 @@ export async function startServer(
       const token = await createSessionToken(user);
       res.setHeader('Set-Cookie', buildSetCookie(token));
     }
+    // Stash user on request so Hono handlers can access it (e.g., LLM rate limiting).
+    // The Hono handler reads it from c.req.raw.__user.
+    (req as any).__user = user;
     await honoHandler(req, res);
   }
 

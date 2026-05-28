@@ -25,6 +25,8 @@ import type { AuthUser } from './auth.js';
 import type { ConnectionLog } from './eventLog.js';
 import { saveConnectionLog } from './eventLog.js';
 import type { KVStore } from './kvs.js';
+import type { SafeUserId } from '@/lib/types/identity';
+import { kvsKey } from '@/lib/types/identity';
 import { ServerState } from './serverState.js';
 
 /** Parsed event from the client. Loose shape for now. */
@@ -161,8 +163,8 @@ async function* resolveAuth(
 //   Server → Client:
 //     { status: "fetch_blob", data: { ...reduxState } | null }
 
-function blobKey(safeUserId: string, reduxID: string): string {
-  return `blob:${safeUserId}:${reduxID}`;
+function blobKey(safeUserId: SafeUserId, reduxID: string) {
+  return kvsKey.blob(safeUserId, reduxID);
 }
 
 async function* handleBlobs(

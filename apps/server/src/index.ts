@@ -12,6 +12,7 @@ import { saveConnectionLog } from './eventLog.js';
 import { shutdownMcp } from './mcp.js';
 import { createToolRegistry } from '@/lib/mcp/registry';
 import { registerDocsTools } from '@/lib/docs/tools';
+import { validateProviderOrExit } from '@/lib/llm/provider';
 
 // =============================================================================
 // Startup steps
@@ -49,6 +50,7 @@ async function main() {
   console.log('Learning Opus server starting...');
 
   await loadConfig();
+  validateProviderOrExit();
   const kvs = await initStorage();
   const registry = await initTools();
   const handle = await startServer(kvs, registry);

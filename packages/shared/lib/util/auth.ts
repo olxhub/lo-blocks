@@ -28,12 +28,14 @@
 // start getting blocks in the right place now.
 
 import type { CurrentUser } from '@/lib/types';
+import { type UserId, type SafeUserId, asUserId, asSafeUserId } from '@/lib/types/identity';
 import { generateGuestName } from '@/lib/util/guestNames';
 import { quotePlus } from '@/lib/util/quotePlus';
 
 export interface AuthUser extends CurrentUser {
   authorized: boolean;
-  safe_user_id: string;
+  user_id: UserId;
+  safe_user_id: SafeUserId;
 }
 
 /**
@@ -41,8 +43,8 @@ export interface AuthUser extends CurrentUser {
  * raw user ID. Mirrors Learning Observer's auth.events.encode_id so blobs
  * keyed by either server land at byte-identical paths.
  */
-export function encodeId(source: string, unsafeId: string): string {
-  return `${source}-${quotePlus(unsafeId)}`;
+export function encodeId(source: string, unsafeId: string): SafeUserId {
+  return asSafeUserId(`${source}-${quotePlus(unsafeId)}`);
 }
 
 /**
@@ -71,7 +73,7 @@ export function resolveBasicAuth(req: { headers: { authorization?: string } }): 
   const username = parseBasicAuth(req.headers.authorization);
   if (username === null) return null;
   return {
-    user_id: username,
+    user_id: asUserId(username),
     provenance: 'nginx',
     safe_user_id: encodeId('nginx', username),
     authorized: true,
@@ -82,7 +84,7 @@ export function resolveBasicAuth(req: { headers: { authorization?: string } }): 
 export function createGuestUser(): AuthUser {
   const guestName = generateGuestName();
   return {
-    user_id: guestName,
+    user_id: asUserId(guestName),
     provenance: 'guest',
     safe_user_id: encodeId('guest', guestName),
     authorized: false,

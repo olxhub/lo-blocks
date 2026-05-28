@@ -3,8 +3,8 @@
 // Server-side LLM call: (profile, messages) → text string.
 //
 // Shared by translate module and any future server-side LLM callers.
-// The openai proxy route (api/openai) has different needs (streaming,
-// tool calls, NextResponse passthrough) so it doesn't use this.
+// The proxy routes (Hono, Next.js) have different needs (streaming,
+// tool calls, Response passthrough) — they use dispatchLLMProxy from proxy.ts.
 
 import {
   getProvider,
@@ -19,6 +19,7 @@ import {
   OPENAI_BASE_URL,
 } from '@/lib/llm/provider';
 import { resolveProfile, type LLMProfile, type LLMProfileConfig } from '@/lib/llm/profiles';
+import { transformToAnthropic } from '@/lib/llm/proxy';
 
 type Message = { role: string; content: string };
 export type LLMResult = { text: string; truncated: boolean };
@@ -53,18 +54,16 @@ export async function callLLM(profile: LLMProfile, messages: Message[]): Promise
   }
 }
 
+// TODO(bedrock-multi-model): Anthropic-only — see proxy.ts for details.
 async function bedrockCall(config: LLMProfileConfig, messages: Message[]): Promise<LLMResult> {
   const { BedrockRuntimeClient, InvokeModelCommand } = await import('@aws-sdk/client-bedrock-runtime');
   const client = new BedrockRuntimeClient({ region: AWS_REGION });
 
-  const system = messages.filter(m => m.role === 'system').map(m => m.content).join('\n');
-  const anthropicMessages = messages
-    .filter(m => m.role !== 'system')
-    .map(m => ({ role: m.role, content: m.content }));
+  const { system, messages: anthropicMessages } = transformToAnthropic(messages);
 
   const body = {
     anthropic_version: 'bedrock-2023-05-31',
-    max_completion_tokens: config.maxTokens,
+    max_tokens: config.maxTokens,
     messages: anthropicMessages,
     ...(system && { system }),
   };
@@ -78,7 +77,7 @@ async function bedrockCall(config: LLMProfileConfig, messages: Message[]): Promi
 
   const response = await client.send(command);
   const result = JSON.parse(new TextDecoder().decode(response.body));
-  const truncated = result.stop_reason === 'max_completion_tokens';
+  const truncated = result.stop_reason === 'max_tokens';
   const textParts = result.content?.filter((c: any) => c.type === 'text') || [];
   return { text: textParts.map((t: any) => t.text).join(''), truncated };
 }
