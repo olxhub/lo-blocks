@@ -45,7 +45,12 @@ function toResponse(c: Context, result: LLMProxyResult): Response {
  */
 export function createLLMHandler(kvs: KVStore) {
   return async function handleLLM(c: Context): Promise<Response> {
-    const body = await c.req.json();
+    let body;
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.json({ error: 'Invalid JSON in request body' }, 400);
+    }
 
     // Resolve user — handleWithSession always sets __user (guest fallback),
     // but we handle the impossible case defensively rather than skipping
