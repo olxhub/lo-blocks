@@ -37,8 +37,8 @@ grant R305A210297, and IES grant R305T240021.
 Copyright
 =========
 
-Everyone who contributed to this system hold copyright to portions of
-the platform, cross-licensed under the AGPL.
+Everyone who contributed to this system holds copyright to portions of
+the platform, mutually cross-licensed under the AGPL.
 
 Please be mindful of the license. One organization has already had
 their rights under the AGPL revoked due to a pattern of egregious and
