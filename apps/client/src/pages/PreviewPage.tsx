@@ -6,6 +6,7 @@
 //
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
+import Notice from '@/components/common/Notice';
 import { DisplayError } from '@/lib/util/debug';
 import { useFieldState, system, commonFields } from '@/lib/state';
 import { useContentLoader } from '@/lib/content/useContentLoader';
@@ -62,7 +63,7 @@ export default function PreviewPage({ id }: { id: StateKey }) {
   // If not, it's a bug in useContentLoader (e.g. unhandled replay/locale edge case).
 
   return (
-    <div {...localeAttrs} className="flex flex-col h-screen">
+    <div {...localeAttrs} className="flex flex-col min-h-screen">
       <div className="p-6 flex-1 overflow-auto">
         <div className="space-y-4">
           {renderError ? (
@@ -89,6 +90,9 @@ export default function PreviewPage({ id }: { id: StateKey }) {
           </pre>
         )}
       </div>
+      <footer className="border-t border-gray-200 px-6 py-4 text-xs leading-relaxed space-y-2">
+        <Notice />
+      </footer>
     </div>
   );
 }
