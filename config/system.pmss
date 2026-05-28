@@ -42,35 +42,6 @@
     debug-panel: false;
 }
 
-/* LLM defaults — stub provider, conservative limits */
-* {
-    llm-provider: stub;
-    llm-model: "";
-    llm-max-tokens: 4096;
-    llm-rpm: 20;
-    llm-token-budget: 100000;
-}
-
-/* Server-side LLM: real provider (overridden by env vars if set) */
-.server {
-    llm-provider: bedrock;
-}
-
-/* Tighter limits for unauthenticated (guest) users */
-.server.guest {
-    llm-rpm: 5;
-    llm-token-budget: 10000;
-}
-
-/* Per-profile overrides */
-.server[profile="interactive"] {
-    llm-max-tokens: 4096;
-}
-
-.server[profile="translation"] {
-    llm-max-tokens: 16384;
-}
-
 /* Content classes — declared in course manifest.yaml */
 .no-translanguaging {
     translanguaging: false;

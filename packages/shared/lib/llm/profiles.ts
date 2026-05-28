@@ -25,7 +25,7 @@ export type LLMProfileConfig = {
   // Future: model, provider, temperature, rateLimits, ...
 };
 
-// TODO: These values are duplicated in system.pmss (llm-max-tokens per
+// TODO: These values are duplicated in server.pmss (llm-max-tokens per
 // profile).  Once the Next.js route switches to resolveLLMConfig() (needs
 // initConfig in Next.js instrumentation.ts), remove this map and
 // resolveProfile entirely — PMSS becomes the single source of truth.

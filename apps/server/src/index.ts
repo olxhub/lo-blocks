@@ -21,10 +21,11 @@ import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 
 /** 1. Load configuration. */
 async function loadConfig() {
-  const pmss = fs.readFileSync('config/system.pmss', 'utf-8');
+  const common = fs.readFileSync('config/system.pmss', 'utf-8');
+  const server = fs.readFileSync('config/server.pmss', 'utf-8');
   const env = process.env.NODE_ENV === 'production' ? 'production' : 'development';
-  initConfig(pmss, ['server', env]);
-  console.log(`  Config: system.pmss [server, ${env}]`);
+  initConfig(common + '\n' + server, ['server', env]);
+  console.log(`  Config: system.pmss + server.pmss [server, ${env}]`);
 }
 
 /** 2. Initialize storage backend. */
