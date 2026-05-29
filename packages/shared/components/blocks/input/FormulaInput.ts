@@ -21,7 +21,7 @@ const FormulaInput = core({
   description: 'Math expression input with live LaTeX preview (supports variables, functions, operators)',
   component: _FormulaInput,
   fields,
-  selectValue: (props: RuntimeProps, state, _reduxKey) => fieldSelector(state, props, fields.value, { fallback: '' }),
+  selectValue: (props: RuntimeProps, state, _stateKey) => fieldSelector(state, props, fields.value, { fallback: '' }),
   attributes: z.object({
     ...placeholder,
     variables: z.string().optional().describe('Comma-separated variable names allowed in expressions (e.g. "x,y,z")'),

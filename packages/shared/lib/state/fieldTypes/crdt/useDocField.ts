@@ -12,7 +12,7 @@
 
 import { useFieldState } from '../../redux';
 import { assertValidField } from '../../fields';
-import type { FieldInfo, RuntimeProps, ReduxStateKey } from '../../../types';
+import type { FieldInfo, RuntimeProps, StateKey } from '../../../types';
 
 /**
  * CRDT useDocField — returns [value, setValue] via useFieldState.
@@ -25,7 +25,7 @@ export function useDocField(
   props: RuntimeProps,
   field: FieldInfo,
   fallback = '',
-  { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
+  { stateKey, tag }: { stateKey?: StateKey; tag?: string } = {}
 ) {
   if (field.kind && field.kind !== 'doc') {
     throw new Error(
@@ -34,5 +34,5 @@ export function useDocField(
     );
   }
   assertValidField(field);
-  return useFieldState(props, field, fallback, { reduxKey, tag });
+  return useFieldState(props, field, fallback, { stateKey, tag });
 }

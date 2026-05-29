@@ -9,6 +9,7 @@ import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { z_blockFieldRef, z_blockFieldRefList } from '@/lib/blocks/attributeSchemas';
+import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import _Noop from '@/components/blocks/layout/_Noop';
 import type { BlockFieldRef } from '@/lib/blocks/attributeSchemas';
 
@@ -32,17 +33,19 @@ async function copyFieldAction({ targetInstance, props }) {
   // value the renderer sees, and the per-block fallback semantics live
   // in one place. See parsers.ts textWithTargetParserMixin for the
   // matching note, and MermaidPublish.olx for the canonical bite.
-  const srcField = state.componentFieldByName(props, target.ref, target.field);
+  const targetStateKey = stateKeyForGlobalRef(target.ref);
+  const srcField = state.componentFieldByStateKey(props, targetStateKey, target.field);
   const value = state.getField(props, srcField, {
-    reduxKey: target.ref,
+    stateKey: targetStateKey,
     fallback: '',
   });
 
   // Write to each output — field.write handles storage-specific dispatch
   // (e.g., docField computes splice deltas, plain field sets value directly)
   for (const dest of output) {
-    const destField = state.componentFieldByName(props, dest.ref, dest.field);
-    state.updateField(props, destField, value, { reduxKey: dest.ref });
+    const destStateKey = stateKeyForGlobalRef(dest.ref);
+    const destField = state.componentFieldByStateKey(props, destStateKey, dest.field);
+    state.updateField(props, destField, value, { stateKey: destStateKey });
   }
 }
 

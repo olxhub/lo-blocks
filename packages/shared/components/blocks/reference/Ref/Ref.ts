@@ -4,11 +4,11 @@ import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { valueSelector, fieldByName, fieldSelector } from '@/lib/state';
 import { blockData, withStatus } from '@/lib/state/blockData';
-import { refToOlxKey, toOlxReference, reduxKeyToOlxKey, refToReduxKey } from '@/lib/types/id';
-import { srcAttributes, z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
+import { leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseAnyStateRef } from '@/lib/types/id-grammar';
+import { srcAttributes, z_stateRef } from '@/lib/blocks/attributeSchemas';
 import { selectBlock, selectBlockState } from '@/lib/state/olxjson';
 import _Ref from './_Ref';
-import type { RuntimeProps, ReduxStateKey, BlockDataResult } from '@/lib/types';
+import type { RuntimeProps, StateKey, DefinitionKey, BlockDataResult } from '@/lib/types';
 
 /**
  * Convert any value to a string representation for display.
@@ -54,19 +54,19 @@ const Ref = core({
   component: _Ref,
   description: 'Reference another component\'s value by ID via target attribute.',
   attributes: srcAttributes.extend({
-    target: z_reduxStateKey.optional().describe('ID of component to reference'),
+    target: z_stateRef.optional().describe('ID of component to reference'),
     field: z.string().optional().describe('Specific field to access from target'),
     visible: z.enum(['true', 'false']).optional().describe('Set to "false" to hide the reference display'),
     fallback: z.string().optional().describe('Fallback value when target is empty'),
     format: z.enum(['code']).optional().describe('Display format for the value'),
   }),
-  selectValue: withStatus((props: RuntimeProps, state: any, reduxKey: ReduxStateKey): BlockDataResult & { value: any } => {
+  selectValue: withStatus((props: RuntimeProps, state: any, stateKey: StateKey): BlockDataResult & { value: any } => {
     // TODO: This logic is infrastructure, not component logic. selectValue should move to /lib/
     // so it can access runtime context properly without accessing props directly.
     // Get the Ref block from Redux to access its attributes and content
     const sources = props.runtime.olxJsonSources ?? ['content'];
     const locale = props.runtime.locale.code;
-    const refNode = selectBlock(state, sources, reduxKeyToOlxKey(reduxKey), locale);
+    const refNode = selectBlock(state, sources, leafDefinitionKeyFromStateKey(stateKey), locale);
     if (!refNode) {
       return { value: '', ...blockData('error', 'Component not found') };
     }
@@ -79,10 +79,15 @@ const Ref = core({
       return { value: '', ...blockData('error', 'No target specified. Use target= attribute or <Ref>targetId</Ref>.') };
     }
 
+    // Qualify the target ref into a proper StateKey for Redux lookup.
+    // Ref targets are resolved globally (not scoped by idPrefix).
+    const targetRef = parseAnyStateRef(targetId);
+    const targetStateKey = stateKeyForGlobalRef(targetRef);
+    const targetDefinitionKey = leafDefinitionKeyFromStateKey(targetStateKey);
+
     // Check if target exists in Redux — distinguish loading from missing
-    const targetKey = refToOlxKey(toOlxReference(targetId));
-    if (!selectBlock(state, sources, targetKey, locale)) {
-      const bs = selectBlockState(state, sources, targetKey);
+    if (!selectBlock(state, sources, targetDefinitionKey, locale)) {
+      const bs = selectBlockState(state, sources, targetDefinitionKey);
       if (bs?.loadingState?.status === 'error') {
         return { value: '', ...blockData('error', `Target "${targetId}" not found`) };
       }
@@ -95,23 +100,17 @@ const Ref = core({
     const rawFallback = refNode.attributes?.fallback;
     const fallback = typeof rawFallback === 'string' ? rawFallback : '';
 
-    // HACK: Force absolute path for cross-block references.
-    // Absolute paths ("/id") bypass idPrefix in refToReduxKey.
-    // TODO: Unify ID resolution so cross-block refs work without this hack.
-    const absoluteTargetId = targetId.startsWith('/') ? targetId : `/${targetId}`;
-    const targetReduxKey = refToReduxKey(toOlxReference(absoluteTargetId));
-
     if (field) {
       const fieldInfo = fieldByName(field);
       if (!fieldInfo) {
         return { value: '', ...blockData('error', `Unknown field "${field}"`) };
       }
-      const rawValue = fieldSelector(state, props, fieldInfo, { reduxKey: targetReduxKey, fallback });
+      const rawValue = fieldSelector(state, props, fieldInfo, { stateKey: targetStateKey, fallback });
       return { value: formatRefValue(rawValue, fallback), ...blockData('ready') };
     }
 
     // Use valueSelector to get the target's value — propagate its status
-    const { value: rawValue, ...status } = valueSelector(props, state, targetReduxKey, { fallback });
+    const { value: rawValue, ...status } = valueSelector(props, state, targetStateKey, { fallback });
     return { value: formatRefValue(rawValue, fallback), ...status };
   })
 });

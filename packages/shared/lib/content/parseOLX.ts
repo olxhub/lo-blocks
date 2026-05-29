@@ -23,7 +23,8 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { transformTagName } from '@/lib/content/xmlTransforms';
 
 import * as parsers from '@/lib/content/parsers';
-import { LofsDependencies, IdMap, OLXLoadingError, OlxReference, OlxKey, JSONValue } from '@/lib/types';
+import { LofsDependencies, IdMap, OLXLoadingError, DefinitionRef, DefinitionKey, JSONValue } from '@/lib/types';
+import { PLACEHOLDER_NS, qualifyDefinitionRef, parseDefinitionRef, asDefinitionRef, makeSystemDefinitionRef, stateKeyForGlobalRef, parseAnyDefinitionRef, parseAnyStateRef, allDefinitionKeysFromStateKey } from '@/lib/types/id-grammar';
 import type { LofsRef } from '@/lib/types/address';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
 import { variantMapKeys } from '@/lib/types/i18n';
@@ -75,7 +76,7 @@ function isElementNode(node: any): boolean {
     Object.keys(node).some(k => k !== '#text' && k !== '#comment' && k !== ':@');
 }
 
-function isBlockKid(node: JSONValue): node is { type: 'block'; id: OlxKey } {
+function isBlockKid(node: JSONValue): node is { type: 'block'; id: DefinitionKey } {
   return typeof node === 'object' && node !== null && !Array.isArray(node) &&
     node.type === 'block' && typeof node.id === 'string';
 }
@@ -480,9 +481,25 @@ export async function parseOLX(
     );
   }
 
-  const parsedIds: OlxKey[] = [];
+  const parsedIds: DefinitionKey[] = [];
   let rootId = '';
   const errors: OLXLoadingError[] = [];
+
+  // Track attribute objects whose `id` was set by the system (component parsers),
+  // not authored in OLX. This lets parseNode distinguish system-assigned IDs
+  // (which may start with "_") from authored IDs (which must not).
+  // HACK: This is a workaround for CapaProblem mutating child node attributes
+  // and then re-walking them through parseNode. A proper fix would restructure
+  // the parser pipeline so system-assigned children don't re-enter walkNode.
+  const systemAssignedIds = new WeakSet<object>();
+
+  /** Mark a node's id attribute as system-assigned. Component parsers call this
+   *  instead of directly setting `node[':@'].id`. */
+  function assignSystemId(node: any, id: DefinitionRef) {
+    if (!node[':@']) node[':@'] = {};
+    node[':@'].id = id;
+    systemAssignedIds.add(node[':@']);
+  }
 
   async function parseNode(node, siblings: any[] | null = null, nodeIndex = -1, parentLang: string | undefined = undefined, parentGenerated: OLXMetadata['generated'] | undefined = undefined) {
     const tag = Object.keys(node).find(k => ![':@', '#text', '#comment'].includes(k));
@@ -531,7 +548,8 @@ export async function parseOLX(
       }
 
       const { ref, ...overrides } = attributes;
-      return { type: 'block', id: ref as OlxReference, overrides };
+      const qualifiedRef = qualifyDefinitionRef(parseDefinitionRef(ref), PLACEHOLDER_NS);
+      return { type: 'block', id: qualifiedRef, overrides };
     }
 
     if (attributes.ref) {
@@ -540,7 +558,44 @@ export async function parseOLX(
       );
     }
 
-    const id: OlxKey = (attributes.id ?? createId(node)) as OlxKey;
+    // Validate IDs at the authoring boundary.
+    // parseDefinitionRef rejects bare "_"-prefixed IDs (reserved for system use).
+    // System-assigned IDs (from component parsers like CapaProblem that mutate
+    // child attributes and re-walk) are tracked via systemAssignedIds WeakSet
+    // and validated with parseAnyDefinitionRef (structural check, allows "_" prefix).
+    const idStr = attributes.id ? String(attributes.id) : null;
+    const systemAssigned = idStr && systemAssignedIds.has(attributes);
+    let bareRef: DefinitionRef;
+    try {
+      bareRef = idStr
+        ? (systemAssigned ? parseAnyDefinitionRef(idStr) : parseDefinitionRef(idStr))
+        : createId(node);
+    } catch (idError: any) {
+      // Invalid authored ID — produce a recoverable ErrorNode instead of aborting the file.
+      bareRef = createId(node);
+      const id: DefinitionKey = qualifyDefinitionRef(bareRef, PLACEHOLDER_NS);
+      const errorObj = {
+        type: 'attribute_validation' as const,
+        title: `Invalid id on <${tag}> in ${provenance.join(', ')}`,
+        message: `Invalid id="${idStr}" on <${tag}>: ${idError.message}`,
+        location: { provenance, ...offsetToLineCol(xml, sourceOffset) },
+        technical: { tag, id: idStr, attributes }
+      };
+      errors.push(errorObj);
+      const lang = resolveElementLanguage(attributes, currentLang, metadataLang);
+      const entry = {
+        id, tag: 'ErrorNode', attributes: errorObj, provenance,
+        rawParsed: node, kids: [], parseError: true,
+        lang,
+        ...(sourceOffset !== undefined ? { _sourceOffset: sourceOffset } : {}),
+        ...(metadata || {})
+      };
+      if (!idMap[id]) idMap[id] = {};
+      idMap[id][lang] = entry;
+      parsedIds.push(id);
+      return { type: 'block', id };
+    }
+    const id: DefinitionKey = qualifyDefinitionRef(bareRef, PLACEHOLDER_NS);
 
     const Component = BLOCK_REGISTRY[tag];
 
@@ -632,8 +687,15 @@ export async function parseOLX(
       provenance,
       provider,
       parseNode: parseNodeWithLang,
+      assignSystemId,
       metadata,  // Pass metadata to parser so it can include in entry
-      storeEntry: (storeId, entryOrUpdater) => {
+      storeEntry: (refId: DefinitionRef, entryOrUpdater) => {
+        // Callers pass branded DefinitionRef values — either the block's own
+        // id (a DefinitionKey, which is a DefinitionRef subtype) or a child
+        // ref built with joinDefinitionRef.  Bare refs get namespace-qualified
+        // here; already-qualified keys pass through unchanged.
+        const storeId = qualifyDefinitionRef(refId, PLACEHOLDER_NS);
+
         // Support both direct entry and updater function patterns:
         // - storeEntry(id, entry) - store/overwrite
         // - storeEntry(id, (existing) => newEntry) - update existing
@@ -649,6 +711,14 @@ export async function parseOLX(
         const entry = typeof entryOrUpdater === 'function'
           ? entryOrUpdater(idMap[storeId]?.[lang])
           : entryOrUpdater;
+
+        // Ensure entry.id matches the qualified store key so downstream code
+        // (render, inferRelatedNodes, etc.) always sees qualified IDs.
+        // Parsers set entry.id from their own id (DefinitionKey) or from
+        // joinDefinitionRef (DefinitionRef) — both are valid DefinitionRef.
+        if (entry && typeof entry === 'object' && 'id' in entry && typeof entry.id === 'string') {
+          entry.id = qualifyDefinitionRef(asDefinitionRef(entry.id), PLACEHOLDER_NS);
+        }
 
         // Ensure every entry has its resolved lang — it's used as the variant
         // map key AND needed on the entry for translation mismatch detection.
@@ -815,12 +885,21 @@ export async function parseOLX(
     const graderBlock = BLOCK_REGISTRY[entry.tag];
     if (!graderBlock?.isGrader || !graderBlock.inputSchema) continue;
 
-    // Find input IDs: explicit target attribute, or child blocks with isInput
+    // Find input IDs: explicit target attribute, or child blocks with isInput.
+    // Target values are either Zod-validated StateRef[] (from z_stateRefList) or
+    // bare ref strings (from CapaProblem auto-wiring). Resolve via the canonical
+    // stateKeyForGlobalRef path — handles already-qualified refs correctly and
+    // extracts DefinitionKeys from scoped refs (e.g., "list:#0:answer" → ["list", "answer"]).
     let inputIds: string[] = [];
     const target = entry.attributes?.target;
     if (target) {
-      inputIds = Array.isArray(target) ? target.filter((value): value is string => typeof value === 'string')
+      const rawIds = Array.isArray(target) ? target.filter((value): value is string => typeof value === 'string')
         : typeof target === 'string' ? target.split(',').map(s => s.trim()) : [];
+      inputIds = rawIds.flatMap(s => {
+        const ref = parseAnyStateRef(s);
+        const stateKey = stateKeyForGlobalRef(ref);
+        return allDefinitionKeysFromStateKey(stateKey);
+      });
     } else if (Array.isArray(entry.kids)) {
       inputIds = entry.kids
         .filter(isBlockKid)
@@ -863,12 +942,10 @@ export async function parseOLX(
   return { ids: parsedIds, idMap, root: rootId, errors };
 }
 
-function createId(node): OlxKey {
-  const attributes = node[':@'] ?? {};
-  if (attributes.id) return attributes.id as OlxKey;
-
-  // Prefix with "_" so the hex hash never starts with a digit,
-  // keeping auto-generated IDs valid per VALID_ID_SEGMENT.
+/** Generate a stable auto-ID for a node without an explicit id= attribute.
+ *  Returns a branded DefinitionRef via makeSystemDefinitionRef ("_" + hash).
+ *  Authors cannot collide — bare "_foo" refs are rejected at parse time. */
+function createId(node): DefinitionRef {
   const canonical = JSON.stringify(node);
-  return ('_' + SHA1(canonical).toString()) as OlxKey;
+  return makeSystemDefinitionRef(SHA1(canonical).toString());
 }

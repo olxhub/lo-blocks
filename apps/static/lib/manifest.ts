@@ -1,6 +1,6 @@
 // apps/static/lib/manifest.ts
 //
-// Route manifest reader. The manifest maps URL paths to OlxKeys.
+// Route manifest reader. The manifest maps URL paths to DefinitionKeys.
 //
 // Format:
 // {
@@ -17,7 +17,7 @@ import path from 'path';
 
 export interface StaticManifest {
   title?: string;
-  routes: Record<string, string>;  // URL path → OlxKey
+  routes: Record<string, string>;  // URL path → DefinitionKey
 }
 
 /**
@@ -38,7 +38,7 @@ export function readManifest(): StaticManifest {
 }
 
 /**
- * Resolve a slug array to an OlxKey using the manifest.
+ * Resolve a slug array to an DefinitionKey using the manifest.
  */
 export function resolveSlug(manifest: StaticManifest, slug?: string[]): string | null {
   const urlPath = slug ? '/' + slug.join('/') : '/';

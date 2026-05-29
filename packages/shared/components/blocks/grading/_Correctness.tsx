@@ -8,11 +8,11 @@ import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { correctness } from '@/lib/blocks';
 import { useFieldSelector } from '@/lib/state';
-import { refToReduxKey } from '@/lib/types/id';
 
 function _Correctness(props: RuntimeProps) {
   const { fields, graderId } = props;
-  const graderReduxKey = refToReduxKey({ ...props, id: graderId });
+  // graderId is a StateKey injected by render (requiresGrader: true)
+  const graderStateKey = graderId;
 
   const correctnessValue = useFieldSelector(
     props,
@@ -20,7 +20,7 @@ function _Correctness(props: RuntimeProps) {
     {
       selector: s => s?.correct ?? correctness.unsubmitted,
       fallback: correctness.unsubmitted,
-      reduxKey: graderReduxKey
+      stateKey: graderStateKey
     }
   );
 
@@ -32,7 +32,7 @@ function _Correctness(props: RuntimeProps) {
     {
       selector: s => s?.submitCount ?? 0,
       fallback: 0,
-      reduxKey: graderReduxKey
+      stateKey: graderStateKey
     }
   );
 

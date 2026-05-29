@@ -401,5 +401,8 @@ BlankLine
       return null;
   }
 
+Namespace
+  = $([a-zA-Z_][a-zA-Z0-9_]* ("." [a-zA-Z_][a-zA-Z0-9_]*)* "/")
+
 Identifier
-  = $[a-zA-Z0-9_.-]+    // token characters. Note we include ._-
+  = $(Namespace? [a-zA-Z0-9_.-]+)

@@ -4,12 +4,13 @@
 // For single-select (radio buttons), use ChoiceInput instead.
 //
 import { z } from 'zod';
-import { core, input, getBlockByOLXId, z_reduxStateKeyList } from '@/lib/blocks';
+import { core, input, getBlockByOLXId, z_stateRefList } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import _Noop from '@/components/blocks/layout/_Noop';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
+import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import type { RuntimeProps } from '@/lib/types';
 
 export const fields = state.fields([commonFields.value]);
@@ -27,10 +28,11 @@ function getChoices(props: RuntimeProps, state, id) {
     targets: props.target
   });
   const choices = ids.map(cid => {
-    const inst = getBlockByOLXId(props, cid);
+    const defKey = leafDefinitionKeyFromStateKey(cid);
+    const inst = getBlockByOLXId(props, defKey);
     if (!inst) return null;
-    const choiceValue = inst.attributes.value ?? cid;
-    return { id: cid, tag: inst.tag, value: choiceValue };
+    const choiceValue = inst.attributes.value ?? defKey;
+    return { id: defKey, tag: inst.tag, value: choiceValue };
   }).filter(Boolean);
   return choices;
 }
@@ -42,7 +44,7 @@ const CheckboxInput = core({
   description: 'Multi-select checkbox input collecting student selections from Key/Distractor options. Value is an array.',
   component: _Noop,
   fields,
-  selectValue: (props: RuntimeProps, state, _reduxKey) => {
+  selectValue: (props: RuntimeProps, state, _stateKey) => {
     const value = fieldSelector(state, props, fields.value, { fallback: [] });
     // Ensure array even if stored value was a string (migration case)
     if (!Array.isArray(value)) {
@@ -51,7 +53,7 @@ const CheckboxInput = core({
     return value;
   },
   attributes: z.object({
-    target: z_reduxStateKeyList.optional().describe('Comma-separated IDs of Key/Distractor children if not directly nested'),
+    target: z_stateRefList.optional().describe('Comma-separated IDs of Key/Distractor children if not directly nested'),
   }).strict(),
   locals: {
     getChoices

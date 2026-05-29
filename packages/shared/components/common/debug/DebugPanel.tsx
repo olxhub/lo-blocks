@@ -34,7 +34,7 @@ function clearEvents(): void {
 }
 
 export default function DebugPanel({ onClose, idPrefix = '' }: DebugPanelProps) {
-  const [activeTab, setActiveTab] = useState<DebugTab>('events');
+  const [activeTab, setActiveTab] = useState<DebugTab>('settings');
   const [events, setEvents] = useState<any[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [filterPrefix, setFilterPrefix] = useState(idPrefix);
@@ -65,9 +65,11 @@ export default function DebugPanel({ onClose, idPrefix = '' }: DebugPanelProps) 
     setReplayEventIndex(-1);
   }, [setReplayMode, setReplayEventIndex]);
 
-  // Get Redux state reactively via useSelector
-  const reduxState = useSelector((state: any) => state);
-  const olxJson = useSelector((state: any) => state?.application_state?.olxjson ?? null);
+  // Only fetch full Redux state when viewing the relevant tab.
+  // Returning null when inactive avoids the "selecting entire state" warning
+  // and prevents re-renders on every dispatch.
+  const reduxState = useSelector((s: any) => activeTab === 'state' ? s : null);
+  const olxJson = useSelector((s: any) => activeTab === 'content' ? s?.application_state?.olxjson ?? null : null);
 
   // Compute historical state when time-traveling
   // Uses ALL events (not filtered) because replay needs the full stream

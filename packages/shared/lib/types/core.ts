@@ -42,22 +42,36 @@ export type JSONValue =
  * The ID system has four layers, from authored content to runtime state.
  * Branded types enforce correct usage at compile time.
  *
+ * NAMING PLAN
+ * -----------
+ * Type helpers should distinguish three jobs:
+ * - parseX(value): validate an untrusted value and return a branded type.
+ * - asX(value): unchecked internal branding when a value is already inside the
+ *   type system and validation would be redundant.
+ * - validateX(value): boolean or assertion-style validation without conversion.
+ *
+ * Ref -> Key conversion is a separate job with named resolvers in id-grammar.ts.
+ * Own-state and authored cross-references use DIFFERENT resolvers — see
+ * scopedStateKeyForBlock (own-state) vs stateKeyForGlobalRef (authored targets).
+ *
  * ┌──────────────────────────────────────────────────────────────────────┐
  * │                        CONVERSION PATHWAYS                           │
+ * │  (all functions live in id-grammar.ts)                               │
  * │                                                                      │
- * │  OlxReference ──refToOlxKey()──────> OlxKey                          │
+ * │  DefinitionRef ──definitionKeyForRef()──> DefinitionKey              │
  * │      │                                  │                            │
- * │      │   refToReduxKey(props)           │  Content lookup in Redux   │
- * │      │   (combines with IdPrefix)       │  (selectBlock, ensureBlock)│
+ * │      │                                  │  Content lookup in Redux   │
+ * │      │                                  │  (selectBlock, ensureBlock)│
  * │      v                                  │                            │
- * │  ReduxStateKey ─reduxKeyToOlxKey()──> OlxKey  (leaf block)           │
+ * │  props ─scopedStateKeyForBlock(props)──> StateKey  (own-state)       │
+ * │  StateRef ─stateKeyForGlobalRef(ref)──> StateKey   (authored target) │
+ * │                                                                      │
+ * │  StateKey ─leafDefinitionKeyFromStateKey()──> DefinitionKey (leaf)   │
  * │      │              ↑                                                │
  * │      │              │ Last non-ScopeMarker segment                   │
- * │      │              │ (OlxKeys cannot contain ':' or start with '#') │
+ * │      │              │ (DefinitionKeys cannot contain ':' or '#')     │
  * │      │                                                               │
- * │  ReduxStateKey ─allOlxKeys()──> OlxKey[]  (all blocks in scope)      │
- * │                                                                      │
- * │  IdPrefix + OlxKey ──refToReduxKey()──> ReduxStateKey                │
+ * │  StateKey ─allDefinitionKeysFromStateKey()──> DefinitionKey[]        │
  * │                                                                      │
  * │  extendIdPrefix(props, [id, scopeMarker(index)]) → IdPrefix          │
  * │    Blocks like DynamicList create scoped prefixes                    │
@@ -65,24 +79,25 @@ export type JSONValue =
  *
  * SCOPE MARKERS
  * -------------
- * Segments in a ReduxStateKey that start with '#' are ScopeMarkers —
+ * Segments in a StateKey that start with '#' are ScopeMarkers —
  * instance indices, attempt numbers, etc. They are NOT loadable block IDs.
- * All other segments are valid OlxKeys.
+ * All other segments are valid DefinitionKeys.
  *
  * Constructed via scopeMarker(label): e.g. scopeMarker(0) → '#0'
  * Format: #[0-9a-zA-Z_]+
  *
  * Examples:
- *   OlxReference:  "resistorProblem", "/mit.edu/6002x/resistorProblem"
- *   OlxKey:        "resistorProblem" (canonical, for content lookup)
+ *   DefinitionRef:  "resistorProblem", "/mit.edu/6002x/resistorProblem"
+ *   DefinitionKey:        "resistorProblem" (canonical, for content lookup)
+ *   StateRef: "answer" or "myList:#0:answer" (authored target)
  *   ScopeMarker:   "#0", "#attempt_2" (instance scoping, not a block ID)
  *   IdPrefix:      "myList:#0" (DynamicList "myList", instance 0)
- *   ReduxStateKey: "myList:#0:resistorProblem" (scoped state key)
+ *   StateKey: "myList:#0:resistorProblem" (scoped state key)
  *
- * The ':' delimiter (REDUX_SCOPE_SEPARATOR) is reserved — forbidden in
+ * The ':' delimiter (SCOPE_SEPARATOR) is reserved — forbidden in
  * user-authored IDs. This makes decomposition deterministic:
- *   reduxKeyToOlxKey("myList:#0:resistorProblem") → "resistorProblem"
- *   allOlxKeys("myList:#0:resistorProblem")       → ["myList", "resistorProblem"]
+ *   leafDefinitionKeyFromStateKey("CONTENT/myList:#0:resistorProblem") → "CONTENT/resistorProblem"
+ *   allDefinitionKeysFromStateKey("CONTENT/myList:#0:resistorProblem") → ["CONTENT/myList", "CONTENT/resistorProblem"]
  *
  * See docs/redux-key-decomposition.md for full design documentation.
  */
@@ -105,15 +120,16 @@ export type JSONValue =
  *
  * Used as the first dimension in Redux state: state.olxjson[namespace][bareKey]
  */
-export type ContentNamespace = string & { readonly __brand: 'ContentNamespace' };
-
-const VALID_NAMESPACE = /^[a-zA-Z_][a-zA-Z0-9_.-]*$/;
+// Re-exported from id-grammar.ts — see that file for the Brand<> pattern.
+export type { ContentNamespace } from './id-grammar';
+import type { ContentNamespace } from './id-grammar';
+import { VALID } from './id-grammar';
 
 /** Validate and brand a content namespace string. */
 export function toContentNamespace(s: string): ContentNamespace {
   if (!s) throw new Error('ContentNamespace cannot be empty');
-  if (!VALID_NAMESPACE.test(s)) {
-    throw new Error(`ContentNamespace must be alphanumeric (with ._-), starting with letter/underscore: "${s}"`);
+  if (!VALID.namespace.test(s)) {
+    throw new Error(`ContentNamespace must match namespace grammar (letter/underscore start, dot-separated segments): "${s}"`);
   }
   return s as ContentNamespace;
 }
@@ -125,41 +141,21 @@ export const CONTENT_NAMESPACE = toContentNamespace('content');
 // ID TYPES
 // ════════════════════════════════��══════════════════════════════════════════════
 
-// Valid ID segments: [a-zA-Z_][a-zA-Z0-9_]* (no hyphens, dots, colons, slashes, commas).
-// Auto-generated IDs are "_" + SHA1 hex hash.
-// See idResolver.ts VALID_ID_SEGMENT for the canonical regex and delimiter conventions.
+// All ID types re-exported from id-grammar.ts (single source of truth).
+export type {
+  DefinitionRef, DefinitionKey,
+  StateRef, StateKey,
+  IdPrefix, ScopeMarker,
+  ReactKey, HtmlId, OLXTag, LeafId,
+} from './id-grammar';
 
-// User-authored reference as found in source OLX.
-// Created via toOlxReference(string, context).
-export type OlxReference = string & { readonly __brand: 'OlxReference' };
-
-// Canonical content key — used for content lookup in Redux (selectBlock, ensureBlock).
-// Created via refToOlxKey(ref) — strips path prefixes and scope prefixes.
-export type OlxKey = OlxReference & { readonly __resolved: true };
-
-// Scoping prefix for blocks rendered in repeating contexts (DynamicList, MasteryBank, etc.).
-// Created via extendIdPrefix(props, [id, scopeMarker(index)]).
-// Format: colon-delimited segments, e.g. "mylist:#0" or "bank:#attempt_2".
-export type IdPrefix = string & { readonly __brand: 'IdPrefix' };
-
-// Scoped state key — used for Redux state access (field values, correctness, etc.).
-// Created via refToReduxKey(props) — combines IdPrefix + OlxKey.
-// Format: "prefix:baseId" or just "baseId" if no prefix.
-// The target= attribute in OLX always contains a ReduxStateKey.
-export type ReduxStateKey = string & { readonly __brand: 'ReduxStateKey' };
-
-// A non-OlxKey scope segment in a ReduxStateKey. Format: #[0-9a-zA-Z_]+
-// Marks instance indices, attempt numbers, etc. — NOT loadable block IDs.
-// Created via scopeMarker(label) in idResolver.ts.
-// Examples: "#0" (list instance), "#attempt_2" (mastery bank attempt)
-export type ScopeMarker = string & { readonly __brand: 'ScopeMarker' };
-
-// React Keys and HTML IDs have different uniqueness constraints:
-export type ReactKey = string & { readonly __brand: 'ReactKey' };          // React reconciliation
-export type HtmlId = string & { readonly __brand: 'HtmlId' };              // DOM element ID
-
-// OLX element tag name (e.g., "Vertical", "Sequential", "ChoiceInput")
-export type OLXTag = string & { readonly __brand: 'OLXTag' };
+// Local imports for use within this file.
+import type {
+  DefinitionRef, DefinitionKey,
+  StateRef, StateKey,
+  IdPrefix, ScopeMarker,
+  ReactKey, HtmlId, OLXTag,
+} from './id-grammar';
 
 
 /**
@@ -223,7 +219,7 @@ export type LofsDependencies = LofsCanonical[];
  */
 export type OlxRelativePath = string & { __brand: 'OlxRelativePath' };
 /*
- * These are really more like IDs than paths — analogous to OlxReference
+ * These are really more like IDs than paths — analogous to DefinitionRef
  * for block IDs. They come from user input (OLX attributes, URL params,
  * LLM tool callbacks) and may be invalid (traversal attacks, nonexistent
  * files, etc.). At trust boundaries, we brand them via toOlxRelativePath()
@@ -233,7 +229,7 @@ export type OlxRelativePath = string & { __brand: 'OlxRelativePath' };
  * When an OLX file references another file relatively
  * (src="../foo.md"), we need to resolve that against the referring
  * file's location to get a canonical, unique path, which can be used
- * as a key — just like resolving OlxReference → OlxKey.  If ../foo.md
+ * as a key — just like resolving DefinitionRef → DefinitionKey.  If ../foo.md
  * appears in uofa/writing/101/bar.olx, it resolves to
  * uofa/writing/foo.md. This canonical form is:
  */
@@ -430,6 +426,35 @@ export interface FieldInfo {
   //   Set (OR-Set): (local, remote) => orSetMerge(local, remote)
   //   Counter (G-Counter): (local, remote) => gCounterMerge(local, remote)
   // ---------------------------------------------------------------------------
+
+  // ---------------------------------------------------------------------------
+  // URL sync — opt-in per field
+  // ---------------------------------------------------------------------------
+
+  /** Sync this field to/from URL search params.
+   *  When true, useFieldState reads an initial value from the URL (as fallback
+   *  override) and writes back on setValue.
+   *
+   *  URL key convention:
+   *  - Component-scoped: `?blockOlxId.fieldName=value`
+   *  - System-scoped: `?fieldName=value`
+   *  - If urlDefault is also true: `?blockOlxId=value` (bare, no field name)
+   *
+   *  Only fields explicitly marked url:true are accessible from the URL.
+   *  This is a security boundary — fields like score, correct, etc. must
+   *  never be URL-overridable. */
+  url?: boolean;
+
+  /** Make this the "bare" URL parameter for its block.
+   *  With urlDefault, `?myBlock=someValue` sets this field.
+   *  Without it, `?myBlock.fieldName=someValue` is required.
+   *  At most one field per block should have urlDefault. */
+  urlDefault?: boolean;
+
+  /** Use pushState instead of replaceState when updating the URL.
+   *  pushState creates browser history entries (back button navigates).
+   *  Default: false (replaceState — URL updates silently). */
+  urlPush?: boolean;
 
   /** @deprecated Use `events[0]` for single-event fields. Kept for backward compatibility
    *  during migration — will be removed once all callers use `events`. */
@@ -673,7 +698,7 @@ export type BlockBlueprint = z.infer<typeof BlockBlueprintSchema>;
  *
  * For blocks using withStatus, the return type is BlockDataResult & { value }.
  */
-export type ValueSelectorFn = (props: RuntimeProps, state: any, reduxKey: ReduxStateKey) => any;
+export type ValueSelectorFn = (props: RuntimeProps, state: any, stateKey: StateKey) => any;
 
 export interface LoBlock {
   component: React.ComponentType<any>;
@@ -853,7 +878,7 @@ export type ParseError = string | null | {
 export type ParentContext = Record<string, JSONValue>;
 
 export type KidEntry =
-  | { type: 'block'; id: OlxReference; overrides?: Record<string, JSONValue>; parentContext?: ParentContext }
+  | { type: 'block'; id: DefinitionRef; overrides?: Record<string, JSONValue>; parentContext?: ParentContext }
   | { type: 'text'; text: string; parentContext?: ParentContext }
   | { type: 'xml'; xml: string; parentContext?: ParentContext }
   | { type: 'cdata'; value: string; parentContext?: ParentContext }
@@ -888,8 +913,8 @@ export interface PeggyKids<T> {
  */
 export interface OlxDomNode {
   olxJson: OlxJson;
-  reduxKey: ReduxStateKey;  // Scoped runtime key (idPrefix + id), e.g. "factors:0:factor"
-  renderedKids: Record<ReduxStateKey, OlxDomNode>;
+  stateKey: StateKey;  // Scoped runtime key (idPrefix + id), e.g. "factors:0:factor"
+  renderedKids: Record<StateKey, OlxDomNode>;
   parent?: OlxDomNode;
   loBlock: LoBlock;
   sentinel?: string;  // 'root' for root node
@@ -971,7 +996,7 @@ export interface BaselineProps {
 
 export interface RuntimeProps extends BaselineProps {
   // This block's identity and content
-  id: OlxKey;
+  id: DefinitionKey;
   kids: JSONValue;
 
   // Opaque context - thread through
@@ -1003,7 +1028,7 @@ export interface RuntimeProps extends BaselineProps {
  * simple BCP 47 code for now, identifying which language variant this entry represents.
  */
 export interface OlxJson {
-  id: OlxKey;
+  id: DefinitionKey;
   tag: OLXTag;
   attributes: Record<string, JSONValue>;  // Always present, defaults to {} in parsing
   kids?: JSONValue;  // Child nodes, or a string from text parsers
@@ -1101,7 +1126,7 @@ export interface OlxJson {
 export type VariantMap = { [variant: ContentVariant]: OlxJson };
 
 export interface IdMap {
-  [id: OlxKey]: VariantMap;
+  [id: DefinitionKey]: VariantMap;
 }
 
 /**
@@ -1109,7 +1134,7 @@ export interface IdMap {
  * Represents a single block and its metadata.
  */
 export interface GraphNode {
-  id: OlxKey;  // Block ID that this node represents
+  id: DefinitionKey;  // Block ID that this node represents
   data: {
     label: string;
     attributes: Record<string, JSONValue>;
@@ -1126,8 +1151,8 @@ export interface GraphNode {
  */
 export interface GraphEdge {
   id: string;  // Edge ID (graph-specific, not a block ID)
-  source: OlxKey;  // Source block ID
-  target: OlxKey;  // Target block ID
+  source: DefinitionKey;  // Source block ID
+  target: DefinitionKey;  // Target block ID
 }
 
 /**

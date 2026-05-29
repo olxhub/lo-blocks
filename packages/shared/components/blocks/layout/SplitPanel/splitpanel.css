@@ -1,0 +1,17 @@
+/* SplitPanel: linearize for print */
+@media print {
+  /* Hide react-split gutters */
+  .lo-tag-splitpanel .gutter {
+    display: none !important;
+  }
+
+  /* Stack panes vertically instead of side-by-side */
+  .lo-tag-splitpanel > div > .flex {
+    display: block !important;
+  }
+
+  /* Override react-split inline widths so panes fill page width */
+  .lo-tag-splitpanel > div > .flex > div {
+    width: 100% !important;
+  }
+}

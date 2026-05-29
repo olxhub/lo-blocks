@@ -7,9 +7,9 @@
 
 import { useMemo } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
-import * as idResolver from '../types/id';
+import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey } from '../types/id-grammar';
 import { selectBlock } from '../state/olxjson';
-import type { FieldInfo } from '../types';
+import type { FieldInfo, StateKey } from '../types';
 import type { References } from './references';
 import { EMPTY_REFS } from './references';
 import { parse } from './parser';
@@ -52,7 +52,7 @@ function materializeComponentState(
   rawState: any,
   state: any,
   props: any,
-  reduxKey: string
+  stateKey: StateKey
 ): any {
   if (!rawState || typeof rawState !== 'object') return rawState;
 
@@ -61,10 +61,10 @@ function materializeComponentState(
   if (cached) return cached;
 
   // Look up block type → field definitions
-  const olxKey = idResolver.reduxKeyToOlxKey(reduxKey as any);
+  const definitionKey = leafDefinitionKeyFromStateKey(stateKey);
   const sources = props.runtime?.olxJsonSources ?? ['content'];
   const locale = props.runtime?.locale?.code;
-  const blockNode = selectBlock(state, sources, olxKey, locale);
+  const blockNode = selectBlock(state, sources, definitionKey, locale);
   // Use props.runtime.blockRegistry — no static import of BLOCK_REGISTRY to
   // avoid circular dependency (hooks → blockRegistry → blocks → factory → state → hooks).
   const registry = props.runtime?.blockRegistry;
@@ -149,20 +149,20 @@ export function selectReferences(
   // Resolve component state references (@)
   for (const { key } of refs.componentState) {
     // Resolve the key to a Redux key (handles relative vs absolute paths)
-    const reduxKey = resolveToReduxKey(props, key);
-    const rawState = state?.application_state?.component?.[reduxKey];
+    const stateKey = resolveToStateKey(props, key);
+    const rawState = state?.application_state?.component?.[stateKey];
     // Materialize field values (e.g., RgaDoc → string) using block's field definitions.
     // Returns rawState unchanged if no fields have read transforms.
     // Cached per raw state object for referential stability.
-    componentState[key] = materializeComponentState(rawState, state, props, reduxKey);
+    componentState[key] = materializeComponentState(rawState, state, props, stateKey);
   }
 
   // Resolve OLX content references (#)
   // Note: These are typically resolved at parse time, not runtime
   // For now, we look in the olxjson store
   for (const { id } of refs.olxContent) {
-    const reduxKey = resolveToReduxKey(props, id);
-    const block = state?.olxjson?.[reduxKey];
+    const stateKey = resolveToStateKey(props, id);
+    const block = state?.olxjson?.[stateKey];
     // Extract text content from the block if available
     olxContent[id] = block?.content ?? block?.kids ?? '';
   }
@@ -182,14 +182,28 @@ export function selectReferences(
 }
 
 /**
- * Resolve a reference ID to a Redux key.
- * Delegates to idResolver.refToReduxKey which handles all reference forms:
- * - "/foo" (absolute) → "foo"
- * - "./foo" (explicit relative) → applies idPrefix
- * - "foo" (bare) → applies idPrefix
+ * Resolve a DSL reference ID to a StateKey.
+ *
+ * Current behavior is intentionally lexical: `@answer.value` inside a scoped
+ * renderer (DynamicList, UseDynamic, etc.) resolves through the caller's
+ * idPrefix, so each repeated instance watches its own local `answer`.
+ *
+ * TODO(namespace/dsl): This resolver only models that lexical form. The
+ * expression grammar also accepts quoted IDs, and generated expressions may
+ * eventually contain already-scoped StateRefs such as
+ * `@"CONTENT/list:#0:answer".value`. Those must NOT go through
+ * scopedStateKeyForBlock(), because they already contain their runtime scope.
+ * When we take on scoped StateRef support in the DSL, split this resolver into
+ * two explicit paths:
+ *
+ *   - lexical DefinitionRef-like refs: apply caller idPrefix
+ *   - explicit StateRef/StateKey refs: validate/qualify without adding scope
+ *
+ * Do not "fix" this by making all DSL refs global; that would break the useful
+ * local semantics of bare `@answer` inside repeated/scoped content.
  */
-function resolveToReduxKey(props: any, id: string): string {
-  return idResolver.refToReduxKey({ ...props, id });
+function resolveToStateKey(props: any, id: string): StateKey {
+  return scopedStateKeyForBlock({ ...props, id });
 }
 
 /**

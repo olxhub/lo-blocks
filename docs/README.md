@@ -430,7 +430,7 @@ For example, a `MasteryBank` will pull in kids from a bank of items. A DynamicLi
 </DynamicList>
 ```
 
-If the `helloblock` was something with state, and we pulled up redux developer tools, we would see `list.0.helloblock`, `list.1.helloblock`, etc. as IDs for the specific child nodes.
+If the `helloblock` was something with state, and we pulled up redux developer tools, we would see `list:#0:helloblock`, `list:#1:helloblock`, etc. as IDs for the specific child nodes. The `:` separates scope segments, and `#` prefixes numeric indices to distinguish them from named blocks.
 
 This is `OlxDomNode` in types.ts.
 
@@ -476,7 +476,7 @@ Be very mindful if you mean `children` or `kid
 
 IDs are hard. We have internal ID types (static OLX, dynamic OLX, etc.). We interact with other uses of IDs. This contributes a lot to the complexity! For example:
 
-* OLX 1.0 `url_name`: Used as a key. Designed to be human-friendly (e.g. "eigen_pset"), but often GUIDs. This was originally created, in part, so URLs would be friendly (e.g. `/linear_algebra/eigenvalues` instead of `/[GUID]/[GUID]`), and to simplify analytics and debugging. We split this into `OlxReference`, `OlxKey`, and `ReactKey`.
+* OLX 1.0 `url_name`: Used as a key. Designed to be human-friendly (e.g. "eigen_pset"), but often GUIDs. This was originally created, in part, so URLs would be friendly (e.g. `/linear_algebra/eigenvalues` instead of `/[GUID]/[GUID]`), and to simplify analytics and debugging. We split this into `DefinitionRef`, `DefinitionKey`, and `ReactKey`.
 * OLX 1.0 `display_name`: Human-friendly short decriptive text (e.g. "Eigenvalue Problem Set"). We use `title`.
 * HTML `id`: Web-page wide unique ID
 * React `key`: Unique identifier, esp. for elements in a list.
@@ -487,37 +487,29 @@ We are mixing React concepts, OLX concepts, and others. This leads to a rather c
 
 A few rules:
 
-* Use [a-z][A-Z][0-9]_ in IDs. Avoid other characters, except as delimeters. We may extend this later, but first, we need to figure out what to reserve and for what purpose.
+* IDs support Unicode letters (`\p{L}`), digits, and underscores. The formal grammar is in `packages/shared/lib/types/id-grammar.ts`. Reserved delimiters: `://` (namespace), `:` (scope), `#` (index), `.` (field access).
 * Keys should be as semantic and meaningful as possible. `resistor_divider_problem` is better than a SHA hash. A SHA hash is better than a GUID. These feed into downstream analytics. `<Lesson id="linalg_eigen"/>` is a lot nicer to work with than `<Lesson id="3a0512ad31dc81fc166507f20ddebfe700d64daf"/>`. 
 * Semantic IDs have many downsides, including key collisions, the associated need for namespaces, and IDs going out-of-date (e.g. a problem changes what it teaches). Those are worth it.
 * Every OLX component *must* have an ID. Many of these are auto-assigned.
 * As a convention, peer components (e.g. an analytic for another component) will often use `target`. E.g. `<Input id="essay"\>` might have a `<Wordcount target="essay"\>`. We used to have targetRef and others. These should be removed.
 
-**Scoped state**: When a single OLX node is rendered multiple times (e.g., in a list or mastery bank), each instance needs its own Redux state. We handle this with `idPrefix`, which scopes the Redux key:
+**Scoped state**: When a single OLX node is rendered multiple times (e.g., in a list or mastery bank), each instance needs its own Redux state. We handle this with `idPrefix`, which scopes the StateKey:
 
 * OLX node: `<DynamicList id="list"><TextArea id="response"/></DynamicList>`
-* OLXReference has no prefix: `response`
-* ReduxStateKey has a prefix: `list:0:response`, `list:1:response`, etc.
+* DefinitionRef (content identity): `response`
+* StateKey (runtime instance): `list:#0:response`, `list:#1:response`, etc.
 
-The `extendIdPrefix(props, scope)` utility builds scoped prefixes for child components.
+The `:` separates scope segments. `#` prefixes numeric indices (distinguishing them from named blocks). The `extendIdPrefix(props, scope)` utility builds scoped prefixes for child components.
 
-When referencing other components' state (e.g., a grader looking up an input's value, or a child referencing a parent), IDs should support path-like syntax to control whether the `idPrefix` is applied:
+There are two distinct pathways that produce scoped StateKeys:
 
-* `foo` — **Relative** (default): `idPrefix` is applied. Most common case.
-* `/foo` — **Absolute**: Bypasses `idPrefix`, references global state.
-* `./foo` — **Explicit relative**: Same as `foo`, but clearer in intent.
-* `../foo` — **Parent scope**: Not yet implemented.
+1. **Runtime own-state scoping** (`addScope` / `refToStateKey`): Containers like DynamicList pass `idPrefix` via React context. Child components call `refToStateKey(props)` which prepends the accumulated prefix. Authors don't write scope paths — the runtime builds them.
 
-This matters when a component inside a scoped context (like a problem inside a MasteryBank) needs to reference something outside that scope.
+2. **Authored cross-references** (`qualifyStateRef`): Authors write full scope paths in `target=` attributes (e.g., `target="list:#0:answer"`). Only namespace qualification is needed — the scope is already in the ref.
 
-The `fieldSelector` and `updateField` functions automatically apply `idPrefix` to ID overrides, so components don't need to manually scope IDs. If you pass `{ id: 'parent_input' }` to these functions and `idPrefix` is set, the lookup will use `prefix.parent_input`.
+See `id-grammar.ts` NAMESPACE QUALIFICATION section for details.
 
-Right now, this is a little bit confusing, since we have two types of scoping:
-
-* Static scoping (e.g. `mit.edu/pmitros/6002x/hw1/problem5`) at the OLX Key level. `/` seperator
-* Dynamic scoping (e.g. `DynamicList`). `:` separator
-
-Which we still need to figure out how to best manage both in a developer- and human-friendly way.
+The `fieldSelector` and `updateField` functions automatically apply `idPrefix`, so components don't need to manually scope IDs.
 
 **Key Assignment** We need to work through key assignment strategy if `id=` is not specified (and sometimes, if it is!).
 
@@ -587,7 +579,7 @@ Note that we favor semantic ids:
 
 Note: LLMs can generate very decent semantic IDs.
 
-Also: Namespaces still need to be figured out.
+See `id-grammar.ts` and `add-reduxkey-namespace.md` for the namespace model.
 
 ## Content Addressing and the Naming Hierarchy
 
@@ -598,19 +590,19 @@ The system has three distinct naming levels that connect where content *lives* t
       │               "git@github.com:olxhub/lo-blocks.git://content/hw1.olx"
       │               "git@github.com:olxhub/lo-blocks.git://content/hw1.olx#main"
       │
-      │  addressPath() → OlxKey lookup
+      │  addressPath() → DefinitionKey lookup
       │  withoutVersion() strips version for identity
       │
-  OlxKey             What a block is (content identity)
+  DefinitionKey      What a block is (content identity)
       │               "week1_problem3"  (a block defined inside hw1.olx)
       │
-      │  refToReduxKey(props) applies idPrefix
+      │  refToStateKey(props) applies idPrefix
       │
-  ReduxStateKey      Which runtime instance
+  StateKey           Which runtime instance
                       "mastery:#0:week1_problem3"
 ```
 
-The existing IDs section above covers OlxKey and ReduxStateKey in detail. This section documents the storage layer below them.
+The existing IDs section above covers DefinitionKey and StateKey in detail. This section documents the storage layer below them.
 
 ### LOFS Addresses
 
@@ -670,7 +662,7 @@ LofsOrigin:  git@github.com:olxhub/lo-blocks.git
 
 More examples: `file:/home/user/content`, `pg://school.edu/cs101`, `memory:session-42`.
 
-This was originally intended to be used for namespacing redux and OLX keys. This turned out to be a **bad idea**. 95+% of the time, there is a 1:1 mapping between LofsOrigin and namespace. By default, we will derive namespace from LofsOrigin: `git@github.com:olxhub/lo-blocks.git` corresponds to the namespace `lo-blocks`, for example, and we will use that to namespace.
+This was originally intended to be used for namespacing redux and OLX keys. This turned out to be a **bad idea**. 95+% of the time, there is a 1:1 mapping between LofsOrigin and namespace. By default, we derive namespace from LofsOrigin via `defaultNamespace()`. Note that not all repo names are valid namespaces — `lo-blocks` contains a hyphen, which the namespace grammar forbids. Such repos must provide an explicit namespace via `manifest.yaml`. A repo like `git@github.com:other/ee101.git` derives cleanly to namespace `ee101`.
 
 However, we want to maintain the same key for:
 
@@ -689,18 +681,16 @@ git@github.com:other/ee101.git://hw1.olx              (no version)
 
 All three may refer to the same namespace, `ee101`, and will have the same keys.
 
-### Cross-Repository References (Future)
+### Cross-Repository References
 
-Today, OlxKeys are local to a single content source. But content import requires cross-repository references. An OlxKey like `hw1` is ambiguous when two sources both define it.
-
-The planned approach uses namespace-qualified references with `://` as the separator:
+DefinitionKeys are namespace-qualified, so cross-source references are unambiguous. A bare ref like `hw1` is qualified against the current namespace at parse time; an explicit cross-namespace ref keeps its prefix:
 
 ```
-analogForDummies://hw1            (cross-repo reference)
-hw1                               (local, unqualified)
+analogForDummies://hw1            (cross-namespace reference)
+hw1                               (bare — qualified at parse time)
 ```
 
-The namespace is a short logical name for a content collection (e.g., `analogForDummies`, `calculusForDummies`), derived from the LOFS origin by default but decoupled from it — forks, memory overlays, and local checkouts of the same course share a namespace.
+The namespace is a short logical name for a content collection (e.g., `analogForDummies`, `calculusForDummies`), derived from the LOFS origin by default but decoupled from it — forks, memory overlays, and local checkouts of the same course share a namespace. See `id-grammar.ts` for the namespace grammar and `add-reduxkey-namespace.md` for the full design.
 
 ## Kid nodes
 

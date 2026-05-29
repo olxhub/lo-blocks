@@ -43,15 +43,16 @@ import { useSelector, shallowEqual } from 'react-redux';
 
 import * as lo_event from 'lo_event';
 
-import * as idResolver from '../types/id';
+import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, isNamespaceQualified, definitionKeyForRef } from '../types/id-grammar';
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
-import { FieldInfo, OlxReference, OlxKey, ReduxStateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus } from '../types';
+import { FieldInfo, DefinitionRef, DefinitionKey, StateRef, StateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus } from '../types';
 import { assertValidField } from './fields';
+import { getUrlOverride, setUrlValue } from './urlFields';
 import type { Store } from 'redux';
 import { selectBlock, selectBlockState } from './olxjson';
-import { getDomNodeByReduxKey, propsFromNode } from '../blocks/olxdom';
+import { getDomNodeByStateKey, propsFromNode } from '../blocks/olxdom';
 import { ensureBlock } from '../blocks/useOlxJson';
 import { getReduxStoreInstance } from './store';
 
@@ -65,10 +66,10 @@ const INVALIDATED_INPUT = 'INVALIDATED_INPUT'; // informational
 // =============================================================================
 
 // Options for fieldSelector and friends.
-// reduxKey overrides which component's state to access (cross-component access).
+// stateKey overrides which component's state to access (cross-component access).
 // If omitted, the component's own key is resolved from props.
 export interface SelectorOptions<T> {
-  reduxKey?: ReduxStateKey;
+  stateKey?: StateKey;
   tag?: string;
   selector?: (state) => T;
   fallback?: T;
@@ -89,7 +90,7 @@ export const fieldSelector = <T>(
   options: SelectorOptions<T> = {}
 ): T => {
   const {
-    reduxKey,
+    stateKey,
     tag: optTag,
     // TODO: This should run over the field. We do this for when we need multiple fields (ReduxInput),
     // but really, field should be a list
@@ -108,8 +109,7 @@ export const fieldSelector = <T>(
         return selector(scopedState);
       case scopes.storage:
       case scopes.component: {
-        // Use explicit reduxKey (cross-component access) or resolve from props.
-        const key = reduxKey ?? idResolver.refToReduxKey(props);
+        const key = stateKey ?? scopedStateKeyForBlock(props);
         return selector(scopedState?.[key]);
       }
       default:
@@ -135,13 +135,13 @@ export const getReduxState = (
   props: any,
   field: FieldInfo,
   fallback: any,
-  { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
+  { stateKey, tag }: { stateKey?: StateKey; tag?: string } = {}
 ): any => {
   assertValidField(field);
 
   const store = getReduxStoreInstance();
   const state = store.getState();
-  return fieldSelector(state, props, field, { fallback, reduxKey, tag });
+  return fieldSelector(state, props, field, { fallback, stateKey, tag });
 };
 
 /**
@@ -246,11 +246,11 @@ export function dispatchFieldEvent(
   field: FieldInfo,
   eventType: string,
   payload: Record<string, any>,
-  { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
+  { stateKey, tag }: { stateKey?: StateKey; tag?: string } = {}
 ) {
   const scope = field.scope;
   const resolvedKey = (scope === scopes.component || scope === scopes.storage)
-    ? (reduxKey ?? idResolver.refToReduxKey(props as RuntimeProps))
+    ? (stateKey ?? scopedStateKeyForBlock(props as RuntimeProps))
     : undefined;
   const resolvedTag = tag ?? (props as RuntimeProps)?.loBlock?.name;
   const logEvent = props ? props.runtime.logEvent : lo_event.logEvent;
@@ -270,7 +270,7 @@ export function updateField(
   props: BaselineProps | null,
   field: FieldInfo,
   newValue,
-  { reduxKey, tag, extraPayload }: { reduxKey?: ReduxStateKey; tag?: string; extraPayload?: Record<string, any> } = {}
+  { stateKey, tag, extraPayload }: { stateKey?: StateKey; tag?: string; extraPayload?: Record<string, any> } = {}
 ) {
   assertValidField(field);
 
@@ -282,18 +282,18 @@ export function updateField(
   if (field.write) {
     // Field knows how to produce its own events (e.g., docField computes splices)
     const store = props?.runtime?.store ?? getReduxStoreInstance();
-    const oldRaw = fieldSelector(store.getState(), props, field, { reduxKey, tag });
+    const oldRaw = fieldSelector(store.getState(), props, field, { stateKey, tag });
     const results = field.write(oldRaw, newValue);
     // Extra payload (e.g., selection state from useInputField) is appended only
     // to the last event — it represents final cursor position, not per-event state.
     for (let i = 0; i < results.length; i++) {
       const { event, payload } = results[i];
       const extra = (i === results.length - 1) ? extraPayload : undefined;
-      dispatchFieldEvent(props, field, event, { ...payload, ...extra }, { reduxKey, tag });
+      dispatchFieldEvent(props, field, event, { ...payload, ...extra }, { stateKey, tag });
     }
   } else {
     // Default: single event with { [fieldName]: newValue }
-    dispatchFieldEvent(props, field, field.event!, { [field.name]: newValue, ...extraPayload }, { reduxKey, tag });
+    dispatchFieldEvent(props, field, field.event!, { [field.name]: newValue, ...extraPayload }, { stateKey, tag });
   }
 }
 
@@ -302,18 +302,28 @@ export function useFieldState(
   props: BaselineProps | null,
   field: FieldInfo,
   fallback?,
-  { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
+  { stateKey, tag }: { stateKey?: StateKey; tag?: string } = {}
 ) {
   assertValidField(field);
 
-  const value = useFieldSelector(props, field, { fallback, reduxKey, tag });
+  // URL field sync: check URL search params for an override of the fallback.
+  // Only applies to fields with url:true — other fields skip this entirely.
+  const propsId = (props as any)?.id;
+  const urlOverride = field.url ? getUrlOverride(propsId, field) : undefined;
+  const effectiveFallback = urlOverride !== undefined ? urlOverride : fallback;
 
-  const ref = useRef({ props, field, reduxKey, tag });
-  ref.current = { props, field, reduxKey, tag };
+  const value = useFieldSelector(props, field, { fallback: effectiveFallback, stateKey, tag });
+
+  const ref = useRef({ props, field, stateKey, tag });
+  ref.current = { props, field, stateKey, tag };
   const setValue = useCallback(
     (newValue: any) => {
-      const { props, field, reduxKey, tag } = ref.current;
-      updateField(props, field, newValue, { reduxKey, tag });
+      const { props, field, stateKey, tag } = ref.current;
+      updateField(props, field, newValue, { stateKey, tag });
+      // Sync to URL for url-enabled fields
+      if (field.url) {
+        setUrlValue((props as any)?.id, field, newValue);
+      }
     },
     []
   );
@@ -341,23 +351,23 @@ type ReduxAggregateOptions<T, R = any> = {
 export function useAggregate<T = any, R = any>(
   props,
   field: FieldInfo,
-  reduxKeys: ReduxStateKey[],
+  stateKeys: StateKey[],
   { fallback, tag, aggregate = 'list' }: ReduxAggregateOptions<T, R> = {}
 ) {
   assertValidField(field);
 
   return useSelector(
     (state) => {
-      const values = reduxKeys.map((reduxKey) =>
-        fieldSelector(state, props, field, { fallback, reduxKey, tag }),
+      const values = stateKeys.map((stateKey) =>
+        fieldSelector(state, props, field, { fallback, stateKey, tag }),
       );
 
       if (typeof aggregate === 'function') {
-        return aggregate(values, reduxKeys as unknown as string[]);
+        return aggregate(values, stateKeys as unknown as string[]);
       }
 
       if (aggregate === 'object') {
-        return Object.fromEntries(reduxKeys.map((key, index) => [key, values[index]]));
+        return Object.fromEntries(stateKeys.map((key, index) => [key, values[index]]));
       }
 
       return values;
@@ -403,7 +413,7 @@ export function useReduxInput(
     }
   );
 
-  const id = idResolver.refToReduxKey(props);
+  const id = scopedStateKeyForBlock(props);
   const tag = props.loBlock.name;
   const logEvent = props.runtime.logEvent;
 
@@ -463,7 +473,7 @@ export function useReduxCheckbox(
   props,
   field: FieldInfo,
   fallback = false,
-  opts: { reduxKey?: ReduxStateKey; tag?: string } = {}
+  opts: { stateKey?: StateKey; tag?: string } = {}
 ) {
   assertValidField(field);
   const [checked, setChecked] = useFieldState(props, field, fallback, opts);
@@ -472,28 +482,14 @@ export function useReduxCheckbox(
 }
 
 /**
- * Helper to get a field from another component by string name.
- * Throws if the component or field is not found to prevent typos.
- *
- * Note that this should only be used when field names are coming
- * from user input (e.g. OLX files). Otherwise, we should treat
- * fields as if they were an enum or symbol, and only use as
- * `fields.field`
- *
- * @param {Object} props - Component props with blockRegistry and olxJsonSources
- * @param {string} targetId - ID of the target component
- * @param {string} fieldName - Name of the field to access (e.g., 'value')
- * @returns {FieldInfo} The field info
- * @throws {Error} If component or field not found
+ * Core: look up a field definition given a resolved DefinitionKey.
  */
-export function componentFieldByName(props: RuntimeProps, targetId: OlxKey | ReduxStateKey, fieldName: string) {
-  // Normalize to OlxKey: handles both bare OlxKey (unchanged) and scoped ReduxStateKey (extracts leaf)
-  const normalizedId = idResolver.reduxKeyToOlxKey(targetId as ReduxStateKey);
+function _componentField(props: RuntimeProps, definitionKey: DefinitionKey, fieldName: string): FieldInfo {
   const sources = props.runtime.olxJsonSources ?? ['content'];
   const locale = props.runtime.locale.code;
-  const targetNode = selectBlock(props.runtime.store.getState(), sources, normalizedId, locale);
+  const targetNode = selectBlock(props.runtime.store.getState(), sources, definitionKey, locale);
   if (!targetNode) {
-    throw new Error(`Could not find component "${targetId}". Check that the id exists in your OLX and is spelled correctly.`);
+    throw new Error(`Could not find component "${definitionKey}". Check that the id exists in your OLX and is spelled correctly.`);
   }
 
   const targetLoBlock = props.runtime.blockRegistry[targetNode.tag];
@@ -504,11 +500,25 @@ export function componentFieldByName(props: RuntimeProps, targetId: OlxKey | Red
   const field = targetLoBlock.fields?.[fieldName];
   if (!field) {
     const availableFields = Object.keys(targetLoBlock.fields || {});
-    throw new Error(`<${targetNode.tag} id="${targetId}"> has no "${fieldName}" field. Available fields: ${availableFields.join(', ') || 'none'}`);
+    throw new Error(`<${targetNode.tag} id="${definitionKey}"> has no "${fieldName}" field. Available fields: ${availableFields.join(', ') || 'none'}`);
   }
 
   return field;
 }
+
+/**
+ * Look up a field definition from another component by StateKey and field name.
+ * Use when you have a resolved StateKey (from stateKeyForGlobalRef or scopedStateKeyForBlock).
+ *
+ * @example
+ *   const targetStateKey = stateKeyForGlobalRef(target);
+ *   const field = componentFieldByStateKey(props, targetStateKey, 'value');
+ *   const val = useFieldSelector(props, field, { stateKey: targetStateKey });
+ */
+export function componentFieldByStateKey(props: RuntimeProps, stateKey: StateKey, fieldName: string): FieldInfo {
+  return _componentField(props, leafDefinitionKeyFromStateKey(stateKey), fieldName);
+}
+
 
 /**
  * Selector function to get a component's value by ID.
@@ -527,14 +537,14 @@ export function componentFieldByName(props: RuntimeProps, targetId: OlxKey | Red
  *
  * Used when we need a component's own props outside of its render tree
  * (e.g., calling selectValue from valueSelector). Looks up the component's
- * OlxDomNode by ReduxStateKey — if found, delegates to propsFromNode.
+ * OlxDomNode by StateKey — if found, delegates to propsFromNode.
  *
  * Falls back to manual construction with the caller's runtime context if
  * the target hasn't been rendered yet (no DomNode available).
  */
-export function propsForNode(callerProps: RuntimeProps, reduxKey: ReduxStateKey, node: OlxJson, loBlock: LoBlock) {
+export function propsForNode(callerProps: RuntimeProps, stateKey: StateKey, node: OlxJson, loBlock: LoBlock) {
   const domNode = callerProps.nodeInfo
-    ? getDomNodeByReduxKey(callerProps, reduxKey)
+    ? getDomNodeByStateKey(callerProps, stateKey)
     : null;
 
   if (domNode) return propsFromNode(domNode);
@@ -580,15 +590,15 @@ export { blockData, withStatus, RETURNS_BLOCK_DATA } from './blockData';
 export function valueSelector(
   props: RuntimeProps,
   state: any,
-  reduxKey: ReduxStateKey | null | undefined,
+  stateKey: StateKey | null | undefined,
   { fallback = '' } = {} as { fallback?: any }
 ): BlockDataResult & { value: any } {
-  if (reduxKey === undefined || reduxKey === null) {
+  if (stateKey === undefined || stateKey === null) {
     return { value: fallback, ...blockData('ready') };
   }
 
-  // ReduxStateKey → OlxKey for content store lookup
-  const mapKey = idResolver.reduxKeyToOlxKey(reduxKey);
+  // StateKey → DefinitionKey for content store lookup
+  const mapKey = leafDefinitionKeyFromStateKey(stateKey);
   const sources = props.runtime.olxJsonSources ?? ['content'];
   const locale = props.runtime.locale.code;
   const targetNode = selectBlock(state, sources, mapKey, locale);
@@ -597,23 +607,23 @@ export function valueSelector(
   if (!targetNode || !loBlock) {
     const bs = selectBlockState(state, sources, mapKey);
     if (bs?.loadingState?.status === 'error') {
-      return { value: fallback, ...blockData('error', bs.error?.message ?? `Block "${reduxKey}" not found`) };
+      return { value: fallback, ...blockData('error', bs.error?.message ?? `Block "${stateKey}" not found`) };
     }
     return { value: fallback, ...blockData('loading') };
   }
 
   if (loBlock.selectValue) {
-    const targetProps = propsForNode(props, reduxKey, targetNode, loBlock);
+    const targetProps = propsForNode(props, stateKey, targetNode, loBlock);
 
     if ((loBlock.selectValue as any)[RETURNS_BLOCK_DATA]) {
-      return loBlock.selectValue(targetProps, state, reduxKey);
+      return loBlock.selectValue(targetProps, state, stateKey);
     }
 
-    return { value: loBlock.selectValue(targetProps, state, reduxKey), ...blockData('ready') };
+    return { value: loBlock.selectValue(targetProps, state, stateKey), ...blockData('ready') };
   }
 
   // Fall back to direct field access using the common 'value' field
-  return { value: fieldSelector(state, props, commonFields.value, { reduxKey, fallback }), ...blockData('ready') };
+  return { value: fieldSelector(state, props, commonFields.value, { stateKey, fallback }), ...blockData('ready') };
 }
 
 /**
@@ -630,20 +640,20 @@ export function valueSelector(
 export function useValue(
   props: RuntimeProps,
   {
-    reduxKey,
+    stateKey,
     target,
     fallback,
   }: {
-    reduxKey?: ReduxStateKey | null;
-    target?: OlxReference | null;
+    stateKey?: StateKey | null;
+    target?: StateRef | null;
     fallback?: any;
   } = {}
 ): BlockDataResult & { value: any } {
-  // Priority: explicit reduxKey > target (resolved) > own component
-  const resolvedKey: ReduxStateKey | null =
-    reduxKey !== undefined ? reduxKey
-    : target !== undefined ? (target ? idResolver.refToReduxKey({ ...props, id: target }) as ReduxStateKey : null)
-    : idResolver.refToReduxKey(props);
+  // Priority: explicit stateKey > target (resolved) > own component
+  const resolvedKey: StateKey | null =
+    stateKey !== undefined ? stateKey
+    : target !== undefined ? (target ? stateKeyForGlobalRef(target) : null)
+    : scopedStateKeyForBlock(props);
 
   const result = useSelector(
     (state) => valueSelector(props, state, resolvedKey, { fallback }),
@@ -658,7 +668,7 @@ export function useValue(
   const sideEffectFree = props.runtime.sideEffectFree;
   useEffect(() => {
     if (resolvedKey && result.loading) {
-      ensureBlock(props, idResolver.reduxKeyToOlxKey(resolvedKey), source);
+      ensureBlock(props, leafDefinitionKeyFromStateKey(resolvedKey), source);
     }
   }, [resolvedKey, result.status, source, sideEffectFree]);
 
@@ -695,7 +705,9 @@ export function useTextContent(
   props: RuntimeProps,
   { fallback = '' }: { fallback?: string } = {}
 ): { text: string; loading: boolean; error: string | null; ready: boolean } {
-  const target = props.target as OlxReference | undefined;
+  const target = typeof props.target === 'string'
+    ? parseAnyStateRef(props.target)
+    : undefined;
   const result = useValue(props, { target, fallback });
 
   const text =
@@ -722,11 +734,11 @@ export function useTextContent(
  */
 export function useComponentState(
   props,
-  reduxKey: ReduxStateKey,
+  stateKey: StateKey,
   { scope = scopes.component }: { scope?: string } = {}
 ) {
   return useSelector(
-    (state: any) => state?.application_state?.[scope]?.[reduxKey] || null,
+    (state: any) => state?.application_state?.[scope]?.[stateKey] || null,
     shallowEqual
   );
 }

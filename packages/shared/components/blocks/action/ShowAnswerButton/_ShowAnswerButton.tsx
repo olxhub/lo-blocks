@@ -4,8 +4,9 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo, useCallback } from 'react';
 import * as state from '@/lib/state';
+import { showAnswer as showAnswerField } from '@/lib/state/commonFields';
 import { getGrader } from '@/lib/blocks';
-import { refToReduxKey } from '@/lib/types/id';
+import { scopedStateKeyForBlock, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import { DisplayError } from '@/lib/util/debug';
 
 /**
@@ -15,37 +16,43 @@ import { DisplayError } from '@/lib/util/debug';
 function _ShowAnswerButton(props: RuntimeProps) {
   const { label = 'Show Answer', target } = props;
 
-  // Resolve target grader ReduxStateKeys - explicit target or parent inference
-  const graderReduxKeys = useMemo(() => {
+  // Resolve target grader StateKeys - explicit target or parent inference
+  const graderStateKeys = useMemo(() => {
     if (target) {
-      // target is z_reduxStateKeyList — already an array of ReduxStateKeys
-      return Array.isArray(target) ? target : [target];
+      // target is z_stateRefList — resolve authored refs globally (no idPrefix).
+      const targetRefs = Array.isArray(target) ? target : [target];
+      return targetRefs.map(ref => stateKeyForGlobalRef(ref));
     }
     try {
-      // getGrader returns OlxKey — convert to ReduxStateKey
-      return [refToReduxKey({ ...props, id: getGrader(props) })];
+      // getGrader now returns StateKey directly
+      return [getGrader(props)];
     } catch (e) {
       return [];
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target]);
 
-  // Read showAnswer from first grader (or use own key as fallback for hook stability)
-  const primaryGraderKey = graderReduxKeys[0] ?? refToReduxKey(props);
-  const showAnswerField = state.componentFieldByName(props, primaryGraderKey, 'showAnswer');
-  const [showAnswer] = state.useFieldState(props, showAnswerField, false, { reduxKey: primaryGraderKey });
+  // Read showAnswer from first grader. When no grader found, use own key and
+  // the global showAnswer field for hook stability — the value is unused since
+  // we render DisplayError below.
+  const hasGraders = graderStateKeys.length > 0;
+  const primaryGraderKey = graderStateKeys[0] ?? scopedStateKeyForBlock(props);
+  const resolvedField = hasGraders
+    ? state.componentFieldByStateKey(props, primaryGraderKey, 'showAnswer')
+    : showAnswerField;
+  const [showAnswer] = state.useFieldState(props, resolvedField, false, { stateKey: primaryGraderKey });
 
   const handleClick = useCallback(() => {
     const newValue = !showAnswer;
     // Toggle all targeted graders
-    for (const graderKey of graderReduxKeys) {
-      const field = state.componentFieldByName(props, graderKey, 'showAnswer');
-      state.updateField(props, field, newValue, { reduxKey: graderKey });
+    for (const graderKey of graderStateKeys) {
+      const field = state.componentFieldByStateKey(props, graderKey, 'showAnswer');
+      state.updateField(props, field, newValue, { stateKey: graderKey });
     }
-  }, [showAnswer, graderReduxKeys, props]);
+  }, [showAnswer, graderStateKeys, props]);
 
   // No graders found - show error (after all hooks)
-  if (graderReduxKeys.length === 0) {
+  if (graderStateKeys.length === 0) {
     return (
       <DisplayError
         title="ShowAnswerButton"

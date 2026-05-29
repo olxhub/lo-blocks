@@ -20,7 +20,7 @@ import { useCallback, useRef } from 'react';
 
 import { useFieldState } from '../../redux';
 import { assertValidField } from '../../fields';
-import type { FieldInfo, RuntimeProps, ReduxStateKey } from '../../../types';
+import type { FieldInfo, RuntimeProps, StateKey } from '../../../types';
 
 /** Convert whatever is in Redux to a Set<string>. */
 function toSet(raw: any): Set<string> {
@@ -36,7 +36,7 @@ function toSet(raw: any): Set<string> {
 export function useSet(
   props: RuntimeProps,
   field: FieldInfo,
-  { reduxKey, tag }: { reduxKey?: ReduxStateKey; tag?: string } = {}
+  { stateKey, tag }: { stateKey?: StateKey; tag?: string } = {}
 ) {
   if (field.kind && field.kind !== 'set') {
     throw new Error(
@@ -46,7 +46,7 @@ export function useSet(
   }
   assertValidField(field);
 
-  const [raw, setRaw] = useFieldState(props, field, [], { reduxKey, tag });
+  const [raw, setRaw] = useFieldState(props, field, [], { stateKey, tag });
   const values = toSet(raw);
 
   const ref = useRef(values);

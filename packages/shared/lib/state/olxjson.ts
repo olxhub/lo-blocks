@@ -18,7 +18,7 @@
 import { useSelector } from 'react-redux';
 import * as lo_event from 'lo_event';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
-import type { OlxJson, OlxKey, IdMap, UserLocale, VariantMap } from '../types';
+import type { OlxJson, DefinitionKey, IdMap, UserLocale, VariantMap } from '../types';
 import type { LogEventFn } from '../render';
 
 // =============================================================================
@@ -372,18 +372,18 @@ export function olxjsonReducer(
  * feels a bit beyond scope.
  *
  * Callers should extract state and locale from props before calling:
- *   selectBlock(props.runtime.store.getState(), sources, olxKey, props.runtime.locale.code)
+ *   selectBlock(props.runtime.store.getState(), sources, definitionKey, props.runtime.locale.code)
  *
  * @param state - Redux root state
  * @param sources - Array of source names in priority order
- * @param id - OlxKey to look up
+ * @param id - DefinitionKey to look up
  * @param locale - User's current locale for language variant selection
  * @returns OlxJson if found and ready, undefined otherwise
  */
 export function selectBlock(
   state: RootState,
   sources: string[],
-  id: OlxKey,
+  id: DefinitionKey,
   locale: UserLocale
 ): OlxJson | undefined {
 
@@ -409,13 +409,13 @@ export function selectBlock(
  *
  * @param state - Redux root state
  * @param sources - Array of source names in priority order
- * @param id - OlxKey to look up
+ * @param id - DefinitionKey to look up
  * @returns BlockEntry if found in any source, undefined otherwise
  */
 export function selectBlockState(
   state: RootState,
   sources: string[],
-  id: OlxKey
+  id: DefinitionKey
 ): BlockEntry | undefined {
   const olxjson = state.application_state?.olxjson;
   if (!olxjson) return undefined;
@@ -550,11 +550,11 @@ export function selectVariantTiers(state: RootState): VariantTiers {
  * React hook to select a block from Redux.
  *
  * @param sources - Array of source names in priority order
- * @param id - OlxKey to look up
+ * @param id - DefinitionKey to look up
  * @param locale - BCP 47 locale code (e.g., 'en-Latn-US')
  * @returns OlxJson if found and ready, undefined otherwise
  */
-export function useOlxJsonBlock(sources: string[], id: OlxKey, locale: UserLocale): OlxJson | undefined {
+export function useOlxJsonBlock(sources: string[], id: DefinitionKey, locale: UserLocale): OlxJson | undefined {
   return useSelector((state: RootState) => selectBlock(state, sources, id, locale));
 }
 
@@ -562,12 +562,12 @@ export function useOlxJsonBlock(sources: string[], id: OlxKey, locale: UserLocal
  * React hook to select a block's full state from Redux.
  *
  * @param sources - Array of source names in priority order
- * @param id - OlxKey to look up
+ * @param id - DefinitionKey to look up
  * @returns BlockEntry if found, undefined otherwise
  */
 export function useOlxJsonBlockState(
   sources: string[],
-  id: OlxKey
+  id: DefinitionKey
 ): BlockEntry | undefined {
   return useSelector((state: RootState) => selectBlockState(state, sources, id));
 }

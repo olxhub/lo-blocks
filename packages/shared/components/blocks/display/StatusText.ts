@@ -11,7 +11,7 @@
 //
 // How it works:
 // 1. Uses inferRelatedNodes to find related graders (components with isGrader=true)
-// 2. Uses componentFieldByName to get the specified field from the target component
+// 2. Uses componentFieldByStateKey to get the specified field from the target component
 // 3. Displays that field's value using useFieldSelector
 //
 // Usage examples:
@@ -26,7 +26,7 @@
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import { ignore } from '@/lib/content/parsers';
-import { z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
+import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 import _StatusText from './_StatusText';
 
 const StatusText = dev({
@@ -38,7 +38,7 @@ const StatusText = dev({
   internal: true,
   attributes: z.object({
     field: z.string().default('message').describe('Field name to display from the target component'),
-    target: z_reduxStateKey.optional().describe('ID of specific component to read from; infers from parent grader if omitted'),
+    target: z_stateRef.optional().describe('ID of specific component to read from; infers from parent grader if omitted'),
   }).strict(),
 });
 

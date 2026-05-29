@@ -21,7 +21,7 @@ const SortableInput = core({
   description: 'Drag-and-drop sortable input for ordering tasks',
   component: _SortableInput,
   fields,
-  selectValue: (props: RuntimeProps, state, _reduxKey) => ({
+  selectValue: (props: RuntimeProps, state, _stateKey) => ({
     arrangement: fieldSelector(state, props, fields.arrangement, { fallback: [] })
   }),
   attributes: z.object({

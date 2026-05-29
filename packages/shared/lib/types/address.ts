@@ -57,7 +57,7 @@ export type LofsCanonical = LofsRef & { readonly __resolved: true };
 /**
  * LOFS source — identifies a specific content source.
  * The source part of a reference, without version or path.
- * Used as the namespace qualifier for OlxKeys in cross-repo references.
+ * Used as the namespace qualifier for DefinitionKeys in cross-repo references.
  *
  * Examples:
  *   git@github.com:olxhub/lo-blocks.git

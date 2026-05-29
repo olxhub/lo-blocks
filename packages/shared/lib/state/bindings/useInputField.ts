@@ -23,11 +23,11 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { useFieldState, useFieldSelector, updateField } from '../redux';
 import { shallowEqual } from 'react-redux';
-import type { FieldInfo, RuntimeProps, ReduxStateKey } from '../../types';
+import type { FieldInfo, RuntimeProps, StateKey } from '../../types';
 
 type InputFieldOptions = {
   updateValidator?: (val: string) => boolean;
-  reduxKey?: ReduxStateKey;
+  stateKey?: StateKey;
   tag?: string;
 };
 
@@ -41,9 +41,9 @@ export function useInputField(
   props: RuntimeProps,
   field: FieldInfo,
   fallback = '',
-  { updateValidator, reduxKey, tag }: InputFieldOptions = {}
+  { updateValidator, stateKey, tag }: InputFieldOptions = {}
 ) {
-  const [value, setValue] = useFieldState(props, field, fallback, { reduxKey, tag });
+  const [value, setValue] = useFieldState(props, field, fallback, { stateKey, tag });
 
   // Selection state — stored as sibling keys in Redux alongside the value
   const selection = useFieldSelector(
@@ -55,7 +55,7 @@ export function useInputField(
         selectionEnd: cs?.[`${field.name}.selectionEnd`] ?? 0,
       }),
       equalityFn: shallowEqual,
-      reduxKey,
+      stateKey,
       tag,
     }
   );
@@ -66,16 +66,16 @@ export function useInputField(
   // for cursor position. setValue doesn't accept extraPayload because
   // callers like CodeMirror pass unrelated second args (ViewUpdate) that
   // would get spread into the event payload and break serialization.
-  const fieldRef = useRef({ props, field, reduxKey, tag });
-  fieldRef.current = { props, field, reduxKey, tag };
+  const fieldRef = useRef({ props, field, stateKey, tag });
+  fieldRef.current = { props, field, stateKey, tag };
 
   const onChange = useCallback((event: any) => {
     const val = event.target.value;
     if (updateValidator && !updateValidator(val)) return;
 
-    const { props, field, reduxKey, tag } = fieldRef.current;
+    const { props, field, stateKey, tag } = fieldRef.current;
     updateField(props, field, val, {
-      reduxKey, tag,
+      stateKey, tag,
       extraPayload: {
         [`${field.name}.selectionStart`]: event.target.selectionStart,
         [`${field.name}.selectionEnd`]: event.target.selectionEnd,

@@ -8,14 +8,14 @@ lang: en-Latn-US
 -->
 <!-- Psychology SBA Part 4: Fidelity of Implementation -->
 <SplitPanel
-    id="psych_sba_sba_part4"
+    id="psych_sba_part4"
     sizes="40, 60"
     title="Psychology Study Group: 4. Fidelity of Implementation"
     launchable="true">
 
   <!-- Left Panel: SMS Conversation -->
   <LeftPane>
-    <Chat id="psych_sba_chat4" src="psych_sba_part4.chatpeg" cast="characters.cast" height="400px" />
+    <Chat id="psych_sba_chat4" src="psych_sba_part4.chatpeg" cast="characters.cast" height="400px" print="false" />
   </LeftPane>
 
   <!-- Right Panel: Activities reference -->

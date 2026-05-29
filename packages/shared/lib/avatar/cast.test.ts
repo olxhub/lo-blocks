@@ -27,6 +27,8 @@ import {
 import { parseOLX } from '@/lib/content/parseOLX';
 import { InMemoryStorageProvider } from '@/lib/lofs/providers/memory';
 import { toMemoryRef } from '@/lib/types/storage';
+import { TEST_NS, testKey } from '@/lib/test-utils';
+import { asDefinitionKey } from '@/lib/types/id-grammar';
 
 // =============================================================================
 // parseCastYaml — parse YAML text into a validated Cast object
@@ -506,7 +508,7 @@ describe('Integration: withCastSupport parse-time loading', () => {
     const { idMap } = await parseOLX(olx, [toMemoryRef('test.olx')], provider);
 
     // The Cast block should have the parsed cast object (not a string) in its attributes
-    const castEntry = idMap['test_cast'];
+    const castEntry = idMap[testKey('test_cast')];
     expect(castEntry).toBeDefined();
     const castEntryData = Object.values(castEntry)[0] as any;  // first language variant
     expect(castEntryData.attributes.cast).toBeDefined();
@@ -516,7 +518,7 @@ describe('Integration: withCastSupport parse-time loading', () => {
     expect(castEntryData.attributes.cast.alice.groups).toEqual(['team_a', 'design']);
 
     // TeamDirectory should also be in the idMap
-    const dirEntry = idMap['test_dir'];
+    const dirEntry = idMap[testKey('test_dir')];
     expect(dirEntry).toBeDefined();
   });
 });

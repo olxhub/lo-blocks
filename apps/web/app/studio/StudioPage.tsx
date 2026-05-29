@@ -68,7 +68,7 @@ function useEditComponentState(field, provenance, defaultState) {
     null,
     field,
     defaultState,
-    { reduxKey: provenance }
+    { stateKey: provenance }
   );
 }
 
@@ -79,7 +79,7 @@ function getEditComponentState(field, provenance, defaultState) {
     null,
     field,
     defaultState,
-    { reduxKey: provenance }
+    { stateKey: provenance }
   );
 }
 

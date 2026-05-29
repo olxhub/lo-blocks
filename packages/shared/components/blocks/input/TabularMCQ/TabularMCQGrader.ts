@@ -13,6 +13,7 @@
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import { core, correctness, getInputs, getBlockByOLXId } from '@/lib/blocks';
+import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 
@@ -30,13 +31,14 @@ function getTabularMCQDisplayAnswer(props) {
   // blockRegistry and construct props - that's infrastructure logic.
   try {
     const inputIds = getInputs(props);
-    const inputNode = getBlockByOLXId(props, inputIds[0]);
+    const inputDefKey = leafDefinitionKeyFromStateKey(inputIds[0]);
+    const inputNode = getBlockByOLXId(props, inputDefKey);
     const inputBlueprint = inputNode ? props.runtime.blockRegistry?.[inputNode.tag] : null;
 
     if (inputBlueprint?.locals?.getAnswers) {
       const inputProps = {
         ...props,
-        id: inputIds[0],
+        id: inputDefKey,
         ...inputNode?.attributes,
         kids: inputNode?.kids
       };

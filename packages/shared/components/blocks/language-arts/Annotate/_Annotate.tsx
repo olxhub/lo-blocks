@@ -19,12 +19,12 @@
 //
 'use client';
 
-import type { RuntimeProps, OlxReference } from '@/lib/types';
+import type { RuntimeProps, DefinitionRef } from '@/lib/types';
 
 import React, { useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useFieldState, useSet, useNextId, updateField } from '@/lib/state';
-import { extendIdPrefix, scopeMarker, toOlxReference, refToReduxKey } from '@/lib/types/id';
+import { extendIdPrefix, scopeMarker, parseDefinitionRef, scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { useKids, useBlock } from '@/lib/render';
 import { assertKidArray } from '@/lib/util/kids';
 import { groupHue, themeColors } from '@/lib/util/colorWheel';
@@ -45,7 +45,7 @@ import type { AnnotationRange } from './useHighlights';
 
 /**
  * Build scoped props for an annotation. Sets idPrefix at both the top level
- * (where refToReduxKey reads it) and on runtime (where child blocks read it).
+ * (where scopedStateKeyForBlock reads it) and on runtime (where child blocks read it).
  *
  * For noteId "2" on block "annotate_demo", the Redux key becomes
  * "annotate_demo:#2" — and fields like `quote` store under
@@ -220,7 +220,7 @@ function CustomEditor({
   editorId: string;
 }) {
   const scoped = scopedNoteProps(props, noteId);
-  const ref = toOlxReference(editorId) as OlxReference;
+  const ref = parseDefinitionRef(editorId) as DefinitionRef;
   const { block } = useBlock(scoped, ref);
   return <>{block}</>;
 }
@@ -570,15 +570,15 @@ export default function _Annotate(props: RuntimeProps) {
 function useAnnotationRanges(props: RuntimeProps, noteIds: string[]): AnnotationRange[] {
   // Precompute the Redux keys outside the selector — they depend on props
   // and noteIds, not on Redux state.
-  const reduxKeys = noteIds.map((noteId) => ({
+  const stateKeys = noteIds.map((noteId) => ({
     noteId,
-    key: refToReduxKey(scopedNoteProps(props, noteId)),
+    key: scopedStateKeyForBlock(scopedNoteProps(props, noteId)),
   }));
 
   return useSelector(
     (state: any) => {
       const component = state?.application_state?.component ?? {};
-      return reduxKeys.map(({ noteId, key }) => {
+      return stateKeys.map(({ noteId, key }) => {
         const s = component[key] ?? {};
         return {
           noteId,

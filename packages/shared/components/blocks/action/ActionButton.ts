@@ -3,7 +3,7 @@ import { z } from 'zod';
 import * as blocks from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
-import { z_reduxStateKeyList } from '@/lib/blocks/attributeSchemas';
+import { z_stateRefList } from '@/lib/blocks/attributeSchemas';
 import _ActionButton from './_ActionButton';
 
 export const fields = state.fields([
@@ -18,7 +18,7 @@ const ActionButton = blocks.dev({
   fields,
   attributes: z.object({
     label: z.string().describe('Button text displayed to the user'),
-    target: z_reduxStateKeyList.optional().describe('Action block ID(s) to trigger, comma-separated (inferred from context if omitted)'),
+    target: z_stateRefList.optional().describe('Action block ID(s) to trigger, comma-separated (inferred from context if omitted)'),
     // TODO: action attribute exists in OLX but is not currently consumed by executeNodeActions.
     // It may be intended for targets with multiple named actions (e.g., action="advance" vs action="reset").
     action: z.string().optional().describe('Named action to invoke (currently unused; reserved for multi-action targets)'),

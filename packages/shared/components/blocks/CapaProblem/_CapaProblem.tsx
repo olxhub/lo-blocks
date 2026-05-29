@@ -4,7 +4,6 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect } from 'react';
 import { correctness, worstCaseCorrectness } from '@/lib/blocks';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
-import { refToReduxKey } from '@/lib/types/id';
 import * as state from '@/lib/state';
 import { useKids, renderBlock } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
@@ -46,6 +45,28 @@ function getHeaderStateClass(correctnessValue: string) {
     case correctness.incorrect: return 'lo-problem__header--incorrect';
     default: return '';
   }
+}
+
+function noGraderTechnicalDetails(props: RuntimeProps, childGraderIds: string[]) {
+  const node = props.nodeInfo?.olxJson;
+  return {
+    hint: 'CapaProblem expects at least one child block with isGrader=true',
+    id: props.id,
+    title: props.title,
+    tag: node?.tag,
+    stateKey: props.nodeInfo?.stateKey,
+    provenance: node?.provenance,
+    sourceOffset: node?._sourceOffset,
+    childGraderIds,
+    consoleHint: 'Raw props.kids and props.nodeInfo.renderedKids are logged in this DisplayError data payload.',
+  };
+}
+
+function noGraderDebugData(props: RuntimeProps) {
+  return {
+    kids: props.kids,
+    renderedKids: props.nodeInfo?.renderedKids,
+  };
 }
 
 // --- Hooks ---
@@ -91,15 +112,15 @@ function useGraderAggregation(props, childGraderIds) {
   // reference. Fall back to self (CapaProblem also has grader fields).
   const sampleGraderId = childGraderIds[0] || id;
 
-  // inferRelatedNodes returns OlxKeys — convert to ReduxStateKeys for useAggregate
-  const childGraderReduxKeys = childGraderIds.map(gid => refToReduxKey({ ...props, id: gid }));
+  // inferRelatedNodes returns StateKeys — use directly for useAggregate
+  const childGraderStateKeys = childGraderIds;
 
   // Subscribe to child grader correctness values
-  const correctField = state.componentFieldByName(props, sampleGraderId, 'correct');
+  const correctField = state.componentFieldByStateKey(props, sampleGraderId, 'correct');
   const childCorrectnessValues = state.useAggregate(
     props,
     correctField,
-    hasChildGraders ? childGraderReduxKeys : [],
+    hasChildGraders ? childGraderStateKeys : [],
     {
       fallback: correctness.unsubmitted,
       aggregate: (values) => values.map(v => v ?? correctness.unsubmitted)
@@ -111,11 +132,11 @@ function useGraderAggregation(props, childGraderIds) {
     : correctness.unsubmitted;
 
   // Subscribe to child grader messages
-  const messageField = state.componentFieldByName(props, sampleGraderId, 'message');
+  const messageField = state.componentFieldByStateKey(props, sampleGraderId, 'message');
   const childMessages = state.useAggregate(
     props,
     messageField,
-    hasChildGraders ? childGraderReduxKeys : [],
+    hasChildGraders ? childGraderStateKeys : [],
     {
       fallback: '',
       aggregate: (values) => values.map(v => v ?? '')
@@ -125,11 +146,11 @@ function useGraderAggregation(props, childGraderIds) {
 
   // Subscribe to child grader submitCounts - sum them for flash animation
   // TODO: Wire this more cleanly?
-  const submitCountField = state.componentFieldByName(props, sampleGraderId, 'submitCount');
+  const submitCountField = state.componentFieldByStateKey(props, sampleGraderId, 'submitCount');
   const childSubmitCounts = state.useAggregate(
     props,
     submitCountField,
-    hasChildGraders ? childGraderReduxKeys : [],
+    hasChildGraders ? childGraderStateKeys : [],
     {
       fallback: 0,
       aggregate: (values) => values.map(v => v ?? 0)
@@ -213,8 +234,9 @@ export default function _CapaProblem(props: RuntimeProps) {
         props={props}
         id={`${id}_no_grader`}
         title="CapaProblem"
-        message="No grader found. Add a grader block (e.g., NumericalGrader, KeyGrader) to this problem."
-        technical={{ hint: 'CapaProblem expects at least one child block with isGrader=true' }}
+        message={`No grader found in CapaProblem "${id}". Add a grader block (e.g., NumericalGrader, KeyGrader) to this problem.`}
+        technical={noGraderTechnicalDetails(props, childGraderIds)}
+        data={noGraderDebugData(props)}
       />
     );
   }

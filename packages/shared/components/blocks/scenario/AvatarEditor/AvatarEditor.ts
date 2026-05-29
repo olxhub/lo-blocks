@@ -81,7 +81,7 @@ const AvatarEditor = dev({
   }).strict(),
   locals: { buildYaml, isValidCastIdInput, isValidGroupInput, isValidHexInput },
 
-  selectValue: (props: any, reduxState: any, _reduxKey: any) => {
+  selectValue: (props: any, reduxState: any, _stateKey: any) => {
     const characterId = fieldSelector(reduxState, props, fields.characterId, { fallback: '' });
     const name = fieldSelector(reduxState, props, fields.name, { fallback: '' });
     const seed = fieldSelector(reduxState, props, fields.seed, { fallback: '' });

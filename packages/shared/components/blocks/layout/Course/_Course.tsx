@@ -16,18 +16,34 @@ function CourseContent({ props, selectedChild }) {
   return <>{block}</>;
 }
 
+// Compute the first selectable ID from sections
+function firstSelectableId(sections: any[]): string | null {
+  for (const section of sections) {
+    if (section.type === 'block' && section.id) return section.id;
+    if (section.type === 'chapter' && section.children?.[0]?.id) return section.children[0].id;
+  }
+  return null;
+}
+
+// Find the first chapter ID
+function firstChapterId(sections: any[]): string | null {
+  for (const section of sections) {
+    if (section.type === 'chapter') return section.id;
+  }
+  return null;
+}
+
 function _Course(props: RuntimeProps) {
   const { kids, fields, title } = props;
   const { t } = useBlockTranslation(props);
   const resolvedTitle = title || t('defaultCourseTitle');
-  assertNamedObject(kids, ['chapters']);
-  const chapters = (kids.chapters || []) as any[];
+  assertNamedObject(kids, ['sections']);
+  const sections = (kids.sections || []) as any[];
 
-  // children are { type: 'block', id } objects from parseNode
   const [selectedChild, setSelectedChild] = useFieldState(props, fields.selectedChild,
-    chapters[0]?.children[0]?.id || null);
+    firstSelectableId(sections));
   const [expandedChapter, setExpandedChapter] = useFieldState(props, fields.expandedChapter,
-    chapters[0]?.id || null);
+    firstChapterId(sections));
   const [navCollapsed, setNavCollapsed] = useFieldState(props, fields.navCollapsed, false);
 
   const handleChapterClick = (chapterId) => {
@@ -38,10 +54,14 @@ function _Course(props: RuntimeProps) {
     setSelectedChild(childId);
   };
 
-  // Check if selectedChild is valid (exists in any chapter's children)
+  // Check if selectedChild is valid (exists in any chapter's children or as a loose block)
   let hasValidSelection = false;
-  for (const chapter of chapters) {
-    if (chapter.children.find(child => child.id === selectedChild)) {
+  for (const section of sections) {
+    if (section.type === 'block' && section.id === selectedChild) {
+      hasValidSelection = true;
+      break;
+    }
+    if (section.type === 'chapter' && section.children.find(child => child.id === selectedChild)) {
       hasValidSelection = true;
       break;
     }
@@ -65,40 +85,58 @@ function _Course(props: RuntimeProps) {
         </div>
 
         <div>
-          {chapters.map((chapter) => (
-            <div key={chapter.id}>
-              {/* Chapter Header */}
-              <button
-                onClick={() => handleChapterClick(chapter.id)}
-              >
-                <div>
-                  <span>{chapter.title}</span>
-                  <ExpandIcon expanded={expandedChapter === chapter.id} />
-                </div>
-              </button>
+          {sections.map((section) => {
+            if (section.type === 'chapter') {
+              return (
+                <div key={section.id}>
+                  {/* Chapter Header */}
+                  <button
+                    className="course-chapter-header"
+                    onClick={() => handleChapterClick(section.id)}
+                  >
+                    <div>
+                      <span>{section.title}</span>
+                      <ExpandIcon expanded={expandedChapter === section.id} />
+                    </div>
+                  </button>
 
-              {/* Chapter Children */}
-              {expandedChapter === chapter.id && (
-                <div>
-                  {chapter.children.map((child) => {
-                    // child is { type: 'block', id }, look up full entry from Redux
-                    const childId = child.id;
-                    const childEntry = getBlockByOLXId(props, childId);
-                    const title = childEntry?.attributes?.title || childEntry?.tag || childId;
-                    return (
-                      <button
-                        key={childId}
-                        onClick={() => handleChildClick(childId)}
-                        className={selectedChild === childId ? 'selected' : ''}
-                      >
-                        {title}
-                      </button>
-                    );
-                  })}
+                  {/* Chapter Children */}
+                  {expandedChapter === section.id && (
+                    <div className="course-chapter-children">
+                      {section.children.map((child) => {
+                        const childId = child.id;
+                        const childEntry = getBlockByOLXId(props, childId);
+                        const title = childEntry?.attributes?.title || childEntry?.tag || childId;
+                        return (
+                          <button
+                            key={childId}
+                            onClick={() => handleChildClick(childId)}
+                            className={`course-nav-leaf${selectedChild === childId ? ' selected' : ''}`}
+                          >
+                            {title}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          ))}
+              );
+            }
+
+            // Loose block at top level
+            const blockId = section.id;
+            const blockEntry = getBlockByOLXId(props, blockId);
+            const blockTitle = blockEntry?.attributes?.title || blockEntry?.tag || blockId;
+            return (
+              <button
+                key={blockId}
+                onClick={() => handleChildClick(blockId)}
+                className={`course-nav-leaf course-nav-top-level${selectedChild === blockId ? ' selected' : ''}`}
+              >
+                {blockTitle}
+              </button>
+            );
+          })}
         </div>
       </ResizableSidebar>
 
@@ -107,8 +145,8 @@ function _Course(props: RuntimeProps) {
         {hasValidSelection && selectedChild ? (
           <CourseContent props={props} selectedChild={selectedChild} />
         ) : (
-          <div>
-            <p>{t('selectSectionToBegin')}</p>
+          <div className="course-empty-state">
+            {t('selectSectionToBegin')}
           </div>
         )}
       </div>

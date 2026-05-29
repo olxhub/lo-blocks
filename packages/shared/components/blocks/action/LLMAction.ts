@@ -4,28 +4,30 @@ import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as reduxClient from '@/lib/llm/reduxClient';
-import { z_reduxStateKey } from '@/lib/blocks/attributeSchemas';
+import { z_stateRef } from '@/lib/blocks/attributeSchemas';
+import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import _Hidden from '@/components/blocks/layout/_Hidden';
 
 export const fields = state.fields([]);
 
 // Main LLM action function
 async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
-  const targetElementId = targetInstance.attributes.target;
-  if (!targetElementId) {
+  const targetRef = targetInstance.attributes.target;
+  if (!targetRef) {
     console.warn('⚠️ LLMAction: No target specified in action attributes');
     return;
   }
+  const targetStateKey = stateKeyForGlobalRef(targetRef);
 
   // Get target component's fields dynamically
   // 'state' field is optional — TextSlot has it, TextArea doesn't
-  const valueField = state.componentFieldByName(props, targetElementId, 'value');
+  const valueField = state.componentFieldByStateKey(props, targetStateKey, 'value');
   let stateField;
-  try { stateField = state.componentFieldByName(props, targetElementId, 'state'); } catch {}
+  try { stateField = state.componentFieldByStateKey(props, targetStateKey, 'state'); } catch {}
 
   try {
-    state.updateField(props, valueField, '', { reduxKey: targetElementId });
-    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RUNNING, { reduxKey: targetElementId });
+    state.updateField(props, valueField, '', { stateKey: targetStateKey });
+    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RUNNING, { stateKey: targetStateKey });
 
     const promptText = blocks.extractChildText(props, props.nodeInfo.olxJson);
     if (!promptText.trim()) {
@@ -33,13 +35,13 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
     }
 
     const content = await reduxClient.callLLMSimple(promptText);
-    state.updateField(props, valueField, content, { reduxKey: targetElementId });
-    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RESPONSE_READY, { reduxKey: targetElementId });
+    state.updateField(props, valueField, content, { stateKey: targetStateKey });
+    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.RESPONSE_READY, { stateKey: targetStateKey });
 
   } catch (error) {
     console.error('LLM generation failed:', error);
-    state.updateField(props, valueField, `Error: ${error.message}`, { reduxKey: targetElementId });
-    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.ERROR, { reduxKey: targetElementId });
+    state.updateField(props, valueField, `Error: ${error.message}`, { stateKey: targetStateKey });
+    if (stateField) state.updateField(props, stateField, reduxClient.LLM_STATUS.ERROR, { stateKey: targetStateKey });
   }
 }
 
@@ -90,7 +92,7 @@ const LLMAction = blocks.test({
   component: _Hidden,
   fields,
   attributes: z.object({
-    target: z_reduxStateKey.describe('ID of the TextSlot or LLMFeedback to write output to'),
+    target: z_stateRef.describe('ID of the TextSlot or LLMFeedback to write output to'),
   }).strict(),
 });
 

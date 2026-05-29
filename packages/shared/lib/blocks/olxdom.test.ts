@@ -1,5 +1,6 @@
 // src/lib/blocks/olxdom.test.js
 import { getKidsBFS, getKidsDFS, getParents, inferRelatedNodes, getAllNodes, __testables } from './olxdom';
+import { TEST_NS, testKey } from '../test-utils';
 
 const { normalizeTargetIds, normalizeInfer} = __testables;
 
@@ -10,19 +11,19 @@ const mockRuntime = {} as any;  // Tests don't exercise runtime
 
 const tree = {
   olxJson: { id: 'A' },
-  reduxKey: 'A' as any,
+  stateKey: 'A' as any,
   runtime: mockRuntime,
   loBlock: { isAction: true, isGrader: false, isInput: false, isMatch: false },
   renderedKids: {
     B: {
       olxJson: { id: 'B' },
-      reduxKey: 'B' as any,
+      stateKey: 'B' as any,
       runtime: mockRuntime,
       loBlock: { isAction: false, isGrader: false, isInput: false, isMatch: false },
       renderedKids: {
         D: {
           olxJson: { id: 'D' },
-          reduxKey: 'D' as any,
+          stateKey: 'D' as any,
           runtime: mockRuntime,
           loBlock: { isAction: true, isGrader: false, isInput: false, isMatch: false },
           renderedKids: {},
@@ -33,7 +34,7 @@ const tree = {
     },
     C: {
       olxJson: { id: 'C' },
-      reduxKey: 'C' as any,
+      stateKey: 'C' as any,
       runtime: mockRuntime,
       loBlock: { isAction: true, isGrader: false, isInput: false, isMatch: false },
       renderedKids: {},
@@ -103,9 +104,11 @@ describe('inferRelatedNodes', () => {
     expect(normalizeTargetIds(undefined)).toEqual(false);
     expect(normalizeTargetIds(null)).toEqual(false);
     expect(() => normalizeTargetIds(true)).toThrow();
-    expect(normalizeTargetIds("foo, bar, baz")).toEqual(["foo", "bar", "baz"]);
-    expect(normalizeTargetIds("foo")).toEqual(["foo"]);
-    expect(normalizeTargetIds(["foo", "bar"])).toEqual(["foo", "bar"]);
+    // normalizeTargetIds parses targets as StateRef then resolves to
+    // StateKey — results are namespace-qualified with PLACEHOLDER_NS.
+    expect(normalizeTargetIds("foo, bar, baz")).toEqual(["CONTENT/foo", "CONTENT/bar", "CONTENT/baz"]);
+    expect(normalizeTargetIds("foo")).toEqual(["CONTENT/foo"]);
+    expect(normalizeTargetIds(["foo", "bar"])).toEqual(["CONTENT/foo", "CONTENT/bar"]);
     expect(() => normalizeTargetIds(123)).toThrow();
     expect(() => normalizeTargetIds({})).toThrow();
   });
@@ -172,7 +175,7 @@ describe('inferRelatedNodes', () => {
       { nodeInfo: tree },
       { selector: n => true, targets: "B, C" }
     );
-    expect(result.sort()).toEqual(['B', 'C']);
+    expect(result.sort()).toEqual([testKey('B'), testKey('C')]);
   });
 
   it("throws if no node or selector", () => {

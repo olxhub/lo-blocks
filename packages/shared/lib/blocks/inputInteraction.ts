@@ -8,7 +8,6 @@
 //
 import { correctness } from './correctness';
 import { inferRelatedNodes } from './olxdom';
-import { refToReduxKey } from '../types/id';
 import * as state from '@/lib/state';
 
 /**
@@ -44,13 +43,12 @@ export function isInputReadOnly(props) {
   const graderId = graderIds[0];
 
   try {
-    const correctField = state.componentFieldByName(props, graderId, 'correct');
-    const graderReduxKey = refToReduxKey({ ...props, id: graderId });
+    const correctField = state.componentFieldByStateKey(props, graderId, 'correct');
     const correctnessValue = state.useFieldSelector(
       props,
       correctField,
       {
-        reduxKey: graderReduxKey,
+        stateKey: graderId,
         fallback: correctness.unsubmitted,
         selector: s => s?.correct
       }

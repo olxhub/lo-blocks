@@ -5,7 +5,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect, useRef } from 'react';
 import { useBlock } from '@/lib/render';
 import { useFieldState, useFieldSelector, commonFields } from '@/lib/state';
-import { extendIdPrefix, scopeMarker, toOlxReference, refToReduxKey } from '@/lib/types/id';
+import { extendIdPrefix, scopeMarker, parseDefinitionRef, scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { correctness } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
 import { fisherYatesShuffleInPlace } from '@/lib/util/shuffle';
@@ -94,21 +94,21 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
     ...props,
     runtime: scopedRuntime,
   };
-  const scopedGraderRef = toOlxReference(`${problemId}_grader`, 'MasteryBank grader');
+  const scopedGraderRef = parseDefinitionRef(`${problemId}_grader`, 'MasteryBank grader');
 
   // Render problem - useBlock handles loading state with Spinner
   const { block: renderedProblem, error } = useBlock(scopedProps, problemId);
 
   // TODO: Replace this 7-line pattern with a useCorrectness(props, graderRef) one-liner.
-  // The hook would encapsulate commonFields.correct, refToReduxKey, and useFieldSelector.
+  // The hook would encapsulate commonFields.correct, scopedStateKeyForBlock, and useFieldSelector.
   // Needs design work: scoped idPrefix, grader naming convention, and field selector
   // options all need to compose correctly. Would benefit all grader-aware components.
   const graderField = commonFields.correct;
-  const scopedGraderReduxKey = refToReduxKey({ id: scopedGraderRef, idPrefix: scopedIdPrefix });
+  const scopedGraderStateKey = scopedStateKeyForBlock({ id: scopedGraderRef, idPrefix: scopedIdPrefix });
   const currentCorrectness = useFieldSelector(
     scopedProps,
     graderField,
-    { reduxKey: scopedGraderReduxKey, fallback: correctness.unsubmitted, selector: s => s?.correct }
+    { stateKey: scopedGraderStateKey, fallback: correctness.unsubmitted, selector: s => s?.correct }
   );
 
   const prevCorrectnessRef = useRef(currentCorrectness);

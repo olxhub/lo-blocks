@@ -37,7 +37,7 @@ The manifest maps URL paths to OLX block IDs. Place a `static.config.json` in yo
 }
 ```
 
-Route keys are URL paths. Values are OlxKeys (the `id=` attribute on your root blocks). If no manifest is found, a default is generated from all launchable activities.
+Route keys are URL paths. Values are block IDs (the `id=` attribute on your root blocks). If no manifest is found, a default is generated from all launchable activities.
 
 ## Content sources
 
