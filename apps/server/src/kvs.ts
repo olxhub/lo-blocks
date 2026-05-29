@@ -89,6 +89,10 @@ export class FileKVStore implements KVStore {
     }
   }
 
+  // TODO: persist() does synchronous I/O of the entire store on every
+  // set()/del(). This blocks the event loop and is O(n) in total stored
+  // data. Fine at classroom scale, but for larger deployments switch to
+  // debounced/batched async writes (or use ValkeyKVStore).
   private persist() {
     const tmp = this.filePath + '.tmp';
     fs.writeFileSync(tmp, JSON.stringify(this.data));

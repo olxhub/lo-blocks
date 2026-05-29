@@ -213,6 +213,9 @@ async function bedrockCall(body: any): Promise<LLMProxyResult> {
 
 async function openaiCall(body: any): Promise<LLMProxyResult> {
   body.model = OPENAI_MODEL;
+  if (body.stream) {
+    body.stream_options = { ...body.stream_options, include_usage: true };
+  }
 
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (OPENAI_API_KEY) {
@@ -231,6 +234,10 @@ async function openaiCall(body: any): Promise<LLMProxyResult> {
 // --- Azure OpenAI ------------------------------------------------------------
 
 async function azureCall(body: any): Promise<LLMProxyResult> {
+  if (body.stream) {
+    body.stream_options = { ...body.stream_options, include_usage: true };
+  }
+
   const url = `${AZURE_BASE_URL}deployments/${AZURE_DEPLOYMENT_ID}/chat/completions?api-version=${AZURE_API_VERSION}`;
 
   const response = await fetch(url, {

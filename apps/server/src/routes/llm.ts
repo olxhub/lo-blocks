@@ -21,22 +21,82 @@ import { checkRateLimit, checkTokenBudget, recordTokenUsage } from '../rateLimit
 const ANONYMOUS_SAFE_ID = asSafeUserId('anonymous-fallback');
 
 /** Wrap an LLMProxyResult into a web Response for Hono. */
-function toResponse(c: Context, result: LLMProxyResult): Response {
+function toResponse(c: Context, result: LLMProxyResult, onUsage?: (tokens: number) => void): Response {
   switch (result.kind) {
     case 'json':
       return c.json(result.data);
-    case 'passthrough':
-      return new Response(result.response.body, {
+    case 'passthrough': {
+      const contentType = result.response.headers.get('content-type') || 'application/json';
+      const isStreaming = contentType.includes('text/event-stream');
+      const body = onUsage && result.response.body
+        ? trackPassthroughUsage(result.response.body, isStreaming, onUsage)
+        : result.response.body;
+      return new Response(body, {
         status: result.response.status,
-        headers: {
-          'Content-Type': result.response.headers.get('content-type') || 'application/json',
-        },
+        headers: { 'Content-Type': contentType },
       });
+    }
     case 'error':
       return c.json(
         { error: result.error, ...(result.details && { details: result.details }) },
         result.status as any,
       );
+  }
+}
+
+/**
+ * Wrap a passthrough response body to extract token usage.
+ *
+ * For streaming (SSE): passes every chunk through unchanged, buffers the
+ * text, and on flush parses the last SSE `data:` line containing usage.
+ *
+ * For non-streaming (JSON): buffers the full body, parses usage from the
+ * JSON response, then forwards the body unchanged.
+ */
+function trackPassthroughUsage(
+  body: ReadableStream<Uint8Array>,
+  isStreaming: boolean,
+  onUsage: (tokens: number) => void,
+): ReadableStream<Uint8Array> {
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  return body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({
+    transform(chunk, controller) {
+      controller.enqueue(chunk);
+      buffer += decoder.decode(chunk, { stream: true });
+    },
+    flush() {
+      buffer += decoder.decode();  // flush the decoder
+      const tokens = isStreaming
+        ? extractUsageFromSSE(buffer)
+        : extractUsageFromJSON(buffer);
+      if (tokens > 0) onUsage(tokens);
+    },
+  }));
+}
+
+/** Extract total_tokens from the last SSE data line that contains usage. */
+function extractUsageFromSSE(buffer: string): number {
+  const lines = buffer.split('\n');
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i];
+    if (!line.startsWith('data: ') || line === 'data: [DONE]') continue;
+    try {
+      const data = JSON.parse(line.slice(6));
+      if (data.usage?.total_tokens) return data.usage.total_tokens;
+    } catch { /* not valid JSON, skip */ }
+  }
+  return 0;
+}
+
+/** Extract total_tokens from a JSON response body. */
+function extractUsageFromJSON(buffer: string): number {
+  try {
+    const data = JSON.parse(buffer);
+    return data.usage?.total_tokens ?? 0;
+  } catch {
+    return 0;
   }
 }
 
@@ -90,6 +150,9 @@ export function createLLMHandler(kvs: KVStore) {
     const result = await dispatchLLMProxy(body);
 
     // --- Record token usage (post-call, never rejects) -----------------------
+    // For JSON results (bedrock/stub), usage is available immediately.
+    // For passthrough results (openai/azure), usage is extracted from the
+    // response body via trackPassthroughUsage (streaming or non-streaming).
     if (result.kind === 'json') {
       const totalTokens = result.data?.usage?.total_tokens ?? 0;
       if (totalTokens > 0) {
@@ -97,6 +160,13 @@ export function createLLMHandler(kvs: KVStore) {
       }
     }
 
-    return toResponse(c, result);
+    const onUsage = (tokens: number) => {
+      // Fire-and-forget — the response has already been sent/is streaming.
+      recordTokenUsage(kvs, safeUserId, tokens).catch((err) => {
+        console.error('[LLM] Failed to record token usage:', err);
+      });
+    };
+
+    return toResponse(c, result, onUsage);
   };
 }
