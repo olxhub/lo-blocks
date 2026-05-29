@@ -1,61 +1,22 @@
 // src/lib/llm/profiles.ts
 //
-// Named LLM profiles. Callers specify intent ('translation', 'interactive'),
-// not raw parameters. The mapping from name to config is a stepping stone
-// toward PMSS-based resolution, where profiles will cascade through
-// institution, course, and user-level overrides.
+// LLM profile resolution via PMSS — single source of truth.
 //
-// Two resolution paths:
-//   1. resolveProfile() — static lookup from the hardcoded PROFILES map.
-//      Used by the Next.js route and serverCall.ts (client-agnostic).
-//   2. resolveLLMConfig() — PMSS-based resolution with profile as an
-//      attribute selector. Used by the Hono LLM route. Env vars override
-//      PMSS values so existing deployments keep working.
+// Callers specify intent ('translation', 'interactive'), not raw parameters.
+// PMSS rules in server.pmss (+ local.pmss overrides) resolve to concrete
+// provider, model, and limits.
+//
+// Usage:
+//   const config = resolveLLMConfig('interactive', { authorized: true });
+//   const config = resolveLLMConfigWithFallback('translation');
 
-import { getConfig } from '@/lib/config';
+import { getConfig, getDefaultClasses } from '@/lib/config';
 import type { SelectorMatchContext } from 'pmss';
 import {
-  getProvider,
-  AWS_BEDROCK_MODEL,
-  OPENAI_MODEL,
+  envModelFallback,
+  availableProviders,
+  validateProviderConfig,
 } from '@/lib/llm/provider';
-
-export type LLMProfileConfig = {
-  maxTokens: number;
-  // Future: model, provider, temperature, rateLimits, ...
-};
-
-// TODO: These values are duplicated in server.pmss (llm-max-tokens per
-// profile).  Once the Next.js route switches to resolveLLMConfig() (needs
-// initConfig in Next.js instrumentation.ts), remove this map and
-// resolveProfile entirely — PMSS becomes the single source of truth.
-const PROFILES = {
-  translation: { maxTokens: 16384 },
-  interactive:  { maxTokens: 4096 },
-} satisfies Record<string, LLMProfileConfig>;
-
-export type LLMProfile = keyof typeof PROFILES;
-
-/**
- * Resolve a named profile to its configuration (static lookup).
- *
- * @deprecated Use resolveLLMConfig() when PMSS is available. This function
- * exists only for callers that don't have PMSS initialized (Next.js route,
- * serverCall.ts).
- */
-export function resolveProfile(name: LLMProfile): LLMProfileConfig {
-  const config = PROFILES[name];
-  if (!config) {
-    throw new Error(
-      `Unknown LLM profile "${name}". Known profiles: ${Object.keys(PROFILES).join(', ')}`
-    );
-  }
-  return config;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// PMSS-BASED RESOLUTION
-// ═══════════════════════════════════════════════════════════════════════════════
 
 export type LLMResolvedConfig = {
   provider: string;
@@ -71,9 +32,12 @@ export type LLMResolvedConfig = {
  * Uses the profile name as a PMSS attribute selector:
  *   `.server[profile="interactive"]` matches when profile='interactive'.
  *
- * Env vars override PMSS values: if LLM_PROVIDER is set (or detected via
- * getProvider()), it takes precedence over the PMSS llm-provider value.
- * Similarly, AWS_BEDROCK_MODEL / OPENAI_MODEL override llm-model.
+ * The default classes (from initConfig) include credential-availability
+ * classes, so PMSS rules like `.llm_available_bedrock { llm-provider: bedrock; }`
+ * activate automatically.
+ *
+ * If PMSS llm-model is empty, falls back to the env var for the selected
+ * provider (e.g. AWS_BEDROCK_MODEL for bedrock, OPENAI_MODEL for openai).
  *
  * @param profile - Profile name (e.g. 'interactive', 'translation')
  * @param options.classes - Additional PMSS classes (e.g. from course manifest)
@@ -87,33 +51,69 @@ export function resolveLLMConfig(
   const { classes = [], authorized } = options;
   const authClass = authorized === undefined ? [] :
     authorized ? ['authorized'] : ['guest'];
+
+  const baseClasses = getDefaultClasses();
   const context: SelectorMatchContext = {
-    classes: ['server', ...authClass, ...classes],
+    classes: [...baseClasses, ...authClass, ...classes],
     attributes: { profile },
   };
 
-  const pmssProvider = getConfig('llm-provider', context) ?? 'stub';
+  const provider = getConfig('llm-provider', context) ?? 'stub';
   const pmssModel = getConfig('llm-model', context) ?? '';
-  const pmssMaxTokens = parseInt(getConfig('llm-max-tokens', context) ?? '4096', 10);
-  const pmssRpm = parseInt(getConfig('llm-rpm', context) ?? '20', 10);
-  const pmssTokenBudget = parseInt(getConfig('llm-token-budget', context) ?? '100000', 10);
+  const maxTokens = parseInt(getConfig('llm-max-tokens', context) ?? '4096', 10);
+  const rpm = parseInt(getConfig('llm-rpm', context) ?? '20', 10);
+  const tokenBudget = parseInt(getConfig('llm-token-budget', context) ?? '100000', 10);
 
-  // Env vars override PMSS — keeps existing deployments working.
-  const { provider: envProvider } = getProvider();
-  const provider = envProvider ?? pmssProvider;
+  // Fall back to env var model when PMSS doesn't specify one
+  const model = pmssModel || envModelFallback(provider);
 
-  let model = pmssModel;
-  if (provider === 'bedrock' && AWS_BEDROCK_MODEL) {
-    model = AWS_BEDROCK_MODEL;
-  } else if (provider === 'openai' && OPENAI_MODEL) {
-    model = OPENAI_MODEL;
+  return { provider, model, maxTokens, rpm, tokenBudget };
+}
+
+/**
+ * Resolve LLM config with credential validation and fallback.
+ *
+ * If the PMSS-selected provider lacks credentials, falls back to any
+ * provider that has them. If nothing is available, falls back to stub.
+ *
+ * Use this for call sites that need a guaranteed-usable config (serverCall,
+ * Next.js route). The Hono route uses resolveLLMConfig directly since its
+ * startup already validated the provider.
+ */
+export function resolveLLMConfigWithFallback(
+  profile: string,
+  options: { classes?: string[]; authorized?: boolean } = {},
+): LLMResolvedConfig {
+  const config = resolveLLMConfig(profile, options);
+
+  const { ok } = validateProviderConfig(config.provider);
+  if (ok) return config;
+
+  // Try any available provider.
+  //
+  // TODO(per-provider-limits): The limits (maxTokens, rpm, tokenBudget)
+  // carried forward here were resolved for the *original* provider. When
+  // PMSS gains per-provider or per-model limit rules (e.g.
+  // `[model="gpt-5.5"][role="admin"] { llm-token-budget: 500000; }`),
+  // this fallback should re-resolve against the new provider/model context
+  // rather than inheriting the original limits.
+  const available = availableProviders();
+  const fallback = available.find(p => p !== 'stub' && p !== config.provider);
+  if (fallback) {
+    console.warn(
+      `[LLM] Provider "${config.provider}" has credential issues; ` +
+      `falling back to "${fallback}"`
+    );
+    return {
+      ...config,
+      provider: fallback,
+      model: envModelFallback(fallback),
+    };
   }
 
-  return {
-    provider,
-    model,
-    maxTokens: pmssMaxTokens,
-    rpm: pmssRpm,
-    tokenBudget: pmssTokenBudget,
-  };
+  // Nothing available — stub
+  if (config.provider !== 'stub') {
+    console.warn(`[LLM] No providers with valid credentials; falling back to stub`);
+  }
+  return { ...config, provider: 'stub', model: '' };
 }

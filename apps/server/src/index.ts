@@ -5,37 +5,71 @@
 // Each step delegates to its own module; this file is the sequence.
 
 import fs from 'fs';
-import { initConfig } from '@/lib/config';
+import { loadServerConfig } from '@/lib/config';
 import { FileKVStore, type KVStore } from './kvs.js';
 import { startServer, type ServerHandle } from './server.js';
 import { saveConnectionLog } from './eventLog.js';
 import { shutdownMcp } from './mcp.js';
 import { createToolRegistry } from '@/lib/mcp/registry';
 import { registerDocsTools } from '@/lib/docs/tools';
-import { validateProviderOrExit } from '@/lib/llm/provider';
+import {
+  validateProviderConfig,
+  availableProviders,
+} from '@/lib/llm/provider';
+import { resolveLLMConfig } from '@/lib/llm/profiles';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 
 // =============================================================================
 // Startup steps
 // =============================================================================
 
-/** 1. Load configuration. */
+/** 1. Load configuration with all class sources. */
 async function loadConfig() {
-  const common = fs.readFileSync('config/system.pmss', 'utf-8');
-  const server = fs.readFileSync('config/server.pmss', 'utf-8');
-  const env = process.env.NODE_ENV === 'production' ? 'production' : 'development';
-  initConfig(common + '\n' + server, ['server', env]);
-  console.log(`  Config: system.pmss + server.pmss [server, ${env}]`);
+  const classes = loadServerConfig(fs.readFileSync);
+  console.log(`  Config: [${classes.join(', ')}]`);
 }
 
-/** 2. Initialize storage backend. */
+/** 2. Validate LLM provider from PMSS resolution. */
+function validateLLMProvider() {
+  const config = resolveLLMConfig('interactive');
+  const { provider } = config;
+
+  // Check credentials for the selected provider
+  const { ok, issues } = validateProviderConfig(provider);
+  if (!ok) {
+    // Try to fall back to any available provider
+    const available = availableProviders();
+    const fallback = available.find(p => p !== 'stub' && p !== provider);
+    if (fallback) {
+      console.warn(`\n  Warning: PMSS selected provider "${provider}" but credentials are incomplete:`);
+      issues.forEach(issue => console.warn(`    - ${issue}`));
+      console.warn(`  Falling back to "${fallback}" (has credentials).`);
+      console.warn(`  To fix: configure credentials for "${provider}" or set llm-provider in config/local.pmss.\n`);
+    } else if (provider !== 'stub') {
+      console.error(`\n  LLM configuration issues (provider: ${provider}):`);
+      issues.forEach(issue => console.error(`    - ${issue}`));
+      console.error(`\n  See docs/llm-setup.md for configuration options.\n`);
+      process.exit(1);
+    }
+  }
+
+  if (provider === 'stub') {
+    console.log(`\n  Warning: LLM running in STUB mode — responses are fake.`);
+    console.log(`  To configure a real provider, set credentials in env vars`);
+    console.log(`  or override in config/local.pmss. See docs/llm-setup.md.\n`);
+  } else {
+    console.log(`  LLM provider: ${provider}${config.model ? ` (model: ${config.model})` : ''}`);
+  }
+}
+
+/** 3. Initialize storage backend. */
 async function initStorage(): Promise<KVStore> {
   const kvs = new FileKVStore();
   console.log('  Storage: FileKVStore');
   return kvs;
 }
 
-/** 3. Initialize tool registry. */
+/** 4. Initialize tool registry. */
 async function initTools() {
   const registry = createToolRegistry();
   registerDocsTools(registry);
@@ -52,7 +86,7 @@ async function main() {
   console.log('Learning Opus server starting...');
 
   await loadConfig();
-  validateProviderOrExit();
+  validateLLMProvider();
   const { idMap } = await syncContentFromStorage();
   console.log(`  Content: ${Object.keys(idMap).length} definitions loaded`);
   const kvs = await initStorage();

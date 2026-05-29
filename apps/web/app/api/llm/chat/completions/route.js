@@ -6,37 +6,30 @@
 // See docs/llm-setup.md for configuration.
 //
 // Thin Next.js wrapper around the shared LLM proxy (packages/shared/lib/llm/proxy.ts).
-// Adds profile resolution; delegates provider dispatch to the shared module.
+// Adds profile resolution via PMSS; delegates provider dispatch to the shared module.
 //
-// TODO: This route uses the hardcoded PROFILES map (resolveProfile) for
-// maxTokens.  The Hono route uses PMSS (resolveLLMConfig) as the single
-// source of truth.  Once PMSS is initialized in the Next.js app (add
-// initConfig to instrumentation.ts), switch this route to resolveLLMConfig
-// and remove the hardcoded PROFILES map from profiles.ts.
+// PMSS is initialized in instrumentation.ts (server runtime only).
 
 import { NextResponse } from 'next/server';
-import { resolveProfile } from '@/lib/llm/profiles';
+import { resolveLLMConfigWithFallback } from '@/lib/llm/profiles';
 import { dispatchLLMProxy } from '@/lib/llm/proxy';
 
 export async function POST(request) {
   const body = await request.json();
 
-  // Resolve profile to max_completion_tokens if not explicitly set.
-  // Client can send { profile: 'interactive' } instead of { max_completion_tokens: 4096 }.
-  if (!body.max_completion_tokens && !body.profile) {
-    body.profile = 'interactive';
-  }
-  if (body.profile) {
-    try {
-      const config = resolveProfile(body.profile);
-      body.max_completion_tokens = body.max_completion_tokens || config.maxTokens;
-    } catch (err) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    }
-    delete body.profile; // Don't forward to upstream provider
+  // Resolve profile via PMSS
+  const profileName = body.profile || 'interactive';
+  let llmConfig;
+  try {
+    llmConfig = resolveLLMConfigWithFallback(profileName);
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 400 });
   }
 
-  const result = await dispatchLLMProxy(body);
+  body.max_completion_tokens = body.max_completion_tokens || llmConfig.maxTokens;
+  delete body.profile;
+
+  const result = await dispatchLLMProxy(body, llmConfig.provider, llmConfig.model);
 
   switch (result.kind) {
     case 'json':

@@ -82,6 +82,9 @@ events/
 # Server-side persistent data (SQLite KVS, etc.)
 data/
 
+# Local PMSS overrides (deploy-specific, not committed)
+config/local.pmss
+
 # Runtime artifacts (ephemeral, machine-local)
 lofs/runtime/
 

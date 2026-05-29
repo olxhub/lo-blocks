@@ -17,8 +17,12 @@
 
 import fs from 'fs';
 import path from 'path';
+import { loadServerConfig } from '../lib/config';
 import { translateContent, detectFileType } from '../lib/translate';
 import { extractLeadingComments, parseMetadataFromComments } from '../lib/translate/metadata';
+
+// --- PMSS bootstrap (needed for LLM provider resolution) ---
+loadServerConfig(fs.readFileSync);
 
 // --- CLI arg parsing ---
 

@@ -147,7 +147,7 @@ export function createLLMHandler(kvs: KVStore) {
     }
 
     // --- Dispatch to provider ------------------------------------------------
-    const result = await dispatchLLMProxy(body);
+    const result = await dispatchLLMProxy(body, llmConfig.provider, llmConfig.model);
 
     // --- Record token usage (post-call, never rejects) -----------------------
     // For JSON results (bedrock/stub), usage is available immediately.

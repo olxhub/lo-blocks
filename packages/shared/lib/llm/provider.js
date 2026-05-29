@@ -1,9 +1,16 @@
 // src/lib/llm/provider.js
 //
-// LLM provider detection and configuration.
-// Shared between instrumentation (startup validation) and route handler.
+// LLM provider credentials and availability detection.
+//
+// This module does NOT select the active provider — that's PMSS's job
+// (see profiles.ts). It provides:
+//   - Env var constants for API calls
+//   - Credential detection (which providers have valid credentials?)
+//   - PMSS class names for credential availability
+//   - Model fallback from env vars when PMSS llm-model is empty
+//   - Config validation (returns issues, doesn't exit)
 
-// --- Config ---
+// --- Env var constants (used by proxy.ts for API calls) ---
 
 // Bedrock
 export const AWS_BEDROCK_MODEL = process.env.AWS_BEDROCK_MODEL;
@@ -26,53 +33,64 @@ export const OPENAI_BASE_URL = rawOpenaiUrl
   ? (rawOpenaiUrl.endsWith('/') ? rawOpenaiUrl : rawOpenaiUrl + '/')
   : 'https://api.openai.com/v1/';
 
-// --- Provider Detection ---
+// --- Credential detection ---
 
-export function detectProvider() {
-  const explicit = process.env.LLM_PROVIDER?.toLowerCase();
-  if (explicit) {
-    if (!['bedrock', 'azure', 'openai', 'stub'].includes(explicit)) {
-      throw new Error(`Invalid LLM_PROVIDER: ${explicit}. Must be bedrock, azure, openai, or stub.`);
-    }
-    return explicit;
+/**
+ * Detect which PMSS classes should be added based on available credentials.
+ *
+ * Returns class names like 'llm_available_bedrock' that PMSS rules can
+ * condition on (e.g. `.llm_available_openai { llm-provider: openai; }`).
+ *
+ * @returns {string[]} PMSS class names for providers with credentials
+ */
+export function detectCredentialClasses() {
+  const classes = [];
+
+  if (AWS_BEDROCK_MODEL) {
+    classes.push('llm_available_bedrock');
+  }
+  if (AZURE_DEPLOYMENT_ID && AZURE_BASE_URL) {
+    classes.push('llm_available_azure');
+  }
+  if (OPENAI_API_KEY || rawOpenaiUrl) {
+    classes.push('llm_available_openai');
   }
 
-  // Infer from env vars
-  const signals = {
-    bedrock: !!AWS_BEDROCK_MODEL,
-    azure: !!(AZURE_DEPLOYMENT_ID && AZURE_BASE_URL),  // Both required
-    openai: !!(OPENAI_API_KEY || rawOpenaiUrl),
-  };
-
-  const detected = Object.entries(signals).filter(([, v]) => v).map(([k]) => k);
-
-  if (detected.length > 1) {
-    throw new Error(
-      `Conflicting LLM provider settings detected: ${detected.join(', ')}. ` +
-      `Set LLM_PROVIDER explicitly or remove conflicting env vars.`
-    );
-  }
-
-  return detected[0] || 'stub';
+  return classes;
 }
 
-// --- Cached provider (detected once) ---
+/**
+ * List providers that have valid credentials.
+ * Always includes 'stub' as a fallback.
+ *
+ * @returns {string[]}
+ */
+export function availableProviders() {
+  const providers = ['stub'];
 
-let _provider = null;
-let _error = null;
+  if (AWS_BEDROCK_MODEL) providers.push('bedrock');
+  if (AZURE_DEPLOYMENT_ID && AZURE_BASE_URL) providers.push('azure');
+  if (OPENAI_API_KEY || rawOpenaiUrl) providers.push('openai');
 
-export function getProvider() {
-  if (_provider === null && _error === null) {
-    try {
-      _provider = detectProvider();
-    } catch (e) {
-      _error = e.message;
-    }
-  }
-  return { provider: _provider, error: _error };
+  return providers;
 }
 
-// --- Startup validation (called from instrumentation.ts) ---
+/**
+ * Fall back to env var for model when PMSS llm-model is empty.
+ *
+ * @param {string} provider
+ * @returns {string} Model ID from env var, or empty string
+ */
+export function envModelFallback(provider) {
+  switch (provider) {
+    case 'bedrock': return AWS_BEDROCK_MODEL || '';
+    case 'openai': return OPENAI_MODEL || '';
+    // Azure uses deployment ID, not a model string
+    default: return '';
+  }
+}
+
+// --- Validation ---
 
 function validateAzureConfig() {
   const issues = [];
@@ -98,7 +116,7 @@ function validateAzureConfig() {
   // Show the constructed URL so users can verify it's correct
   if (AZURE_BASE_URL && AZURE_DEPLOYMENT_ID) {
     const constructedUrl = `${AZURE_BASE_URL}deployments/${AZURE_DEPLOYMENT_ID}/chat/completions?api-version=${AZURE_API_VERSION}`;
-    console.log(`\n📋 Azure URL that will be used:\n   ${constructedUrl}`);
+    console.log(`\n  Azure URL that will be used:\n   ${constructedUrl}`);
     console.log(`\n   Expected format: https://<resource>.openai.azure.com/openai/deployments/<deployment>/chat/completions?api-version=...`);
     console.log(`\n   If this looks wrong, adjust AZURE_BASE_URL. It should end with /openai/`);
     console.log(`   Example: AZURE_BASE_URL=https://myresource.openai.azure.com/openai/\n`);
@@ -136,16 +154,13 @@ function validateOpenAIConfig() {
   return issues;
 }
 
-export function validateProviderOrExit() {
-  const { provider, error } = getProvider();
-
-  if (error) {
-    console.error(`\n❌ LLM configuration error: ${error}\n`);
-    console.error(`See docs/llm-setup.md for configuration options.\n`);
-    process.exit(1);
-  }
-
-  // Provider-specific validation
+/**
+ * Validate that a provider's credentials are properly configured.
+ *
+ * @param {string} provider - Provider name to validate
+ * @returns {{ ok: boolean, issues: string[] }}
+ */
+export function validateProviderConfig(provider) {
   let issues = [];
   switch (provider) {
     case 'azure':
@@ -157,44 +172,10 @@ export function validateProviderOrExit() {
     case 'openai':
       issues = validateOpenAIConfig();
       break;
+    case 'stub':
+      break;
+    default:
+      issues = [`Unknown provider: ${provider}`];
   }
-
-  if (issues.length > 0) {
-    console.error(`\n❌ LLM configuration issues (provider: ${provider}):\n`);
-    issues.forEach(issue => console.error(`   • ${issue}`));
-    console.error(`\nSee docs/llm-setup.md for configuration options.\n`);
-    process.exit(1);
-  }
-
-  if (provider === 'stub') {
-    console.log(`
-⚠️  LLM running in STUB mode - responses are fake.
-
-To configure a real LLM provider, set LLM_PROVIDER and required env vars:
-
-  Bedrock (Claude):
-    LLM_PROVIDER=bedrock
-    AWS_BEDROCK_MODEL=us.anthropic.claude-3-5-sonnet-20241022-v2:0
-    AWS_ACCESS_KEY_ID=...
-    AWS_SECRET_ACCESS_KEY=...
-    AWS_REGION=us-east-1
-
-  Azure OpenAI:
-    LLM_PROVIDER=azure
-    AZURE_API_KEY=...
-    AZURE_DEPLOYMENT_ID=my-deployment
-    AZURE_BASE_URL=https://myresource.openai.azure.com/openai/
-
-  OpenAI (or compatible, e.g., Ollama):
-    LLM_PROVIDER=openai
-    OPENAI_API_KEY=sk-...              # optional for local servers
-    OPENAI_BASE_URL=http://localhost:11434/v1/  # optional
-
-See docs/llm-setup.md for details.
-`);
-  } else {
-    console.log(`✓ LLM provider: ${provider}`);
-  }
-
-  return provider;
+  return { ok: issues.length === 0, issues };
 }

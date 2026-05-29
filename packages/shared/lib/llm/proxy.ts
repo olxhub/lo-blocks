@@ -6,21 +6,16 @@
 // message format transforms. Returns results that any HTTP framework
 // (Hono, Next.js, Express) can wrap into its own response type.
 //
-// Three consumers:
-//   - Hono route (apps/server/src/routes/llm.ts)
-//   - Next.js route (apps/web/app/api/llm/chat/completions/route.js)
-//   - serverCall.ts (server-side text-only calls — uses a subset)
+// The provider and model are passed explicitly by the caller (resolved
+// via PMSS in profiles.ts). This module does no provider detection.
 
 import {
-  getProvider,
-  AWS_BEDROCK_MODEL,
   AWS_REGION,
   AZURE_API_KEY,
   AZURE_DEPLOYMENT_ID,
   AZURE_API_VERSION,
   AZURE_BASE_URL,
   OPENAI_API_KEY,
-  OPENAI_MODEL,
   OPENAI_BASE_URL,
 } from '@/lib/llm/provider';
 
@@ -89,7 +84,7 @@ export function transformToAnthropic(messages: any[]): {
 /**
  * Transform Anthropic response to OpenAI chat completion format.
  */
-export function transformToOpenAI(result: any): any {
+export function transformToOpenAI(result: any, model: string): any {
   const message: any = { role: 'assistant', content: null };
 
   const textParts = result.content?.filter((c: any) => c.type === 'text') || [];
@@ -113,7 +108,7 @@ export function transformToOpenAI(result: any): any {
     id: result.id || 'bedrock-completion',
     object: 'chat.completion',
     created: Math.floor(Date.now() / 1000),
-    model: AWS_BEDROCK_MODEL,
+    model,
     choices: [{
       index: 0,
       message,
@@ -132,29 +127,31 @@ export function transformToOpenAI(result: any): any {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Dispatch an OpenAI-format request body to the configured LLM provider.
+ * Dispatch an OpenAI-format request body to the specified LLM provider.
  *
  * Returns a discriminated union so the caller can wrap the result in its
  * own response type (NextResponse, Hono c.json(), etc.).
  *
  * The `body` should already have profile resolved to max_completion_tokens
  * and the profile field stripped.
+ *
+ * @param body - OpenAI-format request body
+ * @param provider - Provider name (from PMSS resolution)
+ * @param model - Model ID (from PMSS resolution + env fallback)
  */
-export async function dispatchLLMProxy(body: any): Promise<LLMProxyResult> {
-  const { provider, error } = getProvider();
-
-  if (error) {
-    return { kind: 'error', status: 500, error: `LLM configuration error: ${error}` };
-  }
-
+export async function dispatchLLMProxy(
+  body: any,
+  provider: string,
+  model: string,
+): Promise<LLMProxyResult> {
   switch (provider) {
     case 'stub':
       console.log('[LLM] Using stub provider');
       return { kind: 'json', data: buildStubResponse(body) };
     case 'bedrock':
-      return bedrockCall(body);
+      return bedrockCall(body, model);
     case 'openai':
-      return openaiCall(body);
+      return openaiCall(body, model);
     case 'azure':
       return azureCall(body);
     default:
@@ -169,11 +166,11 @@ export async function dispatchLLMProxy(body: any): Promise<LLMProxyResult> {
 // content blocks, tool schema shape) and response parsing (transformToOpenAI)
 // are all Anthropic-specific.  Non-Anthropic Bedrock models (openai.gpt-oss-*,
 // Kimi, Titan, etc.) use entirely different request/response schemas.  If
-// AWS_BEDROCK_MODEL is set to a non-Anthropic model, this will send a
-// malformed request.  Fix: detect model prefix (e.g. "anthropic." vs
-// "openai." vs "amazon.") and branch to the appropriate request builder.
+// the model is a non-Anthropic model, this will send a malformed request.
+// Fix: detect model prefix (e.g. "anthropic." vs "openai." vs "amazon.")
+// and branch to the appropriate request builder.
 
-async function bedrockCall(body: any): Promise<LLMProxyResult> {
+async function bedrockCall(body: any, model: string): Promise<LLMProxyResult> {
   const { BedrockRuntimeClient, InvokeModelCommand } = await import(
     '@aws-sdk/client-bedrock-runtime'
   );
@@ -197,7 +194,7 @@ async function bedrockCall(body: any): Promise<LLMProxyResult> {
   }
 
   const command = new InvokeModelCommand({
-    modelId: AWS_BEDROCK_MODEL,
+    modelId: model,
     contentType: 'application/json',
     accept: 'application/json',
     body: JSON.stringify(bedrockBody),
@@ -206,13 +203,13 @@ async function bedrockCall(body: any): Promise<LLMProxyResult> {
   const response = await client.send(command);
   const result = JSON.parse(new TextDecoder().decode(response.body));
 
-  return { kind: 'json', data: transformToOpenAI(result) };
+  return { kind: 'json', data: transformToOpenAI(result, model) };
 }
 
 // --- OpenAI (and compatible: Ollama, OpenRouter, etc.) -----------------------
 
-async function openaiCall(body: any): Promise<LLMProxyResult> {
-  body.model = OPENAI_MODEL;
+async function openaiCall(body: any, model: string): Promise<LLMProxyResult> {
+  body.model = model;
   if (body.stream) {
     body.stream_options = { ...body.stream_options, include_usage: true };
   }
