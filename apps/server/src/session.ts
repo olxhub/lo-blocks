@@ -89,7 +89,8 @@ export function parseCookie(cookieHeader: string | undefined): string | null {
 
 /** Build the Set-Cookie header value for a session token. */
 export function buildSetCookie(token: string): string {
-  return `${COOKIE_NAME}=${token}; Path=/; SameSite=Lax; Max-Age=${MAX_AGE_SECONDS}`;
+  const secure = process.env.NODE_ENV === 'production' ? ' Secure;' : '';
+  return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax;${secure} Max-Age=${MAX_AGE_SECONDS}`;
 }
 
 export { COOKIE_NAME };
