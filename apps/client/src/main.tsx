@@ -7,9 +7,17 @@ import { initConfig } from '@/lib/config';
 import { resolveRoute } from './router';
 import './globals.css';
 
+function showError(message: string) {
+  document.getElementById('root')!.textContent = message;
+}
+
 async function boot() {
-  const pmss = await fetch('/api/config').then(r => r.text());
-  initConfig(pmss, ['client']);
+  const res = await fetch('/api/config');
+  if (!res.ok) {
+    showError(`Failed to load configuration (${res.status}). Is the server running?`);
+    return;
+  }
+  initConfig(await res.text(), ['client']);
 
   // Dynamic import: App.tsx has module-level getConfigBool() calls that
   // require initConfig() to have completed first.
@@ -18,4 +26,7 @@ async function boot() {
   createRoot(document.getElementById('root')!).render(<App route={route} />);
 }
 
-boot();
+boot().catch((err) => {
+  console.error('Boot failed:', err);
+  showError('Failed to start. Check the console for details.');
+});
