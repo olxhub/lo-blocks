@@ -113,19 +113,19 @@ Lin: Right. For each function, try to think of a situation involving positive re
 
 ::fba2_own_examples_attention [display=target:psych_sba_sidebar3auto label="Your Examples: Attention"]
 
---- wait @fba2_pos_reinforcement_attention.value && @fba2_neg_reinforcement_attention.value ---
+--- wait @fba2_pr_attention_feedback.value && @fba2_nr_attention_feedback.value ---
 
 ::fba2_own_examples_escape [display=target:psych_sba_sidebar3auto label="Your Examples: Escape"]
 
---- wait @fba2_pos_reinforcement_escape.value && @fba2_neg_reinforcement_escape.value ---
+--- wait @fba2_pr_escape_feedback.value && @fba2_nr_escape_feedback.value ---
 
 ::fba2_own_examples_access [display=target:psych_sba_sidebar3auto label="Your Examples: Access"]
 
---- wait @fba2_pos_reinforcement_access.value && @fba2_neg_reinforcement_access.value ---
+--- wait @fba2_pr_access_feedback.value && @fba2_nr_access_feedback.value ---
 
 ::fba2_own_examples_sensory [display=target:psych_sba_sidebar3auto label="Your Examples: Sensory"]
 
---- wait @fba2_pos_reinforcement_sensory.value && @fba2_neg_reinforcement_sensory.value ---
+--- wait @fba2_pr_sensory_feedback.value && @fba2_nr_sensory_feedback.value ---
 
 Annie: Okay, some of those were really hard. Did anyone else have trouble with escape and positive reinforcement? I kept going in circles. [face=hectic]
 
@@ -173,7 +173,7 @@ Annie: Let's get AI to help us see the ABCs in action with some examples.
 
 ::fba2_ai_abc_diagrams [display=target:psych_sba_sidebar3auto label="Create ABC Diagrams with AI"]
 
---- wait @fba2_ai_abc_response.value ---
+--- wait @fba2_ai_abc_code.value ---
 
 Scaffolding ABCs [id=fba2_abc_scaffold]
 -----------------
@@ -197,7 +197,7 @@ Lin: Let's apply this framework to Johnny's situation now.
 
 ::fba2_abc_johnny [display=target:psych_sba_sidebar3auto label="Apply ABCs to Johnny"]
 
---- wait @fba2_abc_johnny_explanation.value ---
+--- wait @fba2_abc_johnny_check.value ---
 
 JJ: Okay, here's what I got. The antecedent is Johnny running around the house. The behavior is the roommate chasing him. And the consequence is he eventually goes to bed. [face=explaining]
 

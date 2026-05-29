@@ -68,6 +68,55 @@ Keep your response accessible for undergraduate students.
 Output your response in Markdown with bolded paragraph and list headers,
 but keep it short -- no more than a few paragraphs.
 ]]></LLMAction>
+<SetFieldAction 
+    target="jjs_prompt" 
+    field="value" 
+    value="You are a helpful psychology teaching assistant. Create a chart showing the four
+functions of behavior (attention, escape, access to tangibles, sensory) with examples
+of how each relates to positive and negative reinforcement. Use a markdown table format.
+Include concrete examples for each combination of function with positive or negative
+reinforcement. Leave a cell blank if the function of the behavior is by definition
+incompatible with the type of reinforcement, assuming that negative reinforcement is
+compatible with removal of unwanted attention but not with access, while escape is
+not compatible with positive reinforcement. Highlight the function names in the
+function column." />
+
+<SetFieldAction 
+    target="ABCs_mermaid_diagram" 
+    field="value" 
+    value="If the following question is about the ABCs (Antecedent, Behavior, Consequence) model
+and functions of behavior, generate ONLY valid Mermaid flowchart code. No explanations,
+no markdown, no code fences — output must start with 'flowchart LR' and contain nothing
+else besides valid Mermaid syntax.
+
+Create a single diagram with four subgraphs, one per function of behavior. Each subgraph
+shows an Antecedent, Behavior, and Consequence connected by arrows, using a concrete
+classroom example. Follow this structure:
+
+flowchart LR
+  subgraph escape ['Escape — Negative Reinforcement']
+    E_A['Antecedent: ...'] --> E_B['Behavior: ...'] --> E_C['Consequence: ...']
+  end
+  subgraph attention ['Attention — Positive Reinforcement']
+    A_A['Antecedent: ...'] --> A_B['Behavior: ...'] --> A_C['Consequence: ...']
+  end
+  subgraph tangible ['Access/Tangible — Positive Reinforcement']
+    T_A['Antecedent: ...'] --> T_B['Behavior: ...'] --> T_C['Consequence: ...']
+  end
+  subgraph sensory ['Sensory — Automatic Reinforcement']
+    S_A['Antecedent: ...'] --> S_B['Behavior: ...'] --> S_C['Consequence: ...']
+  end
+
+Rules:
+- Output ONLY mermaid code — no other text whatsoever
+- Wrap all node labels in double quotes inside square brackets: E_A['label']
+- Use underscores in node names (E_A, not E-A)
+- Keep each label under 50 characters
+- Do NOT use bare colons, parentheses, or special characters outside the double quotes
+
+If the question is not relevant, output only:
+flowchart LR
+  A['Please ask about ABCs and functions of behavior']" />
 </ActionButton>
 
 <LLMFeedback id="fba2_ai_function_response" render="markdown" />
@@ -138,39 +187,28 @@ For each scenario, identify the type of operant conditioning at work. You need t
 
 <Vertical id="fba2_ai_function_chart">
 <Markdown>
-## Ask AI: Functions of Behavior Chart
+## Use AI: Functions of Behavior Chart
 
 Ask AI to provide a chart that incorporates functions of behavior and types of reinforcement.
 </Markdown>
 
-<Collapsible id="fba2_chart_hint" title="Hint: Example prompt">
+<Collapsible id="fba2_chart_hint" title="JJ's prompt">
+<HH>
+I want what is now in Markdown to be a TextArea where the content is preset. 
+We can't currently do that directly so I'm forcing a SetFieldAction earliker
+in the SBA to produce the same effect.
+</HH>
+
 <Markdown>
 Here's JJ's prompt:
-
-You are a helpful psychology teaching assistant. Create a chart showing the four
-functions of behavior (attention, escape, access to tangibles, sensory) with examples
-of how each relates to positive and negative reinforcement. Use a markdown table format.
-Include concrete examples for each combination of function with positive or negative
-reinforcement. Leave a cell blank if the function of the behavior is by definition
-incompatible with the type of reinforcement, assuming that negative reinforcement is
-compatible with removal of unwanted attention but not with access, while escape is
-not compatible with positive reinforcement. Highlight the function names in the
-function column.
 </Markdown>
+<TextArea id="jjs_prompt" />
+
 </Collapsible>
 
-<ActionButton id="fba2_ai_chart_btn" label="Ask AI">
-<LLMAction id="fba2_ai_chart_action" target="fba2_ai_chart_response"><![CDATA[
-You are a helpful psychology teaching assistant. Create a chart showing the four
-functions of behavior (attention, escape, access to tangibles, sensory) with examples
-of how each relates to positive and negative reinforcement. Use a markdown table format.
-Include concrete examples for each combination of function with positive or negative
-reinforcement. Leave a cell blank if the function of the behavior is by definition
-incompatible with the type of reinforcement, assuming that negative reinforcement is
-compatible with removal of unwanted attention but not with access, while escape is
-not compatible with positive reinforcement. Highlight the function names in the
-function column.
-]]>
+<ActionButton id="fba2_ai_chart_btn" label="Use AI">
+<LLMAction id="fba2_ai_chart_action" target="fba2_ai_chart_response">
+<Ref target="jjs_prompt" />
 </LLMAction>
 </ActionButton>
 
@@ -462,73 +500,27 @@ You need to get **6 correct in a row** to move on. If you get one wrong, your st
 </Vertical>
 
 
-<HH> ============= Screen: Ask AI for ABC diagrams ============== </HH>
+<HH> ============= Screen: Use AI to generate ABC diagrams ============== </HH>
 
 <Vertical id="fba2_ai_abc_diagrams">
 <Markdown>
-## Ask AI: The ABCs of Behavior
+## Use AI: The ABCs of Behavior
 
-Ask AI to create a **flowchart diagram** showing the ABCs (Antecedent → Behavior → Consequence) for each of the four functions of behavior.
+Use AI to create a **flowchart diagram** showing the ABCs (Antecedent → Behavior → Consequence) for each of the four functions of behavior.
 </Markdown>
 
-<Collapsible id="fba2_abc_diagram_hint" title="Hint: Example prompt">
+<Collapsible id="fba2_abc_diagram_hint" title="The instructor's prompt">
 <Markdown>
-Try a prompt like: "Create a flowchart showing the ABC pattern for each function of behavior — escape, attention, access/tangible, and sensory — with a classroom example for each."
+Here is an example of a prompt that will generate the complex mermaid diagrams this task asks for. It's probably better to just run it, rather
+than experimenting with it, until you understand Mermaid diagrams better!
 </Markdown>
+<TextArea id="ABCs_mermaid_diagram" />
 </Collapsible>
 
-<TextArea id="fba2_ai_abc_prompt" rows="2" placeholder="Ask AI to create Mermaid ABC diagrams for each function of behavior..." />
-
-<ActionButton id="fba2_ai_abc_btn" label="Ask AI">
+<ActionButton id="fba2_ai_abc_btn" label="Use AI">
 <SetFieldAction id="fba2_ai_abc_trigger" target="fba2_ai_abc_placeholder" field="value" value="*Generating diagram — this may take up to a minute...*" />
-<LLMAction id="fba2_ai_abc_action" target="fba2_ai_abc_response"><![CDATA[
-If the following question is about the ABCs (Antecedent, Behavior, Consequence) model
-in behavioral psychology and how it relates to the four functions of behavior
-(attention, escape, access/tangibles, sensory), provide a brief explanation of each
-ABC example in the diagram. For each function, describe the example and explain whether
-it involves positive or negative reinforcement.
-
-If the student's question is not relevant to ABCs or functions of behavior,
-point that out and stop.
-]]>
-Student prompt: <Ref id="fba2_ref_abc_prompt" target="fba2_ai_abc_prompt" />
-</LLMAction>
-<LLMAction id="fba2_ai_abc_code_action" target="fba2_ai_abc_code"><![CDATA[
-If the following question is about the ABCs (Antecedent, Behavior, Consequence) model
-and functions of behavior, generate ONLY valid Mermaid flowchart code. No explanations,
-no markdown, no code fences — output must start with "flowchart LR" and contain nothing
-else besides valid Mermaid syntax.
-
-Create a single diagram with four subgraphs, one per function of behavior. Each subgraph
-shows an Antecedent, Behavior, and Consequence connected by arrows, using a concrete
-classroom example. Follow this structure:
-
-flowchart LR
-  subgraph escape ["Escape — Negative Reinforcement"]
-    E_A["Antecedent: ..."] --> E_B["Behavior: ..."] --> E_C["Consequence: ..."]
-  end
-  subgraph attention ["Attention — Positive Reinforcement"]
-    A_A["Antecedent: ..."] --> A_B["Behavior: ..."] --> A_C["Consequence: ..."]
-  end
-  subgraph tangible ["Access/Tangible — Positive Reinforcement"]
-    T_A["Antecedent: ..."] --> T_B["Behavior: ..."] --> T_C["Consequence: ..."]
-  end
-  subgraph sensory ["Sensory — Automatic Reinforcement"]
-    S_A["Antecedent: ..."] --> S_B["Behavior: ..."] --> S_C["Consequence: ..."]
-  end
-
-Rules:
-- Output ONLY mermaid code — no other text whatsoever
-- Wrap all node labels in double quotes inside square brackets: E_A["label"]
-- Use underscores in node names (E_A, not E-A)
-- Keep each label under 50 characters
-- Do NOT use bare colons, parentheses, or special characters outside the double quotes
-
-If the question is not relevant, output only:
-flowchart LR
-  A["Please ask about ABCs and functions of behavior"]
-]]>
-Student prompt: <Ref id="fba2_ref_abc_code_prompt" target="fba2_ai_abc_prompt" />
+<LLMAction id="fba2_ai_abc_code_action" target="fba2_ai_abc_code">
+<Ref target="ABCs_mermaid_diagram" />
 </LLMAction>
 </ActionButton>
 
