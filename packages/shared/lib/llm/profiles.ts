@@ -76,9 +76,9 @@ export function resolveLLMConfig(
  * If the PMSS-selected provider lacks credentials, falls back to any
  * provider that has them. If nothing is available, falls back to stub.
  *
- * Use this for call sites that need a guaranteed-usable config (serverCall,
- * Next.js route). The Hono route uses resolveLLMConfig directly since its
- * startup already validated the provider.
+ * All request-time callers should use this rather than resolveLLMConfig
+ * directly, since PMSS may select a provider whose credentials are
+ * incomplete (e.g. local.pmss override without matching env vars).
  */
 export function resolveLLMConfigWithFallback(
   profile: string,

@@ -49,7 +49,12 @@ export async function callLLM(
       return { text, truncated };
     }
     case 'passthrough': {
-      // Read the full response body for text extraction
+      if (!result.response.ok) {
+        const errorBody = await result.response.text();
+        throw new Error(
+          `LLM API error (${result.response.status}): ${errorBody}`
+        );
+      }
       const data = await result.response.json();
       const choice = data?.choices?.[0];
       const text = choice?.message?.content || '';

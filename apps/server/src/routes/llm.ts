@@ -7,7 +7,7 @@
 // provider dispatch to the shared module.
 
 import type { Context } from 'hono';
-import { resolveLLMConfig } from '@/lib/llm/profiles';
+import { resolveLLMConfigWithFallback } from '@/lib/llm/profiles';
 import { dispatchLLMProxy, type LLMProxyResult } from '@/lib/llm/proxy';
 import type { KVStore } from '../kvs.js';
 import type { AuthUser } from '../auth.js';
@@ -124,7 +124,7 @@ export function createLLMHandler(kvs: KVStore) {
     const profileName = body.profile || 'interactive';
     let llmConfig;
     try {
-      llmConfig = resolveLLMConfig(profileName, { authorized });
+      llmConfig = resolveLLMConfigWithFallback(profileName, { authorized });
     } catch (err: any) {
       return c.json({ error: err.message }, 400);
     }
