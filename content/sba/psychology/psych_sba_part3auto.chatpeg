@@ -43,6 +43,17 @@ JJ: Okay, fair. I think I can write a prompt to get AI to check our answer, at l
 
 --- wait @fba2_ai_function_response.value ---
 
+Annie: Okay — so we need to figure out WHY Johnny is running away at bedtime. [face=smile]
+
+JJ: Right, and I still think it's attention. He's laughing, she's chasing — that's a social interaction he's creating. [face=explaining]
+
+Introducing Function of Behavior [id=fba2_function_concepts]
+---------------------------------
+
+Lin: Here are my notes from class. Based on what we covered, the four main functions of behavior are attention, escape, access to preferred activity or object, and sensory.
+
+::fba2_function_notes [display=target:psych_sba_sidebar3auto label="Lin's Notes"]
+
 Annie: JJ thinks it's attention. What's your guess? [face=smile]
 
 ::
@@ -57,18 +68,7 @@ Annie: JJ thinks it's attention. What's your guess? [face=smile]
 
 --- wait @fba2_johnny_function_prediction_inline ---
 
-Annie: Okay — so we need to figure out WHY Johnny is running away at bedtime. [face=smile]
-
-JJ: Right, and I still think it's attention. He's laughing, she's chasing — that's a social interaction he's creating. [face=explaining]
-
-Introducing Function of Behavior [id=fba2_function_concepts]
----------------------------------
-
-Lin: Here are my notes from class. Based on what we covered, the four main functions of behavior are attention, escape, access to preferred activity or object, and sensory.
-
-::fba2_function_notes [display=target:psych_sba_sidebar3auto label="Lin's Notes"]
-
-JJ: And my notes say the function always refers to a type of reinforcement — positive or negative. Wait, that's key, right? It's always reinforcement, never punishment?
+JJ: My notes say the function always refers to a type of reinforcement — positive or negative. Wait, that's key, right? It's always reinforcement, never punishment?
 
 Annie: Positive and negative reinforcement! We went over that last time. I remember the gist, but I'm a little fuzzy on the details...
 

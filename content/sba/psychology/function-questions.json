@@ -6,10 +6,46 @@
     "explanation": "Kayla's head-down behavior resulted in the removal of the demand to read aloud. The teacher moving on eliminated the aversive task, indicating an escape function."
   },
   {
+    "title": "Yelling for Turn",
+    "stem": "During board game night, 7-year-old Amaya yells that it is unfair and crosses her arms every time it is not her turn. Her family lets Amaya take an extra turn to avoid the outburst. The function of Amaya's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Amaya's yelling resulted in obtaining extra turns in the game. The consequence was gaining additional access to a preferred activity, indicating access/tangible."
+  },
+  {
+    "title": "Tongue Clicking",
+    "stem": "During quiet reading time, bus rides, and while playing alone, 8-year-old Rowan clicks his tongue against the roof of his mouth in a steady rhythm. He does not look at anyone when doing it, and no one responds. The function of Rowan's behavior is...",
+    "key": "sensory",
+    "explanation": "Rowan's tongue clicking occurs across multiple settings without social reinforcement. The oral-motor and auditory feedback provides its own internal reinforcement, indicating a sensory function."
+  },
+  {
+    "title": "Standing on Chair",
+    "stem": "During a community event, 5-year-old Nadia stands on her chair and waves her arms while her parents are talking to other adults. Both parents and several nearby adults turn to look at her and tell her to sit down. The function of Nadia's behavior is...",
+    "key": "attention",
+    "explanation": "Nadia's standing and waving resulted in multiple adults redirecting their focus to her. The social responses from parents and others indicate attention."
+  },
+  {
     "title": "Worksheet Ripping",
     "stem": "When handed a writing assignment, 8-year-old Derek tears the worksheet in half. The teaching assistant takes the torn worksheet away and tells Derek he can sit quietly instead. The function of Derek's behavior is...",
     "key": "escape",
     "explanation": "Derek's ripping resulted in the removal of the writing task. The consequence was avoidance of the aversive assignment, pointing to an escape function."
+  },
+  {
+    "title": "Refusing to Move",
+    "stem": "At the community pool, 8-year-old Jaylen refuses to get out of the pool when the lifeguard announces adult swim. He sits at the bottom of the shallow end and will not move until the lifeguard lets him stay in for five more minutes. The function of Jaylen's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Jaylen's refusal to leave resulted in continued access to the pool. The consequence was maintaining a preferred activity, indicating an access/tangible function."
+  },
+  {
+    "title": "Rubbing Eyes",
+    "stem": "Three-year-old Mateo rubs his eyes vigorously throughout the day, both at home and at preschool. He does this when he is alone and when others are nearby. No medical cause has been identified, and no one responds to the behavior. The function of Mateo's behavior is...",
+    "key": "sensory",
+    "explanation": "Mateo's eye rubbing occurs across settings without social consequences. The visual and pressure stimulation provides its own reinforcement, indicating a sensory function."
+  },
+  {
+    "title": "College Class Clown",
+    "stem": "In a large lecture hall, 19-year-old Jake makes loud, sarcastic comments after the professor's statements. Students around him laugh, and the professor addresses Jake by name. The function of Jake's behavior is...",
+    "key": "attention",
+    "explanation": "Jake's sarcastic comments resulted in peer laughter and the professor singling him out. The social reactions from the room indicate an attention function."
   },
   {
     "title": "Clinic Meltdown",
@@ -18,10 +54,46 @@
     "explanation": "Priya's meltdown led to a break from the therapy demand. The removal of the flashcard activity is the reinforcing consequence, indicating escape."
   },
   {
+    "title": "Interrupting for Cookie",
+    "stem": "While his grandmother is baking, 5-year-old Owen interrupts her conversation with his aunt by tugging on her apron and saying 'cookie, cookie, cookie.' His grandmother hands him a fresh cookie from the cooling rack. The function of Owen's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Although Owen's interrupting involved getting his grandmother's attention, the consequence was obtaining a cookie. The tangible item was the reinforcer, indicating access/tangible."
+  },
+  {
+    "title": "Doodling in Meetings",
+    "stem": "During every meeting, 30-year-old Anika draws intricate patterns in the margins of her notebook. She does this whether or not anyone can see her notebook, and colleagues do not comment on it. The function of Anika's behavior is...",
+    "key": "sensory",
+    "explanation": "Anika's doodling occurs regardless of social observation and produces its own visual and fine-motor reinforcement. The self-stimulating nature indicates sensory."
+  },
+  {
+    "title": "Elderly Repeated Questions",
+    "stem": "At the senior center, 79-year-old Helen asks the same questions to staff members every few minutes despite already receiving answers. Each time, a staff member stops, faces her, and patiently repeats the answer. The function of Helen's behavior is...",
+    "key": "attention",
+    "explanation": "Helen's repeated questioning results in staff members stopping their tasks and providing direct interaction. The consistent social engagement indicates attention."
+  },
+  {
     "title": "Falling Asleep in Class",
     "stem": "Whenever Mr. Thompson begins lecturing on chemistry equations, 16-year-old Marcus puts his head down and pretends to fall asleep. Mr. Thompson stops calling on Marcus during the lecture. The function of Marcus's behavior is...",
     "key": "escape",
     "explanation": "Marcus's behavior resulted in the teacher no longer directing questions at him during the aversive lecture. The removal of academic demands indicates an escape function."
+  },
+  {
+    "title": "Gym Equipment Hoarding",
+    "stem": "At the recreation center, 12-year-old Valentina gathers all the basketballs from the equipment rack and refuses to share. She shoots baskets alone with multiple balls around her. The function of Valentina's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Valentina's hoarding resulted in exclusive access to the basketballs. The consequence was maintaining possession of preferred items and activities, indicating access/tangible."
+  },
+  {
+    "title": "Blowing Bubbles in Drink",
+    "stem": "At every meal, 6-year-old Isaac blows bubbles in his drink through his straw. He does this at home when eating alone and at restaurants. No one responds to or comments on the behavior. The function of Isaac's behavior is...",
+    "key": "sensory",
+    "explanation": "Isaac's bubble-blowing occurs consistently across settings without social consequences. The visual and auditory effects of the bubbles provide their own reinforcement, indicating sensory."
+  },
+  {
+    "title": "Swearing at Teacher",
+    "stem": "When the teacher is helping other students and not attending to him, 10-year-old Travis yells a profanity. The teacher immediately turns around, walks to Travis's desk, and has a lengthy conversation with him about language. The function of Travis's behavior is...",
+    "key": "attention",
+    "explanation": "Travis's swearing occurred when the teacher was attending to others and resulted in extended direct interaction. The teacher's sustained focus on Travis indicates attention."
   },
   {
     "title": "Office Task Avoidance",
@@ -30,10 +102,46 @@
     "explanation": "Carla's complaint resulted in the removal of the aversive data-entry task. Because the consequence was avoiding the demand, this is an escape function."
   },
   {
+    "title": "Stealing Markers",
+    "stem": "During art time, 5-year-old James takes the glitter markers from the communal supply bin and hides them in his desk so only he can use them. No one notices or comments. The function of James's behavior is...",
+    "key": "access/tangible",
+    "explanation": "James's taking and hiding resulted in exclusive access to the glitter markers. The consequence was obtaining preferred materials, indicating access/tangible."
+  },
+  {
+    "title": "Scratching Textured Walls",
+    "stem": "At school and at home, 4-year-old Aaliyah runs her fingernails along textured walls, listening to the sound it makes. She does this when alone in the hallway and does not look to see if anyone is watching. The function of Aaliyah's behavior is...",
+    "key": "sensory",
+    "explanation": "Aaliyah's wall scratching produces auditory and tactile stimulation. The behavior occurs without social attention and across settings, indicating sensory."
+  },
+  {
+    "title": "Crying at Drop-Off",
+    "stem": "Every morning at daycare drop-off, 3-year-old Oliver cries loudly and clings to his mother. His mother stays an extra twenty minutes, hugging and reassuring him. The function of Oliver's behavior is...",
+    "key": "attention",
+    "explanation": "Oliver's crying resulted in extended physical and verbal attention from his mother. The prolonged parental interaction indicates an attention function."
+  },
+  {
     "title": "Eloping from Circle Time",
     "stem": "During circle time at daycare, 3-year-old Noah runs to the corner of the room every time the group is asked to sing along. The teacher allows Noah to sit in the corner quietly rather than participate. The function of Noah's behavior is...",
     "key": "escape",
     "explanation": "Noah's running away resulted in the removal of the singing demand. Being allowed to sit out means the aversive group activity was terminated, indicating escape."
+  },
+  {
+    "title": "Kicking Seat for Juice",
+    "stem": "On a long car ride, 3-year-old Zoe kicks the back of the driver's seat and shouts 'juice!' repeatedly. Her father hands her a juice box from the cooler. The function of Zoe's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Zoe's kicking and shouting resulted in obtaining a juice box. The consequence was gaining a preferred drink, indicating an access/tangible function."
+  },
+  {
+    "title": "Pacing the Hallway",
+    "stem": "At the nursing home, 80-year-old George paces up and down the hallway for hours. He does not engage with staff or other residents during pacing, and no one attempts to stop him. The function of George's behavior is...",
+    "key": "sensory",
+    "explanation": "George's pacing occurs without social interaction and is not directed at gaining attention or escaping a task. The repetitive movement provides its own kinesthetic reinforcement, indicating sensory."
+  },
+  {
+    "title": "Drawing on Own Arm",
+    "stem": "In class, 13-year-old Zoe draws elaborate designs on her arms with markers. Her teacher notices, comes over, and spends five minutes discussing the drawings with Zoe. The function of Zoe's behavior is...",
+    "key": "attention",
+    "explanation": "Zoe's drawing on herself resulted in the teacher approaching and engaging in a personal conversation. The direct teacher interaction indicates attention."
   },
   {
     "title": "Spitting Out Food",
@@ -42,10 +150,46 @@
     "explanation": "Lily's spitting resulted in the removal of the aversive food. The father's response eliminated the demand to eat vegetables, indicating escape."
   },
   {
+    "title": "Pestering for Car Keys",
+    "stem": "Seventeen-year-old Dominic asks his parents for the car keys every five minutes on Saturday morning, following them around the house. His parents eventually hand over the keys. The function of Dominic's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Dominic's persistent asking resulted in obtaining the car keys. The consequence was gaining access to a desired item and activity, indicating access/tangible."
+  },
+  {
+    "title": "Tapping Surfaces",
+    "stem": "Eleven-year-old Kai taps his fingers on every surface he touches, producing rhythmic patterns. He does this at school, at home, and while walking in the community, regardless of whether anyone is around. The function of Kai's behavior is...",
+    "key": "sensory",
+    "explanation": "Kai's tapping occurs across all settings without social consequences. The auditory and tactile feedback from the rhythmic patterns is self-reinforcing, indicating sensory."
+  },
+  {
+    "title": "Interrupting Therapy",
+    "stem": "During a group therapy session for adolescents, 16-year-old Dante makes jokes every time another group member is sharing. The therapist redirects the conversation to Dante and asks him to share his own feelings. The function of Dante's behavior is...",
+    "key": "attention",
+    "explanation": "Dante's joking resulted in the therapist shifting focus to him. The group's attention redirected to Dante indicates an attention function."
+  },
+  {
     "title": "Faking Illness at School",
     "stem": "Every time there is a math test, 12-year-old Javier tells the school nurse he has a stomachache and asks to lie down. The nurse excuses him from class for the period. The function of Javier's behavior is...",
     "key": "escape",
     "explanation": "Javier's reported illness resulted in removal from the testing situation. The consequence was avoidance of the aversive math test, indicating escape."
+  },
+  {
+    "title": "Completing Tasks Fast",
+    "stem": "In class, 9-year-old Harper rushes through her worksheet, making careless errors, so she can be first in line for the computer station. The teacher allows the first student finished to use the computer. The function of Harper's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Harper's rushing resulted in gaining access to the computer station. The consequence was obtaining a preferred activity, indicating an access/tangible function."
+  },
+  {
+    "title": "Spinning in Circles",
+    "stem": "At recess and at home, 5-year-old Nia spins in circles until she is dizzy, then waits and spins again. She does this in the corner of the playground alone, and no one interacts with her during the behavior. The function of Nia's behavior is...",
+    "key": "sensory",
+    "explanation": "Nia's spinning occurs in isolation without social reinforcement. The vestibular stimulation from dizziness provides its own internal reinforcement, indicating sensory."
+  },
+  {
+    "title": "Showing Off on Playground",
+    "stem": "On the playground, 8-year-old Jayden climbs to the top of the tallest structure and shouts, 'Look at me!' Other children and the recess aide all look up and react. The function of Jayden's behavior is...",
+    "key": "attention",
+    "explanation": "Jayden's climbing and shouting resulted in multiple people looking and reacting. The social acknowledgment from peers and adults indicates attention."
   },
   {
     "title": "Pushing Materials Away",
@@ -54,10 +198,46 @@
     "explanation": "Deshawn's pushing resulted in the removal of the clay activity. The transition to a different task means the aversive demand was terminated, indicating escape."
   },
   {
+    "title": "Elderly Requesting Dessert",
+    "stem": "At the assisted living facility, 76-year-old Frank refuses to eat his meal and pushes the tray away until the staff bring him his preferred dessert first. He eats the dessert immediately. The function of Frank's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Frank's refusal resulted in obtaining his preferred dessert. The consequence was gaining a desired food item, indicating access/tangible."
+  },
+  {
+    "title": "Knuckle Cracking",
+    "stem": "Forty-year-old Patricia cracks her knuckles repeatedly throughout the day at her office, at home, and in meetings. No one comments on it, and she does it regardless of who is present. The function of Patricia's behavior is...",
+    "key": "sensory",
+    "explanation": "Patricia's knuckle cracking persists across all settings and social contexts. The proprioceptive sensation provides its own internal reinforcement, indicating sensory."
+  },
+  {
+    "title": "Pinching in Line",
+    "stem": "While standing in line at the grocery store, 4-year-old Mila pinches her mother's arm. Her mother immediately bends down, holds Mila's hands, and says, 'We do not pinch. That hurts Mommy.' The function of Mila's behavior is...",
+    "key": "attention",
+    "explanation": "Mila's pinching resulted in her mother stopping, bending down to her level, and providing direct interaction. The physical and verbal attention indicates an attention function."
+  },
+  {
     "title": "Elderly Patient Refusal",
     "stem": "During physical therapy, 78-year-old Margaret begins crying whenever the therapist asks her to do leg exercises. The therapist stops the exercises and lets Margaret rest. The function of Margaret's behavior is...",
     "key": "escape",
     "explanation": "Margaret's crying resulted in the cessation of the aversive leg exercises. The removal of the physical demand indicates an escape function."
+  },
+  {
+    "title": "Crying for iPad",
+    "stem": "While her older sister is using the family iPad, 6-year-old Nora sits on the couch and cries loudly. Although it might look like she wants attention, her mother takes the iPad from her sister and gives it to Nora, who immediately stops crying and begins playing a game. The function of Nora's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Although Nora's crying could look like attention-seeking, the consequence was obtaining the iPad. The immediate shift to playing the game confirms the tangible item was the reinforcer, indicating access/tangible."
+  },
+  {
+    "title": "Mouthing Objects",
+    "stem": "At daycare, 2-year-old Henry puts every toy in his mouth and chews on it. He does this during solitary play and group play alike, and caregivers have stopped attempting to redirect the behavior. The function of Henry's behavior is...",
+    "key": "sensory",
+    "explanation": "Henry's mouthing occurs across all play contexts without regard for social attention. The oral stimulation provides its own reinforcement, indicating a sensory function."
+  },
+  {
+    "title": "Workplace Bragging",
+    "stem": "At the weekly team meeting, Greg loudly describes his weekend accomplishments unrelated to work. His coworkers stop their conversation and listen to his stories. The function of Greg's behavior is...",
+    "key": "attention",
+    "explanation": "Greg's bragging resulted in coworkers directing their focus toward him. The social listening and engagement indicate an attention function."
   },
   {
     "title": "Swearing at Coach",
@@ -66,10 +246,46 @@
     "explanation": "Although swearing might look like attention-seeking, the consequence was removal from the aversive running demand. Being benched eliminated the lap requirement, indicating escape."
   },
   {
+    "title": "Taking Peer's Lunch",
+    "stem": "In the school cafeteria, 14-year-old Marcus takes a bag of chips from another student's tray when the student is not looking. Marcus eats the chips before anyone notices. The function of Marcus's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Marcus's taking resulted in obtaining the chips. The consequence was gaining a preferred food item, indicating an access/tangible function."
+  },
+  {
+    "title": "Nail Biting",
+    "stem": "Twenty-five-year-old Rachel bites her nails during work, while watching television, and while driving. The behavior occurs whether she is alone or with others, and no one draws attention to it. The function of Rachel's behavior is...",
+    "key": "sensory",
+    "explanation": "Rachel's nail biting occurs across multiple settings and social contexts without external consequences. The oral and tactile stimulation provides its own reinforcement, indicating sensory."
+  },
+  {
+    "title": "Faking an Injury",
+    "stem": "During gym class, whenever the teacher is focused on another group, 11-year-old Hannah falls down and holds her knee, saying it hurts. The teacher runs over to check on her. The function of Hannah's behavior is...",
+    "key": "attention",
+    "explanation": "Hannah's faking an injury resulted in the teacher leaving the other group and providing direct, concerned attention. The social response indicates attention."
+  },
+  {
     "title": "Crying at Homework Time",
     "stem": "Every evening when her mother says it is time to do homework, 9-year-old Rosa begins crying uncontrollably. Her mother says they will skip homework tonight. The function of Rosa's behavior is...",
     "key": "escape",
     "explanation": "Rosa's crying led to the removal of the homework demand. The consequence was avoidance of the aversive task, indicating an escape function."
+  },
+  {
+    "title": "Negotiating Bedtime",
+    "stem": "At bedtime, 11-year-old Daniel bargains with his parents, promising to do extra chores if he can stay up to watch the end of the basketball game. His parents agree. The function of Daniel's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Daniel's negotiating resulted in gaining extended TV time to watch the game. The consequence was obtaining a preferred activity, indicating access/tangible."
+  },
+  {
+    "title": "Staring at Lights",
+    "stem": "At home and at school, 3-year-old Elias gazes at overhead fluorescent lights for extended periods. He does this whether or not caregivers are present and does not respond when they try to redirect him. The function of Elias's behavior is...",
+    "key": "sensory",
+    "explanation": "Elias's light-gazing occurs regardless of social context and persists despite no external reinforcement. The visual stimulation is self-reinforcing, indicating sensory."
+  },
+  {
+    "title": "Throwing Food at Daycare",
+    "stem": "During snack time, 2-year-old Leo throws crackers on the floor while looking at the caregiver. The caregiver immediately comes over, makes eye contact, and firmly says, 'No throwing, Leo.' The function of Leo's behavior is...",
+    "key": "attention",
+    "explanation": "Leo's food-throwing, done while looking at the caregiver, resulted in direct verbal and visual attention. The caregiver's response is social interaction, indicating attention."
   },
   {
     "title": "Shutting Down in Meeting",
@@ -78,10 +294,46 @@
     "explanation": "David's shutting down resulted in the removal of the presentation demand. The manager moving on eliminated the aversive task, indicating escape."
   },
   {
+    "title": "Office Supply Requests",
+    "stem": "At work, 28-year-old Leticia emails her supervisor multiple times a day requesting a standing desk until the supervisor finally approves the purchase. The function of Leticia's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Leticia's persistent emailing resulted in obtaining the standing desk. The consequence was gaining a desired item, indicating an access/tangible function."
+  },
+  {
+    "title": "Rubbing Fabric",
+    "stem": "Whenever she encounters soft fabric, 9-year-old Sadie rubs it between her fingers repeatedly. She does this at stores, at home, and at school, regardless of whether anyone notices. The function of Sadie's behavior is...",
+    "key": "sensory",
+    "explanation": "Sadie's fabric rubbing occurs across all settings and is maintained without social consequences. The tactile sensation from the soft material is internally reinforcing, indicating sensory."
+  },
+  {
+    "title": "Calling Out Answers",
+    "stem": "During a college seminar, 22-year-old Priya shouts out answers without being called on. The professor pauses, makes eye contact, and says, 'Priya, please raise your hand.' Other students turn to look at her. The function of Priya's behavior is...",
+    "key": "attention",
+    "explanation": "Priya's calling out resulted in the professor's direct address and peers turning to look. The social acknowledgment from the room indicates attention."
+  },
+  {
     "title": "Biting During Grooming",
     "stem": "When a caregiver tries to brush 4-year-old Amara's tangled hair, Amara bites the caregiver's hand. The caregiver stops brushing immediately. The function of Amara's behavior is...",
     "key": "escape",
     "explanation": "Amara's biting stopped the aversive hair-brushing. The removal of the painful grooming activity is the reinforcing consequence, indicating escape."
+  },
+  {
+    "title": "Pulling Mom to Toy Aisle",
+    "stem": "At the department store, 3-year-old Sofia grabs her mother's hand and pulls her toward the toy section, whimpering and pointing. Her mother follows and lets Sofia choose a small toy. The function of Sofia's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Sofia's pulling and whimpering resulted in being taken to the toy section and obtaining a toy. The consequence was gaining a preferred item, indicating access/tangible."
+  },
+  {
+    "title": "Ripping Paper",
+    "stem": "During free time, 6-year-old Theo tears paper into tiny strips, listening to the sound and watching the pieces fall. He does this alone in his room and at school, and no one responds. The function of Theo's behavior is...",
+    "key": "sensory",
+    "explanation": "Theo's paper ripping produces auditory and visual stimulation that he appears to enjoy. The behavior occurs without social reinforcement and across settings, indicating sensory."
+  },
+  {
+    "title": "Tripping Classmates",
+    "stem": "In the hallway between classes, 12-year-old Oscar sticks his foot out and trips another student. Nearby students gasp, and a teacher immediately comes over to address Oscar directly. The function of Oscar's behavior is...",
+    "key": "attention",
+    "explanation": "Oscar's tripping resulted in peer reactions and direct teacher interaction. The social responses from both groups indicate an attention function."
   },
   {
     "title": "Leaving Group Project",
@@ -90,10 +342,46 @@
     "explanation": "Kenji's leaving resulted in the removal of the aversive demand to contribute to the project. His workload was eliminated, indicating escape."
   },
   {
+    "title": "Snatching at the Park",
+    "stem": "At the community park, 4-year-old Layla snatches a sand bucket from another child in the sandbox. She begins building with it immediately, and the other child walks away. The function of Layla's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Layla's snatching resulted in obtaining the sand bucket. The consequence was gaining a preferred play item, indicating an access/tangible function."
+  },
+  {
+    "title": "Smelling Objects",
+    "stem": "Whenever 4-year-old Jaya encounters a new object, she picks it up and smells it extensively. She does this whether adults are watching or not, and no one provides any attention for the behavior. The function of Jaya's behavior is...",
+    "key": "sensory",
+    "explanation": "Jaya's smelling occurs automatically with new objects regardless of social context. The olfactory input provides its own reinforcement, indicating a sensory function."
+  },
+  {
+    "title": "Teen Social Media Posts",
+    "stem": "Fifteen-year-old Maya posts dramatic status updates whenever she feels ignored by her friend group. Her friends immediately text and call to check on her. The function of Maya's behavior is...",
+    "key": "attention",
+    "explanation": "Maya's posting resulted in friends reaching out with texts and calls. The social engagement following the behavior indicates an attention function."
+  },
+  {
     "title": "Kicking Under Table",
     "stem": "When told to finish his peas at a restaurant, 7-year-old Liam kicks the underside of the table repeatedly. His embarrassed parents quickly ask for the check and leave without making Liam finish his meal. The function of Liam's behavior is...",
     "key": "escape",
     "explanation": "Liam's kicking led to leaving the restaurant and the removal of the demand to eat peas. The aversive task was terminated, indicating escape."
+  },
+  {
+    "title": "Screaming at Vending Machine",
+    "stem": "When her mother walks past the vending machine at the gym, 4-year-old Mia screams and points at the machine. Her mother puts in coins and lets Mia choose a drink. The function of Mia's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Mia's screaming resulted in obtaining a drink from the vending machine. The consequence was gaining a preferred item, indicating access/tangible."
+  },
+  {
+    "title": "Teeth Grinding",
+    "stem": "Eight-year-old Dominic grinds his teeth during quiet activities at home and at school. He does this whether or not anyone is present, and no one responds to the behavior. The function of Dominic's behavior is...",
+    "key": "sensory",
+    "explanation": "Dominic's teeth grinding occurs across settings regardless of the social environment. The oral-motor stimulation is internally reinforcing, indicating a sensory function."
+  },
+  {
+    "title": "Making Messes at Daycare",
+    "stem": "At daycare, 3-year-old Ava dumps her juice on the table when the caregiver is attending to other children. The caregiver rushes over, picks Ava up, and spends time cleaning while talking to her. The function of Ava's behavior is...",
+    "key": "attention",
+    "explanation": "Ava's mess-making resulted in the caregiver redirecting attention from other children to Ava. The extended interaction during cleanup indicates attention."
   },
   {
     "title": "Flopping on Playground",
@@ -102,10 +390,46 @@
     "explanation": "Sofia's flopping resulted in the removal of the relay race demand. Being allowed to sit out means the aversive activity was avoided, indicating escape."
   },
   {
+    "title": "Demanding TV Remote",
+    "stem": "When his father is watching the news, 7-year-old Amir screams and kicks the couch until his father hands over the remote. Amir immediately switches to cartoons. The function of Amir's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Amir's screaming and kicking resulted in obtaining the remote and access to his preferred show. The consequence was gaining a tangible item and activity, indicating access/tangible."
+  },
+  {
+    "title": "Humming in the Car",
+    "stem": "Six-year-old Kira hums the same tune over and over while riding in the car. She does this whether or not anyone else is in the car, and her parents have stopped commenting on it. The function of Kira's behavior is...",
+    "key": "sensory",
+    "explanation": "Kira's humming persists regardless of social attention and occurs even when alone. The auditory self-stimulation provides its own reinforcement, indicating sensory."
+  },
+  {
+    "title": "Tattling on Siblings",
+    "stem": "Whenever his parents are busy cooking dinner, 7-year-old Marcus runs to the kitchen to report that his sister is 'being mean.' His parents stop cooking, listen to the story, and mediate. The function of Marcus's behavior is...",
+    "key": "attention",
+    "explanation": "Marcus's tattling resulted in his parents stopping their activity and engaging with him. The direct parental interaction indicates an attention function."
+  },
+  {
     "title": "Arguing About Chores",
     "stem": "When his father tells him to mow the lawn, 15-year-old Andre argues for twenty minutes until his father says, 'Fine, I will do it myself.' The function of Andre's behavior is...",
     "key": "escape",
     "explanation": "Andre's arguing resulted in the removal of the lawn-mowing demand. His father taking over the chore means the aversive task was eliminated, indicating escape."
+  },
+  {
+    "title": "Begging for Extra Recess",
+    "stem": "After finishing their test early, a group of fifth graders chants 'Recess! Recess!' until the teacher allows them to go outside for extra recess time. The function of the students' behavior is...",
+    "key": "access/tangible",
+    "explanation": "The chanting resulted in gaining extra recess time. The consequence was obtaining a preferred activity, indicating an access/tangible function."
+  },
+  {
+    "title": "Bouncing Leg",
+    "stem": "At his desk at work, 35-year-old Marco bounces his leg up and down continuously. He does this in meetings, while working alone, and does not appear to seek or receive any response from others. The function of Marco's behavior is...",
+    "key": "sensory",
+    "explanation": "Marco's leg bouncing occurs across all contexts including when alone. The proprioceptive and kinesthetic stimulation is self-reinforcing, indicating a sensory function."
+  },
+  {
+    "title": "Elderly Buzzing Nurse",
+    "stem": "At the assisted living facility, 85-year-old Dorothy presses her call button every fifteen minutes even though she has no medical needs. Each time, a nurse comes to her room and chats with her briefly. The function of Dorothy's behavior is...",
+    "key": "attention",
+    "explanation": "Dorothy's button-pressing results in a nurse visiting and engaging in conversation. The social interaction is the reinforcing consequence, indicating attention."
   },
   {
     "title": "Hiding Art Supplies",
@@ -114,10 +438,46 @@
     "explanation": "Mia's hiding of supplies resulted in avoiding the painting task. The removal of the art demand and replacement with a preferred activity indicates escape."
   },
   {
+    "title": "Complaining for Phone",
+    "stem": "While waiting at the doctor's office, 10-year-old Brandon complains repeatedly that he is bored. His mother hands him her phone to play games. The function of Brandon's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Brandon's complaining resulted in obtaining his mother's phone. The consequence was gaining access to a preferred item and activity, indicating access/tangible."
+  },
+  {
+    "title": "Lining Up Crayons",
+    "stem": "In the art center at daycare, 3-year-old Fatima lines up all the crayons by color instead of drawing. She does this every day regardless of who is nearby, and caregivers do not intervene. The function of Fatima's behavior is...",
+    "key": "sensory",
+    "explanation": "Fatima's lining-up behavior occurs consistently without social reinforcement and appears to produce its own visual or organizational satisfaction. This indicates a sensory function."
+  },
+  {
+    "title": "Classroom Disruption",
+    "stem": "While the teacher is helping another student, 9-year-old Brianna starts tapping her pencil loudly and humming. The teacher stops what she is doing, walks over, and tells Brianna to be quiet. The function of Brianna's behavior is...",
+    "key": "attention",
+    "explanation": "Brianna's disruptive behavior resulted in the teacher leaving the other student and providing direct interaction. The teacher's response, even as a reprimand, is social attention, indicating attention."
+  },
+  {
     "title": "Nursing Home Yelling",
     "stem": "During group exercise time at the nursing home, 82-year-old Harold yells that his back hurts. The staff allow him to return to his room and skip the session. The function of Harold's behavior is...",
     "key": "escape",
     "explanation": "Harold's yelling resulted in removal from the aversive group exercise. Being allowed to leave the activity indicates an escape function."
+  },
+  {
+    "title": "Hitting for Snack",
+    "stem": "At daycare, 3-year-old Ivy hits the child sitting next to her and takes the child's goldfish crackers. The caregiver does not see the hit, and Ivy eats the crackers. The function of Ivy's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Ivy's hitting resulted in obtaining the crackers. The consequence was gaining a preferred food item, indicating an access/tangible function."
+  },
+  {
+    "title": "Skin Picking",
+    "stem": "Thirteen-year-old Evan picks at the skin on his fingers while watching TV, doing homework, and sitting in class. He does this when alone and when with others, and no one provides a consequence. The function of Evan's behavior is...",
+    "key": "sensory",
+    "explanation": "Evan's skin picking occurs across settings regardless of social context and without external consequences. The tactile sensation is internally reinforcing, indicating sensory."
+  },
+  {
+    "title": "Baby Dropping Spoon",
+    "stem": "During mealtime, 18-month-old Ethan drops his spoon on the floor. His father picks it up, smiles, and says 'Oops!' Ethan immediately drops it again, and his father repeats the exchange. The function of Ethan's behavior is...",
+    "key": "attention",
+    "explanation": "Ethan's spoon-dropping resulted in his father's verbal response, eye contact, and smiling. The repeated social interaction is the reinforcing consequence, indicating attention."
   },
   {
     "title": "Covering Ears",
@@ -126,10 +486,46 @@
     "explanation": "Zara's behavior resulted in removal from the aversive loud noise. Being taken to a quiet area eliminated the sensory overload of the alarm, indicating escape."
   },
   {
+    "title": "Crying for Toy",
+    "stem": "At the toy store, 3-year-old Ella begins crying loudly and pointing at a stuffed animal. Although her mother initially says no, Ella's crying escalates until her mother purchases the stuffed animal. The function of Ella's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Ella's crying resulted in obtaining the stuffed animal. The consequence was gaining a preferred item, indicating access/tangible."
+  },
+  {
+    "title": "Pen Clicking",
+    "stem": "During lectures, 20-year-old Tara clicks her pen open and closed repeatedly. She does this in every class, during study sessions alone, and does not seem to notice when classmates glance at her. The function of Tara's behavior is...",
+    "key": "sensory",
+    "explanation": "Tara's pen clicking occurs consistently across settings, including when alone, and without regard for others' reactions. The auditory and tactile feedback is self-reinforcing, indicating sensory."
+  },
+  {
+    "title": "Pulling Hair",
+    "stem": "On the playground, 5-year-old Kai pulls another child's hair. The recess monitor runs over, kneels down, and spends several minutes talking to Kai about why that is wrong. The function of Kai's behavior is...",
+    "key": "attention",
+    "explanation": "Kai's hair-pulling resulted in extended one-on-one interaction with the recess monitor. Even though the attention was corrective, it was still sustained social engagement, indicating attention."
+  },
+  {
     "title": "Walking Away from Register",
     "stem": "At his retail job, when a customer begins yelling about a return, 19-year-old James walks away from the register and goes to the stockroom. His coworker handles the angry customer instead. The function of James's behavior is...",
     "key": "escape",
     "explanation": "James's walking away resulted in removal from the aversive interaction with the angry customer. The coworker taking over eliminated the demand, indicating escape."
+  },
+  {
+    "title": "Grabbing Sibling's Game",
+    "stem": "When his older sister is playing a video game, 8-year-old Caleb grabs the controller from her hands. His parents tell his sister to let Caleb have a turn. The function of Caleb's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Caleb's grabbing resulted in gaining access to the video game controller. The consequence was obtaining a preferred activity, indicating access/tangible."
+  },
+  {
+    "title": "Spinning Objects",
+    "stem": "At home and at school, 5-year-old Luis spins the wheels on toy cars for extended periods rather than playing with them in the typical way. He does this alone and does not look at others while doing it. The function of Luis's behavior is...",
+    "key": "sensory",
+    "explanation": "Luis's spinning occurs in isolation and without seeking social response. The visual stimulation from the spinning wheels provides its own reinforcement, indicating sensory."
+  },
+  {
+    "title": "Office Complaining",
+    "stem": "At work, Tom loudly complains about his workload in the break room. Coworkers gather around, sympathize, and offer to help. The next week, Tom complains loudly again. The function of Tom's behavior is...",
+    "key": "attention",
+    "explanation": "Tom's complaining resulted in coworkers gathering and providing sympathetic social interaction. The consequence was social engagement, indicating attention."
   },
   {
     "title": "Throwing Shoes",
@@ -138,16 +534,58 @@
     "explanation": "Caleb's throwing resulted in the removal of the shoe-wearing demand. His mother abandoning the task means the aversive activity was terminated, indicating escape."
   },
   {
+    "title": "Pushing for Swing",
+    "stem": "On the playground, 4-year-old Xavier pushes another child off the swing and sits on it. No adult intervenes, and Xavier swings happily. The function of Xavier's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Xavier's pushing resulted in gaining access to the swing. The consequence was obtaining a preferred activity, indicating an access/tangible function."
+  },
+  {
+    "title": "Hair Twirling",
+    "stem": "During independent work time, 15-year-old Kendra twirls a strand of hair around her finger continuously. She does this in class, at home, and while alone in her room. No one comments on it. The function of Kendra's behavior is...",
+    "key": "sensory",
+    "explanation": "Kendra's hair twirling occurs across all settings and persists without any social consequences. The behavior produces its own tactile stimulation, indicating sensory."
+  },
+  {
     "title": "College Lecture Departure",
     "stem": "Whenever the professor assigns in-class writing exercises, 21-year-old Layla packs up her bag and leaves the lecture hall before the exercise begins. She is marked absent but avoids the writing task. The function of Layla's behavior is...",
     "key": "escape",
     "explanation": "Layla's departure resulted in the avoidance of the in-class writing exercise. The aversive academic demand was removed through leaving, indicating escape."
   },
   {
+    "title": "Whining for Candy",
+    "stem": "At the checkout line, 6-year-old Aria whines and tugs on her father's sleeve, pointing at the candy display. Her father places a candy bar on the conveyor belt. The function of Aria's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Aria's whining resulted in obtaining candy. The consequence was gaining a preferred item, indicating an access/tangible function."
+  },
+  {
+    "title": "Hand Flapping",
+    "stem": "Whenever 4-year-old Mika sees something exciting, she flaps her hands rapidly at her sides. She does this whether or not anyone is watching, and no one responds to the behavior. The function of Mika's behavior is...",
+    "key": "sensory",
+    "explanation": "Mika's hand flapping occurs across contexts regardless of social attention and produces its own proprioceptive feedback. The internally reinforcing nature indicates sensory."
+  },
+  {
+    "title": "Dramatic Sighing",
+    "stem": "During a family dinner conversation, 13-year-old Chloe sighs loudly and repeatedly. Each time, family members stop talking and ask Chloe what is wrong. The function of Chloe's behavior is...",
+    "key": "attention",
+    "explanation": "Chloe's sighing resulted in family members pausing their conversation and directing questions toward her. The social engagement indicates an attention function."
+  },
+  {
     "title": "Lunchroom Shutdown",
     "stem": "In the noisy school cafeteria, 11-year-old Brendan puts his hood up, puts his head on the table, and stops eating. The lunch aide sends him to eat in the quiet counselor's office. The function of Brendan's behavior is...",
     "key": "escape",
     "explanation": "Brendan's shutdown resulted in removal from the aversive noisy cafeteria environment. Being sent to a quiet space indicates an escape function."
+  },
+  {
+    "title": "Tantrum for Tablet",
+    "stem": "When his mother puts away the tablet, 5-year-old Lucas throws himself on the floor and screams. His mother gives the tablet back to stop the screaming. The function of Lucas's behavior is...",
+    "key": "access/tangible",
+    "explanation": "Lucas's tantrum resulted in obtaining the tablet. The consequence was gaining a preferred item, indicating an access/tangible function."
+  },
+  {
+    "title": "Rocking in Chair",
+    "stem": "While sitting alone in the waiting room, 7-year-old Aiden rocks back and forth rhythmically in his chair. No one is present to respond, but Aiden continues rocking for the entire thirty-minute wait. The function of Aiden's behavior is...",
+    "key": "sensory",
+    "explanation": "Aiden's rocking occurs regardless of social consequences and persists even when alone. The behavior produces its own internal vestibular stimulation, indicating a sensory function."
   },
   {
     "title": "Clowning for Peers",
@@ -160,443 +598,5 @@
     "stem": "While her mother is on the phone, 2-year-old Naomi screams at the top of her lungs. Her mother hangs up the phone and picks Naomi up, saying 'What is wrong, sweetie?' The function of Naomi's behavior is...",
     "key": "attention",
     "explanation": "Naomi's screaming resulted in her mother ending the phone call and providing direct social attention. The consequence was gaining her mother's focus, indicating attention."
-  },
-  {
-    "title": "Dramatic Sighing",
-    "stem": "During a family dinner conversation, 13-year-old Chloe sighs loudly and repeatedly. Each time, family members stop talking and ask Chloe what is wrong. The function of Chloe's behavior is...",
-    "key": "attention",
-    "explanation": "Chloe's sighing resulted in family members pausing their conversation and directing questions toward her. The social engagement indicates an attention function."
-  },
-  {
-    "title": "Office Complaining",
-    "stem": "At work, Tom loudly complains about his workload in the break room. Coworkers gather around, sympathize, and offer to help. The next week, Tom complains loudly again. The function of Tom's behavior is...",
-    "key": "attention",
-    "explanation": "Tom's complaining resulted in coworkers gathering and providing sympathetic social interaction. The consequence was social engagement, indicating attention."
-  },
-  {
-    "title": "Pulling Hair",
-    "stem": "On the playground, 5-year-old Kai pulls another child's hair. The recess monitor runs over, kneels down, and spends several minutes talking to Kai about why that is wrong. The function of Kai's behavior is...",
-    "key": "attention",
-    "explanation": "Kai's hair-pulling resulted in extended one-on-one interaction with the recess monitor. Even though the attention was corrective, it was still sustained social engagement, indicating attention."
-  },
-  {
-    "title": "Baby Dropping Spoon",
-    "stem": "During mealtime, 18-month-old Ethan drops his spoon on the floor. His father picks it up, smiles, and says 'Oops!' Ethan immediately drops it again, and his father repeats the exchange. The function of Ethan's behavior is...",
-    "key": "attention",
-    "explanation": "Ethan's spoon-dropping resulted in his father's verbal response, eye contact, and smiling. The repeated social interaction is the reinforcing consequence, indicating attention."
-  },
-  {
-    "title": "Classroom Disruption",
-    "stem": "While the teacher is helping another student, 9-year-old Brianna starts tapping her pencil loudly and humming. The teacher stops what she is doing, walks over, and tells Brianna to be quiet. The function of Brianna's behavior is...",
-    "key": "attention",
-    "explanation": "Brianna's disruptive behavior resulted in the teacher leaving the other student and providing direct interaction. The teacher's response, even as a reprimand, is social attention, indicating attention."
-  },
-  {
-    "title": "Elderly Buzzing Nurse",
-    "stem": "At the assisted living facility, 85-year-old Dorothy presses her call button every fifteen minutes even though she has no medical needs. Each time, a nurse comes to her room and chats with her briefly. The function of Dorothy's behavior is...",
-    "key": "attention",
-    "explanation": "Dorothy's button-pressing results in a nurse visiting and engaging in conversation. The social interaction is the reinforcing consequence, indicating attention."
-  },
-  {
-    "title": "Tattling on Siblings",
-    "stem": "Whenever his parents are busy cooking dinner, 7-year-old Marcus runs to the kitchen to report that his sister is 'being mean.' His parents stop cooking, listen to the story, and mediate. The function of Marcus's behavior is...",
-    "key": "attention",
-    "explanation": "Marcus's tattling resulted in his parents stopping their activity and engaging with him. The direct parental interaction indicates an attention function."
-  },
-  {
-    "title": "Making Messes at Daycare",
-    "stem": "At daycare, 3-year-old Ava dumps her juice on the table when the caregiver is attending to other children. The caregiver rushes over, picks Ava up, and spends time cleaning while talking to her. The function of Ava's behavior is...",
-    "key": "attention",
-    "explanation": "Ava's mess-making resulted in the caregiver redirecting attention from other children to Ava. The extended interaction during cleanup indicates attention."
-  },
-  {
-    "title": "Teen Social Media Posts",
-    "stem": "Fifteen-year-old Maya posts dramatic status updates whenever she feels ignored by her friend group. Her friends immediately text and call to check on her. The function of Maya's behavior is...",
-    "key": "attention",
-    "explanation": "Maya's posting resulted in friends reaching out with texts and calls. The social engagement following the behavior indicates an attention function."
-  },
-  {
-    "title": "Tripping Classmates",
-    "stem": "In the hallway between classes, 12-year-old Oscar sticks his foot out and trips another student. Nearby students gasp, and a teacher immediately comes over to address Oscar directly. The function of Oscar's behavior is...",
-    "key": "attention",
-    "explanation": "Oscar's tripping resulted in peer reactions and direct teacher interaction. The social responses from both groups indicate an attention function."
-  },
-  {
-    "title": "Calling Out Answers",
-    "stem": "During a college seminar, 22-year-old Priya shouts out answers without being called on. The professor pauses, makes eye contact, and says, 'Priya, please raise your hand.' Other students turn to look at her. The function of Priya's behavior is...",
-    "key": "attention",
-    "explanation": "Priya's calling out resulted in the professor's direct address and peers turning to look. The social acknowledgment from the room indicates attention."
-  },
-  {
-    "title": "Throwing Food at Daycare",
-    "stem": "During snack time, 2-year-old Leo throws crackers on the floor while looking at the caregiver. The caregiver immediately comes over, makes eye contact, and firmly says, 'No throwing, Leo.' The function of Leo's behavior is...",
-    "key": "attention",
-    "explanation": "Leo's food-throwing, done while looking at the caregiver, resulted in direct verbal and visual attention. The caregiver's response is social interaction, indicating attention."
-  },
-  {
-    "title": "Faking an Injury",
-    "stem": "During gym class, whenever the teacher is focused on another group, 11-year-old Hannah falls down and holds her knee, saying it hurts. The teacher runs over to check on her. The function of Hannah's behavior is...",
-    "key": "attention",
-    "explanation": "Hannah's faking an injury resulted in the teacher leaving the other group and providing direct, concerned attention. The social response indicates attention."
-  },
-  {
-    "title": "Workplace Bragging",
-    "stem": "At the weekly team meeting, Greg loudly describes his weekend accomplishments unrelated to work. His coworkers stop their conversation and listen to his stories. The function of Greg's behavior is...",
-    "key": "attention",
-    "explanation": "Greg's bragging resulted in coworkers directing their focus toward him. The social listening and engagement indicate an attention function."
-  },
-  {
-    "title": "Pinching in Line",
-    "stem": "While standing in line at the grocery store, 4-year-old Mila pinches her mother's arm. Her mother immediately bends down, holds Mila's hands, and says, 'We do not pinch. That hurts Mommy.' The function of Mila's behavior is...",
-    "key": "attention",
-    "explanation": "Mila's pinching resulted in her mother stopping, bending down to her level, and providing direct interaction. The physical and verbal attention indicates an attention function."
-  },
-  {
-    "title": "Showing Off on Playground",
-    "stem": "On the playground, 8-year-old Jayden climbs to the top of the tallest structure and shouts, 'Look at me!' Other children and the recess aide all look up and react. The function of Jayden's behavior is...",
-    "key": "attention",
-    "explanation": "Jayden's climbing and shouting resulted in multiple people looking and reacting. The social acknowledgment from peers and adults indicates attention."
-  },
-  {
-    "title": "Interrupting Therapy",
-    "stem": "During a group therapy session for adolescents, 16-year-old Dante makes jokes every time another group member is sharing. The therapist redirects the conversation to Dante and asks him to share his own feelings. The function of Dante's behavior is...",
-    "key": "attention",
-    "explanation": "Dante's joking resulted in the therapist shifting focus to him. The group's attention redirected to Dante indicates an attention function."
-  },
-  {
-    "title": "Drawing on Own Arm",
-    "stem": "In class, 13-year-old Zoe draws elaborate designs on her arms with markers. Her teacher notices, comes over, and spends five minutes discussing the drawings with Zoe. The function of Zoe's behavior is...",
-    "key": "attention",
-    "explanation": "Zoe's drawing on herself resulted in the teacher approaching and engaging in a personal conversation. The direct teacher interaction indicates attention."
-  },
-  {
-    "title": "Crying at Drop-Off",
-    "stem": "Every morning at daycare drop-off, 3-year-old Oliver cries loudly and clings to his mother. His mother stays an extra twenty minutes, hugging and reassuring him. The function of Oliver's behavior is...",
-    "key": "attention",
-    "explanation": "Oliver's crying resulted in extended physical and verbal attention from his mother. The prolonged parental interaction indicates an attention function."
-  },
-  {
-    "title": "Swearing at Teacher",
-    "stem": "When the teacher is helping other students and not attending to him, 10-year-old Travis yells a profanity. The teacher immediately turns around, walks to Travis's desk, and has a lengthy conversation with him about language. The function of Travis's behavior is...",
-    "key": "attention",
-    "explanation": "Travis's swearing occurred when the teacher was attending to others and resulted in extended direct interaction. The teacher's sustained focus on Travis indicates attention."
-  },
-  {
-    "title": "Elderly Repeated Questions",
-    "stem": "At the senior center, 79-year-old Helen asks the same questions to staff members every few minutes despite already receiving answers. Each time, a staff member stops, faces her, and patiently repeats the answer. The function of Helen's behavior is...",
-    "key": "attention",
-    "explanation": "Helen's repeated questioning results in staff members stopping their tasks and providing direct interaction. The consistent social engagement indicates attention."
-  },
-  {
-    "title": "College Class Clown",
-    "stem": "In a large lecture hall, 19-year-old Jake makes loud, sarcastic comments after the professor's statements. Students around him laugh, and the professor addresses Jake by name. The function of Jake's behavior is...",
-    "key": "attention",
-    "explanation": "Jake's sarcastic comments resulted in peer laughter and the professor singling him out. The social reactions from the room indicate an attention function."
-  },
-  {
-    "title": "Standing on Chair",
-    "stem": "During a community event, 5-year-old Nadia stands on her chair and waves her arms while her parents are talking to other adults. Both parents and several nearby adults turn to look at her and tell her to sit down. The function of Nadia's behavior is...",
-    "key": "attention",
-    "explanation": "Nadia's standing and waving resulted in multiple adults redirecting their focus to her. The social responses from parents and others indicate attention."
-  },
-  {
-    "title": "Rocking in Chair",
-    "stem": "While sitting alone in the waiting room, 7-year-old Aiden rocks back and forth rhythmically in his chair. No one is present to respond, but Aiden continues rocking for the entire thirty-minute wait. The function of Aiden's behavior is...",
-    "key": "sensory",
-    "explanation": "Aiden's rocking occurs regardless of social consequences and persists even when alone. The behavior produces its own internal vestibular stimulation, indicating a sensory function."
-  },
-  {
-    "title": "Hand Flapping",
-    "stem": "Whenever 4-year-old Mika sees something exciting, she flaps her hands rapidly at her sides. She does this whether or not anyone is watching, and no one responds to the behavior. The function of Mika's behavior is...",
-    "key": "sensory",
-    "explanation": "Mika's hand flapping occurs across contexts regardless of social attention and produces its own proprioceptive feedback. The internally reinforcing nature indicates sensory."
-  },
-  {
-    "title": "Hair Twirling",
-    "stem": "During independent work time, 15-year-old Kendra twirls a strand of hair around her finger continuously. She does this in class, at home, and while alone in her room. No one comments on it. The function of Kendra's behavior is...",
-    "key": "sensory",
-    "explanation": "Kendra's hair twirling occurs across all settings and persists without any social consequences. The behavior produces its own tactile stimulation, indicating sensory."
-  },
-  {
-    "title": "Spinning Objects",
-    "stem": "At home and at school, 5-year-old Luis spins the wheels on toy cars for extended periods rather than playing with them in the typical way. He does this alone and does not look at others while doing it. The function of Luis's behavior is...",
-    "key": "sensory",
-    "explanation": "Luis's spinning occurs in isolation and without seeking social response. The visual stimulation from the spinning wheels provides its own reinforcement, indicating sensory."
-  },
-  {
-    "title": "Pen Clicking",
-    "stem": "During lectures, 20-year-old Tara clicks her pen open and closed repeatedly. She does this in every class, during study sessions alone, and does not seem to notice when classmates glance at her. The function of Tara's behavior is...",
-    "key": "sensory",
-    "explanation": "Tara's pen clicking occurs consistently across settings, including when alone, and without regard for others' reactions. The auditory and tactile feedback is self-reinforcing, indicating sensory."
-  },
-  {
-    "title": "Skin Picking",
-    "stem": "Thirteen-year-old Evan picks at the skin on his fingers while watching TV, doing homework, and sitting in class. He does this when alone and when with others, and no one provides a consequence. The function of Evan's behavior is...",
-    "key": "sensory",
-    "explanation": "Evan's skin picking occurs across settings regardless of social context and without external consequences. The tactile sensation is internally reinforcing, indicating sensory."
-  },
-  {
-    "title": "Lining Up Crayons",
-    "stem": "In the art center at daycare, 3-year-old Fatima lines up all the crayons by color instead of drawing. She does this every day regardless of who is nearby, and caregivers do not intervene. The function of Fatima's behavior is...",
-    "key": "sensory",
-    "explanation": "Fatima's lining-up behavior occurs consistently without social reinforcement and appears to produce its own visual or organizational satisfaction. This indicates a sensory function."
-  },
-  {
-    "title": "Bouncing Leg",
-    "stem": "At his desk at work, 35-year-old Marco bounces his leg up and down continuously. He does this in meetings, while working alone, and does not appear to seek or receive any response from others. The function of Marco's behavior is...",
-    "key": "sensory",
-    "explanation": "Marco's leg bouncing occurs across all contexts including when alone. The proprioceptive and kinesthetic stimulation is self-reinforcing, indicating a sensory function."
-  },
-  {
-    "title": "Humming in the Car",
-    "stem": "Six-year-old Kira hums the same tune over and over while riding in the car. She does this whether or not anyone else is in the car, and her parents have stopped commenting on it. The function of Kira's behavior is...",
-    "key": "sensory",
-    "explanation": "Kira's humming persists regardless of social attention and occurs even when alone. The auditory self-stimulation provides its own reinforcement, indicating sensory."
-  },
-  {
-    "title": "Teeth Grinding",
-    "stem": "Eight-year-old Dominic grinds his teeth during quiet activities at home and at school. He does this whether or not anyone is present, and no one responds to the behavior. The function of Dominic's behavior is...",
-    "key": "sensory",
-    "explanation": "Dominic's teeth grinding occurs across settings regardless of the social environment. The oral-motor stimulation is internally reinforcing, indicating a sensory function."
-  },
-  {
-    "title": "Smelling Objects",
-    "stem": "Whenever 4-year-old Jaya encounters a new object, she picks it up and smells it extensively. She does this whether adults are watching or not, and no one provides any attention for the behavior. The function of Jaya's behavior is...",
-    "key": "sensory",
-    "explanation": "Jaya's smelling occurs automatically with new objects regardless of social context. The olfactory input provides its own reinforcement, indicating a sensory function."
-  },
-  {
-    "title": "Ripping Paper",
-    "stem": "During free time, 6-year-old Theo tears paper into tiny strips, listening to the sound and watching the pieces fall. He does this alone in his room and at school, and no one responds. The function of Theo's behavior is...",
-    "key": "sensory",
-    "explanation": "Theo's paper ripping produces auditory and visual stimulation that he appears to enjoy. The behavior occurs without social reinforcement and across settings, indicating sensory."
-  },
-  {
-    "title": "Rubbing Fabric",
-    "stem": "Whenever she encounters soft fabric, 9-year-old Sadie rubs it between her fingers repeatedly. She does this at stores, at home, and at school, regardless of whether anyone notices. The function of Sadie's behavior is...",
-    "key": "sensory",
-    "explanation": "Sadie's fabric rubbing occurs across all settings and is maintained without social consequences. The tactile sensation from the soft material is internally reinforcing, indicating sensory."
-  },
-  {
-    "title": "Staring at Lights",
-    "stem": "At home and at school, 3-year-old Elias gazes at overhead fluorescent lights for extended periods. He does this whether or not caregivers are present and does not respond when they try to redirect him. The function of Elias's behavior is...",
-    "key": "sensory",
-    "explanation": "Elias's light-gazing occurs regardless of social context and persists despite no external reinforcement. The visual stimulation is self-reinforcing, indicating sensory."
-  },
-  {
-    "title": "Nail Biting",
-    "stem": "Twenty-five-year-old Rachel bites her nails during work, while watching television, and while driving. The behavior occurs whether she is alone or with others, and no one draws attention to it. The function of Rachel's behavior is...",
-    "key": "sensory",
-    "explanation": "Rachel's nail biting occurs across multiple settings and social contexts without external consequences. The oral and tactile stimulation provides its own reinforcement, indicating sensory."
-  },
-  {
-    "title": "Mouthing Objects",
-    "stem": "At daycare, 2-year-old Henry puts every toy in his mouth and chews on it. He does this during solitary play and group play alike, and caregivers have stopped attempting to redirect the behavior. The function of Henry's behavior is...",
-    "key": "sensory",
-    "explanation": "Henry's mouthing occurs across all play contexts without regard for social attention. The oral stimulation provides its own reinforcement, indicating a sensory function."
-  },
-  {
-    "title": "Knuckle Cracking",
-    "stem": "Forty-year-old Patricia cracks her knuckles repeatedly throughout the day at her office, at home, and in meetings. No one comments on it, and she does it regardless of who is present. The function of Patricia's behavior is...",
-    "key": "sensory",
-    "explanation": "Patricia's knuckle cracking persists across all settings and social contexts. The proprioceptive sensation provides its own internal reinforcement, indicating sensory."
-  },
-  {
-    "title": "Spinning in Circles",
-    "stem": "At recess and at home, 5-year-old Nia spins in circles until she is dizzy, then waits and spins again. She does this in the corner of the playground alone, and no one interacts with her during the behavior. The function of Nia's behavior is...",
-    "key": "sensory",
-    "explanation": "Nia's spinning occurs in isolation without social reinforcement. The vestibular stimulation from dizziness provides its own internal reinforcement, indicating sensory."
-  },
-  {
-    "title": "Tapping Surfaces",
-    "stem": "Eleven-year-old Kai taps his fingers on every surface he touches, producing rhythmic patterns. He does this at school, at home, and while walking in the community, regardless of whether anyone is around. The function of Kai's behavior is...",
-    "key": "sensory",
-    "explanation": "Kai's tapping occurs across all settings without social consequences. The auditory and tactile feedback from the rhythmic patterns is self-reinforcing, indicating sensory."
-  },
-  {
-    "title": "Pacing the Hallway",
-    "stem": "At the nursing home, 80-year-old George paces up and down the hallway for hours. He does not engage with staff or other residents during pacing, and no one attempts to stop him. The function of George's behavior is...",
-    "key": "sensory",
-    "explanation": "George's pacing occurs without social interaction and is not directed at gaining attention or escaping a task. The repetitive movement provides its own kinesthetic reinforcement, indicating sensory."
-  },
-  {
-    "title": "Scratching Textured Walls",
-    "stem": "At school and at home, 4-year-old Aaliyah runs her fingernails along textured walls, listening to the sound it makes. She does this when alone in the hallway and does not look to see if anyone is watching. The function of Aaliyah's behavior is...",
-    "key": "sensory",
-    "explanation": "Aaliyah's wall scratching produces auditory and tactile stimulation. The behavior occurs without social attention and across settings, indicating sensory."
-  },
-  {
-    "title": "Blowing Bubbles in Drink",
-    "stem": "At every meal, 6-year-old Isaac blows bubbles in his drink through his straw. He does this at home when eating alone and at restaurants. No one responds to or comments on the behavior. The function of Isaac's behavior is...",
-    "key": "sensory",
-    "explanation": "Isaac's bubble-blowing occurs consistently across settings without social consequences. The visual and auditory effects of the bubbles provide their own reinforcement, indicating sensory."
-  },
-  {
-    "title": "Doodling in Meetings",
-    "stem": "During every meeting, 30-year-old Anika draws intricate patterns in the margins of her notebook. She does this whether or not anyone can see her notebook, and colleagues do not comment on it. The function of Anika's behavior is...",
-    "key": "sensory",
-    "explanation": "Anika's doodling occurs regardless of social observation and produces its own visual and fine-motor reinforcement. The self-stimulating nature indicates sensory."
-  },
-  {
-    "title": "Rubbing Eyes",
-    "stem": "Three-year-old Mateo rubs his eyes vigorously throughout the day, both at home and at preschool. He does this when he is alone and when others are nearby. No medical cause has been identified, and no one responds to the behavior. The function of Mateo's behavior is...",
-    "key": "sensory",
-    "explanation": "Mateo's eye rubbing occurs across settings without social consequences. The visual and pressure stimulation provides its own reinforcement, indicating a sensory function."
-  },
-  {
-    "title": "Tongue Clicking",
-    "stem": "During quiet reading time, bus rides, and while playing alone, 8-year-old Rowan clicks his tongue against the roof of his mouth in a steady rhythm. He does not look at anyone when doing it, and no one responds. The function of Rowan's behavior is...",
-    "key": "sensory",
-    "explanation": "Rowan's tongue clicking occurs across multiple settings without social reinforcement. The oral-motor and auditory feedback provides its own internal reinforcement, indicating a sensory function."
-  },
-  {
-    "title": "Tantrum for Tablet",
-    "stem": "When his mother puts away the tablet, 5-year-old Lucas throws himself on the floor and screams. His mother gives the tablet back to stop the screaming. The function of Lucas's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Lucas's tantrum resulted in obtaining the tablet. The consequence was gaining a preferred item, indicating an access/tangible function."
-  },
-  {
-    "title": "Whining for Candy",
-    "stem": "At the checkout line, 6-year-old Aria whines and tugs on her father's sleeve, pointing at the candy display. Her father places a candy bar on the conveyor belt. The function of Aria's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Aria's whining resulted in obtaining candy. The consequence was gaining a preferred item, indicating an access/tangible function."
-  },
-  {
-    "title": "Pushing for Swing",
-    "stem": "On the playground, 4-year-old Xavier pushes another child off the swing and sits on it. No adult intervenes, and Xavier swings happily. The function of Xavier's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Xavier's pushing resulted in gaining access to the swing. The consequence was obtaining a preferred activity, indicating an access/tangible function."
-  },
-  {
-    "title": "Crying for Toy",
-    "stem": "At the toy store, 3-year-old Ella begins crying loudly and pointing at a stuffed animal. Although her mother initially says no, Ella's crying escalates until her mother purchases the stuffed animal. The function of Ella's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Ella's crying resulted in obtaining the stuffed animal. The consequence was gaining a preferred item, indicating access/tangible."
-  },
-  {
-    "title": "Grabbing Sibling's Game",
-    "stem": "When his older sister is playing a video game, 8-year-old Caleb grabs the controller from her hands. His parents tell his sister to let Caleb have a turn. The function of Caleb's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Caleb's grabbing resulted in gaining access to the video game controller. The consequence was obtaining a preferred activity, indicating access/tangible."
-  },
-  {
-    "title": "Hitting for Snack",
-    "stem": "At daycare, 3-year-old Ivy hits the child sitting next to her and takes the child's goldfish crackers. The caregiver does not see the hit, and Ivy eats the crackers. The function of Ivy's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Ivy's hitting resulted in obtaining the crackers. The consequence was gaining a preferred food item, indicating an access/tangible function."
-  },
-  {
-    "title": "Complaining for Phone",
-    "stem": "While waiting at the doctor's office, 10-year-old Brandon complains repeatedly that he is bored. His mother hands him her phone to play games. The function of Brandon's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Brandon's complaining resulted in obtaining his mother's phone. The consequence was gaining access to a preferred item and activity, indicating access/tangible."
-  },
-  {
-    "title": "Begging for Extra Recess",
-    "stem": "After finishing their test early, a group of fifth graders chants 'Recess! Recess!' until the teacher allows them to go outside for extra recess time. The function of the students' behavior is...",
-    "key": "access/tangible",
-    "explanation": "The chanting resulted in gaining extra recess time. The consequence was obtaining a preferred activity, indicating an access/tangible function."
-  },
-  {
-    "title": "Demanding TV Remote",
-    "stem": "When his father is watching the news, 7-year-old Amir screams and kicks the couch until his father hands over the remote. Amir immediately switches to cartoons. The function of Amir's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Amir's screaming and kicking resulted in obtaining the remote and access to his preferred show. The consequence was gaining a tangible item and activity, indicating access/tangible."
-  },
-  {
-    "title": "Snatching at the Park",
-    "stem": "At the community park, 4-year-old Layla snatches a sand bucket from another child in the sandbox. She begins building with it immediately, and the other child walks away. The function of Layla's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Layla's snatching resulted in obtaining the sand bucket. The consequence was gaining a preferred play item, indicating an access/tangible function."
-  },
-  {
-    "title": "Negotiating Bedtime",
-    "stem": "At bedtime, 11-year-old Daniel bargains with his parents, promising to do extra chores if he can stay up to watch the end of the basketball game. His parents agree. The function of Daniel's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Daniel's negotiating resulted in gaining extended TV time to watch the game. The consequence was obtaining a preferred activity, indicating access/tangible."
-  },
-  {
-    "title": "Pulling Mom to Toy Aisle",
-    "stem": "At the department store, 3-year-old Sofia grabs her mother's hand and pulls her toward the toy section, whimpering and pointing. Her mother follows and lets Sofia choose a small toy. The function of Sofia's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Sofia's pulling and whimpering resulted in being taken to the toy section and obtaining a toy. The consequence was gaining a preferred item, indicating access/tangible."
-  },
-  {
-    "title": "Office Supply Requests",
-    "stem": "At work, 28-year-old Leticia emails her supervisor multiple times a day requesting a standing desk until the supervisor finally approves the purchase. The function of Leticia's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Leticia's persistent emailing resulted in obtaining the standing desk. The consequence was gaining a desired item, indicating an access/tangible function."
-  },
-  {
-    "title": "Taking Peer's Lunch",
-    "stem": "In the school cafeteria, 14-year-old Marcus takes a bag of chips from another student's tray when the student is not looking. Marcus eats the chips before anyone notices. The function of Marcus's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Marcus's taking resulted in obtaining the chips. The consequence was gaining a preferred food item, indicating an access/tangible function."
-  },
-  {
-    "title": "Crying for iPad",
-    "stem": "While her older sister is using the family iPad, 6-year-old Nora sits on the couch and cries loudly. Although it might look like she wants attention, her mother takes the iPad from her sister and gives it to Nora, who immediately stops crying and begins playing a game. The function of Nora's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Although Nora's crying could look like attention-seeking, the consequence was obtaining the iPad. The immediate shift to playing the game confirms the tangible item was the reinforcer, indicating access/tangible."
-  },
-  {
-    "title": "Elderly Requesting Dessert",
-    "stem": "At the assisted living facility, 76-year-old Frank refuses to eat his meal and pushes the tray away until the staff bring him his preferred dessert first. He eats the dessert immediately. The function of Frank's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Frank's refusal resulted in obtaining his preferred dessert. The consequence was gaining a desired food item, indicating access/tangible."
-  },
-  {
-    "title": "Completing Tasks Fast",
-    "stem": "In class, 9-year-old Harper rushes through her worksheet, making careless errors, so she can be first in line for the computer station. The teacher allows the first student finished to use the computer. The function of Harper's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Harper's rushing resulted in gaining access to the computer station. The consequence was obtaining a preferred activity, indicating an access/tangible function."
-  },
-  {
-    "title": "Stealing Markers",
-    "stem": "During art time, 5-year-old James takes the glitter markers from the communal supply bin and hides them in his desk so only he can use them. No one notices or comments. The function of James's behavior is...",
-    "key": "access/tangible",
-    "explanation": "James's taking and hiding resulted in exclusive access to the glitter markers. The consequence was obtaining preferred materials, indicating access/tangible."
-  },
-  {
-    "title": "Screaming at Vending Machine",
-    "stem": "When her mother walks past the vending machine at the gym, 4-year-old Mia screams and points at the machine. Her mother puts in coins and lets Mia choose a drink. The function of Mia's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Mia's screaming resulted in obtaining a drink from the vending machine. The consequence was gaining a preferred item, indicating access/tangible."
-  },
-  {
-    "title": "Pestering for Car Keys",
-    "stem": "Seventeen-year-old Dominic asks his parents for the car keys every five minutes on Saturday morning, following them around the house. His parents eventually hand over the keys. The function of Dominic's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Dominic's persistent asking resulted in obtaining the car keys. The consequence was gaining access to a desired item and activity, indicating access/tangible."
-  },
-  {
-    "title": "Kicking Seat for Juice",
-    "stem": "On a long car ride, 3-year-old Zoe kicks the back of the driver's seat and shouts 'juice!' repeatedly. Her father hands her a juice box from the cooler. The function of Zoe's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Zoe's kicking and shouting resulted in obtaining a juice box. The consequence was gaining a preferred drink, indicating an access/tangible function."
-  },
-  {
-    "title": "Gym Equipment Hoarding",
-    "stem": "At the recreation center, 12-year-old Valentina gathers all the basketballs from the equipment rack and refuses to share. She shoots baskets alone with multiple balls around her. The function of Valentina's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Valentina's hoarding resulted in exclusive access to the basketballs. The consequence was maintaining possession of preferred items and activities, indicating access/tangible."
-  },
-  {
-    "title": "Interrupting for Cookie",
-    "stem": "While his grandmother is baking, 5-year-old Owen interrupts her conversation with his aunt by tugging on her apron and saying 'cookie, cookie, cookie.' His grandmother hands him a fresh cookie from the cooling rack. The function of Owen's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Although Owen's interrupting involved getting his grandmother's attention, the consequence was obtaining a cookie. The tangible item was the reinforcer, indicating access/tangible."
-  },
-  {
-    "title": "Refusing to Move",
-    "stem": "At the community pool, 8-year-old Jaylen refuses to get out of the pool when the lifeguard announces adult swim. He sits at the bottom of the shallow end and will not move until the lifeguard lets him stay in for five more minutes. The function of Jaylen's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Jaylen's refusal to leave resulted in continued access to the pool. The consequence was maintaining a preferred activity, indicating an access/tangible function."
-  },
-  {
-    "title": "Yelling for Turn",
-    "stem": "During board game night, 7-year-old Amaya yells that it is unfair and crosses her arms every time it is not her turn. Her family lets Amaya take an extra turn to avoid the outburst. The function of Amaya's behavior is...",
-    "key": "access/tangible",
-    "explanation": "Amaya's yelling resulted in obtaining extra turns in the game. The consequence was gaining additional access to a preferred activity, indicating access/tangible."
   }
 ]

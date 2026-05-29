@@ -145,11 +145,19 @@ Ask AI to provide a chart that incorporates functions of behavior and types of r
 
 <Collapsible id="fba2_chart_hint" title="Hint: Example prompt">
 <Markdown>
-Try a prompt like: "Put all four functions of behavior in a chart with examples of positive and negative reinforcement side-by-side."
+Here's JJ's prompt:
+
+You are a helpful psychology teaching assistant. Create a chart showing the four
+functions of behavior (attention, escape, access to tangibles, sensory) with examples
+of how each relates to positive and negative reinforcement. Use a markdown table format.
+Include concrete examples for each combination of function with positive or negative
+reinforcement. Leave a cell blank if the function of the behavior is by definition
+incompatible with the type of reinforcement, assuming that negative reinforcement is
+compatible with removal of unwanted attention but not with access, while escape is
+not compatible with positive reinforcement. Highlight the function names in the
+function column.
 </Markdown>
 </Collapsible>
-
-<TextArea id="fba2_ai_chart_prompt" rows="2" placeholder="Type your prompt asking AI for a chart of functions and reinforcement types..." />
 
 <ActionButton id="fba2_ai_chart_btn" label="Ask AI">
 <LLMAction id="fba2_ai_chart_action" target="fba2_ai_chart_response"><![CDATA[
@@ -163,7 +171,6 @@ compatible with removal of unwanted attention but not with access, while escape 
 not compatible with positive reinforcement. Highlight the function names in the
 function column.
 ]]>
-Student's request: <Ref id="fba2_ref_chart_prompt" target="fba2_ai_chart_prompt" />
 </LLMAction>
 </ActionButton>
 
@@ -598,7 +605,9 @@ Here is the student's response:
 <![CDATA[
 Evaluate whether the student correctly identified each component. Be encouraging but
 specific about what they got right and what needs correction. Keep it brief.
-]]></LLMAction>
+]]>
+
+However, DO NOT give students the correct answer in your response.</LLMAction>
 </ActionButton>
 
 <LLMFeedback id="fba2_abc_johnny_feedback" render="markdown" />
@@ -677,7 +686,8 @@ The student's answers:
 <Ref id="fba2_ref_pathway_function" target="fba2_pathway_function" />
 <![CDATA[
 Evaluate each component. Be encouraging but specific about what they got right
-and what needs correction. Keep it brief.
+and what needs correction. Keep it brief. Do not supply the problem behavior, the 
+consequence, or the function for the student. They need to figure that out for themselves.
 ]]></LLMAction>
 </ActionButton>
 
