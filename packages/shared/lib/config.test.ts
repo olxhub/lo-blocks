@@ -1,29 +1,24 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { PMSSParserAdapter, resolve } from 'pmss';
+import fs from 'fs';
+import path from 'path';
+import { initConfig, getConfig, getConfigBool } from './config';
+
+// Load the actual system.pmss used by the app
+const SYSTEM_PMSS = fs.readFileSync(
+  path.resolve(__dirname, '../../../config/system.pmss'), 'utf-8'
+);
 
 // -----------------------------------------------------------------------
-// Direct PMSS resolution tests (no env var dependency)
+// Direct PMSS resolution tests (no initConfig dependency)
 // -----------------------------------------------------------------------
-// These validate the resolve function against different profile contexts,
-// independent of what NEXT_PUBLIC_APP_PROFILE is set to.
+// Validate the resolve function against different profile contexts.
 
 describe('PMSS config resolution', () => {
-  // Import the module to access the actual config string and contract.
-  // We can't easily test getConfig/getConfigBool directly because the
-  // module reads NEXT_PUBLIC_APP_PROFILE at load time. Instead we test
-  // resolve() against the same contexts the module would use.
+  const rules = PMSSParserAdapter.parse(SYSTEM_PMSS);
 
-  // Config must match what's in config.ts — if they diverge, this test
-  // should be updated to import from config.ts (once we have a build
-  // step or raw import for the config string).
-  const CONFIG = `
-    * { websocket: false; }
-    .web { websocket: true; }
-  `;
-  const rules = PMSSParserAdapter.parse(CONFIG);
-
-  it('web profile: websocket enabled', () => {
-    expect(resolve(rules, 'websocket', { classes: ['web'] })).toBe('true');
+  it('client profile: websocket enabled', () => {
+    expect(resolve(rules, 'websocket', { classes: ['client'] })).toBe('true');
   });
 
   it('static profile: websocket disabled (falls through to * default)', () => {
@@ -36,71 +31,43 @@ describe('PMSS config resolution', () => {
   });
 
   it('unknown key returns null', () => {
-    expect(resolve(rules, 'nonexistent', { classes: ['web'] })).toBeNull();
+    expect(resolve(rules, 'nonexistent', { classes: ['client'] })).toBeNull();
   });
 });
 
 // -----------------------------------------------------------------------
-// getConfig / getConfigBool module contract
+// getConfig / getConfigBool via initConfig
 // -----------------------------------------------------------------------
-// These test the exported functions with controlled NEXT_PUBLIC_APP_PROFILE.
 
 describe('getConfig / getConfigBool', () => {
-  const ORIGINAL_ENV = process.env.NEXT_PUBLIC_APP_PROFILE;
-
-  afterEach(() => {
-    // Restore original env
-    if (ORIGINAL_ENV !== undefined) {
-      process.env.NEXT_PUBLIC_APP_PROFILE = ORIGINAL_ENV;
-    } else {
-      delete process.env.NEXT_PUBLIC_APP_PROFILE;
-    }
-    vi.resetModules();
-  });
-
-  async function loadConfig(profile: string | undefined) {
-    if (profile !== undefined) {
-      process.env.NEXT_PUBLIC_APP_PROFILE = profile;
-    } else {
-      delete process.env.NEXT_PUBLIC_APP_PROFILE;
-    }
-    // Fresh import so module reads the new env var
-    return await import('./config');
-  }
-
-  it('web profile enables websocket', async () => {
-    const { getConfigBool } = await loadConfig('web');
+  it('client profile enables websocket', () => {
+    initConfig(SYSTEM_PMSS, ['client']);
     expect(getConfigBool('websocket')).toBe(true);
   });
 
-  it('static profile disables websocket', async () => {
-    const { getConfigBool } = await loadConfig('static');
+  it('static profile disables websocket', () => {
+    initConfig(SYSTEM_PMSS, ['static']);
     expect(getConfigBool('websocket')).toBe(false);
   });
 
-  it('unset profile defaults to conservative (no websocket)', async () => {
-    const { getConfigBool } = await loadConfig(undefined);
+  it('empty classes defaults to conservative (no websocket)', () => {
+    initConfig(SYSTEM_PMSS, []);
     expect(getConfigBool('websocket')).toBe(false);
   });
 
-  it('empty string profile defaults to conservative', async () => {
-    const { getConfigBool } = await loadConfig('');
-    expect(getConfigBool('websocket')).toBe(false);
-  });
-
-  it('getConfig returns string values', async () => {
-    const { getConfig } = await loadConfig('web');
+  it('getConfig returns string values', () => {
+    initConfig(SYSTEM_PMSS, ['client']);
     expect(getConfig('websocket')).toBe('true');
   });
 
-  it('getConfig returns null for unknown keys', async () => {
-    const { getConfig } = await loadConfig('web');
+  it('getConfig returns null for unknown keys', () => {
+    initConfig(SYSTEM_PMSS, ['client']);
     expect(getConfig('nonexistent')).toBeNull();
   });
 
-  it('explicit context overrides profile', async () => {
-    const { getConfigBool } = await loadConfig('web');
-    // Web profile enables websocket, but explicit static context disables it
+  it('explicit context overrides default classes', () => {
+    initConfig(SYSTEM_PMSS, ['client']);
+    // Client profile enables websocket, but explicit static context disables it
     expect(getConfigBool('websocket', { classes: ['static'] })).toBe(false);
   });
 });

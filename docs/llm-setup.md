@@ -1,141 +1,270 @@
 # LLM Configuration
 
-This project supports multiple LLM providers. Configuration is via environment variables, typically set in `.env.local`.
+**Status: Prototype.** This system is largely untested beyond basic
+manual verification. The PMSS-based provider selection, credential
+fallback logic, and multi-entry-point initialization have not been
+exercised in production. Expect rough edges.
 
-## Provider Selection
+## Quick Start
 
-Set `LLM_PROVIDER` explicitly, or let the system infer from other env vars:
+Set credentials for your provider. The system auto-detects which
+provider to use based on which env vars are present.
 
+**AWS Bedrock:**
 ```bash
-LLM_PROVIDER=bedrock   # or: azure, openai, stub
-```
-
-If not set, the provider is inferred from which env vars are present. If conflicting signals are detected (e.g., both `AWS_BEDROCK_MODEL` and `OPENAI_DEPLOYMENT_ID`), the system exits with an error.
-
-## AWS Bedrock (Claude)
-
-Recommended for Claude models. Uses AWS credentials for authentication.
-
-```bash
-LLM_PROVIDER=bedrock
-AWS_BEDROCK_MODEL=us.anthropic.claude-3-5-sonnet-20241022-v2:0
-AWS_ACCESS_KEY_ID=AKIA...
-AWS_SECRET_ACCESS_KEY=...
+AWS_BEDROCK_MODEL=us.anthropic.claude-sonnet-4-20250514-v1:0
 AWS_REGION=us-east-1
+# Plus AWS credentials (env vars, ~/.aws/credentials, or IAM role)
 ```
 
-### Model IDs
-
-Use the cross-region inference profile format (with `us.` prefix). Without the prefix, most models return "inference profile required" errors.
-
-| Model | ID |
-|-------|-----|
-| Claude 3.5 Sonnet v2 | `us.anthropic.claude-3-5-sonnet-20241022-v2:0` |
-| Claude 3.5 Haiku | `us.anthropic.claude-3-5-haiku-20241022-v1:0` |
-| Claude 3 Opus | `us.anthropic.claude-3-opus-20240229-v1:0` |
-| Claude 3 Sonnet | `us.anthropic.claude-3-sonnet-20240229-v1:0` |
-| Claude 3 Haiku | `us.anthropic.claude-3-haiku-20240307-v1:0` |
-
-### AWS Credentials
-
-Options for providing credentials:
-
-1. **Environment variables** (shown above)
-2. **AWS credentials file** (`~/.aws/credentials`)
-3. **IAM role** (if running on AWS infrastructure)
-
-The AWS SDK automatically checks these sources.
-
-## OpenAI
-
+**OpenAI (or compatible):**
 ```bash
-LLM_PROVIDER=openai
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-4.1-nano          # optional, default: gpt-4.1-nano
 OPENAI_BASE_URL=https://...        # optional, default: https://api.openai.com/v1/
 ```
 
-### Model Selection
-
-The model is controlled server-side only (client cannot override). Common models:
-
-- `gpt-4.1-nano` - fast and cheap (default)
-- `gpt-4o` - GPT-4 Omni
-- `gpt-4o-mini` - smaller GPT-4 Omni
-
-## Azure OpenAI
-
+**Azure OpenAI:**
 ```bash
-LLM_PROVIDER=azure
 AZURE_API_KEY=...
 AZURE_DEPLOYMENT_ID=my-gpt4-deployment
 AZURE_BASE_URL=https://myresource.openai.azure.com/openai/
-AZURE_API_VERSION=2024-02-15      # optional
+AZURE_API_VERSION=2024-02-15       # optional
 ```
 
-The `AZURE_DEPLOYMENT_ID` is the name you gave when deploying a model in Azure Portal, not the model name itself.
+**No credentials = stub mode.** Fake responses that echo the input.
 
-Note: Azure uses `AZURE_*` prefix (not `OPENAI_*`) to avoid conflicts when inferring provider from env vars.
+That's it for basic use. The rest of this document covers the PMSS
+configuration system for fine-grained control.
 
-## OpenAI-Compatible Providers
+---
 
-Any provider with an OpenAI-compatible API works by setting `OPENAI_BASE_URL`:
+## How It Works
+
+Environment variables provide **credentials**. PMSS selects the
+**provider, model, and limits**.
+
+At startup:
+
+1. The system reads `config/system.pmss` + `config/server.pmss` +
+   `config/local.pmss` (if it exists).
+2. It detects which providers have credentials and adds PMSS classes:
+
+   | Env vars present | PMSS class added |
+   |---|---|
+   | `AWS_BEDROCK_MODEL` | `llm_available_bedrock` |
+   | `OPENAI_API_KEY` or `OPENAI_BASE_URL` | `llm_available_openai` |
+   | `AZURE_DEPLOYMENT_ID` + `AZURE_BASE_URL` | `llm_available_azure` |
+
+3. PMSS rules in `server.pmss` match these classes to select a provider:
+
+   ```pmss
+   * { llm-provider: stub; }
+   .llm_available_openai  { llm-provider: openai; }
+   .llm_available_azure   { llm-provider: azure; }
+   .llm_available_bedrock { llm-provider: bedrock; }
+   ```
+
+4. On each request, `resolveLLMConfig(profile, options)` resolves
+   the full config: `{ provider, model, maxTokens, rpm, tokenBudget }`.
+
+If credentials exist for multiple providers, the last matching PMSS
+rule wins (bedrock > azure > openai in the default `server.pmss`).
+
+### Model resolution
+
+1. PMSS `llm-model` property (if non-empty)
+2. Env var fallback: `AWS_BEDROCK_MODEL` for bedrock, `OPENAI_MODEL`
+   for openai (Azure uses deployment ID, not a model string)
+3. Empty string (stub, or provider default)
+
+## PMSS Reference
+
+### Properties
+
+| Property | Default | Description |
+|---|---|---|
+| `llm-provider` | `stub` | `bedrock`, `openai`, `azure`, or `stub` |
+| `llm-model` | `""` | Model ID. Falls back to env var if empty. |
+| `llm-max-tokens` | `4096` | Max output tokens per request |
+| `llm-rpm` | `20` | Requests per minute (per user) |
+| `llm-token-budget` | `100000` | Total token budget (per user) |
+
+### Classes
+
+Classes are assembled at startup from several sources:
+
+| Class | Source | Purpose |
+|---|---|---|
+| `server` | Always present | Server-side context |
+| `development` / `production` | `NODE_ENV` | Deployment environment |
+| `llm_available_bedrock` | Credential detection | Bedrock credentials present |
+| `llm_available_openai` | Credential detection | OpenAI credentials present |
+| `llm_available_azure` | Credential detection | Azure credentials present |
+| `authorized` / `guest` | Per-request (auth status) | User authentication tier |
+| *(custom)* | `PMSS_CLASSES` env var | Anything, comma-separated |
+
+### Attributes
+
+| Attribute | Set by | Values |
+|---|---|---|
+| `profile` | Request caller | `interactive`, `translation`, etc. |
+
+### Selectors in practice
+
+```pmss
+/* All requests get stub by default */
+* { llm-provider: stub; }
+
+/* Credential auto-selection */
+.llm_available_bedrock { llm-provider: bedrock; }
+
+/* Tighter limits for guests */
+.server.guest { llm-rpm: 5; llm-token-budget: 10000; }
+
+/* Profile-specific token limits */
+.server[profile="translation"] { llm-max-tokens: 16384; }
+
+/* Deploy-specific override (in local.pmss) */
+.server { llm-model: us.anthropic.claude-sonnet-4-20250514-v1:0; }
+```
+
+Standard PMSS/CSS specificity applies. A `.server.guest` selector is
+more specific than `.llm_available_bedrock`, etc.
+
+## Local Overrides
+
+Create `config/local.pmss` (gitignored) for deploy-specific settings.
+See `config/local.pmss.example` for a template.
+
+```pmss
+/* Force a specific model */
+.server { llm-model: us.anthropic.claude-sonnet-4-20250514-v1:0; }
+
+/* Override provider (ignoring credential auto-detection) */
+.server { llm-provider: openai; }
+
+/* Force stub mode */
+.server { llm-provider: stub; }
+```
+
+## `PMSS_CLASSES` Environment Variable
+
+Inject extra classes at startup without editing PMSS files:
 
 ```bash
-# OpenRouter
-LLM_PROVIDER=openai
-OPENAI_API_KEY=sk-or-...
-OPENAI_BASE_URL=https://openrouter.ai/api/v1/
-OPENAI_MODEL=anthropic/claude-3-haiku
-
-# Local Ollama (no API key needed)
-LLM_PROVIDER=openai
-OPENAI_BASE_URL=http://localhost:11434/v1/
-OPENAI_MODEL=llama2
+PMSS_CLASSES=llm_available_openai,custom_class
 ```
 
-Note: For servers that don't require authentication (like local Ollama), you can omit `OPENAI_API_KEY`.
+Useful for CI/CD or Docker.
 
-## Stub Mode (Development)
+## Credential Details
 
-For development without API access:
+### AWS Bedrock
 
 ```bash
-LLM_PROVIDER=stub
+AWS_BEDROCK_MODEL=us.anthropic.claude-sonnet-4-20250514-v1:0
+AWS_ACCESS_KEY_ID=AKIA...
+AWS_SECRET_ACCESS_KEY=...
+AWS_REGION=us-east-1  # optional, default: us-east-1
 ```
 
-Or simply don't set any provider credentials. The stub returns fake responses that echo the input, useful for testing the UI without incurring API costs.
+Use the cross-region inference profile format (`us.` or `eu.` prefix).
+The AWS SDK also resolves credentials from `~/.aws/credentials` and
+IAM roles.
+
+Only Anthropic models on Bedrock are currently supported (see
+`TODO(bedrock-multi-model)` in `proxy.ts`).
+
+### OpenAI (and compatible)
+
+```bash
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4.1-nano
+OPENAI_BASE_URL=https://api.openai.com/v1/
+```
+
+Works with any OpenAI-compatible API (Ollama, OpenRouter, etc.) by
+setting `OPENAI_BASE_URL`. For local servers without auth (e.g.
+Ollama), omit `OPENAI_API_KEY`.
+
+### Azure OpenAI
+
+```bash
+AZURE_API_KEY=...
+AZURE_DEPLOYMENT_ID=my-gpt4-deployment
+AZURE_BASE_URL=https://myresource.openai.azure.com/openai/
+AZURE_API_VERSION=2024-02-15
+```
+
+`AZURE_DEPLOYMENT_ID` is the deployment name from Azure Portal, not
+the model name.
+
+## Profiles
+
+Clients send `{ profile: 'interactive' }` instead of raw
+`max_completion_tokens`. The server resolves the profile via PMSS
+attribute selectors. If no profile is specified, defaults to
+`interactive`.
+
+Currently defined profiles (in `server.pmss`):
+
+| Profile | `llm-max-tokens` |
+|---|---|
+| `interactive` | 4096 |
+| `translation` | 16384 |
+
+## Rate Limiting
+
+The Hono server enforces per-user rate limits on
+`/api/llm/chat/completions`:
+
+- **RPM** (`llm-rpm`) — requests per minute, sliding window
+- **Token budget** (`llm-token-budget`) — cumulative tokens consumed
+
+Returns HTTP 429 when exceeded. Limits vary by auth status:
+
+```pmss
+* { llm-rpm: 20; llm-token-budget: 100000; }
+.server.guest { llm-rpm: 5; llm-token-budget: 10000; }
+```
+
+The Next.js route does not currently have rate limiting.
 
 ## Troubleshooting
 
-### "Conflicting LLM provider settings detected"
+**"inference profile required" (Bedrock):** Add `us.` prefix:
+`AWS_BEDROCK_MODEL=us.anthropic.claude-sonnet-4-20250514-v1:0`
 
-You have env vars for multiple providers. Either:
-1. Set `LLM_PROVIDER` explicitly to choose one
-2. Remove the conflicting env vars
+**404 errors (Azure):** `AZURE_BASE_URL` must end with `/openai/`:
+`AZURE_BASE_URL=https://myresource.openai.azure.com/openai/`
 
-### "inference profile required" error (Bedrock)
+**Wrong provider selected:** Check startup logs for active classes.
+Override in `config/local.pmss`:
+`.server { llm-provider: openai; }`
 
-Add the `us.` prefix to the model ID:
-```bash
-# Wrong
-AWS_BEDROCK_MODEL=anthropic.claude-3-5-sonnet-20241022-v2:0
+**Rate limit / token budget errors:** Check `llm-rpm` and
+`llm-token-budget` in `server.pmss`. Guest users have tighter defaults.
 
-# Correct
-AWS_BEDROCK_MODEL=us.anthropic.claude-3-5-sonnet-20241022-v2:0
-```
+## Entry Points
 
-### 404 errors (Azure)
+Three server contexts initialize PMSS independently (all via
+`loadServerConfig` in `config.ts`):
 
-Ensure `AZURE_BASE_URL` includes `/openai/` at the end:
-```bash
-AZURE_BASE_URL=https://myresource.openai.azure.com/openai/
-```
+| Context | Init location |
+|---|---|
+| Hono server | `apps/server/src/index.ts` |
+| Next.js app | `apps/web/instrumentation.ts` |
+| Translate CLI | `packages/shared/scripts/translate.ts` |
 
-### URL concatenation errors
+## Key Source Files
 
-The base URL is automatically normalized to include a trailing slash, so both work:
-```bash
-OPENAI_BASE_URL=https://api.openai.com/v1
-OPENAI_BASE_URL=https://api.openai.com/v1/
-```
+| File | Role |
+|---|---|
+| `packages/shared/lib/llm/provider.js` | Credential detection, env var exports, validation |
+| `packages/shared/lib/llm/profiles.ts` | PMSS resolution (`resolveLLMConfig`, `resolveLLMConfigWithFallback`) |
+| `packages/shared/lib/llm/proxy.ts` | Provider dispatch (`dispatchLLMProxy`) |
+| `packages/shared/lib/llm/serverCall.ts` | Simple server-side LLM call (`callLLM`) |
+| `packages/shared/lib/config.ts` | PMSS init and resolution (`loadServerConfig`, `getConfig`) |
+| `config/server.pmss` | Default LLM rules |
+| `config/local.pmss` | Deploy overrides (gitignored) |

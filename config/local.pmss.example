@@ -1,0 +1,16 @@
+/* config/local.pmss
+ *
+ * Deploy-specific overrides. Copy to local.pmss and edit.
+ * This file is gitignored — safe for secrets and local tweaks.
+ *
+ * Examples:
+ */
+
+/* Force a specific model */
+/* .server { llm-model: us.anthropic.claude-sonnet-4-20250514-v1:0; } */
+
+/* Override provider (ignoring credential auto-detection) */
+/* .server { llm-provider: openai; } */
+
+/* Force stub mode for local development */
+/* .server { llm-provider: stub; } */

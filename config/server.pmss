@@ -1,0 +1,42 @@
+/* config/server.pmss
+ *
+ * Server-only configuration — NOT served to clients.
+ *
+ * LLM provider settings, rate limits, and per-profile overrides live here
+ * so they aren't exposed via /api/config. The server loads this file
+ * alongside system.pmss at startup.
+ *
+ * Provider selection: PMSS is the single source of truth. Credential
+ * availability classes (llm_available_bedrock, etc.) are injected at
+ * startup based on env vars. PMSS rules select the provider; env vars
+ * supply credentials only.
+ */
+
+/* LLM defaults — stub provider, conservative limits */
+* {
+    llm-provider: stub;
+    llm-model: "";
+    llm-max-tokens: 4096;
+    llm-rpm: 20;
+    llm-token-budget: 100000;
+}
+
+/* Auto-select based on available credentials (last wins at equal specificity) */
+.llm_available_openai { llm-provider: openai; }
+.llm_available_azure  { llm-provider: azure; }
+.llm_available_bedrock { llm-provider: bedrock; }
+
+/* Tighter limits for unauthenticated (guest) users */
+.server.guest {
+    llm-rpm: 5;
+    llm-token-budget: 10000;
+}
+
+/* Per-profile overrides */
+.server[profile="interactive"] {
+    llm-max-tokens: 4096;
+}
+
+.server[profile="translation"] {
+    llm-max-tokens: 16384;
+}

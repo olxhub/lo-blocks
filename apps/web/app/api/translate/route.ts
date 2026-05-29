@@ -9,7 +9,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
 import { syncContentFromStorage, getSourceFile, getBlocksForFiles, getBlockVariant, getOriginalVariant } from '@/lib/content/syncContentFromStorage';
-import { getProvider } from '@/lib/llm/provider';
+import { resolveLLMConfigWithFallback } from '@/lib/llm/profiles';
 import { translateContent } from '@/lib/translate';
 import type { DefinitionKey, ContentVariant, LofsRef, OlxRelativePath, SafeRelativePath } from '@/lib/types';
 
@@ -173,7 +173,8 @@ export async function POST(request: Request) {
 
     const blockId = definitionKeyForRef(parseDefinitionRef(body.blockId));
 
-    if (getProvider().provider === 'stub') {
+    const llmConfig = resolveLLMConfigWithFallback('translation');
+    if (llmConfig.provider === 'stub') {
       return NextResponse.json(
         { ok: false, error: 'LLM is in stub mode — no real translation available' }
       );

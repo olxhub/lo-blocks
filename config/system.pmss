@@ -1,0 +1,48 @@
+/* config/system.pmss
+ *
+ * System-wide configuration defaults and deployment rules.
+ * Course-level overrides.pmss layers on top via PMSS specificity.
+ *
+ * Classes come from three sources, combined into one context:
+ *   - App profile: static, web, client   (from build system)
+ *   - Deployment:  development, production (from env)
+ *   - Content:     whatever manifest.yaml classes: declares
+ */
+
+/* Conservative defaults — no server features */
+* {
+    websocket: false;
+    persistence: none;
+    auth: none;
+    translanguaging: true;
+    debug-panel: false;
+    copyright: "";
+    tab-sync: false;
+}
+
+/* Server-backed apps: websocket + session persistence */
+.web {
+    websocket: true;
+    persistence: blob;
+    auth: session;
+}
+
+.client {
+    websocket: true;
+    persistence: blob;
+    auth: session;
+}
+
+/* Deployment overrides */
+.development {
+    debug-panel: true;
+}
+
+.production {
+    debug-panel: false;
+}
+
+/* Content classes — declared in course manifest.yaml */
+.no-translanguaging {
+    translanguaging: false;
+}

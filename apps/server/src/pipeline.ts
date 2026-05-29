@@ -25,6 +25,8 @@ import type { AuthUser } from './auth.js';
 import type { ConnectionLog } from './eventLog.js';
 import { saveConnectionLog } from './eventLog.js';
 import type { KVStore } from './kvs.js';
+import type { SafeUserId } from '@/lib/types/identity';
+import { kvsKey } from '@/lib/types/identity';
 import { ServerState } from './serverState.js';
 
 /** Parsed event from the client. Loose shape for now. */
@@ -153,13 +155,50 @@ async function* resolveAuth(
 // mechanism. save_blob writes the Redux state snapshot to the KVS;
 // fetch_blob retrieves it and sends it back over the WebSocket.
 // Non-blob events pass through unchanged.
+//
+// Wire protocol (matching lo_event's websocketLogger/reduxLogger):
+//   Client → Server:
+//     { event: "fetch_blob" }
+//     { event: "save_blob", blob: { ...reduxState } }
+//   Server → Client:
+//     { status: "fetch_blob", data: { ...reduxState } | null }
 
 async function* handleBlobs(
   events: AsyncIterable<PipelineEvent>,
-  _ctx: PipelineContext
+  ctx: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
-  // TODO: intercept save_blob/fetch_blob, route to kvs
+  const { ws, user, kvs } = ctx;
+  const key = kvsKey.blob(user.safe_user_id);
+
   for await (const event of events) {
+    const eventType = event.event || event.type;
+
+    if (eventType === 'fetch_blob') {
+      try {
+        const raw = await kvs.get(key);
+        const data = raw ? JSON.parse(raw) : null;
+        ws.send(JSON.stringify({ status: 'fetch_blob', data }));
+        console.log(`[${ctx.conn.id}] fetch_blob ${key}: ${raw ? `${raw.length} bytes` : 'empty'}`);
+      } catch (err) {
+        console.error(`[${ctx.conn.id}] fetch_blob error:`, err);
+        ws.send(JSON.stringify({ status: 'fetch_blob', data: null }));
+      }
+      // fetch_blob is consumed here — not yielded downstream
+      continue;
+    }
+
+    if (eventType === 'save_blob') {
+      try {
+        const blob = JSON.stringify(event.blob);
+        await kvs.set(key, blob);
+        console.log(`[${ctx.conn.id}] save_blob ${key}: ${blob.length} bytes`);
+      } catch (err) {
+        console.error(`[${ctx.conn.id}] save_blob error:`, err);
+      }
+      // save_blob is consumed here — not yielded downstream
+      continue;
+    }
+
     yield event;
   }
 }

@@ -1,0 +1,45 @@
+Contributors
+============
+
+This platform, as well as the Learning Observer project it is part of,
+and the Open edX platform they are based on, were originally conceived
+of and created by Piotr Mitros.
+
+This work has been in close collaboration with Paul Deane, who was a
+constant thought partner throughout this project. He created
+educational content, pedagogical ideas, and system prototypes which
+were expanded upon, developed, and integrated into this system.
+
+The core developer and architect of the Learning Observer for many
+years was Brad Erickson. He made core contributions to lo-blocks,
+primarily when it was still in the main Learning Observer repository.
+
+The system was developed in close collaboration with Collin Lynch of
+NCSU, and his team of graduate and undergraduate students. We will
+include more about their own individual contributions at some point.
+
+The educational content (present under `/content/` at the time of this
+writing, moving into its own repository in the future) came from
+course teams named there-in, especially ones at Memphis and at Georgia
+State, under the leadership of John Sabatini. Without direct code
+contributions, this course codesign helped significantly improve the
+platform.
+
+Portions of the code in this platform are automatically translated
+versions of code I developed for the Open edX platform, often later
+modernized by others in that platform, and by myself after translation
+to JavaScript. Open edX is based on LON-CAPA by Gerd Kortemeyer.
+
+The seed funding for this project came from Schmidt Futures, with
+continued funding for development through ETS allocation funding, IES
+grant R305A210297, and IES grant R305T240021.
+
+Copyright
+=========
+
+Everyone who contributed to this system holds copyright to portions of
+the platform, mutually cross-licensed under the AGPL.
+
+Please be mindful of the license. One organization has already had
+their rights under the AGPL revoked due to a pattern of egregious and
+wilful violations, continuing after notice.

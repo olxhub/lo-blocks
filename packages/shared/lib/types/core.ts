@@ -547,7 +547,9 @@ export const BlockBlueprintSchema = z.object({
   /** Get display answers per slot for multi-input graders. */
   getDisplayAnswers: z.function().optional(),
   parser: z.function().optional(),
-  staticKids: z.function().optional(),
+  /** Return child block refs for server-side preloading (collectBlockWithKids).
+   *  Refs may be bare (DefinitionRef) — the caller qualifies with the parent's namespace. */
+  staticKids: z.function().args(z.any()).returns(z.array(z.string())).optional(),
   reducers: z.array(z.function()).optional(),
   fields: ReduxFieldsReturn.optional(),
   selectValue: z.function().optional(),
@@ -724,7 +726,7 @@ export interface LoBlock {
   _isBlock: true;
   action?: Function;
   parser?: Function;
-  staticKids?: Function;
+  staticKids?: (entry: OlxJson) => DefinitionRef[];
   reducers: Function[];
   selectValue?: ValueSelectorFn;
   /** Advance one step. See BlockBlueprintSchema.advance for semantics. */

@@ -10,7 +10,7 @@
 //
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
-import { GraphNode, GraphEdge, ParseError, IdMap, DefinitionKey } from '@/lib/types';
+import { GraphNode, GraphEdge, ParseError, IdMap, DefinitionKey, DefinitionRef } from '@/lib/types';
 
 interface ParseResult {
   nodes: GraphNode[];
@@ -51,7 +51,7 @@ export function parseIdMap(idMap: IdMap, locale: string = 'en-Latn-US'): ParseRe
       continue;
     }
 
-    let childIds = [];
+    let childIds: DefinitionRef[] = [];
     const comp = BLOCK_REGISTRY[node.tag];
 
     // Missing components are serious errors - they indicate components that were parsed but aren't registered

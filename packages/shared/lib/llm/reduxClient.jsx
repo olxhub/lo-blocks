@@ -14,6 +14,8 @@ import {
   CHAT_SET_STATUS,
 } from '@/lib/state/store';
 
+const LLM_ENDPOINT = '/api/llm/chat/completions';
+
 // In progress: State machine of LLM status
 export const LLM_STATUS = {
   INIT: 'LLM_INIT',
@@ -71,7 +73,7 @@ export async function callLLM(params) {
   let displayMessagesAccum = [];  // Tool calls to show in chat
   while (loopCount++ < 10) {
     try {
-      const res = await fetch('/api/openai/chat/completions', {
+      const res = await fetch(LLM_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

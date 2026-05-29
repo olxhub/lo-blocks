@@ -12,17 +12,19 @@
 import { useEffect } from 'react';
 import RenderOLX from '@/components/common/RenderOLX';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
+import Notice from '@/components/common/Notice';
 import { useStaticContent } from './StaticContentProvider';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
 import { definitionKeyForRef, parseDefinitionRef, addScope } from '@/lib/types/id-grammar';
-
+import { useConfigBool } from '@/lib/config';
 import { variantMapLocaleEntries } from '@/lib/types/i18n';
 import type { Locale } from '@/lib/types';
 
-export default function StaticPage({ definitionKey, title }: { definitionKey: string; title?: string }) {
+export default function StaticPage({ definitionKey, title, contentNotice }: { definitionKey: string; title?: string; contentNotice?: string }) {
   const { idMap } = useStaticContent();
   const key = definitionKeyForRef(parseDefinitionRef(definitionKey));
+  const translanguaging = useConfigBool('translanguaging');
 
   // Sync <html> lang and dir for accessibility and RTL
   const localeAttrs = useLocaleAttributes();
@@ -47,7 +49,7 @@ export default function StaticPage({ definitionKey, title }: { definitionKey: st
     <div className="flex flex-col min-h-screen">
       {allLocales.length > 1 && (
         <header className="flex items-center justify-end px-4 py-2 sticky top-0 z-10 bg-gray-50 shadow-sm">
-          <LanguageSwitcher availableLocales={curated} bestEffortLocales={bestEffort} translanguaging={false} />
+          <LanguageSwitcher availableLocales={curated} bestEffortLocales={bestEffort} translanguaging={translanguaging} />
         </header>
       )}
       <div className="p-6 flex-1 overflow-auto">
@@ -57,6 +59,10 @@ export default function StaticPage({ definitionKey, title }: { definitionKey: st
           eventContext="static"
         />
       </div>
+      <footer className="border-t border-gray-200 px-6 py-4 text-xs leading-relaxed space-y-2">
+        {contentNotice && <Notice content={contentNotice} />}
+        <Notice />
+      </footer>
     </div>
   );
 }

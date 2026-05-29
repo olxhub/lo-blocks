@@ -58,6 +58,7 @@ packages/shared/generated/pegExtensions.json
 packages/shared/generated/parserRegistry.ts
 packages/shared/styles/componentsAutogen.css
 packages/shared/lib/i18n/blockI18nAutogen.ts
+packages/shared/lib/config.generated.ts
 
 # Autosaves
 *~
@@ -77,6 +78,12 @@ logs/
 
 # Captured event streams (from event-server)
 events/
+
+# Server-side persistent data (SQLite KVS, etc.)
+data/
+
+# Local PMSS overrides (deploy-specific, not committed)
+config/local.pmss
 
 # Runtime artifacts (ephemeral, machine-local)
 lofs/runtime/

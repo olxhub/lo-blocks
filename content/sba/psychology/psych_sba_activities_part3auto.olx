@@ -1080,10 +1080,10 @@ Keep your feedback constructive and concise.
 <Markdown>**Confirm that you are done with this exercise.**</Markdown>
 
 <CheckboxInput id="fba2_completion_checkbox">
-<Key id="fba2_part_3auto_finished">I don't need to make any more changes</Key>
+<Key id="fba2_part_3auto_finished" value="done">I don't need to make any more changes</Key>
 </CheckboxInput>
 
-<IntakeGate ready="'fba2_part_3auto_finished' in @fba2_completion_checkbox.value">
+<IntakeGate ready="'done' in @fba2_completion_checkbox.value">
 <Markdown> </Markdown>
 <Markdown>
 - In this activity, you learned about the **function of behavior** (attention, escape,

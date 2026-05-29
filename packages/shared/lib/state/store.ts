@@ -22,7 +22,6 @@ import * as reduxLogger from 'lo_event/redux';
 import * as lo_event from 'lo_event';
 import * as debug from 'lo_event/debug';
 import { consoleLogger } from 'lo_event/console';
-import { getConfigBool } from '../config';
 
 // Simple array logger for event capture - could move to lo_event
 function createArrayLogger() {
@@ -456,14 +455,10 @@ function configureStore({
   blockRegistry,
 }: {
   extraFields?: ExtraFieldsParam;
-  websocket?: boolean;
+  websocket: boolean;
   eventServerUrl?: string;
-  blockRegistry?: BlockRegistryParam;
-} = {}) {
-  if (!blockRegistry || Object.keys(blockRegistry).length === 0) {
-    throw new Error('store.init() requires a non-empty blockRegistry; pass BLOCK_REGISTRY');
-  }
-
+  blockRegistry: BlockRegistryParam;
+}) {
   const allEventTypes = collectEventTypes(extraFields, blockRegistry);
   reduxLogger.registerReducer(
     allEventTypes,
@@ -475,9 +470,7 @@ function configureStore({
 
   const debugEvents = false; // Toggle here to log events to the console
   const isTest = process.env.VITEST === 'true';
-  // eventServerUrl implies websocket: true. Otherwise PMSS / explicit flag.
-  const wsEnabled = eventServerUrl ? true : (websocket ?? getConfigBool('websocket'));
-  const useWebsocket = wsEnabled && !isTest;
+  const useWebsocket = websocket && !isTest;
 
   const loggers = [
     reduxLogger.reduxLogger([], {}),

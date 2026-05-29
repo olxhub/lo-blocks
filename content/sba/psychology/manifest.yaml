@@ -1,0 +1,18 @@
+# content/sba/psychology/manifest.yaml
+#
+# Manifest for the Psychology Study Group static site.
+# Used by: scripts/build-static.ts --manifest <this file>
+#
+title: Psychology Study Group
+namespace: psych
+classes:
+  - no-translanguaging
+eventServerUrl: false
+content_notice: >
+  Course content Copyright &copy; 2026 by Mollie Blair Anderson, Randy Floyd,
+  Emily N Srisarajivakul, and Kara Watkins, with contributions from Piotr Mitros
+  and Paul Deane. Licensed under
+  [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.html). Source available on
+  [GitHub](https://github.com/olxhub/lo-blocks/tree/main/content/sba/psychology).
+routes:
+  /: CONTENT/psych_course
