@@ -58,7 +58,7 @@ export const fields = state.fields(state.graderFields());
 //
 // IDs are assigned by mutating nodes BEFORE child parsers run. See:
 // docs/architecture/container-id-scoping.md
-async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEntry, parseNode, assignSystemId }) {
+async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEntry, parseNode, assignSystemId, ns }) {
   const tagParsed = rawParsed[tag];
   const rawKids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
   let inputIndex = 0;
@@ -103,7 +103,7 @@ async function capaParser({ id, tag, attributes, provenance, rawParsed, storeEnt
       } else {
         blockRef = parseDefinitionRef(childAttrs.id);
       }
-      const blockId = definitionKeyForRef(blockRef);
+      const blockId = definitionKeyForRef(blockRef, ns);
 
       let mapping = currentGrader;
       if (blockType.isGrader) {

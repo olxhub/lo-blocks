@@ -51,7 +51,7 @@ export function collectBlockWithKids(
 
     const refs = extractRefs(refValue);
     for (const ref of refs) {
-      const stateKey = stateKeyForGlobalRef(parseAnyStateRef(ref));
+      const stateKey = stateKeyForGlobalRef(parseAnyStateRef(ref), ns);
       for (const key of allDefinitionKeysFromStateKey(stateKey)) {
         collectBlockWithKids(idMap, key, acceptLanguage, collected);
       }

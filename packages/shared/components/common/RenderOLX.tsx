@@ -61,7 +61,7 @@ import { settings } from '@/lib/state/settings';
 import { useSetting } from '@/lib/state/settingsAccess';
 import { getTextDirection, getBrowserLocale } from '@/lib/i18n/getTextDirection';
 import { registerAdvanceRoot, unregisterAdvanceRoot } from '@/lib/advance';
-import type { BaselineProps, IdPrefix, StateKey, LoBlockRuntimeContext, OlxDomNode, UserLocale, OLXLoadingError } from '@/lib/types';
+import type { BaselineProps, ContentNamespace, IdPrefix, StateKey, LoBlockRuntimeContext, OlxDomNode, UserLocale, OLXLoadingError } from '@/lib/types';
 import { toLofsRef } from '@/lib/types/address';
 
 // Stable no-op for replay mode - avoids creating new function on each render
@@ -331,6 +331,8 @@ function updatePropsLogEvent(props: any, logEvent: any) {
  *   4. baseIdMap - pre-parsed content, used as fallback
  */
 interface RenderOLXProps {
+  /** Content namespace — identifies the logical content source (e.g. 'docs', 'ee101'). */
+  ns?: ContentNamespace;
   /** The ID to render from the merged idMap. StateKey because it names a
    *  runtime instance (which may include scope markers for nested contexts). */
   id: StateKey;
@@ -376,6 +378,7 @@ interface RenderOLXProps {
 }
 
 export default function RenderOLX({
+  ns,
   id,
   inline,
   files,
@@ -433,6 +436,7 @@ export default function RenderOLX({
     sideEffectFree: renderProps.sideEffectFree,
     olxJsonSources: [source],
     idPrefix: '' as IdPrefix,
+    ns,
     locale: renderProps.locale,
     cast: {},
   };

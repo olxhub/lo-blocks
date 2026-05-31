@@ -803,14 +803,12 @@ export const PLACEHOLDER_NS = asContentNamespace('CONTENT');
  *   scopedStateKeyForBlock({ id: 'answer' })
  *   → "CONTENT/answer"  (no scope)
  *
- * TODO(propthread-ns): Hardcodes PLACEHOLDER_NS. Once namespace is propthreaded
- * through runtime context, this should take ns from props (e.g. props.runtime.ns)
- * or accept it as a parameter.
  */
 export function scopedStateKeyForBlock(
-  props: { id: DefinitionRef; idPrefix?: IdPrefix;[key: string]: unknown }
+  props: { id: DefinitionRef; ns?: ContentNamespace; runtime?: { ns?: ContentNamespace }; idPrefix?: IdPrefix;[key: string]: unknown }
 ): StateKey {
-  const defKey = qualifyDefinitionRef(props.id, PLACEHOLDER_NS);
+  const ns = props.ns ?? props.runtime?.ns ?? PLACEHOLDER_NS;
+  const defKey = qualifyDefinitionRef(props.id, ns);
   return addScope(defKey, props.idPrefix);
 }
 
@@ -850,8 +848,6 @@ export function scopedStateKeyForBlock(
 //
 // The local -> global problem complicates!
 
-// // TODO(propthread-ns): Default ns=PLACEHOLDER_NS. Once propthreaded,
-// callers should pass the real namespace; drop the default.
 export function stateKeyForGlobalRef(
   ref: StateRef,
   ns: ContentNamespace = PLACEHOLDER_NS
@@ -867,12 +863,12 @@ export function stateKeyForGlobalRef(
  *   definitionKeyForRef('answer')            → "CONTENT/answer"
  *   definitionKeyForRef('calculus/hw1')      → "calculus/hw1"  (pass-through)
  *
- * TODO(propthread-ns): Hardcodes PLACEHOLDER_NS. Once namespace is propthreaded,
- * callers should provide the namespace from their content-loading context (e.g.
- * LOFS origin). Signature will become definitionKeyForRef(ref, ns).
  */
-export function definitionKeyForRef(ref: DefinitionRef): DefinitionKey {
-  return qualifyDefinitionRef(ref, PLACEHOLDER_NS);
+export function definitionKeyForRef(
+  ref: DefinitionRef,
+  ns: ContentNamespace = PLACEHOLDER_NS
+): DefinitionKey {
+  return qualifyDefinitionRef(ref, ns);
 }
 
 /**

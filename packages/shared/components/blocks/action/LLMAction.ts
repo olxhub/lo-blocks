@@ -17,7 +17,7 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
     console.warn('⚠️ LLMAction: No target specified in action attributes');
     return;
   }
-  const targetStateKey = stateKeyForGlobalRef(targetRef);
+  const targetStateKey = stateKeyForGlobalRef(targetRef, props.runtime?.ns);
 
   // Get target component's fields dynamically
   // 'state' field is optional — TextSlot has it, TextArea doesn't

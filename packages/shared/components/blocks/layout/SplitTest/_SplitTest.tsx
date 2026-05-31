@@ -81,7 +81,7 @@ export default function _SplitTest(props: RuntimeProps) {
   // Symmetric: master reads/writes its own id, follower reads from master's id.
   // target defaults to self. Resolve through scopedStateKeyForBlock to apply scope (idPrefix).
   const targetStateKey = props.target
-    ? stateKeyForGlobalRef(props.target as StateRef)
+    ? stateKeyForGlobalRef(props.target as StateRef, props.runtime?.ns)
     : scopedStateKeyForBlock(props);
   // TODO: When we have hash-based assignment (userId + experimentId), use that
   // instead of random for deterministic reproducibility.

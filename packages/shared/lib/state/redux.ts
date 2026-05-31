@@ -666,7 +666,7 @@ export function useValue(
   // Priority: explicit stateKey > target (resolved) > own component
   const resolvedKey: StateKey | null =
     stateKey !== undefined ? stateKey
-    : target !== undefined ? (target ? stateKeyForGlobalRef(target) : null)
+    : target !== undefined ? (target ? stateKeyForGlobalRef(target, props.runtime?.ns) : null)
     : scopedStateKeyForBlock(props);
 
   const result = useSelector(

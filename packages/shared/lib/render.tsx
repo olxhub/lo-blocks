@@ -156,7 +156,7 @@ export function render({ node, nodeInfo, runtime }: {
       );
     }
     const locale = runtime.locale.code;
-    const definitionKey = definitionKeyForRef(node.id);
+    const definitionKey = definitionKeyForRef(node.id, runtime.ns);
     const sources = actualOlxJsonSources ?? ['content'];
     const entry = selectBlock(actualStore.getState(), sources, definitionKey, locale);
     if (!entry) {
@@ -240,7 +240,7 @@ export function render({ node, nodeInfo, runtime }: {
   //
   // Note: render() can be called multiple times (e.g. in Strict mode),
   // so we reuse existing entries if present.
-  const stateKey = scopedStateKeyForBlock({ id: node.id, idPrefix: actualIdPrefix });
+  const stateKey = scopedStateKeyForBlock({ id: node.id, ns: runtime.ns, idPrefix: actualIdPrefix });
   let childNodeInfo = nodeInfo.renderedKids[stateKey];
   if (!childNodeInfo) {
     childNodeInfo = { olxJson: node, stateKey, renderedKids: {}, parent: nodeInfo, loBlock: blockType };

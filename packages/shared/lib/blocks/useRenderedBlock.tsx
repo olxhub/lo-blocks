@@ -185,7 +185,7 @@ export function getRenderedBlocksMultiple(
 // Returns the pre-parsed { expr, ast } from the when= attribute, or undefined.
 function getWhen(kid, props) {
   if (kid.type === 'block') {
-    const definitionKey = definitionKeyForRef(kid.id);
+    const definitionKey = definitionKeyForRef(kid.id, props.runtime?.ns);
     const state = props.runtime.store.getState();
     const sources = props.runtime.olxJsonSources ?? ['content'];
     const block = selectBlock(state, sources, definitionKey, props.runtime.locale.code);

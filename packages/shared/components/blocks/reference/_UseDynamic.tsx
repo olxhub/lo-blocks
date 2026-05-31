@@ -6,7 +6,7 @@ import type { RuntimeProps, StateRef } from '@/lib/types';
 import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 
 function DynamicContent({ props, value }: { props: RuntimeProps; value: StateRef }) {
-  const stateKey = stateKeyForGlobalRef(value);
+  const stateKey = stateKeyForGlobalRef(value, props.runtime?.ns);
   const { block } = useBlock(props, stateKey);
   return <>{block}</>;
 }

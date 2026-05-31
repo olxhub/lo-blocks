@@ -21,7 +21,7 @@ function _ShowAnswerButton(props: RuntimeProps) {
     if (target) {
       // target is z_stateRefList — resolve authored refs globally (no idPrefix).
       const targetRefs = Array.isArray(target) ? target : [target];
-      return targetRefs.map(ref => stateKeyForGlobalRef(ref));
+      return targetRefs.map(ref => stateKeyForGlobalRef(ref, props.runtime?.ns));
     }
     try {
       // getGrader now returns StateKey directly

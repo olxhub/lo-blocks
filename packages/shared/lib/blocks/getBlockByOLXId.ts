@@ -41,7 +41,7 @@ export function getBlockByOLXId(props: PropsWithStore, id: DefinitionRef | null)
     return undefined;
   }
 
-  const key = definitionKeyForRef(id);
+  const key = definitionKeyForRef(id, props.runtime?.ns);
   const store = props.runtime.store;
   const sources = props.runtime.olxJsonSources ?? ['content'];
   const locale = props.runtime.locale?.code;

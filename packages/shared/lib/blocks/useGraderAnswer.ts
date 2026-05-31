@@ -43,7 +43,8 @@ function findTargetingGrader(props: RuntimeProps): StateKey | null {
     selector: (n) => !!n.loBlock.isGrader && !!n.olxJson.attributes.target
   });
 
-  const normalizedId = definitionKeyForRef(id);
+  const ns = props.runtime?.ns;
+  const normalizedId = definitionKeyForRef(id, ns);
 
   for (const graderNodeInfo of graderNodes) {
     const targetAttr = graderNodeInfo.olxJson.attributes.target;
@@ -58,7 +59,7 @@ function findTargetingGrader(props: RuntimeProps): StateKey | null {
         : [];
 
     const targets = targetStrings.map(t => {
-      const stateKey = stateKeyForGlobalRef(parseAnyStateRef(t));
+      const stateKey = stateKeyForGlobalRef(parseAnyStateRef(t), ns);
       return leafDefinitionKeyFromStateKey(stateKey);
     });
     if (targets.includes(normalizedId)) {
@@ -132,7 +133,7 @@ function resolveInputSlot(
   }
 
   // Find position of this input in the list
-  const normalizedId = definitionKeyForRef(inputId);
+  const normalizedId = definitionKeyForRef(inputId, props.runtime?.ns);
   const position = inputIds.findIndex(id => leafDefinitionKeyFromStateKey(id) === normalizedId);
 
   if (position >= 0 && position < slots.length) {
