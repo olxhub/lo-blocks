@@ -28,10 +28,17 @@ if (manifestPath) {
     : {};
 }
 
-// Read system.pmss for build-time PMSS injection
-const systemPmss = fs.readFileSync(
-  path.resolve(__dirname, '../../config/system.pmss'), 'utf-8'
-);
+// Read system.pmss + local.pmss for build-time PMSS injection.
+// local.pmss is optional (gitignored) — deploy-specific overrides.
+const configDir = path.resolve(__dirname, '../../config');
+const systemPmss = fs.readFileSync(path.join(configDir, 'system.pmss'), 'utf-8');
+let localPmss = '';
+try {
+  localPmss = fs.readFileSync(path.join(configDir, 'local.pmss'), 'utf-8');
+} catch {
+  // No local.pmss — that's fine
+}
+const combinedPmss = [systemPmss, localPmss].filter(Boolean).join('\n');
 
 export default defineConfig({
   root: path.resolve(__dirname),
@@ -46,7 +53,7 @@ export default defineConfig({
     'process.env.NEXT_PUBLIC_BASE_PATH': JSON.stringify(basePath),
     '__STATIC_EVENT_SERVER_URL__': JSON.stringify(staticConfig.eventServerUrl || ''),
     '__STATIC_CLASSES__': JSON.stringify((staticConfig.classes as string[]) || []),
-    '__SYSTEM_PMSS__': JSON.stringify(systemPmss),
+    '__SYSTEM_PMSS__': JSON.stringify(combinedPmss),
     '__STATIC_CONTENT_NOTICE__': JSON.stringify((staticConfig.content_notice as string) || ''),
   },
   build: {
