@@ -7,7 +7,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { store, extendSettings } from '@/lib/state';
+import { store, extendSettings, ReduxStoreLoader } from '@/lib/state';
 import { initConfig, getConfigBool } from '@/lib/config';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import StaticContentProvider from './StaticContentProvider';
@@ -33,6 +33,7 @@ const reduxStore = store.init({
 export default function App({ definitionKey }: { definitionKey: string }) {
   return (
     <Provider store={reduxStore}>
+      <ReduxStoreLoader />
       <StaticContentProvider>
         <StaticPage definitionKey={definitionKey} contentNotice={__STATIC_CONTENT_NOTICE__} />
       </StaticContentProvider>
