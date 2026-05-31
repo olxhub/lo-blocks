@@ -94,7 +94,9 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
     ...props,
     runtime: scopedRuntime,
   };
-  const scopedGraderRef = parseDefinitionRef(`${problemId}_grader`, 'MasteryBank grader');
+  // CapaProblem is a metagrader (isGrader: true) that aggregates its child graders.
+  // Watch its own correctness rather than guessing the inner grader's auto-generated ID.
+  const scopedGraderRef = parseDefinitionRef(problemId, 'MasteryBank problem');
 
   // Render problem - useBlock handles loading state with Spinner
   const { block: renderedProblem, error } = useBlock(scopedProps, stateKeyForGlobalRef(problemId, props.runtime.ns));
