@@ -34,7 +34,7 @@ Let's begin.
 </IntakeGate>
 
 
-<HH> ============= Screen: Ask AI about function of behavior ==== </HH>
+<HH> ============= Screen: Use AI to define function of behavior ==== </HH>
 
 <Vertical id="fba2_ai_function_def">
 <Markdown>
@@ -183,13 +183,13 @@ For each scenario, identify the type of operant conditioning at work. You need t
 </Vertical>
 
 
-<HH> ============= Screen: Ask AI for function chart ============ </HH>
+<HH> ============= Screen: Use AI to create function chart ============ </HH>
 
 <Vertical id="fba2_ai_function_chart">
 <Markdown>
 ## Use AI: Functions of Behavior Chart
 
-Ask AI to provide a chart that incorporates functions of behavior and types of reinforcement.
+Use AI to create a chart that incorporates functions of behavior and types of reinforcement.
 </Markdown>
 
 <Collapsible id="fba2_chart_hint" title="JJ's prompt">
@@ -203,6 +203,21 @@ in the SBA to produce the same effect.
 Here's JJ's prompt:
 </Markdown>
 <TextArea id="jjs_prompt" />
+
+<ActionButton id="fba2_ai_chart_reset_btn" label="Restore original prompt">
+<SetFieldAction 
+    target="jjs_prompt" 
+    field="value" 
+    value="You are a helpful psychology teaching assistant. Create a chart showing the four
+functions of behavior (attention, escape, access to tangibles, sensory) with examples
+of how each relates to positive and negative reinforcement. Use a markdown table format.
+Include concrete examples for each combination of function with positive or negative
+reinforcement. Leave a cell blank if the function of the behavior is by definition
+incompatible with the type of reinforcement, assuming that negative reinforcement is
+compatible with removal of unwanted attention but not with access, while escape is
+not compatible with positive reinforcement. Highlight the function names in the
+function column." />
+</ActionButton>
 
 </Collapsible>
 
@@ -418,7 +433,7 @@ why it is not. Do not offer examples of your own.
 
 <HH> ============= Screen: Predict why punishment is not a function ========= </HH>
 
-<IntakeGate id="fba2_predict_punishment" ready="@fba2_punishment_confidence.value">
+<IntakeGate id="fba2_predict_punishment" ready="@fba2_no_punishment_explanation.value && @fba2_punishment_confidence.value">
 
   <!-- Front: predict before seeing the answer -->
   <Vertical>
@@ -515,6 +530,46 @@ Here is an example of a prompt that will generate the complex mermaid diagrams t
 than experimenting with it, until you understand Mermaid diagrams better!
 </Markdown>
 <TextArea id="ABCs_mermaid_diagram" />
+
+
+<ActionButton id="fba2_ai_diagram_restore_btn" label="Restore original prompt">
+<SetFieldAction 
+    target="ABCs_mermaid_diagram" 
+    field="value" 
+    value="If the following question is about the ABCs (Antecedent, Behavior, Consequence) model
+and functions of behavior, generate ONLY valid Mermaid flowchart code. No explanations,
+no markdown, no code fences — output must start with 'flowchart LR' and contain nothing
+else besides valid Mermaid syntax.
+
+Create a single diagram with four subgraphs, one per function of behavior. Each subgraph
+shows an Antecedent, Behavior, and Consequence connected by arrows, using a concrete
+classroom example. Follow this structure:
+
+flowchart LR
+  subgraph escape ['Escape — Negative Reinforcement']
+    E_A['Antecedent: ...'] --> E_B['Behavior: ...'] --> E_C['Consequence: ...']
+  end
+  subgraph attention ['Attention — Positive Reinforcement']
+    A_A['Antecedent: ...'] --> A_B['Behavior: ...'] --> A_C['Consequence: ...']
+  end
+  subgraph tangible ['Access/Tangible — Positive Reinforcement']
+    T_A['Antecedent: ...'] --> T_B['Behavior: ...'] --> T_C['Consequence: ...']
+  end
+  subgraph sensory ['Sensory — Automatic Reinforcement']
+    S_A['Antecedent: ...'] --> S_B['Behavior: ...'] --> S_C['Consequence: ...']
+  end
+
+Rules:
+- Output ONLY mermaid code — no other text whatsoever
+- Wrap all node labels in double quotes inside square brackets: E_A['label']
+- Use underscores in node names (E_A, not E-A)
+- Keep each label under 50 characters
+- Do NOT use bare colons, parentheses, or special characters outside the double quotes
+
+If the question is not relevant, output only:
+flowchart LR
+  A['Please ask about ABCs and functions of behavior']" />
+</ActionButton>
 </Collapsible>
 
 <ActionButton id="fba2_ai_abc_btn" label="Use AI">
@@ -527,7 +582,7 @@ than experimenting with it, until you understand Mermaid diagrams better!
 <LLMFeedback id="fba2_ai_abc_response" render="markdown" when="@fba2_ai_abc_response.value" />
 
 <Markdown id="fba2_ai_abc_placeholder" when="!@fba2_ai_abc_code.value">
-*Your diagram will appear here once the AI finishes generating it. The text explanation will appear first; the diagram follows after and may take up to a minute. If it doesn't render correctly, click "Ask AI" again — the AI sometimes needs another attempt to get the diagram syntax right.*
+*Your diagram will appear here once the AI finishes generating it. The text explanation will appear first; the diagram follows after and may take up to a minute. If it doesn't render correctly, click "Use AI" again — the AI sometimes needs another attempt to get the diagram syntax right.*
 </Markdown>
 <Mermaid id="fba2_ai_abc_diagram" target="fba2_ai_abc_code" when="@fba2_ai_abc_code.value" />
 <Collapsible id="fba2_mermaid_source" title="View diagram source code" when="@fba2_ai_abc_code.value">
@@ -578,7 +633,7 @@ Using the story about Johnny, explain the sequence of **Antecedent**, **Behavior
 _Recall: Annie's roommate tells Johnny to get into bed, but he runs away from the room laughing whenever "bed" is mentioned. The roommate chases after him and keeps nagging him to go to bed._
 </Markdown>
 
-<TextArea id="fba2_abc_johnny_explanation" rows="4" placeholder="Describe the Antecedent, Behavior, and Consequence for Johnny's bedtime situation..." />
+<TextArea id="fba2_abc_johnny_explanation" placeholder="Write your explanation here..." />
 
 <ActionButton id="fba2_abc_johnny_check_btn" label="Check My Understanding" dependsOn="@fba2_abc_johnny_explanation.value">
 <LLMAction id="fba2_abc_johnny_check" target="fba2_abc_johnny_feedback"><![CDATA[
@@ -644,7 +699,7 @@ The antecedent has been filled in for you. Complete the rest based on what you k
 </Markdown>
 
 <Markdown>**Antecedent** (what happens before the problem behavior): **Roommate tells Johnny to go to bed**</Markdown>
-
+ 
 <Markdown>**Problem Behavior** (what Johnny does):</Markdown>
 <TextArea id="fba2_pathway_behavior" rows="1" placeholder="What does Johnny do?" />
 
@@ -718,8 +773,15 @@ _"Escape is used to get away from something aversive or not preferred. Changing 
 
 <HH> ============= Screen: Intervention strategies ============== </HH>
 
-<Vertical id="fba2_intervention_strategies">
-<Markdown>
+<Tabs id="fba2_intervention_strategies">
+
+<Vertical id="fba2_strategy_recommendations" when="@fba2_antecedent_strategies_problem.score===1 && @fba2_consequence_strategies_problem.score===1" title="My Recommendations">
+<Markdown>**Now that you've identified which strategies address escape, which ones would you recommend for Johnny and why?**</Markdown>
+<TextArea id="fba2_escape_strategies_done" rows="3" placeholder="Which escape-focused strategies would work best for Johnny?" />
+</Vertical>
+
+<Vertical title="Antecedent Strategies">
+<Markdown id="fba2_strategy_header">
 ## Intervention Strategies
 
 Below are strategies for addressing problem behaviors. For each strategy, select which **function of behavior** it addresses. Remember: Johnny's function is **escape**, so we need to identify which strategies target escape.
@@ -740,7 +802,10 @@ rows:
   </TabularMCQ>
 </TabularMCQGrader>
 </CapaProblem>
+</Vertical>
 
+<Vertical title="Consequent Strategies">
+<Use ref="fba2_strategy_header" />
 <CapaProblem id="fba2_consequence_strategies_problem" title="Consequence Strategies">
 <Markdown>### Consequence Strategies (to react to the problem behavior)</Markdown>
 <TabularMCQGrader>
@@ -756,23 +821,21 @@ rows:
   </TabularMCQ>
 </TabularMCQGrader>
 </CapaProblem>
-
-<Markdown>**Now that you've identified which strategies address escape, which ones would you recommend for Johnny and why?**</Markdown>
-<TextArea id="fba2_escape_strategies_done" rows="3" placeholder="Which escape-focused strategies would work best for Johnny?" />
 </Vertical>
+</Tabs>
 
 
 <HH> ============= Screen: AI antecedent interventions ========== </HH>
 
 <Vertical id="fba2_ai_antecedent_interventions">
 <Markdown>
-## Ask AI: General Antecedent Strategies
+## Use AI: General Antecedent Strategies
 
-Write a prompt asking AI for **antecedent strategies** — things you can change *before* the problem behavior occurs to prevent it.
+Write a prompt using AI to identify **antecedent strategies** — things you can change *before* the problem behavior occurs to prevent it.
 </Markdown>
 <TextArea id="fba2_ai_antecedent_prompt" rows="2"
-  placeholder="Ask AI for antecedent strategies to prevent problem behaviors..." />
-<ActionButton id="fba2_ai_antecedent_btn" label="Ask AI" dependsOn="@fba2_ai_antecedent_prompt.value">
+  placeholder="Use AI to identify antecedent strategies to prevent problem behaviors..." />
+<ActionButton id="fba2_ai_antecedent_btn" label="Use AI" dependsOn="@fba2_ai_antecedent_prompt.value">
 <LLMAction target="fba2_ai_antecedent_response"><![CDATA[
 If the following prompt is about antecedent strategies for preventing problem behaviors,
 provide a list of no more than 6 practical, evidence-based antecedent strategies.
@@ -791,13 +854,13 @@ Format with bolded headers and a numbered list. Keep each strategy to 1-2 senten
 
 <Vertical id="fba2_ai_consequence_interventions">
 <Markdown>
-## Ask AI: General Consequence Strategies
+## Use AI: General Consequence Strategies
 
-Now write a prompt asking AI for **consequence strategies** — things you can change *after* the problem behavior occurs.
+Now write a prompt using AI to identify **consequence strategies** — things you can change *after* the problem behavior occurs.
 </Markdown>
 <TextArea id="fba2_ai_consequence_prompt" rows="2"
-  placeholder="Ask AI for consequence strategies to respond to problem behaviors..." />
-<ActionButton id="fba2_ai_consequence_btn" label="Ask AI" dependsOn="@fba2_ai_consequence_prompt.value">
+  placeholder="Use AI to identify consequence strategies to respond to problem behaviors..." />
+<ActionButton id="fba2_ai_consequence_btn" label="Use AI" dependsOn="@fba2_ai_consequence_prompt.value">
 <LLMAction target="fba2_ai_consequence_response"><![CDATA[
 If the following prompt is about consequence strategies for responding to problem behaviors,
 provide a list of no more than 6 practical, evidence-based consequence strategies.
@@ -816,13 +879,13 @@ Format with bolded headers and a numbered list. Keep each strategy to 1-2 senten
 
 <Vertical id="fba2_ai_escape_antecedent">
 <Markdown>
-## Ask AI: Escape-Focused Antecedent Strategies
+## Use AI: Escape-Focused Antecedent Strategies
 
-Now let's focus specifically on **escape**. Write a prompt asking AI for antecedent strategies that address escape-maintained behavior — particularly for a child refusing to go to bed.
+Now let's focus specifically on **escape**. Write a prompt using AI to identify antecedent strategies that address escape-maintained behavior — particularly for a child refusing to go to bed.
 </Markdown>
 <TextArea id="fba2_ai_escape_ante_prompt" rows="2"
-  placeholder="Ask AI for antecedent strategies specific to escape-maintained bedtime refusal..." />
-<ActionButton id="fba2_ai_escape_ante_btn" label="Ask AI" dependsOn="@fba2_ai_escape_ante_prompt.value">
+  placeholder="Use AI to identify antecedent strategies specific to escape-maintained bedtime refusal..." />
+<ActionButton id="fba2_ai_escape_ante_btn" label="Use AI" dependsOn="@fba2_ai_escape_ante_prompt.value">
 <LLMAction target="fba2_ai_escape_ante_response"><![CDATA[
 If the following prompt is about antecedent strategies for escape-maintained behavior,
 particularly a child refusing to go to bed, provide a list of no more than 6 practical,
@@ -842,13 +905,13 @@ Format with bolded headers and a numbered list. Keep each strategy to 1-2 senten
 
 <Vertical id="fba2_ai_escape_consequence">
 <Markdown>
-## Ask AI: Escape-Focused Consequence Strategies
+## Use AI: Escape-Focused Consequence Strategies
 
-Finally, write a prompt asking AI for **consequence strategies** that specifically address escape-maintained bedtime refusal.
+Finally, write a prompt using AI to identify **consequence strategies** that specifically address escape-maintained bedtime refusal.
 </Markdown>
 <TextArea id="fba2_ai_escape_cons_prompt" rows="2"
-  placeholder="Ask AI for consequence strategies specific to escape-maintained bedtime refusal..." />
-<ActionButton id="fba2_ai_escape_cons_btn" label="Ask AI" dependsOn="@fba2_ai_escape_cons_prompt.value">
+  placeholder="Use AI to identify consequence strategies specific to escape-maintained bedtime refusal..." />
+<ActionButton id="fba2_ai_escape_cons_btn" label="Use AI" dependsOn="@fba2_ai_escape_cons_prompt.value">
 <LLMAction target="fba2_ai_escape_cons_response"><![CDATA[
 If the following prompt is about consequence strategies for escape-maintained behavior,
 particularly a child refusing to go to bed, provide a list of no more than 6 practical,
@@ -866,17 +929,8 @@ Format with bolded headers and a numbered list. Keep each strategy to 1-2 senten
 
 <HH> ============= Screen: Revised pathway ====================== </HH>
 
-<Vertical id="fba2_revised_pathway">
-<Markdown>
-## Revised Competing Behavior Pathway
-
-Here is JJ's original pathway for reference. Now that you've identified escape-focused strategies, revise the plan by filling in the three boxes below.
-</Markdown>
-
-<Collapsible id="fba2_original_pathway_ref" title="JJ's Original Pathway (click to expand)">
-<Mermaid id="fba2_pathway_ref_diagram" src="diagrams/johnny_cbp_filled.mmd" />
-</Collapsible>
-
+<Tabs id="fba2_revised_pathway">
+<Vertical title="Build Your Revised Plan">
 <Markdown>
 ### Your Revised Plan
 
@@ -892,6 +946,19 @@ Using the escape-focused antecedent and consequence strategies you identified, f
 <Markdown>**Consequence/Outcome + new strategies** (what happens after the desired behavior, and what consequence strategies support it?):</Markdown>
 <TextArea id="fba2_revised_consequence" rows="3" placeholder="Johnny goes to sleep + your chosen consequence strategies..." />
 </Vertical>
+<Vertical id="fba2_original_pathway_ref" title="JJ's Original Pathway">
+<Mermaid id="fba2_pathway_ref_diagram" src="diagrams/johnny_cbp_filled.mmd" />
+</Vertical>
+<Vertical title="My Initial Suggestions">
+<Use ref="fba2_strategy_recommendations" />
+</Vertical>
+<Vertical title="AI-Generated Antecedent Strategies)">
+<Use ref="fba2_ai_escape_ante_response" />
+</Vertical>
+<Vertical title="AI-Generated Consequence Strategies)">
+<Use ref="fba2_ai_escape_cons_response" />
+</Vertical>
+</Tabs>
 
 
 <HH> ============= Screen: Plan selection ======================= </HH>

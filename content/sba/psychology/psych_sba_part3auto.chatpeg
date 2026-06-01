@@ -142,7 +142,7 @@ Annie: Hmm, before we look up the answer, what do you all think? Why might punis
 
 ::fba2_predict_punishment [display=target:psych_sba_sidebar3auto label="Predict: Why Not Punishment?"]
 
---- wait @fba2_punishment_confidence.value ---
+--- wait @fba2_no_punishment_explanation.value && @fba2_punishment_confidence.value ---
 
 Annie: That makes sense! Functions are about what the person gains from the behavior — what keeps it going. Punishment by definition decreases behavior, so it can't be the reason a behavior continues. [face=smile]
 
@@ -197,7 +197,7 @@ Lin: Let's apply this framework to Johnny's situation now.
 
 ::fba2_abc_johnny [display=target:psych_sba_sidebar3auto label="Apply ABCs to Johnny"]
 
---- wait @fba2_abc_johnny_check.value ---
+--- wait @fba2_abc_johnny_explanation.value ---
 
 JJ: Okay, here's what I got. The antecedent is Johnny running around the house. The behavior is the roommate chasing him. And the consequence is he eventually goes to bed. [face=explaining]
 
@@ -244,17 +244,19 @@ Annie: A six-year-old has operant-conditioned a college student. I am NOT tellin
 Competing Behavior Pathway [id=fba2_pathway_section]
 ---------------------------
 
-::fba2_competing_pathway_blank [display=target:psych_sba_sidebar3auto label="Fill In Competing Behavior Pathway"]
+Lin: Now let's put it all together. Here's a color-coded reference diagram, we can use it to fill out a blank pathway with everything we know about Johnny.
 
-Lin: Now let's put it all together. Using the color-coded reference diagram, fill out the blank pathway with everything we know about Johnny.
+::fba2_pathway_reference [display=target:psych_sba_sidebar3auto label="View Reference Diagram"]
 
 JJ: Lianne showed us this in class — it's called a Competing Behavior Pathway. The idea is you map out the problem behavior and then figure out what you want instead. [face=explaining]
 
+::fba2_competing_pathway_blank [display=target:psych_sba_sidebar3auto label="Fill In Competing Behavior Pathway"]
+
 --- wait @fba2_pathway_behavior.value && @fba2_pathway_consequence.value && @fba2_pathway_function.value ---
 
-::fba2_competing_pathway_jj_section [display=target:psych_sba_sidebar3auto label="Compare with JJ's Pathway"]
-
 JJ: Let's compare! Here's what I put. [face=smile]
+
+::fba2_competing_pathway_jj_section [display=target:psych_sba_sidebar3auto label="Compare with JJ's Pathway"]
 
 Intervention Planning [id=fba2_intervention_section]
 ----------------------
@@ -274,11 +276,21 @@ JJ: Okay, that's actually really different from "no toys tomorrow." [face=concer
 Checking Intervention Understanding [id=fba2_intervention_check]
 ------------------------------------
 
-::fba2_intervention_strategies [display=target:psych_sba_sidebar3auto label="Sort Intervention Strategies"]
+::fba2_intervention_strategies [display=target:psych_sba_sidebar3auto label="Choose Your Preferred Intervention Strategies"]
 
 Lin: Here's what my Child Development textbook says about generating interventions. We need strategies for the problem behavior of "not going to bed on time."
 
 JJ: What if we break this into two pieces? Let's think about antecedent strategies first — things we can do before bedtime to prevent escape. Then we'll tackle consequence strategies separately. Otherwise this is going to get overwhelming. [face=explaining]
+
+::fba2_antecedent_strategies_problem [display=target:psych_sba_sidebar3auto label="Classify Functions of Antecedent Strategies"]
+
+--- wait @fba2_antecedent_strategies_problem.score===1 ---
+
+::fba2_consequence_strategies_problem [display=target:psych_sba_sidebar3auto label="Classify Functions of Consequence Strategies"]
+
+--- wait @fba2_consequence_strategies_problem.score===1 ---
+
+::fba2_intervention_strategies [display=target:psych_sba_sidebar3auto label="Sort Intervention Strategies"]
 
 --- wait @fba2_escape_strategies_done.value ---
 
@@ -297,7 +309,7 @@ AI Intervention Strategies [id=fba2_ai_interventions]
 
 --- wait @fba2_ai_consequence_response.value ---
 
-JJ: "Redirect the child's attention to a preferred activity" — that one sounds right for Johnny. [face=smile]
+JJ: Here's a promising strategy I got from the AI: "Redirect the child's attention to a preferred activity" — that one sounds right for Johnny. [face=smile]
 
 Lin: Does it? That strategy assumes the function is attention. If Johnny's running to escape bedtime, redirecting his attention doesn't address why he's running. [face=serious]
 
@@ -325,11 +337,13 @@ JJ: What if we go back to the Competing Behavior Pathway and plug in the strateg
 Revisiting the Pathway [id=fba2_revised_pathway_section]
 -----------------------
 
-::fba2_revised_pathway [display=target:psych_sba_sidebar3auto label="Revise the Pathway"]
-
 JJ: Here's the original pathway for reference. Now we need to fill in the new version with our escape-focused strategies.
 
+::fba2_original_pathway_ref [display=target:psych_sba_sidebar3auto label="JJ's Original Pathway"]
+
 Annie: Let's do it — this time we actually know what we're targeting. [face=smile]
+
+::fba2_revised_pathway [display=target:psych_sba_sidebar3auto label="Revise the Pathway"]
 
 --- wait @fba2_revised_antecedent.value && @fba2_revised_desired.value && @fba2_revised_consequence.value ---
 
@@ -366,15 +380,15 @@ Annie: Okay, that's an important distinction. What parts of the plan stand out t
 Checking Understanding of Plans [id=fba2_plan_check]
 --------------------------------
 
+Annie: But some of the sensory ideas are genuinely good strategies. Calming music before bed, a predictable sensory environment... wouldn't those help any kid? [face=explaining]
+
 ::fba2_sensory_plan_check [display=target:psych_sba_sidebar3auto label="Check: Why Not the Sensory Plan?"]
 
-Annie: But some of the sensory ideas are genuinely good strategies. Calming music before bed, a predictable sensory environment... wouldn't those help any kid? [face=explaining]
+--- wait @fba2_sensory_check_choice.submitCount > 0 ---
 
 Lin: They might be nice supports, but they can't be the core plan. Johnny's function is escape — a weighted blanket isn't going to solve the problem if the reason he's running away is to avoid going to bed. You could add calming music as part of an antecedent strategy, but only if the plan is built around escape first. [face=serious]
 
 Annie: So: wrong function for the core plan, but nice supports on top of the right one. [face=smile]
-
---- wait @fba2_sensory_check_choice.submitCount > 0 ---
 
 Final Email [id=fba2_final]
 ------------
@@ -393,4 +407,8 @@ Annie: Done! I'll send this to my roommate tonight. I actually feel like we have
 
 Lin: I think so too. Let's check back in a couple of weeks to see how it goes.
 
+--- wait 'CONTENT/fba2_part_3auto_finished' in @fba2_completion_checkbox.value ---
+
 Lianne: Now you're done with Part 3 Auto, you can review all your answers to the right. Use the "Export as PDF" button to save a copy of your answers and upload it to our course system.
+
+::psych_sba_activities_part3auto  [display=target:psych_sba_sidebar3auto label="Review your work"]
