@@ -333,6 +333,18 @@ export interface StorageProvider {
   toLofsRef(path: SafeRelativePath): LofsRef;
 
   /**
+   * Extract the relative path from a LofsRef in this provider.
+   *
+   * Inverse of toLofsRef. For example:
+   * - FileStorageProvider:     "file:content://sba/foo.olx" → "sba/foo.olx"
+   * - InMemoryStorageProvider: "memory:local://sba/foo.olx" → "sba/foo.olx"
+   *
+   * Used by translation orchestration to navigate between source and
+   * translated file paths without knowing the provider's address scheme.
+   */
+  toRelativePath(uri: LofsRef): OlxRelativePath;
+
+  /**
    * Check if a static asset file exists and is valid
    * @param assetPath - Path relative to content root
    * @returns Promise<boolean>

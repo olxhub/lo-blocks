@@ -1,23 +1,28 @@
-// src/app/api/translate/route.ts
+// routes/translate.ts
 //
-// HTTP endpoint for content translation (Next.js API route).
+// POST /api/translate — content translation endpoint (Hono).
 //
-// NOTE: This route is superseded by the Hono handler in
-// apps/server/src/routes/translate.ts. It remains during the migration
-// but is only reachable via the proxy fallback if the Hono server isn't
-// running. Remove once Next.js is eliminated.
+// Thin HTTP wrapper: parses and validates the request, deduplicates
+// in-flight translations, delegates to the shared orchestration module,
+// and formats the response.
 //
-// Thin HTTP wrapper: parses the request, deduplicates in-flight
-// translations, delegates to the shared orchestration module.
+// Migrated from apps/web/app/api/translate/route.ts (Next.js API route).
+// The Next.js version hit "Config not initialized" because the Next.js
+// process never called initConfig(). Running here in the Hono server,
+// config is initialized at startup.
 
-import { NextResponse } from 'next/server';
 import path from 'path';
+import type { Context } from 'hono';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
-import { syncContentFromStorage, getSourceFile, getOriginalVariant } from '@/lib/content/syncContentFromStorage';
+import {
+  syncContentFromStorage,
+  getSourceFile,
+  getOriginalVariant,
+} from '@/lib/content/syncContentFromStorage';
 import { resolveLLMConfigWithFallback } from '@/lib/llm/profiles';
 import { translateBlock } from '@/lib/translate/orchestrate';
 import type { ContentVariant } from '@/lib/types';
-import { definitionKeyForRef, parseDefinitionRef, PLACEHOLDER_NS } from '@/lib/types/id-grammar';
+import { definitionKeyForRef, parseDefinitionRef } from '@/lib/types/id-grammar';
 import { toContentVariant } from '@/lib/types/i18n';
 
 const contentDir = process.env.OLX_CONTENT_DIR || './content';
@@ -27,14 +32,14 @@ const provider = new FileStorageProvider(contentDir, 'content');
 const inFlightTranslations = new Map<string, Promise<any>>();
 const TRANSLATION_TIMEOUT_MS = 600_000; // 10 minutes
 
-export async function POST(request: Request) {
+export async function handleTranslate(c: Context): Promise<Response> {
   try {
-    const body = await request.json();
+    const body = await c.req.json();
 
     if (!body.blockId || !body.targetLocale) {
-      return NextResponse.json(
+      return c.json(
         { ok: false, error: 'Missing required fields: blockId, targetLocale' },
-        { status: 400 }
+        400,
       );
     }
 
@@ -42,44 +47,39 @@ export async function POST(request: Request) {
     try {
       targetLocale = toContentVariant(body.targetLocale);
     } catch {
-      return NextResponse.json(
-        { ok: false, error: 'Invalid locale format' },
-        { status: 400 }
-      );
+      return c.json({ ok: false, error: 'Invalid locale format' }, 400);
     }
     if (targetLocale === '*') {
-      return NextResponse.json(
+      return c.json(
         { ok: false, error: 'Cannot translate to wildcard locale "*" — specify a concrete target language' },
-        { status: 400 }
+        400,
       );
     }
 
-    const blockId = definitionKeyForRef(parseDefinitionRef(body.blockId), PLACEHOLDER_NS);
+    const blockId = definitionKeyForRef(parseDefinitionRef(body.blockId));
 
     const llmConfig = resolveLLMConfigWithFallback('translation');
     if (llmConfig.provider === 'stub') {
-      return NextResponse.json(
-        { ok: false, error: 'LLM is in stub mode — no real translation available' }
-      );
+      return c.json({
+        ok: false,
+        error: 'LLM is in stub mode — no real translation available',
+      });
     }
 
     await syncContentFromStorage(provider);
 
     const originalVariant = getOriginalVariant(blockId);
     if (!originalVariant) {
-      return NextResponse.json(
-        { ok: false, error: `Block "${blockId}" not found` },
-        { status: 404 }
-      );
+      return c.json({ ok: false, error: `Block "${blockId}" not found` }, 404);
     }
 
     // HACK: Should not be hardcoded to English
     const sourceLocale = toContentVariant(originalVariant.lang || 'en');
     const sourceFileUri = getSourceFile(blockId, sourceLocale);
     if (!sourceFileUri) {
-      return NextResponse.json(
+      return c.json(
         { ok: false, error: `Source file not found for block "${blockId}" locale "${sourceLocale}"` },
-        { status: 404 }
+        404,
       );
     }
 
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
     const dedupeKey = `${sourceFileUri}::${targetLocale}`;
     if (inFlightTranslations.has(dedupeKey)) {
       const result = await inFlightTranslations.get(dedupeKey);
-      return NextResponse.json(result, result.ok ? undefined : { status: 500 });
+      return c.json(result, result.ok ? undefined : 500);
     }
 
     const promise = translateBlock({
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
     const timedPromise = Promise.race([
       promise,
       new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Translation timed out')), TRANSLATION_TIMEOUT_MS)
+        setTimeout(() => reject(new Error('Translation timed out')), TRANSLATION_TIMEOUT_MS),
       ),
     ]);
     inFlightTranslations.set(dedupeKey, timedPromise);
@@ -105,17 +105,17 @@ export async function POST(request: Request) {
     try {
       const result = await timedPromise;
       if (!result.ok) {
-        return NextResponse.json(result, { status: 500 });
+        return c.json(result, 500);
       }
-      return NextResponse.json(result);
+      return c.json(result);
     } finally {
       inFlightTranslations.delete(dedupeKey);
     }
   } catch (error: any) {
     console.error('[/api/translate] Error:', error);
-    return NextResponse.json(
+    return c.json(
       { ok: false, error: error.message || 'Unknown error' },
-      { status: 500 }
+      500,
     );
   }
 }

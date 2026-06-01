@@ -2,11 +2,12 @@
 //
 // Visual indicator wrapping block content during translation.
 //
-// Four states:
+// Five states:
+// - No mismatch: Renders children directly with no wrapper
+// - Fallback (translatable): Info banner with "Translate" button — user opts in
 // - Translating: Amber banner with spinner + content at reduced opacity
-// - Failed: Red banner with error message, content at full opacity
+// - Failed: Red banner with error message + retry button, content at full opacity
 // - Fallback (sideEffectFree): Gray info banner showing language mismatch
-// - Neither: Renders children directly with no wrapper
 //
 'use client';
 
@@ -20,7 +21,10 @@ interface TranslatingIndicatorProps {
 }
 
 export default function TranslatingIndicator({ translationState, children }: TranslatingIndicatorProps) {
-  const { isFallback, translating, translationFailed, translationError, fallbackLocale, targetLocale } = translationState;
+  const {
+    isFallback, translating, translationFailed, translationError,
+    fallbackLocale, targetLocale, requestTranslation,
+  } = translationState;
 
   // No mismatch — render children directly, no wrapper
   if (!isFallback) {
@@ -34,7 +38,15 @@ export default function TranslatingIndicator({ translationState, children }: Tra
     return (
       <div>
         <div role="status" className="flex items-center gap-2 px-3 py-1.5 mb-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded">
-          Translation failed ({fromLabel} → {toLabel}){translationError ? `: ${translationError}` : ''}
+          <span>Translation failed ({fromLabel} → {toLabel}){translationError ? `: ${translationError}` : ''}</span>
+          {requestTranslation && (
+            <button
+              onClick={requestTranslation}
+              className="ms-auto text-xs px-2 py-0.5 bg-red-100 hover:bg-red-200 border border-red-300 rounded whitespace-nowrap"
+            >
+              Retry
+            </button>
+          )}
         </div>
         <div>{children}</div>
       </div>
@@ -55,8 +67,25 @@ export default function TranslatingIndicator({ translationState, children }: Tra
     );
   }
 
-  // Fallback but not translating and not failed — sideEffectFree mode
-  // Show a subtle info banner indicating the language mismatch
+  // Fallback: not translating and not failed — offer opt-in translation
+  if (requestTranslation) {
+    return (
+      <div>
+        <div role="status" className="flex items-center gap-2 px-3 py-1.5 mb-2 bg-blue-50 border border-blue-200 text-blue-700 text-sm rounded">
+          <span>Showing {fromLabel}</span>
+          <button
+            onClick={requestTranslation}
+            className="ms-auto text-xs px-2 py-0.5 bg-blue-100 hover:bg-blue-200 border border-blue-300 rounded whitespace-nowrap"
+          >
+            Translate to {toLabel}
+          </button>
+        </div>
+        <div>{children}</div>
+      </div>
+    );
+  }
+
+  // sideEffectFree mode — no translation available, just show info
   return (
     <div>
       <div role="status" className="flex items-center gap-2 px-3 py-1.5 mb-2 bg-gray-50 border border-gray-200 text-gray-600 text-sm rounded">

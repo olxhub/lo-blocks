@@ -145,6 +145,10 @@ export class InMemoryStorageProvider implements StorageProvider {
     throw new Error(`File not found in memory provider: ${safePath}`);
   }
 
+  toRelativePath(uri: LofsRef): OlxRelativePath {
+    return provenancePath(uri) as OlxRelativePath;
+  }
+
   async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {
     return isMediaFile(assetPath) && this.exists(assetPath);
   }
