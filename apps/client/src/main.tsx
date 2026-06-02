@@ -14,12 +14,14 @@ function showError(message: string) {
 /**
  * Extract the content namespace from the current URL.
  *
- * In /preview/psych::intro_unit, the namespace is "psych" (before "::").
- * Returns undefined if no namespace is found.
+ * In /preview/psych/psych_course, the namespace is "psych" (the first
+ * segment after /preview/, before the /path). Only matches when there
+ * are at least two segments after /preview/.
+ * Returns undefined if no namespace is found (e.g. /preview/someBlock).
  */
 function extractNamespace(pathname: string): string | undefined {
-  // /preview/<ns>::<id> pattern
-  const match = pathname.match(/\/preview\/([^/:]+)::/);
+  // /preview/<ns>/<id> — namespace is the first segment when there are 2+
+  const match = pathname.match(/^\/preview\/([^/]+)\/.+/);
   return match?.[1];
 }
 
