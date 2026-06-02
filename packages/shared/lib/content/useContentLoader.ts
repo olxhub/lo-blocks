@@ -4,7 +4,7 @@ import { IdMap, ComponentError, DefinitionKey } from '@/lib/types';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
 import { useDebugSettings } from '@/lib/state/debugSettings';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
-import { useBaselineProps } from '@/components/common/RenderOLX';
+import { useBaselineProps } from '@/lib/blocks/baselineRuntime';
 import { fetchOlxJson } from '@/lib/content/fetchOlxJson';
 
 /**

@@ -85,7 +85,7 @@ export function ensureBlock(
 ): void {
   if (!id || props.runtime.sideEffectFree) return;
 
-  const definitionKey: DefinitionKey = definitionKeyForRef(id as DefinitionRef, props.runtime?.ns ?? PLACEHOLDER_NS);
+  const definitionKey: DefinitionKey = definitionKeyForRef(id as DefinitionRef, props.runtime.ns);
   const locale = props.runtime.locale.code;
   // Dedup on request profile — currently just locale, will grow (see comment above)
   const dedupKey = `${source}:${locale}:${definitionKey}`;
@@ -159,7 +159,7 @@ function ensureReferencedBlocks(props: BaselineProps, idMap: IdMap, source: stri
       for (const ref of refs) {
         // extractRefs returns Zod-validated values — may include system-generated
         // _-prefixed bare refs since z_stateRef uses the permissive validator.
-        const qualifiedKey = stateKeyForGlobalRef(parseAnyStateRef(ref), props.runtime?.ns ?? PLACEHOLDER_NS);
+        const qualifiedKey = stateKeyForGlobalRef(parseAnyStateRef(ref), props.runtime.ns);
         for (const defKey of allDefinitionKeysFromStateKey(qualifiedKey)) {
           // Skip blocks already in this idMap — they were just dispatched
           // in the same LOAD_OLXJSON event. Calling ensureBlock here would
@@ -199,7 +199,7 @@ export function selectOlxJson(
     return { olxJson: null, ...blockData('ready') };
   }
 
-  const definitionKey: DefinitionKey = definitionKeyForRef(id, props.runtime?.ns ?? PLACEHOLDER_NS);
+  const definitionKey: DefinitionKey = definitionKeyForRef(id, props.runtime.ns);
   const blockState = selectBlockState(state, [source], definitionKey);
 
   if (!blockState) {
@@ -262,7 +262,7 @@ export function useOlxJson(
   source: string = 'content'
 ): OlxJsonResult {
   // Compute definitionKey outside hooks — empty string for null id (won't match anything)
-  const definitionKey: DefinitionKey = id ? definitionKeyForRef(id, props.runtime?.ns ?? PLACEHOLDER_NS) : '' as DefinitionKey;
+  const definitionKey: DefinitionKey = id ? definitionKeyForRef(id, props.runtime.ns) : '' as DefinitionKey;
 
   // Read from Redux using the pure selector
   const result = useSelector(
@@ -347,7 +347,7 @@ export function selectOlxJsonMultiple(
   const userLocale = props.runtime.locale.code;
 
   const results: OlxJsonMultipleResult[] = ids.map(id => {
-    const definitionKey: DefinitionKey = id ? definitionKeyForRef(id as DefinitionRef, props.runtime?.ns ?? PLACEHOLDER_NS) : '' as DefinitionKey;
+    const definitionKey: DefinitionKey = id ? definitionKeyForRef(id as DefinitionRef, props.runtime.ns) : '' as DefinitionKey;
     const entry = selectBlockState(state, sources, definitionKey);
     if (!entry) return { olxJson: null, status: 'missing' as const };
     const status = entry.loadingState?.status;

@@ -277,7 +277,7 @@ export function inferRelatedNodes(props: RuntimeProps, {
   if (!selector) throw new Error("inferRelatedNodes: selector is required");
 
   // See above for logic and docstring
-  const targetIds = normalizeTargetIds(targets, props.runtime?.ns ?? PLACEHOLDER_NS);
+  const targetIds = normalizeTargetIds(targets, props.runtime.ns);
   const inferModes = normalizeInfer(
     infer,
     (targets ? [] : ['parents', 'kids']) // default: infer if no targets, else don't

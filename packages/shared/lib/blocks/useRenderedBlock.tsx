@@ -24,7 +24,7 @@ import Spinner from '@/components/common/Spinner';
 import TranslatingIndicator from '@/lib/i18n/TranslatingIndicator';
 import type { DefinitionRef, StateKey, BlockDataResult, OlxJson, RuntimeProps } from '@/lib/types';
 import { blockData } from '@/lib/state/redux';
-import { definitionKeyForRef, leafDefinitionKeyFromStateKey , PLACEHOLDER_NS } from '@/lib/types/id-grammar';
+import { definitionKeyForRef, leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import { selectBlock } from '@/lib/state/olxjson';
 import {
   evaluate, createContext,
@@ -185,7 +185,7 @@ export function getRenderedBlocksMultiple(
 // Returns the pre-parsed { expr, ast } from the when= attribute, or undefined.
 function getWhen(kid, props) {
   if (kid.type === 'block') {
-    const definitionKey = definitionKeyForRef(kid.id, props.runtime?.ns ?? PLACEHOLDER_NS);
+    const definitionKey = definitionKeyForRef(kid.id, props.runtime.ns);
     const state = props.runtime.store.getState();
     const sources = props.runtime.olxJsonSources ?? ['content'];
     const block = selectBlock(state, sources, definitionKey, props.runtime.locale.code);

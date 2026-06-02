@@ -9,19 +9,17 @@ import { useFieldState, useAggregate, updateField } from './redux';
 import { scopes } from './scopes';
 import { store } from './store';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import { TEST_NS, testKey } from '@/lib/test-utils';
+import { TEST_NS, testKey, mockRuntime } from '@/lib/test-utils';
 
 const testFields = fields(['input']);
 const settingFields = fields([{ name: 'speed', event: 'SET_SPEED', scope: scopes.componentSetting }]);
 const systemFields = fields([{ name: 'lang', event: 'SET_LANG', scope: scopes.system }]);
 const storageFields = fields([{ name: 'content', event: 'SET_CONTENT', scope: scopes.storage }]);
 
-// Minimal RuntimeProps-like object for tests.
-// Includes runtime.logEvent (required by updateField) and block identity fields.
 const props = {
   id: 'sentinelId',
   loBlock: { name: 'sentinelTag' },
-  runtime: { logEvent: lo_event.logEvent },
+  runtime: mockRuntime({ logEvent: lo_event.logEvent }),
 };
 
 // Test helpers — reduce boilerplate for Redux hook tests
@@ -63,7 +61,7 @@ describe('useFieldState integration', () => {
 
     const { result } = renderHook(
       () => useFieldState(
-        { id: 'vid1', loBlock: { name: 'video' }, runtime: { logEvent: lo_event.logEvent } },
+        { id: 'vid1', loBlock: { name: 'video' }, runtime: mockRuntime({ logEvent: lo_event.logEvent }) },
         settingFields.speed, 1
       ),
       { wrapper }

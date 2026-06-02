@@ -982,7 +982,7 @@ export interface LoBlockRuntimeContext {
   sideEffectFree: boolean;  // True during replay - disables fetches, event logging, etc.
   olxJsonSources?: string[];  // Redux source names in priority order for OlxJson lookup
   idPrefix?: IdPrefix;  // Scope prefix for Redux state (changes at list boundaries)
-  ns?: ContentNamespace;  // Content namespace — identifies the logical content source
+  ns: ContentNamespace;  // Content namespace — identifies the logical content source
   locale: LocaleContext;  // Language and text direction
   cast: Cast;  // Cast of characters
 }

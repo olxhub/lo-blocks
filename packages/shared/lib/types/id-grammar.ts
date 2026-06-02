@@ -805,7 +805,7 @@ export const PLACEHOLDER_NS = asContentNamespace('CONTENT');
  *
  */
 export function scopedStateKeyForBlock(
-  props: { id: DefinitionRef; ns?: ContentNamespace; runtime?: { ns?: ContentNamespace }; idPrefix?: IdPrefix;[key: string]: unknown }
+  props: { id: DefinitionRef; ns?: ContentNamespace; runtime?: { ns: ContentNamespace }; idPrefix?: IdPrefix;[key: string]: unknown }
 ): StateKey {
   const ns = props.ns ?? props.runtime?.ns ?? PLACEHOLDER_NS;
   const defKey = qualifyDefinitionRef(props.id, ns);

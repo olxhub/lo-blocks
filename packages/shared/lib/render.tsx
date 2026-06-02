@@ -254,7 +254,8 @@ export function render({ node, nodeInfo, runtime }: {
     id: node.id,
     nodeInfo: childNodeInfo,
     blockRegistry: actualBlockRegistry,
-    idPrefix: actualIdPrefix
+    idPrefix: actualIdPrefix,
+    runtime,
   };
 
   // Check requiresGrader - inject graderId or show error

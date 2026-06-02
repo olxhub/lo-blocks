@@ -4,7 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo } from 'react';
 import { inferRelatedNodes, getDomNodeByStateKey } from '@/lib/blocks/olxdom';
-import { stateKeyForGlobalRef, parseAnyStateRef , PLACEHOLDER_NS } from '@/lib/types/id-grammar';
+import { stateKeyForGlobalRef, parseAnyStateRef } from '@/lib/types/id-grammar';
 import { useAggregate, componentFieldByStateKey } from '@/lib/state';
 
 function normalizeTargets(rawTargets) {
@@ -31,7 +31,7 @@ function resolveTargetIds(props, targetIds) {
   targetIds.forEach((targetId) => {
     // Authored target ref → StateKey (namespace-qualify but do NOT apply idPrefix)
     const ref = parseAnyStateRef(targetId);
-    const targetStateKey = stateKeyForGlobalRef(ref, props.runtime?.ns ?? PLACEHOLDER_NS);
+    const targetStateKey = stateKeyForGlobalRef(ref, props.runtime.ns);
     const targetNodeInfo = getDomNodeByStateKey(props, targetStateKey);
 
     // inferRelatedNodes returns StateKey[]

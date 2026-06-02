@@ -14,7 +14,7 @@ import { describe, test, expect, afterEach } from 'vitest';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { InMemoryStorageProvider } from '@/lib/lofs/providers/memory';
 import { toMemoryRef } from '@/lib/types/storage';
-import { TEST_NS, testKey } from '@/lib/test-utils';
+import { TEST_NS, testKey, mockRuntime } from '@/lib/test-utils';
 import { asDefinitionKey } from '@/lib/types/id-grammar';
 
 import { render, makeRootNode } from '@/lib/render';
@@ -83,15 +83,12 @@ async function parseAndRender(olx: string, providerFiles?: Record<string, string
   dispatchOlxJsonSync(reduxStore, 'content', idMap);
 
   const localeCode = 'en-Latn-US';
-  const runtime = {
+  const runtime = mockRuntime({
     blockRegistry: BLOCK_REGISTRY,
     store: reduxStore,
-    logEvent: () => {},
-    sideEffectFree: false,
     olxJsonSources: ['content'],
-    idPrefix: '' as any,
     locale: { code: localeCode, dir: getTextDirection(localeCode) },
-  };
+  });
 
   const element = render({
     node: { type: 'block', id: renderId },

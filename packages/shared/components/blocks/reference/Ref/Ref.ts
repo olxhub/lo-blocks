@@ -4,7 +4,7 @@ import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { valueSelector, fieldByName, fieldSelector } from '@/lib/state';
 import { blockData, withStatus } from '@/lib/state/blockData';
-import { leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseAnyStateRef , PLACEHOLDER_NS } from '@/lib/types/id-grammar';
+import { leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseAnyStateRef } from '@/lib/types/id-grammar';
 import { srcAttributes, z_stateRef } from '@/lib/blocks/attributeSchemas';
 import { selectBlock, selectBlockState } from '@/lib/state/olxjson';
 import _Ref from './_Ref';
@@ -82,7 +82,7 @@ const Ref = core({
     // Qualify the target ref into a proper StateKey for Redux lookup.
     // Ref targets are resolved globally (not scoped by idPrefix).
     const targetRef = parseAnyStateRef(targetId);
-    const targetStateKey = stateKeyForGlobalRef(targetRef, props.runtime?.ns ?? PLACEHOLDER_NS);
+    const targetStateKey = stateKeyForGlobalRef(targetRef, props.runtime.ns);
     const targetDefinitionKey = leafDefinitionKeyFromStateKey(targetStateKey);
 
     // Check if target exists in Redux — distinguish loading from missing

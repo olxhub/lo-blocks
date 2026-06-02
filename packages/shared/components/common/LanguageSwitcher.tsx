@@ -14,7 +14,7 @@ import { settings } from '@/lib/state/settings';
 import { getTextDirection, getBrowserLocale } from '@/lib/i18n/getTextDirection';
 import { selectVariantTiers } from '@/lib/state/olxjson';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
-import { useBaselineProps } from '@/components/common/RenderOLX';
+import { useBaselineProps } from '@/lib/blocks/baselineRuntime';
 import { ALL_LANGUAGES, getLanguageLabel, filterLanguages } from '@/lib/i18n/languages';
 import type { Locale } from '@/lib/types';
 
