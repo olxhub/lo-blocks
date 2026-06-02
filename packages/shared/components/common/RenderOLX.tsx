@@ -191,7 +191,8 @@ function useParseContent(
   source?: string,
   logEvent?: any,
   sideEffectFree?: boolean,
-  onError?: (err: any) => void
+  onError?: (err: any) => void,
+  ns?: ContentNamespace
 ) {
   const [parsed, setParsed] = useState<any>(null);
   const [fatalError, setFatalError] = useState<string | null>(null);     // content can't render
@@ -222,7 +223,8 @@ function useParseContent(
           const result = await parseOLX(
             inline,
             [toLofsRef(provenance || 'inline://')],
-            effectiveProvider
+            effectiveProvider,
+            ns
           );
           if (!cancelled) {
             // Dispatch to Redux for reactive block access (skip during replay - viewing historical state)
@@ -255,7 +257,8 @@ function useParseContent(
             const result = await parseOLX(
               content,
               [provenance ? toLofsRef(provenance) : toMemoryRef(filename)],
-              effectiveProvider
+              effectiveProvider,
+              ns
             );
 
             mergedIdMap = { ...mergedIdMap, ...result.idMap };
@@ -293,7 +296,7 @@ function useParseContent(
 
     doParse();
     return () => { cancelled = true; };
-  }, [inline, files, effectiveProvider, provenance, onError, startTransition, source, sideEffectFree, logEvent]);
+  }, [inline, files, effectiveProvider, provenance, onError, startTransition, source, sideEffectFree, logEvent, ns]);
 
   return { parsed, fatalError, warnings, isPending };
 }
@@ -414,7 +417,8 @@ export default function RenderOLX({
     source,
     runtimeContext.logEvent,
     runtimeContext.sideEffectFree,
-    onError
+    onError,
+    ns
   );
 
   // Merge parsed content into runtime context
