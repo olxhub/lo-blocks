@@ -8,8 +8,7 @@
 // existing translations, writing results, and syncing the content store.
 //
 // Used by both the Hono route handler and the Next.js route (during
-// migration). The CLI script (scripts/translate.ts) uses computeTranslationPath
-// for output path convention.
+// migration).
 
 import path from 'path';
 import {

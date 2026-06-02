@@ -5,9 +5,8 @@
 // Returns the raw PMSS text so clients can resolve it locally with their
 // own class context (app profile, deployment mode, etc.).
 //
-// NOTE: Course-level PMSS overrides (per-launchable settings, manifest
-// classes) are not yet delivered here. See docs/per-launchable-config.md
-// for the design direction.
+// TODO: Course-level PMSS overrides (per-launchable settings, manifest
+// classes) are not yet delivered here.
 
 import fs from 'fs';
 import type { Context } from 'hono';
