@@ -6,7 +6,7 @@
 
 import fs from 'fs';
 import { loadServerConfig, getConfig } from '@/lib/config';
-import { FileKVStore, MemoryKVStore, ValkeyKVStore, PrefixedKVStore, type KVStore } from './kvs.js';
+import { FileKVStore, MemoryKVStore, PostgresKVStore, ValkeyKVStore, PrefixedKVStore, type KVStore } from './kvs.js';
 import { startServer, type ServerHandle } from './server.js';
 import { saveConnectionLog } from './eventLog.js';
 import { shutdownMcp } from './mcp.js';
@@ -84,6 +84,9 @@ async function initStorage(): Promise<KVStore> {
     case 'file':
       store = new FileKVStore(process.env.KVS_PATH);
       break;
+    case 'postgres':
+      store = new PostgresKVStore(process.env.KVS_URL);
+      break;
     case 'valkey':
       store = new ValkeyKVStore(process.env.KVS_URL);
       break;
@@ -91,7 +94,7 @@ async function initStorage(): Promise<KVStore> {
       store = new MemoryKVStore();
       break;
     default:
-      throw new Error(`Unknown KVS backend: "${backend}". Expected file, valkey, or memory.`);
+      throw new Error(`Unknown KVS backend: "${backend}". Expected file, postgres, valkey, or memory.`);
   }
 
   if (prefix) {

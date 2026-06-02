@@ -4,10 +4,11 @@
 // or interpret values — it's a byte store. Keys are scoped by the caller
 // (e.g. `blob:${safe_user_id}`, `field:${user}:${scope}:${name}`).
 //
-// Four backends:
-//   MemoryKVStore — dev/tests only, data lost on restart
-//   FileKVStore   — directory-based persistence, one file per key
-//   ValkeyKVStore — production (ElastiCache/Valkey/Redis/MemoryDB)
+// Five backends:
+//   MemoryKVStore   — dev/tests only, data lost on restart
+//   FileKVStore     — directory-based persistence, one file per key
+//   PostgresKVStore — production (RDS, Aurora Serverless, or local PostgreSQL)
+//   ValkeyKVStore   — production (ElastiCache/Valkey/Redis/MemoryDB)
 //   PrefixedKVStore — decorator that namespaces keys for multi-tenancy
 
 import fs from 'fs';
@@ -15,6 +16,7 @@ import fsp from 'fs/promises';
 import crypto from 'crypto';
 import path from 'path';
 import Redis, { type RedisOptions } from 'ioredis';
+import pg from 'pg';
 import type { KVSKey } from '@/lib/types/identity';
 
 // Re-export for callers that need the key type alongside the store.
@@ -144,6 +146,72 @@ export class PrefixedKVStore implements KVStore {
 
   async close() {
     return this.inner.close?.();
+  }
+}
+
+/**
+ * PostgreSQL-backed KVS. For production — Aurora Serverless, RDS, or local
+ * PostgreSQL. Uses a single table with (key TEXT PRIMARY KEY, value TEXT).
+ *
+ * Auto-creates the table on first connection if it doesn't exist.
+ *
+ * Usage:
+ *   new PostgresKVStore('postgresql://user:pass@host:5432/dbname')
+ *   new PostgresKVStore({ host: '...', database: 'lo', ssl: true })
+ */
+export class PostgresKVStore implements KVStore {
+  private pool: pg.Pool;
+  private table: string;
+  private ready: Promise<void>;
+
+  constructor(opts?: string | pg.PoolConfig, table = 'kvs') {
+    this.table = table;
+    this.pool = typeof opts === 'string'
+      ? new pg.Pool({ connectionString: opts })
+      : new pg.Pool(opts);
+    this.ready = this.ensureTable();
+  }
+
+  private async ensureTable() {
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS ${this.table} (
+        key   TEXT PRIMARY KEY,
+        value JSONB NOT NULL
+      )
+    `);
+  }
+
+  async get(key: KVSKey) {
+    await this.ready;
+    const { rows } = await this.pool.query(
+      `SELECT value FROM ${this.table} WHERE key = $1`,
+      [key],
+    );
+    if (!rows[0]) return null;
+    // JSONB round-trips through parsed JSON; serialize back to string
+    // to match the KVStore interface contract.
+    return JSON.stringify(rows[0].value);
+  }
+
+  async set(key: KVSKey, value: string) {
+    await this.ready;
+    await this.pool.query(
+      `INSERT INTO ${this.table} (key, value) VALUES ($1, $2::jsonb)
+       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+      [key, value],
+    );
+  }
+
+  async del(key: KVSKey) {
+    await this.ready;
+    await this.pool.query(
+      `DELETE FROM ${this.table} WHERE key = $1`,
+      [key],
+    );
+  }
+
+  async close() {
+    await this.pool.end();
   }
 }
 
