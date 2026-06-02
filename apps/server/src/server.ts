@@ -85,8 +85,8 @@ export async function startServer(
       const token = await createSessionToken(user);
       res.setHeader('Set-Cookie', buildSetCookie(token));
     }
-    // Stash user on request so Hono handlers can access it (e.g., LLM rate limiting).
-    // The Hono handler reads it from c.req.raw.__user.
+    // Stash user on the IncomingMessage so Hono handlers can access it via
+    // c.env.incoming.__user (c.req.raw is a Web API Request, not the Node object).
     (req as any).__user = user;
     await honoHandler(req, res);
   }
