@@ -24,7 +24,7 @@ import StatePanel from '@/components/common/StatePanel';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import { useFieldState } from '@/lib/state';
 import { editorFields } from '@/lib/state/editorFields';
-import { useBaselineProps } from '@/components/common/RenderOLX';
+import { useBaselineProps } from '@/lib/blocks/baselineRuntime';
 import { baseAttributes, inputAttributes, graderAttributes } from '@/lib/blocks/attributeSchemas';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import ExpandIcon from '@/components/common/ExpandIcon';
