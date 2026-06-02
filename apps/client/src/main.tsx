@@ -11,13 +11,38 @@ function showError(message: string) {
   document.getElementById('root')!.textContent = message;
 }
 
+/**
+ * Extract the content namespace from the current URL.
+ *
+ * In /preview/psych::intro_unit, the namespace is "psych" (before "::").
+ * Returns undefined if no namespace is found.
+ */
+function extractNamespace(pathname: string): string | undefined {
+  // /preview/<ns>::<id> pattern
+  const match = pathname.match(/\/preview\/([^/:]+)::/);
+  return match?.[1];
+}
+
 async function boot() {
-  const res = await fetch('/api/config');
+  const ns = extractNamespace(window.location.pathname);
+  const configUrl = ns ? `/api/config?ns=${encodeURIComponent(ns)}` : '/api/config';
+  const res = await fetch(configUrl);
   if (!res.ok) {
     showError(`Failed to load configuration (${res.status}). Is the server running?`);
     return;
   }
-  initConfig(await res.text(), ['client']);
+
+  let pmss: string, classes: string[], attributes: Record<string, string>;
+  const clone = res.clone();
+  try {
+    ({ pmss, classes, attributes } = await res.json());
+  } catch {
+    // Non-JSON response — fall back to raw PMSS text (during migration)
+    pmss = await clone.text();
+    classes = [];
+    attributes = {};
+  }
+  initConfig(pmss, ['client', ...classes], attributes);
 
   // Dynamic import: App.tsx has module-level getConfigBool() calls that
   // require initConfig() to have completed first.

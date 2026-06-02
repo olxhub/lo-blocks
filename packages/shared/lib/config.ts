@@ -36,10 +36,11 @@ let defaultContext: SelectorMatchContext = { classes: [] };
  *
  * @param pmssSource - Raw PMSS text (e.g. contents of system.pmss)
  * @param classes - Class context for resolution (e.g. ['client'], ['static', 'production'])
+ * @param attributes - Optional key-value attributes for [key=value] selector matching
  */
-export function initConfig(pmssSource: string, classes: string[]) {
+export function initConfig(pmssSource: string, classes: string[], attributes?: Record<string, string>) {
   rules = PMSSParserAdapter.parse(pmssSource);
-  defaultContext = { classes };
+  defaultContext = { classes, attributes };
 }
 
 /**

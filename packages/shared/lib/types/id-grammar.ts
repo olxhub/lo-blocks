@@ -489,9 +489,10 @@ export function parseAnyStateRef(s: string): StateRef {
  */
 export function stateKeyFromFilename(filename: string, ns: ContentNamespace): StateKey {
   const { name } = parse(filename);
-  // Dots become camelCase boundaries: "Chat.demo" → "chatDemo"
-  // (dots are field separators in state keys, so they can't appear in IDs)
-  const parts = name.split('.');
+  // Dots and hyphens become camelCase boundaries:
+  //   "Chat.demo" → "chatDemo", "linear-dialogue-demo" → "linearDialogueDemo"
+  // (dots are field separators and hyphens are invalid in state keys)
+  const parts = name.split(/[.\-]/);
   const camel = parts[0].charAt(0).toLowerCase() + parts[0].slice(1)
     + parts.slice(1).map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('');
   return parseStateKey(`${ns}/${camel}`);
