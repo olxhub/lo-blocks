@@ -4,7 +4,7 @@
 // dynamic content DAG.
 
 import * as state from '@/lib/state';
-import { parseAnyStateRef, stateKeyForGlobalRef, scopedStateKeyForBlock } from '../types/id-grammar';
+import { parseAnyStateRef, stateKeyForGlobalRef, scopedStateKeyForBlock, PLACEHOLDER_NS } from '../types/id-grammar';
 import type { OlxDomNode, OlxDomSelector, ContentNamespace, DefinitionRef, StateKey, RuntimeProps } from '@/lib/types';
 //
 // The OLX DOM is Learning Observer's internal representation of educational content,
@@ -123,7 +123,7 @@ function normalizeTargetIds(targets, ns?: ContentNamespace): StateKey[] | false 
   // Target attrs are validated as StateRef by Zod. Parse as StateRef (accepts
   // both authored and system-generated refs, with or without scope markers),
   // then resolve globally to a StateKey.
-  const toStateKey = (s: string): StateKey => stateKeyForGlobalRef(parseAnyStateRef(s), ns);
+  const toStateKey = (s: string): StateKey => stateKeyForGlobalRef(parseAnyStateRef(s), ns ?? PLACEHOLDER_NS);
   if (Array.isArray(targets)) {
     return targets.map(t => toStateKey(String(t)));
   }
