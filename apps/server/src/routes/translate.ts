@@ -22,7 +22,7 @@ import {
 import { resolveLLMConfigWithFallback } from '@/lib/llm/profiles';
 import { translateBlock } from '@/lib/translate/orchestrate';
 import type { ContentVariant } from '@/lib/types';
-import { definitionKeyForRef, parseDefinitionRef } from '@/lib/types/id-grammar';
+import { definitionKeyForRef, parseDefinitionRef, PLACEHOLDER_NS } from '@/lib/types/id-grammar';
 import { toContentVariant } from '@/lib/types/i18n';
 
 const contentDir = process.env.OLX_CONTENT_DIR || './content';
@@ -56,14 +56,14 @@ export async function handleTranslate(c: Context): Promise<Response> {
       );
     }
 
-    const blockId = definitionKeyForRef(parseDefinitionRef(body.blockId));
+    const blockId = definitionKeyForRef(parseDefinitionRef(body.blockId), PLACEHOLDER_NS);
 
     const llmConfig = resolveLLMConfigWithFallback('translation');
     if (llmConfig.provider === 'stub') {
-      return c.json({
-        ok: false,
-        error: 'LLM is in stub mode — no real translation available',
-      });
+      return c.json(
+        { ok: false, error: 'LLM is in stub mode — no real translation available' },
+        503,
+      );
     }
 
     await syncContentFromStorage(provider);
@@ -91,7 +91,7 @@ export async function handleTranslate(c: Context): Promise<Response> {
     }
 
     const promise = translateBlock({
-      provider, contentDir, logsDir,
+      provider, logsDir,
       blockId, sourceFileUri, targetLocale, sourceLocale,
     });
     const timedPromise = Promise.race([

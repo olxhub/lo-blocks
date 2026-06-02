@@ -12,7 +12,6 @@
 // for output path convention.
 
 import path from 'path';
-import fs from 'fs/promises';
 import {
   syncContentFromStorage,
   getSourceFile,
@@ -129,7 +128,6 @@ async function checkExistingTranslation(
 
 export interface TranslateBlockOptions {
   provider: StorageProvider;
-  contentDir: string;
   logsDir: string;
   blockId: DefinitionKey;
   sourceFileUri: LofsRef;
@@ -145,7 +143,7 @@ export interface TranslateBlockOptions {
  * Returns an idMap covering the source + translated blocks.
  */
 export async function translateBlock(opts: TranslateBlockOptions): Promise<TranslationResult> {
-  const { provider, contentDir, logsDir, blockId, sourceFileUri, targetLocale, sourceLocale } = opts;
+  const { provider, logsDir, blockId, sourceFileUri, targetLocale, sourceLocale } = opts;
 
   const { fileUri: effectiveFileUri, locale: effectiveSourceLocale } =
     resolveOriginalSource(provider, sourceFileUri, blockId, sourceLocale);
@@ -183,9 +181,7 @@ export async function translateBlock(opts: TranslateBlockOptions): Promise<Trans
     return { ok: false, error: result.error };
   }
 
-  // Write and sync
-  const fullTargetPath = path.resolve(contentDir, targetRelPath);
-  await fs.mkdir(path.dirname(fullTargetPath), { recursive: true });
+  // Write and sync (provider.write handles directory creation)
   try {
     await provider.write(targetRelPath, result.content);
   } catch (err: any) {

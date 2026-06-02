@@ -19,7 +19,6 @@ import fs from 'fs';
 import path from 'path';
 import { loadServerConfig } from '../lib/config';
 import { translateContent, detectFileType } from '../lib/translate';
-import { computeTranslationPath } from '../lib/translate/orchestrate';
 import { extractLeadingComments, parseMetadataFromComments } from '../lib/translate/metadata';
 
 // --- PMSS bootstrap (needed for LLM provider resolution) ---
@@ -131,11 +130,11 @@ async function translateFile(filePath: string): Promise<{ successes: number; fai
       continue;
     }
 
-    // Compute output path using the shared convention
-    const relPath = path.basename(absPath) as any;  // just the filename for path computation
-    const translatedRel = computeTranslationPath(relPath, targetLocale as any);
+    // Compute output path: <basename>/<locale>.auto.<ext> convention
+    const baseName = path.basename(absPath, path.extname(absPath));
+    const ext = path.extname(absPath);
     const baseDir = outDir || path.dirname(absPath);
-    const outputPath = path.join(baseDir, translatedRel);
+    const outputPath = path.join(baseDir, baseName, `${targetLocale}.auto${ext}`);
 
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
     fs.writeFileSync(outputPath, result.content);

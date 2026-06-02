@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     }
 
     const promise = translateBlock({
-      provider, contentDir, logsDir,
+      provider, logsDir,
       blockId, sourceFileUri, targetLocale, sourceLocale,
     });
     const timedPromise = Promise.race([

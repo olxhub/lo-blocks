@@ -505,6 +505,7 @@ export class FileStorageProvider implements StorageProvider {
       }
     }
 
+    await fs.mkdir(path.dirname(full), { recursive: true });
     await fs.writeFile(full, content, 'utf-8');
   }
 
