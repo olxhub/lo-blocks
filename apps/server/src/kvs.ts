@@ -12,6 +12,7 @@
 
 import fs from 'fs';
 import fsp from 'fs/promises';
+import crypto from 'crypto';
 import path from 'path';
 import Redis, { type RedisOptions } from 'ioredis';
 import type { KVSKey } from '@/lib/types/identity';
@@ -60,11 +61,10 @@ export class MemoryKVStore implements KVStore {
  *   rate:guest-User42:rpm       → <root>/rate/guest-User42/rpm
  *   field:guest-User42:comp:cnt → <root>/field/guest-User42/comp/cnt
  *
- * Writes are atomic (tmp + rename). Each key is independent — no race
- * conditions between concurrent writes to different keys.
- *
- * On construction, auto-migrates from the legacy single-file format
- * (data/kvs.json) if found.
+ * Individual writes are atomic (tmp + rename), but concurrent writes to
+ * the SAME key have non-deterministic ordering — last rename wins, which
+ * may not match call order. Fine for local dev; use ValkeyKVStore in
+ * production for atomic ops and deterministic ordering.
  *
  * Usage:
  *   new FileKVStore()               // default: ./data/kvs
@@ -76,7 +76,6 @@ export class FileKVStore implements KVStore {
   constructor(root = './data/kvs') {
     this.root = path.resolve(root);
     fs.mkdirSync(this.root, { recursive: true });
-    this.migrateFromLegacy();
   }
 
   /** Convert a KVS key to a file path under the root directory. */
@@ -99,7 +98,7 @@ export class FileKVStore implements KVStore {
   async set(key: KVSKey, value: string) {
     const filePath = this.keyToPath(key);
     await fsp.mkdir(path.dirname(filePath), { recursive: true });
-    const tmp = filePath + '.tmp';
+    const tmp = filePath + `.tmp.${crypto.randomBytes(6).toString('hex')}`;
     await fsp.writeFile(tmp, value);
     await fsp.rename(tmp, filePath);
   }
@@ -110,47 +109,6 @@ export class FileKVStore implements KVStore {
     } catch {
       // Key didn't exist — that's fine.
     }
-  }
-
-  /**
-   * Auto-migrate from the legacy single-JSON-file format.
-   *
-   * If data/kvs.json exists next to the store root, read it, write each
-   * key-value pair into the directory structure, and rename the old file
-   * so migration doesn't run again.
-   */
-  private migrateFromLegacy() {
-    const legacyPath = path.join(path.dirname(this.root), 'kvs.json');
-    let raw: string;
-    try {
-      raw = fs.readFileSync(legacyPath, 'utf-8');
-    } catch {
-      return; // No legacy file — nothing to migrate.
-    }
-
-    let data: Record<string, string>;
-    try {
-      data = JSON.parse(raw);
-    } catch (err) {
-      console.error(`[KVS] Legacy kvs.json is corrupt, skipping migration: ${err}`);
-      return;
-    }
-
-    const keys = Object.keys(data);
-    if (keys.length === 0) {
-      // Empty store — just remove the legacy file.
-      fs.renameSync(legacyPath, legacyPath + '.migrated');
-      return;
-    }
-
-    console.log(`[KVS] Migrating ${keys.length} key(s) from legacy kvs.json...`);
-    for (const key of keys) {
-      const filePath = this.keyToPath(asKVSKey(key));
-      fs.mkdirSync(path.dirname(filePath), { recursive: true });
-      fs.writeFileSync(filePath, data[key]);
-    }
-    fs.renameSync(legacyPath, legacyPath + '.migrated');
-    console.log(`[KVS] Migration complete. Old file renamed to kvs.json.migrated`);
   }
 }
 
