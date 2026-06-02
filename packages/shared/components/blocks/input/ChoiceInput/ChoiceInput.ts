@@ -33,7 +33,7 @@ function getChoices(props: RuntimeProps, state, id) {
   if (isKidArray(props.kids)) {
     defIds = props.kids
       .filter((k): k is Extract<KidEntry, { type: 'block' }> => k.type === 'block')
-      .map(k => definitionKeyForRef(k.id))
+      .map(k => definitionKeyForRef(k.id, props.runtime.ns))
       .filter(cid => {
         const inst = getBlockByOLXId(props, cid);
         return inst && (inst.tag === 'Key' || inst.tag === 'Distractor');

@@ -97,7 +97,7 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   const scopedGraderRef = parseDefinitionRef(`${problemId}_grader`, 'MasteryBank grader');
 
   // Render problem - useBlock handles loading state with Spinner
-  const { block: renderedProblem, error } = useBlock(scopedProps, stateKeyForGlobalRef(problemId));
+  const { block: renderedProblem, error } = useBlock(scopedProps, stateKeyForGlobalRef(problemId, props.runtime.ns));
 
   // TODO: Replace this 7-line pattern with a useCorrectness(props, graderRef) one-liner.
   // The hook would encapsulate commonFields.correct, scopedStateKeyForBlock, and useFieldSelector.

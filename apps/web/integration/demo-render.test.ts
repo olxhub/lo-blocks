@@ -21,6 +21,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { injectPreviewContent } from '@/lib/template/previewTemplate';
 import { getTextDirection } from '@/lib/i18n/getTextDirection';
+import { mockRuntime } from '@/lib/test-utils';
 
 if (typeof window !== 'undefined' && !window.matchMedia) {
   // NOTE: Temporary compatibility shim for jsdom in CI.
@@ -168,15 +169,12 @@ describe('Demo OLX files render without errors', () => {
 
         // Render the component
         const localeCode = 'en-Latn-US';
-        const runtime = {
+        const runtime = mockRuntime({
           blockRegistry: BLOCK_REGISTRY,
           store: reduxStore,
-          logEvent: () => { }, // no-op for tests
-          sideEffectFree: false,
           olxJsonSources: ['content'],
-          idPrefix: '' as any,
           locale: { code: localeCode, dir: getTextDirection(localeCode) },
-        };
+        });
         const element = render({
           node: { type: 'block', id: root },
           nodeInfo: makeRootNode(runtime),

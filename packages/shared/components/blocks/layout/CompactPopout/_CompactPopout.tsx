@@ -57,7 +57,7 @@ export default function _CompactPopout(props: RuntimeProps) {
     const valueField = fieldByName('value');
     if (!valueField) return;
     updateField(props, valueField, targetContent, {
-      stateKey: stateKeyForGlobalRef(targetId),
+      stateKey: stateKeyForGlobalRef(targetId, props.runtime.ns),
     });
   }, [props, targetId, targetContent]);
 

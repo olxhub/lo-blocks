@@ -45,8 +45,6 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef, useTransition } from 'react';
-import { useStore } from 'react-redux';
-import * as lo_event from 'lo_event';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
@@ -56,92 +54,13 @@ import { InMemoryStorageProvider, StackedStorageProvider, toMemoryRef } from '@/
 import { isOLXFile } from '@/lib/util/fileTypes';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
 import { useBlock } from '@/lib/blocks/useRenderedBlock';
-import { useDebugSettings } from '@/lib/state/debugSettings';
-import { settings } from '@/lib/state/settings';
-import { useSetting } from '@/lib/state/settingsAccess';
-import { getTextDirection, getBrowserLocale } from '@/lib/i18n/getTextDirection';
 import { registerAdvanceRoot, unregisterAdvanceRoot } from '@/lib/advance';
-import type { BaselineProps, IdPrefix, StateKey, LoBlockRuntimeContext, OlxDomNode, UserLocale, OLXLoadingError } from '@/lib/types';
+import { useBaselineRuntime } from '@/lib/blocks/baselineRuntime';
+import type { ContentNamespace, IdPrefix, StateKey, LoBlockRuntimeContext, OlxDomNode, OLXLoadingError } from '@/lib/types';
+import { PLACEHOLDER_NS } from '@/lib/types/id-grammar';
 import { toLofsRef } from '@/lib/types/address';
 
-// Stable no-op for replay mode - avoids creating new function on each render
-const noopLogEvent = () => { };
 
-// ============================================================================
-// HELPER HOOKS AND FUNCTIONS
-// ============================================================================
-
-/**
- * Build baseline runtime context: logEvent, locale, store, blockRegistry.
- * Returns the core runtime bundle that's available everywhere in the system.
- *
- * This is returned as a bare LoBlockRuntimeContext for functions that work
- * directly with runtime properties. Most consumers should use useBaselineProps()
- * to get BaselineProps, which wraps this in the standard prop structure.
- *
- * TODO: Move to lib/blocks/baselineProps.ts once dependencies stabilize
- */
-export function useBaselineRuntime(): LoBlockRuntimeContext {
-  const store = useStore();
-  const { replayMode } = useDebugSettings();
-  const logEvent = replayMode ? noopLogEvent : lo_event.logEvent;
-  const sideEffectFree = replayMode;
-
-  // Create minimal runtime structure for useSetting call
-  // Note: locale will be populated from Redux or browser below
-  const runtimeForSettings: LoBlockRuntimeContext = {
-    blockRegistry: BLOCK_REGISTRY,
-    store,
-    logEvent,
-    sideEffectFree,
-    locale: { code: 'eo' as UserLocale, dir: 'ltr' },  // Esperanto placeholder - overwritten from Redux/browser below
-    cast: {},
-  };
-
-  // Wrap in BaselineProps structure for useSetting
-  const baselineProps: BaselineProps = { runtime: runtimeForSettings };
-  const [reduxLocale, setReduxLocale] = useSetting(baselineProps, settings.locale);
-
-  // Initialize locale from browser after hydration.
-  // Must be in useEffect (not during render) to avoid SSR/client mismatch:
-  // server has no navigator.language, so both sides see no locale initially,
-  // then client sets browser locale after hydration.
-  useEffect(() => {
-    if (!reduxLocale) {
-      const code = getBrowserLocale();
-      const dir = getTextDirection(code);
-      setReduxLocale({ code, dir });
-    }
-  }, [reduxLocale, setReduxLocale]);
-
-  // Before hydration, locale is empty. Pages should gate on locale being
-  // ready (via useLocaleAttributes().lang) before rendering localized content.
-  const locale = reduxLocale || { code: '' as UserLocale, dir: 'ltr' as const };
-
-  return {
-    blockRegistry: BLOCK_REGISTRY,
-    store,
-    logEvent,
-    sideEffectFree,
-    locale,
-    cast: {},
-  };
-}
-
-/**
- * Get baseline props for global/system context.
- *
- * Returns BaselineProps which wraps LoBlockRuntimeContext in the standard prop
- * structure. This is what most system-level functions expect (useSetting,
- * LanguageSwitcher, etc.).
- *
- * Prefer this over useBaselineRuntime() unless you specifically need the
- * bare runtime context.
- */
-export function useBaselineProps(): BaselineProps {
-  const runtime = useBaselineRuntime();
-  return { runtime };
-}
 
 /**
  * Build the provider stack for src="" resolution during parsing.
@@ -191,7 +110,8 @@ function useParseContent(
   source?: string,
   logEvent?: any,
   sideEffectFree?: boolean,
-  onError?: (err: any) => void
+  onError?: (err: any) => void,
+  ns?: ContentNamespace
 ) {
   const [parsed, setParsed] = useState<any>(null);
   const [fatalError, setFatalError] = useState<string | null>(null);     // content can't render
@@ -222,7 +142,8 @@ function useParseContent(
           const result = await parseOLX(
             inline,
             [toLofsRef(provenance || 'inline://')],
-            effectiveProvider
+            effectiveProvider,
+            ns
           );
           if (!cancelled) {
             // Dispatch to Redux for reactive block access (skip during replay - viewing historical state)
@@ -255,7 +176,8 @@ function useParseContent(
             const result = await parseOLX(
               content,
               [provenance ? toLofsRef(provenance) : toMemoryRef(filename)],
-              effectiveProvider
+              effectiveProvider,
+              ns
             );
 
             mergedIdMap = { ...mergedIdMap, ...result.idMap };
@@ -293,7 +215,7 @@ function useParseContent(
 
     doParse();
     return () => { cancelled = true; };
-  }, [inline, files, effectiveProvider, provenance, onError, startTransition, source, sideEffectFree, logEvent]);
+  }, [inline, files, effectiveProvider, provenance, onError, startTransition, source, sideEffectFree, logEvent, ns]);
 
   return { parsed, fatalError, warnings, isPending };
 }
@@ -331,6 +253,8 @@ function updatePropsLogEvent(props: any, logEvent: any) {
  *   4. baseIdMap - pre-parsed content, used as fallback
  */
 interface RenderOLXProps {
+  /** Content namespace — identifies the logical content source (e.g. 'docs', 'ee101'). */
+  ns?: ContentNamespace;
   /** The ID to render from the merged idMap. StateKey because it names a
    *  runtime instance (which may include scope markers for nested contexts). */
   id: StateKey;
@@ -376,6 +300,7 @@ interface RenderOLXProps {
 }
 
 export default function RenderOLX({
+  ns,
   id,
   inline,
   files,
@@ -411,7 +336,8 @@ export default function RenderOLX({
     source,
     runtimeContext.logEvent,
     runtimeContext.sideEffectFree,
-    onError
+    onError,
+    ns
   );
 
   // Merge parsed content into runtime context
@@ -433,6 +359,7 @@ export default function RenderOLX({
     sideEffectFree: renderProps.sideEffectFree,
     olxJsonSources: [source],
     idPrefix: '' as IdPrefix,
+    ns: ns ?? PLACEHOLDER_NS,
     locale: renderProps.locale,
     cast: {},
   };

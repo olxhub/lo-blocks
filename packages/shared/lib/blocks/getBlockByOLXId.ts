@@ -14,11 +14,11 @@
 //
 import { definitionKeyForRef } from '../types/id-grammar';
 import { selectBlock } from '@/lib/state/olxjson';
-import type { OlxJson, DefinitionRef, UserLocale } from '@/lib/types';
+import type { OlxJson, ContentNamespace, DefinitionRef, UserLocale } from '@/lib/types';
 import type { Store } from 'redux';
 
 interface PropsWithStore {
-  runtime: { store: Store; olxJsonSources?: string[]; locale?: { code: UserLocale } };
+  runtime: { store: Store; olxJsonSources?: string[]; ns: ContentNamespace; locale?: { code: UserLocale } };
 }
 
 /**
@@ -41,7 +41,7 @@ export function getBlockByOLXId(props: PropsWithStore, id: DefinitionRef | null)
     return undefined;
   }
 
-  const key = definitionKeyForRef(id);
+  const key = definitionKeyForRef(id, props.runtime.ns);
   const store = props.runtime.store;
   const sources = props.runtime.olxJsonSources ?? ['content'];
   const locale = props.runtime.locale?.code;

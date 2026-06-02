@@ -61,7 +61,7 @@ export default function _Carousel(props: RuntimeProps) {
   }
 
   const currentRef = displayOrder[position] as StateRef;
-  const { block: renderedItem, olxJson } = useBlock(props, stateKeyForGlobalRef(currentRef));
+  const { block: renderedItem, olxJson } = useBlock(props, stateKeyForGlobalRef(currentRef, props.runtime.ns));
 
   // 2. No items — early exit
   if (itemIds.length === 0) {

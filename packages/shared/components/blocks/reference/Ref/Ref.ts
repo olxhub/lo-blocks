@@ -82,7 +82,7 @@ const Ref = core({
     // Qualify the target ref into a proper StateKey for Redux lookup.
     // Ref targets are resolved globally (not scoped by idPrefix).
     const targetRef = parseAnyStateRef(targetId);
-    const targetStateKey = stateKeyForGlobalRef(targetRef);
+    const targetStateKey = stateKeyForGlobalRef(targetRef, props.runtime.ns);
     const targetDefinitionKey = leafDefinitionKeyFromStateKey(targetStateKey);
 
     // Check if target exists in Redux — distinguish loading from missing

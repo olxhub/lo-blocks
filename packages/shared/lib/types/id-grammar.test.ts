@@ -606,22 +606,22 @@ describe("scopedStateKeyForBlock", () => {
 
 describe("stateKeyForGlobalRef", () => {
   it("bare ref", () => {
-    expect(String(stateKeyForGlobalRef(asStateRef('answer'))))
+    expect(String(stateKeyForGlobalRef(asStateRef('answer'), PLACEHOLDER_NS)))
       .toBe("CONTENT/answer");
   });
 
   it("scoped ref", () => {
-    expect(String(stateKeyForGlobalRef(asStateRef('problems:#0:answer'))))
+    expect(String(stateKeyForGlobalRef(asStateRef('problems:#0:answer'), PLACEHOLDER_NS)))
       .toBe("CONTENT/problems:#0:answer");
   });
 
   it("already-namespaced ref passes through", () => {
-    expect(String(stateKeyForGlobalRef(asStateRef('calculus/answer'))))
+    expect(String(stateKeyForGlobalRef(asStateRef('calculus/answer'), PLACEHOLDER_NS)))
       .toBe("calculus/answer");
   });
 
   it("custom namespace", () => {
-    const ns = PLACEHOLDER_NS;  // uses default
+    const ns = PLACEHOLDER_NS;
     expect(String(stateKeyForGlobalRef(asStateRef('answer'), ns)))
       .toBe("CONTENT/answer");
   });
@@ -629,11 +629,11 @@ describe("stateKeyForGlobalRef", () => {
 
 describe("definitionKeyForRef", () => {
   it("bare ref", () => {
-    expect(String(definitionKeyForRef(asDefinitionRef('answer')))).toBe("CONTENT/answer");
+    expect(String(definitionKeyForRef(asDefinitionRef('answer'), PLACEHOLDER_NS))).toBe("CONTENT/answer");
   });
 
   it("already-namespaced passes through", () => {
-    expect(String(definitionKeyForRef(asDefinitionRef('calculus/hw1')))).toBe("calculus/hw1");
+    expect(String(definitionKeyForRef(asDefinitionRef('calculus/hw1'), PLACEHOLDER_NS))).toBe("calculus/hw1");
   });
 });
 

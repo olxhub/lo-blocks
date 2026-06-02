@@ -15,7 +15,7 @@ export default function _StateViewer(props: RuntimeProps) {
   // Target can come from attribute or children text (like Ref)
   const targetId = target || (typeof kids === 'string' ? kids : String(kids)).trim();
   const targetRef = targetId ? parseAnyStateRef(targetId) : null;
-  const targetStateKey = targetRef ? stateKeyForGlobalRef(targetRef) : scopedStateKeyForBlock(props);
+  const targetStateKey = targetRef ? stateKeyForGlobalRef(targetRef, props.runtime.ns) : scopedStateKeyForBlock(props);
 
   // Hooks must be called unconditionally, so call before any early returns
   const { olxJson: targetBlock } = useOlxJson(props, targetId || null);

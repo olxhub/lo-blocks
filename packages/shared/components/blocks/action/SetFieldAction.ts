@@ -22,7 +22,7 @@ async function setFieldAction({ targetInstance, props }) {
   if (!target) { console.warn('SetFieldAction: No target specified'); return; }
   if (!fieldName) { console.warn('SetFieldAction: No field specified'); return; }
 
-  const targetStateKey = stateKeyForGlobalRef(target);
+  const targetStateKey = stateKeyForGlobalRef(target, props.runtime.ns);
   const field = state.componentFieldByStateKey(props, targetStateKey, fieldName);
   state.updateField(props, field, value, { stateKey: targetStateKey });
 }

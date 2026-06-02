@@ -31,7 +31,7 @@ function resolveTargetIds(props, targetIds) {
   targetIds.forEach((targetId) => {
     // Authored target ref → StateKey (namespace-qualify but do NOT apply idPrefix)
     const ref = parseAnyStateRef(targetId);
-    const targetStateKey = stateKeyForGlobalRef(ref);
+    const targetStateKey = stateKeyForGlobalRef(ref, props.runtime.ns);
     const targetNodeInfo = getDomNodeByStateKey(props, targetStateKey);
 
     // inferRelatedNodes returns StateKey[]

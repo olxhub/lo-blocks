@@ -1,11 +1,12 @@
 // Shared test utilities for the lo-blocks test suite.
 //
 // Import in test files:
-//   import { getOlxJson, TEST_NS } from '@/lib/test-utils';
+//   import { getOlxJson, TEST_NS, mockRuntime } from '@/lib/test-utils';
 
 import { variantMapKeys } from './types/i18n';
-import type { IdMap, OlxJson, DefinitionKey } from './types';
+import type { IdMap, OlxJson, DefinitionKey, LoBlockRuntimeContext } from './types';
 import { PLACEHOLDER_NS, qualifyDefinitionRef, parseDefinitionRef } from './types/id-grammar';
+import { DEFAULT_RUNTIME } from './blocks/baselineRuntime';
 
 // Re-export the placeholder namespace for use in test assertions.
 export { PLACEHOLDER_NS as TEST_NS } from './types/id-grammar';
@@ -33,3 +34,16 @@ export const getOlxJson = (idMap: IdMap, id: string): OlxJson | undefined => {
   const variants = variantMapKeys(variantMap);
   return variants.length > 0 ? variantMap[variants[0]] : undefined;
 };
+
+/**
+ * Build a LoBlockRuntimeContext for tests.
+ *
+ * Spreads DEFAULT_RUNTIME (the single source of truth for shape defaults)
+ * with sideEffectFree: true, then applies any overrides.
+ *
+ *   mockRuntime()                          // sensible defaults
+ *   mockRuntime({ ns: myTestNamespace })   // override namespace
+ */
+export function mockRuntime(overrides?: Partial<LoBlockRuntimeContext>): LoBlockRuntimeContext {
+  return { ...DEFAULT_RUNTIME, sideEffectFree: true, ...overrides };
+}

@@ -1,13 +1,13 @@
 // src/lib/blocks/olxdom.test.js
 import { getKidsBFS, getKidsDFS, getParents, inferRelatedNodes, getAllNodes, __testables } from './olxdom';
-import { TEST_NS, testKey } from '../test-utils';
+import { TEST_NS, testKey, mockRuntime as createMockRuntime } from '../test-utils';
 
 const { normalizeTargetIds, normalizeInfer} = __testables;
 
 // Minimal mock node tree
 // Note: In production, `blueprint` is on nodeInfo, not on nodeInfo.olxJson.
 // The `olxJson` property contains the parsed OLX (id, tag, attributes, kids).
-const mockRuntime = {} as any;  // Tests don't exercise runtime
+const mockRuntime = createMockRuntime();
 
 const tree = {
   olxJson: { id: 'A' },
@@ -128,7 +128,7 @@ describe('inferRelatedNodes', () => {
 
   it("returns all parents and kids (default infer=true)", () => {
     const result = inferRelatedNodes(
-      { nodeInfo: tree },
+      { nodeInfo: tree, runtime: mockRuntime },
       { selector: n => true, infer: true }
     );
     // Expect parents: none (root), kids: B, C, D (all descendants)
@@ -137,7 +137,7 @@ describe('inferRelatedNodes', () => {
 
   it("returns only kids when infer='kids'", () => {
     const result = inferRelatedNodes(
-      { nodeInfo: tree },
+      { nodeInfo: tree, runtime: mockRuntime },
       { selector: n => true, infer: 'kids' }
     );
     expect(result.sort()).toEqual(['B', 'C', 'D']);
@@ -145,7 +145,7 @@ describe('inferRelatedNodes', () => {
 
   it("returns only parents when infer='parents'", () => {
     const result = inferRelatedNodes(
-      { nodeInfo: tree.renderedKids.B.renderedKids.D },
+      { nodeInfo: tree.renderedKids.B.renderedKids.D, runtime: mockRuntime },
       { selector: n => true, infer: 'parents' }
     );
     // D's parents: B, A
@@ -154,7 +154,7 @@ describe('inferRelatedNodes', () => {
 
   it("returns empty array when infer is false", () => {
     const result = inferRelatedNodes(
-      { nodeInfo: tree },
+      { nodeInfo: tree, runtime: mockRuntime },
       { selector: n => true, infer: false }
     );
     expect(result).toEqual([]);
@@ -163,7 +163,7 @@ describe('inferRelatedNodes', () => {
   it("filters by selector", () => {
     // Only nodes with isAction: true (blueprint is on nodeInfo, not nodeInfo.node)
     const result = inferRelatedNodes(
-      { nodeInfo: tree },
+      { nodeInfo: tree, runtime: mockRuntime },
       { selector: n => n.loBlock.isAction, infer: true }
     );
     expect(result.sort()).toEqual(['C', 'D']);
@@ -172,7 +172,7 @@ describe('inferRelatedNodes', () => {
   it("supports targets as comma-string", () => {
     // When targets is set, inferModes defaults to []
     const result = inferRelatedNodes(
-      { nodeInfo: tree },
+      { nodeInfo: tree, runtime: mockRuntime },
       { selector: n => true, targets: "B, C" }
     );
     expect(result.sort()).toEqual([testKey('B'), testKey('C')]);
@@ -180,7 +180,7 @@ describe('inferRelatedNodes', () => {
 
   it("throws if no node or selector", () => {
     expect(() => inferRelatedNodes({}, { selector: n => true })).toThrow();
-    expect(() => inferRelatedNodes({ nodeInfo: tree }, {})).toThrow();
+    expect(() => inferRelatedNodes({ nodeInfo: tree, runtime: mockRuntime }, {})).toThrow();
   });
 });
 

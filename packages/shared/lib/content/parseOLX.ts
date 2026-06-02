@@ -23,7 +23,7 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { transformTagName } from '@/lib/content/xmlTransforms';
 
 import * as parsers from '@/lib/content/parsers';
-import { LofsDependencies, IdMap, OLXLoadingError, DefinitionRef, DefinitionKey, JSONValue } from '@/lib/types';
+import { LofsDependencies, IdMap, OLXLoadingError, DefinitionRef, DefinitionKey, JSONValue, ContentNamespace } from '@/lib/types';
 import { PLACEHOLDER_NS, qualifyDefinitionRef, parseDefinitionRef, asDefinitionRef, makeSystemDefinitionRef, stateKeyForGlobalRef, parseAnyDefinitionRef, parseAnyStateRef, allDefinitionKeysFromStateKey } from '@/lib/types/id-grammar';
 import type { LofsRef } from '@/lib/types/address';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
@@ -419,7 +419,8 @@ function extractSiblingMetadata(
 export async function parseOLX(
   xml,
   inputProvenance: LofsRef[],
-  provider?: import('../lofs').StorageProvider
+  provider?: import('../lofs').StorageProvider,
+  ns: ContentNamespace = PLACEHOLDER_NS
 ) {
   const idMap: IdMap = {};
 
@@ -548,7 +549,7 @@ export async function parseOLX(
       }
 
       const { ref, ...overrides } = attributes;
-      const qualifiedRef = qualifyDefinitionRef(parseDefinitionRef(ref), PLACEHOLDER_NS);
+      const qualifiedRef = qualifyDefinitionRef(parseDefinitionRef(ref), ns);
       return { type: 'block', id: qualifiedRef, overrides };
     }
 
@@ -573,7 +574,7 @@ export async function parseOLX(
     } catch (idError: any) {
       // Invalid authored ID — produce a recoverable ErrorNode instead of aborting the file.
       bareRef = createId(node);
-      const id: DefinitionKey = qualifyDefinitionRef(bareRef, PLACEHOLDER_NS);
+      const id: DefinitionKey = qualifyDefinitionRef(bareRef, ns);
       const errorObj = {
         type: 'attribute_validation' as const,
         title: `Invalid id on <${tag}> in ${provenance.join(', ')}`,
@@ -595,7 +596,7 @@ export async function parseOLX(
       parsedIds.push(id);
       return { type: 'block', id };
     }
-    const id: DefinitionKey = qualifyDefinitionRef(bareRef, PLACEHOLDER_NS);
+    const id: DefinitionKey = qualifyDefinitionRef(bareRef, ns);
 
     const Component = BLOCK_REGISTRY[tag];
 
@@ -686,6 +687,7 @@ export async function parseOLX(
       attributes: parsedAttributes,
       provenance,
       provider,
+      ns,
       parseNode: parseNodeWithLang,
       assignSystemId,
       metadata,  // Pass metadata to parser so it can include in entry
@@ -694,7 +696,7 @@ export async function parseOLX(
         // id (a DefinitionKey, which is a DefinitionRef subtype) or a child
         // ref built with joinDefinitionRef.  Bare refs get namespace-qualified
         // here; already-qualified keys pass through unchanged.
-        const storeId = qualifyDefinitionRef(refId, PLACEHOLDER_NS);
+        const storeId = qualifyDefinitionRef(refId, ns);
 
         // Support both direct entry and updater function patterns:
         // - storeEntry(id, entry) - store/overwrite
@@ -717,7 +719,7 @@ export async function parseOLX(
         // Parsers set entry.id from their own id (DefinitionKey) or from
         // joinDefinitionRef (DefinitionRef) — both are valid DefinitionRef.
         if (entry && typeof entry === 'object' && 'id' in entry && typeof entry.id === 'string') {
-          entry.id = qualifyDefinitionRef(asDefinitionRef(entry.id), PLACEHOLDER_NS);
+          entry.id = qualifyDefinitionRef(asDefinitionRef(entry.id), ns);
         }
 
         // Ensure every entry has its resolved lang — it's used as the variant
@@ -897,7 +899,7 @@ export async function parseOLX(
         : typeof target === 'string' ? target.split(',').map(s => s.trim()) : [];
       inputIds = rawIds.flatMap(s => {
         const ref = parseAnyStateRef(s);
-        const stateKey = stateKeyForGlobalRef(ref);
+        const stateKey = stateKeyForGlobalRef(ref, ns);
         return allDefinitionKeysFromStateKey(stateKey);
       });
     } else if (Array.isArray(entry.kids)) {
