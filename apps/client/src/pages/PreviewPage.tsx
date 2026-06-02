@@ -8,13 +8,14 @@ import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
 import Notice from '@/components/common/Notice';
 import { DisplayError } from '@/lib/util/debug';
-import { useFieldState, system, commonFields } from '@/lib/state';
+import { useFieldState, system, commonFields, useReduxStoreLoaded } from '@/lib/state';
 import { useContentLoader } from '@/lib/content/useContentLoader';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import type { StateKey } from '@/lib/types';
 
 export default function PreviewPage({ id }: { id: StateKey }) {
+  const storeLoaded = useReduxStoreLoaded();
   const [debug] = useFieldState(
     null,
     system.debug,
@@ -47,6 +48,14 @@ export default function PreviewPage({ id }: { id: StateKey }) {
             id={`${id}_load_error`}
           />
         </div>
+      </div>
+    );
+  }
+
+  if (!storeLoaded) {
+    return (
+      <div {...localeAttrs} className="flex flex-col h-screen">
+        <Spinner>Loading user state...</Spinner>
       </div>
     );
   }

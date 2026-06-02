@@ -1,15 +1,14 @@
 // apps/static/src/App.tsx
 //
-// Root component for the static Vite app. Merges the responsibilities of
-// the old Next.js layout.tsx + storeWrapper.tsx: initializes Redux,
+// Root component for the static Vite app. Initializes Redux,
 // wraps in providers, and renders StaticPage.
 //
 import React, { useState, useEffect } from 'react';
-import { Provider } from 'react-redux';
 
-import { store, extendSettings, ReduxStoreLoader, useReduxStoreLoaded } from '@/lib/state';
+import { store, extendSettings, useReduxStoreLoaded } from '@/lib/state';
 import { initConfig, getConfigBool } from '@/lib/config';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import StoreShell from '@/components/common/StoreShell';
 import Spinner from '@/components/common/Spinner';
 import StaticContentProvider from './StaticContentProvider';
 import StaticPage from './StaticPage';
@@ -26,7 +25,8 @@ declare const __STATIC_EVENT_SERVER_URL__: string;
 declare const __STATIC_CLASSES__: string[];
 declare const __STATIC_CONTENT_NOTICE__: string;
 
-initConfig(__SYSTEM_PMSS__, ['static', ...__STATIC_CLASSES__]);
+const env = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+initConfig(__SYSTEM_PMSS__, ['static', env, ...__STATIC_CLASSES__]);
 
 const eventServerUrl = __STATIC_EVENT_SERVER_URL__ || undefined;
 
@@ -81,9 +81,8 @@ export default function App({ definitionKey }: { definitionKey: string }) {
   );
 
   return (
-    <Provider store={reduxStore}>
-      <ReduxStoreLoader />
+    <StoreShell store={reduxStore}>
       {useWebsocket ? <StoreGate>{content}</StoreGate> : content}
-    </Provider>
+    </StoreShell>
   );
 }

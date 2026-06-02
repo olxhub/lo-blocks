@@ -44,7 +44,8 @@ async function boot() {
     classes = [];
     attributes = {};
   }
-  initConfig(pmss, ['client', ...classes], attributes);
+  const env = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+  initConfig(pmss, ['client', env, ...classes], attributes);
 
   // Dynamic import: App.tsx has module-level getConfigBool() calls that
   // require initConfig() to have completed first.

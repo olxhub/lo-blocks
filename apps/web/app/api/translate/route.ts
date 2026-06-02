@@ -59,7 +59,8 @@ export async function POST(request: Request) {
     const llmConfig = resolveLLMConfigWithFallback('translation');
     if (llmConfig.provider === 'stub') {
       return NextResponse.json(
-        { ok: false, error: 'LLM is in stub mode — no real translation available' }
+        { ok: false, error: 'LLM is in stub mode — no real translation available' },
+        { status: 503 }
       );
     }
 
@@ -94,11 +95,12 @@ export async function POST(request: Request) {
       provider, logsDir,
       blockId, sourceFileUri, targetLocale, sourceLocale,
     });
+    let timer: ReturnType<typeof setTimeout>;
     const timedPromise = Promise.race([
       promise,
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Translation timed out')), TRANSLATION_TIMEOUT_MS)
-      ),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error('Translation timed out')), TRANSLATION_TIMEOUT_MS);
+      }),
     ]);
     inFlightTranslations.set(dedupeKey, timedPromise);
 
@@ -109,6 +111,7 @@ export async function POST(request: Request) {
       }
       return NextResponse.json(result);
     } finally {
+      clearTimeout(timer!);
       inFlightTranslations.delete(dedupeKey);
     }
   } catch (error: any) {

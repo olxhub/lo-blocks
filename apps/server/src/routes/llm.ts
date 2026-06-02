@@ -112,10 +112,10 @@ export function createLLMHandler(kvs: KVStore) {
       return c.json({ error: 'Invalid JSON in request body' }, 400);
     }
 
-    // Resolve user — handleWithSession always sets __user (guest fallback),
-    // but we handle the impossible case defensively rather than skipping
-    // rate limiting.
-    const user: AuthUser | undefined = (c.req.raw as any).__user;
+    // Resolve user from the Node IncomingMessage stashed by handleWithSession.
+    // c.env.incoming is the raw Node request (set by @hono/node-server);
+    // c.req.raw is a Web API Request that doesn't carry custom properties.
+    const user: AuthUser | undefined = (c.env as any).incoming?.__user;
     const safeUserId = user?.safe_user_id ?? ANONYMOUS_SAFE_ID;
     const authorized = user?.authorized ?? false;
 

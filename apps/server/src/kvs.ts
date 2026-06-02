@@ -2,17 +2,31 @@
 //
 // Values are strings (JSON-serialized by the caller). The KVS doesn't parse
 // or interpret values — it's a byte store. Keys are scoped by the caller
-// (e.g. `blob:${safe_user_id}:${activity}`, `field:${user}:${scope}:${name}`).
+// (e.g. `blob:${safe_user_id}`, `field:${user}:${scope}:${name}`).
 //
-// Three backends:
-//   MemoryKVStore — dev/tests only, data lost on restart
-//   FileKVStore   — single-server persistence, zero dependencies
-//   ValkeyKVStore — production (ElastiCache/Valkey/Redis)
+// Five backends:
+//   MemoryKVStore   — dev/tests only, data lost on restart
+//   FileKVStore     — directory-based persistence, one file per key
+//   PostgresKVStore — production (RDS, Aurora Serverless, or local PostgreSQL)
+//   ValkeyKVStore   — production (ElastiCache/Valkey/Redis/MemoryDB)
+//   PrefixedKVStore — decorator that namespaces keys for multi-tenancy
 
 import fs from 'fs';
+import fsp from 'fs/promises';
+import crypto from 'crypto';
 import path from 'path';
 import Redis, { type RedisOptions } from 'ioredis';
+import pg from 'pg';
 import type { KVSKey } from '@/lib/types/identity';
+
+// Re-export for callers that need the key type alongside the store.
+const asKVSKey = (s: string) => s as KVSKey;
+
+/** Check that a resolved path is within the given root directory. */
+function isPathAllowed(resolved: string, root: string): boolean {
+  const rel = path.relative(root, resolved);
+  return !rel.startsWith('..') && !path.isAbsolute(rel);
+}
 
 export interface KVStore {
   get(key: KVSKey): Promise<string | null>;
@@ -42,80 +56,168 @@ export class MemoryKVStore implements KVStore {
 }
 
 /**
- * File-backed KVS. Reads a JSON object from disk on startup, writes
- * atomically (tmp + rename) on every mutation. Zero dependencies.
+ * Directory-based file KVS. Each key maps to a file on disk, using `:`
+ * as the directory separator:
  *
- * Good for single-server deploys at classroom scale. The entire store
- * lives in memory for fast reads; writes go to disk immediately.
+ *   blob:guest-User42           → <root>/blob/guest-User42
+ *   rate:guest-User42:rpm       → <root>/rate/guest-User42/rpm
+ *   field:guest-User42:comp:cnt → <root>/field/guest-User42/comp/cnt
+ *
+ * Individual writes are atomic (tmp + rename), but concurrent writes to
+ * the SAME key have non-deterministic ordering — last rename wins, which
+ * may not match call order. Fine for local dev; use ValkeyKVStore in
+ * production for atomic ops and deterministic ordering.
  *
  * Usage:
- *   new FileKVStore()                  // default: ./data/kvs.json
- *   new FileKVStore('./my/path.json')
+ *   new FileKVStore()               // default: ./data/kvs
+ *   new FileKVStore('./my/store')
  */
 export class FileKVStore implements KVStore {
-  private data: Record<string, string>;
-  private filePath: string;
+  private root: string;
 
-  constructor(filePath = './data/kvs.json') {
-    this.filePath = path.resolve(filePath);
-    fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
-    this.data = this.load();
+  constructor(root = './data/kvs') {
+    this.root = path.resolve(root);
+    fs.mkdirSync(this.root, { recursive: true });
   }
 
-  private load(): Record<string, string> {
-    let raw: string;
-    try {
-      raw = fs.readFileSync(this.filePath, 'utf-8');
-    } catch {
-      // File doesn't exist yet — start with empty store
-      return {};
+  /** Convert a KVS key to a file path under the root directory. */
+  private keyToPath(key: KVSKey): string {
+    const resolved = path.resolve(this.root, ...(key as string).split(':'));
+    if (!isPathAllowed(resolved, this.root)) {
+      throw new Error(`[KVS] Key escapes store root: "${key}"`);
     }
-    try {
-      return JSON.parse(raw);
-    } catch (err) {
-      // Parse failed — back up the corrupt file so data isn't lost,
-      // then start fresh.
-      const backup = `${this.filePath}.corrupt.${Date.now()}`;
-      console.error(
-        `[KVS] Failed to parse ${this.filePath}: ${err}. ` +
-        `Backing up to ${backup}`
-      );
-      try {
-        fs.copyFileSync(this.filePath, backup);
-      } catch (backupErr) {
-        console.error(`[KVS] Could not create backup at ${backup}:`, backupErr);
-      }
-      return {};
-    }
-  }
-
-  // TODO: persist() does synchronous I/O of the entire store on every
-  // set()/del(). This blocks the event loop and is O(n) in total stored
-  // data. Fine at classroom scale, but for larger deployments switch to
-  // debounced/batched async writes (or use ValkeyKVStore).
-  private persist() {
-    const tmp = this.filePath + '.tmp';
-    fs.writeFileSync(tmp, JSON.stringify(this.data));
-    fs.renameSync(tmp, this.filePath);
+    return resolved;
   }
 
   async get(key: KVSKey) {
-    return this.data[key] ?? null;
+    try {
+      return await fsp.readFile(this.keyToPath(key), 'utf-8');
+    } catch {
+      return null;
+    }
   }
 
   async set(key: KVSKey, value: string) {
-    this.data[key] = value;
-    this.persist();
+    const filePath = this.keyToPath(key);
+    await fsp.mkdir(path.dirname(filePath), { recursive: true });
+    const tmp = filePath + `.tmp.${crypto.randomBytes(6).toString('hex')}`;
+    await fsp.writeFile(tmp, value);
+    await fsp.rename(tmp, filePath);
   }
 
   async del(key: KVSKey) {
-    delete this.data[key];
-    this.persist();
+    try {
+      await fsp.unlink(this.keyToPath(key));
+    } catch {
+      // Key didn't exist — that's fine.
+    }
   }
 }
 
 /**
- * Valkey/Redis-backed KVS. For production — ElastiCache, managed Redis, etc.
+ * Transparent key-prefix wrapper for multi-tenancy.
+ *
+ * Prepends a deploy prefix to every key before passing to the inner store.
+ * Callers are unaware of the prefix — different deploys sharing a backend
+ * get isolated key namespaces.
+ *
+ * Usage:
+ *   new PrefixedKVStore(innerStore, 'psych-pilot')
+ *   // key "blob:user42" becomes "psych-pilot:blob:user42" in the inner store
+ */
+export class PrefixedKVStore implements KVStore {
+  constructor(private inner: KVStore, private prefix: string) {}
+
+  private prefixed(key: KVSKey): KVSKey {
+    return asKVSKey(`${this.prefix}:${key}`);
+  }
+
+  async get(key: KVSKey) {
+    return this.inner.get(this.prefixed(key));
+  }
+
+  async set(key: KVSKey, value: string) {
+    return this.inner.set(this.prefixed(key), value);
+  }
+
+  async del(key: KVSKey) {
+    return this.inner.del(this.prefixed(key));
+  }
+
+  async close() {
+    return this.inner.close?.();
+  }
+}
+
+/**
+ * PostgreSQL-backed KVS. For production — Aurora Serverless, RDS, or local
+ * PostgreSQL. Uses a single table with (key TEXT PRIMARY KEY, value TEXT).
+ *
+ * Auto-creates the table on first connection if it doesn't exist.
+ *
+ * Usage:
+ *   new PostgresKVStore('postgresql://user:pass@host:5432/dbname')
+ *   new PostgresKVStore({ host: '...', database: 'lo', ssl: true })
+ */
+export class PostgresKVStore implements KVStore {
+  private pool: pg.Pool;
+  private table: string;
+  private ready: Promise<void>;
+
+  constructor(opts?: string | pg.PoolConfig, table = 'kvs') {
+    this.table = table;
+    this.pool = typeof opts === 'string'
+      ? new pg.Pool({ connectionString: opts })
+      : new pg.Pool(opts);
+    this.ready = this.ensureTable();
+  }
+
+  private async ensureTable() {
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS ${this.table} (
+        key   TEXT PRIMARY KEY,
+        value JSONB NOT NULL
+      )
+    `);
+  }
+
+  async get(key: KVSKey) {
+    await this.ready;
+    const { rows } = await this.pool.query(
+      `SELECT value FROM ${this.table} WHERE key = $1`,
+      [key],
+    );
+    if (!rows[0]) return null;
+    // JSONB round-trips through parsed JSON; serialize back to string
+    // to match the KVStore interface contract.
+    return JSON.stringify(rows[0].value);
+  }
+
+  async set(key: KVSKey, value: string) {
+    await this.ready;
+    await this.pool.query(
+      `INSERT INTO ${this.table} (key, value) VALUES ($1, $2::jsonb)
+       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+      [key, value],
+    );
+  }
+
+  async del(key: KVSKey) {
+    await this.ready;
+    await this.pool.query(
+      `DELETE FROM ${this.table} WHERE key = $1`,
+      [key],
+    );
+  }
+
+  async close() {
+    await this.pool.end();
+  }
+}
+
+/**
+ * Valkey/Redis-backed KVS. For production — ElastiCache, Valkey, Redis,
+ * or AWS MemoryDB (Valkey-compatible).
  *
  * Usage:
  *   new ValkeyKVStore()                              // localhost:6379

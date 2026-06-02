@@ -5,8 +5,8 @@
 // Each step delegates to its own module; this file is the sequence.
 
 import fs from 'fs';
-import { loadServerConfig } from '@/lib/config';
-import { FileKVStore, type KVStore } from './kvs.js';
+import { loadServerConfig, getConfig } from '@/lib/config';
+import { FileKVStore, MemoryKVStore, PostgresKVStore, ValkeyKVStore, PrefixedKVStore, type KVStore } from './kvs.js';
 import { startServer, type ServerHandle } from './server.js';
 import { saveConnectionLog } from './eventLog.js';
 import { shutdownMcp } from './mcp.js';
@@ -62,11 +62,48 @@ function validateLLMProvider() {
   }
 }
 
-/** 3. Initialize storage backend. */
+/** 3. Initialize storage backend (config-driven). */
 async function initStorage(): Promise<KVStore> {
-  const kvs = new FileKVStore();
-  console.log('  Storage: FileKVStore');
-  return kvs;
+  const backend = process.env.KVS_BACKEND || getConfig('kvs-backend') || 'file';
+  const prefix  = process.env.KVS_PREFIX  || getConfig('kvs-prefix')  || '';
+  const isProd  = process.env.NODE_ENV === 'production';
+
+  // In production, require an explicit prefix to prevent accidental
+  // collisions between deploys sharing a backend. Set KVS_PREFIX env var
+  // or kvs-prefix in config/local.pmss.
+  if (isProd && (!prefix || prefix === 'dev-local')) {
+    console.error('\n  KVS prefix not configured for production.');
+    console.error('  Set KVS_PREFIX in your environment or kvs-prefix in config/local.pmss.');
+    console.error('  Example:  KVS_PREFIX=psych-pilot');
+    console.error('  Example:  .server { kvs-prefix: psych-pilot; }\n');
+    process.exit(1);
+  }
+
+  let store: KVStore;
+  switch (backend) {
+    case 'file':
+      store = new FileKVStore(process.env.KVS_PATH);
+      break;
+    case 'postgres':
+      store = new PostgresKVStore(process.env.KVS_URL);
+      break;
+    case 'valkey':
+      store = new ValkeyKVStore(process.env.KVS_URL);
+      break;
+    case 'memory':
+      store = new MemoryKVStore();
+      break;
+    default:
+      throw new Error(`Unknown KVS backend: "${backend}". Expected file, postgres, valkey, or memory.`);
+  }
+
+  if (prefix) {
+    store = new PrefixedKVStore(store, prefix);
+    console.log(`  Storage: ${backend} (prefix: ${prefix})`);
+  } else {
+    console.log(`  Storage: ${backend}`);
+  }
+  return store;
 }
 
 /** 4. Initialize tool registry. */

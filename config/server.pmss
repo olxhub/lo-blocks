@@ -12,13 +12,15 @@
  * supply credentials only.
  */
 
-/* LLM defaults — stub provider, conservative limits */
+/* Defaults */
 * {
     llm-provider: stub;
     llm-model: "";
     llm-max-tokens: 4096;
     llm-rpm: 20;
     llm-token-budget: 100000;
+    kvs-backend: file;
+    kvs-prefix: dev-local;
 }
 
 /* Auto-select based on available credentials (last wins at equal specificity) */

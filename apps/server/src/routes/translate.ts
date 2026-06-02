@@ -94,11 +94,12 @@ export async function handleTranslate(c: Context): Promise<Response> {
       provider, logsDir,
       blockId, sourceFileUri, targetLocale, sourceLocale,
     });
+    let timer: ReturnType<typeof setTimeout>;
     const timedPromise = Promise.race([
       promise,
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Translation timed out')), TRANSLATION_TIMEOUT_MS),
-      ),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error('Translation timed out')), TRANSLATION_TIMEOUT_MS);
+      }),
     ]);
     inFlightTranslations.set(dedupeKey, timedPromise);
 
@@ -109,6 +110,7 @@ export async function handleTranslate(c: Context): Promise<Response> {
       }
       return c.json(result);
     } finally {
+      clearTimeout(timer!);
       inFlightTranslations.delete(dedupeKey);
     }
   } catch (error: any) {
