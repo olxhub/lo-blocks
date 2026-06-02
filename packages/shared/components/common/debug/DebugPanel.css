@@ -99,6 +99,15 @@
   font-family: inherit;
 }
 
+.debug-footer-user {
+  font-family: var(--lo-font-mono);
+  color: var(--lo-debug-text);
+}
+
+.debug-footer-provenance {
+  color: var(--lo-debug-muted);
+}
+
 .debug-footer-hint {
   margin-inline-start: auto;
 }

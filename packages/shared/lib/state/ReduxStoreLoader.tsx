@@ -21,8 +21,17 @@ import * as lo_event from 'lo_event';
 
 import { useUser } from './redux';
 
+/**
+ * True once the server's blob snapshot has been merged into Redux
+ * (lo_event's handleLoadState sets settings.reduxStoreStatus). Until
+ * then, persisted state has not yet hydrated.
+ */
+export function useReduxStoreLoaded(): boolean {
+  return useSelector((state: any) => state?.settings?.reduxStoreStatus ?? false);
+}
+
 export function ReduxStoreLoader() {
-  const reduxStoreLoaded = useSelector((state: any) => state?.settings?.reduxStoreStatus ?? false);
+  const reduxStoreLoaded = useReduxStoreLoaded();
   const currentUser = useUser();
   const pendingRequestRef = useRef(false);
 

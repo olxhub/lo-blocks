@@ -23,7 +23,7 @@ export * from './redux';
 export * from './store';
 export * from './olxjson';
 export * from './urlFields';
-export { ReduxStoreLoader } from './ReduxStoreLoader';
+export { ReduxStoreLoader, useReduxStoreLoaded } from './ReduxStoreLoader';
 
 // ---------------------------------------------------------------------------
 // Data structure hooks (loaded after redux to break circular dependency)

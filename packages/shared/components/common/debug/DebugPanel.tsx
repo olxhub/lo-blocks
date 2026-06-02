@@ -15,6 +15,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { replayToEvent, diffStates, AppState, LoggedEvent } from '@/lib/replay';
 import { useDebugSettings } from '@/lib/state/debugSettings';
+import { useUser } from '@/lib/state/redux';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import SettingsTab from './SettingsTab';
 import './DebugPanel.css';
@@ -40,6 +41,8 @@ export default function DebugPanel({ onClose, idPrefix = '' }: DebugPanelProps) 
   const [filterPrefix, setFilterPrefix] = useState(idPrefix);
   const [expandedEvents, setExpandedEvents] = useState<Set<number>>(new Set());
   const eventsEndRef = useRef<HTMLDivElement>(null);
+
+  const currentUser = useUser();
 
   // Time-travel state from Redux (via debug settings context)
   const { replayMode, replayEventIndex, setReplayMode, setReplayEventIndex, getEvents } = useDebugSettings();
@@ -323,6 +326,12 @@ export default function DebugPanel({ onClose, idPrefix = '' }: DebugPanelProps) 
 
       <div className="debug-panel-footer">
         <kbd>⌘`</kbd> Toggle panel
+        {currentUser && (
+          <span className="debug-footer-user">
+            {currentUser.user_id}
+            {currentUser.provenance && <span className="debug-footer-provenance"> ({currentUser.provenance})</span>}
+          </span>
+        )}
         <span className="debug-footer-hint">
           {isTimeTraveling ? 'Click event to time-travel' : 'Click event to view state at that point'}
         </span>

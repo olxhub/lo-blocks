@@ -229,6 +229,7 @@ console.log();
 run('sync images', sandboxSh, [
   tsxBin,
   'packages/shared/scripts/sync-images.ts',
+  '--source', contentRoot,
   '--target', path.join(outputDir, 'content'),
 ]);
 

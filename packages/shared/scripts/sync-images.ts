@@ -3,8 +3,8 @@
  * Sync static assets from content directory to a public folder for serving.
  *
  * Usage:
- *   tsx sync-images.ts                          # default: apps/web/public/content
- *   tsx sync-images.ts --target apps/static/dist/content
+ *   tsx sync-images.ts                          # default: ./content → apps/web/public/content
+ *   tsx sync-images.ts --source content/sba/psychology --target dist/psych/content
  */
 
 import { FileStorageProvider } from '../lib/lofs/providers/file.js';
@@ -17,7 +17,8 @@ function getArg(flag: string): string | undefined {
 
 async function main() {
   try {
-    const provider = new FileStorageProvider('./content');
+    const source = getArg('--source') || './content';
+    const provider = new FileStorageProvider(source);
     const target = getArg('--target');
     await copyAssetsToPublic(provider, target);
   } catch (error) {
