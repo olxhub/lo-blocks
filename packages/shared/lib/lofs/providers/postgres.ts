@@ -54,6 +54,10 @@ export class PostgresStorageProvider implements StorageProvider {
     throw new Error('postgres storage not implemented');
   }
 
+  toRelativePath(_uri: LofsRef): OlxRelativePath {
+    throw new Error('postgres storage not implemented');
+  }
+
   async validateAssetPath(_assetPath: OlxRelativePath): Promise<boolean> {
     throw new Error('postgres storage not implemented');
   }

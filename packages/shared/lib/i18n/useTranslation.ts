@@ -3,8 +3,9 @@
 // Client-side hook for reactive translanguaging.
 //
 // Detects language mismatches between user locale and displayed content,
-// triggers server-side LLM translation, and dispatches results to Redux
-// for reactive UI updates.
+// and provides opt-in translation via requestTranslation(). Translation
+// is NOT automatic — the UI shows a "Translate" button and the user
+// decides when to trigger it.
 //
 // Translation state lives in olxjson's per-variant status (variantStatus),
 // not in a separate Redux slice. A translation is just loading a new variant.
@@ -16,8 +17,9 @@
 'use client';
 
 import { useSelector } from 'react-redux';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { scoreBCP47Match } from '@/lib/i18n/getBestVariant';
+import { getConfigBool } from '@/lib/config';
 import {
   selectBlockState,
   dispatchOlxJson,
@@ -40,6 +42,8 @@ export interface TranslationState {
   fallbackLocale: ContentVariant | null;
   /** The locale being translated to, or null if no translation needed */
   targetLocale: UserLocale | null;
+  /** Callback to explicitly request translation. Null when translation not applicable. */
+  requestTranslation: (() => void) | null;
 }
 
 const NO_TRANSLATION: TranslationState = {
@@ -49,6 +53,7 @@ const NO_TRANSLATION: TranslationState = {
   translationError: null,
   fallbackLocale: null,
   targetLocale: null,
+  requestTranslation: null,
 };
 
 // Server-side translation timeout is 600s. Client should be generous — LLM
@@ -58,11 +63,26 @@ const TRANSLATION_FETCH_TIMEOUT_MS = 660_000;
 /**
  * Is this a language mismatch that needs translation?
  *
+ * Disabled globally: if PMSS 'translanguaging' is false, never translate.
+ * Per-block opt-out: translatable="false" on an OLX element skips translation.
  * lang='*' or undefined = language-agnostic content, never a fallback.
  * score >= 1 = same language family, acceptable match.
  * score < 1 = completely different language, needs translation.
  */
-function needsTranslation(userLocale: UserLocale, contentLang: ContentVariant | undefined): boolean {
+function needsTranslation(
+  userLocale: UserLocale,
+  contentLang: ContentVariant | undefined,
+  translatable?: boolean,
+): boolean {
+  // TODO: Remove try/catch once Next.js is fully eliminated. The Next.js
+  // process never calls initConfig(), so getConfigBool throws there.
+  try {
+    if (!getConfigBool('translanguaging')) return false;
+  } catch (err: any) {
+    if (err?.message?.includes('Config not initialized')) return false;
+    throw err;
+  }
+  if (translatable === false) return false;
   if (!contentLang || contentLang === '*') return false;
   return scoreBCP47Match(userLocale, contentLang) < 1;
 }
@@ -89,8 +109,7 @@ interface EnsureTranslationProps {
  *
  * Dedup via olxjson's variantStatus in Redux: if the target variant is
  * already 'translanguaging', this is a no-op. Failed translations are
- * allowed to retry (one attempt per mount — the useEffect deps don't
- * change on failure, so it won't loop).
+ * allowed to retry on explicit user action.
  *
  * NOTE on theoretical race condition: Between reading store.getState()
  * and the async OLXJSON_TRANSLATING event landing in Redux, another
@@ -101,7 +120,7 @@ interface EnsureTranslationProps {
  * which breaks the "Redux is the single source of truth" invariant
  * for no meaningful benefit.
  *
- * NOT a hook — safe to call from useEffect.
+ * NOT a hook — safe to call from event handlers.
  */
 function ensureTranslation(
   props: EnsureTranslationProps,
@@ -175,11 +194,12 @@ interface UseTranslationProps {
 }
 
 /**
- * Hook to detect language mismatch and trigger on-the-fly translation.
+ * Hook to detect language mismatch and provide opt-in translation.
  *
  * Reads variant status from olxjson's BlockEntry.variantStatus via useSelector.
- * If a mismatch is detected and no translation is in progress, kicks off
- * ensureTranslation in a useEffect.
+ * On mismatch, returns isFallback: true and a requestTranslation callback.
+ * Translation is NOT triggered automatically — the user must opt in via
+ * the TranslatingIndicator UI or LanguageSwitcher.
  *
  * In sideEffectFree mode, never triggers a fetch. Returns translating: false
  * so the UI shows the fallback content without a spinner.
@@ -195,9 +215,11 @@ export function useTranslation(
   const userLocale: UserLocale = props.runtime.locale.code;
   const blockId = olxJson?.id;
   const contentLang = olxJson?.lang as ContentVariant | undefined;
+  const rawTranslatable = olxJson?.attributes?.translatable;
+  const translatable = rawTranslatable === false || rawTranslatable === 'false' ? false : undefined;
 
   const isFallback = userLocale && blockId
-    ? needsTranslation(userLocale, contentLang)
+    ? needsTranslation(userLocale, contentLang, translatable)
     : false;
 
   // Read variant status from olxjson state — always call hook (React rules)
@@ -207,12 +229,6 @@ export function useTranslation(
     return bs?.variantStatus?.[userLocale];
   });
 
-  // Trigger translation for mismatches — always call hook (React rules)
-  useEffect(() => {
-    if (!blockId || !isFallback) return;
-    ensureTranslation(propsRef.current, blockId, userLocale, source);
-  }, [blockId, userLocale, isFallback, source]);
-
   if (!olxJson || !userLocale) {
     return NO_TRANSLATION;
   }
@@ -221,11 +237,13 @@ export function useTranslation(
     return NO_TRANSLATION;
   }
 
-  const translating = variantEntry?.status === 'translanguaging'
-    // No entry yet but we need translation and we're not sideEffectFree:
-    // return translating: true to avoid flash of untranslated content
-    || (!variantEntry && !props.runtime.sideEffectFree);
+  const translating = variantEntry?.status === 'translanguaging';
   const translationFailed = variantEntry?.status === 'error';
+
+  // Provide a callback for explicit opt-in translation
+  const requestTranslation = blockId && !props.runtime.sideEffectFree
+    ? () => ensureTranslation(propsRef.current, blockId, userLocale, source)
+    : null;
 
   return {
     isFallback: true,
@@ -234,5 +252,6 @@ export function useTranslation(
     translationError: variantEntry?.error ?? null,
     fallbackLocale: contentLang || null,
     targetLocale: userLocale,
+    requestTranslation,
   };
 }

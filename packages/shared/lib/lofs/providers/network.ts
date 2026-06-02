@@ -137,6 +137,10 @@ export class NetworkStorageProvider implements StorageProvider {
     return `network:${this.namespace}://${safePath}` as LofsRef;
   }
 
+  toRelativePath(uri: LofsRef): OlxRelativePath {
+    return provenancePath(uri) as OlxRelativePath;
+  }
+
   /**
    * Check if an asset file exists via HEAD request.
    */

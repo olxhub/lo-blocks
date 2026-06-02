@@ -14,9 +14,8 @@
 import { syncContentFromStorage, getSourceFile } from '../lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '../lib/lofs/providers/file';
 import { variantMapEntries } from '../lib/types/i18n';
-import { toOlxRelativePath } from '../lib/types/storage';
 import path from 'path';
-import type { IdMap, DefinitionKey } from '../lib/types';
+import type { IdMap, DefinitionKey, LofsRef } from '../lib/types';
 
 const contentDir = path.resolve(process.env.OLX_CONTENT_DIR || './content');
 const dryRun = !process.argv.includes('--rm');
@@ -26,7 +25,7 @@ async function main() {
   const { idMap } = await syncContentFromStorage(provider);
 
   // Collect provenance URIs of machine-translated files
-  const filesToDelete = new Set<string>();
+  const filesToDelete = new Set<LofsRef>();
 
   for (const [blockId, variantMap] of Object.entries(idMap) as [DefinitionKey, IdMap[DefinitionKey]][]) {
     for (const [variant, olxJson] of variantMapEntries(variantMap)) {
@@ -52,9 +51,9 @@ async function main() {
 
   const label = dryRun ? 'would delete' : 'deleting';
   for (const fileUri of filesToDelete) {
-    console.log(`  ${label}: ${provider.toRelativePath(fileUri)}`);
+    const relPath = provider.toRelativePath(fileUri);
+    console.log(`  ${label}: ${relPath}`);
     if (!dryRun) {
-      const relPath = toOlxRelativePath(provider.toRelativePath(fileUri));
       await provider.delete(relPath);
     }
   }

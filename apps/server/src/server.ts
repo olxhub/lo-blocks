@@ -9,6 +9,7 @@
 //                 ├→ /mcp           → MCP tools (StreamableHTTP, raw Node)
 //                 ├→ /api/olxjson   → content API (Hono)
 //                 ├→ /api/config    → PMSS configuration (Hono)
+//                 ├→ /api/translate → content translation (Hono)
 //                 ├→ /assets/*      → Vite-built client (Hono serveStatic)
 //                 ├→ /preview/*     → SPA fallback (Hono serveStatic)
 //                 └→ everything else → proxy to Next.js :3000 (transition)
@@ -30,13 +31,14 @@ import { runPipeline } from './pipeline.js';
 import { handleOlxJson } from './routes/olxjson.js';
 import { handleConfig } from './routes/config.js';
 import { createLLMHandler } from './routes/llm.js';
+import { handleTranslate } from './routes/translate.js';
 import { handleMcpPost, handleMcpGet, handleMcpDelete } from './mcp.js';
 import { ToolRegistry } from '@/lib/mcp/registry';
 
 // --- Constants ---------------------------------------------------------------
 const PORT = 8888;
 const WS_PATH = '/wsapi/in/';
-const SERVER_PREFIXES = ['/api/olxjson', '/api/config', '/api/llm/', '/assets/', '/preview/'];
+const SERVER_PREFIXES = ['/api/olxjson', '/api/config', '/api/translate', '/api/llm/', '/assets/', '/preview/'];
 
 // Symbols for annotating request objects between middleware stages
 const PENDING_COOKIE = Symbol('pendingSessionCookie');
@@ -60,6 +62,7 @@ export async function startServer(
 
   app.get('/api/olxjson', handleOlxJson);
   app.get('/api/config', handleConfig);
+  app.post('/api/translate', handleTranslate);
   app.post('/api/llm/chat/completions', createLLMHandler(kvs));
 
   // Vite-built client (static files from apps/client/dist/)

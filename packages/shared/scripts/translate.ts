@@ -130,16 +130,11 @@ async function translateFile(filePath: string): Promise<{ successes: number; fai
       continue;
     }
 
-    // Compute output path
-    let outputPath: string;
-    if (outDir) {
-      const baseName = path.basename(absPath, path.extname(absPath));
-      outputPath = path.join(outDir, baseName, `${targetLocale}.auto${path.extname(absPath)}`);
-    } else {
-      const baseName = path.basename(absPath, path.extname(absPath));
-      const dir = path.dirname(absPath);
-      outputPath = path.join(dir, baseName, `${targetLocale}.auto${path.extname(absPath)}`);
-    }
+    // Compute output path: <basename>/<locale>.auto.<ext> convention
+    const baseName = path.basename(absPath, path.extname(absPath));
+    const ext = path.extname(absPath);
+    const baseDir = outDir || path.dirname(absPath);
+    const outputPath = path.join(baseDir, baseName, `${targetLocale}.auto${ext}`);
 
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
     fs.writeFileSync(outputPath, result.content);

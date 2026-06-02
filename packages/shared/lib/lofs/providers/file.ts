@@ -505,6 +505,7 @@ export class FileStorageProvider implements StorageProvider {
       }
     }
 
+    await fs.mkdir(path.dirname(full), { recursive: true });
     await fs.writeFile(full, content, 'utf-8');
   }
 
@@ -514,16 +515,12 @@ export class FileStorageProvider implements StorageProvider {
 
   async delete(filePath: OlxRelativePath): Promise<void> {
     const fs = await import('fs/promises');
-    const relPath = this.toRelativePath(filePath);
-    const full = await resolveSafeWritePath(this.baseDir, relPath);
+    const full = await resolveSafeWritePath(this.baseDir, filePath);
     await fs.unlink(full);
   }
 
-  /** TODO: Callers should pass a consistent type (path or LofsRef), not both.
-   *  The includes('://') heuristic papers over caller inconsistency. */
-  toRelativePath(pathOrUri: string): string {
-    if (!pathOrUri.includes('://')) return pathOrUri;
-    return this.extractRelativePath(pathOrUri);
+  toRelativePath(uri: LofsRef): OlxRelativePath {
+    return this.extractRelativePath(uri) as OlxRelativePath;
   }
 
   async rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
