@@ -5,7 +5,7 @@ import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as reduxClient from '@/lib/llm/reduxClient';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
-import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
+import { stateKeyForGlobalRef , PLACEHOLDER_NS } from '@/lib/types/id-grammar';
 import _Hidden from '@/components/blocks/layout/_Hidden';
 
 export const fields = state.fields([]);
@@ -17,7 +17,7 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
     console.warn('⚠️ LLMAction: No target specified in action attributes');
     return;
   }
-  const targetStateKey = stateKeyForGlobalRef(targetRef, props.runtime?.ns);
+  const targetStateKey = stateKeyForGlobalRef(targetRef, props.runtime?.ns ?? PLACEHOLDER_NS);
 
   // Get target component's fields dynamically
   // 'state' field is optional — TextSlot has it, TextArea doesn't

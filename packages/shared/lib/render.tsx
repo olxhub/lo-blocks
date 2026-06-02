@@ -26,7 +26,7 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { DefinitionKey, IdPrefix, StateKey, LoBlockRuntimeContext, OlxJson } from '@/lib/types';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { getGrader, getEventContext } from '@/lib/blocks/olxdom';
-import { definitionKeyForRef, scopedStateKeyForBlock, SCOPE_SEPARATOR } from '@/lib/types/id-grammar';
+import { definitionKeyForRef, scopedStateKeyForBlock, SCOPE_SEPARATOR, PLACEHOLDER_NS } from '@/lib/types/id-grammar';
 import { selectBlock } from '@/lib/state/olxjson';
 import type { Store } from 'redux';
 
@@ -156,7 +156,7 @@ export function render({ node, nodeInfo, runtime }: {
       );
     }
     const locale = runtime.locale.code;
-    const definitionKey = definitionKeyForRef(node.id, runtime.ns);
+    const definitionKey = definitionKeyForRef(node.id, runtime.ns ?? PLACEHOLDER_NS);
     const sources = actualOlxJsonSources ?? ['content'];
     const entry = selectBlock(actualStore.getState(), sources, definitionKey, locale);
     if (!entry) {

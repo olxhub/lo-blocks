@@ -6,7 +6,7 @@ import React, { useMemo, useCallback } from 'react';
 import * as state from '@/lib/state';
 import { showAnswer as showAnswerField } from '@/lib/state/commonFields';
 import { getGrader } from '@/lib/blocks';
-import { scopedStateKeyForBlock, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
+import { scopedStateKeyForBlock, stateKeyForGlobalRef , PLACEHOLDER_NS } from '@/lib/types/id-grammar';
 import { DisplayError } from '@/lib/util/debug';
 
 /**
@@ -21,7 +21,7 @@ function _ShowAnswerButton(props: RuntimeProps) {
     if (target) {
       // target is z_stateRefList — resolve authored refs globally (no idPrefix).
       const targetRefs = Array.isArray(target) ? target : [target];
-      return targetRefs.map(ref => stateKeyForGlobalRef(ref, props.runtime?.ns));
+      return targetRefs.map(ref => stateKeyForGlobalRef(ref, props.runtime?.ns ?? PLACEHOLDER_NS));
     }
     try {
       // getGrader now returns StateKey directly

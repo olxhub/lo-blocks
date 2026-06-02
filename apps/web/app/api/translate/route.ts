@@ -13,7 +13,7 @@ import { resolveLLMConfigWithFallback } from '@/lib/llm/profiles';
 import { translateContent } from '@/lib/translate';
 import type { DefinitionKey, ContentVariant, LofsRef, OlxRelativePath, SafeRelativePath } from '@/lib/types';
 
-import { definitionKeyForRef, parseDefinitionRef } from '@/lib/types/id-grammar';
+import { definitionKeyForRef, parseDefinitionRef, PLACEHOLDER_NS } from '@/lib/types/id-grammar';
 import { toContentVariant } from '@/lib/types/i18n';
 
 const contentDir = process.env.OLX_CONTENT_DIR || './content';
@@ -171,7 +171,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const blockId = definitionKeyForRef(parseDefinitionRef(body.blockId));
+    const blockId = definitionKeyForRef(parseDefinitionRef(body.blockId), PLACEHOLDER_NS);
 
     const llmConfig = resolveLLMConfigWithFallback('translation');
     if (llmConfig.provider === 'stub') {

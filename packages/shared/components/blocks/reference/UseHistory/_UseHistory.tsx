@@ -6,11 +6,11 @@ import React, { useEffect } from 'react';
 import { useBlock } from '@/lib/render';
 import { useReduxInput, useFieldState, useValue } from '@/lib/state';
 import type { StateRef } from '@/lib/types';
-import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
+import { stateKeyForGlobalRef , PLACEHOLDER_NS } from '@/lib/types/id-grammar';
 import HistoryBar from '@/components/common/HistoryBar';
 
 function HistoryContent({ props, current }: { props: RuntimeProps; current: StateRef }) {
-  const stateKey = stateKeyForGlobalRef(current, props.runtime?.ns);
+  const stateKey = stateKeyForGlobalRef(current, props.runtime?.ns ?? PLACEHOLDER_NS);
   const { block } = useBlock(props, stateKey);
   return <>{block}</>;
 }

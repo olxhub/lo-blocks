@@ -850,7 +850,7 @@ export function scopedStateKeyForBlock(
 
 export function stateKeyForGlobalRef(
   ref: StateRef,
-  ns: ContentNamespace = PLACEHOLDER_NS
+  ns: ContentNamespace
 ): StateKey {
   return qualifyStateRef(ref, ns);
 }
@@ -866,7 +866,7 @@ export function stateKeyForGlobalRef(
  */
 export function definitionKeyForRef(
   ref: DefinitionRef,
-  ns: ContentNamespace = PLACEHOLDER_NS
+  ns: ContentNamespace
 ): DefinitionKey {
   return qualifyDefinitionRef(ref, ns);
 }

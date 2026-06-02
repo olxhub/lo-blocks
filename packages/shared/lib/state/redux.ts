@@ -43,7 +43,7 @@ import { useSelector, shallowEqual } from 'react-redux';
 
 import * as lo_event from 'lo_event';
 
-import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, isNamespaceQualified, definitionKeyForRef } from '../types/id-grammar';
+import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, isNamespaceQualified, definitionKeyForRef , PLACEHOLDER_NS } from '../types/id-grammar';
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
@@ -666,7 +666,7 @@ export function useValue(
   // Priority: explicit stateKey > target (resolved) > own component
   const resolvedKey: StateKey | null =
     stateKey !== undefined ? stateKey
-    : target !== undefined ? (target ? stateKeyForGlobalRef(target, props.runtime?.ns) : null)
+    : target !== undefined ? (target ? stateKeyForGlobalRef(target, props.runtime?.ns ?? PLACEHOLDER_NS) : null)
     : scopedStateKeyForBlock(props);
 
   const result = useSelector(

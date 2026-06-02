@@ -21,8 +21,8 @@ import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
 import { getGrader, getDomNodeByStateKey, getAllNodes, inferRelatedNodes } from './olxdom';
 import { useOlxJson } from './useOlxJson';
-import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey } from '../types/id-grammar';
-import { definitionKeyForRef, scopedStateKeyForBlock } from '../types/id-grammar';
+import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey , PLACEHOLDER_NS } from '../types/id-grammar';
+import { definitionKeyForRef, scopedStateKeyForBlock , PLACEHOLDER_NS } from '../types/id-grammar';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { isInput } from './actions';
 import type { DefinitionKey, DefinitionRef, StateKey, RuntimeProps } from '@/lib/types';
@@ -133,7 +133,7 @@ function resolveInputSlot(
   }
 
   // Find position of this input in the list
-  const normalizedId = definitionKeyForRef(inputId, props.runtime?.ns);
+  const normalizedId = definitionKeyForRef(inputId, props.runtime?.ns ?? PLACEHOLDER_NS);
   const position = inputIds.findIndex(id => leafDefinitionKeyFromStateKey(id) === normalizedId);
 
   if (position >= 0 && position < slots.length) {

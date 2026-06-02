@@ -16,14 +16,14 @@ import Notice from '@/components/common/Notice';
 import { useStaticContent } from './StaticContentProvider';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
-import { definitionKeyForRef, parseDefinitionRef, addScope } from '@/lib/types/id-grammar';
+import { definitionKeyForRef, parseDefinitionRef, addScope, PLACEHOLDER_NS } from '@/lib/types/id-grammar';
 import { useConfigBool } from '@/lib/config';
 import { variantMapLocaleEntries } from '@/lib/types/i18n';
 import type { Locale } from '@/lib/types';
 
 export default function StaticPage({ definitionKey, title, contentNotice }: { definitionKey: string; title?: string; contentNotice?: string }) {
   const { idMap } = useStaticContent();
-  const key = definitionKeyForRef(parseDefinitionRef(definitionKey));
+  const key = definitionKeyForRef(parseDefinitionRef(definitionKey), PLACEHOLDER_NS);
   const translanguaging = useConfigBool('translanguaging');
 
   // Sync <html> lang and dir for accessibility and RTL
