@@ -12,7 +12,7 @@
     "dev:client": "./sandbox.sh npx vite build --watch --logLevel warn apps/client",
     "dev:crdt": "NEXT_PUBLIC_LO_FIELD_STRATEGY=crdt npm run dev",
     "dev:full": "npm run build && npm run dev",
-    "dev:postgres": "NO_SANDBOX=1 KVS_BACKEND=postgres KVS_URL='postgresql:///lo_kvs?host=/var/run/postgresql' npm run dev",
+    "dev:postgres": "KVS_BACKEND=postgres KVS_URL='postgresql:///lo_kvs?host=/var/run/postgresql' npm run dev",
     "dev:redis": "NO_SANDBOX=1 KVS_BACKEND=valkey KVS_URL='redis://localhost:6379' npm run dev",
     "dev:legacy": "npm run server:legacy & npm run dev:next",
     "dev:next": "./sandbox.sh next dev apps/web --turbopack",
