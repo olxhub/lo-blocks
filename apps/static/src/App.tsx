@@ -76,7 +76,7 @@ function StoreGate({ children }: { children: React.ReactNode }) {
 export default function App({ definitionKey }: { definitionKey: string }) {
   const content = (
     <StaticContentProvider>
-      <StaticPage definitionKey={definitionKey} contentNotice={__STATIC_CONTENT_NOTICE__} />
+      <StaticPage definitionKey={definitionKey} contentNotice={__STATIC_CONTENT_NOTICE__} showStatus={useWebsocket} />
     </StaticContentProvider>
   );
 

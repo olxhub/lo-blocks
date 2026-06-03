@@ -13,6 +13,7 @@ import { useEffect } from 'react';
 import RenderOLX from '@/components/common/RenderOLX';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import Notice from '@/components/common/Notice';
+import StatusBar from '@/components/common/StatusBar';
 import { useStaticContent } from './StaticContentProvider';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
@@ -21,7 +22,7 @@ import { useConfigBool } from '@/lib/config';
 import { variantMapLocaleEntries } from '@/lib/types/i18n';
 import type { Locale } from '@/lib/types';
 
-export default function StaticPage({ definitionKey, title, contentNotice }: { definitionKey: string; title?: string; contentNotice?: string }) {
+export default function StaticPage({ definitionKey, title, contentNotice, showStatus }: { definitionKey: string; title?: string; contentNotice?: string; showStatus?: boolean }) {
   const { idMap } = useStaticContent();
   const key = definitionKeyForRef(parseDefinitionRef(definitionKey), PLACEHOLDER_NS);
   const translanguaging = useConfigBool('translanguaging');
@@ -47,8 +48,9 @@ export default function StaticPage({ definitionKey, title, contentNotice }: { de
 
   return (
     <div className="flex flex-col min-h-screen">
+      {showStatus && <StatusBar />}
       {allLocales.length > 1 && (
-        <header className="flex items-center justify-end px-4 py-2 sticky top-0 z-10 bg-gray-50 shadow-sm">
+        <header className="flex items-center justify-end px-4 py-2 bg-gray-50 shadow-sm print:hidden">
           <LanguageSwitcher availableLocales={curated} bestEffortLocales={bestEffort} translanguaging={translanguaging} />
         </header>
       )}
