@@ -2,13 +2,14 @@
 //
 // Each WebSocket connection gets a ConnectionLog with a unique ID, a
 // reference to the authenticated user, and an EventLog that accumulates
-// events and is written to disk as JSON on every event and on shutdown.
+// events. Events are appended as NDJSON lines to a gzip stream.
 //
 // This is NOT an auth session (cookies, tokens, etc.). It's a debug/replay
-// artifact: the JSON files in events/ can be replayed via the debug panel.
+// artifact: the gzipped files in events/ can be read with zcat.
 
 import * as fs from 'fs';
 import * as path from 'path';
+import * as zlib from 'zlib';
 import type { AuthUser } from './auth.js';
 
 const EVENTS_DIR = 'events';
@@ -28,17 +29,16 @@ export interface ConnectionLog {
   user: AuthUser;
   log: EventLog;
   path: string;
+  stream: zlib.Gzip;
 }
 
 let connectionCounter = 0;
 
 export function createConnectionLog(user: AuthUser): ConnectionLog {
   const id = `${Date.now()}-${++connectionCounter}`;
-  // Include the user's safe_user_id in the filename so logs for the same
-  // user cluster together on disk and are greppable.
   const userTag = user.safe_user_id || `unknown-${connectionCounter}`;
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-  const filename = `events-${timestamp}-${userTag}-${connectionCounter}.json`;
+  const filename = `events-${timestamp}-${userTag}-${connectionCounter}.jsonl.gz`;
   const logPath = path.join(EVENTS_DIR, filename);
 
   const log: EventLog = {
@@ -48,9 +48,23 @@ export function createConnectionLog(user: AuthUser): ConnectionLog {
     events: []
   };
 
-  return { id, user, log, path: logPath };
+  const gzip = zlib.createGzip();
+  gzip.pipe(fs.createWriteStream(logPath));
+
+  // Write header line with connection metadata
+  const header = { description: log.description, started: log.started, user };
+  gzip.write(JSON.stringify(header) + '\n');
+
+  return { id, user, log, path: logPath, stream: gzip };
 }
 
+/** Append a single event to the gzip stream. */
+export function appendEvent(conn: ConnectionLog, event: any) {
+  conn.log.events.push(event);
+  conn.stream.write(JSON.stringify(event) + '\n');
+}
+
+/** Flush and close the gzip stream. Call on disconnect / shutdown. */
 export function saveConnectionLog(conn: ConnectionLog) {
-  fs.writeFileSync(conn.path, JSON.stringify(conn.log, null, 2));
+  conn.stream.end();
 }

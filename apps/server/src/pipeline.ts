@@ -23,7 +23,7 @@
 import type { WebSocket } from 'ws';
 import type { AuthUser } from './auth.js';
 import type { ConnectionLog } from './eventLog.js';
-import { saveConnectionLog } from './eventLog.js';
+import { appendEvent } from './eventLog.js';
 import type { KVStore } from './kvs.js';
 import type { SafeUserId } from '@/lib/types/identity';
 import { kvsKey } from '@/lib/types/identity';
@@ -90,8 +90,7 @@ async function* decodeAndLog(
   ctx: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
   for await (const event of events) {
-    ctx.conn.log.events.push(event);
-    saveConnectionLog(ctx.conn);
+    appendEvent(ctx.conn, event);
 
     const eventType = event.event || event.type || 'unknown';
     const id = event.id ? ` id=${event.id}` : '';
