@@ -125,3 +125,25 @@
   font-size: var(--lo-font-size-lg);
   padding-top: var(--lo-space-3xl);
 }
+
+/* ===== Print: linearize the course layout =====
+ *
+ * The on-screen course is a fixed-height, two-pane flex shell: the container
+ * is pinned to the viewport (height: 100vh; overflow: hidden) and the content
+ * pane scrolls internally (overflow-y: auto). For print that clips everything
+ * past the first screen — only the first page comes out.
+ *
+ * print.css resets the Tailwind .h-screen / .overflow-auto utilities, but these
+ * panes set height/overflow directly via their own classes, so they need their
+ * own print overrides. The sidebar nav is already hidden via .lo-sidebar. */
+@media print {
+  .lo-tag-course .course-container {
+    display: block;
+    height: auto;
+    overflow: visible;
+  }
+
+  .lo-tag-course .course-content {
+    overflow: visible;
+  }
+}

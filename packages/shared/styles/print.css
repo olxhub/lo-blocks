@@ -31,6 +31,12 @@
     display: none !important;
   }
 
+  /* History navigation (the `< • • >` bar) — chrome wherever it appears,
+     e.g. UseHistory and Sequential. Targets the semantic HistoryBar class. */
+  .lo-history-bar {
+    display: none !important;
+  }
+
   /* Buttons: action, hint, show-answer */
   .lo-tag-actionbutton,
   .lo-tag-hintbutton,

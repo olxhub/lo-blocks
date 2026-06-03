@@ -55,9 +55,13 @@ export default function StatusBar() {
       : saveStatus === 'modified' ? 'bg-warning'
         : 'bg-success';
 
+  // In print we keep only the username (for attribution) and drop the
+  // interactive chrome. print:static stops the sticky bar from landing on
+  // its own page, and we strip the screen-only background/border/blur so it
+  // reads as a plain header line at the top of the first page.
   return (
-    <div className="sticky top-0 z-10 bg-surface/80 backdrop-blur-sm border-b border-subtle px-4 py-1.5 flex items-center justify-between text-xs text-dimmed print:hidden">
-      <div className="flex items-center gap-2">
+    <div className="sticky top-0 z-10 bg-surface/80 backdrop-blur-sm border-b border-subtle px-4 py-1.5 flex items-center justify-between text-xs text-dimmed print:static print:bg-transparent print:backdrop-blur-none print:border-0 print:px-0">
+      <div className="flex items-center gap-2 print:hidden">
         <span className={`w-1.5 h-1.5 rounded-full ${saveDot}`} title={saveLabel} />
         <span>{saveLabel}</span>
       </div>
