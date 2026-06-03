@@ -15,9 +15,7 @@ lang: en-Latn-US
 
 <HH> ============= Screen: Introduction ======================== </HH>
 
-<IntakeGate ready="!@fba2_completion_checkbox.value">
-<Markdown> </Markdown>
-<Markdown id="fba2_introduction">
+<Markdown id="fba2_introduction" when="!@fba2_completion_checkbox.value">
 ## Introduction
 
 In this module, you will continue helping Annie's roommate with Johnny, the 6-year-old she babysits. The positive reinforcement techniques from last time are partially working, but Johnny still runs away at bedtime.
@@ -31,8 +29,6 @@ In this session, you will review and apply several concepts from your coursework
 
 Let's begin.
 </Markdown>
-</IntakeGate>
-
 
 <HH> ============= Screen: Use AI to define function of behavior ==== </HH>
 
@@ -80,7 +76,6 @@ incompatible with the type of reinforcement, assuming that negative reinforcemen
 compatible with removal of unwanted attention but not with access, while escape is
 not compatible with positive reinforcement. Highlight the function names in the
 function column." />
-
 <SetFieldAction 
     target="ABCs_mermaid_diagram" 
     field="value" 
@@ -139,9 +134,7 @@ flowchart LR
 
 <HH> ============= Screen: Lin's class notes =================== </HH>
 
-<IntakeGate ready="!@fba2_completion_checkbox.value">
-<Markdown> </Markdown>
-<Markdown id="fba2_function_notes">
+<Markdown id="fba2_function_notes"  when="!@fba2_ai_abc_code.value">
 ## Lin's Class Notes: Four Functions of Behavior
 
 The four main functions of behavior are:
@@ -153,8 +146,6 @@ The four main functions of behavior are:
 
 The function always refers to a type of **reinforcement** — either positive or negative.
 </Markdown>
-</IntakeGate>
-
 
 <HH> ============= Screen: Reinforcement review ================ </HH>
 
@@ -221,7 +212,7 @@ function column." />
 
 </Collapsible>
 
-<ActionButton id="fba2_ai_chart_btn" label="Use AI">
+<ActionButton id="fba2_ai_chart_btn" label="Create the Chart">
 <LLMAction id="fba2_ai_chart_action" target="fba2_ai_chart_response">
 <Ref target="jjs_prompt" />
 </LLMAction>
@@ -440,7 +431,7 @@ why it is not. Do not offer examples of your own.
     <Markdown>
 ## Predict: Why Not Punishment?
 
-Annie mentioned that she asked AI why punishment isn't listed as a function of behavior. **Before reading the answer, write your own prediction.** Think about what "function" means and how it relates to reinforcement.
+Annie mentioned that she used AI to get a statement about why punishment isn't listed as a function of behavior. She checked it with Lianne, and she said it's pretty accurate. **Before reading the answer, write your own prediction.** Think about what "function" means and how it relates to reinforcement.
     </Markdown>
 
     <TextArea id="fba2_no_punishment_explanation" rows="3"
@@ -460,12 +451,14 @@ Annie mentioned that she asked AI why punishment isn't listed as a function of b
 ## Your Prediction
 
 {{text2markdown(@fba2_no_punishment_explanation.value)}}
-
+    </Markdown>
+    <Markdown  when="!@fba2_completion_checkbox.value">
 ---
 
 ## AI Response: Why Punishment Is Not a Function of Behavior
 
-_Annie asked AI this question earlier. Here's what it said:_
+_Annie used AI to answer this question earlier. Here's what it said (when she checked her notes,
+they said the same thing):_
 
 > **Why isn't punishment listed as a function of behavior?**
 >
@@ -495,7 +488,7 @@ _Annie asked AI this question earlier. Here's what it said:_
 
 <Vertical id="fba2_function_sorting">
 
-<Markdown>
+<Markdown when="!@fba2_completion_checkbox.value">
 ## Practice: Identify the Function of Each Behavior
 
 Answer **6 questions correctly in a row** to demonstrate mastery. Each scenario
@@ -524,7 +517,7 @@ You need to get **6 correct in a row** to move on. If you get one wrong, your st
 Use AI to create a **flowchart diagram** showing the ABCs (Antecedent → Behavior → Consequence) for each of the four functions of behavior.
 </Markdown>
 
-<Collapsible id="fba2_abc_diagram_hint" title="The instructor's prompt">
+<Collapsible id="fba2_abc_diagram_hint" title="Lianne's prompt">
 <Markdown>
 Here is an example of a prompt that will generate the complex mermaid diagrams this task asks for. It's probably better to just run it, rather
 than experimenting with it, until you understand Mermaid diagrams better!
@@ -572,7 +565,7 @@ flowchart LR
 </ActionButton>
 </Collapsible>
 
-<ActionButton id="fba2_ai_abc_btn" label="Use AI">
+<ActionButton id="fba2_ai_abc_btn" label="Create the Diagram">
 <SetFieldAction id="fba2_ai_abc_trigger" target="fba2_ai_abc_placeholder" field="value" value="*Generating diagram — this may take up to a minute...*" />
 <LLMAction id="fba2_ai_abc_code_action" target="fba2_ai_abc_code">
 <Ref target="ABCs_mermaid_diagram" />
@@ -598,9 +591,8 @@ flowchart LR
      The container Vertical and the other three diagrams are no longer referenced.
      Keeping the individual Mermaid blocks in case the escape diagram inline needs them.
      Remove the unused ones (attention, tangible, sensory) once approved by course team. -->
-<IntakeGate ready="!@fba2_completion_checkbox.value">
-<Markdown> </Markdown>
-<Vertical id="fba2_abc_reference">
+
+<Vertical id="fba2_abc_reference" when="!@fba2_completion_checkbox.value">
 <Markdown>
 ## ABC Reference Diagrams
 
@@ -619,8 +611,6 @@ Each diagram shows the **Antecedent → Behavior → Consequence** chain for one
 <Markdown>### Sensory (Automatic Reinforcement)</Markdown>
 <Mermaid id="fba2_abc_ref_sensory" src="diagrams/abc_ref_sensory.mmd" />
 </Vertical>
-</IntakeGate>
-
 
 <HH> ============= Screen: ABC for Johnny ====================== </HH>
 
@@ -691,15 +681,11 @@ Use the color-coded reference diagram below to understand the Competing Behavior
 </Markdown>
 
 <Mermaid id="fba2_pathway_reference" src="diagrams/cbp_blank_template.mmd" />
-
 <Markdown>
-### Fill in the Competing Behavior Pathway for Johnny
-
-The antecedent has been filled in for you. Complete the rest based on what you know about Johnny's bedtime situation.
+**Setting**, **antecedent**, **desired behavior**, **desired outcome**, and **alternate behavior/consequences** have been filled in for you. Complete the rest based on what you know about Johnny's bedtime situation.
 </Markdown>
-
-<Markdown>**Antecedent** (what happens before the problem behavior): **Roommate tells Johnny to go to bed**</Markdown>
- 
+<Tabs> 
+<Vertical title="Fill in the Competing Behavior Pathway for Johnny">
 <Markdown>**Problem Behavior** (what Johnny does):</Markdown>
 <TextArea id="fba2_pathway_behavior" rows="1" placeholder="What does Johnny do?" />
 
@@ -740,40 +726,54 @@ consequence, or the function for the student. They need to figure that out for t
 
 <LLMFeedback id="fba2_pathway_feedback" render="markdown" />
 </Vertical>
+<Vertical title="What has already been filled in">
+<Markdown>**Setting** (the context): **It's getting late**</Markdown>
+<Markdown>**Antecedent** (what happens before the problem behavior): **Roommate tells Johnny to go to bed**</Markdown>
+<Markdown>**Desired behavior** (the behavior we want): **Johnny goes to bed appropriately.**</Markdown>
+<Markdown>**Desired outcome** (what we want the behavior to lead to): **Johnny goes to sleep.**</Markdown>
+<Markdown>**Alternative Behavior** (something else the person might do): **Johnny throws a tantrum.**</Markdown>
+<Markdown>**Alternative Consequence** (what happens after alternative behavior): **The babysitter pleads and begs.**</Markdown>
+</Vertical>
+</Tabs>
+</Vertical>
 
 
 <HH> ============= Screen: JJ's completed pathway ============== </HH>
 
-<IntakeGate ready="!@fba2_completion_checkbox.value">
-<Markdown> </Markdown>
-<Vertical id="fba2_competing_pathway_jj_section">
+<Vertical id="fba2_competing_pathway_jj_section" when="!@fba2_completion_checkbox.value">
 <Markdown id="fba2_competing_pathway_jj">
 ## JJ's Completed Competing Behavior Pathway
 </Markdown>
 <Mermaid id="fba2_competing_pathway_jj_diagram" src="diagrams/johnny_cbp_jj_auto.mmd" />
 </Vertical>
-</IntakeGate>
-
 
 <HH> ============= Screen: Textbook on escape =================== </HH>
 
-<!-- Textbook quote moved inline into Lin's dialogue in the chatpeg.
-     Remove once approved by course team. -->
-<!--
-<IntakeGate ready="!@fba2_completion_checkbox.value">
-<Markdown> </Markdown>
-<Markdown id="fba2_textbook_escape">
-## From the Textbook
-
-_"Escape is used to get away from something aversive or not preferred. Changing **antecedent conditions** is key to intervening when the function of behavior is escape."_
+<Markdown id="fba2_textbook_escape" when="!@fba2_completion_checkbox.value">
+**Brainstorm**: _Consider as many strategies and interventions as possible. Defer clinical judgment._
+- Prevent the problem behavior from occurring using antecedent event and predictor strategies.
+- Teach adaptive behaviors that lead to the same outcome as the problem behavior using teaching strategies.
+- React to the problem behavior in an appropriate way by using consequence strategies.
+- React to desired behaviors by making reinforcement at a higher rate, more immediate, and of higher quality by using consequence strategies.
+- Make desired behaviors take less effort to perform to obtain the same consequence.
 </Markdown>
-</IntakeGate>
--->
+
+    <!-- Textbook information on designing interventions -->
+<Markdown id="fba2_textbook_interventions" when="!@fba2_completion_checkbox.value">
+## Generate interventions based on the competing behavior model
+**Brainstorm**: _Consider as many strategies and interventions as possible. Defer clinical judgment._
+
+- Prevent the problem behavior from occurring using antecedent event and predictor strategies.
+- Teach adaptive behaviors that lead to the same outcome as the problem behavior using teaching strategies.
+- React to the problem behavior in an appropriate way by using consequence strategies.
+- React to desired behaviors by making reinforcement at a higher rate, more immediate, and of higher quality by using consequence strategies.
+- Make desired behaviors take less effort to perform to obtain the same consequence.
+</Markdown>
 
 
 <HH> ============= Screen: Intervention strategies ============== </HH>
 
-<Tabs id="fba2_intervention_strategies">
+<Vertical id="fba2_intervention_strategies">
 
 <Vertical id="fba2_strategy_recommendations" when="@fba2_antecedent_strategies_problem.score===1 && @fba2_consequence_strategies_problem.score===1" title="My Recommendations">
 <Markdown>**Now that you've identified which strategies address escape, which ones would you recommend for Johnny and why?**</Markdown>
@@ -822,7 +822,7 @@ rows:
 </TabularMCQGrader>
 </CapaProblem>
 </Vertical>
-</Tabs>
+</Vertical>
 
 
 <HH> ============= Screen: AI antecedent interventions ========== </HH>
@@ -930,7 +930,7 @@ Format with bolded headers and a numbered list. Keep each strategy to 1-2 senten
 <HH> ============= Screen: Revised pathway ====================== </HH>
 
 <Tabs id="fba2_revised_pathway">
-<Vertical title="Build Your Revised Plan">
+<Vertical id="fba2_revised_plan" title="Build Your Revised Plan">
 <Markdown>
 ### Your Revised Plan
 
@@ -964,7 +964,20 @@ Using the escape-focused antecedent and consequence strategies you identified, f
 <HH> ============= Screen: Plan selection ======================= </HH>
 
 <Vertical id="fba2_plan_selection">
-<Markdown>
+
+
+<MarkupProblem id="fba2_plan_choice" title="Choose the Best Plan"><![CDATA[
+>>Which plan do you think will work best for Johnny?<<
+
+(x) Plan A — Escape-Focused Plan
+( ) Plan B — Sensory-Focused Plan
+
+[explanation]
+**Plan A** is correct. Since the function of Johnny's behavior is **escape**, the intervention plan must address escape. Plan A uses antecedent strategies to make bedtime less aversive (predictable routine, warnings, timers) and consequence strategies that don't reinforce escape behavior (ignoring running away, not chasing). Plan B targets sensory needs, which is not the function of Johnny's behavior.
+[/explanation]
+]]></MarkupProblem>
+
+<Markdown id="fba2_two_possible_plans" when="!@fba2_completion_checkbox.value">
 ## Behavior Modification Plan
 
 Annie has two plans to present. Both include data collection over a 2-week period.
@@ -980,16 +993,6 @@ Annie has two plans to present. Both include data collection over a 2-week perio
 - _Consequence strategies:_ Allow access to a sensory toy (fidget) in bed; redirect sensory-seeking behavior to appropriate sensory input; track which sensory inputs are most effective.
 </Markdown>
 
-<MarkupProblem id="fba2_plan_choice" title="Choose the Best Plan"><![CDATA[
->>Which plan do you think will work best for Johnny?<<
-
-(x) Plan A — Escape-Focused Plan
-( ) Plan B — Sensory-Focused Plan
-
-[explanation]
-**Plan A** is correct. Since the function of Johnny's behavior is **escape**, the intervention plan must address escape. Plan A uses antecedent strategies to make bedtime less aversive (predictable routine, warnings, timers) and consequence strategies that don't reinforce escape behavior (ignoring running away, not chasing). Plan B targets sensory needs, which is not the function of Johnny's behavior.
-[/explanation]
-]]></MarkupProblem>
 </Vertical>
 
 
@@ -1042,8 +1045,23 @@ Review the full escape-focused plan in the other tab, then come back here and re
 
 <HH> ============= Screen: Sensory plan check =================== </HH>
 
-<Vertical id="fba2_sensory_plan_check">
-<Markdown>
+<Tabs id="fba2_sensory_plan_check">
+<Vertical title="Why Wouldn't the Sensory Plan Work?">
+<MarkupProblem id="fba2_sensory_check_choice" title="Why Not the Sensory Plan?"><![CDATA[
+>>Why wouldn't this be a good plan for Johnny?<<
+
+( ) It does not address the function of behavior (attention)
+(x) It does not address the function of behavior (escape)
+( ) It does not include positive reinforcement
+( ) It does not include positive punishment
+
+[explanation]
+This plan addresses **sensory** needs, but Johnny's behavior function is **escape**. The plan does not address why Johnny is running away — to avoid going to bed. A good intervention must match the function of the behavior. Since Johnny's behavior is maintained by escape, the plan needs strategies that make bedtime less aversive and don't reinforce escape.
+[/explanation]
+]]></MarkupProblem>
+</Vertical>
+<Vertical title="Review the Sensory Plan in Detail">
+<Markdown id="fba2_sensory_plan_reference">
 ## Check for Understanding: The Sensory-Focused Plan
 
 Here is Plan B in detail:
@@ -1078,48 +1096,13 @@ Here is Plan B in detail:
 - Track whether Johnny goes to bed on time each night for 2 weeks
 - Note which sensory accommodations were used each night
 </Markdown>
-
-<MarkupProblem id="fba2_sensory_check_choice" title="Why Not the Sensory Plan?"><![CDATA[
->>Why wouldn't this be a good plan for Johnny?<<
-
-( ) It does not address the function of behavior (attention)
-(x) It does not address the function of behavior (escape)
-( ) It does not include positive reinforcement
-( ) It does not include positive punishment
-
-[explanation]
-This plan addresses **sensory** needs, but Johnny's behavior function is **escape**. The plan does not address why Johnny is running away — to avoid going to bed. A good intervention must match the function of the behavior. Since Johnny's behavior is maintained by escape, the plan needs strategies that make bedtime less aversive and don't reinforce escape.
-[/explanation]
-]]></MarkupProblem>
 </Vertical>
+</Tabs>
 
 
 <HH> ============= Screen: Final email ========================== </HH>
 
-<Vertical id="fba2_final_email">
-<Markdown>
-## Final Activity: Email to Annie's Roommate
-
-Based on everything you have learned in this activity, write an email to Annie's roommate describing the details of the new intervention you and your teammates would like to suggest.
-
-**Make sure to use the following terms:**
-- Function of behavior
-- Antecedent, behavior, consequence
-- Positive reinforcement
-- Competing behavior pathway
-</Markdown>
-
-<Markdown id="fba2_email_rubric">
-### Email Rubric
-
-Your email will be evaluated on:
-1. Does it specify changes to **antecedent conditions** that will make it easier to get the child to bed on time?
-2. Does it specify changes to **consequence conditions** that will make it easier to get the child to bed on time?
-3. Are the interventions proposed ones that the psychological literature recommends as effective in addressing sleep refusal?
-4. Does the email provide enough **detail** about the interventions that the babysitter will be able to implement the plan effectively?
-</Markdown>
-
-<TextArea id="fba2_email_to_roommate" rows="10" placeholder="Write your email to Annie's roommate describing the new intervention plan..." />
+<Vertical id="fba2_final_email" when="!@fba2_completion_checkbox.value">
 
 <ActionButton id="fba2_email_check_btn" label="Get AI Feedback" dependsOn="@fba2_email_to_roommate.value">
 <LLMAction id="fba2_email_check" target="fba2_email_feedback"><![CDATA[
@@ -1140,8 +1123,50 @@ Keep your feedback constructive and concise.
 </ActionButton>
 
 <LLMFeedback id="fba2_email_feedback" render="markdown" />
+<Tabs id="fba2_final_email_without_feedback">
+<Vertical id="fba2_final_email_entry" title="Write email to Annie's roommate">
+<Markdown>
+## Final Activity: Email to Annie's Roommate
+
+Based on everything you have learned in this activity, write an email to Annie's roommate describing the details of the new intervention you and your teammates would like to suggest.
+
+**Make sure to use the following terms:**
+- Function of behavior
+- Antecedent, behavior, consequence
+- Positive reinforcement
+- Competing behavior pathway
+</Markdown>
+<TextArea id="fba2_email_to_roommate" rows="10" placeholder="Write your email to Annie's roommate describing the new intervention plan..." />
+</Vertical>
+<Vertical title="Rubric">
+<Markdown id="fba2_email_rubric">
+### Email Rubric
+
+Your email will be evaluated on:
+1. Does it specify changes to **antecedent conditions** that will make it easier to get the child to bed on time?
+2. Does it specify changes to **consequence conditions** that will make it easier to get the child to bed on time?
+3. Are the interventions proposed ones that the psychological literature recommends as effective in addressing sleep refusal?
+4. Does the email provide enough **detail** about the interventions that the babysitter will be able to implement the plan effectively?
+</Markdown>
+</Vertical>
+<Vertical title="Your revised plan">
+<Use ref="fba2_revised_plan" />
+</Vertical>
+<Vertical title="The escape plan">
+<Use ref="fba2_plan_reference" />
+</Vertical>
+<Vertical title="What you like about the escape plan">
+<Use ref="fba2_plan_likes" />
+</Vertical>
+<Vertical title="The sensory plan">
+<Use ref="fba2_sensory_plan_reference" />
+</Vertical>
+</Tabs>
 </Vertical>
 
+<Vertical  when="@fba2_completion_checkbox.value">
+  <Use ref="fba2_final_email_entry" />
+</Vertical>
 
 <HH> ============= Screen: Completion ========================== </HH>
 
