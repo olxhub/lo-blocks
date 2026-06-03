@@ -103,6 +103,8 @@ async function initStorage(): Promise<KVStore> {
   } else {
     console.log(`  Storage: ${backend}`);
   }
+
+  await store.ready;
   return store;
 }
 

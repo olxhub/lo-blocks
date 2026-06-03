@@ -16,28 +16,19 @@
 //
 'use client';
 import { useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
 import * as lo_event from 'lo_event';
+import { useLoaded } from 'lo_event/hooks';
 
 import { useUser } from './redux';
 
-/**
- * True once the server's blob snapshot has been merged into Redux
- * (lo_event's handleLoadState sets settings.reduxStoreStatus). Until
- * then, persisted state has not yet hydrated.
- */
-export function useReduxStoreLoaded(): boolean {
-  return useSelector((state: any) => state?.settings?.reduxStoreStatus ?? false);
-}
-
 export function ReduxStoreLoader() {
-  const reduxStoreLoaded = useReduxStoreLoaded();
+  const loaded = useLoaded();
   const currentUser = useUser();
   const pendingRequestRef = useRef(false);
 
   useEffect(() => {
     if (!currentUser) return;
-    if (reduxStoreLoaded) {
+    if (loaded) {
       pendingRequestRef.current = false;
       return;
     }
@@ -45,7 +36,7 @@ export function ReduxStoreLoader() {
 
     pendingRequestRef.current = true;
     lo_event.logEvent('fetch_blob', {});
-  }, [reduxStoreLoaded, currentUser]);
+  }, [loaded, currentUser]);
 
   return null;
 }

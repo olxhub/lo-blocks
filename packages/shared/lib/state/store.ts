@@ -473,7 +473,43 @@ function configureStore({
   const useWebsocket = websocket && !isTest;
 
   const loggers = [
-    reduxLogger.reduxLogger([], {}),
+    reduxLogger.reduxLogger([], {
+      // Cross-tab state sync (redux-state-sync) is off by default in lo_event;
+      // see ReduxLoggerOptions.stateSync. We rely on that default here — it
+      // echoes every action between store instances and turns reactive effects
+      // (e.g. UseHistory) into unbounded feedback loops.
+      // Persist system, component, and componentSetting scopes.
+      // Excludes olxjson (large, loaded from content system),
+      // chat (transient), and storage (editor scratch).
+      // TODO: storage and chat scopes for authoring use cases
+      serializeForSave: (state) => {
+        const appState = (state as any).application_state;
+        if (!appState) return state;
+        return {
+          application_state: {
+            system: appState.system,
+            component: appState.component,
+            componentSetting: appState.componentSetting,
+          },
+        };
+      },
+      deserializeOnLoad: (blob, currentState) => {
+        const appState = (blob as any).application_state;
+        const cur = (currentState as any)?.application_state ?? {};
+        if (!appState) return {} as any;
+        // Merge into the live application_state so scopes we don't persist
+        // (olxjson, storage, chat) survive the load instead of being replaced
+        // away — set_state_reducer returns the payload wholesale.
+        return {
+          application_state: {
+            ...cur,
+            system: appState.system ?? cur.system ?? {},
+            component: appState.component ?? cur.component ?? {},
+            componentSetting: appState.componentSetting ?? cur.componentSetting ?? {},
+          },
+        } as any;
+      },
+    }),
     eventCaptureLogger,
     ...(debugEvents ? [consoleLogger()] : []),
     // Explicit URL (e.g. from static.config.json) bypasses port-map resolution.

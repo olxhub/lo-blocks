@@ -6,13 +6,13 @@ import AppHeader from '@/components/common/AppHeader';
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
-import { useFieldState, system, commonFields, useReduxStoreLoaded } from '@/lib/state';
+import { useFieldState, system, commonFields, useLoaded } from '@/lib/state';
 import { useContentLoader } from '@/lib/content/useContentLoader';
 import { parseStateKey, leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 
 export default function PreviewPage() {
-  const storeLoaded = useReduxStoreLoaded();
+  const storeLoaded = useLoaded();
   const params = useParams();
   // Route is /preview/[ns]/[id] — reconstruct StateKey as "ns/id"
   // (a bare "ns/id" is a valid StateKey — no scope markers means top-level instance)

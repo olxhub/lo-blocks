@@ -190,9 +190,13 @@ async function* handleBlobs(
       try {
         const blob = JSON.stringify(event.blob);
         await kvs.set(key, blob);
+        ws.send(JSON.stringify({ status: 'save_blob_ack', token: event.token }));
         console.log(`[${ctx.conn.id}] save_blob ${key}: ${blob.length} bytes`);
       } catch (err) {
         console.error(`[${ctx.conn.id}] save_blob error:`, err);
+        // Tell the client the write failed so it can surface it instead of
+        // sitting at 'modified' indefinitely (indistinguishable from "saving").
+        ws.send(JSON.stringify({ status: 'save_blob_nack', token: event.token }));
       }
       // save_blob is consumed here — not yielded downstream
       continue;
