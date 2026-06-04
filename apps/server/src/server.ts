@@ -183,13 +183,13 @@ export async function startServer(
     ws.send(JSON.stringify({ status: 'auth', ...user }));
 
     runPipeline({ ws, user, conn, kvs }).then(() => {
-      console.log(`[${conn.id}] Client disconnected - ${conn.log.events.length} events saved`);
-      saveConnectionLog(conn);
-      activeConnections.delete(ws);
+      console.log(`[${conn.id}] Client disconnected - ${conn.log.events.length} events`);
     }).catch((err) => {
       console.error(`[${conn.id}] Pipeline error:`, err);
-      saveConnectionLog(conn);
-      activeConnections.delete(ws);
+    }).finally(() => {
+      saveConnectionLog(conn)
+        .catch((err) => console.error(`[${conn.id}] Error saving event log:`, err))
+        .finally(() => activeConnections.delete(ws));
     });
   });
 
