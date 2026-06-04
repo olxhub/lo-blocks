@@ -4,6 +4,14 @@ description: "Activities used in Psychology Study Group: 3 Auto. Function of Beh
 category: psychology
 index: 53.5
 lang: en-Latn-US
+authors:
+  - Mollie Blair Anderson
+  - Randy Floyd
+  - Emily N Srisarajivakul
+  - Kara Watkins
+  - Piotr Mitros
+  - Paul Deane
+license: AGPL
 ---
 -->
 <Vertical id="psych_sba_activities_part3auto" title="Psychology Study Group: 3 Auto. Function of Behavior (Activities)" launchable="true">

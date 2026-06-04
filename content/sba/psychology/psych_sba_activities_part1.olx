@@ -4,6 +4,14 @@ description: "Activities used in Psychology Study Group: 1. Sleep Refusal. This 
 category: psychology
 index: 51
 lang: en-Latn-US
+authors:
+  - Mollie Blair Anderson
+  - Randy Floyd
+  - Emily N Srisarajivakul
+  - Kara Watkins
+  - Piotr Mitros
+  - Paul Deane
+license: AGPL
 ---
 -->
 <Vertical id="psych_sba_activities_part1" title="Psychology Study Group: 1. Sleep Refusal (Activities)" launchable="true">
