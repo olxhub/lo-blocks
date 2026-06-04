@@ -451,11 +451,13 @@ let reduxStoreInstance: any = null;
 function configureStore({
   extraFields = [],
   websocket,
+  tabSync = false,
   eventServerUrl,
   blockRegistry,
 }: {
   extraFields?: ExtraFieldsParam;
   websocket: boolean;
+  tabSync?: boolean;
   eventServerUrl?: string;
   blockRegistry: BlockRegistryParam;
 }) {
@@ -471,13 +473,17 @@ function configureStore({
   const debugEvents = false; // Toggle here to log events to the console
   const isTest = process.env.VITEST === 'true';
   const useWebsocket = websocket && !isTest;
+  // Cross-tab state sync (redux-state-sync). lo_event exposes it as the
+  // `stateSync` flag (it owns the BroadcastChannel, browser guard, and lazy
+  // listener); we gate it on the `tab-sync` PMSS flag, threaded in as `tabSync`
+  // because config isn't initialized yet when store.init() runs in some apps.
+  // Echo-loop-safe: reactive redux writers are idempotent (see statesync notes).
+  // Never sync under test.
+  const useTabSync = tabSync && !isTest;
 
   const loggers = [
     reduxLogger.reduxLogger([], {
-      // Cross-tab state sync (redux-state-sync) is off by default in lo_event;
-      // see ReduxLoggerOptions.stateSync. We rely on that default here — it
-      // echoes every action between store instances and turns reactive effects
-      // (e.g. UseHistory) into unbounded feedback loops.
+      stateSync: useTabSync,
       // Persist system, component, and componentSetting scopes.
       // Excludes olxjson (large, loaded from content system),
       // chat (transient), and storage (editor scratch).

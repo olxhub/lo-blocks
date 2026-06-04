@@ -17,7 +17,7 @@
     translanguaging: true;
     debug-panel: true;   /* on by default; ctrl-` toggles it. Rarely disabled. */
     copyright: "";
-    tab-sync: false;
+    tab-sync: true;
 }
 
 /* Server-backed apps: websocket + session persistence */

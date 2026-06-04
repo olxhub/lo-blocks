@@ -36,6 +36,7 @@ const reduxStore = store.init({
   extraFields: extendSettings([]),
   blockRegistry: BLOCK_REGISTRY,
   websocket: useWebsocket,
+  tabSync: getConfigBool('tab-sync'),
   eventServerUrl,
 });
 
