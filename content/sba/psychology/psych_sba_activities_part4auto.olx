@@ -4,6 +4,14 @@ description: "Activities used in Psychology Study Group: 4 Auto. Progress Monito
 category: psychology
 index: 54.5
 lang: en-Latn-US
+authors:
+  - Mollie Blair Anderson
+  - Randy Floyd
+  - Emily N Srisarajivakul
+  - Kara Watkins
+  - Piotr Mitros
+  - Paul Deane
+license: AGPL
 ---
 -->
 <Vertical id="psych_sba_activities_part4auto" title="Psychology Study Group: 4 Auto. Progress Monitoring (Activities)" launchable="true">

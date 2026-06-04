@@ -4,6 +4,14 @@ description: Activities for Psychology SBA Part 4 - Implementation Fidelity. Thi
 category: psychology
 index: 53
 lang: en-Latn-US
+authors:
+  - Mollie Blair Anderson
+  - Randy Floyd
+  - Emily N Srisarajivakul
+  - Kara Watkins
+  - Piotr Mitros
+  - Paul Deane
+license: AGPL
 ---
 -->
 <Vertical id="psych_sba_part4_activities" title="Psychology Study Group: 4. Implementation Fidelity" launchable="true">
