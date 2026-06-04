@@ -101,7 +101,7 @@ async function* decodeAndLog(
 
     const eventType = event.event || event.type || 'unknown';
     const id = event.id ? ` id=${event.id}` : '';
-    console.log(`[${ctx.conn.id}:${ctx.conn.log.events.length}] ${eventType}${id}`);
+    console.log(`[${ctx.conn.id}:${ctx.conn.log.eventCount}] ${eventType}${id}`);
 
     yield event;
   }
