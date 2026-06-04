@@ -1,8 +1,8 @@
 // Event log — persists per-connection event streams to disk.
 //
 // Each WebSocket connection gets a ConnectionLog with a unique ID, a
-// reference to the authenticated user, and an EventLog that accumulates
-// events. Events are appended as NDJSON lines to a gzip stream.
+// reference to the authenticated user, and a gzip stream. Events are
+// appended as NDJSON lines to the stream.
 //
 // This is NOT an auth session (cookies, tokens, etc.). It's a debug/replay
 // artifact: the gzipped files in events/ can be read with zcat.
@@ -21,7 +21,7 @@ export interface EventLog {
   description: string;
   started: string;
   user: AuthUser;
-  events: any[];
+  eventCount: number;
 }
 
 export interface ConnectionLog {
@@ -50,7 +50,7 @@ export function createConnectionLog(user: AuthUser): ConnectionLog {
     description: 'Captured event stream',
     started: new Date().toISOString(),
     user,
-    events: []
+    eventCount: 0
   };
 
   const gzip = zlib.createGzip();
@@ -78,7 +78,7 @@ export function createConnectionLog(user: AuthUser): ConnectionLog {
 
 /** Append a single event to the gzip stream. */
 export function appendEvent(conn: ConnectionLog, event: any) {
-  conn.log.events.push(event);
+  conn.log.eventCount++;
   conn.stream.write(JSON.stringify(event) + '\n');
 }
 
