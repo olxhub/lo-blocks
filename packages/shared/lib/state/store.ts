@@ -481,9 +481,21 @@ function configureStore({
   // Never sync under test.
   const useTabSync = tabSync && !isTest;
 
+  // When syncing, broadcast only user-interaction events. Content (olxjson)
+  // loads are excluded: content is loaded independently per tab (bundled in
+  // static, fetched in client), so syncing it is redundant — and shipping the
+  // bundled course as one giant action corrupts the receiving tab. lo_event
+  // already withholds its own lifecycle actions (SET_STATE, LOCKFIELDS).
+  const CONTENT_EVENTS = new Set<string>(OLXJSON_EVENT_TYPES);
+  const syncFilter = (action: any): boolean => {
+    if (action?.redux_type !== 'EMIT_EVENT' || typeof action.payload !== 'string') return true;
+    try { return !CONTENT_EVENTS.has(JSON.parse(action.payload).event); }
+    catch { return true; }
+  };
+
   const loggers = [
     reduxLogger.reduxLogger([], {
-      stateSync: useTabSync,
+      stateSync: useTabSync ? { predicate: syncFilter } : false,
       // Persist system, component, and componentSetting scopes.
       // Excludes olxjson (large, loaded from content system),
       // chat (transient), and storage (editor scratch).
