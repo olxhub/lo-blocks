@@ -31,6 +31,8 @@ export interface ConnectionLog {
   path: string;
   stream: zlib.Gzip;
   fileStream: fs.WriteStream;
+  /** First mid-session stream error, if any. */
+  streamError?: Error;
   /** Set by saveConnectionLog; makes repeated calls idempotent. */
   savePromise?: Promise<void>;
 }
@@ -55,11 +57,23 @@ export function createConnectionLog(user: AuthUser): ConnectionLog {
   const fileStream = fs.createWriteStream(logPath);
   gzip.pipe(fileStream);
 
+  const conn: ConnectionLog = { id, user, log, path: logPath, stream: gzip, fileStream };
+
+  // Handle mid-session write errors (ENOSPC, EACCES, etc.) so they don't
+  // crash the whole server as uncaught exceptions. Store the first error so
+  // saveConnectionLog can reject immediately instead of hanging.
+  const onStreamError = (err: Error) => {
+    if (!conn.streamError) conn.streamError = err;
+    console.error(`[${id}] Event log stream error (${logPath}):`, err.message);
+  };
+  gzip.on('error', onStreamError);
+  fileStream.on('error', onStreamError);
+
   // Write header line with connection metadata
-  const header = { description: log.description, started: log.started, user };
+  const header = { event: 'ndjson_header', description: log.description, started: log.started, user };
   gzip.write(JSON.stringify(header) + '\n');
 
-  return { id, user, log, path: logPath, stream: gzip, fileStream };
+  return conn;
 }
 
 /** Append a single event to the gzip stream. */
@@ -73,6 +87,10 @@ export function appendEvent(conn: ConnectionLog, event: any) {
  *  Returns a promise that resolves when all data has been written to disk. */
 export function saveConnectionLog(conn: ConnectionLog): Promise<void> {
   if (conn.savePromise) return conn.savePromise;
+  if (conn.streamError) {
+    conn.savePromise = Promise.reject(conn.streamError);
+    return conn.savePromise;
+  }
   conn.savePromise = new Promise((resolve, reject) => {
     const cleanup = () => {
       conn.stream.removeListener('error', onError);
