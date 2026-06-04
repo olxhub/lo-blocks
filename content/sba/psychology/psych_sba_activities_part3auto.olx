@@ -41,7 +41,7 @@ Let's begin.
 <HH> ============= Screen: Use AI to define function of behavior ==== </HH>
 
 <Vertical id="fba2_ai_function_def">
-<Markdown>
+<Markdown id="fba2_ai_function_intro">
 ## What is the Function of a Behavior?
 
 Try to explain what the function of a behavior is, based on what you know or remember from class. Then get AI feedback on your explanation.
@@ -72,9 +72,10 @@ Keep your response accessible for undergraduate students.
 Output your response in Markdown with bolded paragraph and list headers,
 but keep it short -- no more than a few paragraphs.
 ]]></LLMAction>
-<SetFieldAction 
-    target="jjs_prompt" 
-    field="value" 
+<SetFieldAction
+    id="fba2_jjs_prompt_init"
+    target="jjs_prompt"
+    field="value"
     value="You are a helpful psychology teaching assistant. Create a chart showing the four
 functions of behavior (attention, escape, access to tangibles, sensory) with examples
 of how each relates to positive and negative reinforcement. Use a markdown table format.
@@ -84,9 +85,10 @@ incompatible with the type of reinforcement, assuming that negative reinforcemen
 compatible with removal of unwanted attention but not with access, while escape is
 not compatible with positive reinforcement. Highlight the function names in the
 function column." />
-<SetFieldAction 
-    target="ABCs_mermaid_diagram" 
-    field="value" 
+<SetFieldAction
+    id="fba2_abc_diagram_prompt_init"
+    target="ABCs_mermaid_diagram"
+    field="value"
     value="If the following question is about the ABCs (Antecedent, Behavior, Consequence) model
 and functions of behavior, generate ONLY valid Mermaid flowchart code. No explanations,
 no markdown, no code fences — output must start with 'flowchart LR' and contain nothing
@@ -160,7 +162,7 @@ The function always refers to a type of **reinforcement** — either positive or
 <Vertical id="fba2_reinforcement_review">
 
 <Collapsible id="fba2_lecture_notes_collapsible" title="Lecture Notes">
-<Markdown>
+<Markdown id="fba2_lecture_notes_md">
 **Reinforcement** is any event that strengthens (increases the frequency of) a preceding response.
 
 **Punishment** is any consequence that decreases the frequency of a preceding behavior.
@@ -171,7 +173,7 @@ The function always refers to a type of **reinforcement** — either positive or
 </Markdown>
 </Collapsible>
 
-<Markdown>
+<Markdown id="fba2_operant_review_intro">
 ## Quick Review: Operant Conditioning
 
 For each scenario, identify the type of operant conditioning at work. You need to get 3 correct in a row to move on. If you get one wrong, the streak resets — correct your answer and keep going.
@@ -185,7 +187,7 @@ For each scenario, identify the type of operant conditioning at work. You need t
 <HH> ============= Screen: Use AI to create function chart ============ </HH>
 
 <Vertical id="fba2_ai_function_chart">
-<Markdown>
+<Markdown id="fba2_ai_chart_intro">
 ## Use AI: Functions of Behavior Chart
 
 Use AI to create a chart that incorporates functions of behavior and types of reinforcement.
@@ -193,12 +195,12 @@ Use AI to create a chart that incorporates functions of behavior and types of re
 
 <Collapsible id="fba2_chart_hint" title="JJ's prompt">
 <HH>
-I want what is now in Markdown to be a TextArea where the content is preset. 
+I want what is now in Markdown to be a TextArea where the content is preset.
 We can't currently do that directly so I'm forcing a SetFieldAction earliker
 in the SBA to produce the same effect.
 </HH>
 
-<Markdown>
+<Markdown id="fba2_jjs_prompt_label">
 Here's JJ's prompt:
 </Markdown>
 <TextArea id="jjs_prompt" />
@@ -207,7 +209,7 @@ Here's JJ's prompt:
 <SetFieldAction
     id="fba2_ai_chart_reset_action"
     target="jjs_prompt"
-    field="value" 
+    field="value"
     value="You are a helpful psychology teaching assistant. Create a chart showing the four
 functions of behavior (attention, escape, access to tangibles, sensory) with examples
 of how each relates to positive and negative reinforcement. Use a markdown table format.
@@ -223,7 +225,7 @@ function column." />
 
 <ActionButton id="fba2_ai_chart_btn" label="Create the Chart">
 <LLMAction id="fba2_ai_chart_action" target="fba2_ai_chart_response">
-<Ref target="jjs_prompt" />
+<Ref id="fba2_ref_jjs_prompt" target="jjs_prompt" />
 </LLMAction>
 </ActionButton>
 
@@ -235,7 +237,7 @@ function column." />
 
 <SplitPanel id="fba2_own_examples_attention">
 <LeftPane>
-<Markdown>
+<Markdown id="fba2_pr_attention_label">
 **Write Your Own Example of Positive Reinforcement**
 
 1\. Attention
@@ -243,11 +245,11 @@ function column." />
 <TextArea id="fba2_pos_reinforcement_attention" rows="3"
   placeholder="Describe a situation where behavior is maintained by attention through positive reinforcement..." />
 <ActionButton id="fba2_pr_attention_btn" label="Get AI Feedback" dependsOn="@fba2_pos_reinforcement_attention.value">
-<LLMAction target="fba2_pr_attention_feedback">
+<LLMAction id="fba2_pr_attention_action" target="fba2_pr_attention_feedback">
 A student in a psychology class has offered the following situation as an
 example of positive reinforcement whose function is attention --
 
-Student's example: <Ref target="fba2_pos_reinforcement_attention" />
+Student's example: <Ref id="fba2_ref_pr_attention" target="fba2_pos_reinforcement_attention" />
 
 Evaluate whether the student's example is a correct example of positive reinforcement
 with attention as its function and if it is, say so and stop; otherwise, explain
@@ -257,7 +259,7 @@ why it is not. Do not offer examples of your own.
 <LLMFeedback id="fba2_pr_attention_feedback" render="markdown" />
 </LeftPane>
 <RightPane>
-<Markdown>
+<Markdown id="fba2_nr_attention_label">
 **Write Your Own Example of Negative Reinforcement**
 
 1\. Attention
@@ -265,11 +267,11 @@ why it is not. Do not offer examples of your own.
 <TextArea id="fba2_neg_reinforcement_attention" rows="3"
   placeholder="Describe a situation where behavior is maintained by attention through negative reinforcement..." />
 <ActionButton id="fba2_nr_attention_btn" label="Get AI Feedback" dependsOn="@fba2_neg_reinforcement_attention.value">
-<LLMAction target="fba2_nr_attention_feedback">
+<LLMAction id="fba2_nr_attention_action" target="fba2_nr_attention_feedback">
 A student in a psychology class has offered the following situation as an
 example of negative reinforcement whose function is attention --
 
-Student's example: <Ref target="fba2_neg_reinforcement_attention" />
+Student's example: <Ref id="fba2_ref_nr_attention" target="fba2_neg_reinforcement_attention" />
 
 Evaluate whether the student's example is a correct example of negative reinforcement
 with attention as its function and if it is, say so and stop; otherwise, explain
@@ -285,7 +287,7 @@ why it is not. Do not offer examples of your own.
 
 <SplitPanel id="fba2_own_examples_escape">
 <LeftPane>
-<Markdown>
+<Markdown id="fba2_pr_escape_label">
 **Write Your Own Example of Positive Reinforcement**
 
 2\. Escape
@@ -293,11 +295,11 @@ why it is not. Do not offer examples of your own.
 <TextArea id="fba2_pos_reinforcement_escape" rows="3"
   placeholder="Describe a situation where behavior is maintained by escape through positive reinforcement..." />
 <ActionButton id="fba2_pr_escape_btn" label="Get AI Feedback" dependsOn="@fba2_pos_reinforcement_escape.value">
-<LLMAction target="fba2_pr_escape_feedback">
+<LLMAction id="fba2_pr_escape_action" target="fba2_pr_escape_feedback">
 A student in a psychology class has offered the following situation as an
 example of positive reinforcement whose function is escape --
 
-Student's example: <Ref target="fba2_pos_reinforcement_escape" />
+Student's example: <Ref id="fba2_ref_pr_escape" target="fba2_pos_reinforcement_escape" />
 
 Evaluate whether the student's example is a correct example of positive reinforcement
 with escape as its function and if it is, say so and stop; otherwise, explain
@@ -307,7 +309,7 @@ why it is not. Do not offer examples of your own.
 <LLMFeedback id="fba2_pr_escape_feedback" render="markdown" />
 </LeftPane>
 <RightPane>
-<Markdown>
+<Markdown id="fba2_nr_escape_label">
 **Write Your Own Example of Negative Reinforcement**
 
 2\. Escape
@@ -315,11 +317,11 @@ why it is not. Do not offer examples of your own.
 <TextArea id="fba2_neg_reinforcement_escape" rows="3"
   placeholder="Describe a situation where behavior is maintained by escape through negative reinforcement..." />
 <ActionButton id="fba2_nr_escape_btn" label="Get AI Feedback" dependsOn="@fba2_neg_reinforcement_escape.value">
-<LLMAction target="fba2_nr_escape_feedback">
+<LLMAction id="fba2_nr_escape_action" target="fba2_nr_escape_feedback">
 A student in a psychology class has offered the following situation as an
 example of negative reinforcement whose function is escape --
 
-Student's example: <Ref target="fba2_neg_reinforcement_escape" />
+Student's example: <Ref id="fba2_ref_nr_escape" target="fba2_neg_reinforcement_escape" />
 
 Evaluate whether the student's example is a correct example of negative reinforcement
 with escape as its function and if it is, say so and stop; otherwise, explain
@@ -335,7 +337,7 @@ why it is not. Do not offer examples of your own.
 
 <SplitPanel id="fba2_own_examples_access">
 <LeftPane>
-<Markdown>
+<Markdown id="fba2_pr_access_label">
 **Write Your Own Example of Positive Reinforcement**
 
 3\. Access/Tangible
@@ -343,11 +345,11 @@ why it is not. Do not offer examples of your own.
 <TextArea id="fba2_pos_reinforcement_access" rows="3"
   placeholder="Describe a situation where behavior is maintained by access to tangibles through positive reinforcement..." />
 <ActionButton id="fba2_pr_access_btn" label="Get AI Feedback" dependsOn="@fba2_pos_reinforcement_access.value">
-<LLMAction target="fba2_pr_access_feedback">
+<LLMAction id="fba2_pr_access_action" target="fba2_pr_access_feedback">
 A student in a psychology class has offered the following situation as an
 example of positive reinforcement whose function is access to tangibles --
 
-Student's example: <Ref target="fba2_pos_reinforcement_access" />
+Student's example: <Ref id="fba2_ref_pr_access" target="fba2_pos_reinforcement_access" />
 
 Evaluate whether the student's example is a correct example of positive reinforcement
 with access as its function and if it is, say so and stop; otherwise, explain
@@ -357,7 +359,7 @@ why it is not. Do not offer examples of your own.
 <LLMFeedback id="fba2_pr_access_feedback" render="markdown" />
 </LeftPane>
 <RightPane>
-<Markdown>
+<Markdown id="fba2_nr_access_label">
 **Write Your Own Example of Negative Reinforcement**
 
 3\. Access/Tangible
@@ -365,11 +367,11 @@ why it is not. Do not offer examples of your own.
 <TextArea id="fba2_neg_reinforcement_access" rows="3"
   placeholder="Describe a situation where behavior is maintained by access to tangibles through negative reinforcement..." />
 <ActionButton id="fba2_nr_access_btn" label="Get AI Feedback" dependsOn="@fba2_neg_reinforcement_access.value">
-<LLMAction target="fba2_nr_access_feedback">
+<LLMAction id="fba2_nr_access_action" target="fba2_nr_access_feedback">
 A student in a psychology class has offered the following situation as an
 example of negative reinforcement whose function is access to tangibles --
 
-Student's example: <Ref target="fba2_neg_reinforcement_access" />
+Student's example: <Ref id="fba2_ref_nr_access" target="fba2_neg_reinforcement_access" />
 
 Evaluate whether the student's example is a correct example of negative reinforcement
 with access as its function and if it is, say so and stop; otherwise, explain
@@ -385,7 +387,7 @@ why it is not. Do not offer examples of your own.
 
 <SplitPanel id="fba2_own_examples_sensory">
 <LeftPane>
-<Markdown>
+<Markdown id="fba2_pr_sensory_label">
 **Write Your Own Example of Positive Reinforcement**
 
 4\. Sensory
@@ -393,11 +395,11 @@ why it is not. Do not offer examples of your own.
 <TextArea id="fba2_pos_reinforcement_sensory" rows="3"
   placeholder="Describe a situation where behavior is maintained by sensory stimulation through positive reinforcement..." />
 <ActionButton id="fba2_pr_sensory_btn" label="Get AI Feedback" dependsOn="@fba2_pos_reinforcement_sensory.value">
-<LLMAction target="fba2_pr_sensory_feedback">
+<LLMAction id="fba2_pr_sensory_action" target="fba2_pr_sensory_feedback">
 A student in a psychology class has offered the following situation as an
 example of positive reinforcement with a sensory function --
 
-Student's example: <Ref target="fba2_pos_reinforcement_sensory" />
+Student's example: <Ref id="fba2_ref_pr_sensory" target="fba2_pos_reinforcement_sensory" />
 
 Evaluate whether the student's example is a correct example of positive reinforcement
 with a sensory function and if it is, say so and stop; otherwise, explain
@@ -407,7 +409,7 @@ why it is not. Do not offer examples of your own.
 <LLMFeedback id="fba2_pr_sensory_feedback" render="markdown" />
 </LeftPane>
 <RightPane>
-<Markdown>
+<Markdown id="fba2_nr_sensory_label">
 **Write Your Own Example of Negative Reinforcement**
 
 4\. Sensory
@@ -415,11 +417,11 @@ why it is not. Do not offer examples of your own.
 <TextArea id="fba2_neg_reinforcement_sensory" rows="3"
   placeholder="Describe a situation where behavior is maintained by sensory stimulation through negative reinforcement..." />
 <ActionButton id="fba2_nr_sensory_btn" label="Get AI Feedback" dependsOn="@fba2_neg_reinforcement_sensory.value">
-<LLMAction target="fba2_nr_sensory_feedback">
+<LLMAction id="fba2_nr_sensory_action" target="fba2_nr_sensory_feedback">
 A student in a psychology class has offered the following situation as an
 example of negative reinforcement with a sensory function --
 
-Student's example: <Ref target="fba2_neg_reinforcement_sensory" />
+Student's example: <Ref id="fba2_ref_nr_sensory" target="fba2_neg_reinforcement_sensory" />
 
 Evaluate whether the student's example is a correct example of negative reinforcement
 with a sensory function and if it is, say so and stop; otherwise, explain
@@ -436,8 +438,8 @@ why it is not. Do not offer examples of your own.
 <IntakeGate id="fba2_predict_punishment" ready="@fba2_no_punishment_explanation.value && @fba2_punishment_confidence.value">
 
   <!-- Front: predict before seeing the answer -->
-  <Vertical>
-    <Markdown>
+  <Vertical id="fba2_predict_punishment_front">
+    <Markdown id="fba2_predict_punishment_prompt">
 ## Predict: Why Not Punishment?
 
 Annie mentioned that she used AI to get a statement about why punishment isn't listed as a function of behavior. She checked it with Lianne, and she said it's pretty accurate. **Before reading the answer, write your own prediction.** Think about what "function" means and how it relates to reinforcement.
@@ -446,7 +448,7 @@ Annie mentioned that she used AI to get a statement about why punishment isn't l
     <TextArea id="fba2_no_punishment_explanation" rows="3"
       placeholder="Why do you think punishment is not a function of behavior? Write your prediction..." />
 
-    <Markdown>Once you've written your prediction, **select a confidence level below to see the real answer.** (You won't be able to change your prediction after selecting.)</Markdown>
+    <Markdown id="fba2_predict_punishment_confidence_label">Once you've written your prediction, **select a confidence level below to see the real answer.** (You won't be able to change your prediction after selecting.)</Markdown>
     <ChoiceInput id="fba2_punishment_confidence">
       <Key value="very">Very confident — I'm sure about this</Key>
       <Key value="somewhat">Somewhat confident — I think so but I'm not sure</Key>
@@ -455,13 +457,13 @@ Annie mentioned that she used AI to get a statement about why punishment isn't l
   </Vertical>
 
   <!-- Back: show prediction alongside the answer -->
-  <Vertical>
-    <Markdown>
+  <Vertical id="fba2_predict_punishment_back">
+    <Markdown id="fba2_predict_punishment_recap">
 ## Your Prediction
 
 {{text2markdown(@fba2_no_punishment_explanation.value)}}
     </Markdown>
-    <Markdown  when="!@fba2_completion_checkbox.value">
+    <Markdown id="fba2_punishment_answer"  when="!@fba2_completion_checkbox.value">
 ---
 
 ## AI Response: Why Punishment Is Not a Function of Behavior
@@ -497,7 +499,7 @@ they said the same thing):_
 
 <Vertical id="fba2_function_sorting">
 
-<Markdown when="!@fba2_completion_checkbox.value">
+<Markdown id="fba2_function_sorting_intro" when="!@fba2_completion_checkbox.value">
 ## Practice: Identify the Function of Each Behavior
 
 Answer **6 questions correctly in a row** to demonstrate mastery. Each scenario
@@ -520,14 +522,14 @@ You need to get **6 correct in a row** to move on. If you get one wrong, your st
 <HH> ============= Screen: Use AI to generate ABC diagrams ============== </HH>
 
 <Vertical id="fba2_ai_abc_diagrams">
-<Markdown>
+<Markdown id="fba2_ai_abc_intro">
 ## Use AI: The ABCs of Behavior
 
 Use AI to create a **flowchart diagram** showing the ABCs (Antecedent → Behavior → Consequence) for each of the four functions of behavior.
 </Markdown>
 
 <Collapsible id="fba2_abc_diagram_hint" title="Lianne's prompt">
-<Markdown>
+<Markdown id="fba2_abc_prompt_label">
 Here is an example of a prompt that will generate the complex mermaid diagrams this task asks for. It's probably better to just run it, rather
 than experimenting with it, until you understand Mermaid diagrams better!
 </Markdown>
@@ -538,7 +540,7 @@ than experimenting with it, until you understand Mermaid diagrams better!
 <SetFieldAction
     id="fba2_ai_diagram_restore_action"
     target="ABCs_mermaid_diagram"
-    field="value" 
+    field="value"
     value="If the following question is about the ABCs (Antecedent, Behavior, Consequence) model
 and functions of behavior, generate ONLY valid Mermaid flowchart code. No explanations,
 no markdown, no code fences — output must start with 'flowchart LR' and contain nothing
@@ -578,7 +580,7 @@ flowchart LR
 <ActionButton id="fba2_ai_abc_btn" label="Create the Diagram">
 <SetFieldAction id="fba2_ai_abc_trigger" target="fba2_ai_abc_placeholder" field="value" value="*Generating diagram — this may take up to a minute...*" />
 <LLMAction id="fba2_ai_abc_code_action" target="fba2_ai_abc_code">
-<Ref target="ABCs_mermaid_diagram" />
+<Ref id="fba2_ref_abc_prompt" target="ABCs_mermaid_diagram" />
 </LLMAction>
 </ActionButton>
 
@@ -603,29 +605,29 @@ flowchart LR
      Remove the unused ones (attention, tangible, sensory) once approved by course team. -->
 
 <Vertical id="fba2_abc_reference" when="!@fba2_completion_checkbox.value">
-<Markdown>
+<Markdown id="fba2_abc_reference_intro">
 ## ABC Reference Diagrams
 
 Each diagram shows the **Antecedent → Behavior → Consequence** chain for one function of behavior.
 </Markdown>
 
-<Markdown>### Escape (Negative Reinforcement)</Markdown>
+<Markdown id="fba2_abc_ref_escape_label">### Escape (Negative Reinforcement)</Markdown>
 <Mermaid id="fba2_abc_ref_escape" src="diagrams/abc_ref_escape.mmd" />
 
-<Markdown>### Attention (Positive Reinforcement)</Markdown>
+<Markdown id="fba2_abc_ref_attention_label">### Attention (Positive Reinforcement)</Markdown>
 <Mermaid id="fba2_abc_ref_attention" src="diagrams/abc_ref_attention.mmd" />
 
-<Markdown>### Access/Tangible (Positive Reinforcement)</Markdown>
+<Markdown id="fba2_abc_ref_tangible_label">### Access/Tangible (Positive Reinforcement)</Markdown>
 <Mermaid id="fba2_abc_ref_tangible" src="diagrams/abc_ref_tangible.mmd" />
 
-<Markdown>### Sensory (Automatic Reinforcement)</Markdown>
+<Markdown id="fba2_abc_ref_sensory_label">### Sensory (Automatic Reinforcement)</Markdown>
 <Mermaid id="fba2_abc_ref_sensory" src="diagrams/abc_ref_sensory.mmd" />
 </Vertical>
 
 <HH> ============= Screen: ABC for Johnny ====================== </HH>
 
 <Vertical id="fba2_abc_johnny">
-<Markdown>
+<Markdown id="fba2_abc_johnny_intro">
 ## Your Turn: Johnny's ABCs
 
 Using the story about Johnny, explain the sequence of **Antecedent**, **Behavior**, and **Consequence** in your own words.
@@ -684,25 +686,25 @@ The function is **escape**. Johnny's running away is maintained by negative rein
 <HH> ============= Screen: Competing Behavior Pathway (blank) === </HH>
 
 <Vertical id="fba2_competing_pathway_blank">
-<Markdown>
+<Markdown id="fba2_cbp_blank_intro">
 ## Competing Behavior Pathway
 
 Use the color-coded reference diagram below to understand the Competing Behavior Pathway. Then fill in each part for Johnny's bedtime scenario.
 </Markdown>
 
 <Mermaid id="fba2_pathway_reference" src="diagrams/cbp_blank_template.mmd" />
-<Markdown>
+<Markdown id="fba2_cbp_blank_instructions">
 **Setting**, **antecedent**, **desired behavior**, **desired outcome**, and **alternate behavior/consequences** have been filled in for you. Complete the rest based on what you know about Johnny's bedtime situation.
 </Markdown>
-<Tabs> 
-<Vertical title="Fill in the Competing Behavior Pathway for Johnny">
-<Markdown>**Problem Behavior** (what Johnny does):</Markdown>
+<Tabs id="fba2_cbp_tabs">
+<Vertical id="fba2_cbp_fill_tab" title="Fill in the Competing Behavior Pathway for Johnny">
+<Markdown id="fba2_cbp_behavior_label">**Problem Behavior** (what Johnny does):</Markdown>
 <TextArea id="fba2_pathway_behavior" rows="1" placeholder="What does Johnny do?" />
 
-<Markdown>**Consequence** (what happens after the behavior):</Markdown>
+<Markdown id="fba2_cbp_consequence_label">**Consequence** (what happens after the behavior):</Markdown>
 <TextArea id="fba2_pathway_consequence" rows="1" placeholder="What does the roommate do in response?" />
 
-<Markdown>**Function** (why does this behavior continue?):</Markdown>
+<Markdown id="fba2_cbp_function_label">**Function** (why does this behavior continue?):</Markdown>
 <TextArea id="fba2_pathway_function" rows="1" placeholder="What function does this behavior serve?" />
 
 <ActionButton id="fba2_pathway_check_btn" label="Check My Pathway" dependsOn="@fba2_pathway_behavior.value">
@@ -729,20 +731,20 @@ The student's answers:
 <Ref id="fba2_ref_pathway_function" target="fba2_pathway_function" />
 <![CDATA[
 Evaluate each component. Be encouraging but specific about what they got right
-and what needs correction. Keep it brief. Do not supply the problem behavior, the 
+and what needs correction. Keep it brief. Do not supply the problem behavior, the
 consequence, or the function for the student. They need to figure that out for themselves.
 ]]></LLMAction>
 </ActionButton>
 
 <LLMFeedback id="fba2_pathway_feedback" render="markdown" />
 </Vertical>
-<Vertical title="What has already been filled in">
-<Markdown>**Setting** (the context): **It's getting late**</Markdown>
-<Markdown>**Antecedent** (what happens before the problem behavior): **Roommate tells Johnny to go to bed**</Markdown>
-<Markdown>**Desired behavior** (the behavior we want): **Johnny goes to bed appropriately.**</Markdown>
-<Markdown>**Desired outcome** (what we want the behavior to lead to): **Johnny goes to sleep.**</Markdown>
-<Markdown>**Alternative Behavior** (something else the person might do): **Johnny throws a tantrum.**</Markdown>
-<Markdown>**Alternative Consequence** (what happens after alternative behavior): **The babysitter pleads and begs.**</Markdown>
+<Vertical id="fba2_cbp_prefilled_tab" title="What has already been filled in">
+<Markdown id="fba2_cbp_pre_setting">**Setting** (the context): **It's getting late**</Markdown>
+<Markdown id="fba2_cbp_pre_antecedent">**Antecedent** (what happens before the problem behavior): **Roommate tells Johnny to go to bed**</Markdown>
+<Markdown id="fba2_cbp_pre_desired_behavior">**Desired behavior** (the behavior we want): **Johnny goes to bed appropriately.**</Markdown>
+<Markdown id="fba2_cbp_pre_desired_outcome">**Desired outcome** (what we want the behavior to lead to): **Johnny goes to sleep.**</Markdown>
+<Markdown id="fba2_cbp_pre_alt_behavior">**Alternative Behavior** (something else the person might do): **Johnny throws a tantrum.**</Markdown>
+<Markdown id="fba2_cbp_pre_alt_consequence">**Alternative Consequence** (what happens after alternative behavior): **The babysitter pleads and begs.**</Markdown>
 </Vertical>
 </Tabs>
 </Vertical>
@@ -786,11 +788,11 @@ consequence, or the function for the student. They need to figure that out for t
 <Vertical id="fba2_intervention_strategies">
 
 <Vertical id="fba2_strategy_recommendations" when="@fba2_antecedent_strategies_problem.score===1 && @fba2_consequence_strategies_problem.score===1" title="My Recommendations">
-<Markdown>**Now that you've identified which strategies address escape, which ones would you recommend for Johnny and why?**</Markdown>
+<Markdown id="fba2_strategy_recommendations_prompt">**Now that you've identified which strategies address escape, which ones would you recommend for Johnny and why?**</Markdown>
 <TextArea id="fba2_escape_strategies_done" rows="3" placeholder="Which escape-focused strategies would work best for Johnny?" />
 </Vertical>
 
-<Vertical title="Antecedent Strategies">
+<Vertical id="fba2_antecedent_strategies_tab" title="Antecedent Strategies">
 <Markdown id="fba2_strategy_header">
 ## Intervention Strategies
 
@@ -798,8 +800,8 @@ Below are strategies for addressing problem behaviors. For each strategy, select
 </Markdown>
 
 <CapaProblem id="fba2_antecedent_strategies_problem" title="Antecedent Strategies">
-<Markdown>### Antecedent Strategies (to prevent the problem behavior)</Markdown>
-<TabularMCQGrader>
+<Markdown id="fba2_antecedent_strategies_label">### Antecedent Strategies (to prevent the problem behavior)</Markdown>
+<TabularMCQGrader id="fba2_antecedent_strategies_grader">
   <TabularMCQ id="fba2_antecedent_strategies">
 cols: Escape, Attention, Sensory, Tangible
 rows:
@@ -814,11 +816,11 @@ rows:
 </CapaProblem>
 </Vertical>
 
-<Vertical title="Consequent Strategies">
+<Vertical id="fba2_consequence_strategies_tab" title="Consequent Strategies">
 <Use ref="fba2_strategy_header" />
 <CapaProblem id="fba2_consequence_strategies_problem" title="Consequence Strategies">
-<Markdown>### Consequence Strategies (to react to the problem behavior)</Markdown>
-<TabularMCQGrader>
+<Markdown id="fba2_consequence_strategies_label">### Consequence Strategies (to react to the problem behavior)</Markdown>
+<TabularMCQGrader id="fba2_consequence_strategies_grader">
   <TabularMCQ id="fba2_consequence_strategies">
 cols: Escape, Attention, Sensory, Tangible
 rows:
@@ -838,7 +840,7 @@ rows:
 <HH> ============= Screen: AI antecedent interventions ========== </HH>
 
 <Vertical id="fba2_ai_antecedent_interventions">
-<Markdown>
+<Markdown id="fba2_ai_antecedent_intro">
 ## Use AI: General Antecedent Strategies
 
 Write a prompt using AI to identify **antecedent strategies** — things you can change *before* the problem behavior occurs to prevent it.
@@ -846,12 +848,12 @@ Write a prompt using AI to identify **antecedent strategies** — things you can
 <TextArea id="fba2_ai_antecedent_prompt" rows="2"
   placeholder="Use AI to identify antecedent strategies to prevent problem behaviors..." />
 <ActionButton id="fba2_ai_antecedent_btn" label="Use AI" dependsOn="@fba2_ai_antecedent_prompt.value">
-<LLMAction target="fba2_ai_antecedent_response"><![CDATA[
+<LLMAction id="fba2_ai_antecedent_action" target="fba2_ai_antecedent_response"><![CDATA[
 If the following prompt is about antecedent strategies for preventing problem behaviors,
 provide a list of no more than 6 practical, evidence-based antecedent strategies.
 Otherwise, point out the prompt is not relevant and stop.
 ]]>
-Student's prompt: <Ref target="fba2_ai_antecedent_prompt" />
+Student's prompt: <Ref id="fba2_ref_ai_antecedent" target="fba2_ai_antecedent_prompt" />
 <![CDATA[
 Format with bolded headers and a numbered list. Keep each strategy to 1-2 sentences.
 ]]></LLMAction>
@@ -863,7 +865,7 @@ Format with bolded headers and a numbered list. Keep each strategy to 1-2 senten
 <HH> ============= Screen: AI consequence interventions ========= </HH>
 
 <Vertical id="fba2_ai_consequence_interventions">
-<Markdown>
+<Markdown id="fba2_ai_consequence_intro">
 ## Use AI: General Consequence Strategies
 
 Now write a prompt using AI to identify **consequence strategies** — things you can change *after* the problem behavior occurs.
@@ -871,12 +873,12 @@ Now write a prompt using AI to identify **consequence strategies** — things yo
 <TextArea id="fba2_ai_consequence_prompt" rows="2"
   placeholder="Use AI to identify consequence strategies to respond to problem behaviors..." />
 <ActionButton id="fba2_ai_consequence_btn" label="Use AI" dependsOn="@fba2_ai_consequence_prompt.value">
-<LLMAction target="fba2_ai_consequence_response"><![CDATA[
+<LLMAction id="fba2_ai_consequence_action" target="fba2_ai_consequence_response"><![CDATA[
 If the following prompt is about consequence strategies for responding to problem behaviors,
 provide a list of no more than 6 practical, evidence-based consequence strategies.
 Otherwise, point out the prompt is not relevant and stop.
 ]]>
-Student's prompt: <Ref target="fba2_ai_consequence_prompt" />
+Student's prompt: <Ref id="fba2_ref_ai_consequence" target="fba2_ai_consequence_prompt" />
 <![CDATA[
 Format with bolded headers and a numbered list. Keep each strategy to 1-2 sentences.
 ]]></LLMAction>
@@ -888,7 +890,7 @@ Format with bolded headers and a numbered list. Keep each strategy to 1-2 senten
 <HH> ============= Screen: AI escape antecedent ================== </HH>
 
 <Vertical id="fba2_ai_escape_antecedent">
-<Markdown>
+<Markdown id="fba2_ai_escape_antecedent_intro">
 ## Use AI: Escape-Focused Antecedent Strategies
 
 Now let's focus specifically on **escape**. Write a prompt using AI to identify antecedent strategies that address escape-maintained behavior — particularly for a child refusing to go to bed.
@@ -896,13 +898,13 @@ Now let's focus specifically on **escape**. Write a prompt using AI to identify 
 <TextArea id="fba2_ai_escape_ante_prompt" rows="2"
   placeholder="Use AI to identify antecedent strategies specific to escape-maintained bedtime refusal..." />
 <ActionButton id="fba2_ai_escape_ante_btn" label="Use AI" dependsOn="@fba2_ai_escape_ante_prompt.value">
-<LLMAction target="fba2_ai_escape_ante_response"><![CDATA[
+<LLMAction id="fba2_ai_escape_ante_action" target="fba2_ai_escape_ante_response"><![CDATA[
 If the following prompt is about antecedent strategies for escape-maintained behavior,
 particularly a child refusing to go to bed, provide a list of no more than 6 practical,
 evidence-based antecedent strategies specifically targeting escape. Otherwise, point out
 the prompt is not relevant and stop.
 ]]>
-Student's prompt: <Ref target="fba2_ai_escape_ante_prompt" />
+Student's prompt: <Ref id="fba2_ref_ai_escape_ante" target="fba2_ai_escape_ante_prompt" />
 <![CDATA[
 Format with bolded headers and a numbered list. Keep each strategy to 1-2 sentences.
 ]]></LLMAction>
@@ -914,7 +916,7 @@ Format with bolded headers and a numbered list. Keep each strategy to 1-2 senten
 <HH> ============= Screen: AI escape consequence ================= </HH>
 
 <Vertical id="fba2_ai_escape_consequence">
-<Markdown>
+<Markdown id="fba2_ai_escape_consequence_intro">
 ## Use AI: Escape-Focused Consequence Strategies
 
 Finally, write a prompt using AI to identify **consequence strategies** that specifically address escape-maintained bedtime refusal.
@@ -922,13 +924,13 @@ Finally, write a prompt using AI to identify **consequence strategies** that spe
 <TextArea id="fba2_ai_escape_cons_prompt" rows="2"
   placeholder="Use AI to identify consequence strategies specific to escape-maintained bedtime refusal..." />
 <ActionButton id="fba2_ai_escape_cons_btn" label="Use AI" dependsOn="@fba2_ai_escape_cons_prompt.value">
-<LLMAction target="fba2_ai_escape_cons_response"><![CDATA[
+<LLMAction id="fba2_ai_escape_cons_action" target="fba2_ai_escape_cons_response"><![CDATA[
 If the following prompt is about consequence strategies for escape-maintained behavior,
 particularly a child refusing to go to bed, provide a list of no more than 6 practical,
 evidence-based consequence strategies specifically targeting escape. Otherwise, point out
 the prompt is not relevant and stop.
 ]]>
-Student's prompt: <Ref target="fba2_ai_escape_cons_prompt" />
+Student's prompt: <Ref id="fba2_ref_ai_escape_cons" target="fba2_ai_escape_cons_prompt" />
 <![CDATA[
 Format with bolded headers and a numbered list. Keep each strategy to 1-2 sentences.
 ]]></LLMAction>
@@ -941,31 +943,31 @@ Format with bolded headers and a numbered list. Keep each strategy to 1-2 senten
 
 <Tabs id="fba2_revised_pathway">
 <Vertical id="fba2_revised_plan" title="Build Your Revised Plan">
-<Markdown>
+<Markdown id="fba2_revised_plan_intro">
 ### Your Revised Plan
 
 Using the escape-focused antecedent and consequence strategies you identified, fill in the revised pathway:
 </Markdown>
 
-<Markdown>**Antecedent + new strategies** (what happens before bedtime, and what strategies will you add to prevent escape?):</Markdown>
+<Markdown id="fba2_revised_antecedent_label">**Antecedent + new strategies** (what happens before bedtime, and what strategies will you add to prevent escape?):</Markdown>
 <TextArea id="fba2_revised_antecedent" rows="3" placeholder="Roommate tells Johnny to go to bed + your chosen antecedent strategies..." />
 
-<Markdown>**Desired behavior** (what do you want Johnny to do instead of running away?):</Markdown>
+<Markdown id="fba2_revised_desired_label">**Desired behavior** (what do you want Johnny to do instead of running away?):</Markdown>
 <TextArea id="fba2_revised_desired" rows="2" placeholder="What should Johnny do at bedtime?" />
 
-<Markdown>**Consequence/Outcome + new strategies** (what happens after the desired behavior, and what consequence strategies support it?):</Markdown>
+<Markdown id="fba2_revised_consequence_label">**Consequence/Outcome + new strategies** (what happens after the desired behavior, and what consequence strategies support it?):</Markdown>
 <TextArea id="fba2_revised_consequence" rows="3" placeholder="Johnny goes to sleep + your chosen consequence strategies..." />
 </Vertical>
 <Vertical id="fba2_original_pathway_ref" title="JJ's Original Pathway">
 <Mermaid id="fba2_pathway_ref_diagram" src="diagrams/johnny_cbp_filled.mmd" />
 </Vertical>
-<Vertical title="My Initial Suggestions">
+<Vertical id="fba2_revised_initial_suggestions_tab" title="My Initial Suggestions">
 <Use ref="fba2_strategy_recommendations" />
 </Vertical>
-<Vertical title="AI-Generated Antecedent Strategies)">
+<Vertical id="fba2_revised_ai_ante_tab" title="AI-Generated Antecedent Strategies)">
 <Use ref="fba2_ai_escape_ante_response" />
 </Vertical>
-<Vertical title="AI-Generated Consequence Strategies)">
+<Vertical id="fba2_revised_ai_cons_tab" title="AI-Generated Consequence Strategies)">
 <Use ref="fba2_ai_escape_cons_response" />
 </Vertical>
 </Tabs>
@@ -1010,7 +1012,7 @@ Annie has two plans to present. Both include data collection over a 2-week perio
 
 <Tabs id="fba2_escape_plan_display">
 <Vertical id="fba2_plan_preferences" title="Record Your Preferences">
-<Markdown>
+<Markdown id="fba2_plan_preferences_intro">
 ## What Do You Like About This Plan?
 
 Review the full escape-focused plan in the other tab, then come back here and record the parts you think will be most effective.
@@ -1056,7 +1058,7 @@ Review the full escape-focused plan in the other tab, then come back here and re
 <HH> ============= Screen: Sensory plan check =================== </HH>
 
 <Tabs id="fba2_sensory_plan_check">
-<Vertical title="Why Wouldn't the Sensory Plan Work?">
+<Vertical id="fba2_sensory_check_tab" title="Why Wouldn't the Sensory Plan Work?">
 <MarkupProblem id="fba2_sensory_check_choice" title="Why Not the Sensory Plan?"><![CDATA[
 >>Why wouldn't this be a good plan for Johnny?<<
 
@@ -1070,7 +1072,7 @@ This plan addresses **sensory** needs, but Johnny's behavior function is **escap
 [/explanation]
 ]]></MarkupProblem>
 </Vertical>
-<Vertical title="Review the Sensory Plan in Detail">
+<Vertical id="fba2_sensory_plan_detail_tab" title="Review the Sensory Plan in Detail">
 <Markdown id="fba2_sensory_plan_reference">
 ## Check for Understanding: The Sensory-Focused Plan
 
@@ -1135,7 +1137,7 @@ Keep your feedback constructive and concise.
 <LLMFeedback id="fba2_email_feedback" render="markdown" />
 <Tabs id="fba2_final_email_without_feedback">
 <Vertical id="fba2_final_email_entry" title="Write email to Annie's roommate">
-<Markdown>
+<Markdown id="fba2_final_email_intro">
 ## Final Activity: Email to Annie's Roommate
 
 Based on everything you have learned in this activity, write an email to Annie's roommate describing the details of the new intervention you and your teammates would like to suggest.
@@ -1148,7 +1150,7 @@ Based on everything you have learned in this activity, write an email to Annie's
 </Markdown>
 <TextArea id="fba2_email_to_roommate" rows="10" placeholder="Write your email to Annie's roommate describing the new intervention plan..." />
 </Vertical>
-<Vertical title="Rubric">
+<Vertical id="fba2_email_rubric_tab" title="Rubric">
 <Markdown id="fba2_email_rubric">
 ### Email Rubric
 
@@ -1159,37 +1161,37 @@ Your email will be evaluated on:
 4. Does the email provide enough **detail** about the interventions that the babysitter will be able to implement the plan effectively?
 </Markdown>
 </Vertical>
-<Vertical title="Your revised plan">
+<Vertical id="fba2_email_revised_plan_tab" title="Your revised plan">
 <Use ref="fba2_revised_plan" />
 </Vertical>
-<Vertical title="The escape plan">
+<Vertical id="fba2_email_escape_plan_tab" title="The escape plan">
 <Use ref="fba2_plan_reference" />
 </Vertical>
-<Vertical title="What you like about the escape plan">
+<Vertical id="fba2_email_likes_tab" title="What you like about the escape plan">
 <Use ref="fba2_plan_likes" />
 </Vertical>
-<Vertical title="The sensory plan">
+<Vertical id="fba2_email_sensory_plan_tab" title="The sensory plan">
 <Use ref="fba2_sensory_plan_reference" />
 </Vertical>
 </Tabs>
 </Vertical>
 
-<Vertical  when="@fba2_completion_checkbox.value">
+<Vertical id="fba2_final_email_completed"  when="@fba2_completion_checkbox.value">
   <Use ref="fba2_final_email_entry" />
 </Vertical>
 
 <HH> ============= Screen: Completion ========================== </HH>
 
 <Vertical id="fba2_completion_page">
-<Markdown>**Confirm that you are done with this exercise.**</Markdown>
+<Markdown id="fba2_completion_confirm_label">**Confirm that you are done with this exercise.**</Markdown>
 
 <CheckboxInput id="fba2_completion_checkbox">
 <Key id="fba2_part_3auto_finished">I don't need to make any more changes</Key>
 </CheckboxInput>
 
-<IntakeGate ready="'fba2_part_3auto_finished' in @fba2_completion_checkbox.value">
-<Markdown> </Markdown>
-<Markdown>
+<IntakeGate id="fba2_completion_gate" ready="'fba2_part_3auto_finished' in @fba2_completion_checkbox.value">
+<Markdown id="fba2_completion_spacer"> </Markdown>
+<Markdown id="fba2_completion_summary">
 - In this activity, you learned about the **function of behavior** (attention, escape,
   access/tangibles, sensory), the **ABCs** (Antecedent, Behavior, Consequence), and
   **Competing Behavior Pathways**. You used these concepts to develop an **intervention
