@@ -8,13 +8,13 @@ lang: en-Latn-US
 -->
 <Vertical id="psych_sba_activities_part1" title="Psychology Study Group: 1. Sleep Refusal (Activities)" launchable="true">
 
-  <ActionButton id="print_psych_part1_btn" label="Export as PDF">
-    <PrintAction id="print_psych_part1" />
-  </ActionButton>
+<ActionButton id="print_psych_part1_btn" label="Export as PDF">
+  <PrintAction id="print_psych_part1" />
+</ActionButton>
 
 <HH> ============= Screen: Introduction ======================== </HH>
 
-  <IntakeGate ready="!@psych_sba_part_1_completion_page.value">
+<IntakeGate ready="!@psych_sba_part_1_completion_page.value">
     <Markdown> </Markdown>
     <Vertical>
       <Markdown id="bedtime_problem_introduction">
@@ -615,26 +615,26 @@ the screen time, remove a misused toy, or give a brief time-out._
 <HH> ============= Screen: Completion ======================== </HH>
 
 <CheckboxInput id="psych_sba_part_1_completion_page">
-  <Markdown>**Confirm that you are done with this exercise.**</Markdown>
-  <Key id="Part_1_finished">I don't need to make any more changes</Key>
-  <Markdown>&nbsp;
+
+<Markdown>**Confirm that you are done with this exercise.**</Markdown>
+<Key id="Part_1_finished">I don't need to make any more changes</Key>
+<Markdown>
 
   &nbsp;
   </Markdown>
-  <IntakeGate ready="'Part_1_finished' in @psych_sba_part_1_completion_page.value">
-    <Markdown> </Markdown>
-    <Markdown>
-  - In this activity, you learned about **parenting techniques** and the **strengths
-    and weaknesses of AI**. You also practiced applying information you have learned
-    from the textbook and scientific research to a **real-life scenario**, a child
-    refusing to go to bed on time.
-  - Next time, you will review and apply several other concepts from your coursework
-    in psychology to help Annie's roommate learn to use **operant conditioning** principles
-    to modify the child's behavior.
+  <Markdown when="'CONTENT/Part_1_finished' in @psych_sba_part_1_completion_page.value">
+- In this activity, you learned about **parenting techniques** and the **strengths
+  and weaknesses of AI**. You also practiced applying information you have learned
+  from the textbook and scientific research to a **real-life scenario**, a child
+  refusing to go to bed on time.
+- Next time, you will review and apply several other concepts from your coursework
+  in psychology to help Annie's roommate learn to use **operant conditioning** principles
+  to modify the child's behavior.
 
-    ## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
-    </Markdown>
-  </IntakeGate>
+## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
+
+_When you click Continue, the next screen gathers everything you wrote into one page for you to print to PDF and submit to your teacher. It can take up to a minute to appear — please wait for it to finish loading before you print._
+</Markdown>
 </CheckboxInput>
 
 </Vertical>

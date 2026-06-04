@@ -3,26 +3,25 @@
 //
 // Replay event logs through Redux reducers — pure, no side effects.
 //
-// Reads a JSON event log captured from the browser (via __events.download()),
-// replays it through updateResponseReducer, and outputs the resulting state.
-// Useful for debugging, analytics, and test case generation.
+// Reads event logs in two formats:
+//   - NDJSON (.jsonl or .jsonl.gz): one JSON object per line, as written by the
+//     server's eventLog.ts. The first line is a header with { description, started,
+//     user }; subsequent lines are events. This is the primary format.
+//   - Wrapped JSON (--unwrap): { "events": [...] } as downloaded from the browser
+//     via __events.download() or the debug panel (ctrl-`).
+//
+// .gz files are automatically decompressed.
 //
 // Usage:
-//   npx tsx scripts/replay.ts events.json                 # Pretty-print final state
-//   npx tsx scripts/replay.ts events.json --json          # Raw JSON (pipe to jq)
-//   npx tsx scripts/replay.ts events.json --json | jq '.storage'
-//   npx tsx scripts/replay.ts events.json --step          # Show each event's effect
-//   npx tsx scripts/replay.ts events.json --query storage # Show one scope
-//   npx tsx scripts/replay.ts events.json --query 'component["id"].value'
-//   npx tsx scripts/replay.ts events.json -v              # Verbose event list
-//   cat events.json | npx tsx scripts/replay.ts --json    # Read from stdin
-//
-// Event log format: { "description": "...", "events": [ { "event": "...", ... }, ... ] }
-// Captured in browser: __events.download() or JSON.parse(JSON.stringify(__events.getEvents()))
-//
+//   npx tsx scripts/replay.ts events.jsonl.gz             # Server log
+//   npx tsx scripts/replay.ts events.jsonl.gz --json      # Raw JSON (pipe to jq)
+//   npx tsx scripts/replay.ts events.json --unwrap        # Browser download
+//   zcat events.jsonl.gz | npx tsx scripts/replay.ts      # Stdin (NDJSON)
+//   cat events.json | npx tsx scripts/replay.ts --unwrap  # Stdin (wrapped)
 
 import * as fs from 'fs';
 import * as path from 'path';
+import * as zlib from 'zlib';
 
 import {
   replayToEvent,
@@ -41,31 +40,58 @@ interface EventLog {
   events: LoggedEvent[];
 }
 
-function loadEventLog(filePath: string): EventLog {
+/** Read file contents, decompressing .gz automatically. */
+function readFile(filePath: string): string {
   const absolutePath = path.resolve(filePath);
-  const content = fs.readFileSync(absolutePath, 'utf-8');
-  return parseEventLog(content);
+  const raw = fs.readFileSync(absolutePath);
+  if (filePath.endsWith('.gz')) {
+    return zlib.gunzipSync(raw).toString('utf-8');
+  }
+  return raw.toString('utf-8');
 }
 
-function loadFromStdin(): Promise<EventLog> {
+/** Parse NDJSON: one JSON object per line. Lines with event "ndjson_header"
+ *  are treated as metadata; all other lines are events. */
+function parseNDJSON(content: string): EventLog {
+  const lines = content.split('\n').filter(line => line.trim().length > 0);
+  let description: string | undefined;
+  const events: LoggedEvent[] = [];
+  for (const line of lines) {
+    const parsed = JSON.parse(line);
+    if (parsed.event === 'ndjson_header') {
+      description = parsed.description;
+    } else {
+      events.push(parsed);
+    }
+  }
+  return { description, events };
+}
+
+/** Parse wrapped JSON: { events: [...] } or bare [...]. */
+function parseWrappedJSON(content: string): EventLog {
+  const parsed = JSON.parse(content);
+  if (Array.isArray(parsed)) return { events: parsed };
+  if (Array.isArray(parsed.events)) return parsed;
+  throw new Error('Expected { "events": [...] } or a bare event array');
+}
+
+function loadEventLog(filePath: string, unwrap: boolean): EventLog {
+  const content = readFile(filePath);
+  return unwrap ? parseWrappedJSON(content) : parseNDJSON(content);
+}
+
+function loadFromStdin(unwrap: boolean): Promise<EventLog> {
   return new Promise((resolve, reject) => {
-    let data = '';
-    process.stdin.setEncoding('utf-8');
-    process.stdin.on('data', chunk => { data += chunk; });
+    const chunks: Buffer[] = [];
+    process.stdin.on('data', chunk => { chunks.push(chunk); });
     process.stdin.on('end', () => {
-      try { resolve(parseEventLog(data)); }
-      catch (e) { reject(e); }
+      try {
+        const content = Buffer.concat(chunks).toString('utf-8');
+        resolve(unwrap ? parseWrappedJSON(content) : parseNDJSON(content));
+      } catch (e) { reject(e); }
     });
     process.stdin.on('error', reject);
   });
-}
-
-function parseEventLog(content: string): EventLog {
-  const parsed = JSON.parse(content);
-  // Accept both { events: [...] } and bare [...]
-  if (Array.isArray(parsed)) return { events: parsed };
-  if (parsed.events) return parsed;
-  throw new Error('Expected { events: [...] } or a bare event array');
 }
 
 // =============================================================================
@@ -223,12 +249,49 @@ function resolvePath(state: any, query: string): any {
 // Main
 // =============================================================================
 
+const USAGE = `Usage: npx tsx scripts/replay.ts [options] <event-log>
+
+Replay event logs through Redux reducers to reconstruct application state.
+
+Input formats:
+  NDJSON (default)    Server logs from events/*.jsonl.gz. One JSON object per
+                      line: header (metadata) followed by events.
+  Wrapped (--unwrap)  Browser exports: { "events": [...] } or bare arrays.
+                      Captured via __events.download() in the browser console,
+                      or via the debug panel (ctrl-\`).
+
+  .gz files are decompressed automatically.
+
+Options:
+  --unwrap       Parse as wrapped JSON ({ events: [...] }) instead of NDJSON
+  --json         Output raw JSON state (pipe to jq for queries)
+  --step         Show each event and its state changes
+  --query PATH   Show a specific path (e.g., "storage", 'component["id"]')
+  -v, --verbose  List each event during replay
+  --help         Show this help
+
+Examples:
+  npx tsx scripts/replay.ts events/session.jsonl.gz
+  npx tsx scripts/replay.ts events/session.jsonl.gz --json | jq '.storage'
+  npx tsx scripts/replay.ts events/session.jsonl.gz --step
+  npx tsx scripts/replay.ts events/session.jsonl.gz --query storage
+  npx tsx scripts/replay.ts debug-events.json --unwrap
+  zcat events/session.jsonl.gz | npx tsx scripts/replay.ts
+  cat debug-events.json | npx tsx scripts/replay.ts --unwrap
+`;
+
 async function main() {
   const args = process.argv.slice(2);
+
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log(USAGE);
+    process.exit(0);
+  }
 
   const verbose = args.includes('--verbose') || args.includes('-v');
   const json = args.includes('--json');
   const step = args.includes('--step');
+  const unwrap = args.includes('--unwrap');
   const queryIdx = args.indexOf('--query');
   const queryArg = queryIdx !== -1 ? args[queryIdx + 1] : null;
 
@@ -241,29 +304,11 @@ async function main() {
   // Load events
   let eventLog: EventLog;
   if (fileArg) {
-    eventLog = loadEventLog(fileArg);
+    eventLog = loadEventLog(fileArg, unwrap);
   } else if (!process.stdin.isTTY) {
-    eventLog = await loadFromStdin();
+    eventLog = await loadFromStdin(unwrap);
   } else {
-    console.log(`Usage: npx tsx scripts/replay.ts [options] <event-log.json>
-
-Options:
-  --json       Output raw JSON state (pipe to jq for queries)
-  --step       Show each event and its state changes
-  --query PATH Show a specific path (e.g., "storage", 'component["id"]')
-  -v           List each event during replay
-
-Examples:
-  npx tsx scripts/replay.ts events.json
-  npx tsx scripts/replay.ts events.json --json | jq '.storage'
-  npx tsx scripts/replay.ts events.json --step
-  npx tsx scripts/replay.ts events.json --query storage
-  cat events.json | npx tsx scripts/replay.ts --json
-
-Capture events in browser:
-  __events.download()           // saves events.json
-  __events.json()               // copy from console
-`);
+    console.log(USAGE);
     process.exit(1);
   }
 

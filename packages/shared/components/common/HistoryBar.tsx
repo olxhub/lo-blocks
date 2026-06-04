@@ -13,7 +13,7 @@ export default function HistoryBar({
   onSelect = (_i: number) => {},
 }) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="lo-history-bar flex items-center gap-1">
       <button
         onClick={onPrev}
         disabled={index <= 0}

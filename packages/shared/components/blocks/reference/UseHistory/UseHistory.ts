@@ -8,10 +8,7 @@ import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 
 export const fields = state.fields([
   'value',
-  'history',
-  'index',
-  { name: 'showHistory', scope: 'componentSetting' },
-  { name: 'follow', scope: 'componentSetting' }
+  'history'
 ]);
 
 const UseHistory = dev({
@@ -24,7 +21,6 @@ const UseHistory = dev({
     target: z_stateRef.optional().describe('Component ID to track'),
     targetRef: z_stateRef.optional().describe('ID of component whose value determines the target'),
     initial: z_stateRef.optional().describe('Initial block to display before any repointing'),
-    appendRepeats: z.boolean().default(false).describe('If true, repointing to a value already in history appends a duplicate dot. If false (default), navigates to the existing entry.'),
   }).strict(),
 });
 

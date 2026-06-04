@@ -15,6 +15,7 @@ const reduxStore = store.init({
   extraFields: extendSettings([]),
   blockRegistry: BLOCK_REGISTRY,
   websocket: getConfigBool('websocket'),
+  tabSync: getConfigBool('tab-sync'),
 });
 
 export default function App({ route }: { route: Route }) {

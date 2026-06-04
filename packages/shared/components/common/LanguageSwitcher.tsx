@@ -43,7 +43,35 @@ interface LanguageSwitcherProps {
  * This would allow all OLX on a page to interact via the dynamic OLX DOM!
  */
 
-export default function LanguageSwitcher({ className = '', sources, availableLocales, bestEffortLocales, translanguaging = true }: LanguageSwitcherProps) {
+/**
+ * Available language variants — from explicit props (static builds pass the
+ * idMap-derived lists) or the Redux olxjson selector. Exposed so the header
+ * can decide whether the switcher is worth showing without duplicating logic.
+ */
+export function useVariantTiers(
+  availableLocales?: Locale[],
+  bestEffortLocales?: Locale[],
+): { curated: Locale[]; bestEffort: Locale[] } {
+  const olxjson = useSelector((state: any) => state.application_state?.olxjson);
+  return useMemo(() => {
+    if (availableLocales) {
+      return { curated: availableLocales, bestEffort: bestEffortLocales ?? [] };
+    }
+    if (!olxjson) return { curated: [], bestEffort: [] };
+    const t = selectVariantTiers({ application_state: { olxjson } });
+    return { curated: t.curated as Locale[], bestEffort: t.bestEffort as Locale[] };
+  }, [olxjson, availableLocales, bestEffortLocales]);
+}
+
+/** Worth showing a language control? Only with a real choice, or free search on. */
+export function hasLanguageChoices(
+  tiers: { curated: Locale[]; bestEffort: Locale[] },
+  translanguaging: boolean,
+): boolean {
+  return translanguaging || tiers.curated.length + tiers.bestEffort.length > 1;
+}
+
+export default function LanguageSwitcher({ className = '', sources, availableLocales, bestEffortLocales, translanguaging = false }: LanguageSwitcherProps) {
   const [showDropdown, setShowDropdown] = useState(false); // TODO: useFieldState
   const [searchTerm, setSearchTerm] = useState(''); // TODO: useFieldState
 
@@ -57,20 +85,14 @@ export default function LanguageSwitcher({ className = '', sources, availableLoc
   // Get setter for locale changes - properly typed, no type cast needed
   const [, setLocale] = useSetting(baselineProps, settings.locale);
 
-  // Get available variants from either explicit prop or Redux selector
-  // Note: selectVariantTiers scans all sources; sources prop is ignored when using Redux
-  // Memoize the selector result to prevent infinite re-renders (selector returns new object reference)
-  const olxjson = useSelector((state: any) => state.application_state?.olxjson);
-  const reduxTiers = useMemo(() => {
-    if (!olxjson) return { curated: [], bestEffort: [], all: [] };
-    return selectVariantTiers({ application_state: { olxjson } });
-  }, [olxjson]);
-
-  const tiers = availableLocales
-    ? { curated: availableLocales, bestEffort: bestEffortLocales || [], all: [...availableLocales, ...(bestEffortLocales || [])] }
-    : reduxTiers;
+  // Available variants (explicit props or Redux).
+  const tiers = useVariantTiers(availableLocales, bestEffortLocales);
 
   const browserLanguage = getBrowserLocale();
+
+  // Nothing to switch to (single locale) and no free-form translanguaging search
+  // → render no control at all, keeping single-locale content uncluttered.
+  if (!hasLanguageChoices(tiers, translanguaging)) return null;
 
   // Filter translanguaging options
   const filteredTransLanguages = filterLanguages(searchTerm);

@@ -11,10 +11,8 @@
 @media print {
   /* ===== Hide interactive chrome ===== */
 
-  /* App header (Home, language switcher, user icon) */
-  .lo-app-header {
-    display: none !important;
-  }
+  /* The status bar manages its own print behavior (keeps the username for
+     attribution, drops save/language chrome) — see StatusBar.tsx. */
 
   /* Sidebar navigation and its resize/collapse chrome */
   .lo-sidebar,
@@ -28,6 +26,12 @@
      gets semantic class names, update these selectors. */
   .lo-tag-sequential > .w-full > .border-b,
   .lo-tag-sequential > .w-full > .border-t {
+    display: none !important;
+  }
+
+  /* History navigation (the `< • • >` bar) — chrome wherever it appears,
+     e.g. UseHistory and Sequential. Targets the semantic HistoryBar class. */
+  .lo-history-bar {
     display: none !important;
   }
 

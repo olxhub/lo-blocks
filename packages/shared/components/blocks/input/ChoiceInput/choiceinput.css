@@ -174,3 +174,45 @@
   font-weight: bold;
   margin-inline-start: var(--lo-space-sm);
 }
+
+/* ── Print ──
+ *
+ * On screen, a selected choice is shown as a color-filled indicator: the
+ * checkbox tick is a white (--lo-bg) glyph on a --lo-primary fill, and the
+ * radio dot is a radial-gradient background. Browsers print with
+ * print-color-adjust: economy by default, which drops background fills — so
+ * the fill vanishes and the white-on-white tick/dot becomes invisible, making
+ * every selection look empty on paper. Re-draw the checked states with
+ * foreground ink (borders + an explicitly-exact dot) so they survive. */
+@media print {
+  /* Box outlines are foreground, so they print — force them dark in case the
+     theme border/selected color is light, and drop the fill (it won't print
+     anyway) so the dark tick below has white to sit on. */
+  .lo-choice-item__indicator {
+    border-color: #000 !important;
+    background: transparent !important;
+  }
+
+  /* Checkbox tick: recolor the white glyph dark so it reads on the unfilled box. */
+  .lo-choice-item--checkbox.lo-choice-item--selected .lo-choice-item__indicator::after {
+    border-color: #000 !important;
+  }
+
+  /* Radio dot: the on-screen dot is a gradient background (dropped in print),
+     so re-draw it as a solid dark inner circle. print-color-adjust: exact
+     keeps the fill from being stripped. */
+  .lo-choice-item--radio.lo-choice-item--selected .lo-choice-item__indicator::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: #000 !important;
+    transform: translate(-50%, -50%);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

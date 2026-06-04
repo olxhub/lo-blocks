@@ -8,7 +8,6 @@ import fs from 'fs';
 import { loadServerConfig, getConfig } from '@/lib/config';
 import { FileKVStore, MemoryKVStore, PostgresKVStore, ValkeyKVStore, PrefixedKVStore, type KVStore } from './kvs.js';
 import { startServer, type ServerHandle } from './server.js';
-import { saveConnectionLog } from './eventLog.js';
 import { shutdownMcp } from './mcp.js';
 import { createToolRegistry } from '@/lib/mcp/registry';
 import { registerDocsTools } from '@/lib/docs/tools';
@@ -103,6 +102,8 @@ async function initStorage(): Promise<KVStore> {
   } else {
     console.log(`  Storage: ${backend}`);
   }
+
+  await store.ready;
   return store;
 }
 
@@ -136,12 +137,31 @@ async function main() {
   async function shutdown() {
     console.log('\nShutting down...');
     shutdownMcp();
-    for (const conn of handle.activeConnections.values()) {
-      saveConnectionLog(conn);
-      console.log(`Saved ${conn.log.events.length} events to ${conn.path}`);
-    }
-    if (kvs.close) await kvs.close();
+
+    // 1. Stop accepting new connections
     handle.server.close();
+
+    // 2. Close all active WebSockets. This causes each runPipeline to exit,
+    //    which triggers the .finally() chain in server.ts that saves the
+    //    event log and removes the connection from activeConnections.
+    for (const ws of handle.activeConnections.keys()) {
+      ws.close();
+    }
+
+    // 3. Wait for all pipelines to finish and event logs to flush to disk.
+    //    Each pipeline's .finally() calls saveConnectionLog then deletes
+    //    from activeConnections, so we poll until the map is empty.
+    const TIMEOUT = 30_000;
+    const start = Date.now();
+    while (handle.activeConnections.size > 0) {
+      if (Date.now() - start > TIMEOUT) {
+        console.error(`Shutdown timeout: ${handle.activeConnections.size} connections did not close cleanly`);
+        break;
+      }
+      await new Promise(r => setTimeout(r, 50));
+    }
+
+    if (kvs.close) await kvs.close();
     process.exit(0);
   }
 

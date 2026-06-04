@@ -161,23 +161,33 @@ function useGraderAggregation(props, childGraderIds) {
   // Aggregate score: count of correct children
   const score = childCorrectnessValues.filter(v => v === correctness.correct).length;
 
-  // Update CapaProblem's own fields with aggregated values
-  // props object changes on every render, only re-run when values change
+  // Mirror the aggregated child state onto CapaProblem's own fields — but only
+  // when the value actually changed. This skip-if-unchanged guard keeps the
+  // writes idempotent: a re-render (or, once cross-tab sync is enabled, an
+  // echoed grader action from another tab) that recomputes the same aggregate
+  // produces no redundant UPDATE_* event.
+  // (props object changes every render, so deps track the computed values.)
+  const store = props.runtime.store;
+  const writeIfChanged = (field, value) => {
+    if (state.fieldSelector(store.getState(), props, field) !== value) {
+      state.updateField(props, field, value);
+    }
+  };
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    state.updateField(props, fields.correct, aggregatedCorrectness);
+    writeIfChanged(fields.correct, aggregatedCorrectness);
   }, [aggregatedCorrectness, props.id, fields]);
 
   useEffect(() => {
-    state.updateField(props, fields.message, message);
+    writeIfChanged(fields.message, message);
   }, [message, props.id, fields]);
 
   useEffect(() => {
-    state.updateField(props, fields.submitCount, totalSubmitCount);
+    writeIfChanged(fields.submitCount, totalSubmitCount);
   }, [totalSubmitCount, props.id, fields]);
 
   useEffect(() => {
-    state.updateField(props, fields.score, score);
+    writeIfChanged(fields.score, score);
   }, [score, props.id, fields]);
   /* eslint-enable react-hooks/exhaustive-deps */
 

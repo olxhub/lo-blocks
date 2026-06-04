@@ -29,6 +29,7 @@ function isPathAllowed(resolved: string, root: string): boolean {
 }
 
 export interface KVStore {
+  ready: Promise<void>;
   get(key: KVSKey): Promise<string | null>;
   set(key: KVSKey, value: string): Promise<void>;
   del(key: KVSKey): Promise<void>;
@@ -40,6 +41,7 @@ export interface KVStore {
  * Good for tests; not for anything you care about keeping.
  */
 export class MemoryKVStore implements KVStore {
+  ready = Promise.resolve();
   private data = new Map<KVSKey, string>();
 
   async get(key: KVSKey) {
@@ -73,6 +75,7 @@ export class MemoryKVStore implements KVStore {
  *   new FileKVStore('./my/store')
  */
 export class FileKVStore implements KVStore {
+  ready = Promise.resolve();
   private root: string;
 
   constructor(root = './data/kvs') {
@@ -126,7 +129,10 @@ export class FileKVStore implements KVStore {
  *   // key "blob:user42" becomes "psych-pilot:blob:user42" in the inner store
  */
 export class PrefixedKVStore implements KVStore {
-  constructor(private inner: KVStore, private prefix: string) {}
+  ready: Promise<void>;
+  constructor(private inner: KVStore, private prefix: string) {
+    this.ready = inner.ready;
+  }
 
   private prefixed(key: KVSKey): KVSKey {
     return asKVSKey(`${this.prefix}:${key}`);
@@ -162,7 +168,7 @@ export class PrefixedKVStore implements KVStore {
 export class PostgresKVStore implements KVStore {
   private pool: pg.Pool;
   private table: string;
-  private ready: Promise<void>;
+  ready: Promise<void>;
 
   constructor(opts?: string | pg.PoolConfig, table = 'kvs') {
     this.table = table;
@@ -225,6 +231,7 @@ export class PostgresKVStore implements KVStore {
  *   new ValkeyKVStore({ host: '...', port: 6379 })
  */
 export class ValkeyKVStore implements KVStore {
+  ready = Promise.resolve();
   private client: Redis;
 
   constructor(opts?: string | RedisOptions) {

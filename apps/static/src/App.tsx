@@ -5,7 +5,7 @@
 //
 import React, { useState, useEffect } from 'react';
 
-import { store, extendSettings, useReduxStoreLoaded } from '@/lib/state';
+import { store, extendSettings, useLoaded } from '@/lib/state';
 import { initConfig, getConfigBool } from '@/lib/config';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import StoreShell from '@/components/common/StoreShell';
@@ -36,6 +36,7 @@ const reduxStore = store.init({
   extraFields: extendSettings([]),
   blockRegistry: BLOCK_REGISTRY,
   websocket: useWebsocket,
+  tabSync: getConfigBool('tab-sync'),
   eventServerUrl,
 });
 
@@ -50,7 +51,7 @@ const reduxStore = store.init({
  * TODO: reconnect logic / retry from the error state.
  */
 function StoreGate({ children }: { children: React.ReactNode }) {
-  const loaded = useReduxStoreLoaded();
+  const loaded = useLoaded();
   const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {

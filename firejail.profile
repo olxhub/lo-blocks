@@ -34,6 +34,9 @@ include whitelist-var-common.inc
 noblacklist /run
 noblacklist /sys
 
+# PostgreSQL unix socket (for dev:postgres without NO_SANDBOX)
+noblacklist /var/run/postgresql
+
 # Networking - full access needed for server tests and interface enumeration
 net host
 protocol unix,inet,inet6,netlink

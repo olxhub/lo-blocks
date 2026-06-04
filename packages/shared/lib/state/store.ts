@@ -451,11 +451,13 @@ let reduxStoreInstance: any = null;
 function configureStore({
   extraFields = [],
   websocket,
+  tabSync = false,
   eventServerUrl,
   blockRegistry,
 }: {
   extraFields?: ExtraFieldsParam;
   websocket: boolean;
+  tabSync?: boolean;
   eventServerUrl?: string;
   blockRegistry: BlockRegistryParam;
 }) {
@@ -471,9 +473,49 @@ function configureStore({
   const debugEvents = false; // Toggle here to log events to the console
   const isTest = process.env.VITEST === 'true';
   const useWebsocket = websocket && !isTest;
+  // Cross-tab state sync (redux-state-sync). lo_event exposes it as the
+  // `stateSync` flag (it owns the BroadcastChannel, browser guard, and lazy
+  // listener); we gate it on the `tab-sync` PMSS flag, threaded in as `tabSync`
+  // because config isn't initialized yet when store.init() runs in some apps.
+  // Echo-loop-safe: reactive redux writers are idempotent (see statesync notes).
+  // Never sync under test.
+  const useTabSync = tabSync && !isTest;
 
   const loggers = [
-    reduxLogger.reduxLogger([], {}),
+    reduxLogger.reduxLogger([], {
+      stateSync: useTabSync,
+      // Persist system, component, and componentSetting scopes.
+      // Excludes olxjson (large, loaded from content system),
+      // chat (transient), and storage (editor scratch).
+      // TODO: storage and chat scopes for authoring use cases
+      serializeForSave: (state) => {
+        const appState = (state as any).application_state;
+        if (!appState) return state;
+        return {
+          application_state: {
+            system: appState.system,
+            component: appState.component,
+            componentSetting: appState.componentSetting,
+          },
+        };
+      },
+      deserializeOnLoad: (blob, currentState) => {
+        const appState = (blob as any).application_state;
+        const cur = (currentState as any)?.application_state ?? {};
+        if (!appState) return {} as any;
+        // Merge into the live application_state so scopes we don't persist
+        // (olxjson, storage, chat) survive the load instead of being replaced
+        // away — set_state_reducer returns the payload wholesale.
+        return {
+          application_state: {
+            ...cur,
+            system: appState.system ?? cur.system ?? {},
+            component: appState.component ?? cur.component ?? {},
+            componentSetting: appState.componentSetting ?? cur.componentSetting ?? {},
+          },
+        } as any;
+      },
+    }),
     eventCaptureLogger,
     ...(debugEvents ? [consoleLogger()] : []),
     // Explicit URL (e.g. from static.config.json) bypasses port-map resolution.

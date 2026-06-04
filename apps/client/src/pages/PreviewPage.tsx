@@ -7,15 +7,22 @@
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
 import Notice from '@/components/common/Notice';
+import StatusBar from '@/components/common/StatusBar';
 import { DisplayError } from '@/lib/util/debug';
-import { useFieldState, system, commonFields, useReduxStoreLoaded } from '@/lib/state';
+import { useFieldState, system, commonFields, useLoaded } from '@/lib/state';
 import { useContentLoader } from '@/lib/content/useContentLoader';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import type { StateKey } from '@/lib/types';
 
+// TODO: Audit disconnect/reconnect behavior before trusting offline operation.
+// Concerns: reconnect may fetch a stale blob (e.g. saved 5 minutes ago) and
+// overwrite in-progress work; debounced saves may silently fail if the socket
+// drops mid-flight; redux-state-sync cross-tab interactions during reconnect
+// are untested. Until audited, we gray out the page on disconnect.
+
 export default function PreviewPage({ id }: { id: StateKey }) {
-  const storeLoaded = useReduxStoreLoaded();
+  const storeLoaded = useLoaded();
   const [debug] = useFieldState(
     null,
     system.debug,
@@ -73,6 +80,7 @@ export default function PreviewPage({ id }: { id: StateKey }) {
 
   return (
     <div {...localeAttrs} className="flex flex-col min-h-screen">
+      <StatusBar />
       <div className="p-6 flex-1 overflow-auto">
         <div className="space-y-4">
           {renderError ? (

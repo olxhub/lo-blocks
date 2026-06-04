@@ -68,13 +68,14 @@ Alex: That makes sense.
 UseHistory displays dot indicators for navigating through history:
 - Click dots to jump to any point in history
 - Use arrows to move forward/backward one step
-- New items are added to the end of history
+- A new target is appended to history the first time it's shown
 
 ## State Fields
 
-- `value`: Current target ID being rendered
-- `history`: Array of all target IDs that have been shown
-- `index`: Current position in the history array
+- `value`: The target ID currently being rendered — the single source of truth
+  for what's shown. Written both by the driving component (e.g. a `<Chat>`
+  repointing) and by the navigation controls below.
+- `history`: Array of distinct target IDs that have been shown (the dots).
 
 ## Related Blocks
 

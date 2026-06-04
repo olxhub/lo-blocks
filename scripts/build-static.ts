@@ -68,6 +68,7 @@ interface Manifest {
   namespace?: string;
   classes?: string[];
   eventServerUrl?: string | false;
+  content_notice?: string;
   content_root?: string;
   output?: string;
   routes: Record<string, string>;
@@ -140,6 +141,7 @@ const staticConfig = {
   title: manifest.title || 'Learning Observer',
   eventServerUrl: manifest.eventServerUrl ?? false,
   classes: manifest.classes || [],
+  content_notice: manifest.content_notice || '',
   routes: manifest.routes,
 };
 fs.writeFileSync(tmpStaticConfig, JSON.stringify(staticConfig, null, 2));
