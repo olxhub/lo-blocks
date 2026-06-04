@@ -5,7 +5,12 @@ import * as state from '@/lib/state';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 import _CompactPopout from './_CompactPopout';
 
-export const fields = state.fields(['expanded']);
+// `expanded`  — overlay open/closed (fullscreen/window modes)
+// `repointed` — target mode: whether this popout has already done its one-time
+//   repoint. Persisted so that on restore (when every previously-revealed embed
+//   re-mounts at once) we DON'T re-fire the repoint and clobber the target's
+//   restored value. The repoint is a one-time reveal event, not a per-mount one.
+export const fields = state.fields(['expanded', 'repointed']);
 
 const CompactPopout = dev({
   ...parsers.blocks(),

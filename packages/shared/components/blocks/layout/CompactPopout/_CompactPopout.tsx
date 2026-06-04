@@ -52,6 +52,10 @@ export default function _CompactPopout(props: RuntimeProps) {
   const targetId = props.target as StateRef | undefined;
   const targetContent = props.targetContent as StateRef | undefined;
 
+  // Whether this popout has already performed its one-time target repoint.
+  // Persisted (see CompactPopout.ts) — this is what prevents the restore storm.
+  const [repointed, setRepointed] = useFieldState(props, fields.repointed, false);
+
   const repoint = useCallback(() => {
     if (!targetId || !targetContent) return;
     const valueField = fieldByName('value');
@@ -61,10 +65,17 @@ export default function _CompactPopout(props: RuntimeProps) {
     });
   }, [props, targetId, targetContent]);
 
-  // Auto-repoint on mount (like auto-expand for fullscreen/window).
-  // Attributes are fixed per instance so capturing initial values is safe.
+  // Auto-repoint ONCE, when the embed is first revealed — not on every mount.
+  // On restore the chat re-mounts every already-revealed target popout at once;
+  // without this guard each re-fires repoint(), flooding the target with writes
+  // and dragging it to the last embed (clobbering the restored value and any
+  // navigation). The persisted `repointed` flag makes restore a no-op while
+  // still repointing on a genuine first-time reveal.
   useEffect(() => {
-    if (mode === 'target') repoint();
+    if (mode === 'target' && !repointed) {
+      repoint();
+      setRepointed(true);
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Fullscreen/window: overlay expand/collapse ───────────────── */
