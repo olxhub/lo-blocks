@@ -1059,9 +1059,7 @@ Remember:
       <CheckboxInput id="psych_part_2_finished">
           <Key id="psych_Part_2_finished">I'm finished with this task!</Key>
       </CheckboxInput>
-      <IntakeGate ready="'psych_Part_2_finished' in @psych_part_2_finished.value">
-        <Markdown> </Markdown>
-        <Markdown>
+      <Markdown when="'CONTENT/psych_Part_2_finished' in @psych_part_2_finished.value">
         - In this activity, you learned about **the four types of operant conditioning**
           (positive and negative reinforcement and punishment) and developed recommendations
           for Annie's roommate to use positive reinforcement to address the child's
@@ -1071,8 +1069,9 @@ Remember:
 
 
 ## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
+
+_When you click Continue, the next screen gathers everything you wrote into one page for you to print to PDF and submit to your teacher. It can take up to a minute to appear — please wait for it to finish loading before you print._
         </Markdown>
-      </IntakeGate>
     </Vertical>
 
 </Vertical>

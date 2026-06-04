@@ -1080,12 +1080,10 @@ Keep your feedback constructive and concise.
 <Markdown>**Confirm that you are done with this exercise.**</Markdown>
 
 <CheckboxInput id="fba2_completion_checkbox">
-<Key id="fba2_part_3auto_finished" value="done">I don't need to make any more changes</Key>
+<Key id="fba2_part_3auto_finished">I don't need to make any more changes</Key>
 </CheckboxInput>
 
-<IntakeGate ready="'done' in @fba2_completion_checkbox.value">
-<Markdown> </Markdown>
-<Markdown>
+<Markdown when="'CONTENT/fba2_part_3auto_finished' in @fba2_completion_checkbox.value">
 - In this activity, you learned about the **function of behavior** (attention, escape,
   access/tangibles, sensory), the **ABCs** (Antecedent, Behavior, Consequence), and
   **Competing Behavior Pathways**. You used these concepts to develop an **intervention
@@ -1094,8 +1092,9 @@ Keep your feedback constructive and concise.
   monitoring** and **implementation fidelity**.
 
 ## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
+
+_When you click Continue, the next screen gathers everything you wrote into one page for you to print to PDF and submit to your teacher. It can take up to a minute to appear — please wait for it to finish loading before you print._
 </Markdown>
-</IntakeGate>
 </Vertical>
 
 </Vertical>

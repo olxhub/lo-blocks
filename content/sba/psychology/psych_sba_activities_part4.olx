@@ -503,9 +503,7 @@ Write a brief reflection of your experience, noting:
     <Markdown id="psych_sba_part4_confirmation">**Confirm that you are done with this exercise.**</Markdown>
     <Key id="Part_4_finished">I don't need to make any more changes</Key>
   </CheckboxInput>
-  <IntakeGate ready="'Part_4_finished' in @psych_sba_part_4_completion_page.value">
-   <Markdown> </Markdown>
-   <Markdown>
+  <Markdown when="'CONTENT/Part_4_finished' in @psych_sba_part_4_completion_page.value">
 ## Module Complete!
 
 ### What You've Learned:
@@ -527,7 +525,8 @@ You successfully helped Annie's roommate solve Johnny's bedtime problem by:
 **Great work using behavioral psychology to solve a real problem!**
 
 ## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
+
+_When you click Continue, the next screen gathers everything you wrote into one page for you to print to PDF and submit to your teacher. It can take up to a minute to appear — please wait for it to finish loading before you print._
      </Markdown>
-   </IntakeGate>
   </Vertical>
 </Vertical>
