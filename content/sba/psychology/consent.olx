@@ -1,0 +1,66 @@
+<Vertical id="psych_irb_consent_form" title="Study Consent Form">
+<Markdown>
+
+# University of Memphis
+
+## Informed Consent
+
+**Title:** Scenario-Based Assessment in the age of generative AI: Making space in the education market for alternative assessment paradigms
+
+**Principal Investigator:** Dr. John Sabatini
+
+**Co-Investigators:** Dr. Randy Floyd, Dr. Emily Srisarajivakul, and Dr. Mollie Anderson
+
+**Sponsor:** Institute for Intelligent Systems (IIS)
+
+## Procedures
+
+You are being asked to take part in a research study. If you decide to
+take part, you will agree to share some of your course work with the
+researchers. This work includes writing assignments, online
+discussions, and assessments you produce for the course.  These
+materials will be obtained from Canvas after grades are submitted and
+will be accessed only by the researchers.
+
+No work beyond that which you would normally do as part of this course
+will be required. The research will require no more time than you
+would normally spend on the course. The decision to participate, or
+not to take part, will have no effect on your grade or standing in
+this class.
+
+Dr. Banerjee is part of the research team, but she will not know if
+you consent to this research until after she submits the grades for
+the course. You will not interact with any of the other researchers.
+
+## Voluntary Participation and Withdrawal
+
+You do not have to be in this study, and you may choose to leave the study at any time.
+
+## Contact Information
+
+Contact Dr. Randy Floyd at 901-678-2167 or rgfloyd@memphis.edu.
+
+## Consent
+
+If you are willing to volunteer for this research, please click on
+"I accept" below.  While this form is required, consent is
+not required. Your decision to participate in the research does not
+impact your ability to complete the assignment.
+</Markdown>
+<ChoiceInput id="psych_irb_consent">
+  <Key id="irb_accept"> I accept. </Key>
+  <Key id="irb_reject"> I do not want to participate in this study. </Key>
+</ChoiceInput>
+<Markdown when="@psych_irb_consent">
+# Great!
+
+You can change your mind anytime.
+
+This is an **experimental, open-source research platform**. You are the very first students to use it. A few notes:
+
+* We recommend Firefox, Edge, or Google Chrome. Safari is unsupported.
+* We recommend against working on multiple devices at the same time.
+* If you run into any issues, even minor, please let us know. You'll be helping out future students.
+
+</Markdown>
+</Vertical>
