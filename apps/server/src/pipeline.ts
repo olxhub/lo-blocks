@@ -29,6 +29,13 @@ import type { SafeUserId } from '@/lib/types/identity';
 import { kvsKey } from '@/lib/types/identity';
 import { ServerState } from './serverState.js';
 
+/** Send a message to the client, ignoring errors if the socket is already closing. */
+function safeSend(ws: WebSocket, data: object) {
+  try {
+    if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(data));
+  } catch { /* client gone — not actionable */ }
+}
+
 /** Parsed event from the client. Loose shape for now. */
 export interface PipelineEvent {
   event?: string;
@@ -176,13 +183,13 @@ async function* handleBlobs(
       try {
         const raw = await kvs.get(key);
         const data = raw ? JSON.parse(raw) : null;
-        ws.send(JSON.stringify({ status: 'fetch_blob', data }));
+        safeSend(ws, { status: 'fetch_blob', data });
         // Log the response so event logs are self-contained for replay
         appendEvent(ctx.conn, { event: 'fetch_blob_response', data });
         console.log(`[${ctx.conn.id}] fetch_blob ${key}: ${raw ? `${raw.length} bytes` : 'empty'}`);
       } catch (err) {
         console.error(`[${ctx.conn.id}] fetch_blob error:`, err);
-        ws.send(JSON.stringify({ status: 'fetch_blob', data: null }));
+        safeSend(ws, { status: 'fetch_blob', data: null });
         appendEvent(ctx.conn, { event: 'fetch_blob_response', data: null });
       }
       // fetch_blob is consumed here — not yielded downstream
@@ -193,13 +200,13 @@ async function* handleBlobs(
       try {
         const blob = JSON.stringify(event.blob);
         await kvs.set(key, blob);
-        ws.send(JSON.stringify({ status: 'save_blob_ack', token: event.token }));
+        safeSend(ws, { status: 'save_blob_ack', token: event.token });
         console.log(`[${ctx.conn.id}] save_blob ${key}: ${blob.length} bytes`);
       } catch (err) {
         console.error(`[${ctx.conn.id}] save_blob error:`, err);
         // Tell the client the write failed so it can surface it instead of
         // sitting at 'modified' indefinitely (indistinguishable from "saving").
-        ws.send(JSON.stringify({ status: 'save_blob_nack', token: event.token }));
+        safeSend(ws, { status: 'save_blob_nack', token: event.token });
       }
       // save_blob is consumed here — not yielded downstream
       continue;
