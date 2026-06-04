@@ -15,7 +15,7 @@
     persistence: none;
     auth: none;
     translanguaging: true;
-    debug-panel: false;
+    debug-panel: true;   /* on by default; ctrl-` toggles it. Rarely disabled. */
     copyright: "";
     tab-sync: false;
 }
@@ -31,15 +31,6 @@
     websocket: true;
     persistence: blob;
     auth: session;
-}
-
-/* Deployment overrides */
-.development {
-    debug-panel: true;
-}
-
-.production {
-    debug-panel: false;
 }
 
 /* Content classes — declared in course manifest.yaml */
