@@ -43,6 +43,17 @@ JJ: Okay, fair. I think I can write a prompt to get AI to check our answer, at l
 
 --- wait @fba2_ai_function_response.value ---
 
+Annie: Okay — so we need to figure out WHY Johnny is running away at bedtime. [face=smile]
+
+JJ: Right, and I still think it's attention. He's laughing, she's chasing — that's a social interaction he's creating. [face=explaining]
+
+Introducing Function of Behavior [id=fba2_function_concepts]
+---------------------------------
+
+Lin: Here are my notes from class. Based on what we covered, the four main functions of behavior are attention, escape, access to preferred activity or object, and sensory.
+
+::fba2_function_notes [display=target:psych_sba_sidebar3auto label="Lin's Notes"]
+
 Annie: JJ thinks it's attention. What's your guess? [face=smile]
 
 ::
@@ -57,18 +68,7 @@ Annie: JJ thinks it's attention. What's your guess? [face=smile]
 
 --- wait @fba2_johnny_function_prediction_inline ---
 
-Annie: Okay — so we need to figure out WHY Johnny is running away at bedtime. [face=smile]
-
-JJ: Right, and I still think it's attention. He's laughing, she's chasing — that's a social interaction he's creating. [face=explaining]
-
-Introducing Function of Behavior [id=fba2_function_concepts]
----------------------------------
-
-Lin: Here are my notes from class. Based on what we covered, the four main functions of behavior are attention, escape, access to preferred activity or object, and sensory.
-
-::fba2_function_notes [display=target:psych_sba_sidebar3auto label="Lin's Notes"]
-
-JJ: And my notes say the function always refers to a type of reinforcement — positive or negative. Wait, that's key, right? It's always reinforcement, never punishment?
+JJ: My notes say the function always refers to a type of reinforcement — positive or negative. Wait, that's key, right? It's always reinforcement, never punishment?
 
 Annie: Positive and negative reinforcement! We went over that last time. I remember the gist, but I'm a little fuzzy on the details...
 
@@ -113,19 +113,19 @@ Lin: Right. For each function, try to think of a situation involving positive re
 
 ::fba2_own_examples_attention [display=target:psych_sba_sidebar3auto label="Your Examples: Attention"]
 
---- wait @fba2_pos_reinforcement_attention.value && @fba2_neg_reinforcement_attention.value ---
+--- wait @fba2_pr_attention_feedback.value && @fba2_nr_attention_feedback.value ---
 
 ::fba2_own_examples_escape [display=target:psych_sba_sidebar3auto label="Your Examples: Escape"]
 
---- wait @fba2_pos_reinforcement_escape.value && @fba2_neg_reinforcement_escape.value ---
+--- wait @fba2_pr_escape_feedback.value && @fba2_nr_escape_feedback.value ---
 
 ::fba2_own_examples_access [display=target:psych_sba_sidebar3auto label="Your Examples: Access"]
 
---- wait @fba2_pos_reinforcement_access.value && @fba2_neg_reinforcement_access.value ---
+--- wait @fba2_pr_access_feedback.value && @fba2_nr_access_feedback.value ---
 
 ::fba2_own_examples_sensory [display=target:psych_sba_sidebar3auto label="Your Examples: Sensory"]
 
---- wait @fba2_pos_reinforcement_sensory.value && @fba2_neg_reinforcement_sensory.value ---
+--- wait @fba2_pr_sensory_feedback.value && @fba2_nr_sensory_feedback.value ---
 
 Annie: Okay, some of those were really hard. Did anyone else have trouble with escape and positive reinforcement? I kept going in circles. [face=hectic]
 
@@ -142,7 +142,7 @@ Annie: Hmm, before we look up the answer, what do you all think? Why might punis
 
 ::fba2_predict_punishment [display=target:psych_sba_sidebar3auto label="Predict: Why Not Punishment?"]
 
---- wait @fba2_punishment_confidence.value ---
+--- wait @fba2_no_punishment_explanation.value && @fba2_punishment_confidence.value ---
 
 Annie: That makes sense! Functions are about what the person gains from the behavior — what keeps it going. Punishment by definition decreases behavior, so it can't be the reason a behavior continues. [face=smile]
 
@@ -169,11 +169,13 @@ Annie: Oh right, the professor said "It's as easy as learning your ABCs!" I reme
 Teaching ABCs with AI [id=fba2_abc_teaching]
 ----------------------
 
-Annie: Let's get AI to help us see the ABCs in action with some examples.
+Annie: Let's get AI to help us see the ABCs in action with some examples. It seems a bit tricky, though, so I've asked Lianne to help.
+
+Lianne: Doing this kind of diagram with AI **is** tricky, because you have to tell it what format to use to get the diagrams to work in the software. I've written a prompt illustrating how to do it.
 
 ::fba2_ai_abc_diagrams [display=target:psych_sba_sidebar3auto label="Create ABC Diagrams with AI"]
 
---- wait @fba2_ai_abc_response.value ---
+--- wait @fba2_ai_abc_code.value ---
 
 Scaffolding ABCs [id=fba2_abc_scaffold]
 -----------------
@@ -244,24 +246,35 @@ Annie: A six-year-old has operant-conditioned a college student. I am NOT tellin
 Competing Behavior Pathway [id=fba2_pathway_section]
 ---------------------------
 
-::fba2_competing_pathway_blank [display=target:psych_sba_sidebar3auto label="Fill In Competing Behavior Pathway"]
+Lin: Now let's put it all together. Here's a color-coded reference diagram, we can use it to fill out a blank pathway with everything we know about Johnny.
 
-Lin: Now let's put it all together. Using the color-coded reference diagram, fill out the blank pathway with everything we know about Johnny.
+::fba2_pathway_reference [display=target:psych_sba_sidebar3auto label="View Reference Diagram"]
 
 JJ: Lianne showed us this in class — it's called a Competing Behavior Pathway. The idea is you map out the problem behavior and then figure out what you want instead. [face=explaining]
 
+::fba2_competing_pathway_blank [display=target:psych_sba_sidebar3auto label="Fill In Competing Behavior Pathway"]
+
 --- wait @fba2_pathway_behavior.value && @fba2_pathway_consequence.value && @fba2_pathway_function.value ---
 
-::fba2_competing_pathway_jj_section [display=target:psych_sba_sidebar3auto label="Compare with JJ's Pathway"]
+JJ: Let's compare! Here's what I put. I went the extra mile and filled in the setting and one alternative behavior
+(what Johnny used to do, before Annie's roommate tried positive reinforcement.) [face=smile]
 
-JJ: Let's compare! Here's what I put. [face=smile]
+::fba2_competing_pathway_jj_section [display=target:psych_sba_sidebar3auto label="Compare with JJ's Pathway"]
 
 Intervention Planning [id=fba2_intervention_section]
 ----------------------
 
-JJ: Okay, so now we need to figure out an actual intervention. We know the function of Johnny's running-away behavior is escape — not attention, as I learned the hard way. So what do we do about it? [face=smile]
+JJ: Okay, so now we need to figure out an actual intervention.
 
-Lin: Here's what my textbook says about escape-maintained behavior.
+Lin: Here's what my Child Development textbook says about generating interventions. We need strategies for the problem behavior of "not going to bed on time."
+
+::fba2_textbook_escape
+
+Annie: It sounds like we need to brainstorm a **lot** of things to try. Not just one or two things.
+
+JJ: Yes, but we can't just throw paint at the wall and hope it sticks. We know the function of Johnny's running-away behavior is escape — not attention, as I learned the hard way. So what do we do about it? [face=smile]
+
+Lin: Here's something my class notes say about escape-maintained behavior, in particular.
 
   _"Escape is used to get away from something aversive or not preferred. Changing **antecedent conditions** is key to intervening when the function of behavior is escape."_
 
@@ -271,18 +284,28 @@ Lin: Exactly. The goal isn't just to stop the running — it's to make bedtime s
 
 JJ: Okay, that's actually really different from "no toys tomorrow." [face=concerned]
 
+Lin: But that doesn't mean we can **only** focus on antecedent strategies. Consequences matter too. We just need to make sure that the strategies we select focus on escape.
+
 Checking Intervention Understanding [id=fba2_intervention_check]
 ------------------------------------
 
+Annie: I found some examples of interventions. But it's a pretty long list. And I'm not sure what function they address.
+
+JJ: What if we break the list up into two pieces? Let's think about antecedent strategies first — things we can do before bedtime to prevent escape. Then we'll tackle consequence strategies separately. Otherwise this is going to get overwhelming. [face=explaining]
+
+::fba2_antecedent_strategies_problem [display=target:psych_sba_sidebar3auto label="Classify Functions of Antecedent Strategies"]
+
+--- wait @fba2_antecedent_strategies_problem.score===1 ---
+
+::fba2_consequence_strategies_problem [display=target:psych_sba_sidebar3auto label="Classify Functions of Consequence Strategies"]
+
+--- wait @fba2_consequence_strategies_problem.score===1 ---
+
 ::fba2_intervention_strategies [display=target:psych_sba_sidebar3auto label="Sort Intervention Strategies"]
-
-Lin: Here's what my Child Development textbook says about generating interventions. We need strategies for the problem behavior of "not going to bed on time."
-
-JJ: What if we break this into two pieces? Let's think about antecedent strategies first — things we can do before bedtime to prevent escape. Then we'll tackle consequence strategies separately. Otherwise this is going to get overwhelming. [face=explaining]
 
 --- wait @fba2_escape_strategies_done.value ---
 
-Annie: But not all of those strategies were about escape. Some were for attention or sensory. We need to narrow down, right? [face=serious]
+Annie: But not all of those strategies will work in Johnny's situation. Maybe we should look for more strategies before we narrow things down. [face=serious]
 
 JJ: Right. Let's ask AI for more options.
 
@@ -297,13 +320,15 @@ AI Intervention Strategies [id=fba2_ai_interventions]
 
 --- wait @fba2_ai_consequence_response.value ---
 
-JJ: "Redirect the child's attention to a preferred activity" — that one sounds right for Johnny. [face=smile]
+JJ: Here's a promising strategy I got from the AI: "Redirect the child's attention to a preferred activity" — that one sounds right for Johnny. [face=smile]
 
 Lin: Does it? That strategy assumes the function is attention. If Johnny's running to escape bedtime, redirecting his attention doesn't address why he's running. [face=serious]
 
 JJ: So the same strategy could be right or wrong depending on the function? [face=concerned]
 
 Lin: Exactly. We need escape-specific strategies.
+
+Annie: So let's use the AI again, but focus just on escape strategies that can be applied to bedtime refusal in a 6-year-old like Johnnie. 
 
 ::fba2_ai_escape_antecedent [display=target:psych_sba_sidebar3auto label="Ask AI: Escape Antecedent Strategies"]
 
@@ -325,11 +350,13 @@ JJ: What if we go back to the Competing Behavior Pathway and plug in the strateg
 Revisiting the Pathway [id=fba2_revised_pathway_section]
 -----------------------
 
-::fba2_revised_pathway [display=target:psych_sba_sidebar3auto label="Revise the Pathway"]
-
 JJ: Here's the original pathway for reference. Now we need to fill in the new version with our escape-focused strategies.
 
+::fba2_original_pathway_ref [display=target:psych_sba_sidebar3auto label="JJ's Original Pathway"]
+
 Annie: Let's do it — this time we actually know what we're targeting. [face=smile]
+
+::fba2_revised_pathway [display=target:psych_sba_sidebar3auto label="Revise the Pathway"]
 
 --- wait @fba2_revised_antecedent.value && @fba2_revised_desired.value && @fba2_revised_consequence.value ---
 
@@ -338,18 +365,19 @@ Behavior Modification Plan [id=fba2_plan_section]
 
 JJ: I asked AI to generate two complete plans — one assuming escape, one assuming sensory. That way we can see why getting the function right actually matters. [face=explaining]
 
-::fba2_plan_selection [display=target:psych_sba_sidebar3auto label="Choose Best Plan"]
+::fba2_two_possible_plans [display=target:psych_sba_sidebar3auto label="Consider Two Possible Plans"]
 
 Annie: Honestly, some of the sensory ideas sound really nice — calming music, weighted blankets. I could see those helping Johnny relax. [face=explaining]
 
 JJ: They do sound nice. But which plan actually fits what we know about Johnny?
 
+::fba2_plan_selection [display=target:psych_sba_sidebar3auto label="Choose the Best Plan"]
+
 --- wait @fba2_plan_choice.submitCount > 0 ---
 
 Escape Plan Review [id=fba2_escape_plan_review]
 -------------------
-
-::fba2_escape_plan_display [display=target:psych_sba_sidebar3auto label="Review Escape Plan Details"]
+::fba2_escape_plan_markdown [display=target:psych_sba_sidebar3auto label="Review Escape Plan Details"]
 
 JJ: There's a lot in here. Not everything makes equal sense for Johnny's specific situation, but I really like the timer idea — using a timer to show when each routine step begins and ends. That's a solid antecedent strategy. [face=explaining]
 
@@ -361,36 +389,61 @@ Lin: We're not saying ignore him completely — you still keep bedtime safe. The
 
 Annie: Okay, that's an important distinction. What parts of the plan stand out to you?
 
+::fba2_escape_plan_display [display=target:psych_sba_sidebar3auto label="Identify advantages of the Escape Plan"]
+
 --- wait @fba2_plan_likes.value ---
+
+Lin: Good points. There's a lot about this escape-oriented plan that should help get Johnny to bed on time.
 
 Checking Understanding of Plans [id=fba2_plan_check]
 --------------------------------
 
+Annie: But some of the sensory ideas are genuinely good strategies. Calming music before bed, a predictable sensory environment... wouldn't those help any kid? [face=explaining]
+
+::fba2_sensory_plan_reference [display=target:psych_sba_sidebar3auto label="Take a closer look at the Sensory Plan"]
+
+JJ: You have a point, Annie. What's wrong with the Sensory Plan?
+
 ::fba2_sensory_plan_check [display=target:psych_sba_sidebar3auto label="Check: Why Not the Sensory Plan?"]
 
-Annie: But some of the sensory ideas are genuinely good strategies. Calming music before bed, a predictable sensory environment... wouldn't those help any kid? [face=explaining]
+--- wait @fba2_sensory_check_choice.submitCount > 0 ---
 
 Lin: They might be nice supports, but they can't be the core plan. Johnny's function is escape — a weighted blanket isn't going to solve the problem if the reason he's running away is to avoid going to bed. You could add calming music as part of an antecedent strategy, but only if the plan is built around escape first. [face=serious]
 
 Annie: So: wrong function for the core plan, but nice supports on top of the right one. [face=smile]
 
---- wait @fba2_sensory_check_choice.submitCount > 0 ---
+JJ: **(Deep breath)** ... I guess we're ready to write an email to Annie's roommate giving her our advice.
 
 Final Email [id=fba2_final]
 ------------
 
-Lianne: Before you write your email, here's something worth keeping in mind. People usually think of a rubric as a grading tool. But really, it's a description of your goals — a way to check whether you've accomplished what you set out to do. Think about that as you write. [face=calm]
+Lianne: Before you write your email, here's something worth keeping in mind. People usually think of a rubric as a grading tool. But really, it's a description of your goals — a way to check whether you've accomplished what you set out to do. Think about that as you write. So take a look at the rubric, keeping that in mind. [face=calm]
+
+::fba2_email_rubric [display=target:psych_sba_sidebar3auto label="Review Rubric"]
 
 JJ: And make sure to use the terms we've been working with — function of behavior, antecedent, behavior, consequence, and competing behavior pathway. Those aren't just vocabulary words; they show your roommate that you have a real framework behind your suggestions. [face=explaining]
 
-::fba2_final_email [display=target:psych_sba_sidebar3auto label="Write Email to Roommate"]
+::fba2_final_email_without_feedback [display=target:psych_sba_sidebar3auto label="Write Email to Roommate"]
 
 --- wait @fba2_email_to_roommate.value ---
 
-::fba2_completion_page [display=target:psych_sba_sidebar3auto label="Complete Exercise"]
+Lin: I'm done.
+
+JJ: So am I.
+
+Annie: Great! But let's get some AI feedback. It's always a good idea to check whether you're on track before you finalize everything.
+
+::fba2_final_email [display=target:psych_sba_sidebar3auto label="Write Email to Roommate"]
 
 Annie: Done! I'll send this to my roommate tonight. I actually feel like we have a solid plan this time. [face=smile]
 
 Lin: I think so too. Let's check back in a couple of weeks to see how it goes.
 
+::fba2_completion_page [display=target:psych_sba_sidebar3auto label="Complete Exercise"]
+
+--- wait 'CONTENT/fba2_part_3auto_finished' in @fba2_completion_checkbox.value ---
+
+::psych_sba_activities_part3auto  [display=target:psych_sba_sidebar3auto label="Review your work"]
+
 Lianne: Now you're done with Part 3 Auto, you can review all your answers to the right. Use the "Export as PDF" button to save a copy of your answers and upload it to our course system.
+
