@@ -70,9 +70,6 @@ UseHistory displays dot indicators for navigating through history:
 - Use arrows to move forward/backward one step
 - A new target is appended to history the first time it's shown
 
-Navigating sets `value` to the chosen entry, so manual navigation and
-chat-driven repointing share the exact same display path.
-
 ## State Fields
 
 - `value`: The target ID currently being rendered — the single source of truth
