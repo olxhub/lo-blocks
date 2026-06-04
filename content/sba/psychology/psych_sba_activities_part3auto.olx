@@ -204,8 +204,9 @@ Here's JJ's prompt:
 <TextArea id="jjs_prompt" />
 
 <ActionButton id="fba2_ai_chart_reset_btn" label="Restore original prompt">
-<SetFieldAction 
-    target="jjs_prompt" 
+<SetFieldAction
+    id="fba2_ai_chart_reset_action"
+    target="jjs_prompt"
     field="value" 
     value="You are a helpful psychology teaching assistant. Create a chart showing the four
 functions of behavior (attention, escape, access to tangibles, sensory) with examples
@@ -534,8 +535,9 @@ than experimenting with it, until you understand Mermaid diagrams better!
 
 
 <ActionButton id="fba2_ai_diagram_restore_btn" label="Restore original prompt">
-<SetFieldAction 
-    target="ABCs_mermaid_diagram" 
+<SetFieldAction
+    id="fba2_ai_diagram_restore_action"
+    target="ABCs_mermaid_diagram"
     field="value" 
     value="If the following question is about the ABCs (Antecedent, Behavior, Consequence) model
 and functions of behavior, generate ONLY valid Mermaid flowchart code. No explanations,
