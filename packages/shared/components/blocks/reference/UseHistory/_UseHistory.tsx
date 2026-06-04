@@ -23,13 +23,20 @@ export function _UseHistory(props: RuntimeProps) {
   const { value: refValue } = useValue(props, { target: targetRef, fallback: null });
   const effectiveTarget = refValue ?? target;
 
-  const defaultHistory = initial ? [initial] : (effectiveTarget ? [effectiveTarget] : []);
+  // The first thing to show: an explicit `initial`, else the resolved target
+  // (for target=/targetRef= usage). `value` defaults to this so the block
+  // renders `initial` on first load, before anything repoints us. (Defaulting
+  // `value` to only `effectiveTarget` was a regression: with just initial= and
+  // no target, it was undefined, so we rendered "[Missing <Use> resolution]"
+  // until the first popout fired.)
+  const initialValue = initial ?? effectiveTarget;
+  const defaultHistory = initialValue ? [initialValue] : [];
 
   // `value` is the single source of truth for what we show. It's written by
   // whoever drives us (a <Chat> repointing) AND by our own navigation buttons.
   // We always display `value`; the cursor is derived (history.indexOf(value)),
   // never stored — so it can't drift out of sync with what's shown.
-  const [value, setValue] = useFieldState(props, fields.value, effectiveTarget);
+  const [value, setValue] = useFieldState(props, fields.value, initialValue);
   const [history, setHistory] = useFieldState(props, fields.history, defaultHistory);
 
   // The only state we accumulate is the list of distinct values seen, for the
