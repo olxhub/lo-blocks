@@ -64,6 +64,7 @@ const CONTEXT_INDEPENDENT_EVENTS = new Set([
   'OLXJSON_ERROR',
   'CLEAR_OLXJSON',
   'SET_LOCALE',
+  'fetch_blob_response',
 ]);
 
 /**
@@ -111,6 +112,25 @@ export const initialReplayState: AppState = {
   chat: {},
 };
 
+/**
+ * Apply a fetch_blob_response to state.
+ *
+ * The blob contains { application_state: { component, componentSetting, ... } }
+ * as serialized by serializeForSave. We merge persisted scopes into the current
+ * state, matching how handleLoadState + deserializeOnLoad work at runtime.
+ */
+function applyFetchBlobResponse(state: AppState, data: any): AppState {
+  if (!data) return state;
+  const appState = data.application_state;
+  if (!appState) return state;
+  return {
+    ...state,
+    component: appState.component ?? state.component,
+    componentSetting: appState.componentSetting ?? state.componentSetting,
+    system: appState.system ?? state.system,
+  };
+}
+
 // =============================================================================
 // Core Replay Functions
 // =============================================================================
@@ -137,7 +157,11 @@ export function replayToEvent(events: LoggedEvent[], upTo?: number): AppState {
   let state = initialReplayState;
 
   for (let i = 0; i < Math.min(limit, events.length); i++) {
-    state = updateResponseReducer(state, events[i]);
+    if (events[i].event === 'fetch_blob_response') {
+      state = applyFetchBlobResponse(state, events[i].data);
+    } else {
+      state = updateResponseReducer(state, events[i]);
+    }
   }
 
   return state;
@@ -169,7 +193,11 @@ export function replayWithSnapshots(events: LoggedEvent[]): StateSnapshot[] {
 
   let state = initialReplayState;
   for (let i = 0; i < events.length; i++) {
-    state = updateResponseReducer(state, events[i]);
+    if (events[i].event === 'fetch_blob_response') {
+      state = applyFetchBlobResponse(state, events[i].data);
+    } else {
+      state = updateResponseReducer(state, events[i]);
+    }
     snapshots.push({
       eventIndex: i,
       event: events[i],
@@ -202,7 +230,11 @@ export function findEventWhere(
   let state = initialReplayState;
 
   for (let i = 0; i < events.length; i++) {
-    state = updateResponseReducer(state, events[i]);
+    if (events[i].event === 'fetch_blob_response') {
+      state = applyFetchBlobResponse(state, events[i].data);
+    } else {
+      state = updateResponseReducer(state, events[i]);
+    }
     if (predicate(state)) {
       return i;
     }
@@ -232,7 +264,11 @@ export function getFieldHistory<T>(
   let state = initialReplayState;
 
   for (let i = 0; i < events.length; i++) {
-    state = updateResponseReducer(state, events[i]);
+    if (events[i].event === 'fetch_blob_response') {
+      state = applyFetchBlobResponse(state, events[i].data);
+    } else {
+      state = updateResponseReducer(state, events[i]);
+    }
     history.push({
       eventIndex: i,
       event: events[i],

@@ -177,10 +177,13 @@ async function* handleBlobs(
         const raw = await kvs.get(key);
         const data = raw ? JSON.parse(raw) : null;
         ws.send(JSON.stringify({ status: 'fetch_blob', data }));
+        // Log the response so event logs are self-contained for replay
+        appendEvent(ctx.conn, { event: 'fetch_blob_response', data });
         console.log(`[${ctx.conn.id}] fetch_blob ${key}: ${raw ? `${raw.length} bytes` : 'empty'}`);
       } catch (err) {
         console.error(`[${ctx.conn.id}] fetch_blob error:`, err);
         ws.send(JSON.stringify({ status: 'fetch_blob', data: null }));
+        appendEvent(ctx.conn, { event: 'fetch_blob_response', data: null });
       }
       // fetch_blob is consumed here — not yielded downstream
       continue;
