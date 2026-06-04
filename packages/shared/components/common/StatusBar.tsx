@@ -1,71 +1,82 @@
 // packages/shared/components/common/StatusBar.tsx
 //
-// Sticky top bar showing persistence status: connection state, save
-// status, and the current user. Shared by the routed preview app
-// (apps/client) and the static export app (apps/static).
+// The app header — one subtle bar, used by every entry point (apps/web,
+// apps/client, apps/static). It deliberately stays out of the way and keeps
+// focus on the content: save status on the left, language switcher + user on
+// the right. No home link or placeholder chrome.
 //
-// Reads lo_event's persistence hooks (useConnected/useSaved) and the
-// current user. When no WebSocket is configured, useConnected() returns
-// null and there's nothing meaningful to show — callers should only
-// render this when persistence is active.
+// Connection/save semantics live in ./ConnectionStatus. When nothing persists
+// AND there's no language to switch, the bar renders nothing.
 //
+'use client';
 import { useEffect } from 'react';
-import { WifiOff } from 'lucide-react';
-import { useConnected, useSaved, useUser } from '@/lib/state';
+import { useUser } from '@/lib/state';
+import { getConfigBool } from '@/lib/config';
+import type { Locale } from '@/lib/types';
+import { useConnectionStatus, SaveIndicator, OfflineNotice } from './ConnectionStatus';
+import LanguageSwitcher, { useVariantTiers, hasLanguageChoices } from './LanguageSwitcher';
 
-export default function StatusBar() {
-  const connected = useConnected();
-  const saveStatus = useSaved();
+interface StatusBarProps {
+  // Static builds derive available variants from the idMap and pass them in;
+  // web/client leave these undefined and the switcher reads Redux.
+  availableLocales?: Locale[];
+  bestEffortLocales?: Locale[];
+}
+
+export default function StatusBar({ availableLocales, bestEffortLocales }: StatusBarProps = {}) {
+  const { saveStatus, persists, offline } = useConnectionStatus();
   const user = useUser();
 
-  // Warn before leaving with unsaved changes. lo_event flushes pending saves
-  // on unload, but the WebSocket send is async and the in-memory queue doesn't
-  // survive page close, so an unconfirmed save means work could be lost. The
-  // browser shows its generic "Leave site?" prompt when we preventDefault.
+  const translanguaging = getConfigBool('translanguaging');
+  const tiers = useVariantTiers(availableLocales, bestEffortLocales);
+  const showLanguage = hasLanguageChoices(tiers, translanguaging);
+
+  // Warn before leaving with unsaved changes — only meaningful when we persist.
   useEffect(() => {
-    // Prompt for any unsaved state — pending changes ('modified') or a failed
-    // save ('error'); only 'saved' is safe to leave silently.
-    if (saveStatus === 'saved') return;
+    if (!persists || saveStatus === 'saved') return;
     const handler = (e: BeforeUnloadEvent) => {
       e.preventDefault();
       e.returnValue = '';
     };
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
-  }, [saveStatus]);
+  }, [persists, saveStatus]);
 
-  if (connected === false) {
+  // Persistence dropped: red banner + dim the page to discourage working while
+  // changes can't be saved. (offline implies persistence is configured.)
+  if (offline) {
     return (
       <div className="sticky top-0 z-50 print:hidden">
-        <div className="bg-error text-inverse px-4 py-2 text-sm font-medium flex items-center justify-center gap-2">
-          <WifiOff className="w-4 h-4" />
-          Connection lost — please check your network
+        <div className="bg-error text-inverse px-4 py-2 text-sm font-medium flex justify-center">
+          <OfflineNotice />
         </div>
         <div className="fixed inset-0 bg-black/20 z-40 pointer-events-none" />
       </div>
     );
   }
 
-  const saveLabel =
-    saveStatus === 'error' ? 'Save failed'
-      : saveStatus === 'modified' ? 'Unsaved changes'
-        : 'Saved';
-  const saveDot =
-    saveStatus === 'error' ? 'bg-error'
-      : saveStatus === 'modified' ? 'bg-warning'
-        : 'bg-success';
+  // Nothing to report and nothing to switch → no bar at all.
+  if (!persists && !showLanguage) return null;
 
-  // In print we keep only the username (for attribution) and drop the
-  // interactive chrome. print:static stops the sticky bar from landing on
-  // its own page, and we strip the screen-only background/border/blur so it
-  // reads as a plain header line at the top of the first page.
+  // In print we keep only the username (attribution) and drop the chrome.
+  // print:static stops the sticky bar from taking its own page.
   return (
     <div className="sticky top-0 z-10 bg-surface/80 backdrop-blur-sm border-b border-subtle px-4 py-1.5 flex items-center justify-between text-xs text-dimmed print:static print:bg-transparent print:backdrop-blur-none print:border-0 print:px-0">
-      <div className="flex items-center gap-2 print:hidden">
-        <span className={`w-1.5 h-1.5 rounded-full ${saveDot}`} title={saveLabel} />
-        <span>{saveLabel}</span>
+      <span className="print:hidden">
+        {persists && <SaveIndicator saveStatus={saveStatus} showLabel />}
+      </span>
+      <div className="flex items-center gap-3">
+        {showLanguage && (
+          <span className="print:hidden">
+            <LanguageSwitcher
+              translanguaging={translanguaging}
+              availableLocales={availableLocales}
+              bestEffortLocales={bestEffortLocales}
+            />
+          </span>
+        )}
+        {persists && <span>{user?.user_id || '(no user)'}</span>}
       </div>
-      <span>{user?.user_id || '(no user)'}</span>
     </div>
   );
 }

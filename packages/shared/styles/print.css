@@ -11,10 +11,8 @@
 @media print {
   /* ===== Hide interactive chrome ===== */
 
-  /* App header (Home, language switcher, user icon) */
-  .lo-app-header {
-    display: none !important;
-  }
+  /* The status bar manages its own print behavior (keeps the username for
+     attribution, drops save/language chrome) — see StatusBar.tsx. */
 
   /* Sidebar navigation and its resize/collapse chrome */
   .lo-sidebar,

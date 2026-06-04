@@ -2,7 +2,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import AppHeader from '@/components/common/AppHeader';
+import StatusBar from '@/components/common/StatusBar';
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
@@ -41,7 +41,7 @@ export default function PreviewPage() {
   if (error) {
     return (
       <div {...localeAttrs} suppressHydrationWarning className="flex flex-col h-screen">
-        <AppHeader home user />
+        <StatusBar />
         <div className="p-6 flex-1">
           <DisplayError
             props={{ id: stateKey, tag: 'preview' }}
@@ -58,7 +58,7 @@ export default function PreviewPage() {
   if (!storeLoaded) {
     return (
       <div {...localeAttrs} suppressHydrationWarning className="flex flex-col h-screen">
-        <AppHeader home user />
+        <StatusBar />
         <Spinner>Loading user state...</Spinner>
       </div>
     );
@@ -67,7 +67,7 @@ export default function PreviewPage() {
   if (loading) {
     return (
       <div {...localeAttrs} suppressHydrationWarning className="flex flex-col h-screen">
-        <AppHeader home user />
+        <StatusBar />
         <Spinner>Loading content...</Spinner>
       </div>
     );
@@ -78,7 +78,7 @@ export default function PreviewPage() {
 
   return (
     <div {...localeAttrs} className="flex flex-col h-screen">
-      <AppHeader home user />
+      <StatusBar />
       <div className="p-6 flex-1 overflow-auto">
         <div className="space-y-4">
           {renderError ? (
@@ -116,4 +116,4 @@ export default function PreviewPage() {
 //   - 2 might places might not be enough to merit that.
 // * Remove need for tag and ID in contexts we don't need it (e.g. system-wide state)
 //
-// This hack is present in debug.js (twice), AppHeader, and here
+// This hack is present in debug.js (twice) and here
