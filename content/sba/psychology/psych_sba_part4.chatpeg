@@ -15,14 +15,14 @@ JJ: What happened?
 
 Annie: The intervention didn't go as well as we hoped. She only got him to bed on time 2 out of the first 5 times. And on one occasion, she admitted she didn't follow our plan exactly. When I questioned her more closely, she told me she'd focused on the antecedent strategies. She didn't follow any of the consequence strategies.
 
-psych_sba_sidebar4 -> two_weeks_later
+::two_weeks_later [display=target:psych_sba_sidebar4 label="Two weeks later"]
 
 Lin: Let's talk to our professor to find more resources.
 
 Implementation Fidelity
 -----------------------
 
-psych_sba_sidebar4 -> fidelity_intro
+::fidelity_intro [display=target:psych_sba_sidebar4 label="Implementation fidelity"]
 
 Lin: The professor mentioned something called implementation fidelity.
 
@@ -30,7 +30,7 @@ JJ: In other words, was Annie's roommate doing what our plan says they should do
 
 Annie: Now we're getting somewhere! Let me text my roommate to see exactly where things went wrong...
 
-psych_sba_sidebar4 -> fidelity_check
+::fidelity_check [display=target:psych_sba_sidebar4 label="Where did it go wrong?"]
 
 Annie: My roommate got back to me! She said that sometimes she forgets to do the warning countdown and timer, she forgets the small bedtime reward, and often falls into negotiating or arguing when he whines.
 
@@ -43,7 +43,7 @@ Lin: Right. Let's have AI help brainstorm how we can help her.
 Modifications
 -------------
 
-psych_sba_sidebar4 -> ai_modifications
+::ai_modifications [display=target:psych_sba_sidebar4 label="Ask AI: improving adherence"]
 
 --- wait @modifications_ai_response.value ---
 
@@ -57,7 +57,7 @@ Lianne: Well, you might want to make sure it knows that this is a psychology int
 
 Annie: In short, we have to make everything explicit! Lay it all out in detail. Why don't we put it all down and see if that helps.
 
-psych_sba_sidebar4 -> ai_intervention_brainstorming_prompt
+::ai_intervention_brainstorming_prompt [display=target:psych_sba_sidebar4 label="Add context to the prompt"]
 
 JJ: All right, here we go.
 
@@ -65,7 +65,7 @@ Lin: That looks a lot better!
 
 Annie: It does indeed!
 
-psych_sba_sidebar4 -> ai_modifications2
+::ai_modifications2 [display=target:psych_sba_sidebar4 label="Ask AI: tailored modifications"]
 
 Lin: Let's go ahead and find out what kind of response this gives us from the AI.
 
@@ -75,7 +75,7 @@ Annie: This is a lot. We'd better read it carefully to make sure it's all in lin
 
 JJ: There are a couple of things that might be slightly off, but overall, these are really good suggestions. But they're an awful lot. Should we really do all of them?
 
-psych_sba_sidebar4 -> modification_selection
+::modification_selection [display=target:psych_sba_sidebar4 label="Choose modifications"]
 
 Annie: Maybe not. I've pulled the suggestions we got from a couple of runs of this prompt into a list. Take a look at them. Which of these modifications do you think we should suggest to Annie's roommate?
 
@@ -83,15 +83,15 @@ Annie: Maybe not. I've pulled the suggestions we got from a couple of runs of th
 
 JJ: Great choices! I totally agree.
 
-psych_sba_sidebar4 -> fidelity_checklist
+::fidelity_checklist [display=target:psych_sba_sidebar4 label="Fidelity checklist"]
 
 Lin: Me too. Here's a checklist I put together.
 
-psych_sba_sidebar4 -> fidelity_checklist2
+::fidelity_checklist2 [display=target:psych_sba_sidebar4 label="Fidelity checklist: escape"]
 
 JJ: I added a second part to the checklist for escape behaviors.
 
-psych_sba_sidebar4 -> revision_suggestion_email
+::revision_suggestion_email [display=target:psych_sba_sidebar4 label="Write the revision email"]
 
 Annie: Why don't you guys add one more idea? I think my roommate needs all the help she can get.
 
@@ -108,11 +108,11 @@ JJ: So how did it go this time?
 
 Annie: Much better! Johnny is going to bed on time more often. His parents even asked my roommate for her secrets!
 
-psych_sba_sidebar4 -> conclusion_progress
+::conclusion_progress [display=target:psych_sba_sidebar4 label="How it went"]
 
 Lin: That's amazing! I'm so glad we were able to help.
 
-psych_sba_sidebar4 -> final_reflection
+::final_reflection [display=target:psych_sba_sidebar4 label="Final reflection"]
 
 JJ: Let's write up a reflection on what we learned from this whole experience.
 
@@ -122,10 +122,10 @@ Annie: Thanks everyone. This was a great learning experience - we really used wh
 
 Lin: And we learned about function of behavior, the ABCs, competing behavior pathways, and implementation fidelity along the way.
 
-psych_sba_sidebar4 -> completion_summary_fba
+::completion_summary_fba [display=target:psych_sba_sidebar4 label="Summary"]
 
 JJ: Great teamwork!
 
-psych_sba_sidebar4 -> psych_sba_part4_activities
+::psych_sba_part4_activities [display=target:psych_sba_sidebar4 label="Review all your answers."]
 
 Lianne: Now that you've finished this task, please use the "Export as PDF" button to the right to save a copy of your answers and upload the resulting PDF to your class system to complete your assignment.
