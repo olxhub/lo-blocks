@@ -17,10 +17,6 @@ license: AGPL
 <Vertical id="psych_sba_activities_part2" title="Psychology Study Group: 2. Operant Conditioning (Activities)" launchable="true">
 
 
-  <ActionButton id="print_psych_part2_btn" label="Export as PDF">
-    <PrintAction id="print_psych_part2" />
-  </ActionButton>
-
   <IntakeGate ready="!@psych_part_2_finished.value">
    <Markdown> </Markdown>
    <Vertical>
@@ -1078,8 +1074,121 @@ Remember:
 
 ## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
 
-_When you click Continue, the next screen gathers everything you wrote into one page for you to print to PDF and submit to your teacher. It can take up to a minute to appear — please wait for it to finish loading before you print._
+_When you click Continue, the next screen gathers your responses into one page. Review it, then print to PDF and submit to your teacher._
         </Markdown>
     </Vertical>
+
+
+<HH> ============= Screen: Review / submission =============== </HH>
+
+<!-- Curated submission view (same pattern as psych_sba_part1_review). Shown
+     only as the chat's final step via ::psych_sba_part2_review, so the reading
+     content and quiz banks are never rendered here — fast on screen, clean in
+     the PDF. The formative practice quizzes (generated reinforce_punish_* and
+     four_types_*) are intentionally omitted from the submission. -->
+<Vertical id="psych_sba_part2_review">
+
+<ActionButton id="print_psych_part2_btn" label="Export as PDF">
+  <PrintAction id="print_psych_part2" />
+</ActionButton>
+
+<Markdown>
+# Your responses
+
+Here is everything you wrote, gathered in one place. Look it over.
+
+If you need to change an answer, go back to that step in the activity (use
+the navigation to return to it), make your edits, and come back here — these
+responses will update to match. When everything looks right, click the
+**Export as PDF** button above and upload the PDF to your course system.
+
+## Practice quiz: reinforcement vs. punishment
+
+If any answer below is marked *incorrect*, you can go back to that
+question and try it again.
+
+| # | Result |
+|---|--------|
+| 1 | {{@reinforce_punish_practice_1.correct}} |
+| 2 | {{@reinforce_punish_practice_1b.correct}} |
+| 3 | {{@reinforce_punish_practice_1c.correct}} |
+| 4 | {{@reinforce_punish_practice_1d.correct}} |
+| 5 | {{@reinforce_punish_practice_1e.correct}} |
+| 6 | {{@reinforce_punish_practice_1f.correct}} |
+| 7 | {{@reinforce_punish_practice_1g.correct}} |
+| 8 | {{@reinforce_punish_practice_1h.correct}} |
+| 9 | {{@reinforce_punish_practice_1i.correct}} |
+| 10 | {{@reinforce_punish_practice_1j.correct}} |
+| 11 | {{@reinforce_punish_practice_1k.correct}} |
+| 12 | {{@reinforce_punish_practice_1l.correct}} |
+| 13 | {{@reinforce_punish_practice_1m.correct}} |
+| 14 | {{@reinforce_punish_practice_1n.correct}} |
+| 15 | {{@reinforce_punish_practice_1o.correct}} |
+| 16 | {{@reinforce_punish_practice_1p.correct}} |
+| 17 | {{@reinforce_punish_practice_1q.correct}} |
+| 18 | {{@reinforce_punish_practice_1r.correct}} |
+| 19 | {{@reinforce_punish_practice_1s.correct}} |
+| 20 | {{@reinforce_punish_practice_1t.correct}} |
+
+## Your examples of operant conditioning
+
+**Positive reinforcement:** {{@positive_reinforcement_example.value}}
+
+**Positive punishment:** {{@positive_punishment_example.value}}
+
+**Negative reinforcement:** {{@negative_reinforcement_example.value}}
+
+**Negative punishment:** {{@negative_punishment_example.value}}
+
+## Practice quiz: the four types
+
+If any answer below is marked *incorrect*, you can go back to that
+question and try it again.
+
+| # | Result |
+|---|--------|
+| 1 | {{@four_types_practice_1.correct}} |
+| 2 | {{@four_types_practice_1b.correct}} |
+| 3 | {{@four_types_practice_1c.correct}} |
+| 4 | {{@four_types_practice_1d.correct}} |
+| 5 | {{@four_types_practice_1e.correct}} |
+| 6 | {{@four_types_practice_1f.correct}} |
+| 7 | {{@four_types_practice_1g.correct}} |
+| 8 | {{@four_types_practice_1h.correct}} |
+| 9 | {{@four_types_practice_1i.correct}} |
+| 10 | {{@four_types_practice_1j.correct}} |
+| 11 | {{@four_types_practice_1k.correct}} |
+| 12 | {{@four_types_practice_1l.correct}} |
+| 13 | {{@four_types_practice_1m.correct}} |
+| 14 | {{@four_types_practice_1n.correct}} |
+| 15 | {{@four_types_practice_1o.correct}} |
+| 16 | {{@four_types_practice_1p.correct}} |
+| 17 | {{@four_types_practice_1q.correct}} |
+| 18 | {{@four_types_practice_1r.correct}} |
+| 19 | {{@four_types_practice_1s.correct}} |
+| 20 | {{@four_types_practice_1t.correct}} |
+
+## Your email to Annie's friend
+
+**Technique we recommend:** {{@recommended_technique.value}}
+
+**What positive reinforcement is and why it works:**
+{{@explanation_of_positive_reinforcement.value}}
+
+**Techniques she can try:**
+- {{@technique1.value}}
+- {{@technique2.value}}
+- {{@technique3.value}}
+- {{@technique4.value}}
+- {{@technique5.value}}
+
+**Closing:**
+{{@final_paragraph.value}}
+
+## Your final email
+{{@final_email.value}}
+</Markdown>
+
+</Vertical>
 
 </Vertical>

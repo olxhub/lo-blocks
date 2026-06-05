@@ -18,7 +18,7 @@ license: AGPL
 <SplitPanel
     id="psych_sba_part3"
     sizes="40, 60"
-    title="SBLA Part 3: Function of Behavior"
+    title="SBLA Part Three: Function of Behavior"
     launchable="true">
 
   <!-- Left Panel: SMS Conversation -->
