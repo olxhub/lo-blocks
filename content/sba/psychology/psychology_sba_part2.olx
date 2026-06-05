@@ -18,7 +18,7 @@ license: AGPL
 <SplitPanel
      id="psych_sba2"
      sizes="40, 60"
-     title="Psychology Study Group: 2. Operant Conditioning" launchable="true">
+     title="SBLA Part Two: Operant Conditioning" launchable="true">
 
   <!-- Left Panel: SMS Conversation -->
   <LeftPane>

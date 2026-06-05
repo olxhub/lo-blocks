@@ -57,6 +57,12 @@ If he stays up, he stays up. That's on him. He'll be so tired the next day, he'l
 
 --- wait @initial_suggestion.value.length > 10 ---
 
+You: Here's what I wrote:
+
+::
+<Markdown>{{@initial_suggestion.value}}</Markdown>
+::
+
 Annie: Haha, we are all over the place with our ideas!
 
 JJ: We really do have different approaches! Why don't we rank these from best to worst and see what we think?
@@ -89,6 +95,12 @@ JJ: OK, so if we want to find out about sleep refusal...no-rules parenting...and
 ::student_ai_suggestion [display=target:psych_sba_sidebar label="Write a prompt for the AI."]
 
 --- wait @initial_ai_suggestion.value.length > 10 ---
+
+You: Here's what I wrote:
+
+::
+<Markdown>{{@initial_ai_suggestion.value}}</Markdown>
+::
 
 Annie: Hmmm...yeah, these are pretty good. Let's rank them.
 
@@ -211,7 +223,7 @@ Lin: So the next thing we agreed to check on was which of these strategies makes
 
 It has to be something she can change while she is babysitting, not something that requires changes to the child's or the family's usual habits and practices when the babysitter isn't there.
 
-psych_sba_sidebar -> select_babysitter_feasible_strategies
+::select_babysitter_feasible_strategies [display=target:psych_sba_sidebar label="Decide which strategies the babysitter can implement."]
 
 --- wait @ai_the_babysitter_can_implement_feedback.value ---
 
@@ -219,7 +231,7 @@ Annie: OK, I've put together this table to show what we decided for each strateg
 
 Incidentally, some of us got a response from the AI that said collaborative problem solving wasn't completely feasible, because it requires intimate knowledge, trust, and an ongoing relationship. But I think my friend has that kind of relationship, so I've marked "collaborative problem solving" as feasible.
 
-psych_sba_sidebar -> chart_image
+::chart_image [display=target:psych_sba_sidebar label="Review the strategy table."]
 
 
 JJ: That means we've narrowed down our choices to three --
@@ -245,7 +257,7 @@ What are the effect sizes for parenting techniques?
 
 Look at the article that was at the top of the search!
 
-psych_sba_sidebar -> psych_sba_article_view
+::psych_sba_article_view [display=target:psych_sba_sidebar label="Read the research article."]
 
 Lin: It actually looks at both long-term and short-term effects. When I dug into the details, I found a table that showed a larger absolute effect size for positive reinforcement reducing problem behaviors than for empathy and problem-solving!
 
@@ -253,7 +265,7 @@ Annie: I thought I would go old-school and simply use the subject index at the b
 
 At first, the results were frustrating. The entries for "positive reinforcement" didn't say anything about how effective it was, compared to anything else. Looking up emotion and empathy didn't lead me to anything useful, and I couldn't even find "collaborative problem solving" in the index.
 
-psych_sba_sidebar -> psych_sba_article_excerpt
+::psych_sba_article_excerpt [display=target:psych_sba_sidebar label="Read the textbook excerpt."]
 
 Annie: But then I looked for "parenting techniques". I found a section labeled, "Parent-child relationship", and under that there was an entry, "operant conditioning, and". The "operant conditioning, and" part really means, "operant conditioning and the parent-child relationship". I remembered from when we were studying operant conditioning that it works through positive (and also negative reinforcement), so I figured it was a good place to look, especially since I couldn't find anything else that was relevant. Here's what the textbook says, on page 243 --
 
@@ -266,10 +278,10 @@ JJ: We learned a lot in this exercise.
 
 Annie: So we did!
 
-psych_sba_sidebar -> psych_sba_part_1_completion_page
+::psych_sba_part_1_completion_page [display=target:psych_sba_sidebar label="Confirm you are done."]
 
 --- wait @psych_sba_part_1_completion_page.value ---
 
-psych_sba_sidebar -> psych_sba_activities_part1
+::psych_sba_part1_review [display=target:psych_sba_sidebar label="Review all your answers."]
 
 Lianne: Now you're done, you can review all your answers to the right. Use the "Export as PDF" button to save a copy of your answers and upload it to our course system.

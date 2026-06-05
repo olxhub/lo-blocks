@@ -3,7 +3,7 @@ authors: "TODO -- fill this in"
 
 ~~~~
 
-psych_sba_sidebar2 -> bedtime_problem_introduction2
+::bedtime_problem_introduction2 [display=target:psych_sba_sidebar2 label="Introduction"]
 
 Reinforcement vs. Punishment
 ----------------------------
@@ -14,7 +14,7 @@ reinforcement as her bedtime strategy.
 JJ: It's a great idea, but maybe we should make sure we really understand
 positive reinforcement, to make sure we give good advice.
 
-psych_sba_sidebar2 -> lecture_notes_1
+::lecture_notes_1 [display=target:psych_sba_sidebar2 label="Lecture notes: reinforcement"]
 
 JJ: Don't you think this is where we can bring in the things we're studying in Psych class? Here are my lecture notes... I've got a definition of "reinforcement." It's from our textbook.
 
@@ -22,7 +22,7 @@ Lin: I'm not quite sure I get this. In the class, we learned about both **positi
 
 JJ: Uh, no ... punishment isn't the same thing as negative reinforcement. Let me look up my notes.
 
-psych_sba_sidebar2 -> lecture_notes_2
+::lecture_notes_2 [display=target:psych_sba_sidebar2 label="Lecture notes: punishment"]
 
 JJ: Here we go. Here's how my notes say punishment is defined.
 
@@ -49,83 +49,83 @@ JJ: Hey, everyone, I've got an idea.
 
 JJ: Do you remember when the TA gave us that practice page with twenty extra questions on it to help us practice telling the difference between reinforcement and punishment, before we took the quiz? Why don’t we try to answer those questions? Then, we can discuss them ...
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1
+::reinforce_punish_practice_1 [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 1: Sticker"]
 
 --- wait @reinforce_punish_practice_1.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1b
+::reinforce_punish_practice_1b [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 2: Asking"]
 
 --- wait @reinforce_punish_practice_1b.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1c
+::reinforce_punish_practice_1c [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 3: Getting Burned"]
 
 --- wait @reinforce_punish_practice_1c.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1d
+::reinforce_punish_practice_1d [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 4: Tantrum"]
 
 --- wait @reinforce_punish_practice_1d.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1e
+::reinforce_punish_practice_1e [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 5: Glaring"]
 
 --- wait @reinforce_punish_practice_1e.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1f
+::reinforce_punish_practice_1f [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 6: Less Screen Time"]
 
 --- wait @reinforce_punish_practice_1f.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1g
+::reinforce_punish_practice_1g [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 7: Candy"]
 
 --- wait @reinforce_punish_practice_1g.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1h
+::reinforce_punish_practice_1h [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 8: Uncalled-on"]
 
 --- wait @reinforce_punish_practice_1h.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1i
+::reinforce_punish_practice_1i [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 9: Getting Upset"]
 
 --- wait @reinforce_punish_practice_1i.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1j
+::reinforce_punish_practice_1j [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 10: Not Called On"]
 
 --- wait @reinforce_punish_practice_1j.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1k
+::reinforce_punish_practice_1k [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 11: Artist!"]
 
 --- wait @reinforce_punish_practice_1k.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1l
+::reinforce_punish_practice_1l [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 12: Firm Command"]
 
 --- wait @reinforce_punish_practice_1l.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1m
+::reinforce_punish_practice_1m [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 13: Timeout"]
 
 --- wait @reinforce_punish_practice_1m.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1n
+::reinforce_punish_practice_1n [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 14: Lose Recess Time"]
 
 --- wait @reinforce_punish_practice_1n.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1o
+::reinforce_punish_practice_1o [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 15: Grounded for Poor Grades"]
 
 --- wait @reinforce_punish_practice_1o.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1p
+::reinforce_punish_practice_1p [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 16: Removing dessert"]
 
 --- wait @reinforce_punish_practice_1p.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1q
+::reinforce_punish_practice_1q [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 17: Being Told"]
 
 --- wait @reinforce_punish_practice_1q.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1r
+::reinforce_punish_practice_1r [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 18: Offer Snack"]
 
 --- wait @reinforce_punish_practice_1r.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1s
+::reinforce_punish_practice_1s [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 19: Excluded"]
 
 --- wait @reinforce_punish_practice_1s.submitCount > 0 ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1t
+::reinforce_punish_practice_1t [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 20: Super-Organized Badge"]
 
 --- wait @reinforce_punish_practice_1t.submitCount > 0 ---
 
@@ -173,7 +173,7 @@ JJ: Good idea. We know it was sometimes "do nothing," but maybe not every time.
 Annie: Sure, I'll text her now and let you know what she says.
 
 // Note: This shows screenshot of messages between Annie's roommate and parents
-psych_sba_sidebar2 -> messages_image
+::messages_image [display=target:psych_sba_sidebar2 label="Texts from the babysitter"]
 
 Annie: She texted right back. See for yourselves.
 
@@ -191,13 +191,13 @@ Lin: That means we need to figure out things to suggest that will reinforce coop
 
 Annie: Hey guys, there's still something we need to get clear in our own heads before we offer any solutions to my roommate. The most effective behavior modification technique, according to what we learned earlier, is **positive**  reinforcement. But I'm not really clear yet on the difference between positive and negative reinforcement.
 
-psych_sba_sidebar2 -> operant_conditioning_reinforcement_notes
+::operant_conditioning_reinforcement_notes [display=target:psych_sba_sidebar2 label="Notes: positive vs. negative reinforcement"]
 
 JJ: I just checked back through my notes ... here's what I have.
 
 JJ: So, positive doesn't mean good, and negative doesn't mean bad. Instead, positive means adding something, and negative means taking something away! And it's the same for punishment.
 
-psych_sba_sidebar2 -> operant_conditioning_reinforcement_notes2
+::operant_conditioning_reinforcement_notes2 [display=target:psych_sba_sidebar2 label="Notes: positive vs. negative punishment"]
 
 JJ: Look! Here's what I have in my notes.
 
@@ -205,7 +205,7 @@ Lin: So positive punishment would be like spanking the child every time he tries
 
 Annie: And negative punishment would be like taking away his favorite toy whenever he avoids bedtime. The adult is **taking away** the toy, something **desirable**, to decrease the child’s behavior of avoiding bedtime.
 
-psych_sba_sidebar2 -> operant_conditioning_poster
+::operant_conditioning_poster [display=target:psych_sba_sidebar2 label="Reinforcement & punishment chart"]
 
 JJ: I found this chart on the Internet. I think it sums things up nicely!
 
@@ -213,13 +213,13 @@ Lin: I'm still not as clear on this as I would like to be. Maybe some practice w
 
 JJ: Maybe we can take some of the things that the parents have already tried or that we suggested early on and figure out what category they fit into? I don't know about you, but that would help me.
 
-psych_sba_sidebar2 -> conditioning_example_chart
+::conditioning_example_chart [display=target:psych_sba_sidebar2 label="Categorize the examples"]
 
 Annie: OK, let's give it a try!
 
 --- wait @positive_reinforcement_example.value && @positive_punishment_example.value && @negative_reinforcement_example.value && @negative_punishment_example.value ---
 
-psych_sba_sidebar2 -> filled_out_poster
+::filled_out_poster [display=target:psych_sba_sidebar2 label="Annie's completed chart"]
 
 Annie: Here is how I filled out my chart.
 
@@ -237,83 +237,83 @@ JJ: I'm game.
 
 Annie: I am, too. Let's give it a try!
 
-psych_sba_sidebar2 -> four_types_practice_1
+::four_types_practice_1 [display=target:psych_sba_sidebar2 label="Four Types Practice 1: Sticker"]
 
 --- wait @four_types_practice_1.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1b
+::four_types_practice_1b [display=target:psych_sba_sidebar2 label="Four Types Practice 2: Asking"]
 
 --- wait @four_types_practice_1b.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1c
+::four_types_practice_1c [display=target:psych_sba_sidebar2 label="Four Types Practice 3: Getting Burned"]
 
 --- wait @four_types_practice_1c.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1d
+::four_types_practice_1d [display=target:psych_sba_sidebar2 label="Four Types Practice 4: Tantrum"]
 
 --- wait @four_types_practice_1d.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1e
+::four_types_practice_1e [display=target:psych_sba_sidebar2 label="Four Types Practice 5: Glaring"]
 
 --- wait @four_types_practice_1e.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1f
+::four_types_practice_1f [display=target:psych_sba_sidebar2 label="Four Types Practice 6: Less Screen Time"]
 
 --- wait @four_types_practice_1f.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1g
+::four_types_practice_1g [display=target:psych_sba_sidebar2 label="Four Types Practice 7: Candy"]
 
 --- wait @four_types_practice_1g.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1h
+::four_types_practice_1h [display=target:psych_sba_sidebar2 label="Four Types Practice 8: Uncalled-on"]
 
 --- wait @four_types_practice_1h.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1i
+::four_types_practice_1i [display=target:psych_sba_sidebar2 label="Four Types Practice 9: Getting Upset"]
 
 --- wait @four_types_practice_1i.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1j
+::four_types_practice_1j [display=target:psych_sba_sidebar2 label="Four Types Practice 10: Not Called On"]
 
 --- wait @four_types_practice_1j.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1k
+::four_types_practice_1k [display=target:psych_sba_sidebar2 label="Four Types Practice 11: Artist!"]
 
 --- wait @four_types_practice_1k.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1l
+::four_types_practice_1l [display=target:psych_sba_sidebar2 label="Four Types Practice 12: Firm Command"]
 
 --- wait @four_types_practice_1l.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1m
+::four_types_practice_1m [display=target:psych_sba_sidebar2 label="Four Types Practice 13: Timeout"]
 
 --- wait @four_types_practice_1m.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1n
+::four_types_practice_1n [display=target:psych_sba_sidebar2 label="Four Types Practice 14: Lose Recess Time"]
 
 --- wait @four_types_practice_1n.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1o
+::four_types_practice_1o [display=target:psych_sba_sidebar2 label="Four Types Practice 15: Grounded for Poor Grades"]
 
 --- wait @four_types_practice_1o.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1p
+::four_types_practice_1p [display=target:psych_sba_sidebar2 label="Four Types Practice 16: Removing dessert"]
 
 --- wait @four_types_practice_1p.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1q
+::four_types_practice_1q [display=target:psych_sba_sidebar2 label="Four Types Practice 17: Being Told"]
 
 --- wait @four_types_practice_1q.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1r
+::four_types_practice_1r [display=target:psych_sba_sidebar2 label="Four Types Practice 18: Offer Snack"]
 
 --- wait @four_types_practice_1r.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1s
+::four_types_practice_1s [display=target:psych_sba_sidebar2 label="Four Types Practice 19: Excluded"]
 
 --- wait @four_types_practice_1s.submitCount > 0 ---
 
-psych_sba_sidebar2 -> four_types_practice_1t
+::four_types_practice_1t [display=target:psych_sba_sidebar2 label="Four Types Practice 20: Super-Organized Badge"]
 
 --- wait @four_types_practice_1t.submitCount > 0 ---
 
@@ -328,7 +328,7 @@ Writing the Final Email to Lin's Friend
 
 Annie: Don't forget that the whole **point** of this was to figure out what to tell my friend! We still have to solve her babysitting problem.
 
-psych_sba_sidebar2 -> norulesparenting_summary
+::norulesparenting_summary [display=target:psych_sba_sidebar2 label="Our no-rules-parenting summary"]
 
 Lin: So, here's what we already wrote ... What do we need to do next?
 
@@ -336,11 +336,11 @@ Annie: Well, we had better tell her that we're recommending she use positive rei
 
 Lin: And we should probably explain what positive reinforcement is. It gave us all a lot of trouble, and we're taking a psychology class. She isn't.
 
-psych_sba_sidebar2 -> outline_of_full_email
+::outline_of_full_email [display=target:psych_sba_sidebar2 label="Outline of the full email"]
 
 JJ: Most important of all, we need a list of specific positive reinforcement techniques we should suggest to her. Let's give her some good ideas!
 
-psych_sba_sidebar2 -> draft_full_email
+::draft_full_email [display=target:psych_sba_sidebar2 label="Draft the full email"]
 
 Annie: Let's go!
 
@@ -352,7 +352,7 @@ JJ: So am I!
 
 Lin: I am, too.
 
-psych_sba_sidebar2 -> final_email_tab
+::final_email_tab [display=target:psych_sba_sidebar2 label="The final email"]
 
 You: I'm going to go ahead and pull together the final email. I'll pull the best ideas out of all our outlines.
 
@@ -362,14 +362,14 @@ You: OK. I've finished the email!
 
 Annie: Ok. I'm so excited! I sent the email to my roommate and have been waiting eagerly to hear how things went. I just now got an answer back.
 
-psych_sba_sidebar2 -> roommate_response
+::roommate_response [display=target:psych_sba_sidebar2 label="The roommate's reply"]
 
 Annie: Positive reinforcement worked!
 
-psych_sba_sidebar2 -> psych_sba_part_2_completion_page
+::psych_sba_part_2_completion_page [display=target:psych_sba_sidebar2 label="Confirm you are done."]
 
 Annie: Thank YOU so much! I'm glad we were able to help my roommate by sharing what we have been learning in psych. So cool. Applying psych to our own lives pays off... Let's get together and study for our exam. I think we work really well together!
 
-psych_sba_sidebar2 -> psych_sba_activities_part2
+::psych_sba_part2_review [display=target:psych_sba_sidebar2 label="Review all your answers."]
 
 Lianne: Now that you've finished this task, please use the "Export as PDF" button to the right to save a copy of your answers and upload the resulting PDF to your class system to complete your assignment.

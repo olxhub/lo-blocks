@@ -15,7 +15,7 @@ license: AGPL
 ---
 -->
 
-<SplitPanel id="psych_sba3auto" title="Psychology Study Group: 3 Auto. Function of Behavior" sizes="40, 60" launchable="true">
+<SplitPanel id="psych_sba3auto" title="SBLA Part Three: Function of Behavior" sizes="40, 60" launchable="true">
   <StartPane> <Chat id="psych_chat3auto" src="psych_sba_part3auto.chatpeg" cast="characters.cast" height="400px" print="false" /> </StartPane>
   <EndPane>   <UseHistory id="psych_sba_sidebar3auto" initial="fba2_introduction" />   </EndPane>
 </SplitPanel>

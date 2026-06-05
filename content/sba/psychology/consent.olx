@@ -1,5 +1,24 @@
 <Vertical id="psych_irb_consent_form" title="Study Consent Form">
+
 <Markdown>
+
+_As a college instructor, I am always working to improve my courses so
+that my students are successful._
+
+_As part of this goal, I conduct classroom-based studies. This involves
+asking my students to do different activities that give me information
+about them or involves me testing out ideas. I collect this
+information to be a better instructor. However, I learn about ways to
+help other college instructors support their students. When this
+happens, I want to be able to share what I have learned from
+de-identified student course work._
+
+_For me to use the information that I gather from students in this way,
+I need their consent. Below is an informed consent form for this
+class. Please read the form. If you agree to allow me to use your
+de-identified course work to communicate what I have learned with
+others, then you will be able to click a link to indicate your
+agreement._
 
 # University of Memphis
 
@@ -28,7 +47,7 @@ would normally spend on the course. The decision to participate, or
 not to take part, will have no effect on your grade or standing in
 this class.
 
-Dr. Banerjee is part of the research team, but she will not know if
+Dr. Anderson is part of the research team, but she will not know if
 you consent to this research until after she submits the grades for
 the course. You will not interact with any of the other researchers.
 
@@ -43,9 +62,7 @@ Contact Dr. Randy Floyd at 901-678-2167 or rgfloyd@memphis.edu.
 ## Consent
 
 If you are willing to volunteer for this research, please click on
-"I accept" below.  While this form is required, consent is
-not required. Your decision to participate in the research does not
-impact your ability to complete the assignment.
+"I accept" below.
 </Markdown>
 <ChoiceInput id="psych_irb_consent">
   <Key id="irb_accept"> I accept. </Key>
@@ -56,11 +73,20 @@ impact your ability to complete the assignment.
 
 You can change your mind anytime.
 
-This is an **experimental, open-source research platform**. You are the very first students to use it. A few notes:
+This is an **experimental, open-source research platform**. You are
+the very first students to use it. A few notes:
 
 * We recommend Firefox, Edge, or Google Chrome. Safari is unsupported.
 * We recommend against working on multiple devices at the same time.
-* If you run into any issues, even minor, please let us know. You'll be helping out future students.
+* If you run into any issues, even minor, please let us know. You'll
+  be helping out future students.
+
+This SBLA Activity is a requirement for our course, and you will receive
+points for completing it whether or not you consent to having your data
+included in the research.
+
+To get started, select the first activity (SBLA Part One) in the
+navigation bar on the left.
 
 </Markdown>
 </Vertical>

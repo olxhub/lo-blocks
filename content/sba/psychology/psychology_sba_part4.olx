@@ -14,11 +14,11 @@ authors:
 license: AGPL
 ---
 -->
-<!-- Psychology SBA Part 4: Fidelity of Implementation -->
+<!-- SBLA Part 4: Fidelity of Implementation -->
 <SplitPanel
     id="psych_sba_part4"
     sizes="40, 60"
-    title="Psychology Study Group: 4. Fidelity of Implementation"
+    title="SBLA Part Four: Fidelity of Implementation"
     launchable="true">
 
   <!-- Left Panel: SMS Conversation -->

@@ -6,7 +6,7 @@ authors: "TODO -- fill this in"
 Introduction
 ------------
 
-psych_sba_part3_sidebar -> fba_introduction
+::fba_introduction [display=target:psych_sba_part3_sidebar label="Introduction"]
 
 Annie: Thanks again for your help with my roommate's dilemma with Johnny, the kid she babysits.
 
@@ -33,7 +33,7 @@ Annie: Then, she tells him to get into bed, but like always, he runs away from t
 
 JJ: Well, does he eventually go to bed?
 
-psych_sba_part3_sidebar -> roommate_situation
+::roommate_situation [display=target:psych_sba_part3_sidebar label="The roommate's update"]
 
 Annie: Well, yeah, but not without a fight. After he runs away, my roommate chases after him and keeps nagging on him to go to bed. I think he eventually gets tired and goes to bed, but my roommate is left feeling tired and frustrated, just like before.
 
@@ -42,7 +42,7 @@ Lin: Yikes. Looks like it's time to go back to the drawing board!
 Function of Behavior
 --------------------
 
-psych_sba_part3_sidebar -> function_behavior_intro
+::function_behavior_intro [display=target:psych_sba_part3_sidebar label="Function of behavior"]
 
 Lin: One of the things we learned in class was that whenever you need to intervene with a behavior, the intervention must address the function of the behavior.
 
@@ -56,13 +56,13 @@ JJ: Well, it's worth a try if one of you remembers better than I do. But I'll wr
 
 Lin: And I'll dig up my notes from class while you're all doing that. I'm sure I have them around here somewhere ...
 
-psych_sba_part3_sidebar -> ai_function_definition
+::ai_function_definition [display=target:psych_sba_part3_sidebar label="Ask AI: what is 'function'?"]
 
 --- wait @function_ai_response.value ---
 
 Annie: Oh, that's helpful! So we need to figure out WHY Johnny is running away at bedtime.
 
-psych_sba_part3_sidebar -> four_functions_notes
+::four_functions_notes [display=target:psych_sba_part3_sidebar label="Notes: the four functions"]
 
 Lin: Here are my notes from class. The four main functions of behavior are attention, escape, access to preferred activity/object, and sensory.
 
@@ -75,11 +75,11 @@ Lin: I took a picture of a couple of examples that our TA Lianne wrote down on t
 Review Concepts
 ---------------
 
-psych_sba_part3_sidebar -> review_reinforcement1
+::review_reinforcement1 [display=target:psych_sba_part3_sidebar label="Review: reinforcement (1)"]
 
 --- wait @review_billy_joke.submitCount > 0 ---
 
-psych_sba_part3_sidebar -> review_reinforcement2
+::review_reinforcement2 [display=target:psych_sba_part3_sidebar label="Review: reinforcement (2)"]
 
 --- wait @review_jenny_whining.submitCount > 0 ---
 
@@ -89,7 +89,7 @@ JJ: Whew, thank you for the refresher. I needed that.
 
 Lin: Me too.
 
-psych_sba_part3_sidebar -> function_reinforcement
+::function_reinforcement [display=target:psych_sba_part3_sidebar label="Functions & reinforcement"]
 
 Lin: Lianne also said a couple of other things during our last class. She said that if the function is for attention or tangibles, it usually involves positive reinforcement. If the function is escape, it typically involves negative reinforcement. And for sensory, it can be either one.
 
@@ -116,7 +116,7 @@ Lin: All right. Let's see what your final prompt gives us!
 AI Chart
 --------
 
-psych_sba_part3_sidebar -> ai_function_chart
+::ai_function_chart [display=target:psych_sba_part3_sidebar label="Ask AI: function chart"]
 
 --- wait @chart_ai_response.value ---
 
@@ -126,19 +126,19 @@ JJ: It does. Especially because it leaves two cells blank. Escape is removal of 
 
 Annie: Good catch, JJ. That's a useful chart! But we won't really **learn** what the chart is telling us unless we try to do the same thing ourselves. So let's fill in a blank chart with our own examples.
 
-psych_sba_part3_sidebar -> own_examples_page_attention
+::own_examples_page_attention [display=target:psych_sba_part3_sidebar label="Your examples: attention"]
 
 --- wait @positive_reinforcement_for_attention.value && @negative_reinforcement_for_attention.value ---
 
-psych_sba_part3_sidebar -> own_examples_page_escape
+::own_examples_page_escape [display=target:psych_sba_part3_sidebar label="Your examples: escape"]
 
 --- wait @positive_reinforcement_for_escape.value && @negative_reinforcement_for_escape.value ---
 
-psych_sba_part3_sidebar -> own_examples_page_access
+::own_examples_page_access [display=target:psych_sba_part3_sidebar label="Your examples: access"]
 
 --- wait @positive_reinforcement_for_access.value && @negative_reinforcement_for_access.value ---
 
-psych_sba_part3_sidebar -> own_examples_page_sensory
+::own_examples_page_sensory [display=target:psych_sba_part3_sidebar label="Your examples: sensory"]
 
 --- wait @positive_reinforcement_for_sensory.value && @negative_reinforcement_for_sensory.value ---
 
@@ -152,14 +152,14 @@ JJ: Yes, but there's something I'm wondering about. Didn't we also learn about p
 
 Lin: Yeah, I thought punishment could be a function too.
 
-psych_sba_part3_sidebar -> no_punishment_function
+::no_punishment_function [display=target:psych_sba_part3_sidebar label="Is punishment a function?"]
 
 Annie: I had that same thought, so I tried asking AI. Here's what it told me. I also checked my class notes, and they said the same thing.
 
 Check Understanding
 -------------------
 
-psych_sba_part3_sidebar -> explain_no_punishment
+::explain_no_punishment [display=target:psych_sba_part3_sidebar label="Explain: punishment isn't a function"]
 
 --- wait @punishment_explanation.value ---
 
@@ -176,43 +176,43 @@ Annie: Great, let's try them together.
 Practice Functions
 ------------------
 
-psych_sba_part3_sidebar -> function_practice_1
+::function_practice_1 [display=target:psych_sba_part3_sidebar label="Practice: functions (1)"]
 
 --- wait @function_michelle.submitCount > 0 ---
 
-psych_sba_part3_sidebar -> function_practice_1b
+::function_practice_1b [display=target:psych_sba_part3_sidebar label="Practice: functions (2)"]
 
 --- wait @function_beth.submitCount > 0 ---
 
-psych_sba_part3_sidebar -> function_practice_1c
+::function_practice_1c [display=target:psych_sba_part3_sidebar label="Practice: functions (3)"]
 
 --- wait @function_randy.submitCount > 0 ---
 
-psych_sba_part3_sidebar -> function_practice_1d
+::function_practice_1d [display=target:psych_sba_part3_sidebar label="Practice: functions (4)"]
 
 --- wait @function_ryan.submitCount > 0 ---
 
-psych_sba_part3_sidebar -> function_practice_1e
+::function_practice_1e [display=target:psych_sba_part3_sidebar label="Practice: functions (5)"]
 
 --- wait @function_emily.submitCount > 0 ---
 
-psych_sba_part3_sidebar -> function_practice_2
+::function_practice_2 [display=target:psych_sba_part3_sidebar label="Practice: functions (6)"]
 
 --- wait @function_sally.submitCount > 0 ---
 
-psych_sba_part3_sidebar -> function_practice_2b
+::function_practice_2b [display=target:psych_sba_part3_sidebar label="Practice: functions (7)"]
 
 --- wait @function_aidan.submitCount > 0 ---
 
-psych_sba_part3_sidebar -> function_practice_2c
+::function_practice_2c [display=target:psych_sba_part3_sidebar label="Practice: functions (8)"]
 
 --- wait @function_matthew.submitCount > 0 ---
 
-psych_sba_part3_sidebar -> function_practice_2d
+::function_practice_2d [display=target:psych_sba_part3_sidebar label="Practice: functions (9)"]
 
 --- wait @function_jasmine.submitCount > 0 ---
 
-psych_sba_part3_sidebar -> function_practice_2e
+::function_practice_2e [display=target:psych_sba_part3_sidebar label="Practice: functions (10)"]
 
 --- wait @function_simon.submitCount > 0 ---
 
@@ -230,7 +230,7 @@ Lin: Right, we had to look at what came before the behavior and then what came a
 JJ: Yes, the antecedent, then the behavior, then the consequences.
 
 
-psych_sba_part3_sidebar -> abc_introduction
+::abc_introduction [display=target:psych_sba_part3_sidebar label="The ABCs of behavior"]
 
 Annie: Oh, that's right, I remember now. The professor said, "It's as easy as learning your ABCs!"
 
@@ -238,7 +238,7 @@ JJ: We can use AI to come up with examples for each of the four functions. That'
 
 Lin: Good idea! I wrote the following prompt ...
 
-psych_sba_part3_sidebar -> ai_abc_diagrams
+::ai_abc_diagrams [display=target:psych_sba_part3_sidebar label="Ask AI: ABC examples"]
 
 Lin: You are a helpful psychology teaching assistant. Create clear examples of ABC (Antecedent-Behavior-Consequence) sequences for each of the four functions of behavior (escape, attention, access/tangible, sensory). Use a simple format showing: Antecedent -> Behavior -> Consequence -> Function. Include concrete, relatable examples a student would understand.
 
@@ -246,7 +246,7 @@ Lin: You are a helpful psychology teaching assistant. Create clear examples of A
 
 Annie: That was helpful! It reminds me of something Lianne showed us.
 
-psych_sba_part3_sidebar -> sample_competing_behavior_diagram
+::sample_competing_behavior_diagram [display=target:psych_sba_part3_sidebar label="Competing Behavior Pathway"]
 
 JJ: I remember this from my notes. It's called a Competing Behavior Pathway. It has the ABCs in the center, but also some extra boxes to help people think about the different behaviors someone **could** have shown. It helps us analyze why the problem behavior wins out.
 
@@ -258,7 +258,7 @@ Annie: So, the Maintaining Consequence is what happens after? Task is removed or
 
 JJ: Exactly. So in that example, the teacher gave a hard task, then the student put their head down instead of working on it, so then the teacher probably got sick of waiting for them to do the task and gave up on making them do it and removed the task.
 
-psych_sba_part3_sidebar -> abc_example
+::abc_example [display=target:psych_sba_part3_sidebar label="ABC example"]
 
 Lin: Right, or the student continued to put their head down for so long that maybe the teacher just assigned it for homework, delaying the task.
 
@@ -267,11 +267,11 @@ Apply ABCs
 
 Lin: Let's try applying this reasoning to the problem Annie's roommate is having with the boy she's babysitting. What were the antecedent, the behavior, and the consequence?
 
-psych_sba_part3_sidebar -> abc_johnny_check
+::abc_johnny_check [display=target:psych_sba_part3_sidebar label="Johnny's ABCs"]
 
 --- wait @abc_johnny_explanation.value ---
 
-psych_sba_part3_sidebar -> abc_summary_mcq
+::abc_summary_mcq [display=target:psych_sba_part3_sidebar label="Check: Johnny's function"]
 
 --- wait @johnny_function_mcq.submitCount > 0 ---
 
@@ -280,17 +280,17 @@ JJ: So using the ABCs, we know that the antecedent was your roommate told him to
 Competing Behavior Pathway
 --------------------------
 
-psych_sba_part3_sidebar -> cbp_introduction
+::cbp_introduction [display=target:psych_sba_part3_sidebar label="Competing Behavior Pathway: intro"]
 
 Lin: Okay, let's put it all together. Using everything we know so far about Johnny, let's fill out a Competing Behavior Pathway!
 
 JJ: Lianne showed us this in class!
 
-psych_sba_part3_sidebar -> cbp_fill_in
+::cbp_fill_in [display=target:psych_sba_part3_sidebar label="Fill in the pathway"]
 
 --- wait @cbp_desired_behavior.value && @cbp_positive_outcome.value ---
 
-psych_sba_part3_sidebar -> cbp_comparison
+::cbp_comparison [display=target:psych_sba_part3_sidebar label="Compare pathways"]
 
 JJ: Let's compare! Here's what I came up with.
 
@@ -305,23 +305,23 @@ JJ: Right. But both behaviors had the same function: Escape. Putting off bedtime
 
 Lin: That means even if your roommate finds a way to make sure he gets into bed, if she doesn't do anything different, he'll just come up with another alternative behavior. For example, he could ask for a bedtime story. And when that one's finished, he could ask for another one!
 
-psych_sba_part3_sidebar -> cbp_comparison2
+::cbp_comparison2 [display=target:psych_sba_part3_sidebar label="Pathway: another alternative"]
 
 Annie: That's a good point. I've updated the diagram to show that as a possible alternative behavior.
 
-psych_sba_part3_sidebar -> cbp_comparison3
+::cbp_comparison3 [display=target:psych_sba_part3_sidebar label="Pathway: setting events"]
 
 Annie: But it's probably worth mentioning that when all of this happens, my roommate has already given him a bath and gotten him into his pajamas, so he knows bedtime is near! But he doesn't act sleepy. I'll add that to the setting events box.
 
 JJ: Okay, so now we need to figure out an intervention now that we know the function of the behavior of running away from his room at bedtime is escape.
 
-psych_sba_part3_sidebar -> textbook_on_interventions
+::textbook_on_interventions [display=target:psych_sba_part3_sidebar label="Textbook: interventions"]
 
 Lin: Take a look at what my Child Development course's textbook says about generating interventions.
 
 Annie: There are lots of options here! But we've obviously got to change something about the way we're approaching things, or he'll just keep trying to escape.
 
-psych_sba_part3_sidebar -> escape_textbook
+::escape_textbook [display=target:psych_sba_part3_sidebar label="Textbook: escape"]
 
 Lin: Right, and here's what my textbook says about escape.
 
@@ -331,13 +331,13 @@ JJ: Well, maybe we should consider both antecedents and consequences. I'm still 
 
 Annie: Maybe we can use AI to help us come up with different ways to prevent the problem behavior.
 
-psych_sba_part3_sidebar -> ai_intervention
+::ai_intervention [display=target:psych_sba_part3_sidebar label="Ask AI: antecedent strategies"]
 
 JJ: It's probably better to break that up a bit or we'll get way too many possibilities. Let's ask about antecedent strategies first.
 
 --- wait @intervention_ai_response.value ---
 
-psych_sba_part3_sidebar -> ai_intervention2
+::ai_intervention2 [display=target:psych_sba_part3_sidebar label="Ask AI: consequence strategies"]
 
 Lin: And we can ask about consequent strategies next.
 
@@ -347,13 +347,13 @@ Annie: I think we've missed something important here. Not all of the strategies 
 
 JJ: OK, then. Let's take a look at the lists of antecedent and consequent strategies I got, and mark which interventions address escape as the function of behavior.
 
-psych_sba_part3_sidebar -> strategy_selection
+::strategy_selection [display=target:psych_sba_part3_sidebar label="Mark escape-focused antecedents"]
 
 JJ: Here are the antecedent strategies I got.
 
 --- wait @antecedent_strategies.submitCount > 0 ---
 
-psych_sba_part3_sidebar -> strategy_selection2
+::strategy_selection2 [display=target:psych_sba_part3_sidebar label="Mark escape-focused consequences"]
 
 JJ: Here are the consequent strategies I got.
 
@@ -361,19 +361,19 @@ JJ: Here are the consequent strategies I got.
 
 Annie: OK, so we have a couple of strategies each for antecedent and consequence. For completeness, we should try to get AI to focus on strategies that will deal with **escape** specifically, so we'll have more strategies to choose from.
 
-psych_sba_part3_sidebar -> ai_intervention3
+::ai_intervention3 [display=target:psych_sba_part3_sidebar label="Ask AI: more antecedent strategies"]
 
 JJ: Once again, let's start with antecedent strategies.
 
 --- wait @intervention_ai_response3.value ---
 
-psych_sba_part3_sidebar -> ai_intervention4
+::ai_intervention4 [display=target:psych_sba_part3_sidebar label="Ask AI: more consequence strategies"]
 
 Lin: And consequent strategies come next.
 
 --- wait @intervention_ai_response4.value ---
 
-psych_sba_part3_sidebar -> revised_pathway
+::revised_pathway [display=target:psych_sba_part3_sidebar label="Add strategies to the pathway"]
 
 Annie: Now let's put those strategies into our updated competing behavior pathway.
 
@@ -382,7 +382,7 @@ Annie: Now let's put those strategies into our updated competing behavior pathwa
 Choosing a Plan
 ---------------
 
-psych_sba_part3_sidebar -> plans_comparison
+::plans_comparison [display=target:psych_sba_part3_sidebar label="Compare the plans"]
 
 Annie: We've got some great ideas here! Here's your plan, and here's Lin's. Which one do you think will work best?
 
@@ -394,7 +394,7 @@ Annie: That sounds hard. We've already gotten some great ideas, but I don't even
 
 Lianne: Let me give you a leg up. I'll put all the things that seem plausible into a super-plan organized in terms of the competing behavior pathway. Then you guys can go over it and see what parts of it make sense to you, so you can decide what to recommend to Annie's roommate.
 
-psych_sba_part3_sidebar -> full_plan
+::full_plan [display=target:psych_sba_part3_sidebar label="The full plan"]
 
 JJ: Let's go back to the Competing Behavior Pathway organizer we started and use go through the strategies we've found that are consistent with Lin's plan. Basically, we plug them in as extra options at key points in the path.
 
@@ -402,7 +402,7 @@ JJ: Wow, there's a lot here. They don't all make sense here, but I do like the i
 
 Lin: Yes, me too. I really like the consequence strategy of ignoring or not providing attention or reinforcement during the escape behavior. That makes a lot of sense to me.
 
-psych_sba_part3_sidebar -> plan_discussion
+::plan_discussion [display=target:psych_sba_part3_sidebar label="Discuss the plan"]
 
 Annie: Me too. What do you think?
 
@@ -413,13 +413,13 @@ Final Email
 
 Annie: Great! Let's write up our intervention plan in an email to my roommate.
 
-psych_sba_part3_sidebar -> intervention_email_rubric
+::intervention_email_rubric [display=target:psych_sba_part3_sidebar label="Email rubric"]
 
 Lianne: Before you get started, I have a suggestion. People usually think of a rubric as something teachers use for grading. But it's really a way to describe your goals, so you can evaluate whether you've met them. Here's a rubric you can use for the email.
 
 Lin: Thanks, Lianne!
 
-psych_sba_part3_sidebar -> final_intervention_email
+::final_intervention_email [display=target:psych_sba_part3_sidebar label="Write the intervention email"]
 
 JJ: Make sure to use the terms we've learned - function of behavior, antecedent, behavior, consequence, and competing behavior pathway!
 
@@ -427,10 +427,10 @@ JJ: Make sure to use the terms we've learned - function of behavior, antecedent,
 
 Annie: Perfect! I'll send this to my roommate right away.
 
-psych_sba_part3_sidebar -> psych_sba_part3_completion
+::psych_sba_part3_completion [display=target:psych_sba_part3_sidebar label="Confirm you are done."]
 
 Lin: Great job everyone! Let's check back in a couple weeks to see how it goes.
 
-psych_sba_sidebar3 -> psych_sba_fba_activities
+::psych_sba_fba_activities [display=target:psych_sba_part3_sidebar label="Review all your answers."]
 
 Lianne: Now that you've finished this task, please use the "Export as PDF" button to the right to save a copy of your answers and upload the resulting PDF to your class system to complete your assignment.
