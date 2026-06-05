@@ -57,6 +57,12 @@ If he stays up, he stays up. That's on him. He'll be so tired the next day, he'l
 
 --- wait @initial_suggestion.value.length > 10 ---
 
+You: Here's what I wrote:
+
+::
+<Markdown>{{@initial_suggestion.value}}</Markdown>
+::
+
 Annie: Haha, we are all over the place with our ideas!
 
 JJ: We really do have different approaches! Why don't we rank these from best to worst and see what we think?
