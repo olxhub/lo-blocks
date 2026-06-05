@@ -16,13 +16,9 @@ license: AGPL
 -->
 <Vertical id="psych_sba_activities_part1" title="Psychology Study Group: 1. Sleep Refusal (Activities)" launchable="true">
 
-<ActionButton id="print_psych_part1_btn" label="Export as PDF">
-  <PrintAction id="print_psych_part1" />
-</ActionButton>
-
 <HH> ============= Screen: Introduction ======================== </HH>
 
-<Markdown id="bedtime_problem_introduction" when="!@psych_sba_part_1_completion_page">
+<Markdown id="bedtime_problem_introduction">
 ## Introduction
 
 **In this activity, the screen is divided into two parts. On the left side of the screen, you will progress
@@ -50,11 +46,11 @@ activity. You will also have access to an AI assistant built into this module.
 Let&#39;s begin. Please click `Continue`.
 </Markdown>
 
-<Markdown id="bedtime_problem_clear_screen_1" when="!@psych_sba_part_1_completion_page"> &nbsp; </Markdown>
+<Markdown id="bedtime_problem_clear_screen_1"> &nbsp; </Markdown>
 
 <HH> ============= Screen: Opening - problem image ========== </HH>
 
-<SplitPanel id="bedtime_scenario_image" when="!@psych_sba_part_1_completion_page"> <LeftPane> <Markdown id="bedtime_intro_text">
+<SplitPanel id="bedtime_scenario_image"> <LeftPane> <Markdown id="bedtime_intro_text">
 ## The Bedtime Problem
 
 Annie's roommate is babysitting a 6-year-old who refuses to go to bed. The parents have tried everything:
@@ -113,7 +109,7 @@ The group has several different suggestions. Rank these ideas from
 
 <HH> ============= Screen: Messages screenshot =============== </HH>
 
-<Markdown id="messages_image" when="!@psych_sba_part_1_completion_page">
+<Markdown id="messages_image">
 ## Text Messages from the Babysitter
 
 **Parent:** He's doing it again. Running around at bedtime.
@@ -201,7 +197,7 @@ Try a few prompts!
 
 <HH> ============= Screen: No-rules parenting (1) =========== </HH>
 
-<Markdown id="vetted_info_part1" when="!@psych_sba_part_1_completion_page">
+<Markdown id="vetted_info_part1">
 # No-Rules Parenting and Sleep Refusal
 
 "No-rules parenting," or "permissive parenting," is an approach where parents avoid
@@ -232,7 +228,7 @@ or fragmented sleep.
 
 <HH> ============= Screen: No-rules parenting (2) =========== </HH>
 
-<Markdown id="vetted_info_part2" when="!@psych_sba_part_1_completion_page">
+<Markdown id="vetted_info_part2">
 2. **Natural Consequences**
 
 **Claim**: Experiencing the effects of insufficient sleep (e.g., feeling tired)
@@ -263,7 +259,7 @@ cortisol levels and promote melatonin release, facilitating better sleep.
 
 <HH> ============= Screen: No-rules parenting (3) =========== </HH>
 
-<Markdown id="vetted_info_part3" when="!@psych_sba_part_1_completion_page">
+<Markdown id="vetted_info_part3">
 4. **Parental Responsiveness**
 
 **Claim**: Prioritizing connection and meeting the child's needs (e.g.,
@@ -339,20 +335,20 @@ feedback. Then, you can revise it again based on the AI feedback.
 
 <ChoiceInput id="strategy_poll">
    <Markdown>**Which one of these possible strategies should we recommend to Annie's friend?**</Markdown>
-   <Distractor> Collaborative Problem Solving    </Distractor>
-   <Distractor> Empathy and Emotional Support    </Distractor>
-   <Distractor> Environmental Adjustments        </Distractor>
-   <Distractor> Flexible Bedtime Routines        </Distractor>
-   <Distractor> Gradual Fading                   </Distractor>
-   <Distractor> Natural Consequences with Limits  </Distractor>
-          <Key> Positive Reinforcement           </Key>
+  <Distractor id="collaborativeProblemSolving"> Collaborative Problem Solving    </Distractor>
+  <Distractor id="empathyEmotionalSupport"    > Empathy and Emotional Support    </Distractor>
+  <Distractor id="environmentalAdjustments"   > Environmental Adjustments        </Distractor>
+  <Distractor id="flexibleBedtimeRoutines"    > Flexible Bedtime Routines        </Distractor>
+  <Distractor id="gradualFading"              > Gradual Fading                   </Distractor>
+  <Distractor id="naturalConsequencesLimits" > Natural Consequences with Limits </Distractor>
+         <Key id="positiveReinforcement"      > Positive Reinforcement           </Key>
 </ChoiceInput>
 
 
 
 <HH> ============= Screen: Strategy notes (1) =============== </HH>
 
-<Markdown id="strategy_notes_1" when="!@psych_sba_part_1_completion_page">
+<Markdown id="strategy_notes_1">
 ## Alternatives to Address Sleep Refusal
 
 Evidence-based strategies balance autonomy with structure, helping
@@ -384,7 +380,7 @@ to be effective in managing sleep refusal.
 
 <HH> ============= Screen: Strategy notes (2) =============== </HH>
 
-<Markdown id="strategy_notes_2" when="!@psych_sba_part_1_completion_page">
+<Markdown id="strategy_notes_2">
 3. **Gradual Fading**
 
 **What It Is**: Gradually adjusting bedtime to an earlier time, aligning it
@@ -410,7 +406,7 @@ comfort objects, improve sleep in children with separation anxiety or fear of th
 
 <HH> ============= Screen: Strategy notes (3) =============== </HH>
 
-<Markdown id="strategy_notes_3" when="!@psych_sba_part_1_completion_page">
+<Markdown id="strategy_notes_3">
 5. **Natural Consequences with Limits**
 
 **What It Is**: Allowing some flexibility in bedtime while enforcing
@@ -436,7 +432,7 @@ in both children and adults.
 
 <HH> ============= Screen: Strategy notes (4) =============== </HH>
 
-<Markdown id="strategy_notes_4" when="!@psych_sba_part_1_completion_page">
+<Markdown id="strategy_notes_4">
 7. **Collaborative Problem-Solving**
 
 **What It Is**: Working with the child to identify and address
@@ -554,7 +550,7 @@ respecting a child's autonomy.
 
 <HH> ============= Screen: Reinforcement poster ============== </HH>
 
-<Markdown id="chart_image" when="!@psych_sba_part_1_completion_page">
+<Markdown id="chart_image">
 | Strategy | Age Appropriate | Feasible |
 |---|:---:|:---:|
 | Flexible Bedtimes | X | |
@@ -568,7 +564,7 @@ respecting a child's autonomy.
 
 <HH> ============= Screen: PDF article ======================= </HH>
 
-<Vertical id="psych_sba_article_view" when="!@psych_sba_part_1_completion_page">
+<Vertical id="psych_sba_article_view">
 
 <Markdown>
 Please review the article below; pay attention to the abstract and to
@@ -585,7 +581,7 @@ icon.
 
 <HH> ============= Screen: Article excerpt =================== </HH>
 
-<Markdown id="psych_sba_article_excerpt" when="!@psych_sba_part_1_completion_page">
+<Markdown id="psych_sba_article_excerpt">
 _As we have seen, parents can learn from operant conditioning practices
 ... parents should remember the basic rule of shaping: **Notice people
 doing something right and affirm them for it.** Give children attention
@@ -617,7 +613,7 @@ the screen time, remove a misused toy, or give a brief time-out._
 
 ## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
 
-_When you click Continue, the next screen gathers everything you wrote into one page for you to print to PDF and submit to your teacher. It can take up to a minute to appear — please wait for it to finish loading before you print._
+_When you click Continue, the next screen gathers your responses into one page. Review it, then print to PDF and submit to your teacher._
 
 ### To save to PDF:
 
@@ -639,5 +635,84 @@ _When you click Continue, the next screen gathers everything you wrote into one 
 
 </Markdown>
 </CheckboxInput>
+
+
+<HH> ============= Screen: Review / submission =============== </HH>
+
+<!-- Curated submission view. Shown (only) as the chat's final step via
+     ::psych_sba_part1_review. Pulls in just the student's answers, so the
+     reading content and PDFViewer are never rendered here — fast on screen,
+     clean in the PDF, and no print/when gating needed anywhere above.
+     Text answers use {{@id.value}} interpolation; structured widgets
+     (rankings, poll, checkboxes) are re-rendered with <UseDynamic>. -->
+<Vertical id="psych_sba_part1_review">
+
+<ActionButton id="print_psych_part1_btn" label="Export as PDF">
+  <PrintAction id="print_psych_part1" />
+</ActionButton>
+
+<Markdown>
+# Your responses
+
+Here is everything you wrote, gathered in one place. Look it over.
+
+If you need to change an answer, go back to that step in the activity (use
+the navigation to return to it), make your edits, and come back here — these
+responses will update to match. When everything looks right, click the
+**Export as PDF** button above and upload the PDF to your course system.
+
+### 1. Your initial strategy for the bedtime problem
+{{@initial_suggestion.value}}
+
+### 2. Ranking the group's suggestions
+</Markdown>
+<UseDynamic target="rank_bedtime_strategies" />
+
+<Markdown>
+### 3. Your idea for an AI prompt
+{{@initial_ai_suggestion.value}}
+
+### 4. Ranking the AI prompts
+</Markdown>
+<UseDynamic target="brainstorm_ai_sorting" />
+
+<Markdown>
+### 5. The AI prompt you tried
+{{@ai_response.value}}
+
+**AI feedback on this prompt:**
+{{@ai_feedback.value}}
+
+### 6. Your email to Annie's friend
+{{@email_draft.value}}
+
+**AI feedback on your email:**
+{{@ai_email_feedback.value}}
+
+### 7. The strategy you would recommend
+</Markdown>
+<UseDynamic target="strategy_poll" />
+
+<Markdown>
+### 8. Strategies that may not suit a six-year-old
+</Markdown>
+<UseDynamic target="strategies_for_6_year_olds" />
+<Markdown>
+**Your reasoning:** {{@explanation_not_for_6_year_old.value}}
+
+**AI feedback:**
+{{@ai_not_for_6_year_old_feedback.value}}
+
+### 9. Strategies the babysitter can implement
+</Markdown>
+<UseDynamic target="strategies_the_babysitter_can_implement" />
+<Markdown>
+**Your reasoning:** {{@explanation_the_babysitter_can_implement.value}}
+
+**AI feedback:**
+{{@ai_the_babysitter_can_implement_feedback.value}}
+</Markdown>
+
+</Vertical>
 
 </Vertical>

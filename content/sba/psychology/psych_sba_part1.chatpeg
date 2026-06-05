@@ -270,6 +270,6 @@ Annie: So we did!
 
 --- wait @psych_sba_part_1_completion_page.value ---
 
-::psych_sba_activities_part1 [display=target:psych_sba_sidebar label="Review all your answers."]
+::psych_sba_part1_review [display=target:psych_sba_sidebar label="Review all your answers."]
 
 Lianne: Now you're done, you can review all your answers to the right. Use the "Export as PDF" button to save a copy of your answers and upload it to our course system.
