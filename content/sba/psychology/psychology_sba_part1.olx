@@ -22,7 +22,7 @@ Psychology SBA: Sleep Refusal Scenario
 * Activities we pull on the other side
 -->
 
-<SplitPanel id="psych_sba" title="Psychology Study Group: 1. Sleep Refusal" sizes="40, 60" launchable="true">
+<SplitPanel id="psych_sba" title="SBLA Part One: Parenting Techniques" sizes="40, 60" launchable="true">
   <StartPane> <Chat id="psych_chat" src="psych_sba_part1.chatpeg" cast="characters.cast" height="400px" print="false" />        </StartPane>
   <EndPane>   <UseHistory id="psych_sba_sidebar" initial="bedtime_problem_introduction" /> </EndPane>
 </SplitPanel>
