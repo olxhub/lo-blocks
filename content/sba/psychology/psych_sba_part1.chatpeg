@@ -90,6 +90,12 @@ JJ: OK, so if we want to find out about sleep refusal...no-rules parenting...and
 
 --- wait @initial_ai_suggestion.value.length > 10 ---
 
+You: Here's what I wrote:
+
+::
+<Markdown>{{@initial_ai_suggestion.value}}</Markdown>
+::
+
 Annie: Hmmm...yeah, these are pretty good. Let's rank them.
 
 ::brainstorm_ai_sorting [display=target:psych_sba_sidebar label="Rank the prompts from best to worst."]
