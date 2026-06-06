@@ -35,7 +35,7 @@ In this session, you will review and apply several concepts from your coursework
 
 During this session, you will continue to work in the breakout group with the characters Annie, JJ, and Lin, and you will continue to use the embedded AI Assistant to help you.
 
-Let's begin.
+Let's begin. Please click `Continue`.
 </Markdown>
 
 
@@ -158,7 +158,7 @@ Remember:
 <HH> ============= Screen: Annie's completed chart ======================== </HH>
 
 <Markdown id="filled_out_poster">
-## Quick Reference Chart
+## Annie's Chart
 
 |                   | Add Something          | Remove Something       |
 |-------------------|--------------------------|------------------------|
@@ -199,7 +199,7 @@ Remember:
 
 <Vertical id="norulesparenting_summary">
 <Markdown id="email_draft_prompt">
-## The Opening We Wrote
+## The opening to the message we wrote to Annie's roommate
 </Markdown>
 <UseDynamic id="ref_email_draft2" target="email_draft" />
 </Vertical>
@@ -211,16 +211,16 @@ Remember:
 <Markdown>
 ## Outline for Our Email to Annie's Friend
 
-1. Why Annie’s friend shouldn’t give up on setting a bedtime
+1. Help Annie explain to her roommate that no-rules parenting is a bad idea and that the roommate should try to figure out a more effective bedtime strategy for the kid she babysits.
 </Markdown>
 <Ref id="email_opening" target="email_draft" />
 <Markdown>
-2. What psychological technique we are recommending (positive reinforcement)
+2. What psychological technique we are recommending
 
 3. Explanation of what positive reinforcement is and why it works
 
-4. List of positive reinforcement techniques she can try to
-   get the kid to go to sleep at bedtime
+4. List of positive reinforcement techniques she can use to try to
+   get the kid to go to bed at bedtime
 
 5. Final paragraph -- wish her luck!
 </Markdown>
@@ -235,7 +235,7 @@ Remember:
 
 _As you are filling in your email outline, so are your friends._
 
-1. Why Annie’s friend shouldn’t give up on setting a bedtime
+1. Why Annie's friend shouldn't give up on setting a bedtime
 </Markdown>
 <UseDynamic id="email_opening_final" target="email_draft" />
 <Markdown>
@@ -247,8 +247,8 @@ _As you are filling in your email outline, so are your friends._
 </Markdown>
 <TextArea id="explanation_of_positive_reinforcement" rows="3" placeholder="" />
 <Markdown>
-4. List of positive reinforcement techniques she can try to
-   get the kid to go to sleep at bedtime
+4. List of positive reinforcement techniques she can use to try to
+   get the kid to go to bed at bedtime
 </Markdown>
 <LineInput id="technique1" placeholder="" />
 <LineInput id="technique2" placeholder="" />
@@ -279,7 +279,7 @@ _As you are filling in your email outline, so are your friends._
 </Markdown>
 <Ref id="email_opening_final_jj" target="email_draft" />
 <Markdown>
-2. _What psychological technique we are recommending (positive reinforcement)._
+2. _What psychological technique we are recommending._
 
     To encourage a child to go to bed at bedtime, it's a great idea
     to use positive reinforcement.
@@ -298,7 +298,7 @@ _As you are filling in your email outline, so are your friends._
     they feel more motivated when they know their actions are recognized
     in a positive way.
 
-4. _List of positive reinforcement techniques she can try to get the kid to bed at bedtime._
+4. _List of positive reinforcement techniques she can use to try to get the kid to go to bed at bedtime._
 
     **Sticker Chart**: Reward each on-time bedtime with a sticker to
     track progress visually.
@@ -324,7 +324,7 @@ _As you are filling in your email outline, so are your friends._
 </Markdown>
 <Ref id="email_opening_final_lin" target="email_draft" />
 <Markdown>
-2. _What psychological technique we are recommending (positive reinforcement)._
+2. _What psychological technique we are recommending._
 
    Using positive reinforcement is an effective way to encourage a child
    to go to bed at bedtime.
@@ -343,7 +343,7 @@ _As you are filling in your email outline, so are your friends._
    noncompliance, the child is more likely to feel empowered and develop
    healthy habits.
 
-4. _List of positive reinforcement techniques she can try to get the kid to bed at bedtime._
+4. _List of positive reinforcement techniques she can use to try to get the kid to go to bed at bedtime._
 
    **Sing a Lullaby**: Offer to sing their favorite lullaby if they go
    to bed without delay.
@@ -372,7 +372,7 @@ _As you are filling in your email outline, so are your friends._
 </Markdown>
 <Ref id="email_opening_final_annie" target="email_draft" />
 <Markdown>
-2. _What psychological technique we are recommending (positive reinforcement)._
+2. _What psychological technique we are recommending._
 
    Positive reinforcement is a powerful strategy to encourage desired
    behaviors in children, such as going to bed at bedtime.
@@ -393,7 +393,7 @@ _As you are filling in your email outline, so are your friends._
    to develop healthy habits over time.
 
 
-4. _List of positive reinforcement techniques she can try to get the kid to bed at bedtime._
+4. _List of positive reinforcement techniques she can use to try to get the kid to go to bed at bedtime._
 
     **Bedtime Buddy**: Allow them to sleep with their favorite stuffed animal
     or toy.
@@ -412,7 +412,7 @@ _As you are filling in your email outline, so are your friends._
 
 5.  _Final paragraph -- wish her luck!_
 
-    I hope these techniques make your net babysitting experience a lot easier!
+    I hope these techniques make your next babysitting experience a lot easier!
 </Markdown>
 </Vertical>
 

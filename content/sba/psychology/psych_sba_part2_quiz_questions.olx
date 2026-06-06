@@ -231,13 +231,13 @@ Getting grounded for poor grades makes Aiden more likely to study, so this is re
 <MarkupProblem id="reinforce_punish_practice_1p" title="Question 16: Removing dessert"><![CDATA[
 ## Practice Quiz: Reinforcement vs. Punishment
 
->>Jackson doesn't try new foods because his favorite dessert was once removed for refusing broccoli.<<
+>>Jackson doesn't try new food because his parents once took away his favorite cookie because he refused to eat his broccoli.<<
 
 ( ) Reinforcement
 (x) Punishment
 
 [explanation]
-Removing desserts made Jackson less likely to try new foods, so this is punishment.
+Taking away his favorite cookie made Jackson less likely to try new food, so this is punishment.
 [/explanation]
 ]]></MarkupProblem>
 
@@ -273,7 +273,7 @@ Offering a snack made Jack more likely to put on his shoes, so this is reinforce
 <MarkupProblem id="reinforce_punish_practice_1s" title="Question 19: Excluded"><![CDATA[
 ## Practice Quiz: Reinforcement vs. Punishment
 
->>Amelia stops participating in group activities after being excluded as punishment in the past.<<
+>>Amelia stops participating in group activities after being excluded in the past.<<
 
 ( ) Reinforcement
 (x) Punishment
@@ -293,7 +293,7 @@ Being excluded made Amelia less likely to participate in group activities, so th
 ( ) Punishment
 
 [explanation]
-Getting the badge made Charlotte more likely to organized her desk, so this is reinforcement.
+Getting the badge made Charlotte more likely to organize her desk, so this is reinforcement.
 [/explanation]
 ]]></MarkupProblem>
 
@@ -515,7 +515,7 @@ Getting the badge made Charlotte more likely to organized her desk, so this is r
 ( ) Negative Punishment
 
 [explanation]
-- Something undesirable is added - making him sit in a "quiet corner" - Positive
+- Something undesirable is added (making him sit in a "quiet corner") - Positive
 - Behavior happens less often (interrupting) - Punishment
 [/explanation]
 ]]></MarkupProblem>
@@ -558,7 +558,7 @@ Getting the badge made Charlotte more likely to organized her desk, so this is r
 <MarkupProblem id="four_types_practice_1p" title="Question 16: Removing dessert"><![CDATA[
 ## Practice Quiz: The Four Types of Operant Conditioning
 
->>Jackson doesn't try new foods because his favorite dessert was once removed for refusing broccoli.<<
+>>Jackson doesn't try new food because his parents once took away his favorite cookie because he refused to eat his broccoli.<<
 
 ( ) Positive Reinforcement
 ( ) Negative Reinforcement
@@ -566,7 +566,7 @@ Getting the badge made Charlotte more likely to organized her desk, so this is r
 (x) Negative Punishment
 
 [explanation]
-- Something desirable is taken away (his favorite dessert) - Negative
+- Something desirable is taken away (his favorite cookie) - Negative
 - Behavior happens less often (trying new foods) - Punishment
 [/explanation]
 ]]></MarkupProblem>
@@ -609,7 +609,7 @@ Getting the badge made Charlotte more likely to organized her desk, so this is r
 <MarkupProblem id="four_types_practice_1s" title="Question 19: Excluded"><![CDATA[
 ## Practice Quiz: The Four Types of Operant Conditioning
 
->>Amelia stops participating in group activities after being excluded as punishment in the past.<<
+>>Amelia stops participating in group activities after being excluded in the past.<<
 
 ( ) Positive Reinforcement
 ( ) Negative Reinforcement
