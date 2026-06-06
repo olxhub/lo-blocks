@@ -479,7 +479,7 @@ _When you click Continue, the next screen gathers your responses into one page. 
 
 <!-- Curated submission view (same pattern as psych_sba_part1_review). Shown
 only as the chat's final step via ::psych_sba_part2_review, so the reading
-content and quiz banks are never rendered here — fast on screen, clean in
+content and quiz banks are never rendered here -- fast on screen, clean in
 the PDF. The formative practice quizzes (generated reinforce_punish_* and
 four_types_*) are intentionally omitted from the submission. -->
 <Vertical id="psych_sba_part2_review">
@@ -494,7 +494,7 @@ four_types_*) are intentionally omitted from the submission. -->
 Here is everything you wrote, gathered in one place. Look it over.
 
 If you need to change an answer, go back to that step in the activity (use
-the navigation to return to it), make your edits, and come back here — these
+the navigation to return to it), make your edits, and come back here -- these
 responses will update to match. When everything looks right, click the
 **Export as PDF** button above and upload the PDF to your course system.
 
