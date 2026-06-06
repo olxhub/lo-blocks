@@ -17,8 +17,8 @@ license: AGPL
 <Vertical id="psych_sba_activities_part2" title="Psychology Study Group: 2. Operant Conditioning (Activities)" launchable="true">
 
 
-<Vertical>
-<!-- Introduction section -->
+<HH> ============= Screen: Introduction ======================== </HH>
+
 <Markdown id="bedtime_problem_introduction2">
 ## Introduction
 
@@ -38,7 +38,9 @@ During this session, you will continue to work in the breakout group with the ch
 Let's begin.
 </Markdown>
 
-<!-- First page of JJ's lecture notes -->
+
+<HH> ============= Screen: First page of JJ's lecture notes ======================== </HH>
+
 <Markdown id="lecture_notes_1">
 ## Lecture Notes:
 
@@ -52,7 +54,9 @@ Let's begin.
 - _Daniel whines loudly whenever his caregiver focuses on another child._
 </Markdown>
 
-<!-- Second page of JJ's lecture notes -->
+
+<HH> ============= Screen: Second page of JJ's lecture notes ======================== </HH>
+
 <Markdown id="lecture_notes_2">
 ## Lecture Notes:
 
@@ -65,7 +69,9 @@ Let's begin.
 - _Nathan follows classroom rules after being sent to the principal's office for breaking them._
 - _Ella withdraws from group activities because her peers laughed at her during a presentation._
 </Markdown>
-</Vertical>
+
+
+<HH> ============= Screen: Practice Quiz 1: Reinforcement vs. Punishment ======================== </HH>
 
 <!-- Quiz 1: Basic Reinforcement vs Punishment, Question 1 -->
 <MarkupProblem id="reinforce_punish_practice_1" title="Question 1: Sticker"><![CDATA[
@@ -349,10 +355,13 @@ Getting the badge made Charlotte more likely to organized her desk, so this is r
 [/explanation]
 ]]></MarkupProblem>
 
-<Vertical>
+
 <Markdown id="operant_conditioning_clear_screen_1">
 &nbsp;
 </Markdown>
+
+
+<HH> ============= Screen: Notes: positive and negative reinforcement ======================== </HH>
 
 <Markdown id="operant_conditioning_reinforcement_notes">
 ## Lecture Notes
@@ -364,6 +373,9 @@ Getting the badge made Charlotte more likely to organized her desk, so this is r
 a typically **unpleasant** stimulus immediately after a response.
 </Markdown>
 
+
+<HH> ============= Screen: Notes: positive and negative punishment ======================== </HH>
+
 <Markdown id="operant_conditioning_reinforcement_notes2">
 ## Lecture Notes
 
@@ -372,8 +384,13 @@ a typically **unpleasant** stimulus immediately after a response.
 **Negative punishment** weakens a response by **reducing or removing** something typically **pleasurable** immediately after a response.
 </Markdown>
 
+
+<HH> ============= Screen: Reinforcement and punishment chart ======================== </HH>
+
 <Image id="operant_conditioning_poster" src="images/poster.jpg" alt="Chart on types of reinforcement and punishment" />
-</Vertical>
+
+
+<HH> ============= Screen: Categorize the examples ======================== </HH>
 
 <Vertical id="conditioning_example_chart">
 <Markdown>
@@ -412,7 +429,9 @@ Remember:
 </Markdown>
 </Vertical>
 
-<!-- Reinforcement poster -->
+
+<HH> ============= Screen: Annie's completed chart ======================== </HH>
+
 <Markdown id="filled_out_poster">
 ## Quick Reference Chart
 
@@ -441,6 +460,9 @@ Remember:
 - **Reinforcement** = Increases behavior
 - **Punishment** = Decreases behavior
 </Markdown>
+
+
+<HH> ============= Screen: Practice Quiz 2: The Four Types ======================== </HH>
 
 <!-- Quiz 2: Four Types of Operant Conditioning, Question 1 -->
 <MarkupProblem id="four_types_practice_1" title="Question 1: Sticker"><![CDATA[
@@ -789,13 +811,18 @@ Remember:
 &nbsp;
 </Markdown>
 
-<!-- The opening for the email we wrote in the previous task -->
+
+<HH> ============= Screen: The email opening we wrote ======================== </HH>
+
 <Vertical id="norulesparenting_summary">
 <Markdown id="email_draft_prompt">
 ## The Opening We Wrote
 </Markdown>
 <UseDynamic id="ref_email_draft2" target="email_draft" />
 </Vertical>
+
+
+<HH> ============= Screen: Outline for the email ======================== </HH>
 
 <Vertical id="outline_of_full_email">
 <Markdown>
@@ -815,6 +842,9 @@ Remember:
 5. Final paragraph -- wish her luck!
 </Markdown>
 </Vertical>
+
+
+<HH> ============= Screen: Writing the email ======================== </HH>
 
 <Vertical id="draft_full_email">
 <Markdown>
@@ -847,6 +877,10 @@ _As you are filling in your email outline, so are your friends._
 </Markdown>
 <TextArea id="final_paragraph" rows="3" placeholder="" />
 </Vertical>
+
+
+<HH> ============= Screen: The final email ======================== </HH>
+
 <Tabs id="final_email_tab">
 <Vertical id="tab1" title="The Final Email">
 <Markdown>
@@ -998,6 +1032,10 @@ _As you are filling in your email outline, so are your friends._
 <Use ref="draft_full_email" />
 </Vertical>
 </Tabs>
+
+
+<HH> ============= Screen: The roommate's reply ======================== </HH>
+
 <Markdown id="roommate_response">
 ## Annie's roommate's email:
 
@@ -1019,6 +1057,9 @@ So far, he has gone to bed without a fuss three nights in a row!
 
 Please tell everyone I really appreciate their ideas! Y'all are lifesavers!
 </Markdown>
+
+
+<HH> ============= Screen: Completion ======================== </HH>
 
 <Vertical id="psych_sba_part_2_completion_page">
 <Markdown>
@@ -1043,7 +1084,7 @@ _When you click Continue, the next screen gathers your responses into one page. 
 </Vertical>
 
 
-<HH> ============= Screen: Review / submission =============== </HH>
+<HH> ============= Screen: Review / submission ======================== </HH>
 
 <!-- Curated submission view (same pattern as psych_sba_part1_review). Shown
 only as the chat's final step via ::psych_sba_part2_review, so the reading
